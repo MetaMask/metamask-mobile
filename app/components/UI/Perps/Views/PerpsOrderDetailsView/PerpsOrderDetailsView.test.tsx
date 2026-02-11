@@ -231,6 +231,59 @@ describe('PerpsOrderDetailsView', () => {
     ).toBeOnTheScreen();
   });
 
+  it('hides cancel action for synthetic placeholder orders', () => {
+    mockRouteParams = {
+      order: {
+        ...mockOrder,
+        orderId: 'parent-order-1-synthetic-tp',
+        isSynthetic: true,
+      },
+    };
+
+    render(<PerpsOrderDetailsView />);
+
+    expect(
+      screen.queryByText('perps.order_details.cancel_order'),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('shows cancel action for synthetic orders with real child order IDs', () => {
+    mockRouteParams = {
+      order: {
+        ...mockOrder,
+        orderId: 'child-tp-order-123',
+        isSynthetic: true,
+      },
+    };
+
+    render(<PerpsOrderDetailsView />);
+
+    expect(
+      screen.getByText('perps.order_details.cancel_order'),
+    ).toBeOnTheScreen();
+  });
+
+  it('cancels synthetic orders when backed by a real child order ID', async () => {
+    mockRouteParams = {
+      order: {
+        ...mockOrder,
+        orderId: 'child-tp-order-123',
+        isSynthetic: true,
+      },
+    };
+
+    render(<PerpsOrderDetailsView />);
+
+    fireEvent.press(screen.getByText('perps.order_details.cancel_order'));
+
+    await waitFor(() => {
+      expect(mockCancelOrder).toHaveBeenCalledWith({
+        orderId: 'child-tp-order-123',
+        symbol: 'BTC',
+      });
+    });
+  });
+
   it('renders order date', () => {
     render(<PerpsOrderDetailsView />);
 

@@ -386,6 +386,60 @@ describe('hyperLiquidAdapter', () => {
       });
     });
 
+    it('preserves parent-level TP/SL metadata when child orders are absent', () => {
+      const frontendOrder = {
+        oid: 77777,
+        coin: 'BTC',
+        side: 'B',
+        sz: '0.25',
+        origSz: '0.25',
+        limitPx: '90000',
+        orderType: 'Limit',
+        timestamp: 1234567890000,
+        isTrigger: false,
+        reduceOnly: false,
+        triggerCondition: '',
+        triggerPx: '',
+        children: [],
+        isPositionTpsl: false,
+        tif: null,
+        cloid: null,
+        takeProfitPrice: '95000',
+        stopLossPrice: '88000',
+        takeProfitOrderId: 88888,
+        stopLossOrderId: 99999,
+      } as FrontendOrder & {
+        takeProfitPrice: string;
+        stopLossPrice: string;
+        takeProfitOrderId: number;
+        stopLossOrderId: number;
+      };
+
+      const result = adaptOrderFromSDK(frontendOrder);
+
+      expect(result).toEqual({
+        orderId: '77777',
+        symbol: 'BTC',
+        side: 'buy',
+        orderType: 'limit',
+        size: '0.25',
+        originalSize: '0.25',
+        price: '90000',
+        filledSize: '0',
+        remainingSize: '0.25',
+        status: 'open',
+        timestamp: 1234567890000,
+        detailedOrderType: 'Limit',
+        isTrigger: false,
+        reduceOnly: false,
+        isPositionTpsl: false,
+        takeProfitPrice: '95000',
+        stopLossPrice: '88000',
+        takeProfitOrderId: '88888',
+        stopLossOrderId: '99999',
+      });
+    });
+
     it('should handle partially filled order', () => {
       const frontendOrder: FrontendOrder = {
         oid: 33333,

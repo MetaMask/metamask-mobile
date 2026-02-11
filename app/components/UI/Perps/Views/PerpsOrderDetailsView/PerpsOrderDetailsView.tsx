@@ -33,7 +33,10 @@ import {
   formatPositionSize,
   formatOrderCardDate,
 } from '../../utils/formatUtils';
-import { formatOrderLabel } from '../../utils/orderUtils';
+import {
+  formatOrderLabel,
+  isSyntheticOrderCancelable,
+} from '../../utils/orderUtils';
 import { useTheme } from '../../../../../util/theme';
 
 interface OrderDetailsRouteParams {
@@ -51,6 +54,10 @@ const PerpsOrderDetailsView: React.FC = () => {
   const { showToast, PerpsToastOptions } = usePerpsToasts();
 
   const [isCanceling, setIsCanceling] = useState(false);
+  const canCancel = useMemo(
+    () => (order ? isSyntheticOrderCancelable(order) : false),
+    [order],
+  );
 
   // Calculate size in USD for fee calculation
   const sizeInUSD = useMemo(() => {
@@ -149,7 +156,7 @@ const PerpsOrderDetailsView: React.FC = () => {
   }, [order]);
 
   const handleCancelOrder = useCallback(async () => {
-    if (!order) return;
+    if (!order || !canCancel) return;
 
     setIsCanceling(true);
 
@@ -189,7 +196,7 @@ const PerpsOrderDetailsView: React.FC = () => {
     } finally {
       setIsCanceling(false);
     }
-  }, [order, cancelOrder, navigation, showToast, PerpsToastOptions]);
+  }, [order, canCancel, cancelOrder, navigation, showToast, PerpsToastOptions]);
 
   if (!order) {
     return (
@@ -466,16 +473,18 @@ const PerpsOrderDetailsView: React.FC = () => {
       </ScrollView>
 
       {/* Footer Actions */}
-      <View style={styles.footer}>
-        <Button
-          variant={ButtonVariants.Secondary}
-          size={ButtonSize.Lg}
-          width={ButtonWidthTypes.Full}
-          label={strings('perps.order_details.cancel_order')}
-          onPress={handleCancelOrder}
-          loading={isCanceling}
-        />
-      </View>
+      {canCancel ? (
+        <View style={styles.footer}>
+          <Button
+            variant={ButtonVariants.Secondary}
+            size={ButtonSize.Lg}
+            width={ButtonWidthTypes.Full}
+            label={strings('perps.order_details.cancel_order')}
+            onPress={handleCancelOrder}
+            loading={isCanceling}
+          />
+        </View>
+      ) : null}
     </SafeAreaView>
   );
 };

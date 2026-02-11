@@ -14,6 +14,9 @@ import { Position } from '../hooks';
 export type OrderUtilsDebugLogger = PerpsDebugLogger | undefined;
 
 const FULL_POSITION_SIZE_TOLERANCE = new BigNumber('0.00000001');
+const ORDER_PRICE_MATCH_TOLERANCE = new BigNumber('0.00000001');
+const SYNTHETIC_TP_ID_SUFFIX = '-synthetic-tp';
+const SYNTHETIC_SL_ID_SUFFIX = '-synthetic-sl';
 
 const getAbsoluteOrderSize = (order: Order): BigNumber | null => {
   const size = order.originalSize || order.size;
@@ -36,6 +39,51 @@ const getAbsolutePositionSize = (position?: Position): BigNumber | null => {
 
   return parsedSize.abs();
 };
+
+const getOrderTriggerPrice = (order: Order): BigNumber | null => {
+  const rawPrice = order.triggerPrice || order.price;
+  if (!rawPrice) {
+    return null;
+  }
+
+  const parsedPrice = new BigNumber(rawPrice);
+  if (!parsedPrice.isFinite() || parsedPrice.lte(0)) {
+    return null;
+  }
+
+  return parsedPrice;
+};
+
+const hasMatchingRealReduceOnlyTrigger = (
+  orders: Order[],
+  syntheticOrder: Order,
+): boolean =>
+  orders.some((order) => {
+    if (order.isSynthetic) {
+      return false;
+    }
+
+    if (
+      order.symbol !== syntheticOrder.symbol ||
+      order.side !== syntheticOrder.side ||
+      order.reduceOnly !== true ||
+      order.isTrigger !== true
+    ) {
+      return false;
+    }
+
+    const existingOrderPrice = getOrderTriggerPrice(order);
+    const syntheticOrderPrice = getOrderTriggerPrice(syntheticOrder);
+
+    if (!existingOrderPrice || !syntheticOrderPrice) {
+      return false;
+    }
+
+    return existingOrderPrice
+      .minus(syntheticOrderPrice)
+      .abs()
+      .lte(ORDER_PRICE_MATCH_TOLERANCE);
+  });
 
 const isClosingSideForPosition = (
   order: Order,
@@ -107,6 +155,117 @@ export const shouldDisplayOrderInMarketDetailsOrders = (
   }
 
   return !isOrderAssociatedWithFullPosition(order, position);
+};
+
+export const isSyntheticPlaceholderOrderId = (orderId: string): boolean =>
+  orderId.endsWith(SYNTHETIC_TP_ID_SUFFIX) ||
+  orderId.endsWith(SYNTHETIC_SL_ID_SUFFIX);
+
+export const isSyntheticOrderCancelable = (order: Order): boolean => {
+  if (!order.isSynthetic) {
+    return true;
+  }
+
+  return !isSyntheticPlaceholderOrderId(order.orderId);
+};
+
+const buildSyntheticTriggerOrder = (
+  parentOrder: Order,
+  triggerType: 'tp' | 'sl',
+): Order | null => {
+  const triggerPrice =
+    triggerType === 'tp'
+      ? parentOrder.takeProfitPrice
+      : parentOrder.stopLossPrice;
+  const parsedTriggerPrice = new BigNumber(triggerPrice || '');
+  if (!parsedTriggerPrice.isFinite() || parsedTriggerPrice.lte(0)) {
+    return null;
+  }
+  const normalizedTriggerPrice = parsedTriggerPrice.toFixed();
+
+  const syntheticSide = parentOrder.side === 'buy' ? 'sell' : 'buy';
+  const isMarketParent =
+    parentOrder.orderType === 'market' ||
+    (parentOrder.detailedOrderType || '').toLowerCase().includes('market');
+  const syntheticOrderType = isMarketParent ? 'market' : 'limit';
+  const syntheticDetailedType =
+    triggerType === 'tp'
+      ? `Take Profit ${isMarketParent ? 'Market' : 'Limit'}`
+      : `Stop ${isMarketParent ? 'Market' : 'Limit'}`;
+  const size = parentOrder.originalSize || parentOrder.size || '0';
+  const existingChildOrderId =
+    triggerType === 'tp'
+      ? parentOrder.takeProfitOrderId
+      : parentOrder.stopLossOrderId;
+  const syntheticOrderIdSuffix =
+    triggerType === 'tp' ? SYNTHETIC_TP_ID_SUFFIX : SYNTHETIC_SL_ID_SUFFIX;
+  const syntheticOrderId =
+    existingChildOrderId && existingChildOrderId.trim().length > 0
+      ? existingChildOrderId
+      : `${parentOrder.orderId}${syntheticOrderIdSuffix}`;
+
+  return {
+    orderId: syntheticOrderId,
+    parentOrderId: parentOrder.orderId,
+    isSynthetic: true,
+    symbol: parentOrder.symbol,
+    side: syntheticSide,
+    orderType: syntheticOrderType,
+    size,
+    originalSize: size,
+    price: normalizedTriggerPrice,
+    filledSize: '0',
+    remainingSize: size,
+    status: 'open',
+    timestamp: parentOrder.timestamp,
+    detailedOrderType: syntheticDetailedType,
+    isTrigger: true,
+    reduceOnly: true,
+    triggerPrice: normalizedTriggerPrice,
+    providerId: parentOrder.providerId,
+  };
+};
+
+/**
+ * Builds display orders with synthetic TP/SL rows for untriggered parent orders.
+ *
+ * Synthetic rows are display-only and are not created when a real reduce-only
+ * trigger already exists with matching symbol, side, and trigger price.
+ */
+export const buildDisplayOrdersWithSyntheticTpsl = (
+  orders: Order[],
+): Order[] => {
+  if (!orders.length) {
+    return orders;
+  }
+
+  const displayOrders: Order[] = [];
+
+  orders.forEach((order) => {
+    displayOrders.push(order);
+
+    if (order.isTrigger) {
+      return;
+    }
+
+    const syntheticTpOrder = buildSyntheticTriggerOrder(order, 'tp');
+    if (
+      syntheticTpOrder &&
+      !hasMatchingRealReduceOnlyTrigger(orders, syntheticTpOrder)
+    ) {
+      displayOrders.push(syntheticTpOrder);
+    }
+
+    const syntheticSlOrder = buildSyntheticTriggerOrder(order, 'sl');
+    if (
+      syntheticSlOrder &&
+      !hasMatchingRealReduceOnlyTrigger(orders, syntheticSlOrder)
+    ) {
+      displayOrders.push(syntheticSlOrder);
+    }
+  });
+
+  return displayOrders;
 };
 
 /**

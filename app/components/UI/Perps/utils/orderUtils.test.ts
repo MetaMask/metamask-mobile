@@ -1,5 +1,8 @@
 import {
+  buildDisplayOrdersWithSyntheticTpsl,
   isOrderAssociatedWithFullPosition,
+  isSyntheticOrderCancelable,
+  isSyntheticPlaceholderOrderId,
   shouldDisplayOrderInMarketDetailsOrders,
   formatOrderLabel,
   getOrderLabelDirection,
@@ -413,6 +416,159 @@ describe('orderUtils', () => {
       );
 
       expect(result).toBe(true);
+    });
+  });
+
+  describe('buildDisplayOrdersWithSyntheticTpsl', () => {
+    const timestamp = 1730151332000;
+
+    const parentLimitOrder: Order = {
+      orderId: 'parent-limit-1',
+      symbol: 'BTC',
+      side: 'buy',
+      orderType: 'limit',
+      size: '0.5',
+      originalSize: '0.5',
+      price: '92000',
+      filledSize: '0',
+      remainingSize: '0.5',
+      status: 'open',
+      timestamp,
+      isTrigger: false,
+      reduceOnly: false,
+    };
+
+    it('creates a synthetic TP row from parent TP metadata', () => {
+      const result = buildDisplayOrdersWithSyntheticTpsl([
+        {
+          ...parentLimitOrder,
+          takeProfitPrice: '95000',
+        },
+      ]);
+
+      expect(result).toHaveLength(2);
+      expect(result[1]).toMatchObject({
+        orderId: 'parent-limit-1-synthetic-tp',
+        parentOrderId: 'parent-limit-1',
+        isSynthetic: true,
+        isTrigger: true,
+        reduceOnly: true,
+        side: 'sell',
+        detailedOrderType: 'Take Profit Limit',
+        triggerPrice: '95000',
+        price: '95000',
+      });
+    });
+
+    it('creates both TP and SL synthetic rows when both prices exist', () => {
+      const result = buildDisplayOrdersWithSyntheticTpsl([
+        {
+          ...parentLimitOrder,
+          takeProfitPrice: '95000',
+          stopLossPrice: '89000',
+        },
+      ]);
+
+      expect(result).toHaveLength(3);
+      expect(result.map((order) => order.orderId)).toEqual([
+        'parent-limit-1',
+        'parent-limit-1-synthetic-tp',
+        'parent-limit-1-synthetic-sl',
+      ]);
+    });
+
+    it('uses existing child TP/SL order IDs as synthetic row cancel targets when available', () => {
+      const result = buildDisplayOrdersWithSyntheticTpsl([
+        {
+          ...parentLimitOrder,
+          takeProfitPrice: '95000',
+          stopLossPrice: '89000',
+          takeProfitOrderId: 'child-tp-order-id',
+          stopLossOrderId: 'child-sl-order-id',
+        },
+      ]);
+
+      expect(result).toHaveLength(3);
+      expect(result.map((order) => order.orderId)).toEqual([
+        'parent-limit-1',
+        'child-tp-order-id',
+        'child-sl-order-id',
+      ]);
+      expect(result[1].isSynthetic).toBe(true);
+      expect(result[2].isSynthetic).toBe(true);
+    });
+
+    it('does not create duplicate synthetic row when matching real child trigger exists', () => {
+      const result = buildDisplayOrdersWithSyntheticTpsl([
+        {
+          ...parentLimitOrder,
+          takeProfitPrice: '95000',
+        },
+        {
+          orderId: 'real-child-tp',
+          symbol: 'BTC',
+          side: 'sell',
+          orderType: 'limit',
+          size: '0.5',
+          originalSize: '0.5',
+          price: '95000',
+          filledSize: '0',
+          remainingSize: '0.5',
+          status: 'open',
+          timestamp,
+          detailedOrderType: 'Take Profit Limit',
+          isTrigger: true,
+          reduceOnly: true,
+          triggerPrice: '95000',
+        },
+      ]);
+
+      expect(result).toHaveLength(2);
+      expect(result.find((order) => order.isSynthetic)).toBeUndefined();
+    });
+  });
+
+  describe('synthetic order cancelability', () => {
+    it('detects placeholder synthetic IDs', () => {
+      expect(isSyntheticPlaceholderOrderId('abc-synthetic-tp')).toBe(true);
+      expect(isSyntheticPlaceholderOrderId('abc-synthetic-sl')).toBe(true);
+      expect(isSyntheticPlaceholderOrderId('real-child-id-123')).toBe(false);
+    });
+
+    it('treats non-synthetic orders as cancelable', () => {
+      const order: Order = {
+        orderId: 'real-order',
+        symbol: 'BTC',
+        side: 'buy',
+        orderType: 'limit',
+        size: '1',
+        originalSize: '1',
+        price: '50000',
+        filledSize: '0',
+        remainingSize: '1',
+        status: 'open',
+        timestamp: Date.now(),
+      };
+
+      expect(isSyntheticOrderCancelable(order)).toBe(true);
+    });
+
+    it('treats synthetic placeholder orders as non-cancelable', () => {
+      const syntheticOrder = {
+        orderId: 'parent-123-synthetic-tp',
+        isSynthetic: true,
+      } as Order;
+
+      expect(isSyntheticOrderCancelable(syntheticOrder)).toBe(false);
+    });
+
+    it('treats synthetic orders with real child IDs as cancelable', () => {
+      const syntheticOrder = {
+        orderId: 'child-tp-order-id',
+        isSynthetic: true,
+      } as Order;
+
+      expect(isSyntheticOrderCancelable(syntheticOrder)).toBe(true);
     });
   });
 
