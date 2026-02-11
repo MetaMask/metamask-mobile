@@ -11,6 +11,7 @@ import Routes from '../../../constants/navigation/Routes';
 import { Authentication } from '../../../core/';
 import { Colors } from '../../../util/theme/models';
 import { SettingsViewSelectorsIDs } from './SettingsView.testIds';
+import { SupportService } from '../../../core/Intercom';
 ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
 import { createSnapsSettingsListNavDetails } from '../Snaps/SnapsSettingsList/SnapsSettingsList';
 ///: END:ONLY_INCLUDE_IF
@@ -154,17 +155,16 @@ const Settings = () => {
     );
   };
 
-  const showHelp = () => {
-    let supportUrl = 'https://support.metamask.io';
-
-    ///: BEGIN:ONLY_INCLUDE_IF(beta)
-    supportUrl = 'https://intercom.help/internal-beta-testing/en/';
-    ///: END:ONLY_INCLUDE_IF
-
-    goToBrowserUrl(supportUrl, strings('app_settings.contact_support'));
+  const showHelp = async () => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.NAVIGATION_TAPS_GET_HELP).build(),
     );
+
+    // Use Intercom SupportService for in-app support
+    // Falls back to browser Help Center if Intercom is unavailable
+    await SupportService.openSupport({
+      featureArea: 'settings',
+    });
   };
 
   const onPressLock = async () => {

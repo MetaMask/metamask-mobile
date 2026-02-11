@@ -25,6 +25,7 @@ import {
   AutoLock,
   ClearPrivacy,
   BlockaidSettings,
+  InAppSurveysSection,
 } from './Sections';
 import { selectProviderType } from '../../../../selectors/networkController';
 import { selectUseTransactionSimulations } from '../../../../selectors/preferencesController';
@@ -474,6 +475,7 @@ const Settings: React.FC = () => {
           {strings('app_settings.analytics_subheading')}
         </Text>
         <MetaMetricsAndDataCollectionSection />
+        <InAppSurveysSection />
         <DeleteMetaMetricsData metricsOptin={analyticsEnabled} />
         <DeleteWalletData />
         {renderHint()}

@@ -8,6 +8,7 @@ import ChangePassword from './ChangePassword/ChangePassword';
 import AutoLock from './AutoLock/AutoLock';
 import ClearPrivacy from './ClearPrivacy/ClearPrivacy';
 import BlockaidSettings from './BlockaidSettings';
+import InAppSurveysSection from './InAppSurveysSection';
 
 export {
   ClearCookiesSection,
@@ -20,4 +21,5 @@ export {
   AutoLock,
   ClearPrivacy,
   BlockaidSettings,
+  InAppSurveysSection,
 };

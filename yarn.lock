@@ -6294,6 +6294,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@intercom/intercom-react-native@npm:^9.5.0":
+  version: 9.5.0
+  resolution: "@intercom/intercom-react-native@npm:9.5.0"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+  checksum: 10/46d6199d5e5ef5c75fb113300c3a34b61dad794f75170e306272177d8c93e1a8c6d06df7eb8688e31b8ca18ab8f9297361c36110a24573da7b1a0fde8eb2070f
+  languageName: node
+  linkType: hard
+
 "@ioredis/commands@npm:^1.1.1":
   version: 1.2.0
   resolution: "@ioredis/commands@npm:1.2.0"
@@ -34654,6 +34664,7 @@ __metadata:
     "@img/sharp-libvips-darwin-arm64": "npm:^1.2.1"
     "@img/sharp-libvips-linux-x64": "npm:^1.2.1"
     "@img/sharp-linux-x64": "npm:^0.34.3"
+    "@intercom/intercom-react-native": "npm:^9.5.0"
     "@keystonehq/bc-ur-registry-eth": "npm:^0.21.0"
     "@keystonehq/ur-decoder": "npm:^0.12.2"
     "@lavamoat/allow-scripts": "npm:^3.0.4"

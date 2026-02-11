@@ -412,6 +412,29 @@ PODS:
   - hermes-engine (0.76.9):
     - hermes-engine/Pre-built (= 0.76.9)
   - hermes-engine/Pre-built (0.76.9)
+  - Intercom (19.4.1)
+  - intercom-react-native (9.5.0):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - Intercom (~> 19.4.1)
+    - RCT-Folly (= 2024.10.14.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - libavif/core (0.11.1)
   - libavif/libdav1d (0.11.1):
     - libavif/core
@@ -3000,6 +3023,7 @@ DEPENDENCIES:
   - "GoogleUtilities/NSData+zlib"
   - GzipSwift
   - hermes-engine (from `../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec`)
+  - "intercom-react-native (from `../node_modules/@intercom/intercom-react-native`)"
   - lottie-react-native (from `../node_modules/lottie-react-native`)
   - "NativeUtils (from `../node_modules/@metamask/native-utils`)"
   - NitroModules (from `../node_modules/react-native-nitro-modules`)
@@ -3139,6 +3163,7 @@ SPEC REPOS:
     - GoogleUtilities
     - GZIP
     - GzipSwift
+    - Intercom
     - libavif
     - libdav1d
     - lottie-ios
@@ -3228,6 +3253,8 @@ EXTERNAL SOURCES:
   hermes-engine:
     :podspec: "../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec"
     :tag: hermes-2024-11-12-RNv0.76.2-5b4aa20c719830dcf5684832b89a6edb95ac3d64
+  intercom-react-native:
+    :path: "../node_modules/@intercom/intercom-react-native"
   lottie-react-native:
     :path: "../node_modules/lottie-react-native"
   NativeUtils:
@@ -3517,6 +3544,8 @@ SPEC CHECKSUMS:
   GZIP: 3c0abf794bfce8c7cb34ea05a1837752416c8868
   GzipSwift: 893f3e48e597a1a4f62fafcb6514220fcf8287fa
   hermes-engine: 9e868dc7be781364296d6ee2f56d0c1a9ef0bb11
+  Intercom: aca703f001cf9470b1f13b72cb8cc969a09bafca
+  intercom-react-native: 1e5c7388b6b501c102bf832a09f11a0534528b58
   libavif: 84bbb62fb232c3018d6f1bab79beea87e35de7b7
   libdav1d: 23581a4d8ec811ff171ed5e2e05cd27bad64c39f
   lottie-ios: e047b1d2e6239b787cc5e9755b988869cf190494

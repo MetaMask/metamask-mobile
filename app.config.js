@@ -81,6 +81,15 @@ module.exports = {
         ],
       },
     ],
+    // Intercom SDK for in-app support and surveys
+    // Uses manual initialization for privacy (SDK only loads on explicit user action)
+    [
+      '@intercom/intercom-react-native',
+      {
+        useManualInit: true,
+        intercomRegion: 'US',
+      },
+    ],
   ],
   android: {
     package:
