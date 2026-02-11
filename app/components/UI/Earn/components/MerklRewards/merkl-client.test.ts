@@ -22,7 +22,6 @@ jest.mock('@metamask/transaction-controller', () => ({
 
 // Use chain IDs directly to avoid import issues in tests
 const MAINNET_CHAIN_ID = '0x1' as const;
-const LINEA_MAINNET_CHAIN_ID = '0xe708' as const;
 
 // Mock musd constants
 jest.mock('../../constants/musd', () => ({
@@ -33,7 +32,7 @@ jest.mock('../../constants/musd', () => ({
 }));
 
 // Import after mocks are set up
-import { getClaimedAmountFromContract, getClaimChainId } from './merkl-client';
+import { getClaimedAmountFromContract } from './merkl-client';
 
 // Mock dependencies
 jest.mock('../../../../../core/Engine', () => ({
@@ -303,64 +302,5 @@ describe('getClaimedAmountFromContract', () => {
     );
 
     expect(result).toBe('0');
-  });
-});
-
-describe('getClaimChainId', () => {
-  const MUSD_ADDRESS = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
-
-  it('returns Linea chain ID for mUSD on mainnet', () => {
-    const asset = {
-      address: MUSD_ADDRESS,
-      chainId: MAINNET_CHAIN_ID,
-    };
-
-    const result = getClaimChainId(asset as never);
-
-    expect(result).toBe(LINEA_MAINNET_CHAIN_ID);
-  });
-
-  it('returns Linea chain ID for mUSD on Linea', () => {
-    const asset = {
-      address: MUSD_ADDRESS,
-      chainId: LINEA_MAINNET_CHAIN_ID,
-    };
-
-    const result = getClaimChainId(asset as never);
-
-    expect(result).toBe(LINEA_MAINNET_CHAIN_ID);
-  });
-
-  it('returns Linea chain ID for mUSD with uppercase address', () => {
-    const asset = {
-      address: MUSD_ADDRESS.toUpperCase(),
-      chainId: MAINNET_CHAIN_ID,
-    };
-
-    const result = getClaimChainId(asset as never);
-
-    expect(result).toBe(LINEA_MAINNET_CHAIN_ID);
-  });
-
-  it('returns asset chain ID for non-mUSD tokens', () => {
-    const asset = {
-      address: AGLAMERKL_ADDRESS_MAINNET,
-      chainId: MAINNET_CHAIN_ID,
-    };
-
-    const result = getClaimChainId(asset as never);
-
-    expect(result).toBe(MAINNET_CHAIN_ID);
-  });
-
-  it('returns asset chain ID for other tokens on Linea', () => {
-    const asset = {
-      address: '0x1111111111111111111111111111111111111111',
-      chainId: LINEA_MAINNET_CHAIN_ID,
-    };
-
-    const result = getClaimChainId(asset as never);
-
-    expect(result).toBe(LINEA_MAINNET_CHAIN_ID);
   });
 });

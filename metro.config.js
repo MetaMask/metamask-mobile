@@ -87,6 +87,10 @@ module.exports = function (baseConfig) {
           net: require.resolve('react-native-tcp-socket'),
           fs: require.resolve('react-native-level-fs'),
           images: path.resolve(__dirname, 'app/images'),
+          '@metamask/perps-controller': path.resolve(
+            __dirname,
+            'app/controllers/perps',
+          ),
           'base64-js': 'react-native-quick-base64',
           base64: 'react-native-quick-base64',
           'js-base64': 'react-native-quick-base64',
