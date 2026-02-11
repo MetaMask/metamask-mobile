@@ -35,6 +35,9 @@ function getTrustState(
       return TrustSignalDisplayState.Warning;
     case AddressScanResultType.Loading:
       return TrustSignalDisplayState.Loading;
+    case AddressScanResultType.Trusted:
+      // Trusted always maps to Verified
+      return TrustSignalDisplayState.Verified;
     case AddressScanResultType.Benign:
       // Benign with label = Verified, without = Unknown
       return label

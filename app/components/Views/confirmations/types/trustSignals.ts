@@ -18,6 +18,7 @@ export enum AddressScanResultType {
   Benign = 'Benign',
   Loading = 'Loading',
   Malicious = 'Malicious',
+  Trusted = 'Trusted',
   Warning = 'Warning',
 }
 

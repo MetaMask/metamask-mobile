@@ -112,6 +112,73 @@ describe('useAddressTrustSignals', () => {
       });
     });
 
+    it('returns Verified state for trusted address', () => {
+      const requests = [{ address: TEST_ADDRESS_1, chainId: TEST_CHAIN_ID }];
+
+      const { result } = renderHookWithProvider(
+        () => useAddressTrustSignals(requests),
+        {
+          state: {
+            engine: {
+              backgroundState: {
+                PhishingController: {
+                  // @ts-expect-error - AddressScanResultType is not exported in PhishingController
+                  addressScanCache: {
+                    [`${TEST_CHAIN_ID.toLowerCase()}:${TEST_ADDRESS_1.toLowerCase()}`]:
+                      {
+                        data: {
+                          result_type: 'Trusted',
+                          label: 'Uniswap V4: Universal Router',
+                        },
+                      },
+                  },
+                },
+              },
+            },
+          },
+        },
+      );
+
+      expect(result.current).toHaveLength(1);
+      expect(result.current[0]).toEqual({
+        state: TrustSignalDisplayState.Verified,
+        label: 'Uniswap V4: Universal Router',
+      });
+    });
+
+    it('returns Verified state for trusted address without label', () => {
+      const requests = [{ address: TEST_ADDRESS_1, chainId: TEST_CHAIN_ID }];
+
+      const { result } = renderHookWithProvider(
+        () => useAddressTrustSignals(requests),
+        {
+          state: {
+            engine: {
+              backgroundState: {
+                PhishingController: {
+                  // @ts-expect-error - AddressScanResultType is not exported in PhishingController
+                  addressScanCache: {
+                    [`${TEST_CHAIN_ID.toLowerCase()}:${TEST_ADDRESS_1.toLowerCase()}`]:
+                      {
+                        data: {
+                          result_type: 'Trusted',
+                        },
+                      },
+                  },
+                },
+              },
+            },
+          },
+        },
+      );
+
+      expect(result.current).toHaveLength(1);
+      expect(result.current[0]).toEqual({
+        state: TrustSignalDisplayState.Verified,
+        label: null,
+      });
+    });
+
     it('returns Verified state for benign address with label', () => {
       const requests = [{ address: TEST_ADDRESS_1, chainId: TEST_CHAIN_ID }];
 
