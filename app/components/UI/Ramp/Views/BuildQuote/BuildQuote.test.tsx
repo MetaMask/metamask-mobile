@@ -612,5 +612,69 @@ describe('BuildQuote', () => {
       );
       expect(mockNavigate).not.toHaveBeenCalled();
     });
+
+    it('does not navigate when quote amount does not match current amount', async () => {
+      mockSelectedQuote = {
+        provider: '/providers/mercuryo',
+        quote: {
+          amountIn: 50,
+          amountOut: 0.025,
+          paymentMethod: '/payments/debit-credit-card',
+          buyURL:
+            'https://on-ramp.uat-api.cx.metamask.io/providers/mercuryo/buy-widget',
+        },
+        providerInfo: {
+          id: '/providers/mercuryo',
+          name: 'Mercuryo',
+          type: 'aggregator',
+        },
+      };
+      mockSelectedPaymentMethod = {
+        id: '/payments/debit-credit-card',
+        name: 'Card',
+      };
+
+      const { getByTestId } = renderWithTheme(<BuildQuote />);
+
+      const continueButton = getByTestId('build-quote-continue-button');
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
+
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockGetWidgetUrl).not.toHaveBeenCalled();
+    });
+
+    it('does not navigate when quote payment method does not match selected payment method', async () => {
+      mockSelectedQuote = {
+        provider: '/providers/mercuryo',
+        quote: {
+          amountIn: 100,
+          amountOut: 0.05,
+          paymentMethod: '/payments/paypal',
+          buyURL:
+            'https://on-ramp.uat-api.cx.metamask.io/providers/mercuryo/buy-widget',
+        },
+        providerInfo: {
+          id: '/providers/mercuryo',
+          name: 'Mercuryo',
+          type: 'aggregator',
+        },
+      };
+      mockSelectedPaymentMethod = {
+        id: '/payments/debit-credit-card',
+        name: 'Card',
+      };
+
+      const { getByTestId } = renderWithTheme(<BuildQuote />);
+
+      const continueButton = getByTestId('build-quote-continue-button');
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
+
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockGetWidgetUrl).not.toHaveBeenCalled();
+    });
   });
 });

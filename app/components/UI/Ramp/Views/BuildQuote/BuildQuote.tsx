@@ -150,6 +150,22 @@ function BuildQuote() {
   const handleContinuePress = useCallback(async () => {
     if (!selectedQuote) return;
 
+    const quoteAmount =
+      selectedQuote.quote?.amountIn ??
+      (selectedQuote as { amountIn?: number }).amountIn;
+    const quotePaymentMethod =
+      selectedQuote.quote?.paymentMethod ??
+      (selectedQuote as { paymentMethod?: string }).paymentMethod;
+
+    if (
+      quoteAmount !== amountAsNumber ||
+      (quotePaymentMethod != null &&
+        selectedPaymentMethod?.id != null &&
+        quotePaymentMethod !== selectedPaymentMethod.id)
+    ) {
+      return;
+    }
+
     // Native/whitelabel provider (e.g. Transak Native) -> deposit flow
     if (isNativeProvider(selectedQuote)) {
       navigation.navigate(
@@ -198,6 +214,7 @@ function BuildQuote() {
     amountAsNumber,
     selectedToken,
     currency,
+    selectedPaymentMethod,
   ]);
 
   const hasAmount = amountAsNumber > 0;
