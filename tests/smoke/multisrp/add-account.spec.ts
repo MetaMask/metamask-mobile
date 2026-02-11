@@ -1,10 +1,10 @@
-import { SmokeWalletPlatform } from '../../../e2e/tags';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.ts';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper.ts';
-import WalletView from '../../../e2e/pages/wallet/WalletView.ts';
-import { loginToApp } from '../../../e2e/viewHelper.ts';
-import Assertions from '../../framework/Assertions.ts';
-import AccountListBottomSheet from '../../../e2e/pages/wallet/AccountListBottomSheet.ts';
+import { SmokeWalletPlatform } from '../../tags';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import WalletView from '../../page-objects/wallet/WalletView';
+import { loginToApp } from '../../flows/wallet.flow';
+import Assertions from '../../framework/Assertions';
+import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomSheet';
 
 describe(
   SmokeWalletPlatform('Multi-SRP: Add new account to a specific SRP'),

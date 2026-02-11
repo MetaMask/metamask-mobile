@@ -6,7 +6,7 @@ import {
 } from '../constants/eventNames';
 import { usePerpsOrderExecution } from './usePerpsOrderExecution';
 import { usePerpsTrading } from './usePerpsTrading';
-import type { OrderParams, Position } from '../controllers/types';
+import { type OrderParams, type Position } from '@metamask/perps-controller';
 
 jest.mock('./usePerpsTrading');
 const mockTrack = jest.fn();
