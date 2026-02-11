@@ -92,6 +92,11 @@ const HeaderCollapsible: React.FC<HeaderCollapsibleProps> = ({
   const [measuredHeight, setMeasuredHeight] = useState(DEFAULT_EXPANDED_HEIGHT);
   const animatedMeasuredHeight = useSharedValue(DEFAULT_EXPANDED_HEIGHT);
 
+  const [measuredCollapsedHeight, setMeasuredCollapsedHeight] = useState(
+    DEFAULT_COLLAPSED_HEIGHT,
+  );
+  const animatedCollapsedHeight = useSharedValue(DEFAULT_COLLAPSED_HEIGHT);
+
   const handleLayout = useCallback(
     (e: LayoutChangeEvent) => {
       const { height } = e.nativeEvent.layout;
@@ -102,6 +107,17 @@ const HeaderCollapsible: React.FC<HeaderCollapsibleProps> = ({
       }
     },
     [measuredHeight, animatedMeasuredHeight, onExpandedHeightChange],
+  );
+
+  const handleHeaderBaseLayout = useCallback(
+    (e: LayoutChangeEvent) => {
+      const { height } = e.nativeEvent.layout;
+      if (height > 0 && height !== measuredCollapsedHeight) {
+        setMeasuredCollapsedHeight(height);
+        animatedCollapsedHeight.value = height;
+      }
+    },
+    [measuredCollapsedHeight, animatedCollapsedHeight],
   );
 
   // Use scrollTriggerPosition if provided, otherwise use measured height
@@ -151,7 +167,7 @@ const HeaderCollapsible: React.FC<HeaderCollapsibleProps> = ({
     const height = interpolate(
       scrollY.value,
       [0, effectiveScrollTriggerPosition],
-      [animatedMeasuredHeight.value, DEFAULT_COLLAPSED_HEIGHT],
+      [animatedMeasuredHeight.value, animatedCollapsedHeight.value],
       Extrapolation.CLAMP,
     );
 
@@ -162,12 +178,10 @@ const HeaderCollapsible: React.FC<HeaderCollapsibleProps> = ({
 
   // Derived value: triggers timed animation when large content is fully hidden
   const compactTitleProgress = useDerivedValue(() => {
-    // Use effectiveScrollTriggerPosition to sync with header collapse animation
     const triggerPosition =
-      effectiveScrollTriggerPosition - DEFAULT_COLLAPSED_HEIGHT;
+      effectiveScrollTriggerPosition - animatedCollapsedHeight.value;
     const isFullyHidden = scrollY.value >= triggerPosition;
 
-    // Animate to 1 when hidden, 0 when visible (with timing)
     return withTiming(isFullyHidden ? 1 : 0, { duration: 150 });
   });
 
@@ -183,13 +197,10 @@ const HeaderCollapsible: React.FC<HeaderCollapsibleProps> = ({
 
   // Animated style for the expanded content (moves up behind header, synced 1:1 with scroll)
   const expandedContentAnimatedStyle = useAnimatedStyle(() => {
-    const expandedContentHeight =
-      animatedMeasuredHeight.value - DEFAULT_COLLAPSED_HEIGHT;
-    // Move up 1:1 with scroll, clamped between 0 and -expandedContentHeight
-    // Math.min(..., 0) prevents moving down on overscroll
-    // Math.max(..., -expandedContentHeight) prevents moving up too far
+    // Move up by full header height so expanded content clears the header (no peaking).
+    // Clamp between 0 and -measuredHeight so content stays fully above y=0 when collapsed.
     const translateY = Math.min(
-      Math.max(-scrollY.value, -expandedContentHeight),
+      Math.max(-scrollY.value, -animatedMeasuredHeight.value),
       0,
     );
 
@@ -231,7 +242,7 @@ const HeaderCollapsible: React.FC<HeaderCollapsibleProps> = ({
 
   const containerStyle = useMemo(
     () => [
-      tw.style('absolute left-0 right-0 z-10'),
+      tw.style('absolute left-0 right-0 z-10 overflow-hidden'),
       { top: isInsideSafeAreaView ? insets.top : 0 },
       headerAnimatedStyle,
     ],
@@ -242,18 +253,19 @@ const HeaderCollapsible: React.FC<HeaderCollapsibleProps> = ({
     <Animated.View style={containerStyle} testID={testID}>
       {/* Header content - measured for dynamic height */}
       <View onLayout={handleLayout}>
-        {/* HeaderBase with compact title */}
-        <HeaderBase
-          startButtonIconProps={resolvedStartButtonIconProps}
-          endButtonIconProps={resolvedEndButtonIconProps}
-          {...headerBaseProps}
-          twClassName={`${twClassName} bg-default px-2`.trim()}
-        >
-          {/* Compact title - fades in when collapsed */}
-          <Animated.View style={compactTitleAnimatedStyle}>
-            {renderCompactContent()}
-          </Animated.View>
-        </HeaderBase>
+        <View onLayout={handleHeaderBaseLayout}>
+          <HeaderBase
+            startButtonIconProps={resolvedStartButtonIconProps}
+            endButtonIconProps={resolvedEndButtonIconProps}
+            {...headerBaseProps}
+            twClassName={`${twClassName} bg-default px-2`.trim()}
+          >
+            {/* Compact title - fades in when collapsed */}
+            <Animated.View style={compactTitleAnimatedStyle}>
+              {renderCompactContent()}
+            </Animated.View>
+          </HeaderBase>
+        </View>
 
         {/* Expanded content - clips as it moves up behind header */}
         <Box twClassName="overflow-hidden">
