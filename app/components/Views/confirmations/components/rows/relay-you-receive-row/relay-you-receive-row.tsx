@@ -15,7 +15,6 @@ import Text, {
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
 import { getReceiveOutputForRecipient } from '../../../utils/relayQuotes/getReceiveOutputForRecipient';
-import Logger from '../../../../../../util/Logger';
 import I18n from '../../../../../../../locales/i18n';
 import { formatAmount } from '../../../../../UI/SimulationDetails/formatAmount';
 
@@ -33,8 +32,6 @@ export function RelayYouReceiveRow({ label, testID }: RelayYouReceiveRowProps) {
 
   const quotes = useTransactionPayQuotes();
 
-console.log('quotes: ', JSON.stringify(quotes));
-
   const receiveOutput = useMemo(() => {
     if (isLoading) {
       return undefined;
@@ -45,8 +42,6 @@ console.log('quotes: ', JSON.stringify(quotes));
       recipientAddress: selectedEvmAddress,
     });
   }, [isLoading, quotes, selectedEvmAddress]);
-
-  Logger.log('[RelayYouReceiveRow] receiveOutput', receiveOutput);
 
   if (isLoading) {
     return <InfoRowSkeleton testId="relay-you-receive-row-skeleton" />;
