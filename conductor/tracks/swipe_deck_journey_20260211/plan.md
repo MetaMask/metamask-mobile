@@ -16,8 +16,8 @@
 - [ ] Task: Conductor - User Manual Verification 'Phase 2' (Protocol in workflow.md)
 
 ## Phase 3: Interaction & Auto-Advance Logic
-- [ ] Task: Wire up completion logic
-    - [ ] Link "ACCEPT & SETUP" to `completeStep` in the shared hook.
-- [ ] Task: Implement Auto-Advance
-    - [ ] Use a `useEffect` with a timeout to trigger index increment after completion.
+- [x] Task: Wire up completion logic 7a72821
+    - [x] Link "ACCEPT & SETUP" to `completeStep` in the shared hook.
+- [x] Task: Implement Auto-Advance 7a72821
+    - [x] Use a `useEffect` with a timeout to trigger index increment after completion.
 - [ ] Task: Conductor - User Manual Verification 'Phase 3' (Protocol in workflow.md)
