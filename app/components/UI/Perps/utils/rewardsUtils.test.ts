@@ -6,7 +6,7 @@ import {
   formatAccountToCaipAccountId,
   isCaipAccountId,
   handleRewardsError,
-} from './rewardsUtils';
+} from '@metamask/perps-controller';
 import { toCaipAccountId, parseCaipChainId } from '@metamask/utils';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
@@ -317,7 +317,7 @@ describe('rewardsUtils', () => {
       const context = { userId: '123', operation: 'getDiscount' };
 
       // Act
-      const result = handleRewardsError(error, context);
+      const result = handleRewardsError(error, undefined, context);
 
       // Assert
       expect(result).toBe('Rewards operation failed');
@@ -329,7 +329,7 @@ describe('rewardsUtils', () => {
       const context = { operation: 'testOperation' };
 
       // Act
-      const result = handleRewardsError(error, context);
+      const result = handleRewardsError(error, undefined, context);
 
       // Assert
       expect(result).toBe('Rewards operation failed');
