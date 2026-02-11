@@ -332,11 +332,12 @@ export const TokenListItem = React.memo(
       return { text, color, onPress: undefined };
     }, [
       hasClaimableBonus,
-      merklData.isClaiming,
       shouldShowConvertToMusdCta,
       isStablecoinLendingEnabled,
+      earnToken?.experience?.type,
       hasPercentageChange,
       pricePercentChange1d,
+      merklData.isClaiming,
       handleClaimBonus,
       handleConvertToMUSD,
       handleLendingRedirect,
