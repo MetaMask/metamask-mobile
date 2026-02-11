@@ -371,6 +371,36 @@ describe('isPublicEndpointUrl', () => {
       ),
     ).toBe(false);
   });
+
+  it('returns false for localhost URLs', () => {
+    expect(
+      isPublicEndpointUrl(
+        'http://localhost:8545',
+        MOCK_METAMASK_INFURA_PROJECT_ID,
+      ),
+    ).toBe(false);
+    expect(
+      isPublicEndpointUrl(
+        'http://127.0.0.1:8545',
+        MOCK_METAMASK_INFURA_PROJECT_ID,
+      ),
+    ).toBe(false);
+  });
+
+  it('returns false for invalid URLs', () => {
+    expect(
+      isPublicEndpointUrl(':::invalid-url', MOCK_METAMASK_INFURA_PROJECT_ID),
+    ).toBe(false);
+  });
+
+  it('returns true for known public provider domains like Alchemy', () => {
+    expect(
+      isPublicEndpointUrl(
+        'https://eth-mainnet.alchemyapi.io/v2/some-key',
+        MOCK_METAMASK_INFURA_PROJECT_ID,
+      ),
+    ).toBe(true);
+  });
 });
 
 /**

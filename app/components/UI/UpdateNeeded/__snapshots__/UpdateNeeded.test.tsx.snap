@@ -399,6 +399,7 @@ exports[`UpdateNeeded should render snapshot correctly 1`] = `
                                 "flexDirection": "row",
                                 "gap": 16,
                                 "height": "auto",
+                                "minHeight": 56,
                               },
                               {
                                 "marginTop": 0,

@@ -659,8 +659,7 @@ export const parsePolymarketEvents = (
         id: event.id,
         slug: event.slug,
         providerId: 'polymarket',
-        // TODO: remove this temporary fix for Super Bowl LX
-        title: event.id === '188978' ? 'Super Bowl LX' : event.title,
+        title: event.title,
         description: event.description,
         image: event.icon,
         status: event.closed
@@ -764,6 +763,7 @@ export const getParsedMarketsFromPolymarketApi = async (
     limit = 20,
     offset = 0,
     teamLookup,
+    customQueryParams,
   } = params || {};
   DevLogger.log(
     'Getting markets via Polymarket API for category:',
@@ -777,25 +777,36 @@ export const getParsedMarketsFromPolymarketApi = async (
   );
 
   const limitParam = `limit=${limit}`;
-  const active = `active=true`;
-  const archived = `archived=false`;
-  const closed = `closed=false`;
-  const ascending = `ascending=false`;
   const offsetParam = `offset=${offset}`;
-  const volume = `volume_min=${10000.0}`;
-  const liquidity = `liquidity_min=${10000.0}`;
 
-  let queryParamsEvents = `${limitParam}&${active}&${archived}&${closed}&${ascending}&${offsetParam}&${liquidity}&${volume}`;
+  let queryParamsEvents: string;
 
-  const categoryTagMap: Record<PredictCategory, string> = {
-    trending: '&order=volume24hr',
-    new: '&order=startDate&exclude_tag_id=102169',
-    sports: '&tag_slug=sports&order=volume24hr',
-    crypto: '&tag_slug=crypto&order=volume24hr',
-    politics: '&tag_slug=politics&order=volume24hr',
-  };
+  const isHotTabWithCustomQuery = category === 'hot' && customQueryParams;
 
-  queryParamsEvents += categoryTagMap[category];
+  if (isHotTabWithCustomQuery) {
+    queryParamsEvents = `${limitParam}&${offsetParam}&${customQueryParams}`;
+  } else {
+    const active = `active=true`;
+    const archived = `archived=false`;
+    const closed = `closed=false`;
+    const ascendingCategories: Set<PredictCategory> = new Set(['ending-soon']);
+    const ascending = `ascending=${ascendingCategories.has(category)}`;
+    const volume = `volume_min=${10000.0}`;
+    const liquidity = `liquidity_min=${10000.0}`;
+
+    const categoryTagMap: Record<PredictCategory, string> = {
+      trending: '&order=volume24hr',
+      'ending-soon': '&order=endDate',
+      new: '&order=startDate&exclude_tag_id=102169',
+      sports: '&tag_slug=sports&order=volume24hr',
+      crypto: '&tag_slug=crypto&order=volume24hr',
+      politics: '&tag_slug=politics&order=volume24hr',
+      hot: '&order=volume24hr',
+    };
+
+    queryParamsEvents = `${limitParam}&${active}&${archived}&${closed}&${ascending}&${offsetParam}&${liquidity}&${volume}`;
+    queryParamsEvents += categoryTagMap[category];
+  }
 
   const limitPerType = `limit_per_type=${limit}`;
   const type = `type=events`;

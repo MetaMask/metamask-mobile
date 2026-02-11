@@ -1,16 +1,16 @@
-import { RegressionAccounts } from '../../../e2e/tags.js';
+import { RegressionAccounts } from '../../tags.js';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import TabBarComponent from '../../../e2e/pages/wallet/TabBarComponent';
-import SettingsView from '../../../e2e/pages/Settings/SettingsView';
-import SecurityAndPrivacy from '../../../e2e/pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
-import AutoLockModal from '../../../e2e/pages/Settings/SecurityAndPrivacy/AutoLockModal';
-import WalletView from '../../../e2e/pages/wallet/WalletView';
+import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
+import SettingsView from '../../page-objects/Settings/SettingsView';
+import SecurityAndPrivacy from '../../page-objects/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
+import AutoLockModal from '../../page-objects/Settings/SecurityAndPrivacy/AutoLockModal';
+import WalletView from '../../page-objects/wallet/WalletView';
 import LoginView from '../../page-objects/wallet/LoginView';
 import Assertions from '../../framework/Assertions';
-import TestHelpers from '../../../e2e/helpers.js';
+import TestHelpers from '../../helpers.js';
 import { logger } from '../../framework/logger';
-import { loginToApp } from '../../../e2e/viewHelper';
+import { loginToApp } from '../../flows/wallet.flow';
 
 const isIOS = device.getPlatform() === 'ios';
 (isIOS ? describe : describe.skip)(RegressionAccounts('Auto-Lock'), () => {

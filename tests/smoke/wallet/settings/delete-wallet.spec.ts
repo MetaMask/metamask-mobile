@@ -1,17 +1,17 @@
-import { RegressionWalletPlatform } from '../../../../e2e/tags';
-import OnboardingView from '../../../../e2e/pages/Onboarding/OnboardingView';
+import { RegressionWalletPlatform } from '../../../tags';
+import OnboardingView from '../../../page-objects/Onboarding/OnboardingView';
 import LoginView from '../../../page-objects/wallet/LoginView';
-import SettingsView from '../../../../e2e/pages/Settings/SettingsView';
-import SecurityAndPrivacyView from '../../../../e2e/pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
-import ChangePasswordView from '../../../../e2e/pages/Settings/SecurityAndPrivacy/ChangePasswordView';
-import ForgotPasswordModal from '../../../../e2e/pages/Common/ForgotPasswordModalView';
-import { loginToApp } from '../../../../e2e/viewHelper';
-import TabBarComponent from '../../../../e2e/pages/wallet/TabBarComponent';
+import SettingsView from '../../../page-objects/Settings/SettingsView';
+import SecurityAndPrivacyView from '../../../page-objects/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
+import ChangePasswordView from '../../../page-objects/Settings/SecurityAndPrivacy/ChangePasswordView';
+import ForgotPasswordModal from '../../../page-objects/Common/ForgotPasswordModalView';
+import { loginToApp } from '../../../flows/wallet.flow';
+import TabBarComponent from '../../../page-objects/wallet/TabBarComponent';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
-import CommonView from '../../../../e2e/pages/CommonView';
+import CommonView from '../../../page-objects/CommonView.ts';
 import Assertions from '../../../framework/Assertions';
-import ToastModal from '../../../../e2e/pages/wallet/ToastModal';
+import ToastModal from '../../../page-objects/wallet/ToastModal';
 
 describe(
   RegressionWalletPlatform(

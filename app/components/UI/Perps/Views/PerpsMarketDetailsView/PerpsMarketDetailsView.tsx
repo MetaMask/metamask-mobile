@@ -13,12 +13,17 @@ import React, {
   useState,
 } from 'react';
 import { Linking, RefreshControl, ScrollView, View } from 'react-native';
-import type {
-  Position,
-  PerpsMarketData,
-  PerpsNavigationParamList,
-  TPSLTrackingData,
-} from '../../controllers/types';
+import {
+  CandlePeriod,
+  TimeDuration,
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+  PERPS_CONSTANTS,
+  type Position,
+  type PerpsMarketData,
+  type TPSLTrackingData,
+} from '@metamask/perps-controller';
+import type { PerpsNavigationParamList } from '../../types/navigation';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
@@ -75,16 +80,7 @@ import TradingViewChart, {
   type OhlcData,
   type TradingViewChartRef,
 } from '../../components/TradingViewChart';
-import {
-  CandlePeriod,
-  PERPS_CHART_CONFIG,
-  TimeDuration,
-} from '../../constants/chartConfig';
-import {
-  PerpsEventProperties,
-  PerpsEventValues,
-} from '../../constants/eventNames';
-import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
+import { PERPS_CHART_CONFIG } from '../../constants/chartConfig';
 import {
   usePerpsConnection,
   usePerpsNavigation,
@@ -309,9 +305,14 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   });
 
   // Get current price for the symbol
+  // Use mark price (oracle price) for stop loss calculations to reduce manipulation risk
+  // Falls back to mid price if mark price unavailable
   const currentPrice = useMemo(() => {
     if (!market?.symbol) return 0;
     const priceData = livePrices[market.symbol];
+    if (priceData?.markPrice) {
+      return parseFloat(priceData.markPrice);
+    }
     if (priceData?.price) {
       return parseFloat(priceData.price);
     }
@@ -498,15 +499,15 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       !isLoadingPosition,
     ],
     properties: {
-      [PerpsEventProperties.SCREEN_TYPE]:
-        PerpsEventValues.SCREEN_TYPE.ASSET_DETAILS,
-      [PerpsEventProperties.ASSET]: market?.symbol || '',
-      [PerpsEventProperties.SOURCE]:
-        source || PerpsEventValues.SOURCE.PERP_MARKETS,
-      [PerpsEventProperties.OPEN_POSITION]: existingPosition ? 1 : 0,
+      [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+        PERPS_EVENT_VALUE.SCREEN_TYPE.ASSET_DETAILS,
+      [PERPS_EVENT_PROPERTY.ASSET]: market?.symbol || '',
+      [PERPS_EVENT_PROPERTY.SOURCE]:
+        source || PERPS_EVENT_VALUE.SOURCE.PERP_MARKETS,
+      [PERPS_EVENT_PROPERTY.OPEN_POSITION]: existingPosition ? 1 : 0,
       // A/B Test context (TAT-1937) - for baseline exposure tracking
       ...(isButtonColorTestEnabled && {
-        [PerpsEventProperties.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
+        [PERPS_EVENT_PROPERTY.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
       }),
     },
   });
@@ -518,10 +519,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
       // Track chart interaction
       track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-        [PerpsEventProperties.ASSET]: market?.symbol || '',
-        [PerpsEventProperties.INTERACTION_TYPE]:
-          PerpsEventValues.INTERACTION_TYPE.CANDLE_PERIOD_CHANGED,
-        [PerpsEventProperties.CANDLE_PERIOD]: newPeriod,
+        [PERPS_EVENT_PROPERTY.ASSET]: market?.symbol || '',
+        [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+          PERPS_EVENT_VALUE.INTERACTION_TYPE.CANDLE_PERIOD_CHANGED,
+        [PERPS_EVENT_PROPERTY.CANDLE_PERIOD]: newPeriod,
       });
 
       // Note: Chart will auto-zoom to latest candle when new data arrives (see useEffect below)
@@ -586,14 +587,14 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     const watchlistCount = controller.getWatchlistMarkets().length;
 
     track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-      [PerpsEventProperties.INTERACTION_TYPE]:
-        PerpsEventValues.INTERACTION_TYPE.FAVORITE_TOGGLED,
-      [PerpsEventProperties.ACTION_TYPE]: newWatchlistState
-        ? PerpsEventValues.ACTION_TYPE.FAVORITE_MARKET
-        : PerpsEventValues.ACTION_TYPE.UNFAVORITE_MARKET,
-      [PerpsEventProperties.ASSET]: market.symbol,
-      [PerpsEventProperties.SOURCE]: PerpsEventValues.SOURCE.PERP_ASSET_SCREEN,
-      [PerpsEventProperties.FAVORITES_COUNT]: watchlistCount,
+      [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+        PERPS_EVENT_VALUE.INTERACTION_TYPE.FAVORITE_TOGGLED,
+      [PERPS_EVENT_PROPERTY.ACTION_TYPE]: newWatchlistState
+        ? PERPS_EVENT_VALUE.ACTION_TYPE.FAVORITE_MARKET
+        : PERPS_EVENT_VALUE.ACTION_TYPE.UNFAVORITE_MARKET,
+      [PERPS_EVENT_PROPERTY.ASSET]: market.symbol,
+      [PERPS_EVENT_PROPERTY.SOURCE]: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
+      [PERPS_EVENT_PROPERTY.FAVORITES_COUNT]: watchlistCount,
     });
   }, [market, isWatchlist, track]);
 
@@ -602,9 +603,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       if (!isEligible) {
         // Track geo-block screen viewed
         track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
-          [PerpsEventProperties.SCREEN_TYPE]:
-            PerpsEventValues.SCREEN_TYPE.GEO_BLOCK_NOTIF,
-          [PerpsEventProperties.SOURCE]: PerpsEventValues.SOURCE.TRADE_ACTION,
+          [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+            PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+          [PERPS_EVENT_PROPERTY.SOURCE]: PERPS_EVENT_VALUE.SOURCE.TRADE_ACTION,
         });
         setIsEligibilityModalVisible(true);
         return;
@@ -617,14 +618,14 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         });
 
         track(MetaMetricsEvents.PERPS_ERROR, {
-          [PerpsEventProperties.ERROR_TYPE]:
-            PerpsEventValues.ERROR_TYPE.VALIDATION,
-          [PerpsEventProperties.ERROR_MESSAGE]:
+          [PERPS_EVENT_PROPERTY.ERROR_TYPE]:
+            PERPS_EVENT_VALUE.ERROR_TYPE.VALIDATION,
+          [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]:
             'Cross margin position detected',
-          [PerpsEventProperties.SCREEN_NAME]:
-            PerpsEventValues.SCREEN_NAME.PERPS_MARKET_DETAILS,
-          [PerpsEventProperties.SCREEN_TYPE]:
-            PerpsEventValues.SCREEN_TYPE.ASSET_DETAILS,
+          [PERPS_EVENT_PROPERTY.SCREEN_NAME]:
+            PERPS_EVENT_VALUE.SCREEN_NAME.PERPS_MARKET_DETAILS,
+          [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+            PERPS_EVENT_VALUE.SCREEN_TYPE.ASSET_DETAILS,
         });
 
         return;
@@ -633,14 +634,14 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       // Track AB test on button press (TAT-1937)
       if (isButtonColorTestEnabled) {
         track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-          [PerpsEventProperties.INTERACTION_TYPE]:
-            PerpsEventValues.INTERACTION_TYPE.TAP,
-          [PerpsEventProperties.ASSET]: market.symbol,
-          [PerpsEventProperties.DIRECTION]:
+          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+            PERPS_EVENT_VALUE.INTERACTION_TYPE.TAP,
+          [PERPS_EVENT_PROPERTY.ASSET]: market.symbol,
+          [PERPS_EVENT_PROPERTY.DIRECTION]:
             direction === 'long'
-              ? PerpsEventValues.DIRECTION.LONG
-              : PerpsEventValues.DIRECTION.SHORT,
-          [PerpsEventProperties.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
+              ? PERPS_EVENT_VALUE.DIRECTION.LONG
+              : PERPS_EVENT_VALUE.DIRECTION.SHORT,
+          [PERPS_EVENT_PROPERTY.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
         });
       }
 
@@ -674,22 +675,22 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const handleAddFundsPress = async () => {
     // Track deposit button click from asset screen
     track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-      [PerpsEventProperties.INTERACTION_TYPE]:
-        PerpsEventValues.INTERACTION_TYPE.BUTTON_CLICKED,
-      [PerpsEventProperties.BUTTON_CLICKED]:
-        PerpsEventValues.BUTTON_CLICKED.DEPOSIT,
-      [PerpsEventProperties.BUTTON_LOCATION]:
-        PerpsEventValues.BUTTON_LOCATION.PERPS_ASSET_SCREEN,
+      [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+        PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
+      [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
+        PERPS_EVENT_VALUE.BUTTON_CLICKED.DEPOSIT,
+      [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
+        PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_ASSET_SCREEN,
     });
 
     try {
       if (!isEligible) {
         // Track geo-block screen viewed
         track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
-          [PerpsEventProperties.SCREEN_TYPE]:
-            PerpsEventValues.SCREEN_TYPE.GEO_BLOCK_NOTIF,
-          [PerpsEventProperties.SOURCE]:
-            PerpsEventValues.SOURCE.ADD_FUNDS_ACTION,
+          [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+            PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+          [PERPS_EVENT_PROPERTY.SOURCE]:
+            PERPS_EVENT_VALUE.SOURCE.ADD_FUNDS_ACTION,
         });
         setIsEligibilityModalVisible(true);
         return;
@@ -736,10 +737,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     // Geo-restriction check for auto-close (TP/SL) action
     if (!isEligible) {
       track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
-        [PerpsEventProperties.SCREEN_TYPE]:
-          PerpsEventValues.SCREEN_TYPE.GEO_BLOCK_NOTIF,
-        [PerpsEventProperties.SOURCE]:
-          PerpsEventValues.SOURCE.AUTO_CLOSE_ACTION,
+        [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+          PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+        [PERPS_EVENT_PROPERTY.SOURCE]:
+          PERPS_EVENT_VALUE.SOURCE.AUTO_CLOSE_ACTION,
       });
       setIsEligibilityModalVisible(true);
       return;
@@ -787,10 +788,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     // Geo-restriction check for add/remove margin action
     if (!isEligible) {
       track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
-        [PerpsEventProperties.SCREEN_TYPE]:
-          PerpsEventValues.SCREEN_TYPE.GEO_BLOCK_NOTIF,
-        [PerpsEventProperties.SOURCE]:
-          PerpsEventValues.SOURCE.ADJUST_MARGIN_ACTION,
+        [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+          PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+        [PERPS_EVENT_PROPERTY.SOURCE]:
+          PERPS_EVENT_VALUE.SOURCE.ADJUST_MARGIN_ACTION,
       });
       setIsEligibilityModalVisible(true);
       return;
@@ -825,9 +826,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     if (!market?.symbol) return;
 
     track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-      [PerpsEventProperties.INTERACTION_TYPE]:
-        PerpsEventValues.INTERACTION_TYPE.TAP,
-      [PerpsEventProperties.ASSET]: market.symbol,
+      [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+        PERPS_EVENT_VALUE.INTERACTION_TYPE.TAP,
+      [PERPS_EVENT_PROPERTY.ASSET]: market.symbol,
     });
 
     navigation.navigate(Routes.PERPS.ORDER_BOOK, {
@@ -843,10 +844,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     // Geo-restriction check for close position action
     if (!isEligible) {
       track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
-        [PerpsEventProperties.SCREEN_TYPE]:
-          PerpsEventValues.SCREEN_TYPE.GEO_BLOCK_NOTIF,
-        [PerpsEventProperties.SOURCE]:
-          PerpsEventValues.SOURCE.CLOSE_POSITION_ACTION,
+        [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+          PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+        [PERPS_EVENT_PROPERTY.SOURCE]:
+          PERPS_EVENT_VALUE.SOURCE.CLOSE_POSITION_ACTION,
       });
       setIsEligibilityModalVisible(true);
       return;
@@ -862,10 +863,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     // Geo-restriction check for modify position action
     if (!isEligible) {
       track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
-        [PerpsEventProperties.SCREEN_TYPE]:
-          PerpsEventValues.SCREEN_TYPE.GEO_BLOCK_NOTIF,
-        [PerpsEventProperties.SOURCE]:
-          PerpsEventValues.SOURCE.MODIFY_POSITION_ACTION,
+        [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+          PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+        [PERPS_EVENT_PROPERTY.SOURCE]:
+          PERPS_EVENT_VALUE.SOURCE.MODIFY_POSITION_ACTION,
       });
       setIsEligibilityModalVisible(true);
       return;
@@ -881,10 +882,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     // Geo-restriction check for add margin from banner
     if (!isEligible) {
       track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
-        [PerpsEventProperties.SCREEN_TYPE]:
-          PerpsEventValues.SCREEN_TYPE.GEO_BLOCK_NOTIF,
-        [PerpsEventProperties.SOURCE]:
-          PerpsEventValues.SOURCE.STOP_LOSS_PROMPT_ADD_MARGIN,
+        [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+          PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+        [PERPS_EVENT_PROPERTY.SOURCE]:
+          PERPS_EVENT_VALUE.SOURCE.STOP_LOSS_PROMPT_ADD_MARGIN,
       });
       setIsEligibilityModalVisible(true);
       return;
@@ -898,11 +899,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
     // Track the interaction - use ADD_MARGIN interaction type for banner clicks
     track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-      [PerpsEventProperties.INTERACTION_TYPE]:
-        PerpsEventValues.INTERACTION_TYPE.ADD_MARGIN,
-      [PerpsEventProperties.ASSET]: existingPosition.symbol,
-      [PerpsEventProperties.SOURCE]:
-        PerpsEventValues.SOURCE.STOP_LOSS_PROMPT_BANNER,
+      [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+        PERPS_EVENT_VALUE.INTERACTION_TYPE.ADD_MARGIN,
+      [PERPS_EVENT_PROPERTY.ASSET]: existingPosition.symbol,
+      [PERPS_EVENT_PROPERTY.SOURCE]:
+        PERPS_EVENT_VALUE.SOURCE.STOP_LOSS_PROMPT_BANNER,
     });
   }, [existingPosition, navigation, track, isEligible]);
 
@@ -913,10 +914,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     // Geo-restriction check for set stop loss from banner
     if (!isEligible) {
       track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
-        [PerpsEventProperties.SCREEN_TYPE]:
-          PerpsEventValues.SCREEN_TYPE.GEO_BLOCK_NOTIF,
-        [PerpsEventProperties.SOURCE]:
-          PerpsEventValues.SOURCE.STOP_LOSS_PROMPT_SET_SL,
+        [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+          PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+        [PERPS_EVENT_PROPERTY.SOURCE]:
+          PERPS_EVENT_VALUE.SOURCE.STOP_LOSS_PROMPT_SET_SL,
       });
       setIsEligibilityModalVisible(true);
       return;
@@ -931,7 +932,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       // Build tracking data
       const trackingData: TPSLTrackingData = {
         direction: parseFloat(existingPosition.size) >= 0 ? 'long' : 'short',
-        source: PerpsEventValues.RISK_MANAGEMENT_SOURCE.STOP_LOSS_PROMPT_BANNER,
+        source:
+          PERPS_EVENT_VALUE.RISK_MANAGEMENT_SOURCE.STOP_LOSS_PROMPT_BANNER,
         positionSize: Math.abs(parseFloat(existingPosition.size)),
       };
 
@@ -960,12 +962,12 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
       // Track the interaction - use STOP_LOSS_ONE_CLICK_PROMPT for one-click stop loss from banner
       track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-        [PerpsEventProperties.INTERACTION_TYPE]:
-          PerpsEventValues.INTERACTION_TYPE.STOP_LOSS_ONE_CLICK_PROMPT,
-        [PerpsEventProperties.ASSET]: existingPosition.symbol,
-        [PerpsEventProperties.SOURCE]:
-          PerpsEventValues.SOURCE.STOP_LOSS_PROMPT_BANNER,
-        [PerpsEventProperties.STOP_LOSS_PRICE]: suggestedStopLossPrice,
+        [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+          PERPS_EVENT_VALUE.INTERACTION_TYPE.STOP_LOSS_ONE_CLICK_PROMPT,
+        [PERPS_EVENT_PROPERTY.ASSET]: existingPosition.symbol,
+        [PERPS_EVENT_PROPERTY.SOURCE]:
+          PERPS_EVENT_VALUE.SOURCE.STOP_LOSS_PROMPT_BANNER,
+        [PERPS_EVENT_PROPERTY.STOP_LOSS_PRICE]: suggestedStopLossPrice,
       });
     } catch (error) {
       Logger.error(ensureError(error), {
@@ -1006,9 +1008,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
     // Track full screen chart interaction
     track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-      [PerpsEventProperties.INTERACTION_TYPE]:
-        PerpsEventValues.INTERACTION_TYPE.FULL_SCREEN_CHART,
-      [PerpsEventProperties.ASSET]: market?.symbol || '',
+      [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+        PERPS_EVENT_VALUE.INTERACTION_TYPE.FULL_SCREEN_CHART,
+      [PERPS_EVENT_PROPERTY.ASSET]: market?.symbol || '',
     });
   }, [market?.symbol, track]);
 

@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import RecurringFeeModal from './RecurringFeeModal';
-import { RecurringFeeModalSelectors } from '../../../../../../e2e/selectors/Card/RecurringFeeModal.selectors';
+import { RecurringFeeModalSelectors } from './RecurringFeeModal.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import { CardActions, CardScreens } from '../../util/metrics';
