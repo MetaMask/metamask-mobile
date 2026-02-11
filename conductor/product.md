@@ -19,6 +19,7 @@ MetaMask Mobile is a self-custodial multi-chain wallet and Web3 browser. It allo
 ## Core Features
 
 - **Multi-Chain Wallet Management:** Manage accounts for Ethereum, Bitcoin, Solana, and other supported chains.
+- **Guided Onboarding:** A checklist-driven experience for new users to secure their wallet and perform their first core actions.
 - **MetaMask Snaps:** A system that allows users to add new features and functionality (e.g., security insights, notification services, and support for additional protocols) directly to their wallet.
 - **Dapp Browser:** A built-in browser for discovering and interacting with decentralized websites.
 - **UI & Component Architecture:**
