@@ -686,6 +686,11 @@ describe('BridgeView', () => {
   describe('Bottom Content', () => {
     beforeEach(() => {
       jest.clearAllMocks();
+      // Reset to default mock so persistent mockImplementation from prior tests
+      // does not leak (clearAllMocks only clears calls, not implementations)
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementation(() => mockUseBridgeQuoteData);
     });
 
     it('displays keypad when no amount is entered', () => {
@@ -753,7 +758,7 @@ describe('BridgeView', () => {
     it('navigates to QuoteExpiredModal when quote expires without refresh', async () => {
       jest
         .mocked(useBridgeQuoteData as unknown as jest.Mock)
-        .mockImplementationOnce(() => ({
+        .mockImplementation(() => ({
           ...mockUseBridgeQuoteData,
           isExpired: true,
           willRefresh: false,
@@ -778,7 +783,7 @@ describe('BridgeView', () => {
     it('does not navigate to QuoteExpiredModal when quote expires with refresh', async () => {
       jest
         .mocked(useBridgeQuoteData as unknown as jest.Mock)
-        .mockImplementationOnce(() => ({
+        .mockImplementation(() => ({
           ...mockUseBridgeQuoteData,
           isExpired: true,
           willRefresh: true,
@@ -805,7 +810,7 @@ describe('BridgeView', () => {
     it('does not navigate to QuoteExpiredModal when quote is valid', async () => {
       jest
         .mocked(useBridgeQuoteData as unknown as jest.Mock)
-        .mockImplementationOnce(() => ({
+        .mockImplementation(() => ({
           ...mockUseBridgeQuoteData,
           isExpired: false,
           willRefresh: false,
@@ -868,7 +873,7 @@ describe('BridgeView', () => {
     it('blurs input when opening QuoteExpiredModal', async () => {
       jest
         .mocked(useBridgeQuoteData as unknown as jest.Mock)
-        .mockImplementationOnce(() => ({
+        .mockImplementation(() => ({
           ...mockUseBridgeQuoteData,
           isExpired: true,
           willRefresh: false,

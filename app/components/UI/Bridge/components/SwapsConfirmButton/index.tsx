@@ -26,7 +26,11 @@ import { BridgeQuoteResponse } from '../../types';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
 
-export const SwapsConfirmButton = () => {
+interface Props {
+  latestSourceBalance: ReturnType<typeof useLatestBalance>;
+}
+
+export const SwapsConfirmButton = ({ latestSourceBalance }: Props) => {
   const dispatch = useDispatch();
   const navigation = useNavigation();
   const { submitBridgeTx } = useSubmitBridgeTx();
@@ -41,12 +45,6 @@ export const SwapsConfirmButton = () => {
     ? !!isHardwareAccount(selectedAddress)
     : false;
   const isSolanaSourced = useSelector(selectIsSolanaSourced);
-
-  const latestSourceBalance = useLatestBalance({
-    address: sourceToken?.address,
-    decimals: sourceToken?.decimals,
-    chainId: sourceToken?.chainId,
-  });
 
   const hasInsufficientBalance = useIsInsufficientBalance({
     amount: sourceAmount,

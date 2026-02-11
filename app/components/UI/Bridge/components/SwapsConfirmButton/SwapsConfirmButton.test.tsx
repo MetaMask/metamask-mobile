@@ -18,6 +18,7 @@ import { useHasSufficientGas } from '../../hooks/useHasSufficientGas';
 import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
 import { RootState } from '../../../../../reducers';
 import { MOCK_ENTROPY_SOURCE as mockEntropySource } from '../../../../../util/test/keyringControllerTestUtils';
+import { BigNumber } from 'ethers';
 
 // Mock the account-tree-controller file that imports the problematic module
 jest.mock(
@@ -91,6 +92,12 @@ jest.mock('../../hooks/useLatestBalance', () => ({
     };
   }),
 }));
+
+// Create mock latestSourceBalance to pass as prop
+const mockLatestSourceBalance = {
+  displayBalance: '2.0',
+  atomicBalance: BigNumber.from('2000000000000000000'), // 2 ETH
+};
 
 // Mock useBridgeQuoteData
 jest.mock('../../hooks/useBridgeQuoteData', () => ({
@@ -213,9 +220,12 @@ describe('SwapsConfirmButton', () => {
 
   describe('Button Label', () => {
     it('displays "Confirm swap" label by default', () => {
-      const { getByText } = renderWithProvider(<SwapsConfirmButton />, {
-        state: mockState,
-      });
+      const { getByText } = renderWithProvider(
+        <SwapsConfirmButton latestSourceBalance={mockLatestSourceBalance} />,
+        {
+          state: mockState,
+        },
+      );
 
       expect(getByText(strings('bridge.confirm_swap'))).toBeTruthy();
     });
@@ -223,9 +233,12 @@ describe('SwapsConfirmButton', () => {
     it('displays "Insufficient funds" when balance is insufficient', () => {
       jest.mocked(useIsInsufficientBalance).mockReturnValue(true);
 
-      const { getByText } = renderWithProvider(<SwapsConfirmButton />, {
-        state: mockState,
-      });
+      const { getByText } = renderWithProvider(
+        <SwapsConfirmButton latestSourceBalance={mockLatestSourceBalance} />,
+        {
+          state: mockState,
+        },
+      );
 
       expect(getByText(strings('bridge.insufficient_funds'))).toBeTruthy();
     });
@@ -233,9 +246,12 @@ describe('SwapsConfirmButton', () => {
     it('displays "Insufficient gas" when gas is insufficient', () => {
       jest.mocked(useHasSufficientGas).mockReturnValue(false);
 
-      const { getByText } = renderWithProvider(<SwapsConfirmButton />, {
-        state: mockState,
-      });
+      const { getByText } = renderWithProvider(
+        <SwapsConfirmButton latestSourceBalance={mockLatestSourceBalance} />,
+        {
+          state: mockState,
+        },
+      );
 
       expect(getByText(strings('bridge.insufficient_gas'))).toBeTruthy();
     });
@@ -249,9 +265,12 @@ describe('SwapsConfirmButton', () => {
         },
       };
 
-      const { getByText } = renderWithProvider(<SwapsConfirmButton />, {
-        state: submittingState,
-      });
+      const { getByText } = renderWithProvider(
+        <SwapsConfirmButton latestSourceBalance={mockLatestSourceBalance} />,
+        {
+          state: submittingState,
+        },
+      );
 
       expect(getByText(strings('bridge.submitting_transaction'))).toBeTruthy();
     });
@@ -267,9 +286,12 @@ describe('SwapsConfirmButton', () => {
           activeQuote: null,
         }));
 
-      const { getByTestId } = renderWithProvider(<SwapsConfirmButton />, {
-        state: mockState,
-      });
+      const { getByTestId } = renderWithProvider(
+        <SwapsConfirmButton latestSourceBalance={mockLatestSourceBalance} />,
+        {
+          state: mockState,
+        },
+      );
 
       const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
       expect(button.props.disabled).toBe(true);
@@ -278,9 +300,12 @@ describe('SwapsConfirmButton', () => {
     it('disables button when balance is insufficient', () => {
       jest.mocked(useIsInsufficientBalance).mockReturnValue(true);
 
-      const { getByTestId } = renderWithProvider(<SwapsConfirmButton />, {
-        state: mockState,
-      });
+      const { getByTestId } = renderWithProvider(
+        <SwapsConfirmButton latestSourceBalance={mockLatestSourceBalance} />,
+        {
+          state: mockState,
+        },
+      );
 
       const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
       expect(button.props.disabled).toBe(true);
@@ -295,9 +320,12 @@ describe('SwapsConfirmButton', () => {
         },
       };
 
-      const { getByTestId } = renderWithProvider(<SwapsConfirmButton />, {
-        state: submittingState,
-      });
+      const { getByTestId } = renderWithProvider(
+        <SwapsConfirmButton latestSourceBalance={mockLatestSourceBalance} />,
+        {
+          state: submittingState,
+        },
+      );
 
       const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
       expect(button.props.disabled).toBe(true);
@@ -321,9 +349,12 @@ describe('SwapsConfirmButton', () => {
         },
       };
 
-      const { getByTestId } = renderWithProvider(<SwapsConfirmButton />, {
-        state: solanaState,
-      });
+      const { getByTestId } = renderWithProvider(
+        <SwapsConfirmButton latestSourceBalance={mockLatestSourceBalance} />,
+        {
+          state: solanaState,
+        },
+      );
 
       const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
       expect(button.props.disabled).toBe(true);
@@ -337,9 +368,12 @@ describe('SwapsConfirmButton', () => {
           blockaidError: 'Transaction flagged as suspicious',
         }));
 
-      const { getByTestId } = renderWithProvider(<SwapsConfirmButton />, {
-        state: mockState,
-      });
+      const { getByTestId } = renderWithProvider(
+        <SwapsConfirmButton latestSourceBalance={mockLatestSourceBalance} />,
+        {
+          state: mockState,
+        },
+      );
 
       const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
       expect(button.props.disabled).toBe(true);
@@ -348,9 +382,12 @@ describe('SwapsConfirmButton', () => {
     it('disables button when gas is insufficient', () => {
       jest.mocked(useHasSufficientGas).mockReturnValue(false);
 
-      const { getByTestId } = renderWithProvider(<SwapsConfirmButton />, {
-        state: mockState,
-      });
+      const { getByTestId } = renderWithProvider(
+        <SwapsConfirmButton latestSourceBalance={mockLatestSourceBalance} />,
+        {
+          state: mockState,
+        },
+      );
 
       const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
       expect(button.props.disabled).toBe(true);
@@ -359,9 +396,12 @@ describe('SwapsConfirmButton', () => {
     it('disables button when walletAddress is missing', () => {
       jest.mocked(selectSourceWalletAddress).mockReturnValue(undefined);
 
-      const { getByTestId } = renderWithProvider(<SwapsConfirmButton />, {
-        state: mockState,
-      });
+      const { getByTestId } = renderWithProvider(
+        <SwapsConfirmButton latestSourceBalance={mockLatestSourceBalance} />,
+        {
+          state: mockState,
+        },
+      );
 
       const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
       expect(button.props.disabled).toBe(true);
@@ -370,9 +410,12 @@ describe('SwapsConfirmButton', () => {
 
   describe('handleContinue', () => {
     it('submits transaction and navigates to transactions view', async () => {
-      const { getByTestId } = renderWithProvider(<SwapsConfirmButton />, {
-        state: mockState,
-      });
+      const { getByTestId } = renderWithProvider(
+        <SwapsConfirmButton latestSourceBalance={mockLatestSourceBalance} />,
+        {
+          state: mockState,
+        },
+      );
 
       const continueButton = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
       await act(async () => {
@@ -410,9 +453,12 @@ describe('SwapsConfirmButton', () => {
         },
       };
 
-      const { getByTestId } = renderWithProvider(<SwapsConfirmButton />, {
-        state: solanaState,
-      });
+      const { getByTestId } = renderWithProvider(
+        <SwapsConfirmButton latestSourceBalance={mockLatestSourceBalance} />,
+        {
+          state: solanaState,
+        },
+      );
 
       const continueButton = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
       await act(async () => {
@@ -437,9 +483,12 @@ describe('SwapsConfirmButton', () => {
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
       mockSubmitBridgeTx.mockRejectedValue(new Error('Network error'));
 
-      const { getByTestId } = renderWithProvider(<SwapsConfirmButton />, {
-        state: mockState,
-      });
+      const { getByTestId } = renderWithProvider(
+        <SwapsConfirmButton latestSourceBalance={mockLatestSourceBalance} />,
+        {
+          state: mockState,
+        },
+      );
 
       const continueButton = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
       await act(async () => {
@@ -469,9 +518,12 @@ describe('SwapsConfirmButton', () => {
           isLoading: false,
         }));
 
-      const { getByTestId } = renderWithProvider(<SwapsConfirmButton />, {
-        state: mockState,
-      });
+      const { getByTestId } = renderWithProvider(
+        <SwapsConfirmButton latestSourceBalance={mockLatestSourceBalance} />,
+        {
+          state: mockState,
+        },
+      );
 
       const continueButton = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
       await act(async () => {
@@ -484,9 +536,12 @@ describe('SwapsConfirmButton', () => {
     it('does not submit when walletAddress is missing', async () => {
       jest.mocked(selectSourceWalletAddress).mockReturnValue(undefined);
 
-      const { getByTestId } = renderWithProvider(<SwapsConfirmButton />, {
-        state: mockState,
-      });
+      const { getByTestId } = renderWithProvider(
+        <SwapsConfirmButton latestSourceBalance={mockLatestSourceBalance} />,
+        {
+          state: mockState,
+        },
+      );
 
       // Button should be disabled when walletAddress is missing
       const continueButton = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);

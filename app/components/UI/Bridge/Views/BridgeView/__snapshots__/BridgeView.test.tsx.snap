@@ -920,19 +920,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                       },
                                     ]
                                   }
-                                >
-                                  <View
-                                    style={
-                                      [
-                                        {},
-                                        {
-                                          "flex": 1,
-                                          "justifyContent": "flex-start",
-                                        },
-                                      ]
-                                    }
-                                  />
-                                </View>
+                                />
                               </View>
                             </RCTScrollView>
                             <View

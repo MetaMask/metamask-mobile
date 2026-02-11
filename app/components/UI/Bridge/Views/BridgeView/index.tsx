@@ -1,10 +1,4 @@
-import React, {
-  useEffect,
-  useState,
-  useRef,
-  useMemo,
-  useCallback,
-} from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import ScreenView from '../../../../Base/ScreenView';
 import {
@@ -42,11 +36,8 @@ import {
   selectBridgeViewMode,
   setBridgeViewMode,
   selectIsNonEvmNonEvmBridge,
-  selectIsSelectingRecipient,
-  selectIsSelectingToken,
 } from '../../../../../core/redux/slices/bridge';
 import {
-  useFocusEffect,
   useNavigation,
   useRoute,
   type RouteProp,
@@ -94,6 +85,8 @@ import { useRWAToken } from '../../hooks/useRWAToken.ts';
 import { SwapsKeypadRef } from '../../components/SwapsKeypad/types.ts';
 import { GaslessQuickPickOptions } from '../../components/GaslessQuickPickOptions/index.tsx';
 import { SwapsConfirmButton } from '../../components/SwapsConfirmButton/index.tsx';
+import { useBridgeViewOnFocus } from '../../hooks/useBridgeViewOnFocus/index.ts';
+import { useRenderQuoteExpireModal } from '../../hooks/useRenderQuoteExpireModal/index.ts';
 
 export interface BridgeRouteParams {
   sourcePage: string;
@@ -106,8 +99,6 @@ export interface BridgeRouteParams {
 const BridgeView = () => {
   const [isErrorBannerVisible, setIsErrorBannerVisible] = useState(true);
   const isSubmittingTx = useSelector(selectIsSubmittingTx);
-  const isSelectingRecipient = useSelector(selectIsSelectingRecipient);
-  const isSelectingToken = useSelector(selectIsSelectingToken);
 
   const { styles } = useStyles(createStyles);
   const dispatch = useDispatch();
@@ -171,16 +162,7 @@ const BridgeView = () => {
   const hasInitializedRecipient = useRef(false);
   useRecipientInitialization(hasInitializedRecipient);
 
-  useFocusEffect(
-    useCallback(() => {
-      inputRef.current?.focus();
-      keypadRef.current?.open();
-      return () => {
-        inputRef.current?.blur();
-        keypadRef.current?.close();
-      };
-    }, []),
-  );
+  useBridgeViewOnFocus({ inputRef, keypadRef });
 
   useEffect(() => {
     if (route.params?.bridgeViewMode && bridgeViewMode === undefined) {
@@ -209,8 +191,6 @@ const BridgeView = () => {
     destTokenAmount,
     quoteFetchError,
     isNoQuotesAvailable,
-    isExpired,
-    willRefresh,
     blockaidError,
     shouldShowPriceImpactWarning,
   } = useBridgeQuoteData({
@@ -366,28 +346,8 @@ const BridgeView = () => {
       type: 'dest',
     });
 
-  useEffect(() => {
-    if (
-      isExpired &&
-      !willRefresh &&
-      !isSelectingRecipient &&
-      !isSelectingToken &&
-      !isSubmittingTx
-    ) {
-      inputRef.current?.blur();
-      // open the quote tooltip modal
-      navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
-        screen: Routes.BRIDGE.MODALS.QUOTE_EXPIRED_MODAL,
-      });
-    }
-  }, [
-    isExpired,
-    willRefresh,
-    navigation,
-    isSelectingRecipient,
-    isSelectingToken,
-    isSubmittingTx,
-  ]);
+  useRenderQuoteExpireModal({ inputRef, latestSourceBalance });
+
   const isRWATokenSelected = useMemo(
     () =>
       (sourceToken && isStockToken(sourceToken as BridgeToken)) ||
@@ -443,7 +403,7 @@ const BridgeView = () => {
             />
           )}
 
-          <SwapsConfirmButton />
+          <SwapsConfirmButton latestSourceBalance={latestSourceBalance} />
           <Box flexDirection={FlexDirection.Row} alignItems={AlignItems.center}>
             <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
               {hasFee
@@ -569,7 +529,7 @@ const BridgeView = () => {
           decimals={sourceToken?.decimals || 18}
         >
           {activeQuote && sourceAmount && sourceAmount !== '0' ? (
-            <SwapsConfirmButton />
+            <SwapsConfirmButton latestSourceBalance={latestSourceBalance} />
           ) : !sourceAmount || sourceAmount === '0' ? (
             <GaslessQuickPickOptions
               token={sourceToken}
