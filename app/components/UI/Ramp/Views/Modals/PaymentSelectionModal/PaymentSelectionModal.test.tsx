@@ -46,7 +46,7 @@ jest.mock(
 const mockUseParams = jest.fn(() => ({}));
 jest.mock('../../../../../../util/navigation/navUtils', () => ({
   createNavigationDetails: jest.fn(),
-  useParams: (...args: unknown[]) => mockUseParams(...args),
+  useParams: () => mockUseParams(),
 }));
 
 jest.mock('../../../../../../../locales/i18n', () => ({
