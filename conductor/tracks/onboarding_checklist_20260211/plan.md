@@ -20,7 +20,7 @@
 
 ## Phase 3: Step Logic & Navigation
 
-- [ ] Task: Implement Step 1 & 2 Logic
+- [x] Task: Implement Step 1 - [~] Task: Implement Step 1 & 2 Logic 2 Logic 9d354e7
   - [ ] Wire up SRP detection (Step 1) and Balance detection (Step 2).
 - [ ] Task: Implement Step 3 Variations
   - [ ] Create the "Single CTA" view for Step 3.
