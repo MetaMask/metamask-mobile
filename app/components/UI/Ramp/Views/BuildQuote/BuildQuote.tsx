@@ -46,6 +46,8 @@ function BuildQuote() {
   const [amount, setAmount] = useState<string>(() => String(DEFAULT_AMOUNT));
   const [amountAsNumber, setAmountAsNumber] = useState<number>(DEFAULT_AMOUNT);
   const [userHasEnteredAmount, setUserHasEnteredAmount] = useState(false);
+  const [isOnBuildQuoteScreen, setIsOnBuildQuoteScreen] =
+    useState<boolean>(true);
 
   const {
     userRegion,
@@ -123,12 +125,22 @@ function BuildQuote() {
     navigation.navigate(
       ...createPaymentSelectionModalNavigationDetails({
         amount: debouncedPollingAmount,
+        onPaymentMethodSelect: () => {
+          setIsOnBuildQuoteScreen(true);
+        },
       }),
     );
-  }, [debouncedPollingAmount, navigation, stopQuotePolling]);
+    setIsOnBuildQuoteScreen(false);
+  }, [
+    debouncedPollingAmount,
+    navigation,
+    stopQuotePolling,
+    setIsOnBuildQuoteScreen,
+  ]);
 
   useEffect(() => {
     if (
+      !isOnBuildQuoteScreen ||
       !walletAddress ||
       !selectedPaymentMethod ||
       debouncedPollingAmount <= 0
@@ -151,11 +163,13 @@ function BuildQuote() {
     debouncedPollingAmount,
     startQuotePolling,
     stopQuotePolling,
+    isOnBuildQuoteScreen,
   ]);
 
   const handleContinuePress = useCallback(() => {
     // TODO: Navigate to next screen with amount
-  }, []);
+    setIsOnBuildQuoteScreen(false);
+  }, [setIsOnBuildQuoteScreen]);
 
   const hasAmount = amountAsNumber > 0;
 

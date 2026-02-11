@@ -46,6 +46,7 @@ import useRampAccountAddress from '../../../hooks/useRampAccountAddress';
 
 export interface PaymentSelectionModalParams {
   amount?: number;
+  onPaymentMethodSelect?: () => void;
 }
 
 export const createPaymentSelectionModalNavigationDetails =
@@ -61,7 +62,9 @@ enum ViewType {
 
 const DEFAULT_QUOTE_AMOUNT = 100;
 
-function PaymentSelectionModal() {
+function PaymentSelectionModal({
+  onPaymentMethodSelect,
+}: PaymentSelectionModalParams) {
   const sheetRef = useRef<BottomSheetRef>(null);
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
   const { styles } = useStyles(styleSheet, {
@@ -204,9 +207,11 @@ function PaymentSelectionModal() {
   const handlePaymentMethodPress = useCallback(
     (paymentMethod: PaymentMethod) => {
       setSelectedPaymentMethod(paymentMethod);
-      sheetRef.current?.onCloseBottomSheet();
+      sheetRef.current?.onCloseBottomSheet(() => {
+        onPaymentMethodSelect?.();
+      });
     },
-    [setSelectedPaymentMethod],
+    [setSelectedPaymentMethod, onPaymentMethodSelect],
   );
 
   const currency = userRegion?.country?.currency ?? 'USD';
