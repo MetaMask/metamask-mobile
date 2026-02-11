@@ -28,7 +28,7 @@ jest.mock('rive-react-native', () => {
 });
 
 jest.mock('react-native-fade-in-image', () => {
-  const React = jest.requireActual('react');
+  const ReactMock = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
   return {
     __esModule: true,
@@ -38,7 +38,7 @@ jest.mock('react-native-fade-in-image', () => {
     }: {
       children: React.ReactNode;
       placeholderStyle?: unknown;
-    }) => React.createElement(View, { style: placeholderStyle }, children),
+    }) => ReactMock.createElement(View, { style: placeholderStyle }, children),
   };
 });
 
@@ -117,15 +117,15 @@ jest.mock('../../../../UI/Rewards/hooks/useLinkAccountAddress', () => ({
 jest.mock(
   '../../../../UI/Rewards/components/AddRewardsAccount/AddRewardsAccount',
   () => {
-    const React = jest.requireActual('react');
+    const ReactMock = jest.requireActual('react');
     const { View, Text } = jest.requireActual('react-native');
     return {
       __esModule: true,
       default: ({ testID }: { testID?: string }) =>
-        React.createElement(
+        ReactMock.createElement(
           View,
           { testID },
-          React.createElement(Text, null, 'Add Rewards Account'),
+          ReactMock.createElement(Text, null, 'Add Rewards Account'),
         ),
     };
   },
@@ -269,6 +269,10 @@ const testState = createBridgeTestState({
   },
 });
 
+const QuoteDetailsCardTestScreen = () => (
+  <QuoteDetailsCard hasInsufficientBalance={false} />
+);
+
 describe('QuoteDetailsCard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -276,7 +280,7 @@ describe('QuoteDetailsCard', () => {
 
   it('renders initial state', () => {
     const { toJSON } = renderScreen(
-      QuoteDetailsCard,
+      QuoteDetailsCardTestScreen,
       {
         name: Routes.BRIDGE.ROOT,
       },
@@ -287,7 +291,7 @@ describe('QuoteDetailsCard', () => {
 
   it('displays fee amount', () => {
     const { getByText } = renderScreen(
-      QuoteDetailsCard,
+      QuoteDetailsCardTestScreen,
       {
         name: Routes.BRIDGE.ROOT,
       },
@@ -299,7 +303,7 @@ describe('QuoteDetailsCard', () => {
 
   it('displays quote rate', () => {
     const { getByText } = renderScreen(
-      QuoteDetailsCard,
+      QuoteDetailsCardTestScreen,
       {
         name: Routes.BRIDGE.ROOT,
       },
@@ -311,7 +315,7 @@ describe('QuoteDetailsCard', () => {
 
   it('navigates to slippage modal on edit press', () => {
     const { getByTestId } = renderScreen(
-      QuoteDetailsCard,
+      QuoteDetailsCardTestScreen,
       {
         name: Routes.BRIDGE.ROOT,
       },
@@ -334,7 +338,7 @@ describe('QuoteDetailsCard', () => {
 
   it('displays slippage value', () => {
     const { getByText } = renderScreen(
-      QuoteDetailsCard,
+      QuoteDetailsCardTestScreen,
       {
         name: Routes.BRIDGE.ROOT,
       },
@@ -372,7 +376,7 @@ describe('QuoteDetailsCard', () => {
     }));
 
     const { getByText } = renderScreen(
-      QuoteDetailsCard,
+      QuoteDetailsCardTestScreen,
       {
         name: Routes.BRIDGE.ROOT,
       },
@@ -406,7 +410,7 @@ describe('QuoteDetailsCard', () => {
     }));
 
     const { getByText } = renderScreen(
-      QuoteDetailsCard,
+      QuoteDetailsCardTestScreen,
       {
         name: Routes.BRIDGE.ROOT,
       },
@@ -446,7 +450,7 @@ describe('QuoteDetailsCard', () => {
     }));
 
     const { getByText, queryByText } = renderScreen(
-      QuoteDetailsCard,
+      QuoteDetailsCardTestScreen,
       { name: Routes.BRIDGE.ROOT },
       { state: testState },
     );
@@ -484,7 +488,7 @@ describe('QuoteDetailsCard', () => {
     }));
 
     const { getByLabelText } = renderScreen(
-      QuoteDetailsCard,
+      QuoteDetailsCardTestScreen,
       { name: Routes.BRIDGE.ROOT },
       { state: testState },
     );
@@ -522,7 +526,7 @@ describe('QuoteDetailsCard', () => {
     }));
 
     const { queryByTestId } = renderScreen(
-      QuoteDetailsCard,
+      QuoteDetailsCardTestScreen,
       { name: Routes.BRIDGE.ROOT },
       { state: testState },
     );
@@ -555,7 +559,7 @@ describe('QuoteDetailsCard', () => {
     }));
 
     const { getByLabelText } = renderScreen(
-      QuoteDetailsCard,
+      QuoteDetailsCardTestScreen,
       { name: Routes.BRIDGE.ROOT },
       { state: testState },
     );
@@ -575,7 +579,7 @@ describe('QuoteDetailsCard', () => {
 
   it('handles quote info navigation', () => {
     const { getByLabelText } = renderScreen(
-      QuoteDetailsCard,
+      QuoteDetailsCardTestScreen,
       { name: Routes.BRIDGE.ROOT },
       { state: testState },
     );
@@ -621,7 +625,7 @@ describe('QuoteDetailsCard', () => {
     }));
 
     const { queryByLabelText } = renderScreen(
-      QuoteDetailsCard,
+      QuoteDetailsCardTestScreen,
       { name: Routes.BRIDGE.ROOT },
       { state: testState },
     );
@@ -656,7 +660,7 @@ describe('QuoteDetailsCard', () => {
     }));
 
     const { getByText, queryByLabelText } = renderScreen(
-      QuoteDetailsCard,
+      QuoteDetailsCardTestScreen,
       { name: Routes.BRIDGE.ROOT },
       { state: testState },
     );
@@ -708,7 +712,7 @@ describe('QuoteDetailsCard', () => {
 
       // When rendering the component
       const { getByText, getByTestId } = renderScreen(
-        QuoteDetailsCard,
+        QuoteDetailsCardTestScreen,
         { name: Routes.BRIDGE.ROOT },
         { state: testState },
       );
@@ -733,7 +737,7 @@ describe('QuoteDetailsCard', () => {
 
       // When rendering the component
       const { getByText, getByTestId } = renderScreen(
-        QuoteDetailsCard,
+        QuoteDetailsCardTestScreen,
         { name: Routes.BRIDGE.ROOT },
         { state: testState },
       );
@@ -761,7 +765,7 @@ describe('QuoteDetailsCard', () => {
 
       // When rendering the component
       const { queryByText } = renderScreen(
-        QuoteDetailsCard,
+        QuoteDetailsCardTestScreen,
         { name: Routes.BRIDGE.ROOT },
         { state: testState },
       );
@@ -796,7 +800,7 @@ describe('QuoteDetailsCard', () => {
 
       // When rendering the component
       const { getByText, getByTestId, queryByTestId } = renderScreen(
-        QuoteDetailsCard,
+        QuoteDetailsCardTestScreen,
         { name: Routes.BRIDGE.ROOT },
         { state: testState },
       );
@@ -826,7 +830,7 @@ describe('QuoteDetailsCard', () => {
 
       // When rendering the component
       const { getByTestId } = renderScreen(
-        QuoteDetailsCard,
+        QuoteDetailsCardTestScreen,
         { name: Routes.BRIDGE.ROOT },
         { state: testState },
       );
@@ -850,7 +854,7 @@ describe('QuoteDetailsCard', () => {
 
       // When rendering the component
       const { getByText, getByTestId } = renderScreen(
-        QuoteDetailsCard,
+        QuoteDetailsCardTestScreen,
         { name: Routes.BRIDGE.ROOT },
         { state: testState },
       );
@@ -877,7 +881,7 @@ describe('QuoteDetailsCard', () => {
 
       // When rendering the component
       const { getByText, getByTestId } = renderScreen(
-        QuoteDetailsCard,
+        QuoteDetailsCardTestScreen,
         { name: Routes.BRIDGE.ROOT },
         { state: testState },
       );
@@ -902,7 +906,7 @@ describe('QuoteDetailsCard', () => {
 
       // When rendering the component
       const { getByLabelText } = renderScreen(
-        QuoteDetailsCard,
+        QuoteDetailsCardTestScreen,
         { name: Routes.BRIDGE.ROOT },
         { state: testState },
       );
@@ -927,7 +931,7 @@ describe('QuoteDetailsCard', () => {
 
       // When rendering the component
       const { getByText, getByTestId } = renderScreen(
-        QuoteDetailsCard,
+        QuoteDetailsCardTestScreen,
         { name: Routes.BRIDGE.ROOT },
         { state: testState },
       );
@@ -952,7 +956,7 @@ describe('QuoteDetailsCard', () => {
 
       // When rendering the component
       const { getByText, getByTestId } = renderScreen(
-        QuoteDetailsCard,
+        QuoteDetailsCardTestScreen,
         { name: Routes.BRIDGE.ROOT },
         { state: testState },
       );
@@ -995,7 +999,7 @@ describe('QuoteDetailsCard', () => {
 
       // When rendering the component
       const { getByText, getByTestId } = renderScreen(
-        QuoteDetailsCard,
+        QuoteDetailsCardTestScreen,
         { name: Routes.BRIDGE.ROOT },
         { state: testState },
       );
@@ -1023,7 +1027,7 @@ describe('QuoteDetailsCard', () => {
 
       // When rendering the component
       const { getByLabelText } = renderScreen(
-        QuoteDetailsCard,
+        QuoteDetailsCardTestScreen,
         { name: Routes.BRIDGE.ROOT },
         { state: testState },
       );

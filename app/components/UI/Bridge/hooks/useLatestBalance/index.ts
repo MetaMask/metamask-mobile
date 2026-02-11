@@ -50,6 +50,21 @@ interface Balance {
   atomicBalance: BigNumber;
 }
 
+const hasTokenIdentityChanged = (
+  previousToken:
+    | {
+        address?: string;
+        chainId?: Hex | CaipChainId;
+      }
+    | undefined,
+  token: {
+    address?: string;
+    chainId?: Hex | CaipChainId;
+  },
+) =>
+  previousToken?.address !== token.address ||
+  previousToken?.chainId !== token.chainId;
+
 /**
  * A hook that fetches and returns the latest balance for a given token.
  * Latest balance is important because token balances can be cached and may not be updated immediately.
@@ -76,6 +91,24 @@ export const useLatestBalance = (token: {
   const nonEvmTokens = useNonEvmTokensWithBalance();
 
   const chainId = token.chainId;
+  const tokenIdentityChanged = hasTokenIdentityChanged(previousToken, token);
+
+  const setBalanceIfChanged = useCallback((nextBalance: Balance) => {
+    setBalance((currentBalance) => {
+      if (!currentBalance) {
+        return nextBalance;
+      }
+
+      if (
+        currentBalance.displayBalance === nextBalance.displayBalance &&
+        currentBalance.atomicBalance.eq(nextBalance.atomicBalance)
+      ) {
+        return currentBalance;
+      }
+
+      return nextBalance;
+    });
+  }, []);
 
   const handleFetchEvmAtomicBalance = useCallback(async () => {
     if (
@@ -106,7 +139,7 @@ export const useLatestBalance = (token: {
           chainId,
         );
         if (atomicBalance && token.decimals) {
-          setBalance({
+          setBalanceIfChanged({
             displayBalance: formatUnits(atomicBalance, token.decimals),
             atomicBalance,
           });
@@ -119,7 +152,13 @@ export const useLatestBalance = (token: {
         });
       }
     }
-  }, [token.address, token.decimals, chainId, selectedAddress]);
+  }, [
+    token.address,
+    token.decimals,
+    chainId,
+    selectedAddress,
+    setBalanceIfChanged,
+  ]);
 
   // No need to fetch the balance for non-EVM tokens, use the balance provided by the
   // multichain balances controller
@@ -138,46 +177,51 @@ export const useLatestBalance = (token: {
       )?.balance;
 
       if (displayBalance && token.decimals) {
-        setBalance({
+        setBalanceIfChanged({
           displayBalance,
           atomicBalance: parseUnits(displayBalance, token.decimals),
         });
       } else {
-        setBalance({
+        setBalanceIfChanged({
           displayBalance: '0',
           atomicBalance: parseUnits('0'),
         });
       }
     }
-  }, [token.address, token.decimals, chainId, selectedAddress, nonEvmTokens]);
+  }, [
+    token.address,
+    token.decimals,
+    chainId,
+    selectedAddress,
+    nonEvmTokens,
+    setBalanceIfChanged,
+  ]);
 
   useEffect(() => {
-    // Reset balance state when token address changes to prevent stale balance display
-    if (previousToken?.address !== token.address) {
+    // Reset balance state when token identity changes to prevent stale balance display.
+    if (tokenIdentityChanged) {
       setBalance(undefined);
     }
+  }, [tokenIdentityChanged]);
 
+  useEffect(() => {
     // In case chainId is undefined, exit early to avoid
     // calling handleFetchEvmAtomicBalance which will trigger an invalid address error
     // when selectedAddress is a non-EVM chain.
-    if (!chainId) {
+    if (!chainId || isCaipChainId(chainId)) {
       return;
     }
 
-    if (!isCaipChainId(chainId)) {
-      handleFetchEvmAtomicBalance();
+    handleFetchEvmAtomicBalance();
+  }, [chainId, handleFetchEvmAtomicBalance]);
+
+  useEffect(() => {
+    if (!chainId || !isCaipChainId(chainId) || !isNonEvmChainId(chainId)) {
+      return;
     }
 
-    if (isCaipChainId(chainId) && isNonEvmChainId(chainId)) {
-      handleNonEvmAtomicBalance();
-    }
-  }, [
-    handleFetchEvmAtomicBalance,
-    handleNonEvmAtomicBalance,
-    chainId,
-    previousToken?.address,
-    token.address,
-  ]);
+    handleNonEvmAtomicBalance();
+  }, [chainId, handleNonEvmAtomicBalance]);
 
   const cachedBalance = useMemo(() => {
     const displayBalance = token.balance;
@@ -192,17 +236,15 @@ export const useLatestBalance = (token: {
     }
 
     return { displayBalance, atomicBalance };
-    // Include token.address in the dependency array to ensure
-    // that the cached balance is updated when the token address changes.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token.balance, token.decimals, token.address]);
+  }, [token.balance, token.decimals]);
 
   if (!token.address || !token.decimals) {
     return undefined;
   }
 
-  // If the token has changed, return cached balance of new token, so we have time to fetch the new balance
-  if (previousToken?.address !== token.address) {
+  // If the token identity has changed, return cached balance of new token
+  // so we have time to fetch the new balance.
+  if (tokenIdentityChanged) {
     return cachedBalance;
   }
 

@@ -40,8 +40,7 @@ import QuoteCountdownTimer from '../QuoteCountdownTimer';
 import QuoteDetailsRecipientKeyValueRow from '../QuoteDetailsRecipientKeyValueRow/QuoteDetailsRecipientKeyValueRow';
 import { toSentenceCase } from '../../../../../util/string';
 import { getGasFeesSponsoredNetworkEnabled } from '../../../../../selectors/featureFlagController/gasFeesSponsored';
-import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
-import { useLatestBalance } from '../../hooks/useLatestBalance';
+import { QuoteDetailsCardProps } from './QuoteDetailsCard.types';
 
 if (
   Platform.OS === 'android' &&
@@ -53,7 +52,9 @@ if (
 // Bottom padding for tooltip modals to prevent close button overlapping with Swap button
 const TOOLTIP_BOTTOM_PADDING = 64;
 
-const QuoteDetailsCard: React.FC = () => {
+const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
+  hasInsufficientBalance,
+}) => {
   const theme = useTheme();
   const navigation = useNavigation();
   const styles = createStyles(theme);
@@ -83,18 +84,6 @@ const QuoteDetailsCard: React.FC = () => {
     getGasFeesSponsoredNetworkEnabled,
   );
 
-  const latestSourceBalance = useLatestBalance({
-    address: sourceToken?.address,
-    decimals: sourceToken?.decimals,
-    chainId: sourceToken?.chainId,
-  });
-
-  const insufficientBal = useIsInsufficientBalance({
-    amount: sourceAmount,
-    token: sourceToken,
-    latestAtomicBalance: latestSourceBalance?.atomicBalance,
-  });
-
   const nativeTokenName = useMemo(() => {
     const chainId = sourceToken?.chainId;
     if (!chainId) return undefined;
@@ -111,10 +100,12 @@ const QuoteDetailsCard: React.FC = () => {
 
   const shouldShowGasSponsored = useMemo(() => {
     const gasSponsored = activeQuote?.quote?.gasSponsored ?? false;
-    return gasSponsored || (insufficientBal && isCurrentNetworkGasSponsored);
+    return (
+      gasSponsored || (hasInsufficientBalance && isCurrentNetworkGasSponsored)
+    );
   }, [
     activeQuote?.quote?.gasSponsored,
-    insufficientBal,
+    hasInsufficientBalance,
     isCurrentNetworkGasSponsored,
   ]);
 
