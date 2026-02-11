@@ -1,0 +1,27 @@
+diff --git a/node_modules/@expensify/react-native-wallet/ios/WalletManager.swift b/node_modules/@expensify/react-native-wallet/ios/WalletManager.swift
+index 1234567..abcdefg 100644
+--- a/node_modules/@expensify/react-native-wallet/ios/WalletManager.swift
++++ b/node_modules/@expensify/react-native-wallet/ios/WalletManager.swift
+@@ -68,10 +68,11 @@
+   func checkPassActivationStatus(_ passes: [PKPass]) {
+     for pass in passes {
+-      if pass.secureElementPass?.passActivationState == .activated {
++      if let secureElement = pass.secureElementPass, secureElement.passActivationState == .activated {
+         delegate?.sendEvent(name: Event.onCardActivated.rawValue, result:  [
+           "state": "activated",
+-          "serialNumber": pass.serialNumber
++          "serialNumber": pass.serialNumber,
++          "primaryAccountIdentifier": secureElement.primaryAccountIdentifier
+         ]);
+       }
+     }
+diff --git a/node_modules/@expensify/react-native-wallet/src/NativeWallet.ts b/node_modules/@expensify/react-native-wallet/src/NativeWallet.ts
+index 1234567..abcdefg 100644
+--- a/node_modules/@expensify/react-native-wallet/src/NativeWallet.ts
++++ b/node_modules/@expensify/react-native-wallet/src/NativeWallet.ts
+@@ -46,6 +46,7 @@
+ type onCardActivatedPayload = {
+   tokenId: string;
+   actionStatus: 'active' | 'canceled';
++  primaryAccountIdentifier?: string;
+ };

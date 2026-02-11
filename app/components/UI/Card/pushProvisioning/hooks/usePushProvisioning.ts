@@ -382,6 +382,7 @@ export function usePushProvisioning(
         // as the primary path, with the activation listener as a fallback.
         if (result.status === 'success') {
           setStatus('success');
+
           trackAnalyticsEvent(
             MetaMetricsEvents.CARD_PUSH_PROVISIONING_COMPLETED,
             { token_id: result.tokenId },
@@ -463,7 +464,6 @@ export function usePushProvisioning(
     isWalletProviderAvailable &&
     eligibility?.isAvailable === true &&
     eligibility?.canAddCard === true &&
-    // (eligibility re-check will confirm, but avoid a brief flash of the button)
     status !== 'success';
 
   return {
