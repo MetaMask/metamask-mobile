@@ -155,13 +155,11 @@ describe('deepLinkAnalytics', () => {
     });
 
     it('extracts asset properties for asset route', () => {
-      const result = extractSensitiveProperties(
-        DeepLinkRoute.ASSET,
-        mockUrlParams,
-      );
-      expect(result.asset).toBe('ETH');
-      expect(result.from).toBeUndefined();
-      expect(result.to).toBeUndefined();
+      const result = extractSensitiveProperties(DeepLinkRoute.ASSET, {
+        ...mockUrlParams,
+        assetId: 'eip155:1/erc20:0x1',
+      });
+      expect(result.asset).toBe('eip155:1/erc20:0x1');
     });
 
     it('extracts perps-specific properties including symbol and navigation', () => {
