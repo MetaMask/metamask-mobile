@@ -174,6 +174,8 @@ class TrendingView {
         direction: 'right',
         scrollAmount: 200,
         elemDescription: description,
+        startPositionX: 50,
+        startPositionY: 0,
       },
     );
   }
