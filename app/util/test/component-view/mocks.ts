@@ -98,6 +98,11 @@ jest.mock('../../../core/Engine', () => {
           return undefined;
         },
       },
+      BridgeController: {
+        updateBridgeQuoteRequestParams: jest.fn().mockResolvedValue(undefined),
+        resetState: jest.fn(),
+        stopAllPolling: jest.fn(),
+      },
       NetworkController: {
         state: { networksMetadata: {} },
         findNetworkClientIdByChainId() {
