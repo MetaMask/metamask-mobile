@@ -1,16 +1,16 @@
 diff --git a/node_modules/@expensify/react-native-wallet/ios/WalletManager.swift b/node_modules/@expensify/react-native-wallet/ios/WalletManager.swift
-index 8a1b2c3..d7f3e9a 100644
+index c0afa083a9..22898d66b1 100644
 --- a/node_modules/@expensify/react-native-wallet/ios/WalletManager.swift
 +++ b/node_modules/@expensify/react-native-wallet/ios/WalletManager.swift
-@@ -3,6 +3,7 @@ import PassKit
+@@ -2,6 +2,7 @@ import Foundation
+ import PassKit
  import UIKit
  import React
- 
 +import os.log
  
  public typealias CompletionHandler = (OperationResult, NSDictionary?) -> Void
  
-@@ -50,28 +51,43 @@
+@@ -50,28 +51,43 @@ open class WalletManager: UIViewController {
    }
    
    @objc func passLibraryDidChange(_ notification: Notification) {
@@ -56,7 +56,7 @@ index 8a1b2c3..d7f3e9a 100644
        }
      }
    }
-@@ -163,30 +179,56 @@
+@@ -163,30 +179,56 @@ open class WalletManager: UIViewController {
    
    private func getPassActivationState(matching condition: (PKSecureElementPass) -> Bool) -> NSNumber {
      let paymentPasses = passLibrary.passes(of: .payment)
@@ -122,19 +122,19 @@ index 8a1b2c3..d7f3e9a 100644
    }
    
    private func isPassKitAvailable() -> Bool {
-@@ -204,8 +246,12 @@
+@@ -205,8 +247,10 @@ open class WalletManager: UIViewController {
+     }
    }
    
++  private static let logger = Logger(subsystem: "com.expensify.react-native-wallet", category: "WalletManager")
++
    private func logInfo(message: String) {
 -    print("[\(packageName)] \(message)")
 +    Self.logger.info("[\(self.packageName, privacy: .public)] \(message, privacy: .public)")
    }
-+
-+  private static let logger = Logger(subsystem: "com.expensify.react-native-wallet", category: "WalletManager")
  }
  
- extension WalletManager: PKAddPaymentPassViewControllerDelegate {
-@@ -244,14 +290,24 @@
+@@ -244,14 +288,24 @@ extension WalletManager: PKAddPaymentPassViewControllerDelegate {
      _ controller: PKAddPaymentPassViewController,
      didFinishAdding pass: PKPaymentPass?,
      error: Error?) {
@@ -160,7 +160,7 @@ index 8a1b2c3..d7f3e9a 100644
          delegate?.sendEvent(name: Event.onCardActivated.rawValue, result:  [
            "state": "canceled"
          ]);
-@@ -259,6 +315,7 @@
+@@ -259,6 +313,7 @@ extension WalletManager: PKAddPaymentPassViewControllerDelegate {
        
        // Cancel the IOSPresentAddPaymentPassView function when the user cancelled the modal
        if let handler = presentAddPaymentPassCompletionHandler {
@@ -168,7 +168,7 @@ index 8a1b2c3..d7f3e9a 100644
          let response = AddPassResponse(status: .canceled, nonce: nil, nonceSignature: nil, certificates: nil)
          handler(.canceled, response.toNSDictionary())
        }
-@@ -266,8 +323,10 @@
+@@ -266,8 +321,10 @@ extension WalletManager: PKAddPaymentPassViewControllerDelegate {
        // If the pass is returned complete the IOSHandleAddPaymentPassResponse function
        if let addPaymentPassHandler = addPaymentPassCompletionHandler {
          if pass != nil {
