@@ -28,7 +28,7 @@ interface UseRevealCredentialReturn {
   warningIncorrectPassword: string;
   clipboardPrivateCredential: string;
   setPassword: (password: string) => void;
-  revealCredential: (pswd?: string) => Promise<void>;
+  revealCredential: (pswd?: string) => Promise<boolean>;
   tryUnlock: () => Promise<void>;
 }
 
@@ -48,7 +48,7 @@ const useRevealCredential = ({
   const { trackEvent, createEventBuilder } = useMetrics();
 
   const revealCredential = useCallback(
-    async (pswd?: string) => {
+    async (pswd?: string): Promise<boolean> => {
       const traceName = TraceName.RevealSrp;
       let passwordToUse = pswd;
 
@@ -73,7 +73,9 @@ const useRevealCredential = ({
           endTrace({
             name: traceName,
           });
+          return true;
         }
+        return false;
         // TODO: Replace "any" with type
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (e: any) {
@@ -82,7 +84,7 @@ const useRevealCredential = ({
             ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS,
           )
         ) {
-          return;
+          return false;
         }
         let msg = strings('reveal_credential.warning_incorrect_password');
         if (selectedAddress && isHardwareAccount(selectedAddress)) {
@@ -95,6 +97,7 @@ const useRevealCredential = ({
 
         setUnlocked(false);
         setWarningIncorrectPassword(msg);
+        return false;
       }
     },
     [selectedAddress, keyringId, reauthenticate, revealSRP],
@@ -114,8 +117,10 @@ const useRevealCredential = ({
     trackEvent(
       createEventBuilder(MetaMetricsEvents.NEXT_REVEAL_SRP_CTA).build(),
     );
-    await revealCredential(password);
-    setWarningIncorrectPassword('');
+    const success = await revealCredential(password);
+    if (success) {
+      setWarningIncorrectPassword('');
+    }
   }, [
     password,
     reauthenticate,
