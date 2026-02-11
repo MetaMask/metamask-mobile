@@ -15,6 +15,7 @@ import Icon, {
 export enum ChecklistItemVariant {
   Default = 'default',
   Card = 'card',
+  Minimal = 'minimal',
 }
 
 interface ChecklistItemProps {
@@ -35,6 +36,37 @@ const ChecklistItem: React.FC<ChecklistItemProps> = ({
   const tw = useTailwind();
 
   const isCard = variant === ChecklistItemVariant.Card;
+  const isMinimal = variant === ChecklistItemVariant.Minimal;
+
+  if (isMinimal) {
+    return (
+      <Pressable onPress={onPress} disabled={isCompleted || isLoading}>
+        <Box
+          twClassName="flex-row items-center py-3 border-b border-border-muted"
+          style={tw.style(isCompleted && 'opacity-50')}
+        >
+          <Box twClassName="mr-3">
+            {isCompleted ? (
+              <Icon
+                name={IconName.Check}
+                size={IconSize.Sm}
+                color={IconColor.Success}
+              />
+            ) : (
+              <Box twClassName="w-4 h-4 rounded-full border border-icon-muted" />
+            )}
+          </Box>
+          <Text
+            variant={TextVariant.BodySM}
+            color={TextColor.Default}
+            style={tw.style('flex-1')}
+          >
+            {title}
+          </Text>
+        </Box>
+      </Pressable>
+    );
+  }
 
   return (
     <Pressable onPress={onPress} disabled={isCompleted || isLoading}>
