@@ -25,6 +25,6 @@
 - [x] Task: Implement Step 3 Variations 261a223
   - [ ] Create the "Single CTA" view for Step 3.
   - [ ] Create the "Expanding Dropdown" view for Step 3.
-- [ ] Task: Integrate with Homepage Redesign
+- [x] Task: Integrate with Homepage Redesign ef56ff1
   - [ ] Inject the checklist into the `Homepage` component (enabled by the feature flag).
 - [ ] Task: Conductor - User Manual Verification 'Phase 3' (Protocol in workflow.md)
