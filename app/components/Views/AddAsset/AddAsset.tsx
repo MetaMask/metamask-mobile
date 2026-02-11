@@ -1,10 +1,5 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import {
-  ActivityIndicator,
-  Platform,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { ActivityIndicator, TouchableOpacity, View } from 'react-native';
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -136,13 +131,8 @@ const AddAsset = () => {
 
   return (
     <SafeAreaView
-      edges={
-        Platform.OS === 'ios' ? ['left', 'right'] : ['left', 'right', 'bottom']
-      }
-      style={[
-        { paddingTop: insets.top, paddingBottom: insets.bottom },
-        styles.wrapper,
-      ]}
+      edges={['left', 'right', 'bottom']}
+      style={[{ paddingTop: insets.top }, styles.wrapper]}
       testID={`add-${assetType}-screen`}
     >
       <HeaderCompactStandard
