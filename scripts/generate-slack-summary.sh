@@ -119,51 +119,61 @@ if [ -f "$SUMMARY_FILE" ]; then
         fi
     }
     
-    add_device_list "🤖" "Android" "$androidDevices" "$androidCount"
     add_device_list "🍎" "iOS" "$iosDevices" "$iosCount"
+    add_device_list "🤖" "Android" "$androidDevices" "$androidCount"
     SUMMARY+="\n"
     
     SUMMARY+="*✅ Test results*\n"
-    SUMMARY+="• _Onboarding:_ Android $androidOnboardingStatus · iOS $iosOnboardingStatus\n"
-    SUMMARY+="• _Imported Wallet:_ Android $androidImportedWalletStatus · iOS $iosImportedWalletStatus\n\n"
+    SUMMARY+="• _Onboarding:_ iOS $iosOnboardingStatus · Android $androidOnboardingStatus\n"
+    SUMMARY+="• _Imported Wallet:_ iOS $iosImportedWalletStatus · Android $androidImportedWalletStatus\n\n"
     
-    # Add failed tests section: one line per unique test name, grouped by team.
+    # Add failed tests section: iOS first, then Android; within each platform, failed tests by team with ✗.
     if [ "$totalFailedTests" -gt 0 ]; then
         SUMMARY+="*❌ Failed tests* (${totalFailedTests})\n\n"
         
+        prevPlatform=""
         prevMention=""
         while IFS= read -r line; do
             [ -z "$line" ] && continue
-            mention=$(echo "$line" | cut -f1)
-            name=$(echo "$line" | cut -f2)
-            reasonDisplay=$(echo "$line" | cut -f3)
-            platformsLabel=$(echo "$line" | cut -f4)
+            platform=$(echo "$line" | cut -f1)
+            mention=$(echo "$line" | cut -f2)
+            name=$(echo "$line" | cut -f3)
+            reasonDisplay=$(echo "$line" | cut -f4)
             recordings=$(echo "$line" | cut -f5-)
+            
+            if [ "$platform" != "$prevPlatform" ]; then
+                [ -n "$prevPlatform" ] && SUMMARY+="\n"
+                if [ "$platform" = "iOS" ]; then
+                    SUMMARY+="*🍎 iOS*\n"
+                else
+                    SUMMARY+="*🤖 Android*\n"
+                fi
+                prevPlatform="$platform"
+                prevMention=""
+            fi
             
             if [ "$mention" != "$prevMention" ]; then
                 SUMMARY+="${mention}:\n"
                 prevMention="$mention"
             fi
             
-            if [ -n "$platformsLabel" ]; then
-                SUMMARY+="  └ ${name} — ${reasonDisplay} · _${platformsLabel}_\n    ${recordings}\n"
-            else
-                SUMMARY+="  └ ${name} — ${reasonDisplay}\n    ${recordings}\n"
-            fi
+            SUMMARY+="  └ ✗ ${name} — ${reasonDisplay}\n    ${recordings}\n"
         done <<< "$(jq -r '
+          ["iOS", "Android"] as $platformOrder |
+          $platformOrder[] as $plat |
           .failedTestsStats.failedTestsByTeam | to_entries[] |
           .value.team.slackMention as $mention |
-          (.value.tests | group_by(.testName)[] |
-            (.[0].testName) as $name |
-            (.[0].failureReason) as $reason |
-            ([.[].platform] | unique) as $platforms |
-            ($platforms | join(" & ")) as $platformsLabel |
-            ([.[] |
-              (if .device != null and .device != "" then (if (.device | type) == "object" then ((.device.name // "") + (if .device.osVersion != null and .device.osVersion != "" then " (" + .device.osVersion + ")" else "" end)) else (.device | tostring) end) else .platform end) as $deviceLabel |
-              if .recordingLink != null and .recordingLink != "" then "<" + .recordingLink + "|Recording (" + $deviceLabel + ")>" else (if .sessionId != null and .sessionId != "" then "Recording (" + $deviceLabel + ") (session: " + .sessionId + ")" else "—" end) end
-            ] | join(" · ")) as $recordings |
-            ($reason | if . == "quality_gates_exceeded" then "Quality gates FAILED" elif . == "timedOut" then "Test timed out" elif . == "test_error" or . == "failed" then "Test error" else . end) as $reasonDisplay |
-            [$mention, $name, $reasonDisplay, $platformsLabel, $recordings] | @tsv
+          (.value.tests | map(select(.platform == $plat)) | group_by(.testName)[] |
+            if length > 0 then
+              (.[0].testName) as $name |
+              (.[0].failureReason) as $reason |
+              ($reason | if . == "quality_gates_exceeded" then "Quality gates FAILED" elif . == "timedOut" then "Test timed out" elif . == "test_error" or . == "failed" then "Test error" else . end) as $reasonDisplay |
+              ([ .[] |
+                (if .device != null and .device != "" then (if (.device | type) == "object" then ((.device.name // "") + (if .device.osVersion != null and .device.osVersion != "" then " (" + .device.osVersion + ")" else "" end)) else (.device | tostring) end) else .platform end) as $deviceLabel |
+                if .recordingLink != null and .recordingLink != "" then "<" + .recordingLink + "|Recording (" + $deviceLabel + ")>" else (if .sessionId != null and .sessionId != "" then "Recording (" + $deviceLabel + ") (session: " + .sessionId + ")" else "—" end) end
+              ] | join(" · ")) as $recordings |
+              [$plat, $mention, $name, $reasonDisplay, $recordings] | @tsv
+            else empty end
           )
         ' "$SUMMARY_FILE" 2>/dev/null)"
         
