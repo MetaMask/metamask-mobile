@@ -44,7 +44,7 @@ import {
 } from '../../hooks/useIsPerpsBalanceSelected';
 import { Hex } from '@metamask/utils';
 import { usePerpsSelector } from '../../hooks/usePerpsSelector';
-import { selectPendingTradeConfiguration } from '../../controllers/selectors';
+import { selectPendingTradeConfiguration } from '@metamask/perps-controller';
 import Engine from '../../../../../core/Engine';
 
 const tokenIconStyles = StyleSheet.create({
