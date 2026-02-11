@@ -18,44 +18,38 @@ import BigNumber from 'bignumber.js';
 import { Skeleton } from '../../../../../../component-library/components/Skeleton';
 import { AssetType } from '../../../types/token';
 import styleSheet from './musd-max-conversion-asset-header.styles';
+import { useIsTransactionPayLoading } from '../../../hooks/pay/useTransactionPayData';
+import { MusdMaxConversionInfoTestIds } from './musd-max-conversion-info';
 
-export const MusdMaxConversionAssetHeaderSkeleton = memo(
-  ({ testID }: { testID?: string }) => {
-    const { styles } = useStyles(styleSheet, {});
+export const MusdMaxConversionAssetHeaderSkeleton = () => {
+  const { styles } = useStyles(styleSheet, {});
 
-    return (
-      <View style={styles.container} testID={testID}>
-        <Skeleton width={40} height={40} style={styles.skeletonAvatar} />
-        <View style={[styles.assetInfo, styles.assetInfoSkeleton]}>
-          <Skeleton
-            width={56}
-            height={14}
-            style={styles.skeletonBorderRadius}
-          />
-          <Skeleton
-            width={140}
-            height={20}
-            style={styles.skeletonBorderRadius}
-          />
-        </View>
+  return (
+    <View
+      style={styles.container}
+      testID={MusdMaxConversionInfoTestIds.ASSET_HEADER_SKELETON}
+    >
+      <Skeleton width={40} height={40} style={styles.skeletonAvatar} />
+      <View style={[styles.assetInfo, styles.assetInfoSkeleton]}>
+        <Skeleton width={56} height={14} style={styles.skeletonBorderRadius} />
+        <Skeleton width={140} height={20} style={styles.skeletonBorderRadius} />
       </View>
-    );
-  },
-);
+    </View>
+  );
+};
 
 export const MusdMaxConversionAssetHeader = memo(
   ({
     token,
     networkName,
     formatFiat,
-    testID,
   }: {
     token: AssetType;
     networkName: string;
     formatFiat: (value: BigNumber) => string;
-    testID?: string;
   }) => {
     const { styles } = useStyles(styleSheet, {});
+    const isLoading = useIsTransactionPayLoading();
 
     const fiatBalanceText = useMemo(() => {
       if (!token?.fiat?.balance) {
@@ -65,8 +59,15 @@ export const MusdMaxConversionAssetHeader = memo(
       return formatFiat(new BigNumber(token.fiat.balance));
     }, [formatFiat, token?.fiat?.balance]);
 
+    if (isLoading) {
+      return <MusdMaxConversionAssetHeaderSkeleton />;
+    }
+
     return (
-      <View style={styles.container} testID={testID}>
+      <View
+        style={styles.container}
+        testID={MusdMaxConversionInfoTestIds.ASSET_HEADER}
+      >
         <BadgeWrapper
           badgePosition={BadgePosition.BottomRight}
           badgeElement={
