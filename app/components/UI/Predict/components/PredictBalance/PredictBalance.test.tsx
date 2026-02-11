@@ -5,6 +5,30 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import PredictBalance from './PredictBalance';
 import { strings } from '../../../../../../locales/i18n';
 
+// Mock preferencesController selectors to avoid import chain issues
+jest.mock('../../../../../selectors/preferencesController', () => ({
+  selectPrivacyMode: jest.fn(() => false),
+  selectSmartTransactionsOptInStatus: jest.fn(() => false),
+  selectIpfsGateway: jest.fn(() => ''),
+  selectUseNftDetection: jest.fn(() => false),
+  selectShowMultiRpcModal: jest.fn(() => false),
+  selectUseTokenDetection: jest.fn(() => true),
+  selectDisplayNftMedia: jest.fn(() => true),
+  selectUseSafeChainsListValidation: jest.fn(() => true),
+  selectTokenSortConfig: jest.fn(() => ({})),
+  selectTokenNetworkFilter: jest.fn(() => ({})),
+  selectIsTokenNetworkFilterEqualCurrentNetwork: jest.fn(() => true),
+  selectIsMultiAccountBalancesEnabled: jest.fn(() => true),
+  selectShowTestNetworks: jest.fn(() => false),
+  selectIsIpfsGatewayEnabled: jest.fn(() => true),
+  selectIsSecurityAlertsEnabled: jest.fn(() => false),
+  selectUseTransactionSimulations: jest.fn(() => true),
+  selectSmartTransactionsMigrationApplied: jest.fn(() => false),
+  selectSmartTransactionsBannerDismissed: jest.fn(() => false),
+  selectDismissSmartAccountSuggestionEnabled: jest.fn(() => false),
+  selectSmartAccountOptIn: jest.fn(() => false),
+}));
+
 // Mock React Navigation
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -605,6 +629,84 @@ describe('PredictBalance', () => {
       });
 
       expect(getByText(/\$0\.00/)).toBeOnTheScreen();
+    });
+  });
+
+  describe('Privacy Mode', () => {
+    const getPrivacyModeMock = () =>
+      jest.requireMock('../../../../../selectors/preferencesController')
+        .selectPrivacyMode as jest.Mock;
+
+    afterEach(() => {
+      getPrivacyModeMock().mockReturnValue(false);
+    });
+
+    it('shows balance when privacy mode is disabled', () => {
+      // Arrange
+      getPrivacyModeMock().mockReturnValue(false);
+      mockUsePredictBalance.mockReturnValue({
+        balance: 250.75,
+        isLoading: false,
+        isRefreshing: false,
+        error: null,
+        loadBalance: jest.fn(),
+        hasNoBalance: false,
+      });
+
+      // Act
+      const { getByText } = renderWithProvider(<PredictBalance />, {
+        state: initialState,
+      });
+
+      // Assert - balance should be visible
+      expect(getByText('$250.75')).toBeOnTheScreen();
+    });
+
+    it('hides balance when privacy mode is enabled', () => {
+      // Arrange
+      getPrivacyModeMock().mockReturnValue(true);
+      mockUsePredictBalance.mockReturnValue({
+        balance: 250.75,
+        isLoading: false,
+        isRefreshing: false,
+        error: null,
+        loadBalance: jest.fn(),
+        hasNoBalance: false,
+      });
+
+      // Act
+      const { queryByText, getAllByText } = renderWithProvider(
+        <PredictBalance />,
+        {
+          state: initialState,
+        },
+      );
+
+      // Assert - balance should be hidden (replaced with bullets)
+      expect(queryByText('$250.75')).toBeNull();
+      expect(getAllByText('••••••').length).toBeGreaterThan(0);
+    });
+
+    it('shows action buttons regardless of privacy mode', () => {
+      // Arrange
+      getPrivacyModeMock().mockReturnValue(true);
+      mockUsePredictBalance.mockReturnValue({
+        balance: 250.75,
+        isLoading: false,
+        isRefreshing: false,
+        error: null,
+        loadBalance: jest.fn(),
+        hasNoBalance: false,
+      });
+
+      // Act
+      const { getByText } = renderWithProvider(<PredictBalance />, {
+        state: initialState,
+      });
+
+      // Assert - buttons should always be visible
+      expect(getByText(/Add funds/i)).toBeOnTheScreen();
+      expect(getByText(/Withdraw/i)).toBeOnTheScreen();
     });
   });
 });

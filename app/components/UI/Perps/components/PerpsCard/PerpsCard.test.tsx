@@ -43,6 +43,19 @@ jest.mock('../../hooks/usePerpsMarkets', () => ({
 
 jest.mock('../PerpsTokenLogo', () => 'PerpsTokenLogo');
 
+// Mock privacy mode selector
+const mockSelectPrivacyMode = jest.fn(() => false);
+jest.mock('../../../../../selectors/preferencesController', () => ({
+  selectPrivacyMode: mockSelectPrivacyMode,
+}));
+
+// Mock react-redux
+const mockUseSelector = jest.fn();
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: (selector: unknown) => mockUseSelector(selector),
+}));
+
 describe('PerpsCard', () => {
   const mockPosition = { ...defaultPerpsPositionMock };
   const mockOrder = { ...defaultPerpsOrderMock };
@@ -50,6 +63,9 @@ describe('PerpsCard', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    // Default privacy mode to false (amounts visible)
+    mockSelectPrivacyMode.mockReturnValue(false);
+    mockUseSelector.mockImplementation(() => false);
     // Set up default mock return value
     mockUsePerpsMarkets.mockReturnValue({
       markets: [
@@ -289,6 +305,73 @@ describe('PerpsCard', () => {
 
       // Assert
       expect(getByText('ETH short')).toBeDefined();
+    });
+  });
+
+  describe('Privacy Mode', () => {
+    it('shows amounts when privacy mode is disabled', () => {
+      // Arrange
+      mockUseSelector.mockImplementation(() => false);
+      const positivePosition = {
+        ...mockPosition,
+        unrealizedPnl: '100.50',
+        returnOnEquity: '0.05',
+      };
+
+      // Act
+      const { getByText } = render(
+        <PerpsCard position={positivePosition} testID="test-card" />,
+      );
+
+      // Assert - amounts should be visible
+      expect(getByText('+$100.50 (+5.0%)')).toBeDefined();
+    });
+
+    it('hides amounts when privacy mode is enabled', () => {
+      // Arrange
+      mockUseSelector.mockImplementation(() => true);
+      const positivePosition = {
+        ...mockPosition,
+        unrealizedPnl: '100.50',
+        returnOnEquity: '0.05',
+      };
+
+      // Act
+      const { queryByText, getAllByText } = render(
+        <PerpsCard position={positivePosition} testID="test-card" />,
+      );
+
+      // Assert - amounts should be hidden (replaced with bullets)
+      expect(queryByText('+$100.50 (+5.0%)')).toBeNull();
+      // SensitiveText shows 6 bullets by default when hidden
+      // There are two SensitiveText components (value and label)
+      expect(getAllByText('••••••').length).toBe(2);
+    });
+
+    it('shows position value when privacy mode is disabled', () => {
+      // Arrange
+      mockUseSelector.mockImplementation(() => false);
+
+      // Act
+      const { getByText } = render(
+        <PerpsCard position={mockPosition} testID="test-card" />,
+      );
+
+      // Assert - position value should be visible
+      expect(getByText('1.5 ETH')).toBeDefined();
+    });
+
+    it('hides order value when privacy mode is enabled', () => {
+      // Arrange
+      mockUseSelector.mockImplementation(() => true);
+
+      // Act
+      const { queryByText } = render(
+        <PerpsCard order={mockOrder} testID="test-card" />,
+      );
+
+      // Assert - order value and limit label should be hidden
+      expect(queryByText('perps.order.limit')).toBeNull();
     });
   });
 });

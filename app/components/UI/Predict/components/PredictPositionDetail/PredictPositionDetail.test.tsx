@@ -21,6 +21,30 @@ declare global {
   var __mockNavigate: jest.Mock;
 }
 
+// Mock preferencesController selectors to avoid import chain issues
+jest.mock('../../../../../selectors/preferencesController', () => ({
+  selectPrivacyMode: jest.fn(() => false),
+  selectSmartTransactionsOptInStatus: jest.fn(() => false),
+  selectIpfsGateway: jest.fn(() => ''),
+  selectUseNftDetection: jest.fn(() => false),
+  selectShowMultiRpcModal: jest.fn(() => false),
+  selectUseTokenDetection: jest.fn(() => true),
+  selectDisplayNftMedia: jest.fn(() => true),
+  selectUseSafeChainsListValidation: jest.fn(() => true),
+  selectTokenSortConfig: jest.fn(() => ({})),
+  selectTokenNetworkFilter: jest.fn(() => ({})),
+  selectIsTokenNetworkFilterEqualCurrentNetwork: jest.fn(() => true),
+  selectIsMultiAccountBalancesEnabled: jest.fn(() => true),
+  selectShowTestNetworks: jest.fn(() => false),
+  selectIsIpfsGatewayEnabled: jest.fn(() => true),
+  selectIsSecurityAlertsEnabled: jest.fn(() => false),
+  selectUseTransactionSimulations: jest.fn(() => true),
+  selectSmartTransactionsMigrationApplied: jest.fn(() => false),
+  selectSmartTransactionsBannerDismissed: jest.fn(() => false),
+  selectDismissSmartAccountSuggestionEnabled: jest.fn(() => false),
+  selectSmartAccountOptIn: jest.fn(() => false),
+}));
+
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string, vars?: Record<string, string | number>) => {
     switch (key) {
@@ -633,6 +657,94 @@ describe('PredictPositionDetail', () => {
       );
 
       expect(cashOutButton).toHaveProp('disabled', true);
+    });
+  });
+
+  describe('Privacy Mode', () => {
+    const getPrivacyModeMock = () =>
+      jest.requireMock('../../../../../selectors/preferencesController')
+        .selectPrivacyMode as jest.Mock;
+
+    afterEach(() => {
+      getPrivacyModeMock().mockReturnValue(false);
+    });
+
+    it('shows position values when privacy mode is disabled', () => {
+      // Arrange
+      getPrivacyModeMock().mockReturnValue(false);
+
+      // Act
+      renderComponent();
+
+      // Assert - current value and PnL should be visible
+      expect(screen.getByText('$129.93')).toBeOnTheScreen();
+      expect(screen.getByText('5.25%')).toBeOnTheScreen();
+      // Position info should be visible
+      expect(screen.getByText('$123.45 on Yes to win $10')).toBeOnTheScreen();
+    });
+
+    it('hides position values when privacy mode is enabled', () => {
+      // Arrange
+      getPrivacyModeMock().mockReturnValue(true);
+
+      // Act
+      renderComponent();
+
+      // Assert - sensitive values should be hidden (replaced with bullets)
+      expect(screen.queryByText('$129.93')).toBeNull();
+      expect(screen.queryByText('5.25%')).toBeNull();
+      expect(screen.queryByText('$123.45 on Yes to win $10')).toBeNull();
+      // SensitiveText shows bullets when hidden
+      expect(screen.getAllByText('••••••').length).toBeGreaterThan(0);
+    });
+
+    it('shows title regardless of privacy mode', () => {
+      // Arrange
+      getPrivacyModeMock().mockReturnValue(true);
+
+      // Act
+      // Component uses groupItemTitle ?? title from market outcomes
+      renderComponent();
+
+      // Assert - non-sensitive text should always be visible
+      // The component displays the groupItemTitle from the market outcome ('Group')
+      expect(screen.getByText('Group')).toBeOnTheScreen();
+      // Cash out button should also always be visible
+      expect(
+        screen.getByTestId(
+          PredictMarketDetailsSelectorsIDs.MARKET_DETAILS_CASH_OUT_BUTTON,
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('hides won result value when privacy mode is enabled', () => {
+      // Arrange
+      getPrivacyModeMock().mockReturnValue(true);
+
+      // Act
+      renderComponent(
+        { percentPnl: 10, currentValue: 200 },
+        {},
+        PredictMarketStatus.CLOSED,
+      );
+
+      // Assert - won amount should be hidden
+      expect(screen.queryByText('Won $200.00')).toBeNull();
+    });
+
+    it('hides lost result value when privacy mode is enabled', () => {
+      // Arrange
+      getPrivacyModeMock().mockReturnValue(true);
+
+      // Act
+      renderComponent(
+        { percentPnl: -5, currentValue: 90, initialValue: 100 },
+        {},
+        PredictMarketStatus.CLOSED,
+      );
+
+      // Assert - lost amount should be hidden
+      expect(screen.queryByText('Lost $100.00')).toBeNull();
     });
   });
 });

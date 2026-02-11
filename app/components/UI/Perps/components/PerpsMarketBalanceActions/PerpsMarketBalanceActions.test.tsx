@@ -185,6 +185,15 @@ jest.mock('../../utils/formatUtils', () => ({
   formatPerpsFiat: jest.fn((amount) => `$${amount}`),
 }));
 
+// Mock privacy mode selector
+// NOTE: Must include all selectors used transitively (e.g. by smartTransactionsController)
+// when renderWithProvider triggers loading reducers/index.ts → bridge → smartTransactionsController
+jest.mock('../../../../../selectors/preferencesController', () => ({
+  selectPrivacyMode: jest.fn(() => false),
+  selectSmartTransactionsOptInStatus: jest.fn(() => false),
+  selectTokenNetworkFilter: jest.fn(() => ({})),
+}));
+
 // Mock PerpsBottomSheetTooltip to avoid SafeArea issues
 jest.mock('../PerpsBottomSheetTooltip', () => {
   const { View, Text } = jest.requireActual('react-native');
@@ -642,6 +651,75 @@ describe('PerpsMarketBalanceActions', () => {
 
       // Assert
       expect(mockStopAnimation).toHaveBeenCalled();
+    });
+  });
+
+  describe('Privacy Mode', () => {
+    const getPrivacyModeMock = () =>
+      jest.requireMock('../../../../../selectors/preferencesController')
+        .selectPrivacyMode as jest.Mock;
+
+    afterEach(() => {
+      // Reset privacy mode to default (disabled) after each test
+      getPrivacyModeMock().mockReturnValue(false);
+    });
+
+    it('shows balance values when privacy mode is disabled', () => {
+      // Arrange
+      getPrivacyModeMock().mockReturnValue(false);
+
+      // Act
+      const { getByTestId, getByText } = renderWithProvider(
+        <PerpsMarketBalanceActions />,
+        { state: createMockState() },
+        false,
+      );
+
+      // Assert - balance value should be visible
+      expect(
+        getByTestId(PerpsMarketBalanceActionsSelectorsIDs.BALANCE_VALUE),
+      ).toBeOnTheScreen();
+      expect(getByText('$10.57')).toBeOnTheScreen();
+      // Available balance text should be visible
+      expect(
+        getByTestId(
+          PerpsMarketBalanceActionsSelectorsIDs.AVAILABLE_BALANCE_TEXT,
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('hides balance values when privacy mode is enabled', () => {
+      // Arrange
+      getPrivacyModeMock().mockReturnValue(true);
+
+      // Act
+      const { queryByText, getAllByText } = renderWithProvider(
+        <PerpsMarketBalanceActions />,
+        { state: createMockState() },
+        false,
+      );
+
+      // Assert - balance values should be hidden (replaced with bullets)
+      expect(queryByText('$10.57')).toBeNull();
+      // SensitiveText shows bullets when hidden
+      expect(getAllByText('••••••').length).toBeGreaterThan(0);
+    });
+
+    it('shows action buttons regardless of privacy mode', () => {
+      // Arrange
+      getPrivacyModeMock().mockReturnValue(true);
+
+      // Act
+      const { getByTestId } = renderWithProvider(
+        <PerpsMarketBalanceActions />,
+        { state: createMockState() },
+        false,
+      );
+
+      // Assert - action buttons should always be visible
+      expect(
+        getByTestId(PerpsMarketBalanceActionsSelectorsIDs.ADD_FUNDS_BUTTON),
+      ).toBeOnTheScreen();
     });
   });
 });

@@ -5,6 +5,17 @@ import PerpsHomeSection from './PerpsHomeSection';
 
 import { TextColor } from '../../../../../component-library/components/Texts/Text';
 
+// Mock privacy mode selector
+jest.mock('../../../../../selectors/preferencesController', () => ({
+  selectPrivacyMode: jest.fn(() => false),
+}));
+
+// Mock react-redux
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => false),
+}));
+
 describe('PerpsHomeSection', () => {
   const mockSkeleton = () => <View testID="skeleton-loader" />;
   const mockChildren = <Text testID="section-content">Content</Text>;
@@ -536,6 +547,76 @@ describe('PerpsHomeSection', () => {
       // Suffix should not render without a subtitle
       expect(queryByTestId('test-subtitle')).toBeNull();
       expect(queryByTestId('test-subtitle-suffix')).toBeNull();
+    });
+  });
+
+  describe('Privacy Mode', () => {
+    const { useSelector } = jest.requireMock('react-redux');
+
+    it('shows subtitle when privacy mode is disabled', () => {
+      // Arrange
+      useSelector.mockReturnValue(false);
+
+      // Act
+      const { getByText } = render(
+        <PerpsHomeSection
+          title="Positions"
+          subtitle="+$50.75"
+          subtitleTestID="test-subtitle"
+          isLoading={false}
+          isEmpty={false}
+          renderSkeleton={mockSkeleton}
+        >
+          {mockChildren}
+        </PerpsHomeSection>,
+      );
+
+      // Assert - subtitle amount should be visible
+      expect(getByText('+$50.75')).toBeTruthy();
+    });
+
+    it('hides subtitle when privacy mode is enabled', () => {
+      // Arrange
+      useSelector.mockReturnValue(true);
+
+      // Act
+      const { queryByText, getAllByText } = render(
+        <PerpsHomeSection
+          title="Positions"
+          subtitle="+$50.75"
+          subtitleTestID="test-subtitle"
+          isLoading={false}
+          isEmpty={false}
+          renderSkeleton={mockSkeleton}
+        >
+          {mockChildren}
+        </PerpsHomeSection>,
+      );
+
+      // Assert - subtitle should be hidden (replaced with bullets)
+      expect(queryByText('+$50.75')).toBeNull();
+      expect(getAllByText('••••••').length).toBeGreaterThan(0);
+    });
+
+    it('shows title regardless of privacy mode', () => {
+      // Arrange
+      useSelector.mockReturnValue(true);
+
+      // Act
+      const { getByText } = render(
+        <PerpsHomeSection
+          title="Positions"
+          subtitle="+$50.75"
+          isLoading={false}
+          isEmpty={false}
+          renderSkeleton={mockSkeleton}
+        >
+          {mockChildren}
+        </PerpsHomeSection>,
+      );
+
+      // Assert - title should always be visible (not sensitive)
+      expect(getByText('Positions')).toBeTruthy();
     });
   });
 });

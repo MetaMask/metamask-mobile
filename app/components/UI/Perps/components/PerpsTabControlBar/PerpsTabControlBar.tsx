@@ -1,16 +1,19 @@
 import React, { useEffect, useRef } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import Animated from 'react-native-reanimated';
+import { useSelector } from 'react-redux';
 import { useStyles } from '../../../../../component-library/hooks';
 import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
+import SensitiveText from '../../../../../component-library/components/Texts/SensitiveText';
 import { strings } from '../../../../../../locales/i18n';
 import styleSheet from './PerpsTabControlBar.styles';
 import { useColorPulseAnimation, useBalanceComparison } from '../../hooks';
 import { usePerpsLiveAccount } from '../../hooks/stream';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
+import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import {
   formatPerpsFiat,
   formatPnl,
@@ -37,6 +40,7 @@ export const PerpsTabControlBar: React.FC<PerpsTabControlBarProps> = ({
   hasPositions = false,
 }) => {
   const { styles } = useStyles(styleSheet, {});
+  const privacyMode = useSelector(selectPrivacyMode);
   // Use live account data with 1 second throttle for balance display
   const { account: perpsAccount } = usePerpsLiveAccount({ throttleMs: 1000 });
 
@@ -177,16 +181,17 @@ export const PerpsTabControlBar: React.FC<PerpsTabControlBarProps> = ({
                 styles.availableBalanceContainer,
               ]}
             >
-              <Text
+              <SensitiveText
                 variant={TextVariant.BodyMD}
                 color={TextColor.Default}
                 testID={PerpsTabViewSelectorsIDs.BALANCE_VALUE}
+                isHidden={privacyMode}
               >
                 {formatPerpsFiat(totalBalance, {
                   ranges: PRICE_RANGES_MINIMAL_VIEW,
                   stripTrailingZeros: false,
                 })}
-              </Text>
+              </SensitiveText>
               <Icon
                 name={IconName.ArrowRight}
                 size={IconSize.Sm}
@@ -210,9 +215,13 @@ export const PerpsTabControlBar: React.FC<PerpsTabControlBarProps> = ({
           </View>
           <View style={styles.rightSection}>
             <Animated.View style={[getPnlAnimatedStyle]}>
-              <Text variant={TextVariant.BodyMD} color={pnlColor}>
+              <SensitiveText
+                variant={TextVariant.BodyMD}
+                color={pnlColor}
+                isHidden={privacyMode}
+              >
                 {formatPnl(pnlNum)} ({formatPercentage(roe, 1)})
-              </Text>
+              </SensitiveText>
             </Animated.View>
           </View>
         </View>

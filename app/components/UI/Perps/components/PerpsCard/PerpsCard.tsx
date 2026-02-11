@@ -1,12 +1,15 @@
 import React, { useCallback, useMemo } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
+import SensitiveText from '../../../../../component-library/components/Texts/SensitiveText';
 import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
+import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { strings } from '../../../../../../locales/i18n';
 import {
   getPerpsDisplaySymbol,
@@ -45,6 +48,7 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
   const { styles } = useStyles(styleSheet, { iconSize });
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const { track } = usePerpsEventTracking();
+  const privacyMode = useSelector(selectPrivacyMode);
 
   // Determine which type of data we have
   const symbol = position?.symbol || order?.symbol || '';
@@ -164,12 +168,20 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
 
         {/* Right side: Value and label */}
         <View style={styles.cardRight}>
-          <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
+          <SensitiveText
+            variant={TextVariant.BodyMDMedium}
+            color={TextColor.Default}
+            isHidden={privacyMode}
+          >
             {valueText}
-          </Text>
-          <Text variant={TextVariant.BodySM} color={valueColor}>
+          </SensitiveText>
+          <SensitiveText
+            variant={TextVariant.BodySM}
+            color={valueColor}
+            isHidden={privacyMode}
+          >
             {labelText}
-          </Text>
+          </SensitiveText>
         </View>
       </View>
     </TouchableOpacity>
