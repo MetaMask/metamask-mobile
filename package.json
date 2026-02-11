@@ -342,6 +342,7 @@
     "@sentry/react-native": "~6.15.0",
     "@shopify/flash-list": "2.0.3",
     "@solana/addresses": "2.0.0",
+    "@tanstack/react-query": "^5.90.20",
     "@tommasini/react-native-scrollable-tab-view": "^1.1.1",
     "@tradle/react-native-http": "2.0.1",
     "@types/he": "^1.2.3",
