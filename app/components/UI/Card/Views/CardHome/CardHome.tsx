@@ -332,9 +332,36 @@ const CardHome = () => {
       // Set flag immediately to prevent race conditions
       hasTrackedCardHomeView.current = true;
 
+      // Determine the user's card state for analytics
+      let cardHomeState: string;
+      if (!isAuthenticated) {
+        cardHomeState = 'UNAUTHENTICATED';
+      } else if (
+        kycStatus?.verificationState === 'PENDING' ||
+        kycStatus?.verificationState === 'UNVERIFIED'
+      ) {
+        cardHomeState = 'PENDING';
+      } else if (
+        kycStatus?.verificationState === 'VERIFIED' &&
+        (warning === CardStateWarning.NoCard ||
+          warning === CardStateWarning.NeedDelegation) &&
+        (externalWalletDetailsData?.mappedWalletDetails?.length ?? 0) > 0
+      ) {
+        cardHomeState = 'PROVISIONING_CARD';
+      } else if (
+        kycStatus?.verificationState === 'VERIFIED' &&
+        (warning === CardStateWarning.NoCard ||
+          warning === CardStateWarning.NeedDelegation)
+      ) {
+        cardHomeState = 'ENABLE_CARD';
+      } else {
+        cardHomeState = 'VERIFIED';
+      }
+
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_HOME_VIEWED)
           .addProperties({
+            state: cardHomeState,
             token_symbol_priority: priorityToken?.symbol,
             token_raw_balance_priority:
               rawTokenBalance !== undefined && isNaN(rawTokenBalance)
@@ -357,6 +384,10 @@ const CardHome = () => {
     trackEvent,
     createEventBuilder,
     isSDKLoading,
+    isAuthenticated,
+    kycStatus,
+    warning,
+    externalWalletDetailsData,
   ]);
 
   // Show toast notification when navigating from deeplink
