@@ -35,7 +35,7 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
-import { Skeleton } from '../../../../../component-library/components/Skeleton';
+
 import Text, {
   TextColor,
   TextVariant,
@@ -340,7 +340,12 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
   const [draggingLeverage, setDraggingLeverage] = useState(initialLeverage);
   const [isDragging, setIsDragging] = useState(false);
   const [inputMethod, setInputMethod] = useState<'slider' | 'preset'>('slider');
-  const [shouldShowSkeleton, setShouldShowSkeleton] = useState(false);
+
+  // Cache last valid liquidation values to avoid skeleton blinking.
+  // Values update in-place (like the current price row) instead of
+  // toggling between a skeleton placeholder and text.
+  const lastValidLiquidationPrice = useRef<number | null>(null);
+  const lastValidLiquidationPercentage = useRef<string | null>(null);
 
   const currentLivePrice = usePerpsLivePrices({
     symbols: [asset],
@@ -360,26 +365,27 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
   );
 
   // Always use tempLeverage for precise API calls (debounced)
-  const { liquidationPrice: apiLiquidationPrice, isCalculating } =
-    usePerpsLiquidationPrice(
-      {
-        entryPrice,
-        leverage: tempLeverage, // Final leverage value for API calls
-        direction,
-        asset,
-      },
-      {
-        debounceMs: PERFORMANCE_CONFIG.LiquidationPriceDebounceMs, // Debounced for performance
-      },
-    );
-
-  // Instead of using isDragging || isCalculating, we use shouldShowSkeleton to show the skeleton
-  // Otherwise the skeleton would flicker for a split second when the user stops dragging and the liquidation price is not yet being calculated
-  useEffect(() => {
-    setShouldShowSkeleton(isCalculating);
-  }, [isCalculating]);
+  const { liquidationPrice: apiLiquidationPrice } = usePerpsLiquidationPrice(
+    {
+      entryPrice,
+      leverage: tempLeverage, // Final leverage value for API calls
+      direction,
+      asset,
+    },
+    {
+      debounceMs: PERFORMANCE_CONFIG.LiquidationPriceDebounceMs, // Debounced for performance
+    },
+  );
 
   const dynamicLiquidationPrice = Number.parseFloat(apiLiquidationPrice);
+
+  // Cache last valid liquidation price so the UI always shows a value
+  // instead of blinking a skeleton loader during recalculation.
+  useEffect(() => {
+    if (!Number.isNaN(dynamicLiquidationPrice) && dynamicLiquidationPrice > 0) {
+      lastValidLiquidationPrice.current = dynamicLiquidationPrice;
+    }
+  }, [dynamicLiquidationPrice]);
 
   useEffect(() => {
     if (isVisible) {
@@ -389,7 +395,8 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
       setTempLeverage(initialLeverage);
       setDraggingLeverage(initialLeverage);
       setIsDragging(false);
-      setShouldShowSkeleton(false);
+      lastValidLiquidationPrice.current = null;
+      lastValidLiquidationPercentage.current = null;
     }
   }, [isVisible, initialLeverage]);
 
@@ -460,6 +467,24 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
     isDragging,
     draggingLeverage,
   ]);
+
+  // Cache the last valid liquidation percentage for display continuity
+  useEffect(() => {
+    if (liquidationDropPercentage > 0) {
+      lastValidLiquidationPercentage.current = `${liquidationDropPercentage.toFixed(1)}%`;
+    }
+  }, [liquidationDropPercentage]);
+
+  // Resolve display values: prefer live data, fall back to cached, then placeholder
+  const displayLiquidationPrice =
+    !Number.isNaN(dynamicLiquidationPrice) && dynamicLiquidationPrice > 0
+      ? dynamicLiquidationPrice
+      : lastValidLiquidationPrice.current;
+
+  const displayLiquidationPercentage =
+    liquidationDropPercentage > 0
+      ? `${liquidationDropPercentage.toFixed(1)}%`
+      : lastValidLiquidationPercentage.current;
 
   // Generate dynamic leverage options based on maxLeverage
   const quickSelectValues = useMemo(() => {
@@ -614,17 +639,21 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
               variant={TextVariant.BodySM}
               style={[warningStyles.textStyle, styles.warningText]}
             >
-              {shouldShowSkeleton || Number.isNaN(dynamicLiquidationPrice) ? (
-                <Skeleton height={16} width={200} />
-              ) : (
-                strings('perps.order.leverage_modal.liquidation_warning', {
-                  direction:
-                    direction === 'long'
-                      ? strings('perps.order.leverage_modal.drops')
-                      : strings('perps.order.leverage_modal.rises'),
-                  percentage: `${liquidationDropPercentage.toFixed(1)}%`,
-                })
-              )}
+              {displayLiquidationPercentage
+                ? strings('perps.order.leverage_modal.liquidation_warning', {
+                    direction:
+                      direction === 'long'
+                        ? strings('perps.order.leverage_modal.drops')
+                        : strings('perps.order.leverage_modal.rises'),
+                    percentage: displayLiquidationPercentage,
+                  })
+                : strings('perps.order.leverage_modal.liquidation_warning', {
+                    direction:
+                      direction === 'long'
+                        ? strings('perps.order.leverage_modal.drops')
+                        : strings('perps.order.leverage_modal.rises'),
+                    percentage: '--',
+                  })}
             </Text>
           </View>
         </View>
@@ -646,18 +675,16 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
                   color={warningStyles.priceColor}
                   style={styles.priceIcon}
                 />
-                {shouldShowSkeleton || Number.isNaN(dynamicLiquidationPrice) ? (
-                  <Skeleton height={20} width={80} />
-                ) : (
-                  <Text
-                    variant={TextVariant.BodyMD}
-                    style={{ color: warningStyles.priceColor }}
-                  >
-                    {formatPerpsFiat(dynamicLiquidationPrice, {
-                      ranges: PRICE_RANGES_UNIVERSAL,
-                    })}
-                  </Text>
-                )}
+                <Text
+                  variant={TextVariant.BodyMD}
+                  style={{ color: warningStyles.priceColor }}
+                >
+                  {displayLiquidationPrice
+                    ? formatPerpsFiat(displayLiquidationPrice, {
+                        ranges: PRICE_RANGES_UNIVERSAL,
+                      })
+                    : '--'}
+                </Text>
               </View>
             </View>
             <View style={styles.priceRow}>
@@ -688,14 +715,11 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
           <LeverageSlider
             value={isDragging ? draggingLeverage : tempLeverage}
             onValueChange={(newValue) => {
-              setShouldShowSkeleton(true);
-
               if (isDragging) {
                 setDraggingLeverage(newValue);
               } else {
                 setTempLeverage(newValue);
               }
-              setShouldShowSkeleton(true);
             }}
             onDragStart={() => {
               setIsDragging(true);
@@ -705,9 +729,6 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
               setIsDragging(false);
               setTempLeverage(finalValue);
               setInputMethod('slider');
-              if (tempLeverage === finalValue) {
-                setShouldShowSkeleton(false);
-              }
             }}
             minValue={minLeverage}
             maxValue={maxLeverage}
@@ -742,9 +763,6 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
                 setInputMethod('preset');
                 // Add haptic feedback for quick select buttons
                 impactAsync(ImpactFeedbackStyle.Light);
-                if (value !== tempLeverage) {
-                  setShouldShowSkeleton(true);
-                }
               }}
             >
               <Text
