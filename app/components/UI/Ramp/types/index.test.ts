@@ -1,4 +1,9 @@
-import { getQuoteProviderName, isNativeProvider, type Quote } from './index';
+import {
+  getQuoteBuyUserAgent,
+  getQuoteProviderName,
+  isNativeProvider,
+  type Quote,
+} from './index';
 
 describe('getQuoteProviderName', () => {
   it('returns providerInfo.name when present (canonical display name)', () => {
@@ -71,5 +76,72 @@ describe('isNativeProvider', () => {
     } as Quote;
 
     expect(isNativeProvider(quote)).toBe(false);
+  });
+});
+
+describe('getQuoteBuyUserAgent', () => {
+  it('returns userAgent when providerInfo.features.buy.userAgent is set', () => {
+    const quote = {
+      provider: '/providers/example',
+      providerInfo: {
+        id: '/providers/example',
+        name: 'Example',
+        type: 'aggregator' as const,
+        features: {
+          buy: {
+            userAgent: 'CustomProvider/1.0 (MetaMask)',
+          },
+        },
+      },
+    } as Quote;
+
+    expect(getQuoteBuyUserAgent(quote)).toBe('CustomProvider/1.0 (MetaMask)');
+  });
+
+  it('returns undefined when providerInfo.features.buy.userAgent is null', () => {
+    const quote = {
+      provider: '/providers/example',
+      providerInfo: {
+        id: '/providers/example',
+        name: 'Example',
+        type: 'aggregator' as const,
+        features: { buy: { userAgent: null } },
+      },
+    } as Quote;
+
+    expect(getQuoteBuyUserAgent(quote)).toBeUndefined();
+  });
+
+  it('returns undefined when providerInfo.features.buy.userAgent is empty string', () => {
+    const quote = {
+      provider: '/providers/example',
+      providerInfo: {
+        id: '/providers/example',
+        name: 'Example',
+        type: 'aggregator' as const,
+        features: { buy: { userAgent: '' } },
+      },
+    } as Quote;
+
+    expect(getQuoteBuyUserAgent(quote)).toBeUndefined();
+  });
+
+  it('returns undefined when providerInfo is missing', () => {
+    const quote = { provider: '/providers/example' } as Quote;
+
+    expect(getQuoteBuyUserAgent(quote)).toBeUndefined();
+  });
+
+  it('returns undefined when providerInfo.features.buy is missing', () => {
+    const quote = {
+      provider: '/providers/example',
+      providerInfo: {
+        id: '/providers/example',
+        name: 'Example',
+        type: 'aggregator' as const,
+      },
+    } as Quote;
+
+    expect(getQuoteBuyUserAgent(quote)).toBeUndefined();
   });
 });

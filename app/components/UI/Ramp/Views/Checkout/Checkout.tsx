@@ -28,6 +28,8 @@ import { shouldStartLoadWithRequest } from '../../../../../util/browser';
 interface CheckoutParams {
   url: string;
   providerName: string;
+  /** Optional provider-specific userAgent for the WebView (e.g. features.buy.userAgent). */
+  userAgent?: string;
 }
 
 export const createCheckoutNavDetails = createNavigationDetails<CheckoutParams>(
@@ -41,7 +43,7 @@ const Checkout = () => {
   const params = useParams<CheckoutParams>();
   const { styles } = useStyles(styleSheet, {});
 
-  const { url: uri, providerName } = params ?? {};
+  const { url: uri, providerName, userAgent } = params ?? {};
   const headerTitle = providerName ?? '';
 
   const handleCancelPress = useCallback(() => {
@@ -124,6 +126,7 @@ const Checkout = () => {
           key={key}
           style={styles.webview}
           source={{ uri }}
+          userAgent={userAgent ?? undefined}
           onHttpError={(syntheticEvent) => {
             const { nativeEvent } = syntheticEvent;
             if (nativeEvent.url === uri) {

@@ -103,4 +103,30 @@ describe('Checkout', () => {
 
     expect(getByTestId('checkout-close-button')).toBeOnTheScreen();
   });
+
+  it('passes userAgent to WebView when provided in params', () => {
+    const useParamsMock = jest.requireMock<
+      typeof import('../../../../../util/navigation/navUtils')
+    >('../../../../../util/navigation/navUtils').useParams as jest.Mock;
+
+    useParamsMock.mockReturnValue({
+      url: 'https://provider.example.com/widget',
+      providerName: 'Test Provider',
+      userAgent: 'CustomProvider/1.0 (MetaMask)',
+    });
+
+    const { getByTestId } = render(
+      <ThemeContext.Provider value={mockTheme}>
+        <Checkout />
+      </ThemeContext.Provider>,
+    );
+
+    const webview = getByTestId('checkout-webview');
+    expect(webview.props.userAgent).toBe('CustomProvider/1.0 (MetaMask)');
+
+    useParamsMock.mockReturnValue({
+      url: 'https://provider.example.com/widget?test=1',
+      providerName: 'Test Provider',
+    });
+  });
 });

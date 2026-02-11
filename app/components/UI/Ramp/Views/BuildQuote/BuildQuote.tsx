@@ -30,7 +30,11 @@ import useRampAccountAddress from '../../hooks/useRampAccountAddress';
 import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 import { createPaymentSelectionModalNavigationDetails } from '../Modals/PaymentSelectionModal';
 import { createCheckoutNavDetails } from '../Checkout';
-import { isNativeProvider, getQuoteProviderName } from '../../types';
+import {
+  isNativeProvider,
+  getQuoteProviderName,
+  getQuoteBuyUserAgent,
+} from '../../types';
 import { createDepositNavigationDetails } from '../../Deposit/routes/utils';
 import Logger from '../../../../../util/Logger';
 
@@ -215,6 +219,7 @@ function BuildQuote() {
           ...createCheckoutNavDetails({
             url: widgetUrl,
             providerName: getQuoteProviderName(selectedQuote),
+            userAgent: getQuoteBuyUserAgent(selectedQuote),
           }),
         );
       } else {

@@ -57,3 +57,31 @@ export function isNativeProvider(quote: Quote): boolean {
 export function getQuoteProviderName(quote: Quote): string {
   return quote.providerInfo?.name || 'Provider';
 }
+
+/**
+ * Provider info shape that may include API-only fields (e.g. features.buy.userAgent).
+ * Used for reading optional fields from quote.providerInfo at runtime.
+ */
+interface ProviderInfoWithFeatures {
+  features?: {
+    buy?: {
+      userAgent?: string | null;
+    };
+  };
+}
+
+/**
+ * Gets the provider-specific userAgent for the buy WebView when present.
+ * Some providers require a custom userAgent (features.buy.userAgent) to load
+ * or behave correctly in the checkout WebView.
+ *
+ * @param quote - The quote that may include providerInfo.features.buy.userAgent.
+ * @returns The userAgent string to pass to the WebView, or undefined if not set.
+ */
+export function getQuoteBuyUserAgent(quote: Quote): string | undefined {
+  const providerInfo = quote.providerInfo as
+    | ProviderInfoWithFeatures
+    | undefined;
+  const userAgent = providerInfo?.features?.buy?.userAgent;
+  return userAgent == null || userAgent === '' ? undefined : userAgent;
+}

@@ -479,10 +479,63 @@ describe('BuildQuote', () => {
         await Promise.resolve();
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith('Checkout', {
-        url: 'https://global.transak.com/?apiKey=test',
-        providerName: 'Mercuryo',
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'Checkout',
+        expect.objectContaining({
+          url: 'https://global.transak.com/?apiKey=test',
+          providerName: 'Mercuryo',
+        }),
+      );
+    });
+
+    it('passes userAgent to Checkout when quote has providerInfo.features.buy.userAgent', async () => {
+      mockSelectedQuote = {
+        provider: '/providers/mercuryo',
+        quote: {
+          amountIn: 100,
+          amountOut: 0.05,
+          paymentMethod: '/payments/debit-credit-card',
+          buyURL:
+            'https://on-ramp.uat-api.cx.metamask.io/providers/mercuryo/buy-widget',
+        },
+        providerInfo: {
+          id: '/providers/mercuryo',
+          name: 'Mercuryo',
+          type: 'aggregator',
+          features: {
+            buy: {
+              userAgent: 'CustomProvider/1.0 (MetaMask)',
+            },
+          },
+        },
+      };
+      mockSelectedPaymentMethod = {
+        id: '/payments/debit-credit-card',
+        name: 'Card',
+      };
+      mockGetWidgetUrl.mockResolvedValue(
+        'https://global.transak.com/?apiKey=test',
+      );
+
+      const { getByTestId } = renderWithTheme(<BuildQuote />);
+      const continueButton = getByTestId('build-quote-continue-button');
+
+      await act(async () => {
+        fireEvent.press(continueButton);
       });
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'Checkout',
+        expect.objectContaining({
+          url: 'https://global.transak.com/?apiKey=test',
+          providerName: 'Mercuryo',
+          userAgent: 'CustomProvider/1.0 (MetaMask)',
+        }),
+      );
     });
 
     it('navigates to deposit flow for native provider', () => {
