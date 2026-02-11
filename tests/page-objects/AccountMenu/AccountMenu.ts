@@ -9,6 +9,12 @@ class AccountMenu {
     );
   }
 
+  get containerMatcher(): Promise<Detox.NativeMatcher> {
+    return Promise.resolve(
+      by.id(AccountsMenuSelectorsIDs.ACCOUNTS_MENU_SCROLL_ID),
+    );
+  }
+
   get backButton(): DetoxElement {
     return Matchers.getElementByID(AccountsMenuSelectorsIDs.BACK_BUTTON);
   }
@@ -95,6 +101,13 @@ class AccountMenu {
 
   async tapLock(): Promise<void> {
     await Gestures.waitAndTap(this.lockButton, {
+      elemDescription: 'Lock button',
+    });
+  }
+
+  async scrollToLockButton(): Promise<void> {
+    await Gestures.scrollToElement(this.lockButton, this.containerMatcher, {
+      direction: 'down',
       elemDescription: 'Lock button',
     });
   }

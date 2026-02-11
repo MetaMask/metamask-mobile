@@ -6,7 +6,6 @@ import CreatePasswordView from '../../../../page-objects/Onboarding/CreatePasswo
 import WalletView from '../../../../page-objects/wallet/WalletView';
 import Browser from '../../../../page-objects/Browser/BrowserView';
 import SettingsView from '../../../../page-objects/Settings/SettingsView';
-import TabBarComponent from '../../../../page-objects/wallet/TabBarComponent';
 import SkipAccountSecurityModal from '../../../../page-objects/Onboarding/SkipAccountSecurityModal';
 import ConnectedAccountsModal from '../../../../page-objects/Browser/ConnectedAccountsModal';
 import DeleteWalletModal from '../../../../page-objects/Settings/SecurityAndPrivacy/DeleteWalletModal';
@@ -23,6 +22,7 @@ import Assertions from '../../../../framework/Assertions';
 import ToastModal from '../../../../page-objects/wallet/ToastModal';
 import OnboardingSheet from '../../../../page-objects/Onboarding/OnboardingSheet';
 import { DappVariants } from '../../../../framework/Constants';
+import AccountMenu from '../../../../page-objects/AccountMenu/AccountMenu';
 
 const SEEDLESS_ONBOARDING_ENABLED =
   process.env.SEEDLESS_ONBOARDING_ENABLED === 'true';
@@ -62,8 +62,9 @@ describe(RegressionNetworkAbstractions('Permission System'), () => {
         await TestHelpers.delay(2000);
 
         //go to settings then security & privacy
-        await TabBarComponent.tapSettings();
-        await SettingsView.tapLock();
+        await WalletView.tapHamburgerMenu();
+        await AccountMenu.scrollToLockButton();
+        await AccountMenu.tapLock();
         await SettingsView.tapYesAlertButton();
         await Assertions.expectElementToBeVisible(LoginView.container);
 

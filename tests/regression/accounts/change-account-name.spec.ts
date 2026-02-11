@@ -10,6 +10,7 @@ import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomS
 import AccountDetails from '../../page-objects/MultichainAccounts/AccountDetails';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { loginToApp } from '../../flows/wallet.flow';
+import AccountMenu from '../../page-objects/AccountMenu/AccountMenu';
 
 const NEW_ACCOUNT_NAME = 'Edited Name';
 const NEW_IMPORTED_ACCOUNT_NAME = 'New Imported Account';
@@ -62,13 +63,9 @@ describe(RegressionAccounts('Change Account Name'), () => {
           },
         );
 
-        // Lock wallet
-        await Assertions.expectElementToBeVisible(
-          TabBarComponent.tabBarSettingButton,
-        );
-        await TabBarComponent.tapSettings();
-        await SettingsView.scrollToLockButton();
-        await SettingsView.tapLock();
+        await WalletView.tapHamburgerMenu();
+        await AccountMenu.scrollToLockButton();
+        await AccountMenu.tapLock();
         await SettingsView.tapYesAlertButton();
         await Assertions.expectElementToBeVisible(LoginView.container);
 
@@ -130,13 +127,9 @@ describe(RegressionAccounts('Change Account Name'), () => {
           },
         );
 
-        // Lock wallet
-        await Assertions.expectElementToBeVisible(
-          TabBarComponent.tabBarSettingButton,
-        );
-        await TabBarComponent.tapSettings();
-        await SettingsView.scrollToLockButton();
-        await SettingsView.tapLock();
+        await WalletView.tapHamburgerMenu();
+        await AccountMenu.scrollToLockButton();
+        await AccountMenu.tapLock();
         await SettingsView.tapYesAlertButton();
         await Assertions.expectElementToBeVisible(LoginView.container);
 
