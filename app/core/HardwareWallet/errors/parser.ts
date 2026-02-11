@@ -165,7 +165,7 @@ function parseErrorByName(
   // The error name alone doesn't tell us what went wrong; the statusCode does
   if (name === 'TransportStatusError') {
     const statusCode = extractStatusCode(error);
-    if (statusCode) {
+    if (statusCode !== null) {
       return parseLedgerStatusCode(statusCode, walletType, error);
     }
     // If no status code found, fall through to unknown error
@@ -303,7 +303,7 @@ export function parseErrorByType(
     }
 
     const statusCode = extractStatusCode(error);
-    if (statusCode) {
+    if (statusCode !== null) {
       return parseLedgerStatusCode(statusCode, walletType, error);
     }
 
