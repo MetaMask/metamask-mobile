@@ -49,6 +49,8 @@ const OnboardingFloating = ({ onSecureWallet }: OnboardingFloatingProps) => {
     navigation.navigate(Routes.RAMP.BUY);
   };
 
+  const completedCount = Object.values(steps).filter(Boolean).length;
+
   const itemVariant = designStyle === DESIGN_STYLE.MODERN_FINTECH ? ChecklistItemVariant.Card : 
                       designStyle === DESIGN_STYLE.INTEGRATED_MINIMALIST ? ChecklistItemVariant.Minimal : 
                       ChecklistItemVariant.Glass;
@@ -80,7 +82,7 @@ const OnboardingFloating = ({ onSecureWallet }: OnboardingFloatingProps) => {
                 {designStyle === DESIGN_STYLE.GLASSMORPHISM ? 'Your Journey' : 'Complete your setup'}
               </Text>
               <Text variant={TextVariant.BodyXS} color={TextColor.Alternative}>
-                {Object.values(steps).filter(Boolean).length} of 3 steps done
+                {completedCount} of 3 completed
               </Text>
             </Box>
             <Icon

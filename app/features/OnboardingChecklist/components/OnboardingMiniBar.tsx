@@ -52,7 +52,7 @@ const OnboardingMiniBar = ({ onPress, scrollAnim }: OnboardingMiniBarProps) => {
           
           <Box twClassName="flex-1 mr-4">
             <Text variant={TextVariant.BodyXS} color={TextColor.Default} twClassName="mb-1 font-bold">
-              Step {completedCount === 3 ? '3' : completedCount + 1} of 3
+              {completedCount} of 3 completed
             </Text>
             {/* Segmented Line Bar */}
             <Box twClassName="flex-row gap-1 h-1.5 w-full">
