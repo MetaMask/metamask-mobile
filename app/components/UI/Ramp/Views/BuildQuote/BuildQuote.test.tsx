@@ -48,6 +48,9 @@ jest.mock('@react-navigation/native', () => ({
       assetId: MOCK_ASSET_ID,
     },
   }),
+  useFocusEffect: (callback: () => void) => {
+    React.useEffect(() => callback(), [callback]);
+  },
 }));
 
 jest.mock('../../../../../../locales/i18n', () => ({

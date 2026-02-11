@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import type { CaipChainId } from '@metamask/utils';
 
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
@@ -72,6 +72,15 @@ function BuildQuote() {
   const [userHasEnteredAmount, setUserHasEnteredAmount] = useState(false);
   const [isOnBuildQuoteScreen, setIsOnBuildQuoteScreen] =
     useState<boolean>(true);
+
+  useFocusEffect(
+    useCallback(() => {
+      setIsOnBuildQuoteScreen(true);
+      return () => {
+        setIsOnBuildQuoteScreen(false);
+      };
+    }, []),
+  );
 
   const {
     userRegion,
@@ -149,18 +158,9 @@ function BuildQuote() {
     navigation.navigate(
       ...createPaymentSelectionModalNavigationDetails({
         amount: debouncedPollingAmount,
-        onPaymentMethodSelect: () => {
-          setIsOnBuildQuoteScreen(true);
-        },
       }),
     );
-    setIsOnBuildQuoteScreen(false);
-  }, [
-    debouncedPollingAmount,
-    navigation,
-    stopQuotePolling,
-    setIsOnBuildQuoteScreen,
-  ]);
+  }, [debouncedPollingAmount, navigation, stopQuotePolling]);
 
   useEffect(() => {
     if (

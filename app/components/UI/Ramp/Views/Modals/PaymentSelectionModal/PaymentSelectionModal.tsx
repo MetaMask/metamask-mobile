@@ -209,22 +209,26 @@ function PaymentSelectionModal() {
   const tokenSymbol = selectedToken?.symbol ?? '';
 
   const renderPaymentMethod = useCallback(
-    ({ item: paymentMethod }: { item: PaymentMethod }) => (
-      <PaymentMethodListItem
-        paymentMethod={paymentMethod}
-        onPress={() => handlePaymentMethodPress(paymentMethod)}
-        isSelected={selectedPaymentMethod?.id === paymentMethod.id}
-        quote={
-          quotes?.success?.find(
-            (quote) => quote.quote?.paymentMethod === paymentMethod.id,
-          ) ?? null
-        }
-        quoteLoading={quotesLoading}
-        quoteError={false}
-        currency={currency}
-        tokenSymbol={tokenSymbol}
-      />
-    ),
+    ({ item: paymentMethod }: { item: PaymentMethod }) => {
+      const matchedQuote =
+        quotes?.success?.find(
+          (quote) => quote.quote?.paymentMethod === paymentMethod.id,
+        ) ?? null;
+      const hasQuoteError = !matchedQuote && (quotes?.error?.length ?? 0) > 0;
+
+      return (
+        <PaymentMethodListItem
+          paymentMethod={paymentMethod}
+          onPress={() => handlePaymentMethodPress(paymentMethod)}
+          isSelected={selectedPaymentMethod?.id === paymentMethod.id}
+          quote={matchedQuote}
+          quoteLoading={quotesLoading}
+          quoteError={hasQuoteError}
+          currency={currency}
+          tokenSymbol={tokenSymbol}
+        />
+      );
+    },
     [
       handlePaymentMethodPress,
       selectedPaymentMethod,
