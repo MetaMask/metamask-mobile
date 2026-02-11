@@ -72,7 +72,7 @@ const Root = () => {
                 ...(params?.shouldRouteImmediately && {
                   shouldRouteImmediately: true,
                 }),
-                ...(params?.amount && { amount: params.amount }),
+                ...(params?.amount !== undefined && { amount: params.amount }),
               },
             },
           ],
