@@ -1,14 +1,14 @@
-import { SmokeAccounts } from '../../../e2e/tags';
-import AccountListBottomSheet from '../../../e2e/pages/wallet/AccountListBottomSheet';
+import { SmokeAccounts } from '../../tags';
+import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomSheet';
 import Assertions from '../../framework/Assertions';
-import WalletView from '../../../e2e/pages/wallet/WalletView';
-import AccountDetails from '../../../e2e/pages/MultichainAccounts/AccountDetails';
-import WalletDetails from '../../../e2e/pages/MultichainAccounts/WalletDetails';
-import { completeSrpQuiz } from '../../../e2e/specs/multisrp/utils';
+import WalletView from '../../page-objects/wallet/WalletView';
+import AccountDetails from '../../page-objects/MultichainAccounts/AccountDetails';
+import WalletDetails from '../../page-objects/MultichainAccounts/WalletDetails';
+import { completeSrpQuiz } from '../../flows/accounts.flow';
 import { defaultGanacheOptions } from '../../framework/Constants';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { loginToApp } from '../../../e2e/viewHelper';
+import { loginToApp } from '../../flows/wallet.flow';
 
 describe(SmokeAccounts('Wallet details'), () => {
   const FIRST = 0;

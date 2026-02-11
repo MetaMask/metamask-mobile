@@ -9,9 +9,12 @@ import React from 'react';
 import { useSelector } from 'react-redux';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
-import type { Position, PerpsMarketData } from '../../controllers/types';
+import {
+  PERPS_EVENT_VALUE,
+  type Position,
+  type PerpsMarketData,
+} from '@metamask/perps-controller';
 import PerpsTabView from './PerpsTabView';
-import { PerpsEventValues } from '../../constants/eventNames';
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
@@ -111,6 +114,7 @@ jest.mock('../../hooks/stream', () => ({
     },
     isInitialLoading: false,
   })),
+  usePerpsLivePrices: jest.fn(() => ({})),
 }));
 
 // Mock formatUtils
@@ -164,6 +168,11 @@ jest.mock('../../Perps.testIds', () => ({
   PerpsPositionsViewSelectorsIDs: {
     POSITIONS_SECTION_TITLE: 'perps-positions-section-title',
     POSITION_ITEM: 'perps-positions-item',
+  },
+  getPerpsMarketRowItemSelector: {
+    rowItem: (symbol: string) => `perps-market-row-${symbol}`,
+    tokenLogo: (symbol: string) => `perps-market-logo-${symbol}`,
+    badge: (symbol: string) => `perps-market-badge-${symbol}`,
   },
 }));
 
@@ -479,7 +488,7 @@ describe('PerpsTabView', () => {
 
       expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.PERPS_HOME,
-        params: { source: PerpsEventValues.SOURCE.POSITION_TAB },
+        params: { source: PERPS_EVENT_VALUE.SOURCE.POSITION_TAB },
       });
     });
 
@@ -627,7 +636,7 @@ describe('PerpsTabView', () => {
 
       expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.PERPS_HOME,
-        params: { source: PerpsEventValues.SOURCE.HOMESCREEN_TAB },
+        params: { source: PERPS_EVENT_VALUE.SOURCE.HOMESCREEN_TAB },
       });
     });
   });

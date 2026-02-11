@@ -1,6 +1,10 @@
 import NavigationService from '../../../NavigationService';
 import Routes from '../../../../constants/navigation/Routes';
 import DevLogger from '../../../SDKConnect/utils/DevLogger';
+import {
+  isPredictTabKey,
+  type PredictTabKey,
+} from '../../../../components/UI/Predict/constants/feedTabs';
 
 interface HandlePredictUrlParams {
   predictPath: string;
@@ -13,6 +17,8 @@ interface HandlePredictUrlParams {
 interface PredictNavigationParams {
   market?: string; // Market ID
   utmSource?: string; // UTM source for analytics tracking
+  tab?: PredictTabKey; // Feed tab (when no market param)
+  query?: string; // Search query (when no market param)
 }
 
 /**
@@ -27,13 +33,17 @@ const parsePredictNavigationParams = (
     predictPath.includes('?') ? predictPath.split('?')[1] : '',
   );
 
-  // Support both 'market' and 'marketId' parameter names
   const marketId = urlParams.get('market') || urlParams.get('marketId');
   const utmSource = urlParams.get('utm_source');
+  const tabParam = urlParams.get('tab')?.toLowerCase();
+  const tab = isPredictTabKey(tabParam) ? tabParam : undefined;
+  const query = urlParams.get('query') || urlParams.get('q') || undefined;
 
   return {
     market: marketId || undefined,
     utmSource: utmSource || undefined,
+    tab,
+    query,
   };
 };
 
@@ -82,6 +92,9 @@ const handleMarketNavigation = (marketId: string, entryPoint: string) => {
  * - https://metamask.app.link/predict?market=23246&utm_source=test
  * - https://link.metamask.io/predict?market=23246
  * - https://link.metamask.io/predict?marketId=23246
+ * - https://link.metamask.io/predict?tab=crypto
+ * - https://link.metamask.io/predict?q=bitcoin
+ * - https://link.metamask.io/predict?query=bitcoin
  *
  * Origin/EntryPoint handling:
  * - Base entryPoint is origin if provided, otherwise 'deeplink'
@@ -91,6 +104,8 @@ const handleMarketNavigation = (marketId: string, entryPoint: string) => {
  * Navigation behavior:
  * - No market param: Navigate to market list
  * - market=X or marketId=X: Navigate directly to market details for market X
+ * - Optional tab param when no market: Open feed on a specific tab
+ * - query=X or q=X: Open feed with search overlay showing results for X
  */
 export const handlePredictUrl = async ({
   predictPath,
@@ -124,16 +139,16 @@ export const handlePredictUrl = async ({
       : baseEntryPoint;
     DevLogger.log('[handlePredictUrl] Entry point:', entryPoint);
 
-    // If market ID is provided, navigate to market details
     if (navParams.market) {
       handleMarketNavigation(navParams.market, entryPoint);
     } else {
-      // Default to market list
       DevLogger.log('[handlePredictUrl] No market parameter, showing list');
       NavigationService.navigation.navigate(Routes.PREDICT.ROOT, {
         screen: Routes.PREDICT.MARKET_LIST,
         params: {
           entryPoint,
+          tab: navParams.tab,
+          query: navParams.query,
         },
       });
     }

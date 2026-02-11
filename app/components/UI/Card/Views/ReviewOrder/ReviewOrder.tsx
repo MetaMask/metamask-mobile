@@ -18,19 +18,16 @@ import Button, {
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { CardActions, CardScreens } from '../../util/metrics';
-import { ReviewOrderSelectors } from '../../../../../../e2e/selectors/Card/ReviewOrder.selectors';
+import { ReviewOrderSelectors } from './ReviewOrder.testIds';
 import DaimoPayService from '../../services/DaimoPayService';
 import Logger from '../../../../../util/Logger';
 import { useCardSDK } from '../../sdk';
 import { useParams } from '../../../../../util/navigation/navUtils';
+import type { ShippingAddress } from '../../util/buildUserAddress';
+import { useSelector } from 'react-redux';
+import { selectIsDaimoDemo } from '../../../../../core/redux/slices/card';
 
-export interface ShippingAddress {
-  line1: string;
-  line2?: string;
-  city: string;
-  state: string;
-  zip: string;
-}
+export type { ShippingAddress };
 
 export interface ReviewOrderParams {
   shippingAddress?: ShippingAddress;
@@ -51,7 +48,7 @@ const ReviewOrder = () => {
     useParams<ReviewOrderParams>();
 
   const { sdk: cardSDK } = useCardSDK();
-
+  const isDaimoDemo = useSelector(selectIsDaimoDemo);
   const [isCreatingPayment, setIsCreatingPayment] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
 
@@ -135,11 +132,16 @@ const ReviewOrder = () => {
     try {
       const response = await DaimoPayService.createPayment({
         cardSDK: cardSDK ?? undefined,
+        isDaimoDemo,
       });
 
       navigate(Routes.CARD.MODALS.ID, {
         screen: Routes.CARD.MODALS.DAIMO_PAY,
-        params: { payId: response.payId, fromUpgrade },
+        params: {
+          payId: response.payId,
+          orderId: response.orderId,
+          fromUpgrade,
+        },
       });
     } catch (error) {
       Logger.error(
@@ -149,7 +151,14 @@ const ReviewOrder = () => {
       setPaymentError(strings('card.review_order.payment_creation_error'));
       setIsCreatingPayment(false);
     }
-  }, [navigate, trackEvent, createEventBuilder, cardSDK, fromUpgrade]);
+  }, [
+    navigate,
+    trackEvent,
+    createEventBuilder,
+    cardSDK,
+    fromUpgrade,
+    isDaimoDemo,
+  ]);
 
   const renderOrderItem = useCallback((item: OrderItem, index: number) => {
     const isTotal = item.label === strings('card.review_order.total');

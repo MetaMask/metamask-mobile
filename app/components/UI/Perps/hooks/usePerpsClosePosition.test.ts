@@ -1,6 +1,6 @@
 import { act, renderHook } from '@testing-library/react-hooks';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
-import type { OrderResult, Position } from '../controllers/types';
+import { type OrderResult, type Position } from '@metamask/perps-controller';
 import { usePerpsClosePosition } from './usePerpsClosePosition';
 import { usePerpsTrading } from './usePerpsTrading';
 
@@ -121,6 +121,7 @@ describe('usePerpsClosePosition', () => {
         usdAmount: undefined,
         priceAtCalculation: undefined,
         maxSlippageBps: undefined,
+        position: mockPosition,
       });
 
       expect(onSuccess).toHaveBeenCalledWith(successResult);
@@ -168,6 +169,7 @@ describe('usePerpsClosePosition', () => {
         usdAmount: undefined,
         priceAtCalculation: undefined,
         maxSlippageBps: undefined,
+        position: mockPosition,
       });
 
       expect(onSuccess).toHaveBeenCalledWith(successResult);
@@ -325,6 +327,7 @@ describe('usePerpsClosePosition', () => {
         usdAmount: undefined,
         priceAtCalculation: undefined,
         maxSlippageBps: undefined,
+        position: mockPosition,
       });
     });
 
@@ -392,6 +395,7 @@ describe('usePerpsClosePosition', () => {
         usdAmount: undefined,
         priceAtCalculation: undefined,
         maxSlippageBps: undefined,
+        position: positionWithTPSL,
       });
     });
 

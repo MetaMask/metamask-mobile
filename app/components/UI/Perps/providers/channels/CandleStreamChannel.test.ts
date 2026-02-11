@@ -1,6 +1,9 @@
 import { CandleStreamChannel } from './CandleStreamChannel';
-import { CandlePeriod, TimeDuration } from '../../constants/chartConfig';
-import type { CandleData } from '../../types/perps-types';
+import {
+  CandlePeriod,
+  TimeDuration,
+  type CandleData,
+} from '@metamask/perps-controller';
 import Engine from '../../../../../core/Engine';
 
 jest.mock('../../../../../core/Engine');
@@ -873,12 +876,12 @@ describe('CandleStreamChannel', () => {
         TimeDuration.OneDay,
       );
 
-      expect(mockFetchHistoricalCandles).toHaveBeenCalledWith(
-        'BTC',
-        CandlePeriod.OneHour,
-        50,
-        expect.any(Number),
-      );
+      expect(mockFetchHistoricalCandles).toHaveBeenCalledWith({
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        limit: 50,
+        endTime: expect.any(Number),
+      });
 
       expect(subscriber).toHaveBeenCalledWith(
         expect.objectContaining({

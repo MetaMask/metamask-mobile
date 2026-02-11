@@ -28,13 +28,11 @@ import { useSelector } from 'react-redux';
 import { selectHomepageRedesignV1Enabled } from '../../../../../selectors/featureFlagController/homepage';
 import { selectPerpsEligibility } from '../../selectors/perpsController';
 import {
-  PerpsEventProperties,
-  PerpsEventValues,
-} from '../../constants/eventNames';
-import type {
-  PerpsNavigationParamList,
-  PerpsMarketData,
-} from '../../controllers/types';
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+  type PerpsMarketData,
+} from '@metamask/perps-controller';
+import type { PerpsNavigationParamList } from '../../types/navigation';
 import {
   usePerpsEventTracking,
   usePerpsFirstTimeUser,
@@ -42,19 +40,11 @@ import {
   usePerpsTabExploreData,
 } from '../../hooks';
 import { usePerpsLiveAccount, usePerpsLiveOrders } from '../../hooks/stream';
-import PerpsWatchlistMarkets from '../../components/PerpsWatchlistMarkets/PerpsWatchlistMarkets';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { getPositionDirection } from '../../utils/positionCalculations';
 import styleSheet from './PerpsTabView.styles';
-import PerpsTokenLogo from '../../components/PerpsTokenLogo';
-import PerpsLeverage from '../../components/PerpsLeverage/PerpsLeverage';
-import PerpsBadge from '../../components/PerpsBadge';
-import {
-  getPerpsDisplaySymbol,
-  getMarketBadgeType,
-} from '../../utils/marketUtils';
-import { HOME_SCREEN_CONFIG } from '../../constants/perpsConfig';
 import PerpsRowSkeleton from '../../components/PerpsRowSkeleton';
+import PerpsMarketRowItem from '../../components/PerpsMarketRowItem';
 
 import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
 import ConditionalScrollView from '../../../../../component-library/components-temp/ConditionalScrollView';
@@ -117,6 +107,13 @@ const PerpsTabView = () => {
   // Check if watchlist is visible (for conditional rendering)
   const isWatchlistVisible = watchlistMarkets.length > 0;
 
+  // Explore header: depends on position and balance
+  const exploreSectionHeaderStyle = isWatchlistVisible
+    ? styles.exploreSectionHeaderBelowWatchlist // 20px/8px
+    : shouldShowBalance
+      ? styles.exploreSectionHeaderWithBalance // 24px/4px
+      : styles.exploreSectionHeaderNoBalance; // 16px/4px
+
   // Track wallet home perps tab viewed - declarative (main's event name, privacy-compliant count)
   usePerpsEventTracking({
     eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
@@ -126,16 +123,16 @@ const PerpsTabView = () => {
       account?.totalBalance !== undefined,
     ],
     properties: {
-      [PerpsEventProperties.SCREEN_TYPE]:
-        PerpsEventValues.SCREEN_TYPE.WALLET_HOME_PERPS_TAB,
-      [PerpsEventProperties.OPEN_POSITION]: positions?.length || 0,
+      [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+        PERPS_EVENT_VALUE.SCREEN_TYPE.WALLET_HOME_PERPS_TAB,
+      [PERPS_EVENT_PROPERTY.OPEN_POSITION]: positions?.length || 0,
     },
   });
 
   const handleManageBalancePress = useCallback(() => {
     navigation.navigate(Routes.PERPS.ROOT, {
       screen: Routes.PERPS.PERPS_HOME,
-      params: { source: PerpsEventValues.SOURCE.HOMESCREEN_TAB },
+      params: { source: PERPS_EVENT_VALUE.SOURCE.HOMESCREEN_TAB },
     });
   }, [navigation]);
 
@@ -147,7 +144,7 @@ const PerpsTabView = () => {
       // Navigate to trading view for returning users
       navigation.navigate(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.PERPS_HOME,
-        params: { source: PerpsEventValues.SOURCE.POSITION_TAB },
+        params: { source: PERPS_EVENT_VALUE.SOURCE.POSITION_TAB },
       });
     }
   }, [navigation, isFirstTimeUser]);
@@ -157,10 +154,10 @@ const PerpsTabView = () => {
     // Geo-restriction check for close all positions
     if (!isEligible) {
       track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
-        [PerpsEventProperties.SCREEN_TYPE]:
-          PerpsEventValues.SCREEN_TYPE.GEO_BLOCK_NOTIF,
-        [PerpsEventProperties.SOURCE]:
-          PerpsEventValues.SOURCE.CLOSE_ALL_POSITIONS_BUTTON,
+        [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+          PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+        [PERPS_EVENT_PROPERTY.SOURCE]:
+          PERPS_EVENT_VALUE.SOURCE.CLOSE_ALL_POSITIONS_BUTTON,
       });
       setIsEligibilityModalVisible(true);
       return;
@@ -220,7 +217,7 @@ const PerpsTabView = () => {
             <PerpsCard
               key={order.orderId}
               order={order}
-              source={PerpsEventValues.SOURCE.POSITION_TAB}
+              source={PERPS_EVENT_VALUE.SOURCE.POSITION_TAB}
             />
           ))}
           {(!positions || positions.length === 0) && renderStartTradeCTA()}
@@ -268,7 +265,7 @@ const PerpsTabView = () => {
                 <PerpsCard
                   key={`${position.symbol}-${index}`}
                   position={position}
-                  source={PerpsEventValues.SOURCE.POSITION_TAB}
+                  source={PERPS_EVENT_VALUE.SOURCE.POSITION_TAB}
                 />
               </View>
             );
@@ -292,79 +289,63 @@ const PerpsTabView = () => {
 
   const handleSeeAllPerps = useCallback(() => {
     navigation.navigate(Routes.PERPS.ROOT, {
-      screen: Routes.PERPS.PERPS_HOME,
-      params: { source: PerpsEventValues.SOURCE.HOMESCREEN_TAB },
+      screen: Routes.PERPS.MARKET_LIST,
+      params: {
+        defaultMarketTypeFilter: 'all',
+        source: PERPS_EVENT_VALUE.SOURCE.HOMESCREEN_TAB,
+      },
     });
   }, [navigation]);
 
-  const renderExploreMarketRow = useCallback(
-    (market: PerpsMarketData) => {
-      const badgeType = getMarketBadgeType(market);
-      const isPositiveChange = !market.change24h.startsWith('-');
-
+  const renderWatchlistSection = useCallback(() => {
+    if (isExploreLoading) {
       return (
-        <TouchableOpacity
-          key={market.symbol}
-          style={styles.exploreMarketRow}
-          onPress={() => handleExploreMarketPress(market)}
-        >
-          <View style={styles.exploreMarketLeft}>
-            <View style={styles.exploreMarketIcon}>
-              <PerpsTokenLogo
-                symbol={market.symbol}
-                size={HOME_SCREEN_CONFIG.DefaultIconSize}
-              />
-            </View>
-            <View style={styles.exploreMarketInfo}>
-              <View style={styles.exploreMarketHeader}>
-                <Text
-                  variant={TextVariant.BodyMDMedium}
-                  color={TextColor.Default}
-                >
-                  {getPerpsDisplaySymbol(market.symbol)}
-                </Text>
-                <PerpsLeverage maxLeverage={market.maxLeverage} />
-              </View>
-              <View style={styles.exploreMarketSecondRow}>
-                <Text
-                  variant={TextVariant.BodySM}
-                  color={TextColor.Alternative}
-                  numberOfLines={1}
-                >
-                  {market.volume} {strings('perps.sort.volume_short')}
-                </Text>
-                {badgeType && <PerpsBadge type={badgeType} />}
-              </View>
-            </View>
-          </View>
-          <View style={styles.exploreMarketRight}>
-            <Text
-              variant={TextVariant.BodyMDMedium}
-              color={TextColor.Default}
-              style={styles.exploreMarketPrice}
-            >
-              {market.price}
-            </Text>
-            <Text
-              variant={TextVariant.BodySM}
-              color={isPositiveChange ? TextColor.Success : TextColor.Error}
-              style={styles.exploreMarketChange}
-            >
-              {market.change24hPercent}
+        <View style={styles.watchlistSection}>
+          <View style={watchlistHeaderStyle}>
+            <Text variant={TextVariant.BodyLGMedium} color={TextColor.Default}>
+              {strings('perps.home.watchlist')}
             </Text>
           </View>
-        </TouchableOpacity>
+          <PerpsRowSkeleton count={3} />
+        </View>
       );
-    },
-    [styles, handleExploreMarketPress],
-  );
+    }
+
+    if (watchlistMarkets.length === 0) {
+      return null;
+    }
+
+    return (
+      <View style={styles.watchlistSection}>
+        <View style={watchlistHeaderStyle}>
+          <Text variant={TextVariant.BodyLGMedium} color={TextColor.Default}>
+            {strings('perps.home.watchlist')}
+          </Text>
+        </View>
+        {watchlistMarkets.map((market) => (
+          <PerpsMarketRowItem
+            key={market.symbol}
+            market={market}
+            showBadge={false}
+            onPress={() => handleExploreMarketPress(market)}
+          />
+        ))}
+      </View>
+    );
+  }, [
+    isExploreLoading,
+    watchlistMarkets,
+    styles,
+    watchlistHeaderStyle,
+    handleExploreMarketPress,
+  ]);
 
   const renderExploreSection = useCallback(() => {
     if (isExploreLoading) {
       return (
         <View style={styles.exploreSection}>
-          <View style={styles.exploreSectionHeader}>
-            <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
+          <View style={exploreSectionHeaderStyle}>
+            <Text variant={TextVariant.BodyLGMedium} color={TextColor.Default}>
               {strings('perps.home.explore_markets')}
             </Text>
           </View>
@@ -379,12 +360,18 @@ const PerpsTabView = () => {
 
     return (
       <View style={styles.exploreSection}>
-        <View style={styles.exploreSectionHeader}>
-          <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
+        <View style={exploreSectionHeaderStyle}>
+          <Text variant={TextVariant.BodyLGMedium} color={TextColor.Default}>
             {strings('perps.home.explore_markets')}
           </Text>
         </View>
-        <View>{exploreMarkets.map(renderExploreMarketRow)}</View>
+        {exploreMarkets.map((market) => (
+          <PerpsMarketRowItem
+            key={market.symbol}
+            market={market}
+            onPress={() => handleExploreMarketPress(market)}
+          />
+        ))}
         <TouchableOpacity
           style={styles.seeAllButton}
           onPress={handleSeeAllPerps}
@@ -399,7 +386,8 @@ const PerpsTabView = () => {
     isExploreLoading,
     exploreMarkets,
     styles,
-    renderExploreMarketRow,
+    exploreSectionHeaderStyle,
+    handleExploreMarketPress,
     handleSeeAllPerps,
   ]);
 
@@ -425,18 +413,8 @@ const PerpsTabView = () => {
       >
         {!isInitialLoading && hasNoPositionsOrOrders ? (
           <View style={styles.emptyStateContainer}>
-            {/* Watchlist section - only render if user has watchlist markets */}
-            {isWatchlistVisible && (
-              <PerpsWatchlistMarkets
-                markets={watchlistMarkets}
-                isLoading={isExploreLoading}
-                positions={[]}
-                orders={[]}
-                sectionStyle={styles.watchlistSectionStyle}
-                headerStyle={watchlistHeaderStyle}
-                contentContainerStyle={styles.flatContentContainerStyle}
-              />
-            )}
+            {/* Watchlist section - inline render with PerpsTabView-specific styling */}
+            {renderWatchlistSection()}
 
             {/* Explore markets section - custom render for PerpsTabView styling */}
             {renderExploreSection()}

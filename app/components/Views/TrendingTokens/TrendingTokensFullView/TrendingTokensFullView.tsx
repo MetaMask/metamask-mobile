@@ -23,7 +23,9 @@ import Icon, {
 } from '../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../locales/i18n';
 import { TrendingListHeader } from '../../../UI/Trending/components/TrendingListHeader';
-import TrendingTokensList from '../../../UI/Trending/components/TrendingTokensList/TrendingTokensList';
+import TrendingTokensList, {
+  TrendingFilterContext,
+} from '../../../UI/Trending/components/TrendingTokensList/TrendingTokensList';
 import TrendingTokensSkeleton from '../../../UI/Trending/components/TrendingTokenSkeleton/TrendingTokensSkeleton';
 import {
   SortTrendingBy,
@@ -44,6 +46,9 @@ import { sortTrendingTokens } from '../../../UI/Trending/utils/sortTrendingToken
 import { useTrendingSearch } from '../../../UI/Trending/hooks/useTrendingSearch/useTrendingSearch';
 import EmptyErrorTrendingState from '../../TrendingView/components/EmptyErrorState/EmptyErrorTrendingState';
 import EmptySearchResultState from '../../TrendingView/components/EmptyErrorState/EmptySearchResultState';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import TrendingFeedSessionManager from '../../../UI/Trending/services/TrendingFeedSessionManager';
+import { useSearchTracking } from '../../../UI/Trending/hooks/useSearchTracking/useSearchTracking';
 
 interface TrendingTokensNavigationParamList {
   [key: string]: undefined | object;
@@ -63,11 +68,6 @@ const createStyles = (theme: Theme) =>
       borderRadius: 16,
       backgroundColor: theme.colors.background.muted,
       padding: 16,
-    },
-    listContainer: {
-      flex: 1,
-      paddingLeft: 16,
-      paddingRight: 16,
     },
     controlBarWrapper: {
       paddingVertical: 16,
@@ -129,12 +129,86 @@ const createStyles = (theme: Theme) =>
     },
   });
 
+export interface TrendingTokensDataProps {
+  isLoading: boolean;
+  refreshing: boolean;
+  trendingTokens: TrendingAsset[];
+  handleRefresh: () => void;
+  selectedTimeOption: TimeOption;
+  filterContext: TrendingFilterContext;
+  theme: Theme;
+
+  search: {
+    searchResults: TrendingAsset[];
+    searchQuery: string;
+  };
+}
+
+export const TrendingTokensData = (props: TrendingTokensDataProps) => {
+  const {
+    isLoading,
+    refreshing,
+    trendingTokens,
+    search,
+    handleRefresh,
+    selectedTimeOption,
+    filterContext,
+    theme,
+  } = props;
+
+  const tw = useTailwind();
+
+  const isSearching = search.searchQuery.trim().length > 0;
+  const hasSearchResults = search.searchResults.length > 0;
+
+  // Loading - show skeleton
+  if (isLoading) {
+    return (
+      <View style={tw`flex-1 px-4`} testID="trending-tokens-skeleton">
+        {Array.from({ length: 12 }).map((_, index) => (
+          <TrendingTokensSkeleton key={index} />
+        ))}
+      </View>
+    );
+  }
+
+  // Show empty trending search results
+  if (isSearching && !hasSearchResults) {
+    return <EmptySearchResultState />;
+  }
+
+  // Show error if no results found
+  if (!isSearching && !hasSearchResults) {
+    return <EmptyErrorTrendingState onRetry={handleRefresh} />;
+  }
+
+  // Show trending tokens list
+  return (
+    <View style={tw`flex-1 px-4`}>
+      <TrendingTokensList
+        trendingTokens={trendingTokens}
+        selectedTimeOption={selectedTimeOption}
+        filterContext={filterContext}
+        refreshControl={
+          <RefreshControl
+            colors={[theme.colors.primary.default]}
+            tintColor={theme.colors.icon.default}
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+          />
+        }
+      />
+    </View>
+  );
+};
+
 const TrendingTokensFullView = () => {
   const navigation =
     useNavigation<StackNavigationProp<TrendingTokensNavigationParamList>>();
   const theme = useAppThemeFromContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const insets = useSafeAreaInsets();
+  const sessionManager = TrendingFeedSessionManager.getInstance();
   const [sortBy, setSortBy] = useState<SortTrendingBy | undefined>(undefined);
   const [selectedTimeOption, setSelectedTimeOption] = useState<TimeOption>(
     TimeOption.TwentyFourHours,
@@ -253,21 +327,102 @@ const TrendingTokensFullView = () => {
     selectedTimeOption,
   ]);
 
+  // Compute filter context for analytics tracking
+  const filterContext: TrendingFilterContext = useMemo(
+    () => ({
+      timeFilter: selectedTimeOption,
+      sortOption: selectedPriceChangeOption,
+      networkFilter:
+        selectedNetwork && selectedNetwork.length > 0
+          ? selectedNetwork[0]
+          : 'all',
+      isSearchResult: Boolean(searchQuery?.trim()),
+    }),
+    [
+      selectedTimeOption,
+      selectedPriceChangeOption,
+      selectedNetwork,
+      searchQuery,
+    ],
+  );
+
+  // Track search events with debounce
+  useSearchTracking({
+    searchQuery,
+    resultsCount: trendingTokens.length,
+    isLoading,
+    timeFilter: selectedTimeOption,
+    sortOption: selectedPriceChangeOption || PriceChangeOption.PriceChange,
+    networkFilter:
+      selectedNetwork && selectedNetwork.length > 0
+        ? selectedNetwork[0]
+        : 'all',
+  });
+
   const handlePriceChangeSelect = useCallback(
     (option: PriceChangeOption, sortDirection: SortDirection) => {
+      const previousValue =
+        selectedPriceChangeOption || PriceChangeOption.PriceChange;
       setSelectedPriceChangeOption(option);
       setPriceChangeSortDirection(sortDirection);
+
+      // Track filter change if value actually changed
+      if (option !== previousValue) {
+        sessionManager.trackFilterChange({
+          filter_type: 'sort',
+          previous_value: previousValue,
+          new_value: option,
+          time_filter: selectedTimeOption,
+          sort_option: option,
+          network_filter:
+            selectedNetwork && selectedNetwork.length > 0
+              ? selectedNetwork[0]
+              : 'all',
+        });
+      }
     },
-    [],
+    [
+      selectedPriceChangeOption,
+      selectedTimeOption,
+      selectedNetwork,
+      sessionManager,
+    ],
   );
 
   const handlePriceChangePress = useCallback(() => {
     setShowPriceChangeBottomSheet(true);
   }, []);
 
-  const handleNetworkSelect = useCallback((chainIds: CaipChainId[] | null) => {
-    setSelectedNetwork(chainIds);
-  }, []);
+  const handleNetworkSelect = useCallback(
+    (chainIds: CaipChainId[] | null) => {
+      const previousValue =
+        selectedNetwork && selectedNetwork.length > 0
+          ? selectedNetwork[0]
+          : 'all';
+      const newValue = chainIds && chainIds.length > 0 ? chainIds[0] : 'all';
+
+      setSelectedNetwork(chainIds);
+
+      // Track filter change if value actually changed
+      if (newValue !== previousValue) {
+        sessionManager.trackFilterChange({
+          filter_type: 'network',
+          previous_value: previousValue,
+          new_value: newValue,
+          time_filter: selectedTimeOption,
+          sort_option:
+            selectedPriceChangeOption || PriceChangeOption.PriceChange,
+          network_filter: newValue,
+        });
+      }
+    },
+    [
+      selectedNetwork,
+      selectedTimeOption,
+      selectedPriceChangeOption,
+      sessionManager,
+    ],
+  );
 
   const handleAllNetworksPress = useCallback(() => {
     setShowNetworkBottomSheet(true);
@@ -275,10 +430,32 @@ const TrendingTokensFullView = () => {
 
   const handleTimeSelect = useCallback(
     (selectedSortBy: SortTrendingBy, timeOption: TimeOption) => {
+      const previousValue = selectedTimeOption;
       setSortBy(selectedSortBy);
       setSelectedTimeOption(timeOption);
+
+      // Track filter change if value actually changed
+      if (timeOption !== previousValue) {
+        sessionManager.trackFilterChange({
+          filter_type: 'time',
+          previous_value: previousValue,
+          new_value: timeOption,
+          time_filter: timeOption,
+          sort_option:
+            selectedPriceChangeOption || PriceChangeOption.PriceChange,
+          network_filter:
+            selectedNetwork && selectedNetwork.length > 0
+              ? selectedNetwork[0]
+              : 'all',
+        });
+      }
     },
-    [],
+    [
+      selectedTimeOption,
+      selectedPriceChangeOption,
+      selectedNetwork,
+      sessionManager,
+    ],
   );
 
   const handle24hPress = useCallback(() => {
@@ -407,34 +584,17 @@ const TrendingTokensFullView = () => {
         </View>
       ) : null}
 
-      {isLoading ? (
-        <View style={styles.listContainer}>
-          {Array.from({ length: 12 }).map((_, index) => (
-            <TrendingTokensSkeleton key={index} />
-          ))}
-        </View>
-      ) : (searchResults as TrendingAsset[]).length === 0 ? (
-        searchQuery.trim().length > 0 ? (
-          <EmptySearchResultState />
-        ) : (
-          <EmptyErrorTrendingState onRetry={handleRefresh} />
-        )
-      ) : (
-        <View style={styles.listContainer}>
-          <TrendingTokensList
-            trendingTokens={trendingTokens}
-            selectedTimeOption={selectedTimeOption}
-            refreshControl={
-              <RefreshControl
-                colors={[theme.colors.primary.default]}
-                tintColor={theme.colors.icon.default}
-                refreshing={refreshing}
-                onRefresh={handleRefresh}
-              />
-            }
-          />
-        </View>
-      )}
+      <TrendingTokensData
+        isLoading={isLoading}
+        refreshing={refreshing}
+        trendingTokens={trendingTokens}
+        search={{ searchResults, searchQuery }}
+        handleRefresh={handleRefresh}
+        selectedTimeOption={selectedTimeOption}
+        filterContext={filterContext}
+        theme={theme}
+      />
+
       <TrendingTokenTimeBottomSheet
         isVisible={showTimeBottomSheet}
         onClose={() => setShowTimeBottomSheet(false)}

@@ -23,10 +23,7 @@ import Button, {
   ButtonVariants,
 } from '../../../../../component-library/components/Buttons/Button';
 import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
-import {
-  USDC_SYMBOL,
-  USDC_TOKEN_ICON_URL,
-} from '../../../Perps/constants/hyperLiquidConfig';
+import { USDC_SYMBOL, USDC_TOKEN_ICON_URL } from '@metamask/perps-controller';
 import { usePredictBalance } from '../../hooks/usePredictBalance';
 import { usePredictDeposit } from '../../hooks/usePredictDeposit';
 import { formatPrice } from '../../utils/format';
@@ -70,7 +67,11 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({ onLayout }) => {
   const handleAddFunds = useCallback(() => {
     executeGuardedAction(
       () => {
-        deposit();
+        deposit({
+          analyticsProperties: {
+            entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_BALANCE,
+          },
+        });
       },
       { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.DEPOSIT },
     );

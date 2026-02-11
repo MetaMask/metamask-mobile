@@ -2,6 +2,15 @@
  * Unit tests for HyperLiquid SDK adapter utilities
  */
 
+// Avoid loading @metamask/swaps-controller (and thus controller-utils logger) in tests
+jest.mock('../constants/perpsConfig', () => ({
+  DECIMAL_PRECISION_CONFIG: {
+    MaxPriceDecimals: 6,
+    MaxSignificantFigures: 5,
+    FallbackSizeDecimals: 6,
+  },
+}));
+
 import {
   adaptOrderToSDK,
   adaptOrderFromSDK,
@@ -11,22 +20,22 @@ import {
   buildAssetMapping,
   formatHyperLiquidPrice,
   formatHyperLiquidSize,
-  calculatePositionSize,
   adaptHyperLiquidLedgerUpdateToUserHistoryItem,
-  type RawHyperLiquidLedgerUpdate,
-} from './hyperLiquidAdapter';
-import type { OrderParams } from '../controllers/types';
-import type {
-  AssetPosition,
-  SpotBalance,
-  ClearinghouseStateResponse,
-  SpotClearinghouseStateResponse,
-  PerpsUniverse,
-  FrontendOrder,
-} from '../types/hyperliquid-types';
+  type RawLedgerUpdate,
+  type OrderParams,
+  type AssetPosition,
+  type SpotBalance,
+  type ClearinghouseStateResponse,
+  type SpotClearinghouseStateResponse,
+  type PerpsUniverse,
+  type FrontendOrder,
+} from '@metamask/perps-controller';
+// Import adapter-specific calculatePositionSize (different signature from orderCalculations)
+import { calculatePositionSize } from '@metamask/perps-controller/utils/hyperLiquidAdapter';
 
 // Mock the isHexString utility
 jest.mock('@metamask/utils', () => ({
+  ...jest.requireActual('@metamask/utils'),
   isHexString: (value: string) => value.startsWith('0x'),
 }));
 
@@ -1212,7 +1221,7 @@ describe('hyperLiquidAdapter', () => {
     const createLedgerUpdate = (
       type: string,
       hash = '0x123',
-    ): RawHyperLiquidLedgerUpdate => ({
+    ): RawLedgerUpdate => ({
       hash,
       time: 1000,
       delta: { type, usdc: '100' },
@@ -1272,7 +1281,7 @@ describe('hyperLiquidAdapter', () => {
 
     describe('internalTransfer USDC amount validation', () => {
       it('includes internalTransfer with positive USDC amount', () => {
-        const updates: RawHyperLiquidLedgerUpdate[] = [
+        const updates: RawLedgerUpdate[] = [
           {
             hash: '0x001',
             time: 1000,
@@ -1286,7 +1295,7 @@ describe('hyperLiquidAdapter', () => {
       });
 
       it('excludes internalTransfer with zero USDC amount', () => {
-        const updates: RawHyperLiquidLedgerUpdate[] = [
+        const updates: RawLedgerUpdate[] = [
           {
             hash: '0x002',
             time: 2000,
@@ -1300,7 +1309,7 @@ describe('hyperLiquidAdapter', () => {
       });
 
       it('excludes internalTransfer with negative USDC amount', () => {
-        const updates: RawHyperLiquidLedgerUpdate[] = [
+        const updates: RawLedgerUpdate[] = [
           {
             hash: '0x003',
             time: 3000,
@@ -1314,7 +1323,7 @@ describe('hyperLiquidAdapter', () => {
       });
 
       it('excludes internalTransfer with invalid USDC value', () => {
-        const updates: RawHyperLiquidLedgerUpdate[] = [
+        const updates: RawLedgerUpdate[] = [
           {
             hash: '0x004',
             time: 4000,
@@ -1328,7 +1337,7 @@ describe('hyperLiquidAdapter', () => {
       });
 
       it('excludes internalTransfer with missing USDC field', () => {
-        const updates: RawHyperLiquidLedgerUpdate[] = [
+        const updates: RawLedgerUpdate[] = [
           {
             hash: '0x005',
             time: 5000,
@@ -1342,7 +1351,7 @@ describe('hyperLiquidAdapter', () => {
       });
 
       it('excludes internalTransfer with undefined USDC value', () => {
-        const updates: RawHyperLiquidLedgerUpdate[] = [
+        const updates: RawLedgerUpdate[] = [
           {
             hash: '0x006',
             time: 6000,
@@ -1356,7 +1365,7 @@ describe('hyperLiquidAdapter', () => {
       });
 
       it('includes internalTransfer with small positive decimal amount', () => {
-        const updates: RawHyperLiquidLedgerUpdate[] = [
+        const updates: RawLedgerUpdate[] = [
           {
             hash: '0x007',
             time: 7000,
@@ -1370,7 +1379,7 @@ describe('hyperLiquidAdapter', () => {
       });
 
       it('filters mixed internalTransfer entries keeping only valid positive amounts', () => {
-        const updates: RawHyperLiquidLedgerUpdate[] = [
+        const updates: RawLedgerUpdate[] = [
           {
             hash: '0x008',
             time: 8000,

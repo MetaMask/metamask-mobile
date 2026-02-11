@@ -1,70 +1,22 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import { Linking } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { WaysToEarn, WayToEarnType } from './WaysToEarn';
+import { WaysToEarn } from './WaysToEarn';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { ModalType } from '../../../../components/RewardsBottomSheetModal';
-import { SwapBridgeNavigationLocation } from '../../../../../Bridge/hooks/useSwapBridgeNavigation';
-import { selectIsFirstTimePerpsUser } from '../../../../../Perps/selectors/perpsController';
-import { selectPredictEnabledFlag } from '../../../../../Predict/selectors/featureFlags';
 import { MetaMetricsEvents } from '../../../../../../hooks/useMetrics';
 import { RewardsMetricsButtons } from '../../../../utils';
-import { useRampNavigation } from '../../../../../Ramp/hooks/useRampNavigation';
-import { toCaipAssetType } from '@metamask/utils';
-import { getDecimalChainId } from '../../../../../../../util/networks';
+import { SeasonWayToEarnDto } from '../../../../../../../core/Engine/controllers/rewards-controller/types';
 
 // Mock navigation
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
-const mockGoToSwaps = jest.fn();
-const mockGoToBuy = jest.fn();
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn();
-let mockIsFirstTimePerpsUser = false;
-let mockIsPredictEnabled = false;
+const mockHandleDeeplink = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
-}));
-
-// Mock useSwapBridgeNavigation hook
-// Note: jest.mock is hoisted, but the factory function runs at module load time
-// when the variables below are already defined, so they should be accessible
-jest.mock('../../../../../Bridge/hooks/useSwapBridgeNavigation', () =>
-  // We need to reference the mocks, but they're defined below
-  // So we'll create the factory function that will access them at runtime
-  ({
-    SwapBridgeNavigationLocation: {
-      Rewards: 'rewards',
-    },
-    useSwapBridgeNavigation: jest.fn(),
-  }),
-);
-
-// Mock useRampNavigation hook
-jest.mock('../../../../../Ramp/hooks/useRampNavigation', () => ({
-  useRampNavigation: jest.fn(),
-}));
-
-// Mock @metamask/utils
-jest.mock('@metamask/utils', () => ({
-  ...jest.requireActual('@metamask/utils'),
-  toCaipAssetType: jest.fn(),
-}));
-
-// Mock network utilities
-jest.mock('../../../../../../../util/networks', () => ({
-  ...jest.requireActual('../../../../../../../util/networks'),
-  getDecimalChainId: jest.fn(),
-}));
-
-// Mock NETWORKS_CHAIN_ID constant
-jest.mock('../../../../../../../constants/network', () => ({
-  ...jest.requireActual('../../../../../../../constants/network'),
-  NETWORKS_CHAIN_ID: {
-    LINEA_MAINNET: '0xe708',
-  },
 }));
 
 // Mock react-redux
@@ -85,118 +37,59 @@ jest.mock('../../../../../../hooks/useMetrics', () => ({
   },
 }));
 
-// Mock getNativeAssetForChainId
-jest.mock('@metamask/bridge-controller', () => ({
-  getNativeAssetForChainId: jest.fn(() => ({
-    address: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
-    symbol: 'ETH',
-    decimals: 18,
-  })),
-}));
-
-const mockUseNavigation = useNavigation as jest.MockedFunction<
-  typeof useNavigation
->;
-
-const mockUseRampNavigation = useRampNavigation as jest.MockedFunction<
-  typeof useRampNavigation
->;
-
-const mockToCaipAssetType = toCaipAssetType as jest.MockedFunction<
-  typeof toCaipAssetType
->;
-
-const mockGetDecimalChainId = getDecimalChainId as jest.MockedFunction<
-  typeof getDecimalChainId
->;
 // Mock i18n strings
 jest.mock('../../../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
     const mockStrings: Record<string, string> = {
       'rewards.ways_to_earn.title': 'Ways to earn',
-      'rewards.ways_to_earn.swap.title': 'Swap',
-      'rewards.ways_to_earn.swap.description': '80 points per $100',
-      'rewards.ways_to_earn.swap.sheet.title': 'Swap tokens',
-      'rewards.ways_to_earn.swap.sheet.points': '80 points per $100',
-      'rewards.ways_to_earn.swap.sheet.description':
-        'Swap tokens on supported networks to earn points for every dollar you trade.',
-      'rewards.ways_to_earn.swap.sheet.cta_label': 'Start a swap',
-      'rewards.ways_to_earn.perps.title': 'Perps',
-      'rewards.ways_to_earn.perps.description': '10 points per $100',
-      'rewards.ways_to_earn.perps.sheet.title': 'Trade perps',
-      'rewards.ways_to_earn.perps.sheet.points': '10 points per $100',
-      'rewards.ways_to_earn.perps.sheet.description':
-        'Earn points on every trade, including opens and closes, stop loss and take profit orders, and margin adjustments.',
-      'rewards.ways_to_earn.perps.sheet.cta_label': 'Start a trade',
-      'rewards.ways_to_earn.referrals.title': 'Refer friends',
-      'rewards.ways_to_earn.referrals.description':
-        '10 points per 50 from friends',
-      'rewards.ways_to_earn.loyalty.title': 'Loyalty bonus',
-      'rewards.ways_to_earn.loyalty.description':
-        'Earn points from past trades',
-      'rewards.ways_to_earn.loyalty.sheet.title': 'Loyalty bonus',
-      'rewards.ways_to_earn.loyalty.sheet.points': '250 points per $1250',
-      'rewards.ways_to_earn.loyalty.sheet.description':
-        'Add accounts with past swaps or bridges in MetaMask to earn loyalty bonuses. Each eligible account unlocks points in increments of 250, up to a total of 50,000. Bonuses appear shortly after you add an account.',
-      'rewards.ways_to_earn.loyalty.sheet.cta_label': 'Add accounts',
-      // Predict strings
-      'rewards.ways_to_earn.predict.title': 'Prediction markets',
-      'rewards.ways_to_earn.predict.description':
-        '20 points per $10 prediction',
-      'rewards.ways_to_earn.predict.sheet.title': 'Prediction markets',
-      'rewards.ways_to_earn.predict.sheet.points': '20 points per $10',
-      'rewards.ways_to_earn.predict.sheet.description':
-        'Earn points on every $10 you trade.',
-      'rewards.ways_to_earn.predict.sheet.cta_label': 'Browse markets',
-      // Card strings
-      'rewards.ways_to_earn.card.title': 'MetaMask Card',
-      'rewards.ways_to_earn.card.description': '1 point per $1 spent',
-      'rewards.ways_to_earn.card.sheet.title': 'MetaMask Card',
-      'rewards.ways_to_earn.card.sheet.points': '1 point per $1 spent',
-      'rewards.ways_to_earn.card.sheet.description':
-        'Earn points every time you use your MetaMask Card for purchases, plus 1% cash back (3% for Metal cardholders).',
-      'rewards.ways_to_earn.card.sheet.cta_label': 'Manage card',
-      // Deposit MUSD strings
-      'rewards.ways_to_earn.deposit_musd.title': 'Deposit mUSD',
-      'rewards.ways_to_earn.deposit_musd.description':
-        '2 points per $100 deposited',
-      'rewards.ways_to_earn.deposit_musd.sheet.title': 'Deposit mUSD',
-      'rewards.ways_to_earn.deposit_musd.sheet.points': '2 points per $100',
-      'rewards.ways_to_earn.deposit_musd.sheet.description':
-        'Earn points on every $100 mUSD you deposit.',
-      'rewards.ways_to_earn.deposit_musd.sheet.cta_label': 'Deposit mUSD',
-      // Hold MUSD strings
-      'rewards.ways_to_earn.hold_musd.title': 'Hold mUSD',
-      'rewards.ways_to_earn.hold_musd.description':
-        '10 points per $100 deposited',
-      'rewards.ways_to_earn.hold_musd.sheet.title': 'Hold mUSD',
-      'rewards.ways_to_earn.hold_musd.sheet.points': '10 points per $100',
-      'rewards.ways_to_earn.hold_musd.sheet.description':
-        'Earn points on every $100 mUSD you hold.',
-      'rewards.ways_to_earn.hold_musd.sheet.cta_label': 'Hold mUSD',
     };
     return mockStrings[key] || key;
   }),
 }));
 
+// Mock handleDeeplink
+jest.mock('../../../../../../../core/DeeplinkManager', () => ({
+  handleDeeplink: (...args: unknown[]) => mockHandleDeeplink(...args),
+}));
+
 // Mock the SwapSupportedNetworksSection component
 jest.mock('./SwapSupportedNetworksSection', () => ({
-  SwapSupportedNetworksSection: () => {
+  SwapSupportedNetworksSection: (props: object) => {
     const ReactActual = jest.requireActual('react');
     const { Text } = jest.requireActual('react-native');
     return ReactActual.createElement(
       Text,
-      { testID: 'swap-supported-networks' },
+      {
+        testID: 'swap-supported-networks',
+        'data-props': JSON.stringify(props),
+      },
       'Supported networks',
     );
   },
 }));
 
+// Mock ReferralStatsSummary component
+jest.mock('./ReferralStatsSummary', () => {
+  const ReactActual = jest.requireActual('react');
+  const { Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: (props: object) =>
+      ReactActual.createElement(
+        Text,
+        {
+          testID: 'referral-stats-summary',
+          'data-props': JSON.stringify(props),
+        },
+        'ReferralStatsSummary',
+      ),
+  };
+});
+
 // Mock useTailwind hook
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => {
     const mockTw = jest.fn(() => ({}));
-    // Add the style method to the mock function
     Object.assign(mockTw, {
       style: jest.fn(() => ({})),
     });
@@ -221,372 +114,188 @@ jest.mock(
   }),
 );
 
-describe('WaysToEarn', () => {
-  let openURLSpy: jest.SpyInstance;
+// Mock getIconName
+jest.mock('../../../../utils/formatUtils', () => ({
+  ...jest.requireActual('../../../../utils/formatUtils'),
+  getIconName: jest.fn((name: string) => name),
+}));
 
+const mockUseNavigation = useNavigation as jest.MockedFunction<
+  typeof useNavigation
+>;
+
+// ---- Test Data ----
+
+const createWayToEarn = (
+  overrides: Partial<SeasonWayToEarnDto> = {},
+): SeasonWayToEarnDto => ({
+  id: 'test-id',
+  type: 'SWAP',
+  title: 'Swap',
+  icon: 'SwapHorizontal',
+  shortDescription: '80 points per $100',
+  bottomSheetTitle: 'Swap tokens',
+  pointsEarningRule: '80 points per $100 swapped',
+  description: 'Swap tokens on supported networks to earn points.',
+  buttonLabel: 'Start a swap',
+  buttonAction: undefined,
+  specificContent: undefined,
+  ...overrides,
+});
+
+const swapWayToEarn = createWayToEarn({
+  id: 'swap-id',
+  type: 'SWAP',
+  title: 'Swap',
+  icon: 'SwapHorizontal',
+  shortDescription: '80 points per $100',
+  bottomSheetTitle: 'Swap tokens',
+  pointsEarningRule: '80 points per $100 swapped',
+  description: 'Swap tokens on supported networks.',
+  buttonLabel: 'Start a swap',
+  buttonAction: { deeplink: 'metamask://swap' },
+  specificContent: {
+    supportedNetworksTitle: 'Supported networks',
+    supportedNetworks: [
+      { chainId: '1', name: 'Ethereum' },
+      { chainId: '59144', name: 'Linea', boost: '2x' },
+    ],
+  },
+});
+
+const referralWayToEarn = createWayToEarn({
+  id: 'referral-id',
+  type: 'REFERRAL',
+  title: 'Refer friends',
+  icon: 'People',
+  shortDescription: '10 points per 50 from friends',
+  bottomSheetTitle: 'Refer friends',
+  pointsEarningRule: '10 points per 50 pts earned',
+  description: 'Invite your friends to earn together.',
+  buttonLabel: 'Share link',
+  buttonAction: { route: { root: 'RewardsReferralView', screen: '' } },
+  specificContent: {
+    referralPointsTitle: 'Earned from referrals',
+    totalReferralsTitle: 'Referrals',
+  },
+});
+
+const perpsWayToEarn = createWayToEarn({
+  id: 'perps-id',
+  type: 'PERPS',
+  title: 'Perps',
+  icon: 'Rocket',
+  shortDescription: '10 points per $100',
+  bottomSheetTitle: 'Trade perps',
+  pointsEarningRule: '10 points per $100 traded',
+  description: 'Trade perps to earn points.',
+  buttonLabel: 'Start a trade',
+  buttonAction: { route: { root: 'PerpsRoot', screen: 'PerpsHome' } },
+});
+
+const urlWayToEarn = createWayToEarn({
+  id: 'url-id',
+  type: 'URL_ACTION',
+  title: 'External action',
+  icon: 'Link',
+  shortDescription: 'Earn points',
+  bottomSheetTitle: 'External action',
+  pointsEarningRule: '5 points per action',
+  description: 'Visit an external page to earn.',
+  buttonLabel: 'Go to page',
+  buttonAction: { url: 'https://example.com/earn' },
+});
+
+const noActionWayToEarn = createWayToEarn({
+  id: 'no-action-id',
+  type: 'INFO_ONLY',
+  title: 'Info only',
+  icon: 'Info',
+  shortDescription: 'For info',
+  bottomSheetTitle: 'Info only',
+  pointsEarningRule: 'N/A',
+  description: 'No CTA action configured.',
+  buttonLabel: 'OK',
+  buttonAction: undefined,
+});
+
+const mockSeasonWaysToEarn: SeasonWayToEarnDto[] = [
+  swapWayToEarn,
+  referralWayToEarn,
+  perpsWayToEarn,
+];
+
+describe('WaysToEarn', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    openURLSpy = jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
-    mockIsFirstTimePerpsUser = false;
-    mockIsPredictEnabled = false;
 
     mockUseNavigation.mockReturnValue({
       navigate: mockNavigate,
       goBack: mockGoBack,
     } as unknown as ReturnType<typeof useNavigation>);
 
-    // Mock createEventBuilder to return a builder object
     mockCreateEventBuilder.mockImplementation(() => ({
       addProperties: jest.fn().mockReturnThis(),
       addSensitiveProperties: jest.fn().mockReturnThis(),
       build: jest.fn().mockReturnValue({}),
     }));
 
-    // Assign useSelector implementation here so we can safely reference imported selectors
     const mockUseSelector = jest.requireMock('react-redux')
       .useSelector as jest.Mock;
-    mockUseSelector.mockImplementation((selector: unknown) => {
-      if (selector === selectIsFirstTimePerpsUser) {
-        return mockIsFirstTimePerpsUser;
-      }
-      if (selector === selectPredictEnabledFlag) {
-        return mockIsPredictEnabled;
-      }
-      return undefined;
-    });
-
-    // Configure useSwapBridgeNavigation mock implementation
-    const { useSwapBridgeNavigation } = jest.requireMock(
-      '../../../../../Bridge/hooks/useSwapBridgeNavigation',
-    );
-    (useSwapBridgeNavigation as jest.Mock).mockImplementation(() => ({
-      goToSwaps: mockGoToSwaps,
-    }));
-
-    // Configure useRampNavigation mock implementation
-    mockUseRampNavigation.mockReturnValue({
-      goToBuy: mockGoToBuy,
-      goToAggregator: jest.fn(),
-      goToSell: jest.fn(),
-      goToDeposit: jest.fn(),
-    } as ReturnType<typeof useRampNavigation>);
-
-    // Configure toCaipAssetType mock
-    mockToCaipAssetType.mockImplementation(
-      (chainNamespace, chainId, assetNamespace, assetReference) =>
-        `${chainNamespace}:${chainId}/${assetNamespace}:${assetReference}`,
-    );
-
-    // Configure getDecimalChainId mock
-    mockGetDecimalChainId.mockImplementation((chainId) =>
-      // Convert hex to decimal for LINEA_MAINNET (0xe708 = 59144)
-      chainId === '0xe708' ? '59144' : chainId,
-    );
+    mockUseSelector.mockReturnValue(mockSeasonWaysToEarn);
   });
 
-  it('renders the component title', () => {
-    // Arrange & Act
-    const { getByText } = render(<WaysToEarn />);
-
-    // Assert
-    expect(getByText('Ways to earn')).toBeOnTheScreen();
-  });
-
-  it('renders all earning ways', () => {
-    // Arrange & Act
-    const { getByText, queryByText } = render(<WaysToEarn />);
-
-    // Assert
-    expect(getByText('Swap')).toBeOnTheScreen();
-    expect(getByText('Perps')).toBeOnTheScreen();
-    expect(getByText('Refer friends')).toBeOnTheScreen();
-    expect(getByText('Loyalty bonus')).toBeOnTheScreen();
-    // Predict hidden when flag disabled
-    expect(queryByText('Prediction markets')).not.toBeOnTheScreen();
-    // Card, Deposit mUSD, and Hold mUSD are always visible
-    expect(getByText('MetaMask Card')).toBeOnTheScreen();
-    expect(getByText('Deposit mUSD')).toBeOnTheScreen();
-    expect(getByText('Hold mUSD')).toBeOnTheScreen();
-  });
-
-  it('displays correct descriptions for each earning way', () => {
-    // Arrange & Act
-    const { getByText, queryByText } = render(<WaysToEarn />);
-
-    // Assert
-    expect(getByText('80 points per $100')).toBeOnTheScreen();
-    expect(getByText('10 points per $100')).toBeOnTheScreen();
-    expect(getByText('10 points per 50 from friends')).toBeOnTheScreen();
-    expect(getByText('Earn points from past trades')).toBeOnTheScreen();
-    expect(queryByText('20 points per $10 prediction')).not.toBeOnTheScreen();
-    expect(getByText('1 point per $1 spent')).toBeOnTheScreen();
-    expect(getByText('2 points per $100 deposited')).toBeOnTheScreen();
-    expect(getByText('10 points per $100 deposited')).toBeOnTheScreen();
-  });
-
-  it('opens referral bottom sheet modal when referral item is pressed', () => {
-    // Arrange
-    const { getByText } = render(<WaysToEarn />);
-    const referralButton = getByText('Refer friends');
-
-    // Act
-    fireEvent.press(referralButton);
-
-    // Assert
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.MODAL.REWARDS_REFERRAL_BOTTOM_SHEET_MODAL,
-    );
-    expect(mockTrackEvent).toHaveBeenCalled();
-    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-      MetaMetricsEvents.REWARDS_PAGE_BUTTON_CLICKED,
-    );
-  });
-
-  it('opens modal for swap earning way when pressed', () => {
-    // Arrange
-    const { getByText } = render(<WaysToEarn />);
-    const swapButton = getByText('Swap');
-
-    // Act
-    fireEvent.press(swapButton);
-
-    // Assert
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
-      expect.objectContaining({
-        type: ModalType.Confirmation,
-        showIcon: false,
-        showCancelButton: false,
-        confirmAction: expect.objectContaining({
-          label: 'Start a swap',
-          variant: 'Primary',
-        }),
-      }),
-    );
-    expect(mockTrackEvent).toHaveBeenCalled();
-    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-      MetaMetricsEvents.REWARDS_PAGE_BUTTON_CLICKED,
-    );
-  });
-
-  it('opens modal for perps earning way when pressed', () => {
-    // Arrange
-    const { getByText } = render(<WaysToEarn />);
-    const perpsButton = getByText('Perps');
-
-    // Act
-    fireEvent.press(perpsButton);
-
-    // Assert
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
-      expect.objectContaining({
-        type: ModalType.Confirmation,
-        showIcon: false,
-        showCancelButton: false,
-        confirmAction: expect.objectContaining({
-          label: 'Start a trade',
-          variant: 'Primary',
-        }),
-      }),
-    );
-  });
-
-  it('navigates to swaps route when swap CTA is pressed', () => {
-    // Arrange
-    const { getByText } = render(<WaysToEarn />);
-    const swapButton = getByText('Swap');
-
-    // Act
-    fireEvent.press(swapButton);
-
-    // Get the onPress handler from the modal navigation call
-    const modalCall = mockNavigate.mock.calls.find(
-      (call) => call[0] === Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
-    );
-    const confirmAction = modalCall?.[1]?.confirmAction;
-
-    // Execute the CTA action
-    confirmAction?.onPress();
-
-    // Assert
-    expect(mockGoBack).toHaveBeenCalled();
-    expect(mockGoToSwaps).toHaveBeenCalled();
-    expect(mockTrackEvent).toHaveBeenCalled();
-    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-      MetaMetricsEvents.REWARDS_WAYS_TO_EARN_CTA_CLICKED,
-    );
-  });
-
-  it('navigates to perps tutorial for first-time users', () => {
-    // Arrange
-    mockIsFirstTimePerpsUser = true;
-    const { getByText } = render(<WaysToEarn />);
-    const perpsButton = getByText('Perps');
-
-    // Act
-    fireEvent.press(perpsButton);
-
-    // Get the onPress handler from the modal navigation call
-    const modalCall = mockNavigate.mock.calls.find(
-      (call) => call[0] === Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
-    );
-    const confirmAction = modalCall?.[1]?.confirmAction;
-
-    // Execute the CTA action
-    confirmAction?.onPress();
-
-    // Assert
-    expect(mockGoBack).toHaveBeenCalled();
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.TUTORIAL);
-  });
-
-  it('navigates to perps markets for returning users', () => {
-    // Arrange
-    mockIsFirstTimePerpsUser = false;
-    const { getByText } = render(<WaysToEarn />);
-    const perpsButton = getByText('Perps');
-
-    // Act
-    fireEvent.press(perpsButton);
-
-    // Get the onPress handler from the modal navigation call
-    const modalCall = mockNavigate.mock.calls.find(
-      (call) => call[0] === Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
-    );
-    const confirmAction = modalCall?.[1]?.confirmAction;
-
-    // Execute the CTA action
-    confirmAction?.onPress();
-
-    // Assert
-    expect(mockGoBack).toHaveBeenCalled();
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-      screen: Routes.PERPS.PERPS_HOME,
-    });
-  });
-
-  it('opens modal for loyalty earning way when pressed', () => {
-    // Arrange
-    const { getByText } = render(<WaysToEarn />);
-    const loyaltyButton = getByText('Loyalty bonus');
-
-    // Act
-    fireEvent.press(loyaltyButton);
-
-    // Assert
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
-      expect.objectContaining({
-        type: ModalType.Confirmation,
-        showIcon: false,
-        showCancelButton: false,
-        confirmAction: expect.objectContaining({
-          label: 'Add accounts',
-          variant: 'Primary',
-        }),
-      }),
-    );
-  });
-
-  it('navigates to rewards settings when loyalty CTA is pressed', () => {
-    // Arrange
-    const { getByText } = render(<WaysToEarn />);
-    const loyaltyButton = getByText('Loyalty bonus');
-
-    // Act
-    fireEvent.press(loyaltyButton);
-
-    // Get the onPress handler from the modal navigation call
-    const modalCall = mockNavigate.mock.calls.find(
-      (call) => call[0] === Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
-    );
-    const confirmAction = modalCall?.[1]?.confirmAction;
-
-    // Execute the CTA action
-    confirmAction?.onPress();
-
-    // Assert
-    expect(mockGoBack).toHaveBeenCalled();
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_SETTINGS_VIEW);
-  });
-
-  it('displays loyalty bonus modal with correct title and description', () => {
-    // Arrange
-    const { getByText } = render(<WaysToEarn />);
-    const loyaltyButton = getByText('Loyalty bonus');
-
-    // Act
-    fireEvent.press(loyaltyButton);
-
-    // Get the modal navigation call
-    const modalCall = mockNavigate.mock.calls.find(
-      (call) => call[0] === Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
-    );
-
-    // Assert
-    expect(modalCall).toBeTruthy();
-    expect(modalCall?.[1]?.title).toBeTruthy();
-    expect(modalCall?.[1]?.description).toBeTruthy();
-  });
-
-  it('includes supported networks section in swap modal description', () => {
-    // Arrange
-    const { getByText } = render(<WaysToEarn />);
-    const swapButton = getByText('Swap');
-
-    // Act
-    fireEvent.press(swapButton);
-
-    // Get the modal navigation call
-    const modalCall = mockNavigate.mock.calls.find(
-      (call) => call[0] === Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
-    );
-
-    // Assert
-    expect(modalCall).toBeTruthy();
-    expect(modalCall?.[1]?.description).toBeTruthy();
-  });
-
-  describe('WayToEarnType enum', () => {
-    it('has correct values', () => {
-      // Assert
-      expect(WayToEarnType.SWAPS).toBe('swaps');
-      expect(WayToEarnType.PERPS).toBe('perps');
-      expect(WayToEarnType.REFERRALS).toBe('referrals');
-      expect(WayToEarnType.LOYALTY).toBe('loyalty');
-      expect(WayToEarnType.PREDICT).toBe('predict');
-      expect(WayToEarnType.CARD).toBe('card');
-      expect(WayToEarnType.DEPOSIT_MUSD).toBe('deposit_musd');
-      expect(WayToEarnType.HOLD_MUSD).toBe('hold_musd');
-    });
-  });
-
-  describe('Predict', () => {
-    it('shows Predict earning way only when feature flag is enabled', () => {
-      // Arrange
-      const { queryByText, rerender } = render(<WaysToEarn />);
-
-      // Assert hidden by default
-      expect(queryByText('Prediction markets')).not.toBeOnTheScreen();
-
-      // Enable flag
-      mockIsPredictEnabled = true;
-      rerender(<WaysToEarn />);
-
-      // Assert visible now
-      expect(queryByText('Prediction markets')).toBeOnTheScreen();
-      expect(queryByText('20 points per $10 prediction')).toBeOnTheScreen();
-    });
-
-    it('opens modal for predict earning way when pressed', () => {
-      // Arrange
-      mockIsPredictEnabled = true;
+  describe('rendering', () => {
+    it('renders the component title', () => {
+      // Act
       const { getByText } = render(<WaysToEarn />);
-      const predictButton = getByText('Prediction markets');
+
+      // Assert
+      expect(getByText('Ways to earn')).toBeOnTheScreen();
+    });
+
+    it('renders all earning ways from selector data', () => {
+      // Act
+      const { getByText } = render(<WaysToEarn />);
+
+      // Assert
+      expect(getByText('Swap')).toBeOnTheScreen();
+      expect(getByText('Refer friends')).toBeOnTheScreen();
+      expect(getByText('Perps')).toBeOnTheScreen();
+    });
+
+    it('displays correct short descriptions for each earning way', () => {
+      // Act
+      const { getByText } = render(<WaysToEarn />);
+
+      // Assert
+      expect(getByText('80 points per $100')).toBeOnTheScreen();
+      expect(getByText('10 points per 50 from friends')).toBeOnTheScreen();
+      expect(getByText('10 points per $100')).toBeOnTheScreen();
+    });
+
+    it('renders an empty list when no ways to earn exist', () => {
+      // Arrange
+      const mockUseSelector = jest.requireMock('react-redux')
+        .useSelector as jest.Mock;
+      mockUseSelector.mockReturnValue([]);
 
       // Act
-      fireEvent.press(predictButton);
+      const { getByText, queryByText } = render(<WaysToEarn />);
+
+      // Assert
+      expect(getByText('Ways to earn')).toBeOnTheScreen();
+      expect(queryByText('Swap')).toBeNull();
+    });
+  });
+
+  describe('earning way press (modal open)', () => {
+    it('opens modal with correct data when an earning way is pressed', () => {
+      // Arrange
+      const { getByText } = render(<WaysToEarn />);
+
+      // Act
+      fireEvent.press(getByText('Swap'));
 
       // Assert
       expect(mockNavigate).toHaveBeenCalledWith(
@@ -596,258 +305,19 @@ describe('WaysToEarn', () => {
           showIcon: false,
           showCancelButton: false,
           confirmAction: expect.objectContaining({
-            label: 'Browse markets',
+            label: 'Start a swap',
             variant: 'Primary',
           }),
         }),
       );
-      expect(mockTrackEvent).toHaveBeenCalled();
-      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        MetaMetricsEvents.REWARDS_PAGE_BUTTON_CLICKED,
-      );
     });
 
-    it('navigates to predict market list when predict CTA is pressed', () => {
-      // Arrange
-      mockIsPredictEnabled = true;
-      const { getByText } = render(<WaysToEarn />);
-      const predictButton = getByText('Prediction markets');
-
-      // Act
-      fireEvent.press(predictButton);
-
-      // Get the onPress handler from the modal navigation call
-      const modalCall = mockNavigate.mock.calls.find(
-        (call) => call[0] === Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
-      );
-      const confirmAction = modalCall?.[1]?.confirmAction;
-
-      // Execute the CTA action
-      confirmAction?.onPress();
-
-      // Assert
-      expect(mockGoBack).toHaveBeenCalled();
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
-        screen: Routes.PREDICT.MARKET_LIST,
-        params: {
-          entryPoint: expect.any(String),
-        },
-      });
-      expect(mockTrackEvent).toHaveBeenCalled();
-      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        MetaMetricsEvents.REWARDS_WAYS_TO_EARN_CTA_CLICKED,
-      );
-    });
-  });
-
-  describe('Card spend', () => {
-    it('shows Card earning way', () => {
-      // Arrange & Act
-      const { getByText } = render(<WaysToEarn />);
-
-      // Assert
-      expect(getByText('MetaMask Card')).toBeOnTheScreen();
-      expect(getByText('1 point per $1 spent')).toBeOnTheScreen();
-    });
-
-    it('opens modal and navigates to Card root on CTA', () => {
+    it('tracks button click event with correct properties', () => {
       // Arrange
       const { getByText } = render(<WaysToEarn />);
 
-      // Open card info modal
-      fireEvent.press(getByText('MetaMask Card'));
-
-      // Extract confirm action
-      const modalCall = mockNavigate.mock.calls.find(
-        (call) => call[0] === Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
-      );
-      const confirmAction = modalCall?.[1]?.confirmAction;
-
       // Act
-      confirmAction?.onPress();
-
-      // Assert
-      expect(mockGoBack).toHaveBeenCalled();
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT);
-    });
-  });
-
-  describe('Deposit mUSD', () => {
-    it('shows Deposit mUSD earning way', () => {
-      // Arrange & Act
-      const { getByText } = render(<WaysToEarn />);
-
-      // Assert
-      expect(getByText('Deposit mUSD')).toBeOnTheScreen();
-      expect(getByText('2 points per $100 deposited')).toBeOnTheScreen();
-    });
-
-    it('opens modal for deposit mUSD earning way when pressed', () => {
-      // Arrange
-      const { getByText } = render(<WaysToEarn />);
-      const depositMusdButton = getByText('Deposit mUSD');
-
-      // Act
-      fireEvent.press(depositMusdButton);
-
-      // Assert
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
-        expect.objectContaining({
-          type: ModalType.Confirmation,
-          showIcon: false,
-          showCancelButton: false,
-          confirmAction: expect.objectContaining({
-            label: 'Deposit mUSD',
-            variant: 'Primary',
-          }),
-        }),
-      );
-      expect(mockTrackEvent).toHaveBeenCalled();
-      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        MetaMetricsEvents.REWARDS_PAGE_BUTTON_CLICKED,
-      );
-    });
-
-    it('opens URL when deposit mUSD CTA is pressed', () => {
-      // Arrange
-      const { getByText } = render(<WaysToEarn />);
-      const depositMusdButton = getByText('Deposit mUSD');
-
-      // Act
-      fireEvent.press(depositMusdButton);
-
-      // Get the onPress handler from the modal navigation call
-      const modalCall = mockNavigate.mock.calls.find(
-        (call) => call[0] === Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
-      );
-      const confirmAction = modalCall?.[1]?.confirmAction;
-
-      // Execute the CTA action
-      confirmAction?.onPress();
-
-      // Assert
-      expect(mockGoBack).toHaveBeenCalled();
-      expect(openURLSpy).toHaveBeenCalledWith(
-        'https://go.metamask.io/turtle-musd',
-      );
-      expect(mockTrackEvent).toHaveBeenCalled();
-      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        MetaMetricsEvents.REWARDS_WAYS_TO_EARN_CTA_CLICKED,
-      );
-    });
-  });
-
-  describe('Hold mUSD', () => {
-    it('shows Hold mUSD earning way', () => {
-      // Arrange & Act
-      const { getByText } = render(<WaysToEarn />);
-
-      // Assert
-      expect(getByText('Hold mUSD')).toBeOnTheScreen();
-      expect(getByText('10 points per $100 deposited')).toBeOnTheScreen();
-    });
-
-    it('opens modal for hold mUSD earning way when pressed', () => {
-      // Arrange
-      const { getByText } = render(<WaysToEarn />);
-      const holdMusdButton = getByText('Hold mUSD');
-
-      // Act
-      fireEvent.press(holdMusdButton);
-
-      // Assert
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
-        expect.objectContaining({
-          type: ModalType.Confirmation,
-          showIcon: false,
-          showCancelButton: false,
-          confirmAction: expect.objectContaining({
-            label: 'Hold mUSD',
-            variant: 'Primary',
-          }),
-        }),
-      );
-      expect(mockTrackEvent).toHaveBeenCalled();
-      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        MetaMetricsEvents.REWARDS_PAGE_BUTTON_CLICKED,
-      );
-    });
-
-    it('calls goToBuy with correct assetId when hold mUSD CTA is pressed', () => {
-      // Arrange
-      const { getByText } = render(<WaysToEarn />);
-      const holdMusdButton = getByText('Hold mUSD');
-
-      // Act
-      fireEvent.press(holdMusdButton);
-
-      // Get the onPress handler from the modal navigation call
-      const modalCall = mockNavigate.mock.calls.find(
-        (call) => call[0] === Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
-      );
-      const confirmAction = modalCall?.[1]?.confirmAction;
-
-      // Execute the CTA action
-      confirmAction?.onPress();
-
-      // Assert
-      expect(mockGoBack).toHaveBeenCalled();
-      expect(mockGoToBuy).toHaveBeenCalledWith({
-        assetId:
-          'eip155:59144/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
-      });
-      expect(mockTrackEvent).toHaveBeenCalled();
-      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        MetaMetricsEvents.REWARDS_WAYS_TO_EARN_CTA_CLICKED,
-      );
-    });
-  });
-
-  describe('useSwapBridgeNavigation integration', () => {
-    it('configures the hook with correct parameters for regular swaps', () => {
-      // Get the mock from jest.requireMock
-      const { useSwapBridgeNavigation } = jest.requireMock(
-        '../../../../../Bridge/hooks/useSwapBridgeNavigation',
-      );
-
-      // Render the component to trigger the hook
-      render(<WaysToEarn />);
-
-      // Assert the hook was called with correct parameters for regular swaps
-      expect(useSwapBridgeNavigation).toHaveBeenCalledWith({
-        location: SwapBridgeNavigationLocation.Rewards,
-        sourcePage: 'rewards_overview',
-      });
-    });
-  });
-
-  describe('useRampNavigation integration', () => {
-    it('creates correct mUSD assetId using toCaipAssetType and getDecimalChainId', () => {
-      // Act
-      render(<WaysToEarn />);
-
-      // Assert
-      expect(mockGetDecimalChainId).toHaveBeenCalledWith('0xe708');
-      expect(mockToCaipAssetType).toHaveBeenCalledWith(
-        'eip155',
-        '59144',
-        'erc20',
-        '0xaca92e438df0b2401ff60da7e4337b687a2435da',
-      );
-      expect(mockUseRampNavigation).toHaveBeenCalled();
-    });
-  });
-
-  describe('Metrics tracking', () => {
-    it('tracks button click event with correct properties when earning way is pressed', () => {
-      // Arrange
-      const { getByText } = render(<WaysToEarn />);
-      const swapButton = getByText('Swap');
-
-      // Act
-      fireEvent.press(swapButton);
+      fireEvent.press(getByText('Swap'));
 
       // Assert
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
@@ -856,30 +326,77 @@ describe('WaysToEarn', () => {
       const builder = mockCreateEventBuilder.mock.results[0].value;
       expect(builder.addProperties).toHaveBeenCalledWith({
         button_type: RewardsMetricsButtons.WAYS_TO_EARN,
-        ways_to_earn_type: WayToEarnType.SWAPS,
+        ways_to_earn_type: 'SWAP',
       });
       expect(mockTrackEvent).toHaveBeenCalled();
     });
 
-    it('tracks CTA click event with correct properties when CTA is pressed', () => {
+    it('passes WaysToEarnSheetTitle as modal title with bottomSheetTitle and pointsEarningRule', () => {
       // Arrange
       const { getByText } = render(<WaysToEarn />);
-      const swapButton = getByText('Swap');
 
       // Act
-      fireEvent.press(swapButton);
+      fireEvent.press(getByText('Perps'));
 
-      // Get the onPress handler from the modal navigation call
+      // Assert
+      const modalCall = mockNavigate.mock.calls.find(
+        (call) => call[0] === Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
+      );
+      expect(modalCall?.[1]?.title).toBeTruthy();
+      expect(modalCall?.[1]?.title.type).toBeDefined();
+    });
+
+    it('passes description content to modal', () => {
+      // Arrange
+      const { getByText } = render(<WaysToEarn />);
+
+      // Act
+      fireEvent.press(getByText('Perps'));
+
+      // Assert
+      const modalCall = mockNavigate.mock.calls.find(
+        (call) => call[0] === Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
+      );
+      expect(modalCall?.[1]?.description).toBeTruthy();
+      expect(modalCall?.[1]?.description.type).toBeDefined();
+    });
+  });
+
+  describe('CTA press - deeplink action', () => {
+    it('calls handleDeeplink when buttonAction has deeplink', () => {
+      // Arrange
+      const { getByText } = render(<WaysToEarn />);
+      fireEvent.press(getByText('Swap'));
+
       const modalCall = mockNavigate.mock.calls.find(
         (call) => call[0] === Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
       );
       const confirmAction = modalCall?.[1]?.confirmAction;
 
-      // Clear previous calls to track only CTA event
+      // Act
+      confirmAction?.onPress();
+
+      // Assert
+      expect(mockGoBack).toHaveBeenCalled();
+      expect(mockHandleDeeplink).toHaveBeenCalledWith({
+        uri: 'metamask://swap',
+      });
+    });
+
+    it('tracks CTA click event with correct properties for deeplink action', () => {
+      // Arrange
+      const { getByText } = render(<WaysToEarn />);
+      fireEvent.press(getByText('Swap'));
+
+      const modalCall = mockNavigate.mock.calls.find(
+        (call) => call[0] === Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
+      );
+      const confirmAction = modalCall?.[1]?.confirmAction;
+
       mockCreateEventBuilder.mockClear();
       mockTrackEvent.mockClear();
 
-      // Execute the CTA action
+      // Act
       confirmAction?.onPress();
 
       // Assert
@@ -887,448 +404,363 @@ describe('WaysToEarn', () => {
         MetaMetricsEvents.REWARDS_WAYS_TO_EARN_CTA_CLICKED,
       );
       const ctaBuilder = mockCreateEventBuilder.mock.results[0]?.value;
-      expect(ctaBuilder).toBeTruthy();
       expect(ctaBuilder.addProperties).toHaveBeenCalledWith({
-        ways_to_earn_type: WayToEarnType.SWAPS,
+        ways_to_earn_type: 'SWAP',
       });
       expect(mockTrackEvent).toHaveBeenCalled();
     });
   });
 
+  describe('CTA press - route action', () => {
+    it('navigates to route when buttonAction has route with root and screen', () => {
+      // Arrange
+      const { getByText } = render(<WaysToEarn />);
+      fireEvent.press(getByText('Perps'));
+
+      const modalCall = mockNavigate.mock.calls.find(
+        (call) => call[0] === Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
+      );
+      const confirmAction = modalCall?.[1]?.confirmAction;
+
+      mockNavigate.mockClear();
+
+      // Act
+      confirmAction?.onPress();
+
+      // Assert
+      expect(mockGoBack).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith('PerpsRoot', {
+        screen: 'PerpsHome',
+      });
+    });
+
+    it('navigates to route without screen param when screen is empty', () => {
+      // Arrange
+      const { getByText } = render(<WaysToEarn />);
+      fireEvent.press(getByText('Refer friends'));
+
+      const modalCall = mockNavigate.mock.calls.find(
+        (call) => call[0] === Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
+      );
+      const confirmAction = modalCall?.[1]?.confirmAction;
+
+      mockNavigate.mockClear();
+
+      // Act
+      confirmAction?.onPress();
+
+      // Assert
+      expect(mockGoBack).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'RewardsReferralView',
+        undefined,
+      );
+    });
+  });
+
+  describe('CTA press - URL action', () => {
+    it('navigates to browser when buttonAction has url', () => {
+      // Arrange
+      const mockUseSelector = jest.requireMock('react-redux')
+        .useSelector as jest.Mock;
+      mockUseSelector.mockReturnValue([urlWayToEarn]);
+
+      const { getByText } = render(<WaysToEarn />);
+      fireEvent.press(getByText('External action'));
+
+      const modalCall = mockNavigate.mock.calls.find(
+        (call) => call[0] === Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
+      );
+      const confirmAction = modalCall?.[1]?.confirmAction;
+
+      mockNavigate.mockClear();
+
+      // Act
+      confirmAction?.onPress();
+
+      // Assert
+      expect(mockGoBack).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
+        screen: Routes.BROWSER.VIEW,
+        params: {
+          newTabUrl: 'https://example.com/earn',
+          timestamp: expect.any(Number),
+        },
+      });
+    });
+  });
+
+  describe('CTA press - no action', () => {
+    it('closes modal but does not navigate when buttonAction is undefined', () => {
+      // Arrange
+      const mockUseSelector = jest.requireMock('react-redux')
+        .useSelector as jest.Mock;
+      mockUseSelector.mockReturnValue([noActionWayToEarn]);
+
+      const { getByText } = render(<WaysToEarn />);
+      fireEvent.press(getByText('Info only'));
+
+      const modalCall = mockNavigate.mock.calls.find(
+        (call) => call[0] === Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
+      );
+      const confirmAction = modalCall?.[1]?.confirmAction;
+
+      mockNavigate.mockClear();
+      mockHandleDeeplink.mockClear();
+
+      // Act
+      confirmAction?.onPress();
+
+      // Assert
+      expect(mockGoBack).toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockHandleDeeplink).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('CTA press - action priority', () => {
+    it('prioritizes deeplink over route and url', () => {
+      // Arrange
+      const mixedActionWay = createWayToEarn({
+        id: 'mixed-id',
+        title: 'Mixed action',
+        buttonAction: {
+          deeplink: 'metamask://mixed',
+          route: { root: 'SomeRoot', screen: 'SomeScreen' },
+          url: 'https://example.com',
+        },
+      });
+
+      const mockUseSelector = jest.requireMock('react-redux')
+        .useSelector as jest.Mock;
+      mockUseSelector.mockReturnValue([mixedActionWay]);
+
+      const { getByText } = render(<WaysToEarn />);
+      fireEvent.press(getByText('Mixed action'));
+
+      const modalCall = mockNavigate.mock.calls.find(
+        (call) => call[0] === Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
+      );
+      const confirmAction = modalCall?.[1]?.confirmAction;
+
+      mockNavigate.mockClear();
+
+      // Act
+      confirmAction?.onPress();
+
+      // Assert
+      expect(mockHandleDeeplink).toHaveBeenCalledWith({
+        uri: 'metamask://mixed',
+      });
+      // Should not navigate via route or url
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('prioritizes route over url when no deeplink', () => {
+      // Arrange
+      const routeAndUrlWay = createWayToEarn({
+        id: 'route-url-id',
+        title: 'Route and URL',
+        buttonAction: {
+          route: { root: 'SomeRoot', screen: 'SomeScreen' },
+          url: 'https://example.com',
+        },
+      });
+
+      const mockUseSelector = jest.requireMock('react-redux')
+        .useSelector as jest.Mock;
+      mockUseSelector.mockReturnValue([routeAndUrlWay]);
+
+      const { getByText } = render(<WaysToEarn />);
+      fireEvent.press(getByText('Route and URL'));
+
+      const modalCall = mockNavigate.mock.calls.find(
+        (call) => call[0] === Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
+      );
+      const confirmAction = modalCall?.[1]?.confirmAction;
+
+      mockNavigate.mockClear();
+
+      // Act
+      confirmAction?.onPress();
+
+      // Assert
+      expect(mockNavigate).toHaveBeenCalledWith('SomeRoot', {
+        screen: 'SomeScreen',
+      });
+      // Should not open browser
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        Routes.BROWSER.HOME,
+        expect.anything(),
+      );
+    });
+  });
+
+  describe('specificContent rendering', () => {
+    it('includes SwapSupportedNetworksSection in description when specificContent has supportedNetworks', () => {
+      // Arrange
+      const { getByText } = render(<WaysToEarn />);
+
+      // Act
+      fireEvent.press(getByText('Swap'));
+
+      // Get the modal navigation call
+      const modalCall = mockNavigate.mock.calls.find(
+        (call) => call[0] === Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
+      );
+
+      // Assert - description is a React element
+      expect(modalCall?.[1]?.description).toBeTruthy();
+      expect(modalCall?.[1]?.description.type).toBeDefined();
+    });
+
+    it('includes ReferralStatsSummary in description when specificContent has referralPointsTitle', () => {
+      // Arrange
+      const { getByText } = render(<WaysToEarn />);
+
+      // Act
+      fireEvent.press(getByText('Refer friends'));
+
+      // Get the modal navigation call
+      const modalCall = mockNavigate.mock.calls.find(
+        (call) => call[0] === Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
+      );
+
+      // Assert - description is a React element
+      expect(modalCall?.[1]?.description).toBeTruthy();
+      expect(modalCall?.[1]?.description.type).toBeDefined();
+    });
+
+    it('does not include specific content sections when specificContent is undefined', () => {
+      // Arrange
+      const { getByText } = render(<WaysToEarn />);
+
+      // Act
+      fireEvent.press(getByText('Perps'));
+
+      // Get the modal navigation call
+      const modalCall = mockNavigate.mock.calls.find(
+        (call) => call[0] === Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
+      );
+
+      // Assert - description should still exist (contains the text description)
+      expect(modalCall?.[1]?.description).toBeTruthy();
+    });
+  });
+
+  describe('modal close before navigation', () => {
+    it('closes modal (goBack) before executing CTA navigation', () => {
+      // Arrange
+      const { getByText } = render(<WaysToEarn />);
+      fireEvent.press(getByText('Perps'));
+
+      const modalCall = mockNavigate.mock.calls.find(
+        (call) => call[0] === Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
+      );
+      const confirmAction = modalCall?.[1]?.confirmAction;
+
+      mockGoBack.mockClear();
+
+      // Act
+      confirmAction?.onPress();
+
+      // Assert
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
+  });
+
   describe('FlatList configuration', () => {
     it('renders list items with unique keys', () => {
-      // Arrange & Act
+      // Act
       const { getByText } = render(<WaysToEarn />);
 
       // Assert - All items should render without key warnings
       expect(getByText('Swap')).toBeOnTheScreen();
       expect(getByText('Perps')).toBeOnTheScreen();
       expect(getByText('Refer friends')).toBeOnTheScreen();
-      expect(getByText('Loyalty bonus')).toBeOnTheScreen();
-    });
-
-    it('renders separators between list items', () => {
-      // Arrange & Act
-      const { getByText } = render(<WaysToEarn />);
-
-      // Assert - Multiple items are rendered, separators should be present
-      // We verify this by checking that items render correctly
-      expect(getByText('Swap')).toBeOnTheScreen();
-      expect(getByText('Perps')).toBeOnTheScreen();
-      expect(getByText('Refer friends')).toBeOnTheScreen();
-      expect(getByText('Loyalty bonus')).toBeOnTheScreen();
-    });
-
-    it('disables scrolling on FlatList', () => {
-      // Arrange & Act
-      const { getByText } = render(<WaysToEarn />);
-
-      // Assert - Component renders without scroll indicators
-      // This is verified by the component rendering correctly
-      expect(getByText('Ways to earn')).toBeOnTheScreen();
-      expect(getByText('Swap')).toBeOnTheScreen();
     });
   });
 
-  describe('Icon rendering', () => {
-    it('renders earning ways with icons', () => {
-      // Arrange & Act
-      const { getByText } = render(<WaysToEarn />);
-
-      // Assert - Items render with their content, icons are part of the structure
-      expect(getByText('Swap')).toBeOnTheScreen();
-      expect(getByText('Perps')).toBeOnTheScreen();
-      expect(getByText('Refer friends')).toBeOnTheScreen();
-      expect(getByText('Loyalty bonus')).toBeOnTheScreen();
-    });
-
-    it('renders correct number of visible earning ways', () => {
-      // Arrange & Act
-      const { getByText, queryByText } = render(<WaysToEarn />);
-
-      // Assert - Core ways should be visible
-      expect(getByText('Swap')).toBeOnTheScreen();
-      expect(getByText('Perps')).toBeOnTheScreen();
-      expect(getByText('Refer friends')).toBeOnTheScreen();
-      expect(getByText('Loyalty bonus')).toBeOnTheScreen();
-      expect(getByText('MetaMask Card')).toBeOnTheScreen();
-      expect(getByText('Deposit mUSD')).toBeOnTheScreen();
-      expect(getByText('Hold mUSD')).toBeOnTheScreen();
-
-      // Predict still gated by feature flag
-      expect(queryByText('Prediction markets')).not.toBeOnTheScreen();
-    });
-  });
-
-  describe('Feature flag combinations', () => {
-    it('displays all earning ways when predict feature flag is enabled', () => {
+  describe('metrics tracking', () => {
+    it('tracks button click events with ways_to_earn_type matching wayToEarn.type', () => {
       // Arrange
-      mockIsPredictEnabled = true;
+      const { getByText } = render(<WaysToEarn />);
 
       // Act
-      const { getByText } = render(<WaysToEarn />);
+      fireEvent.press(getByText('Refer friends'));
 
       // Assert
-      expect(getByText('Swap')).toBeOnTheScreen();
-      expect(getByText('Perps')).toBeOnTheScreen();
-      expect(getByText('Refer friends')).toBeOnTheScreen();
-      expect(getByText('Loyalty bonus')).toBeOnTheScreen();
-      expect(getByText('Prediction markets')).toBeOnTheScreen();
-      expect(getByText('MetaMask Card')).toBeOnTheScreen();
-      expect(getByText('Deposit mUSD')).toBeOnTheScreen();
-      expect(getByText('Hold mUSD')).toBeOnTheScreen();
-    });
-
-    it('filters out predict when predict flag is disabled', () => {
-      // Arrange
-      mockIsPredictEnabled = false;
-
-      // Act
-      const { getByText, queryByText } = render(<WaysToEarn />);
-
-      // Assert - Core ways should be visible
-      expect(getByText('Swap')).toBeOnTheScreen();
-      expect(getByText('Perps')).toBeOnTheScreen();
-      expect(getByText('Refer friends')).toBeOnTheScreen();
-      expect(getByText('Loyalty bonus')).toBeOnTheScreen();
-      expect(getByText('MetaMask Card')).toBeOnTheScreen();
-      expect(getByText('Deposit mUSD')).toBeOnTheScreen();
-      expect(getByText('Hold mUSD')).toBeOnTheScreen();
-
-      // Assert - Predict should be hidden
-      expect(queryByText('Prediction markets')).not.toBeOnTheScreen();
-    });
-  });
-
-  describe('mUSD assetId memoization', () => {
-    it('creates mUSD assetId only once despite multiple renders', () => {
-      // Arrange
-      mockGetDecimalChainId.mockClear();
-      mockToCaipAssetType.mockClear();
-
-      // Act
-      const { rerender } = render(<WaysToEarn />);
-      const initialCallCount = mockGetDecimalChainId.mock.calls.length;
-      rerender(<WaysToEarn />);
-      rerender(<WaysToEarn />);
-
-      // Assert - Should only be called once on initial render, not on rerenders
-      expect(mockGetDecimalChainId).toHaveBeenCalledTimes(initialCallCount);
-      expect(mockToCaipAssetType).toHaveBeenCalledTimes(initialCallCount);
-    });
-
-    it('uses correct chain ID and address for mUSD assetId', () => {
-      // Act
-      render(<WaysToEarn />);
-
-      // Assert
-      expect(mockGetDecimalChainId).toHaveBeenCalledWith('0xe708');
-      expect(mockToCaipAssetType).toHaveBeenCalledWith(
-        'eip155',
-        '59144',
-        'erc20',
-        '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.REWARDS_PAGE_BUTTON_CLICKED,
       );
-    });
-  });
-
-  describe('Component structure', () => {
-    it('renders WaysToEarnSheetTitle component with title and points in swap modal', () => {
-      // Arrange
-      const { getByText } = render(<WaysToEarn />);
-      const swapButton = getByText('Swap');
-
-      // Act
-      fireEvent.press(swapButton);
-
-      // Get the modal navigation call
-      const modalCall = mockNavigate.mock.calls.find(
-        (call) => call[0] === Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
-      );
-
-      // Assert
-      expect(modalCall?.[1]?.title).toBeTruthy();
-      expect(modalCall?.[1]?.title.type).toBeDefined();
-    });
-
-    it('renders WaysToEarnSheetTitle component with title and points in perps modal', () => {
-      // Arrange
-      const { getByText } = render(<WaysToEarn />);
-      const perpsButton = getByText('Perps');
-
-      // Act
-      fireEvent.press(perpsButton);
-
-      // Get the modal navigation call
-      const modalCall = mockNavigate.mock.calls.find(
-        (call) => call[0] === Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
-      );
-
-      // Assert
-      expect(modalCall?.[1]?.title).toBeTruthy();
-      expect(modalCall?.[1]?.title.type).toBeDefined();
-    });
-
-    it('renders WaysToEarnSheetTitle component with title and points in loyalty modal', () => {
-      // Arrange
-      const { getByText } = render(<WaysToEarn />);
-      const loyaltyButton = getByText('Loyalty bonus');
-
-      // Act
-      fireEvent.press(loyaltyButton);
-
-      // Get the modal navigation call
-      const modalCall = mockNavigate.mock.calls.find(
-        (call) => call[0] === Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
-      );
-
-      // Assert
-      expect(modalCall?.[1]?.title).toBeTruthy();
-      expect(modalCall?.[1]?.title.type).toBeDefined();
-    });
-  });
-
-  describe('getBottomSheetData error handling', () => {
-    it('handles all known earning way types without throwing errors', () => {
-      // Arrange - Test core types that don't require feature flags
-      const coreTypes = [
-        { type: WayToEarnType.SWAPS, buttonText: 'Swap' },
-        { type: WayToEarnType.PERPS, buttonText: 'Perps' },
-        { type: WayToEarnType.LOYALTY, buttonText: 'Loyalty bonus' },
-      ];
-
-      // Act & Assert - All core types should work without throwing
-      coreTypes.forEach(({ buttonText }) => {
-        const { getByText } = render(<WaysToEarn />);
-        const button = getByText(buttonText);
-
-        expect(() => fireEvent.press(button)).not.toThrow();
+      const builder = mockCreateEventBuilder.mock.results[0].value;
+      expect(builder.addProperties).toHaveBeenCalledWith({
+        button_type: RewardsMetricsButtons.WAYS_TO_EARN,
+        ways_to_earn_type: 'REFERRAL',
       });
     });
 
-    it('handles feature-flagged earning way types without throwing errors', () => {
-      // Arrange - Enable predict feature flag
-      mockIsPredictEnabled = true;
-
-      const flaggedTypes = [
-        { type: WayToEarnType.PREDICT, buttonText: 'Prediction markets' },
-        { type: WayToEarnType.CARD, buttonText: 'MetaMask Card' },
-        { type: WayToEarnType.DEPOSIT_MUSD, buttonText: 'Deposit mUSD' },
-        { type: WayToEarnType.HOLD_MUSD, buttonText: 'Hold mUSD' },
-      ];
-
-      // Act & Assert - All types should work without throwing
-      flaggedTypes.forEach(({ buttonText }) => {
-        const { getByText } = render(<WaysToEarn />);
-        const button = getByText(buttonText);
-
-        expect(() => fireEvent.press(button)).not.toThrow();
-      });
-    });
-  });
-
-  describe('Modal content rendering', () => {
-    it('includes SwapSupportedNetworksSection in swap modal description', () => {
+    it('tracks CTA click events with ways_to_earn_type matching wayToEarn.type', () => {
       // Arrange
       const { getByText } = render(<WaysToEarn />);
-      const swapButton = getByText('Swap');
+      fireEvent.press(getByText('Perps'));
 
-      // Act
-      fireEvent.press(swapButton);
-
-      // Get the modal navigation call
-      const modalCall = mockNavigate.mock.calls.find(
-        (call) => call[0] === Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
-      );
-
-      // Assert
-      expect(modalCall?.[1]?.description).toBeTruthy();
-      expect(modalCall?.[1]?.description.type).toBeDefined();
-    });
-
-    it('renders correct CTA label for each earning way type', () => {
-      // Arrange
-      const testCases = [
-        {
-          type: WayToEarnType.SWAPS,
-          buttonText: 'Swap',
-          expectedCTALabel: 'Start a swap',
-        },
-        {
-          type: WayToEarnType.PERPS,
-          buttonText: 'Perps',
-          expectedCTALabel: 'Start a trade',
-        },
-        {
-          type: WayToEarnType.LOYALTY,
-          buttonText: 'Loyalty bonus',
-          expectedCTALabel: 'Add accounts',
-        },
-        {
-          type: WayToEarnType.PREDICT,
-          buttonText: 'Prediction markets',
-          expectedCTALabel: 'Browse markets',
-          enableFlag: () => {
-            mockIsPredictEnabled = true;
-          },
-        },
-        {
-          type: WayToEarnType.CARD,
-          buttonText: 'MetaMask Card',
-          expectedCTALabel: 'Manage card',
-        },
-        {
-          type: WayToEarnType.DEPOSIT_MUSD,
-          buttonText: 'Deposit mUSD',
-          expectedCTALabel: 'Deposit mUSD',
-        },
-        {
-          type: WayToEarnType.HOLD_MUSD,
-          buttonText: 'Hold mUSD',
-          expectedCTALabel: 'Hold mUSD',
-        },
-      ];
-
-      testCases.forEach(({ buttonText, expectedCTALabel, enableFlag }) => {
-        // Arrange
-        if (enableFlag) {
-          enableFlag();
-        }
-        const { getByText } = render(<WaysToEarn />);
-        const button = getByText(buttonText);
-
-        // Act
-        fireEvent.press(button);
-
-        // Get the modal navigation call
-        const modalCall = mockNavigate.mock.calls.find(
-          (call) => call[0] === Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
-        );
-
-        // Assert
-        expect(modalCall?.[1]?.confirmAction?.label).toBe(expectedCTALabel);
-
-        // Cleanup
-        jest.clearAllMocks();
-        mockIsPredictEnabled = false;
-      });
-    });
-  });
-
-  describe('Navigation behavior', () => {
-    it('closes modal before navigating when CTA is pressed', () => {
-      // Arrange
-      const { getByText } = render(<WaysToEarn />);
-      const swapButton = getByText('Swap');
-
-      // Act
-      fireEvent.press(swapButton);
-
-      // Get the onPress handler from the modal navigation call
       const modalCall = mockNavigate.mock.calls.find(
         (call) => call[0] === Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
       );
       const confirmAction = modalCall?.[1]?.confirmAction;
 
-      // Clear goBack calls
-      mockGoBack.mockClear();
+      mockCreateEventBuilder.mockClear();
+      mockTrackEvent.mockClear();
 
-      // Execute the CTA action
+      // Act
       confirmAction?.onPress();
 
-      // Assert - goBack should be called before navigation
-      expect(mockGoBack).toHaveBeenCalled();
-      expect(mockGoToSwaps).toHaveBeenCalled();
+      // Assert
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.REWARDS_WAYS_TO_EARN_CTA_CLICKED,
+      );
+      const ctaBuilder = mockCreateEventBuilder.mock.results[0]?.value;
+      expect(ctaBuilder.addProperties).toHaveBeenCalledWith({
+        ways_to_earn_type: 'PERPS',
+      });
     });
+  });
 
-    it('navigates to correct route for each earning way CTA', () => {
+  describe('CTA labels', () => {
+    it('renders correct CTA label for each earning way type', () => {
       // Arrange
       const testCases = [
-        {
-          buttonText: 'Swap',
-          expectedNavigation: () => expect(mockGoToSwaps).toHaveBeenCalled(),
-        },
-        {
-          buttonText: 'Perps',
-          expectedNavigation: () =>
-            expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-              screen: Routes.PERPS.PERPS_HOME,
-            }),
-        },
-        {
-          buttonText: 'Loyalty bonus',
-          expectedNavigation: () =>
-            expect(mockNavigate).toHaveBeenCalledWith(
-              Routes.REWARDS_SETTINGS_VIEW,
-            ),
-        },
-        {
-          buttonText: 'Prediction markets',
-          enableFlag: () => {
-            mockIsPredictEnabled = true;
-          },
-          expectedNavigation: () =>
-            expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
-              screen: Routes.PREDICT.MARKET_LIST,
-              params: {
-                entryPoint: expect.any(String),
-              },
-            }),
-        },
-        {
-          buttonText: 'MetaMask Card',
-          expectedNavigation: () =>
-            expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT),
-        },
-        {
-          buttonText: 'Deposit mUSD',
-          expectedNavigation: () =>
-            expect(openURLSpy).toHaveBeenCalledWith(
-              'https://go.metamask.io/turtle-musd',
-            ),
-        },
-        {
-          buttonText: 'Hold mUSD',
-          expectedNavigation: () =>
-            expect(mockGoToBuy).toHaveBeenCalledWith({
-              assetId:
-                'eip155:59144/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
-            }),
-        },
+        { title: 'Swap', expectedLabel: 'Start a swap' },
+        { title: 'Refer friends', expectedLabel: 'Share link' },
+        { title: 'Perps', expectedLabel: 'Start a trade' },
       ];
 
-      testCases.forEach(({ buttonText, enableFlag, expectedNavigation }) => {
-        // Arrange
-        if (enableFlag) {
-          enableFlag();
-        }
+      testCases.forEach(({ title, expectedLabel }) => {
+        jest.clearAllMocks();
+        mockUseNavigation.mockReturnValue({
+          navigate: mockNavigate,
+          goBack: mockGoBack,
+        } as unknown as ReturnType<typeof useNavigation>);
+        mockCreateEventBuilder.mockImplementation(() => ({
+          addProperties: jest.fn().mockReturnThis(),
+          addSensitiveProperties: jest.fn().mockReturnThis(),
+          build: jest.fn().mockReturnValue({}),
+        }));
+        const mockUseSel = jest.requireMock('react-redux')
+          .useSelector as jest.Mock;
+        mockUseSel.mockReturnValue(mockSeasonWaysToEarn);
+
         const { getByText } = render(<WaysToEarn />);
-        const button = getByText(buttonText);
 
         // Act
-        fireEvent.press(button);
+        fireEvent.press(getByText(title));
 
-        // Get the onPress handler from the modal navigation call
+        // Assert
         const modalCall = mockNavigate.mock.calls.find(
           (call) => call[0] === Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
         );
-        const confirmAction = modalCall?.[1]?.confirmAction;
-
-        // Clear previous navigation calls
-        mockNavigate.mockClear();
-        mockGoToSwaps.mockClear();
-        mockGoToBuy.mockClear();
-        openURLSpy.mockClear();
-
-        // Execute the CTA action
-        confirmAction?.onPress();
-
-        // Assert
-        expectedNavigation();
-
-        // Cleanup
-        jest.clearAllMocks();
-        mockIsPredictEnabled = false;
+        expect(modalCall?.[1]?.confirmAction?.label).toBe(expectedLabel);
       });
     });
   });

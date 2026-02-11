@@ -1,133 +1,55 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
-import { useSelector, useDispatch } from 'react-redux';
-import SeasonStatus from './SeasonStatus';
+import { render, fireEvent } from '@testing-library/react-native';
+import { useSelector } from 'react-redux';
+import SeasonStatusSummary from './SeasonStatus';
+import {
+  selectSeasonStatusLoading,
+  selectBalanceTotal,
+  selectSeasonEndDate,
+  selectSeasonName,
+  selectSeasonStatusError,
+  selectSeasonStartDate,
+} from '../../../../../reducers/rewards/selectors';
+import { formatNumber, formatTimeRemaining } from '../../utils/formatUtils';
 
 // Mock react-redux
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
-  useDispatch: jest.fn(),
 }));
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
-const mockUseDispatch = useDispatch as jest.MockedFunction<typeof useDispatch>;
 
-// Mock individual selectors
+// Mock selectors
 jest.mock('../../../../../reducers/rewards/selectors', () => ({
   selectSeasonStatusLoading: jest.fn(),
-  selectSeasonTiers: jest.fn(),
   selectBalanceTotal: jest.fn(),
   selectSeasonEndDate: jest.fn(),
-  selectSeasonStartDate: jest.fn(),
-  selectNextTierPointsNeeded: jest.fn(),
-  selectCurrentTier: jest.fn(),
-  selectNextTier: jest.fn(),
+  selectSeasonName: jest.fn(),
   selectSeasonStatusError: jest.fn(),
+  selectSeasonStartDate: jest.fn(),
 }));
 
-// Import the mocked selectors
-import {
-  selectSeasonStatusLoading,
-  selectSeasonTiers,
-  selectBalanceTotal,
-  selectSeasonEndDate,
-  selectSeasonStartDate,
-  selectNextTierPointsNeeded,
-  selectCurrentTier,
-  selectSeasonStatusError,
-  selectNextTier,
-} from '../../../../../reducers/rewards/selectors';
-
-// Mock useSeasonStatus hook
-jest.mock('../../hooks/useSeasonStatus', () => ({
-  useSeasonStatus: jest.fn(),
-}));
-
-import { useSeasonStatus } from '../../hooks/useSeasonStatus';
-
-// Mock fallback tier image
-jest.mock(
-  '../../../../../images/rewards/tiers/rewards-s1-tier-1.png',
-  () => 'fallback-tier-image',
-);
-
-const mockSelectSeasonStatusLoading =
-  selectSeasonStatusLoading as jest.MockedFunction<
-    typeof selectSeasonStatusLoading
-  >;
-const mockSelectSeasonTiers = selectSeasonTiers as jest.MockedFunction<
-  typeof selectSeasonTiers
->;
-const mockSelectBalanceTotal = selectBalanceTotal as jest.MockedFunction<
-  typeof selectBalanceTotal
->;
-const mockSelectSeasonEndDate = selectSeasonEndDate as jest.MockedFunction<
-  typeof selectSeasonEndDate
->;
-const mockSelectSeasonStartDate = selectSeasonStartDate as jest.MockedFunction<
-  typeof selectSeasonStartDate
->;
-const mockSelectNextTierPointsNeeded =
-  selectNextTierPointsNeeded as jest.MockedFunction<
-    typeof selectNextTierPointsNeeded
-  >;
-const mockSelectCurrentTier = selectCurrentTier as jest.MockedFunction<
-  typeof selectCurrentTier
->;
-const mockSelectNextTier = selectNextTier as jest.MockedFunction<
-  typeof selectNextTier
->;
-const mockSelectSeasonStatusError =
-  selectSeasonStatusError as jest.MockedFunction<
-    typeof selectSeasonStatusError
-  >;
-const mockUseSeasonStatus = useSeasonStatus as jest.MockedFunction<
-  typeof useSeasonStatus
->;
-
-// Mock useTailwind hook
-jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => {
-    const mockTw = jest.fn(() => ({}));
-    // Add the style method to the mock function
-    Object.assign(mockTw, {
-      style: jest.fn((styles) => {
-        if (Array.isArray(styles)) {
-          return styles.reduce((acc, style) => ({ ...acc, ...style }), {});
-        }
-        return styles || {};
-      }),
-    });
-    return mockTw;
-  },
-}));
-
-// Mock format utilities
+// Mock formatUtils
 jest.mock('../../utils/formatUtils', () => ({
-  formatNumber: jest.fn((value) => value?.toLocaleString() || '0'),
-  formatTimeRemaining: jest.fn(() => '15d 10h'),
+  formatNumber: jest.fn((value: number | null) =>
+    value === null || value === undefined ? '0' : value.toLocaleString(),
+  ),
+  formatTimeRemaining: jest.fn((endDate: Date) => {
+    const now = new Date('2024-06-15T12:00:00.000Z');
+    const diff = endDate.getTime() - now.getTime();
+    if (diff <= 0) return null;
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    return `${days}d ${hours}h ${minutes}m`;
+  }),
 }));
-
-import { formatNumber, formatTimeRemaining } from '../../utils/formatUtils';
-const mockFormatNumber = formatNumber as jest.MockedFunction<
-  typeof formatNumber
->;
-const mockFormatTimeRemaining = formatTimeRemaining as jest.MockedFunction<
-  typeof formatTimeRemaining
->;
-
-// Import types
-import { SeasonTierDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
 
 // Mock i18n
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
     const translations: Record<string, string> = {
-      'rewards.level': 'Level',
-      'rewards.season_ends': 'Season ends',
-      'rewards.points': 'Points',
-      'rewards.point': 'Point',
-      'rewards.to_level_up': 'to level up',
+      'rewards.season_status.points_earned': 'Points earned',
       'rewards.season_status_error.error_fetching_title':
         "Season balance couldn't be loaded",
       'rewards.season_status_error.error_fetching_description':
@@ -136,830 +58,708 @@ jest.mock('../../../../../../locales/i18n', () => ({
     };
     return translations[key] || key;
   }),
-  default: {
-    locale: 'en',
-  },
 }));
 
-// Mock theme
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      accent01: { normal: '#0052FF' },
-      background: { section: '#F2F4F6' },
-    },
+// Mock useSeasonStatus hook
+const mockFetchSeasonStatus = jest.fn();
+jest.mock('../../hooks/useSeasonStatus', () => ({
+  useSeasonStatus: () => ({
+    fetchSeasonStatus: mockFetchSeasonStatus,
   }),
 }));
 
-// Mock ProgressBar
-jest.mock('react-native-progress/Bar', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-  return ReactActual.forwardRef((props: { testID?: string }, ref: unknown) =>
-    ReactActual.createElement(View, {
-      testID: props.testID || 'progress-bar',
-      ref,
-      ...props,
-    }),
-  );
-});
-
-// Mock SVG component
-jest.mock('../../../../../images/rewards/metamask-rewards-points.svg', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-  return ReactActual.forwardRef(
-    (props: Record<string, unknown>, ref: unknown) =>
-      ReactActual.createElement(View, {
-        testID: 'metamask-rewards-points-svg',
-        ref,
-        ...props,
-      }),
-  );
-});
-
-// Mock Skeleton
-jest.mock('../../../../../component-library/components/Skeleton', () => ({
-  Skeleton: ({ testID, ...props }: { testID?: string }) => {
-    const ReactActual = jest.requireActual('react');
-    const { View } = jest.requireActual('react-native');
-    return ReactActual.createElement(View, {
-      testID: testID || 'skeleton',
-      ...props,
-    });
-  },
-}));
-
-// Mock RewardsErrorBanner component
-jest.mock('../RewardsErrorBanner', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: ReactActual.forwardRef(
-      (
-        {
-          title,
-          description,
-          onConfirm,
-          confirmButtonLabel,
-          testID,
-          ...props
-        }: {
-          title?: string;
-          description?: string;
-          onConfirm?: () => void;
-          confirmButtonLabel?: string;
-          testID?: string;
-        },
-        ref: unknown,
-      ) =>
-        ReactActual.createElement(
-          View,
-          {
-            testID: testID || 'rewards-error-banner',
-            ref,
-            ...props,
-          },
-          [
-            ReactActual.createElement(Text, { key: 'title' }, title),
-            ReactActual.createElement(
-              Text,
-              { key: 'description' },
-              description,
-            ),
-            onConfirm &&
-              ReactActual.createElement(
-                TouchableOpacity,
-                { key: 'confirm', onPress: onConfirm },
-                ReactActual.createElement(
-                  Text,
-                  {},
-                  confirmButtonLabel || 'Confirm',
-                ),
-              ),
-          ],
-        ),
-    ),
-  };
-});
-
-// Mock setSeasonStatusError action
-jest.mock('../../../../../actions/rewards', () => ({
-  setSeasonStatusError: jest.fn((payload) => ({
-    type: 'rewards/setSeasonStatusError',
-    payload,
+// Mock useTheme
+jest.mock('../../../../../util/theme', () => ({
+  useTheme: jest.fn(() => ({
+    colors: {
+      background: {
+        alternative: '#f5f5f5',
+        default: '#ffffff',
+        section: '#f9f9f9',
+      },
+      text: {
+        primary: '#000000',
+        alternative: '#666666',
+      },
+    },
   })),
 }));
 
-// Mock lodash capitalize but preserve the rest of lodash
-jest.mock('lodash', () => {
-  const actual = jest.requireActual('lodash');
+// Mock Tailwind
+jest.mock('@metamask/design-system-twrnc-preset', () => ({
+  useTailwind: () => {
+    const mockTw = jest.fn(() => ({}));
+    Object.assign(mockTw, {
+      style: jest.fn((styles) => {
+        if (typeof styles === 'object') {
+          return styles;
+        }
+        if (Array.isArray(styles)) {
+          return styles.reduce(
+            (acc, style) => ({ ...acc, ...style }),
+            {} as Record<string, unknown>,
+          );
+        }
+        return {};
+      }),
+    });
+    return mockTw;
+  },
+}));
+
+// Mock design system components
+jest.mock('@metamask/design-system-react-native', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View, Text: RNText } = jest.requireActual('react-native');
+
+  const Box = ({
+    children,
+    testID,
+    style,
+    ...props
+  }: {
+    children?: React.ReactNode;
+    testID?: string;
+    style?: Record<string, unknown>;
+    [key: string]: unknown;
+  }) => ReactActual.createElement(View, { testID, style, ...props }, children);
+
+  const TextComponent = ({
+    children,
+    testID,
+    ...props
+  }: {
+    children?: React.ReactNode;
+    testID?: string;
+    [key: string]: unknown;
+  }) => ReactActual.createElement(RNText, { testID, ...props }, children);
+
   return {
-    ...actual,
-    capitalize: jest.fn((str) => str?.charAt(0).toUpperCase() + str?.slice(1)),
+    Box,
+    Text: TextComponent,
+    TextVariant: {
+      HeadingMd: 'HeadingMd',
+      BodyMd: 'BodyMd',
+      BodySm: 'BodySm',
+    },
+    FontWeight: {
+      Bold: 'bold',
+      Medium: 'medium',
+    },
+    BoxFlexDirection: {
+      Row: 'row',
+      Column: 'column',
+    },
+    BoxAlignItems: {
+      Center: 'center',
+      FlexEnd: 'flex-end',
+    },
+    BoxJustifyContent: {
+      SpaceBetween: 'space-between',
+    },
   };
 });
 
-// Mock RewardsThemeImageComponent
-jest.mock('../ThemeImageComponent', () => {
+// Mock SVG image
+jest.mock('../../../../../images/rewards/metamask-rewards-points.svg', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return function MockSvg(props: Record<string, unknown>) {
+    return ReactActual.createElement(View, {
+      testID: 'metamask-rewards-points-image',
+      ...props,
+    });
+  };
+});
+
+// Mock Skeleton component
+jest.mock('../../../../../component-library/components/Skeleton', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
   return {
-    __esModule: true,
-    default: ReactActual.forwardRef(
-      (
-        props: {
-          themeImage?: { lightModeUrl?: string; darkModeUrl?: string };
-          style?: unknown;
-          testID?: string;
-        },
-        ref: unknown,
-      ) =>
-        ReactActual.createElement(View, {
-          testID: props.testID || 'season-tier-image',
-          'data-light-mode-url': props.themeImage?.lightModeUrl,
-          'data-dark-mode-url': props.themeImage?.darkModeUrl,
-          style: props.style,
-          ref,
-        }),
-    ),
+    Skeleton: ({ height, width }: { height: number; width: string }) =>
+      ReactActual.createElement(View, {
+        testID: 'skeleton-loader',
+        style: { height, width },
+      }),
   };
 });
 
-// Mock RewardsImageModal
-jest.mock('../RewardsImageModal', () => {
+// Mock RewardsErrorBanner
+jest.mock('../RewardsErrorBanner', () => {
   const ReactActual = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: ReactActual.forwardRef(
-      (
-        {
-          visible,
-          onClose,
-          themeImage,
-          fallbackImage,
-          testID,
-          ...props
-        }: {
-          visible?: boolean;
-          onClose?: () => void;
-          themeImage?: { lightModeUrl?: string; darkModeUrl?: string };
-          fallbackImage?: unknown;
-          testID?: string;
-        },
-        ref: unknown,
-      ) =>
-        ReactActual.createElement(View, {
-          testID: testID || 'rewards-image-modal',
-          'data-visible': visible,
-          'data-on-close': onClose,
-          'data-theme-image': themeImage,
-          'data-fallback-image': fallbackImage,
-          ref,
-          ...props,
-        }),
-    ),
-  };
+  const { View, Text: RNText, Pressable } = jest.requireActual('react-native');
+  const RewardsErrorBanner = ({
+    title,
+    description,
+    onConfirm,
+    confirmButtonLabel,
+  }: {
+    title: string;
+    description: string;
+    onConfirm?: () => void;
+    confirmButtonLabel?: string;
+  }) =>
+    ReactActual.createElement(
+      View,
+      { testID: 'rewards-error-banner' },
+      ReactActual.createElement(RNText, { testID: 'error-title' }, title),
+      ReactActual.createElement(
+        RNText,
+        { testID: 'error-description' },
+        description,
+      ),
+      onConfirm &&
+        ReactActual.createElement(
+          Pressable,
+          { onPress: onConfirm, testID: 'error-retry-button' },
+          ReactActual.createElement(
+            RNText,
+            null,
+            confirmButtonLabel || 'Confirm',
+          ),
+        ),
+    );
+  return RewardsErrorBanner;
 });
 
-describe('SeasonStatus', () => {
-  const mockDispatch = jest.fn();
-
-  // Default mock values
-  const defaultMockValues = {
-    seasonStatusLoading: false,
-    seasonStatusError: null,
-    seasonStartDate: new Date('2024-01-01T00:00:00Z'),
-    seasonEndDate: new Date('2024-12-31T23:59:59Z'),
-    balanceTotal: 1500,
-    currentTier: {
-      id: 'bronze',
-      name: 'bronze',
-      pointsNeeded: 0,
-      image: {
-        lightModeUrl: 'lightModeUrl',
-        darkModeUrl: 'darkModeUrl',
-      },
-      levelNumber: 'Level 1',
-      rewards: [],
-    },
-    nextTier: {
-      id: 'silver',
-      name: 'silver',
-      pointsNeeded: 2000,
-      image: {
-        lightModeUrl: 'lightModeUrl',
-        darkModeUrl: 'darkModeUrl',
-      },
-      levelNumber: 'Level 2',
-      rewards: [],
-    },
-    nextTierPointsNeeded: 500,
-    seasonTiers: [
-      {
-        id: 'bronze',
-        name: 'bronze',
-        pointsNeeded: 0,
-        image: {
-          lightModeUrl: 'lightModeUrl',
-          darkModeUrl: 'darkModeUrl',
-        },
-        levelNumber: 'Level 1',
-        rewards: [],
-      },
-      {
-        id: 'silver',
-        name: 'silver',
-        pointsNeeded: 2000,
-        image: {
-          lightModeUrl: 'lightModeUrl',
-          darkModeUrl: 'darkModeUrl',
-        },
-        levelNumber: 'Level 2',
-        rewards: [],
-      },
-      {
-        id: 'gold',
-        name: 'gold',
-        pointsNeeded: 5000,
-        image: {
-          lightModeUrl: 'lightModeUrl',
-          darkModeUrl: 'darkModeUrl',
-        },
-        levelNumber: 'Level 3',
-        rewards: [],
-      },
-    ],
-  };
+describe('SeasonStatusSummary', () => {
+  const mockFormatNumber = formatNumber as jest.MockedFunction<
+    typeof formatNumber
+  >;
+  const mockFormatTimeRemaining = formatTimeRemaining as jest.MockedFunction<
+    typeof formatTimeRemaining
+  >;
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockFetchSeasonStatus.mockClear();
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date('2024-06-15T12:00:00.000Z'));
 
-    // Reset format utilities to default behavior
-    mockFormatNumber.mockImplementation(
-      (value) => value?.toLocaleString() || '0',
-    );
-    mockFormatTimeRemaining.mockImplementation(() => '15d 10h');
+    // Default mock implementation
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectSeasonStatusLoading) return false;
+      if (selector === selectSeasonStatusError) return false;
+      if (selector === selectSeasonStartDate) return '2024-01-01';
+      if (selector === selectSeasonEndDate) return '2024-12-31';
+      if (selector === selectSeasonName) return 'Season 1';
+      if (selector === selectBalanceTotal) return 1500;
+      return undefined;
+    });
 
-    // Setup default mock returns
-    mockUseDispatch.mockReturnValue(mockDispatch);
-    mockUseSeasonStatus.mockImplementation(() => ({
-      fetchSeasonStatus: jest.fn(),
-    }));
-    mockSelectSeasonStatusLoading.mockReturnValue(
-      defaultMockValues.seasonStatusLoading,
+    // Reset format mocks
+    mockFormatNumber.mockImplementation((value: number | null) =>
+      value === null || value === undefined ? '0' : value.toLocaleString(),
     );
-    mockSelectSeasonStatusError.mockReturnValue(
-      defaultMockValues.seasonStatusError,
-    );
-    mockSelectSeasonStartDate.mockReturnValue(
-      defaultMockValues.seasonStartDate,
-    );
-    mockSelectSeasonEndDate.mockReturnValue(defaultMockValues.seasonEndDate);
-    mockSelectBalanceTotal.mockReturnValue(defaultMockValues.balanceTotal);
-    mockSelectCurrentTier.mockReturnValue(defaultMockValues.currentTier);
-    mockSelectNextTier.mockReturnValue(defaultMockValues.nextTier);
-    mockSelectNextTierPointsNeeded.mockReturnValue(
-      defaultMockValues.nextTierPointsNeeded,
-    );
-    mockSelectSeasonTiers.mockReturnValue(defaultMockValues.seasonTiers);
-
-    // Setup useSelector to call the appropriate selector function
-    mockUseSelector.mockImplementation(
-      (selector: (state: unknown) => unknown) => selector({} as unknown),
-    );
+    mockFormatTimeRemaining.mockImplementation(() => '10d 5h 30m');
   });
 
-  describe('Loading State', () => {
-    it('should render skeleton when seasonStatusLoading is true', () => {
-      mockSelectSeasonStatusLoading.mockReturnValue(true);
+  afterEach(() => {
+    jest.useRealTimers();
+    jest.resetAllMocks();
+  });
 
-      const { getByTestId, queryByText } = render(<SeasonStatus />);
+  describe('useSelector calls', () => {
+    it('calls selectSeasonStatusLoading selector', () => {
+      render(<SeasonStatusSummary />);
 
-      expect(getByTestId('skeleton')).toBeTruthy();
-      expect(queryByText('Level')).toBeNull();
+      expect(mockUseSelector).toHaveBeenCalledWith(selectSeasonStatusLoading);
+    });
+
+    it('calls selectSeasonStatusError selector', () => {
+      render(<SeasonStatusSummary />);
+
+      expect(mockUseSelector).toHaveBeenCalledWith(selectSeasonStatusError);
+    });
+
+    it('calls selectSeasonStartDate selector', () => {
+      render(<SeasonStatusSummary />);
+
+      expect(mockUseSelector).toHaveBeenCalledWith(selectSeasonStartDate);
+    });
+
+    it('calls selectSeasonEndDate selector', () => {
+      render(<SeasonStatusSummary />);
+
+      expect(mockUseSelector).toHaveBeenCalledWith(selectSeasonEndDate);
+    });
+
+    it('calls selectSeasonName selector', () => {
+      render(<SeasonStatusSummary />);
+
+      expect(mockUseSelector).toHaveBeenCalledWith(selectSeasonName);
+    });
+
+    it('calls selectBalanceTotal selector', () => {
+      render(<SeasonStatusSummary />);
+
+      expect(mockUseSelector).toHaveBeenCalledWith(selectBalanceTotal);
     });
   });
 
-  describe('Basic Rendering', () => {
-    it('should render all main components when data is available', () => {
-      const { getByText, getByTestId } = render(<SeasonStatus />);
-
-      expect(getByText('Level 1')).toBeTruthy();
-      expect(getByText('Bronze')).toBeTruthy();
-      expect(getByText('Season ends')).toBeTruthy();
-      expect(getByText('15d 10h')).toBeTruthy();
-      expect(getByText('1,500')).toBeTruthy();
-      expect(getByText('points')).toBeTruthy();
-      expect(getByText('500 to level up')).toBeTruthy();
-      expect(getByTestId('season-tier-image')).toBeTruthy();
-      expect(getByTestId('metamask-rewards-points-svg')).toBeTruthy();
-    });
-
-    it('should capitalize tier names correctly', () => {
-      mockSelectCurrentTier.mockReturnValue({
-        id: 'gold',
-        name: 'gold',
-        pointsNeeded: 5000,
-        image: {
-          lightModeUrl: 'lightModeUrl',
-          darkModeUrl: 'darkModeUrl',
-        },
-        levelNumber: 'Level 3',
-        rewards: [],
+  describe('loading state', () => {
+    it('renders skeleton loader when loading', () => {
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectSeasonStatusLoading) return true;
+        return undefined;
       });
 
-      const { getByText } = render(<SeasonStatus />);
+      const { getByTestId } = render(<SeasonStatusSummary />);
 
-      expect(getByText('Gold')).toBeTruthy();
+      expect(getByTestId('skeleton-loader')).toBeOnTheScreen();
     });
-  });
 
-  describe('Progress Calculation', () => {
-    it('should display progress bars when user has partial progress', () => {
-      // Given: user has 1500 points, needs 2000 for next tier (75% progress)
-      mockSelectBalanceTotal.mockReturnValue(1500);
-      mockSelectNextTier.mockReturnValue({
-        id: 'silver',
-        name: 'silver',
-        pointsNeeded: 2000,
-        image: {
-          lightModeUrl: 'lightModeUrl',
-          darkModeUrl: 'darkModeUrl',
-        },
-        levelNumber: 'Level 2',
-        rewards: [],
+    it('does not render points image when loading', () => {
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectSeasonStatusLoading) return true;
+        return undefined;
       });
 
-      // When: component renders
-      const { getAllByTestId } = render(<SeasonStatus />);
+      const { queryByTestId } = render(<SeasonStatusSummary />);
 
-      // Then: progress bars are displayed
-      const progressBars = getAllByTestId('progress-bar');
-      expect(progressBars).toBeTruthy();
-      expect(progressBars.length).toBeGreaterThan(0);
+      expect(queryByTestId('metamask-rewards-points-image')).toBeNull();
     });
 
-    it('should show points needed when not at max tier', () => {
-      // Given: user needs 500 more points for next tier
-      mockSelectNextTierPointsNeeded.mockReturnValue(500);
-
-      // When: component renders
-      const { getByText } = render(<SeasonStatus />);
-
-      // Then: points needed is displayed
-      expect(getByText('500 to level up')).toBeTruthy();
-    });
-
-    it('should hide points needed when at max tier', () => {
-      // Given: user is at max tier (no next tier)
-      mockSelectNextTier.mockReturnValue(null);
-      mockSelectNextTierPointsNeeded.mockReturnValue(null);
-
-      // When: component renders
-      const { queryByText } = render(<SeasonStatus />);
-
-      // Then: "to level up" text is not shown
-      expect(queryByText('to level up')).toBeNull();
-    });
-  });
-
-  describe('Time Remaining Formatting', () => {
-    it('should display time remaining in days and hours format', () => {
-      mockFormatTimeRemaining.mockReturnValue('15d 10h');
-
-      const { getByText } = render(<SeasonStatus />);
-
-      expect(getByText('15d 10h')).toBeTruthy();
-    });
-
-    it('should display only minutes when hours is 0 but minutes > 0', () => {
-      mockFormatTimeRemaining.mockReturnValue('45m');
-
-      const { getByText } = render(<SeasonStatus />);
-
-      expect(getByText('45m')).toBeTruthy();
-    });
-
-    it('should not display time remaining when formatTimeRemaining returns empty string', () => {
-      mockFormatTimeRemaining.mockReturnValue('');
-
-      const { queryByText } = render(<SeasonStatus />);
-
-      expect(queryByText('Season ends')).toBeNull();
-    });
-
-    it('should not display time remaining when seasonEndDate is null', () => {
-      mockSelectSeasonEndDate.mockReturnValue(null);
-
-      const { queryByText } = render(<SeasonStatus />);
-
-      expect(queryByText('Season ends')).toBeNull();
-    });
-
-    it('should call formatTimeRemaining with correct date when seasonEndDate is available', () => {
-      const endDate = new Date('2024-12-31T23:59:59Z');
-      mockSelectSeasonEndDate.mockReturnValue(endDate);
-
-      render(<SeasonStatus />);
-
-      expect(mockFormatTimeRemaining).toHaveBeenCalledWith(endDate);
-    });
-  });
-
-  describe('Points Formatting and Pluralization', () => {
-    it('should display formatted points with proper pluralization for multiple points', () => {
-      mockSelectBalanceTotal.mockReturnValue(1500);
-      mockFormatNumber.mockReturnValue('1,500');
-
-      const { getByText } = render(<SeasonStatus />);
-
-      expect(getByText('1,500')).toBeTruthy();
-      expect(getByText('points')).toBeTruthy();
-    });
-
-    it('should display singular "point" for single point', () => {
-      mockSelectBalanceTotal.mockReturnValue(1);
-      mockFormatNumber.mockReturnValue('1');
-
-      const { getByText } = render(<SeasonStatus />);
-
-      expect(getByText('1')).toBeTruthy();
-      expect(getByText('point')).toBeTruthy();
-    });
-
-    it('should display "0 points" when balance is null', () => {
-      mockSelectBalanceTotal.mockReturnValue(null);
-      mockFormatNumber.mockReturnValue('0');
-
-      const { getByText } = render(<SeasonStatus />);
-
-      expect(getByText('0')).toBeTruthy();
-      expect(getByText('points')).toBeTruthy();
-    });
-
-    it('should display "0 points" when balance is undefined', () => {
-      mockSelectBalanceTotal.mockReturnValue(null);
-      mockFormatNumber.mockReturnValue('0');
-
-      const { getByText } = render(<SeasonStatus />);
-
-      expect(getByText('0')).toBeTruthy();
-      expect(getByText('points')).toBeTruthy();
-    });
-
-    it('should call formatNumber with correct balance value', () => {
-      mockSelectBalanceTotal.mockReturnValue(1500);
-
-      render(<SeasonStatus />);
-
-      expect(mockFormatNumber).toHaveBeenCalledWith(1500);
-    });
-  });
-
-  describe('Next Tier Points Display', () => {
-    it('should display next tier points needed when available', () => {
-      mockSelectNextTierPointsNeeded.mockReturnValue(500);
-      mockFormatNumber.mockReturnValue('500');
-
-      const { getByText } = render(<SeasonStatus />);
-
-      expect(getByText('500 to level up')).toBeTruthy();
-    });
-
-    it('should not display next tier points when not available', () => {
-      mockSelectNextTierPointsNeeded.mockReturnValue(null);
-
-      const { queryByText } = render(<SeasonStatus />);
-
-      expect(queryByText('to level up')).toBeNull();
-    });
-
-    it('should not display next tier points when zero', () => {
-      mockSelectNextTierPointsNeeded.mockReturnValue(0);
-
-      const { queryByText } = render(<SeasonStatus />);
-
-      expect(queryByText('to level up')).toBeNull();
-    });
-  });
-
-  describe('Component Lifecycle', () => {
-    it('should render without crashing', () => {
-      expect(() => render(<SeasonStatus />)).not.toThrow();
-    });
-
-    it('should cleanup properly when unmounted', () => {
-      const { unmount } = render(<SeasonStatus />);
-
-      expect(() => unmount()).not.toThrow();
-    });
-
-    it('should call useSeasonStatus with onlyForExplicitFetch: true', () => {
-      render(<SeasonStatus />);
-
-      expect(mockUseSeasonStatus).toHaveBeenCalledWith({
-        onlyForExplicitFetch: true,
+    it('does not render season name when loading', () => {
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectSeasonStatusLoading) return true;
+        if (selector === selectSeasonName) return 'Season 1';
+        return undefined;
       });
+
+      const { queryByText } = render(<SeasonStatusSummary />);
+
+      expect(queryByText('Season 1')).toBeNull();
     });
   });
 
-  describe('RewardsThemeImageComponent Integration', () => {
-    it('should render RewardsThemeImageComponent with correct testID when tier has image', () => {
-      const { getByTestId } = render(<SeasonStatus />);
-
-      expect(getByTestId('season-tier-image')).toBeTruthy();
-    });
-
-    it('should pass correct themeImage prop to RewardsThemeImageComponent', () => {
-      const { getByTestId } = render(<SeasonStatus />);
-
-      const tierImage = getByTestId('season-tier-image');
-      expect(tierImage.props['data-light-mode-url']).toBe('lightModeUrl');
-      expect(tierImage.props['data-dark-mode-url']).toBe('darkModeUrl');
-    });
-
-    it('should pass correct style prop to RewardsThemeImageComponent', () => {
-      const { getByTestId } = render(<SeasonStatus />);
-
-      const tierImage = getByTestId('season-tier-image');
-      expect(tierImage.props.style).toBeDefined();
-    });
-
-    it('should render fallback Image when tier has no image', () => {
-      // Given: tier without image
-      mockSelectCurrentTier.mockReturnValue({
-        id: 'bronze',
-        name: 'bronze',
-        pointsNeeded: 0,
-        image: undefined,
-        levelNumber: 'Level 1',
-        rewards: [],
-      } as unknown as SeasonTierDto);
-
-      const { queryByTestId } = render(<SeasonStatus />);
-
-      // RewardsThemeImageComponent should not be rendered
-      expect(queryByTestId('season-tier-image')).toBeNull();
-    });
-
-    it('should render RewardsThemeImageComponent with updated image when tier changes', () => {
-      // Given: initial tier with image
-      const { getByTestId, rerender } = render(<SeasonStatus />);
-      const initialTierImage = getByTestId('season-tier-image');
-      expect(initialTierImage.props['data-light-mode-url']).toBe(
-        'lightModeUrl',
-      );
-
-      // When: tier changes to different image URLs
-      mockSelectCurrentTier.mockReturnValue({
-        id: 'silver',
-        name: 'silver',
-        pointsNeeded: 2000,
-        image: {
-          lightModeUrl: 'newLightModeUrl',
-          darkModeUrl: 'newDarkModeUrl',
-        },
-        levelNumber: 'Level 2',
-        rewards: [],
+  describe('error state', () => {
+    it('renders error banner when error exists and no season start date', () => {
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectSeasonStatusLoading) return false;
+        if (selector === selectSeasonStatusError) return true;
+        if (selector === selectSeasonStartDate) return null;
+        return undefined;
       });
-      rerender(<SeasonStatus />);
 
-      // Then: new image URLs are used
-      const updatedTierImage = getByTestId('season-tier-image');
-      expect(updatedTierImage.props['data-light-mode-url']).toBe(
-        'newLightModeUrl',
-      );
-      expect(updatedTierImage.props['data-dark-mode-url']).toBe(
-        'newDarkModeUrl',
-      );
-    });
-  });
+      const { getByTestId } = render(<SeasonStatusSummary />);
 
-  describe('Memoized Values', () => {
-    it('should update displayed points when balance changes', () => {
-      // Given: initial balance of 1500
-      mockFormatNumber.mockReturnValue('1,500');
-      const { getByText, rerender } = render(<SeasonStatus />);
-      expect(getByText('1,500')).toBeTruthy();
-      expect(getByText('points')).toBeTruthy();
-
-      // When: balance changes to 1000
-      mockSelectBalanceTotal.mockReturnValue(1000);
-      mockFormatNumber.mockReturnValue('1,000');
-      rerender(<SeasonStatus />);
-
-      // Then: new balance is displayed
-      expect(getByText('1,000')).toBeTruthy();
-      expect(getByText('points')).toBeTruthy();
+      expect(getByTestId('rewards-error-banner')).toBeOnTheScreen();
     });
 
-    it('should update time remaining when seasonEndDate changes', () => {
-      // Given: initial time showing "15d 10h"
-      const { getByText, rerender } = render(<SeasonStatus />);
-      expect(getByText('15d 10h')).toBeTruthy();
-
-      // When: end date changes and formatTimeRemaining returns different value
-      mockSelectSeasonEndDate.mockReturnValue(new Date('2025-01-01T00:00:00Z'));
-      mockFormatTimeRemaining.mockReturnValue('30d 5h');
-      rerender(<SeasonStatus />);
-
-      // Then: new time remaining is displayed
-      expect(getByText('30d 5h')).toBeTruthy();
-    });
-
-    it('should update tier display when currentTier changes', () => {
-      // Given: initial tier showing "Level 1" and "Bronze"
-      const { getByText, rerender } = render(<SeasonStatus />);
-      expect(getByText('Level 1')).toBeTruthy();
-      expect(getByText('Bronze')).toBeTruthy();
-
-      // When: current tier changes to gold
-      mockSelectCurrentTier.mockReturnValue({
-        id: 'gold',
-        name: 'gold',
-        pointsNeeded: 5000,
-        image: {
-          lightModeUrl: 'lightModeUrl',
-          darkModeUrl: 'darkModeUrl',
-        },
-        levelNumber: 'Level 3',
-        rewards: [],
+    it('renders error title in error banner', () => {
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectSeasonStatusLoading) return false;
+        if (selector === selectSeasonStatusError) return true;
+        if (selector === selectSeasonStartDate) return null;
+        return undefined;
       });
-      rerender(<SeasonStatus />);
 
-      // Then: new tier level and name are displayed
-      expect(getByText('Level 3')).toBeTruthy();
-      expect(getByText('Gold')).toBeTruthy();
-    });
-  });
+      const { getByTestId } = render(<SeasonStatusSummary />);
 
-  describe('seasonStatusError states', () => {
-    it('should not show error banner when no seasonStatusError', () => {
-      // Given: no error state
-      mockSelectSeasonStatusError.mockReturnValue(null);
-
-      // When: component renders
-      const { queryByTestId, getByText } = render(<SeasonStatus />);
-
-      // Then: error banner should not be displayed, normal content should be shown
-      expect(queryByTestId('rewards-error-banner')).toBeNull();
-      expect(getByText('Bronze')).toBeTruthy();
+      expect(getByTestId('error-title')).toBeOnTheScreen();
     });
 
-    it('should show normal content when seasonStatusError exists but seasonStartDate is available', () => {
-      // Given: error state but season start date is available
-      mockSelectSeasonStatusError.mockReturnValue('Network error');
-      mockSelectSeasonStartDate.mockReturnValue(
-        new Date('2024-01-01T00:00:00Z'),
-      );
+    it('renders error description in error banner', () => {
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectSeasonStatusLoading) return false;
+        if (selector === selectSeasonStatusError) return true;
+        if (selector === selectSeasonStartDate) return null;
+        return undefined;
+      });
 
-      // When: component renders
-      const { getByText, queryByTestId } = render(<SeasonStatus />);
+      const { getByTestId } = render(<SeasonStatusSummary />);
 
-      // Then: normal content should be displayed, not error banner
-      expect(getByText('Bronze')).toBeTruthy();
+      expect(getByTestId('error-description')).toBeOnTheScreen();
+    });
+
+    it('renders retry button in error banner', () => {
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectSeasonStatusLoading) return false;
+        if (selector === selectSeasonStatusError) return true;
+        if (selector === selectSeasonStartDate) return null;
+        return undefined;
+      });
+
+      const { getByTestId } = render(<SeasonStatusSummary />);
+
+      expect(getByTestId('error-retry-button')).toBeOnTheScreen();
+    });
+
+    it('calls fetchSeasonStatus when retry button is pressed', () => {
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectSeasonStatusLoading) return false;
+        if (selector === selectSeasonStatusError) return true;
+        if (selector === selectSeasonStartDate) return null;
+        return undefined;
+      });
+
+      const { getByTestId } = render(<SeasonStatusSummary />);
+
+      const retryButton = getByTestId('error-retry-button');
+      fireEvent.press(retryButton);
+
+      expect(mockFetchSeasonStatus).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not render error banner when error exists but season start date is present', () => {
+      // When there's an error but we have cached data (seasonStartDate exists),
+      // component should render the normal state
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectSeasonStatusLoading) return false;
+        if (selector === selectSeasonStatusError) return true;
+        if (selector === selectSeasonStartDate) return '2024-01-01';
+        if (selector === selectSeasonEndDate) return '2024-12-31';
+        if (selector === selectSeasonName) return 'Season 1';
+        if (selector === selectBalanceTotal) return 1500;
+        return undefined;
+      });
+
+      const { getByTestId, queryByTestId } = render(<SeasonStatusSummary />);
+
+      // Normal state renders the points image instead of error banner
+      expect(getByTestId('metamask-rewards-points-image')).toBeOnTheScreen();
       expect(queryByTestId('rewards-error-banner')).toBeNull();
     });
 
-    it('should show error banner when seasonStatusError exists and no seasonStartDate', () => {
-      // Given: error state and no season start date
-      mockSelectSeasonStatusError.mockReturnValue('Network error');
-      mockSelectSeasonStartDate.mockReturnValue(null);
+    it('renders normal content when there is no error', () => {
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectSeasonStatusLoading) return false;
+        if (selector === selectSeasonStatusError) return false;
+        if (selector === selectSeasonStartDate) return '2024-01-01';
+        if (selector === selectSeasonEndDate) return '2024-12-31';
+        if (selector === selectSeasonName) return 'Season 1';
+        if (selector === selectBalanceTotal) return 1500;
+        return undefined;
+      });
 
-      // When: component renders
-      const { getByTestId, getByText } = render(<SeasonStatus />);
+      const { getByTestId } = render(<SeasonStatusSummary />);
 
-      // Then: error banner should be displayed
-      expect(getByTestId('rewards-error-banner')).toBeTruthy();
-      expect(getByText("Season balance couldn't be loaded")).toBeTruthy();
-      expect(getByText('Check your connection and try again.')).toBeTruthy();
-      expect(getByText('Retry')).toBeTruthy();
+      expect(getByTestId('metamask-rewards-points-image')).toBeOnTheScreen();
+    });
+
+    it('does not render points image when error state shows', () => {
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectSeasonStatusLoading) return false;
+        if (selector === selectSeasonStatusError) return true;
+        if (selector === selectSeasonStartDate) return null;
+        return undefined;
+      });
+
+      const { queryByTestId } = render(<SeasonStatusSummary />);
+
+      expect(queryByTestId('metamask-rewards-points-image')).toBeNull();
     });
   });
 
-  describe('Image Modal Functionality', () => {
-    it('should render RewardsImageModal component', () => {
-      // Given: component with tier image
-      const { getByTestId } = render(<SeasonStatus />);
+  describe('normal state - points display', () => {
+    it('renders points image', () => {
+      const { getByTestId } = render(<SeasonStatusSummary />);
 
-      // When: component is rendered
-      const modal = getByTestId('rewards-image-modal');
-
-      // Then: modal should be present
-      expect(modal).toBeTruthy();
+      expect(getByTestId('metamask-rewards-points-image')).toBeOnTheScreen();
     });
 
-    it('should render modal with visible set to false initially', () => {
-      // Given: component is rendered
-      const { getByTestId } = render(<SeasonStatus />);
+    it('displays formatted balance total', () => {
+      mockFormatNumber.mockReturnValue('1,500');
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectBalanceTotal) return 1500;
+        if (selector === selectSeasonStatusLoading) return false;
+        if (selector === selectSeasonStatusError) return false;
+        if (selector === selectSeasonStartDate) return '2024-01-01';
+        if (selector === selectSeasonEndDate) return '2024-12-31';
+        if (selector === selectSeasonName) return 'Season 1';
+        return undefined;
+      });
 
-      // When: modal is checked
-      const modal = getByTestId('rewards-image-modal');
+      const { getByText } = render(<SeasonStatusSummary />);
 
-      // Then: modal should not be visible
-      expect(modal.props['data-visible']).toBe(false);
+      expect(getByText('1,500')).toBeOnTheScreen();
     });
 
-    it('should pass correct themeImage prop to RewardsImageModal', () => {
-      // Given: component with current tier image
-      const { getByTestId } = render(<SeasonStatus />);
+    it('calls formatNumber with balance total', () => {
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectBalanceTotal) return 2500;
+        if (selector === selectSeasonStatusLoading) return false;
+        if (selector === selectSeasonStatusError) return false;
+        if (selector === selectSeasonStartDate) return '2024-01-01';
+        if (selector === selectSeasonEndDate) return '2024-12-31';
+        if (selector === selectSeasonName) return 'Season 1';
+        return undefined;
+      });
 
-      // When: modal is checked
-      const modal = getByTestId('rewards-image-modal');
+      render(<SeasonStatusSummary />);
 
-      // Then: themeImage should match currentTier image
-      expect(modal.props['data-theme-image']).toEqual(
-        defaultMockValues.currentTier.image,
+      expect(mockFormatNumber).toHaveBeenCalledWith(2500);
+    });
+
+    it('renders points section with balance total and season info', () => {
+      // The points section contains balance total and points label
+      // We verify the structure renders correctly
+      const { getByText } = render(<SeasonStatusSummary />);
+
+      // Balance total is visible
+      expect(getByText('1,500')).toBeOnTheScreen();
+
+      // Season info is visible
+      expect(getByText('Season 1')).toBeOnTheScreen();
+
+      // Time remaining is shown
+      expect(getByText('10d 5h 30m')).toBeOnTheScreen();
+    });
+  });
+
+  describe('normal state - season info display', () => {
+    it('displays season name when provided', () => {
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectSeasonName) return 'Summer Season';
+        if (selector === selectSeasonStatusLoading) return false;
+        if (selector === selectSeasonStatusError) return false;
+        if (selector === selectSeasonStartDate) return '2024-01-01';
+        if (selector === selectSeasonEndDate) return '2024-12-31';
+        if (selector === selectBalanceTotal) return 1500;
+        return undefined;
+      });
+
+      const { getByText } = render(<SeasonStatusSummary />);
+
+      expect(getByText('Summer Season')).toBeOnTheScreen();
+    });
+
+    it('does not display season name when null', () => {
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectSeasonName) return null;
+        if (selector === selectSeasonStatusLoading) return false;
+        if (selector === selectSeasonStatusError) return false;
+        if (selector === selectSeasonStartDate) return '2024-01-01';
+        if (selector === selectSeasonEndDate) return '2024-12-31';
+        if (selector === selectBalanceTotal) return 1500;
+        return undefined;
+      });
+
+      const { queryByText } = render(<SeasonStatusSummary />);
+
+      expect(queryByText('Summer Season')).toBeNull();
+    });
+
+    it('does not display season name text when value is empty string', () => {
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectSeasonName) return '';
+        if (selector === selectSeasonStatusLoading) return false;
+        if (selector === selectSeasonStatusError) return false;
+        if (selector === selectSeasonStartDate) return '2024-01-01';
+        if (selector === selectSeasonEndDate) return '2024-12-31';
+        if (selector === selectBalanceTotal) return 1500;
+        return undefined;
+      });
+
+      const { queryByText } = render(<SeasonStatusSummary />);
+
+      // Season 1 should not appear since it's set to empty string
+      expect(queryByText('Season 1')).toBeNull();
+    });
+
+    it('displays time remaining when season end date is provided', () => {
+      mockFormatTimeRemaining.mockReturnValue('15d 8h 22m');
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectSeasonEndDate) return '2024-07-01';
+        if (selector === selectSeasonStatusLoading) return false;
+        if (selector === selectSeasonStatusError) return false;
+        if (selector === selectSeasonStartDate) return '2024-01-01';
+        if (selector === selectSeasonName) return 'Season 1';
+        if (selector === selectBalanceTotal) return 1500;
+        return undefined;
+      });
+
+      const { getByText } = render(<SeasonStatusSummary />);
+
+      expect(getByText('15d 8h 22m')).toBeOnTheScreen();
+    });
+
+    it('does not display time remaining when season end date is null', () => {
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectSeasonEndDate) return null;
+        if (selector === selectSeasonStatusLoading) return false;
+        if (selector === selectSeasonStatusError) return false;
+        if (selector === selectSeasonStartDate) return '2024-01-01';
+        if (selector === selectSeasonName) return 'Season 1';
+        if (selector === selectBalanceTotal) return 1500;
+        return undefined;
+      });
+
+      const { queryByText } = render(<SeasonStatusSummary />);
+
+      expect(queryByText(/d.*h.*m/)).toBeNull();
+    });
+
+    it('does not display time remaining when formatTimeRemaining returns null', () => {
+      mockFormatTimeRemaining.mockReturnValue(null);
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectSeasonEndDate) return '2024-01-01';
+        if (selector === selectSeasonStatusLoading) return false;
+        if (selector === selectSeasonStatusError) return false;
+        if (selector === selectSeasonStartDate) return '2024-01-01';
+        if (selector === selectSeasonName) return 'Season 1';
+        if (selector === selectBalanceTotal) return 1500;
+        return undefined;
+      });
+
+      const { queryByText } = render(<SeasonStatusSummary />);
+
+      expect(queryByText(/d.*h.*m/)).toBeNull();
+    });
+  });
+
+  describe('edge cases', () => {
+    it('renders with zero balance', () => {
+      mockFormatNumber.mockReturnValue('0');
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectBalanceTotal) return 0;
+        if (selector === selectSeasonStatusLoading) return false;
+        if (selector === selectSeasonStatusError) return false;
+        if (selector === selectSeasonStartDate) return '2024-01-01';
+        if (selector === selectSeasonEndDate) return '2024-12-31';
+        if (selector === selectSeasonName) return 'Season 1';
+        return undefined;
+      });
+
+      const { getByText } = render(<SeasonStatusSummary />);
+
+      expect(getByText('0')).toBeOnTheScreen();
+    });
+
+    it('renders with null balance', () => {
+      mockFormatNumber.mockReturnValue('0');
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectBalanceTotal) return null;
+        if (selector === selectSeasonStatusLoading) return false;
+        if (selector === selectSeasonStatusError) return false;
+        if (selector === selectSeasonStartDate) return '2024-01-01';
+        if (selector === selectSeasonEndDate) return '2024-12-31';
+        if (selector === selectSeasonName) return 'Season 1';
+        return undefined;
+      });
+
+      const { getByText } = render(<SeasonStatusSummary />);
+
+      expect(mockFormatNumber).toHaveBeenCalledWith(null);
+      expect(getByText('0')).toBeOnTheScreen();
+    });
+
+    it('renders with large balance', () => {
+      mockFormatNumber.mockReturnValue('1,000,000');
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectBalanceTotal) return 1000000;
+        if (selector === selectSeasonStatusLoading) return false;
+        if (selector === selectSeasonStatusError) return false;
+        if (selector === selectSeasonStartDate) return '2024-01-01';
+        if (selector === selectSeasonEndDate) return '2024-12-31';
+        if (selector === selectSeasonName) return 'Season 1';
+        return undefined;
+      });
+
+      const { getByText } = render(<SeasonStatusSummary />);
+
+      expect(getByText('1,000,000')).toBeOnTheScreen();
+    });
+
+    it('renders correctly when only loading state changes', () => {
+      // First render with loading
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectSeasonStatusLoading) return true;
+        return undefined;
+      });
+
+      const { rerender, getByTestId, queryByTestId } = render(
+        <SeasonStatusSummary />,
+      );
+
+      expect(getByTestId('skeleton-loader')).toBeOnTheScreen();
+
+      // Then update to not loading
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectSeasonStatusLoading) return false;
+        if (selector === selectSeasonStatusError) return false;
+        if (selector === selectSeasonStartDate) return '2024-01-01';
+        if (selector === selectSeasonEndDate) return '2024-12-31';
+        if (selector === selectSeasonName) return 'Season 1';
+        if (selector === selectBalanceTotal) return 1500;
+        return undefined;
+      });
+      mockFormatNumber.mockReturnValue('1,500');
+      mockFormatTimeRemaining.mockReturnValue('10d 5h 30m');
+
+      rerender(<SeasonStatusSummary />);
+
+      expect(queryByTestId('skeleton-loader')).toBeNull();
+      expect(getByTestId('metamask-rewards-points-image')).toBeOnTheScreen();
+    });
+  });
+
+  describe('timeRemaining calculation', () => {
+    it('calls formatTimeRemaining with Date object from season end date string', () => {
+      const endDateString = '2024-12-31T23:59:59.000Z';
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectSeasonEndDate) return endDateString;
+        if (selector === selectSeasonStatusLoading) return false;
+        if (selector === selectSeasonStatusError) return false;
+        if (selector === selectSeasonStartDate) return '2024-01-01';
+        if (selector === selectSeasonName) return 'Season 1';
+        if (selector === selectBalanceTotal) return 1500;
+        return undefined;
+      });
+
+      render(<SeasonStatusSummary />);
+
+      expect(mockFormatTimeRemaining).toHaveBeenCalledWith(
+        new Date(endDateString),
       );
     });
 
-    it('should pass fallback image to RewardsImageModal', () => {
-      // Given: component is rendered
-      const { getByTestId } = render(<SeasonStatus />);
-
-      // When: modal is checked
-      const modal = getByTestId('rewards-image-modal');
-
-      // Then: fallback image should be passed
-      expect(modal.props['data-fallback-image']).toBeDefined();
-    });
-
-    it('should wrap tier image in TouchableOpacity', () => {
-      // Given: component is rendered
-      const { UNSAFE_getByType } = render(<SeasonStatus />);
-
-      // When: looking for TouchableOpacity
-      const touchables =
-        UNSAFE_getByType as unknown as typeof UNSAFE_getByType &
-          ((type: unknown) => { props: { onPress: () => void } });
-      const { TouchableOpacity } = jest.requireActual('react-native');
-
-      // Then: TouchableOpacity should be present
-      expect(() => touchables(TouchableOpacity)).not.toThrow();
-    });
-
-    it('should render tier image with TouchableOpacity when tier has image', () => {
-      // Given: tier with image
-      const { getByTestId } = render(<SeasonStatus />);
-
-      // When: component is rendered
-      const tierImage = getByTestId('season-tier-image');
-
-      // Then: tier image should be rendered
-      expect(tierImage).toBeTruthy();
-      expect(tierImage.props['data-light-mode-url']).toBe('lightModeUrl');
-    });
-
-    it('should update modal themeImage when tier changes', () => {
-      // Given: initial tier with image
-      const { getByTestId, rerender } = render(<SeasonStatus />);
-      let modal = getByTestId('rewards-image-modal');
-      expect(modal.props['data-theme-image']).toEqual(
-        defaultMockValues.currentTier.image,
-      );
-
-      // When: tier changes to different image
-      mockSelectCurrentTier.mockReturnValue({
-        id: 'gold',
-        name: 'gold',
-        pointsNeeded: 5000,
-        image: {
-          lightModeUrl: 'newLightUrl',
-          darkModeUrl: 'newDarkUrl',
-        },
-        levelNumber: 'Level 3',
-        rewards: [],
+    it('does not call formatTimeRemaining when season end date is null', () => {
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectSeasonEndDate) return null;
+        if (selector === selectSeasonStatusLoading) return false;
+        if (selector === selectSeasonStatusError) return false;
+        if (selector === selectSeasonStartDate) return '2024-01-01';
+        if (selector === selectSeasonName) return 'Season 1';
+        if (selector === selectBalanceTotal) return 1500;
+        return undefined;
       });
-      rerender(<SeasonStatus />);
 
-      // Then: modal should receive updated themeImage
-      modal = getByTestId('rewards-image-modal');
-      expect(modal.props['data-theme-image']).toEqual({
-        lightModeUrl: 'newLightUrl',
-        darkModeUrl: 'newDarkUrl',
+      render(<SeasonStatusSummary />);
+
+      expect(mockFormatTimeRemaining).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('component rendering without crashing', () => {
+    it('renders without crashing with minimal props', () => {
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectSeasonStatusLoading) return false;
+        if (selector === selectSeasonStatusError) return false;
+        if (selector === selectSeasonStartDate) return '2024-01-01';
+        if (selector === selectSeasonEndDate) return null;
+        if (selector === selectSeasonName) return null;
+        if (selector === selectBalanceTotal) return null;
+        return undefined;
       });
+
+      expect(() => render(<SeasonStatusSummary />)).not.toThrow();
     });
 
-    it('should pass undefined themeImage to modal when tier has no image', () => {
-      // Given: tier without image
-      mockSelectCurrentTier.mockReturnValue({
-        id: 'bronze',
-        name: 'bronze',
-        pointsNeeded: 0,
-        image: undefined,
-        levelNumber: 'Level 1',
-        rewards: [],
-      } as unknown as SeasonTierDto);
+    it('renders without crashing with all values present', () => {
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectSeasonStatusLoading) return false;
+        if (selector === selectSeasonStatusError) return false;
+        if (selector === selectSeasonStartDate) return '2024-01-01';
+        if (selector === selectSeasonEndDate) return '2024-12-31';
+        if (selector === selectSeasonName) return 'Season 1';
+        if (selector === selectBalanceTotal) return 5000;
+        return undefined;
+      });
 
-      // When: component is rendered
-      const { getByTestId } = render(<SeasonStatus />);
-
-      // Then: modal should receive undefined themeImage
-      const modal = getByTestId('rewards-image-modal');
-      expect(modal.props['data-theme-image']).toBeUndefined();
+      expect(() => render(<SeasonStatusSummary />)).not.toThrow();
     });
   });
 });
