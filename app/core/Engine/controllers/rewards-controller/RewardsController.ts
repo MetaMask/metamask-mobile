@@ -301,9 +301,14 @@ export class RewardsController extends BaseController<
     // Find current tier
     const currentTier = sortedTiers.find((tier) => tier.id === currentTierId);
     if (!currentTier) {
-      throw new Error(
-        `Current tier ${currentTierId} not found in season tiers`,
+      Logger.log(
+        `Current tier ${currentTierId} not found in season tiers, skip calculating tier status`,
       );
+      return {
+        currentTier: null,
+        nextTier: null,
+        nextTierPointsNeeded: null,
+      };
     }
 
     // Find next tier (first tier with more points needed than current tier)
@@ -338,6 +343,7 @@ export class RewardsController extends BaseController<
       endDate: season.endDate.getTime(),
       tiers: season.tiers,
       activityTypes: season.activityTypes,
+      waysToEarn: season.waysToEarn,
       shouldInstallNewVersion: season.shouldInstallNewVersion,
     };
   }
@@ -357,6 +363,7 @@ export class RewardsController extends BaseController<
         endDate: new Date(seasonMetadata.endDate),
         tiers: seasonMetadata.tiers,
         activityTypes: seasonMetadata.activityTypes,
+        waysToEarn: seasonMetadata.waysToEarn,
         shouldInstallNewVersion: seasonMetadata.shouldInstallNewVersion,
       },
       balance: {
@@ -1899,6 +1906,7 @@ export class RewardsController extends BaseController<
             endDate: seasonMetadata.endDate,
             tiers: seasonMetadata.tiers,
             activityTypes: seasonMetadata.activityTypes,
+            waysToEarn: seasonMetadata.waysToEarn,
             shouldInstallNewVersion:
               seasonMetadata.shouldInstallNewVersion?.mobile,
           });
