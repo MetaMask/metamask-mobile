@@ -1,4 +1,5 @@
 import { renderHook } from '@testing-library/react-native';
+import { type OrderFormState } from '@metamask/perps-controller';
 import Engine from '../../../../core/Engine';
 import { usePerpsSavePendingConfig } from './usePerpsSavePendingConfig';
 import { usePerpsPayWithToken } from './useIsPerpsBalanceSelected';
@@ -24,14 +25,16 @@ const mockUsePerpsPayWithToken = usePerpsPayWithToken as jest.MockedFunction<
 >;
 
 describe('usePerpsSavePendingConfig', () => {
-  const defaultOrderForm = {
+  const defaultOrderForm: OrderFormState = {
     asset: 'BTC',
+    direction: 'long',
     amount: '100',
     leverage: 10,
+    balancePercent: 10,
     takeProfitPrice: '',
     stopLossPrice: '',
     limitPrice: '',
-    type: 'market' as const,
+    type: 'market',
   };
 
   beforeEach(() => {
@@ -87,7 +90,7 @@ describe('usePerpsSavePendingConfig', () => {
 
   it('does not call savePendingTradeConfiguration when orderForm has no asset', () => {
     const { unmount } = renderHook(() =>
-      usePerpsSavePendingConfig({ ...defaultOrderForm, asset: undefined }),
+      usePerpsSavePendingConfig({ ...defaultOrderForm, asset: '' }),
     );
 
     unmount();

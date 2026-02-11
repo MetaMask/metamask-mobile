@@ -1,5 +1,6 @@
 import { act, renderHook } from '@testing-library/react-native';
 import Engine from '../../../../core/Engine';
+import type { AssetType } from '../../../Views/confirmations/types/token';
 import { usePerpsPaymentToken } from './usePerpsPaymentToken';
 import { useTransactionPayToken } from '../../../Views/confirmations/hooks/pay/useTransactionPayToken';
 
@@ -63,7 +64,7 @@ describe('usePerpsPaymentToken', () => {
       address: '0xusdc',
       chainId: '0xa4b1',
       symbol: 'USDC',
-    };
+    } as AssetType;
 
     act(() => {
       result.current.onPaymentTokenChange(token);
