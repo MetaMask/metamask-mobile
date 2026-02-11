@@ -8,7 +8,7 @@
 - [ ] Task: Conductor - User Manual Verification 'Phase 1' (Protocol in workflow.md)
 
 ## Phase 2: Integration & Styling
-- [ ] Task: Update `ChecklistItem` for Timeline Layout
+- [x] Task: Update `ChecklistItem` for Timeline Layout 26c460d
     - [ ] Modify the `Minimal` variant in `ChecklistItem.tsx` to align with the new timeline structure (remove borders, increase icon size, transparent bg).
     - [ ] Ensure the step icon aligns perfectly with the vertical progress line.
 - [ ] Task: Update `OnboardingBanner`
