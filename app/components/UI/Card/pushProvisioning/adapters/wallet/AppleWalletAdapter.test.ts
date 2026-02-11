@@ -427,14 +427,13 @@ describe('AppleWalletAdapter', () => {
       expect(result.recommendedAction).toBe('contact_support');
     });
 
-    it('handles requireActivation as add_card for Apple (no Yellow Path)', async () => {
+    it('handles requireActivation as resume for Apple (pending activation)', async () => {
       mockGetCardStatusBySuffix.mockResolvedValue('requireActivation');
 
       const result = await adapter.getEligibility('1234');
 
-      // Apple Wallet doesn't have Yellow Path, so requireActivation means add_card
-      expect(result.canAddCard).toBe(true);
-      expect(result.recommendedAction).toBe('add_card');
+      expect(result.canAddCard).toBe(false);
+      expect(result.recommendedAction).toBe('resume');
     });
 
     it('returns eligibility without checking card status when no lastFourDigits', async () => {
