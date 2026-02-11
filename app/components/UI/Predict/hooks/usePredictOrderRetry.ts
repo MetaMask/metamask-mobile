@@ -51,17 +51,16 @@ export function usePredictOrderRetry({
         preview: retryPreview,
       });
 
-      if (outcome.status === 'success') {
+      if (
+        outcome.status === 'success' ||
+        outcome.status === 'deposit_required'
+      ) {
+        retrySheetRef.current?.onCloseBottomSheet();
         resetOrderNotFilled();
         return;
       }
 
-      if (outcome.status === 'deposit_required') {
-        return;
-      }
-
-      setRetrySheetVariant('failed');
-      retrySheetRef.current?.onOpenBottomSheet();
+      throw new Error('Order not successful');
     } catch {
       setRetrySheetVariant('failed');
       retrySheetRef.current?.onOpenBottomSheet();
@@ -107,6 +106,5 @@ export function usePredictOrderRetry({
     retrySheetVariant,
     isRetrying,
     handleRetryWithBestPrice,
-    resetOrderNotFilled,
   };
 }

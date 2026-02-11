@@ -334,16 +334,4 @@ describe('usePredictOrderRetry', () => {
       expect(calledPreview.slippage).toBe(0.99);
     });
   });
-
-  describe('resetOrderNotFilled passthrough', () => {
-    it('returns resetOrderNotFilled from params', () => {
-      const mockReset = jest.fn();
-      const params = createDefaultParams({ resetOrderNotFilled: mockReset });
-      const { result } = renderHook(() => usePredictOrderRetry(params));
-
-      result.current.resetOrderNotFilled();
-
-      expect(mockReset).toHaveBeenCalledTimes(1);
-    });
-  });
 });

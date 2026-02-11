@@ -153,7 +153,6 @@ const PredictBuyPreview = () => {
     retrySheetVariant,
     isRetrying,
     handleRetryWithBestPrice,
-    resetOrderNotFilled: handleRetryDismiss,
   } = usePredictOrderRetry({
     preview,
     placeOrder,
@@ -583,7 +582,7 @@ const PredictBuyPreview = () => {
         sharePrice={preview?.sharePrice ?? outcomeToken?.price ?? 0}
         side={Side.BUY}
         onRetry={handleRetryWithBestPrice}
-        onDismiss={handleRetryDismiss}
+        onDismiss={resetOrderNotFilled}
         isRetrying={isRetrying}
       />
     </SafeAreaView>
