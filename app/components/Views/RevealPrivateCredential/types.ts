@@ -1,11 +1,14 @@
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { RouteProp, ParamListBase } from '@react-navigation/native';
+import { createStyles } from './styles';
 
 export enum RevealSrpStage {
   Introduction = 'introduction',
   Quiz = 'quiz',
   ActionViewScreen = 'actionViewScreen',
 }
+
+export type RevealPrivateCredentialStyleSheet = ReturnType<typeof createStyles>;
 
 export interface RootStackParamList extends ParamListBase {
   RevealPrivateCredential: {
@@ -21,7 +24,6 @@ export type RevealPrivateCredentialRouteProp = RouteProp<
 >;
 
 export interface IRevealPrivateCredentialProps {
-  // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   navigation: any;
   cancel: () => void;
@@ -32,8 +34,7 @@ export interface IRevealPrivateCredentialProps {
 export interface SRPQuizIntroductionProps {
   onGetStarted: () => void;
   onLearnMore: () => void;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  styles: any;
+  styles: RevealPrivateCredentialStyleSheet;
 }
 
 export interface SRPSecurityQuizProps {
@@ -43,22 +44,19 @@ export interface SRPSecurityQuizProps {
   onAnswerClick: (buttonIndex: number) => void;
   onContinueClick: () => void;
   onLearnMore: () => void;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  styles: any;
+  styles: RevealPrivateCredentialStyleSheet;
 }
 
 export interface SeedPhraseDisplayProps {
   words: string[];
   clipboardEnabled: boolean;
   onCopyToClipboard: () => void;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  styles: any;
+  styles: RevealPrivateCredentialStyleSheet;
 }
 
 export interface SeedPhraseConcealerProps {
   onReveal: () => void;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  styles: any;
+  styles: RevealPrivateCredentialStyleSheet;
 }
 
 export interface PasswordEntryProps {
@@ -67,6 +65,15 @@ export interface PasswordEntryProps {
   warningMessage: string;
   showPassword: boolean;
   onToggleShowPassword: () => void;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  styles: any;
+  styles: RevealPrivateCredentialStyleSheet;
+}
+
+export interface SRPTabViewProps {
+  clipboardPrivateCredential: string;
+  showSeedPhrase: boolean;
+  clipboardEnabled: boolean;
+  onRevealSeedPhrase: () => void;
+  onCopyToClipboard: () => void;
+  onTabChange: (event: { i: number }) => void;
+  styles: RevealPrivateCredentialStyleSheet;
 }

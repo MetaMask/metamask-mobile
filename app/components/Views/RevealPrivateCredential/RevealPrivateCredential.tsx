@@ -71,7 +71,6 @@ const RevealPrivateCredential = ({
   const selectedAddress =
     route?.params?.selectedAccount?.address || checkSummedAddress;
 
-  // Custom hooks
   const {
     unlocked,
     password,

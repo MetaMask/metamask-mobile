@@ -216,14 +216,6 @@ const renderWithProviders = (ui: React.ReactNode) =>
     </Provider>,
   );
 
-/**
- * Helper function to complete the security quiz flow.
- * The component now starts with an Introduction stage followed by a Quiz stage
- * before showing the ActionView (password entry or unlocked SRP).
- *
- * Note: This helper only completes the quiz. It does NOT wait for password input
- * because the component may already be unlocked if biometrics succeeded.
- */
 const completeSecurityQuiz = async (
   getByTestId: ReturnType<typeof render>['getByTestId'],
 ) => {
@@ -277,11 +269,6 @@ const completeSecurityQuiz = async (
   });
 };
 
-/**
- * Helper to complete quiz and wait for password entry.
- * Use this for tests that need to interact with password input.
- * Make sure biometrics are mocked to fail before calling this.
- */
 const completeSecurityQuizAndWaitForPasswordEntry = async (
   getByTestId: ReturnType<typeof render>['getByTestId'],
 ) => {

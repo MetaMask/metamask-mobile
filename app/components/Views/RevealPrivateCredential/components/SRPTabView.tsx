@@ -9,21 +9,10 @@ import { useTheme } from '../../../../util/theme';
 import logo from '../../../../images/branding/fox.png';
 import SeedPhraseDisplay from './SeedPhraseDisplay';
 import SeedPhraseConcealer from './SeedPhraseConcealer';
+import { SRPTabViewProps } from '../types';
 
-// TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const CustomTabView = ScrollView as any;
-
-interface SRPTabViewProps {
-  clipboardPrivateCredential: string;
-  showSeedPhrase: boolean;
-  clipboardEnabled: boolean;
-  onRevealSeedPhrase: () => void;
-  onCopyToClipboard: () => void;
-  onTabChange: (event: { i: number }) => void;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  styles: any;
-}
 
 const SRPTabView = ({
   clipboardPrivateCredential,
@@ -43,7 +32,6 @@ const SRPTabView = ({
     <View style={styles.tabContainer}>
       <ScrollableTabView
         renderTabBar={() => renderTabBar()}
-        // TODO: Replace "any" with type
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         onChangeTab={(event: any) => onTabChange(event)}
         style={styles.tabContentContainer}
