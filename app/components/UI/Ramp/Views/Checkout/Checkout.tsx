@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { WebView } from '@metamask/react-native-webview';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../../../../util/theme';
-import { getDepositNavbarOptions } from '../../../Navbar';
+import { getRampsNavbarOptions } from '../../../Navbar';
 import {
   createNavigationDetails,
   useParams,
@@ -60,7 +60,7 @@ const Checkout = () => {
 
   useEffect(() => {
     navigation.setOptions(
-      getDepositNavbarOptions(
+      getRampsNavbarOptions(
         navigation,
         {
           title: providerName,

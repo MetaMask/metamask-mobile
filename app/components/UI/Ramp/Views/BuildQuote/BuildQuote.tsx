@@ -4,6 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { CaipChainId } from '@metamask/utils';
 
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
+import { callbackBaseUrl } from '../../Aggregator/sdk';
 import Keypad, { type KeypadChangeData } from '../../../../Base/Keypad';
 import PaymentMethodPill from '../../components/PaymentMethodPill';
 import QuickAmounts from '../../components/QuickAmounts';
@@ -42,19 +43,6 @@ export const createBuildQuoteNavDetails =
   createNavigationDetails<BuildQuoteParams>(Routes.RAMP.AMOUNT_INPUT);
 
 const DEFAULT_AMOUNT = 100;
-
-// Callback URL for aggregator providers to redirect back to the app
-const getCallbackUrl = (): string => {
-  const metamaskEnvironment = process.env.METAMASK_ENVIRONMENT;
-  const isProduction =
-    metamaskEnvironment === 'production' ||
-    metamaskEnvironment === 'beta' ||
-    metamaskEnvironment === 'rc';
-
-  return isProduction
-    ? 'https://on-ramp-content.api.cx.metamask.io/regions/fake-callback'
-    : 'https://on-ramp-content.uat-api.cx.metamask.io/regions/fake-callback';
-};
 
 function BuildQuote() {
   const navigation = useNavigation();
@@ -145,7 +133,7 @@ function BuildQuote() {
     startQuotePolling({
       walletAddress,
       amount: debouncedPollingAmount,
-      redirectUrl: getCallbackUrl(),
+      redirectUrl: callbackBaseUrl,
     });
 
     return () => {

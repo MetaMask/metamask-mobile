@@ -32,7 +32,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
 }));
 
 jest.mock('../../../Navbar', () => ({
-  getDepositNavbarOptions: jest.fn(
+  getRampsNavbarOptions: jest.fn(
     (_navigation: unknown, _options: unknown) => ({}),
   ),
 }));

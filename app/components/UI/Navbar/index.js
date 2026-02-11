@@ -1724,6 +1724,37 @@ export function getDepositNavbarOptions(
   });
 }
 
+/**
+ * Function that returns navigation options for unified ramps flow screens
+ *
+ * @param {import('@react-navigation/native').NavigationProp<any>} navigation - Navigation object required to navigate between screens
+ * @param {{title: string}} options - Options object
+ * @param {import('../../../util/theme').Theme} theme - Theme object containing colors
+ * @param {(() => void) | undefined} onClose - Optional custom close function
+ * @returns {import('@react-navigation/native').NativeStackNavigationOptions} - Navigation options object
+ */
+export function getRampsNavbarOptions(
+  navigation,
+  { title },
+  theme,
+  onClose = undefined,
+) {
+  const startButtonIconProps = {
+    iconName: IconName.ArrowLeft,
+    onPress: () => {
+      navigation.pop();
+      onClose?.();
+    },
+    testID: 'ramps-back-navbar-button',
+  };
+
+  return getHeaderCompactStandardNavbarOptions({
+    title,
+    startButtonIconProps,
+    includesTopInset: true,
+  });
+}
+
 export const getEditAccountNameNavBarOptions = (goBack, themeColors) => {
   const innerStyles = StyleSheet.create({
     headerStyle: {
