@@ -50,21 +50,6 @@ interface Balance {
   atomicBalance: BigNumber;
 }
 
-const hasTokenIdentityChanged = (
-  previousToken:
-    | {
-        address?: string;
-        chainId?: Hex | CaipChainId;
-      }
-    | undefined,
-  token: {
-    address?: string;
-    chainId?: Hex | CaipChainId;
-  },
-) =>
-  previousToken?.address !== token.address ||
-  previousToken?.chainId !== token.chainId;
-
 /**
  * A hook that fetches and returns the latest balance for a given token.
  * Latest balance is important because token balances can be cached and may not be updated immediately.
@@ -91,7 +76,13 @@ export const useLatestBalance = (token: {
   const nonEvmTokens = useNonEvmTokensWithBalance();
 
   const chainId = token.chainId;
-  const tokenIdentityChanged = hasTokenIdentityChanged(previousToken, token);
+  const previousTokenAddress = previousToken?.address;
+  const previousTokenChainId = previousToken?.chainId;
+  const tokenAddress = token.address;
+  const tokenChainId = token.chainId;
+  const tokenIdentityChanged =
+    previousTokenAddress !== tokenAddress ||
+    previousTokenChainId !== tokenChainId;
 
   const setBalanceIfChanged = useCallback((nextBalance: Balance) => {
     setBalance((currentBalance) => {
@@ -199,10 +190,13 @@ export const useLatestBalance = (token: {
 
   useEffect(() => {
     // Reset balance state when token identity changes to prevent stale balance display.
-    if (tokenIdentityChanged) {
+    if (
+      previousTokenAddress !== tokenAddress ||
+      previousTokenChainId !== tokenChainId
+    ) {
       setBalance(undefined);
     }
-  }, [tokenIdentityChanged]);
+  }, [previousTokenAddress, previousTokenChainId, tokenAddress, tokenChainId]);
 
   useEffect(() => {
     // In case chainId is undefined, exit early to avoid
