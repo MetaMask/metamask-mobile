@@ -164,8 +164,6 @@ export function adaptOrderFromSDK(
     });
   }
 
-<<<<<<< HEAD:app/controllers/perps/utils/hyperLiquidAdapter.ts
-=======
   // Fallback: preserve parent-level TP/SL metadata when children are absent.
   if (!takeProfitPrice && rawOrderWithParentTpsl.takeProfitPrice) {
     takeProfitPrice = rawOrderWithParentTpsl.takeProfitPrice;
@@ -181,7 +179,6 @@ export function adaptOrderFromSDK(
   }
 
   // Build the order object
->>>>>>> 35fcf09fbb (feat(perps): use children logic for synthetic orders):app/components/UI/Perps/utils/hyperLiquidAdapter.ts
   const order: Order = {
     orderId,
     symbol,
