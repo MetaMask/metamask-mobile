@@ -33,6 +33,7 @@ import {
   type LineaTokenRewardDto,
   type DropEligibilityDto,
   type DropLeaderboardDto,
+  type CommitDropPointsResponseDto,
 } from './types';
 import type { RewardsControllerMessenger } from '../../messengers/rewards-controller-messenger';
 import {
@@ -613,6 +614,10 @@ export class RewardsController extends BaseController<
     this.messenger.registerActionHandler(
       'RewardsController:getDropLeaderboard',
       this.getDropLeaderboard.bind(this),
+    );
+    this.messenger.registerActionHandler(
+      'RewardsController:commitDropPoints',
+      this.commitDropPoints.bind(this),
     );
   }
 
@@ -3264,7 +3269,18 @@ export class RewardsController extends BaseController<
       writeCache: (key, payload) => {
         this.update((state: RewardsControllerState) => {
           state.dropEligibilities[key] = {
-            eligibility: payload,
+            eligibility: {
+              dropId: payload.dropId,
+              eligible: payload.eligible,
+              prerequisiteLogic: payload.prerequisiteLogic,
+              prerequisites: payload.prerequisites.map((prerequisite) => ({
+                satisfied: prerequisite.satisfied,
+                current: prerequisite.current,
+                required: prerequisite.required,
+              })),
+              dropStatus: payload.dropStatus,
+              canCommit: payload.canCommit,
+            },
             lastFetched: Date.now(),
           };
         });
@@ -3307,6 +3323,55 @@ export class RewardsController extends BaseController<
     } catch (error) {
       Logger.log(
         'RewardsController: Failed to get drop leaderboard:',
+        error instanceof Error ? error.message : String(error),
+      );
+      throw error;
+    }
+  }
+
+  /**
+   * Commit points to a drop.
+   * @param dropId - The drop ID to commit points to
+   * @param points - The number of points to commit
+   * @param subscriptionId - The subscription ID for authentication
+   * @param accountId - Optional account ID (required for first commitment)
+   * @returns The commit response with commitment details and updated leaderboard position
+   */
+  async commitDropPoints(
+    dropId: string,
+    points: number,
+    subscriptionId: string,
+    accountId?: string,
+  ): Promise<CommitDropPointsResponseDto> {
+    const rewardsEnabled = this.isRewardsFeatureEnabled();
+    if (!rewardsEnabled) {
+      throw new Error('Rewards are not enabled');
+    }
+    if (!this.#isDropsEnabled()) {
+      throw new Error('Drops feature is not enabled');
+    }
+
+    try {
+      Logger.log('RewardsController: Committing points to drop via API call', {
+        dropId,
+        points,
+      });
+      const response = (await this.messenger.call(
+        'RewardsDataService:commitDropPoints',
+        { dropId, points, accountId },
+        subscriptionId,
+      )) as CommitDropPointsResponseDto;
+
+      Logger.log('RewardsController: Successfully committed points to drop', {
+        dropId,
+        pointsCommitted: response.pointsCommitted,
+        newRank: response.newRank,
+      });
+
+      return response;
+    } catch (error) {
+      Logger.log(
+        'RewardsController: Failed to commit points to drop:',
         error instanceof Error ? error.message : String(error),
       );
       throw error;

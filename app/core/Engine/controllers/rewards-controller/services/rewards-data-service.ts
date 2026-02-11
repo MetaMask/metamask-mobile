@@ -27,7 +27,8 @@ import type {
   SeasonDropDto,
   DropEligibilityDto,
   DropLeaderboardDto,
-  DropStatus,
+  CommitDropPointsDto,
+  CommitDropPointsResponseDto,
 } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
 import Logger from '../../../../../util/Logger';
@@ -81,27 +82,6 @@ const SERVICE_NAME = 'RewardsDataService';
 
 // Default timeout for all API requests (10 seconds)
 const DEFAULT_REQUEST_TIMEOUT_MS = 10000;
-
-/**
- * Maps backend drop status values (uppercase) to mobile format (lowercase).
- * Backend: UPCOMING, OPEN, CALCULATING, DISTRIBUTING, CLOSED
- * Mobile: upcoming, live, calculating, distributing, complete
- */
-const BACKEND_STATUS_MAP: Record<string, DropStatus> = {
-  UPCOMING: 'upcoming',
-  OPEN: 'live',
-  CALCULATING: 'calculating',
-  DISTRIBUTING: 'distributing',
-  CLOSED: 'complete',
-};
-
-/**
- * Normalizes drop status from backend format to mobile format.
- * Falls back to input if already in mobile format or unknown.
- */
-function normalizeDropStatus(status: string): DropStatus {
-  return BACKEND_STATUS_MAP[status] || (status as DropStatus);
-}
 
 // Geolocation URLs for different environments
 const GEOLOCATION_URLS = {
@@ -230,6 +210,11 @@ export interface RewardsDataServiceGetDropLeaderboardAction {
   handler: RewardsDataService['getDropLeaderboard'];
 }
 
+export interface RewardsDataServiceCommitDropPointsAction {
+  type: `${typeof SERVICE_NAME}:commitDropPoints`;
+  handler: RewardsDataService['commitDropPoints'];
+}
+
 export type RewardsDataServiceActions =
   | RewardsDataServiceLoginAction
   | RewardsDataServiceGetPointsEventsAction
@@ -254,7 +239,8 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceApplyReferralCodeAction
   | RewardsDataServiceGetDropsAction
   | RewardsDataServiceGetDropEligibilityAction
-  | RewardsDataServiceGetDropLeaderboardAction;
+  | RewardsDataServiceGetDropLeaderboardAction
+  | RewardsDataServiceCommitDropPointsAction;
 
 export type RewardsDataServiceMessenger = Messenger<
   typeof SERVICE_NAME,
@@ -392,6 +378,10 @@ export class RewardsDataService {
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getDropLeaderboard`,
       this.getDropLeaderboard.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:commitDropPoints`,
+      this.commitDropPoints.bind(this),
     );
   }
 
@@ -1201,10 +1191,7 @@ export class RewardsDataService {
 
     // Normalize drop status from backend format (OPEN, UPCOMING, etc.)
     // to mobile format (live, upcoming, etc.)
-    return {
-      ...data,
-      dropStatus: normalizeDropStatus(data.dropStatus),
-    } as DropEligibilityDto;
+    return data as DropEligibilityDto;
   }
 
   /**
@@ -1230,5 +1217,35 @@ export class RewardsDataService {
     }
 
     return (await response.json()) as DropLeaderboardDto;
+  }
+
+  /**
+   * Commit points to a drop.
+   * @param dto - The commit points request body containing dropId, points, and optional accountId.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @returns The commit response with commitment details and updated leaderboard position.
+   */
+  async commitDropPoints(
+    dto: CommitDropPointsDto,
+    subscriptionId: string,
+  ): Promise<CommitDropPointsResponseDto> {
+    const response = await this.makeRequest(
+      '/wr/drops/commit',
+      {
+        method: 'POST',
+        body: JSON.stringify(dto),
+      },
+      subscriptionId,
+    );
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      Logger.log('RewardsDataService: commitDropPoints errorData', errorData);
+      throw new Error(
+        errorData?.message || `Commit drop points failed: ${response.status}`,
+      );
+    }
+
+    return (await response.json()) as CommitDropPointsResponseDto;
   }
 }

@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import type { DropLeaderboardDto } from '../../../../core/Engine/controllers/rewards-controller/types';
+import { useInvalidateByRewardEvents } from './useInvalidateByRewardEvents';
 
 interface UseDropLeaderboardReturn {
   /** The leaderboard data including top 20 entries, totals, and user position */
@@ -68,6 +69,12 @@ export const useDropLeaderboard = (
   useEffect(() => {
     fetchLeaderboard();
   }, [fetchLeaderboard]);
+
+  // Invalidate leaderboard when balance is updated or account is linked
+  useInvalidateByRewardEvents(
+    ['RewardsController:balanceUpdated', 'RewardsController:accountLinked'],
+    fetchLeaderboard,
+  );
 
   return {
     leaderboard,

@@ -379,6 +379,70 @@ export interface DropLeaderboardDto {
   userPosition?: DropLeaderboardEntryDto;
 }
 
+/**
+ * Request DTO for committing points to a drop
+ */
+export interface CommitDropPointsDto {
+  /**
+   * The drop ID to commit points to
+   * @example '01974010-377f-7553-a365-0c33c8130980'
+   */
+  dropId: string;
+
+  /**
+   * The number of points to commit
+   * @example 500
+   */
+  points: number;
+
+  /**
+   * Account ID (required for the first commitment)
+   * @example '12345'
+   */
+  accountId?: string;
+}
+
+/**
+ * Response DTO for committing points to a drop
+ */
+export interface CommitDropPointsResponseDto {
+  /**
+   * The unique identifier of the commitment
+   * @example '01974010-377f-7553-a365-0c33c8130981'
+   */
+  commitmentId: string;
+
+  /**
+   * Points committed in this transaction
+   * @example 500
+   */
+  pointsCommitted: number;
+
+  /**
+   * Total points committed by the user to this drop
+   * @example 1500
+   */
+  totalPointsCommitted: number;
+
+  /**
+   * User's new rank on the leaderboard
+   * @example 5
+   */
+  newRank: number;
+
+  /**
+   * Total number of participants in the drop
+   * @example 1000
+   */
+  totalParticipants: number;
+
+  /**
+   * Remaining available points after commitment
+   * @example 2500
+   */
+  availablePointsRemaining: number;
+}
+
 export interface EstimateAssetDto {
   /**
    * Asset identifier in CAIP-19 format
@@ -1067,15 +1131,9 @@ export type DropsState = {
  */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type DropPrerequisiteStatusState = {
-  type: DropPrerequisiteType;
-  activityTypes: PointsEventEarnType[];
-  minCount: number;
-  chainId?: number;
-  title: string;
-  description: string;
-  iconName: string;
   satisfied: boolean;
   current: number;
+  required: number;
 };
 
 /**
@@ -1819,6 +1877,19 @@ export interface RewardsControllerGetDropLeaderboardAction {
 }
 
 /**
+ * Action for committing points to a drop
+ */
+export interface RewardsControllerCommitDropPointsAction {
+  type: 'RewardsController:commitDropPoints';
+  handler: (
+    dropId: string,
+    points: number,
+    subscriptionId: string,
+    accountId?: string,
+  ) => Promise<CommitDropPointsResponseDto>;
+}
+
+/**
  * Actions that can be performed by the RewardsController
  */
 export type RewardsControllerActions =
@@ -1852,7 +1923,8 @@ export type RewardsControllerActions =
   | RewardsControllerResetAllAction
   | RewardsControllerApplyReferralCodeAction
   | RewardsControllerGetDropEligibilityAction
-  | RewardsControllerGetDropLeaderboardAction;
+  | RewardsControllerGetDropLeaderboardAction
+  | RewardsControllerCommitDropPointsAction;
 
 /**
  * Input DTO for getting opt-in status of multiple addresses
