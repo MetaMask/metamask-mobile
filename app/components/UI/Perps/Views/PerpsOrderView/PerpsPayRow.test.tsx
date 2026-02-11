@@ -239,4 +239,44 @@ describe('PerpsPayRow', () => {
       chainId: '0x1',
     });
   });
+
+  it('does not call setPayToken when pay token already matches pending config', () => {
+    const setPayTokenMock = jest.fn();
+    const pendingToken = {
+      address: '0xSame',
+      chainId: '0x1',
+      description: 'Same USDC',
+    };
+    mockUsePerpsSelector.mockReturnValue({
+      selectedPaymentToken: pendingToken,
+    });
+    mockUsePerpsPayWithToken.mockReturnValue({
+      address: pendingToken.address,
+      chainId: pendingToken.chainId,
+      description: pendingToken.description,
+    });
+    mockUseTransactionPayToken.mockReturnValue({
+      payToken: {
+        address: pendingToken.address,
+        chainId: pendingToken.chainId,
+        symbol: 'USDC',
+      },
+      setPayToken: setPayTokenMock,
+    } as unknown as ReturnType<typeof useTransactionPayToken>);
+
+    renderWithProvider(<PerpsPayRow initialAsset="BTC" />);
+
+    expect(setPayTokenMock).not.toHaveBeenCalled();
+  });
+
+  it('calls setSelectedPaymentToken(null) when pending config has no selected token', () => {
+    mockUsePerpsSelector.mockReturnValue({});
+    mockUsePerpsPayWithToken.mockReturnValue(null);
+
+    renderWithProvider(<PerpsPayRow initialAsset="BTC" />);
+
+    expect(
+      Engine.context.PerpsController?.setSelectedPaymentToken,
+    ).toHaveBeenCalledWith(null);
+  });
 });
