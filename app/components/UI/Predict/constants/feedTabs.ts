@@ -9,6 +9,7 @@ export interface PredictTabConfig {
 
 export const PREDICT_BASE_TABS: readonly PredictTabConfig[] = [
   { key: 'trending', labelKey: 'predict.category.trending' },
+  { key: 'ending-soon', labelKey: 'predict.category.ending_soon' },
   { key: 'new', labelKey: 'predict.category.new' },
   { key: 'sports', labelKey: 'predict.category.sports' },
   { key: 'crypto', labelKey: 'predict.category.crypto' },

@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuites name="jest tests" tests="1" failures="0" errors="0" time="73.497">
-  <testsuite name="SmokePerps: Perps Position" errors="0" failures="0" skipped="0" timestamp="2025-08-27T15:32:31" time="73.387" tests="1">
-    <testcase classname="e2e/specs/perps/perps-position.spec.ts" name="SmokePerps: Perps Position should navigate to Market list and select first market" time="64.887">
-    </testcase>
-  </testsuite>
-</testsuites>

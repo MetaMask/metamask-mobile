@@ -34,7 +34,7 @@ describe('usePredictTabs', () => {
     it('returns base tabs when hot tab is disabled', () => {
       const { result } = renderHook(() => usePredictTabs());
 
-      expect(result.current.tabs).toHaveLength(5);
+      expect(result.current.tabs).toHaveLength(6);
       expect(result.current.tabs[0].key).toBe('trending');
     });
 
@@ -43,7 +43,7 @@ describe('usePredictTabs', () => {
 
       const { result } = renderHook(() => usePredictTabs());
 
-      expect(result.current.tabs).toHaveLength(6);
+      expect(result.current.tabs).toHaveLength(7);
       expect(result.current.tabs[0].key).toBe('hot');
       expect(result.current.tabs[1].key).toBe('trending');
     });
@@ -61,7 +61,7 @@ describe('usePredictTabs', () => {
 
       const { result } = renderHook(() => usePredictTabs());
 
-      expect(result.current.activeIndex).toBe(3);
+      expect(result.current.activeIndex).toBe(4);
     });
 
     it('defaults to trending for invalid requested tab', () => {
@@ -106,14 +106,14 @@ describe('usePredictTabs', () => {
 
       const { result, rerender } = renderHook(() => usePredictTabs());
 
-      expect(result.current.activeIndex).toBe(3);
-      expect(result.current.tabs[3].key).toBe('crypto');
+      expect(result.current.activeIndex).toBe(4);
+      expect(result.current.tabs[4].key).toBe('crypto');
 
       mockHotTabFlag.enabled = true;
       rerender({});
 
-      expect(result.current.tabs[4].key).toBe('crypto');
-      expect(result.current.activeIndex).toBe(4);
+      expect(result.current.tabs[5].key).toBe('crypto');
+      expect(result.current.activeIndex).toBe(5);
     });
 
     it('recalculates index even after programmatic sync with same value', () => {
@@ -122,17 +122,17 @@ describe('usePredictTabs', () => {
 
       const { result, rerender } = renderHook(() => usePredictTabs());
 
-      expect(result.current.activeIndex).toBe(3);
+      expect(result.current.activeIndex).toBe(4);
 
       act(() => {
-        result.current.setActiveIndex(3);
+        result.current.setActiveIndex(4);
       });
-      expect(result.current.activeIndex).toBe(3);
+      expect(result.current.activeIndex).toBe(4);
 
       mockHotTabFlag.enabled = true;
       rerender({});
 
-      expect(result.current.activeIndex).toBe(4);
+      expect(result.current.activeIndex).toBe(5);
     });
 
     it('does not recalculate index after user manually changes tab', () => {
@@ -141,7 +141,7 @@ describe('usePredictTabs', () => {
 
       const { result, rerender } = renderHook(() => usePredictTabs());
 
-      expect(result.current.activeIndex).toBe(3);
+      expect(result.current.activeIndex).toBe(4);
 
       act(() => {
         result.current.setActiveIndex(0);
@@ -212,7 +212,7 @@ describe('usePredictTabs', () => {
       mockRouteParams.tab = 'crypto';
       rerender({});
 
-      expect(result.current.activeIndex).toBe(3);
+      expect(result.current.activeIndex).toBe(4);
     });
 
     it('switches from manually selected tab to deeplink tab', () => {
@@ -221,14 +221,14 @@ describe('usePredictTabs', () => {
       const { result, rerender } = renderHook(() => usePredictTabs());
 
       act(() => {
-        result.current.setActiveIndex(4);
+        result.current.setActiveIndex(5);
       });
-      expect(result.current.activeIndex).toBe(4);
+      expect(result.current.activeIndex).toBe(5);
 
       mockRouteParams.tab = 'sports';
       rerender({});
 
-      expect(result.current.activeIndex).toBe(2);
+      expect(result.current.activeIndex).toBe(3);
     });
 
     it('does not change tab when route params stay the same', () => {
@@ -236,7 +236,7 @@ describe('usePredictTabs', () => {
 
       const { result, rerender } = renderHook(() => usePredictTabs());
 
-      expect(result.current.activeIndex).toBe(3);
+      expect(result.current.activeIndex).toBe(4);
 
       act(() => {
         result.current.setActiveIndex(0);
