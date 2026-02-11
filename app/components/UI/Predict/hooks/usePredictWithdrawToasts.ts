@@ -5,16 +5,19 @@ import { usePredictWithdraw } from './usePredictWithdraw';
 import { usePredictToasts } from './usePredictToasts';
 import { PredictWithdrawStatus } from '../types';
 import { useEffect } from 'react';
-import { usePredictBalance } from './usePredictBalance';
+import { useQueryClient } from '@tanstack/react-query';
+import { predictQueries } from '../queries';
 import { formatPrice } from '../utils/format';
 
 export const usePredictWithdrawToasts = () => {
-  const { loadBalance } = usePredictBalance();
+  const queryClient = useQueryClient();
   const { withdraw, withdrawTransaction } = usePredictWithdraw();
 
   const { showPendingToast } = usePredictToasts({
     onConfirmed: () => {
-      loadBalance({ isRefresh: true });
+      queryClient.invalidateQueries({
+        queryKey: predictQueries.balance.keys.all(),
+      });
     },
     transactionType: TransactionType.predictWithdraw,
     confirmedToastConfig: {

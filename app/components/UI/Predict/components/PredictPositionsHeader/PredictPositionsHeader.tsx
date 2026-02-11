@@ -16,6 +16,8 @@ import React, {
   useImperativeHandle,
   useMemo,
 } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { predictQueries } from '../../queries';
 import { TouchableOpacity } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
@@ -65,15 +67,12 @@ const PredictPositionsHeader = forwardRef<
     providerId: POLYMARKET_PROVIDER_ID,
     navigation,
   });
+  const queryClient = useQueryClient();
   const {
-    balance,
-    loadBalance,
+    data: balance = 0,
     isLoading: isBalanceLoading,
     error: balanceError,
-  } = usePredictBalance({
-    loadOnMount: true,
-    refreshOnFocus: true,
-  });
+  } = usePredictBalance();
   const evmAccount = getEvmAccountFromSelectedAccountGroup();
   const selectedAddress = evmAccount?.address ?? '0x0';
   const { isDepositPending } = usePredictDeposit();
@@ -92,15 +91,17 @@ const PredictPositionsHeader = forwardRef<
 
   // Notify parent of errors while keeping state isolated
   useEffect(() => {
-    const combinedError = balanceError || pnlError;
+    const combinedError = balanceError?.message ?? pnlError ?? null;
     onError?.(combinedError);
   }, [balanceError, pnlError, onError]);
 
   useEffect(() => {
     if (!isDepositPending) {
-      loadBalance({ isRefresh: true });
+      queryClient.invalidateQueries({
+        queryKey: predictQueries.balance.keys.all(),
+      });
     }
-  }, [isDepositPending, loadBalance]);
+  }, [isDepositPending, queryClient]);
 
   const handleBalanceTouch = () => {
     navigation.navigate(Routes.PREDICT.ROOT, {
@@ -115,7 +116,9 @@ const PredictPositionsHeader = forwardRef<
     refresh: async () => {
       await Promise.all([
         loadUnrealizedPnL({ isRefresh: true }),
-        loadBalance({ isRefresh: true }),
+        queryClient.invalidateQueries({
+          queryKey: predictQueries.balance.keys.all(),
+        }),
       ]);
     },
   }));

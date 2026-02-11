@@ -113,10 +113,8 @@ const PredictBuyPreview = () => {
     result,
   } = usePredictPlaceOrder();
 
-  const { balance, isLoading: isBalanceLoading } = usePredictBalance({
+  const { data: balance = 0, isLoading: isBalanceLoading } = usePredictBalance({
     providerId: outcome.providerId,
-    loadOnMount: true,
-    refreshOnFocus: true,
   });
 
   const { deposit } = usePredictDeposit({

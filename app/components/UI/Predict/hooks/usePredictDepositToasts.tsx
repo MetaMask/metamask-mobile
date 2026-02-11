@@ -3,7 +3,8 @@ import { strings } from '../../../../../locales/i18n';
 import Engine from '../../../../core/Engine';
 import { usePredictDeposit } from './usePredictDeposit';
 import { usePredictToasts } from './usePredictToasts';
-import { usePredictBalance } from './usePredictBalance';
+import { useQueryClient } from '@tanstack/react-query';
+import { predictQueries } from '../queries';
 import { POLYMARKET_PROVIDER_ID } from '../providers/polymarket/constants';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
@@ -19,7 +20,7 @@ interface UsePredictDepositToastsParams {
 export const usePredictDepositToasts = ({
   providerId = POLYMARKET_PROVIDER_ID,
 }: UsePredictDepositToastsParams = {}) => {
-  const { loadBalance } = usePredictBalance();
+  const queryClient = useQueryClient();
   const { deposit } = usePredictDeposit();
   const navigation = useNavigation();
 
@@ -35,7 +36,9 @@ export const usePredictDepositToasts = ({
 
   usePredictToasts({
     onConfirmed: () => {
-      loadBalance({ isRefresh: true });
+      queryClient.invalidateQueries({
+        queryKey: predictQueries.balance.keys.all(),
+      });
     },
     transactionType: TransactionType.predictDeposit,
     transactionBatchId:

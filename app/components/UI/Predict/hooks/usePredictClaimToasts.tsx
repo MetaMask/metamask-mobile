@@ -10,16 +10,16 @@ import { usePredictPositions } from './usePredictPositions';
 import { usePredictToasts } from './usePredictToasts';
 import Engine from '../../../../core/Engine';
 import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
-import { usePredictBalance } from './usePredictBalance';
+import { useQueryClient } from '@tanstack/react-query';
+import { predictQueries } from '../queries';
 
 export const usePredictClaimToasts = () => {
+  const queryClient = useQueryClient();
   const { claim } = usePredictClaim();
   const { loadPositions } = usePredictPositions({
     claimable: true,
     loadOnMount: true,
   });
-  const { loadBalance } = usePredictBalance({ loadOnMount: false });
-
   const evmAccount = getEvmAccountFromSelectedAccountGroup();
   const selectedAddress = evmAccount?.address ?? '0x0';
   const wonPositions = useSelector(
@@ -46,10 +46,10 @@ export const usePredictClaimToasts = () => {
     loadPositions({ isRefresh: true }).catch(() => {
       // Ignore errors when refreshing positions
     });
-    loadBalance({ isRefresh: true }).catch(() => {
-      // Ignore errors when refreshing balance
+    queryClient.invalidateQueries({
+      queryKey: predictQueries.balance.keys.all(),
     });
-  }, [loadBalance, loadPositions]);
+  }, [loadPositions, queryClient]);
 
   usePredictToasts({
     transactionType: TransactionType.predictClaim,

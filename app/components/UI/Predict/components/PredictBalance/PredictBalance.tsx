@@ -10,6 +10,9 @@ import { Spinner } from '@metamask/design-system-react-native/dist/components/te
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import images from 'images/image-icons';
 import React, { useCallback, useEffect } from 'react';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { useQueryClient } from '@tanstack/react-query';
+import { predictQueries } from '../../queries';
 import { strings } from '../../../../../../locales/i18n';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
@@ -28,7 +31,6 @@ import { usePredictBalance } from '../../hooks/usePredictBalance';
 import { usePredictDeposit } from '../../hooks/usePredictDeposit';
 import { formatPrice } from '../../utils/format';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { usePredictWithdraw } from '../../hooks/usePredictWithdraw';
 import { PredictEventValues } from '../../constants/eventNames';
@@ -44,10 +46,8 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({ onLayout }) => {
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
 
-  const { balance, isLoading, loadBalance } = usePredictBalance({
-    loadOnMount: true,
-    refreshOnFocus: true,
-  });
+  const queryClient = useQueryClient();
+  const { data: balance = 0, isLoading } = usePredictBalance();
   const { deposit, isDepositPending } = usePredictDeposit();
   const { withdraw } = usePredictWithdraw();
   const { executeGuardedAction } = usePredictActionGuard({
@@ -60,9 +60,11 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({ onLayout }) => {
 
   useEffect(() => {
     if (!isDepositPending) {
-      loadBalance({ isRefresh: true });
+      queryClient.invalidateQueries({
+        queryKey: predictQueries.balance.keys.all(),
+      });
     }
-  }, [isDepositPending, loadBalance]);
+  }, [isDepositPending, queryClient]);
 
   const handleAddFunds = useCallback(() => {
     executeGuardedAction(

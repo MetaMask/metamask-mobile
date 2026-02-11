@@ -56,7 +56,7 @@ export function usePredictPlaceOrder(
   const [error, setError] = useState<string>();
   const [result, setResult] = useState<Result | null>(null);
   const { toastRef } = useContext(ToastContext);
-  const { balance } = usePredictBalance({ loadOnMount: false });
+  const { data: balance = 0 } = usePredictBalance({ enabled: false });
   const { deposit } = usePredictDeposit();
 
   const showCashedOutToast = useCallback(
