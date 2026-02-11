@@ -1,7 +1,7 @@
 /**
  * Component view tests for PerpsMarketListView.
  * State-driven via Redux (initialStatePerps); no hook/selector mocks.
- * Covers scenarios: bug regression 7.64 (market list includes all categories including commodities).
+ * Covers bug regression 7.64: market list renders with default state and shows all categories when data includes them.
  * Run with: yarn jest -c jest.config.view.js PerpsMarketListView.view.test
  */
 import '../../../../../util/test/component-view/mocks';
@@ -11,28 +11,71 @@ import PerpsMarketListView from './PerpsMarketListView';
 import { renderPerpsView } from '../../../../../util/test/component-view/renderers/perps';
 import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
 import type { RootState } from '../../../../../reducers';
+import type { PerpsMarketData } from '../../controllers/types';
+import { PerpsMarketListViewSelectorsIDs } from '../../Perps.testIds';
 
-function renderView(overrides?: DeepPartial<RootState>) {
+/** Crypto market (no HIP-3): counted in marketCounts.crypto */
+const cryptoMarket: PerpsMarketData = {
+  symbol: 'BTC',
+  name: 'Bitcoin',
+  maxLeverage: '50x',
+  price: '$50,000',
+  change24h: '$0',
+  change24hPercent: '0%',
+  volume: '$1M',
+};
+
+/** Commodity market (HIP-3): counted in marketCounts.commodity so "Commodities" badge appears */
+const commodityMarket: PerpsMarketData = {
+  symbol: 'XAU',
+  name: 'Gold',
+  maxLeverage: '25x',
+  price: '$2,000',
+  change24h: '$0',
+  change24hPercent: '0%',
+  volume: '$500K',
+  marketType: 'commodity',
+  isHip3: true,
+};
+
+const marketDataWithCategories = [cryptoMarket, commodityMarket];
+
+function renderView(
+  options: {
+    overrides?: DeepPartial<RootState>;
+    streamOverrides?: { marketData?: PerpsMarketData[] };
+  } = {},
+) {
+  const { overrides, streamOverrides } = options;
   return renderPerpsView(
     PerpsMarketListView as unknown as React.ComponentType,
     'PerpsMarketListView',
-    overrides ? { overrides } : {},
+    { overrides, streamOverrides },
   );
 }
 
 describe('PerpsMarketListView', () => {
   describe('Bug regression: Perps tab 7.64 (3583) EXP', () => {
-    it('renders market list header and does not filter out categories by default', async () => {
+    it('renders market list header and list with default state (no category filtering)', async () => {
       renderView();
 
       expect(await screen.findByText('Markets')).toBeOnTheScreen();
     });
 
-    it('market list view renders with state (all categories allowed; commodities included when in data)', async () => {
-      renderView();
+    it('shows Crypto and Commodities category badges when market data includes both types', async () => {
+      renderView({
+        streamOverrides: { marketData: marketDataWithCategories },
+      });
 
-      // View renders; real hook usePerpsMarketListView reads from state/Engine
       expect(await screen.findByText('Markets')).toBeOnTheScreen();
+
+      const sortFiltersId = PerpsMarketListViewSelectorsIDs.SORT_FILTERS;
+      expect(
+        screen.getByTestId(`${sortFiltersId}-categories-crypto`),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(`${sortFiltersId}-categories-commodities`),
+      ).toBeOnTheScreen();
     });
   });
 });

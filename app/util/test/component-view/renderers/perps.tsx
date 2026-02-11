@@ -77,6 +77,8 @@ const pricesChannel = () => ({
 export interface PerpsStreamOverrides {
   /** When set, usePerpsLivePositions() receives this array (e.g. to show Close/Modify on Market Details). */
   positions?: unknown[];
+  /** When set, usePerpsMarkets() receives this array (e.g. to test category badges in Market List: crypto + commodity). */
+  marketData?: unknown[];
 }
 
 /** Creates a minimal stream manager double so views using usePerpsStream() render without WebSocket. */
@@ -84,13 +86,14 @@ function createTestStreamManager(
   streamOverrides?: PerpsStreamOverrides,
 ): PerpsStreamManager {
   const positions = streamOverrides?.positions ?? [];
+  const marketData = streamOverrides?.marketData ?? initialMarketData;
   return {
     prices: pricesChannel(),
     orders: channelWithInitialValue([]),
     positions: channelWithInitialValue(positions),
     fills: noopChannel(),
     account: channelWithInitialValue(initialAccount),
-    marketData: channelWithInitialValue(initialMarketData),
+    marketData: channelWithInitialValue(marketData),
     oiCaps: noopChannel(),
     topOfBook: noopChannel(),
     candles: noopChannel(),
