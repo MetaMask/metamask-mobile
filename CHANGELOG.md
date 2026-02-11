@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [7.64.1]
+
+### Fixed
+
+ - fix: check chainRanking against ALLOWED_BRIDGE_CHAIN_IDS (#25808)
+
 ## [7.64.0]
 
 ### Added
@@ -156,7 +162,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - fix: Android ANR bug (#25596)
 - fix(analytics): cp-7.63.1 correct capitalization in Deep link event name (#25599)
-- feat(perps): sdk reconnect on native socket event (#25022) (#25573)
+- feat(perps): sdk reconnect on native socket event (#25022, #25573)
 - fix(rwas): fix cache for rwa token stock badges (#25775)
 
 ## [7.63.0]
@@ -10354,7 +10360,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#957](https://github.com/MetaMask/metamask-mobile/pull/957): fix timeouts (#957)
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
-[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.64.0...HEAD
+[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.64.1...HEAD
+[7.64.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.64.0...v7.64.1
 [7.64.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.63.1...v7.64.0
 [7.63.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.63.0...v7.63.1
 [7.63.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.62.2...v7.63.0

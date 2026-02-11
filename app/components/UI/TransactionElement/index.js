@@ -496,7 +496,7 @@ class TransactionElement extends PureComponent {
       isQRHardwareAccount,
       isLedgerAccount,
       i,
-      tx: { status, isSmartTransaction, chainId, type },
+      tx: { status, chainId, type },
       tx,
       bridgeTxHistoryData: { bridgeTxHistoryItem, isBridgeComplete },
     } = this.props;
@@ -511,14 +511,6 @@ class TransactionElement extends PureComponent {
             bridgeTxHistoryItem.status.status,
           )
         : status;
-
-    const renderNormalActions =
-      (transactionStatus === 'submitted' ||
-        (transactionStatus === 'approved' &&
-          !isQRHardwareAccount &&
-          !isLedgerAccount)) &&
-      !isSmartTransaction &&
-      !isBridgeTransaction;
     const renderUnsignedQRActions =
       transactionStatus === 'approved' && isQRHardwareAccount;
     const renderLedgerActions =
@@ -569,12 +561,6 @@ class TransactionElement extends PureComponent {
             </ListItem.Amounts>
           )}
         </ListItem.Content>
-        {renderNormalActions && (
-          <ListItem.Actions>
-            {this.renderSpeedUpButton()}
-            {this.renderCancelButton()}
-          </ListItem.Actions>
-        )}
         {renderUnsignedQRActions && (
           <ListItem.Actions>
             {this.renderQRSignButton()}
@@ -585,22 +571,6 @@ class TransactionElement extends PureComponent {
           <ListItem.Actions>{this.renderLedgerSignButton()}</ListItem.Actions>
         )}
       </ListItem>
-    );
-  };
-
-  renderCancelButton = () => {
-    const { colors, typography } = this.context || mockTheme;
-    const styles = createStyles(colors, typography);
-
-    return (
-      <StyledButton
-        type={'cancel'}
-        containerStyle={styles.actionContainerStyle}
-        style={styles.actionStyle}
-        onPress={this.showCancelModal}
-      >
-        {strings('transaction.cancel')}
-      </StyledButton>
     );
   };
 
@@ -657,25 +627,6 @@ class TransactionElement extends PureComponent {
 
   cancelUnsignedQRTransaction = () => {
     this.mounted && this.props.cancelUnsignedQRTransaction(this.props.tx);
-  };
-
-  renderSpeedUpButton = () => {
-    const { colors, typography } = this.context || mockTheme;
-    const styles = createStyles(colors, typography);
-
-    return (
-      <StyledButton
-        type={'normal'}
-        containerStyle={[
-          styles.actionContainerStyle,
-          styles.speedupActionContainerStyle,
-        ]}
-        style={styles.actionStyle}
-        onPress={this.showSpeedUpModal}
-      >
-        {strings('transaction.speedup')}
-      </StyledButton>
-    );
   };
 
   renderQRSignButton = () => {

@@ -8,14 +8,24 @@ import { TEXTFIELDSEARCH_TEST_ID } from './TextFieldSearch.constants';
 import styles from './TextFieldSearch.styles';
 
 describe('TextFieldSearch', () => {
+  const mockOnPressClearButton = jest.fn();
+
+  beforeEach(() => {
+    mockOnPressClearButton.mockClear();
+  });
+
   it('renders default settings correctly', () => {
-    const wrapper = shallow(<TextFieldSearch />);
+    const wrapper = shallow(
+      <TextFieldSearch onPressClearButton={mockOnPressClearButton} />,
+    );
 
     expect(wrapper).toMatchSnapshot();
   });
 
   it('renders TextFieldSearch component', () => {
-    const wrapper = shallow(<TextFieldSearch />);
+    const wrapper = shallow(
+      <TextFieldSearch onPressClearButton={mockOnPressClearButton} />,
+    );
 
     const textFieldSearchComponent = wrapper.findWhere(
       (node) => node.prop('testID') === TEXTFIELDSEARCH_TEST_ID,
@@ -25,7 +35,9 @@ describe('TextFieldSearch', () => {
   });
 
   it('applies rounded border radius style', () => {
-    const wrapper = shallow(<TextFieldSearch />);
+    const wrapper = shallow(
+      <TextFieldSearch onPressClearButton={mockOnPressClearButton} />,
+    );
 
     const textFieldComponent = wrapper.findWhere(
       (node) => node.prop('testID') === TEXTFIELDSEARCH_TEST_ID,
@@ -35,10 +47,12 @@ describe('TextFieldSearch', () => {
     expect(styleArray).toContainEqual(styles.base);
   });
 
-  it('renders clear button when showClearButton is true', () => {
-    const mockOnPress = jest.fn();
+  it('renders clear button when value exists', () => {
     const wrapper = shallow(
-      <TextFieldSearch showClearButton onPressClearButton={mockOnPress} />,
+      <TextFieldSearch
+        value="search text"
+        onPressClearButton={mockOnPressClearButton}
+      />,
     );
 
     const textFieldComponent = wrapper.findWhere(
@@ -48,8 +62,22 @@ describe('TextFieldSearch', () => {
     expect(textFieldComponent.prop('endAccessory')).not.toBe(false);
   });
 
-  it('hides clear button by default', () => {
-    const wrapper = shallow(<TextFieldSearch />);
+  it('hides clear button when no value', () => {
+    const wrapper = shallow(
+      <TextFieldSearch onPressClearButton={mockOnPressClearButton} />,
+    );
+
+    const textFieldComponent = wrapper.findWhere(
+      (node) => node.prop('testID') === TEXTFIELDSEARCH_TEST_ID,
+    );
+
+    expect(textFieldComponent.prop('endAccessory')).toBe(false);
+  });
+
+  it('hides clear button when value is empty string', () => {
+    const wrapper = shallow(
+      <TextFieldSearch value="" onPressClearButton={mockOnPressClearButton} />,
+    );
 
     const textFieldComponent = wrapper.findWhere(
       (node) => node.prop('testID') === TEXTFIELDSEARCH_TEST_ID,
