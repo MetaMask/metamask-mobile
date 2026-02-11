@@ -411,7 +411,6 @@ import {
  */
 type RequiredControllers = Omit<
   Controllers,
-  | 'AssetsController'
   | 'ErrorReportingService'
   | 'MultichainRouter'
   | 'RewardsDataService'
@@ -424,7 +423,6 @@ type RequiredControllers = Omit<
  */
 type OptionalControllers = Pick<
   Controllers,
-  | 'AssetsController'
   | 'ErrorReportingService'
   | 'MultichainRouter'
   | 'RewardsDataService'
