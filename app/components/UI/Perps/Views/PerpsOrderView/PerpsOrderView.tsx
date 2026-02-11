@@ -451,7 +451,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   );
 
   const feesToDisplay = hasCustomTokenSelected ? combinedFees : estimatedFees;
-  const isFeesLoading = hasCustomTokenSelected && isPayTotalsLoading;
+  const isFeesLoading =
+    feeResults.isLoadingMetamaskFee ||
+    (hasCustomTokenSelected && isPayTotalsLoading);
+  const shouldBlockBecauseOfFeesLoading =
+    hasCustomTokenSelected && isPayTotalsLoading;
 
   // Simple boolean calculation - no need for expensive memoization
   const hasValidAmount = parseFloat(orderForm.amount) > 0;
@@ -1602,7 +1606,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 isPlacingOrder ||
                 doesStopLossRiskLiquidation ||
                 isAtOICap ||
-                isFeesLoading
+                shouldBlockBecauseOfFeesLoading
               }
               loading={isPlacingOrder}
               testID={PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON}
@@ -1622,7 +1626,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 isPlacingOrder ||
                 doesStopLossRiskLiquidation ||
                 isAtOICap ||
-                isFeesLoading
+                shouldBlockBecauseOfFeesLoading
               }
               isLoading={isPlacingOrder}
               testID={PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON}
