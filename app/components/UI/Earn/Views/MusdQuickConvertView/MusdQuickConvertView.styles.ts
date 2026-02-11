@@ -20,9 +20,6 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingTop: 16,
       paddingBottom: 8,
     },
-    balanceCardContainer: {
-      paddingVertical: 12,
-    },
     headerContainer: {
       paddingBottom: 16,
     },

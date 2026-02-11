@@ -9,7 +9,7 @@ import EarnLendingMaxWithdrawalModal from '../modals/LendingMaxWithdrawalModal';
 import LendingLearnMoreModal from '../LendingLearnMoreModal';
 import { Confirm } from '../../../Views/confirmations/components/confirm';
 import { useEmptyNavHeaderForConfirmations } from '../../../Views/confirmations/hooks/ui/useEmptyNavHeaderForConfirmations';
-import MusdBalancesByNetworkBottomSheet from '../components/Musd/MusdBalancesByNetwork/MusdBalancesByNetworkBottomSheet';
+import MusdBalancesByNetworkBottomSheet from '../components/Musd/MusdBalancesByNetworkBottomSheet';
 
 const Stack = createStackNavigator();
 const ModalStack = createStackNavigator();
