@@ -6,6 +6,7 @@ import renderWithProvider from '../../../../../../../util/test/renderWithProvide
 import { stakingDepositConfirmationState } from '../../../../../../../util/test/confirm-data-helpers';
 import { NETWORKS_CHAIN_ID } from '../../../../../../../constants/network';
 import { useConfirmationMetricEvents } from '../../../../hooks/metrics/useConfirmationMetricEvents';
+import { useEstimationFailed } from '../../../../hooks/gas/useEstimationFailed';
 import { TOOLTIP_TYPES } from '../../../../../../../core/Analytics/events/confirmations';
 import GasFeesDetailsRow from './gas-fee-details-row';
 import { toHex } from '@metamask/controller-utils';
@@ -36,6 +37,7 @@ jest.mock('../../../../../../../core/Engine', () => ({
     },
   },
 }));
+jest.mock('../../../../hooks/gas/useEstimationFailed');
 jest.mock('../../../../hooks/gas/useGasFeeToken');
 jest.mock('../../../../hooks/gas/useIsGaslessSupported');
 jest.mock('../../../../hooks/alerts/useInsufficientBalanceAlert');
@@ -146,6 +148,7 @@ describe('GasFeesDetailsRow', () => {
   );
   const mockTrackTooltipClickedEvent = jest.fn();
   const mockUseSelectedGasFeeToken = jest.mocked(useSelectedGasFeeToken);
+  const mockUseEstimationFailed = jest.mocked(useEstimationFailed);
   const mockUseIsGaslessSupported = jest.mocked(useIsGaslessSupported);
   const mockUseInsufficientBalanceAlert = jest.mocked(
     useInsufficientBalanceAlert,
@@ -158,6 +161,7 @@ describe('GasFeesDetailsRow', () => {
       trackTooltipClickedEvent: mockTrackTooltipClickedEvent,
     } as unknown as ReturnType<typeof useConfirmationMetricEvents>);
     mockUseSelectedGasFeeToken.mockReturnValue(undefined);
+    mockUseEstimationFailed.mockReturnValue(false);
     mockUseIsGaslessSupported.mockReturnValue({
       isSupported: true,
       isSmartTransaction: false,
@@ -356,6 +360,59 @@ describe('GasFeesDetailsRow', () => {
       }),
     );
     expect(getByText('Includes $0.25 fee')).toBeDefined();
+  });
+
+  describe('estimation failed', () => {
+    it('renders "Unavailable" when estimation failed', () => {
+      mockUseEstimationFailed.mockReturnValue(true);
+      mockUseIsGaslessSupported.mockReturnValue({
+        isSupported: false,
+        isSmartTransaction: false,
+        pending: false,
+      });
+
+      const { getByText, getByTestId } = renderWithProvider(
+        <GasFeesDetailsRow />,
+        {
+          state: createStateWithSimulationData(),
+        },
+      );
+
+      expect(getByText('Unavailable')).toBeDefined();
+      expect(getByTestId('gas-fee-unavailable')).toBeDefined();
+    });
+
+    it('does not render "Unavailable" when estimation has not failed', () => {
+      mockUseEstimationFailed.mockReturnValue(false);
+
+      const { queryByText } = renderWithProvider(<GasFeesDetailsRow />, {
+        state: createStateWithSimulationData(),
+      });
+
+      expect(queryByText('Unavailable')).toBeNull();
+    });
+
+    it('does not render "Unavailable" when gas fee is sponsored even if estimation failed', () => {
+      mockUseEstimationFailed.mockReturnValue(true);
+      mockUseIsGaslessSupported.mockReturnValue({
+        isSupported: true,
+        isSmartTransaction: false,
+        pending: false,
+      });
+
+      const clonedState = createStateWithSimulationData();
+      clonedState.engine.backgroundState.TransactionController.transactions[0].isGasFeeSponsored = true;
+
+      const { queryByText, getByTestId } = renderWithProvider(
+        <GasFeesDetailsRow />,
+        {
+          state: clonedState,
+        },
+      );
+
+      expect(queryByText('Unavailable')).toBeNull();
+      expect(getByTestId('paid-by-metamask')).toBeDefined();
+    });
   });
 
   describe('Batch Transactions', () => {

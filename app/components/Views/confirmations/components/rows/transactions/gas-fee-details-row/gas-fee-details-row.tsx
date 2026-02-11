@@ -20,6 +20,7 @@ import { useStyles } from '../../../../../../../component-library/hooks';
 import { TOOLTIP_TYPES } from '../../../../../../../core/Analytics/events/confirmations';
 import useHideFiatForTestnet from '../../../../../../hooks/useHideFiatForTestnet';
 import useBalanceChanges from '../../../../../../UI/SimulationDetails/useBalanceChanges';
+import { useEstimationFailed } from '../../../../hooks/gas/useEstimationFailed';
 import { useFeeCalculations } from '../../../../hooks/gas/useFeeCalculations';
 import { useFeeCalculationsTransactionBatch } from '../../../../hooks/gas/useFeeCalculationsTransactionBatch';
 import { useSelectedGasFeeToken } from '../../../../hooks/gas/useGasFeeToken';
@@ -61,6 +62,7 @@ const EstimationInfo = ({
   feeCalculations,
   fiatOnly,
   isGasFeeSponsored,
+  estimationFailed,
   isBatch = false,
 }: {
   hideFiatForTestnet: boolean;
@@ -69,6 +71,7 @@ const EstimationInfo = ({
     | ReturnType<typeof useFeeCalculationsTransactionBatch>;
   fiatOnly: boolean;
   isGasFeeSponsored?: boolean;
+  estimationFailed?: boolean;
   isBatch?: boolean;
 }) => {
   const gasFeeToken = useSelectedGasFeeToken();
@@ -100,6 +103,14 @@ const EstimationInfo = ({
     <View style={styles.estimationContainer}>
       {isGasFeeSponsored ? (
         <PaidByMetaMask />
+      ) : estimationFailed ? (
+        <Text
+          variant={TextVariant.BodyMD}
+          color={TextColor.Default}
+          testID="gas-fee-unavailable"
+        >
+          {strings('confirm.simulation.unavailable')}
+        </Text>
       ) : isSimulationLoading ? (
         <SkeletonEstimationInfo />
       ) : (
@@ -116,10 +127,12 @@ const SingleEstimateInfo = ({
   hideFiatForTestnet,
   fiatOnly,
   isGasFeeSponsored,
+  estimationFailed,
 }: {
   hideFiatForTestnet: boolean;
   fiatOnly: boolean;
   isGasFeeSponsored?: boolean;
+  estimationFailed?: boolean;
 }) => {
   const transactionMetadata = useTransactionMetadataRequest();
   const feeCalculations = useFeeCalculations(
@@ -132,6 +145,7 @@ const SingleEstimateInfo = ({
       feeCalculations={feeCalculations}
       fiatOnly={fiatOnly}
       isGasFeeSponsored={isGasFeeSponsored}
+      estimationFailed={estimationFailed}
     />
   );
 };
@@ -140,10 +154,12 @@ const BatchEstimateInfo = ({
   hideFiatForTestnet,
   fiatOnly,
   isGasFeeSponsored,
+  estimationFailed,
 }: {
   hideFiatForTestnet: boolean;
   fiatOnly: boolean;
   isGasFeeSponsored?: boolean;
+  estimationFailed?: boolean;
 }) => {
   const transactionBatchesMetadata = useTransactionBatchesMetadata();
   const feeCalculations = useFeeCalculationsTransactionBatch(
@@ -157,6 +173,7 @@ const BatchEstimateInfo = ({
       feeCalculations={feeCalculations}
       fiatOnly={fiatOnly}
       isGasFeeSponsored={isGasFeeSponsored}
+      estimationFailed={estimationFailed}
       isBatch={isBatch}
     />
   );
@@ -200,11 +217,13 @@ const RenderEstimationInfo = ({
   hideFiatForTestnet,
   fiatOnly,
   isGasFeeSponsored,
+  estimationFailed,
 }: {
   transactionBatchesMetadata: TransactionBatchMeta | undefined;
   hideFiatForTestnet: boolean;
   fiatOnly: boolean;
   isGasFeeSponsored?: boolean;
+  estimationFailed?: boolean;
 }) => {
   if (transactionBatchesMetadata) {
     return (
@@ -212,6 +231,7 @@ const RenderEstimationInfo = ({
         hideFiatForTestnet={hideFiatForTestnet}
         fiatOnly={fiatOnly}
         isGasFeeSponsored={isGasFeeSponsored}
+        estimationFailed={estimationFailed}
       />
     );
   }
@@ -220,6 +240,7 @@ const RenderEstimationInfo = ({
       hideFiatForTestnet={hideFiatForTestnet}
       fiatOnly={fiatOnly}
       isGasFeeSponsored={isGasFeeSponsored}
+      estimationFailed={estimationFailed}
     />
   );
 };
@@ -237,6 +258,7 @@ const GasFeesDetailsRow = ({
   const transactionMetadata = useTransactionMetadataRequest();
   const transactionBatchesMetadata = useTransactionBatchesMetadata();
   const gasFeeToken = useSelectedGasFeeToken();
+  const estimationFailed = useEstimationFailed();
   const metamaskFeeFiat = gasFeeToken?.metamaskFeeFiat;
   const {
     userFeeLevel: isUserFeeLevelExists,
@@ -308,12 +330,14 @@ const GasFeesDetailsRow = ({
             {disableUpdate ||
             gasFeeToken ||
             isGasFeeSponsored ||
+            estimationFailed ||
             isSimulationLoading ? (
               <RenderEstimationInfo
                 transactionBatchesMetadata={transactionBatchesMetadata}
                 hideFiatForTestnet={hideFiatForTestnet}
                 fiatOnly={fiatOnly}
                 isGasFeeSponsored={isGasFeeSponsored}
+                estimationFailed={estimationFailed}
               />
             ) : (
               <ClickableEstimationInfo
