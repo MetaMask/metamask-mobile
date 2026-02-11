@@ -14,6 +14,14 @@ import { ImageSourcePropType } from 'react-native';
 import { INTERNAL_ORIGINS } from '../../../constants/transaction';
 import { rpcErrors } from '@metamask/rpc-errors';
 
+/**
+ * Sets up a BackgroundBridge for an SDK connection.
+ *
+ * IMPORTANT: `originatorInfo` is **self-reported** by the connecting dapp.
+ * The `url`, `title`, and `icon` fields are NOT verified and MUST NOT be
+ * treated as trusted identifiers. They are used only for display purposes
+ * in the confirmation UI.
+ */
 export const setupBridge = ({
   originatorInfo,
   connection,
@@ -32,11 +40,18 @@ export const setupBridge = ({
   ) {
     throw new Error('Connections from metamask origin are not allowed');
   }
+
+  // WARNING: originatorInfo.url is self-reported by the dapp and unverified.
+  // It is passed as `url` to BackgroundBridge for display purposes only.
+  const selfReportedUrl = originatorInfo.url;
+  const selfReportedTitle = originatorInfo.title;
+  const selfReportedIcon = originatorInfo.icon;
+
   const backgroundBridge = new BackgroundBridge({
     webview: null,
     isMMSDK: true,
     channelId: connection.channelId,
-    url: originatorInfo.url,
+    url: selfReportedUrl,
     isRemoteConn: true,
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -55,13 +70,13 @@ export const setupBridge = ({
       getProviderState,
     }: RPCMethodsMiddleParameters) => {
       DevLogger.log(
-        `getRpcMethodMiddleware origin=${connection.origin} url=${originatorInfo.url} `,
+        `getRpcMethodMiddleware origin=${connection.origin} selfReportedUrl=${selfReportedUrl} `,
       );
       // Prevent external connections from using internal origins
       // This is an external connection (SDK), so block any internal origin
       if (
-        INTERNAL_ORIGINS.includes(originatorInfo.url) ||
-        INTERNAL_ORIGINS.includes(originatorInfo.title)
+        INTERNAL_ORIGINS.includes(selfReportedUrl) ||
+        INTERNAL_ORIGINS.includes(selfReportedTitle)
       ) {
         throw rpcErrors.invalidParams({
           message: 'External transactions cannot use internal origins',
@@ -73,14 +88,14 @@ export const setupBridge = ({
         getProviderState,
         isMMSDK: true,
         navigation: null, //props.navigation,
-        // Website info
+        // Website info — self-reported by dapp, used for display only
         url: {
-          current: originatorInfo?.url,
+          current: selfReportedUrl,
         },
         title: {
-          current: originatorInfo?.title,
+          current: selfReportedTitle,
         },
-        icon: { current: originatorInfo.icon as ImageSourcePropType }, // TODO: Need to change the type at the @metamask/sdk-communication-layer from string to ImageSourcePropType
+        icon: { current: selfReportedIcon as ImageSourcePropType }, // TODO: Need to change the type at the @metamask/sdk-communication-layer from string to ImageSourcePropType
         tabId: '',
         isWalletConnect: false,
         analytics: {

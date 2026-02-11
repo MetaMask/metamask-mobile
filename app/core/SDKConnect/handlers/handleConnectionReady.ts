@@ -62,15 +62,17 @@ export const handleConnectionReady = async ({
     return;
   }
 
-  let dappUrl = '';
+  // WARNING: originatorInfo.url is self-reported by the dapp and unverified.
+  // It is normalized here for display purposes only.
+  let selfReportedDappUrl = '';
 
   try {
     const urlObj = new URL(originatorInfo?.url);
     const hasPort = !!urlObj.port;
     if (hasPort) {
-      dappUrl = `${urlObj.protocol}//${urlObj.hostname}:${urlObj.port}`;
+      selfReportedDappUrl = `${urlObj.protocol}//${urlObj.hostname}:${urlObj.port}`;
     } else {
-      dappUrl = `${urlObj.protocol}//${urlObj.hostname}`;
+      selfReportedDappUrl = `${urlObj.protocol}//${urlObj.hostname}`;
     }
   } catch (e) {
     DevLogger.log('Invalid URL:', originatorInfo?.url);
@@ -78,14 +80,14 @@ export const handleConnectionReady = async ({
 
   connection.originatorInfo = {
     ...originatorInfo,
-    url: dappUrl,
+    url: selfReportedDappUrl,
   };
 
   updateOriginatorInfos({
     channelId: connection.channelId,
     originatorInfo: {
       ...originatorInfo,
-      url: dappUrl,
+      url: selfReportedDappUrl,
     },
   });
   DevLogger.log(

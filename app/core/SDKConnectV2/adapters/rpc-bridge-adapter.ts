@@ -103,9 +103,20 @@ export class RPCBridgeAdapter
 
   /**
    * Creates a new BackgroundBridge instance configured for our use case.
+   *
+   * IMPORTANT: `connInfo.metadata.dapp.url`, `.name`, and `.icon` are
+   * **self-reported** by the dapp in the MWP connection request payload.
+   * They are NOT independently verified and are used for display purposes only.
+   * The actual connection identity is secured by the MWP key exchange, but the
+   * displayed metadata could be spoofed by a malicious dapp.
    */
   private createClient(): BackgroundBridge {
     const middlewareHostname = `${AppConstants.MM_SDK.SDK_CONNECT_V2_ORIGIN}${this.connInfo.id}`;
+
+    // WARNING: These values are self-reported by the dapp and unverified.
+    const selfReportedDappUrl = this.connInfo.metadata.dapp.url;
+    const selfReportedDappName = this.connInfo.metadata.dapp.name;
+    const selfReportedDappIcon = this.connInfo.metadata.dapp.icon;
 
     return new BackgroundBridge({
       webview: null,
@@ -113,8 +124,8 @@ export class RPCBridgeAdapter
       sdkVersion: 'v2',
       isRemoteConn: true,
       channelId: this.connInfo.id,
-      url: this.connInfo.metadata.dapp.url,
-      remoteConnHost: this.connInfo.metadata.dapp.url,
+      url: selfReportedDappUrl,
+      remoteConnHost: selfReportedDappUrl,
       sendMessage: (response: unknown) => {
         this.emit('response', response);
       },
@@ -128,10 +139,11 @@ export class RPCBridgeAdapter
           channelId: this.connInfo.id,
           getProviderState,
           isMMSDK: true,
-          url: { current: this.connInfo.metadata.dapp.url },
-          title: { current: this.connInfo.metadata.dapp.name },
+          // Website info — self-reported by dapp, used for display only
+          url: { current: selfReportedDappUrl },
+          title: { current: selfReportedDappName },
           icon: {
-            current: this.connInfo.metadata.dapp.icon as ImageSourcePropType,
+            current: selfReportedDappIcon as ImageSourcePropType,
           },
           navigation: null,
           tabId: '',
@@ -145,7 +157,7 @@ export class RPCBridgeAdapter
         }),
       isMainFrame: true,
       getApprovedHosts: () => ({
-        [this.connInfo.metadata.dapp.url]: true,
+        [selfReportedDappUrl]: true,
       }),
       isWalletConnect: false,
       wcRequestActions: undefined,
