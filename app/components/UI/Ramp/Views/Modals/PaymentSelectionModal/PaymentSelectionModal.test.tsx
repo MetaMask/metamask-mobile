@@ -147,7 +147,9 @@ const defaultControllerReturn = {
   },
 };
 
-const mockUseRampsController = jest.fn(() => defaultControllerReturn);
+const mockUseRampsController: jest.Mock = jest.fn(
+  () => defaultControllerReturn,
+);
 
 jest.mock('../../../hooks/useRampsController', () => ({
   useRampsController: () => mockUseRampsController(),

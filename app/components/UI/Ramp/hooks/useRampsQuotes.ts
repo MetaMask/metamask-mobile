@@ -30,7 +30,7 @@ export interface GetQuotesOptions {
   fiat?: string;
   assetId?: string;
   amount: number;
-  walletAddress?: string;
+  walletAddress: string;
   paymentMethods?: string[];
   providers?: string[];
   redirectUrl?: string;

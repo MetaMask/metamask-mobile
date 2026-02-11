@@ -117,11 +117,7 @@ function renderWithProvider(
   });
   return renderScreen(
     () => (
-      <ProviderSelection
-        onProviderSelect={jest.fn()}
-        onBack={mockOnBack}
-        amount={100}
-      />
+      <ProviderSelection onProviderSelect={jest.fn()} onBack={mockOnBack} />
     ),
     {
       name: 'ProviderSelection',

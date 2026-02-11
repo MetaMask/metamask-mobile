@@ -28,7 +28,7 @@ const mockPaymentMethodWithoutDelay: PaymentMethod = {
 };
 
 const defaultQuoteProps = {
-  quote: null as const,
+  quote: null as Quote | null,
   quoteLoading: false,
   quoteError: false,
   currency: 'USD',
