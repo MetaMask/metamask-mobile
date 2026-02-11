@@ -9,9 +9,33 @@ import {
   SeasonActivityTypeDto,
   SeasonDropDto,
   SeasonWayToEarnDto,
+  CommitDropPointsResponseDto,
 } from '../../core/Engine/controllers/rewards-controller/types';
 import { OnboardingStep } from './types';
 import { AccountGroupId } from '@metamask/account-api';
+
+/**
+ * Represents a recent drop commit stored in UI state.
+ * Used to optimistically show user's position before backend caching is updated.
+ */
+export interface RecentDropCommit {
+  /** The commit response from the API */
+  response: CommitDropPointsResponseDto;
+  /** Unix timestamp (ms) when the commit was made */
+  committedAt: number;
+}
+
+/**
+ * Map of drop IDs to their most recent commit data.
+ * Used to handle backend caching delays.
+ */
+export type RecentDropCommitsMap = Record<string, RecentDropCommit>;
+
+/** Time window (in ms) during which recent commit data is considered valid */
+export const RECENT_COMMIT_VALIDITY_WINDOW_MS = 5 * 60 * 1000; // 5 minutes
+
+/** Special rank value indicating rank is being calculated (TBD) */
+export const DROP_LEADERBOARD_RANK_TBD = -1;
 
 // Saga action types - defined here to avoid circular dependency with saga file
 export const BULK_LINK_START = 'rewards/bulkLink/START';
@@ -119,6 +143,9 @@ export interface RewardsState {
   seasonDrops: SeasonDropDto[] | null;
   seasonDropsLoading: boolean;
   seasonDropsError: boolean;
+
+  // Recent drop commits state (for handling backend caching delays)
+  recentDropCommits: RecentDropCommitsMap;
 }
 
 export const initialState: RewardsState = {
@@ -185,6 +212,9 @@ export const initialState: RewardsState = {
   seasonDrops: null,
   seasonDropsLoading: false,
   seasonDropsError: false,
+
+  // Recent drop commits initial state
+  recentDropCommits: {},
 };
 
 interface RehydrateAction extends Action<'persist/REHYDRATE'> {
@@ -349,6 +379,8 @@ const rewardsSlice = createSlice({
         state.pointsEvents = initialState.pointsEvents;
         state.unlockedRewards = initialState.unlockedRewards;
         state.seasonDrops = initialState.seasonDrops;
+        // Also clear recent drop commits as they belong to the previous subscription
+        state.recentDropCommits = initialState.recentDropCommits;
       }
 
       state.candidateSubscriptionId = action.payload;
@@ -453,6 +485,26 @@ const rewardsSlice = createSlice({
       state.seasonDropsError = action.payload;
     },
 
+    // Recent drop commits reducers
+    setRecentDropCommit: (
+      state,
+      action: PayloadAction<{
+        dropId: string;
+        response: CommitDropPointsResponseDto;
+      }>,
+    ) => {
+      state.recentDropCommits[action.payload.dropId] = {
+        response: action.payload.response,
+        committedAt: Date.now(),
+      };
+    },
+    clearRecentDropCommit: (state, action: PayloadAction<string>) => {
+      delete state.recentDropCommits[action.payload];
+    },
+    clearAllRecentDropCommits: (state) => {
+      state.recentDropCommits = {};
+    },
+
     // Bulk link reducers
     bulkLinkStarted: (
       state,
@@ -527,6 +579,25 @@ const rewardsSlice = createSlice({
           const previousBulkLink = action.payload.rewards.bulkLink;
           const wasInterrupted = previousBulkLink?.isRunning === true;
 
+          let validRecentDropCommits: RecentDropCommitsMap = {};
+
+          try {
+            // Filter out expired recent drop commits (older than 5 minutes)
+            const now = Date.now();
+            const previousRecentDropCommits =
+              action.payload.rewards.recentDropCommits ?? {};
+
+            for (const [dropId, commit] of Object.entries(
+              previousRecentDropCommits,
+            )) {
+              if (now - commit.committedAt < RECENT_COMMIT_VALIDITY_WINDOW_MS) {
+                validRecentDropCommits[dropId] = commit;
+              }
+            }
+          } catch {
+            validRecentDropCommits = {};
+          }
+
           return {
             // Reset non-persistent state (state is persisted via controller)
             ...initialState,
@@ -557,6 +628,9 @@ const rewardsSlice = createSlice({
               action.payload.rewards.hideUnlinkedAccountsBanner,
             hideCurrentAccountNotOptedInBanner:
               action.payload.rewards.hideCurrentAccountNotOptedInBanner,
+
+            // Recent drop commits - restore only valid (non-expired) entries
+            recentDropCommits: validRecentDropCommits,
 
             // Bulk link state - preserve interrupted status for resume capability
             bulkLink: {
@@ -618,6 +692,10 @@ export const {
   bulkLinkSubscriptionChanged,
   bulkLinkReset,
   bulkLinkResumed,
+  // Recent drop commits actions
+  setRecentDropCommit,
+  clearRecentDropCommit,
+  clearAllRecentDropCommits,
 } = rewardsSlice.actions;
 
 export default rewardsSlice.reducer;

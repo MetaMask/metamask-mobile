@@ -20,6 +20,7 @@ import { getDropStatusInfo } from './DropTile.Utils';
 import { useDropLeaderboard } from '../../hooks/useDropLeaderboard';
 import { strings } from '../../../../../../locales/i18n';
 import { formatNumber } from '../../utils/formatUtils';
+import { DROP_LEADERBOARD_RANK_TBD } from '../../../../../reducers/rewards';
 
 interface DropTileProps {
   /**
@@ -57,8 +58,13 @@ const DropTile: React.FC<DropTileProps> = ({ drop }) => {
     if (status === DropStatus.OPEN) {
       if (leaderboard?.userPosition?.rank !== undefined) {
         // User is on the leaderboard - show their position
+        // If rank is TBD (pending calculation), show "TBD" instead of the number
+        const rankDisplay =
+          leaderboard.userPosition.rank === DROP_LEADERBOARD_RANK_TBD
+            ? 'TBD'
+            : formatNumber(leaderboard.userPosition.rank);
         return strings('rewards.drop.pill_live_with_position', {
-          rank: formatNumber(leaderboard.userPosition.rank),
+          rank: rankDisplay,
         });
       }
       if (leaderboard?.totalParticipants !== undefined) {

@@ -7547,6 +7547,7 @@
       "qualify_now": "Qualify Now",
       "leaderboard": "Leaderboard",
       "leaderboard_of": "of {{total}}",
+      "leaderboard_rank_tbd": "#TBD",
       "leaderboard_pts": "{{points}} pts",
       "leaderboard_change": "Change",
       "leaderboard_add_more_points": "Add more points"

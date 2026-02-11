@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { FlatList, ListRenderItem } from 'react-native';
 import {
   Box,
@@ -22,6 +22,7 @@ import {
   DropLeaderboardEntryDto,
   DropStatus,
 } from '../../../../../core/Engine/controllers/rewards-controller/types';
+import { DROP_LEADERBOARD_RANK_TBD } from '../../../../../reducers/rewards';
 
 interface DropLeaderboardProps {
   leaderboard: DropLeaderboardDto | null;
@@ -82,6 +83,18 @@ const DropLeaderboard: React.FC<DropLeaderboardProps> = ({
     [],
   );
 
+  // Format the rank display - show TBD if rank is pending calculation
+  const formattedRank = useMemo(() => {
+    const userPosition = leaderboard?.userPosition;
+    if (!userPosition) {
+      return null;
+    }
+    if (userPosition.rank === DROP_LEADERBOARD_RANK_TBD) {
+      return strings('rewards.drop_detail.leaderboard_rank_tbd');
+    }
+    return `#${formatNumber(userPosition.rank)}`;
+  }, [leaderboard?.userPosition]);
+
   if (isLoading) {
     return (
       <Box
@@ -126,7 +139,7 @@ const DropLeaderboard: React.FC<DropLeaderboardProps> = ({
             {/* Rank info */}
             <Box twClassName="flex-1">
               <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-                #{formatNumber(userPosition.rank)}
+                {formattedRank}
               </Text>
               <Text variant={TextVariant.BodySm} twClassName="text-alternative">
                 {strings('rewards.drop_detail.leaderboard_of', {

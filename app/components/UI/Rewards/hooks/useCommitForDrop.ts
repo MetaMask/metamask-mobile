@@ -1,9 +1,10 @@
 import { useCallback, useState } from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import { handleRewardsErrorMessage } from '../utils';
 import Engine from '../../../../core/Engine';
 import type { CommitDropPointsResponseDto } from '../../../../core/Engine/controllers/rewards-controller/types';
+import { setRecentDropCommit } from '../../../../reducers/rewards';
 
 export interface UseCommitForDropResult {
   /**
@@ -38,8 +39,10 @@ export interface UseCommitForDropResult {
 /**
  * Custom hook to commit points to a drop.
  * Follows the pattern of useClaimReward for POST operations.
+ * Stores the commit response in Redux state to handle backend caching delays.
  */
 export const useCommitForDrop = (): UseCommitForDropResult => {
+  const dispatch = useDispatch();
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const [commitError, setCommitError] = useState<string | null>(null);
   const [isCommitting, setIsCommitting] = useState<boolean>(false);
@@ -77,6 +80,9 @@ export const useCommitForDrop = (): UseCommitForDropResult => {
           accountId,
         );
 
+        // Store the recent commit in Redux to handle backend caching delays
+        dispatch(setRecentDropCommit({ dropId, response }));
+
         return response;
       } catch (error) {
         const errorMessage = handleRewardsErrorMessage(error);
@@ -86,7 +92,7 @@ export const useCommitForDrop = (): UseCommitForDropResult => {
         setIsCommitting(false);
       }
     },
-    [subscriptionId],
+    [dispatch, subscriptionId],
   );
 
   const clearCommitError = useCallback(() => setCommitError(null), []);
