@@ -42,29 +42,36 @@ const MusdBalancesByNetworkBottomSheet = () => {
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const networkConfigurations = useSelector(selectNetworkConfigurations);
 
-  const { tokenBalanceByChain, fiatBalanceByChain, fiatBalanceFormattedByChain } =
-    useMusdBalance();
+  const {
+    tokenBalanceByChain,
+    fiatBalanceByChain,
+    fiatBalanceFormattedByChain,
+  } = useMusdBalance();
 
   const rows = useMemo(() => {
-    const chainIds = (Object.keys(tokenBalanceByChain) as Hex[]).sort(
-      (chainIdA, chainIdB) => {
-        const fiatA = new BigNumber(fiatBalanceByChain[chainIdA] ?? 0);
-        const fiatB = new BigNumber(fiatBalanceByChain[chainIdB] ?? 0);
-        const fiatComparison = fiatB.comparedTo(fiatA);
-        if (fiatComparison) {
-          return fiatComparison;
-        }
+    /**
+     * Sort networks by largest fiat balance first;
+     * if fiat is tied/unavailable (e.g. both 0), fall back to token balance as a deterministic tie-breaker.
+     */
+    const chainIdsByBalanceDesc = (
+      Object.keys(tokenBalanceByChain) as Hex[]
+    ).sort((chainIdA, chainIdB) => {
+      const fiatA = new BigNumber(fiatBalanceByChain[chainIdA] ?? 0);
+      const fiatB = new BigNumber(fiatBalanceByChain[chainIdB] ?? 0);
+      const fiatComparison = fiatB.comparedTo(fiatA);
+      if (fiatComparison) {
+        return fiatComparison;
+      }
 
-        const tokenA = new BigNumber(tokenBalanceByChain[chainIdA] ?? 0);
-        const tokenB = new BigNumber(tokenBalanceByChain[chainIdB] ?? 0);
-        return tokenB.comparedTo(tokenA) || 0;
-      },
-    );
+      const tokenA = new BigNumber(tokenBalanceByChain[chainIdA] ?? 0);
+      const tokenB = new BigNumber(tokenBalanceByChain[chainIdB] ?? 0);
+      return tokenB.comparedTo(tokenA) || 0;
+    });
 
-    return chainIds.map((chainId) => ({
+    return chainIdsByBalanceDesc.map((chainId) => ({
       chainId,
-      caipChainId: toEvmCaipChainId(chainId as `0x${string}`),
-      networkName: networkConfigurations?.[chainId]?.name ?? String(chainId),
+      caipChainId: toEvmCaipChainId(chainId),
+      networkName: networkConfigurations?.[chainId]?.name ?? chainId,
       tokenBalance: tokenBalanceByChain[chainId],
       fiatBalanceFormatted: fiatBalanceFormattedByChain[chainId],
     }));
@@ -90,7 +97,7 @@ const MusdBalancesByNetworkBottomSheet = () => {
     >
       <BottomSheetHeader onClose={handleClose} />
       <Box twClassName="px-4 pb-6">
-        <Text variant={TextVariant.HeadingMd} twClassName="mb-2">
+        <Text variant={TextVariant.BodyLg} twClassName="text-center mb-8">
           {strings('earn.musd_conversion.balance_breakdown_title')}
         </Text>
 
@@ -113,11 +120,12 @@ const MusdBalancesByNetworkBottomSheet = () => {
                     variant={AvatarVariant.Network}
                     size={AvatarSize.Sm}
                     name={row.networkName}
-                    imageSource={getNetworkImageSource({ chainId: row.chainId })}
+                    imageSource={getNetworkImageSource({
+                      chainId: row.chainId,
+                    })}
                   />
                   <Text
                     variant={TextVariant.BodyMd}
-                    numberOfLines={1}
                     twClassName="flex-1 font-medium"
                   >
                     {row.networkName}
@@ -126,10 +134,13 @@ const MusdBalancesByNetworkBottomSheet = () => {
 
                 <Box twClassName="items-end">
                   <Text variant={TextVariant.BodyMd} twClassName="font-medium">
-                    {strings('earn.musd_conversion.balance_amount_with_symbol', {
-                      amount: row.tokenBalance,
-                      symbol: MUSD_TOKEN.symbol,
-                    })}
+                    {strings(
+                      'earn.musd_conversion.balance_amount_with_symbol',
+                      {
+                        amount: new BigNumber(row.tokenBalance).toFixed(2),
+                        symbol: MUSD_TOKEN.symbol,
+                      },
+                    )}
                   </Text>
                   <Text
                     variant={TextVariant.BodySm}
@@ -149,4 +160,3 @@ const MusdBalancesByNetworkBottomSheet = () => {
 };
 
 export default MusdBalancesByNetworkBottomSheet;
-
