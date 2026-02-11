@@ -47,7 +47,7 @@ const Checkout = () => {
 
   const { styles } = useStyles(styleSheet, {});
 
-  const { url: uri, providerName } = params;
+  const { url: uri, providerName } = params ?? {};
 
   const handleCancelPress = useCallback(() => {
     // TODO: Add analytics tracking when analytics events are defined for unified flow
@@ -63,7 +63,7 @@ const Checkout = () => {
       getRampsNavbarOptions(
         navigation,
         {
-          title: providerName,
+          title: providerName ?? '',
         },
         theme,
         handleCancelPress,

@@ -525,6 +525,46 @@ describe('BuildQuote', () => {
       });
     });
 
+    it('navigates to deposit flow for native provider when ID does not end with -native (uses metadata)', () => {
+      mockSelectedQuote = {
+        provider: '/providers/whitelabel-in-app',
+        url: null,
+        quote: {
+          amountIn: 100,
+          amountOut: 0.05,
+          paymentMethod: '/payments/debit-credit-card',
+        },
+        providerInfo: {
+          id: '/providers/whitelabel-in-app',
+          name: 'Whitelabel',
+          type: 'native',
+        },
+      };
+      mockSelectedProvider = {
+        id: '/providers/whitelabel-in-app',
+        name: 'Whitelabel',
+      };
+      mockSelectedPaymentMethod = {
+        id: '/payments/debit-credit-card',
+        name: 'Card',
+      };
+
+      const { getByTestId } = renderWithTheme(<BuildQuote />);
+
+      const continueButton = getByTestId('build-quote-continue-button');
+      fireEvent.press(continueButton);
+
+      expect(mockNavigate).toHaveBeenCalledWith('Deposit', {
+        screen: 'DepositRoot',
+        params: {
+          assetId: MOCK_ASSET_ID,
+          amount: '100',
+          currency: 'USD',
+          shouldRouteImmediately: true,
+        },
+      });
+    });
+
     it('logs error when aggregator provider has no URL', async () => {
       const mockLogger = jest.spyOn(Logger, 'error');
       mockGetWidgetUrl.mockResolvedValue(null);
