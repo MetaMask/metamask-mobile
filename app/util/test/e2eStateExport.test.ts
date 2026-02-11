@@ -83,15 +83,14 @@ describe('e2eStateExport', () => {
       );
     });
 
-    it('does not throw when POST fails', async () => {
+    it('propagates errors to the caller for logging', async () => {
       mockedGetState.mockReturnValue({
         settings: {},
         engine: { backgroundState: {} },
       });
       mockedAxios.post.mockRejectedValueOnce(new Error('Network error'));
 
-      // Should not throw
-      await expect(handleExportStateCommand()).resolves.toBeUndefined();
+      await expect(handleExportStateCommand()).rejects.toThrow('Network error');
     });
   });
 });

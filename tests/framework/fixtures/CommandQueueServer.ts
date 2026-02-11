@@ -185,6 +185,7 @@ class CommandQueueServer implements Resource {
   }
 
   requestStateExport() {
+    this._exportedState = null;
     this._queue.push({
       type: E2ECommandTypes.exportState,
       args: {},

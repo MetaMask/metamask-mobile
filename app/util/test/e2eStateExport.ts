@@ -21,11 +21,7 @@ export function captureAppState(): Record<string, unknown> {
  * to the CommandQueueServer.
  */
 export async function handleExportStateCommand(): Promise<void> {
-  try {
-    const state = captureAppState();
-    const port = getCommandQueueServerPortInApp();
-    await axios.post(`http://localhost:${port}/exported-state`, state);
-  } catch (err) {
-    // Silently fail - this is E2E infrastructure, not user-facing
-  }
+  const state = captureAppState();
+  const port = getCommandQueueServerPortInApp();
+  await axios.post(`http://localhost:${port}/exported-state`, state);
 }
