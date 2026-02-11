@@ -9,6 +9,7 @@ import EarnLendingMaxWithdrawalModal from '../modals/LendingMaxWithdrawalModal';
 import LendingLearnMoreModal from '../LendingLearnMoreModal';
 import { Confirm } from '../../../Views/confirmations/components/confirm';
 import { useEmptyNavHeaderForConfirmations } from '../../../Views/confirmations/hooks/ui/useEmptyNavHeaderForConfirmations';
+import MusdBalancesByNetworkBottomSheet from '../components/Musd/MusdBalancesByNetwork/MusdBalancesByNetworkBottomSheet';
 
 const Stack = createStackNavigator();
 const ModalStack = createStackNavigator();
@@ -67,6 +68,11 @@ const EarnModalStack = () => (
     <ModalStack.Screen
       name={Routes.EARN.MODALS.MUSD_MAX_CONVERSION}
       component={Confirm}
+      options={{ headerShown: false }}
+    />
+    <ModalStack.Screen
+      name={Routes.EARN.MODALS.MUSD_BALANCES_BY_NETWORK}
+      component={MusdBalancesByNetworkBottomSheet}
       options={{ headerShown: false }}
     />
   </ModalStack.Navigator>

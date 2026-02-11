@@ -4,6 +4,7 @@ import {
   SectionList,
   StyleSheet,
   Image,
+  Pressable,
   ViewStyle,
   Linking,
 } from 'react-native';
@@ -30,70 +31,18 @@ import styleSheet from './MusdQuickConvertView.styles';
 import { MusdQuickConvertViewTestIds } from './MusdQuickConvertView.types';
 import Tag from '../../../../../component-library/components/Tags/Tag';
 import { TagProps } from '../../../../../component-library/components/Tags/Tag/Tag.types';
-import {
-  MUSD_CONVERSION_APY,
-  MUSD_TOKEN,
-  MUSD_TOKEN_ADDRESS,
-} from '../../constants/musd';
-import { Theme } from '../../../../../util/theme/models';
-import BadgeWrapper, {
-  BadgePosition,
-} from '../../../../../component-library/components/Badges/BadgeWrapper';
-import Badge, {
-  BadgeVariant,
-} from '../../../../../component-library/components/Badges/Badge';
-import { getNetworkImageSource } from '../../../../../util/networks';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { MUSD_CONVERSION_APY, MUSD_TOKEN } from '../../constants/musd';
 import AppConstants from '../../../../../core/AppConstants';
-import { selectAsset } from '../../../../../selectors/assets/assets-list';
-import { RootState } from '../../../../../reducers';
-import { toFormattedAddress } from '../../../../../util/address';
+import { useMusdBalance } from '../../hooks/useMusdBalance';
+import Routes from '../../../../../constants/navigation/Routes';
 
-const musdBadgeStyles = (params: { theme: Theme; vars: { size: number } }) => {
-  const {
-    vars: { size },
-  } = params;
-
-  return {
+const musdIconStyles = () =>
+  StyleSheet.create({
     tokenIcon: {
-      width: size,
-      height: size,
+      width: 32,
+      height: 32,
     },
-    badgeWrapper: {
-      alignSelf: 'center',
-    },
-  } as const;
-};
-
-interface MusdBadgeProps {
-  chainId: string;
-  size?: number;
-}
-
-const MusdBadge = ({ chainId, size = 16 }: MusdBadgeProps) => {
-  const { styles } = useStyles(musdBadgeStyles, { size });
-
-  const networkImageSource = getNetworkImageSource({ chainId });
-
-  return (
-    <BadgeWrapper
-      style={styles.badgeWrapper}
-      badgePosition={BadgePosition.BottomRight}
-      badgeElement={
-        <Badge
-          variant={BadgeVariant.Network}
-          imageSource={networkImageSource}
-        />
-      }
-    >
-      <Image
-        source={MUSD_TOKEN.imageSource}
-        style={styles.tokenIcon}
-        testID="musd-token-icon"
-      />
-    </BadgeWrapper>
-  );
-};
+  });
 
 const musdBalanceStyles = () =>
   StyleSheet.create({
@@ -101,6 +50,9 @@ const musdBalanceStyles = () =>
       width: '100%',
       justifyContent: 'space-between',
       flexDirection: 'row',
+    },
+    containerPressed: {
+      opacity: 0.6,
     },
     left: {
       flexDirection: 'row',
@@ -112,20 +64,16 @@ const musdBalanceStyles = () =>
   });
 
 interface MusdBalanceCardProps {
-  chainId: Hex;
   style?: ViewStyle;
 }
 
-const MusdBalanceCard = ({ chainId, style }: MusdBalanceCardProps) => {
+const MusdBalanceCard = ({ style }: MusdBalanceCardProps) => {
   const { styles } = useStyles(musdBalanceStyles, {});
+  const { styles: iconStyles } = useStyles(musdIconStyles, {});
+  const navigation = useNavigation();
 
-  const musdBalance = useSelector((state: RootState) =>
-    selectAsset(state, {
-      address: toFormattedAddress(MUSD_TOKEN_ADDRESS),
-      chainId,
-      isStaked: false,
-    }),
-  );
+  const { fiatBalanceAggregatedFormatted, tokenBalanceAggregated } =
+    useMusdBalance();
 
   const percentChange = MUSD_CONVERSION_APY;
   const percentChangeFormatted =
@@ -135,14 +83,39 @@ const MusdBalanceCard = ({ chainId, style }: MusdBalanceCardProps) => {
   const percentChangeColor =
     percentChange > 0 ? TextColor.Success : TextColor.Error;
 
+  const handleOpen = useCallback(() => {
+    navigation.navigate(Routes.EARN.MODALS.ROOT, {
+      screen: Routes.EARN.MODALS.MUSD_BALANCES_BY_NETWORK,
+    });
+  }, [navigation]);
+
+  const aggregatedDisplayValue =
+    fiatBalanceAggregatedFormatted ??
+    strings('earn.musd_conversion.balance_amount', {
+      amount: tokenBalanceAggregated,
+    });
+
   return (
-    <View style={[styles.container, style]}>
-      {/* Left side: Token icon and info */}
+    <Pressable
+      style={({ pressed }) => [
+        styles.container,
+        style,
+        pressed ? styles.containerPressed : undefined,
+      ]}
+      onPress={handleOpen}
+      accessibilityRole="button"
+      testID="musd-balance-card"
+    >
+      {/* Left side: Token icon and info (aggregated, no network icons) */}
       <View style={styles.left}>
-        <MusdBadge chainId={chainId} size={32} />
+        <Image
+          source={MUSD_TOKEN.imageSource}
+          style={iconStyles.tokenIcon}
+          testID="musd-token-icon"
+        />
         <View>
           <Text variant={TextVariant.BodyMDMedium}>
-            {musdBalance?.balanceFiat ?? '--.--'}
+            {aggregatedDisplayValue}
           </Text>
           <Text
             variant={TextVariant.BodySMMedium}
@@ -151,8 +124,8 @@ const MusdBalanceCard = ({ chainId, style }: MusdBalanceCardProps) => {
             {MUSD_TOKEN.symbol}
           </Text>
         </View>
-        <View></View>
       </View>
+
       {/* Right side: No boost and boost amount */}
       <View style={styles.right}>
         {/* TODO: Replace with actual boost value */}
@@ -163,7 +136,7 @@ const MusdBalanceCard = ({ chainId, style }: MusdBalanceCardProps) => {
           {percentChangeFormatted}
         </Text>
       </View>
-    </View>
+    </Pressable>
   );
 };
 
@@ -357,7 +330,7 @@ const MusdQuickConvertView = () => {
             {strings('earn.musd_conversion.your_musd')}
           </Text>
           <MusdBalanceCard
-            chainId={CHAIN_IDS.MAINNET}
+            // TODO: Child component should have its own stylesheet.
             style={styles.balanceCardContainer}
           />
         </View>
