@@ -53,6 +53,10 @@ describe('usePredictBalance', () => {
     mockEnsurePolygonNetworkExists.mockResolvedValue(undefined);
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   describe('initial state', () => {
     it('returns undefined data and no fetching when disabled', () => {
       const { Wrapper } = createWrapper();
