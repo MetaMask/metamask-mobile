@@ -163,9 +163,9 @@ jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
 jest.mock(
-  '../../../../../component-library/components-temp/HeaderCenter',
+  '../../../../../component-library/components-temp/HeaderCompactStandard',
   () => ({
-    getHeaderCenterNavbarOptions: jest.fn(() => ({})),
+    getHeaderCompactStandardNavbarOptions: jest.fn(() => ({})),
   }),
 );
 
@@ -273,20 +273,18 @@ jest.mock(
       onChangeText,
       testID,
       value,
-      showClearButton,
       onPressClearButton,
     }: {
       onChangeText: (text: string) => void;
       testID: string;
       value?: string;
-      showClearButton?: boolean;
       onPressClearButton?: () => void;
     }) =>
       createElement(
         View,
         null,
         createElement(TextInput, { onChangeText, testID, value }),
-        showClearButton &&
+        !!value &&
           createElement(TouchableOpacity, {
             testID: 'bridge-token-search-clear-button',
             onPress: onPressClearButton,
