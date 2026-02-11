@@ -826,7 +826,7 @@ describe('PerpsMarketDetailsView', () => {
   });
 
   describe('Button rendering scenarios', () => {
-    it('renders add funds button when user balance is zero', () => {
+    it('shows long/short buttons when user balance is zero so user can trade', () => {
       // Override with zero balance
       mockUsePerpsAccount.mockReturnValue({
         account: {
@@ -850,7 +850,7 @@ describe('PerpsMarketDetailsView', () => {
         isInitialLoading: false,
       });
 
-      const { getByText, getByTestId, queryByTestId } = renderWithProvider(
+      const { getByTestId, queryByText, queryByTestId } = renderWithProvider(
         <PerpsConnectionProvider>
           <PerpsMarketDetailsView />
         </PerpsConnectionProvider>,
@@ -859,20 +859,17 @@ describe('PerpsMarketDetailsView', () => {
         },
       );
 
-      // Shows add funds message and button
-      expect(getByText('Add funds to start trading perps')).toBeTruthy();
-      expect(getByText('Add funds')).toBeTruthy();
-
-      // When balance is zero, the Add Funds button should be present
-      // and the long/short buttons should not be present
+      // When balance is zero, trade buttons are still shown so user can trade
       expect(
-        getByTestId(PerpsMarketDetailsViewSelectorsIDs.ADD_FUNDS_BUTTON),
+        getByTestId(PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON),
       ).toBeTruthy();
       expect(
-        queryByTestId(PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON),
-      ).toBeNull();
+        getByTestId(PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON),
+      ).toBeTruthy();
+      // No add funds banner
+      expect(queryByText('Add funds to start trading perps')).toBeNull();
       expect(
-        queryByTestId(PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON),
+        queryByTestId(PerpsMarketDetailsViewSelectorsIDs.ADD_FUNDS_BUTTON),
       ).toBeNull();
     });
 
@@ -914,7 +911,7 @@ describe('PerpsMarketDetailsView', () => {
         positionOpenedTimestamp: undefined,
       });
 
-      const { getByTestId, queryByText, queryByTestId } = renderWithProvider(
+      const { getByTestId, queryByTestId } = renderWithProvider(
         <PerpsConnectionProvider>
           <PerpsMarketDetailsView />
         </PerpsConnectionProvider>,
@@ -938,14 +935,11 @@ describe('PerpsMarketDetailsView', () => {
       expect(
         queryByTestId(PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON),
       ).toBeNull();
-
-      // Does not show add funds message
-      expect(queryByText('Add funds to start trading perps')).toBeNull();
     });
 
     it('renders long/short buttons when user has balance and no existing position', () => {
       // Test with default mocks (non-zero balance, no existing position)
-      const { getByTestId, queryByText } = renderWithProvider(
+      const { getByTestId } = renderWithProvider(
         <PerpsConnectionProvider>
           <PerpsMarketDetailsView />
         </PerpsConnectionProvider>,
@@ -961,9 +955,6 @@ describe('PerpsMarketDetailsView', () => {
       expect(
         getByTestId(PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON),
       ).toBeTruthy();
-
-      // Does not show add funds message
-      expect(queryByText('Add funds to start trading perps')).toBeNull();
     });
   });
 
