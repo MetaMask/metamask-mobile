@@ -11,7 +11,7 @@ import { fetchAssetMetadata } from '../../../../components/UI/Bridge/hooks/useAs
 import { TokenI } from '../../../../components/UI/Tokens/types';
 import Routes from '../../../../constants/navigation/Routes';
 import NavigationService from '../../../NavigationService';
-import DevLogger from '../../../SDKConnect/utils/DevLogger';
+import Logger from '../../../../util/Logger';
 
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
@@ -30,7 +30,7 @@ const buildAssetNavigationParams = async ({
 
     const metadata = await fetchAssetMetadata(assetId, chainId);
     if (!metadata) {
-      DevLogger.log(
+      Logger.log(
         '[handleAssetUrl] Token metadata not found for asset:',
         assetId,
       );
@@ -93,7 +93,7 @@ const handleTokenDetailsNavigation = (token?: TokenI | null) => {
  * - https://link.metamask.io/asset?assetId=eip155:1/erc20:0x...
  */
 export const handleAssetUrl = async ({ assetPath }: HandleAssetUrlParams) => {
-  DevLogger.log(
+  Logger.log(
     '[handleAssetUrl] Starting asset deeplink handling with path:',
     assetPath,
   );
@@ -105,12 +105,12 @@ export const handleAssetUrl = async ({ assetPath }: HandleAssetUrlParams) => {
     const assetParam = urlParams.get('assetId');
 
     if (!assetParam) {
-      DevLogger.log('[handleAssetUrl] Missing asset parameter');
+      Logger.log('[handleAssetUrl] Missing asset parameter');
       return;
     }
 
     if (!isCaipAssetType(assetParam as CaipAssetType)) {
-      DevLogger.log(
+      Logger.log(
         '[handleAssetUrl] Invalid CAIP-19 asset parameter:',
         assetParam,
       );
@@ -125,7 +125,7 @@ export const handleAssetUrl = async ({ assetPath }: HandleAssetUrlParams) => {
 
     handleTokenDetailsNavigation(assetParams);
   } catch (error) {
-    DevLogger.log('[handleAssetUrl] Failed to handle asset deeplink:', error);
+    Logger.log('[handleAssetUrl] Failed to handle asset deeplink:', error);
     handleTokenDetailsNavigation(null);
   }
 };

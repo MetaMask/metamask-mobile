@@ -69,6 +69,7 @@ interface AssetMetadata {
   symbol: string;
   name: string;
   decimals: number;
+  iconUrl?: string;
   rwaData?: TokenRwaData;
 }
 
@@ -95,14 +96,14 @@ export const fetchAssetMetadata = async (
   }
 
   try {
-    const url = `${TOKEN_API_V3_BASE_URL}/assets?assetIds=${assetId}&includeRwaData=true`;
+    const url = `${TOKEN_API_V3_BASE_URL}/assets?assetIds=${assetId}&includeIconUrl=true&includeRwaData=true`;
     const [assetMetadata]: AssetMetadata[] = await handleFetch(url);
 
     const commonFields = {
       symbol: assetMetadata.symbol,
       decimals: assetMetadata.decimals,
       name: assetMetadata.name,
-      image: getAssetImageUrl(assetId, chainIdInCaip),
+      image: getAssetImageUrl(assetId, chainIdInCaip) || assetMetadata.iconUrl,
       rwaData: assetMetadata.rwaData,
       assetId,
     };
