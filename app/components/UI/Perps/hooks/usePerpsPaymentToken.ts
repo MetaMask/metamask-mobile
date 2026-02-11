@@ -13,8 +13,22 @@ export function usePerpsPaymentToken(): UsePerpsPaymentTokenResult {
 
   const onPaymentTokenChange = useCallback(
     (token: AssetType | null) => {
-      Engine.context.PerpsController?.setSelectedPaymentToken?.(token);
-      if (token) {
+      const payload =
+        token != null &&
+        typeof token.address === 'string' &&
+        typeof token.chainId === 'string'
+          ? {
+              description: token.description,
+              address: token.address,
+              chainId: token.chainId,
+            }
+          : null;
+      Engine.context.PerpsController?.setSelectedPaymentToken?.(payload);
+      if (
+        token &&
+        typeof token.address === 'string' &&
+        typeof token.chainId === 'string'
+      ) {
         setPayToken({
           address: token.address as Hex,
           chainId: token.chainId as Hex,

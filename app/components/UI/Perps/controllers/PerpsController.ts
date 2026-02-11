@@ -127,7 +127,6 @@ import type { Json } from '@metamask/utils';
 import { wait } from '../utils/wait';
 import { getSelectedEvmAccount } from '../utils/accountUtils';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
-import type { AssetType } from '../../../Views/confirmations/types/token';
 
 /**
  * Minimal payment token stored in PerpsController state.
@@ -3012,7 +3011,7 @@ export class PerpsController extends BaseController<
       orderType?: OrderType;
       /** When user used pay-with-token in PerpsPayRow: minimal token shape to restore selection */
       selectedPaymentToken?: {
-        description: string;
+        description?: string;
         address: string;
         chainId: string;
       } | null;
@@ -3192,10 +3191,16 @@ export class PerpsController extends BaseController<
   /**
    * Set the selected payment token for the Perps order/deposit flow.
    * Pass null or a token with description PERPS_CONSTANTS.PerpsBalanceTokenDescription to select Perps balance.
-   * Only required fields (description, address, chainId) are stored in state.
+   * Only required fields (address, chainId) are stored; description is optional.
    */
-  setSelectedPaymentToken(token: AssetType | null): void {
-    let normalized: AssetType | null = null;
+  setSelectedPaymentToken(
+    token: { description?: string; address: string; chainId: string } | null,
+  ): void {
+    let normalized: {
+      description?: string;
+      address: string;
+      chainId: string;
+    } | null = null;
     if (
       token != null &&
       token.description !== PERPS_CONSTANTS.PerpsBalanceTokenDescription
@@ -3206,7 +3211,9 @@ export class PerpsController extends BaseController<
     let snapshot: Json | null = null;
     if (normalized !== null) {
       snapshot = {
-        description: normalized.description,
+        ...(normalized.description !== undefined && {
+          description: normalized.description,
+        }),
         address: normalized.address,
         chainId: normalized.chainId,
       } as unknown as Json;

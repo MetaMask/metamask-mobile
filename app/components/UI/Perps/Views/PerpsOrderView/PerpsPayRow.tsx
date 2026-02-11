@@ -38,7 +38,10 @@ import {
   PERPS_BALANCE_PLACEHOLDER_ADDRESS,
 } from '../../constants/perpsConfig';
 import { PERPS_BALANCE_ICON_URI } from '../../hooks/usePerpsBalanceTokenFilter';
-import { useIsPerpsBalanceSelected } from '../../hooks/useIsPerpsBalanceSelected';
+import {
+  useIsPerpsBalanceSelected,
+  usePerpsPayWithToken,
+} from '../../hooks/useIsPerpsBalanceSelected';
 import { Hex } from '@metamask/utils';
 import { usePerpsSelector } from '../../hooks/usePerpsSelector';
 import { selectPendingTradeConfiguration } from '../../controllers/selectors';
@@ -105,11 +108,20 @@ export const PerpsPayRow = ({
   const pendingConfig = usePerpsSelector((state) =>
     selectPendingTradeConfiguration(state, initialAsset),
   );
+  const selectedPaymentToken = usePerpsPayWithToken();
 
   const pendingConfigSelectedPaymentToken = pendingConfig?.selectedPaymentToken;
 
   useEffect(() => {
-    if (!pendingConfig || !pendingConfigSelectedPaymentToken) return;
+    if (!pendingConfigSelectedPaymentToken) {
+      Engine.context.PerpsController?.setSelectedPaymentToken?.(null);
+    }
+  }, [pendingConfigSelectedPaymentToken]);
+
+  useEffect(() => {
+    if (!pendingConfigSelectedPaymentToken || !selectedPaymentToken) {
+      return;
+    }
 
     if (
       payToken?.address !== pendingConfigSelectedPaymentToken?.address ||
@@ -119,12 +131,12 @@ export const PerpsPayRow = ({
         address: pendingConfigSelectedPaymentToken.address as Hex,
         chainId: pendingConfigSelectedPaymentToken.chainId as Hex,
       });
-      Engine.context.PerpsController?.savePendingTradeConfiguration(
-        initialAsset,
-        {
-          selectedPaymentToken: pendingConfigSelectedPaymentToken,
-        },
-      );
+
+      Engine.context.PerpsController?.setSelectedPaymentToken?.({
+        description: pendingConfigSelectedPaymentToken.description,
+        address: pendingConfigSelectedPaymentToken.address as Hex,
+        chainId: pendingConfigSelectedPaymentToken.chainId as Hex,
+      });
     }
   }, [
     payToken,
@@ -132,6 +144,7 @@ export const PerpsPayRow = ({
     setPayToken,
     pendingConfig,
     initialAsset,
+    selectedPaymentToken,
   ]);
 
   const {

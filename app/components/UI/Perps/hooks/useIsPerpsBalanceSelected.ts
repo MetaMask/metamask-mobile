@@ -13,7 +13,7 @@ export function useIsPerpsBalanceSelected(): boolean {
 }
 
 export function usePerpsPayWithToken(): {
-  description: string;
+  description?: string;
   address: string;
   chainId: string;
 } | null {
@@ -24,14 +24,9 @@ export function usePerpsPayWithToken(): {
     .description;
   const address = (selectedPaymentToken as { address?: unknown }).address;
   const chainId = (selectedPaymentToken as { chainId?: unknown }).chainId;
-  if (
-    typeof description !== 'string' ||
-    typeof address !== 'string' ||
-    typeof chainId !== 'string'
-  )
-    return null;
+  if (typeof address !== 'string' || typeof chainId !== 'string') return null;
   return {
-    description,
+    description: typeof description === 'string' ? description : undefined,
     address,
     chainId,
   };
