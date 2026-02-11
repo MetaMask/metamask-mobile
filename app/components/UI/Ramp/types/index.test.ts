@@ -1,8 +1,4 @@
-import {
-  getQuoteProviderName,
-  isNativeProvider,
-  type Quote,
-} from './index';
+import { getQuoteProviderName, isNativeProvider, type Quote } from './index';
 
 describe('getQuoteProviderName', () => {
   it('returns providerInfo.name when present (canonical display name)', () => {
