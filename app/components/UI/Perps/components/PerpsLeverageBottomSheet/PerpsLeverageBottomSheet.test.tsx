@@ -1226,7 +1226,17 @@ describe('PerpsLeverageBottomSheet', () => {
     });
 
     it('shows warning text with percentage when liquidation data is available', () => {
-      // Arrange - Default mock returns valid liquidation price
+      // Arrange - Explicitly mock to ensure known liquidation price
+      const mockUsePerpsLiquidationPrice = jest.requireMock(
+        '../../hooks/usePerpsLiquidationPrice',
+      );
+      mockUsePerpsLiquidationPrice.usePerpsLiquidationPrice.mockReturnValueOnce(
+        {
+          liquidationPrice: '2400.00', // 3000 * (1 - 1/5) = 2400, gives 20% drop
+          isCalculating: false,
+          error: null,
+        },
+      );
 
       // Act
       render(<PerpsLeverageBottomSheet {...defaultProps} />);

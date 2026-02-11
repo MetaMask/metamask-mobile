@@ -341,11 +341,10 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
   const [isDragging, setIsDragging] = useState(false);
   const [inputMethod, setInputMethod] = useState<'slider' | 'preset'>('slider');
 
-  // Cache last valid liquidation values to avoid skeleton blinking.
-  // Values update in-place (like the current price row) instead of
+  // Cache last valid liquidation price to avoid skeleton blinking.
+  // The price updates in-place (like the current price row) instead of
   // toggling between a skeleton placeholder and text.
   const lastValidLiquidationPrice = useRef<number | null>(null);
-  const lastValidLiquidationPercentage = useRef<string | null>(null);
 
   const currentLivePrice = usePerpsLivePrices({
     symbols: [asset],
@@ -396,7 +395,6 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
       setDraggingLeverage(initialLeverage);
       setIsDragging(false);
       lastValidLiquidationPrice.current = null;
-      lastValidLiquidationPercentage.current = null;
     }
   }, [isVisible, initialLeverage]);
 
@@ -468,23 +466,15 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
     draggingLeverage,
   ]);
 
-  // Cache the last valid liquidation percentage for display continuity
-  useEffect(() => {
-    if (liquidationDropPercentage > 0) {
-      lastValidLiquidationPercentage.current = `${liquidationDropPercentage.toFixed(1)}%`;
-    }
-  }, [liquidationDropPercentage]);
-
-  // Resolve display values: prefer live data, fall back to cached, then placeholder
+  // Resolve display values: prefer live data, fall back to cached, then placeholder.
+  // The percentage is computed synchronously from leverage/price so it's always available.
+  // Only the liquidation price (from the async API) needs the ref cache.
   const displayLiquidationPrice =
     !Number.isNaN(dynamicLiquidationPrice) && dynamicLiquidationPrice > 0
       ? dynamicLiquidationPrice
       : lastValidLiquidationPrice.current;
 
-  const displayLiquidationPercentage =
-    liquidationDropPercentage > 0
-      ? `${liquidationDropPercentage.toFixed(1)}%`
-      : lastValidLiquidationPercentage.current;
+  const displayLiquidationPercentage = `${liquidationDropPercentage.toFixed(1)}%`;
 
   // Generate dynamic leverage options based on maxLeverage
   const quickSelectValues = useMemo(() => {
@@ -639,21 +629,13 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
               variant={TextVariant.BodySM}
               style={[warningStyles.textStyle, styles.warningText]}
             >
-              {displayLiquidationPercentage
-                ? strings('perps.order.leverage_modal.liquidation_warning', {
-                    direction:
-                      direction === 'long'
-                        ? strings('perps.order.leverage_modal.drops')
-                        : strings('perps.order.leverage_modal.rises'),
-                    percentage: displayLiquidationPercentage,
-                  })
-                : strings('perps.order.leverage_modal.liquidation_warning', {
-                    direction:
-                      direction === 'long'
-                        ? strings('perps.order.leverage_modal.drops')
-                        : strings('perps.order.leverage_modal.rises'),
-                    percentage: '--',
-                  })}
+              {strings('perps.order.leverage_modal.liquidation_warning', {
+                direction:
+                  direction === 'long'
+                    ? strings('perps.order.leverage_modal.drops')
+                    : strings('perps.order.leverage_modal.rises'),
+                percentage: displayLiquidationPercentage,
+              })}
             </Text>
           </View>
         </View>
