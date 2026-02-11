@@ -185,12 +185,20 @@ function BuildQuote() {
       selectedQuote.quote?.paymentMethod ??
       (selectedQuote as { paymentMethod?: string }).paymentMethod;
 
-    if (
-      quoteAmount !== amountAsNumber ||
-      (quotePaymentMethod != null &&
-        selectedPaymentMethod?.id !== quotePaymentMethod)
-    ) {
+    // Validate amount matches
+    if (quoteAmount !== amountAsNumber) {
       return;
+    }
+
+    // Validate payment method context matches
+    if (quotePaymentMethod != null) {
+      // Quote requires a payment method - must have one selected and it must match
+      if (
+        !selectedPaymentMethod ||
+        selectedPaymentMethod.id !== quotePaymentMethod
+      ) {
+        return;
+      }
     }
 
     // Native/whitelabel provider (e.g. Transak Native) -> deposit flow
@@ -252,21 +260,30 @@ function BuildQuote() {
 
   const quoteMatchesCurrentContext = useMemo(() => {
     if (!selectedQuote) return false;
+
     const quoteAmount =
       selectedQuote.quote?.amountIn ??
       (selectedQuote as { amountIn?: number }).amountIn;
     const quotePaymentMethod =
       selectedQuote.quote?.paymentMethod ??
       (selectedQuote as { paymentMethod?: string }).paymentMethod;
+
+    // Amount must match
     if (quoteAmount !== amountAsNumber) return false;
-    if (
-      quotePaymentMethod != null &&
-      selectedPaymentMethod?.id !== quotePaymentMethod
-    ) {
-      return false;
+
+    // Payment method context must match
+    if (quotePaymentMethod != null) {
+      // Quote requires a payment method - must have one selected and it must match
+      if (
+        !selectedPaymentMethod ||
+        selectedPaymentMethod.id !== quotePaymentMethod
+      ) {
+        return false;
+      }
     }
+
     return true;
-  }, [selectedQuote, amountAsNumber, selectedPaymentMethod?.id]);
+  }, [selectedQuote, amountAsNumber, selectedPaymentMethod]);
 
   const canContinue =
     hasAmount &&
