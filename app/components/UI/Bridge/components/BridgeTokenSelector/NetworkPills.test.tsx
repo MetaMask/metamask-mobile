@@ -27,12 +27,42 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => ({ style: (...args: unknown[]) => args }),
 }));
 
+jest.mock('../../../../../util/networks', () => ({
+  getNetworkImageSource: jest.fn(() => ({ uri: 'mock-network-icon' })),
+}));
+
 jest.mock('@metamask/design-system-react-native', () => {
   const { createElement } = jest.requireActual('react');
-  const { Text } = jest.requireActual('react-native');
+  const { Text, View } = jest.requireActual('react-native');
   return {
+    AvatarBaseShape: { Circle: 'circle', Square: 'square' },
+    AvatarNetwork: ({
+      name,
+      testID,
+    }: {
+      name?: string;
+      testID?: string;
+      src?: unknown;
+      size?: string;
+      shape?: string;
+    }) => createElement(View, { testID: testID ?? `avatar-network-${name}` }),
+    AvatarNetworkSize: { Xs: '16', Sm: '24', Md: '32' },
+    Box: ({
+      children,
+      ...props
+    }: {
+      children: React.ReactNode;
+      [key: string]: unknown;
+    }) => createElement(View, props, children),
+    BoxAlignItems: { Center: 'center' },
+    BoxFlexDirection: { Row: 'row' },
+    FontWeight: { Medium: '500' },
     Text: ({ children }: { children: React.ReactNode }) =>
       createElement(Text, null, children),
+    TextColor: {
+      PrimaryInverse: 'text-primary-inverse',
+      TextDefault: 'text-default',
+    },
     TextVariant: { BodySm: 'BodySm', BodyMd: 'BodyMd' },
   };
 });
@@ -80,6 +110,20 @@ describe('NetworkPills', () => {
       expect(getByText('Ethereum')).toBeTruthy();
       expect(getByText('Polygon')).toBeTruthy();
       expect(getByText('Optimism')).toBeTruthy();
+    });
+
+    it('renders network icons for each chain pill', () => {
+      const { getByTestId } = render(
+        <NetworkPills
+          selectedChainId={undefined}
+          onChainSelect={mockOnChainSelect}
+          type={TokenSelectorType.Source}
+        />,
+      );
+
+      expect(getByTestId('avatar-network-Ethereum')).toBeTruthy();
+      expect(getByTestId('avatar-network-Polygon')).toBeTruthy();
+      expect(getByTestId('avatar-network-Optimism')).toBeTruthy();
     });
   });
 

@@ -1,26 +1,24 @@
-import AccountDetails from '../../../../../e2e/pages/MultichainAccounts/AccountDetails';
-import AccountListBottomSheet from '../../../../../e2e/pages/wallet/AccountListBottomSheet';
+import AccountDetails from '../../../../page-objects/MultichainAccounts/AccountDetails';
+import AccountListBottomSheet from '../../../../page-objects/wallet/AccountListBottomSheet';
 import Assertions from '../../../../framework/Assertions';
-import BrowserView from '../../../../../e2e/pages/Browser/BrowserView';
-import ConfirmationUITypes from '../../../../../e2e/pages/Browser/Confirmations/ConfirmationUITypes';
+import BrowserView from '../../../../page-objects/Browser/BrowserView';
+import ConfirmationUITypes from '../../../../page-objects/Browser/Confirmations/ConfirmationUITypes';
 import FixtureBuilder from '../../../../framework/fixtures/FixtureBuilder';
-import FooterActions from '../../../../../e2e/pages/Browser/Confirmations/FooterActions';
-import NetworkListModal from '../../../../../e2e/pages/Network/NetworkListModal';
-import RowComponents from '../../../../../e2e/pages/Browser/Confirmations/RowComponents';
-import SwitchAccountModal from '../../../../../e2e/pages/wallet/SwitchAccountModal';
-import TabBarComponent from '../../../../../e2e/pages/wallet/TabBarComponent';
-import TestDApp from '../../../../../e2e/pages/Browser/TestDApp';
-import WalletView from '../../../../../e2e/pages/wallet/WalletView';
+import FooterActions from '../../../../page-objects/Browser/Confirmations/FooterActions';
+import NetworkListModal from '../../../../page-objects/Network/NetworkListModal';
+import RowComponents from '../../../../page-objects/Browser/Confirmations/RowComponents';
+import SwitchAccountModal from '../../../../page-objects/wallet/SwitchAccountModal';
+import TabBarComponent from '../../../../page-objects/wallet/TabBarComponent';
+import TestDApp from '../../../../page-objects/Browser/TestDApp';
+import WalletView from '../../../../page-objects/wallet/WalletView';
 import { SIMULATION_ENABLED_NETWORKS_MOCK } from '../../../../api-mocking/mock-responses/simulations';
 import {
   AnvilPort,
   buildPermissions,
 } from '../../../../framework/fixtures/FixtureUtils';
-import {
-  loginToApp,
-  navigateToBrowserView,
-} from '../../../../../e2e/viewHelper';
-import { SmokeConfirmations } from '../../../../../e2e/tags';
+import { loginToApp } from '../../../../flows/wallet.flow';
+import { navigateToBrowserView } from '../../../../flows/browser.flow';
+import { SmokeConfirmations } from '../../../../tags';
 import { withFixtures } from '../../../../framework/fixtures/FixtureHelper';
 import { DappVariants } from '../../../../framework/Constants';
 import {
