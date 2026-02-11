@@ -1,5 +1,8 @@
 import { useSelector } from 'react-redux';
-import { selectIsPerpsBalanceSelected } from '../selectors/perpsController';
+import {
+  selectIsPerpsBalanceSelected,
+  selectPerpsPayWithToken,
+} from '../selectors/perpsController';
 
 /**
  * Returns whether the user selected the synthetic "Perps balance" option.
@@ -7,4 +10,29 @@ import { selectIsPerpsBalanceSelected } from '../selectors/perpsController';
  */
 export function useIsPerpsBalanceSelected(): boolean {
   return useSelector(selectIsPerpsBalanceSelected);
+}
+
+export function usePerpsPayWithToken(): {
+  description: string;
+  address: string;
+  chainId: string;
+} | null {
+  const selectedPaymentToken = useSelector(selectPerpsPayWithToken);
+  if (!selectedPaymentToken) return null;
+  if (typeof selectedPaymentToken !== 'object') return null;
+  const description = (selectedPaymentToken as { description?: unknown })
+    .description;
+  const address = (selectedPaymentToken as { address?: unknown }).address;
+  const chainId = (selectedPaymentToken as { chainId?: unknown }).chainId;
+  if (
+    typeof description !== 'string' ||
+    typeof address !== 'string' ||
+    typeof chainId !== 'string'
+  )
+    return null;
+  return {
+    description,
+    address,
+    chainId,
+  };
 }

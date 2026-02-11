@@ -2,8 +2,7 @@ import { useCallback, useEffect } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import Engine from '../../../../core/Engine';
 import type { OrderFormState } from '../types/perps-types';
-import { selectSelectedPaymentToken } from '../controllers/selectors';
-import { usePerpsSelector } from './usePerpsSelector';
+import { usePerpsPayWithToken } from './useIsPerpsBalanceSelected';
 
 /**
  * Hook to save pending trade configuration when user navigates away from the trade screen
@@ -11,7 +10,7 @@ import { usePerpsSelector } from './usePerpsSelector';
  */
 export function usePerpsSavePendingConfig(orderForm: OrderFormState) {
   const { PerpsController } = Engine.context;
-  const selectedPaymentToken = usePerpsSelector(selectSelectedPaymentToken);
+  const selectedPaymentToken = usePerpsPayWithToken();
 
   const config = useCallback(
     () => ({
@@ -21,7 +20,13 @@ export function usePerpsSavePendingConfig(orderForm: OrderFormState) {
       stopLossPrice: orderForm.stopLossPrice,
       limitPrice: orderForm.limitPrice,
       orderType: orderForm.type,
-      selectedPaymentToken: selectedPaymentToken ?? null,
+      selectedPaymentToken: selectedPaymentToken
+        ? {
+            description: selectedPaymentToken.description,
+            address: selectedPaymentToken.address,
+            chainId: selectedPaymentToken.chainId,
+          }
+        : null,
     }),
     [
       orderForm.amount,

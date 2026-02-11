@@ -1,6 +1,6 @@
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { useNavigation } from '@react-navigation/native';
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import { StyleSheet, TouchableOpacity } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Badge, {
@@ -40,6 +40,9 @@ import {
 import { PERPS_BALANCE_ICON_URI } from '../../hooks/usePerpsBalanceTokenFilter';
 import { useIsPerpsBalanceSelected } from '../../hooks/useIsPerpsBalanceSelected';
 import { Hex } from '@metamask/utils';
+import { usePerpsSelector } from '../../hooks/usePerpsSelector';
+import { selectPendingTradeConfiguration } from '../../controllers/selectors';
+import Engine from '../../../../../core/Engine';
 
 const tokenIconStyles = StyleSheet.create({
   iconSmall: {
@@ -84,19 +87,52 @@ export interface PerpsPayRowProps {
   onPayWithInfoPress?: () => void;
   /** When true, row is stacked below another box (e.g. TP/SL); parent provides background and border radius */
   embeddedInStack?: boolean;
+  initialAsset: string;
 }
 
 export const PerpsPayRow = ({
   onPayWithInfoPress,
   embeddedInStack = false,
+  initialAsset,
 }: PerpsPayRowProps) => {
   const navigation = useNavigation();
   const { colors } = useTheme();
   const styles = createPayRowStyles(colors);
   const { setConfirmationMetric } = useConfirmationMetricEvents();
-  const { payToken } = useTransactionPayToken();
+  const { payToken, setPayToken } = useTransactionPayToken();
   const transactionMeta = useTransactionMetadataRequest();
   const matchesPerpsBalance = useIsPerpsBalanceSelected();
+  const pendingConfig = usePerpsSelector((state) =>
+    selectPendingTradeConfiguration(state, initialAsset),
+  );
+
+  const pendingConfigSelectedPaymentToken = pendingConfig?.selectedPaymentToken;
+
+  useEffect(() => {
+    if (!pendingConfig || !pendingConfigSelectedPaymentToken) return;
+
+    if (
+      payToken?.address !== pendingConfigSelectedPaymentToken?.address ||
+      payToken?.chainId !== pendingConfigSelectedPaymentToken?.chainId
+    ) {
+      setPayToken({
+        address: pendingConfigSelectedPaymentToken.address as Hex,
+        chainId: pendingConfigSelectedPaymentToken.chainId as Hex,
+      });
+      Engine.context.PerpsController?.savePendingTradeConfiguration(
+        initialAsset,
+        {
+          selectedPaymentToken: pendingConfigSelectedPaymentToken,
+        },
+      );
+    }
+  }, [
+    payToken,
+    pendingConfigSelectedPaymentToken,
+    setPayToken,
+    pendingConfig,
+    initialAsset,
+  ]);
 
   const {
     txParams: { from },
