@@ -2824,6 +2824,14 @@
   "address_selector": {
     "select_an_address": "Select an address"
   },
+  "accounts_menu": {
+    "manage": "Manage",
+    "resources": "Resources",
+    "permissions": "Permissions",
+    "card_title": "MetaMask Card",
+    "settings": "Settings",
+    "log_out": "Log out"
+  },
   "app_settings": {
     "enabling_notifications": "Enabling notifications...",
     "updating_notifications": "Updating notifications...",
