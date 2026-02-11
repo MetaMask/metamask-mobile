@@ -25,6 +25,17 @@ export enum WebSocketConnectionState {
   Disconnecting = 'disconnecting',
 }
 
+/** Provider-agnostic raw ledger update. Fields match the common shape across providers. */
+export interface RawLedgerUpdate {
+  hash: string;
+  time: number;
+  delta: {
+    type: string;
+    usdc?: string;
+    coin?: string;
+  };
+}
+
 // User history item for deposits and withdrawals
 export interface UserHistoryItem {
   id: string;
@@ -630,11 +641,15 @@ export interface GetPositionsParams {
   accountId?: CaipAccountId; // Optional: defaults to selected account
   includeHistory?: boolean; // Optional: include historical positions
   skipCache?: boolean; // Optional: bypass WebSocket cache and force API call (default: false)
+  readOnly?: boolean; // Optional: lightweight mode - skip full initialization, use standalone HTTP client (no wallet/WebSocket needed)
+  userAddress?: string; // Optional: required when readOnly is true - user address to query positions for
 }
 
 export interface GetAccountStateParams {
   accountId?: CaipAccountId; // Optional: defaults to selected account
   source?: string; // Optional: source of the call for tracing (e.g., 'health_check', 'initial_connection')
+  readOnly?: boolean; // Optional: lightweight mode - skip full initialization, use standalone HTTP client (no wallet/WebSocket needed)
+  userAddress?: string; // Optional: required when readOnly is true - user address to query account state for
 }
 
 export interface GetOrderFillsParams {
@@ -966,7 +981,7 @@ export interface PerpsProvider {
     accountId?: string;
     startTime?: number;
     endTime?: number;
-  }): Promise<RawHyperLiquidLedgerUpdate[]>;
+  }): Promise<RawLedgerUpdate[]>;
 
   /**
    * Get user history (deposits, withdrawals, transfers)
@@ -1373,6 +1388,7 @@ export interface PerpsRewardsOperations {
  * - Observability: logger, debugLogger, metrics, performance, tracer
  * - Platform: streamManager (mobile/extension specific)
  * - Rewards: fee discount operations
+ * - Cache: cache invalidation for readOnly queries
  *
  * Controller access uses messenger pattern (messenger.call()).
  */
@@ -1405,6 +1421,41 @@ export interface PerpsPlatformDependencies {
 
   // === Market Data Formatting (platform-specific number formatting) ===
   marketDataFormatters: MarketDataFormatters;
+
+  // === Cache Invalidation (for readOnly query caches) ===
+  cacheInvalidator: PerpsCacheInvalidator;
+}
+
+/**
+ * Cache types that can be invalidated.
+ * Used by readOnly query caches (e.g., usePerpsPositionForAsset).
+ */
+export type PerpsCacheType = 'positions' | 'accountState' | 'markets';
+
+/**
+ * Parameters for invalidating a specific cache type.
+ */
+export type InvalidateCacheParams = {
+  /** The type of cache to invalidate */
+  cacheType: PerpsCacheType;
+};
+
+/**
+ * Cache invalidation interface for readOnly query caches.
+ * Allows services to signal when data has changed without depending on
+ * mobile-specific implementations.
+ */
+export interface PerpsCacheInvalidator {
+  /**
+   * Invalidate a specific cache type.
+   * Notifies all subscribers that cached data is stale.
+   */
+  invalidate(params: InvalidateCacheParams): void;
+
+  /**
+   * Invalidate all cache types.
+   */
+  invalidateAll(): void;
 }
 
 // ============================================================================

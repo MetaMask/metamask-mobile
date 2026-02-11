@@ -70,6 +70,12 @@ export const createMockInfrastructure =
         formatPercentage: jest.fn((p: number) => `${p.toFixed(2)}%`),
         priceRangesUniversal: [],
       },
+
+      // === Cache Invalidation ===
+      cacheInvalidator: {
+        invalidate: jest.fn(),
+        invalidateAll: jest.fn(),
+      },
     }) as unknown as jest.Mocked<PerpsPlatformDependencies>;
 
 /**

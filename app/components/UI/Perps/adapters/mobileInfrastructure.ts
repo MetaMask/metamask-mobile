@@ -24,7 +24,9 @@ import {
   type PerpsAnalyticsProperties,
   type VersionGatedFeatureFlag,
   type MarketDataFormatters,
+  type InvalidateCacheParams,
 } from '@metamask/perps-controller';
+import { PerpsCacheInvalidator } from '../services/PerpsCacheInvalidator';
 import { validatedVersionGatedFeatureFlag } from '../../../../util/remoteFeatureFlag';
 import {
   formatVolume,
@@ -138,6 +140,22 @@ function createStreamManagerAdapter() {
 }
 
 /**
+ * Creates a cache invalidator adapter that delegates to the mobile singleton.
+ * This allows controller services to invalidate caches without direct dependency
+ * on the mobile-specific PerpsCacheInvalidator singleton.
+ */
+function createCacheInvalidatorAdapter() {
+  return {
+    invalidate({ cacheType }: InvalidateCacheParams): void {
+      PerpsCacheInvalidator.invalidate(cacheType);
+    },
+    invalidateAll(): void {
+      PerpsCacheInvalidator.invalidateAll();
+    },
+  };
+}
+
+/**
  * Creates mobile-specific platform dependencies for PerpsController.
  * Controller access uses messenger pattern (messenger.call()).
  */
@@ -220,6 +238,9 @@ export function createMobileInfrastructure(): PerpsPlatformDependencies {
 
     // === Market Data Formatting ===
     marketDataFormatters: createMobileMarketDataFormatters(),
+
+    // === Cache Invalidation ===
+    cacheInvalidator: createCacheInvalidatorAdapter(),
   };
 }
 

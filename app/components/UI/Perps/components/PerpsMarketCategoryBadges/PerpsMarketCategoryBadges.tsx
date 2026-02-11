@@ -1,10 +1,5 @@
 import React, { useCallback, useMemo } from 'react';
-import { View } from 'react-native';
-import Animated, {
-  FadeIn,
-  FadeOut,
-  LinearTransition,
-} from 'react-native-reanimated';
+import Animated, { FadeIn, LinearTransition } from 'react-native-reanimated';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
 import PerpsMarketCategoryBadge from '../PerpsMarketCategoryBadge';
@@ -33,9 +28,9 @@ const DEFAULT_CATEGORIES: CategoryBadgeConfig[] = [
 /**
  * PerpsMarketCategoryBadges - Container for category filter badges
  *
- * Displays category badges for filtering markets:
- * - When 'all' is selected: Shows all category badges as options
- * - When a specific category is selected: Shows only that badge with dismiss "×"
+ * Always displays all category badges in a horizontal scroll.
+ * The selected category is visually highlighted.
+ * Tapping a selected badge deselects it (toggles back to 'all').
  *
  * @example
  * ```tsx
@@ -65,51 +60,20 @@ const PerpsMarketCategoryBadges: React.FC<PerpsMarketCategoryBadgesProps> = ({
     );
   }, [availableCategories]);
 
-  // Handle selecting a category
+  // Handle selecting/toggling a category
+  // Tapping an already-selected pill deselects it (back to 'all')
   const handleCategoryPress = useCallback(
     (category: Exclude<MarketTypeFilter, 'all'>) => {
-      onCategorySelect(category);
+      if (selectedCategory === category) {
+        onCategorySelect('all');
+      } else {
+        onCategorySelect(category);
+      }
     },
-    [onCategorySelect],
+    [onCategorySelect, selectedCategory],
   );
 
-  // Handle dismissing (clearing) the selected category
-  const handleDismiss = useCallback(() => {
-    onCategorySelect('all');
-  }, [onCategorySelect]);
-
-  // Determine if we're in "all" state (no filter selected)
-  const isAllSelected = selectedCategory === 'all';
-
-  // Find the selected category config (if a specific category is selected)
-  const selectedConfig = !isAllSelected
-    ? displayCategories.find((config) => config.category === selectedCategory)
-    : null;
-
-  // When a specific category is selected AND found in display categories, show only that badge
-  // The dismiss handler (onDismiss → handleDismiss → onCategorySelect('all')) handles resetting
-  if (selectedConfig) {
-    return (
-      <View style={styles.container} testID={testID}>
-        <Animated.View
-          entering={FadeIn.duration(ANIMATION_DURATION)}
-          exiting={FadeOut.duration(ANIMATION_DURATION)}
-          layout={LinearTransition.duration(ANIMATION_DURATION)}
-        >
-          <PerpsMarketCategoryBadge
-            label={strings(selectedConfig.labelKey)}
-            isSelected
-            showDismiss
-            onPress={() => handleCategoryPress(selectedConfig.category)}
-            onDismiss={handleDismiss}
-            testID={testID ? `${testID}-${selectedConfig.category}` : undefined}
-          />
-        </Animated.View>
-      </View>
-    );
-  }
-
-  // "All" state OR fallback when selected category not found: show all category badges
+  // Always show all category badges; highlight the selected one
   return (
     <Animated.ScrollView
       horizontal
@@ -118,22 +82,25 @@ const PerpsMarketCategoryBadges: React.FC<PerpsMarketCategoryBadgesProps> = ({
       style={styles.scrollContainer}
       testID={testID}
     >
-      {displayCategories.map((config, index) => (
-        <Animated.View
-          key={config.category}
-          entering={FadeIn.duration(ANIMATION_DURATION).delay(index * 50)}
-          exiting={FadeOut.duration(ANIMATION_DURATION)}
-          layout={LinearTransition.duration(ANIMATION_DURATION)}
-        >
-          <PerpsMarketCategoryBadge
-            label={strings(config.labelKey)}
-            isSelected={false}
-            showDismiss={false}
-            onPress={() => handleCategoryPress(config.category)}
-            testID={testID ? `${testID}-${config.category}` : undefined}
-          />
-        </Animated.View>
-      ))}
+      {displayCategories.map((config, index) => {
+        const isCategorySelected = selectedCategory === config.category;
+        return (
+          <Animated.View
+            key={config.category}
+            entering={FadeIn.duration(ANIMATION_DURATION).delay(index * 50)}
+            layout={LinearTransition.duration(ANIMATION_DURATION)}
+          >
+            <PerpsMarketCategoryBadge
+              label={strings(config.labelKey)}
+              isSelected={isCategorySelected}
+              showDismiss={isCategorySelected}
+              onPress={() => handleCategoryPress(config.category)}
+              onDismiss={() => onCategorySelect('all')}
+              testID={testID ? `${testID}-${config.category}` : undefined}
+            />
+          </Animated.View>
+        );
+      })}
     </Animated.ScrollView>
   );
 };

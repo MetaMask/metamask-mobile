@@ -224,6 +224,7 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
           );
         }}
         showBadge={false}
+        compact
       />
     ),
     // Using trending skeleton cause PerpsMarketRowSkeleton has too much spacing

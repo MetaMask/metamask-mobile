@@ -71,6 +71,9 @@ const mockStreamManagerInstance = {
   marketData: { clearCache: jest.fn(), prewarm: jest.fn(() => jest.fn()) },
   prices: { clearCache: jest.fn(), prewarm: jest.fn(async () => jest.fn()) },
   oiCaps: { clearCache: jest.fn(), prewarm: jest.fn(() => jest.fn()) },
+  fills: { clearCache: jest.fn(), prewarm: jest.fn(() => jest.fn()) },
+  topOfBook: { clearCache: jest.fn(), prewarm: jest.fn(() => jest.fn()) },
+  candles: { clearCache: jest.fn(), prewarm: jest.fn(() => jest.fn()) },
 };
 
 jest.mock('../providers/PerpsStreamManager', () => ({

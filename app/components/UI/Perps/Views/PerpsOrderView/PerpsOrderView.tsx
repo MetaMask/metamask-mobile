@@ -354,13 +354,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [shouldOpenLimitPrice, setShouldOpenLimitPrice] = useState(false);
 
-  const [depositAmount, setDepositAmount] = useState<string>('');
-
   const isPayRowVisible = Boolean(
-    isTradeWithAnyTokenEnabled &&
-      depositAmount &&
-      depositAmount.trim() !== '' &&
-      activeTransactionMeta,
+    isTradeWithAnyTokenEnabled && activeTransactionMeta,
   );
 
   // Handle opening limit price modal after order type modal closes
@@ -609,19 +604,14 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     orderForm.limitPrice,
   ]);
 
-  // Prefill deposit amount with margin value when available
-  useEffect(() => {
+  const depositAmount = useMemo(() => {
     if (marginRequired !== undefined && marginRequired !== null) {
-      // Format margin to 2 decimal places for the input field
-      const formattedMargin = new BigNumber(marginRequired)
+      return new BigNumber(marginRequired)
         .decimalPlaces(2, BigNumber.ROUND_HALF_UP)
         .toString(10);
-      setDepositAmount(formattedMargin);
     }
-    // Only depend on marginRequired and orderForm.amount
-    // depositAmount is intentionally excluded to avoid infinite loops
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [marginRequired, orderForm.amount]);
+    return '';
+  }, [marginRequired]);
 
   // Real-time liquidation price calculation
   const { liquidationPrice } = usePerpsLiquidationPrice(liquidationPriceParams);
@@ -1274,8 +1264,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               <View
                 style={[
                   styles.detailItem,
-                  // If TP/SL is hidden, this is the last item so round bottom corners
-                  hideTPSL && styles.detailItemLast,
+                  // Only round bottom corners when this is the last item (no TP/SL and no Pay row below)
+                  hideTPSL && !isPayRowVisible && styles.detailItemLast,
                 ]}
               >
                 <TouchableOpacity onPress={() => setIsLimitPriceVisible(true)}>

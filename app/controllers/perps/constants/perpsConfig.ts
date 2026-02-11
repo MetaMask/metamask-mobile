@@ -330,3 +330,13 @@ export const MARKET_SORTING_CONFIG = {
  */
 export type SortOptionId =
   (typeof MARKET_SORTING_CONFIG.SortOptions)[number]['id'];
+
+/**
+ * Provider configuration for multi-provider support
+ */
+export const PROVIDER_CONFIG = {
+  /** Default perpetual DEX provider when no explicit selection exists */
+  DefaultProvider: 'hyperliquid' as const,
+  /** Force MYX to testnet only (mainnet credentials not yet available) */
+  MYX_TESTNET_ONLY: true,
+} as const;

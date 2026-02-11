@@ -21,11 +21,7 @@ module.exports = {
   ],
   overrides: [
     {
-      files: [
-        'e2e/**/*.{js,ts}',
-        'tests/**/*.{js,ts}',
-        'appwright/**/*.{js,ts}',
-      ],
+      files: ['tests/**/*.{js,ts}', 'appwright/**/*.{js,ts}'],
       extends: ['./tests/framework/.eslintrc.js'],
     },
     {
