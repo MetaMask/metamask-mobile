@@ -15,6 +15,10 @@ if [ -f "$SUMMARY_FILE" ]; then
     iosCount=$(jq -r '.platformDevices.iOS | length' "$SUMMARY_FILE")
     totalDevices=$((androidCount + iosCount))
     
+    # Get build type (normal vs experimental)
+    buildType=$(jq -r '.buildType // "Normal"' "$SUMMARY_FILE")
+    totalTests=$(jq -r '.totalTests // 0' "$SUMMARY_FILE")
+
     # Get failed tests statistics
     totalFailedTests=$(jq -r '.failedTestsStats.totalFailedTests // 0' "$SUMMARY_FILE")
     teamsAffected=$(jq -r '.failedTestsStats.teamsAffected // 0' "$SUMMARY_FILE")
@@ -74,45 +78,58 @@ if [ -f "$SUMMARY_FILE" ]; then
         fi
     fi
     
-    # Create formatted summary matching main branch format
-    SUMMARY="*Performance E2E Tests*\n\n"
+    # Build type label with emoji (Normal = stable, Experimental = flask)
+    if [ "$buildType" = "Experimental" ]; then
+        buildTypeEmoji="🧪"
+        buildTypeLabel="Experimental"
+    else
+        buildTypeEmoji="🔷"
+        buildTypeLabel="Normal"
+    fi
+
+    # One-line overview (devices + tests + failures if any)
+    overviewParts="${totalDevices} device(s)"
+    [ "$totalTests" -gt 0 ] && overviewParts="${overviewParts} • ${totalTests} test(s)"
+    [ "$totalFailedTests" -gt 0 ] && overviewParts="${overviewParts} • ${totalFailedTests} failed"
+
+    # Create formatted summary with clear sections and emojis
+    SUMMARY="*🚀 Performance E2E Tests* — ${buildTypeEmoji} _${buildTypeLabel} Build_\n"
+    SUMMARY+="\`${overviewParts}\`\n\n"
     
-    SUMMARY+="---------------\n\n"
-    SUMMARY+="*Devices Tested:*\n"
+    SUMMARY+="*📱 Devices tested*\n"
     
     # Function to add device list for a platform
     add_device_list() {
-        local platform="$1"
-        local devices="$2"
-        local count="$3"
+        local emoji="$1"
+        local platform="$2"
+        local devices="$3"
+        local count="$4"
         
         if [ "$count" -gt 0 ]; then
-            SUMMARY+="• $platform:\n"
+            SUMMARY+="${emoji} *${platform}:* "
+            local first=1
             while IFS= read -r device; do
                 if [ -n "$device" ]; then
-                    SUMMARY+="  • $device\n"
+                    [ "$first" -eq 0 ] && SUMMARY+=", "
+                    SUMMARY+="${device}"
+                    first=0
                 fi
             done <<< "$devices"
+            SUMMARY+="\n"
         fi
     }
     
-    add_device_list "Android" "$androidDevices" "$androidCount"
-    add_device_list "iOS" "$iosDevices" "$iosCount"
+    add_device_list "🤖" "Android" "$androidDevices" "$androidCount"
+    add_device_list "🍎" "iOS" "$iosDevices" "$iosCount"
     SUMMARY+="\n"
-    SUMMARY+="---------------\n\n"
-    SUMMARY+="*Test Results:*\n"
-    SUMMARY+="• Onboarding Performance Tests:\n"
-    SUMMARY+="  • Android: $androidOnboardingStatus\n"
-    SUMMARY+="  • iOS: $iosOnboardingStatus\n"
-    SUMMARY+="• Imported Wallet Performance Tests:\n"
-    SUMMARY+="  • Android: $androidImportedWalletStatus\n"
-    SUMMARY+="  • iOS: $iosImportedWalletStatus\n\n"
-    SUMMARY+="---------------\n\n"
+    
+    SUMMARY+="*✅ Test results*\n"
+    SUMMARY+="• _Onboarding:_ Android $androidOnboardingStatus · iOS $iosOnboardingStatus\n"
+    SUMMARY+="• _Imported Wallet:_ Android $androidImportedWalletStatus · iOS $iosImportedWalletStatus\n\n"
     
     # Add failed tests section: one line per unique test name, grouped by team.
-    # Same test failing on Android and iOS shows once with "Failed on Android & iOS" and both recording links.
     if [ "$totalFailedTests" -gt 0 ]; then
-        SUMMARY+="*Failed tests:*\n\n"
+        SUMMARY+="*❌ Failed tests* (${totalFailedTests})\n\n"
         
         prevMention=""
         while IFS= read -r line; do
@@ -129,9 +146,9 @@ if [ -f "$SUMMARY_FILE" ]; then
             fi
             
             if [ -n "$platformsLabel" ]; then
-                SUMMARY+="  - ${name} - ${reasonDisplay} -> Failed on ${platformsLabel}: ${recordings}\n"
+                SUMMARY+="  └ ${name} — ${reasonDisplay} · _${platformsLabel}_\n    ${recordings}\n"
             else
-                SUMMARY+="  - ${name} - ${reasonDisplay} -> ${recordings}\n"
+                SUMMARY+="  └ ${name} — ${reasonDisplay}\n    ${recordings}\n"
             fi
         done <<< "$(jq -r '
           .failedTestsStats.failedTestsByTeam | to_entries[] |
@@ -150,18 +167,17 @@ if [ -f "$SUMMARY_FILE" ]; then
           )
         ' "$SUMMARY_FILE" 2>/dev/null)"
         
-        SUMMARY+="\n---------------\n\n"
+        SUMMARY+="\n"
     fi
     
-    SUMMARY+="*Build Info:*\n"
-    SUMMARY+="• Commit Hash: \`$GITHUB_SHA\`\n"
-    SUMMARY+="• Branch: \`$GITHUB_REF_NAME\`\n"
-    SUMMARY+="---------------\n\n"
-    SUMMARY+="<$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID|View Full Results>"
+    SUMMARY+="*📦 Build info*\n"
+    SUMMARY+="• Build: ${buildTypeEmoji} _${buildTypeLabel}_\n"
+    SUMMARY+="• Branch: \`$GITHUB_REF_NAME\` · Commit: \`${GITHUB_SHA:0:7}\`\n\n"
+    SUMMARY+="<${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}|📋 View full results>"
     
     echo "$SUMMARY"
 else
-    echo "Performance E2E Tests"
-    echo "---------------"
-    echo "No test results available"
+    echo "🚀 *Performance E2E Tests*"
+    echo ""
+    echo "⚠️ No test results available"
 fi
