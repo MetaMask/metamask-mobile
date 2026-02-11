@@ -1,6 +1,6 @@
 import { RegressionWalletPlatform } from '../../../../e2e/tags';
 import OnboardingView from '../../../../e2e/pages/Onboarding/OnboardingView';
-import LoginView from '../../../../e2e/pages/wallet/LoginView';
+import LoginView from '../../../page-objects/wallet/LoginView';
 import SettingsView from '../../../../e2e/pages/Settings/SettingsView';
 import SecurityAndPrivacyView from '../../../../e2e/pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
 import ChangePasswordView from '../../../../e2e/pages/Settings/SecurityAndPrivacy/ChangePasswordView';

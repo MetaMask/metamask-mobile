@@ -11,7 +11,7 @@ import WalletView from '../../pages/wallet/WalletView';
 import TermsOfUseModal from '../../pages/Onboarding/TermsOfUseModal';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import SettingsView from '../../pages/Settings/SettingsView';
-import LoginView from '../../pages/wallet/LoginView';
+import LoginView from '../../../tests/page-objects/wallet/LoginView';
 import ForgotPasswordModal from '../../pages/Common/ForgotPasswordModalView';
 import {
   loginToApp,

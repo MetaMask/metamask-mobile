@@ -5,7 +5,7 @@ import EditAccountName from '../../../e2e/pages/MultichainAccounts/EditAccountNa
 import Assertions from '../../framework/Assertions';
 import TabBarComponent from '../../../e2e/pages/wallet/TabBarComponent';
 import SettingsView from '../../../e2e/pages/Settings/SettingsView';
-import LoginView from '../../../e2e/pages/wallet/LoginView';
+import LoginView from '../../page-objects/wallet/LoginView';
 import AccountListBottomSheet from '../../../e2e/pages/wallet/AccountListBottomSheet';
 import AccountDetails from '../../../e2e/pages/MultichainAccounts/AccountDetails';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';

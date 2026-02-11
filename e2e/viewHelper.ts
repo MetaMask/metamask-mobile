@@ -13,7 +13,7 @@ import CreatePasswordView from './pages/Onboarding/CreatePasswordView';
 import ManualBackupStep1View from './pages/Onboarding/ManualBackupStep1View';
 import OnboardingSuccessView from './pages/Onboarding/OnboardingSuccessView';
 import TermsOfUseModal from './pages/Onboarding/TermsOfUseModal';
-import LoginView from './pages/wallet/LoginView';
+import LoginView from '../tests/page-objects/wallet/LoginView';
 import {
   getGanachePortForFixture,
   getAnvilPortForFixture,

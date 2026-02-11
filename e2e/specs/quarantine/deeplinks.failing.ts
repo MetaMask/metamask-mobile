@@ -6,7 +6,7 @@ import NetworkAddedBottomSheet from '../../pages/Network/NetworkAddedBottomSheet
 import Browser from '../../pages/Browser/BrowserView';
 import NetworkView from '../../pages/Settings/NetworksView';
 import SettingsView from '../../pages/Settings/SettingsView';
-import LoginView from '../../pages/wallet/LoginView';
+import LoginView from '../../../tests/page-objects/wallet/LoginView';
 import TransactionConfirmationView from '../../pages/Send/TransactionConfirmView';
 import SecurityAndPrivacy from '../../pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
 import CommonView from '../../pages/CommonView';

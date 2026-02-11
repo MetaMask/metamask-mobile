@@ -8,7 +8,7 @@ import SettingsView from '../../../e2e/pages/Settings/SettingsView';
 import SecurityAndPrivacy from '../../../e2e/pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
 import WalletView from '../../../e2e/pages/wallet/WalletView';
 import ChangePasswordView from '../../../e2e/pages/Settings/SecurityAndPrivacy/ChangePasswordView';
-import LoginView from '../../../e2e/pages/wallet/LoginView';
+import LoginView from '../../page-objects/wallet/LoginView';
 import AccountListBottomSheet from '../../../e2e/pages/wallet/AccountListBottomSheet';
 import ToastModal from '../../../e2e/pages/wallet/ToastModal';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';

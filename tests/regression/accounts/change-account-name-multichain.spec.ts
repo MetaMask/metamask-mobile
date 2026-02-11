@@ -4,7 +4,7 @@ import WalletView from '../../../e2e/pages/wallet/WalletView';
 import Assertions from '../../framework/Assertions';
 import TabBarComponent from '../../../e2e/pages/wallet/TabBarComponent';
 import SettingsView from '../../../e2e/pages/Settings/SettingsView';
-import LoginView from '../../../e2e/pages/wallet/LoginView';
+import LoginView from '../../page-objects/wallet/LoginView';
 import AccountListBottomSheet from '../../../e2e/pages/wallet/AccountListBottomSheet';
 import Matchers from '../../framework/Matchers';
 import EditAccountName from '../../../e2e/pages/MultichainAccounts/EditAccountName';

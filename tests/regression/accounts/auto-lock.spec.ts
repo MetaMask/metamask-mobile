@@ -6,7 +6,7 @@ import SettingsView from '../../../e2e/pages/Settings/SettingsView';
 import SecurityAndPrivacy from '../../../e2e/pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
 import AutoLockModal from '../../../e2e/pages/Settings/SecurityAndPrivacy/AutoLockModal';
 import WalletView from '../../../e2e/pages/wallet/WalletView';
-import LoginView from '../../../e2e/pages/wallet/LoginView';
+import LoginView from '../../page-objects/wallet/LoginView';
 import Assertions from '../../framework/Assertions';
 import TestHelpers from '../../../e2e/helpers.js';
 import { logger } from '../../framework/logger';

@@ -10,7 +10,7 @@ import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import SkipAccountSecurityModal from '../../pages/Onboarding/SkipAccountSecurityModal';
 import ConnectedAccountsModal from '../../pages/Browser/ConnectedAccountsModal';
 import DeleteWalletModal from '../../pages/Settings/SecurityAndPrivacy/DeleteWalletModal';
-import LoginView from '../../pages/wallet/LoginView';
+import LoginView from '../../../tests/page-objects/wallet/LoginView';
 import NetworkListModal from '../../pages/Network/NetworkListModal';
 import { loginToApp, navigateToBrowserView } from '../../viewHelper';
 import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
