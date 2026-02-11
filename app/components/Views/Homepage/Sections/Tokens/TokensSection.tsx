@@ -37,16 +37,15 @@ const TokensSection = forwardRef<SectionRefreshHandle>((_, ref) => {
   const sortedTokenKeys = useSelector(selectSortedAssetsBySelectedAccountGroup);
   const privacyMode = useSelector(selectPrivacyMode);
 
-  const { toggleUiMode, toggleStep3Variation, reset, steps } = useOnboardingChecklist();
+  const { cycleDesignStyle, reset, steps } = useOnboardingChecklist();
 
   const handleDemoToggle = useCallback(() => {
     if (steps.step3) {
       reset();
     } else {
-      toggleUiMode();
-      toggleStep3Variation();
+      cycleDesignStyle();
     }
-  }, [steps.step3, reset, toggleUiMode, toggleStep3Variation]);
+  }, [steps.step3, reset, cycleDesignStyle]);
 
   const displayTokenKeys = useMemo(
     () => sortedTokenKeys.slice(0, MAX_TOKENS_DISPLAYED),
