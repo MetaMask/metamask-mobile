@@ -15,6 +15,8 @@ export interface RootStackParamList extends ParamListBase {
     shouldUpdateNav?: boolean;
     selectedAccount?: InternalAccount;
     keyringId?: string;
+    /** When true, skip quiz and show password/action view (e.g. when coming from SRPQuiz modal) */
+    skipQuiz?: boolean;
   };
 }
 

@@ -92,7 +92,11 @@ const RevealPrivateCredential = ({
     handleGetStartedClick,
     handleQuestionAnswerClick,
     handleAnsweredQuestionClick,
-  } = useSRPQuiz();
+  } = useSRPQuiz({
+    initialStage: route?.params?.skipQuiz
+      ? RevealSrpStage.ActionViewScreen
+      : undefined,
+  });
 
   const updateNavBar = useCallback(() => {
     if (!hasNavigation || !shouldUpdateNav) {

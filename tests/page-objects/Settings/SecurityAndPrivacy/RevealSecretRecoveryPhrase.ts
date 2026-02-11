@@ -4,6 +4,7 @@ import {
 } from '../../../../app/components/Views/RevealPrivateCredential/RevealSeedView.testIds';
 import Matchers from '../../../framework/Matchers';
 import Gestures from '../../../framework/Gestures';
+import Utilities from '../../../framework/Utilities';
 
 class RevealSecretRecoveryPhrase {
   get container(): DetoxElement {
@@ -78,6 +79,11 @@ class RevealSecretRecoveryPhrase {
   }
 
   async enterPasswordToRevealSecretCredential(password: string): Promise<void> {
+    // Wait for password screen to be ready (e.g. after navigation or quiz on iOS)
+    await Utilities.waitForElementToBeVisible(
+      this.passwordInputToRevealCredential,
+      10000,
+    );
     await Gestures.typeText(this.passwordInputToRevealCredential, password, {
       hideKeyboard: true,
       elemDescription: 'Password input to reveal credential',
@@ -85,6 +91,7 @@ class RevealSecretRecoveryPhrase {
   }
 
   async tapConfirmButton(): Promise<void> {
+    await Utilities.waitForElementToBeVisible(this.confirmButton, 10000);
     await Gestures.waitAndTap(this.confirmButton, {
       elemDescription: 'Confirm button to reveal credential',
     });

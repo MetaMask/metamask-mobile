@@ -13,9 +13,15 @@ interface UseSRPQuizReturn {
   handleAnsweredQuestionClick: () => void;
 }
 
-const useSRPQuiz = (): UseSRPQuizReturn => {
+interface UseSRPQuizProps {
+  /** When set, start at this stage (e.g. ActionViewScreen when quiz was completed in modal) */
+  initialStage?: RevealSrpStage;
+}
+
+const useSRPQuiz = (options: UseSRPQuizProps = {}): UseSRPQuizReturn => {
+  const { initialStage } = options;
   const [revealSrpStage, setRevealSrpStage] = useState<RevealSrpStage>(
-    RevealSrpStage.Introduction,
+    initialStage ?? RevealSrpStage.Introduction,
   );
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(1);
   const [questionAnswered, setQuestionAnswered] = useState<boolean>(false);
