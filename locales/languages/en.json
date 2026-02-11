@@ -5861,7 +5861,7 @@
       "convert_and_get_percentage_bonus": "Convert and get {{percentage}}%",
       "no_boost": "No boost",
       "your_musd": "Your mUSD",
-      "balance_breakdown_title": "mUSD by network",
+      "balance_breakdown_title": "You mUSD balances by network",
       "balance_amount": "{{amount}} mUSD",
       "balance_amount_with_symbol": "{{amount}} {{symbol}}",
       "balance_fiat_unavailable": "—",
@@ -5907,7 +5907,8 @@
         "confirmation": {
           "title": "Convert Max"
         }
-      }
+      },
+      "percentage_boost": "{{percentage}}% boost"
     },
     "bonus_claim": {
       "toasts": {
