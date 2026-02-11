@@ -9,7 +9,7 @@
 
 ## Phase 2: UI Component Development (MMDS)
 
-- [ ] Task: Build the "Checklist Item" base component
+- [x] Task: Build the "Checklist Item" base component 80172
   - [ ] Create a reusable MMDS component for checklist rows with checkmarks.
 - [ ] Task: Build the "Banner" Layout
   - [ ] Implement the top-of-page container using `MMDS.Box`.
