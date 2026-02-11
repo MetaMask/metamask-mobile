@@ -70,9 +70,105 @@ jobs:
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'signing_android_keystore_path=' + (signing && signing.android_keystore_path ? signing.android_keystore_path : '') + '\n');
           "
 
+  # Setup dependencies (no secrets) - platform-specific to match build OS
+  setup-dependencies:
+    name: Setup Dependencies (${{ matrix.platform }})
+    needs: [prepare]
+    strategy:
+      matrix:
+        platform: ${{ inputs.platform == 'both' && fromJSON('["android", "ios"]') || fromJSON(format('["{0}"]', inputs.platform)) }}
+    # CRITICAL: Match the OS with the build job so binaries work
+    runs-on: ${{ matrix.platform == 'ios' && 'ghcr.io/cirruslabs/macos-runner:sequoia-xl' || 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg' }}
+    # NO environment/secrets declared here ✅
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      # iOS: Use MetaMask's setup action (handles Node, Ruby, CocoaPods, Xcode)
+      - name: Setup iOS environment
+        if: matrix.platform == 'ios'
+        timeout-minutes: 15
+        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@v1
+        with:
+          platform: ios
+          setup-simulator: false
+
+      # Android: Setup Node
+      - name: Setup Node
+        if: matrix.platform == 'android'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+
+      - name: Install dependencies (NO SECRETS)
+        run: yarn install --immutable
+
+      - name: Run project setup (NO SECRETS)
+        run: |
+          echo "🔧 Running setup for ${{ matrix.platform }}..."
+          if [ "${{ matrix.platform }}" = "ios" ]; then
+            yarn setup:github-ci --build-ios --no-build-android
+          else
+            yarn setup:github-ci --no-build-ios
+          fi
+
+      - name: Verify setup completed
+        run: |
+          echo "✅ Verifying setup artifacts..."
+          if [ ! -d "node_modules" ]; then
+            echo "❌ node_modules not found"
+            exit 1
+          fi
+          if [ ! -f "app/core/InpageBridgeWeb3.js" ]; then
+            echo "❌ InpageBridgeWeb3.js not found"
+            exit 1
+          fi
+          if [ "${{ matrix.platform }}" = "ios" ]; then
+            if [ ! -f "ios/debug.xcconfig" ]; then
+              echo "❌ ios/debug.xcconfig not found"
+              exit 1
+            fi
+            if [ ! -f "ios/release.xcconfig" ]; then
+              echo "❌ ios/release.xcconfig not found"
+              exit 1
+            fi
+          fi
+          echo "✅ Setup verification passed"
+
+      - name: Create tarball with node_modules (preserves symlinks)
+        run: |
+          echo "📦 Creating tarball to preserve symlinks..."
+          if [ "${{ matrix.platform }}" = "ios" ]; then
+            tar -czf node-modules-${{ matrix.platform }}.tar.gz \
+              node_modules \
+              app/util/termsOfUse/termsOfUseContent.ts \
+              app/core/InpageBridgeWeb3.js \
+              scripts/inpage-bridge/dist \
+              ios/debug.xcconfig \
+              ios/release.xcconfig
+          else
+            tar -czf node-modules-${{ matrix.platform }}.tar.gz \
+              node_modules \
+              app/util/termsOfUse/termsOfUseContent.ts \
+              app/core/InpageBridgeWeb3.js \
+              scripts/inpage-bridge/dist
+          fi
+          echo "✅ Tarball created: $(du -h node-modules-${{ matrix.platform }}.tar.gz)"
+
+      - name: Upload node_modules tarball
+        uses: actions/upload-artifact@v4
+        with:
+          name: node-modules-${{ matrix.platform }}
+          path: node-modules-${{ matrix.platform }}.tar.gz
+          retention-days: 1
+          compression-level: 0
+          if-no-files-found: error
+
   # Build
   build:
-    needs: [prepare]
+    needs: [prepare, setup-dependencies]
     timeout-minutes: 60
     strategy:
       matrix:
@@ -85,17 +181,91 @@ jobs:
       BUNDLE_GEMFILE: ios/Gemfile
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+        with:
+          submodules: recursive
+
+      # iOS: Use MetaMask's setup action (handles Node, Ruby, CocoaPods, Xcode)
+      - name: Setup iOS environment
+        if: matrix.platform == 'ios'
+        timeout-minutes: 15
+        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@v1
+        with:
+          platform: ios
+          setup-simulator: false
+
+      # Android: Setup Node
+      - name: Setup Node
+        if: matrix.platform == 'android'
+        uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'yarn'
-      - run: yarn install --immutable
+
+      - name: Download node_modules tarball
+        uses: actions/download-artifact@v4
+        with:
+          name: node-modules-${{ matrix.platform }}
+
+      - name: Extract tarball (preserves symlinks)
+        run: |
+          echo "📦 Extracting tarball..."
+          tar -xzf node-modules-${{ matrix.platform }}.tar.gz
+          rm node-modules-${{ matrix.platform }}.tar.gz
+          echo "✅ Tarball extracted"
+
+      - name: Verify artifacts and symlinks
+        run: |
+          echo "✅ Verifying artifacts..."
+          if [ ! -d "node_modules" ]; then
+            echo "❌ node_modules not found"
+            exit 1
+          fi
+          if [ ! -f "app/core/InpageBridgeWeb3.js" ]; then
+            echo "❌ InpageBridgeWeb3.js not found"
+            exit 1
+          fi
+          echo "📦 node_modules size: $(du -sh node_modules | cut -f1)"
+
+          # iOS: Verify xcconfig files required by Xcode project
+          if [ "${{ matrix.platform }}" = "ios" ]; then
+            echo "🔍 Checking iOS xcconfig files..."
+            if [ ! -f "ios/debug.xcconfig" ]; then
+              echo "❌ ios/debug.xcconfig not found"
+              exit 1
+            fi
+            if [ ! -f "ios/release.xcconfig" ]; then
+              echo "❌ ios/release.xcconfig not found"
+              exit 1
+            fi
+            echo "✅ iOS xcconfig files found"
+          fi
+
+          # Verify symlinks in .bin directory
+          echo "🔍 Checking .bin symlinks..."
+          if [ -e "node_modules/.bin/react-native" ]; then
+            echo "✅ react-native symlink exists and target is valid"
+            ls -la node_modules/.bin/react-native
+          else
+            echo "❌ react-native symlink missing or broken"
+            ls -la node_modules/.bin/ | head -10
+            exit 1
+          fi
+
+          # Check React Native scripts
+          if [ -d "node_modules/react-native/scripts" ]; then
+            echo "✅ React Native scripts found"
+          else
+            echo "❌ React Native scripts missing"
+            exit 1
+          fi
+
+          echo "✅ All artifacts verified with working symlinks!"
 
       - name: Apply build config
         run: |
-          # Load env vars from builds.yml (this step only)
+          # Two-step config application is intentional:
+          # 1. Load env vars for THIS step only (eval sets vars in current shell)
           eval "$(node scripts/apply-build-config.js ${{ inputs.build_name }} --export)"
-          # Persist to GITHUB_ENV so later steps (e.g. Build) see CONFIGURATION, IS_SIM_BUILD, etc.
+          # 2. Persist env vars to GITHUB_ENV so LATER steps inherit them (build, signing, etc.)
           node scripts/apply-build-config.js ${{ inputs.build_name }} --export-github-env >> "$GITHUB_ENV"
 
       - name: Set secrets
@@ -163,43 +333,15 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      # iOS: Install Ruby using rbenv (already present on Cirrus macOS runner)
-      - name: Install Ruby
-        if: matrix.platform == 'ios'
-        env:
-          # Override job-level BUNDLE_GEMFILE (ios/Gemfile) since we cd into ios/
-          BUNDLE_GEMFILE: Gemfile
+      # iOS: Clean up any existing keychains from previous runs
+      - name: Clean up existing keychains
+        if: matrix.platform == 'ios' && needs.prepare.outputs.signing_aws_role != ''
         run: |
-          RUBY_VERSION=$(cat .ruby-version)
-          echo "📦 Installing Ruby ${RUBY_VERSION}..."
-
-          # Install Ruby version if not already installed
-          if ! rbenv versions | grep -q "${RUBY_VERSION}"; then
-            rbenv install "${RUBY_VERSION}"
+          KEYCHAIN_PATH="$RUNNER_TEMP/app-signing.keychain-db"
+          if [ -f "$KEYCHAIN_PATH" ]; then
+            echo "🧹 Removing existing keychain..."
+            security delete-keychain "$KEYCHAIN_PATH" || true
           fi
-
-          # Set Ruby version globally for this runner
-          rbenv global "${RUBY_VERSION}"
-
-          # Initialize rbenv (required: GitHub Actions runs bash with --noprofile --norc)
-          eval "$(rbenv init -)"
-
-          # Add rbenv shims to PATH for subsequent steps
-          echo "$HOME/.rbenv/shims" >> $GITHUB_PATH
-
-          # Verify installation and version
-          ACTUAL_VERSION=$(ruby --version)
-          echo "✅ Ruby version: ${ACTUAL_VERSION}"
-          if ! echo "${ACTUAL_VERSION}" | grep -q "${RUBY_VERSION}"; then
-            echo "❌ ERROR: Expected Ruby ${RUBY_VERSION}, but got: ${ACTUAL_VERSION}"
-            exit 1
-          fi
-
-          # Install bundler
-          gem install bundler -v 2.5.8
-
-          # Install gems from ios/Gemfile
-          cd ios && bundle install
 
       # iOS: Cache CocoaPods
       - name: Cache CocoaPods
@@ -233,19 +375,26 @@ jobs:
           aws-secret-name: ${{ needs.prepare.outputs.signing_aws_secret }}
           android-keystore-path: ${{ needs.prepare.outputs.signing_android_keystore_path }}
 
-      - name: Setup project dependencies with retry
+      # iOS: Install/update CocoaPods (fast with cache, paths need to be correct for this machine)
+      - name: Install CocoaPods dependencies
+        if: matrix.platform == 'ios'
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         with:
           timeout_minutes: 10
           max_attempts: 3
           retry_wait_seconds: 30
-          command: |
-            echo "🚀 Setting up project..."
-            if [ "${{ matrix.platform }}" = "ios" ]; then
-              yarn setup:github-ci --build-ios --no-build-android
-            else
-              yarn setup:github-ci --no-build-ios
-            fi
+          command: yarn pod:install
+
+      # iOS: Configure Node path for Xcode build scripts (React Native Codegen)
+      - name: Configure Node path for Xcode
+        if: matrix.platform == 'ios'
+        run: |
+          NODE_BINARY=$(command -v node)
+          echo "Node binary: $NODE_BINARY"
+          echo "export NODE_BINARY=\"$NODE_BINARY\"" > ios/.xcode.env.local
+          echo "✅ Created ios/.xcode.env.local"
+          cat ios/.xcode.env.local
+          node --version
 
       # Build with retry logic. Timeouts: 55min per attempt, 115min total for step, 120min job
       # First iOS build (cold cache): ~45-60min. Subsequent builds (warm cache): ~10-20min
