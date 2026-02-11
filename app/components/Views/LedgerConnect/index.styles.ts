@@ -7,17 +7,14 @@ import { fontStyles } from '../../../styles/common';
 const createStyles = (colors: Colors, insets: EdgeInsets) =>
   StyleSheet.create({
     container: {
-      position: 'relative',
       flex: 1,
       backgroundColor: colors.background.default,
-      alignItems: 'center',
     },
     connectLedgerWrapper: {
-      marginLeft: Device.getDeviceWidth() * 0.07,
-      marginRight: Device.getDeviceWidth() * 0.07,
+      flex: 1,
+      paddingHorizontal: Device.getDeviceWidth() * 0.07,
     },
     header: {
-      marginTop: insets.top,
       flexDirection: 'row',
       width: '100%',
       alignItems: 'center',
