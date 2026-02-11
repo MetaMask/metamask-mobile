@@ -1,7 +1,7 @@
 import { MYXClientService } from './MYXClientService';
-import type { PerpsPlatformDependencies } from '../controllers/types';
+import type { PerpsPlatformDependencies } from '@metamask/perps-controller';
 import type { MYXPoolSymbol, MYXTicker } from '../types/myx-types';
-import { createMockInfrastructure } from '../__mocks__/serviceMocks';
+import { createMockInfrastructure } from '../../../components/UI/Perps/__mocks__/serviceMocks';
 import { MYX_PRICE_POLLING_INTERVAL_MS } from '../constants/myxConfig';
 
 // ============================================================================

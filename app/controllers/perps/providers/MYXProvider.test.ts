@@ -1,24 +1,26 @@
 import { MYXProvider } from './MYXProvider';
-import { MYXClientService } from '../../../components/UI/Perps/services/MYXClientService';
+import { MYXClientService } from '../services/MYXClientService';
 import { createMockInfrastructure } from '../../../components/UI/Perps/__mocks__/serviceMocks';
-import type { PerpsPlatformDependencies } from '../types';
-import type { MYXPoolSymbol, MYXTicker } from '../../../components/UI/Perps/types/myx-types';
+import {
+  WebSocketConnectionState,
+  type PerpsPlatformDependencies,
+} from '../types';
+import type { MYXPoolSymbol, MYXTicker } from '../types/myx-types';
 import {
   adaptMarketFromMYX,
   adaptMarketDataFromMYX,
   adaptPriceFromMYX,
   filterMYXExclusiveMarkets,
   buildPoolSymbolMap,
-} from '../../../components/UI/Perps/utils/myxAdapter';
-import { WebSocketConnectionState } from '../types';
+} from '../utils/myxAdapter';
 import { CandlePeriod } from '../constants/chartConfig';
 
 // ============================================================================
 // Mocks
 // ============================================================================
 
-jest.mock('../../../components/UI/Perps/services/MYXClientService');
-jest.mock('../../../components/UI/Perps/utils/myxAdapter', () => ({
+jest.mock('../services/MYXClientService');
+jest.mock('../utils/myxAdapter', () => ({
   adaptMarketFromMYX: jest.fn(),
   adaptMarketDataFromMYX: jest.fn(),
   adaptPriceFromMYX: jest.fn(),
@@ -330,6 +332,7 @@ describe('MYXProvider', () => {
       expect(mockAdaptMarketDataFromMYX).toHaveBeenCalledWith(
         pools[0],
         tickers[0],
+        mockDeps.marketDataFormatters,
       );
     });
 
@@ -356,6 +359,7 @@ describe('MYXProvider', () => {
       expect(mockAdaptMarketDataFromMYX).toHaveBeenCalledWith(
         pools[0],
         undefined,
+        mockDeps.marketDataFormatters,
       );
     });
 

@@ -11,6 +11,15 @@ import {
   buildSymbolPoolsMap,
   extractSymbolFromPoolId,
 } from './myxAdapter';
+import type { MarketDataFormatters } from '../types';
+
+// Mock formatters matching the MarketDataFormatters interface
+const mockFormatters: MarketDataFormatters = {
+  formatVolume: (v: number) => `$${v.toFixed(0)}`,
+  formatPerpsFiat: (v: number) => `$${v.toFixed(2)}`,
+  formatPercentage: (p: number) => `${p.toFixed(2)}%`,
+  priceRangesUniversal: [],
+};
 
 // Helper: create a minimal MYXPoolSymbol fixture
 function makePool(overrides: Partial<MYXPoolSymbol> = {}): MYXPoolSymbol {
@@ -95,7 +104,7 @@ describe('myxAdapter', () => {
     it('returns full data when ticker is provided', () => {
       const pool = makePool({ baseSymbol: 'RHEA' });
       const ticker = makeTicker();
-      const data = adaptMarketDataFromMYX(pool, ticker);
+      const data = adaptMarketDataFromMYX(pool, ticker, mockFormatters);
 
       expect(data.symbol).toBe('RHEA');
       expect(data.providerId).toBe('myx');
@@ -107,7 +116,7 @@ describe('myxAdapter', () => {
 
     it('returns zeroed prices when ticker is omitted', () => {
       const pool = makePool({ baseSymbol: 'SKYAI' });
-      const data = adaptMarketDataFromMYX(pool);
+      const data = adaptMarketDataFromMYX(pool, undefined, mockFormatters);
 
       expect(data.symbol).toBe('SKYAI');
       expect(data.providerId).toBe('myx');

@@ -4,6 +4,9 @@
  * Stage 1 adapters for transforming between MetaMask Perps API types and MYX SDK types.
  * Only includes adapters needed for market display and price fetching.
  *
+ * Portable: no mobile-specific imports.
+ * Formatters are injected via MarketDataFormatters interface (same pattern as marketDataTransform.ts).
+ *
  * Key differences from HyperLiquid:
  * - Prices use 30 decimals
  * - Sizes use 18 decimals (vs HyperLiquid's szDecimals per asset)
@@ -11,15 +14,36 @@
  * - USDT collateral (vs USDC)
  */
 
-import type { MarketInfo, PerpsMarketData } from '../controllers/types';
+import type {
+  MarketInfo,
+  PerpsMarketData,
+  MarketDataFormatters,
+} from '../types';
 import {
   MYX_HL_OVERLAPPING_MARKETS,
   type MYXPoolSymbol,
   type MYXTicker,
 } from '../types/myx-types';
 import { fromMYXPrice } from '../constants/myxConfig';
-import { formatPerpsFiat, formatVolume } from './formatUtils';
-import { formatChange, formatPercentage } from './marketDataTransform';
+
+/**
+ * Format a price change value with sign prefix.
+ * Uses injected formatters (same pattern as marketDataTransform.ts formatChange).
+ */
+function formatChange(
+  change: number,
+  formatters: MarketDataFormatters,
+): string {
+  if (isNaN(change) || !isFinite(change)) return '$0.00';
+  if (change === 0) return '$0.00';
+
+  const formatted = formatters.formatPerpsFiat(Math.abs(change), {
+    ranges: formatters.priceRangesUniversal,
+  });
+
+  const valueWithoutDollar = formatted.replace('$', '');
+  return change > 0 ? `+$${valueWithoutDollar}` : `-$${valueWithoutDollar}`;
+}
 
 // ============================================================================
 // Market Transformation
@@ -79,11 +103,13 @@ export function adaptPriceFromMYX(ticker: MYXTicker): {
  *
  * @param pool - Pool symbol data from MYX SDK
  * @param ticker - Optional ticker data for price info
+ * @param formatters - Injectable formatters for platform-agnostic formatting
  * @returns Formatted market data for UI display
  */
 export function adaptMarketDataFromMYX(
   pool: MYXPoolSymbol,
-  ticker?: MYXTicker,
+  ticker: MYXTicker | undefined,
+  formatters: MarketDataFormatters,
 ): PerpsMarketData {
   const symbol = pool.baseSymbol || extractSymbolFromPoolId(pool.poolId);
 
@@ -100,13 +126,13 @@ export function adaptMarketDataFromMYX(
     volume = ticker.volume || '0';
   }
 
-  // Format using shared formatting utilities (consistent with HyperLiquid)
+  // Format using injected formatters (consistent with HyperLiquid via marketDataTransform.ts)
   const priceNum = parseFloat(price);
-  const formattedPrice = formatPerpsFiat(priceNum);
+  const formattedPrice = formatters.formatPerpsFiat(priceNum);
   const priceChange = priceNum * (change24h / 100);
-  const formattedChange = formatChange(priceChange);
-  const formattedChangePercent = formatPercentage(change24h);
-  const formattedVolume = formatVolume(parseFloat(volume));
+  const formattedChange = formatChange(priceChange, formatters);
+  const formattedChangePercent = formatters.formatPercentage(change24h);
+  const formattedVolume = formatters.formatVolume(parseFloat(volume));
 
   return {
     symbol,

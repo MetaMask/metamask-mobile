@@ -33,7 +33,6 @@ import {
   PRICE_RANGES_MINIMAL_VIEW,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
-import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
 import PerpsTokenLogo from '../PerpsTokenLogo';
 import styleSheet from './PerpsPositionCard.styles';
 

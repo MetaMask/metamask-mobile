@@ -9,8 +9,8 @@
  */
 
 import { MyxClient } from '@myx-trade/sdk';
-import { ensureError } from '../../../../util/errorUtils';
-import type { PerpsPlatformDependencies } from '../controllers/types';
+import { ensureError } from '../utils/errorUtils';
+import type { PerpsPlatformDependencies } from '../types';
 import type { MYXPoolSymbol, MYXTicker } from '../types/myx-types';
 import {
   MYX_PRICE_POLLING_INTERVAL_MS,

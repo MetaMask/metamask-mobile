@@ -13,15 +13,15 @@
 
 import type { CaipAccountId } from '@metamask/utils';
 import { ensureError } from '../utils/errorUtils';
-import { MYXClientService } from '../../../components/UI/Perps/services/MYXClientService';
+import { MYXClientService } from '../services/MYXClientService';
 import {
   adaptMarketFromMYX,
   adaptMarketDataFromMYX,
   adaptPriceFromMYX,
   filterMYXExclusiveMarkets,
   buildPoolSymbolMap,
-} from '../../../components/UI/Perps/utils/myxAdapter';
-import type { MYXPoolSymbol, MYXTicker } from '../../../components/UI/Perps/types/myx-types';
+} from '../utils/myxAdapter';
+import type { MYXPoolSymbol, MYXTicker } from '../types/myx-types';
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 import type {
   AccountState,
@@ -79,8 +79,8 @@ import type {
   WithdrawParams,
   WithdrawResult,
   RawLedgerUpdate,
+  WebSocketConnectionState,
 } from '../types';
-import { WebSocketConnectionState } from '../types';
 
 // ============================================================================
 // Constants
@@ -284,7 +284,11 @@ export class MYXProvider implements PerpsProvider {
       // Transform to PerpsMarketData
       return this.poolsCache.map((pool) => {
         const ticker = tickerMap.get(pool.poolId);
-        return adaptMarketDataFromMYX(pool, ticker);
+        return adaptMarketDataFromMYX(
+          pool,
+          ticker,
+          this.deps.marketDataFormatters,
+        );
       });
     } catch (error) {
       const err = ensureError(error);
