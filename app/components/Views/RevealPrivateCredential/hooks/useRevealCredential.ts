@@ -114,7 +114,7 @@ const useRevealCredential = ({
     trackEvent(
       createEventBuilder(MetaMetricsEvents.NEXT_REVEAL_SRP_CTA).build(),
     );
-    revealCredential(password);
+    await revealCredential(password);
     setWarningIncorrectPassword('');
   }, [
     password,
