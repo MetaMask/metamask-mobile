@@ -8,6 +8,7 @@ import React, {
 import { View, Alert, BackHandler, ImageSourcePropType } from 'react-native';
 import { isEqual } from 'lodash';
 import { WebView, WebViewMessageEvent } from '@metamask/react-native-webview';
+import type { WebViewOpenWindowEvent } from '@metamask/react-native-webview/lib/WebViewTypes';
 import { useSharedValue } from 'react-native-reanimated';
 import BrowserBottomBar from '../../UI/BrowserBottomBar';
 import { connect, useSelector } from 'react-redux';
@@ -800,6 +801,22 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     );
 
     /**
+     * Handles target="_blank" links and window.open() calls.
+     * On Android, without this handler, such links open in the system browser (Chrome)
+     * because the native WebChromeClient creates a bare WebView with no fallback.
+     * On iOS, the native fallback loads the URL in the same WebView, but providing
+     * this explicit handler ensures consistent behavior across both platforms.
+     */
+    const handleOpenWindow = useCallback((event: WebViewOpenWindowEvent) => {
+      const { targetUrl } = event.nativeEvent;
+      if (targetUrl && webviewRef.current) {
+        webviewRef.current.injectJavaScript(
+          `window.location.href = '${sanitizeUrlInput(targetUrl)}'; true;`,
+        );
+      }
+    }, []);
+
+    /**
      * Sets loading bar progress
      */
     const onLoadProgress = useCallback(
@@ -1556,6 +1573,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
                           onShouldStartLoadWithRequest
                         }
                         allowsInlineMediaPlayback
+                        onOpenWindow={handleOpenWindow}
                         {...webViewTestProps}
                         testID={BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID}
                         applicationNameForUserAgent={'WebView MetaMaskMobile'}
