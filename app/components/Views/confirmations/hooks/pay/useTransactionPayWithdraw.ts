@@ -5,9 +5,8 @@ import { isTransactionPayWithdraw } from '../../utils/transaction';
  * Whether the withdraw token picker feature is enabled.
  * When false, withdrawals always use the default Polygon USDC.E.
  */
-// TODO: Revert before merging - temporarily enabled for preview build
-const isWithdrawTokenPickerEnabled = true;
-// process.env.MM_PREDICT_WITHDRAW_ANY_TOKEN === 'true';
+const isWithdrawTokenPickerEnabled =
+  process.env.MM_PREDICT_WITHDRAW_ANY_TOKEN === 'true';
 
 export interface UseTransactionPayWithdrawResult {
   /** Whether this transaction is a withdraw type */
