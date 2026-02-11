@@ -22,76 +22,109 @@ export interface OnboardingSteps {
   step3: boolean;
 }
 
-export const useOnboardingChecklist = () => {
-  const [uiMode, setUiMode] = useState<UiMode>(UI_MODE.BANNER);
-  const [step3Variation, setStep3Variation] = useState<Step3Variation>(
-    STEP3_VARIATION.MULTI,
-  );
-  const [isDismissed, setIsDismissed] = useState(false);
-  const [steps, setSteps] = useState<OnboardingSteps>({
+// Prototype Shortcut: Shared state object
+const sharedState = {
+  steps: {
     step1: false,
     step2: false,
     step3: false,
-  });
+  } as OnboardingSteps,
+  isDismissed: false,
+  uiMode: UI_MODE.BANNER as UiMode,
+  step3Variation: STEP3_VARIATION.MULTI as Step3Variation,
+  isExpanded: false,
+};
+
+const listeners = new Set<() => void>();
+const notify = () => {
+  listeners.forEach((listener) => listener());
+};
+
+export const useOnboardingChecklist = () => {
+  const [, setTick] = useState(0);
+
+  useEffect(() => {
+    const handleChange = () => setTick((t) => t + 1);
+    listeners.add(handleChange);
+    return () => {
+      listeners.delete(handleChange);
+    };
+  }, []);
 
   const isSeedphraseBackedUp = useSelector(selectSeedphraseBackedUp);
   const accountGroupBalance = useSelector(selectAccountGroupBalanceForEmptyState);
 
   // Auto-detect Step 1: SRP Backup
   useEffect(() => {
-    if (isSeedphraseBackedUp) {
-      setSteps((prev) => ({ ...prev, step1: true }));
+    if (isSeedphraseBackedUp && !sharedState.steps.step1) {
+      sharedState.steps.step1 = true;
+      notify();
     }
   }, [isSeedphraseBackedUp]);
 
   // Auto-detect Step 2: Non-zero balance
   useEffect(() => {
-    if (accountGroupBalance && accountGroupBalance.totalBalanceInUserCurrency > 0) {
-      setSteps((prev) => ({ ...prev, step2: true }));
+    const hasBalance = (accountGroupBalance?.totalBalanceInUserCurrency ?? 0) > 0;
+    if (hasBalance && !sharedState.steps.step2) {
+      sharedState.steps.step2 = true;
+      notify();
     }
   }, [accountGroupBalance]);
 
   const toggleUiMode = useCallback(() => {
-    setUiMode((prev) =>
-      prev === UI_MODE.BANNER ? UI_MODE.FLOATING : UI_MODE.BANNER,
-    );
+    sharedState.uiMode = sharedState.uiMode === UI_MODE.BANNER ? UI_MODE.FLOATING : UI_MODE.BANNER;
+    notify();
   }, []);
 
   const toggleStep3Variation = useCallback(() => {
-    setStep3Variation((prev) =>
-      prev === STEP3_VARIATION.MULTI
-        ? STEP3_VARIATION.SINGLE
-        : STEP3_VARIATION.MULTI,
-    );
+    sharedState.step3Variation = sharedState.step3Variation === STEP3_VARIATION.MULTI
+      ? STEP3_VARIATION.SINGLE
+      : STEP3_VARIATION.MULTI;
+    notify();
   }, []);
 
   const dismiss = useCallback(() => {
-    setIsDismissed(true);
+    sharedState.isDismissed = true;
+    notify();
+  }, []);
+
+  const setIsExpanded = useCallback((val: boolean) => {
+    sharedState.isExpanded = val;
+    notify();
   }, []);
 
   const reset = useCallback(() => {
-    setUiMode(UI_MODE.BANNER);
-    setStep3Variation(STEP3_VARIATION.MULTI);
-    setIsDismissed(false);
-    setSteps({
-      step1: isSeedphraseBackedUp,
-      step2: (accountGroupBalance?.totalBalanceInUserCurrency ?? 0) > 0,
+    sharedState.uiMode = UI_MODE.BANNER;
+    sharedState.step3Variation = STEP3_VARIATION.MULTI;
+    sharedState.isDismissed = false;
+    sharedState.isExpanded = false;
+    sharedState.steps = {
+      step1: false,
+      step2: false,
       step3: false,
-    });
-  }, [isSeedphraseBackedUp, accountGroupBalance]);
-
-  const completeStep = useCallback((step: keyof OnboardingSteps) => {
-    setSteps((prev) => ({
-      ...prev,
-      [step]: true,
-    }));
+    };
+    notify();
   }, []);
 
+  const completeStep = useCallback((step: keyof OnboardingSteps) => {
+    sharedState.steps[step] = true;
+    notify();
+  }, []);
+
+  const isAllCompleted = Object.values(sharedState.steps).every(Boolean);
+  const hasBalance = (accountGroupBalance?.totalBalanceInUserCurrency ?? 0) > 0;
+  const shouldShow = !sharedState.isDismissed && !isAllCompleted && !hasBalance;
+
   return {
-    uiMode,
-    step3Variation,
-    isDismissed,
-    steps,
+    uiMode: sharedState.uiMode,
+    step3Variation: sharedState.step3Variation,
+    isDismissed: sharedState.isDismissed,
+    isExpanded: sharedState.isExpanded,
+    setIsExpanded,
+    steps: sharedState.steps,
+    shouldShow,
+    isAllCompleted,
+    hasBalance,
     toggleUiMode,
     toggleStep3Variation,
     dismiss,
