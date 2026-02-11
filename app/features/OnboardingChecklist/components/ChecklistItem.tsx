@@ -1,5 +1,5 @@
-import React from 'react';
-import { Pressable } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { Pressable, Animated, Easing } from 'react-native';
 import { Box } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import Text, {
@@ -25,6 +25,7 @@ interface ChecklistItemProps {
   onPress?: () => void;
   isLoading?: boolean;
   variant?: ChecklistItemVariant;
+  isPulsing?: boolean;
 }
 
 const ChecklistItem: React.FC<ChecklistItemProps> = ({
@@ -33,8 +34,33 @@ const ChecklistItem: React.FC<ChecklistItemProps> = ({
   onPress,
   isLoading,
   variant = ChecklistItemVariant.Default,
+  isPulsing = false,
 }) => {
   const tw = useTailwind();
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    if (isPulsing && !isCompleted) {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulseAnim, {
+            toValue: 1.02,
+            duration: 800,
+            easing: Easing.inOut(Easing.ease),
+            useNativeDriver: true,
+          }),
+          Animated.timing(pulseAnim, {
+            toValue: 1,
+            duration: 800,
+            easing: Easing.inOut(Easing.ease),
+            useNativeDriver: true,
+          }),
+        ])
+      ).start();
+    } else {
+      pulseAnim.setValue(1);
+    }
+  }, [isPulsing, isCompleted, pulseAnim]);
 
   const isCard = variant === ChecklistItemVariant.Card;
   const isMinimal = variant === ChecklistItemVariant.Minimal;
@@ -43,33 +69,39 @@ const ChecklistItem: React.FC<ChecklistItemProps> = ({
   if (isGlass) {
     return (
       <Pressable onPress={onPress} disabled={isCompleted || isLoading}>
-        <Box
-          twClassName="flex-row items-center p-5 mb-3 rounded-2xl bg-background-default"
-          style={tw.style('border border-border-muted shadow-sm', isCompleted && 'opacity-80')}
-        >
-          <Box twClassName="mr-4">
-            {isCompleted ? (
-              <Box twClassName="w-10 h-10 rounded-full bg-success-muted items-center justify-center">
-                <Icon
-                  name={IconName.Check}
-                  size={IconSize.Md}
-                  color={IconColor.Success}
-                />
-              </Box>
-            ) : (
-              <Box twClassName="w-10 h-10 rounded-full border-2 border-border-muted items-center justify-center">
-                <Box twClassName="w-2 h-2 rounded-full bg-border-muted" />
-              </Box>
+        <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
+          <Box
+            twClassName="flex-row items-center p-5 mb-3 rounded-2xl bg-background-default"
+            style={tw.style(
+              'border border-border-muted shadow-sm',
+              isCompleted && 'opacity-80',
+              isPulsing && 'border-primary-default'
             )}
-          </Box>
-          <Text
-            variant={TextVariant.BodyLG}
-            color={TextColor.Default}
-            style={tw.style('flex-1')}
           >
-            {title}
-          </Text>
-        </Box>
+            <Box twClassName="mr-4">
+              {isCompleted ? (
+                <Box twClassName="w-10 h-10 rounded-full bg-success-muted items-center justify-center">
+                  <Icon
+                    name={IconName.Check}
+                    size={IconSize.Md}
+                    color={IconColor.Success}
+                  />
+                </Box>
+              ) : (
+                <Box twClassName="w-10 h-10 rounded-full border-2 border-border-muted items-center justify-center">
+                  <Box twClassName="w-2 h-2 rounded-full bg-border-muted" />
+                </Box>
+              )}
+            </Box>
+            <Text
+              variant={TextVariant.BodyLG}
+              color={TextColor.Default}
+              style={tw.style('flex-1')}
+            >
+              {title}
+            </Text>
+          </Box>
+        </Animated.View>
       </Pressable>
     );
   }
@@ -79,7 +111,7 @@ const ChecklistItem: React.FC<ChecklistItemProps> = ({
       <Pressable onPress={onPress} disabled={isCompleted || isLoading}>
         <Box
           twClassName="flex-row items-center py-3 border-b border-border-muted"
-          style={tw.style(isCompleted && 'opacity-50')}
+          style={tw.style(isCompleted && 'opacity-50', isPulsing && 'bg-primary-muted')}
         >
           <Box twClassName="mr-3">
             {isCompleted ? (
@@ -94,7 +126,7 @@ const ChecklistItem: React.FC<ChecklistItemProps> = ({
           </Box>
           <Text
             variant={TextVariant.BodySM}
-            color={TextColor.Default}
+            color={isPulsing ? TextColor.Primary : TextColor.Default}
             style={tw.style('flex-1')}
           >
             {title}
@@ -106,44 +138,49 @@ const ChecklistItem: React.FC<ChecklistItemProps> = ({
 
   return (
     <Pressable onPress={onPress} disabled={isCompleted || isLoading}>
-      <Box
-        twClassName={isCard ? 'flex-row items-center p-4 mb-2 rounded-lg bg-background-default' : 'flex-row items-center p-4 mb-2 rounded-lg bg-background-alternative'}
-        style={tw.style(
-          isCard ? 'border border-border-muted shadow-xs' : 'border border-border-default',
-          isCompleted && 'opacity-60'
-        )}
-      >
-        <Box twClassName="mr-3">
-          {isCompleted ? (
+      <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
+        <Box
+          twClassName={isCard ? 'flex-row items-center p-4 mb-2 rounded-lg bg-background-default' : 'flex-row items-center p-4 mb-2 rounded-lg bg-background-alternative'}
+          style={tw.style(
+            isCard ? 'border border-border-muted shadow-xs' : 'border border-border-default',
+            isCompleted && 'opacity-60',
+            isPulsing && 'border-primary-default'
+          )}
+        >
+          <Box twClassName="mr-3">
+            {isCompleted ? (
+              <Icon
+                name={IconName.Check}
+                size={IconSize.Md}
+                color={IconColor.Success}
+              />
+            ) : (
+              <Box
+                twClassName="w-5 h-5 rounded-full border-2 border-icon-muted"
+                style={tw.style(isLoading || isPulsing ? 'border-primary-default' : '')}
+              />
+            )}
+          </Box>
+          <Text
+            variant={TextVariant.BodyMD}
+            color={isPulsing ? TextColor.Primary : isCompleted ? TextColor.Alternative : TextColor.Default}
+            style={tw.style('flex-1')}
+          >
+            {title}
+          </Text>
+          {!isCompleted && !isLoading && (
             <Icon
-              name={IconName.Check}
-              size={IconSize.Md}
-              color={IconColor.Success}
-            />
-          ) : (
-            <Box
-              twClassName="w-5 h-5 rounded-full border-2 border-icon-muted"
-              style={tw.style(isLoading && 'border-primary-default')}
+              name={IconName.ArrowRight}
+              size={IconSize.Sm}
+              color={isPulsing ? IconColor.Primary : IconColor.Muted}
             />
           )}
         </Box>
-        <Text
-          variant={TextVariant.BodyMD}
-          color={isCompleted ? TextColor.Alternative : TextColor.Default}
-          style={tw.style('flex-1')}
-        >
-          {title}
-        </Text>
-        {!isCompleted && !isLoading && (
-          <Icon
-            name={IconName.ArrowRight}
-            size={IconSize.Sm}
-            color={IconColor.Muted}
-          />
-        )}
-      </Box>
+      </Animated.View>
     </Pressable>
   );
 };
+
+export default ChecklistItem;
 
 export default ChecklistItem;

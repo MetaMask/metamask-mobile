@@ -12,9 +12,10 @@ import Icon, {
   IconSize,
   IconColor,
 } from '../../../component-library/components/Icons/Icon';
-import ChecklistItem from './ChecklistItem';
+import ChecklistItem, { ChecklistItemVariant } from './ChecklistItem';
 import Step3Variations from './Step3Variations';
-import { useOnboardingChecklist } from '../hooks/useOnboardingChecklist';
+import SegmentedProgressBar from './SegmentedProgressBar';
+import { useOnboardingChecklist, DESIGN_STYLE } from '../hooks/useOnboardingChecklist';
 import Routes from '../../../constants/navigation/Routes';
 
 interface OnboardingBannerProps {
@@ -24,7 +25,7 @@ interface OnboardingBannerProps {
 const OnboardingBanner = ({ onSecureWallet }: OnboardingBannerProps) => {
   const tw = useTailwind();
   const navigation = useNavigation<any>();
-  const { steps, reset, completeStep } = useOnboardingChecklist();
+  const { steps, reset, completeStep, designStyle } = useOnboardingChecklist();
   const spinValue = useRef(new Animated.Value(0)).current;
 
   const handleReset = () => {
@@ -48,9 +49,50 @@ const OnboardingBanner = ({ onSecureWallet }: OnboardingBannerProps) => {
     navigation.navigate(Routes.RAMP.BUY);
   };
 
+  const completedCount = Object.values(steps).filter(Boolean).length;
+
+  // Determine next step to pulse
+  const isNextStep1 = !steps.step1;
+  const isNextStep2 = steps.step1 && !steps.step2;
+  const isNextStep3 = steps.step1 && steps.step2 && !steps.step3;
+
+  // Style 2: Integrated Minimalist
+  if (designStyle === DESIGN_STYLE.INTEGRATED_MINIMALIST) {
+    return (
+      <Box twClassName="px-4 py-2 mx-4 my-2">
+        <Box twClassName="flex-row justify-between items-center mb-2">
+          <Text variant={TextVariant.BodyXS} color={TextColor.Alternative} twClassName="uppercase font-bold">
+            Setup Guide ({completedCount}/3)
+          </Text>
+          <Pressable onPress={handleReset} hitSlop={10}>
+            <Icon name={IconName.MoreHorizontal} size={IconSize.Sm} color={IconColor.Muted} />
+          </Pressable>
+        </Box>
+        <ChecklistItem title="Secure Wallet" isCompleted={steps.step1} onPress={onSecureWallet} variant={ChecklistItemVariant.Minimal} isPulsing={isNextStep1} />
+        <ChecklistItem title="Add Funds" isCompleted={steps.step2} onPress={handleAddFunds} variant={ChecklistItemVariant.Minimal} isPulsing={isNextStep2} />
+        <Step3Variations variant={ChecklistItemVariant.Minimal} isPulsing={isNextStep3} />
+      </Box>
+    );
+  }
+
+  // Style 3: Glassmorphism / Elevation
+  if (designStyle === DESIGN_STYLE.GLASSMORPHISM) {
+    return (
+      <Box twClassName="p-6 mx-4 my-4 rounded-3xl bg-background-default shadow-lg border border-border-muted">
+        <Text variant={TextVariant.HeadingLG} color={TextColor.Default} twClassName="mb-6">
+          Ready to start?
+        </Text>
+        <ChecklistItem title="Protect your account" isCompleted={steps.step1} onPress={onSecureWallet} variant={ChecklistItemVariant.Glass} isPulsing={isNextStep1} />
+        <ChecklistItem title="Get some ETH" isCompleted={steps.step2} onPress={handleAddFunds} variant={ChecklistItemVariant.Glass} isPulsing={isNextStep2} />
+        <Step3Variations variant={ChecklistItemVariant.Glass} isPulsing={isNextStep3} />
+      </Box>
+    );
+  }
+
+  // Style 1: Modern Fintech (Default)
   return (
     <Box twClassName="p-4 mx-4 my-2 rounded-xl bg-background-default border border-border-muted shadow-sm">
-      <Box twClassName="flex-row justify-between items-center mb-4">
+      <Box twClassName="flex-row justify-between items-center mb-2">
         <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
           Complete your setup
         </Text>
@@ -65,19 +107,25 @@ const OnboardingBanner = ({ onSecureWallet }: OnboardingBannerProps) => {
         </Pressable>
       </Box>
       
+      <SegmentedProgressBar currentStep={completedCount} totalSteps={3} />
+      
       <ChecklistItem
         title="Secure your wallet"
         isCompleted={steps.step1}
         onPress={onSecureWallet}
+        variant={ChecklistItemVariant.Card}
+        isPulsing={isNextStep1}
       />
       
       <ChecklistItem
         title="Add funds"
         isCompleted={steps.step2}
         onPress={handleAddFunds}
+        variant={ChecklistItemVariant.Card}
+        isPulsing={isNextStep2}
       />
       
-      <Step3Variations />
+      <Step3Variations variant={ChecklistItemVariant.Card} isPulsing={isNextStep3} />
     </Box>
   );
 };

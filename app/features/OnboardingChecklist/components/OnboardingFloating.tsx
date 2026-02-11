@@ -12,9 +12,9 @@ import Icon, {
   IconSize,
   IconColor,
 } from '../../../component-library/components/Icons/Icon';
-import ChecklistItem from './ChecklistItem';
+import ChecklistItem, { ChecklistItemVariant } from './ChecklistItem';
 import Step3Variations from './Step3Variations';
-import { useOnboardingChecklist } from '../hooks/useOnboardingChecklist';
+import { useOnboardingChecklist, DESIGN_STYLE } from '../hooks/useOnboardingChecklist';
 import Routes from '../../../constants/navigation/Routes';
 
 interface OnboardingFloatingProps {
@@ -24,7 +24,7 @@ interface OnboardingFloatingProps {
 const OnboardingFloating = ({ onSecureWallet }: OnboardingFloatingProps) => {
   const tw = useTailwind();
   const navigation = useNavigation<any>();
-  const { steps, reset, completeStep } = useOnboardingChecklist();
+  const { steps, reset, completeStep, designStyle } = useOnboardingChecklist();
   const [isExpandedLocal, setIsExpandedLocal] = React.useState(false);
   const spinValue = useRef(new Animated.Value(0)).current;
 
@@ -49,10 +49,20 @@ const OnboardingFloating = ({ onSecureWallet }: OnboardingFloatingProps) => {
     navigation.navigate(Routes.RAMP.BUY);
   };
 
+  const itemVariant = designStyle === DESIGN_STYLE.MODERN_FINTECH ? ChecklistItemVariant.Card : 
+                      designStyle === DESIGN_STYLE.INTEGRATED_MINIMALIST ? ChecklistItemVariant.Minimal : 
+                      ChecklistItemVariant.Glass;
+
+  // Determine next step to pulse
+  const isNextStep1 = !steps.step1;
+  const isNextStep2 = steps.step1 && !steps.step2;
+  const isNextStep3 = steps.step1 && steps.step2 && !steps.step3;
+
   return (
     <Box
       style={tw.style(
         'absolute bottom-8 left-4 right-4 z-50 bg-background-default rounded-2xl shadow-lg border border-border-muted overflow-hidden',
+        designStyle === DESIGN_STYLE.GLASSMORPHISM && 'rounded-3xl shadow-2xl'
       )}
     >
       <Box twClassName="flex-row items-center pr-4">
@@ -67,7 +77,7 @@ const OnboardingFloating = ({ onSecureWallet }: OnboardingFloatingProps) => {
             </Box>
             <Box twClassName="flex-1">
               <Text variant={TextVariant.BodySM} color={TextColor.Default}>
-                Complete your setup
+                {designStyle === DESIGN_STYLE.GLASSMORPHISM ? 'Your Journey' : 'Complete your setup'}
               </Text>
               <Text variant={TextVariant.BodyXS} color={TextColor.Alternative}>
                 {Object.values(steps).filter(Boolean).length} of 3 steps done
@@ -84,7 +94,7 @@ const OnboardingFloating = ({ onSecureWallet }: OnboardingFloatingProps) => {
           <Pressable onPress={handleReset} hitSlop={10}>
             <Animated.View style={{ transform: [{ rotate: spin }] }}>
               <Icon
-                name={IconName.Refresh}
+                name={designStyle === DESIGN_STYLE.INTEGRATED_MINIMALIST ? IconName.MoreHorizontal : IconName.Refresh}
                 size={IconSize.Sm}
                 color={IconColor.Muted}
               />
@@ -99,13 +109,17 @@ const OnboardingFloating = ({ onSecureWallet }: OnboardingFloatingProps) => {
             title="Secure your wallet"
             isCompleted={steps.step1}
             onPress={onSecureWallet}
+            variant={itemVariant}
+            isPulsing={isNextStep1}
           />
           <ChecklistItem
             title="Add funds"
             isCompleted={steps.step2}
             onPress={handleAddFunds}
+            variant={itemVariant}
+            isPulsing={isNextStep2}
           />
-          <Step3Variations />
+          <Step3Variations variant={itemVariant} isPulsing={isNextStep3} />
         </Box>
       )}
     </Box>
