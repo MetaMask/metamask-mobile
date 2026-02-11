@@ -1100,12 +1100,42 @@ const AppFlow = () => (
     <Stack.Screen
       name={Routes.ONBOARDING_JOURNEY}
       component={OnboardingJourneyScreen}
-      options={{ headerShown: false }}
+      options={{
+        headerShown: false,
+        animationEnabled: true,
+        cardStyleInterpolator: ({ current, layouts }) => ({
+          cardStyle: {
+            transform: [
+              {
+                translateX: current.progress.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [layouts.screen.width, 0],
+                }),
+              },
+            ],
+          },
+        }),
+      }}
     />
     <Stack.Screen
       name={Routes.FAKE_SRP}
       component={FakeSRPScreen}
-      options={{ headerShown: false }}
+      options={{
+        headerShown: false,
+        animationEnabled: true,
+        cardStyleInterpolator: ({ current, layouts }) => ({
+          cardStyle: {
+            transform: [
+              {
+                translateX: current.progress.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [layouts.screen.width, 0],
+                }),
+              },
+            ],
+          },
+        }),
+      }}
     />
   </Stack.Navigator>
 );

@@ -73,7 +73,7 @@ const OnboardingMiniBar = ({ scrollAnim }: OnboardingMiniBarProps) => {
           </Box>
 
           <Icon
-            name={IconName.ArrowUp}
+            name={IconName.ArrowRight}
             size={IconSize.Sm}
             color={IconColor.Muted}
           />
