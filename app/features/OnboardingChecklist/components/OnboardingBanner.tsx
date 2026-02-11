@@ -15,6 +15,7 @@ import Icon, {
 import ChecklistItem, { ChecklistItemVariant } from './ChecklistItem';
 import Step3Variations from './Step3Variations';
 import SegmentedProgressBar from './SegmentedProgressBar';
+import TimelineProgressBar from './TimelineProgressBar';
 import { useOnboardingChecklist, DESIGN_STYLE } from '../hooks/useOnboardingChecklist';
 import Routes from '../../../constants/navigation/Routes';
 
@@ -52,21 +53,45 @@ const OnboardingBanner = () => {
   const isNextStep2 = steps.step1 && !steps.step2;
   const isNextStep3 = steps.step1 && steps.step2 && !steps.step3;
 
-  // Style 2: Integrated Minimalist
+  // Style 2: Sleek Timeline
   if (designStyle === DESIGN_STYLE.INTEGRATED_MINIMALIST) {
     return (
-      <Box twClassName="px-4 py-2 mx-4 my-2">
-        <Box twClassName="flex-row justify-between items-center mb-2">
-          <Text variant={TextVariant.BodyXS} color={TextColor.Alternative} twClassName="uppercase font-bold">
-            Setup Guide ({completedCount}/3)
+      <Box twClassName="px-6 py-4 mx-4 my-2 rounded-3xl bg-background-default border border-border-muted shadow-xs">
+        <Box twClassName="flex-row justify-between items-center mb-6">
+          <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
+            Setup Journey
           </Text>
-          <Pressable onPress={handleReset} hitSlop={10}>
-            <Icon name={IconName.MoreHorizontal} size={IconSize.Sm} color={IconColor.Muted} />
-          </Pressable>
+          <Text variant={TextVariant.BodyXS} color={TextColor.Primary} twClassName="font-bold">
+            {completedCount}/3 DONE
+          </Text>
         </Box>
-        <ChecklistItem title="Secure Wallet" isCompleted={steps.step1} onPress={() => navigation.navigate(Routes.FAKE_SRP)} variant={ChecklistItemVariant.Minimal} isPulsing={isNextStep1} />
-        <ChecklistItem title="Add Funds" isCompleted={steps.step2} onPress={handleAddFunds} variant={ChecklistItemVariant.Minimal} isPulsing={isNextStep2} />
-        <Step3Variations variant={ChecklistItemVariant.Minimal} isPulsing={isNextStep3} />
+        
+        <Box twClassName="flex-row">
+          <TimelineProgressBar completedCount={completedCount} totalSteps={3} />
+          
+          <Box twClassName="flex-1 ml-4" gap={0}>
+            <ChecklistItem 
+              title="Secure Wallet" 
+              isCompleted={steps.step1} 
+              onPress={() => navigation.navigate(Routes.FAKE_SRP)} 
+              variant={ChecklistItemVariant.Timeline} 
+              isPulsing={isNextStep1}
+              icon={IconName.SecurityTick}
+            />
+            <ChecklistItem 
+              title="Add Funds" 
+              isCompleted={steps.step2} 
+              onPress={handleAddFunds} 
+              variant={ChecklistItemVariant.Timeline} 
+              isPulsing={isNextStep2}
+              icon={IconName.Add}
+            />
+            <Step3Variations 
+              variant={ChecklistItemVariant.Timeline} 
+              isPulsing={isNextStep3} 
+            />
+          </Box>
+        </Box>
       </Box>
     );
   }
