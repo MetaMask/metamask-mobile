@@ -47,9 +47,9 @@ describe('useCardAuthenticationVerification', () => {
     cardGeoLocation?: string;
   }) => {
     mockUseSelector
-      .mockReturnValueOnce(userLoggedIn) // selectUserLoggedIn
-      .mockReturnValueOnce(isAuthenticated) // selectIsAuthenticatedCard
-      .mockReturnValueOnce(cardGeoLocation); // selectCardGeoLocation
+      .mockReturnValueOnce(userLoggedIn)
+      .mockReturnValueOnce(isAuthenticated)
+      .mockReturnValueOnce(cardGeoLocation);
     mockUseIsBaanxLoginEnabled.mockReturnValue(isBaanxLoginEnabled);
   };
 
