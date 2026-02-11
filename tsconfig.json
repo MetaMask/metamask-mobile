@@ -42,6 +42,8 @@
       "@keystonehq/ur-decoder": [
         "app/declarations/@keystonehq/ur-decoder.d.ts"
       ],
+      "@metamask/perps-controller": ["./app/controllers/perps"],
+      "@metamask/perps-controller/*": ["./app/controllers/perps/*"],
       // TODO: Remove this once we use `Node16` module resolution.
       "@metamask/json-rpc-engine/v2": [
         "node_modules/@metamask/json-rpc-engine/dist/v2/index.d.cts"
@@ -69,7 +71,6 @@
     "app/**/*",
     "node_modules/expect-webdriverio",
     "node_modules/expect-webdriverio/jest",
-    "e2e/**/*",
     "tests/**/*",
     "appwright/**/*"
   ],

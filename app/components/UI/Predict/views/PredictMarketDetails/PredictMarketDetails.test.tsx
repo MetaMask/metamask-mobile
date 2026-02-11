@@ -587,7 +587,17 @@ function setupPredictMarketDetailsTest(
     },
   );
 
-  const result = renderWithProvider(<PredictMarketDetails />);
+  const result = renderWithProvider(<PredictMarketDetails />, {
+    state: {
+      engine: {
+        backgroundState: {
+          PreferencesController: {
+            privacyMode: false,
+          },
+        },
+      },
+    },
+  });
 
   return {
     ...result,
