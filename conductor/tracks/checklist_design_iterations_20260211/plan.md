@@ -4,7 +4,7 @@
 - [x] Task: Extend state for Design Styles 64d87c3
     - [ ] Update `useOnboardingChecklist` hook to include `designStyle` state (Style 1, 2, 3).
     - [ ] Update the `reset` logic to handle style-specific resets if needed.
-- [ ] Task: Update Demo Trigger Logic
+- [x] Task: Update Demo Trigger Logic eb0443b
     - [ ] Modify the `onLongPress` handler in `TokensSection.tsx` to cycle through the 3 styles.
 - [ ] Task: Conductor - User Manual Verification 'Phase 1' (Protocol in workflow.md)
 
