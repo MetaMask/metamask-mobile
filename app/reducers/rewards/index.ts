@@ -7,7 +7,7 @@ import {
   RewardDto,
   PointsEventDto,
   SeasonActivityTypeDto,
-  SnapshotDto,
+  SeasonDropDto,
   SeasonWayToEarnDto,
 } from '../../core/Engine/controllers/rewards-controller/types';
 import { OnboardingStep } from './types';
@@ -51,7 +51,7 @@ export interface BulkLinkState {
 }
 
 export interface RewardsState {
-  activeTab: 'overview' | 'snapshots' | 'activity';
+  activeTab: 'overview' | 'drops' | 'activity';
   seasonStatusLoading: boolean;
   seasonStatusError: string | null;
 
@@ -115,10 +115,10 @@ export interface RewardsState {
   // Bulk link state (for linking all account groups across all wallets)
   bulkLink: BulkLinkState;
 
-  // Snapshots state
-  snapshots: SnapshotDto[] | null;
-  snapshotsLoading: boolean;
-  snapshotsError: boolean;
+  // Season Drops state
+  seasonDrops: SeasonDropDto[] | null;
+  seasonDropsLoading: boolean;
+  seasonDropsError: boolean;
 }
 
 export const initialState: RewardsState = {
@@ -181,10 +181,10 @@ export const initialState: RewardsState = {
     initialSubscriptionId: null,
   },
 
-  // Snapshots initial state
-  snapshots: null,
-  snapshotsLoading: false,
-  snapshotsError: false,
+  // Season Drops initial state
+  seasonDrops: null,
+  seasonDropsLoading: false,
+  seasonDropsError: false,
 };
 
 interface RehydrateAction extends Action<'persist/REHYDRATE'> {
@@ -199,7 +199,7 @@ const rewardsSlice = createSlice({
   reducers: {
     setActiveTab: (
       state,
-      action: PayloadAction<'overview' | 'snapshots' | 'activity'>,
+      action: PayloadAction<'overview' | 'drops' | 'activity'>,
     ) => {
       state.activeTab = action.payload;
     },
@@ -348,7 +348,7 @@ const rewardsSlice = createSlice({
         state.activeBoosts = initialState.activeBoosts;
         state.pointsEvents = initialState.pointsEvents;
         state.unlockedRewards = initialState.unlockedRewards;
-        state.snapshots = initialState.snapshots;
+        state.seasonDrops = initialState.seasonDrops;
       }
 
       state.candidateSubscriptionId = action.payload;
@@ -438,19 +438,19 @@ const rewardsSlice = createSlice({
       state.pointsEvents = action.payload;
     },
 
-    // Snapshots reducers
-    setSnapshots: (state, action: PayloadAction<SnapshotDto[] | null>) => {
-      state.snapshots = action.payload;
-      state.snapshotsError = false;
+    // Season Drops reducers
+    setSeasonDrops: (state, action: PayloadAction<SeasonDropDto[] | null>) => {
+      state.seasonDrops = action.payload;
+      state.seasonDropsError = false;
     },
-    setSnapshotsLoading: (state, action: PayloadAction<boolean>) => {
-      if (action.payload && state.snapshots?.length) {
+    setSeasonDropsLoading: (state, action: PayloadAction<boolean>) => {
+      if (action.payload && state.seasonDrops?.length) {
         return;
       }
-      state.snapshotsLoading = action.payload;
+      state.seasonDropsLoading = action.payload;
     },
-    setSnapshotsError: (state, action: PayloadAction<boolean>) => {
-      state.snapshotsError = action.payload;
+    setSeasonDropsError: (state, action: PayloadAction<boolean>) => {
+      state.seasonDropsError = action.payload;
     },
 
     // Bulk link reducers
@@ -552,7 +552,7 @@ const rewardsSlice = createSlice({
             activeBoosts: action.payload.rewards.activeBoosts,
             pointsEvents: action.payload.rewards.pointsEvents,
             unlockedRewards: action.payload.rewards.unlockedRewards,
-            snapshots: action.payload.rewards.snapshots,
+            seasonDrops: action.payload.rewards.seasonDrops,
             hideUnlinkedAccountsBanner:
               action.payload.rewards.hideUnlinkedAccountsBanner,
             hideCurrentAccountNotOptedInBanner:
@@ -606,10 +606,10 @@ export const {
   setUnlockedRewardLoading,
   setUnlockedRewardError,
   setPointsEvents,
-  // Snapshots actions
-  setSnapshots,
-  setSnapshotsLoading,
-  setSnapshotsError,
+  // Season Drops actions
+  setSeasonDrops,
+  setSeasonDropsLoading,
+  setSeasonDropsError,
   // Bulk link actions
   bulkLinkStarted,
   bulkLinkAccountResult,

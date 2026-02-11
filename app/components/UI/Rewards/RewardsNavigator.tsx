@@ -5,8 +5,8 @@ import OnboardingNavigator from './OnboardingNavigator';
 import RewardsDashboard from './Views/RewardsDashboard';
 import ReferralRewardsView from './Views/RewardsReferralView';
 import RewardsSettingsView from './Views/RewardsSettingsView';
-import SnapshotDetailView from './Views/SnapshotDetailView';
-import SnapshotCommitmentView from './Views/SnapshotCommitmentView';
+import DropDetailView from './Views/DropDetailView';
+import DropCommitmentView from './Views/DropCommitmentView';
 import { useSelector } from 'react-redux';
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
 import { useCandidateSubscriptionId } from './hooks/useCandidateSubscriptionId';
@@ -68,13 +68,13 @@ const RewardsNavigator: React.FC = () => {
             options={{ headerShown: true }}
           />
           <Stack.Screen
-            name={Routes.REWARDS_SNAPSHOT_DETAIL}
-            component={SnapshotDetailView}
+            name={Routes.REWARDS_DROP_DETAIL}
+            component={DropDetailView}
             options={{ headerShown: true }}
           />
           <Stack.Screen
-            name={Routes.REWARDS_SNAPSHOT_COMMITMENT}
-            component={SnapshotCommitmentView}
+            name={Routes.REWARDS_DROP_COMMITMENT}
+            component={DropCommitmentView}
             options={{ headerShown: true }}
           />
         </>

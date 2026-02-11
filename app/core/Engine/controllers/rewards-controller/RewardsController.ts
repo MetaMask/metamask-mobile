@@ -21,7 +21,7 @@ import {
   type PointsBoostDto,
   type PointsEventDto,
   type RewardDto,
-  type SnapshotDto,
+  type SeasonDropDto,
   type PointsEstimateHistoryEntry,
   ClaimRewardDto,
   PointsEventsDtoState,
@@ -31,8 +31,8 @@ import {
   type SeasonMetadataDto,
   type SeasonStateDto,
   type LineaTokenRewardDto,
-  type SnapshotEligibilityDto,
-  type SnapshotLeaderboardDto,
+  type DropEligibilityDto,
+  type DropLeaderboardDto,
 } from './types';
 import type { RewardsControllerMessenger } from '../../messengers/rewards-controller-messenger';
 import {
@@ -92,11 +92,11 @@ const ACTIVE_BOOSTS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
 // Unlocked rewards cache threshold
 const UNLOCKED_REWARDS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
 
-// Snapshots cache threshold
-const SNAPSHOTS_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
+// Drops cache threshold
+const DROPS_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
 
-// Snapshot eligibility cache threshold
-const SNAPSHOT_ELIGIBILITY_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
+// Drop eligibility cache threshold
+const DROP_ELIGIBILITY_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
 
 // Points events cache threshold (first page only)
 const POINTS_EVENTS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute cache
@@ -165,13 +165,13 @@ const metadata: StateMetadata<RewardsControllerState> = {
     includeInDebugSnapshot: false,
     usedInUi: true,
   },
-  snapshots: {
+  drops: {
     includeInStateLogs: true,
     persist: true,
     includeInDebugSnapshot: false,
     usedInUi: true,
   },
-  snapshotEligibilities: {
+  dropEligibilities: {
     includeInStateLogs: true,
     persist: true,
     includeInDebugSnapshot: false,
@@ -198,8 +198,8 @@ export const getRewardsControllerDefaultState = (): RewardsControllerState => ({
   activeBoosts: {},
   unlockedRewards: {},
   pointsEvents: {},
-  snapshots: {},
-  snapshotEligibilities: {},
+  drops: {},
+  dropEligibilities: {},
   pointsEstimateHistory: [],
 });
 
@@ -295,7 +295,7 @@ export class RewardsController extends BaseController<
   #isDisabled: () => boolean;
   #isBitcoinOptinEnabled: () => boolean;
   #isTronOptinEnabled: () => boolean;
-  #isSnapshotsEnabled: () => boolean;
+  #isDropsEnabled: () => boolean;
 
   /**
    * Calculate tier status and next tier information
@@ -332,9 +332,9 @@ export class RewardsController extends BaseController<
         `Current tier ${currentTierId} not found in season tiers, skip calculating tier status`,
       );
       return {
-        currentTier: null,
-        nextTier: null,
-        nextTierPointsNeeded: null,
+        currentTier: undefined,
+        nextTier: undefined,
+        nextTierPointsNeeded: undefined,
       };
     }
 
@@ -462,14 +462,14 @@ export class RewardsController extends BaseController<
     isDisabled,
     isBitcoinOptinEnabled,
     isTronOptinEnabled,
-    isSnapshotsEnabled,
+    isDropsEnabled,
   }: {
     messenger: RewardsControllerMessenger;
     state?: Partial<RewardsControllerState>;
     isDisabled?: () => boolean;
     isBitcoinOptinEnabled?: () => boolean;
     isTronOptinEnabled?: () => boolean;
-    isSnapshotsEnabled?: () => boolean;
+    isDropsEnabled?: () => boolean;
   }) {
     super({
       name: controllerName,
@@ -484,7 +484,7 @@ export class RewardsController extends BaseController<
     this.#isDisabled = isDisabled ?? (() => false);
     this.#isBitcoinOptinEnabled = isBitcoinOptinEnabled ?? (() => false);
     this.#isTronOptinEnabled = isTronOptinEnabled ?? (() => false);
-    this.#isSnapshotsEnabled = isSnapshotsEnabled ?? (() => false);
+    this.#isDropsEnabled = isDropsEnabled ?? (() => false);
 
     this.#registerActionHandlers();
     this.#initializeEventSubscriptions();
@@ -575,8 +575,8 @@ export class RewardsController extends BaseController<
       this.getUnlockedRewards.bind(this),
     );
     this.messenger.registerActionHandler(
-      'RewardsController:getSnapshots',
-      this.getSnapshots.bind(this),
+      'RewardsController:getSeasonDrops',
+      this.getSeasonDrops.bind(this),
     );
     this.messenger.registerActionHandler(
       'RewardsController:claimReward',
@@ -607,12 +607,12 @@ export class RewardsController extends BaseController<
       this.applyReferralCode.bind(this),
     );
     this.messenger.registerActionHandler(
-      'RewardsController:getSnapshotEligibility',
-      this.getSnapshotEligibility.bind(this),
+      'RewardsController:getDropEligibility',
+      this.getDropEligibility.bind(this),
     );
     this.messenger.registerActionHandler(
-      'RewardsController:getSnapshotLeaderboard',
-      this.getSnapshotLeaderboard.bind(this),
+      'RewardsController:getDropLeaderboard',
+      this.getDropLeaderboard.bind(this),
     );
   }
 
@@ -687,13 +687,13 @@ export class RewardsController extends BaseController<
   }
 
   /**
-   * Create composite key for snapshot-specific state storage
+   * Create composite key for drop-specific state storage
    */
-  private createSnapshotSubscriptionCompositeKey(
-    snapshotId: string,
+  private createDropSubscriptionCompositeKey(
+    dropId: string,
     subscriptionId: string,
   ): string {
-    return `${snapshotId}:${subscriptionId}`;
+    return `${dropId}:${subscriptionId}`;
   }
 
   /**
@@ -3152,48 +3152,48 @@ export class RewardsController extends BaseController<
   }
 
   /**
-   * Get snapshots for a season with caching
+   * Get drops for a season with caching
    * @param seasonId - The season ID
    * @param subscriptionId - The subscription ID for authentication
-   * @returns Promise<SnapshotDto[]> - The snapshots data
+   * @returns Promise<SeasonDropDto[]> - The drops data
    */
-  async getSnapshots(
+  async getSeasonDrops(
     seasonId: string,
     subscriptionId: string,
-  ): Promise<SnapshotDto[]> {
+  ): Promise<SeasonDropDto[]> {
     const rewardsEnabled = this.isRewardsFeatureEnabled();
     if (!rewardsEnabled) {
       return [];
     }
-    if (!this.#isSnapshotsEnabled()) {
-      throw new Error('Snapshots feature is not enabled');
+    if (!this.#isDropsEnabled()) {
+      throw new Error('Drops feature is not enabled');
     }
-    const result = await wrapWithCache<SnapshotDto[]>({
+    const result = await wrapWithCache<SeasonDropDto[]>({
       key: seasonId,
-      ttl: SNAPSHOTS_CACHE_THRESHOLD_MS,
+      ttl: DROPS_CACHE_THRESHOLD_MS,
       readCache: (key) => {
-        const cachedSnapshots = this.state.snapshots[key] || undefined;
-        if (!cachedSnapshots) return;
+        const cachedDrops = this.state.drops[key] || undefined;
+        if (!cachedDrops) return;
         return {
-          payload: cachedSnapshots.snapshots,
-          lastFetched: cachedSnapshots.lastFetched,
+          payload: cachedDrops.drops,
+          lastFetched: cachedDrops.lastFetched,
         };
       },
       fetchFresh: async () => {
         try {
           Logger.log(
-            'RewardsController: Fetching fresh snapshots data via API call for seasonId',
+            'RewardsController: Fetching fresh drops data via API call for seasonId',
             seasonId,
           );
           const response = (await this.messenger.call(
-            'RewardsDataService:getSnapshots',
+            'RewardsDataService:getDrops',
             seasonId,
             subscriptionId,
-          )) as SnapshotDto[];
+          )) as SeasonDropDto[];
           return response || [];
         } catch (error) {
           Logger.log(
-            'RewardsController: Failed to get snapshots:',
+            'RewardsController: Failed to get drops:',
             error instanceof Error ? error.message : String(error),
           );
           throw error;
@@ -3201,8 +3201,8 @@ export class RewardsController extends BaseController<
       },
       writeCache: (key, payload) => {
         this.update((state: RewardsControllerState) => {
-          state.snapshots[key] = {
-            snapshots: payload,
+          state.drops[key] = {
+            drops: payload,
             lastFetched: Date.now(),
           };
         });
@@ -3213,31 +3213,28 @@ export class RewardsController extends BaseController<
   }
 
   /**
-   * Get snapshot eligibility status.
-   * @param snapshotId - The snapshot ID to get eligibility for
+   * Get drop eligibility status.
+   * @param dropId - The drop ID to get eligibility for
    * @param subscriptionId - The subscription ID for authentication
    * @returns The eligibility status including prerequisites with progress
    */
-  async getSnapshotEligibility(
-    snapshotId: string,
+  async getDropEligibility(
+    dropId: string,
     subscriptionId: string,
-  ): Promise<SnapshotEligibilityDto> {
+  ): Promise<DropEligibilityDto> {
     const rewardsEnabled = this.isRewardsFeatureEnabled();
     if (!rewardsEnabled) {
       throw new Error('Rewards are not enabled');
     }
-    if (!this.#isSnapshotsEnabled()) {
-      throw new Error('Snapshots feature is not enabled');
+    if (!this.#isDropsEnabled()) {
+      throw new Error('Drops feature is not enabled');
     }
 
-    const result = await wrapWithCache<SnapshotEligibilityDto>({
-      key: this.createSnapshotSubscriptionCompositeKey(
-        snapshotId,
-        subscriptionId,
-      ),
-      ttl: SNAPSHOT_ELIGIBILITY_CACHE_THRESHOLD_MS,
+    const result = await wrapWithCache<DropEligibilityDto>({
+      key: this.createDropSubscriptionCompositeKey(dropId, subscriptionId),
+      ttl: DROP_ELIGIBILITY_CACHE_THRESHOLD_MS,
       readCache: (key) => {
-        const cached = this.state.snapshotEligibilities[key] || undefined;
+        const cached = this.state.dropEligibilities[key] || undefined;
         if (!cached) return;
         return {
           payload: cached.eligibility,
@@ -3247,18 +3244,18 @@ export class RewardsController extends BaseController<
       fetchFresh: async () => {
         try {
           Logger.log(
-            'RewardsController: Fetching fresh snapshot eligibility via API call for snapshotId',
-            snapshotId,
+            'RewardsController: Fetching fresh drop eligibility via API call for dropId',
+            dropId,
           );
           const response = (await this.messenger.call(
-            'RewardsDataService:getSnapshotEligibility',
-            snapshotId,
+            'RewardsDataService:getDropEligibility',
+            dropId,
             subscriptionId,
-          )) as SnapshotEligibilityDto;
+          )) as DropEligibilityDto;
           return response;
         } catch (error) {
           Logger.log(
-            'RewardsController: Failed to get snapshot eligibility:',
+            'RewardsController: Failed to get drop eligibility:',
             error instanceof Error ? error.message : String(error),
           );
           throw error;
@@ -3266,7 +3263,7 @@ export class RewardsController extends BaseController<
       },
       writeCache: (key, payload) => {
         this.update((state: RewardsControllerState) => {
-          state.snapshotEligibilities[key] = {
+          state.dropEligibilities[key] = {
             eligibility: payload,
             lastFetched: Date.now(),
           };
@@ -3278,38 +3275,38 @@ export class RewardsController extends BaseController<
   }
 
   /**
-   * Get leaderboard data for a snapshot.
-   * Note: No client-side caching as the backend handles caching (3-min TTL when snapshot is OPEN).
-   * @param snapshotId - The snapshot ID
+   * Get leaderboard data for a drop.
+   * Note: No client-side caching as the backend handles caching (3-min TTL when drop is OPEN).
+   * @param dropId - The drop ID
    * @param subscriptionId - The subscription ID for authentication
    * @returns The leaderboard data including top 20 entries, totals, and user position
    */
-  async getSnapshotLeaderboard(
-    snapshotId: string,
+  async getDropLeaderboard(
+    dropId: string,
     subscriptionId: string,
-  ): Promise<SnapshotLeaderboardDto> {
+  ): Promise<DropLeaderboardDto> {
     const rewardsEnabled = this.isRewardsFeatureEnabled();
     if (!rewardsEnabled) {
       throw new Error('Rewards are not enabled');
     }
-    if (!this.#isSnapshotsEnabled()) {
-      throw new Error('Snapshots feature is not enabled');
+    if (!this.#isDropsEnabled()) {
+      throw new Error('Drops feature is not enabled');
     }
 
     try {
       Logger.log(
-        'RewardsController: Fetching snapshot leaderboard via API call for snapshotId',
-        snapshotId,
+        'RewardsController: Fetching drop leaderboard via API call for dropId',
+        dropId,
       );
       const response = (await this.messenger.call(
-        'RewardsDataService:getSnapshotLeaderboard',
-        snapshotId,
+        'RewardsDataService:getDropLeaderboard',
+        dropId,
         subscriptionId,
-      )) as SnapshotLeaderboardDto;
+      )) as DropLeaderboardDto;
       return response;
     } catch (error) {
       Logger.log(
-        'RewardsController: Failed to get snapshot leaderboard:',
+        'RewardsController: Failed to get drop leaderboard:',
         error instanceof Error ? error.message : String(error),
       );
       throw error;

@@ -24,10 +24,10 @@ import type {
   SeasonStateDto,
   LineaTokenRewardDto,
   ApplyReferralDto,
-  SnapshotDto,
-  SnapshotEligibilityDto,
-  SnapshotLeaderboardDto,
-  SnapshotStatus,
+  SeasonDropDto,
+  DropEligibilityDto,
+  DropLeaderboardDto,
+  DropStatus,
 } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
 import Logger from '../../../../../util/Logger';
@@ -83,11 +83,11 @@ const SERVICE_NAME = 'RewardsDataService';
 const DEFAULT_REQUEST_TIMEOUT_MS = 10000;
 
 /**
- * Maps backend snapshot status values (uppercase) to mobile format (lowercase).
+ * Maps backend drop status values (uppercase) to mobile format (lowercase).
  * Backend: UPCOMING, OPEN, CALCULATING, DISTRIBUTING, CLOSED
  * Mobile: upcoming, live, calculating, distributing, complete
  */
-const BACKEND_STATUS_MAP: Record<string, SnapshotStatus> = {
+const BACKEND_STATUS_MAP: Record<string, DropStatus> = {
   UPCOMING: 'upcoming',
   OPEN: 'live',
   CALCULATING: 'calculating',
@@ -96,11 +96,11 @@ const BACKEND_STATUS_MAP: Record<string, SnapshotStatus> = {
 };
 
 /**
- * Normalizes snapshot status from backend format to mobile format.
+ * Normalizes drop status from backend format to mobile format.
  * Falls back to input if already in mobile format or unknown.
  */
-function normalizeSnapshotStatus(status: string): SnapshotStatus {
-  return BACKEND_STATUS_MAP[status] || (status as SnapshotStatus);
+function normalizeDropStatus(status: string): DropStatus {
+  return BACKEND_STATUS_MAP[status] || (status as DropStatus);
 }
 
 // Geolocation URLs for different environments
@@ -215,19 +215,19 @@ export interface RewardsDataServiceApplyReferralCodeAction {
   handler: RewardsDataService['applyReferralCode'];
 }
 
-export interface RewardsDataServiceGetSnapshotsAction {
-  type: `${typeof SERVICE_NAME}:getSnapshots`;
-  handler: RewardsDataService['getSnapshots'];
+export interface RewardsDataServiceGetDropsAction {
+  type: `${typeof SERVICE_NAME}:getDrops`;
+  handler: RewardsDataService['getDrops'];
 }
 
-export interface RewardsDataServiceGetSnapshotEligibilityAction {
-  type: `${typeof SERVICE_NAME}:getSnapshotEligibility`;
-  handler: RewardsDataService['getSnapshotEligibility'];
+export interface RewardsDataServiceGetDropEligibilityAction {
+  type: `${typeof SERVICE_NAME}:getDropEligibility`;
+  handler: RewardsDataService['getDropEligibility'];
 }
 
-export interface RewardsDataServiceGetSnapshotLeaderboardAction {
-  type: `${typeof SERVICE_NAME}:getSnapshotLeaderboard`;
-  handler: RewardsDataService['getSnapshotLeaderboard'];
+export interface RewardsDataServiceGetDropLeaderboardAction {
+  type: `${typeof SERVICE_NAME}:getDropLeaderboard`;
+  handler: RewardsDataService['getDropLeaderboard'];
 }
 
 export type RewardsDataServiceActions =
@@ -252,9 +252,9 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceGetSeasonMetadataAction
   | RewardsDataServiceGetSeasonOneLineaRewardTokensAction
   | RewardsDataServiceApplyReferralCodeAction
-  | RewardsDataServiceGetSnapshotsAction
-  | RewardsDataServiceGetSnapshotEligibilityAction
-  | RewardsDataServiceGetSnapshotLeaderboardAction;
+  | RewardsDataServiceGetDropsAction
+  | RewardsDataServiceGetDropEligibilityAction
+  | RewardsDataServiceGetDropLeaderboardAction;
 
 export type RewardsDataServiceMessenger = Messenger<
   typeof SERVICE_NAME,
@@ -382,16 +382,16 @@ export class RewardsDataService {
       this.applyReferralCode.bind(this),
     );
     this.#messenger.registerActionHandler(
-      `${SERVICE_NAME}:getSnapshots`,
-      this.getSnapshots.bind(this),
+      `${SERVICE_NAME}:getDrops`,
+      this.getDrops.bind(this),
     );
     this.#messenger.registerActionHandler(
-      `${SERVICE_NAME}:getSnapshotEligibility`,
-      this.getSnapshotEligibility.bind(this),
+      `${SERVICE_NAME}:getDropEligibility`,
+      this.getDropEligibility.bind(this),
     );
     this.#messenger.registerActionHandler(
-      `${SERVICE_NAME}:getSnapshotLeaderboard`,
-      this.getSnapshotLeaderboard.bind(this),
+      `${SERVICE_NAME}:getDropLeaderboard`,
+      this.getDropLeaderboard.bind(this),
     );
   }
 
@@ -1151,17 +1151,17 @@ export class RewardsDataService {
   }
 
   /**
-   * Get snapshots for a specific season.
-   * @param seasonId - The ID of the season to get snapshots for.
+   * Get drops for a specific season.
+   * @param seasonId - The ID of the season to get drops for.
    * @param subscriptionId - The subscription ID for authentication.
-   * @returns The list of snapshots for the season.
+   * @returns The list of drops for the season.
    */
-  async getSnapshots(
+  async getDrops(
     seasonId: string,
     subscriptionId: string,
-  ): Promise<SnapshotDto[]> {
+  ): Promise<SeasonDropDto[]> {
     const response = await this.makeRequest(
-      `/v1/seasons/${seasonId}/snapshots`,
+      `/v1/seasons/${seasonId}/drops`,
       {
         method: 'GET',
       },
@@ -1169,24 +1169,24 @@ export class RewardsDataService {
     );
 
     if (!response.ok) {
-      throw new Error(`Get snapshots failed: ${response.status}`);
+      throw new Error(`Get drops failed: ${response.status}`);
     }
 
-    return (await response.json()) as SnapshotDto[];
+    return (await response.json()) as SeasonDropDto[];
   }
 
   /**
-   * Get eligibility status for a snapshot.
-   * @param snapshotId - The ID of the snapshot.
+   * Get eligibility status for a drop.
+   * @param dropId - The ID of the drop.
    * @param subscriptionId - The subscription ID for authentication.
    * @returns The eligibility status including prerequisites with progress.
    */
-  async getSnapshotEligibility(
-    snapshotId: string,
+  async getDropEligibility(
+    dropId: string,
     subscriptionId: string,
-  ): Promise<SnapshotEligibilityDto> {
+  ): Promise<DropEligibilityDto> {
     const response = await this.makeRequest(
-      `/snapshots/${snapshotId}/eligibility`,
+      `/drops/${dropId}/eligibility`,
       {
         method: 'GET',
       },
@@ -1194,31 +1194,31 @@ export class RewardsDataService {
     );
 
     if (!response.ok) {
-      throw new Error(`Get snapshot eligibility failed: ${response.status}`);
+      throw new Error(`Get drop eligibility failed: ${response.status}`);
     }
 
     const data = await response.json();
 
-    // Normalize snapshot status from backend format (OPEN, UPCOMING, etc.)
+    // Normalize drop status from backend format (OPEN, UPCOMING, etc.)
     // to mobile format (live, upcoming, etc.)
     return {
       ...data,
-      snapshotStatus: normalizeSnapshotStatus(data.snapshotStatus),
-    } as SnapshotEligibilityDto;
+      dropStatus: normalizeDropStatus(data.dropStatus),
+    } as DropEligibilityDto;
   }
 
   /**
-   * Get leaderboard data for a snapshot.
-   * @param snapshotId - The ID of the snapshot.
+   * Get leaderboard data for a drop.
+   * @param dropId - The ID of the drop.
    * @param subscriptionId - The subscription ID for authentication.
    * @returns The leaderboard data including top 20 entries, totals, and user position.
    */
-  async getSnapshotLeaderboard(
-    snapshotId: string,
+  async getDropLeaderboard(
+    dropId: string,
     subscriptionId: string,
-  ): Promise<SnapshotLeaderboardDto> {
+  ): Promise<DropLeaderboardDto> {
     const response = await this.makeRequest(
-      `/snapshots/${snapshotId}/leaderboard`,
+      `/drops/${dropId}/leaderboard`,
       {
         method: 'GET',
       },
@@ -1226,9 +1226,9 @@ export class RewardsDataService {
     );
 
     if (!response.ok) {
-      throw new Error(`Get snapshot leaderboard failed: ${response.status}`);
+      throw new Error(`Get drop leaderboard failed: ${response.status}`);
     }
 
-    return (await response.json()) as SnapshotLeaderboardDto;
+    return (await response.json()) as DropLeaderboardDto;
   }
 }

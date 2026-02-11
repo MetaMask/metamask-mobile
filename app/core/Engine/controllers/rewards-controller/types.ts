@@ -75,20 +75,20 @@ export interface ApplyReferralDto {
 }
 
 /**
- * Type of prerequisite condition for snapshot eligibility
+ * Type of prerequisite condition for drop eligibility
  * @example 'ACTIVITY_COUNT'
  */
-export type SnapshotPrerequisiteType = 'ACTIVITY_COUNT';
+export type DropPrerequisiteType = 'ACTIVITY_COUNT';
 
 /**
- * A single prerequisite condition for snapshot eligibility
+ * A single prerequisite condition for drop eligibility
  */
-export interface SnapshotPrerequisiteDto {
+export interface DropPrerequisiteDto {
   /**
    * The type of prerequisite
    * @example 'ACTIVITY_COUNT'
    */
-  type: SnapshotPrerequisiteType;
+  type: DropPrerequisiteType;
 
   /**
    * Activity types that count toward this prerequisite
@@ -128,9 +128,9 @@ export interface SnapshotPrerequisiteDto {
 }
 
 /**
- * Container for snapshot prerequisites with logical operator
+ * Container for drop prerequisites with logical operator
  */
-export interface SnapshotPrerequisitesDto {
+export interface DropPrerequisitesDto {
   /**
    * Logical operator for combining conditions
    * - AND: All conditions must be met
@@ -142,33 +142,33 @@ export interface SnapshotPrerequisitesDto {
   /**
    * Array of prerequisite conditions
    */
-  conditions: SnapshotPrerequisiteDto[];
+  conditions: DropPrerequisiteDto[];
 }
 
 /**
- * DTO for snapshot data from the backend
+ * DTO for drop data from the backend
  */
-export interface SnapshotDto {
+export interface SeasonDropDto {
   /**
-   * The unique identifier of the snapshot
+   * The unique identifier of the drop
    * @example '01974010-377f-7553-a365-0c33c8130980'
    */
   id: string;
 
   /**
-   * The season ID this snapshot belongs to
+   * The season ID this drop belongs to
    * @example '7444682d-9050-43b8-9038-28a6a62d6264'
    */
   seasonId: string;
 
   /**
-   * The name of the snapshot/airdrop
+   * The name of the drop/airdrop
    * @example 'Monad Airdrop'
    */
   name: string;
 
   /**
-   * Optional description of the snapshot
+   * Optional description of the drop
    * @example 'Earn Monad tokens by participating in the airdrop'
    */
   description?: string;
@@ -204,13 +204,13 @@ export interface SnapshotDto {
   receivingBlockchain: string;
 
   /**
-   * When the snapshot opens (ISO date string)
+   * When the drop opens (ISO date string)
    * @example '2025-03-01T00:00:00.000Z'
    */
   opensAt: string;
 
   /**
-   * When the snapshot closes (ISO date string)
+   * When the drop closes (ISO date string)
    * @example '2025-03-15T00:00:00.000Z'
    */
   closesAt: string;
@@ -228,31 +228,31 @@ export interface SnapshotDto {
   distributedAt?: string;
 
   /**
-   * Image for the snapshot tile
+   * Image for the drop tile
    */
   image: ThemeImage;
 
   /**
-   * The current status of the snapshot
-   * @example SnapshotStatus.OPEN
+   * The current status of the drop
+   * @example DropStatus.OPEN
    */
-  status: SnapshotStatus;
+  status: DropStatus;
 
   /**
-   * Optional prerequisites that must be met to participate in the snapshot
+   * Optional prerequisites that must be met to participate in the drop
    */
-  prerequisites?: SnapshotPrerequisitesDto | null;
+  prerequisites?: DropPrerequisitesDto | null;
 }
 
 /**
- * Snapshot status aligned with the backend enum.
+ * Drop status aligned with the backend enum.
  * - UPCOMING: now < opensAt
  * - OPEN: opensAt <= now < closesAt
  * - CLOSED: closesAt <= now && !calculatedAt
  * - CALCULATED: calculatedAt && !distributedAt
  * - DISTRIBUTED: distributedAt is set
  */
-export enum SnapshotStatus {
+export enum DropStatus {
   UPCOMING = 'UPCOMING',
   OPEN = 'OPEN',
   CLOSED = 'CLOSED',
@@ -263,7 +263,7 @@ export enum SnapshotStatus {
 /**
  * Extended prerequisite with eligibility status information
  */
-export interface SnapshotPrerequisiteStatusDto {
+export interface DropPrerequisiteStatusDto {
   /**
    * Whether this prerequisite has been satisfied
    * @example true
@@ -284,17 +284,17 @@ export interface SnapshotPrerequisiteStatusDto {
 }
 
 /**
- * Response DTO for snapshot eligibility check
+ * Response DTO for drop eligibility check
  */
-export interface SnapshotEligibilityDto {
+export interface DropEligibilityDto {
   /**
-   * The snapshot ID this eligibility is for
+   * The drop ID this eligibility is for
    * @example '01974010-377f-7553-a365-0c33c8130980'
    */
-  snapshotId: string;
+  dropId: string;
 
   /**
-   * Whether the user is eligible for the snapshot
+   * Whether the user is eligible for the drop
    * @example true
    */
   eligible: boolean;
@@ -308,25 +308,25 @@ export interface SnapshotEligibilityDto {
   /**
    * Array of prerequisites with their status
    */
-  prerequisites: SnapshotPrerequisiteStatusDto[];
+  prerequisites: DropPrerequisiteStatusDto[];
 
   /**
-   * Current status of the snapshot
+   * Current status of the drop
    * @example 'live'
    */
-  snapshotStatus: SnapshotStatus;
+  dropStatus: DropStatus;
 
   /**
-   * Whether the user can commit points to this snapshot
+   * Whether the user can commit points to this drop
    * @example true
    */
   canCommit: boolean;
 }
 
 /**
- * A single entry on the snapshot leaderboard
+ * A single entry on the drop leaderboard
  */
-export interface LeaderboardEntryDto {
+export interface DropLeaderboardEntryDto {
   /**
    * The rank of this entry on the leaderboard
    * @example 1
@@ -347,14 +347,14 @@ export interface LeaderboardEntryDto {
 }
 
 /**
- * Response DTO for snapshot leaderboard
+ * Response DTO for drop leaderboard
  */
-export interface SnapshotLeaderboardDto {
+export interface DropLeaderboardDto {
   /**
-   * The unique identifier of the snapshot
+   * The unique identifier of the drop
    * @example '123e4567-e89b-12d3-a456-426614174000'
    */
-  snapshotId: string;
+  dropId: string;
 
   /**
    * Total number of unique participants who committed points
@@ -363,7 +363,7 @@ export interface SnapshotLeaderboardDto {
   totalParticipants: number;
 
   /**
-   * Total points committed by all participants in the snapshot
+   * Total points committed by all participants in the drop
    * @example 5000000
    */
   totalPointsCommitted: number;
@@ -371,12 +371,12 @@ export interface SnapshotLeaderboardDto {
   /**
    * Top 20 entries on the leaderboard
    */
-  top20: LeaderboardEntryDto[];
+  top20: DropLeaderboardEntryDto[];
 
   /**
    * The authenticated user's position on the leaderboard (null if user hasn't committed)
    */
-  userPosition?: LeaderboardEntryDto;
+  userPosition?: DropLeaderboardEntryDto;
 }
 
 export interface EstimateAssetDto {
@@ -695,29 +695,29 @@ interface BasePointsEventDto {
 export type PointsEventDto = BasePointsEventDto &
   (
     | {
-      type: 'SWAP';
-      payload: SwapEventPayload | null;
-    }
+        type: 'SWAP';
+        payload: SwapEventPayload | null;
+      }
     | {
-      type: 'PERPS';
-      payload: PerpsEventPayload | null;
-    }
+        type: 'PERPS';
+        payload: PerpsEventPayload | null;
+      }
     | {
-      type: 'CARD';
-      payload: CardEventPayload | null;
-    }
+        type: 'CARD';
+        payload: CardEventPayload | null;
+      }
     | {
-      type: 'PREDICT';
-      payload: null;
-    }
+        type: 'PREDICT';
+        payload: null;
+      }
     | {
-      type: 'MUSD_DEPOSIT';
-      payload: MusdDepositEventPayload | null;
-    }
+        type: 'MUSD_DEPOSIT';
+        payload: MusdDepositEventPayload | null;
+      }
     | {
-      type: 'REFERRAL' | 'SIGN_UP_BONUS' | 'LOYALTY_BONUS' | 'ONE_TIME_BONUS';
-      payload: null;
-    }
+        type: 'REFERRAL' | 'SIGN_UP_BONUS' | 'LOYALTY_BONUS' | 'ONE_TIME_BONUS';
+        payload: null;
+      }
     | { type: string; payload: Record<string, string> | null }
   );
 
@@ -1017,8 +1017,8 @@ export type UnlockedRewardsState = {
  * State shape for a single prerequisite in serializable form
  */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type SnapshotPrerequisiteState = {
-  type: SnapshotPrerequisiteType;
+export type DropPrerequisiteState = {
+  type: DropPrerequisiteType;
   activityTypes: PointsEventEarnType[];
   minCount: number;
   chainId?: number;
@@ -1031,14 +1031,14 @@ export type SnapshotPrerequisiteState = {
  * State shape for prerequisites container in serializable form
  */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type SnapshotPrerequisitesState = {
+export type DropPrerequisitesState = {
   logic: 'AND' | 'OR';
-  conditions: SnapshotPrerequisiteState[];
+  conditions: DropPrerequisiteState[];
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type SnapshotsState = {
-  snapshots: {
+export type DropsState = {
+  drops: {
     id: string;
     seasonId: string;
     name: string;
@@ -1056,8 +1056,8 @@ export type SnapshotsState = {
       lightModeUrl: string;
       darkModeUrl: string;
     };
-    status: SnapshotStatus;
-    prerequisites?: SnapshotPrerequisitesState | null;
+    status: DropStatus;
+    prerequisites?: DropPrerequisitesState | null;
   }[];
   lastFetched: number;
 };
@@ -1066,8 +1066,8 @@ export type SnapshotsState = {
  * State shape for prerequisite status in serializable form
  */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type SnapshotPrerequisiteStatusState = {
-  type: SnapshotPrerequisiteType;
+export type DropPrerequisiteStatusState = {
+  type: DropPrerequisiteType;
   activityTypes: PointsEventEarnType[];
   minCount: number;
   chainId?: number;
@@ -1079,16 +1079,16 @@ export type SnapshotPrerequisiteStatusState = {
 };
 
 /**
- * State shape for snapshot eligibility cache (JSON-serializable)
+ * State shape for drop eligibility cache (JSON-serializable)
  */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type SnapshotEligibilityState = {
+export type DropEligibilityState = {
   eligibility: {
-    snapshotId: string;
+    dropId: string;
     eligible: boolean;
     prerequisiteLogic: 'AND' | 'OR';
-    prerequisites: SnapshotPrerequisiteStatusState[];
-    snapshotStatus: SnapshotStatus;
+    prerequisites: DropPrerequisiteStatusState[];
+    dropStatus: DropStatus;
     canCommit: boolean;
   };
   lastFetched: number;
@@ -1426,8 +1426,8 @@ export type RewardsControllerState = {
   activeBoosts: { [compositeId: string]: ActiveBoostsState };
   unlockedRewards: { [compositeId: string]: UnlockedRewardsState };
   pointsEvents: { [compositeId: string]: PointsEventsDtoState };
-  snapshots: { [seasonId: string]: SnapshotsState };
-  snapshotEligibilities: { [compositeId: string]: SnapshotEligibilityState };
+  drops: { [seasonId: string]: DropsState };
+  dropEligibilities: { [compositeId: string]: DropEligibilityState };
   /**
    * History of points estimates for Customer Support diagnostics.
    * Stores the last N successful estimates to verify user-reported discrepancies.
@@ -1750,11 +1750,14 @@ export interface RewardsControllerGetUnlockedRewardsAction {
 }
 
 /**
- * Action for getting snapshots for a season
+ * Action for getting drops for a season
  */
-export interface RewardsControllerGetSnapshotsAction {
-  type: 'RewardsController:getSnapshots';
-  handler: (seasonId: string, subscriptionId: string) => Promise<SnapshotDto[]>;
+export interface RewardsControllerGetDropsAction {
+  type: 'RewardsController:getSeasonDrops';
+  handler: (
+    seasonId: string,
+    subscriptionId: string,
+  ) => Promise<SeasonDropDto[]>;
 }
 
 /**
@@ -1794,25 +1797,25 @@ export interface RewardsControllerApplyReferralCodeAction {
 }
 
 /**
- * Action for getting snapshot eligibility status
+ * Action for getting drop eligibility status
  */
-export interface RewardsControllerGetSnapshotEligibilityAction {
-  type: 'RewardsController:getSnapshotEligibility';
+export interface RewardsControllerGetDropEligibilityAction {
+  type: 'RewardsController:getDropEligibility';
   handler: (
-    snapshotId: string,
+    dropId: string,
     subscriptionId: string,
-  ) => Promise<SnapshotEligibilityDto>;
+  ) => Promise<DropEligibilityDto>;
 }
 
 /**
- * Action for getting snapshot leaderboard data
+ * Action for getting drop leaderboard data
  */
-export interface RewardsControllerGetSnapshotLeaderboardAction {
-  type: 'RewardsController:getSnapshotLeaderboard';
+export interface RewardsControllerGetDropLeaderboardAction {
+  type: 'RewardsController:getDropLeaderboard';
   handler: (
-    snapshotId: string,
+    dropId: string,
     subscriptionId: string,
-  ) => Promise<SnapshotLeaderboardDto>;
+  ) => Promise<DropLeaderboardDto>;
 }
 
 /**
@@ -1843,13 +1846,13 @@ export type RewardsControllerActions =
   | RewardsControllerOptOutAction
   | RewardsControllerGetActivePointsBoostsAction
   | RewardsControllerGetUnlockedRewardsAction
-  | RewardsControllerGetSnapshotsAction
+  | RewardsControllerGetDropsAction
   | RewardsControllerClaimRewardAction
   | RewardsControllerGetSeasonOneLineaRewardTokensAction
   | RewardsControllerResetAllAction
   | RewardsControllerApplyReferralCodeAction
-  | RewardsControllerGetSnapshotEligibilityAction
-  | RewardsControllerGetSnapshotLeaderboardAction;
+  | RewardsControllerGetDropEligibilityAction
+  | RewardsControllerGetDropLeaderboardAction;
 
 /**
  * Input DTO for getting opt-in status of multiple addresses
@@ -2131,8 +2134,8 @@ export type SeasonWayToEarnDto = {
    * Specific content for swap or referral ways to earn
    */
   specificContent?:
-  | SeasonWayToEarnSpecificSwapDto
-  | SeasonWayToEarnSpecificReferralDto;
+    | SeasonWayToEarnSpecificSwapDto
+    | SeasonWayToEarnSpecificReferralDto;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions

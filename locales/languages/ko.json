@@ -7175,7 +7175,7 @@
     "main_title": "보상",
     "referral_title": "추천",
     "tab_overview_title": "개요",
-    "tab_snapshots_title": "Snapshots",
+    "tab_drops_title": "Snapshots",
     "tab_activity_title": "활동",
     "referral_stats_earned_from_referrals": "추천을 통해 적립",
     "referral_stats_referrals": "추천",
@@ -7489,7 +7489,7 @@
     "animation": {
       "could_not_load": "불러올 수 없음"
     },
-    "snapshot": {
+    "drop": {
       "starts_date": "Starts {{date}}",
       "ends_date": "Ends {{date}}",
       "results_coming_soon": "Results coming soon",
@@ -7500,13 +7500,13 @@
       "pill_results_ready": "Results Ready",
       "pill_complete": "Complete"
     },
-    "snapshots_section": {
+    "drop_section": {
       "title": "Snapshots",
       "error_title": "Unable to load snapshots",
       "error_description": "We couldn't load the snapshots. Please try again.",
       "retry_button": "다시 시도"
     },
-    "snapshots_tab": {
+    "drop_tab": {
       "active_title": "Active",
       "upcoming_title": "Upcoming",
       "previous_title": "Previous",

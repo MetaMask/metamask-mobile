@@ -54,7 +54,7 @@ jest.mock('../../../../selectors/rewards', () => ({
 }));
 
 jest.mock('../../../../selectors/featureFlagController/rewards', () => ({
-  selectSnapshotsRewardsEnabledFlag: jest.fn(),
+  selectDropsRewardsEnabledFlag: jest.fn(),
 }));
 
 jest.mock(
@@ -73,7 +73,7 @@ import {
 } from '../../../../reducers/rewards/selectors';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import { selectSelectedAccountGroup } from '../../../../selectors/multichainAccounts/accountTreeController';
-import { selectSnapshotsRewardsEnabledFlag } from '../../../../selectors/featureFlagController/rewards';
+import { selectDropsRewardsEnabledFlag } from '../../../../selectors/featureFlagController/rewards';
 
 const mockSelectActiveTab = selectActiveTab as jest.MockedFunction<
   typeof selectActiveTab
@@ -100,9 +100,9 @@ const mockSelectSelectedAccountGroup =
   selectSelectedAccountGroup as jest.MockedFunction<
     typeof selectSelectedAccountGroup
   >;
-const mockSelectSnapshotsRewardsEnabledFlag =
-  selectSnapshotsRewardsEnabledFlag as jest.MockedFunction<
-    typeof selectSnapshotsRewardsEnabledFlag
+const mockSelectDropsRewardsEnabledFlag =
+  selectDropsRewardsEnabledFlag as jest.MockedFunction<
+    typeof selectDropsRewardsEnabledFlag
   >;
 
 // Mock theme
@@ -177,7 +177,7 @@ jest.mock('../../../../../locales/i18n', () => ({
     const translations: Record<string, string> = {
       'rewards.main_title': 'Rewards',
       'rewards.tab_overview_title': 'Overview',
-      'rewards.tab_snapshots_title': 'Snapshots',
+      'rewards.tab_drops_title': 'Airdrops',
       'rewards.tab_activity_title': 'Activity',
       'rewards.not_implemented': 'Not implemented yet',
     };
@@ -252,7 +252,7 @@ jest.mock('../components/Tabs/RewardsSnapshots', () => ({
 
     return ReactActual.createElement(
       View,
-      { testID: 'rewards-snapshots-tab' },
+      { testID: 'rewards-drops-tab' },
       ReactActual.createElement(Text, null, tabLabel || 'Snapshots'),
     );
   },
@@ -631,7 +631,7 @@ describe('RewardsDashboard', () => {
     hideCurrentAccountNotOptedInBannerArray: [],
     selectedAccount: mockSelectedAccount,
     selectedAccountGroup: mockSelectedAccountGroup,
-    isSnapshotsEnabled: true, // Enable snapshots by default in tests
+    isDropsEnabled: true, // Enable drops by default in tests
   };
 
   const defaultHookValues = {
@@ -724,8 +724,8 @@ describe('RewardsDashboard', () => {
     mockSelectSelectedAccountGroup.mockReturnValue(
       defaultSelectorValues.selectedAccountGroup,
     );
-    mockSelectSnapshotsRewardsEnabledFlag.mockReturnValue(
-      defaultSelectorValues.isSnapshotsEnabled,
+    mockSelectDropsRewardsEnabledFlag.mockReturnValue(
+      defaultSelectorValues.isDropsEnabled,
     );
 
     // Setup hook mocks
@@ -757,8 +757,8 @@ describe('RewardsDashboard', () => {
         return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
       if (selector === selectSelectedAccountGroup)
         return defaultSelectorValues.selectedAccountGroup;
-      if (selector === selectSnapshotsRewardsEnabledFlag)
-        return defaultSelectorValues.isSnapshotsEnabled;
+      if (selector === selectDropsRewardsEnabledFlag)
+        return defaultSelectorValues.isDropsEnabled;
       return undefined;
     });
   });
@@ -812,8 +812,8 @@ describe('RewardsDashboard', () => {
           return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
         if (selector === selectSelectedAccountGroup)
           return defaultSelectorValues.selectedAccountGroup;
-        if (selector === selectSnapshotsRewardsEnabledFlag)
-          return defaultSelectorValues.isSnapshotsEnabled;
+        if (selector === selectDropsRewardsEnabledFlag)
+          return defaultSelectorValues.isDropsEnabled;
         return undefined;
       });
 
@@ -846,8 +846,8 @@ describe('RewardsDashboard', () => {
           return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
         if (selector === selectSelectedAccountGroup)
           return defaultSelectorValues.selectedAccountGroup;
-        if (selector === selectSnapshotsRewardsEnabledFlag)
-          return defaultSelectorValues.isSnapshotsEnabled;
+        if (selector === selectDropsRewardsEnabledFlag)
+          return defaultSelectorValues.isDropsEnabled;
         return undefined;
       });
 
@@ -880,8 +880,8 @@ describe('RewardsDashboard', () => {
           return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
         if (selector === selectSelectedAccountGroup)
           return defaultSelectorValues.selectedAccountGroup;
-        if (selector === selectSnapshotsRewardsEnabledFlag)
-          return defaultSelectorValues.isSnapshotsEnabled;
+        if (selector === selectDropsRewardsEnabledFlag)
+          return defaultSelectorValues.isDropsEnabled;
         return undefined;
       });
 
@@ -912,8 +912,8 @@ describe('RewardsDashboard', () => {
           return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
         if (selector === selectSelectedAccountGroup)
           return defaultSelectorValues.selectedAccountGroup;
-        if (selector === selectSnapshotsRewardsEnabledFlag)
-          return defaultSelectorValues.isSnapshotsEnabled;
+        if (selector === selectDropsRewardsEnabledFlag)
+          return defaultSelectorValues.isDropsEnabled;
         return undefined;
       });
 
@@ -960,7 +960,7 @@ describe('RewardsDashboard', () => {
       fireEvent.press(snapshotsTab);
 
       // Assert
-      expect(mockDispatch).toHaveBeenCalledWith(setActiveTab('snapshots'));
+      expect(mockDispatch).toHaveBeenCalledWith(setActiveTab('drops'));
     });
 
     it('should render all tab options', () => {
@@ -982,14 +982,14 @@ describe('RewardsDashboard', () => {
       expect(getByTestId('rewards-overview-tab')).toBeTruthy();
     });
 
-    it('switches to snapshots tab when snapshots tab is pressed', () => {
+    it('switches to drops tab when drops tab is pressed', () => {
       // Act
       const { getByTestId } = render(<RewardsDashboard />);
       const snapshotsTab = getByTestId('tab-1');
       fireEvent.press(snapshotsTab);
 
       // Assert
-      expect(getByTestId('rewards-snapshots-tab')).toBeTruthy();
+      expect(getByTestId('rewards-drops-tab')).toBeTruthy();
     });
 
     it('should switch to activity tab when activity tab is pressed', () => {
@@ -1013,8 +1013,8 @@ describe('RewardsDashboard', () => {
         if (selector === selectRewardsSubscriptionId) return null;
         if (selector === selectSeasonId) return currentSeasonId;
         if (selector === selectSeasonEndDate) return futureDateObj;
-        if (selector === selectSnapshotsRewardsEnabledFlag)
-          return defaultSelectorValues.isSnapshotsEnabled;
+        if (selector === selectDropsRewardsEnabledFlag)
+          return defaultSelectorValues.isDropsEnabled;
         return undefined;
       });
 
@@ -1024,13 +1024,13 @@ describe('RewardsDashboard', () => {
       fireEvent.press(snapshotsTab);
 
       // Assert - tab change occurred
-      expect(getByTestId('rewards-snapshots-tab')).toBeTruthy();
+      expect(getByTestId('rewards-drops-tab')).toBeTruthy();
     });
   });
 
-  describe('tabComponents when isSnapshotsEnabled is false', () => {
+  describe('tabComponents when isDropsEnabled is false', () => {
     beforeEach(() => {
-      mockSelectSnapshotsRewardsEnabledFlag.mockReturnValue(false);
+      mockSelectDropsRewardsEnabledFlag.mockReturnValue(false);
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectActiveTab)
           return defaultSelectorValues.activeTab;
@@ -1045,12 +1045,12 @@ describe('RewardsDashboard', () => {
           return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
         if (selector === selectSelectedAccountGroup)
           return defaultSelectorValues.selectedAccountGroup;
-        if (selector === selectSnapshotsRewardsEnabledFlag) return false;
+        if (selector === selectDropsRewardsEnabledFlag) return false;
         return undefined;
       });
     });
 
-    it('renders only overview and activity tabs when snapshots is disabled', () => {
+    it('renders only overview and activity tabs when drops is disabled', () => {
       // Act
       const { getByTestId, queryByTestId } = render(<RewardsDashboard />);
 
@@ -1061,15 +1061,15 @@ describe('RewardsDashboard', () => {
       expect(queryByTestId('tab-2')).toBeNull();
     });
 
-    it('does not render snapshots tab when snapshots is disabled', () => {
+    it('does not render drops tab when drops is disabled', () => {
       // Act
       const { queryByTestId } = render(<RewardsDashboard />);
 
-      // Assert - snapshots tab should not be visible by default
-      expect(queryByTestId('rewards-snapshots-tab')).toBeNull();
+      // Assert - drops tab should not be visible by default
+      expect(queryByTestId('rewards-drops-tab')).toBeNull();
     });
 
-    it('renders overview tab as first tab when snapshots is disabled', () => {
+    it('renders overview tab as first tab when drops is disabled', () => {
       // Act
       const { getByTestId } = render(<RewardsDashboard />);
 
@@ -1077,7 +1077,7 @@ describe('RewardsDashboard', () => {
       expect(getByTestId('rewards-overview-tab')).toBeTruthy();
     });
 
-    it('switches directly to activity tab at index 1 when snapshots is disabled', () => {
+    it('switches directly to activity tab at index 1 when drops is disabled', () => {
       // Act
       const { getByTestId } = render(<RewardsDashboard />);
       const activityTab = getByTestId('tab-1');
@@ -1087,22 +1087,22 @@ describe('RewardsDashboard', () => {
       expect(getByTestId('rewards-activity-tab')).toBeTruthy();
     });
 
-    it('dispatches setActiveTab with activity when tab-1 is pressed and snapshots is disabled', () => {
+    it('dispatches setActiveTab with activity when tab-1 is pressed and drops is disabled', () => {
       // Act
       const { getByTestId } = render(<RewardsDashboard />);
       const activityTab = getByTestId('tab-1');
       fireEvent.press(activityTab);
 
-      // Assert - tab-1 should now be activity, not snapshots
+      // Assert - tab-1 should now be activity, not drops
       expect(mockDispatch).toHaveBeenCalledWith(setActiveTab('activity'));
     });
 
-    it('resets activeTab to overview when snapshots tab becomes unavailable', () => {
-      // Arrange - activeTab is 'snapshots' but isSnapshotsEnabled is false
-      mockSelectActiveTab.mockReturnValue('snapshots');
-      mockSelectSnapshotsRewardsEnabledFlag.mockReturnValue(false);
+    it('resets activeTab to overview when drops tab becomes unavailable', () => {
+      // Arrange - activeTab is 'drops' but isDropsEnabled is false
+      mockSelectActiveTab.mockReturnValue('drops');
+      mockSelectDropsRewardsEnabledFlag.mockReturnValue(false);
       mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectActiveTab) return 'snapshots';
+        if (selector === selectActiveTab) return 'drops';
         if (selector === selectRewardsSubscriptionId)
           return defaultSelectorValues.subscriptionId;
         if (selector === selectSeasonId) return currentSeasonId;
@@ -1114,7 +1114,7 @@ describe('RewardsDashboard', () => {
           return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
         if (selector === selectSelectedAccountGroup)
           return defaultSelectorValues.selectedAccountGroup;
-        if (selector === selectSnapshotsRewardsEnabledFlag) return false;
+        if (selector === selectDropsRewardsEnabledFlag) return false;
         return undefined;
       });
 
@@ -1126,10 +1126,10 @@ describe('RewardsDashboard', () => {
     });
 
     it('does not reset activeTab when current tab is still available', () => {
-      // Arrange - activeTab is 'activity' and isSnapshotsEnabled is false
+      // Arrange - activeTab is 'activity' and isDropsEnabled is false
       // activity tab should still be available
       mockSelectActiveTab.mockReturnValue('activity');
-      mockSelectSnapshotsRewardsEnabledFlag.mockReturnValue(false);
+      mockSelectDropsRewardsEnabledFlag.mockReturnValue(false);
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectActiveTab) return 'activity';
         if (selector === selectRewardsSubscriptionId)
@@ -1143,7 +1143,7 @@ describe('RewardsDashboard', () => {
           return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
         if (selector === selectSelectedAccountGroup)
           return defaultSelectorValues.selectedAccountGroup;
-        if (selector === selectSnapshotsRewardsEnabledFlag) return false;
+        if (selector === selectDropsRewardsEnabledFlag) return false;
         return undefined;
       });
 
@@ -1174,8 +1174,8 @@ describe('RewardsDashboard', () => {
           return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
         if (selector === selectSelectedAccountGroup)
           return defaultSelectorValues.selectedAccountGroup;
-        if (selector === selectSnapshotsRewardsEnabledFlag)
-          return defaultSelectorValues.isSnapshotsEnabled;
+        if (selector === selectDropsRewardsEnabledFlag)
+          return defaultSelectorValues.isDropsEnabled;
         return undefined;
       });
 
@@ -1207,8 +1207,8 @@ describe('RewardsDashboard', () => {
           return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
         if (selector === selectSelectedAccountGroup)
           return defaultSelectorValues.selectedAccountGroup;
-        if (selector === selectSnapshotsRewardsEnabledFlag)
-          return defaultSelectorValues.isSnapshotsEnabled;
+        if (selector === selectDropsRewardsEnabledFlag)
+          return defaultSelectorValues.isDropsEnabled;
         return undefined;
       });
 
@@ -1240,8 +1240,8 @@ describe('RewardsDashboard', () => {
           return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
         if (selector === selectSelectedAccountGroup)
           return defaultSelectorValues.selectedAccountGroup;
-        if (selector === selectSnapshotsRewardsEnabledFlag)
-          return defaultSelectorValues.isSnapshotsEnabled;
+        if (selector === selectDropsRewardsEnabledFlag)
+          return defaultSelectorValues.isDropsEnabled;
         return undefined;
       });
 
@@ -1270,8 +1270,8 @@ describe('RewardsDashboard', () => {
           return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
         if (selector === selectSelectedAccountGroup)
           return defaultSelectorValues.selectedAccountGroup;
-        if (selector === selectSnapshotsRewardsEnabledFlag)
-          return defaultSelectorValues.isSnapshotsEnabled;
+        if (selector === selectDropsRewardsEnabledFlag)
+          return defaultSelectorValues.isDropsEnabled;
         return undefined;
       });
 
@@ -1385,8 +1385,8 @@ describe('RewardsDashboard', () => {
           return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
         if (selector === selectSelectedAccountGroup)
           return defaultSelectorValues.selectedAccountGroup;
-        if (selector === selectSnapshotsRewardsEnabledFlag)
-          return defaultSelectorValues.isSnapshotsEnabled;
+        if (selector === selectDropsRewardsEnabledFlag)
+          return defaultSelectorValues.isDropsEnabled;
         return undefined;
       });
 
@@ -1446,8 +1446,8 @@ describe('RewardsDashboard', () => {
           return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
         if (selector === selectSelectedAccountGroup)
           return defaultSelectorValues.selectedAccountGroup;
-        if (selector === selectSnapshotsRewardsEnabledFlag)
-          return defaultSelectorValues.isSnapshotsEnabled;
+        if (selector === selectDropsRewardsEnabledFlag)
+          return defaultSelectorValues.isDropsEnabled;
         return undefined;
       });
 
@@ -1483,8 +1483,8 @@ describe('RewardsDashboard', () => {
           return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
         if (selector === selectSelectedAccountGroup)
           return defaultSelectorValues.selectedAccountGroup;
-        if (selector === selectSnapshotsRewardsEnabledFlag)
-          return defaultSelectorValues.isSnapshotsEnabled;
+        if (selector === selectDropsRewardsEnabledFlag)
+          return defaultSelectorValues.isDropsEnabled;
         return undefined;
       });
 
@@ -1592,8 +1592,8 @@ describe('RewardsDashboard', () => {
           return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
         if (selector === selectSelectedAccountGroup)
           return defaultSelectorValues.selectedAccountGroup;
-        if (selector === selectSnapshotsRewardsEnabledFlag)
-          return defaultSelectorValues.isSnapshotsEnabled;
+        if (selector === selectDropsRewardsEnabledFlag)
+          return defaultSelectorValues.isDropsEnabled;
         return undefined;
       });
 
@@ -1668,8 +1668,8 @@ describe('RewardsDashboard', () => {
           return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
         if (selector === selectSelectedAccountGroup)
           return defaultSelectorValues.selectedAccountGroup;
-        if (selector === selectSnapshotsRewardsEnabledFlag)
-          return defaultSelectorValues.isSnapshotsEnabled;
+        if (selector === selectDropsRewardsEnabledFlag)
+          return defaultSelectorValues.isDropsEnabled;
         return undefined;
       });
 
@@ -1700,8 +1700,8 @@ describe('RewardsDashboard', () => {
           return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
         if (selector === selectSelectedAccountGroup)
           return defaultSelectorValues.selectedAccountGroup;
-        if (selector === selectSnapshotsRewardsEnabledFlag)
-          return defaultSelectorValues.isSnapshotsEnabled;
+        if (selector === selectDropsRewardsEnabledFlag)
+          return defaultSelectorValues.isDropsEnabled;
         return undefined;
       });
 
@@ -1782,8 +1782,8 @@ describe('RewardsDashboard', () => {
           return [{ accountGroupId: 'keyring:wallet1/1', hide: true }];
         if (selector === selectSelectedAccountGroup)
           return defaultSelectorValues.selectedAccountGroup;
-        if (selector === selectSnapshotsRewardsEnabledFlag)
-          return defaultSelectorValues.isSnapshotsEnabled;
+        if (selector === selectDropsRewardsEnabledFlag)
+          return defaultSelectorValues.isDropsEnabled;
         return undefined;
       });
 
@@ -1814,8 +1814,8 @@ describe('RewardsDashboard', () => {
           return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
         if (selector === selectSelectedAccountGroup)
           return defaultSelectorValues.selectedAccountGroup;
-        if (selector === selectSnapshotsRewardsEnabledFlag)
-          return defaultSelectorValues.isSnapshotsEnabled;
+        if (selector === selectDropsRewardsEnabledFlag)
+          return defaultSelectorValues.isDropsEnabled;
         return undefined;
       });
 
@@ -1895,8 +1895,8 @@ describe('RewardsDashboard', () => {
           return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
         if (selector === selectSelectedAccountGroup)
           return defaultSelectorValues.selectedAccountGroup;
-        if (selector === selectSnapshotsRewardsEnabledFlag)
-          return defaultSelectorValues.isSnapshotsEnabled;
+        if (selector === selectDropsRewardsEnabledFlag)
+          return defaultSelectorValues.isDropsEnabled;
         return undefined;
       });
 
@@ -1969,8 +1969,8 @@ describe('RewardsDashboard', () => {
           return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
         if (selector === selectSelectedAccountGroup)
           return defaultSelectorValues.selectedAccountGroup;
-        if (selector === selectSnapshotsRewardsEnabledFlag)
-          return defaultSelectorValues.isSnapshotsEnabled;
+        if (selector === selectDropsRewardsEnabledFlag)
+          return defaultSelectorValues.isDropsEnabled;
         return undefined;
       });
 
@@ -2139,8 +2139,8 @@ describe('RewardsDashboard', () => {
           return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
         if (selector === selectSelectedAccountGroup)
           return defaultSelectorValues.selectedAccountGroup;
-        if (selector === selectSnapshotsRewardsEnabledFlag)
-          return defaultSelectorValues.isSnapshotsEnabled;
+        if (selector === selectDropsRewardsEnabledFlag)
+          return defaultSelectorValues.isDropsEnabled;
         return undefined;
       });
 
@@ -2202,8 +2202,8 @@ describe('RewardsDashboard', () => {
           return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
         if (selector === selectSelectedAccountGroup)
           return defaultSelectorValues.selectedAccountGroup;
-        if (selector === selectSnapshotsRewardsEnabledFlag)
-          return defaultSelectorValues.isSnapshotsEnabled;
+        if (selector === selectDropsRewardsEnabledFlag)
+          return defaultSelectorValues.isDropsEnabled;
         return undefined;
       });
 
@@ -2265,8 +2265,8 @@ describe('RewardsDashboard', () => {
           return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
         if (selector === selectSelectedAccountGroup)
           return defaultSelectorValues.selectedAccountGroup;
-        if (selector === selectSnapshotsRewardsEnabledFlag)
-          return defaultSelectorValues.isSnapshotsEnabled;
+        if (selector === selectDropsRewardsEnabledFlag)
+          return defaultSelectorValues.isDropsEnabled;
         return undefined;
       });
 
@@ -2363,9 +2363,9 @@ describe('RewardsDashboard', () => {
       mockBuild.mockClear();
 
       // Act - change active tab
-      mockSelectActiveTab.mockReturnValue('snapshots');
+      mockSelectActiveTab.mockReturnValue('drops');
       mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectActiveTab) return 'snapshots';
+        if (selector === selectActiveTab) return 'drops';
         if (selector === selectRewardsSubscriptionId)
           return defaultSelectorValues.subscriptionId;
         if (selector === selectSeasonId) return currentSeasonId;
@@ -2377,8 +2377,8 @@ describe('RewardsDashboard', () => {
           return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
         if (selector === selectSelectedAccountGroup)
           return defaultSelectorValues.selectedAccountGroup;
-        if (selector === selectSnapshotsRewardsEnabledFlag)
-          return defaultSelectorValues.isSnapshotsEnabled;
+        if (selector === selectDropsRewardsEnabledFlag)
+          return defaultSelectorValues.isDropsEnabled;
         return undefined;
       });
       rerender(<RewardsDashboard />);
@@ -2387,7 +2387,7 @@ describe('RewardsDashboard', () => {
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
         'rewards_dashboard_tab_viewed',
       );
-      expect(mockAddProperties).toHaveBeenCalledWith({ tab: 'snapshots' });
+      expect(mockAddProperties).toHaveBeenCalledWith({ tab: 'drops' });
       expect(mockBuild).toHaveBeenCalled();
       expect(mockTrackEvent).toHaveBeenCalledWith({ event: 'mock-event' });
     });
@@ -2400,10 +2400,10 @@ describe('RewardsDashboard', () => {
       mockBuild.mockClear();
       mockAddProperties.mockClear();
 
-      // Act - change to snapshots tab
-      mockSelectActiveTab.mockReturnValue('snapshots');
+      // Act - change to drops tab
+      mockSelectActiveTab.mockReturnValue('drops');
       mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectActiveTab) return 'snapshots';
+        if (selector === selectActiveTab) return 'drops';
         if (selector === selectRewardsSubscriptionId)
           return defaultSelectorValues.subscriptionId;
         if (selector === selectSeasonId) return currentSeasonId;
@@ -2415,14 +2415,14 @@ describe('RewardsDashboard', () => {
           return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
         if (selector === selectSelectedAccountGroup)
           return defaultSelectorValues.selectedAccountGroup;
-        if (selector === selectSnapshotsRewardsEnabledFlag)
-          return defaultSelectorValues.isSnapshotsEnabled;
+        if (selector === selectDropsRewardsEnabledFlag)
+          return defaultSelectorValues.isDropsEnabled;
         return undefined;
       });
       rerender(<RewardsDashboard />);
 
-      // Assert - snapshots tab
-      expect(mockAddProperties).toHaveBeenCalledWith({ tab: 'snapshots' });
+      // Assert - drops tab
+      expect(mockAddProperties).toHaveBeenCalledWith({ tab: 'drops' });
 
       // Act - change to activity tab
       mockSelectActiveTab.mockReturnValue('activity');
@@ -2439,8 +2439,8 @@ describe('RewardsDashboard', () => {
           return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
         if (selector === selectSelectedAccountGroup)
           return defaultSelectorValues.selectedAccountGroup;
-        if (selector === selectSnapshotsRewardsEnabledFlag)
-          return defaultSelectorValues.isSnapshotsEnabled;
+        if (selector === selectDropsRewardsEnabledFlag)
+          return defaultSelectorValues.isDropsEnabled;
         return undefined;
       });
       rerender(<RewardsDashboard />);
@@ -2456,10 +2456,10 @@ describe('RewardsDashboard', () => {
       mockSelectActiveTab.mockReturnValue('overview');
       const { rerender } = render(<RewardsDashboard />);
 
-      // Act - change activeTab in Redux to snapshots
-      mockSelectActiveTab.mockReturnValue('snapshots');
+      // Act - change activeTab in Redux to drops
+      mockSelectActiveTab.mockReturnValue('drops');
       mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectActiveTab) return 'snapshots';
+        if (selector === selectActiveTab) return 'drops';
         if (selector === selectRewardsSubscriptionId)
           return defaultSelectorValues.subscriptionId;
         if (selector === selectSeasonId) return currentSeasonId;
@@ -2471,8 +2471,8 @@ describe('RewardsDashboard', () => {
           return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
         if (selector === selectSelectedAccountGroup)
           return defaultSelectorValues.selectedAccountGroup;
-        if (selector === selectSnapshotsRewardsEnabledFlag)
-          return defaultSelectorValues.isSnapshotsEnabled;
+        if (selector === selectDropsRewardsEnabledFlag)
+          return defaultSelectorValues.isDropsEnabled;
         return undefined;
       });
 
