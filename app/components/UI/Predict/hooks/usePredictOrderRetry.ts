@@ -76,7 +76,15 @@ export function usePredictOrderRetry({
     resetOrderNotFilled,
   ]);
 
+  const isRetryingRef = useRef(false);
+  isRetryingRef.current = isRetrying;
+
   useEffect(() => {
+    if (isRetryingRef.current) {
+      wasOrderNotFilledRef.current = isOrderNotFilled;
+      return;
+    }
+
     const becameNotFilled = !wasOrderNotFilledRef.current && isOrderNotFilled;
 
     if (becameNotFilled) {

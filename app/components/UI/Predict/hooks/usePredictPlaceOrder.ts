@@ -1,4 +1,4 @@
-import { useCallback, useContext, useRef, useState } from 'react';
+import { useCallback, useContext, useState } from 'react';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import {
   ToastContext,
@@ -74,8 +74,6 @@ export function usePredictPlaceOrder(
   const [error, setError] = useState<string>();
   const [result, setResult] = useState<Result | null>(null);
   const [isOrderNotFilled, setIsOrderNotFilled] = useState(false);
-  // TODO: Remove simulation + useRef import when done testing
-  const simulateNotFilledRef = useRef(true);
   const { toastRef } = useContext(ToastContext);
   const { balance } = usePredictBalance({ loadOnMount: false });
   const { deposit } = usePredictDeposit();
@@ -170,16 +168,6 @@ export function usePredictPlaceOrder(
 
       try {
         setIsLoading(true);
-
-        // TODO: Remove simulation when done testing
-        if (__DEV__ && simulateNotFilledRef.current) {
-          simulateNotFilledRef.current = false;
-          throw new Error(
-            side === Side.BUY
-              ? PREDICT_ERROR_CODES.BUY_ORDER_NOT_FULLY_FILLED
-              : PREDICT_ERROR_CODES.SELL_ORDER_NOT_FULLY_FILLED,
-          );
-        }
 
         // Place order using Predict controller
         const orderResult = await controllerPlaceOrder(orderParams);
