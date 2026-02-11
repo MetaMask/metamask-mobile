@@ -18,8 +18,8 @@
 - [ ] Task: Conductor - User Manual Verification 'Phase 2' (Protocol in workflow.md)
 
 ## Phase 3: Integration & Demo Logic
-- [ ] Task: Update Demo Trigger Cycling
+- [x] Task: Update Demo Trigger Cycling d460ca7
     - [ ] Modify `TokensSection.tsx` to include the 4th cycle option.
-- [ ] Task: Inject Mini-Bar into Homepage
+- [x] Task: Inject Mini-Bar into Homepage d460ca7
     - [ ] Add the `OnboardingMiniBar` component to the `Homepage.tsx` view (conditionally rendered).
 - [ ] Task: Conductor - User Manual Verification 'Phase 3' (Protocol in workflow.md)
