@@ -153,17 +153,6 @@ jobs:
           fi
           echo "✅ Setup verification passed"
 
-      # iOS: Cache CocoaPods for reuse in build job
-      - name: Save CocoaPods to cache
-        if: matrix.platform == 'ios'
-        uses: actions/cache/save@v4
-        with:
-          path: |
-            ios/Pods
-            ~/Library/Caches/CocoaPods
-            ~/.cocoapods
-          key: ${{ runner.os }}-pods-${{ hashFiles('ios/Podfile.lock') }}
-
       - name: Create tarball with node_modules (preserves symlinks)
         run: |
           echo "📦 Creating tarball to preserve symlinks..."
@@ -174,7 +163,8 @@ jobs:
               app/core/InpageBridgeWeb3.js \
               scripts/inpage-bridge/dist \
               ios/debug.xcconfig \
-              ios/release.xcconfig
+              ios/release.xcconfig \
+              ios/Pods
           else
             tar -czf node-modules-${{ matrix.platform }}.tar.gz \
               node_modules \
@@ -249,7 +239,7 @@ jobs:
           fi
           echo "📦 node_modules size: $(du -sh node_modules | cut -f1)"
 
-          # iOS: Verify xcconfig files required by Xcode project
+          # iOS: Verify xcconfig files and Pods required by Xcode project
           if [ "${{ matrix.platform }}" = "ios" ]; then
             echo "🔍 Checking iOS xcconfig files..."
             if [ ! -f "ios/debug.xcconfig" ]; then
@@ -261,6 +251,13 @@ jobs:
               exit 1
             fi
             echo "✅ iOS xcconfig files found"
+            
+            echo "🔍 Checking iOS Pods..."
+            if [ ! -d "ios/Pods" ]; then
+              echo "❌ ios/Pods not found"
+              exit 1
+            fi
+            echo "✅ iOS Pods found"
           fi
 
           # Verify symlinks in .bin directory
@@ -366,18 +363,6 @@ jobs:
             echo "🧹 Removing existing keychain..."
             security delete-keychain "$KEYCHAIN_PATH" || true
           fi
-
-      # iOS: Restore CocoaPods from cache (installed in setup-dependencies job without secrets)
-      - name: Restore CocoaPods from cache
-        if: matrix.platform == 'ios'
-        uses: actions/cache/restore@v4
-        with:
-          path: |
-            ios/Pods
-            ~/Library/Caches/CocoaPods
-            ~/.cocoapods
-          key: ${{ runner.os }}-pods-${{ hashFiles('ios/Podfile.lock') }}
-          fail-on-cache-miss: true
 
       # iOS: Cache DerivedData (includes ModuleCache.noindex) to speed up Xcode builds
       - name: Cache iOS DerivedData
