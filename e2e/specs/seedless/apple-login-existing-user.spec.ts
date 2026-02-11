@@ -4,13 +4,13 @@ import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
 import Assertions from '../../../tests/framework/Assertions';
 
-import OnboardingView from '../../pages/Onboarding/OnboardingView';
-import OnboardingSheet from '../../pages/Onboarding/OnboardingSheet';
-import SocialLoginView from '../../pages/Onboarding/SocialLoginView';
+import OnboardingView from '../../../tests/page-objects/Onboarding/OnboardingView';
+import OnboardingSheet from '../../../tests/page-objects/Onboarding/OnboardingSheet';
+import SocialLoginView from '../../../tests/page-objects/Onboarding/SocialLoginView';
 
 import { createOAuthMockttpService } from '../../../tests/api-mocking/seedless-onboarding';
 import { E2EOAuthHelpers } from '../../module-mocking/oauth';
-import { SmokeWalletPlatform } from '../../tags';
+import { SmokeWalletPlatform } from '../../../tests/tags';
 
 describe(SmokeWalletPlatform('Apple Login - Existing User'), () => {
   beforeAll(async () => {

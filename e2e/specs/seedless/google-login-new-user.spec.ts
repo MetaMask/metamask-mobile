@@ -5,7 +5,7 @@ import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
 
 import { createOAuthMockttpService } from '../../../tests/api-mocking/seedless-onboarding';
 import { E2EOAuthHelpers } from '../../module-mocking/oauth';
-import { SmokeWalletPlatform } from '../../tags';
+import { SmokeWalletPlatform } from '../../../tests/tags';
 import { completeGoogleNewUserOnboarding } from './utils';
 
 describe(SmokeWalletPlatform('Google Login - New User'), () => {

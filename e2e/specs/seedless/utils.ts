@@ -1,28 +1,28 @@
 import Assertions from '../../../tests/framework/Assertions';
-
-import OnboardingView from '../../pages/Onboarding/OnboardingView';
-import OnboardingSheet from '../../pages/Onboarding/OnboardingSheet';
-import SocialLoginView from '../../pages/Onboarding/SocialLoginView';
-import CreatePasswordView from '../../pages/Onboarding/CreatePasswordView';
-import OnboardingSuccessView from '../../pages/Onboarding/OnboardingSuccessView';
-import MetaMetricsOptInView from '../../pages/Onboarding/MetaMetricsOptInView';
-import ExperienceEnhancerBottomSheet from '../../pages/Onboarding/ExperienceEnhancerBottomSheet';
-import WalletView from '../../pages/wallet/WalletView';
-import TermsOfUseModal from '../../pages/Onboarding/TermsOfUseModal';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import SettingsView from '../../pages/Settings/SettingsView';
-import LoginView from '../../../tests/page-objects/wallet/LoginView';
-import ForgotPasswordModal from '../../pages/Common/ForgotPasswordModalView';
-import {
-  loginToApp,
-  dismissDevScreens,
-  waitForAppReady,
-} from '../../viewHelper';
+import Gestures from '../../../tests/framework/Gestures';
 import {
   getFixturesServerPort,
   getMockServerPortForFixture,
 } from '../../../tests/framework/fixtures/FixtureUtils';
-import Gestures from '../../../tests/framework/Gestures';
+
+import OnboardingView from '../../../tests/page-objects/Onboarding/OnboardingView';
+import OnboardingSheet from '../../../tests/page-objects/Onboarding/OnboardingSheet';
+import SocialLoginView from '../../../tests/page-objects/Onboarding/SocialLoginView';
+import CreatePasswordView from '../../../tests/page-objects/Onboarding/CreatePasswordView';
+import OnboardingSuccessView from '../../../tests/page-objects/Onboarding/OnboardingSuccessView';
+import MetaMetricsOptInView from '../../../tests/page-objects/Onboarding/MetaMetricsOptInView';
+import ExperienceEnhancerBottomSheet from '../../../tests/page-objects/Onboarding/ExperienceEnhancerBottomSheet';
+import TermsOfUseModal from '../../../tests/page-objects/Onboarding/TermsOfUseModal';
+import WalletView from '../../../tests/page-objects/wallet/WalletView';
+import TabBarComponent from '../../../tests/page-objects/wallet/TabBarComponent';
+import LoginView from '../../../tests/page-objects/wallet/LoginView';
+import SettingsView from '../../../tests/page-objects/Settings/SettingsView';
+import ForgotPasswordModal from '../../../tests/page-objects/Common/ForgotPasswordModalView';
+import { loginToApp } from '../../../tests/flows/wallet.flow';
+import {
+  dismissDevScreens,
+  waitForAppReady,
+} from '../../../tests/flows/general.flow';
 
 export const TEST_PASSWORD = 'Test123!@#';
 

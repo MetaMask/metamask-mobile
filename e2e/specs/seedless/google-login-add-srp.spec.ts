@@ -4,15 +4,15 @@ import FixtureBuilder from '../../../tests/framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
 import Assertions from '../../../tests/framework/Assertions';
 
-import WalletView from '../../pages/wallet/WalletView';
-import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
-import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
-import ImportSrpView from '../../pages/importSrp/ImportSrpView';
+import WalletView from '../../../tests/page-objects/wallet/WalletView';
+import AccountListBottomSheet from '../../../tests/page-objects/wallet/AccountListBottomSheet';
+import AddAccountBottomSheet from '../../../tests/page-objects/wallet/AddAccountBottomSheet';
+import ImportSrpView from '../../../tests/page-objects/importSrp/ImportSrpView';
 
 import { createOAuthMockttpService } from '../../../tests/api-mocking/seedless-onboarding';
 import { E2EOAuthHelpers } from '../../module-mocking/oauth';
-import { SmokeWalletPlatform } from '../../tags';
-import { IDENTITY_TEAM_SEED_PHRASE } from '../identity/utils/constants';
+import { SmokeWalletPlatform } from '../../../tests/tags';
+import { IDENTITY_TEAM_SEED_PHRASE } from '../../../tests/smoke/identity/utils/constants';
 import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../../tests/api-mocking/mock-responses/feature-flags-mocks';
 import { setupRemoteFeatureFlagsMock } from '../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
 import { completeGoogleNewUserOnboarding } from './utils';

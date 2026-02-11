@@ -5,14 +5,14 @@ import { withFixtures } from '../../../tests/framework/fixtures/FixtureHelper';
 import Assertions from '../../../tests/framework/Assertions';
 
 // Page Objects
-import OnboardingView from '../../pages/Onboarding/OnboardingView';
-import OnboardingSheet from '../../pages/Onboarding/OnboardingSheet';
-import SocialLoginView from '../../pages/Onboarding/SocialLoginView';
+import OnboardingView from '../../../tests/page-objects/Onboarding/OnboardingView';
+import OnboardingSheet from '../../../tests/page-objects/Onboarding/OnboardingSheet';
+import SocialLoginView from '../../../tests/page-objects/Onboarding/SocialLoginView';
 
 // Mocks
 import { createOAuthMockttpService } from '../../../tests/api-mocking/seedless-onboarding';
 import { E2EOAuthHelpers } from '../../module-mocking/oauth';
-import { SmokeWalletPlatform } from '../../tags';
+import { SmokeWalletPlatform } from '../../../tests/tags';
 
 describe(SmokeWalletPlatform('Google Login - Existing User'), () => {
   beforeAll(async () => {
