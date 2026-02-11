@@ -12,11 +12,17 @@ import Icon, {
   IconColor,
 } from '../../../component-library/components/Icons/Icon';
 
+export enum ChecklistItemVariant {
+  Default = 'default',
+  Card = 'card',
+}
+
 interface ChecklistItemProps {
   title: string;
   isCompleted: boolean;
   onPress?: () => void;
   isLoading?: boolean;
+  variant?: ChecklistItemVariant;
 }
 
 const ChecklistItem: React.FC<ChecklistItemProps> = ({
@@ -24,14 +30,20 @@ const ChecklistItem: React.FC<ChecklistItemProps> = ({
   isCompleted,
   onPress,
   isLoading,
+  variant = ChecklistItemVariant.Default,
 }) => {
   const tw = useTailwind();
+
+  const isCard = variant === ChecklistItemVariant.Card;
 
   return (
     <Pressable onPress={onPress} disabled={isCompleted || isLoading}>
       <Box
-        twClassName="flex-row items-center p-4 mb-2 rounded-lg bg-background-alternative"
-        style={tw.style('border border-border-default', isCompleted && 'opacity-60')}
+        twClassName={isCard ? 'flex-row items-center p-4 mb-2 rounded-lg bg-background-default' : 'flex-row items-center p-4 mb-2 rounded-lg bg-background-alternative'}
+        style={tw.style(
+          isCard ? 'border border-border-muted shadow-xs' : 'border border-border-default',
+          isCompleted && 'opacity-60'
+        )}
       >
         <Box twClassName="mr-3">
           {isCompleted ? (
