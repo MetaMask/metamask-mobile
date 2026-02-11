@@ -7509,17 +7509,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask-previews/ramps-controller@npm:7.1.0-preview-bc3c2ef97":
-  version: 7.1.0-preview-bc3c2ef97
-  resolution: "@metamask-previews/ramps-controller@npm:7.1.0-preview-bc3c2ef97"
-  dependencies:
-    "@metamask/base-controller": "npm:^9.0.0"
-    "@metamask/controller-utils": "npm:^11.18.0"
-    "@metamask/messenger": "npm:^0.3.0"
-  checksum: 10/5e68284cd59664d36e1c618e08a0cbdfb9dde1ba6a258d72e377f23fe3692fdf720aa0b727f2b11d0fc9b4239b6090403e053934fb034401543b5d50943b1592
-  languageName: node
-  linkType: hard
-
 "@metamask/7715-permission-types@npm:^0.3.0":
   version: 0.3.0
   resolution: "@metamask/7715-permission-types@npm:0.3.0"
@@ -9364,6 +9353,17 @@ __metadata:
   peerDependencies:
     webextension-polyfill: ^0.10.0 || ^0.11.0 || ^0.12.0
   checksum: 10/50194c608fb308cee268c6eefb8c8d439a9d07aa41d07cb5ddcd7e706819aea7e746150f32688fe06d20309b49346440855b5d56aacf286b343da6fcb217cc12
+  languageName: node
+  linkType: hard
+
+"@metamask/ramps-controller@npm:@metamask-previews/ramps-controller@7.1.0-preview-bc3c2ef97":
+  version: 7.1.0-preview-bc3c2ef97
+  resolution: "@metamask-previews/ramps-controller@npm:7.1.0-preview-bc3c2ef97"
+  dependencies:
+    "@metamask/base-controller": "npm:^9.0.0"
+    "@metamask/controller-utils": "npm:^11.18.0"
+    "@metamask/messenger": "npm:^0.3.0"
+  checksum: 10/5e68284cd59664d36e1c618e08a0cbdfb9dde1ba6a258d72e377f23fe3692fdf720aa0b727f2b11d0fc9b4239b6090403e053934fb034401543b5d50943b1592
   languageName: node
   linkType: hard
 
@@ -35099,7 +35099,6 @@ __metadata:
     "@lavamoat/git-safe-dependencies": "npm:^0.2.1"
     "@lavamoat/react-native-lockdown": "npm:^0.0.2"
     "@ledgerhq/react-native-hw-transport-ble": "npm:^6.34.1"
-    "@metamask-previews/ramps-controller": "npm:7.1.0-preview-bc3c2ef97"
     "@metamask/abi-utils": "npm:^3.0.0"
     "@metamask/account-api": "npm:^0.12.0"
     "@metamask/account-tree-controller": "npm:^3.0.0"
@@ -35180,6 +35179,7 @@ __metadata:
     "@metamask/profile-metrics-controller": "npm:^2.0.0"
     "@metamask/profile-sync-controller": "npm:^27.1.0"
     "@metamask/providers": "npm:^18.3.1"
+    "@metamask/ramps-controller": "npm:@metamask-previews/ramps-controller@7.1.0-preview-bc3c2ef97"
     "@metamask/react-native-acm": "npm:^1.0.1"
     "@metamask/react-native-actionsheet": "npm:2.4.2"
     "@metamask/react-native-button": "npm:^3.0.0"

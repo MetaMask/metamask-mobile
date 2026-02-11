@@ -187,8 +187,7 @@
     "@metamask/transaction-controller@npm:^62.9.2": "^62.14.0",
     "viem": "2.31.3",
     "@metamask/assets-controllers@npm:^99.2.0": "patch:@metamask/assets-controllers@npm%3A99.2.0#~/.yarn/patches/@metamask-assets-controllers-npm-99.2.0-bf6ecbcde9.patch",
-    "@metamask/assets-controllers@npm:^97.0.0": "patch:@metamask/assets-controllers@npm%3A99.2.0#~/.yarn/patches/@metamask-assets-controllers-npm-99.2.0-bf6ecbcde9.patch",
-    "@metamask/ramps-controller": "npm:@metamask-previews/ramps-controller@7.1.0-preview-bc3c2ef97"
+    "@metamask/assets-controllers@npm:^97.0.0": "patch:@metamask/assets-controllers@npm%3A99.2.0#~/.yarn/patches/@metamask-assets-controllers-npm-99.2.0-bf6ecbcde9.patch"
   },
   "dependencies": {
     "@config-plugins/detox": "^9.0.0",
@@ -203,7 +202,6 @@
     "@keystonehq/ur-decoder": "^0.12.2",
     "@lavamoat/react-native-lockdown": "^0.0.2",
     "@ledgerhq/react-native-hw-transport-ble": "^6.34.1",
-    "@metamask-previews/ramps-controller": "7.1.0-preview-bc3c2ef97",
     "@metamask/abi-utils": "^3.0.0",
     "@metamask/account-api": "^0.12.0",
     "@metamask/account-tree-controller": "^3.0.0",
@@ -274,6 +272,7 @@
     "@metamask/preinstalled-example-snap": "^0.7.2",
     "@metamask/profile-metrics-controller": "^2.0.0",
     "@metamask/profile-sync-controller": "^27.1.0",
+    "@metamask/ramps-controller": "npm:@metamask-previews/ramps-controller@7.1.0-preview-bc3c2ef97",
     "@metamask/react-native-acm": "^1.0.1",
     "@metamask/react-native-actionsheet": "2.4.2",
     "@metamask/react-native-button": "^3.0.0",
