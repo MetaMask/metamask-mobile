@@ -8,7 +8,7 @@ import { EthAccountType } from '@metamask/keyring-api';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { AccountWalletType, AccountGroupType } from '@metamask/account-api';
 import Routes from '../../../../../../constants/navigation/Routes';
-import { AccountDetailsIds } from '../../../../../../../e2e/selectors/MultichainAccounts/AccountDetails.selectors';
+import { AccountDetailsIds } from '../../../AccountDetails.testIds';
 import { formatAddress } from '../../../../../../util/address';
 import { RootState } from '../../../../../../reducers';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';

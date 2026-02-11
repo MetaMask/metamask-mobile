@@ -1,4 +1,3 @@
-import Logger from '../../../../util/Logger';
 import { handleLocalAuthentication } from './handleLocalAuthentication';
 import {
   getCardBaanxToken,
@@ -7,11 +6,9 @@ import {
 } from './cardTokenVault';
 import { refreshCardToken } from './refreshCardToken';
 
-jest.mock('../../../../util/Logger');
 jest.mock('./cardTokenVault');
 jest.mock('./refreshCardToken');
 
-const mockLogger = jest.mocked(Logger);
 const mockGetCardBaanxToken = jest.mocked(getCardBaanxToken);
 const mockRemoveCardBaanxToken = jest.mocked(removeCardBaanxToken);
 const mockStoreCardBaanxToken = jest.mocked(storeCardBaanxToken);
@@ -198,9 +195,6 @@ describe('handleLocalAuthentication', () => {
 
       expect(mockRefreshCardToken).not.toHaveBeenCalled();
       expect(mockStoreCardBaanxToken).not.toHaveBeenCalled();
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        'handleLocalAuthentication: Access token still fresh, skipping refresh',
-      );
       expect(result).toEqual({
         isAuthenticated: true,
         userCardLocation: 'us',
@@ -370,10 +364,6 @@ describe('handleLocalAuthentication', () => {
         isBaanxLoginEnabled: true,
       });
 
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        'handleLocalAuthentication: Token refresh failed:',
-        expect.any(Error),
-      );
       expect(result).toEqual({
         isAuthenticated: false,
       });
@@ -407,10 +397,6 @@ describe('handleLocalAuthentication', () => {
         isBaanxLoginEnabled: true,
       });
 
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        'handleLocalAuthentication: Token refresh failed:',
-        expect.any(Error),
-      );
       expect(result).toEqual({
         isAuthenticated: false,
       });
@@ -444,10 +430,6 @@ describe('handleLocalAuthentication', () => {
         isBaanxLoginEnabled: true,
       });
 
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        'handleLocalAuthentication: Token refresh failed:',
-        expect.any(Error),
-      );
       expect(result).toEqual({
         isAuthenticated: false,
       });
@@ -475,10 +457,6 @@ describe('handleLocalAuthentication', () => {
         isBaanxLoginEnabled: true,
       });
 
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        'handleLocalAuthentication: Token refresh failed:',
-        expect.any(Error),
-      );
       expect(result).toEqual({
         isAuthenticated: false,
       });
@@ -496,10 +474,6 @@ describe('handleLocalAuthentication', () => {
         isBaanxLoginEnabled: true,
       });
 
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        'handleLocalAuthentication: Authentication verification failed:',
-        expect.any(Error),
-      );
       expect(result).toEqual({
         isAuthenticated: false,
       });
@@ -524,10 +498,6 @@ describe('handleLocalAuthentication', () => {
         isBaanxLoginEnabled: true,
       });
 
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        'handleLocalAuthentication: Authentication verification failed:',
-        expect.any(Error),
-      );
       expect(result).toEqual({
         isAuthenticated: false,
       });
@@ -561,10 +531,6 @@ describe('handleLocalAuthentication', () => {
         isBaanxLoginEnabled: true,
       });
 
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        'handleLocalAuthentication: Token refresh failed:',
-        expect.any(Error),
-      );
       expect(result).toEqual({
         isAuthenticated: false,
       });

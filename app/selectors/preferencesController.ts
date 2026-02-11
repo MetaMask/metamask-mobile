@@ -115,9 +115,20 @@ export const selectIsSecurityAlertsEnabled = createSelector(
     ).securityAlertsEnabled,
 );
 
+/**
+ * Selects the smart transactions opt-in status from preferences.
+ *
+ * Note: The unused `_chainId` parameter is required for type compatibility when this selector
+ * is composed with other selectors (like `selectSmartTransactionsEnabled`) that accept an optional
+ * `chainId`. Without it, `createDeepEqualSelector` infers the composed selector's type as only
+ * accepting `state`, causing TypeScript errors when passing `chainId` to the composed selector.
+ */
 export const selectSmartTransactionsOptInStatus = createSelector(
-  selectPreferencesControllerState,
-  (preferencesControllerState: PreferencesState) =>
+  [
+    selectPreferencesControllerState,
+    (_state: RootState, _chainId?: Hex) => undefined,
+  ],
+  (preferencesControllerState) =>
     preferencesControllerState.smartTransactionsOptInStatus,
 );
 

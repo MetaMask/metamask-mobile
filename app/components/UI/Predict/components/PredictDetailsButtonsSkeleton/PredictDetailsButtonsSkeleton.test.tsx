@@ -7,10 +7,10 @@ describe('PredictDetailsButtonsSkeleton', () => {
     const { getByTestId } = render(<PredictDetailsButtonsSkeleton />);
 
     expect(
-      getByTestId('predict-details-buttons-skeleton-button-yes'),
+      getByTestId('predict-details-buttons-skeleton-button-1'),
     ).toBeTruthy();
     expect(
-      getByTestId('predict-details-buttons-skeleton-button-no'),
+      getByTestId('predict-details-buttons-skeleton-button-2'),
     ).toBeTruthy();
   });
 
@@ -20,8 +20,8 @@ describe('PredictDetailsButtonsSkeleton', () => {
       <PredictDetailsButtonsSkeleton testID={customTestId} />,
     );
 
-    expect(getByTestId(`${customTestId}-button-yes`)).toBeTruthy();
-    expect(getByTestId(`${customTestId}-button-no`)).toBeTruthy();
+    expect(getByTestId(`${customTestId}-button-1`)).toBeTruthy();
+    expect(getByTestId(`${customTestId}-button-2`)).toBeTruthy();
   });
 
   it('matches snapshot', () => {

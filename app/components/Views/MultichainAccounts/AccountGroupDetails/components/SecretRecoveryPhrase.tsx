@@ -18,7 +18,7 @@ import { useHdKeyringsWithSnapAccounts } from '../../../../hooks/useHdKeyringsWi
 import Routes from '../../../../../constants/navigation/Routes';
 import { RootState } from '../../../../../reducers';
 import { areAddressesEqual } from '../../../../../util/address';
-import { AccountDetailsIds } from '../../../../../../e2e/selectors/MultichainAccounts/AccountDetails.selectors';
+import { AccountDetailsIds } from '../../AccountDetails.testIds';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from '../AccountGroupDetails.styles';
 

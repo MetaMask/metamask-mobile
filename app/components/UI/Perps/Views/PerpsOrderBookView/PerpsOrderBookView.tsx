@@ -18,7 +18,8 @@ import {
   SafeAreaView,
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
-import { PerpsOrderBookViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { useSelector } from 'react-redux';
+import { PerpsOrderBookViewSelectorsIDs } from '../../Perps.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import ButtonSemantic, {
   ButtonSemanticSeverity,
@@ -55,18 +56,30 @@ import PerpsOrderBookTable, {
   type UnitDisplay,
 } from '../../components/PerpsOrderBookTable';
 import {
-  PerpsEventProperties,
-  PerpsEventValues,
-} from '../../constants/eventNames';
-import { usePerpsMarkets, usePerpsNavigation } from '../../hooks';
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+  getPerpsDisplaySymbol,
+} from '@metamask/perps-controller';
+import {
+  usePerpsMarkets,
+  usePerpsNavigation,
+  usePositionManagement,
+} from '../../hooks';
+import { useHasExistingPosition } from '../../hooks/useHasExistingPosition';
 import { usePerpsLiveOrderBook } from '../../hooks/stream/usePerpsLiveOrderBook';
+import { usePerpsLivePrices } from '../../hooks/stream/usePerpsLivePrices';
+import { usePerpsTopOfBook } from '../../hooks/stream/usePerpsTopOfBook';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { usePerpsOrderBookGrouping } from '../../hooks/usePerpsOrderBookGrouping';
 import { selectPerpsButtonColorTestVariant } from '../../selectors/featureFlags';
+import { selectPerpsEligibility } from '../../selectors/perpsController';
 import { BUTTON_COLOR_TEST } from '../../utils/abTesting/tests';
 import { usePerpsABTest } from '../../utils/abTesting/usePerpsABTest';
-import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
+import {
+  formatPerpsFiat,
+  PRICE_RANGES_UNIVERSAL,
+} from '../../utils/formatUtils';
 import {
   calculateAggregationParams,
   calculateGroupingOptions,
@@ -74,6 +87,7 @@ import {
   MAX_ORDER_BOOK_LEVELS,
   selectDefaultGrouping,
 } from '../../utils/orderBookGrouping';
+import PerpsSelectModifyActionView from '../PerpsSelectModifyActionView';
 import styleSheet from './PerpsOrderBookView.styles';
 import type {
   OrderBookRouteParams,
@@ -89,7 +103,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
   const { symbol } = route.params || {};
   const displaySymbol = getPerpsDisplaySymbol(symbol || '');
   const { styles } = useStyles(styleSheet, {});
-  const { navigateToOrder } = usePerpsNavigation();
+  const { navigateToOrder, navigateToClosePosition } = usePerpsNavigation();
   const { track } = usePerpsEventTracking();
   const insets = useSafeAreaInsets();
 
@@ -102,12 +116,32 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
     featureFlagSelector: selectPerpsButtonColorTestVariant,
   });
 
+  // Geo-restriction eligibility check
+  const isEligible = useSelector(selectPerpsEligibility);
+  const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
+    useState(false);
+
   // Get market data for the header
   const { markets } = usePerpsMarkets();
   const market = useMemo(
     () => markets.find((m) => m.symbol === symbol),
     [markets, symbol],
   );
+
+  // Check if user has an existing position for this market
+  const { existingPosition } = useHasExistingPosition({
+    asset: symbol || '',
+    loadOnMount: true,
+  });
+
+  // Position management hook for bottom sheet state and handlers
+  const {
+    showModifyActionSheet,
+    modifyActionSheetRef,
+    openModifySheet,
+    closeModifySheet,
+    handleReversePosition,
+  } = usePositionManagement();
 
   // Unit display state (base currency or USD)
   const [unitDisplay, setUnitDisplay] = useState<UnitDisplay>('usd');
@@ -166,6 +200,58 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
     return null;
   }, [selectedGrouping, groupingOptions]);
 
+  // Subscribe to top-of-book (best bid/ask) for spread display.
+  // This is intentionally independent from order book aggregation/grouping.
+  const topOfBook = usePerpsTopOfBook({ symbol: symbol || '' });
+
+  // Subscribe to live price updates for header display (TAT-2441)
+  // This ensures the price in the header updates in real-time
+  const livePrices = usePerpsLivePrices({
+    symbols: symbol ? [symbol] : [],
+    throttleMs: 1000,
+  });
+
+  // Current price for header - use live price with fallback to static market price
+  const currentPrice = useMemo(() => {
+    const priceData = livePrices[symbol || ''];
+    if (priceData?.price) {
+      const parsed = parseFloat(priceData.price);
+      // Validate parsed value - fallback to marketPrice if invalid
+      if (Number.isFinite(parsed) && parsed > 0) {
+        return parsed;
+      }
+    }
+    // Fallback to static market price if live price not available or invalid
+    return marketPrice ?? 0;
+  }, [livePrices, symbol, marketPrice]);
+
+  const spreadMetrics = useMemo(() => {
+    const bidStr = topOfBook?.bestBid;
+    const askStr = topOfBook?.bestAsk;
+    if (!bidStr || !askStr) return null;
+
+    const bid = parseFloat(bidStr);
+    const ask = parseFloat(askStr);
+    if (
+      !Number.isFinite(bid) ||
+      !Number.isFinite(ask) ||
+      bid <= 0 ||
+      ask <= 0
+    ) {
+      return null;
+    }
+
+    // Round to eliminate floating point artifacts (e.g., 0.09999999999990905 → 0.1)
+    const spread = Number((ask - bid).toPrecision(10));
+    const mid = (ask + bid) / 2;
+    const spreadPercentage = mid > 0 ? ((spread / mid) * 100).toFixed(3) : '0';
+
+    return {
+      spread,
+      spreadPercentage,
+    };
+  }, [topOfBook]);
+
   // Calculate aggregation params (nSigFigs + mantissa) based on grouping
   const aggregationParams = useMemo(() => {
     if (!marketPrice || !currentGrouping) return { nSigFigs: 5 as const };
@@ -194,8 +280,6 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
       return rawOrderBook;
     }
 
-    // No client-side aggregation needed - API handles it via nSigFigs
-    // Just return the raw order book data directly
     return rawOrderBook;
   }, [rawOrderBook]);
 
@@ -210,9 +294,9 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
     eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
     conditions: [!!symbol, !!orderBook],
     properties: {
-      [PerpsEventProperties.SCREEN_TYPE]:
-        PerpsEventValues.SCREEN_TYPE.ORDER_BOOK,
-      [PerpsEventProperties.ASSET]: symbol || '',
+      [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+        PERPS_EVENT_VALUE.SCREEN_TYPE.ORDER_BOOK,
+      [PERPS_EVENT_PROPERTY.ASSET]: symbol || '',
     },
   });
 
@@ -246,9 +330,9 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
       setIsDepthBandSheetVisible(false);
 
       track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-        [PerpsEventProperties.INTERACTION_TYPE]:
-          PerpsEventValues.INTERACTION_TYPE.TAP,
-        [PerpsEventProperties.ASSET]: symbol || '',
+        [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+          PERPS_EVENT_VALUE.INTERACTION_TYPE.TAP,
+        [PERPS_EVENT_PROPERTY.ASSET]: symbol || '',
       });
     },
     [symbol, track, saveGrouping],
@@ -278,9 +362,9 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
       setUnitDisplay(unit);
 
       track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-        [PerpsEventProperties.INTERACTION_TYPE]:
-          PerpsEventValues.INTERACTION_TYPE.TAP,
-        [PerpsEventProperties.ASSET]: symbol || '',
+        [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+          PERPS_EVENT_VALUE.INTERACTION_TYPE.TAP,
+        [PERPS_EVENT_PROPERTY.ASSET]: symbol || '',
       });
     },
     [symbol, track],
@@ -288,14 +372,26 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
 
   // Handle Long button press
   const handleLongPress = useCallback(() => {
+    // Geo-restriction check
+    if (!isEligible) {
+      track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
+        [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+          PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+        [PERPS_EVENT_PROPERTY.SOURCE]:
+          PERPS_EVENT_VALUE.SOURCE.ORDER_BOOK_LONG_BUTTON,
+      });
+      setIsEligibilityModalVisible(true);
+      return;
+    }
+
     track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-      [PerpsEventProperties.INTERACTION_TYPE]:
-        PerpsEventValues.INTERACTION_TYPE.TAP,
-      [PerpsEventProperties.ASSET]: symbol || '',
-      [PerpsEventProperties.DIRECTION]: PerpsEventValues.DIRECTION.LONG,
-      [PerpsEventProperties.SOURCE]: PerpsEventValues.SOURCE.PERP_ASSET_SCREEN,
+      [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+        PERPS_EVENT_VALUE.INTERACTION_TYPE.TAP,
+      [PERPS_EVENT_PROPERTY.ASSET]: symbol || '',
+      [PERPS_EVENT_PROPERTY.DIRECTION]: PERPS_EVENT_VALUE.DIRECTION.LONG,
+      [PERPS_EVENT_PROPERTY.SOURCE]: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
       ...(isButtonColorTestEnabled && {
-        [PerpsEventProperties.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
+        [PERPS_EVENT_PROPERTY.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
       }),
     });
 
@@ -304,6 +400,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
       asset: symbol || '',
     });
   }, [
+    isEligible,
     symbol,
     navigateToOrder,
     track,
@@ -313,14 +410,26 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
 
   // Handle Short button press
   const handleShortPress = useCallback(() => {
+    // Geo-restriction check
+    if (!isEligible) {
+      track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
+        [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+          PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+        [PERPS_EVENT_PROPERTY.SOURCE]:
+          PERPS_EVENT_VALUE.SOURCE.ORDER_BOOK_SHORT_BUTTON,
+      });
+      setIsEligibilityModalVisible(true);
+      return;
+    }
+
     track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-      [PerpsEventProperties.INTERACTION_TYPE]:
-        PerpsEventValues.INTERACTION_TYPE.TAP,
-      [PerpsEventProperties.ASSET]: symbol || '',
-      [PerpsEventProperties.DIRECTION]: PerpsEventValues.DIRECTION.SHORT,
-      [PerpsEventProperties.SOURCE]: PerpsEventValues.SOURCE.PERP_ASSET_SCREEN,
+      [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+        PERPS_EVENT_VALUE.INTERACTION_TYPE.TAP,
+      [PERPS_EVENT_PROPERTY.ASSET]: symbol || '',
+      [PERPS_EVENT_PROPERTY.DIRECTION]: PERPS_EVENT_VALUE.DIRECTION.SHORT,
+      [PERPS_EVENT_PROPERTY.SOURCE]: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
       ...(isButtonColorTestEnabled && {
-        [PerpsEventProperties.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
+        [PERPS_EVENT_PROPERTY.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
       }),
     });
 
@@ -329,12 +438,51 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
       asset: symbol || '',
     });
   }, [
+    isEligible,
     symbol,
     navigateToOrder,
     track,
     isButtonColorTestEnabled,
     buttonColorVariant,
   ]);
+
+  // Handle Close position button press
+  const handleClosePosition = useCallback(() => {
+    if (!existingPosition) return;
+
+    // Geo-restriction check
+    if (!isEligible) {
+      track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
+        [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+          PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+        [PERPS_EVENT_PROPERTY.SOURCE]:
+          PERPS_EVENT_VALUE.SOURCE.ORDER_BOOK_CLOSE_BUTTON,
+      });
+      setIsEligibilityModalVisible(true);
+      return;
+    }
+
+    navigateToClosePosition(existingPosition);
+  }, [existingPosition, navigateToClosePosition, isEligible, track]);
+
+  // Handle Modify position button press
+  const handleModifyPress = useCallback(() => {
+    if (!existingPosition) return;
+
+    // Geo-restriction check
+    if (!isEligible) {
+      track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
+        [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+          PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+        [PERPS_EVENT_PROPERTY.SOURCE]:
+          PERPS_EVENT_VALUE.SOURCE.ORDER_BOOK_MODIFY_BUTTON,
+      });
+      setIsEligibilityModalVisible(true);
+      return;
+    }
+
+    openModifySheet();
+  }, [existingPosition, openModifySheet, isEligible, track]);
 
   // Error state
   if (error) {
@@ -344,7 +492,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
           <PerpsMarketHeader
             market={market}
             onBackPress={handleBack}
-            currentPrice={marketPrice ?? 0}
+            currentPrice={currentPrice}
           />
         ) : (
           <View style={styles.header}>
@@ -378,7 +526,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
         <PerpsMarketHeader
           market={market}
           onBackPress={handleBack}
-          currentPrice={marketPrice ?? 0}
+          currentPrice={currentPrice}
         />
       )}
 
@@ -473,16 +621,18 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
       {/* Footer with Spread and Actions */}
       <View style={footerStyle}>
         {/* Spread Row */}
-        {orderBook && (
+        {spreadMetrics && (
           <View style={styles.spreadContainer}>
             <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
               {strings('perps.order_book.spread')}:
             </Text>
             <Text variant={TextVariant.BodySM} color={TextColor.Default}>
-              ${parseFloat(orderBook.spread).toLocaleString()}
+              {formatPerpsFiat(spreadMetrics.spread, {
+                ranges: PRICE_RANGES_UNIVERSAL,
+              })}
             </Text>
             <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-              ({orderBook.spreadPercentage}%)
+              ({spreadMetrics.spreadPercentage}%)
             </Text>
             <TouchableOpacity
               onPress={() => handleTooltipPress('spread')}
@@ -498,54 +648,84 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
           </View>
         )}
 
-        {/* Action Buttons */}
-        <View style={styles.actionsContainer}>
-          <View style={styles.actionButtonWrapper}>
-            {buttonColorVariant === 'monochrome' ? (
+        {/* Action Buttons - Show Modify/Close when position exists, Long/Short otherwise */}
+        {existingPosition ? (
+          <View style={styles.actionsContainer}>
+            <View style={styles.actionButtonWrapper}>
               <Button
-                variant={ButtonVariants.Primary}
+                variant={ButtonVariants.Secondary}
                 size={ButtonSize.Lg}
                 width={ButtonWidthTypes.Full}
-                label={strings('perps.market.long')}
-                onPress={handleLongPress}
-                testID={PerpsOrderBookViewSelectorsIDs.LONG_BUTTON}
+                label={strings('perps.market.modify')}
+                onPress={handleModifyPress}
+                testID={PerpsOrderBookViewSelectorsIDs.MODIFY_BUTTON}
               />
-            ) : (
-              <ButtonSemantic
-                severity={ButtonSemanticSeverity.Success}
-                onPress={handleLongPress}
-                isFullWidth
-                size={ButtonSizeRNDesignSystem.Lg}
-                testID={PerpsOrderBookViewSelectorsIDs.LONG_BUTTON}
-              >
-                {strings('perps.market.long')}
-              </ButtonSemantic>
-            )}
-          </View>
+            </View>
 
-          <View style={styles.actionButtonWrapper}>
-            {buttonColorVariant === 'monochrome' ? (
+            <View style={styles.actionButtonWrapper}>
               <Button
                 variant={ButtonVariants.Primary}
                 size={ButtonSize.Lg}
                 width={ButtonWidthTypes.Full}
-                label={strings('perps.market.short')}
-                onPress={handleShortPress}
-                testID={PerpsOrderBookViewSelectorsIDs.SHORT_BUTTON}
+                label={
+                  parseFloat(existingPosition.size) >= 0
+                    ? strings('perps.market.close_long')
+                    : strings('perps.market.close_short')
+                }
+                onPress={handleClosePosition}
+                testID={PerpsOrderBookViewSelectorsIDs.CLOSE_BUTTON}
               />
-            ) : (
-              <ButtonSemantic
-                severity={ButtonSemanticSeverity.Danger}
-                onPress={handleShortPress}
-                isFullWidth
-                size={ButtonSizeRNDesignSystem.Lg}
-                testID={PerpsOrderBookViewSelectorsIDs.SHORT_BUTTON}
-              >
-                {strings('perps.market.short')}
-              </ButtonSemantic>
-            )}
+            </View>
           </View>
-        </View>
+        ) : (
+          <View style={styles.actionsContainer}>
+            <View style={styles.actionButtonWrapper}>
+              {buttonColorVariant === 'monochrome' ? (
+                <Button
+                  variant={ButtonVariants.Primary}
+                  size={ButtonSize.Lg}
+                  width={ButtonWidthTypes.Full}
+                  label={strings('perps.market.long')}
+                  onPress={handleLongPress}
+                  testID={PerpsOrderBookViewSelectorsIDs.LONG_BUTTON}
+                />
+              ) : (
+                <ButtonSemantic
+                  severity={ButtonSemanticSeverity.Success}
+                  onPress={handleLongPress}
+                  isFullWidth
+                  size={ButtonSizeRNDesignSystem.Lg}
+                  testID={PerpsOrderBookViewSelectorsIDs.LONG_BUTTON}
+                >
+                  {strings('perps.market.long')}
+                </ButtonSemantic>
+              )}
+            </View>
+
+            <View style={styles.actionButtonWrapper}>
+              {buttonColorVariant === 'monochrome' ? (
+                <Button
+                  variant={ButtonVariants.Primary}
+                  size={ButtonSize.Lg}
+                  width={ButtonWidthTypes.Full}
+                  label={strings('perps.market.short')}
+                  onPress={handleShortPress}
+                  testID={PerpsOrderBookViewSelectorsIDs.SHORT_BUTTON}
+                />
+              ) : (
+                <ButtonSemantic
+                  severity={ButtonSemanticSeverity.Danger}
+                  onPress={handleShortPress}
+                  isFullWidth
+                  size={ButtonSizeRNDesignSystem.Lg}
+                  testID={PerpsOrderBookViewSelectorsIDs.SHORT_BUTTON}
+                >
+                  {strings('perps.market.short')}
+                </ButtonSemantic>
+              )}
+            </View>
+          </View>
+        )}
       </View>
 
       {/* Price Grouping Selection Bottom Sheet */}
@@ -599,6 +779,26 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
             />
           </Modal>
         </View>
+      )}
+
+      {/* Modify Action Bottom Sheet */}
+      {showModifyActionSheet && (
+        <PerpsSelectModifyActionView
+          sheetRef={modifyActionSheetRef}
+          position={existingPosition ?? undefined}
+          onClose={closeModifySheet}
+          onReversePosition={handleReversePosition}
+        />
+      )}
+
+      {/* Geo-restriction Modal */}
+      {isEligibilityModalVisible && (
+        <PerpsBottomSheetTooltip
+          isVisible
+          onClose={() => setIsEligibilityModalVisible(false)}
+          contentKey={'geo_block'}
+          testID={`${PerpsOrderBookViewSelectorsIDs.CONTAINER}-geo-block-tooltip`}
+        />
       )}
     </SafeAreaView>
   );

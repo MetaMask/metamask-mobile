@@ -1,4 +1,5 @@
 import { BridgeControllerMessenger } from '@metamask/bridge-controller';
+import { AnalyticsControllerActions } from '@metamask/analytics-controller';
 import { RootExtendedMessenger, RootMessenger } from '../../types';
 import {
   Messenger,
@@ -38,5 +39,45 @@ export function getBridgeControllerMessenger(
     events: [],
     messenger,
   });
+  return messenger;
+}
+
+type BridgeControllerInitMessengerActions = AnalyticsControllerActions;
+
+/**
+ * Get the BridgeControllerInitMessenger for the BridgeController.
+ * This messenger is used during controller initialization to call other controllers.
+ *
+ * @param rootMessenger - The root messenger.
+ * @returns The BridgeControllerInitMessenger.
+ */
+export type BridgeControllerInitMessenger = ReturnType<
+  typeof getBridgeControllerInitMessenger
+>;
+
+export function getBridgeControllerInitMessenger(
+  rootMessenger: RootMessenger,
+): Messenger<
+  'BridgeControllerInit',
+  BridgeControllerInitMessengerActions,
+  never,
+  RootMessenger
+> {
+  const messenger = new Messenger<
+    'BridgeControllerInit',
+    BridgeControllerInitMessengerActions,
+    never,
+    RootMessenger
+  >({
+    namespace: 'BridgeControllerInit',
+    parent: rootMessenger,
+  });
+
+  rootMessenger.delegate({
+    actions: ['AnalyticsController:trackEvent'],
+    events: [],
+    messenger,
+  });
+
   return messenger;
 }

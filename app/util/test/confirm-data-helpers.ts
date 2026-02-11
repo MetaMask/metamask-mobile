@@ -23,16 +23,7 @@ import {
   Reason,
   ResultType,
   SecurityAlertSource,
-} from '../../components/Views/confirmations/legacy/components/BlockaidBanner/BlockaidBanner.types';
-
-export const confirmationRedesignRemoteFlagsState = {
-  remoteFeatureFlags: {
-    confirmation_redesign: {
-      signatures: true,
-      staking_confirmations: true,
-    },
-  },
-};
+} from '../../components/Views/confirmations/components/blockaid-banner/BlockaidBanner.types';
 
 const mockTypeDefEIP712Domain = [
   { name: 'name', type: 'string' },
@@ -91,9 +82,6 @@ export const personalSignatureConfirmationState = {
         },
         pendingApprovalCount: 1,
         approvalFlows: [],
-      },
-      RemoteFeatureFlagController: {
-        ...confirmationRedesignRemoteFlagsState,
       },
       SignatureController: {
         signatureRequests: {
@@ -176,13 +164,6 @@ export const siweSignatureConfirmationState = {
         pendingApprovalCount: 1,
         approvalFlows: [],
       },
-      RemoteFeatureFlagController: {
-        remoteFeatureFlags: {
-          confirmation_redesign: {
-            signatures: true,
-          },
-        },
-      },
       SignatureController: {
         signatureRequests: {
           '72424261-e22f-11ef-8e59-bf627a5d8354': siweSignSignatureRequest,
@@ -252,9 +233,6 @@ export const typedSignV1ConfirmationState = {
         signatureRequests: {
           '7e62bcb1-a4e9-11ef-9b51-ddf21c91a998': typedSignV1SignatureRequest,
         },
-      },
-      RemoteFeatureFlagController: {
-        ...confirmationRedesignRemoteFlagsState,
       },
     },
   },
@@ -346,11 +324,6 @@ export const typedSignV3ConfirmationState = {
       SignatureController: {
         signatureRequests: {
           'fb2029e1-b0ab-11ef-9227-05a11087c334': typedSignV3SignatureRequest,
-        },
-      },
-      RemoteFeatureFlagController: {
-        remoteFeatureFlags: {
-          ...confirmationRedesignRemoteFlagsState,
         },
       },
     },
@@ -649,9 +622,6 @@ const stakingConfirmationBaseState = {
           },
         ],
       } as unknown as TransactionControllerState,
-      RemoteFeatureFlagController: {
-        ...confirmationRedesignRemoteFlagsState,
-      },
       NetworkController: {
         networksMetadata: {
           mainnet: {
@@ -1216,17 +1186,17 @@ export const MOCK_NETWORK_CONTROLLER_STATE = {
         },
       ],
     },
-    '0x18c6': {
-      blockExplorerUrls: ['https://megaexplorer.xyz'],
-      chainId: '0x18c6',
+    '0x18c7': {
+      blockExplorerUrls: ['https://megaeth-testnet-v2.blockscout.com'],
+      chainId: '0x18c7',
       defaultRpcEndpointIndex: 0,
       defaultBlockExplorerUrlIndex: 0,
-      name: 'Mega Testnet',
+      name: 'MegaETH Testnet',
       nativeCurrency: 'MegaETH',
       rpcEndpoints: [
         {
           failoverUrls: [],
-          networkClientId: 'megaeth-testnet',
+          networkClientId: 'megaeth-testnet-v2',
           type: 'custom',
           url: 'https://carrot.megaeth.com/rpc',
         },

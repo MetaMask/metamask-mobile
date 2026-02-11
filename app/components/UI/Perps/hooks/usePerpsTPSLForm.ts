@@ -3,10 +3,12 @@ import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 // formatPrice import removed - using raw values for input state
 import { strings } from '../../../../../locales/i18n';
 import { regex } from '../../../../util/regex';
-import { DECIMAL_PRECISION_CONFIG } from '../constants/perpsConfig';
-import type { Position } from '../controllers/types';
+import {
+  DECIMAL_PRECISION_CONFIG,
+  calculatePositionSize,
+  type Position,
+} from '@metamask/perps-controller';
 import { formatPerpsFiat, PRICE_RANGES_UNIVERSAL } from '../utils/formatUtils';
-import { calculatePositionSize } from '../utils/orderCalculations';
 import { calculateExpectedPnL } from '../utils/pnlCalculations';
 import {
   calculatePriceForRoE,
@@ -327,7 +329,7 @@ export function usePerpsTPSLForm(
       if (parts.length > 2) return;
       // Allow erasing but prevent adding when there are more than MAX_PRICE_DECIMALS decimal places
       if (
-        parts[1]?.length > DECIMAL_PRECISION_CONFIG.MAX_PRICE_DECIMALS &&
+        parts[1]?.length > DECIMAL_PRECISION_CONFIG.MaxPriceDecimals &&
         sanitized.length >= takeProfitPrice.length
       )
         return;
@@ -382,7 +384,7 @@ export function usePerpsTPSLForm(
       const finalValue = sanitizePercentageInput(
         text,
         takeProfitPercentage,
-        DECIMAL_PRECISION_CONFIG.MAX_PRICE_DECIMALS,
+        DECIMAL_PRECISION_CONFIG.MaxPriceDecimals,
       );
       if (finalValue === null) return; // Invalid input, don't update state
 
@@ -434,7 +436,7 @@ export function usePerpsTPSLForm(
       if (parts.length > 2) return;
       // Allow erasing but prevent adding when there are more than MAX_PRICE_DECIMALS decimal places
       if (
-        parts[1]?.length > DECIMAL_PRECISION_CONFIG.MAX_PRICE_DECIMALS &&
+        parts[1]?.length > DECIMAL_PRECISION_CONFIG.MaxPriceDecimals &&
         sanitized.length >= stopLossPrice.length
       )
         return;
@@ -490,7 +492,7 @@ export function usePerpsTPSLForm(
       const finalValue = sanitizePercentageInput(
         text,
         stopLossPercentage,
-        DECIMAL_PRECISION_CONFIG.MAX_PRICE_DECIMALS,
+        DECIMAL_PRECISION_CONFIG.MaxPriceDecimals,
       );
       if (finalValue === null) return; // Invalid input, don't update state
 
@@ -952,7 +954,7 @@ export function usePerpsTPSLForm(
     orderType: 'market',
     amount: tpNotionalValue,
     isClosing: true,
-    coin: asset,
+    symbol: asset,
   });
 
   const expectedTakeProfitPnL =
@@ -978,7 +980,7 @@ export function usePerpsTPSLForm(
     orderType: 'market',
     amount: slNotionalValue,
     isClosing: true,
-    coin: asset,
+    symbol: asset,
   });
 
   const expectedStopLossPnL =

@@ -92,6 +92,10 @@ const styleSheet = (params: { theme: Theme }) => {
       marginBottom: 20,
       paddingHorizontal: 16,
     },
+    perpsPositionHeader: {
+      paddingHorizontal: 16,
+      paddingTop: 24,
+    },
   });
 };
 

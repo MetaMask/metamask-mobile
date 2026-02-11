@@ -13,7 +13,6 @@ import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { safeFormatChainIdToHex } from '../util/safeFormatChainIdToHex';
 import { TokenI } from '../../Tokens/types';
 import { MarketDataDetails } from '@metamask/assets-controllers';
-import { selectAsset } from '../../../../selectors/assets/assets-list';
 import { formatWithThreshold } from '../../../../util/assets';
 import I18n from '../../../../../locales/i18n';
 import { deriveBalanceFromAssetMarketDetails } from '../../Tokens/util';
@@ -22,6 +21,47 @@ import { buildTokenIconUrl } from '../util/buildTokenIconUrl';
 const extractTrailingCurrencyCode = (value: string): string | undefined => {
   const match = value.trim().match(/([A-Za-z]{3})$/);
   return match ? match[1].toUpperCase() : undefined;
+};
+
+/**
+ * Parses a locale-formatted currency string to a number.
+ * Handles both formats:
+ * - US/UK: "1,234.56" (comma as thousands separator, dot as decimal)
+ * - EU/BR: "1.234,56" or "0,55" (dot as thousands separator, comma as decimal)
+ */
+const parseLocaleFiatString = (value: string): number => {
+  // Remove everything except digits, dots, and commas
+  const cleaned = value.replace(/[^0-9.,-]/g, '');
+
+  const hasComma = cleaned.includes(',');
+  const hasDot = cleaned.includes('.');
+
+  if (hasComma && hasDot) {
+    // Both separators present - the last one is the decimal separator
+    const lastCommaIndex = cleaned.lastIndexOf(',');
+    const lastDotIndex = cleaned.lastIndexOf('.');
+
+    if (lastDotIndex > lastCommaIndex) {
+      // Format: 1,234.56 - comma is thousands, dot is decimal
+      return parseFloat(cleaned.replace(/,/g, ''));
+    }
+    // Format: 1.234,56 - dot is thousands, comma is decimal
+    return parseFloat(cleaned.replace(/\./g, '').replace(',', '.'));
+  }
+
+  if (hasComma && !hasDot) {
+    // Only comma - check if it's decimal separator (followed by 1-2 digits at end)
+    const commaMatch = cleaned.match(/,(\d{1,2})$/);
+    if (commaMatch) {
+      // Format: 0,55 or 1234,56 - comma is decimal separator
+      return parseFloat(cleaned.replace(',', '.'));
+    }
+    // Format: 1,234 - comma is thousands separator
+    return parseFloat(cleaned.replace(/,/g, ''));
+  }
+
+  // Only dot or no separators - standard parsing
+  return parseFloat(cleaned);
 };
 
 export interface AssetBalanceInfo {
@@ -56,8 +96,27 @@ export const useAssetBalances = (
     chainIds,
   });
 
-  // Get all assets from wallet for fallback balance lookup
-  const walletAssetsMap = useSelector((state: RootState) => {
+  // Get raw state needed for asset lookups - these are stable references from Redux
+  const allAssets = useSelector(
+    (state: RootState) =>
+      state.engine.backgroundState.TokensController.allTokens,
+  );
+  const allDetectedTokens = useSelector(
+    (state: RootState) =>
+      state.engine.backgroundState.TokensController.allDetectedTokens,
+  );
+  const networkConfigs = useSelector(
+    (state: RootState) =>
+      state.engine.backgroundState.NetworkController
+        .networkConfigurationsByChainId,
+  );
+  const currencyRates = useSelector(
+    (state: RootState) =>
+      state.engine.backgroundState.CurrencyRateController.currencyRates,
+  );
+
+  // Build the walletAssetsMap in useMemo using raw state
+  const walletAssetsMap = useMemo(() => {
     const map = new Map<string, TokenI>();
     tokens
       .filter((token) => token !== undefined)
@@ -68,27 +127,50 @@ export const useAssetBalances = (
             ? token.caipChainId
             : (safeFormatChainIdToHex(token.caipChainId) as string);
 
-          const asset = selectAsset(state, {
-            address: token.address,
-            chainId,
-          });
+          // Manually lookup asset from raw state (similar to selectAsset)
+          const allTokensForChain = allAssets?.[chainId as Hex];
+          const detectedTokensForChain = allDetectedTokens?.[chainId as Hex];
+
+          let asset: TokenI | undefined;
+          if (allTokensForChain) {
+            for (const accountTokens of Object.values(allTokensForChain)) {
+              const found = (accountTokens as TokenI[])?.find(
+                (t) =>
+                  t.address?.toLowerCase() === token.address?.toLowerCase(),
+              );
+              if (found) {
+                asset = found;
+                break;
+              }
+            }
+          }
+          if (!asset && detectedTokensForChain) {
+            for (const accountTokens of Object.values(detectedTokensForChain)) {
+              const found = (accountTokens as TokenI[])?.find(
+                (t) =>
+                  t.address?.toLowerCase() === token.address?.toLowerCase(),
+              );
+              if (found) {
+                asset = found;
+                break;
+              }
+            }
+          }
 
           if (asset) {
-            // Key should use the same address used for balance lookups
             const key = `${token.address.toLowerCase()}-${token.caipChainId}`;
             map.set(key, asset);
           }
         }
       });
-
     return map;
-  });
+  }, [tokens, allAssets, allDetectedTokens]);
 
-  // Get all exchange rates and token rates for EVM chains
-  const exchangeRatesMap = useSelector((state: RootState) => {
+  // Build the exchangeRatesMap in useMemo using raw state
+  const exchangeRatesMap = useMemo(() => {
     const map = new Map<
       string,
-      { conversionRate: number; marketData: MarketDataDetails }
+      { conversionRate: number; marketData: MarketDataDetails | undefined }
     >();
 
     tokens.forEach((token) => {
@@ -96,17 +178,12 @@ export const useAssetBalances = (
         const chainId = safeFormatChainIdToHex(token.caipChainId) as Hex;
 
         // Get network configuration to find the native currency symbol
-        const networkConfig =
-          state.engine.backgroundState.NetworkController
-            .networkConfigurationsByChainId[chainId];
+        const networkConfig = networkConfigs?.[chainId];
         const nativeCurrency = networkConfig?.nativeCurrency;
 
         // Use native currency symbol (e.g., "ETH") to look up conversion rate
-        // The conversionRate property already converts to the user's selected currency
         const currencyRateEntry = nativeCurrency
-          ? state.engine.backgroundState.CurrencyRateController.currencyRates[
-              nativeCurrency
-            ]
+          ? currencyRates?.[nativeCurrency]
           : undefined;
 
         const conversionRate = currencyRateEntry?.conversionRate;
@@ -116,6 +193,7 @@ export const useAssetBalances = (
             token.address?.toLowerCase() as Hex
           ];
 
+        // Only require conversionRate to be present (marketData is optional)
         if (conversionRate !== undefined && conversionRate !== null) {
           map.set(`${chainId}-${token.address?.toLowerCase()}`, {
             conversionRate,
@@ -126,7 +204,12 @@ export const useAssetBalances = (
     });
 
     return map;
-  });
+  }, [
+    tokens,
+    networkConfigs,
+    currencyRates,
+    TokenRatesController?.state?.marketData,
+  ]);
 
   const currentCurrency = useSelector(selectCurrentCurrency);
 
@@ -304,7 +387,7 @@ export const useAssetBalances = (
       balanceSource: 'availableBalance' | 'filteredToken' | 'walletAsset',
       chainId: Hex,
       rates:
-        | { conversionRate: number; marketData: MarketDataDetails }
+        | { conversionRate: number; marketData: MarketDataDetails | undefined }
         | undefined,
       filteredToken: TokenI | undefined,
       walletAsset: TokenI | undefined,
@@ -347,9 +430,8 @@ export const useAssetBalances = (
         }
 
         // Parse the numeric value and reformat it properly
-        const rawFiatNumber = parseFloat(
-          filteredToken.balanceFiat.replace(/[^0-9.-]/g, ''),
-        );
+        // Handle locale-formatted numbers (e.g., "US$ 0,55" or "$1,234.56")
+        const rawFiatNumber = parseLocaleFiatString(filteredToken.balanceFiat);
 
         if (!isNaN(rawFiatNumber)) {
           const originalCurrencyCode = extractTrailingCurrencyCode(
@@ -399,9 +481,8 @@ export const useAssetBalances = (
         }
 
         // Parse the numeric value and reformat it properly
-        const rawFiatNumber = parseFloat(
-          walletAsset.balanceFiat.replace(/[^0-9.-]/g, ''),
-        );
+        // Handle locale-formatted numbers (e.g., "US$ 0,55" or "$1,234.56")
+        const rawFiatNumber = parseLocaleFiatString(walletAsset.balanceFiat);
 
         if (!isNaN(rawFiatNumber)) {
           const originalCurrencyCode = extractTrailingCurrencyCode(

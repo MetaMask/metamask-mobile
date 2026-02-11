@@ -4,7 +4,7 @@ import {
   IconName,
   IconColor,
 } from '../../../component-library/components/Icons/Icon';
-import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';
 import {
   AvatarSize,
   AvatarVariant,

@@ -22,21 +22,18 @@ import {
   selectBridgeFeatureFlags as selectBridgeFeatureFlagsBase,
   DEFAULT_FEATURE_FLAG_CONFIG,
   isNonEvmChainId,
+  formatChainIdToHex,
 } from '@metamask/bridge-controller';
 import {
   BridgeToken,
   BridgeViewMode,
 } from '../../../../components/UI/Bridge/types';
-import { PopularList } from '../../../../util/networks/customNetworks';
 import { selectGasFeeControllerEstimates } from '../../../../selectors/gasFeeController';
 import { MetaMetrics } from '../../../Analytics';
 import { GasFeeEstimates } from '@metamask/gas-fee-controller';
 import { selectRemoteFeatureFlags } from '../../../../selectors/featureFlagController';
 import { getTokenExchangeRate } from '../../../../components/UI/Bridge/utils/exchange-rates';
-import {
-  selectHasCreatedSolanaMainnetAccount,
-  selectCanSignTransactions,
-} from '../../../../selectors/accountsController';
+import { selectCanSignTransactions } from '../../../../selectors/accountsController';
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
 import { hasMinimumRequiredVersion } from './utils/hasMinimumRequiredVersion';
 import { Bip44TokensForDefaultPairs } from '../../../../components/UI/Bridge/constants/default-swap-dest-tokens';
@@ -57,6 +54,7 @@ export interface BridgeState {
   bridgeViewMode: BridgeViewMode | undefined;
   isMaxSourceAmount?: boolean;
   isSelectingRecipient: boolean;
+  isSelectingToken: boolean;
   isGasIncludedSTXSendBundleSupported: boolean;
   isGasIncluded7702Supported: boolean;
   /**
@@ -80,6 +78,7 @@ export const initialState: BridgeState = {
   bridgeViewMode: undefined,
   isMaxSourceAmount: false,
   isSelectingRecipient: false,
+  isSelectingToken: false,
   isGasIncludedSTXSendBundleSupported: false,
   isGasIncluded7702Supported: false,
   isDestTokenManuallySet: false,
@@ -159,6 +158,9 @@ const slice = createSlice({
     setIsSelectingRecipient: (state, action: PayloadAction<boolean>) => {
       state.isSelectingRecipient = action.payload;
     },
+    setIsSelectingToken: (state, action: PayloadAction<boolean>) => {
+      state.isSelectingToken = action.payload;
+    },
     setIsGasIncludedSTXSendBundleSupported: (
       state,
       action: PayloadAction<boolean>,
@@ -231,24 +233,6 @@ export const selectBridgeViewMode = createSelector(
   (bridgeState) => bridgeState.bridgeViewMode,
 );
 
-/**
- * Only includes networks user has added.
- * Will include them regardless of feature flag enabled or not.
- */
-export const selectAllBridgeableNetworks = createSelector(
-  selectNetworkConfigurations,
-  (networkConfigurations) => {
-    const networks = uniqBy(
-      Object.values(networkConfigurations),
-      'chainId',
-    ).filter(({ chainId }) =>
-      ALLOWED_BRIDGE_CHAIN_IDS.includes(chainId as AllowedBridgeChainIds),
-    );
-
-    return networks;
-  },
-);
-
 export const selectBridgeFeatureFlags = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
@@ -273,6 +257,70 @@ export const selectBridgeFeatureFlags = createSelector(
 );
 
 /**
+ * Checks whether a CAIP chain ID from chainRanking is supported by this version of the client.
+ * This ensures that chains added to the remote chainRanking flag in the future
+ * won't be surfaced by older app versions that lack support for them.
+ */
+const isAllowedBridgeChainId = (caipChainId: string): boolean => {
+  if (caipChainId.startsWith('eip155:')) {
+    const hexChainId = formatChainIdToHex(caipChainId);
+    return ALLOWED_BRIDGE_CHAIN_IDS.includes(
+      hexChainId as AllowedBridgeChainIds,
+    );
+  }
+  return ALLOWED_BRIDGE_CHAIN_IDS.includes(
+    caipChainId as AllowedBridgeChainIds,
+  );
+};
+
+/**
+ * Base selector: filters chainRanking from feature flags by ALLOWED_BRIDGE_CHAIN_IDS.
+ * This is the single place where the allowlist check is applied to chainRanking.
+ * All other chain ranking selectors should derive from this.
+ */
+const selectAllowedChainRanking = createSelector(
+  selectBridgeFeatureFlags,
+  (bridgeFeatureFlags) =>
+    (bridgeFeatureFlags.chainRanking ?? []).filter((chain) =>
+      isAllowedBridgeChainId(chain.chainId),
+    ),
+);
+
+/**
+ * Selector that returns all chains from chainRanking that are supported by this
+ * version of the client (filtered by ALLOWED_BRIDGE_CHAIN_IDS).
+ * Used by NetworkPills in DEST mode to show all available destination networks.
+ */
+export const selectDestChainRanking = selectAllowedChainRanking;
+
+/**
+ * Selector that returns the chainRanking filtered by:
+ * 1. Chains supported by this version of the client (via selectAllowedChainRanking)
+ * 2. User-configured networks
+ * Used by NetworkPills in SOURCE mode to show all networks the user has added.
+ */
+export const selectSourceChainRanking = createSelector(
+  selectAllowedChainRanking,
+  selectNetworkConfigurations,
+  (allowedChains, networkConfigurations) => {
+    const configuredChainIds = new Set(Object.keys(networkConfigurations));
+
+    return allowedChains.filter((chain) => {
+      const { chainId } = chain;
+
+      // For EVM chains (eip155:*), extract the hex chain ID and check if user has it configured
+      if (chainId.startsWith('eip155:')) {
+        const hexChainId = formatChainIdToHex(chainId);
+        return configuredChainIds.has(hexChainId);
+      }
+
+      // For non-EVM chains, check directly against the CAIP chain ID
+      return configuredChainIds.has(chainId);
+    });
+  },
+);
+
+/**
  * Factory selector that returns a function to check if bridge is enabled for a source chain.
  * Use this when you need to check multiple chain IDs or when the chain ID is determined after render.
  * @example
@@ -280,14 +328,10 @@ export const selectBridgeFeatureFlags = createSelector(
  * const isBridgeEnabledSource = getIsBridgeEnabledSource(chainId);
  */
 export const selectIsBridgeEnabledSourceFactory = createSelector(
-  selectBridgeFeatureFlags,
-  (bridgeFeatureFlags) => (chainId: Hex | CaipChainId) => {
+  selectAllowedChainRanking,
+  (allowedChains) => (chainId: Hex | CaipChainId) => {
     const caipChainId = formatChainIdToCaip(chainId);
-
-    return (
-      bridgeFeatureFlags.support &&
-      bridgeFeatureFlags.chains[caipChainId]?.isActiveSrc
-    );
+    return allowedChains.some((chain) => chain.chainId === caipChainId);
   },
 );
 
@@ -311,43 +355,18 @@ export const selectTopAssetsFromFeatureFlags = createSelector(
 );
 
 /**
+ * Returns full MultichainNetworkConfiguration objects for networks that are both:
+ * 1. In the allowed chainRanking (supported by this client version + enabled via feature flags)
+ * 2. Configured by the user
  * TODO The MultichainNetworkConfiguration.chainId type is wrong. It can be both Hex or CaipChainId.
  */
 export const selectEnabledSourceChains = createSelector(
-  selectAllBridgeableNetworks,
-  selectBridgeFeatureFlags,
-  (networks, bridgeFeatureFlags) =>
-    networks.filter(
-      ({ chainId }) =>
-        bridgeFeatureFlags.chains[formatChainIdToCaip(chainId)]?.isActiveSrc,
-    ),
-);
-
-export const selectEnabledDestChains = createSelector(
-  selectAllBridgeableNetworks,
-  selectBridgeFeatureFlags,
-  selectHasCreatedSolanaMainnetAccount,
-  (networks, bridgeFeatureFlags, hasSolanaAccount) => {
-    // We always want to show the popular list in the destination chain selector
-    const popularListFormatted = PopularList.map(
-      ({ chainId, nickname, rpcUrl, ticker, rpcPrefs }) => ({
-        chainId,
-        name: nickname,
-        rpcUrl,
-        ticker,
-        rpcPrefs,
-      }),
-    );
-
-    return uniqBy([...networks, ...popularListFormatted], 'chainId').filter(
-      ({ chainId }) => {
-        const caipChainId = formatChainIdToCaip(chainId);
-        // Only include Solana chains as active destinations if user has a Solana account
-        if (isSolanaChainId(chainId) && !hasSolanaAccount) {
-          return false;
-        }
-        return bridgeFeatureFlags.chains[caipChainId]?.isActiveDest;
-      },
+  selectAllowedChainRanking,
+  selectNetworkConfigurations,
+  (allowedChainRanking, networkConfigurations) => {
+    const allowedCaipIds = new Set(allowedChainRanking.map((c) => c.chainId));
+    return uniqBy(Object.values(networkConfigurations), 'chainId').filter(
+      ({ chainId }) => allowedCaipIds.has(formatChainIdToCaip(chainId)),
     );
   },
 );
@@ -550,6 +569,11 @@ export const selectIsSelectingRecipient = createSelector(
   (bridgeState) => bridgeState.isSelectingRecipient,
 );
 
+export const selectIsSelectingToken = createSelector(
+  selectBridgeState,
+  (bridgeState) => bridgeState.isSelectingToken,
+);
+
 export const selectIsDestTokenManuallySet = createSelector(
   selectBridgeState,
   (bridgeState) => bridgeState.isDestTokenManuallySet,
@@ -607,6 +631,12 @@ export const selectBip44DefaultPair = createSelector(
   },
 );
 
+export const selectIsBridgeEnabledSource = createSelector(
+  selectIsBridgeEnabledSourceFactory,
+  (_: RootState, chainId: Hex | CaipChainId) => chainId,
+  (getIsBridgeEnabledSource, chainId) => getIsBridgeEnabledSource(chainId),
+);
+
 // Actions
 export const {
   setSourceAmount,
@@ -623,6 +653,7 @@ export const {
   setIsSubmittingTx,
   setBridgeViewMode,
   setIsSelectingRecipient,
+  setIsSelectingToken,
   setIsGasIncludedSTXSendBundleSupported,
   setIsGasIncluded7702Supported,
 } = actions;

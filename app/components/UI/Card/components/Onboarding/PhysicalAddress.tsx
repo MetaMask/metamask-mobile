@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useNavigation } from '@react-navigation/native';
 import {
   Box,
@@ -13,13 +19,12 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
-import TextField, {
-  TextFieldSize,
-} from '../../../../../component-library/components/Form/TextField';
+import TextField from '../../../../../component-library/components/Form/TextField';
 import Label from '../../../../../component-library/components/Form/Label';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import OnboardingStep from './OnboardingStep';
+import type { ShippingAddress } from '../../Views/ReviewOrder';
 import useRegisterPhysicalAddress from '../../hooks/useRegisterPhysicalAddress';
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -32,6 +37,7 @@ import {
   setSelectedCountry,
   setUserCardLocation,
 } from '../../../../../core/redux/slices/card';
+import { selectMetalCardCheckoutFeatureFlag } from '../../../../../selectors/featureFlagController/card';
 import useRegisterUserConsent from '../../hooks/useRegisterUserConsent';
 import { CardError } from '../../types';
 import useRegistrationSettings from '../../hooks/useRegistrationSettings';
@@ -41,6 +47,7 @@ import { extractTokenExpiration } from '../../util/extractTokenExpiration';
 import { useCardSDK } from '../../sdk';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { CardActions, CardScreens } from '../../util/metrics';
+import Logger from '../../../../../util/Logger';
 import { Linking, TouchableOpacity } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import Checkbox from '../../../../../component-library/components/Checkbox';
@@ -51,6 +58,8 @@ import {
   setOnValueChange,
 } from './RegionSelectorModal';
 import { countryCodeToFlag } from '../../util/countryCodeToFlag';
+
+const VERIFICATION_POLLING_INTERVAL_MS = 3000;
 
 export const AddressFields = ({
   addressLine1,
@@ -118,7 +127,7 @@ export const AddressFields = ({
           autoCapitalize={'none'}
           onChangeText={handleAddressLine1Change}
           numberOfLines={1}
-          size={TextFieldSize.Lg}
+          autoComplete="one-time-code"
           value={addressLine1}
           keyboardType="default"
           maxLength={255}
@@ -139,7 +148,7 @@ export const AddressFields = ({
           autoCapitalize={'none'}
           onChangeText={handleAddressLine2Change}
           numberOfLines={1}
-          size={TextFieldSize.Lg}
+          autoComplete="one-time-code"
           value={addressLine2}
           keyboardType="default"
           maxLength={255}
@@ -158,7 +167,7 @@ export const AddressFields = ({
           autoCapitalize={'none'}
           onChangeText={handleCityChange}
           numberOfLines={1}
-          size={TextFieldSize.Lg}
+          autoComplete="one-time-code"
           value={city}
           keyboardType="default"
           maxLength={255}
@@ -193,7 +202,7 @@ export const AddressFields = ({
           autoCapitalize={'none'}
           onChangeText={handleZipCodeChange}
           numberOfLines={1}
-          size={TextFieldSize.Lg}
+          autoComplete="one-time-code"
           value={zipCode}
           keyboardType="default"
           maxLength={255}
@@ -227,10 +236,13 @@ const PhysicalAddress = () => {
   const navigation = useNavigation();
   const tw = useTailwind();
   const dispatch = useDispatch();
-  const { user, setUser } = useCardSDK();
+  const { user, setUser, sdk } = useCardSDK();
   const onboardingId = useSelector(selectOnboardingId);
   const initialSelectedCountry = useSelector(selectSelectedCountry);
   const existingConsentSetId = useSelector(selectConsentSetId);
+  const isMetalCardCheckoutEnabled = useSelector(
+    selectMetalCardCheckoutFeatureFlag,
+  );
   const { trackEvent, createEventBuilder } = useMetrics();
   const [addressLine1, setAddressLine1] = useState('');
   const [addressLine2, setAddressLine2] = useState('');
@@ -238,7 +250,24 @@ const PhysicalAddress = () => {
   const [state, setState] = useState('');
   const [zipCode, setZipCode] = useState('');
   const [electronicConsent, setElectronicConsent] = useState(false);
+  const [coinmeConsent, setCoinmeConsent] = useState(false);
+  const [crbConsent, setCrbConsent] = useState(false);
+  const [isPollingVerification, setIsPollingVerification] = useState(false);
+  const pollingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(
+    null,
+  );
   const { data: registrationSettings } = useRegistrationSettings();
+
+  // Cleanup polling interval on unmount
+  useEffect(
+    () => () => {
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+        pollingIntervalRef.current = null;
+      }
+    },
+    [],
+  );
 
   const regions: Region[] = useMemo(() => {
     if (!registrationSettings?.countries) {
@@ -289,6 +318,16 @@ const PhysicalAddress = () => {
     [registrationSettings?.links?.us?.eSignConsentDisclosure],
   );
 
+  const coinmeTermsUrl = 'https://coinme.com/legal/';
+
+  const crbTermsUrl =
+    'https://baanx-public.s3-eu-west-1.amazonaws.com/Ledger/public-files/BaanxUS_CLCard_TOS.undefined-fddb292f91ce3.pdf';
+  const crbAccountOpeningUrl =
+    'https://secure.baanx.co.uk/BAANX_US_ACCOUNT_OPENING_AGREEMENTS_AND_DISCLOSURES_08152025.pdf';
+  const crbPrivacyNoticeUrl =
+    'https://secure.baanx.co.uk/Baanx_(CL)_U.S._Privacy_Notice_06.2025.pdf';
+  const crbPrivacyPolicyUrl = 'https://www.crossriver.com/legal/privacy-notice';
+
   const {
     registerAddress,
     isLoading: registerLoading,
@@ -312,6 +351,36 @@ const PhysicalAddress = () => {
       Linking.openURL(eSignConsentDisclosureUSUrl);
     }
   }, [eSignConsentDisclosureUSUrl]);
+
+  const openCoinmeTerms = useCallback(() => {
+    if (coinmeTermsUrl) {
+      Linking.openURL(coinmeTermsUrl);
+    }
+  }, [coinmeTermsUrl]);
+
+  const openCrbTerms = useCallback(() => {
+    if (crbTermsUrl) {
+      Linking.openURL(crbTermsUrl);
+    }
+  }, [crbTermsUrl]);
+
+  const openCrbAccountOpening = useCallback(() => {
+    if (crbAccountOpeningUrl) {
+      Linking.openURL(crbAccountOpeningUrl);
+    }
+  }, [crbAccountOpeningUrl]);
+
+  const openCrbPrivacyNotice = useCallback(() => {
+    if (crbPrivacyNoticeUrl) {
+      Linking.openURL(crbPrivacyNoticeUrl);
+    }
+  }, [crbPrivacyNoticeUrl]);
+
+  const openCrbPrivacyPolicy = useCallback(() => {
+    if (crbPrivacyPolicyUrl) {
+      Linking.openURL(crbPrivacyPolicyUrl);
+    }
+  }, [crbPrivacyPolicyUrl]);
 
   const handleAddressLine1Change = useCallback(
     (text: string) => {
@@ -359,24 +428,40 @@ const PhysicalAddress = () => {
     setElectronicConsent(!electronicConsent);
   }, [electronicConsent, resetRegisterAddress, resetConsent]);
 
+  const handleCoinmeConsentToggle = useCallback(() => {
+    resetConsent();
+    resetRegisterAddress();
+    setCoinmeConsent(!coinmeConsent);
+  }, [coinmeConsent, resetRegisterAddress, resetConsent]);
+
+  const handleCrbConsentToggle = useCallback(() => {
+    resetConsent();
+    resetRegisterAddress();
+    setCrbConsent(!crbConsent);
+  }, [crbConsent, resetRegisterAddress, resetConsent]);
+
   const isDisabled = useMemo(
     () =>
       registerLoading ||
       registerIsError ||
       consentLoading ||
       consentIsError ||
+      isPollingVerification ||
       !onboardingId ||
       !user?.id ||
       !addressLine1 ||
       !city ||
       (!state && selectedCountry?.key === 'US') ||
       !zipCode ||
-      (!electronicConsent && selectedCountry?.key === 'US'),
+      (!electronicConsent && selectedCountry?.key === 'US') ||
+      (!coinmeConsent && selectedCountry?.key === 'US') ||
+      (!crbConsent && selectedCountry?.key === 'US'),
     [
       registerLoading,
       registerIsError,
       consentLoading,
       consentIsError,
+      isPollingVerification,
       onboardingId,
       user?.id,
       addressLine1,
@@ -385,6 +470,8 @@ const PhysicalAddress = () => {
       selectedCountry,
       zipCode,
       electronicConsent,
+      coinmeConsent,
+      crbConsent,
     ],
   );
 
@@ -396,7 +483,9 @@ const PhysicalAddress = () => {
       !city ||
       (!state && selectedCountry?.key === 'US') ||
       !zipCode ||
-      (!electronicConsent && selectedCountry?.key === 'US')
+      (!electronicConsent && selectedCountry?.key === 'US') ||
+      (!coinmeConsent && selectedCountry?.key === 'US') ||
+      (!crbConsent && selectedCountry?.key === 'US')
     ) {
       return;
     }
@@ -477,11 +566,99 @@ const PhysicalAddress = () => {
           dispatch(setConsentSetId(null));
         }
 
-        // Reset the navigation stack to the verifying registration screen
-        navigation.reset({
-          index: 0,
-          routes: [{ name: Routes.CARD.VERIFYING_REGISTRATION }],
-        });
+        // Step 11: Check KYC status and navigate accordingly
+        // Start polling to check verification state before navigating
+        setIsPollingVerification(true);
+
+        // Track whether we should continue polling (used to prevent interval setup after navigation)
+        let shouldContinuePolling = true;
+
+        const stopPollingAndNavigate = (route: {
+          name: string;
+          params?: Record<string, unknown>;
+        }) => {
+          shouldContinuePolling = false;
+          if (pollingIntervalRef.current) {
+            clearInterval(pollingIntervalRef.current);
+            pollingIntervalRef.current = null;
+          }
+          setIsPollingVerification(false);
+          dispatch(resetOnboardingState());
+          navigation.reset({
+            index: 0,
+            routes: [route],
+          });
+        };
+
+        const pollVerificationState = async (): Promise<void> => {
+          if (!sdk) {
+            // No SDK available, redirect to Card Home
+            stopPollingAndNavigate({ name: Routes.CARD.HOME });
+            return;
+          }
+
+          try {
+            const userDetails = await sdk.getUserDetails();
+            const currentVerificationState = userDetails.verificationState;
+            // Update user in context with fresh data
+            setUser(userDetails);
+
+            if (currentVerificationState === 'VERIFIED') {
+              if (location === 'us' && isMetalCardCheckoutEnabled) {
+                const shippingAddress: ShippingAddress = {
+                  line1: addressLine1,
+                  line2: addressLine2 || undefined,
+                  city,
+                  state,
+                  zip: zipCode,
+                };
+                stopPollingAndNavigate({
+                  name: Routes.CARD.CHOOSE_YOUR_CARD,
+                  params: { flow: 'onboarding', shippingAddress },
+                });
+              } else {
+                stopPollingAndNavigate({
+                  name: Routes.CARD.SPENDING_LIMIT,
+                  params: { flow: 'onboarding' },
+                });
+              }
+            } else if (currentVerificationState === 'REJECTED') {
+              // KYC rejected - show failure screen
+              stopPollingAndNavigate({
+                name: Routes.CARD.ONBOARDING.ROOT,
+                params: { screen: Routes.CARD.ONBOARDING.KYC_FAILED },
+              });
+            }
+            // For PENDING or any other status, continue polling
+            // The interval will trigger the next poll
+          } catch (fetchError) {
+            Logger.log(
+              'PhysicalAddress: Failed to fetch user details for KYC status',
+              fetchError,
+            );
+            // On error, redirect to Card Home to avoid stuck state
+            stopPollingAndNavigate({ name: Routes.CARD.HOME });
+          }
+        };
+
+        // Execute first poll immediately
+        await pollVerificationState();
+
+        // Only set up interval if we should continue polling (not already navigated)
+        if (shouldContinuePolling) {
+          pollingIntervalRef.current = setInterval(() => {
+            pollVerificationState();
+          }, VERIFICATION_POLLING_INTERVAL_MS);
+
+          // Set a timeout to stop polling after a reasonable time and redirect to Card Home
+          // This prevents infinite polling if the status never changes
+          setTimeout(() => {
+            if (pollingIntervalRef.current) {
+              stopPollingAndNavigate({ name: Routes.CARD.HOME });
+            }
+          }, VERIFICATION_POLLING_INTERVAL_MS * 2); // Poll 2 times max (6 seconds total)
+        }
+
         return;
       }
 
@@ -529,10 +706,7 @@ const PhysicalAddress = () => {
           isChecked={electronicConsent}
           onPress={handleElectronicConsentToggle}
           label={
-            <TouchableOpacity
-              onPress={openESignConsentDisclosureUS}
-              style={tw.style('flex-1 flex-shrink mr-2 -mt-1')}
-            >
+            <Box style={tw.style('flex-1 flex-shrink mr-2 -mt-1')}>
               <Text
                 variant={TextVariant.BodySm}
                 twClassName="text-text-alternative"
@@ -543,16 +717,112 @@ const PhysicalAddress = () => {
                 <Text
                   variant={TextVariant.BodySm}
                   twClassName="text-primary-default underline"
+                  onPress={openESignConsentDisclosureUS}
                 >
                   {strings(
                     'card.card_onboarding.physical_address.electronic_consent_2',
                   )}
                 </Text>
+                {strings(
+                  'card.card_onboarding.physical_address.electronic_consent_3',
+                )}
               </Text>
-            </TouchableOpacity>
+            </Box>
           }
           style={tw.style('h-auto flex flex-row items-start')}
           testID="physical-address-electronic-consent-checkbox"
+        />
+      )}
+      {/* Coinme Terms Consent (US only) */}
+      {selectedCountry?.key === 'US' && (
+        <Checkbox
+          isChecked={coinmeConsent}
+          onPress={handleCoinmeConsentToggle}
+          label={
+            <Box style={tw.style('flex-1 flex-shrink mr-2 -mt-1')}>
+              <Text
+                variant={TextVariant.BodySm}
+                twClassName="text-text-alternative"
+              >
+                {strings(
+                  'card.card_onboarding.physical_address.coinme_terms_consent_1',
+                )}
+                <Text
+                  variant={TextVariant.BodySm}
+                  twClassName="text-primary-default underline"
+                  onPress={openCoinmeTerms}
+                >
+                  {strings(
+                    'card.card_onboarding.physical_address.coinme_terms_consent_2',
+                  )}
+                </Text>
+                {strings(
+                  'card.card_onboarding.physical_address.coinme_terms_consent_3',
+                )}
+              </Text>
+            </Box>
+          }
+          style={tw.style('h-auto flex flex-row items-start')}
+          testID="physical-address-coinme-terms-checkbox"
+        />
+      )}
+      {/* CRB Consent (US only) */}
+      {selectedCountry?.key === 'US' && (
+        <Checkbox
+          isChecked={crbConsent}
+          onPress={handleCrbConsentToggle}
+          label={
+            <Box style={tw.style('flex-1 flex-shrink mr-2 -mt-1')}>
+              <Text
+                variant={TextVariant.BodySm}
+                twClassName="text-text-alternative"
+              >
+                {strings('card.card_onboarding.physical_address.crb_consent_1')}
+                <Text
+                  variant={TextVariant.BodySm}
+                  twClassName="text-primary-default underline"
+                  onPress={openCrbTerms}
+                >
+                  {strings(
+                    'card.card_onboarding.physical_address.crb_consent_2',
+                  )}
+                </Text>
+                {strings('card.card_onboarding.physical_address.crb_consent_3')}
+                <Text
+                  variant={TextVariant.BodySm}
+                  twClassName="text-primary-default underline"
+                  onPress={openCrbAccountOpening}
+                >
+                  {strings(
+                    'card.card_onboarding.physical_address.crb_consent_4',
+                  )}
+                </Text>
+                {strings('card.card_onboarding.physical_address.crb_consent_5')}
+                <Text
+                  variant={TextVariant.BodySm}
+                  twClassName="text-primary-default underline"
+                  onPress={openCrbPrivacyNotice}
+                >
+                  {strings(
+                    'card.card_onboarding.physical_address.crb_consent_6',
+                  )}
+                </Text>
+                {strings('card.card_onboarding.physical_address.crb_consent_7')}
+                <Text
+                  variant={TextVariant.BodySm}
+                  twClassName="text-primary-default underline"
+                  onPress={openCrbPrivacyPolicy}
+                >
+                  {strings(
+                    'card.card_onboarding.physical_address.crb_consent_8',
+                  )}
+                </Text>
+                {strings('card.card_onboarding.physical_address.crb_consent_9')}
+              </Text>
+            </Box>
+          }
+          style={tw.style('h-auto flex flex-row items-start')}
+          testID="physical-address-crb-consent-checkbox"
         />
       )}
     </>
@@ -584,7 +854,7 @@ const PhysicalAddress = () => {
         onPress={handleContinue}
         width={ButtonWidthTypes.Full}
         isDisabled={isDisabled}
-        loading={registerLoading}
+        loading={registerLoading || isPollingVerification}
         testID="physical-address-continue-button"
       />
     </Box>

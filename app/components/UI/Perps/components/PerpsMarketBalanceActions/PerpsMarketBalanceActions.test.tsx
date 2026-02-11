@@ -1,7 +1,7 @@
 import React, { ReactNode } from 'react';
 import { StyleProp, ViewStyle } from 'react-native';
 import PerpsMarketBalanceActions from './PerpsMarketBalanceActions';
-import { PerpsMarketBalanceActionsSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PerpsMarketBalanceActionsSelectorsIDs } from '../../Perps.testIds';
 import { usePerpsLiveAccount } from '../../hooks/stream';
 import {
   useColorPulseAnimation,
@@ -11,7 +11,7 @@ import {
 } from '../../hooks';
 import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useConfirmNavigation';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { getDefaultPerpsControllerState } from '../../controllers';
+import { getDefaultPerpsControllerState } from '@metamask/perps-controller';
 
 // TypeScript interfaces for component props
 interface MockComponentProps {
@@ -149,6 +149,9 @@ jest.mock('@metamask/design-system-react-native', () => {
     },
     BoxAlignItems: {
       Center: 'center',
+    },
+    BoxJustifyContent: {
+      Between: 'space-between',
     },
     ButtonSize: {
       Sm: 'sm',
@@ -607,20 +610,21 @@ describe('PerpsMarketBalanceActions', () => {
       });
 
       // Act
-      const { getByText, getByTestId, queryByTestId } = renderWithProvider(
+      const { getByText, getByTestId } = renderWithProvider(
         <PerpsMarketBalanceActions />,
         { state: createMockState() },
         false, // Disable NavigationContainer
       );
 
-      // Assert - Should show empty state UI instead of balance display
+      // Assert - Should show empty state UI: $0.00 balance and Add Funds button
       expect(
-        getByTestId(PerpsMarketBalanceActionsSelectorsIDs.EMPTY_STATE_TITLE),
+        getByTestId(PerpsMarketBalanceActionsSelectorsIDs.BALANCE_VALUE),
+      ).toBeOnTheScreen();
+      expect(getByText('$0.00')).toBeOnTheScreen();
+      expect(
+        getByTestId(PerpsMarketBalanceActionsSelectorsIDs.ADD_FUNDS_BUTTON),
       ).toBeOnTheScreen();
       expect(getByText('perps.add_funds')).toBeOnTheScreen();
-      expect(
-        queryByTestId(PerpsMarketBalanceActionsSelectorsIDs.BALANCE_VALUE),
-      ).toBeNull();
     });
   });
 

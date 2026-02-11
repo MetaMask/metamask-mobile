@@ -1,4 +1,6 @@
 import {
+  isPermitDaiRevoke,
+  isPermitDaiUnlimited,
   parseAndNormalizeSignTypedData,
   isRecognizedPermit,
   isTypedSignV3V4Request,
@@ -15,6 +17,7 @@ import {
   SignatureRequest,
   SignatureRequestType,
 } from '@metamask/signature-controller';
+import { TOKEN_ADDRESS } from '../constants/tokens';
 import {
   mockTypedSignV3Message,
   personalSignSignatureRequest,
@@ -88,6 +91,112 @@ describe('Signature Utils', () => {
       expect(() => {
         parseAndNormalizeSignTypedData('');
       }).toThrow(new Error('Unexpected end of JSON input'));
+    });
+
+    describe('nested value spoofing protection', () => {
+      it('ignores nested value fields and uses actual message.value (spoofing attack prevention)', () => {
+        // Attack scenario: attacker includes a nested object with a large "value" field
+        // to trick the UI into showing a different amount than what will be signed
+        const maliciousData = JSON.stringify({
+          message: {
+            evil: { value: 999999999999999 }, // Nested value that should be ignored
+            value: 1, // Actual value that will be signed
+          },
+        });
+        const result = parseAndNormalizeSignTypedData(maliciousData);
+
+        // The actual message.value should be used, not the nested one
+        expect(result.message.value).toBe('1');
+      });
+
+      it('ignores deeply nested value fields with large numbers', () => {
+        // Use raw JSON string to avoid JS number precision loss in the test itself
+        const maliciousData =
+          '{"message": {"nested": {"deeper": {"value": 888888888888888888888888888888}}, "value": 100}}';
+        const result = parseAndNormalizeSignTypedData(maliciousData);
+
+        expect(result.message.value).toBe('100');
+      });
+
+      it('ignores value fields in arrays within message', () => {
+        const maliciousData = JSON.stringify({
+          message: {
+            items: [{ value: 777777777777777 }, { value: 666666666666666 }],
+            value: 50,
+          },
+        });
+        const result = parseAndNormalizeSignTypedData(maliciousData);
+
+        expect(result.message.value).toBe('50');
+      });
+
+      it('extracts large value correctly when it is the actual message.value', () => {
+        const largeValue = '999999999999999999999999999999';
+        const legitimateData = JSON.stringify({
+          message: {
+            otherField: 'some data',
+            value: largeValue,
+          },
+        });
+        const result = parseAndNormalizeSignTypedData(legitimateData);
+
+        expect(result.message.value).toBe(largeValue);
+      });
+
+      it('extracts large value when nested objects come after message.value', () => {
+        // Large value at message.value, with nested objects after it
+        const data =
+          '{"message": {"value": 123456789012345678901234567890, "nested": {"value": 1}}}';
+        const result = parseAndNormalizeSignTypedData(data);
+
+        expect(result.message.value).toBe('123456789012345678901234567890');
+      });
+
+      it('handles escaped quotes in string values correctly', () => {
+        const data = JSON.stringify({
+          message: {
+            description: 'A string with "value": 999999999999999 inside',
+            value: 42,
+          },
+        });
+        const result = parseAndNormalizeSignTypedData(data);
+
+        expect(result.message.value).toBe('42');
+      });
+
+      it('handles message.value as string (not numeric) correctly', () => {
+        const data = JSON.stringify({
+          message: {
+            evil: { value: 999999999999999 },
+            value: '123',
+          },
+        });
+        const result = parseAndNormalizeSignTypedData(data);
+
+        // String values are not matched by the large value regex, so JSON.parse result is used
+        expect(result.message.value).toBe('123');
+      });
+    });
+  });
+
+  describe('DAI permit coercion helpers', () => {
+    it('mirrors bool truthiness coercion for DAI permit unlimited checks', () => {
+      expect(isPermitDaiUnlimited(TOKEN_ADDRESS.DAI, true)).toBe(true);
+      expect(isPermitDaiUnlimited(TOKEN_ADDRESS.DAI, 'false')).toBe(true);
+      expect(isPermitDaiUnlimited(TOKEN_ADDRESS.DAI, 0)).toBe(false);
+    });
+
+    it('does not classify DAI permit as revoke when allowed is the string "false"', () => {
+      expect(isPermitDaiRevoke(TOKEN_ADDRESS.DAI, 'false')).toBe(false);
+    });
+
+    it('classifies DAI permit as revoke for zero-like numeric values', () => {
+      expect(isPermitDaiRevoke(TOKEN_ADDRESS.DAI, undefined, '0x0')).toBe(true);
+      expect(isPermitDaiRevoke(TOKEN_ADDRESS.DAI, undefined, '0')).toBe(true);
+    });
+
+    it('classifies DAI permit as revoke when allowed is an empty string', () => {
+      expect(isPermitDaiRevoke(TOKEN_ADDRESS.DAI, '')).toBe(true);
     });
   });
 

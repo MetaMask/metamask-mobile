@@ -296,7 +296,7 @@ exports[`OnboardingAssetSettings should render correctly 1`] = `
             }
           }
         >
-          IPFS Gateway
+          IPFS gateway
         </Text>
         <View
           style={

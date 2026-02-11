@@ -75,10 +75,24 @@ MetaMetrics.getInstance().trackEvent(
 
 **Properties:**
 
-- `screen_type` (required): `'homescreen' | 'market_list' | 'trading' | 'position_close' | 'leverage' | 'tutorial' | 'withdrawal' | 'tp_sl' | 'create_tpsl' | 'edit_tpsl' | 'asset_details' | 'close_all_positions' | 'cancel_all_orders' | 'order_book' | 'pnl_hero_card' | 'error'`
+- `screen_type` (required): Type of screen being viewed
+  - **Core screens:** `'markets'` | `'trading'` | `'position_close'` | `'leverage'` | `'tutorial'` | `'withdrawal'` | `'asset_details'` | `'error'`
+  - **Home screens:** `'perps_home'` | `'wallet_home_perps_tab'` | `'homescreen'` _(deprecated, use perps_home)_
+  - **TP/SL screens:** `'tp_sl'` | `'create_tpsl'` | `'edit_tpsl'`
+  - **Deposit screens:** `'deposit_input'` | `'deposit_review'`
+  - **Market list screens:** `'market_list'` | `'market_list_all'` | `'market_list_crypto'` | `'market_list_stocks'`
+  - **Position management:** `'close_all_positions'` | `'cancel_all_orders'` | `'increase_exposure'` | `'add_margin'` | `'remove_margin'`
+  - **Other screens:** `'pnl_hero_card'` | `'order_book'` | `'full_screen_chart'` | `'activity'` | `'geo_block_notif'`
 - `asset` (optional): Asset symbol (e.g., `'BTC'`, `'ETH'`)
 - `direction` (optional): `'long' | 'short'`
-- `source` (optional): Where user came from (e.g., `'banner'`, `'notification'`, `'main_action_button'`, `'position_tab'`, `'perp_markets'`, `'deeplink'`, `'tutorial'`, `'close_toast'`, `'perp_asset_screen'`)
+- `source` (optional): Where user came from
+  - **Entry points:** `'banner'` | `'notification'` | `'main_action_button'` | `'deeplink'` | `'push_notification'`
+  - **Navigation sources:** `'perp_markets'` | `'perp_market'` | `'perp_market_search'` | `'perp_asset_screen'` | `'position_tab'` | `'perps_tab'`
+  - **Home section sources:** `'perps_home'` | `'perps_home_position'` | `'perps_home_orders'` | `'perps_home_watchlist'` | `'perps_home_explore_crypto'` | `'perps_home_explore_stocks'` | `'perps_home_activity'` | `'perps_home_empty_state'`
+  - **Market list sources:** `'perps_market_list_all'` | `'perps_market_list_crypto'` | `'perps_market_list_stocks'`
+  - **Trade/Position sources:** `'trade_screen'` | `'position_screen'` | `'tp_sl_view'` | `'trade_menu_action'` | `'open_position'` | `'trade_details'`
+  - **Other sources:** `'tutorial'` | `'perps_tutorial'` | `'close_toast'` | `'position_close_toast'` | `'tooltip'` | `'magnifying_glass'` | `'crypto_button'` | `'stocks_button'` | `'order_book'` | `'full_screen_chart'` | `'stop_loss_prompt_banner'` | `'wallet_home'` | `'wallet_main_action_menu'` | `'homescreen_tab'`
+  - **Geo-block sources:** `'deposit_button'` | `'withdraw_button'` | `'trade_action'` | `'add_funds_action'` | `'cancel_order'` | `'asset_detail_screen'`
 - `open_position` (optional): Number of open positions (used for close_all_positions screen, number)
 - `has_perp_balance` (optional): Whether user has a perps balance or positions (boolean)
 - `has_take_profit` (optional): Whether take profit is set (boolean, used for TP/SL screens)
@@ -94,10 +108,18 @@ MetaMetrics.getInstance().trackEvent(
 
 **Properties:**
 
-- `interaction_type` (required): `'tap' | 'zoom' | 'slide' | 'search_clicked' | 'order_type_viewed' | 'order_type_selected' | 'setting_changed' | 'tutorial_started' | 'tutorial_completed' | 'tutorial_navigation' | 'candle_period_viewed' | 'candle_period_changed' | 'favorite_toggled' | 'button_clicked'` (Note: `favorite_toggled` = watchlist toggle, `button_clicked` = generic button click for entry point tracking)
-- `action` (optional): Specific action performed: `'connection_retry' | 'share'`
+- `interaction_type` (required): Type of user interaction
+  - **Basic interactions:** `'tap'` | `'zoom'` | `'slide'` | `'search_clicked'` | `'button_clicked'`
+  - **Order interactions:** `'order_type_viewed'` | `'order_type_selected'`
+  - **Setting interactions:** `'setting_changed'` _(deprecated, use leverage_changed)_ | `'leverage_changed'`
+  - **Tutorial interactions:** `'tutorial_started'` | `'tutorial_completed'` | `'tutorial_navigation'`
+  - **Chart interactions:** `'candle_period_viewed'` | `'candle_period_changed'` | `'full_screen_chart'`
+  - **Watchlist interactions:** `'favorite_toggled'` (add/remove from watchlist)
+  - **Position management:** `'add_margin'` | `'remove_margin'` | `'increase_exposure'` | `'reduce_exposure'` | `'flip_position'` | `'contact_support'` | `'stop_loss_one_click_prompt'`
+  - **Hero card interactions:** `'display_hero_card'` | `'share_pnl_hero_card'`
+- `action` (optional): Specific action performed: `'connection_retry'` | `'share'` | `'add_margin'` | `'remove_margin'` | `'edit_tp_sl'` | `'create_tp_sl'` | `'create_position'` | `'increase_exposure'`
 - `attempt_number` (optional): Retry attempt number when action is 'connection_retry' (number)
-- `action_type` (optional): `'start_trading' | 'skip' | 'stop_loss_set' | 'take_profit_set' | 'close_all_positions' | 'cancel_all_orders' | 'learn_more' | 'favorite_market' | 'unfavorite_market'` (Note: `favorite_market` = add to watchlist, `unfavorite_market` = remove from watchlist)
+- `action_type` (optional): `'start_trading'` | `'skip'` | `'stop_loss_set'` | `'take_profit_set'` | `'adl_learn_more'` | `'learn_more'` | `'favorite_market'` | `'unfavorite_market'` (Note: `favorite_market` = add to watchlist, `unfavorite_market` = remove from watchlist)
 - `asset` (optional): Asset symbol (e.g., `'BTC'`, `'ETH'`)
 - `direction` (optional): `'long' | 'short'`
 - `order_size` (optional): Size of the order in tokens (number)
@@ -107,9 +129,19 @@ MetaMetrics.getInstance().trackEvent(
 - `input_method` (optional): How value was entered: `'slider' | 'keyboard' | 'preset' | 'manual' | 'percentage_button'`
 - `candle_period` (optional): Selected candle period
 - `favorites_count` (optional): Total number of markets in watchlist after toggle (number, used with `favorite_toggled`)
-- `button_clicked` (optional): Button identifier for entry point tracking (see [Entry Point Tracking](#entry-point-tracking)): `'deposit' | 'withdraw' | 'tutorial' | 'tooltip' | 'open_position' | 'magnifying_glass' | 'crypto' | 'stocks'`
-- `button_location` (optional): Location of the button for entry point tracking (see [Entry Point Tracking](#entry-point-tracking)): `'perps_home' | 'perps_tutorial' | 'perps_home_empty_state' | 'perps_asset_screen' | 'perps_tab' | 'market_list' | 'tooltip'`
+- `button_clicked` (optional): Button identifier for entry point tracking (see [Entry Point Tracking](#entry-point-tracking)): `'deposit'` | `'withdraw'` | `'perps_home'` | `'tutorial'` | `'tooltip'` | `'market_list'` | `'open_position'` | `'magnifying_glass'` | `'crypto'` | `'stocks'` | `'give_feedback'`
+- `button_location` (optional): Location of the button for entry point tracking (see [Entry Point Tracking](#entry-point-tracking)): `'perps_home'` | `'perps_tutorial'` | `'perps_home_empty_state'` | `'perps_asset_screen'` | `'perps_tab'` | `'trade_menu_action'` | `'wallet_home'` | `'market_list'` | `'screen'` | `'tooltip'` | `'perp_market_details'` | `'order_book'` | `'full_screen_chart'`
 - `source` (optional): Source context for favorites (e.g., `'perp_asset_screen'`)
+- `tab_name` (optional): Tab being viewed (e.g., `'trades'` | `'orders'` | `'funding'` | `'deposits'`)
+- `screen_name` (optional): Screen name context (e.g., `'connection_error'` | `'perps_hero_card'` | `'perps_activity_history'`)
+- `navigation_method` (optional): How user navigated in tutorial: `'swipe'` | `'continue_button'` | `'progress_dot'`
+- `previous_screen` (optional): Previous screen position in tutorial navigation (number)
+- `current_screen` (optional): Current screen position in tutorial navigation (number)
+- `screen_position` (optional): Screen position in tutorial (number)
+- `total_screens` (optional): Total screens in tutorial (number)
+- `completion_duration_tutorial` (optional): Time spent in tutorial (number)
+- `steps_viewed` (optional): Number of tutorial steps viewed (number)
+- `view_occurrences` (optional): Number of times tutorial was viewed (number)
 - `ab_test_button_color` (optional): Button color test variant (`'control' | 'monochrome'`), only included when test is enabled and user taps Long/Short or Place Order button (for engagement tracking)
 - Future AB tests: `ab_test_{test_name}` (see [Multiple Concurrent Tests](#multiple-concurrent-tests))
 
@@ -398,12 +430,15 @@ Entry point tracking captures how users navigate to screens, enabling analysis o
 | -------------------- | --------------------------------------- |
 | `'deposit'`          | Add funds / deposit button              |
 | `'withdraw'`         | Withdraw funds button                   |
+| `'perps_home'`       | Navigate to perps home button           |
 | `'tutorial'`         | Learn more / tutorial button            |
 | `'tooltip'`          | Got it button in tooltip bottom sheets  |
+| `'market_list'`      | Market list navigation button           |
 | `'open_position'`    | Tap on a position card                  |
 | `'magnifying_glass'` | Search icon button                      |
 | `'crypto'`           | Crypto tab in market list               |
 | `'stocks'`           | Stocks & Commodities tab in market list |
+| `'give_feedback'`    | Give feedback button                    |
 
 ### Button Location Values
 
@@ -414,8 +449,14 @@ Entry point tracking captures how users navigate to screens, enabling analysis o
 | `'perps_home_empty_state'` | Perps home empty state (no balance) |
 | `'perps_asset_screen'`     | Asset details screen                |
 | `'perps_tab'`              | Positions tab                       |
+| `'trade_menu_action'`      | Trade menu action button            |
+| `'wallet_home'`            | Wallet home screen                  |
 | `'market_list'`            | Market list screen                  |
+| `'screen'`                 | Generic screen location             |
 | `'tooltip'`                | Tooltip bottom sheet                |
+| `'perp_market_details'`    | Market details screen               |
+| `'order_book'`             | Order book screen                   |
+| `'full_screen_chart'`      | Full screen chart view              |
 
 ### Usage Example
 
@@ -448,6 +489,36 @@ usePerpsEventTracking({
     ...(buttonLocation && {
       [PerpsEventProperties.BUTTON_LOCATION]: buttonLocation,
     }),
+  },
+});
+```
+
+---
+
+## Geo-blocking Tracking
+
+When users are geo-blocked, the `geo_block_notif` screen type is used to track which action triggered the block.
+
+### Properties
+
+- `screen_type`: `'geo_block_notif'`
+- `source`: What action was blocked
+  - `'deposit_button'` - User tried to deposit
+  - `'withdraw_button'` - User tried to withdraw
+  - `'trade_action'` - User tried to place a trade
+  - `'add_funds_action'` - User tried to add funds
+  - `'cancel_order'` - User tried to cancel an order
+  - `'asset_detail_screen'` - User tried to access asset details
+
+### Usage
+
+```typescript
+usePerpsEventTracking({
+  eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+  properties: {
+    [PerpsEventProperties.SCREEN_TYPE]:
+      PerpsEventValues.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+    [PerpsEventProperties.SOURCE]: PerpsEventValues.SOURCE.DEPOSIT_BUTTON, // or other blocked action
   },
 });
 ```

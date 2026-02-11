@@ -31,6 +31,7 @@ export function getAccountTrackerControllerMessenger(
       'PreferencesController:getState',
       'NetworkController:getState',
       'NetworkController:getNetworkClientById',
+      'KeyringController:getState',
     ],
     events: [
       'AccountsController:selectedEvmAccountChange',
@@ -38,6 +39,7 @@ export function getAccountTrackerControllerMessenger(
       'TransactionController:unapprovedTransactionAdded',
       'NetworkController:networkAdded',
       'KeyringController:unlock',
+      'KeyringController:lock',
     ],
     messenger,
   });

@@ -136,6 +136,16 @@ export const initialState = {
                 },
               },
             },
+            chainRanking: [
+              { chainId: formatChainIdToCaip(ethChainId), name: 'Ethereum' },
+              {
+                chainId: formatChainIdToCaip(optimismChainId),
+                name: 'Optimism',
+              },
+              { chainId: SolScope.Mainnet, name: 'Solana' },
+              { chainId: BtcScope.Mainnet, name: 'Bitcoin' },
+              { chainId: TrxScope.Mainnet, name: 'Tron' },
+            ],
           },
         },
       },
@@ -250,6 +260,23 @@ export const initialState = {
             [evmAccountAddress]: {
               balance: '0x1158e460913d00000' as Hex, // 20 ETH on Optimism
             },
+          },
+        },
+      },
+      NetworkEnablementController: {
+        enabledNetworkMap: {
+          eip155: {
+            [ethChainId]: true,
+            [optimismChainId]: true,
+          },
+          solana: {
+            [SolScope.Mainnet]: true,
+          },
+          bip122: {
+            [BtcScope.Mainnet]: true,
+          },
+          tron: {
+            [TrxScope.Mainnet]: true,
           },
         },
       },
@@ -718,5 +745,6 @@ export const initialState = {
     isSubmittingTx: false,
     bridgeViewMode: undefined,
     isSelectingRecipient: false,
+    isSelectingToken: false,
   },
 };

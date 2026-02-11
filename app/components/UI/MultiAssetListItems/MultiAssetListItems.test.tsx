@@ -3,7 +3,7 @@ import { render } from '@testing-library/react-native';
 import MultiAssetListItems from './MultiAssetListItems';
 import { useSelector } from 'react-redux';
 import { selectProviderConfig } from '../../../selectors/networkController';
-import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/wallet/ImportTokenView.selectors';
+import { ImportTokenViewSelectorsIDs } from '../../Views/AddAsset/ImportTokenView.testIds';
 
 const mockProviderConfig = {
   type: 'mainnet',

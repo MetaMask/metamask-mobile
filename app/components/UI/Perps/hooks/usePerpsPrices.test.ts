@@ -58,19 +58,19 @@ describe('usePerpsPrices', () => {
     act(() => {
       callback([
         {
-          coin: 'ETH',
+          symbol: 'ETH',
           price: '3000.00',
           change24h: 2.5,
           markPrice: '3001.00',
         },
       ]);
-      // Run the debounce timer (1000ms - from PERFORMANCE_CONFIG.PRICE_UPDATE_DEBOUNCE_MS)
+      // Run the debounce timer (1000ms - from PERFORMANCE_CONFIG.PriceUpdateDebounceMs)
       jest.advanceTimersByTime(1000);
     });
 
     expect(result.current).toEqual({
       ETH: {
-        coin: 'ETH',
+        symbol: 'ETH',
         price: '3000.00',
         change24h: 2.5,
         markPrice: '3001.00',

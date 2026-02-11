@@ -285,13 +285,13 @@ describe('formatMarketStats', () => {
   });
 
   describe('Zero values', () => {
-    it('formats zero market cap and volume', () => {
+    it('formats zero market cap and volume as dashes', () => {
       const marketCap = 0;
       const volume = 0;
 
       const result = formatMarketStats(marketCap, volume);
 
-      expect(result).toBe('$0.00 cap • $0.00 vol');
+      expect(result).toBe('- cap • - vol');
     });
 
     it('formats zero market cap with non-zero volume', () => {
@@ -300,7 +300,7 @@ describe('formatMarketStats', () => {
 
       const result = formatMarketStats(marketCap, volume);
 
-      expect(result).toBe('$0.00 cap • $1.0M vol');
+      expect(result).toBe('- cap • $1.0M vol');
     });
 
     it('formats non-zero market cap with zero volume', () => {
@@ -309,7 +309,7 @@ describe('formatMarketStats', () => {
 
       const result = formatMarketStats(marketCap, volume);
 
-      expect(result).toBe('$1.0M cap • $0.00 vol');
+      expect(result).toBe('$1.0M cap • - vol');
     });
   });
 

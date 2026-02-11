@@ -75,8 +75,9 @@ import {
   selectTransactions,
 } from '../../../selectors/transactionController';
 import { TOKEN_CATEGORY_HASH } from '../../UI/TransactionElement/utils';
-import { selectSupportedSwapTokenAddressesForChainId } from '../../../selectors/tokenSearchDiscoveryDataController';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
+import { TransactionType } from '@metamask/transaction-controller';
+import { isMusdClaimForCurrentView } from '../../UI/Earn/utils/musd';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { selectNonEvmTransactionsForSelectedAccountGroup } from '../../../selectors/multichain';
 ///: END:ONLY_INCLUDE_IF
@@ -185,6 +186,7 @@ const AssetInlineHeader = ({
         size={ButtonIconSize.Lg}
         iconName={IconName.ArrowLeft}
         iconColor={IconColor.Default}
+        testID="back-arrow-button"
       />
       <View style={inlineHeaderStyles.titleWrapper}>
         <Text variant={TextVariant.HeadingSM} numberOfLines={1}>
@@ -223,6 +225,7 @@ AssetInlineHeader.propTypes = {
   colors: PropTypes.object,
 };
 
+// TODO: Delete when TokenDetailsV2 flag is fully rolled out
 /**
  * View that displays a specific asset (Token or ETH)
  * including the overview (Amount, Balance, Symbol, Logo)
@@ -263,7 +266,6 @@ class Asset extends PureComponent {
      * Array of ERC20 assets
      */
     tokens: PropTypes.array,
-    searchDiscoverySwapsTokens: PropTypes.array,
     swapsTransactions: PropTypes.object,
     /**
      * Object that represents the current route info like params passed to it
@@ -359,6 +361,18 @@ class Asset extends PureComponent {
   didTxStatusesChange = (newTxsPending) =>
     this.txsPending.length !== newTxsPending.length;
 
+  // Wrapper for shared mUSD claim detection utility
+  checkIsMusdClaimForCurrentView = (tx) => {
+    const { chainId } = this.props;
+    return isMusdClaimForCurrentView({
+      tx,
+      navAddress: this.navAddress,
+      navSymbol: this.navSymbol?.toLowerCase() ?? '',
+      chainId,
+      selectedAddress: this.selectedAddress,
+    });
+  };
+
   ethFilter = (tx) => {
     const { networkId } = store.getState().inpageProvider;
     const { chainId } = this.props;
@@ -368,6 +382,10 @@ class Asset extends PureComponent {
       transferInformation,
       type,
     } = tx;
+
+    if (this.checkIsMusdClaimForCurrentView(tx)) {
+      return true;
+    }
 
     if (
       (areAddressesEqual(from, this.selectedAddress) ||
@@ -398,6 +416,11 @@ class Asset extends PureComponent {
       isTransfer,
       transferInformation,
     } = tx;
+
+    if (this.checkIsMusdClaimForCurrentView(tx)) {
+      return true;
+    }
+
     if (
       (areAddressesEqual(from, this.selectedAddress) ||
         areAddressesEqual(to, this.selectedAddress)) &&
@@ -604,7 +627,6 @@ class Asset extends PureComponent {
 
     const isSwapsAssetAllowed = getIsSwapsAssetAllowed({
       asset,
-      searchDiscoverySwapsTokens: this.props.searchDiscoverySwapsTokens,
     });
 
     const displaySwapsButton = isSwapsAssetAllowed && AppConstants.SWAPS.ACTIVE;
@@ -843,10 +865,6 @@ const mapStateToProps = (state, { route }) => {
   ///: END:ONLY_INCLUDE_IF
 
   return {
-    searchDiscoverySwapsTokens: selectSupportedSwapTokenAddressesForChainId(
-      state,
-      route.params.chainId,
-    ),
     swapsTransactions: selectSwapsTransactions(state),
     conversionRate: selectConversionRate(state),
     currentCurrency: selectCurrentCurrency(state),

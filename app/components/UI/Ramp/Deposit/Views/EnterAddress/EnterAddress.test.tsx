@@ -170,11 +170,12 @@ describe('EnterAddress Component', () => {
     });
   });
 
-  it('calls setOptions with correct title when the component mounts', () => {
+  it('calls setOptions with header function when the component mounts', () => {
     render(EnterAddress);
+
     expect(mockSetNavigationOptions).toHaveBeenCalledWith(
       expect.objectContaining({
-        title: 'Verify your identity',
+        header: expect.any(Function),
       }),
     );
   });

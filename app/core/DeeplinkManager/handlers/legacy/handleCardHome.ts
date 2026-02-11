@@ -10,29 +10,21 @@ import {
   selectCardGeoLocation,
   setAlwaysShowCardButton,
 } from '../../../redux/slices/card';
-import { MetaMetrics, MetaMetricsEvents } from '../../../Analytics';
-import { MetricsEventBuilder } from '../../../Analytics/MetricsEventBuilder';
 import {
   selectCardExperimentalSwitch,
   selectCardSupportedCountries,
   selectDisplayCardButtonFeatureFlag,
 } from '../../../../selectors/featureFlagController/card';
-import { CardDeeplinkActions } from '../../../../components/UI/Card/util/metrics';
 import { selectInternalAccounts } from '../../../../selectors/accountsController';
-
-/**
- * Destination screens for card home deeplink
- */
-enum CardDeeplinkDestination {
-  CARD_HOME = 'CARD_HOME',
-  CARD_WELCOME = 'CARD_WELCOME',
-}
 
 /**
  * Card home deeplink handler
  *
  * This handler navigates users to the appropriate Card entry point based on their
  * authentication state and whether they have a card-linked account.
+ *
+ * Analytics tracking is handled at the handleUniversalLink level using the standard
+ * DEEP_LINK_USED event - this handler only handles navigation and business logic.
  *
  * Behavior:
  * - User is logged in: Navigate directly to Card Home for the currently selected account
@@ -44,7 +36,6 @@ enum CardDeeplinkDestination {
  * Error fallback:
  * - Switch to first account
  * - Navigate to Card Welcome screen
- * - Log error event with deeplink source
  *
  * Supported URL formats:
  * - https://link.metamask.io/card-home
@@ -53,16 +44,11 @@ enum CardDeeplinkDestination {
 export const handleCardHome = () => {
   DevLogger.log('[handleCardHome] Starting card home deeplink handling');
 
-  let isAuthenticated = false;
-  let hasCardLinkedAccount = false;
-  let destination: CardDeeplinkDestination =
-    CardDeeplinkDestination.CARD_WELCOME;
-
   try {
     const state = ReduxService.store.getState();
     const cardholderAccounts = selectCardholderAccounts(state);
-    isAuthenticated = selectIsAuthenticatedCard(state);
-    hasCardLinkedAccount = cardholderAccounts.length > 0;
+    const isAuthenticated = selectIsAuthenticatedCard(state);
+    const hasCardLinkedAccount = cardholderAccounts.length > 0;
     const cardGeoLocation = selectCardGeoLocation(state);
     const isCardExperimentalSwitchEnabled = selectCardExperimentalSwitch(state);
     const displayCardButtonFeatureFlag =
@@ -108,11 +94,9 @@ export const handleCardHome = () => {
         }
       }
 
-      destination = CardDeeplinkDestination.CARD_HOME;
       DevLogger.log('[handleCardHome] Navigating to Card Home');
       navigateToCardHome();
     } else {
-      destination = CardDeeplinkDestination.CARD_WELCOME;
       DevLogger.log(
         '[handleCardHome] User not authenticated and no card-linked account, navigating to Card Welcome',
       );
@@ -121,15 +105,7 @@ export const handleCardHome = () => {
       });
     }
 
-    trackCardHomeDeeplinkEvent({
-      isAuthenticated,
-      hasCardLinkedAccount,
-      destination,
-    });
-
-    Logger.log(
-      `[handleCardHome] Card home deeplink handled successfully. Destination: ${destination}`,
-    );
+    Logger.log('[handleCardHome] Card home deeplink handled successfully');
   } catch (error) {
     DevLogger.log('[handleCardHome] Failed to handle deeplink:', error);
     Logger.error(
@@ -137,7 +113,6 @@ export const handleCardHome = () => {
       '[handleCardHome] Error handling card home deeplink',
     );
 
-    destination = CardDeeplinkDestination.CARD_WELCOME;
     try {
       const state = ReduxService.store.getState();
       const internalAccounts = selectInternalAccounts(state);
@@ -160,13 +135,6 @@ export const handleCardHome = () => {
       NavigationService.navigation?.navigate(Routes.CARD.ROOT, {
         screen: Routes.CARD.WELCOME,
       });
-
-      trackCardHomeDeeplinkEvent({
-        isAuthenticated,
-        hasCardLinkedAccount,
-        destination,
-        error: true,
-      });
     } catch (navError) {
       Logger.error(
         navError as Error,
@@ -185,51 +153,4 @@ function navigateToCardHome(): void {
       },
     });
   }, 500);
-}
-
-/**
- * Track the card home deeplink analytics event
- * - deeplink_type: card_home
- * - authenticated: Authentication state at time of opening
- * - has_card_linked_account: Whether a card-linked account was found
- * - final_destination: Final destination screen (Card Home or Welcome screen)
- */
-function trackCardHomeDeeplinkEvent({
-  isAuthenticated,
-  hasCardLinkedAccount,
-  destination,
-  error = false,
-}: {
-  isAuthenticated: boolean;
-  hasCardLinkedAccount: boolean;
-  destination: CardDeeplinkDestination;
-  error?: boolean;
-}): void {
-  try {
-    const metrics = MetaMetrics.getInstance();
-    const event = MetricsEventBuilder.createEventBuilder(
-      MetaMetricsEvents.CARD_DEEPLINK_HANDLED,
-    )
-      .addProperties({
-        deeplink_type: CardDeeplinkActions.CARD_HOME,
-        authenticated: isAuthenticated,
-        has_card_linked_account: hasCardLinkedAccount,
-        final_destination: destination,
-        ...(error && { error: true }),
-      })
-      .build();
-
-    metrics.trackEvent(event);
-    DevLogger.log('[handleCardHome] Analytics event tracked:', {
-      deeplink_type: CardDeeplinkActions.CARD_HOME,
-      authenticated: isAuthenticated,
-      has_card_linked_account: hasCardLinkedAccount,
-      final_destination: destination,
-    });
-  } catch (analyticsError) {
-    DevLogger.log(
-      '[handleCardHome] Failed to track analytics:',
-      analyticsError,
-    );
-  }
 }

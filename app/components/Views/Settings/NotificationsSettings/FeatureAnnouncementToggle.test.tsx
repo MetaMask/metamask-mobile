@@ -8,7 +8,7 @@ import {
 import { FeatureAnnouncementToggle } from './FeatureAnnouncementToggle';
 // eslint-disable-next-line import/no-namespace
 import * as UseSwitchNotificationsModule from '../../../../util/notifications/hooks/useSwitchNotifications';
-import { NotificationSettingsViewSelectorsIDs } from '../../../../../e2e/selectors/Notifications/NotificationSettingsView.selectors';
+import { NotificationSettingsViewSelectorsIDs } from './NotificationSettingsView.testIds';
 
 const arrangeMockMetrics = () => {
   const mockTrackEvent = jest.fn();

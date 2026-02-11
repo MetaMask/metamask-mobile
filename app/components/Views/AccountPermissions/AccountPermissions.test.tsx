@@ -10,15 +10,15 @@ import renderWithProvider, {
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { RootState } from '../../../reducers';
 import AccountPermissions from './AccountPermissions';
-import { ConnectedAccountsSelectorsIDs } from '../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
+import { ConnectedAccountsSelectorsIDs } from '../AccountConnect/ConnectedAccountModal.testIds';
 import { AccountPermissionsScreens } from './AccountPermissions.types';
 import {
   updatePermittedChains,
   addPermittedAccounts,
   removePermittedAccounts,
 } from '../../../core/Permissions';
-import { NetworkConnectMultiSelectorSelectorsIDs } from '../../../../e2e/selectors/Browser/NetworkConnectMultiSelector.selectors';
-import { ConnectAccountBottomSheetSelectorsIDs } from '../../../../e2e/selectors/Browser/ConnectAccountBottomSheet.selectors';
+import { NetworkConnectMultiSelectorSelectorsIDs } from '../NetworkConnect/NetworkConnectMultiSelector.testIds';
+import { ConnectAccountBottomSheetSelectorsIDs } from '../AccountConnect/ConnectAccountBottomSheet.testIds';
 import {
   Caip25CaveatType,
   Caip25EndowmentPermissionName,

@@ -19,7 +19,7 @@ import React, {
 import { TouchableOpacity } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
-import { PredictPositionsHeaderSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
+import { PredictPositionsHeaderSelectorsIDs } from '../../Predict.testIds';
 import Icon, {
   IconColor,
   IconName,

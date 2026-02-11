@@ -1,6 +1,6 @@
 import Selectors from '../helpers/Selectors';
 import Gestures from '../helpers/Gestures';
-import { SendLinkViewSelectorsIDs } from '../../e2e/selectors/Receive/SendLinkView.selectors';
+import { SendLinkViewSelectorsIDs } from '../../app/components/UI/ReceiveRequest/SendLinkView.testIds';
 
 class SendLinkScreen {
   get requestCloseButton() {

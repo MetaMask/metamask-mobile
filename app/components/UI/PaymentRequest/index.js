@@ -65,7 +65,7 @@ import { selectSelectedInternalAccountFormattedAddress } from '../../../selector
 import PickerNetwork from '../../../component-library/components/Pickers/PickerNetwork/PickerNetwork';
 import Routes from '../../../constants/navigation/Routes';
 import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
-import { RequestPaymentViewSelectors } from '../../../../e2e/selectors/Receive/RequestPaymentView.selectors';
+import { RequestPaymentViewSelectors } from '../ReceiveRequest/RequestPaymentView.testIds';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 
 const KEYBOARD_OFFSET = 120;

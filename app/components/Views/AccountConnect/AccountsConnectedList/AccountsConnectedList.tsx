@@ -30,7 +30,7 @@ import TextComponent, {
   TextColor,
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
-import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
+import { ConnectedAccountsSelectorsIDs } from '../ConnectedAccountModal.testIds';
 import {
   ACCOUNTS_CONNECTED_LIST_ITEM_HEIGHT,
   MAX_VISIBLE_ITEMS,

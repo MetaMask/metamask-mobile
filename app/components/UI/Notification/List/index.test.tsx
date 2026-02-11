@@ -19,8 +19,8 @@ import NotificationsList, {
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { mockNotificationsWithMetaData } from '../__mocks__/mock_notifications';
 import { createNavigationProps } from '../../../../util/testUtils';
-import { NotificationsViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/NotificationsView.selectors';
-import { NotificationMenuViewSelectorsIDs } from '../../../../../e2e/selectors/Notifications/NotificationMenuView.selectors';
+import { NotificationsViewSelectorsIDs } from '../../../Views/Notifications/NotificationsView.testIds';
+import { NotificationMenuViewSelectorsIDs } from '../../../Views/Notifications/NotificationMenuView.testIds';
 // eslint-disable-next-line import/no-namespace
 import * as UseNotificationsModule from '../../../../util/notifications/hooks/useNotifications';
 

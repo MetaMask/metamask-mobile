@@ -12,7 +12,7 @@ import Tokens from './';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { createStackNavigator } from '@react-navigation/stack';
 import initialRootState from '../../../util/test/initial-root-state';
-import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';
 import { TokenList } from './TokenList/TokenList';
 import { ScrollView } from 'react-native-gesture-handler';
 import { TokenI } from './types';
@@ -31,6 +31,15 @@ import * as RemoveEvmTokenModule from './util/removeEvmToken';
 // eslint-disable-next-line import/no-namespace
 import * as RemoveNonEvmTokenModule from './util/removeNonEvmToken';
 
+jest.mock('../Earn/hooks/useMusdConversionEligibility', () => ({
+  useMusdConversionEligibility: () => ({
+    isEligible: true,
+    isLoading: false,
+    geolocation: 'US',
+    blockedCountries: [],
+  }),
+}));
+
 // Mocking versioning for some selectors
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn().mockReturnValue('1.0.0'),
@@ -38,10 +47,10 @@ jest.mock('react-native-device-info', () => ({
 
 // Mock MusdConversionAssetListCta to prevent deep dependency chain issues
 jest.mock('../Earn/components/Musd/MusdConversionAssetListCta', () => {
-  const { View } = jest.requireActual('react-native');
+  const { View: MockView } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: () => <View testID="musd-conversion-cta" />,
+    default: () => <MockView testID="musd-conversion-cta" />,
   };
 });
 
@@ -221,7 +230,7 @@ describe('Tokens', () => {
     expect(getByTestId('asset-0xToken3')).toBeOnTheScreen();
   });
 
-  it('performs token refresh', () => {
+  it('performs token refresh', async () => {
     const mockRefreshTokens = jest
       .spyOn(RefreshTokensModule, 'refreshTokens')
       .mockResolvedValue();
@@ -229,7 +238,10 @@ describe('Tokens', () => {
 
     fireEvent.press(getByTestId('MOCK_TEST_REFRESH_BUTTON'));
 
-    expect(mockRefreshTokens).toHaveBeenCalled();
+    // Wait for async refresh to complete
+    await waitFor(() => {
+      expect(mockRefreshTokens).toHaveBeenCalled();
+    });
   });
 
   it('performs token addition navigation', async () => {

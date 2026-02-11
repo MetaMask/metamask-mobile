@@ -37,6 +37,21 @@ export function useBridgeTxHistoryData({
   if (evmTxMeta) {
     const srcTxMetaId = evmTxMeta?.id;
     bridgeHistoryItem = srcTxMetaId ? bridgeHistory[srcTxMetaId] : undefined;
+
+    // If not found, try to find by actionId (history items can be keyed by actionId)
+    if (!bridgeHistoryItem && evmTxMeta.actionId) {
+      bridgeHistoryItem = bridgeHistory[evmTxMeta.actionId];
+    }
+
+    // If not found, try to find by originalTransactionId for intent transactions
+    if (!bridgeHistoryItem && srcTxMetaId) {
+      const matchingEntry = Object.entries(bridgeHistory).find(
+        ([_, historyItem]) =>
+          (historyItem as unknown as { originalTransactionId: string })
+            .originalTransactionId === srcTxMetaId,
+      );
+      bridgeHistoryItem = matchingEntry ? matchingEntry[1] : undefined;
+    }
   } else if (multiChainTx) {
     const srcTxHash = multiChainTx?.id;
     bridgeHistoryItem = Object.values(bridgeHistory).find(

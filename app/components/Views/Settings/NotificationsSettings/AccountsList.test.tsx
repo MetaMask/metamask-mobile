@@ -10,7 +10,7 @@ import {
   NOTIFICATION_OPTIONS_TOGGLE_LOADING_TEST_ID,
   NOTIFICATION_OPTIONS_TOGGLE_CONTAINER_TEST_ID,
 } from './NotificationOptionToggle';
-import { NotificationSettingsViewSelectorsIDs } from '../../../../../e2e/selectors/Notifications/NotificationSettingsView.selectors';
+import { NotificationSettingsViewSelectorsIDs } from './NotificationSettingsView.testIds';
 import { toFormattedAddress } from '../../../../util/address';
 import { AccountGroupType, AccountWalletType } from '@metamask/account-api';
 import renderWithProvider from '../../../../util/test/renderWithProvider';

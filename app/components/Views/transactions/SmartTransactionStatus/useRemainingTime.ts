@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { selectSwapsChainFeatureFlags } from '../../../../reducers/swaps';
+import { Hex } from '@metamask/utils';
+import { RootState } from '../../../../reducers';
+import { getSmartTransactionsFeatureFlagsForChain } from '../../../../selectors/smartTransactionsController';
 
 export const FALLBACK_STX_ESTIMATED_DEADLINE_SEC = 45;
 export const FALLBACK_STX_MAX_DEADLINE_SEC = 150;
@@ -8,20 +10,22 @@ export const FALLBACK_STX_MAX_DEADLINE_SEC = 150;
 interface Props {
   creationTime: number | undefined;
   isStxPending: boolean;
+  chainId: Hex;
 }
 
-const useRemainingTime = ({ creationTime, isStxPending }: Props) => {
-  const swapFeatureFlags = useSelector(selectSwapsChainFeatureFlags);
+const useRemainingTime = ({ creationTime, isStxPending, chainId }: Props) => {
+  const smartTransactionsFeatureFlags = useSelector((state: RootState) =>
+    getSmartTransactionsFeatureFlagsForChain(state, chainId),
+  );
 
   const [isStxPastEstimatedDeadline, setIsStxPastEstimatedDeadline] =
     useState(false);
 
   const stxEstimatedDeadlineSec =
-    swapFeatureFlags?.smartTransactions?.expectedDeadline ||
+    smartTransactionsFeatureFlags?.expectedDeadline ??
     FALLBACK_STX_ESTIMATED_DEADLINE_SEC;
   const stxMaxDeadlineSec =
-    swapFeatureFlags?.smartTransactions?.maxDeadline ||
-    FALLBACK_STX_MAX_DEADLINE_SEC;
+    smartTransactionsFeatureFlags?.maxDeadline ?? FALLBACK_STX_MAX_DEADLINE_SEC;
 
   // Calc time left for progress bar and timer display
   const stxDeadlineSec = isStxPastEstimatedDeadline

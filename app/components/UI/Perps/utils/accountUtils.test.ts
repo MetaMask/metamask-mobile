@@ -1,200 +1,323 @@
 /**
  * Unit tests for Perps account utilities
- * Tests EVM account filtering and selection helpers
+ * Tests EVM account filtering and selection helpers (pure functions)
  */
-import { createMockEngineContext } from '../__mocks__';
-
-// Mock Engine
-const mockEngineContext = createMockEngineContext();
-jest.mock('../../../../core/Engine', () => ({ context: mockEngineContext }));
-
 import {
-  getEvmAccountFromSelectedAccountGroup,
+  findEvmAccount,
+  getEvmAccountFromAccountGroup,
+  getSelectedEvmAccount,
   calculateWeightedReturnOnEquity,
-} from './accountUtils';
-import Engine from '../../../../core/Engine';
+} from '@metamask/perps-controller';
+import type { InternalAccount } from '@metamask/keyring-internal-api';
 
 describe('accountUtils', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-    // Ensure Engine.context is properly mocked
-    (Engine as unknown as { context: typeof mockEngineContext }).context =
-      mockEngineContext;
-  });
-
-  describe('getEvmAccountFromSelectedAccountGroup', () => {
-    it('returns EVM account when found in account group', () => {
-      // Arrange
+  describe('findEvmAccount', () => {
+    it('returns EVM account when found in account list', () => {
       const mockAccounts = [
         {
           address: '0x1234567890123456789012345678901234567890',
           id: 'account-1',
           type: 'btc:p2pkh',
-          metadata: { name: 'Bitcoin Account' },
+          metadata: {
+            name: 'Bitcoin Account',
+            importTime: 0,
+            keyring: { type: 'HD Key Tree' },
+          },
+          methods: [],
+          options: {},
+          scopes: [],
         },
         {
           address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef',
           id: 'account-2',
           type: 'eip155:eoa',
-          metadata: { name: 'Ethereum Account' },
+          metadata: {
+            name: 'Ethereum Account',
+            importTime: 0,
+            keyring: { type: 'HD Key Tree' },
+          },
+          methods: [],
+          options: {},
+          scopes: [],
         },
         {
           address: '0xfedcbafedcbafedcbafedcbafedcbafedcbafedcba',
           id: 'account-3',
           type: 'cosmos:secp256k1',
-          metadata: { name: 'Cosmos Account' },
+          metadata: {
+            name: 'Cosmos Account',
+            importTime: 0,
+            keyring: { type: 'HD Key Tree' },
+          },
+          methods: [],
+          options: {},
+          scopes: [],
         },
-      ];
+      ] as unknown as InternalAccount[];
 
-      mockEngineContext.AccountTreeController.getAccountsFromSelectedAccountGroup.mockReturnValue(
-        mockAccounts,
-      );
+      const result = findEvmAccount(mockAccounts);
 
-      // Act
-      const result = getEvmAccountFromSelectedAccountGroup();
-
-      // Assert
-      expect(result).toEqual({
-        address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef',
-        id: 'account-2',
-        type: 'eip155:eoa',
-        metadata: { name: 'Ethereum Account' },
-      });
-      expect(
-        mockEngineContext.AccountTreeController
-          .getAccountsFromSelectedAccountGroup,
-      ).toHaveBeenCalledTimes(1);
+      expect(result).toEqual(mockAccounts[1]);
     });
 
-    it('returns null when no EVM account exists in account group', () => {
-      // Arrange
+    it('returns null when no EVM account exists in account list', () => {
       const mockAccounts = [
         {
           address: '0x1234567890123456789012345678901234567890',
           id: 'account-1',
           type: 'btc:p2pkh',
-          metadata: { name: 'Bitcoin Account' },
+          metadata: {
+            name: 'Bitcoin Account',
+            importTime: 0,
+            keyring: { type: 'HD Key Tree' },
+          },
+          methods: [],
+          options: {},
+          scopes: [],
         },
         {
           address: '0xfedcbafedcbafedcbafedcbafedcbafedcbafedcba',
           id: 'account-2',
           type: 'cosmos:secp256k1',
-          metadata: { name: 'Cosmos Account' },
+          metadata: {
+            name: 'Cosmos Account',
+            importTime: 0,
+            keyring: { type: 'HD Key Tree' },
+          },
+          methods: [],
+          options: {},
+          scopes: [],
         },
-      ];
+      ] as unknown as InternalAccount[];
 
-      mockEngineContext.AccountTreeController.getAccountsFromSelectedAccountGroup.mockReturnValue(
-        mockAccounts,
-      );
+      const result = findEvmAccount(mockAccounts);
 
-      // Act
-      const result = getEvmAccountFromSelectedAccountGroup();
-
-      // Assert
       expect(result).toBeNull();
-      expect(
-        mockEngineContext.AccountTreeController
-          .getAccountsFromSelectedAccountGroup,
-      ).toHaveBeenCalledTimes(1);
     });
 
-    it('returns null when account group is empty', () => {
-      // Arrange
-      mockEngineContext.AccountTreeController.getAccountsFromSelectedAccountGroup.mockReturnValue(
-        [],
-      );
+    it('returns null when account list is empty', () => {
+      const result = findEvmAccount([]);
 
-      // Act
-      const result = getEvmAccountFromSelectedAccountGroup();
-
-      // Assert
       expect(result).toBeNull();
-      expect(
-        mockEngineContext.AccountTreeController
-          .getAccountsFromSelectedAccountGroup,
-      ).toHaveBeenCalledTimes(1);
     });
 
     it('returns first EVM account when multiple EVM accounts exist', () => {
-      // Arrange
       const mockAccounts = [
         {
           address: '0x1111111111111111111111111111111111111111',
           id: 'account-1',
           type: 'eip155:eoa',
-          metadata: { name: 'First EVM Account' },
+          metadata: {
+            name: 'First EVM Account',
+            importTime: 0,
+            keyring: { type: 'HD Key Tree' },
+          },
+          methods: [],
+          options: {},
+          scopes: [],
         },
         {
           address: '0x2222222222222222222222222222222222222222',
           id: 'account-2',
           type: 'eip155:eoa',
-          metadata: { name: 'Second EVM Account' },
+          metadata: {
+            name: 'Second EVM Account',
+            importTime: 0,
+            keyring: { type: 'HD Key Tree' },
+          },
+          methods: [],
+          options: {},
+          scopes: [],
         },
         {
           address: '0x3333333333333333333333333333333333333333',
           id: 'account-3',
-          type: 'eip155:contract',
-          metadata: { name: 'Third EVM Account' },
+          type: 'eip155:erc4337',
+          metadata: {
+            name: 'Third EVM Account',
+            importTime: 0,
+            keyring: { type: 'HD Key Tree' },
+          },
+          methods: [],
+          options: {},
+          scopes: [],
         },
-      ];
+      ] as unknown as InternalAccount[];
 
-      mockEngineContext.AccountTreeController.getAccountsFromSelectedAccountGroup.mockReturnValue(
-        mockAccounts,
-      );
+      const result = findEvmAccount(mockAccounts);
 
-      // Act
-      const result = getEvmAccountFromSelectedAccountGroup();
-
-      // Assert
-      expect(result).toEqual({
-        address: '0x1111111111111111111111111111111111111111',
-        id: 'account-1',
-        type: 'eip155:eoa',
-        metadata: { name: 'First EVM Account' },
-      });
-      expect(
-        mockEngineContext.AccountTreeController
-          .getAccountsFromSelectedAccountGroup,
-      ).toHaveBeenCalledTimes(1);
+      expect(result).toEqual(mockAccounts[0]);
     });
 
     it('correctly identifies EVM accounts by type prefix', () => {
-      // Arrange
       const mockAccounts = [
         {
           address: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
           id: 'account-1',
           type: 'eip155:eoa',
-          metadata: { name: 'EVM EOA' },
+          metadata: {
+            name: 'EVM EOA',
+            importTime: 0,
+            keyring: { type: 'HD Key Tree' },
+          },
+          methods: [],
+          options: {},
+          scopes: [],
         },
         {
           address: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
           id: 'account-2',
-          type: 'eip155:contract',
-          metadata: { name: 'EVM Contract' },
+          type: 'eip155:erc4337',
+          metadata: {
+            name: 'EVM ERC4337',
+            importTime: 0,
+            keyring: { type: 'HD Key Tree' },
+          },
+          methods: [],
+          options: {},
+          scopes: [],
         },
+      ] as unknown as InternalAccount[];
+
+      const result = findEvmAccount(mockAccounts);
+
+      // Should return first EVM account (any subtype starting with 'eip155:')
+      expect(result).toEqual(mockAccounts[0]);
+    });
+  });
+
+  describe('getEvmAccountFromAccountGroup', () => {
+    it('returns object with address when EVM account found', () => {
+      const mockAccounts = [
         {
-          address: '0xcccccccccccccccccccccccccccccccccccccccc',
-          id: 'account-3',
-          type: 'eip155:custom',
-          metadata: { name: 'EVM Custom' },
+          address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef',
+          id: 'account-1',
+          type: 'eip155:eoa',
+          metadata: {
+            name: 'Ethereum Account',
+            importTime: 0,
+            keyring: { type: 'HD Key Tree' },
+          },
+          methods: [],
+          options: {},
+          scopes: [],
         },
-      ];
+      ] as unknown as InternalAccount[];
 
-      mockEngineContext.AccountTreeController.getAccountsFromSelectedAccountGroup.mockReturnValue(
-        mockAccounts,
-      );
+      const result = getEvmAccountFromAccountGroup(mockAccounts);
 
-      // Act
-      const result = getEvmAccountFromSelectedAccountGroup();
-
-      // Assert - Should return first EVM account (any subtype starting with 'eip155:')
       expect(result).toEqual({
-        address: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-        id: 'account-1',
-        type: 'eip155:eoa',
-        metadata: { name: 'EVM EOA' },
+        address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef',
       });
+    });
+
+    it('returns undefined when no EVM account found', () => {
+      const mockAccounts = [
+        {
+          address: '0x1234567890123456789012345678901234567890',
+          id: 'account-1',
+          type: 'btc:p2pkh',
+          metadata: {
+            name: 'Bitcoin Account',
+            importTime: 0,
+            keyring: { type: 'HD Key Tree' },
+          },
+          methods: [],
+          options: {},
+          scopes: [],
+        },
+      ] as unknown as InternalAccount[];
+
+      const result = getEvmAccountFromAccountGroup(mockAccounts);
+
+      expect(result).toBeUndefined();
+    });
+
+    it('returns undefined for empty account list', () => {
+      const result = getEvmAccountFromAccountGroup([]);
+
+      expect(result).toBeUndefined();
+    });
+  });
+
+  describe('getSelectedEvmAccount', () => {
+    it('returns EVM account when messenger returns accounts with EVM', () => {
+      const mockAccounts = [
+        {
+          address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef',
+          id: 'account-1',
+          type: 'eip155:eoa',
+          metadata: {
+            name: 'Ethereum Account',
+            importTime: 0,
+            keyring: { type: 'HD Key Tree' },
+          },
+          methods: [],
+          options: {},
+          scopes: [],
+        },
+      ] as unknown as InternalAccount[];
+
+      const mockMessenger = {
+        call: jest.fn().mockReturnValue(mockAccounts) as jest.MockedFunction<
+          (
+            action: 'AccountTreeController:getAccountsFromSelectedAccountGroup',
+          ) => InternalAccount[]
+        >,
+      };
+
+      const result = getSelectedEvmAccount(mockMessenger);
+
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'AccountTreeController:getAccountsFromSelectedAccountGroup',
+      );
+      expect(result).toEqual({
+        address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef',
+      });
+    });
+
+    it('returns undefined when no EVM account in selected group', () => {
+      const mockAccounts = [
+        {
+          address: '0x1234567890123456789012345678901234567890',
+          id: 'account-1',
+          type: 'btc:p2pkh',
+          metadata: {
+            name: 'Bitcoin Account',
+            importTime: 0,
+            keyring: { type: 'HD Key Tree' },
+          },
+          methods: [],
+          options: {},
+          scopes: [],
+        },
+      ] as unknown as InternalAccount[];
+
+      const mockMessenger = {
+        call: jest.fn().mockReturnValue(mockAccounts) as jest.MockedFunction<
+          (
+            action: 'AccountTreeController:getAccountsFromSelectedAccountGroup',
+          ) => InternalAccount[]
+        >,
+      };
+
+      const result = getSelectedEvmAccount(mockMessenger);
+
+      expect(result).toBeUndefined();
+    });
+
+    it('returns undefined when messenger returns empty accounts', () => {
+      const mockMessenger = {
+        call: jest.fn().mockReturnValue([]) as jest.MockedFunction<
+          (
+            action: 'AccountTreeController:getAccountsFromSelectedAccountGroup',
+          ) => InternalAccount[]
+        >,
+      };
+
+      const result = getSelectedEvmAccount(mockMessenger);
+
+      expect(result).toBeUndefined();
     });
   });
 

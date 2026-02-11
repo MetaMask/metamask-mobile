@@ -1,9 +1,10 @@
 import { AppState, AppStateStatus } from 'react-native';
 import Logger from '../util/Logger';
-import { MetaMetrics, MetaMetricsEvents } from './Analytics';
+import { MetaMetricsEvents } from './Analytics';
 import { AppStateEventListener } from './AppStateEventListener';
 import { processAttribution } from './processAttribution';
-import { MetricsEventBuilder } from './Analytics/MetricsEventBuilder';
+import { AnalyticsEventBuilder } from '../util/analytics/AnalyticsEventBuilder';
+import { analytics } from '../util/analytics/analytics';
 import ReduxService, { ReduxStore } from './redux';
 
 jest.mock('./DeeplinkManager/utils/extractURLParams', () => jest.fn());
@@ -26,20 +27,31 @@ jest.mock(
   () => jest.fn().mockReturnValue({ deviceProp: 'Device value' }),
 );
 
-jest.mock('./Analytics/MetaMetrics');
+jest.mock('../util/analytics/analytics', () => ({
+  analytics: {
+    trackEvent: jest.fn(),
+    identify: jest.fn(),
+    isEnabled: jest.fn(() => true),
+  },
+}));
 
-const mockMetrics = {
-  trackEvent: jest.fn(),
-  enable: jest.fn(() => Promise.resolve()),
-  addTraitsToUser: jest.fn(() => Promise.resolve()),
-  isEnabled: jest.fn(() => true),
-};
+jest.mock('../util/analytics/AnalyticsEventBuilder');
 
-(MetaMetrics.getInstance as jest.Mock).mockReturnValue(mockMetrics);
+const mockAnalytics = analytics as jest.Mocked<typeof analytics>;
 
 describe('AppStateEventListener', () => {
   let appStateManager: AppStateEventListener;
   let mockAppStateListener: (state: AppStateStatus) => void;
+  const mockEventBuilder = {
+    addProperties: jest.fn().mockReturnThis(),
+    setSaveDataRecording: jest.fn().mockReturnThis(),
+    build: jest.fn().mockReturnValue({
+      name: 'App Opened',
+      properties: {},
+      saveDataRecording: true,
+      sensitiveProperties: {},
+    }),
+  };
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -50,6 +62,9 @@ describe('AppStateEventListener', () => {
         mockAppStateListener = listener;
         return { remove: jest.fn() };
       },
+    );
+    (AnalyticsEventBuilder.createEventBuilder as jest.Mock).mockReturnValue(
+      mockEventBuilder,
     );
     appStateManager = new AppStateEventListener();
     appStateManager.start();
@@ -88,18 +103,16 @@ describe('AppStateEventListener', () => {
     mockAppStateListener('active');
     jest.advanceTimersByTime(2000);
 
-    const expectedEvent = MetricsEventBuilder.createEventBuilder(
+    expect(AnalyticsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
       MetaMetricsEvents.APP_OPENED,
-    )
-      .addProperties({
-        attributionId: 'test123',
-        utm_source: 'source',
-        utm_medium: 'medium',
-        utm_campaign: 'campaign',
-      })
-      .build();
-
-    expect(mockMetrics.trackEvent).toHaveBeenCalledWith(expectedEvent);
+    );
+    expect(mockEventBuilder.setSaveDataRecording).toHaveBeenCalledWith(true);
+    expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
+      mockAttribution,
+    );
+    expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
+      mockEventBuilder.build(),
+    );
   });
 
   it('tracks event when app becomes active without attribution data', () => {
@@ -111,48 +124,42 @@ describe('AppStateEventListener', () => {
     mockAppStateListener('active');
     jest.advanceTimersByTime(2000);
 
-    expect(mockMetrics.trackEvent).toHaveBeenCalledWith(
-      MetricsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.APP_OPENED,
-      ).build(),
+    expect(AnalyticsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.APP_OPENED,
+    );
+    expect(mockEventBuilder.setSaveDataRecording).toHaveBeenCalledWith(true);
+    expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
+      mockEventBuilder.build(),
     );
   });
 
-  it('identifies user when app becomes active', () => {
-    jest
-      .spyOn(ReduxService, 'store', 'get')
-      .mockReturnValue({} as unknown as ReduxStore);
-
-    mockAppStateListener('active');
-    jest.advanceTimersByTime(2000);
-
-    expect(mockMetrics.addTraitsToUser).toHaveBeenCalledTimes(1);
-    expect(mockMetrics.addTraitsToUser).toHaveBeenCalledWith({
+  it('identifies user when app starts', () => {
+    // The identify is called in start(), which is called in beforeEach
+    // So we just verify it was called with the combined traits
+    expect(mockAnalytics.identify).toHaveBeenCalledWith({
       deviceProp: 'Device value',
       userProp: 'User value',
     });
   });
 
   it('logs error when identifying user fails', () => {
-    jest
-      .spyOn(ReduxService, 'store', 'get')
-      .mockReturnValue({} as unknown as ReduxStore);
-    const testError = new Error('Test error');
-    mockMetrics.addTraitsToUser.mockImplementation(() => {
-      throw testError;
+    jest.clearAllMocks();
+    mockAnalytics.identify.mockImplementation(() => {
+      throw new Error('Test error');
     });
 
-    mockAppStateListener('active');
-    jest.advanceTimersByTime(2000);
+    // Create a new instance to trigger the error in identifyUserOnAppStart
+    const newAppStateManager = new AppStateEventListener();
+    newAppStateManager.start();
 
     expect(Logger.error).toHaveBeenCalledWith(
-      testError,
-      'AppStateManager: Error processing app state change',
+      expect.any(Error),
+      'AppStateManager: Error identifying user on app start',
     );
-    expect(mockMetrics.trackEvent).not.toHaveBeenCalled();
   });
 
   it('handles errors gracefully', () => {
+    jest.clearAllMocks();
     jest
       .spyOn(ReduxService, 'store', 'get')
       .mockReturnValue({} as unknown as ReduxStore);
@@ -168,7 +175,7 @@ describe('AppStateEventListener', () => {
       testError,
       'AppStateManager: Error processing app state change',
     );
-    expect(mockMetrics.trackEvent).not.toHaveBeenCalled();
+    expect(mockAnalytics.trackEvent).not.toHaveBeenCalled();
   });
 
   it('cleans up the AppState listener on cleanup', () => {
@@ -184,25 +191,33 @@ describe('AppStateEventListener', () => {
     expect(mockRemove).toHaveBeenCalled();
   });
 
-  it('should not process app state change when app is not becoming active', () => {
+  it('does not process app state change when app is not becoming active', () => {
+    jest.clearAllMocks();
     mockAppStateListener('background');
     jest.advanceTimersByTime(2000);
 
-    expect(mockMetrics.trackEvent).not.toHaveBeenCalled();
+    expect(mockAnalytics.trackEvent).not.toHaveBeenCalled();
   });
 
-  it('should not process app state change when app state has not changed', () => {
+  it('does not process app state change when app state has not changed', () => {
+    jest.clearAllMocks();
+    jest
+      .spyOn(ReduxService, 'store', 'get')
+      .mockReturnValue({} as unknown as ReduxStore);
+    (processAttribution as jest.Mock).mockReturnValue(undefined);
+
     mockAppStateListener('active');
     jest.advanceTimersByTime(2000);
-    mockMetrics.trackEvent.mockClear();
+    mockAnalytics.trackEvent.mockClear();
 
     mockAppStateListener('active');
     jest.advanceTimersByTime(2000);
 
-    expect(mockMetrics.trackEvent).not.toHaveBeenCalled();
+    expect(mockAnalytics.trackEvent).not.toHaveBeenCalled();
   });
 
-  it('should handle undefined store gracefully', () => {
+  it('handles undefined store gracefully', () => {
+    jest.clearAllMocks();
     const { processAttribution: realProcessAttribution } = jest.requireActual(
       './processAttribution',
     );

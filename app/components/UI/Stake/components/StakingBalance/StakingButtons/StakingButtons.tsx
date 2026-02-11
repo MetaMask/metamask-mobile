@@ -19,6 +19,7 @@ import { EVENT_LOCATIONS } from '../../../constants/events';
 import useStakingChain from '../../../hooks/useStakingChain';
 import styleSheet from './StakingButtons.styles';
 import { trace, TraceName } from '../../../../../../util/trace';
+import useStakingEligibility from '../../../hooks/useStakingEligibility';
 
 interface StakingButtonsProps extends Pick<ViewProps, 'style'> {
   asset: TokenI;
@@ -38,11 +39,12 @@ const StakingButtons = ({
 
   const { trackEvent, createEventBuilder } = useMetrics();
 
+  const { isEligible } = useStakingEligibility();
+
   const chainId = useSelector(selectEvmChainId);
   const isPooledStakingEnabled = useSelector(selectPooledStakingEnabledFlag);
 
   const { isStakingSupportedChain } = useStakingChain();
-
   const { MultichainNetworkController } = Engine.context;
 
   const handleIsStakingSupportedChain = async () => {
@@ -108,7 +110,7 @@ const StakingButtons = ({
           onPress={onUnstakePress}
         />
       )}
-      {isPooledStakingEnabled && (
+      {isPooledStakingEnabled && isEligible && (
         <Button
           testID={'stake-more-button'}
           style={styles.balanceActionButton}

@@ -11,7 +11,7 @@ import {
   formatPercentage,
 } from '../../utils/formatUtils';
 import { useStyles } from '../../../../../component-library/hooks';
-import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
+import { PERPS_CONSTANTS } from '@metamask/perps-controller';
 
 interface LivePriceHeaderProps {
   symbol: string;
@@ -72,7 +72,7 @@ const LivePriceHeader: React.FC<LivePriceHeaderProps> = ({
   const formattedPrice = useMemo(() => {
     // Handle invalid or edge case values
     if (!currentPrice || currentPrice <= 0 || !Number.isFinite(currentPrice)) {
-      return PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY;
+      return PERPS_CONSTANTS.FallbackPriceDisplay;
     }
 
     try {
@@ -81,24 +81,24 @@ const LivePriceHeader: React.FC<LivePriceHeaderProps> = ({
       });
     } catch {
       // Fallback if formatPrice throws
-      return PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY;
+      return PERPS_CONSTANTS.FallbackPriceDisplay;
     }
   }, [currentPrice]);
 
   const formattedChange = useMemo(() => {
     // If displayChange is null, we're still loading - show loading indicator
     if (displayChange === null) {
-      return PERPS_CONSTANTS.FALLBACK_PERCENTAGE_DISPLAY;
+      return PERPS_CONSTANTS.FallbackPercentageDisplay;
     }
 
     if (!currentPrice || currentPrice <= 0 || !Number.isFinite(currentPrice)) {
-      return PERPS_CONSTANTS.FALLBACK_PERCENTAGE_DISPLAY;
+      return PERPS_CONSTANTS.FallbackPercentageDisplay;
     }
 
     try {
       return formatPercentage(displayChange.toString());
     } catch {
-      return PERPS_CONSTANTS.FALLBACK_PERCENTAGE_DISPLAY;
+      return PERPS_CONSTANTS.FallbackPercentageDisplay;
     }
   }, [currentPrice, displayChange]);
 

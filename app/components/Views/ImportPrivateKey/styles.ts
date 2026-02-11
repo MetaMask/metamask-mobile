@@ -1,30 +1,22 @@
 /* eslint-disable import/prefer-default-export */
-import { StyleSheet, Platform } from 'react-native';
-import { fontStyles } from '../../../styles/common';
-import { Colors } from '../../../util/theme/models';
+import { Platform, StyleSheet, TextStyle } from 'react-native';
+import { Theme } from '../../../util/theme/models';
+import { getFontFamily } from '../../../component-library/components/Texts/Text';
+import { TextVariant } from '../../../component-library/components/Texts/Text/Text.types';
 
-const createStyles = (colors: Colors) =>
+const createStyles = (
+  colors: Theme['colors'],
+  typography: Theme['typography'],
+) =>
   StyleSheet.create({
     mainWrapper: {
       flex: 1,
-      marginTop: 48,
     },
     topOverlay: {
       flex: 1,
     },
     wrapper: {
       flexGrow: 1,
-    },
-    content: {
-      alignItems: 'flex-start',
-    },
-    title: {
-      fontSize: 32,
-      color: colors.text.default,
-      justifyContent: 'center',
-      textAlign: 'left',
-      ...fontStyles.normal,
-      lineHeight: 40,
     },
     scanPkeyRow: {
       width: '100%',
@@ -37,43 +29,29 @@ const createStyles = (colors: Colors) =>
       flex: 1,
       justifyContent: 'flex-end',
       paddingHorizontal: 16,
-      paddingBottom: Platform.select({
-        ios: 36,
-        android: 24,
-      }),
-      backgroundColor: colors.background.default,
+      paddingBottom: Platform.OS === 'android' ? 0 : 16,
     },
-    top: {
-      paddingHorizontal: 16,
-      width: '100%',
+    descriptionContainer: {
+      marginTop: 4,
     },
     bottom: {
       width: '100%',
       paddingHorizontal: 16,
-      paddingVertical: 24,
-      backgroundColor: colors.background.default,
     },
     input: {
-      backgroundColor: colors.background.section,
-      fontSize: 14,
-      borderRadius: 6,
       height: 120,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: colors.border.muted,
-      ...fontStyles.normal,
-      color: colors.text.muted,
-      paddingHorizontal: 16,
-      paddingVertical: 12,
-      marginVertical: 8,
-    },
-    textContainer: {
-      width: '90%',
-      display: 'flex',
-      flexDirection: 'column',
+      backgroundColor: colors.background.section,
       alignItems: 'flex-start',
-      justifyContent: 'flex-start',
-      rowGap: 8,
-      marginTop: 16,
+      borderRadius: 8,
+      paddingHorizontal: 16,
+      paddingVertical: 16,
+      color: colors.text.default,
+      fontFamily: getFontFamily(TextVariant.BodyMD),
+      fontWeight: typography.sBodyMD.fontWeight as TextStyle['fontWeight'],
+      fontSize: typography.sBodyMD.fontSize,
+      letterSpacing: typography.sBodyMD.letterSpacing,
+      lineHeight: Platform.OS === 'ios' ? 20 : 22,
+      textAlignVertical: 'top',
     },
   });
 

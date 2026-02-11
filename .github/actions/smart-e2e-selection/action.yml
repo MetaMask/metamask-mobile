@@ -5,8 +5,17 @@ inputs:
     description: 'GitHub event name (pull_request, workflow_dispatch, schedule, etc.)'
     required: true
   claude-api-key:
-    description: 'Claude API key for AI analysis'
-    required: true
+    description: 'Anthropic Claude API key for AI analysis (primary provider)'
+    required: false
+    default: ''
+  openai-api-key:
+    description: 'OpenAI API key for AI analysis (fallback provider)'
+    required: false
+    default: ''
+  google-api-key:
+    description: 'Google Gemini API key for AI analysis (fallback provider)'
+    required: false
+    default: ''
   github-token:
     description: 'GitHub token for PR comments'
     required: true
@@ -28,10 +37,13 @@ inputs:
 outputs:
   ai_e2e_test_tags:
     description: 'E2E test tags to run (JSON array format)'
-    value: ${{ steps.ai-analysis.outputs.ai_e2e_test_tags }}
+    value: ${{ steps.final-outputs.outputs.ai_e2e_test_tags }}
   ai_confidence:
     description: 'AI confidence score (0-100)'
-    value: ${{ steps.ai-analysis.outputs.ai_confidence }}
+    value: ${{ steps.final-outputs.outputs.ai_confidence }}
+  ai_performance_test_tags:
+    description: 'Performance test tags to run (JSON array format, empty [] means no performance tests)'
+    value: ${{ steps.final-outputs.outputs.ai_performance_test_tags }}
 
 runs:
   using: 'composite'
@@ -68,7 +80,7 @@ runs:
         mkdir -p /tmp/ai-deps
         cd /tmp/ai-deps
         npm init -y
-        npm install @anthropic-ai/sdk@0.68.0 esbuild-register@3.6.0 --no-audit --no-fund
+        npm install @anthropic-ai/sdk@0.71.0 openai@4.77.0 @google/generative-ai@0.24.1 esbuild-register@3.6.0 --no-audit --no-fund
         echo "✅ AI analysis dependencies installed in /tmp/ai-deps"
 
     - name: Copy AI dependencies to workspace
@@ -99,6 +111,8 @@ runs:
       shell: bash
       env:
         E2E_CLAUDE_API_KEY: ${{ inputs.claude-api-key }}
+        E2E_OPENAI_API_KEY: ${{ inputs.openai-api-key }}
+        E2E_GEMINI_API_KEY: ${{ inputs.google-api-key }}
         EVENT_NAME: ${{ inputs.event-name }}
         PR_NUMBER: ${{ inputs.pr-number }}
         GH_TOKEN: ${{ inputs.github-token }}
@@ -108,6 +122,7 @@ runs:
       run: |
         echo "ai_e2e_test_tags=[\"ALL\"]" >> "$GITHUB_OUTPUT"
         echo "ai_confidence=0" >> "$GITHUB_OUTPUT"
+        echo "ai_performance_test_tags=[]" >> "$GITHUB_OUTPUT"
         SHOULD_SKIP=false
         SKIP_REASON=""
 
@@ -130,17 +145,39 @@ runs:
           echo "⏭️ Skipping AI analysis - $SKIP_REASON"
         else
           echo "✅ Running AI analysis for PR #$PR_NUMBER"
-          # The script will generate the GH output variables
-          node .github/scripts/e2e-smart-selection.mjs
+          # The script will generate the GH output variables - don't fail if script errors
+          node .github/scripts/e2e-smart-selection.mjs || echo "⚠️ AI analysis script failed, using fallback"
+        fi
+
+    - name: Set final outputs with fallback
+      id: final-outputs
+      if: always()
+      shell: bash
+      run: |
+        TAGS='${{ steps.ai-analysis.outputs.ai_e2e_test_tags }}'
+        if [[ -n "$TAGS" ]]; then
+          printf 'ai_e2e_test_tags=%s\n' "$TAGS" >> "$GITHUB_OUTPUT"
+        else
+          echo 'ai_e2e_test_tags=["ALL"]' >> "$GITHUB_OUTPUT"
+        fi
+        echo "ai_confidence=${{ steps.ai-analysis.outputs.ai_confidence }}" >> "$GITHUB_OUTPUT"
+        # Performance test tags (empty array means no performance tests)
+        PERF_TAGS='${{ steps.ai-analysis.outputs.ai_performance_test_tags }}'
+        if [[ -n "$PERF_TAGS" ]]; then
+          printf 'ai_performance_test_tags=%s\n' "$PERF_TAGS" >> "$GITHUB_OUTPUT"
+        else
+          echo 'ai_performance_test_tags=[]' >> "$GITHUB_OUTPUT"
         fi
 
     - name: Display AI Analysis Outputs
+      if: always()
       shell: bash
       run: |
         echo "📊 Final GitHub Action Outputs:"
         echo "================================"
-        echo "ai_e2e_test_tags: ${{ steps.ai-analysis.outputs.ai_e2e_test_tags }}"
-        echo "ai_confidence: ${{ steps.ai-analysis.outputs.ai_confidence }}"
+        echo "ai_e2e_test_tags: ${{ steps.final-outputs.outputs.ai_e2e_test_tags }}"
+        echo "ai_confidence: ${{ steps.final-outputs.outputs.ai_confidence }}"
+        echo "ai_performance_test_tags: ${{ steps.final-outputs.outputs.ai_performance_test_tags }}"
         echo "================================"
 
     - name: Delete previous comments
@@ -191,14 +228,10 @@ runs:
           COMMENT_BODY="⏭️ **Smart E2E selection skipped** - ${SKIP_REASON}
 
           All E2E tests pre-selected."
+        elif [ -f "$COMMENT_FILE" ]; then
+          COMMENT_BODY=$(cat "$COMMENT_FILE")
         else
-          # Read analysis results from file
-          if [ -f "$COMMENT_FILE" ]; then
-            COMMENT_BODY=$(cat "$COMMENT_FILE")
-          else
-            echo "⚠️ PR comment file not found: $COMMENT_FILE - using default message"
-            COMMENT_BODY="AI analysis completed but results file was not generated."
-          fi
+          COMMENT_BODY="⚠️ AI analysis was inconclusive. Selecting all E2E tests as a fallback, if applicable based on changed files."
         fi
 
         # Build and post comment

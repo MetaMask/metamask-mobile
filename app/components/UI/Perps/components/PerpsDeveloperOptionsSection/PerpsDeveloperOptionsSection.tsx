@@ -7,6 +7,7 @@ import { View, StyleSheet } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../hooks/useStyles';
 import { PerpsTestnetToggle } from './PerpsTestnetToggle';
+import { PerpsProviderToggle } from './PerpsProviderToggle';
 import { PerpsConnectionErrorButton } from './PerpsConnectionErrorButton';
 import { PerpsHIP3DebugButton } from './PerpsHIP3DebugButton';
 
@@ -34,6 +35,7 @@ export const PerpsDeveloperOptionsSection = () => {
         {strings('perps.perps_trading')}
       </Text>
       <PerpsTestnetToggle />
+      <PerpsProviderToggle />
       <PerpsConnectionErrorButton />
       <PerpsHIP3DebugButton />
     </View>

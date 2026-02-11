@@ -14,6 +14,7 @@ import {
   OutboundRequest,
   OutboundResponse,
   SetClientActive,
+  SnapsRegistryStateChangeEvent,
 } from '@metamask/snaps-controllers';
 import {
   GetEndowments,
@@ -43,6 +44,13 @@ import { PreferencesControllerGetStateAction } from '@metamask/preferences-contr
 import { NetworkControllerGetNetworkClientByIdAction } from '@metamask/network-controller';
 import { SelectedNetworkControllerGetNetworkClientIdForDomainAction } from '@metamask/selected-network-controller';
 import { RootMessenger } from '../../types';
+import { AnalyticsControllerActions } from '@metamask/analytics-controller';
+import {
+  StorageServiceClearAction,
+  StorageServiceGetItemAction,
+  StorageServiceRemoveItemAction,
+  StorageServiceSetItemAction,
+} from '@metamask/storage-service';
 
 type Actions =
   | GetEndowments
@@ -71,13 +79,18 @@ type Actions =
   | CreateInterface
   | GetInterface
   | NetworkControllerGetNetworkClientByIdAction
-  | SelectedNetworkControllerGetNetworkClientIdForDomainAction;
+  | SelectedNetworkControllerGetNetworkClientIdForDomainAction
+  | StorageServiceSetItemAction
+  | StorageServiceGetItemAction
+  | StorageServiceRemoveItemAction
+  | StorageServiceClearAction;
 
 type Events =
   | ErrorMessageEvent
   | OutboundRequest
   | OutboundResponse
-  | KeyringControllerLockEvent;
+  | KeyringControllerLockEvent
+  | SnapsRegistryStateChangeEvent;
 
 export type SnapControllerMessenger = ReturnType<
   typeof getSnapControllerMessenger
@@ -129,12 +142,17 @@ export function getSnapControllerMessenger(rootMessenger: RootMessenger) {
       `SnapInterfaceController:getInterface`,
       'NetworkController:getNetworkClientById',
       'SelectedNetworkController:getNetworkClientIdForDomain',
+      'StorageService:setItem',
+      'StorageService:getItem',
+      'StorageService:removeItem',
+      'StorageService:clear',
     ],
     events: [
       'ExecutionService:unhandledError',
       'ExecutionService:outboundRequest',
       'ExecutionService:outboundResponse',
       'KeyringController:lock',
+      'SnapsRegistry:stateChange',
     ],
     messenger,
   });
@@ -144,7 +162,8 @@ export function getSnapControllerMessenger(rootMessenger: RootMessenger) {
 type InitActions =
   | KeyringControllerGetKeyringsByTypeAction
   | PreferencesControllerGetStateAction
-  | SetClientActive;
+  | SetClientActive
+  | AnalyticsControllerActions;
 
 type InitEvents = KeyringControllerLockEvent | KeyringControllerUnlockEvent;
 
@@ -174,6 +193,7 @@ export function getSnapControllerInitMessenger(rootMessenger: RootMessenger) {
       'KeyringController:getKeyringsByType',
       'PreferencesController:getState',
       'SnapController:setClientActive',
+      'AnalyticsController:trackEvent',
     ],
     events: ['KeyringController:lock', 'KeyringController:unlock'],
     messenger,

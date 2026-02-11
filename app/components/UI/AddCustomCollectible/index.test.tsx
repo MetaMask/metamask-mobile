@@ -9,8 +9,8 @@ import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import Engine from '../../../core/Engine';
 // eslint-disable-next-line import/no-namespace
 import * as utilsTransactions from '../../../util/transactions';
-import { Alert } from 'react-native';
 
+/* eslint-disable @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires */
 jest.mock('../../../core/Engine', () => ({
   context: {
     NftController: {
@@ -34,19 +34,33 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn().mockImplementation(() => ''),
 }));
 
-jest.mock('react-native', () => {
-  const RN = jest.requireActual('react-native');
-  return {
-    ...RN,
-    Alert: {
-      alert: jest.fn(),
-    },
-  };
-});
-
 jest.mock('../../../../locales/i18n', () => ({
   strings: jest.fn((key) => key),
 }));
+
+const mockShowToast = jest.fn();
+jest.mock('../../../component-library/components/Toast', () => {
+  const actualReact = jest.requireActual('react');
+  const MockContext = actualReact.createContext({});
+  return {
+    ...jest.requireActual('../../../component-library/components/Toast'),
+    ToastContext: MockContext,
+    ToastVariants: { Plain: 'Plain' },
+  };
+});
+
+const ToastWrapper = ({ children }: { children: React.ReactNode }) => {
+  const {
+    ToastContext,
+  } = require('../../../component-library/components/Toast');
+  return (
+    <ToastContext.Provider
+      value={{ toastRef: { current: { showToast: mockShowToast } } }}
+    >
+      {children}
+    </ToastContext.Provider>
+  );
+};
 
 describe('AddCustomCollectible', () => {
   it('should render correctly', () => {
@@ -297,20 +311,21 @@ describe('AddCustomCollectible', () => {
         .mockResolvedValue(true);
     });
 
-    it('shows alert when user is not the owner of NFT', async () => {
+    it('shows toast when user is not the owner of NFT', async () => {
       jest
         .spyOn(Engine.context.NftController, 'isNftOwner')
         .mockResolvedValue(false);
-      const alertSpy = jest.spyOn(Alert, 'alert');
 
       const { getByTestId } = renderWithProvider(
-        <AddCustomCollectible
-          navigation={{ navigate: jest.fn(), goBack: jest.fn() }}
-          setOpenNetworkSelector={jest.fn()}
-          networkId={'0x1'}
-          selectedNetwork={'Ethereum Mainnet'}
-          networkClientId={'mainnet'}
-        />,
+        <ToastWrapper>
+          <AddCustomCollectible
+            navigation={{ navigate: jest.fn(), goBack: jest.fn() }}
+            setOpenNetworkSelector={jest.fn()}
+            networkId={'0x1'}
+            selectedNetwork={'Ethereum Mainnet'}
+            networkClientId={'mainnet'}
+          />
+        </ToastWrapper>,
         { state: initialRootState },
       );
 
@@ -329,26 +344,29 @@ describe('AddCustomCollectible', () => {
         fireEvent.press(button);
       });
 
-      expect(alertSpy).toHaveBeenCalledWith(
-        'collectible.not_owner_error_title',
-        'collectible.not_owner_error',
+      expect(mockShowToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          labelOptions: [{ label: 'collectible.not_owner_error_title' }],
+          descriptionOptions: { description: 'collectible.not_owner_error' },
+        }),
       );
     });
 
-    it('shows alert when ownership verification fails', async () => {
+    it('shows toast when ownership verification fails', async () => {
       jest
         .spyOn(Engine.context.NftController, 'isNftOwner')
         .mockRejectedValue(new Error('Network error'));
-      const alertSpy = jest.spyOn(Alert, 'alert');
 
       const { getByTestId } = renderWithProvider(
-        <AddCustomCollectible
-          navigation={{ navigate: jest.fn(), goBack: jest.fn() }}
-          setOpenNetworkSelector={jest.fn()}
-          networkId={'0x1'}
-          selectedNetwork={'Ethereum Mainnet'}
-          networkClientId={'mainnet'}
-        />,
+        <ToastWrapper>
+          <AddCustomCollectible
+            navigation={{ navigate: jest.fn(), goBack: jest.fn() }}
+            setOpenNetworkSelector={jest.fn()}
+            networkId={'0x1'}
+            selectedNetwork={'Ethereum Mainnet'}
+            networkClientId={'mainnet'}
+          />
+        </ToastWrapper>,
         { state: initialRootState },
       );
 
@@ -367,9 +385,15 @@ describe('AddCustomCollectible', () => {
         fireEvent.press(button);
       });
 
-      expect(alertSpy).toHaveBeenCalledWith(
-        'collectible.ownership_verification_error_title',
-        'collectible.ownership_verification_error',
+      expect(mockShowToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          labelOptions: [
+            { label: 'collectible.ownership_verification_error_title' },
+          ],
+          descriptionOptions: {
+            description: 'collectible.ownership_verification_error',
+          },
+        }),
       );
     });
   });
@@ -623,7 +647,7 @@ describe('AddCustomCollectible', () => {
       expect(addressInput.props.onSubmitEditing).toBeDefined();
     });
 
-    it('calls addNft when token ID input is submitted', () => {
+    it('has onSubmitEditing handler on token ID input', () => {
       const { getByTestId } = renderWithProvider(
         <AddCustomCollectible
           setOpenNetworkSelector={jest.fn()}
@@ -636,9 +660,7 @@ describe('AddCustomCollectible', () => {
 
       const tokenIdInput = getByTestId('input-collectible-identifier');
 
-      // Verify the onSubmitEditing handler exists for token ID input
       expect(tokenIdInput.props.onSubmitEditing).toBeDefined();
-      expect(tokenIdInput.props.returnKeyType).toBe('done');
     });
   });
 

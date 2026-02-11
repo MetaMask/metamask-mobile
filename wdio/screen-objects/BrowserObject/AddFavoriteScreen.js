@@ -1,6 +1,6 @@
 import Selectors from '../../helpers/Selectors';
 import Gestures from '../../helpers/Gestures';
-import { AddBookmarkViewSelectorsIDs } from '../../../e2e/selectors/Browser/AddBookmarkView.selectors';
+import { AddBookmarkViewSelectorsIDs } from '../../../app/components/Views/AddBookmark/AddBookmarkView.testIds';
 
 class AddFavoriteScreen {
   get screen() {

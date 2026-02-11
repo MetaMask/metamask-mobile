@@ -9,12 +9,21 @@ import {
 import { getErrorMessage } from '../util/getErrorMessage';
 import useEmailVerificationVerify from './useEmailVerificationVerify';
 import { CardSDK } from '../sdk/CardSDK';
+import Engine from '../../../../core/Engine';
 
 // Mock dependencies
 jest.mock('../sdk', () => ({
   useCardSDK: jest.fn(),
 }));
 jest.mock('../util/getErrorMessage');
+jest.mock('../../../../core/Engine', () => ({
+  context: {
+    AuthenticationController: {
+      isSignedIn: jest.fn(),
+      getSessionProfile: jest.fn(),
+    },
+  },
+}));
 
 // Mock CardError class to avoid constructor issues
 jest.mock('../types', () => ({
@@ -32,9 +41,18 @@ const mockUseCardSDK = useCardSDK as jest.MockedFunction<typeof useCardSDK>;
 const mockGetErrorMessage = getErrorMessage as jest.MockedFunction<
   typeof getErrorMessage
 >;
+const mockIsSignedIn = Engine.context.AuthenticationController
+  .isSignedIn as jest.MockedFunction<
+  typeof Engine.context.AuthenticationController.isSignedIn
+>;
+const mockGetSessionProfile = Engine.context.AuthenticationController
+  .getSessionProfile as jest.MockedFunction<
+  typeof Engine.context.AuthenticationController.getSessionProfile
+>;
 
 describe('useEmailVerificationVerify', () => {
   const mockEmailVerificationVerify = jest.fn();
+  const mockProfileId = 'mock-profile-id-from-jwt';
 
   const mockSDK = {
     emailVerificationVerify: mockEmailVerificationVerify,
@@ -69,6 +87,12 @@ describe('useEmailVerificationVerify', () => {
       ...jest.requireMock('../sdk'),
       sdk: mockSDK,
     });
+    mockIsSignedIn.mockReturnValue(true);
+    mockGetSessionProfile.mockResolvedValue({
+      profileId: mockProfileId,
+      identifierId: 'mock-identifier-id',
+      metaMetricsId: 'mock-metametrics-id',
+    });
     mockGetErrorMessage.mockReturnValue('Mocked error message');
   });
 
@@ -100,6 +124,7 @@ describe('useEmailVerificationVerify', () => {
 
       expect(mockEmailVerificationVerify).toHaveBeenCalledWith({
         ...mockVerifyRequest,
+        userExternalId: mockProfileId,
       });
       expect(response).toEqual(mockVerifyResponse);
       expect(result.current.isLoading).toBe(false);
@@ -146,12 +171,16 @@ describe('useEmailVerificationVerify', () => {
 
       const { result } = renderHook(() => useEmailVerificationVerify());
 
-      await expect(
-        act(async () => {
+      let thrownError: unknown;
+      await act(async () => {
+        try {
           await result.current.verifyEmailVerification(mockVerifyRequest);
-        }),
-      ).rejects.toThrow(cardError);
+        } catch (error) {
+          thrownError = error;
+        }
+      });
 
+      expect(thrownError).toBe(cardError);
       expect(mockGetErrorMessage).toHaveBeenCalledWith(cardError);
       expect(result.current.isLoading).toBe(false);
       expect(result.current.isSuccess).toBe(false);
@@ -165,12 +194,16 @@ describe('useEmailVerificationVerify', () => {
 
       const { result } = renderHook(() => useEmailVerificationVerify());
 
-      await expect(
-        act(async () => {
+      let thrownError: unknown;
+      await act(async () => {
+        try {
           await result.current.verifyEmailVerification(mockVerifyRequest);
-        }),
-      ).rejects.toThrow(networkError);
+        } catch (error) {
+          thrownError = error;
+        }
+      });
 
+      expect(thrownError).toBe(networkError);
       expect(mockGetErrorMessage).toHaveBeenCalledWith(networkError);
       expect(result.current.isLoading).toBe(false);
       expect(result.current.isSuccess).toBe(false);
@@ -184,12 +217,16 @@ describe('useEmailVerificationVerify', () => {
 
       const { result } = renderHook(() => useEmailVerificationVerify());
 
-      await expect(
-        act(async () => {
+      let thrownError: unknown;
+      await act(async () => {
+        try {
           await result.current.verifyEmailVerification(mockVerifyRequest);
-        }),
-      ).rejects.toThrow(unknownError);
+        } catch (error) {
+          thrownError = error;
+        }
+      });
 
+      expect(thrownError).toBe(unknownError);
       expect(mockGetErrorMessage).toHaveBeenCalledWith(unknownError);
       expect(result.current.isLoading).toBe(false);
       expect(result.current.isSuccess).toBe(false);
@@ -215,6 +252,76 @@ describe('useEmailVerificationVerify', () => {
       expect(result.current.isSuccess).toBe(false);
       expect(result.current.isError).toBe(false);
       expect(result.current.error).toBeNull();
+    });
+
+    it('includes profileId when user is signed in', async () => {
+      mockEmailVerificationVerify.mockResolvedValue(mockVerifyResponse);
+
+      const { result } = renderHook(() => useEmailVerificationVerify());
+
+      await act(async () => {
+        await result.current.verifyEmailVerification(mockVerifyRequest);
+      });
+
+      expect(mockIsSignedIn).toHaveBeenCalled();
+      expect(mockGetSessionProfile).toHaveBeenCalled();
+      expect(mockEmailVerificationVerify).toHaveBeenCalledWith({
+        ...mockVerifyRequest,
+        userExternalId: mockProfileId,
+      });
+    });
+
+    it('does not include userExternalId when user is not signed in', async () => {
+      mockIsSignedIn.mockReturnValue(false);
+      mockEmailVerificationVerify.mockResolvedValue(mockVerifyResponse);
+
+      const { result } = renderHook(() => useEmailVerificationVerify());
+
+      await act(async () => {
+        await result.current.verifyEmailVerification(mockVerifyRequest);
+      });
+
+      expect(mockIsSignedIn).toHaveBeenCalled();
+      expect(mockGetSessionProfile).not.toHaveBeenCalled();
+      expect(mockEmailVerificationVerify).toHaveBeenCalledWith(
+        mockVerifyRequest,
+      );
+    });
+
+    it('does not include userExternalId when getSessionProfile throws error', async () => {
+      mockGetSessionProfile.mockRejectedValue(new Error('Session error'));
+      mockEmailVerificationVerify.mockResolvedValue(mockVerifyResponse);
+
+      const { result } = renderHook(() => useEmailVerificationVerify());
+
+      await act(async () => {
+        await result.current.verifyEmailVerification(mockVerifyRequest);
+      });
+
+      expect(mockEmailVerificationVerify).toHaveBeenCalledWith(
+        mockVerifyRequest,
+      );
+      expect(result.current.isSuccess).toBe(true);
+    });
+
+    it('does not include userExternalId when session profile has empty profileId', async () => {
+      mockGetSessionProfile.mockResolvedValue({
+        profileId: '',
+        identifierId: 'mock-identifier-id',
+        metaMetricsId: 'mock-metametrics-id',
+      });
+      mockEmailVerificationVerify.mockResolvedValue(mockVerifyResponse);
+
+      const { result } = renderHook(() => useEmailVerificationVerify());
+
+      await act(async () => {
+        await result.current.verifyEmailVerification(mockVerifyRequest);
+      });
+
+      expect(mockEmailVerificationVerify).toHaveBeenCalledWith(
+        mockVerifyRequest,
+      );
+      expect(result.current.isSuccess).toBe(true);
     });
 
     it('resets success state for new verification', async () => {
@@ -249,11 +356,13 @@ describe('useEmailVerificationVerify', () => {
       const { result } = renderHook(() => useEmailVerificationVerify());
 
       // First verification with error
-      await expect(
-        act(async () => {
+      await act(async () => {
+        try {
           await result.current.verifyEmailVerification(mockVerifyRequest);
-        }),
-      ).rejects.toThrow(error);
+        } catch {
+          // Expected error
+        }
+      });
 
       expect(result.current.isError).toBe(true);
       expect(result.current.error).toBe('Mocked error message');
@@ -277,11 +386,13 @@ describe('useEmailVerificationVerify', () => {
       const { result } = renderHook(() => useEmailVerificationVerify());
 
       // Trigger error
-      await expect(
-        act(async () => {
+      await act(async () => {
+        try {
           await result.current.verifyEmailVerification(mockVerifyRequest);
-        }),
-      ).rejects.toThrow(error);
+        } catch {
+          // Expected error
+        }
+      });
 
       expect(result.current.isError).toBe(true);
       expect(result.current.error).toBe('Mocked error message');
@@ -324,7 +435,7 @@ describe('useEmailVerificationVerify', () => {
   });
 
   describe('SDK integration', () => {
-    it('calls SDK emailVerificationVerify with correct parameters', async () => {
+    it('calls SDK emailVerificationVerify with profileId from AuthenticationController', async () => {
       mockEmailVerificationVerify.mockResolvedValue(mockVerifyResponse);
 
       const { result } = renderHook(() => useEmailVerificationVerify());
@@ -345,6 +456,7 @@ describe('useEmailVerificationVerify', () => {
 
       expect(mockEmailVerificationVerify).toHaveBeenCalledWith({
         ...customRequest,
+        userExternalId: mockProfileId,
       });
     });
   });
@@ -366,6 +478,7 @@ describe('useEmailVerificationVerify', () => {
 
       expect(mockEmailVerificationVerify).toHaveBeenCalledWith({
         ...requestWithEmptyCode,
+        userExternalId: mockProfileId,
       });
     });
 
@@ -386,6 +499,7 @@ describe('useEmailVerificationVerify', () => {
 
       expect(mockEmailVerificationVerify).toHaveBeenCalledWith({
         ...requestWithSpecialChars,
+        userExternalId: mockProfileId,
       });
     });
   });

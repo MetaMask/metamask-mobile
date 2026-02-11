@@ -3,7 +3,7 @@ import { render, fireEvent } from '@testing-library/react-native';
 import { TouchableOpacity } from 'react-native';
 
 import CellSelectWithMenu from './CellSelectWithMenu';
-import { CellComponentSelectorsIDs } from '../../../../e2e/selectors/wallet/CellComponent.selectors';
+import { CellComponentSelectorsIDs } from '../../components/Cells/Cell/CellComponent.testIds';
 
 import { SAMPLE_CELLSELECT_WITH_BUTTON_PROPS } from './CellSelectWithMenu.constants';
 

@@ -18,12 +18,12 @@ jest.mock('react-redux', () => ({
 }));
 
 jest.mock('../../Bridge/hooks/useSwapBridgeNavigation', () => ({
-  SwapBridgeNavigationLocation: {
-    TokenDetails: 'TokenDetails',
-    TabBar: 'TabBar',
-    Swaps: 'Swaps',
-  },
   useSwapBridgeNavigation: jest.fn(),
+  SwapBridgeNavigationLocation: {
+    MainView: 'Main View',
+    TokenView: 'Token View',
+    Rewards: 'Rewards',
+  },
 }));
 
 jest.mock('../util/buildTokenIconUrl', () => ({
@@ -171,10 +171,15 @@ describe('useOpenSwaps', () => {
 
     expect(mockDispatch).toHaveBeenCalledWith({
       type: 'bridge/setDestToken',
-      payload: expect.objectContaining({
+      payload: {
         address: '0xdead',
+        symbol: 'USDC',
+        name: 'USD Coin',
+        decimals: 6,
+        chainId: 'eip155:59144',
         image: 'icon-url',
-      }),
+        aggregators: [],
+      },
     });
 
     // goToSwaps is now called without arguments (sourceToken passed to hook)
@@ -246,10 +251,15 @@ describe('useOpenSwaps', () => {
 
     expect(mockDispatch).toHaveBeenCalledWith({
       type: 'bridge/setDestToken',
-      payload: expect.objectContaining({
+      payload: {
         address: '0xdead',
+        symbol: 'USDC',
+        name: 'USD Coin',
+        decimals: 6,
+        chainId: 'eip155:59144',
         image: 'icon-url',
-      }),
+        aggregators: [],
+      },
     });
 
     // goToSwaps is now called without arguments (sourceToken passed to hook)
@@ -273,7 +283,7 @@ describe('useOpenSwaps', () => {
 
   it('uses custom location and sourcePage when provided', () => {
     const customOptions = {
-      location: SwapBridgeNavigationLocation.TabBar,
+      location: SwapBridgeNavigationLocation.MainView,
       sourcePage: '/custom-page',
     };
 
@@ -326,6 +336,74 @@ describe('useOpenSwaps', () => {
 
     expect(useTokensWithBalance).toHaveBeenCalledWith({
       chainIds: mockChainIds,
+    });
+  });
+
+  it('handles undefined/null values in priorityToken fields correctly', () => {
+    (getHighestFiatToken as jest.Mock).mockReturnValue(mockTopToken);
+
+    const priorityTokenWithNull = {
+      address: null,
+      symbol: null,
+      name: null,
+      decimals: null,
+      chainId: '0xe708',
+      caipChainId: 'eip155:59144' as const,
+      allowanceState: 'enabled' as const,
+      allowance: '1000000',
+    };
+
+    const { result } = renderHook(() =>
+      useOpenSwaps({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        priorityToken: priorityTokenWithNull as any,
+      }),
+    );
+
+    act(() => {
+      result.current.openSwaps({});
+    });
+
+    expect(mockDispatch).toHaveBeenCalledWith({
+      type: 'bridge/setDestToken',
+      payload: {
+        address: '',
+        symbol: '',
+        name: '',
+        decimals: 0,
+        chainId: 'eip155:59144',
+        image: 'icon-url',
+        aggregators: [],
+      },
+    });
+
+    expect(buildTokenIconUrl).toHaveBeenCalledWith('eip155:59144', '');
+  });
+
+  it('constructs destToken with all required fields including aggregators', () => {
+    (getHighestFiatToken as jest.Mock).mockReturnValue(mockTopToken);
+
+    const { result } = renderHook(() =>
+      useOpenSwaps({ priorityToken: mockPriorityToken as CardTokenAllowance }),
+    );
+
+    act(() => {
+      result.current.openSwaps({});
+    });
+
+    const expectedDestToken = {
+      address: '0xdead',
+      symbol: 'USDC',
+      name: 'USD Coin',
+      decimals: 6,
+      chainId: 'eip155:59144',
+      image: 'icon-url',
+      aggregators: [],
+    };
+
+    expect(mockDispatch).toHaveBeenCalledWith({
+      type: 'bridge/setDestToken',
+      payload: expectedDestToken,
     });
   });
 });

@@ -31,7 +31,14 @@ export function getRampsControllerMessenger(
 
   rootMessenger.delegate({
     messenger,
-    actions: ['RampsService:getGeolocation'],
+    actions: [
+      'RampsService:getGeolocation',
+      'RampsService:getCountries',
+      'RampsService:getTokens',
+      'RampsService:getProviders',
+      'RampsService:getPaymentMethods',
+      'RampsService:getQuotes',
+    ],
     events: [],
   });
 

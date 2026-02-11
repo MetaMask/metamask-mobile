@@ -1,12 +1,14 @@
 // third party dependencies
 import { ImageSourcePropType, TouchableOpacity, View } from 'react-native';
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { ScrollView } from 'react-native-gesture-handler';
 import { FlashList, ListRenderItem } from '@shopify/flash-list';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { parseCaipChainId } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
+import { useSelector } from 'react-redux';
+import { formatChainIdToCaip } from '@metamask/bridge-controller';
 
 // external dependencies
 import { strings } from '../../../../locales/i18n';
@@ -25,6 +27,11 @@ import Text, {
 } from '../../../component-library/components/Texts/Text';
 import { isTestNet } from '../../../util/networks';
 import Routes from '../../../constants/navigation/Routes';
+import { selectEvmChainId } from '../../../selectors/networkController';
+import {
+  selectIsEvmNetworkSelected,
+  selectSelectedNonEvmNetworkChainId,
+} from '../../../selectors/multichainNetworkController';
 import hideProtocolFromUrl from '../../../util/hideProtocolFromUrl';
 import hideKeyFromUrl from '../../../util/hideKeyFromUrl';
 import {
@@ -52,6 +59,18 @@ const CustomNetworkSelector = ({
   const { styles } = useStyles(createStyles, {});
   const { navigate } = useNavigation();
   const safeAreaInsets = useSafeAreaInsets();
+
+  // Get the currently active network's chain ID in CAIP format
+  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
+  const evmChainId = useSelector(selectEvmChainId);
+  const nonEvmChainId = useSelector(selectSelectedNonEvmNetworkChainId);
+  const selectedChainIdCaip = useMemo(
+    () =>
+      isEvmSelected
+        ? formatChainIdToCaip(evmChainId)
+        : (nonEvmChainId ?? formatChainIdToCaip(evmChainId)),
+    [isEvmSelected, evmChainId, nonEvmChainId],
+  );
 
   // Use custom hooks for network management
   const { networks, areAllNetworksSelected } = useNetworksByNamespace({
@@ -103,10 +122,12 @@ const CustomNetworkSelector = ({
       };
 
       const handleMenuPress = () => {
+        // Don't allow deleting the active network or testnets
+        const isActiveNetwork = selectedChainIdCaip === caipChainId;
         openModal({
           isVisible: true,
           caipChainId,
-          displayEdit: !isTestNet(chainId),
+          displayEdit: !isTestNet(chainId) && !isActiveNetwork,
           networkTypeOrRpcUrl: networkTypeOrRpcUrl || '',
           isReadOnly: false,
         });
@@ -148,6 +169,7 @@ const CustomNetworkSelector = ({
       openRpcModal,
       createAvatarProps,
       styles.networkItem,
+      selectedChainIdCaip,
     ],
   );
 

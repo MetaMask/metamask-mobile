@@ -34,7 +34,7 @@ import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
 import { useMetrics } from '../../../components/hooks/useMetrics';
-import { DetectedTokensSelectorIDs } from '../../../../e2e/selectors/wallet/DetectedTokensView.selectors';
+import { DetectedTokensSelectorIDs } from './DetectedTokensView.testIds';
 import { TokenI } from '../../UI/Tokens/types';
 
 // TODO: Replace "any" with type

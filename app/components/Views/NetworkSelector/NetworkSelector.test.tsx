@@ -11,7 +11,7 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 // Internal dependencies
 import NetworkSelector from './NetworkSelector';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { NetworkListModalSelectorsIDs } from '../../../../e2e/selectors/Network/NetworkListModal.selectors';
+import { NetworkListModalSelectorsIDs } from './NetworkListModal.testIds';
 import { isNetworkUiRedesignEnabled } from '../../../util/networks/isNetworkUiRedesignEnabled';
 import { mockNetworkState } from '../../../util/test/network';
 

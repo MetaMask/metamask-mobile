@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Platform } from 'react-native';
 import { fontStyles } from '../../../styles/common';
 import { Colors } from 'app/util/theme/models';
 
@@ -13,7 +13,6 @@ const createStyles = (colors: Colors) =>
       backgroundColor: colors.background.default,
       paddingHorizontal: 16,
       paddingVertical: 16,
-      height: '85%',
     },
     bottomModal: {
       justifyContent: 'flex-end',
@@ -32,15 +31,21 @@ const createStyles = (colors: Colors) =>
     },
     boxContent: {
       backgroundColor: colors.background.default,
-      paddingVertical: 24,
       paddingTop: 0,
       borderWidth: 0,
+      alignItems: 'flex-start',
       paddingHorizontal: 16,
+      paddingVertical: 0,
+    },
+    modalFooterContainer: {
+      backgroundColor: colors.background.default,
+      borderWidth: 0,
+      paddingHorizontal: 16,
+      paddingTop: 24,
+      paddingBottom: Platform.OS === 'android' ? 0 : 16,
     },
     box: {
       backgroundColor: colors.background.default,
-      paddingHorizontal: 8,
-      paddingBottom: 20,
       borderWidth: 0,
       padding: 0,
       borderRadius: 8,
@@ -59,8 +64,10 @@ const createStyles = (colors: Colors) =>
     badge: {
       gap: 70,
     },
-    bottomContainer: {
-      bottom: 20,
+    buttonContainer: {
+      paddingHorizontal: 16,
+      paddingTop: 24,
+      paddingBottom: Platform.OS === 'android' ? 0 : 16,
     },
     assetIcon: {
       width: 32,
@@ -82,10 +89,6 @@ const createStyles = (colors: Colors) =>
     balanceSection: {
       position: 'absolute',
       right: 0,
-    },
-    button: {
-      paddingHorizontal: 16,
-      top: 16,
     },
   });
 

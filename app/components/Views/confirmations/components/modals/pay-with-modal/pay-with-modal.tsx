@@ -6,7 +6,7 @@ import { Asset } from '../../send/asset';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
 import { AssetType } from '../../../types/token';
 import { useTransactionPayRequiredTokens } from '../../../hooks/pay/useTransactionPayData';
 import { getAvailableTokens } from '../../../utils/transaction-pay';
@@ -14,28 +14,66 @@ import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTr
 import { TransactionType } from '@metamask/transaction-controller';
 import { hasTransactionType } from '../../../utils/transaction';
 import { useMusdConversionTokens } from '../../../../../UI/Earn/hooks/useMusdConversionTokens';
+import { HIDE_NETWORK_FILTER_TYPES } from '../../../constants/confirmations';
+import { useMusdPaymentToken } from '../../../../../UI/Earn/hooks/useMusdPaymentToken';
+import { usePerpsBalanceTokenFilter } from '../../../../../UI/Perps/hooks/usePerpsBalanceTokenFilter';
+import { usePerpsPaymentToken } from '../../../../../UI/Perps/hooks/usePerpsPaymentToken';
 
 export function PayWithModal() {
+  const transactionMeta = useTransactionMetadataRequest();
+  const hideNetworkFilter = hasTransactionType(
+    transactionMeta,
+    HIDE_NETWORK_FILTER_TYPES,
+  );
   const { payToken, setPayToken } = useTransactionPayToken();
   const requiredTokens = useTransactionPayRequiredTokens();
-  const transactionMeta = useTransactionMetadataRequest();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const { filterAllowedTokens: musdTokenFilter } = useMusdConversionTokens();
+  const { onPaymentTokenChange: onMusdPaymentTokenChange } =
+    useMusdPaymentToken();
+  const { onPaymentTokenChange: onPerpsPaymentTokenChange } =
+    usePerpsPaymentToken();
+  const perpsBalanceTokenFilter = usePerpsBalanceTokenFilter();
 
-  const handleClose = useCallback(() => {
-    bottomSheetRef.current?.onCloseBottomSheet();
+  const close = useCallback((onClosed?: () => void) => {
+    // Called after the bottom sheet's closing animation completes.
+    bottomSheetRef.current?.onCloseBottomSheet(onClosed);
   }, []);
 
   const handleTokenSelect = useCallback(
     (token: AssetType) => {
-      setPayToken({
-        address: token.address as Hex,
-        chainId: token.chainId as Hex,
-      });
+      const onClosed = () => {
+        if (
+          hasTransactionType(transactionMeta, [TransactionType.musdConversion])
+        ) {
+          onMusdPaymentTokenChange(token);
+          return;
+        }
 
-      handleClose();
+        if (
+          hasTransactionType(transactionMeta, [
+            TransactionType.perpsDepositAndOrder,
+          ])
+        ) {
+          onPerpsPaymentTokenChange(token);
+          return;
+        }
+
+        setPayToken({
+          address: token.address as Hex,
+          chainId: token.chainId as Hex,
+        });
+      };
+
+      close(onClosed);
     },
-    [handleClose, setPayToken],
+    [
+      close,
+      onMusdPaymentTokenChange,
+      onPerpsPaymentTokenChange,
+      setPayToken,
+      transactionMeta,
+    ],
   );
 
   const tokenFilter = useCallback(
@@ -52,9 +90,23 @@ export function PayWithModal() {
         return musdTokenFilter(availableTokens);
       }
 
+      if (
+        hasTransactionType(transactionMeta, [
+          TransactionType.perpsDepositAndOrder,
+        ])
+      ) {
+        return perpsBalanceTokenFilter(availableTokens);
+      }
+
       return availableTokens;
     },
-    [musdTokenFilter, payToken, requiredTokens, transactionMeta],
+    [
+      musdTokenFilter,
+      payToken,
+      requiredTokens,
+      transactionMeta,
+      perpsBalanceTokenFilter,
+    ],
   );
 
   return (
@@ -63,14 +115,18 @@ export function PayWithModal() {
       ref={bottomSheetRef}
       keyboardAvoidingViewEnabled={false}
     >
-      <BottomSheetHeader onClose={handleClose}>
-        {strings('pay_with_modal.title')}
-      </BottomSheetHeader>
+      <HeaderCompactStandard
+        title={strings('pay_with_modal.title')}
+        // HeaderCompactStandard close handler receives a press event; we must ignore it so it
+        // isn't forwarded to `onCloseBottomSheet` as the post-close callback.
+        onClose={() => close()}
+      />
       <Asset
         includeNoBalance
         hideNfts
         tokenFilter={tokenFilter}
         onTokenSelect={handleTokenSelect}
+        hideNetworkFilter={hideNetworkFilter}
       />
     </BottomSheet>
   );

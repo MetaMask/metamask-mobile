@@ -1,5 +1,5 @@
-import React, { useCallback, useMemo } from 'react';
-import { FlatList, Linking } from 'react-native';
+import React from 'react';
+import { FlatList } from 'react-native';
 import {
   Box,
   Text,
@@ -9,7 +9,6 @@ import {
   BoxFlexDirection,
   BoxAlignItems,
   TextColor,
-  IconName,
   IconSize,
   IconColor,
   ButtonVariant,
@@ -19,99 +18,19 @@ import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../../../locales/i18n';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { SwapSupportedNetworksSection } from './SwapSupportedNetworksSection';
+import ReferralStatsSummary from './ReferralStatsSummary';
 import MetamaskRewardsPointsImage from '../../../../../../../images/rewards/metamask-rewards-points.svg';
 import { ModalType } from '../../../../components/RewardsBottomSheetModal';
-import {
-  SwapBridgeNavigationLocation,
-  useSwapBridgeNavigation,
-} from '../../../../../Bridge/hooks/useSwapBridgeNavigation';
-import { useRampNavigation } from '../../../../../Ramp/hooks/useRampNavigation';
-import { toCaipAssetType } from '@metamask/utils';
 import { useSelector } from 'react-redux';
-import { selectIsFirstTimePerpsUser } from '../../../../../Perps/selectors/perpsController';
-import {
-  selectRewardsCardSpendFeatureFlags,
-  selectRewardsMusdDepositEnabledFlag,
-} from '../../../../../../../selectors/featureFlagController/rewards';
-import { selectMusdHoldingEnabledFlag } from '../../../../../../../selectors/featureFlagController/rewards/rewardsEnabled';
-import { selectPredictEnabledFlag } from '../../../../../Predict/selectors/featureFlags';
-import { PredictEventValues } from '../../../../../Predict/constants/eventNames';
 import {
   MetaMetricsEvents,
   useMetrics,
 } from '../../../../../../hooks/useMetrics';
 import { RewardsMetricsButtons } from '../../../../utils';
-import { NETWORKS_CHAIN_ID } from '../../../../../../../constants/network';
-import { getDecimalChainId } from '../../../../../../../util/networks';
-
-export enum WayToEarnType {
-  SWAPS = 'swaps',
-  PERPS = 'perps',
-  REFERRALS = 'referrals',
-  LOYALTY = 'loyalty',
-  PREDICT = 'predict',
-  CARD = 'card',
-  DEPOSIT_MUSD = 'deposit_musd',
-  HOLD_MUSD = 'hold_musd',
-}
-
-interface WayToEarn {
-  type: WayToEarnType;
-  title: string;
-  description: string;
-  icon: string;
-}
-
-const waysToEarn: WayToEarn[] = [
-  {
-    type: WayToEarnType.SWAPS,
-    title: strings('rewards.ways_to_earn.swap.title'),
-    description: strings('rewards.ways_to_earn.swap.description'),
-    icon: IconName.SwapVertical,
-  },
-  {
-    type: WayToEarnType.PERPS,
-    title: strings('rewards.ways_to_earn.perps.title'),
-    description: strings('rewards.ways_to_earn.perps.description'),
-    icon: IconName.Candlestick,
-  },
-  {
-    type: WayToEarnType.PREDICT,
-    title: strings('rewards.ways_to_earn.predict.title'),
-    description: strings('rewards.ways_to_earn.predict.description'),
-    icon: IconName.Speedometer,
-  },
-  {
-    type: WayToEarnType.REFERRALS,
-    title: strings('rewards.ways_to_earn.referrals.title'),
-    description: strings('rewards.ways_to_earn.referrals.description'),
-    icon: IconName.UserCircleAdd,
-  },
-  {
-    type: WayToEarnType.LOYALTY,
-    title: strings('rewards.ways_to_earn.loyalty.title'),
-    description: strings('rewards.ways_to_earn.loyalty.description'),
-    icon: IconName.Gift,
-  },
-  {
-    type: WayToEarnType.CARD,
-    title: strings('rewards.ways_to_earn.card.title'),
-    description: strings('rewards.ways_to_earn.card.description'),
-    icon: IconName.Card,
-  },
-  {
-    type: WayToEarnType.DEPOSIT_MUSD,
-    title: strings('rewards.ways_to_earn.deposit_musd.title'),
-    description: strings('rewards.ways_to_earn.deposit_musd.description'),
-    icon: IconName.Coin,
-  },
-  {
-    type: WayToEarnType.HOLD_MUSD,
-    title: strings('rewards.ways_to_earn.hold_musd.title'),
-    description: strings('rewards.ways_to_earn.hold_musd.description'),
-    icon: IconName.Coin,
-  },
-];
+import { selectSeasonWaysToEarn } from '../../../../../../../reducers/rewards/selectors';
+import { getIconName } from '../../../../utils/formatUtils';
+import { SeasonWayToEarnDto } from '../../../../../../../core/Engine/controllers/rewards-controller/types';
+import { handleDeeplink } from '../../../../../../../core/DeeplinkManager';
 
 const Separator = () => <Box twClassName="border-b border-muted" />;
 
@@ -139,196 +58,66 @@ const WaysToEarnSheetTitle = ({
   </>
 );
 
-const getBottomSheetData = (type: WayToEarnType) => {
-  switch (type) {
-    case WayToEarnType.SWAPS:
-      return {
-        title: (
-          <WaysToEarnSheetTitle
-            title={strings('rewards.ways_to_earn.swap.sheet.title')}
-            points={strings('rewards.ways_to_earn.swap.sheet.points')}
-          />
-        ),
-        description: (
-          <Box twClassName="flex flex-col gap-8">
-            <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
-              {strings('rewards.ways_to_earn.swap.sheet.description')}
-            </Text>
-            <SwapSupportedNetworksSection />
-          </Box>
-        ),
-        ctaLabel: strings('rewards.ways_to_earn.swap.sheet.cta_label'),
-      };
-    case WayToEarnType.PERPS:
-      return {
-        title: (
-          <WaysToEarnSheetTitle
-            title={strings('rewards.ways_to_earn.perps.sheet.title')}
-            points={strings('rewards.ways_to_earn.perps.sheet.points')}
-          />
-        ),
-        description: (
-          <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
-            {strings('rewards.ways_to_earn.perps.sheet.description')}
-          </Text>
-        ),
-        ctaLabel: strings('rewards.ways_to_earn.perps.sheet.cta_label'),
-      };
-    case WayToEarnType.LOYALTY:
-      return {
-        title: (
-          <WaysToEarnSheetTitle
-            title={strings('rewards.ways_to_earn.loyalty.sheet.title')}
-            points={strings('rewards.ways_to_earn.loyalty.sheet.points')}
-          />
-        ),
-        description: (
-          <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
-            {strings('rewards.ways_to_earn.loyalty.sheet.description')}
-          </Text>
-        ),
-        ctaLabel: strings('rewards.ways_to_earn.loyalty.sheet.cta_label'),
-      };
-    case WayToEarnType.PREDICT:
-      return {
-        title: (
-          <WaysToEarnSheetTitle
-            title={strings('rewards.ways_to_earn.predict.sheet.title')}
-            points={strings('rewards.ways_to_earn.predict.sheet.points')}
-          />
-        ),
-        description: (
-          <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
-            {strings('rewards.ways_to_earn.predict.sheet.description')}
-          </Text>
-        ),
-        ctaLabel: strings('rewards.ways_to_earn.predict.sheet.cta_label'),
-      };
-    case WayToEarnType.CARD:
-      return {
-        title: (
-          <WaysToEarnSheetTitle
-            title={strings('rewards.ways_to_earn.card.sheet.title')}
-            points={strings('rewards.ways_to_earn.card.sheet.points')}
-          />
-        ),
-        description: (
-          <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
-            {strings('rewards.ways_to_earn.card.sheet.description')}
-          </Text>
-        ),
-        ctaLabel: strings('rewards.ways_to_earn.card.sheet.cta_label'),
-      };
-    case WayToEarnType.DEPOSIT_MUSD:
-      return {
-        title: (
-          <WaysToEarnSheetTitle
-            title={strings('rewards.ways_to_earn.deposit_musd.sheet.title')}
-            points={strings('rewards.ways_to_earn.deposit_musd.sheet.points')}
-          />
-        ),
-        description: (
-          <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
-            {strings('rewards.ways_to_earn.deposit_musd.sheet.description')}
-          </Text>
-        ),
-        ctaLabel: strings('rewards.ways_to_earn.deposit_musd.sheet.cta_label'),
-      };
-    case WayToEarnType.HOLD_MUSD:
-      return {
-        title: (
-          <WaysToEarnSheetTitle
-            title={strings('rewards.ways_to_earn.hold_musd.sheet.title')}
-            points={strings('rewards.ways_to_earn.hold_musd.sheet.points')}
-          />
-        ),
-        description: (
-          <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
-            {strings('rewards.ways_to_earn.hold_musd.sheet.description')}
-          </Text>
-        ),
-        ctaLabel: strings('rewards.ways_to_earn.hold_musd.sheet.cta_label'),
-      };
-    default:
-      throw new Error(`Unknown earning way type: ${type}`);
-  }
-};
+const getBottomSheetData = (wayToEarn: SeasonWayToEarnDto) => ({
+  title: (
+    <WaysToEarnSheetTitle
+      title={wayToEarn.bottomSheetTitle}
+      points={wayToEarn.pointsEarningRule}
+    />
+  ),
+  description: (
+    <Box twClassName="flex flex-col gap-4">
+      <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
+        {wayToEarn.description}
+      </Text>
+      {wayToEarn.specificContent &&
+        'supportedNetworks' in wayToEarn.specificContent && (
+          <SwapSupportedNetworksSection {...wayToEarn.specificContent} />
+        )}
+      {wayToEarn.specificContent &&
+        'referralPointsTitle' in wayToEarn.specificContent && (
+          <ReferralStatsSummary {...wayToEarn.specificContent} />
+        )}
+    </Box>
+  ),
+  ctaLabel: wayToEarn.buttonLabel,
+});
 
 export const WaysToEarn = () => {
   const navigation = useNavigation();
-  const isFirstTimePerpsUser = useSelector(selectIsFirstTimePerpsUser);
-  const isCardSpendEnabled = useSelector(selectRewardsCardSpendFeatureFlags);
-  const isPredictEnabled = useSelector(selectPredictEnabledFlag);
-  const isMusdDepositEnabled = useSelector(selectRewardsMusdDepositEnabledFlag);
-  const isMusdHoldingEnabled = useSelector(selectMusdHoldingEnabledFlag);
   const { trackEvent, createEventBuilder } = useMetrics();
+  const seasonWaysToEarn = useSelector(selectSeasonWaysToEarn);
 
-  // Use the swap/bridge navigation hook
-  const { goToSwaps } = useSwapBridgeNavigation({
-    location: SwapBridgeNavigationLocation.Rewards,
-    sourcePage: 'rewards_overview',
-  });
-
-  // Create CAIP-19 assetId for mUSD to use with buy page
-  const musdAssetId = useMemo(() => {
-    const chainId = NETWORKS_CHAIN_ID.LINEA_MAINNET;
-    const address = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
-    const decimalChainId = getDecimalChainId(chainId);
-    return toCaipAssetType('eip155', decimalChainId, 'erc20', address);
-  }, []);
-
-  const { goToBuy } = useRampNavigation();
-
-  const goToPerps = useCallback(() => {
-    if (isFirstTimePerpsUser) {
-      navigation.navigate(Routes.PERPS.TUTORIAL);
-    } else {
-      navigation.navigate(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.PERPS_HOME,
-      });
-    }
-  }, [navigation, isFirstTimePerpsUser]);
-
-  const handleCTAPress = async (type: WayToEarnType) => {
+  const handleCTAPress = async (wayToEarn: SeasonWayToEarnDto) => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.REWARDS_WAYS_TO_EARN_CTA_CLICKED)
         .addProperties({
-          ways_to_earn_type: type,
+          ways_to_earn_type: wayToEarn.type,
         })
         .build(),
     );
     navigation.goBack(); // Close the modal first
-    switch (type) {
-      case WayToEarnType.SWAPS:
-        goToSwaps();
-        break;
-      case WayToEarnType.PERPS:
-        goToPerps();
-        break;
-      case WayToEarnType.LOYALTY:
-        navigation.navigate(Routes.REWARDS_SETTINGS_VIEW);
-        break;
-      case WayToEarnType.PREDICT:
-        navigation.navigate(Routes.PREDICT.ROOT, {
-          screen: Routes.PREDICT.MARKET_LIST,
-          params: {
-            entryPoint: PredictEventValues.ENTRY_POINT.REWARDS,
-          },
-        });
-        break;
-      case WayToEarnType.CARD:
-        navigation.navigate(Routes.CARD.ROOT);
-        break;
-      case WayToEarnType.DEPOSIT_MUSD:
-        Linking.openURL('https://go.metamask.io/turtle-musd');
-        break;
-      case WayToEarnType.HOLD_MUSD:
-        goToBuy({ assetId: musdAssetId });
-        break;
+
+    const { deeplink, url, route } = wayToEarn.buttonAction || {};
+    const { root, screen } = route || {};
+
+    // Handle deeplink, route name and url in order
+    if (deeplink) {
+      handleDeeplink({ uri: deeplink });
+    } else if (root) {
+      navigation.navigate(root, screen ? { screen } : undefined);
+    } else if (url) {
+      navigation.navigate(Routes.BROWSER.HOME, {
+        screen: Routes.BROWSER.VIEW,
+        params: {
+          newTabUrl: url,
+          timestamp: Date.now(),
+        },
+      });
     }
   };
 
-  const handleEarningWayPress = (wayToEarn: WayToEarn) => {
+  const handleEarningWayPress = (wayToEarn: SeasonWayToEarnDto) => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.REWARDS_PAGE_BUTTON_CLICKED)
         .addProperties({
@@ -337,38 +126,22 @@ export const WaysToEarn = () => {
         })
         .build(),
     );
-    switch (wayToEarn.type) {
-      case WayToEarnType.SWAPS:
-      case WayToEarnType.LOYALTY:
-      case WayToEarnType.PERPS:
-      case WayToEarnType.PREDICT:
-      case WayToEarnType.CARD:
-      case WayToEarnType.DEPOSIT_MUSD:
-      case WayToEarnType.HOLD_MUSD: {
-        const { title, description, ctaLabel } = getBottomSheetData(
-          wayToEarn.type,
-        );
-        navigation.navigate(Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL, {
-          title,
-          description,
-          showIcon: false,
-          type: ModalType.Confirmation,
-          confirmAction: {
-            label: ctaLabel,
-            onPress: () => {
-              handleCTAPress(wayToEarn.type);
-            },
-            variant: ButtonVariant.Primary,
-          },
-          showCancelButton: false,
-        });
-        break;
-      }
-      case WayToEarnType.REFERRALS: {
-        navigation.navigate(Routes.MODAL.REWARDS_REFERRAL_BOTTOM_SHEET_MODAL);
-        break;
-      }
-    }
+
+    const { title, description, ctaLabel } = getBottomSheetData(wayToEarn);
+    navigation.navigate(Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL, {
+      title,
+      description,
+      showIcon: false,
+      type: ModalType.Confirmation,
+      confirmAction: {
+        label: ctaLabel,
+        onPress: () => {
+          handleCTAPress(wayToEarn);
+        },
+        variant: ButtonVariant.Primary,
+      },
+      showCancelButton: false,
+    });
   };
 
   return (
@@ -380,25 +153,8 @@ export const WaysToEarn = () => {
       <Box twClassName="rounded-xl bg-muted">
         <FlatList
           horizontal={false}
-          data={waysToEarn.filter((wte) => {
-            if (wte.type === WayToEarnType.CARD && !isCardSpendEnabled) {
-              return false;
-            }
-            if (wte.type === WayToEarnType.PREDICT && !isPredictEnabled) {
-              return false;
-            }
-            if (
-              wte.type === WayToEarnType.DEPOSIT_MUSD &&
-              !isMusdDepositEnabled
-            ) {
-              return false;
-            }
-            if (wte.type === WayToEarnType.HOLD_MUSD && !isMusdHoldingEnabled) {
-              return false;
-            }
-            return true;
-          })}
-          keyExtractor={(wayToEarn) => wayToEarn.title}
+          data={seasonWaysToEarn}
+          keyExtractor={(wayToEarn) => wayToEarn.id}
           ItemSeparatorComponent={Separator}
           scrollEnabled={false}
           renderItem={({ item: wayToEarn }) => (
@@ -414,7 +170,7 @@ export const WaysToEarn = () => {
                 <Box twClassName="mr-3 h-10 w-10 items-center justify-center rounded-full bg-muted">
                   <Icon
                     color={IconColor.IconAlternative}
-                    name={wayToEarn.icon as IconName}
+                    name={getIconName(wayToEarn.icon)}
                     size={IconSize.Lg}
                   />
                 </Box>
@@ -431,7 +187,7 @@ export const WaysToEarn = () => {
                     fontWeight={FontWeight.Medium}
                     color={TextColor.TextAlternative}
                   >
-                    {wayToEarn.description}
+                    {wayToEarn.shortDescription}
                   </Text>
                 </Box>
               </Box>

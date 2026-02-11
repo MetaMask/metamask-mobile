@@ -6,20 +6,19 @@ import {
   usePerpsLiveFills,
 } from './stream';
 import { usePerpsMarkets } from './usePerpsMarkets';
-import type {
-  Position,
-  Order,
-  PerpsMarketData,
-  OrderFill,
-} from '../controllers/types';
+import {
+  MARKET_SORTING_CONFIG,
+  sortMarkets,
+  type Position,
+  type Order,
+  type PerpsMarketData,
+  type OrderFill,
+  type SortField,
+} from '@metamask/perps-controller';
 import type { PerpsTransaction } from '../types/transactionHistory';
 import { transformFillsToTransactions } from '../utils/transactionTransforms';
 import Engine from '../../../../core/Engine';
-import {
-  HOME_SCREEN_CONFIG,
-  MARKET_SORTING_CONFIG,
-} from '../constants/perpsConfig';
-import { sortMarkets, type SortField } from '../utils/sortMarkets';
+import { HOME_SCREEN_CONFIG } from '../constants/perpsConfig';
 import {
   selectPerpsWatchlistMarkets,
   selectPerpsMarketFilterPreferences,
@@ -59,10 +58,10 @@ interface UsePerpsHomeDataReturn {
  * Uses object parameters pattern for maintainability
  */
 export const usePerpsHomeData = ({
-  positionsLimit = HOME_SCREEN_CONFIG.POSITIONS_CAROUSEL_LIMIT,
-  ordersLimit = HOME_SCREEN_CONFIG.ORDERS_CAROUSEL_LIMIT,
-  trendingLimit = HOME_SCREEN_CONFIG.TRENDING_MARKETS_LIMIT,
-  activityLimit = HOME_SCREEN_CONFIG.RECENT_ACTIVITY_LIMIT,
+  positionsLimit = HOME_SCREEN_CONFIG.PositionsCarouselLimit,
+  ordersLimit = HOME_SCREEN_CONFIG.OrdersCarouselLimit,
+  trendingLimit = HOME_SCREEN_CONFIG.TrendingMarketsLimit,
+  activityLimit = HOME_SCREEN_CONFIG.RecentActivityLimit,
   searchQuery = '',
 }: UsePerpsHomeDataParams = {}): UsePerpsHomeDataReturn => {
   // Fetch positions via WebSocket with throttling for performance
@@ -165,16 +164,15 @@ export const usePerpsHomeData = ({
     [allMarkets, watchlistSymbols],
   );
 
-  // Derive sort field and direction from saved preference
+  // Derive sort field from saved preference
   const { sortBy, direction } = useMemo(() => {
-    const sortOption = MARKET_SORTING_CONFIG.SORT_OPTIONS.find(
-      (opt) => opt.id === savedSortPreference,
+    const sortOption = MARKET_SORTING_CONFIG.SortOptions.find(
+      (opt) => opt.id === savedSortPreference.optionId,
     );
 
     return {
-      sortBy: sortOption?.field ?? MARKET_SORTING_CONFIG.SORT_FIELDS.VOLUME,
-      direction:
-        sortOption?.direction ?? MARKET_SORTING_CONFIG.DEFAULT_DIRECTION,
+      sortBy: sortOption?.field ?? MARKET_SORTING_CONFIG.SortFields.Volume,
+      direction: savedSortPreference.direction,
     };
   }, [savedSortPreference]);
 
@@ -257,9 +255,9 @@ export const usePerpsHomeData = ({
       const lowerQuery = query.toLowerCase().trim();
 
       return {
-        // Position only has 'coin' field (no 'symbol')
+        // Position has 'symbol' field
         positions: positions.filter((pos: Position) =>
-          pos.coin?.toLowerCase().includes(lowerQuery),
+          pos.symbol?.toLowerCase().includes(lowerQuery),
         ),
         // Order only has 'symbol' field (no 'coin')
         orders: allOrders.filter((order: Order) =>

@@ -1,5 +1,5 @@
-import React, { useMemo } from 'react';
-import { View } from 'react-native';
+import React from 'react';
+import { TouchableOpacity, View } from 'react-native';
 import styleSheet from './MusdConversionAssetListCta.styles';
 import Text, {
   TextVariant,
@@ -11,23 +11,24 @@ import {
   ButtonVariant,
 } from '@metamask/design-system-react-native';
 import {
-  MUSD_CONVERSION_DEFAULT_CHAIN_ID,
+  MUSD_CONVERSION_APY,
   MUSD_TOKEN,
   MUSD_TOKEN_ASSET_ID_BY_CHAIN,
 } from '../../../constants/musd';
-import { toHex } from '@metamask/controller-utils';
 import { useRampNavigation } from '../../../../Ramp/hooks/useRampNavigation';
 import { RampIntent } from '../../../../Ramp/types';
 import { strings } from '../../../../../../../locales/i18n';
 import { EARN_TEST_IDS } from '../../../constants/testIds';
 import Logger from '../../../../../../util/Logger';
 import { useStyles } from '../../../../../hooks/useStyles';
-import { useMusdConversionTokens } from '../../../hooks/useMusdConversionTokens';
 import { useMusdConversion } from '../../../hooks/useMusdConversion';
-import { useMusdCtaVisibility } from '../../../hooks/useMusdCtaVisibility';
+import {
+  BUY_GET_MUSD_CTA_VARIANT,
+  useMusdCtaVisibility,
+} from '../../../hooks/useMusdCtaVisibility';
+import { useMusdConversionFlowData } from '../../../hooks/useMusdConversionFlowData';
 import AvatarToken from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import { AvatarSize } from '../../../../../../component-library/components/Avatars/Avatar';
-import { toChecksumAddress } from '../../../../../../util/address';
 import Badge, {
   BadgeVariant,
 } from '../../../../../../component-library/components/Badges/Badge';
@@ -35,60 +36,100 @@ import BadgeWrapper, {
   BadgePosition,
 } from '../../../../../../component-library/components/Badges/BadgeWrapper';
 import { getNetworkImageSource } from '../../../../../../util/networks';
+import { MetaMetricsEvents, useMetrics } from '../../../../../hooks/useMetrics';
+import { MUSD_EVENTS_CONSTANTS } from '../../../constants/events';
+import { useNetworkName } from '../../../../../Views/confirmations/hooks/useNetworkName';
+
+enum CTA_CLICK_TARGET {
+  CTA_BUTTON = 'cta_button',
+  CTA_TEXT_LINK = 'cta_text_link',
+}
 
 const MusdConversionAssetListCta = () => {
   const { styles } = useStyles(styleSheet, {});
 
   const { goToBuy } = useRampNavigation();
 
-  const { tokens, getMusdOutputChainId } = useMusdConversionTokens();
+  const { getPaymentTokenForSelectedNetwork, getChainIdForBuyFlow } =
+    useMusdConversionFlowData();
 
-  const { initiateConversion } = useMusdConversion();
+  const { initiateConversion, hasSeenConversionEducationScreen } =
+    useMusdConversion();
 
-  const { shouldShowCta, showNetworkIcon, selectedChainId } =
-    useMusdCtaVisibility();
+  const { shouldShowBuyGetMusdCta } = useMusdCtaVisibility();
 
-  const canConvert = useMemo(
-    () => Boolean(tokens.length > 0 && tokens?.[0]?.chainId !== undefined),
-    [tokens],
-  );
+  const { trackEvent, createEventBuilder } = useMetrics();
 
-  const ctaText = useMemo(() => {
-    if (!canConvert) {
-      return strings('earn.musd_conversion.buy_musd');
-    }
+  const { shouldShowCta, showNetworkIcon, selectedChainId, variant } =
+    shouldShowBuyGetMusdCta();
 
-    return strings('earn.musd_conversion.get_musd');
-  }, [canConvert]);
+  const networkName = useNetworkName(selectedChainId ?? undefined);
 
-  const handlePress = async () => {
-    // Redirect users to deposit flow if they don't have any stablecoins to convert.
-    if (!canConvert) {
+  const buttonText =
+    variant === BUY_GET_MUSD_CTA_VARIANT.BUY
+      ? strings('earn.musd_conversion.buy_musd')
+      : strings('earn.musd_conversion.get_musd');
+
+  const submitCtaPressedEvent = (source: CTA_CLICK_TARGET) => {
+    const { MUSD_CTA_TYPES, EVENT_LOCATIONS } = MUSD_EVENTS_CONSTANTS;
+
+    const getRedirectLocation = () => {
+      if (variant === BUY_GET_MUSD_CTA_VARIANT.BUY) {
+        return EVENT_LOCATIONS.BUY_SCREEN;
+      }
+
+      return hasSeenConversionEducationScreen
+        ? EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN
+        : EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN;
+    };
+
+    const ctaText =
+      source === CTA_CLICK_TARGET.CTA_BUTTON
+        ? buttonText
+        : strings('earn.earn_a_percentage_bonus', {
+            percentage: MUSD_CONVERSION_APY,
+          });
+
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.MUSD_CONVERSION_CTA_CLICKED)
+        .addProperties({
+          location: EVENT_LOCATIONS.HOME_SCREEN,
+          redirects_to: getRedirectLocation(),
+          cta_type: MUSD_CTA_TYPES.PRIMARY,
+          cta_text: ctaText,
+          cta_click_target: source,
+          network_chain_id: selectedChainId,
+          network_name: networkName ?? strings('wallet.popular_networks'),
+        })
+        .build(),
+    );
+  };
+
+  const handlePress = async (source: CTA_CLICK_TARGET) => {
+    submitCtaPressedEvent(source);
+
+    if (variant === BUY_GET_MUSD_CTA_VARIANT.BUY) {
+      const chainId = getChainIdForBuyFlow();
       const rampIntent: RampIntent = {
-        assetId:
-          MUSD_TOKEN_ASSET_ID_BY_CHAIN[
-            selectedChainId || MUSD_CONVERSION_DEFAULT_CHAIN_ID
-          ],
+        assetId: MUSD_TOKEN_ASSET_ID_BY_CHAIN[chainId],
       };
       goToBuy(rampIntent);
       return;
     }
 
-    const { address, chainId: paymentTokenChainId } = tokens[0];
+    const paymentToken = getPaymentTokenForSelectedNetwork();
 
-    if (!paymentTokenChainId) {
-      throw new Error('[mUSD Conversion] payment token chainID missing');
+    if (!paymentToken) {
+      Logger.error(
+        new Error('[mUSD Conversion] payment token missing'),
+        '[mUSD Conversion] Failed to initiate conversion - no payment token',
+      );
+      return;
     }
-
-    const paymentTokenAddress = toChecksumAddress(address);
 
     try {
       await initiateConversion({
-        preferredPaymentToken: {
-          address: paymentTokenAddress,
-          chainId: toHex(paymentTokenChainId),
-        },
-        outputChainId: getMusdOutputChainId(paymentTokenChainId),
+        preferredPaymentToken: paymentToken,
       });
     } catch (error) {
       Logger.error(
@@ -139,19 +180,25 @@ const MusdConversionAssetListCta = () => {
           <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
             MetaMask USD
           </Text>
-          <Text variant={TextVariant.BodySMMedium} color={TextColor.Success}>
-            {strings('earn.musd_conversion.earn_points_daily')}
-          </Text>
+          <TouchableOpacity
+            onPress={() => handlePress(CTA_CLICK_TARGET.CTA_TEXT_LINK)}
+          >
+            <Text variant={TextVariant.BodySMMedium} color={TextColor.Primary}>
+              {strings('earn.earn_a_percentage_bonus', {
+                percentage: MUSD_CONVERSION_APY,
+              })}
+            </Text>
+          </TouchableOpacity>
         </View>
       </View>
 
       <Button
         variant={ButtonVariant.Secondary}
-        onPress={handlePress}
+        onPress={() => handlePress(CTA_CLICK_TARGET.CTA_BUTTON)}
         size={ButtonSize.Sm}
       >
         <Text variant={TextVariant.BodySMMedium} color={TextColor.Default}>
-          {ctaText}
+          {buttonText}
         </Text>
       </Button>
     </View>

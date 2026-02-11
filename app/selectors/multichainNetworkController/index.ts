@@ -5,6 +5,7 @@ import {
   MULTICHAIN_NETWORK_TICKER,
   MultichainNetworkControllerState,
   type MultichainNetworkConfiguration,
+  getDefaultMultichainNetworkControllerState,
 } from '@metamask/multichain-network-controller';
 import { toHex } from '@metamask/controller-utils';
 import { CaipChainId, Json } from '@metamask/utils';
@@ -25,7 +26,8 @@ import { selectIsBitcoinTestnetEnabled } from '../featureFlagController/bitcoinT
 ///: END:ONLY_INCLUDE_IF
 
 export const selectMultichainNetworkControllerState = (state: RootState) =>
-  state.engine.backgroundState?.MultichainNetworkController;
+  state.engine.backgroundState?.MultichainNetworkController ??
+  getDefaultMultichainNetworkControllerState();
 
 export const selectIsEvmNetworkSelected = createSelector(
   selectMultichainNetworkControllerState,

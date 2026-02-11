@@ -104,6 +104,7 @@ describe('useBridgeQuoteEvents', () => {
         price_impact: -0.001991570073761955,
         provider: 'lifi_jupiter',
         quoted_time_minutes: 0.08333333333333333,
+        usd_balance_source: 0,
         usd_quoted_gas: 0,
         usd_quoted_return: 0,
         warnings,

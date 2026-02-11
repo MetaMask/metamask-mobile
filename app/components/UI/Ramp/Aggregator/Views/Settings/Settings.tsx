@@ -1,10 +1,10 @@
-// Third party dependencies
 import React, { useCallback, useEffect } from 'react';
 import { KeyboardAvoidingView, Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
-// External dependencies
 import { useRampSDK, withRampSDK } from '../../sdk';
+import useRampsUnifiedV2Enabled from '../../../hooks/useRampsUnifiedV2Enabled';
+import useRampsController from '../../../hooks/useRampsController';
 import ScreenLayout from '../../components/ScreenLayout';
 import Row from '../../components/Row';
 import Text, {
@@ -20,21 +20,23 @@ import { strings } from '../../../../../../../locales/i18n';
 import { useAppTheme } from '../../../../../../util/theme';
 import { getNavigationOptionsTitle } from '../../../../Navbar';
 import useAnalytics from '../../../hooks/useAnalytics';
+import Routes from '../../../../../../constants/navigation/Routes';
 
-// Internal dependencies
 import ActivationKeys from './ActivationKeys';
-
-import styles from './Settings.styles';
 
 import ListItem from '../../../../../../component-library/components/List/ListItem';
 import ListItemColumn from '../../../../../../component-library/components/List/ListItemColumn';
 
+import styles from './Settings.styles';
+
 function Settings() {
   const navigation = useNavigation();
-  const { selectedRegion, setSelectedRegion, isInternalBuild } = useRampSDK();
+  const { isInternalBuild, selectedRegion, setSelectedRegion } = useRampSDK();
+  const isRampsUnifiedV2Enabled = useRampsUnifiedV2Enabled();
   const { colors } = useAppTheme();
-  const style = styles();
   const trackEvent = useAnalytics();
+  const { userRegion } = useRampsController();
+  const style = styles();
 
   useEffect(() => {
     navigation.setOptions(
@@ -54,6 +56,10 @@ function Settings() {
     setSelectedRegion(null);
   }, [setSelectedRegion, trackEvent]);
 
+  const handleChangeRegion = useCallback(() => {
+    navigation.navigate(Routes.SETTINGS.REGION_SELECTOR);
+  }, [navigation]);
+
   return (
     <KeyboardAvoidingView
       style={style.container}
@@ -62,33 +68,63 @@ function Settings() {
       <ScreenLayout scrollable>
         <ScreenLayout.Body>
           <ScreenLayout.Content>
-            <Row first>
-              <Text variant={TextVariant.BodyLGMedium}>
-                {strings('app_settings.fiat_on_ramp.current_region')}
-              </Text>
+            {isRampsUnifiedV2Enabled ? (
+              <Row first>
+                <Text variant={TextVariant.BodyLGMedium}>
+                  {strings('app_settings.fiat_on_ramp.current_region')}
+                </Text>
 
-              <ListItem>
-                <ListItemColumn>
-                  <Text>{selectedRegion ? selectedRegion.emoji : '🏳️'}</Text>
-                </ListItemColumn>
-                <ListItemColumn>
-                  <Text>
-                    {selectedRegion
-                      ? selectedRegion.name
-                      : strings('app_settings.fiat_on_ramp.no_region_selected')}
-                  </Text>
-                </ListItemColumn>
-              </ListItem>
-              {selectedRegion ? (
+                <ListItem>
+                  <ListItemColumn>
+                    <Text>{userRegion?.country?.flag || '🏳️'}</Text>
+                  </ListItemColumn>
+                  <ListItemColumn>
+                    <Text>
+                      {userRegion?.state?.name ||
+                        userRegion?.country?.name ||
+                        strings('app_settings.fiat_on_ramp.no_region_selected')}
+                    </Text>
+                  </ListItemColumn>
+                </ListItem>
                 <Button
-                  variant={ButtonVariants.Secondary}
+                  variant={ButtonVariants.Primary}
                   size={ButtonSize.Lg}
                   width={ButtonWidthTypes.Full}
-                  onPress={handleResetRegion}
-                  label={strings('app_settings.fiat_on_ramp.reset_region')}
+                  onPress={handleChangeRegion}
+                  label={strings('app_settings.fiat_on_ramp.change_region')}
                 />
-              ) : null}
-            </Row>
+              </Row>
+            ) : (
+              <Row first>
+                <Text variant={TextVariant.BodyLGMedium}>
+                  {strings('app_settings.fiat_on_ramp.current_region')}
+                </Text>
+
+                <ListItem>
+                  <ListItemColumn>
+                    <Text>{selectedRegion ? selectedRegion.emoji : '🏳️'}</Text>
+                  </ListItemColumn>
+                  <ListItemColumn>
+                    <Text>
+                      {selectedRegion
+                        ? selectedRegion.name
+                        : strings(
+                            'app_settings.fiat_on_ramp.no_region_selected',
+                          )}
+                    </Text>
+                  </ListItemColumn>
+                </ListItem>
+                {selectedRegion ? (
+                  <Button
+                    variant={ButtonVariants.Secondary}
+                    size={ButtonSize.Lg}
+                    width={ButtonWidthTypes.Full}
+                    onPress={handleResetRegion}
+                    label={strings('app_settings.fiat_on_ramp.reset_region')}
+                  />
+                ) : null}
+              </Row>
+            )}
             {isInternalBuild ? (
               <Row>
                 <ActivationKeys />

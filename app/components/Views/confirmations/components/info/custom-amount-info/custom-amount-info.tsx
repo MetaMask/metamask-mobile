@@ -4,6 +4,7 @@ import { PayWithRow, PayWithRowSkeleton } from '../../rows/pay-with-row';
 import { BridgeFeeRow } from '../../rows/bridge-fee-row';
 import { BridgeTimeRow } from '../../rows/bridge-time-row';
 import { TotalRow } from '../../rows/total-row';
+import { PercentageRow } from '../../rows/percentage-row';
 import {
   DepositKeyboard,
   DepositKeyboardSkeleton,
@@ -27,8 +28,8 @@ import {
   useIsTransactionPayLoading,
   useTransactionPayQuotes,
   useTransactionPayRequiredTokens,
-  useTransactionPaySourceAmounts,
 } from '../../../hooks/pay/useTransactionPayData';
+import { useTransactionPayHasSourceAmount } from '../../../hooks/pay/useTransactionPayHasSourceAmount';
 import { useTransactionPayMetrics } from '../../../hooks/pay/useTransactionPayMetrics';
 import { useTransactionPayAvailableTokens } from '../../../hooks/pay/useTransactionPayAvailableTokens';
 import Text, {
@@ -37,7 +38,6 @@ import Text, {
 } from '../../../../../../component-library/components/Texts/Text';
 import { useRampNavigation } from '../../../../../UI/Ramp/hooks/useRampNavigation';
 import { useAccountTokens } from '../../../hooks/send/useAccountTokens';
-import { getNativeTokenAddress } from '../../../utils/asset';
 import { toCaipAssetType } from '@metamask/utils';
 import { AlignItems } from '../../../../../UI/Box/box.types';
 import { strings } from '../../../../../../../locales/i18n';
@@ -52,7 +52,9 @@ import Button, {
 import { useAlerts } from '../../../context/alert-system-context';
 import { useTransactionConfirm } from '../../../hooks/transactions/useTransactionConfirm';
 import EngineService from '../../../../../../core/EngineService';
-import { ConfirmationFooterSelectorIDs } from '../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
+import { ConfirmationFooterSelectorIDs } from '../../../ConfirmationView.testIds';
+import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
+import { getNativeTokenAddress } from '@metamask/assets-controllers';
 
 export interface CustomAmountInfoProps {
   children?: ReactNode;
@@ -60,11 +62,16 @@ export interface CustomAmountInfoProps {
   disablePay?: boolean;
   hasMax?: boolean;
   preferredToken?: SetPayTokenRequest;
+  footerText?: string;
   /**
    * Optional render function that overrides the default content.
    * When set, automatically hides PayTokenAmount, PayWithRow, and children.
    */
   overrideContent?: (amountHuman: string) => ReactNode;
+  /**
+   * Callback fired when user presses Done after entering an amount.
+   */
+  onAmountSubmit?: () => void;
 }
 
 export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
@@ -73,8 +80,10 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     currency,
     disablePay,
     hasMax,
-    preferredToken,
+    onAmountSubmit,
     overrideContent,
+    preferredToken,
+    footerText,
   }) => {
     useClearConfirmationOnBackSwipe();
     useAutomaticTransactionPayToken({
@@ -83,6 +92,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     });
     useTransactionPayMetrics();
 
+    const { isNative: isNativePayToken } = useTransactionPayToken();
     const { styles } = useStyles(styleSheet, {});
     const [isKeyboardVisible, setIsKeyboardVisible] = useState(true);
     const availableTokens = useTransactionPayAvailableTokens();
@@ -113,7 +123,8 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       updateTokenAmount();
       EngineService.flushState();
       setIsKeyboardVisible(false);
-    }, [updateTokenAmount]);
+      onAmountSubmit?.();
+    }, [onAmountSubmit, updateTokenAmount]);
 
     const handleAmountPress = useCallback(() => {
       setIsKeyboardVisible(true);
@@ -151,7 +162,17 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               <BridgeFeeRow />
               <BridgeTimeRow />
               <TotalRow />
+              <PercentageRow />
             </Box>
+          )}
+          {footerText && (
+            <Text
+              variant={TextVariant.BodySM}
+              color={TextColor.Alternative}
+              style={styles.footerText}
+            >
+              {footerText}
+            </Text>
           )}
           {isKeyboardVisible && hasTokens && (
             <DepositKeyboard
@@ -161,7 +182,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               onDonePress={handleDone}
               onPercentagePress={updatePendingAmountPercentage}
               hasInput={hasInput}
-              hasMax={hasMax}
+              hasMax={hasMax && !isNativePayToken}
             />
           )}
           {!hasTokens && <BuySection />}
@@ -275,16 +296,7 @@ function useIsResultReady({
 }) {
   const quotes = useTransactionPayQuotes();
   const isQuotesLoading = useIsTransactionPayLoading();
-  const requiredTokens = useTransactionPayRequiredTokens();
-  const sourceAmounts = useTransactionPaySourceAmounts();
-
-  const hasSourceAmount = sourceAmounts?.some((a) =>
-    requiredTokens.some(
-      (rt) =>
-        rt.address.toLowerCase() === a.targetTokenAddress.toLowerCase() &&
-        !rt.skipIfBalance,
-    ),
-  );
+  const hasSourceAmount = useTransactionPayHasSourceAmount();
 
   return (
     !isKeyboardVisible &&
@@ -300,7 +312,7 @@ function useButtonLabel() {
   }
 
   if (hasTransactionType(transaction, [TransactionType.musdConversion])) {
-    return strings('earn.musd_conversion.convert_to_musd');
+    return strings('earn.musd_conversion.convert');
   }
 
   return strings('confirm.deposit_edit_amount_done');

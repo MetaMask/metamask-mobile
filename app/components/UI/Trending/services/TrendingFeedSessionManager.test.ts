@@ -1,5 +1,10 @@
 import { AppState } from 'react-native';
-import TrendingFeedSessionManager from './TrendingFeedSessionManager';
+import TrendingFeedSessionManager, {
+  TrendingInteractionType,
+  TokenClickProperties,
+  SearchProperties,
+  FilterChangeProperties,
+} from './TrendingFeedSessionManager';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
@@ -20,6 +25,7 @@ jest.mock('../../../../core/Analytics', () => ({
   MetaMetrics: {
     getInstance: jest.fn(() => ({
       trackEvent: mockTrackEvent,
+      updateDataRecordingFlag: jest.fn(),
     })),
   },
   MetaMetricsEvents: {
@@ -96,6 +102,7 @@ describe('TrendingFeedSessionManager', () => {
       );
       expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
         session_id: 'mock-session-id',
+        interaction_type: TrendingInteractionType.SessionStart,
         session_time: 0,
         is_session_end: false,
         entry_point: entryPoint,
@@ -137,6 +144,7 @@ describe('TrendingFeedSessionManager', () => {
 
       expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
         session_id: 'mock-session-id',
+        interaction_type: TrendingInteractionType.SessionStart,
         session_time: 0,
         is_session_end: false,
         entry_point: 'main_trade_button',
@@ -158,6 +166,7 @@ describe('TrendingFeedSessionManager', () => {
 
       expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
         session_id: 'mock-session-id',
+        interaction_type: TrendingInteractionType.SessionEnd,
         session_time: 5,
         is_session_end: true,
         entry_point: 'homepage_balance',
@@ -238,6 +247,7 @@ describe('TrendingFeedSessionManager', () => {
 
       expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
         expect.objectContaining({
+          interaction_type: TrendingInteractionType.SessionEnd,
           session_time: 3,
           is_session_end: true,
         }),
@@ -253,6 +263,7 @@ describe('TrendingFeedSessionManager', () => {
 
       expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
         expect.objectContaining({
+          interaction_type: TrendingInteractionType.SessionEnd,
           session_time: 2,
           is_session_end: true,
         }),
@@ -275,6 +286,7 @@ describe('TrendingFeedSessionManager', () => {
       expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
         expect.objectContaining({
           session_id: 'mock-session-id',
+          interaction_type: TrendingInteractionType.SessionStart,
           entry_point: 'background',
           is_session_end: false,
         }),
@@ -362,6 +374,7 @@ describe('TrendingFeedSessionManager', () => {
       expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
         expect.objectContaining({
           session_id: 'mock-session-id',
+          interaction_type: TrendingInteractionType.SessionStart,
           session_time: 0,
           entry_point: 'homepage_trending',
           is_session_end: false,
@@ -382,6 +395,7 @@ describe('TrendingFeedSessionManager', () => {
       expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
         expect.objectContaining({
           session_id: 'mock-session-id',
+          interaction_type: TrendingInteractionType.SessionEnd,
           session_time: 5,
           is_session_end: true,
         }),
@@ -428,6 +442,311 @@ describe('TrendingFeedSessionManager', () => {
         appStateChangeHandler('active');
       }
       expect(sessionManager.isFromTrending).toBe(true);
+    });
+  });
+
+  describe('trackTokenClick', () => {
+    const mockTokenClickProperties: TokenClickProperties = {
+      token_symbol: 'ETH',
+      token_address: '0x0000000000000000000000000000000000000000',
+      token_name: 'Ethereum',
+      chain_id: '0x1',
+      position: 0,
+      price_usd: 2500.5,
+      price_change_pct: 5.25,
+      time_filter: '24h',
+      sort_option: 'price_change',
+      network_filter: 'all',
+      is_search_result: false,
+    };
+
+    it('tracks token click event with correct properties when session is active', () => {
+      sessionManager.startSession('trending_feed');
+      mockTrackEvent.mockClear();
+      (mockEventBuilder.addProperties as jest.Mock).mockClear();
+
+      sessionManager.trackTokenClick(mockTokenClickProperties);
+
+      expect(MetricsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.TRENDING_FEED_VIEWED,
+      );
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+        session_id: 'mock-session-id',
+        interaction_type: TrendingInteractionType.TokenClick,
+        ...mockTokenClickProperties,
+      });
+      expect(mockTrackEvent).toHaveBeenCalled();
+    });
+
+    it('does not track token click when no session is active', () => {
+      mockTrackEvent.mockClear();
+
+      sessionManager.trackTokenClick(mockTokenClickProperties);
+
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+      expect(DevLogger.log).toHaveBeenCalledWith(
+        'TrendingFeedSessionManager: Cannot track token_click - no active session',
+      );
+    });
+
+    it('tracks token click with search result flag', () => {
+      sessionManager.startSession('trending_feed');
+      mockTrackEvent.mockClear();
+      (mockEventBuilder.addProperties as jest.Mock).mockClear();
+
+      const searchResultProperties: TokenClickProperties = {
+        ...mockTokenClickProperties,
+        is_search_result: true,
+      };
+
+      sessionManager.trackTokenClick(searchResultProperties);
+
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          interaction_type: TrendingInteractionType.TokenClick,
+          is_search_result: true,
+        }),
+      );
+    });
+
+    it('tracks token click with different positions', () => {
+      sessionManager.startSession('trending_feed');
+      mockTrackEvent.mockClear();
+      (mockEventBuilder.addProperties as jest.Mock).mockClear();
+
+      const positionProperties: TokenClickProperties = {
+        ...mockTokenClickProperties,
+        position: 5,
+      };
+
+      sessionManager.trackTokenClick(positionProperties);
+
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          interaction_type: TrendingInteractionType.TokenClick,
+          position: 5,
+        }),
+      );
+    });
+
+    it('logs token click details to DevLogger', () => {
+      sessionManager.startSession('trending_feed');
+      (DevLogger.log as jest.Mock).mockClear();
+
+      sessionManager.trackTokenClick(mockTokenClickProperties);
+
+      expect(DevLogger.log).toHaveBeenCalledWith(
+        'TrendingFeedSessionManager: Token click tracked',
+        expect.objectContaining({
+          sessionId: 'mock-session-id',
+          token_symbol: 'ETH',
+          position: 0,
+        }),
+      );
+    });
+  });
+
+  describe('trackSearch', () => {
+    const mockSearchProperties: SearchProperties = {
+      search_query: 'ethereum',
+      results_count: 5,
+      has_results: true,
+      time_filter: '24h',
+      sort_option: 'price_change',
+      network_filter: 'all',
+    };
+
+    it('tracks search event with correct properties when session is active', () => {
+      sessionManager.startSession('trending_feed');
+      mockTrackEvent.mockClear();
+      (mockEventBuilder.addProperties as jest.Mock).mockClear();
+
+      sessionManager.trackSearch(mockSearchProperties);
+
+      expect(MetricsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.TRENDING_FEED_VIEWED,
+      );
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+        session_id: 'mock-session-id',
+        interaction_type: TrendingInteractionType.Search,
+        ...mockSearchProperties,
+      });
+      expect(mockTrackEvent).toHaveBeenCalled();
+    });
+
+    it('does not track search when no session is active', () => {
+      mockTrackEvent.mockClear();
+
+      sessionManager.trackSearch(mockSearchProperties);
+
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+      expect(DevLogger.log).toHaveBeenCalledWith(
+        'TrendingFeedSessionManager: Cannot track search - no active session',
+      );
+    });
+
+    it('tracks search with zero results', () => {
+      sessionManager.startSession('trending_feed');
+      mockTrackEvent.mockClear();
+      (mockEventBuilder.addProperties as jest.Mock).mockClear();
+
+      const noResultsProperties: SearchProperties = {
+        ...mockSearchProperties,
+        results_count: 0,
+        has_results: false,
+      };
+
+      sessionManager.trackSearch(noResultsProperties);
+
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          interaction_type: TrendingInteractionType.Search,
+          results_count: 0,
+          has_results: false,
+        }),
+      );
+    });
+
+    it('logs search details to DevLogger', () => {
+      sessionManager.startSession('trending_feed');
+      (DevLogger.log as jest.Mock).mockClear();
+
+      sessionManager.trackSearch(mockSearchProperties);
+
+      expect(DevLogger.log).toHaveBeenCalledWith(
+        'TrendingFeedSessionManager: Search tracked',
+        expect.objectContaining({
+          sessionId: 'mock-session-id',
+          search_query: 'ethereum',
+          results_count: 5,
+        }),
+      );
+    });
+  });
+
+  describe('trackFilterChange', () => {
+    const mockFilterChangeProperties: FilterChangeProperties = {
+      filter_type: 'time',
+      previous_value: '24h',
+      new_value: '6h',
+      time_filter: '6h',
+      sort_option: 'price_change',
+      network_filter: 'all',
+    };
+
+    it('tracks filter change event with correct properties when session is active', () => {
+      sessionManager.startSession('trending_feed');
+      mockTrackEvent.mockClear();
+      (mockEventBuilder.addProperties as jest.Mock).mockClear();
+
+      sessionManager.trackFilterChange(mockFilterChangeProperties);
+
+      expect(MetricsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.TRENDING_FEED_VIEWED,
+      );
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+        session_id: 'mock-session-id',
+        interaction_type: TrendingInteractionType.FilterChange,
+        ...mockFilterChangeProperties,
+      });
+      expect(mockTrackEvent).toHaveBeenCalled();
+    });
+
+    it('does not track filter change when no session is active', () => {
+      mockTrackEvent.mockClear();
+
+      sessionManager.trackFilterChange(mockFilterChangeProperties);
+
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+      expect(DevLogger.log).toHaveBeenCalledWith(
+        'TrendingFeedSessionManager: Cannot track filter_change - no active session',
+      );
+    });
+
+    it('tracks time filter changes', () => {
+      sessionManager.startSession('trending_feed');
+      mockTrackEvent.mockClear();
+      (mockEventBuilder.addProperties as jest.Mock).mockClear();
+
+      sessionManager.trackFilterChange(mockFilterChangeProperties);
+
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          interaction_type: TrendingInteractionType.FilterChange,
+          filter_type: 'time',
+          previous_value: '24h',
+          new_value: '6h',
+        }),
+      );
+    });
+
+    it('tracks sort filter changes', () => {
+      sessionManager.startSession('trending_feed');
+      mockTrackEvent.mockClear();
+      (mockEventBuilder.addProperties as jest.Mock).mockClear();
+
+      const sortFilterChange: FilterChangeProperties = {
+        filter_type: 'sort',
+        previous_value: 'price_change',
+        new_value: 'volume',
+        time_filter: '24h',
+        sort_option: 'volume',
+        network_filter: 'all',
+      };
+
+      sessionManager.trackFilterChange(sortFilterChange);
+
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          interaction_type: TrendingInteractionType.FilterChange,
+          filter_type: 'sort',
+          previous_value: 'price_change',
+          new_value: 'volume',
+        }),
+      );
+    });
+
+    it('tracks network filter changes', () => {
+      sessionManager.startSession('trending_feed');
+      mockTrackEvent.mockClear();
+      (mockEventBuilder.addProperties as jest.Mock).mockClear();
+
+      const networkFilterChange: FilterChangeProperties = {
+        filter_type: 'network',
+        previous_value: 'all',
+        new_value: 'eip155:1',
+        time_filter: '24h',
+        sort_option: 'price_change',
+        network_filter: 'eip155:1',
+      };
+
+      sessionManager.trackFilterChange(networkFilterChange);
+
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          interaction_type: TrendingInteractionType.FilterChange,
+          filter_type: 'network',
+          previous_value: 'all',
+          new_value: 'eip155:1',
+        }),
+      );
+    });
+
+    it('logs filter change details to DevLogger', () => {
+      sessionManager.startSession('trending_feed');
+      (DevLogger.log as jest.Mock).mockClear();
+
+      sessionManager.trackFilterChange(mockFilterChangeProperties);
+
+      expect(DevLogger.log).toHaveBeenCalledWith(
+        'TrendingFeedSessionManager: Filter change tracked',
+        expect.objectContaining({
+          sessionId: 'mock-session-id',
+          filter_type: 'time',
+          previous_value: '24h',
+          new_value: '6h',
+        }),
+      );
     });
   });
 });

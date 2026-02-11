@@ -22,7 +22,7 @@ import {
   aesCryptoFormScrollIdentifier,
   accountAddress,
   responseText,
-} from '../../../../e2e/selectors/Settings/AesCrypto.selectors';
+} from './AesCrypto.testIds';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';

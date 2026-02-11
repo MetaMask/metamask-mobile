@@ -2,7 +2,7 @@ import React from 'react';
 import { Hex } from '@metamask/utils';
 import { useSelector } from 'react-redux';
 
-import { ConfirmationRowComponentIDs } from '../../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
+import { ConfirmationRowComponentIDs } from '../../../../ConfirmationView.testIds';
 import { strings } from '../../../../../../../../locales/i18n';
 import { useStyles } from '../../../../../../../component-library/hooks';
 import { RootState } from '../../../../../../../reducers';

@@ -80,14 +80,14 @@ describe('PerpsTokenLogo', () => {
     // Empty symbol results in empty fallback text
   });
 
-  it('renders Image component with correct URI', () => {
+  it('renders Image component with primary MetaMask URL initially', () => {
     const { UNSAFE_getByType } = render(
       <PerpsTokenLogo symbol="BTC" testID="with-image" />,
     );
 
     const image = UNSAFE_getByType(Image);
     expect(image.props.source.uri).toBe(
-      'https://app.hyperliquid.xyz/coins/BTC.svg',
+      'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/icons/eip155:999/BTC.svg',
     );
     expect(image.props.style).toEqual(
       expect.objectContaining({
@@ -97,23 +97,55 @@ describe('PerpsTokenLogo', () => {
     );
   });
 
-  it('handles image error by showing text fallback', async () => {
-    // Arrange
-    const { UNSAFE_getByType, getByTestId } = render(
+  it('switches to fallback HyperLiquid URL when primary fails', async () => {
+    const { UNSAFE_getByType } = render(
+      <PerpsTokenLogo symbol="BTC" testID="fallback-test" />,
+    );
+
+    const image = UNSAFE_getByType(Image);
+
+    // Verify initial URL is primary (MetaMask)
+    expect(image.props.source.uri).toContain('contract-metadata');
+
+    // Simulate primary URL error
+    await act(async () => {
+      image.props.onError();
+    });
+
+    // Get updated image after error
+    const updatedImage = UNSAFE_getByType(Image);
+
+    // Verify fallback URL is now used (HyperLiquid)
+    expect(updatedImage.props.source.uri).toBe(
+      'https://app.hyperliquid.xyz/coins/BTC.svg',
+    );
+  });
+
+  it('shows text fallback when both primary and fallback URLs fail', async () => {
+    const { UNSAFE_getByType, UNSAFE_queryByType, getByTestId } = render(
       <PerpsTokenLogo symbol="FAIL" testID="image-error" />,
     );
 
     const image = UNSAFE_getByType(Image);
 
-    // Act - Simulate image error
+    // First error - switches to fallback URL
     await act(async () => {
       image.props.onError();
     });
 
-    // Assert - Should show text fallback after error
+    // Get image with fallback URL
+    const fallbackImage = UNSAFE_getByType(Image);
+
+    // Second error - both URLs failed, show text fallback
+    await act(async () => {
+      fallbackImage.props.onError();
+    });
+
+    // Verify text fallback is shown
     const container = getByTestId('image-error');
     expect(container).toBeTruthy();
-    // Text fallback should show "FA" for "FAIL"
+    // Image component no longer rendered, text fallback shown instead
+    expect(UNSAFE_queryByType(Image)).toBeNull();
   });
 
   it('correctly applies size prop to container', () => {
@@ -179,5 +211,31 @@ describe('PerpsTokenLogo', () => {
 
     const image = UNSAFE_getByType(Image);
     expect(image.props.source.uri).toContain('BTC.svg');
+  });
+
+  it('resets to primary URL when symbol changes', async () => {
+    const { UNSAFE_getByType, rerender } = render(
+      <PerpsTokenLogo symbol="BTC" testID="symbol-change" />,
+    );
+
+    const image = UNSAFE_getByType(Image);
+
+    // Trigger error to switch to fallback
+    await act(async () => {
+      image.props.onError();
+    });
+
+    // Verify fallback is being used
+    expect(UNSAFE_getByType(Image).props.source.uri).toContain(
+      'app.hyperliquid.xyz',
+    );
+
+    // Change symbol
+    rerender(<PerpsTokenLogo symbol="ETH" testID="symbol-change" />);
+
+    // Verify primary URL is used for new symbol
+    const newImage = UNSAFE_getByType(Image);
+    expect(newImage.props.source.uri).toContain('contract-metadata');
+    expect(newImage.props.source.uri).toContain('ETH.svg');
   });
 });

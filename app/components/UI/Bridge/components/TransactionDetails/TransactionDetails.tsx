@@ -104,6 +104,7 @@ const BridgeStatusToColorMap: Record<StatusTypes, TextColor> = {
   [StatusTypes.COMPLETE]: TextColor.Success,
   [StatusTypes.FAILED]: TextColor.Error,
   [StatusTypes.UNKNOWN]: TextColor.Error,
+  [StatusTypes.SUBMITTED]: TextColor.Warning,
 };
 
 const SwapStatusToColorMap: Record<TransactionStatus, TextColor> = {
@@ -188,6 +189,8 @@ export const BridgeTransactionDetails = (
 
   const isSwap = quote.srcChainId === quote.destChainId;
   const isBridge = !isSwap;
+  const isIntentNotCompletedItem =
+    quote.intent && !(bridgeStatus.status === StatusTypes.COMPLETE);
 
   // Create token objects directly from the quote data
   const sourceChainId = isNonEvmChainId(quote.srcChainId)
@@ -384,32 +387,35 @@ export const BridgeTransactionDetails = (
         </Box>
       </Box>
       <Box>
-        <Button
-          style={styles.blockExplorerButton}
-          variant={ButtonVariants.Secondary}
-          label={strings('bridge_transaction_details.view_on_block_explorer')}
-          onPress={() => {
-            // For swaps, go directly to block explorer web view
-            if (isSwap && swapSrcExplorerData?.explorerTxUrl) {
-              navigation.navigate(Routes.BROWSER.HOME, {
-                screen: Routes.BROWSER.VIEW,
-                params: {
-                  newTabUrl: swapSrcExplorerData.explorerTxUrl,
-                  timestamp: Date.now(),
-                },
-              });
-            } else {
-              // For bridges, show the modal with both explorers
-              navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
-                screen: Routes.BRIDGE.MODALS.TRANSACTION_DETAILS_BLOCK_EXPLORER,
-                params: {
-                  evmTxMeta: props.route.params.evmTxMeta,
-                  multiChainTx: props.route.params.multiChainTx,
-                },
-              });
-            }
-          }}
-        />
+        {isIntentNotCompletedItem || (
+          <Button
+            style={styles.blockExplorerButton}
+            variant={ButtonVariants.Secondary}
+            label={strings('bridge_transaction_details.view_on_block_explorer')}
+            onPress={() => {
+              // For swaps, go directly to block explorer web view
+              if (isSwap && swapSrcExplorerData?.explorerTxUrl) {
+                navigation.navigate(Routes.BROWSER.HOME, {
+                  screen: Routes.BROWSER.VIEW,
+                  params: {
+                    newTabUrl: swapSrcExplorerData.explorerTxUrl,
+                    timestamp: Date.now(),
+                  },
+                });
+              } else {
+                // For bridges, show the modal with both explorers
+                navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+                  screen:
+                    Routes.BRIDGE.MODALS.TRANSACTION_DETAILS_BLOCK_EXPLORER,
+                  params: {
+                    evmTxMeta: props.route.params.evmTxMeta,
+                    multiChainTx: props.route.params.multiChainTx,
+                  },
+                });
+              }
+            }}
+          />
+        )}
       </Box>
     </ScreenView>
   );

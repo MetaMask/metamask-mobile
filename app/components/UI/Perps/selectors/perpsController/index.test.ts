@@ -1,6 +1,8 @@
 import { RootState } from '../../../../../reducers';
-import type { AccountState } from '../../controllers/types';
-import { InitializationState } from '../../controllers/PerpsController';
+import {
+  InitializationState,
+  type AccountState,
+} from '@metamask/perps-controller';
 import {
   selectPerpsProvider,
   selectPerpsAccountState,
@@ -770,7 +772,7 @@ describe('PerpsController Selectors', () => {
       const result = selectPerpsInitializationState(mockState);
 
       // Assert
-      expect(result).toBe(InitializationState.UNINITIALIZED);
+      expect(result).toBe(InitializationState.Uninitialized);
     });
   });
 });

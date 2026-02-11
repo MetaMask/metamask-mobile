@@ -36,85 +36,27 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
         style={null}
       >
         <View
-          collapsable={false}
-          pointerEvents="box-none"
           style={
-            {
-              "bottom": 0,
-              "left": 0,
-              "opacity": 1,
-              "position": "absolute",
-              "right": 0,
-              "top": 0,
-              "zIndex": 0,
-            }
-          }
-        >
-          <View
-            collapsable={false}
-            style={
-              {
-                "backgroundColor": "#ffffff",
-                "borderBottomColor": "rgb(216, 216, 216)",
-                "elevation": 0,
-                "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
-                "shadowOffset": {
-                  "height": 0.5,
-                  "width": 0,
-                },
-                "shadowOpacity": 0,
-                "shadowRadius": 0,
-              }
-            }
-          />
-        </View>
-        <View
-          collapsable={false}
-          pointerEvents="box-none"
-          style={
-            {
-              "height": 64,
-              "maxHeight": undefined,
-              "minHeight": undefined,
-              "opacity": undefined,
-              "transform": undefined,
-            }
-          }
-        >
-          <View
-            pointerEvents="none"
-            style={
-              {
-                "height": 20,
-              }
-            }
-          />
-          <View
-            pointerEvents="box-none"
-            style={
+            [
               {
                 "alignItems": "center",
-                "flex": 1,
                 "flexDirection": "row",
-                "justifyContent": "center",
-              }
-            }
-          >
+                "gap": 16,
+                "minHeight": 56,
+                "paddingLeft": 8,
+                "paddingRight": 8,
+              },
+              {
+                "marginTop": 0,
+              },
+              undefined,
+            ]
+          }
+          testID="header"
+        >
+          <View>
             <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-start",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "left": 0,
-                  "opacity": 1,
-                  "position": "absolute",
-                  "top": 0,
-                }
-              }
+              onLayout={[Function]}
             >
               <View
                 style={
@@ -168,18 +110,16 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                       {
                         "alignItems": "center",
                         "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 40,
+                        "borderRadius": 8,
+                        "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
-                        "width": 40,
+                        "width": 32,
                       },
-                      {
-                        "marginHorizontal": 16,
-                      },
+                      undefined,
                     ]
                   }
-                  testID="button-icon"
+                  testID="deposit-back-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -198,140 +138,56 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                 </View>
               </View>
             </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
+          </View>
+          <View
+            style={
+              [
                 {
-                  "marginHorizontal": 72,
-                  "opacity": 1,
-                }
-              }
-            >
-              <TouchableOpacity
-                activeOpacity={1}
-                onPress={[Function]}
-                style={
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
+                },
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                [
                   {
                     "alignItems": "center",
-                    "justifyContent": "center",
-                  }
-                }
-              >
-                <Text
-                  accessibilityRole="text"
-                  numberOfLines={1}
-                  style={
+                    "display": "flex",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  [
                     {
                       "color": "#121314",
                       "fontFamily": "Geist-Bold",
                       "fontSize": 16,
+                      "fontWeight": 400,
                       "letterSpacing": 0,
                       "lineHeight": 24,
-                    }
-                  }
-                >
-                  Verify your identity
-                </Text>
-              </TouchableOpacity>
-            </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-end",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "opacity": 1,
-                  "position": "absolute",
-                  "right": 0,
-                  "top": 0,
-                }
-              }
-            >
-              <View
-                style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
                     },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
+                    undefined,
                   ]
                 }
               >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
-                  style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 40,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 40,
-                      },
-                      {
-                        "marginHorizontal": 16,
-                      },
-                    ]
-                  }
-                  testID="deposit-close-navbar-button"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="Close"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
-                    }
-                  />
-                </View>
-              </View>
+                Verify your identity
+              </Text>
             </View>
+          </View>
+          <View>
+            <View
+              onLayout={[Function]}
+            />
           </View>
         </View>
       </View>
@@ -789,9 +645,9 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                       style={
                                         {
                                           "alignItems": "center",
-                                          "backgroundColor": "#ffffff",
-                                          "borderColor": "#b7bbc8",
-                                          "borderRadius": 8,
+                                          "backgroundColor": "#3c4d9d0f",
+                                          "borderColor": "#b7bbc866",
+                                          "borderRadius": 12,
                                           "borderWidth": 1,
                                           "flexDirection": "row",
                                           "height": 48,
@@ -814,12 +670,14 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                           autoFocus={false}
                                           editable={true}
                                           keyboardAppearance="light"
+                                          multiline={false}
+                                          numberOfLines={1}
                                           onBlur={[Function]}
                                           onChangeText={[Function]}
                                           onFocus={[Function]}
                                           onSubmitEditing={[Function]}
                                           placeholder="First name"
-                                          placeholderTextColor="#b7bbc8"
+                                          placeholderTextColor="#686e7d"
                                           returnKeyType="next"
                                           style={
                                             {
@@ -832,9 +690,7 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                               "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
-                                              "lineHeight": 20,
                                               "opacity": 1,
-                                              "paddingVertical": 2,
                                               "textAlignVertical": "center",
                                             }
                                           }
@@ -907,9 +763,9 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                       style={
                                         {
                                           "alignItems": "center",
-                                          "backgroundColor": "#ffffff",
-                                          "borderColor": "#b7bbc8",
-                                          "borderRadius": 8,
+                                          "backgroundColor": "#3c4d9d0f",
+                                          "borderColor": "#b7bbc866",
+                                          "borderRadius": 12,
                                           "borderWidth": 1,
                                           "flexDirection": "row",
                                           "height": 48,
@@ -932,12 +788,14 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                           autoFocus={false}
                                           editable={true}
                                           keyboardAppearance="light"
+                                          multiline={false}
+                                          numberOfLines={1}
                                           onBlur={[Function]}
                                           onChangeText={[Function]}
                                           onFocus={[Function]}
                                           onSubmitEditing={[Function]}
                                           placeholder="Last name"
-                                          placeholderTextColor="#b7bbc8"
+                                          placeholderTextColor="#686e7d"
                                           returnKeyType="next"
                                           style={
                                             {
@@ -950,9 +808,7 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                               "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
-                                              "lineHeight": 20,
                                               "opacity": 1,
-                                              "paddingVertical": 2,
                                               "textAlignVertical": "center",
                                             }
                                           }
@@ -1024,9 +880,9 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                     style={
                                       {
                                         "alignItems": "center",
-                                        "backgroundColor": "#ffffff",
-                                        "borderColor": "#b7bbc8",
-                                        "borderRadius": 8,
+                                        "backgroundColor": "#3c4d9d0f",
+                                        "borderColor": "#b7bbc866",
+                                        "borderRadius": 12,
                                         "borderWidth": 1,
                                         "flexDirection": "row",
                                         "height": 48,
@@ -1039,7 +895,7 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                     <View
                                       style={
                                         {
-                                          "marginRight": 8,
+                                          "marginRight": 12,
                                         }
                                       }
                                       testID="textfield-startacccessory"
@@ -1099,12 +955,14 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                         editable={true}
                                         keyboardAppearance="light"
                                         keyboardType="phone-pad"
+                                        multiline={false}
+                                        numberOfLines={1}
                                         onBlur={[Function]}
                                         onChangeText={[Function]}
                                         onFocus={[Function]}
                                         onSubmitEditing={[Function]}
                                         placeholder="(555) 123-4567"
-                                        placeholderTextColor="#b7bbc8"
+                                        placeholderTextColor="#686e7d"
                                         style={
                                           {
                                             "backgroundColor": "inherit",
@@ -1116,9 +974,7 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                             "fontWeight": "400",
                                             "height": 46,
                                             "letterSpacing": 0,
-                                            "lineHeight": 20,
                                             "opacity": 1,
-                                            "paddingVertical": 2,
                                             "textAlignVertical": "center",
                                           }
                                         }
@@ -1189,9 +1045,9 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                     style={
                                       {
                                         "alignItems": "center",
-                                        "backgroundColor": "#ffffff",
-                                        "borderColor": "#b7bbc8",
-                                        "borderRadius": 8,
+                                        "backgroundColor": "#3c4d9d0f",
+                                        "borderColor": "#b7bbc866",
+                                        "borderRadius": 12,
                                         "borderWidth": 1,
                                         "flexDirection": "row",
                                         "height": 48,
@@ -1204,7 +1060,7 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                     <View
                                       style={
                                         {
-                                          "marginRight": 8,
+                                          "marginRight": 12,
                                         }
                                       }
                                       testID="textfield-startacccessory"
@@ -1355,9 +1211,9 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                     style={
                                       {
                                         "alignItems": "center",
-                                        "backgroundColor": "#ffffff",
-                                        "borderColor": "#b7bbc8",
-                                        "borderRadius": 8,
+                                        "backgroundColor": "#3c4d9d0f",
+                                        "borderColor": "#b7bbc866",
+                                        "borderRadius": 12,
                                         "borderWidth": 1,
                                         "flexDirection": "row",
                                         "height": 48,
@@ -1381,12 +1237,14 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                         keyboardAppearance="light"
                                         keyboardType="number-pad"
                                         maxLength={11}
+                                        multiline={false}
+                                        numberOfLines={1}
                                         onBlur={[Function]}
                                         onChangeText={[Function]}
                                         onFocus={[Function]}
                                         onSubmitEditing={[Function]}
                                         placeholder="XXX-XX-XXXX"
-                                        placeholderTextColor="#b7bbc8"
+                                        placeholderTextColor="#686e7d"
                                         returnKeyType="done"
                                         secureTextEntry={true}
                                         style={
@@ -1400,9 +1258,7 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                             "fontWeight": "400",
                                             "height": 46,
                                             "letterSpacing": 0,
-                                            "lineHeight": 20,
                                             "opacity": 1,
-                                            "paddingVertical": 2,
                                             "textAlignVertical": "center",
                                           }
                                         }
@@ -1624,85 +1480,27 @@ exports[`BasicInfo Component passes regions to DepositPhoneField component 1`] =
         style={null}
       >
         <View
-          collapsable={false}
-          pointerEvents="box-none"
           style={
-            {
-              "bottom": 0,
-              "left": 0,
-              "opacity": 1,
-              "position": "absolute",
-              "right": 0,
-              "top": 0,
-              "zIndex": 0,
-            }
-          }
-        >
-          <View
-            collapsable={false}
-            style={
-              {
-                "backgroundColor": "#ffffff",
-                "borderBottomColor": "rgb(216, 216, 216)",
-                "elevation": 0,
-                "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
-                "shadowOffset": {
-                  "height": 0.5,
-                  "width": 0,
-                },
-                "shadowOpacity": 0,
-                "shadowRadius": 0,
-              }
-            }
-          />
-        </View>
-        <View
-          collapsable={false}
-          pointerEvents="box-none"
-          style={
-            {
-              "height": 64,
-              "maxHeight": undefined,
-              "minHeight": undefined,
-              "opacity": undefined,
-              "transform": undefined,
-            }
-          }
-        >
-          <View
-            pointerEvents="none"
-            style={
-              {
-                "height": 20,
-              }
-            }
-          />
-          <View
-            pointerEvents="box-none"
-            style={
+            [
               {
                 "alignItems": "center",
-                "flex": 1,
                 "flexDirection": "row",
-                "justifyContent": "center",
-              }
-            }
-          >
+                "gap": 16,
+                "minHeight": 56,
+                "paddingLeft": 8,
+                "paddingRight": 8,
+              },
+              {
+                "marginTop": 0,
+              },
+              undefined,
+            ]
+          }
+          testID="header"
+        >
+          <View>
             <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-start",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "left": 0,
-                  "opacity": 1,
-                  "position": "absolute",
-                  "top": 0,
-                }
-              }
+              onLayout={[Function]}
             >
               <View
                 style={
@@ -1756,18 +1554,16 @@ exports[`BasicInfo Component passes regions to DepositPhoneField component 1`] =
                       {
                         "alignItems": "center",
                         "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 40,
+                        "borderRadius": 8,
+                        "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
-                        "width": 40,
+                        "width": 32,
                       },
-                      {
-                        "marginHorizontal": 16,
-                      },
+                      undefined,
                     ]
                   }
-                  testID="button-icon"
+                  testID="deposit-back-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -1786,140 +1582,56 @@ exports[`BasicInfo Component passes regions to DepositPhoneField component 1`] =
                 </View>
               </View>
             </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
+          </View>
+          <View
+            style={
+              [
                 {
-                  "marginHorizontal": 72,
-                  "opacity": 1,
-                }
-              }
-            >
-              <TouchableOpacity
-                activeOpacity={1}
-                onPress={[Function]}
-                style={
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
+                },
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                [
                   {
                     "alignItems": "center",
-                    "justifyContent": "center",
-                  }
-                }
-              >
-                <Text
-                  accessibilityRole="text"
-                  numberOfLines={1}
-                  style={
+                    "display": "flex",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  [
                     {
                       "color": "#121314",
                       "fontFamily": "Geist-Bold",
                       "fontSize": 16,
+                      "fontWeight": 400,
                       "letterSpacing": 0,
                       "lineHeight": 24,
-                    }
-                  }
-                >
-                  Verify your identity
-                </Text>
-              </TouchableOpacity>
-            </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-end",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "opacity": 1,
-                  "position": "absolute",
-                  "right": 0,
-                  "top": 0,
-                }
-              }
-            >
-              <View
-                style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
                     },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
+                    undefined,
                   ]
                 }
               >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
-                  style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 40,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 40,
-                      },
-                      {
-                        "marginHorizontal": 16,
-                      },
-                    ]
-                  }
-                  testID="deposit-close-navbar-button"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="Close"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
-                    }
-                  />
-                </View>
-              </View>
+                Verify your identity
+              </Text>
             </View>
+          </View>
+          <View>
+            <View
+              onLayout={[Function]}
+            />
           </View>
         </View>
       </View>
@@ -2377,9 +2089,9 @@ exports[`BasicInfo Component passes regions to DepositPhoneField component 1`] =
                                       style={
                                         {
                                           "alignItems": "center",
-                                          "backgroundColor": "#ffffff",
-                                          "borderColor": "#b7bbc8",
-                                          "borderRadius": 8,
+                                          "backgroundColor": "#3c4d9d0f",
+                                          "borderColor": "#b7bbc866",
+                                          "borderRadius": 12,
                                           "borderWidth": 1,
                                           "flexDirection": "row",
                                           "height": 48,
@@ -2402,12 +2114,14 @@ exports[`BasicInfo Component passes regions to DepositPhoneField component 1`] =
                                           autoFocus={false}
                                           editable={true}
                                           keyboardAppearance="light"
+                                          multiline={false}
+                                          numberOfLines={1}
                                           onBlur={[Function]}
                                           onChangeText={[Function]}
                                           onFocus={[Function]}
                                           onSubmitEditing={[Function]}
                                           placeholder="First name"
-                                          placeholderTextColor="#b7bbc8"
+                                          placeholderTextColor="#686e7d"
                                           returnKeyType="next"
                                           style={
                                             {
@@ -2420,9 +2134,7 @@ exports[`BasicInfo Component passes regions to DepositPhoneField component 1`] =
                                               "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
-                                              "lineHeight": 20,
                                               "opacity": 1,
-                                              "paddingVertical": 2,
                                               "textAlignVertical": "center",
                                             }
                                           }
@@ -2495,9 +2207,9 @@ exports[`BasicInfo Component passes regions to DepositPhoneField component 1`] =
                                       style={
                                         {
                                           "alignItems": "center",
-                                          "backgroundColor": "#ffffff",
-                                          "borderColor": "#b7bbc8",
-                                          "borderRadius": 8,
+                                          "backgroundColor": "#3c4d9d0f",
+                                          "borderColor": "#b7bbc866",
+                                          "borderRadius": 12,
                                           "borderWidth": 1,
                                           "flexDirection": "row",
                                           "height": 48,
@@ -2520,12 +2232,14 @@ exports[`BasicInfo Component passes regions to DepositPhoneField component 1`] =
                                           autoFocus={false}
                                           editable={true}
                                           keyboardAppearance="light"
+                                          multiline={false}
+                                          numberOfLines={1}
                                           onBlur={[Function]}
                                           onChangeText={[Function]}
                                           onFocus={[Function]}
                                           onSubmitEditing={[Function]}
                                           placeholder="Last name"
-                                          placeholderTextColor="#b7bbc8"
+                                          placeholderTextColor="#686e7d"
                                           returnKeyType="next"
                                           style={
                                             {
@@ -2538,9 +2252,7 @@ exports[`BasicInfo Component passes regions to DepositPhoneField component 1`] =
                                               "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
-                                              "lineHeight": 20,
                                               "opacity": 1,
-                                              "paddingVertical": 2,
                                               "textAlignVertical": "center",
                                             }
                                           }
@@ -2612,9 +2324,9 @@ exports[`BasicInfo Component passes regions to DepositPhoneField component 1`] =
                                     style={
                                       {
                                         "alignItems": "center",
-                                        "backgroundColor": "#ffffff",
-                                        "borderColor": "#b7bbc8",
-                                        "borderRadius": 8,
+                                        "backgroundColor": "#3c4d9d0f",
+                                        "borderColor": "#b7bbc866",
+                                        "borderRadius": 12,
                                         "borderWidth": 1,
                                         "flexDirection": "row",
                                         "height": 48,
@@ -2627,7 +2339,7 @@ exports[`BasicInfo Component passes regions to DepositPhoneField component 1`] =
                                     <View
                                       style={
                                         {
-                                          "marginRight": 8,
+                                          "marginRight": 12,
                                         }
                                       }
                                       testID="textfield-startacccessory"
@@ -2687,12 +2399,14 @@ exports[`BasicInfo Component passes regions to DepositPhoneField component 1`] =
                                         editable={true}
                                         keyboardAppearance="light"
                                         keyboardType="phone-pad"
+                                        multiline={false}
+                                        numberOfLines={1}
                                         onBlur={[Function]}
                                         onChangeText={[Function]}
                                         onFocus={[Function]}
                                         onSubmitEditing={[Function]}
                                         placeholder="(555) 123-4567"
-                                        placeholderTextColor="#b7bbc8"
+                                        placeholderTextColor="#686e7d"
                                         style={
                                           {
                                             "backgroundColor": "inherit",
@@ -2704,9 +2418,7 @@ exports[`BasicInfo Component passes regions to DepositPhoneField component 1`] =
                                             "fontWeight": "400",
                                             "height": 46,
                                             "letterSpacing": 0,
-                                            "lineHeight": 20,
                                             "opacity": 1,
-                                            "paddingVertical": 2,
                                             "textAlignVertical": "center",
                                           }
                                         }
@@ -2777,9 +2489,9 @@ exports[`BasicInfo Component passes regions to DepositPhoneField component 1`] =
                                     style={
                                       {
                                         "alignItems": "center",
-                                        "backgroundColor": "#ffffff",
-                                        "borderColor": "#b7bbc8",
-                                        "borderRadius": 8,
+                                        "backgroundColor": "#3c4d9d0f",
+                                        "borderColor": "#b7bbc866",
+                                        "borderRadius": 12,
                                         "borderWidth": 1,
                                         "flexDirection": "row",
                                         "height": 48,
@@ -2792,7 +2504,7 @@ exports[`BasicInfo Component passes regions to DepositPhoneField component 1`] =
                                     <View
                                       style={
                                         {
-                                          "marginRight": 8,
+                                          "marginRight": 12,
                                         }
                                       }
                                       testID="textfield-startacccessory"
@@ -2943,9 +2655,9 @@ exports[`BasicInfo Component passes regions to DepositPhoneField component 1`] =
                                     style={
                                       {
                                         "alignItems": "center",
-                                        "backgroundColor": "#ffffff",
-                                        "borderColor": "#b7bbc8",
-                                        "borderRadius": 8,
+                                        "backgroundColor": "#3c4d9d0f",
+                                        "borderColor": "#b7bbc866",
+                                        "borderRadius": 12,
                                         "borderWidth": 1,
                                         "flexDirection": "row",
                                         "height": 48,
@@ -2969,12 +2681,14 @@ exports[`BasicInfo Component passes regions to DepositPhoneField component 1`] =
                                         keyboardAppearance="light"
                                         keyboardType="number-pad"
                                         maxLength={11}
+                                        multiline={false}
+                                        numberOfLines={1}
                                         onBlur={[Function]}
                                         onChangeText={[Function]}
                                         onFocus={[Function]}
                                         onSubmitEditing={[Function]}
                                         placeholder="XXX-XX-XXXX"
-                                        placeholderTextColor="#b7bbc8"
+                                        placeholderTextColor="#686e7d"
                                         returnKeyType="done"
                                         secureTextEntry={true}
                                         style={
@@ -2988,9 +2702,7 @@ exports[`BasicInfo Component passes regions to DepositPhoneField component 1`] =
                                             "fontWeight": "400",
                                             "height": 46,
                                             "letterSpacing": 0,
-                                            "lineHeight": 20,
                                             "opacity": 1,
-                                            "paddingVertical": 2,
                                             "textAlignVertical": "center",
                                           }
                                         }
@@ -3212,85 +2924,27 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
         style={null}
       >
         <View
-          collapsable={false}
-          pointerEvents="box-none"
           style={
-            {
-              "bottom": 0,
-              "left": 0,
-              "opacity": 1,
-              "position": "absolute",
-              "right": 0,
-              "top": 0,
-              "zIndex": 0,
-            }
-          }
-        >
-          <View
-            collapsable={false}
-            style={
-              {
-                "backgroundColor": "#ffffff",
-                "borderBottomColor": "rgb(216, 216, 216)",
-                "elevation": 0,
-                "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
-                "shadowOffset": {
-                  "height": 0.5,
-                  "width": 0,
-                },
-                "shadowOpacity": 0,
-                "shadowRadius": 0,
-              }
-            }
-          />
-        </View>
-        <View
-          collapsable={false}
-          pointerEvents="box-none"
-          style={
-            {
-              "height": 64,
-              "maxHeight": undefined,
-              "minHeight": undefined,
-              "opacity": undefined,
-              "transform": undefined,
-            }
-          }
-        >
-          <View
-            pointerEvents="none"
-            style={
-              {
-                "height": 20,
-              }
-            }
-          />
-          <View
-            pointerEvents="box-none"
-            style={
+            [
               {
                 "alignItems": "center",
-                "flex": 1,
                 "flexDirection": "row",
-                "justifyContent": "center",
-              }
-            }
-          >
+                "gap": 16,
+                "minHeight": 56,
+                "paddingLeft": 8,
+                "paddingRight": 8,
+              },
+              {
+                "marginTop": 0,
+              },
+              undefined,
+            ]
+          }
+          testID="header"
+        >
+          <View>
             <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-start",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "left": 0,
-                  "opacity": 1,
-                  "position": "absolute",
-                  "top": 0,
-                }
-              }
+              onLayout={[Function]}
             >
               <View
                 style={
@@ -3344,18 +2998,16 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
                       {
                         "alignItems": "center",
                         "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 40,
+                        "borderRadius": 8,
+                        "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
-                        "width": 40,
+                        "width": 32,
                       },
-                      {
-                        "marginHorizontal": 16,
-                      },
+                      undefined,
                     ]
                   }
-                  testID="button-icon"
+                  testID="deposit-back-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -3374,140 +3026,56 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
                 </View>
               </View>
             </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
+          </View>
+          <View
+            style={
+              [
                 {
-                  "marginHorizontal": 72,
-                  "opacity": 1,
-                }
-              }
-            >
-              <TouchableOpacity
-                activeOpacity={1}
-                onPress={[Function]}
-                style={
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
+                },
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                [
                   {
                     "alignItems": "center",
-                    "justifyContent": "center",
-                  }
-                }
-              >
-                <Text
-                  accessibilityRole="text"
-                  numberOfLines={1}
-                  style={
+                    "display": "flex",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  [
                     {
                       "color": "#121314",
                       "fontFamily": "Geist-Bold",
                       "fontSize": 16,
+                      "fontWeight": 400,
                       "letterSpacing": 0,
                       "lineHeight": 24,
-                    }
-                  }
-                >
-                  Verify your identity
-                </Text>
-              </TouchableOpacity>
-            </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-end",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "opacity": 1,
-                  "position": "absolute",
-                  "right": 0,
-                  "top": 0,
-                }
-              }
-            >
-              <View
-                style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
                     },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
+                    undefined,
                   ]
                 }
               >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
-                  style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 40,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 40,
-                      },
-                      {
-                        "marginHorizontal": 16,
-                      },
-                    ]
-                  }
-                  testID="deposit-close-navbar-button"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="Close"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
-                    }
-                  />
-                </View>
-              </View>
+                Verify your identity
+              </Text>
             </View>
+          </View>
+          <View>
+            <View
+              onLayout={[Function]}
+            />
           </View>
         </View>
       </View>
@@ -3965,9 +3533,9 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
                                       style={
                                         {
                                           "alignItems": "center",
-                                          "backgroundColor": "#ffffff",
-                                          "borderColor": "#b7bbc8",
-                                          "borderRadius": 8,
+                                          "backgroundColor": "#3c4d9d0f",
+                                          "borderColor": "#b7bbc866",
+                                          "borderRadius": 12,
                                           "borderWidth": 1,
                                           "flexDirection": "row",
                                           "height": 48,
@@ -3990,12 +3558,14 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
                                           autoFocus={false}
                                           editable={true}
                                           keyboardAppearance="light"
+                                          multiline={false}
+                                          numberOfLines={1}
                                           onBlur={[Function]}
                                           onChangeText={[Function]}
                                           onFocus={[Function]}
                                           onSubmitEditing={[Function]}
                                           placeholder="First name"
-                                          placeholderTextColor="#b7bbc8"
+                                          placeholderTextColor="#686e7d"
                                           returnKeyType="next"
                                           style={
                                             {
@@ -4008,9 +3578,7 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
                                               "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
-                                              "lineHeight": 20,
                                               "opacity": 1,
-                                              "paddingVertical": 2,
                                               "textAlignVertical": "center",
                                             }
                                           }
@@ -4083,9 +3651,9 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
                                       style={
                                         {
                                           "alignItems": "center",
-                                          "backgroundColor": "#ffffff",
-                                          "borderColor": "#b7bbc8",
-                                          "borderRadius": 8,
+                                          "backgroundColor": "#3c4d9d0f",
+                                          "borderColor": "#b7bbc866",
+                                          "borderRadius": 12,
                                           "borderWidth": 1,
                                           "flexDirection": "row",
                                           "height": 48,
@@ -4108,12 +3676,14 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
                                           autoFocus={false}
                                           editable={true}
                                           keyboardAppearance="light"
+                                          multiline={false}
+                                          numberOfLines={1}
                                           onBlur={[Function]}
                                           onChangeText={[Function]}
                                           onFocus={[Function]}
                                           onSubmitEditing={[Function]}
                                           placeholder="Last name"
-                                          placeholderTextColor="#b7bbc8"
+                                          placeholderTextColor="#686e7d"
                                           returnKeyType="next"
                                           style={
                                             {
@@ -4126,9 +3696,7 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
                                               "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
-                                              "lineHeight": 20,
                                               "opacity": 1,
-                                              "paddingVertical": 2,
                                               "textAlignVertical": "center",
                                             }
                                           }
@@ -4200,9 +3768,9 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
                                     style={
                                       {
                                         "alignItems": "center",
-                                        "backgroundColor": "#ffffff",
-                                        "borderColor": "#b7bbc8",
-                                        "borderRadius": 8,
+                                        "backgroundColor": "#3c4d9d0f",
+                                        "borderColor": "#b7bbc866",
+                                        "borderRadius": 12,
                                         "borderWidth": 1,
                                         "flexDirection": "row",
                                         "height": 48,
@@ -4215,7 +3783,7 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
                                     <View
                                       style={
                                         {
-                                          "marginRight": 8,
+                                          "marginRight": 12,
                                         }
                                       }
                                       testID="textfield-startacccessory"
@@ -4275,12 +3843,14 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
                                         editable={true}
                                         keyboardAppearance="light"
                                         keyboardType="phone-pad"
+                                        multiline={false}
+                                        numberOfLines={1}
                                         onBlur={[Function]}
                                         onChangeText={[Function]}
                                         onFocus={[Function]}
                                         onSubmitEditing={[Function]}
                                         placeholder="(555) 123-4567"
-                                        placeholderTextColor="#b7bbc8"
+                                        placeholderTextColor="#686e7d"
                                         style={
                                           {
                                             "backgroundColor": "inherit",
@@ -4292,9 +3862,7 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
                                             "fontWeight": "400",
                                             "height": 46,
                                             "letterSpacing": 0,
-                                            "lineHeight": 20,
                                             "opacity": 1,
-                                            "paddingVertical": 2,
                                             "textAlignVertical": "center",
                                           }
                                         }
@@ -4365,9 +3933,9 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
                                     style={
                                       {
                                         "alignItems": "center",
-                                        "backgroundColor": "#ffffff",
-                                        "borderColor": "#b7bbc8",
-                                        "borderRadius": 8,
+                                        "backgroundColor": "#3c4d9d0f",
+                                        "borderColor": "#b7bbc866",
+                                        "borderRadius": 12,
                                         "borderWidth": 1,
                                         "flexDirection": "row",
                                         "height": 48,
@@ -4380,7 +3948,7 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
                                     <View
                                       style={
                                         {
-                                          "marginRight": 8,
+                                          "marginRight": 12,
                                         }
                                       }
                                       testID="textfield-startacccessory"
@@ -4531,9 +4099,9 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
                                     style={
                                       {
                                         "alignItems": "center",
-                                        "backgroundColor": "#ffffff",
-                                        "borderColor": "#b7bbc8",
-                                        "borderRadius": 8,
+                                        "backgroundColor": "#3c4d9d0f",
+                                        "borderColor": "#b7bbc866",
+                                        "borderRadius": 12,
                                         "borderWidth": 1,
                                         "flexDirection": "row",
                                         "height": 48,
@@ -4557,12 +4125,14 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
                                         keyboardAppearance="light"
                                         keyboardType="number-pad"
                                         maxLength={11}
+                                        multiline={false}
+                                        numberOfLines={1}
                                         onBlur={[Function]}
                                         onChangeText={[Function]}
                                         onFocus={[Function]}
                                         onSubmitEditing={[Function]}
                                         placeholder="XXX-XX-XXXX"
-                                        placeholderTextColor="#b7bbc8"
+                                        placeholderTextColor="#686e7d"
                                         returnKeyType="done"
                                         secureTextEntry={true}
                                         style={
@@ -4576,9 +4146,7 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
                                             "fontWeight": "400",
                                             "height": 46,
                                             "letterSpacing": 0,
-                                            "lineHeight": 20,
                                             "opacity": 1,
-                                            "paddingVertical": 2,
                                             "textAlignVertical": "center",
                                           }
                                         }
@@ -4800,85 +4368,27 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
         style={null}
       >
         <View
-          collapsable={false}
-          pointerEvents="box-none"
           style={
-            {
-              "bottom": 0,
-              "left": 0,
-              "opacity": 1,
-              "position": "absolute",
-              "right": 0,
-              "top": 0,
-              "zIndex": 0,
-            }
-          }
-        >
-          <View
-            collapsable={false}
-            style={
-              {
-                "backgroundColor": "#ffffff",
-                "borderBottomColor": "rgb(216, 216, 216)",
-                "elevation": 0,
-                "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
-                "shadowOffset": {
-                  "height": 0.5,
-                  "width": 0,
-                },
-                "shadowOpacity": 0,
-                "shadowRadius": 0,
-              }
-            }
-          />
-        </View>
-        <View
-          collapsable={false}
-          pointerEvents="box-none"
-          style={
-            {
-              "height": 64,
-              "maxHeight": undefined,
-              "minHeight": undefined,
-              "opacity": undefined,
-              "transform": undefined,
-            }
-          }
-        >
-          <View
-            pointerEvents="none"
-            style={
-              {
-                "height": 20,
-              }
-            }
-          />
-          <View
-            pointerEvents="box-none"
-            style={
+            [
               {
                 "alignItems": "center",
-                "flex": 1,
                 "flexDirection": "row",
-                "justifyContent": "center",
-              }
-            }
-          >
+                "gap": 16,
+                "minHeight": 56,
+                "paddingLeft": 8,
+                "paddingRight": 8,
+              },
+              {
+                "marginTop": 0,
+              },
+              undefined,
+            ]
+          }
+          testID="header"
+        >
+          <View>
             <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-start",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "left": 0,
-                  "opacity": 1,
-                  "position": "absolute",
-                  "top": 0,
-                }
-              }
+              onLayout={[Function]}
             >
               <View
                 style={
@@ -4932,18 +4442,16 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                       {
                         "alignItems": "center",
                         "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 40,
+                        "borderRadius": 8,
+                        "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
-                        "width": 40,
+                        "width": 32,
                       },
-                      {
-                        "marginHorizontal": 16,
-                      },
+                      undefined,
                     ]
                   }
-                  testID="button-icon"
+                  testID="deposit-back-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -4962,140 +4470,56 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                 </View>
               </View>
             </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
+          </View>
+          <View
+            style={
+              [
                 {
-                  "marginHorizontal": 72,
-                  "opacity": 1,
-                }
-              }
-            >
-              <TouchableOpacity
-                activeOpacity={1}
-                onPress={[Function]}
-                style={
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
+                },
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                [
                   {
                     "alignItems": "center",
-                    "justifyContent": "center",
-                  }
-                }
-              >
-                <Text
-                  accessibilityRole="text"
-                  numberOfLines={1}
-                  style={
+                    "display": "flex",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  [
                     {
                       "color": "#121314",
                       "fontFamily": "Geist-Bold",
                       "fontSize": 16,
+                      "fontWeight": 400,
                       "letterSpacing": 0,
                       "lineHeight": 24,
-                    }
-                  }
-                >
-                  Verify your identity
-                </Text>
-              </TouchableOpacity>
-            </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-end",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "opacity": 1,
-                  "position": "absolute",
-                  "right": 0,
-                  "top": 0,
-                }
-              }
-            >
-              <View
-                style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
                     },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
+                    undefined,
                   ]
                 }
               >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
-                  style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 40,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 40,
-                      },
-                      {
-                        "marginHorizontal": 16,
-                      },
-                    ]
-                  }
-                  testID="deposit-close-navbar-button"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="Close"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
-                    }
-                  />
-                </View>
-              </View>
+                Verify your identity
+              </Text>
             </View>
+          </View>
+          <View>
+            <View
+              onLayout={[Function]}
+            />
           </View>
         </View>
       </View>
@@ -5553,9 +4977,9 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                       style={
                                         {
                                           "alignItems": "center",
-                                          "backgroundColor": "#ffffff",
-                                          "borderColor": "#b7bbc8",
-                                          "borderRadius": 8,
+                                          "backgroundColor": "#3c4d9d0f",
+                                          "borderColor": "#b7bbc866",
+                                          "borderRadius": 12,
                                           "borderWidth": 1,
                                           "flexDirection": "row",
                                           "height": 48,
@@ -5578,12 +5002,14 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                           autoFocus={false}
                                           editable={true}
                                           keyboardAppearance="light"
+                                          multiline={false}
+                                          numberOfLines={1}
                                           onBlur={[Function]}
                                           onChangeText={[Function]}
                                           onFocus={[Function]}
                                           onSubmitEditing={[Function]}
                                           placeholder="First name"
-                                          placeholderTextColor="#b7bbc8"
+                                          placeholderTextColor="#686e7d"
                                           returnKeyType="next"
                                           style={
                                             {
@@ -5596,9 +5022,7 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                               "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
-                                              "lineHeight": 20,
                                               "opacity": 1,
-                                              "paddingVertical": 2,
                                               "textAlignVertical": "center",
                                             }
                                           }
@@ -5671,9 +5095,9 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                       style={
                                         {
                                           "alignItems": "center",
-                                          "backgroundColor": "#ffffff",
-                                          "borderColor": "#b7bbc8",
-                                          "borderRadius": 8,
+                                          "backgroundColor": "#3c4d9d0f",
+                                          "borderColor": "#b7bbc866",
+                                          "borderRadius": 12,
                                           "borderWidth": 1,
                                           "flexDirection": "row",
                                           "height": 48,
@@ -5696,12 +5120,14 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                           autoFocus={false}
                                           editable={true}
                                           keyboardAppearance="light"
+                                          multiline={false}
+                                          numberOfLines={1}
                                           onBlur={[Function]}
                                           onChangeText={[Function]}
                                           onFocus={[Function]}
                                           onSubmitEditing={[Function]}
                                           placeholder="Last name"
-                                          placeholderTextColor="#b7bbc8"
+                                          placeholderTextColor="#686e7d"
                                           returnKeyType="next"
                                           style={
                                             {
@@ -5714,9 +5140,7 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                               "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
-                                              "lineHeight": 20,
                                               "opacity": 1,
-                                              "paddingVertical": 2,
                                               "textAlignVertical": "center",
                                             }
                                           }
@@ -5788,9 +5212,9 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                     style={
                                       {
                                         "alignItems": "center",
-                                        "backgroundColor": "#ffffff",
-                                        "borderColor": "#b7bbc8",
-                                        "borderRadius": 8,
+                                        "backgroundColor": "#3c4d9d0f",
+                                        "borderColor": "#b7bbc866",
+                                        "borderRadius": 12,
                                         "borderWidth": 1,
                                         "flexDirection": "row",
                                         "height": 48,
@@ -5803,7 +5227,7 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                     <View
                                       style={
                                         {
-                                          "marginRight": 8,
+                                          "marginRight": 12,
                                         }
                                       }
                                       testID="textfield-startacccessory"
@@ -5863,12 +5287,14 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                         editable={true}
                                         keyboardAppearance="light"
                                         keyboardType="phone-pad"
+                                        multiline={false}
+                                        numberOfLines={1}
                                         onBlur={[Function]}
                                         onChangeText={[Function]}
                                         onFocus={[Function]}
                                         onSubmitEditing={[Function]}
                                         placeholder="(555) 123-4567"
-                                        placeholderTextColor="#b7bbc8"
+                                        placeholderTextColor="#686e7d"
                                         style={
                                           {
                                             "backgroundColor": "inherit",
@@ -5880,9 +5306,7 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                             "fontWeight": "400",
                                             "height": 46,
                                             "letterSpacing": 0,
-                                            "lineHeight": 20,
                                             "opacity": 1,
-                                            "paddingVertical": 2,
                                             "textAlignVertical": "center",
                                           }
                                         }
@@ -5953,9 +5377,9 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                     style={
                                       {
                                         "alignItems": "center",
-                                        "backgroundColor": "#ffffff",
-                                        "borderColor": "#b7bbc8",
-                                        "borderRadius": 8,
+                                        "backgroundColor": "#3c4d9d0f",
+                                        "borderColor": "#b7bbc866",
+                                        "borderRadius": 12,
                                         "borderWidth": 1,
                                         "flexDirection": "row",
                                         "height": 48,
@@ -5968,7 +5392,7 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                     <View
                                       style={
                                         {
-                                          "marginRight": 8,
+                                          "marginRight": 12,
                                         }
                                       }
                                       testID="textfield-startacccessory"
@@ -6119,9 +5543,9 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                     style={
                                       {
                                         "alignItems": "center",
-                                        "backgroundColor": "#ffffff",
-                                        "borderColor": "#b7bbc8",
-                                        "borderRadius": 8,
+                                        "backgroundColor": "#3c4d9d0f",
+                                        "borderColor": "#b7bbc866",
+                                        "borderRadius": 12,
                                         "borderWidth": 1,
                                         "flexDirection": "row",
                                         "height": 48,
@@ -6145,12 +5569,14 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                         keyboardAppearance="light"
                                         keyboardType="number-pad"
                                         maxLength={11}
+                                        multiline={false}
+                                        numberOfLines={1}
                                         onBlur={[Function]}
                                         onChangeText={[Function]}
                                         onFocus={[Function]}
                                         onSubmitEditing={[Function]}
                                         placeholder="XXX-XX-XXXX"
-                                        placeholderTextColor="#b7bbc8"
+                                        placeholderTextColor="#686e7d"
                                         returnKeyType="done"
                                         secureTextEntry={true}
                                         style={
@@ -6164,9 +5590,7 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                             "fontWeight": "400",
                                             "height": 46,
                                             "letterSpacing": 0,
-                                            "lineHeight": 20,
                                             "opacity": 1,
-                                            "paddingVertical": 2,
                                             "textAlignVertical": "center",
                                           }
                                         }
@@ -6388,85 +5812,27 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
         style={null}
       >
         <View
-          collapsable={false}
-          pointerEvents="box-none"
           style={
-            {
-              "bottom": 0,
-              "left": 0,
-              "opacity": 1,
-              "position": "absolute",
-              "right": 0,
-              "top": 0,
-              "zIndex": 0,
-            }
-          }
-        >
-          <View
-            collapsable={false}
-            style={
-              {
-                "backgroundColor": "#ffffff",
-                "borderBottomColor": "rgb(216, 216, 216)",
-                "elevation": 0,
-                "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
-                "shadowOffset": {
-                  "height": 0.5,
-                  "width": 0,
-                },
-                "shadowOpacity": 0,
-                "shadowRadius": 0,
-              }
-            }
-          />
-        </View>
-        <View
-          collapsable={false}
-          pointerEvents="box-none"
-          style={
-            {
-              "height": 64,
-              "maxHeight": undefined,
-              "minHeight": undefined,
-              "opacity": undefined,
-              "transform": undefined,
-            }
-          }
-        >
-          <View
-            pointerEvents="none"
-            style={
-              {
-                "height": 20,
-              }
-            }
-          />
-          <View
-            pointerEvents="box-none"
-            style={
+            [
               {
                 "alignItems": "center",
-                "flex": 1,
                 "flexDirection": "row",
-                "justifyContent": "center",
-              }
-            }
-          >
+                "gap": 16,
+                "minHeight": 56,
+                "paddingLeft": 8,
+                "paddingRight": 8,
+              },
+              {
+                "marginTop": 0,
+              },
+              undefined,
+            ]
+          }
+          testID="header"
+        >
+          <View>
             <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-start",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "left": 0,
-                  "opacity": 1,
-                  "position": "absolute",
-                  "top": 0,
-                }
-              }
+              onLayout={[Function]}
             >
               <View
                 style={
@@ -6520,18 +5886,16 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                       {
                         "alignItems": "center",
                         "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 40,
+                        "borderRadius": 8,
+                        "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
-                        "width": 40,
+                        "width": 32,
                       },
-                      {
-                        "marginHorizontal": 16,
-                      },
+                      undefined,
                     ]
                   }
-                  testID="button-icon"
+                  testID="deposit-back-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -6550,140 +5914,56 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                 </View>
               </View>
             </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
+          </View>
+          <View
+            style={
+              [
                 {
-                  "marginHorizontal": 72,
-                  "opacity": 1,
-                }
-              }
-            >
-              <TouchableOpacity
-                activeOpacity={1}
-                onPress={[Function]}
-                style={
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
+                },
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                [
                   {
                     "alignItems": "center",
-                    "justifyContent": "center",
-                  }
-                }
-              >
-                <Text
-                  accessibilityRole="text"
-                  numberOfLines={1}
-                  style={
+                    "display": "flex",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  [
                     {
                       "color": "#121314",
                       "fontFamily": "Geist-Bold",
                       "fontSize": 16,
+                      "fontWeight": 400,
                       "letterSpacing": 0,
                       "lineHeight": 24,
-                    }
-                  }
-                >
-                  Verify your identity
-                </Text>
-              </TouchableOpacity>
-            </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-end",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "opacity": 1,
-                  "position": "absolute",
-                  "right": 0,
-                  "top": 0,
-                }
-              }
-            >
-              <View
-                style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
                     },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
+                    undefined,
                   ]
                 }
               >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
-                  style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 40,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 40,
-                      },
-                      {
-                        "marginHorizontal": 16,
-                      },
-                    ]
-                  }
-                  testID="deposit-close-navbar-button"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="Close"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
-                    }
-                  />
-                </View>
-              </View>
+                Verify your identity
+              </Text>
             </View>
+          </View>
+          <View>
+            <View
+              onLayout={[Function]}
+            />
           </View>
         </View>
       </View>
@@ -7141,9 +6421,9 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                       style={
                                         {
                                           "alignItems": "center",
-                                          "backgroundColor": "#ffffff",
-                                          "borderColor": "#b7bbc8",
-                                          "borderRadius": 8,
+                                          "backgroundColor": "#3c4d9d0f",
+                                          "borderColor": "#b7bbc866",
+                                          "borderRadius": 12,
                                           "borderWidth": 1,
                                           "flexDirection": "row",
                                           "height": 48,
@@ -7166,12 +6446,14 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                           autoFocus={false}
                                           editable={true}
                                           keyboardAppearance="light"
+                                          multiline={false}
+                                          numberOfLines={1}
                                           onBlur={[Function]}
                                           onChangeText={[Function]}
                                           onFocus={[Function]}
                                           onSubmitEditing={[Function]}
                                           placeholder="First name"
-                                          placeholderTextColor="#b7bbc8"
+                                          placeholderTextColor="#686e7d"
                                           returnKeyType="next"
                                           style={
                                             {
@@ -7184,9 +6466,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                               "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
-                                              "lineHeight": 20,
                                               "opacity": 1,
-                                              "paddingVertical": 2,
                                               "textAlignVertical": "center",
                                             }
                                           }
@@ -7274,9 +6554,9 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                       style={
                                         {
                                           "alignItems": "center",
-                                          "backgroundColor": "#ffffff",
-                                          "borderColor": "#b7bbc8",
-                                          "borderRadius": 8,
+                                          "backgroundColor": "#3c4d9d0f",
+                                          "borderColor": "#b7bbc866",
+                                          "borderRadius": 12,
                                           "borderWidth": 1,
                                           "flexDirection": "row",
                                           "height": 48,
@@ -7299,12 +6579,14 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                           autoFocus={false}
                                           editable={true}
                                           keyboardAppearance="light"
+                                          multiline={false}
+                                          numberOfLines={1}
                                           onBlur={[Function]}
                                           onChangeText={[Function]}
                                           onFocus={[Function]}
                                           onSubmitEditing={[Function]}
                                           placeholder="Last name"
-                                          placeholderTextColor="#b7bbc8"
+                                          placeholderTextColor="#686e7d"
                                           returnKeyType="next"
                                           style={
                                             {
@@ -7317,9 +6599,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                               "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
-                                              "lineHeight": 20,
                                               "opacity": 1,
-                                              "paddingVertical": 2,
                                               "textAlignVertical": "center",
                                             }
                                           }
@@ -7406,9 +6686,9 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                     style={
                                       {
                                         "alignItems": "center",
-                                        "backgroundColor": "#ffffff",
-                                        "borderColor": "#b7bbc8",
-                                        "borderRadius": 8,
+                                        "backgroundColor": "#3c4d9d0f",
+                                        "borderColor": "#b7bbc866",
+                                        "borderRadius": 12,
                                         "borderWidth": 1,
                                         "flexDirection": "row",
                                         "height": 48,
@@ -7421,7 +6701,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                     <View
                                       style={
                                         {
-                                          "marginRight": 8,
+                                          "marginRight": 12,
                                         }
                                       }
                                       testID="textfield-startacccessory"
@@ -7481,12 +6761,14 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                         editable={true}
                                         keyboardAppearance="light"
                                         keyboardType="phone-pad"
+                                        multiline={false}
+                                        numberOfLines={1}
                                         onBlur={[Function]}
                                         onChangeText={[Function]}
                                         onFocus={[Function]}
                                         onSubmitEditing={[Function]}
                                         placeholder="(555) 123-4567"
-                                        placeholderTextColor="#b7bbc8"
+                                        placeholderTextColor="#686e7d"
                                         style={
                                           {
                                             "backgroundColor": "inherit",
@@ -7498,9 +6780,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                             "fontWeight": "400",
                                             "height": 46,
                                             "letterSpacing": 0,
-                                            "lineHeight": 20,
                                             "opacity": 1,
-                                            "paddingVertical": 2,
                                             "textAlignVertical": "center",
                                           }
                                         }
@@ -7586,9 +6866,9 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                     style={
                                       {
                                         "alignItems": "center",
-                                        "backgroundColor": "#ffffff",
-                                        "borderColor": "#b7bbc8",
-                                        "borderRadius": 8,
+                                        "backgroundColor": "#3c4d9d0f",
+                                        "borderColor": "#b7bbc866",
+                                        "borderRadius": 12,
                                         "borderWidth": 1,
                                         "flexDirection": "row",
                                         "height": 48,
@@ -7601,7 +6881,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                     <View
                                       style={
                                         {
-                                          "marginRight": 8,
+                                          "marginRight": 12,
                                         }
                                       }
                                       testID="textfield-startacccessory"
@@ -7752,9 +7032,9 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                     style={
                                       {
                                         "alignItems": "center",
-                                        "backgroundColor": "#ffffff",
-                                        "borderColor": "#b7bbc8",
-                                        "borderRadius": 8,
+                                        "backgroundColor": "#3c4d9d0f",
+                                        "borderColor": "#b7bbc866",
+                                        "borderRadius": 12,
                                         "borderWidth": 1,
                                         "flexDirection": "row",
                                         "height": 48,
@@ -7778,12 +7058,14 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                         keyboardAppearance="light"
                                         keyboardType="number-pad"
                                         maxLength={11}
+                                        multiline={false}
+                                        numberOfLines={1}
                                         onBlur={[Function]}
                                         onChangeText={[Function]}
                                         onFocus={[Function]}
                                         onSubmitEditing={[Function]}
                                         placeholder="XXX-XX-XXXX"
-                                        placeholderTextColor="#b7bbc8"
+                                        placeholderTextColor="#686e7d"
                                         returnKeyType="done"
                                         secureTextEntry={true}
                                         style={
@@ -7797,9 +7079,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                             "fontWeight": "400",
                                             "height": 46,
                                             "letterSpacing": 0,
-                                            "lineHeight": 20,
                                             "opacity": 1,
-                                            "paddingVertical": 2,
                                             "textAlignVertical": "center",
                                           }
                                         }
@@ -8036,85 +7316,27 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
         style={null}
       >
         <View
-          collapsable={false}
-          pointerEvents="box-none"
           style={
-            {
-              "bottom": 0,
-              "left": 0,
-              "opacity": 1,
-              "position": "absolute",
-              "right": 0,
-              "top": 0,
-              "zIndex": 0,
-            }
-          }
-        >
-          <View
-            collapsable={false}
-            style={
-              {
-                "backgroundColor": "#ffffff",
-                "borderBottomColor": "rgb(216, 216, 216)",
-                "elevation": 0,
-                "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
-                "shadowOffset": {
-                  "height": 0.5,
-                  "width": 0,
-                },
-                "shadowOpacity": 0,
-                "shadowRadius": 0,
-              }
-            }
-          />
-        </View>
-        <View
-          collapsable={false}
-          pointerEvents="box-none"
-          style={
-            {
-              "height": 64,
-              "maxHeight": undefined,
-              "minHeight": undefined,
-              "opacity": undefined,
-              "transform": undefined,
-            }
-          }
-        >
-          <View
-            pointerEvents="none"
-            style={
-              {
-                "height": 20,
-              }
-            }
-          />
-          <View
-            pointerEvents="box-none"
-            style={
+            [
               {
                 "alignItems": "center",
-                "flex": 1,
                 "flexDirection": "row",
-                "justifyContent": "center",
-              }
-            }
-          >
+                "gap": 16,
+                "minHeight": 56,
+                "paddingLeft": 8,
+                "paddingRight": 8,
+              },
+              {
+                "marginTop": 0,
+              },
+              undefined,
+            ]
+          }
+          testID="header"
+        >
+          <View>
             <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-start",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "left": 0,
-                  "opacity": 1,
-                  "position": "absolute",
-                  "top": 0,
-                }
-              }
+              onLayout={[Function]}
             >
               <View
                 style={
@@ -8168,18 +7390,16 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                       {
                         "alignItems": "center",
                         "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 40,
+                        "borderRadius": 8,
+                        "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
-                        "width": 40,
+                        "width": 32,
                       },
-                      {
-                        "marginHorizontal": 16,
-                      },
+                      undefined,
                     ]
                   }
-                  testID="button-icon"
+                  testID="deposit-back-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -8198,140 +7418,56 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                 </View>
               </View>
             </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
+          </View>
+          <View
+            style={
+              [
                 {
-                  "marginHorizontal": 72,
-                  "opacity": 1,
-                }
-              }
-            >
-              <TouchableOpacity
-                activeOpacity={1}
-                onPress={[Function]}
-                style={
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
+                },
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                [
                   {
                     "alignItems": "center",
-                    "justifyContent": "center",
-                  }
-                }
-              >
-                <Text
-                  accessibilityRole="text"
-                  numberOfLines={1}
-                  style={
+                    "display": "flex",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  [
                     {
                       "color": "#121314",
                       "fontFamily": "Geist-Bold",
                       "fontSize": 16,
+                      "fontWeight": 400,
                       "letterSpacing": 0,
                       "lineHeight": 24,
-                    }
-                  }
-                >
-                  Verify your identity
-                </Text>
-              </TouchableOpacity>
-            </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-end",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "opacity": 1,
-                  "position": "absolute",
-                  "right": 0,
-                  "top": 0,
-                }
-              }
-            >
-              <View
-                style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
                     },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
+                    undefined,
                   ]
                 }
               >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
-                  style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 40,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 40,
-                      },
-                      {
-                        "marginHorizontal": 16,
-                      },
-                    ]
-                  }
-                  testID="deposit-close-navbar-button"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="Close"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
-                    }
-                  />
-                </View>
-              </View>
+                Verify your identity
+              </Text>
             </View>
+          </View>
+          <View>
+            <View
+              onLayout={[Function]}
+            />
           </View>
         </View>
       </View>
@@ -8789,9 +7925,9 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                       style={
                                         {
                                           "alignItems": "center",
-                                          "backgroundColor": "#ffffff",
-                                          "borderColor": "#b7bbc8",
-                                          "borderRadius": 8,
+                                          "backgroundColor": "#3c4d9d0f",
+                                          "borderColor": "#b7bbc866",
+                                          "borderRadius": 12,
                                           "borderWidth": 1,
                                           "flexDirection": "row",
                                           "height": 48,
@@ -8814,12 +7950,14 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                           autoFocus={false}
                                           editable={true}
                                           keyboardAppearance="light"
+                                          multiline={false}
+                                          numberOfLines={1}
                                           onBlur={[Function]}
                                           onChangeText={[Function]}
                                           onFocus={[Function]}
                                           onSubmitEditing={[Function]}
                                           placeholder="First name"
-                                          placeholderTextColor="#b7bbc8"
+                                          placeholderTextColor="#686e7d"
                                           returnKeyType="next"
                                           style={
                                             {
@@ -8832,9 +7970,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                               "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
-                                              "lineHeight": 20,
                                               "opacity": 1,
-                                              "paddingVertical": 2,
                                               "textAlignVertical": "center",
                                             }
                                           }
@@ -8922,9 +8058,9 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                       style={
                                         {
                                           "alignItems": "center",
-                                          "backgroundColor": "#ffffff",
-                                          "borderColor": "#b7bbc8",
-                                          "borderRadius": 8,
+                                          "backgroundColor": "#3c4d9d0f",
+                                          "borderColor": "#b7bbc866",
+                                          "borderRadius": 12,
                                           "borderWidth": 1,
                                           "flexDirection": "row",
                                           "height": 48,
@@ -8947,12 +8083,14 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                           autoFocus={false}
                                           editable={true}
                                           keyboardAppearance="light"
+                                          multiline={false}
+                                          numberOfLines={1}
                                           onBlur={[Function]}
                                           onChangeText={[Function]}
                                           onFocus={[Function]}
                                           onSubmitEditing={[Function]}
                                           placeholder="Last name"
-                                          placeholderTextColor="#b7bbc8"
+                                          placeholderTextColor="#686e7d"
                                           returnKeyType="next"
                                           style={
                                             {
@@ -8965,9 +8103,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                               "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
-                                              "lineHeight": 20,
                                               "opacity": 1,
-                                              "paddingVertical": 2,
                                               "textAlignVertical": "center",
                                             }
                                           }
@@ -9054,9 +8190,9 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                     style={
                                       {
                                         "alignItems": "center",
-                                        "backgroundColor": "#ffffff",
-                                        "borderColor": "#b7bbc8",
-                                        "borderRadius": 8,
+                                        "backgroundColor": "#3c4d9d0f",
+                                        "borderColor": "#b7bbc866",
+                                        "borderRadius": 12,
                                         "borderWidth": 1,
                                         "flexDirection": "row",
                                         "height": 48,
@@ -9069,7 +8205,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                     <View
                                       style={
                                         {
-                                          "marginRight": 8,
+                                          "marginRight": 12,
                                         }
                                       }
                                       testID="textfield-startacccessory"
@@ -9129,12 +8265,14 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                         editable={true}
                                         keyboardAppearance="light"
                                         keyboardType="phone-pad"
+                                        multiline={false}
+                                        numberOfLines={1}
                                         onBlur={[Function]}
                                         onChangeText={[Function]}
                                         onFocus={[Function]}
                                         onSubmitEditing={[Function]}
                                         placeholder="(555) 123-4567"
-                                        placeholderTextColor="#b7bbc8"
+                                        placeholderTextColor="#686e7d"
                                         style={
                                           {
                                             "backgroundColor": "inherit",
@@ -9146,9 +8284,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                             "fontWeight": "400",
                                             "height": 46,
                                             "letterSpacing": 0,
-                                            "lineHeight": 20,
                                             "opacity": 1,
-                                            "paddingVertical": 2,
                                             "textAlignVertical": "center",
                                           }
                                         }
@@ -9219,9 +8355,9 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                     style={
                                       {
                                         "alignItems": "center",
-                                        "backgroundColor": "#ffffff",
-                                        "borderColor": "#b7bbc8",
-                                        "borderRadius": 8,
+                                        "backgroundColor": "#3c4d9d0f",
+                                        "borderColor": "#b7bbc866",
+                                        "borderRadius": 12,
                                         "borderWidth": 1,
                                         "flexDirection": "row",
                                         "height": 48,
@@ -9234,7 +8370,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                     <View
                                       style={
                                         {
-                                          "marginRight": 8,
+                                          "marginRight": 12,
                                         }
                                       }
                                       testID="textfield-startacccessory"
@@ -9385,9 +8521,9 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                     style={
                                       {
                                         "alignItems": "center",
-                                        "backgroundColor": "#ffffff",
-                                        "borderColor": "#b7bbc8",
-                                        "borderRadius": 8,
+                                        "backgroundColor": "#3c4d9d0f",
+                                        "borderColor": "#b7bbc866",
+                                        "borderRadius": 12,
                                         "borderWidth": 1,
                                         "flexDirection": "row",
                                         "height": 48,
@@ -9411,12 +8547,14 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                         keyboardAppearance="light"
                                         keyboardType="number-pad"
                                         maxLength={11}
+                                        multiline={false}
+                                        numberOfLines={1}
                                         onBlur={[Function]}
                                         onChangeText={[Function]}
                                         onFocus={[Function]}
                                         onSubmitEditing={[Function]}
                                         placeholder="XXX-XX-XXXX"
-                                        placeholderTextColor="#b7bbc8"
+                                        placeholderTextColor="#686e7d"
                                         returnKeyType="done"
                                         secureTextEntry={true}
                                         style={
@@ -9430,9 +8568,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                             "fontWeight": "400",
                                             "height": 46,
                                             "letterSpacing": 0,
-                                            "lineHeight": 20,
                                             "opacity": 1,
-                                            "paddingVertical": 2,
                                             "textAlignVertical": "center",
                                           }
                                         }
@@ -9669,85 +8805,27 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
         style={null}
       >
         <View
-          collapsable={false}
-          pointerEvents="box-none"
           style={
-            {
-              "bottom": 0,
-              "left": 0,
-              "opacity": 1,
-              "position": "absolute",
-              "right": 0,
-              "top": 0,
-              "zIndex": 0,
-            }
-          }
-        >
-          <View
-            collapsable={false}
-            style={
-              {
-                "backgroundColor": "#ffffff",
-                "borderBottomColor": "rgb(216, 216, 216)",
-                "elevation": 0,
-                "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
-                "shadowOffset": {
-                  "height": 0.5,
-                  "width": 0,
-                },
-                "shadowOpacity": 0,
-                "shadowRadius": 0,
-              }
-            }
-          />
-        </View>
-        <View
-          collapsable={false}
-          pointerEvents="box-none"
-          style={
-            {
-              "height": 64,
-              "maxHeight": undefined,
-              "minHeight": undefined,
-              "opacity": undefined,
-              "transform": undefined,
-            }
-          }
-        >
-          <View
-            pointerEvents="none"
-            style={
-              {
-                "height": 20,
-              }
-            }
-          />
-          <View
-            pointerEvents="box-none"
-            style={
+            [
               {
                 "alignItems": "center",
-                "flex": 1,
                 "flexDirection": "row",
-                "justifyContent": "center",
-              }
-            }
-          >
+                "gap": 16,
+                "minHeight": 56,
+                "paddingLeft": 8,
+                "paddingRight": 8,
+              },
+              {
+                "marginTop": 0,
+              },
+              undefined,
+            ]
+          }
+          testID="header"
+        >
+          <View>
             <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-start",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "left": 0,
-                  "opacity": 1,
-                  "position": "absolute",
-                  "top": 0,
-                }
-              }
+              onLayout={[Function]}
             >
               <View
                 style={
@@ -9801,18 +8879,16 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                       {
                         "alignItems": "center",
                         "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 40,
+                        "borderRadius": 8,
+                        "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
-                        "width": 40,
+                        "width": 32,
                       },
-                      {
-                        "marginHorizontal": 16,
-                      },
+                      undefined,
                     ]
                   }
-                  testID="button-icon"
+                  testID="deposit-back-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -9831,140 +8907,56 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                 </View>
               </View>
             </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
+          </View>
+          <View
+            style={
+              [
                 {
-                  "marginHorizontal": 72,
-                  "opacity": 1,
-                }
-              }
-            >
-              <TouchableOpacity
-                activeOpacity={1}
-                onPress={[Function]}
-                style={
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
+                },
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                [
                   {
                     "alignItems": "center",
-                    "justifyContent": "center",
-                  }
-                }
-              >
-                <Text
-                  accessibilityRole="text"
-                  numberOfLines={1}
-                  style={
+                    "display": "flex",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  [
                     {
                       "color": "#121314",
                       "fontFamily": "Geist-Bold",
                       "fontSize": 16,
+                      "fontWeight": 400,
                       "letterSpacing": 0,
                       "lineHeight": 24,
-                    }
-                  }
-                >
-                  Verify your identity
-                </Text>
-              </TouchableOpacity>
-            </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-end",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "opacity": 1,
-                  "position": "absolute",
-                  "right": 0,
-                  "top": 0,
-                }
-              }
-            >
-              <View
-                style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
                     },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
+                    undefined,
                   ]
                 }
               >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
-                  style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 40,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 40,
-                      },
-                      {
-                        "marginHorizontal": 16,
-                      },
-                    ]
-                  }
-                  testID="deposit-close-navbar-button"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="Close"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
-                    }
-                  />
-                </View>
-              </View>
+                Verify your identity
+              </Text>
             </View>
+          </View>
+          <View>
+            <View
+              onLayout={[Function]}
+            />
           </View>
         </View>
       </View>
@@ -10422,9 +9414,9 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                       style={
                                         {
                                           "alignItems": "center",
-                                          "backgroundColor": "#ffffff",
-                                          "borderColor": "#b7bbc8",
-                                          "borderRadius": 8,
+                                          "backgroundColor": "#3c4d9d0f",
+                                          "borderColor": "#b7bbc866",
+                                          "borderRadius": 12,
                                           "borderWidth": 1,
                                           "flexDirection": "row",
                                           "height": 48,
@@ -10447,12 +9439,14 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                           autoFocus={false}
                                           editable={true}
                                           keyboardAppearance="light"
+                                          multiline={false}
+                                          numberOfLines={1}
                                           onBlur={[Function]}
                                           onChangeText={[Function]}
                                           onFocus={[Function]}
                                           onSubmitEditing={[Function]}
                                           placeholder="First name"
-                                          placeholderTextColor="#b7bbc8"
+                                          placeholderTextColor="#686e7d"
                                           returnKeyType="next"
                                           style={
                                             {
@@ -10465,9 +9459,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                               "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
-                                              "lineHeight": 20,
                                               "opacity": 1,
-                                              "paddingVertical": 2,
                                               "textAlignVertical": "center",
                                             }
                                           }
@@ -10555,9 +9547,9 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                       style={
                                         {
                                           "alignItems": "center",
-                                          "backgroundColor": "#ffffff",
-                                          "borderColor": "#b7bbc8",
-                                          "borderRadius": 8,
+                                          "backgroundColor": "#3c4d9d0f",
+                                          "borderColor": "#b7bbc866",
+                                          "borderRadius": 12,
                                           "borderWidth": 1,
                                           "flexDirection": "row",
                                           "height": 48,
@@ -10580,12 +9572,14 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                           autoFocus={false}
                                           editable={true}
                                           keyboardAppearance="light"
+                                          multiline={false}
+                                          numberOfLines={1}
                                           onBlur={[Function]}
                                           onChangeText={[Function]}
                                           onFocus={[Function]}
                                           onSubmitEditing={[Function]}
                                           placeholder="Last name"
-                                          placeholderTextColor="#b7bbc8"
+                                          placeholderTextColor="#686e7d"
                                           returnKeyType="next"
                                           style={
                                             {
@@ -10598,9 +9592,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                               "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
-                                              "lineHeight": 20,
                                               "opacity": 1,
-                                              "paddingVertical": 2,
                                               "textAlignVertical": "center",
                                             }
                                           }
@@ -10687,9 +9679,9 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                     style={
                                       {
                                         "alignItems": "center",
-                                        "backgroundColor": "#ffffff",
-                                        "borderColor": "#b7bbc8",
-                                        "borderRadius": 8,
+                                        "backgroundColor": "#3c4d9d0f",
+                                        "borderColor": "#b7bbc866",
+                                        "borderRadius": 12,
                                         "borderWidth": 1,
                                         "flexDirection": "row",
                                         "height": 48,
@@ -10702,7 +9694,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                     <View
                                       style={
                                         {
-                                          "marginRight": 8,
+                                          "marginRight": 12,
                                         }
                                       }
                                       testID="textfield-startacccessory"
@@ -10762,12 +9754,14 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                         editable={true}
                                         keyboardAppearance="light"
                                         keyboardType="phone-pad"
+                                        multiline={false}
+                                        numberOfLines={1}
                                         onBlur={[Function]}
                                         onChangeText={[Function]}
                                         onFocus={[Function]}
                                         onSubmitEditing={[Function]}
                                         placeholder="(555) 123-4567"
-                                        placeholderTextColor="#b7bbc8"
+                                        placeholderTextColor="#686e7d"
                                         style={
                                           {
                                             "backgroundColor": "inherit",
@@ -10779,9 +9773,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                             "fontWeight": "400",
                                             "height": 46,
                                             "letterSpacing": 0,
-                                            "lineHeight": 20,
                                             "opacity": 1,
-                                            "paddingVertical": 2,
                                             "textAlignVertical": "center",
                                           }
                                         }
@@ -10852,9 +9844,9 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                     style={
                                       {
                                         "alignItems": "center",
-                                        "backgroundColor": "#ffffff",
-                                        "borderColor": "#b7bbc8",
-                                        "borderRadius": 8,
+                                        "backgroundColor": "#3c4d9d0f",
+                                        "borderColor": "#b7bbc866",
+                                        "borderRadius": 12,
                                         "borderWidth": 1,
                                         "flexDirection": "row",
                                         "height": 48,
@@ -10867,7 +9859,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                     <View
                                       style={
                                         {
-                                          "marginRight": 8,
+                                          "marginRight": 12,
                                         }
                                       }
                                       testID="textfield-startacccessory"

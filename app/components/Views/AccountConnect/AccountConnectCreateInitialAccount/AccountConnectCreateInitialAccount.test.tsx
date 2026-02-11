@@ -2,7 +2,7 @@ import React from 'react';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { AccountConnectCreateInitialAccount } from './AccountConnectCreateInitialAccount';
 import { fireEvent } from '@testing-library/react-native';
-import { AccountConnectSelectorsIDs } from '../../../../../e2e/selectors/wallet/AccountConnect.selectors';
+import { AccountConnectSelectorsIDs } from '../AccountConnect.testIds';
 
 const mockOnCreateAccount = jest.fn();
 

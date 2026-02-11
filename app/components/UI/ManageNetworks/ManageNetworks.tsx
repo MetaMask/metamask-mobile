@@ -13,16 +13,13 @@ import {
 } from '../../../selectors/networkInfos';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../constants/navigation/Routes';
-import getDecimalChainId from '../../../util/networks/getDecimalChainId';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { ConnectedAccountsSelectorsIDs } from '../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
+import { ConnectedAccountsSelectorsIDs } from '../../Views/AccountConnect/ConnectedAccountModal.testIds';
 import AppConstants from '../../../core/AppConstants';
 import styles from './ManageNetworks.styles';
-import { selectChainId } from '../../../selectors/networkController';
 
 export default function ManageNetworksComponent() {
-  const chainId = useSelector(selectChainId);
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useMetrics();
 
@@ -35,13 +32,9 @@ export default function ManageNetworksComponent() {
     });
 
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.NETWORK_SELECTOR_PRESSED)
-        .addProperties({
-          chain_id: getDecimalChainId(chainId),
-        })
-        .build(),
+      createEventBuilder(MetaMetricsEvents.NETWORK_SELECTOR_PRESSED).build(),
     );
-  }, [navigation, trackEvent, chainId, createEventBuilder]);
+  }, [navigation, trackEvent, createEventBuilder]);
 
   const openPrivacyPolicyLink = useCallback(() => {
     Linking.openURL(AppConstants.URLS.PRIVACY_POLICY_2024);

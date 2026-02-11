@@ -20,7 +20,7 @@ jest.mock('react-native', () => {
   return {
     ...actual,
     Linking: {
-      openUrl: jest.fn(),
+      openURL: jest.fn(),
     },
   };
 });
@@ -84,6 +84,19 @@ jest.mock('../hooks/useEarnToken', () => ({
       },
     },
   }),
+}));
+
+jest.mock('../../../hooks/useMetrics', () => ({
+  useMetrics: () => ({
+    trackEvent: jest.fn(),
+    createEventBuilder: jest.fn(() => ({
+      addProperties: jest.fn().mockReturnThis(),
+      build: jest.fn().mockReturnValue({}),
+    })),
+  }),
+  MetaMetricsEvents: {
+    EARN_LENDING_FAQ_LINK_OPENED: 'EARN_LENDING_FAQ_LINK_OPENED',
+  },
 }));
 
 const mockInitialState = {

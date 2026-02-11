@@ -1,16 +1,15 @@
 import { Appearance } from 'react-native';
 import { store } from '../../../store';
-import {
-  UserProfileMetaData,
-  UserProfileProperty,
-} from './UserProfileAnalyticsMetaData.types';
+import { UserProfileProperty } from './UserProfileAnalyticsMetaData.types';
 import { getConfiguredCaipChainIds } from '../MultichainAPI/networkMetricUtils';
+import type { AnalyticsUserTraits } from '@metamask/analytics-controller';
 
 /**
  * Generate user profile analytics meta data
  * To be used in the Segment identify call
+ * Returns AnalyticsUserTraits-compatible object
  */
-const generateUserProfileAnalyticsMetaData = (): UserProfileMetaData => {
+const generateUserProfileAnalyticsMetaData = (): AnalyticsUserTraits => {
   const reduxState = store.getState();
   const preferencesController =
     reduxState?.engine?.backgroundState?.PreferencesController;
@@ -23,7 +22,7 @@ const generateUserProfileAnalyticsMetaData = (): UserProfileMetaData => {
 
   const chainIds = getConfiguredCaipChainIds();
 
-  return {
+  const traits: AnalyticsUserTraits = {
     [UserProfileProperty.ENABLE_OPENSEA_API]:
       preferencesController?.displayNftMedia
         ? UserProfileProperty.ON
@@ -32,7 +31,7 @@ const generateUserProfileAnalyticsMetaData = (): UserProfileMetaData => {
       preferencesController?.useNftDetection
         ? UserProfileProperty.ON
         : UserProfileProperty.OFF,
-    [UserProfileProperty.THEME]: appThemeStyle,
+    [UserProfileProperty.THEME]: appThemeStyle ?? null,
     [UserProfileProperty.TOKEN_DETECTION]:
       preferencesController?.useTokenDetection
         ? UserProfileProperty.ON
@@ -49,6 +48,7 @@ const generateUserProfileAnalyticsMetaData = (): UserProfileMetaData => {
         : UserProfileProperty.OFF,
     [UserProfileProperty.CHAIN_IDS]: chainIds,
   };
+  return traits;
 };
 
 export default generateUserProfileAnalyticsMetaData;

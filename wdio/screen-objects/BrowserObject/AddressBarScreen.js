@@ -8,8 +8,8 @@ import {
 
 } from '../testIDs/BrowserScreen/AddressBar.testIds';
 
-import { BrowserURLBarSelectorsIDs } from '../../../e2e/selectors/Browser/BrowserURLBar.selectors';
-import AppwrightSelectors from '../../../e2e/framework/AppwrightSelectors';
+import { BrowserURLBarSelectorsIDs } from '../../../app/components/UI/BrowserUrlBar/BrowserURLBar.testIds';
+import AppwrightSelectors from '../../../tests/framework/AppwrightSelectors';
 
 class AddressBarScreen {
   get device() {

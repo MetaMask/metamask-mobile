@@ -378,7 +378,6 @@ exports[`SearchTokenAutocomplete renders correctly with selected chain 1`] = `
                                   "borderColor": "#2c3dc5",
                                   "color": "#686e7d",
                                   "paddingHorizontal": 42,
-                                  "paddingVertical": 12,
                                   "width": "100%",
                                 }
                               }
@@ -394,6 +393,7 @@ exports[`SearchTokenAutocomplete renders correctly with selected chain 1`] = `
                                   {
                                     "color": "#121314",
                                     "fontFamily": "Geist-Regular",
+                                    "height": 42,
                                   }
                                 }
                                 testID="input-search-asset"
@@ -947,9 +947,9 @@ exports[`SearchTokenAutocomplete renders correctly with selected chain 1`] = `
                       <View
                         style={
                           {
-                            "margin": 16,
-                            "paddingBottom": 0,
-                            "paddingVertical": 16,
+                            "paddingBottom": 16,
+                            "paddingHorizontal": 16,
+                            "paddingTop": 24,
                           }
                         }
                       >

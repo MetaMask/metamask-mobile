@@ -7,6 +7,10 @@ import { Skeleton } from '../../../../../../component-library/components/Skeleto
 import { useSelector } from 'react-redux';
 import { selectCurrentCurrency } from '../../../../../../selectors/currencyRateController';
 import Text from '../../../../../../component-library/components/Texts/Text';
+import {
+  useIsTransactionPayLoading,
+  useTransactionPayIsMaxAmount,
+} from '../../../hooks/pay/useTransactionPayData';
 
 export interface CustomAmountProps {
   amountFiat: string;
@@ -27,6 +31,8 @@ export const CustomAmount: React.FC<CustomAmountProps> = React.memo((props) => {
     onPress,
   } = props;
 
+  const isMaxAmount = useTransactionPayIsMaxAmount();
+  const isQuotesLoading = useIsTransactionPayLoading();
   const selectedCurrency = useSelector(selectCurrentCurrency);
   const currency = currencyProp ?? selectedCurrency;
   const fiatSymbol = getCurrencySymbol(currency);
@@ -38,7 +44,9 @@ export const CustomAmount: React.FC<CustomAmountProps> = React.memo((props) => {
     disabled,
   });
 
-  if (isLoading) {
+  const showLoader = isLoading || (isMaxAmount && isQuotesLoading);
+
+  if (showLoader) {
     return <CustomAmountSkeleton />;
   }
 

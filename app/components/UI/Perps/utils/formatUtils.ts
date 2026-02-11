@@ -2,17 +2,17 @@
  * Shared formatting utilities for Perps components
  */
 import { BigNumber } from 'bignumber.js';
+import { strings } from '../../../../../locales/i18n';
 import { formatWithThreshold } from '../../../../util/assets';
 import {
-  FUNDING_RATE_CONFIG,
   PERPS_CONSTANTS,
   DECIMAL_PRECISION_CONFIG,
-} from '../constants/perpsConfig';
+} from '@metamask/perps-controller';
+import { FUNDING_RATE_CONFIG } from '../constants/perpsConfig';
 import {
   getIntlNumberFormatter,
   getIntlDateTimeFormatter,
 } from '../../../../util/intl';
-import { strings } from '../../../../../locales/i18n';
 
 /**
  * Price threshold constants for PRICE_RANGES_UNIVERSAL
@@ -157,138 +157,6 @@ export function formatWithSignificantDigits(
 }
 
 /**
- * Counts the number of significant figures in a numeric string
- * This matches HyperLiquid's validation rules:
- * - Trailing decimal zeros are trimmed first (via parseFloat().toString())
- * - Count non-zero integer digits (without leading zeros)
- * - Count ALL decimal digits (including leading zeros after decimal point)
- *
- * @param priceString - The price value as a string (may include $ or ,)
- * @returns The count of significant figures
- *
- * @example
- * countSignificantFigures('123.45') // 5 (3 integer + 2 decimal)
- * countSignificantFigures('123.4500') // 5 (trailing zeros trimmed first)
- * countSignificantFigures('0.000123') // 6 (0 integer + 6 decimal)
- * countSignificantFigures('12.345') // 5 (2 integer + 3 decimal)
- * countSignificantFigures('12000') // 2 (trailing zeros in integer not counted)
- */
-export const countSignificantFigures = (priceString: string): number => {
-  if (!priceString) return 0;
-
-  // Clean the string - remove currency symbols and commas
-  const cleaned = priceString.replace(/[$,]/g, '').trim();
-
-  // Parse and convert back to string to trim trailing decimal zeros
-  // This matches formatHyperLiquidPrice: parseFloat(formattedPrice).toString()
-  const num = parseFloat(cleaned);
-  if (isNaN(num) || num === 0) return 0;
-
-  // Normalize to remove trailing zeros (e.g., "123.4500" -> "123.45")
-  const normalized = num.toString();
-
-  // Split into integer and decimal parts
-  const [integerPart, decimalPart = ''] = normalized.split('.');
-
-  // Remove leading zeros and negative sign from integer part
-  const trimmedInteger = integerPart.replace(/^-?0*/, '') || '';
-
-  // For integers without decimal, trailing zeros are ambiguous
-  // We treat them as not significant (matching HyperLiquid behavior)
-  const effectiveIntegerLength = decimalPart
-    ? trimmedInteger.length
-    : trimmedInteger.replace(/0+$/, '').length ||
-      (trimmedInteger.length > 0 ? 1 : 0);
-
-  // Count ALL decimal digits (including leading zeros like 0.000123)
-  // This matches HyperLiquid's validation behavior
-  return effectiveIntegerLength + decimalPart.length;
-};
-
-/**
- * Checks if a price will be rounded due to exceeding significant figures
- * Only applies when the price has decimals - integers are never rounded
- * This matches the behavior in formatHyperLiquidPrice
- *
- * @param priceString - The price value as a string
- * @param maxSigFigs - Maximum allowed significant figures (default: MAX_SIGNIFICANT_FIGURES from config)
- * @returns true if the price will be rounded, false otherwise
- */
-export const hasExceededSignificantFigures = (
-  priceString: string,
-  maxSigFigs: number = DECIMAL_PRECISION_CONFIG.MAX_SIGNIFICANT_FIGURES,
-): boolean => {
-  if (!priceString || priceString.trim() === '') return false;
-
-  // Clean the string and normalize (trim trailing zeros)
-  const cleaned = priceString.replace(/[$,]/g, '').trim();
-  const num = parseFloat(cleaned);
-  if (isNaN(num)) return false;
-
-  // Normalize to check for decimal presence after trimming trailing zeros
-  const normalized = num.toString();
-
-  // If there's no decimal part after normalization, the price won't be rounded
-  if (!normalized.includes('.')) return false;
-
-  return countSignificantFigures(priceString) > maxSigFigs;
-};
-
-/**
- * Rounds a price string to the maximum allowed significant figures
- * Uses the same counting logic as countSignificantFigures:
- * - Count non-zero integer digits + ALL decimal digits (including leading zeros)
- *
- * @param priceString - The price value as a string
- * @param maxSigFigs - Maximum allowed significant figures (default: MAX_SIGNIFICANT_FIGURES from config)
- * @returns Price string rounded to max significant figures
- *
- * @example
- * roundToSignificantFigures('123.456') // '123.46' (3 int + 2 dec = 5)
- * roundToSignificantFigures('0.065242') // '0.06524' (0 int + 5 dec = 5)
- * roundToSignificantFigures('12345.67') // '12346' (5 int + 0 dec = 5)
- */
-export const roundToSignificantFigures = (
-  priceString: string,
-  maxSigFigs: number = DECIMAL_PRECISION_CONFIG.MAX_SIGNIFICANT_FIGURES,
-): string => {
-  if (!priceString || priceString.trim() === '') return priceString;
-
-  const cleaned = priceString.replace(/[$,]/g, '').trim();
-  const num = Number.parseFloat(cleaned);
-  if (Number.isNaN(num) || num === 0) return priceString;
-
-  // Normalize to remove trailing zeros
-  const normalized = num.toString();
-  const [integerPart, decimalPart = ''] = normalized.split('.');
-
-  // Count integer significant digits (without leading zeros)
-  const trimmedInteger = integerPart.replace(/^-?0*/, '') || '';
-  const integerSigFigs = trimmedInteger.length;
-
-  // If no decimal, return as is (integers are fine)
-  if (!decimalPart) return normalized;
-
-  // Calculate how many decimal digits we can keep
-  const allowedDecimalDigits = maxSigFigs - integerSigFigs;
-
-  if (allowedDecimalDigits <= 0) {
-    // Round to integer
-    return Math.round(num).toString();
-  }
-
-  if (decimalPart.length <= allowedDecimalDigits) {
-    // Already within limit
-    return normalized;
-  }
-
-  // Round to the allowed number of decimal places
-  const rounded = num.toFixed(allowedDecimalDigits);
-  // Remove trailing zeros
-  return Number.parseFloat(rounded).toString();
-};
-
-/**
  * Minimal view fiat range configuration
  * Uses fiat-style stripping for clean currency display
  * Strips only .00 to avoid partial decimals like $1,250.1
@@ -367,7 +235,7 @@ export const formatPerpsFiat = (
 
   if (isNaN(num)) {
     // Return placeholder for invalid values to avoid confusion with actual $0 values
-    return PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY;
+    return PERPS_CONSTANTS.FallbackPriceDisplay;
   }
 
   // Use custom ranges or defaults
@@ -551,7 +419,7 @@ export const PRICE_RANGES_UNIVERSAL: FiatRangeConfig[] = [
   {
     // Very high values (> $100,000): No decimals, 6 significant figures
     // Ex: $123,456.78 → $123,457
-    condition: (v) => Math.abs(v) > PRICE_THRESHOLD.VERY_HIGH,
+    condition: (val) => Math.abs(val) > PRICE_THRESHOLD.VERY_HIGH,
     minimumDecimals: 0,
     maximumDecimals: 0,
     significantDigits: 6,
@@ -560,7 +428,7 @@ export const PRICE_RANGES_UNIVERSAL: FiatRangeConfig[] = [
   {
     // High values ($10,000-$100,000]: No decimals, 5 significant figures
     // Ex: $12,345.67 → $12,346
-    condition: (v) => Math.abs(v) > PRICE_THRESHOLD.HIGH,
+    condition: (val) => Math.abs(val) > PRICE_THRESHOLD.HIGH,
     minimumDecimals: 0,
     maximumDecimals: 0,
     significantDigits: 5,
@@ -569,7 +437,7 @@ export const PRICE_RANGES_UNIVERSAL: FiatRangeConfig[] = [
   {
     // Large values ($1,000-$10,000]: Max 1 decimal, 5 significant figures
     // Ex: $1,234.56 → $1,234.6
-    condition: (v) => Math.abs(v) > PRICE_THRESHOLD.LARGE,
+    condition: (val) => Math.abs(val) > PRICE_THRESHOLD.LARGE,
     minimumDecimals: 0,
     maximumDecimals: 1,
     significantDigits: 5,
@@ -578,7 +446,7 @@ export const PRICE_RANGES_UNIVERSAL: FiatRangeConfig[] = [
   {
     // Medium values ($100-$1,000]: Max 2 decimals, 5 significant figures
     // Ex: $123.456 → $123.46
-    condition: (v) => Math.abs(v) > PRICE_THRESHOLD.MEDIUM,
+    condition: (val) => Math.abs(val) > PRICE_THRESHOLD.MEDIUM,
     minimumDecimals: 0,
     maximumDecimals: 2,
     significantDigits: 5,
@@ -587,7 +455,7 @@ export const PRICE_RANGES_UNIVERSAL: FiatRangeConfig[] = [
   {
     // Medium-low values ($10-$100]: Max 4 decimals, 5 significant figures
     // Ex: $12.34567 → $12.346
-    condition: (v) => Math.abs(v) > PRICE_THRESHOLD.MEDIUM_LOW,
+    condition: (val) => Math.abs(val) > PRICE_THRESHOLD.MEDIUM_LOW,
     minimumDecimals: 0,
     maximumDecimals: 4,
     significantDigits: 5,
@@ -596,10 +464,10 @@ export const PRICE_RANGES_UNIVERSAL: FiatRangeConfig[] = [
   {
     // Low values ($0.01-$10]: 5 significant figures, min 2 max MAX_PRICE_DECIMALS decimals
     // Ex: $1.3445555 → $1.3446 | $0.333333 → $0.33333
-    condition: (v) => Math.abs(v) >= PRICE_THRESHOLD.LOW,
+    condition: (val) => Math.abs(val) >= PRICE_THRESHOLD.LOW,
     significantDigits: 5,
     minimumDecimals: 2,
-    maximumDecimals: DECIMAL_PRECISION_CONFIG.MAX_PRICE_DECIMALS,
+    maximumDecimals: DECIMAL_PRECISION_CONFIG.MaxPriceDecimals,
     threshold: PRICE_THRESHOLD.LOW,
   },
   {
@@ -608,7 +476,7 @@ export const PRICE_RANGES_UNIVERSAL: FiatRangeConfig[] = [
     condition: () => true,
     significantDigits: 4,
     minimumDecimals: 2,
-    maximumDecimals: DECIMAL_PRECISION_CONFIG.MAX_PRICE_DECIMALS,
+    maximumDecimals: DECIMAL_PRECISION_CONFIG.MaxPriceDecimals,
     threshold: PRICE_THRESHOLD.VERY_SMALL,
   },
 ];
@@ -625,7 +493,7 @@ export const formatPnl = (pnl: string | number): string => {
   const num = typeof pnl === 'string' ? parseFloat(pnl) : pnl;
 
   if (isNaN(num)) {
-    return PERPS_CONSTANTS.ZERO_AMOUNT_DETAILED_DISPLAY;
+    return PERPS_CONSTANTS.ZeroAmountDetailedDisplay;
   }
 
   const formatted = getIntlNumberFormatter('en-US', {
@@ -677,15 +545,15 @@ export const formatFundingRate = (
   const showZero = options?.showZero ?? true;
 
   if (value === undefined || value === null) {
-    return showZero ? FUNDING_RATE_CONFIG.ZERO_DISPLAY : '';
+    return showZero ? FUNDING_RATE_CONFIG.ZeroDisplay : '';
   }
 
-  const percentage = value * FUNDING_RATE_CONFIG.PERCENTAGE_MULTIPLIER;
-  const formatted = percentage.toFixed(FUNDING_RATE_CONFIG.DECIMALS);
+  const percentage = value * FUNDING_RATE_CONFIG.PercentageMultiplier;
+  const formatted = percentage.toFixed(FUNDING_RATE_CONFIG.Decimals);
 
   // Check if the result is effectively zero
   if (showZero && parseFloat(formatted) === 0) {
-    return FUNDING_RATE_CONFIG.ZERO_DISPLAY;
+    return FUNDING_RATE_CONFIG.ZeroDisplay;
   }
 
   return `${formatted}%`;

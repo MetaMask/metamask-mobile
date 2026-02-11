@@ -1,5 +1,8 @@
-import type { SortField, SortDirection } from '../../utils/sortMarkets';
-import type { SortOptionId } from '../../constants/perpsConfig';
+import {
+  type SortField,
+  type SortDirection,
+  type SortOptionId,
+} from '@metamask/perps-controller';
 
 /**
  * Props for PerpsMarketSortFieldBottomSheet component
@@ -17,6 +20,10 @@ export interface PerpsMarketSortFieldBottomSheetProps {
    * Currently selected option ID
    */
   selectedOptionId: SortOptionId;
+  /**
+   * Current sort direction (used for price change toggle and default for other options)
+   */
+  sortDirection: SortDirection;
   /**
    * Callback when an option is selected
    * @param optionId - The ID of the selected option

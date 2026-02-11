@@ -81,7 +81,6 @@ jest.mock('../../hooks/usePredictActionGuard', () => ({
   usePredictActionGuard: () => ({
     executeGuardedAction: mockExecuteGuardedAction,
     isEligible: true,
-    hasNoBalance: false,
   }),
 }));
 

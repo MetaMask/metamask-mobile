@@ -14,7 +14,7 @@ import {
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Modal from 'react-native-modal';
 import { connect } from 'react-redux';
-import { ActivitiesViewSelectorsIDs } from '../../../../e2e/selectors/Transactions/ActivitiesView.selectors';
+import { ActivitiesViewSelectorsIDs } from '../../Views/ActivityView/ActivitiesView.testIds';
 import { strings } from '../../../../locales/i18n';
 import { showAlert } from '../../../actions/alert';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
@@ -57,6 +57,7 @@ import {
 } from '../../../util/transaction-controller';
 import { validateTransactionActionBalance } from '../../../util/transactions';
 import { createLedgerTransactionModalNavDetails } from '../../UI/LedgerModals/LedgerTransactionModal';
+import { createQRSigningTransactionModalNavDetails } from '../../UI/QRHardware/QRSigningTransactionModal';
 import UpdateEIP1559Tx from '../../Views/confirmations/legacy/components/UpdateEIP1559Tx';
 import PriceChartContext, {
   PriceChartProvider,
@@ -562,9 +563,18 @@ class Transactions extends PureComponent {
     }
   };
 
-  signQRTransaction = async (tx) => {
-    const { ApprovalController } = Engine.context;
-    await ApprovalController.accept(tx.id, undefined, { waitForResult: true });
+  signQRTransaction = async (transactionMeta) => {
+    const { TransactionController } = Engine.context;
+    this.props.navigation.navigate(
+      ...createQRSigningTransactionModalNavDetails({
+        transactionId: transactionMeta.id,
+        onConfirmationComplete: (confirmed) => {
+          if (!confirmed) {
+            TransactionController.cancelTransaction(transactionMeta.id);
+          }
+        },
+      }),
+    );
   };
 
   signLedgerTransaction = async (transaction) => {

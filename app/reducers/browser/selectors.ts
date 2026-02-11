@@ -9,3 +9,11 @@ export const selectBrowserHistory = (state: RootState) => state.browser.history;
  */
 export const selectSearchEngine = (state: RootState) =>
   state.settings.searchEngine;
+
+/**
+ * Gets the number of browser tabs from the Redux state
+ * @param state - Redux state
+ * @returns - Number of browser tabs
+ */
+export const selectBrowserTabCount = (state: RootState) =>
+  state.browser.tabs.length;

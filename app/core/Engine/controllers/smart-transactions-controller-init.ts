@@ -8,9 +8,8 @@ import {
   MetaMetricsEventName,
   type SmartTransactionsControllerMessenger,
 } from '@metamask/smart-transactions-controller';
-import { selectSwapsChainFeatureFlags } from '../../../reducers/swaps';
-import { MetaMetrics } from '../../Analytics';
-import { MetricsEventBuilder } from '../../Analytics/MetricsEventBuilder';
+import type { SmartTransactionsControllerInitMessenger } from '../messengers/smart-transactions-controller-messenger';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import { trace } from '../../../util/trace';
 import { getAllowedSmartTransactionsChainIds } from '../../../constants/smartTransactions';
 
@@ -23,8 +22,9 @@ import { getAllowedSmartTransactionsChainIds } from '../../../constants/smartTra
  */
 export const smartTransactionsControllerInit: ControllerInitFunction<
   SmartTransactionsController,
-  SmartTransactionsControllerMessenger
-> = ({ controllerMessenger, persistedState, getState }) => {
+  SmartTransactionsControllerMessenger,
+  SmartTransactionsControllerInitMessenger
+> = ({ controllerMessenger, initMessenger, persistedState }) => {
   const trackMetaMetricsEvent = (params: {
     event: MetaMetricsEventName;
     category: MetaMetricsEventCategory;
@@ -33,14 +33,17 @@ export const smartTransactionsControllerInit: ControllerInitFunction<
       typeof getSmartTransactionMetricsSensitiveProperties
     >;
   }) => {
-    MetaMetrics.getInstance().trackEvent(
-      MetricsEventBuilder.createEventBuilder({
-        category: params.event,
-      })
-        .addProperties(params.properties || {})
-        .addSensitiveProperties(params.sensitiveProperties || {})
-        .build(),
-    );
+    try {
+      const event = AnalyticsEventBuilder.createEventBuilder(params.event)
+        .addProperties(params.properties)
+        .addSensitiveProperties(params.sensitiveProperties)
+        .build();
+
+      initMessenger.call('AnalyticsController:trackEvent', event);
+    } catch (error) {
+      // Analytics tracking failures should not break smart transactions
+      // Error is logged but not thrown
+    }
   };
 
   const controller = new SmartTransactionsController({
@@ -48,8 +51,6 @@ export const smartTransactionsControllerInit: ControllerInitFunction<
     state: persistedState.SmartTransactionsController,
     supportedChainIds: getAllowedSmartTransactionsChainIds(),
     clientId: ClientId.Mobile,
-    getFeatureFlags: () => selectSwapsChainFeatureFlags(getState()),
-
     // TODO: Return MetaMetrics props once we enable HW wallets for smart
     // transactions.
     getMetaMetricsProps: () => Promise.resolve({}),

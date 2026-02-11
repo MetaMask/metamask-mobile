@@ -6,9 +6,7 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
-import TextField, {
-  TextFieldSize,
-} from '../../../../../component-library/components/Form/TextField';
+import TextField from '../../../../../component-library/components/Form/TextField';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import OnboardingStep from './OnboardingStep';
@@ -28,13 +26,7 @@ import { CardActions, CardScreens } from '../../util/metrics';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 
-import { Platform, TextInputProps } from 'react-native';
-
 const CODE_LENGTH = 6;
-const autoComplete = Platform.select<TextInputProps['autoComplete']>({
-  android: 'sms-otp',
-  default: 'one-time-code',
-});
 
 const ConfirmEmail = () => {
   const navigation = useNavigation();
@@ -148,6 +140,13 @@ const ConfirmEmail = () => {
         dispatch(setOnboardingId(onboardingId));
         navigation.navigate(Routes.CARD.ONBOARDING.SET_PHONE_NUMBER);
       } else if (hasAccount) {
+        const navigateToAuthentication = () => {
+          navigation.reset({
+            index: 0,
+            routes: [{ name: Routes.CARD.AUTHENTICATION }],
+          });
+        };
+
         navigation.navigate(Routes.CARD.MODALS.ID, {
           screen: Routes.CARD.MODALS.CONFIRM_MODAL,
           params: {
@@ -162,10 +161,9 @@ const ConfirmEmail = () => {
               label: strings(
                 'card.card_onboarding.account_exists.confirm_button',
               ),
-              onPress: () => {
-                navigation.navigate(Routes.CARD.AUTHENTICATION);
-              },
+              onPress: navigateToAuthentication,
             },
+            onClose: navigateToAuthentication,
             icon: IconName.UserCheck,
           },
         });
@@ -232,11 +230,9 @@ const ConfirmEmail = () => {
           autoCapitalize={'none'}
           onChangeText={handleConfirmCodeChange}
           numberOfLines={1}
-          size={TextFieldSize.Lg}
           value={confirmCode}
           keyboardType="number-pad"
-          textContentType="oneTimeCode"
-          autoComplete={autoComplete}
+          autoComplete="one-time-code"
           maxLength={CODE_LENGTH}
           accessibilityLabel={strings(
             'card.card_onboarding.confirm_email.code_label',
@@ -304,16 +300,25 @@ const ConfirmEmail = () => {
   );
 
   const renderActions = () => (
-    <Button
-      variant={ButtonVariants.Primary}
-      label={strings('card.card_onboarding.continue_button')}
-      size={ButtonSize.Lg}
-      onPress={handleContinue}
-      width={ButtonWidthTypes.Full}
-      isDisabled={isDisabled}
-      loading={verifyLoading}
-      testID="confirm-email-continue-button"
-    />
+    <Box twClassName="flex flex-col items-center justify-center gap-2">
+      <Button
+        variant={ButtonVariants.Primary}
+        label={strings('card.card_onboarding.continue_button')}
+        size={ButtonSize.Lg}
+        onPress={handleContinue}
+        width={ButtonWidthTypes.Full}
+        isDisabled={isDisabled}
+        loading={verifyLoading}
+        testID="confirm-email-continue-button"
+      />
+      <Text
+        variant={TextVariant.BodySm}
+        testID="confirm-email-legal-terms"
+        twClassName="text-text-alternative text-center"
+      >
+        {strings('card.card_onboarding.confirm_email.legal_terms')}
+      </Text>
+    </Box>
   );
 
   return (
@@ -324,6 +329,7 @@ const ConfirmEmail = () => {
       })}
       formFields={renderFormFields()}
       actions={renderActions()}
+      stickyActions
     />
   );
 };

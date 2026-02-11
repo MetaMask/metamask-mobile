@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { TouchableOpacity, View } from 'react-native';
-import { getPerpsMarketRowItemSelector } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { getPerpsMarketRowItemSelector } from '../../Perps.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import Text, {
   TextColor,
@@ -9,14 +9,12 @@ import Text, {
 import { useStyles } from '../../../../../component-library/hooks';
 import {
   PERPS_CONSTANTS,
-  HOME_SCREEN_CONFIG,
-} from '../../constants/perpsConfig';
-import type { PerpsMarketData } from '../../controllers/types';
-import { usePerpsLivePrices } from '../../hooks/stream';
-import {
   getPerpsDisplaySymbol,
-  getMarketBadgeType,
-} from '../../utils/marketUtils';
+  type PerpsMarketData,
+} from '@metamask/perps-controller';
+import { HOME_SCREEN_CONFIG } from '../../constants/perpsConfig';
+import { usePerpsLivePrices } from '../../hooks/stream';
+import { getMarketBadgeType } from '../../utils/marketUtils';
 import {
   formatFundingRate,
   formatPercentage,
@@ -34,11 +32,12 @@ import { PerpsMarketRowItemProps } from './PerpsMarketRowItem.types';
 const PerpsMarketRowItem = ({
   market,
   onPress,
-  iconSize = HOME_SCREEN_CONFIG.DEFAULT_ICON_SIZE,
+  iconSize = HOME_SCREEN_CONFIG.DefaultIconSize,
   displayMetric = 'volume',
-  showBadge = true,
+  showBadge = false, // We can re-enable this if/when we decide to render the badges for stocks and commodities
+  compact = false,
 }: PerpsMarketRowItemProps) => {
-  const { styles } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet, { compact });
 
   // Subscribe to live prices for just this symbol
   const livePrices = usePerpsLivePrices({
@@ -105,14 +104,14 @@ const PerpsMarketRowItem = ({
         updatedMarket.volume = formatVolume(volume);
       } else {
         // Only show $0 if volume is truly 0
-        updatedMarket.volume = PERPS_CONSTANTS.ZERO_AMOUNT_DETAILED_DISPLAY;
+        updatedMarket.volume = PERPS_CONSTANTS.ZeroAmountDetailedDisplay;
       }
     } else if (
       !market.volume ||
-      market.volume === PERPS_CONSTANTS.ZERO_AMOUNT_DISPLAY
+      market.volume === PERPS_CONSTANTS.ZeroAmountDisplay
     ) {
       // Fallback: ensure volume field always has a value
-      updatedMarket.volume = PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY;
+      updatedMarket.volume = PERPS_CONSTANTS.FallbackPriceDisplay;
     }
 
     // Update funding rate from live data if available
@@ -134,7 +133,7 @@ const PerpsMarketRowItem = ({
         return displayMarket.change24hPercent;
       case 'openInterest':
         return (
-          displayMarket.openInterest || PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY
+          displayMarket.openInterest || PERPS_CONSTANTS.FallbackPriceDisplay
         );
       case 'fundingRate':
         // Use formatFundingRate utility for consistent formatting with asset detail screen

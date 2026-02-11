@@ -1,9 +1,10 @@
 import { useCallback, useMemo } from 'react';
 import Engine from '../../../../core/Engine';
-import type {
-  SwitchProviderResult,
-  ToggleTestnetResult,
-} from '../controllers/types';
+import {
+  type PerpsActiveProviderMode,
+  type SwitchProviderResult,
+  type ToggleTestnetResult,
+} from '@metamask/perps-controller';
 
 /**
  * Hook for network and provider configuration
@@ -21,7 +22,9 @@ export function usePerpsNetworkConfig() {
   }, []);
 
   const switchProvider = useCallback(
-    async (providerId: string): Promise<SwitchProviderResult> => {
+    async (
+      providerId: PerpsActiveProviderMode,
+    ): Promise<SwitchProviderResult> => {
       const controller = Engine.context.PerpsController;
       return controller.switchProvider(providerId);
     },

@@ -2,9 +2,14 @@ import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import CardAuthentication from './CardAuthentication';
 import Routes from '../../../../../constants/navigation/Routes';
-import { CardAuthenticationSelectors } from '../../../../../../e2e/selectors/Card/CardAuthentication.selectors';
-import { CardLocation } from '../../types';
+import { CardAuthenticationSelectors } from './CardAuthentication.testIds';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
+
+// Mock whenEngineReady to prevent async polling after test teardown
+jest.mock('../../../../../core/Analytics/whenEngineReady', () => ({
+  __esModule: true,
+  default: jest.fn().mockResolvedValue(undefined),
+}));
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -237,8 +242,46 @@ describe('CardAuthentication Component', () => {
     });
   });
 
+  describe('Login Step - Password Visibility Toggle', () => {
+    it('renders the password visibility toggle button', () => {
+      render();
+
+      expect(
+        screen.getByTestId('password-visibility-toggle'),
+      ).toBeOnTheScreen();
+    });
+
+    it('has password hidden by default', () => {
+      render();
+      const passwordInput = screen.getByTestId('password-field');
+
+      expect(passwordInput).toHaveProp('secureTextEntry', true);
+    });
+
+    it('shows password when visibility toggle is pressed', () => {
+      render();
+      const passwordInput = screen.getByTestId('password-field');
+      const toggleButton = screen.getByTestId('password-visibility-toggle');
+
+      fireEvent.press(toggleButton);
+
+      expect(passwordInput).toHaveProp('secureTextEntry', false);
+    });
+
+    it('hides password again when visibility toggle is pressed twice', () => {
+      render();
+      const passwordInput = screen.getByTestId('password-field');
+      const toggleButton = screen.getByTestId('password-visibility-toggle');
+
+      fireEvent.press(toggleButton);
+      fireEvent.press(toggleButton);
+
+      expect(passwordInput).toHaveProp('secureTextEntry', true);
+    });
+  });
+
   describe('Login Step - Login Functionality', () => {
-    it('calls login with correct parameters for international location', async () => {
+    it('calls login with correct parameters', async () => {
       render();
       const emailInput = screen.getByTestId('email-field');
       const passwordInput = screen.getByTestId('password-field');
@@ -252,14 +295,13 @@ describe('CardAuthentication Component', () => {
 
       await waitFor(() => {
         expect(mockLogin).toHaveBeenCalledWith({
-          location: 'international',
           email: 'test@example.com',
           password: 'password123',
         });
       });
     });
 
-    it('calls login with US location when selected', async () => {
+    it('calls login after selecting US location', async () => {
       render();
       const usBox = screen.getByTestId('us-location-box');
       const emailInput = screen.getByTestId('email-field');
@@ -275,7 +317,6 @@ describe('CardAuthentication Component', () => {
 
       await waitFor(() => {
         expect(mockLogin).toHaveBeenCalledWith({
-          location: 'us' as CardLocation,
           email: 'test@example.com',
           password: 'password123',
         });
@@ -339,7 +380,6 @@ describe('CardAuthentication Component', () => {
 
       await waitFor(() => {
         expect(mockLogin).toHaveBeenCalledWith({
-          location: 'international',
           email: 'test@example.com',
           password: 'password123',
         });

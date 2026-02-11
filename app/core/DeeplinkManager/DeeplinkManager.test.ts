@@ -10,6 +10,7 @@ import handleApproveUrl from './handlers/legacy/handleApproveUrl';
 import { store } from '../../store';
 import { RootState } from '../../reducers';
 import branch from 'react-native-branch';
+import AppConstants from '../AppConstants';
 
 jest.mock('./handlers/legacy/handleApproveUrl');
 jest.mock('./handlers/legacy/handleEthereumUrl');
@@ -159,6 +160,7 @@ describe('DeeplinkManager.start() - FCM Push Notification Integration', () => {
         ).toHaveBeenCalled();
         expect(mocks.mockHandleDeeplink).toHaveBeenCalledWith({
           uri: testDeeplink,
+          source: AppConstants.DEEPLINKS.ORIGIN_PUSH_NOTIFICATION,
         });
       });
     });
@@ -201,6 +203,7 @@ describe('DeeplinkManager.start() - FCM Push Notification Integration', () => {
       ).toHaveBeenCalledWith(expect.any(Function));
       expect(mocks.mockHandleDeeplink).toHaveBeenCalledWith({
         uri: testDeeplink,
+        source: AppConstants.DEEPLINKS.ORIGIN_PUSH_NOTIFICATION,
       });
     });
 

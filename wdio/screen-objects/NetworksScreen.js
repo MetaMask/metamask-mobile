@@ -1,6 +1,6 @@
 import Selectors from '../helpers/Selectors';
-import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
-import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
+import AppwrightSelectors from '../../tests/framework/AppwrightSelectors';
+import AppwrightGestures from '../../tests/framework/AppwrightGestures';
 import Gestures from '../helpers/Gestures';
 import { expect as appwrightExpect } from 'appwright';
 import {
@@ -12,7 +12,7 @@ import {
   NETWORKS_SYMBOL_INPUT_FIELD,
   REMOVE_NETWORK_BUTTON,
 } from './testIDs/Screens/NetworksScreen.testids';
-import { NetworksViewSelectorsIDs } from '../../e2e/selectors/Settings/NetworksView.selectors';
+import { NetworksViewSelectorsIDs } from '../../app/components/Views/Settings/NetworksSettings/NetworksView.testIds';
 
 class NetworksScreen {
 

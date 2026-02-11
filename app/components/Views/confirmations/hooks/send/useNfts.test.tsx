@@ -7,7 +7,11 @@ import { AccountGroupObject } from '@metamask/account-tree-controller';
 import { AccountGroupType } from '@metamask/account-api';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { AccountId } from '@metamask/accounts-controller';
-import { Nft, NftControllerState } from '@metamask/assets-controllers';
+import {
+  Nft,
+  NftControllerState,
+  getFormattedIpfsUrl,
+} from '@metamask/assets-controllers';
 import BigNumber from 'bignumber.js';
 
 import Engine from '../../../../../core/Engine';
@@ -24,9 +28,6 @@ jest.mock('ethers/lib/utils', () => ({
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
-    NftController: {
-      getNFTContractInfo: jest.fn(),
-    },
     AssetsContractController: {
       getERC1155BalanceOf: jest.fn(),
     },
@@ -34,6 +35,10 @@ jest.mock('../../../../../core/Engine', () => ({
       findNetworkClientIdByChainId: jest.fn(),
     },
   },
+}));
+
+jest.mock('@metamask/assets-controllers', () => ({
+  getFormattedIpfsUrl: jest.fn(),
 }));
 
 jest.mock('../../../../../selectors/multichainAccounts/accountTreeController');
@@ -62,10 +67,10 @@ const mockGetNetworkBadgeSource = getNetworkBadgeSource as jest.MockedFunction<
 const mockuseSendScope = useSendScope as jest.MockedFunction<
   typeof useSendScope
 >;
-
-const mockNftController = Engine.context.NftController as jest.Mocked<
-  typeof Engine.context.NftController
+const mockGetFormattedIpfsUrl = getFormattedIpfsUrl as jest.MockedFunction<
+  typeof getFormattedIpfsUrl
 >;
+
 const mockAssetsContractController = Engine.context
   .AssetsContractController as jest.Mocked<
   typeof Engine.context.AssetsContractController
@@ -78,9 +83,23 @@ const createMockStore = () =>
   configureStore({
     reducer: {
       app: () => ({}),
+      engine: () => ({
+        backgroundState: {
+          PreferencesController: {
+            ipfsGateway: 'https://ipfs.io/ipfs/',
+          },
+        },
+      }),
     },
     preloadedState: {
       app: {},
+      engine: {
+        backgroundState: {
+          PreferencesController: {
+            ipfsGateway: 'https://ipfs.io/ipfs/',
+          },
+        },
+      },
     },
   });
 
@@ -210,6 +229,7 @@ describe('useEVMNfts', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       new BigNumber('1') as any,
     );
+    mockGetFormattedIpfsUrl.mockResolvedValue(undefined as unknown as string);
   });
 
   it('returns empty array when isEvm is false', async () => {
@@ -316,45 +336,7 @@ describe('useEVMNfts', () => {
     });
   });
 
-  it('fetches collection info for NFTs without collection data', async () => {
-    const nftWithoutCollection = {
-      ...mockNft,
-      collection: undefined,
-    };
-
-    mockSelectSelectedAccountGroup.mockReturnValue(
-      createMockAccountGroup(['account-1']),
-    );
-    mockSelectInternalAccountsById.mockReturnValue(
-      createMockInternalAccountsById({
-        'account-1': mockAccount,
-      }),
-    );
-    mockSelectAllNfts.mockReturnValue(
-      createMockAllNfts({
-        [mockAccount.address]: {
-          '0x1': [nftWithoutCollection],
-        },
-      }),
-    );
-
-    mockNftController.getNFTContractInfo.mockResolvedValue({
-      collections: [mockNft.collection],
-    });
-
-    const { result } = renderHookWithStore(() => useEVMNfts());
-
-    await waitFor(() => {
-      expect(mockNftController.getNFTContractInfo).toHaveBeenCalledWith(
-        [mockNft.address],
-        '0x1',
-      );
-      expect(result.current).toHaveLength(1);
-      expect(result.current[0].collectionName).toBe(mockNft.collection.name);
-    });
-  });
-
-  it('filters out ERC1155 NFTs', async () => {
+  it('includes ERC1155 NFTs with balance', async () => {
     const erc1155Nft = {
       ...mockNft,
       standard: 'ERC1155',
@@ -379,40 +361,9 @@ describe('useEVMNfts', () => {
     const { result } = renderHookWithStore(() => useEVMNfts());
 
     await waitFor(() => {
-      expect(result.current).toHaveLength(0);
-    });
-  });
-
-  it('returns empty array when collection fetch fails', async () => {
-    const nftWithoutCollection = {
-      ...mockNft,
-      collection: undefined,
-    };
-
-    mockSelectSelectedAccountGroup.mockReturnValue(
-      createMockAccountGroup(['account-1']),
-    );
-    mockSelectInternalAccountsById.mockReturnValue(
-      createMockInternalAccountsById({
-        'account-1': mockAccount,
-      }),
-    );
-    mockSelectAllNfts.mockReturnValue(
-      createMockAllNfts({
-        [mockAccount.address]: {
-          '0x1': [nftWithoutCollection],
-        },
-      }),
-    );
-
-    mockNftController.getNFTContractInfo.mockRejectedValue(
-      new Error('Collection fetch failed'),
-    );
-
-    const { result } = renderHookWithStore(() => useEVMNfts());
-
-    await waitFor(() => {
-      expect(result.current).toEqual([]);
+      expect(result.current).toHaveLength(1);
+      expect(result.current[0].standard).toBe('ERC1155');
+      expect(result.current[0].balance).toBe('1');
     });
   });
 
@@ -710,14 +661,14 @@ describe('useEVMNfts', () => {
     });
   });
 
-  it('fetches missing collections for NFTs without collection data', async () => {
-    const nftWithCollection = mockNft;
-    const nftWithoutCollection = {
+  it('continues to next URL when IPFS URL resolves to empty string', async () => {
+    const nftWithFailingIpfs = {
       ...mockNft,
-      collection: undefined,
-      name: 'No Collection NFT',
+      image: 'ipfs://QmFailingHash',
+      imageUrl: 'https://example.com/valid-fallback.png',
     };
 
+    mockGetFormattedIpfsUrl.mockResolvedValue('');
     mockSelectSelectedAccountGroup.mockReturnValue(
       createMockAccountGroup(['account-1']),
     );
@@ -729,111 +680,53 @@ describe('useEVMNfts', () => {
     mockSelectAllNfts.mockReturnValue(
       createMockAllNfts({
         [mockAccount.address]: {
-          '0x1': [nftWithCollection, nftWithoutCollection],
+          '0x1': [nftWithFailingIpfs],
         },
       }),
     );
-
-    mockNftController.getNFTContractInfo.mockResolvedValue({
-      collections: [
-        {
-          name: 'Fetched Collection',
-          imageUrl: 'https://example.com/fetched.png',
-        },
-      ],
-    });
 
     const { result } = renderHookWithStore(() => useEVMNfts());
 
     await waitFor(() => {
-      expect(result.current).toHaveLength(2);
-      expect(result.current[0].collectionName).toBe('Test Collection');
-      expect(result.current[1].collectionName).toBe('Fetched Collection');
-    });
-  });
-
-  it('returns empty array when getNFTContractInfo returns empty collections', async () => {
-    const nftWithoutCollection = { ...mockNft, collection: undefined };
-
-    mockSelectSelectedAccountGroup.mockReturnValue(
-      createMockAccountGroup(['account-1']),
-    );
-    mockSelectInternalAccountsById.mockReturnValue(
-      createMockInternalAccountsById({
-        'account-1': mockAccount,
-      }),
-    );
-    mockSelectAllNfts.mockReturnValue(
-      createMockAllNfts({
-        [mockAccount.address]: {
-          '0x1': [nftWithoutCollection],
-        },
-      }),
-    );
-
-    mockNftController.getNFTContractInfo.mockResolvedValue({
-      collections: [],
-    });
-
-    const { result } = renderHookWithStore(() => useEVMNfts());
-
-    await waitFor(() => {
-      expect(result.current).toEqual([]);
-    });
-  });
-
-  it('groups NFTs by chain when fetching missing collections', async () => {
-    const nft1 = {
-      ...mockNft,
-      collection: undefined,
-      name: 'NFT 1',
-      address: '0xaaa',
-    };
-    const nft2 = {
-      ...mockNft,
-      collection: undefined,
-      name: 'NFT 2',
-      address: '0xbbb',
-    };
-    const nft3 = {
-      ...mockNft,
-      collection: undefined,
-      name: 'NFT 3',
-      address: '0xccc',
-    };
-
-    mockSelectSelectedAccountGroup.mockReturnValue(
-      createMockAccountGroup(['account-1']),
-    );
-    mockSelectInternalAccountsById.mockReturnValue(
-      createMockInternalAccountsById({
-        'account-1': mockAccount,
-      }),
-    );
-    mockSelectAllNfts.mockReturnValue(
-      createMockAllNfts({
-        [mockAccount.address]: {
-          '0x1': [nft1, nft2],
-          '0x89': [nft3],
-        },
-      }),
-    );
-
-    mockNftController.getNFTContractInfo.mockResolvedValue({
-      collections: [{ name: 'Collection A' }, { name: 'Collection B' }],
-    });
-
-    renderHookWithStore(() => useEVMNfts());
-
-    await waitFor(() => {
-      expect(mockNftController.getNFTContractInfo).toHaveBeenCalledTimes(2);
-      expect(mockNftController.getNFTContractInfo).toHaveBeenCalledWith(
-        ['0xaaa', '0xbbb'],
-        '0x1',
+      expect(result.current[0].image).toBe(
+        'https://example.com/valid-fallback.png',
       );
-      expect(mockNftController.getNFTContractInfo).toHaveBeenCalledWith(
-        ['0xccc'],
-        '0x89',
+    });
+  });
+
+  it('continues to next URL when IPFS URL resolves to null', async () => {
+    const nftWithNullIpfs = {
+      ...mockNft,
+      image: 'ipfs://QmNullHash',
+      imageUrl: undefined,
+      collection: {
+        ...mockNft.collection,
+        imageUrl: 'https://example.com/collection-fallback.png',
+      },
+    };
+
+    mockGetFormattedIpfsUrl.mockResolvedValue(null as unknown as string);
+    mockSelectSelectedAccountGroup.mockReturnValue(
+      createMockAccountGroup(['account-1']),
+    );
+    mockSelectInternalAccountsById.mockReturnValue(
+      createMockInternalAccountsById({
+        'account-1': mockAccount,
+      }),
+    );
+    mockSelectAllNfts.mockReturnValue(
+      createMockAllNfts({
+        [mockAccount.address]: {
+          '0x1': [nftWithNullIpfs],
+        },
+      }),
+    );
+
+    const { result } = renderHookWithStore(() => useEVMNfts());
+
+    await waitFor(() => {
+      expect(result.current[0].image).toBe(
+        'https://example.com/collection-fallback.png',
       );
     });
   });
@@ -897,43 +790,6 @@ describe('useEVMNfts', () => {
 
     await waitFor(() => {
       expect(result.current[0].collectionName).toBeUndefined();
-    });
-  });
-
-  it('deduplicates contract addresses when fetching collections', async () => {
-    const nft1 = { ...mockNft, collection: undefined, tokenId: '1' };
-    const nft2 = { ...mockNft, collection: undefined, tokenId: '2' };
-
-    mockSelectSelectedAccountGroup.mockReturnValue(
-      createMockAccountGroup(['account-1']),
-    );
-    mockSelectInternalAccountsById.mockReturnValue(
-      createMockInternalAccountsById({
-        'account-1': mockAccount,
-      }),
-    );
-    mockSelectAllNfts.mockReturnValue(
-      createMockAllNfts({
-        [mockAccount.address]: {
-          '0x1': [nft1, nft2],
-        },
-      }),
-    );
-
-    mockNftController.getNFTContractInfo.mockResolvedValue({
-      collections: [{ name: 'Shared Collection' }],
-    });
-
-    const { result } = renderHookWithStore(() => useEVMNfts());
-
-    await waitFor(() => {
-      expect(mockNftController.getNFTContractInfo).toHaveBeenCalledWith(
-        [mockNft.address],
-        '0x1',
-      );
-      expect(result.current).toHaveLength(2);
-      expect(result.current[0].collectionName).toBe('Shared Collection');
-      expect(result.current[1].collectionName).toBe('Shared Collection');
     });
   });
 });

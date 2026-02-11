@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react-native';
 import PerpsAdjustMarginView from './PerpsAdjustMarginView';
-import type { Position } from '../../controllers/types';
+import { type Position } from '@metamask/perps-controller';
 
 // Mock dependencies
 jest.mock('react-native-reanimated', () =>
@@ -128,7 +128,7 @@ jest.mock('../../components/PerpsSlider', () => 'PerpsSlider');
 
 describe('PerpsAdjustMarginView', () => {
   const mockPosition: Position = {
-    coin: 'ETH',
+    symbol: 'ETH',
     size: '2.5',
     marginUsed: '500',
     entryPrice: '2000',

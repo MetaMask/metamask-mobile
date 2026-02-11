@@ -5,6 +5,7 @@ import React, {
   useCallback,
   useRef,
   useMemo,
+  useContext,
 } from 'react';
 import { View, TextInput, Linking } from 'react-native';
 import { useSelector } from 'react-redux';
@@ -27,6 +28,7 @@ import SheetHeader from '../../../../component-library/components/Sheet/SheetHea
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../component-library/components/BottomSheets/BottomSheet';
+import { ToastContext } from '../../../../component-library/components/Toast';
 import Banner, {
   BannerVariant,
   BannerAlertSeverity,
@@ -46,7 +48,7 @@ import {
 } from '../../../../util/navigation/navUtils';
 import Routes from '../../../../constants/navigation/Routes';
 import { PRIVATE_KEY_GUIDE_URL } from '../../../../constants/urls';
-import { PrivateKeyListIds } from '../../../../../e2e/selectors/MultichainAccounts/PrivateKeyList.selectors';
+import { PrivateKeyListIds } from './PrivateKeyList.testIds';
 
 import styleSheet from './styles';
 import type { Params as PrivateKeyListParams, AddressItem } from './types';
@@ -83,6 +85,7 @@ export const PrivateKeyList = () => {
   const { groupId, title } = useParams<PrivateKeyListParams>();
 
   const { styles } = useStyles(styleSheet, {});
+  const { toastRef } = useContext(ToastContext);
   const sheetRef = useRef<BottomSheetRef>(null);
   const [password, setPassword] = useState<string>('');
   const [wrongPassword, setWrongPassword] = useState<boolean>(false);
@@ -183,9 +186,8 @@ export const PrivateKeyList = () => {
         networkName={item.networkName}
         address={item.account.address}
         copyParams={{
-          successMessage: strings(
-            'multichain_accounts.private_key_list.copied',
-          ),
+          toastMessage: strings('multichain_accounts.private_key_list.copied'),
+          toastRef,
           callback: async () => {
             await ClipboardManager.setStringExpire(
               privateKeys[item.account.id],
@@ -194,7 +196,7 @@ export const PrivateKeyList = () => {
         }}
       />
     ),
-    [privateKeys],
+    [privateKeys, toastRef],
   );
 
   const renderPassword = useCallback(

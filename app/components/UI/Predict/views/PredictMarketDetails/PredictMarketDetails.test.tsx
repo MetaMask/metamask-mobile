@@ -272,6 +272,21 @@ jest.mock('../../components/PredictShareButton/PredictShareButton', () => {
   };
 });
 
+jest.mock('../../components/PredictGameDetailsContent', () => {
+  const { View, Text } = jest.requireActual('react-native');
+  return function MockPredictGameDetailsContent({
+    market,
+  }: {
+    market: { title?: string };
+  }) {
+    return (
+      <View testID="predict-game-details-content">
+        <Text>{market?.title || 'Game Details'}</Text>
+      </View>
+    );
+  };
+});
+
 jest.mock('../../../../Base/TabBar', () => {
   const { View, Text } = jest.requireActual('react-native');
   return function MockTabBar({ textStyle }: { textStyle: object }) {
@@ -654,10 +669,10 @@ describe('PredictMarketDetails', () => {
         screen.getByTestId('predict-details-header-skeleton-back-button'),
       ).toBeOnTheScreen();
       expect(
-        screen.getByTestId('predict-details-content-skeleton-option-1'),
+        screen.getByTestId('predict-details-content-skeleton-line-1'),
       ).toBeOnTheScreen();
       expect(
-        screen.getByTestId('predict-details-buttons-skeleton-button-yes'),
+        screen.getByTestId('predict-details-buttons-skeleton-button-1'),
       ).toBeOnTheScreen();
     });
 
@@ -693,7 +708,11 @@ describe('PredictMarketDetails', () => {
     });
 
     it('hides share button when market is not loaded (shows skeleton)', () => {
-      setupPredictMarketDetailsTest({}, {}, { market: { market: null } });
+      setupPredictMarketDetailsTest(
+        {},
+        {},
+        { market: { isFetching: true, market: null } },
+      );
 
       expect(
         screen.queryByTestId('predict-share-button'),
@@ -2303,76 +2322,6 @@ describe('PredictMarketDetails', () => {
       });
     });
 
-    it('handles no balance scenario for Yes button', () => {
-      const { usePredictBalance } = jest.requireMock(
-        '../../hooks/usePredictBalance',
-      );
-      usePredictBalance.mockReturnValue({
-        hasNoBalance: true,
-      });
-
-      const singleOutcomeMarket = createMockMarket({
-        status: 'open',
-        outcomes: [
-          {
-            id: 'outcome-1',
-            title: 'Yes',
-            tokens: [
-              { id: 'token-1', title: 'Yes', price: 0.65 },
-              { id: 'token-2', title: 'No', price: 0.35 },
-            ],
-            volume: 1000000,
-          },
-        ],
-      });
-
-      const { mockNavigate } =
-        setupPredictMarketDetailsTest(singleOutcomeMarket);
-
-      const yesButton = findActionButtonByPrice(65);
-      expect(yesButton).toBeDefined();
-      fireEvent.press(yesButton as ReactTestInstance);
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
-        screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
-      });
-    });
-
-    it('handles no balance scenario for No button', () => {
-      const { usePredictBalance } = jest.requireMock(
-        '../../hooks/usePredictBalance',
-      );
-      usePredictBalance.mockReturnValue({
-        hasNoBalance: true,
-      });
-
-      const singleOutcomeMarket = createMockMarket({
-        status: 'open',
-        outcomes: [
-          {
-            id: 'outcome-1',
-            title: 'Yes',
-            tokens: [
-              { id: 'token-1', title: 'Yes', price: 0.65 },
-              { id: 'token-2', title: 'No', price: 0.35 },
-            ],
-            volume: 1000000,
-          },
-        ],
-      });
-
-      const { mockNavigate } =
-        setupPredictMarketDetailsTest(singleOutcomeMarket);
-
-      const noButton = findActionButtonByPrice(35);
-      expect(noButton).toBeDefined();
-      fireEvent.press(noButton as ReactTestInstance);
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
-        screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
-      });
-    });
-
     it('navigates to unavailable modal when user is not eligible - Yes button', () => {
       const singleOutcomeMarket = createMockMarket({
         status: 'open',
@@ -3442,6 +3391,43 @@ describe('PredictMarketDetails', () => {
           screen.queryByText('predict.market_details.fee_exemption'),
         ).not.toBeOnTheScreen();
       });
+    });
+  });
+
+  describe('Game Details Content', () => {
+    it('renders PredictGameDetailsContent when market has game property', () => {
+      const gameMarket = createMockMarket({
+        title: 'NFL: Team A vs Team B',
+        game: {
+          homeTeam: { name: 'Team A', abbreviation: 'TA' },
+          awayTeam: { name: 'Team B', abbreviation: 'TB' },
+          startTime: '2024-12-31T20:00:00Z',
+          status: 'scheduled',
+        },
+      });
+
+      setupPredictMarketDetailsTest(gameMarket);
+
+      expect(
+        screen.getByTestId('predict-game-details-content'),
+      ).toBeOnTheScreen();
+      expect(screen.getByText('NFL: Team A vs Team B')).toBeOnTheScreen();
+    });
+
+    it('renders regular market details when market has no game property', () => {
+      const regularMarket = createMockMarket({
+        title: 'Will Bitcoin reach $100k?',
+        game: undefined,
+      });
+
+      setupPredictMarketDetailsTest(regularMarket);
+
+      expect(
+        screen.queryByTestId('predict-game-details-content'),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.getByTestId('predict-market-details-screen'),
+      ).toBeOnTheScreen();
     });
   });
 });

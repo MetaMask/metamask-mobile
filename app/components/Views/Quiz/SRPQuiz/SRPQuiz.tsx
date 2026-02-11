@@ -28,7 +28,7 @@ import {
   SrpSecurityQuestionOneSelectorsText,
   SrpSecurityQuestionTwoSelectorsIDs,
   SrpSecurityQuestionTwoSelectorsText,
-} from '../../../../../e2e/selectors/Settings/SecurityAndPrivacy/SrpQuizModal.selectors';
+} from './SrpQuizModal.testIds';
 import { selectSeedlessOnboardingLoginFlow } from '../../../../selectors/seedlessOnboardingController';
 import { useSelector } from 'react-redux';
 
@@ -109,7 +109,6 @@ const SRPQuiz = (props: SRPQuizProps) => {
     );
     trackEvent(createEventBuilder(MetaMetricsEvents.REVEAL_SRP_CTA).build());
     navigation.navigate(Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL, {
-      credentialName: 'seed_phrase',
       shouldUpdateNav: true,
       keyringId,
     });

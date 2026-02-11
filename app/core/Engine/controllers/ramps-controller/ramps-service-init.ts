@@ -1,10 +1,10 @@
+import { Platform } from 'react-native';
 import { ControllerInitFunction } from '../../types';
 import {
   RampsService,
   RampsServiceMessenger,
   RampsEnvironment,
 } from '@metamask/ramps-controller';
-import Device from '../../../../util/device';
 
 export function getRampsEnvironment(): RampsEnvironment {
   const metamaskEnvironment = process.env.METAMASK_ENVIRONMENT;
@@ -24,6 +24,15 @@ export function getRampsEnvironment(): RampsEnvironment {
 }
 
 /**
+ * Gets the context for the ramps service based on the platform.
+ *
+ * @returns The context string (e.g., 'mobile-ios', 'mobile-android').
+ */
+export function getRampsContext(): string {
+  return Platform.OS === 'ios' ? 'mobile-ios' : 'mobile-android';
+}
+
+/**
  * Initialize the on-ramp service.
  *
  * @param request - The request object.
@@ -34,11 +43,10 @@ export const rampsServiceInit: ControllerInitFunction<
   RampsService,
   RampsServiceMessenger
 > = ({ controllerMessenger }) => {
-  const context = Device.isIos() ? 'mobile-ios' : 'mobile-android';
   const service = new RampsService({
     messenger: controllerMessenger,
     environment: getRampsEnvironment(),
-    context,
+    context: getRampsContext(),
     fetch,
   });
 

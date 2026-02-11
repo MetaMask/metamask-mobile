@@ -86,7 +86,8 @@ export const useBridgeQuoteData = ({
 
   const bestQuote = quotes?.recommendedQuote;
 
-  const activeQuote = isExpired && !willRefresh ? undefined : bestQuote;
+  const activeQuote =
+    isExpired && !willRefresh && !isSubmittingTx ? undefined : bestQuote;
 
   // Validate that the quote's destination asset matches the selected destination token
   // This prevents showing stale quote data (with wrong decimals) when user changes destination token

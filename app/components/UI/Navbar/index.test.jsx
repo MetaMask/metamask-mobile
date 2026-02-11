@@ -7,20 +7,18 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import {
   getDepositNavbarOptions,
   getNetworkNavbarOptions,
+  getNavigationOptionsTitle,
   getOnboardingNavbarOptions,
-  getSettingsNavigationOptions,
   getTransparentOnboardingNavbarOptions,
   getWalletNavbarOptions,
-  getSendFlowTitle,
   getStakingNavbar,
-  getCloseOnlyNavbar,
 } from '.';
 import { mockTheme } from '../../../util/theme';
 import Device from '../../../util/device';
 import { View } from 'react-native';
 import { BridgeViewMode } from '../Bridge/types';
-import { SendViewSelectorsIDs } from '../../../../e2e/selectors/SendFlow/SendView.selectors';
 import { strings } from '../../../../locales/i18n';
+import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 
 jest.mock('../../../util/device', () => ({
   isAndroid: jest.fn(),
@@ -75,25 +73,34 @@ jest.mock('../../../util/networks', () => ({
   getNetworkNameFromProviderConfig: jest.fn(() => 'Ethereum Mainnet'),
 }));
 
-jest.mock('../../../core/Analytics', () => ({
-  MetaMetrics: {
-    getInstance: jest.fn(() => ({
-      trackEvent: jest.fn(),
-    })),
-    trackEvent: jest.fn(),
-  },
-  MetaMetricsEvents: {
-    SEND_FLOW_CANCEL: 'SEND_FLOW_CANCEL',
-  },
-  trackEvent: jest.fn(),
-  MetricsEventBuilder: {
-    createEventBuilder: jest.fn(() => ({
-      addProperties: jest.fn(() => ({
-        build: jest.fn(() => ({})),
-      })),
-    })),
-  },
+const mockBuildEvent = jest.fn(() => ({ builtEvent: true }));
+const mockCreateEventBuilder = jest.fn(() => ({
+  addProperties: jest.fn(() => ({
+    build: mockBuildEvent,
+  })),
+  build: mockBuildEvent,
 }));
+
+jest.mock('../../../core/Analytics/MetricsEventBuilder');
+
+jest.mock('../../../core/Analytics', () => {
+  const actualMockTrackEvent = jest.fn();
+
+  return {
+    __mockTrackEvent: actualMockTrackEvent,
+    MetaMetrics: {
+      getInstance: jest.fn(() => ({
+        trackEvent: actualMockTrackEvent,
+        updateDataRecordingFlag: jest.fn(),
+      })),
+      trackEvent: jest.fn(),
+    },
+    MetaMetricsEvents: {
+      SEND_FLOW_CANCEL: 'SEND_FLOW_CANCEL',
+    },
+    trackEvent: jest.fn(),
+  };
+});
 
 jest.mock('../../../util/blockaid', () => ({
   getBlockaidTransactionMetricsParams: jest.fn(() => ({})),
@@ -102,6 +109,9 @@ jest.mock('../../../util/blockaid', () => ({
 jest.mock('../Stake/utils/metaMetrics/withMetaMetrics', () => ({
   withMetaMetrics: jest.fn((fn) => () => fn()),
 }));
+
+// Set up MetricsEventBuilder mock after jest.mock declaration
+MetricsEventBuilder.createEventBuilder = mockCreateEventBuilder;
 
 describe('getNetworkNavbarOptions', () => {
   const Stack = createStackNavigator();
@@ -160,24 +170,26 @@ describe('getDepositNavbarOptions', () => {
     jest.clearAllMocks();
   });
 
-  it('returns navbar options with the correct title', () => {
+  it('returns navbar options with header function', () => {
     const options = getDepositNavbarOptions(
       mockNavigation,
       { title: 'Deposit' },
       mockTheme,
     );
+
     expect(options).toBeDefined();
-    expect(options.title).toBe('Deposit');
+    expect(options.header).toBeInstanceOf(Function);
   });
 
-  it('deposit navbar options to pop when back button is pressed', () => {
+  it('pops navigation when back button is pressed', () => {
     const options = getDepositNavbarOptions(
       mockNavigation,
       { title: 'Deposit' },
       mockTheme,
     );
-    const headerLeftComponent = options.headerLeft();
-    headerLeftComponent.props.onPress();
+    const HeaderComponent = options.header();
+    HeaderComponent.props.startButtonIconProps.onPress();
+
     expect(mockNavigation.pop).toHaveBeenCalledTimes(1);
   });
 });
@@ -534,297 +546,6 @@ describe('getWalletNavbarOptions', () => {
   });
 });
 
-describe('getSettingsNavigationOptions', () => {
-  const mockTitle = 'Settings';
-  const mockThemeColors = {
-    background: {
-      default: '#FFFFFF',
-    },
-  };
-  const mockNavigation = {
-    goBack: jest.fn(),
-  };
-
-  describe('Basic Functionality', () => {
-    it('returns navigation options object', () => {
-      const options = getSettingsNavigationOptions(
-        mockTitle,
-        mockThemeColors,
-        mockNavigation,
-      );
-
-      expect(options).toBeDefined();
-      expect(typeof options).toBe('object');
-    });
-
-    it('sets headerLeft to null', () => {
-      const options = getSettingsNavigationOptions(
-        mockTitle,
-        mockThemeColors,
-        mockNavigation,
-      );
-
-      expect(options.headerLeft).toBeNull();
-    });
-
-    it('returns headerTitle as a function', () => {
-      const options = getSettingsNavigationOptions(
-        mockTitle,
-        mockThemeColors,
-        mockNavigation,
-      );
-
-      expect(options.headerTitle).toBeDefined();
-      expect(typeof options.headerTitle).toBe('function');
-    });
-
-    it('includes headerStyle with correct background color', () => {
-      const options = getSettingsNavigationOptions(
-        mockTitle,
-        mockThemeColors,
-        mockNavigation,
-      );
-
-      expect(options.headerStyle).toBeDefined();
-      expect(options.headerStyle.backgroundColor).toBe(
-        mockThemeColors.background.default,
-      );
-    });
-
-    it('sets transparent shadow and elevation', () => {
-      const options = getSettingsNavigationOptions(
-        mockTitle,
-        mockThemeColors,
-        mockNavigation,
-      );
-
-      expect(options.headerStyle.shadowColor).toBe('transparent');
-      expect(options.headerStyle.elevation).toBe(0);
-    });
-  });
-
-  describe('Close Button Functionality', () => {
-    it('shows close button in headerRight', () => {
-      const options = getSettingsNavigationOptions(
-        mockTitle,
-        mockThemeColors,
-        mockNavigation,
-      );
-
-      expect(options.headerRight).toBeDefined();
-      expect(typeof options.headerRight).toBe('function');
-    });
-
-    it('calls navigation.goBack when close button is pressed', () => {
-      const options = getSettingsNavigationOptions(
-        mockTitle,
-        mockThemeColors,
-        mockNavigation,
-      );
-
-      const HeaderRightComponent = options.headerRight;
-      const { getByTestId } = renderWithProvider(<HeaderRightComponent />, {
-        state: { engine: { backgroundState } },
-      });
-
-      const closeButton = getByTestId('close-network-icon');
-      fireEvent.press(closeButton);
-
-      expect(mockNavigation.goBack).toHaveBeenCalledTimes(1);
-    });
-
-    it('handles missing navigation object gracefully', () => {
-      const options = getSettingsNavigationOptions(
-        mockTitle,
-        mockThemeColors,
-        null,
-      );
-
-      expect(options.headerRight).toBeDefined();
-      expect(typeof options.headerRight).toBe('function');
-    });
-
-    it('handles undefined navigation object gracefully', () => {
-      const options = getSettingsNavigationOptions(
-        mockTitle,
-        mockThemeColors,
-        undefined,
-      );
-
-      expect(options.headerRight).toBeDefined();
-      expect(typeof options.headerRight).toBe('function');
-    });
-  });
-
-  describe('HeaderTitle Component', () => {
-    it('renders MorphText component with correct props', () => {
-      const options = getSettingsNavigationOptions(
-        mockTitle,
-        mockThemeColors,
-        mockNavigation,
-      );
-      const HeaderTitleComponent = options.headerTitle;
-
-      const { getByText, getByTestId } = renderWithProvider(
-        <HeaderTitleComponent />,
-        { state: { engine: { backgroundState } } },
-      );
-
-      expect(getByText(mockTitle)).toBeDefined();
-    });
-
-    it('displays the provided title text', () => {
-      const customTitle = 'Custom Settings Title';
-      const options = getSettingsNavigationOptions(
-        customTitle,
-        mockThemeColors,
-        mockNavigation,
-      );
-      const HeaderTitleComponent = options.headerTitle;
-
-      const { getByText } = renderWithProvider(<HeaderTitleComponent />, {
-        state: { engine: { backgroundState } },
-      });
-
-      expect(getByText(customTitle)).toBeDefined();
-    });
-  });
-
-  describe('Parameter Validation', () => {
-    it('handles different title types', () => {
-      const titles = ['Settings', 'Privacy & Security', 'Networks', ''];
-
-      titles.forEach((title) => {
-        expect(() => {
-          const options = getSettingsNavigationOptions(
-            title,
-            mockThemeColors,
-            mockNavigation,
-          );
-          expect(options).toBeDefined();
-          expect(options.headerTitle).toBeDefined();
-        }).not.toThrow();
-      });
-    });
-
-    it('handles different theme colors', () => {
-      const themeVariations = [
-        { background: { default: '#000000' } },
-        { background: { default: '#FFFFFF' } },
-        { background: { default: '#F5F5F5' } },
-      ];
-
-      themeVariations.forEach((theme) => {
-        expect(() => {
-          const options = getSettingsNavigationOptions(
-            mockTitle,
-            theme,
-            mockNavigation,
-          );
-          expect(options).toBeDefined();
-          expect(options.headerStyle.backgroundColor).toBe(
-            theme.background.default,
-          );
-        }).not.toThrow();
-      });
-    });
-
-    it('handles undefined or null parameters gracefully', () => {
-      // Test with undefined title
-      expect(() => {
-        const options = getSettingsNavigationOptions(
-          undefined,
-          mockThemeColors,
-          mockNavigation,
-        );
-        expect(options).toBeDefined();
-      }).not.toThrow();
-
-      // Test with null title
-      expect(() => {
-        const options = getSettingsNavigationOptions(
-          null,
-          mockThemeColors,
-          mockNavigation,
-        );
-        expect(options).toBeDefined();
-      }).not.toThrow();
-    });
-
-    it('handles navigation parameter', () => {
-      expect(() => {
-        const options = getSettingsNavigationOptions(
-          mockTitle,
-          mockThemeColors,
-          mockNavigation,
-        );
-        expect(options).toBeDefined();
-        expect(options.headerRight).toBeDefined();
-      }).not.toThrow();
-    });
-  });
-
-  describe('Return Value Structure', () => {
-    it('returns object with expected properties', () => {
-      const options = getSettingsNavigationOptions(
-        mockTitle,
-        mockThemeColors,
-        mockNavigation,
-      );
-
-      expect(options).toMatchObject({
-        headerLeft: null,
-        headerTitle: expect.any(Function),
-        headerRight: expect.any(Function),
-        headerStyle: expect.objectContaining({
-          backgroundColor: expect.any(String),
-          shadowColor: 'transparent',
-          elevation: 0,
-        }),
-      });
-    });
-
-    it('maintains consistent structure across different inputs', () => {
-      const options1 = getSettingsNavigationOptions(
-        'Title 1',
-        mockThemeColors,
-        mockNavigation,
-      );
-      const options2 = getSettingsNavigationOptions(
-        'Title 2',
-        {
-          background: { default: '#000000' },
-        },
-        mockNavigation,
-      );
-
-      expect(Object.keys(options1)).toEqual(Object.keys(options2));
-      expect(typeof options1.headerTitle).toBe(typeof options2.headerTitle);
-      expect(options1.headerLeft).toBe(options2.headerLeft);
-    });
-  });
-
-  describe('Integration', () => {
-    it('works with React Navigation stack', () => {
-      const Stack = createStackNavigator();
-      const options = getSettingsNavigationOptions(
-        mockTitle,
-        mockThemeColors,
-        mockNavigation,
-      );
-
-      expect(() => {
-        renderWithProvider(
-          <Stack.Navigator>
-            <Stack.Screen name="Settings" component={View} options={options} />
-          </Stack.Navigator>,
-          { state: { engine: { backgroundState } } },
-        );
-      }).not.toThrow();
-    });
-  });
-});
-
 describe('getBridgeNavbar', () => {
   const mockNavigation = {
     dangerouslyGetParent: jest.fn(() => ({
@@ -856,352 +577,6 @@ describe('getBridgeNavbar', () => {
 
       expect(options.header).toBeDefined();
       expect(typeof options.header).toBe('function');
-    });
-  });
-
-  describe('getSendFlowTitle', () => {
-    const mockNavigation = {
-      pop: jest.fn(),
-      dangerouslyGetParent: jest.fn(() => ({
-        pop: jest.fn(),
-      })),
-    };
-
-    const mockRoute = {
-      params: {
-        providerType: 'mainnet',
-      },
-    };
-
-    const mockThemeColors = mockTheme.colors;
-    const mockResetTransaction = jest.fn();
-    const mockTransaction = {
-      id: 'test-transaction',
-    };
-
-    beforeEach(() => {
-      jest.clearAllMocks();
-    });
-
-    // Explicit test to cover function export line
-    it('function exists and is callable', () => {
-      expect(getSendFlowTitle).toBeDefined();
-      const result = getSendFlowTitle({
-        title: 'test',
-        navigation: mockNavigation,
-        route: mockRoute,
-        themeColors: mockThemeColors,
-        resetTransaction: mockResetTransaction,
-        transaction: mockTransaction,
-        disableNetwork: true,
-        showSelectedNetwork: false,
-        globalChainId: '',
-      });
-      expect(result).toBeDefined();
-      expect(result.headerTitle).toBeDefined();
-      expect(result.headerLeft).toBeDefined();
-      expect(result.headerRight).toBeDefined();
-      expect(result.headerStyle).toBeDefined();
-    });
-
-    it('should return navbar options with required parameters', () => {
-      const options = getSendFlowTitle({
-        title: 'send.confirm',
-        navigation: mockNavigation,
-        route: mockRoute,
-        themeColors: mockThemeColors,
-        resetTransaction: mockResetTransaction,
-        transaction: mockTransaction,
-      });
-
-      expect(options).toBeDefined();
-      expect(options.headerTitle).toBeDefined();
-      expect(options.headerRight).toBeDefined();
-      expect(options.headerLeft).toBeDefined();
-      expect(options.headerStyle).toBeDefined();
-    });
-
-    it('should use default values for optional parameters', () => {
-      const options = getSendFlowTitle({
-        title: 'send.send_to',
-        navigation: mockNavigation,
-        route: mockRoute,
-        themeColors: mockThemeColors,
-        resetTransaction: mockResetTransaction,
-        // Not providing: disableNetwork, showSelectedNetwork, globalChainId
-        // Should use defaults: disableNetwork=true, showSelectedNetwork=false, globalChainId=''
-      });
-
-      expect(options).toBeDefined();
-      expect(options.headerTitle).toBeDefined();
-    });
-
-    it('should use default disableNetwork=true when not specified', () => {
-      const options = getSendFlowTitle({
-        title: 'send.confirm',
-        navigation: mockNavigation,
-        route: mockRoute,
-        themeColors: mockThemeColors,
-        resetTransaction: mockResetTransaction,
-        transaction: mockTransaction,
-        // disableNetwork not provided, should default to true
-      });
-
-      expect(options).toBeDefined();
-      expect(options.headerTitle).toBeDefined();
-    });
-
-    it('should use default showSelectedNetwork=false when not specified', () => {
-      const options = getSendFlowTitle({
-        title: 'send.confirm',
-        navigation: mockNavigation,
-        route: mockRoute,
-        themeColors: mockThemeColors,
-        resetTransaction: mockResetTransaction,
-        // showSelectedNetwork not provided, should default to false
-      });
-
-      expect(options).toBeDefined();
-      expect(options.headerTitle).toBeDefined();
-    });
-
-    it('should use default globalChainId="" when not specified', () => {
-      const options = getSendFlowTitle({
-        title: 'send.confirm',
-        navigation: mockNavigation,
-        route: mockRoute,
-        themeColors: mockThemeColors,
-        resetTransaction: mockResetTransaction,
-        // globalChainId not provided, should default to ''
-      });
-
-      expect(options).toBeDefined();
-      expect(options.headerTitle).toBeDefined();
-    });
-
-    it('should return headerTitle function', () => {
-      const options = getSendFlowTitle({
-        title: 'send.amount',
-        navigation: mockNavigation,
-        route: mockRoute,
-        themeColors: mockThemeColors,
-        resetTransaction: mockResetTransaction,
-      });
-
-      expect(options.headerTitle).toBeDefined();
-      expect(typeof options.headerTitle).toBe('function');
-    });
-
-    it('should render Cancel button in headerRight', () => {
-      const options = getSendFlowTitle({
-        title: 'send.confirm',
-        navigation: mockNavigation,
-        route: mockRoute,
-        themeColors: mockThemeColors,
-        resetTransaction: mockResetTransaction,
-        transaction: mockTransaction,
-      });
-
-      const HeaderRight = options.headerRight;
-      const { getByTestId } = renderWithProvider(<HeaderRight />, {
-        state: { engine: { backgroundState } },
-      });
-
-      expect(getByTestId(SendViewSelectorsIDs.SEND_CANCEL_BUTTON)).toBeTruthy();
-    });
-
-    it('should call resetTransaction and navigate when Cancel is pressed', () => {
-      const options = getSendFlowTitle({
-        title: 'send.confirm',
-        navigation: mockNavigation,
-        route: mockRoute,
-        themeColors: mockThemeColors,
-        resetTransaction: mockResetTransaction,
-        transaction: mockTransaction,
-      });
-
-      const HeaderRight = options.headerRight;
-      const { getByTestId } = renderWithProvider(<HeaderRight />, {
-        state: { engine: { backgroundState } },
-      });
-
-      const cancelButton = getByTestId(SendViewSelectorsIDs.SEND_CANCEL_BUTTON);
-      fireEvent.press(cancelButton);
-
-      expect(mockResetTransaction).toHaveBeenCalled();
-      expect(mockNavigation.dangerouslyGetParent).toHaveBeenCalled();
-    });
-
-    it('should render Back button when not on send_to screen', () => {
-      const options = getSendFlowTitle({
-        title: 'send.confirm',
-        navigation: mockNavigation,
-        route: mockRoute,
-        themeColors: mockThemeColors,
-        resetTransaction: mockResetTransaction,
-      });
-
-      const HeaderLeft = options.headerLeft;
-      const { getByTestId } = renderWithProvider(<HeaderLeft />, {
-        state: { engine: { backgroundState } },
-      });
-
-      expect(getByTestId(SendViewSelectorsIDs.SEND_BACK_BUTTON)).toBeTruthy();
-    });
-
-    it('should call navigation.pop when Back button is pressed', () => {
-      const options = getSendFlowTitle({
-        title: 'send.amount',
-        navigation: mockNavigation,
-        route: mockRoute,
-        themeColors: mockThemeColors,
-        resetTransaction: mockResetTransaction,
-      });
-
-      const HeaderLeft = options.headerLeft;
-      const { getByTestId } = renderWithProvider(<HeaderLeft />, {
-        state: { engine: { backgroundState } },
-      });
-
-      const backButton = getByTestId(SendViewSelectorsIDs.SEND_BACK_BUTTON);
-      fireEvent.press(backButton);
-
-      expect(mockNavigation.pop).toHaveBeenCalled();
-    });
-
-    it('should not render Back button on send_to screen', () => {
-      const options = getSendFlowTitle({
-        title: 'send.send_to',
-        navigation: mockNavigation,
-        route: mockRoute,
-        themeColors: mockThemeColors,
-        resetTransaction: mockResetTransaction,
-      });
-
-      const HeaderLeft = options.headerLeft;
-      const { queryByTestId } = renderWithProvider(<HeaderLeft />, {
-        state: { engine: { backgroundState } },
-      });
-
-      expect(queryByTestId(SendViewSelectorsIDs.SEND_BACK_BUTTON)).toBeNull();
-    });
-
-    it('should not render Back button when isPaymentRequest is true', () => {
-      const paymentRequestRoute = {
-        params: {
-          providerType: 'mainnet',
-          isPaymentRequest: true,
-        },
-      };
-
-      const options = getSendFlowTitle({
-        title: 'send.amount',
-        navigation: mockNavigation,
-        route: paymentRequestRoute,
-        themeColors: mockThemeColors,
-        resetTransaction: mockResetTransaction,
-      });
-
-      const HeaderLeft = options.headerLeft;
-      const { queryByTestId } = renderWithProvider(<HeaderLeft />, {
-        state: { engine: { backgroundState } },
-      });
-
-      expect(queryByTestId(SendViewSelectorsIDs.SEND_BACK_BUTTON)).toBeNull();
-    });
-
-    it('should apply correct styles from themeColors', () => {
-      const customThemeColors = {
-        ...mockThemeColors,
-        primary: { default: '#FF0000' },
-        background: { default: '#00FF00' },
-      };
-
-      const options = getSendFlowTitle({
-        title: 'send.confirm',
-        navigation: mockNavigation,
-        route: mockRoute,
-        themeColors: customThemeColors,
-        resetTransaction: mockResetTransaction,
-      });
-
-      expect(options.headerStyle).toBeDefined();
-      expect(options.headerStyle.backgroundColor).toBe('#00FF00');
-    });
-
-    it('should pass disableNetwork to NavbarTitle', () => {
-      const options = getSendFlowTitle({
-        title: 'send.confirm',
-        navigation: mockNavigation,
-        route: mockRoute,
-        themeColors: mockThemeColors,
-        resetTransaction: mockResetTransaction,
-        disableNetwork: false,
-      });
-
-      expect(options.headerTitle).toBeDefined();
-    });
-
-    it('should pass showSelectedNetwork to NavbarTitle when enabled', () => {
-      const options = getSendFlowTitle({
-        title: 'send.confirm',
-        navigation: mockNavigation,
-        route: mockRoute,
-        themeColors: mockThemeColors,
-        resetTransaction: mockResetTransaction,
-        showSelectedNetwork: true,
-      });
-
-      expect(options.headerTitle).toBeDefined();
-    });
-
-    it('should pass globalChainId to NavbarTitle', () => {
-      const options = getSendFlowTitle({
-        title: 'send.confirm',
-        navigation: mockNavigation,
-        route: mockRoute,
-        themeColors: mockThemeColors,
-        resetTransaction: mockResetTransaction,
-        globalChainId: '0x1',
-      });
-
-      expect(options.headerTitle).toBeDefined();
-    });
-
-    it('should handle missing route params gracefully', () => {
-      const emptyRoute = {};
-
-      const options = getSendFlowTitle({
-        title: 'send.confirm',
-        navigation: mockNavigation,
-        route: emptyRoute,
-        themeColors: mockThemeColors,
-        resetTransaction: mockResetTransaction,
-      });
-
-      expect(options).toBeDefined();
-      expect(options.headerTitle).toBeDefined();
-    });
-
-    it('should handle missing transaction gracefully', () => {
-      const options = getSendFlowTitle({
-        title: 'send.confirm',
-        navigation: mockNavigation,
-        route: mockRoute,
-        themeColors: mockThemeColors,
-        resetTransaction: mockResetTransaction,
-        transaction: undefined,
-      });
-
-      expect(options).toBeDefined();
-      expect(options.headerTitle).toBeDefined();
-    });
-
-    it('should throw error when called without required parameters', () => {
-      // Calling without any parameters should throw because themeColors is required
-      expect(() => {
-        getSendFlowTitle();
-      }).toThrow();
     });
   });
 });
@@ -1299,367 +674,66 @@ describe('getStakingNavbar', () => {
   });
 });
 
-describe('getCloseOnlyNavbar', () => {
+describe('getNavigationOptionsTitle', () => {
+  const Stack = createStackNavigator();
+  const analyticsMocks = jest.requireMock('../../../core/Analytics');
+
   const mockNavigation = {
     goBack: jest.fn(),
   };
-  const mockThemeColors = {
-    background: {
-      default: '#FFFFFF',
-    },
+
+  const renderNavigatorWithOptions = (options) => {
+    const TestNavigator = () => (
+      <Stack.Navigator>
+        <Stack.Screen
+          name="TestScreen"
+          component={() => null}
+          options={options}
+        />
+      </Stack.Navigator>
+    );
+    return renderWithProvider(<TestNavigator />);
   };
 
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  describe('Basic Functionality', () => {
-    it('returns navigation options object with required properties', () => {
-      const options = getCloseOnlyNavbar({
-        navigation: mockNavigation,
-        themeColors: mockThemeColors,
-      });
+  it('calls trackEvent when navigationPopEvent is provided and close button pressed', () => {
+    const mockEvent = { category: 'test' };
+    const options = getNavigationOptionsTitle(
+      'Test Title',
+      mockNavigation,
+      true,
+      mockTheme.colors,
+      mockEvent,
+    );
 
-      expect(options).toBeDefined();
-      expect(typeof options).toBe('object');
-      expect(options.headerShown).toBe(true);
-      expect(options.headerTitle).toBeInstanceOf(Function);
-      expect(options.headerLeft).toBeInstanceOf(Function);
-      expect(options.headerRight).toBeInstanceOf(Function);
-      expect(options.headerStyle).toBeDefined();
-    });
+    const { getByTestId } = renderNavigatorWithOptions(options);
 
-    it('sets headerShown to true', () => {
-      const options = getCloseOnlyNavbar({
-        navigation: mockNavigation,
-        themeColors: mockThemeColors,
-      });
+    fireEvent.press(getByTestId('close-network-icon'));
 
-      expect(options.headerShown).toBe(true);
-    });
-
-    it('returns null from headerTitle function', () => {
-      const options = getCloseOnlyNavbar({
-        navigation: mockNavigation,
-        themeColors: mockThemeColors,
-      });
-
-      const headerTitle = options.headerTitle();
-
-      expect(headerTitle).toBeNull();
-    });
-
-    it('returns null from headerLeft function', () => {
-      const options = getCloseOnlyNavbar({
-        navigation: mockNavigation,
-        themeColors: mockThemeColors,
-      });
-
-      const headerLeft = options.headerLeft();
-
-      expect(headerLeft).toBeNull();
-    });
+    expect(mockNavigation.goBack).toHaveBeenCalledTimes(1);
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(mockEvent);
+    expect(mockBuildEvent).toHaveBeenCalled();
+    expect(analyticsMocks.__mockTrackEvent).toHaveBeenCalled();
   });
 
-  describe('Header Style', () => {
-    it('applies correct background color from theme', () => {
-      const options = getCloseOnlyNavbar({
-        navigation: mockNavigation,
-        themeColors: mockThemeColors,
-      });
+  it('does not call trackEvent when navigationPopEvent is null', () => {
+    const options = getNavigationOptionsTitle(
+      'Test Title',
+      mockNavigation,
+      false,
+      mockTheme.colors,
+      null,
+    );
 
-      expect(options.headerStyle.backgroundColor).toBe('#FFFFFF');
-    });
+    const { getByTestId } = renderNavigatorWithOptions(options);
 
-    it('sets transparent shadow color', () => {
-      const options = getCloseOnlyNavbar({
-        navigation: mockNavigation,
-        themeColors: mockThemeColors,
-      });
+    fireEvent.press(getByTestId('back-arrow-button'));
 
-      expect(options.headerStyle.shadowColor).toBe('transparent');
-    });
-
-    it('sets elevation to 0', () => {
-      const options = getCloseOnlyNavbar({
-        navigation: mockNavigation,
-        themeColors: mockThemeColors,
-      });
-
-      expect(options.headerStyle.elevation).toBe(0);
-    });
-
-    it('handles different theme colors', () => {
-      const darkThemeColors = {
-        background: {
-          default: '#000000',
-        },
-      };
-
-      const options = getCloseOnlyNavbar({
-        navigation: mockNavigation,
-        themeColors: darkThemeColors,
-      });
-
-      expect(options.headerStyle.backgroundColor).toBe('#000000');
-    });
-
-    it('applies custom backgroundColor when provided', () => {
-      const options = getCloseOnlyNavbar({
-        navigation: mockNavigation,
-        themeColors: mockThemeColors,
-        backgroundColor: '#FF0000',
-      });
-
-      expect(options.headerStyle.backgroundColor).toBe('#FF0000');
-    });
-  });
-
-  describe('Close Button Functionality', () => {
-    it('renders close button in headerRight', () => {
-      const options = getCloseOnlyNavbar({
-        navigation: mockNavigation,
-        themeColors: mockThemeColors,
-      });
-
-      const HeaderRight = options.headerRight;
-      const { getByTestId } = renderWithProvider(<HeaderRight />, {
-        state: { engine: { backgroundState } },
-      });
-
-      expect(getByTestId('button-icon')).toBeOnTheScreen();
-    });
-
-    it('calls navigation.goBack when close button pressed without onClose callback', () => {
-      const options = getCloseOnlyNavbar({
-        navigation: mockNavigation,
-        themeColors: mockThemeColors,
-      });
-
-      const HeaderRight = options.headerRight;
-      const headerRightComponent = HeaderRight();
-
-      headerRightComponent.props.onPress();
-
-      expect(mockNavigation.goBack).toHaveBeenCalledTimes(1);
-    });
-
-    it('calls custom onClose callback when provided', () => {
-      const mockOnClose = jest.fn();
-
-      const options = getCloseOnlyNavbar({
-        navigation: mockNavigation,
-        themeColors: mockThemeColors,
-        onClose: mockOnClose,
-      });
-
-      const HeaderRight = options.headerRight;
-      const headerRightComponent = HeaderRight();
-
-      headerRightComponent.props.onPress();
-
-      expect(mockOnClose).toHaveBeenCalledTimes(1);
-      expect(mockNavigation.goBack).not.toHaveBeenCalled();
-    });
-
-    it('does not call navigation.goBack when custom onClose is provided', () => {
-      const mockOnClose = jest.fn();
-
-      const options = getCloseOnlyNavbar({
-        navigation: mockNavigation,
-        themeColors: mockThemeColors,
-        onClose: mockOnClose,
-      });
-
-      const HeaderRight = options.headerRight;
-      const headerRightComponent = HeaderRight();
-
-      headerRightComponent.props.onPress();
-
-      expect(mockNavigation.goBack).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('Parameter Handling', () => {
-    it('handles missing onClose parameter by using default', () => {
-      const options = getCloseOnlyNavbar({
-        navigation: mockNavigation,
-        themeColors: mockThemeColors,
-      });
-
-      expect(options).toBeDefined();
-      expect(options.headerRight).toBeInstanceOf(Function);
-    });
-
-    it('handles undefined onClose parameter', () => {
-      const options = getCloseOnlyNavbar({
-        navigation: mockNavigation,
-        themeColors: mockThemeColors,
-        onClose: undefined,
-      });
-
-      const HeaderRight = options.headerRight;
-      const headerRightComponent = HeaderRight();
-
-      headerRightComponent.props.onPress();
-
-      expect(mockNavigation.goBack).toHaveBeenCalledTimes(1);
-    });
-
-    it('handles null onClose parameter', () => {
-      const options = getCloseOnlyNavbar({
-        navigation: mockNavigation,
-        themeColors: mockThemeColors,
-        onClose: null,
-      });
-
-      const HeaderRight = options.headerRight;
-      const headerRightComponent = HeaderRight();
-
-      headerRightComponent.props.onPress();
-
-      expect(mockNavigation.goBack).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  describe('Return Value Structure', () => {
-    it('returns object with expected structure', () => {
-      const options = getCloseOnlyNavbar({
-        navigation: mockNavigation,
-        themeColors: mockThemeColors,
-      });
-
-      expect(options).toMatchObject({
-        headerShown: true,
-        headerTitle: expect.any(Function),
-        headerLeft: expect.any(Function),
-        headerRight: expect.any(Function),
-        headerStyle: expect.objectContaining({
-          backgroundColor: expect.any(String),
-          shadowColor: 'transparent',
-          elevation: 0,
-        }),
-      });
-    });
-
-    it('maintains consistent structure across different inputs', () => {
-      const options1 = getCloseOnlyNavbar({
-        navigation: mockNavigation,
-        themeColors: mockThemeColors,
-      });
-      const options2 = getCloseOnlyNavbar({
-        navigation: mockNavigation,
-        themeColors: { background: { default: '#000000' } },
-      });
-
-      expect(Object.keys(options1)).toEqual(Object.keys(options2));
-      expect(typeof options1.headerTitle).toBe(typeof options2.headerTitle);
-      expect(typeof options1.headerLeft).toBe(typeof options2.headerLeft);
-      expect(typeof options1.headerRight).toBe(typeof options2.headerRight);
-    });
-  });
-
-  describe('Edge Cases', () => {
-    it('handles multiple close button presses', () => {
-      const options = getCloseOnlyNavbar({
-        navigation: mockNavigation,
-        themeColors: mockThemeColors,
-      });
-
-      const HeaderRight = options.headerRight;
-      const headerRightComponent = HeaderRight();
-
-      headerRightComponent.props.onPress();
-      headerRightComponent.props.onPress();
-      headerRightComponent.props.onPress();
-
-      expect(mockNavigation.goBack).toHaveBeenCalledTimes(3);
-    });
-
-    it('handles onClose that throws error', () => {
-      const mockOnCloseWithError = jest.fn(() => {
-        throw new Error('Test error');
-      });
-
-      const options = getCloseOnlyNavbar({
-        navigation: mockNavigation,
-        themeColors: mockThemeColors,
-        onClose: mockOnCloseWithError,
-      });
-
-      const HeaderRight = options.headerRight;
-      const headerRightComponent = HeaderRight();
-
-      expect(() => {
-        headerRightComponent.props.onPress();
-      }).toThrow('Test error');
-
-      expect(mockOnCloseWithError).toHaveBeenCalledTimes(1);
-    });
-
-    it('calls only onClose when both onClose and navigation.goBack available', () => {
-      const mockOnClose = jest.fn();
-
-      const options = getCloseOnlyNavbar({
-        navigation: mockNavigation,
-        themeColors: mockThemeColors,
-        onClose: mockOnClose,
-      });
-
-      const HeaderRight = options.headerRight;
-      const headerRightComponent = HeaderRight();
-
-      headerRightComponent.props.onPress();
-
-      expect(mockOnClose).toHaveBeenCalledTimes(1);
-      expect(mockNavigation.goBack).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('Integration', () => {
-    it('works with React Navigation stack', () => {
-      const Stack = createStackNavigator();
-      const options = getCloseOnlyNavbar({
-        navigation: mockNavigation,
-        themeColors: mockThemeColors,
-      });
-
-      expect(() => {
-        renderWithProvider(
-          <Stack.Navigator>
-            <Stack.Screen
-              name="TestScreen"
-              component={View}
-              options={options}
-            />
-          </Stack.Navigator>,
-          { state: { engine: { backgroundState } } },
-        );
-      }).not.toThrow();
-    });
-
-    it('integrates with custom onClose and navigation', () => {
-      const mockOnClose = jest.fn();
-      const customNavigation = {
-        ...mockNavigation,
-        goBack: jest.fn(),
-        navigate: jest.fn(),
-      };
-
-      const options = getCloseOnlyNavbar({
-        navigation: customNavigation,
-        themeColors: mockThemeColors,
-        onClose: mockOnClose,
-      });
-
-      const HeaderRight = options.headerRight;
-      const headerRightComponent = HeaderRight();
-
-      headerRightComponent.props.onPress();
-
-      expect(mockOnClose).toHaveBeenCalledTimes(1);
-      expect(customNavigation.goBack).not.toHaveBeenCalled();
-      expect(customNavigation.navigate).not.toHaveBeenCalled();
-    });
+    expect(mockCreateEventBuilder).not.toHaveBeenCalled();
+    expect(analyticsMocks.__mockTrackEvent).not.toHaveBeenCalled();
+    expect(mockNavigation.goBack).toHaveBeenCalledTimes(1);
   });
 });

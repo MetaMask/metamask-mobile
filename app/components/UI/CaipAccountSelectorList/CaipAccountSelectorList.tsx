@@ -36,8 +36,8 @@ import Routes from '../../../constants/navigation/Routes';
 // Internal dependencies.
 import { CaipAccountSelectorListProps } from './CaipAccountSelectorList.types';
 import styleSheet from './CaipAccountSelectorList.styles';
-import { AccountListBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/AccountListBottomSheet.selectors';
-import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+import { AccountListBottomSheetSelectorsIDs } from '../../Views/AccountSelector/AccountListBottomSheet.testIds';
+import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';
 import { ACCOUNT_SELECTOR_LIST_TESTID } from './CaipAccountSelectorList.constants';
 import { toHex } from '@metamask/controller-utils';
 import AccountNetworkIndicator from '../AccountNetworkIndicator/AccountNetworkIndicator';

@@ -18,7 +18,6 @@ import Logger from '../../../../util/Logger';
 import EthereumAddress from '../../EthereumAddress';
 import TransactionSummary from '../../../Views/TransactionSummary';
 import { toDateFormat } from '../../../../util/date';
-import StyledButton from '../../StyledButton';
 import StatusText from '../../../Base/StatusText';
 import Text, {
   TextColor,
@@ -43,7 +42,6 @@ import { selectTokensByChainIdAndAddress } from '../../../../selectors/tokensCon
 import { selectContractExchangeRatesByChainId } from '../../../../selectors/tokenRatesController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { regex } from '../../../../../app/util/regex';
-import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
 import {
   selectPrimaryCurrency,
   selectAvatarAccountType,
@@ -52,7 +50,6 @@ import {
   selectSwapsTransactions,
   selectTransactions,
 } from '../../../../selectors/transactionController';
-import { swapsControllerTokens } from '../../../../reducers/swaps';
 import { getGlobalEthQuery } from '../../../../util/networks/global-network';
 import { isNonEvmChainId } from '../../../../core/Multichain/utils';
 import Avatar, {
@@ -60,7 +57,7 @@ import Avatar, {
   AvatarVariant,
 } from '../../../../component-library/components/Avatars/Avatar';
 import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
-import { WalletViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/WalletView.selectors';
+import { WalletViewSelectorsIDs } from '../../../Views/Wallet/WalletView.testIds';
 import {
   LINEA_MAINNET_BLOCK_EXPLORER,
   LINEA_SEPOLIA_BLOCK_EXPLORER,
@@ -152,8 +149,6 @@ class TransactionDetails extends PureComponent {
     /**
      * A string representing the network name
      */
-    showSpeedUpModal: PropTypes.func,
-    showCancelModal: PropTypes.func,
     selectedAddress: PropTypes.string,
     transactions: PropTypes.array,
     ticker: PropTypes.string,
@@ -162,13 +157,7 @@ class TransactionDetails extends PureComponent {
     conversionRate: PropTypes.number,
     currentCurrency: PropTypes.string,
     swapsTransactions: PropTypes.object,
-    swapsTokens: PropTypes.array,
     primaryCurrency: PropTypes.string,
-
-    /**
-     * Boolean that indicates if smart transaction should be used
-     */
-    shouldUseSmartTransaction: PropTypes.bool,
     /**
      * Avatar style to render for account icons
      */
@@ -177,7 +166,6 @@ class TransactionDetails extends PureComponent {
 
   state = {
     rpcBlockExplorer: undefined,
-    renderTxActions: true,
     updatedTransactionDetails: undefined,
   };
 
@@ -234,7 +222,6 @@ class TransactionDetails extends PureComponent {
       tokens,
       primaryCurrency,
       swapsTransactions,
-      swapsTokens,
       transactions,
     } = this.props;
 
@@ -268,7 +255,6 @@ class TransactionDetails extends PureComponent {
         tokens,
         primaryCurrency,
         swapsTransactions,
-        swapsTokens,
         txChainId: transactionObject.chainId,
       });
       this.setState({ updatedTransactionDetails: decodedTx[1] });
@@ -323,60 +309,10 @@ class TransactionDetails extends PureComponent {
     return createStyles(colors);
   };
 
-  showSpeedUpModal = () => {
-    const { showSpeedUpModal, close } = this.props;
-    if (close) {
-      close();
-      showSpeedUpModal();
-    }
-  };
-
-  showCancelModal = () => {
-    const { showCancelModal, close } = this.props;
-    if (close) {
-      close();
-      showCancelModal();
-    }
-  };
-
-  renderSpeedUpButton = () => {
-    const styles = this.getStyles();
-
-    return (
-      <StyledButton
-        type={'normal'}
-        containerStyle={[
-          styles.actionContainerStyle,
-          styles.speedupActionContainerStyle,
-        ]}
-        style={styles.actionStyle}
-        onPress={this.showSpeedUpModal}
-      >
-        {strings('transaction.speedup')}
-      </StyledButton>
-    );
-  };
-
-  renderCancelButton = () => {
-    const styles = this.getStyles();
-
-    return (
-      <StyledButton
-        type={'cancel'}
-        containerStyle={styles.actionContainerStyle}
-        style={styles.actionStyle}
-        onPress={this.showCancelModal}
-      >
-        {strings('transaction.cancel')}
-      </StyledButton>
-    );
-  };
-
   render = () => {
     const {
       transactionObject,
       transactionObject: { status, time, txParams, chainId: txChainId },
-      shouldUseSmartTransaction,
     } = this.props;
     const chainId = txChainId;
     const hasNestedTransactions = Boolean(
@@ -385,9 +321,6 @@ class TransactionDetails extends PureComponent {
     const { updatedTransactionDetails } = this.state;
     const styles = this.getStyles();
 
-    const renderTxActions =
-      (status === 'submitted' || status === 'approved') &&
-      !shouldUseSmartTransaction;
     const { rpcBlockExplorer } = this.state;
 
     return updatedTransactionDetails ? (
@@ -412,13 +345,6 @@ class TransactionDetails extends PureComponent {
               {strings('transactions.status')}
             </DetailsModal.SectionTitle>
             <StatusText status={status} />
-            {!!renderTxActions &&
-              updatedTransactionDetails?.txChainId === chainId && (
-                <View style={styles.transactionActionsContainer}>
-                  {this.renderSpeedUpButton()}
-                  {this.renderCancelButton()}
-                </View>
-              )}
           </DetailsModal.Column>
           <DetailsModal.Column end>
             <DetailsModal.SectionTitle>
@@ -566,11 +492,6 @@ const mapStateToProps = (state, ownProps) => ({
   currentCurrency: selectCurrentCurrency(state),
   primaryCurrency: selectPrimaryCurrency(state),
   swapsTransactions: selectSwapsTransactions(state),
-  swapsTokens: swapsControllerTokens(state),
-  shouldUseSmartTransaction: selectShouldUseSmartTransaction(
-    state,
-    ownProps.transactionObject.chainId,
-  ),
   avatarAccountType: selectAvatarAccountType(state),
 });
 

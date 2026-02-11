@@ -11,7 +11,7 @@ import styleSheet from './NFTAutoDetectionModal.styles';
 import SheetHeader from '../../../component-library/components/Sheet/SheetHeader';
 import Text from '../../../component-library/components/Texts/Text';
 import { View, Image } from 'react-native';
-import { NftDetectionModalSelectorsIDs } from '../../../../e2e/selectors/wallet/NftDetectionModal.selectors';
+import { NftDetectionModalSelectorsIDs } from './NftDetectionModal.testIds';
 
 import Button, {
   ButtonSize,

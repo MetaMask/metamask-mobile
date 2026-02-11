@@ -5,9 +5,6 @@ import { type Action } from 'redux';
 export enum UserActionType {
   LOCKED_APP = 'LOCKED_APP',
   CHECK_FOR_DEEPLINK = 'CHECK_FOR_DEEPLINK',
-  AUTH_SUCCESS = 'AUTH_SUCCESS',
-  AUTH_ERROR = 'AUTH_ERROR',
-  INTERRUPT_BIOMETRICS = 'INTERRUPT_BIOMETRICS',
   LOGIN = 'LOGIN',
   LOGOUT = 'LOGOUT',
   ON_PERSISTED_DATA_LOADED = 'ON_PERSISTED_DATA_LOADED',
@@ -29,23 +26,13 @@ export enum UserActionType {
   SET_IS_CONNECTION_REMOVED = 'SET_IS_CONNECTION_REMOVED',
   SET_MULTICHAIN_ACCOUNTS_INTRO_MODAL_SEEN = 'SET_MULTICHAIN_ACCOUNTS_INTRO_MODAL_SEEN',
   SET_MUSD_CONVERSION_EDUCATION_SEEN = 'SET_MUSD_CONVERSION_EDUCATION_SEEN',
+  SET_MUSD_CONVERSION_ASSET_DETAIL_CTA_SEEN = 'SET_MUSD_CONVERSION_ASSET_DETAIL_CTA_SEEN',
 }
 
 // User actions
 export type LockAppAction = Action<UserActionType.LOCKED_APP>;
 
 export type CheckForDeeplinkAction = Action<UserActionType.CHECK_FOR_DEEPLINK>;
-
-export type AuthSuccessAction = Action<UserActionType.AUTH_SUCCESS> & {
-  payload: { bioStateMachineId?: string };
-};
-
-export type AuthErrorAction = Action<UserActionType.AUTH_ERROR> & {
-  payload: { bioStateMachineId?: string };
-};
-
-export type InterruptBiometricsAction =
-  Action<UserActionType.INTERRUPT_BIOMETRICS>;
 
 export type LoginAction = Action<UserActionType.LOGIN>;
 
@@ -115,15 +102,17 @@ export type SetMusdConversionEducationSeenAction =
     payload: { seen: boolean };
   };
 
+export type SetMusdConversionAssetDetailCtaSeenAction =
+  Action<UserActionType.SET_MUSD_CONVERSION_ASSET_DETAIL_CTA_SEEN> & {
+    payload: { key: string };
+  };
+
 /**
  * User actions union type
  */
 export type UserAction =
   | LockAppAction
   | CheckForDeeplinkAction
-  | AuthSuccessAction
-  | AuthErrorAction
-  | InterruptBiometricsAction
   | LoginAction
   | LogoutAction
   | PersistedDataLoadedAction
@@ -144,4 +133,5 @@ export type UserAction =
   | SetExistingUserAction
   | SetIsConnectionRemovedAction
   | SetMultichainAccountsIntroModalSeenAction
-  | SetMusdConversionEducationSeenAction;
+  | SetMusdConversionEducationSeenAction
+  | SetMusdConversionAssetDetailCtaSeenAction;

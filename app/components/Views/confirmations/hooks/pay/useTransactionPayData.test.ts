@@ -13,6 +13,7 @@ import {
   useTransactionPayRequiredTokens,
   useTransactionPaySourceAmounts,
   useTransactionPayTotals,
+  useTransactionPayIsMaxAmount,
 } from './useTransactionPayData';
 import { cloneDeep, merge } from 'lodash';
 import {
@@ -53,6 +54,7 @@ const state = merge(
           transactionData: {
             [transactionIdMock]: {
               isLoading: true,
+              isMaxAmount: true,
               quotes: [QUOTE_MOCK],
               sourceAmounts: [SOURCE_AMOUNT_MOCK],
               tokens: [REQUIRED_TOKEN_MOCK],
@@ -148,5 +150,12 @@ describe('useTransactionPayData', () => {
     expect(
       renderHookWithProvider(useTransactionPayTotals, { state }).result.current,
     ).toStrictEqual(TOTALS_MOCK);
+  });
+
+  it('returns isMaxAmount', () => {
+    expect(
+      renderHookWithProvider(useTransactionPayIsMaxAmount, { state }).result
+        .current,
+    ).toBe(true);
   });
 });

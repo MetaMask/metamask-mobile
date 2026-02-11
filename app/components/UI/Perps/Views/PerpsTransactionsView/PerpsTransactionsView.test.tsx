@@ -11,7 +11,7 @@ import { RootState } from '../../../../../reducers';
 import renderWithProvider, {
   DeepPartial,
 } from '../../../../../util/test/renderWithProvider';
-import { PerpsTransactionSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PerpsTransactionSelectorsIDs } from '../../Perps.testIds';
 import {
   FillType,
   PerpsOrderTransactionStatus,

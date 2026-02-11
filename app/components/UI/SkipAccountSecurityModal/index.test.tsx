@@ -4,7 +4,7 @@ import { strings } from '../../../../locales/i18n';
 import { useNavigation } from '@react-navigation/native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { fireEvent } from '@testing-library/react-native';
-import { SkipAccountSecurityModalSelectorsIDs } from '../../../../e2e/selectors/Onboarding/SkipAccountSecurityModal.selectors';
+import { SkipAccountSecurityModalSelectorsIDs } from './SkipAccountSecurityModal.testIds';
 import { Platform } from 'react-native';
 
 const mockOnConfirm = jest.fn();

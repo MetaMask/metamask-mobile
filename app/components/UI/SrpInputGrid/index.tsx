@@ -13,7 +13,6 @@ import Text, {
   TextColor,
 } from '../../../component-library/components/Texts/Text';
 import SrpInput from '../../Views/SrpInput';
-import { TextFieldSize } from '../../../component-library/components/Form/TextField';
 import { useAppTheme } from '../../../util/theme';
 import { createStyles } from './SrpInputGrid.styles';
 import { SrpInputGridProps } from './SrpInputGrid.types';
@@ -58,6 +57,7 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
       uniqueId = uuidv4(),
       disabled = false,
       onCurrentWordChange,
+      autoFocus: autoFocusProp = true,
     },
     ref,
   ) => {
@@ -279,16 +279,6 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
       [seedPhrase, onSeedPhraseChange],
     );
 
-    const handleEnterKeyPress = useCallback(
-      (index: number) => {
-        handleSeedPhraseChangeAtIndexRef.current(
-          `${seedPhrase[index]}${SPACE_CHAR}`,
-          index,
-        );
-      },
-      [seedPhrase],
-    );
-
     // Validate seed phrase and show errors
     const error = useMemo(() => {
       const hasWordErrors = Object.values(errorWordIndexes).some(Boolean);
@@ -406,12 +396,9 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
                       ? handleSeedPhraseChange(text)
                       : handleSeedPhraseChangeAtIndex(text, index);
                   }}
-                  onSubmitEditing={() => {
-                    handleEnterKeyPress(index);
-                  }}
+                  onSubmitEditing={() => Keyboard.dismiss()}
                   placeholder=""
                   placeholderTextColor={colors.text.muted}
-                  size={TextFieldSize.Md}
                   style={
                     isFirstInput
                       ? styles.hiddenInput
@@ -433,11 +420,17 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
                   autoCapitalize="none"
                   testID={`${testIdPrefix}_${index}`}
                   keyboardType="visible-password"
+                  returnKeyType="done"
+                  blurOnSubmit={false}
+                  enablesReturnKeyAutomatically={false}
                   autoCorrect={false}
                   textContentType="none"
                   spellCheck={false}
                   importantForAutofill="no"
-                  autoFocus={index === nextSeedPhraseInputFocusedIndex}
+                  autoFocus={
+                    index === nextSeedPhraseInputFocusedIndex &&
+                    (autoFocusProp || index > 0)
+                  }
                   onKeyPress={(e) => handleKeyPress(e, index)}
                   isDisabled={disabled}
                 />
@@ -458,7 +451,6 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
                 }}
                 placeholder={placeholderText}
                 placeholderTextColor={colors.text.alternative}
-                size={TextFieldSize.Md}
                 style={
                   isFirstInput
                     ? styles.seedPhraseDefaultInput
@@ -472,11 +464,15 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
                 autoCapitalize="none"
                 testID={testIdPrefix}
                 keyboardType="visible-password"
+                returnKeyType="done"
+                blurOnSubmit={false}
+                enablesReturnKeyAutomatically={false}
+                onSubmitEditing={() => Keyboard.dismiss()}
                 autoCorrect={false}
                 textContentType="none"
                 spellCheck={false}
                 importantForAutofill="no"
-                autoFocus={isFirstInput}
+                autoFocus={autoFocusProp && isFirstInput}
                 multiline
                 onKeyPress={(e) => handleKeyPress(e, 0)}
                 isDisabled={disabled}

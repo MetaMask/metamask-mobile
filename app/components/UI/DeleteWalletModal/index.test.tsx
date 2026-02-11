@@ -8,7 +8,7 @@ import renderWithProvider, {
 import { createStackNavigator } from '@react-navigation/stack';
 import { RootState } from '../../../reducers';
 import { strings } from '../../../../locales/i18n';
-import { ForgotPasswordModalSelectorsIDs } from '../../../../e2e/selectors/Common/ForgotPasswordModal.selectors';
+import { ForgotPasswordModalSelectorsIDs } from '../../../util/ForgotPasswordModal.testIds';
 import { InteractionManager } from 'react-native';
 import { clearHistory } from '../../../actions/browser';
 import { Authentication } from '../../../core/Authentication/Authentication';

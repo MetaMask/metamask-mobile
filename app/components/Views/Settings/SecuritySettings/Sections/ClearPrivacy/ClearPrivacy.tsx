@@ -16,8 +16,8 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../../../component-library/components/Buttons/Button';
 import SDKConnect from '../../../../../../../app/core/SDKConnect/SDKConnect';
-import { SecurityPrivacyViewSelectorsIDs } from '../../../../../../../e2e/selectors/Settings/SecurityAndPrivacy/SecurityPrivacyView.selectors';
-import { ClearPrivacyModalSelectorsIDs } from '../../../../../../../e2e/selectors/Settings/SecurityAndPrivacy/ClearPrivacyModal.selectors';
+import { SecurityPrivacyViewSelectorsIDs } from '../../SecurityPrivacyView.testIds';
+import { ClearPrivacyModalSelectorsIDs } from './ClearPrivacyModal.testIds';
 import { isSnapId } from '@metamask/snaps-utils';
 
 const ClearPrivacy = () => {

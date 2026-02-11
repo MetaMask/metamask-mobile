@@ -1,5 +1,6 @@
 import { Dimensions } from 'react-native';
 import { PredictSeries, Recurrence } from '../types';
+import { formatSubscriptNotation } from '../../../../util/number/subscriptNotation';
 
 /**
  * Formats a percentage value
@@ -65,7 +66,9 @@ export const formatPercentage = (
 /**
  * Formats a price value as USD currency with rounding up to nearest cent
  * @param price - Raw numeric price value
- * @param options - Optional formatting options (kept for backwards compatibility, but not used)
+ * @param options - Optional formatting options
+ * @param options.minimumDecimals - Minimum decimal places to show
+ * @param options.maximumDecimals - Maximum decimal places to show (default: 2)
  * @returns USD formatted string, hiding .00 for integer values, rounding up to nearest cent for 3+ decimals
  * @example formatPrice(1234.5678) => "$1,234.57" (rounds up from .5678)
  * @example formatPrice(0.1234) => "$0.13" (rounds up from .1234)
@@ -103,6 +106,40 @@ export const formatPrice = (
     minimumFractionDigits: minFractionDigits,
     maximumFractionDigits: maximumDecimals,
   }).format(rounded);
+};
+
+/**
+ * Formats a price value for trending tokens with subscript notation for very small values
+ * - Uses subscript notation for values with 4+ leading zeros (e.g., 0.00000614 → $0.0₅614)
+ * - The subscript indicates the number of leading zeros after the decimal point
+ * - Returns "—" for zero values
+ * - Uses min 2, max 4 decimal places for regular values
+ * @param price - The price value to format (string or number)
+ * @returns Formatted price string with $ prefix or "—" for zero
+ * @example formatPriceWithSubscriptNotation(1.99) => "$1.99"
+ * @example formatPriceWithSubscriptNotation(0.144566) => "$0.1446"
+ * @example formatPriceWithSubscriptNotation(0.00000614) => "$0.0₅614"
+ * @example formatPriceWithSubscriptNotation(0) => "—"
+ */
+export const formatPriceWithSubscriptNotation = (
+  price: string | number,
+): string => {
+  const num = typeof price === 'string' ? parseFloat(price) : price;
+
+  if (isNaN(num)) {
+    return '$0.00';
+  }
+
+  if (num === 0) {
+    return '—';
+  }
+
+  const subscript = formatSubscriptNotation(num);
+  if (subscript) {
+    return `$${subscript}`;
+  }
+
+  return formatPrice(num, { minimumDecimals: 2, maximumDecimals: 4 });
 };
 
 /**
@@ -349,4 +386,38 @@ export const estimateLineCount = (text: string | undefined): number => {
   }
 
   return lines;
+};
+
+/**
+ * Formats a game start time into separate date and time strings for display.
+ * Uses locale-aware formatting via Intl.DateTimeFormat.
+ * @param startTime - ISO 8601 datetime string (e.g., "2026-02-08T20:30:00Z")
+ * @returns Object with formatted date ("Sun, Feb 8") and time ("3:30 PM")
+ * @example formatGameStartTime("2026-02-08T20:30:00Z") => { date: "Sun, Feb 8", time: "3:30 PM" }
+ */
+export const formatGameStartTime = (
+  startTime: string | undefined,
+): { date: string; time: string } => {
+  if (!startTime) {
+    return { date: 'TBD', time: '' };
+  }
+
+  const dateObj = new Date(startTime);
+
+  if (isNaN(dateObj.getTime())) {
+    return { date: 'TBD', time: '' };
+  }
+
+  const date = new Intl.DateTimeFormat(undefined, {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+  }).format(dateObj);
+
+  const time = new Intl.DateTimeFormat(undefined, {
+    hour: 'numeric',
+    minute: '2-digit',
+  }).format(dateObj);
+
+  return { date, time };
 };

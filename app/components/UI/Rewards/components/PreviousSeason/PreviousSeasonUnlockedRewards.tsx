@@ -1,4 +1,5 @@
 import React, { useCallback, useMemo } from 'react';
+import { FlatList } from 'react-native';
 import {
   Box,
   BoxFlexDirection,
@@ -18,6 +19,7 @@ import {
 } from '../../../../../reducers/rewards/selectors';
 import { useSelector } from 'react-redux';
 import {
+  EndOfSeasonUrlData,
   RewardDto,
   SeasonRewardDto,
   SeasonRewardType,
@@ -42,16 +44,63 @@ const PreviousSeasonUnlockedRewards = () => {
   const unlockedRewardsError = useSelector(selectUnlockedRewardError);
   const seasonTiers = useSelector(selectSeasonTiers);
   const currentTier = useSelector(selectCurrentTier);
-  const handleRewardPress = useCallback(
-    (rewardId: string, seasonReward: SeasonRewardDto) => {
-      if (seasonReward.rewardType === SeasonRewardType.METAL_CARD) {
-        navigation.navigate(
-          Routes.MODAL.REWARDS_METAL_CARD_CLAIM_BOTTOM_SHEET,
-          {
-            rewardId,
-            seasonRewardId: seasonReward.id,
-          },
-        );
+
+  // Requires special modal actions for end of season reward claims
+  const handleEndOfSeasonClaim = useCallback(
+    (reward: RewardDto, seasonReward: SeasonRewardDto) => {
+      switch (seasonReward.rewardType) {
+        case SeasonRewardType.METAL_CARD:
+          navigation.navigate(
+            Routes.MODAL.REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET,
+            {
+              rewardId: reward.id,
+              seasonRewardId: seasonReward.id,
+              title: seasonReward.name,
+              description: strings('rewards.metal_card_claim.description'),
+              contactInfo: strings('rewards.metal_card_claim.contact_info'),
+              rewardType: SeasonRewardType.METAL_CARD,
+              showEmail: 'required',
+              showTelegram: 'optional',
+            },
+          );
+          break;
+        case SeasonRewardType.NANSEN:
+          navigation.navigate(
+            Routes.MODAL.REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET,
+            {
+              rewardId: reward.id,
+              seasonRewardId: seasonReward.id,
+              title: seasonReward.name,
+              description: seasonReward.longUnlockedDescription,
+              url: (reward.claim?.data as EndOfSeasonUrlData)?.url,
+              rewardType: SeasonRewardType.NANSEN,
+            },
+          );
+          break;
+        case SeasonRewardType.OTHERSIDE:
+          navigation.navigate(
+            Routes.MODAL.REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET,
+            {
+              rewardId: reward.id,
+              seasonRewardId: seasonReward.id,
+              title: seasonReward.name,
+              description: seasonReward.longUnlockedDescription,
+              url: (reward.claim?.data as EndOfSeasonUrlData)?.url,
+              rewardType: SeasonRewardType.OTHERSIDE,
+            },
+          );
+          break;
+        case SeasonRewardType.LINEA_TOKENS:
+          navigation.navigate(
+            Routes.MODAL.REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET,
+            {
+              rewardId: reward.id,
+              seasonRewardId: seasonReward.id,
+              title: seasonReward.name,
+              rewardType: SeasonRewardType.LINEA_TOKENS,
+              showAccount: true,
+            },
+          );
       }
     },
     [navigation],
@@ -96,7 +145,10 @@ const PreviousSeasonUnlockedRewards = () => {
   }
 
   return (
-    <Box flexDirection={BoxFlexDirection.Column} twClassName="flex-col mt-2">
+    <Box
+      flexDirection={BoxFlexDirection.Column}
+      twClassName="flex-col mt-2 max-h-[72.5%]"
+    >
       <Box flexDirection={BoxFlexDirection.Column} twClassName="gap-4">
         <Text
           variant={TextVariant.HeadingMd}
@@ -122,29 +174,57 @@ const PreviousSeasonUnlockedRewards = () => {
                 flexDirection={BoxFlexDirection.Column}
                 twClassName="gap-4 w-full"
               >
-                <Box twClassName="flex-col">
-                  {endOfSeasonRewards?.map((unlockedReward: RewardDto) => {
+                <FlatList
+                  data={endOfSeasonRewards}
+                  keyExtractor={(item) => item.id}
+                  showsVerticalScrollIndicator={false}
+                  nestedScrollEnabled
+                  style={tw.style('w-full')}
+                  contentContainerStyle={tw.style('gap-4 pb-60')}
+                  renderItem={({ item: unlockedReward, index }) => {
                     const seasonReward = seasonTiers
                       ?.flatMap((tier) => tier.rewards)
                       ?.find(
                         (sr) => sr.id === unlockedReward.seasonRewardId,
                       ) as SeasonRewardDto;
-                    const isClaimable =
-                      seasonReward?.rewardType === SeasonRewardType.METAL_CARD;
+
+                    const claimIsRedeem =
+                      seasonReward?.rewardType ===
+                        SeasonRewardType.METAL_CARD ||
+                      seasonReward?.rewardType ===
+                        SeasonRewardType.LINEA_TOKENS;
+
+                    const rewardUrl = (
+                      unlockedReward.claim?.data as
+                        | EndOfSeasonUrlData
+                        | undefined
+                    )?.url;
+
+                    const isLast = index === endOfSeasonRewards.length - 1;
+
                     return (
-                      <RewardItem
-                        key={unlockedReward.id}
-                        reward={unlockedReward}
-                        seasonReward={seasonReward}
-                        isLast={unlockedReward === endOfSeasonRewards.at(-1)}
-                        isEndOfSeasonReward
-                        compact
-                        isLocked={!isClaimable}
-                        onPress={isClaimable ? handleRewardPress : undefined}
-                      />
+                      <Box twClassName={isLast ? 'mb-12' : undefined}>
+                        <RewardItem
+                          reward={unlockedReward}
+                          seasonReward={seasonReward}
+                          isLast={isLast}
+                          isEndOfSeasonReward
+                          endOfSeasonClaimedDescription={
+                            claimIsRedeem
+                              ? strings(
+                                  'rewards.end_of_season_rewards.arriving_soon',
+                                )
+                              : undefined
+                          }
+                          compact
+                          // Can't do anything if we don't have reward url allocated yet
+                          isLocked={!rewardUrl && !claimIsRedeem}
+                          onPress={handleEndOfSeasonClaim}
+                        />
+                      </Box>
                     );
-                  })}
-                </Box>
+                  }}
+                />
               </Box>
             ) : (
               <>

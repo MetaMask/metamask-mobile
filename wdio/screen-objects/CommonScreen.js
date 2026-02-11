@@ -3,9 +3,9 @@ import Gestures from '../helpers/Gestures';
 import {
   ToastSelectorsIDs,
   ToastSelectorsText,
-} from '../../e2e/selectors/wallet/ToastModal.selectors';
-import { CommonSelectorsIDs } from '../../e2e/selectors/Common.selectors';
-import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
+} from '../../app/component-library/components/Toast/ToastModal.testIds';
+import { CommonSelectorsIDs } from '../../app/util/Common.testIds';
+import AppwrightSelectors from '../../tests/framework/AppwrightSelectors';
 
 class CommonScreen {
 

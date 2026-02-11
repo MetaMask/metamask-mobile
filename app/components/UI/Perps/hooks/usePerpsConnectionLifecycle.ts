@@ -1,6 +1,6 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { AppState, AppStateStatus } from 'react-native';
-import { PERPS_CONSTANTS } from '../constants/perpsConfig';
+import { PERPS_CONSTANTS } from '@metamask/perps-controller';
 
 interface UsePerpsConnectionLifecycleParams {
   isVisible?: boolean;
@@ -105,7 +105,7 @@ export function usePerpsConnectionLifecycle({
             ) {
               handleConnection();
             }
-          }, PERPS_CONSTANTS.RECONNECTION_DELAY_ANDROID_MS);
+          }, PERPS_CONSTANTS.ReconnectionDelayAndroidMs);
           // Store timer to clean up if component unmounts
           return () => clearTimeout(timer);
         }

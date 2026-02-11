@@ -2,6 +2,21 @@ name: Build iOS E2E Apps
 
 on:
   workflow_call:
+    outputs:
+      app-uploaded:
+        description: 'Whether the app was successfully uploaded'
+        value: ${{ jobs.build-ios-apps.outputs.app-uploaded }}
+    inputs:
+      build_type:
+        description: 'The type of build to perform'
+        required: false
+        default: 'main'
+        type: string
+      metamask_environment:
+        description: 'The environment to build for'
+        required: false
+        default: 'qa'
+        type: string
 
 permissions:
   contents: read
@@ -20,8 +35,8 @@ jobs:
       XCODE_BUILD_SETTINGS: 'COMPILER_INDEX_STORE_ENABLE=NO'
       GITHUB_CI: 'true' # This ensures it's available during pod install
       PLATFORM: ios
-      METAMASK_ENVIRONMENT: qa
-      METAMASK_BUILD_TYPE: main
+      METAMASK_ENVIRONMENT: ${{ inputs.metamask_environment }}
+      METAMASK_BUILD_TYPE: ${{ inputs.build_type }}
       IS_TEST: true
       E2E: 'true'
       IGNORE_BOXLOGS_DEVELOPMENT: true
@@ -57,15 +72,30 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Cache Xcode derived data
-        uses: cirruslabs/cache@0ea6c28a9b52ff2a1a01354742d8fbe0c4599693
+      - name: Restore Xcode derived data from branch cache
+        id: xcode-restore-cache
+        # This action automatically updates the cache at the end of the workflow
+        uses: cirruslabs/cache@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
         env:
           XCODE_CACHE_VERSION: 1
         with:
           path: |
             ~/Library/Developer/Xcode/DerivedData
             ios/build
-          key: ${{ runner.os }}-xcode-${{ env.XCODE_CACHE_VERSION }}-${{ hashFiles('ios/**/*.{h,m,mm,swift}', 'ios/**/Podfile.lock', 'yarn.lock') }}
+          key: ${{ runner.os }}-xcode-${{ github.ref_name }}-${{ env.XCODE_CACHE_VERSION }}-${{ hashFiles('ios/**/*.{h,m,mm,swift}', 'ios/**/Podfile.lock', 'yarn.lock') }}
+
+      - name: Restore Xcode derived data from main cache
+        if: ${{ steps.xcode-restore-cache.outputs.cache-hit != 'true' && github.ref_name != 'main' }}
+        id: xcode-restore-cache-main
+        # This will only restore the cache, not update it
+        uses: cirruslabs/cache/restore@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
+        env:
+          XCODE_CACHE_VERSION: 1
+        with:
+          path: |
+            ~/Library/Developer/Xcode/DerivedData
+            ios/build
+          key: ${{ runner.os }}-xcode-main-${{ env.XCODE_CACHE_VERSION }}-${{ hashFiles('ios/**/*.{h,m,mm,swift}', 'ios/**/Podfile.lock', 'yarn.lock') }}
 
       # Install Node.js, Xcode tools, and other iOS development dependencies
       - name: Installing iOS Environment Setup
@@ -112,17 +142,28 @@ jobs:
           echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
           echo "Current fingerprint: ${FINGERPRINT}"
 
-      - name: Check and restore cached iOS app if Fingerprint is found
+      - name: Restore iOS app matching fingerprint from branch cache
         id: cache-restore
-        uses: cirruslabs/cache@0ea6c28a9b52ff2a1a01354742d8fbe0c4599693
+        # This action automatically updates the cache at the end of the workflow
+        uses: cirruslabs/cache@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
         with:
           path: |
             ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
-          key: ios-app-${{ steps.generate-fingerprint.outputs.fingerprint }}
+          key: ios-app-${{ github.ref_name }}-${{ steps.generate-fingerprint.outputs.fingerprint }}
+
+      - name: Restore iOS app matching fingerprint from main cache
+        if: ${{ steps.cache-restore.outputs.cache-hit != 'true' && github.ref_name != 'main' }}
+        id: cache-restore-main
+        # This will only restore the cache, not update it
+        uses: cirruslabs/cache/restore@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
+        with:
+          path: |
+            ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
+          key: ios-app-main-${{ steps.generate-fingerprint.outputs.fingerprint }}
 
       # Build the iOS E2E app for simulator
       - name: Build iOS E2E App
-        if: ${{ steps.cache-restore.outputs.cache-hit != 'true' }}
+        if: ${{ steps.cache-restore.outputs.cache-hit != 'true' && steps.cache-restore-main.outputs.cache-hit != 'true' }}
         run: |
           echo "🏗 Building iOS E2E App..."
           export NODE_OPTIONS="--max-old-space-size=8192"
@@ -157,7 +198,7 @@ jobs:
           GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
 
       - name: Repack iOS app with JS updates using @expo/repack-app
-        if: ${{ steps.cache-restore.outputs.cache-hit == 'true' }}
+        if: ${{ steps.cache-restore.outputs.cache-hit == 'true' || steps.cache-restore-main.outputs.cache-hit == 'true' }}
         run: |
           echo "📦 Repacking iOS app with updated JavaScript bundle using @expo/repack-app..."
           # Use the optimized repack script which uses @expo/repack-app
@@ -195,21 +236,12 @@ jobs:
           GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
           MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
 
-      # Cache build artifacts with the pre-build fingerprint
-      - name: Cache build artifacts
-        if: ${{ steps.cache-restore.outputs.cache-hit != 'true' }}
-        uses: cirruslabs/cache@0ea6c28a9b52ff2a1a01354742d8fbe0c4599693
-        with:
-          path: |
-            ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
-          key: ios-app-${{ steps.generate-fingerprint.outputs.fingerprint }}
-
       # Upload the iOS .app file that works in simulators
       - name: Upload iOS APP Artifact (Simulator)
         id: upload-app
         uses: actions/upload-artifact@v4
         with:
-          name: MetaMask.app
+          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
           path: ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
           retention-days: 7
           if-no-files-found: error
@@ -219,10 +251,10 @@ jobs:
       # Only runs when repack step runs (cache hit), as that's when sourcemap is generated
       - name: Upload iOS Source Map
         id: upload-sourcemap
-        if: ${{ steps.cache-restore.outputs.cache-hit == 'true' }}
+        if: ${{ steps.cache-restore.outputs.cache-hit == 'true' || steps.cache-restore-main.outputs.cache-hit == 'true' }}
         uses: actions/upload-artifact@v4
         with:
-          name: index.js.map
+          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-index.js.map
           path: sourcemaps/ios/index.js.map
           retention-days: 7
           if-no-files-found: error

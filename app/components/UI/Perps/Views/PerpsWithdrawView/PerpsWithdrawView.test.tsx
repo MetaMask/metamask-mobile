@@ -2,7 +2,7 @@ import { useNavigation } from '@react-navigation/native';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import React from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { PerpsWithdrawViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PerpsWithdrawViewSelectorsIDs } from '../../Perps.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
 import { PerpsStreamProvider } from '../../providers/PerpsStreamManager';
@@ -131,26 +131,30 @@ jest.mock('../../../../UI/AssetOverview/Balance/Balance', () => ({
   NetworkBadgeSource: jest.fn(() => ({ uri: 'network-badge-uri' })),
 }));
 
-// Mock design system components
-jest.mock('@metamask/design-system-react-native', () => ({
-  Box: 'Box',
-  BoxAlignItems: {
-    Center: 'Center',
-  },
-  BoxFlexDirection: {
-    Row: 'Row',
-  },
-  BoxJustifyContent: {
-    Between: 'Between',
-  },
-  ButtonBase: 'ButtonBase',
-  IconSize: {
-    Xl: 'Xl',
-  },
-  IconColor: {
-    PrimaryDefault: 'PrimaryDefault',
-  },
-}));
+// Mock design system components - needed because real module requires tailwind setup
+jest.mock('@metamask/design-system-react-native', () => {
+  const { TouchableOpacity, Text: RNText } = jest.requireActual('react-native');
+  const React = jest.requireActual('react');
+  return {
+    ...jest.requireActual('@metamask/design-system-react-native'),
+    Box: 'Box',
+    ButtonBase: 'ButtonBase',
+    ButtonIcon: ({
+      testID,
+      onPress,
+    }: {
+      testID?: string;
+      onPress?: () => void;
+    }) => React.createElement(TouchableOpacity, { testID, onPress }),
+    Text: ({
+      children,
+      testID,
+    }: {
+      children?: React.ReactNode;
+      testID?: string;
+    }) => React.createElement(RNText, { testID }, children),
+  };
+});
 
 // Mock Text component
 jest.mock('../../../../../component-library/components/Texts/Text', () => ({

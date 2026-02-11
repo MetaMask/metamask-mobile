@@ -25,7 +25,7 @@ import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { usePerpsOrderFees } from '../../hooks/usePerpsOrderFees';
 import usePerpsToasts from '../../hooks/usePerpsToasts';
 import { TraceName } from '../../../../../util/trace';
-import type { Order } from '../../controllers/types';
+import { type Order } from '@metamask/perps-controller';
 import styleSheet from './PerpsOrderDetailsView.styles';
 import PerpsTokenLogo from '../../components/PerpsTokenLogo';
 import {
@@ -127,7 +127,7 @@ const PerpsOrderDetailsView: React.FC = () => {
     try {
       const result = await cancelOrder({
         orderId: order.orderId,
-        coin: order.symbol,
+        symbol: order.symbol,
       });
 
       // Show success/failure toast

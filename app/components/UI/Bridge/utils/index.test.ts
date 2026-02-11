@@ -1,5 +1,10 @@
 import '../_mocks_/initialState';
-import { isBridgeAllowed, wipeBridgeStatus, getTokenIconUrl } from './index';
+import {
+  isBridgeAllowed,
+  wipeBridgeStatus,
+  getTokenIconUrl,
+  getTokenImageSource,
+} from './index';
 import AppConstants from '../../../../core/AppConstants';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
@@ -23,6 +28,18 @@ jest.mock('../../../../core/Engine', () => ({
     BridgeStatusController: {
       wipeBridgeStatus: jest.fn(),
     },
+  },
+}));
+
+// Mock image requires as numbers (React Native bundler assigns numbers to require() results)
+jest.mock('../../../../images/image-icons', () => ({
+  __esModule: true,
+  default: {
+    ETH: 123, // Valid image source (number from require())
+    TRX: 456, // Valid image source
+    SOL: 789, // Valid image source
+    SVG_ICON: () => null, // Function/SVG component - should be filtered out
+    STRING_ICON: 'string-path', // String - should be filtered out
   },
 }));
 
@@ -233,6 +250,91 @@ describe('Bridge Utils', () => {
       expect(result).toBe(
         'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/slip44/60.png',
       );
+    });
+  });
+
+  describe('getTokenImageSource', () => {
+    it('returns local image icon when symbol exists in imageIcons', () => {
+      const symbol = 'ETH';
+      const imageUrl = 'https://example.com/eth.png';
+
+      const result = getTokenImageSource(symbol, imageUrl);
+
+      expect(result).toBe(123); // The mocked require() result
+    });
+
+    it('returns remote URL when symbol not found in imageIcons', () => {
+      const symbol = 'UNKNOWN_TOKEN';
+      const imageUrl = 'https://example.com/token.png';
+
+      const result = getTokenImageSource(symbol, imageUrl);
+
+      expect(result).toEqual({ uri: imageUrl });
+    });
+
+    it('returns undefined when symbol is undefined and imageUrl is undefined', () => {
+      const result = getTokenImageSource(undefined, undefined);
+
+      expect(result).toBeUndefined();
+    });
+
+    it('returns undefined when symbol is undefined and imageUrl is empty', () => {
+      const result = getTokenImageSource(undefined, '');
+
+      expect(result).toBeUndefined();
+    });
+
+    it('returns remote URL when symbol is undefined but imageUrl is provided', () => {
+      const imageUrl = 'https://example.com/token.png';
+
+      const result = getTokenImageSource(undefined, imageUrl);
+
+      expect(result).toEqual({ uri: imageUrl });
+    });
+
+    it('returns remote URL when imageIcon is a function (SVG component)', () => {
+      const symbol = 'SVG_ICON';
+      const imageUrl = 'https://example.com/fallback.png';
+
+      const result = getTokenImageSource(symbol, imageUrl);
+
+      expect(result).toEqual({ uri: imageUrl });
+    });
+
+    it('returns remote URL when imageIcon is a string', () => {
+      const symbol = 'STRING_ICON';
+      const imageUrl = 'https://example.com/fallback.png';
+
+      const result = getTokenImageSource(symbol, imageUrl);
+
+      expect(result).toEqual({ uri: imageUrl });
+    });
+
+    it('returns undefined when imageIcon is a function and no fallback URL', () => {
+      const symbol = 'SVG_ICON';
+
+      const result = getTokenImageSource(symbol, undefined);
+
+      expect(result).toBeUndefined();
+    });
+
+    it('returns undefined when imageIcon is a string and no fallback URL', () => {
+      const symbol = 'STRING_ICON';
+
+      const result = getTokenImageSource(symbol, undefined);
+
+      expect(result).toBeUndefined();
+    });
+
+    it('prioritizes local icon over remote URL for known symbols', () => {
+      const symbol = 'TRX';
+      const imageUrl = 'https://remote.com/trx.png';
+
+      const result = getTokenImageSource(symbol, imageUrl);
+
+      // Should return the local icon (456), not the remote URL
+      expect(result).toBe(456);
+      expect(result).not.toEqual({ uri: imageUrl });
     });
   });
 });

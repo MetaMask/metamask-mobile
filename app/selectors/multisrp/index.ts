@@ -1,9 +1,12 @@
+import { toMultichainAccountWalletId } from '@metamask/account-api';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { RootState } from '../../reducers';
 import { selectInternalAccounts } from '../accountsController';
 import { selectHDKeyrings } from '../keyringController';
 import { createDeepEqualSelector } from '../util';
 import { KeyringObject } from '@metamask/keyring-controller';
+import { selectAccountGroupWithInternalAccounts } from '../multichainAccounts/accountTreeController';
+import { AccountGroupWithInternalAccounts } from '../multichainAccounts/accounts.type';
 
 /**
  * Selects the index of an HD keyring by its ID, defaulting to 0 if not found
@@ -44,5 +47,28 @@ export const getSnapAccountsByKeyringId = createDeepEqualSelector(
     accounts.filter(
       (account: InternalAccount) =>
         account.options?.entropySource === keyringId,
+    ),
+);
+
+/**
+ * Selector that returns account groups (multichain accounts) for a specific keyring ID.
+ * Account groups represent multichain accounts that share the same entropy source.
+ * Each account group contains multiple accounts across different chains (EVM, Solana, Bitcoin, etc.)
+ *
+ * @param state - The Redux state
+ * @param keyringId - The ID of the keyring to get account groups for
+ * @returns An array of account groups belonging to the keyring
+ */
+export const selectAccountGroupsByKeyringId = createDeepEqualSelector(
+  selectAccountGroupWithInternalAccounts,
+  (_state: RootState, keyringId: string) => keyringId,
+  (
+    accountGroups: readonly AccountGroupWithInternalAccounts[],
+    keyringId: string,
+  ) =>
+    accountGroups.filter((group) =>
+      // NOTE: We could also use `parseMultichainAccountWalletGroup` helper, but this should be
+      // good enough for our use-case (for multichain account groups).
+      group.id.startsWith(toMultichainAccountWalletId(keyringId) + '/'),
     ),
 );

@@ -6,7 +6,7 @@ import Icon, {
 } from '../../../../../../component-library/components/Icons/Icon';
 import { TextColor } from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../component-library/hooks';
-import { AlertTypeIDs } from '../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
+import { AlertTypeIDs } from '../../../ConfirmationView.testIds';
 import { Alert, Severity } from '../../../types/alerts';
 import { useAlerts } from '../../../context/alert-system-context';
 import { useConfirmationAlertMetrics } from '../../../hooks/metrics/useConfirmationAlertMetrics';

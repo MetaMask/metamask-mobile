@@ -7,7 +7,7 @@ import React from 'react';
 import { useStyles } from '../../../../../hooks';
 import ListItemMultiSelect from '../../../../List/ListItemMultiSelect';
 import CellBase from '../../foundation/CellBase';
-import { CellComponentSelectorsIDs } from '../../../../../../../e2e/selectors/wallet/CellComponent.selectors';
+import { CellComponentSelectorsIDs } from '../../CellComponent.testIds';
 
 // Internal dependencies.
 import styleSheet from './CellMultiSelect.styles';

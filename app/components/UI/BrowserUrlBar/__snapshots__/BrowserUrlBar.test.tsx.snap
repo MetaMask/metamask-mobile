@@ -39,7 +39,7 @@ exports[`BrowserUrlBar render matches snapshot when focused 1`] = `
         onChangeText={[Function]}
         onFocus={[Function]}
         onSubmitEditing={[Function]}
-        placeholder="Search by token, site or address"
+        placeholder="Search by site or address"
         placeholderTextColor="#b7bbc8"
         returnKeyType="go"
         selectTextOnFocus={true}
@@ -171,9 +171,10 @@ exports[`BrowserUrlBar render matches snapshot when focused 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#4459ff",
-            "fontFamily": "Geist-Regular",
+            "color": "#121314",
+            "fontFamily": "Geist-Medium",
             "fontSize": 14,
+            "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -239,7 +240,7 @@ exports[`BrowserUrlBar render matches snapshot when not focused 1`] = `
         onChangeText={[Function]}
         onFocus={[Function]}
         onSubmitEditing={[Function]}
-        placeholder="Search by token, site or address"
+        placeholder="Search by site or address"
         placeholderTextColor="#b7bbc8"
         returnKeyType="go"
         selectTextOnFocus={true}

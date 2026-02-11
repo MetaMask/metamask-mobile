@@ -224,7 +224,7 @@ describe('TokenDetails', () => {
     expect(getAllByText('$5.22B').length).toBe(2); // marketCap and fullyDiluted (same value)
     expect(getByText('Total volume (24h)')).toBeDefined();
     expect(getByText('$147.65M')).toBeDefined(); // totalVolume (ETH) * conversionRate
-    expect(getByText('Volume / market cap')).toBeDefined();
+    expect(getByText('Volume / Market cap')).toBeDefined();
     expect(getByText('2.83%')).toBeDefined();
     expect(getByText('Circulating supply')).toBeDefined();
     expect(getByText('5.21B')).toBeDefined();

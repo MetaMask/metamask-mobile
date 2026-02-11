@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react';
 import { View, Image, StyleSheet } from 'react-native';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
+import { CommonSelectorsIDs } from '../../../util/Common.testIds';
 
 const createStyles = (colors) =>
   StyleSheet.create({

@@ -1,7 +1,7 @@
 import React from 'react';
 import { View } from 'react-native';
 
-import { ConfirmationRowComponentIDs } from '../../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
+import { ConfirmationRowComponentIDs } from '../../../../ConfirmationView.testIds';
 import { useTransactionMetadataRequest } from '../../../../hooks/transactions/useTransactionMetadataRequest';
 import { useStyles } from '../../../../../../../component-library/hooks';
 import Name from '../../../../../../UI/Name/Name';
@@ -58,7 +58,7 @@ const FromToRow = () => {
 
         <View style={[styles.nameContainer, styles.rightNameContainer]}>
           {/* Intentional empty label to trigger the alert row without a label */}
-          <AlertRow alertField={RowAlertKey.BurnAddress}>
+          <AlertRow alertField={RowAlertKey.FromToAddress}>
             <Name
               type={NameType.EthereumAddress}
               value={toAddress as string}

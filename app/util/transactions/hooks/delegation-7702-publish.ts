@@ -40,6 +40,10 @@ import {
 import { NetworkClientId } from '@metamask/network-controller';
 import { toHex } from '@metamask/controller-utils';
 import { isE2ETest, stripSingleLeadingZero } from '../util';
+import {
+  getClientForTransactionMetadata,
+  sanitizeOrigin,
+} from '../../../constants/smartTransactions';
 
 // Test chain ID (Sepolia) used in E2E tests to match the delegation package's test contract configuration
 const SEPOLIA_CHAIN_ID = '0xaa36a7';
@@ -193,6 +197,11 @@ export class Delegation7702PublishHook {
       chainId,
       data: transactionData,
       to: delegationManagerAddress,
+      metadata: {
+        txType: transactionMeta.type,
+        client: getClientForTransactionMetadata(),
+        origin: sanitizeOrigin(transactionMeta.origin),
+      },
     };
 
     if (!delegationAddress) {

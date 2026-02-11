@@ -5,7 +5,7 @@ import NetworkFilterBottomSheet, {
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { Hex } from '@metamask/utils';
 import { fireEvent } from '@testing-library/react-native';
-import { WalletViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/WalletView.selectors';
+import { WalletViewSelectorsIDs } from '../../Wallet/WalletView.testIds';
 import { FilterOption } from '../AddAsset';
 
 const mockOnFilterControlsBottomSheetPress = jest.fn();

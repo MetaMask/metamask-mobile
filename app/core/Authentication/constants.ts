@@ -1,0 +1,23 @@
+/**
+ * Error messages that can be thrown when calling the unlockWallet method.
+ */
+export const UNLOCK_WALLET_ERROR_MESSAGES = {
+  // Android specific error messages.
+  ANDROID_WRONG_PASSWORD:
+    'error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT',
+  ANDROID_WRONG_PASSWORD_2: 'error in DoCipher, status: 2',
+  ANDROID_PIN_DENIED: 'Error: Cancel',
+  // iOS specific error messages.
+  IOS_USER_CANCELLED_BIOMETRICS: 'User canceled the operation',
+  // General error messages.
+  PASSCODE_NOT_SET: 'Passcode not set.',
+  WRONG_PASSWORD: 'Decrypt failed',
+  PREVIOUS_VAULT_NOT_FOUND: 'Cannot unlock without a previous vault.',
+  JSON_PARSE_ERROR: 'JSON Parse error',
+  PASSWORD_REQUIREMENTS_NOT_MET: 'Password requirements not met',
+};
+
+/**
+ * Minimum password length.
+ */
+export const MIN_PASSWORD_LENGTH = 8;

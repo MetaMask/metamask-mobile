@@ -1,6 +1,6 @@
 import React from 'react';
 import { TouchableOpacity, View } from 'react-native';
-import { PerpsMarketHeaderSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PerpsMarketHeaderSelectorsIDs } from '../../Perps.testIds';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../../component-library/components/Buttons/ButtonIcon';
@@ -14,8 +14,10 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
-import type { PerpsMarketData } from '../../controllers/types';
-import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
+import {
+  getPerpsDisplaySymbol,
+  type PerpsMarketData,
+} from '@metamask/perps-controller';
 import LivePriceHeader from '../LivePriceDisplay/LivePriceHeader';
 import PerpsTokenLogo from '../PerpsTokenLogo';
 import { styleSheet } from './PerpsMarketHeader.styles';
@@ -78,7 +80,9 @@ const PerpsMarketHeader: React.FC<PerpsMarketHeaderProps> = ({
           >
             {getPerpsDisplaySymbol(market.symbol)}-USD
           </Text>
-          <PerpsLeverage maxLeverage={market.maxLeverage} />
+          {market.maxLeverage && (
+            <PerpsLeverage maxLeverage={market.maxLeverage} />
+          )}
         </View>
         <View style={styles.secondRow}>
           <LivePriceHeader

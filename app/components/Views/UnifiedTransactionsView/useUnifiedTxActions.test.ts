@@ -55,6 +55,12 @@ jest.mock('../../UI/LedgerModals/LedgerTransactionModal', () => {
   };
 });
 
+jest.mock('../../UI/QRHardware/QRSigningTransactionModal', () => ({
+  createQRSigningTransactionModalNavDetails: jest
+    .fn()
+    .mockReturnValue(['QRSigningModal', {}]),
+}));
+
 jest.mock('@metamask/rpc-errors', () => ({
   providerErrors: {
     userRejectedRequest: jest.fn(() => ({ code: 4001 })),
@@ -81,6 +87,7 @@ import { decGWEIToHexWEI } from '../../../util/conversions';
 import { addHexPrefix } from '../../../util/number';
 import { speedUpTransaction as speedUpTx } from '../../../util/transaction-controller';
 import { validateTransactionActionBalance } from '../../../util/transactions';
+import { createQRSigningTransactionModalNavDetails } from '../../UI/QRHardware/QRSigningTransactionModal';
 
 describe('useUnifiedTxActions', () => {
   const mockUseSelector = useSelector as jest.MockedFunction<
@@ -97,6 +104,11 @@ describe('useUnifiedTxActions', () => {
 
   beforeEach(() => {
     jest.resetAllMocks();
+
+    (createQRSigningTransactionModalNavDetails as jest.Mock).mockReturnValue([
+      'QRSigningModal',
+      {},
+    ]);
 
     defaultSelectorImpl = (selector: unknown) => {
       if (selector === (selectGasFeeEstimates as unknown)) {
@@ -409,7 +421,7 @@ describe('useUnifiedTxActions', () => {
   });
 
   describe('QR flow helpers', () => {
-    it('signQRTransaction resets keyring and accepts approval', async () => {
+    it('signQRTransaction navigates to QR signing modal', async () => {
       const { result } = renderHook(() => useUnifiedTxActions());
       const tx = { id: '12' } as unknown as TransactionMeta;
 
@@ -417,11 +429,12 @@ describe('useUnifiedTxActions', () => {
         await result.current.signQRTransaction(tx);
       });
 
-      expect(engineContext.ApprovalController.accept).toHaveBeenCalledWith(
-        '12',
-        undefined,
-        { waitForResult: true },
+      expect(createQRSigningTransactionModalNavDetails).toHaveBeenCalledWith(
+        expect.objectContaining({
+          transactionId: '12',
+        }),
       );
+      expect(mockNavigate).toHaveBeenCalledWith('QRSigningModal', {});
     });
 
     it('cancelUnsignedQRTransaction rejects approval', async () => {

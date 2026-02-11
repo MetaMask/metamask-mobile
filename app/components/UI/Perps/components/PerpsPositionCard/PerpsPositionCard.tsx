@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { TouchableOpacity, View } from 'react-native';
-import { PerpsPositionCardSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PerpsPositionCardSelectorsIDs } from '../../Perps.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import ButtonIcon, {
   ButtonIconSizes,
@@ -19,16 +19,21 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
-import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
-import type { Order, Position } from '../../controllers/types';
+import {
+  PERPS_CONSTANTS,
+  getPerpsDisplaySymbol,
+  type Order,
+  type Position,
+} from '@metamask/perps-controller';
 import {
   formatPerpsFiat,
   formatPnl,
   formatPositionSize,
+  formatPercentage,
   PRICE_RANGES_MINIMAL_VIEW,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
-import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
+import PerpsTokenLogo from '../PerpsTokenLogo';
 import styleSheet from './PerpsPositionCard.styles';
 
 /**
@@ -73,6 +78,14 @@ interface PerpsPositionCardProps {
   onFlipPress?: () => void;
   onMarginPress?: () => void;
   onSharePress?: () => void;
+  /** Render as a compact row (similar to PerpsCard) */
+  compact?: boolean;
+  /** Press handler for compact mode */
+  onPress?: () => void;
+  /** Test ID for the card */
+  testID?: string;
+  /** Icon size for compact mode (default: 40) */
+  iconSize?: number;
 }
 
 const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
@@ -84,8 +97,12 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
   onFlipPress: _onFlipPress,
   onMarginPress,
   onSharePress,
+  compact = false,
+  onPress,
+  testID,
+  iconSize = 40,
 }) => {
-  const { styles } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet, { iconSize });
   const [showSizeInUSD, setShowSizeInUSD] = useState(false);
 
   // Determine if position is long or short based on size
@@ -145,7 +162,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
     if ((!takeProfitPrice || !stopLossPrice) && orders && orders.length > 0) {
       const parentOrder = orders.find(
         (order) =>
-          order.symbol === position.coin &&
+          order.symbol === position.symbol &&
           !order.isTrigger &&
           (order.takeProfitPrice || order.stopLossPrice),
       );
@@ -159,13 +176,72 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
     const hasTakeProfit = takeProfitPrice && parseFloat(takeProfitPrice) > 0;
     const hasStopLoss = stopLossPrice && parseFloat(stopLossPrice) > 0;
     return Boolean(hasTakeProfit || hasStopLoss);
-  }, [position.takeProfitPrice, position.stopLossPrice, position.coin, orders]);
+  }, [
+    position.takeProfitPrice,
+    position.stopLossPrice,
+    position.symbol,
+    orders,
+  ]);
 
   const handleAutoCloseButtonPress = () => {
     if (onAutoClosePress) {
       onAutoClosePress();
     }
   };
+
+  // Compact mode: render a simplified row view similar to PerpsCard
+  if (compact) {
+    const displaySymbol = getPerpsDisplaySymbol(position.symbol);
+    const roeRaw = Number.parseFloat(position.returnOnEquity || '');
+    const hasValidRoe = !Number.isNaN(roeRaw) && Number.isFinite(roeRaw);
+    const roeDisplay = hasValidRoe
+      ? formatPercentage(roeRaw * 100, 1)
+      : PERPS_CONSTANTS.FallbackPercentageDisplay;
+
+    return (
+      <TouchableOpacity
+        style={styles.compactCard}
+        activeOpacity={0.7}
+        onPress={onPress}
+        testID={testID}
+      >
+        <View style={styles.compactContent}>
+          <View style={styles.compactLeft}>
+            <PerpsTokenLogo
+              symbol={position.symbol}
+              size={iconSize}
+              style={styles.compactIcon}
+            />
+            <View style={styles.compactInfo}>
+              <Text
+                variant={TextVariant.BodyMDMedium}
+                color={TextColor.Default}
+              >
+                {displaySymbol} {position.leverage.value}x{' '}
+                {isLong ? 'long' : 'short'}
+              </Text>
+              <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+                {formatPositionSize(absoluteSize.toString())} {displaySymbol}
+              </Text>
+            </View>
+          </View>
+          <View style={styles.compactRight}>
+            <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
+              {formatPerpsFiat(position.positionValue, {
+                ranges: PRICE_RANGES_MINIMAL_VIEW,
+              })}
+            </Text>
+            <Text
+              variant={TextVariant.BodySM}
+              color={pnlNum >= 0 ? TextColor.Success : TextColor.Error}
+            >
+              {formatPnl(pnlNum)} ({roeDisplay})
+            </Text>
+          </View>
+        </View>
+      </TouchableOpacity>
+    );
+  }
 
   return (
     <View style={styles.container} testID={PerpsPositionCardSelectorsIDs.CARD}>
@@ -240,7 +316,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                 ? formatPerpsFiat(absoluteSize * currentPrice, {
                     ranges: PRICE_RANGES_MINIMAL_VIEW,
                   })
-                : `${formatPositionSize(absoluteSize.toString())} ${getPerpsDisplaySymbol(position.coin)}`}
+                : `${formatPositionSize(absoluteSize.toString())} ${getPerpsDisplaySymbol(position.symbol)}`}
             </Text>
           </View>
           <View style={styles.iconButtonContainer}>
@@ -317,7 +393,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
               // Parent orders: same symbol, not trigger orders, have TP/SL children
               const parentOrder = orders.find(
                 (order) =>
-                  order.symbol === position.coin &&
+                  order.symbol === position.symbol &&
                   !order.isTrigger &&
                   (order.takeProfitPrice || order.stopLossPrice),
               );
@@ -442,7 +518,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                 ? formatPerpsFiat(position.liquidationPrice, {
                     ranges: PRICE_RANGES_UNIVERSAL,
                   })
-                : PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY}
+                : PERPS_CONSTANTS.FallbackPriceDisplay}
             </Text>
             {liquidationDistance !== null && (
               <>

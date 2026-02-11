@@ -99,7 +99,7 @@ import { fireEvent, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import LoginOptionsSettings from './LoginOptionsSettings';
 import AUTHENTICATION_TYPE from '../../../../../constants/userProperties';
-import { SecurityPrivacyViewSelectorsIDs } from '../../../../../../e2e/selectors/Settings/SecurityAndPrivacy/SecurityPrivacyView.selectors';
+import { SecurityPrivacyViewSelectorsIDs } from '../SecurityPrivacyView.testIds';
 import {
   PASSCODE_DISABLED,
   BIOMETRY_CHOICE_DISABLED,

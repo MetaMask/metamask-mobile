@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent, act } from '@testing-library/react-native';
 import PerpsTPSLView from './PerpsTPSLView';
-import type { Position } from '../../controllers/types';
+import { PERPS_EVENT_VALUE, type Position } from '@metamask/perps-controller';
 
 // Mock dependencies
 jest.mock('react-native-reanimated', () =>
@@ -193,7 +193,7 @@ describe('PerpsTPSLView', () => {
 
   const defaultRouteParams = {
     currentPrice: 3000,
-    coin: 'ETH',
+    symbol: 'ETH',
     direction: 'long',
     onConfirm: jest.fn(),
   };
@@ -498,7 +498,7 @@ describe('PerpsTPSLView', () => {
 
       expect(mockOnConfirm).toHaveBeenCalledWith('3150.00', '2850.00', {
         direction: 'long',
-        source: 'tp_sl_view',
+        source: PERPS_EVENT_VALUE.RISK_MANAGEMENT_SOURCE.TRADE_SCREEN,
         positionSize: 0,
         takeProfitPercentage: undefined,
         stopLossPercentage: undefined,
@@ -519,7 +519,7 @@ describe('PerpsTPSLView', () => {
 
       expect(mockOnConfirm).toHaveBeenCalledWith(undefined, undefined, {
         direction: 'long',
-        source: 'tp_sl_view',
+        source: PERPS_EVENT_VALUE.RISK_MANAGEMENT_SOURCE.TRADE_SCREEN,
         positionSize: 0,
         takeProfitPercentage: undefined,
         stopLossPercentage: undefined,
@@ -570,7 +570,7 @@ describe('PerpsTPSLView', () => {
   describe('Edge Cases', () => {
     it('displays entry price when editing existing position', () => {
       const mockPosition: Position = {
-        coin: 'ETH',
+        symbol: 'ETH',
         entryPrice: '2800.00',
         size: '0.5',
         positionValue: '1400.00',

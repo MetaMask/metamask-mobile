@@ -51,18 +51,25 @@ const RemoteImage: React.FC<RemoteImageProps> = (props) => {
   const [error, setError] = useState<string | undefined>(undefined);
   const source = resolveAssetSource(props.source);
   const ipfsGateway = useIpfsGateway();
-  const [resolvedIpfsUrl, setResolvedIpfsUrl] = useState<string | false>(false);
+  const [resolvedIpfsUrl, setResolvedIpfsUrl] = useState<string | false>();
 
   const uri =
     resolvedIpfsUrl ||
     (source?.uri && !source.uri.startsWith('ipfs') ? source.uri : '');
 
-  const onError = (event: ImageErrorEventData) => setError(event.error);
+  const onError = (event: ImageErrorEventData) => {
+    setError(event.error);
+    props.onError?.();
+  };
 
   const [dimensions, setDimensions] = useState<{
     width: number;
     height: number;
   } | null>(null);
+
+  useEffect(() => {
+    setError(undefined);
+  }, [source?.uri]);
 
   useEffect(() => {
     async function resolveIpfsUrl() {
@@ -77,7 +84,7 @@ const RemoteImage: React.FC<RemoteImageProps> = (props) => {
           false,
         );
         setResolvedIpfsUrl(ipfsUrl || false);
-      } catch (err) {
+      } catch {
         Logger.log(`Failed to resolve IPFS URL for ${source.uri}`);
         setResolvedIpfsUrl(false);
       }
@@ -133,6 +140,10 @@ const RemoteImage: React.FC<RemoteImageProps> = (props) => {
 
   if (error && props.address) {
     return <Identicon address={props.address} customStyle={props.style} />;
+  }
+
+  if (resolvedIpfsUrl === undefined && !uri) {
+    return null;
   }
 
   const defaultImage = (

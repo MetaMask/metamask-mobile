@@ -40,32 +40,60 @@ interface ValueType {
 /**
  * Support backwards compatibility DAI while it's still being deprecated. See EIP-2612 for more info.
  */
+const coerceAllowedToBoolean = (
+  allowed?: number | string | boolean | null,
+): boolean | undefined => {
+  if (allowed === undefined) {
+    return undefined;
+  }
+
+  return Boolean(allowed);
+};
+
+const coerceNumberishToBigInt = (
+  value?: number | string | BigNumber | null,
+): bigint | undefined => {
+  if (value === undefined || value === null) {
+    return undefined;
+  }
+
+  try {
+    if (value instanceof BigNumber) {
+      return BigInt(value.toFixed());
+    }
+    return BigInt(value);
+  } catch {
+    return undefined;
+  }
+};
+
 export const isPermitDaiUnlimited = (
   tokenAddress: string,
-  allowed?: number | string | boolean,
+  allowed?: number | string | boolean | null,
 ) => {
   if (!tokenAddress) return false;
 
+  const parsedAllowed = coerceAllowedToBoolean(allowed);
+
   return (
     tokenAddress.toLowerCase() === TOKEN_ADDRESS.DAI.toLowerCase() &&
-    Number(allowed) > 0
+    parsedAllowed === true
   );
 };
 
 export const isPermitDaiRevoke = (
   tokenAddress: string,
-  allowed?: number | string | boolean,
-  value?: number | string | BigNumber,
+  allowed?: number | string | boolean | null,
+  value?: number | string | BigNumber | null,
 ) => {
   if (!tokenAddress) return false;
 
+  const parsedAllowed = coerceAllowedToBoolean(allowed);
+  const parsedValue = coerceNumberishToBigInt(value);
+
   return (
     tokenAddress.toLowerCase() === TOKEN_ADDRESS.DAI.toLowerCase() &&
-    (allowed === 0 ||
-      allowed === false ||
-      allowed === 'false' ||
-      value === '0' ||
-      (value instanceof BigNumber && value.eq(0)))
+    (parsedAllowed === false || parsedValue === BigInt(0))
   );
 };
 
@@ -156,8 +184,14 @@ export const sanitizeParsedMessage = (
   return { value: sanitizedStruct, type: primaryType };
 };
 
+/**
+ * Regex to extract large numeric values from message.value.
+ * Uses [^{}]* instead of [^}]* to prevent matching nested "value" fields -
+ * by excluding both { and }, the regex stops at any nested object boundary,
+ * ensuring only top-level message.value is matched.
+ */
 const REGEX_MESSAGE_VALUE_LARGE =
-  /"message"\s*:\s*\{[^}]*"value"\s*:\s*(\d{15,})/u;
+  /"message"\s*:\s*\{[^{}]*"value"\s*:\s*(\d{15,})/u;
 
 /** Returns the value of the message if it is a digit greater than 15 digits */
 function extractLargeMessageValue(

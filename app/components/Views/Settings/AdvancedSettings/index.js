@@ -30,7 +30,7 @@ import { selectSmartTransactionsEnabled } from '../../../../selectors/smartTrans
 import Routes from '../../../../constants/navigation/Routes';
 
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import { AdvancedViewSelectorsIDs } from '../../../../../e2e/selectors/Settings/AdvancedView.selectors';
+import { AdvancedViewSelectorsIDs } from './AdvancedView.testIds';
 import Text, {
   TextVariant,
   TextColor,

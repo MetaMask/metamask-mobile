@@ -1,8 +1,12 @@
 import { Platform } from 'react-native';
 import { getBuildNumber, getVersion, getBrand } from 'react-native-device-info';
-import { DeviceMetaData } from './DeviceAnalyticsMetaData.types';
+import type { AnalyticsUserTraits } from '@metamask/analytics-controller';
 
-const generateDeviceAnalyticsMetaData = (): DeviceMetaData => ({
+/**
+ * Generate device analytics meta data
+ * Returns AnalyticsUserTraits-compatible object
+ */
+const generateDeviceAnalyticsMetaData = (): AnalyticsUserTraits => ({
   platform: Platform.OS,
   currentBuildNumber: getBuildNumber(),
   applicationVersion: getVersion(),

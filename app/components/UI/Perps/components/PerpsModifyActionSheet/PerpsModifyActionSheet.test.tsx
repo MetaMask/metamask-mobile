@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import PerpsModifyActionSheet from './PerpsModifyActionSheet';
-import type { Position } from '../../controllers/types';
+import { type Position } from '@metamask/perps-controller';
 
 // Mock dependencies
 jest.mock('../../../../../component-library/hooks', () => ({
@@ -120,7 +120,7 @@ describe('PerpsModifyActionSheet', () => {
   const mockOnActionSelect = jest.fn();
 
   const mockPosition: Position = {
-    coin: 'ETH',
+    symbol: 'ETH',
     size: '2.5',
     marginUsed: '500',
     entryPrice: '2000',

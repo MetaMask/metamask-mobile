@@ -6,6 +6,7 @@ import { Linking } from 'react-native';
 import Logger from '../../util/Logger';
 import { handleDeeplink } from './handlers/legacy/handleDeeplink';
 import FCMService from '../../util/notifications/services/FCMService';
+import AppConstants from '../AppConstants';
 
 export class DeeplinkManager {
   // singleton instance
@@ -76,13 +77,19 @@ export class DeeplinkManager {
 
     FCMService.onClickPushNotificationWhenAppClosed().then((deeplink) => {
       if (deeplink) {
-        handleDeeplink({ uri: deeplink });
+        handleDeeplink({
+          uri: deeplink,
+          source: AppConstants.DEEPLINKS.ORIGIN_PUSH_NOTIFICATION,
+        });
       }
     });
 
     FCMService.onClickPushNotificationWhenAppSuspended((deeplink) => {
       if (deeplink) {
-        handleDeeplink({ uri: deeplink });
+        handleDeeplink({
+          uri: deeplink,
+          source: AppConstants.DEEPLINKS.ORIGIN_PUSH_NOTIFICATION,
+        });
       }
     });
 

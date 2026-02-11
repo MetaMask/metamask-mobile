@@ -3,7 +3,7 @@ import { render, fireEvent } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import Routes from '../../../../../constants/navigation/Routes';
 import PerpsFundingTransactionView from './PerpsFundingTransactionView';
-import { PerpsTransactionSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PerpsTransactionSelectorsIDs } from '../../Perps.testIds';
 
 const mockTransaction = {
   id: 'funding-123',
@@ -293,7 +293,7 @@ describe('PerpsFundingTransactionView', () => {
     const { getByText } = render(<PerpsFundingTransactionView />);
 
     // Assert
-    expect(getByText('Transaction not found')).toBeTruthy();
+    expect(getByText('Transaction not found')).toBeOnTheScreen();
   });
 
   it('should format date correctly', () => {

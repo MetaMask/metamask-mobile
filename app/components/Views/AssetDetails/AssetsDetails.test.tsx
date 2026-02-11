@@ -14,6 +14,25 @@ jest.mock('../../../core/ClipboardManager', () => ({
   setString: jest.fn(),
 }));
 
+// Mock Perps components and hooks to avoid navigation dependency issues
+jest.mock('../../UI/Perps', () => ({
+  selectPerpsEnabledFlag: jest.fn(() => false),
+}));
+
+jest.mock('../../UI/Perps/hooks/usePerpsMarketForAsset', () => ({
+  usePerpsMarketForAsset: jest.fn(() => ({
+    hasPerpsMarket: false,
+    marketData: null,
+    isLoading: false,
+    error: null,
+  })),
+}));
+
+jest.mock(
+  '../../UI/Perps/components/PerpsDiscoveryBanner',
+  () => 'PerpsDiscoveryBanner',
+);
+
 jest.mock('../../../util/networks', () => ({
   ...jest.requireActual('../../../util/networks'),
   getDecimalChainId: jest.fn(() => 1),
@@ -295,6 +314,29 @@ describe('AssetDetails', () => {
     );
 
     runAfterInteractionsSpy.mockRestore();
+  });
+
+  it('hides the Hide token button for mUSD tokens', () => {
+    const musdAddress = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
+
+    const { queryByText } = render(
+      <Provider store={mockStore(initialState)}>
+        <AssetDetails
+          route={{
+            params: {
+              address: musdAddress,
+              chainId: CHAIN_IDS.MAINNET,
+              asset: {
+                ...mockAsset,
+                address: musdAddress,
+              } as unknown as TokenI,
+            },
+          }}
+        />
+      </Provider>,
+    );
+
+    expect(queryByText('Hide token')).toBeNull();
   });
 
   it('renders warning banner if balance is undefined', () => {

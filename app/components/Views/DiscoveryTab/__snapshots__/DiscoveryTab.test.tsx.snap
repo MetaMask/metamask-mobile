@@ -1,0 +1,753 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`DiscoveryTab Bottom Bar Rendering passes newTab prop to BrowserBottomBar 1`] = `
+<View
+  onLayout={[Function]}
+  style={
+    [
+      [
+        {
+          "backgroundColor": "#ffffff",
+          "flex": 1,
+        },
+        false,
+      ],
+      {
+        "paddingBottom": 0,
+      },
+    ]
+  }
+>
+  <View
+    style={
+      {
+        "backgroundColor": "#ffffff",
+        "flex": 1,
+      }
+    }
+  >
+    <View
+      onPress={[Function]}
+      testID="browser-url-bar"
+    />
+    <View
+      style={
+        {
+          "backgroundColor": "#ffffff",
+          "flex": 1,
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "flex": 1,
+          }
+        }
+      />
+      <View
+        testID="url-autocomplete"
+      />
+    </View>
+  </View>
+</View>
+`;
+
+exports[`DiscoveryTab Bottom Bar Rendering renders BrowserBottomBar when tab is active and URL bar not focused 1`] = `
+<View
+  onLayout={[Function]}
+  style={
+    [
+      [
+        {
+          "backgroundColor": "#ffffff",
+          "flex": 1,
+        },
+        false,
+      ],
+      {
+        "paddingBottom": 0,
+      },
+    ]
+  }
+>
+  <View
+    style={
+      {
+        "backgroundColor": "#ffffff",
+        "flex": 1,
+      }
+    }
+  >
+    <View
+      onPress={[Function]}
+      testID="browser-url-bar"
+    />
+    <View
+      style={
+        {
+          "backgroundColor": "#ffffff",
+          "flex": 1,
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "flex": 1,
+          }
+        }
+      />
+      <View
+        testID="url-autocomplete"
+      />
+    </View>
+  </View>
+</View>
+`;
+
+exports[`DiscoveryTab Device-specific behavior adds collapsable prop to View when on Android 1`] = `
+<View
+  onLayout={[Function]}
+  style={
+    [
+      [
+        {
+          "backgroundColor": "#ffffff",
+          "flex": 1,
+        },
+        false,
+      ],
+      {
+        "paddingBottom": 0,
+      },
+    ]
+  }
+>
+  <View
+    collapsable={false}
+    style={
+      {
+        "backgroundColor": "#ffffff",
+        "flex": 1,
+      }
+    }
+  >
+    <View
+      onPress={[Function]}
+      testID="browser-url-bar"
+    />
+    <View
+      style={
+        {
+          "backgroundColor": "#ffffff",
+          "flex": 1,
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "flex": 1,
+          }
+        }
+      />
+      <View
+        testID="url-autocomplete"
+      />
+    </View>
+  </View>
+</View>
+`;
+
+exports[`DiscoveryTab Edge Cases renders TokenDiscovery component 1`] = `
+<View
+  onLayout={[Function]}
+  style={
+    [
+      [
+        {
+          "backgroundColor": "#ffffff",
+          "flex": 1,
+        },
+        false,
+      ],
+      {
+        "paddingBottom": 0,
+      },
+    ]
+  }
+>
+  <View
+    style={
+      {
+        "backgroundColor": "#ffffff",
+        "flex": 1,
+      }
+    }
+  >
+    <View
+      onPress={[Function]}
+      testID="browser-url-bar"
+    />
+    <View
+      style={
+        {
+          "backgroundColor": "#ffffff",
+          "flex": 1,
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "flex": 1,
+          }
+        }
+      />
+      <View
+        testID="url-autocomplete"
+      />
+    </View>
+  </View>
+</View>
+`;
+
+exports[`DiscoveryTab Edge Cases renders when tab ID does not match active tab 1`] = `
+<View
+  onLayout={[Function]}
+  style={
+    [
+      [
+        {
+          "backgroundColor": "#ffffff",
+          "flex": 1,
+        },
+        {
+          "display": "none",
+          "flex": 0,
+          "height": 0,
+          "opacity": 0,
+          "width": 0,
+        },
+      ],
+      {
+        "paddingBottom": 0,
+      },
+    ]
+  }
+>
+  <View
+    style={
+      {
+        "backgroundColor": "#ffffff",
+        "flex": 1,
+      }
+    }
+  >
+    <View
+      onPress={[Function]}
+      testID="browser-url-bar"
+    />
+    <View
+      style={
+        {
+          "backgroundColor": "#ffffff",
+          "flex": 1,
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "flex": 1,
+          }
+        }
+      />
+      <View
+        testID="url-autocomplete"
+      />
+    </View>
+  </View>
+</View>
+`;
+
+exports[`DiscoveryTab Platform-specific behavior uses height behavior for KeyboardAvoidingView on Android 1`] = `
+<View
+  onLayout={[Function]}
+  style={
+    [
+      {
+        "backgroundColor": "#ffffff",
+        "flex": 1,
+      },
+      false,
+    ]
+  }
+>
+  <View
+    collapsable={false}
+    style={
+      {
+        "backgroundColor": "#ffffff",
+        "flex": 1,
+      }
+    }
+  >
+    <View
+      onPress={[Function]}
+      testID="browser-url-bar"
+    />
+    <View
+      style={
+        {
+          "backgroundColor": "#ffffff",
+          "flex": 1,
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "flex": 1,
+          }
+        }
+      />
+      <View
+        testID="url-autocomplete"
+      />
+    </View>
+  </View>
+</View>
+`;
+
+exports[`DiscoveryTab Platform-specific behavior uses padding behavior for KeyboardAvoidingView on iOS 1`] = `
+<View
+  onLayout={[Function]}
+  style={
+    [
+      [
+        {
+          "backgroundColor": "#ffffff",
+          "flex": 1,
+        },
+        false,
+      ],
+      {
+        "paddingBottom": 0,
+      },
+    ]
+  }
+>
+  <View
+    style={
+      {
+        "backgroundColor": "#ffffff",
+        "flex": 1,
+      }
+    }
+  >
+    <View
+      onPress={[Function]}
+      testID="browser-url-bar"
+    />
+    <View
+      style={
+        {
+          "backgroundColor": "#ffffff",
+          "flex": 1,
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "flex": 1,
+          }
+        }
+      />
+      <View
+        testID="url-autocomplete"
+      />
+    </View>
+  </View>
+</View>
+`;
+
+exports[`DiscoveryTab Props Handling accepts showTabs prop 1`] = `
+<View
+  onLayout={[Function]}
+  style={
+    [
+      [
+        {
+          "backgroundColor": "#ffffff",
+          "flex": 1,
+        },
+        false,
+      ],
+      {
+        "paddingBottom": 0,
+      },
+    ]
+  }
+>
+  <View
+    style={
+      {
+        "backgroundColor": "#ffffff",
+        "flex": 1,
+      }
+    }
+  >
+    <View
+      onPress={[Function]}
+      testID="browser-url-bar"
+    />
+    <View
+      style={
+        {
+          "backgroundColor": "#ffffff",
+          "flex": 1,
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "flex": 1,
+          }
+        }
+      />
+      <View
+        testID="url-autocomplete"
+      />
+    </View>
+  </View>
+</View>
+`;
+
+exports[`DiscoveryTab Props Handling accepts updateTabInfo prop 1`] = `
+<View
+  onLayout={[Function]}
+  style={
+    [
+      [
+        {
+          "backgroundColor": "#ffffff",
+          "flex": 1,
+        },
+        false,
+      ],
+      {
+        "paddingBottom": 0,
+      },
+    ]
+  }
+>
+  <View
+    style={
+      {
+        "backgroundColor": "#ffffff",
+        "flex": 1,
+      }
+    }
+  >
+    <View
+      onPress={[Function]}
+      testID="browser-url-bar"
+    />
+    <View
+      style={
+        {
+          "backgroundColor": "#ffffff",
+          "flex": 1,
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "flex": 1,
+          }
+        }
+      />
+      <View
+        testID="url-autocomplete"
+      />
+    </View>
+  </View>
+</View>
+`;
+
+exports[`DiscoveryTab Props Handling renders with all required props 1`] = `
+<View
+  onLayout={[Function]}
+  style={
+    [
+      [
+        {
+          "backgroundColor": "#ffffff",
+          "flex": 1,
+        },
+        false,
+      ],
+      {
+        "paddingBottom": 0,
+      },
+    ]
+  }
+>
+  <View
+    style={
+      {
+        "backgroundColor": "#ffffff",
+        "flex": 1,
+      }
+    }
+  >
+    <View
+      onPress={[Function]}
+      testID="browser-url-bar"
+    />
+    <View
+      style={
+        {
+          "backgroundColor": "#ffffff",
+          "flex": 1,
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "flex": 1,
+          }
+        }
+      />
+      <View
+        testID="url-autocomplete"
+      />
+    </View>
+  </View>
+</View>
+`;
+
+exports[`DiscoveryTab Rendering hides content when tab is not active 1`] = `
+<View
+  onLayout={[Function]}
+  style={
+    [
+      [
+        {
+          "backgroundColor": "#ffffff",
+          "flex": 1,
+        },
+        {
+          "display": "none",
+          "flex": 0,
+          "height": 0,
+          "opacity": 0,
+          "width": 0,
+        },
+      ],
+      {
+        "paddingBottom": 0,
+      },
+    ]
+  }
+>
+  <View
+    style={
+      {
+        "backgroundColor": "#ffffff",
+        "flex": 1,
+      }
+    }
+  >
+    <View
+      onPress={[Function]}
+      testID="browser-url-bar"
+    />
+    <View
+      style={
+        {
+          "backgroundColor": "#ffffff",
+          "flex": 1,
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "flex": 1,
+          }
+        }
+      />
+      <View
+        testID="url-autocomplete"
+      />
+    </View>
+  </View>
+</View>
+`;
+
+exports[`DiscoveryTab Rendering renders DiscoveryTab component when tab is active 1`] = `
+<View
+  onLayout={[Function]}
+  style={
+    [
+      [
+        {
+          "backgroundColor": "#ffffff",
+          "flex": 1,
+        },
+        false,
+      ],
+      {
+        "paddingBottom": 0,
+      },
+    ]
+  }
+>
+  <View
+    style={
+      {
+        "backgroundColor": "#ffffff",
+        "flex": 1,
+      }
+    }
+  >
+    <View
+      onPress={[Function]}
+      testID="browser-url-bar"
+    />
+    <View
+      style={
+        {
+          "backgroundColor": "#ffffff",
+          "flex": 1,
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "flex": 1,
+          }
+        }
+      />
+      <View
+        testID="url-autocomplete"
+      />
+    </View>
+    BrowserBottomBar
+  </View>
+</View>
+`;
+
+exports[`DiscoveryTab URL Bar Interactions passes showTabs callback to BrowserUrlBar 1`] = `
+<View
+  onLayout={[Function]}
+  style={
+    [
+      [
+        {
+          "backgroundColor": "#ffffff",
+          "flex": 1,
+        },
+        false,
+      ],
+      {
+        "paddingBottom": 0,
+      },
+    ]
+  }
+>
+  <View
+    style={
+      {
+        "backgroundColor": "#ffffff",
+        "flex": 1,
+      }
+    }
+  >
+    <View
+      onPress={[Function]}
+      testID="browser-url-bar"
+    />
+    <View
+      style={
+        {
+          "backgroundColor": "#ffffff",
+          "flex": 1,
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "flex": 1,
+          }
+        }
+      />
+      <View
+        testID="url-autocomplete"
+      />
+    </View>
+  </View>
+</View>
+`;
+
+exports[`DiscoveryTab URL Bar Interactions renders BrowserUrlBar component 1`] = `
+<View
+  onLayout={[Function]}
+  style={
+    [
+      [
+        {
+          "backgroundColor": "#ffffff",
+          "flex": 1,
+        },
+        false,
+      ],
+      {
+        "paddingBottom": 0,
+      },
+    ]
+  }
+>
+  <View
+    style={
+      {
+        "backgroundColor": "#ffffff",
+        "flex": 1,
+      }
+    }
+  >
+    <View
+      onPress={[Function]}
+      testID="browser-url-bar"
+    />
+    <View
+      style={
+        {
+          "backgroundColor": "#ffffff",
+          "flex": 1,
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "flex": 1,
+          }
+        }
+      />
+      <View
+        testID="url-autocomplete"
+      />
+    </View>
+  </View>
+</View>
+`;

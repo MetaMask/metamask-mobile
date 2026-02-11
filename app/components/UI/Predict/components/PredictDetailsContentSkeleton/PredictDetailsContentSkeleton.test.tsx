@@ -3,45 +3,16 @@ import { render } from '@testing-library/react-native';
 import PredictDetailsContentSkeleton from './PredictDetailsContentSkeleton';
 
 describe('PredictDetailsContentSkeleton', () => {
-  it('renders content skeleton with all outcome card elements', () => {
+  it('renders content skeleton with all elements', () => {
     const { getByTestId } = render(<PredictDetailsContentSkeleton />);
 
+    expect(getByTestId('predict-details-content-skeleton-line-1')).toBeTruthy();
     expect(
-      getByTestId('predict-details-content-skeleton-option-1'),
+      getByTestId('predict-details-content-skeleton-block-1'),
     ).toBeTruthy();
-
-    // Outcome Card 1
+    expect(getByTestId('predict-details-content-skeleton-line-2')).toBeTruthy();
     expect(
-      getByTestId('predict-details-content-skeleton-option-2-avatar'),
-    ).toBeTruthy();
-    expect(
-      getByTestId('predict-details-content-skeleton-option-2-title'),
-    ).toBeTruthy();
-    expect(
-      getByTestId('predict-details-content-skeleton-option-2-subtitle'),
-    ).toBeTruthy();
-    expect(
-      getByTestId('predict-details-content-skeleton-option-2-value-1'),
-    ).toBeTruthy();
-    expect(
-      getByTestId('predict-details-content-skeleton-option-2-value-2'),
-    ).toBeTruthy();
-
-    // Outcome Card 2
-    expect(
-      getByTestId('predict-details-content-skeleton-option-3-avatar'),
-    ).toBeTruthy();
-    expect(
-      getByTestId('predict-details-content-skeleton-option-3-title'),
-    ).toBeTruthy();
-    expect(
-      getByTestId('predict-details-content-skeleton-option-3-subtitle'),
-    ).toBeTruthy();
-    expect(
-      getByTestId('predict-details-content-skeleton-option-3-value-1'),
-    ).toBeTruthy();
-    expect(
-      getByTestId('predict-details-content-skeleton-option-3-value-2'),
+      getByTestId('predict-details-content-skeleton-block-2'),
     ).toBeTruthy();
   });
 
@@ -51,10 +22,10 @@ describe('PredictDetailsContentSkeleton', () => {
       <PredictDetailsContentSkeleton testID={customTestId} />,
     );
 
-    expect(getByTestId(`${customTestId}-option-1`)).toBeTruthy();
-    expect(getByTestId(`${customTestId}-option-2-avatar`)).toBeTruthy();
-    expect(getByTestId(`${customTestId}-option-2-title`)).toBeTruthy();
-    expect(getByTestId(`${customTestId}-option-3-avatar`)).toBeTruthy();
+    expect(getByTestId(`${customTestId}-line-1`)).toBeTruthy();
+    expect(getByTestId(`${customTestId}-block-1`)).toBeTruthy();
+    expect(getByTestId(`${customTestId}-line-2`)).toBeTruthy();
+    expect(getByTestId(`${customTestId}-block-2`)).toBeTruthy();
   });
 
   it('matches snapshot', () => {

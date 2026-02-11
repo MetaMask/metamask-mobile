@@ -8,6 +8,7 @@ import {
   getWildcardTokenListFromConfig,
   WildcardTokenList,
 } from '../../utils/wildcardTokenList';
+import { DEFAULT_MUSD_BLOCKED_COUNTRIES } from '../../constants/musd';
 
 export const selectPooledStakingEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
@@ -68,12 +69,71 @@ export const selectIsMusdConversionFlowEnabledFlag = createSelector(
   },
 );
 
-export const selectIsMusdCtaEnabledFlag = createSelector(
+/**
+ * Selects the flag to determine if the "Get/Buy mUSD" CTA should be displayed.
+ * Returns true if the mUSD conversion flow is enabled and the remote flag is enabled.
+ * Returns false otherwise.
+ */
+export const selectIsMusdGetBuyCtaEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
-  (remoteFeatureFlags) => {
+  selectIsMusdConversionFlowEnabledFlag,
+  (remoteFeatureFlags, isMusdConversionFlowEnabled) => {
     const localFlag = process.env.MM_MUSD_CTA_ENABLED === 'true';
     const remoteFlag =
       remoteFeatureFlags?.earnMusdCtaEnabled as unknown as VersionGatedFeatureFlag;
+
+    // mUSD conversion flow must be enabled to show the mUSD CTA
+    if (!isMusdConversionFlowEnabled) {
+      return false;
+    }
+
+    // Fallback to local flag if remote flag is not available
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
+);
+
+/**
+ * Selects the flag to determine if the asset overview CTA should be displayed.
+ * Returns true if the mUSD conversion flow is enabled and the remote flag is enabled.
+ * Returns false otherwise.
+ */
+export const selectIsMusdConversionAssetOverviewEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  selectIsMusdConversionFlowEnabledFlag,
+  (remoteFeatureFlags, isMusdConversionFlowEnabled) => {
+    const localFlag =
+      process.env.MM_MUSD_CONVERSION_ASSET_OVERVIEW_CTA === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.earnMusdConversionAssetOverviewCtaEnabled as unknown as VersionGatedFeatureFlag;
+
+    // mUSD conversion flow must be enabled to show the mUSD CTA
+    if (!isMusdConversionFlowEnabled) {
+      return false;
+    }
+
+    // Fallback to local flag if remote flag is not available
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
+);
+
+/**
+ * Selects the flag to determine if the token list item CTA should be displayed.
+ * Returns true if the mUSD conversion flow is enabled and the remote flag is enabled.
+ * Returns false otherwise.
+ */
+export const selectIsMusdConversionTokenListItemCtaEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  selectIsMusdConversionFlowEnabledFlag,
+  (remoteFeatureFlags, isMusdConversionFlowEnabled) => {
+    const localFlag =
+      process.env.MM_MUSD_CONVERSION_TOKEN_LIST_ITEM_CTA === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.earnMusdConversionTokenListItemCtaEnabled as unknown as VersionGatedFeatureFlag;
+
+    // mUSD conversion flow must be enabled to show the mUSD CTA
+    if (!isMusdConversionFlowEnabled) {
+      return false;
+    }
 
     // Fallback to local flag if remote flag is not available
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
@@ -159,4 +219,127 @@ export const selectMusdConversionPaymentTokensBlocklist = createSelector(
       process.env.MM_MUSD_CONVERTIBLE_TOKENS_BLOCKLIST,
       'MM_MUSD_CONVERTIBLE_TOKENS_BLOCKLIST',
     ),
+);
+
+/**
+ * Selects the flag to determine if the rewards UI elements should be displayed in mUSD conversion flow.
+ * Returns true if the mUSD conversion flow is enabled and the remote flag is enabled.
+ * Returns false otherwise.
+ */
+export const selectIsMusdConversionRewardsUiEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  selectIsMusdConversionFlowEnabledFlag,
+  (remoteFeatureFlags, isMusdConversionFlowEnabled) => {
+    if (!isMusdConversionFlowEnabled) {
+      return false;
+    }
+
+    const localFlag =
+      process.env.MM_MUSD_CONVERSION_REWARDS_UI_ENABLED === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.earnMusdConversionRewardsUiEnabled as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
+);
+
+/**
+ * Parses a comma-separated string of country codes into an array.
+ * Returns empty array if input is undefined/empty.
+ *
+ * @param envValue - Comma-separated country codes (e.g., "GB,US,FR")
+ * @returns Array of country codes
+ */
+export const parseBlockedCountriesEnv = (envValue?: string): string[] => {
+  if (!envValue || envValue.trim() === '') {
+    return [];
+  }
+  return envValue
+    .split(',')
+    .map((code) => code.trim().toUpperCase())
+    .filter((code) => code.length > 0);
+};
+
+/**
+ * Selects the geo-blocked countries for mUSD conversion from remote config or local fallback.
+ * Returns an array of ISO 3166-1 alpha-2 country codes (e.g., ['GB', 'US']).
+ *
+ * The Ramps geolocation API returns country codes like "GB" or "US-CA" (country-region).
+ * Matching uses startsWith to handle both country-only and country-region formats.
+ *
+ * Remote flag takes precedence over local env var.
+ *
+ * Examples:
+ * - Remote: { "blockedRegions": ["GB"] }      - Block users in Great Britain
+ * - Remote: { "blockedRegions": ["GB", "US"] } - Block users in GB and US
+ * - Local env: "GB,US,FR"                        - Block users in GB, US, and FR
+ *
+ * If both remote and local are unavailable or invalid, defaults to blocking Great Britain.
+ */
+export const selectMusdConversionBlockedCountries = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags): string[] => {
+    // Try remote flag first (takes precedence)
+    const remoteFlag =
+      remoteFeatureFlags?.earnMusdConversionGeoBlockedCountries as
+        | { blockedRegions?: string[] }
+        | undefined;
+
+    if (Array.isArray(remoteFlag?.blockedRegions)) {
+      return remoteFlag.blockedRegions;
+    }
+
+    // Fallback to local env var
+    const envBlockedCountries = parseBlockedCountriesEnv(
+      process.env.MM_MUSD_CONVERSION_GEO_BLOCKED_COUNTRIES,
+    );
+
+    // If env var is also empty, use default blocked countries
+    return envBlockedCountries.length > 0
+      ? envBlockedCountries
+      : DEFAULT_MUSD_BLOCKED_COUNTRIES;
+  },
+);
+
+const FALLBACK_MIN_ASSET_BALANCE_REQUIRED = 0.01; // 1 cent
+
+export const selectMusdConversionMinAssetBalanceRequired = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const localRaw = process.env.MM_MUSD_CONVERSION_MIN_ASSET_BALANCE_REQUIRED;
+    const local =
+      localRaw === undefined ? undefined : Number.parseFloat(localRaw);
+
+    const remoteRaw =
+      remoteFeatureFlags?.earnMusdConversionMinAssetBalanceRequired;
+    const remote =
+      typeof remoteRaw === 'number'
+        ? remoteRaw
+        : typeof remoteRaw === 'string'
+          ? Number.parseFloat(remoteRaw)
+          : undefined;
+
+    const remoteValue = Number.isFinite(remote) ? remote : undefined;
+    const localValue = Number.isFinite(local) ? local : undefined;
+
+    return remoteValue ?? localValue ?? FALLBACK_MIN_ASSET_BALANCE_REQUIRED;
+  },
+);
+
+/**
+ * Selector for Merkl campaign claiming feature flag
+ * Controls visibility of Merkl rewards claiming functionality in the UI
+ *
+ * @returns boolean - true if Merkl campaign claiming should be shown, false otherwise
+ */
+export const selectMerklCampaignClaimingEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const localFlag = process.env.MM_EARN_MERKL_CAMPAIGN_CLAIMING === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.earnMerklCampaignClaiming as unknown as VersionGatedFeatureFlag;
+
+    // Fallback to local flag if remote flag is not available
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
 );

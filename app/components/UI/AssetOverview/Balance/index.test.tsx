@@ -26,6 +26,9 @@ import { BtcAccountType } from '@metamask/keyring-api';
 jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) =>
     key === 'asset_overview.your_balance' ? 'Your balance' : key,
+  I18nEvents: {
+    addListener: jest.fn(),
+  },
 }));
 
 jest.mock('react-redux', () => ({
@@ -58,6 +61,15 @@ jest.mock('../../Earn/hooks/useMusdConversionTokens', () => ({
     isMusdSupportedOnChain: jest.fn().mockReturnValue(false),
     getMusdOutputChainId: jest.fn().mockReturnValue('0x1'),
     tokens: [],
+  }),
+}));
+
+jest.mock('../../Earn/hooks/useMusdConversionEligibility', () => ({
+  useMusdConversionEligibility: () => ({
+    isEligible: true,
+    isLoading: false,
+    geolocation: 'US',
+    blockedCountries: [],
   }),
 }));
 

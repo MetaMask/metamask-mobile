@@ -1,6 +1,6 @@
 import Gestures from '../helpers/Gestures';
 import Selectors from '../helpers/Selectors';
-import { SuccessImportAccountIDs } from '../../e2e/selectors/ImportAccount/SuccessImportAccount.selectors';
+import { SuccessImportAccountIDs } from '../../app/components/Views/ImportPrivateKeySuccess/SuccessImportAccount.testIds';
 
 class ImportAccountScreen {
   get container() {

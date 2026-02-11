@@ -17,7 +17,6 @@ import PropTypes from 'prop-types';
 import { fontStyles } from '../../../styles/common';
 import Device from '../../../util/device';
 import { useTheme } from '../../../util/theme';
-import { SwapsViewSelectorsIDs } from '../../../../e2e/selectors/swaps/SwapsView.selectors';
 
 /* eslint-disable import/no-commonjs */
 const SliderBgImg = require('./assets/slider_button_gradient.png');
@@ -262,7 +261,6 @@ function SliderButton({
       onLayout={(e) => {
         setComponentWidth(e.nativeEvent.layout.width);
       }}
-      testID={SwapsViewSelectorsIDs.SWIPE_TO_SWAP_BUTTON}
     >
       <View style={styles.trackBack}>
         <Image

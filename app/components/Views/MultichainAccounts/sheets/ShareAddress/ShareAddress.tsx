@@ -24,7 +24,7 @@ import QRAccountDisplay from '../../../QRAccountDisplay';
 import QRCode from 'react-native-qrcode-svg';
 import { getFormattedAddressFromInternalAccount } from '../../../../../core/Multichain/utils';
 import { getMultichainBlockExplorer } from '../../../../../core/Multichain/networks';
-import { ShareAddressIds } from '../../../../../../e2e/selectors/MultichainAccounts/ShareAddress.selectors';
+import { ShareAddressIds } from './ShareAddress.testIds';
 import PNG_MM_LOGO_PATH from '../../../../../images/branding/fox.png';
 
 interface RootNavigationParamList extends ParamListBase {
@@ -87,7 +87,11 @@ export const ShareAddress = () => {
           />
         </Box>
         <Box twClassName="mt-6 mb-4">
-          <QRAccountDisplay accountAddress={formattedAddress} />
+          <QRAccountDisplay
+            accountAddress={formattedAddress}
+            analyticsLocation="share-address"
+            chainId={account.scopes?.[0]}
+          />
         </Box>
       </Box>
       <Box twClassName="px-4 pb-4">

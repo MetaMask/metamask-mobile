@@ -8,9 +8,14 @@ export interface SharedTabProps {
   id: number;
 
   /**
-   * Function to update the tab information
+   * Function to show the tabs view
    */
   showTabs: () => void;
+
+  /**
+   * Function to create a new tab
+   */
+  newTab: (url?: string, linkType?: string) => void;
 
   /**
    * Function to update the tab information

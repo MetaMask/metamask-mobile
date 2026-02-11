@@ -8,7 +8,7 @@ import createStyles from './SpendingLimitProgressBar.styles';
 import { useTheme } from '../../../../../util/theme';
 import ProgressBar from 'react-native-progress/Bar';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
-import { CardHomeSelectors } from '../../../../../../e2e/selectors/Card/CardHome.selectors';
+import { CardHomeSelectors } from '../../Views/CardHome/CardHome.testIds';
 
 interface SpendingLimitProgressBarProps {
   decimals: number;

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { BottomSheetRef } from '../../../../component-library/components/BottomSheets/BottomSheet/BottomSheet.types';
 
 interface UsePredictBottomSheetParams {
@@ -35,25 +35,16 @@ export function usePredictBottomSheet(params?: UsePredictBottomSheetParams) {
   const getRefHandlers = useCallback(
     (): PredictBottomSheetRef => ({
       onOpenBottomSheet: () => {
-        if (!isVisible) {
-          setIsVisible(true);
-          return;
-        }
-
-        sheetRef.current?.onOpenBottomSheet();
+        // setIsVisible(true) is idempotent - safe to call multiple times
+        // No need to check isVisible which would cause stale closure issues
+        setIsVisible(true);
       },
       onCloseBottomSheet: () => {
         closeSheet();
       },
     }),
-    [closeSheet, isVisible],
+    [closeSheet],
   );
-
-  useEffect(() => {
-    if (isVisible) {
-      sheetRef.current?.onOpenBottomSheet();
-    }
-  }, [isVisible]);
 
   return {
     sheetRef,

@@ -19,5 +19,32 @@ export const styleSheet = (params: { theme: Theme }) => {
     optionRowSelected: {
       backgroundColor: theme.colors.background.muted,
     },
+    arrowContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
+    applyButton: {
+      height: 48,
+      paddingVertical: 4,
+      paddingHorizontal: 16,
+      justifyContent: 'center',
+      alignItems: 'center',
+      flexShrink: 0,
+      alignSelf: 'stretch',
+      borderRadius: 12,
+      backgroundColor: theme.colors.icon.default,
+      marginHorizontal: 16,
+      marginTop: 16,
+      marginBottom: 32,
+    },
+    applyButtonText: {
+      color: theme.colors.icon.inverse,
+      textAlign: 'center',
+      fontSize: 16,
+      fontStyle: 'normal',
+      fontWeight: '500',
+      lineHeight: undefined, // normal
+    },
   });
 };

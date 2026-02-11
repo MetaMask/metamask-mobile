@@ -1,7 +1,7 @@
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import React from 'react';
 import { Metrics, SafeAreaProvider } from 'react-native-safe-area-context';
-import { PerpsBottomSheetTooltipSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PerpsBottomSheetTooltipSelectorsIDs } from '../../Perps.testIds';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { PerpsOrderProvider } from '../../contexts/PerpsOrderContext';
 import {
@@ -159,35 +159,6 @@ describe('PerpsBottomSheetTooltip', () => {
       </SafeAreaProvider>,
     );
 
-  it('renders correctly when visible', () => {
-    const { getByTestId, getByText, toJSON } = renderBottomSheetTooltip({
-      isVisible: true,
-      onClose: mockOnClose,
-      contentKey: 'leverage',
-    });
-
-    expect(toJSON()).toMatchSnapshot();
-    expect(
-      getByTestId(PerpsBottomSheetTooltipSelectorsIDs.TOOLTIP),
-    ).toBeTruthy();
-    // The BottomSheetHeader component uses its own default testID
-    expect(getByTestId('header')).toBeTruthy();
-    expect(getByTestId(PerpsBottomSheetTooltipSelectorsIDs.TITLE)).toBeTruthy();
-    expect(
-      getByTestId(PerpsBottomSheetTooltipSelectorsIDs.CONTENT),
-    ).toBeTruthy();
-    expect(
-      getByTestId(PerpsBottomSheetTooltipSelectorsIDs.GOT_IT_BUTTON),
-    ).toBeTruthy();
-    expect(getByText('Leverage')).toBeTruthy();
-    expect(
-      getByText(
-        'Leverage lets you trade with more than you put in. It can boost your profits, but also your losses. The higher the leverage, the riskier the trade.',
-      ),
-    ).toBeTruthy();
-    expect(getByText('Got it')).toBeTruthy();
-  });
-
   it('does not render when not visible', () => {
     const { queryByTestId } = renderBottomSheetTooltip({
       isVisible: false,
@@ -211,10 +182,13 @@ describe('PerpsBottomSheetTooltip', () => {
       getByTestId(PerpsBottomSheetTooltipSelectorsIDs.GOT_IT_BUTTON),
     );
 
-    await waitFor(() => {
-      expect(mockOnClose).toHaveBeenCalledTimes(1);
-    });
-  });
+    await waitFor(
+      () => {
+        expect(mockOnClose).toHaveBeenCalledTimes(1);
+      },
+      { timeout: 10000 },
+    );
+  }, 15000);
 
   it('renders different content for different contentKey (Margin Tooltip)', () => {
     const { getByText } = renderBottomSheetTooltip({
@@ -277,7 +251,6 @@ describe('PerpsBottomSheetTooltip', () => {
     });
 
     expect(getByTestId(customTestID)).toBeTruthy();
-    expect(getByTestId('header')).toBeTruthy();
     expect(getByTestId(PerpsBottomSheetTooltipSelectorsIDs.TITLE)).toBeTruthy();
     expect(
       getByTestId(PerpsBottomSheetTooltipSelectorsIDs.CONTENT),

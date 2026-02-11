@@ -25,7 +25,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { RootState } from '../../../../../reducers';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import { selectConversionRate } from '../../../../../selectors/currencyRateController';
-import { selectConfirmationRedesignFlags } from '../../../../../selectors/featureFlagController/confirmations';
+
 import { selectContractExchangeRatesByChainId } from '../../../../../selectors/tokenRatesController';
 import Keypad from '../../../../Base/Keypad';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
@@ -34,7 +34,10 @@ import useEarnWithdrawInput from '../../../Earn/hooks/useEarnWithdrawInput';
 import { getStakingNavbar } from '../../../Navbar';
 import ScreenLayout from '../../../Ramp/Aggregator/components/ScreenLayout';
 import QuickAmounts from '../../../Stake/components/QuickAmounts';
-import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
+import {
+  EVENT_LOCATIONS,
+  EVENT_PROVIDERS,
+} from '../../constants/events/earnEvents';
 import usePoolStakedUnstake from '../../../Stake/hooks/usePoolStakedUnstake';
 import { StakeNavigationParamsList } from '../../../Stake/types';
 import EarnTokenSelector from '../../components/EarnTokenSelector';
@@ -143,10 +146,6 @@ const EarnWithdrawInputView = () => {
   const selectedAccount = useSelector(selectSelectedInternalAccountByScope)(
     EVM_SCOPE,
   );
-  const confirmationRedesignFlags = useSelector(
-    selectConfirmationRedesignFlags,
-  );
-
   const conversionRate = useSelector(selectConversionRate) ?? 1;
   const contractExchangeRates = useSelector((state: RootState) =>
     selectContractExchangeRatesByChainId(state, token?.chainId as Hex),
@@ -494,8 +493,8 @@ const EarnWithdrawInputView = () => {
   ]);
 
   const handleUnstakeWithdrawalFlow = useCallback(async () => {
-    const isStakingDepositRedesignedEnabled =
-      confirmationRedesignFlags?.staking_confirmations;
+    // TODO: Remove dead code as we are not using the legacy confirmations anymore
+    const isStakingDepositRedesignedEnabled = true;
 
     const unstakeButtonClickEventProperties = {
       selected_provider: EVENT_PROVIDERS.CONSENSYS,
@@ -567,7 +566,6 @@ const EarnWithdrawInputView = () => {
     amountToken,
     amountTokenMinimalUnit,
     attemptUnstakeTransaction,
-    confirmationRedesignFlags?.staking_confirmations,
     createEventBuilder,
     navigation,
     network?.name,

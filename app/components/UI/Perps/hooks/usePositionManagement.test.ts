@@ -1,10 +1,10 @@
 import { renderHook, act } from '@testing-library/react-native';
 import { usePositionManagement } from './usePositionManagement';
-import type { Position } from '../controllers/types';
+import { type Position } from '@metamask/perps-controller';
 
 describe('usePositionManagement', () => {
   const mockPosition: Position = {
-    coin: 'ETH',
+    symbol: 'ETH',
     size: '2.5',
     marginUsed: '500',
     entryPrice: '2000',

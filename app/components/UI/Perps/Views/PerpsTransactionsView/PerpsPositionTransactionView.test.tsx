@@ -11,6 +11,7 @@ import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../util/test/accountsControllerTestUtils';
 import { RootState } from '../../../../../reducers';
 import Routes from '../../../../../constants/navigation/Routes';
+import { PERPS_EVENT_VALUE } from '@metamask/perps-controller';
 
 const mockNavigate = jest.fn();
 const mockSetOptions = jest.fn();
@@ -635,11 +636,13 @@ describe('PerpsPositionTransactionView', () => {
     const tradeAgainButton = getByText('Trade again');
     fireEvent.press(tradeAgainButton);
 
+    // PerpsPositionTransactionView passes minimal market data (symbol, name)
+    // PerpsMarketDetailsView will enrich it with full market data from usePerpsMarkets
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
       screen: Routes.PERPS.MARKET_DETAILS,
       params: {
         market: { symbol: 'ETH', name: 'ETH' },
-        source: 'trade_details',
+        source: PERPS_EVENT_VALUE.SOURCE.TRADE_DETAILS,
       },
     });
   });

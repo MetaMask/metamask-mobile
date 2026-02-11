@@ -1,7 +1,7 @@
 /* eslint-disable import/prefer-default-export */
-import Matchers from '../../../../../e2e/framework/Matchers';
-import Gestures from '../../../../../e2e/framework/Gestures';
-import Assertions from '../../../../../e2e/framework/Assertions';
+import Matchers from '../../../../../tests/framework/Matchers';
+import Gestures from '../../../../../tests/framework/Gestures';
+import Assertions from '../../../../../tests/framework/Assertions';
 import {
   SampleFeatureSelectorsIDs,
   SampleFeatureSelectorsText,

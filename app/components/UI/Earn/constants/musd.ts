@@ -13,12 +13,33 @@ export const MUSD_TOKEN = {
   imageSource: MusdIcon,
 } as const;
 
+/**
+ * mUSD token decimals (derived from MUSD_TOKEN for single source of truth)
+ */
+export const MUSD_DECIMALS = MUSD_TOKEN.decimals;
+
 export const MUSD_CONVERSION_DEFAULT_CHAIN_ID = CHAIN_IDS.MAINNET;
 
+/**
+ * mUSD token address (same on all supported chains)
+ */
+export const MUSD_TOKEN_ADDRESS: Hex =
+  '0xaca92e438df0b2401ff60da7e4337b687a2435da';
+
 export const MUSD_TOKEN_ADDRESS_BY_CHAIN: Record<Hex, Hex> = {
-  [CHAIN_IDS.MAINNET]: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
-  [CHAIN_IDS.LINEA_MAINNET]: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
-  [CHAIN_IDS.BSC]: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+  [CHAIN_IDS.MAINNET]: MUSD_TOKEN_ADDRESS,
+  [CHAIN_IDS.LINEA_MAINNET]: MUSD_TOKEN_ADDRESS,
+  [CHAIN_IDS.BSC]: MUSD_TOKEN_ADDRESS,
+};
+
+/**
+ * Check if the given token address is mUSD.
+ * mUSD has the same address on all supported chains.
+ */
+export const isMusdToken = (address?: string): boolean => {
+  if (!address) return false;
+  const musdAddress = MUSD_TOKEN_ADDRESS_BY_CHAIN[CHAIN_IDS.MAINNET];
+  return address.toLowerCase() === musdAddress.toLowerCase();
 };
 
 /**
@@ -40,3 +61,13 @@ export const MUSD_TOKEN_ASSET_ID_BY_CHAIN: Record<Hex, string> = {
 };
 
 export const MUSD_CURRENCY = 'MUSD';
+export const MUSD_CONVERSION_APY = 3;
+
+// Delay before cleaning up toast tracking entries after final transaction status
+export const TOAST_TRACKING_CLEANUP_DELAY_MS = 5000;
+
+/**
+ * Default blocked countries for mUSD conversion when no remote or env config is available.
+ * This is a safety fallback to ensure geo-blocking is always active.
+ */
+export const DEFAULT_MUSD_BLOCKED_COUNTRIES = ['GB'];

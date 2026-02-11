@@ -8,23 +8,23 @@ import Text, {
 import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
-import type { PerpsNavigationParamList } from '../../controllers/types';
+import {
+  getPerpsDisplaySymbol,
+  PERPS_EVENT_VALUE,
+  PERPS_EVENT_PROPERTY,
+} from '@metamask/perps-controller';
+import type { PerpsNavigationParamList } from '../../types/navigation';
 import {
   formatPerpsFiat,
   formatPnl,
   formatPercentage,
   PRICE_RANGES_MINIMAL_VIEW,
 } from '../../utils/formatUtils';
-import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
 import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
 import PerpsTokenLogo from '../PerpsTokenLogo';
 import styleSheet from './PerpsCard.styles';
 import type { PerpsCardProps } from './PerpsCard.types';
 import { HOME_SCREEN_CONFIG } from '../../constants/perpsConfig';
-import {
-  PerpsEventValues,
-  PerpsEventProperties,
-} from '../../constants/eventNames';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { MetaMetricsEvents } from '../../../../../core/Analytics/MetaMetrics.events';
 
@@ -40,14 +40,14 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
   onPress,
   testID,
   source,
-  iconSize = HOME_SCREEN_CONFIG.DEFAULT_ICON_SIZE,
+  iconSize = HOME_SCREEN_CONFIG.DefaultIconSize,
 }) => {
   const { styles } = useStyles(styleSheet, { iconSize });
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const { track } = usePerpsEventTracking();
 
   // Determine which type of data we have
-  const symbol = position?.coin || order?.symbol || '';
+  const symbol = position?.symbol || order?.symbol || '';
 
   // Get all markets data to find the specific market when navigating
   const { markets } = usePerpsMarkets();
@@ -62,7 +62,7 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
   if (position) {
     const leverage = position.leverage.value;
     const isLong = parseFloat(position.size) > 0;
-    const displaySymbol = getPerpsDisplaySymbol(position.coin);
+    const displaySymbol = getPerpsDisplaySymbol(position.symbol);
     primaryText = `${displaySymbol} ${leverage}x ${isLong ? 'long' : 'short'}`;
     secondaryText = `${Math.abs(parseFloat(position.size))} ${displaySymbol}`;
 
@@ -99,16 +99,16 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
       if (position) {
         // Map source to button_location
         const buttonLocation =
-          source === PerpsEventValues.SOURCE.POSITION_TAB
-            ? PerpsEventValues.BUTTON_LOCATION.PERPS_TAB
-            : PerpsEventValues.BUTTON_LOCATION.PERPS_HOME;
+          source === PERPS_EVENT_VALUE.SOURCE.POSITION_TAB
+            ? PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_TAB
+            : PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_HOME;
 
         track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-          [PerpsEventProperties.INTERACTION_TYPE]:
-            PerpsEventValues.INTERACTION_TYPE.BUTTON_CLICKED,
-          [PerpsEventProperties.BUTTON_CLICKED]:
-            PerpsEventValues.BUTTON_CLICKED.OPEN_POSITION,
-          [PerpsEventProperties.BUTTON_LOCATION]: buttonLocation,
+          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+            PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
+          [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
+            PERPS_EVENT_VALUE.BUTTON_CLICKED.OPEN_POSITION,
+          [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]: buttonLocation,
         });
       }
 

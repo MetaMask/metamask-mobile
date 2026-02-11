@@ -36,7 +36,10 @@ import { EARN_EXPERIENCES } from '../../constants/experiences';
 import { RootState } from '../../../../../reducers';
 import { selectNetworkConfigurationByChainId } from '../../../../../selectors/networkController';
 import { IMetaMetricsEvent } from '../../../../../core/Analytics';
-import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
+import {
+  EVENT_LOCATIONS,
+  EVENT_PROVIDERS,
+} from '../../constants/events/earnEvents';
 import { ProgressStep } from './components/ProgressStepper';
 import BN from 'bnjs4';
 import { endTrace, trace, TraceName } from '../../../../../util/trace';

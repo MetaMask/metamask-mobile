@@ -227,11 +227,12 @@ describe('BasicInfo Component', () => {
     );
   });
 
-  it('calls setOptions with correct title when the component mounts', () => {
+  it('calls setOptions with header function when the component mounts', () => {
     render(BasicInfo);
+
     expect(mockSetNavigationOptions).toHaveBeenCalledWith(
       expect.objectContaining({
-        title: 'Verify your identity',
+        header: expect.any(Function),
       }),
     );
   });

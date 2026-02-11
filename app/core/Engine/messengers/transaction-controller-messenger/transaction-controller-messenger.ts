@@ -47,6 +47,7 @@ import {
   TransactionPayControllerGetStrategyAction,
 } from '@metamask/transaction-pay-controller';
 import { RootMessenger } from '../../types';
+import { AnalyticsControllerActions } from '@metamask/analytics-controller';
 import {
   Messenger,
   MessengerActions,
@@ -100,7 +101,8 @@ type InitMessengerActions =
   | TransactionControllerGetStateAction
   | TransactionControllerUpdateTransactionAction
   | TransactionPayControllerGetStateAction
-  | TransactionPayControllerGetStrategyAction;
+  | TransactionPayControllerGetStrategyAction
+  | AnalyticsControllerActions;
 
 type InitMessengerEvents =
   | BridgeStatusControllerEvents
@@ -155,6 +157,7 @@ export function getTransactionControllerInitMessenger(
       'TransactionController:updateTransaction',
       'TransactionPayController:getState',
       'TransactionPayController:getStrategy',
+      'AnalyticsController:trackEvent',
     ],
     events: [
       'BridgeStatusController:stateChange',

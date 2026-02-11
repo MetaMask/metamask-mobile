@@ -15,39 +15,62 @@ import LoginScreen from '../../wdio/screen-objects/LoginScreen.js';
 import MultichainAccountEducationModal from '../../wdio/screen-objects/Modals/MultichainAccountEducationModal.js';
 import PerpsGTMModal from '../../wdio/screen-objects/Modals/PerpsGTMModal.js';
 import RewardsGTMModal from '../../wdio/screen-objects/Modals/RewardsGTMModal.js';
-import AppwrightGestures from '../../e2e/framework/AppwrightGestures.js';
-import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors.js';
+import AppwrightGestures from '../../tests/framework/AppwrightGestures.js';
+import AppwrightSelectors from '../../tests/framework/AppwrightSelectors.js';
 import { expect } from 'appwright';
+import deviceMatrix from '../device-matrix.json' with { type: 'json' };
+
+/**
+ * Builds a device-to-account mapping from device-matrix.json
+ * Account assignments:
+ * - Account 1: Default (first device in each platform category with 'low' category)
+ * - Account 3: First Android device with 'high' category
+ * - Account 4: First iOS device with 'high' category
+ * - Account 5: Second iOS device (low category)
+ * - Account 2: Reserved for 'stable' testing (not used in this function)
+ */
+function buildDeviceAccountMapping() {
+  const mapping = {};
+
+  // Process Android devices
+  deviceMatrix.android_devices.forEach((device, index) => {
+    if (device.category === 'high') {
+      mapping[device.name] = 'Account 3';
+    } else if (device.category === 'low') {
+      // Low category Android devices use default Account 1
+      mapping[device.name] = null;
+    }
+  });
+
+  // Process iOS devices
+  deviceMatrix.ios_devices.forEach((device, index) => {
+    if (device.category === 'high') {
+      mapping[device.name] = 'Account 4';
+    } else if (device.category === 'low') {
+      mapping[device.name] = 'Account 5';
+    }
+  });
+
+  return mapping;
+}
+
+// Build the mapping once at module load
+const deviceAccountMapping = buildDeviceAccountMapping();
 
 export async function selectAccountDevice(device, testInfo) {
   // Access device name from testInfo.project.use.device
   const deviceName = testInfo.project.use.device.name;
   console.log(`📱 Device executing the test: ${deviceName}`);
 
-  let accountName;
+  // Get account name from the dynamic mapping
+  const accountName = deviceAccountMapping[deviceName];
 
-  // Define account mapping based on device name
-  // The device names must match those in appwright.config.ts or device-matrix.json
-  switch (deviceName) {
-    case 'Samsung Galaxy S23 Ultra':
-      accountName = 'Account 3';
-      break;
-    case 'Google Pixel 8 Pro':
-      console.log(
-        `🔄 Account 1 is selected by default in the app for device: ${deviceName}`,
-      );
-      return;
-    case 'iPhone 16 Pro Max':
-      accountName = 'Account 4';
-      break;
-    case 'iPhone 12':
-      accountName = 'Account 5';
-      break;
-    default:
-      console.log(
-        `🔄 Account 1 is selected by default in the app for device: ${deviceName}`,
-      );
-      return;
+  // If no account mapping exists or accountName is null, use default Account 1
+  if (!accountName) {
+    console.log(
+      `🔄 Account 1 is selected by default in the app for device: ${deviceName}`,
+    );
+    return;
   }
   // Account 2 is called stable and not used in this function
 
@@ -62,6 +85,7 @@ export async function selectAccountDevice(device, testInfo) {
   // Perform account switch
   await WalletMainScreen.tapIdenticon();
   await AccountListComponent.isComponentDisplayed();
+  await AccountListComponent.waitForSyncingToComplete();
   await AccountListComponent.tapOnAccountByName(accountName);
 
   // Verify we are back on main screen (tapping account usually closes modal)
@@ -113,6 +137,7 @@ export async function onboardingFlowImportSRP(device, srp) {
 }
 
 export async function dissmissAllModals(device) {
+  await dismissAddAccountModal(device);
   await dismissMultichainAccountsIntroModal(device);
   await dissmissPredictionsModal(device);
 }
@@ -198,9 +223,9 @@ export async function login(device, options = {}) {
   await LoginScreen.typePassword(password);
   await LoginScreen.tapUnlockButton();
   if (dismissModals) {
-    await dismissMultichainAccountsIntroModal(device);
-    await dissmissPredictionsModal(device);
+    await dissmissAllModals(device);
   }
+  await AppwrightGestures.wait(5000);
 }
 
 export async function tapPerpsBottomSheetGotItButton(device) {
@@ -209,6 +234,7 @@ export async function tapPerpsBottomSheetGotItButton(device) {
   if (await container.isVisible({ timeout: 5000 })) {
     await PerpsGTMModal.tapNotNowButton();
     console.log('Perps onboarding dismissed');
+    return;
   }
 }
 
@@ -228,5 +254,24 @@ export async function dismissMultichainAccountsIntroModal(
   const closeButton = await MultichainAccountEducationModal.closeButton;
   if (await closeButton.isVisible({ timeout })) {
     await MultichainAccountEducationModal.tapGotItButton();
+    return;
+  }
+}
+
+export async function dismissAddAccountModal(device) {
+  // Fix this for iOS
+  if (!device || !AppwrightSelectors.isAndroid(device)) {
+    return;
+  }
+  const cancelButton = await AppwrightSelectors.getElementByXpath(
+    device,
+    '//android.widget.Button[@content-desc="Cancel"]',
+  );
+  if (await cancelButton.isVisible({ timeout: 5000 })) {
+    await AppwrightGestures.tap(cancelButton);
+    return;
+  }
+  if (await cancelButton.isVisible({ timeout: 5000 })) {
+    await AppwrightGestures.tap(cancelButton);
   }
 }

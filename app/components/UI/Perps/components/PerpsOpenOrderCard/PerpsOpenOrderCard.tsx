@@ -25,7 +25,7 @@ import {
   PRICE_RANGES_MINIMAL_VIEW,
 } from '../../utils/formatUtils';
 import styleSheet from './PerpsOpenOrderCard.styles';
-import { PerpsOpenOrderCardSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PerpsOpenOrderCardSelectorsIDs } from '../../Perps.testIds';
 import type {
   PerpsOpenOrderCardProps,
   OpenOrderCardDerivedData,
@@ -35,7 +35,12 @@ import PerpsTokenLogo from '../PerpsTokenLogo';
 import PerpsBottomSheetTooltip from '../PerpsBottomSheetTooltip/PerpsBottomSheetTooltip';
 import { useSelector } from 'react-redux';
 import { selectPerpsEligibility } from '../../selectors/perpsController';
-import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
+import {
+  getPerpsDisplaySymbol,
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+} from '@metamask/perps-controller';
+import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
 
 /**
  * PerpsOpenOrderCard Component
@@ -75,6 +80,7 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
   isCancelling = false,
 }) => {
   const { styles } = useStyles(styleSheet, {});
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   // Used to prevent rapid clicks on the cancel button before it has time to re-render.
   const isLocallyCancellingRef = useRef(false);
@@ -136,6 +142,17 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
     }
 
     if (!isEligible) {
+      // Track geo-block screen viewed
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.PERPS_SCREEN_VIEWED)
+          .addProperties({
+            [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+              PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+            [PERPS_EVENT_PROPERTY.SOURCE]:
+              PERPS_EVENT_VALUE.SOURCE.CANCEL_ORDER,
+          })
+          .build(),
+      );
       setIsEligibilityModalVisible(true);
       return;
     }
@@ -148,7 +165,7 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
     });
 
     onCancel?.(order);
-  }, [isEligible, onCancel, order]);
+  }, [isEligible, onCancel, order, trackEvent, createEventBuilder]);
 
   const handleCardPress = useCallback(() => {
     if (onSelect) {

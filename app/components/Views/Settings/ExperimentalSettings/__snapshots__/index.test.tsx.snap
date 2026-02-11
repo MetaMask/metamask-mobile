@@ -24,7 +24,7 @@ exports[`ExperimentalSettings should render correctly 1`] = `
         }
       }
     >
-      WalletConnect Sessions
+      WalletConnect sessions
     </Text>
     <Text
       accessibilityRole="text"

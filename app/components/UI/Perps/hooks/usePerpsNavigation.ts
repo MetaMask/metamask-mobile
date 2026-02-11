@@ -2,7 +2,21 @@ import { useCallback } from 'react';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
 import type { PerpsNavigationParamList } from '../types/navigation';
-import type { PerpsMarketData, Position, Order } from '../controllers/types';
+import {
+  PERPS_CONSTANTS,
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+  type PerpsMarketData,
+  type Position,
+  type Order,
+} from '@metamask/perps-controller';
+import { usePerpsTrading } from './usePerpsTrading';
+import usePerpsToasts from './usePerpsToasts';
+import { usePerpsEventTracking } from './usePerpsEventTracking';
+import { MetaMetricsEvents } from '../../../hooks/useMetrics';
+import Logger from '../../../../util/Logger';
+import { ensureError } from '../../../../util/errorUtils';
+import { CONFIRMATION_HEADER_CONFIG } from '../constants/perpsConfig';
 
 /**
  * Navigation handler result interface
@@ -124,11 +138,51 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
     [navigation],
   );
 
+  const { depositWithOrder } = usePerpsTrading();
+  const { showToast, PerpsToastOptions } = usePerpsToasts();
+  const { track } = usePerpsEventTracking();
+
   const navigateToOrder = useCallback(
     (params: PerpsNavigationParamList['PerpsOrder']) => {
-      navigation.navigate(Routes.PERPS.ORDER, params);
+      depositWithOrder()
+        .then(() => {
+          navigation.navigate(
+            Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+            {
+              ...params,
+              showPerpsHeader:
+                CONFIRMATION_HEADER_CONFIG.ShowPerpsHeaderForDepositAndTrade,
+            },
+          );
+        })
+        .catch((error: unknown) => {
+          const err = ensureError(error);
+          Logger.error(err, {
+            feature: PERPS_CONSTANTS.FeatureName,
+            message:
+              'Failed to start one-click trade (deposit rejected or failed)',
+          });
+
+          track(MetaMetricsEvents.PERPS_ERROR, {
+            [PERPS_EVENT_PROPERTY.ERROR_TYPE]:
+              PERPS_EVENT_VALUE.ERROR_TYPE.BACKEND,
+            [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: err.message,
+            [PERPS_EVENT_PROPERTY.SOURCE]:
+              PERPS_EVENT_VALUE.SOURCE.TRADE_ACTION,
+          });
+
+          showToast(
+            PerpsToastOptions.accountManagement.oneClickTrade.txCreationFailed,
+          );
+        });
     },
-    [navigation],
+    [
+      navigation,
+      depositWithOrder,
+      showToast,
+      PerpsToastOptions.accountManagement.oneClickTrade.txCreationFailed,
+      track,
+    ],
   );
 
   const navigateToTutorial = useCallback(

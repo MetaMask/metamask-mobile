@@ -7,10 +7,9 @@ import CellMultiSelect from './variants/CellMultiSelect';
 import CellSelect from './variants/CellSelect';
 import CellSelectWithMenu from '../../../components-temp/CellSelectWithMenu';
 import CellMultiSelectWithMenu from '../../../components-temp/CellSelectWithMenu/CellMultiSelectWithMenu';
-import { CellComponentSelectorsIDs } from '../../../../../e2e/selectors/wallet/CellComponent.selectors';
 
-// Internal dependencies.
 import { CellProps, CellVariant } from './Cell.types';
+import { CellComponentSelectorsIDs } from './CellComponent.testIds';
 
 const Cell = ({ variant, hitSlop, ...props }: CellProps) => {
   switch (variant) {

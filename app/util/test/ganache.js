@@ -1,6 +1,6 @@
-import { getGanachePort } from '../../../e2e/framework/fixtures/FixtureUtils';
+import { getGanachePort } from '../../../tests/framework/fixtures/FixtureUtils';
 import ganache from 'ganache';
-import { ServerStatus } from '../../../e2e/framework/types';
+import { ServerStatus } from '../../../tests/framework/types';
 
 export const DEFAULT_GANACHE_PORT = 8545;
 

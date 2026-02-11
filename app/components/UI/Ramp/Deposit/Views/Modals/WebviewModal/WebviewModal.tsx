@@ -1,17 +1,9 @@
-import React, { useRef, useState } from 'react';
-import { useWindowDimensions, TouchableOpacity } from 'react-native';
-
+import React, { useCallback, useRef, useState } from 'react';
+import { useWindowDimensions } from 'react-native';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../../../../../component-library/components/Buttons/ButtonIcon';
-import {
-  IconColor,
-  IconName,
-} from '../../../../../../../component-library/components/Icons/Icon';
+import HeaderCompactStandard from '../../../../../../../component-library/components-temp/HeaderCompactStandard';
 import {
   createNavigationDetails,
   useParams,
@@ -24,6 +16,8 @@ import { useStyles } from '../../../../../../../component-library/hooks/useStyle
 import styleSheet from './WebviewModal.styles';
 import ErrorView from '../../../components/ErrorView';
 import Device from '../../../../../../../util/device';
+import Logger from '../../../../../../../util/Logger';
+import { shouldStartLoadWithRequest } from '../../../../../../../util/browser';
 
 export interface WebviewModalParams {
   sourceUrl: string;
@@ -57,6 +51,11 @@ function WebviewModal() {
     }
   };
 
+  const handleShouldStartLoadWithRequest = useCallback(
+    ({ url }: { url: string }) => shouldStartLoadWithRequest(url, Logger),
+    [],
+  );
+
   return (
     <BottomSheet
       ref={sheetRef}
@@ -65,18 +64,8 @@ function WebviewModal() {
       isInteractable={!Device.isAndroid()}
       keyboardAvoidingViewEnabled={false}
     >
-      <BottomSheetHeader
-        endAccessory={
-          <TouchableOpacity>
-            <ButtonIcon
-              iconName={IconName.Close}
-              size={ButtonIconSizes.Lg}
-              iconColor={IconColor.Alternative}
-              onPress={() => sheetRef.current?.onCloseBottomSheet()}
-            />
-          </TouchableOpacity>
-        }
-        style={styles.headerWithoutPadding}
+      <HeaderCompactStandard
+        onClose={() => sheetRef.current?.onCloseBottomSheet()}
       />
 
       <ScreenLayout>
@@ -88,6 +77,7 @@ function WebviewModal() {
               style={styles.webview}
               source={{ uri: sourceUrl }}
               onNavigationStateChange={handleNavigationStateChangeWithDedup}
+              onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
               onHttpError={(syntheticEvent) => {
                 const { nativeEvent } = syntheticEvent;
                 if (nativeEvent.url === sourceUrl) {

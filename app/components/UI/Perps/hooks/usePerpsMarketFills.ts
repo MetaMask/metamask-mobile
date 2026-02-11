@@ -1,11 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { usePerpsLiveFills } from './stream';
-import type { OrderFill } from '../controllers/types';
+import { PERPS_CONSTANTS, type OrderFill } from '@metamask/perps-controller';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
-import { PERPS_CONSTANTS } from '../constants/perpsConfig';
-import { ensureError } from '../utils/perpsErrorHandler';
+import { ensureError } from '../../../../util/errorUtils';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 
 interface UsePerpsMarketFillsParams {
@@ -89,7 +88,7 @@ export const usePerpsMarketFills = ({
       }
 
       // Use time-filtered API to limit data fetched for active traders
-      const startTime = Date.now() - PERPS_CONSTANTS.FILLS_LOOKBACK_MS;
+      const startTime = Date.now() - PERPS_CONSTANTS.FillsLookbackMs;
 
       const fills = await provider.getOrderFills({
         aggregateByTime: false,
@@ -103,7 +102,7 @@ export const usePerpsMarketFills = ({
       // Log error to Sentry but don't fail - WebSocket fills still work
       Logger.error(ensureError(err), {
         tags: {
-          feature: PERPS_CONSTANTS.FEATURE_NAME,
+          feature: PERPS_CONSTANTS.FeatureName,
         },
         extra: {
           hook: 'usePerpsMarketFills',

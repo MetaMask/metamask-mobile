@@ -14,7 +14,7 @@ import BadgeWrapper, {
 } from '../../../component-library/components/Badges/BadgeWrapper';
 import AssetIcon from '../AssetIcon';
 import { strings } from '../../../../locales/i18n';
-import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/wallet/ImportTokenView.selectors';
+import { ImportTokenViewSelectorsIDs } from '../../Views/AddAsset/ImportTokenView.testIds';
 import { NetworkBadgeSource } from '../AssetOverview/Balance/Balance';
 import { BridgeToken } from '../Bridge/types';
 import { FlashList } from '@shopify/flash-list';

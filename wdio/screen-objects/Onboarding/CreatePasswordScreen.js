@@ -1,9 +1,9 @@
 
 import Selectors from '../../helpers/Selectors';
 import Gestures from '../../helpers/Gestures';
-import { ChoosePasswordSelectorsIDs } from '../../../e2e/selectors/Onboarding/ChoosePassword.selectors';
-import AppwrightSelectors from '../../../e2e/framework/AppwrightSelectors';
-import AppwrightGestures from '../../../e2e/framework/AppwrightGestures';
+import { ChoosePasswordSelectorsIDs } from '../../../app/components/Views/ChoosePassword/ChoosePassword.testIds';
+import AppwrightSelectors from '../../../tests/framework/AppwrightSelectors';
+import AppwrightGestures from '../../../tests/framework/AppwrightGestures';
 import { CONFIRM_PASSWORD_INPUT_FIRST_FIELD, CREATE_PASSWORD_INPUT_FIRST_FIELD } from '../testIDs/Screens/WalletSetupScreen.testIds';
 import { expect as appwrightExpect } from 'appwright';
 
@@ -17,7 +17,7 @@ class CreatePasswordScreen {
     this._device = device;
 
   }
-  
+
   get container() {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(ChoosePasswordSelectorsIDs.CONTAINER_ID);
@@ -49,7 +49,7 @@ class CreatePasswordScreen {
       if (AppwrightSelectors.isAndroid(this._device)) {
         return AppwrightSelectors.getElementByID(this._device, CONFIRM_PASSWORD_INPUT_FIRST_FIELD);
       } else {
-        return AppwrightSelectors.getElementByXpath(this._device, '(//XCUIElementTypeOther[@name="textfield"])[2]');     
+        return AppwrightSelectors.getElementByXpath(this._device, '(//XCUIElementTypeOther[@name="textfield"])[2]');
       }
     }
   }
@@ -97,7 +97,7 @@ class CreatePasswordScreen {
       await Gestures.waitAndTap(this.iUnderstandCheckbox);
     } else {
         await AppwrightGestures.hideKeyboard(this._device);
-        await AppwrightGestures.tap(await this.iUnderstandCheckbox); 
+        await AppwrightGestures.tap(await this.iUnderstandCheckbox);
     }
   }
 
@@ -105,7 +105,7 @@ class CreatePasswordScreen {
     if (!this._device) {
       await Gestures.waitAndTap(this.submitButton);
     } else {
-      await AppwrightGestures.tap(await this.submitButton); 
+      await AppwrightGestures.tap(await this.submitButton);
     }
   }
 

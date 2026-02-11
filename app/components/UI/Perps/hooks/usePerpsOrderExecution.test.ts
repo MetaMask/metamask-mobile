@@ -1,7 +1,7 @@
 import { renderHook, act, waitFor } from '@testing-library/react-native';
 import { usePerpsOrderExecution } from './usePerpsOrderExecution';
 import { usePerpsTrading } from './usePerpsTrading';
-import type { OrderParams, Position } from '../controllers/types';
+import { type OrderParams, type Position } from '@metamask/perps-controller';
 
 jest.mock('./usePerpsTrading');
 jest.mock('../../../../../locales/i18n', () => ({
@@ -35,7 +35,7 @@ describe('usePerpsOrderExecution', () => {
   });
 
   const mockOrderParams: OrderParams = {
-    coin: 'BTC',
+    symbol: 'BTC',
     isBuy: true,
     size: '0.1',
     orderType: 'market',
@@ -43,7 +43,7 @@ describe('usePerpsOrderExecution', () => {
   };
 
   const mockPosition: Position = {
-    coin: 'BTC',
+    symbol: 'BTC',
     size: '0.1',
     entryPrice: '50000',
     positionValue: '5000',

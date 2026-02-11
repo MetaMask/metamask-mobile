@@ -3,29 +3,7 @@ import { Alert } from 'react-native';
 import UrlParser from 'url-parse';
 import { strings } from '../../../../locales/i18n';
 import { PROTOCOLS } from '../../../constants/deeplinks';
-
-export interface DeeplinkUrlParams {
-  uri: string;
-  redirect: string;
-  channelId: string;
-  comm: string;
-  pubkey: string;
-  scheme?: string;
-  v?: string;
-  rpc?: string;
-  sdkVersion?: string;
-  message?: string;
-  originatorInfo?: string;
-  request?: string;
-  attributionId?: string;
-  utm_source?: string;
-  utm_medium?: string;
-  utm_campaign?: string;
-  utm_term?: string;
-  utm_content?: string;
-  account?: string; // This is the format => "address@chainId"
-  hr: boolean; // Hide Return to App
-}
+import { DeeplinkUrlParams } from '../types/deepLink.types';
 
 function extractURLParams(url: string) {
   const urlObj = new UrlParser(
@@ -55,7 +33,6 @@ function extractURLParams(url: string) {
 
   if (urlObj.query.length) {
     try {
-      // Use arrayLimit: 1 to prevent arrays from being returned for duplicate parameters
       const parsedParams = qs.parse(urlObj.query.substring(1), {
         arrayLimit: 99,
       });

@@ -6,7 +6,7 @@ import {
   waitFor,
 } from '@testing-library/react-native';
 import PerpsOrderDetailsView from './PerpsOrderDetailsView';
-import type { Order } from '../../controllers/types';
+import { type Order } from '@metamask/perps-controller';
 
 let mockRouteParams: { order?: Order } = {};
 const mockCancelOrder = jest.fn();
@@ -261,7 +261,7 @@ describe('PerpsOrderDetailsView', () => {
     await waitFor(() => {
       expect(mockCancelOrder).toHaveBeenCalledWith({
         orderId: 'order-123',
-        coin: 'BTC',
+        symbol: 'BTC',
       });
     });
 

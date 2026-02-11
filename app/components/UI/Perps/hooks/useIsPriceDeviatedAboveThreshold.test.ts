@@ -5,8 +5,10 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { useIsPriceDeviatedAboveThreshold } from './useIsPriceDeviatedAboveThreshold';
 import { usePerpsPrices } from './usePerpsPrices';
-import { VALIDATION_THRESHOLDS } from '../constants/perpsConfig';
-import type { PriceUpdate } from '../controllers/types';
+import {
+  VALIDATION_THRESHOLDS,
+  type PriceUpdate,
+} from '@metamask/perps-controller';
 
 jest.mock('./usePerpsPrices');
 
@@ -24,7 +26,7 @@ describe('useIsPriceDeviatedAboveThreshold', () => {
     // Spot price: 100, Perps price: 111 (11% above)
     mockUsePerpsPrices.mockReturnValue({
       BTC: {
-        coin: 'BTC',
+        symbol: 'BTC',
         price: '111.00',
         markPrice: '100.00',
         timestamp: Date.now(),
@@ -45,7 +47,7 @@ describe('useIsPriceDeviatedAboveThreshold', () => {
     // Deviation = |105 - 100| / 100 = 0.05 = 5% < 10% threshold
     mockUsePerpsPrices.mockReturnValue({
       BTC: {
-        coin: 'BTC',
+        symbol: 'BTC',
         price: '105.00',
         markPrice: '100.00',
         timestamp: Date.now(),
@@ -68,7 +70,7 @@ describe('useIsPriceDeviatedAboveThreshold', () => {
     // Since we use > (not >=), 0.10 > 0.10 is false
     mockUsePerpsPrices.mockReturnValue({
       BTC: {
-        coin: 'BTC',
+        symbol: 'BTC',
         price: '110.00',
         markPrice: '100.00',
         timestamp: Date.now(),
@@ -89,7 +91,7 @@ describe('useIsPriceDeviatedAboveThreshold', () => {
     // Spot price: 100, Perps price: 89 (11% below)
     mockUsePerpsPrices.mockReturnValue({
       BTC: {
-        coin: 'BTC',
+        symbol: 'BTC',
         price: '89.00',
         markPrice: '100.00',
         timestamp: Date.now(),
@@ -118,7 +120,7 @@ describe('useIsPriceDeviatedAboveThreshold', () => {
   it('returns isDeviatedAboveThreshold false when markPrice is missing', () => {
     mockUsePerpsPrices.mockReturnValue({
       BTC: {
-        coin: 'BTC',
+        symbol: 'BTC',
         price: '111.00',
         timestamp: Date.now(),
         // markPrice is missing
@@ -136,7 +138,7 @@ describe('useIsPriceDeviatedAboveThreshold', () => {
   it('returns isDeviatedAboveThreshold false when price is missing', () => {
     mockUsePerpsPrices.mockReturnValue({
       BTC: {
-        coin: 'BTC',
+        symbol: 'BTC',
         markPrice: '100.00',
         timestamp: Date.now(),
         // price is missing
@@ -165,7 +167,7 @@ describe('useIsPriceDeviatedAboveThreshold', () => {
   it('returns isDeviatedAboveThreshold false when perps price is zero', () => {
     mockUsePerpsPrices.mockReturnValue({
       BTC: {
-        coin: 'BTC',
+        symbol: 'BTC',
         price: '0',
         markPrice: '100.00',
         timestamp: Date.now(),
@@ -183,7 +185,7 @@ describe('useIsPriceDeviatedAboveThreshold', () => {
   it('returns isDeviatedAboveThreshold false when spot price is zero', () => {
     mockUsePerpsPrices.mockReturnValue({
       BTC: {
-        coin: 'BTC',
+        symbol: 'BTC',
         price: '100.00',
         markPrice: '0',
         timestamp: Date.now(),
@@ -201,7 +203,7 @@ describe('useIsPriceDeviatedAboveThreshold', () => {
   it('returns isDeviatedAboveThreshold false when perps price is negative', () => {
     mockUsePerpsPrices.mockReturnValue({
       BTC: {
-        coin: 'BTC',
+        symbol: 'BTC',
         price: '-100.00',
         markPrice: '100.00',
         timestamp: Date.now(),
@@ -219,7 +221,7 @@ describe('useIsPriceDeviatedAboveThreshold', () => {
   it('returns isDeviatedAboveThreshold false when spot price is negative', () => {
     mockUsePerpsPrices.mockReturnValue({
       BTC: {
-        coin: 'BTC',
+        symbol: 'BTC',
         price: '100.00',
         markPrice: '-100.00',
         timestamp: Date.now(),
@@ -239,7 +241,7 @@ describe('useIsPriceDeviatedAboveThreshold', () => {
     // Spot price: 0.001, Perps price: 0.0012 (20% above, should trigger)
     mockUsePerpsPrices.mockReturnValue({
       BTC: {
-        coin: 'BTC',
+        symbol: 'BTC',
         price: '0.0012',
         markPrice: '0.001',
         timestamp: Date.now(),
@@ -259,7 +261,7 @@ describe('useIsPriceDeviatedAboveThreshold', () => {
     // Spot price: 100000, Perps price: 111000 (11% above, should trigger)
     mockUsePerpsPrices.mockReturnValue({
       BTC: {
-        coin: 'BTC',
+        symbol: 'BTC',
         price: '111000.00',
         markPrice: '100000.00',
         timestamp: Date.now(),
@@ -278,7 +280,7 @@ describe('useIsPriceDeviatedAboveThreshold', () => {
     // Start with no deviation (5% < 10% threshold)
     let mockPrices = {
       BTC: {
-        coin: 'BTC',
+        symbol: 'BTC',
         price: '105.00',
         markPrice: '100.00',
         timestamp: Date.now(),
@@ -297,7 +299,7 @@ describe('useIsPriceDeviatedAboveThreshold', () => {
     // Update to have deviation above threshold (11% > 10% threshold)
     mockPrices = {
       BTC: {
-        coin: 'BTC',
+        symbol: 'BTC',
         price: '111.00',
         markPrice: '100.00',
         timestamp: Date.now(),
@@ -311,7 +313,7 @@ describe('useIsPriceDeviatedAboveThreshold', () => {
   });
 
   it('uses correct threshold from VALIDATION_THRESHOLDS', () => {
-    const threshold = VALIDATION_THRESHOLDS.PRICE_DEVIATION;
+    const threshold = VALIDATION_THRESHOLDS.PriceDeviation;
 
     // Test with price exactly at threshold + epsilon
     const spotPrice = 100;
@@ -319,7 +321,7 @@ describe('useIsPriceDeviatedAboveThreshold', () => {
 
     mockUsePerpsPrices.mockReturnValue({
       BTC: {
-        coin: 'BTC',
+        symbol: 'BTC',
         price: perpsPrice.toFixed(2),
         markPrice: spotPrice.toFixed(2),
         timestamp: Date.now(),

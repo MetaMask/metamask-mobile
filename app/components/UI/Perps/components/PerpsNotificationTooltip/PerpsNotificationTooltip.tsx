@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useRef } from 'react';
 import PerpsNotificationBottomSheet from '../PerpsNotificationBottomSheet';
 import { usePerpsNotificationTooltip } from '../../hooks/usePerpsNotificationTooltip';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
-import { PerpsOrderViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PerpsOrderViewSelectorsIDs } from '../../Perps.testIds';
 
 export interface PerpsNotificationTooltipProps {
   /**

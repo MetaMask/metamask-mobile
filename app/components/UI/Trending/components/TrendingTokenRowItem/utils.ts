@@ -25,10 +25,13 @@ export function formatCompactUSD(value: number): string {
 
 /**
  * Formats market cap and volume as a combined string
+ * Shows dash for zero values
  * @param marketCap - Market capitalization value
  * @param volume - Trading volume value
- * @returns Formatted string (e.g., "$13B cap • $34.2M vol")
+ * @returns Formatted string (e.g., "$13B cap • $34.2M vol" or "— cap • — vol" for zeros)
  */
 export function formatMarketStats(marketCap: number, volume: number): string {
-  return `${formatCompactUSD(marketCap)} cap • ${formatCompactUSD(volume)} vol`;
+  const capStr = marketCap === 0 ? '-' : formatCompactUSD(marketCap);
+  const volStr = volume === 0 ? '-' : formatCompactUSD(volume);
+  return `${capStr} cap • ${volStr} vol`;
 }

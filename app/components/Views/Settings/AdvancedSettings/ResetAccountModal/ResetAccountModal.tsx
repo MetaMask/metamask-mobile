@@ -29,7 +29,8 @@ export const ResetAccountModal = ({
     selectSelectedInternalAccountFormattedAddress,
   );
   const chainId = useSelector(selectChainId);
-  const { resetFirstTimeUserState } = usePerpsFirstTimeUser();
+  const { resetFirstTimeUserState, clearPendingTransactionRequests } =
+    usePerpsFirstTimeUser();
 
   const resetAccount = () => {
     if (selectedAddress) {
@@ -39,6 +40,8 @@ export const ResetAccountModal = ({
     wipeTransactions();
     // Reset Perps first-time user state for testing
     resetFirstTimeUserState();
+    // Clear any stuck pending Perps transactions
+    clearPendingTransactionRequests();
     navigation.navigate('WalletView');
   };
 

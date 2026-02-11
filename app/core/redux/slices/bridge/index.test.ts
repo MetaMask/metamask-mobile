@@ -13,6 +13,9 @@ import reducer, {
   selectIsDestTokenManuallySet,
   selectBip44DefaultPair,
   selectGasIncludedQuoteParams,
+  selectIsBridgeEnabledSource,
+  selectDestChainRanking,
+  selectSourceChainRanking,
 } from '.';
 import {
   BridgeToken,
@@ -61,6 +64,7 @@ describe('bridge slice', () => {
         slippage: '0.5',
         isSubmittingTx: false,
         isSelectingRecipient: false,
+        isSelectingToken: false,
         isMaxSourceAmount: false,
         isDestTokenManuallySet: false,
       });
@@ -510,6 +514,211 @@ describe('bridge slice', () => {
       const result = selectGasIncludedQuoteParams(mockState);
 
       expect(result).toEqual({ gasIncluded: false, gasIncluded7702: false });
+    });
+  });
+
+  describe('selectIsBridgeEnabledSource', () => {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore - Mock state structure causes TypeScript warnings but tests are valid
+    it('returns true when bridge is enabled as source for the chain', () => {
+      const result = selectIsBridgeEnabledSource(
+        mockRootState as unknown as RootState,
+        '0x1',
+      );
+
+      expect(result).toBe(true);
+    });
+
+    it('returns false when bridge is not enabled as source for the chain', () => {
+      const mockState = cloneDeep(mockRootState);
+      // Remove chain from chainRanking to disable it (chainRanking presence = enabled)
+      mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2.chainRanking =
+        mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2.chainRanking.filter(
+          (chain) => chain.chainId !== 'eip155:1',
+        );
+
+      const result = selectIsBridgeEnabledSource(
+        mockState as unknown as RootState,
+        '0x1',
+      );
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when chain is not in bridge config', () => {
+      const result = selectIsBridgeEnabledSource(
+        mockRootState as unknown as RootState,
+        '0x999' as Hex,
+      );
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('selectSourceChainRanking', () => {
+    it('returns only supported and user-configured chains', () => {
+      const result = selectSourceChainRanking(
+        mockRootState as unknown as RootState,
+      );
+
+      // Should return chains that are both in ALLOWED_BRIDGE_CHAIN_IDS
+      // and in the user's configured networks
+      expect(Array.isArray(result)).toBe(true);
+      expect(result.length).toBeGreaterThan(0);
+
+      // Ethereum (0x1) is allowed and configured in the mock state
+      expect(result.some((chain) => chain.chainId === 'eip155:1')).toBe(true);
+    });
+
+    it('filters out unsupported EVM chains from chainRanking', () => {
+      const mockState = cloneDeep(mockRootState);
+      mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2.chainRanking =
+        [
+          ...mockState.engine.backgroundState.RemoteFeatureFlagController
+            .remoteFeatureFlags.bridgeConfigV2.chainRanking,
+          { chainId: 'eip155:99999', name: 'Unsupported EVM Chain' },
+        ];
+
+      const result = selectSourceChainRanking(
+        mockState as unknown as RootState,
+      );
+
+      expect(result.some((chain) => chain.chainId === 'eip155:99999')).toBe(
+        false,
+      );
+    });
+
+    it('filters out unsupported non-EVM chains from chainRanking', () => {
+      const mockState = cloneDeep(mockRootState);
+      mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2.chainRanking =
+        [
+          ...mockState.engine.backgroundState.RemoteFeatureFlagController
+            .remoteFeatureFlags.bridgeConfigV2.chainRanking,
+          { chainId: 'cosmos:cosmoshub-4', name: 'Unsupported Cosmos Chain' },
+        ];
+
+      const result = selectSourceChainRanking(
+        mockState as unknown as RootState,
+      );
+
+      expect(
+        result.some((chain) => chain.chainId === 'cosmos:cosmoshub-4'),
+      ).toBe(false);
+    });
+
+    it('filters out chains not in user-configured networks', () => {
+      const result = selectSourceChainRanking(
+        mockRootState as unknown as RootState,
+      );
+
+      // Optimism (0xa) is in chainRanking and ALLOWED_BRIDGE_CHAIN_IDS
+      // AND in the mock user's configured networks
+      const hasOptimism = result.some((chain) => chain.chainId === 'eip155:10');
+      expect(hasOptimism).toBe(true);
+
+      // Verify no chains appear that aren't in the user's configured networks
+      // The user only has Ethereum (0x1) and Optimism (0xa) configured as EVM networks
+      result.forEach((chain) => {
+        if (chain.chainId.startsWith('eip155:')) {
+          expect(['eip155:1', 'eip155:10']).toContain(chain.chainId);
+        }
+      });
+    });
+  });
+
+  describe('selectDestChainRanking', () => {
+    it('returns chainRanking from feature flags', () => {
+      const result = selectDestChainRanking(
+        mockRootState as unknown as RootState,
+      );
+
+      // Verify it returns an array with chain ranking data
+      expect(Array.isArray(result)).toBe(true);
+      expect(result.length).toBeGreaterThan(0);
+
+      // Verify the structure of each item
+      result.forEach((chain) => {
+        expect(chain).toHaveProperty('chainId');
+        expect(chain).toHaveProperty('name');
+        expect(typeof chain.chainId).toBe('string');
+        expect(typeof chain.name).toBe('string');
+      });
+
+      // Verify Ethereum is included (commonly in chainRanking)
+      const hasEthereum = result.some(
+        (chain) => chain.chainId === 'eip155:1' && chain.name === 'Ethereum',
+      );
+      expect(hasEthereum).toBe(true);
+    });
+
+    it('returns all supported chains without filtering by user-configured networks', () => {
+      const result = selectDestChainRanking(
+        mockRootState as unknown as RootState,
+      );
+
+      // selectDestChainRanking should return all supported chains from feature flags
+      // This is the key difference from selectSourceChainRanking which filters
+      // by user-configured networks
+      expect(result.length).toBeGreaterThan(0);
+    });
+
+    it('filters out unsupported EVM chains not in ALLOWED_BRIDGE_CHAIN_IDS', () => {
+      const mockState = cloneDeep(mockRootState);
+      mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2.chainRanking =
+        [
+          ...mockState.engine.backgroundState.RemoteFeatureFlagController
+            .remoteFeatureFlags.bridgeConfigV2.chainRanking,
+          { chainId: 'eip155:99999', name: 'Unsupported Future Chain' },
+        ];
+
+      const result = selectDestChainRanking(mockState as unknown as RootState);
+
+      expect(result.some((chain) => chain.chainId === 'eip155:99999')).toBe(
+        false,
+      );
+      expect(result.some((chain) => chain.chainId === 'eip155:1')).toBe(true);
+    });
+
+    it('filters out unsupported non-EVM chains not in ALLOWED_BRIDGE_CHAIN_IDS', () => {
+      const mockState = cloneDeep(mockRootState);
+      mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2.chainRanking =
+        [
+          ...mockState.engine.backgroundState.RemoteFeatureFlagController
+            .remoteFeatureFlags.bridgeConfigV2.chainRanking,
+          { chainId: 'cosmos:cosmoshub-4', name: 'Unsupported Cosmos Chain' },
+        ];
+
+      const result = selectDestChainRanking(mockState as unknown as RootState);
+
+      expect(
+        result.some((chain) => chain.chainId === 'cosmos:cosmoshub-4'),
+      ).toBe(false);
+      expect(
+        result.some(
+          (chain) =>
+            chain.chainId === 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        ),
+      ).toBe(true);
+    });
+  });
+
+  describe('selectIsBridgeEnabledSource - ALLOWED_BRIDGE_CHAIN_IDS filtering', () => {
+    it('returns false for a chain in chainRanking but not in ALLOWED_BRIDGE_CHAIN_IDS', () => {
+      const mockState = cloneDeep(mockRootState);
+      // Add an unsupported chain to chainRanking
+      mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2.chainRanking =
+        [
+          ...mockState.engine.backgroundState.RemoteFeatureFlagController
+            .remoteFeatureFlags.bridgeConfigV2.chainRanking,
+          { chainId: 'eip155:99999', name: 'Unsupported Future Chain' },
+        ];
+
+      const result = selectIsBridgeEnabledSource(
+        mockState as unknown as RootState,
+        '0x1869F' as Hex, // hex for 99999
+      );
+
+      expect(result).toBe(false);
     });
   });
 });

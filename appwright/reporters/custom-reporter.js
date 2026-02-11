@@ -2,6 +2,8 @@
 import { PerformanceTracker } from './PerformanceTracker';
 import { AppProfilingDataHandler } from './AppProfilingDataHandler';
 import QualityGatesValidator from '../utils/QualityGatesValidator';
+import { getTeamInfoFromTags } from '../config/teams-config.js';
+import { clearQualityGateFailures } from '../utils/QualityGateError.js';
 import fs from 'fs';
 import path from 'path';
 
@@ -11,9 +13,21 @@ class CustomReporter {
     this.sessions = []; // Array to store all session data
     this.processedTests = new Set(); // Track processed tests to avoid duplicates
     this.qualityGatesValidator = new QualityGatesValidator();
+    this.failedTestsByTeam = {}; // Track failed tests grouped by team
   }
 
   // We'll skip the onStdOut and onStdErr methods since the list reporter will handle those
+
+  /**
+   * Called once before running tests.
+   * Clears quality gate failures from previous test runs.
+   */
+  onBegin() {
+    console.log(
+      '🚀 Test suite starting: Clearing quality gate failures from previous runs...',
+    );
+    clearQualityGateFailures();
+  }
 
   onTestEnd(test, result) {
     // Create a unique test identifier to avoid duplicate processing
@@ -29,7 +43,23 @@ class CustomReporter {
     }
     this.processedTests.add(testId);
 
+    // Get team info from test tags (e.g., { tag: '@swap-bridge-dev-team' })
+    // Tags can be in test.tags (Playwright 1.42+) or extracted from test title annotations
+    let testTags = test.tags || [];
+
+    // If tags is not an array, try to get from other sources
+    if (!Array.isArray(testTags)) {
+      testTags = [];
+    }
+
+    const testFilePath = test?.location?.file || '';
+    const teamInfo = getTeamInfoFromTags(testTags);
+
     console.log(`\n🔍 Processing test: ${test.title} (${result.status})`);
+    console.log(`👥 Team: ${teamInfo.teamName} (${teamInfo.teamId})`);
+    console.log(
+      `🏷️ Tags: ${testTags.length > 0 ? testTags.join(', ') : 'none (using default team)'}`,
+    );
 
     const sessionAttachment = result.attachments.find(
       (att) => att.name === 'session-data',
@@ -42,7 +72,11 @@ class CustomReporter {
           ...sessionData,
           testStatus: result.status,
           testDuration: result.duration,
+          team: sessionData.team || teamInfo, // Use team from session data or fallback
         });
+        console.log(
+          `[Pipeline] Session from attachment: sessionId=${sessionData.sessionId}, projectName=${sessionData.projectName ?? 'undefined'}, testTitle=${sessionData.testTitle}`,
+        );
       } catch (error) {
         console.log(`❌ Error parsing session data: ${error.message}`);
       }
@@ -61,12 +95,46 @@ class CustomReporter {
           this.sessions.push({
             sessionId,
             testTitle: test.title,
+            testFilePath,
             testStatus: result.status,
             testDuration: result.duration,
             timestamp: new Date().toISOString(),
+            team: teamInfo,
           });
+          console.log(
+            `[Pipeline] Session from annotations (no projectName): sessionId=${sessionId}, testTitle=${test.title}`,
+          );
         }
       }
+    }
+
+    // Track failed tests by team for Slack notification
+    // Only include actual failures (failed, timedOut), not skipped or interrupted tests
+    const isActualFailure =
+      result.status === 'failed' || result.status === 'timedOut';
+    if (isActualFailure) {
+      const teamId = teamInfo.teamId;
+      const sessionIdFromAnnotation = result.annotations?.find(
+        (a) => a.type === 'sessionId',
+      )?.description;
+      if (!this.failedTestsByTeam[teamId]) {
+        this.failedTestsByTeam[teamId] = {
+          team: teamInfo,
+          tests: [],
+        };
+      }
+      this.failedTestsByTeam[teamId].tests.push({
+        testName: test.title,
+        testFilePath,
+        tags: testTags,
+        status: result.status,
+        duration: result.duration,
+        projectName,
+        sessionId: sessionIdFromAnnotation || null,
+        // Will be populated later with quality gates info if available
+        qualityGates: null,
+        failureReason: null,
+      });
     }
 
     // Look for metrics in the attachments (including fallback metrics)
@@ -93,11 +161,13 @@ class CustomReporter {
         // Create metrics entry with proper handling for both regular and fallback metrics
         const metricsEntry = {
           testName: test.title,
+          testFilePath,
+          tags: testTags,
           ...metrics,
         };
 
-        // Always mark failed tests appropriately
-        if (result.status !== 'passed') {
+        // Mark actual failures (not skipped or interrupted tests)
+        if (result.status === 'failed' || result.status === 'timedOut') {
           metricsEntry.testFailed = true;
           metricsEntry.failureReason = result.status;
         }
@@ -105,6 +175,11 @@ class CustomReporter {
         // Ensure consistent device info for all metrics
         const deviceInfo = this.getDeviceInfo(test, result);
         metricsEntry.device = deviceInfo;
+
+        // Ensure team info is included (from metrics or fallback)
+        if (!metricsEntry.team) {
+          metricsEntry.team = teamInfo;
+        }
 
         // For fallback metrics, ensure we have proper structure for reporting
         if (isFallbackMetrics) {
@@ -137,29 +212,78 @@ class CustomReporter {
               ),
             );
           }
+
+          // Update failed test entry with quality gates info if this test failed
+          if (metricsEntry.testFailed) {
+            const updates = { qualityGates: qualityGatesResult };
+            if (
+              qualityGatesResult.hasThresholds &&
+              !qualityGatesResult.passed
+            ) {
+              updates.failureReason = 'quality_gates_exceeded';
+              updates.qualityGatesViolations = qualityGatesResult.violations;
+            } else {
+              updates.failureReason =
+                metricsEntry.failureReason || 'test_error';
+            }
+            this.updateFailedTestEntry(
+              teamInfo.teamId,
+              test.title,
+              projectName,
+              updates,
+            );
+          }
         }
 
         this.metrics.push(metricsEntry);
       } catch (error) {
         console.error('Error processing metrics:', error);
       }
-    } else if (result.status !== 'passed') {
-      // For failed tests without metrics, create a basic entry
+    } else if (result.status === 'failed' || result.status === 'timedOut') {
+      // For actual failed tests without metrics, create a basic entry
+      // Skip creating entries for skipped/interrupted tests
       console.log(`⚠️ Test failed without metrics, creating basic entry`);
 
       const deviceInfo = this.getDeviceInfo(test, result);
 
       const basicEntry = {
         testName: test.title,
+        testFilePath,
+        tags: testTags,
         total: result.duration / 1000,
         device: deviceInfo,
         steps: [],
         testFailed: true,
         failureReason: result.status,
         note: 'Test failed - no performance metrics collected',
+        team: teamInfo,
       };
 
       this.metrics.push(basicEntry);
+
+      // Update failed test entry with failure reason (no quality gates since no metrics)
+      this.updateFailedTestEntry(teamInfo.teamId, test.title, projectName, {
+        failureReason: result.status,
+      });
+    }
+  }
+
+  /**
+   * Update a failed test entry with additional information
+   * @param {string} teamId - The team ID
+   * @param {string} testTitle - The test title
+   * @param {string} projectName - The project name
+   * @param {Object} updates - Object containing properties to update
+   */
+  updateFailedTestEntry(teamId, testTitle, projectName, updates) {
+    if (!this.failedTestsByTeam[teamId]) {
+      return;
+    }
+    const failedTest = this.failedTestsByTeam[teamId].tests.find(
+      (t) => t.testName === testTitle && t.projectName === projectName,
+    );
+    if (failedTest) {
+      Object.assign(failedTest, updates);
     }
   }
 
@@ -196,7 +320,6 @@ class CustomReporter {
       };
     }
 
-    // Last resort fallback
     return {
       name: 'Unknown',
       osVersion: 'Unknown',
@@ -265,28 +388,35 @@ class CustomReporter {
 
     // Determine if this is a BrowserStack run by checking session data
     let isBrowserStackRun = false;
-
-    // Check project names from session data (most reliable)
+    const projectNames = this.sessions
+      .map((s) => s.projectName)
+      .filter(Boolean);
     if (this.sessions.length > 0) {
-      const projectNames = this.sessions
-        .map((session) => session.projectName)
-        .filter(Boolean);
-
       isBrowserStackRun = projectNames.some((name) =>
         name.includes('browserstack-'),
       );
     }
 
-    // Always try to fetch profiling data if we have sessions and credentials
     const hasCredentials =
-      process.env.BROWSERSTACK_USERNAME && process.env.BROWSERSTACK_ACCESS_KEY;
+      !!process.env.BROWSERSTACK_USERNAME &&
+      !!process.env.BROWSERSTACK_ACCESS_KEY;
+
+    console.log(
+      `[Pipeline] Sessions: ${this.sessions.length}, projectNames: [${projectNames.join(', ') || 'none'}], isBrowserStackRun: ${isBrowserStackRun}, hasCredentials: ${hasCredentials}`,
+    );
+    if (this.sessions.length > 0 && (!hasCredentials || !isBrowserStackRun)) {
+      console.log(
+        `[Pipeline] Skipping BrowserStack fetch (video/profiling/network logs): ${!hasCredentials ? 'missing BROWSERSTACK_USERNAME or BROWSERSTACK_ACCESS_KEY' : 'project name does not include "browserstack-"'}`,
+      );
+    }
 
     if (this.sessions.length > 0 && hasCredentials && isBrowserStackRun) {
       console.log(
-        `🎥 Fetching video URLs and profiling data for ${this.sessions.length} sessions`,
+        `🎥 Fetching video URLs, profiling and network logs for ${this.sessions.length} sessions`,
       );
 
       const tracker = new PerformanceTracker();
+      const appProfilingHandler = new AppProfilingDataHandler();
 
       for (const session of this.sessions) {
         try {
@@ -298,6 +428,17 @@ class CustomReporter {
           );
           if (videoURL) {
             session.videoURL = videoURL;
+          } else {
+            // Fallback: build URL from session details when getVideoURL fails (e.g. test timed out, video not ready)
+            const sessionDetails = await appProfilingHandler.getSessionDetails(
+              session.sessionId,
+            );
+            if (sessionDetails?.buildId) {
+              session.videoURL = `https://app-automate.browserstack.com/builds/${sessionDetails.buildId}/sessions/${session.sessionId}`;
+              console.log(
+                `✅ Fallback: built recording URL from session details for ${session.testTitle}`,
+              );
+            }
           }
 
           // Fetch profiling data from BrowserStack API
@@ -305,7 +446,6 @@ class CustomReporter {
             console.log(
               `🔍 Fetching profiling data for ${session.testTitle}...`,
             );
-            const appProfilingHandler = new AppProfilingDataHandler();
             const profilingResult =
               await appProfilingHandler.fetchCompleteProfilingData(
                 session.sessionId,
@@ -346,6 +486,34 @@ class CustomReporter {
               error: `Failed to fetch profiling data: ${error.message}`,
               timestamp: new Date().toISOString(),
             };
+          }
+
+          // Fetch BrowserStack network logs (HAR)
+          try {
+            console.log(
+              `[Pipeline] Fetching network logs for session ${session.sessionId} (${session.testTitle})...`,
+            );
+            const networkResult = await appProfilingHandler.getNetworkLogs(
+              session.sessionId,
+            );
+            if (networkResult.error) {
+              session.networkLogsError = networkResult.error;
+              session.networkLogsEntries = [];
+              console.log(
+                `[Pipeline] Network logs error for ${session.testTitle}: ${networkResult.error}`,
+              );
+            } else {
+              session.networkLogsEntries = networkResult.entries || [];
+              console.log(
+                `✅ Network logs fetched for ${session.testTitle}: ${session.networkLogsEntries.length} request(s)`,
+              );
+            }
+          } catch (error) {
+            session.networkLogsError = error.message;
+            session.networkLogsEntries = [];
+            console.log(
+              `[Pipeline] Network logs exception for ${session.testTitle}: ${error.message}`,
+            );
           }
         } catch (error) {
           console.error(`❌ Error fetching video URL for ${session.testTitle}`);
@@ -394,13 +562,20 @@ class CustomReporter {
 
       if (this.metrics.length > 0) {
         console.log('Metrics are:', this.metrics);
-        // Add video URLs and profiling data to metrics by matching test names with sessions
+        // Add video URLs, profiling and apiCalls to metrics by matching test names with sessions
         const metricsWithVideo = this.metrics.map((metric) => {
           const matchingSession = this.sessions.find(
             (session) => session.testTitle === metric.testName,
           );
+          const apiCalls =
+            matchingSession?.networkLogsEntries != null
+              ? matchingSession.networkLogsEntries
+              : null;
+          const apiCallsError = matchingSession?.networkLogsError || null;
+          console.log(
+            `[Pipeline] Metric "${metric.testName}": matchingSession=${!!matchingSession}, apiCalls=${Array.isArray(apiCalls) ? apiCalls.length : apiCalls}, apiCallsError=${apiCallsError ?? 'null'}`,
+          );
 
-          // Use device info from session if available, otherwise keep the existing device info
           const deviceInfo = matchingSession?.deviceInfo || metric.device;
 
           return {
@@ -410,6 +585,8 @@ class CustomReporter {
             sessionId: matchingSession?.sessionId || null,
             profilingData: matchingSession?.profilingData || null,
             profilingSummary: matchingSession?.profilingSummary || null,
+            apiCalls,
+            apiCallsError,
           };
         });
 
@@ -1131,8 +1308,74 @@ class CustomReporter {
       );
       fs.writeFileSync(csvPath, csvRows.join('\n'));
       console.log(`✅ Performance CSV report saved: ${csvPath}`);
+
+      // Generate failed tests by team report for Slack notifications
+      if (Object.keys(this.failedTestsByTeam).length > 0) {
+        // Normalize failureReason: if test has failed quality gates, use quality_gates_exceeded
+        for (const teamData of Object.values(this.failedTestsByTeam)) {
+          for (const test of teamData.tests) {
+            if (
+              test.qualityGates &&
+              test.qualityGates.hasThresholds &&
+              !test.qualityGates.passed
+            ) {
+              test.failureReason = 'quality_gates_exceeded';
+            }
+          }
+        }
+
+        const failedTestsReport = {
+          timestamp: new Date().toISOString(),
+          totalFailedTests: Object.values(this.failedTestsByTeam).reduce(
+            (acc, team) => acc + team.tests.length,
+            0,
+          ),
+          teamsAffected: Object.keys(this.failedTestsByTeam).length,
+          failedTestsByTeam: this.failedTestsByTeam,
+        };
+
+        const failedTestsPath = path.join(
+          reportsDir,
+          'failed-tests-by-team.json',
+        );
+        fs.writeFileSync(
+          failedTestsPath,
+          JSON.stringify(failedTestsReport, null, 2),
+        );
+        console.log(`🚨 Failed tests by team report saved: ${failedTestsPath}`);
+        console.log(
+          `   Total failed tests: ${failedTestsReport.totalFailedTests}`,
+        );
+        console.log(`   Teams affected: ${failedTestsReport.teamsAffected}`);
+
+        // Log which teams have failed tests
+        for (const [teamId, teamData] of Object.entries(
+          this.failedTestsByTeam,
+        )) {
+          console.log(
+            `   - ${teamData.team.teamName}: ${teamData.tests.length} failed test(s)`,
+          );
+        }
+      } else {
+        console.log(`✅ No failed tests to report by team`);
+      }
     } catch (error) {
       console.error('Error generating performance report:', error);
+    }
+
+    // BrowserStack network logs are included in each test's JSON (performance-metrics-*.json) as apiCalls / apiCallsError
+
+    // Final summary: where to find reports
+    const reportsDir = path.join(__dirname, 'reports');
+    const reportsDirAbs = path.resolve(reportsDir);
+    console.log(`\n📁 Reports saved in: ${reportsDirAbs}`);
+    if (fs.existsSync(reportsDir)) {
+      const files = fs.readdirSync(reportsDir);
+      if (files.length > 0) {
+        console.log(
+          `   Files: ${files.slice(0, 15).join(', ')}${files.length > 15 ? ` (+${files.length - 15} more)` : ''}`,
+        );
+      }
     }
   }
 }

@@ -1,17 +1,23 @@
-import React, { PropsWithChildren } from 'react';
+import React, { PropsWithChildren, useMemo } from 'react';
+import Fuse, { type FuseOptions } from 'fuse.js';
 import type { NavigationProp, ParamListBase } from '@react-navigation/native';
 import type { TrendingAsset } from '@metamask/assets-controllers';
+import { useSelector } from 'react-redux';
 import Routes from '../../../constants/navigation/Routes';
 import { strings } from '../../../../locales/i18n';
 import TrendingTokenRowItem from '../../UI/Trending/components/TrendingTokenRowItem/TrendingTokenRowItem';
 import TrendingTokensSkeleton from '../../UI/Trending/components/TrendingTokenSkeleton/TrendingTokensSkeleton';
 import PerpsMarketRowItem from '../../UI/Perps/components/PerpsMarketRowItem';
-import type { PerpsMarketData } from '../../UI/Perps/controllers/types';
+import {
+  filterMarketsByQuery,
+  type PerpsMarketData,
+} from '@metamask/perps-controller';
 import PredictMarket from '../../UI/Predict/components/PredictMarket';
 import type { PredictMarket as PredictMarketType } from '../../UI/Predict/types';
 import type { PerpsNavigationParamList } from '../../UI/Perps/types/navigation';
 import PredictMarketSkeleton from '../../UI/Predict/components/PredictMarketSkeleton';
 import { usePredictMarketData } from '../../UI/Predict/hooks/usePredictMarketData';
+import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { usePerpsMarkets } from '../../UI/Perps/hooks';
 import { PerpsConnectionProvider } from '../../UI/Perps/providers/PerpsConnectionProvider';
 import { PerpsStreamProvider } from '../../UI/Perps/providers/PerpsStreamManager';
@@ -21,7 +27,11 @@ import SiteRowItemWrapper from '../../UI/Sites/components/SiteRowItemWrapper/Sit
 import SiteSkeleton from '../../UI/Sites/components/SiteSkeleton/SiteSkeleton';
 import { useSitesData } from '../../UI/Sites/hooks/useSiteData/useSitesData';
 import { useTrendingSearch } from '../../UI/Trending/hooks/useTrendingSearch/useTrendingSearch';
-import { filterMarketsByQuery } from '../../UI/Perps/utils/marketUtils';
+import {
+  TimeOption,
+  PriceChangeOption,
+} from '../../UI/Trending/components/TrendingTokensBottomSheet';
+import type { TrendingFilterContext } from '../../UI/Trending/components/TrendingTokensList/TrendingTokensList';
 import PredictMarketRowItem from '../../UI/Predict/components/PredictMarketRowItem';
 import SectionCard from './components/Sections/SectionTypes/SectionCard';
 import SectionCarrousel from './components/Sections/SectionTypes/SectionCarrousel';
@@ -40,13 +50,16 @@ interface SectionConfig {
   viewAllAction: (navigation: NavigationProp<ParamListBase>) => void;
   RowItem: React.ComponentType<{
     item: unknown;
+    index: number;
     navigation: NavigationProp<ParamListBase>;
   }>;
   OverrideRowItemSearch?: React.ComponentType<{
     item: unknown;
+    index?: number;
     navigation: NavigationProp<ParamListBase>;
   }>;
   Skeleton: React.ComponentType;
+  OverrideSkeletonSearch?: React.ComponentType;
   Section: React.ComponentType<{
     sectionId: SectionId;
     data: unknown[];
@@ -59,6 +72,51 @@ interface SectionConfig {
   };
   SectionWrapper?: React.ComponentType<PropsWithChildren>;
 }
+
+const BASE_FUSE_OPTIONS = {
+  shouldSort: true,
+  // Tweak threshold search strictness (0.0 = strict, 1.0 = lenient)
+  threshold: 0.2,
+  location: 0,
+  distance: 100,
+  maxPatternLength: 32,
+  minMatchCharLength: 1,
+} as const;
+
+const fuseSearch = <T,>(
+  data: T[],
+  searchQuery: string | undefined,
+  fuseOptions: FuseOptions<T>,
+  searchSortingFn?: (a: T, b: T) => number,
+): T[] => {
+  searchQuery = searchQuery?.trim();
+  if (!searchQuery) {
+    return data;
+  }
+  const fuse = new Fuse(data, fuseOptions);
+  const results = fuse.search(searchQuery);
+
+  if (searchSortingFn) {
+    return results.sort(searchSortingFn);
+  }
+
+  return results;
+};
+
+const TOKEN_FUSE_OPTIONS: FuseOptions<TrendingAsset> = {
+  ...BASE_FUSE_OPTIONS,
+  keys: ['symbol', 'name', 'assetId'],
+};
+
+const PERPS_FUSE_OPTIONS: FuseOptions<PerpsMarketData> = {
+  ...BASE_FUSE_OPTIONS,
+  keys: ['symbol', 'name'],
+};
+
+const PREDICTIONS_FUSE_OPTIONS: FuseOptions<PredictMarketType> = {
+  ...BASE_FUSE_OPTIONS,
+  keys: ['title', 'description'],
+};
 
 /**
  * Centralized configuration for all Trending View sections.
@@ -76,22 +134,69 @@ interface SectionConfig {
  * - Section headers with "View All" navigation
  */
 
+/**
+ * Default filter context for tokens in the Trending View home section.
+ * Used for analytics tracking of token clicks from the home page.
+ */
+const DEFAULT_TOKENS_FILTER_CONTEXT: TrendingFilterContext = {
+  timeFilter: TimeOption.TwentyFourHours,
+  sortOption: PriceChangeOption.PriceChange,
+  networkFilter: 'all',
+  isSearchResult: false,
+};
+
+/**
+ * Filter context for tokens in search results on the Explore page.
+ * Used for analytics tracking of token clicks from search results.
+ */
+const SEARCH_TOKENS_FILTER_CONTEXT: TrendingFilterContext = {
+  timeFilter: TimeOption.TwentyFourHours,
+  sortOption: PriceChangeOption.PriceChange,
+  networkFilter: 'all',
+  isSearchResult: true,
+};
+
 export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
   tokens: {
     id: 'tokens',
-    title: strings('trending.tokens'),
+    title: strings('trending.trending_tokens'),
     icon: IconName.Ethereum,
     viewAllAction: (navigation) => {
       navigation.navigate(Routes.WALLET.TRENDING_TOKENS_FULL_VIEW);
     },
-    RowItem: ({ item }) => (
-      <TrendingTokenRowItem token={item as TrendingAsset} />
+    RowItem: ({ item, index }) => (
+      <TrendingTokenRowItem
+        token={item as TrendingAsset}
+        position={index}
+        filterContext={DEFAULT_TOKENS_FILTER_CONTEXT}
+      />
+    ),
+    OverrideRowItemSearch: ({ item, index }) => (
+      <TrendingTokenRowItem
+        token={item as TrendingAsset}
+        position={index}
+        filterContext={SEARCH_TOKENS_FILTER_CONTEXT}
+      />
     ),
     Skeleton: TrendingTokensSkeleton,
     Section: SectionCard,
     useSectionData: (searchQuery) => {
-      const { data, isLoading, refetch } = useTrendingSearch(searchQuery);
-      return { data, isLoading, refetch };
+      const { data, isLoading, refetch } = useTrendingSearch({
+        searchQuery,
+        enableDebounce: false, // Disable debouncing here because useExploreSearch already handles it
+      });
+      const filteredData = useMemo(
+        () =>
+          fuseSearch(
+            data,
+            searchQuery,
+            TOKEN_FUSE_OPTIONS,
+            // Penalize zero marketCap tokens
+            (a, b) => (b.marketCap ?? 0) - (a.marketCap ?? 0),
+          ),
+        [data, searchQuery],
+      );
+      return { data: filteredData, isLoading, refetch };
     },
   },
   perps: {
@@ -106,7 +211,7 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
         },
       });
     },
-    RowItem: ({ item, navigation }) => (
+    RowItem: ({ item, index: _index, navigation }) => (
       <PerpsMarketRowItem
         market={item as PerpsMarketData}
         onPress={() => {
@@ -119,6 +224,7 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
           );
         }}
         showBadge={false}
+        compact
       />
     ),
     // Using trending skeleton cause PerpsMarketRowSkeleton has too much spacing
@@ -132,9 +238,13 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
     useSectionData: (searchQuery) => {
       const { markets, isLoading, refresh, isRefreshing } = usePerpsMarkets();
 
-      const filteredMarkets = searchQuery
-        ? filterMarketsByQuery(markets, searchQuery)
-        : markets;
+      const filteredMarkets = useMemo(() => {
+        if (!searchQuery) {
+          return markets;
+        }
+        const filteredByQuery = filterMarketsByQuery(markets, searchQuery);
+        return fuseSearch(filteredByQuery, searchQuery, PERPS_FUSE_OPTIONS);
+      }, [markets, searchQuery]);
 
       return {
         data: filteredMarkets,
@@ -152,15 +262,23 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
         screen: Routes.PREDICT.MARKET_LIST,
       });
     },
-    RowItem: ({ item }) => (
+    RowItem: ({ item, index: _index }) => (
       <Box twClassName="py-2">
-        <PredictMarket market={item as PredictMarketType} isCarousel />
+        <PredictMarket
+          market={item as PredictMarketType}
+          isCarousel
+          testID={`predict-market-list-trending-card-${
+            (item as PredictMarketType).id
+          }`}
+        />
       </Box>
     ),
     OverrideRowItemSearch: ({ item }) => (
       <PredictMarketRowItem market={item as PredictMarketType} />
     ),
     Skeleton: () => <PredictMarketSkeleton isCarousel />,
+    // Using sites skeleton cause PredictMarketSkeleton has too much spacing
+    OverrideSkeletonSearch: SiteSkeleton,
     Section: SectionCarrousel,
     useSectionData: (searchQuery) => {
       const { marketData, isFetching, refetch } = usePredictMarketData({
@@ -169,7 +287,12 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
         q: searchQuery || undefined,
       });
 
-      return { data: marketData, isLoading: isFetching, refetch };
+      const filteredData = useMemo(
+        () => fuseSearch(marketData, searchQuery, PREDICTIONS_FUSE_OPTIONS),
+        [marketData, searchQuery],
+      );
+
+      return { data: filteredData, isLoading: isFetching, refetch };
     },
   },
   sites: {
@@ -179,7 +302,7 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
     viewAllAction: (navigation) => {
       navigation.navigate(Routes.SITES_FULL_VIEW);
     },
-    RowItem: ({ item, navigation }) => (
+    RowItem: ({ item, index: _index, navigation }) => (
       <SiteRowItemWrapper site={item as SiteData} navigation={navigation} />
     ),
     Skeleton: SiteSkeleton,
@@ -192,7 +315,7 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
 };
 
 // Sorted by order on the main screen
-export const HOME_SECTIONS_ARRAY: (SectionConfig & { id: SectionId })[] = [
+const HOME_SECTIONS_ARRAY: (SectionConfig & { id: SectionId })[] = [
   SECTIONS_CONFIG.predictions,
   SECTIONS_CONFIG.tokens,
   SECTIONS_CONFIG.perps,
@@ -200,12 +323,36 @@ export const HOME_SECTIONS_ARRAY: (SectionConfig & { id: SectionId })[] = [
 ];
 
 // Sorted by order on the QuickAction buttons and SearchResults
-export const SECTIONS_ARRAY: (SectionConfig & { id: SectionId })[] = [
+const SECTIONS_ARRAY: (SectionConfig & { id: SectionId })[] = [
   SECTIONS_CONFIG.tokens,
   SECTIONS_CONFIG.perps,
   SECTIONS_CONFIG.predictions,
   SECTIONS_CONFIG.sites,
 ];
+
+export const useHomeSections = (): (SectionConfig & { id: SectionId })[] => {
+  const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
+
+  return useMemo(
+    () =>
+      isPerpsEnabled
+        ? HOME_SECTIONS_ARRAY
+        : HOME_SECTIONS_ARRAY.filter((section) => section.id !== 'perps'),
+    [isPerpsEnabled],
+  );
+};
+
+export const useSectionsArray = (): (SectionConfig & { id: SectionId })[] => {
+  const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
+
+  return useMemo(
+    () =>
+      isPerpsEnabled
+        ? SECTIONS_ARRAY
+        : SECTIONS_ARRAY.filter((section) => section.id !== 'perps'),
+    [isPerpsEnabled],
+  );
+};
 
 /**
  * Centralized hook that fetches data for all sections.

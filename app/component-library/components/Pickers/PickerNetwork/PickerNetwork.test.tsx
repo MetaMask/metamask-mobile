@@ -3,7 +3,7 @@ import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 
 // External dependencies.
-import { WalletViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/WalletView.selectors';
+import { WalletViewSelectorsIDs } from '../../../../components/Views/Wallet/WalletView.testIds';
 
 // Internal dependencies.
 import PickerNetwork from './PickerNetwork';

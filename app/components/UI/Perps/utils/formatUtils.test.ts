@@ -18,10 +18,12 @@ import {
   PRICE_RANGES_UNIVERSAL,
   PRICE_RANGES_MINIMAL_VIEW,
   formatPositiveFiat,
+} from './formatUtils';
+import {
   countSignificantFigures,
   hasExceededSignificantFigures,
   roundToSignificantFigures,
-} from './formatUtils';
+} from '@metamask/perps-controller';
 import { FUNDING_RATE_CONFIG } from '../constants/perpsConfig';
 
 // Mock the formatWithThreshold utility
@@ -60,7 +62,7 @@ describe('formatUtils', () => {
       const result = formatFundingRate(value);
 
       // Then it should return the zero display constant
-      expect(result).toBe(FUNDING_RATE_CONFIG.ZERO_DISPLAY);
+      expect(result).toBe(FUNDING_RATE_CONFIG.ZeroDisplay);
     });
 
     it('displays zero display value when input is null', () => {
@@ -71,7 +73,7 @@ describe('formatUtils', () => {
       const result = formatFundingRate(value);
 
       // Then it should return the zero display constant
-      expect(result).toBe(FUNDING_RATE_CONFIG.ZERO_DISPLAY);
+      expect(result).toBe(FUNDING_RATE_CONFIG.ZeroDisplay);
     });
 
     it('formats positive funding rate correctly', () => {
@@ -104,7 +106,7 @@ describe('formatUtils', () => {
       const result = formatFundingRate(value);
 
       // Then it should return the zero display constant
-      expect(result).toBe(FUNDING_RATE_CONFIG.ZERO_DISPLAY);
+      expect(result).toBe(FUNDING_RATE_CONFIG.ZeroDisplay);
     });
 
     it('formats very small positive funding rate correctly', () => {
@@ -183,7 +185,7 @@ describe('formatUtils', () => {
       const result = formatFundingRate(value);
 
       // Then it should return the zero display constant
-      expect(result).toBe(FUNDING_RATE_CONFIG.ZERO_DISPLAY);
+      expect(result).toBe(FUNDING_RATE_CONFIG.ZeroDisplay);
     });
 
     it('handles number precision edge cases correctly', () => {

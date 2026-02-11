@@ -1,5 +1,6 @@
 import React from 'react';
 import { useMusdConversionStatus } from '../hooks/useMusdConversionStatus';
+import { useMerklClaimStatus } from '../hooks/useMerklClaimStatus';
 
 /**
  * EarnTransactionMonitor - Mounts global transaction monitoring hooks for Earn features.
@@ -10,6 +11,8 @@ import { useMusdConversionStatus } from '../hooks/useMusdConversionStatus';
 const EarnTransactionMonitor: React.FC = () => {
   // Enable mUSD conversion status monitoring and toasts
   useMusdConversionStatus();
+  // Enable Merkl bonus claim status monitoring and toasts
+  useMerklClaimStatus();
 
   // This component doesn't render anything
   return null;

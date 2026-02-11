@@ -3,8 +3,8 @@ import Gestures from '../../helpers/Gestures';
 
 import { NETWORK_TEST_SWITCH_ID } from '../testIDs/Components/NetworkListModal.TestIds';
 import { ADD_NETWORK_BUTTON } from '../testIDs/Screens/NetworksScreen.testids';
-import { CellComponentSelectorsIDs } from '../../../e2e/selectors/wallet/CellComponent.selectors';
-import { NetworkListModalSelectorsText } from "../../../e2e/selectors/Network/NetworkListModal.selectors";
+import { CellComponentSelectorsIDs } from '../../../app/component-library/components/Cells/Cell/CellComponent.testIds';
+import { NetworkListModalSelectorsText } from "../../../app/components/Views/NetworkSelector/NetworkListModal.testIds";
 
 class NetworkListModal {
   get title() {

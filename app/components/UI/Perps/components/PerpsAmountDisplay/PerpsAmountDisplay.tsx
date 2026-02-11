@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, Platform, TouchableOpacity, View } from 'react-native';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
-import { PerpsAmountDisplaySelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PerpsAmountDisplaySelectorsIDs } from '../../Perps.testIds';
 import Text, {
   TextColor,
   TextVariant,
@@ -13,9 +13,11 @@ import {
   formatPositionSize,
   PRICE_RANGES_MINIMAL_VIEW,
 } from '../../utils/formatUtils';
-import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
+import {
+  PERPS_CONSTANTS,
+  getPerpsDisplaySymbol,
+} from '@metamask/perps-controller';
 import createStyles from './PerpsAmountDisplay.styles';
-import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
 
 interface PerpsAmountDisplayProps {
   amount: string;
@@ -58,7 +60,7 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
     if (amount) {
       return formatPerpsFiat(amount, { ranges: PRICE_RANGES_MINIMAL_VIEW });
     }
-    return PERPS_CONSTANTS.ZERO_AMOUNT_DISPLAY;
+    return PERPS_CONSTANTS.ZeroAmountDisplay;
   })();
 
   useEffect(() => {

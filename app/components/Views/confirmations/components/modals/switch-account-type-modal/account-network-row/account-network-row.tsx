@@ -4,8 +4,8 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Switch, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
-import { SmartAccountIds } from '../../../../../../../../e2e/selectors/MultichainAccounts/SmartAccount.selectors';
-import { SwitchAccountModalSelectorIDs } from '../../../../../../../../e2e/selectors/wallet/SwitchAccountModal.selectors';
+import { SmartAccountIds } from '../../../../../MultichainAccounts/SmartAccount.testIds';
+import { SwitchAccountModalSelectorIDs } from '../SwitchAccountModal.testIds';
 import { strings } from '../../../../../../../../locales/i18n';
 import Avatar, {
   AvatarSize,

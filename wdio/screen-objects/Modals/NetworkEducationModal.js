@@ -5,7 +5,7 @@ import {
   NETWORK_EDUCATION_MODAL_NETWORK_NAME_ID,
 } from '../testIDs/Components/NetworkEducationModalTestIds';
 import { NETWORK_EDUCATION_MODAL_CLOSE_BUTTON } from "../testIDs/Screens/NetworksScreen.testids";
-import AppwrightSelectors from '../../../e2e/framework/AppwrightSelectors';
+import AppwrightSelectors from '../../../tests/framework/AppwrightSelectors';
 
 class NetworkEducationModal {
   get device() {

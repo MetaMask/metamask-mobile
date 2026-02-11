@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, fireEvent, screen } from '@testing-library/react-native';
-import { PerpsAmountDisplaySelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PerpsAmountDisplaySelectorsIDs } from '../../Perps.testIds';
 import PerpsAmountDisplay from './PerpsAmountDisplay';
 import { formatPositionSize } from '../../utils/formatUtils';
 

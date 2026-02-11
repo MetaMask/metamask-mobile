@@ -55,6 +55,15 @@ export const PredictEventProperties = {
   SESSION_TIME_IN_FEED: 'session_time_in_feed',
   SESSION_ID: 'session_id',
   IS_SESSION_END: 'is_session_end',
+
+  // Market slug and game properties (for live sports markets)
+  MARKET_SLUG: 'market_slug',
+  GAME_ID: 'game_id',
+  GAME_START_TIME: 'game_start_time',
+  GAME_LEAGUE: 'game_league',
+  GAME_STATUS: 'game_status',
+  GAME_PERIOD: 'game_period',
+  GAME_CLOCK: 'game_clock',
 } as const;
 
 /**
@@ -69,16 +78,22 @@ export const PredictEventValues = {
     HOMEPAGE_POSITIONS: 'homepage_positions',
     HOMEPAGE_NEW_PREDICTION: 'homepage_new_prediction',
     HOMEPAGE_BALANCE: 'homepage_balance',
+    HOMEPAGE_FEATURED_CAROUSEL: 'homepage_featured_carousel',
+    HOMEPAGE_FEATURED_LIST: 'homepage_featured_list',
     MAIN_TRADE_BUTTON: 'main_trade_button',
     REWARDS: 'rewards',
     GTM_MODAL: 'gtm_modal',
     BACKGROUND: 'background',
     TRENDING_SEARCH: 'trending_search',
     TRENDING: 'trending',
+    BUY_PREVIEW: 'buy_preview',
   },
   TRANSACTION_TYPE: {
     MM_PREDICT_BUY: 'mm_predict_buy',
     MM_PREDICT_SELL: 'mm_predict_sell',
+    MM_PREDICT_DEPOSIT: 'mm_predict_deposit',
+    MM_PREDICT_WITHDRAW: 'mm_predict_withdraw',
+    MM_PREDICT_CLAIM: 'mm_predict_claim',
   },
   MARKET_TYPE: {
     BINARY: 'binary',
@@ -121,6 +136,19 @@ export type PredictTradeStatusValue =
 // Legacy export for backward compatibility during transition
 export const PredictEventType = PredictTradeStatus;
 export type PredictEventTypeValue = PredictTradeStatusValue;
+
+/**
+ * Share action status values for analytics tracking
+ * Used as the 'status' property in SHARE_ACTION event for Predict
+ */
+export const PredictShareStatus = {
+  INITIATED: 'initiated',
+  SUCCESS: 'success',
+  FAILED: 'failed',
+} as const;
+
+export type PredictShareStatusValue =
+  (typeof PredictShareStatus)[keyof typeof PredictShareStatus];
 
 /**
  * GTM Modal constants for analytics tracking

@@ -13,7 +13,7 @@ import { IconSize } from '../../Icons/Icon';
 import PickerBase from '../PickerBase';
 import { PickerAccountProps } from './PickerAccount.types';
 import styleSheet from './PickerAccount.styles';
-import { WalletViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/WalletView.selectors';
+import { WalletViewSelectorsIDs } from '../../../../components/Views/Wallet/WalletView.testIds';
 
 const PickerAccount: React.ForwardRefRenderFunction<
   typeof TouchableOpacity,

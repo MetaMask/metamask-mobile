@@ -48,8 +48,8 @@ import {
   FlattenedAccountListItem,
 } from './EvmAccountSelectorList.types';
 import styleSheet from './EvmAccountSelectorList.styles';
-import { AccountListBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/AccountListBottomSheet.selectors';
-import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+import { AccountListBottomSheetSelectorsIDs } from '../../Views/AccountSelector/AccountListBottomSheet.testIds';
+import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';
 import { ACCOUNT_SELECTOR_LIST_TESTID } from './EvmAccountSelectorList.constants';
 import { toHex } from '@metamask/controller-utils';
 import AccountNetworkIndicator from '../AccountNetworkIndicator';

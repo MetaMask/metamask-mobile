@@ -85,33 +85,28 @@ jest.mock('../../../../../component-library/components/Form/TextField', () => {
   const React = jest.requireActual('react');
   const { TextInput } = jest.requireActual('react-native');
 
-  const TextFieldSize = {
-    Sm: 'sm',
-    Md: 'md',
-    Lg: 'lg',
-  };
-
   const MockTextField = ({
     testID,
     onChangeText,
+    onBlur,
     value,
     placeholder,
     maxLength,
-    size,
     accessibilityLabel,
     ...props
   }: {
     testID?: string;
     onChangeText?: (text: string) => void;
+    onBlur?: () => void;
     value?: string;
     placeholder?: string;
     maxLength?: number;
-    size?: string;
     accessibilityLabel?: string;
   }) =>
     React.createElement(TextInput, {
       testID,
       onChangeText,
+      onBlur,
       value,
       placeholder,
       maxLength,
@@ -119,12 +114,9 @@ jest.mock('../../../../../component-library/components/Form/TextField', () => {
       ...props,
     });
 
-  MockTextField.Size = TextFieldSize;
-
   return {
     __esModule: true,
     default: MockTextField,
-    TextFieldSize,
   };
 });
 
@@ -235,10 +227,6 @@ jest.mock('./RegionSelectorModal', () => ({
     mockSetOnValueChange(callback),
   clearOnValueChange: jest.fn(),
   createRegionSelectorModalNavigationDetails: jest.fn(() => ['MockRoute', {}]),
-}));
-
-jest.mock('../../../../hooks/useDebouncedValue', () => ({
-  useDebouncedValue: (value: string) => value,
 }));
 
 jest.mock('../../hooks/useRegisterPersonalDetails', () => ({
@@ -543,6 +531,53 @@ describe('PersonalDetails Component', () => {
       const ssnInput = getByTestId('personal-details-ssn-input');
       expect(ssnInput.props.maxLength).toBe(9);
     });
+
+    it('does not show SSN error while typing (before blur)', () => {
+      const { getByTestId, queryByTestId } = render(<PersonalDetails />);
+
+      const ssnInput = getByTestId('personal-details-ssn-input');
+      fireEvent.changeText(ssnInput, '123'); // Invalid SSN (less than 9 digits)
+
+      // Error should not be shown while typing
+      expect(queryByTestId('personal-details-ssn-error')).toBeNull();
+    });
+
+    it('shows SSN error after blur when SSN is invalid', () => {
+      const { getByTestId } = render(<PersonalDetails />);
+
+      const ssnInput = getByTestId('personal-details-ssn-input');
+      fireEvent.changeText(ssnInput, '123'); // Invalid SSN (less than 9 digits)
+      fireEvent(ssnInput, 'onBlur');
+
+      // Error should be shown after blur
+      expect(getByTestId('personal-details-ssn-error')).toBeTruthy();
+    });
+
+    it('does not show SSN error after blur when SSN is valid', () => {
+      const { getByTestId, queryByTestId } = render(<PersonalDetails />);
+
+      const ssnInput = getByTestId('personal-details-ssn-input');
+      fireEvent.changeText(ssnInput, '123456789'); // Valid SSN (9 digits)
+      fireEvent(ssnInput, 'onBlur');
+
+      // Error should not be shown for valid SSN
+      expect(queryByTestId('personal-details-ssn-error')).toBeNull();
+    });
+
+    it('clears SSN error when user starts typing again', () => {
+      const { getByTestId, queryByTestId } = render(<PersonalDetails />);
+
+      const ssnInput = getByTestId('personal-details-ssn-input');
+
+      // Type invalid SSN and blur to trigger error
+      fireEvent.changeText(ssnInput, '123');
+      fireEvent(ssnInput, 'onBlur');
+      expect(getByTestId('personal-details-ssn-error')).toBeTruthy();
+
+      // Type again - error should be cleared
+      fireEvent.changeText(ssnInput, '1234');
+      expect(queryByTestId('personal-details-ssn-error')).toBeNull();
+    });
   });
 
   describe('Component Integration', () => {
@@ -771,6 +806,50 @@ describe('PersonalDetails Component', () => {
 
       const ssnInput = getByTestId('personal-details-ssn-input');
       expect(ssnInput.props.value).toBe('123456789');
+    });
+  });
+
+  describe('Nationality Population from userData', () => {
+    beforeEach(() => {
+      (useSelector as jest.Mock).mockImplementation((selector) => {
+        const mockState = {
+          card: {
+            onboarding: {
+              onboardingId: 'test-onboarding-id',
+              selectedCountry: {
+                key: 'US',
+                name: 'United States',
+                emoji: '🇺🇸',
+                areaCode: '1',
+              },
+            },
+          },
+        };
+        return selector(mockState);
+      });
+    });
+
+    it('uses countryOfNationality when provided', () => {
+      const mockUserData = {
+        firstName: 'John',
+        lastName: 'Doe',
+        dateOfBirth: '1990-01-01T00:00:00.000Z',
+        countryOfNationality: 'CA',
+        countryOfResidence: 'US',
+        ssn: '123456789',
+      };
+      (useCardSDK as jest.Mock).mockReturnValue({
+        user: mockUserData,
+        setUser: mockSetUser,
+        fetchUserData: mockFetchUserData,
+        logoutFromProvider: jest.fn(),
+      });
+
+      const { getByText, queryByText } = render(<PersonalDetails />);
+
+      // The nationality should show Canada (from countryOfNationality)
+      expect(getByText('Canada')).toBeTruthy();
+      expect(queryByText('United States')).toBeNull();
     });
   });
 

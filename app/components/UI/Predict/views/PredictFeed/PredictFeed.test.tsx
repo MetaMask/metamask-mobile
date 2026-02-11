@@ -1,6 +1,6 @@
 import { fireEvent, render } from '@testing-library/react-native';
 import React from 'react';
-import { PredictMarketListSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
+import { PredictMarketListSelectorsIDs } from '../../Predict.testIds';
 import PredictFeed from './PredictFeed';
 
 jest.mock('react-native-pager-view', () => {
@@ -42,6 +42,28 @@ jest.mock('../../hooks/usePredictMarketData', () => ({
 import { usePredictMarketData } from '../../hooks/usePredictMarketData';
 
 const mockUsePredictMarketData = usePredictMarketData as jest.Mock;
+
+const mockUseSelector = jest.fn();
+
+jest.mock('react-redux', () => {
+  const actualReactRedux = jest.requireActual('react-redux');
+  return {
+    ...actualReactRedux,
+    useSelector: (...args: unknown[]) => mockUseSelector(...args),
+  };
+});
+
+jest.mock('../../selectors/featureFlags', () => ({
+  selectPredictHotTabFlag: jest.fn(),
+}));
+
+jest.mock('../../../../hooks/useDebouncedValue', () => ({
+  useDebouncedValue: jest.fn(),
+}));
+
+import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
+
+const mockUseDebouncedValue = useDebouncedValue as jest.Mock;
 
 jest.mock('../../hooks/useFeedScrollManager', () => ({
   useFeedScrollManager: jest.fn(),
@@ -208,17 +230,22 @@ describe('PredictFeed', () => {
         entryPoint: 'homepage_new_prediction',
       },
     });
-    mockUseFocusEffect.mockImplementation((callback: () => void) => callback());
+    mockUseFocusEffect.mockImplementation(() => undefined);
     mockGetInstance.mockReturnValue(mockSessionManager);
+    mockUseSelector.mockReturnValue({
+      enabled: false,
+      queryParams: undefined,
+    });
     mockUseFeedScrollManager.mockReturnValue({
       headerTranslateY: { value: 0 },
       headerHidden: false,
       headerHeight: 100,
       tabBarHeight: 48,
       layoutReady: true,
-      activeIndex: 0,
-      setActiveIndex: jest.fn(),
+      onTabSwitch: jest.fn(),
       scrollHandler: jest.fn(),
+      onHeaderLayout: jest.fn(),
+      onTabBarLayout: jest.fn(),
     });
     mockUsePredictMarketData.mockReturnValue({
       marketData: [
@@ -232,6 +259,7 @@ describe('PredictFeed', () => {
       refetch: jest.fn(),
       fetchMore: jest.fn(),
     });
+    mockUseDebouncedValue.mockImplementation((value: string) => value);
   });
 
   afterEach(() => {
@@ -281,10 +309,11 @@ describe('PredictFeed', () => {
   });
 
   describe('tab navigation', () => {
-    it('renders all five category tabs', () => {
+    it('renders all six category tabs', () => {
       const { getByTestId } = render(<PredictFeed />);
 
       expect(getByTestId('tab-trending')).toBeOnTheScreen();
+      expect(getByTestId('tab-ending-soon')).toBeOnTheScreen();
       expect(getByTestId('tab-new')).toBeOnTheScreen();
       expect(getByTestId('tab-sports')).toBeOnTheScreen();
       expect(getByTestId('tab-crypto')).toBeOnTheScreen();
@@ -322,6 +351,11 @@ describe('PredictFeed', () => {
 
     it('tracks page view on screen focus', () => {
       render(<PredictFeed />);
+
+      const focusCallbacks = mockUseFocusEffect.mock.calls.map(
+        (call) => call[0],
+      );
+      focusCallbacks.forEach((cb) => cb?.());
 
       expect(mockSessionManager.trackPageView).toHaveBeenCalled();
     });
@@ -443,22 +477,27 @@ describe('PredictFeed', () => {
       fireEvent.changeText(searchInput, 'test query');
       fireEvent.press(getByTestId('clear-button'));
 
-      expect(queryByTestId('predict-search-result-0')).toBeNull();
+      // After clearing search, the clear button should no longer be visible
+      // (only shows when searchQuery.length > 0)
+      expect(queryByTestId('clear-button')).not.toBeOnTheScreen();
+      // Trending results visible when no search query is empty
+      expect(getByTestId('predict-search-result-0')).toBeOnTheScreen();
     });
   });
 
   describe('pager view interactions', () => {
     it('updates active index and tracks analytics when page changes via swipe', () => {
-      const mockSetActiveIndex = jest.fn();
+      const mockOnTabSwitch = jest.fn();
       mockUseFeedScrollManager.mockReturnValue({
         headerTranslateY: { value: 0 },
         headerHidden: false,
         headerHeight: 100,
         tabBarHeight: 48,
         layoutReady: true,
-        activeIndex: 0,
-        setActiveIndex: mockSetActiveIndex,
+        onTabSwitch: mockOnTabSwitch,
         scrollHandler: jest.fn(),
+        onHeaderLayout: jest.fn(),
+        onTabBarLayout: jest.fn(),
       });
 
       const { getByTestId } = render(<PredictFeed />);
@@ -466,8 +505,10 @@ describe('PredictFeed', () => {
 
       fireEvent(page1, 'onTouchEnd');
 
-      expect(mockSetActiveIndex).toHaveBeenCalledWith(1);
-      expect(mockSessionManager.trackTabChange).toHaveBeenCalledWith('new');
+      expect(mockOnTabSwitch).toHaveBeenCalledWith(1);
+      expect(mockSessionManager.trackTabChange).toHaveBeenCalledWith(
+        'ending-soon',
+      );
     });
   });
 
@@ -479,9 +520,10 @@ describe('PredictFeed', () => {
         headerHeight: 100,
         tabBarHeight: 48,
         layoutReady: false,
-        activeIndex: 0,
-        setActiveIndex: jest.fn(),
+        onTabSwitch: jest.fn(),
         scrollHandler: jest.fn(),
+        onHeaderLayout: jest.fn(),
+        onTabBarLayout: jest.fn(),
       });
 
       const { queryByTestId } = render(<PredictFeed />);
@@ -599,6 +641,235 @@ describe('PredictFeed', () => {
         undefined,
         'trending',
       );
+    });
+  });
+
+  describe('search debounce behavior', () => {
+    it('passes debounced search query to usePredictMarketData', () => {
+      mockUseDebouncedValue.mockReturnValue('debounced-query');
+      const { getByTestId, getByPlaceholderText } = render(<PredictFeed />);
+
+      fireEvent.press(getByTestId('predict-search-button'));
+      const searchInput = getByPlaceholderText('Search prediction markets');
+      fireEvent.changeText(searchInput, 'bitcoin');
+
+      const searchCalls = mockUsePredictMarketData.mock.calls.filter(
+        (call: [{ q?: string }]) => call[0].q !== undefined,
+      );
+      expect(searchCalls[searchCalls.length - 1][0].q).toBe('debounced-query');
+    });
+
+    it('displays skeleton loaders when debouncing search input', () => {
+      mockUseDebouncedValue.mockReturnValue('');
+      mockUsePredictMarketData.mockReturnValue({
+        marketData: [],
+        isFetching: false,
+        isFetchingMore: false,
+        error: null,
+        hasMore: false,
+        refetch: jest.fn(),
+        fetchMore: jest.fn(),
+      });
+      const { getByTestId, getByPlaceholderText } = render(<PredictFeed />);
+
+      fireEvent.press(getByTestId('predict-search-button'));
+      const searchInput = getByPlaceholderText('Search prediction markets');
+      fireEvent.changeText(searchInput, 'bitcoin');
+
+      expect(getByTestId('search-skeleton-1')).toBeOnTheScreen();
+    });
+
+    it('displays search results after debounce completes', () => {
+      mockUseDebouncedValue.mockReturnValue('bitcoin');
+      mockUsePredictMarketData.mockReturnValue({
+        marketData: [
+          { id: '1', title: 'Bitcoin Market 1' },
+          { id: '2', title: 'Bitcoin Market 2' },
+        ],
+        isFetching: false,
+        isFetchingMore: false,
+        error: null,
+        hasMore: false,
+        refetch: jest.fn(),
+        fetchMore: jest.fn(),
+      });
+      const { getByTestId, getByPlaceholderText } = render(<PredictFeed />);
+
+      fireEvent.press(getByTestId('predict-search-button'));
+      const searchInput = getByPlaceholderText('Search prediction markets');
+      fireEvent.changeText(searchInput, 'bitcoin');
+
+      expect(getByTestId('predict-search-result-0')).toBeOnTheScreen();
+      expect(getByTestId('predict-search-result-1')).toBeOnTheScreen();
+    });
+
+    it('invokes useDebouncedValue with 200ms delay', () => {
+      const { getByTestId, getByPlaceholderText } = render(<PredictFeed />);
+
+      fireEvent.press(getByTestId('predict-search-button'));
+      const searchInput = getByPlaceholderText('Search prediction markets');
+      fireEvent.changeText(searchInput, 'test');
+
+      expect(mockUseDebouncedValue).toHaveBeenCalledWith('test', 200);
+    });
+  });
+
+  describe('hot tab feature flag', () => {
+    it('renders Hot tab first when flag is enabled', () => {
+      mockUseSelector.mockReturnValue({
+        enabled: true,
+        queryParams: 'tag_id=149&order=volume24hr',
+      });
+
+      const { getByTestId } = render(<PredictFeed />);
+
+      expect(getByTestId('tab-hot')).toBeOnTheScreen();
+      expect(getByTestId('tab-trending')).toBeOnTheScreen();
+    });
+
+    it('does not render Hot tab when flag is disabled', () => {
+      mockUseSelector.mockReturnValue({
+        enabled: false,
+        queryParams: undefined,
+      });
+
+      const { queryByTestId, getByTestId } = render(<PredictFeed />);
+
+      expect(queryByTestId('tab-hot')).toBeNull();
+      expect(getByTestId('tab-trending')).toBeOnTheScreen();
+    });
+
+    it('renders seven category tabs when hot tab is enabled', () => {
+      mockUseSelector.mockReturnValue({
+        enabled: true,
+        queryParams: 'tag_id=149',
+      });
+
+      const { getByTestId } = render(<PredictFeed />);
+
+      expect(getByTestId('tab-hot')).toBeOnTheScreen();
+      expect(getByTestId('tab-trending')).toBeOnTheScreen();
+      expect(getByTestId('tab-ending-soon')).toBeOnTheScreen();
+      expect(getByTestId('tab-new')).toBeOnTheScreen();
+      expect(getByTestId('tab-sports')).toBeOnTheScreen();
+      expect(getByTestId('tab-crypto')).toBeOnTheScreen();
+      expect(getByTestId('tab-politics')).toBeOnTheScreen();
+    });
+
+    it('renders seven pager pages when hot tab is enabled', () => {
+      mockUseSelector.mockReturnValue({
+        enabled: true,
+        queryParams: 'tag_id=149&tag_id=100995&order=volume24hr',
+      });
+
+      const { getByTestId } = render(<PredictFeed />);
+
+      expect(getByTestId('pager-page-0')).toBeOnTheScreen();
+      expect(getByTestId('pager-page-1')).toBeOnTheScreen();
+      expect(getByTestId('pager-page-2')).toBeOnTheScreen();
+      expect(getByTestId('pager-page-3')).toBeOnTheScreen();
+      expect(getByTestId('pager-page-4')).toBeOnTheScreen();
+      expect(getByTestId('pager-page-5')).toBeOnTheScreen();
+      expect(getByTestId('pager-page-6')).toBeOnTheScreen();
+    });
+
+    it('tracks tab change for hot tab when swiped to', () => {
+      mockUseSelector.mockReturnValue({
+        enabled: true,
+        queryParams: 'tag_id=149',
+      });
+
+      const mockOnTabSwitch = jest.fn();
+      mockUseFeedScrollManager.mockReturnValue({
+        headerTranslateY: { value: 0 },
+        headerHidden: false,
+        headerHeight: 100,
+        tabBarHeight: 48,
+        layoutReady: true,
+        onTabSwitch: mockOnTabSwitch,
+        scrollHandler: jest.fn(),
+        onHeaderLayout: jest.fn(),
+        onTabBarLayout: jest.fn(),
+      });
+
+      const { getByTestId } = render(<PredictFeed />);
+      const hotTabPage = getByTestId('pager-page-0');
+
+      fireEvent(hotTabPage, 'onTouchEnd');
+
+      expect(mockOnTabSwitch).toHaveBeenCalledWith(0);
+      expect(mockSessionManager.trackTabChange).toHaveBeenCalledWith('hot');
+    });
+
+    it('starts session with hot as initial tab when requested via deeplink', () => {
+      mockUseSelector.mockReturnValue({
+        enabled: true,
+        queryParams: 'tag_id=149',
+      });
+      mockUseRoute.mockReturnValue({
+        params: {
+          entryPoint: 'homepage_new_prediction',
+          tab: 'hot',
+        },
+      });
+
+      render(<PredictFeed />);
+
+      expect(mockSessionManager.startSession).toHaveBeenCalledWith(
+        'homepage_new_prediction',
+        'hot',
+      );
+    });
+  });
+
+  describe('query deeplink parameter', () => {
+    it.each([['bitcoin'], ['ethereum'], ['solana']])(
+      'opens search overlay when query param "%s" is provided in route params',
+      (query) => {
+        mockUseRoute.mockReturnValue({
+          params: {
+            entryPoint: 'deeplink',
+            query,
+          },
+        });
+
+        const { getByTestId } = render(<PredictFeed />);
+
+        expect(getByTestId('search-icon')).toBeOnTheScreen();
+      },
+    );
+
+    it.each([['bitcoin'], ['ethereum']])(
+      'pre-fills search input with query "%s" from route params',
+      (query) => {
+        mockUseRoute.mockReturnValue({
+          params: {
+            entryPoint: 'deeplink',
+            query,
+          },
+        });
+
+        const { getByPlaceholderText } = render(<PredictFeed />);
+
+        const searchInput = getByPlaceholderText('Search prediction markets');
+        expect(searchInput.props.value).toBe(query);
+      },
+    );
+
+    it('closes search overlay when cancel is pressed', () => {
+      mockUseRoute.mockReturnValue({
+        params: {
+          entryPoint: 'deeplink',
+          query: 'bitcoin',
+        },
+      });
+
+      const { getByText, getByTestId, queryByTestId } = render(<PredictFeed />);
+
+      expect(getByTestId('search-icon')).toBeOnTheScreen();
+
+      fireEvent.press(getByText('Cancel'));
+      expect(queryByTestId('search-icon')).toBeNull();
     });
   });
 });

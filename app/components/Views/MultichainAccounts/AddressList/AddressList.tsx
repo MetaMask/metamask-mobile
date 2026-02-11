@@ -1,16 +1,17 @@
-import React, { useCallback, useLayoutEffect } from 'react';
+import React, { useCallback, useContext, useLayoutEffect } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { FlashList } from '@shopify/flash-list';
 
 import { useStyles } from '../../../hooks/useStyles';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { selectInternalAccountListSpreadByScopesByGroupId } from '../../../../selectors/multichainAccounts/accounts';
 import { IconName } from '@metamask/design-system-react-native';
 import MultichainAddressRow, {
   MULTICHAIN_ADDRESS_ROW_QR_BUTTON_TEST_ID,
 } from '../../../../component-library/components-temp/MultichainAccounts/MultichainAddressRow';
-import { AddressListIds } from '../../../../../e2e/selectors/MultichainAccounts/AddressList.selectors';
+import { AddressListIds } from './AddressList.testIds';
 import {
   useParams,
   createNavigationDetails,
@@ -20,8 +21,10 @@ import Routes from '../../../../constants/navigation/Routes';
 import styleSheet from './styles';
 import type { AddressListProps, AddressItem } from './types';
 import ClipboardManager from '../../../../core/ClipboardManager';
+import getHeaderCompactStandardNavbarOptions from '../../../../component-library/components-temp/HeaderCompactStandard/getHeaderCompactStandardNavbarOptions';
+import { ToastContext } from '../../../../component-library/components/Toast';
 import { strings } from '../../../../../locales/i18n';
-import getHeaderCenterNavbarOptions from '../../../../component-library/components-temp/HeaderCenter/getHeaderCenterNavbarOptions';
+import { EVENT_NAME } from '../../../../core/Analytics/MetaMetrics.events';
 
 export const createAddressListNavigationDetails =
   createNavigationDetails<AddressListProps>(
@@ -36,6 +39,8 @@ export const createAddressListNavigationDetails =
 export const AddressList = () => {
   const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
+  const { toastRef } = useContext(ToastContext);
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const { groupId, title, onLoad } = useParams<AddressListProps>();
 
@@ -49,6 +54,15 @@ export const AddressList = () => {
     ({ item }: { item: AddressItem }) => {
       const copyAddressToClipboard = async () => {
         await ClipboardManager.setString(item.account.address);
+
+        trackEvent(
+          createEventBuilder(EVENT_NAME.ADDRESS_COPIED)
+            .addProperties({
+              location: 'address-list',
+              chain_id_caip: item.scope,
+            })
+            .build(),
+        );
       };
       return (
         <MultichainAddressRow
@@ -56,8 +70,9 @@ export const AddressList = () => {
           networkName={item.networkName}
           address={item.account.address}
           copyParams={{
-            successMessage: strings('multichain_accounts.address_list.copied'),
+            toastMessage: strings('multichain_accounts.address_list.copied'),
             callback: copyAddressToClipboard,
+            toastRef,
           }}
           icons={[
             {
@@ -83,13 +98,13 @@ export const AddressList = () => {
         />
       );
     },
-    [navigation, groupId],
+    [navigation, groupId, toastRef, trackEvent, createEventBuilder],
   );
 
   useLayoutEffect(() => {
     if (title) {
       navigation.setOptions({
-        ...getHeaderCenterNavbarOptions({
+        ...getHeaderCompactStandardNavbarOptions({
           title,
           onBack: () => navigation.goBack(),
           backButtonProps: { testID: AddressListIds.GO_BACK },

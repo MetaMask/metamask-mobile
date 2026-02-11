@@ -1,5 +1,5 @@
 import { RegexTypes } from './index.types';
-import { AccountListBottomSheetSelectorsIDs } from '../../../e2e/selectors/wallet/AccountListBottomSheet.selectors';
+import { AccountListBottomSheetSelectorsIDs } from '../../components/Views/AccountSelector/AccountListBottomSheet.testIds';
 
 export function hasDecimals(separator: string, decimalPlaces: string) {
   return new RegExp(`^\\d+\\${separator}\\d{${decimalPlaces}}$`, 'g');

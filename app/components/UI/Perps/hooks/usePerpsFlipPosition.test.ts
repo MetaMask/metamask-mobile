@@ -1,6 +1,6 @@
 import { renderHook, act } from '@testing-library/react-native';
 import { usePerpsFlipPosition } from './usePerpsFlipPosition';
-import type { Position } from '../controllers/types';
+import { type Position } from '@metamask/perps-controller';
 
 const mockFlipPosition = jest.fn();
 const mockShowToast = jest.fn();
@@ -50,13 +50,14 @@ jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
   },
 }));
 
-jest.mock('../utils/marketUtils', () => ({
+jest.mock('@metamask/perps-controller', () => ({
+  ...jest.requireActual('@metamask/perps-controller'),
   getPerpsDisplaySymbol: jest.fn((symbol) => symbol),
 }));
 
 describe('usePerpsFlipPosition', () => {
   const mockLongPosition: Position = {
-    coin: 'ETH',
+    symbol: 'ETH',
     size: '2.5',
     marginUsed: '500',
     entryPrice: '2000',
@@ -126,7 +127,7 @@ describe('usePerpsFlipPosition', () => {
     });
 
     expect(mockFlipPosition).toHaveBeenCalledWith({
-      coin: 'ETH',
+      symbol: 'ETH',
       position: mockLongPosition,
     });
   });
@@ -141,7 +142,7 @@ describe('usePerpsFlipPosition', () => {
     });
 
     expect(mockFlipPosition).toHaveBeenCalledWith({
-      coin: 'ETH',
+      symbol: 'ETH',
       position: mockShortPosition,
     });
   });
@@ -218,7 +219,7 @@ describe('usePerpsFlipPosition', () => {
         }),
         extra: expect.objectContaining({
           positionContext: expect.objectContaining({
-            coin: 'ETH',
+            symbol: 'ETH',
             size: '2.5',
           }),
         }),

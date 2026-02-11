@@ -1,9 +1,8 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react-native';
-import { PerpsPositionCardSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
-import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
+import { PerpsPositionCardSelectorsIDs } from '../../Perps.testIds';
+import { PERPS_CONSTANTS, type Position } from '@metamask/perps-controller';
 import PerpsPositionCard from './PerpsPositionCard';
-import type { Position } from '../../controllers/types';
 
 jest.mock('@react-navigation/native', () => ({
   useFocusEffect: jest.fn(),
@@ -173,7 +172,7 @@ jest.mock('../PerpsBottomSheetTooltip/PerpsBottomSheetTooltip', () => ({
 
 describe('PerpsPositionCard', () => {
   const mockPosition: Position = {
-    coin: 'ETH',
+    symbol: 'ETH',
     size: '2.5',
     entryPrice: '2000.00',
     positionValue: '5000.00',
@@ -237,7 +236,7 @@ describe('PerpsPositionCard', () => {
     const { usePerpsLivePrices } = jest.requireMock('../../hooks');
     usePerpsLivePrices.mockReturnValue({
       ETH: {
-        coin: 'ETH',
+        symbol: 'ETH',
         price: '2100.50',
         timestamp: Date.now(),
         percentChange24h: '2.5',
@@ -382,7 +381,7 @@ describe('PerpsPositionCard', () => {
 
       // Assert - Displays standardized price fallback
       expect(
-        screen.getByText(PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY),
+        screen.getByText(PERPS_CONSTANTS.FallbackPriceDisplay),
       ).toBeOnTheScreen();
     });
   });
@@ -392,7 +391,7 @@ describe('PerpsPositionCard', () => {
       // Arrange
       const btcPosition = {
         ...mockPosition,
-        coin: 'BTC',
+        symbol: 'BTC',
         size: '0.5',
       };
 
@@ -431,7 +430,7 @@ describe('PerpsPositionCard', () => {
 
       // Assert - Empty string gets parsed as NaN and displays fallback
       expect(
-        screen.getByText(PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY),
+        screen.getByText(PERPS_CONSTANTS.FallbackPriceDisplay),
       ).toBeOnTheScreen();
     });
   });

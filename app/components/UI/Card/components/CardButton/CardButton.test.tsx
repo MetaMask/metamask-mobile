@@ -3,7 +3,7 @@ import { fireEvent } from '@testing-library/react-native';
 import CardButton from './CardButton';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
-import { WalletViewSelectorsIDs } from '../../../../../../e2e/selectors/wallet/WalletView.selectors';
+import { WalletViewSelectorsIDs } from '../../../../Views/Wallet/WalletView.testIds';
 
 jest.mock('../../../../hooks/useMetrics', () => {
   const actual = jest.requireActual('../../../../hooks/useMetrics');

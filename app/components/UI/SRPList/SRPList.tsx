@@ -6,7 +6,7 @@ import { SRPListProps } from './SRPList.types';
 import { useStyles } from '../../hooks/useStyles';
 import styleSheet from './SRPList.styles';
 import SRPListItem from '../SRPListItem';
-import { SRPListSelectorsIDs } from '../../../../e2e/selectors/MultiSRP/SRPList.selectors';
+import { SRPListSelectorsIDs } from './SRPList.testIds';
 import { useHdKeyringsWithSnapAccounts } from '../../hooks/useHdKeyringsWithSnapAccounts';
 import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
 import useMetrics from '../../hooks/useMetrics/useMetrics';

@@ -21,7 +21,10 @@ import { getDecimalChainId } from '../../../../../util/networks';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { useStyles } from '../../../../hooks/useStyles';
 import { TokenI } from '../../../Tokens/types';
-import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
+import {
+  EVENT_LOCATIONS,
+  EVENT_PROVIDERS,
+} from '../../constants/events/earnEvents';
 import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
 import { parseFloatSafe } from '../../utils/number';
 import styleSheet from './EmptyStateCta.styles';
@@ -30,6 +33,7 @@ import { selectNetworkConfigurationByChainId } from '../../../../../selectors/ne
 import { Hex } from '@metamask/utils';
 import Engine from '../../../../../core/Engine';
 import { trace, TraceName } from '../../../../../util/trace';
+import useStakingEligibility from '../../../Stake/hooks/useStakingEligibility';
 
 interface EarnEmptyStateCta {
   token: TokenI;
@@ -55,6 +59,8 @@ const EarnEmptyStateCta = ({ token }: EarnEmptyStateCta) => {
   const earnToken = useSelector((state: RootState) =>
     earnSelectors.selectEarnToken(state, token),
   );
+
+  const { isEligible } = useStakingEligibility();
 
   const estimatedAnnualRewardsFormatted = parseFloatSafe(
     earnToken?.experience?.estimatedAnnualRewardsFormatted ?? '0',
@@ -122,7 +128,8 @@ const EarnEmptyStateCta = ({ token }: EarnEmptyStateCta) => {
     });
   };
 
-  if (!token || _.isEmpty(token) || !isStablecoinLendingEnabled) return <></>;
+  if (!isEligible || !token || _.isEmpty(token) || !isStablecoinLendingEnabled)
+    return null;
 
   return (
     <View style={styles.container} testID={EARN_EMPTY_STATE_CTA_TEST_ID}>

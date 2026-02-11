@@ -22,7 +22,7 @@ jobs:
         with:
           repo: ${{ github.repository }}
           paths_ignored: |
-            e2e/
+            tests/
             docs/
             .storybook/
             '**/*.test.js'

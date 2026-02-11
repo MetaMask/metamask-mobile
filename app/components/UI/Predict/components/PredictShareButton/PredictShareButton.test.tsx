@@ -4,9 +4,19 @@ import { act, fireEvent, screen } from '@testing-library/react-native';
 import PredictShareButton from './PredictShareButton';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { ToastContext } from '../../../../../component-library/components/Toast';
-import { PredictMarketDetailsSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
+import { PredictMarketDetailsSelectorsIDs } from '../../Predict.testIds';
+import { PredictShareStatus } from '../../constants/eventNames';
 
-// Mock i18n strings
+const mockTrackShareAction = jest.fn();
+
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    PredictController: {
+      trackShareAction: (...args: unknown[]) => mockTrackShareAction(...args),
+    },
+  },
+}));
+
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
 }));
@@ -28,16 +38,17 @@ const ToastWrapper = ({ children }: { children: React.ReactNode }) =>
     children,
   );
 
-const renderShareButton = (marketId?: string) =>
+const renderShareButton = (marketId?: string, marketSlug?: string) =>
   renderWithProvider(
     <ToastWrapper>
-      <PredictShareButton marketId={marketId} />
+      <PredictShareButton marketId={marketId} marketSlug={marketSlug} />
     </ToastWrapper>,
   );
 
 describe('PredictShareButton', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockTrackShareAction.mockClear();
   });
 
   afterEach(() => {
@@ -267,7 +278,6 @@ describe('PredictShareButton', () => {
         activityType: 'com.apple.UIKit.activity.CopyToPasteboard',
       });
 
-      // Render with null toastRef
       const NullToastWrapper = ({ children }: { children: React.ReactNode }) =>
         React.createElement(
           ToastContext.Provider,
@@ -285,12 +295,141 @@ describe('PredictShareButton', () => {
         PredictMarketDetailsSelectorsIDs.SHARE_BUTTON,
       );
 
-      // Should not throw even when toastRef.current is null
       await act(async () => {
         await fireEvent.press(button);
       });
 
       expect(Share.share).toHaveBeenCalled();
+    });
+  });
+
+  describe('Analytics Tracking', () => {
+    it('tracks initiated event when share button is pressed', async () => {
+      jest.spyOn(Share, 'share').mockResolvedValue({
+        action: Share.dismissedAction,
+      });
+      renderShareButton('market-123', 'market-slug-123');
+
+      const button = screen.getByTestId(
+        PredictMarketDetailsSelectorsIDs.SHARE_BUTTON,
+      );
+
+      await act(async () => {
+        await fireEvent.press(button);
+      });
+
+      expect(mockTrackShareAction).toHaveBeenCalledWith({
+        status: PredictShareStatus.INITIATED,
+        marketId: 'market-123',
+        marketSlug: 'market-slug-123',
+      });
+    });
+
+    it('tracks success event when share completes', async () => {
+      jest.spyOn(Share, 'share').mockResolvedValue({
+        action: Share.sharedAction,
+        activityType: 'com.apple.UIKit.activity.AirDrop',
+      });
+      renderShareButton('market-123', 'market-slug-123');
+
+      const button = screen.getByTestId(
+        PredictMarketDetailsSelectorsIDs.SHARE_BUTTON,
+      );
+
+      await act(async () => {
+        await fireEvent.press(button);
+      });
+
+      expect(mockTrackShareAction).toHaveBeenCalledTimes(2);
+      expect(mockTrackShareAction).toHaveBeenNthCalledWith(1, {
+        status: PredictShareStatus.INITIATED,
+        marketId: 'market-123',
+        marketSlug: 'market-slug-123',
+      });
+      expect(mockTrackShareAction).toHaveBeenNthCalledWith(2, {
+        status: PredictShareStatus.SUCCESS,
+        marketId: 'market-123',
+        marketSlug: 'market-slug-123',
+      });
+    });
+
+    it('tracks failed event when share throws an error', async () => {
+      jest.spyOn(Share, 'share').mockRejectedValue(new Error('Share failed'));
+      renderShareButton('market-123', 'market-slug-123');
+
+      const button = screen.getByTestId(
+        PredictMarketDetailsSelectorsIDs.SHARE_BUTTON,
+      );
+
+      await act(async () => {
+        await fireEvent.press(button);
+      });
+
+      expect(mockTrackShareAction).toHaveBeenCalledTimes(2);
+      expect(mockTrackShareAction).toHaveBeenNthCalledWith(1, {
+        status: PredictShareStatus.INITIATED,
+        marketId: 'market-123',
+        marketSlug: 'market-slug-123',
+      });
+      expect(mockTrackShareAction).toHaveBeenNthCalledWith(2, {
+        status: PredictShareStatus.FAILED,
+        marketId: 'market-123',
+        marketSlug: 'market-slug-123',
+      });
+    });
+
+    it('tracks analytics with undefined marketSlug when not provided', async () => {
+      jest.spyOn(Share, 'share').mockResolvedValue({
+        action: Share.sharedAction,
+      });
+      renderShareButton('market-123');
+
+      const button = screen.getByTestId(
+        PredictMarketDetailsSelectorsIDs.SHARE_BUTTON,
+      );
+
+      await act(async () => {
+        await fireEvent.press(button);
+      });
+
+      expect(mockTrackShareAction).toHaveBeenCalledTimes(2);
+      expect(mockTrackShareAction).toHaveBeenNthCalledWith(1, {
+        status: PredictShareStatus.INITIATED,
+        marketId: 'market-123',
+        marketSlug: undefined,
+      });
+      expect(mockTrackShareAction).toHaveBeenNthCalledWith(2, {
+        status: PredictShareStatus.SUCCESS,
+        marketId: 'market-123',
+        marketSlug: undefined,
+      });
+    });
+
+    it('tracks failed event when share is dismissed', async () => {
+      jest.spyOn(Share, 'share').mockResolvedValue({
+        action: Share.dismissedAction,
+      });
+      renderShareButton('market-123', 'market-slug-123');
+
+      const button = screen.getByTestId(
+        PredictMarketDetailsSelectorsIDs.SHARE_BUTTON,
+      );
+
+      await act(async () => {
+        await fireEvent.press(button);
+      });
+
+      expect(mockTrackShareAction).toHaveBeenCalledTimes(2);
+      expect(mockTrackShareAction).toHaveBeenNthCalledWith(1, {
+        status: PredictShareStatus.INITIATED,
+        marketId: 'market-123',
+        marketSlug: 'market-slug-123',
+      });
+      expect(mockTrackShareAction).toHaveBeenNthCalledWith(2, {
+        status: PredictShareStatus.FAILED,
+        marketId: 'market-123',
+        marketSlug: 'market-slug-123',
+      });
     });
   });
 });

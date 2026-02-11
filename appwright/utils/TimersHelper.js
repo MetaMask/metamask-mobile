@@ -1,5 +1,5 @@
 import Timers from './Timers';
-import AppwrightSelectors from '../../e2e/framework/AppwrightSelectors';
+import AppwrightSelectors from '../../tests/framework/AppwrightSelectors';
 
 const THRESHOLD_MARGIN = 0.1; // 10% margin
 

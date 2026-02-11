@@ -12,10 +12,10 @@ import MultichainAccountConnect from './MultichainAccountConnect';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import { RootState } from '../../../../reducers';
 import Engine from '../../../../core/Engine';
-import { CommonSelectorsIDs } from '../../../../../e2e/selectors/Common.selectors';
-import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
-import { AccountListBottomSheetSelectorsIDs } from '../../../../../e2e/selectors/wallet/AccountListBottomSheet.selectors';
-import { ConnectAccountBottomSheetSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectAccountBottomSheet.selectors';
+import { CommonSelectorsIDs } from '../../../../util/Common.testIds';
+import { ConnectedAccountsSelectorsIDs } from '../../AccountConnect/ConnectedAccountModal.testIds';
+import { AccountListBottomSheetSelectorsIDs } from '../../AccountSelector/AccountListBottomSheet.testIds';
+import { ConnectAccountBottomSheetSelectorsIDs } from '../../AccountConnect/ConnectAccountBottomSheet.testIds';
 import {
   createMockAccountsControllerState,
   createMockUuidFromAddress,
@@ -166,7 +166,6 @@ const { isUUID: mockIsUUID } = jest.requireMock(
 
 jest.mock('../../../../util/phishingDetection', () => ({
   getPhishingTestResultAsync: jest.fn().mockResolvedValue({ result: false }),
-  isProductSafetyDappScanningEnabled: jest.fn().mockReturnValue(false),
 }));
 
 jest.mock('../../../../util/metrics', () => ({

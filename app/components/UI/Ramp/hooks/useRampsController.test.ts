@@ -1,0 +1,142 @@
+import { renderHook } from '@testing-library/react-native';
+import { Provider } from 'react-redux';
+import { configureStore } from '@reduxjs/toolkit';
+import React from 'react';
+import { useRampsController } from './useRampsController';
+import { useRampsProviders } from './useRampsProviders';
+import { useRampsTokens } from './useRampsTokens';
+import { useRampsCountries } from './useRampsCountries';
+import { useRampsPaymentMethods } from './useRampsPaymentMethods';
+
+jest.mock(
+  '../../../../selectors/multichainAccounts/accountTreeController',
+  () => ({
+    ...jest.requireActual(
+      '../../../../selectors/multichainAccounts/accountTreeController',
+    ),
+    selectSelectedAccountGroupWithInternalAccountsAddresses: () => ['0x123'],
+  }),
+);
+
+jest.mock('./useRampsUserRegion', () => ({
+  useRampsUserRegion: jest.fn(() => ({
+    userRegion: null,
+    setUserRegion: jest.fn(),
+  })),
+}));
+
+jest.mock('./useRampsProviders', () => ({
+  useRampsProviders: jest.fn(() => ({
+    providers: [],
+    selectedProvider: null,
+    setSelectedProvider: jest.fn(),
+    isLoading: false,
+    error: null,
+  })),
+}));
+
+jest.mock('./useRampsTokens', () => ({
+  useRampsTokens: jest.fn(() => ({
+    tokens: null,
+    selectedToken: null,
+    setSelectedToken: jest.fn(),
+    isLoading: false,
+    error: null,
+  })),
+}));
+
+jest.mock('./useRampsCountries', () => ({
+  useRampsCountries: jest.fn(() => ({
+    countries: [],
+    isLoading: false,
+    error: null,
+  })),
+}));
+
+jest.mock('./useRampsPaymentMethods', () => ({
+  useRampsPaymentMethods: jest.fn(() => ({
+    paymentMethods: [],
+    selectedPaymentMethod: null,
+    setSelectedPaymentMethod: jest.fn(),
+    isLoading: false,
+    error: null,
+  })),
+}));
+
+const createMockStore = () =>
+  configureStore({
+    reducer: {
+      engine: () => ({
+        backgroundState: {
+          RampsController: {},
+        },
+      }),
+      fiatOrders: () => ({
+        orders: [],
+      }),
+      multichainAccounts: () => ({
+        accountTree: {
+          selectedAccountGroup: {
+            accounts: [{ address: '0x123' }],
+          },
+        },
+      }),
+      network: () => ({
+        selectedNetworkClientId: 'mainnet',
+      }),
+    },
+  });
+
+const wrapper = (store: ReturnType<typeof createMockStore>) =>
+  function Wrapper({ children }: { children: React.ReactNode }) {
+    return React.createElement(Provider, { store } as never, children);
+  };
+
+describe('useRampsController', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('returns all ramps controller functionality', () => {
+    const store = createMockStore();
+    const { result } = renderHook(() => useRampsController(), {
+      wrapper: wrapper(store),
+    });
+
+    expect(result.current).toMatchObject({
+      userRegion: null,
+      selectedProvider: null,
+      providers: [],
+      providersLoading: false,
+      providersError: null,
+      tokens: null,
+      selectedToken: null,
+      tokensLoading: false,
+      tokensError: null,
+      countries: [],
+      countriesLoading: false,
+      countriesError: null,
+      paymentMethods: [],
+      selectedPaymentMethod: null,
+      paymentMethodsLoading: false,
+      paymentMethodsError: null,
+    });
+
+    expect(typeof result.current.setUserRegion).toBe('function');
+    expect(typeof result.current.setSelectedProvider).toBe('function');
+    expect(typeof result.current.setSelectedToken).toBe('function');
+    expect(typeof result.current.setSelectedPaymentMethod).toBe('function');
+  });
+
+  it('calls child hooks', () => {
+    const store = createMockStore();
+    renderHook(() => useRampsController(), {
+      wrapper: wrapper(store),
+    });
+
+    expect(useRampsProviders).toHaveBeenCalled();
+    expect(useRampsTokens).toHaveBeenCalled();
+    expect(useRampsCountries).toHaveBeenCalled();
+    expect(useRampsPaymentMethods).toHaveBeenCalled();
+  });
+});

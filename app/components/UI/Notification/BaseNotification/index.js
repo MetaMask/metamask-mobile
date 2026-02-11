@@ -9,7 +9,7 @@ import IonicIcon from 'react-native-vector-icons/Ionicons';
 import AntIcon from 'react-native-vector-icons/AntDesign';
 import Text from '../../../Base/Text';
 import { useTheme } from '../../../../util/theme';
-import { ToastSelectorsIDs } from '../../../../../e2e/selectors/wallet/ToastModal.selectors';
+import { ToastSelectorsIDs } from '../../../../component-library/components/Toast/ToastModal.testIds';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -130,7 +130,15 @@ const getTitle = (status, { nonce, amount, assetType }) => {
     case 'pending_withdrawal':
       return strings('notifications.pending_withdrawal_title');
     case 'success':
-      return strings('notifications.success_title', { nonce: parseInt(nonce) });
+      if (nonce && !isNaN(parseInt(nonce))) {
+        return strings('notifications.success_title', {
+          nonce: parseInt(nonce),
+        });
+      }
+      // For transactions without nonce (e.g., EIP-7702), show without nonce
+      return strings('notifications.success_title', { nonce: '' })
+        .replace(' # ', ' ')
+        .trim();
     case 'success_deposit':
       return strings('notifications.success_deposit_title');
     case 'success_withdrawal':
@@ -141,7 +149,15 @@ const getTitle = (status, { nonce, amount, assetType }) => {
         assetType,
       });
     case 'speedup':
-      return strings('notifications.speedup_title', { nonce: parseInt(nonce) });
+      if (nonce && !isNaN(parseInt(nonce))) {
+        return strings('notifications.speedup_title', {
+          nonce: parseInt(nonce),
+        });
+      }
+      // For transactions without nonce, show without nonce
+      return strings('notifications.speedup_title', { nonce: '' })
+        .replace(' #', '')
+        .trim();
     case 'received_payment':
       return strings('notifications.received_payment_title');
     case 'cancelled':

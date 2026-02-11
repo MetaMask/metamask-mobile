@@ -22,7 +22,7 @@ export {
 
 // Utilities
 export { default as extractURLParams } from './utils/extractURLParams';
-export type { DeeplinkUrlParams } from './utils/extractURLParams';
+export type { DeeplinkUrlParams } from './types/deepLink.types';
 export { default as parseOriginatorInfo } from './utils/parseOriginatorInfo';
 export {
   hasSignature,

@@ -1,7 +1,7 @@
 /** @type {Detox.DetoxConfig} */
 module.exports = {
   artifacts: {
-    rootDir: "./e2e/artifacts",
+    rootDir: "./tests/artifacts",
     plugins: {
       screenshot: {
         shouldTakeAutomaticSnapshots: true,
@@ -20,10 +20,10 @@ module.exports = {
   testRunner: {
     args: {
       $0: 'jest',
-      config: 'e2e/jest.e2e.config.js',
+      config: 'tests/jest.e2e.detox.config.js',
       // CI only: Force Jest to exit after all tests complete, preventing indefinite hangs
       // from open handles (sockets, timers). Also detect what's keeping Jest open.
-      ...(process.env.CI && {
+      ...({
         forceExit: true,
         detectOpenHandles: true,
       }),
@@ -41,7 +41,7 @@ module.exports = {
       app: process.env.CI ? `ios.${process.env.METAMASK_BUILD_TYPE}.release` : 'ios.debug',
       testRunner: {
         args: {
-          "$0": "node e2e/api-specs/run-api-spec-tests.js",
+          "$0": "node tests/smoke/api-specs/run-api-spec-tests.js",
         },
       },
     },
@@ -96,7 +96,7 @@ module.exports = {
       device: {
         avdName: 'emulator',
       },
-      bootArgs: '-skin 1080x2340 -memory 12288 -cores 8 -gpu swiftshader_indirect -no-audio -no-boot-anim -partition-size 8192 -no-snapshot-save -no-snapshot-load -cache-size 2048 -accel on -wipe-data -read-only',      
+      bootArgs: '-skin 1080x2340 -memory 12288 -cores 8 -gpu swiftshader_indirect -no-audio -no-boot-anim -partition-size 8192 -no-snapshot-save -no-snapshot-load -cache-size 2048 -accel on -wipe-data -read-only',
       forceAdbInstall: true,
       gpuMode: 'swiftshader_indirect',
     },

@@ -250,7 +250,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
                 }
               }
             >
-              Learn more.
+              Learn more
             </Text>
           </Text>
         </View>
@@ -282,7 +282,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
                 }
               }
             >
-              Dismiss "Switch to Smart Account" suggestion
+              Dismiss "Switch to smart account" suggestion
             </Text>
             <View
               style={
@@ -294,7 +294,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
               }
             >
               <RCTSwitch
-                accessibilityLabel="Dismiss "Switch to Smart Account" suggestion"
+                accessibilityLabel="Dismiss "Switch to smart account" suggestion"
                 accessibilityRole="switch"
                 onChange={[Function]}
                 onResponderTerminationRequest={[Function]}
@@ -337,7 +337,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
               }
             }
           >
-            Turn this on to no longer see the "Switch to Smart Account" suggestion on any account. Smart accounts unlocks faster transactions, lower network fees and more flexibility on payment for those.
+            Turn this on to no longer see the "Switch to smart account" suggestion on any account. Smart accounts unlocks faster transactions, lower network fees and more flexibility on payment for those.
           </Text>
         </View>
         <View
@@ -439,7 +439,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
                 }
               }
             >
-              Learn more.
+              Learn more
             </Text>
           </Text>
         </View>

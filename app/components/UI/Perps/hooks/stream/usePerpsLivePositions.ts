@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { usePerpsStream } from '../../providers/PerpsStreamManager';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
-import type { Position, PriceUpdate } from '../../controllers/types';
+import { type Position, type PriceUpdate } from '@metamask/perps-controller';
 import { calculateRoEForPrice } from '../../utils/tpslValidation';
 
 // Stable empty array reference to prevent re-renders
@@ -34,7 +34,7 @@ export function enrichPositionsWithLivePnL(
   }
 
   return positions.map((position) => {
-    const priceUpdate = priceData[position.coin];
+    const priceUpdate = priceData[position.symbol];
     if (!priceUpdate) {
       return position;
     }

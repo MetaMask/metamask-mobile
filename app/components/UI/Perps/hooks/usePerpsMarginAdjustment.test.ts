@@ -53,7 +53,8 @@ jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
   },
 }));
 
-jest.mock('../utils/marketUtils', () => ({
+jest.mock('@metamask/perps-controller', () => ({
+  ...jest.requireActual('@metamask/perps-controller'),
   getPerpsDisplaySymbol: jest.fn((symbol) => symbol),
 }));
 
@@ -111,7 +112,7 @@ describe('usePerpsMarginAdjustment', () => {
       });
 
       expect(mockUpdateMargin).toHaveBeenCalledWith({
-        coin: 'ETH',
+        symbol: 'ETH',
         amount: '100',
       });
     });
@@ -171,7 +172,7 @@ describe('usePerpsMarginAdjustment', () => {
       });
 
       expect(mockUpdateMargin).toHaveBeenCalledWith({
-        coin: 'ETH',
+        symbol: 'ETH',
         amount: '-100',
       });
     });
@@ -258,7 +259,7 @@ describe('usePerpsMarginAdjustment', () => {
           }),
           extra: expect.objectContaining({
             marginContext: expect.objectContaining({
-              coin: 'ETH',
+              symbol: 'ETH',
               amount: 100,
               action: 'add',
             }),

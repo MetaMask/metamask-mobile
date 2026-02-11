@@ -27,10 +27,11 @@ interface ConfirmModalParams {
   description: string;
   icon: IconName;
   confirmAction: ModalAction;
+  onClose?: () => void;
 }
 
 const ConfirmModal = () => {
-  const { title, description, icon, confirmAction } =
+  const { title, description, icon, confirmAction, onClose } =
     useParams<ConfirmModalParams>();
   const sheetRef = useRef<BottomSheetRef>(null);
 
@@ -85,7 +86,7 @@ const ConfirmModal = () => {
   );
 
   return (
-    <BottomSheet ref={sheetRef} testID="confirm-modal">
+    <BottomSheet ref={sheetRef} onClose={onClose} testID="confirm-modal">
       <Box
         flexDirection={BoxFlexDirection.Column}
         alignItems={BoxAlignItems.Center}

@@ -3,7 +3,7 @@ import { NavigationProp } from '@react-navigation/native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import PermissionsManager from './PermissionsManager';
 import { strings } from '../../../../../locales/i18n';
-import { SDKSelectorsIDs } from '../../../../../e2e/selectors/Settings/SDK.selectors';
+import { SDKSelectorsIDs } from '../../SDK/SDK.testIds';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 

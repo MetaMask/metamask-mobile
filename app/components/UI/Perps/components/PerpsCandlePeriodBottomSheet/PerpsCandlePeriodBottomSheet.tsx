@@ -14,17 +14,15 @@ import {
   CandlePeriod,
   TimeDuration,
   CANDLE_PERIODS,
-} from '../../constants/chartConfig';
-import { getPerpsCandlePeriodBottomSheetSelector } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+} from '@metamask/perps-controller';
+import { getPerpsCandlePeriodBottomSheetSelector } from '../../Perps.testIds';
 import { Box } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import styleSheet from './PerpsCandlePeriodBottomSheet.styles';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
-import {
-  PerpsEventProperties,
-  PerpsEventValues,
-} from '../../constants/eventNames';
 
 interface PerpsCandlePeriodBottomSheetProps {
   isVisible: boolean;
@@ -58,12 +56,12 @@ const PerpsCandlePeriodBottomSheet: React.FC<
     if (isVisible) {
       // Track candle periods bottom sheet viewed when it becomes visible
       track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-        [PerpsEventProperties.INTERACTION_TYPE]:
-          PerpsEventValues.INTERACTION_TYPE.CANDLE_PERIOD_VIEWED,
-        [PerpsEventProperties.ASSET]: asset || '',
-        [PerpsEventProperties.CANDLE_PERIOD]: selectedPeriod,
-        [PerpsEventProperties.SOURCE]:
-          PerpsEventValues.SOURCE.PERP_ASSET_SCREEN,
+        [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+          PERPS_EVENT_VALUE.INTERACTION_TYPE.CANDLE_PERIOD_VIEWED,
+        [PERPS_EVENT_PROPERTY.ASSET]: asset || '',
+        [PERPS_EVENT_PROPERTY.CANDLE_PERIOD]: selectedPeriod,
+        [PERPS_EVENT_PROPERTY.SOURCE]:
+          PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
       });
 
       bottomSheetRef.current?.onOpenBottomSheet();
@@ -80,11 +78,11 @@ const PerpsCandlePeriodBottomSheet: React.FC<
           title: strings('perps.chart.time_periods.minutes'),
           periods: CANDLE_PERIODS.filter((period) =>
             [
-              CandlePeriod.ONE_MINUTE,
-              CandlePeriod.THREE_MINUTES,
-              CandlePeriod.FIVE_MINUTES,
-              CandlePeriod.FIFTEEN_MINUTES,
-              CandlePeriod.THIRTY_MINUTES,
+              CandlePeriod.OneMinute,
+              CandlePeriod.ThreeMinutes,
+              CandlePeriod.FiveMinutes,
+              CandlePeriod.FifteenMinutes,
+              CandlePeriod.ThirtyMinutes,
             ].includes(period.value),
           ),
         },
@@ -92,11 +90,11 @@ const PerpsCandlePeriodBottomSheet: React.FC<
           title: strings('perps.chart.time_periods.hours'),
           periods: CANDLE_PERIODS.filter((period) =>
             [
-              CandlePeriod.ONE_HOUR,
-              CandlePeriod.TWO_HOURS,
-              CandlePeriod.FOUR_HOURS,
-              CandlePeriod.EIGHT_HOURS,
-              CandlePeriod.TWELVE_HOURS,
+              CandlePeriod.OneHour,
+              CandlePeriod.TwoHours,
+              CandlePeriod.FourHours,
+              CandlePeriod.EightHours,
+              CandlePeriod.TwelveHours,
             ].includes(period.value),
           ),
         },
@@ -104,9 +102,9 @@ const PerpsCandlePeriodBottomSheet: React.FC<
           title: strings('perps.chart.time_periods.days'),
           periods: CANDLE_PERIODS.filter((period) =>
             [
-              CandlePeriod.ONE_DAY,
-              CandlePeriod.THREE_DAYS, // 2d maps to 3d
-              CandlePeriod.ONE_WEEK, // 7d
+              CandlePeriod.OneDay,
+              CandlePeriod.ThreeDays, // 2d maps to 3d
+              CandlePeriod.OneWeek, // 7d
             ].includes(period.value),
           ),
         },

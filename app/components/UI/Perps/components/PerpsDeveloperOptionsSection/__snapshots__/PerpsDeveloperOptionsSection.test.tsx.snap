@@ -22,7 +22,7 @@ exports[`PerpsDeveloperOptionsSection renders correctly 1`] = `
       }
     }
   >
-    Perps Trading
+    Perps trading
   </Text>
   <View
     style={

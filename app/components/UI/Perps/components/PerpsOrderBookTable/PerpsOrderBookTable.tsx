@@ -11,7 +11,7 @@ import type {
   OrderBookLevel,
 } from '../../hooks/stream/usePerpsLiveOrderBook';
 import styleSheet from './PerpsOrderBookTable.styles';
-import { PerpsOrderBookTableSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PerpsOrderBookTableSelectorsIDs } from '../../Perps.testIds';
 import {
   formatPerpsFiat,
   formatLargeNumber,

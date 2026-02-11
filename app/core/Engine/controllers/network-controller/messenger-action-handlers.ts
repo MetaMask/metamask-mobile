@@ -168,6 +168,7 @@ export function trackRpcEndpointEvent(
       properties,
     )}`,
   );
+
   trackEvent({
     event,
     properties,

@@ -1,6 +1,6 @@
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import React from 'react';
-import { WalletViewSelectorsIDs } from '../../../../../../../e2e/selectors/wallet/WalletView.selectors';
+import { WalletViewSelectorsIDs } from '../../../../../Views/Wallet/WalletView.testIds';
 import Routes from '../../../../../../constants/navigation/Routes';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { MOCK_STAKED_ETH_MAINNET_ASSET } from '../../../../Stake/__mocks__/stakeMockData';

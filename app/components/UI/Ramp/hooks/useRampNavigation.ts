@@ -7,14 +7,17 @@ import {
 } from '../Aggregator/types';
 import { createRampNavigationDetails } from '../Aggregator/routes/utils';
 import { createDepositNavigationDetails } from '../Deposit/routes/utils';
-import { createTokenSelectionNavDetails } from '../components/TokenSelection/TokenSelection';
+import { createTokenSelectionNavDetails } from '../Views/TokenSelection/TokenSelection';
+import { createBuildQuoteNavDetails } from '../Views/BuildQuote';
 import useRampsUnifiedV1Enabled from './useRampsUnifiedV1Enabled';
+import useRampsUnifiedV2Enabled from './useRampsUnifiedV2Enabled';
 import {
   getRampRoutingDecision,
   UnifiedRampRoutingType,
 } from '../../../../reducers/fiatOrders';
 import { createRampUnsupportedModalNavigationDetails } from '../components/RampUnsupportedModal/RampUnsupportedModal';
 import { createEligibilityFailedModalNavigationDetails } from '../components/EligibilityFailedModal/EligibilityFailedModal';
+import { useRampsTokens } from './useRampsTokens';
 
 enum RampMode {
   AGGREGATOR = 'AGGREGATOR',
@@ -33,7 +36,9 @@ enum RampMode {
 export const useRampNavigation = () => {
   const navigation = useNavigation();
   const isRampsUnifiedV1Enabled = useRampsUnifiedV1Enabled();
+  const isRampsUnifiedV2Enabled = useRampsUnifiedV2Enabled();
   const rampRoutingDecision = useSelector(getRampRoutingDecision);
+  const { setSelectedToken } = useRampsTokens();
 
   const goToBuy = useCallback(
     (
@@ -46,7 +51,12 @@ export const useRampNavigation = () => {
       const { mode = RampMode.AGGREGATOR, overrideUnifiedRouting = false } =
         options || {};
 
-      if (isRampsUnifiedV1Enabled && !overrideUnifiedRouting) {
+      const isUnifiedRoutingEnabled =
+        (isRampsUnifiedV1Enabled || isRampsUnifiedV2Enabled) &&
+        !overrideUnifiedRouting;
+
+      // Check error states first (applies to both V1 and V2)
+      if (isUnifiedRoutingEnabled) {
         if (rampRoutingDecision === UnifiedRampRoutingType.ERROR) {
           navigation.navigate(
             ...createEligibilityFailedModalNavigationDetails(),
@@ -58,7 +68,24 @@ export const useRampNavigation = () => {
           navigation.navigate(...createRampUnsupportedModalNavigationDetails());
           return;
         }
+      }
 
+      // V2: If assetId is provided and V2 is enabled, route to BuildQuote
+      if (
+        isRampsUnifiedV2Enabled &&
+        intent?.assetId &&
+        !overrideUnifiedRouting
+      ) {
+        // TODO: Check for provider support for the token and pass params to BuildQuote to show an error modal
+        setSelectedToken(intent.assetId);
+        navigation.navigate(
+          ...createBuildQuoteNavDetails({ assetId: intent.assetId }),
+        );
+        return;
+      }
+
+      // V1 routing logic
+      if (isRampsUnifiedV1Enabled && !overrideUnifiedRouting) {
         // If no assetId is provided, route to TokenSelection
         if (!intent?.assetId) {
           navigation.navigate(...createTokenSelectionNavDetails());
@@ -91,7 +118,13 @@ export const useRampNavigation = () => {
         );
       }
     },
-    [navigation, isRampsUnifiedV1Enabled, rampRoutingDecision],
+    [
+      setSelectedToken,
+      navigation,
+      isRampsUnifiedV1Enabled,
+      isRampsUnifiedV2Enabled,
+      rampRoutingDecision,
+    ],
   );
 
   /**

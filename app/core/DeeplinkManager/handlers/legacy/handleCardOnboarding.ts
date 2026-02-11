@@ -10,28 +10,20 @@ import {
   selectCardGeoLocation,
   setAlwaysShowCardButton,
 } from '../../../redux/slices/card';
-import { MetaMetrics, MetaMetricsEvents } from '../../../Analytics';
-import { MetricsEventBuilder } from '../../../Analytics/MetricsEventBuilder';
 import {
   selectCardExperimentalSwitch,
   selectCardSupportedCountries,
   selectDisplayCardButtonFeatureFlag,
 } from '../../../../selectors/featureFlagController/card';
-import { CardDeeplinkActions } from '../../../../components/UI/Card/util/metrics';
-
-/**
- * Destination screens for card onboarding deeplink
- */
-enum CardDeeplinkDestination {
-  CARD_HOME = 'CARD_HOME',
-  CARD_WELCOME = 'CARD_WELCOME',
-}
 
 /**
  * Card onboarding deeplink handler
  *
  * This handler navigates users to the appropriate Card entry point based on their
  * authentication state and whether they have a card-linked account.
+ *
+ * Analytics tracking is handled at the handleUniversalLink level using the standard
+ * DEEP_LINK_USED event - this handler only handles navigation and business logic.
  *
  * Behavior:
  * - User is logged in or has a card-linked account: Switch to first card-linked account,
@@ -48,16 +40,11 @@ export const handleCardOnboarding = () => {
     '[handleCardOnboarding] Starting card onboarding deeplink handling',
   );
 
-  let isAuthenticated = false;
-  let hasCardLinkedAccount = false;
-  let destination: CardDeeplinkDestination =
-    CardDeeplinkDestination.CARD_WELCOME;
-
   try {
     const state = ReduxService.store.getState();
     const cardholderAccounts = selectCardholderAccounts(state);
-    isAuthenticated = selectIsAuthenticatedCard(state);
-    hasCardLinkedAccount = cardholderAccounts.length > 0;
+    const isAuthenticated = selectIsAuthenticatedCard(state);
+    const hasCardLinkedAccount = cardholderAccounts.length > 0;
     const cardGeoLocation = selectCardGeoLocation(state);
     const isCardExperimentalSwitchEnabled = selectCardExperimentalSwitch(state);
     const displayCardButtonFeatureFlag =
@@ -108,7 +95,6 @@ export const handleCardOnboarding = () => {
         }
       }
 
-      destination = CardDeeplinkDestination.CARD_HOME;
       DevLogger.log('[handleCardOnboarding] Navigating to Card Home');
       setTimeout(() => {
         NavigationService.navigation?.navigate(Routes.CARD.ROOT, {
@@ -124,7 +110,6 @@ export const handleCardOnboarding = () => {
     } else {
       // User is not logged in AND has no card-linked account
       // Navigate to Card Welcome/onboarding screen
-      destination = CardDeeplinkDestination.CARD_WELCOME;
       DevLogger.log(
         '[handleCardOnboarding] Navigating to Card Welcome (onboarding)',
       );
@@ -133,15 +118,8 @@ export const handleCardOnboarding = () => {
       });
     }
 
-    // Track analytics event
-    trackCardOnboardingDeeplinkEvent({
-      isAuthenticated,
-      hasCardLinkedAccount,
-      destination,
-    });
-
     Logger.log(
-      `[handleCardOnboarding] Card onboarding deeplink handled successfully. Destination: ${destination}`,
+      '[handleCardOnboarding] Card onboarding deeplink handled successfully',
     );
   } catch (error) {
     DevLogger.log('[handleCardOnboarding] Failed to handle deeplink:', error);
@@ -151,18 +129,9 @@ export const handleCardOnboarding = () => {
     );
 
     // Fallback: Navigate to Card Welcome screen
-    destination = CardDeeplinkDestination.CARD_WELCOME;
     try {
       NavigationService.navigation?.navigate(Routes.CARD.ROOT, {
         screen: Routes.CARD.WELCOME,
-      });
-
-      // Track error event with fallback destination
-      trackCardOnboardingDeeplinkEvent({
-        isAuthenticated,
-        hasCardLinkedAccount,
-        destination,
-        error: true,
       });
     } catch (navError) {
       Logger.error(
@@ -172,47 +141,3 @@ export const handleCardOnboarding = () => {
     }
   }
 };
-
-/**
- * Track the card onboarding deeplink analytics event
- */
-function trackCardOnboardingDeeplinkEvent({
-  isAuthenticated,
-  hasCardLinkedAccount,
-  destination,
-  error = false,
-}: {
-  isAuthenticated: boolean;
-  hasCardLinkedAccount: boolean;
-  destination: CardDeeplinkDestination;
-  error?: boolean;
-}) {
-  try {
-    const metrics = MetaMetrics.getInstance();
-    const event = MetricsEventBuilder.createEventBuilder(
-      MetaMetricsEvents.CARD_DEEPLINK_HANDLED,
-    )
-      .addProperties({
-        deeplink_type: CardDeeplinkActions.CARD_ONBOARDING,
-        authenticated: isAuthenticated,
-        has_card_linked_account: hasCardLinkedAccount,
-        final_destination: destination,
-        ...(error && { error: true }),
-      })
-      .build();
-
-    metrics.trackEvent(event);
-    DevLogger.log('[handleCardOnboarding] Analytics event tracked:', {
-      deeplink_type: CardDeeplinkActions.CARD_ONBOARDING,
-      authenticated: isAuthenticated,
-      has_card_linked_account: hasCardLinkedAccount,
-      final_destination: destination,
-    });
-  } catch (analyticsError) {
-    // Don't fail the deeplink handling if analytics fails
-    DevLogger.log(
-      '[handleCardOnboarding] Failed to track analytics:',
-      analyticsError,
-    );
-  }
-}

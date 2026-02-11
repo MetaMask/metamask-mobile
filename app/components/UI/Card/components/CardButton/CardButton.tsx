@@ -6,7 +6,7 @@ import {
 } from '@metamask/design-system-react-native';
 
 import React, { useEffect } from 'react';
-import { WalletViewSelectorsIDs } from '../../../../../../e2e/selectors/wallet/WalletView.selectors';
+import { WalletViewSelectorsIDs } from '../../../../Views/Wallet/WalletView.testIds';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 
 interface CardButtonProps {
@@ -33,7 +33,7 @@ const CardButton: React.FC<CardButtonProps> = ({ onPress, touchAreaSlop }) => {
       iconProps={{ color: MMDSIconColor.IconDefault }}
       onPress={onPress}
       iconName={IconName.Card}
-      size={ButtonIconSize.Lg}
+      size={ButtonIconSize.Md}
       testID={WalletViewSelectorsIDs.CARD_BUTTON}
       hitSlop={touchAreaSlop}
     />

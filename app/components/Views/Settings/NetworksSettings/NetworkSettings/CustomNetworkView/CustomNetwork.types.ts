@@ -95,7 +95,18 @@ export interface CustomNetworkProps {
    */
   allowNetworkSwitch?: boolean;
   /**
-   * Use compact UI with icons instead of text
+   * Show "Add"/"Switch" text labels instead of "+" icon
    */
-  compactMode?: boolean;
+  showActionLabels?: boolean;
+  /**
+   * Skip the confirmation modal and add the network directly.
+   * When true, networks from the popular list will be added without showing the confirmation modal.
+   * This improves UX for curated/vetted networks that don't require additional confirmation.
+   */
+  skipConfirmation?: boolean;
+  /**
+   * Callback to directly add a network without showing the confirmation modal.
+   * Used when skipConfirmation is true.
+   */
+  onNetworkAdd?: (networkConfiguration: Network) => Promise<void>;
 }

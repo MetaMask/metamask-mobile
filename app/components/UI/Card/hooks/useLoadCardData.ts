@@ -8,7 +8,7 @@ import useGetCardExternalWalletDetails from './useGetCardExternalWalletDetails';
 import useGetDelegationSettings from './useGetDelegationSettings';
 import useGetLatestAllowanceForPriorityToken from './useGetLatestAllowanceForPriorityToken';
 import useGetUserKYCStatus from './useGetUserKYCStatus';
-import { CardTokenAllowance, CardWarning } from '../types';
+import { CardTokenAllowance, CardStateWarning } from '../types';
 
 /**
  * Hook to load card data.
@@ -106,8 +106,6 @@ const useLoadCardData = () => {
     error: cardDetailsError,
     warning: cardDetailsWarning,
     fetchCardDetails,
-    pollCardStatusUntilProvisioned,
-    isLoadingPollCardStatusUntilProvisioned,
   } = useCardDetails();
 
   // Determine which tokens list to use based on authentication status
@@ -173,7 +171,7 @@ const useLoadCardData = () => {
   // Combined warning (only from priority token and card details)
   // Priority: NoCard warning always takes precedence because the user must provision a card before delegating
   const warning = useMemo(() => {
-    if (cardDetailsWarning === CardWarning.NoCard) {
+    if (cardDetailsWarning === CardStateWarning.NoCard) {
       return cardDetailsWarning;
     }
     return priorityTokenWarning || cardDetailsWarning;
@@ -195,7 +193,7 @@ const useLoadCardData = () => {
           fetchKYCStatus(),
         ]);
       } else {
-        await Promise.all([fetchPriorityToken()]);
+        await fetchPriorityToken();
       }
     },
     [
@@ -205,35 +203,6 @@ const useLoadCardData = () => {
       fetchExternalWalletDetails,
       fetchKYCStatus,
       fetchDelegationSettings,
-    ],
-  );
-
-  // Force refetch function that bypasses cache
-  const refetchAllData = useMemo(
-    () => async () => {
-      if (isAuthenticated) {
-        // First, refetch delegation settings (required for external wallet details)
-        // fetchExternalWalletDetails reads delegation settings from a ref, so it must
-        // run after delegation settings is available to avoid returning null.
-        await fetchDelegationSettings();
-
-        await Promise.all([
-          fetchExternalWalletDetails(),
-          fetchCardDetails(),
-          fetchPriorityToken(),
-          fetchKYCStatus(),
-        ]);
-      } else {
-        await Promise.all([fetchPriorityToken()]);
-      }
-    },
-    [
-      isAuthenticated,
-      fetchDelegationSettings,
-      fetchExternalWalletDetails,
-      fetchCardDetails,
-      fetchPriorityToken,
-      fetchKYCStatus,
     ],
   );
 
@@ -258,12 +227,6 @@ const useLoadCardData = () => {
     isBaanxLoginEnabled,
     // Fetch functions
     fetchAllData,
-    refetchAllData,
-    fetchPriorityToken,
-    fetchCardDetails,
-    // Card provisioning
-    pollCardStatusUntilProvisioned,
-    isLoadingPollCardStatusUntilProvisioned,
   };
 };
 

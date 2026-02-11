@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import { usePerpsTrading } from './usePerpsTrading';
 import { usePerpsConnection } from './usePerpsConnection';
-import type { Position } from '../controllers/types';
+import { type Position } from '@metamask/perps-controller';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 
 interface UsePerpsPositionsOptions {
@@ -93,7 +93,7 @@ export function usePerpsPositions(
         DevLogger.log('usePerpsPositions: Loaded positions', {
           count: validPositions.length,
           positions: validPositions.map((p) => ({
-            coin: p.coin,
+            symbol: p.symbol,
             size: p.size,
             pnl: p.unrealizedPnl,
           })),

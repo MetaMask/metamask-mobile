@@ -3,13 +3,14 @@ import { render, fireEvent } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import CardWelcome from './CardWelcome';
-import { CardWelcomeSelectors } from '../../../../../../e2e/selectors/Card/CardWelcome.selectors';
+import { CardWelcomeSelectors } from './CardWelcome.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 
 // Mocks
 const mockNavigate = jest.fn();
+const mockGoBack = jest.fn();
 const mockTrackEvent = jest.fn();
 const mockBuild = jest.fn();
 const mockAddProperties = jest.fn(() => ({ build: mockBuild }));
@@ -23,6 +24,7 @@ jest.mock('@react-navigation/native', () => {
     ...actual,
     useNavigation: () => ({
       navigate: mockNavigate,
+      goBack: mockGoBack,
     }),
   };
 });
@@ -51,7 +53,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
   },
 }));
 
-jest.mock('../../../../../images/mm-card-welcome.png', () => 1);
+jest.mock('../../../../../images/stacked-cards.png', () => 1);
 
 jest.mock('../../../../../util/theme', () => ({
   useTheme: () => ({ colors: { background: { default: '#fff' } } }),
@@ -70,6 +72,7 @@ describe('CardWelcome', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockNavigate.mockClear();
+    mockGoBack.mockClear();
     mockTrackEvent.mockClear();
     mockCreateEventBuilder.mockClear();
   });
@@ -96,7 +99,7 @@ describe('CardWelcome', () => {
       expect(
         getByTestId(CardWelcomeSelectors.VERIFY_ACCOUNT_BUTTON),
       ).toBeTruthy();
-      expect(getByTestId('predict-gtm-not-now-button')).toBeTruthy();
+      expect(getByTestId(CardWelcomeSelectors.NOT_NOW_BUTTON)).toBeTruthy();
     });
 
     it('displays correct title and description', () => {
@@ -129,7 +132,7 @@ describe('CardWelcome', () => {
   });
 
   describe('Interactions', () => {
-    it('navigates to wallet home when "Not Now" is pressed', () => {
+    it('navigates back when "Not Now" is pressed', () => {
       store = createTestStore();
       const { getByTestId } = render(
         <Provider store={store}>
@@ -137,9 +140,9 @@ describe('CardWelcome', () => {
         </Provider>,
       );
 
-      fireEvent.press(getByTestId('predict-gtm-not-now-button'));
+      fireEvent.press(getByTestId(CardWelcomeSelectors.NOT_NOW_BUTTON));
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
+      expect(mockGoBack).toHaveBeenCalled();
     });
   });
 

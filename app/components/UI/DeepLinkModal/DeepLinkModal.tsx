@@ -1,11 +1,4 @@
-import React, {
-  useCallback,
-  useRef,
-  useEffect,
-  useState,
-  memo,
-  useMemo,
-} from 'react';
+import React, { useCallback, useRef, useState, memo, useMemo } from 'react';
 import {
   View,
   Image,
@@ -30,11 +23,8 @@ import Button, {
   ButtonWidthTypes,
   ButtonSize,
 } from '../../../component-library/components/Buttons/Button';
-import { MetaMetricsEvents, IMetaMetricsEvent } from '../../../core/Analytics';
 import Checkbox from '../../../component-library/components/Checkbox';
 import { ScrollView } from 'react-native-gesture-handler';
-import generateDeviceAnalyticsMetaData from '../../../util/metrics';
-import { useMetrics } from '../../../components/hooks/useMetrics';
 import { Box } from '../../../components/UI/Box/Box';
 import { setDeepLinkModalDisabled } from '../../../actions/settings';
 import BottomSheet, {
@@ -48,11 +38,8 @@ import {
 } from '../../../component-library/components/Icons/Icon';
 import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
 import { pageNotFound, foxLogo } from './constant';
-import {
-  DeepLinkModalLinkType,
-  DeepLinkModalParams,
-  ModalImageProps,
-} from './types';
+import { DeepLinkModalParams, ModalImageProps } from './types';
+import { DeepLinkModalLinkType } from '../../../core/DeeplinkManager/types/deepLink.types';
 
 const ModalImage = memo<ModalImageProps>(({ linkType, styles }) => {
   if (linkType === DeepLinkModalLinkType.INVALID) {
@@ -123,88 +110,53 @@ const DeepLinkModal = () => {
       ? params.pageTitle
       : undefined;
   const { styles } = useStyles(styleSheet, {});
-  const { trackEvent, createEventBuilder } = useMetrics();
   const bottomSheetRef = useRef<BottomSheetRef | null>(null);
   const [isChecked, setIsChecked] = useState(false);
   const dispatch = useDispatch();
 
+  interface ModalConfig {
+    title: string;
+    description: string;
+    checkboxLabel?: string;
+    buttonLabel?: string;
+  }
+
   const LINK_TYPE_MAP = useMemo(
-    (): Record<
-      DeepLinkModalLinkType,
-      {
-        title: string;
-        description: string;
-        checkboxLabel?: string;
-        buttonLabel?: string;
-        event: IMetaMetricsEvent;
-        eventContinue?: IMetaMetricsEvent;
-        eventDismiss: IMetaMetricsEvent;
-      }
-    > => ({
+    (): Record<DeepLinkModalLinkType, ModalConfig> => ({
       [DeepLinkModalLinkType.PUBLIC]: {
         title: strings('deep_link_modal.public_link.title'),
         description: strings('deep_link_modal.public_link.description', {
           pageTitle,
         }),
-        event: MetaMetricsEvents.DEEP_LINK_PUBLIC_MODAL_VIEWED,
-        eventContinue:
-          MetaMetricsEvents.DEEP_LINK_PUBLIC_MODAL_CONTINUE_CLICKED,
-        eventDismiss: MetaMetricsEvents.DEEP_LINK_PUBLIC_MODAL_DISMISSED,
       },
       [DeepLinkModalLinkType.PRIVATE]: {
         title: strings('deep_link_modal.private_link.title'),
         description: strings('deep_link_modal.private_link.description', {
           pageTitle,
         }),
-        event: MetaMetricsEvents.DEEP_LINK_PRIVATE_MODAL_VIEWED,
-        eventContinue:
-          MetaMetricsEvents.DEEP_LINK_PRIVATE_MODAL_CONTINUE_CLICKED,
-        eventDismiss: MetaMetricsEvents.DEEP_LINK_PRIVATE_MODAL_DISMISSED,
       },
       [DeepLinkModalLinkType.INVALID]: {
         title: strings('deep_link_modal.invalid.title'),
         description: strings('deep_link_modal.invalid.description'),
         buttonLabel: strings('deep_link_modal.go_to_home_button'),
-        event: MetaMetricsEvents.DEEP_LINK_INVALID_MODAL_VIEWED,
-        eventDismiss: MetaMetricsEvents.DEEP_LINK_INVALID_MODAL_DISMISSED,
       },
       [DeepLinkModalLinkType.UNSUPPORTED]: {
         title: strings('deep_link_modal.unsupported.title'),
         description: strings('deep_link_modal.unsupported.description'),
         buttonLabel: strings('deep_link_modal.go_to_home_button'),
-        event: MetaMetricsEvents.DEEP_LINK_UNSUPPORTED_MODAL_VIEWED,
-        eventDismiss: MetaMetricsEvents.DEEP_LINK_UNSUPPORTED_MODAL_DISMISSED,
       },
     }),
     [pageTitle],
   );
-
-  useEffect(() => {
-    trackEvent(
-      createEventBuilder(LINK_TYPE_MAP[linkType].event)
-        .addProperties({
-          ...generateDeviceAnalyticsMetaData(),
-        })
-        .build(),
-    );
-  }, [trackEvent, createEventBuilder, linkType, LINK_TYPE_MAP]);
 
   const dismissModal = (cb?: () => void): void =>
     bottomSheetRef?.current?.onCloseBottomSheet(cb);
 
   const onDimiss = useCallback(() => {
     dismissModal(() => {
-      const event = LINK_TYPE_MAP[linkType].eventDismiss;
-      trackEvent(
-        createEventBuilder(event)
-          .addProperties({
-            ...generateDeviceAnalyticsMetaData(),
-          })
-          .build(),
-      );
       onBack?.();
     });
-  }, [trackEvent, createEventBuilder, linkType, LINK_TYPE_MAP, onBack]);
+  }, [onBack]);
 
   const openMetaMaskStore = useCallback(() => {
     // Open appropriate store based on platform
@@ -234,47 +186,17 @@ const DeepLinkModal = () => {
             screen: Routes.WALLET_VIEW,
           },
         });
-        params.onBack();
+        params.onContinue?.();
       } else {
-        // Track analytics for valid links
-        const eventContinue = LINK_TYPE_MAP[linkType].eventContinue;
-        if (eventContinue) {
-          trackEvent(
-            createEventBuilder(eventContinue)
-              .addProperties({
-                ...generateDeviceAnalyticsMetaData(),
-                pageTitle,
-              })
-              .build(),
-          );
-        }
         params.onContinue();
       }
     });
-  }, [
-    trackEvent,
-    createEventBuilder,
-    linkType,
-    pageTitle,
-    LINK_TYPE_MAP,
-    params,
-    navigation,
-  ]);
+  }, [linkType, params, navigation]);
 
   const onDontRemindMeAgainPressed = useCallback(() => {
-    const event = isChecked
-      ? MetaMetricsEvents.DEEP_LINK_MODAL_PRIVATE_DONT_REMIND_ME_AGAIN_CHECKBOX_UNCHECKED
-      : MetaMetricsEvents.DEEP_LINK_MODAL_PRIVATE_DONT_REMIND_ME_AGAIN_CHECKBOX_CHECKED;
-    trackEvent(
-      createEventBuilder(event)
-        .addProperties({
-          ...generateDeviceAnalyticsMetaData(),
-        })
-        .build(),
-    );
     dispatch(setDeepLinkModalDisabled(!isChecked));
     setIsChecked((prev) => !prev);
-  }, [isChecked, trackEvent, createEventBuilder, dispatch]);
+  }, [isChecked, dispatch]);
 
   const shouldShowCheckbox = linkType === 'private';
 

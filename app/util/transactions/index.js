@@ -570,6 +570,7 @@ export async function getTransactionActionKey(transaction, chainId) {
       TransactionType.lendingWithdraw,
       TransactionType.perpsDeposit,
       TransactionType.musdConversion,
+      TransactionType.musdClaim,
     ].includes(type)
   ) {
     return type;
@@ -921,13 +922,6 @@ export function addAccountTimeFlagFilter(
   return (
     transaction.time <= addedAccountTime && !accountAddedTimeInsertPointFound
   );
-}
-
-//Leaving here a comment to re-visit this function since it's probably be possible to deprecate
-export function getNormalizedTxState(state) {
-  return state.transaction
-    ? { ...state.transaction, ...state.transaction.transaction }
-    : undefined;
 }
 
 export const getActiveTabUrl = ({ browser = {} }) =>

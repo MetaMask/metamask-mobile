@@ -390,26 +390,6 @@ const QRScanner = ({
           shouldReadBarCodeRef.current = false;
           setIsCameraActive(false);
 
-          // Handle Tron special case - temporarily disabled
-          if (predefinedRecipient?.chainType === ChainType.TRON) {
-            trackEvent(
-              createEventBuilder(MetaMetricsEvents.QR_SCANNED)
-                .addProperties({
-                  [QRScannerEventProperties.SCAN_SUCCESS]: false,
-                  [QRScannerEventProperties.QR_TYPE]: QRType.SEND_FLOW,
-                  [QRScannerEventProperties.SCAN_RESULT]:
-                    ScanResult.ADDRESS_TYPE_NOT_SUPPORTED,
-                })
-                .build(),
-            );
-            end();
-            Alert.alert(
-              strings('qr_scanner.error'),
-              strings('qr_scanner.tron_address_not_supported'),
-            );
-            return;
-          }
-
           // Handle callback-based origins (ContactForm, SendTo)
           // These origins expect onScanSuccess() with target_address instead of navigation
           if (

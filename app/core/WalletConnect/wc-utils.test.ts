@@ -8,6 +8,8 @@ import {
   getScopedPermissions,
   networkModalOnboardingConfig,
   getHostname,
+  normalizeDappUrl,
+  isValidUrl,
 } from './wc-utils';
 import type { NavigationContainerRef } from '@react-navigation/native';
 import Routes from '../../../app/constants/navigation/Routes';
@@ -212,6 +214,13 @@ describe('WalletConnect Utils', () => {
       expect(methods).toContain('eth_sendTransaction');
       expect(methods).toContain('wallet_switchEthereumChain');
     });
+
+    it('includes EIP-5792 methods', () => {
+      const methods = getApprovedSessionMethods();
+      expect(methods).toContain('wallet_sendCalls');
+      expect(methods).toContain('wallet_getCallsStatus');
+      expect(methods).toContain('wallet_getCapabilities');
+    });
   });
 
   describe('getScopedPermissions', () => {
@@ -276,6 +285,108 @@ describe('WalletConnect Utils', () => {
     it('returns original URI when no protocol separator is found', () => {
       const noProtocolUri = 'example-with-no-protocol';
       expect(getHostname(noProtocolUri)).toBe(noProtocolUri);
+    });
+  });
+
+  describe('isValidUrl', () => {
+    it('returns false for null or undefined URL', () => {
+      expect(isValidUrl(null)).toBe(false);
+      expect(isValidUrl(undefined)).toBe(false);
+      expect(isValidUrl('')).toBe(false);
+    });
+
+    it('returns false for whitespace-only URL', () => {
+      expect(isValidUrl('   ')).toBe(false);
+      expect(isValidUrl('\t\n')).toBe(false);
+    });
+
+    it('returns true for valid URLs with https protocol', () => {
+      expect(isValidUrl('https://example.com')).toBe(true);
+      expect(isValidUrl('https://example.com/path?query=1')).toBe(true);
+    });
+
+    it('returns true for valid URLs with http protocol', () => {
+      expect(isValidUrl('http://example.com')).toBe(true);
+    });
+
+    it('returns false for URLs without protocol', () => {
+      expect(isValidUrl('example.com')).toBe(false);
+      expect(isValidUrl('example.com/path')).toBe(false);
+      expect(isValidUrl('subdomain.example.com')).toBe(false);
+    });
+
+    it('returns false for invalid URLs', () => {
+      expect(isValidUrl('not a valid url with spaces')).toBe(false);
+      expect(isValidUrl('://invalid')).toBe(false);
+    });
+
+    it('validates URLs with ports', () => {
+      expect(isValidUrl('https://example.com:8080')).toBe(true);
+      expect(isValidUrl('http://example.com:3000')).toBe(true);
+    });
+  });
+
+  describe('normalizeDappUrl', () => {
+    it('returns empty string for null or undefined URL', () => {
+      expect(normalizeDappUrl(null)).toBe('');
+      expect(normalizeDappUrl(undefined)).toBe('');
+      expect(normalizeDappUrl('')).toBe('');
+    });
+
+    it('returns empty string for whitespace-only URL', () => {
+      expect(normalizeDappUrl('   ')).toBe('');
+      expect(normalizeDappUrl('\t\n')).toBe('');
+    });
+
+    it('returns URL unchanged when it already has https protocol', () => {
+      expect(normalizeDappUrl('https://example.com')).toBe(
+        'https://example.com',
+      );
+      expect(normalizeDappUrl('https://example.com/path?query=1')).toBe(
+        'https://example.com/path?query=1',
+      );
+    });
+
+    it('returns URL unchanged when it already has http protocol', () => {
+      expect(normalizeDappUrl('http://example.com')).toBe('http://example.com');
+    });
+
+    it('adds https protocol to URL without protocol', () => {
+      expect(normalizeDappUrl('example.com')).toBe('https://example.com');
+      expect(normalizeDappUrl('example.com/path')).toBe(
+        'https://example.com/path',
+      );
+      expect(normalizeDappUrl('subdomain.example.com')).toBe(
+        'https://subdomain.example.com',
+      );
+    });
+
+    it('trims whitespace before processing', () => {
+      expect(normalizeDappUrl('  https://example.com  ')).toBe(
+        'https://example.com',
+      );
+      expect(normalizeDappUrl('  example.com  ')).toBe('https://example.com');
+    });
+
+    it('returns empty string for invalid URLs that cannot be normalized', () => {
+      // URLs that are invalid even after adding protocol
+      expect(normalizeDappUrl('not a valid url with spaces')).toBe('');
+      expect(normalizeDappUrl('://invalid')).toBe('');
+    });
+
+    it('normalizes URLs with ports', () => {
+      expect(normalizeDappUrl('https://example.com:8080')).toBe(
+        'https://example.com:8080',
+      );
+      expect(normalizeDappUrl('example.com:3000')).toBe(
+        'https://example.com:3000',
+      );
+    });
+
+    it('uses custom default protocol when provided', () => {
+      expect(normalizeDappUrl('example.com', 'http://')).toBe(
+        'http://example.com',
+      );
     });
   });
 });

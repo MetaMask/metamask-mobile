@@ -30,7 +30,7 @@ import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/us
 import {
   ConfirmationRowComponentIDs,
   TransactionPayComponentIDs,
-} from '../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
+} from '../../../ConfirmationView.testIds';
 import { useConfirmationMetricEvents } from '../../../hooks/metrics/useConfirmationMetricEvents';
 
 export function PayWithRow() {

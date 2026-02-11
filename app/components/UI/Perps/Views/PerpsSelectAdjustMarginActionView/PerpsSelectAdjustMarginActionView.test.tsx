@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import PerpsSelectAdjustMarginActionView from './PerpsSelectAdjustMarginActionView';
-import type { Position } from '../../controllers/types';
+import { type Position } from '@metamask/perps-controller';
 
 let mockRouteParams: { position?: Position } = {};
 const mockGoBack = jest.fn();
@@ -70,7 +70,7 @@ jest.mock(
 
 describe('PerpsSelectAdjustMarginActionView', () => {
   const mockPosition: Position = {
-    coin: 'ETH',
+    symbol: 'ETH',
     size: '2.5',
     marginUsed: '500',
     entryPrice: '2000',

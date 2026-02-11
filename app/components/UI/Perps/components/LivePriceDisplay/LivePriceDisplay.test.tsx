@@ -21,7 +21,7 @@ describe('LivePriceDisplay', () => {
   it('should render with live price data', () => {
     mockUsePerpsLivePrices.mockReturnValue({
       BTC: {
-        coin: 'BTC',
+        symbol: 'BTC',
         price: '50000',
         percentChange24h: '5.5',
         timestamp: Date.now(),
@@ -49,7 +49,7 @@ describe('LivePriceDisplay', () => {
   it('should render price with change when showChange is true', () => {
     mockUsePerpsLivePrices.mockReturnValue({
       ETH: {
-        coin: 'ETH',
+        symbol: 'ETH',
         price: '3000',
         percentChange24h: '-2.5',
         timestamp: Date.now(),
@@ -67,7 +67,7 @@ describe('LivePriceDisplay', () => {
   it('should render price without change when showChange is false', () => {
     mockUsePerpsLivePrices.mockReturnValue({
       SOL: {
-        coin: 'SOL',
+        symbol: 'SOL',
         price: '100',
         percentChange24h: '10',
         timestamp: Date.now(),
@@ -86,7 +86,7 @@ describe('LivePriceDisplay', () => {
   it('should use custom throttle value', () => {
     mockUsePerpsLivePrices.mockReturnValue({
       DOGE: {
-        coin: 'DOGE',
+        symbol: 'DOGE',
         price: '0.1',
         percentChange24h: '0',
         timestamp: Date.now(),
@@ -104,7 +104,7 @@ describe('LivePriceDisplay', () => {
   it('should apply custom text styles', () => {
     mockUsePerpsLivePrices.mockReturnValue({
       AVAX: {
-        coin: 'AVAX',
+        symbol: 'AVAX',
         price: '25',
         percentChange24h: '0',
         timestamp: Date.now(),
@@ -129,7 +129,7 @@ describe('LivePriceDisplay', () => {
   it('should handle positive price change color', () => {
     mockUsePerpsLivePrices.mockReturnValue({
       UNI: {
-        coin: 'UNI',
+        symbol: 'UNI',
         price: '10',
         percentChange24h: '15',
         timestamp: Date.now(),
@@ -145,7 +145,7 @@ describe('LivePriceDisplay', () => {
   it('should handle negative price change color', () => {
     mockUsePerpsLivePrices.mockReturnValue({
       LINK: {
-        coin: 'LINK',
+        symbol: 'LINK',
         price: '15',
         percentChange24h: '-8',
         timestamp: Date.now(),
@@ -161,7 +161,7 @@ describe('LivePriceDisplay', () => {
   it('should handle zero price change', () => {
     mockUsePerpsLivePrices.mockReturnValue({
       MATIC: {
-        coin: 'MATIC',
+        symbol: 'MATIC',
         price: '1',
         percentChange24h: '0',
         timestamp: Date.now(),
@@ -179,7 +179,7 @@ describe('LivePriceDisplay', () => {
   it('should handle missing percentChange24h', () => {
     mockUsePerpsLivePrices.mockReturnValue({
       DOT: {
-        coin: 'DOT',
+        symbol: 'DOT',
         price: '5',
         timestamp: Date.now(),
         // percentChange24h is missing

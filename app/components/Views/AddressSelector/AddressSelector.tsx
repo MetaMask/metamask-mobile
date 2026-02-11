@@ -39,7 +39,7 @@ import { useAccountName } from '../../hooks/useAccountName';
 import { createAccountSelectorNavDetails } from '../AccountSelector';
 import { NetworkConfiguration } from '@metamask/network-controller';
 import { strings } from '../../../../locales/i18n';
-import { AddressSelectorSelectors } from '../../../../e2e/selectors/wallet/AddressSelector.selectors';
+import { AddressSelectorSelectors } from './AddressSelector.testIds';
 
 export const createAddressSelectorNavDetails =
   createNavigationDetails<AddressSelectorParams>(

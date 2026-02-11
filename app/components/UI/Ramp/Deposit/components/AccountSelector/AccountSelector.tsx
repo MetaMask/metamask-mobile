@@ -16,7 +16,7 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../../component-library/components/Icons/Icon';
-import { BuildQuoteSelectors } from '../../../../../../../e2e/selectors/Ramps/BuildQuote.selectors';
+import { BuildQuoteSelectors } from '../../../Aggregator/Views/BuildQuote/BuildQuote.testIds';
 import stylesheet from './AccountSelector.styles';
 import { selectAvatarAccountType } from '../../../../../../selectors/settings';
 import { createAccountSelectorNavDetails } from '../../../../../Views/AccountSelector';
@@ -67,6 +67,7 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
             variant={TextVariant.BodyMD}
             numberOfLines={1}
             ellipsizeMode="middle"
+            style={styles.accountText}
           >
             {accountName}
           </Text>

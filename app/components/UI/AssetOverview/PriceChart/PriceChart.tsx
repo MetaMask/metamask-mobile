@@ -254,23 +254,49 @@ const PriceChart = ({
     );
   };
 
-  const NoDataOverlay = () => (
-    <View style={styles.noDataOverlay}>
-      <Text>
-        <Icon
-          name={IconName.Warning}
-          color={IconColor.Muted}
-          size={IconSize.Xl}
-        />
-      </Text>
-      <Title style={styles.noDataOverlayTitle}>
-        {strings('asset_overview.no_chart_data.title')}
-      </Title>
-      <Text variant={TextVariant.BodyLGMedium} style={styles.noDataOverlayText}>
-        {strings('asset_overview.no_chart_data.description')}
-      </Text>
-    </View>
-  );
+  const NoDataOverlay = () => {
+    const hasInsufficientData = priceList.length > 0 && priceList.length <= 1;
+
+    if (hasInsufficientData) {
+      // Show simplified message for 1 data point
+      return (
+        <View
+          style={styles.noDataOverlay}
+          testID="price-chart-insufficient-data"
+        >
+          <Text
+            variant={TextVariant.BodyLGMedium}
+            style={styles.noDataOverlayText}
+          >
+            {strings('asset_overview.no_chart_data.insufficient_data')}
+          </Text>
+        </View>
+      );
+    }
+
+    // Show full overlay for no data
+    return (
+      <View style={styles.noDataOverlay} testID="price-chart-no-data">
+        <Text>
+          <Icon
+            name={IconName.Warning}
+            color={IconColor.Muted}
+            size={IconSize.Xl}
+            testID="price-chart-no-data-icon"
+          />
+        </Text>
+        <Title style={styles.noDataOverlayTitle}>
+          {strings('asset_overview.no_chart_data.title')}
+        </Title>
+        <Text
+          variant={TextVariant.BodyLGMedium}
+          style={styles.noDataOverlayText}
+        >
+          {strings('asset_overview.no_chart_data.description')}
+        </Text>
+      </View>
+    );
+  };
 
   const Tooltip = ({ x, y }: Partial<TooltipProps>) => {
     if (positionX < 0) {
@@ -304,7 +330,7 @@ const PriceChart = ({
    * @see https://github.com/MetaMask/metamask-mobile/issues/20854
    */
   const LoadingOverlay = () => (
-    <View style={styles.noDataOverlay}>
+    <View style={styles.noDataOverlay} testID="price-chart-loading">
       <SkeletonPlaceholder
         backgroundColor={theme.colors.background.section}
         highlightColor={theme.colors.background.subsection}
@@ -318,11 +344,15 @@ const PriceChart = ({
     </View>
   );
 
-  const chartHasData = priceList.length > 0;
+  const chartHasData = priceList.length > 1;
 
   return (
     <View style={styles.chart}>
-      <View style={styles.chartArea} {...panResponder.current.panHandlers}>
+      <View
+        style={styles.chartArea}
+        testID={chartHasData ? 'price-chart-area' : undefined}
+        {...panResponder.current.panHandlers}
+      >
         {isLoading ? <LoadingOverlay /> : !chartHasData && <NoDataOverlay />}
         {/* Chart is always rendered to avoid Android rendering bug; visible elements are conditionally hidden during loading. See: https://github.com/MetaMask/metamask-mobile/issues/20854 */}
         <AreaChart
