@@ -21,3 +21,8 @@ export {
   type FeedTab,
   type UsePredictTabsResult,
 } from './usePredictTabs';
+
+export {
+  usePredictSearch,
+  type UsePredictSearchResult,
+} from './usePredictSearch';

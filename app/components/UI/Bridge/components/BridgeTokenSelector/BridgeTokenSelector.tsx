@@ -498,7 +498,6 @@ export const BridgeTokenSelector: React.FC = () => {
           autoComplete="off"
           autoCorrect={false}
           autoCapitalize="none"
-          showClearButton={searchString.length > 0}
           onPressClearButton={handleClearSearch}
         />
       </Box>
