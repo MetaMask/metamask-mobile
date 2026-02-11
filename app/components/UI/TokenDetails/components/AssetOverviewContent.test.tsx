@@ -12,7 +12,7 @@ import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
-} from '../../Perps/constants/eventNames';
+} from '@metamask/perps-controller';
 
 const mockHandlePerpsAction = jest.fn();
 const mockTrack = jest.fn();
