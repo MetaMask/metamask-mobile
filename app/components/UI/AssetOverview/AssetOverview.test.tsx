@@ -267,14 +267,6 @@ jest.mock('../Ramp/hooks/useRampTokens', () => ({
   useRampTokens: () => mockUseRampTokens(),
 }));
 
-// Only mock the new hook added in this branch: useScrollToMerklRewards
-// This hook uses useRoute/useNavigation which need proper test setup
-jest.mock('./hooks/useScrollToMerklRewards', () => ({
-  useScrollToMerklRewards: jest.fn(() => ({
-    hasScrolledRef: { current: false },
-  })),
-}));
-
 jest.mock('../../Views/confirmations/hooks/useSendNavigation', () => ({
   useSendNavigation: jest.fn(),
 }));

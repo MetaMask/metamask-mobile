@@ -135,17 +135,13 @@ const OnboardingStep4: React.FC = () => {
                 autoCapitalize="characters"
                 onChangeText={handleReferralCodeChange}
                 isDisabled={optinLoading}
-                style={tw.style(
-                  'bg-background-pressed',
-                  referralCode.length >= 6 &&
-                    !referralCodeIsValid &&
-                    !isValidatingReferralCode &&
-                    !isUnknownErrorReferralCode
-                    ? 'border-error-default'
-                    : 'border-muted',
-                )}
                 endAccessory={renderIcon()}
-                isError={!referralCodeIsValid}
+                isError={
+                  referralCode.length >= 6 &&
+                  !referralCodeIsValid &&
+                  !isValidatingReferralCode &&
+                  !isUnknownErrorReferralCode
+                }
               />
               {referralCode.length >= 6 &&
                 !referralCodeIsValid &&

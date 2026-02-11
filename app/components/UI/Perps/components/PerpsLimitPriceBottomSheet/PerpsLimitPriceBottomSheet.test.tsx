@@ -126,7 +126,7 @@ jest.mock('../../hooks/usePerpsEventTracking', () => ({
 }));
 
 // Mock eventNames constants
-jest.mock('../../constants/eventNames', () => ({
+jest.mock('@metamask/perps-controller/constants/eventNames', () => ({
   PERPS_EVENT_PROPERTY: {
     INTERACTION_TYPE: 'interaction_type',
     SETTING_TYPE: 'setting_type',

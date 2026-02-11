@@ -9,10 +9,10 @@ import {
   SECTION_BACK_BUTTONS,
   DETAILS_BACK_BUTTONS,
   SECTION_FULL_VIEW_HEADERS,
-} from '../../locators/Trending/TrendingView.selectors.ts';
-import { PredictMarketListSelectorsIDs } from '../../../app/components/UI/Predict/Predict.testIds.ts';
-import TabBarComponent from '../../../e2e/pages/wallet/TabBarComponent.ts';
-import BrowserView from '../../../e2e/pages/Browser/BrowserView.ts';
+} from '../../locators/Trending/TrendingView.selectors';
+import { PredictMarketListSelectorsIDs } from '../../../app/components/UI/Predict/Predict.testIds';
+import TabBarComponent from '../wallet/TabBarComponent';
+import BrowserView from '../Browser/BrowserView';
 
 class TrendingView {
   get searchButton(): DetoxElement {
@@ -174,6 +174,8 @@ class TrendingView {
         direction: 'right',
         scrollAmount: 200,
         elemDescription: description,
+        startPositionX: 50,
+        startPositionY: 0,
       },
     );
   }
