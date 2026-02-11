@@ -4,7 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { CaipChainId } from '@metamask/utils';
 
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
-import { callbackBaseUrl } from '../../Aggregator/sdk';
+import { getRampCallbackBaseUrl } from '../../utils/getRampCallbackBaseUrl';
 import Keypad, { type KeypadChangeData } from '../../../../Base/Keypad';
 import PaymentMethodPill from '../../components/PaymentMethodPill';
 import QuickAmounts from '../../components/QuickAmounts';
@@ -133,7 +133,7 @@ function BuildQuote() {
     startQuotePolling({
       walletAddress,
       amount: debouncedPollingAmount,
-      redirectUrl: callbackBaseUrl,
+      redirectUrl: getRampCallbackBaseUrl(),
     });
 
     return () => {
@@ -222,8 +222,31 @@ function BuildQuote() {
   const quoteMatchesAmount =
     debouncedPollingAmount === amountAsNumber && debouncedPollingAmount > 0;
 
+  const quoteMatchesCurrentContext = useMemo(() => {
+    if (!selectedQuote) return false;
+    const quoteAmount =
+      selectedQuote.quote?.amountIn ??
+      (selectedQuote as { amountIn?: number }).amountIn;
+    const quotePaymentMethod =
+      selectedQuote.quote?.paymentMethod ??
+      (selectedQuote as { paymentMethod?: string }).paymentMethod;
+    if (quoteAmount !== amountAsNumber) return false;
+    if (
+      quotePaymentMethod != null &&
+      selectedPaymentMethod?.id != null &&
+      quotePaymentMethod !== selectedPaymentMethod.id
+    ) {
+      return false;
+    }
+    return true;
+  }, [selectedQuote, amountAsNumber, selectedPaymentMethod?.id]);
+
   const canContinue =
-    hasAmount && !quotesLoading && selectedQuote !== null && quoteMatchesAmount;
+    hasAmount &&
+    !quotesLoading &&
+    selectedQuote !== null &&
+    quoteMatchesAmount &&
+    quoteMatchesCurrentContext;
 
   return (
     <ScreenLayout>
