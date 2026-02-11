@@ -1,7 +1,8 @@
 import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { selectQuotes } from '../../../../selectors/rampsController';
-import { type Quote, type QuotesResponse } from '@metamask/ramps-controller';
+import { type QuotesResponse } from '@metamask/ramps-controller';
+import type { Quote } from '../types';
 import Engine from '../../../../core/Engine';
 
 /**

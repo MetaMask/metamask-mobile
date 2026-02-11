@@ -3,7 +3,8 @@ import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import React from 'react';
 import { useRampsQuotes } from './useRampsQuotes';
-import type { Quote, QuotesResponse } from '@metamask/ramps-controller';
+import type { QuotesResponse } from '@metamask/ramps-controller';
+import type { Quote } from '../types';
 import Engine from '../../../../core/Engine';
 
 jest.mock('../../../../core/Engine', () => ({

@@ -1,4 +1,4 @@
-import type { Quote } from '@metamask/ramps-controller';
+import type { Quote as BaseQuote } from '@metamask/ramps-controller';
 
 export interface RampIntent {
   assetId?: string;
@@ -7,30 +7,41 @@ export interface RampIntent {
 }
 
 /**
+ * Provider information metadata included in quotes.
+ */
+export interface ProviderInfo {
+  id: string;
+  name: string;
+  type: 'native' | 'aggregator';
+}
+
+/**
+ * Extended Quote type that includes provider metadata.
+ * This extends the base Quote type from @metamask/ramps-controller
+ * to include runtime fields that may not be in the published type definition.
+ */
+export interface Quote extends BaseQuote {
+  providerInfo?: ProviderInfo;
+}
+
+/**
  * Checks if a quote is from a native/whitelabel provider.
- * Native providers have specific provider IDs ending in "-native".
+ * Uses the provider metadata type field to determine if it's a native provider.
  *
  * @param quote - The quote to check.
  * @returns True if the provider is native/whitelabel.
  */
 export function isNativeProvider(quote: Quote): boolean {
-  // Check if provider ID ends with "-native" (e.g., "/providers/transak-native")
-  return quote.provider.endsWith('-native');
+  return quote.providerInfo?.type === 'native';
 }
 
 /**
- * Gets the provider name from a quote's provider ID.
- * Extracts the provider name from the provider path (e.g., "/providers/moonpay" -> "Moonpay").
+ * Gets the provider name from a quote's provider metadata.
+ * Uses the canonical provider name from providerInfo.
  *
  * @param quote - The quote to extract the provider name from.
- * @returns The provider name with capitalized first letter.
+ * @returns The canonical provider display name.
  */
 export function getQuoteProviderName(quote: Quote): string {
-  // Extract provider name from path (e.g., "/providers/moonpay" -> "moonpay")
-  const providerPath = quote.provider;
-  const providerName = providerPath.split('/').pop() || providerPath;
-
-  // Remove "-native" suffix if present and capitalize first letter
-  const cleanName = providerName.replace(/-native$/, '');
-  return cleanName.charAt(0).toUpperCase() + cleanName.slice(1);
+  return quote.providerInfo?.name || 'Provider';
 }
