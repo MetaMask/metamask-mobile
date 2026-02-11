@@ -1547,7 +1547,7 @@ describe('Perps Feature Flag Selectors', () => {
       }) as StateWithPartialEngine;
 
     beforeEach(() => {
-      delete process.env.PERPS_PAY_WITH_ANY_TOKEN_ALLOWLIST_ASSETS;
+      delete process.env.MM_PERPS_PAY_WITH_ANY_TOKEN_ALLOWLIST_ASSETS;
     });
 
     it('returns empty array when env and remote are unset', () => {
@@ -1555,8 +1555,8 @@ describe('Perps Feature Flag Selectors', () => {
       expect(result).toEqual([]);
     });
 
-    it('uses env override when PERPS_PAY_WITH_ANY_TOKEN_ALLOWLIST_ASSETS is set', () => {
-      process.env.PERPS_PAY_WITH_ANY_TOKEN_ALLOWLIST_ASSETS =
+    it('uses env override when MM_PERPS_PAY_WITH_ANY_TOKEN_ALLOWLIST_ASSETS is set', () => {
+      process.env.MM_PERPS_PAY_WITH_ANY_TOKEN_ALLOWLIST_ASSETS =
         '1.0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48,8453.0x0000000000000000000000000000000000000000';
       const result = selectPerpsPayWithAnyTokenAllowlistAssets(
         createState({

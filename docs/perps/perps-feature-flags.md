@@ -177,13 +177,13 @@ Follow existing test patterns covering:
 
 These flags are managed via `FeatureFlagConfigurationService` and control runtime configuration:
 
-| Redux Property                          | LaunchDarkly Key                              | Env Variable                                | Purpose                                                                                   |
-| --------------------------------------- | --------------------------------------------- | ------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| `perpsHip3Enabled`                      | `perps-hip3-enabled`                          | `MM_PERPS_HIP3_ENABLED`                     | HIP-3 markets master switch                                                               |
-| `perpsHip3AllowlistMarkets`             | `perps-hip3-allowlist-markets`                | `MM_PERPS_HIP3_ALLOWLIST_MARKETS`           | HIP-3 market allowlist                                                                    |
-| `perpsHip3BlocklistMarkets`             | `perps-hip3-blocklist-markets`                | `MM_PERPS_HIP3_BLOCKLIST_MARKETS`           | HIP-3 market blocklist                                                                    |
-| `perpsPayWithAnyTokenAllowlistAssets`   | `perps-pay-with-any-token-allow-list-assets`  | `PERPS_PAY_WITH_ANY_TOKEN_ALLOWLIST_ASSETS` | Pay-with modal token allowlist (`chainId.address`, comma-separated; env overrides remote) |
-| `perpsPerpTradingGeoBlockedCountriesV2` | `perps-perp-trading-geo-blocked-countries-v2` | `MM_PERPS_BLOCKED_REGIONS`                  | Geo-blocking regions list                                                                 |
+| Redux Property                          | LaunchDarkly Key                              | Env Variable                                   | Purpose                                                                                   |
+| --------------------------------------- | --------------------------------------------- | ---------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `perpsHip3Enabled`                      | `perps-hip3-enabled`                          | `MM_PERPS_HIP3_ENABLED`                        | HIP-3 markets master switch                                                               |
+| `perpsHip3AllowlistMarkets`             | `perps-hip3-allowlist-markets`                | `MM_PERPS_HIP3_ALLOWLIST_MARKETS`              | HIP-3 market allowlist                                                                    |
+| `perpsHip3BlocklistMarkets`             | `perps-hip3-blocklist-markets`                | `MM_PERPS_HIP3_BLOCKLIST_MARKETS`              | HIP-3 market blocklist                                                                    |
+| `perpsPayWithAnyTokenAllowlistAssets`   | `perps-pay-with-any-token-allow-list-assets`  | `MM_PERPS_PAY_WITH_ANY_TOKEN_ALLOWLIST_ASSETS` | Pay-with modal token allowlist (`chainId.address`, comma-separated; env overrides remote) |
+| `perpsPerpTradingGeoBlockedCountriesV2` | `perps-perp-trading-geo-blocked-countries-v2` | `MM_PERPS_BLOCKED_REGIONS`                     | Geo-blocking regions list                                                                 |
 
 > **Note:** `perpsPerpTradingGeoBlockedCountries` (without V2) is deprecated. Use the V2 variant.
 

@@ -211,7 +211,7 @@ function parseAllowlistAssets(remoteValue: unknown): string[] {
  * Selector for Perps Pay With Any Token allowlist assets.
  * When non-empty, only tokens matching "chainId.address" entries in this list
  * are shown in the pay-with modal (in addition to the Perps balance option).
- * Env PERPS_PAY_WITH_ANY_TOKEN_ALLOWLIST_ASSETS overrides the remote flag.
+ * Env MM_PERPS_PAY_WITH_ANY_TOKEN_ALLOWLIST_ASSETS overrides the remote flag.
  *
  * @returns string[] - Normalized "chainId.address" entries (lowercase)
  */
@@ -219,7 +219,7 @@ export const selectPerpsPayWithAnyTokenAllowlistAssets = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags): string[] => {
     const envValue =
-      process.env.PERPS_PAY_WITH_ANY_TOKEN_ALLOWLIST_ASSETS ?? '';
+      process.env.MM_PERPS_PAY_WITH_ANY_TOKEN_ALLOWLIST_ASSETS ?? '';
     const localList = parseCommaSeparatedString(envValue)
       .map((s) => stripQuotes(s).trim().toLowerCase())
       .filter((s) => s.length > 0);
