@@ -1,8 +1,11 @@
 import { useEffect, useState, useRef } from 'react';
 import { usePerpsStream } from '../../providers/PerpsStreamManager';
-import type { CandleData } from '../../types/perps-types';
-import { CandlePeriod, TimeDuration } from '../../constants/chartConfig';
-import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
+import {
+  CandlePeriod,
+  TimeDuration,
+  PERPS_CONSTANTS,
+  type CandleData,
+} from '@metamask/perps-controller';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../../util/Logger';
 import { ensureError } from '../../../../../util/errorUtils';

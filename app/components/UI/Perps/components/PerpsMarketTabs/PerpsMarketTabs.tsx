@@ -26,11 +26,12 @@ import PerpsMarketStatisticsCard from '../PerpsMarketStatisticsCard';
 import PerpsPositionCard from '../PerpsPositionCard';
 import { PerpsMarketTabsProps, PerpsTabId } from './PerpsMarketTabs.types';
 import styleSheet from './PerpsMarketTabs.styles';
-import type {
-  Position,
-  Order,
-  PerpsNavigationParamList,
-} from '../../controllers/types';
+import {
+  OrderDirection,
+  type Position,
+  type Order,
+} from '@metamask/perps-controller';
+import type { PerpsNavigationParamList } from '../../types/navigation';
 import { usePerpsMarketStats } from '../../hooks/usePerpsMarketStats';
 import {
   usePerpsLivePositions,
@@ -48,7 +49,6 @@ import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import Engine from '../../../../../core/Engine';
 import { getOrderDirection } from '../../utils/orderUtils';
 import usePerpsToasts from '../../hooks/usePerpsToasts';
-import { OrderDirection } from '../../types/perps-types';
 import Routes from '../../../../../constants/navigation/Routes';
 
 // Tab content component for Position tab

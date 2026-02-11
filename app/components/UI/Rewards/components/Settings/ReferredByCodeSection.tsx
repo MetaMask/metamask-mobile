@@ -190,13 +190,6 @@ const ReferredByCodeSection: React.FC = () => {
           onChangeText={hasReferredByCode ? undefined : handleInputChange}
           isDisabled={hasReferredByCode}
           autoCapitalize="characters"
-          style={{
-            backgroundColor: colors.background.muted,
-            borderColor:
-              showClientValidationError || Boolean(applyReferralCodeError)
-                ? colors.error.default
-                : colors.border.muted,
-          }}
           endAccessory={renderIcon()}
           isError={showClientValidationError || Boolean(applyReferralCodeError)}
         />
