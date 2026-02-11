@@ -113,6 +113,7 @@ import {
   type PerpsLogger,
   type PerpsActiveProviderMode,
   type PerpsProviderType,
+  type PerpsSelectedPaymentToken,
 } from './types';
 
 /** Derived type for logger options from PerpsLogger interface */
@@ -126,17 +127,6 @@ import type { Json } from '@metamask/utils';
 import { wait } from './utils/wait';
 import { getSelectedEvmAccount } from './utils/accountUtils';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
-// PaymentToken: minimal interface for deposit flow (replaces mobile-only AssetType)
-
-/**
- * Minimal payment token stored in PerpsController state.
- * Only required fields for identification and Perps balance detection.
- */
-export interface SelectedPaymentTokenSnapshot {
-  description?: string;
-  address: string;
-  chainId: string;
-}
 
 // Re-export error codes from separate file to avoid circular dependencies
 export { PERPS_ERROR_CODES, type PerpsErrorCode } from './perpsErrorCodes';
@@ -3007,11 +2997,7 @@ export class PerpsController extends BaseController<
       limitPrice?: string;
       orderType?: OrderType;
       /** When user used pay-with-token in PerpsPayRow: minimal token shape to restore selection */
-      selectedPaymentToken?: {
-        description?: string;
-        address: string;
-        chainId: string;
-      } | null;
+      selectedPaymentToken?: PerpsSelectedPaymentToken | null;
     },
   ): void {
     const network = this.state.isTestnet ? 'testnet' : 'mainnet';
@@ -3053,11 +3039,7 @@ export class PerpsController extends BaseController<
         stopLossPrice?: string;
         limitPrice?: string;
         orderType?: OrderType;
-        selectedPaymentToken?: {
-          description: string;
-          address: string;
-          chainId: string;
-        } | null;
+        selectedPaymentToken?: PerpsSelectedPaymentToken | null;
       }
     | undefined {
     const network = this.state.isTestnet ? 'testnet' : 'mainnet';
@@ -3190,14 +3172,8 @@ export class PerpsController extends BaseController<
    * Pass null or a token with description PERPS_CONSTANTS.PerpsBalanceTokenDescription to select Perps balance.
    * Only required fields (address, chainId) are stored; description is optional.
    */
-  setSelectedPaymentToken(
-    token: { description?: string; address: string; chainId: string } | null,
-  ): void {
-    let normalized: {
-      description?: string;
-      address: string;
-      chainId: string;
-    } | null = null;
+  setSelectedPaymentToken(token: PerpsSelectedPaymentToken | null): void {
+    let normalized: PerpsSelectedPaymentToken | null = null;
     if (
       token != null &&
       token.description !== PERPS_CONSTANTS.PerpsBalanceTokenDescription

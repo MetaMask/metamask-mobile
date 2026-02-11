@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import Engine from '../../../../core/Engine';
 import { type OrderFormState } from '@metamask/perps-controller';
@@ -12,7 +12,7 @@ export function usePerpsSavePendingConfig(orderForm: OrderFormState) {
   const { PerpsController } = Engine.context;
   const selectedPaymentToken = usePerpsPayWithToken();
 
-  const config = useCallback(
+  const config = useMemo(
     () => ({
       amount: orderForm.amount,
       leverage: orderForm.leverage,
@@ -46,7 +46,7 @@ export function usePerpsSavePendingConfig(orderForm: OrderFormState) {
         if (orderForm.asset) {
           PerpsController.savePendingTradeConfiguration(
             orderForm.asset,
-            config(),
+            config,
           );
         }
       },
@@ -58,10 +58,7 @@ export function usePerpsSavePendingConfig(orderForm: OrderFormState) {
   useEffect(
     () => () => {
       if (orderForm.asset) {
-        PerpsController.savePendingTradeConfiguration(
-          orderForm.asset,
-          config(),
-        );
+        PerpsController.savePendingTradeConfiguration(orderForm.asset, config);
       }
     },
     [orderForm.asset, PerpsController, config],

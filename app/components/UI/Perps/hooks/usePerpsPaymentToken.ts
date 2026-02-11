@@ -3,6 +3,8 @@ import { useCallback } from 'react';
 import { AssetType } from '../../../Views/confirmations/types/token';
 import { useTransactionPayToken } from '../../../Views/confirmations/hooks/pay/useTransactionPayToken';
 import Engine from '../../../../core/Engine';
+import { is } from '@metamask/superstruct';
+import { PayWithTokenSchema } from './useIsPerpsBalanceSelected';
 
 export interface UsePerpsPaymentTokenResult {
   onPaymentTokenChange: (token: AssetType | null) => void;
@@ -14,9 +16,7 @@ export function usePerpsPaymentToken(): UsePerpsPaymentTokenResult {
   const onPaymentTokenChange = useCallback(
     (token: AssetType | null) => {
       const payload =
-        token != null &&
-        typeof token.address === 'string' &&
-        typeof token.chainId === 'string'
+        token != null && is(token, PayWithTokenSchema)
           ? {
               description: token.description,
               address: token.address,
@@ -24,11 +24,7 @@ export function usePerpsPaymentToken(): UsePerpsPaymentTokenResult {
             }
           : null;
       Engine.context.PerpsController?.setSelectedPaymentToken?.(payload);
-      if (
-        token &&
-        typeof token.address === 'string' &&
-        typeof token.chainId === 'string'
-      ) {
+      if (token != null && is(token, PayWithTokenSchema)) {
         setPayToken({
           address: token.address as Hex,
           chainId: token.chainId as Hex,
