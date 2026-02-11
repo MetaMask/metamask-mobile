@@ -250,24 +250,6 @@ export const selectBridgeViewMode = createSelector(
   (bridgeState) => bridgeState.bridgeViewMode,
 );
 
-/**
- * Only includes networks user has added.
- * Will include them regardless of feature flag enabled or not.
- */
-export const selectAllBridgeableNetworks = createSelector(
-  selectNetworkConfigurations,
-  (networkConfigurations) => {
-    const networks = uniqBy(
-      Object.values(networkConfigurations),
-      'chainId',
-    ).filter(({ chainId }) =>
-      ALLOWED_BRIDGE_CHAIN_IDS.includes(chainId as AllowedBridgeChainIds),
-    );
-
-    return networks;
-  },
-);
-
 export const selectBridgeFeatureFlags = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
@@ -309,32 +291,41 @@ const isAllowedBridgeChainId = (caipChainId: string): boolean => {
 };
 
 /**
- * Selector that returns the chainRanking from feature flags filtered by:
- * 1. Chains supported by this version of the client
+ * Base selector: filters chainRanking from feature flags by ALLOWED_BRIDGE_CHAIN_IDS.
+ * This is the single place where the allowlist check is applied to chainRanking.
+ * All other chain ranking selectors should derive from this.
+ */
+const selectAllowedChainRanking = createSelector(
+  selectBridgeFeatureFlags,
+  (bridgeFeatureFlags) =>
+    (bridgeFeatureFlags.chainRanking ?? []).filter((chain) =>
+      isAllowedBridgeChainId(chain.chainId),
+    ),
+);
+
+/**
+ * Selector that returns all chains from chainRanking that are supported by this
+ * version of the client (filtered by ALLOWED_BRIDGE_CHAIN_IDS).
+ * Used by NetworkPills in DEST mode to show all available destination networks.
+ */
+export const selectDestChainRanking = selectAllowedChainRanking;
+
+/**
+ * Selector that returns the chainRanking filtered by:
+ * 1. Chains supported by this version of the client (via selectAllowedChainRanking)
  * 2. User-configured networks
  * Used by NetworkPills in SOURCE mode to show all networks the user has added.
  */
 export const selectSourceChainRanking = createSelector(
-  selectBridgeFeatureFlags,
+  selectAllowedChainRanking,
   selectNetworkConfigurations,
-  (bridgeFeatureFlags, networkConfigurations) => {
-    const { chainRanking } = bridgeFeatureFlags;
-
+  (allowedChains, networkConfigurations) => {
     const configuredChainIds = new Set(Object.keys(networkConfigurations));
 
-    if (!chainRanking) {
-      return [];
-    }
-
-    return chainRanking.filter((chain) => {
+    return allowedChains.filter((chain) => {
       const { chainId } = chain;
 
-      // First, ensure this chain is supported by the current client version
-      if (!isAllowedBridgeChainId(chainId)) {
-        return false;
-      }
-
-      // For EVM chains (eip155:*), extract the hex chain ID and check if enabled
+      // For EVM chains (eip155:*), extract the hex chain ID and check if user has it configured
       if (chainId.startsWith('eip155:')) {
         const hexChainId = formatChainIdToHex(chainId);
         return configuredChainIds.has(hexChainId);
@@ -347,21 +338,6 @@ export const selectSourceChainRanking = createSelector(
 );
 
 /**
- * Selector that returns all chains from chainRanking that are supported by this
- * version of the client.
- * Used by NetworkPills in DEST mode to show all available destination networks.
- */
-export const selectDestChainRanking = createSelector(
-  selectBridgeFeatureFlags,
-  (bridgeFeatureFlags) => {
-    const { chainRanking } = bridgeFeatureFlags;
-    return (chainRanking ?? []).filter((chain) =>
-      isAllowedBridgeChainId(chain.chainId),
-    );
-  },
-);
-
-/**
  * Factory selector that returns a function to check if bridge is enabled for a source chain.
  * Use this when you need to check multiple chain IDs or when the chain ID is determined after render.
  * @example
@@ -369,14 +345,10 @@ export const selectDestChainRanking = createSelector(
  * const isBridgeEnabledSource = getIsBridgeEnabledSource(chainId);
  */
 export const selectIsBridgeEnabledSourceFactory = createSelector(
-  selectBridgeFeatureFlags,
-  (bridgeFeatureFlags) => (chainId: Hex | CaipChainId) => {
+  selectAllowedChainRanking,
+  (allowedChains) => (chainId: Hex | CaipChainId) => {
     const caipChainId = formatChainIdToCaip(chainId);
-
-    return bridgeFeatureFlags.chainRanking?.some(
-      (chain) =>
-        chain.chainId === caipChainId && isAllowedBridgeChainId(chain.chainId),
-    );
+    return allowedChains.some((chain) => chain.chainId === caipChainId);
   },
 );
 
@@ -400,17 +372,20 @@ export const selectTopAssetsFromFeatureFlags = createSelector(
 );
 
 /**
+ * Returns full MultichainNetworkConfiguration objects for networks that are both:
+ * 1. In the allowed chainRanking (supported by this client version + enabled via feature flags)
+ * 2. Configured by the user
  * TODO The MultichainNetworkConfiguration.chainId type is wrong. It can be both Hex or CaipChainId.
  */
 export const selectEnabledSourceChains = createSelector(
-  selectAllBridgeableNetworks,
-  selectBridgeFeatureFlags,
-  (networks, bridgeFeatureFlags) =>
-    networks.filter(({ chainId }) =>
-      bridgeFeatureFlags.chainRanking?.some(
-        (chain) => chain.chainId === formatChainIdToCaip(chainId),
-      ),
-    ),
+  selectAllowedChainRanking,
+  selectNetworkConfigurations,
+  (allowedChainRanking, networkConfigurations) => {
+    const allowedCaipIds = new Set(allowedChainRanking.map((c) => c.chainId));
+    return uniqBy(Object.values(networkConfigurations), 'chainId').filter(
+      ({ chainId }) => allowedCaipIds.has(formatChainIdToCaip(chainId)),
+    );
+  },
 );
 
 // Combined selectors for related state

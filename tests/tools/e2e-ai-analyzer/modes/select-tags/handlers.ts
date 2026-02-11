@@ -10,7 +10,7 @@ import {
   HardRule,
 } from '../../types';
 import { getFileDiff, getPRFileDiff } from '../../utils/git-utils';
-import { smokeTags, flaskTags } from '../../../../../e2e/tags';
+import { smokeTags, flaskTags } from '../../../../tags';
 import { performanceTags } from '../../../../../appwright/tags';
 
 /**

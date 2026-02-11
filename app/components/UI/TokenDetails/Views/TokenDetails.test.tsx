@@ -1,4 +1,5 @@
 import React from 'react';
+import { ActivityIndicator } from 'react-native';
 import { render } from '@testing-library/react-native';
 import { TokenDetails } from './TokenDetails';
 import { TokenI } from '../../Tokens/types';
@@ -85,18 +86,22 @@ jest.mock('../hooks/useTokenActions', () => ({
   }),
 }));
 
+const defaultUseTokenTransactionsReturn = {
+  transactions: [],
+  submittedTxs: [],
+  confirmedTxs: [],
+  loading: false,
+  transactionsUpdated: true,
+  selectedAddress: '0x1234',
+  conversionRate: 1,
+  currentCurrency: 'USD',
+  isNonEvmAsset: false,
+};
+
+const mockUseTokenTransactions = jest.fn();
 jest.mock('../hooks/useTokenTransactions', () => ({
-  useTokenTransactions: () => ({
-    transactions: [],
-    submittedTxs: [],
-    confirmedTxs: [],
-    loading: false,
-    transactionsUpdated: true,
-    selectedAddress: '0x1234',
-    conversionRate: 1,
-    currentCurrency: 'USD',
-    isNonEvmAsset: false,
-  }),
+  useTokenTransactions: (...args: unknown[]) =>
+    mockUseTokenTransactions(...args),
 }));
 
 // Mock child components
@@ -185,6 +190,7 @@ describe('TokenDetails', () => {
       variantName: 'treatment',
       isTestActive: true,
     });
+    mockUseTokenTransactions.mockReturnValue(defaultUseTokenTransactionsReturn);
 
     // Setup default useTokenBalance mock
     mockUseTokenBalance.mockReturnValue({
@@ -205,6 +211,17 @@ describe('TokenDetails', () => {
       if (selector === selectDepositMinimumVersionFlag) return null;
       return undefined;
     });
+  });
+
+  it('renders loader when txLoading is true', () => {
+    mockUseTokenTransactions.mockReturnValue({
+      ...defaultUseTokenTransactionsReturn,
+      loading: true,
+    });
+
+    const { UNSAFE_getByType } = render(<TokenDetails {...defaultProps} />);
+
+    expect(UNSAFE_getByType(ActivityIndicator)).toBeTruthy();
   });
 
   describe('Buy/Sell sticky buttons', () => {

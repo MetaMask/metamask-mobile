@@ -72,7 +72,9 @@ permissions:
 
 concurrency:
   group: performance-e2e-${{ github.ref }}-${{ github.event_name }}
-  cancel-in-progress: true
+  # Do not cancel in-progress runs: scheduled runs every 3h can overlap with long Bitrise builds.
+  # New runs will wait in queue until the current one finishes instead of canceling it.
+  cancel-in-progress: false
 
 env:
   BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}

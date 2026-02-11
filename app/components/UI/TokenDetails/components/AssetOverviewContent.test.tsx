@@ -12,7 +12,8 @@ import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
-} from '../../Perps/constants/eventNames';
+} from '@metamask/perps-controller';
+
 const mockHandlePerpsAction = jest.fn();
 const mockTrack = jest.fn();
 
@@ -28,10 +29,6 @@ jest.mock('../hooks/usePerpsActions', () => ({
 
 jest.mock('../../Perps/hooks/usePerpsEventTracking', () => ({
   usePerpsEventTracking: () => ({ track: mockTrack }),
-}));
-
-jest.mock('../../AssetOverview/hooks/useScrollToMerklRewards', () => ({
-  useScrollToMerklRewards: jest.fn(),
 }));
 
 // Use a stable wrapper so jest.restoreAllMocks() (from testSetup.js afterEach)
