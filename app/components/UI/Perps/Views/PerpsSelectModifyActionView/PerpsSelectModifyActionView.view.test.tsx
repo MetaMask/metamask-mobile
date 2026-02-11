@@ -102,7 +102,4 @@ describe('PerpsSelectModifyActionView', () => {
     // Sheet closes after action (onClose), so we stay on modify screen; no throw
     expect(screen.getByText(FLIP_POSITION_LABEL)).toBeOnTheScreen();
   });
-
-  // Geo-restriction: PerpsSelectModifyActionView does not yet use selectPerpsEligibility;
-  // when it does, add state-driven tests with overrides: { engine: { backgroundState: { PerpsController: { isEligible: false } } } }
 });

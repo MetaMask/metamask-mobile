@@ -138,6 +138,12 @@ jest.mock('../../../core/Engine', () => {
       // Perps: stub so hooks (usePerpsClosePosition, usePerpsMarkets, etc.) do not throw
       // getMarkets returns one market so PerpsTabView explore section renders "See all perps"
       PerpsController: {
+        getActiveProvider: jest.fn(() => ({
+          getOrderFills: jest.fn().mockResolvedValue([]),
+        })),
+        getActiveProviderOrNull: jest.fn(() => null),
+        subscribeToPrices: jest.fn(() => () => undefined),
+        getOrderFills: jest.fn().mockResolvedValue([]),
         closePosition: jest.fn().mockResolvedValue(undefined),
         getPositions: jest.fn().mockResolvedValue([]),
         getMarkets: jest.fn().mockResolvedValue([

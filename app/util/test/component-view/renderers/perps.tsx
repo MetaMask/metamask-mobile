@@ -73,12 +73,21 @@ const pricesChannel = () => ({
   subscribeToSymbols: (): (() => void) => noopUnsubscribe,
 });
 
+/** Optional stream data overrides for view tests (e.g. initial positions for Market Details Close/Modify). */
+export interface PerpsStreamOverrides {
+  /** When set, usePerpsLivePositions() receives this array (e.g. to show Close/Modify on Market Details). */
+  positions?: unknown[];
+}
+
 /** Creates a minimal stream manager double so views using usePerpsStream() render without WebSocket. */
-function createTestStreamManager(): PerpsStreamManager {
+function createTestStreamManager(
+  streamOverrides?: PerpsStreamOverrides,
+): PerpsStreamManager {
+  const positions = streamOverrides?.positions ?? [];
   return {
     prices: pricesChannel(),
     orders: channelWithInitialValue([]),
-    positions: channelWithInitialValue([]),
+    positions: channelWithInitialValue(positions),
     fills: noopChannel(),
     account: channelWithInitialValue(initialAccount),
     marketData: channelWithInitialValue(initialMarketData),
@@ -92,6 +101,8 @@ function createTestStreamManager(): PerpsStreamManager {
 interface RenderPerpsViewOptions {
   overrides?: DeepPartial<RootState>;
   initialParams?: Record<string, unknown>;
+  /** Optional stream overrides (e.g. positions for PerpsMarketDetailsView geo-restriction test). */
+  streamOverrides?: PerpsStreamOverrides;
 }
 
 /**
@@ -105,13 +116,13 @@ export function renderPerpsView(
   routeName: string,
   options: RenderPerpsViewOptions = {},
 ) {
-  const { overrides, initialParams } = options;
+  const { overrides, initialParams, streamOverrides } = options;
   const builder = initialStatePerps();
   if (overrides) {
     builder.withOverrides(overrides);
   }
   const state = builder.build();
-  const testStreamManager = createTestStreamManager();
+  const testStreamManager = createTestStreamManager(streamOverrides);
 
   const WrappedComponent = (props: Record<string, unknown>) => (
     <PerpsConnectionContext.Provider value={testConnectionValue}>
