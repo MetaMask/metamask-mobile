@@ -7,10 +7,10 @@
 - [ ] Task: Conductor - User Manual Verification 'Phase 1' (Protocol in workflow.md)
 
 ## Phase 2: Swipe Deck Component Development
-- [ ] Task: Build the `OnboardingDeck` component
+- [x] Task: Build the `OnboardingDeck` component d460ca7
     - [ ] Implement the visual card stack effect (background layers).
     - [ ] Create the data mapping for the 3 onboarding steps.
-- [ ] Task: Build the `OnboardingCard` variant
+- [x] Task: Build the `OnboardingCard` variant d460ca7
     - [ ] Implement the high-impact layout (Large Icon, Bold Title).
     - [ ] Add the "Success/Celebration" state logic.
 - [ ] Task: Conductor - User Manual Verification 'Phase 2' (Protocol in workflow.md)
