@@ -34,6 +34,7 @@ import Icon, {
 } from '../../../component-library/components/Icons/Icon';
 import ChecklistItem, { ChecklistItemVariant } from './ChecklistItem';
 import Step3Variations from './Step3Variations';
+import OnboardingDeck from './OnboardingDeck';
 import { useOnboardingChecklist } from '../hooks/useOnboardingChecklist';
 import Routes from '../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
@@ -98,7 +99,7 @@ const OnboardingJourneyScreen = () => {
         <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={20}>
           <Icon name={IconName.Close} size={IconSize.Md} color={IconColor.Default} />
         </TouchableOpacity>
-        <Text variant={TextVariant.HeadingSM}>Your Journey</Text>
+        <Text variant={TextVariant.HeadingSM}>Your Onboarding Journey</Text>
         <Box twClassName="w-6" /> {/* Spacer for centering */}
       </Box>
 
@@ -171,9 +172,7 @@ const OnboardingJourneyScreen = () => {
           )}
         </ScrollView>
       ) : (
-        <Box twClassName="flex-1 items-center justify-center p-6">
-          <Text>Swipe Deck Placeholder</Text>
-        </Box>
+        <OnboardingDeck />
       )}
     </SafeAreaView>
   );
