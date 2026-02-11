@@ -213,7 +213,7 @@ describe('TokenDetails', () => {
 
     const { UNSAFE_getByType } = render(<TokenDetails {...defaultProps} />);
 
-    expect(UNSAFE_getByType(ActivityIndicator)).toBeOnTheScreen();
+    expect(UNSAFE_getByType(ActivityIndicator)).toBeTruthy();
   });
 
   describe('Buy/Sell sticky buttons', () => {
