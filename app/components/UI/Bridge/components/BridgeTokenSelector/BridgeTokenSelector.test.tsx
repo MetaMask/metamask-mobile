@@ -273,20 +273,18 @@ jest.mock(
       onChangeText,
       testID,
       value,
-      showClearButton,
       onPressClearButton,
     }: {
       onChangeText: (text: string) => void;
       testID: string;
       value?: string;
-      showClearButton?: boolean;
       onPressClearButton?: () => void;
     }) =>
       createElement(
         View,
         null,
         createElement(TextInput, { onChangeText, testID, value }),
-        showClearButton &&
+        !!value &&
           createElement(TouchableOpacity, {
             testID: 'bridge-token-search-clear-button',
             onPress: onPressClearButton,
