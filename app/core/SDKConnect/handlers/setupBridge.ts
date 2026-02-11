@@ -19,8 +19,9 @@ import { rpcErrors } from '@metamask/rpc-errors';
  *
  * IMPORTANT: `originatorInfo` is **self-reported** by the connecting dapp.
  * The `url`, `title`, and `icon` fields are NOT verified and MUST NOT be
- * treated as trusted identifiers. They are used only for display purposes
- * in the confirmation UI.
+ * treated as trusted identifiers. They are shown in the confirmation/approval
+ * UI to indicate the claimed source of the request, and should therefore not
+ * be treated as equivalent to a verified origin/hostname.
  */
 export const setupBridge = ({
   originatorInfo,
@@ -42,7 +43,9 @@ export const setupBridge = ({
   }
 
   // WARNING: originatorInfo.url is self-reported by the dapp and unverified.
-  // It is passed as `url` to BackgroundBridge for display purposes only.
+  // It is shown in the confirmation/approval UI to indicate the claimed source
+  // of the request. It should NOT be treated as equivalent to a verified
+  // origin/hostname (e.g., browser-provided `sender.url` or WebView URL).
   const selfReportedUrl = originatorInfo.url;
   const selfReportedTitle = originatorInfo.title;
   const selfReportedIcon = originatorInfo.icon;
@@ -88,7 +91,8 @@ export const setupBridge = ({
         getProviderState,
         isMMSDK: true,
         navigation: null, //props.navigation,
-        // Website info — self-reported by dapp, used for display only
+        // Website info — self-reported by dapp, shown in confirmation/approval UI
+        // to indicate the claimed source. Not equivalent to a verified origin.
         url: {
           current: selfReportedUrl,
         },

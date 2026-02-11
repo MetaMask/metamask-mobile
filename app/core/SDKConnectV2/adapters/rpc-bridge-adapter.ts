@@ -106,9 +106,11 @@ export class RPCBridgeAdapter
    *
    * IMPORTANT: `connInfo.metadata.dapp.url`, `.name`, and `.icon` are
    * **self-reported** by the dapp in the MWP connection request payload.
-   * They are NOT independently verified and are used for display purposes only.
-   * The actual connection identity is secured by the MWP key exchange, but the
-   * displayed metadata could be spoofed by a malicious dapp.
+   * They are NOT independently verified. They are shown in the confirmation/approval
+   * UI to indicate the claimed source of the request, and should NOT be treated as
+   * equivalent to a verified origin/hostname. The actual connection identity is
+   * secured by the MWP key exchange, but the displayed metadata could be spoofed
+   * by a malicious dapp.
    */
   private createClient(): BackgroundBridge {
     const middlewareHostname = `${AppConstants.MM_SDK.SDK_CONNECT_V2_ORIGIN}${this.connInfo.id}`;
@@ -139,7 +141,8 @@ export class RPCBridgeAdapter
           channelId: this.connInfo.id,
           getProviderState,
           isMMSDK: true,
-          // Website info — self-reported by dapp, used for display only
+          // Website info — self-reported by dapp, shown in confirmation/approval UI
+          // to indicate the claimed source. Not equivalent to a verified origin.
           url: { current: selfReportedDappUrl },
           title: { current: selfReportedDappName },
           icon: {

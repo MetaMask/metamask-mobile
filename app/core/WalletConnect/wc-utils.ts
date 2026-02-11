@@ -402,10 +402,10 @@ export const hasPermissionsToSwitchChainRequest = async (
  * two sources, neither of which is independently verified:
  *
  * 1. `verifyContext?.verified?.origin` — Provided by WalletConnect's Verify API
- *    when available. Offers some domain verification but is optional and not
- *    always present.
+ * when available. Offers some domain verification but is optional and not
+ * always present.
  * 2. `defaultOrigin` — Falls back to the self-reported `session.peer.metadata.url`
- *    which is entirely dapp-controlled and trivially spoofable.
+ * which is entirely dapp-controlled and trivially spoofable.
  *
  * This value MUST NOT be treated as equivalent to a browser-provided origin
  * (e.g., `sender.url` on extension or WebView URL on mobile).

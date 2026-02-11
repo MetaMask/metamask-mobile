@@ -63,7 +63,9 @@ export const handleConnectionReady = async ({
   }
 
   // WARNING: originatorInfo.url is self-reported by the dapp and unverified.
-  // It is normalized here for display purposes only.
+  // It is normalized here and shown in the confirmation/approval UI to indicate
+  // the claimed source of the request. It should NOT be treated as equivalent
+  // to a verified origin/hostname (e.g., browser-provided `sender.url`).
   let selfReportedDappUrl = '';
 
   try {

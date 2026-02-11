@@ -144,7 +144,9 @@ class WalletConnect2Session {
           analytics: {},
           isMMSDK: false,
           navigation: this.navigation,
-          // Website info — self-reported by dapp via WC session metadata, used for display only
+          // Website info — self-reported by dapp via WC session metadata, shown in
+          // confirmation/approval UI to indicate the claimed source of the request.
+          // Not equivalent to a verified origin/hostname.
           url: { current: url },
           title: { current: name },
           icon: { current: icons?.[0] as ImageSourcePropType },
@@ -170,8 +172,10 @@ class WalletConnect2Session {
    *
    * WARNING: This value is **self-reported** by the dapp in the WC session
    * proposal and is NOT independently verified. It MUST NOT be used as a
-   * trusted origin identifier. It is used for display purposes and as a
-   * fallback when `verifyContext` is unavailable.
+   * trusted origin identifier. It is shown in the confirmation/approval UI to
+   * indicate the claimed source of the request, and used as a fallback when
+   * `verifyContext` is unavailable. It should therefore not be treated as
+   * equivalent to the verified origin/hostname of the request.
    */
   private get selfReportedUrl() {
     return this.session.peer.metadata.url;
@@ -535,7 +539,8 @@ class WalletConnect2Session {
 
     const channelId = this.channelId;
     // NOTE: originFromRequest and this.selfReportedUrl are both unverified dapp-provided values.
-    // They are used for display/analytics, not as trusted identifiers.
+    // They are shown in the confirmation/approval UI to indicate the claimed source of the
+    // request. They should NOT be treated as equivalent to a verified origin/hostname.
     const unverifiedOrigin = originFromRequest ?? this.selfReportedUrl;
 
     const { allowed, existingNetwork, hexChainIdString } =
