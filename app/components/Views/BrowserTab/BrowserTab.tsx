@@ -341,10 +341,27 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
           return;
         }
 
+        // Stop the WebView from continuing to load the phishing site
+        webviewRef.current?.stopLoading();
+
+        // Update the URL bar to show the blocked URL so users know which site triggered the warning
+        // This prevents URL spoofing where the URL bar shows a different (safe) URL
+        !isUrlBarFocused &&
+          urlBarRef.current?.setNativeProps({ text: urlOrigin });
+
+        // Reset connection type since we're blocking this URL
+        setConnectionType(ConnectionType.UNKNOWN);
+
         setBlockedUrl(urlOrigin);
         setTimeout(() => setShowPhishingModal(true), 1000);
       },
-      [shouldShowPhishingModal, setBlockedUrl, setShowPhishingModal],
+      [
+        shouldShowPhishingModal,
+        setBlockedUrl,
+        setShowPhishingModal,
+        isUrlBarFocused,
+        setConnectionType,
+      ],
     );
 
     /**
