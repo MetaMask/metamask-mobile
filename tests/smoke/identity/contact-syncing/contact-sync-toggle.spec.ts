@@ -123,7 +123,6 @@ describe(SmokeIdentity('Contacts syncing - Settings'), () => {
         await SettingsView.tapBackButton();
         await AccountMenu.tapBack();
 
-        // TODO: You're here
         // Add second contact while sync is disabled
         await WalletView.tapHamburgerMenu();
         await Assertions.expectElementToBeVisible(AccountMenu.contactsButton);
