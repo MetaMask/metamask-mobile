@@ -10,9 +10,7 @@ import { usePredictBalance } from '../../../../../UI/Predict/hooks/usePredictBal
 
 jest.mock('../../../../../UI/Predict/hooks/usePredictBalance');
 
-const mockUsePredictBalance = usePredictBalance as jest.MockedFunction<
-  typeof usePredictBalance
->;
+const mockUsePredictBalance = usePredictBalance as jest.Mock;
 
 function render() {
   return renderWithProvider(<PredictWithdrawBalance />, {
@@ -29,14 +27,7 @@ describe('PredictWithdrawBalance', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    mockUsePredictBalance.mockReturnValue({
-      balance: 1232.39,
-      hasNoBalance: false,
-      isLoading: false,
-      isRefreshing: false,
-      error: null,
-      loadBalance: jest.fn(),
-    });
+    mockUsePredictBalance.mockReturnValue({ data: 1232.39 });
   });
 
   afterEach(() => {
