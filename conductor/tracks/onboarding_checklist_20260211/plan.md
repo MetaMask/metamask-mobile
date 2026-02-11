@@ -2,7 +2,7 @@
 
 ## Phase 1: Foundation & "Demo Controller"
 
-- [ ] Task: Create the checklist state management (Local Prototype State)
+- [x] Task: Create the checklist state management (Local Prototype State) 5b73854
   - [ ] Define `useOnboardingChecklist` hook to manage step completion and UI variation states.
   - [ ] Implement a simple "Demo Trigger" (e.g., long press on header) to toggle UI modes.
 - [ ] Task: Conductor - User Manual Verification 'Phase 1' (Protocol in workflow.md)
