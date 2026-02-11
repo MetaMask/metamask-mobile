@@ -7470,7 +7470,7 @@
       "claim_label": "领取",
       "claimed_label": "已领取",
       "reward_claimed": "已领取奖励",
-      "time_left": "剩余时间",
+      "time_left": "剩余 {{time}}",
       "expired": "已过期"
     },
     "end_of_season_rewards": {
