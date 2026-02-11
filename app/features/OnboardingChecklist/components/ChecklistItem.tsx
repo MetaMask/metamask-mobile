@@ -70,6 +70,15 @@ const ChecklistItem: React.FC<ChecklistItemProps> = ({
   const isGlass = variant === ChecklistItemVariant.Glass;
   const isTimeline = variant === ChecklistItemVariant.Timeline;
 
+  const renderPoints = () => (
+    <Box twClassName="flex-row items-center bg-success-muted px-2 py-1 rounded-full ml-2">
+      <Text variant={TextVariant.BodyXS} color={TextColor.Success} twClassName="font-bold mr-1">
+        +1000
+      </Text>
+      <Icon name={IconName.MetamaskFoxOutline} size={IconSize.Xss} color={IconColor.Success} />
+    </Box>
+  );
+
   if (isTimeline) {
     return (
       <Pressable onPress={onPress} disabled={isCompleted || isLoading}>
@@ -87,13 +96,16 @@ const ChecklistItem: React.FC<ChecklistItemProps> = ({
             </Box>
           )}
           <Box twClassName="flex-1">
-            <Text
-              variant={TextVariant.BodyLG}
-              color={isPulsing ? TextColor.Primary : TextColor.Default}
-              twClassName="font-bold"
-            >
-              {title}
-            </Text>
+            <Box twClassName="flex-row items-center">
+              <Text
+                variant={TextVariant.BodyLG}
+                color={isPulsing ? TextColor.Primary : TextColor.Default}
+                twClassName="font-bold"
+              >
+                {title}
+              </Text>
+              {!isCompleted && renderPoints()}
+            </Box>
             <Text variant={TextVariant.BodyXS} color={TextColor.Alternative}>
               {isCompleted ? 'Completed' : 'Tap to start'}
             </Text>
@@ -133,13 +145,15 @@ const ChecklistItem: React.FC<ChecklistItemProps> = ({
                 </Box>
               )}
             </Box>
-            <Text
-              variant={TextVariant.BodyLG}
-              color={TextColor.Default}
-              style={tw.style('flex-1')}
-            >
-              {title}
-            </Text>
+            <Box twClassName="flex-1 flex-row items-center">
+              <Text
+                variant={TextVariant.BodyLG}
+                color={TextColor.Default}
+              >
+                {title}
+              </Text>
+              {!isCompleted && renderPoints()}
+            </Box>
           </Box>
         </Animated.View>
       </Pressable>
@@ -164,13 +178,15 @@ const ChecklistItem: React.FC<ChecklistItemProps> = ({
               <Box twClassName="w-4 h-4 rounded-full border border-icon-muted" />
             )}
           </Box>
-          <Text
-            variant={TextVariant.BodySM}
-            color={isPulsing ? TextColor.Primary : TextColor.Default}
-            style={tw.style('flex-1')}
-          >
-            {title}
-          </Text>
+          <Box twClassName="flex-1 flex-row items-center">
+            <Text
+              variant={TextVariant.BodySM}
+              color={isPulsing ? TextColor.Primary : TextColor.Default}
+            >
+              {title}
+            </Text>
+            {!isCompleted && renderPoints()}
+          </Box>
         </Box>
       </Pressable>
     );
@@ -201,13 +217,15 @@ const ChecklistItem: React.FC<ChecklistItemProps> = ({
               />
             )}
           </Box>
-          <Text
-            variant={TextVariant.BodyMD}
-            color={isPulsing ? TextColor.Primary : isCompleted ? TextColor.Alternative : TextColor.Default}
-            style={tw.style('flex-1')}
-          >
-            {title}
-          </Text>
+          <Box twClassName="flex-1 flex-row items-center">
+            <Text
+              variant={TextVariant.BodyMD}
+              color={isPulsing ? TextColor.Primary : isCompleted ? TextColor.Alternative : TextColor.Default}
+            >
+              {title}
+            </Text>
+            {!isCompleted && renderPoints()}
+          </Box>
           {!isCompleted && !isLoading && (
             <Icon
               name={IconName.ArrowRight}

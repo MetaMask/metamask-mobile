@@ -18,14 +18,18 @@ export const DESIGN_STYLE = {
   INTEGRATED_MINIMALIST: 2,
   GLASSMORPHISM: 3,
   MINI_BAR: 4,
-  LAYOUT_A: 5,
-  LAYOUT_B: 6,
-  LAYOUT_C: 7,
+} as const;
+
+export const LAYOUT_MODE = {
+  A: 'A',
+  B: 'B',
+  C: 'C',
 } as const;
 
 export type UiMode = (typeof UI_MODE)[keyof typeof UI_MODE];
 export type Step3Variation = (typeof STEP3_VARIATION)[keyof typeof STEP3_VARIATION];
 export type DesignStyle = (typeof DESIGN_STYLE)[keyof typeof DESIGN_STYLE];
+export type LayoutMode = (typeof LAYOUT_MODE)[keyof typeof LAYOUT_MODE];
 
 export interface OnboardingSteps {
   step1: boolean;
@@ -44,6 +48,7 @@ const sharedState = {
   uiMode: UI_MODE.BANNER as UiMode,
   step3Variation: STEP3_VARIATION.MULTI as Step3Variation,
   designStyle: DESIGN_STYLE.MODERN_FINTECH as DesignStyle,
+  layoutMode: LAYOUT_MODE.C as LayoutMode,
   isExpanded: false,
 };
 
@@ -89,19 +94,31 @@ export const useOnboardingChecklist = () => {
   }, []);
 
   const cycleDesignStyle = useCallback(() => {
-    if (sharedState.designStyle === DESIGN_STYLE.MODERN_FINTECH) {
-      sharedState.designStyle = DESIGN_STYLE.INTEGRATED_MINIMALIST;
-    } else if (sharedState.designStyle === DESIGN_STYLE.INTEGRATED_MINIMALIST) {
-      sharedState.designStyle = DESIGN_STYLE.GLASSMORPHISM;
-    } else if (sharedState.designStyle === DESIGN_STYLE.GLASSMORPHISM) {
-      sharedState.designStyle = DESIGN_STYLE.MINI_BAR;
-    } else if (sharedState.designStyle === DESIGN_STYLE.MINI_BAR) {
-      sharedState.designStyle = DESIGN_STYLE.LAYOUT_A;
-    } else if (sharedState.designStyle === DESIGN_STYLE.LAYOUT_A) {
-      sharedState.designStyle = DESIGN_STYLE.LAYOUT_B;
-    } else if (sharedState.designStyle === DESIGN_STYLE.LAYOUT_B) {
-      sharedState.designStyle = DESIGN_STYLE.LAYOUT_C;
+    // Sequence: 
+    // 1. Style 1 (Fintech) + Layout C
+    // 2. Style 2 (Timeline) + Layout C
+    // 3. Style 3 (Glass) + Layout C
+    // 4. Style 4 (Mini-Bar) + Layout C
+    // 5. Layout A (Timeline + Actions)
+    // 6. Layout B (Timeline Only)
+    
+    if (sharedState.layoutMode === LAYOUT_MODE.C) {
+      if (sharedState.designStyle === DESIGN_STYLE.MODERN_FINTECH) {
+        sharedState.designStyle = DESIGN_STYLE.INTEGRATED_MINIMALIST;
+      } else if (sharedState.designStyle === DESIGN_STYLE.INTEGRATED_MINIMALIST) {
+        sharedState.designStyle = DESIGN_STYLE.GLASSMORPHISM;
+      } else if (sharedState.designStyle === DESIGN_STYLE.GLASSMORPHISM) {
+        sharedState.designStyle = DESIGN_STYLE.MINI_BAR;
+      } else {
+        // From Mini-bar, move to Layout A
+        sharedState.layoutMode = LAYOUT_MODE.A;
+        sharedState.designStyle = DESIGN_STYLE.INTEGRATED_MINIMALIST;
+      }
+    } else if (sharedState.layoutMode === LAYOUT_MODE.A) {
+      sharedState.layoutMode = LAYOUT_MODE.B;
     } else {
+      // Loop back to Start
+      sharedState.layoutMode = LAYOUT_MODE.C;
       sharedState.designStyle = DESIGN_STYLE.MODERN_FINTECH;
     }
     notify();
@@ -128,6 +145,7 @@ export const useOnboardingChecklist = () => {
     sharedState.uiMode = UI_MODE.BANNER;
     sharedState.step3Variation = STEP3_VARIATION.MULTI;
     sharedState.designStyle = DESIGN_STYLE.MODERN_FINTECH;
+    sharedState.layoutMode = LAYOUT_MODE.C;
     sharedState.isDismissed = false;
     sharedState.isExpanded = false;
     sharedState.steps = {
@@ -151,6 +169,7 @@ export const useOnboardingChecklist = () => {
     uiMode: sharedState.uiMode,
     step3Variation: sharedState.step3Variation,
     designStyle: sharedState.designStyle,
+    layoutMode: sharedState.layoutMode,
     isDismissed: sharedState.isDismissed,
     isExpanded: sharedState.isExpanded,
     setIsExpanded,

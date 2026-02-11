@@ -62,7 +62,7 @@ const OnboardingBanner = ({ style }: OnboardingBannerProps) => {
   if (designStyle === DESIGN_STYLE.INTEGRATED_MINIMALIST) {
     return (
       <Box 
-        twClassName="px-6 py-4 mx-4 my-2 rounded-3xl bg-background-default border border-border-muted shadow-xs"
+        twClassName="px-6 py-4 mx-4 my-2 rounded-3xl bg-background-default"
         style={style}
       >
         <Box twClassName="flex-row justify-between items-center mb-6">

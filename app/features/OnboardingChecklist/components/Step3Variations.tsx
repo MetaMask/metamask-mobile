@@ -14,11 +14,13 @@ import Button, {
 interface Step3VariationsProps {
   variant?: ChecklistItemVariant;
   isPulsing?: boolean;
+  icon?: IconName;
 }
 
 const Step3Variations = ({
   variant = ChecklistItemVariant.Default,
   isPulsing = false,
+  icon,
 }: Step3VariationsProps) => {
   const tw = useTailwind();
   const navigation = useNavigation<any>();
@@ -38,6 +40,7 @@ const Step3Variations = ({
         onPress={steps.step3 ? undefined : handleAction}
         variant={variant}
         isPulsing={isPulsing}
+        icon={icon}
       />
     </Box>
   );

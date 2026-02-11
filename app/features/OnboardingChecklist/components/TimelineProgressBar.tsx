@@ -39,6 +39,22 @@ const TimelineProgressBar = ({ completedCount, totalSteps }: TimelineProgressBar
     
     return (
       <View key={index} style={styles.segmentContainer}>
+        {/* The Line (extends through the whole segment) */}
+        {index < totalSteps - 1 && (
+          <View 
+            style={[
+              styles.line,
+              { 
+                backgroundColor: isCompleted ? MM_ORANGE : '#D1D5DB', // Grey for incomplete
+                borderStyle: isCompleted ? 'solid' : 'dashed',
+                borderWidth: isCompleted ? 0 : 1,
+                borderColor: isCompleted ? 'transparent' : '#D1D5DB'
+              },
+              isCompleted && styles.glow
+            ]} 
+          />
+        )}
+
         {/* The Dot */}
         <Box 
           style={[
@@ -52,7 +68,7 @@ const TimelineProgressBar = ({ completedCount, totalSteps }: TimelineProgressBar
               style={[
                 styles.pulse,
                 { 
-                  borderColor: MM_ORANGE,
+                  backgroundColor: MM_ORANGE,
                   transform: [{ scale: pulseAnim }],
                   opacity: pulseAnim.interpolate({
                     inputRange: [1, 1.5],
@@ -63,22 +79,6 @@ const TimelineProgressBar = ({ completedCount, totalSteps }: TimelineProgressBar
             />
           )}
         </Box>
-
-        {/* The Line (don't render for last item) */}
-        {index < totalSteps - 1 && (
-          <View 
-            style={[
-              styles.line,
-              { 
-                backgroundColor: isCompleted ? MM_ORANGE : '#E5E7EB',
-                borderStyle: isCompleted ? 'solid' : 'dashed',
-                borderWidth: isCompleted ? 0 : 1,
-                borderColor: isCompleted ? 'transparent' : '#D1D5DB'
-              },
-              isCompleted && styles.glow
-            ]} 
-          />
-        )}
       </View>
     );
   };
@@ -97,6 +97,8 @@ const styles = StyleSheet.create({
     minHeight: 80,
   },
   dot: {
+    position: 'absolute',
+    top: 24, // Matches the center of the 48px high icon
     width: 12,
     height: 12,
     borderRadius: 6,
@@ -107,12 +109,12 @@ const styles = StyleSheet.create({
     width: 12,
     height: 12,
     borderRadius: 6,
-    borderWidth: 4,
   },
   line: {
-    flex: 1,
+    position: 'absolute',
+    top: 24, // Start from the dot center
+    bottom: -24, // End at the next dot center (approx)
     width: 2,
-    marginVertical: 4,
     zIndex: 1,
   },
   glow: {

@@ -12,9 +12,6 @@ import React, {
 } from 'react';
 import type { TabRefreshHandle, WalletTokensTabViewHandle } from './types';
 import { useBalanceRefresh } from './hooks';
-import { useOnboardingChecklist, LAYOUT_MODE } from '../../../features/OnboardingChecklist/hooks/useOnboardingChecklist';
-import OnboardingBanner from '../../../features/OnboardingChecklist/components/OnboardingBanner';
-import FakeSRPScreen from '../../../features/OnboardingChecklist/components/FakeSRPScreen';
 
 import {
   ActivityIndicator,
@@ -46,6 +43,10 @@ import {
 } from '../../../constants/storage';
 import { getWalletNavbarOptions } from '../../UI/Navbar';
 import Tokens from '../../UI/Tokens';
+
+import { useOnboardingChecklist } from '../../../features/OnboardingChecklist/hooks/useOnboardingChecklist';
+import OnboardingBanner from '../../../features/OnboardingChecklist/components/OnboardingBanner';
+import FakeSRPScreen from '../../../features/OnboardingChecklist/components/FakeSRPScreen';
 
 import {
   NavigationProp,
@@ -1443,14 +1444,14 @@ const Wallet = ({
       </View>
       <>
         {/* Layout A or B: Checklist at the top (replaces banner) */}
-        {shouldShow && (layoutMode === LAYOUT_MODE.A || layoutMode === LAYOUT_MODE.B) ? (
-          <OnboardingBanner style={layoutMode === LAYOUT_MODE.A ? { marginBottom: 16 } : {}} />
+        {shouldShow && (layoutMode === 'A' || layoutMode === 'B') ? (
+          <OnboardingBanner style={layoutMode === 'A' ? { marginBottom: 16 } : {}} />
         ) : (
           <AccountGroupBalance />
         )}
 
         {/* Layout B hides action buttons */}
-        {(!shouldShow || layoutMode !== LAYOUT_MODE.B) && (
+        {(!shouldShow || layoutMode !== 'B') && (
           <AssetDetailsActions
             displayBuyButton={displayBuyButton}
             displaySwapsButton={displaySwapsButton}

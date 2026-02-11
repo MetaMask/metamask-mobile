@@ -1,23 +1,3 @@
-import React from 'react';
-import { ScrollView, TouchableOpacity } from 'react-native';
-import { Box } from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../component-library/components/Texts/Text';
-import Icon, {
-  IconName,
-  IconSize,
-  IconColor,
-} from '../../../component-library/components/Icons/Icon';
-import ChecklistItem, { ChecklistItemVariant } from './ChecklistItem';
-import Step3Variations from './Step3Variations';
-import { useOnboardingChecklist } from '../hooks/useOnboardingChecklist';
-import Routes from '../../../constants/navigation/Routes';
-import { useNavigation } from '@react-navigation/native';
-
 import React, { useState } from 'react';
 import { ScrollView, TouchableOpacity, Pressable } from 'react-native';
 import { Box } from '@metamask/design-system-react-native';
@@ -136,29 +116,31 @@ const OnboardingJourneyScreen = () => {
             </Box>
           </Box>
 
-          <Box gap={4}>
-            <ChecklistItem
-              title="Secure your account"
-              isCompleted={steps.step1}
-              onPress={() => navigation.navigate(Routes.FAKE_SRP)}
-              variant={ChecklistItemVariant.Glass}
-              isPulsing={!steps.step1}
-            />
-
-            <ChecklistItem
-              title="Fund your wallet"
-              isCompleted={steps.step2}
-              onPress={handleAddFunds}
-              variant={ChecklistItemVariant.Glass}
-              isPulsing={steps.step1 && !steps.step2}
-            />
-
-            <Step3Variations 
-              variant={ChecklistItemVariant.Glass} 
-              isPulsing={steps.step1 && steps.step2 && !steps.step3} 
-            />
-          </Box>
-
+                  <Box gap={4}>
+                    <ChecklistItem
+                      title="Secure your account"
+                      isCompleted={steps.step1}
+                      onPress={() => navigation.navigate(Routes.FAKE_SRP)}
+                      variant={ChecklistItemVariant.Glass}
+                      isPulsing={!steps.step1}
+                      icon={IconName.SecurityTick}
+                    />
+          
+                    <ChecklistItem
+                      title="Fund your wallet"
+                      isCompleted={steps.step2}
+                      onPress={handleAddFunds}
+                      variant={ChecklistItemVariant.Glass}
+                      isPulsing={steps.step1 && !steps.step2}
+                      icon={IconName.Add}
+                    />
+          
+                    <Step3Variations 
+                      variant={ChecklistItemVariant.Glass} 
+                      isPulsing={steps.step1 && steps.step2 && !steps.step3} 
+                      icon={IconName.Card}
+                    />
+                  </Box>
           {completedCount === 3 && (
             <Box twClassName="mt-10 p-6 bg-success-muted rounded-2xl items-center">
               <Icon name={IconName.Verified} size={IconSize.Xl} color={IconColor.Success} />

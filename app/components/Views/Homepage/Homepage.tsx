@@ -85,7 +85,7 @@ const Homepage = forwardRef<any, HomepageProps>(({ onScroll }, ref) => {
   return (
     <>
       <Box gap={6} marginBottom={8}>
-        {shouldShow && layoutMode === LAYOUT_MODE.C && designStyle !== DESIGN_STYLE.MINI_BAR && uiMode === UI_MODE.BANNER && (
+        {shouldShow && layoutMode === 'C' && designStyle !== DESIGN_STYLE.MINI_BAR && uiMode === UI_MODE.BANNER && (
           <OnboardingBanner />
         )}
         {!shouldShow && isAllCompleted && (
@@ -103,10 +103,10 @@ const Homepage = forwardRef<any, HomepageProps>(({ onScroll }, ref) => {
         <PredictionsSection ref={predictionsSectionRef} />
         <DiscoverSection ref={discoverSectionRef} />
       </Box>
-      {shouldShow && layoutMode === LAYOUT_MODE.C && designStyle !== DESIGN_STYLE.MINI_BAR && uiMode === UI_MODE.FLOATING && (
+      {shouldShow && layoutMode === 'C' && designStyle !== DESIGN_STYLE.MINI_BAR && uiMode === UI_MODE.FLOATING && (
         <OnboardingFloating />
       )}
-      {shouldShow && layoutMode === LAYOUT_MODE.C && designStyle === DESIGN_STYLE.MINI_BAR && (
+      {shouldShow && layoutMode === 'C' && designStyle === DESIGN_STYLE.MINI_BAR && (
         <OnboardingMiniBar
           scrollAnim={barAnim}
         />
