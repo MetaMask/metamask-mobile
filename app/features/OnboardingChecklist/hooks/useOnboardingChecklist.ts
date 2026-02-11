@@ -18,6 +18,9 @@ export const DESIGN_STYLE = {
   INTEGRATED_MINIMALIST: 2,
   GLASSMORPHISM: 3,
   MINI_BAR: 4,
+  LAYOUT_A: 5,
+  LAYOUT_B: 6,
+  LAYOUT_C: 7,
 } as const;
 
 export type UiMode = (typeof UI_MODE)[keyof typeof UI_MODE];
@@ -92,6 +95,12 @@ export const useOnboardingChecklist = () => {
       sharedState.designStyle = DESIGN_STYLE.GLASSMORPHISM;
     } else if (sharedState.designStyle === DESIGN_STYLE.GLASSMORPHISM) {
       sharedState.designStyle = DESIGN_STYLE.MINI_BAR;
+    } else if (sharedState.designStyle === DESIGN_STYLE.MINI_BAR) {
+      sharedState.designStyle = DESIGN_STYLE.LAYOUT_A;
+    } else if (sharedState.designStyle === DESIGN_STYLE.LAYOUT_A) {
+      sharedState.designStyle = DESIGN_STYLE.LAYOUT_B;
+    } else if (sharedState.designStyle === DESIGN_STYLE.LAYOUT_B) {
+      sharedState.designStyle = DESIGN_STYLE.LAYOUT_C;
     } else {
       sharedState.designStyle = DESIGN_STYLE.MODERN_FINTECH;
     }
