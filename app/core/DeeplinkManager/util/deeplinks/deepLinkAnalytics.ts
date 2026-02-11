@@ -315,8 +315,7 @@ const extractAssetProperties = (
   urlParams: UrlParamValues,
   sensitiveProps: Record<string, string>,
 ): void => {
-  const assetValue =
-    getStringValue(urlParams, 'asset') ?? getStringValue(urlParams, 'assetId');
+  const assetValue = getStringValue(urlParams, 'assetId');
   addPropertyIfExists(sensitiveProps, 'asset', assetValue);
 };
 

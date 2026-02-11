@@ -529,7 +529,7 @@ describe('deepLinkAnalytics', () => {
 
     it('extract asset route', () => {
       const result = extractRouteFromUrl(
-        'https://link.metamask.io/asset?asset=eip155:1/erc20:0x1',
+        'https://link.metamask.io/asset?assetId=eip155:1/erc20:0x1',
       );
       expect(result).toBe(DeepLinkRoute.ASSET);
     });

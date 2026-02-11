@@ -88,8 +88,8 @@ const handleTokenDetailsNavigation = (token?: TokenI | null) => {
  * Asset deeplink handler
  *
  * Supported URL formats:
- * - https://link.metamask.io/asset?asset=eip155:1/erc20:0x...
- * - https://link.metamask.io/asset?asset=eip155:1/slip44:60
+ * - https://link.metamask.io/asset?assetId=eip155:1/erc20:0x...
+ * - https://link.metamask.io/asset?assetId=eip155:1/slip44:60
  * - https://link.metamask.io/asset?assetId=eip155:1/erc20:0x...
  */
 export const handleAssetUrl = async ({ assetPath }: HandleAssetUrlParams) => {
