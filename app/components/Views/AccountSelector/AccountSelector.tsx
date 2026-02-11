@@ -97,7 +97,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   );
   const sheetRef = useRef<BottomSheetRef>(null);
 
-  const { navigateToAddAccountActions, isEvmOnly, disableAddAccountButton } =
+  const { navigateToAddAccountActions, disableAddAccountButton } =
     routeParams || {};
 
   const reloadAccounts = useSelector(
@@ -129,9 +129,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     [reloadAccounts],
   );
 
-  const { accounts: allAccounts, evmAccounts } = useAccounts(accountsParams);
-
-  const accounts = isEvmOnly ? evmAccounts : allAccounts;
+  const { accounts } = useAccounts(accountsParams);
 
   const [screen, setScreen] = useState<AccountSelectorScreens>(
     () => navigateToAddAccountActions ?? AccountSelectorScreens.AccountSelector,
