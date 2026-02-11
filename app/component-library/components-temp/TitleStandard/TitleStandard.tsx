@@ -39,7 +39,7 @@ const TitleStandard: React.FC<TitleStandardProps> = ({
   topLabelProps,
   bottomLabelProps,
   testID,
-  twClassName,
+  twClassName = '',
 }) => {
   const hasTopContent = topAccessory || topLabel;
   const hasBottomContent = bottomAccessory || bottomLabel;

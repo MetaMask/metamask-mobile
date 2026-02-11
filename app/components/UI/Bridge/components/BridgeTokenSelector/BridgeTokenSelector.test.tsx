@@ -293,7 +293,7 @@ jest.mock(
   },
 );
 
-jest.mock('../BridgeTokenSelectorBase', () => ({
+jest.mock('../SkeletonItem', () => ({
   SkeletonItem: () => {
     const { createElement } = jest.requireActual('react');
     const { View } = jest.requireActual('react-native');
