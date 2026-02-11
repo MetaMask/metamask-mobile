@@ -63,6 +63,12 @@ export interface BridgeState {
    * When false, changing source network will update dest to the default for that network.
    */
   isDestTokenManuallySet: boolean;
+  /**
+   * Tracks the navigation source that initiated the bridge/swap flow (e.g. 'trending').
+   * Used to enrich the Unified SwapBridge Completed event with attribution context.
+   * Cleared when bridge state resets.
+   */
+  source?: string;
 }
 
 export const initialState: BridgeState = {
@@ -169,6 +175,9 @@ const slice = createSlice({
     },
     setIsGasIncluded7702Supported: (state, action: PayloadAction<boolean>) => {
       state.isGasIncluded7702Supported = action.payload;
+    },
+    setSource: (state, action: PayloadAction<string | undefined>) => {
+      state.source = action.payload;
     },
   },
   extraReducers: (builder) => {
@@ -579,6 +588,11 @@ export const selectIsDestTokenManuallySet = createSelector(
   (bridgeState) => bridgeState.isDestTokenManuallySet,
 );
 
+export const selectSource = createSelector(
+  selectBridgeState,
+  (bridgeState) => bridgeState.source,
+);
+
 export const selectIsGaslessSwapEnabled = createSelector(
   selectIsSwap,
   selectBridgeFeatureFlags,
@@ -656,4 +670,5 @@ export const {
   setIsSelectingToken,
   setIsGasIncludedSTXSendBundleSupported,
   setIsGasIncluded7702Supported,
+  setSource,
 } = actions;

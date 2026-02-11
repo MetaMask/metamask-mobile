@@ -1,6 +1,7 @@
 import {
   BridgeController,
   type BridgeControllerMessenger,
+  UnifiedSwapBridgeEventName,
 } from '@metamask/bridge-controller';
 import { TransactionController } from '@metamask/transaction-controller';
 import { handleFetch } from '@metamask/controller-utils';
@@ -278,6 +279,137 @@ describe('BridgeController Init', () => {
         requestMock.initMessenger,
         'bridge_completed',
         {},
+      );
+    });
+
+    it('enriches Completed event with cached source from earlier event', () => {
+      // Arrange
+      const requestMock = buildInitRequestMock({
+        getState: jest.fn().mockReturnValue({
+          bridge: { source: 'trending' },
+        }),
+      });
+
+      // Act
+      bridgeControllerInit(requestMock);
+
+      const constructorOptions = bridgeControllerClassMock.mock.calls[0][0];
+      const trackMetaMetricsFn = constructorOptions.trackMetaMetricsFn;
+
+      // Fire a preceding event to cache source (mimics real flow where
+      // PageViewed fires while BridgeView is mounted, before Completed)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      trackMetaMetricsFn(UnifiedSwapBridgeEventName.PageViewed as any, {});
+
+      // Now fire the Completed event (Redux source may have been cleared by resetBridgeState)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      trackMetaMetricsFn(UnifiedSwapBridgeEventName.Completed as any, {
+        token_symbol_source: 'ETH',
+      });
+
+      // Assert - source should come from the cached value
+      expect(buildAndTrackEvent).toHaveBeenCalledWith(
+        requestMock.initMessenger,
+        UnifiedSwapBridgeEventName.Completed,
+        {
+          token_symbol_source: 'ETH',
+          source: 'trending',
+        },
+      );
+    });
+
+    it('clears cached source after Completed event so it does not leak to next swap', () => {
+      // Arrange
+      const requestMock = buildInitRequestMock({
+        getState: jest.fn().mockReturnValue({
+          bridge: { source: 'trending' },
+        }),
+      });
+
+      // Act
+      bridgeControllerInit(requestMock);
+
+      const constructorOptions = bridgeControllerClassMock.mock.calls[0][0];
+      const trackMetaMetricsFn = constructorOptions.trackMetaMetricsFn;
+
+      // First swap flow: cache + complete
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      trackMetaMetricsFn(UnifiedSwapBridgeEventName.PageViewed as any, {});
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      trackMetaMetricsFn(UnifiedSwapBridgeEventName.Completed as any, {});
+
+      // Second swap flow: source is now undefined in Redux
+      requestMock.getState.mockReturnValue({
+        bridge: {},
+      } as ReturnType<typeof requestMock.getState>);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      trackMetaMetricsFn(UnifiedSwapBridgeEventName.Completed as any, {
+        token_symbol_source: 'USDC',
+      });
+
+      // Assert - second Completed should NOT have source
+      expect(buildAndTrackEvent).toHaveBeenLastCalledWith(
+        requestMock.initMessenger,
+        UnifiedSwapBridgeEventName.Completed,
+        { token_symbol_source: 'USDC' },
+      );
+    });
+
+    it('does not add source to Completed event when source was never set', () => {
+      // Arrange
+      const requestMock = buildInitRequestMock({
+        getState: jest.fn().mockReturnValue({
+          bridge: { source: undefined },
+        }),
+      });
+
+      // Act
+      bridgeControllerInit(requestMock);
+
+      const constructorOptions = bridgeControllerClassMock.mock.calls[0][0];
+      const trackMetaMetricsFn = constructorOptions.trackMetaMetricsFn;
+
+      // Fire preceding event (source is undefined)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      trackMetaMetricsFn(UnifiedSwapBridgeEventName.PageViewed as any, {});
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      trackMetaMetricsFn(UnifiedSwapBridgeEventName.Completed as any, {
+        token_symbol_source: 'ETH',
+      });
+
+      // Assert
+      expect(buildAndTrackEvent).toHaveBeenCalledWith(
+        requestMock.initMessenger,
+        UnifiedSwapBridgeEventName.Completed,
+        { token_symbol_source: 'ETH' },
+      );
+    });
+
+    it('does not enrich non-Completed events with source', () => {
+      // Arrange
+      const requestMock = buildInitRequestMock({
+        getState: jest.fn().mockReturnValue({
+          bridge: { source: 'trending' },
+        }),
+      });
+
+      // Act
+      bridgeControllerInit(requestMock);
+
+      const constructorOptions = bridgeControllerClassMock.mock.calls[0][0];
+      const trackMetaMetricsFn = constructorOptions.trackMetaMetricsFn;
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      trackMetaMetricsFn(UnifiedSwapBridgeEventName.PageViewed as any, {
+        location: 'token_view',
+      });
+
+      // Assert - should NOT include source
+      expect(buildAndTrackEvent).toHaveBeenCalledWith(
+        requestMock.initMessenger,
+        UnifiedSwapBridgeEventName.PageViewed,
+        { location: 'token_view' },
       );
     });
   });

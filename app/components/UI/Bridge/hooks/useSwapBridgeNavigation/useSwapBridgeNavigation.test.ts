@@ -40,6 +40,7 @@ jest.mock('../../../../hooks/useMetrics', () => {
 const mockGetIsBridgeEnabledSource = jest.fn(() => true);
 const mockSetIsDestTokenManuallySet = jest.fn();
 const mockSetDestToken = jest.fn();
+const mockSetSource = jest.fn();
 jest.mock('../../../../../core/redux/slices/bridge', () => {
   const actual = jest.requireActual('../../../../../core/redux/slices/bridge');
   return {
@@ -55,8 +56,25 @@ jest.mock('../../../../../core/redux/slices/bridge', () => {
       mockSetDestToken(...args);
       return actual.setDestToken(...args);
     },
+    setSource: (...args: unknown[]) => {
+      mockSetSource(...args);
+      return actual.setSource(...args);
+    },
   };
 });
+
+// Mock TrendingFeedSessionManager
+const mockIsFromTrending = jest.fn(() => false);
+jest.mock('../../../Trending/services/TrendingFeedSessionManager', () => ({
+  __esModule: true,
+  default: {
+    getInstance: () => ({
+      get isFromTrending() {
+        return mockIsFromTrending();
+      },
+    }),
+  },
+}));
 
 const mockGoToPortfolioBridge = jest.fn();
 jest.mock('../useGoToPortfolioBridge', () => ({
@@ -1172,6 +1190,42 @@ describe('useSwapBridgeNavigation', () => {
         button_label: 'Swap',
         location: ActionLocation.ASSET_DETAILS,
       });
+    });
+  });
+
+  describe('source dispatch', () => {
+    it('dispatches setSource with trending when isFromTrending is true', () => {
+      mockIsFromTrending.mockReturnValue(true);
+
+      const { result } = renderHookWithProvider(
+        () =>
+          useSwapBridgeNavigation({
+            location: SwapBridgeNavigationLocation.TokenView,
+            sourcePage: mockSourcePage,
+          }),
+        { state: initialState },
+      );
+
+      result.current.goToSwaps();
+
+      expect(mockSetSource).toHaveBeenCalledWith('trending');
+    });
+
+    it('dispatches setSource with undefined when isFromTrending is false', () => {
+      mockIsFromTrending.mockReturnValue(false);
+
+      const { result } = renderHookWithProvider(
+        () =>
+          useSwapBridgeNavigation({
+            location: SwapBridgeNavigationLocation.TokenView,
+            sourcePage: mockSourcePage,
+          }),
+        { state: initialState },
+      );
+
+      result.current.goToSwaps();
+
+      expect(mockSetSource).toHaveBeenCalledWith(undefined);
     });
   });
 });

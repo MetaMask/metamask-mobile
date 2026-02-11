@@ -11,6 +11,8 @@ import reducer, {
   setDestToken,
   setIsDestTokenManuallySet,
   selectIsDestTokenManuallySet,
+  setSource,
+  selectSource,
   selectBip44DefaultPair,
   selectGasIncludedQuoteParams,
   selectIsBridgeEnabledSource,
@@ -241,6 +243,52 @@ describe('bridge slice', () => {
       const result = selectIsDestTokenManuallySet(mockState);
 
       expect(result).toBe(true);
+    });
+  });
+
+  describe('setSource', () => {
+    it('sets the source to trending', () => {
+      const action = setSource('trending');
+      const state = reducer(initialState, action);
+
+      expect(state.source).toBe('trending');
+    });
+
+    it('clears the source when set to undefined', () => {
+      const stateWithSource = {
+        ...initialState,
+        source: 'trending',
+      };
+
+      const action = setSource(undefined);
+      const state = reducer(stateWithSource, action);
+
+      expect(state.source).toBeUndefined();
+    });
+  });
+
+  describe('selectSource', () => {
+    it('returns undefined from initial state', () => {
+      const mockState = {
+        bridge: initialState,
+      } as RootState;
+
+      const result = selectSource(mockState);
+
+      expect(result).toBeUndefined();
+    });
+
+    it('returns source when set', () => {
+      const mockState = {
+        bridge: {
+          ...initialState,
+          source: 'trending',
+        },
+      } as RootState;
+
+      const result = selectSource(mockState);
+
+      expect(result).toBe('trending');
     });
   });
 

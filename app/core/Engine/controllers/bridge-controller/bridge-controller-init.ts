@@ -2,6 +2,7 @@ import {
   BridgeClientId,
   BridgeController,
   BridgeControllerMessenger,
+  UnifiedSwapBridgeEventName,
 } from '@metamask/bridge-controller';
 import { fetch as expoFetch } from 'expo/fetch';
 
@@ -38,8 +39,13 @@ export const bridgeControllerInit: ControllerInitFunction<
   BridgeControllerMessenger,
   BridgeControllerInitMessenger
 > = (request) => {
-  const { controllerMessenger, initMessenger } = request;
+  const { controllerMessenger, initMessenger, getState } = request;
   const { transactionController } = getControllers(request);
+
+  // Snapshot source from Redux when bridge events start firing,
+  // because resetBridgeState clears the value when BridgeView unmounts
+  // (which can happen before the Completed event fires).
+  let cachedSource: string | undefined;
 
   try {
     /* bridge controller Initialization */
@@ -65,11 +71,26 @@ export const bridgeControllerInit: ControllerInitFunction<
         customBridgeApiBaseUrl: BRIDGE_API_BASE_URL,
       },
       trackMetaMetricsFn: (event, properties) => {
-        buildAndTrackEvent(
-          initMessenger,
-          event,
-          properties as AnalyticsUnfilteredProperties,
-        );
+        let enrichedProperties = properties as AnalyticsUnfilteredProperties;
+
+        // Capture source early — any event before Completed means bridge is active
+        if (event !== UnifiedSwapBridgeEventName.Completed) {
+          cachedSource = getState()?.bridge?.source;
+        }
+
+        // Enrich Completed event with source attribution
+        if (event === UnifiedSwapBridgeEventName.Completed) {
+          if (cachedSource) {
+            enrichedProperties = {
+              ...enrichedProperties,
+              source: cachedSource,
+            };
+          }
+          // Clear after use so it doesn't leak to the next swap
+          cachedSource = undefined;
+        }
+
+        buildAndTrackEvent(initMessenger, event, enrichedProperties);
       },
       traceFn: trace as TraceCallback,
     });

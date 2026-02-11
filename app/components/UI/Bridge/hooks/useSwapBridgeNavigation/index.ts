@@ -25,6 +25,7 @@ import {
   setSourceToken,
   setDestToken,
   setIsDestTokenManuallySet,
+  setSource,
 } from '../../../../../core/redux/slices/bridge';
 import { trace, TraceName } from '../../../../../util/trace';
 import { useCurrentNetworkInfo } from '../../../../hooks/useCurrentNetworkInfo';
@@ -156,10 +157,17 @@ export const useSwapBridgeNavigation = ({
         sourceToken = getNativeSourceToken(EthScope.Mainnet);
       }
 
+      // Check if user is in an active trending session for analytics attribution
+      const isFromTrending =
+        TrendingFeedSessionManager.getInstance().isFromTrending;
+
       // Reset the manual dest token flag on navigation so auto-update works correctly
       // This ensures if user previously manually set dest, then closed and reopened the app,
       // changing source token will still auto-update the dest token
       dispatch(setIsDestTokenManuallySet(false));
+
+      // Store the source in Redux so it can be attached to the Completed event
+      dispatch(setSource(isFromTrending ? 'trending' : undefined));
 
       // Pre-populate Redux state before navigation to prevent empty button flash
       dispatch(setSourceToken(sourceToken));
@@ -214,10 +222,6 @@ export const useSwapBridgeNavigation = ({
           ? ActionLocation.NAVBAR
           : ActionLocation.ASSET_DETAILS,
       });
-      // Check if user is in an active trending session for analytics
-      const isFromTrending =
-        TrendingFeedSessionManager.getInstance().isFromTrending;
-
       const swapEventProperties = {
         location,
         chain_id_source: getDecimalChainId(sourceToken.chainId),
