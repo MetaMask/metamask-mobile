@@ -314,6 +314,7 @@ const CardHome = () => {
       return;
     }
 
+    // Check if balances have finished loading when a priority token exists
     const hasValidTokenBalance =
       balanceFormatted !== undefined &&
       balanceFormatted !== TOKEN_BALANCE_LOADING &&
@@ -325,8 +326,11 @@ const CardHome = () => {
       balanceFiat !== TOKEN_BALANCE_LOADING_UPPERCASE &&
       balanceFiat !== TOKEN_RATE_UNDEFINED;
 
-    const isLoaded =
-      !!priorityToken && (hasValidTokenBalance || hasValidFiatBalance);
+    const hasPriorityToken = !!priorityToken;
+
+    const isLoaded = hasPriorityToken
+      ? hasValidTokenBalance || hasValidFiatBalance
+      : !isLoading;
 
     if (isLoaded) {
       // Set flag immediately to prevent race conditions
@@ -363,14 +367,17 @@ const CardHome = () => {
           .addProperties({
             state: cardHomeState,
             token_symbol_priority: priorityToken?.symbol,
-            token_raw_balance_priority:
-              rawTokenBalance !== undefined && isNaN(rawTokenBalance)
+            token_raw_balance_priority: hasPriorityToken
+              ? rawTokenBalance !== undefined && isNaN(rawTokenBalance)
                 ? 0
-                : rawTokenBalance,
-            token_fiat_balance_priority:
-              rawFiatNumber !== undefined && isNaN(rawFiatNumber)
+                : rawTokenBalance
+              : undefined,
+            token_fiat_balance_priority: hasPriorityToken
+              ? rawFiatNumber !== undefined && isNaN(rawFiatNumber)
                 ? 0
-                : rawFiatNumber,
+                : rawFiatNumber
+              : undefined,
+            token_chain_id_priority: priorityToken?.caipChainId,
           })
           .build(),
       );
@@ -384,6 +391,7 @@ const CardHome = () => {
     trackEvent,
     createEventBuilder,
     isSDKLoading,
+    isLoading,
     isAuthenticated,
     kycStatus,
     warning,
