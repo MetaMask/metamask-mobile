@@ -16,6 +16,7 @@ export enum ChecklistItemVariant {
   Default = 'default',
   Card = 'card',
   Minimal = 'minimal',
+  Glass = 'glass',
 }
 
 interface ChecklistItemProps {
@@ -37,6 +38,41 @@ const ChecklistItem: React.FC<ChecklistItemProps> = ({
 
   const isCard = variant === ChecklistItemVariant.Card;
   const isMinimal = variant === ChecklistItemVariant.Minimal;
+  const isGlass = variant === ChecklistItemVariant.Glass;
+
+  if (isGlass) {
+    return (
+      <Pressable onPress={onPress} disabled={isCompleted || isLoading}>
+        <Box
+          twClassName="flex-row items-center p-5 mb-3 rounded-2xl bg-background-default"
+          style={tw.style('border border-border-muted shadow-sm', isCompleted && 'opacity-80')}
+        >
+          <Box twClassName="mr-4">
+            {isCompleted ? (
+              <Box twClassName="w-10 h-10 rounded-full bg-success-muted items-center justify-center">
+                <Icon
+                  name={IconName.Check}
+                  size={IconSize.Md}
+                  color={IconColor.Success}
+                />
+              </Box>
+            ) : (
+              <Box twClassName="w-10 h-10 rounded-full border-2 border-border-muted items-center justify-center">
+                <Box twClassName="w-2 h-2 rounded-full bg-border-muted" />
+              </Box>
+            )}
+          </Box>
+          <Text
+            variant={TextVariant.BodyLG}
+            color={TextColor.Default}
+            style={tw.style('flex-1')}
+          >
+            {title}
+          </Text>
+        </Box>
+      </Pressable>
+    );
+  }
 
   if (isMinimal) {
     return (
