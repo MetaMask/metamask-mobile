@@ -28,28 +28,98 @@ const availableFeatures = new Set([
   'experimental',
 ]);
 
+// Legacy (main) hardcoded feature sets — used when CODE_FENCING_FEATURES is not set (e.g. Bitrise / local)
+const mainFeatureSet = new Set([
+  'preinstalled-snaps',
+  'keyring-snaps',
+  'multi-srp',
+  'solana',
+  'bitcoin',
+  'tron',
+]);
+const betaFeatureSet = new Set([
+  'beta',
+  'preinstalled-snaps',
+  'keyring-snaps',
+  'multi-srp',
+  'solana',
+  'bitcoin',
+  'tron',
+]);
+const flaskFeatureSet = new Set([
+  'flask',
+  'preinstalled-snaps',
+  'external-snaps',
+  'keyring-snaps',
+  'multi-srp',
+  'bitcoin',
+  'solana',
+  'tron',
+]);
+const experimentalFeatureSet = new Set([...mainFeatureSet, 'experimental']);
+
+/**
+ * Gets features from METAMASK_BUILD_TYPE + METAMASK_ENVIRONMENT (main branch logic).
+ * Used when CODE_FENCING_FEATURES is not set (Bitrise or local).
+ *
+ * @returns {Set<string>} The set of features to be included in the build.
+ */
+function getBuildTypeFeaturesFromEnv() {
+  const buildType = process.env.METAMASK_BUILD_TYPE ?? 'main';
+  const envType = process.env.METAMASK_ENVIRONMENT ?? 'production';
+  let features;
+
+  switch (buildType) {
+    case 'qa':
+    case 'QA':
+    case 'main':
+      if (envType === 'exp') {
+        features = new Set(experimentalFeatureSet);
+        break;
+      }
+      features =
+        envType === 'beta' ? new Set(betaFeatureSet) : new Set(mainFeatureSet);
+      break;
+    case 'beta':
+      features = new Set(betaFeatureSet);
+      break;
+    case 'flask':
+      features = new Set(flaskFeatureSet);
+      break;
+    default:
+      throw new Error(
+        `Invalid METAMASK_BUILD_TYPE of ${buildType} was passed to metro transform`,
+      );
+  }
+
+  return features;
+}
+
 /**
  * Gets the features for the current build type, used to determine which code
  * fences to remove.
  *
- * Source of truth: CODE_FENCING_FEATURES env var (set by builds.yml via apply-build-config.js)
+ * Default (GH Actions): use CODE_FENCING_FEATURES from env (set by apply-build-config.js from builds.yml).
+ * Fallback (main / Bitrise / local): use METAMASK_BUILD_TYPE + METAMASK_ENVIRONMENT with hardcoded sets.
  *
  * @returns {Set<string>} The set of features to be included in the build.
  */
 function getBuildTypeFeatures() {
-  if (!process.env.CODE_FENCING_FEATURES) {
-    throw new Error(
-      'CODE_FENCING_FEATURES not set. Run: node scripts/apply-build-config.js <build-name>',
-    );
+  // Prefer GH Actions path: single source of truth from builds.yml
+  if (process.env.CODE_FENCING_FEATURES) {
+    const features = JSON.parse(process.env.CODE_FENCING_FEATURES);
+    const featureSet = new Set(features);
+    if (process.env.INCLUDE_SAMPLE_FEATURE === 'true') {
+      featureSet.add('sample-feature');
+    }
+    return featureSet;
   }
 
-  const features = JSON.parse(process.env.CODE_FENCING_FEATURES);
-  const featureSet = new Set(features);
-
+  // Fallback: main branch logic (hardcoded sets by build type + environment)
+  const featureSet = getBuildTypeFeaturesFromEnv();
   if (process.env.INCLUDE_SAMPLE_FEATURE === 'true') {
     featureSet.add('sample-feature');
   }
-
   return featureSet;
 }
 

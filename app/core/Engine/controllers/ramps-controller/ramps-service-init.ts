@@ -6,12 +6,30 @@ import {
   RampsEnvironment,
 } from '@metamask/ramps-controller';
 
-// Environment is set at build time via builds.yml
+/**
+ * TEMPORARY: When GITHUB_ACTIONS, uses RAMPS_ENVIRONMENT (set by builds.yml).
+ * When not (Bitrise / .js.env), uses METAMASK_ENVIRONMENT switch. Remove condition once Bitrise is deprecated.
+ */
 export function getRampsEnvironment(): RampsEnvironment {
-  const rampsEnv = process.env.RAMPS_ENVIRONMENT;
-  return rampsEnv === 'production'
-    ? RampsEnvironment.Production
-    : RampsEnvironment.Staging;
+  if (process.env.GITHUB_ACTIONS === 'true') {
+    const rampsEnv = process.env.RAMPS_ENVIRONMENT;
+    return rampsEnv === 'production'
+      ? RampsEnvironment.Production
+      : RampsEnvironment.Staging;
+  }
+  const metamaskEnvironment = process.env.METAMASK_ENVIRONMENT;
+  switch (metamaskEnvironment) {
+    case 'production':
+    case 'beta':
+    case 'rc':
+      return RampsEnvironment.Production;
+    case 'dev':
+    case 'exp':
+    case 'test':
+    case 'e2e':
+    default:
+      return RampsEnvironment.Staging;
+  }
 }
 
 /**

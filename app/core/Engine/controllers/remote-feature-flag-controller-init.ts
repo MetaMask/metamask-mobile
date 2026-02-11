@@ -18,8 +18,7 @@ import { getBaseSemVerVersion } from '../../../util/version';
 
 /**
  * Get build-time feature flag defaults from environment variable.
- * These are defined in builds.yml and set by apply-build-config.js.
- * They serve as initial values until LaunchDarkly fetches real values.
+ * Set by apply-build-config.js from builds.yml (e.g. in GitHub Actions "Apply build config" step).
  */
 function getBuildTimeFeatureFlagDefaults(): Record<string, unknown> {
   try {
@@ -35,19 +34,24 @@ function getBuildTimeFeatureFlagDefaults(): Record<string, unknown> {
 
 /**
  * Merge build-time defaults with persisted state.
- * Build-time defaults are used as initial values, persisted state takes precedence.
+ * Build-time defaults (from builds.yml) are used as initial values; persisted state takes precedence.
  */
 function getInitialState(
   persistedState: RemoteFeatureFlagControllerState | undefined,
 ): RemoteFeatureFlagControllerState | undefined {
+  // TEMPORARY: Only apply the new built-in defaults when built via GitHub Actions.
+  // Bitrise does not set REMOTE_FEATURE_FLAG_DEFAULTS; skip merge there so both CI paths work.
+  // Remove this block once Bitrise is deprecated and all builds use GH Actions + builds.yml.
+  if (process.env.GITHUB_ACTIONS !== 'true') {
+    return persistedState;
+  }
+
   const buildTimeDefaults = getBuildTimeFeatureFlagDefaults();
 
-  // If no build-time defaults, use persisted state as-is
   if (Object.keys(buildTimeDefaults).length === 0) {
     return persistedState;
   }
 
-  // Merge: build-time defaults as base, persisted remoteFeatureFlags override
   const mergedRemoteFeatureFlags = {
     ...buildTimeDefaults,
     ...(persistedState?.remoteFeatureFlags ?? {}),
@@ -72,9 +76,11 @@ export const remoteFeatureFlagControllerInit: ControllerInitFunction<
 > = ({ controllerMessenger, persistedState, getState, analyticsId }) => {
   const disabled = !selectBasicFunctionalityEnabled(getState());
 
-  // Merge build-time defaults with persisted state
+  // Merge build-time defaults with persisted state (TEMPORARY: only when GITHUB_ACTIONS; see getInitialState)
   const initialState = getInitialState(
-    persistedState.RemoteFeatureFlagController,
+    persistedState.RemoteFeatureFlagController as
+      | RemoteFeatureFlagControllerState
+      | undefined,
   );
 
   const controller = new RemoteFeatureFlagController({

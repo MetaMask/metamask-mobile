@@ -10,17 +10,17 @@ import {
 } from '../../utils/wildcardTokenList';
 import { DEFAULT_MUSD_BLOCKED_COUNTRIES } from '../../constants/musd';
 
+// TEMPORARY: When GITHUB_ACTIONS use build-time default from remote flags; when not (Bitrise / .js.env) use process.env. Remove once Bitrise is deprecated.
 export const selectPooledStakingEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
     const remoteFlag =
       remoteFeatureFlags?.earnPooledStakingEnabled as unknown as VersionGatedFeatureFlag;
-
-    // Try versioned flag first, fall back to build-time default from builds.yml
-    return (
-      validatedVersionGatedFeatureFlag(remoteFlag) ??
-      (remoteFeatureFlags?.earnPooledStakingEnabled as boolean)
-    );
+    const fallback =
+      process.env.GITHUB_ACTIONS === 'true'
+        ? (remoteFeatureFlags?.earnPooledStakingEnabled as boolean)
+        : process.env.MM_POOLED_STAKING_ENABLED === 'true';
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? fallback;
   },
 );
 
@@ -28,12 +28,12 @@ export const selectPooledStakingServiceInterruptionBannerEnabledFlag =
   createSelector(selectRemoteFeatureFlags, (remoteFeatureFlags) => {
     const remoteFlag =
       remoteFeatureFlags?.earnPooledStakingServiceInterruptionBannerEnabled as unknown as VersionGatedFeatureFlag;
-
-    // Try versioned flag first, fall back to build-time default from builds.yml
-    return (
-      validatedVersionGatedFeatureFlag(remoteFlag) ??
-      (remoteFeatureFlags?.earnPooledStakingServiceInterruptionBannerEnabled as boolean)
-    );
+    const fallback =
+      process.env.GITHUB_ACTIONS === 'true'
+        ? (remoteFeatureFlags?.earnPooledStakingServiceInterruptionBannerEnabled as boolean)
+        : process.env.MM_POOLED_STAKING_SERVICE_INTERRUPTION_BANNER_ENABLED ===
+          'true';
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? fallback;
   });
 
 export const selectStablecoinLendingEnabledFlag = createSelector(
@@ -41,12 +41,11 @@ export const selectStablecoinLendingEnabledFlag = createSelector(
   (remoteFeatureFlags) => {
     const remoteFlag =
       remoteFeatureFlags?.earnStablecoinLendingEnabled as unknown as VersionGatedFeatureFlag;
-
-    // Try versioned flag first, fall back to build-time default from builds.yml
-    return (
-      validatedVersionGatedFeatureFlag(remoteFlag) ??
-      (remoteFeatureFlags?.earnStablecoinLendingEnabled as boolean)
-    );
+    const fallback =
+      process.env.GITHUB_ACTIONS === 'true'
+        ? (remoteFeatureFlags?.earnStablecoinLendingEnabled as boolean)
+        : process.env.MM_STABLECOIN_LENDING_UI_ENABLED === 'true';
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? fallback;
   },
 );
 
@@ -54,12 +53,12 @@ export const selectStablecoinLendingServiceInterruptionBannerEnabledFlag =
   createSelector(selectRemoteFeatureFlags, (remoteFeatureFlags) => {
     const remoteFlag =
       remoteFeatureFlags?.earnStablecoinLendingServiceInterruptionBannerEnabled as unknown as VersionGatedFeatureFlag;
-
-    // Try versioned flag first, fall back to build-time default from builds.yml
-    return (
-      validatedVersionGatedFeatureFlag(remoteFlag) ??
-      (remoteFeatureFlags?.earnStablecoinLendingServiceInterruptionBannerEnabled as boolean)
-    );
+    const fallback =
+      process.env.GITHUB_ACTIONS === 'true'
+        ? (remoteFeatureFlags?.earnStablecoinLendingServiceInterruptionBannerEnabled as boolean)
+        : process.env.MM_STABLE_COIN_SERVICE_INTERRUPTION_BANNER_ENABLED ===
+          'true';
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? fallback;
   });
 
 export const selectIsMusdConversionFlowEnabledFlag = createSelector(
@@ -67,12 +66,11 @@ export const selectIsMusdConversionFlowEnabledFlag = createSelector(
   (remoteFeatureFlags) => {
     const remoteFlag =
       remoteFeatureFlags?.earnMusdConversionFlowEnabled as unknown as VersionGatedFeatureFlag;
-
-    // Try versioned flag first, fall back to build-time default from builds.yml
-    return (
-      validatedVersionGatedFeatureFlag(remoteFlag) ??
-      (remoteFeatureFlags?.earnMusdConversionFlowEnabled as boolean)
-    );
+    const fallback =
+      process.env.GITHUB_ACTIONS === 'true'
+        ? (remoteFeatureFlags?.earnMusdConversionFlowEnabled as boolean)
+        : process.env.MM_MUSD_CONVERSION_FLOW_ENABLED === 'true';
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? fallback;
   },
 );
 
@@ -85,19 +83,16 @@ export const selectIsMusdGetBuyCtaEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   selectIsMusdConversionFlowEnabledFlag,
   (remoteFeatureFlags, isMusdConversionFlowEnabled) => {
-    // mUSD conversion flow must be enabled to show the mUSD CTA
     if (!isMusdConversionFlowEnabled) {
       return false;
     }
-
     const remoteFlag =
       remoteFeatureFlags?.earnMusdCtaEnabled as unknown as VersionGatedFeatureFlag;
-
-    // Try versioned flag first, fall back to build-time default from builds.yml
-    return (
-      validatedVersionGatedFeatureFlag(remoteFlag) ??
-      (remoteFeatureFlags?.earnMusdCtaEnabled as boolean)
-    );
+    const fallback =
+      process.env.GITHUB_ACTIONS === 'true'
+        ? (remoteFeatureFlags?.earnMusdCtaEnabled as boolean)
+        : process.env.MM_MUSD_CTA_ENABLED === 'true';
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? fallback;
   },
 );
 
@@ -110,19 +105,16 @@ export const selectIsMusdConversionAssetOverviewEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   selectIsMusdConversionFlowEnabledFlag,
   (remoteFeatureFlags, isMusdConversionFlowEnabled) => {
-    // mUSD conversion flow must be enabled to show the mUSD CTA
     if (!isMusdConversionFlowEnabled) {
       return false;
     }
-
     const remoteFlag =
       remoteFeatureFlags?.earnMusdConversionAssetOverviewCtaEnabled as unknown as VersionGatedFeatureFlag;
-
-    // Try versioned flag first, fall back to build-time default from builds.yml
-    return (
-      validatedVersionGatedFeatureFlag(remoteFlag) ??
-      (remoteFeatureFlags?.earnMusdConversionAssetOverviewCtaEnabled as boolean)
-    );
+    const fallback =
+      process.env.GITHUB_ACTIONS === 'true'
+        ? (remoteFeatureFlags?.earnMusdConversionAssetOverviewCtaEnabled as boolean)
+        : process.env.MM_MUSD_CONVERSION_ASSET_OVERVIEW_CTA === 'true';
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? fallback;
   },
 );
 
@@ -135,19 +127,16 @@ export const selectIsMusdConversionTokenListItemCtaEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   selectIsMusdConversionFlowEnabledFlag,
   (remoteFeatureFlags, isMusdConversionFlowEnabled) => {
-    // mUSD conversion flow must be enabled to show the mUSD CTA
     if (!isMusdConversionFlowEnabled) {
       return false;
     }
-
     const remoteFlag =
       remoteFeatureFlags?.earnMusdConversionTokenListItemCtaEnabled as unknown as VersionGatedFeatureFlag;
-
-    // Try versioned flag first, fall back to build-time default from builds.yml
-    return (
-      validatedVersionGatedFeatureFlag(remoteFlag) ??
-      (remoteFeatureFlags?.earnMusdConversionTokenListItemCtaEnabled as boolean)
-    );
+    const fallback =
+      process.env.GITHUB_ACTIONS === 'true'
+        ? (remoteFeatureFlags?.earnMusdConversionTokenListItemCtaEnabled as boolean)
+        : process.env.MM_MUSD_CONVERSION_TOKEN_LIST_ITEM_CTA === 'true';
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? fallback;
   },
 );
 
@@ -247,12 +236,11 @@ export const selectIsMusdConversionRewardsUiEnabledFlag = createSelector(
 
     const remoteFlag =
       remoteFeatureFlags?.earnMusdConversionRewardsUiEnabled as unknown as VersionGatedFeatureFlag;
-
-    // Try versioned flag first, fall back to build-time default from builds.yml
-    return (
-      validatedVersionGatedFeatureFlag(remoteFlag) ??
-      (remoteFeatureFlags?.earnMusdConversionRewardsUiEnabled as boolean)
-    );
+    const fallback =
+      process.env.GITHUB_ACTIONS === 'true'
+        ? (remoteFeatureFlags?.earnMusdConversionRewardsUiEnabled as boolean)
+        : process.env.MM_MUSD_CONVERSION_REWARDS_UI_ENABLED === 'true';
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? fallback;
   },
 );
 
@@ -337,11 +325,10 @@ export const selectMerklCampaignClaimingEnabledFlag = createSelector(
   (remoteFeatureFlags) => {
     const remoteFlag =
       remoteFeatureFlags?.earnMerklCampaignClaiming as unknown as VersionGatedFeatureFlag;
-
-    // Try versioned flag first, fall back to build-time default from builds.yml
-    return (
-      validatedVersionGatedFeatureFlag(remoteFlag) ??
-      (remoteFeatureFlags?.earnMerklCampaignClaiming as boolean)
-    );
+    const fallback =
+      process.env.GITHUB_ACTIONS === 'true'
+        ? (remoteFeatureFlags?.earnMerklCampaignClaiming as boolean)
+        : process.env.MM_EARN_MERKL_CAMPAIGN_CLAIMING === 'true';
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? fallback;
   },
 );
