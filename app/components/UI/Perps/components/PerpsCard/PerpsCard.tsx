@@ -10,6 +10,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import {
   getPerpsDisplaySymbol,
+  isTPSLOrder,
   PERPS_EVENT_VALUE,
   PERPS_EVENT_PROPERTY,
 } from '@metamask/perps-controller';
@@ -78,9 +79,21 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
     labelText = `${formatPnl(pnlValue)} (${formatPercentage(roeValue, 1)})`;
   } else if (order) {
     const displaySymbol = getPerpsDisplaySymbol(order.symbol);
-    const isTriggerOrder = Boolean(order.isTrigger || order.triggerPrice);
-    const isLimitOrder = order.orderType === 'limit';
-    const triggerOrLimitPrice = order.triggerPrice || order.price;
+    const detailedOrderType = order.detailedOrderType || '';
+    const normalizedDetailedOrderType = detailedOrderType.toLowerCase();
+    const isTriggerOrder = Boolean(
+      order.isTrigger || isTPSLOrder(order.detailedOrderType),
+    );
+    const isLimitOrder = Boolean(
+      order.orderType === 'limit' ||
+        normalizedDetailedOrderType.includes('limit'),
+    );
+    const parsedTriggerPrice = parseFloat(order.triggerPrice || '0');
+    const hasTriggerPrice =
+      Number.isFinite(parsedTriggerPrice) && parsedTriggerPrice > 0;
+    const triggerOrLimitPrice = hasTriggerPrice
+      ? order.triggerPrice
+      : order.price;
     const parsedOrderPrice = parseFloat(triggerOrLimitPrice || '0');
 
     primaryText = formatOrderLabel(order);
@@ -94,7 +107,9 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
         : strings('perps.order.market');
 
     labelText = isTriggerOrder
-      ? strings('perps.order.trigger_price')
+      ? hasTriggerPrice
+        ? strings('perps.order.trigger_price')
+        : strings('perps.order.market_price')
       : isLimitOrder
         ? strings('perps.order.limit_price')
         : strings('perps.order.market_price');

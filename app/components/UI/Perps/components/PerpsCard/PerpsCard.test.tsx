@@ -308,5 +308,42 @@ describe('PerpsCard', () => {
       expect(getByText('$3,100')).toBeDefined();
       expect(getByText('perps.order.trigger_price')).toBeDefined();
     });
+
+    it('falls back to market price label when trigger order has no valid trigger price', () => {
+      const triggerMarketOrderWithoutPrice = {
+        ...mockOrder,
+        isTrigger: true,
+        triggerPrice: '0',
+        price: '0',
+        detailedOrderType: 'Stop Market',
+      };
+
+      const { getByText, queryByText } = render(
+        <PerpsCard order={triggerMarketOrderWithoutPrice} testID="test-card" />,
+      );
+
+      expect(getByText('perps.order.market')).toBeDefined();
+      expect(getByText('perps.order.market_price')).toBeDefined();
+      expect(queryByText('perps.order.trigger_price')).toBeNull();
+    });
+
+    it('keeps limit price label for non-trigger limit orders when triggerPrice is "0"', () => {
+      const limitOrderWithZeroTriggerPrice = {
+        ...mockOrder,
+        isTrigger: false,
+        orderType: 'limit' as const,
+        detailedOrderType: 'Limit',
+        triggerPrice: '0',
+        price: '2000',
+      };
+
+      const { getByText, queryByText } = render(
+        <PerpsCard order={limitOrderWithZeroTriggerPrice} testID="test-card" />,
+      );
+
+      expect(getByText('$2,000')).toBeDefined();
+      expect(getByText('perps.order.limit_price')).toBeDefined();
+      expect(queryByText('perps.order.market_price')).toBeNull();
+    });
   });
 });
