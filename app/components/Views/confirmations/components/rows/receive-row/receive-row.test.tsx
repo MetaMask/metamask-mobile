@@ -15,7 +15,8 @@ jest.mock('../../../hooks/pay/useTransactionPayData');
 
 const INPUT_AMOUNT_USD_MOCK = '100';
 const PROVIDER_FEE_USD_MOCK = '0.50';
-const EXPECTED_RECEIVE_MOCK = '$99.50';
+const TX_GAS_USD_MOCK = '0.02';
+const EXPECTED_RECEIVE_MOCK = '$99.48';
 
 function render(inputAmountUsd: string = INPUT_AMOUNT_USD_MOCK) {
   return renderWithProvider(<ReceiveRow inputAmountUsd={inputAmountUsd} />, {
@@ -40,13 +41,14 @@ describe('ReceiveRow', () => {
     useTransactionPayTotalsMock.mockReturnValue({
       fees: {
         provider: { usd: PROVIDER_FEE_USD_MOCK },
+        transactionGas: { usd: TX_GAS_USD_MOCK },
       },
     } as TransactionPayTotals);
 
     useIsTransactionPayLoadingMock.mockReturnValue(false);
   });
 
-  it('renders the receive amount (input minus provider fee)', () => {
+  it('renders the receive amount (input minus provider fee and tx gas)', () => {
     const { getByText } = render();
     expect(getByText(EXPECTED_RECEIVE_MOCK)).toBeDefined();
   });
@@ -59,10 +61,11 @@ describe('ReceiveRow', () => {
     expect(getByTestId('receive-row-skeleton')).toBeDefined();
   });
 
-  it('renders zero if provider fee exceeds input amount', () => {
+  it('renders zero if fees exceed input amount', () => {
     useTransactionPayTotalsMock.mockReturnValue({
       fees: {
         provider: { usd: '200' },
+        transactionGas: { usd: '1' },
       },
     } as TransactionPayTotals);
 

@@ -16,7 +16,6 @@ import {
   hasTransactionType,
   isTransactionPayWithdraw,
 } from '../../../utils/transaction';
-import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
 import {
   TransactionPayQuote,
   TransactionPayTotals,
@@ -45,8 +44,6 @@ export function BridgeFeeRow() {
   const totals = useTransactionPayTotals();
   const { fieldAlerts } = useAlerts();
   const hasAlert = fieldAlerts.some((a) => a.field === RowAlertKey.PayWithFee);
-  const isWithdraw = isTransactionPayWithdraw(transactionMetadata);
-  const { canSelectWithdrawToken } = useTransactionPayWithdraw();
 
   if (hasTransactionType(transactionMetadata, NETWORK_FEE_ONLY_TYPES)) {
     return (
@@ -58,17 +55,6 @@ export function BridgeFeeRow() {
         />
         <MetaMaskFeeRow quotes={quotes} isLoading={isLoading} />
       </>
-    );
-  }
-
-  // For withdrawals, only show provider fee (network fee is negligible on Polygon)
-  if (isWithdraw) {
-    return (
-      <WithdrawalProviderFeeRow
-        totals={totals}
-        isLoading={isLoading}
-        showTooltip={canSelectWithdrawToken}
-      />
     );
   }
 
@@ -101,15 +87,30 @@ function TransactionFeeRow({
 }) {
   const formatFiat = useFiatFormatter({ currency: 'usd' });
 
+  const isWithdraw = isTransactionPayWithdraw(transactionMeta);
+
   const feeTotalUsd = useMemo(() => {
     if (!totals?.fees) return '';
+
+    // For withdrawals, show the user's actual tx gas + provider (bridge/relay) fee.
+    // totals.fees.transactionGas is the gas cost of the original Polygon tx,
+    // calculated from the tx's own gas params via calculateTransactionGasCost.
+    // The sourceNetwork fee in bridge totals is the bridge contract gas,
+    // not the user's simple send gas.
+    if (isWithdraw) {
+      return formatFiat(
+        new BigNumber(totals.fees.provider.usd).plus(
+          totals.fees.transactionGas?.usd ?? 0,
+        ),
+      );
+    }
 
     return formatFiat(
       new BigNumber(totals.fees.provider.usd)
         .plus(totals.fees.sourceNetwork.estimate.usd)
         .plus(totals.fees.targetNetwork.usd),
     );
-  }, [totals, formatFiat]);
+  }, [totals, formatFiat, isWithdraw]);
 
   if (isLoading) return <InfoRowSkeleton testId="bridge-fee-row-skeleton" />;
 
@@ -224,61 +225,6 @@ function MetaMaskFeeRow({
   );
 }
 
-/**
- * Transaction fee row for withdrawals.
- * When the token picker is visible (showTooltip=true), uses plural label and adds a tooltip.
- */
-function WithdrawalProviderFeeRow({
-  totals,
-  isLoading,
-  showTooltip,
-}: {
-  totals?: TransactionPayTotals;
-  isLoading: boolean;
-  showTooltip: boolean;
-}) {
-  const formatFiat = useFiatFormatter({ currency: 'usd' });
-
-  const transactionFeeUsd = useMemo(() => {
-    if (!totals?.fees?.provider?.usd) return '';
-    const providerFee = new BigNumber(totals.fees.provider.usd);
-    if (providerFee.isZero()) return '';
-    return formatFiat(providerFee);
-  }, [totals, formatFiat]);
-
-  if (isLoading)
-    return <InfoRowSkeleton testId="withdrawal-transaction-fee-row-skeleton" />;
-
-  if (!transactionFeeUsd) return null;
-
-  const label = showTooltip
-    ? strings('confirm.label.transaction_fees')
-    : strings('confirm.label.transaction_fee');
-
-  return (
-    <AlertRow
-      testID="withdrawal-transaction-fee-row"
-      alertField={RowAlertKey.PayWithFee}
-      label={label}
-      tooltip={
-        showTooltip
-          ? strings('confirm.tooltip.predict_withdraw.transaction_fee')
-          : undefined
-      }
-      tooltipTitle={
-        showTooltip
-          ? strings('confirm.tooltip.title.transaction_fee')
-          : undefined
-      }
-      rowVariant={InfoRowVariant.Small}
-    >
-      <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-        {transactionFeeUsd}
-      </Text>
-    </AlertRow>
-  );
-}
-
 function Tooltip({
   transactionMeta,
   totals,
@@ -288,8 +234,17 @@ function Tooltip({
 }): ReactNode {
   let message: string | undefined;
 
-  if (hasTransactionType(transactionMeta, [TransactionType.predictDeposit])) {
-    message = strings('confirm.tooltip.predict_deposit.transaction_fee');
+  if (
+    hasTransactionType(transactionMeta, [
+      TransactionType.predictDeposit,
+      TransactionType.predictWithdraw,
+    ])
+  ) {
+    message = hasTransactionType(transactionMeta, [
+      TransactionType.predictWithdraw,
+    ])
+      ? strings('confirm.tooltip.predict_withdraw.transaction_fee')
+      : strings('confirm.tooltip.predict_deposit.transaction_fee');
   }
 
   if (hasTransactionType(transactionMeta, [TransactionType.musdConversion])) {
