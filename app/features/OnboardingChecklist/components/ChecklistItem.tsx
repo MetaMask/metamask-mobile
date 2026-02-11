@@ -17,6 +17,7 @@ export enum ChecklistItemVariant {
   Card = 'card',
   Minimal = 'minimal',
   Glass = 'glass',
+  Timeline = 'timeline',
 }
 
 interface ChecklistItemProps {
@@ -26,6 +27,7 @@ interface ChecklistItemProps {
   isLoading?: boolean;
   variant?: ChecklistItemVariant;
   isPulsing?: boolean;
+  icon?: IconName;
 }
 
 const ChecklistItem: React.FC<ChecklistItemProps> = ({
@@ -35,6 +37,7 @@ const ChecklistItem: React.FC<ChecklistItemProps> = ({
   isLoading,
   variant = ChecklistItemVariant.Default,
   isPulsing = false,
+  icon,
 }) => {
   const tw = useTailwind();
   const pulseAnim = useRef(new Animated.Value(1)).current;
@@ -65,6 +68,43 @@ const ChecklistItem: React.FC<ChecklistItemProps> = ({
   const isCard = variant === ChecklistItemVariant.Card;
   const isMinimal = variant === ChecklistItemVariant.Minimal;
   const isGlass = variant === ChecklistItemVariant.Glass;
+  const isTimeline = variant === ChecklistItemVariant.Timeline;
+
+  if (isTimeline) {
+    return (
+      <Pressable onPress={onPress} disabled={isCompleted || isLoading}>
+        <Box 
+          twClassName="flex-row items-center h-20 px-2"
+          style={tw.style(isCompleted && 'opacity-50')}
+        >
+          {icon && (
+            <Box twClassName="mr-4 w-12 h-12 rounded-full bg-background-alternative items-center justify-center">
+              <Icon 
+                name={icon} 
+                size={IconSize.Lg} 
+                color={isPulsing ? IconColor.Primary : IconColor.Default} 
+              />
+            </Box>
+          )}
+          <Box twClassName="flex-1">
+            <Text
+              variant={TextVariant.BodyLG}
+              color={isPulsing ? TextColor.Primary : TextColor.Default}
+              twClassName="font-bold"
+            >
+              {title}
+            </Text>
+            <Text variant={TextVariant.BodyXS} color={TextColor.Alternative}>
+              {isCompleted ? 'Completed' : 'Tap to start'}
+            </Text>
+          </Box>
+          {!isCompleted && (
+            <Icon name={IconName.ArrowRight} size={IconSize.Sm} color={IconColor.Muted} />
+          )}
+        </Box>
+      </Pressable>
+    );
+  }
 
   if (isGlass) {
     return (
