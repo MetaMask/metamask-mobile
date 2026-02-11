@@ -1,16 +1,9 @@
-import { is, object, optional, string } from '@metamask/superstruct';
 import { useSelector } from 'react-redux';
 import {
   selectIsPerpsBalanceSelected,
   selectPerpsPayWithToken,
 } from '../selectors/perpsController';
-
-/** Schema for pay-with token from PerpsController state (address + chainId required, description optional) */
-export const PayWithTokenSchema = object({
-  address: string(),
-  chainId: string(),
-  description: optional(string()),
-});
+import { parsePayWithToken } from '../utils/parsePayWithToken';
 
 /**
  * Returns whether the user selected the synthetic "Perps balance" option.
@@ -27,12 +20,5 @@ export function usePerpsPayWithToken(): {
   chainId: string;
 } | null {
   const selectedPaymentToken = useSelector(selectPerpsPayWithToken);
-  if (!is(selectedPaymentToken, PayWithTokenSchema)) {
-    return null;
-  }
-  return {
-    description: selectedPaymentToken.description,
-    address: selectedPaymentToken.address,
-    chainId: selectedPaymentToken.chainId,
-  };
+  return parsePayWithToken(selectedPaymentToken);
 }

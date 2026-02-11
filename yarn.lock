@@ -35206,7 +35206,6 @@ __metadata:
     "@metamask/solana-wallet-standard": "npm:^0.6.0"
     "@metamask/stake-sdk": "npm:^3.4.0"
     "@metamask/storage-service": "npm:^1.0.0"
-    "@metamask/superstruct": "npm:^3.2.1"
     "@metamask/swappable-obj-proxy": "npm:^2.1.0"
     "@metamask/swaps-controller": "npm:^15.0.0"
     "@metamask/test-dapp": "npm:9.5.0"

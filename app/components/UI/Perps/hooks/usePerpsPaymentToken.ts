@@ -3,8 +3,7 @@ import { useCallback } from 'react';
 import { AssetType } from '../../../Views/confirmations/types/token';
 import { useTransactionPayToken } from '../../../Views/confirmations/hooks/pay/useTransactionPayToken';
 import Engine from '../../../../core/Engine';
-import { is } from '@metamask/superstruct';
-import { PayWithTokenSchema } from './useIsPerpsBalanceSelected';
+import { parsePayWithToken } from '../utils/parsePayWithToken';
 
 export interface UsePerpsPaymentTokenResult {
   onPaymentTokenChange: (token: AssetType | null) => void;
@@ -15,19 +14,21 @@ export function usePerpsPaymentToken(): UsePerpsPaymentTokenResult {
 
   const onPaymentTokenChange = useCallback(
     (token: AssetType | null) => {
+      const parsed =
+        token === null || token === undefined ? null : parsePayWithToken(token);
       const payload =
-        token != null && is(token, PayWithTokenSchema)
-          ? {
-              description: token.description,
-              address: token.address,
-              chainId: token.chainId,
-            }
-          : null;
+        parsed === null
+          ? null
+          : {
+              description: parsed.description,
+              address: parsed.address,
+              chainId: parsed.chainId,
+            };
       Engine.context.PerpsController?.setSelectedPaymentToken?.(payload);
-      if (token != null && is(token, PayWithTokenSchema)) {
+      if (parsed !== null) {
         setPayToken({
-          address: token.address as Hex,
-          chainId: token.chainId as Hex,
+          address: parsed.address as Hex,
+          chainId: parsed.chainId as Hex,
         });
       }
     },
