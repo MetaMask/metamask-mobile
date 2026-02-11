@@ -10,7 +10,6 @@
 import { Platform, PlatformOSType } from 'react-native';
 import {
   WalletType,
-  CardTokenStatus,
   ProvisionCardParams,
   ProvisioningResult,
   CardActivationEvent,
@@ -55,8 +54,6 @@ export class AppleWalletAdapter
   readonly walletType: WalletType = 'apple_wallet';
   readonly platform: PlatformOSType = 'ios';
 
-  private lastProvisionedIdentifier: string | null = null;
-
   constructor() {
     super();
     // Start loading the module immediately but don't block
@@ -82,49 +79,17 @@ export class AppleWalletAdapter
     const typedData = data as {
       serialNumber?: string;
       state?: string;
-      primaryAccountIdentifier?: string;
     };
-
-    const status =
-      typedData.state === 'activated'
-        ? 'activated'
-        : typedData.state === 'canceled'
-          ? 'canceled'
-          : ('failed' as const);
-
-    if (status === 'activated' && typedData.primaryAccountIdentifier) {
-      this.lastProvisionedIdentifier = typedData.primaryAccountIdentifier;
-    }
-
     const event: CardActivationEvent = {
       serialNumber: typedData.serialNumber,
-      primaryAccountIdentifier: typedData.primaryAccountIdentifier,
-      status,
+      status:
+        typedData.state === 'activated'
+          ? 'activated'
+          : typedData.state === 'canceled'
+            ? 'canceled'
+            : 'failed', // Defensive fallback for unknown statuses
     };
     this.notifyActivationListeners(event);
-  }
-
-  /**
-   * Check card status using primaryAccountIdentifier when available.
-   * Falls back to suffix-based lookup if no identifier is stored.
-   *
-   * After provisioning, Apple Wallet uses a DPAN (Device PAN) whose last 4
-   * digits differ from the FPAN (Funding PAN). This means suffix-based lookup
-   * fails. Using the primaryAccountIdentifier avoids this mismatch.
-   */
-  override async getCardStatus(
-    lastFourDigits: string,
-  ): Promise<CardTokenStatus> {
-    if (this.lastProvisionedIdentifier) {
-      const status = await this.getCardStatusByIdentifier(
-        this.lastProvisionedIdentifier,
-        'MASTERCARD',
-      );
-      if (status !== 'not_found') {
-        return status;
-      }
-    }
-    return super.getCardStatus(lastFourDigits);
   }
 
   /**

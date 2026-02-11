@@ -149,7 +149,7 @@ export abstract class BaseWalletAdapter {
   }
 
   /**
-   * Check the status of a specific card in the wallet by last 4 digits
+   * Check the status of a specific card in the wallet
    */
   async getCardStatus(lastFourDigits: string): Promise<CardTokenStatus> {
     try {
@@ -158,28 +158,6 @@ export abstract class BaseWalletAdapter {
       return mapCardStatus(status);
     } catch (error) {
       logAdapterError(this.getAdapterName(), 'getCardStatus', error);
-      return 'not_found';
-    }
-  }
-
-  /**
-   * Check the status of a specific card in the wallet by identifier.
-   * On iOS this is the primaryAccountIdentifier, on Android the tokenReferenceId.
-   */
-  async getCardStatusByIdentifier(
-    identifier: string,
-    tsp: string,
-  ): Promise<CardTokenStatus> {
-    try {
-      const wallet = await this.getWalletModule();
-      const status = await wallet.getCardStatusByIdentifier(identifier, tsp);
-      return mapCardStatus(status);
-    } catch (error) {
-      logAdapterError(
-        this.getAdapterName(),
-        'getCardStatusByIdentifier',
-        error,
-      );
       return 'not_found';
     }
   }
@@ -257,12 +235,8 @@ export abstract class BaseWalletAdapter {
 
       case 'requires_activation':
         return {
-          canAddCard: false,
-          recommendedAction: 'resume',
-          ineligibilityReason: strings(
-            'card.push_provisioning.error_card_pending',
-            { walletName: getWalletName() },
-          ),
+          canAddCard: true,
+          recommendedAction: 'add_card',
         };
 
       case 'active':

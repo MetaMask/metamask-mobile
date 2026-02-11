@@ -224,7 +224,6 @@ export interface WalletEligibility {
 export interface CardActivationEvent {
   tokenId?: string;
   serialNumber?: string;
-  primaryAccountIdentifier?: string;
   status: 'activated' | 'canceled' | 'failed';
 }
 
