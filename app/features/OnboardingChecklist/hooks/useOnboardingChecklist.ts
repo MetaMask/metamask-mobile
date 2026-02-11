@@ -1,4 +1,7 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
+import { useSelector } from 'react-redux';
+import { selectSeedphraseBackedUp } from '../../../reducers/user/selectors';
+import { selectAccountGroupBalanceForEmptyState } from '../../../selectors/assets/balances';
 
 export const UI_MODE = {
   BANNER: 'banner',
@@ -31,6 +34,23 @@ export const useOnboardingChecklist = () => {
     step3: false,
   });
 
+  const isSeedphraseBackedUp = useSelector(selectSeedphraseBackedUp);
+  const accountGroupBalance = useSelector(selectAccountGroupBalanceForEmptyState);
+
+  // Auto-detect Step 1: SRP Backup
+  useEffect(() => {
+    if (isSeedphraseBackedUp) {
+      setSteps((prev) => ({ ...prev, step1: true }));
+    }
+  }, [isSeedphraseBackedUp]);
+
+  // Auto-detect Step 2: Non-zero balance
+  useEffect(() => {
+    if (accountGroupBalance && accountGroupBalance.totalBalanceInUserCurrency > 0) {
+      setSteps((prev) => ({ ...prev, step2: true }));
+    }
+  }, [accountGroupBalance]);
+
   const toggleUiMode = useCallback(() => {
     setUiMode((prev) =>
       prev === UI_MODE.BANNER ? UI_MODE.FLOATING : UI_MODE.BANNER,
@@ -54,11 +74,11 @@ export const useOnboardingChecklist = () => {
     setStep3Variation(STEP3_VARIATION.MULTI);
     setIsDismissed(false);
     setSteps({
-      step1: false,
-      step2: false,
+      step1: isSeedphraseBackedUp,
+      step2: (accountGroupBalance?.totalBalanceInUserCurrency ?? 0) > 0,
       step3: false,
     });
-  }, []);
+  }, [isSeedphraseBackedUp, accountGroupBalance]);
 
   const completeStep = useCallback((step: keyof OnboardingSteps) => {
     setSteps((prev) => ({
