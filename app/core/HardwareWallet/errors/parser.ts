@@ -92,12 +92,6 @@ function parseLedgerCommunicationError(
         walletType,
       );
 
-    case LedgerCommunicationErrors.NotSupported:
-      return createHardwareWalletError(
-        ErrorCode.MobileNotSupported,
-        walletType,
-      );
-
     case LedgerCommunicationErrors.BlindSignError:
       return createHardwareWalletError(
         ErrorCode.DeviceStateBlindSignNotSupported,
@@ -110,6 +104,7 @@ function parseLedgerCommunicationError(
         walletType,
       );
 
+    case LedgerCommunicationErrors.NotSupported:
     case LedgerCommunicationErrors.UnknownError:
     default:
       return createHardwareWalletError(ErrorCode.Unknown, walletType);

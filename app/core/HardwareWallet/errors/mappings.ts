@@ -216,7 +216,7 @@ export const MOBILE_ERROR_EXTENSIONS: Partial<
 
   // Mobile-specific
   [ErrorCode.MobileNotSupported]: {
-    recoveryAction: RecoveryAction.RETRY,
+    recoveryAction: RecoveryAction.ACKNOWLEDGE,
     icon: IconName.Danger,
     iconColor: IconColor.Error,
     getLocalizedTitle: () =>

@@ -69,8 +69,7 @@ export function createHardwareWalletError(
     mobileExt?.getLocalizedMessage(walletType) ??
     sdkInfo?.message ??
     'An error occurred';
-  const recoveryAction =
-    mobileExt?.recoveryAction ?? RecoveryAction.ACKNOWLEDGE;
+  const recoveryAction = mobileExt?.recoveryAction ?? RecoveryAction.RETRY;
 
   const errorOptions: HardwareWalletErrorOptions = {
     code,

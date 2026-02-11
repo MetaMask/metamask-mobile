@@ -375,6 +375,13 @@ describe('MOBILE_ERROR_EXTENSIONS', () => {
       expect(
         MOBILE_ERROR_EXTENSIONS[ErrorCode.UserCancelled]?.recoveryAction,
       ).toBe(RecoveryAction.ACKNOWLEDGE);
+      expect(
+        MOBILE_ERROR_EXTENSIONS[ErrorCode.DeviceStateBlindSignNotSupported]
+          ?.recoveryAction,
+      ).toBe(RecoveryAction.ACKNOWLEDGE);
+      expect(
+        MOBILE_ERROR_EXTENSIONS[ErrorCode.MobileNotSupported]?.recoveryAction,
+      ).toBe(RecoveryAction.ACKNOWLEDGE);
     });
 
     it('RETRY is used for unknown errors (user can retry)', () => {

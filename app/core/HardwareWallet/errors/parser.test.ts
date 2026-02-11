@@ -126,13 +126,13 @@ describe('parseErrorByType', () => {
       expect(result.code).toBe(ErrorCode.DeviceStateEthAppClosed);
     });
 
-    it('parses NotSupported', () => {
+    it('parses NotSupported as Unknown', () => {
       const result = parseErrorByType(
         LedgerCommunicationErrors.NotSupported,
         walletType,
       );
 
-      expect(result.code).toBe(ErrorCode.MobileNotSupported);
+      expect(result.code).toBe(ErrorCode.Unknown);
     });
 
     it('parses AppIsNotInstalled', () => {
