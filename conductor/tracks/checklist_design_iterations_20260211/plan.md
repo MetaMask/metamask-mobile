@@ -12,7 +12,7 @@
 - [x] Task: Implement Style 1 - "Modern Fintech" 31831f1
     - [ ] Build the segmented progress bar component.
     - [ ] Update `ChecklistItem` or create a variant for card-based layout.
-- [ ] Task: Implement Style 2 - "Integrated Minimalist"
+- [x] Task: Implement Style 2 - "Integrated Minimalist" 84801c1
     - [ ] Implement the divider-based layout.
     - [ ] Add the "..." context menu placeholder for reset.
 - [ ] Task: Implement Style 3 - "Glassmorphism"
