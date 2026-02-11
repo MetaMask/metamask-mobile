@@ -11,7 +11,7 @@
 
 - [x] Task: Build the "Checklist Item" base component 80172
   - [ ] Create a reusable MMDS component for checklist rows with checkmarks.
-- [ ] Task: Build the "Banner" Layout
+- [x] Task: Build the "Banner" Layout 03e99f8
   - [ ] Implement the top-of-page container using `MMDS.Box`.
 - [ ] Task: Build the "Floating Bottom" Layout
   - [ ] Implement the sticky bottom component.
