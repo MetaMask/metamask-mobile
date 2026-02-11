@@ -975,7 +975,7 @@ describe('Earn Feature Flag Selectors', () => {
       expect(result).toEqual(remoteTokens);
     });
 
-    it('falls back to local env tokens when remote unavailable', () => {
+    it('returns empty object when remote tokens are unavailable', () => {
       const localTokens = {
         '0x1': ['USDC', 'DAI'],
       };
@@ -985,7 +985,7 @@ describe('Earn Feature Flag Selectors', () => {
 
       const result = selectMusdConversionCTATokens(stateWithoutRemote);
 
-      expect(result).toEqual(localTokens);
+      expect(result).toEqual({});
     });
 
     it('returns empty object when both remote and local are unavailable', () => {
@@ -1201,7 +1201,7 @@ describe('Earn Feature Flag Selectors', () => {
       expect(result).toEqual(remoteAllowlist);
     });
 
-    it('falls back to local env variable when remote unavailable', () => {
+    it('returns empty object when remote unavailable', () => {
       const localAllowlist = {
         '0x1': ['USDC', 'DAI'],
       };
@@ -1222,7 +1222,7 @@ describe('Earn Feature Flag Selectors', () => {
       const result =
         selectMusdConversionPaymentTokensAllowlist(stateWithoutRemote);
 
-      expect(result).toEqual(localAllowlist);
+      expect(result).toEqual({});
     });
 
     it('returns empty object when both remote and local are unavailable', () => {
@@ -1242,32 +1242,6 @@ describe('Earn Feature Flag Selectors', () => {
       const result =
         selectMusdConversionPaymentTokensAllowlist(stateWithoutRemote);
 
-      expect(result).toEqual({});
-    });
-
-    it('handles JSON parsing errors for local env gracefully', () => {
-      process.env.MM_MUSD_CONVERTIBLE_TOKENS_ALLOWLIST = 'invalid json';
-
-      const stateWithoutRemote = {
-        engine: {
-          backgroundState: {
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {},
-              cacheTimestamp: 0,
-            },
-          },
-        },
-      };
-
-      const result =
-        selectMusdConversionPaymentTokensAllowlist(stateWithoutRemote);
-
-      expect(consoleWarnSpy).toHaveBeenCalledWith(
-        expect.stringContaining(
-          'Failed to parse MM_MUSD_CONVERTIBLE_TOKENS_ALLOWLIST',
-        ),
-        expect.anything(),
-      );
       expect(result).toEqual({});
     });
 
@@ -1369,7 +1343,7 @@ describe('Earn Feature Flag Selectors', () => {
       expect(result).toEqual(remoteAllowlist);
     });
 
-    it('uses local allowlist when remote is invalid structure', () => {
+    it('returns empty object when remote is invalid structure', () => {
       const localAllowlist = { '0x1': ['DAI'] };
       process.env.MM_MUSD_CONVERTIBLE_TOKENS_ALLOWLIST =
         JSON.stringify(localAllowlist);
@@ -1393,7 +1367,7 @@ describe('Earn Feature Flag Selectors', () => {
       expect(consoleWarnSpy).toHaveBeenCalledWith(
         expect.stringContaining('produced invalid structure'),
       );
-      expect(result).toEqual(localAllowlist);
+      expect(result).toEqual({});
     });
   });
 
@@ -1493,7 +1467,7 @@ describe('Earn Feature Flag Selectors', () => {
     });
 
     describe('local env fallback', () => {
-      it('returns local blocklist when remote is unavailable', () => {
+      it('returns empty object when remote is unavailable', () => {
         const localBlocklist = { '0xa4b1': ['USDT', 'DAI'] };
         process.env.MM_MUSD_CONVERTIBLE_TOKENS_BLOCKLIST =
           JSON.stringify(localBlocklist);
@@ -1512,10 +1486,10 @@ describe('Earn Feature Flag Selectors', () => {
         const result =
           selectMusdConversionPaymentTokensBlocklist(stateWithoutRemote);
 
-        expect(result).toEqual({ '0xa4b1': ['USDT', 'DAI'] });
+        expect(result).toEqual({});
       });
 
-      it('returns local blocklist when remote is invalid', () => {
+      it('returns empty object when remote is invalid', () => {
         const localBlocklist = { '0x1': ['USDC'] };
         process.env.MM_MUSD_CONVERTIBLE_TOKENS_BLOCKLIST =
           JSON.stringify(localBlocklist);
@@ -1542,7 +1516,7 @@ describe('Earn Feature Flag Selectors', () => {
             'Remote earnMusdConvertibleTokensBlocklist produced invalid structure',
           ),
         );
-        expect(result).toEqual({ '0x1': ['USDC'] });
+        expect(result).toEqual({});
       });
     });
 
@@ -1663,32 +1637,6 @@ describe('Earn Feature Flag Selectors', () => {
     });
 
     describe('error handling', () => {
-      it('handles JSON parsing errors for local env gracefully', () => {
-        process.env.MM_MUSD_CONVERTIBLE_TOKENS_BLOCKLIST = 'not valid json';
-
-        const stateWithoutRemote = {
-          engine: {
-            backgroundState: {
-              RemoteFeatureFlagController: {
-                remoteFeatureFlags: {},
-                cacheTimestamp: 0,
-              },
-            },
-          },
-        };
-
-        const result =
-          selectMusdConversionPaymentTokensBlocklist(stateWithoutRemote);
-
-        expect(consoleWarnSpy).toHaveBeenCalledWith(
-          expect.stringContaining(
-            'Failed to parse MM_MUSD_CONVERTIBLE_TOKENS_BLOCKLIST',
-          ),
-          expect.anything(),
-        );
-        expect(result).toEqual({});
-      });
-
       it('handles JSON parsing errors for remote flag gracefully', () => {
         const stateWithInvalidRemote = {
           engine: {
@@ -1939,7 +1887,7 @@ describe('Earn Feature Flag Selectors', () => {
         delete process.env.MM_MUSD_CONVERSION_GEO_BLOCKED_COUNTRIES;
       });
 
-      it('falls back to local env var when remote flag is unavailable', () => {
+      it('falls back to default blocked countries when remote flag is unavailable', () => {
         process.env.MM_MUSD_CONVERSION_GEO_BLOCKED_COUNTRIES = 'GB,US';
 
         const state = {
@@ -1955,7 +1903,7 @@ describe('Earn Feature Flag Selectors', () => {
 
         const result = selectMusdConversionBlockedCountries(state);
 
-        expect(result).toEqual(['GB', 'US']);
+        expect(result).toEqual(['GB']); // DEFAULT_MUSD_BLOCKED_COUNTRIES
       });
 
       it('remote flag takes precedence over local env var', () => {
@@ -1981,7 +1929,7 @@ describe('Earn Feature Flag Selectors', () => {
         expect(result).toEqual(['GB']);
       });
 
-      it('parses comma-separated country codes from env var', () => {
+      it('returns default blocked countries when remote is unavailable', () => {
         process.env.MM_MUSD_CONVERSION_GEO_BLOCKED_COUNTRIES = 'GB, US, FR';
 
         const state = {
@@ -1997,10 +1945,10 @@ describe('Earn Feature Flag Selectors', () => {
 
         const result = selectMusdConversionBlockedCountries(state);
 
-        expect(result).toEqual(['GB', 'US', 'FR']);
+        expect(result).toEqual(['GB']); // DEFAULT_MUSD_BLOCKED_COUNTRIES
       });
 
-      it('converts country codes to uppercase', () => {
+      it('returns default blocked countries regardless of env var format', () => {
         process.env.MM_MUSD_CONVERSION_GEO_BLOCKED_COUNTRIES = 'gb,us';
 
         const state = {
@@ -2016,7 +1964,7 @@ describe('Earn Feature Flag Selectors', () => {
 
         const result = selectMusdConversionBlockedCountries(state);
 
-        expect(result).toEqual(['GB', 'US']);
+        expect(result).toEqual(['GB']); // DEFAULT_MUSD_BLOCKED_COUNTRIES
       });
 
       it('returns default blocked countries when env var is empty string', () => {
@@ -2038,7 +1986,7 @@ describe('Earn Feature Flag Selectors', () => {
         expect(result).toEqual(['GB']);
       });
 
-      it('filters out empty entries from env var', () => {
+      it('returns default blocked countries ignoring malformed env var', () => {
         process.env.MM_MUSD_CONVERSION_GEO_BLOCKED_COUNTRIES = 'GB,,US,';
 
         const state = {
@@ -2054,7 +2002,7 @@ describe('Earn Feature Flag Selectors', () => {
 
         const result = selectMusdConversionBlockedCountries(state);
 
-        expect(result).toEqual(['GB', 'US']);
+        expect(result).toEqual(['GB']); // DEFAULT_MUSD_BLOCKED_COUNTRIES
       });
     });
   });
@@ -2090,7 +2038,7 @@ describe('Earn Feature Flag Selectors', () => {
       expect(result).toBe(0);
     });
 
-    it('falls back to local env value when remote is undefined', () => {
+    it('falls back to hardcoded fallback value when remote is undefined', () => {
       process.env.MM_MUSD_CONVERSION_MIN_ASSET_BALANCE_REQUIRED = '0.01';
 
       const stateWithoutRemote = createStateWithRemoteFlags({});
@@ -2098,7 +2046,7 @@ describe('Earn Feature Flag Selectors', () => {
       const result =
         selectMusdConversionMinAssetBalanceRequired(stateWithoutRemote);
 
-      expect(result).toBe(0.01);
+      expect(result).toBe(0.01); // FALLBACK_MIN_ASSET_BALANCE_REQUIRED
     });
 
     it('returns fallback value when both remote and local values are not finite', () => {
@@ -2116,7 +2064,7 @@ describe('Earn Feature Flag Selectors', () => {
       expect(result).toBe(0.01);
     });
 
-    it('falls back to local env value when remote is not finite', () => {
+    it('falls back to hardcoded fallback value when remote is not finite', () => {
       process.env.MM_MUSD_CONVERSION_MIN_ASSET_BALANCE_REQUIRED = '0.01';
 
       const stateWithInvalidRemote = createStateWithRemoteFlags({
@@ -2127,7 +2075,7 @@ describe('Earn Feature Flag Selectors', () => {
         stateWithInvalidRemote,
       );
 
-      expect(result).toBe(0.01);
+      expect(result).toBe(0.01); // FALLBACK_MIN_ASSET_BALANCE_REQUIRED
     });
 
     it('returns fallback value when local env value is not finite and remote is missing', () => {
