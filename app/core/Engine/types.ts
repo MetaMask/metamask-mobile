@@ -45,6 +45,7 @@ import {
   DeFiPositionsControllerState,
   DeFiPositionsControllerEvents,
   DeFiPositionsControllerActions,
+
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   MultichainBalancesControllerState,
   MultichainBalancesController,
@@ -67,6 +68,12 @@ import {
   TokenDetectionControllerActions,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/assets-controllers';
+import {
+  AssetsController,
+  AssetsControllerActions,
+  AssetsControllerEvents,
+  AssetsControllerState,
+} from '@metamask/assets-controller';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import {
   MultichainTransactionsController,
@@ -404,6 +411,7 @@ import {
  */
 type RequiredControllers = Omit<
   Controllers,
+  | 'AssetsController'
   | 'ErrorReportingService'
   | 'MultichainRouter'
   | 'RewardsDataService'
@@ -416,6 +424,7 @@ type RequiredControllers = Omit<
  */
 type OptionalControllers = Pick<
   Controllers,
+  | 'AssetsController'
   | 'ErrorReportingService'
   | 'MultichainRouter'
   | 'RewardsDataService'
@@ -445,6 +454,7 @@ type GlobalActions =
   | SamplePetnamesControllerActions
   ///: END:ONLY_INCLUDE_IF
   | AccountTrackerControllerActions
+  | AssetsControllerActions
   | NftControllerActions
   | SwapsControllerActions
   | AddressBookControllerActions
@@ -521,6 +531,7 @@ type GlobalEvents =
   | SamplePetnamesControllerEvents
   ///: END:ONLY_INCLUDE_IF
   | AccountTrackerControllerEvents
+  | AssetsControllerEvents
   | NftControllerEvents
   | SwapsControllerEvents
   | AddressBookControllerEvents
@@ -634,6 +645,7 @@ export type Controllers = {
   ConnectivityController: ConnectivityController;
   ApprovalController: ApprovalController;
   AssetsContractController: AssetsContractController;
+  AssetsController: AssetsController;
   CurrencyRateController: CurrencyRateController;
   ErrorReportingService: ErrorReportingService;
   GasFeeController: GasFeeController;
@@ -720,6 +732,7 @@ export type EngineContext = RequiredControllers & Partial<OptionalControllers>;
 export type EngineState = {
   AccountTrackerController: AccountTrackerControllerState;
   AddressBookController: AddressBookControllerState;
+  AssetsController: AssetsControllerState;
   AppMetadataController: AppMetadataControllerState;
   ConnectivityController: ConnectivityControllerState;
   NftController: NftControllerState;
@@ -1008,10 +1021,21 @@ export type ControllerInitFunction<
 };
 
 /**
+ * Controllers that are optionally initialized based on feature flags.
+ */
+export type OptionalControllersToInitialize = 'AssetsController';
+
+/**
  * Map of controller init functions by controller name.
  */
 export type ControllerInitFunctionByControllerName = {
   [Name in ControllersToInitialize]: ControllerInitFunction<
+    ControllerByName[Name],
+    ReturnType<(typeof CONTROLLER_MESSENGERS)[Name]['getMessenger']>,
+    ReturnType<(typeof CONTROLLER_MESSENGERS)[Name]['getInitMessenger']>
+  >;
+} & {
+  [Name in OptionalControllersToInitialize]?: ControllerInitFunction<
     ControllerByName[Name],
     ReturnType<(typeof CONTROLLER_MESSENGERS)[Name]['getMessenger']>,
     ReturnType<(typeof CONTROLLER_MESSENGERS)[Name]['getInitMessenger']>
