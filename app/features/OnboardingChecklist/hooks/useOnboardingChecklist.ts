@@ -13,8 +13,15 @@ export const STEP3_VARIATION = {
   MULTI: 'multi',
 } as const;
 
+export const DESIGN_STYLE = {
+  MODERN_FINTECH: 1,
+  INTEGRATED_MINIMALIST: 2,
+  GLASSMORPHISM: 3,
+} as const;
+
 export type UiMode = (typeof UI_MODE)[keyof typeof UI_MODE];
 export type Step3Variation = (typeof STEP3_VARIATION)[keyof typeof STEP3_VARIATION];
+export type DesignStyle = (typeof DESIGN_STYLE)[keyof typeof DESIGN_STYLE];
 
 export interface OnboardingSteps {
   step1: boolean;
@@ -32,6 +39,7 @@ const sharedState = {
   isDismissed: false,
   uiMode: UI_MODE.BANNER as UiMode,
   step3Variation: STEP3_VARIATION.MULTI as Step3Variation,
+  designStyle: DESIGN_STYLE.MODERN_FINTECH as DesignStyle,
   isExpanded: false,
 };
 
@@ -76,6 +84,17 @@ export const useOnboardingChecklist = () => {
     notify();
   }, []);
 
+  const cycleDesignStyle = useCallback(() => {
+    if (sharedState.designStyle === DESIGN_STYLE.MODERN_FINTECH) {
+      sharedState.designStyle = DESIGN_STYLE.INTEGRATED_MINIMALIST;
+    } else if (sharedState.designStyle === DESIGN_STYLE.INTEGRATED_MINIMALIST) {
+      sharedState.designStyle = DESIGN_STYLE.GLASSMORPHISM;
+    } else {
+      sharedState.designStyle = DESIGN_STYLE.MODERN_FINTECH;
+    }
+    notify();
+  }, []);
+
   const toggleStep3Variation = useCallback(() => {
     sharedState.step3Variation = sharedState.step3Variation === STEP3_VARIATION.MULTI
       ? STEP3_VARIATION.SINGLE
@@ -96,6 +115,7 @@ export const useOnboardingChecklist = () => {
   const reset = useCallback(() => {
     sharedState.uiMode = UI_MODE.BANNER;
     sharedState.step3Variation = STEP3_VARIATION.MULTI;
+    sharedState.designStyle = DESIGN_STYLE.MODERN_FINTECH;
     sharedState.isDismissed = false;
     sharedState.isExpanded = false;
     sharedState.steps = {
@@ -118,6 +138,7 @@ export const useOnboardingChecklist = () => {
   return {
     uiMode: sharedState.uiMode,
     step3Variation: sharedState.step3Variation,
+    designStyle: sharedState.designStyle,
     isDismissed: sharedState.isDismissed,
     isExpanded: sharedState.isExpanded,
     setIsExpanded,
@@ -126,6 +147,7 @@ export const useOnboardingChecklist = () => {
     isAllCompleted,
     hasBalance,
     toggleUiMode,
+    cycleDesignStyle,
     toggleStep3Variation,
     dismiss,
     reset,
