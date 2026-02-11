@@ -828,6 +828,7 @@ export type ControllersToInitialize =
   | 'AccountTrackerController'
   | 'AddressBookController'
   | 'AssetsContractController'
+  | 'AssetsController'
   | 'ConnectivityController'
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   | 'AuthenticationController'
@@ -1021,21 +1022,10 @@ export type ControllerInitFunction<
 };
 
 /**
- * Controllers that are optionally initialized based on feature flags.
- */
-export type OptionalControllersToInitialize = 'AssetsController';
-
-/**
  * Map of controller init functions by controller name.
  */
 export type ControllerInitFunctionByControllerName = {
   [Name in ControllersToInitialize]: ControllerInitFunction<
-    ControllerByName[Name],
-    ReturnType<(typeof CONTROLLER_MESSENGERS)[Name]['getMessenger']>,
-    ReturnType<(typeof CONTROLLER_MESSENGERS)[Name]['getInitMessenger']>
-  >;
-} & {
-  [Name in OptionalControllersToInitialize]?: ControllerInitFunction<
     ControllerByName[Name],
     ReturnType<(typeof CONTROLLER_MESSENGERS)[Name]['getMessenger']>,
     ReturnType<(typeof CONTROLLER_MESSENGERS)[Name]['getInitMessenger']>

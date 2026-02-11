@@ -60,10 +60,6 @@ import {
   accountActivityServiceInit,
 } from './controllers/core-backend';
 import { assetsControllerInit } from './controllers/assets-controller/assets-controller-init';
-import {
-  isAssetsUnifyStateFeatureEnabled,
-  ASSETS_UNIFY_STATE_FLAG,
-} from '../../selectors/featureFlagController/assetsUnifyState';
 import { AppStateWebSocketManager } from '../AppStateWebSocketManager';
 import { backupVault } from '../BackupVault';
 import {
@@ -271,13 +267,6 @@ export class Engine {
 
     const codefiTokenApiV2 = new CodefiTokenPricesServiceV2();
 
-    // Check if AssetsController feature flag is enabled
-    const isAssetsControllerEnabled = isAssetsUnifyStateFeatureEnabled(
-      initialState.RemoteFeatureFlagController?.remoteFeatureFlags?.[
-        ASSETS_UNIFY_STATE_FLAG
-      ],
-    );
-
     const initRequest = {
       getState: () => store.getState(),
       getGlobalChainId: () => currentChainId,
@@ -309,9 +298,7 @@ export class Engine {
         AccountTreeController: accountTreeControllerInit,
         AppMetadataController: appMetadataControllerInit,
         AssetsContractController: assetsContractControllerInit,
-        ...(isAssetsControllerEnabled && {
-          AssetsController: assetsControllerInit,
-        }),
+        AssetsController: assetsControllerInit,
         AccountTrackerController: accountTrackerControllerInit,
         SelectedNetworkController: selectedNetworkControllerInit,
         ApprovalController: ApprovalControllerInit,
@@ -508,9 +495,7 @@ export class Engine {
       AppMetadataController: controllersByName.AppMetadataController,
       ConnectivityController: connectivityController,
       AssetsContractController: assetsContractController,
-      ...(isAssetsControllerEnabled && {
-        AssetsController: controllersByName.AssetsController,
-      }),
+      AssetsController: controllersByName.AssetsController,
       NftController: nftController,
       TokensController: tokensController,
       TokenListController: tokenListController,
