@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useMemo } from 'react';
 import { useMetrics, MetaMetricsEvents } from '../../../hooks/useMetrics';
-import { PERPS_EVENT_PROPERTY } from '../constants/eventNames';
+import { PERPS_EVENT_PROPERTY } from '@metamask/perps-controller';
 
 // Static helper function - moved outside component to avoid recreation
 const allTrue = (conditionArray: boolean[]): boolean =>
