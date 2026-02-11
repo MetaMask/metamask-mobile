@@ -115,6 +115,18 @@ jobs:
             yarn setup:github-ci --no-build-ios
           fi
 
+      # iOS: Install CocoaPods dependencies (NO SECRETS)
+      - name: Install CocoaPods dependencies
+        if: matrix.platform == 'ios'
+        env:
+          BUNDLE_GEMFILE: ios/Gemfile
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn pod:install
+
       - name: Verify setup completed
         run: |
           echo "✅ Verifying setup artifacts..."
@@ -135,8 +147,23 @@ jobs:
               echo "❌ ios/release.xcconfig not found"
               exit 1
             fi
+            if [ ! -d "ios/Pods" ]; then
+              echo "❌ ios/Pods not found"
+              exit 1
+            fi
           fi
           echo "✅ Setup verification passed"
+
+      # iOS: Cache CocoaPods for reuse in build job
+      - name: Save CocoaPods to cache
+        if: matrix.platform == 'ios'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            ios/Pods
+            ~/Library/Caches/CocoaPods
+            ~/.cocoapods
+          key: ${{ runner.os }}-pods-${{ hashFiles('ios/Podfile.lock') }}
 
       - name: Create tarball with node_modules (preserves symlinks)
         run: |
@@ -341,16 +368,17 @@ jobs:
             security delete-keychain "$KEYCHAIN_PATH" || true
           fi
 
-      # iOS: Cache CocoaPods
-      - name: Cache CocoaPods
+      # iOS: Restore CocoaPods from cache (installed in setup-dependencies job without secrets)
+      - name: Restore CocoaPods from cache
         if: matrix.platform == 'ios'
-        uses: cirruslabs/cache@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
+        uses: actions/cache/restore@v4
         with:
           path: |
             ios/Pods
             ~/Library/Caches/CocoaPods
             ~/.cocoapods
-          key: ${{ runner.os }}-pods-${{ inputs.build_name }}-${{ hashFiles('ios/Podfile.lock') }}
+          key: ${{ runner.os }}-pods-${{ hashFiles('ios/Podfile.lock') }}
+          fail-on-cache-miss: true
 
       # iOS: Cache DerivedData (includes ModuleCache.noindex) to speed up Xcode builds
       - name: Cache iOS DerivedData
@@ -372,18 +400,6 @@ jobs:
           platform: ${{ matrix.platform }}
           aws-secret-name: ${{ needs.prepare.outputs.signing_aws_secret }}
           android-keystore-path: ${{ needs.prepare.outputs.signing_android_keystore_path }}
-
-      # iOS: Install/update CocoaPods (fast with cache, paths need to be correct for this machine)
-      - name: Install CocoaPods dependencies
-        if: matrix.platform == 'ios'
-        env:
-          BUNDLE_GEMFILE: ios/Gemfile
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
-        with:
-          timeout_minutes: 10
-          max_attempts: 3
-          retry_wait_seconds: 30
-          command: yarn pod:install
 
       # iOS: Configure Node path for Xcode build scripts (React Native Codegen)
       - name: Configure Node path for Xcode
