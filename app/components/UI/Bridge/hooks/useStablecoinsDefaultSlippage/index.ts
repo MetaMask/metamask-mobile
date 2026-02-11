@@ -58,6 +58,9 @@ const StablecoinsByChainId: Partial<Record<Hex, Set<string>>> = {
   [NETWORKS_CHAIN_ID.HYPER_EVM]: new Set([
     '0xb88339CB7199b77E23DB6E890353E22632Ba630f', // USDC
   ]),
+  [NETWORKS_CHAIN_ID.MEGAETH_MAINNET]: new Set([
+    '0xB8CE59FC3717ada4C02eaDF9682A9e934F625ebb', // USDT0
+  ]),
 };
 
 /**
