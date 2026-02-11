@@ -1454,7 +1454,7 @@ const Wallet = ({
         {isCarouselBannersEnabled && <Carousel style={styles.carousel} />}
 
         {isHomepageSectionsV1Enabled ? (
-          <Homepage ref={homepageRef} />
+          <Homepage ref={homepageRef} onScroll={handleHomepageScroll} />
         ) : (
           <WalletTokensTabView
             ref={walletTokensTabViewRef}
@@ -1476,6 +1476,37 @@ const Wallet = ({
     [styles],
   );
 
+  const homepageRef = useRef<any>(null);
+  const handleScroll = useCallback((event: any) => {
+    homepageRef.current?.handleScroll?.(event);
+  }, []);
+
+  const scrollViewProps = useMemo(
+    () => ({
+      contentContainerStyle: scrollViewContentStyle,
+      showsVerticalScrollIndicator: false,
+      onScroll: isHomepageSectionsV1Enabled ? handleScroll : undefined,
+      scrollEventThrottle: 16,
+      refreshControl: shouldEnableParentScroll ? (
+        <RefreshControl
+          colors={[colors.primary.default]}
+          tintColor={colors.icon.default}
+          refreshing={refreshing}
+          onRefresh={handleRefresh}
+        />
+      ) : undefined,
+    }),
+    [
+      scrollViewContentStyle,
+      isHomepageSectionsV1Enabled,
+      handleHomepageScroll,
+      shouldEnableParentScroll,
+      colors,
+      refreshing,
+      handleRefresh,
+    ],
+  );
+
   return (
     <ErrorBoundary navigation={navigation} view="Wallet">
       <View style={baseStyles.flexGrow}>
@@ -1487,18 +1518,7 @@ const Wallet = ({
             <ConditionalScrollView
               ref={scrollViewRef}
               isScrollEnabled={shouldEnableParentScroll}
-              scrollViewProps={{
-                contentContainerStyle: scrollViewContentStyle,
-                showsVerticalScrollIndicator: false,
-                refreshControl: shouldEnableParentScroll ? (
-                  <RefreshControl
-                    colors={[colors.primary.default]}
-                    tintColor={colors.icon.default}
-                    refreshing={refreshing}
-                    onRefresh={handleRefresh}
-                  />
-                ) : undefined,
-              }}
+              scrollViewProps={scrollViewProps}
             >
               {content}
             </ConditionalScrollView>
