@@ -1,5 +1,7 @@
-import type { PerpsMarketData } from '../../controllers/types';
-import type { SortField } from '../../utils/sortMarkets';
+import {
+  type PerpsMarketData,
+  type SortField,
+} from '@metamask/perps-controller';
 
 /**
  * Props for PerpsMarketRowItem component
@@ -32,4 +34,10 @@ export interface PerpsMarketRowItemProps {
    * @default true
    */
   showBadge?: boolean;
+  /**
+   * When true, uses reduced vertical padding (8px instead of 16px).
+   * Useful when embedded in feed cards alongside other row item types.
+   * @default false
+   */
+  compact?: boolean;
 }

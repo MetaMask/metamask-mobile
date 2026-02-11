@@ -42,7 +42,7 @@ import {
 import { useAssetFromTheme } from '../../../../../util/theme';
 import NoSearchResultsLight from '../../../../../images/predictions-no-search-results-light.svg';
 import NoSearchResultsDark from '../../../../../images/predictions-no-search-results-dark.svg';
-import { SkeletonItem } from '../BridgeTokenSelectorBase';
+import { SkeletonItem } from '../SkeletonItem';
 import { TabEmptyState } from '../../../../../component-library/components-temp/TabEmptyState';
 import { TokenSelectorItem } from '../TokenSelectorItem';
 import { getNetworkImageSource } from '../../../../../util/networks';
@@ -176,31 +176,14 @@ export const BridgeTokenSelector: React.FC = () => {
   );
 
   // Create includeAssets array from tokens with balance to be sent to API
-  // Selected token is prepended to pin it to the top of the list
   // Stringified to avoid triggering the useEffect when only balances change
   const includeAssets = useMemo(() => {
-    // Only include selected token if it matches current network and search filters
-    const shouldPinSelectedToken =
-      selectedToken &&
-      chainIdsToFetch.includes(formatChainIdToCaip(selectedToken.chainId)) &&
-      tokenMatchesQuery(selectedToken, searchQuery);
-
-    const selectedAsset = shouldPinSelectedToken
-      ? tokenToIncludeAsset(selectedToken)
-      : null;
-
-    // Convert balance tokens, excluding selected to avoid duplicates
     const balanceAssets = filteredTokensWithBalance
       .map(tokenToIncludeAsset)
-      .filter(
-        (asset): asset is IncludeAsset =>
-          asset !== null && asset.assetId !== selectedAsset?.assetId,
-      );
+      .filter((asset): asset is IncludeAsset => asset !== null);
 
-    return JSON.stringify(
-      selectedAsset ? [selectedAsset, ...balanceAssets] : balanceAssets,
-    );
-  }, [filteredTokensWithBalance, selectedToken, chainIdsToFetch, searchQuery]);
+    return JSON.stringify(balanceAssets);
+  }, [filteredTokensWithBalance]);
 
   // Fetch popular tokens
   const { popularTokens, isLoading: isPopularTokensLoading } = usePopularTokens(
@@ -515,7 +498,6 @@ export const BridgeTokenSelector: React.FC = () => {
           autoComplete="off"
           autoCorrect={false}
           autoCapitalize="none"
-          showClearButton={searchString.length > 0}
           onPressClearButton={handleClearSearch}
         />
       </Box>
