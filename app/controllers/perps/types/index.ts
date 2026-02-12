@@ -1500,6 +1500,16 @@ export interface PaymentToken {
   symbol?: string;
 }
 
+/**
+ * Selected pay-with token shape used in PerpsController state, pending trade config,
+ * selectors, and UI hooks. Use this type everywhere this shape is needed.
+ */
+export type PerpsSelectedPaymentToken = {
+  description?: string;
+  address: string;
+  chainId: string;
+};
+
 // ============================================================================
 // Version-gated Feature Flag (portable)
 // ============================================================================

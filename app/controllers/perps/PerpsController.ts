@@ -11,7 +11,10 @@ import type {
   NetworkControllerFindNetworkClientIdByChainIdAction,
 } from '@metamask/network-controller';
 import type { AccountTreeControllerGetAccountsFromSelectedAccountGroupAction } from '@metamask/account-tree-controller';
-import type { KeyringControllerSignTypedMessageAction } from '@metamask/keyring-controller';
+import type {
+  KeyringControllerGetStateAction,
+  KeyringControllerSignTypedMessageAction,
+} from '@metamask/keyring-controller';
 import type { AuthenticationController } from '@metamask/profile-sync-controller';
 import {
   TransactionControllerAddTransactionAction,
@@ -113,7 +116,7 @@ import {
   type PerpsLogger,
   type PerpsActiveProviderMode,
   type PerpsProviderType,
-  type PaymentToken,
+  type PerpsSelectedPaymentToken,
 } from './types';
 
 /** Derived type for logger options from PerpsLogger interface */
@@ -676,6 +679,7 @@ export type AllowedActions =
   | AuthenticationController.AuthenticationControllerGetBearerToken
   | RemoteFeatureFlagControllerGetStateAction
   | AccountTreeControllerGetAccountsFromSelectedAccountGroupAction
+  | KeyringControllerGetStateAction
   | KeyringControllerSignTypedMessageAction
   | NetworkControllerGetNetworkClientByIdAction
   | NetworkControllerFindNetworkClientIdByChainIdAction
@@ -3012,7 +3016,7 @@ export class PerpsController extends BaseController<
    * Save pending trade configuration for a market
    * This is a temporary configuration that expires after 5 minutes
    * @param symbol - Market symbol
-   * @param config - Pending trade configuration
+   * @param config - Pending trade configuration (includes optional selected payment token from Pay row)
    */
   savePendingTradeConfiguration(
     symbol: string,
@@ -3023,6 +3027,8 @@ export class PerpsController extends BaseController<
       stopLossPrice?: string;
       limitPrice?: string;
       orderType?: OrderType;
+      /** When user used pay-with-token in PerpsPayRow: minimal token shape to restore selection */
+      selectedPaymentToken?: PerpsSelectedPaymentToken | null;
     },
   ): void {
     const network = this.state.isTestnet ? 'testnet' : 'mainnet';
@@ -3064,6 +3070,7 @@ export class PerpsController extends BaseController<
         stopLossPrice?: string;
         limitPrice?: string;
         orderType?: OrderType;
+        selectedPaymentToken?: PerpsSelectedPaymentToken | null;
       }
     | undefined {
     const network = this.state.isTestnet ? 'testnet' : 'mainnet';
@@ -3194,10 +3201,10 @@ export class PerpsController extends BaseController<
   /**
    * Set the selected payment token for the Perps order/deposit flow.
    * Pass null or a token with description PERPS_CONSTANTS.PerpsBalanceTokenDescription to select Perps balance.
-   * Only required fields (description, address, chainId, symbol) are stored in state.
+   * Only required fields (address, chainId) are stored in state; description and symbol are optional.
    */
-  setSelectedPaymentToken(token: PaymentToken | null): void {
-    let normalized: PaymentToken | null = null;
+  setSelectedPaymentToken(token: PerpsSelectedPaymentToken | null): void {
+    let normalized: PerpsSelectedPaymentToken | null = null;
     if (
       token != null &&
       token.description !== PERPS_CONSTANTS.PerpsBalanceTokenDescription
@@ -3232,7 +3239,9 @@ export class PerpsController extends BaseController<
     let snapshot: Json | null = null;
     if (normalized !== null) {
       snapshot = {
-        description: normalized.description,
+        ...(normalized.description !== undefined && {
+          description: normalized.description,
+        }),
         address: normalized.address,
         chainId: normalized.chainId,
         symbol: normalized.symbol,

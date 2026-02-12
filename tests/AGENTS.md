@@ -42,4 +42,4 @@ Unit tests under `tests/` (e.g. framework tests): [.cursor/rules/unit-testing-gu
 
 - **tests/** — Use `withFixtures` + `FixtureBuilder`; Page Object methods only; no `TestHelpers.delay()`; selectors in `tests/selectors/` or page folder; import from `tests/framework/index.ts`. Commands: [docs/readme/e2e-testing.md](../docs/readme/e2e-testing.md).
 - **tests/** — Framework/mocking: read tests/docs/README and MOCKING; keep exports in `tests/framework/index.ts`. Regression/smoke: same as e2e (withFixtures, Page Objects, no delay). Yarn only.
-- **wdio/** — Do not extend. New work: Detox + tests/smoke|regression or Appwright (`appwright/tests/`). If maintaining: legacy section in [docs/readme/e2e-testing.md](../docs/readme/e2e-testing.md).
+- **wdio/** — Do not extend. New work: Detox + tests/smoke|regression or Appwright (`tests/`). If maintaining: legacy section in [docs/readme/e2e-testing.md](../docs/readme/e2e-testing.md).
