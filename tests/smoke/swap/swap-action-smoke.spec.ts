@@ -111,13 +111,13 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
     }
 
     const softAssert = new SoftAssert();
-    expectedEventNames.forEach(async (ev) => {
+    for (const ev of expectedEventNames) {
       const event = eventsToCheck.find((event) => event.event === ev);
       await softAssert.checkAndCollect(
         async () => await Assertions.checkIfValueIsDefined(event),
         `${ev}: Should be defined`,
       );
-    });
+    }
 
     /**
      * Unified SwapBridge Input Changed
@@ -140,7 +140,7 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
         ),
       'Unified SwapBridge Input Changed: Should have 6 events',
     );
-    unifiedSwapBridgeInputChanged.forEach(async (event) => {
+    for (const event of unifiedSwapBridgeInputChanged) {
       await softAssert.checkAndCollect(
         async () =>
           await Assertions.checkIfValueIsDefined(event.properties.input),
@@ -156,15 +156,33 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
           await Assertions.checkIfValueIsDefined(event.properties.action_type),
         'Unified SwapBridge Input Changed: action_type should be defined',
       );
-    });
-    unifiedSwapBridgeInputChanged.some(
-      (event) => event.properties.input === 'chain_source',
+    }
+    await softAssert.checkAndCollect(
+      async () =>
+        await Assertions.checkIfValueIsDefined(
+          unifiedSwapBridgeInputChanged.some(
+            (event) => event.properties.input === 'chain_source',
+          ) || undefined,
+        ),
+      'Unified SwapBridge Input Changed: Should have an event with input=chain_source',
     );
-    unifiedSwapBridgeInputChanged.some(
-      (event) => event.properties.input === 'token_destination',
+    await softAssert.checkAndCollect(
+      async () =>
+        await Assertions.checkIfValueIsDefined(
+          unifiedSwapBridgeInputChanged.some(
+            (event) => event.properties.input === 'token_destination',
+          ) || undefined,
+        ),
+      'Unified SwapBridge Input Changed: Should have an event with input=token_destination',
     );
-    unifiedSwapBridgeInputChanged.some(
-      (event) => event.properties.input === 'slippage',
+    await softAssert.checkAndCollect(
+      async () =>
+        await Assertions.checkIfValueIsDefined(
+          unifiedSwapBridgeInputChanged.some(
+            (event) => event.properties.input === 'slippage',
+          ) || undefined,
+        ),
+      'Unified SwapBridge Input Changed: Should have an event with input=slippage',
     );
 
     /**
@@ -182,7 +200,7 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
         ),
       'Unified SwapBridge Quotes Requested: Should have 3 events',
     );
-    unifiedSwapBridgeQuotesRequested.forEach(async (event) => {
+    for (const event of unifiedSwapBridgeQuotesRequested) {
       await softAssert.checkAndCollect(
         async () =>
           await Assertions.checkIfObjectHasKeysAndValidValues(
@@ -208,7 +226,7 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
           ),
         'Unified SwapBridge Quotes Requested: Should have the correct properties',
       );
-    });
+    }
 
     /**
      * Unified SwapBridge Submitted
@@ -245,7 +263,7 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
             custom_slippage: 'boolean',
           },
         ),
-      'Unified SwapBridge Quotes Requested: Should have the correct properties',
+      'Unified SwapBridge Submitted: Should have the correct properties',
     );
 
     /**

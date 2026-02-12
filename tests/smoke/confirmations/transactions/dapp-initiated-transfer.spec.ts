@@ -201,12 +201,7 @@ describe(SmokeConfirmations('DApp Initiated Transfer'), () => {
         Assertions.checkIfObjectHasKeysAndValidValues(
           transactionAddedEvent?.properties ?? {},
           {
-            // Check common transaction properties and types
-            ...Object.fromEntries(
-              Object.entries(
-                commonTransactionPropertiesAndTypes as Record<string, string>,
-              ).map(([key, value]) => [key, value]),
-            ),
+            ...commonTransactionPropertiesAndTypes,
           },
         ),
       'Transaction Added: Should have the correct properties',
@@ -225,12 +220,7 @@ describe(SmokeConfirmations('DApp Initiated Transfer'), () => {
         Assertions.checkIfObjectHasKeysAndValidValues(
           transactionSubmittedEvent?.properties ?? {},
           {
-            // Check common transaction properties and types
-            ...Object.fromEntries(
-              Object.entries(
-                commonTransactionPropertiesAndTypes as Record<string, string>,
-              ).map(([key, value]) => [key, value]),
-            ),
+            ...commonTransactionPropertiesAndTypes,
             simulation_response: 'string',
             simulation_latency: 'number',
             simulation_receiving_assets_quantity: 'number',
@@ -260,12 +250,7 @@ describe(SmokeConfirmations('DApp Initiated Transfer'), () => {
         Assertions.checkIfObjectHasKeysAndValidValues(
           transactionApprovedEvent?.properties ?? {},
           {
-            // Check common transaction properties and types
-            ...Object.fromEntries(
-              Object.entries(
-                commonTransactionPropertiesAndTypes as Record<string, string>,
-              ).map(([key, value]) => [key, value]),
-            ),
+            ...commonTransactionPropertiesAndTypes,
             simulation_response: 'string',
             simulation_latency: 'number',
             simulation_receiving_assets_quantity: 'number',
@@ -295,12 +280,7 @@ describe(SmokeConfirmations('DApp Initiated Transfer'), () => {
         Assertions.checkIfObjectHasKeysAndValidValues(
           transactionFinalizedEvent?.properties ?? {},
           {
-            // Check common transaction properties and types
-            ...Object.fromEntries(
-              Object.entries(
-                commonTransactionPropertiesAndTypes as Record<string, string>,
-              ).map(([key, value]) => [key, value]),
-            ),
+            ...commonTransactionPropertiesAndTypes,
             simulation_response: 'string',
             simulation_latency: 'number',
             simulation_receiving_assets_quantity: 'number',
