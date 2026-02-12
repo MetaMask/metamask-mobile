@@ -260,9 +260,7 @@ describe('useTransactionConfirm', () => {
         await result.current.onConfirm();
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.PERPS_HOME,
-      });
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.PERPS_HOME);
     });
 
     it('skips navigation if perps deposit and order (caller handles navigation)', async () => {
