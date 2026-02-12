@@ -1,5 +1,6 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
+import { useRoute } from '@react-navigation/native';
 
 import Routes from '../../../../../constants/navigation/Routes';
 import { SendContextProvider } from '../../context/send-context';
@@ -15,16 +16,27 @@ import { useEmptyNavHeaderForConfirmations } from '../../hooks/ui/useEmptyNavHea
 const Stack = createStackNavigator();
 
 export const Send = () => {
+  const route = useRoute();
   const sendNavigationOptions = useSendNavbar();
   const emptyNavHeaderOptions = useEmptyNavHeaderForConfirmations();
+  const initialParams = route.params as { screen?: string } | undefined;
+  const initialRouteName =
+    initialParams?.screen === Routes.SEND.ASSET ||
+    initialParams?.screen === Routes.SEND.RECIPIENT
+      ? initialParams.screen
+      : Routes.SEND.AMOUNT;
 
   return (
     <SendContextProvider>
       <SendMetricsContextProvider>
-        <Stack.Navigator headerMode="screen">
+        <Stack.Navigator
+          headerMode="screen"
+          initialRouteName={initialRouteName}
+        >
           <Stack.Screen
             name={Routes.SEND.AMOUNT}
             component={Amount}
+            initialParams={initialParams}
             options={sendNavigationOptions.Amount}
           />
           <Stack.Screen

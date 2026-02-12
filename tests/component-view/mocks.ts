@@ -12,6 +12,9 @@ jest.mock('../../app/core/Engine', () => {
           keyrings: [],
         },
       },
+      AccountsController: {
+        listAccounts: jest.fn().mockReturnValue([]),
+      },
       AccountTrackerController: {
         refresh() {
           return undefined;
@@ -26,6 +29,9 @@ jest.mock('../../app/core/Engine', () => {
         },
       },
       PreferencesController: {
+        state: {
+          securityAlertsEnabled: true,
+        },
         setTokenNetworkFilter() {
           return undefined;
         },
@@ -118,6 +124,15 @@ jest.mock('../../app/core/Engine', () => {
       },
       AuthenticationController: {
         getBearerToken: jest.fn().mockResolvedValue('mock-bearer-token'),
+      },
+      TransactionController: {
+        state: {
+          transactions: [],
+        },
+        addTransaction: jest.fn().mockResolvedValue({}),
+        getNonceLock: jest
+          .fn()
+          .mockResolvedValue({ nextNonce: 0, releaseLock: jest.fn() }),
       },
       NetworkController: {
         state: { networksMetadata: {} },
