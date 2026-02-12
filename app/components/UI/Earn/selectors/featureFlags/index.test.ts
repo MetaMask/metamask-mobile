@@ -231,9 +231,6 @@ describe('Earn Feature Flag Selectors', () => {
         );
         expect(result).toBe(false);
       });
-
-      // Local env fallback when not GITHUB_ACTIONS: same pattern as selectIsMusdConversionFlowEnabledFlag
-      // below (process.env.MM_* used as fallback). Not asserted here when process.env may be inlined at build.
     });
   });
 
@@ -779,26 +776,6 @@ describe('Earn Feature Flag Selectors', () => {
 
       expect(result).toBe(true);
     });
-
-    describe('local env fallback when not GITHUB_ACTIONS', () => {
-      it('uses local env when remote is undefined and GITHUB_ACTIONS is not set', () => {
-        process.env.GITHUB_ACTIONS = 'false';
-        process.env.MM_MUSD_CONVERSION_FLOW_ENABLED = 'true';
-
-        const stateWithUndefinedController = {
-          engine: {
-            backgroundState: {
-              RemoteFeatureFlagController: undefined,
-            },
-          },
-        };
-
-        const result = selectIsMusdConversionFlowEnabledFlag(
-          stateWithUndefinedController,
-        );
-        expect(result).toBe(true);
-      });
-    });
   });
 
   describe('selectIsMusdGetBuyCtaEnabledFlag', () => {
@@ -855,27 +832,6 @@ describe('Earn Feature Flag Selectors', () => {
       );
 
       expect(result).toBe(true);
-    });
-
-    describe('local env fallback when not GITHUB_ACTIONS', () => {
-      it('uses local env when conversion flow and CTA remote are undefined and GITHUB_ACTIONS is not set', () => {
-        process.env.GITHUB_ACTIONS = 'false';
-        process.env.MM_MUSD_CONVERSION_FLOW_ENABLED = 'true';
-        process.env.MM_MUSD_CTA_ENABLED = 'true';
-
-        const stateWithUndefinedController = {
-          engine: {
-            backgroundState: {
-              RemoteFeatureFlagController: undefined,
-            },
-          },
-        };
-
-        const result = selectIsMusdGetBuyCtaEnabledFlag(
-          stateWithUndefinedController,
-        );
-        expect(result).toBe(true);
-      });
     });
   });
 
@@ -936,27 +892,6 @@ describe('Earn Feature Flag Selectors', () => {
 
       expect(result).toBe(true);
     });
-
-    describe('local env fallback when not GITHUB_ACTIONS', () => {
-      it('uses local env when conversion flow and remote are undefined and GITHUB_ACTIONS is not set', () => {
-        process.env.GITHUB_ACTIONS = 'false';
-        process.env.MM_MUSD_CONVERSION_FLOW_ENABLED = 'true';
-        process.env.MM_MUSD_CONVERSION_ASSET_OVERVIEW_CTA = 'true';
-
-        const stateWithUndefinedController = {
-          engine: {
-            backgroundState: {
-              RemoteFeatureFlagController: undefined,
-            },
-          },
-        };
-
-        const result = selectIsMusdConversionAssetOverviewEnabledFlag(
-          stateWithUndefinedController,
-        );
-        expect(result).toBe(true);
-      });
-    });
   });
 
   describe('selectIsMusdConversionTokenListItemCtaEnabledFlag', () => {
@@ -1016,27 +951,6 @@ describe('Earn Feature Flag Selectors', () => {
 
       expect(result).toBe(true);
     });
-
-    describe('local env fallback when not GITHUB_ACTIONS', () => {
-      it('uses local env when conversion flow and remote are undefined and GITHUB_ACTIONS is not set', () => {
-        process.env.GITHUB_ACTIONS = 'false';
-        process.env.MM_MUSD_CONVERSION_FLOW_ENABLED = 'true';
-        process.env.MM_MUSD_CONVERSION_TOKEN_LIST_ITEM_CTA = 'true';
-
-        const stateWithUndefinedController = {
-          engine: {
-            backgroundState: {
-              RemoteFeatureFlagController: undefined,
-            },
-          },
-        };
-
-        const result = selectIsMusdConversionTokenListItemCtaEnabledFlag(
-          stateWithUndefinedController,
-        );
-        expect(result).toBe(true);
-      });
-    });
   });
 
   describe('selectMusdConversionCTATokens', () => {
@@ -1061,7 +975,7 @@ describe('Earn Feature Flag Selectors', () => {
       expect(result).toEqual(remoteTokens);
     });
 
-    it('returns empty object when remote unavailable (no local env fallback)', () => {
+    it('falls back to local env tokens when remote unavailable', () => {
       const localTokens = {
         '0x1': ['USDC', 'DAI'],
       };
@@ -1071,7 +985,7 @@ describe('Earn Feature Flag Selectors', () => {
 
       const result = selectMusdConversionCTATokens(stateWithoutRemote);
 
-      expect(result).toEqual({});
+      expect(result).toEqual(localTokens);
     });
 
     it('returns empty object when both remote and local are unavailable', () => {
@@ -1141,27 +1055,6 @@ describe('Earn Feature Flag Selectors', () => {
       );
 
       expect(result).toBe(true);
-    });
-
-    describe('local env fallback when not GITHUB_ACTIONS', () => {
-      it('uses local env when conversion flow and remote are undefined and GITHUB_ACTIONS is not set', () => {
-        process.env.GITHUB_ACTIONS = 'false';
-        process.env.MM_MUSD_CONVERSION_FLOW_ENABLED = 'true';
-        process.env.MM_MUSD_CONVERSION_REWARDS_UI_ENABLED = 'true';
-
-        const stateWithUndefinedController = {
-          engine: {
-            backgroundState: {
-              RemoteFeatureFlagController: undefined,
-            },
-          },
-        };
-
-        const result = selectIsMusdConversionRewardsUiEnabledFlag(
-          stateWithUndefinedController,
-        );
-        expect(result).toBe(true);
-      });
     });
   });
 
@@ -1308,7 +1201,7 @@ describe('Earn Feature Flag Selectors', () => {
       expect(result).toEqual(remoteAllowlist);
     });
 
-    it('returns empty object when remote unavailable (no local env fallback)', () => {
+    it('falls back to local env variable when remote unavailable', () => {
       const localAllowlist = {
         '0x1': ['USDC', 'DAI'],
       };
@@ -1329,7 +1222,7 @@ describe('Earn Feature Flag Selectors', () => {
       const result =
         selectMusdConversionPaymentTokensAllowlist(stateWithoutRemote);
 
-      expect(result).toEqual({});
+      expect(result).toEqual(localAllowlist);
     });
 
     it('returns empty object when both remote and local are unavailable', () => {
@@ -1352,7 +1245,7 @@ describe('Earn Feature Flag Selectors', () => {
       expect(result).toEqual({});
     });
 
-    it('returns empty object when remote unavailable (local env not read)', () => {
+    it('handles JSON parsing errors for local env gracefully', () => {
       process.env.MM_MUSD_CONVERTIBLE_TOKENS_ALLOWLIST = 'invalid json';
 
       const stateWithoutRemote = {
@@ -1369,6 +1262,12 @@ describe('Earn Feature Flag Selectors', () => {
       const result =
         selectMusdConversionPaymentTokensAllowlist(stateWithoutRemote);
 
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
+        expect.stringContaining(
+          'Failed to parse MM_MUSD_CONVERTIBLE_TOKENS_ALLOWLIST',
+        ),
+        expect.anything(),
+      );
       expect(result).toEqual({});
     });
 
@@ -1470,7 +1369,10 @@ describe('Earn Feature Flag Selectors', () => {
       expect(result).toEqual(remoteAllowlist);
     });
 
-    it('returns empty object when remote is invalid structure (warns)', () => {
+    it('uses local allowlist when remote is invalid structure', () => {
+      const localAllowlist = { '0x1': ['DAI'] };
+      process.env.MM_MUSD_CONVERTIBLE_TOKENS_ALLOWLIST =
+        JSON.stringify(localAllowlist);
       const stateWithInvalidRemote = {
         engine: {
           backgroundState: {
@@ -1491,7 +1393,7 @@ describe('Earn Feature Flag Selectors', () => {
       expect(consoleWarnSpy).toHaveBeenCalledWith(
         expect.stringContaining('produced invalid structure'),
       );
-      expect(result).toEqual({});
+      expect(result).toEqual(localAllowlist);
     });
   });
 
@@ -1590,11 +1492,11 @@ describe('Earn Feature Flag Selectors', () => {
       });
     });
 
-    describe('remote only (no local env fallback)', () => {
-      it('returns empty object when remote is unavailable', () => {
-        process.env.MM_MUSD_CONVERTIBLE_TOKENS_BLOCKLIST = JSON.stringify({
-          '0xa4b1': ['USDT', 'DAI'],
-        });
+    describe('local env fallback', () => {
+      it('returns local blocklist when remote is unavailable', () => {
+        const localBlocklist = { '0xa4b1': ['USDT', 'DAI'] };
+        process.env.MM_MUSD_CONVERTIBLE_TOKENS_BLOCKLIST =
+          JSON.stringify(localBlocklist);
 
         const stateWithoutRemote = {
           engine: {
@@ -1610,10 +1512,14 @@ describe('Earn Feature Flag Selectors', () => {
         const result =
           selectMusdConversionPaymentTokensBlocklist(stateWithoutRemote);
 
-        expect(result).toEqual({});
+        expect(result).toEqual({ '0xa4b1': ['USDT', 'DAI'] });
       });
 
-      it('returns empty object when remote is invalid (warns)', () => {
+      it('returns local blocklist when remote is invalid', () => {
+        const localBlocklist = { '0x1': ['USDC'] };
+        process.env.MM_MUSD_CONVERTIBLE_TOKENS_BLOCKLIST =
+          JSON.stringify(localBlocklist);
+
         const stateWithInvalidRemote = {
           engine: {
             backgroundState: {
@@ -1636,7 +1542,7 @@ describe('Earn Feature Flag Selectors', () => {
             'Remote earnMusdConvertibleTokensBlocklist produced invalid structure',
           ),
         );
-        expect(result).toEqual({});
+        expect(result).toEqual({ '0x1': ['USDC'] });
       });
     });
 
@@ -1757,7 +1663,7 @@ describe('Earn Feature Flag Selectors', () => {
     });
 
     describe('error handling', () => {
-      it('returns empty object when remote unavailable (local env not read)', () => {
+      it('handles JSON parsing errors for local env gracefully', () => {
         process.env.MM_MUSD_CONVERTIBLE_TOKENS_BLOCKLIST = 'not valid json';
 
         const stateWithoutRemote = {
@@ -1774,6 +1680,12 @@ describe('Earn Feature Flag Selectors', () => {
         const result =
           selectMusdConversionPaymentTokensBlocklist(stateWithoutRemote);
 
+        expect(consoleWarnSpy).toHaveBeenCalledWith(
+          expect.stringContaining(
+            'Failed to parse MM_MUSD_CONVERTIBLE_TOKENS_BLOCKLIST',
+          ),
+          expect.anything(),
+        );
         expect(result).toEqual({});
       });
 
@@ -2022,8 +1934,14 @@ describe('Earn Feature Flag Selectors', () => {
       expect(result).toEqual(['GB']);
     });
 
-    describe('default when remote unavailable', () => {
-      it('returns default blocked countries when remote flag is unavailable', () => {
+    describe('local env var fallback', () => {
+      afterEach(() => {
+        delete process.env.MM_MUSD_CONVERSION_GEO_BLOCKED_COUNTRIES;
+      });
+
+      it('falls back to local env var when remote flag is unavailable', () => {
+        process.env.MM_MUSD_CONVERSION_GEO_BLOCKED_COUNTRIES = 'GB,US';
+
         const state = {
           engine: {
             backgroundState: {
@@ -2037,10 +1955,12 @@ describe('Earn Feature Flag Selectors', () => {
 
         const result = selectMusdConversionBlockedCountries(state);
 
-        expect(result).toEqual(['GB']);
+        expect(result).toEqual(['GB', 'US']);
       });
 
-      it('returns remote blocked regions when remote flag is set', () => {
+      it('remote flag takes precedence over local env var', () => {
+        process.env.MM_MUSD_CONVERSION_GEO_BLOCKED_COUNTRIES = 'FR,DE';
+
         const state = {
           engine: {
             backgroundState: {
@@ -2059,6 +1979,82 @@ describe('Earn Feature Flag Selectors', () => {
         const result = selectMusdConversionBlockedCountries(state);
 
         expect(result).toEqual(['GB']);
+      });
+
+      it('parses comma-separated country codes from env var', () => {
+        process.env.MM_MUSD_CONVERSION_GEO_BLOCKED_COUNTRIES = 'GB, US, FR';
+
+        const state = {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {},
+                cacheTimestamp: 0,
+              },
+            },
+          },
+        };
+
+        const result = selectMusdConversionBlockedCountries(state);
+
+        expect(result).toEqual(['GB', 'US', 'FR']);
+      });
+
+      it('converts country codes to uppercase', () => {
+        process.env.MM_MUSD_CONVERSION_GEO_BLOCKED_COUNTRIES = 'gb,us';
+
+        const state = {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {},
+                cacheTimestamp: 0,
+              },
+            },
+          },
+        };
+
+        const result = selectMusdConversionBlockedCountries(state);
+
+        expect(result).toEqual(['GB', 'US']);
+      });
+
+      it('returns default blocked countries when env var is empty string', () => {
+        process.env.MM_MUSD_CONVERSION_GEO_BLOCKED_COUNTRIES = '';
+
+        const state = {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {},
+                cacheTimestamp: 0,
+              },
+            },
+          },
+        };
+
+        const result = selectMusdConversionBlockedCountries(state);
+
+        expect(result).toEqual(['GB']);
+      });
+
+      it('filters out empty entries from env var', () => {
+        process.env.MM_MUSD_CONVERSION_GEO_BLOCKED_COUNTRIES = 'GB,,US,';
+
+        const state = {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {},
+                cacheTimestamp: 0,
+              },
+            },
+          },
+        };
+
+        const result = selectMusdConversionBlockedCountries(state);
+
+        expect(result).toEqual(['GB', 'US']);
       });
     });
   });
