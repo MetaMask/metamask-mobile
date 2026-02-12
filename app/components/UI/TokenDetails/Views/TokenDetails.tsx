@@ -342,10 +342,10 @@ const useTokenDetailsOpenedTracking = (params: TokenDetailsRouteParams) => {
       token_address: params.address,
       token_name: params.name,
       has_balance: hasBalance,
-      // A/B test attribution
-      ...(isTestActive && {
+      // A/B test attribution — each experiment is independent
+      ...((isTestActive || isFromTokenList) && {
         ab_tests: {
-          token_details_layout: variantName,
+          ...(isTestActive && { token_details_layout: variantName }),
           ...(isFromTokenList && {
             token_list_layout: isTokenListV2 ? 'v2' : 'v1',
           }),
