@@ -466,7 +466,7 @@
     "assetsBalance": {},
     "assetsMetadata": {},
     "assetsPrice": {},
-    "customAssets": []
+    "customAssets": {}
   },
   "PermissionController": {
     "subjects": {}
