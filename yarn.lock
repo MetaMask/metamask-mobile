@@ -8569,6 +8569,84 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/mfa-wallet-cl24-lib@file:./metamask-mfa-wallet-cl24-lib-0.0.0.tgz::locator=metamask%40workspace%3A.":
+  version: 0.0.0
+  resolution: "@metamask/mfa-wallet-cl24-lib@file:./metamask-mfa-wallet-cl24-lib-0.0.0.tgz#./metamask-mfa-wallet-cl24-lib-0.0.0.tgz::hash=6f19f0&locator=metamask%40workspace%3A."
+  dependencies:
+    "@msgpack/msgpack": "npm:^3.1.2"
+    "@noble/curves": "npm:^1.9.2"
+    "@noble/hashes": "npm:^1.8.0"
+  checksum: 10/3779f3d5d370082ea2dd27163670f6085f9863049a35f605019d4fc8883c7101f92726c37a5b12b2d6ab62e768b0f8cd297cd5076a9864a608c24c739cb132d1
+  languageName: node
+  linkType: hard
+
+"@metamask/mfa-wallet-dkls19-lib@file:./metamask-mfa-wallet-dkls19-lib-0.0.0.tgz::locator=metamask%40workspace%3A.":
+  version: 0.0.0
+  resolution: "@metamask/mfa-wallet-dkls19-lib@file:./metamask-mfa-wallet-dkls19-lib-0.0.0.tgz#./metamask-mfa-wallet-dkls19-lib-0.0.0.tgz::hash=4b0e4f&locator=metamask%40workspace%3A."
+  dependencies:
+    "@metamask/mfa-wallet-util": "npm:^0.0.0"
+    "@noble/curves": "npm:^1.9.2"
+  checksum: 10/c6171512e90737102f190c152ae636ad5fade75ea0225eb0d008e19dd108e5b0cc0b2348a7301df6b0ef0df7661f2664662a4b947d2f06d865bf6535d8a60619
+  languageName: node
+  linkType: hard
+
+"@metamask/mfa-wallet-e2ee@file:./metamask-mfa-wallet-e2ee-0.0.0.tgz::locator=metamask%40workspace%3A.":
+  version: 0.0.0
+  resolution: "@metamask/mfa-wallet-e2ee@file:./metamask-mfa-wallet-e2ee-0.0.0.tgz#./metamask-mfa-wallet-e2ee-0.0.0.tgz::hash=adbb1d&locator=metamask%40workspace%3A."
+  dependencies:
+    "@msgpack/msgpack": "npm:^3.1.2"
+    "@noble/ciphers": "npm:^1.3.0"
+    "@noble/curves": "npm:^1.9.2"
+    "@noble/hashes": "npm:^1.8.0"
+  checksum: 10/ce481bf5a802dc15f0d30fbb906c6157668485a532474eaf306019f19dc97b46e71fee6f716278143e2c59a2a7dcee2df1508e769d307657a37d3c54bc33f106
+  languageName: node
+  linkType: hard
+
+"@metamask/mfa-wallet-frost-lib@file:./metamask-mfa-wallet-frost-lib-0.0.0.tgz::locator=metamask%40workspace%3A.":
+  version: 0.0.0
+  resolution: "@metamask/mfa-wallet-frost-lib@file:./metamask-mfa-wallet-frost-lib-0.0.0.tgz#./metamask-mfa-wallet-frost-lib-0.0.0.tgz::hash=132d1e&locator=metamask%40workspace%3A."
+  dependencies:
+    "@metamask/mfa-wallet-util": "npm:^0.0.0"
+  checksum: 10/2ca9b6e6d67a9619ab1064800b0798aaf20b4e46b03212a04a2258caf19c53c258859f75aba89b5dd861595f37102823492f098f5cf07d942b9ef47ee18e02d7
+  languageName: node
+  linkType: hard
+
+"@metamask/mfa-wallet-interface@file:./metamask-mfa-wallet-interface-0.0.0.tgz::locator=metamask%40workspace%3A.":
+  version: 0.0.0
+  resolution: "@metamask/mfa-wallet-interface@file:./metamask-mfa-wallet-interface-0.0.0.tgz#./metamask-mfa-wallet-interface-0.0.0.tgz::hash=42e214&locator=metamask%40workspace%3A."
+  checksum: 10/f2396f9d3694c06c8e64f0f12e7c1eccf23cd90694d8214745e08d24c3b1540e4beb39d4b56577bf0ffa1ea55a76980bb7f9b275d2323712a6dc654617235ad4
+  languageName: node
+  linkType: hard
+
+"@metamask/mfa-wallet-network@file:./metamask-mfa-wallet-network-0.0.0.tgz::locator=metamask%40workspace%3A.":
+  version: 0.0.0
+  resolution: "@metamask/mfa-wallet-network@file:./metamask-mfa-wallet-network-0.0.0.tgz#./metamask-mfa-wallet-network-0.0.0.tgz::hash=f6cd5b&locator=metamask%40workspace%3A."
+  dependencies:
+    "@metamask/mfa-wallet-e2ee": "npm:^0.0.0"
+    "@msgpack/msgpack": "npm:^3.1.2"
+    "@noble/hashes": "npm:^1.8.0"
+    centrifuge: "npm:^5.5.2"
+  checksum: 10/2594c89bb7e161caabe19f9eacad08aa75259236cce7d9442d9c3ac880cc1be16b2182a27f881ade04cf77d26e60f1c44295a8be5951b56a15ce6c35a0cdd69c
+  languageName: node
+  linkType: hard
+
+"@metamask/mfa-wallet-test-util@file:./metamask-mfa-wallet-test-util-0.0.0.tgz::locator=metamask%40workspace%3A.":
+  version: 0.0.0
+  resolution: "@metamask/mfa-wallet-test-util@file:./metamask-mfa-wallet-test-util-0.0.0.tgz#./metamask-mfa-wallet-test-util-0.0.0.tgz::hash=8260b8&locator=metamask%40workspace%3A."
+  dependencies:
+    "@metamask/mfa-wallet-util": "npm:^0.0.0"
+    "@noble/curves": "npm:^1.9.2"
+  checksum: 10/a614966f232ec906c988bdc757711ccf6209ff090eae91cdad539110d2c8daef2f128eeeafb1d6d952fa4a530a321f92332f0b5a4ea2e546ccc5b67062d6ecd4
+  languageName: node
+  linkType: hard
+
+"@metamask/mfa-wallet-util@file:./metamask-mfa-wallet-util-0.0.0.tgz::locator=metamask%40workspace%3A.":
+  version: 0.0.0
+  resolution: "@metamask/mfa-wallet-util@file:./metamask-mfa-wallet-util-0.0.0.tgz#./metamask-mfa-wallet-util-0.0.0.tgz::hash=9f8f8e&locator=metamask%40workspace%3A."
+  checksum: 10/3c81433065dbc1cf597ee71b0a447f7ec7b9c389b9b70070de6eee2871be863f6ae03220d5b1ea5f98740ec83781df527e0c5396a88267f1840feef27aca39e3
+  languageName: node
+  linkType: hard
+
 "@metamask/mobile-provider@npm:^3.0.0":
   version: 3.0.0
   resolution: "@metamask/mobile-provider@npm:3.0.0"
@@ -8606,6 +8684,26 @@ __metadata:
     "@metamask/utils": "npm:^9.1.0"
     uuid: "npm:^11.1.0"
   checksum: 10/e3a82e7bf4673940ef433a0b16d8622a3d74cf69aa2c236c47b60f5f6e71d3da99c8ea8845a2635be592fd4ec5805d05a69bb31a2e13a00333c3ec455e18b9da
+  languageName: node
+  linkType: hard
+
+"@metamask/mpc-libs-interface@file:./metamask-mpc-libs-interface-0.0.0.tgz::locator=metamask%40workspace%3A.":
+  version: 0.0.0
+  resolution: "@metamask/mpc-libs-interface@file:./metamask-mpc-libs-interface-0.0.0.tgz#./metamask-mpc-libs-interface-0.0.0.tgz::hash=c606bf&locator=metamask%40workspace%3A."
+  checksum: 10/737f6c569e66f21898262a2304bff7048b5a58ae93c4d42688081a8cf6c7d4fbaf669cc90b08fec09e75c959ce798ad5ba021e04e53f1567d6f05b2c101b4a9d
+  languageName: node
+  linkType: hard
+
+"@metamask/mpc-libs-react-native@file:./metamask-mpc-libs-react-native-0.1.0.tgz::locator=metamask%40workspace%3A.":
+  version: 0.1.0
+  resolution: "@metamask/mpc-libs-react-native@file:./metamask-mpc-libs-react-native-0.1.0.tgz#./metamask-mpc-libs-react-native-0.1.0.tgz::hash=8222f3&locator=metamask%40workspace%3A."
+  dependencies:
+    "@metamask/mpc-libs-interface": "workspace:*"
+    uniffi-bindgen-react-native: "npm:^0.29.3-1"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+  checksum: 10/e437f6b7ed8dc6d4a9ed5143c9f692a3d3984d78abd9ab9b4e7ab430047922c4262b586f19a47f224d7cc63565467810105811c71fcdc9bbee78023f66a8b679
   languageName: node
   linkType: hard
 
@@ -9761,6 +9859,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/tss-dkls19-lib@file:./metamask-tss-dkls19-lib-0.0.0.tgz::locator=metamask%40workspace%3A.":
+  version: 0.0.0
+  resolution: "@metamask/tss-dkls19-lib@file:./metamask-tss-dkls19-lib-0.0.0.tgz#./metamask-tss-dkls19-lib-0.0.0.tgz::hash=96ff64&locator=metamask%40workspace%3A."
+  checksum: 10/4af48363cc19ec6a8f1055a86b79d853ebdb7e57c71f5505562679ac6193c7bf7ae16c9de26d13adf2c87953db79d2d0c10664321046fbfb18a6cb5ad60e61c2
+  languageName: node
+  linkType: hard
+
+"@metamask/tss-frost-lib@file:./metamask-tss-frost-lib-0.0.0.tgz::locator=metamask%40workspace%3A.":
+  version: 0.0.0
+  resolution: "@metamask/tss-frost-lib@file:./metamask-tss-frost-lib-0.0.0.tgz#./metamask-tss-frost-lib-0.0.0.tgz::hash=b0eae1&locator=metamask%40workspace%3A."
+  checksum: 10/daccb902a8bf5d21070abdbdc0385de5a749d6333dd6900bbe4691e063bb67179d225973ab4c75cbe0ee8d7d3d456a6b93b0229ea01ff3444052fd1d1d7a5c8a
+  languageName: node
+  linkType: hard
+
 "@metamask/utils@npm:^10.0.0":
   version: 10.0.1
   resolution: "@metamask/utils@npm:10.0.1"
@@ -9845,7 +9957,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@msgpack/msgpack@npm:3.1.3":
+"@msgpack/msgpack@npm:3.1.3, @msgpack/msgpack@npm:^3.1.2":
   version: 3.1.3
   resolution: "@msgpack/msgpack@npm:3.1.3"
   checksum: 10/cf597b7ed1fcedc2101b145885e7da591c5ed8aeba3a2579b99da8dd15ef13595c807f64f052da0a0dd74704097f6299fc2e2fb4165029a60a1d1df3843c03ce
@@ -23658,6 +23770,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"centrifuge@npm:^5.5.2":
+  version: 5.5.3
+  resolution: "centrifuge@npm:5.5.3"
+  dependencies:
+    events: "npm:^3.3.0"
+    protobufjs: "npm:^7.2.5"
+  checksum: 10/2074551adc0ea421d8d4880236b956d6fde0d652c3da2d82124b49c1d6659817069bb58f8f8525794382915d5bff3310592bb023a4afa35fc3ca2b69158ba412
+  languageName: node
+  linkType: hard
+
 "chainsaw@npm:~0.1.0":
   version: 0.1.0
   resolution: "chainsaw@npm:0.1.0"
@@ -32849,6 +32971,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"jose@npm:^6.1.3":
+  version: 6.1.3
+  resolution: "jose@npm:6.1.3"
+  checksum: 10/9626c51e8c3792b505e954f3094698c182208617b62dfb27269230f31e57560b083985ed8128b8a9753aa92daf18d3a2341cc826d149503f14569abe87d42389
+  languageName: node
+  linkType: hard
+
 "jotai@npm:^2.0.2":
   version: 2.4.2
   resolution: "jotai@npm:2.4.2"
@@ -34718,9 +34847,19 @@ __metadata:
     "@metamask/message-signing-snap": "npm:^1.1.2"
     "@metamask/messenger": "npm:^0.3.0"
     "@metamask/metamask-eth-abis": "npm:3.1.1"
+    "@metamask/mfa-wallet-cl24-lib": ./metamask-mfa-wallet-cl24-lib-0.0.0.tgz
+    "@metamask/mfa-wallet-dkls19-lib": ./metamask-mfa-wallet-dkls19-lib-0.0.0.tgz
+    "@metamask/mfa-wallet-e2ee": ./metamask-mfa-wallet-e2ee-0.0.0.tgz
+    "@metamask/mfa-wallet-frost-lib": ./metamask-mfa-wallet-frost-lib-0.0.0.tgz
+    "@metamask/mfa-wallet-interface": ./metamask-mfa-wallet-interface-0.0.0.tgz
+    "@metamask/mfa-wallet-network": ./metamask-mfa-wallet-network-0.0.0.tgz
+    "@metamask/mfa-wallet-test-util": ./metamask-mfa-wallet-test-util-0.0.0.tgz
+    "@metamask/mfa-wallet-util": ./metamask-mfa-wallet-util-0.0.0.tgz
     "@metamask/mobile-provider": "npm:^3.0.0"
     "@metamask/mobile-wallet-protocol-core": "npm:^0.3.1"
     "@metamask/mobile-wallet-protocol-wallet-client": "npm:^0.2.1"
+    "@metamask/mpc-libs-interface": ./metamask-mpc-libs-interface-0.0.0.tgz
+    "@metamask/mpc-libs-react-native": ./metamask-mpc-libs-react-native-0.1.0.tgz
     "@metamask/multichain-account-service": "npm:^5.0.0"
     "@metamask/multichain-api-client": "npm:^0.10.1"
     "@metamask/multichain-api-middleware": "npm:1.2.5"
@@ -34774,6 +34913,8 @@ __metadata:
     "@metamask/transaction-controller": "patch:@metamask/transaction-controller@npm%3A62.10.0#~/.yarn/patches/@metamask-transaction-controller-npm-62.10.0-e1d24e7db5.patch"
     "@metamask/transaction-pay-controller": "npm:^12.0.2"
     "@metamask/tron-wallet-snap": "npm:^1.19.2"
+    "@metamask/tss-dkls19-lib": ./metamask-tss-dkls19-lib-0.0.0.tgz
+    "@metamask/tss-frost-lib": ./metamask-tss-frost-lib-0.0.0.tgz
     "@metamask/utils": "npm:^11.8.1"
     "@ngraveio/bc-ur": "npm:^1.1.6"
     "@nktkas/hyperliquid": "npm:^0.30.2"
@@ -34951,6 +35092,7 @@ __metadata:
     jest: "npm:^29.7.0"
     jest-junit: "npm:^15.0.0"
     jetifier: "npm:2.0.0"
+    jose: "npm:^6.1.3"
     js-sha3: "npm:0.9.3"
     js-yaml: "npm:^4.1.0"
     koa: "npm:^2.14.2"
@@ -44891,6 +45033,16 @@ __metadata:
   dependencies:
     ev-emitter: "npm:^2.0.0"
   checksum: 10/0e1ca1da000dd31266dc3b138db147b9cce7f81b87423875dee8e89fb19d1d1db1cb19951dcdc4cfce0375d4c3bc317b496a41501c7663beb30188a4d0442bb1
+  languageName: node
+  linkType: hard
+
+"uniffi-bindgen-react-native@npm:^0.29.3-1":
+  version: 0.29.3-1
+  resolution: "uniffi-bindgen-react-native@npm:0.29.3-1"
+  bin:
+    ubrn: bin/cli.cjs
+    uniffi-bindgen-react-native: bin/cli.cjs
+  checksum: 10/e16c855e072bcfb0e9abaeab0d3a29e850a08ec54fd59f82d54116a740e839cdb75f9a3270daccef4577d6261d9ba6bcfc58a95574bc590e06f9f757c5425d7f
   languageName: node
   linkType: hard
 

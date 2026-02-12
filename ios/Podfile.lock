@@ -440,6 +440,28 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
+  - MpcLibsReactNative (0.1.0):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.10.14.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - uniffi-bindgen-react-native (= 0.29.3-1)
+    - Yoga
   - MultiplatformBleAdapter (0.2.0)
   - nanopb (2.30910.0):
     - nanopb/decode (= 2.30910.0)
@@ -2952,6 +2974,8 @@ PODS:
   - SocketRocket (0.7.1)
   - sovran-react-native (1.0.4):
     - React-Core
+  - uniffi-bindgen-react-native (0.29.3-1):
+    - React-Core
   - VisionCamera (4.6.4):
     - VisionCamera/Core (= 4.6.4)
     - VisionCamera/React (= 4.6.4)
@@ -3001,6 +3025,7 @@ DEPENDENCIES:
   - GzipSwift
   - hermes-engine (from `../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec`)
   - lottie-react-native (from `../node_modules/lottie-react-native`)
+  - "MpcLibsReactNative (from `../node_modules/@metamask/mpc-libs-react-native`)"
   - "NativeUtils (from `../node_modules/@metamask/native-utils`)"
   - NitroModules (from `../node_modules/react-native-nitro-modules`)
   - OpenSSL-Universal
@@ -3154,6 +3179,7 @@ SPEC REPOS:
     - SDWebImageSVGCoder
     - Sentry
     - SocketRocket
+    - uniffi-bindgen-react-native
     - YttriumWrapper
 
 EXTERNAL SOURCES:
@@ -3230,6 +3256,8 @@ EXTERNAL SOURCES:
     :tag: hermes-2024-11-12-RNv0.76.2-5b4aa20c719830dcf5684832b89a6edb95ac3d64
   lottie-react-native:
     :path: "../node_modules/lottie-react-native"
+  MpcLibsReactNative:
+    :path: "../node_modules/@metamask/mpc-libs-react-native"
   NativeUtils:
     :path: "../node_modules/@metamask/native-utils"
   NitroModules:
@@ -3521,6 +3549,7 @@ SPEC CHECKSUMS:
   libdav1d: 23581a4d8ec811ff171ed5e2e05cd27bad64c39f
   lottie-ios: e047b1d2e6239b787cc5e9755b988869cf190494
   lottie-react-native: 7f3fc3f396b1d6c7b1454b77596bd2ad3151871e
+  MpcLibsReactNative: e08611e9a7e5a118ff413c0f5c4ebce97399d86c
   MultiplatformBleAdapter: b1fddd0d499b96b607e00f0faa8e60648343dc1d
   nanopb: 438bc412db1928dac798aa6fd75726007be04262
   NativeUtils: e1d5591114bd87ba0b91348477f77b029cd361b8
@@ -3649,6 +3678,7 @@ SPEC CHECKSUMS:
   Sentry: 2cbbe3592f30050c60e916c63c7f5a2fa584005e
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   sovran-react-native: e4721a564ee6ef5b5a0d901bc677018cf371ea01
+  uniffi-bindgen-react-native: 125eae9e3a0cf34bf8f3d4b0ceed517df7cc0733
   VisionCamera: f56eaedde0d3fa095143b78374d29e89e71735f9
   Yoga: feb4910aba9742cfedc059e2b2902e22ffe9954a
   YttriumWrapper: cbddb60c835ebc4232d9f57064084ab30686a18e

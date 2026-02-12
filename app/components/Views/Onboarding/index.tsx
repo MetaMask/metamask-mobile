@@ -95,6 +95,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import FoxAnimation from '../../UI/FoxAnimation/FoxAnimation';
 import OnboardingAnimation from '../../UI/OnboardingAnimation/OnboardingAnimation';
 import { createStyles } from './styles';
+import {
+  operationTestSign,
+  SupportedDKMProtocols,
+  SupportedProtocols,
+} from './mfa';
 
 interface OnboardingState {
   warningModalVisible: boolean;
@@ -897,6 +902,15 @@ const Onboarding = () => {
 
   useEffect(() => {
     updateNavBar();
+    operationTestSign({
+      baseUrl: 'http://localhost:3000',
+      // baseUrl: 'https://mpc-service.dev-api.cx.metamask.io',
+      dkmProtocol: SupportedDKMProtocols.CL24_ED25519,
+      protocol: SupportedProtocols.FROST,
+      message: 'hello worlda',
+    }).catch((error) => {
+      Logger.log(error as Error, 'error');
+    });
   }, [updateNavBar]);
 
   useEffect(() => {
