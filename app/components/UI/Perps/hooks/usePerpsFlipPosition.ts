@@ -2,11 +2,13 @@ import { useCallback, useState } from 'react';
 import { strings } from '../../../../../locales/i18n';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { usePerpsTrading } from './usePerpsTrading';
-import type { Position } from '../controllers/types';
+import {
+  getPerpsDisplaySymbol,
+  type Position,
+  type OrderDirection,
+} from '@metamask/perps-controller';
 import { captureException } from '@sentry/react-native';
 import usePerpsToasts from './usePerpsToasts';
-import { getPerpsDisplaySymbol } from '../utils/marketUtils';
-import type { OrderDirection } from '../types/perps-types';
 
 export interface UsePerpsFlipPositionOptions {
   onSuccess?: () => void;
