@@ -63,7 +63,7 @@ import { TraceName } from '../../../../../util/trace';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
-} from '../../constants/eventNames';
+} from '@metamask/perps-controller';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { PerpsHomeViewSelectorsIDs } from '../../Perps.testIds';
 import PerpsCloseAllPositionsView from '../PerpsCloseAllPositionsView/PerpsCloseAllPositionsView';
@@ -335,20 +335,16 @@ const PerpsHomeView = () => {
       });
     }
 
-    // Avoid duplicate "Learn more" button (shown in empty state card)
-    if (!isBalanceEmpty) {
-      items.push({
-        label: strings(LEARN_MORE_CONFIG.TitleKey),
-        onPress: () => navigtateToTutorial(),
-        testID: PerpsHomeViewSelectorsIDs.LEARN_MORE_BUTTON,
-      });
-    }
+    items.push({
+      label: strings(LEARN_MORE_CONFIG.TitleKey),
+      onPress: () => navigtateToTutorial(),
+      testID: PerpsHomeViewSelectorsIDs.LEARN_MORE_BUTTON,
+    });
 
     return items;
   }, [
     navigateToContactSupport,
     navigtateToTutorial,
-    isBalanceEmpty,
     isFeedbackEnabled,
     handleGiveFeedback,
   ]);

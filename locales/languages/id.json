@@ -7470,7 +7470,7 @@
       "claim_label": "Klaim",
       "claimed_label": "Diklaim",
       "reward_claimed": "Reward diklaim",
-      "time_left": "tersisa",
+      "time_left": "{{time}} tersisa",
       "expired": "Kedaluwarsa"
     },
     "end_of_season_rewards": {

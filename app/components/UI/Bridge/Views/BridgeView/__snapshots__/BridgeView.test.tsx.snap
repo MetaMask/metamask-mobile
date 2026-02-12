@@ -422,6 +422,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                             "letterSpacing": 0,
                                             "lineHeight": 50,
                                             "opacity": 1,
+                                            "paddingVertical": 2,
                                             "textAlignVertical": "center",
                                           }
                                         }
@@ -792,6 +793,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                             "letterSpacing": 0,
                                             "lineHeight": 50,
                                             "opacity": 1,
+                                            "paddingVertical": 2,
                                             "textAlignVertical": "center",
                                           }
                                         }
@@ -2263,6 +2265,7 @@ exports[`BridgeView renders 1`] = `
                                             "letterSpacing": 0,
                                             "lineHeight": 50,
                                             "opacity": 1,
+                                            "paddingVertical": 2,
                                             "textAlignVertical": "center",
                                           }
                                         }
@@ -2633,6 +2636,7 @@ exports[`BridgeView renders 1`] = `
                                             "letterSpacing": 0,
                                             "lineHeight": 50,
                                             "opacity": 1,
+                                            "paddingVertical": 2,
                                             "textAlignVertical": "center",
                                           }
                                         }
