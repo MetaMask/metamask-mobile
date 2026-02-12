@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { View } from 'react-native';
+import { InteractionManager, View } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import type { CaipChainId } from '@metamask/utils';
 
@@ -38,8 +38,7 @@ import {
 } from '../../types';
 import { createDepositNavigationDetails } from '../../Deposit/routes/utils';
 import Logger from '../../../../../util/Logger';
-import TokenUnavailableForProviderModal from '../Modals/TokenUnavailableForProviderModal';
-import { createProviderPickerModalNavigationDetails } from '../Modals/ProviderPickerModal';
+import { createTokenUnavailableForProviderModalNavigationDetails } from '../Modals/TokenUnavailableForProviderModal';
 
 interface BuildQuoteParams {
   assetId?: string;
@@ -118,18 +117,19 @@ function BuildQuote() {
     [selectedProvider, selectedToken],
   );
 
-  const handleChangeToken = useCallback(() => {
-    navigation.goBack();
-  }, [navigation]);
-
-  const handleChangeProvider = useCallback(() => {
-    if (!selectedToken) return;
-    navigation.navigate(
-      ...createProviderPickerModalNavigationDetails({
-        assetId: selectedToken.assetId,
-      }),
-    );
-  }, [navigation, selectedToken]);
+  useFocusEffect(
+    useCallback(() => {
+      if (isTokenUnavailable && selectedToken) {
+        InteractionManager.runAfterInteractions(() => {
+          navigation.navigate(
+            ...createTokenUnavailableForProviderModalNavigationDetails({
+              assetId: selectedToken.assetId,
+            }),
+          );
+        });
+      }
+    }, [isTokenUnavailable, selectedToken, navigation]),
+  );
 
   const currency = userRegion?.country?.currency || 'USD';
   const quickAmounts = userRegion?.country?.quickAmounts ?? [50, 100, 200, 400];
@@ -346,82 +346,71 @@ function BuildQuote() {
     quoteMatchesCurrentContext;
 
   return (
-    <>
-      <ScreenLayout>
-        <ScreenLayout.Body>
-          <ScreenLayout.Content style={styles.content}>
-            <View style={styles.centerGroup}>
-              <View style={styles.amountContainer}>
-                <Text
-                  testID={BuildQuoteSelectors.AMOUNT_INPUT}
-                  variant={TextVariant.HeadingLG}
-                  style={styles.mainAmount}
-                  numberOfLines={1}
-                  adjustsFontSizeToFit
-                >
-                  {formatCurrency(amountAsNumber, currency, {
-                    currencyDisplay: 'narrowSymbol',
-                  })}
-                </Text>
-                <PaymentMethodPill
-                  label={
-                    selectedPaymentMethod?.name ||
-                    strings('fiat_on_ramp.select_payment_method')
-                  }
-                  isLoading={paymentMethodsLoading}
-                  onPress={handlePaymentPillPress}
+    <ScreenLayout>
+      <ScreenLayout.Body>
+        <ScreenLayout.Content style={styles.content}>
+          <View style={styles.centerGroup}>
+            <View style={styles.amountContainer}>
+              <Text
+                testID={BuildQuoteSelectors.AMOUNT_INPUT}
+                variant={TextVariant.HeadingLG}
+                style={styles.mainAmount}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+              >
+                {formatCurrency(amountAsNumber, currency, {
+                  currencyDisplay: 'narrowSymbol',
+                })}
+              </Text>
+              <PaymentMethodPill
+                label={
+                  selectedPaymentMethod?.name ||
+                  strings('fiat_on_ramp.select_payment_method')
+                }
+                isLoading={paymentMethodsLoading}
+                onPress={handlePaymentPillPress}
+              />
+            </View>
+          </View>
+
+          <View style={styles.actionSection}>
+            {selectedProvider && (
+              <Text variant={TextVariant.BodySM} style={styles.poweredByText}>
+                {strings('fiat_on_ramp.powered_by_provider', {
+                  provider: selectedProvider.name,
+                })}
+              </Text>
+            )}
+            {hasAmount ? (
+              <Button
+                variant={ButtonVariant.Primary}
+                size={ButtonSize.Lg}
+                onPress={handleContinuePress}
+                isFullWidth
+                isDisabled={!canContinue}
+                isLoading={quotesLoading}
+                testID={BuildQuoteSelectors.CONTINUE_BUTTON}
+              >
+                {strings('fiat_on_ramp.continue')}
+              </Button>
+            ) : (
+              quickAmounts.length > 0 && (
+                <QuickAmounts
+                  amounts={quickAmounts}
+                  currency={currency}
+                  onAmountPress={handleQuickAmountPress}
                 />
-              </View>
-            </View>
-
-            <View style={styles.actionSection}>
-              {selectedProvider && (
-                <Text variant={TextVariant.BodySM} style={styles.poweredByText}>
-                  {strings('fiat_on_ramp.powered_by_provider', {
-                    provider: selectedProvider.name,
-                  })}
-                </Text>
-              )}
-              {hasAmount ? (
-                <Button
-                  variant={ButtonVariant.Primary}
-                  size={ButtonSize.Lg}
-                  onPress={handleContinuePress}
-                  isFullWidth
-                  isDisabled={!canContinue}
-                  isLoading={quotesLoading}
-                  testID={BuildQuoteSelectors.CONTINUE_BUTTON}
-                >
-                  {strings('fiat_on_ramp.continue')}
-                </Button>
-              ) : (
-                quickAmounts.length > 0 && (
-                  <QuickAmounts
-                    amounts={quickAmounts}
-                    currency={currency}
-                    onAmountPress={handleQuickAmountPress}
-                  />
-                )
-              )}
-            </View>
-            <Keypad
-              currency={currency}
-              value={amount}
-              onChange={handleKeypadChange}
-            />
-          </ScreenLayout.Content>
-        </ScreenLayout.Body>
-      </ScreenLayout>
-
-      {isTokenUnavailable && selectedToken && selectedProvider && (
-        <TokenUnavailableForProviderModal
-          tokenName={selectedToken.name}
-          providerName={selectedProvider.name}
-          onChangeToken={handleChangeToken}
-          onChangeProvider={handleChangeProvider}
-        />
-      )}
-    </>
+              )
+            )}
+          </View>
+          <Keypad
+            currency={currency}
+            value={amount}
+            onChange={handleKeypadChange}
+          />
+        </ScreenLayout.Content>
+      </ScreenLayout.Body>
+    </ScreenLayout>
   );
 }
 

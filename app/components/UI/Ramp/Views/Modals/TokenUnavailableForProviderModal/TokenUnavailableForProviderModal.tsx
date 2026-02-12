@@ -1,5 +1,6 @@
 import React, { useCallback, useRef } from 'react';
 import { View } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import Text, {
   TextVariant,
   TextColor,
@@ -14,24 +15,52 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../../../../locales/i18n';
+import {
+  createNavigationDetails,
+  useParams,
+} from '../../../../../../util/navigation/navUtils';
+import Routes from '../../../../../../constants/navigation/Routes';
 import styleSheet from './TokenUnavailableForProviderModal.styles';
 import { useStyles } from '../../../../../hooks/useStyles';
+import { useRampsController } from '../../../hooks/useRampsController';
+import { createProviderPickerModalNavigationDetails } from '../ProviderPickerModal';
 
-interface TokenUnavailableForProviderModalProps {
-  tokenName: string;
-  providerName: string;
-  onChangeToken: () => void;
-  onChangeProvider: () => void;
+export interface TokenUnavailableForProviderModalParams {
+  assetId: string;
 }
 
-function TokenUnavailableForProviderModal({
-  tokenName,
-  providerName,
-  onChangeToken,
-  onChangeProvider,
-}: TokenUnavailableForProviderModalProps) {
+export const createTokenUnavailableForProviderModalNavigationDetails =
+  createNavigationDetails<TokenUnavailableForProviderModalParams>(
+    Routes.RAMP.MODALS.ID,
+    Routes.RAMP.MODALS.TOKEN_UNAVAILABLE_FOR_PROVIDER,
+  );
+
+function TokenUnavailableForProviderModal() {
+  const { assetId } = useParams<TokenUnavailableForProviderModalParams>();
+  const navigation = useNavigation();
   const sheetRef = useRef<BottomSheetRef>(null);
   const { styles } = useStyles(styleSheet, {});
+
+  const { selectedProvider, selectedToken } = useRampsController();
+
+  const tokenName = selectedToken?.name ?? '';
+  const providerName = selectedProvider?.name ?? '';
+
+  const handleChangeToken = useCallback(() => {
+    sheetRef.current?.onCloseBottomSheet(() => {
+      navigation.navigate(Routes.RAMP.TOKEN_SELECTION, {
+        screen: Routes.RAMP.TOKEN_SELECTION,
+      });
+    });
+  }, [navigation]);
+
+  const handleChangeProvider = useCallback(() => {
+    sheetRef.current?.onCloseBottomSheet(() => {
+      navigation.navigate(
+        ...createProviderPickerModalNavigationDetails({ assetId }),
+      );
+    });
+  }, [navigation, assetId]);
 
   const handleClose = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
@@ -40,6 +69,7 @@ function TokenUnavailableForProviderModal({
   return (
     <BottomSheet
       ref={sheetRef}
+      shouldNavigateBack
       isInteractable={false}
       testID="token-unavailable-for-provider-modal"
     >
@@ -65,7 +95,7 @@ function TokenUnavailableForProviderModal({
         <View style={styles.footerButton}>
           <Button
             size={ButtonSize.Lg}
-            onPress={onChangeToken}
+            onPress={handleChangeToken}
             label={strings('fiat_on_ramp.token_unavailable_modal.change_token')}
             variant={ButtonVariants.Secondary}
             width={ButtonWidthTypes.Full}
@@ -75,7 +105,7 @@ function TokenUnavailableForProviderModal({
         <View style={styles.footerButton}>
           <Button
             size={ButtonSize.Lg}
-            onPress={onChangeProvider}
+            onPress={handleChangeProvider}
             label={strings(
               'fiat_on_ramp.token_unavailable_modal.change_provider',
             )}

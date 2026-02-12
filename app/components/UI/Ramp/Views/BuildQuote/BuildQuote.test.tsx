@@ -1,4 +1,5 @@
 import React from 'react';
+import { InteractionManager } from 'react-native';
 import { fireEvent, render, act } from '@testing-library/react-native';
 import BuildQuote from './BuildQuote';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
@@ -177,6 +178,18 @@ const renderWithTheme = (component: React.ReactElement) =>
 describe('BuildQuote', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest
+      .spyOn(InteractionManager, 'runAfterInteractions')
+      .mockImplementation((task) => {
+        if (typeof task === 'function') {
+          task();
+        } else if (task?.gen) {
+          task.gen();
+        }
+        return { done: true, cancel: jest.fn() } as unknown as ReturnType<
+          typeof InteractionManager.runAfterInteractions
+        >;
+      });
     mockUserRegion = defaultUserRegion;
     mockSelectedProvider = null;
     mockSelectedQuote = null;
@@ -791,7 +804,7 @@ describe('BuildQuote', () => {
   });
 
   describe('Token unavailable for provider', () => {
-    it('renders the token unavailable modal when token is not supported by provider', () => {
+    it('navigates to token unavailable modal when token is not supported by provider', () => {
       mockSelectedProvider = {
         id: '/providers/transak',
         name: 'Transak',
@@ -805,14 +818,18 @@ describe('BuildQuote', () => {
         },
       };
 
-      const { getByTestId } = renderWithTheme(<BuildQuote />);
+      renderWithTheme(<BuildQuote />);
 
-      expect(
-        getByTestId('token-unavailable-for-provider-modal'),
-      ).toBeOnTheScreen();
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'RampModals',
+        expect.objectContaining({
+          screen: 'RampTokenUnavailableForProviderModal',
+          params: { assetId: MOCK_ASSET_ID },
+        }),
+      );
     });
 
-    it('does not render the token unavailable modal when token is supported by provider', () => {
+    it('does not navigate to token unavailable modal when token is supported by provider', () => {
       mockSelectedProvider = {
         id: '/providers/transak',
         name: 'Transak',
@@ -826,84 +843,17 @@ describe('BuildQuote', () => {
         },
       };
 
-      const { queryByTestId } = renderWithTheme(<BuildQuote />);
+      renderWithTheme(<BuildQuote />);
 
-      expect(queryByTestId('token-unavailable-for-provider-modal')).toBeNull();
-    });
-
-    it('does not render the token unavailable modal when provider has no supportedCryptoCurrencies', () => {
-      mockSelectedProvider = {
-        id: '/providers/transak',
-        name: 'Transak',
-        environmentType: 'PRODUCTION',
-        description: 'Test Provider',
-        hqAddress: '123 Test St',
-        links: [],
-        logos: { light: '', dark: '', height: 24, width: 79 },
-      };
-
-      const { queryByTestId } = renderWithTheme(<BuildQuote />);
-
-      expect(queryByTestId('token-unavailable-for-provider-modal')).toBeNull();
-    });
-
-    it('does not render the token unavailable modal when no provider is selected', () => {
-      mockSelectedProvider = null;
-
-      const { queryByTestId } = renderWithTheme(<BuildQuote />);
-
-      expect(queryByTestId('token-unavailable-for-provider-modal')).toBeNull();
-    });
-
-    it('calls goBack when Change token is pressed', () => {
-      mockSelectedProvider = {
-        id: '/providers/transak',
-        name: 'Transak',
-        environmentType: 'PRODUCTION',
-        description: 'Test Provider',
-        hqAddress: '123 Test St',
-        links: [],
-        logos: { light: '', dark: '', height: 24, width: 79 },
-        supportedCryptoCurrencies: {
-          'eip155:1/slip44:60': true,
-        },
-      };
-
-      const { getByTestId } = renderWithTheme(<BuildQuote />);
-
-      fireEvent.press(getByTestId('token-unavailable-change-token-button'));
-
-      expect(mockGoBack).toHaveBeenCalledTimes(1);
-    });
-
-    it('navigates to provider picker when Change provider is pressed', () => {
-      mockSelectedProvider = {
-        id: '/providers/transak',
-        name: 'Transak',
-        environmentType: 'PRODUCTION',
-        description: 'Test Provider',
-        hqAddress: '123 Test St',
-        links: [],
-        logos: { light: '', dark: '', height: 24, width: 79 },
-        supportedCryptoCurrencies: {
-          'eip155:1/slip44:60': true,
-        },
-      };
-
-      const { getByTestId } = renderWithTheme(<BuildQuote />);
-
-      fireEvent.press(getByTestId('token-unavailable-change-provider-button'));
-
-      expect(mockNavigate).toHaveBeenCalledWith(
+      expect(mockNavigate).not.toHaveBeenCalledWith(
         'RampModals',
         expect.objectContaining({
-          screen: 'RampProviderPickerModal',
-          params: { assetId: MOCK_ASSET_ID },
+          screen: 'RampTokenUnavailableForProviderModal',
         }),
       );
     });
 
-    it('matches snapshot when token is unavailable for provider', () => {
+    it('does not navigate to token unavailable modal when provider has no supportedCryptoCurrencies', () => {
       mockSelectedProvider = {
         id: '/providers/transak',
         name: 'Transak',
@@ -912,14 +862,29 @@ describe('BuildQuote', () => {
         hqAddress: '123 Test St',
         links: [],
         logos: { light: '', dark: '', height: 24, width: 79 },
-        supportedCryptoCurrencies: {
-          'eip155:1/slip44:60': true,
-        },
       };
 
-      const { toJSON } = renderWithTheme(<BuildQuote />);
+      renderWithTheme(<BuildQuote />);
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        'RampModals',
+        expect.objectContaining({
+          screen: 'RampTokenUnavailableForProviderModal',
+        }),
+      );
+    });
+
+    it('does not navigate to token unavailable modal when no provider is selected', () => {
+      mockSelectedProvider = null;
+
+      renderWithTheme(<BuildQuote />);
+
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        'RampModals',
+        expect.objectContaining({
+          screen: 'RampTokenUnavailableForProviderModal',
+        }),
+      );
     });
   });
 });

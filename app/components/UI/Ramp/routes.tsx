@@ -7,6 +7,7 @@ import Checkout from './Views/Checkout';
 import UnsupportedTokenModal from './Views/Modals/UnsupportedTokenModal';
 import SettingsModal from './Views/Modals/SettingsModal';
 import PaymentSelectionModal from './Views/Modals/PaymentSelectionModal';
+import TokenUnavailableForProviderModal from './Views/Modals/TokenUnavailableForProviderModal';
 import ProviderPickerModal from './Views/Modals/ProviderPickerModal';
 
 const RootStack = createStackNavigator();
@@ -61,6 +62,10 @@ const TokenListModalsRoutes = () => (
     <ModalsStack.Screen
       name={Routes.RAMP.MODALS.PAYMENT_SELECTION}
       component={PaymentSelectionModal}
+    />
+    <ModalsStack.Screen
+      name={Routes.RAMP.MODALS.TOKEN_UNAVAILABLE_FOR_PROVIDER}
+      component={TokenUnavailableForProviderModal}
     />
     <ModalsStack.Screen
       name={Routes.RAMP.MODALS.PROVIDER_PICKER}
