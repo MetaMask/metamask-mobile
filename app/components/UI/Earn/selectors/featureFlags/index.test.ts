@@ -162,6 +162,7 @@ describe('Earn Feature Flag Selectors', () => {
       });
 
       it('falls back to local flag (true) when remote flag is invalid', () => {
+        process.env.GITHUB_ACTIONS = 'false';
         process.env.MM_POOLED_STAKING_ENABLED = 'true';
 
         const stateWithInvalidRemoteFlag = {
@@ -230,6 +231,72 @@ describe('Earn Feature Flag Selectors', () => {
           stateWithUndefinedController,
         );
         expect(result).toBe(false);
+      });
+    });
+
+    describe('when GITHUB_ACTIONS is true', () => {
+      beforeEach(() => {
+        process.env.GITHUB_ACTIONS = 'true';
+      });
+
+      it('uses boolean remote flag (true) from build config as fallback', () => {
+        process.env.MM_POOLED_STAKING_ENABLED = 'false';
+        const stateWithBooleanRemote = {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  earnPooledStakingEnabled: true,
+                },
+                cacheTimestamp: 0,
+              },
+            },
+          },
+        };
+        const result = selectPooledStakingEnabledFlag(stateWithBooleanRemote);
+        expect(result).toBe(true);
+      });
+
+      it('uses boolean remote flag (false) from build config as fallback', () => {
+        process.env.MM_POOLED_STAKING_ENABLED = 'true';
+        const stateWithBooleanRemote = {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  earnPooledStakingEnabled: false,
+                },
+                cacheTimestamp: 0,
+              },
+            },
+          },
+        };
+        const result = selectPooledStakingEnabledFlag(stateWithBooleanRemote);
+        expect(result).toBe(false);
+      });
+
+      it('uses validated version-gated remote when present', () => {
+        mockHasMinimumRequiredVersion.mockReturnValue(true);
+        process.env.MM_POOLED_STAKING_ENABLED = 'false';
+        const stateWithVersionGatedRemote = {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  earnPooledStakingEnabled: {
+                    enabled: true,
+                    minimumVersion: '1.0.0',
+                  },
+                },
+                cacheTimestamp: 0,
+              },
+            },
+          },
+        };
+        const result = selectPooledStakingEnabledFlag(
+          stateWithVersionGatedRemote,
+        );
+        expect(result).toBe(true);
       });
     });
   });
@@ -324,6 +391,7 @@ describe('Earn Feature Flag Selectors', () => {
       });
 
       it('falls back to local flag (true) when remote flag is invalid', () => {
+        process.env.GITHUB_ACTIONS = 'false';
         process.env.MM_POOLED_STAKING_SERVICE_INTERRUPTION_BANNER_ENABLED =
           'true';
 
@@ -488,6 +556,7 @@ describe('Earn Feature Flag Selectors', () => {
       });
 
       it('falls back to local flag (true) when remote flag is invalid', () => {
+        process.env.GITHUB_ACTIONS = 'false';
         process.env.MM_STABLECOIN_LENDING_UI_ENABLED = 'true';
 
         const stateWithInvalidRemoteFlag = {
@@ -655,6 +724,7 @@ describe('Earn Feature Flag Selectors', () => {
       });
 
       it('falls back to local flag (true) when remote flag is invalid', () => {
+        process.env.GITHUB_ACTIONS = 'false';
         process.env.MM_STABLE_COIN_SERVICE_INTERRUPTION_BANNER_ENABLED = 'true';
 
         const stateWithInvalidRemoteFlag = {
