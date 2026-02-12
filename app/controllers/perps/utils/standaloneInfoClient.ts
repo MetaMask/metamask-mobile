@@ -1,3 +1,4 @@
+import type { ClearinghouseStateResponse } from '../types/hyperliquid-types';
 import { HttpTransport, InfoClient } from '@nktkas/hyperliquid';
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 
@@ -24,3 +25,24 @@ export const createStandaloneInfoClient = (
 
   return new InfoClient({ transport: httpTransport });
 };
+
+/**
+ * Query clearinghouseState across multiple DEXs in parallel.
+ * Used by standalone mode to aggregate positions/account state across HIP-3 DEXs.
+ */
+export const queryStandaloneClearinghouseStates = async (
+  infoClient: InfoClient,
+  userAddress: string,
+  dexs: (string | null)[],
+): Promise<ClearinghouseStateResponse[]> =>
+  Promise.all(
+    dexs.map(async (dex) => {
+      const queryParams: { user: string; dex?: string } = {
+        user: userAddress,
+      };
+      if (dex) {
+        queryParams.dex = dex;
+      }
+      return infoClient.clearinghouseState(queryParams);
+    }),
+  );

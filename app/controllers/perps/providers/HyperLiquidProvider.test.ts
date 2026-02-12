@@ -42,6 +42,7 @@ jest.mock('../../../components/UI/Perps/providers/PerpsStreamManager', () => ({
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let mockStandaloneInfoClient: any;
 jest.mock('../utils/standaloneInfoClient', () => ({
+  ...jest.requireActual('../utils/standaloneInfoClient'),
   createStandaloneInfoClient: jest.fn(() => mockStandaloneInfoClient),
 }));
 

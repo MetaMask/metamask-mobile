@@ -382,7 +382,7 @@ const accountState = await perpsController.getAccountState({
 1. Bypasses `getActiveProvider()` check (works even when controller is not initialized)
 2. Creates standalone HTTP client via `createStandaloneInfoClient` (see `utils/standaloneInfoClient.ts`)
 3. No WebSocket, wallet, or account setup required
-4. Main DEX only (no HIP-3 multi-DEX aggregation in standalone mode)
+4. HIP-3 multi-DEX aggregation supported (positions and account state)
 
 **Limitations:**
 
