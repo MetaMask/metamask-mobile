@@ -1,22 +1,41 @@
 import { useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import {
+  useQuery,
+  type RefetchOptions,
+  type QueryObserverResult,
+} from '@tanstack/react-query';
 import { usePredictNetworkManagement } from './usePredictNetworkManagement';
 import { POLYMARKET_PROVIDER_ID } from '../providers/polymarket/constants';
 import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
 import { predictQueries } from '../queries';
 
-/** Options accepted by {@link usePredictBalance}. */
 interface UsePredictBalanceOptions {
-  /** Provider to fetch the balance from (defaults to Polymarket). */
   providerId?: string;
-  /** Whether the query is enabled (defaults to `true`). */
   enabled?: boolean;
   // TODO: Remove once confirmations code migrates to `data` from useQuery.
-  /** @deprecated Use `enabled` instead. Accepted for backward compatibility but ignored. */
   loadOnMount?: boolean;
 }
 
-export function usePredictBalance(options?: UsePredictBalanceOptions) {
+type Refetch = (
+  options?: RefetchOptions,
+) => Promise<QueryObserverResult<number, Error>>;
+
+interface UsePredictBalanceResult {
+  data?: number;
+  isLoading: boolean;
+  isFetching?: boolean;
+  error: Error | null;
+  refetch?: Refetch;
+  // TODO: Remove legacy fields once confirmations code migrates to `data`.
+  balance: number;
+  hasNoBalance: boolean;
+  isRefreshing: boolean;
+  loadBalance: Refetch;
+}
+
+export function usePredictBalance(
+  options?: UsePredictBalanceOptions,
+): UsePredictBalanceResult {
   const { providerId = POLYMARKET_PROVIDER_ID, enabled = true } = options ?? {};
 
   const { ensurePolygonNetworkExists } = usePredictNetworkManagement();
@@ -36,6 +55,18 @@ export function usePredictBalance(options?: UsePredictBalanceOptions) {
     enabled,
   });
 
-  // TODO: Remove `balance` once confirmations code migrates to `data`.
-  return { ...query, balance: query.data ?? 0 };
+  const balance = query.data ?? 0;
+
+  return {
+    data: query.data,
+    isLoading: query.isLoading,
+    isFetching: query.isFetching,
+    error: query.error,
+    refetch: query.refetch,
+    // TODO: Remove legacy fields once confirmations code migrates to `data`.
+    balance,
+    hasNoBalance: !query.isLoading && balance === 0,
+    isRefreshing: query.isRefetching,
+    loadBalance: query.refetch,
+  };
 }
