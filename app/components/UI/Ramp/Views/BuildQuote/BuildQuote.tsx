@@ -223,8 +223,8 @@ function BuildQuote() {
         break;
       case 'widget_url_failed':
       case 'widget_url_missing':
-        // For widget errors, user will need to try again or contact support
-        // The modal will handle this with contact support button
+        // For widget errors, just dismiss the modal
+        // User can try pressing Continue button again
         break;
     }
   }, [
@@ -239,7 +239,7 @@ function BuildQuote() {
   // Handle quote fetch errors
   useEffect(() => {
     if (quotesError) {
-      setErrorState({ type: 'quote_fetch', isCritical: true });
+      setErrorState({ type: 'quote_fetch', isCritical: false });
     }
   }, [quotesError]);
 
@@ -331,14 +331,14 @@ function BuildQuote() {
           new Error('No widget URL available for aggregator provider'),
           { provider: selectedQuote.provider },
         );
-        setErrorState({ type: 'widget_url_missing', isCritical: true });
+        setErrorState({ type: 'widget_url_missing', isCritical: false });
       }
     } catch (error) {
       Logger.error(error as Error, {
         provider: selectedQuote.provider,
         message: 'Failed to fetch widget URL',
       });
-      setErrorState({ type: 'widget_url_failed', isCritical: true });
+      setErrorState({ type: 'widget_url_failed', isCritical: false });
     } finally {
       setIsNavigating(false);
       isNavigatingRef.current = false;

@@ -680,7 +680,7 @@ describe('BuildQuote', () => {
           screen: 'RampErrorModal',
           params: expect.objectContaining({
             errorType: 'widget_url_missing',
-            isCritical: true,
+            isCritical: false,
           }),
         }),
       );
@@ -927,7 +927,7 @@ describe('BuildQuote', () => {
           screen: 'RampErrorModal',
           params: expect.objectContaining({
             errorType: 'quote_fetch',
-            isCritical: true,
+            isCritical: false,
           }),
         }),
       );
@@ -995,7 +995,7 @@ describe('BuildQuote', () => {
           screen: 'RampErrorModal',
           params: expect.objectContaining({
             errorType: 'widget_url_missing',
-            isCritical: true,
+            isCritical: false,
           }),
         }),
       );
@@ -1043,7 +1043,7 @@ describe('BuildQuote', () => {
           screen: 'RampErrorModal',
           params: expect.objectContaining({
             errorType: 'widget_url_failed',
-            isCritical: true,
+            isCritical: false,
           }),
         }),
       );
