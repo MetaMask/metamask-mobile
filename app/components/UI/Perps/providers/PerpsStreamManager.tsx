@@ -1337,12 +1337,18 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
         });
       } catch (error) {
         const fetchTime = Date.now() - fetchStartTime;
+        const existing = this.cache.get('markets');
+        const cacheStalenessMs = this.lastFetchTime
+          ? Date.now() - this.lastFetchTime
+          : null;
         Logger.error(ensureError(error, 'PerpsStreamManager.fetchMarketData'), {
           context: 'PerpsStreamManager.fetchMarketData',
           fetchTimeMs: fetchTime,
+          hadCachedData: !!existing,
+          cachedMarketCount: existing?.length ?? 0,
+          cacheStalenessMs,
         });
         // Keep existing cache if fetch fails
-        const existing = this.cache.get('markets');
         if (existing) {
           DevLogger.log(
             'PerpsStreamManager: Using stale cache after fetch failure',
