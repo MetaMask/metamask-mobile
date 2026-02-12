@@ -705,7 +705,6 @@ describe('Predict Controller Selectors', () => {
       };
 
       const selector = selectPredictBalanceByAddress({
-        providerId: 'polymarket',
         address: '0x123',
       });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -735,7 +734,6 @@ describe('Predict Controller Selectors', () => {
       };
 
       const selector = selectPredictBalanceByAddress({
-        providerId: 'nonexistent',
         address: '0x123',
       });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -765,7 +763,6 @@ describe('Predict Controller Selectors', () => {
       };
 
       const selector = selectPredictBalanceByAddress({
-        providerId: 'polymarket',
         address: '0xnonexistent',
       });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -786,7 +783,6 @@ describe('Predict Controller Selectors', () => {
       };
 
       const selector = selectPredictBalanceByAddress({
-        providerId: 'polymarket',
         address: '0x123',
       });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -805,7 +801,6 @@ describe('Predict Controller Selectors', () => {
       };
 
       const selector = selectPredictBalanceByAddress({
-        providerId: 'polymarket',
         address: '0x123',
       });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -849,14 +844,12 @@ describe('Predict Controller Selectors', () => {
       };
 
       const selector1 = selectPredictBalanceByAddress({
-        providerId: 'polymarket',
         address: '0x456',
       });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result1 = selector1(mockState as any);
 
       const selector2 = selectPredictBalanceByAddress({
-        providerId: 'kalshi',
         address: '0xdef',
       });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -887,7 +880,6 @@ describe('Predict Controller Selectors', () => {
       };
 
       const selector = selectPredictBalanceByAddress({
-        providerId: 'polymarket',
         address: '0x123',
       });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
