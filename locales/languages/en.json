@@ -5087,7 +5087,20 @@
       "sale_pending_description": "Your order is now being processed.",
       "no_date": "Unknown"
     },
-    "deposit_order_title": "{{currency}} Deposit"
+    "deposit_order_title": "{{currency}} Deposit",
+    "ramp_error_modal": {
+      "quote_fetch_failed_title": "Unable to fetch quotes",
+      "quote_fetch_failed_description": "We couldn't load quotes from providers. Please check your connection and try again.",
+      "no_quotes_available_title": "No quotes available",
+      "no_quotes_available_description": "There are currently no quotes available for this amount and payment method. Try adjusting your amount or selecting a different payment method.",
+      "widget_url_failed_title": "Unable to continue",
+      "widget_url_failed_description": "We couldn't load the provider page. Please try again or contact support if the issue persists.",
+      "widget_url_missing_title": "Provider unavailable",
+      "widget_url_missing_description": "This provider is temporarily unavailable. Please try a different provider or contact support.",
+      "contact_support": "Contact support",
+      "try_again": "Try again",
+      "got_it": "Got it"
+    }
   },
   "swaps": {
     "title": "Swap",

@@ -208,6 +208,7 @@ const Routes = {
     SUCCESS_ERROR_SHEET: 'SuccessErrorSheet',
     ELIGIBILITY_FAILED_MODAL: 'EligibilityFailedModal',
     UNSUPPORTED_REGION_MODAL: 'UnsupportedRegionModal',
+    RAMP_ERROR_MODAL: 'RampErrorModal',
     MULTICHAIN_TRANSACTION_DETAILS: 'MultichainTransactionDetails',
     TRANSACTION_DETAILS: 'TransactionDetailsSheet',
     IMPORT_WALLET_TIP: 'ImportWalletTipSheet',

@@ -116,7 +116,9 @@ const defaultUserRegion: MockUserRegion = {
 let mockUserRegion: MockUserRegion | null = defaultUserRegion;
 let mockSelectedProvider: unknown = null;
 let mockSelectedQuote: unknown = null;
+let mockQuotes: unknown = null;
 let mockQuotesLoading = false;
+let mockQuotesError: string | null = null;
 let mockSelectedPaymentMethod: unknown = null;
 let mockTokens: {
   allTokens: ReturnType<typeof createMockToken>[];
@@ -132,7 +134,9 @@ jest.mock('../../hooks/useRampsController', () => ({
     selectedProvider: mockSelectedProvider,
     selectedToken: mockTokens?.allTokens?.[0] ?? null,
     selectedQuote: mockSelectedQuote,
+    quotes: mockQuotes,
     quotesLoading: mockQuotesLoading,
+    quotesError: mockQuotesError,
     startQuotePolling: mockStartQuotePolling,
     stopQuotePolling: mockStopQuotePolling,
     getWidgetUrl: mockGetWidgetUrl,
@@ -154,7 +158,9 @@ describe('BuildQuote', () => {
     mockUserRegion = defaultUserRegion;
     mockSelectedProvider = null;
     mockSelectedQuote = null;
+    mockQuotes = null;
     mockQuotesLoading = false;
+    mockQuotesError = null;
     mockSelectedPaymentMethod = null;
     mockTokens = {
       allTokens: [createMockToken()],
@@ -667,7 +673,19 @@ describe('BuildQuote', () => {
           provider: '/providers/mercuryo',
         }),
       );
-      expect(mockNavigate).not.toHaveBeenCalled();
+      // Now navigates to error modal instead of doing nothing
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'RootModalFlow',
+        expect.objectContaining({
+          screen: 'RampErrorModal',
+          params: expect.objectContaining({
+            errorType: 'widget_url_missing',
+            isCritical: true,
+          }),
+        }),
+      );
+
+      mockLogger.mockRestore();
     });
 
     it('does not navigate when quote amount does not match current amount', async () => {
@@ -894,6 +912,161 @@ describe('BuildQuote', () => {
 
       expect(mockGetWidgetUrl).toHaveBeenCalledTimes(1);
       expect(mockNavigate).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('Error Handling', () => {
+    it('navigates to error modal when quote fetch fails', () => {
+      mockQuotesError = 'Failed to fetch quotes';
+
+      renderWithTheme(<BuildQuote />);
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'RootModalFlow',
+        expect.objectContaining({
+          screen: 'RampErrorModal',
+          params: expect.objectContaining({
+            errorType: 'quote_fetch',
+            isCritical: true,
+          }),
+        }),
+      );
+    });
+
+    it('navigates to error modal when no quotes are available', () => {
+      mockQuotes = {
+        success: [],
+        sorted: [],
+        error: [],
+      };
+      mockQuotesLoading = false;
+
+      renderWithTheme(<BuildQuote />);
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'RootModalFlow',
+        expect.objectContaining({
+          screen: 'RampErrorModal',
+          params: expect.objectContaining({
+            errorType: 'no_quotes',
+            isCritical: false,
+          }),
+        }),
+      );
+    });
+
+    it('navigates to error modal when getWidgetUrl returns null', async () => {
+      mockSelectedQuote = {
+        provider: '/providers/mercuryo',
+        quote: {
+          amountIn: 100,
+          amountOut: 0.05,
+          paymentMethod: '/payments/debit-credit-card',
+          buyURL:
+            'https://on-ramp.uat-api.cx.metamask.io/providers/mercuryo/buy-widget',
+        },
+        providerInfo: {
+          id: '/providers/mercuryo',
+          name: 'Mercuryo',
+          type: 'aggregator',
+        },
+      };
+      mockSelectedPaymentMethod = {
+        id: '/payments/debit-credit-card',
+        name: 'Card',
+      };
+
+      mockGetWidgetUrl.mockResolvedValue(null);
+
+      const { getByTestId } = renderWithTheme(<BuildQuote />);
+      const continueButton = getByTestId('build-quote-continue-button');
+
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'RootModalFlow',
+        expect.objectContaining({
+          screen: 'RampErrorModal',
+          params: expect.objectContaining({
+            errorType: 'widget_url_missing',
+            isCritical: true,
+          }),
+        }),
+      );
+    });
+
+    it('navigates to error modal when getWidgetUrl throws an error', async () => {
+      const mockLogger = jest.spyOn(Logger, 'error');
+      mockSelectedQuote = {
+        provider: '/providers/mercuryo',
+        quote: {
+          amountIn: 100,
+          amountOut: 0.05,
+          paymentMethod: '/payments/debit-credit-card',
+          buyURL:
+            'https://on-ramp.uat-api.cx.metamask.io/providers/mercuryo/buy-widget',
+        },
+        providerInfo: {
+          id: '/providers/mercuryo',
+          name: 'Mercuryo',
+          type: 'aggregator',
+        },
+      };
+      mockSelectedPaymentMethod = {
+        id: '/payments/debit-credit-card',
+        name: 'Card',
+      };
+
+      mockGetWidgetUrl.mockRejectedValue(new Error('Network error'));
+
+      const { getByTestId } = renderWithTheme(<BuildQuote />);
+      const continueButton = getByTestId('build-quote-continue-button');
+
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(mockLogger).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'RootModalFlow',
+        expect.objectContaining({
+          screen: 'RampErrorModal',
+          params: expect.objectContaining({
+            errorType: 'widget_url_failed',
+            isCritical: true,
+          }),
+        }),
+      );
+
+      mockLogger.mockRestore();
+    });
+
+    it('does not navigate to error modal when quotes are loading', () => {
+      mockQuotes = {
+        success: [],
+        sorted: [],
+        error: [],
+      };
+      mockQuotesLoading = true;
+
+      renderWithTheme(<BuildQuote />);
+
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        'RootModalFlow',
+        expect.objectContaining({
+          screen: 'RampErrorModal',
+        }),
+      );
     });
   });
 });

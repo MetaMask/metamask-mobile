@@ -43,6 +43,10 @@ import {
 } from '../../types';
 import { createDepositNavigationDetails } from '../../Deposit/routes/utils';
 import Logger from '../../../../../util/Logger';
+import {
+  createRampErrorModalNavigationDetails,
+  type RampErrorType,
+} from '../../components/RampErrorModal';
 
 interface BuildQuoteParams {
   assetId?: string;
@@ -87,13 +91,19 @@ function BuildQuote() {
   const [userHasEnteredAmount, setUserHasEnteredAmount] = useState(false);
   const [isNavigating, setIsNavigating] = useState(false);
   const isNavigatingRef = useRef(false);
+  const [errorState, setErrorState] = useState<{
+    type: RampErrorType;
+    isCritical: boolean;
+  } | null>(null);
 
   const {
     userRegion,
     selectedProvider,
     selectedToken,
     selectedQuote,
+    quotes,
     quotesLoading,
+    quotesError,
     startQuotePolling,
     stopQuotePolling,
     getWidgetUrl,
@@ -183,6 +193,82 @@ function BuildQuote() {
     stopQuotePolling,
   ]);
 
+  const hasAmount = amountAsNumber > 0;
+
+  // Retry handler for error scenarios
+  const handleRetry = useCallback(() => {
+    // Clear error state
+    setErrorState(null);
+
+    if (!errorState) return;
+
+    switch (errorState.type) {
+      case 'quote_fetch':
+        // Retry quote fetching by triggering polling again
+        if (
+          walletAddress &&
+          selectedPaymentMethod &&
+          debouncedPollingAmount > 0
+        ) {
+          startQuotePolling({
+            walletAddress,
+            amount: debouncedPollingAmount,
+            redirectUrl: getRampCallbackBaseUrl(),
+          });
+        }
+        break;
+      case 'no_quotes':
+        // Navigate back to allow user to change amount or payment method
+        navigation.goBack();
+        break;
+      case 'widget_url_failed':
+      case 'widget_url_missing':
+        // For widget errors, user will need to try again or contact support
+        // The modal will handle this with contact support button
+        break;
+    }
+  }, [
+    errorState,
+    walletAddress,
+    selectedPaymentMethod,
+    debouncedPollingAmount,
+    startQuotePolling,
+    navigation,
+  ]);
+
+  // Handle quote fetch errors
+  useEffect(() => {
+    if (quotesError) {
+      setErrorState({ type: 'quote_fetch', isCritical: true });
+    }
+  }, [quotesError]);
+
+  // Handle no quotes available scenario
+  useEffect(() => {
+    if (
+      !quotesLoading &&
+      !quotesError &&
+      hasAmount &&
+      quotes &&
+      quotes.success.length === 0
+    ) {
+      setErrorState({ type: 'no_quotes', isCritical: false });
+    }
+  }, [quotesLoading, quotesError, hasAmount, quotes]);
+
+  // Navigate to error modal when error state is set
+  useEffect(() => {
+    if (errorState) {
+      navigation.navigate(
+        ...createRampErrorModalNavigationDetails({
+          errorType: errorState.type,
+          isCritical: errorState.isCritical,
+          onRetry: handleRetry,
+        }),
+      );
+    }
+  }, [errorState, navigation, handleRetry]);
+
   const handleContinuePress = useCallback(async () => {
     if (!selectedQuote) return;
 
@@ -245,14 +331,14 @@ function BuildQuote() {
           new Error('No widget URL available for aggregator provider'),
           { provider: selectedQuote.provider },
         );
-        // TODO: Show user-facing error (alert or inline)
+        setErrorState({ type: 'widget_url_missing', isCritical: true });
       }
     } catch (error) {
       Logger.error(error as Error, {
         provider: selectedQuote.provider,
         message: 'Failed to fetch widget URL',
       });
-      // TODO: Show user-facing error (alert or inline)
+      setErrorState({ type: 'widget_url_failed', isCritical: true });
     } finally {
       setIsNavigating(false);
       isNavigatingRef.current = false;
@@ -266,8 +352,6 @@ function BuildQuote() {
     currency,
     selectedPaymentMethod,
   ]);
-
-  const hasAmount = amountAsNumber > 0;
 
   const quoteMatchesAmount =
     debouncedPollingAmount === amountAsNumber && debouncedPollingAmount > 0;

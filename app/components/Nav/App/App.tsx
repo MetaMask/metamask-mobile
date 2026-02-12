@@ -128,6 +128,7 @@ import ConfirmTurnOnBackupAndSyncModal from '../../UI/Identity/ConfirmTurnOnBack
 import AddNewAccountBottomSheet from '../../Views/AddNewAccount/AddNewAccountBottomSheet';
 import EligibilityFailedModal from '../../UI/Ramp/components/EligibilityFailedModal';
 import RampUnsupportedModal from '../../UI/Ramp/components/RampUnsupportedModal';
+import RampErrorModal from '../../UI/Ramp/components/RampErrorModal';
 import SwitchAccountTypeModal from '../../Views/confirmations/components/modals/switch-account-type-modal';
 import { AccountDetails } from '../../Views/MultichainAccounts/AccountDetails/AccountDetails';
 import { AccountGroupDetails } from '../../Views/MultichainAccounts/AccountGroupDetails/AccountGroupDetails';
@@ -422,6 +423,10 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <Stack.Screen
       name={Routes.SHEET.UNSUPPORTED_REGION_MODAL}
       component={RampUnsupportedModal}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.RAMP_ERROR_MODAL}
+      component={RampErrorModal}
     />
     <Stack.Screen
       name={Routes.SHEET.ACCOUNT_SELECTOR}
