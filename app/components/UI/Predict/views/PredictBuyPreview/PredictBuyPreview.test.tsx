@@ -46,6 +46,17 @@ jest.mock('../../hooks/usePredictPlaceOrder', () => ({
     isLoading: mockLoadingState,
     result: mockPlaceOrderResult,
     error: mockPlaceOrderError,
+    isOrderNotFilled: false,
+    resetOrderNotFilled: jest.fn(),
+  }),
+}));
+
+jest.mock('../../hooks/usePredictOrderRetry', () => ({
+  usePredictOrderRetry: () => ({
+    retrySheetRef: { current: null },
+    retrySheetVariant: 'busy' as const,
+    isRetrying: false,
+    handleRetryWithBestPrice: jest.fn(),
   }),
 }));
 

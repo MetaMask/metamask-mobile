@@ -600,6 +600,105 @@ describe('usePredictPlaceOrder', () => {
     });
   });
 
+  describe('order not filled detection', () => {
+    it('sets isOrderNotFilled to true when BUY order throws BUY_ORDER_NOT_FULLY_FILLED', async () => {
+      mockPlaceOrder.mockRejectedValue(
+        new Error('PREDICT_BUY_ORDER_NOT_FULLY_FILLED'),
+      );
+      const { result } = renderHook(() => usePredictPlaceOrder());
+
+      await act(async () => {
+        await result.current.placeOrder(mockOrderParams);
+      });
+
+      expect(result.current.isOrderNotFilled).toBe(true);
+    });
+
+    it('sets isOrderNotFilled to true when SELL order throws SELL_ORDER_NOT_FULLY_FILLED', async () => {
+      mockPlaceOrder.mockRejectedValue(
+        new Error('PREDICT_SELL_ORDER_NOT_FULLY_FILLED'),
+      );
+      const sellParams = {
+        ...mockOrderParams,
+        preview: createMockOrderPreview({ side: Side.SELL }),
+      };
+      const { result } = renderHook(() => usePredictPlaceOrder());
+
+      await act(async () => {
+        await result.current.placeOrder(sellParams);
+      });
+
+      expect(result.current.isOrderNotFilled).toBe(true);
+    });
+
+    it('does not set inline error when order is not filled', async () => {
+      mockPlaceOrder.mockRejectedValue(
+        new Error('PREDICT_BUY_ORDER_NOT_FULLY_FILLED'),
+      );
+      const { result } = renderHook(() => usePredictPlaceOrder());
+
+      await act(async () => {
+        await result.current.placeOrder(mockOrderParams);
+      });
+
+      expect(result.current.error).toBeUndefined();
+    });
+
+    it('does not call onError when order is not filled', async () => {
+      mockPlaceOrder.mockRejectedValue(
+        new Error('PREDICT_BUY_ORDER_NOT_FULLY_FILLED'),
+      );
+      const mockOnError = jest.fn();
+      const { result } = renderHook(() =>
+        usePredictPlaceOrder({ onError: mockOnError }),
+      );
+
+      await act(async () => {
+        await result.current.placeOrder(mockOrderParams);
+      });
+
+      expect(mockOnError).not.toHaveBeenCalled();
+    });
+
+    it('resets isOrderNotFilled and error when resetOrderNotFilled is called', async () => {
+      mockPlaceOrder.mockRejectedValue(
+        new Error('PREDICT_BUY_ORDER_NOT_FULLY_FILLED'),
+      );
+      const { result } = renderHook(() => usePredictPlaceOrder());
+
+      await act(async () => {
+        await result.current.placeOrder(mockOrderParams);
+      });
+
+      expect(result.current.isOrderNotFilled).toBe(true);
+
+      act(() => {
+        result.current.resetOrderNotFilled();
+      });
+
+      expect(result.current.isOrderNotFilled).toBe(false);
+      expect(result.current.error).toBeUndefined();
+    });
+
+    it('returns isOrderNotFilled as false in initial state', () => {
+      const { result } = renderHook(() => usePredictPlaceOrder());
+
+      expect(result.current.isOrderNotFilled).toBe(false);
+    });
+
+    it('sets inline error for non-not-filled errors', async () => {
+      mockPlaceOrder.mockRejectedValue(new Error('Network error'));
+      const { result } = renderHook(() => usePredictPlaceOrder());
+
+      await act(async () => {
+        await result.current.placeOrder(mockOrderParams);
+      });
+
+      expect(result.current.isOrderNotFilled).toBe(false);
+      expect(result.current.error).toBe('Failed to place order');
+    });
+  });
+
   describe('hook stability', () => {
     it('returns stable function references across renders', () => {
       const { result, rerender } = renderHook(() => usePredictPlaceOrder());
