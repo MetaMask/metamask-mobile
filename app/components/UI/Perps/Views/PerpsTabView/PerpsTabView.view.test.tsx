@@ -10,6 +10,7 @@ import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
+import { PerpsTabViewSelectorsIDs } from '../../Perps.testIds';
 import PerpsTabView from './PerpsTabView';
 import { renderPerpsView } from '../../../../../util/test/component-view/renderers/perpsViewRenderer';
 import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
@@ -66,10 +67,10 @@ describe('PerpsTabView', () => {
       renderView();
 
       expect(
-        await screen.findByTestId('perps-balance-button'),
+        await screen.findByTestId(PerpsTabViewSelectorsIDs.BALANCE_BUTTON),
       ).toBeOnTheScreen();
       expect(
-        await screen.findByTestId('perps-tab-scroll-view'),
+        await screen.findByTestId(PerpsTabViewSelectorsIDs.SCROLL_VIEW),
       ).toBeOnTheScreen();
     });
   });
