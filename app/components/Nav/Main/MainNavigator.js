@@ -104,6 +104,10 @@ import {
   PredictModalStack,
   selectPredictEnabledFlag,
 } from '../../UI/Predict';
+import {
+  MarketInsightsView,
+  selectMarketInsightsEnabled,
+} from '../../UI/MarketInsights';
 import { selectAssetsTrendingTokensEnabled } from '../../../selectors/featureFlagController/assetsTrendingTokens';
 import PerpsPositionTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsPositionTransactionView';
 import PerpsOrderTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsOrderTransactionView';
@@ -895,6 +899,12 @@ const MainNavigator = () => {
     () => predictEnabledFlag,
     [predictEnabledFlag],
   );
+  // Get feature flag state for conditional Market Insights screen registration
+  const marketInsightsEnabledFlag = useSelector(selectMarketInsightsEnabled);
+  const isMarketInsightsEnabled = useMemo(
+    () => marketInsightsEnabledFlag,
+    [marketInsightsEnabledFlag],
+  );
   // Get feature flag state for conditional Trending Tokens screen registration
   const isAssetsTrendingTokensEnabled = useSelector(
     selectAssetsTrendingTokensEnabled,
@@ -1232,6 +1242,28 @@ const MainNavigator = () => {
             options={clearStackNavigatorOptions}
           />
         </>
+      )}
+      {isMarketInsightsEnabled && (
+        <Stack.Screen
+          name={Routes.MARKET_INSIGHTS.VIEW}
+          component={MarketInsightsView}
+          options={{
+            headerShown: false,
+            animationEnabled: true,
+            cardStyleInterpolator: ({ current, layouts }) => ({
+              cardStyle: {
+                transform: [
+                  {
+                    translateX: current.progress.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [layouts.screen.width, 0],
+                    }),
+                  },
+                ],
+              },
+            }),
+          }}
+        />
       )}
       {isAssetsTrendingTokensEnabled && (
         <>

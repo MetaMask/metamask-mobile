@@ -48,6 +48,7 @@ import PerpsDiscoveryBanner from '../../Perps/components/PerpsDiscoveryBanner';
 import { isTokenTrustworthyForPerps } from '../../Perps/constants/perpsConfig';
 import { selectTokenDetailsV2ButtonsEnabled } from '../../../../selectors/featureFlagController/tokenDetailsV2';
 import useTokenBuyability from '../hooks/useTokenBuyability';
+import { MarketInsightsEntryCard, useMarketInsights, selectMarketInsightsEnabled } from '../../MarketInsights';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import TronEnergyBandwidthDetail from '../../AssetOverview/TronEnergyBandwidthDetail/TronEnergyBandwidthDetail';
 ///: END:ONLY_INCLUDE_IF
@@ -238,12 +239,24 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     selectTokenDetailsV2ButtonsEnabled,
   );
 
+  const isMarketInsightsEnabled = useSelector(selectMarketInsightsEnabled);
+  const { report: marketInsightsReport, timeAgo: marketInsightsTimeAgo } =
+    useMarketInsights(isMarketInsightsEnabled ? token.symbol : null);
+
   const goToBrowserUrl = (url: string) => {
     const [screen, params] = createWebviewNavDetails({
       url,
     });
     navigation.navigate(screen, params as Record<string, unknown>);
   };
+
+  const handleMarketInsightsPress = useCallback(() => {
+    navigation.navigate(Routes.MARKET_INSIGHTS.VIEW, {
+      assetSymbol: token.symbol,
+      tokenImageUrl: token.image || token.logo,
+      pricePercentChange1d: token.pricePercentChange1d,
+    });
+  }, [navigation, token.symbol, token.image, token.logo, token.pricePercentChange1d]);
 
   const handlePerpsDiscoveryPress = useCallback(() => {
     if (marketData) {
@@ -379,6 +392,16 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
               <MerklRewards asset={token} />
             </View>
           )}
+          {isMarketInsightsEnabled && marketInsightsReport ? (
+            <View style={{ paddingTop: 16 }}>
+              <MarketInsightsEntryCard
+                report={marketInsightsReport}
+                timeAgo={marketInsightsTimeAgo}
+                onPress={handleMarketInsightsPress}
+                testID="market-insights-entry-card"
+              />
+            </View>
+          ) : null}
           {isPerpsEnabled &&
             hasPerpsMarket &&
             marketData &&
