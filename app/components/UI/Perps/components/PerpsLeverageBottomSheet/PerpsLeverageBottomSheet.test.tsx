@@ -32,6 +32,27 @@ jest.mock('react-native-gesture-handler', () => ({
 
 jest.mock('react-native-linear-gradient', () => 'LinearGradient');
 
+// Mock SkeletonPlaceholder
+jest.mock('react-native-skeleton-placeholder', () => {
+  const { View } = jest.requireActual('react-native');
+  const MockSkeletonPlaceholder = ({
+    children,
+  }: {
+    children: React.ReactNode;
+  }) => <View testID="skeleton-placeholder">{children}</View>;
+
+  MockSkeletonPlaceholder.Item = (props: {
+    width: number | string;
+    height: number;
+    borderRadius: number;
+  }) => <View testID="skeleton-item" {...props} />;
+
+  return {
+    __esModule: true,
+    default: MockSkeletonPlaceholder,
+  };
+});
+
 // Mock safe area context (required for BottomSheet)
 jest.mock('react-native-safe-area-context', () => {
   const inset = { top: 0, right: 0, bottom: 0, left: 0 };
@@ -1244,6 +1265,42 @@ describe('PerpsLeverageBottomSheet', () => {
       // Assert - Warning text with percentage is shown, not a skeleton
       expect(screen.getByText(/20\.0%/)).toBeOnTheScreen();
       expect(screen.getByText(/drops/)).toBeOnTheScreen();
+    });
+  });
+
+  describe('Stale Cache Prevention After Leverage Change', () => {
+    it('shows skeleton instead of stale cached price when leverage changes via quick select', () => {
+      // Arrange — default mock returns a calculated price for 5x leverage
+      render(<PerpsLeverageBottomSheet {...defaultProps} leverage={5} />);
+
+      // The initial render should show a price (from the default mock), no skeletons
+      expect(screen.queryAllByTestId('skeleton-placeholder')).toHaveLength(0);
+
+      // Act — press 10x. The leverageChanged flag is set in the event handler
+      // before re-render, so the skeleton appears immediately. The mock still
+      // returns the old price (simulating the debounce window).
+      const buttons10x = screen.getAllByText('10x');
+      fireEvent.press(buttons10x[0]); // Quick select button
+
+      // Assert — should show skeleton placeholders, NOT the stale cached price from 5x
+      const skeletons = screen.getAllByTestId('skeleton-placeholder');
+      expect(skeletons.length).toBeGreaterThanOrEqual(2); // warning text + price value
+    });
+
+    it('does not show skeleton when pressing the already active leverage', () => {
+      // Arrange — default mock returns calculated price for 5x
+      render(<PerpsLeverageBottomSheet {...defaultProps} leverage={5} />);
+
+      // The initial render should show a calculated price, no skeletons
+      expect(screen.queryAllByTestId('skeleton-placeholder')).toHaveLength(0);
+
+      // Act — press the same leverage that's already selected
+      const buttons5x = screen.getAllByText('5x');
+      fireEvent.press(buttons5x[0]);
+
+      // Assert — cache should NOT be invalidated, no skeletons should appear
+      expect(screen.getByText('Set 5x')).toBeOnTheScreen();
+      expect(screen.queryAllByTestId('skeleton-placeholder')).toHaveLength(0);
     });
   });
 
