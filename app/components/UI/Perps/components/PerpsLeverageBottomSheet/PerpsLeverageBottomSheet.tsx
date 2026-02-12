@@ -353,6 +353,12 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
   // the API returns a fresh liquidation price for the new leverage.
   const [leverageChanged, setLeverageChanged] = useState(false);
 
+  // Records when the user last changed leverage. Used to enforce a minimum
+  // skeleton display time so that stale in-flight API calls (which the hook's
+  // debounce.cancel() cannot abort) don't prematurely clear the skeleton by
+  // setting isCalculating = false before the new calculation completes.
+  const leverageChangeTime = useRef<number>(0);
+
   const currentLivePrice = usePerpsLivePrices({
     symbols: [asset],
     throttleMs: 1000,
@@ -386,28 +392,60 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
 
   const dynamicLiquidationPrice = Number.parseFloat(apiLiquidationPrice);
 
-  // Track previous isCalculating value to detect when calculation completes.
-  // This lets us clear leverageChanged only when the hook transitions from
-  // calculating → done, meaning fresh data for the new leverage has arrived.
-  const wasCalculating = useRef(false);
-
   // Cache last valid liquidation price so the UI always shows a value
   // instead of blinking a skeleton loader during passive price updates.
+  // Guard: don't cache while leverageChanged is true — the hook's state may
+  // contain a stale price from a previous leverage's in-flight API call.
   useEffect(() => {
-    if (!Number.isNaN(dynamicLiquidationPrice) && dynamicLiquidationPrice > 0) {
+    if (
+      !Number.isNaN(dynamicLiquidationPrice) &&
+      dynamicLiquidationPrice > 0 &&
+      !leverageChanged
+    ) {
       lastValidLiquidationPrice.current = dynamicLiquidationPrice;
     }
-  }, [dynamicLiquidationPrice]);
+  }, [dynamicLiquidationPrice, leverageChanged]);
 
-  // Clear leverageChanged only when the hook finishes calculating
-  // (isCalculating transitions from true → false). This ensures the skeleton
-  // stays visible throughout the debounce + API round-trip, and we don't
-  // prematurely clear the flag due to the old price still being valid.
+  // Clear leverageChanged when the hook is done calculating, but enforce a
+  // minimum display time after user-initiated leverage changes.
+  //
+  // Why: usePerpsLiquidationPrice's debounce.cancel() only cancels the
+  // debounce timer, not in-flight async API calls. A stale call completing
+  // after a leverage change sets isCalculating = false with the old
+  // leverage's price still in hook state. Without the minimum time guard,
+  // the skeleton would disappear and show the stale price.
+  //
+  // By waiting at least debounceMs + buffer, we ensure the new debounced
+  // calculation has had time to fire and complete, so the first
+  // isCalculating = false we act on is from the correct leverage.
   useEffect(() => {
-    if (wasCalculating.current && !isCalculating && leverageChanged) {
-      setLeverageChanged(false);
+    if (!leverageChanged) return;
+
+    if (isCalculating) {
+      // A calculation is running — keep showing the skeleton.
+      return;
     }
-    wasCalculating.current = isCalculating;
+
+    // isCalculating is false. Check if enough time has passed since the
+    // leverage change for this to be the *new* calculation's completion
+    // rather than a stale in-flight call.
+    const elapsed = Date.now() - leverageChangeTime.current;
+    const minSkeletonMs = PERFORMANCE_CONFIG.LiquidationPriceDebounceMs + 200;
+
+    if (leverageChangeTime.current > 0 && elapsed < minSkeletonMs) {
+      // Too soon — likely a stale completion. Keep the skeleton and
+      // schedule a deferred clear. If isCalculating goes back to true
+      // before the timer fires (new calculation started), the cleanup
+      // function cancels this timer and the effect re-runs.
+      const remaining = minSkeletonMs - elapsed;
+      const timer = setTimeout(() => {
+        setLeverageChanged(false);
+      }, remaining);
+      return () => clearTimeout(timer);
+    }
+
+    // Enough time has passed — safe to clear.
+    setLeverageChanged(false);
   }, [isCalculating, leverageChanged]);
 
   useEffect(() => {
@@ -420,7 +458,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
       setIsDragging(false);
       setLeverageChanged(false);
       lastValidLiquidationPrice.current = null;
-      wasCalculating.current = false;
+      leverageChangeTime.current = 0;
     }
   }, [isVisible, initialLeverage]);
 
@@ -775,6 +813,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
             onDragEnd={(finalValue) => {
               setIsDragging(false);
               if (finalValue !== tempLeverage) {
+                leverageChangeTime.current = Date.now();
                 setLeverageChanged(true);
                 lastValidLiquidationPrice.current = null;
               }
@@ -811,6 +850,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
               onPress={() => {
                 setIsDragging(false); // Ensure we're not in dragging state
                 if (value !== tempLeverage) {
+                  leverageChangeTime.current = Date.now();
                   setLeverageChanged(true);
                   lastValidLiquidationPrice.current = null;
                 }
