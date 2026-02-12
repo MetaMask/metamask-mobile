@@ -283,6 +283,17 @@ const ChoosePassword = () => {
   const handleWalletCreation = useCallback(
     async (authType: AuthData, previous_screen: string | undefined) => {
       if (previous_screen?.toLowerCase() === ONBOARDING.toLowerCase()) {
+
+        try {
+          // Prompt user for biometrics access control
+          Platform.OS === 'ios' && await Authentication.getPassword();
+        } catch (error) {
+          if ((error as Error).message === 'User canceled the operation.') {
+            // User rejected biometrics, create wallet with password as access control
+            authType.currentAuthType = AUTHENTICATION_TYPE.PASSWORD;
+          }
+        }
+
         await Authentication.newWalletAndKeychain(password, authType);
 
         keyringControllerPasswordSet.current = true;
