@@ -4,6 +4,7 @@ import { Text } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import renderWithProvider, { type DeepPartial } from '../../renderWithProvider';
 import type { RootState } from '../../../../reducers';
+import Routes from '../../../../constants/navigation/Routes';
 import { renderComponentViewScreen } from '../render';
 import { initialStatePerps } from '../presets/perps';
 import {
@@ -152,6 +153,24 @@ export function renderPerpsView(
 
   if (extraRoutes?.length) {
     const Stack = createStackNavigator();
+    const InnerStack = createStackNavigator();
+    // PerpsTabView navigates via navigation.navigate(PERPS.ROOT, { screen: MARKET_LIST }).
+    // So we register PERPS.ROOT as a nested stack containing the extra routes; then
+    // navigating to ROOT with screen: MARKET_LIST shows the route probe.
+    const nestedScreens = (
+      <>
+        {extraRoutes.map(({ name, Component: Extra }) => (
+          <InnerStack.Screen
+            key={name}
+            name={name}
+            component={Extra ?? DefaultRouteProbe(name)}
+          />
+        ))}
+      </>
+    );
+    const NestedPerpsStack = () => (
+      <InnerStack.Navigator>{nestedScreens}</InnerStack.Navigator>
+    );
     const stackTree = (
       <Stack.Navigator>
         <Stack.Screen
@@ -159,13 +178,10 @@ export function renderPerpsView(
           component={WrappedComponent as unknown as React.ComponentType}
           initialParams={initialParams}
         />
-        {extraRoutes.map(({ name, Component: Extra }) => (
-          <Stack.Screen
-            key={name}
-            name={name}
-            component={Extra ?? DefaultRouteProbe(name)}
-          />
-        ))}
+        <Stack.Screen
+          name={Routes.PERPS.ROOT}
+          component={NestedPerpsStack as unknown as React.ComponentType}
+        />
       </Stack.Navigator>
     );
     return renderWithProvider(stackTree, { state });

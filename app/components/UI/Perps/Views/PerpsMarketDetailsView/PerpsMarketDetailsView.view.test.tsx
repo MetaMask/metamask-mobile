@@ -11,7 +11,10 @@ import PerpsMarketDetailsView from './PerpsMarketDetailsView';
 import { renderPerpsView } from '../../../../../util/test/component-view/renderers/perps';
 import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
 import type { RootState } from '../../../../../reducers';
-import type { Position, PerpsMarketData } from '../../controllers/types';
+import type {
+  Position,
+  PerpsMarketData,
+} from 'app/components/UI/Perps/controllers/types';
 import { PerpsMarketDetailsViewSelectorsIDs } from '../../Perps.testIds';
 
 const mockMarket: PerpsMarketData = {
