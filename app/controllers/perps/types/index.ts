@@ -1508,6 +1508,7 @@ export type PerpsSelectedPaymentToken = {
   description?: string;
   address: string;
   chainId: string;
+  symbol?: string;
 };
 
 // ============================================================================
