@@ -236,7 +236,7 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
                           {
                             "alignItems": "center",
                             "backgroundColor": "transparent",
-                            "borderRadius": 2,
+                            "borderRadius": 8,
                             "height": 32,
                             "justifyContent": "center",
                             "opacity": 1,
@@ -249,14 +249,14 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
                     >
                       <SvgMock
                         fill="currentColor"
-                        name="Close"
-                        style={
-                          [
-                            {
-                              "color": "#121314",
-                              "height": 20,
-                              "width": 20,
-                            },
+                            name="Close"
+                            style={
+                              [
+                                {
+                                  "color": "#121314",
+                                  "height": 24,
+                                  "width": 24,
+                                },
                             undefined,
                           ]
                         }
