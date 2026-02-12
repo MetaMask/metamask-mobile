@@ -111,6 +111,8 @@ const setupMocks = (
   (isCardUrl as jest.Mock).mockReturnValue(false);
   (isCardTravelUrl as jest.Mock).mockReturnValue(false);
   mockCreateEventBuilder.mockReturnValue(mockEventBuilder);
+  // Mock Date.now to return a consistent timestamp
+  jest.spyOn(Date, 'now').mockReturnValue(1234567890);
 };
 
 describe('useNavigateToInternalBrowserPage', () => {
