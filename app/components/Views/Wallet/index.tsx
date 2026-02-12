@@ -44,6 +44,10 @@ import {
 import { getWalletNavbarOptions } from '../../UI/Navbar';
 import Tokens from '../../UI/Tokens';
 
+import { useOnboardingChecklist } from '../../../features/OnboardingChecklist/hooks/useOnboardingChecklist';
+import OnboardingBanner from '../../../features/OnboardingChecklist/components/OnboardingBanner';
+import FakeSRPScreen from '../../../features/OnboardingChecklist/components/FakeSRPScreen';
+
 import {
   NavigationProp,
   ParamListBase,
@@ -118,7 +122,10 @@ import { Token } from '@metamask/assets-controllers';
 import { Hex, KnownCaipNamespace } from '@metamask/utils';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
-import { selectHomepageRedesignV1Enabled } from '../../../selectors/featureFlagController/homepage';
+import {
+  selectHomepageRedesignV1Enabled,
+  selectHomepageSectionsV1Enabled,
+} from '../../../selectors/featureFlagController/homepage';
 import AccountGroupBalance from '../../UI/Assets/components/Balance/AccountGroupBalance';
 import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../hooks/useCheckMultiRpcModal';
@@ -184,6 +191,7 @@ import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvi
 import { selectDisplayCardButton } from '../../../core/redux/slices/card';
 import { usePna25BottomSheet } from '../../hooks/usePna25BottomSheet';
 import { useSafeChains } from '../../hooks/useSafeChains';
+import Homepage from '../Homepage';
 
 const createStyles = ({ colors }: Theme) =>
   RNStyleSheet.create({
@@ -611,6 +619,7 @@ const Wallet = ({
   const { navigate } = useNavigation();
   const walletRef = useRef(null);
   const walletTokensTabViewRef = useRef<WalletTokensTabViewHandle>(null);
+  const homepageRef = useRef<any>(null);
   const scrollViewRef = useRef<ScrollView>(null);
   const isMountedRef = useRef(true);
   const refreshInProgressRef = useRef(false);
@@ -1198,6 +1207,13 @@ const Wallet = ({
   const isHomepageRedesignV1Enabled = useSelector(
     selectHomepageRedesignV1Enabled,
   );
+  const isHomepageSectionsV1Enabled = useSelector(
+    selectHomepageSectionsV1Enabled,
+  );
+
+  // Enable parent scroll when homepage redesign or sections feature flags are enabled
+  const shouldEnableParentScroll =
+    isHomepageRedesignV1Enabled || isHomepageSectionsV1Enabled;
 
   useEffect(() => {
     if (!selectedInternalAccount) return;
@@ -1368,9 +1384,9 @@ const Wallet = ({
   const scrollViewContentStyle = useMemo(
     () => [
       styles.wrapper,
-      isHomepageRedesignV1Enabled && { flex: undefined, flexGrow: 0 },
+      shouldEnableParentScroll && { flex: undefined, flexGrow: 0 },
     ],
-    [styles.wrapper, isHomepageRedesignV1Enabled],
+    [styles.wrapper, shouldEnableParentScroll],
   );
 
   const handleRefresh = useCallback(async () => {
@@ -1383,7 +1399,15 @@ const Wallet = ({
     setRefreshing(true);
 
     try {
-      await walletTokensTabViewRef.current?.refresh(refreshBalance);
+      if (isHomepageSectionsV1Enabled) {
+        // Refresh balance and all homepage sections in parallel
+        await Promise.allSettled([
+          refreshBalance(),
+          homepageRef.current?.refresh(),
+        ]);
+      } else {
+        await walletTokensTabViewRef.current?.refresh(refreshBalance);
+      }
     } catch (error) {
       Logger.error(error as Error, 'Error refreshing wallet');
     } finally {
@@ -1394,7 +1418,9 @@ const Wallet = ({
         setRefreshing(false);
       }
     }
-  }, [refreshBalance]);
+  }, [refreshBalance, isHomepageSectionsV1Enabled]);
+
+  const { layoutMode, shouldShow } = useOnboardingChecklist();
 
   const content = (
     <>
@@ -1417,29 +1443,41 @@ const Wallet = ({
         <NetworkConnectionBanner />
       </View>
       <>
-        <AccountGroupBalance />
+        {/* Layout A or B: Checklist at the top (replaces banner) */}
+        {shouldShow && (layoutMode === 'A' || layoutMode === 'B') ? (
+          <OnboardingBanner style={layoutMode === 'A' ? { marginBottom: 16 } : {}} />
+        ) : (
+          <AccountGroupBalance />
+        )}
 
-        <AssetDetailsActions
-          displayBuyButton={displayBuyButton}
-          displaySwapsButton={displaySwapsButton}
-          goToSwaps={goToSwaps}
-          onReceive={onReceive}
-          onSend={onSend}
-          buyButtonActionID={WalletViewSelectorsIDs.WALLET_BUY_BUTTON}
-          swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
-          sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
-          receiveButtonActionID={WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON}
-        />
+        {/* Layout B hides action buttons */}
+        {(!shouldShow || layoutMode !== 'B') && (
+          <AssetDetailsActions
+            displayBuyButton={displayBuyButton}
+            displaySwapsButton={displaySwapsButton}
+            goToSwaps={goToSwaps}
+            onReceive={onReceive}
+            onSend={onSend}
+            buyButtonActionID={WalletViewSelectorsIDs.WALLET_BUY_BUTTON}
+            swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
+            sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
+            receiveButtonActionID={WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON}
+          />
+        )}
 
         {isCarouselBannersEnabled && <Carousel style={styles.carousel} />}
 
-        <WalletTokensTabView
-          ref={walletTokensTabViewRef}
-          navigation={navigation}
-          onChangeTab={onChangeTab}
-          defiEnabled={defiEnabled}
-          collectiblesEnabled={collectiblesEnabled}
-        />
+        {isHomepageSectionsV1Enabled ? (
+          <Homepage ref={homepageRef} onScroll={handleScroll} />
+        ) : (
+          <WalletTokensTabView
+            ref={walletTokensTabViewRef}
+            navigation={navigation}
+            onChangeTab={onChangeTab}
+            defiEnabled={defiEnabled}
+            collectiblesEnabled={collectiblesEnabled}
+          />
+        )}
       </>
     </>
   );
@@ -1452,6 +1490,36 @@ const Wallet = ({
     [styles],
   );
 
+  const handleScroll = useCallback((event: any) => {
+    homepageRef.current?.handleScroll?.(event);
+  }, []);
+
+  const scrollViewProps = useMemo(
+    () => ({
+      contentContainerStyle: scrollViewContentStyle,
+      showsVerticalScrollIndicator: false,
+      onScroll: isHomepageSectionsV1Enabled ? handleScroll : undefined,
+      scrollEventThrottle: 16,
+      refreshControl: shouldEnableParentScroll ? (
+        <RefreshControl
+          colors={[colors.primary.default]}
+          tintColor={colors.icon.default}
+          refreshing={refreshing}
+          onRefresh={handleRefresh}
+        />
+      ) : undefined,
+    }),
+    [
+      scrollViewContentStyle,
+      isHomepageSectionsV1Enabled,
+      handleScroll,
+      shouldEnableParentScroll,
+      colors,
+      refreshing,
+      handleRefresh,
+    ],
+  );
+
   return (
     <ErrorBoundary navigation={navigation} view="Wallet">
       <View style={baseStyles.flexGrow}>
@@ -1462,19 +1530,8 @@ const Wallet = ({
           >
             <ConditionalScrollView
               ref={scrollViewRef}
-              isScrollEnabled={isHomepageRedesignV1Enabled}
-              scrollViewProps={{
-                contentContainerStyle: scrollViewContentStyle,
-                showsVerticalScrollIndicator: false,
-                refreshControl: isHomepageRedesignV1Enabled ? (
-                  <RefreshControl
-                    colors={[colors.primary.default]}
-                    tintColor={colors.icon.default}
-                    refreshing={refreshing}
-                    onRefresh={handleRefresh}
-                  />
-                ) : undefined,
-              }}
+              isScrollEnabled={shouldEnableParentScroll}
+              scrollViewProps={scrollViewProps}
             >
               {content}
             </ConditionalScrollView>

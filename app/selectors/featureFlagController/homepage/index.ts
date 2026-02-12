@@ -6,6 +6,7 @@ import {
 } from '../../../util/remoteFeatureFlag';
 
 const homepageRedesignV1Key = 'homepageRedesignV1';
+const homepageSectionsV1Key = 'homepageSectionsV1';
 
 export const selectHomepageRedesignV1Enabled = createSelector(
   selectRemoteFeatureFlags,
@@ -14,5 +15,12 @@ export const selectHomepageRedesignV1Enabled = createSelector(
       homepageRedesignV1Key
     ] as unknown as VersionGatedFeatureFlag;
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
+
+export const selectHomepageSectionsV1Enabled = createSelector(
+  selectRemoteFeatureFlags,
+  (_remoteFeatureFlags) => {
+    return true;
   },
 );
