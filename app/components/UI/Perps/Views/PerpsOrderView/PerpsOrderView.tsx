@@ -144,7 +144,6 @@ import createStyles from './PerpsOrderView.styles';
 import { PerpsPayRow } from './PerpsPayRow';
 import { useUpdateTokenAmount } from '../../../../Views/confirmations/hooks/transactions/useUpdateTokenAmount';
 import { useConfirmActions } from '../../../../Views/confirmations/hooks/useConfirmActions';
-import Engine from '../../../../../core/Engine';
 
 // Navigation params interface
 interface OrderRouteParams {
@@ -207,14 +206,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       onReject(undefined, true);
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
-  );
-
-  // Reset selected payment token to Perps balance when leaving the order view
-  useEffect(
-    () => () => {
-      Engine.context.PerpsController?.resetSelectedPaymentToken?.();
-    },
     [],
   );
 
@@ -1349,6 +1340,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               <View style={[styles.detailItem, styles.detailItemLast]}>
                 <PerpsPayRow
                   embeddedInStack
+                  initialAsset={orderForm.asset}
                   onPayWithInfoPress={() => handleTooltipPress('pay_with')}
                 />
               </View>

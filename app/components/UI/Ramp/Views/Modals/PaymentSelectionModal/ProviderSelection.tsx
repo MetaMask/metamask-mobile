@@ -129,7 +129,7 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
     );
   }
 
-  if (filteredQuotes?.length === 0) {
+  if (!filteredQuotes || filteredQuotes.length === 0) {
     return (
       <Box twClassName="flex-1 min-h-0">
         <HeaderCompactStandard

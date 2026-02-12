@@ -4,6 +4,7 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import type { CaipChainId } from '@metamask/utils';
 
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
+import { getRampCallbackBaseUrl } from '../../utils/getRampCallbackBaseUrl';
 import Keypad, { type KeypadChangeData } from '../../../../Base/Keypad';
 import PaymentMethodPill from '../../components/PaymentMethodPill';
 import QuickAmounts from '../../components/QuickAmounts';
@@ -28,6 +29,14 @@ import { createSettingsModalNavDetails } from '../Modals/SettingsModal';
 import useRampAccountAddress from '../../hooks/useRampAccountAddress';
 import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 import { createPaymentSelectionModalNavigationDetails } from '../Modals/PaymentSelectionModal';
+import { createCheckoutNavDetails } from '../Checkout';
+import {
+  isNativeProvider,
+  getQuoteProviderName,
+  getQuoteBuyUserAgent,
+} from '../../types';
+import { createDepositNavigationDetails } from '../../Deposit/routes/utils';
+import Logger from '../../../../../util/Logger';
 
 interface BuildQuoteParams {
   assetId?: string;
@@ -90,6 +99,7 @@ function BuildQuote() {
     quotesLoading,
     startQuotePolling,
     stopQuotePolling,
+    getWidgetUrl,
     paymentMethodsLoading,
     selectedPaymentMethod,
   } = useRampsController();
@@ -176,6 +186,7 @@ function BuildQuote() {
     startQuotePolling({
       walletAddress,
       amount: debouncedPollingAmount,
+      redirectUrl: getRampCallbackBaseUrl(),
     });
 
     return () => {
@@ -190,17 +201,122 @@ function BuildQuote() {
     isOnBuildQuoteScreen,
   ]);
 
-  const handleContinuePress = useCallback(() => {
-    // TODO: Navigate to next screen with amount and set isOnBuildQuoteScreen(false)
-  }, []);
+  const handleContinuePress = useCallback(async () => {
+    if (!selectedQuote) return;
+
+    const quoteAmount =
+      selectedQuote.quote?.amountIn ??
+      (selectedQuote as { amountIn?: number }).amountIn;
+    const quotePaymentMethod =
+      selectedQuote.quote?.paymentMethod ??
+      (selectedQuote as { paymentMethod?: string }).paymentMethod;
+
+    // Validate amount matches
+    if (quoteAmount !== amountAsNumber) {
+      return;
+    }
+
+    // Validate payment method context matches
+    if (quotePaymentMethod != null) {
+      // Quote requires a payment method - must have one selected and it must match
+      if (
+        !selectedPaymentMethod ||
+        selectedPaymentMethod.id !== quotePaymentMethod
+      ) {
+        return;
+      }
+    }
+
+    // Native/whitelabel provider (e.g. Transak Native) -> deposit flow
+    if (isNativeProvider(selectedQuote)) {
+      navigation.navigate(
+        ...createDepositNavigationDetails({
+          assetId: selectedToken?.assetId,
+          amount: String(amountAsNumber),
+          currency,
+          shouldRouteImmediately: true,
+        }),
+      );
+      return;
+    }
+
+    // Aggregator provider -> needs a widget URL
+    // Note: CustomActions (e.g., PayPal) are handled through the same flow.
+    // If the API returns a quote with a URL, it will be opened in the checkout webview.
+    // If customActions appear without a URL, they will error here (needs backend fix).
+    try {
+      const widgetUrl = await getWidgetUrl(selectedQuote);
+
+      if (widgetUrl) {
+        navigation.navigate(
+          ...createCheckoutNavDetails({
+            url: widgetUrl,
+            providerName: getQuoteProviderName(selectedQuote),
+            userAgent: getQuoteBuyUserAgent(selectedQuote),
+          }),
+        );
+      } else {
+        Logger.error(
+          new Error('No widget URL available for aggregator provider'),
+          { provider: selectedQuote.provider },
+        );
+        // TODO: Show user-facing error (alert or inline)
+      }
+    } catch (error) {
+      Logger.error(error as Error, {
+        provider: selectedQuote.provider,
+        message: 'Failed to fetch widget URL',
+      });
+      // TODO: Show user-facing error (alert or inline)
+    }
+  }, [
+    selectedQuote,
+    navigation,
+    getWidgetUrl,
+    amountAsNumber,
+    selectedToken,
+    currency,
+    selectedPaymentMethod,
+  ]);
 
   const hasAmount = amountAsNumber > 0;
 
   const quoteMatchesAmount =
     debouncedPollingAmount === amountAsNumber && debouncedPollingAmount > 0;
 
+  const quoteMatchesCurrentContext = useMemo(() => {
+    if (!selectedQuote) return false;
+
+    const quoteAmount =
+      selectedQuote.quote?.amountIn ??
+      (selectedQuote as { amountIn?: number }).amountIn;
+    const quotePaymentMethod =
+      selectedQuote.quote?.paymentMethod ??
+      (selectedQuote as { paymentMethod?: string }).paymentMethod;
+
+    // Amount must match
+    if (quoteAmount !== amountAsNumber) return false;
+
+    // Payment method context must match
+    if (quotePaymentMethod != null) {
+      // Quote requires a payment method - must have one selected and it must match
+      if (
+        !selectedPaymentMethod ||
+        selectedPaymentMethod.id !== quotePaymentMethod
+      ) {
+        return false;
+      }
+    }
+
+    return true;
+  }, [selectedQuote, amountAsNumber, selectedPaymentMethod]);
+
   const canContinue =
-    hasAmount && !quotesLoading && selectedQuote !== null && quoteMatchesAmount;
+    hasAmount &&
+    !quotesLoading &&
+    selectedQuote !== null &&
+    quoteMatchesAmount &&
+    quoteMatchesCurrentContext;
 
   return (
     <ScreenLayout>

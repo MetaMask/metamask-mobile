@@ -109,12 +109,18 @@ function PaymentSelectionModal() {
       amount,
       walletAddress,
       assetId,
-      providers: [selectedProvider?.id ?? ''],
+      providers: selectedProvider ? [selectedProvider.id] : undefined,
       paymentMethods: paymentMethodIds,
     });
     return;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [getQuotes, amount, walletAddress, assetId, paymentMethodIds]);
+  }, [
+    getQuotes,
+    amount,
+    walletAddress,
+    assetId,
+    paymentMethodIds,
+    selectedProvider,
+  ]);
 
   useEffect(() => {
     const animationConfig = {
@@ -134,15 +140,14 @@ function PaymentSelectionModal() {
   }));
 
   const handleChangeProviderPress = useCallback(() => {
-    if (quotesLoading) {
-      return;
-    }
     getQuotes({
       amount,
       walletAddress,
       assetId,
       providers: providerIds,
-      paymentMethods: [selectedPaymentMethod?.id ?? ''],
+      paymentMethods: selectedPaymentMethod
+        ? [selectedPaymentMethod.id]
+        : undefined,
     });
     setActiveView(ViewType.PROVIDER);
   }, [
@@ -150,8 +155,7 @@ function PaymentSelectionModal() {
     assetId,
     getQuotes,
     providerIds,
-    quotesLoading,
-    selectedPaymentMethod?.id,
+    selectedPaymentMethod,
     walletAddress,
   ]);
 
@@ -160,7 +164,7 @@ function PaymentSelectionModal() {
       amount,
       walletAddress,
       assetId,
-      providers: [selectedProvider?.id ?? ''],
+      providers: selectedProvider ? [selectedProvider.id] : undefined,
       paymentMethods: paymentMethodIds,
     });
     setActiveView(ViewType.PAYMENT);
@@ -169,7 +173,7 @@ function PaymentSelectionModal() {
     assetId,
     getQuotes,
     paymentMethodIds,
-    selectedProvider?.id,
+    selectedProvider,
     walletAddress,
   ]);
 
@@ -214,7 +218,10 @@ function PaymentSelectionModal() {
         quotes?.success?.find(
           (quote) => quote.quote?.paymentMethod === paymentMethod.id,
         ) ?? null;
-      const hasQuoteError = !matchedQuote && (quotes?.error?.length ?? 0) > 0;
+      const hasQuoteError =
+        !matchedQuote &&
+        (quotes?.error?.length ?? 0) > 0 &&
+        (quotes?.success?.length ?? 0) === 0;
 
       return (
         <PaymentMethodListItem
