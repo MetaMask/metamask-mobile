@@ -31,6 +31,14 @@ export const RAMPS_NETWORKS_RESPONSE = {
     },
     {
       active: true,
+      chainId: '8453',
+      chainName: 'Base',
+      shortName: 'Base',
+      isEvm: true,
+      nativeTokenSupported: true,
+    },
+    {
+      active: true,
       chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
       chainName: 'Solana',
       shortName: 'Solana',
@@ -316,6 +324,16 @@ export const RAMPS_TOP_TOKENS_RESPONSE = {
         'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/56/slip44/714.png',
       tokenSupported: true,
     },
+    {
+      assetId: 'eip155:8453/erc20:0x833589fcd6edb6e08f4c7c32d4f71b54bda02913',
+      chainId: 'eip155:8453',
+      decimals: 6,
+      name: 'USD Coin',
+      symbol: 'USDC',
+      iconUrl:
+        'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/8453/erc20/0x833589fcd6edb6e08f4c7c32d4f71b54bda02913.png',
+      tokenSupported: true,
+    },
   ],
   allTokens: [
     {
@@ -376,6 +394,16 @@ export const RAMPS_TOP_TOKENS_RESPONSE = {
       symbol: 'BNB',
       iconUrl:
         'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/56/slip44/714.png',
+      tokenSupported: true,
+    },
+    {
+      assetId: 'eip155:8453/erc20:0x833589fcd6edb6e08f4c7c32d4f71b54bda02913',
+      chainId: 'eip155:8453',
+      decimals: 6,
+      name: 'USD Coin',
+      symbol: 'USDC',
+      iconUrl:
+        'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/8453/erc20/0x833589fcd6edb6e08f4c7c32d4f71b54bda02913.png',
       tokenSupported: true,
     },
   ],
