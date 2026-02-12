@@ -123,56 +123,47 @@ describe('handlePerpsUrl', () => {
     it('navigates to market details with valid symbol', async () => {
       await handlePerpsUrl({ perpsPath: 'perps?screen=asset&symbol=BTC' });
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.MARKET_DETAILS,
-        params: {
-          market: expect.objectContaining({
-            symbol: 'BTC',
-            name: 'BTC',
-            price: '0',
-            change24h: '0',
-            change24hPercent: '0',
-            volume24h: '0',
-            volume: '0',
-            fundingRate: 0,
-            openInterest: '0',
-            maxLeverage: '100',
-            logoUrl: '',
-            nextFundingTime: 0,
-            fundingIntervalHours: 8,
-          }),
-          source: 'deeplink',
-        },
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.MARKET_DETAILS, {
+        market: expect.objectContaining({
+          symbol: 'BTC',
+          name: 'BTC',
+          price: '0',
+          change24h: '0',
+          change24hPercent: '0',
+          volume24h: '0',
+          volume: '0',
+          fundingRate: 0,
+          openInterest: '0',
+          maxLeverage: '100',
+          logoUrl: '',
+          nextFundingTime: 0,
+          fundingIntervalHours: 8,
+        }),
+        source: 'deeplink',
       });
     });
 
     it('navigates to market details for ETH symbol', async () => {
       await handlePerpsUrl({ perpsPath: 'perps?screen=asset&symbol=ETH' });
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.MARKET_DETAILS,
-        params: {
-          market: expect.objectContaining({
-            symbol: 'ETH',
-            name: 'ETH',
-          }),
-          source: 'deeplink',
-        },
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.MARKET_DETAILS, {
+        market: expect.objectContaining({
+          symbol: 'ETH',
+          name: 'ETH',
+        }),
+        source: 'deeplink',
       });
     });
 
     it('converts symbol to uppercase', async () => {
       await handlePerpsUrl({ perpsPath: 'perps?screen=asset&symbol=btc' });
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.MARKET_DETAILS,
-        params: {
-          market: expect.objectContaining({
-            symbol: 'BTC',
-            name: 'BTC',
-          }),
-          source: 'deeplink',
-        },
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.MARKET_DETAILS, {
+        market: expect.objectContaining({
+          symbol: 'BTC',
+          name: 'BTC',
+        }),
+        source: 'deeplink',
       });
     });
 
@@ -348,9 +339,8 @@ describe('handlePerpsUrl', () => {
     it('navigates to PerpsMarketListView with screen=market-list', async () => {
       await handlePerpsUrl({ perpsPath: 'perps?screen=market-list' });
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.MARKET_LIST,
-        params: { source: 'deeplink' },
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.MARKET_LIST, {
+        source: 'deeplink',
       });
     });
 
@@ -359,12 +349,9 @@ describe('handlePerpsUrl', () => {
         perpsPath: 'perps?screen=market-list&tab=crypto',
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.MARKET_LIST,
-        params: {
-          source: 'deeplink',
-          defaultMarketTypeFilter: 'crypto',
-        },
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.MARKET_LIST, {
+        source: 'deeplink',
+        defaultMarketTypeFilter: 'crypto',
       });
     });
 
@@ -373,24 +360,18 @@ describe('handlePerpsUrl', () => {
         perpsPath: 'perps?screen=market-list&tab=stocks',
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.MARKET_LIST,
-        params: {
-          source: 'deeplink',
-          defaultMarketTypeFilter: 'stocks',
-        },
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.MARKET_LIST, {
+        source: 'deeplink',
+        defaultMarketTypeFilter: 'stocks',
       });
     });
 
     it('navigates to all markets with tab=all', async () => {
       await handlePerpsUrl({ perpsPath: 'perps?screen=market-list&tab=all' });
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.MARKET_LIST,
-        params: {
-          source: 'deeplink',
-          defaultMarketTypeFilter: 'all',
-        },
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.MARKET_LIST, {
+        source: 'deeplink',
+        defaultMarketTypeFilter: 'all',
       });
     });
 
@@ -399,9 +380,8 @@ describe('handlePerpsUrl', () => {
         perpsPath: 'perps?screen=market-list&tab=unknown',
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.MARKET_LIST,
-        params: { source: 'deeplink' },
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.MARKET_LIST, {
+        source: 'deeplink',
       });
     });
 
@@ -448,16 +428,13 @@ describe('handlePerpsUrl', () => {
     it('parses HIP-3 symbol format xyz:TSLA', async () => {
       await handlePerpsUrl({ perpsPath: 'perps?screen=asset&symbol=xyz:TSLA' });
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.MARKET_DETAILS,
-        params: {
-          market: expect.objectContaining({
-            symbol: 'xyz:TSLA',
-            name: 'TSLA',
-            marketSource: 'xyz',
-          }),
-          source: 'deeplink',
-        },
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.MARKET_DETAILS, {
+        market: expect.objectContaining({
+          symbol: 'xyz:TSLA',
+          name: 'TSLA',
+          marketSource: 'xyz',
+        }),
+        source: 'deeplink',
       });
     });
 
@@ -466,32 +443,26 @@ describe('handlePerpsUrl', () => {
         perpsPath: 'perps?screen=asset&symbol=xyz:xyz100',
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.MARKET_DETAILS,
-        params: {
-          market: expect.objectContaining({
-            symbol: 'xyz:XYZ100',
-            name: 'XYZ100',
-            marketSource: 'xyz',
-          }),
-          source: 'deeplink',
-        },
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.MARKET_DETAILS, {
+        market: expect.objectContaining({
+          symbol: 'xyz:XYZ100',
+          name: 'XYZ100',
+          marketSource: 'xyz',
+        }),
+        source: 'deeplink',
       });
     });
 
     it('handles lowercase HIP-3 dex prefix', async () => {
       await handlePerpsUrl({ perpsPath: 'perps?screen=asset&symbol=XYZ:AAPL' });
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.MARKET_DETAILS,
-        params: {
-          market: expect.objectContaining({
-            symbol: 'xyz:AAPL',
-            name: 'AAPL',
-            marketSource: 'xyz',
-          }),
-          source: 'deeplink',
-        },
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.MARKET_DETAILS, {
+        market: expect.objectContaining({
+          symbol: 'xyz:AAPL',
+          name: 'AAPL',
+          marketSource: 'xyz',
+        }),
+        source: 'deeplink',
       });
     });
 
@@ -499,7 +470,7 @@ describe('handlePerpsUrl', () => {
       await handlePerpsUrl({ perpsPath: 'perps?screen=asset&symbol=BTC' });
 
       const navigateCall = mockNavigate.mock.calls[0];
-      const market = navigateCall[1].params.market;
+      const market = navigateCall[1].market;
 
       expect(market.symbol).toBe('BTC');
       expect(market.marketSource).toBeUndefined();
