@@ -7678,6 +7678,7 @@ describe('HyperLiquidProvider', () => {
       // Reset standalone client mock
       mockStandaloneInfoClient = {
         clearinghouseState: jest.fn(),
+        perpDexs: jest.fn().mockResolvedValue([null]),
       };
     });
 
@@ -7885,6 +7886,252 @@ describe('HyperLiquidProvider', () => {
             userAddress: mockUserAddress,
           }),
         ).rejects.toThrow('API unavailable');
+      });
+    });
+
+    describe('multi-DEX readOnly mode (HIP-3)', () => {
+      let hip3Provider: HyperLiquidProvider;
+
+      beforeEach(() => {
+        hip3Provider = createTestProvider({
+          hip3Enabled: true,
+          allowlistMarkets: ['xyz:*'],
+        });
+
+        // Mock perpDexs to return main DEX + HIP-3 DEX
+        mockStandaloneInfoClient.perpDexs.mockResolvedValue([
+          null, // main DEX
+          { name: 'xyz' },
+        ]);
+      });
+
+      it('returns positions from both main DEX and HIP-3 DEXs', async () => {
+        // Arrange: main DEX has BTC, xyz DEX has TSLA
+        mockStandaloneInfoClient.clearinghouseState
+          .mockResolvedValueOnce({
+            assetPositions: [
+              {
+                position: {
+                  coin: 'BTC',
+                  szi: '0.5',
+                  entryPx: '45000',
+                  positionValue: '22500',
+                  unrealizedPnl: '500',
+                  marginUsed: '2250',
+                  leverage: { type: 'cross', value: 10 },
+                  liquidationPx: '40000',
+                  maxLeverage: 50,
+                  returnOnEquity: '22.22',
+                  cumFunding: {
+                    allTime: '10',
+                    sinceOpen: '5',
+                    sinceChange: '2',
+                  },
+                },
+                type: 'oneWay',
+              },
+            ],
+            marginSummary: {
+              totalMarginUsed: '2250',
+              accountValue: '25000',
+            },
+          })
+          .mockResolvedValueOnce({
+            assetPositions: [
+              {
+                position: {
+                  coin: 'TSLA',
+                  szi: '10',
+                  entryPx: '250',
+                  positionValue: '2500',
+                  unrealizedPnl: '100',
+                  marginUsed: '500',
+                  leverage: { type: 'cross', value: 5 },
+                  liquidationPx: '200',
+                  maxLeverage: 20,
+                  returnOnEquity: '20',
+                  cumFunding: {
+                    allTime: '1',
+                    sinceOpen: '0.5',
+                    sinceChange: '0.1',
+                  },
+                },
+                type: 'oneWay',
+              },
+            ],
+            marginSummary: {
+              totalMarginUsed: '500',
+              accountValue: '2600',
+            },
+          });
+
+        // Act
+        const positions = await hip3Provider.getPositions({
+          readOnly: true,
+          userAddress: mockUserAddress,
+        });
+
+        // Assert - should have positions from both DEXs
+        expect(positions).toHaveLength(2);
+        expect(positions[0].symbol).toBe('BTC');
+        expect(positions[1].symbol).toBe('TSLA');
+        // Main DEX called without dex param, HIP-3 called with dex param
+        expect(
+          mockStandaloneInfoClient.clearinghouseState,
+        ).toHaveBeenCalledWith({ user: mockUserAddress });
+        expect(
+          mockStandaloneInfoClient.clearinghouseState,
+        ).toHaveBeenCalledWith({ user: mockUserAddress, dex: 'xyz' });
+      });
+
+      it('falls back to main DEX only when perpDexs() fails', async () => {
+        // Arrange: perpDexs fails
+        mockStandaloneInfoClient.perpDexs.mockRejectedValue(
+          new Error('Network error'),
+        );
+        mockStandaloneInfoClient.clearinghouseState.mockResolvedValue({
+          assetPositions: [
+            {
+              position: {
+                coin: 'BTC',
+                szi: '1',
+                entryPx: '45000',
+                positionValue: '45000',
+                unrealizedPnl: '0',
+                marginUsed: '4500',
+                leverage: { type: 'cross', value: 10 },
+                liquidationPx: '40000',
+                maxLeverage: 50,
+                returnOnEquity: '0',
+                cumFunding: {
+                  allTime: '0',
+                  sinceOpen: '0',
+                  sinceChange: '0',
+                },
+              },
+              type: 'oneWay',
+            },
+          ],
+          marginSummary: {
+            totalMarginUsed: '4500',
+            accountValue: '45000',
+          },
+        });
+
+        // Act
+        const positions = await hip3Provider.getPositions({
+          readOnly: true,
+          userAddress: mockUserAddress,
+        });
+
+        // Assert - should fall back to main DEX only
+        expect(positions).toHaveLength(1);
+        expect(positions[0].symbol).toBe('BTC');
+        expect(
+          mockStandaloneInfoClient.clearinghouseState,
+        ).toHaveBeenCalledTimes(1);
+        expect(
+          mockStandaloneInfoClient.clearinghouseState,
+        ).toHaveBeenCalledWith({ user: mockUserAddress });
+      });
+
+      it('returns only main DEX positions when hip3Enabled is false', async () => {
+        // Arrange: use provider with HIP-3 disabled
+        const disabledProvider = createTestProvider({
+          hip3Enabled: false,
+        });
+        mockStandaloneInfoClient.clearinghouseState.mockResolvedValue({
+          assetPositions: [
+            {
+              position: {
+                coin: 'ETH',
+                szi: '5',
+                entryPx: '3000',
+                positionValue: '15000',
+                unrealizedPnl: '200',
+                marginUsed: '1500',
+                leverage: { type: 'cross', value: 10 },
+                liquidationPx: '2500',
+                maxLeverage: 50,
+                returnOnEquity: '13.33',
+                cumFunding: {
+                  allTime: '5',
+                  sinceOpen: '2',
+                  sinceChange: '1',
+                },
+              },
+              type: 'oneWay',
+            },
+          ],
+          marginSummary: {
+            totalMarginUsed: '1500',
+            accountValue: '15200',
+          },
+        });
+
+        // Act
+        const positions = await disabledProvider.getPositions({
+          readOnly: true,
+          userAddress: mockUserAddress,
+        });
+
+        // Assert - perpDexs should NOT be called
+        expect(mockStandaloneInfoClient.perpDexs).not.toHaveBeenCalled();
+        expect(positions).toHaveLength(1);
+        expect(positions[0].symbol).toBe('ETH');
+      });
+
+      it('caches validated DEXs across multiple readonly calls', async () => {
+        // Arrange
+        mockStandaloneInfoClient.clearinghouseState.mockResolvedValue({
+          assetPositions: [],
+          marginSummary: { totalMarginUsed: '0', accountValue: '0' },
+          withdrawable: '0',
+        });
+
+        // Act - call getPositions twice on same provider instance
+        await hip3Provider.getPositions({
+          readOnly: true,
+          userAddress: mockUserAddress,
+        });
+        await hip3Provider.getPositions({
+          readOnly: true,
+          userAddress: mockUserAddress,
+        });
+
+        // Assert - perpDexs should only be called once (cached on second call)
+        expect(mockStandaloneInfoClient.perpDexs).toHaveBeenCalledTimes(1);
+      });
+
+      it('aggregates account state across multiple DEXs in readOnly mode', async () => {
+        // Arrange: main DEX + xyz DEX both have balances
+        mockStandaloneInfoClient.clearinghouseState
+          .mockResolvedValueOnce({
+            assetPositions: [],
+            marginSummary: {
+              totalMarginUsed: '1000',
+              accountValue: '50000',
+            },
+            withdrawable: '45000',
+          })
+          .mockResolvedValueOnce({
+            assetPositions: [],
+            marginSummary: {
+              totalMarginUsed: '500',
+              accountValue: '5000',
+            },
+            withdrawable: '4000',
+          });
+
+        // Act
+        const accountState = await hip3Provider.getAccountState({
+          readOnly: true,
+          userAddress: mockUserAddress,
+        });
+
+        // Assert - balances should be aggregated
+        expect(parseFloat(accountState.totalBalance)).toBe(55000);
+        expect(parseFloat(accountState.marginUsed)).toBe(1500);
       });
     });
   });

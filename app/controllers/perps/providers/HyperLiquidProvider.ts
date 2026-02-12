@@ -4328,10 +4328,10 @@ export class HyperLiquidProvider implements PerpsProvider {
   }
 
   /**
-   * Get clearinghouse state for a user in readOnly mode.
+   * Get clearinghouse state for a user in standalone mode.
    * Creates a standalone InfoClient without requiring full initialization.
    */
-  private async getReadOnlyClearinghouseState(
+  private async getStandaloneClearinghouseState(
     userAddress: string,
   ): Promise<ClearinghouseStateResponse> {
     const standaloneInfoClient = createStandaloneInfoClient({
@@ -4353,17 +4353,17 @@ export class HyperLiquidProvider implements PerpsProvider {
    */
   async getPositions(params?: GetPositionsParams): Promise<Position[]> {
     try {
-      // Path 0: Read-only mode for lightweight position queries
+      // Path 0: Standalone mode for lightweight position queries
       // Creates a standalone InfoClient without requiring full initialization
       // No wallet, WebSocket, or account setup needed - just HTTP API call
       // Use for discovery use cases like showing positions on token details page
       if (params?.readOnly && params.userAddress) {
         this.deps.debugLogger.log(
-          'HyperLiquidProvider: Getting positions in readOnly mode (standalone client)',
+          'HyperLiquidProvider: Getting positions in standalone mode',
           { userAddress: params.userAddress },
         );
 
-        const state = await this.getReadOnlyClearinghouseState(
+        const state = await this.getStandaloneClearinghouseState(
           params.userAddress,
         );
 
@@ -4373,7 +4373,7 @@ export class HyperLiquidProvider implements PerpsProvider {
           .map((assetPos) => adaptPositionFromSDK(assetPos));
 
         this.deps.debugLogger.log(
-          'HyperLiquidProvider: readOnly positions fetched',
+          'HyperLiquidProvider: standalone positions fetched',
           { count: positions.length },
         );
 
@@ -4996,17 +4996,17 @@ export class HyperLiquidProvider implements PerpsProvider {
    */
   async getAccountState(params?: GetAccountStateParams): Promise<AccountState> {
     try {
-      // Path 0: Read-only mode for lightweight account state queries
+      // Path 0: Standalone mode for lightweight account state queries
       // Creates a standalone InfoClient without requiring full initialization
       // No wallet, WebSocket, or account setup needed - just HTTP API call
       // Use for discovery use cases like checking if user has perps funds
       if (params?.readOnly && params.userAddress) {
         this.deps.debugLogger.log(
-          'HyperLiquidProvider: Getting account state in readOnly mode (standalone client)',
+          'HyperLiquidProvider: Getting account state in standalone mode',
           { userAddress: params.userAddress },
         );
 
-        const perpsState = await this.getReadOnlyClearinghouseState(
+        const perpsState = await this.getStandaloneClearinghouseState(
           params.userAddress,
         );
 
@@ -5014,7 +5014,7 @@ export class HyperLiquidProvider implements PerpsProvider {
         const accountState = adaptAccountStateFromSDK(perpsState);
 
         this.deps.debugLogger.log(
-          'HyperLiquidProvider: readOnly account state fetched',
+          'HyperLiquidProvider: standalone account state fetched',
           { totalBalance: accountState.totalBalance },
         );
 
@@ -5180,13 +5180,13 @@ export class HyperLiquidProvider implements PerpsProvider {
    */
   async getMarkets(params?: GetMarketsParams): Promise<MarketInfo[]> {
     try {
-      // Path 0: Read-only mode for lightweight discovery queries
+      // Path 0: Standalone mode for lightweight discovery queries
       // Creates a standalone InfoClient without requiring full initialization
       // No wallet, WebSocket, or account setup needed - just HTTP API call
       // Use for discovery use cases like checking if a perps market exists
       if (params?.readOnly) {
         this.deps.debugLogger.log(
-          'HyperLiquidProvider: Getting markets in readOnly mode (standalone client)',
+          'HyperLiquidProvider: Getting markets in standalone mode',
           { symbolCount: params?.symbols?.length },
         );
 
