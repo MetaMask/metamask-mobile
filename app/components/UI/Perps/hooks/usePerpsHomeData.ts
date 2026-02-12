@@ -158,7 +158,6 @@ export const usePerpsHomeData = ({
     [allMarkets, watchlistSymbols],
   );
 
-  // Replace lines 158-177 with:
   const sortBy = MARKET_SORTING_CONFIG.SortFields.Volume;
   const direction = MARKET_SORTING_CONFIG.DefaultDirection;
 
