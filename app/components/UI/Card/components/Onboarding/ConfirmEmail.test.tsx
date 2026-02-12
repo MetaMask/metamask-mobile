@@ -265,6 +265,13 @@ jest.mock('../../../../../component-library/hooks', () => ({
       cellRoot: {},
       focusCell: {},
     },
+    theme: {
+      colors: {
+        text: {
+          alternative: '#6a737d',
+        },
+      },
+    },
   })),
 }));
 

@@ -1,12 +1,13 @@
 # tests/ — AGENTS.md
 
-Single agent index for **e2e/**, **tests/**, and **wdio/**. Pointers only; details live in the canonical sources below.
+Single agent index for **tests/**, and **wdio/**. Pointers only; details live in the canonical sources below.
 
 ## Scope
 
-- **e2e/** — `e2e/specs/`, `e2e/pages/`, `e2e/selectors/`, config. Specs, Page Objects, selectors. Consumes `tests/framework/` and fixtures.
+- **tests/smoke** — `tests/smoke/`, `tests/regression/` , `tests/page-objects/`, `tests/selectors/`, config. Specs, Page Objects, selectors. Consumes `tests/framework/` and fixtures.
+- **tests/regression** — `tests/smoke/`, `tests/regression/` , `tests/page-objects/`, `tests/selectors/`, config. Specs, Page Objects, selectors. Consumes `tests/framework/` and fixtures.
 - **tests/** — `tests/framework/`, `tests/api-mocking/`, `tests/docs/`, `tests/regression/`, `tests/smoke/`, etc. Framework, fixtures, mocking, regression/smoke specs.
-- **wdio/** — `wdio/helpers/`, `wdio/screen-objects/`, `wdio/utils/`. Legacy WebdriverIO/Appium — **deprecated**. Use Detox + e2e/tests or Appwright for performance.
+- **wdio/** — `wdio/helpers/`, `wdio/screen-objects/`, `wdio/utils/`. Legacy WebdriverIO/Appium — **deprecated**. Use Detox + tests/smoke or Appwright for performance.
 - **component view tests** — `app/**/*.view.test.tsx`. Jest component view tests.
 
 ### Component-View Tests (Mandatory)
@@ -39,10 +40,6 @@ Unit tests under `tests/` (e.g. framework tests): [.cursor/rules/unit-testing-gu
 
 ## Before working
 
-- **e2e/** — Use `withFixtures` + `FixtureBuilder`; Page Object methods only; no `TestHelpers.delay()`; selectors in `e2e/selectors/` or page folder; import from `tests/framework/index.ts`. Commands: [docs/readme/e2e-testing.md](../docs/readme/e2e-testing.md).
+- **tests/** — Use `withFixtures` + `FixtureBuilder`; Page Object methods only; no `TestHelpers.delay()`; selectors in `tests/selectors/` or page folder; import from `tests/framework/index.ts`. Commands: [docs/readme/e2e-testing.md](../docs/readme/e2e-testing.md).
 - **tests/** — Framework/mocking: read tests/docs/README and MOCKING; keep exports in `tests/framework/index.ts`. Regression/smoke: same as e2e (withFixtures, Page Objects, no delay). Yarn only.
-- **wdio/** — Do not extend. New work: Detox + e2e/tests or Appwright (`appwright/tests/`). If maintaining: legacy section in [docs/readme/e2e-testing.md](../docs/readme/e2e-testing.md).
-
----
-
-**Note:** All tests are being migrated into the **tests/** folder. Prefer adding or moving test code under `tests/` (framework, specs, mocking, resources) where possible; `e2e/` and `wdio/` remain for existing layout until migration completes.
+- **wdio/** — Do not extend. New work: Detox + tests/smoke|regression or Appwright (`tests/`). If maintaining: legacy section in [docs/readme/e2e-testing.md](../docs/readme/e2e-testing.md).

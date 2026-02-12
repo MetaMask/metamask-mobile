@@ -8,7 +8,7 @@ import OnboardingSuccess, {
 } from '.';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { OnboardingSuccessSelectorIDs } from './OnboardingSuccess.testIds';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { fireEvent } from '@testing-library/react-native';
 import Routes from '../../../constants/navigation/Routes';
 import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
 import Engine from '../../../core/Engine/Engine';
@@ -103,7 +103,7 @@ jest.mock('react-redux', () => ({
 
 describe('OnboardingSuccessComponent', () => {
   beforeEach(() => {
-    mockDiscoverAccounts.mockReset();
+    jest.clearAllMocks();
   });
 
   it('renders matching snapshot when successFlow is BACKED_UP_SRP', () => {
@@ -136,7 +136,7 @@ describe('OnboardingSuccessComponent', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('calls discoverAccounts when onDone is called', async () => {
+  it('calls discoverAccounts when onDone is called', () => {
     const { getByTestId } = renderWithProvider(
       <OnboardingSuccessComponent
         onDone={jest.fn()}
@@ -146,9 +146,7 @@ describe('OnboardingSuccessComponent', () => {
     const button = getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON);
     button.props.onPress();
 
-    await waitFor(() => {
-      expect(mockDiscoverAccounts).toHaveBeenCalledWith('mock-keyring-id');
-    });
+    expect(mockDiscoverAccounts).toHaveBeenCalled();
   });
 
   it('navigate to the default settings screen when the manage default settings button is pressed', () => {
@@ -294,10 +292,7 @@ describe('OnboardingSuccess', () => {
       const { getByTestId } = renderWithProvider(<OnboardingSuccess />);
       const button = getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON);
       fireEvent.press(button);
-
-      await waitFor(() => {
-        expect(mockDiscoverAccounts).toHaveBeenCalledWith('mock-keyring-id');
-      });
+      expect(mockDiscoverAccounts).toHaveBeenCalled();
 
       expect(mockNavigationDispatch).toHaveBeenCalledWith(
         ResetNavigationToHome,

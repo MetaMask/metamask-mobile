@@ -347,7 +347,6 @@ const ManualBackupStep1 = () => {
                 value={password}
                 onChangeText={onPasswordChange}
                 secureTextEntry
-                placeholderTextColor={colors.text.muted}
                 onSubmitEditing={tryUnlock}
                 testID={ManualBackUpStepsSelectorsIDs.CONFIRM_PASSWORD_INPUT}
                 keyboardAppearance={themeAppearance}

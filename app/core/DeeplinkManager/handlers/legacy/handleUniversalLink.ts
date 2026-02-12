@@ -33,6 +33,7 @@ import { handleCardHome } from './handleCardHome';
 import { handleCardKycNotification } from './handleCardKycNotification';
 import { handleTrendingUrl } from './handleTrendingUrl';
 import { handleEarnMusd } from './handleEarnMusd';
+import { handleAssetUrl } from './handleAssetUrl';
 import { handleNftUrl } from './handleNftUrl';
 import { RampType } from '../../../../reducers/fiatOrders/types';
 import { SHIELD_WEBSITE_URL } from '../../../../constants/shield';
@@ -68,6 +69,7 @@ const SUPPORTED_ACTIONS = {
   SELL_CRYPTO: ACTIONS.SELL_CRYPTO,
   DEPOSIT: ACTIONS.DEPOSIT,
   HOME: ACTIONS.HOME,
+  ASSET: ACTIONS.ASSET,
   SWAP: ACTIONS.SWAP,
   SEND: ACTIONS.SEND,
   CREATE_ACCOUNT: ACTIONS.CREATE_ACCOUNT,
@@ -99,6 +101,7 @@ type SUPPORTED_ACTIONS =
  * Actions that should not show the deep link INTERSTITIAL modal
  */
 const WHITELISTED_ACTIONS: SUPPORTED_ACTIONS[] = [
+  SUPPORTED_ACTIONS.DAPP,
   SUPPORTED_ACTIONS.WC,
   SUPPORTED_ACTIONS.ENABLE_CARD_BUTTON,
   SUPPORTED_ACTIONS.CARD_ONBOARDING,
@@ -504,6 +507,12 @@ async function handleUniversalLink({
     case SUPPORTED_ACTIONS.HOME:
       navigateToHomeUrl({ homePath: actionBasedRampPath });
       return;
+    case SUPPORTED_ACTIONS.ASSET: {
+      handleAssetUrl({
+        assetPath: actionBasedRampPath,
+      });
+      break;
+    }
     case SUPPORTED_ACTIONS.SWAP:
       handleSwapUrl({
         swapPath: actionBasedRampPath,

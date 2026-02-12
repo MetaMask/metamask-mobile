@@ -7470,7 +7470,7 @@
       "claim_label": "청구",
       "claimed_label": "받음",
       "reward_claimed": "보상받음",
-      "time_left": "남음",
+      "time_left": "{{time}} 남음",
       "expired": "만료됨"
     },
     "end_of_season_rewards": {
