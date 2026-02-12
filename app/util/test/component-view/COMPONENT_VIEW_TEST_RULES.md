@@ -72,6 +72,11 @@ These rules are written to align with Cursor Context Rules so the guidance is ea
 
 ## How to Write component-view Tests
 
+### Imports in view tests
+
+- View tests run with `jest.config.view.js` and a different setup (`testSetupView.js`). Module resolution can differ from unit tests, so **relative imports like `../../controllers/types` may fail with "cannot find module"** in view tests even though the same path works in a unit test in the same tree.
+- **Use the path from project root (baseUrl)** for app modules in view tests, e.g. `app/components/UI/Perps/controllers/types` instead of `../../controllers/types`, so resolution is consistent regardless of the view test runner.
+
 ### Rendering a View
 
 - Preferred: use a view-specific renderer:
