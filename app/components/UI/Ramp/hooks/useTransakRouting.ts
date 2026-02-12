@@ -1,12 +1,9 @@
 import { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { HttpError } from '@metamask/controller-utils';
-import type { CaipChainId } from '@metamask/utils';
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
 import type {
   TransakBuyQuote,
-  TransakDepositOrder,
 } from '@metamask/ramps-controller';
 import { TransakOrderIdTransformer, TransakEnvironment } from '@metamask/ramps-controller';
 
@@ -14,22 +11,12 @@ import { REDIRECTION_URL } from '../Deposit/constants';
 import { depositOrderToFiatOrder } from '../Deposit/orderProcessor';
 import useHandleNewOrder from '../Deposit/hooks/useHandleNewOrder';
 import { generateThemeParameters } from '../Deposit/utils';
-import { createKycProcessingNavDetails } from '../Deposit/Views/KycProcessing/KycProcessing';
-import {
-  BasicInfoFormData,
-  createBasicInfoNavDetails,
-} from '../Deposit/Views/BasicInfo/BasicInfo';
-import { createBankDetailsNavDetails } from '../Deposit/Views/BankDetails/BankDetails';
-import { createWebviewModalNavigationDetails } from '../Deposit/Views/Modals/WebviewModal/WebviewModal';
-import { createKycWebviewModalNavigationDetails } from '../Deposit/Views/Modals/WebviewModal/KycWebviewModal';
-import { createOrderProcessingNavDetails } from '../Deposit/Views/OrderProcessing/OrderProcessing';
-import { createVerifyIdentityNavDetails } from '../Deposit/Views/VerifyIdentity/VerifyIdentity';
-import { createAdditionalVerificationNavDetails } from '../Deposit/Views/AdditionalVerification/AdditionalVerification';
+import { BasicInfoFormData } from '../Deposit/Views/BasicInfo/BasicInfo';
 import { AddressFormData } from '../Deposit/Views/EnterAddress/EnterAddress';
+import { createCheckoutNavDetails } from '../Views/Checkout';
 import useAnalytics from './useAnalytics';
 import Logger from '../../../../util/Logger';
 import Routes from '../../../../constants/navigation/Routes';
-import useRampAccountAddress from './useRampAccountAddress';
 import { useTransakController } from './useTransakController';
 import { getTransakEnvironment } from '../../../../core/Engine/controllers/ramps-controller/transak-service-init';
 
@@ -138,9 +125,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
 
   const navigateToVerifyIdentityCallback = useCallback(
     ({ quote }: { quote: TransakBuyQuote }) => {
-      navigation.navigate(
-        ...createVerifyIdentityNavDetails({ quote }),
-      );
+      navigation.navigate(Routes.RAMP.VERIFY_IDENTITY as never, { quote } as never);
     },
     [navigation],
   );
@@ -153,9 +138,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
       quote: TransakBuyQuote;
       previousFormData?: BasicInfoFormData & AddressFormData;
     }) => {
-      navigation.navigate(
-        ...createBasicInfoNavDetails({ quote, previousFormData }),
-      );
+      navigation.navigate(Routes.RAMP.BASIC_INFO as never, { quote, previousFormData } as never);
     },
     [navigation],
   );
@@ -168,13 +151,9 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
       orderId: string;
       shouldUpdate?: boolean;
     }) => {
-      const [name, params] = createBankDetailsNavDetails({
-        orderId,
-        shouldUpdate,
-      });
       navigation.reset({
         index: 0,
-        routes: [{ name, params }],
+        routes: [{ name: Routes.RAMP.BANK_DETAILS as never, params: { orderId, shouldUpdate } as never }],
       });
     },
     [navigation],
@@ -182,9 +161,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
 
   const navigateToOrderProcessingCallback = useCallback(
     ({ orderId }: { orderId: string }) => {
-      navigation.navigate(
-        ...createOrderProcessingNavDetails({ orderId }),
-      );
+      navigation.navigate(Routes.RAMP.ORDER_PROCESSING as never, { orderId } as never);
     },
     [navigation],
   );
@@ -199,13 +176,11 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
       kycUrl: string;
       workFlowRunId: string;
     }) => {
-      navigation.navigate(
-        ...createAdditionalVerificationNavDetails({
-          quote,
-          kycUrl,
-          workFlowRunId,
-        }),
-      );
+      navigation.navigate(Routes.RAMP.ADDITIONAL_VERIFICATION as never, {
+        quote,
+        kycUrl,
+        workFlowRunId,
+      } as never);
     },
     [navigation],
   );
@@ -290,9 +265,10 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
   const navigateToWebviewModalCallback = useCallback(
     ({ paymentUrl }: { paymentUrl: string }) => {
       navigation.navigate(
-        ...createWebviewModalNavigationDetails({
-          sourceUrl: paymentUrl,
-          handleNavigationStateChange,
+        ...createCheckoutNavDetails({
+          url: paymentUrl,
+          providerName: 'Transak',
+          onNavigationStateChange: handleNavigationStateChange,
         }),
       );
     },
@@ -301,26 +277,23 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
 
   const navigateToKycProcessingCallback = useCallback(
     ({ quote }: { quote: TransakBuyQuote }) => {
-      navigation.navigate(...createKycProcessingNavDetails({ quote }));
+      navigation.navigate(Routes.RAMP.KYC_PROCESSING as never, { quote } as never);
     },
     [navigation],
   );
 
   const navigateToKycWebviewCallback = useCallback(
     ({
-      quote,
       kycUrl,
-      workFlowRunId,
     }: {
       quote: TransakBuyQuote;
       kycUrl: string;
       workFlowRunId: string;
     }) => {
       navigation.navigate(
-        ...createKycWebviewModalNavigationDetails({
-          quote,
-          sourceUrl: kycUrl,
-          workFlowRunId,
+        ...createCheckoutNavDetails({
+          url: kycUrl,
+          providerName: 'Transak',
         }),
       );
     },
@@ -356,7 +329,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
               if (!userDetails) {
                 throw new Error('Missing user details');
               }
-
+              
               await checkUserLimits(quote, requirements.kycType);
 
               if (selectedPaymentMethod?.isManualBankTransfer) {

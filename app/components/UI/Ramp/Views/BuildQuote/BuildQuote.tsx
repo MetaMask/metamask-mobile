@@ -35,7 +35,6 @@ import {
   getQuoteProviderName,
   getQuoteBuyUserAgent,
 } from '../../types';
-import { createDepositNavigationDetails } from '../../Deposit/routes/utils';
 import Logger from '../../../../../util/Logger';
 import { useTransakController } from '../../hooks/useTransakController';
 import { useTransakRouting } from '../../hooks/useTransakRouting';

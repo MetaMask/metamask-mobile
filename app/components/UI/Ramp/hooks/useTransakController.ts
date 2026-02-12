@@ -185,7 +185,8 @@ export function useTransakController(): UseTransakControllerResult {
   );
 
   const sendUserOtp = useCallback(async (email: string) => {
-    return getRampsController().transakSendUserOtp(email);
+    const result = await getRampsController().transakSendUserOtp(email);
+    return result;
   }, []);
 
   const verifyUserOtp = useCallback(
@@ -217,6 +218,14 @@ export function useTransakController(): UseTransakControllerResult {
       paymentMethod: string,
       fiatAmount: string,
     ) => {
+      console.log('RAMPS: useTransakController.getBuyQuote called', {
+        fiatCurrency,
+        cryptoCurrency,
+        network,
+        paymentMethod,
+        paymentMethodType: typeof paymentMethod,
+        fiatAmount,
+      });
       return getRampsController().transakGetBuyQuote(
         fiatCurrency,
         cryptoCurrency,

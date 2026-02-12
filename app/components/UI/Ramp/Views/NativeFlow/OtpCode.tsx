@@ -195,12 +195,14 @@ const V2OtpCode = () => {
           throw new Error('No response from verifyUserOtp');
         }
 
+        await setAuthToken(token);
+
         trackEvent('RAMPS_OTP_CONFIRMED', {
           ramp_type: 'DEPOSIT',
           region: userRegion?.regionCode || '',
         });
 
-        navigation.goBack();
+        navigation.navigate(Routes.RAMP.AMOUNT_INPUT);
       } catch (e) {
         trackEvent('RAMPS_OTP_FAILED', {
           ramp_type: 'DEPOSIT',
@@ -223,6 +225,7 @@ const V2OtpCode = () => {
     navigation,
     isLoading,
     verifyUserOtp,
+    setAuthToken,
     email,
     value,
     currentStateToken,

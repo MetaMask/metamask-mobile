@@ -22,6 +22,12 @@ const Routes = {
     AMOUNT_INPUT: 'RampAmountInput',
     ENTER_EMAIL: 'RampEnterEmail',
     OTP_CODE: 'RampOtpCode',
+    ORDER_PROCESSING: 'RampOrderProcessing',
+    KYC_PROCESSING: 'RampKycProcessing',
+    BASIC_INFO: 'RampBasicInfo',
+    VERIFY_IDENTITY: 'RampVerifyIdentity',
+    BANK_DETAILS: 'RampBankDetails',
+    ADDITIONAL_VERIFICATION: 'RampAdditionalVerification',
     MODALS: {
       ID: 'RampModals',
       TOKEN_SELECTOR: 'RampTokenSelectorModal',

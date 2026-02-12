@@ -553,7 +553,6 @@ export const useDepositRouting = (config?: UseDepositRoutingConfig) => {
               return;
             }
 
-            // If no additional forms are required, route to KYC processing
             navigateToKycProcessingCallback({ quote });
             return;
           }

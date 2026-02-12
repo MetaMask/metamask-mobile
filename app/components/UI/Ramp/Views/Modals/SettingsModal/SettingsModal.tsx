@@ -35,6 +35,7 @@ import { PROVIDER_LINKS } from '../../../Aggregator/types';
  * Transak provider ID - the only provider with native logout support
  */
 const TRANSAK_PROVIDER_ID = '/providers/transak-native';
+const TRANSAK_PROVIDER_ID_STAGING = '/providers/transak-native-staging';
 
 export const createSettingsModalNavDetails = createNavigationDetails(
   Routes.RAMP.MODALS.ID,
@@ -48,14 +49,14 @@ function SettingsModal() {
   const { selectedProvider, setSelectedProvider } = useRampsController();
 
   const [isAuthenticatedWithProvider, setIsAuthenticatedWithProvider] =
-    useState<boolean>(false);
+    useState<boolean>(true);
 
   useEffect(() => {
     let isMounted = true;
 
     const checkAuthentication = async () => {
       // Only Transak supports native authentication/logout
-      if (selectedProvider?.id !== TRANSAK_PROVIDER_ID) {
+      if (selectedProvider?.id !== TRANSAK_PROVIDER_ID && selectedProvider?.id !== TRANSAK_PROVIDER_ID_STAGING) {
         if (isMounted) {
           setIsAuthenticatedWithProvider(false);
         }
