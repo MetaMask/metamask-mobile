@@ -46,11 +46,8 @@ describe('Show fiat on testnets friction bottom sheet', () => {
       name: strings('app_settings.show_fiat_on_testnets_modal_learn_more'),
     });
     fireEvent.press(learMoreLink);
-    expect(mockNavigate).toHaveBeenCalledWith('Webview', {
-      screen: 'SimpleWebview',
-      params: {
-        url: AppConstants.URLS.TESTNET_ETH_SCAMS,
-      },
+    expect(mockNavigate).toHaveBeenCalledWith('SimpleWebview', {
+      url: AppConstants.URLS.TESTNET_ETH_SCAMS,
     });
   });
 });
