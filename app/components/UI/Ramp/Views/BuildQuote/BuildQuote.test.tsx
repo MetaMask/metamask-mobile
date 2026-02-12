@@ -59,6 +59,7 @@ jest.mock('@react-navigation/native', () => ({
       assetId: MOCK_ASSET_ID,
     },
   }),
+  useFocusEffect: jest.fn(),
 }));
 
 jest.mock('../../../../../../locales/i18n', () => ({

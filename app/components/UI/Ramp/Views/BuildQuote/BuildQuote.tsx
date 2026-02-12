@@ -6,7 +6,7 @@ import React, {
   useState,
 } from 'react';
 import { View } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import type { CaipChainId } from '@metamask/utils';
 
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
@@ -34,6 +34,7 @@ import { useRampsController } from '../../hooks/useRampsController';
 import { createSettingsModalNavDetails } from '../Modals/SettingsModal';
 import useRampAccountAddress from '../../hooks/useRampAccountAddress';
 import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
+import { BuildQuoteSelectors } from '../../Aggregator/Views/BuildQuote/BuildQuote.testIds';
 import { createPaymentSelectionModalNavigationDetails } from '../Modals/PaymentSelectionModal';
 import { createCheckoutNavDetails } from '../Checkout';
 import {
@@ -95,6 +96,17 @@ function BuildQuote() {
     type: RampErrorType;
     isCritical: boolean;
   } | null>(null);
+  const [isOnBuildQuoteScreen, setIsOnBuildQuoteScreen] =
+    useState<boolean>(true);
+
+  useFocusEffect(
+    useCallback(() => {
+      setIsOnBuildQuoteScreen(true);
+      return () => {
+        setIsOnBuildQuoteScreen(false);
+      };
+    }, []),
+  );
 
   const {
     userRegion,
@@ -166,8 +178,22 @@ function BuildQuote() {
     setUserHasEnteredAmount(true);
   }, []);
 
+  const handlePaymentPillPress = useCallback(() => {
+    if (debouncedPollingAmount <= 0) {
+      return;
+    }
+
+    stopQuotePolling();
+    navigation.navigate(
+      ...createPaymentSelectionModalNavigationDetails({
+        amount: debouncedPollingAmount,
+      }),
+    );
+  }, [debouncedPollingAmount, navigation, stopQuotePolling]);
+
   useEffect(() => {
     if (
+      !isOnBuildQuoteScreen ||
       !walletAddress ||
       !selectedPaymentMethod ||
       debouncedPollingAmount <= 0
@@ -191,18 +217,21 @@ function BuildQuote() {
     debouncedPollingAmount,
     startQuotePolling,
     stopQuotePolling,
+    isOnBuildQuoteScreen,
   ]);
 
   const hasAmount = amountAsNumber > 0;
 
   // Retry handler for error scenarios
   const handleRetry = useCallback(() => {
-    // Clear error state
+    const currentErrorType = errorState?.type;
+
+    // Clear error state first
     setErrorState(null);
 
-    if (!errorState) return;
+    if (!currentErrorType) return;
 
-    switch (errorState.type) {
+    switch (currentErrorType) {
       case 'quote_fetch':
         // Retry quote fetching by triggering polling again
         if (
@@ -267,7 +296,8 @@ function BuildQuote() {
         }),
       );
     }
-  }, [errorState, navigation, handleRetry]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [errorState, navigation]);
 
   const handleContinuePress = useCallback(async () => {
     if (!selectedQuote) return;
@@ -398,6 +428,7 @@ function BuildQuote() {
           <View style={styles.centerGroup}>
             <View style={styles.amountContainer}>
               <Text
+                testID={BuildQuoteSelectors.AMOUNT_INPUT}
                 variant={TextVariant.HeadingLG}
                 style={styles.mainAmount}
                 numberOfLines={1}
@@ -413,11 +444,7 @@ function BuildQuote() {
                   strings('fiat_on_ramp.select_payment_method')
                 }
                 isLoading={paymentMethodsLoading}
-                onPress={() => {
-                  navigation.navigate(
-                    ...createPaymentSelectionModalNavigationDetails(),
-                  );
-                }}
+                onPress={handlePaymentPillPress}
               />
             </View>
           </View>
@@ -438,7 +465,7 @@ function BuildQuote() {
                 isFullWidth
                 isDisabled={!canContinue}
                 isLoading={quotesLoading || isNavigating}
-                testID="build-quote-continue-button"
+                testID={BuildQuoteSelectors.CONTINUE_BUTTON}
               >
                 {strings('fiat_on_ramp.continue')}
               </Button>
