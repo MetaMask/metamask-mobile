@@ -42,7 +42,7 @@ index 03f00574615d647d1887440ee7ae10798934c250..0329b4f698cfffbc93141491a06a759f
          // Used to filter elements received from Appium server
          textToMatch) {
              this.webDriverClient = webDriverClient;
-@@ -250,45 +250,31 @@ let Locator = (() => {
+@@ -250,45 +250,26 @@ let Locator = (() => {
           * @returns
           */
          async getElement() {
@@ -68,10 +68,8 @@ index 03f00574615d647d1887440ee7ae10798934c250..0329b4f698cfffbc93141491a06a759f
 -            // of finding the element is higher at higher depth
 +            const elements = await this.webDriverClient.findElements(this.findStrategy, this.selector);
              const reversedElements = elements.reverse();
-+            console.log('Reversed elements length', reversedElements.length);
 +            // If no text matching is needed, just return the first (deepest) element
 +            if (!this.textToMatch) {
-+                console.log('No text to match, returning first element');
 +                return reversedElements[0] || null;
 +            }
 +
@@ -87,9 +85,6 @@ index 03f00574615d647d1887440ee7ae10798934c250..0329b4f698cfffbc93141491a06a759f
 -                        elementText.includes(this.textToMatch)) {
 -                        return element;
 -                    }
-+                console.log('Element text', elementText);
-+                console.log('Text to match', this.textToMatch);
-+
 +                if (this.textToMatch instanceof RegExp &&
 +                    this.textToMatch.test(elementText)) {
 +                    return element;
@@ -177,8 +172,7 @@ index 638c5df686413ffe050ef7e7329b9e9446e98002..6599e6dd453de2cc38a4c299d3509e85
 +                    buildName: process.env.BROWSERSTACK_BUILD_NAME || `${projectName} ${platformName}`,
                      sessionName: `${projectName} ${platformName} test`,
                      buildIdentifier: process.env.GITHUB_ACTIONS === "true"
--                        ? `CI ${process.env.GITHUB_RUN_ID}`
-+                        ? ""
+                         ? `CI ${process.env.GITHUB_RUN_ID}`
                          : process.env.USER,
                  },
                  "appium:autoGrantPermissions": true,
