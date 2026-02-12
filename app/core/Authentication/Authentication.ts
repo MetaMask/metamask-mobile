@@ -419,6 +419,11 @@ class AuthenticationService {
           break;
       }
       this.dispatchPasswordSet();
+
+      this.authData = {
+        ...this.authData,
+        currentAuthType: authType,
+      };
     } catch (error) {
       throw new AuthenticationError(
         (error as Error).message,
@@ -454,7 +459,6 @@ class AuthenticationService {
   storePasswordWithFallback = async (password: string, authData: AuthData) => {
     try {
       await this.storePassword(password, authData.currentAuthType);
-      this.authData = authData;
     } catch (error) {
       if (authData.currentAuthType === AUTHENTICATION_TYPE.PASSWORD) {
         throw error;
