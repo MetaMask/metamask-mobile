@@ -56,15 +56,8 @@ export const selectTokenDetailsV2Enabled = createSelector(
 );
 
 /**
-<<<<<<< HEAD
  * @deprecated Use selectTokenDetailsLayoutTestVariant for A/B test
  * Keep for backward compatibility during migration
-=======
- * Evaluates the tokenDetailsV2ButtonLayout feature flag.
- * Handles both the direct shape { enabled, minimumVersion } and
- * the progressive rollout shape { name, value: { enabled, minimumVersion } }.
- * Uses the shared validatedVersionGatedFeatureFlag utility.
->>>>>>> main
  */
 export const selectTokenDetailsV2ButtonsEnabled = createSelector(
   selectRemoteFeatureFlags,
