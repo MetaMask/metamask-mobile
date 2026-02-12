@@ -20,6 +20,7 @@ import {
   ButtonIconSize,
   IconSize,
 } from '@metamask/design-system-react-native';
+import { Spinner } from '@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs';
 import { strings } from '../../../../../../../locales/i18n';
 import { AvatarSize } from '../../../../../../component-library/components/Avatars/Avatar';
 import { selectNetworkName } from '../../../../../../selectors/networkInfos';
@@ -46,6 +47,9 @@ const ConvertTokenRow: React.FC<ConvertTokenRowProps> = ({
   token,
   onMaxPress,
   onEditPress,
+  isActionsDisabled = false,
+  isConversionPending = false,
+  errorMessage,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const networkName = useSelector(selectNetworkName);
@@ -53,80 +57,101 @@ const ConvertTokenRow: React.FC<ConvertTokenRowProps> = ({
   const formatFiat = useFiatFormatter();
 
   const handleMaxPress = useCallback(() => {
+    if (isActionsDisabled || isConversionPending) {
+      return;
+    }
     onMaxPress(token);
-  }, [onMaxPress, token]);
+  }, [isActionsDisabled, isConversionPending, onMaxPress, token]);
 
   const handleEditPress = useCallback(() => {
+    if (isActionsDisabled || isConversionPending) {
+      return;
+    }
     onEditPress(token);
-  }, [onEditPress, token]);
+  }, [isActionsDisabled, isConversionPending, onEditPress, token]);
 
   return (
     <View style={styles.container} testID={ConvertTokenRowTestIds.CONTAINER}>
-      {/* Left side: Token icon and info */}
-      <View style={styles.left}>
-        <View testID={ConvertTokenRowTestIds.TOKEN_ICON}>
-          <View style={styles.tokenIconContainer}>
-            <BadgeWrapper
-              badgePosition={BadgePosition.BottomRight}
-              badgeElement={
-                <Badge
-                  variant={BadgeVariant.Network}
-                  name={networkName}
-                  imageSource={getNetworkImageSource({
-                    chainId: token.chainId ?? '',
-                  })}
-                  isScaled={false}
-                  size={AvatarSize.Xs}
-                />
-              }
+      <View style={styles.row}>
+        {/* Left side: Token icon and info */}
+        <View style={styles.left}>
+          <View testID={ConvertTokenRowTestIds.TOKEN_ICON}>
+            <View style={styles.tokenIconContainer}>
+              <BadgeWrapper
+                badgePosition={BadgePosition.BottomRight}
+                badgeElement={
+                  <Badge
+                    variant={BadgeVariant.Network}
+                    name={networkName}
+                    imageSource={getNetworkImageSource({
+                      chainId: token.chainId ?? '',
+                    })}
+                    isScaled={false}
+                    size={AvatarSize.Xs}
+                  />
+                }
+              >
+                <EarnNetworkAvatar token={token} />
+              </BadgeWrapper>
+            </View>
+          </View>
+          <View style={styles.tokenInfo}>
+            <Text
+              variant={TextVariant.BodyMDMedium}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+              testID={ConvertTokenRowTestIds.TOKEN_BALANCE}
             >
-              <EarnNetworkAvatar token={token} />
-            </BadgeWrapper>
+              {/* TODO: Determine if we want to fallback to the token balance if fiat isn't available. This may not be desired. */}
+              {formatFiat(new BigNumber(token?.fiat?.balance ?? '0')) ??
+                `${token.balance} ${token.symbol}`}
+            </Text>
+            <Text
+              variant={TextVariant.BodySMMedium}
+              color={TextColor.Alternative}
+              numberOfLines={1}
+              testID={ConvertTokenRowTestIds.TOKEN_NAME}
+            >
+              {token.symbol}
+            </Text>
           </View>
         </View>
-        <View style={styles.tokenInfo}>
-          <Text
-            variant={TextVariant.BodyMDMedium}
-            numberOfLines={1}
-            ellipsizeMode="tail"
-            testID={ConvertTokenRowTestIds.TOKEN_BALANCE}
-          >
-            {/* TODO: Determine if we want to fallback to the token balance if fiat isn't available. This may not be desired. */}
-            {formatFiat(new BigNumber(token?.fiat?.balance ?? '0')) ??
-              `${token.balance} ${token.symbol}`}
-          </Text>
-          <Text
-            variant={TextVariant.BodySMMedium}
-            color={TextColor.Alternative}
-            numberOfLines={1}
-            testID={ConvertTokenRowTestIds.TOKEN_NAME}
-          >
-            {token.symbol}
-          </Text>
+
+        {/* Right side: Action buttons or status */}
+        <View style={styles.right}>
+          {isConversionPending ? (
+            <Spinner />
+          ) : (
+            <>
+              <Button
+                variant={ButtonVariant.Secondary}
+                size={ButtonSize.Md}
+                onPress={handleMaxPress}
+                isDisabled={isActionsDisabled}
+                testID={ConvertTokenRowTestIds.MAX_BUTTON}
+              >
+                <Text variant={TextVariant.BodyMDMedium}>
+                  {strings('earn.musd_conversion.max')}
+                </Text>
+              </Button>
+              <ButtonIcon
+                style={styles.editButton}
+                iconName={IconName.Edit}
+                size={ButtonIconSize.Lg}
+                iconProps={{ size: IconSize.Sm }}
+                onPress={handleEditPress}
+                isDisabled={isActionsDisabled}
+                testID={ConvertTokenRowTestIds.EDIT_BUTTON}
+              />
+            </>
+          )}
         </View>
       </View>
-
-      {/* Right side: Action buttons or status */}
-      <View style={styles.right}>
-        <Button
-          variant={ButtonVariant.Secondary}
-          size={ButtonSize.Md}
-          onPress={handleMaxPress}
-          testID={ConvertTokenRowTestIds.MAX_BUTTON}
-        >
-          <Text variant={TextVariant.BodyMDMedium}>
-            {strings('earn.musd_conversion.max')}
-          </Text>
-        </Button>
-        <ButtonIcon
-          style={styles.editButton}
-          iconName={IconName.Edit}
-          size={ButtonIconSize.Lg}
-          iconProps={{ size: IconSize.Sm }}
-          onPress={handleEditPress}
-          testID={ConvertTokenRowTestIds.EDIT_BUTTON}
-        />
-      </View>
+      {errorMessage ? (
+        <Text variant={TextVariant.BodySM} style={styles.errorText}>
+          {errorMessage}
+        </Text>
+      ) : null}
     </View>
   );
 };

@@ -5933,6 +5933,7 @@
       "quick_convert": {
         "title": "Convert and get {{apy}}%",
         "subtitle": "Convert your stablecoins to mUSD and receive up to a {{apy}}% bonus.",
+        "inline_failed_message": "Conversion failed. Try again.",
         "confirmation": {
           "title": "Convert Max"
         }

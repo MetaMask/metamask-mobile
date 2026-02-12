@@ -14,10 +14,12 @@ import { getStakingNavbar } from '../../../Navbar';
 import { AssetType } from '../../../../Views/confirmations/types/token';
 import { useMusdConversionTokens } from '../../hooks/useMusdConversionTokens';
 import { useMusdConversion } from '../../hooks/useMusdConversion';
+import { selectMusdQuickConvertEnabledFlag } from '../../selectors/featureFlags';
 import {
-  selectIsMusdConversionFlowEnabledFlag,
-  selectMusdQuickConvertEnabledFlag,
-} from '../../selectors/featureFlags';
+  createTokenChainKey,
+  selectHasInFlightMusdConversion,
+  selectMusdConversionStatuses,
+} from '../../selectors/musdConversionStatus';
 import ConvertTokenRow from '../../components/Musd/ConvertTokenRow';
 import styleSheet from './MusdQuickConvertView.styles';
 import { MusdQuickConvertViewTestIds } from './MusdQuickConvertView.types';
@@ -64,11 +66,18 @@ const MusdQuickConvertView = () => {
     useMusdConversion();
 
   // Feature flags
-  const isMusdFlowEnabled = useSelector(selectIsMusdConversionFlowEnabledFlag);
   const isQuickConvertEnabled = useSelector(selectMusdQuickConvertEnabledFlag);
 
   // Get convertible tokens
   const { tokens: conversionTokens } = useMusdConversionTokens();
+
+  const hasInFlightMusdConversion = useSelector(
+    selectHasInFlightMusdConversion,
+  );
+
+  const conversionStatusesByTokenChainKey = useSelector(
+    selectMusdConversionStatuses,
+  );
 
   // Set up navigation header
   useFocusEffect(
@@ -132,14 +141,42 @@ const MusdQuickConvertView = () => {
 
   // Render individual token row
   const renderTokenItem = useCallback(
-    ({ item }: { item: AssetType }) => (
-      <ConvertTokenRow
-        token={item}
-        onMaxPress={handleMaxPress}
-        onEditPress={handleEditPress}
-      />
-    ),
-    [handleMaxPress, handleEditPress],
+    ({ item }: { item: AssetType }) => {
+      const tokenAddress = item.address;
+      const tokenChainId = item.chainId;
+
+      const tokenChainKey =
+        tokenAddress && tokenChainId
+          ? createTokenChainKey(tokenAddress, tokenChainId)
+          : undefined;
+
+      const statusInfo = tokenChainKey
+        ? conversionStatusesByTokenChainKey[tokenChainKey]
+        : undefined;
+
+      return (
+        <ConvertTokenRow
+          token={item}
+          onMaxPress={handleMaxPress}
+          onEditPress={handleEditPress}
+          isActionsDisabled={hasInFlightMusdConversion}
+          isConversionPending={Boolean(statusInfo?.isPending)}
+          errorMessage={
+            statusInfo?.isFailed
+              ? strings(
+                  'earn.musd_conversion.quick_convert.inline_failed_message',
+                )
+              : undefined
+          }
+        />
+      );
+    },
+    [
+      conversionStatusesByTokenChainKey,
+      handleEditPress,
+      handleMaxPress,
+      hasInFlightMusdConversion,
+    ],
   );
 
   const renderSectionHeader = useCallback(
@@ -166,7 +203,7 @@ const MusdQuickConvertView = () => {
   }, []);
 
   // If feature flags are not enabled, don't render
-  if (!isMusdFlowEnabled || !isQuickConvertEnabled) {
+  if (!isQuickConvertEnabled) {
     return null;
   }
 
