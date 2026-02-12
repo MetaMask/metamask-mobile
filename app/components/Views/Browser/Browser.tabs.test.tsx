@@ -361,10 +361,7 @@ describe('Browser - Tab Operations', () => {
 
       // closeTabsView should navigate to Explore when tabs.length === 0
       expect(mockNavigation.navigate).toHaveBeenCalledWith(
-        Routes.TRENDING_VIEW,
-        {
-          screen: Routes.TRENDING_FEED,
-        },
+        Routes.TRENDING_FEED,
       );
     });
 
