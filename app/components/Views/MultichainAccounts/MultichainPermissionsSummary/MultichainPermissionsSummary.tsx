@@ -95,6 +95,7 @@ export interface MultichainPermissionsSummaryProps {
   tabIndex?: number;
   showPermissionsOnly?: boolean;
   showAccountsOnly?: boolean;
+  isMaliciousDapp?: boolean;
 }
 
 const MultichainPermissionsSummary = ({
@@ -119,6 +120,7 @@ const MultichainPermissionsSummary = ({
   tabIndex = 0,
   showAccountsOnly = false,
   showPermissionsOnly = false,
+  isMaliciousDapp = false,
 }: MultichainPermissionsSummaryProps) => {
   const nonTabView = showAccountsOnly || showPermissionsOnly;
   const { colors } = useTheme();
@@ -577,6 +579,11 @@ const MultichainPermissionsSummary = ({
             <TextComponent
               style={styles.connectionTitle}
               variant={TextVariant.HeadingMD}
+              color={
+                isMaliciousDapp && !isAlreadyConnected
+                  ? TextColor.Error
+                  : undefined
+              }
             >
               {isNonDappNetworkSwitch
                 ? strings('permissions.title_add_network_permission')
@@ -586,6 +593,14 @@ const MultichainPermissionsSummary = ({
                       dappUrl: hostname,
                     })}
             </TextComponent>
+            {isMaliciousDapp && !isAlreadyConnected && (
+              <Icon
+                name={IconName.Danger}
+                size={IconSize.Sm}
+                color={IconColor.Error}
+                style={styles.maliciousWarningIcon}
+              />
+            )}
             <TextComponent variant={TextVariant.BodyMD}>
               {strings('account_dapp_connections.account_summary_header')}
             </TextComponent>
@@ -637,7 +652,7 @@ const MultichainPermissionsSummary = ({
                 {strings('permissions.cancel')}
               </StyledButton>
               <StyledButton
-                type={'confirm'}
+                type={isMaliciousDapp ? 'danger' : 'confirm'}
                 onPress={confirm}
                 disabled={
                   !isNetworkSwitch &&

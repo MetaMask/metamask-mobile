@@ -171,6 +171,10 @@ const createStyles = (params: {
     connectionTitle: {
       textAlign: 'center',
     },
+    maliciousWarningIcon: {
+      marginTop: 2,
+      alignSelf: 'center',
+    },
     // Permissions Management
     permissionsManagementContainer: {
       marginTop: 8,

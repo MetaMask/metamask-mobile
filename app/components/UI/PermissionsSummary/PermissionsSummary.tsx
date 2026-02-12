@@ -101,6 +101,7 @@ const PermissionsSummary = ({
   showAccountsOnly = false,
   showPermissionsOnly = false,
   promptToCreateSolanaAccount = false,
+  isMaliciousDapp = false,
 }: PermissionsSummaryProps) => {
   const nonTabView = showAccountsOnly || showPermissionsOnly;
   const fullNonTabView = showAccountsOnly && showPermissionsOnly;
@@ -631,6 +632,11 @@ const PermissionsSummary = ({
             <TextComponent
               style={styles.connectionTitle}
               variant={TextVariant.HeadingMD}
+              color={
+                isMaliciousDapp && !isAlreadyConnected
+                  ? TextColor.Error
+                  : undefined
+              }
             >
               {isNonDappNetworkSwitch
                 ? strings('permissions.title_add_network_permission')
@@ -640,6 +646,14 @@ const PermissionsSummary = ({
                       dappUrl: hostname,
                     })}
             </TextComponent>
+            {isMaliciousDapp && !isAlreadyConnected && (
+              <Icon
+                name={IconName.Danger}
+                size={IconSize.Sm}
+                color={IconColor.Error}
+                style={styles.maliciousWarningIcon}
+              />
+            )}
             <TextComponent variant={TextVariant.BodyMD}>
               {strings('account_dapp_connections.account_summary_header')}
             </TextComponent>
@@ -691,7 +705,7 @@ const PermissionsSummary = ({
                 {strings('permissions.cancel')}
               </StyledButton>
               <StyledButton
-                type={'confirm'}
+                type={isMaliciousDapp ? 'danger' : 'confirm'}
                 onPress={confirm}
                 disabled={
                   !isNetworkSwitch &&
