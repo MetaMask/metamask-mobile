@@ -160,7 +160,7 @@ describe('TabBar', () => {
 
     fireEvent.press(getByTestId(`tab-bar-item-${TabBarIconKey.Setting}`));
     expect(navigation.navigate).toHaveBeenCalledWith(Routes.SETTINGS_VIEW, {
-      screen: 'Settings',
+      screen: Routes.ACCOUNTS_MENU_VIEW,
     });
   });
 
