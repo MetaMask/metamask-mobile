@@ -41,7 +41,7 @@ jest.mock('../../Perps/components/PerpsBottomSheetTooltip', () => ({
 
 jest.mock('../../../../selectors/featureFlagController/tokenDetailsV2', () => ({
   selectTokenDetailsV2Enabled: jest.fn(() => true),
-  selectTokenDetailsV2ButtonsEnabled: jest.fn(() => true),
+  selectTokenDetailsLayoutTestVariant: jest.fn(() => null),
 }));
 
 jest.mock('@react-navigation/native', () => {
