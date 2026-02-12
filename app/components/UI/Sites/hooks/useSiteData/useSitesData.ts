@@ -28,7 +28,8 @@ interface UseSitesDataResult {
   refetch: () => void;
 }
 
-const PORTFOLIO_API_BASE_URL = 'https://portfolio.api.cx.metamask.io/';
+// Assets team is now hosting the explore-sites endpoint on the NFT API (Temporarily)
+const NFT_API_BASE_URL = 'https://nft.api.cx.metamask.io/';
 const DEFAULT_SITES_LIMIT = 200;
 const PORTFOLIO_HOSTNAME = 'portfolio.metamask.io';
 
@@ -110,7 +111,7 @@ export const useSitesData = (
 
       // Use current timestamp
       const timestamp = Date.now();
-      const url = `${PORTFOLIO_API_BASE_URL}explore/sites?limit=${limit}&ts=${timestamp}`;
+      const url = `${NFT_API_BASE_URL}explore/sites?limit=${limit}&ts=${timestamp}`;
       const response = await fetch(url);
 
       if (!response.ok) {

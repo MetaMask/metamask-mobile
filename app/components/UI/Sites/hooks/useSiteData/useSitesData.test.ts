@@ -92,7 +92,7 @@ describe('useSitesData', () => {
 
       await waitFor(() => {
         expect(fetch).toHaveBeenCalledWith(
-          `https://portfolio.api.cx.metamask.io/explore/sites?limit=200&ts=${mockDateNow}`,
+          `https://nft.api.cx.metamask.io/explore/sites?limit=200&ts=${mockDateNow}`,
         );
       });
 
@@ -113,7 +113,7 @@ describe('useSitesData', () => {
 
       await waitFor(() => {
         expect(fetch).toHaveBeenCalledWith(
-          `https://portfolio.api.cx.metamask.io/explore/sites?limit=50&ts=${mockDateNow}`,
+          `https://nft.api.cx.metamask.io/explore/sites?limit=50&ts=${mockDateNow}`,
         );
       });
 
