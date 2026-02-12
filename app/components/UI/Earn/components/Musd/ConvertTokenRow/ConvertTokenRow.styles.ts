@@ -7,10 +7,12 @@ const styleSheet = (params: { theme: Theme }) => {
 
   return StyleSheet.create({
     container: {
+      paddingVertical: 12,
+    },
+    row: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      paddingVertical: 12,
     },
     left: {
       flexDirection: 'row',
@@ -34,6 +36,10 @@ const styleSheet = (params: { theme: Theme }) => {
     tokenIconContainer: {
       width: 32,
       height: 32,
+    },
+    errorText: {
+      marginTop: 4,
+      color: colors.error.default,
     },
   });
 };

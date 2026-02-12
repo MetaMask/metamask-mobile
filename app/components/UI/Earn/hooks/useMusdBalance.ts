@@ -139,7 +139,10 @@ export const useMusdBalance = () => {
             style: 'currency',
             currency: currentCurrency,
           })
-        : undefined;
+        : formatWithThreshold(0, 0.01, I18n.locale, {
+            style: 'currency',
+            currency: currentCurrency,
+          });
 
     const hasBalanceOnChain = (chainId: Hex) =>
       Boolean(tokenBalanceResult[chainId]);

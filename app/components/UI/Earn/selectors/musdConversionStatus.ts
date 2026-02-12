@@ -4,13 +4,15 @@ import {
   TransactionStatus,
   TransactionType,
 } from '@metamask/transaction-controller';
-import { Hex } from '@metamask/utils';
 import { selectTransactions } from '../../../../selectors/transactionController';
-import { RootState } from '../../../../reducers';
 
-export interface ConversionStatusInfo {
+interface ConversionStatusInfo {
   txId: string;
   status: TransactionStatus;
+  /**
+   * True when the conversion is in-flight (not yet in a terminal state).
+   * Used to drive loading UI and disable actions.
+   */
   isPending: boolean;
   isConfirmed: boolean;
   isFailed: boolean;
@@ -22,9 +24,10 @@ export interface ConversionStatusInfo {
 export type ConversionUIStatus = 'idle' | 'pending' | 'confirmed' | 'failed';
 
 /**
- * Pending transaction statuses that indicate an in-flight conversion.
+ * Transaction statuses that indicate an in-flight conversion.
  */
-const PENDING_STATUSES: TransactionStatus[] = [
+const IN_FLIGHT_STATUSES: TransactionStatus[] = [
+  TransactionStatus.unapproved,
   TransactionStatus.approved,
   TransactionStatus.signed,
   TransactionStatus.submitted,
@@ -40,24 +43,24 @@ export const selectMusdConversions = createSelector(
 );
 
 /**
- * Selects pending mUSD conversions (for loading states).
- * These are transactions that are in-flight and not yet confirmed.
+ * Selects in-flight mUSD conversions (for loading states).
+ * These are conversions that have been submitted/approved and not yet terminal.
  */
-export const selectPendingMusdConversions = createSelector(
+const selectInFlightMusdConversions = createSelector(
   [selectMusdConversions],
   (conversions): TransactionMeta[] =>
     conversions.filter((tx) =>
-      PENDING_STATUSES.includes(tx.status as TransactionStatus),
+      IN_FLIGHT_STATUSES.includes(tx.status as TransactionStatus),
     ),
 );
 
 /**
- * Selects completed mUSD conversions.
+ * True when any in-flight mUSD conversion exists.
+ * Used to globally disable quick-convert actions.
  */
-export const selectCompletedMusdConversions = createSelector(
-  [selectMusdConversions],
-  (conversions): TransactionMeta[] =>
-    conversions.filter((tx) => tx.status === TransactionStatus.confirmed),
+export const selectHasInFlightMusdConversion = createSelector(
+  [selectInFlightMusdConversions],
+  (inFlight): boolean => inFlight.length > 0,
 );
 
 /**
@@ -67,73 +70,22 @@ export const selectCompletedMusdConversions = createSelector(
 export const createTokenChainKey = (
   tokenAddress: string,
   chainId: string,
-): string => `${tokenAddress.toLowerCase()}-${chainId}`;
-
-/**
- * Selects conversion status for a specific payment token address and chain ID.
- * Returns the most recent conversion status for the given token + chain combination.
- *
- * @param state - Redux state
- * @param tokenAddress - The payment token address
- * @param chainId - The chain ID where the token exists
- */
-// TODO: Reminder that this list can grow indefinitely and we need to be careful about performance.
-export const selectConversionStatusByPaymentToken = createSelector(
-  [
-    selectMusdConversions,
-    (_: RootState, tokenAddress: string, chainId: Hex) => ({
-      tokenAddress: tokenAddress.toLowerCase(),
-      chainId,
-    }),
-  ],
-  (conversions, { tokenAddress, chainId }): ConversionStatusInfo | null => {
-    // Sort by time descending to get most recent first
-    const sortedConversions = [...conversions].sort(
-      (a, b) => (b.time ?? 0) - (a.time ?? 0),
-    );
-
-    // Find the most recent conversion for this token + chain combination
-    const conversion = sortedConversions.find(
-      (tx) =>
-        tx.metamaskPay?.tokenAddress?.toLowerCase() === tokenAddress &&
-        tx.metamaskPay?.chainId === chainId,
-    );
-
-    if (!conversion) {
-      return null;
-    }
-
-    const status = conversion.status as TransactionStatus;
-
-    return {
-      txId: conversion.id,
-      status,
-      isPending: PENDING_STATUSES.includes(status),
-      isConfirmed: status === TransactionStatus.confirmed,
-      isFailed: status === TransactionStatus.failed,
-    };
-  },
-);
+): string => `${tokenAddress.toLowerCase()}-${chainId.toLowerCase()}`;
 
 /**
  * Selects all mUSD conversion statuses as a map.
  * Key is "tokenAddress-chainId" to handle same token on different chains.
- * Only includes the most recent conversion for each token + chain combination.
+ * Important:Only includes the most recent conversion for each token + chain combination.
  *
  * Useful for efficiently rendering status indicators on a list of tokens.
  */
-// TODO: Reminder to circle back in case only including the most recent conversion for each token + chain combination is not enough.
 export const selectMusdConversionStatuses = createSelector(
   [selectMusdConversions],
   (conversions): Record<string, ConversionStatusInfo> => {
     const statusMap: Record<string, ConversionStatusInfo> = {};
+    const latestTimeByKey: Record<string, number> = {};
 
-    // Sort by time descending to get most recent first
-    const sorted = [...conversions].sort(
-      (a, b) => (b.time ?? 0) - (a.time ?? 0),
-    );
-
-    for (const tx of sorted) {
+    for (const tx of conversions) {
       const tokenAddress = tx.metamaskPay?.tokenAddress?.toLowerCase();
       const chainId = tx.metamaskPay?.chainId;
 
@@ -144,42 +96,26 @@ export const selectMusdConversionStatuses = createSelector(
 
       // Key includes BOTH address AND chainId to handle same token on different chains
       const key = createTokenChainKey(tokenAddress, chainId);
+      const txTime = tx.time ?? 0;
+      const existingTime = latestTimeByKey[key];
 
-      // Only store the first (most recent) conversion for each key
-      if (!statusMap[key]) {
-        const status = tx.status as TransactionStatus;
-
-        statusMap[key] = {
-          txId: tx.id,
-          status,
-          isPending: PENDING_STATUSES.includes(status),
-          isConfirmed: status === TransactionStatus.confirmed,
-          isFailed: status === TransactionStatus.failed,
-        };
+      if (existingTime !== undefined && existingTime >= txTime) {
+        continue;
       }
+
+      latestTimeByKey[key] = txTime;
+
+      const status = tx.status as TransactionStatus;
+
+      statusMap[key] = {
+        txId: tx.id,
+        status,
+        isPending: IN_FLIGHT_STATUSES.includes(status),
+        isConfirmed: status === TransactionStatus.confirmed,
+        isFailed: status === TransactionStatus.failed,
+      };
     }
 
     return statusMap;
   },
 );
-
-/**
- * Derives the UI status for a token row from conversion status info.
- */
-export const deriveConversionUIStatus = (
-  statusInfo: ConversionStatusInfo | null,
-): ConversionUIStatus => {
-  if (!statusInfo) {
-    return 'idle';
-  }
-  if (statusInfo.isPending) {
-    return 'pending';
-  }
-  if (statusInfo.isConfirmed) {
-    return 'confirmed';
-  }
-  if (statusInfo.isFailed) {
-    return 'failed';
-  }
-  return 'idle';
-};
