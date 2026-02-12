@@ -149,9 +149,7 @@ The `connection-multichain` test starts a **local dapp server** (Browser Playgro
    yarn run-appwright:mm-connect-android-bs-local
    ```
 
-   This sets `BROWSERSTACK_LOCAL=true`, which:
-   - Tells the **Appwright patch** to set `local: true` in BrowserStack capabilities so **Local testing** shows **On** in the session.
-   - Makes the test use the dapp URL **`http://bs-local.com:8090`** (the cloud device reaches your machine via the tunnel at `bs-local.com`).
+   That command sets `BROWSERSTACK_LOCAL=true` for the run, so the patch sets `local: true` in BrowserStack capabilities and the test uses **`http://bs-local.com:8090`** for the dapp.
 
 3. Ensure `.e2e.env` has `BROWSERSTACK_USERNAME` and `BROWSERSTACK_ACCESS_KEY`. The mm-connect BrowserStack project uses `BROWSERSTACK_ANDROID_APP_URL` (or the default `bs://...` in config) for the app; override via env for a custom build.
 
@@ -702,7 +700,7 @@ test('My Performance Test', async ({
 
 **BrowserStack Local testing shows "Off" for mm-connect**
 
-- The Appwright patch (`.yarn/patches/appwright-npm-0.1.45-f282bc1c1b.patch`) sets `local: true` in BrowserStack capabilities when `BROWSERSTACK_LOCAL=true`. Ensure this patch file is committed and applied (run `yarn install`). Use `yarn run-appwright:mm-connect-android-bs-local` so the env var is set.
+- Use `yarn run-appwright:mm-connect-android-bs-local` (it sets `BROWSERSTACK_LOCAL` for the run). Ensure the patch is applied (`yarn install`).
 - Start the BrowserStack Local binary before the test and wait for the success message.
 
 **Quality gates failing unexpectedly**
