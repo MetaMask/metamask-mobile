@@ -55,10 +55,33 @@ jest.mock('../../../core/Engine', () => ({
   context: {
     AccountsController: {
       listMultichainAccounts: () => [],
+      getSelectedAccount: () => ({
+        address: '0x1234567890123456789012345678901234567890',
+      }),
     },
     CurrencyRateController: {
       updateExchangeRate: jest.fn(),
     },
+    PermissionController: {
+      state: {
+        subjects: {},
+      },
+    },
+  },
+  controllerMessenger: {
+    call: jest.fn().mockImplementation((method: string) => {
+      if (method === 'SelectedNetworkController:getNetworkClientIdForDomain') {
+        return 'mainnet';
+      }
+      if (method === 'NetworkController:getNetworkClientById') {
+        return {
+          configuration: {
+            chainId: '0x1',
+          },
+        };
+      }
+      return undefined;
+    }),
   },
 }));
 
@@ -66,6 +89,13 @@ jest.mock('../../../core/EntryScriptWeb3', () => ({
   init: jest.fn(),
   get: () => '',
 }));
+
+jest.mock('../../../core/BackgroundBridge/BackgroundBridge', () =>
+  jest.fn().mockImplementation(() => ({
+    onMessage: jest.fn(),
+    onDisconnect: jest.fn(),
+  })),
+);
 
 const mockGetPhishingTestResultAsync = jest.fn<
   Promise<{ result: boolean; name: string }>,
