@@ -83,6 +83,7 @@ export const ERROR_CODE_TO_I18N_KEY: Record<PerpsErrorCode, string> = {
     'perps.errors.subscriptionClientNotAvailable',
   // Wallet/account errors
   [PERPS_ERROR_CODES.NO_ACCOUNT_SELECTED]: 'perps.errors.noAccountSelected',
+  [PERPS_ERROR_CODES.KEYRING_LOCKED]: 'perps.errors.unknownError',
   [PERPS_ERROR_CODES.INVALID_ADDRESS_FORMAT]:
     'perps.errors.invalidAddressFormat',
   // Transfer/swap errors

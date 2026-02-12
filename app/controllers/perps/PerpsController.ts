@@ -11,7 +11,10 @@ import type {
   NetworkControllerFindNetworkClientIdByChainIdAction,
 } from '@metamask/network-controller';
 import type { AccountTreeControllerGetAccountsFromSelectedAccountGroupAction } from '@metamask/account-tree-controller';
-import type { KeyringControllerSignTypedMessageAction } from '@metamask/keyring-controller';
+import type {
+  KeyringControllerGetStateAction,
+  KeyringControllerSignTypedMessageAction,
+} from '@metamask/keyring-controller';
 import type { AuthenticationController } from '@metamask/profile-sync-controller';
 import {
   TransactionControllerAddTransactionAction,
@@ -675,6 +678,7 @@ export type AllowedActions =
   | AuthenticationController.AuthenticationControllerGetBearerToken
   | RemoteFeatureFlagControllerGetStateAction
   | AccountTreeControllerGetAccountsFromSelectedAccountGroupAction
+  | KeyringControllerGetStateAction
   | KeyringControllerSignTypedMessageAction
   | NetworkControllerGetNetworkClientByIdAction
   | NetworkControllerFindNetworkClientIdByChainIdAction

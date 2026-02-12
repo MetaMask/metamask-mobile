@@ -571,6 +571,15 @@ export class HyperLiquidProvider implements PerpsProvider {
       });
       completeInFlight();
     } catch (error) {
+      // If keyring is locked, don't cache so it retries when unlocked
+      if (ensureError(error).message === PERPS_ERROR_CODES.KEYRING_LOCKED) {
+        this.deps.debugLogger.log(
+          '[ensureDexAbstractionEnabled] Keyring locked, will retry later',
+        );
+        completeInFlight();
+        return;
+      }
+
       // Cache the attempt (even on failure) to prevent repeated signing requests
       // This is CRITICAL for hardware wallets - if user rejects, don't ask again
       TradingReadinessCache.set(network, userAddress, {
@@ -723,7 +732,10 @@ export class HyperLiquidProvider implements PerpsProvider {
       // Set up referral code
       await this.ensureReferralSet();
 
-      this.tradingSetupComplete = true;
+      // Only mark complete if keyring was unlocked (signing could actually happen)
+      if (this.walletService.isKeyringUnlocked()) {
+        this.tradingSetupComplete = true;
+      }
     })();
 
     try {
@@ -2249,6 +2261,15 @@ export class HyperLiquidProvider implements PerpsProvider {
       }
       completeInFlight();
     } catch (error) {
+      // If keyring is locked, don't cache so it retries when unlocked
+      if (ensureError(error).message === PERPS_ERROR_CODES.KEYRING_LOCKED) {
+        this.deps.debugLogger.log(
+          '[ensureBuilderFeeApproval] Keyring locked, will retry later',
+        );
+        completeInFlight();
+        return;
+      }
+
       // Cache failure to prevent retries
       PerpsSigningCache.setBuilderFee(network, userAddress, {
         attempted: true,
@@ -7239,6 +7260,15 @@ export class HyperLiquidProvider implements PerpsProvider {
       }
       completeInFlight();
     } catch (error) {
+      // If keyring is locked, don't cache so it retries when unlocked
+      if (ensureError(error).message === PERPS_ERROR_CODES.KEYRING_LOCKED) {
+        this.deps.debugLogger.log(
+          '[ensureReferralSet] Keyring locked, will retry later',
+        );
+        completeInFlight();
+        return;
+      }
+
       // Cache failure to prevent retries
       PerpsSigningCache.setReferral(network, userAddress, {
         attempted: true,
