@@ -21,7 +21,7 @@ export const selectQuoteRequest = createSelector(
 // Create the BridgeAppState selector following the same pattern as in bridge slice
 export const selectBridgeAppState = (state: RootState) => ({
   ...state.engine.backgroundState.BridgeController,
-  gasFeeEstimates: selectGasFeeControllerEstimates(state) as GasFeeEstimates,
+  gasFeeEstimatesByChainId: state.engine.backgroundState.GasFeeController.gasFeeEstimatesByChainId ?? {},
   ...state.engine.backgroundState.MultichainAssetsRatesController,
   ...state.engine.backgroundState.TokenRatesController,
   ...state.engine.backgroundState.CurrencyRateController,
