@@ -252,7 +252,7 @@ const HeaderCollapsible: React.FC<HeaderCollapsibleProps> = ({
   return (
     <Animated.View style={containerStyle} testID={testID}>
       {/* Header content - measured for dynamic height */}
-      <View onLayout={handleLayout}>
+      <View onLayout={handleLayout} testID={'header-collapsible-content-view'}>
         <View onLayout={handleHeaderBaseLayout}>
           <HeaderBase
             startButtonIconProps={resolvedStartButtonIconProps}

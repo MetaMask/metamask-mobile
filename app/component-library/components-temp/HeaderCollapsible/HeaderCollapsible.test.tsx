@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { fireEvent, render } from '@testing-library/react-native';
 import { useSharedValue, SharedValue } from 'react-native-reanimated';
 import { Text } from 'react-native';
 
@@ -17,6 +17,8 @@ jest.mock('react-native-reanimated', () => {
     value: initial,
   }));
   Reanimated.useAnimatedStyle = jest.fn((fn) => fn());
+  Reanimated.useDerivedValue = jest.fn((fn) => ({ value: fn() }));
+  Reanimated.withTiming = jest.fn((value: number) => value);
   Reanimated.interpolate = jest.fn(
     (_value, _inputRange, outputRange) => outputRange[0],
   );
@@ -172,6 +174,39 @@ describe('HeaderCollapsible', () => {
     });
   });
 
+  describe('container style', () => {
+    it('applies overflow hidden to container for clipping when collapsed', () => {
+      const { getByTestId } = render(
+        <TestWrapper>
+          {(scrollYValue) => (
+            <HeaderCollapsible
+              title="Test"
+              scrollY={scrollYValue}
+              testID="test-container"
+            />
+          )}
+        </TestWrapper>,
+      );
+
+      const container = getByTestId('test-container');
+      const flattenStyle = (style: unknown): Record<string, unknown> => {
+        if (style == null || typeof style === 'number') return {};
+        if (!Array.isArray(style)) {
+          return (
+            typeof style === 'object' && style !== null ? style : {}
+          ) as Record<string, unknown>;
+        }
+        return style.reduce<Record<string, unknown>>(
+          (acc, s) => ({ ...acc, ...flattenStyle(s) }),
+          {},
+        );
+      };
+      const flattened = flattenStyle(container.props.style);
+
+      expect(flattened.overflow).toBe('hidden');
+    });
+  });
+
   describe('isInsideSafeAreaView', () => {
     it('positions header at top 0 when isInsideSafeAreaView is false', () => {
       const { getByTestId } = render(
@@ -215,6 +250,51 @@ describe('HeaderCollapsible', () => {
         : container.props.style;
 
       expect(flattenedStyle.top).toBe(44);
+    });
+  });
+
+  describe('layout measurement', () => {
+    it('calls onExpandedHeightChange when content layout reports height', () => {
+      const onExpandedHeightChange = jest.fn();
+
+      const { getByTestId } = render(
+        <TestWrapper>
+          {(scrollYValue) => (
+            <HeaderCollapsible
+              title="Test"
+              scrollY={scrollYValue}
+              expandedContent={<Text>Expanded</Text>}
+              onExpandedHeightChange={onExpandedHeightChange}
+            />
+          )}
+        </TestWrapper>,
+      );
+
+      const contentView = getByTestId('header-collapsible-content-view');
+
+      fireEvent(contentView, 'layout', {
+        nativeEvent: {
+          layout: { x: 0, y: 0, width: 100, height: 200 },
+        },
+      });
+
+      expect(onExpandedHeightChange).toHaveBeenCalledWith(200);
+    });
+
+    it('renders content view for height measurement', () => {
+      const { getByTestId } = render(
+        <TestWrapper>
+          {(scrollYValue) => (
+            <HeaderCollapsible
+              title="Test"
+              scrollY={scrollYValue}
+              testID="test-container"
+            />
+          )}
+        </TestWrapper>,
+      );
+
+      expect(getByTestId('header-collapsible-content-view')).toBeOnTheScreen();
     });
   });
 
