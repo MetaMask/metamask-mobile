@@ -21,6 +21,7 @@ export const selectHomepageRedesignV1Enabled = createSelector(
 export const selectHomepageSectionsV1Enabled = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
+    return true;
     const remoteFlag = remoteFeatureFlags[
       homepageSectionsV1Key
     ] as unknown as VersionGatedFeatureFlag;

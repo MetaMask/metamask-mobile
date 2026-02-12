@@ -8,7 +8,7 @@ interface SectionCardProps {
 const SectionCard = ({ children }: SectionCardProps) => (
   <Box
     backgroundColor={BoxBackgroundColor.BackgroundMuted}
-    padding={3}
+    padding={4}
     twClassName="rounded-xl w-full"
   >
     {children}
