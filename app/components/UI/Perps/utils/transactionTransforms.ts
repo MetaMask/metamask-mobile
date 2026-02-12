@@ -1,4 +1,8 @@
 import { BigNumber } from 'bignumber.js';
+import {
+  TransactionMeta,
+  TransactionType,
+} from '@metamask/transaction-controller';
 import { strings } from '../../../../../locales/i18n';
 import {
   Funding,
@@ -14,6 +18,10 @@ import {
   PerpsTransaction,
 } from '../types/transactionHistory';
 import { formatOrderLabel } from './orderUtils';
+import { getTokenTransferData } from '../../../Views/confirmations/utils/transaction-pay';
+import { parseStandardTokenTransactionData } from '../../../Views/confirmations/utils/transaction';
+import { calcTokenAmount } from '../../../../util/transactions';
+import { ARBITRUM_USDC } from '../../../Views/confirmations/constants/perps';
 
 /**
  * Determines the close direction category for aggregation purposes.
@@ -575,6 +583,83 @@ export function transformUserHistoryToTransactions(
           txHash: txHash || '',
           status,
           type: isDeposit ? 'deposit' : 'withdrawal',
+        },
+      };
+    });
+}
+
+/** Wallet transaction status to perps deposit/withdrawal status */
+const WALLET_STATUS_TO_DEPOSIT_STATUS: Record<
+  string,
+  'completed' | 'failed' | 'pending' | 'bridging'
+> = {
+  confirmed: 'completed',
+  failed: 'failed',
+  rejected: 'failed',
+  dropped: 'failed',
+  signed: 'pending',
+  submitted: 'pending',
+  approved: 'pending',
+  unapproved: 'pending',
+  pending: 'pending',
+};
+
+/**
+ * Transform wallet TransactionMeta (perpsDeposit / perpsDepositAndOrder) to PerpsTransaction format.
+ * Ensures wallet-originated perps deposits appear in the Perps activity Deposits tab.
+ * @param transactions - Array of TransactionMeta with type perpsDeposit or perpsDepositAndOrder
+ * @returns Array of PerpsTransaction objects with type 'deposit'
+ */
+export function transformWalletPerpsDepositsToTransactions(
+  transactions: TransactionMeta[],
+): PerpsTransaction[] {
+  return transactions
+    .filter(
+      (tx) =>
+        tx.type === TransactionType.perpsDeposit ||
+        tx.type === TransactionType.perpsDepositAndOrder,
+    )
+    .map((tx) => {
+      const tokenData = getTokenTransferData(tx);
+      const decoded = tokenData?.data
+        ? parseStandardTokenTransactionData(tokenData.data)
+        : undefined;
+      const amountWei = decoded?.args?._value?.toString?.();
+      const amountBN =
+        amountWei !== undefined
+          ? new BigNumber(
+              calcTokenAmount(amountWei, ARBITRUM_USDC.decimals).toString(),
+            )
+          : new BigNumber(0);
+
+      const displayAmount = `+$${amountBN.toFixed(2)}`;
+      const status = WALLET_STATUS_TO_DEPOSIT_STATUS[tx.status] ?? 'pending';
+      const statusText =
+        status === 'completed'
+          ? 'Completed'
+          : status === 'failed'
+            ? 'Failed'
+            : 'Pending';
+
+      return {
+        id: `wallet-deposit-${tx.id}`,
+        type: 'deposit' as const,
+        category: 'deposit' as const,
+        title:
+          amountBN.isZero() || !amountWei
+            ? 'Deposit'
+            : `Deposited ${amountBN.toFixed(2)} ${ARBITRUM_USDC.symbol}`,
+        subtitle: statusText,
+        timestamp: tx.time ?? 0,
+        asset: ARBITRUM_USDC.symbol,
+        depositWithdrawal: {
+          amount: displayAmount,
+          amountNumber: amountBN.toNumber(),
+          isPositive: true,
+          asset: ARBITRUM_USDC.symbol,
+          txHash: tx.hash ?? '',
+          status,
+          type: 'deposit' as const,
         },
       };
     });

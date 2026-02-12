@@ -1,9 +1,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useSelector } from 'react-redux';
 import usePrevious from '../../../hooks/usePrevious';
 import { BigNumber } from 'bignumber.js';
+import { TransactionType } from '@metamask/transaction-controller';
 import Engine from '../../../../core/Engine';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import type { CaipAccountId } from '@metamask/utils';
+import { areAddressesEqual } from '../../../../util/address';
+import { selectNonReplacedTransactions } from '../../../../selectors/transactionController';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { PerpsTransaction } from '../types/transactionHistory';
 import { useUserHistory } from './useUserHistory';
 import { usePerpsLiveFills } from './stream/usePerpsLiveFills';
@@ -12,6 +17,7 @@ import {
   transformOrdersToTransactions,
   transformFundingToTransactions,
   transformUserHistoryToTransactions,
+  transformWalletPerpsDepositsToTransactions,
 } from '../utils/transactionTransforms';
 
 interface UsePerpsTransactionHistoryParams {
@@ -54,6 +60,22 @@ export const usePerpsTransactionHistory = ({
   // Subscribe to live WebSocket fills for instant trade updates
   // This ensures new trades appear immediately without waiting for REST refetch
   const { fills: liveFills } = usePerpsLiveFills({ throttleMs: 0 });
+
+  // Wallet perps deposits (TransactionType.perpsDeposit / perpsDepositAndOrder) for the Deposits tab
+  const walletTransactions = useSelector(selectNonReplacedTransactions);
+  const selectedAddress = useSelector(
+    selectSelectedInternalAccountFormattedAddress,
+  );
+  const walletDepositTransactions = useMemo(() => {
+    const filtered = walletTransactions.filter(
+      (tx) =>
+        selectedAddress &&
+        areAddressesEqual(tx.txParams?.from ?? '', selectedAddress) &&
+        (tx.type === TransactionType.perpsDeposit ||
+          tx.type === TransactionType.perpsDepositAndOrder),
+    );
+    return transformWalletPerpsDepositsToTransactions(filtered);
+  }, [walletTransactions, selectedAddress]);
 
   // Store userHistory in ref to avoid recreating fetchAllTransactions callback
   const userHistoryRef = useRef(userHistory);
@@ -225,6 +247,11 @@ export const usePerpsTransactionHistory = ({
     const nonTradeTransactions = transactions.filter(
       (tx) => tx.type !== 'trade',
     );
+    // Include wallet perps deposits (perpsDeposit + perpsDepositAndOrder) in Deposits tab
+    const nonTradeIncludingWalletDeposits = [
+      ...nonTradeTransactions,
+      ...walletDepositTransactions,
+    ];
 
     // Merge trades using asset+timestamp(seconds) as dedup key
     // Use seconds-truncated timestamp to handle cases where REST and WebSocket
@@ -246,15 +273,15 @@ export const usePerpsTransactionHistory = ({
       tradeMap.set(dedupKey, tx);
     }
 
-    // Combine deduplicated trades with non-trade transactions
+    // Combine deduplicated trades with non-trade transactions (including wallet deposits)
     const allTransactions = [
       ...Array.from(tradeMap.values()),
-      ...nonTradeTransactions,
+      ...nonTradeIncludingWalletDeposits,
     ];
 
     // Sort by timestamp descending
     return allTransactions.sort((a, b) => b.timestamp - a.timestamp);
-  }, [liveFills, transactions]);
+  }, [liveFills, transactions, walletDepositTransactions]);
 
   return {
     transactions: mergedTransactions,
