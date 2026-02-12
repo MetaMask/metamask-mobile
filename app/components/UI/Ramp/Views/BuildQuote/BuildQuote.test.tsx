@@ -5,6 +5,8 @@ import { ThemeContext, mockTheme } from '../../../../../util/theme';
 import type { RampsToken } from '../../hooks/useRampTokens';
 import type { CaipChainId } from '@metamask/utils';
 
+const mockUseEffect = jest.requireActual('react').useEffect;
+
 const mockNavigate = jest.fn();
 const mockSetOptions = jest.fn();
 const mockGoBack = jest.fn();
@@ -49,7 +51,7 @@ jest.mock('@react-navigation/native', () => ({
     },
   }),
   useFocusEffect: (callback: () => void) => {
-    React.useEffect(() => callback(), [callback]);
+    mockUseEffect(() => callback(), [callback]);
   },
 }));
 
