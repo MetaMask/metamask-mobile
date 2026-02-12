@@ -179,6 +179,10 @@ enum EVENT_NAME {
   SETTINGS_VIEWED = 'Settings Viewed',
   SETTINGS_UPDATED = 'Settings Updated',
   CURRENCY_CHANGED = 'Selected Currency Changed',
+  SETTINGS_ABOUT = 'About MetaMask',
+  NAVIGATION_TAPS_GET_HELP = 'Get Help',
+  NAVIGATION_TAPS_SEND_FEEDBACK = 'Send Feedback',
+  NAVIGATION_TAPS_LOGOUT = 'Logout',
 
   // Reveal SRP
   REVEAL_SRP_CTA = 'Clicks Reveal Secret Recovery Phrase',
