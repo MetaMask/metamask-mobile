@@ -136,7 +136,7 @@ fireEvent.press(closeButton);
 | `@metamask/design-system-react-native` | ✅ All components support `testID` prop AND child prop objects |
 | `app/component-library/*`              | ✅ All components support `testID` prop AND child prop objects |
 
-**If you need to add a testID to one of these components, check for child prop objects first.** Most components support this functionality. If not available, consider adjusting the component to support it.
+**If you need to add a testID to one of these components, check for child prop objects first.** Most components support this functionality. If not available, suggest adjusting the component to support it in another change set.
 
 ### How to Find Child Prop Objects
 
