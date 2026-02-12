@@ -190,7 +190,9 @@ function useTokenBalance(tokenUsdRate: number) {
     payToken?.balanceUsd ?? 0,
   ).toNumber();
 
-  const { data: predictBalanceHuman = 0 } = usePredictBalance();
+  const { balance: predictBalanceHuman } = usePredictBalance({
+    loadOnMount: true,
+  });
 
   const predictBalanceUsd = new BigNumber(predictBalanceHuman ?? '0')
     .multipliedBy(tokenUsdRate)

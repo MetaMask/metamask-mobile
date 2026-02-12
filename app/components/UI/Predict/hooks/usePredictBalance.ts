@@ -11,6 +11,9 @@ interface UsePredictBalanceOptions {
   providerId?: string;
   /** Whether the query is enabled (defaults to `true`). */
   enabled?: boolean;
+  // TODO: Remove once confirmations code migrates to `data` from useQuery.
+  /** @deprecated Use `enabled` instead. Accepted for backward compatibility but ignored. */
+  loadOnMount?: boolean;
 }
 
 export function usePredictBalance(options?: UsePredictBalanceOptions) {
@@ -28,8 +31,11 @@ export function usePredictBalance(options?: UsePredictBalanceOptions) {
     });
   }, [enabled, ensurePolygonNetworkExists]);
 
-  return useQuery({
+  const query = useQuery({
     ...predictQueries.balance.options({ address, providerId }),
     enabled,
   });
+
+  // TODO: Remove `balance` once confirmations code migrates to `data`.
+  return { ...query, balance: query.data ?? 0 };
 }

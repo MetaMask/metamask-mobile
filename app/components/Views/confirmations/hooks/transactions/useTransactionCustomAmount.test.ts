@@ -134,7 +134,7 @@ describe('useTransactionCustomAmount', () => {
     } as ReturnType<typeof useTransactionPayToken>);
 
     useParamsMock.mockReturnValue({});
-    usePredictBalanceMock.mockReturnValue({ data: 0 } as never);
+    usePredictBalanceMock.mockReturnValue({ balance: 0 } as never);
     useConfirmationMetricEventsMock.mockReturnValue({
       setConfirmationMetric: setConfirmationMetricMock,
     } as unknown as ReturnType<typeof useConfirmationMetricEvents>);
@@ -411,7 +411,7 @@ describe('useTransactionCustomAmount', () => {
     });
 
     it('to percentage of predict balance converted to USD', async () => {
-      usePredictBalanceMock.mockReturnValue({ data: 4321.23 } as never);
+      usePredictBalanceMock.mockReturnValue({ balance: 4321.23 } as never);
 
       const { result } = runHook({
         transactionMeta: {
@@ -427,7 +427,7 @@ describe('useTransactionCustomAmount', () => {
     });
 
     it('to total predict balance when selecting max', async () => {
-      usePredictBalanceMock.mockReturnValue({ data: 4321.23 } as never);
+      usePredictBalanceMock.mockReturnValue({ balance: 4321.23 } as never);
 
       const { result } = runHook({
         transactionMeta: {
