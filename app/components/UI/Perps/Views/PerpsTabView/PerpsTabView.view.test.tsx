@@ -9,16 +9,28 @@ import '../../../../../util/test/component-view/mocks';
 import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
+import Routes from '../../../../../constants/navigation/Routes';
 import PerpsTabView from './PerpsTabView';
 import { renderPerpsView } from '../../../../../util/test/component-view/renderers/perps';
 import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
 import type { RootState } from '../../../../../reducers';
 
-function renderView(overrides?: DeepPartial<RootState>) {
+const MARKET_LIST_ROUTE = Routes.PERPS.MARKET_LIST;
+
+function renderView(
+  options: {
+    overrides?: DeepPartial<RootState>;
+    extraRoutes?: { name: string }[];
+  } = {},
+) {
+  const { overrides, extraRoutes } = options;
   return renderPerpsView(
     PerpsTabView as unknown as React.ComponentType,
     'PerpsTabView',
-    overrides ? { overrides } : {},
+    {
+      ...(overrides ? { overrides } : {}),
+      ...(extraRoutes ? { extraRoutes } : {}),
+    },
   );
 }
 
@@ -35,17 +47,17 @@ describe('PerpsTabView', () => {
       ).resolves.toBeOnTheScreen();
     });
 
-    it("'See all perps' is present and pressable (navigates to MARKET_LIST, not perps home)", async () => {
-      renderView();
+    it("'See all perps' navigates to MARKET_LIST (regression 7.64: not perps home)", async () => {
+      renderView({ extraRoutes: [{ name: MARKET_LIST_ROUTE }] });
 
       const seeAllPerps = await screen.findByText(
         strings('perps.home.see_all_perps'),
       );
-      expect(seeAllPerps).toBeOnTheScreen();
-
       fireEvent.press(seeAllPerps);
-      // Navigation target asserted via behavior; view test avoids mocking navigation
-      expect(seeAllPerps).toBeOnTheScreen();
+
+      expect(
+        screen.getByTestId(`route-${MARKET_LIST_ROUTE}`),
+      ).toBeOnTheScreen();
     });
   });
 

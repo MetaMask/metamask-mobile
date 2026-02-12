@@ -1,6 +1,8 @@
 import '../mocks';
 import React from 'react';
-import type { DeepPartial } from '../../renderWithProvider';
+import { Text } from 'react-native';
+import { createStackNavigator } from '@react-navigation/stack';
+import renderWithProvider, { type DeepPartial } from '../../renderWithProvider';
 import type { RootState } from '../../../../reducers';
 import { renderComponentViewScreen } from '../render';
 import { initialStatePerps } from '../presets/perps';
@@ -101,25 +103,38 @@ function createTestStreamManager(
   } as unknown as PerpsStreamManager;
 }
 
+/** Extra route for navigation assertions (e.g. MARKET_LIST so "See all perps" can be verified). */
+export interface PerpsExtraRoute {
+  name: string;
+  Component?: React.ComponentType<unknown>;
+}
+
 interface RenderPerpsViewOptions {
   overrides?: DeepPartial<RootState>;
   initialParams?: Record<string, unknown>;
   /** Optional stream overrides (e.g. positions for PerpsMarketDetailsView geo-restriction test). */
   streamOverrides?: PerpsStreamOverrides;
+  /** Optional extra routes so navigation can be asserted (e.g. [{ name: Routes.PERPS.MARKET_LIST }]). */
+  extraRoutes?: PerpsExtraRoute[];
 }
+
+const DefaultRouteProbe =
+  (routeName: string): React.FC =>
+  () => <Text testID={`route-${routeName}`}>{routeName}</Text>;
 
 /**
  * Renders a Perps view with preset state. State is driven by Redux; use overrides
  * to set e.g. PerpsController.isEligible for geo-restriction tests.
  * Wraps with PerpsConnectionProvider and PerpsStreamProvider so views that use
  * usePerpsStream() (e.g. PerpsTabView, PerpsMarketListView) render without errors.
+ * When extraRoutes is provided, those routes are registered so navigation can be asserted.
  */
 export function renderPerpsView(
   Component: React.ComponentType,
   routeName: string,
   options: RenderPerpsViewOptions = {},
 ) {
-  const { overrides, initialParams, streamOverrides } = options;
+  const { overrides, initialParams, streamOverrides, extraRoutes } = options;
   const builder = initialStatePerps();
   if (overrides) {
     builder.withOverrides(overrides);
@@ -134,6 +149,27 @@ export function renderPerpsView(
       </PerpsStreamProvider>
     </PerpsConnectionContext.Provider>
   );
+
+  if (extraRoutes?.length) {
+    const Stack = createStackNavigator();
+    const stackTree = (
+      <Stack.Navigator>
+        <Stack.Screen
+          name={routeName}
+          component={WrappedComponent as unknown as React.ComponentType}
+          initialParams={initialParams}
+        />
+        {extraRoutes.map(({ name, Component: Extra }) => (
+          <Stack.Screen
+            key={name}
+            name={name}
+            component={Extra ?? DefaultRouteProbe(name)}
+          />
+        ))}
+      </Stack.Navigator>
+    );
+    return renderWithProvider(stackTree, { state });
+  }
 
   return renderComponentViewScreen(
     WrappedComponent as unknown as React.ComponentType,

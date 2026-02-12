@@ -69,7 +69,7 @@ function renderView(
 
 describe('PerpsMarketDetailsView', () => {
   describe('Bug #25315: Geo-restriction for Close and Modify actions', () => {
-    it('when user is geo-restricted (isEligible false), tapping Close shows geo block bottom sheet and does not navigate', async () => {
+    it('shows geo block bottom sheet when Close is pressed (geo-restricted user)', async () => {
       renderView();
 
       const closeButton = await screen.findByTestId(
@@ -84,7 +84,7 @@ describe('PerpsMarketDetailsView', () => {
       ).toBeOnTheScreen();
     });
 
-    it('when user is geo-restricted (isEligible false), tapping Modify shows geo block bottom sheet and does not navigate', async () => {
+    it('shows geo block bottom sheet when Modify is pressed (geo-restricted user)', async () => {
       renderView();
 
       const modifyButton = await screen.findByTestId(
