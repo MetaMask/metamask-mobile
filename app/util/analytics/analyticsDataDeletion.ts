@@ -238,7 +238,7 @@ export function updateDataRecordingFlag(saveDataRecording = true): void {
     return;
   }
   setCache({ dataRecorded: true });
-  StorageWrapper.setItem(ANALYTICS_DATA_RECORDED, 'true').catch((error) => {
+  StorageWrapper.setItem(ANALYTICS_DATA_RECORDED, 'true')?.catch((error) => {
     Logger.error(error, 'Analytics Data Record Error');
   });
 }
