@@ -94,6 +94,9 @@ import {
   ParamListBase,
 } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
+import {
+  authenticateAsync
+} from 'expo-local-authentication';
 
 interface KeyringState {
   type: string;
@@ -284,12 +287,15 @@ const ChoosePassword = () => {
     async (authType: AuthData, previous_screen: string | undefined) => {
       if (previous_screen?.toLowerCase() === ONBOARDING.toLowerCase()) {
 
-        try {
-          // Prompt user for biometrics access control
-          Platform.OS === 'ios' && await Authentication.getPassword();
-        } catch (error) {
-          if ((error as Error).message === 'User canceled the operation.') {
-            // User rejected biometrics, create wallet with password as access control
+        // Ask user to allow biometrics access control
+        if (Platform.OS === 'ios') {
+          try {
+            // Prompt user for biometrics access control
+            const result = await authenticateAsync({ disableDeviceFallback: true })
+            if (!result.success) {
+              authType.currentAuthType = AUTHENTICATION_TYPE.PASSWORD;
+            }
+          } catch (error) {
             authType.currentAuthType = AUTHENTICATION_TYPE.PASSWORD;
           }
         }
@@ -648,11 +654,11 @@ const ChoosePassword = () => {
                       >
                         {Platform.OS === 'ios' && getOauth2LoginSuccess()
                           ? strings(
-                              'choose_password.description_social_login_update_ios',
-                            )
+                            'choose_password.description_social_login_update_ios',
+                          )
                           : strings(
-                              'choose_password.description_social_login_update',
-                            )}
+                            'choose_password.description_social_login_update',
+                          )}
                         {Platform.OS === 'android' && (
                           <Text
                             variant={TextVariant.BodyMD}

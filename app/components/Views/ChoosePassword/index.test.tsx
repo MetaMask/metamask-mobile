@@ -132,6 +132,11 @@ jest.mock('../../../util/device', () => ({
   isMediumDevice: jest.fn(),
 }));
 
+const mockAuthenticateAsync = jest.fn().mockResolvedValue({ success: true });
+jest.mock('expo-local-authentication', () => ({
+  authenticateAsync: (...args: unknown[]) => mockAuthenticateAsync(...args),
+}));
+
 jest.mock('react-native/Libraries/Alert/Alert', () => ({
   alert: jest.fn(),
 }));
@@ -807,6 +812,145 @@ describe('ChoosePassword', () => {
     mockNewWalletAndKeychain.mockRestore();
   });
 
+  it('on iOS onboarding, when biometrics are declined uses PASSWORD auth type for new wallet', async () => {
+    const originalOS = Platform.OS;
+    (Platform as { OS: string }).OS = 'ios';
+    mockAuthenticateAsync.mockResolvedValueOnce({ success: false });
+
+    mockRoute.params = {
+      ...mockRoute.params,
+      [PREVIOUS_SCREEN]: ONBOARDING,
+    };
+
+    const mockNewWalletAndKeychain = jest.spyOn(
+      Authentication,
+      'newWalletAndKeychain',
+    );
+    mockNewWalletAndKeychain.mockImplementation(
+      (_: string, authType: { currentAuthType: string }) => {
+        expect(authType.currentAuthType).toBe(AUTHENTICATION_TYPE.PASSWORD);
+        return Promise.resolve();
+      },
+    );
+
+    const component = renderWithProviders(<ChoosePassword />);
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    });
+
+    const passwordInput = component.getByTestId(
+      ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+    );
+    const confirmInput = component.getByTestId(
+      ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+    );
+    const checkbox = component.getByTestId(
+      ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
+    );
+    const submitButton = component.getByTestId(
+      ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+    );
+
+    await act(async () => {
+      fireEvent.changeText(passwordInput, 'StrongPassword123!@#');
+      fireEvent.changeText(confirmInput, 'StrongPassword123!@#');
+    });
+    await act(async () => {
+      fireEvent.press(checkbox);
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    });
+    await act(async () => {
+      fireEvent.press(submitButton);
+    });
+
+    await waitFor(() => {
+      expect(mockAuthenticateAsync).toHaveBeenCalledWith({
+        disableDeviceFallback: true,
+      });
+      expect(mockNewWalletAndKeychain).toHaveBeenCalled();
+    });
+
+    (Platform as { OS: string }).OS = originalOS;
+    mockNewWalletAndKeychain.mockRestore();
+  });
+
+  it('on iOS onboarding, when biometrics succeed uses chosen auth type (biometric) for new wallet', async () => {
+    const originalOS = Platform.OS;
+    (Platform as { OS: string }).OS = 'ios';
+    mockAuthenticateAsync.mockResolvedValueOnce({ success: true });
+
+    mockRoute.params = {
+      ...mockRoute.params,
+      [PREVIOUS_SCREEN]: ONBOARDING,
+    };
+
+    const mockComponentAuthenticationType = jest.spyOn(
+      Authentication,
+      'componentAuthenticationType',
+    );
+    mockComponentAuthenticationType.mockResolvedValueOnce({
+      currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
+      availableBiometryType: BIOMETRY_TYPE.FACE_ID,
+    });
+
+    const mockNewWalletAndKeychain = jest.spyOn(
+      Authentication,
+      'newWalletAndKeychain',
+    );
+    mockNewWalletAndKeychain.mockImplementation(
+      (_: string, authType: { currentAuthType: string }) => {
+        expect(authType.currentAuthType).toBe(AUTHENTICATION_TYPE.BIOMETRIC);
+        return Promise.resolve();
+      },
+    );
+
+    const component = renderWithProviders(<ChoosePassword />);
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    });
+
+    const passwordInput = component.getByTestId(
+      ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+    );
+    const confirmInput = component.getByTestId(
+      ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+    );
+    const checkbox = component.getByTestId(
+      ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
+    );
+    const submitButton = component.getByTestId(
+      ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+    );
+
+    await act(async () => {
+      fireEvent.changeText(passwordInput, 'StrongPassword123!@#');
+      fireEvent.changeText(confirmInput, 'StrongPassword123!@#');
+    });
+    await act(async () => {
+      fireEvent.press(checkbox);
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    });
+    await act(async () => {
+      fireEvent.press(submitButton);
+    });
+
+    await waitFor(() => {
+      expect(mockAuthenticateAsync).toHaveBeenCalledWith({
+        disableDeviceFallback: true,
+      });
+      expect(mockNewWalletAndKeychain).toHaveBeenCalled();
+    });
+
+    (Platform as { OS: string }).OS = originalOS;
+    mockNewWalletAndKeychain.mockRestore();
+    mockComponentAuthenticationType.mockRestore();
+    // Re-establish default so later tests (e.g. OAuth) get a valid authType object
+    (Authentication.componentAuthenticationType as jest.Mock).mockResolvedValue({
+      currentAuthType: 'passcode',
+      availableBiometryType: 'faceID',
+    });
+  });
+
   it('confirm password input is cleared when password input is cleared', async () => {
     mockRoute.params = { [ONBOARDING]: true };
 
@@ -1004,10 +1148,14 @@ describe('ChoosePassword', () => {
     });
 
     jest.spyOn(Device, 'isIos').mockRestore();
-    mockComponentAuthenticationType.mockClear();
+    mockComponentAuthenticationType.mockRestore();
   });
 
   it('should navigate to success screen when oauth2Login is true and metrics enabled', async () => {
+    (Authentication.componentAuthenticationType as jest.Mock).mockResolvedValue({
+      currentAuthType: 'biometrics',
+      availableBiometryType: 'faceID',
+    });
     const mockNewWalletAndKeychain = jest.spyOn(
       Authentication,
       'newWalletAndKeychain',
@@ -1074,6 +1222,10 @@ describe('ChoosePassword', () => {
   });
 
   it('should navigate to success screen when oauth2Login is true', async () => {
+    (Authentication.componentAuthenticationType as jest.Mock).mockResolvedValue({
+      currentAuthType: 'biometrics',
+      availableBiometryType: 'faceID',
+    });
     const mockNewWalletAndKeychain = jest.spyOn(
       Authentication,
       'newWalletAndKeychain',
@@ -1168,6 +1320,10 @@ describe('ChoosePassword', () => {
 
   describe('ErrorBoundary Tests', () => {
     it('should not trigger ErrorBoundary for OAuth password creation failures when analytics enabled', async () => {
+      (Authentication.componentAuthenticationType as jest.Mock).mockResolvedValue({
+        currentAuthType: 'biometrics',
+        availableBiometryType: 'faceID',
+      });
       mockMetricsIsEnabled.mockReturnValue(true);
       mockCaptureException.mockClear();
 
@@ -1391,6 +1547,10 @@ describe('ChoosePassword', () => {
     });
 
     it('should call updateMarketingOptInStatus API when OAuth user creates password with marketing opt-in enabled', async () => {
+      (Authentication.componentAuthenticationType as jest.Mock).mockResolvedValue({
+        currentAuthType: 'biometrics',
+        availableBiometryType: 'faceID',
+      });
       const mockNewWalletAndKeychain = jest.spyOn(
         Authentication,
         'newWalletAndKeychain',
