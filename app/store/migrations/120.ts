@@ -7,7 +7,7 @@ import {
   TRUE,
 } from '../../constants/storage';
 
-export const migrationVersion = 119;
+export const migrationVersion = 120;
 
 interface MigrationState {
   security: {
@@ -17,7 +17,7 @@ interface MigrationState {
 }
 
 /**
- * Migration 119: Derive osAuthEnabled from existing auth preferences
+ * Migration 120: Derive osAuthEnabled from existing auth preferences
  *
  * @param state - The persisted Redux state
  * @returns The migrated Redux state

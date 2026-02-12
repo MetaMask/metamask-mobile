@@ -1,7 +1,7 @@
 import { captureException } from '@sentry/react-native';
 import { ensureValidState } from './util';
 import StorageWrapper from '../storage-wrapper';
-import migrate, { migrationVersion } from './119';
+import migrate, { migrationVersion } from './120';
 import {
   BIOMETRY_CHOICE_DISABLED,
   PASSCODE_DISABLED,
