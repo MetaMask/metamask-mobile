@@ -94,9 +94,6 @@ import {
   ParamListBase,
 } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import {
-  authenticateAsync
-} from 'expo-local-authentication';
 
 interface KeyringState {
   type: string;
