@@ -39,7 +39,7 @@ export const usePerpsOrderDepositTracking = () => {
             isBold: true,
           },
         ],
-        hasNoTimeout: true,
+        hasNoTimeout: false,
       });
     },
     [showToast, PerpsToastOptions],

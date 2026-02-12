@@ -39,6 +39,11 @@ jest.mock('../../Perps/components/PerpsBottomSheetTooltip', () => ({
   default: (...args: unknown[]) => mockPerpsBottomSheetTooltipInner(...args),
 }));
 
+jest.mock('../../../../selectors/featureFlagController/tokenDetailsV2', () => ({
+  selectTokenDetailsV2Enabled: jest.fn(() => true),
+  selectTokenDetailsV2ButtonsEnabled: jest.fn(() => true),
+}));
+
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
   return {
@@ -63,9 +68,7 @@ function createState(isEligible: boolean) {
         RemoteFeatureFlagController: {
           ...(backgroundState as { RemoteFeatureFlagController?: object })
             .RemoteFeatureFlagController,
-          remoteFeatureFlags: {
-            tokenDetailsV2Buttons: true,
-          },
+          remoteFeatureFlags: {},
         },
         AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
       },

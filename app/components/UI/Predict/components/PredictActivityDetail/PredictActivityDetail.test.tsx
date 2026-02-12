@@ -3,11 +3,13 @@ import { render, screen, fireEvent } from '@testing-library/react-native';
 import PredictActivityDetail from './PredictActivityDetail';
 import Routes from '../../../../../constants/navigation/Routes';
 import { PredictActivityType, type PredictActivityItem } from '../../types';
+import { useSelector } from 'react-redux';
 import {
   formatPositionSize,
   formatPrice,
   formatCurrencyValue,
 } from '../../utils/format';
+import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
@@ -54,6 +56,11 @@ jest.mock('../../../../../core/Engine', () => ({
   },
 }));
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+}));
+
 const createActivityItem = (
   overrides?: Partial<PredictActivityItem>,
 ): PredictActivityItem => {
@@ -80,8 +87,18 @@ const createActivityItem = (
 };
 
 describe('PredictActivityDetail', () => {
+  const mockUseSelector = useSelector as jest.MockedFunction<
+    typeof useSelector
+  >;
+
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectPrivacyMode) {
+        return false;
+      }
+      return undefined;
+    });
   });
 
   describe('BUY activity', () => {
@@ -291,6 +308,81 @@ describe('PredictActivityDetail', () => {
 
       expect(screen.queryByText('Predicted amount')).toBeNull();
       expect(screen.queryByText('Price impact')).toBeNull();
+    });
+
+    it('hides monetary values when privacy mode is enabled', () => {
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectPrivacyMode) {
+          return true;
+        }
+        return undefined;
+      });
+
+      const activity = createActivityItem({
+        type: PredictActivityType.SELL,
+        amountUsd: 50,
+        netPnlUsd: -10,
+        entry: {
+          type: 'sell',
+          timestamp: 0,
+          marketId: 'm',
+          outcomeId: 'o',
+          outcomeTokenId: 0,
+          amount: 50,
+          price: 0.5,
+        },
+      });
+      mockUseRoute.mockReturnValue({ params: { activity } });
+
+      const sellEntry = activity.entry as Extract<
+        PredictActivityItem['entry'],
+        { type: 'sell' }
+      >;
+      const expectedAmount = formatCurrencyValue(activity.amountUsd) as string;
+      const expectedShares = formatPositionSize(
+        sellEntry.amount / sellEntry.price,
+      );
+      const expectedPrice = formatPrice(sellEntry.price, {
+        minimumDecimals: 4,
+        maximumDecimals: 4,
+      });
+
+      render(<PredictActivityDetail />);
+
+      expect(screen.queryByText(expectedAmount)).toBeNull();
+      expect(screen.queryByText(expectedShares)).toBeNull();
+      expect(screen.queryByText(expectedPrice)).toBeNull();
+      expect(screen.queryByText('-$10.00')).toBeNull();
+      expect(screen.getAllByText('•••••••••').length).toBeGreaterThanOrEqual(4);
+    });
+  });
+
+  describe('privacy mode', () => {
+    it('hides predicted amount row for buy activity when privacy mode is enabled', () => {
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectPrivacyMode) {
+          return true;
+        }
+        return undefined;
+      });
+
+      const activity = createActivityItem({
+        type: PredictActivityType.BUY,
+      });
+      mockUseRoute.mockReturnValue({ params: { activity } });
+
+      const buyEntry = activity.entry as Extract<
+        PredictActivityItem['entry'],
+        { type: 'buy' }
+      >;
+      const expectedAmount = formatCurrencyValue(buyEntry.amount, {
+        showSign: false,
+      }) as string;
+
+      render(<PredictActivityDetail />);
+
+      expect(screen.queryByText(expectedAmount)).toBeNull();
+      expect(screen.getAllByText('•••••••••').length).toBeGreaterThanOrEqual(1);
     });
   });
 

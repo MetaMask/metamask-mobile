@@ -3,6 +3,7 @@ import { View, StyleSheet, ActivityIndicator } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { selectTokenDetailsV2Enabled } from '../../../../selectors/featureFlagController/tokenDetailsV2';
+import { selectTokenListLayoutV2Enabled } from '../../../../selectors/featureFlagController/tokenListLayout';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
@@ -314,10 +315,14 @@ const TokenDetails: React.FC<{ token: TokenDetailsRouteParams }> = ({
 
 /**
  * Fires TOKEN_DETAILS_OPENED for both V2 and legacy Asset view.
+ * Includes ab_tests property when navigating from the token list and the
+ * token list layout A/B test is active.
  */
 const useTokenDetailsOpenedTracking = (params: TokenDetailsRouteParams) => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { variantName, isTestActive } = useTokenDetailsABTest();
+  const isTokenListV2 = useSelector(selectTokenListLayoutV2Enabled);
+
   useEffect(() => {
     const source = params.source ?? TokenDetailsSource.Unknown;
     const hasBalance =
@@ -325,6 +330,10 @@ const useTokenDetailsOpenedTracking = (params: TokenDetailsRouteParams) => {
       params.balance !== null &&
       params.balance !== '0' &&
       params.balance !== '';
+
+    const isFromTokenList =
+      source === TokenDetailsSource.MobileTokenList ||
+      source === TokenDetailsSource.MobileTokenListPage;
 
     const eventProperties = {
       source,
@@ -335,7 +344,12 @@ const useTokenDetailsOpenedTracking = (params: TokenDetailsRouteParams) => {
       has_balance: hasBalance,
       // A/B test attribution
       ...(isTestActive && {
-        ab_tests: { token_details_layout: variantName },
+        ab_tests: {
+          token_details_layout: variantName,
+          ...(isFromTokenList && {
+            token_list_layout: isTokenListV2 ? 'v2' : 'v1',
+          }),
+        },
       }),
     };
 
