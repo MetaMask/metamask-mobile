@@ -107,6 +107,7 @@ export type PredictSeries = {
 
 export type PredictCategory =
   | 'trending'
+  | 'ending-soon'
   | 'new'
   | 'sports'
   | 'crypto'

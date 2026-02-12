@@ -7470,7 +7470,7 @@
       "claim_label": "Nhận",
       "claimed_label": "Đã nhận",
       "reward_claimed": "Phần thưởng đã nhận",
-      "time_left": "còn lại",
+      "time_left": "còn {{time}}",
       "expired": "Đã hết hạn"
     },
     "end_of_season_rewards": {

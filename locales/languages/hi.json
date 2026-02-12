@@ -7470,7 +7470,7 @@
       "claim_label": "क्लेम करें",
       "claimed_label": "क्लेम किया गया",
       "reward_claimed": "रिवॉर्ड क्लेम किया गया",
-      "time_left": "बचा है",
+      "time_left": "{{time}} बचा है",
       "expired": "एक्सपायर हो गया"
     },
     "end_of_season_rewards": {

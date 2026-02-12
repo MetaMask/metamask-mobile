@@ -1,6 +1,6 @@
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { useNavigation } from '@react-navigation/native';
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import { StyleSheet, TouchableOpacity } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Badge, {
@@ -38,8 +38,14 @@ import {
   PERPS_BALANCE_PLACEHOLDER_ADDRESS,
 } from '../../constants/perpsConfig';
 import { PERPS_BALANCE_ICON_URI } from '../../hooks/usePerpsBalanceTokenFilter';
-import { useIsPerpsBalanceSelected } from '../../hooks/useIsPerpsBalanceSelected';
+import {
+  useIsPerpsBalanceSelected,
+  usePerpsPayWithToken,
+} from '../../hooks/useIsPerpsBalanceSelected';
 import { Hex } from '@metamask/utils';
+import { usePerpsSelector } from '../../hooks/usePerpsSelector';
+import { selectPendingTradeConfiguration } from '@metamask/perps-controller';
+import Engine from '../../../../../core/Engine';
 
 const tokenIconStyles = StyleSheet.create({
   iconSmall: {
@@ -84,19 +90,62 @@ export interface PerpsPayRowProps {
   onPayWithInfoPress?: () => void;
   /** When true, row is stacked below another box (e.g. TP/SL); parent provides background and border radius */
   embeddedInStack?: boolean;
+  initialAsset: string;
 }
 
 export const PerpsPayRow = ({
   onPayWithInfoPress,
   embeddedInStack = false,
+  initialAsset,
 }: PerpsPayRowProps) => {
   const navigation = useNavigation();
   const { colors } = useTheme();
   const styles = createPayRowStyles(colors);
   const { setConfirmationMetric } = useConfirmationMetricEvents();
-  const { payToken } = useTransactionPayToken();
+  const { payToken, setPayToken } = useTransactionPayToken();
   const transactionMeta = useTransactionMetadataRequest();
   const matchesPerpsBalance = useIsPerpsBalanceSelected();
+  const pendingConfig = usePerpsSelector((state) =>
+    selectPendingTradeConfiguration(state, initialAsset),
+  );
+  const selectedPaymentToken = usePerpsPayWithToken();
+
+  const pendingConfigSelectedPaymentToken = pendingConfig?.selectedPaymentToken;
+
+  useEffect(() => {
+    if (!pendingConfigSelectedPaymentToken) {
+      Engine.context.PerpsController?.setSelectedPaymentToken?.(null);
+    }
+  }, [pendingConfigSelectedPaymentToken]);
+
+  useEffect(() => {
+    if (!pendingConfigSelectedPaymentToken || !selectedPaymentToken) {
+      return;
+    }
+
+    if (
+      payToken?.address !== pendingConfigSelectedPaymentToken?.address ||
+      payToken?.chainId !== pendingConfigSelectedPaymentToken?.chainId
+    ) {
+      setPayToken({
+        address: pendingConfigSelectedPaymentToken.address as Hex,
+        chainId: pendingConfigSelectedPaymentToken.chainId as Hex,
+      });
+
+      Engine.context.PerpsController?.setSelectedPaymentToken?.({
+        description: pendingConfigSelectedPaymentToken.description,
+        address: pendingConfigSelectedPaymentToken.address as Hex,
+        chainId: pendingConfigSelectedPaymentToken.chainId as Hex,
+      });
+    }
+  }, [
+    payToken,
+    pendingConfigSelectedPaymentToken,
+    setPayToken,
+    pendingConfig,
+    initialAsset,
+    selectedPaymentToken,
+  ]);
 
   const {
     txParams: { from },

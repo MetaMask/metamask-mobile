@@ -46,7 +46,6 @@ export const TRANSFER_TRANSACTION_TYPES = [
 ];
 
 export const FULL_SCREEN_CONFIRMATIONS = [
-  TransactionType.musdClaim,
   TransactionType.musdConversion,
   TransactionType.perpsDeposit,
   TransactionType.perpsDepositAndOrder,

@@ -14,8 +14,10 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
-import type { PerpsMarketData } from '../../controllers/types';
-import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
+import {
+  getPerpsDisplaySymbol,
+  type PerpsMarketData,
+} from '@metamask/perps-controller';
 import LivePriceHeader from '../LivePriceDisplay/LivePriceHeader';
 import PerpsTokenLogo from '../PerpsTokenLogo';
 import { styleSheet } from './PerpsMarketHeader.styles';

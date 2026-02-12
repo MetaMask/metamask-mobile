@@ -3,13 +3,13 @@
  * Provides reusable mock implementations for ServiceContext and related types
  */
 
-import type { ServiceContext } from '../controllers/services/ServiceContext';
-import type {
-  PerpsControllerState,
-  InitializationState,
-  PerpsControllerMessenger,
-} from '../controllers/PerpsController';
-import type { PerpsPlatformDependencies } from '../controllers/types';
+import {
+  type ServiceContext,
+  type PerpsControllerState,
+  type InitializationState,
+  type PerpsControllerMessenger,
+  type PerpsPlatformDependencies,
+} from '@metamask/perps-controller';
 
 /**
  * Create a mock PerpsPlatformDependencies instance.
@@ -56,6 +56,19 @@ export const createMockInfrastructure =
       // === Rewards (no standard messenger action in core) ===
       rewards: {
         getFeeDiscount: jest.fn().mockResolvedValue(0),
+      },
+
+      // === Feature Flags (platform-specific version gating) ===
+      featureFlags: {
+        validateVersionGated: jest.fn().mockReturnValue(undefined),
+      },
+
+      // === Market Data Formatting ===
+      marketDataFormatters: {
+        formatVolume: jest.fn((v: number) => `$${v.toFixed(0)}`),
+        formatPerpsFiat: jest.fn((v: number) => `$${v.toFixed(2)}`),
+        formatPercentage: jest.fn((p: number) => `${p.toFixed(2)}%`),
+        priceRangesUniversal: [],
       },
 
       // === Cache Invalidation ===
@@ -182,6 +195,9 @@ export const createMockMessenger = (
         action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
       ) {
         return [mockEvmAccount];
+      }
+      if (action === 'KeyringController:getState') {
+        return { isUnlocked: true };
       }
       if (action === 'KeyringController:signTypedMessage') {
         return Promise.resolve('0xSignatureResult');

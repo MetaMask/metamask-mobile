@@ -325,10 +325,6 @@ const EndOfSeasonClaimBottomSheet = ({
           onChangeText={handleEmailChange}
           value={email}
           isError={emailValidationError}
-          style={tw.style(
-            'bg-background-pressed',
-            emailValidationError && 'border-error-default',
-          )}
           keyboardType="email-address"
           autoCapitalize="none"
           isDisabled={isClaimingReward}
@@ -362,7 +358,6 @@ const EndOfSeasonClaimBottomSheet = ({
           placeholder={strings('rewards.metal_card_claim.telegram_placeholder')}
           onChangeText={setTelegram}
           value={telegram}
-          style={tw.style('bg-background-pressed')}
           autoCapitalize="none"
           isDisabled={isClaimingReward}
           testID={REWARDS_VIEW_SELECTORS.CLAIM_MODAL_TELEGRAM_INPUT}

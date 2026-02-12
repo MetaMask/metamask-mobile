@@ -44,6 +44,8 @@ import {
   formatPositionSize,
   formatPrice,
 } from '../../utils/format';
+import PredictOrderRetrySheet from '../../components/PredictOrderRetrySheet';
+import { usePredictOrderRetry } from '../../hooks/usePredictOrderRetry';
 import styleSheet from './PredictSellPreview.styles';
 
 const PredictSellPreview = () => {
@@ -97,6 +99,8 @@ const PredictSellPreview = () => {
     isLoading,
     result,
     error: placeOrderError,
+    isOrderNotFilled,
+    resetOrderNotFilled,
   } = usePredictPlaceOrder();
 
   const {
@@ -114,6 +118,20 @@ const PredictSellPreview = () => {
     autoRefreshTimeout: 1000,
   });
 
+  const {
+    retrySheetRef,
+    retrySheetVariant,
+    isRetrying,
+    handleRetryWithBestPrice,
+  } = usePredictOrderRetry({
+    preview,
+    placeOrder,
+    providerId: position.providerId,
+    analyticsProperties,
+    isOrderNotFilled,
+    resetOrderNotFilled,
+  });
+
   // Track screen load performance (position data + preview)
   usePredictMeasurement({
     traceName: TraceName.PredictSellPreviewView,
@@ -124,6 +142,10 @@ const PredictSellPreview = () => {
       hasPreview: !!preview,
     },
   });
+
+  const errorMessage = isOrderNotFilled
+    ? undefined
+    : (previewError ?? placeOrderError);
 
   // Track Predict Trade Transaction with initiated status when screen mounts
   useEffect(() => {
@@ -302,22 +324,13 @@ const PredictSellPreview = () => {
           )}
         </View>
         <View style={styles.bottomContainer}>
-          {placeOrderError && (
+          {errorMessage && (
             <Text
               variant={TextVariant.BodySm}
               color={TextColor.ErrorDefault}
               style={tw.style('text-center')}
             >
-              {placeOrderError}
-            </Text>
-          )}
-          {previewError && (
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.ErrorDefault}
-              style={tw.style('text-center')}
-            >
-              {previewError}
+              {errorMessage}
             </Text>
           )}
           <Box twClassName="flex-row items-center gap-4">
@@ -356,6 +369,15 @@ const PredictSellPreview = () => {
           </View>
         </View>
       </View>
+      <PredictOrderRetrySheet
+        ref={retrySheetRef}
+        variant={retrySheetVariant}
+        sharePrice={preview?.sharePrice ?? position?.price ?? 0}
+        side={Side.SELL}
+        onRetry={handleRetryWithBestPrice}
+        onDismiss={resetOrderNotFilled}
+        isRetrying={isRetrying}
+      />
     </SafeAreaView>
   );
 };

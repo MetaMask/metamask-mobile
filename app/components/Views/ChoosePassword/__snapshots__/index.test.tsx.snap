@@ -203,7 +203,7 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                   onChangeText={[Function]}
                   onFocus={[Function]}
                   onSubmitEditing={[Function]}
-                  placeholderTextColor="#b7bbc8"
+                  placeholderTextColor="#686e7d"
                   returnKeyType="next"
                   secureTextEntry={true}
                   style={
@@ -218,7 +218,6 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                       "height": 46,
                       "letterSpacing": 0,
                       "opacity": 1,
-                      "paddingVertical": 2,
                       "textAlignVertical": "center",
                     }
                   }
@@ -359,7 +358,7 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                   onChangeText={[Function]}
                   onFocus={[Function]}
                   onSubmitEditing={[Function]}
-                  placeholderTextColor="#b7bbc8"
+                  placeholderTextColor="#686e7d"
                   returnKeyType="done"
                   secureTextEntry={true}
                   style={
@@ -374,7 +373,6 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                       "height": 46,
                       "letterSpacing": 0,
                       "opacity": 1,
-                      "paddingVertical": 2,
                       "textAlignVertical": "center",
                     }
                   }

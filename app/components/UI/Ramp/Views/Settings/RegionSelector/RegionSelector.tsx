@@ -656,7 +656,6 @@ function RegionSelector() {
         )}
         <TextFieldSearch
           value={searchString}
-          showClearButton={searchString.length > 0}
           onPressClearButton={clearSearchText}
           clearButtonProps={{
             iconName: IconName.Close,

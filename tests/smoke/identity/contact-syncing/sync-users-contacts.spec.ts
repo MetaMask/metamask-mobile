@@ -2,17 +2,17 @@
 // eslint-disable-next-line no-restricted-syntax
 import { loginToApp } from '../../../flows/wallet.flow';
 import TestHelpers from '../../../helpers';
-import TabBarComponent from '../../../page-objects/wallet/TabBarComponent';
 import { SmokeIdentity } from '../../../tags';
 import ContactsView from '../../../page-objects/Settings/Contacts/ContactsView';
 import AddContactView from '../../../page-objects/Settings/Contacts/AddContactView';
-import SettingsView from '../../../page-objects/Settings/SettingsView';
 import Assertions from '../../../framework/Assertions';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
 import { arrangeTestUtils } from '../utils/helpers';
 import { withIdentityFixtures } from '../utils/withIdentityFixtures';
 import { UserStorageMockttpController } from '../utils/user-storage/userStorageMockttpController';
 import { createUserStorageController } from '../utils/mocks';
+import WalletView from '../../../page-objects/wallet/WalletView';
+import AccountMenu from '../../../page-objects/AccountMenu/AccountMenu';
 
 describe(SmokeIdentity('Contact syncing - syncs new contacts'), () => {
   const NEW_CONTACT_NAME = 'New Test Contact';
@@ -36,11 +36,10 @@ describe(SmokeIdentity('Contact syncing - syncs new contacts'), () => {
       async ({ userStorageMockttpController }) => {
         await loginToApp();
 
-        await TabBarComponent.tapSettings();
-        await Assertions.expectElementToBeVisible(
-          SettingsView.contactsSettingsButton,
-        );
-        await SettingsView.tapContacts();
+        await WalletView.tapHamburgerMenu();
+        await Assertions.expectElementToBeVisible(AccountMenu.contactsButton);
+
+        await AccountMenu.tapContacts();
         await Assertions.expectElementToBeVisible(ContactsView.container);
         await ContactsView.tapAddContactButton();
         await Assertions.expectElementToBeVisible(AddContactView.container);
@@ -74,11 +73,9 @@ describe(SmokeIdentity('Contact syncing - syncs new contacts'), () => {
       async () => {
         await loginToApp();
 
-        await TabBarComponent.tapSettings();
-        await Assertions.expectElementToBeVisible(
-          SettingsView.contactsSettingsButton,
-        );
-        await SettingsView.tapContacts();
+        await WalletView.tapHamburgerMenu();
+        await Assertions.expectElementToBeVisible(AccountMenu.contactsButton);
+        await AccountMenu.tapContacts();
         await Assertions.expectElementToBeVisible(ContactsView.container);
 
         await ContactsView.expectContactIsVisible(NEW_CONTACT_NAME);

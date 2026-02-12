@@ -7470,7 +7470,7 @@
       "claim_label": "Εξαργύρωση",
       "claimed_label": "Διεκδικήθηκε",
       "reward_claimed": "Η ανταμοιβή εξαργυρώθηκε",
-      "time_left": "απομένει",
+      "time_left": "απομένει {{time}}",
       "expired": "Έληξε"
     },
     "end_of_season_rewards": {

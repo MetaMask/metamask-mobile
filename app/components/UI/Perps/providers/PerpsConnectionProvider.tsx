@@ -11,10 +11,12 @@ import PerpsLoadingSkeleton from '../components/PerpsLoadingSkeleton';
 import { usePerpsConnectionLifecycle } from '../hooks/usePerpsConnectionLifecycle';
 import { isE2E } from '../../../../util/test/utils';
 import PerpsConnectionErrorView from '../components/PerpsConnectionErrorView';
-import type { ReconnectOptions } from '../types/perps-types';
+import {
+  PERPS_CONSTANTS,
+  type ReconnectOptions,
+} from '@metamask/perps-controller';
 import Logger from '../../../../util/Logger';
 import { ensureError } from '../../../../util/errorUtils';
-import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 
 export interface PerpsConnectionContextValue {
   isConnected: boolean;
@@ -270,10 +272,16 @@ export const PerpsConnectionProvider: React.FC<
         setRetryAttempts(0);
       } catch (err) {
         // Keep retry attempts count for showing back button after failed attempts
-        Logger.error(ensureError(err), {
-          feature: PERPS_CONSTANTS.FeatureName,
-          message: `Retry connection failed (attempt ${retryAttempts})`,
-        });
+        Logger.error(
+          ensureError(err, 'PerpsConnectionProvider.initializePerps'),
+          {
+            tags: { feature: PERPS_CONSTANTS.FeatureName },
+            context: {
+              name: 'PerpsConnectionProvider.initializePerps',
+              data: { retryAttempts },
+            },
+          },
+        );
       }
 
       // Force update to get the latest error state

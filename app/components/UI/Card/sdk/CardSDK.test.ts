@@ -619,18 +619,6 @@ describe('CardSDK', () => {
   });
 
   describe('getGeoLocation', () => {
-    const originalNodeEnv = process.env.NODE_ENV;
-
-    afterEach(() => {
-      // Restore original NODE_ENV
-      if (originalNodeEnv === undefined) {
-        delete (process.env as { NODE_ENV?: string }).NODE_ENV;
-      } else {
-        (process.env as { NODE_ENV?: string }).NODE_ENV = originalNodeEnv;
-      }
-      jest.clearAllMocks();
-    });
-
     it('returns UNKNOWN when API call fails', async () => {
       const error = new Error('Network error');
       (global.fetch as jest.Mock).mockRejectedValueOnce(error);

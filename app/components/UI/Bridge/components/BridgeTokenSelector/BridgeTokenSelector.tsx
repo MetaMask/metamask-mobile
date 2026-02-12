@@ -42,7 +42,7 @@ import {
 import { useAssetFromTheme } from '../../../../../util/theme';
 import NoSearchResultsLight from '../../../../../images/predictions-no-search-results-light.svg';
 import NoSearchResultsDark from '../../../../../images/predictions-no-search-results-dark.svg';
-import { SkeletonItem } from '../BridgeTokenSelectorBase';
+import { SkeletonItem } from '../SkeletonItem';
 import { TabEmptyState } from '../../../../../component-library/components-temp/TabEmptyState';
 import { TokenSelectorItem } from '../TokenSelectorItem';
 import { getNetworkImageSource } from '../../../../../util/networks';
@@ -498,7 +498,6 @@ export const BridgeTokenSelector: React.FC = () => {
           autoComplete="off"
           autoCorrect={false}
           autoCapitalize="none"
-          showClearButton={searchString.length > 0}
           onPressClearButton={handleClearSearch}
         />
       </Box>

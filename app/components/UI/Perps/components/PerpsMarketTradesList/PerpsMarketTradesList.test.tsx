@@ -3,7 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/react-native';
 import PerpsMarketTradesList from './PerpsMarketTradesList';
 import Routes from '../../../../../constants/navigation/Routes';
 import { usePerpsMarketFills } from '../../hooks/usePerpsMarketFills';
-import type { OrderFill } from '../../controllers/types';
+import { type OrderFill } from '@metamask/perps-controller';
 
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({
@@ -115,8 +115,16 @@ jest.mock('../../../../../../locales/i18n', () => ({
   },
 }));
 
-jest.mock('../../utils/marketUtils', () => ({
+jest.mock('@metamask/perps-controller', () => ({
   getPerpsDisplaySymbol: (symbol: string) => symbol,
+  PERPS_CONSTANTS: {
+    RecentActivityLimit: 3,
+  },
+  PERPS_EVENT_VALUE: {
+    SCREEN_NAME: {
+      PERPS_MARKET_DETAILS: 'perps_market_details',
+    },
+  },
 }));
 
 describe('PerpsMarketTradesList', () => {

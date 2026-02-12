@@ -13,7 +13,6 @@ import {
   FIAT_ORDER_STATES,
 } from '../../../../constants/on-ramp';
 import useRampsUnifiedV1Enabled from './useRampsUnifiedV1Enabled';
-import Logger from '../../../../util/Logger';
 
 /**
  * Checks if an aggregator order was placed through Transak provider.
@@ -125,8 +124,7 @@ export default function useRampsSmartRouting() {
         } else {
           dispatch(setRampRoutingDecision(UnifiedRampRoutingType.AGGREGATOR));
         }
-      } catch (error) {
-        Logger.error(error as Error);
+      } catch {
         dispatch(setRampRoutingDecision(UnifiedRampRoutingType.ERROR));
       }
     };

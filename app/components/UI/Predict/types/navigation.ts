@@ -29,6 +29,7 @@ export interface PredictNavigationParamList extends ParamListBase {
   PredictMarketList: {
     entryPoint?: PredictEntryPoint;
     tab?: PredictCategory;
+    query?: string;
   };
   PredictMarketDetails: {
     marketId?: string;

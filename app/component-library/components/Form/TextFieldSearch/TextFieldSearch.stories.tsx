@@ -1,7 +1,9 @@
-/* eslint-disable no-console */
-import React from 'react';
+import React, { useState } from 'react';
 
 import TextFieldSearch from './TextFieldSearch';
+import { TextFieldSearchProps } from './TextFieldSearch.types';
+
+const noop = () => undefined;
 
 const TextFieldSearchMeta = {
   title: 'Component Library / Form / TextFieldSearch',
@@ -19,9 +21,6 @@ const TextFieldSearchMeta = {
     placeholder: {
       control: 'text',
     },
-    showClearButton: {
-      control: 'boolean',
-    },
   },
 };
 
@@ -30,23 +29,45 @@ export default TextFieldSearchMeta;
 export const Default = {
   args: {
     placeholder: 'Search',
+    onPressClearButton: noop,
   },
 };
 
-export const WithClearButton = {
-  render: () => (
+const InteractiveTextFieldSearch = (args: TextFieldSearchProps) => {
+  const [value, setValue] = useState('');
+  return (
     <TextFieldSearch
-      placeholder="Search..."
-      showClearButton
-      onPressClearButton={() => console.log('Clear pressed')}
+      {...args}
+      value={value}
+      onChangeText={setValue}
+      onPressClearButton={() => setValue('')}
     />
+  );
+};
+
+export const Interactive = {
+  render: (args: TextFieldSearchProps) => (
+    <InteractiveTextFieldSearch {...args} />
   ),
+  args: {
+    placeholder: 'Type to see clear button...',
+    onPressClearButton: noop,
+  },
+};
+
+export const WithValue = {
+  args: {
+    placeholder: 'Search...',
+    value: 'Search text',
+    onPressClearButton: noop,
+  },
 };
 
 export const ErrorState = {
   args: {
     placeholder: 'Search',
     isError: true,
+    onPressClearButton: noop,
   },
 };
 
@@ -54,6 +75,7 @@ export const Disabled = {
   args: {
     placeholder: 'Search disabled',
     isDisabled: true,
+    onPressClearButton: noop,
   },
 };
 
@@ -62,5 +84,6 @@ export const ReadonlyState = {
     placeholder: 'Search readonly',
     value: 'Search query',
     isReadonly: true,
+    onPressClearButton: noop,
   },
 };

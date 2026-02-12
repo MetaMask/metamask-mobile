@@ -700,7 +700,7 @@ export const WHILELIST_NETWORK_NAME = {
   [ChainId['monad-testnet']]: 'Monad Testnet',
   [NETWORKS_CHAIN_ID.SEI]: 'Sei Mainnet',
   [NETWORKS_CHAIN_ID.HYPER_EVM]: 'HyperEVM',
-  [NETWORKS_CHAIN_ID.MEGAETH_MAINNET]: 'MegaEth',
+  [NETWORKS_CHAIN_ID.MEGAETH_MAINNET]: 'MegaETH',
 };
 
 // Whitelisted symbols for specific chain IDs to prevent showing warnings on Network Settings.

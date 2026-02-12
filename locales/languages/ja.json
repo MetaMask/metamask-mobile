@@ -7470,7 +7470,7 @@
       "claim_label": "請求",
       "claimed_label": "請求済み",
       "reward_claimed": "リワードを請求しました",
-      "time_left": "残り",
+      "time_left": "残り {{time}}",
       "expired": "期限切れ"
     },
     "end_of_season_rewards": {

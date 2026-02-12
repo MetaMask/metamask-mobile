@@ -222,7 +222,7 @@ describe(SmokePredictions('Claim winnings:'), () => {
           },
         );
 
-        await WalletView.scrollToPosition(positions.Won);
+        await WalletView.scrollToPosition(positions.Lost);
 
         await WalletView.tapPredictPosition(positions.Lost);
 
@@ -234,6 +234,8 @@ describe(SmokePredictions('Claim winnings:'), () => {
           },
         );
         await PredictDetailsPage.tapBackButton();
+
+        await WalletView.scrollToPosition(positions.Won);
 
         await WalletView.tapPredictPosition(positions.Won);
 

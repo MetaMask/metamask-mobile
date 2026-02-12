@@ -7470,7 +7470,7 @@
       "claim_label": "I-claim",
       "claimed_label": "Na-claim",
       "reward_claimed": "Na-claim na reward",
-      "time_left": "natitira",
+      "time_left": "{{time}} natitira",
       "expired": "Nag-expire"
     },
     "end_of_season_rewards": {

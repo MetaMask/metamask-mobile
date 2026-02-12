@@ -9,12 +9,12 @@ import {
 import Engine from '../../../../core/Engine';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../util/Logger';
-import type {
-  PriceUpdate,
-  PerpsMarketData,
-  Order,
-  AccountState,
-} from '../controllers/types';
+import {
+  type PriceUpdate,
+  type PerpsMarketData,
+  type Order,
+  type AccountState,
+} from '@metamask/perps-controller';
 import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
 
 jest.mock('../../../../core/Engine');
@@ -1976,7 +1976,7 @@ describe('PerpsStreamManager', () => {
       const mockGetEvmAccount = jest.fn().mockReturnValue({
         address: '0x123',
       });
-      jest.mock('../utils/accountUtils', () => ({
+      jest.mock('@metamask/perps-controller/utils/accountUtils', () => ({
         getEvmAccountFromSelectedAccountGroup: mockGetEvmAccount,
       }));
 

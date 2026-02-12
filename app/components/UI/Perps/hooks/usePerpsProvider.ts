@@ -7,7 +7,7 @@ import type {
   PerpsProviderType,
   PerpsActiveProviderMode,
   SwitchProviderResult,
-} from '../controllers/types';
+} from '@metamask/perps-controller';
 
 /**
  * Hook for managing perps provider selection

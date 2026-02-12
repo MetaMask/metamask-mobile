@@ -72,27 +72,23 @@ const ClaimMerklRewards: React.FC<ClaimMerklRewardsProps> = ({ asset }) => {
   ]);
 
   const handleContinueClaim = useCallback(async () => {
-    try {
-      const result = await claimRewards();
-      // Transaction submitted successfully
-      // Toast notifications and balance refresh are handled globally by useMerklClaimStatus
-      if (result?.txHash) {
-        // Navigate to home page
-        navigation.navigate(Routes.WALLET.HOME);
+    const result = await claimRewards();
+    // Transaction submitted successfully
+    // Toast notifications and balance refresh are handled globally by useMerklClaimStatus
+    if (result?.txHash) {
+      // Navigate to home page
+      navigation.navigate(Routes.WALLET.HOME);
 
-        // Emit event to scroll to Linea mUSD token in the token list
-        // Use a delay to allow navigation and list rendering to complete
-        // Note: Using plain setTimeout (not stored in ref) intentionally -
-        // this must execute even after component unmounts during navigation
-        setTimeout(() => {
-          DeviceEventEmitter?.emit?.(SCROLL_TO_TOKEN_EVENT, {
-            address: MUSD_TOKEN_ADDRESS_BY_CHAIN[CHAIN_IDS.LINEA_MAINNET],
-            chainId: CHAIN_IDS.LINEA_MAINNET,
-          });
-        }, 700);
-      }
-    } catch {
-      // Error is handled by useMerklClaim hook and displayed via claimError
+      // Emit event to scroll to Linea mUSD token in the token list
+      // Use a delay to allow navigation and list rendering to complete
+      // Note: Using plain setTimeout (not stored in ref) intentionally -
+      // this must execute even after component unmounts during navigation
+      setTimeout(() => {
+        DeviceEventEmitter?.emit?.(SCROLL_TO_TOKEN_EVENT, {
+          address: MUSD_TOKEN_ADDRESS_BY_CHAIN[CHAIN_IDS.LINEA_MAINNET],
+          chainId: CHAIN_IDS.LINEA_MAINNET,
+        });
+      }, 700);
     }
   }, [claimRewards, navigation]);
 

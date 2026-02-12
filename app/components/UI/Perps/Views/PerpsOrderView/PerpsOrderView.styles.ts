@@ -13,7 +13,7 @@ const createStyles = (colors: Colors) =>
     scrollViewContent: {
       flexGrow: 1,
       paddingBottom: 120, // Space for fixed button
-      paddingTop: 32,
+      paddingTop: 0,
     },
     fixedBottomContainer: {
       position: 'absolute',

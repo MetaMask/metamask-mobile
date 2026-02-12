@@ -127,7 +127,6 @@ const EnterEmail = () => {
               autoComplete="email"
               keyboardType="email-address"
               placeholder={strings('deposit.enter_email.input_placeholder')}
-              placeholderTextColor={theme.colors.text.muted}
               returnKeyType={'done'}
               onSubmitEditing={handleSubmit}
               autoCapitalize="none"

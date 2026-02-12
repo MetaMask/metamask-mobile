@@ -5,7 +5,7 @@ import {
   type UsePerpsMarketForAssetResult,
 } from '../../Perps/hooks/usePerpsMarketForAsset';
 import Routes from '../../../../constants/navigation/Routes';
-import type { OrderDirection } from '../../Perps/types/perps-types';
+import type { OrderDirection } from '@metamask/perps-controller';
 
 export interface UsePerpsActionsParams {
   /** Token symbol, or null to skip the perps market check */

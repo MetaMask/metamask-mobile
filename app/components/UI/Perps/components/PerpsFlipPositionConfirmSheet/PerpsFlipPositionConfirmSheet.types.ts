@@ -1,5 +1,5 @@
 import type { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import type { Position } from '../../controllers/types';
+import { type Position } from '@metamask/perps-controller';
 
 export interface PerpsFlipPositionConfirmSheetProps {
   position: Position;

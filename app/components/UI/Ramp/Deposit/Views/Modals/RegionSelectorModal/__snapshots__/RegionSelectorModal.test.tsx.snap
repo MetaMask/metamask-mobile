@@ -436,7 +436,7 @@ exports[`RegionSelectorModal Component handles empty regions array from navigati
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "height": 56,
+                                  "minHeight": 56,
                                   "paddingLeft": 8,
                                   "paddingRight": 8,
                                 },
@@ -673,6 +673,7 @@ exports[`RegionSelectorModal Component handles empty regions array from navigati
                                   onChangeText={[Function]}
                                   onFocus={[Function]}
                                   placeholder="Search by country"
+                                  placeholderTextColor="#686e7d"
                                   style={
                                     {
                                       "backgroundColor": "inherit",
@@ -685,7 +686,6 @@ exports[`RegionSelectorModal Component handles empty regions array from navigati
                                       "height": 46,
                                       "letterSpacing": 0,
                                       "opacity": 1,
-                                      "paddingVertical": 2,
                                       "textAlignVertical": "center",
                                     }
                                   }
@@ -1205,7 +1205,7 @@ exports[`RegionSelectorModal Component receives and uses regions from navigation
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "height": 56,
+                                  "minHeight": 56,
                                   "paddingLeft": 8,
                                   "paddingRight": 8,
                                 },
@@ -1442,6 +1442,7 @@ exports[`RegionSelectorModal Component receives and uses regions from navigation
                                   onChangeText={[Function]}
                                   onFocus={[Function]}
                                   placeholder="Search by country"
+                                  placeholderTextColor="#686e7d"
                                   style={
                                     {
                                       "backgroundColor": "inherit",
@@ -1454,7 +1455,6 @@ exports[`RegionSelectorModal Component receives and uses regions from navigation
                                       "height": 46,
                                       "letterSpacing": 0,
                                       "opacity": 1,
-                                      "paddingVertical": 2,
                                       "textAlignVertical": "center",
                                     }
                                   }
@@ -2170,7 +2170,7 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "height": 56,
+                                  "minHeight": 56,
                                   "paddingLeft": 8,
                                   "paddingRight": 8,
                                 },
@@ -2407,6 +2407,7 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                   onChangeText={[Function]}
                                   onFocus={[Function]}
                                   placeholder="Search by country"
+                                  placeholderTextColor="#686e7d"
                                   style={
                                     {
                                       "backgroundColor": "inherit",
@@ -2419,7 +2420,6 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                       "height": 46,
                                       "letterSpacing": 0,
                                       "opacity": 1,
-                                      "paddingVertical": 2,
                                       "textAlignVertical": "center",
                                     }
                                   }
@@ -3367,7 +3367,7 @@ exports[`RegionSelectorModal Component render matches snapshot when search has n
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "height": 56,
+                                  "minHeight": 56,
                                   "paddingLeft": 8,
                                   "paddingRight": 8,
                                 },
@@ -3604,6 +3604,7 @@ exports[`RegionSelectorModal Component render matches snapshot when search has n
                                   onChangeText={[Function]}
                                   onFocus={[Function]}
                                   placeholder="Search by country"
+                                  placeholderTextColor="#686e7d"
                                   style={
                                     {
                                       "backgroundColor": "inherit",
@@ -3616,7 +3617,6 @@ exports[`RegionSelectorModal Component render matches snapshot when search has n
                                       "height": 46,
                                       "letterSpacing": 0,
                                       "opacity": 1,
-                                      "paddingVertical": 2,
                                       "textAlignVertical": "center",
                                     }
                                   }
@@ -4177,7 +4177,7 @@ exports[`RegionSelectorModal Component render matches snapshot when searching fo
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "height": 56,
+                                  "minHeight": 56,
                                   "paddingLeft": 8,
                                   "paddingRight": 8,
                                 },
@@ -4414,6 +4414,7 @@ exports[`RegionSelectorModal Component render matches snapshot when searching fo
                                   onChangeText={[Function]}
                                   onFocus={[Function]}
                                   placeholder="Search by country"
+                                  placeholderTextColor="#686e7d"
                                   style={
                                     {
                                       "backgroundColor": "inherit",
@@ -4426,7 +4427,6 @@ exports[`RegionSelectorModal Component render matches snapshot when searching fo
                                       "height": 46,
                                       "letterSpacing": 0,
                                       "opacity": 1,
-                                      "paddingVertical": 2,
                                       "textAlignVertical": "center",
                                     }
                                   }
@@ -5075,7 +5075,7 @@ exports[`RegionSelectorModal Component render matches snapshot with allRegionsSe
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "height": 56,
+                                  "minHeight": 56,
                                   "paddingLeft": 8,
                                   "paddingRight": 8,
                                 },
@@ -5312,6 +5312,7 @@ exports[`RegionSelectorModal Component render matches snapshot with allRegionsSe
                                   onChangeText={[Function]}
                                   onFocus={[Function]}
                                   placeholder="Search by country"
+                                  placeholderTextColor="#686e7d"
                                   style={
                                     {
                                       "backgroundColor": "inherit",
@@ -5324,7 +5325,6 @@ exports[`RegionSelectorModal Component render matches snapshot with allRegionsSe
                                       "height": 46,
                                       "letterSpacing": 0,
                                       "opacity": 1,
-                                      "paddingVertical": 2,
                                       "textAlignVertical": "center",
                                     }
                                   }
@@ -6272,7 +6272,7 @@ exports[`RegionSelectorModal Component render matches snapshot with custom selec
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "height": 56,
+                                  "minHeight": 56,
                                   "paddingLeft": 8,
                                   "paddingRight": 8,
                                 },
@@ -6509,6 +6509,7 @@ exports[`RegionSelectorModal Component render matches snapshot with custom selec
                                   onChangeText={[Function]}
                                   onFocus={[Function]}
                                   placeholder="Search by country"
+                                  placeholderTextColor="#686e7d"
                                   style={
                                     {
                                       "backgroundColor": "inherit",
@@ -6521,7 +6522,6 @@ exports[`RegionSelectorModal Component render matches snapshot with custom selec
                                       "height": 46,
                                       "letterSpacing": 0,
                                       "opacity": 1,
-                                      "paddingVertical": 2,
                                       "textAlignVertical": "center",
                                     }
                                   }
@@ -7469,7 +7469,7 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "height": 56,
+                                  "minHeight": 56,
                                   "paddingLeft": 8,
                                   "paddingRight": 8,
                                 },
@@ -7706,6 +7706,7 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                                   onChangeText={[Function]}
                                   onFocus={[Function]}
                                   placeholder="Search by country"
+                                  placeholderTextColor="#686e7d"
                                   style={
                                     {
                                       "backgroundColor": "inherit",
@@ -7718,7 +7719,6 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                                       "height": 46,
                                       "letterSpacing": 0,
                                       "opacity": 1,
-                                      "paddingVertical": 2,
                                       "textAlignVertical": "center",
                                     }
                                   }

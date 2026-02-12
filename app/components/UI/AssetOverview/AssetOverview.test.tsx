@@ -267,14 +267,6 @@ jest.mock('../Ramp/hooks/useRampTokens', () => ({
   useRampTokens: () => mockUseRampTokens(),
 }));
 
-// Only mock the new hook added in this branch: useScrollToMerklRewards
-// This hook uses useRoute/useNavigation which need proper test setup
-jest.mock('./hooks/useScrollToMerklRewards', () => ({
-  useScrollToMerklRewards: jest.fn(() => ({
-    hasScrolledRef: { current: false },
-  })),
-}));
-
 jest.mock('../../Views/confirmations/hooks/useSendNavigation', () => ({
   useSendNavigation: jest.fn(),
 }));
@@ -415,6 +407,41 @@ describe('AssetOverview', () => {
 
   afterEach(() => {
     jest.clearAllMocks();
+  });
+
+  it('hides buy button when token is not supported in ramp tokens', () => {
+    mockUseRampTokens.mockReturnValue({
+      allTokens: [],
+      topTokens: [],
+      isLoading: false,
+      error: null,
+    });
+
+    const { queryByTestId } = renderWithProvider(
+      <AssetOverview
+        asset={asset}
+        displayBuyButton
+        displaySwapsButton
+        networkName="Ethereum Mainnet"
+      />,
+      { state: mockInitialState },
+    );
+
+    expect(queryByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON)).toBeNull();
+  });
+
+  it('shows buy button when token is supported in ramp tokens', () => {
+    const { queryByTestId } = renderWithProvider(
+      <AssetOverview
+        asset={asset}
+        displayBuyButton
+        displaySwapsButton
+        networkName="Ethereum Mainnet"
+      />,
+      { state: mockInitialState },
+    );
+
+    expect(queryByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON)).not.toBeNull();
   });
 
   it('should handle buy button press', async () => {

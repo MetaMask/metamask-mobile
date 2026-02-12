@@ -759,8 +759,8 @@ describe('usePushProvisioning', () => {
         await result.current.initiateProvisioning();
       });
 
-      // Should track both start and cancel events
-      expect(mockTrackEvent).toHaveBeenCalledTimes(2);
+      // Should track button click, start, and cancel events
+      expect(mockTrackEvent).toHaveBeenCalledTimes(3);
       unmount();
     });
   });

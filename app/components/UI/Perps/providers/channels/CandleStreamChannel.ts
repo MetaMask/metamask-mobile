@@ -1,11 +1,11 @@
 import Engine from '../../../../../core/Engine';
-import type { CandleData } from '../../types/perps-types';
 import {
   CandlePeriod,
   TimeDuration,
   calculateCandleCount,
-} from '../../constants/chartConfig';
-import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
+  PERPS_CONSTANTS,
+  type CandleData,
+} from '@metamask/perps-controller';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../../util/Logger';
 import { ensureError } from '../../../../../util/errorUtils';
@@ -418,7 +418,10 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
         },
       );
     } catch (error) {
-      const errorInstance = ensureError(error);
+      const errorInstance = ensureError(
+        error,
+        'CandleStreamChannel.fetchHistoricalCandles',
+      );
 
       // Log to Sentry: fetch failures affect multiple subscribers
       Logger.error(errorInstance, {

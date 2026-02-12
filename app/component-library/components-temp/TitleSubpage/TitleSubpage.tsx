@@ -37,7 +37,7 @@ const TitleSubpage: React.FC<TitleSubpageProps> = ({
   titleProps,
   bottomLabelProps,
   testID,
-  twClassName,
+  twClassName = '',
 }) => (
   <Box
     flexDirection={BoxFlexDirection.Row}

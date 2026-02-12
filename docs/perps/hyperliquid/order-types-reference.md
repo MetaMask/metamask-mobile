@@ -408,7 +408,7 @@ const availableBalance = state.marginSummary.accountValue;
 
 **Codebase**:
 
-- `app/components/UI/Perps/controllers/providers/HyperLiquidProvider.ts:765` - Production orders
+- `app/controllers/perps/providers/HyperLiquidProvider.ts:765` - Production orders
 - `app/components/UI/Perps/utils/hyperLiquidAdapter.ts:64-71` - Adapter patterns
 - `app/components/UI/Perps/Debug/HIP3DebugView.tsx:500,717` - Debug/testing
 

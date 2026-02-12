@@ -7470,7 +7470,7 @@
       "claim_label": "Al",
       "claimed_label": "Alındı",
       "reward_claimed": "Ödül alındı",
-      "time_left": "kaldı",
+      "time_left": "{{time}} kaldı",
       "expired": "Süresi doldu"
     },
     "end_of_season_rewards": {

@@ -230,7 +230,7 @@ describe('PredictFeed', () => {
         entryPoint: 'homepage_new_prediction',
       },
     });
-    mockUseFocusEffect.mockImplementation((callback: () => void) => callback());
+    mockUseFocusEffect.mockImplementation(() => undefined);
     mockGetInstance.mockReturnValue(mockSessionManager);
     mockUseSelector.mockReturnValue({
       enabled: false,
@@ -309,10 +309,11 @@ describe('PredictFeed', () => {
   });
 
   describe('tab navigation', () => {
-    it('renders all five category tabs', () => {
+    it('renders all six category tabs', () => {
       const { getByTestId } = render(<PredictFeed />);
 
       expect(getByTestId('tab-trending')).toBeOnTheScreen();
+      expect(getByTestId('tab-ending-soon')).toBeOnTheScreen();
       expect(getByTestId('tab-new')).toBeOnTheScreen();
       expect(getByTestId('tab-sports')).toBeOnTheScreen();
       expect(getByTestId('tab-crypto')).toBeOnTheScreen();
@@ -350,6 +351,11 @@ describe('PredictFeed', () => {
 
     it('tracks page view on screen focus', () => {
       render(<PredictFeed />);
+
+      const focusCallbacks = mockUseFocusEffect.mock.calls.map(
+        (call) => call[0],
+      );
+      focusCallbacks.forEach((cb) => cb?.());
 
       expect(mockSessionManager.trackPageView).toHaveBeenCalled();
     });
@@ -500,7 +506,9 @@ describe('PredictFeed', () => {
       fireEvent(page1, 'onTouchEnd');
 
       expect(mockOnTabSwitch).toHaveBeenCalledWith(1);
-      expect(mockSessionManager.trackTabChange).toHaveBeenCalledWith('new');
+      expect(mockSessionManager.trackTabChange).toHaveBeenCalledWith(
+        'ending-soon',
+      );
     });
   });
 
@@ -731,7 +739,7 @@ describe('PredictFeed', () => {
       expect(getByTestId('tab-trending')).toBeOnTheScreen();
     });
 
-    it('renders six category tabs when hot tab is enabled', () => {
+    it('renders seven category tabs when hot tab is enabled', () => {
       mockUseSelector.mockReturnValue({
         enabled: true,
         queryParams: 'tag_id=149',
@@ -741,13 +749,14 @@ describe('PredictFeed', () => {
 
       expect(getByTestId('tab-hot')).toBeOnTheScreen();
       expect(getByTestId('tab-trending')).toBeOnTheScreen();
+      expect(getByTestId('tab-ending-soon')).toBeOnTheScreen();
       expect(getByTestId('tab-new')).toBeOnTheScreen();
       expect(getByTestId('tab-sports')).toBeOnTheScreen();
       expect(getByTestId('tab-crypto')).toBeOnTheScreen();
       expect(getByTestId('tab-politics')).toBeOnTheScreen();
     });
 
-    it('renders six pager pages when hot tab is enabled', () => {
+    it('renders seven pager pages when hot tab is enabled', () => {
       mockUseSelector.mockReturnValue({
         enabled: true,
         queryParams: 'tag_id=149&tag_id=100995&order=volume24hr',
@@ -761,6 +770,7 @@ describe('PredictFeed', () => {
       expect(getByTestId('pager-page-3')).toBeOnTheScreen();
       expect(getByTestId('pager-page-4')).toBeOnTheScreen();
       expect(getByTestId('pager-page-5')).toBeOnTheScreen();
+      expect(getByTestId('pager-page-6')).toBeOnTheScreen();
     });
 
     it('tracks tab change for hot tab when swiped to', () => {
@@ -809,6 +819,57 @@ describe('PredictFeed', () => {
         'homepage_new_prediction',
         'hot',
       );
+    });
+  });
+
+  describe('query deeplink parameter', () => {
+    it.each([['bitcoin'], ['ethereum'], ['solana']])(
+      'opens search overlay when query param "%s" is provided in route params',
+      (query) => {
+        mockUseRoute.mockReturnValue({
+          params: {
+            entryPoint: 'deeplink',
+            query,
+          },
+        });
+
+        const { getByTestId } = render(<PredictFeed />);
+
+        expect(getByTestId('search-icon')).toBeOnTheScreen();
+      },
+    );
+
+    it.each([['bitcoin'], ['ethereum']])(
+      'pre-fills search input with query "%s" from route params',
+      (query) => {
+        mockUseRoute.mockReturnValue({
+          params: {
+            entryPoint: 'deeplink',
+            query,
+          },
+        });
+
+        const { getByPlaceholderText } = render(<PredictFeed />);
+
+        const searchInput = getByPlaceholderText('Search prediction markets');
+        expect(searchInput.props.value).toBe(query);
+      },
+    );
+
+    it('closes search overlay when cancel is pressed', () => {
+      mockUseRoute.mockReturnValue({
+        params: {
+          entryPoint: 'deeplink',
+          query: 'bitcoin',
+        },
+      });
+
+      const { getByText, getByTestId, queryByTestId } = render(<PredictFeed />);
+
+      expect(getByTestId('search-icon')).toBeOnTheScreen();
+
+      fireEvent.press(getByText('Cancel'));
+      expect(queryByTestId('search-icon')).toBeNull();
     });
   });
 });

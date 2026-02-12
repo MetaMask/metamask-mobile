@@ -7,6 +7,7 @@ import Browser from '../../Views/Browser';
 import { ChainId } from '@metamask/controller-utils';
 import AddBookmark from '../../Views/AddBookmark';
 import SimpleWebview from '../../Views/SimpleWebview';
+import AccountsMenu from '../../Views/AccountsMenu';
 import Settings from '../../Views/Settings';
 import GeneralSettings from '../../Views/Settings/GeneralSettings';
 import AdvancedSettings from '../../Views/Settings/AdvancedSettings';
@@ -121,7 +122,6 @@ import { TransactionDetails } from '../../Views/confirmations/components/activit
 import RewardsBottomSheetModal from '../../UI/Rewards/components/RewardsBottomSheetModal';
 import RewardsClaimBottomSheetModal from '../../UI/Rewards/components/Tabs/LevelsTab/RewardsClaimBottomSheetModal';
 import RewardOptInAccountGroupModal from '../../UI/Rewards/components/Settings/RewardOptInAccountGroupModal';
-import ReferralBottomSheetModal from '../../UI/Rewards/components/ReferralBottomSheetModal';
 import EndOfSeasonClaimBottomSheet from '../../UI/Rewards/components/EndOfSeasonClaimBottomSheet/EndOfSeasonClaimBottomSheet';
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
 import getHeaderCompactStandardNavbarOptions from '../../../component-library/components-temp/HeaderCompactStandard/getHeaderCompactStandardNavbarOptions';
@@ -278,10 +278,6 @@ const RewardsHome = () => (
       options={{ headerShown: false }}
     />
     <Stack.Screen
-      name={Routes.MODAL.REWARDS_REFERRAL_BOTTOM_SHEET_MODAL}
-      component={ReferralBottomSheetModal}
-    />
-    <Stack.Screen
       name={Routes.MODAL.REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET}
       component={EndOfSeasonClaimBottomSheet}
     />
@@ -359,7 +355,12 @@ const NotificationsOptInStack = () => (
 );
 
 const SettingsFlow = () => (
-  <Stack.Navigator initialRouteName={'Settings'}>
+  <Stack.Navigator initialRouteName={Routes.ACCOUNTS_MENU_VIEW}>
+    <Stack.Screen
+      name={Routes.ACCOUNTS_MENU_VIEW}
+      component={AccountsMenu}
+      options={{ headerShown: false }}
+    />
     <Stack.Screen
       name="Settings"
       component={Settings}

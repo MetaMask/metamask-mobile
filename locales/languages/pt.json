@@ -7470,7 +7470,7 @@
       "claim_label": "Resgatar",
       "claimed_label": "Resgatada",
       "reward_claimed": "Recompensa resgatada",
-      "time_left": "restante",
+      "time_left": "{{time}} restante",
       "expired": "Expirada"
     },
     "end_of_season_rewards": {
