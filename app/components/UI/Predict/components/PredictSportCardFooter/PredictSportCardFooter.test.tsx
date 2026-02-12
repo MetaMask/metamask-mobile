@@ -309,26 +309,24 @@ describe('PredictSportCardFooter', () => {
       });
     });
 
-    it('calls usePredictActionGuard with correct providerId', () => {
+    it('calls usePredictActionGuard with navigation', () => {
       const market = createMockMarket({ providerId: 'test-provider' });
 
       render(<PredictSportCardFooter market={market} />);
 
       expect(mockUsePredictActionGuard).toHaveBeenCalledWith(
         expect.objectContaining({
-          providerId: 'test-provider',
+          navigation: expect.any(Object),
         }),
       );
     });
 
-    it('calls usePredictClaim with correct providerId', () => {
+    it('calls usePredictClaim without provider options', () => {
       const market = createMockMarket({ providerId: 'claim-provider' });
 
       render(<PredictSportCardFooter market={market} />);
 
-      expect(mockUsePredictClaim).toHaveBeenCalledWith({
-        providerId: 'claim-provider',
-      });
+      expect(mockUsePredictClaim).toHaveBeenCalledWith();
     });
   });
 

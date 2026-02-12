@@ -560,7 +560,7 @@ describe('PredictPicks', () => {
       );
     });
 
-    it('calls usePredictActionGuard with market.providerId', () => {
+    it('calls usePredictActionGuard with navigation only', () => {
       const market = createMockMarket({ providerId: 'custom-provider' });
       setupPositionsMock({ livePositions: [createMockPosition()] });
 
@@ -568,7 +568,7 @@ describe('PredictPicks', () => {
 
       expect(mockUsePredictActionGuard).toHaveBeenCalledWith(
         expect.objectContaining({
-          providerId: 'custom-provider',
+          navigation: expect.any(Object),
         }),
       );
     });

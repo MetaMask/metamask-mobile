@@ -159,7 +159,6 @@ describe('PredictGameChart Wrapper', () => {
           marketIds: defaultTokenIds,
           interval: PredictPriceHistoryInterval.ONE_HOUR,
           fidelity: 1,
-          providerId: 'polymarket',
           enabled: true,
         }),
       );
@@ -171,20 +170,6 @@ describe('PredictGameChart Wrapper', () => {
       expect(mockUseLiveMarketPrices).toHaveBeenCalledWith(defaultTokenIds, {
         enabled: true,
       });
-    });
-
-    it('passes custom providerId to usePredictPriceHistory', () => {
-      const marketWithCustomProvider = createMockMarket({
-        providerId: 'custom-provider',
-      });
-
-      render(<PredictGameChart market={marketWithCustomProvider} />);
-
-      expect(mockUsePredictPriceHistory).toHaveBeenCalledWith(
-        expect.objectContaining({
-          providerId: 'custom-provider',
-        }),
-      );
     });
 
     it('disables hooks when market has no tokens', () => {

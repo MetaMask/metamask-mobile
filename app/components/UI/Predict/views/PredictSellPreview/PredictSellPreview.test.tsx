@@ -371,7 +371,7 @@ describe('PredictSellPreview', () => {
   });
 
   describe('user interactions', () => {
-    it('invokes placeOrder with correct parameters when cash out button pressed', async () => {
+    it('invokes placeOrder with correct parameters when cash out button pressed', () => {
       mockPlaceOrderResult = {
         success: true,
         response: { transactionHash: '0xabc123' },
@@ -384,10 +384,9 @@ describe('PredictSellPreview', () => {
       );
       const cashOutButton = getByTestId('predict-sell-preview-cash-out-button');
 
-      await fireEvent.press(cashOutButton);
+      fireEvent.press(cashOutButton);
 
       expect(mockPlaceOrder).toHaveBeenCalledWith({
-        providerId: 'polymarket',
         analyticsProperties: expect.objectContaining({
           marketId: 'market-123',
           marketTitle: 'Will Bitcoin reach $150,000?',
@@ -499,7 +498,7 @@ describe('PredictSellPreview', () => {
   });
 
   describe('navigation after successful order', () => {
-    it('dispatches navigation pop action when placeOrder succeeds', async () => {
+    it('dispatches navigation pop action when placeOrder succeeds', () => {
       mockPlaceOrderResult = {
         success: true,
         response: { transactionHash: '0xabc123' },
@@ -512,7 +511,7 @@ describe('PredictSellPreview', () => {
       );
       const cashOutButton = getByTestId('predict-sell-preview-cash-out-button');
 
-      await fireEvent.press(cashOutButton);
+      fireEvent.press(cashOutButton);
 
       expect(mockPlaceOrder).toHaveBeenCalled();
       rerender(<PredictSellPreview />);

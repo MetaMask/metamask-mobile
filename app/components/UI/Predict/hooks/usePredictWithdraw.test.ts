@@ -208,7 +208,7 @@ describe('usePredictWithdraw', () => {
       });
     });
 
-    it('calls prepareWithdraw with default providerId', async () => {
+    it('calls prepareWithdraw with empty options object', async () => {
       mockPrepareWithdraw.mockResolvedValue({ success: true });
 
       const { result } = setupUsePredictWithdrawTest();
@@ -218,10 +218,10 @@ describe('usePredictWithdraw', () => {
       // Wait for async operation
       await new Promise((resolve) => setTimeout(resolve, 0));
 
-      expect(mockPrepareWithdraw).toHaveBeenCalledWith();
+      expect(mockPrepareWithdraw).toHaveBeenCalledWith({});
     });
 
-    it('calls prepareWithdraw without provider argument', async () => {
+    it('calls prepareWithdraw with empty options object', async () => {
       mockPrepareWithdraw.mockResolvedValue({ success: true });
 
       const { result } = setupUsePredictWithdrawTest({});
@@ -231,7 +231,7 @@ describe('usePredictWithdraw', () => {
       // Wait for async operation
       await new Promise((resolve) => setTimeout(resolve, 0));
 
-      expect(mockPrepareWithdraw).toHaveBeenCalledWith();
+      expect(mockPrepareWithdraw).toHaveBeenCalledWith({});
     });
 
     it('returns response from prepareWithdraw on success', async () => {
@@ -430,8 +430,8 @@ describe('usePredictWithdraw', () => {
     });
   });
 
-  describe('providerId handling', () => {
-    it('calls prepareWithdraw without provider argument by default', async () => {
+  describe('withdraw payload handling', () => {
+    it('calls prepareWithdraw with empty object by default', async () => {
       mockPrepareWithdraw.mockResolvedValue({ success: true });
 
       const { result } = setupUsePredictWithdrawTest();
@@ -441,10 +441,10 @@ describe('usePredictWithdraw', () => {
       // Wait for async operation
       await new Promise((resolve) => setTimeout(resolve, 0));
 
-      expect(mockPrepareWithdraw).toHaveBeenCalledWith();
+      expect(mockPrepareWithdraw).toHaveBeenCalledWith({});
     });
 
-    it('calls prepareWithdraw without provider argument when not specified', async () => {
+    it('calls prepareWithdraw with empty object when not specified', async () => {
       mockPrepareWithdraw.mockResolvedValue({ success: true });
 
       const { result } = setupUsePredictWithdrawTest();
@@ -453,10 +453,10 @@ describe('usePredictWithdraw', () => {
 
       await new Promise((resolve) => setTimeout(resolve, 0));
 
-      expect(mockPrepareWithdraw).toHaveBeenCalledWith();
+      expect(mockPrepareWithdraw).toHaveBeenCalledWith({});
     });
 
-    it('calls prepareWithdraw without provider argument when custom provider is passed', async () => {
+    it('calls prepareWithdraw with empty object for repeated calls', async () => {
       mockPrepareWithdraw.mockResolvedValue({ success: true });
 
       const { result } = setupUsePredictWithdrawTest({});
@@ -465,7 +465,7 @@ describe('usePredictWithdraw', () => {
 
       await new Promise((resolve) => setTimeout(resolve, 0));
 
-      expect(mockPrepareWithdraw).toHaveBeenCalledWith();
+      expect(mockPrepareWithdraw).toHaveBeenCalledWith({});
     });
   });
 

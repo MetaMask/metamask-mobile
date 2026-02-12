@@ -108,7 +108,6 @@ describe('usePredictPrices', () => {
             outcomeTokenId: 'token-1',
           },
         ],
-        providerId: 'polymarket',
       });
       expect(result.current.prices).toEqual(mockPrices);
       expect(result.current.isFetching).toBe(false);
@@ -179,7 +178,6 @@ describe('usePredictPrices', () => {
             outcomeTokenId: 'token-2',
           },
         ],
-        providerId: 'polymarket',
       });
       expect(result.current.prices).toEqual(mockPrices);
       expect(result.current.error).toBeNull();
@@ -290,11 +288,10 @@ describe('usePredictPrices', () => {
             outcomeTokenId: 'token-1',
           },
         ],
-        providerId: 'polymarket',
       });
     });
 
-    it('defaults to polymarket provider when not specified', async () => {
+    it('fetches prices without provider option when not specified', async () => {
       const { waitForNextUpdate } = renderHook(() =>
         usePredictPrices({
           queries: [
@@ -317,7 +314,6 @@ describe('usePredictPrices', () => {
             outcomeTokenId: 'token-1',
           },
         ],
-        providerId: 'polymarket',
       });
     });
   });
@@ -460,7 +456,6 @@ describe('usePredictPrices', () => {
             outcomeTokenId: 'token-1',
           },
         ],
-        providerId: 'polymarket',
       });
 
       rerender({
@@ -485,7 +480,6 @@ describe('usePredictPrices', () => {
             outcomeTokenId: 'token-2',
           },
         ],
-        providerId: 'polymarket',
       });
     });
 
@@ -532,7 +526,6 @@ describe('usePredictPrices', () => {
             outcomeTokenId: 'token-3',
           },
         ],
-        providerId: 'polymarket',
       });
     });
 

@@ -7,7 +7,6 @@ import { ToastVariants } from '../../../../component-library/components/Toast';
 import { ToastContext } from '../../../../component-library/components/Toast/Toast.context';
 import Logger from '../../../../util/Logger';
 import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
-import { POLYMARKET_PROVIDER_ID } from '../providers/polymarket/constants';
 import { usePredictClaim } from './usePredictClaim';
 import { usePredictTrading } from './usePredictTrading';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
@@ -145,7 +144,7 @@ describe('usePredictClaim', () => {
         loader: ConfirmationLoader.PredictClaim,
         stack: 'Predict',
       });
-      expect(mockClaimWinnings).toHaveBeenCalledWith();
+      expect(mockClaimWinnings).toHaveBeenCalledWith({});
       expect(mockNavigate).not.toHaveBeenCalled();
     });
 
@@ -159,7 +158,7 @@ describe('usePredictClaim', () => {
       await result.current.claim();
 
       // Assert
-      expect(mockClaimWinnings).toHaveBeenCalledWith();
+      expect(mockClaimWinnings).toHaveBeenCalledWith({});
     });
   });
 
@@ -189,7 +188,6 @@ describe('usePredictClaim', () => {
               action: 'claim_winnings',
               method: 'claim',
               operation: 'position_management',
-              providerId: POLYMARKET_PROVIDER_ID,
             },
           },
         }),
@@ -242,7 +240,6 @@ describe('usePredictClaim', () => {
               action: 'claim_winnings',
               method: 'claim',
               operation: 'position_management',
-              providerId: POLYMARKET_PROVIDER_ID,
             },
           },
         }),
@@ -268,9 +265,7 @@ describe('usePredictClaim', () => {
         loader: ConfirmationLoader.PredictClaim,
         stack: 'Predict',
       });
-      expect(mockClaimWinnings).toHaveBeenCalledWith({
-        providerId: POLYMARKET_PROVIDER_ID,
-      });
+      expect(mockClaimWinnings).toHaveBeenCalledWith({});
       expect(mockShowToast).not.toHaveBeenCalled();
       expect(mockGoBack).not.toHaveBeenCalled();
       expect(mockLoggerError).not.toHaveBeenCalled();
@@ -301,7 +296,6 @@ describe('usePredictClaim', () => {
               action: 'claim_winnings',
               method: 'claim',
               operation: 'position_management',
-              providerId: POLYMARKET_PROVIDER_ID,
             },
           },
         }),
@@ -333,7 +327,6 @@ describe('usePredictClaim', () => {
               action: 'claim_winnings',
               method: 'claim',
               operation: 'position_management',
-              providerId: POLYMARKET_PROVIDER_ID,
             },
           },
         },
@@ -366,7 +359,6 @@ describe('usePredictClaim', () => {
               action: 'claim_winnings',
               method: 'claim',
               operation: 'position_management',
-              providerId: POLYMARKET_PROVIDER_ID,
             },
           },
         },
@@ -413,7 +405,6 @@ describe('usePredictClaim', () => {
               action: 'claim_winnings',
               method: 'claim',
               operation: 'position_management',
-              providerId: POLYMARKET_PROVIDER_ID,
             },
           },
         }),

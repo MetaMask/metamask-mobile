@@ -3165,7 +3165,7 @@ describe('PredictMarketDetails', () => {
       expect(usePredictPrices).toHaveBeenCalled();
     });
 
-    it('uses usePredictPrices hook with providerId', () => {
+    it('uses usePredictPrices hook for live pricing', () => {
       const { usePredictPrices } = jest.requireMock(
         '../../hooks/usePredictPrices',
       );
@@ -3174,7 +3174,7 @@ describe('PredictMarketDetails', () => {
 
       expect(usePredictPrices).toHaveBeenCalledWith(
         expect.objectContaining({
-          providerId: 'polymarket',
+          queries: expect.any(Array),
         }),
       );
     });
