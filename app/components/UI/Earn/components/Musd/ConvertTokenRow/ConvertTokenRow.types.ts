@@ -12,6 +12,23 @@ export interface ConvertTokenRowProps {
   onMaxPress: (token: AssetType) => void;
 
   onEditPress: (token: AssetType) => void;
+
+  /**
+   * Disables row actions (Max + Edit).
+   * This is intended to be used as a global lock while any conversion is in-flight.
+   */
+  isActionsDisabled?: boolean;
+
+  /**
+   * True when this token+chain has an in-flight conversion.
+   * When true, the row should show a loading spinner instead of actions.
+   */
+  isConversionPending?: boolean;
+
+  /**
+   * Optional inline error message to show below the row.
+   */
+  errorMessage?: string;
 }
 
 /**

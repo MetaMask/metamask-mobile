@@ -25,6 +25,11 @@ import musdMaxConversionInfoStyleSheet from './musd-max-conversion-info.styles';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { PercentageRow } from '../../rows/percentage-row';
 import { MusdMaxConversionAssetHeader } from './musd-max-conversion-asset-header';
+import { useNoPayTokenQuotesAlert } from '../../../hooks/alerts/useNoPayTokenQuotesAlert';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../../../../component-library/components/Texts/Text';
 
 /**
  * Navigation params for MusdMaxConversionInfo
@@ -71,6 +76,7 @@ export const MusdMaxConversionInfo = () => {
   // Transaction and quote data
   const transactionMetadata = useTransactionMetadataRequest();
   const isQuoteLoading = useIsTransactionPayLoading();
+  const noPayTokenQuotesAlert = useNoPayTokenQuotesAlert();
 
   // Confirmation actions
   const { onConfirm } = useTransactionConfirm();
@@ -88,39 +94,52 @@ export const MusdMaxConversionInfo = () => {
       style={styles.container}
       testID={MusdMaxConversionInfoTestIds.CONTAINER}
     >
-      {/* Asset Header */}
-      <MusdMaxConversionAssetHeader
-        token={token}
-        networkName={networkName}
-        formatFiat={formatFiat}
-      />
+      {noPayTokenQuotesAlert.length > 0 ? (
+        <Text
+          variant={TextVariant.BodyMD}
+          color={TextColor.Error}
+          style={styles.errorText}
+        >
+          {/* TODO: PLACEHOLDER TEXT FOR UAT BUILD */}
+          {'Failed to get quotes. Please close this modal and try again.'}
+        </Text>
+      ) : (
+        <>
+          {/* Asset Header */}
+          <MusdMaxConversionAssetHeader
+            token={token}
+            networkName={networkName}
+            formatFiat={formatFiat}
+          />
 
-      {/* Details Section */}
-      <View style={styles.detailsSection}>
-        <RelayYouReceiveRow
-          label={strings('earn.musd_conversion.you_receive')}
-          testID={MusdMaxConversionInfoTestIds.AMOUNT_ROW}
-        />
+          {/* Details Section */}
+          <View style={styles.detailsSection}>
+            <RelayYouReceiveRow
+              label={strings('earn.musd_conversion.you_receive')}
+              testID={MusdMaxConversionInfoTestIds.AMOUNT_ROW}
+            />
 
-        <BridgeFeeRow />
-        <TotalRow />
+            <BridgeFeeRow />
+            <TotalRow />
 
-        {/* Earning Row */}
-        <PercentageRow />
-      </View>
+            {/* Earning Row */}
+            <PercentageRow />
+          </View>
 
-      {/* Confirm Button */}
-      <View style={styles.buttonContainer}>
-        <Button
-          onPress={onConfirm}
-          label={strings('earn.musd_conversion.convert')}
-          variant={ButtonVariants.Primary}
-          width={ButtonWidthTypes.Full}
-          size={ButtonSize.Lg}
-          isDisabled={isConfirmDisabled}
-          testID={MusdMaxConversionInfoTestIds.CONFIRM_BUTTON}
-        />
-      </View>
+          {/* Confirm Button */}
+          <View style={styles.buttonContainer}>
+            <Button
+              onPress={onConfirm}
+              label={strings('earn.musd_conversion.convert')}
+              variant={ButtonVariants.Primary}
+              width={ButtonWidthTypes.Full}
+              size={ButtonSize.Lg}
+              isDisabled={isConfirmDisabled}
+              testID={MusdMaxConversionInfoTestIds.CONFIRM_BUTTON}
+            />
+          </View>
+        </>
+      )}
     </View>
   );
 };

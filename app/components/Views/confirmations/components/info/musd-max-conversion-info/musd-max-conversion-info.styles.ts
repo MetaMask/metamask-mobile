@@ -19,6 +19,9 @@ const styleSheet = (params: { theme: Theme }) => {
     buttonContainer: {
       paddingTop: 16,
     },
+    errorText: {
+      textAlign: 'center',
+    },
   });
 };
 
