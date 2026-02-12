@@ -196,6 +196,9 @@ export const createMockMessenger = (
       ) {
         return [mockEvmAccount];
       }
+      if (action === 'KeyringController:getState') {
+        return { isUnlocked: true };
+      }
       if (action === 'KeyringController:signTypedMessage') {
         return Promise.resolve('0xSignatureResult');
       }
