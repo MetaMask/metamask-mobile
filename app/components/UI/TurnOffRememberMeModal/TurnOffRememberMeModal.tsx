@@ -114,6 +114,7 @@ const TurnOffRememberMeModal = () => {
           onCancelPress={disableRememberMe}
           onRequestClose={triggerClose}
           onConfirmPress={triggerClose}
+          cancelButtonMode="confirm"
         >
           <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
             <View style={styles.areYouSure}>
