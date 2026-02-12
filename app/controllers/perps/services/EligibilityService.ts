@@ -1,6 +1,7 @@
 import { successfulFetch } from '@metamask/controller-utils';
 import { getEnvironment } from '../utils';
 import { ensureError } from '../utils/errorUtils';
+import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 import type {
   PerpsPlatformDependencies,
   CheckEligibilityParams,
@@ -122,7 +123,8 @@ export class EligibilityService {
 
       return location;
     } catch (e) {
-      this.deps.logger.error(ensureError(e), {
+      this.deps.logger.error(ensureError(e, 'EligibilityService.performGeoLocationFetch'), {
+        tags: { feature: PERPS_CONSTANTS.FeatureName },
         context: {
           name: 'EligibilityService.performGeoLocationFetch',
           data: {},
@@ -172,7 +174,8 @@ export class EligibilityService {
       // Default to eligible if location is unknown
       return true;
     } catch (error) {
-      this.deps.logger.error(ensureError(error), {
+      this.deps.logger.error(ensureError(error, 'EligibilityService.checkEligibility'), {
+        tags: { feature: PERPS_CONSTANTS.FeatureName },
         context: {
           name: 'EligibilityService.checkEligibility',
           data: {},

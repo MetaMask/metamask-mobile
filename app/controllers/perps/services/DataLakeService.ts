@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { ensureError } from '../utils/errorUtils';
 import { PerpsMeasurementName } from '../constants/performanceMetrics';
-import { DATA_LAKE_API_CONFIG } from '../constants/perpsConfig';
+import { DATA_LAKE_API_CONFIG, PERPS_CONSTANTS } from '../constants/perpsConfig';
 import type { ServiceContext } from './ServiceContext';
 import {
   PerpsTraceNames,
@@ -194,7 +194,8 @@ export class DataLakeService {
       const errorMessage =
         error instanceof Error ? error.message : 'Unknown error';
 
-      this.deps.logger.error(ensureError(error), {
+      this.deps.logger.error(ensureError(error, 'DataLakeService.reportOrder'), {
+        tags: { feature: PERPS_CONSTANTS.FeatureName },
         context: {
           name: 'DataLakeService.reportOrder',
           data: {
@@ -227,7 +228,8 @@ export class DataLakeService {
             retryCount: retryCount + 1,
             _traceId: traceId,
           }).catch((err) => {
-            this.deps.logger.error(ensureError(err), {
+            this.deps.logger.error(ensureError(err, 'DataLakeService.reportOrder'), {
+              tags: { feature: PERPS_CONSTANTS.FeatureName },
               context: {
                 name: 'DataLakeService.reportOrder',
                 data: {
@@ -254,7 +256,8 @@ export class DataLakeService {
         },
       });
 
-      this.deps.logger.error(ensureError(error), {
+      this.deps.logger.error(ensureError(error, 'DataLakeService.reportOrder'), {
+        tags: { feature: PERPS_CONSTANTS.FeatureName },
         context: {
           name: 'DataLakeService.reportOrder',
           data: { operation: 'finalFailure', action, symbol, retryCount },

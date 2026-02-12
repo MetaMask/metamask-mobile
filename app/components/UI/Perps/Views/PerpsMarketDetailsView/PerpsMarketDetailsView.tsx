@@ -551,7 +551,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       // WebSocket streaming provides real-time data - no manual refresh needed
       // Just reset the UI state and the chart will update automatically
     } catch (error) {
-      Logger.error(ensureError(error), {
+      Logger.error(ensureError(error, 'PerpsMarketDetailsView.onRefresh'), {
         feature: PERPS_CONSTANTS.FeatureName,
         message: 'Failed to refresh chart state',
       });
@@ -704,13 +704,13 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
       // Initialize deposit in the background without blocking
       depositWithConfirmation().catch((error) => {
-        Logger.error(ensureError(error), {
+        Logger.error(ensureError(error, 'PerpsMarketDetailsView.handleDeposit'), {
           feature: PERPS_CONSTANTS.FeatureName,
           message: 'Failed to initialize deposit',
         });
       });
     } catch (error) {
-      Logger.error(ensureError(error), {
+      Logger.error(ensureError(error, 'PerpsMarketDetailsView.handleDeposit'), {
         feature: PERPS_CONSTANTS.FeatureName,
         message: 'Failed to navigate to deposit',
       });
@@ -719,7 +719,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
   const handleTradingViewPress = useCallback(() => {
     Linking.openURL('https://www.tradingview.com/').catch((error: unknown) => {
-      Logger.error(ensureError(error), {
+      Logger.error(ensureError(error, 'PerpsMarketDetailsView.handleTradingViewPress'), {
         feature: PERPS_CONSTANTS.FeatureName,
         message: 'Failed to open Trading View URL',
       });
@@ -970,7 +970,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         [PERPS_EVENT_PROPERTY.STOP_LOSS_PRICE]: suggestedStopLossPrice,
       });
     } catch (error) {
-      Logger.error(ensureError(error), {
+      Logger.error(ensureError(error, 'PerpsMarketDetailsView.handleSetStopLoss'), {
         feature: PERPS_CONSTANTS.FeatureName,
         message: 'Failed to set stop loss from prompt banner',
       });

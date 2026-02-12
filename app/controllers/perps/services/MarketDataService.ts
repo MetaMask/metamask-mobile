@@ -2,6 +2,7 @@ import { ensureError } from '../utils/errorUtils';
 import { v4 as uuidv4 } from 'uuid';
 import { PerpsMeasurementName } from '../constants/performanceMetrics';
 import { PERPS_ERROR_CODES } from '../perpsErrorCodes';
+import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 import type { ServiceContext } from './ServiceContext';
 import {
   PerpsTraceNames,
@@ -148,9 +149,9 @@ export class MarketDataService {
       traceData = { success: true };
       return result;
     } catch (error) {
-      this.deps.logger.error(ensureError(error), {
+      this.deps.logger.error(ensureError(error, 'MarketDataService.getOrderFills'), {
         tags: {
-          feature: 'perps',
+          feature: PERPS_CONSTANTS.FeatureName,
           provider: context.tracingContext.provider,
           network: context.tracingContext.isTestnet ? 'testnet' : 'mainnet',
         },
@@ -206,9 +207,9 @@ export class MarketDataService {
       traceData = { success: true };
       return result;
     } catch (error) {
-      this.deps.logger.error(ensureError(error), {
+      this.deps.logger.error(ensureError(error, 'MarketDataService.getOrders'), {
         tags: {
-          feature: 'perps',
+          feature: PERPS_CONSTANTS.FeatureName,
           provider: context.tracingContext.provider,
           network: context.tracingContext.isTestnet ? 'testnet' : 'mainnet',
         },
@@ -272,9 +273,9 @@ export class MarketDataService {
       traceData = { success: true };
       return result;
     } catch (error) {
-      this.deps.logger.error(ensureError(error), {
+      this.deps.logger.error(ensureError(error, 'MarketDataService.getOpenOrders'), {
         tags: {
-          feature: 'perps',
+          feature: PERPS_CONSTANTS.FeatureName,
           provider: context.tracingContext.provider,
           network: context.tracingContext.isTestnet ? 'testnet' : 'mainnet',
         },
@@ -330,9 +331,9 @@ export class MarketDataService {
       traceData = { success: true };
       return result;
     } catch (error) {
-      this.deps.logger.error(ensureError(error), {
+      this.deps.logger.error(ensureError(error, 'MarketDataService.getFunding'), {
         tags: {
-          feature: 'perps',
+          feature: PERPS_CONSTANTS.FeatureName,
           provider: context.tracingContext.provider,
           network: context.tracingContext.isTestnet ? 'testnet' : 'mainnet',
         },
@@ -392,9 +393,9 @@ export class MarketDataService {
           'Failed to get account state: received null/undefined response',
         );
 
-        this.deps.logger.error(ensureError(error), {
+        this.deps.logger.error(ensureError(error, 'MarketDataService.getAccountState'), {
           tags: {
-            feature: 'perps',
+            feature: PERPS_CONSTANTS.FeatureName,
             provider: context.tracingContext.provider,
             network: context.tracingContext.isTestnet ? 'testnet' : 'mainnet',
           },
@@ -486,9 +487,9 @@ export class MarketDataService {
           ? error.message
           : 'Failed to get historical portfolio';
 
-      this.deps.logger.error(ensureError(error), {
+      this.deps.logger.error(ensureError(error, 'MarketDataService.getHistoricalPortfolio'), {
         tags: {
-          feature: 'perps',
+          feature: PERPS_CONSTANTS.FeatureName,
           provider: context.tracingContext.provider,
           network: context.tracingContext.isTestnet ? 'testnet' : 'mainnet',
         },
@@ -570,9 +571,9 @@ export class MarketDataService {
           ? error.message
           : PERPS_ERROR_CODES.MARKETS_FAILED;
 
-      this.deps.logger.error(ensureError(error), {
+      this.deps.logger.error(ensureError(error, 'MarketDataService.getMarkets'), {
         tags: {
-          feature: 'perps',
+          feature: PERPS_CONSTANTS.FeatureName,
           provider: context.tracingContext.provider,
           network: context.tracingContext.isTestnet ? 'testnet' : 'mainnet',
         },
@@ -625,7 +626,7 @@ export class MarketDataService {
 
       return await provider.getAvailableDexs(params);
     } catch (error) {
-      this.deps.logger.error(ensureError(error), {
+      this.deps.logger.error(ensureError(error, 'MarketDataService.getAvailableDexs'), {
         context: {
           name: 'MarketDataService.getAvailableDexs',
           data: { params },
@@ -702,9 +703,9 @@ export class MarketDataService {
           ? error.message
           : 'Failed to fetch historical candles';
 
-      this.deps.logger.error(ensureError(error), {
+      this.deps.logger.error(ensureError(error, 'MarketDataService.fetchHistoricalCandles'), {
         tags: {
-          feature: 'perps',
+          feature: PERPS_CONSTANTS.FeatureName,
           provider: context.tracingContext.provider,
           network: context.tracingContext.isTestnet ? 'testnet' : 'mainnet',
         },
@@ -756,7 +757,7 @@ export class MarketDataService {
     try {
       return await provider.calculateLiquidationPrice(params);
     } catch (error) {
-      this.deps.logger.error(ensureError(error), {
+      this.deps.logger.error(ensureError(error, 'MarketDataService.calculateLiquidationPrice'), {
         context: {
           name: 'MarketDataService.calculateLiquidationPrice',
           data: { params },
@@ -779,7 +780,7 @@ export class MarketDataService {
     try {
       return await provider.calculateMaintenanceMargin(params);
     } catch (error) {
-      this.deps.logger.error(ensureError(error), {
+      this.deps.logger.error(ensureError(error, 'MarketDataService.calculateMaintenanceMargin'), {
         context: {
           name: 'MarketDataService.calculateMaintenanceMargin',
           data: { params },
@@ -802,7 +803,7 @@ export class MarketDataService {
     try {
       return await provider.getMaxLeverage(asset);
     } catch (error) {
-      this.deps.logger.error(ensureError(error), {
+      this.deps.logger.error(ensureError(error, 'MarketDataService.getMaxLeverage'), {
         context: {
           name: 'MarketDataService.getMaxLeverage',
           data: { asset },
@@ -825,7 +826,7 @@ export class MarketDataService {
     try {
       return await provider.calculateFees(params);
     } catch (error) {
-      this.deps.logger.error(ensureError(error), {
+      this.deps.logger.error(ensureError(error, 'MarketDataService.calculateFees'), {
         context: {
           name: 'MarketDataService.calculateFees',
           data: { params },
@@ -848,7 +849,7 @@ export class MarketDataService {
     try {
       return await provider.validateOrder(params);
     } catch (error) {
-      this.deps.logger.error(ensureError(error), {
+      this.deps.logger.error(ensureError(error, 'MarketDataService.validateOrder'), {
         context: {
           name: 'MarketDataService.validateOrder',
           data: { params },
@@ -871,7 +872,7 @@ export class MarketDataService {
     try {
       return await provider.validateClosePosition(params);
     } catch (error) {
-      this.deps.logger.error(ensureError(error), {
+      this.deps.logger.error(ensureError(error, 'MarketDataService.validateClosePosition'), {
         context: {
           name: 'MarketDataService.validateClosePosition',
           data: { params },

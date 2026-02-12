@@ -155,7 +155,7 @@ class PerpsConnectionManagerClass {
         // Force the controller to reconnect with new account
         // This ensures proper WebSocket reconnection at the controller level
         this.reconnectWithNewContext().catch((error) => {
-          Logger.error(ensureError(error), {
+          Logger.error(ensureError(error, 'PerpsConnectionManager.setupStateMonitoring'), {
             feature: PERPS_CONSTANTS.FeatureName,
             message: 'Error reconnecting with new account/network context',
           });
@@ -257,7 +257,7 @@ class PerpsConnectionManagerClass {
       BackgroundTimer.start();
       this.gracePeriodTimer = setTimeout(() => {
         this.performActualDisconnection().catch((error) => {
-          Logger.error(ensureError(error), {
+          Logger.error(ensureError(error, 'PerpsConnectionManager.startGracePeriodDisconnect'), {
             feature: PERPS_CONSTANTS.FeatureName,
             message: 'Error performing actual disconnection',
           });
@@ -269,7 +269,7 @@ class PerpsConnectionManagerClass {
       // Android uses BackgroundTimer.setTimeout directly
       this.gracePeriodTimer = BackgroundTimer.setTimeout(() => {
         this.performActualDisconnection().catch((error) => {
-          Logger.error(ensureError(error), {
+          Logger.error(ensureError(error, 'PerpsConnectionManager.startGracePeriodDisconnect'), {
             feature: PERPS_CONSTANTS.FeatureName,
             message: 'Error performing actual disconnection',
           });
@@ -318,7 +318,7 @@ class PerpsConnectionManagerClass {
               'PerpsConnectionManager: Actual disconnection complete',
             );
           } catch (error) {
-            Logger.error(ensureError(error), {
+            Logger.error(ensureError(error, 'PerpsConnectionManager.performActualDisconnection'), {
               feature: PERPS_CONSTANTS.FeatureName,
             });
           } finally {
@@ -915,7 +915,7 @@ class PerpsConnectionManagerClass {
         'PerpsConnectionManager: Pre-loading complete with persistent subscriptions',
       );
     } catch (error) {
-      Logger.error(ensureError(error), {
+      Logger.error(ensureError(error, 'PerpsConnectionManager.preLoadSubscriptions'), {
         feature: PERPS_CONSTANTS.FeatureName,
         message: 'Error pre-loading subscriptions',
       });

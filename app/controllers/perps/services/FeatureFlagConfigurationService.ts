@@ -1,6 +1,7 @@
 import { hasProperty } from '@metamask/utils';
 import type { RemoteFeatureFlagControllerState } from '@metamask/remote-feature-flag-controller';
 import { ensureError } from '../utils/errorUtils';
+import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 import {
   parseCommaSeparatedString,
   stripQuotes,
@@ -329,7 +330,8 @@ export class FeatureFlagConfigurationService {
     }
 
     context.refreshEligibility().catch((error) => {
-      this.deps.logger.error(ensureError(error), {
+      this.deps.logger.error(ensureError(error, 'FeatureFlagConfigurationService.setBlockedRegions'), {
+        tags: { feature: PERPS_CONSTANTS.FeatureName },
         context: {
           name: 'FeatureFlagConfigurationService.setBlockedRegions',
           data: { source },

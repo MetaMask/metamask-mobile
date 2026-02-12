@@ -272,7 +272,7 @@ export const PerpsConnectionProvider: React.FC<
         setRetryAttempts(0);
       } catch (err) {
         // Keep retry attempts count for showing back button after failed attempts
-        Logger.error(ensureError(err), {
+        Logger.error(ensureError(err, 'PerpsConnectionProvider.initializePerps'), {
           feature: PERPS_CONSTANTS.FeatureName,
           message: `Retry connection failed (attempt ${retryAttempts})`,
         });

@@ -1,4 +1,5 @@
 import { ensureError } from '../utils/errorUtils';
+import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 import { formatAccountToCaipAccountId } from '../utils/rewardsUtils';
 import type { PerpsControllerMessenger } from '../PerpsController';
 import type { PerpsPlatformDependencies } from '../types';
@@ -70,6 +71,7 @@ export class RewardsIntegrationService {
         this.deps.logger.error(
           new Error('Chain ID not found for fee discount calculation'),
           {
+            tags: { feature: PERPS_CONSTANTS.FeatureName },
             context: {
               name: 'RewardsIntegrationService.calculateUserFeeDiscount',
               data: {
@@ -92,6 +94,7 @@ export class RewardsIntegrationService {
         this.deps.logger.error(
           new Error('Failed to format CAIP account ID for fee discount'),
           {
+            tags: { feature: PERPS_CONSTANTS.FeatureName },
             context: {
               name: 'RewardsIntegrationService.calculateUserFeeDiscount',
               data: {
@@ -122,7 +125,8 @@ export class RewardsIntegrationService {
 
       return discountBips;
     } catch (error) {
-      this.deps.logger.error(ensureError(error), {
+      this.deps.logger.error(ensureError(error, 'RewardsIntegrationService.calculateUserFeeDiscount'), {
+        tags: { feature: PERPS_CONSTANTS.FeatureName },
         context: {
           name: 'RewardsIntegrationService.calculateUserFeeDiscount',
           data: {},

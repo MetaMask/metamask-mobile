@@ -226,7 +226,7 @@ export class SubscriptionMultiplexer {
         unsubscribers.push(unsub);
       } catch (error) {
         // Log to Sentry before cleanup
-        this.logger?.error(ensureError(error), {
+        this.logger?.error(ensureError(error, 'SubscriptionMultiplexer.subscribeToPrices'), {
           tags: {
             feature: PERPS_CONSTANTS.FeatureName,
             provider: providerId,
@@ -284,7 +284,7 @@ export class SubscriptionMultiplexer {
         const unsub = provider.subscribeToPositions(subscribeParams);
         unsubscribers.push(unsub);
       } catch (error) {
-        this.logger?.error(ensureError(error), {
+        this.logger?.error(ensureError(error, 'SubscriptionMultiplexer.subscribeToPositions'), {
           tags: {
             feature: PERPS_CONSTANTS.FeatureName,
             provider: providerId,
@@ -337,7 +337,7 @@ export class SubscriptionMultiplexer {
         const unsub = provider.subscribeToOrderFills(subscribeParams);
         unsubscribers.push(unsub);
       } catch (error) {
-        this.logger?.error(ensureError(error), {
+        this.logger?.error(ensureError(error, 'SubscriptionMultiplexer.subscribeToOrderFills'), {
           tags: {
             feature: PERPS_CONSTANTS.FeatureName,
             provider: providerId,
@@ -388,7 +388,7 @@ export class SubscriptionMultiplexer {
         const unsub = provider.subscribeToOrders(subscribeParams);
         unsubscribers.push(unsub);
       } catch (error) {
-        this.logger?.error(ensureError(error), {
+        this.logger?.error(ensureError(error, 'SubscriptionMultiplexer.subscribeToOrders'), {
           tags: {
             feature: PERPS_CONSTANTS.FeatureName,
             provider: providerId,
@@ -446,7 +446,7 @@ export class SubscriptionMultiplexer {
         const unsub = provider.subscribeToAccount(subscribeParams);
         unsubscribers.push(unsub);
       } catch (error) {
-        this.logger?.error(ensureError(error), {
+        this.logger?.error(ensureError(error, 'SubscriptionMultiplexer.subscribeToAccount'), {
           tags: {
             feature: PERPS_CONSTANTS.FeatureName,
             provider: providerId,
