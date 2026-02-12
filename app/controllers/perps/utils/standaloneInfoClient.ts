@@ -34,8 +34,8 @@ export const queryStandaloneClearinghouseStates = async (
   infoClient: InfoClient,
   userAddress: string,
   dexs: (string | null)[],
-): Promise<ClearinghouseStateResponse[]> =>
-  Promise.all(
+): Promise<ClearinghouseStateResponse[]> => {
+  const results = await Promise.allSettled(
     dexs.map(async (dex) => {
       const queryParams: { user: string; dex?: string } = {
         user: userAddress,
@@ -46,3 +46,11 @@ export const queryStandaloneClearinghouseStates = async (
       return infoClient.clearinghouseState(queryParams);
     }),
   );
+
+  return results
+    .filter(
+      (r): r is PromiseFulfilledResult<ClearinghouseStateResponse> =>
+        r.status === 'fulfilled',
+    )
+    .map((r) => r.value);
+};

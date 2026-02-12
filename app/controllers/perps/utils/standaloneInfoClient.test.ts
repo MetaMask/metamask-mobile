@@ -200,17 +200,40 @@ describe('standaloneInfoClient', () => {
       expect(results).toEqual([]);
     });
 
-    it('propagates error when clearinghouseState rejects', async () => {
-      const networkError = new Error('Network timeout');
-      mockInfoClient.clearinghouseState.mockRejectedValue(networkError);
+    it('returns successful results when some DEX queries fail', async () => {
+      const responseA = createMockClearinghouseResponse({
+        withdrawable: '100',
+      });
+      const responseC = createMockClearinghouseResponse({
+        withdrawable: '300',
+      });
 
-      await expect(
-        queryStandaloneClearinghouseStates(
-          mockInfoClient as unknown as InfoClient,
-          userAddress,
-          [null],
-        ),
-      ).rejects.toThrow('Network timeout');
+      mockInfoClient.clearinghouseState
+        .mockResolvedValueOnce(responseA)
+        .mockRejectedValueOnce(new Error('HIP-3 DEX timeout'))
+        .mockResolvedValueOnce(responseC);
+
+      const results = await queryStandaloneClearinghouseStates(
+        mockInfoClient as unknown as InfoClient,
+        userAddress,
+        [null, 'failing-dex', 'healthy-dex'],
+      );
+
+      expect(results).toEqual([responseA, responseC]);
+    });
+
+    it('returns empty array when all DEX queries fail', async () => {
+      mockInfoClient.clearinghouseState.mockRejectedValue(
+        new Error('Network timeout'),
+      );
+
+      const results = await queryStandaloneClearinghouseStates(
+        mockInfoClient as unknown as InfoClient,
+        userAddress,
+        [null, 'dex-a'],
+      );
+
+      expect(results).toEqual([]);
     });
   });
 });
