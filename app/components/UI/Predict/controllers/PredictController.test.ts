@@ -10,6 +10,11 @@ import {
 
 import type { NetworkState } from '@metamask/network-controller';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
+import {
+  TransactionStatus,
+  type TransactionMeta,
+  TransactionType,
+} from '@metamask/transaction-controller';
 
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import {
@@ -344,6 +349,7 @@ describe('PredictController', () => {
         'TransactionController:transactionConfirmed',
         'TransactionController:transactionFailed',
         'TransactionController:transactionRejected',
+        'TransactionController:transactionStatusUpdated',
         'RemoteFeatureFlagController:stateChange',
       ],
       messenger,
@@ -3346,7 +3352,6 @@ describe('PredictController', () => {
           networkClientId: 'polygon-mainnet',
           disableHook: true,
           disableSequential: true,
-          disableUpgrade: true,
           skipInitialGasEstimate: true,
           transactions: mockTransactions,
         });
@@ -4001,6 +4006,795 @@ describe('PredictController', () => {
         expect(controller.state.pendingDeposits[providerId][address]).toBe(
           newBatchId,
         );
+      });
+    });
+  });
+
+  describe('transactionStatusChanged event', () => {
+    const accountAddress = '0x1234567890123456789012345678901234567890';
+
+    const createPredictTransactionMeta = ({
+      nestedType,
+      status,
+      batchId,
+      from,
+    }: {
+      nestedType: TransactionType;
+      status: TransactionStatus;
+      batchId?: string;
+      from?: string;
+    }) =>
+      ({
+        id: 'tx-1',
+        status,
+        batchId,
+        txParams: {
+          from: from ?? accountAddress,
+          to: '0x0000000000000000000000000000000000000001',
+          value: '0x0',
+          data: '0x',
+        },
+        nestedTransactions: [
+          {
+            type: nestedType,
+          },
+        ],
+      }) as any;
+
+    it('publishes event for predict deposit transaction with approved status', () => {
+      withController(({ controller, messenger }) => {
+        const transactionStatusChangedHandler = jest.fn();
+        const transactionMeta = createPredictTransactionMeta({
+          nestedType: TransactionType.predictDeposit,
+          status: TransactionStatus.approved,
+          batchId: 'batch-1',
+          from: accountAddress.toUpperCase(),
+        });
+
+        messenger.subscribe(
+          'PredictController:transactionStatusChanged',
+          transactionStatusChangedHandler,
+        );
+
+        controller.updateStateForTesting((state) => {
+          state.pendingDeposits = {
+            polymarket: {
+              [accountAddress]: 'batch-1',
+            },
+          };
+        });
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        } as any);
+
+        expect(transactionStatusChangedHandler).toHaveBeenCalledWith(
+          expect.objectContaining({
+            type: 'deposit',
+            status: 'approved',
+            senderAddress: accountAddress,
+            transactionId: 'tx-1',
+          }),
+        );
+      });
+    });
+
+    it('publishes event for deposit when pendingDeposits has placeholder before batchId is assigned', () => {
+      withController(({ controller, messenger }) => {
+        const transactionStatusChangedHandler = jest.fn();
+        const transactionMeta = createPredictTransactionMeta({
+          nestedType: TransactionType.predictDeposit,
+          status: TransactionStatus.approved,
+          from: accountAddress,
+        });
+
+        messenger.subscribe(
+          'PredictController:transactionStatusChanged',
+          transactionStatusChangedHandler,
+        );
+
+        controller.updateStateForTesting((state) => {
+          state.pendingDeposits = {
+            polymarket: {
+              [accountAddress]: 'pending',
+            },
+          };
+        });
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        } as any);
+
+        expect(transactionStatusChangedHandler).toHaveBeenCalledWith(
+          expect.objectContaining({
+            type: 'deposit',
+            status: 'approved',
+            senderAddress: accountAddress,
+            transactionId: 'tx-1',
+          }),
+        );
+      });
+    });
+
+    it('publishes event for predict claim transaction with confirmed status', () => {
+      withController(({ controller, messenger }) => {
+        const transactionStatusChangedHandler = jest.fn();
+        const claimablePositions = [
+          createMockPosition({
+            id: 'position-1',
+            status: PredictPositionStatus.WON,
+            currentValue: 100,
+            cashPnl: 25,
+          }),
+          createMockPosition({
+            id: 'position-lost',
+            status: PredictPositionStatus.LOST,
+            currentValue: 999,
+            cashPnl: -999,
+          }),
+        ];
+        const transactionMeta = createPredictTransactionMeta({
+          nestedType: TransactionType.predictClaim,
+          status: TransactionStatus.confirmed,
+        });
+
+        controller.updateStateForTesting((state) => {
+          state.claimablePositions = {
+            [accountAddress]: claimablePositions,
+          };
+        });
+
+        messenger.subscribe(
+          'PredictController:transactionStatusChanged',
+          transactionStatusChangedHandler,
+        );
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        } as any);
+
+        expect(transactionStatusChangedHandler).toHaveBeenCalledWith(
+          expect.objectContaining({
+            type: 'claim',
+            status: 'confirmed',
+            senderAddress: accountAddress,
+            transactionId: 'tx-1',
+            amount: 100,
+          }),
+        );
+      });
+    });
+
+    it('clears only sender pending deposit when selected account differs', () => {
+      withController(({ controller, messenger }) => {
+        const selectedAddress = accountAddress;
+        const senderAddress = '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
+        const transactionMeta = createPredictTransactionMeta({
+          nestedType: TransactionType.predictDeposit,
+          status: TransactionStatus.failed,
+          batchId: 'batch-sender',
+          from: senderAddress,
+        });
+
+        controller.updateStateForTesting((state) => {
+          state.pendingDeposits = {
+            polymarket: {
+              [selectedAddress]: 'batch-selected',
+              [senderAddress]: 'batch-sender',
+            },
+          };
+        });
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        } as any);
+
+        expect(
+          controller.state.pendingDeposits.polymarket[selectedAddress],
+        ).toBe('batch-selected');
+        expect(
+          controller.state.pendingDeposits.polymarket[senderAddress],
+        ).toBeUndefined();
+      });
+    });
+
+    it('confirms claim for sender account when selected account differs', () => {
+      withController(({ controller, messenger }) => {
+        const selectedAddress = accountAddress;
+        const senderAddress = '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
+        const senderClaimablePositions = [
+          createMockPosition({
+            id: 'position-sender',
+            status: PredictPositionStatus.WON,
+            currentValue: 50,
+            cashPnl: 10,
+          }),
+        ];
+        const selectedClaimablePositions = [
+          createMockPosition({
+            id: 'position-selected',
+            status: PredictPositionStatus.WON,
+            currentValue: 20,
+            cashPnl: 5,
+          }),
+        ];
+        const transactionMeta = createPredictTransactionMeta({
+          nestedType: TransactionType.predictClaim,
+          status: TransactionStatus.confirmed,
+          from: senderAddress,
+        });
+
+        mockPolymarketProvider.confirmClaim = jest.fn();
+
+        controller.updateStateForTesting((state) => {
+          state.claimablePositions = {
+            [selectedAddress]: selectedClaimablePositions,
+            [senderAddress]: senderClaimablePositions,
+          };
+        });
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        } as any);
+
+        expect(mockPolymarketProvider.confirmClaim).toHaveBeenCalledWith({
+          positions: senderClaimablePositions,
+          signer: expect.objectContaining({ address: senderAddress }),
+        });
+        expect(controller.state.claimablePositions[selectedAddress]).toEqual(
+          selectedClaimablePositions,
+        );
+        expect(controller.state.claimablePositions[senderAddress]).toEqual([]);
+      });
+    });
+
+    it('publishes event for predict withdraw transaction with failed status', () => {
+      withController(({ messenger }) => {
+        const transactionStatusChangedHandler = jest.fn();
+        const transactionMeta = createPredictTransactionMeta({
+          nestedType: TransactionType.predictWithdraw,
+          status: TransactionStatus.failed,
+        });
+
+        messenger.subscribe(
+          'PredictController:transactionStatusChanged',
+          transactionStatusChangedHandler,
+        );
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        } as any);
+
+        expect(transactionStatusChangedHandler).toHaveBeenCalledWith(
+          expect.objectContaining({
+            type: 'withdraw',
+            status: 'failed',
+            senderAddress: accountAddress,
+            transactionId: 'tx-1',
+          }),
+        );
+      });
+    });
+
+    it('does not publish event for non-predict transactions', () => {
+      withController(({ messenger }) => {
+        const transactionStatusChangedHandler = jest.fn();
+        const transactionMeta = createPredictTransactionMeta({
+          nestedType: TransactionType.simpleSend,
+          status: TransactionStatus.confirmed,
+        });
+
+        messenger.subscribe(
+          'PredictController:transactionStatusChanged',
+          transactionStatusChangedHandler,
+        );
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        } as any);
+
+        expect(transactionStatusChangedHandler).not.toHaveBeenCalled();
+      });
+    });
+
+    it('does not publish event for deposit with wrong batchId', () => {
+      withController(({ controller, messenger }) => {
+        const transactionStatusChangedHandler = jest.fn();
+        const transactionMeta = createPredictTransactionMeta({
+          nestedType: TransactionType.predictDeposit,
+          status: TransactionStatus.confirmed,
+          batchId: 'batch-not-pending',
+        });
+
+        messenger.subscribe(
+          'PredictController:transactionStatusChanged',
+          transactionStatusChangedHandler,
+        );
+
+        controller.updateStateForTesting((state) => {
+          state.pendingDeposits = {
+            polymarket: {
+              [accountAddress]: 'batch-expected',
+            },
+          };
+        });
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        } as any);
+
+        expect(transactionStatusChangedHandler).not.toHaveBeenCalled();
+      });
+    });
+
+    it('does not publish event when nested transactions are missing', () => {
+      withController(({ messenger }) => {
+        const transactionStatusChangedHandler = jest.fn();
+        const transactionMeta = {
+          ...createPredictTransactionMeta({
+            nestedType: TransactionType.predictDeposit,
+            status: TransactionStatus.approved,
+          }),
+          nestedTransactions: undefined,
+        };
+
+        messenger.subscribe(
+          'PredictController:transactionStatusChanged',
+          transactionStatusChangedHandler,
+        );
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        } as { transactionMeta: TransactionMeta });
+
+        expect(transactionStatusChangedHandler).not.toHaveBeenCalled();
+      });
+    });
+
+    it('does not publish event for deposit when no pending state exists', () => {
+      withController(({ messenger }) => {
+        const transactionStatusChangedHandler = jest.fn();
+        const transactionMeta = createPredictTransactionMeta({
+          nestedType: TransactionType.predictDeposit,
+          status: TransactionStatus.approved,
+          batchId: 'batch-1',
+        });
+
+        messenger.subscribe(
+          'PredictController:transactionStatusChanged',
+          transactionStatusChangedHandler,
+        );
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        } as { transactionMeta: TransactionMeta });
+
+        expect(transactionStatusChangedHandler).not.toHaveBeenCalled();
+      });
+    });
+
+    it('publishes event for pending deposit when sender address is missing', () => {
+      withController(({ controller, messenger }) => {
+        const transactionStatusChangedHandler = jest.fn();
+        const fallbackAddress = '0xAbCdEfAbCdEfAbCdEfAbCdEfAbCdEfAbCdEfAbCd';
+        const transactionMeta = {
+          ...createPredictTransactionMeta({
+            nestedType: TransactionType.predictDeposit,
+            status: TransactionStatus.approved,
+          }),
+          txParams: {
+            to: '0x0000000000000000000000000000000000000001',
+            value: '0x0',
+            data: '0x',
+          },
+        };
+
+        jest
+          .spyOn(
+            controller as unknown as { getEvmAccountAddress: () => string },
+            'getEvmAccountAddress',
+          )
+          .mockReturnValue(fallbackAddress);
+
+        messenger.subscribe(
+          'PredictController:transactionStatusChanged',
+          transactionStatusChangedHandler,
+        );
+
+        controller.updateStateForTesting((state) => {
+          state.pendingDeposits = {
+            polymarket: {
+              [accountAddress]: 'pending',
+            },
+          };
+        });
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        } as { transactionMeta: TransactionMeta });
+
+        expect(transactionStatusChangedHandler).toHaveBeenCalledWith(
+          expect.objectContaining({
+            type: 'deposit',
+            status: 'approved',
+            senderAddress: fallbackAddress.toLowerCase(),
+          }),
+        );
+      });
+    });
+
+    it('clears pending deposit when deposit transaction is rejected', () => {
+      withController(({ controller, messenger }) => {
+        const transactionMeta = createPredictTransactionMeta({
+          nestedType: TransactionType.predictDeposit,
+          status: TransactionStatus.rejected,
+          batchId: 'batch-1',
+        });
+
+        controller.updateStateForTesting((state) => {
+          state.pendingDeposits = {
+            polymarket: {
+              [accountAddress]: 'batch-1',
+            },
+          };
+        });
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        } as { transactionMeta: TransactionMeta });
+
+        expect(
+          controller.state.pendingDeposits.polymarket[accountAddress],
+        ).toBe(undefined);
+      });
+    });
+
+    it('clears withdraw transaction when withdraw transaction is confirmed', () => {
+      withController(({ controller, messenger }) => {
+        const transactionMeta = createPredictTransactionMeta({
+          nestedType: TransactionType.predictWithdraw,
+          status: TransactionStatus.confirmed,
+        });
+
+        controller.updateStateForTesting((state) => {
+          state.withdrawTransaction = {
+            amount: 42,
+            chainId: 137,
+            transactionId: 'withdraw-1',
+            status: PredictWithdrawStatus.PENDING,
+            providerId: 'polymarket',
+            predictAddress: accountAddress,
+          };
+        });
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        } as { transactionMeta: TransactionMeta });
+
+        expect(controller.state.withdrawTransaction).toBeNull();
+      });
+    });
+
+    it('keeps withdraw transaction when withdraw transaction is approved', () => {
+      withController(({ controller, messenger }) => {
+        const transactionMeta = createPredictTransactionMeta({
+          nestedType: TransactionType.predictWithdraw,
+          status: TransactionStatus.approved,
+        });
+
+        controller.updateStateForTesting((state) => {
+          state.withdrawTransaction = {
+            amount: 64,
+            chainId: 137,
+            transactionId: 'withdraw-2',
+            status: PredictWithdrawStatus.PENDING,
+            providerId: 'polymarket',
+            predictAddress: accountAddress,
+          };
+        });
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        } as { transactionMeta: TransactionMeta });
+
+        expect(controller.state.withdrawTransaction).toEqual(
+          expect.objectContaining({
+            transactionId: 'withdraw-2',
+          }),
+        );
+      });
+    });
+
+    it('does not refresh balance when transaction status is approved', () => {
+      withController(({ controller, messenger }) => {
+        const transactionMeta = createPredictTransactionMeta({
+          nestedType: TransactionType.predictClaim,
+          status: TransactionStatus.approved,
+        });
+
+        const getBalanceSpy = jest
+          .spyOn(controller, 'getBalance')
+          .mockResolvedValue(0);
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        } as { transactionMeta: TransactionMeta });
+
+        expect(getBalanceSpy).not.toHaveBeenCalled();
+      });
+    });
+
+    it('continues publishing when balance refresh rejects for confirmed transaction', () => {
+      withController(({ controller, messenger }) => {
+        const transactionStatusChangedHandler = jest.fn();
+        const transactionMeta = createPredictTransactionMeta({
+          nestedType: TransactionType.predictClaim,
+          status: TransactionStatus.confirmed,
+        });
+
+        jest
+          .spyOn(controller, 'getBalance')
+          .mockRejectedValue(new Error('balance refresh failed'));
+
+        messenger.subscribe(
+          'PredictController:transactionStatusChanged',
+          transactionStatusChangedHandler,
+        );
+
+        expect(() =>
+          messenger.publish('TransactionController:transactionStatusUpdated', {
+            transactionMeta,
+          } as { transactionMeta: TransactionMeta }),
+        ).not.toThrow();
+
+        expect(transactionStatusChangedHandler).toHaveBeenCalledWith(
+          expect.objectContaining({
+            type: 'claim',
+            status: 'confirmed',
+          }),
+        );
+      });
+    });
+
+    it('publishes event even when side effects throw', () => {
+      withController(({ controller, messenger }) => {
+        const transactionStatusChangedHandler = jest.fn();
+        const transactionMeta = createPredictTransactionMeta({
+          nestedType: TransactionType.predictClaim,
+          status: TransactionStatus.confirmed,
+        });
+
+        jest
+          .spyOn(
+            controller as unknown as {
+              handleTransactionSideEffects: () => void;
+            },
+            'handleTransactionSideEffects',
+          )
+          .mockImplementation(() => {
+            throw new Error('Side effects failed');
+          });
+
+        messenger.subscribe(
+          'PredictController:transactionStatusChanged',
+          transactionStatusChangedHandler,
+        );
+
+        expect(() =>
+          messenger.publish('TransactionController:transactionStatusUpdated', {
+            transactionMeta,
+          } as any),
+        ).not.toThrow();
+
+        expect(transactionStatusChangedHandler).toHaveBeenCalledWith(
+          expect.objectContaining({
+            type: 'claim',
+            status: 'confirmed',
+            senderAddress: accountAddress,
+            transactionId: 'tx-1',
+          }),
+        );
+      });
+    });
+
+    it('returns undefined amount for deposit when metamaskPay values are not numeric', () => {
+      withController(({ controller }) => {
+        const getTransactionAmount = (
+          controller as unknown as {
+            getTransactionAmount: (args: {
+              type: 'deposit' | 'claim' | 'withdraw';
+              status: 'approved' | 'confirmed' | 'failed' | 'rejected';
+              transactionMeta: TransactionMeta;
+              address: string;
+            }) => number | undefined;
+          }
+        ).getTransactionAmount.bind(controller);
+
+        const amount = getTransactionAmount({
+          type: 'deposit',
+          status: 'confirmed',
+          transactionMeta: {
+            ...createPredictTransactionMeta({
+              nestedType: TransactionType.predictDeposit,
+              status: TransactionStatus.confirmed,
+            }),
+            metamaskPay: {
+              totalFiat: '$abc',
+              bridgeFeeFiat: '$1',
+              networkFeeFiat: '$1',
+            },
+          },
+          address: accountAddress,
+        });
+
+        expect(amount).toBeUndefined();
+      });
+    });
+
+    it('returns undefined amount for confirmed withdraw when state and receiving are not numeric', () => {
+      withController(({ controller }) => {
+        const getTransactionAmount = (
+          controller as unknown as {
+            getTransactionAmount: (args: {
+              type: 'deposit' | 'claim' | 'withdraw';
+              status: 'approved' | 'confirmed' | 'failed' | 'rejected';
+              transactionMeta: TransactionMeta;
+              address: string;
+            }) => number | undefined;
+          }
+        ).getTransactionAmount.bind(controller);
+
+        controller.updateStateForTesting((state) => {
+          state.withdrawTransaction = {
+            amount: Number.NaN,
+            chainId: 137,
+            transactionId: 'tx-1',
+            status: PredictWithdrawStatus.PENDING,
+            providerId: 'polymarket',
+            predictAddress: accountAddress,
+          };
+        });
+
+        const amount = getTransactionAmount({
+          type: 'withdraw',
+          status: 'confirmed',
+          transactionMeta: {
+            ...createPredictTransactionMeta({
+              nestedType: TransactionType.predictWithdraw,
+              status: TransactionStatus.confirmed,
+            }),
+            assetsFiatValues: {
+              receiving: 'not-a-number',
+            },
+          },
+          address: accountAddress,
+        });
+
+        expect(amount).toBeUndefined();
+      });
+    });
+
+    it('returns zero amount when deposit fees exceed total amount', () => {
+      withController(({ controller }) => {
+        const getTransactionAmount = (
+          controller as unknown as {
+            getTransactionAmount: (args: {
+              type: 'deposit' | 'claim' | 'withdraw';
+              status: 'approved' | 'confirmed' | 'failed' | 'rejected';
+              transactionMeta: TransactionMeta;
+              address: string;
+            }) => number | undefined;
+          }
+        ).getTransactionAmount.bind(controller);
+
+        const amount = getTransactionAmount({
+          type: 'deposit',
+          status: 'confirmed',
+          transactionMeta: {
+            ...createPredictTransactionMeta({
+              nestedType: TransactionType.predictDeposit,
+              status: TransactionStatus.confirmed,
+            }),
+            metamaskPay: {
+              totalFiat: 50,
+              bridgeFeeFiat: 30,
+              networkFeeFiat: 30,
+            },
+          },
+          address: accountAddress,
+        });
+
+        expect(amount).toBe(0);
+      });
+    });
+
+    it('returns receiving amount for confirmed withdraw when state amount is missing', () => {
+      withController(({ controller }) => {
+        const getTransactionAmount = (
+          controller as unknown as {
+            getTransactionAmount: (args: {
+              type: 'deposit' | 'claim' | 'withdraw';
+              status: 'approved' | 'confirmed' | 'failed' | 'rejected';
+              transactionMeta: TransactionMeta;
+              address: string;
+            }) => number | undefined;
+          }
+        ).getTransactionAmount.bind(controller);
+
+        controller.updateStateForTesting((state) => {
+          state.withdrawTransaction = null;
+        });
+
+        const amount = getTransactionAmount({
+          type: 'withdraw',
+          status: 'confirmed',
+          transactionMeta: {
+            ...createPredictTransactionMeta({
+              nestedType: TransactionType.predictWithdraw,
+              status: TransactionStatus.confirmed,
+            }),
+            assetsFiatValues: {
+              receiving: '77.25',
+            },
+          },
+          address: accountAddress,
+        });
+
+        expect(amount).toBe(77.25);
+      });
+    });
+
+    it('returns undefined amount for approved withdraw transaction', () => {
+      withController(({ controller }) => {
+        const getTransactionAmount = (
+          controller as unknown as {
+            getTransactionAmount: (args: {
+              type: 'deposit' | 'claim' | 'withdraw';
+              status: 'approved' | 'confirmed' | 'failed' | 'rejected';
+              transactionMeta: TransactionMeta;
+              address: string;
+            }) => number | undefined;
+          }
+        ).getTransactionAmount.bind(controller);
+
+        const amount = getTransactionAmount({
+          type: 'withdraw',
+          status: 'approved',
+          transactionMeta: createPredictTransactionMeta({
+            nestedType: TransactionType.predictWithdraw,
+            status: TransactionStatus.approved,
+          }),
+          address: accountAddress,
+        });
+
+        expect(amount).toBeUndefined();
+      });
+    });
+
+    it('maps transaction statuses to predict transaction event statuses', () => {
+      withController(({ controller }) => {
+        const mapStatus = (
+          controller as any
+        ).mapTransactionStatusToPredictTransactionEventStatus.bind(controller);
+
+        expect(mapStatus(TransactionStatus.approved)).toBe('approved');
+        expect(mapStatus(TransactionStatus.submitted)).toBeNull();
+        expect(mapStatus(TransactionStatus.confirmed)).toBe('confirmed');
+        expect(mapStatus(TransactionStatus.failed)).toBe('failed');
+        expect(mapStatus(TransactionStatus.rejected)).toBe('rejected');
+      });
+    });
+
+    it('maps transaction types to predict transaction event types', () => {
+      withController(({ controller }) => {
+        const mapType = (
+          controller as any
+        ).mapTransactionTypeToPredictTransactionEventType.bind(controller);
+
+        expect(mapType(TransactionType.predictDeposit)).toBe('deposit');
+        expect(mapType(TransactionType.predictClaim)).toBe('claim');
+        expect(mapType(TransactionType.predictWithdraw)).toBe('withdraw');
+        expect(mapType(TransactionType.swap)).toBeNull();
       });
     });
   });

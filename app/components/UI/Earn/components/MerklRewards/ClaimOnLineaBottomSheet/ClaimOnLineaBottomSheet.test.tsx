@@ -5,6 +5,10 @@ import ClaimOnLineaBottomSheet from './ClaimOnLineaBottomSheet';
 import AppConstants from '../../../../../../core/AppConstants';
 
 const mockOnContinue = jest.fn();
+const mockTrackEvent = jest.fn();
+const mockCreateEventBuilder = jest.fn();
+const mockAddProperties = jest.fn();
+const mockBuild = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
@@ -13,8 +17,22 @@ jest.mock('@react-navigation/native', () => ({
   useRoute: () => ({
     params: {
       onContinue: mockOnContinue,
+      analyticsContext: undefined,
     },
   }),
+}));
+
+jest.mock('../../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
+}));
+
+jest.mock('../../../../../../core/Analytics/MetaMetrics.events', () => ({
+  EVENT_NAME: {
+    MUSD_CLAIM_BONUS_BUTTON_CLICKED: 'mUSD Claim Bonus Button Clicked',
+  },
 }));
 
 jest.mock('react-native-safe-area-context', () => ({
@@ -156,6 +174,12 @@ jest.mock('@metamask/design-system-react-native', () => {
 describe('ClaimOnLineaBottomSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    const builder = {
+      addProperties: mockAddProperties,
+      build: mockBuild.mockReturnValue({ event: 'mock-event' }),
+    };
+    mockAddProperties.mockReturnValue(builder);
+    mockCreateEventBuilder.mockReturnValue(builder);
   });
 
   it('renders correctly', () => {
@@ -180,6 +204,24 @@ describe('ClaimOnLineaBottomSheet', () => {
     fireEvent.press(getByTestId('claim-on-linea-continue-button'));
 
     expect(mockOnContinue).toHaveBeenCalled();
+  });
+
+  it('tracks mUSD Claim Bonus Button Clicked with claim_bonus when Continue is pressed', () => {
+    const { getByTestId } = render(<ClaimOnLineaBottomSheet />);
+
+    fireEvent.press(getByTestId('claim-on-linea-continue-button'));
+
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      'mUSD Claim Bonus Button Clicked',
+    );
+    expect(mockAddProperties).toHaveBeenCalledWith(
+      expect.objectContaining({
+        location: 'claim_bonus_bottom_sheet',
+        action_type: 'claim_bonus',
+        button_text: 'Continue',
+      }),
+    );
+    expect(mockTrackEvent).toHaveBeenCalled();
   });
 
   it('closes bottom sheet immediately when Continue is pressed', () => {
@@ -210,5 +252,20 @@ describe('ClaimOnLineaBottomSheet', () => {
     fireEvent.press(getByTestId('bottom-sheet-close-button'));
 
     expect(mockOnCloseBottomSheet).toHaveBeenCalled();
+  });
+
+  it('tracks mUSD Claim Bonus Button Clicked with dismiss when close button is pressed', () => {
+    const { getByTestId } = render(<ClaimOnLineaBottomSheet />);
+
+    fireEvent.press(getByTestId('bottom-sheet-close-button'));
+
+    expect(mockAddProperties).toHaveBeenCalledWith(
+      expect.objectContaining({
+        location: 'claim_bonus_bottom_sheet',
+        action_type: 'dismiss',
+        button_text: 'Close',
+      }),
+    );
+    expect(mockTrackEvent).toHaveBeenCalled();
   });
 });

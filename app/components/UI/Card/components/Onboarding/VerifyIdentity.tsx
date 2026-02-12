@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect } from 'react';
 import { Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import OnboardingStep from './OnboardingStep';
 import { strings } from '../../../../../../locales/i18n';
 import {
@@ -23,11 +24,13 @@ import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { CardActions, CardScreens } from '../../util/metrics';
 import MM_CARD_VERIFY_IDENTITY from '../../../../../images/card-fingerprint-kyc-image.png';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { selectSelectedCountry } from '../../../../../core/redux/slices/card';
 
 const VerifyIdentity = () => {
   const navigation = useNavigation();
   const tw = useTailwind();
   const { trackEvent, createEventBuilder } = useMetrics();
+  const selectedCountry = useSelector(selectSelectedCountry);
   const {
     data: verificationResponse,
     isLoading: startVerificationIsLoading,
@@ -95,7 +98,9 @@ const VerifyIdentity = () => {
           variant={TextVariant.BodyMd}
           twClassName="flex-1 flex-shrink text-text-alternative"
         >
-          {strings('card.card_onboarding.verify_identity.terms_2')}
+          {selectedCountry?.key === 'US'
+            ? strings('card.card_onboarding.verify_identity.terms_2_us')
+            : strings('card.card_onboarding.verify_identity.terms_2')}
         </Text>
       </Box>
 

@@ -1,20 +1,18 @@
-import { SmokeNetworkAbstractions } from '../../../../../e2e/tags';
-import Browser from '../../../../../e2e/pages/Browser/BrowserView';
-import ConnectedAccountsModal from '../../../../../e2e/pages/Browser/ConnectedAccountsModal';
-import {
-  loginToApp,
-  navigateToBrowserView,
-} from '../../../../../e2e/viewHelper';
+import { SmokeNetworkAbstractions } from '../../../../tags';
+import Browser from '../../../../page-objects/Browser/BrowserView';
+import ConnectedAccountsModal from '../../../../page-objects/Browser/ConnectedAccountsModal';
+import { loginToApp } from '../../../../flows/wallet.flow';
+import { navigateToBrowserView } from '../../../../flows/browser.flow';
 import Assertions from '../../../../framework/Assertions';
-import NetworkConnectMultiSelector from '../../../../../e2e/pages/Browser/NetworkConnectMultiSelector';
-import NetworkNonPemittedBottomSheet from '../../../../../e2e/pages/Network/NetworkNonPemittedBottomSheet';
+import NetworkConnectMultiSelector from '../../../../page-objects/Browser/NetworkConnectMultiSelector';
+import NetworkNonPemittedBottomSheet from '../../../../page-objects/Network/NetworkNonPemittedBottomSheet';
 import { CustomNetworks } from '../../../../resources/networks.e2e';
-import PermissionSummaryBottomSheet from '../../../../../e2e/pages/Browser/PermissionSummaryBottomSheet';
+import PermissionSummaryBottomSheet from '../../../../page-objects/Browser/PermissionSummaryBottomSheet';
 import { NetworkNonPemittedBottomSheetSelectorsText } from '../../../../../app/components/Views/NetworkConnect/NetworkNonPemittedBottomSheet.testIds';
-import NetworkListModal from '../../../../../e2e/pages/Network/NetworkListModal';
-import ToastModal from '../../../../../e2e/pages/wallet/ToastModal';
-import AccountListBottomSheet from '../../../../../e2e/pages/wallet/AccountListBottomSheet';
-import AddNewAccountSheet from '../../../../../e2e/pages/wallet/AddNewAccountSheet';
+import NetworkListModal from '../../../../page-objects/Network/NetworkListModal';
+import ToastModal from '../../../../page-objects/wallet/ToastModal';
+import AccountListBottomSheet from '../../../../page-objects/wallet/AccountListBottomSheet';
+import AddNewAccountSheet from '../../../../page-objects/wallet/AddNewAccountSheet';
 import FixtureBuilder from '../../../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../../framework/fixtures/FixtureHelper';
 import { DappVariants } from '../../../../framework/Constants';

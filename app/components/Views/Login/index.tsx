@@ -11,7 +11,6 @@ import {
 } from 'react-native';
 import METAMASK_NAME from '../../../images/branding/metamask-name.png';
 import { TextVariant } from '../../../component-library/components/Texts/Text';
-import StorageWrapper from '../../../store/storage-wrapper';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import {
   KeyboardController,
@@ -34,11 +33,6 @@ import { Dispatch } from 'redux';
 import { passcodeType } from '../../../util/authentication';
 import { BiometryButton } from '../../UI/BiometryButton';
 import Logger from '../../../util/Logger';
-import {
-  BIOMETRY_CHOICE_DISABLED,
-  TRUE,
-  PASSCODE_DISABLED,
-} from '../../../constants/storage';
 import Routes from '../../../constants/navigation/Routes';
 import ErrorBoundary from '../ErrorBoundary';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
@@ -89,7 +83,6 @@ import {
   ITrackingEvent,
 } from '../../../core/Analytics/MetaMetrics.types';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
-import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import FoxAnimation from '../../UI/FoxAnimation/FoxAnimation';
 import { isE2E } from '../../../util/test/utils';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
@@ -118,8 +111,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   const [biometryType, setBiometryType] = useState<
     BIOMETRY_TYPE | AUTHENTICATION_TYPE | string | null
   >(null);
-  const [rememberMe, setRememberMe] = useState(false);
-  const [biometryChoice, setBiometryChoice] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -132,13 +123,12 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   const route = useRoute<RouteProp<{ params: LoginRouteParams }, 'params'>>();
   const {
     styles,
-    theme: { colors, themeAppearance },
+    theme: { themeAppearance },
   } = useStyles(stylesheet, EmptyRecordConstant);
   const setAllowLoginWithRememberMe = (enabled: boolean) =>
     setAllowLoginWithRememberMeUtil(enabled);
 
-  const { unlockWallet, lockApp, getAuthType, componentAuthenticationType } =
-    useAuthentication();
+  const { unlockWallet, lockApp, getAuthType } = useAuthentication();
 
   const track = (
     event: IMetaMetricsEvent,
@@ -156,13 +146,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     lockApp({ reset: false });
     return false;
   };
-
-  const updateBiometryChoice = useCallback(
-    async (newBiometryChoice: boolean) => {
-      setBiometryChoice(newBiometryChoice);
-    },
-    [setBiometryChoice],
-  );
 
   useEffect(() => {
     trace({
@@ -197,21 +180,11 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       const authData = await getAuthType();
 
       //Setup UI to handle Biometric
-      const previouslyDisabled = await StorageWrapper.getItem(
-        BIOMETRY_CHOICE_DISABLED,
-      );
-      const passcodePreviouslyDisabled =
-        await StorageWrapper.getItem(PASSCODE_DISABLED);
-
       if (authData.currentAuthType === AUTHENTICATION_TYPE.PASSCODE) {
         setBiometryType(passcodeType(authData.currentAuthType));
         setHasBiometricCredentials(!route?.params?.locked);
-        setBiometryChoice(
-          !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE),
-        );
       } else if (authData.currentAuthType === AUTHENTICATION_TYPE.REMEMBER_ME) {
         setHasBiometricCredentials(false);
-        setRememberMe(true);
         setAllowLoginWithRememberMe(true);
       } else if (authData.availableBiometryType) {
         Logger.log('authData', authData);
@@ -219,7 +192,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         setHasBiometricCredentials(
           authData.currentAuthType === AUTHENTICATION_TYPE.BIOMETRIC,
         );
-        setBiometryChoice(!(previouslyDisabled && previouslyDisabled === TRUE));
       }
     };
 
@@ -300,7 +272,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         );
 
       if (isBiometricCancellation) {
-        updateBiometryChoice(false);
         setLoading(false);
         return;
       }
@@ -310,7 +281,8 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         containsErrorMessage(loginError, JSON_PARSE_ERROR_UNEXPECTED_TOKEN);
 
       const isSeedlessOnboardingControllerError =
-        loginError instanceof SeedlessOnboardingControllerError;
+        loginError instanceof SeedlessOnboardingControllerError ||
+        containsErrorMessage(loginError, 'SeedlessOnboardingController');
 
       if (containsErrorMessage(loginError, PASSCODE_NOT_SET_ERROR)) {
         Alert.alert(
@@ -338,12 +310,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       setLoading(false);
       Logger.error(loginError, 'Failed to unlock');
     },
-    [
-      handlePasswordError,
-      handleVaultCorruption,
-      updateBiometryChoice,
-      navigation,
-    ],
+    [handlePasswordError, handleVaultCorruption, navigation],
   );
 
   const unlockWithPassword = useCallback(async () => {
@@ -357,18 +324,13 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     endTrace({ name: TraceName.LoginUserInteraction });
 
     try {
-      const authPreference = await componentAuthenticationType(
-        biometryChoice,
-        rememberMe,
-      );
-
       await trace(
         {
           name: TraceName.AuthenticateUser,
           op: TraceOperation.Login,
         },
         async () => {
-          await unlockWallet({ password, authPreference });
+          await unlockWallet({ password });
         },
       );
     } catch (loginErr) {
@@ -376,15 +338,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     } finally {
       setLoading(false);
     }
-  }, [
-    password,
-    biometryChoice,
-    rememberMe,
-    loading,
-    handleLoginError,
-    componentAuthenticationType,
-    unlockWallet,
-  ]);
+  }, [password, loading, handleLoginError, unlockWallet]);
 
   const unlockWithBiometrics = useCallback(async () => {
     if (loading) return;
@@ -413,9 +367,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     }
   }, [unlockWallet, loading, handleLoginError]);
 
-  // show biometric switch to true even if biometric is disabled
-  const shouldRenderBiometricLogin = biometryType;
-
   const toggleWarningModal = () => {
     track(MetaMetricsEvents.FORGOT_PASSWORD_CLICKED, {});
 
@@ -432,7 +383,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   };
 
   const shouldHideBiometricAccessoryButton = !(
-    biometryChoice &&
     biometryType &&
     hasBiometricCredentials &&
     !route?.params?.locked
@@ -465,7 +415,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
             <View style={styles.field}>
               <TextField
                 placeholder={strings('login.password_placeholder')}
-                placeholderTextColor={colors.text.alternative}
                 testID={LoginViewSelectors.PASSWORD_INPUT}
                 returnKeyType={'done'}
                 autoCapitalize="none"
@@ -501,12 +450,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
             </View>
 
             <View style={styles.ctaWrapper} pointerEvents="box-none">
-              <LoginOptionsSwitch
-                shouldRenderBiometricOption={shouldRenderBiometricLogin}
-                biometryChoiceState={biometryChoice}
-                onUpdateBiometryChoice={updateBiometryChoice}
-                onUpdateRememberMe={setRememberMe}
-              />
               <Button
                 variant={ButtonVariants.Primary}
                 width={ButtonWidthTypes.Full}

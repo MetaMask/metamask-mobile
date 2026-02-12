@@ -76,6 +76,7 @@ enum EVENT_NAME {
   COLLECTIBLE_ADDED = 'Collectible Added',
   NFT_DETAILS_OPENED = 'NFT Details Opened',
   TOKEN_LIST_ITEM_CLICKED = 'Token List Item Clicked',
+  TOKEN_DETAILS_OPENED = 'Token Details Opened',
   DEFI_TAB_SELECTED = 'DeFi Tab Selected',
   DEFI_PROTOCOL_DETAILS_OPENED = 'DeFi Protocol Details Opened',
   VIEW_ALL_ASSETS_CLICKED = 'View All Assets Clicked',
@@ -178,6 +179,10 @@ enum EVENT_NAME {
   SETTINGS_VIEWED = 'Settings Viewed',
   SETTINGS_UPDATED = 'Settings Updated',
   CURRENCY_CHANGED = 'Selected Currency Changed',
+  SETTINGS_ABOUT = 'About MetaMask',
+  NAVIGATION_TAPS_GET_HELP = 'Get Help',
+  NAVIGATION_TAPS_SEND_FEEDBACK = 'Send Feedback',
+  NAVIGATION_TAPS_LOGOUT = 'Logout',
 
   // Reveal SRP
   REVEAL_SRP_CTA = 'Clicks Reveal Secret Recovery Phrase',
@@ -1365,7 +1370,7 @@ const events = {
   EARN_TOKEN_LIST_ITEM_CLICKED: generateOpt(
     EVENT_NAME.EARN_TOKEN_LIST_ITEM_CLICKED,
   ),
-  TOKEN_DETAILS_OPENED: generateOpt(EVENT_NAME.TOKEN_LIST_ITEM_CLICKED),
+  TOKEN_DETAILS_OPENED: generateOpt(EVENT_NAME.TOKEN_DETAILS_OPENED),
 
   // Bridge
   SWAP_PAGE_VIEWED: generateOpt(EVENT_NAME.SWAP_PAGE_VIEWED), // Temporary event until unified swap/bridge is done
