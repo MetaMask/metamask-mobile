@@ -4,7 +4,8 @@ import {
   DataDeleteResponseStatus,
   MetaMetricsEvents,
 } from '../../../../../core/Analytics';
-import { useMetrics } from '../../../../hooks/useMetrics';
+import { useAnalytics } from '../../../../hooks/useAnalytics';
+import { useAnalyticsDataDeletion } from '../../../../hooks/useAnalyticsDataDeletion';
 import SettingsButtonSection from '../../../../UI/SettingsButtonSection';
 import { strings } from '../../../../../../locales/i18n';
 import {
@@ -73,12 +74,9 @@ interface DeleteMetaMetricsDataProps {
  * ```
  */
 const DeleteMetaMetricsData = (props: DeleteMetaMetricsDataProps) => {
-  const {
-    checkDataDeleteStatus,
-    trackEvent,
-    createDataDeletionTask,
-    createEventBuilder,
-  } = useMetrics();
+  const { checkDataDeleteStatus, createDataDeletionTask } =
+    useAnalyticsDataDeletion();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   /** metricsOptin prop is used to update the component when the user toggles the opt-in switch
    * We don't need the value to determine if the deletion button should be enabled or not
