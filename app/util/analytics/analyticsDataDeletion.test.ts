@@ -160,6 +160,30 @@ describe('analyticsDataDeletion', () => {
       expect(global.fetch).not.toHaveBeenCalled();
     });
 
+    it('returns hasCollectedDataSinceDeletionRequest false when data was recorded but no regulation id exists', async () => {
+      // No regulation ID, no date, but data has been recorded
+      mockGetItem
+        .mockResolvedValueOnce(undefined) // regulation id
+        .mockResolvedValueOnce(undefined) // date
+        .mockResolvedValueOnce('true'); // data recorded
+
+      const status = await checkDataDeleteStatus();
+
+      expect(status.hasCollectedDataSinceDeletionRequest).toBe(false);
+      expect(status.deletionRequestDate).toBeUndefined();
+      expect(global.fetch).not.toHaveBeenCalled();
+    });
+
+    it('returns a valid status object when storage read throws', async () => {
+      mockGetItem.mockRejectedValue(new Error('storage failure'));
+
+      const status = await checkDataDeleteStatus();
+
+      expect(status.dataDeletionRequestStatus).toBe(DataDeleteStatus.unknown);
+      expect(status.hasCollectedDataSinceDeletionRequest).toBe(false);
+      expect(status.deletionRequestDate).toBeUndefined();
+    });
+
     it('loads from storage and calls Segment GET when regulation id exists', async () => {
       mockGetItem
         .mockResolvedValueOnce('reg-456')

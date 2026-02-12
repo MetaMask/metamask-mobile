@@ -157,16 +157,25 @@ export async function createDataDeletionTask(): Promise<IDeleteRegulationRespons
  * Check deletion task status via Segment API. Loads regulation id/date/recorded from storage and updates cache.
  */
 export async function checkDataDeleteStatus(): Promise<IDeleteRegulationStatus> {
-  await loadCacheFromStorage();
-
-  const status: IDeleteRegulationStatus = {
-    deletionRequestDate: cached?.deleteRegulationDate,
-    dataDeletionRequestStatus: DataDeleteStatus.unknown,
-    hasCollectedDataSinceDeletionRequest: cached?.dataRecorded ?? false,
-  };
+  try {
+    await loadCacheFromStorage();
+  } catch (error) {
+    Logger.log('Error checkDataDeleteStatus - failed to load cache', error);
+  }
 
   const regulationId = cached?.deleteRegulationId;
   const segmentRegulationEndpoint = process.env.SEGMENT_REGULATIONS_ENDPOINT;
+
+  // Only populate date and data-recorded when a deletion was previously requested (matches old MetaMetrics guard).
+  const status: IDeleteRegulationStatus = {
+    deletionRequestDate: regulationId
+      ? cached?.deleteRegulationDate
+      : undefined,
+    dataDeletionRequestStatus: DataDeleteStatus.unknown,
+    hasCollectedDataSinceDeletionRequest: regulationId
+      ? (cached?.dataRecorded ?? false)
+      : false,
+  };
 
   if (!regulationId || !segmentRegulationEndpoint) {
     return status;
