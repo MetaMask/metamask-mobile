@@ -67,12 +67,14 @@ jest.mock('../../../core/EntryScriptWeb3', () => ({
   get: () => '',
 }));
 
-const mockGetPhishingTestResultAsync = jest.fn(() =>
-  Promise.resolve({ result: false, name: '' }),
-);
+const mockGetPhishingTestResultAsync = jest.fn<
+  Promise<{ result: boolean; name: string }>,
+  [string]
+>(() => Promise.resolve({ result: false, name: '' }));
+
 jest.mock('../../../util/phishingDetection', () => ({
-  getPhishingTestResultAsync: (...args: unknown[]) =>
-    mockGetPhishingTestResultAsync(...args),
+  getPhishingTestResultAsync: (origin: string) =>
+    mockGetPhishingTestResultAsync(origin),
 }));
 
 const mockProps = {
