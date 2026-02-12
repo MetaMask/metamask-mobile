@@ -528,16 +528,16 @@ const BridgeView = () => {
           currency={sourceToken?.symbol || 'ETH'}
           decimals={sourceToken?.decimals || 18}
         >
-          {activeQuote && sourceAmount && sourceAmount !== '0' ? (
+          {sourceAmount && sourceAmount !== '0' ? (
             <SwapsConfirmButton latestSourceBalance={latestSourceBalance} />
-          ) : !sourceAmount || sourceAmount === '0' ? (
+          ) : (
             <GaslessQuickPickOptions
               token={sourceToken}
               onMaxPress={handleSourceMaxPress}
               isQuoteSponsored={isQuoteSponsored}
               onChange={handleKeypadChange}
             />
-          ) : null}
+          )}
         </SwapsKeypad>
       </Box>
     </ScreenView>

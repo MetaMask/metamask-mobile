@@ -88,11 +88,6 @@ export const GaslessQuickPickOptions = ({
     [onMaxPress, onQuickOptionPress],
   );
 
-  const shouldRenderQuickPickOptions = useMemo(
-    () => new BigNumber(tokenBalance?.displayBalance || 0).gt(0),
-    [tokenBalance],
-  );
-
   const shouldRenderMaxOption = useShouldRenderMaxOption(
     token,
     tokenBalance?.displayBalance,
@@ -102,10 +97,5 @@ export const GaslessQuickPickOptions = ({
     ? gasslessQuickPickOptions
     : standardQuickPickOptions;
 
-  return (
-    <QuickPickButtons
-      options={quickPickOptions}
-      show={shouldRenderQuickPickOptions}
-    />
-  );
+  return <QuickPickButtons options={quickPickOptions} show />;
 };

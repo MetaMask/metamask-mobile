@@ -70,10 +70,10 @@ describe('GaslessQuickPickOptions', () => {
       expect(getByText('Max')).toBeTruthy();
     });
 
-    it('hides QuickPickButtons when tokenBalance is not provided', () => {
+    it('renders QuickPickButtons even when tokenBalance is not provided', () => {
       mockUseLatestBalance.mockReturnValue(undefined);
 
-      const { queryByText } = render(
+      const { getByText } = render(
         <GaslessQuickPickOptions
           onChange={mockOnChange}
           token={undefined}
@@ -81,10 +81,10 @@ describe('GaslessQuickPickOptions', () => {
         />,
       );
 
-      expect(queryByText('25%')).toBeNull();
-      expect(queryByText('50%')).toBeNull();
-      expect(queryByText('75%')).toBeNull();
-      expect(queryByText('Max')).toBeNull();
+      expect(getByText('25%')).toBeTruthy();
+      expect(getByText('50%')).toBeTruthy();
+      expect(getByText('75%')).toBeTruthy();
+      expect(getByText('Max')).toBeTruthy();
     });
 
     it('renders Max button when useShouldRenderMaxOption returns true', () => {
@@ -171,14 +171,14 @@ describe('GaslessQuickPickOptions', () => {
   });
 
   describe('edge cases', () => {
-    it('hides QuickPickButtons when tokenBalance is zero', () => {
+    it('renders QuickPickButtons even when tokenBalance is zero', () => {
       const zeroBalance = {
         displayBalance: '0',
         atomicBalance: BigNumber.from('0'),
       };
       mockUseLatestBalance.mockReturnValue(zeroBalance);
 
-      const { queryByText } = render(
+      const { getByText } = render(
         <GaslessQuickPickOptions
           onChange={mockOnChange}
           token={mockToken}
@@ -186,10 +186,10 @@ describe('GaslessQuickPickOptions', () => {
         />,
       );
 
-      expect(queryByText('25%')).toBeNull();
-      expect(queryByText('50%')).toBeNull();
-      expect(queryByText('75%')).toBeNull();
-      expect(queryByText('Max')).toBeNull();
+      expect(getByText('25%')).toBeTruthy();
+      expect(getByText('50%')).toBeTruthy();
+      expect(getByText('75%')).toBeTruthy();
+      expect(getByText('Max')).toBeTruthy();
     });
 
     it('shows QuickPickButtons when tokenBalance is non-zero', () => {
@@ -275,7 +275,7 @@ describe('GaslessQuickPickOptions', () => {
       );
     });
 
-    it('hides quick pick buttons when displayBalance is zero', () => {
+    it('renders quick pick buttons even when displayBalance is zero', () => {
       const zeroBalance = {
         displayBalance: '0',
         atomicBalance: BigNumber.from('0'),
@@ -283,7 +283,7 @@ describe('GaslessQuickPickOptions', () => {
       mockUseLatestBalance.mockReturnValue(zeroBalance);
       mockUseShouldRenderMaxOption.mockReturnValue(false);
 
-      const { queryByText } = render(
+      const { getByText } = render(
         <GaslessQuickPickOptions
           onChange={mockOnChange}
           token={mockToken}
@@ -291,11 +291,10 @@ describe('GaslessQuickPickOptions', () => {
         />,
       );
 
-      expect(queryByText('25%')).toBeNull();
-      expect(queryByText('50%')).toBeNull();
-      expect(queryByText('75%')).toBeNull();
-      expect(queryByText('Max')).toBeNull();
-      expect(queryByText('90%')).toBeNull();
+      expect(getByText('25%')).toBeTruthy();
+      expect(getByText('50%')).toBeTruthy();
+      expect(getByText('75%')).toBeTruthy();
+      expect(getByText('90%')).toBeTruthy();
       expect(mockUseShouldRenderMaxOption).toHaveBeenCalledWith(
         mockToken,
         zeroBalance.displayBalance,
@@ -389,11 +388,9 @@ describe('GaslessQuickPickOptions', () => {
 
   describe('onQuickOptionPress defensive guard', () => {
     it('does not call onChange when tokenBalance has no displayBalance', () => {
-      // Force buttons to show even when balance is falsy by mocking
-      // QuickPickButtons to ignore the `show` prop
       mockUseLatestBalance.mockReturnValue(undefined);
 
-      const { queryByText } = render(
+      const { getByText } = render(
         <GaslessQuickPickOptions
           onChange={mockOnChange}
           token={mockToken}
@@ -401,11 +398,14 @@ describe('GaslessQuickPickOptions', () => {
         />,
       );
 
-      // When tokenBalance is undefined, shouldRenderQuickPickOptions will be false,
-      // so QuickPickButtons won't render
-      expect(queryByText('25%')).toBeNull();
+      // Buttons are always rendered
+      expect(getByText('25%')).toBeTruthy();
 
-      // onChange should NOT have been called
+      // Pressing a quick pick button when there is no balance should not call onChange
+      act(() => {
+        fireEvent.press(getByText('25%'));
+      });
+
       expect(mockOnChange).not.toHaveBeenCalled();
     });
   });

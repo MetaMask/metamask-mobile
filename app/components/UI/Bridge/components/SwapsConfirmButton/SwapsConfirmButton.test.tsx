@@ -19,6 +19,7 @@ import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
 import { RootState } from '../../../../../reducers';
 import { MOCK_ENTROPY_SOURCE as mockEntropySource } from '../../../../../util/test/keyringControllerTestUtils';
 import { BigNumber } from 'ethers';
+import Engine from '../../../../../core/Engine';
 
 // Mock the account-tree-controller file that imports the problematic module
 jest.mock(
@@ -56,6 +57,9 @@ jest.mock('../../../../../core/Engine', () => ({
     },
     BridgeStatusController: {
       submitTx: jest.fn().mockResolvedValue({ success: true }),
+    },
+    BridgeController: {
+      resetState: jest.fn(),
     },
   },
 }));
@@ -124,6 +128,12 @@ jest.mock('../../../../../util/bridge/hooks/useSubmitBridgeTx', () => ({
   default: () => ({
     submitBridgeTx: mockSubmitBridgeTx,
   }),
+}));
+
+// Mock useBridgeQuoteRequest hook
+const mockUpdateQuoteParams = jest.fn();
+jest.mock('../../hooks/useBridgeQuoteRequest', () => ({
+  useBridgeQuoteRequest: jest.fn(() => mockUpdateQuoteParams),
 }));
 
 // Mock isHardwareAccount
@@ -256,7 +266,7 @@ describe('SwapsConfirmButton', () => {
       expect(getByText(strings('bridge.insufficient_gas'))).toBeTruthy();
     });
 
-    it('displays "Submitting transaction..." when submitting', () => {
+    it('hides label behind loading indicator when submitting', () => {
       const submittingState = {
         ...mockState,
         bridge: {
@@ -265,14 +275,16 @@ describe('SwapsConfirmButton', () => {
         },
       };
 
-      const { getByText } = renderWithProvider(
+      const { queryByText } = renderWithProvider(
         <SwapsConfirmButton latestSourceBalance={mockLatestSourceBalance} />,
         {
           state: submittingState,
         },
       );
 
-      expect(getByText(strings('bridge.submitting_transaction'))).toBeTruthy();
+      // When submitting, buttonIsInLoadingState is true so Button renders
+      // an ActivityIndicator instead of the label text
+      expect(queryByText(strings('bridge.submitting_transaction'))).toBeNull();
     });
   });
 
@@ -405,6 +417,233 @@ describe('SwapsConfirmButton', () => {
 
       const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
       expect(button.props.disabled).toBe(true);
+    });
+  });
+
+  describe('Button Loading State', () => {
+    it('shows loading indicator when loading without active quote', () => {
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementation(() => ({
+          ...mockUseBridgeQuoteData,
+          isLoading: true,
+          activeQuote: null,
+        }));
+
+      const { queryByText, getByTestId } = renderWithProvider(
+        <SwapsConfirmButton latestSourceBalance={mockLatestSourceBalance} />,
+        {
+          state: mockState,
+        },
+      );
+
+      const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
+      // Button is disabled (isLoading && !activeQuote)
+      expect(button.props.disabled).toBe(true);
+      // Label text is hidden behind ActivityIndicator
+      expect(queryByText(strings('bridge.confirm_swap'))).toBeNull();
+    });
+
+    it('shows loading indicator when submitting transaction', () => {
+      const submittingState = {
+        ...mockState,
+        bridge: {
+          ...mockState.bridge,
+          isSubmittingTx: true,
+        },
+      };
+
+      const { queryByText, getByTestId } = renderWithProvider(
+        <SwapsConfirmButton latestSourceBalance={mockLatestSourceBalance} />,
+        {
+          state: submittingState,
+        },
+      );
+
+      const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
+      expect(button.props.disabled).toBe(true);
+      // Label hidden by loading indicator
+      expect(queryByText(strings('bridge.submitting_transaction'))).toBeNull();
+    });
+
+    it('does not show loading when loading with active quote present', () => {
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementation(() => ({
+          ...mockUseBridgeQuoteData,
+          isLoading: true,
+          activeQuote: mockQuoteWithMetadata,
+        }));
+
+      const { getByText, getByTestId } = renderWithProvider(
+        <SwapsConfirmButton latestSourceBalance={mockLatestSourceBalance} />,
+        {
+          state: mockState,
+        },
+      );
+
+      const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
+      // Not disabled because activeQuote exists
+      expect(button.props.disabled).toBe(false);
+      // Label is visible (no loading indicator)
+      expect(getByText(strings('bridge.confirm_swap'))).toBeTruthy();
+    });
+
+    it('does not show loading when disabled due to insufficient balance', () => {
+      jest.mocked(useIsInsufficientBalance).mockReturnValue(true);
+
+      const { getByText, getByTestId } = renderWithProvider(
+        <SwapsConfirmButton latestSourceBalance={mockLatestSourceBalance} />,
+        {
+          state: mockState,
+        },
+      );
+
+      const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
+      // Button is disabled
+      expect(button.props.disabled).toBe(true);
+      // But not in loading state (isLoading=false, isSubmittingTx=false)
+      // so the label is visible
+      expect(getByText(strings('bridge.insufficient_funds'))).toBeTruthy();
+    });
+
+    it('does not show loading when disabled due to insufficient gas', () => {
+      jest.mocked(useHasSufficientGas).mockReturnValue(false);
+
+      const { getByText, getByTestId } = renderWithProvider(
+        <SwapsConfirmButton latestSourceBalance={mockLatestSourceBalance} />,
+        {
+          state: mockState,
+        },
+      );
+
+      const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
+      expect(button.props.disabled).toBe(true);
+      // Label visible because not loading/submitting
+      expect(getByText(strings('bridge.insufficient_gas'))).toBeTruthy();
+    });
+  });
+
+  describe('Quote Expired (needsNewQuote)', () => {
+    it('displays "Get new quote" label when quote is expired', () => {
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementation(() => ({
+          ...mockUseBridgeQuoteData,
+          isExpired: true,
+          isLoading: false,
+        }));
+
+      const { getByText } = renderWithProvider(
+        <SwapsConfirmButton latestSourceBalance={mockLatestSourceBalance} />,
+        {
+          state: mockState,
+        },
+      );
+
+      expect(
+        getByText(strings('quote_expired_modal.get_new_quote')),
+      ).toBeTruthy();
+    });
+
+    it('button is not disabled when quote is expired', () => {
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementation(() => ({
+          ...mockUseBridgeQuoteData,
+          isExpired: true,
+          isLoading: false,
+        }));
+
+      const { getByTestId } = renderWithProvider(
+        <SwapsConfirmButton latestSourceBalance={mockLatestSourceBalance} />,
+        {
+          state: mockState,
+        },
+      );
+
+      const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
+      expect(button.props.disabled).toBe(false);
+    });
+
+    it('calls resetState and updateQuoteParams when expired quote button is pressed', async () => {
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementation(() => ({
+          ...mockUseBridgeQuoteData,
+          isExpired: true,
+          isLoading: false,
+        }));
+
+      const { getByTestId } = renderWithProvider(
+        <SwapsConfirmButton latestSourceBalance={mockLatestSourceBalance} />,
+        {
+          state: mockState,
+        },
+      );
+
+      const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
+      await act(async () => {
+        fireEvent.press(button);
+      });
+
+      expect(Engine.context.BridgeController.resetState).toHaveBeenCalled();
+      expect(mockUpdateQuoteParams).toHaveBeenCalled();
+      // Should NOT call submitBridgeTx
+      expect(mockSubmitBridgeTx).not.toHaveBeenCalled();
+    });
+
+    it('does not show "Get new quote" when expired but still loading', () => {
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementation(() => ({
+          ...mockUseBridgeQuoteData,
+          isExpired: true,
+          isLoading: true,
+          activeQuote: null,
+        }));
+
+      const { queryByText } = renderWithProvider(
+        <SwapsConfirmButton latestSourceBalance={mockLatestSourceBalance} />,
+        {
+          state: mockState,
+        },
+      );
+
+      // needsNewQuote is false because isLoading is true
+      expect(
+        queryByText(strings('quote_expired_modal.get_new_quote')),
+      ).toBeNull();
+    });
+
+    it('does not show "Get new quote" when expired but submitting', () => {
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementation(() => ({
+          ...mockUseBridgeQuoteData,
+          isExpired: true,
+          isLoading: false,
+        }));
+
+      const submittingState = {
+        ...mockState,
+        bridge: {
+          ...mockState.bridge,
+          isSubmittingTx: true,
+        },
+      };
+
+      const { queryByText } = renderWithProvider(
+        <SwapsConfirmButton latestSourceBalance={mockLatestSourceBalance} />,
+        {
+          state: submittingState,
+        },
+      );
+
+      // needsNewQuote is false because isSubmittingTx is true
+      expect(
+        queryByText(strings('quote_expired_modal.get_new_quote')),
+      ).toBeNull();
     });
   });
 

@@ -18,6 +18,7 @@ import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
 import { useLatestBalance } from '../../hooks/useLatestBalance';
 import { useHasSufficientGas } from '../../hooks/useHasSufficientGas';
 import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
+import { useBridgeQuoteRequest } from '../../hooks/useBridgeQuoteRequest';
 import useSubmitBridgeTx from '../../../../../util/bridge/hooks/useSubmitBridgeTx';
 import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
@@ -25,6 +26,7 @@ import { isHardwareAccount } from '../../../../../util/address';
 import { BridgeQuoteResponse } from '../../types';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
+import Engine from '../../../../../core/Engine';
 
 interface Props {
   latestSourceBalance: ReturnType<typeof useLatestBalance>;
@@ -34,6 +36,7 @@ export const SwapsConfirmButton = ({ latestSourceBalance }: Props) => {
   const dispatch = useDispatch();
   const navigation = useNavigation();
   const { submitBridgeTx } = useSubmitBridgeTx();
+  const updateQuoteParams = useBridgeQuoteRequest();
   const sourceAmount = useSelector(selectSourceAmount);
   const sourceToken = useSelector(selectSourceToken);
   const isSubmittingTx = useSelector(selectIsSubmittingTx);
@@ -52,11 +55,15 @@ export const SwapsConfirmButton = ({ latestSourceBalance }: Props) => {
     latestAtomicBalance: latestSourceBalance?.atomicBalance,
   });
 
-  const { activeQuote, isLoading, blockaidError } = useBridgeQuoteData({
-    latestSourceAtomicBalance: latestSourceBalance?.atomicBalance,
-  });
+  const { activeQuote, isLoading, isExpired, blockaidError } =
+    useBridgeQuoteData({
+      latestSourceAtomicBalance: latestSourceBalance?.atomicBalance,
+    });
 
   const hasSufficientGas = useHasSufficientGas({ quote: activeQuote });
+
+  // The quote expired and no fetch is in progress — offer to get a new one.
+  const needsNewQuote = isExpired && !isLoading && !isSubmittingTx;
 
   const isSubmitDisabled =
     (isLoading && !activeQuote) ||
@@ -90,23 +97,50 @@ export const SwapsConfirmButton = ({ latestSourceBalance }: Props) => {
     }
   };
 
+  const handleGetNewQuote = () => {
+    if (Engine.context.BridgeController?.resetState) {
+      Engine.context.BridgeController.resetState();
+    }
+    updateQuoteParams();
+  };
+
+  const buttonIsInLoadingState =
+    (isLoading || isSubmittingTx) && isSubmitDisabled;
+
   const label = useMemo(() => {
+    if (needsNewQuote) {
+      return strings('quote_expired_modal.get_new_quote');
+    }
+
+    if (!activeQuote || isLoading || !sourceAmount || sourceAmount === '0') {
+      return strings('bridge.confirm_swap');
+    }
+
     if (hasInsufficientBalance) return strings('bridge.insufficient_funds');
     if (!hasSufficientGas) return strings('bridge.insufficient_gas');
     if (isSubmittingTx) return strings('bridge.submitting_transaction');
 
     return strings('bridge.confirm_swap');
-  }, [hasInsufficientBalance, hasSufficientGas, isSubmittingTx]);
+  }, [
+    activeQuote,
+    isLoading,
+    sourceAmount,
+    hasInsufficientBalance,
+    hasSufficientGas,
+    isSubmittingTx,
+    needsNewQuote,
+  ]);
 
   return (
     <Button
       variant={ButtonVariants.Primary}
       size={ButtonSize.Lg}
+      loading={buttonIsInLoadingState}
       label={label}
-      onPress={handleContinue}
+      onPress={needsNewQuote ? handleGetNewQuote : handleContinue}
       width={ButtonWidthTypes.Full}
       testID={BridgeViewSelectorsIDs.CONFIRM_BUTTON}
-      isDisabled={isSubmitDisabled}
+      isDisabled={needsNewQuote ? false : isSubmitDisabled}
     />
   );
 };

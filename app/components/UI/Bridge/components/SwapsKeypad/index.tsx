@@ -61,6 +61,14 @@ export const SwapsKeypad = forwardRef<
       ref={bottomSheetRef}
       isInteractable
       onClose={handleClose}
+      onStartShouldSetResponder={() =>
+        // Prevents the native gesture system from bubbling up
+        // the event to BottomSheetDialog, causing keypad to close
+        // when user click anywhere inside the keypad area that is
+        // not a pressable component.
+        // This is required because
+        true
+      }
     >
       <Box style={styles.keypadContainer}>
         {children}

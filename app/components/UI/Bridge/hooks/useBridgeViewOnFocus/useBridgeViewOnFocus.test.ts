@@ -67,7 +67,7 @@ describe('useBridgeViewOnFocus', () => {
     expect(keypadRef.current.close).toHaveBeenCalledTimes(1);
   });
 
-  it('restores focus and keypad when keypad was open before blur', () => {
+  it('does not restore focus and keypad on navigate back even if keypad was open', () => {
     // Arrange
     const inputRef = createMockInputRef();
     const keypadRef = createMockKeypadRef();
@@ -88,9 +88,9 @@ describe('useBridgeViewOnFocus', () => {
     // Act – second focus (returning to screen)
     focusCallback?.();
 
-    // Assert – should restore focus + keypad
-    expect(inputRef.current.focus).toHaveBeenCalledTimes(1);
-    expect(keypadRef.current.open).toHaveBeenCalledTimes(1);
+    // Assert – should NOT restore focus or keypad
+    expect(inputRef.current.focus).not.toHaveBeenCalled();
+    expect(keypadRef.current.open).not.toHaveBeenCalled();
   });
 
   it('does not restore focus and keypad when keypad was closed before blur', () => {
