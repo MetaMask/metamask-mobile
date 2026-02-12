@@ -290,6 +290,84 @@ describe('usePerpsTransactionHistory', () => {
       expect(result.current.transactions).toContainEqual(walletDepositTx);
       expect(mockTransformWalletPerpsDepositsToTransactions).toHaveBeenCalled();
     });
+
+    it('deduplicates wallet deposits against REST deposits by txHash', async () => {
+      const sameTxHash = '0xabc123';
+      const restDeposit = {
+        id: 'deposit-rest-1',
+        type: 'deposit' as const,
+        category: 'deposit' as const,
+        title: 'Deposited 50.00 USDC',
+        subtitle: 'Completed',
+        timestamp: 1640995200000,
+        asset: 'USDC',
+        depositWithdrawal: {
+          amount: '+$50.00',
+          amountNumber: 50,
+          isPositive: true,
+          asset: 'USDC',
+          txHash: sameTxHash,
+          status: 'completed' as const,
+          type: 'deposit' as const,
+        },
+      };
+      const walletDepositSameTx = {
+        id: 'wallet-deposit-tx-1',
+        type: 'deposit' as const,
+        category: 'deposit' as const,
+        title: 'Deposited 50.00 USDC',
+        subtitle: 'Pending',
+        timestamp: 1640995201000,
+        asset: 'USDC',
+        depositWithdrawal: {
+          amount: '+$50.00',
+          amountNumber: 50,
+          isPositive: true,
+          asset: 'USDC',
+          txHash: sameTxHash,
+          status: 'pending' as const,
+          type: 'deposit' as const,
+        },
+      };
+      mockTransformFillsToTransactions.mockReturnValue([]);
+      mockTransformUserHistoryToTransactions.mockReturnValue([restDeposit]);
+      mockTransformWalletPerpsDepositsToTransactions.mockReturnValue([
+        walletDepositSameTx,
+      ]);
+      const selectedAddr = '0x1234567890123456789012345678901234567890';
+      mockUseSelector.mockImplementation(() => {
+        const len = mockUseSelector.mock.calls.length;
+        return len % 2 === 1
+          ? [
+              {
+                id: 'w1',
+                type: 'perpsDeposit',
+                txParams: { from: selectedAddr },
+              },
+            ]
+          : selectedAddr;
+      });
+
+      const { result } = renderHook(() =>
+        usePerpsTransactionHistory({ skipInitialFetch: false }),
+      );
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+      await act(async () => {
+        await result.current.refetch();
+      });
+
+      const depositsWithSameTxHash = result.current.transactions.filter(
+        (tx) =>
+          tx.type === 'deposit' &&
+          tx.depositWithdrawal?.txHash?.toLowerCase() ===
+            sameTxHash.toLowerCase(),
+      );
+      expect(depositsWithSameTxHash).toHaveLength(1);
+      expect(depositsWithSameTxHash[0].id).toBe('deposit-rest-1');
+    });
   });
 
   describe('fetchAllTransactions', () => {

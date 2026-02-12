@@ -250,10 +250,27 @@ export const usePerpsTransactionHistory = ({
     const nonTradeTransactions = transactions.filter(
       (tx) => tx.type !== 'trade',
     );
-    // Include wallet perps deposits (perpsDeposit + perpsDepositAndOrder) in Deposits tab
+    // Deduplicate wallet deposits against REST (user history) deposits by txHash.
+    // When a wallet-originated deposit is bridged and recorded by the perps backend,
+    // it appears in both sources; we keep the REST version and drop the wallet duplicate.
+    const restDepositTxHashes = new Set(
+      nonTradeTransactions
+        .filter(
+          (tx) =>
+            tx.type === 'deposit' &&
+            tx.depositWithdrawal?.txHash?.trim() !== '',
+        )
+        .map((tx) => (tx.depositWithdrawal?.txHash ?? '').toLowerCase().trim()),
+    );
+    const walletDepositsDeduplicated = walletDepositTransactions.filter(
+      (tx) => {
+        const h = tx.depositWithdrawal?.txHash?.toLowerCase?.()?.trim() ?? '';
+        return h === '' || !restDepositTxHashes.has(h);
+      },
+    );
     const nonTradeIncludingWalletDeposits = [
       ...nonTradeTransactions,
-      ...walletDepositTransactions,
+      ...walletDepositsDeduplicated,
     ];
 
     // Merge trades using asset+timestamp(seconds) as dedup key
