@@ -1271,16 +1271,28 @@ describe('PerpsLeverageBottomSheet', () => {
   describe('Stale Cache Prevention After Leverage Change', () => {
     it('shows skeleton instead of stale cached price when leverage changes via quick select', () => {
       // Arrange — default mock returns a calculated price for 5x leverage
+      const mockUsePerpsLiquidationPrice = jest.requireMock(
+        '../../hooks/usePerpsLiquidationPrice',
+      );
       render(<PerpsLeverageBottomSheet {...defaultProps} leverage={5} />);
 
       // The initial render should show a price (from the default mock), no skeletons
       expect(screen.queryAllByTestId('skeleton-placeholder')).toHaveLength(0);
 
-      // Act — press 10x. The leverageChanged flag is set in the event handler
-      // before re-render, so the skeleton appears immediately. The mock still
-      // returns the old price (simulating the debounce window).
-      const buttons10x = screen.getAllByText('10x');
-      fireEvent.press(buttons10x[0]); // Quick select button
+      // Simulate the real hook behavior: after leverage changes, the hook
+      // starts a debounced API call and sets isCalculating: true while the
+      // old liquidationPrice persists in state until the new result arrives.
+      mockUsePerpsLiquidationPrice.usePerpsLiquidationPrice.mockReturnValue({
+        liquidationPrice: '2400.00', // Old price still in hook state
+        isCalculating: true,
+        error: null,
+      });
+
+      // Act — press 2x quick select button. We use 2x because it only appears
+      // in the quick select row (not in the slider labels like 10x/20x do),
+      // so getByText('2x') returns a single unambiguous element.
+      const button2x = screen.getByText('2x');
+      fireEvent.press(button2x);
 
       // Assert — should show skeleton placeholders, NOT the stale cached price from 5x
       const skeletons = screen.getAllByTestId('skeleton-placeholder');
