@@ -8034,6 +8034,81 @@ describe('HyperLiquidProvider', () => {
         expect(
           mockStandaloneInfoClient.clearinghouseState,
         ).toHaveBeenCalledWith({ user: mockUserAddress });
+
+        // Verify cache was NOT poisoned: a subsequent call should retry perpDexs()
+        mockStandaloneInfoClient.perpDexs.mockResolvedValue([
+          null,
+          { name: 'xyz' },
+        ]);
+        mockStandaloneInfoClient.clearinghouseState
+          .mockResolvedValueOnce({
+            assetPositions: [
+              {
+                position: {
+                  coin: 'BTC',
+                  szi: '1',
+                  entryPx: '45000',
+                  positionValue: '45000',
+                  unrealizedPnl: '0',
+                  marginUsed: '4500',
+                  leverage: { type: 'cross', value: 10 },
+                  liquidationPx: '40000',
+                  maxLeverage: 50,
+                  returnOnEquity: '0',
+                  cumFunding: {
+                    allTime: '0',
+                    sinceOpen: '0',
+                    sinceChange: '0',
+                  },
+                },
+                type: 'oneWay',
+              },
+            ],
+            marginSummary: {
+              totalMarginUsed: '4500',
+              accountValue: '45000',
+            },
+          })
+          .mockResolvedValueOnce({
+            assetPositions: [
+              {
+                position: {
+                  coin: 'TSLA',
+                  szi: '10',
+                  entryPx: '200',
+                  positionValue: '2000',
+                  unrealizedPnl: '50',
+                  marginUsed: '200',
+                  leverage: { type: 'cross', value: 10 },
+                  liquidationPx: '180',
+                  maxLeverage: 50,
+                  returnOnEquity: '25',
+                  cumFunding: {
+                    allTime: '0',
+                    sinceOpen: '0',
+                    sinceChange: '0',
+                  },
+                },
+                type: 'oneWay',
+              },
+            ],
+            marginSummary: {
+              totalMarginUsed: '200',
+              accountValue: '2000',
+            },
+          });
+
+        const retryPositions = await hip3Provider.getPositions({
+          standalone: true,
+          userAddress: mockUserAddress,
+        });
+
+        // perpDexs should have been called again (retry after transient failure)
+        expect(mockStandaloneInfoClient.perpDexs).toHaveBeenCalledTimes(2);
+        // Should now see positions from both DEXs
+        expect(retryPositions).toHaveLength(2);
+        const symbols = retryPositions.map((p) => p.symbol).sort();
+        expect(symbols).toEqual(['BTC', 'TSLA']);
       });
 
       it('returns only main DEX positions when hip3Enabled is false', async () => {
@@ -8133,6 +8208,99 @@ describe('HyperLiquidProvider', () => {
         // Assert - balances should be aggregated
         expect(parseFloat(accountState.totalBalance)).toBe(55000);
         expect(parseFloat(accountState.marginUsed)).toBe(1500);
+      });
+
+      it('does not poison fully-initialized cache when standalone perpDexs() fails', async () => {
+        // Arrange: standalone perpDexs fails (transient network error)
+        mockStandaloneInfoClient.perpDexs.mockRejectedValue(
+          new Error('Network error'),
+        );
+        mockStandaloneInfoClient.clearinghouseState.mockResolvedValue({
+          assetPositions: [],
+          marginSummary: { totalMarginUsed: '0', accountValue: '0' },
+        });
+
+        // Act: standalone call falls back to main DEX only
+        await hip3Provider.getPositions({
+          standalone: true,
+          userAddress: mockUserAddress,
+        });
+
+        // Now set up the fully-initialized path's perpDexs to succeed
+        const infoClient = mockClientService.getInfoClient();
+        (infoClient.perpDexs as jest.Mock).mockResolvedValue([
+          null,
+          { name: 'xyz' },
+        ]);
+
+        // Initialize the provider for fully-initialized path
+        await hip3Provider.initialize();
+
+        // Act: fully-initialized getPositions should discover HIP-3 DEXs
+        await hip3Provider.getPositions();
+
+        // Assert: fully-initialized path called perpDexs (cache was NOT poisoned)
+        expect(infoClient.perpDexs).toHaveBeenCalled();
+        // clearinghouseState should be called for both main + xyz DEX
+        expect(infoClient.clearinghouseState).toHaveBeenCalledTimes(2);
+      });
+
+      it('does not cache invalid perpDexs response in standalone mode', async () => {
+        // Arrange: perpDexs returns invalid (non-array) response
+        mockStandaloneInfoClient.perpDexs.mockResolvedValue(null);
+        mockStandaloneInfoClient.clearinghouseState.mockResolvedValue({
+          assetPositions: [],
+          marginSummary: { totalMarginUsed: '0', accountValue: '0' },
+        });
+
+        // Act: first call gets invalid response, falls back to main DEX
+        await hip3Provider.getPositions({
+          standalone: true,
+          userAddress: mockUserAddress,
+        });
+        expect(mockStandaloneInfoClient.perpDexs).toHaveBeenCalledTimes(1);
+
+        // Fix perpDexs to return valid response
+        mockStandaloneInfoClient.perpDexs.mockResolvedValue([
+          null,
+          { name: 'xyz' },
+        ]);
+
+        // Act: second standalone call should retry perpDexs (not cached)
+        await hip3Provider.getPositions({
+          standalone: true,
+          userAddress: mockUserAddress,
+        });
+
+        // Assert: perpDexs was called again on the second call
+        expect(mockStandaloneInfoClient.perpDexs).toHaveBeenCalledTimes(2);
+      });
+
+      it('shares cache between standalone and fully-initialized when standalone succeeds', async () => {
+        // Arrange: standalone perpDexs succeeds
+        mockStandaloneInfoClient.clearinghouseState.mockResolvedValue({
+          assetPositions: [],
+          marginSummary: { totalMarginUsed: '0', accountValue: '0' },
+        });
+
+        // Act: standalone call succeeds and caches the validated DEXs
+        await hip3Provider.getPositions({
+          standalone: true,
+          userAddress: mockUserAddress,
+        });
+        expect(mockStandaloneInfoClient.perpDexs).toHaveBeenCalledTimes(1);
+
+        // Initialize the provider for fully-initialized path
+        await hip3Provider.initialize();
+        const infoClient = mockClientService.getInfoClient();
+
+        // Act: fully-initialized getPositions should reuse standalone's cache
+        await hip3Provider.getPositions();
+
+        // Assert: fully-initialized path did NOT call perpDexs (reused cache)
+        expect(infoClient.perpDexs).not.toHaveBeenCalled();
+        // clearinghouseState should be called for both main + xyz DEX (from cache)
+        expect(infoClient.clearinghouseState).toHaveBeenCalledTimes(2);
       });
     });
   });

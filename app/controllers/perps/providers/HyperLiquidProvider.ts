@@ -4357,14 +4357,12 @@ export class HyperLiquidProvider implements PerpsProvider {
       this.deps.debugLogger.log(
         'HyperLiquidProvider: standalone perpDexs() failed, falling back to main DEX only',
       );
-      this.cachedValidatedDexs = [null];
-      return this.cachedValidatedDexs;
+      return [null];
     }
 
     // Validate response
     if (!allDexs || !Array.isArray(allDexs)) {
-      this.cachedValidatedDexs = [null];
-      return this.cachedValidatedDexs;
+      return [null];
     }
 
     // Extract HIP-3 DEX names (filter out null which represents main DEX)
