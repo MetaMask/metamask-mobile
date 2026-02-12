@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import {
   selectIsPerpsBalanceSelected,
@@ -20,5 +21,18 @@ export function usePerpsPayWithToken(): {
   chainId: string;
 } | null {
   const selectedPaymentToken = useSelector(selectPerpsPayWithToken);
-  return parsePayWithToken(selectedPaymentToken);
+  const parsed = parsePayWithToken(selectedPaymentToken);
+
+  const address = parsed?.address ?? null;
+  const chainId = parsed?.chainId ?? null;
+  const description = parsed?.description;
+
+  return useMemo(() => {
+    if (address === null || chainId === null) return null;
+    return {
+      address,
+      chainId,
+      ...(description !== undefined && description !== null && { description }),
+    };
+  }, [address, chainId, description]);
 }
