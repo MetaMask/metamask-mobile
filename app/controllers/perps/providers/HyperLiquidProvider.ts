@@ -4,6 +4,7 @@ import {
   queryStandaloneClearinghouseStates,
 } from '../utils/standaloneInfoClient';
 import { v4 as uuidv4 } from 'uuid';
+import { aggregateAccountStates } from '../utils/accountUtils';
 import { ensureError } from '../utils/errorUtils';
 import {
   BASIS_POINTS_DIVISOR,
@@ -5076,54 +5077,10 @@ export class HyperLiquidProvider implements PerpsProvider {
         );
 
         // Aggregate account states across all DEXs
-        const aggregatedAccountState = results.reduce<AccountState>(
-          (acc, perpsState, index) => {
-            const dexAccountState = adaptAccountStateFromSDK(perpsState);
-
-            if (index === 0) {
-              return dexAccountState;
-            }
-
-            return {
-              availableBalance: (
-                parseFloat(acc.availableBalance) +
-                parseFloat(dexAccountState.availableBalance)
-              ).toString(),
-              totalBalance: (
-                parseFloat(acc.totalBalance) +
-                parseFloat(dexAccountState.totalBalance)
-              ).toString(),
-              marginUsed: (
-                parseFloat(acc.marginUsed) +
-                parseFloat(dexAccountState.marginUsed)
-              ).toString(),
-              unrealizedPnl: (
-                parseFloat(acc.unrealizedPnl) +
-                parseFloat(dexAccountState.unrealizedPnl)
-              ).toString(),
-              returnOnEquity: '0',
-            };
-          },
-          {
-            availableBalance: PERPS_CONSTANTS.FallbackDataDisplay,
-            totalBalance: PERPS_CONSTANTS.FallbackDataDisplay,
-            marginUsed: PERPS_CONSTANTS.FallbackDataDisplay,
-            unrealizedPnl: PERPS_CONSTANTS.FallbackDataDisplay,
-            returnOnEquity: PERPS_CONSTANTS.FallbackDataDisplay,
-          },
+        const dexAccountStates = results.map((perpsState) =>
+          adaptAccountStateFromSDK(perpsState),
         );
-
-        // Recalculate return on equity across all DEXs
-        const totalMarginUsed = parseFloat(aggregatedAccountState.marginUsed);
-        const totalUnrealizedPnl = parseFloat(
-          aggregatedAccountState.unrealizedPnl,
-        );
-        if (totalMarginUsed > 0) {
-          aggregatedAccountState.returnOnEquity = (
-            (totalUnrealizedPnl / totalMarginUsed) *
-            100
-          ).toString();
-        }
+        const aggregatedAccountState = aggregateAccountStates(dexAccountStates);
 
         this.deps.debugLogger.log(
           'HyperLiquidProvider: standalone account state fetched',
@@ -5165,72 +5122,20 @@ export class HyperLiquidProvider implements PerpsProvider {
 
       // Aggregate account states from all DEXs
       // Each DEX has independent positions and margin, we sum them
-      const aggregatedAccountState = perpsStateResults.reduce<AccountState>(
-        (acc, result, index) => {
-          const { dex, data: perpsState } = result;
-
-          // Adapt this DEX's state (without spot - we'll add spot once at the end)
-          const dexAccountState = adaptAccountStateFromSDK(perpsState);
-
-          // Log each DEX contribution
-          this.deps.debugLogger.log(`DEX ${dex || 'main'} account state:`, {
+      const dexAccountStates = perpsStateResults.map((result) => {
+        const dexAccountState = adaptAccountStateFromSDK(result.data);
+        this.deps.debugLogger.log(
+          `DEX ${result.dex || 'main'} account state:`,
+          {
             totalBalance: dexAccountState.totalBalance,
             availableBalance: dexAccountState.availableBalance,
             marginUsed: dexAccountState.marginUsed,
             unrealizedPnl: dexAccountState.unrealizedPnl,
-          });
-
-          // Sum up numeric values across all DEXs
-          if (index === 0) {
-            // First DEX - initialize with its values
-            return dexAccountState;
-          }
-
-          // Subsequent DEXs - aggregate
-          return {
-            availableBalance: (
-              parseFloat(acc.availableBalance) +
-              parseFloat(dexAccountState.availableBalance)
-            ).toString(),
-            totalBalance: (
-              parseFloat(acc.totalBalance) +
-              parseFloat(dexAccountState.totalBalance)
-            ).toString(),
-            marginUsed: (
-              parseFloat(acc.marginUsed) +
-              parseFloat(dexAccountState.marginUsed)
-            ).toString(),
-            unrealizedPnl: (
-              parseFloat(acc.unrealizedPnl) +
-              parseFloat(dexAccountState.unrealizedPnl)
-            ).toString(),
-            // Return on equity is weighted average, but for simplicity we'll recalculate
-            // ROE = (unrealizedPnl / marginUsed) * 100
-            returnOnEquity: '0', // Will recalculate below
-          };
-        },
-        {
-          availableBalance: PERPS_CONSTANTS.FallbackDataDisplay,
-          totalBalance: PERPS_CONSTANTS.FallbackDataDisplay,
-          marginUsed: PERPS_CONSTANTS.FallbackDataDisplay,
-          unrealizedPnl: PERPS_CONSTANTS.FallbackDataDisplay,
-          returnOnEquity: PERPS_CONSTANTS.FallbackDataDisplay,
-        },
-      );
-
-      // Recalculate return on equity across all DEXs
-      const totalMarginUsed = parseFloat(aggregatedAccountState.marginUsed);
-      const totalUnrealizedPnl = parseFloat(
-        aggregatedAccountState.unrealizedPnl,
-      );
-      if (totalMarginUsed > 0) {
-        aggregatedAccountState.returnOnEquity = (
-          (totalUnrealizedPnl / totalMarginUsed) *
-          100
-        ).toString();
-      } else {
-        aggregatedAccountState.returnOnEquity = '0';
-      }
+          },
+        );
+        return dexAccountState;
+      });
+      const aggregatedAccountState = aggregateAccountStates(dexAccountStates);
 
       // Add spot balance to totalBalance (spot is global, not per-DEX)
       let spotBalance = 0;

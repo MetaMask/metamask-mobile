@@ -4,6 +4,8 @@
  */
 import { isEvmAccountType } from '@metamask/keyring-api';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
+import type { AccountState } from '../types';
+import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 
 export function findEvmAccount(
   accounts: InternalAccount[],
@@ -87,4 +89,57 @@ export function calculateWeightedReturnOnEquity(
 
   const weightedROE = (totalWeightedROE / totalMarginUsed) * 100;
   return weightedROE.toString();
+}
+
+/**
+ * Aggregate multiple per-DEX AccountState objects into one by summing numeric fields.
+ * ROE is recalculated as (totalUnrealizedPnl / totalMarginUsed) * 100.
+ */
+export function aggregateAccountStates(states: AccountState[]): AccountState {
+  const fallback: AccountState = {
+    availableBalance: PERPS_CONSTANTS.FallbackDataDisplay,
+    totalBalance: PERPS_CONSTANTS.FallbackDataDisplay,
+    marginUsed: PERPS_CONSTANTS.FallbackDataDisplay,
+    unrealizedPnl: PERPS_CONSTANTS.FallbackDataDisplay,
+    returnOnEquity: PERPS_CONSTANTS.FallbackDataDisplay,
+  };
+
+  if (states.length === 0) {
+    return fallback;
+  }
+
+  const aggregated = states.reduce<AccountState>((acc, state, index) => {
+    if (index === 0) {
+      return state;
+    }
+    return {
+      availableBalance: (
+        parseFloat(acc.availableBalance) + parseFloat(state.availableBalance)
+      ).toString(),
+      totalBalance: (
+        parseFloat(acc.totalBalance) + parseFloat(state.totalBalance)
+      ).toString(),
+      marginUsed: (
+        parseFloat(acc.marginUsed) + parseFloat(state.marginUsed)
+      ).toString(),
+      unrealizedPnl: (
+        parseFloat(acc.unrealizedPnl) + parseFloat(state.unrealizedPnl)
+      ).toString(),
+      returnOnEquity: '0',
+    };
+  }, fallback);
+
+  // Recalculate ROE across all DEXs
+  const totalMarginUsed = parseFloat(aggregated.marginUsed);
+  const totalUnrealizedPnl = parseFloat(aggregated.unrealizedPnl);
+  if (totalMarginUsed > 0) {
+    aggregated.returnOnEquity = (
+      (totalUnrealizedPnl / totalMarginUsed) *
+      100
+    ).toString();
+  } else {
+    aggregated.returnOnEquity = '0';
+  }
+
+  return aggregated;
 }
