@@ -84,23 +84,22 @@ import PerpsSlider from '../../components/PerpsSlider';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
-} from '../../constants/eventNames';
-import {
   DECIMAL_PRECISION_CONFIG,
   ORDER_SLIPPAGE_CONFIG,
   PERPS_CONSTANTS,
-} from '../../constants/perpsConfig';
+  getPerpsDisplaySymbol,
+  calculateMarginRequired,
+  calculatePositionSize,
+  type InputMethod,
+  type OrderParams,
+  type OrderType,
+  type Position,
+} from '@metamask/perps-controller';
+import type { PerpsNavigationParamList } from '../../types/navigation';
 import {
   PerpsOrderProvider,
   usePerpsOrderContext,
 } from '../../contexts/PerpsOrderContext';
-import type {
-  InputMethod,
-  OrderParams,
-  OrderType,
-  PerpsNavigationParamList,
-  Position,
-} from '../../controllers/types';
 import {
   useHasExistingPosition,
   useMinimumOrderAmount,
@@ -136,11 +135,6 @@ import {
   PRICE_RANGES_MINIMAL_VIEW,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
-import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
-import {
-  calculateMarginRequired,
-  calculatePositionSize,
-} from '../../utils/orderCalculations';
 import { willFlipPosition } from '../../utils/orderUtils';
 import {
   calculateRoEForPrice,
@@ -150,7 +144,6 @@ import createStyles from './PerpsOrderView.styles';
 import { PerpsPayRow } from './PerpsPayRow';
 import { useUpdateTokenAmount } from '../../../../Views/confirmations/hooks/transactions/useUpdateTokenAmount';
 import { useConfirmActions } from '../../../../Views/confirmations/hooks/useConfirmActions';
-import Engine from '../../../../../core/Engine';
 
 // Navigation params interface
 interface OrderRouteParams {
@@ -213,14 +206,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       onReject(undefined, true);
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
-  );
-
-  // Reset selected payment token to Perps balance when leaving the order view
-  useEffect(
-    () => () => {
-      Engine.context.PerpsController?.resetSelectedPaymentToken?.();
-    },
     [],
   );
 
@@ -460,6 +445,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const isFeesLoading =
     feeResults.isLoadingMetamaskFee ||
     (hasCustomTokenSelected && isPayTotalsLoading);
+  const shouldBlockBecauseOfFeesLoading =
+    hasCustomTokenSelected && isPayTotalsLoading;
 
   // Simple boolean calculation - no need for expensive memoization
   const hasValidAmount = parseFloat(orderForm.amount) > 0;
@@ -1353,6 +1340,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               <View style={[styles.detailItem, styles.detailItemLast]}>
                 <PerpsPayRow
                   embeddedInStack
+                  initialAsset={orderForm.asset}
                   onPayWithInfoPress={() => handleTooltipPress('pay_with')}
                 />
               </View>
@@ -1610,7 +1598,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 isPlacingOrder ||
                 doesStopLossRiskLiquidation ||
                 isAtOICap ||
-                isFeesLoading
+                shouldBlockBecauseOfFeesLoading
               }
               loading={isPlacingOrder}
               testID={PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON}
@@ -1630,7 +1618,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 isPlacingOrder ||
                 doesStopLossRiskLiquidation ||
                 isAtOICap ||
-                isFeesLoading
+                shouldBlockBecauseOfFeesLoading
               }
               isLoading={isPlacingOrder}
               testID={PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON}
