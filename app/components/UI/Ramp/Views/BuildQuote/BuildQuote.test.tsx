@@ -2,6 +2,7 @@ import React from 'react';
 import { fireEvent, render, act } from '@testing-library/react-native';
 import BuildQuote from './BuildQuote';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
+import type { UseRampsQuotesResult } from '../../hooks/useRampsQuotes';
 import type { RampsToken } from '../../hooks/useRampTokens';
 import type { CaipChainId } from '@metamask/utils';
 import Logger from '../../../../../util/Logger';
@@ -11,7 +12,10 @@ const mockSetOptions = jest.fn();
 const mockGoBack = jest.fn();
 const mockStartQuotePolling = jest.fn();
 const mockStopQuotePolling = jest.fn();
-const mockGetWidgetUrl = jest.fn(async (quote) => {
+const mockGetWidgetUrl = jest.fn<
+  ReturnType<UseRampsQuotesResult['getWidgetUrl']>,
+  Parameters<UseRampsQuotesResult['getWidgetUrl']>
+>(async (quote) => {
   const buyUrl = quote?.quote?.buyURL;
   if (!buyUrl) return null;
   // Simulate the fetch behavior
@@ -780,8 +784,8 @@ describe('BuildQuote', () => {
         name: 'Card',
       };
 
-      let resolveGetWidgetUrl: (value: string) => void;
-      const widgetUrlPromise = new Promise<string>((resolve) => {
+      let resolveGetWidgetUrl: (value: string | null) => void;
+      const widgetUrlPromise = new Promise<string | null>((resolve) => {
         resolveGetWidgetUrl = resolve;
       });
       mockGetWidgetUrl.mockReturnValue(widgetUrlPromise);
@@ -867,8 +871,8 @@ describe('BuildQuote', () => {
         name: 'Card',
       };
 
-      let resolveGetWidgetUrl: (value: string) => void;
-      const widgetUrlPromise = new Promise<string>((resolve) => {
+      let resolveGetWidgetUrl: (value: string | null) => void;
+      const widgetUrlPromise = new Promise<string | null>((resolve) => {
         resolveGetWidgetUrl = resolve;
       });
       mockGetWidgetUrl.mockReturnValue(widgetUrlPromise);
@@ -876,11 +880,10 @@ describe('BuildQuote', () => {
       const { getByTestId } = renderWithTheme(<BuildQuote />);
       const continueButton = getByTestId('build-quote-continue-button');
 
+      // Fire both presses in the same act so no render runs between them.
+      // This verifies the useRef guard prevents re-entry before React flushes setIsNavigating.
       await act(async () => {
         fireEvent.press(continueButton);
-      });
-
-      await act(async () => {
         fireEvent.press(continueButton);
       });
 

@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { CaipChainId } from '@metamask/utils';
@@ -80,6 +86,7 @@ function BuildQuote() {
   const [amountAsNumber, setAmountAsNumber] = useState<number>(DEFAULT_AMOUNT);
   const [userHasEnteredAmount, setUserHasEnteredAmount] = useState(false);
   const [isNavigating, setIsNavigating] = useState(false);
+  const isNavigatingRef = useRef(false);
 
   const {
     userRegion,
@@ -219,6 +226,8 @@ function BuildQuote() {
     // Note: CustomActions (e.g., PayPal) are handled through the same flow.
     // If the API returns a quote with a URL, it will be opened in the checkout webview.
     // If customActions appear without a URL, they will error here (needs backend fix).
+    if (isNavigatingRef.current) return;
+    isNavigatingRef.current = true;
     setIsNavigating(true);
     try {
       const widgetUrl = await getWidgetUrl(selectedQuote);
@@ -246,6 +255,7 @@ function BuildQuote() {
       // TODO: Show user-facing error (alert or inline)
     } finally {
       setIsNavigating(false);
+      isNavigatingRef.current = false;
     }
   }, [
     selectedQuote,
