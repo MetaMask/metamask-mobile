@@ -89,9 +89,7 @@ describe('usePerpsNavigation', () => {
 
       result.current.navigateToBrowser();
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
-        screen: Routes.BROWSER.VIEW,
-      });
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.VIEW);
     });
 
     it('navigates to actions modal', () => {

@@ -239,10 +239,7 @@ describe('PerpsTutorialCarousel', () => {
       // Should mark tutorial as completed and navigate to perps home screen
       expect(mockMarkTutorialCompleted).toHaveBeenCalled();
       expect(mockNavigationServiceMethods.navigate).toHaveBeenCalledWith(
-        Routes.PERPS.ROOT,
-        {
-          screen: Routes.PERPS.PERPS_HOME,
-        },
+        Routes.PERPS.PERPS_HOME,
       );
     });
 
@@ -254,10 +251,7 @@ describe('PerpsTutorialCarousel', () => {
       });
 
       expect(mockNavigationServiceMethods.navigate).toHaveBeenCalledWith(
-        Routes.PERPS.ROOT,
-        {
-          screen: Routes.PERPS.PERPS_HOME,
-        },
+        Routes.PERPS.PERPS_HOME,
       );
       expect(mockMarkTutorialCompleted).toHaveBeenCalled();
     });
@@ -317,10 +311,7 @@ describe('PerpsTutorialCarousel', () => {
 
       // Should navigate to perps home screen
       expect(mockNavigationServiceMethods.navigate).toHaveBeenCalledWith(
-        Routes.PERPS.ROOT,
-        {
-          screen: Routes.PERPS.PERPS_HOME,
-        },
+        Routes.PERPS.PERPS_HOME,
       );
     });
   });
@@ -421,10 +412,7 @@ describe('PerpsTutorialCarousel', () => {
         // Should mark tutorial as completed and navigate to perps home
         expect(mockMarkTutorialCompleted).toHaveBeenCalled();
         expect(mockNavigationServiceMethods.navigate).toHaveBeenCalledWith(
-          Routes.PERPS.ROOT,
-          {
-            screen: Routes.PERPS.PERPS_HOME,
-          },
+          Routes.PERPS.PERPS_HOME,
         );
       });
 
@@ -447,10 +435,7 @@ describe('PerpsTutorialCarousel', () => {
         // Should mark tutorial as completed and navigate to markets list
         expect(mockMarkTutorialCompleted).toHaveBeenCalled();
         expect(mockNavigationServiceMethods.navigate).toHaveBeenCalledWith(
-          Routes.PERPS.ROOT,
-          {
-            screen: Routes.PERPS.PERPS_HOME,
-          },
+          Routes.PERPS.PERPS_HOME,
         );
       });
     });
@@ -562,10 +547,7 @@ describe('PerpsTutorialCarousel', () => {
         // Should mark tutorial as completed and navigate to markets list
         expect(mockMarkTutorialCompleted).toHaveBeenCalled();
         expect(mockNavigationServiceMethods.navigate).toHaveBeenCalledWith(
-          Routes.PERPS.ROOT,
-          {
-            screen: Routes.PERPS.PERPS_HOME,
-          },
+          Routes.PERPS.PERPS_HOME,
         );
         // Should NOT navigate using the mocked navigation (uses NavigationService instead)
         expect(mockNavigation.navigate).not.toHaveBeenCalled();
