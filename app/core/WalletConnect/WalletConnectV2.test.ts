@@ -1658,7 +1658,7 @@ describe('WC2Manager', () => {
     const createProposal = (
       verifyContext?: any,
       overrides?: { id?: number; url?: string },
-    ) => ({
+    ): any => ({
       id: overrides?.id ?? 2001,
       params: {
         id: overrides?.id ?? 2001,
