@@ -63,6 +63,8 @@ describe('Earn Feature Flag Selectors', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     process.env = { ...originalEnv };
+    // Use local-flag fallback path; GA path would use remote as fallback (null/undefined when missing) and break expectations.
+    process.env.GITHUB_ACTIONS = 'false';
 
     mockHasMinimumRequiredVersion = jest.spyOn(
       remoteFeatureFlagModule,
