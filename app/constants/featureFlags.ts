@@ -14,7 +14,7 @@ export enum FeatureFlagNames {
   assetsDefiPositionsEnabled = 'assetsDefiPositionsEnabled',
   tokenDetailsV2 = 'tokenDetailsV2',
   tokenDetailsV2Buttons = 'tokenDetailsV2Buttons',
-  tokenDetailsV2ButtonLayout = 'token-details-v-2-button-layout',
+  tokenDetailsV2ButtonLayout = 'tokenDetailsV2ButtonLayout',
 }
 
 export const DEFAULT_FEATURE_FLAG_VALUES: Partial<
