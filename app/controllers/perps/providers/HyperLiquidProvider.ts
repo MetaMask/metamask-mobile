@@ -5105,11 +5105,11 @@ export class HyperLiquidProvider implements PerpsProvider {
             };
           },
           {
-            availableBalance: '0',
-            totalBalance: '0',
-            marginUsed: '0',
-            unrealizedPnl: '0',
-            returnOnEquity: '0',
+            availableBalance: PERPS_CONSTANTS.FallbackDataDisplay,
+            totalBalance: PERPS_CONSTANTS.FallbackDataDisplay,
+            marginUsed: PERPS_CONSTANTS.FallbackDataDisplay,
+            unrealizedPnl: PERPS_CONSTANTS.FallbackDataDisplay,
+            returnOnEquity: PERPS_CONSTANTS.FallbackDataDisplay,
           },
         );
 
@@ -5122,7 +5122,7 @@ export class HyperLiquidProvider implements PerpsProvider {
           aggregatedAccountState.returnOnEquity = (
             (totalUnrealizedPnl / totalMarginUsed) *
             100
-          ).toFixed(1);
+          ).toString();
         }
 
         this.deps.debugLogger.log(
@@ -5210,11 +5210,11 @@ export class HyperLiquidProvider implements PerpsProvider {
           };
         },
         {
-          availableBalance: '0',
-          totalBalance: '0',
-          marginUsed: '0',
-          unrealizedPnl: '0',
-          returnOnEquity: '0',
+          availableBalance: PERPS_CONSTANTS.FallbackDataDisplay,
+          totalBalance: PERPS_CONSTANTS.FallbackDataDisplay,
+          marginUsed: PERPS_CONSTANTS.FallbackDataDisplay,
+          unrealizedPnl: PERPS_CONSTANTS.FallbackDataDisplay,
+          returnOnEquity: PERPS_CONSTANTS.FallbackDataDisplay,
         },
       );
 
@@ -5227,7 +5227,7 @@ export class HyperLiquidProvider implements PerpsProvider {
         aggregatedAccountState.returnOnEquity = (
           (totalUnrealizedPnl / totalMarginUsed) *
           100
-        ).toFixed(1);
+        ).toString();
       } else {
         aggregatedAccountState.returnOnEquity = '0';
       }

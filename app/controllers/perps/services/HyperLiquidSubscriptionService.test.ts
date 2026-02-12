@@ -3555,7 +3555,7 @@ describe('HyperLiquidSubscriptionService', () => {
       const accountState = mockCallback.mock.calls[0][0];
       expect(accountState.marginUsed).toBe('1000');
       expect(accountState.unrealizedPnl).toBe('100');
-      expect(accountState.returnOnEquity).toBe('10.0');
+      expect(accountState.returnOnEquity).toBe('10');
 
       unsubscribe();
     });
@@ -3600,7 +3600,7 @@ describe('HyperLiquidSubscriptionService', () => {
       const accountState = mockCallback.mock.calls[0][0];
       expect(accountState.marginUsed).toBe('1000');
       expect(accountState.unrealizedPnl).toBe('-50');
-      expect(accountState.returnOnEquity).toBe('-5.0');
+      expect(accountState.returnOnEquity).toBe('-5');
 
       unsubscribe();
     });
@@ -3691,7 +3691,7 @@ describe('HyperLiquidSubscriptionService', () => {
       const accountState = mockCallback.mock.calls[0][0];
       expect(accountState.marginUsed).toBe('1500');
       expect(accountState.unrealizedPnl).toBe('75');
-      expect(accountState.returnOnEquity).toBe('5.0');
+      expect(accountState.returnOnEquity).toBe('5');
 
       unsubscribe();
     });
@@ -3736,12 +3736,12 @@ describe('HyperLiquidSubscriptionService', () => {
       const accountState = mockCallback.mock.calls[0][0];
       expect(accountState.marginUsed).toBe('100');
       expect(accountState.unrealizedPnl).toBe('200');
-      expect(accountState.returnOnEquity).toBe('200.0');
+      expect(accountState.returnOnEquity).toBe('200');
 
       unsubscribe();
     });
 
-    it('rounds ROE to one decimal place', async () => {
+    it('stores raw ROE without rounding', async () => {
       // Override the adapter mock
       jest.mocked(adaptAccountStateFromSDK).mockImplementation(() => ({
         availableBalance: '100',
@@ -3781,7 +3781,7 @@ describe('HyperLiquidSubscriptionService', () => {
       const accountState = mockCallback.mock.calls[0][0];
       expect(accountState.marginUsed).toBe('333');
       expect(accountState.unrealizedPnl).toBe('100');
-      expect(accountState.returnOnEquity).toBe('30.0');
+      expect(accountState.returnOnEquity).toBe('30');
 
       unsubscribe();
     });

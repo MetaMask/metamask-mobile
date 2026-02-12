@@ -86,5 +86,5 @@ export function calculateWeightedReturnOnEquity(
   }
 
   const weightedROE = (totalWeightedROE / totalMarginUsed) * 100;
-  return weightedROE.toFixed(1);
+  return weightedROE.toString();
 }
