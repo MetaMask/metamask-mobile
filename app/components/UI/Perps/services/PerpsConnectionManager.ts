@@ -269,7 +269,7 @@ class PerpsConnectionManagerClass {
           Logger.error(
             ensureError(
               error,
-              'PerpsConnectionManager.startGracePeriodDisconnect',
+              'PerpsConnectionManager.scheduleGracePeriodDisconnection',
             ),
             {
               tags: { feature: PERPS_CONSTANTS.FeatureName },
@@ -290,7 +290,7 @@ class PerpsConnectionManagerClass {
           Logger.error(
             ensureError(
               error,
-              'PerpsConnectionManager.startGracePeriodDisconnect',
+              'PerpsConnectionManager.scheduleGracePeriodDisconnection',
             ),
             {
               tags: { feature: PERPS_CONSTANTS.FeatureName },
@@ -949,7 +949,7 @@ class PerpsConnectionManagerClass {
       );
     } catch (error) {
       Logger.error(
-        ensureError(error, 'PerpsConnectionManager.preLoadSubscriptions'),
+        ensureError(error, 'PerpsConnectionManager.preloadSubscriptions'),
         {
           tags: { feature: PERPS_CONSTANTS.FeatureName },
           context: {

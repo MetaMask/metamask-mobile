@@ -535,7 +535,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       // WebSocket streaming provides real-time data - no manual refresh needed
       // Just reset the UI state and the chart will update automatically
     } catch (error) {
-      Logger.error(ensureError(error, 'PerpsMarketDetailsView.onRefresh'), {
+      Logger.error(ensureError(error, 'PerpsMarketDetailsView.handleRefresh'), {
         tags: { feature: PERPS_CONSTANTS.FeatureName },
         context: { name: 'PerpsMarketDetailsView.handleRefresh', data: {} },
       });
@@ -914,7 +914,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       });
     } catch (error) {
       Logger.error(
-        ensureError(error, 'PerpsMarketDetailsView.handleSetStopLoss'),
+        ensureError(
+          error,
+          'PerpsMarketDetailsView.handleSetStopLossFromBanner',
+        ),
         {
           tags: { feature: PERPS_CONSTANTS.FeatureName },
           context: {
