@@ -234,9 +234,12 @@ export const usePerpsTransactionHistory = ({
     // Note: transformFillsToTransactions now aggregates split stop loss/TP fills
     const liveTransactions = transformFillsToTransactions(liveFills);
 
-    // If no REST transactions yet, return only live fills
+    // If no REST transactions yet, return live fills plus wallet deposits (sorted)
     if (transactions.length === 0) {
-      return liveTransactions;
+      const combined = [...liveTransactions, ...walletDepositTransactions].sort(
+        (a, b) => b.timestamp - a.timestamp,
+      );
+      return combined;
     }
 
     // Separate trade transactions from non-trade transactions (orders, funding, deposits)

@@ -1,4 +1,5 @@
 import { renderHook, act } from '@testing-library/react-native';
+import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { usePerpsTransactionHistory } from './usePerpsTransactionHistory';
@@ -9,6 +10,7 @@ import {
   transformOrdersToTransactions,
   transformFundingToTransactions,
   transformUserHistoryToTransactions,
+  transformWalletPerpsDepositsToTransactions,
 } from '../utils/transactionTransforms';
 import { FillType } from '../types/transactionHistory';
 import type { CaipAccountId } from '@metamask/utils';
@@ -19,6 +21,9 @@ jest.mock('../../../../core/SDKConnect/utils/DevLogger');
 jest.mock('./useUserHistory');
 jest.mock('../utils/transactionTransforms');
 jest.mock('./stream/usePerpsLiveFills');
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(),
+}));
 
 const mockEngine = Engine as jest.Mocked<typeof Engine>;
 const mockDevLogger = DevLogger as jest.Mocked<typeof DevLogger>;
@@ -44,6 +49,11 @@ const mockTransformUserHistoryToTransactions =
   transformUserHistoryToTransactions as jest.MockedFunction<
     typeof transformUserHistoryToTransactions
   >;
+const mockTransformWalletPerpsDepositsToTransactions =
+  transformWalletPerpsDepositsToTransactions as jest.MockedFunction<
+    typeof transformWalletPerpsDepositsToTransactions
+  >;
+const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
 describe('usePerpsTransactionHistory', () => {
   let mockController: {
@@ -150,6 +160,12 @@ describe('usePerpsTransactionHistory', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
+    // Mock Redux selectors: first call = wallet transactions, second = selected address
+    mockUseSelector.mockImplementation(() => {
+      const len = mockUseSelector.mock.calls.length;
+      return len % 2 === 1 ? [] : '0x1234567890123456789012345678901234567890';
+    });
+
     // Mock provider
     mockProvider = {
       getOrderFills: jest.fn().mockResolvedValue(mockFills),
@@ -190,6 +206,7 @@ describe('usePerpsTransactionHistory', () => {
     mockTransformOrdersToTransactions.mockReturnValue([]);
     mockTransformFundingToTransactions.mockReturnValue([]);
     mockTransformUserHistoryToTransactions.mockReturnValue([]);
+    mockTransformWalletPerpsDepositsToTransactions.mockReturnValue([]);
   });
 
   describe('initial state', () => {
@@ -222,6 +239,56 @@ describe('usePerpsTransactionHistory', () => {
 
       expect(result.current.transactions).toEqual([]);
       expect(mockProvider.getOrderFills).not.toHaveBeenCalled();
+    });
+
+    it('includes wallet perps deposits in merged transactions', async () => {
+      mockTransformFillsToTransactions.mockReturnValue([]);
+      mockTransformUserHistoryToTransactions.mockReturnValue([]);
+      const walletDepositTx = {
+        id: 'wallet-deposit-tx-1',
+        type: 'deposit' as const,
+        category: 'deposit' as const,
+        title: 'Deposited 100.00 USDC',
+        subtitle: 'Completed',
+        timestamp: 1640995204000,
+        asset: 'USDC',
+        depositWithdrawal: {
+          amount: '+$100.00',
+          amountNumber: 100,
+          isPositive: true,
+          asset: 'USDC',
+          txHash: '0xabc',
+          status: 'completed' as const,
+          type: 'deposit' as const,
+        },
+      };
+      mockTransformWalletPerpsDepositsToTransactions.mockReturnValue([
+        walletDepositTx,
+      ]);
+      const selectedAddr = '0x1234567890123456789012345678901234567890';
+      mockUseSelector.mockImplementation(() => {
+        const len = mockUseSelector.mock.calls.length;
+        return len % 2 === 1
+          ? [
+              {
+                id: 'w1',
+                type: 'perpsDeposit',
+                txParams: { from: selectedAddr },
+              },
+            ]
+          : selectedAddr;
+      });
+
+      const { result } = renderHook(() =>
+        usePerpsTransactionHistory({ skipInitialFetch: true }),
+      );
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      expect(result.current.transactions).toContainEqual(walletDepositTx);
+      expect(mockTransformWalletPerpsDepositsToTransactions).toHaveBeenCalled();
     });
   });
 
