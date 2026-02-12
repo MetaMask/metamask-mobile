@@ -87,9 +87,6 @@ jest.mock('../../../../../locales/i18n', () => ({
     };
     return translations[key] || key;
   },
-  I18nEvents: {
-    addListener: jest.fn(),
-  },
 }));
 
 // Helper to create mock withdraw transaction

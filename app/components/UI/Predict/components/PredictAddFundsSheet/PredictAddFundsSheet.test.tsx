@@ -29,9 +29,6 @@ jest.mock('../../../../../../locales/i18n', () => ({
     };
     return translations[key] || key;
   }),
-  I18nEvents: {
-    addListener: jest.fn(),
-  },
 }));
 
 const mockNavigate = jest.fn();
