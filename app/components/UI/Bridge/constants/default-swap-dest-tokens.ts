@@ -117,6 +117,15 @@ export const DefaultSwapDestTokens: Record<Hex | CaipChainId, BridgeToken> = {
       'https://static.cx.metamask.io/api/v1/tokenIcons/999/0xb88339cb7199b77e23db6e890353e22632ba630f.png',
     chainId: NETWORK_CHAIN_ID.HYPE,
   },
+  [NETWORK_CHAIN_ID.MEGAETH_MAINNET]: {
+    symbol: 'USDT0',
+    name: 'USDT0',
+    address: '0xB8CE59FC3717ada4C02eaDF9682A9e934F625ebb',
+    decimals: 6,
+    image:
+      'https://static.cx.metamask.io/api/v1/tokenIcons/4326/0xb8ce59fc3717ada4c02eadf9682a9e934f625ebb.png',
+    chainId: NETWORK_CHAIN_ID.MEGAETH_MAINNET,
+  },
   [SolScope.Mainnet]: {
     address:
       'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',

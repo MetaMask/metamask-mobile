@@ -60,6 +60,7 @@ function TokenSelection() {
     tokens: controllerTokens,
     tokensLoading: controllerTokensLoading,
     tokensError: controllerTokensError,
+    setSelectedToken,
   } = useRampsController();
   const legacyTokens = useRampTokens();
 
@@ -146,11 +147,14 @@ function TokenSelection() {
         });
       }
       // V1 flow: close the modal before navigating to Deposit/Aggregator
-      // V2 flow: navigate within the same stack, no need to close modal
-      if (!isRampsUnifiedV2Enabled) {
+      // V2 flow: set selected token on controller and navigate within the same stack
+      if (isRampsUnifiedV2Enabled) {
+        setSelectedToken(assetId);
+        navigation.navigate(Routes.RAMP.AMOUNT_INPUT, { assetId });
+      } else {
         navigation.dangerouslyGetParent()?.goBack();
+        goToBuy({ assetId });
       }
-      goToBuy({ assetId });
     },
     [
       supportedTokens,
@@ -161,6 +165,7 @@ function TokenSelection() {
       isRampsUnifiedV2Enabled,
       navigation,
       goToBuy,
+      setSelectedToken,
     ],
   );
 
@@ -284,7 +289,6 @@ function TokenSelection() {
           <TextFieldSearch
             testID={selectTokenSelectors.TOKEN_SELECT_MODAL_SEARCH_INPUT}
             value={searchString}
-            showClearButton={searchString.length > 0}
             onPressClearButton={clearSearchText}
             onFocus={scrollToTop}
             onChangeText={handleSearchTextChange}

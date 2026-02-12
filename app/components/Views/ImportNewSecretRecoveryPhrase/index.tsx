@@ -47,7 +47,6 @@ import useMetrics from '../../hooks/useMetrics/useMetrics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
 import { Authentication } from '../../../core';
-import { isMultichainAccountsState2Enabled } from '../../../multichain-accounts/remote-feature-flag';
 import Routes from '../../../constants/navigation/Routes';
 import { QRTabSwitcherScreens } from '../QRTabSwitcher';
 import Logger from '../../../util/Logger';
@@ -190,15 +189,14 @@ const ImportNewSecretRecoveryPhrase = () => {
         return;
       }
 
-      // In case state 2 is enabled, discoverAccounts will be 0 because accounts are synced and then discovered
-      // in a non-blocking way. So we rely on the callback to track the event when the discovery is done.
-      const { discoveredAccountsCount } = await importNewSecretRecoveryPhrase(
+      await importNewSecretRecoveryPhrase(
         phrase,
         undefined,
         async ({ discoveredAccountsCount }) => {
           trackDiscoveryEvent(discoveredAccountsCount);
         },
       );
+
       setLoading(false);
       setSeedPhrase(['']);
 
@@ -216,10 +214,6 @@ const ImportNewSecretRecoveryPhrase = () => {
       });
 
       fetchAccountsWithActivity();
-
-      if (!isMultichainAccountsState2Enabled()) {
-        trackDiscoveryEvent(discoveredAccountsCount);
-      }
 
       navigation.navigate('WalletView');
     } catch (e) {

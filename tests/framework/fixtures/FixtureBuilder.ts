@@ -6,8 +6,8 @@ import {
   getDappUrlForFixture,
 } from './FixtureUtils.ts';
 import { merge } from 'lodash';
-import defaultFixture from './default-fixture.json';
-import onboardingFixture from './onboarding-fixture.json';
+import defaultFixture from './json/default-fixture.json';
+import onboardingFixture from './json/onboarding-fixture.json';
 import { encryptVault } from './helpers.ts';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
