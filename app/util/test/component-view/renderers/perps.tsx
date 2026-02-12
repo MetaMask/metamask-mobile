@@ -5,7 +5,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import renderWithProvider, { type DeepPartial } from '../../renderWithProvider';
 import type { RootState } from '../../../../reducers';
 import Routes from '../../../../constants/navigation/Routes';
-import { renderComponentViewScreen } from '../render';
+import { renderComponentViewScreen, renderScreenWithRoutes } from '../render';
 import { initialStatePerps } from '../presets/perps';
 import {
   PerpsConnectionContext,
@@ -15,6 +15,8 @@ import {
   PerpsStreamProvider,
   type PerpsStreamManager,
 } from '../../../../components/UI/Perps/providers/PerpsStreamManager';
+import type { Position } from '../../../../components/UI/Perps/controllers/types';
+import PerpsSelectModifyActionView from '../../../../components/UI/Perps/Views/PerpsSelectModifyActionView/PerpsSelectModifyActionView';
 
 /** No-op unsubscribe for test stream channels; subscribe() must return () => void */
 const noopUnsubscribe = (): void => undefined;
@@ -192,5 +194,57 @@ export function renderPerpsView(
     { name: routeName },
     { state },
     initialParams,
+  );
+}
+
+/** Default position for PerpsSelectModifyActionView view tests. */
+const defaultSelectModifyActionPosition: Position = {
+  symbol: 'ETH',
+  size: '2.5',
+  marginUsed: '500',
+  entryPrice: '2000',
+  liquidationPrice: '1900',
+  unrealizedPnl: '100',
+  returnOnEquity: '0.20',
+  leverage: { value: 10, type: 'isolated' },
+  cumulativeFunding: { sinceOpen: '5', allTime: '10', sinceChange: '2' },
+  positionValue: '5000',
+  maxLeverage: 50,
+  takeProfitCount: 0,
+  stopLossCount: 0,
+};
+
+const selectModifyActionExtraRoutes = [
+  { name: Routes.PERPS.CLOSE_POSITION },
+  { name: Routes.PERPS.ADJUST_MARGIN },
+  { name: Routes.PERPS.TUTORIAL },
+  {
+    name: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+    Component: () => <Text testID="route-order-confirmation">Order</Text>,
+  },
+];
+
+/**
+ * Renders PerpsSelectModifyActionView with Redux state and extra routes for navigation assertions.
+ * Use in PerpsSelectModifyActionView.view.test.tsx.
+ */
+export function renderPerpsSelectModifyActionView(
+  options: {
+    overrides?: DeepPartial<RootState>;
+    initialParams?: Record<string, unknown>;
+  } = {},
+) {
+  const { overrides, initialParams } = options;
+  const builder = initialStatePerps();
+  if (overrides) {
+    builder.withOverrides(overrides);
+  }
+  const state = builder.build();
+  return renderScreenWithRoutes(
+    PerpsSelectModifyActionView as unknown as React.ComponentType,
+    { name: Routes.PERPS.SELECT_MODIFY_ACTION },
+    selectModifyActionExtraRoutes,
+    { state },
+    initialParams ?? { position: defaultSelectModifyActionPosition },
   );
 }

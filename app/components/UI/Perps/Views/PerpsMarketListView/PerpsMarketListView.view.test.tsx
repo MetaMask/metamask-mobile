@@ -6,13 +6,13 @@
  */
 import '../../../../../util/test/component-view/mocks';
 import React from 'react';
-import { screen } from '@testing-library/react-native';
+import { screen, fireEvent, waitFor } from '@testing-library/react-native';
 import PerpsMarketListView from './PerpsMarketListView';
 import { renderPerpsView } from '../../../../../util/test/component-view/renderers/perps';
 import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
 import type { RootState } from '../../../../../reducers';
-import type { PerpsMarketData } from 'app/components/UI/Perps/controllers/types';
 import { PerpsMarketListViewSelectorsIDs } from '../../Perps.testIds';
+import { PerpsMarketData } from '../../controllers/types';
 
 /** Crypto market (no HIP-3): counted in marketCounts.crypto */
 const cryptoMarket: PerpsMarketData = {
@@ -55,7 +55,7 @@ function renderView(
 }
 
 describe('PerpsMarketListView', () => {
-  describe('Bug regression: Perps tab 7.64 (3583) EXP', () => {
+  describe('Bug regression: #25571', () => {
     it('renders market list header and list with default state (no category filtering)', async () => {
       renderView();
 
@@ -70,12 +70,24 @@ describe('PerpsMarketListView', () => {
       expect(await screen.findByText('Markets')).toBeOnTheScreen();
 
       const sortFiltersId = PerpsMarketListViewSelectorsIDs.SORT_FILTERS;
-      expect(
-        screen.getByTestId(`${sortFiltersId}-categories-crypto`),
-      ).toBeOnTheScreen();
-      expect(
-        screen.getByTestId(`${sortFiltersId}-categories-commodities`),
-      ).toBeOnTheScreen();
+      const cryptoBadge = screen.getByTestId(
+        `${sortFiltersId}-categories-crypto`,
+      );
+      const commoditiesBadge = screen.getByTestId(
+        `${sortFiltersId}-categories-commodities`,
+      );
+      expect(cryptoBadge).toBeOnTheScreen();
+      expect(commoditiesBadge).toBeOnTheScreen();
+
+      fireEvent.press(cryptoBadge);
+      await waitFor(() => {
+        expect(screen.getByText('Bitcoin')).toBeOnTheScreen();
+      });
+
+      fireEvent.press(commoditiesBadge);
+      await waitFor(() => {
+        expect(screen.getByText('Gold')).toBeOnTheScreen();
+      });
     });
   });
 });

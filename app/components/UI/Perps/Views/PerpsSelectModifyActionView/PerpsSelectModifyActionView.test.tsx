@@ -120,12 +120,27 @@ describe('PerpsSelectModifyActionView', () => {
     mockRouteParams = {};
   });
 
-  it('renders the modify action sheet with all options', () => {
+  it('renders the modify action sheet', () => {
     render(<PerpsSelectModifyActionView />);
 
     expect(screen.getByTestId('modify-action-sheet')).toBeOnTheScreen();
+  });
+
+  it('renders add to position option', () => {
+    render(<PerpsSelectModifyActionView />);
+
     expect(screen.getByText('Add to Position')).toBeOnTheScreen();
+  });
+
+  it('renders reduce position option', () => {
+    render(<PerpsSelectModifyActionView />);
+
     expect(screen.getByText('Reduce Position')).toBeOnTheScreen();
+  });
+
+  it('renders flip position option', () => {
+    render(<PerpsSelectModifyActionView />);
+
     expect(screen.getByText('Flip Position')).toBeOnTheScreen();
   });
 
