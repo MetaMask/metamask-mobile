@@ -1,7 +1,4 @@
-import {
-  AssetsController,
-  type AssetsControllerMessenger as PackageAssetsControllerMessenger,
-} from '@metamask/assets-controller';
+import { AssetsController } from '@metamask/assets-controller';
 import {
   createApiPlatformClient,
   type ApiPlatformClient,
@@ -128,8 +125,7 @@ export const assetsControllerInit: ControllerInitFunction<
 
   // Create the controller - it now creates all data sources internally
   const controller = new AssetsController({
-    messenger:
-      controllerMessenger as unknown as PackageAssetsControllerMessenger,
+    messenger: controllerMessenger,
     state: persistedState?.AssetsController ?? {
       assetPreferences: {},
       assetsMetadata: {},

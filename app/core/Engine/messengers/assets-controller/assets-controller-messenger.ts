@@ -1,3 +1,4 @@
+import type { AssetsControllerMessenger as PackageAssetsControllerMessenger } from '@metamask/assets-controller';
 import { Messenger } from '@metamask/messenger';
 import { AuthenticationController } from '@metamask/profile-sync-controller';
 import type { PreferencesControllerGetStateAction } from '@metamask/preferences-controller';
@@ -68,9 +69,8 @@ type AssetsControllerAllowedEvents =
   | AccountsControllerAccountBalancesUpdatesEvent
   | PermissionControllerStateChange;
 
-export type AssetsControllerMessenger = ReturnType<
-  typeof getAssetsControllerMessenger
->;
+/** Re-export package type so init receives the type expected by AssetsController constructor. */
+export type AssetsControllerMessenger = PackageAssetsControllerMessenger;
 
 /**
  * Get the messenger for the AssetsController. This is scoped to the
@@ -81,7 +81,7 @@ export type AssetsControllerMessenger = ReturnType<
  */
 export function getAssetsControllerMessenger(
   rootExtendedMessenger: RootExtendedMessenger,
-) {
+): PackageAssetsControllerMessenger {
   const messenger = new Messenger<
     'AssetsController',
     AssetsControllerAllowedActions,
@@ -117,7 +117,8 @@ export function getAssetsControllerMessenger(
     ],
     messenger,
   });
-  return messenger;
+  // Mobile delegates extra actions/events for data sources; package types a narrower messenger.
+  return messenger as PackageAssetsControllerMessenger;
 }
 
 export type AssetsControllerInitMessenger = ReturnType<
