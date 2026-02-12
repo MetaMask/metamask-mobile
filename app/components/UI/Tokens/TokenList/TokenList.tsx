@@ -69,8 +69,6 @@ const TokenListComponent = ({
     selectHomepageRedesignV1Enabled,
   );
 
-  const { shouldShowTokenListItemCta } = useMusdCtaVisibility();
-
   // A/B test: Token list item layout (V1 vs V2)
   const isTokenListV2 = useSelector(selectTokenListLayoutV2Enabled);
   const ListItemComponent = isTokenListV2 ? TokenListItemV2 : TokenListItem;

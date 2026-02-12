@@ -439,7 +439,6 @@ describe('TokenListItemV2 - Component Rendering Tests for Coverage', () => {
           assetKey={assetKey}
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
-          shouldShowTokenListItemCta={mockshouldShowTokenListItemCta}
           privacyMode={false}
         />,
       );
@@ -468,7 +467,6 @@ describe('TokenListItemV2 - Component Rendering Tests for Coverage', () => {
           assetKey={assetKey}
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
-          shouldShowTokenListItemCta={mockshouldShowTokenListItemCta}
           privacyMode={false}
         />,
       );
@@ -496,7 +494,6 @@ describe('TokenListItemV2 - Component Rendering Tests for Coverage', () => {
           assetKey={assetKey}
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
-          shouldShowTokenListItemCta={mockshouldShowTokenListItemCta}
           privacyMode={false}
         />,
       );
@@ -523,7 +520,6 @@ describe('TokenListItemV2 - Component Rendering Tests for Coverage', () => {
           assetKey={assetKey}
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
-          shouldShowTokenListItemCta={mockshouldShowTokenListItemCta}
           privacyMode={false}
         />,
       );
@@ -550,7 +546,6 @@ describe('TokenListItemV2 - Component Rendering Tests for Coverage', () => {
           assetKey={assetKey}
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
-          shouldShowTokenListItemCta={mockshouldShowTokenListItemCta}
           privacyMode={false}
         />,
       );
@@ -578,7 +573,6 @@ describe('TokenListItemV2 - Component Rendering Tests for Coverage', () => {
           assetKey={assetKey}
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
-          shouldShowTokenListItemCta={mockshouldShowTokenListItemCta}
           privacyMode={false}
         />,
       );
@@ -622,7 +616,6 @@ describe('TokenListItemV2 - Component Rendering Tests for Coverage', () => {
           assetKey={assetKey}
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
-          shouldShowTokenListItemCta={mockshouldShowTokenListItemCta}
           privacyMode={false}
         />,
       );
@@ -643,7 +636,6 @@ describe('TokenListItemV2 - Component Rendering Tests for Coverage', () => {
           assetKey={assetKey}
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
-          shouldShowTokenListItemCta={mockshouldShowTokenListItemCta}
           privacyMode={false}
         />,
       );
@@ -671,7 +663,6 @@ describe('TokenListItemV2 - Component Rendering Tests for Coverage', () => {
           assetKey={defaultAssetKey}
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
-          shouldShowTokenListItemCta={mockshouldShowTokenListItemCta}
           privacyMode={false}
         />,
       );
@@ -694,7 +685,6 @@ describe('TokenListItemV2 - Component Rendering Tests for Coverage', () => {
           assetKey={assetKey}
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
-          shouldShowTokenListItemCta={mockshouldShowTokenListItemCta}
           privacyMode={false}
         />,
       );
@@ -715,7 +705,6 @@ describe('TokenListItemV2 - Component Rendering Tests for Coverage', () => {
           assetKey={assetKey}
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
-          shouldShowTokenListItemCta={mockshouldShowTokenListItemCta}
           privacyMode={false}
         />,
       );
@@ -755,7 +744,6 @@ describe('TokenListItemV2 - Component Rendering Tests for Coverage', () => {
           assetKey={convertAssetKey}
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
-          shouldShowTokenListItemCta={mockshouldShowTokenListItemCta}
           privacyMode={false}
         />,
       );
@@ -816,7 +804,6 @@ describe('TokenListItemV2 - Component Rendering Tests for Coverage', () => {
           assetKey={convertAssetKey}
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
-          shouldShowTokenListItemCta={mockshouldShowTokenListItemCta}
           privacyMode={false}
         />,
       );
@@ -886,7 +873,6 @@ describe('TokenListItemV2 - Component Rendering Tests for Coverage', () => {
           assetKey={assetKey}
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
-          shouldShowTokenListItemCta={mockshouldShowTokenListItemCta}
           privacyMode={false}
         />,
       );
@@ -906,7 +892,6 @@ describe('TokenListItemV2 - Component Rendering Tests for Coverage', () => {
           assetKey={assetKey}
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
-          shouldShowTokenListItemCta={mockshouldShowTokenListItemCta}
           privacyMode={false}
         />,
       );
@@ -926,7 +911,6 @@ describe('TokenListItemV2 - Component Rendering Tests for Coverage', () => {
           assetKey={assetKey}
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
-          shouldShowTokenListItemCta={mockshouldShowTokenListItemCta}
           privacyMode={false}
         />,
       );
@@ -950,7 +934,6 @@ describe('TokenListItemV2 - Component Rendering Tests for Coverage', () => {
           assetKey={assetKey}
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
-          shouldShowTokenListItemCta={mockshouldShowTokenListItemCta}
           privacyMode={false}
         />,
       );
@@ -969,7 +952,6 @@ describe('TokenListItemV2 - Component Rendering Tests for Coverage', () => {
           assetKey={assetKey}
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
-          shouldShowTokenListItemCta={mockshouldShowTokenListItemCta}
           privacyMode={false}
         />,
       );
@@ -991,7 +973,6 @@ describe('TokenListItemV2 - Component Rendering Tests for Coverage', () => {
           assetKey={assetKey}
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
-          shouldShowTokenListItemCta={mockshouldShowTokenListItemCta}
           privacyMode={false}
         />,
       );
@@ -1017,7 +998,6 @@ describe('TokenListItemV2 - Component Rendering Tests for Coverage', () => {
           assetKey={assetKey}
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
-          shouldShowTokenListItemCta={mockshouldShowTokenListItemCta}
           privacyMode={false}
         />,
       );
@@ -1051,7 +1031,6 @@ describe('TokenListItemV2 - Component Rendering Tests for Coverage', () => {
           assetKey={assetKey}
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
-          shouldShowTokenListItemCta={mockshouldShowTokenListItemCta}
           privacyMode={false}
         />,
       );
@@ -1079,7 +1058,6 @@ describe('TokenListItemV2 - Component Rendering Tests for Coverage', () => {
           assetKey={assetKey}
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
-          shouldShowTokenListItemCta={mockshouldShowTokenListItemCta}
           privacyMode={false}
         />,
       );
@@ -1117,7 +1095,6 @@ describe('TokenListItemV2 - Component Rendering Tests for Coverage', () => {
           assetKey={musdAssetKey}
           showRemoveMenu={mockShowRemoveMenu}
           setShowScamWarningModal={jest.fn()}
-          shouldShowTokenListItemCta={mockshouldShowTokenListItemCta}
           privacyMode={false}
         />,
       );
@@ -1145,7 +1122,6 @@ describe('TokenListItemV2 - Component Rendering Tests for Coverage', () => {
           assetKey={assetKey}
           showRemoveMenu={mockShowRemoveMenu}
           setShowScamWarningModal={jest.fn()}
-          shouldShowTokenListItemCta={mockshouldShowTokenListItemCta}
           privacyMode={false}
         />,
       );
