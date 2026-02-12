@@ -1,26 +1,24 @@
-import TestHelpers from '../../../../../e2e/helpers';
-import { SmokeNetworkAbstractions } from '../../../../../e2e/tags';
-import Browser from '../../../../../e2e/pages/Browser/BrowserView';
-import TabBarComponent from '../../../../../e2e/pages/wallet/TabBarComponent';
+import TestHelpers from '../../../../helpers';
+import { SmokeNetworkAbstractions } from '../../../../tags';
+import Browser from '../../../../page-objects/Browser/BrowserView';
+import TabBarComponent from '../../../../page-objects/wallet/TabBarComponent';
 
 import FixtureBuilder from '../../../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../../framework/fixtures/FixtureHelper';
-import {
-  loginToApp,
-  navigateToBrowserView,
-} from '../../../../../e2e/viewHelper';
+import { loginToApp } from '../../../../flows/wallet.flow';
+import { navigateToBrowserView } from '../../../../flows/browser.flow';
 import Assertions from '../../../../framework/Assertions';
 
 import { PopularNetworksList } from '../../../../resources/networks.e2e';
 
-import WalletView from '../../../../../e2e/pages/wallet/WalletView';
-import NetworkListModal from '../../../../../e2e/pages/Network/NetworkListModal';
-import TestDApp from '../../../../../e2e/pages/Browser/TestDApp';
-import ConnectBottomSheet from '../../../../../e2e/pages/Browser/ConnectBottomSheet';
-import PermissionSummaryBottomSheet from '../../../../../e2e/pages/Browser/PermissionSummaryBottomSheet';
-import NetworkConnectMultiSelector from '../../../../../e2e/pages/Browser/NetworkConnectMultiSelector';
-import NetworkNonPemittedBottomSheet from '../../../../../e2e/pages/Network/NetworkNonPemittedBottomSheet';
-import ConnectedAccountsModal from '../../../../../e2e/pages/Browser/ConnectedAccountsModal';
+import WalletView from '../../../../page-objects/wallet/WalletView';
+import NetworkListModal from '../../../../page-objects/Network/NetworkListModal';
+import TestDApp from '../../../../page-objects/Browser/TestDApp';
+import ConnectBottomSheet from '../../../../page-objects/Browser/ConnectBottomSheet';
+import PermissionSummaryBottomSheet from '../../../../page-objects/Browser/PermissionSummaryBottomSheet';
+import NetworkConnectMultiSelector from '../../../../page-objects/Browser/NetworkConnectMultiSelector';
+import NetworkNonPemittedBottomSheet from '../../../../page-objects/Network/NetworkNonPemittedBottomSheet';
+import ConnectedAccountsModal from '../../../../page-objects/Browser/ConnectedAccountsModal';
 import { DappVariants } from '../../../../framework/Constants';
 
 // This test was migrated to the new framework but should be reworked to use withFixtures properly

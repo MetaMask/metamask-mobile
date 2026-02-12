@@ -114,7 +114,7 @@ import {
   IconColor,
   IconName,
 } from '../../../component-library/components/Icons/Icon';
-import { PERFORMANCE_CONFIG } from '../../UI/Perps/constants/perpsConfig';
+import { PERFORMANCE_CONFIG } from '@metamask/perps-controller';
 
 const MOCK_ADDRESS = '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272';
 
