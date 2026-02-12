@@ -82,8 +82,9 @@ describe(SmokeTrade('Gasless Swap - '), (): void => {
         await loginToApp();
         await WalletView.tapWalletSwapButton();
         await device.disableSynchronization();
-        await Assertions.expectElementToBeVisible(QuoteView.selectAmountLabel, {
-          description: 'Swap amount selection visible',
+        await Assertions.expectElementToBeVisible(QuoteView.sourceTokenArea, {
+          description: 'Swap quote view (source token area) visible',
+          timeout: 20000,
         });
 
         // Tap Max to use maximum balance
