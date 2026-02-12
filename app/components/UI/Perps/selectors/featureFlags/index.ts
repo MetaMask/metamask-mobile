@@ -21,39 +21,49 @@ const VALID_BUTTON_COLOR_VARIANTS: readonly ButtonColorVariantName[] = [
 export const selectPerpsEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
+    const localFlag = process.env.MM_PERPS_ENABLED === 'true';
     const remoteFlag =
       remoteFeatureFlags?.perpsPerpTradingEnabled as unknown as VersionGatedFeatureFlag;
     const fallback =
       process.env.GITHUB_ACTIONS === 'true'
         ? (remoteFeatureFlags?.perpsPerpTradingEnabled as boolean)
-        : process.env.MM_PERPS_ENABLED === 'true';
-    return validatedVersionGatedFeatureFlag(remoteFlag) ?? fallback;
+        : localFlag;
+    return (
+      validatedVersionGatedFeatureFlag(remoteFlag) ?? fallback ?? localFlag
+    );
   },
 );
 
 export const selectPerpsServiceInterruptionBannerEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
+    const localFlag =
+      process.env.MM_PERPS_SERVICE_INTERRUPTION_BANNER_ENABLED === 'true';
     const remoteFlag =
       remoteFeatureFlags?.perpsPerpTradingServiceInterruptionBannerEnabled as unknown as VersionGatedFeatureFlag;
     const fallback =
       process.env.GITHUB_ACTIONS === 'true'
         ? (remoteFeatureFlags?.perpsPerpTradingServiceInterruptionBannerEnabled as boolean)
-        : process.env.MM_PERPS_SERVICE_INTERRUPTION_BANNER_ENABLED === 'true';
-    return validatedVersionGatedFeatureFlag(remoteFlag) ?? fallback;
+        : localFlag;
+    return (
+      validatedVersionGatedFeatureFlag(remoteFlag) ?? fallback ?? localFlag
+    );
   },
 );
 
 export const selectPerpsGtmOnboardingModalEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
+    const localFlag = process.env.MM_PERPS_GTM_MODAL_ENABLED === 'true';
     const remoteFlag =
       remoteFeatureFlags?.perpsPerpGtmOnboardingModalEnabled as unknown as VersionGatedFeatureFlag;
     const fallback =
       process.env.GITHUB_ACTIONS === 'true'
         ? (remoteFeatureFlags?.perpsPerpGtmOnboardingModalEnabled as boolean)
-        : process.env.MM_PERPS_GTM_MODAL_ENABLED === 'true';
-    return validatedVersionGatedFeatureFlag(remoteFlag) ?? fallback;
+        : localFlag;
+    return (
+      validatedVersionGatedFeatureFlag(remoteFlag) ?? fallback ?? localFlag
+    );
   },
 );
 
@@ -66,13 +76,16 @@ export const selectPerpsGtmOnboardingModalEnabledFlag = createSelector(
 export const selectPerpsOrderBookEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
+    const localFlag = process.env.MM_PERPS_ORDER_BOOK_ENABLED === 'true';
     const remoteFlag =
       remoteFeatureFlags?.perpsOrderBookEnabled as unknown as VersionGatedFeatureFlag;
     const fallback =
       process.env.GITHUB_ACTIONS === 'true'
         ? (remoteFeatureFlags?.perpsOrderBookEnabled as boolean)
-        : process.env.MM_PERPS_ORDER_BOOK_ENABLED === 'true';
-    return validatedVersionGatedFeatureFlag(remoteFlag) ?? fallback;
+        : localFlag;
+    return (
+      validatedVersionGatedFeatureFlag(remoteFlag) ?? fallback ?? localFlag
+    );
   },
 );
 
@@ -158,13 +171,16 @@ export const selectHip3ConfigVersion = createSelector(
 export const selectPerpsFeedbackEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
+    const localFlag = process.env.MM_PERPS_FEEDBACK_ENABLED === 'true';
     const remoteFlag =
       remoteFeatureFlags?.perpsFeedbackEnabled as unknown as VersionGatedFeatureFlag;
     const fallback =
       process.env.GITHUB_ACTIONS === 'true'
         ? (remoteFeatureFlags?.perpsFeedbackEnabled as boolean)
-        : process.env.MM_PERPS_FEEDBACK_ENABLED === 'true';
-    return validatedVersionGatedFeatureFlag(remoteFlag) ?? fallback;
+        : localFlag;
+    return (
+      validatedVersionGatedFeatureFlag(remoteFlag) ?? fallback ?? localFlag
+    );
   },
 );
 
@@ -178,13 +194,17 @@ export const selectPerpsFeedbackEnabledFlag = createSelector(
 export const selectPerpsTradeWithAnyTokenEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
+    const localFlag =
+      process.env.MM_PERPS_TRADE_WITH_ANY_TOKEN_ENABLED === 'true';
     const remoteFlag =
       remoteFeatureFlags?.perpsTradeWithAnyTokenIsEnabled as unknown as VersionGatedFeatureFlag;
     const fallback =
       process.env.GITHUB_ACTIONS === 'true'
         ? (remoteFeatureFlags?.perpsTradeWithAnyTokenIsEnabled as boolean)
-        : process.env.MM_PERPS_TRADE_WITH_ANY_TOKEN_ENABLED === 'true';
-    return validatedVersionGatedFeatureFlag(remoteFlag) ?? fallback;
+        : localFlag;
+    return (
+      validatedVersionGatedFeatureFlag(remoteFlag) ?? fallback ?? localFlag
+    );
   },
 );
 
