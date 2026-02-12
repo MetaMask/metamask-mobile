@@ -178,7 +178,7 @@ export const PopularList = [
   },
   {
     chainId: toHex('4326'),
-    nickname: 'MegaEth',
+    nickname: 'MegaETH',
     rpcUrl: `https://megaeth-mainnet.infura.io/v3/${infuraProjectId}`,
     failoverRpcUrls: [],
     ticker: 'ETH',
