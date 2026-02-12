@@ -176,6 +176,7 @@ describe('TokenSelection Component', () => {
       selectedQuote: null,
       startQuotePolling: jest.fn(),
       stopQuotePolling: jest.fn(),
+      getWidgetUrl: jest.fn(),
       quotesLoading: false,
       quotesError: null,
     });
@@ -314,6 +315,7 @@ describe('TokenSelection Component', () => {
       selectedQuote: null,
       startQuotePolling: jest.fn(),
       stopQuotePolling: jest.fn(),
+      getWidgetUrl: jest.fn(),
       quotesLoading: false,
       quotesError: null,
     });
@@ -365,6 +367,7 @@ describe('TokenSelection Component', () => {
       selectedQuote: null,
       startQuotePolling: jest.fn(),
       stopQuotePolling: jest.fn(),
+      getWidgetUrl: jest.fn(),
       quotesLoading: false,
       quotesError: null,
     });
@@ -428,6 +431,7 @@ describe('TokenSelection Component', () => {
       selectedQuote: null,
       startQuotePolling: jest.fn(),
       stopQuotePolling: jest.fn(),
+      getWidgetUrl: jest.fn(),
       quotesLoading: false,
       quotesError: null,
     });
@@ -501,6 +505,7 @@ describe('TokenSelection Component', () => {
       selectedQuote: null,
       startQuotePolling: jest.fn(),
       stopQuotePolling: jest.fn(),
+      getWidgetUrl: jest.fn(),
       quotesLoading: false,
       quotesError: null,
     });
@@ -578,6 +583,7 @@ describe('TokenSelection Component', () => {
       selectedQuote: null,
       startQuotePolling: jest.fn(),
       stopQuotePolling: jest.fn(),
+      getWidgetUrl: jest.fn(),
       quotesLoading: false,
       quotesError: null,
     });
@@ -657,6 +663,7 @@ describe('TokenSelection Component', () => {
       selectedQuote: null,
       startQuotePolling: jest.fn(),
       stopQuotePolling: jest.fn(),
+      getWidgetUrl: jest.fn(),
       quotesLoading: false,
       quotesError: null,
     });

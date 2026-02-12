@@ -228,8 +228,8 @@ export function adaptAccountStateFromSDK(
   );
   const totalReturnOnEquityPercentage =
     totalMarginUsed > 0
-      ? ((weightedReturnOnEquity / totalMarginUsed) * 100).toFixed(1)
-      : '0.0';
+      ? ((weightedReturnOnEquity / totalMarginUsed) * 100).toString()
+      : '0';
 
   const perpsBalance = parseFloat(perpsState.marginSummary.accountValue);
 
