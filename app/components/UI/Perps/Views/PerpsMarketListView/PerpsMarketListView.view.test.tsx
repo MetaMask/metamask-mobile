@@ -81,12 +81,12 @@ describe('PerpsMarketListView', () => {
 
       fireEvent.press(cryptoBadge);
       await waitFor(() => {
-        expect(screen.getByText('Bitcoin')).toBeOnTheScreen();
+        expect(screen.getByText('BTC')).toBeOnTheScreen();
       });
 
       fireEvent.press(commoditiesBadge);
       await waitFor(() => {
-        expect(screen.getByText('Gold')).toBeOnTheScreen();
+        expect(screen.getByText('XAU')).toBeOnTheScreen();
       });
     });
   });
