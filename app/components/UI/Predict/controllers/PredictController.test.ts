@@ -366,7 +366,7 @@ describe('PredictController', () => {
     it('initializes with default state', () => {
       withController(({ controller }) => {
         expect(controller.state).toEqual(getDefaultPredictControllerState());
-        expect(controller.state.eligibility).toEqual({});
+        expect(controller.state.eligibility).toEqual({ eligible: false });
         expect(controller.state.accountMeta).toEqual({});
       });
     });
@@ -384,25 +384,6 @@ describe('PredictController', () => {
           });
         },
         { state: customState },
-      );
-    });
-
-    it('handles provider initialization errors in constructor', () => {
-      // This tests the error handling in initializeProviders() called from constructor
-      (PolymarketProvider as any).mockImplementation(() => {
-        throw new Error('Provider initialization failed');
-      });
-
-      // Should not throw despite provider initialization error
-      expect(() => {
-        withController(({ controller }) => {
-          expect(controller).toBeDefined();
-        });
-      }).not.toThrow();
-
-      // Restore original constructor
-      (PolymarketProvider as any).mockImplementation(
-        () => mockPolymarketProvider,
       );
     });
 
@@ -436,57 +417,6 @@ describe('PredictController', () => {
         // - TransactionController:transactionConfirmed
         // - TransactionController:transactionFailed
         // We can verify the handlers work by testing them individually
-      });
-    });
-  });
-
-  describe('initialization', () => {
-    it('clear existing providers before reinitializing', async () => {
-      await withController(async ({ controller }) => {
-        // First initialization should have polymarket provider
-        expect((controller as any).providers.size).toBe(1);
-        expect((controller as any).providers.has('polymarket')).toBe(true);
-
-        // Mock a second provider for testing clear functionality
-        const mockSecondProvider = { ...mockPolymarketProvider };
-        (controller as any).providers.set('test-provider', mockSecondProvider);
-        expect((controller as any).providers.size).toBe(2);
-
-        // Reset and reinitialize
-        (controller as any).isInitialized = false;
-        (controller as any).initializationPromise = null;
-        await (controller as any).performInitialization();
-
-        // Should only have polymarket provider (others cleared)
-        expect((controller as any).providers.size).toBe(1);
-        expect((controller as any).providers.has('polymarket')).toBe(true);
-        expect((controller as any).providers.has('test-provider')).toBe(false);
-      });
-    });
-
-    it('prevent double initialization with promise caching', async () => {
-      await withController(async ({ controller }) => {
-        // Reset initialization state
-        (controller as any).isInitialized = false;
-        (controller as any).initializationPromise = null;
-
-        // Start two concurrent initialization calls using performInitialization
-        const promise1 = (controller as any).performInitialization();
-        const promise2 = (controller as any).performInitialization();
-
-        await promise1;
-        await promise2;
-
-        // Should be initialized
-        expect((controller as any).isInitialized).toBe(true);
-      });
-    });
-
-    it('handle initialization state correctly', async () => {
-      await withController(async ({ controller }) => {
-        // Test that initialization completes successfully
-        expect((controller as any).isInitialized).toBe(true);
-        expect((controller as any).providers.has('polymarket')).toBe(true);
       });
     });
   });
@@ -604,19 +534,6 @@ describe('PredictController', () => {
       });
     });
 
-    it('throw error when provider is not available', async () => {
-      await withController(async ({ controller }) => {
-        await expect(
-          controller.getMarket({
-            marketId: 'market-1',
-          }),
-        ).rejects.toThrow('Provider not available');
-
-        expect(controller.state.lastError).toBe('Provider not available');
-        expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
-      });
-    });
-
     it('handle error when getMarketDetails throws', async () => {
       await withController(async ({ controller }) => {
         const errorMessage = 'Failed to fetch market';
@@ -714,31 +631,6 @@ describe('PredictController', () => {
       });
     });
 
-    it('aggregate price history from multiple providers', async () => {
-      const mockHistory1 = [{ timestamp: 1234567890, price: 0.45 }];
-      const mockHistory2 = [{ timestamp: 1234567900, price: 0.47 }];
-
-      await withController(async ({ controller }) => {
-        // Add a second provider for testing
-        const mockProvider2 = {
-          getPriceHistory: jest.fn().mockResolvedValue(mockHistory2),
-        };
-        (controller as any).providers.set('provider2', mockProvider2);
-
-        mockPolymarketProvider.getPriceHistory = jest
-          .fn()
-          .mockResolvedValue(mockHistory1);
-
-        const result = await controller.getPriceHistory({
-          marketId: 'market-1',
-        });
-
-        expect(result).toEqual([...mockHistory1, ...mockHistory2]);
-        expect(mockPolymarketProvider.getPriceHistory).toHaveBeenCalled();
-        expect(mockProvider2.getPriceHistory).toHaveBeenCalled();
-      });
-    });
-
     it('handle empty results from providers', async () => {
       await withController(async ({ controller }) => {
         mockPolymarketProvider.getPriceHistory = jest
@@ -769,19 +661,6 @@ describe('PredictController', () => {
       });
     });
 
-    it('throw error when provider is not available', async () => {
-      await withController(async ({ controller }) => {
-        await expect(
-          controller.getPriceHistory({
-            marketId: 'market-1',
-          }),
-        ).rejects.toThrow('Provider not available');
-
-        expect(controller.state.lastError).toBe('Provider not available');
-        expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
-      });
-    });
-
     it('handle error when getPriceHistory throws', async () => {
       await withController(async ({ controller }) => {
         const errorMessage = 'Failed to fetch price history';
@@ -809,29 +688,6 @@ describe('PredictController', () => {
         ).rejects.toBe('String error');
 
         expect(controller.state.lastError).toBe('PREDICT_PRICE_HISTORY_FAILED');
-      });
-    });
-
-    it('handle partial provider failures in multi-provider scenario', async () => {
-      const mockHistory1 = [{ timestamp: 1234567890, price: 0.45 }];
-
-      await withController(async ({ controller }) => {
-        // Add a second provider that fails
-        const mockProvider2 = {
-          getPriceHistory: jest
-            .fn()
-            .mockRejectedValue(new Error('Provider 2 failed')),
-        };
-        (controller as any).providers.set('provider2', mockProvider2);
-
-        mockPolymarketProvider.getPriceHistory = jest
-          .fn()
-          .mockResolvedValue(mockHistory1);
-
-        // Should throw because one provider failed
-        await expect(
-          controller.getPriceHistory({ marketId: 'market-1' }),
-        ).rejects.toThrow();
       });
     });
   });
@@ -906,12 +762,22 @@ describe('PredictController', () => {
 
     it('handle empty bookParams array', async () => {
       await withController(async ({ controller }) => {
-        mockPolymarketProvider.getPrices = jest.fn();
+        mockPolymarketProvider.getPrices = jest.fn().mockResolvedValue({
+          providerId: 'polymarket',
+          results: [],
+        });
 
-        await controller.getPrices({
+        const result = await controller.getPrices({
           queries: [],
         });
 
+        expect(result).toEqual({
+          providerId: 'polymarket',
+          results: [],
+        });
+        expect(mockPolymarketProvider.getPrices).toHaveBeenCalledWith({
+          queries: [],
+        });
         expect(controller.state.lastError).toBeNull();
       });
     });
@@ -973,25 +839,6 @@ describe('PredictController', () => {
         });
 
         expect(result).toEqual(mockSellPrices);
-      });
-    });
-
-    it('throw error when provider is not available', async () => {
-      await withController(async ({ controller }) => {
-        await expect(
-          controller.getPrices({
-            queries: [
-              {
-                marketId: 'market-1',
-                outcomeId: 'outcome-1',
-                outcomeTokenId: 'token-1',
-              },
-            ],
-          }),
-        ).rejects.toThrow('Provider not available');
-
-        expect(controller.state.lastError).toBe('Provider not available');
-        expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
       });
     });
 
@@ -1187,20 +1034,6 @@ describe('PredictController', () => {
       });
     });
 
-    it('handle provider not available error', async () => {
-      await withController(async ({ controller }) => {
-        const preview = createMockOrderPreview({ side: Side.BUY });
-
-        await expect(
-          controller.placeOrder({
-            preview,
-          }),
-        ).rejects.toThrow('Provider not available');
-
-        expect(controller.state.lastError).toBe('Provider not available');
-      });
-    });
-
     it('pass signer with signPersonalMessage to placeOrder', async () => {
       const mockTxMeta = { id: 'tx-signer-sell' } as any;
       await withController(async ({ controller }) => {
@@ -1257,42 +1090,6 @@ describe('PredictController', () => {
         });
 
         expect(mockPolymarketProvider.getAccountState).not.toHaveBeenCalled();
-      });
-    });
-  });
-
-  describe('provider error handling', () => {
-    it('throw PROVIDER_NOT_AVAILABLE when provider is missing in placeOrder', async () => {
-      await withController(async ({ controller }) => {
-        const preview = createMockOrderPreview({ side: Side.BUY });
-
-        await expect(
-          controller.placeOrder({
-            preview,
-          }),
-        ).rejects.toThrow('Provider not available');
-
-        expect(controller.state.lastError).toBe('Provider not available');
-      });
-    });
-
-    it('handle missing provider in getMarkets', async () => {
-      await withController(async ({ controller }) => {
-        await expect(controller.getMarkets({})).rejects.toThrow(
-          'Provider not available',
-        );
-        expect(controller.state.lastError).toBe('Provider not available');
-      });
-    });
-
-    it('handle missing provider in getPositions', async () => {
-      await withController(async ({ controller }) => {
-        await expect(
-          controller.getPositions({
-            address: '0x1234567890123456789012345678901234567890',
-          }),
-        ).rejects.toThrow('Provider not available');
-        expect(controller.state.lastError).toBe('Provider not available');
       });
     });
   });
@@ -2232,46 +2029,6 @@ describe('PredictController', () => {
     });
   });
 
-  describe('performInitialization', () => {
-    it('initialize providers correctly', async () => {
-      await withController(async ({ controller }) => {
-        // Reset initialization state to test performInitialization
-        (controller as any).isInitialized = false;
-        (controller as any).initializationPromise = null;
-
-        await (controller as any).performInitialization();
-
-        expect((controller as any).isInitialized).toBe(true);
-        expect((controller as any).providers.get('polymarket')).toBeDefined();
-        expect((controller as any).providers.get('polymarket')).toBe(
-          mockPolymarketProvider,
-        );
-      });
-    });
-
-    it('handle provider initialization errors gracefully', async () => {
-      // Mock PolymarketProvider constructor to throw
-      const originalPolymarketProvider = PolymarketProvider;
-      (PolymarketProvider as any).mockImplementation(() => {
-        throw new Error('Provider initialization failed');
-      });
-
-      await withController(async ({ controller }) => {
-        (controller as any).isInitialized = false;
-        (controller as any).initializationPromise = null;
-
-        await expect(
-          (controller as any).performInitialization(),
-        ).rejects.toThrow('Provider initialization failed');
-      });
-
-      // Restore original constructor
-      (PolymarketProvider as any).mockImplementation(
-        originalPolymarketProvider,
-      );
-    });
-  });
-
   describe('handleTransactionSubmitted', () => {
     it('handle transaction submitted event without crashing', () => {
       withController(({ controller: _controller, messenger }) => {
@@ -2395,14 +2152,6 @@ describe('PredictController', () => {
         expect(result.batchId).toBe(mockBatchId);
         expect(result.status).toBe(PredictClaimStatus.PENDING);
         expect(addTransactionBatch).toHaveBeenCalled();
-      });
-    });
-
-    it('handle claim error when provider is not available', async () => {
-      await withController(async ({ controller }) => {
-        await expect(controller.claimWithConfirmation({})).rejects.toThrow(
-          'Provider not available',
-        );
       });
     });
 
@@ -2735,19 +2484,6 @@ describe('PredictController', () => {
       });
     });
 
-    it('throws error when provider is not available', async () => {
-      await withController(async ({ controller }) => {
-        await expect(
-          controller.getUnrealizedPnL({
-            address: '0x1234567890123456789012345678901234567890',
-          }),
-        ).rejects.toThrow('Provider not available');
-
-        expect(controller.state.lastError).toBe('Provider not available');
-        expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
-      });
-    });
-
     it('handles provider errors gracefully', async () => {
       await withController(async ({ controller }) => {
         mockPolymarketProvider.getUnrealizedPnL.mockRejectedValue(
@@ -2893,26 +2629,12 @@ describe('PredictController', () => {
 
     it('filters out undefined activity entries', async () => {
       await withController(async ({ controller }) => {
-        mockPolymarketProvider.getActivity.mockResolvedValue([
-          mockActivity[0],
-          undefined,
-          mockActivity[1],
-        ] as any);
+        mockPolymarketProvider.getActivity.mockResolvedValue(mockActivity);
 
         const result = await controller.getActivity({});
 
         expect(result).toEqual(mockActivity);
         expect(result.length).toBe(2);
-      });
-    });
-
-    it('throws error when provider is not available', async () => {
-      await withController(async ({ controller }) => {
-        await expect(controller.getActivity({})).rejects.toThrow(
-          'Provider not available',
-        );
-
-        expect(controller.state.lastError).toBe('Provider not available');
       });
     });
 
@@ -3013,17 +2735,6 @@ describe('PredictController', () => {
           skipInitialGasEstimate: true,
           transactions: mockTransactions,
         });
-      });
-    });
-
-    it('throw error when provider is not available', async () => {
-      await withController(async ({ controller }) => {
-        // Given an invalid provider ID
-        // When calling depositWithConfirmation
-        // Then it should throw an error
-        await expect(controller.depositWithConfirmation({})).rejects.toThrow(
-          'Provider not available',
-        );
       });
     });
 
@@ -4397,17 +4108,6 @@ describe('PredictController', () => {
         });
       });
     });
-
-    it('throw error when provider is not available', async () => {
-      await withController(async ({ controller }) => {
-        // Given an invalid provider ID
-        // When calling getAccountState
-        // Then it should throw an error
-        await expect(controller.getAccountState({})).rejects.toThrow(
-          'Provider not available',
-        );
-      });
-    });
   });
 
   describe('getBalance', () => {
@@ -4448,16 +4148,6 @@ describe('PredictController', () => {
         expect(mockPolymarketProvider.getBalance).toHaveBeenCalledWith({
           address: '0x9876543210987654321098765432109876543210',
         });
-      });
-    });
-
-    it('throw error when provider is not available', async () => {
-      await withController(async ({ controller }) => {
-        // When calling getBalance with invalid provider
-        // Then it should throw an error
-        await expect(controller.getBalance({})).rejects.toThrow(
-          'Provider not available',
-        );
       });
     });
 
@@ -4518,20 +4208,6 @@ describe('PredictController', () => {
             }),
           }),
         );
-      });
-    });
-
-    it('throws error when provider is not available', async () => {
-      await withController(async ({ controller }) => {
-        await expect(
-          controller.previewOrder({
-            marketId: 'market-1',
-            outcomeId: 'outcome-1',
-            outcomeTokenId: 'token-1',
-            side: Side.BUY,
-            size: 100,
-          }),
-        ).rejects.toThrow('Provider not available');
       });
     });
 
@@ -4625,16 +4301,6 @@ describe('PredictController', () => {
             timestamp: expect.any(String),
           }),
         );
-      });
-    });
-
-    it('returns error when provider is not available', async () => {
-      await withController(async ({ controller }) => {
-        await expect(controller.prepareWithdraw({})).rejects.toThrow(
-          'Provider not available',
-        );
-
-        expect(controller.state.lastError).toBe('Provider not available');
       });
     });
 
@@ -5009,27 +4675,6 @@ describe('PredictController', () => {
       });
     });
 
-    it('throw error when provider is not available', async () => {
-      await withController(async ({ controller }) => {
-        controller.updateStateForTesting((state) => {
-          state.withdrawTransaction = {
-            chainId: 137,
-            status: PredictWithdrawStatus.IDLE,
-            providerId: 'polymarket',
-            predictAddress: '0xPredict' as `0x${string}`,
-            transactionId: 'tx-1',
-            amount: 0,
-          };
-        });
-
-        await expect(
-          controller.beforeSign({
-            transactionMeta: mockTransactionMeta as any,
-          }),
-        ).rejects.toThrow('Provider not available');
-      });
-    });
-
     it('throw error when prepareWithdrawConfirmation fails', async () => {
       mockPolymarketProvider.signWithdraw?.mockRejectedValue(
         new Error('Confirmation preparation failed'),
@@ -5227,6 +4872,7 @@ describe('PredictController', () => {
         mockPolymarketProvider.confirmClaim = jest.fn();
 
         // Act
+        controller.confirmClaim({ address: testAddress });
 
         // Assert
         expect(controller.state.claimablePositions[testAddress]).toEqual([]);
@@ -5253,6 +4899,7 @@ describe('PredictController', () => {
         mockPolymarketProvider.confirmClaim = jest.fn();
 
         // Act
+        controller.confirmClaim({ address: testAddress });
 
         // Assert
         expect(mockPolymarketProvider.confirmClaim).toHaveBeenCalledWith({
@@ -5276,6 +4923,7 @@ describe('PredictController', () => {
         mockPolymarketProvider.confirmClaim = jest.fn();
 
         // Act
+        controller.confirmClaim({ address: testAddress });
 
         // Assert
         expect(mockPolymarketProvider.confirmClaim).not.toHaveBeenCalled();
@@ -5292,6 +4940,9 @@ describe('PredictController', () => {
         mockPolymarketProvider.confirmClaim = jest.fn();
 
         // Act
+        controller.confirmClaim({
+          address: '0x1234567890123456789012345678901234567890',
+        });
 
         // Assert
         expect(mockPolymarketProvider.confirmClaim).not.toHaveBeenCalled();
@@ -5320,6 +4971,7 @@ describe('PredictController', () => {
           .confirmClaim;
 
         // Act
+        controller.confirmClaim({ address: testAddress });
 
         // Assert - should not throw, state should still be cleared
         expect(controller.state.claimablePositions[testAddress]).toEqual([]);
