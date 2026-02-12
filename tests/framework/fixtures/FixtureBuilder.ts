@@ -388,7 +388,8 @@ class FixtureBuilder {
     const currencyPath = selectedRegion.currencies[0];
     const currency = currencyPath.split('/').pop()?.toUpperCase();
 
-    const countryObject = {
+    // Create Country object for RampsController (uses different field names)
+    const rampsControllerCountry = {
       isoCode: selectedRegion.countryIsoCode,
       name: selectedRegion.countryName,
       flag: selectedRegion.emoji,
@@ -404,8 +405,42 @@ class FixtureBuilder {
       },
     };
 
+    // Create Country object for aggregator SDK (legacy sell/offramp flow)
+    // Uses the SDK's Country type with fields: id, name, emoji, support, etc.
+    const aggregatorCountry = {
+      id: selectedRegion.id,
+      name: selectedRegion.countryName,
+      emoji: selectedRegion.emoji,
+      currencies: selectedRegion.currencies,
+      unsupported: selectedRegion.unsupported,
+      hidden: false,
+      states: selectedRegion.stateIsoCode
+        ? [
+            {
+              id: `${selectedRegion.id}-${selectedRegion.stateIsoCode}`,
+              name: selectedRegion.stateName || selectedRegion.name,
+              stateId: selectedRegion.stateIsoCode,
+              emoji: selectedRegion.emoji,
+              unsupported: false,
+              support: {
+                buy: selectedRegion.support?.buy ?? true,
+                sell: selectedRegion.support?.sell ?? true,
+              },
+              detected: selectedRegion.detected,
+            },
+          ]
+        : [],
+      support: {
+        buy: selectedRegion.support?.buy ?? true,
+        sell: selectedRegion.support?.sell ?? true,
+      },
+      recommended: selectedRegion.recommended,
+      enableSell: selectedRegion.support?.sell ?? true,
+      detected: selectedRegion.detected,
+    };
+
     this.fixture.state.engine.backgroundState.RampsController.userRegion = {
-      country: countryObject,
+      country: rampsControllerCountry,
       state: selectedRegion.stateIsoCode
         ? {
             stateId: selectedRegion.stateIsoCode,
@@ -421,7 +456,7 @@ class FixtureBuilder {
 
     // Also set the legacy fiatOrders.selectedRegionAgg for backwards compatibility
     // with the sell/offramp flow which still uses the aggregator SDK
-    this.fixture.state.fiatOrders.selectedRegionAgg = countryObject;
+    this.fixture.state.fiatOrders.selectedRegionAgg = aggregatorCountry;
 
     return this;
   }
