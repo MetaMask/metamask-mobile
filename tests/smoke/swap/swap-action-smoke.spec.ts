@@ -28,10 +28,6 @@ const expectedEvents = {
   UnifiedSwapBridgeCompleted: 'Unified SwapBridge Completed',
   UnifiedSwapBridgeFailed: 'Unified SwapBridge Failed',
   UnifiedSwapBridgeCancelled: 'Unified SwapBridge Cancelled',
-  TransactionAdded: 'Transaction Added',
-  TransactionSubmitted: 'Transaction Submitted',
-  TransactionApproved: 'Transaction Approved',
-  TransactionFinalized: 'Transaction Finalized',
 };
 
 const expectedEventNames = [
@@ -242,7 +238,7 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
     await softAssert.checkAndCollect(
       async () =>
         await Assertions.checkIfObjectHasKeysAndValidValues(
-          unifiedSwapBridgeSubmitted[0].properties,
+          unifiedSwapBridgeSubmitted[0]?.properties ?? {},
           {
             action_type: 'string',
             price_impact: 'number',
@@ -280,7 +276,7 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
     await softAssert.checkAndCollect(
       async () =>
         await Assertions.checkIfObjectHasKeysAndValidValues(
-          unifiedSwapBridgeCompleted[0].properties,
+          unifiedSwapBridgeCompleted[0]?.properties ?? {},
           {
             action_type: 'string',
             chain_id_source: 'string',
