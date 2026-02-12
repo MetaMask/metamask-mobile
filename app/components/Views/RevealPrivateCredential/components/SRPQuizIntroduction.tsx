@@ -1,4 +1,5 @@
 import React from 'react';
+import { Image } from 'react-native';
 import { ButtonSize } from '../../../../component-library/components/Buttons/Button';
 import ButtonPrimary from '../../../../component-library/components/Buttons/Button/variants/ButtonPrimary';
 import ButtonLink from '../../../../component-library/components/Buttons/Button/variants/ButtonLink';
@@ -12,7 +13,7 @@ import {
   FlexDirection,
   JustifyContent,
 } from '../../../UI/Box/box.types';
-import SecurityQuizLockImage from '../../../../images/security-quiz-intro-lock.svg';
+import SecurityQuizLockImage from '../../../../images/reveal_srp.png';
 import { strings } from '../../../../../locales/i18n';
 import { ExportCredentialsIds } from '../../MultichainAccounts/AccountDetails/ExportCredentials.testIds';
 import { SrpQuizGetStartedSelectorsIDs } from '../../Quiz/SRPQuiz/SrpQuizModal.testIds';
@@ -35,11 +36,7 @@ const SRPQuizIntroduction = ({
       alignItems={AlignItems.center}
       justifyContent={JustifyContent.center}
     >
-      <SecurityQuizLockImage
-        name="security-quiz-lock"
-        height={220}
-        width={190}
-      />
+      <Image source={SecurityQuizLockImage} height={220} width={190} />
       <Text
         variant={TextVariant.BodyMD}
         color={TextColor.Alternative}
