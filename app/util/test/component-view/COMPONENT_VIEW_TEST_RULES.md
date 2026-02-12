@@ -50,8 +50,8 @@ These rules are written to align with Cursor Context Rules so the guidance is ea
   - `renderBridgeView` → `app/util/test/component-view/renderers/bridge.ts`
   - `renderWalletView` → `app/util/test/component-view/renderers/wallet.ts`
   - `renderPerpsView` / `renderPerpsSelectModifyActionView` → `app/util/test/component-view/renderers/perpsViewRenderer.tsx`
-- Helpers (labels / test IDs for view tests):
-  - `getModifyActionLabels`, `modifyActionTestIds`, etc. → `app/util/test/component-view/helpers/perpsViewTestHelpers.ts`
+- Helpers (labels for view tests; use i18n for consistency):
+  - `getModifyActionLabels` → `app/util/test/component-view/helpers/perpsViewTestHelpers.ts`
 - Global Engine + native mocks:
   - `app/util/test/component-view/mocks.ts`
 - State fixture and helpers:
