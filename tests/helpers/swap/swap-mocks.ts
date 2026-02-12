@@ -17,12 +17,14 @@ import {
   GET_POPULAR_TOKENS_MAINNET_RESPONSE,
   GET_TOKENS_API_USDC_RESPONSE,
   GET_TOKENS_API_USDT_RESPONSE,
+  GET_QUOTE_USDC_GOOGLEON_RESPONSE,
 } from './constants';
 
 const USDC_MAINNET = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
 const DAI_MAINNET = '0x6b175474e89094c44da98b954eedeac495271d0f';
 const USDT_MAINNET = '0xdac17f958d2ee523a2206206994597c13d831ec7';
 const WETH_MAINNET = '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2';
+const GOOGLEON_MAINNET = '0xba47214edd2bb43099611b208f75e4b42fdcfedc';
 
 export const testSpecificMock: TestSpecificMock = async (
   mockServer: Mockttp,
@@ -36,6 +38,7 @@ export const testSpecificMock: TestSpecificMock = async (
     [`eip155:1/erc20:${DAI_MAINNET}`]: { price: 0.9998, usd: 0.9998 },
     [`eip155:1/erc20:${USDT_MAINNET}`]: { price: 1.0001, usd: 1.0001 },
     [`eip155:1/erc20:${WETH_MAINNET}`]: { price: 1926.42, usd: 1926.42 },
+    [`eip155:1/erc20:${GOOGLEON_MAINNET}`]: { price: 312.79, usd: 312.79 },
     [`eip155:1/erc20:${toChecksumHexAddress(USDC_MAINNET)}`]: {
       price: 0.999806,
       usd: 0.999806,
@@ -51,6 +54,10 @@ export const testSpecificMock: TestSpecificMock = async (
     [`eip155:1/erc20:${toChecksumHexAddress(WETH_MAINNET)}`]: {
       price: 1926.42,
       usd: 1926.42,
+    },
+    [`eip155:1/erc20:${toChecksumHexAddress(GOOGLEON_MAINNET)}`]: {
+      price: 312.79,
+      usd: 312.79,
     },
   };
 
@@ -154,6 +161,14 @@ export const testSpecificMock: TestSpecificMock = async (
     requestMethod: 'GET',
     url: 'https://tokens.api.cx.metamask.io/v3/assets?assetIds=eip155:1/erc20:0xdAC17F958D2ee523a2206206994597C13D831ec7',
     response: GET_TOKENS_API_USDT_RESPONSE,
+    responseCode: 200,
+  });
+
+  // Mock USDC->GOOGLEON
+  await setupMockRequest(mockServer, {
+    requestMethod: 'GET',
+    url: /getQuote.*destTokenAddress=0xba47214edd2bb43099611b208f75e4b42fdcfedc/i,
+    response: GET_QUOTE_USDC_GOOGLEON_RESPONSE,
     responseCode: 200,
   });
 

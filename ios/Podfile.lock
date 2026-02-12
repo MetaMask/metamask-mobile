@@ -3527,7 +3527,7 @@ SPEC CHECKSUMS:
   libdav1d: 23581a4d8ec811ff171ed5e2e05cd27bad64c39f
   lottie-ios: e047b1d2e6239b787cc5e9755b988869cf190494
   lottie-react-native: 7f3fc3f396b1d6c7b1454b77596bd2ad3151871e
-  MultiplatformBleAdapter: b1fddd0d499b96b607e00f0faa8e60648343dc1d
+  MultiplatformBleAdapter: ea8bac405ec200d0ca9de0f89afef6f06fb2abbc
   nanopb: 438bc412db1928dac798aa6fd75726007be04262
   NativeUtils: e1d5591114bd87ba0b91348477f77b029cd361b8
   NitroModules: 54cf4604a7e458d788aeecb3ba1ff7db43ed17f2
