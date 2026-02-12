@@ -21,12 +21,9 @@ export const ALLOWLISTED_HOSTS = [
   'mainnet.infura.io',
   'linea-sepolia.infura.io',
   'linea-mainnet.infura.io',
-  // Ramps V2 Unified - allow real API calls for development/testing
-  'on-ramp-cache.api.cx.metamask.io',
+  // Ramps V2 Unified - allow  API calls to UAT environment
   'on-ramp-cache.uat-api.cx.metamask.io',
-  'on-ramp.api.cx.metamask.io',
   'on-ramp.uat-api.cx.metamask.io',
-  'on-ramp-content.api.cx.metamask.io',
   'on-ramp-content.uat-api.cx.metamask.io',
 ];
 
