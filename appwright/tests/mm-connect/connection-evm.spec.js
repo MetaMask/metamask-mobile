@@ -97,9 +97,9 @@ test('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Browser
     await DappConnectionModal.tapAccountButton('Account 3');
     await DappConnectionModal.tapUpdateAccountsButton();
     await DappConnectionModal.tapConnectButton();
+    await DappConnectionModal.waitForToastWithText('Permissions updated');
   });
 
-  await new Promise((resolve) => setTimeout(resolve, 1000));
   await launchMobileBrowser(device);
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
