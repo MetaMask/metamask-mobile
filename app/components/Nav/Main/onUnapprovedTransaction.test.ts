@@ -21,7 +21,6 @@ const SWAP_TX_DATA =
   '0x5f5755290000000000000000000000000000000000000000000000000000000000000080000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb4800000000000000000000000000000000000000000000000000000000000f424000000000000000000000000000000000000000000000000000000000000000c0';
 
 const mockCallbacks = () => ({
-  watchSwapBridgeTransaction: jest.fn(),
   autoSign: jest.fn(),
 });
 
@@ -74,84 +73,76 @@ describe('onUnapprovedTransaction', () => {
 
     onUnapprovedTransaction(txMeta, callbacks);
 
-    expect(callbacks.watchSwapBridgeTransaction).not.toHaveBeenCalled();
     expect(callbacks.autoSign).not.toHaveBeenCalled();
   });
 
-  it('calls watchSwapBridgeTransaction but not autoSign for software wallet swap', () => {
-    isHardwareAccountMock.mockReturnValue(false);
-    const callbacks = mockCallbacks();
-    const txMeta = buildSwapTxMeta();
-
-    onUnapprovedTransaction(txMeta, callbacks);
-
-    expect(callbacks.watchSwapBridgeTransaction).toHaveBeenCalledTimes(1);
-    expect(callbacks.autoSign).not.toHaveBeenCalled();
-  });
-
-  it('calls watchSwapBridgeTransaction and autoSign for hardware wallet swap', () => {
+  it('calls autoSign for hardware wallet swap', () => {
     isHardwareAccountMock.mockReturnValue(true);
     const callbacks = mockCallbacks();
     const txMeta = buildSwapTxMeta();
 
     onUnapprovedTransaction(txMeta, callbacks);
 
-    expect(callbacks.watchSwapBridgeTransaction).toHaveBeenCalledTimes(1);
     expect(callbacks.autoSign).toHaveBeenCalledTimes(1);
   });
 
-  it('calls watchSwapBridgeTransaction but not autoSign for software wallet bridge', () => {
+  it('does not call autoSign for software wallet swap', () => {
     isHardwareAccountMock.mockReturnValue(false);
     const callbacks = mockCallbacks();
-    const txMeta = buildBridgeTxMeta();
+    const txMeta = buildSwapTxMeta();
 
     onUnapprovedTransaction(txMeta, callbacks);
 
-    expect(callbacks.watchSwapBridgeTransaction).toHaveBeenCalledTimes(1);
     expect(callbacks.autoSign).not.toHaveBeenCalled();
   });
 
-  it('calls watchSwapBridgeTransaction and autoSign for hardware wallet bridge', () => {
+  it('calls autoSign for hardware wallet bridge', () => {
     isHardwareAccountMock.mockReturnValue(true);
     const callbacks = mockCallbacks();
     const txMeta = buildBridgeTxMeta();
 
     onUnapprovedTransaction(txMeta, callbacks);
 
-    expect(callbacks.watchSwapBridgeTransaction).toHaveBeenCalledTimes(1);
     expect(callbacks.autoSign).toHaveBeenCalledTimes(1);
   });
 
-  it('calls watchSwapBridgeTransaction and autoSign for hardware wallet bridgeApproval', () => {
+  it('does not call autoSign for software wallet bridge', () => {
+    isHardwareAccountMock.mockReturnValue(false);
+    const callbacks = mockCallbacks();
+    const txMeta = buildBridgeTxMeta();
+
+    onUnapprovedTransaction(txMeta, callbacks);
+
+    expect(callbacks.autoSign).not.toHaveBeenCalled();
+  });
+
+  it('calls autoSign for hardware wallet bridgeApproval', () => {
     isHardwareAccountMock.mockReturnValue(true);
     const callbacks = mockCallbacks();
     const txMeta = buildBridgeTxMeta({ type: TransactionType.bridgeApproval });
 
     onUnapprovedTransaction(txMeta, callbacks);
 
-    expect(callbacks.watchSwapBridgeTransaction).toHaveBeenCalledTimes(1);
     expect(callbacks.autoSign).toHaveBeenCalledTimes(1);
   });
 
-  it('does not call either callback for a non-swap non-bridge transaction', () => {
+  it('does not call autoSign for non-swap non-bridge transaction', () => {
     isHardwareAccountMock.mockReturnValue(false);
     const callbacks = mockCallbacks();
     const txMeta = buildSimpleSendTxMeta();
 
     onUnapprovedTransaction(txMeta, callbacks);
 
-    expect(callbacks.watchSwapBridgeTransaction).not.toHaveBeenCalled();
     expect(callbacks.autoSign).not.toHaveBeenCalled();
   });
 
-  it('does not call autoSign for a non-swap non-bridge transaction even from hardware wallet', () => {
+  it('does not call autoSign for non-swap non-bridge transaction even from hardware wallet', () => {
     isHardwareAccountMock.mockReturnValue(true);
     const callbacks = mockCallbacks();
     const txMeta = buildSimpleSendTxMeta();
 
     onUnapprovedTransaction(txMeta, callbacks);
 
-    expect(callbacks.watchSwapBridgeTransaction).not.toHaveBeenCalled();
     expect(callbacks.autoSign).not.toHaveBeenCalled();
   });
 

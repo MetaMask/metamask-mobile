@@ -2,7 +2,6 @@ import React, { useEffect, useCallback } from 'react';
 import { Alert } from 'react-native';
 import PropTypes from 'prop-types';
 
-import NotificationManager from '../../../core/NotificationManager';
 import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
 import { onUnapprovedTransaction } from './onUnapprovedTransaction';
@@ -35,28 +34,6 @@ import SnapAccountCustomNameApproval from '../../Approvals/SnapAccountCustomName
 
 const RootRPCMethodsUI = (props) => {
   const { trackEvent, createEventBuilder } = useMetrics();
-
-  const watchSwapBridgeTransaction = useCallback((transactionMeta) => {
-    const { id: transactionId } = transactionMeta;
-    Engine.controllerMessenger.subscribeOnceIf(
-      'TransactionController:transactionFinished',
-      (transactionMeta) => {
-        try {
-          if (transactionMeta.status === 'submitted') {
-            NotificationManager.watchSubmittedTransaction({
-              ...transactionMeta,
-              assetType: transactionMeta.txParams.assetType,
-            });
-          } else {
-            throw transactionMeta.error;
-          }
-        } catch (error) {
-          console.error(error, 'error while trying to send transaction');
-        }
-      },
-      (transactionMeta) => transactionMeta.id === transactionId,
-    );
-  }, []);
 
   const autoSign = useCallback(
     async (transactionMeta) => {
@@ -128,11 +105,10 @@ const RootRPCMethodsUI = (props) => {
   const handleUnapprovedTransaction = useCallback(
     (transactionMeta) => {
       onUnapprovedTransaction(transactionMeta, {
-        watchSwapBridgeTransaction,
         autoSign,
       });
     },
-    [autoSign, watchSwapBridgeTransaction],
+    [autoSign],
   );
 
   // unapprovedTransaction effect
