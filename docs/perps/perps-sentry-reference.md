@@ -566,6 +566,6 @@ catch (error) {
 - **Measurement hook**: `app/components/UI/Perps/hooks/usePerpsMeasurement.ts`
 - **Measurement constants**: `app/components/UI/Perps/constants/performanceMetrics.ts`
 - **Config constants**: `app/components/UI/Perps/constants/perpsConfig.ts`
-- **Controller**: `app/components/UI/Perps/controllers/PerpsController.ts`
+- **Controller**: `app/controllers/perps/PerpsController.ts`
 - **WebSocket service**: `app/components/UI/Perps/services/HyperLiquidSubscriptionService.ts`
 - **Connection manager**: `app/components/UI/Perps/services/PerpsConnectionManager.ts`
