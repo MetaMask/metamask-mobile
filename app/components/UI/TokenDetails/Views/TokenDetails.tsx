@@ -2,15 +2,11 @@ import React, { useEffect } from 'react';
 import { View, StyleSheet, ActivityIndicator } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import {
-  selectTokenDetailsV2Enabled,
-  selectTokenDetailsV2ButtonsEnabled,
-} from '../../../../selectors/featureFlagController/tokenDetailsV2';
+import { selectTokenDetailsV2ButtonsEnabled } from '../../../../selectors/featureFlagController/tokenDetailsV2';
 import { selectTokenListLayoutV2Enabled } from '../../../../selectors/featureFlagController/tokenListLayout';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
-import Asset from '../../../Views/Asset';
 import {
   TokenDetailsSource,
   type TokenDetailsRouteParams,
@@ -19,7 +15,7 @@ import { Theme } from '@metamask/design-tokens';
 import { useStyles } from '../../../hooks/useStyles';
 import { RootState } from '../../../../reducers';
 import { selectNetworkConfigurationByChainId } from '../../../../selectors/networkController';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
 import { isMainnetByChainId } from '../../../../util/networks';
 import useBlockExplorer from '../../../hooks/useBlockExplorer';
@@ -50,17 +46,6 @@ import {
   ButtonVariants,
 } from '../../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../../locales/i18n';
-
-export {
-  TokenDetailsSource,
-  type TokenDetailsRouteParams,
-} from '../constants/constants';
-
-interface TokenDetailsProps {
-  route: {
-    params: TokenDetailsRouteParams;
-  };
-}
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -321,17 +306,17 @@ const TokenDetails: React.FC<{ token: TokenDetailsRouteParams }> = ({
  * Includes ab_tests property when navigating from the token list and the
  * token list layout A/B test is active.
  */
-const useTokenDetailsOpenedTracking = (params: TokenDetailsRouteParams) => {
+const useTokenDetailsOpenedTracking = (token: TokenDetailsRouteParams) => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const isTokenListV2 = useSelector(selectTokenListLayoutV2Enabled);
 
   useEffect(() => {
-    const source = params.source ?? TokenDetailsSource.Unknown;
+    const source = token.source ?? TokenDetailsSource.Unknown;
     const hasBalance =
-      params.balance !== undefined &&
-      params.balance !== null &&
-      params.balance !== '0' &&
-      params.balance !== '';
+      token.balance !== undefined &&
+      token.balance !== null &&
+      token.balance !== '0' &&
+      token.balance !== '';
 
     const isFromTokenList =
       source === TokenDetailsSource.MobileTokenList ||
@@ -340,8 +325,8 @@ const useTokenDetailsOpenedTracking = (params: TokenDetailsRouteParams) => {
     const event = createEventBuilder(MetaMetricsEvents.TOKEN_DETAILS_OPENED)
       .addProperties({
         source,
-        chain_id: params.chainId,
-        token_symbol: params.symbol,
+        chain_id: token.chainId,
+        token_symbol: token.symbol,
         has_balance: hasBalance,
         ...(isFromTokenList && {
           ab_tests: { token_list_layout: isTokenListV2 ? 'v2' : 'v1' },
@@ -354,18 +339,18 @@ const useTokenDetailsOpenedTracking = (params: TokenDetailsRouteParams) => {
 };
 
 /**
- * Feature flag wrapper that toggles between new TokenDetails (V2) and legacy Asset view.
+ * TokenDetailsRouteWrapper screen
+ * Reads token from React Navigation route.params and renders TokenDetails.
  */
-const TokenDetailsFeatureFlagWrapper: React.FC<TokenDetailsProps> = (props) => {
-  const isTokenDetailsV2Enabled = useSelector(selectTokenDetailsV2Enabled);
+export const TokenDetailsRouteWrapper: React.FC = () => {
+  const route = useRoute();
+  const token = route.params as TokenDetailsRouteParams;
 
-  useTokenDetailsOpenedTracking(props.route.params);
+  useTokenDetailsOpenedTracking(token);
 
-  return isTokenDetailsV2Enabled ? (
-    <TokenDetails token={props.route.params} />
-  ) : (
-    <Asset {...props} />
-  );
+  // TODO: Add validation for token here to ensure it is valid and has required fields (e.g. chainId)
+
+  return <TokenDetails token={token} />;
 };
 
-export { TokenDetailsFeatureFlagWrapper as TokenDetails };
+export { TokenDetailsRouteWrapper as TokenDetails };

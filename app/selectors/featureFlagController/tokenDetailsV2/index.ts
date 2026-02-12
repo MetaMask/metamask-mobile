@@ -5,15 +5,6 @@ import {
   FeatureFlagNames,
 } from '../../../constants/featureFlags';
 
-export const selectTokenDetailsV2Enabled = createSelector(
-  selectRemoteFeatureFlags,
-  (remoteFeatureFlags) =>
-    Boolean(
-      remoteFeatureFlags[FeatureFlagNames.tokenDetailsV2] ??
-        DEFAULT_FEATURE_FLAG_VALUES[FeatureFlagNames.tokenDetailsV2],
-    ),
-);
-
 export const selectTokenDetailsV2ButtonsEnabled = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) =>

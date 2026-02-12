@@ -43,7 +43,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { useRWAToken } from '../../../Bridge/hooks/useRWAToken';
 import { BridgeToken } from '../../../Bridge/types';
 import Routes from '../../../../../constants/navigation/Routes';
-import { TokenDetailsSource } from '../../../TokenDetails/Views/TokenDetails';
+import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import StockBadge from '../../../shared/StockBadge';
 import { useMusdConversion } from '../../../Earn/hooks/useMusdConversion';
 import { toHex } from '@metamask/controller-utils';
