@@ -2,7 +2,7 @@ import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import { selectTokenSelectors } from '../../../app/components/UI/Ramp/Aggregator/components/TokenSelectModal/SelectToken.testIds';
 
-class TokenSelectBottomSheet {
+class TokenSelectScreen {
   get tokenSearchInput(): DetoxElement {
     return Matchers.getElementByID(
       selectTokenSelectors.TOKEN_SELECT_MODAL_SEARCH_INPUT,
@@ -16,9 +16,9 @@ class TokenSelectBottomSheet {
     });
     const tokenName = Matchers.getElementByText(token, 1);
     await Gestures.waitAndTap(tokenName, {
-      elemDescription: `Token "${token}" in Token Select Bottom Sheet`,
+      elemDescription: `Token "${token}" in Token Select Screen`,
     });
   }
 }
 
-export default new TokenSelectBottomSheet();
+export default new TokenSelectScreen();
