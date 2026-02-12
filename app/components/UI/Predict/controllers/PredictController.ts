@@ -462,7 +462,7 @@ export class PredictController extends BaseController<
       id: traceId,
       tags: {
         feature: PREDICT_CONSTANTS.FEATURE_NAME,
-        providerId: 'polymarket',
+        providerId: POLYMARKET_PROVIDER_ID,
         ...(params.category && { category: params.category }),
       },
     });
@@ -558,7 +558,7 @@ export class PredictController extends BaseController<
       Logger.error(
         ensureError(error),
         this.getErrorContext('getMarkets', {
-          providerId: 'polymarket',
+          providerId: POLYMARKET_PROVIDER_ID,
           category: params.category,
           sortBy: params.sortBy,
           sortDirection: params.sortDirection,
@@ -602,7 +602,7 @@ export class PredictController extends BaseController<
       id: traceId,
       tags: {
         feature: PREDICT_CONSTANTS.FEATURE_NAME,
-        providerId: 'polymarket',
+        providerId: POLYMARKET_PROVIDER_ID,
       },
     });
 
@@ -650,7 +650,7 @@ export class PredictController extends BaseController<
         ensureError(error),
         this.getErrorContext('getMarket', {
           marketId: resolvedMarketId,
-          providerId: 'polymarket',
+          providerId: POLYMARKET_PROVIDER_ID,
         }),
       );
 
@@ -686,7 +686,7 @@ export class PredictController extends BaseController<
       id: traceId,
       tags: {
         feature: PREDICT_CONSTANTS.FEATURE_NAME,
-        providerId: 'polymarket',
+        providerId: POLYMARKET_PROVIDER_ID,
         ...(params.interval && { interval: params.interval }),
       },
     });
@@ -720,7 +720,7 @@ export class PredictController extends BaseController<
       Logger.error(
         ensureError(error),
         this.getErrorContext('getPriceHistory', {
-          providerId: 'polymarket',
+          providerId: POLYMARKET_PROVIDER_ID,
           marketId: params.marketId,
           fidelity: params.fidelity,
           interval: params.interval,
@@ -757,7 +757,7 @@ export class PredictController extends BaseController<
       id: traceId,
       tags: {
         feature: PREDICT_CONSTANTS.FEATURE_NAME,
-        providerId: 'polymarket',
+        providerId: POLYMARKET_PROVIDER_ID,
       },
       data: {
         queryCount: params.queries?.length,
@@ -793,7 +793,7 @@ export class PredictController extends BaseController<
       Logger.error(
         ensureError(error),
         this.getErrorContext('getPrices', {
-          providerId: 'polymarket',
+          providerId: POLYMARKET_PROVIDER_ID,
           queriesCount: params.queries?.length,
         }),
       );
@@ -824,7 +824,7 @@ export class PredictController extends BaseController<
       id: traceId,
       tags: {
         feature: PREDICT_CONSTANTS.FEATURE_NAME,
-        providerId: 'polymarket',
+        providerId: POLYMARKET_PROVIDER_ID,
         claimable: params.claimable ?? false,
       },
     });
@@ -870,7 +870,7 @@ export class PredictController extends BaseController<
       Logger.error(
         ensureError(error),
         this.getErrorContext('getPositions', {
-          providerId: 'polymarket',
+          providerId: POLYMARKET_PROVIDER_ID,
           claimable: params.claimable,
           marketId: params.marketId,
         }),
@@ -903,7 +903,7 @@ export class PredictController extends BaseController<
       id: traceId,
       tags: {
         feature: PREDICT_CONSTANTS.FEATURE_NAME,
-        providerId: 'polymarket',
+        providerId: POLYMARKET_PROVIDER_ID,
       },
     });
 
@@ -940,7 +940,7 @@ export class PredictController extends BaseController<
       Logger.error(
         ensureError(error),
         this.getErrorContext('getActivity', {
-          providerId: 'polymarket',
+          providerId: POLYMARKET_PROVIDER_ID,
         }),
       );
 
@@ -972,7 +972,7 @@ export class PredictController extends BaseController<
       id: traceId,
       tags: {
         feature: PREDICT_CONSTANTS.FEATURE_NAME,
-        providerId: 'polymarket',
+        providerId: POLYMARKET_PROVIDER_ID,
       },
     });
 
@@ -1011,7 +1011,7 @@ export class PredictController extends BaseController<
       Logger.error(
         ensureError(error),
         this.getErrorContext('getUnrealizedPnL', {
-          providerId: 'polymarket',
+          providerId: POLYMARKET_PROVIDER_ID,
         }),
       );
 
@@ -1113,7 +1113,7 @@ export class PredictController extends BaseController<
     };
 
     DevLogger.log(`📊 [Analytics] PREDICT_TRADE_TRANSACTION [${status}]`, {
-      providerId: 'polymarket',
+      providerId: POLYMARKET_PROVIDER_ID,
       regularProperties,
       sensitiveProperties,
     });
@@ -1383,7 +1383,7 @@ export class PredictController extends BaseController<
       Logger.error(
         ensureError(error),
         this.getErrorContext('previewOrder', {
-          providerId: 'polymarket',
+          providerId: POLYMARKET_PROVIDER_ID,
           side: params.side,
           marketId: params.marketId,
           outcomeId: params.outcomeId,
@@ -1416,7 +1416,7 @@ export class PredictController extends BaseController<
       id: traceId,
       tags: {
         feature: PREDICT_CONSTANTS.FEATURE_NAME,
-        providerId: 'polymarket',
+        providerId: POLYMARKET_PROVIDER_ID,
         side: preview.side,
       },
       data: {
@@ -1530,7 +1530,7 @@ export class PredictController extends BaseController<
       Logger.error(
         ensureError(error),
         this.getErrorContext('placeOrder', {
-          providerId: 'polymarket',
+          providerId: POLYMARKET_PROVIDER_ID,
           marketId: analyticsProperties?.marketId,
           marketTitle: analyticsProperties?.marketTitle,
           transactionType: analyticsProperties?.transactionType,
@@ -1544,7 +1544,7 @@ export class PredictController extends BaseController<
         error: errorMessage,
         errorDetails: error instanceof Error ? error.stack : undefined,
         timestamp: new Date().toISOString(),
-        providerId: 'polymarket',
+        providerId: POLYMARKET_PROVIDER_ID,
         params,
       });
 
@@ -1578,7 +1578,7 @@ export class PredictController extends BaseController<
       id: traceId,
       tags: {
         feature: PREDICT_CONSTANTS.FEATURE_NAME,
-        providerId: 'polymarket',
+        providerId: POLYMARKET_PROVIDER_ID,
       },
     });
 
@@ -1683,7 +1683,7 @@ export class PredictController extends BaseController<
       Logger.error(
         e,
         this.getErrorContext('claimWithConfirmation', {
-          providerId: 'polymarket',
+          providerId: POLYMARKET_PROVIDER_ID,
         }),
       );
 
@@ -1692,7 +1692,7 @@ export class PredictController extends BaseController<
         error: errorMessage,
         errorDetails: error instanceof Error ? error.stack : undefined,
         timestamp: new Date().toISOString(),
-        providerId: 'polymarket',
+        providerId: POLYMARKET_PROVIDER_ID,
       });
 
       // Update error state for Sentry integration
@@ -1789,7 +1789,7 @@ export class PredictController extends BaseController<
       Logger.error(
         ensureError(error),
         this.getErrorContext('refreshEligibility.provider', {
-          providerId: 'polymarket',
+          providerId: POLYMARKET_PROVIDER_ID,
         }),
       );
     }
@@ -2223,7 +2223,7 @@ export class PredictController extends BaseController<
       id: traceId,
       tags: {
         feature: PREDICT_CONSTANTS.FEATURE_NAME,
-        providerId: 'polymarket',
+        providerId: POLYMARKET_PROVIDER_ID,
       },
     });
 
@@ -2248,7 +2248,7 @@ export class PredictController extends BaseController<
       Logger.error(
         ensureError(error),
         this.getErrorContext('getAccountState', {
-          providerId: 'polymarket',
+          providerId: POLYMARKET_PROVIDER_ID,
         }),
       );
 
@@ -2275,7 +2275,7 @@ export class PredictController extends BaseController<
       id: traceId,
       tags: {
         feature: PREDICT_CONSTANTS.FEATURE_NAME,
-        providerId: 'polymarket',
+        providerId: POLYMARKET_PROVIDER_ID,
       },
     });
 
@@ -2318,7 +2318,7 @@ export class PredictController extends BaseController<
       Logger.error(
         ensureError(error),
         this.getErrorContext('getBalance', {
-          providerId: 'polymarket',
+          providerId: POLYMARKET_PROVIDER_ID,
         }),
       );
 
