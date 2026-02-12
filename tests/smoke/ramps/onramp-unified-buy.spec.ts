@@ -4,7 +4,7 @@ import FundActionMenu from '../../page-objects/UI/FundActionMenu';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { CustomNetworks } from '../../resources/networks.e2e';
-import { SmokeTrade } from '../../tags';
+import { SmokeRamps } from '../../tags';
 import Assertions from '../../framework/Assertions';
 import BuildQuoteView from '../../page-objects/Ramps/BuildQuoteView';
 import TokenSelectScreen from '../../page-objects/Ramps/TokenSelectScreen';
@@ -25,7 +25,7 @@ const unifiedBuyV2Mocks = async (mockServer: Mockttp) => {
   await setupRegionAwareOnRampMocks(mockServer, selectedRegion);
 };
 
-describe(SmokeTrade('Onramp Unified Buy'), () => {
+describe(SmokeRamps('Onramp Unified Buy'), () => {
   it('build quote', async () => {
     await withFixtures(
       {
