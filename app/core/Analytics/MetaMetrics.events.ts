@@ -179,6 +179,10 @@ enum EVENT_NAME {
   SETTINGS_VIEWED = 'Settings Viewed',
   SETTINGS_UPDATED = 'Settings Updated',
   CURRENCY_CHANGED = 'Selected Currency Changed',
+  SETTINGS_ABOUT = 'About MetaMask',
+  NAVIGATION_TAPS_GET_HELP = 'Get Help',
+  NAVIGATION_TAPS_SEND_FEEDBACK = 'Send Feedback',
+  NAVIGATION_TAPS_LOGOUT = 'Logout',
 
   // Reveal SRP
   REVEAL_SRP_CTA = 'Clicks Reveal Secret Recovery Phrase',
@@ -551,7 +555,6 @@ enum EVENT_NAME {
   CARD_PUSH_PROVISIONING_COMPLETED = 'Card Push Provisioning Completed',
   CARD_PUSH_PROVISIONING_FAILED = 'Card Push Provisioning Failed',
   CARD_PUSH_PROVISIONING_CANCELED = 'Card Push Provisioning Canceled',
-  CARD_ADD_TO_WALLET_CLICKED = 'Card Add To Wallet Clicked',
   CARD_METAL_CHECKOUT_VIEWED = 'Card Metal Checkout Viewed',
   CARD_METAL_CHECKOUT_STARTED = 'Card Metal Checkout Started',
   CARD_METAL_CHECKOUT_COMPLETED = 'Card Metal Checkout Completed',
@@ -1460,9 +1463,6 @@ const events = {
   ),
   CARD_PUSH_PROVISIONING_CANCELED: generateOpt(
     EVENT_NAME.CARD_PUSH_PROVISIONING_CANCELED,
-  ),
-  CARD_ADD_TO_WALLET_CLICKED: generateOpt(
-    EVENT_NAME.CARD_ADD_TO_WALLET_CLICKED,
   ),
   CARD_METAL_CHECKOUT_VIEWED: generateOpt(
     EVENT_NAME.CARD_METAL_CHECKOUT_VIEWED,

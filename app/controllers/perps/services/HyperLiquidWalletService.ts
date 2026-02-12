@@ -38,11 +38,21 @@ export class HyperLiquidWalletService {
   }
 
   /**
+   * Check if the keyring is currently unlocked
+   */
+  public isKeyringUnlocked(): boolean {
+    return this.messenger.call('KeyringController:getState').isUnlocked;
+  }
+
+  /**
    * Sign typed data via messenger
    */
   private async signTypedMessage(
     msgParams: TypedMessageParams,
   ): Promise<string> {
+    if (!this.isKeyringUnlocked()) {
+      throw new Error(PERPS_ERROR_CODES.KEYRING_LOCKED);
+    }
     return this.messenger.call(
       'KeyringController:signTypedMessage',
       msgParams,

@@ -165,13 +165,12 @@ export enum LocalNodeType {
   bitcoin = 'bitcoin',
 }
 
-export enum PerpsModifiersCommandTypes {
+export enum E2ECommandTypes {
   pushPrice = 'push-price',
   forceLiquidation = 'force-liquidation',
   mockDeposit = 'mock-deposit',
+  exportState = 'export-state',
 }
-
-export type CommandType = PerpsModifiersCommandTypes;
 
 export enum GanacheHardfork {
   london = 'london',

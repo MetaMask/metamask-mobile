@@ -298,6 +298,9 @@ describe('HyperLiquidWalletService', () => {
             ) {
               return [mockEvmAccount];
             }
+            if (action === 'KeyringController:getState') {
+              return { isUnlocked: true };
+            }
             if (action === 'KeyringController:signTypedMessage') {
               return Promise.reject(new Error('Signing failed'));
             }
@@ -437,6 +440,59 @@ describe('HyperLiquidWalletService', () => {
       );
     });
 
+    it('should throw KEYRING_LOCKED when keyring is locked', async () => {
+      const walletAdapter = service.createWalletAdapter();
+      (mockMessenger.call as jest.Mock).mockImplementation((action: string) => {
+        if (
+          action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return [mockEvmAccount];
+        }
+        if (action === 'KeyringController:getState') {
+          return { isUnlocked: false };
+        }
+        return undefined;
+      });
+
+      const mockTypedData = {
+        domain: {
+          name: 'Test',
+          version: '1',
+          chainId: 42161,
+          verifyingContract:
+            '0x0000000000000000000000000000000000000000' as `0x${string}`,
+        },
+        types: {
+          Test: [{ name: 'value', type: 'string' }],
+        },
+        primaryType: 'Test',
+        message: { value: 'test' },
+      };
+
+      await expect(walletAdapter.signTypedData(mockTypedData)).rejects.toThrow(
+        'KEYRING_LOCKED',
+      );
+      // signTypedMessage should NOT have been called
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
+        'KeyringController:signTypedMessage',
+        expect.anything(),
+        expect.anything(),
+      );
+    });
+
+    it('should return keyring unlocked status via isKeyringUnlocked()', () => {
+      expect(service.isKeyringUnlocked()).toBe(true);
+
+      (mockMessenger.call as jest.Mock).mockImplementation((action: string) => {
+        if (action === 'KeyringController:getState') {
+          return { isUnlocked: false };
+        }
+        return undefined;
+      });
+
+      expect(service.isKeyringUnlocked()).toBe(false);
+    });
+
     it('should handle keyring controller initialization errors', async () => {
       const walletAdapter = service.createWalletAdapter();
       // Override messenger.call for the signing call
@@ -445,6 +501,9 @@ describe('HyperLiquidWalletService', () => {
           action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
         ) {
           return [mockEvmAccount];
+        }
+        if (action === 'KeyringController:getState') {
+          return { isUnlocked: true };
         }
         if (action === 'KeyringController:signTypedMessage') {
           return Promise.reject(new Error('Keyring not initialized'));

@@ -29,7 +29,6 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
-import { useMusdCtaVisibility } from '../../Earn/hooks/useMusdCtaVisibility';
 import { SCROLL_TO_TOKEN_EVENT } from '../constants';
 import { selectTokenListLayoutV2Enabled } from '../../../../selectors/featureFlagController/tokenListLayout';
 
@@ -69,8 +68,6 @@ const TokenListComponent = ({
   const isHomepageRedesignV1Enabled = useSelector(
     selectHomepageRedesignV1Enabled,
   );
-
-  const { shouldShowTokenListItemCta } = useMusdCtaVisibility();
 
   // A/B test: Token list item layout (V1 vs V2)
   const isTokenListV2 = useSelector(selectTokenListLayoutV2Enabled);
@@ -154,7 +151,6 @@ const TokenListComponent = ({
         assetKey={item}
         showRemoveMenu={showRemoveMenu}
         setShowScamWarningModal={setShowScamWarningModal}
-        shouldShowTokenListItemCta={shouldShowTokenListItemCta}
         privacyMode={privacyMode}
         showPercentageChange={showPercentageChange}
         isFullView={isFullView}
@@ -164,7 +160,6 @@ const TokenListComponent = ({
       ListItemComponent,
       showRemoveMenu,
       setShowScamWarningModal,
-      shouldShowTokenListItemCta,
       privacyMode,
       showPercentageChange,
       isFullView,
@@ -183,7 +178,6 @@ const TokenListComponent = ({
             assetKey={item}
             showRemoveMenu={showRemoveMenu}
             setShowScamWarningModal={setShowScamWarningModal}
-            shouldShowTokenListItemCta={shouldShowTokenListItemCta}
             privacyMode={privacyMode}
             showPercentageChange={showPercentageChange}
             isFullView={isFullView}
