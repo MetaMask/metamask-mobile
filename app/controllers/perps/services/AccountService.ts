@@ -225,7 +225,7 @@ export class AccountService {
           );
         });
 
-        // Invalidate readOnly caches so external hooks (e.g., usePerpsPositionForAsset) refresh
+        // Invalidate standalone caches so external hooks (e.g., usePerpsPositionForAsset) refresh
         this.deps.cacheInvalidator.invalidate({ cacheType: 'accountState' });
 
         traceData = {

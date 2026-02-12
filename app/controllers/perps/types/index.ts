@@ -639,15 +639,15 @@ export interface GetPositionsParams {
   accountId?: CaipAccountId; // Optional: defaults to selected account
   includeHistory?: boolean; // Optional: include historical positions
   skipCache?: boolean; // Optional: bypass WebSocket cache and force API call (default: false)
-  readOnly?: boolean; // Optional: lightweight mode - skip full initialization, use standalone HTTP client (no wallet/WebSocket needed)
-  userAddress?: string; // Optional: required when readOnly is true - user address to query positions for
+  standalone?: boolean; // Optional: lightweight mode - skip full initialization, use standalone HTTP client (no wallet/WebSocket needed)
+  userAddress?: string; // Optional: required when standalone is true - user address to query positions for
 }
 
 export interface GetAccountStateParams {
   accountId?: CaipAccountId; // Optional: defaults to selected account
   source?: string; // Optional: source of the call for tracing (e.g., 'health_check', 'initial_connection')
-  readOnly?: boolean; // Optional: lightweight mode - skip full initialization, use standalone HTTP client (no wallet/WebSocket needed)
-  userAddress?: string; // Optional: required when readOnly is true - user address to query account state for
+  standalone?: boolean; // Optional: lightweight mode - skip full initialization, use standalone HTTP client (no wallet/WebSocket needed)
+  userAddress?: string; // Optional: required when standalone is true - user address to query account state for
 }
 
 export interface GetOrderFillsParams {
@@ -700,7 +700,7 @@ export interface GetMarketsParams {
   symbols?: string[]; // Optional symbol filter (e.g., ['BTC', 'xyz:XYZ100'])
   dex?: string; // HyperLiquid HIP-3: DEX name (empty string '' or undefined for main DEX). Other protocols: ignored.
   skipFilters?: boolean; // Skip market filtering (both allowlist and blocklist, default: false). When true, returns all markets without filtering.
-  readOnly?: boolean; // Lightweight mode: skip full initialization, only fetch market metadata (no wallet/WebSocket needed). Only main DEX markets returned. Use for discovery use cases like checking if a perps market exists.
+  standalone?: boolean; // Lightweight mode: skip full initialization, only fetch market metadata (no wallet/WebSocket needed). Only main DEX markets returned. Use for discovery use cases like checking if a perps market exists.
 }
 
 export interface SubscribePricesParams {
@@ -1386,7 +1386,7 @@ export interface PerpsRewardsOperations {
  * - Observability: logger, debugLogger, metrics, performance, tracer
  * - Platform: streamManager (mobile/extension specific)
  * - Rewards: fee discount operations
- * - Cache: cache invalidation for readOnly queries
+ * - Cache: cache invalidation for standalone queries
  *
  * Controller access uses messenger pattern (messenger.call()).
  */
@@ -1420,13 +1420,13 @@ export interface PerpsPlatformDependencies {
   // === Market Data Formatting (platform-specific number formatting) ===
   marketDataFormatters: MarketDataFormatters;
 
-  // === Cache Invalidation (for readOnly query caches) ===
+  // === Cache Invalidation (for standalone query caches) ===
   cacheInvalidator: PerpsCacheInvalidator;
 }
 
 /**
  * Cache types that can be invalidated.
- * Used by readOnly query caches (e.g., usePerpsPositionForAsset).
+ * Used by standalone query caches (e.g., usePerpsPositionForAsset).
  */
 export type PerpsCacheType = 'positions' | 'accountState' | 'markets';
 
@@ -1439,7 +1439,7 @@ export type InvalidateCacheParams = {
 };
 
 /**
- * Cache invalidation interface for readOnly query caches.
+ * Cache invalidation interface for standalone query caches.
  * Allows services to signal when data has changed without depending on
  * mobile-specific implementations.
  */

@@ -1982,13 +1982,13 @@ export class PerpsController extends BaseController<
    * Get current positions
    * Thin delegation to MarketDataService
    *
-   * For readOnly mode, bypasses getActiveProvider() to allow position queries
+   * For standalone mode, bypasses getActiveProvider() to allow position queries
    * without full perps initialization (e.g., for showing positions on token details page)
    */
   async getPositions(params?: GetPositionsParams): Promise<Position[]> {
-    // For readOnly mode, access provider directly without initialization check
+    // For standalone mode, access provider directly without initialization check
     // This allows discovery use cases (checking if user has positions) without full perps setup
-    if (params?.readOnly && params.userAddress) {
+    if (params?.standalone && params.userAddress) {
       // Use activeProviderInstance if available (respects provider abstraction)
       // Fallback to creating HyperLiquidProvider for pre-initialization discovery
       // TODO: When adding new providers (MYX), consider a provider factory pattern
@@ -2069,13 +2069,13 @@ export class PerpsController extends BaseController<
    * Get account state (balances, etc.)
    * Thin delegation to MarketDataService
    *
-   * For readOnly mode, bypasses getActiveProvider() to allow account state queries
+   * For standalone mode, bypasses getActiveProvider() to allow account state queries
    * without full perps initialization (e.g., for checking if user has perps funds)
    */
   async getAccountState(params?: GetAccountStateParams): Promise<AccountState> {
-    // For readOnly mode, access provider directly without initialization check
+    // For standalone mode, access provider directly without initialization check
     // This allows discovery use cases (checking if user has perps funds) without full perps setup
-    if (params?.readOnly && params.userAddress) {
+    if (params?.standalone && params.userAddress) {
       // Use activeProviderInstance if available (respects provider abstraction)
       // Fallback to creating HyperLiquidProvider for pre-initialization discovery
       const provider =
@@ -2118,13 +2118,13 @@ export class PerpsController extends BaseController<
    * Get available markets with optional filtering
    * Thin delegation to MarketDataService
    *
-   * For readOnly mode, bypasses getActiveProvider() to allow market discovery
+   * For standalone mode, bypasses getActiveProvider() to allow market discovery
    * without full perps initialization (e.g., for discovery banners on spot screens)
    */
   async getMarkets(params?: GetMarketsParams): Promise<MarketInfo[]> {
-    // For readOnly mode, access provider directly without initialization check
+    // For standalone mode, access provider directly without initialization check
     // This allows discovery use cases (checking if market exists) without full perps setup
-    if (params?.readOnly) {
+    if (params?.standalone) {
       // Use activeProviderInstance if available (respects provider abstraction)
       // Fallback to creating HyperLiquidProvider for pre-initialization discovery
       const provider =
