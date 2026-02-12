@@ -32,6 +32,7 @@ const Routes = {
       PAYMENT_SELECTION: 'RampPaymentSelectionModal',
       SETTINGS: 'RampSettingsModal',
       BUILD_QUOTE_SETTINGS: 'RampBuildQuoteSettingsModal',
+      PROVIDER_PICKER: 'RampProviderPickerModal',
     },
   },
   DEPOSIT: {

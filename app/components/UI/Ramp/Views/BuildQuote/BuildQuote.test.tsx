@@ -95,6 +95,31 @@ jest.mock('../../../../hooks/useDebouncedValue', () => ({
   useDebouncedValue: (value: number) => value,
 }));
 
+jest.mock(
+  '../../../../../component-library/components/BottomSheets/BottomSheet',
+  () => {
+    const ReactActual = jest.requireActual('react');
+    const { View } = jest.requireActual('react-native');
+    return ReactActual.forwardRef(
+      (
+        {
+          children,
+          testID,
+        }: {
+          children: React.ReactNode;
+          testID?: string;
+        },
+        ref: React.Ref<{ onCloseBottomSheet: () => void }>,
+      ) => {
+        ReactActual.useImperativeHandle(ref, () => ({
+          onCloseBottomSheet: jest.fn(),
+        }));
+        return <View testID={testID}>{children}</View>;
+      },
+    );
+  },
+);
+
 interface MockUserRegion {
   country: {
     currency: string;
@@ -762,6 +787,139 @@ describe('BuildQuote', () => {
 
       expect(mockNavigate).not.toHaveBeenCalled();
       expect(mockGetWidgetUrl).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Token unavailable for provider', () => {
+    it('renders the token unavailable modal when token is not supported by provider', () => {
+      mockSelectedProvider = {
+        id: '/providers/transak',
+        name: 'Transak',
+        environmentType: 'PRODUCTION',
+        description: 'Test Provider',
+        hqAddress: '123 Test St',
+        links: [],
+        logos: { light: '', dark: '', height: 24, width: 79 },
+        supportedCryptoCurrencies: {
+          'eip155:1/slip44:60': true,
+        },
+      };
+
+      const { getByTestId } = renderWithTheme(<BuildQuote />);
+
+      expect(
+        getByTestId('token-unavailable-for-provider-modal'),
+      ).toBeOnTheScreen();
+    });
+
+    it('does not render the token unavailable modal when token is supported by provider', () => {
+      mockSelectedProvider = {
+        id: '/providers/transak',
+        name: 'Transak',
+        environmentType: 'PRODUCTION',
+        description: 'Test Provider',
+        hqAddress: '123 Test St',
+        links: [],
+        logos: { light: '', dark: '', height: 24, width: 79 },
+        supportedCryptoCurrencies: {
+          [MOCK_ASSET_ID]: true,
+        },
+      };
+
+      const { queryByTestId } = renderWithTheme(<BuildQuote />);
+
+      expect(queryByTestId('token-unavailable-for-provider-modal')).toBeNull();
+    });
+
+    it('does not render the token unavailable modal when provider has no supportedCryptoCurrencies', () => {
+      mockSelectedProvider = {
+        id: '/providers/transak',
+        name: 'Transak',
+        environmentType: 'PRODUCTION',
+        description: 'Test Provider',
+        hqAddress: '123 Test St',
+        links: [],
+        logos: { light: '', dark: '', height: 24, width: 79 },
+      };
+
+      const { queryByTestId } = renderWithTheme(<BuildQuote />);
+
+      expect(queryByTestId('token-unavailable-for-provider-modal')).toBeNull();
+    });
+
+    it('does not render the token unavailable modal when no provider is selected', () => {
+      mockSelectedProvider = null;
+
+      const { queryByTestId } = renderWithTheme(<BuildQuote />);
+
+      expect(queryByTestId('token-unavailable-for-provider-modal')).toBeNull();
+    });
+
+    it('calls goBack when Change token is pressed', () => {
+      mockSelectedProvider = {
+        id: '/providers/transak',
+        name: 'Transak',
+        environmentType: 'PRODUCTION',
+        description: 'Test Provider',
+        hqAddress: '123 Test St',
+        links: [],
+        logos: { light: '', dark: '', height: 24, width: 79 },
+        supportedCryptoCurrencies: {
+          'eip155:1/slip44:60': true,
+        },
+      };
+
+      const { getByTestId } = renderWithTheme(<BuildQuote />);
+
+      fireEvent.press(getByTestId('token-unavailable-change-token-button'));
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('navigates to provider picker when Change provider is pressed', () => {
+      mockSelectedProvider = {
+        id: '/providers/transak',
+        name: 'Transak',
+        environmentType: 'PRODUCTION',
+        description: 'Test Provider',
+        hqAddress: '123 Test St',
+        links: [],
+        logos: { light: '', dark: '', height: 24, width: 79 },
+        supportedCryptoCurrencies: {
+          'eip155:1/slip44:60': true,
+        },
+      };
+
+      const { getByTestId } = renderWithTheme(<BuildQuote />);
+
+      fireEvent.press(getByTestId('token-unavailable-change-provider-button'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'RampModals',
+        expect.objectContaining({
+          screen: 'RampProviderPickerModal',
+          params: { assetId: MOCK_ASSET_ID },
+        }),
+      );
+    });
+
+    it('matches snapshot when token is unavailable for provider', () => {
+      mockSelectedProvider = {
+        id: '/providers/transak',
+        name: 'Transak',
+        environmentType: 'PRODUCTION',
+        description: 'Test Provider',
+        hqAddress: '123 Test St',
+        links: [],
+        logos: { light: '', dark: '', height: 24, width: 79 },
+        supportedCryptoCurrencies: {
+          'eip155:1/slip44:60': true,
+        },
+      };
+
+      const { toJSON } = renderWithTheme(<BuildQuote />);
+
+      expect(toJSON()).toMatchSnapshot();
     });
   });
 });

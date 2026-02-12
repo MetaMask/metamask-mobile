@@ -4759,7 +4759,6 @@
     "on_network": "on {{networkName}}",
     "debit_card": "Debit card",
     "select_payment_method": "Select payment method",
-    "loading_quote": "Loading quote...",
     "pay_with": "Pay with",
     "buying_via": "Buying via {{providerName}}.",
     "change_provider": "Change provider.",
@@ -4865,6 +4864,15 @@
       "log_out": "Log out of {{provider}}",
       "logged_out_success": "Successfully logged out",
       "logged_out_error": "Error logging out"
+    },
+    "token_unavailable_modal": {
+      "title": "Not available",
+      "description": "{{token}} is not available with {{provider}} in your region.",
+      "change_token": "Change token",
+      "change_provider": "Change provider"
+    },
+    "provider_picker_modal": {
+      "title": "Choose a provider"
     }
   },
   "fiat_on_ramp_aggregator": {
