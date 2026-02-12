@@ -30,7 +30,6 @@ import {
   PERPS_EVENT_VALUE,
 } from './constants/eventNames';
 import { ensureError } from './utils/errorUtils';
-import { resolvePerpsMyxProviderEnabled } from '../../components/UI/Perps/selectors/featureFlags';
 import type { CandleData } from './types/perps-types';
 import { CandlePeriod } from './constants/chartConfig';
 import {
@@ -57,6 +56,7 @@ import type { ServiceContext } from './services/ServiceContext';
 import {
   WebSocketConnectionState,
   PerpsAnalyticsEvent,
+  isVersionGatedFeatureFlag,
   type AccountState,
   type AssetRoute,
   type CancelOrderParams,
@@ -761,10 +761,22 @@ export class PerpsController extends BaseController<
    */
   private isMYXProviderEnabled(): boolean {
     try {
+      const localFlag = process.env.MM_PERPS_MYX_PROVIDER_ENABLED === 'true';
       const remoteState = this.messenger.call(
         'RemoteFeatureFlagController:getState',
       );
-      return resolvePerpsMyxProviderEnabled(remoteState.remoteFeatureFlags);
+      const remoteFlag =
+        remoteState.remoteFeatureFlags?.perpsMyxProviderEnabled;
+
+      if (isVersionGatedFeatureFlag(remoteFlag)) {
+        const validated =
+          this.options.infrastructure.featureFlags.validateVersionGated(
+            remoteFlag,
+          );
+        return validated ?? localFlag;
+      }
+
+      return localFlag;
     } catch {
       // If RemoteFeatureFlagController not ready, use fallback
       return process.env.MM_PERPS_MYX_PROVIDER_ENABLED === 'true';
