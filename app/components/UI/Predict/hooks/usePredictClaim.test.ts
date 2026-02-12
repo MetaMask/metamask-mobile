@@ -145,29 +145,21 @@ describe('usePredictClaim', () => {
         loader: ConfirmationLoader.PredictClaim,
         stack: 'Predict',
       });
-      expect(mockClaimWinnings).toHaveBeenCalledWith({
-        providerId: POLYMARKET_PROVIDER_ID,
-      });
+      expect(mockClaimWinnings).toHaveBeenCalledWith();
       expect(mockNavigate).not.toHaveBeenCalled();
     });
 
-    it('uses custom providerId when claiming', async () => {
+    it('calls claim without provider argument', async () => {
       // Arrange
-      const customProviderId = 'custom-provider';
       mockClaimWinnings.mockResolvedValue(undefined);
 
-      const { result } = renderHook(
-        () => usePredictClaim({ providerId: customProviderId }),
-        { wrapper },
-      );
+      const { result } = renderHook(() => usePredictClaim(), { wrapper });
 
       // Act
       await result.current.claim();
 
       // Assert
-      expect(mockClaimWinnings).toHaveBeenCalledWith({
-        providerId: customProviderId,
-      });
+      expect(mockClaimWinnings).toHaveBeenCalledWith();
     });
   });
 

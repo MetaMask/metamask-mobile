@@ -278,7 +278,6 @@ describe('usePredictPriceHistory', () => {
       const { waitForNextUpdate } = renderHook(() =>
         usePredictPriceHistory({
           marketIds: ['market-1'],
-          providerId: 'polymarket',
         }),
       );
 

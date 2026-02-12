@@ -137,15 +137,13 @@ describe('usePredictAccountState', () => {
       expect(result.current.error).toBeNull();
     });
 
-    it('uses custom providerId when specified', async () => {
+    it('loads account state when requested', async () => {
       // Arrange
       mockGetAccountState.mockResolvedValue(mockAccountState);
-      const customProviderId = 'custom-provider';
 
       // Act
       const { result } = renderHook(() =>
         usePredictAccountState({
-          providerId: customProviderId,
           loadOnMount: false,
         }),
       );
@@ -155,9 +153,7 @@ describe('usePredictAccountState', () => {
       });
 
       // Assert
-      expect(mockGetAccountState).toHaveBeenCalledWith({
-        providerId: customProviderId,
-      });
+      expect(mockGetAccountState).toHaveBeenCalledWith({});
     });
 
     it('handles errors when loading account state', async () => {

@@ -84,7 +84,7 @@ interface MockReduxState {
     backgroundState: {
       PredictController: {
         pendingDeposits: {
-          [providerId: string]: { [address: string]: boolean };
+          [address: string]: boolean;
         };
       };
       AccountsController: {
@@ -156,7 +156,7 @@ const mockLoggerError = Logger.error as jest.MockedFunction<
 // Helper to setup test
 function setupUsePredictDepositTest(
   stateOverrides = {},
-  hookOptions = {},
+  _hookOptions = {},
   customToastRef?:
     | React.RefObject<{ showToast: jest.Mock; closeToast: jest.Mock }>
     | null
@@ -201,7 +201,7 @@ function setupUsePredictDepositTest(
       children,
     );
 
-  return renderHook(() => usePredictDeposit(hookOptions), { wrapper });
+  return renderHook(() => usePredictDeposit(), { wrapper });
 }
 
 describe('usePredictDeposit', () => {
@@ -411,9 +411,7 @@ describe('usePredictDeposit', () => {
           backgroundState: {
             PredictController: {
               pendingDeposits: {
-                polymarket: {
-                  [mockAccountAddress]: true,
-                },
+                [mockAccountAddress]: true,
               },
             },
             AccountsController: {
@@ -448,9 +446,7 @@ describe('usePredictDeposit', () => {
           backgroundState: {
             PredictController: {
               pendingDeposits: {
-                polymarket: {
-                  [mockAccountAddress]: true,
-                },
+                [mockAccountAddress]: true,
               },
             },
             AccountsController: {
@@ -475,9 +471,7 @@ describe('usePredictDeposit', () => {
     it('updates isDepositPending when pendingDeposits changes to false', () => {
       const { result, rerender } = setupUsePredictDepositTest({
         pendingDeposits: {
-          polymarket: {
-            [mockAccountAddress]: true,
-          },
+          [mockAccountAddress]: true,
         },
       });
 
@@ -489,9 +483,7 @@ describe('usePredictDeposit', () => {
           backgroundState: {
             PredictController: {
               pendingDeposits: {
-                polymarket: {
-                  [mockAccountAddress]: false,
-                },
+                [mockAccountAddress]: false,
               },
             },
             AccountsController: {

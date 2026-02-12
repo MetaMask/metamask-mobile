@@ -178,12 +178,7 @@ describe('PredictGameChart Wrapper', () => {
         providerId: 'custom-provider',
       });
 
-      render(
-        <PredictGameChart
-          market={marketWithCustomProvider}
-          providerId="custom-provider"
-        />,
-      );
+      render(<PredictGameChart market={marketWithCustomProvider} />);
 
       expect(mockUsePredictPriceHistory).toHaveBeenCalledWith(
         expect.objectContaining({

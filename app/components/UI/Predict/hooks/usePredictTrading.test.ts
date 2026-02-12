@@ -51,14 +51,12 @@ describe('usePredictTrading', () => {
 
       const response = await result.current.getPositions({
         address: '0x1234567890123456789012345678901234567890',
-        providerId: 'polymarket',
       });
 
       expect(
         Engine.context.PredictController.getPositions,
       ).toHaveBeenCalledWith({
         address: '0x1234567890123456789012345678901234567890',
-        providerId: 'polymarket',
       });
       expect(response).toEqual(mockPositions);
     });
@@ -73,7 +71,6 @@ describe('usePredictTrading', () => {
       await expect(
         result.current.getPositions({
           address: '0x1234567890123456789012345678901234567890',
-          providerId: 'polymarket',
         }),
       ).rejects.toThrow('Failed to fetch predict positions');
     });
@@ -108,12 +105,10 @@ describe('usePredictTrading', () => {
       };
 
       const response = await result.current.placeOrder({
-        providerId: 'polymarket',
         preview: mockPreview,
       });
 
       expect(Engine.context.PredictController.placeOrder).toHaveBeenCalledWith({
-        providerId: 'polymarket',
         preview: mockPreview,
       });
       expect(response).toEqual(mockBuyResult);
@@ -147,12 +142,10 @@ describe('usePredictTrading', () => {
       };
 
       const response = await result.current.placeOrder({
-        providerId: 'polymarket',
         preview: mockPreview,
       });
 
       expect(Engine.context.PredictController.placeOrder).toHaveBeenCalledWith({
-        providerId: 'polymarket',
         preview: mockPreview,
       });
       expect(response).toEqual(mockSellResult);
@@ -181,7 +174,6 @@ describe('usePredictTrading', () => {
 
       await expect(
         result.current.placeOrder({
-          providerId: 'polymarket',
           preview: mockPreview,
         }),
       ).rejects.toThrow('Failed to place order');
@@ -238,12 +230,10 @@ describe('usePredictTrading', () => {
       const { result } = renderHook(() => usePredictTrading());
 
       const response = await result.current.getBalance({
-        providerId: 'polymarket',
         address: '0x1234567890123456789012345678901234567890',
       });
 
       expect(Engine.context.PredictController.getBalance).toHaveBeenCalledWith({
-        providerId: 'polymarket',
         address: '0x1234567890123456789012345678901234567890',
       });
       expect(response).toBe(mockBalance);
@@ -258,7 +248,6 @@ describe('usePredictTrading', () => {
 
       await expect(
         result.current.getBalance({
-          providerId: 'polymarket',
           address: '0x1234567890123456789012345678901234567890',
         }),
       ).rejects.toThrow('Failed to fetch balance');
@@ -273,14 +262,12 @@ describe('usePredictTrading', () => {
 
       const { result } = renderHook(() => usePredictTrading());
 
-      const response = await result.current.getBalance({
-        providerId: 'polymarket',
-      });
+      const response = await result.current.getBalance({});
 
       // The hook calls the controller directly, so the controller handles the default address
-      expect(Engine.context.PredictController.getBalance).toHaveBeenCalledWith({
-        providerId: 'polymarket',
-      });
+      expect(Engine.context.PredictController.getBalance).toHaveBeenCalledWith(
+        {},
+      );
       expect(response).toBe(mockBalance);
     });
   });

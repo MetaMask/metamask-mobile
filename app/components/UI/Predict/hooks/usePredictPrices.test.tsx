@@ -267,7 +267,7 @@ describe('usePredictPrices', () => {
   });
 
   describe('configuration options', () => {
-    it('uses custom provider when provided', async () => {
+    it('fetches prices when queries are provided', async () => {
       const { waitForNextUpdate } = renderHook(() =>
         usePredictPrices({
           queries: [
@@ -277,7 +277,6 @@ describe('usePredictPrices', () => {
               outcomeTokenId: 'token-1',
             },
           ],
-          providerId: 'custom-provider',
         }),
       );
 
@@ -291,7 +290,7 @@ describe('usePredictPrices', () => {
             outcomeTokenId: 'token-1',
           },
         ],
-        providerId: 'custom-provider',
+        providerId: 'polymarket',
       });
     });
 
@@ -490,10 +489,14 @@ describe('usePredictPrices', () => {
       });
     });
 
-    it('refetches when providerId changes', async () => {
+    it('refetches when queries change across rerenders', async () => {
       const { rerender, waitForNextUpdate } = renderHook(
-        ({ providerId }) =>
+        ({ queries }) =>
           usePredictPrices({
+            queries,
+          }),
+        {
+          initialProps: {
             queries: [
               {
                 marketId: 'market-1',
@@ -501,16 +504,21 @@ describe('usePredictPrices', () => {
                 outcomeTokenId: 'token-1',
               },
             ],
-            providerId,
-          }),
-        {
-          initialProps: { providerId: 'polymarket' },
+          },
         },
       );
 
       await waitForNextUpdate();
 
-      rerender({ providerId: 'custom-provider' });
+      rerender({
+        queries: [
+          {
+            marketId: 'market-3',
+            outcomeId: 'outcome-3',
+            outcomeTokenId: 'token-3',
+          },
+        ],
+      });
 
       await waitForNextUpdate();
 
@@ -519,12 +527,12 @@ describe('usePredictPrices', () => {
       ).toHaveBeenLastCalledWith({
         queries: [
           {
-            marketId: 'market-1',
-            outcomeId: 'outcome-1',
-            outcomeTokenId: 'token-1',
+            marketId: 'market-3',
+            outcomeId: 'outcome-3',
+            outcomeTokenId: 'token-3',
           },
         ],
-        providerId: 'custom-provider',
+        providerId: 'polymarket',
       });
     });
 

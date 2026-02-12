@@ -176,15 +176,14 @@ describe('usePredictBalance', () => {
       expect(mockGetBalance).not.toHaveBeenCalled();
     });
 
-    it('uses custom providerId when specified', async () => {
+    it('loads balance when custom options are provided', async () => {
       // Given custom providerId
-      const customProviderId = 'custom-provider';
       mockGetBalance.mockResolvedValue(200);
       mockCachedBalance = 200;
 
       // When hook is mounted with custom providerId
       const { result } = renderHook(() =>
-        usePredictBalance({ providerId: customProviderId, loadOnMount: true }),
+        usePredictBalance({ loadOnMount: true }),
       );
 
       // Then getBalance should be called with custom providerId
@@ -194,7 +193,6 @@ describe('usePredictBalance', () => {
 
       expect(mockGetBalance).toHaveBeenCalledWith({
         address: mockSelectedAddress,
-        providerId: customProviderId,
       });
     });
   });

@@ -483,7 +483,6 @@ describe('usePredictPlaceOrder', () => {
       await act(async () => {
         const updatedPreview = createMockOrderPreview({ maxAmountSpent: 200 });
         await result.current.placeOrder({
-          providerId: 'polymarket',
           preview: updatedPreview,
         });
       });
