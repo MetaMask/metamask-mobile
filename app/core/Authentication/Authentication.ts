@@ -69,7 +69,10 @@ import { renewSeedlessControllerRefreshTokens } from '../OAuthService/SeedlessCo
 import { EntropySourceId } from '@metamask/keyring-api';
 import MetaMetrics from '../Analytics/MetaMetrics';
 import { resetProviderToken as depositResetProviderToken } from '../../components/UI/Ramp/Deposit/utils/ProviderTokenVault';
-import { setAllowLoginWithRememberMe } from '../../actions/security';
+import {
+  setAllowLoginWithRememberMe,
+  setOsAuthEnabled,
+} from '../../actions/security';
 import { Alert } from 'react-native';
 import { strings } from '../../../locales/i18n';
 import trackErrorAsAnalytics from '../../util/metrics/TrackError/trackErrorAsAnalytics';
@@ -81,7 +84,7 @@ import {
   getEnrolledLevelAsync,
   SecurityLevel,
 } from 'expo-local-authentication';
-import { getAuthToggleLabel } from './utils';
+import { getAuthLabel, getAuthType } from './utils';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -111,6 +114,15 @@ class AuthenticationService {
     await MultichainAccountService.init();
 
     ReduxService.store.dispatch(logIn());
+  }
+
+  /**
+   * Updates the Redux state for OS authentication enabled status.
+   *
+   * @param enabled - whether OS authentication is enabled
+   */
+  updateOsAuthEnabled(enabled: boolean): void {
+    ReduxService.store.dispatch(setOsAuthEnabled(enabled));
   }
 
   private dispatchPasswordSet(): void {
@@ -418,6 +430,20 @@ class AuthenticationService {
           await StorageWrapper.setItem(PASSCODE_DISABLED, TRUE);
           break;
       }
+
+      // Keep Redux in sync with keychain so getAuthCapabilities reflects actual access control
+      this.updateOsAuthEnabled(
+        authType === AUTHENTICATION_TYPE.BIOMETRIC ||
+          authType === AUTHENTICATION_TYPE.PASSCODE,
+      );
+
+      // Legacy - keep Redux in sync with keychain so getAuthCapabilities reflects actual access control
+      ReduxService.store.dispatch(
+        setAllowLoginWithRememberMe(
+          authType === AUTHENTICATION_TYPE.REMEMBER_ME,
+        ),
+      );
+
       this.dispatchPasswordSet();
     } catch (error) {
       throw new AuthenticationError(
@@ -615,81 +641,96 @@ class AuthenticationService {
 
   /**
    * Fetches the authentication capabilities of the device.
-   * Prioritizes Remember Me first, then biometrics, then passcode/pincode/pattern, then password.
-   * iOS: "Face ID" | "Touch ID" | "Device Passcode"
-   * Android: "Biometrics" | "Device PIN/Pattern"
+   * Prioritizes Remember Me first, then respects legacy user choice (biometrics vs passcode),
+   * then falls back to available capabilities.
+   * iOS: "Face ID" | "Touch ID" | "Device Passcode" | "Password"
+   * Android: "Biometrics" | "Device PIN/Pattern" | "Password"
    *
    * @param osAuthEnabled - Whether the OS-level authentication is enabled from user settings (from user preference state in Redux)
    * @param allowLoginWithRememberMe - Whether Remember Me is enabled from user settings (from user preference state in Redux)
    * @returns {AuthCapabilities} - The authentication capabilities of the device.
    */
-  getAuthCapabilities = async (
-    osAuthEnabled: boolean,
-    allowLoginWithRememberMe: boolean,
-  ): Promise<AuthCapabilities> => {
+  getAuthCapabilities = async ({
+    osAuthEnabled,
+    allowLoginWithRememberMe,
+  }: {
+    osAuthEnabled: boolean;
+    allowLoginWithRememberMe: boolean;
+  }): Promise<AuthCapabilities> => {
     try {
-      // Fetch all capabilities in parallel
+      // Fetch all capabilities and legacy flags in parallel
       const [
         isBiometricsAvailable,
-        supportedOSAuthenticationTypes,
+        supportedBiometricTypes,
         capabilitySecurityLevel,
+        biometryChoiceDisabled,
+        passcodeDisabled,
       ] = await Promise.all([
         isEnrolledAsync(),
         supportedAuthenticationTypesAsync(),
         getEnrolledLevelAsync(),
+        StorageWrapper.getItem(BIOMETRY_CHOICE_DISABLED),
+        StorageWrapper.getItem(PASSCODE_DISABLED),
       ]);
 
-      // Device supports biometrics but they're not available
-      // iOS: user denied permission for this app
-      // Android: user hasn't enrolled biometrics on device
-      const biometricsDisabledOnOS =
-        !isBiometricsAvailable && supportedOSAuthenticationTypes.length > 0;
-
       // Check if passcode is available
-      // iOS: if passcode is available
-      // Android: if pincode/pattern is available
+      // Ex on iOS - if passcode is available
+      // Ex on Android - if pincode/pattern is available
       const passcodeAvailable = capabilitySecurityLevel >= SecurityLevel.SECRET;
 
-      const isAuthToggleVisible = isBiometricsAvailable || passcodeAvailable;
+      // Legacy user preference selected device biometrics
+      const legacyUserChoseBiometrics =
+        passcodeDisabled === TRUE && !biometryChoiceDisabled;
 
-      // Derive the authentication type for keychain storage based on capabilities + user preference
-      // Priority: REMEMBER_ME > BIOMETRIC > PASSCODE > PASSWORD
-      let authStorageType: AUTHENTICATION_TYPE;
+      // Legacy user preference selected device passcode
+      const legacyUserChosePasscode =
+        biometryChoiceDisabled === TRUE && !passcodeDisabled;
 
-      if (allowLoginWithRememberMe) {
-        authStorageType = AUTHENTICATION_TYPE.REMEMBER_ME;
-      } else if (isBiometricsAvailable && osAuthEnabled) {
-        authStorageType = AUTHENTICATION_TYPE.BIOMETRIC;
-      } else if (passcodeAvailable && osAuthEnabled) {
-        authStorageType = AUTHENTICATION_TYPE.PASSCODE;
-      } else {
-        authStorageType = AUTHENTICATION_TYPE.PASSWORD;
-      }
+      // The auth type used for keychain storage
+      const authType = getAuthType({
+        allowLoginWithRememberMe,
+        osAuthEnabled,
+        legacyUserChoseBiometrics,
+        legacyUserChosePasscode,
+        isBiometricsAvailable,
+        passcodeAvailable,
+      });
+
+      // Ex - "Face ID", "Device Passcode", "Password"
+      const authLabel = getAuthLabel({
+        allowLoginWithRememberMe,
+        legacyUserChoseBiometrics,
+        legacyUserChosePasscode,
+        isBiometricsAvailable,
+        passcodeAvailable,
+        supportedBiometricTypes,
+      });
+
+      // Device auth cannot be used until user changes device settings
+      const deviceAuthRequiresSettings =
+        (legacyUserChoseBiometrics && !isBiometricsAvailable) ||
+        (legacyUserChosePasscode && !passcodeAvailable) ||
+        (!isBiometricsAvailable && !passcodeAvailable);
 
       return {
         isBiometricsAvailable,
-        biometricsDisabledOnOS,
-        isAuthToggleVisible,
-        authToggleLabel: getAuthToggleLabel({
-          isBiometricsAvailable,
-          supportedOSAuthenticationTypes,
-          passcodeAvailable,
-          allowLoginWithRememberMe,
-        }),
+        passcodeAvailable,
+        authLabel,
         osAuthEnabled,
         allowLoginWithRememberMe,
-        authStorageType,
+        authType,
+        deviceAuthRequiresSettings,
       };
     } catch (error) {
       // On error, default to no capabilities
       return {
         isBiometricsAvailable: false,
-        biometricsDisabledOnOS: false,
-        isAuthToggleVisible: false,
-        authToggleLabel: '',
+        passcodeAvailable: false,
+        authLabel: '',
         osAuthEnabled,
         allowLoginWithRememberMe,
-        authStorageType: AUTHENTICATION_TYPE.PASSWORD,
+        authType: AUTHENTICATION_TYPE.PASSWORD,
+        deviceAuthRequiresSettings: true,
       };
     }
   };

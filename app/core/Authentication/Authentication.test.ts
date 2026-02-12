@@ -40,7 +40,10 @@ import {
   passwordSet,
 } from '../../actions/user';
 import { setCompletedOnboarding } from '../../actions/onboarding';
-import { setAllowLoginWithRememberMe } from '../../actions/security';
+import {
+  setAllowLoginWithRememberMe,
+  setOsAuthEnabled,
+} from '../../actions/security';
 import { RootState } from '../../reducers';
 import {
   SeedlessOnboardingControllerError,
@@ -827,6 +830,30 @@ describe('Authentication', () => {
       expect(setItemSpy).toHaveBeenCalledWith(BIOMETRY_CHOICE_DISABLED, TRUE);
       expect(setItemSpy).toHaveBeenCalledWith(PASSCODE_DISABLED, TRUE);
       expect(mockDispatch).toHaveBeenCalledWith(passwordSet());
+    });
+
+    it('dispatches setOsAuthEnabled and setAllowLoginWithRememberMe when storePassword runs', async () => {
+      await Authentication.updateAuthPreference({
+        authType: AUTHENTICATION_TYPE.BIOMETRIC,
+        password: mockPassword,
+      });
+
+      expect(mockDispatch).toHaveBeenCalledWith(setOsAuthEnabled(true));
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setAllowLoginWithRememberMe(false),
+      );
+
+      mockDispatch.mockClear();
+
+      await Authentication.updateAuthPreference({
+        authType: AUTHENTICATION_TYPE.REMEMBER_ME,
+        password: mockPassword,
+      });
+
+      expect(mockDispatch).toHaveBeenCalledWith(setOsAuthEnabled(false));
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setAllowLoginWithRememberMe(true),
+      );
     });
 
     it('throws AuthenticationError when SecureKeychain fails', async () => {
@@ -1658,7 +1685,7 @@ describe('Authentication', () => {
         uint8ArrayToMnemonic(mockSeedPhrase1, []),
         false,
       );
-      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(5); // logIn, passwordSet (from storePassword -> dispatchPasswordSet), dispatchLogin, dispatchOauthReset, and setExistingUser
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(7); // logIn, passwordSet, setOsAuthEnabled, setAllowLoginWithRememberMe (from storePassword), dispatchLogin, dispatchOauthReset, and setExistingUser
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
 
@@ -1735,7 +1762,7 @@ describe('Authentication', () => {
         keyringId: 'new-keyring-id',
         type: 'mnemonic',
       });
-      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(5); // logIn, passwordSet (from storePassword -> dispatchPasswordSet), dispatchLogin, dispatchOauthReset, and setExistingUser
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(7); // logIn, passwordSet, setOsAuthEnabled, setAllowLoginWithRememberMe (from storePassword), dispatchLogin, dispatchOauthReset, and setExistingUser
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
 
@@ -1781,7 +1808,7 @@ describe('Authentication', () => {
           shouldSelectAccount: false,
         },
       );
-      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(5); // logIn, passwordSet (from storePassword -> dispatchPasswordSet), dispatchLogin, dispatchOauthReset, and setExistingUser
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(7); // logIn, passwordSet, setOsAuthEnabled, setAllowLoginWithRememberMe (from storePassword), dispatchLogin, dispatchOauthReset, and setExistingUser
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
 
@@ -1811,7 +1838,7 @@ describe('Authentication', () => {
 
       expect(newWalletAndRestoreSpy).toHaveBeenCalled();
       expect(Logger.error).toHaveBeenCalledWith(expect.any(Error), 'unknown');
-      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(5); // logIn, passwordSet (from storePassword -> dispatchPasswordSet), dispatchLogin, dispatchOauthReset, and setExistingUser
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(7); // logIn, passwordSet, setOsAuthEnabled, setAllowLoginWithRememberMe (from storePassword), dispatchLogin, dispatchOauthReset, and setExistingUser
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
 
@@ -1850,7 +1877,7 @@ describe('Authentication', () => {
         importError,
         'Error in rehydrateSeedPhrase- SeedlessOnboardingController',
       );
-      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(5); // logIn, passwordSet (from storePassword -> dispatchPasswordSet), dispatchLogin, dispatchOauthReset, and setExistingUser
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(7); // logIn, passwordSet, setOsAuthEnabled, setAllowLoginWithRememberMe (from storePassword), dispatchLogin, dispatchOauthReset, and setExistingUser
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
 
@@ -1938,7 +1965,7 @@ describe('Authentication', () => {
         error,
         'Error in rehydrateSeedPhrase- SeedlessOnboardingController',
       );
-      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(5); // logIn, passwordSet (from storePassword -> dispatchPasswordSet), dispatchLogin, dispatchOauthReset, and setExistingUser
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(7); // logIn, passwordSet, setOsAuthEnabled, setAllowLoginWithRememberMe (from storePassword), dispatchLogin, dispatchOauthReset, and setExistingUser
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
 
@@ -4675,31 +4702,31 @@ describe('Authentication', () => {
       it('returns REMEMBER_ME storage type regardless of other settings', async () => {
         const osAuthEnabled = true;
         const allowLoginWithRememberMe = true;
-        const result = await Authentication.getAuthCapabilities(
+        const result = await Authentication.getAuthCapabilities({
           osAuthEnabled,
           allowLoginWithRememberMe,
-        );
+        });
 
         expect(result).toEqual({
           isBiometricsAvailable: true,
-          biometricsDisabledOnOS: false,
-          isAuthToggleVisible: true,
-          authToggleLabel: expect.any(String),
+          passcodeAvailable: true,
+          deviceAuthRequiresSettings: false,
+          authLabel: expect.any(String),
           osAuthEnabled,
           allowLoginWithRememberMe,
-          authStorageType: AUTHENTICATION_TYPE.REMEMBER_ME,
+          authType: AUTHENTICATION_TYPE.REMEMBER_ME,
         });
       });
 
       it('returns REMEMBER_ME even when osAuthEnabled is false', async () => {
         const osAuthEnabled = false;
         const allowLoginWithRememberMe = true;
-        const result = await Authentication.getAuthCapabilities(
+        const result = await Authentication.getAuthCapabilities({
           osAuthEnabled,
           allowLoginWithRememberMe,
-        );
+        });
 
-        expect(result.authStorageType).toBe(AUTHENTICATION_TYPE.REMEMBER_ME);
+        expect(result.authType).toBe(AUTHENTICATION_TYPE.REMEMBER_ME);
       });
     });
 
@@ -4717,38 +4744,38 @@ describe('Authentication', () => {
       it('returns BIOMETRIC storage type when osAuthEnabled is true', async () => {
         const osAuthEnabled = true;
         const allowLoginWithRememberMe = false;
-        const result = await Authentication.getAuthCapabilities(
+        const result = await Authentication.getAuthCapabilities({
           osAuthEnabled,
           allowLoginWithRememberMe,
-        );
+        });
 
         expect(result).toEqual({
           isBiometricsAvailable: true,
-          biometricsDisabledOnOS: false,
-          isAuthToggleVisible: true,
-          authToggleLabel: expect.any(String),
+          passcodeAvailable: true,
+          deviceAuthRequiresSettings: false,
+          authLabel: expect.any(String),
           osAuthEnabled,
           allowLoginWithRememberMe,
-          authStorageType: AUTHENTICATION_TYPE.BIOMETRIC,
+          authType: AUTHENTICATION_TYPE.BIOMETRIC,
         });
       });
 
       it('returns PASSWORD storage type when osAuthEnabled is false', async () => {
         const osAuthEnabled = false;
         const allowLoginWithRememberMe = false;
-        const result = await Authentication.getAuthCapabilities(
+        const result = await Authentication.getAuthCapabilities({
           osAuthEnabled,
           allowLoginWithRememberMe,
-        );
+        });
 
         expect(result).toEqual({
           isBiometricsAvailable: true,
-          biometricsDisabledOnOS: false,
-          isAuthToggleVisible: true,
-          authToggleLabel: expect.any(String),
+          passcodeAvailable: true,
+          deviceAuthRequiresSettings: false,
+          authLabel: expect.any(String),
           osAuthEnabled,
           allowLoginWithRememberMe,
-          authStorageType: AUTHENTICATION_TYPE.PASSWORD,
+          authType: AUTHENTICATION_TYPE.PASSWORD,
         });
       });
     });
@@ -4765,38 +4792,38 @@ describe('Authentication', () => {
       it('returns PASSCODE storage type when osAuthEnabled is true', async () => {
         const osAuthEnabled = true;
         const allowLoginWithRememberMe = false;
-        const result = await Authentication.getAuthCapabilities(
+        const result = await Authentication.getAuthCapabilities({
           osAuthEnabled,
           allowLoginWithRememberMe,
-        );
+        });
 
         expect(result).toEqual({
           isBiometricsAvailable: false,
-          biometricsDisabledOnOS: true,
-          isAuthToggleVisible: true,
-          authToggleLabel: expect.any(String),
+          passcodeAvailable: true,
+          deviceAuthRequiresSettings: false,
+          authLabel: expect.any(String),
           osAuthEnabled,
           allowLoginWithRememberMe,
-          authStorageType: AUTHENTICATION_TYPE.PASSCODE,
+          authType: AUTHENTICATION_TYPE.PASSCODE,
         });
       });
 
       it('returns PASSWORD storage type when osAuthEnabled is false', async () => {
         const osAuthEnabled = false;
         const allowLoginWithRememberMe = false;
-        const result = await Authentication.getAuthCapabilities(
+        const result = await Authentication.getAuthCapabilities({
           osAuthEnabled,
           allowLoginWithRememberMe,
-        );
+        });
 
         expect(result).toEqual({
           isBiometricsAvailable: false,
-          biometricsDisabledOnOS: true,
-          isAuthToggleVisible: true,
-          authToggleLabel: expect.any(String),
+          passcodeAvailable: true,
+          deviceAuthRequiresSettings: false,
+          authLabel: expect.any(String),
           osAuthEnabled,
           allowLoginWithRememberMe,
-          authStorageType: AUTHENTICATION_TYPE.PASSWORD,
+          authType: AUTHENTICATION_TYPE.PASSWORD,
         });
       });
     });
@@ -4809,20 +4836,21 @@ describe('Authentication', () => {
       });
 
       it('returns PASSWORD storage type regardless of osAuthEnabled', async () => {
-        const resultEnabled = await Authentication.getAuthCapabilities(
-          true,
-          false,
-        );
+        const resultEnabled = await Authentication.getAuthCapabilities({
+          osAuthEnabled: true,
+          allowLoginWithRememberMe: false,
+        });
 
-        expect(resultEnabled.authStorageType).toBe(
-          AUTHENTICATION_TYPE.PASSWORD,
-        );
+        expect(resultEnabled.authType).toBe(AUTHENTICATION_TYPE.PASSWORD);
       });
 
-      it('sets isAuthToggleVisible to false', async () => {
-        const result = await Authentication.getAuthCapabilities(true, false);
+      it('sets deviceAuthRequiresSettings to true when no device auth available', async () => {
+        const result = await Authentication.getAuthCapabilities({
+          osAuthEnabled: true,
+          allowLoginWithRememberMe: false,
+        });
 
-        expect(result.isAuthToggleVisible).toBe(false);
+        expect(result.deviceAuthRequiresSettings).toBe(true);
       });
     });
 
@@ -4832,19 +4860,19 @@ describe('Authentication', () => {
         const allowLoginWithRememberMe = false;
         mockIsEnrolledAsync.mockRejectedValue(new Error('API error'));
 
-        const result = await Authentication.getAuthCapabilities(
+        const result = await Authentication.getAuthCapabilities({
           osAuthEnabled,
           allowLoginWithRememberMe,
-        );
+        });
 
         expect(result).toEqual({
           isBiometricsAvailable: false,
-          biometricsDisabledOnOS: false,
-          isAuthToggleVisible: false,
-          authToggleLabel: '',
+          passcodeAvailable: false,
+          deviceAuthRequiresSettings: true,
+          authLabel: '',
           osAuthEnabled,
           allowLoginWithRememberMe,
-          authStorageType: AUTHENTICATION_TYPE.PASSWORD,
+          authType: AUTHENTICATION_TYPE.PASSWORD,
         });
       });
     });
@@ -4861,7 +4889,10 @@ describe('Authentication', () => {
       });
 
       it('calls all LocalAuthentication APIs in parallel', async () => {
-        await Authentication.getAuthCapabilities(true, false);
+        await Authentication.getAuthCapabilities({
+          osAuthEnabled: true,
+          allowLoginWithRememberMe: false,
+        });
 
         expect(mockIsEnrolledAsync).toHaveBeenCalledTimes(1);
         expect(mockSupportedAuthenticationTypesAsync).toHaveBeenCalledTimes(1);

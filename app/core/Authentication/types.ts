@@ -26,16 +26,16 @@ export enum ReauthenticateErrorType {
 export interface AuthCapabilities {
   /** Whether biometrics are enrolled and available to this app */
   isBiometricsAvailable: boolean;
-  /** If device supports biometrics but they're not available to the app (iOS: permission denied, Android: not enrolled) */
-  biometricsDisabledOnOS: boolean;
-  /** Whether the authentication toggle is visible (based on biometric-first priority) */
-  isAuthToggleVisible: boolean;
-  /** Human-readable label for the toggle (e.g., "Face ID", "Biometrics", "Device Passcode") */
-  authToggleLabel: string;
+  /** Whether passcode is available to the app */
+  passcodeAvailable: boolean;
+  /** Human-readable label for the available device auth tier (e.g. "Face ID", "Device Passcode"). Reflects what the device supports, not the current authType, so the toggle can show the right label when osAuthEnabled is false. */
+  authLabel: string;
   /** Whether the OS-level authentication is enabled (from user preference in Redux) */
   osAuthEnabled: boolean;
   /** Whether Remember Me is enabled (from user preference in Redux) */
   allowLoginWithRememberMe: boolean;
   /** The derived AUTHENTICATION_TYPE for keychain storage based on capabilities + user preference. Priority: REMEMBER_ME > BIOMETRIC > PASSCODE > PASSWORD */
-  authStorageType: AUTHENTICATION_TYPE;
+  authType: AUTHENTICATION_TYPE;
+  /** True when device auth cannot be used until the user changes device settings */
+  deviceAuthRequiresSettings: boolean;
 }
