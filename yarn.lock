@@ -9356,14 +9356,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/ramps-controller@npm:^7.1.0":
-  version: 7.1.0
-  resolution: "@metamask/ramps-controller@npm:7.1.0"
+"@metamask/ramps-controller@npm:^8.0.0":
+  version: 8.0.0
+  resolution: "@metamask/ramps-controller@npm:8.0.0"
   dependencies:
     "@metamask/base-controller": "npm:^9.0.0"
     "@metamask/controller-utils": "npm:^11.18.0"
     "@metamask/messenger": "npm:^0.3.0"
-  checksum: 10/e5bb19d6e8497156c96351f24130ab8552821f53e13b8e17040d2c9d6fc7604886e1f8d94ed5a4883ae2236bb9e580450b71d2673cbc50fd3ae8e27f7d5b7e45
+  checksum: 10/fd016f8d51c835a120da2bd62816dc11f0ab670f1559b17d7bf280842b66c4d6b238a1efa16ce786eedf5876bb275d512a3cba7cdb740ac1ea8620139070ba6b
   languageName: node
   linkType: hard
 
@@ -9580,9 +9580,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/smart-transactions-controller@npm:^22.4.0":
-  version: 22.4.0
-  resolution: "@metamask/smart-transactions-controller@npm:22.4.0"
+"@metamask/smart-transactions-controller@npm:^22.5.0":
+  version: 22.5.0
+  resolution: "@metamask/smart-transactions-controller@npm:22.5.0"
   dependencies:
     "@babel/runtime": "npm:^7.24.1"
     "@ethereumjs/tx": "npm:^5.2.1"
@@ -9616,7 +9616,7 @@ __metadata:
       optional: true
     "@metamask/gas-fee-controller":
       optional: true
-  checksum: 10/e1cad73e890c5ce2d6f9422d4ac7bd248ac853d10ecf4d96d5092ff5ae911d18db3a851ca800e492613db44c8b4f8a325543a6fe06c10aab5ae1774c75259455
+  checksum: 10/215c5fe21e5e1679e4e0bc247d4ace99d88464ae97fd8c75fcd3bb3dc8420e11752b18a8eddd481591fc97508cfa87e909f7defda6911027c95166e6f69c5ba5
   languageName: node
   linkType: hard
 
@@ -9995,9 +9995,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/transaction-controller@npm:^62.11.0, @metamask/transaction-controller@npm:^62.13.0, @metamask/transaction-controller@npm:^62.14.0, @metamask/transaction-controller@npm:^62.15.0":
-  version: 62.15.0
-  resolution: "@metamask/transaction-controller@npm:62.15.0"
+"@metamask/transaction-controller@npm:^62.11.0, @metamask/transaction-controller@npm:^62.13.0, @metamask/transaction-controller@npm:^62.14.0, @metamask/transaction-controller@npm:^62.16.0":
+  version: 62.16.0
+  resolution: "@metamask/transaction-controller@npm:62.16.0"
   dependencies:
     "@ethereumjs/common": "npm:^4.4.0"
     "@ethereumjs/tx": "npm:^5.4.0"
@@ -10030,7 +10030,7 @@ __metadata:
   peerDependencies:
     "@babel/runtime": ^7.0.0
     "@metamask/eth-block-tracker": ">=9"
-  checksum: 10/baeb49bed797443030e15c55f4dd487c9ed98a52d746827935b534ad24db4aad705a7ea2a4b031f1c4ea85fd3f5bf4820ed212895e220fe6d65acca278778875
+  checksum: 10/b0152b51e538b72969960ae18be576945ea768ece8a92c25bcb7cf4f33735eb69816722086b8cf427d9c37711e87451a449a0f662366736b9181eba5fc295d5c
   languageName: node
   linkType: hard
 
@@ -28834,6 +28834,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"expo-local-authentication@npm:~15.0.2":
+  version: 15.0.2
+  resolution: "expo-local-authentication@npm:15.0.2"
+  dependencies:
+    invariant: "npm:^2.2.4"
+  peerDependencies:
+    expo: "*"
+  checksum: 10/f3548960a6827c4f04360b595a6b571ca4c840b30544f3d9a73a8dd72f75273c72326d9eadc667ffafbf6ba7e35b708d3b7a33031582e504e1b28cb4b651ca67
+  languageName: node
+  linkType: hard
+
 "expo-manifests@npm:~0.15.7, expo-manifests@npm:~0.15.8":
   version: 0.15.8
   resolution: "expo-manifests@npm:0.15.8"
@@ -35179,7 +35190,7 @@ __metadata:
     "@metamask/profile-metrics-controller": "npm:^2.0.0"
     "@metamask/profile-sync-controller": "npm:^27.1.0"
     "@metamask/providers": "npm:^18.3.1"
-    "@metamask/ramps-controller": "npm:^7.1.0"
+    "@metamask/ramps-controller": "npm:^8.0.0"
     "@metamask/react-native-acm": "npm:^1.0.1"
     "@metamask/react-native-actionsheet": "npm:2.4.2"
     "@metamask/react-native-button": "npm:^3.0.0"
@@ -35196,7 +35207,7 @@ __metadata:
     "@metamask/selected-network-controller": "npm:^25.0.0"
     "@metamask/signature-controller": "npm:^35.0.0"
     "@metamask/slip44": "npm:^4.2.0"
-    "@metamask/smart-transactions-controller": "npm:^22.4.0"
+    "@metamask/smart-transactions-controller": "npm:^22.5.0"
     "@metamask/snaps-controllers": "npm:^18.0.0"
     "@metamask/snaps-execution-environments": "npm:^11.0.0"
     "@metamask/snaps-rpc-methods": "npm:^14.3.0"
@@ -35211,7 +35222,7 @@ __metadata:
     "@metamask/test-dapp": "npm:9.5.0"
     "@metamask/test-dapp-multichain": "npm:^0.17.1"
     "@metamask/test-dapp-solana": "npm:^0.3.0"
-    "@metamask/transaction-controller": "npm:^62.15.0"
+    "@metamask/transaction-controller": "npm:^62.16.0"
     "@metamask/transaction-pay-controller": "npm:^12.1.0"
     "@metamask/tron-wallet-snap": "npm:^1.21.1"
     "@metamask/utils": "npm:^11.8.1"
@@ -35378,6 +35389,7 @@ __metadata:
     expo-font: "npm:~13.0.4"
     expo-haptics: "npm:~14.0.1"
     expo-image: "npm:~2.0.7"
+    expo-local-authentication: "npm:~15.0.2"
     expo-screen-orientation: "npm:~8.0.4"
     expo-sensors: "npm:~14.0.2"
     expo-updates: "patch:expo-updates@npm%3A0.27.4#~/.yarn/patches/expo-updates-npm-0.27.4-2a215516d7.patch"

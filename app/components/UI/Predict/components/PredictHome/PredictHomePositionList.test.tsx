@@ -2,7 +2,27 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { PredictPosition, PredictPositionStatus } from '../../types';
 import PredictHomePositionList from './PredictHomePositionList';
+import PredictPositionComponent from '../PredictPosition/PredictPosition';
 import PredictPositionResolved from '../PredictPositionResolved/PredictPositionResolved';
+
+const mockSelectPrivacyMode = jest.fn();
+
+jest.mock('../../../../../selectors/preferencesController', () => ({
+  selectPrivacyMode: (state: unknown) => mockSelectPrivacyMode(state),
+}));
+
+jest.mock('react-redux', () => ({
+  useSelector: (selector: (state: unknown) => unknown) =>
+    selector({
+      engine: {
+        backgroundState: {
+          PreferencesController: {
+            privacyMode: false,
+          },
+        },
+      },
+    }),
+}));
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -71,6 +91,7 @@ describe('PredictHomePositionList', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockSelectPrivacyMode.mockReturnValue(false);
   });
 
   it('renders active positions', () => {
@@ -213,5 +234,38 @@ describe('PredictHomePositionList', () => {
 
     // Positions sorted descending by endDate: 2024-01-03 (id=2), 2024-01-02 (id=3), 2024-01-01 (id=1)
     expect(callOrder).toEqual(['2', '3', '1']);
+  });
+
+  it('passes privacy mode value to active and resolved position components', () => {
+    const activePositions = [
+      createMockPosition({ id: '1', outcomeId: 'outcome1', outcomeIndex: 0 }),
+    ];
+    const claimablePositions = [
+      createMockPosition({
+        id: '2',
+        outcomeId: 'outcome2',
+        outcomeIndex: 1,
+        claimable: true,
+        status: PredictPositionStatus.REDEEMABLE,
+      }),
+    ];
+    mockSelectPrivacyMode.mockReturnValue(true);
+
+    render(
+      <PredictHomePositionList
+        activePositions={activePositions}
+        claimablePositions={claimablePositions}
+      />,
+    );
+
+    const mockPredictPosition = jest.mocked(PredictPositionComponent);
+    const mockResolvedPosition = jest.mocked(PredictPositionResolved);
+
+    expect(mockPredictPosition.mock.calls[0][0]).toEqual(
+      expect.objectContaining({ privacyMode: true }),
+    );
+    expect(mockResolvedPosition.mock.calls[0][0]).toEqual(
+      expect.objectContaining({ privacyMode: true }),
+    );
   });
 });
