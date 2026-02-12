@@ -153,7 +153,19 @@ const OptinMetrics = () => {
 
     dispatch(setDataCollectionForMarketing(isMarketingChecked));
 
-    // Track the analytics preference event first
+    // Track opt-out event if user opted out of metrics
+    if (!isBasicUsageChecked) {
+      metrics.trackEvent(
+        metrics
+          .createEventBuilder(MetaMetricsEvents.METRICS_OPT_OUT)
+          .addProperties({
+            updated_after_onboarding: false,
+            location: 'onboarding_metametrics',
+          })
+          .build(),
+      );
+    }
+
     metrics.trackEvent(
       metrics
         .createEventBuilder(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED)
@@ -231,19 +243,10 @@ const OptinMetrics = () => {
   const handleBasicUsageToggle = useCallback(() => {
     const newValue = !isBasicUsageChecked;
     if (!newValue) {
-      metrics.trackEvent(
-        metrics
-          .createEventBuilder(MetaMetricsEvents.METRICS_OPT_OUT)
-          .addProperties({
-            updated_after_onboarding: false,
-            location: 'onboarding_metametrics',
-          })
-          .build(),
-      );
       setIsMarketingChecked(false);
     }
     setIsBasicUsageChecked(newValue);
-  }, [isBasicUsageChecked, metrics]);
+  }, [isBasicUsageChecked]);
 
   const handleMarketingToggle = useCallback(() => {
     if (isBasicUsageChecked) {

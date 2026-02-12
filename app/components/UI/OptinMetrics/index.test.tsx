@@ -277,7 +277,7 @@ describe('OptinMetrics', () => {
       });
     });
 
-    it('tracks METRICS_OPT_OUT when basic usage checkbox is unchecked', async () => {
+    it('tracks METRICS_OPT_OUT when user navigates out with basic usage unchecked', async () => {
       renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
 
       const basicUsageCheckbox = screen.getByText(
@@ -286,6 +286,8 @@ describe('OptinMetrics', () => {
 
       fireEvent.press(basicUsageCheckbox);
 
+      fireEvent.press(screen.getByText(strings('privacy_policy.continue')));
+
       await waitFor(() => {
         expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
           expect.objectContaining({
@@ -299,7 +301,7 @@ describe('OptinMetrics', () => {
       });
     });
 
-    it('tracks METRICS_OPT_OUT when unchecking via checkbox component', async () => {
+    it('tracks METRICS_OPT_OUT when navigating out via checkbox component uncheck', async () => {
       renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
 
       const checkboxes = screen.getAllByRole('checkbox');
@@ -307,6 +309,8 @@ describe('OptinMetrics', () => {
 
       fireEvent.press(basicUsageCheckbox);
 
+      fireEvent.press(screen.getByText(strings('privacy_policy.continue')));
+
       await waitFor(() => {
         expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
           expect.objectContaining({
@@ -320,7 +324,7 @@ describe('OptinMetrics', () => {
       });
     });
 
-    it('unchecks marketing when basic usage is unchecked and fires METRICS_OPT_OUT', async () => {
+    it('unchecks marketing when basic usage is unchecked and fires METRICS_OPT_OUT on navigate out', async () => {
       renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
 
       const marketingCheckbox = screen.getByText(
@@ -332,6 +336,8 @@ describe('OptinMetrics', () => {
         strings('privacy_policy.gather_basic_usage_title'),
       );
       fireEvent.press(basicUsageCheckbox);
+
+      fireEvent.press(screen.getByText(strings('privacy_policy.continue')));
 
       await waitFor(() => {
         expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
