@@ -458,15 +458,9 @@ export class CardSDK {
 
   getGeoLocation = async (): Promise<string> => {
     try {
-      const env = process.env.NODE_ENV ?? 'production';
-      const environment = env === 'production' ? 'PROD' : 'DEV';
-
-      const GEOLOCATION_URLS = {
-        DEV: 'https://on-ramp.dev-api.cx.metamask.io/geolocation',
-        PROD: 'https://on-ramp.api.cx.metamask.io/geolocation',
-      };
-      const url = GEOLOCATION_URLS[environment];
-      const response = await fetch(url);
+      const response = await fetch(
+        'https://on-ramp.api.cx.metamask.io/geolocation',
+      );
 
       if (!response.ok) {
         throw new Error(`Failed to get geolocation: ${response.statusText}`);

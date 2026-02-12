@@ -194,7 +194,7 @@ export class MYXProvider implements PerpsProvider {
 
       return { success: true };
     } catch (error) {
-      const err = ensureError(error);
+      const err = ensureError(error, 'MYXProvider.initialize');
       this.deps.logger.error(err, this.getErrorContext('initialize'));
       return { success: false, error: err.message };
     }
@@ -213,7 +213,7 @@ export class MYXProvider implements PerpsProvider {
 
       return { success: true };
     } catch (error) {
-      const err = ensureError(error);
+      const err = ensureError(error, 'MYXProvider.disconnect');
       this.deps.logger.error(err, this.getErrorContext('disconnect'));
       return { success: false, error: err.message };
     }
@@ -257,7 +257,7 @@ export class MYXProvider implements PerpsProvider {
 
       return this.poolsCache.map((pool) => adaptMarketFromMYX(pool));
     } catch (error) {
-      const err = ensureError(error);
+      const err = ensureError(error, 'MYXProvider.getMarkets');
       this.deps.logger.error(err, this.getErrorContext('getMarkets'));
       throw err;
     }
@@ -291,7 +291,7 @@ export class MYXProvider implements PerpsProvider {
         );
       });
     } catch (error) {
-      const err = ensureError(error);
+      const err = ensureError(error, 'MYXProvider.getMarketDataWithPrices');
       this.deps.logger.error(
         err,
         this.getErrorContext('getMarketDataWithPrices'),
