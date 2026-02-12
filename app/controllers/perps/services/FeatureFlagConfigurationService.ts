@@ -330,13 +330,16 @@ export class FeatureFlagConfigurationService {
     }
 
     context.refreshEligibility().catch((error) => {
-      this.deps.logger.error(ensureError(error, 'FeatureFlagConfigurationService.setBlockedRegions'), {
-        tags: { feature: PERPS_CONSTANTS.FeatureName },
-        context: {
-          name: 'FeatureFlagConfigurationService.setBlockedRegions',
-          data: { source },
+      this.deps.logger.error(
+        ensureError(error, 'FeatureFlagConfigurationService.setBlockedRegions'),
+        {
+          tags: { feature: PERPS_CONSTANTS.FeatureName },
+          context: {
+            name: 'FeatureFlagConfigurationService.setBlockedRegions',
+            data: { source },
+          },
         },
-      });
+      );
     });
   }
 }

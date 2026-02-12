@@ -1323,7 +1323,10 @@ export class HyperLiquidProvider implements PerpsProvider {
         {
           dexName,
           assetSymbol,
-          error: ensureError(error, 'HyperLiquidProvider.calculateHip3FeeMultiplier').message,
+          error: ensureError(
+            error,
+            'HyperLiquidProvider.calculateHip3FeeMultiplier',
+          ).message,
         },
       );
       // Safe fallback: standard HIP-3 2x multiplier (no Growth Mode discount)
@@ -2726,7 +2729,10 @@ export class HyperLiquidProvider implements PerpsProvider {
         } catch (rebalanceError) {
           // Don't fail the order if rebalance fails (order already succeeded)
           this.deps.logger.error(
-            ensureError(rebalanceError, 'HyperLiquidProvider.placeOrder:autoRebalance'),
+            ensureError(
+              rebalanceError,
+              'HyperLiquidProvider.placeOrder:autoRebalance',
+            ),
             this.getErrorContext('placeOrder:autoRebalance', {
               dex: dexName,
               excessAmount: excessAmount.toFixed(2),
@@ -2747,7 +2753,10 @@ export class HyperLiquidProvider implements PerpsProvider {
     } catch (balanceCheckError) {
       // Don't fail the order if balance check fails - log for monitoring
       this.deps.logger.error(
-        ensureError(balanceCheckError, 'HyperLiquidProvider.placeOrder:postOrderBalanceCheck'),
+        ensureError(
+          balanceCheckError,
+          'HyperLiquidProvider.placeOrder:postOrderBalanceCheck',
+        ),
         this.getErrorContext('placeOrder:postOrderBalanceCheck', {
           dex: dexName,
           note: 'Failed to verify post-order balance for auto-rebalance',
@@ -4875,7 +4884,10 @@ export class HyperLiquidProvider implements PerpsProvider {
       return rawLedgerUpdates || [];
     } catch (error) {
       this.deps.logger.error(
-        ensureError(error, 'HyperLiquidProvider.getUserNonFundingLedgerUpdates'),
+        ensureError(
+          error,
+          'HyperLiquidProvider.getUserNonFundingLedgerUpdates',
+        ),
         this.getErrorContext('getUserNonFundingLedgerUpdates', params),
       );
       return [];
@@ -7073,12 +7085,15 @@ export class HyperLiquidProvider implements PerpsProvider {
       // Map DEX objects to names: null -> '' (main DEX), object -> object.name
       return dexs.map((dex) => (dex === null ? '' : dex.name));
     } catch (error) {
-      this.deps.logger.error(ensureError(error, 'HyperLiquidProvider.getAvailableDexs'), {
-        context: {
-          name: 'HyperLiquidProvider.getAvailableDexs',
-          data: { action: 'fetch_available_dexs' },
+      this.deps.logger.error(
+        ensureError(error, 'HyperLiquidProvider.getAvailableDexs'),
+        {
+          context: {
+            name: 'HyperLiquidProvider.getAvailableDexs',
+            data: { action: 'fetch_available_dexs' },
+          },
         },
-      });
+      );
       throw error;
     }
   }

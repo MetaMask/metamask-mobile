@@ -418,7 +418,10 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
         },
       );
     } catch (error) {
-      const errorInstance = ensureError(error, 'CandleStreamChannel.fetchHistoricalCandles');
+      const errorInstance = ensureError(
+        error,
+        'CandleStreamChannel.fetchHistoricalCandles',
+      );
 
       // Log to Sentry: fetch failures affect multiple subscribers
       Logger.error(errorInstance, {

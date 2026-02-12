@@ -157,20 +157,23 @@ export function usePerpsLiveCandles(
       const errorInstance = err instanceof Error ? err : new Error(String(err));
 
       // Log to Sentry: subscription setup failure prevents live updates
-      Logger.error(ensureError(errorInstance, 'usePerpsLiveCandles.subscribe'), {
-        tags: {
-          feature: PERPS_CONSTANTS.FeatureName,
-          component: 'usePerpsLiveCandles',
-        },
-        context: {
-          name: 'candle_subscription',
-          data: {
-            operation: 'subscribe',
-            symbol,
-            interval,
+      Logger.error(
+        ensureError(errorInstance, 'usePerpsLiveCandles.subscribe'),
+        {
+          tags: {
+            feature: PERPS_CONSTANTS.FeatureName,
+            component: 'usePerpsLiveCandles',
+          },
+          context: {
+            name: 'candle_subscription',
+            data: {
+              operation: 'subscribe',
+              symbol,
+              interval,
+            },
           },
         },
-      });
+      );
 
       setError(errorInstance);
       setIsLoading(false);

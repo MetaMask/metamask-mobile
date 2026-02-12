@@ -46,12 +46,15 @@ export const formatAccountToCaipAccountId = (
 
     return toCaipAccountId(namespace, reference, normalizedAddress);
   } catch (error) {
-    logger?.error(ensureError(error, 'rewardsUtils.formatAccountToCaipAccountId'), {
-      context: {
-        name: 'rewardsUtils.formatAccountToCaipAccountId',
-        data: { address, chainId },
+    logger?.error(
+      ensureError(error, 'rewardsUtils.formatAccountToCaipAccountId'),
+      {
+        context: {
+          name: 'rewardsUtils.formatAccountToCaipAccountId',
+          data: { address, chainId },
+        },
       },
-    });
+    );
     return null;
   }
 };

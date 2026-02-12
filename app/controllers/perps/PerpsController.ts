@@ -2780,7 +2780,10 @@ export class PerpsController extends BaseController<
         const provider = this.getActiveProvider();
         await provider.disconnect();
       } catch (error) {
-        this.logError(ensureError(error, 'PerpsController.disconnect'), this.getErrorContext('disconnect'));
+        this.logError(
+          ensureError(error, 'PerpsController.disconnect'),
+          this.getErrorContext('disconnect'),
+        );
       }
     }
 

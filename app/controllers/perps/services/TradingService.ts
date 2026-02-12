@@ -227,21 +227,24 @@ export class TradingService {
         ? parseFloat(params.takeProfitPrice)
         : undefined,
     }).catch((error) => {
-      this.deps.logger.error(ensureError(error, 'TradingService.handleOrderSuccess'), {
-        tags: {
-          feature: PERPS_CONSTANTS.FeatureName,
-          provider: context.tracingContext.provider,
-          network: context.tracingContext.isTestnet ? 'testnet' : 'mainnet',
-        },
-        context: {
-          name: context.errorContext.controller,
-          data: {
-            method: context.errorContext.method,
-            operation: 'reportOrderToDataLake',
-            symbol: params.symbol,
+      this.deps.logger.error(
+        ensureError(error, 'TradingService.handleOrderSuccess'),
+        {
+          tags: {
+            feature: PERPS_CONSTANTS.FeatureName,
+            provider: context.tracingContext.provider,
+            network: context.tracingContext.isTestnet ? 'testnet' : 'mainnet',
+          },
+          context: {
+            name: context.errorContext.controller,
+            data: {
+              method: context.errorContext.method,
+              operation: 'reportOrderToDataLake',
+              symbol: params.symbol,
+            },
           },
         },
-      });
+      );
     });
   }
 
@@ -691,21 +694,24 @@ export class TradingService {
       action: 'close',
       symbol,
     }).catch((error) => {
-      this.deps.logger.error(ensureError(error, 'TradingService.handleDataLakeReporting'), {
-        tags: {
-          feature: PERPS_CONSTANTS.FeatureName,
-          provider: context.tracingContext.provider,
-          network: context.tracingContext.isTestnet ? 'testnet' : 'mainnet',
-        },
-        context: {
-          name: context.errorContext.controller,
-          data: {
-            method: context.errorContext.method,
-            operation: 'reportOrderToDataLake',
-            symbol,
+      this.deps.logger.error(
+        ensureError(error, 'TradingService.handleDataLakeReporting'),
+        {
+          tags: {
+            feature: PERPS_CONSTANTS.FeatureName,
+            provider: context.tracingContext.provider,
+            network: context.tracingContext.isTestnet ? 'testnet' : 'mainnet',
+          },
+          context: {
+            name: context.errorContext.controller,
+            data: {
+              method: context.errorContext.method,
+              operation: 'reportOrderToDataLake',
+              symbol,
+            },
           },
         },
-      });
+      );
     });
   }
 
@@ -1275,20 +1281,23 @@ export class TradingService {
         duration: completionDuration,
       });
 
-      this.deps.logger.error(ensureError(error, 'TradingService.closePosition'), {
-        tags: {
-          feature: PERPS_CONSTANTS.FeatureName,
-          provider: context.tracingContext.provider,
-          network: context.tracingContext.isTestnet ? 'testnet' : 'mainnet',
-        },
-        context: {
-          name: context.errorContext.controller,
-          data: {
-            method: context.errorContext.method,
-            symbol: params.symbol,
+      this.deps.logger.error(
+        ensureError(error, 'TradingService.closePosition'),
+        {
+          tags: {
+            feature: PERPS_CONSTANTS.FeatureName,
+            provider: context.tracingContext.provider,
+            network: context.tracingContext.isTestnet ? 'testnet' : 'mainnet',
+          },
+          context: {
+            name: context.errorContext.controller,
+            data: {
+              method: context.errorContext.method,
+              symbol: params.symbol,
+            },
           },
         },
-      });
+      );
 
       throw error;
     } finally {

@@ -123,13 +123,16 @@ export class EligibilityService {
 
       return location;
     } catch (e) {
-      this.deps.logger.error(ensureError(e, 'EligibilityService.performGeoLocationFetch'), {
-        tags: { feature: PERPS_CONSTANTS.FeatureName },
-        context: {
-          name: 'EligibilityService.performGeoLocationFetch',
-          data: {},
+      this.deps.logger.error(
+        ensureError(e, 'EligibilityService.performGeoLocationFetch'),
+        {
+          tags: { feature: PERPS_CONSTANTS.FeatureName },
+          context: {
+            name: 'EligibilityService.performGeoLocationFetch',
+            data: {},
+          },
         },
-      });
+      );
       // Don't cache failures
       return location;
     }
@@ -174,13 +177,16 @@ export class EligibilityService {
       // Default to eligible if location is unknown
       return true;
     } catch (error) {
-      this.deps.logger.error(ensureError(error, 'EligibilityService.checkEligibility'), {
-        tags: { feature: PERPS_CONSTANTS.FeatureName },
-        context: {
-          name: 'EligibilityService.checkEligibility',
-          data: {},
+      this.deps.logger.error(
+        ensureError(error, 'EligibilityService.checkEligibility'),
+        {
+          tags: { feature: PERPS_CONSTANTS.FeatureName },
+          context: {
+            name: 'EligibilityService.checkEligibility',
+            data: {},
+          },
         },
-      });
+      );
       // Default to eligible on error
       return true;
     }

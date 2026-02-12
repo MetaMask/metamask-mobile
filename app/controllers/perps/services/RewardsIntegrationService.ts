@@ -125,13 +125,19 @@ export class RewardsIntegrationService {
 
       return discountBips;
     } catch (error) {
-      this.deps.logger.error(ensureError(error, 'RewardsIntegrationService.calculateUserFeeDiscount'), {
-        tags: { feature: PERPS_CONSTANTS.FeatureName },
-        context: {
-          name: 'RewardsIntegrationService.calculateUserFeeDiscount',
-          data: {},
+      this.deps.logger.error(
+        ensureError(
+          error,
+          'RewardsIntegrationService.calculateUserFeeDiscount',
+        ),
+        {
+          tags: { feature: PERPS_CONSTANTS.FeatureName },
+          context: {
+            name: 'RewardsIntegrationService.calculateUserFeeDiscount',
+            data: {},
+          },
         },
-      });
+      );
       return undefined;
     }
   }

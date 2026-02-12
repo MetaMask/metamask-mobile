@@ -158,7 +158,10 @@ export class HyperLiquidClientService {
       }
       this.httpTransport = undefined;
 
-      const errorInstance = ensureError(error, 'HyperLiquidClientService.initialize');
+      const errorInstance = ensureError(
+        error,
+        'HyperLiquidClientService.initialize',
+      );
       this.updateConnectionState(WebSocketConnectionState.Disconnected);
 
       // Log to Sentry: initialization failure blocks all Perps functionality
@@ -454,7 +457,10 @@ export class HyperLiquidClientService {
         candles: [],
       };
     } catch (error) {
-      const errorInstance = ensureError(error, 'HyperLiquidClientService.fetchHistoricalCandles');
+      const errorInstance = ensureError(
+        error,
+        'HyperLiquidClientService.fetchHistoricalCandles',
+      );
 
       // Log to Sentry: prevents initial chart data load
       this.deps.logger.error(errorInstance, {
@@ -592,7 +598,10 @@ export class HyperLiquidClientService {
             }
           })
           .catch((error) => {
-            const errorInstance = ensureError(error, 'HyperLiquidClientService.subscribeToCandles');
+            const errorInstance = ensureError(
+              error,
+              'HyperLiquidClientService.subscribeToCandles',
+            );
 
             // Log to Sentry: WebSocket subscription failure prevents live updates
             this.deps.logger.error(errorInstance, {
@@ -617,7 +626,10 @@ export class HyperLiquidClientService {
           });
       })
       .catch((error) => {
-        const errorInstance = ensureError(error, 'HyperLiquidClientService.subscribeToCandles');
+        const errorInstance = ensureError(
+          error,
+          'HyperLiquidClientService.subscribeToCandles',
+        );
 
         // Log to Sentry: initial fetch failure blocks chart completely
         this.deps.logger.error(errorInstance, {
@@ -747,13 +759,16 @@ export class HyperLiquidClientService {
             timestamp: new Date().toISOString(),
           });
         } catch (error) {
-          this.deps.logger.error(ensureError(error, 'HyperLiquidClientService.performDisconnection'), {
-            tags: { feature: PERPS_CONSTANTS.FeatureName },
-            context: {
-              name: 'HyperLiquidClientService.performDisconnection',
-              data: { action: 'close_transport' },
+          this.deps.logger.error(
+            ensureError(error, 'HyperLiquidClientService.performDisconnection'),
+            {
+              tags: { feature: PERPS_CONSTANTS.FeatureName },
+              context: {
+                name: 'HyperLiquidClientService.performDisconnection',
+                data: { action: 'close_transport' },
+              },
             },
-          });
+          );
         }
       }
 
@@ -773,13 +788,16 @@ export class HyperLiquidClientService {
       });
     } catch (error) {
       this.updateConnectionState(WebSocketConnectionState.Disconnected);
-      this.deps.logger.error(ensureError(error, 'HyperLiquidClientService.performDisconnection'), {
-        tags: { feature: PERPS_CONSTANTS.FeatureName },
-        context: {
-          name: 'HyperLiquidClientService.performDisconnection',
-          data: { action: 'outer_catch' },
+      this.deps.logger.error(
+        ensureError(error, 'HyperLiquidClientService.performDisconnection'),
+        {
+          tags: { feature: PERPS_CONSTANTS.FeatureName },
+          context: {
+            name: 'HyperLiquidClientService.performDisconnection',
+            data: { action: 'outer_catch' },
+          },
         },
-      });
+      );
       throw error;
     }
   }

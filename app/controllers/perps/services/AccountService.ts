@@ -213,13 +213,16 @@ export class AccountService {
 
         // Trigger account state refresh after withdrawal
         refreshAccountState().catch((refreshError) => {
-          this.deps.logger.error(ensureError(refreshError, 'AccountService.withdraw'), {
-            tags: { feature: PERPS_CONSTANTS.FeatureName },
-            context: {
-              name: 'AccountService.withdraw',
-              data: { operation: 'refreshAccountState' },
+          this.deps.logger.error(
+            ensureError(refreshError, 'AccountService.withdraw'),
+            {
+              tags: { feature: PERPS_CONSTANTS.FeatureName },
+              context: {
+                name: 'AccountService.withdraw',
+                data: { operation: 'refreshAccountState' },
+              },
             },
-          });
+          );
         });
 
         // Invalidate readOnly caches so external hooks (e.g., usePerpsPositionForAsset) refresh
@@ -365,13 +368,16 @@ export class AccountService {
     try {
       return await provider.validateWithdrawal(params);
     } catch (error) {
-      this.deps.logger.error(ensureError(error, 'AccountService.validateWithdrawal'), {
-        tags: { feature: PERPS_CONSTANTS.FeatureName },
-        context: {
-          name: 'AccountService.validateWithdrawal',
-          data: { params },
+      this.deps.logger.error(
+        ensureError(error, 'AccountService.validateWithdrawal'),
+        {
+          tags: { feature: PERPS_CONSTANTS.FeatureName },
+          context: {
+            name: 'AccountService.validateWithdrawal',
+            data: { params },
+          },
         },
-      });
+      );
       throw error;
     }
   }

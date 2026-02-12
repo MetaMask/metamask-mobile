@@ -149,20 +149,23 @@ export class MarketDataService {
       traceData = { success: true };
       return result;
     } catch (error) {
-      this.deps.logger.error(ensureError(error, 'MarketDataService.getOrderFills'), {
-        tags: {
-          feature: PERPS_CONSTANTS.FeatureName,
-          provider: context.tracingContext.provider,
-          network: context.tracingContext.isTestnet ? 'testnet' : 'mainnet',
-        },
-        context: {
-          name: context.errorContext.controller,
-          data: {
-            method: context.errorContext.method,
-            params,
+      this.deps.logger.error(
+        ensureError(error, 'MarketDataService.getOrderFills'),
+        {
+          tags: {
+            feature: PERPS_CONSTANTS.FeatureName,
+            provider: context.tracingContext.provider,
+            network: context.tracingContext.isTestnet ? 'testnet' : 'mainnet',
+          },
+          context: {
+            name: context.errorContext.controller,
+            data: {
+              method: context.errorContext.method,
+              params,
+            },
           },
         },
-      });
+      );
 
       traceData = {
         success: false,
@@ -207,20 +210,23 @@ export class MarketDataService {
       traceData = { success: true };
       return result;
     } catch (error) {
-      this.deps.logger.error(ensureError(error, 'MarketDataService.getOrders'), {
-        tags: {
-          feature: PERPS_CONSTANTS.FeatureName,
-          provider: context.tracingContext.provider,
-          network: context.tracingContext.isTestnet ? 'testnet' : 'mainnet',
-        },
-        context: {
-          name: context.errorContext.controller,
-          data: {
-            method: context.errorContext.method,
-            params,
+      this.deps.logger.error(
+        ensureError(error, 'MarketDataService.getOrders'),
+        {
+          tags: {
+            feature: PERPS_CONSTANTS.FeatureName,
+            provider: context.tracingContext.provider,
+            network: context.tracingContext.isTestnet ? 'testnet' : 'mainnet',
+          },
+          context: {
+            name: context.errorContext.controller,
+            data: {
+              method: context.errorContext.method,
+              params,
+            },
           },
         },
-      });
+      );
 
       traceData = {
         success: false,
@@ -273,20 +279,23 @@ export class MarketDataService {
       traceData = { success: true };
       return result;
     } catch (error) {
-      this.deps.logger.error(ensureError(error, 'MarketDataService.getOpenOrders'), {
-        tags: {
-          feature: PERPS_CONSTANTS.FeatureName,
-          provider: context.tracingContext.provider,
-          network: context.tracingContext.isTestnet ? 'testnet' : 'mainnet',
-        },
-        context: {
-          name: context.errorContext.controller,
-          data: {
-            method: context.errorContext.method,
-            params,
+      this.deps.logger.error(
+        ensureError(error, 'MarketDataService.getOpenOrders'),
+        {
+          tags: {
+            feature: PERPS_CONSTANTS.FeatureName,
+            provider: context.tracingContext.provider,
+            network: context.tracingContext.isTestnet ? 'testnet' : 'mainnet',
+          },
+          context: {
+            name: context.errorContext.controller,
+            data: {
+              method: context.errorContext.method,
+              params,
+            },
           },
         },
-      });
+      );
 
       traceData = {
         success: false,
@@ -331,20 +340,23 @@ export class MarketDataService {
       traceData = { success: true };
       return result;
     } catch (error) {
-      this.deps.logger.error(ensureError(error, 'MarketDataService.getFunding'), {
-        tags: {
-          feature: PERPS_CONSTANTS.FeatureName,
-          provider: context.tracingContext.provider,
-          network: context.tracingContext.isTestnet ? 'testnet' : 'mainnet',
-        },
-        context: {
-          name: context.errorContext.controller,
-          data: {
-            method: context.errorContext.method,
-            params,
+      this.deps.logger.error(
+        ensureError(error, 'MarketDataService.getFunding'),
+        {
+          tags: {
+            feature: PERPS_CONSTANTS.FeatureName,
+            provider: context.tracingContext.provider,
+            network: context.tracingContext.isTestnet ? 'testnet' : 'mainnet',
+          },
+          context: {
+            name: context.errorContext.controller,
+            data: {
+              method: context.errorContext.method,
+              params,
+            },
           },
         },
-      });
+      );
 
       traceData = {
         success: false,
@@ -393,20 +405,23 @@ export class MarketDataService {
           'Failed to get account state: received null/undefined response',
         );
 
-        this.deps.logger.error(ensureError(error, 'MarketDataService.getAccountState'), {
-          tags: {
-            feature: PERPS_CONSTANTS.FeatureName,
-            provider: context.tracingContext.provider,
-            network: context.tracingContext.isTestnet ? 'testnet' : 'mainnet',
-          },
-          context: {
-            name: context.errorContext.controller,
-            data: {
-              method: context.errorContext.method,
-              operation: 'nullAccountStateCheck',
+        this.deps.logger.error(
+          ensureError(error, 'MarketDataService.getAccountState'),
+          {
+            tags: {
+              feature: PERPS_CONSTANTS.FeatureName,
+              provider: context.tracingContext.provider,
+              network: context.tracingContext.isTestnet ? 'testnet' : 'mainnet',
+            },
+            context: {
+              name: context.errorContext.controller,
+              data: {
+                method: context.errorContext.method,
+                operation: 'nullAccountStateCheck',
+              },
             },
           },
-        });
+        );
 
         throw error;
       }
@@ -487,20 +502,23 @@ export class MarketDataService {
           ? error.message
           : 'Failed to get historical portfolio';
 
-      this.deps.logger.error(ensureError(error, 'MarketDataService.getHistoricalPortfolio'), {
-        tags: {
-          feature: PERPS_CONSTANTS.FeatureName,
-          provider: context.tracingContext.provider,
-          network: context.tracingContext.isTestnet ? 'testnet' : 'mainnet',
-        },
-        context: {
-          name: context.errorContext.controller,
-          data: {
-            method: context.errorContext.method,
-            params,
+      this.deps.logger.error(
+        ensureError(error, 'MarketDataService.getHistoricalPortfolio'),
+        {
+          tags: {
+            feature: PERPS_CONSTANTS.FeatureName,
+            provider: context.tracingContext.provider,
+            network: context.tracingContext.isTestnet ? 'testnet' : 'mainnet',
+          },
+          context: {
+            name: context.errorContext.controller,
+            data: {
+              method: context.errorContext.method,
+              params,
+            },
           },
         },
-      });
+      );
 
       // Update error state (if stateManager is provided)
       if (context.stateManager) {
@@ -571,20 +589,23 @@ export class MarketDataService {
           ? error.message
           : PERPS_ERROR_CODES.MARKETS_FAILED;
 
-      this.deps.logger.error(ensureError(error, 'MarketDataService.getMarkets'), {
-        tags: {
-          feature: PERPS_CONSTANTS.FeatureName,
-          provider: context.tracingContext.provider,
-          network: context.tracingContext.isTestnet ? 'testnet' : 'mainnet',
-        },
-        context: {
-          name: context.errorContext.controller,
-          data: {
-            method: context.errorContext.method,
-            params,
+      this.deps.logger.error(
+        ensureError(error, 'MarketDataService.getMarkets'),
+        {
+          tags: {
+            feature: PERPS_CONSTANTS.FeatureName,
+            provider: context.tracingContext.provider,
+            network: context.tracingContext.isTestnet ? 'testnet' : 'mainnet',
+          },
+          context: {
+            name: context.errorContext.controller,
+            data: {
+              method: context.errorContext.method,
+              params,
+            },
           },
         },
-      });
+      );
 
       // Update error state (if stateManager is provided)
       if (context.stateManager) {
@@ -626,12 +647,15 @@ export class MarketDataService {
 
       return await provider.getAvailableDexs(params);
     } catch (error) {
-      this.deps.logger.error(ensureError(error, 'MarketDataService.getAvailableDexs'), {
-        context: {
-          name: 'MarketDataService.getAvailableDexs',
-          data: { params },
+      this.deps.logger.error(
+        ensureError(error, 'MarketDataService.getAvailableDexs'),
+        {
+          context: {
+            name: 'MarketDataService.getAvailableDexs',
+            data: { params },
+          },
         },
-      });
+      );
       throw error;
     }
   }
@@ -703,23 +727,26 @@ export class MarketDataService {
           ? error.message
           : 'Failed to fetch historical candles';
 
-      this.deps.logger.error(ensureError(error, 'MarketDataService.fetchHistoricalCandles'), {
-        tags: {
-          feature: PERPS_CONSTANTS.FeatureName,
-          provider: context.tracingContext.provider,
-          network: context.tracingContext.isTestnet ? 'testnet' : 'mainnet',
-        },
-        context: {
-          name: context.errorContext.controller,
-          data: {
-            method: context.errorContext.method,
-            symbol,
-            interval,
-            limit,
-            endTime,
+      this.deps.logger.error(
+        ensureError(error, 'MarketDataService.fetchHistoricalCandles'),
+        {
+          tags: {
+            feature: PERPS_CONSTANTS.FeatureName,
+            provider: context.tracingContext.provider,
+            network: context.tracingContext.isTestnet ? 'testnet' : 'mainnet',
+          },
+          context: {
+            name: context.errorContext.controller,
+            data: {
+              method: context.errorContext.method,
+              symbol,
+              interval,
+              limit,
+              endTime,
+            },
           },
         },
-      });
+      );
 
       // Update error state (if stateManager is provided)
       if (context.stateManager) {
@@ -757,12 +784,15 @@ export class MarketDataService {
     try {
       return await provider.calculateLiquidationPrice(params);
     } catch (error) {
-      this.deps.logger.error(ensureError(error, 'MarketDataService.calculateLiquidationPrice'), {
-        context: {
-          name: 'MarketDataService.calculateLiquidationPrice',
-          data: { params },
+      this.deps.logger.error(
+        ensureError(error, 'MarketDataService.calculateLiquidationPrice'),
+        {
+          context: {
+            name: 'MarketDataService.calculateLiquidationPrice',
+            data: { params },
+          },
         },
-      });
+      );
       throw error;
     }
   }
@@ -780,12 +810,15 @@ export class MarketDataService {
     try {
       return await provider.calculateMaintenanceMargin(params);
     } catch (error) {
-      this.deps.logger.error(ensureError(error, 'MarketDataService.calculateMaintenanceMargin'), {
-        context: {
-          name: 'MarketDataService.calculateMaintenanceMargin',
-          data: { params },
+      this.deps.logger.error(
+        ensureError(error, 'MarketDataService.calculateMaintenanceMargin'),
+        {
+          context: {
+            name: 'MarketDataService.calculateMaintenanceMargin',
+            data: { params },
+          },
         },
-      });
+      );
       throw error;
     }
   }
@@ -803,12 +836,15 @@ export class MarketDataService {
     try {
       return await provider.getMaxLeverage(asset);
     } catch (error) {
-      this.deps.logger.error(ensureError(error, 'MarketDataService.getMaxLeverage'), {
-        context: {
-          name: 'MarketDataService.getMaxLeverage',
-          data: { asset },
+      this.deps.logger.error(
+        ensureError(error, 'MarketDataService.getMaxLeverage'),
+        {
+          context: {
+            name: 'MarketDataService.getMaxLeverage',
+            data: { asset },
+          },
         },
-      });
+      );
       throw error;
     }
   }
@@ -826,12 +862,15 @@ export class MarketDataService {
     try {
       return await provider.calculateFees(params);
     } catch (error) {
-      this.deps.logger.error(ensureError(error, 'MarketDataService.calculateFees'), {
-        context: {
-          name: 'MarketDataService.calculateFees',
-          data: { params },
+      this.deps.logger.error(
+        ensureError(error, 'MarketDataService.calculateFees'),
+        {
+          context: {
+            name: 'MarketDataService.calculateFees',
+            data: { params },
+          },
         },
-      });
+      );
       throw error;
     }
   }
@@ -849,12 +888,15 @@ export class MarketDataService {
     try {
       return await provider.validateOrder(params);
     } catch (error) {
-      this.deps.logger.error(ensureError(error, 'MarketDataService.validateOrder'), {
-        context: {
-          name: 'MarketDataService.validateOrder',
-          data: { params },
+      this.deps.logger.error(
+        ensureError(error, 'MarketDataService.validateOrder'),
+        {
+          context: {
+            name: 'MarketDataService.validateOrder',
+            data: { params },
+          },
         },
-      });
+      );
       throw error;
     }
   }
@@ -872,12 +914,15 @@ export class MarketDataService {
     try {
       return await provider.validateClosePosition(params);
     } catch (error) {
-      this.deps.logger.error(ensureError(error, 'MarketDataService.validateClosePosition'), {
-        context: {
-          name: 'MarketDataService.validateClosePosition',
-          data: { params },
+      this.deps.logger.error(
+        ensureError(error, 'MarketDataService.validateClosePosition'),
+        {
+          context: {
+            name: 'MarketDataService.validateClosePosition',
+            data: { params },
+          },
         },
-      });
+      );
       throw error;
     }
   }

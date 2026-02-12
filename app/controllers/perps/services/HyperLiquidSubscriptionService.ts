@@ -439,7 +439,10 @@ export class HyperLiquidSubscriptionService {
               await this.ensureAssetCtxsSubscription(dex);
             } catch (error) {
               this.deps.logger.error(
-                ensureError(error, 'HyperLiquidSubscriptionService.updateFeatureFlags'),
+                ensureError(
+                  error,
+                  'HyperLiquidSubscriptionService.updateFeatureFlags',
+                ),
                 this.getErrorContext(
                   'updateFeatureFlags.ensureAssetCtxsSubscription',
                   {
@@ -477,7 +480,10 @@ export class HyperLiquidSubscriptionService {
                 );
               } catch (error) {
                 this.deps.logger.error(
-                  ensureError(error, 'HyperLiquidSubscriptionService.updateFeatureFlags'),
+                  ensureError(
+                    error,
+                    'HyperLiquidSubscriptionService.updateFeatureFlags',
+                  ),
                   this.getErrorContext(
                     'updateFeatureFlags.ensureUserDataSubscription',
                     { dex },
@@ -488,7 +494,10 @@ export class HyperLiquidSubscriptionService {
           );
         } catch (error) {
           this.deps.logger.error(
-            ensureError(error, 'HyperLiquidSubscriptionService.updateFeatureFlags'),
+            ensureError(
+              error,
+              'HyperLiquidSubscriptionService.updateFeatureFlags',
+            ),
             this.getErrorContext('updateFeatureFlags.getUserAddress'),
           );
         }
@@ -881,7 +890,10 @@ export class HyperLiquidSubscriptionService {
         const dexName = dex ?? '';
         this.ensureAssetCtxsSubscription(dexName).catch((error) => {
           this.deps.logger.error(
-            ensureError(error, 'HyperLiquidSubscriptionService.subscribeToPrices'),
+            ensureError(
+              error,
+              'HyperLiquidSubscriptionService.subscribeToPrices',
+            ),
             this.getErrorContext(
               'subscribeToPrices.ensureAssetCtxsSubscription',
               { dex: dexName },
@@ -1105,7 +1117,10 @@ export class HyperLiquidSubscriptionService {
               }
             } catch (error) {
               this.deps.logger.error(
-                ensureError(error, 'HyperLiquidSubscriptionService.createUserDataSubscription'),
+                ensureError(
+                  error,
+                  'HyperLiquidSubscriptionService.createUserDataSubscription',
+                ),
                 this.getErrorContext('webData2 callback error', {
                   user: userAddress,
                   dataKeys: data ? Object.keys(data) : 'data is null/undefined',
@@ -1126,12 +1141,20 @@ export class HyperLiquidSubscriptionService {
           })
           .catch((error) => {
             this.deps.logger.error(
-              ensureError(error, 'HyperLiquidSubscriptionService.createUserDataSubscription'),
+              ensureError(
+                error,
+                'HyperLiquidSubscriptionService.createUserDataSubscription',
+              ),
               this.getErrorContext('createUserDataSubscription (webData2)', {
                 dex: dexName,
               }),
             );
-            reject(ensureError(error, 'HyperLiquidSubscriptionService.createUserDataSubscription'));
+            reject(
+              ensureError(
+                error,
+                'HyperLiquidSubscriptionService.createUserDataSubscription',
+              ),
+            );
           });
       } else {
         // HIP-3 enabled: Use individual subscriptions for positions/orders/account
@@ -1220,7 +1243,10 @@ export class HyperLiquidSubscriptionService {
               }
             } catch (error) {
               this.deps.logger.error(
-                ensureError(error, 'HyperLiquidSubscriptionService.createUserDataSubscription'),
+                ensureError(
+                  error,
+                  'HyperLiquidSubscriptionService.createUserDataSubscription',
+                ),
                 this.getErrorContext('webData3 callback error', {
                   user: userAddress,
                   hasPerpDexStates: data?.perpDexStates !== undefined,
@@ -1237,7 +1263,10 @@ export class HyperLiquidSubscriptionService {
           })
           .catch((error) => {
             this.deps.logger.error(
-              ensureError(error, 'HyperLiquidSubscriptionService.createUserDataSubscription'),
+              ensureError(
+                error,
+                'HyperLiquidSubscriptionService.createUserDataSubscription',
+              ),
               this.getErrorContext('createUserDataSubscription (webData3)', {
                 dex: dexName,
               }),
@@ -1257,12 +1286,20 @@ export class HyperLiquidSubscriptionService {
           })
           .catch((error) => {
             this.deps.logger.error(
-              ensureError(error, 'HyperLiquidSubscriptionService.createUserDataSubscription'),
+              ensureError(
+                error,
+                'HyperLiquidSubscriptionService.createUserDataSubscription',
+              ),
               this.getErrorContext('createUserDataSubscription (HIP-3)', {
                 dexs: dexsToSubscribe,
               }),
             );
-            reject(ensureError(error, 'HyperLiquidSubscriptionService.createUserDataSubscription'));
+            reject(
+              ensureError(
+                error,
+                'HyperLiquidSubscriptionService.createUserDataSubscription',
+              ),
+            );
           });
       }
     });
@@ -1386,7 +1423,10 @@ export class HyperLiquidSubscriptionService {
       this.expectedDexs.delete(dexName);
 
       this.deps.logger.error(
-        ensureError(error, 'HyperLiquidSubscriptionService.createClearinghouseSubscription'),
+        ensureError(
+          error,
+          'HyperLiquidSubscriptionService.createClearinghouseSubscription',
+        ),
         this.getErrorContext('ensureClearinghouseStateSubscription', {
           dex: dexName,
         }),
@@ -1500,7 +1540,10 @@ export class HyperLiquidSubscriptionService {
       this.expectedDexs.delete(dexName);
 
       this.deps.logger.error(
-        ensureError(error, 'HyperLiquidSubscriptionService.createOpenOrdersSubscription'),
+        ensureError(
+          error,
+          'HyperLiquidSubscriptionService.createOpenOrdersSubscription',
+        ),
         this.getErrorContext('ensureOpenOrdersSubscription', {
           dex: dexName,
         }),
@@ -1598,7 +1641,10 @@ export class HyperLiquidSubscriptionService {
         this.webData3Subscriptions.forEach((subscription, dexName) => {
           subscription.unsubscribe().catch((error: Error) => {
             this.deps.logger.error(
-              ensureError(error, 'HyperLiquidSubscriptionService.cleanupSharedWebData3ISubscription'),
+              ensureError(
+                error,
+                'HyperLiquidSubscriptionService.cleanupSharedWebData3ISubscription',
+              ),
               this.getErrorContext(
                 'cleanupSharedWebData3ISubscription.webData3',
                 {
@@ -1618,7 +1664,10 @@ export class HyperLiquidSubscriptionService {
           (subscription, dexName) => {
             subscription.unsubscribe().catch((error: Error) => {
               this.deps.logger.error(
-                ensureError(error, 'HyperLiquidSubscriptionService.cleanupSharedWebData3ISubscription'),
+                ensureError(
+                  error,
+                  'HyperLiquidSubscriptionService.cleanupSharedWebData3ISubscription',
+                ),
                 this.getErrorContext(
                   'cleanupSharedWebData3ISubscription.clearinghouseState',
                   {
@@ -1636,7 +1685,10 @@ export class HyperLiquidSubscriptionService {
         this.openOrdersSubscriptions.forEach((subscription, dexName) => {
           subscription.unsubscribe().catch((error: Error) => {
             this.deps.logger.error(
-              ensureError(error, 'HyperLiquidSubscriptionService.cleanupSharedWebData3ISubscription'),
+              ensureError(
+                error,
+                'HyperLiquidSubscriptionService.cleanupSharedWebData3ISubscription',
+              ),
               this.getErrorContext(
                 'cleanupSharedWebData3ISubscription.openOrders',
                 {
@@ -1707,7 +1759,10 @@ export class HyperLiquidSubscriptionService {
     // Ensure shared subscription is active
     this.ensureSharedWebData3Subscription(accountId).catch((error) => {
       this.deps.logger.error(
-        ensureError(error, 'HyperLiquidSubscriptionService.subscribeToPositions'),
+        ensureError(
+          error,
+          'HyperLiquidSubscriptionService.subscribeToPositions',
+        ),
         this.getErrorContext('subscribeToPositions'),
       );
     });
@@ -1780,7 +1835,10 @@ export class HyperLiquidSubscriptionService {
     // Ensure subscription is established for this accountId
     this.ensureOrderFillISubscription(accountId).catch((error) => {
       this.deps.logger.error(
-        ensureError(error, 'HyperLiquidSubscriptionService.subscribeToOrderFills'),
+        ensureError(
+          error,
+          'HyperLiquidSubscriptionService.subscribeToOrderFills',
+        ),
         this.getErrorContext('subscribeToOrderFills'),
       );
     });
@@ -1796,7 +1854,10 @@ export class HyperLiquidSubscriptionService {
         if (subscription) {
           subscription.unsubscribe().catch((error: Error) => {
             this.deps.logger.error(
-              ensureError(error, 'HyperLiquidSubscriptionService.subscribeToOrderFills'),
+              ensureError(
+                error,
+                'HyperLiquidSubscriptionService.subscribeToOrderFills',
+              ),
               this.getErrorContext('subscribeToOrderFills.unsubscribe'),
             );
           });
@@ -2195,7 +2256,10 @@ export class HyperLiquidSubscriptionService {
         this.globalAllMidsPromise = undefined;
 
         this.deps.logger.error(
-          ensureError(error, 'HyperLiquidSubscriptionService.ensureGlobalAllMidsSubscription'),
+          ensureError(
+            error,
+            'HyperLiquidSubscriptionService.ensureGlobalAllMidsSubscription',
+          ),
           this.getErrorContext('ensureGlobalAllMidsSubscription'),
         );
       });
@@ -2294,7 +2358,10 @@ export class HyperLiquidSubscriptionService {
       })
       .catch((error) => {
         this.deps.logger.error(
-          ensureError(error, 'HyperLiquidSubscriptionService.ensureActiveAssetSubscription'),
+          ensureError(
+            error,
+            'HyperLiquidSubscriptionService.ensureActiveAssetSubscription',
+          ),
           this.getErrorContext('ensureActiveAssetSubscription', { symbol }),
         );
       });
@@ -2475,10 +2542,18 @@ export class HyperLiquidSubscriptionService {
         })
         .catch((error) => {
           this.deps.logger.error(
-            ensureError(error, 'HyperLiquidSubscriptionService.createAssetCtxsSubscription'),
+            ensureError(
+              error,
+              'HyperLiquidSubscriptionService.createAssetCtxsSubscription',
+            ),
             this.getErrorContext('createAssetCtxsSubscription', { dex }),
           );
-          reject(ensureError(error, 'HyperLiquidSubscriptionService.createAssetCtxsSubscription'));
+          reject(
+            ensureError(
+              error,
+              'HyperLiquidSubscriptionService.createAssetCtxsSubscription',
+            ),
+          );
         });
     });
   }
@@ -2500,7 +2575,10 @@ export class HyperLiquidSubscriptionService {
       if (subscription) {
         subscription.unsubscribe().catch((error: Error) => {
           this.deps.logger.error(
-            ensureError(error, 'HyperLiquidSubscriptionService.cleanupAssetCtxsSubscription'),
+            ensureError(
+              error,
+              'HyperLiquidSubscriptionService.cleanupAssetCtxsSubscription',
+            ),
             this.getErrorContext('cleanupAssetCtxsSubscription', { dex }),
           );
         });
@@ -2557,7 +2635,10 @@ export class HyperLiquidSubscriptionService {
       })
       .catch((error) => {
         this.deps.logger.error(
-          ensureError(error, 'HyperLiquidSubscriptionService.ensureBboSubscription'),
+          ensureError(
+            error,
+            'HyperLiquidSubscriptionService.ensureBboSubscription',
+          ),
           this.getErrorContext('ensureBboSubscription', { symbol }),
         );
       });
@@ -2639,7 +2720,10 @@ export class HyperLiquidSubscriptionService {
         if (cancelled) {
           sub.unsubscribe().catch((error: Error) => {
             this.deps.logger.error(
-              ensureError(error, 'HyperLiquidSubscriptionService.subscribeToOrderBook'),
+              ensureError(
+                error,
+                'HyperLiquidSubscriptionService.subscribeToOrderBook',
+              ),
               this.getErrorContext('subscribeToOrderBook.cleanup', { symbol }),
             );
           });
@@ -2652,10 +2736,18 @@ export class HyperLiquidSubscriptionService {
       })
       .catch((error) => {
         this.deps.logger.error(
-          ensureError(error, 'HyperLiquidSubscriptionService.subscribeToOrderBook'),
+          ensureError(
+            error,
+            'HyperLiquidSubscriptionService.subscribeToOrderBook',
+          ),
           this.getErrorContext('subscribeToOrderBook', { symbol }),
         );
-        onError?.(ensureError(error, 'HyperLiquidSubscriptionService.subscribeToOrderBook'));
+        onError?.(
+          ensureError(
+            error,
+            'HyperLiquidSubscriptionService.subscribeToOrderBook',
+          ),
+        );
       });
 
     return () => {
@@ -2663,7 +2755,10 @@ export class HyperLiquidSubscriptionService {
       if (subscription) {
         subscription.unsubscribe().catch((error: Error) => {
           this.deps.logger.error(
-            ensureError(error, 'HyperLiquidSubscriptionService.subscribeToOrderBook'),
+            ensureError(
+              error,
+              'HyperLiquidSubscriptionService.subscribeToOrderBook',
+            ),
             this.getErrorContext('subscribeToOrderBook.unsubscribe', {
               symbol,
             }),
