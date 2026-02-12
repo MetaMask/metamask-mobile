@@ -251,12 +251,32 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   };
 
   const handleMarketInsightsPress = useCallback(() => {
+    // Compute actual percentage from available price data (always defined)
+    const percentChange =
+      comparePrice > 0 ? (priceDiff / comparePrice) * 100 : 0;
+
     navigation.navigate(Routes.MARKET_INSIGHTS.VIEW, {
       assetSymbol: token.symbol,
       tokenImageUrl: token.image || token.logo,
-      pricePercentChange1d: token.pricePercentChange1d,
+      pricePercentChange: percentChange,
+      // Pass token data needed for swap navigation
+      tokenAddress: token.address,
+      tokenDecimals: token.decimals,
+      tokenName: token.name,
+      tokenChainId: token.chainId,
     });
-  }, [navigation, token.symbol, token.image, token.logo, token.pricePercentChange1d]);
+  }, [
+    navigation,
+    token.symbol,
+    token.image,
+    token.logo,
+    token.address,
+    token.decimals,
+    token.name,
+    token.chainId,
+    priceDiff,
+    comparePrice,
+  ]);
 
   const handlePerpsDiscoveryPress = useCallback(() => {
     if (marketData) {

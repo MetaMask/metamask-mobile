@@ -19,13 +19,10 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import type { MarketInsightsEntryCardProps } from './MarketInsightsEntryCard.types';
 
-/** Gradient colors for the "Market insights" title (warm yellow -> green) */
+// Gradient colors for the "Market insights" title
 const TITLE_GRADIENT_COLORS = ['#FFA680', '#BAF24A'];
 
-/**
- * GradientTitle renders the "Market insights >" header with a gradient text effect.
- * Uses MaskedView + LinearGradient to apply a warm-to-green gradient over the text.
- */
+// GradientTitle renders the "Market insights" title with a gradient text effect.
 const GradientTitle: React.FC = () => (
   <MaskedView
     maskElement={
@@ -55,7 +52,6 @@ const GradientTitle: React.FC = () => (
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 0 }}
     >
-      {/* Invisible duplicate to size the gradient correctly */}
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
@@ -73,9 +69,8 @@ const GradientTitle: React.FC = () => (
 );
 
 /**
- * Renders the summary text with trend titles highlighted in white.
- * Searches the summary for occurrences of trend titles and renders them
- * with the default text color (white) while the rest is in alternative color.
+ * Renders the summary text with trend titles highlighted.
+ * Searches the summary for occurrences of trend titles and renders them.
  */
 const HighlightedSummary: React.FC<{
   summary: string;
@@ -86,7 +81,7 @@ const HighlightedSummary: React.FC<{
       return [{ text: summary, highlighted: false }];
     }
 
-    // Build a regex to find all trend titles in the summary (case-insensitive)
+    // Regex to find all trend titles in the summary (case-insensitive)
     const escapedTitles = trendTitles.map((t) =>
       t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
     );
@@ -96,6 +91,7 @@ const HighlightedSummary: React.FC<{
     let lastIndex = 0;
     let match: RegExpExecArray | null;
 
+    // TODO: Move to a shared utility file.
     while ((match = pattern.exec(summary)) !== null) {
       if (match.index > lastIndex) {
         parts.push({
@@ -137,8 +133,6 @@ const HighlightedSummary: React.FC<{
 
 /**
  * MarketInsightsEntryCard is the entry point card shown on the token details page.
- * Displays a gradient sparkle icon + "Market insights >" header, the headline,
- * a summary with highlighted trend titles, and a timestamp disclaimer.
  * Tapping navigates to the full Market Insights view.
  */
 const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
@@ -161,12 +155,10 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
       }
       testID={testID}
     >
-      {/* Header: Gradient "✨ Market insights >" */}
       <Box twClassName="mb-3">
         <GradientTitle />
       </Box>
 
-      {/* Headline */}
       <Text
         variant={TextVariant.BodyMd}
         fontWeight={FontWeight.Bold}
@@ -175,10 +167,8 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
         {report.headline}
       </Text>
 
-      {/* Summary with highlighted trend titles */}
       <HighlightedSummary summary={report.summary} trendTitles={trendTitles} />
 
-      {/* Footer: "Updated X ago • AI insights. Not advice." */}
       <Text
         variant={TextVariant.BodyXs}
         color={TextColor.TextMuted}

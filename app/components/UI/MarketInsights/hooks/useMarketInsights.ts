@@ -16,9 +16,7 @@ export interface UseMarketInsightsResult {
   timeAgo: string;
 }
 
-/**
- * Computes a human-readable relative time string from a date string
- */
+// TODO: Move to a shared utility file.
 const getTimeAgo = (dateString: string): string => {
   const now = new Date();
   const generated = new Date(dateString);
@@ -39,17 +37,8 @@ const getTimeAgo = (dateString: string): string => {
  * Currently returns mock data. Will be replaced with API integration
  * when the backend is available.
  *
- * @param assetSymbol - The asset symbol (e.g., "BTC", "ETH")
+ * @param assetSymbol - The asset symbol
  * @returns Market insights report data with loading/error states
- *
- * @example
- * ```tsx
- * const { report, isLoading, timeAgo } = useMarketInsights('BTC');
- *
- * if (report) {
- *   return <MarketInsightsEntryCard report={report} timeAgo={timeAgo} />;
- * }
- * ```
  */
 export const useMarketInsights = (
   assetSymbol: string | undefined | null,

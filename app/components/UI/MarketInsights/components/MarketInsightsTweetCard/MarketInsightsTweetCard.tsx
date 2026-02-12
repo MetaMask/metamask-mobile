@@ -17,9 +17,7 @@ import {
 } from '@metamask/design-system-react-native';
 import type { MarketInsightsTweetCardProps } from './MarketInsightsTweetCard.types';
 
-/**
- * Computes a relative time string from a date string (e.g., "1h ago", "2d ago")
- */
+// TODO: Move to a shared utility file.
 const getRelativeTime = (dateString: string): string => {
   const now = new Date();
   const date = new Date(dateString);
@@ -34,10 +32,7 @@ const getRelativeTime = (dateString: string): string => {
   return `${diffDays}d ago`;
 };
 
-/**
- * MarketInsightsTweetCard renders a social media post card.
- * Shows the tweet content, author handle, relative time, and an X (Twitter) icon.
- */
+// MarketInsightsTweetCard renders a social media post card.
 const MarketInsightsTweetCard: React.FC<MarketInsightsTweetCardProps> = ({
   tweet,
   onPress,

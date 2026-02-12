@@ -2050,7 +2050,8 @@
     "whats_driving_price": "Whats driving the price?",
     "what_people_saying": "What people are saying",
     "trade_button": "Trade",
-    "sources_count": "+{{count}} sources"
+    "sources_count": "+{{count}} sources",
+    "sources_title": "Sources"
   },
   "predict": {
     "title": "MetaMask Predictions",

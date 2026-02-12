@@ -3,6 +3,7 @@ import { ScrollView, Linking, Pressable } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Hex, CaipChainId } from '@metamask/utils';
 import {
   Box,
   Text,
@@ -15,26 +16,38 @@ import {
   IconName,
   IconSize,
   IconColor,
-  AvatarToken,
-  AvatarTokenSize,
   BoxFlexDirection,
   BoxAlignItems,
   FontWeight,
 } from '@metamask/design-system-react-native';
+import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
+import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar/Avatar.types';
 import { strings } from '../../../../../../locales/i18n';
 import { useMarketInsights } from '../../hooks/useMarketInsights';
 import MarketInsightsTrendItem from '../../components/MarketInsightsTrendItem';
 import MarketInsightsTweetCard from '../../components/MarketInsightsTweetCard';
 import MarketInsightsSourcesFooter from '../../components/MarketInsightsSourcesFooter';
 import { MarketInsightsSelectorsIDs } from '../../MarketInsights.testIds';
+import {
+  useSwapBridgeNavigation,
+  SwapBridgeNavigationLocation,
+} from '../../../Bridge/hooks/useSwapBridgeNavigation';
+import { NATIVE_SWAPS_TOKEN_ADDRESS } from '../../../../../constants/bridge';
 import type { MarketInsightsTweet } from '../../types/marketInsights';
 
 type MarketInsightsRouteParams = {
   MarketInsightsView: {
     assetSymbol: string;
     tokenImageUrl?: string;
-    pricePercentChange1d?: number;
-    onTrade?: () => void;
+    pricePercentChange?: number;
+    /** Token address for swap navigation */
+    tokenAddress?: string;
+    /** Token decimals for swap navigation */
+    tokenDecimals?: number;
+    /** Token name for swap navigation */
+    tokenName?: string;
+    /** Token chainId for swap navigation */
+    tokenChainId?: string;
   };
 };
 
@@ -46,7 +59,7 @@ type MarketInsightsRouteParams = {
  * - "What's driving the price?" trends section
  * - "What people are saying" social section
  * - Sources footer with feedback buttons
- * - Trade CTA button
+ * - Trade CTA button (navigates to Swaps with asset pre-filled)
  */
 const MarketInsightsView: React.FC = () => {
   const tw = useTailwind();
@@ -54,16 +67,50 @@ const MarketInsightsView: React.FC = () => {
   const insets = useSafeAreaInsets();
   const route =
     useRoute<RouteProp<MarketInsightsRouteParams, 'MarketInsightsView'>>();
-  const { assetSymbol, tokenImageUrl, pricePercentChange1d, onTrade } =
-    route.params;
+  const {
+    assetSymbol,
+    tokenImageUrl,
+    pricePercentChange,
+    tokenAddress,
+    tokenDecimals,
+    tokenName,
+    tokenChainId,
+  } = route.params;
 
   const { report } = useMarketInsights(assetSymbol);
 
+  // Build BridgeToken from route params for swap navigation
+  const sourceToken = useMemo(() => {
+    if (!tokenChainId) return undefined;
+    return {
+      address: tokenAddress ?? NATIVE_SWAPS_TOKEN_ADDRESS,
+      symbol: assetSymbol,
+      name: tokenName,
+      image: tokenImageUrl,
+      decimals: tokenDecimals ?? 18,
+      chainId: tokenChainId as Hex | CaipChainId,
+    };
+  }, [
+    assetSymbol,
+    tokenAddress,
+    tokenDecimals,
+    tokenName,
+    tokenImageUrl,
+    tokenChainId,
+  ]);
+
+  const { goToSwaps } = useSwapBridgeNavigation({
+    location: SwapBridgeNavigationLocation.TokenView,
+    sourcePage: 'MarketInsightsView',
+    sourceToken,
+  });
+
   // Determine if price change is positive or negative
-  const isPricePositive = (pricePercentChange1d ?? 0) >= 0;
-  const formattedPercentChange = pricePercentChange1d != null
-    ? `${isPricePositive ? '+' : ''}${pricePercentChange1d.toFixed(2)}%`
-    : null;
+  const isPricePositive = (pricePercentChange ?? 0) >= 0;
+  const formattedPercentChange =
+    pricePercentChange != null
+      ? `${isPricePositive ? '+' : ''}${pricePercentChange.toFixed(2)}%`
+      : null;
 
   // Collect all tweets from all trends for the "What people are saying" section
   const allTweets: MarketInsightsTweet[] = useMemo(() => {
@@ -80,12 +127,8 @@ const MarketInsightsView: React.FC = () => {
   }, []);
 
   const handleTradePress = useCallback(() => {
-    if (onTrade) {
-      onTrade();
-    } else {
-      navigation.goBack();
-    }
-  }, [onTrade, navigation]);
+    goToSwaps();
+  }, [goToSwaps]);
 
   if (!report) {
     return null;
@@ -96,7 +139,6 @@ const MarketInsightsView: React.FC = () => {
       twClassName={`flex-1 bg-default pt-[${insets.top}px]`}
       testID={MarketInsightsSelectorsIDs.VIEW_CONTAINER}
     >
-      {/* Header */}
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
@@ -119,7 +161,6 @@ const MarketInsightsView: React.FC = () => {
             {strings('market_insights.title')}
           </Text>
         </Box>
-        {/* Right spacer to center the title */}
         <Box twClassName="w-10" />
       </Box>
 
@@ -127,7 +168,6 @@ const MarketInsightsView: React.FC = () => {
         contentContainerStyle={tw.style(`pb-[${insets.bottom + 80}px]`)}
         showsVerticalScrollIndicator={false}
       >
-        {/* Price change tag with token logo */}
         <Box twClassName="px-4 pt-4 pb-3">
           <Box
             flexDirection={BoxFlexDirection.Row}
@@ -140,8 +180,8 @@ const MarketInsightsView: React.FC = () => {
             {tokenImageUrl ? (
               <AvatarToken
                 name={report.asset.toUpperCase()}
-                src={{ uri: tokenImageUrl }}
-                size={AvatarTokenSize.Xs}
+                imageSource={{ uri: tokenImageUrl }}
+                size={AvatarSize.Xs}
               />
             ) : null}
             {formattedPercentChange ? (
@@ -169,12 +209,10 @@ const MarketInsightsView: React.FC = () => {
           </Box>
         </Box>
 
-        {/* Headline */}
         <Box twClassName="px-4 pb-3">
           <Text variant={TextVariant.HeadingLg}>{report.headline}</Text>
         </Box>
 
-        {/* Summary */}
         <Box twClassName="px-4 pb-6">
           <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
             {report.summary}
@@ -248,14 +286,12 @@ const MarketInsightsView: React.FC = () => {
           </Box>
         )}
 
-        {/* Sources footer */}
         <MarketInsightsSourcesFooter
           sources={report.sources}
           testID={MarketInsightsSelectorsIDs.SOURCES_FOOTER}
         />
       </ScrollView>
 
-      {/* Fixed bottom Trade button */}
       <Box
         twClassName={`absolute bottom-0 left-0 right-0 bg-default px-4 pt-4 pb-[${insets.bottom + 8}px]`}
       >
