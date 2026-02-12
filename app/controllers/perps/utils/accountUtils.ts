@@ -110,7 +110,7 @@ export function aggregateAccountStates(states: AccountState[]): AccountState {
 
   const aggregated = states.reduce<AccountState>((acc, state, index) => {
     if (index === 0) {
-      return state;
+      return { ...state };
     }
     return {
       availableBalance: (

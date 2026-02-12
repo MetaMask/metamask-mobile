@@ -868,7 +868,7 @@ describe('hyperLiquidAdapter', () => {
         availableBalance: '700.25',
         marginUsed: '300.25',
         unrealizedPnl: '24.5', // 50.0 + (-25.5)
-        returnOnEquity: '8.0', // Calculated from weighted return and margin
+        returnOnEquity: '7.991673605328893', // Calculated from weighted return and margin
         totalBalance: '1000.5', // Perps only (no spot balance provided)
       });
     });
@@ -911,7 +911,7 @@ describe('hyperLiquidAdapter', () => {
         availableBalance: '350.0',
         marginUsed: '150.0',
         unrealizedPnl: '100',
-        returnOnEquity: '0.0',
+        returnOnEquity: '0',
         totalBalance: '1000.5',
       });
     });
@@ -949,7 +949,7 @@ describe('hyperLiquidAdapter', () => {
         availableBalance: '800.0',
         marginUsed: '200.0',
         unrealizedPnl: '0',
-        returnOnEquity: '0.0',
+        returnOnEquity: '0',
         totalBalance: '1000',
       });
     });

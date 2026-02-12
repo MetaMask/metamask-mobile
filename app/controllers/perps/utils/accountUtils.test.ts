@@ -90,6 +90,21 @@ describe('aggregateAccountStates', () => {
     expect(parseFloat(result.returnOnEquity)).toBe(22.5);
   });
 
+  it('does not mutate the input state object', () => {
+    const single: AccountState = {
+      availableBalance: '100',
+      totalBalance: '200',
+      marginUsed: '50',
+      unrealizedPnl: '10',
+      returnOnEquity: '99',
+    };
+    const result = aggregateAccountStates([single]);
+    // result gets recalculated ROE = (10/50)*100 = 20
+    expect(result.returnOnEquity).toBe('20');
+    // original must be untouched
+    expect(single.returnOnEquity).toBe('99');
+  });
+
   it('sets ROE to 0 when total marginUsed is 0', () => {
     const state: AccountState = {
       availableBalance: '100',
