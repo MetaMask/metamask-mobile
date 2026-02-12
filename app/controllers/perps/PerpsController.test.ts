@@ -3762,7 +3762,7 @@ describe('PerpsController', () => {
     });
   });
 
-  describe('readOnly mode', () => {
+  describe('standalone mode', () => {
     const mockUserAddress = '0xabcdef1234567890abcdef1234567890abcdef12';
     const MockedHyperLiquidProvider = HyperLiquidProvider as jest.MockedClass<
       typeof HyperLiquidProvider
@@ -3773,8 +3773,8 @@ describe('PerpsController', () => {
       MockedHyperLiquidProvider.mockClear();
     });
 
-    describe('getPositions with readOnly mode', () => {
-      it('uses existing provider for readOnly queries when available', async () => {
+    describe('getPositions with standalone mode', () => {
+      it('uses existing provider for standalone queries when available', async () => {
         // Arrange - set up mock provider with properly typed positions
         const mockPositions = [
           createMockPosition({ symbol: 'BTC', size: '0.5' }),
@@ -3791,13 +3791,13 @@ describe('PerpsController', () => {
 
         // Act
         const positions = await controller.getPositions({
-          readOnly: true,
+          standalone: true,
           userAddress: mockUserAddress,
         });
 
         // Assert - should use existing provider
         expect(existingMockProvider.getPositions).toHaveBeenCalledWith({
-          readOnly: true,
+          standalone: true,
           userAddress: mockUserAddress,
         });
         expect(positions).toEqual(mockPositions);
@@ -3805,7 +3805,7 @@ describe('PerpsController', () => {
         expect(MockedHyperLiquidProvider).not.toHaveBeenCalled();
       });
 
-      it('creates temporary provider for readOnly queries when no activeProviderInstance', async () => {
+      it('creates temporary provider for standalone queries when no activeProviderInstance', async () => {
         // Arrange - no activeProviderInstance set (pre-initialization)
         const mockPositions = [
           createMockPosition({ symbol: 'ETH', size: '2.0' }),
@@ -3821,7 +3821,7 @@ describe('PerpsController', () => {
 
         // Act
         const positions = await controller.getPositions({
-          readOnly: true,
+          standalone: true,
           userAddress: mockUserAddress,
         });
 
@@ -3834,7 +3834,7 @@ describe('PerpsController', () => {
         expect(positions).toEqual(mockPositions);
       });
 
-      it('bypasses getActiveProvider check for readOnly queries', async () => {
+      it('bypasses getActiveProvider check for standalone queries', async () => {
         // Arrange - controller not initialized (no provider available via normal path)
         const mockPositions = [
           createMockPosition({ symbol: 'BTC', size: '1.0' }),
@@ -3850,7 +3850,7 @@ describe('PerpsController', () => {
 
         // Act - should NOT throw despite controller not being initialized
         const positions = await controller.getPositions({
-          readOnly: true,
+          standalone: true,
           userAddress: mockUserAddress,
         });
 
@@ -3859,7 +3859,7 @@ describe('PerpsController', () => {
       });
     });
 
-    describe('getAccountState with readOnly mode', () => {
+    describe('getAccountState with standalone mode', () => {
       // Complete AccountState mock with all required fields
       const createMockAccountState = (overrides = {}) => ({
         totalBalance: '50000',
@@ -3870,7 +3870,7 @@ describe('PerpsController', () => {
         ...overrides,
       });
 
-      it('uses existing provider for readOnly queries when available', async () => {
+      it('uses existing provider for standalone queries when available', async () => {
         // Arrange
         const mockAccountState = createMockAccountState();
         const existingMockProvider = createMockHyperLiquidProvider();
@@ -3887,20 +3887,20 @@ describe('PerpsController', () => {
 
         // Act
         const accountState = await controller.getAccountState({
-          readOnly: true,
+          standalone: true,
           userAddress: mockUserAddress,
         });
 
         // Assert - should use existing provider
         expect(existingMockProvider.getAccountState).toHaveBeenCalledWith({
-          readOnly: true,
+          standalone: true,
           userAddress: mockUserAddress,
         });
         expect(accountState).toEqual(mockAccountState);
         expect(MockedHyperLiquidProvider).not.toHaveBeenCalled();
       });
 
-      it('creates temporary provider for readOnly queries when no activeProviderInstance', async () => {
+      it('creates temporary provider for standalone queries when no activeProviderInstance', async () => {
         // Arrange - no activeProviderInstance set (pre-initialization)
         const mockAccountState = createMockAccountState({
           totalBalance: '25000',
@@ -3917,7 +3917,7 @@ describe('PerpsController', () => {
 
         // Act
         const accountState = await controller.getAccountState({
-          readOnly: true,
+          standalone: true,
           userAddress: mockUserAddress,
         });
 
@@ -3930,7 +3930,7 @@ describe('PerpsController', () => {
         expect(accountState).toEqual(mockAccountState);
       });
 
-      it('bypasses getActiveProvider check for readOnly queries', async () => {
+      it('bypasses getActiveProvider check for standalone queries', async () => {
         // Arrange - controller not initialized (no provider available via normal path)
         const mockAccountState = createMockAccountState({
           totalBalance: '10000',
@@ -3946,7 +3946,7 @@ describe('PerpsController', () => {
 
         // Act - should NOT throw despite controller not being initialized
         const accountState = await controller.getAccountState({
-          readOnly: true,
+          standalone: true,
           userAddress: mockUserAddress,
         });
 

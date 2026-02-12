@@ -367,7 +367,7 @@ export class TradingService {
         });
         traceData = { success: true, orderId: result.orderId || '' };
 
-        // Invalidate readOnly caches so external hooks (e.g., usePerpsPositionForAsset) refresh
+        // Invalidate standalone caches so external hooks (e.g., usePerpsPositionForAsset) refresh
         this.deps.cacheInvalidator.invalidate({ cacheType: 'positions' });
         this.deps.cacheInvalidator.invalidate({ cacheType: 'accountState' });
       } else {
@@ -1239,7 +1239,7 @@ export class TradingService {
 
         traceData = { success: true, filledSize: result.filledSize || '' };
 
-        // Invalidate readOnly caches so external hooks (e.g., usePerpsPositionForAsset) refresh
+        // Invalidate standalone caches so external hooks (e.g., usePerpsPositionForAsset) refresh
         this.deps.cacheInvalidator.invalidate({ cacheType: 'positions' });
         this.deps.cacheInvalidator.invalidate({ cacheType: 'accountState' });
       } else {
@@ -1453,7 +1453,7 @@ export class TradingService {
         batchCloseProps,
       );
 
-      // Invalidate readOnly caches on successful batch close
+      // Invalidate standalone caches on successful batch close
       if (operationResult?.success && operationResult.successCount > 0) {
         this.deps.cacheInvalidator.invalidate({ cacheType: 'positions' });
         this.deps.cacheInvalidator.invalidate({ cacheType: 'accountState' });
@@ -1656,7 +1656,7 @@ export class TradingService {
           [PERPS_EVENT_PROPERTY.COMPLETION_DURATION]: completionDuration,
         });
 
-        // Invalidate readOnly caches so external hooks refresh
+        // Invalidate standalone caches so external hooks refresh
         this.deps.cacheInvalidator.invalidate({ cacheType: 'positions' });
         this.deps.cacheInvalidator.invalidate({ cacheType: 'accountState' });
       }
@@ -1790,7 +1790,7 @@ export class TradingService {
           },
         );
 
-        // Invalidate readOnly caches so external hooks refresh
+        // Invalidate standalone caches so external hooks refresh
         this.deps.cacheInvalidator.invalidate({ cacheType: 'positions' });
         this.deps.cacheInvalidator.invalidate({ cacheType: 'accountState' });
       }

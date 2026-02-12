@@ -4357,7 +4357,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       // Creates a standalone InfoClient without requiring full initialization
       // No wallet, WebSocket, or account setup needed - just HTTP API call
       // Use for discovery use cases like showing positions on token details page
-      if (params?.readOnly && params.userAddress) {
+      if (params?.standalone && params.userAddress) {
         this.deps.debugLogger.log(
           'HyperLiquidProvider: Getting positions in standalone mode',
           { userAddress: params.userAddress },
@@ -5000,7 +5000,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       // Creates a standalone InfoClient without requiring full initialization
       // No wallet, WebSocket, or account setup needed - just HTTP API call
       // Use for discovery use cases like checking if user has perps funds
-      if (params?.readOnly && params.userAddress) {
+      if (params?.standalone && params.userAddress) {
         this.deps.debugLogger.log(
           'HyperLiquidProvider: Getting account state in standalone mode',
           { userAddress: params.userAddress },
@@ -5184,7 +5184,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       // Creates a standalone InfoClient without requiring full initialization
       // No wallet, WebSocket, or account setup needed - just HTTP API call
       // Use for discovery use cases like checking if a perps market exists
-      if (params?.readOnly) {
+      if (params?.standalone) {
         this.deps.debugLogger.log(
           'HyperLiquidProvider: Getting markets in standalone mode',
           { symbolCount: params?.symbols?.length },

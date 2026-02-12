@@ -38,7 +38,7 @@ jest.mock('../../../components/UI/Perps/providers/PerpsStreamManager', () => ({
   getStreamManagerInstance: mockGetStreamManagerInstance,
 }));
 
-// Mock standalone info client for readOnly mode tests
+// Mock standalone info client for standalone mode tests
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let mockStandaloneInfoClient: any;
 jest.mock('../utils/standaloneInfoClient', () => ({
@@ -7667,7 +7667,7 @@ describe('HyperLiquidProvider', () => {
     });
   });
 
-  describe('readOnly mode', () => {
+  describe('standalone mode', () => {
     const mockUserAddress = '0xabcdef1234567890abcdef1234567890abcdef12';
     const mockCreateStandaloneInfoClient =
       createStandaloneInfoClient as jest.MockedFunction<
@@ -7682,8 +7682,8 @@ describe('HyperLiquidProvider', () => {
       };
     });
 
-    describe('getPositions with readOnly mode', () => {
-      it('returns positions via standalone client when readOnly mode enabled', async () => {
+    describe('getPositions with standalone mode', () => {
+      it('returns positions via standalone client when standalone mode enabled', async () => {
         // Arrange
         mockStandaloneInfoClient.clearinghouseState.mockResolvedValue({
           assetPositions: [
@@ -7712,7 +7712,7 @@ describe('HyperLiquidProvider', () => {
 
         // Act
         const positions = await provider.getPositions({
-          readOnly: true,
+          standalone: true,
           userAddress: mockUserAddress,
         });
 
@@ -7728,7 +7728,7 @@ describe('HyperLiquidProvider', () => {
         expect(positions[0].size).toBe('0.5');
       });
 
-      it('filters zero-size positions in readOnly mode', async () => {
+      it('filters zero-size positions in standalone mode', async () => {
         // Arrange - include positions with zero size
         mockStandaloneInfoClient.clearinghouseState.mockResolvedValue({
           assetPositions: [
@@ -7773,7 +7773,7 @@ describe('HyperLiquidProvider', () => {
 
         // Act
         const positions = await provider.getPositions({
-          readOnly: true,
+          standalone: true,
           userAddress: mockUserAddress,
         });
 
@@ -7792,7 +7792,7 @@ describe('HyperLiquidProvider', () => {
 
         // Act
         await provider.getPositions({
-          readOnly: true,
+          standalone: true,
           userAddress: mockUserAddress,
         });
 
@@ -7810,7 +7810,7 @@ describe('HyperLiquidProvider', () => {
 
         // Act
         const positions = await provider.getPositions({
-          readOnly: true,
+          standalone: true,
           userAddress: mockUserAddress,
         });
 
@@ -7819,8 +7819,8 @@ describe('HyperLiquidProvider', () => {
       });
     });
 
-    describe('getAccountState with readOnly mode', () => {
-      it('returns account state via standalone client when readOnly mode enabled', async () => {
+    describe('getAccountState with standalone mode', () => {
+      it('returns account state via standalone client when standalone mode enabled', async () => {
         // Arrange
         mockStandaloneInfoClient.clearinghouseState.mockResolvedValue({
           assetPositions: [],
@@ -7837,7 +7837,7 @@ describe('HyperLiquidProvider', () => {
 
         // Act
         const accountState = await provider.getAccountState({
-          readOnly: true,
+          standalone: true,
           userAddress: mockUserAddress,
         });
 
@@ -7863,7 +7863,7 @@ describe('HyperLiquidProvider', () => {
 
         // Act
         await provider.getAccountState({
-          readOnly: true,
+          standalone: true,
           userAddress: mockUserAddress,
         });
 
@@ -7882,14 +7882,14 @@ describe('HyperLiquidProvider', () => {
         // Act & Assert
         await expect(
           provider.getAccountState({
-            readOnly: true,
+            standalone: true,
             userAddress: mockUserAddress,
           }),
         ).rejects.toThrow('API unavailable');
       });
     });
 
-    describe('multi-DEX readOnly mode (HIP-3)', () => {
+    describe('multi-DEX standalone mode (HIP-3)', () => {
       let hip3Provider: HyperLiquidProvider;
 
       beforeEach(() => {
@@ -7967,7 +7967,7 @@ describe('HyperLiquidProvider', () => {
 
         // Act
         const positions = await hip3Provider.getPositions({
-          readOnly: true,
+          standalone: true,
           userAddress: mockUserAddress,
         });
 
@@ -8020,7 +8020,7 @@ describe('HyperLiquidProvider', () => {
 
         // Act
         const positions = await hip3Provider.getPositions({
-          readOnly: true,
+          standalone: true,
           userAddress: mockUserAddress,
         });
 
@@ -8071,7 +8071,7 @@ describe('HyperLiquidProvider', () => {
 
         // Act
         const positions = await disabledProvider.getPositions({
-          readOnly: true,
+          standalone: true,
           userAddress: mockUserAddress,
         });
 
@@ -8091,11 +8091,11 @@ describe('HyperLiquidProvider', () => {
 
         // Act - call getPositions twice on same provider instance
         await hip3Provider.getPositions({
-          readOnly: true,
+          standalone: true,
           userAddress: mockUserAddress,
         });
         await hip3Provider.getPositions({
-          readOnly: true,
+          standalone: true,
           userAddress: mockUserAddress,
         });
 
@@ -8103,7 +8103,7 @@ describe('HyperLiquidProvider', () => {
         expect(mockStandaloneInfoClient.perpDexs).toHaveBeenCalledTimes(1);
       });
 
-      it('aggregates account state across multiple DEXs in readOnly mode', async () => {
+      it('aggregates account state across multiple DEXs in standalone mode', async () => {
         // Arrange: main DEX + xyz DEX both have balances
         mockStandaloneInfoClient.clearinghouseState
           .mockResolvedValueOnce({
@@ -8125,7 +8125,7 @@ describe('HyperLiquidProvider', () => {
 
         // Act
         const accountState = await hip3Provider.getAccountState({
-          readOnly: true,
+          standalone: true,
           userAddress: mockUserAddress,
         });
 
