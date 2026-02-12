@@ -1,4 +1,9 @@
-import { ButtonSize as ButtonSizeRNDesignSystem } from '@metamask/design-system-react-native';
+import {
+  Box,
+  BoxFlexDirection,
+  ButtonSize as ButtonSizeRNDesignSystem,
+  IconName,
+} from '@metamask/design-system-react-native';
 import {
   useNavigation,
   useRoute,
@@ -45,7 +50,9 @@ import { TraceName } from '../../../../../util/trace';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useConfirmNavigation';
 import ComponentErrorBoundary from '../../../ComponentErrorBoundary';
-import { getPerpsMarketDetailsNavbar } from '../../../Navbar';
+import HeaderCollapsibleSubpage, {
+  useHeaderCollapsible,
+} from '../../../../../component-library/components-temp/HeaderCollapsibleSubpage';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip';
 import type { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
 import PerpsCandlePeriodBottomSheet from '../../components/PerpsCandlePeriodBottomSheet';
@@ -55,10 +62,10 @@ import PerpsCompactOrderRow from '../../components/PerpsCompactOrderRow';
 import PerpsFlipPositionConfirmSheet from '../../components/PerpsFlipPositionConfirmSheet';
 import {
   PerpsMarketDetailsViewSelectorsIDs,
+  PerpsMarketHeaderSelectorsIDs,
   PerpsOrderViewSelectorsIDs,
   PerpsTutorialSelectorsIDs,
 } from '../../Perps.testIds';
-import PerpsMarketHeader from '../../components/PerpsMarketHeader';
 import PerpsMarketHoursBanner from '../../components/PerpsMarketHoursBanner';
 import PerpsMarketStatisticsCard from '../../components/PerpsMarketStatisticsCard';
 import PerpsMarketTradesList from '../../components/PerpsMarketTradesList';
@@ -123,6 +130,14 @@ import {
 import { BUTTON_COLOR_TEST } from '../../utils/abTesting/tests';
 import { usePerpsABTest } from '../../utils/abTesting/usePerpsABTest';
 import { getMarketHoursStatus } from '../../utils/marketHours';
+import {
+  formatPercentage,
+  formatPerpsFiat,
+  PRICE_RANGES_UNIVERSAL,
+} from '../../utils/formatUtils';
+import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
+import PerpsLeverage from '../../components/PerpsLeverage/PerpsLeverage';
+import PerpsTokenLogo from '../../components/PerpsTokenLogo';
 import { ensureError } from '../../../../../util/errorUtils';
 import PerpsSelectAdjustMarginActionView from '../PerpsSelectAdjustMarginActionView';
 import PerpsSelectModifyActionView from '../PerpsSelectModifyActionView';
@@ -248,14 +263,12 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     }
   }, [isWatchlistFromRedux, optimisticWatchlist]);
 
-  // Set navigation header with proper back button
-  useEffect(() => {
-    if (market) {
-      navigation.setOptions(
-        getPerpsMarketDetailsNavbar(navigation, market.symbol),
-      );
-    }
-  }, [navigation, market]);
+  const {
+    onScroll: onHeaderScroll,
+    scrollY: headerScrollY,
+    expandedHeight,
+    setExpandedHeight,
+  } = useHeaderCollapsible();
 
   // Get persisted candle period preference from Redux store
   const selectedCandlePeriod = useSelector(
@@ -387,6 +400,54 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     const lastCandle = candleData.candles.at(-1);
     return lastCandle?.close ? Number.parseFloat(lastCandle.close) : 0;
   }, [candleData]);
+
+  const priceData = market?.symbol ? livePrices[market.symbol] : undefined;
+  const headerDisplayChange = useMemo(() => {
+    if (priceData?.percentChange24h == null) return null;
+    return Number.parseFloat(priceData.percentChange24h);
+  }, [priceData]);
+
+  const headerFormattedPrice = useMemo(() => {
+    if (
+      !chartCurrentPrice ||
+      chartCurrentPrice <= 0 ||
+      !Number.isFinite(chartCurrentPrice)
+    ) {
+      return PERPS_CONSTANTS.FallbackPriceDisplay;
+    }
+    try {
+      return formatPerpsFiat(chartCurrentPrice, {
+        ranges: PRICE_RANGES_UNIVERSAL,
+      });
+    } catch {
+      return PERPS_CONSTANTS.FallbackPriceDisplay;
+    }
+  }, [chartCurrentPrice]);
+
+  const headerFormattedChange = useMemo(() => {
+    if (headerDisplayChange === null) {
+      return PERPS_CONSTANTS.FallbackPercentageDisplay;
+    }
+    if (
+      !chartCurrentPrice ||
+      chartCurrentPrice <= 0 ||
+      !Number.isFinite(chartCurrentPrice)
+    ) {
+      return PERPS_CONSTANTS.FallbackPercentageDisplay;
+    }
+    try {
+      return formatPercentage(headerDisplayChange.toString());
+    } catch {
+      return PERPS_CONSTANTS.FallbackPercentageDisplay;
+    }
+  }, [chartCurrentPrice, headerDisplayChange]);
+
+  const headerChangeColor =
+    headerDisplayChange === null
+      ? TextColor.Default
+      : headerDisplayChange >= 0
+        ? TextColor.Success
+        : TextColor.Error;
 
   // Auto-zoom to latest candle when interval changes and new data arrives
   // This ensures the chart shows the most recent data after interval change
@@ -1069,6 +1130,53 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   // Simplified styles - no complex calculations needed
   const { styles } = useStyles(createStyles, {});
 
+  const marketDisplayTitle = market
+    ? `${getPerpsDisplaySymbol(market.symbol)}-USD`
+    : '';
+
+  const titleSubpageProps = useMemo(
+    () =>
+      market
+        ? {
+            startAccessory: <PerpsTokenLogo symbol={market.symbol} size={40} />,
+            title: marketDisplayTitle,
+            titleAccessory: market.maxLeverage ? (
+              <Box twClassName="ml-1">
+                <PerpsLeverage maxLeverage={market.maxLeverage} />
+              </Box>
+            ) : undefined,
+            bottomAccessory: (
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                twClassName="gap-1.5 items-baseline"
+              >
+                <Text
+                  variant={TextVariant.BodySMMedium}
+                  color={TextColor.Alternative}
+                  testID={PerpsMarketHeaderSelectorsIDs.PRICE}
+                >
+                  {headerFormattedPrice}
+                </Text>
+                <Text
+                  variant={TextVariant.BodySMMedium}
+                  color={headerChangeColor}
+                  testID={PerpsMarketHeaderSelectorsIDs.PRICE_CHANGE}
+                >
+                  {headerFormattedChange}
+                </Text>
+              </Box>
+            ),
+          }
+        : undefined,
+    [
+      market,
+      marketDisplayTitle,
+      headerFormattedPrice,
+      headerFormattedChange,
+      headerChangeColor,
+    ],
+  );
+
   if (!market) {
     return (
       <SafeAreaView style={styles.container}>
@@ -1085,309 +1193,337 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   }
 
   return (
-    <SafeAreaView
-      style={styles.mainContainer}
-      testID={PerpsMarketDetailsViewSelectorsIDs.CONTAINER}
-    >
-      {/* Fixed Header Section */}
-      <View>
-        <PerpsMarketHeader
-          market={market}
-          onBackPress={handleBackPress}
-          onFavoritePress={handleWatchlistPress}
-          onFullscreenPress={handleFullscreenChartOpen}
-          isFavorite={isWatchlist}
+    <>
+      <SafeAreaView
+        style={styles.mainContainer}
+        testID={PerpsMarketDetailsViewSelectorsIDs.CONTAINER}
+      >
+        <HeaderCollapsibleSubpage
+          title={marketDisplayTitle}
+          subtitle={headerFormattedPrice}
+          onBack={handleBackPress}
+          backButtonProps={{
+            testID: PerpsMarketHeaderSelectorsIDs.BACK_BUTTON,
+          }}
+          endButtonIconProps={[
+            {
+              iconName: IconName.Expand,
+              onPress: handleFullscreenChartOpen,
+              testID: `${PerpsMarketDetailsViewSelectorsIDs.HEADER}-fullscreen-button`,
+            },
+            {
+              iconName: isWatchlist ? IconName.StarFilled : IconName.Star,
+              onPress: handleWatchlistPress,
+              testID: `${PerpsMarketDetailsViewSelectorsIDs.HEADER}-favorite-button`,
+            },
+          ]}
+          titleSubpageProps={titleSubpageProps}
+          scrollY={headerScrollY}
+          onExpandedHeightChange={setExpandedHeight}
+          isInsideSafeAreaView
           testID={PerpsMarketDetailsViewSelectorsIDs.HEADER}
-          currentPrice={chartCurrentPrice}
         />
-      </View>
 
-      {/* Scrollable Content Container */}
-      <View style={styles.scrollableContentContainer}>
-        <ScrollView
-          style={styles.mainContentScrollView}
-          contentContainerStyle={styles.scrollViewContent}
-          showsVerticalScrollIndicator={false}
-          testID={PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
-          }
-        >
-          {/* TradingView Chart Section */}
-          <View style={[styles.section, styles.chartSection]}>
-            <ComponentErrorBoundary
-              componentLabel="PerpsMarketDetailsChart"
-              onError={handleChartError}
-            >
-              {/* OHLCV Bar - Shows above chart when interacting */}
-              {ohlcData && (
-                <PerpsOHLCVBar
-                  open={ohlcData.open}
-                  high={ohlcData.high}
-                  low={ohlcData.low}
-                  close={ohlcData.close}
-                  volume={ohlcData.volume}
-                  testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-ohlcv-bar`}
+        <View style={styles.scrollableContentContainer}>
+          <ScrollView
+            style={styles.mainContentScrollView}
+            contentContainerStyle={[
+              styles.scrollViewContent,
+              { paddingTop: expandedHeight },
+            ]}
+            showsVerticalScrollIndicator={false}
+            onScroll={onHeaderScroll}
+            scrollEventThrottle={16}
+            testID={PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={handleRefresh}
+              />
+            }
+          >
+            {/* TradingView Chart Section */}
+            <View style={[styles.section, styles.chartSection]}>
+              <ComponentErrorBoundary
+                componentLabel="PerpsMarketDetailsChart"
+                onError={handleChartError}
+              >
+                {/* OHLCV Bar - Shows above chart when interacting */}
+                {ohlcData && (
+                  <PerpsOHLCVBar
+                    open={ohlcData.open}
+                    high={ohlcData.high}
+                    low={ohlcData.low}
+                    close={ohlcData.close}
+                    volume={ohlcData.volume}
+                    testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-ohlcv-bar`}
+                  />
+                )}
+
+                {hasHistoricalData ? (
+                  <TradingViewChart
+                    ref={chartRef}
+                    candleData={candleData}
+                    height={PERPS_CHART_CONFIG.LAYOUT.DETAIL_VIEW_HEIGHT}
+                    visibleCandleCount={visibleCandleCount}
+                    tpslLines={tpslLines}
+                    symbol={market?.symbol}
+                    showOverlay={false}
+                    coloredVolume
+                    onOhlcDataChange={setOhlcData}
+                    onNeedMoreHistory={fetchMoreHistory}
+                    testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-tradingview-chart`}
+                  />
+                ) : (
+                  <Skeleton
+                    height={PERPS_CHART_CONFIG.LAYOUT.DETAIL_VIEW_HEIGHT}
+                    width="100%"
+                    testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-chart-skeleton`}
+                  />
+                )}
+              </ComponentErrorBoundary>
+
+              {/* Candle Period Selector */}
+              <PerpsCandlePeriodSelector
+                selectedPeriod={selectedCandlePeriod}
+                onPeriodChange={handleCandlePeriodChange}
+                onMorePress={handleMorePress}
+                testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-candle-period-selector`}
+              />
+
+              {/* Price Deviation Warning - Shows when price has deviated too much from spot price */}
+              {market?.symbol && isTradingHalted && !isLoadingTradingHalted && (
+                <PerpsPriceDeviationWarning
+                  testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-price-deviation-warning`}
                 />
               )}
+            </View>
 
-              {hasHistoricalData ? (
-                <TradingViewChart
-                  ref={chartRef}
-                  candleData={candleData}
-                  height={PERPS_CHART_CONFIG.LAYOUT.DETAIL_VIEW_HEIGHT}
-                  visibleCandleCount={visibleCandleCount}
-                  tpslLines={tpslLines}
-                  symbol={market?.symbol}
-                  showOverlay={false}
-                  coloredVolume
-                  onOhlcDataChange={setOhlcData}
-                  onNeedMoreHistory={fetchMoreHistory}
-                  testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-tradingview-chart`}
-                />
-              ) : (
-                <Skeleton
-                  height={PERPS_CHART_CONFIG.LAYOUT.DETAIL_VIEW_HEIGHT}
-                  width="100%"
-                  testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-chart-skeleton`}
-                />
-              )}
-            </ComponentErrorBoundary>
+            {/* OI Cap Warning - Shows when market is at capacity */}
+            {market?.symbol && isAtOICap && (
+              <PerpsOICapWarning symbol={market.symbol} variant="banner" />
+            )}
 
-            {/* Candle Period Selector */}
-            <PerpsCandlePeriodSelector
-              selectedPeriod={selectedCandlePeriod}
-              onPeriodChange={handleCandlePeriodChange}
-              onMorePress={handleMorePress}
-              testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-candle-period-selector`}
-            />
-
-            {/* Price Deviation Warning - Shows when price has deviated too much from spot price */}
-            {market?.symbol && isTradingHalted && !isLoadingTradingHalted && (
-              <PerpsPriceDeviationWarning
-                testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-price-deviation-warning`}
+            {/* Market Hours Banner - Hidden when OI cap warning is showing */}
+            {!isAtOICap && (
+              <PerpsMarketHoursBanner
+                marketType={market?.marketType}
+                onInfoPress={handleMarketHoursInfoPress}
+                testID={PerpsMarketDetailsViewSelectorsIDs.MARKET_HOURS_BANNER}
               />
             )}
-          </View>
 
-          {/* OI Cap Warning - Shows when market is at capacity */}
-          {market?.symbol && isAtOICap && (
-            <PerpsOICapWarning symbol={market.symbol} variant="banner" />
-          )}
-
-          {/* Market Hours Banner - Hidden when OI cap warning is showing */}
-          {!isAtOICap && (
-            <PerpsMarketHoursBanner
-              marketType={market?.marketType}
-              onInfoPress={handleMarketHoursInfoPress}
-              testID={PerpsMarketDetailsViewSelectorsIDs.MARKET_HOURS_BANNER}
-            />
-          )}
-
-          {/* Stop Loss Prompt Banner - Shows when position needs attention */}
-          {/* Keep mounted while isStopLossSuccess is true to allow fade animation to complete */}
-          {(isBannerVisible || isStopLossSuccess) && bannerVariant && (
-            <PerpsStopLossPromptBanner
-              variant={bannerVariant}
-              liquidationDistance={liquidationDistance ?? 0}
-              suggestedStopLossPrice={suggestedStopLossPrice ?? undefined}
-              suggestedStopLossPercent={suggestedStopLossPercent ?? undefined}
-              onSetStopLoss={handleSetStopLossFromBanner}
-              onAddMargin={handleAddMarginFromBanner}
-              isLoading={isSettingStopLoss}
-              isSuccess={isStopLossSuccess}
-              onFadeOutComplete={handleBannerFadeOutComplete}
-              testID={
-                PerpsMarketDetailsViewSelectorsIDs.STOP_LOSS_PROMPT_BANNER
-              }
-            />
-          )}
-
-          {/* Position Section - Shows when user has an open position */}
-          {existingPosition && (
-            <View style={styles.section}>
-              <PerpsPositionCard
-                position={existingPosition}
-                currentPrice={currentPrice}
-                onAutoClosePress={handleAutoClosePress}
-                onMarginPress={handleMarginPress}
-                onSharePress={handleSharePress}
+            {/* Stop Loss Prompt Banner - Shows when position needs attention */}
+            {/* Keep mounted while isStopLossSuccess is true to allow fade animation to complete */}
+            {(isBannerVisible || isStopLossSuccess) && bannerVariant && (
+              <PerpsStopLossPromptBanner
+                variant={bannerVariant}
+                liquidationDistance={liquidationDistance ?? 0}
+                suggestedStopLossPrice={suggestedStopLossPrice ?? undefined}
+                suggestedStopLossPercent={suggestedStopLossPercent ?? undefined}
+                onSetStopLoss={handleSetStopLossFromBanner}
+                onAddMargin={handleAddMarginFromBanner}
+                isLoading={isSettingStopLoss}
+                isSuccess={isStopLossSuccess}
+                onFadeOutComplete={handleBannerFadeOutComplete}
+                testID={
+                  PerpsMarketDetailsViewSelectorsIDs.STOP_LOSS_PROMPT_BANNER
+                }
               />
-            </View>
-          )}
+            )}
 
-          {/* Orders Section - Compact view (TP/SL orders excluded) */}
-          {nonTPSLOrders.length > 0 && (
-            <View style={styles.section}>
-              <Text variant={TextVariant.HeadingMD} style={styles.sectionTitle}>
-                {strings('perps.market.orders')}
-              </Text>
-              {nonTPSLOrders.map((order) => (
-                <PerpsCompactOrderRow
-                  key={order.orderId}
-                  order={order}
-                  onPress={() => handleOrderSelect(order)}
-                  testID={`compact-order-${order.orderId}`}
-                />
-              ))}
-            </View>
-          )}
-
-          {/* Statistics Section - Always shown */}
-          <View style={styles.section}>
-            <PerpsMarketStatisticsCard
-              symbol={market?.symbol || ''}
-              marketStats={marketStats}
-              onTooltipPress={handleTooltipPress}
-              nextFundingTime={market?.nextFundingTime}
-              fundingIntervalHours={market?.fundingIntervalHours}
-              dexName={market?.marketSource || undefined}
-              onOrderBookPress={
-                isOrderBookEnabled ? handleOrderBookPress : undefined
-              }
-            />
-          </View>
-
-          {/* Recent Trades Section */}
-          {market?.symbol && (
-            <View style={styles.section}>
-              <PerpsMarketTradesList symbol={market.symbol} />
-            </View>
-          )}
-
-          {/* Navigation Card Section */}
-          <View style={styles.section}>
-            <PerpsNavigationCard items={navigationItems} />
-          </View>
-
-          {/* Risk Disclaimer Section */}
-          <View style={styles.section}>
-            <Text
-              style={styles.riskDisclaimer}
-              variant={TextVariant.BodyXS}
-              color={TextColor.Alternative}
-            >
-              {strings('perps.risk_disclaimer', riskDisclaimerParams)}{' '}
-              <Text
-                variant={TextVariant.BodyXS}
-                color={TextColor.Alternative}
-                onPress={handleTradingViewPress}
-              >
-                TradingView.
-              </Text>
-            </Text>
-          </View>
-        </ScrollView>
-      </View>
-
-      {/* Fixed Actions Footer */}
-      {(hasAddFundsButton || hasLongShortButtons) && !isTradingHalted && (
-        <View style={styles.actionsFooter}>
-          {hasAddFundsButton && (
-            <View style={styles.singleActionContainer}>
-              <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-                {strings('perps.market.add_funds_to_start_trading_perps')}
-              </Text>
-              <Button
-                variant={ButtonVariants.Primary}
-                size={ButtonSize.Lg}
-                width={ButtonWidthTypes.Full}
-                label={strings('perps.market.add_funds')}
-                onPress={handleAddFundsPress}
-                testID={PerpsMarketDetailsViewSelectorsIDs.ADD_FUNDS_BUTTON}
-              />
-            </View>
-          )}
-
-          {/* Show Modify/Close buttons when position exists */}
-          {hasLongShortButtons && existingPosition && (
-            <View style={styles.actionsContainer}>
-              <View style={styles.actionButtonWrapper}>
-                <Button
-                  variant={ButtonVariants.Secondary}
-                  size={ButtonSize.Lg}
-                  width={ButtonWidthTypes.Full}
-                  label={strings('perps.market.modify')}
-                  onPress={handleModifyPress}
-                  testID={PerpsMarketDetailsViewSelectorsIDs.MODIFY_BUTTON}
+            {/* Position Section - Shows when user has an open position */}
+            {existingPosition && (
+              <View style={styles.section}>
+                <PerpsPositionCard
+                  position={existingPosition}
+                  currentPrice={currentPrice}
+                  onAutoClosePress={handleAutoClosePress}
+                  onMarginPress={handleMarginPress}
+                  onSharePress={handleSharePress}
                 />
               </View>
+            )}
 
-              <View style={styles.actionButtonWrapper}>
+            {/* Orders Section - Compact view (TP/SL orders excluded) */}
+            {nonTPSLOrders.length > 0 && (
+              <View style={styles.section}>
+                <Text
+                  variant={TextVariant.HeadingMD}
+                  style={styles.sectionTitle}
+                >
+                  {strings('perps.market.orders')}
+                </Text>
+                {nonTPSLOrders.map((order) => (
+                  <PerpsCompactOrderRow
+                    key={order.orderId}
+                    order={order}
+                    onPress={() => handleOrderSelect(order)}
+                    testID={`compact-order-${order.orderId}`}
+                  />
+                ))}
+              </View>
+            )}
+
+            {/* Statistics Section - Always shown */}
+            <View style={styles.section}>
+              <PerpsMarketStatisticsCard
+                symbol={market?.symbol || ''}
+                marketStats={marketStats}
+                onTooltipPress={handleTooltipPress}
+                nextFundingTime={market?.nextFundingTime}
+                fundingIntervalHours={market?.fundingIntervalHours}
+                dexName={market?.marketSource || undefined}
+                onOrderBookPress={
+                  isOrderBookEnabled ? handleOrderBookPress : undefined
+                }
+              />
+            </View>
+
+            {/* Recent Trades Section */}
+            {market?.symbol && (
+              <View style={styles.section}>
+                <PerpsMarketTradesList symbol={market.symbol} />
+              </View>
+            )}
+
+            {/* Navigation Card Section */}
+            <View style={styles.section}>
+              <PerpsNavigationCard items={navigationItems} />
+            </View>
+
+            {/* Risk Disclaimer Section */}
+            <View style={styles.section}>
+              <Text
+                style={styles.riskDisclaimer}
+                variant={TextVariant.BodyXS}
+                color={TextColor.Alternative}
+              >
+                {strings('perps.risk_disclaimer', riskDisclaimerParams)}{' '}
+                <Text
+                  variant={TextVariant.BodyXS}
+                  color={TextColor.Alternative}
+                  onPress={handleTradingViewPress}
+                >
+                  TradingView.
+                </Text>
+              </Text>
+            </View>
+          </ScrollView>
+        </View>
+
+        {/* Fixed Actions Footer */}
+        {(hasAddFundsButton || hasLongShortButtons) && !isTradingHalted && (
+          <View style={styles.actionsFooter}>
+            {hasAddFundsButton && (
+              <View style={styles.singleActionContainer}>
+                <Text
+                  variant={TextVariant.BodySM}
+                  color={TextColor.Alternative}
+                >
+                  {strings('perps.market.add_funds_to_start_trading_perps')}
+                </Text>
                 <Button
                   variant={ButtonVariants.Primary}
                   size={ButtonSize.Lg}
                   width={ButtonWidthTypes.Full}
-                  label={
-                    parseFloat(existingPosition.size) >= 0
-                      ? strings('perps.market.close_long')
-                      : strings('perps.market.close_short')
-                  }
-                  onPress={handleClosePosition}
-                  testID={PerpsMarketDetailsViewSelectorsIDs.CLOSE_BUTTON}
+                  label={strings('perps.market.add_funds')}
+                  onPress={handleAddFundsPress}
+                  testID={PerpsMarketDetailsViewSelectorsIDs.ADD_FUNDS_BUTTON}
                 />
               </View>
-            </View>
-          )}
+            )}
 
-          {/* Show Long/Short buttons when no position exists */}
-          {hasLongShortButtons && !existingPosition && !isAtOICap && (
-            <View style={styles.actionsContainer}>
-              <View style={styles.actionButtonWrapper}>
-                {buttonColorVariant === 'monochrome' ? (
+            {/* Show Modify/Close buttons when position exists */}
+            {hasLongShortButtons && existingPosition && (
+              <View style={styles.actionsContainer}>
+                <View style={styles.actionButtonWrapper}>
+                  <Button
+                    variant={ButtonVariants.Secondary}
+                    size={ButtonSize.Lg}
+                    width={ButtonWidthTypes.Full}
+                    label={strings('perps.market.modify')}
+                    onPress={handleModifyPress}
+                    testID={PerpsMarketDetailsViewSelectorsIDs.MODIFY_BUTTON}
+                  />
+                </View>
+
+                <View style={styles.actionButtonWrapper}>
                   <Button
                     variant={ButtonVariants.Primary}
                     size={ButtonSize.Lg}
                     width={ButtonWidthTypes.Full}
-                    label={strings('perps.market.long')}
-                    onPress={handleLongPress}
-                    isDisabled={isAtOICap}
-                    testID={PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON}
+                    label={
+                      parseFloat(existingPosition.size) >= 0
+                        ? strings('perps.market.close_long')
+                        : strings('perps.market.close_short')
+                    }
+                    onPress={handleClosePosition}
+                    testID={PerpsMarketDetailsViewSelectorsIDs.CLOSE_BUTTON}
                   />
-                ) : (
-                  <ButtonSemantic
-                    severity={ButtonSemanticSeverity.Success}
-                    onPress={handleLongPress}
-                    isFullWidth
-                    size={ButtonSizeRNDesignSystem.Lg}
-                    isDisabled={isAtOICap}
-                    testID={PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON}
-                  >
-                    {strings('perps.market.long')}
-                  </ButtonSemantic>
-                )}
+                </View>
               </View>
+            )}
 
-              <View style={styles.actionButtonWrapper}>
-                {buttonColorVariant === 'monochrome' ? (
-                  <Button
-                    variant={ButtonVariants.Primary}
-                    size={ButtonSize.Lg}
-                    width={ButtonWidthTypes.Full}
-                    label={strings('perps.market.short')}
-                    onPress={handleShortPress}
-                    isDisabled={isAtOICap}
-                    testID={PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON}
-                  />
-                ) : (
-                  <ButtonSemantic
-                    severity={ButtonSemanticSeverity.Danger}
-                    onPress={handleShortPress}
-                    isFullWidth
-                    size={ButtonSizeRNDesignSystem.Lg}
-                    isDisabled={isAtOICap}
-                    testID={PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON}
-                  >
-                    {strings('perps.market.short')}
-                  </ButtonSemantic>
-                )}
+            {/* Show Long/Short buttons when no position exists */}
+            {hasLongShortButtons && !existingPosition && !isAtOICap && (
+              <View style={styles.actionsContainer}>
+                <View style={styles.actionButtonWrapper}>
+                  {buttonColorVariant === 'monochrome' ? (
+                    <Button
+                      variant={ButtonVariants.Primary}
+                      size={ButtonSize.Lg}
+                      width={ButtonWidthTypes.Full}
+                      label={strings('perps.market.long')}
+                      onPress={handleLongPress}
+                      isDisabled={isAtOICap}
+                      testID={PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON}
+                    />
+                  ) : (
+                    <ButtonSemantic
+                      severity={ButtonSemanticSeverity.Success}
+                      onPress={handleLongPress}
+                      isFullWidth
+                      size={ButtonSizeRNDesignSystem.Lg}
+                      isDisabled={isAtOICap}
+                      testID={PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON}
+                    >
+                      {strings('perps.market.long')}
+                    </ButtonSemantic>
+                  )}
+                </View>
+
+                <View style={styles.actionButtonWrapper}>
+                  {buttonColorVariant === 'monochrome' ? (
+                    <Button
+                      variant={ButtonVariants.Primary}
+                      size={ButtonSize.Lg}
+                      width={ButtonWidthTypes.Full}
+                      label={strings('perps.market.short')}
+                      onPress={handleShortPress}
+                      isDisabled={isAtOICap}
+                      testID={PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON}
+                    />
+                  ) : (
+                    <ButtonSemantic
+                      severity={ButtonSemanticSeverity.Danger}
+                      onPress={handleShortPress}
+                      isFullWidth
+                      size={ButtonSizeRNDesignSystem.Lg}
+                      isDisabled={isAtOICap}
+                      testID={PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON}
+                    >
+                      {strings('perps.market.short')}
+                    </ButtonSemantic>
+                  )}
+                </View>
               </View>
-            </View>
-          )}
-        </View>
-      )}
+            )}
+          </View>
+        )}
+      </SafeAreaView>
 
-      {/* More Candle Periods Bottom Sheet - Rendered at root level */}
+      {/* Overlays - outside SafeAreaView so they stack above header (same level as screen content) */}
       <PerpsCandlePeriodBottomSheet
         isVisible={isMoreCandlePeriodsVisible}
         onClose={handleMoreCandlePeriodsClose}
@@ -1479,7 +1615,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           onConfirm={closeReversePositionSheet}
         />
       )}
-    </SafeAreaView>
+    </>
   );
 };
 

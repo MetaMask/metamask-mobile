@@ -1,4 +1,8 @@
-import { ButtonSize as ButtonSizeRNDesignSystem } from '@metamask/design-system-react-native';
+import {
+  Box,
+  BoxFlexDirection,
+  ButtonSize as ButtonSizeRNDesignSystem,
+} from '@metamask/design-system-react-native';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import React, {
   useCallback,
@@ -19,7 +23,10 @@ import {
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
-import { PerpsOrderBookViewSelectorsIDs } from '../../Perps.testIds';
+import {
+  PerpsMarketHeaderSelectorsIDs,
+  PerpsOrderBookViewSelectorsIDs,
+} from '../../Perps.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import ButtonSemantic, {
   ButtonSemanticSeverity,
@@ -50,7 +57,9 @@ import { TraceName } from '../../../../../util/trace';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip';
 import type { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
-import PerpsMarketHeader from '../../components/PerpsMarketHeader';
+import HeaderStackedSubpage from '../../../../../component-library/components-temp/HeaderStackedSubpage';
+import PerpsLeverage from '../../components/PerpsLeverage/PerpsLeverage';
+import PerpsTokenLogo from '../../components/PerpsTokenLogo';
 import PerpsOrderBookDepthChart from '../../components/PerpsOrderBookDepthChart';
 import PerpsOrderBookTable, {
   type UnitDisplay,
@@ -59,6 +68,7 @@ import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
 } from '../../constants/eventNames';
+import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
 import {
   usePerpsMarkets,
   usePerpsNavigation,
@@ -76,6 +86,7 @@ import { selectPerpsEligibility } from '../../selectors/perpsController';
 import { BUTTON_COLOR_TEST } from '../../utils/abTesting/tests';
 import { usePerpsABTest } from '../../utils/abTesting/usePerpsABTest';
 import {
+  formatPercentage,
   formatPerpsFiat,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
@@ -225,6 +236,46 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
     return marketPrice ?? 0;
   }, [livePrices, symbol, marketPrice]);
 
+  const priceData = symbol ? livePrices[symbol] : undefined;
+  const headerDisplayChange = useMemo(() => {
+    if (priceData?.percentChange24h == null) return null;
+    return Number.parseFloat(priceData.percentChange24h);
+  }, [priceData]);
+
+  const headerFormattedPrice = useMemo(() => {
+    if (!currentPrice || currentPrice <= 0 || !Number.isFinite(currentPrice)) {
+      return PERPS_CONSTANTS.FallbackPriceDisplay;
+    }
+    try {
+      return formatPerpsFiat(currentPrice, {
+        ranges: PRICE_RANGES_UNIVERSAL,
+      });
+    } catch {
+      return PERPS_CONSTANTS.FallbackPriceDisplay;
+    }
+  }, [currentPrice]);
+
+  const headerFormattedChange = useMemo(() => {
+    if (headerDisplayChange === null) {
+      return PERPS_CONSTANTS.FallbackPercentageDisplay;
+    }
+    if (!currentPrice || currentPrice <= 0 || !Number.isFinite(currentPrice)) {
+      return PERPS_CONSTANTS.FallbackPercentageDisplay;
+    }
+    try {
+      return formatPercentage(headerDisplayChange.toString());
+    } catch {
+      return PERPS_CONSTANTS.FallbackPercentageDisplay;
+    }
+  }, [currentPrice, headerDisplayChange]);
+
+  const headerChangeColor =
+    headerDisplayChange === null
+      ? TextColor.Default
+      : headerDisplayChange >= 0
+        ? TextColor.Success
+        : TextColor.Error;
+
   const spreadMetrics = useMemo(() => {
     const bidStr = topOfBook?.bestBid;
     const askStr = topOfBook?.bestAsk;
@@ -315,6 +366,53 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
   const footerStyle = useMemo(
     () => [styles.footer, { paddingBottom: 16 + insets.bottom }],
     [styles.footer, insets.bottom],
+  );
+
+  const marketDisplayTitle = market
+    ? `${getPerpsDisplaySymbol(market.symbol)}-USD`
+    : '';
+
+  const titleSubpageProps = useMemo(
+    () =>
+      market
+        ? {
+            startAccessory: <PerpsTokenLogo symbol={market.symbol} size={40} />,
+            title: marketDisplayTitle,
+            titleAccessory: market.maxLeverage ? (
+              <Box twClassName="ml-1">
+                <PerpsLeverage maxLeverage={market.maxLeverage} />
+              </Box>
+            ) : undefined,
+            bottomAccessory: (
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                twClassName="gap-1.5 items-baseline"
+              >
+                <Text
+                  variant={TextVariant.BodySMMedium}
+                  color={TextColor.Alternative}
+                  testID={PerpsMarketHeaderSelectorsIDs.PRICE}
+                >
+                  {headerFormattedPrice}
+                </Text>
+                <Text
+                  variant={TextVariant.BodySMMedium}
+                  color={headerChangeColor}
+                  testID={PerpsMarketHeaderSelectorsIDs.PRICE_CHANGE}
+                >
+                  {headerFormattedChange}
+                </Text>
+              </Box>
+            ),
+          }
+        : undefined,
+    [
+      market,
+      marketDisplayTitle,
+      headerFormattedPrice,
+      headerFormattedChange,
+      headerChangeColor,
+    ],
   );
 
   // Handle grouping dropdown press
@@ -489,10 +587,13 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
     return (
       <SafeAreaView style={styles.container} testID={testID}>
         {market ? (
-          <PerpsMarketHeader
-            market={market}
-            onBackPress={handleBack}
-            currentPrice={currentPrice}
+          <HeaderStackedSubpage
+            onBack={handleBack}
+            backButtonProps={{
+              testID: PerpsOrderBookViewSelectorsIDs.BACK_BUTTON,
+            }}
+            titleSubpageProps={titleSubpageProps}
+            testID={PerpsOrderBookViewSelectorsIDs.HEADER}
           />
         ) : (
           <View style={styles.header}>
@@ -521,12 +622,14 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
 
   return (
     <SafeAreaView style={styles.container} testID={testID}>
-      {/* Market Header */}
       {market && (
-        <PerpsMarketHeader
-          market={market}
-          onBackPress={handleBack}
-          currentPrice={currentPrice}
+        <HeaderStackedSubpage
+          onBack={handleBack}
+          backButtonProps={{
+            testID: PerpsOrderBookViewSelectorsIDs.BACK_BUTTON,
+          }}
+          titleSubpageProps={titleSubpageProps}
+          testID={PerpsOrderBookViewSelectorsIDs.HEADER}
         />
       )}
 

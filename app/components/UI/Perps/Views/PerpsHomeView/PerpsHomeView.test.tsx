@@ -257,64 +257,21 @@ jest.mock('../../constants/eventNames', () => ({
   },
 }));
 
-// Mock child components
-jest.mock('../../components/PerpsHomeHeader', () => {
-  const { View, TouchableOpacity, Text, TextInput } =
-    jest.requireActual('react-native');
-
-  interface MockPerpsHomeHeaderProps {
-    onSearchToggle: () => void;
-    onBack: () => void;
-    isSearchVisible?: boolean;
-    searchQuery?: string;
-    onSearchQueryChange?: (text: string) => void;
-    onSearchClear?: () => void;
-    testID: string;
-  }
-
-  return function MockPerpsHomeHeader({
-    onSearchToggle,
-    onBack,
-    isSearchVisible = false,
-    searchQuery = '',
-    onSearchQueryChange,
-    testID,
-  }: MockPerpsHomeHeaderProps) {
-    if (isSearchVisible) {
-      return (
-        <View>
-          <TextInput
-            value={searchQuery}
-            onChangeText={onSearchQueryChange}
-            testID={`${testID}-search-bar`}
-          />
-          <TouchableOpacity
-            testID={`${testID}-search-close`}
-            onPress={onSearchToggle}
-          >
-            <Text>Cancel</Text>
-          </TouchableOpacity>
-        </View>
-      );
-    }
-
-    return (
-      <View>
-        <TouchableOpacity testID={`${testID}-back-button`} onPress={onBack}>
-          {/* Also provide back-button for backward compatibility with tests */}
-          <View testID="back-button" />
-          <Text>Back</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          testID={`${testID}-search-toggle`}
-          onPress={onSearchToggle}
-        >
-          <Text>Search</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  };
+jest.mock('react-native-reanimated', () => {
+  const Reanimated = jest.requireActual('react-native-reanimated/mock');
+  Reanimated.useSharedValue = jest.fn((initial: number) => ({
+    value: initial,
+  }));
+  Reanimated.useAnimatedStyle = jest.fn((fn: () => object) => () => fn());
+  Reanimated.useDerivedValue = jest.fn((fn: () => number) => ({ value: fn() }));
+  Reanimated.interpolate = jest.fn(
+    (_value: number, _inputRange: number[], outputRange: number[]) =>
+      outputRange[0],
+  );
+  Reanimated.Extrapolation = { CLAMP: 'clamp' };
+  return Reanimated;
 });
+
 jest.mock('../../components/PerpsHomeSection', () => {
   const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
 
