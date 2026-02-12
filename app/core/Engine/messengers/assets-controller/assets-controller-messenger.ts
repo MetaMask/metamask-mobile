@@ -93,6 +93,7 @@ export function getAssetsControllerMessenger(
   });
   rootExtendedMessenger.delegate({
     actions: [
+      'AccountsController:getSelectedAccount',
       'AccountTreeController:getAccountsFromSelectedAccountGroup',
       'NetworkEnablementController:getState',
       'NetworkController:getState',
