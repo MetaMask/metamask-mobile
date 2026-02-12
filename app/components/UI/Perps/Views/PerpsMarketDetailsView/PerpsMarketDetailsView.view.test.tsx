@@ -8,7 +8,7 @@ import '../../../../../util/test/component-view/mocks';
 import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
 import PerpsMarketDetailsView from './PerpsMarketDetailsView';
-import { renderPerpsView } from '../../../../../util/test/component-view/renderers/perps';
+import { renderPerpsView } from '../../../../../util/test/component-view/renderers/perpsViewRenderer';
 import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
 import type { RootState } from '../../../../../reducers';
 

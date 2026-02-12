@@ -11,7 +11,7 @@ import { fireEvent, screen } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import PerpsTabView from './PerpsTabView';
-import { renderPerpsView } from '../../../../../util/test/component-view/renderers/perps';
+import { renderPerpsView } from '../../../../../util/test/component-view/renderers/perpsViewRenderer';
 import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
 import type { RootState } from '../../../../../reducers';
 

@@ -6,7 +6,7 @@ import renderWithProvider, { type DeepPartial } from '../../renderWithProvider';
 import type { RootState } from '../../../../reducers';
 import Routes from '../../../../constants/navigation/Routes';
 import { renderComponentViewScreen, renderScreenWithRoutes } from '../render';
-import { initialStatePerps } from '../presets/perps';
+import { initialStatePerps } from '../presets/perpsStatePreset';
 import {
   PerpsConnectionContext,
   type PerpsConnectionContextValue,

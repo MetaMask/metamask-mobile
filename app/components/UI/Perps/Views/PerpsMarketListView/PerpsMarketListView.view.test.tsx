@@ -8,7 +8,7 @@ import '../../../../../util/test/component-view/mocks';
 import React from 'react';
 import { screen, fireEvent, waitFor } from '@testing-library/react-native';
 import PerpsMarketListView from './PerpsMarketListView';
-import { renderPerpsView } from '../../../../../util/test/component-view/renderers/perps';
+import { renderPerpsView } from '../../../../../util/test/component-view/renderers/perpsViewRenderer';
 import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
 import type { RootState } from '../../../../../reducers';
 import { PerpsMarketListViewSelectorsIDs } from '../../Perps.testIds';

@@ -5,8 +5,8 @@
  */
 import '../../../../../util/test/component-view/mocks';
 import { fireEvent, screen } from '@testing-library/react-native';
-import { getModifyActionLabels } from '../../../../../util/test/component-view/helpers/perps';
-import { renderPerpsSelectModifyActionView } from '../../../../../util/test/component-view/renderers/perps';
+import { getModifyActionLabels } from '../../../../../util/test/component-view/helpers/perpsViewTestHelpers';
+import { renderPerpsSelectModifyActionView } from '../../../../../util/test/component-view/renderers/perpsViewRenderer';
 
 describe('PerpsSelectModifyActionView', () => {
   it('renders the modify action sheet with options', () => {
