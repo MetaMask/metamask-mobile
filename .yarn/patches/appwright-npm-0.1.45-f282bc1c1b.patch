@@ -155,10 +155,11 @@ index 638c5df686413ffe050ef7e7329b9e9446e98002..679d1dca2b33aa531993e23bfed2e18f
          const sessionData = await getSessionDetails(sessionId);
          const sessionDetails = sessionData?.automation_session;
          const videoURL = sessionDetails?.video_url;
-@@ -241,7 +248,13 @@ class BrowserStackDeviceProvider {
+@@ -241,7 +248,14 @@ class BrowserStackDeviceProvider {
              capabilities: {
-                 "bstack:options": {
-                     debug: true,
+                "bstack:options": {
+                    debug: true,
++                    local: process.env.BROWSERSTACK_LOCAL === 'true',
 +                    networkProfile : '4g-lte-advanced-good',
                      interactiveDebugging: true,
 +                    selfHeal: true,
