@@ -7,7 +7,7 @@ import {
   getEvmAccountFromAccountGroup,
   getSelectedEvmAccount,
   calculateWeightedReturnOnEquity,
-} from './accountUtils';
+} from '@metamask/perps-controller';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
 
 describe('accountUtils', () => {
