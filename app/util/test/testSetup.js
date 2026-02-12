@@ -586,7 +586,7 @@ jest.mock('redux-persist', () => ({
 
 jest.mock('../../store/storage-wrapper', () => ({
   getItem: jest.fn(),
-  setItem: jest.fn(),
+  setItem: jest.fn().mockResolvedValue(null),
 }));
 
 // eslint-disable-next-line import/no-commonjs
