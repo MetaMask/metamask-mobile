@@ -21,11 +21,7 @@ module.exports = {
   ],
   overrides: [
     {
-      files: [
-        'e2e/**/*.{js,ts}',
-        'tests/**/*.{js,ts}',
-        'appwright/**/*.{js,ts}',
-      ],
+      files: ['tests/**/*.{js,ts}', 'appwright/**/*.{js,ts}'],
       extends: ['./tests/framework/.eslintrc.js'],
     },
     {
@@ -174,6 +170,24 @@ module.exports = {
               "CallExpression[callee.object.name='jest'][callee.property.name='mock'][arguments.0.type='Literal'][arguments.0.value!='../../../core/Engine'][arguments.0.value!='../../../core/Engine/Engine'][arguments.0.value!='react-native-device-info']",
             message:
               'Only Engine and react-native-device-info can be mocked in component-view tests.',
+          },
+        ],
+      },
+    },
+    {
+      files: ['app/**/*.{ts,tsx}'],
+      excludedFiles: ['app/controllers/perps/**/*.{ts,tsx}'],
+      rules: {
+        'no-restricted-imports': [
+          'error',
+          {
+            patterns: [
+              {
+                group: ['**/controllers/perps', '**/controllers/perps/**'],
+                message:
+                  'Use @metamask/perps-controller instead of relative imports into app/controllers/perps/.',
+              },
+            ],
           },
         ],
       },

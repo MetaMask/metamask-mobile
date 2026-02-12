@@ -156,7 +156,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
   const {
     styles,
-    theme: { colors, themeAppearance },
+    theme: { themeAppearance },
   } = useStyles(stylesheet, EmptyRecordConstant);
 
   const passwordLoginAttemptTraceCtxRef = useRef<TraceContext | null>(null);
@@ -714,7 +714,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
                 </Label>
                 <TextField
                   placeholder={strings('login.password_placeholder')}
-                  placeholderTextColor={colors.text.alternative}
                   testID={LoginViewSelectors.PASSWORD_INPUT}
                   returnKeyType={'done'}
                   autoCapitalize="none"
