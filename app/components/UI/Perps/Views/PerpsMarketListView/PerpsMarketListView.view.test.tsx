@@ -5,12 +5,8 @@
  * Run with: yarn jest -c jest.config.view.js PerpsMarketListView.view.test
  */
 import '../../../../../util/test/component-view/mocks';
-import React from 'react';
 import { screen, fireEvent, waitFor } from '@testing-library/react-native';
-import PerpsMarketListView from './PerpsMarketListView';
-import { renderPerpsView } from '../../../../../util/test/component-view/renderers/perpsViewRenderer';
-import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
-import type { RootState } from '../../../../../reducers';
+import { renderPerpsMarketListView } from '../../../../../util/test/component-view/renderers/perpsViewRenderer';
 import { PerpsMarketListViewSelectorsIDs } from '../../Perps.testIds';
 import { PerpsMarketData } from '@metamask/perps-controller';
 
@@ -40,30 +36,16 @@ const commodityMarket: PerpsMarketData = {
 
 const marketDataWithCategories = [cryptoMarket, commodityMarket];
 
-function renderView(
-  options: {
-    overrides?: DeepPartial<RootState>;
-    streamOverrides?: { marketData?: PerpsMarketData[] };
-  } = {},
-) {
-  const { overrides, streamOverrides } = options;
-  return renderPerpsView(
-    PerpsMarketListView as unknown as React.ComponentType,
-    'PerpsMarketListView',
-    { overrides, streamOverrides },
-  );
-}
-
 describe('PerpsMarketListView', () => {
   describe('Bug regression: #25571', () => {
     it('renders market list header and list with default state (no category filtering)', async () => {
-      renderView();
+      renderPerpsMarketListView();
 
       expect(await screen.findByText('Markets')).toBeOnTheScreen();
     });
 
     it('shows Crypto and Commodities category badges when market data includes both types', async () => {
-      renderView({
+      renderPerpsMarketListView({
         streamOverrides: { marketData: marketDataWithCategories },
       });
 

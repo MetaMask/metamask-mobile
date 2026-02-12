@@ -15,7 +15,10 @@ import {
   PerpsStreamProvider,
   type PerpsStreamManager,
 } from '../../../../components/UI/Perps/providers/PerpsStreamManager';
+import PerpsMarketDetailsView from '../../../../components/UI/Perps/Views/PerpsMarketDetailsView/PerpsMarketDetailsView';
+import PerpsMarketListView from '../../../../components/UI/Perps/Views/PerpsMarketListView/PerpsMarketListView';
 import PerpsSelectModifyActionView from '../../../../components/UI/Perps/Views/PerpsSelectModifyActionView/PerpsSelectModifyActionView';
+import PerpsTabView from '../../../../components/UI/Perps/Views/PerpsTabView/PerpsTabView';
 import { Position } from '@metamask/perps-controller';
 
 /** No-op unsubscribe for test stream channels; subscribe() must return () => void */
@@ -246,5 +249,73 @@ export function renderPerpsSelectModifyActionView(
     selectModifyActionExtraRoutes,
     { state },
     initialParams ?? { position: defaultSelectModifyActionPosition },
+  );
+}
+
+/** Default market for PerpsMarketDetailsView view tests (geo-restriction, etc.). */
+const defaultMarketDetailsMarket = {
+  symbol: 'ETH',
+  name: 'Ethereum',
+  price: '$2,000.00',
+  change24h: '+$50.00',
+  change24hPercent: '+2.5%',
+  volume: '$1.5B',
+  maxLeverage: '50x',
+  marketType: 'crypto',
+};
+
+/** Default Redux overrides for geo-restriction tests (PerpsController.isEligible: false). */
+const defaultGeoRestrictionOverrides: DeepPartial<RootState> = {
+  engine: {
+    backgroundState: {
+      PerpsController: { isEligible: false },
+    },
+  },
+};
+
+/**
+ * Renders PerpsMarketDetailsView with default geo-restriction state and market/position.
+ * Use in PerpsMarketDetailsView.view.test.tsx.
+ */
+export function renderPerpsMarketDetailsView(
+  options: {
+    overrides?: DeepPartial<RootState>;
+    initialParams?: Record<string, unknown>;
+    streamOverrides?: PerpsStreamOverrides;
+  } = {},
+) {
+  const {
+    overrides = defaultGeoRestrictionOverrides,
+    initialParams = { market: defaultMarketDetailsMarket },
+    streamOverrides = { positions: [defaultSelectModifyActionPosition] },
+  } = options;
+  return renderPerpsView(
+    PerpsMarketDetailsView as unknown as React.ComponentType,
+    'PerpsMarketDetails',
+    { overrides, initialParams, streamOverrides },
+  );
+}
+
+/**
+ * Renders PerpsMarketListView. Use in PerpsMarketListView.view.test.tsx.
+ */
+export function renderPerpsMarketListView(
+  options: RenderPerpsViewOptions = {},
+) {
+  return renderPerpsView(
+    PerpsMarketListView as unknown as React.ComponentType,
+    'PerpsMarketListView',
+    options,
+  );
+}
+
+/**
+ * Renders PerpsTabView. Use in PerpsTabView.view.test.tsx.
+ */
+export function renderPerpsTabView(options: RenderPerpsViewOptions = {}) {
+  return renderPerpsView(
+    PerpsTabView as unknown as React.ComponentType,
+    'PerpsTabView',
+    options,
   );
 }
