@@ -100,7 +100,7 @@ export const usePerpsMarketFills = ({
       const accountAddress = addressRef.current ?? 'unknown';
 
       // Log error to Sentry but don't fail - WebSocket fills still work
-      Logger.error(ensureError(err), {
+      Logger.error(ensureError(err, 'usePerpsMarketFills.fetchFills'), {
         tags: {
           feature: PERPS_CONSTANTS.FeatureName,
         },
