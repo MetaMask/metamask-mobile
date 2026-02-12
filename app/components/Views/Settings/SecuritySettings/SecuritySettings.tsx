@@ -13,14 +13,12 @@ import Engine from '../../../../core/Engine';
 import { SEED_PHRASE_HINTS } from '../../../../constants/storage';
 import HintModal from '../../../UI/HintModal';
 import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
-import { useTheme } from '../../../../util/theme';
 import {
   ClearCookiesSection,
   DeleteMetaMetricsData,
   DeleteWalletData,
-  RememberMeOptionSection,
   ProtectYourWallet,
-  LoginOptionsSettings,
+  DeviceSecurityToggle,
   ChangePassword,
   AutoLock,
   ClearPrivacy,
@@ -57,10 +55,11 @@ import IPFSGatewaySettings from '../../Settings/IPFSGatewaySettings';
 import BatchAccountBalanceSettings from '../../Settings/BatchAccountBalanceSettings';
 import useCheckNftAutoDetectionModal from '../../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../../hooks/useCheckMultiRpcModal';
+import { useStyles } from '../../../../component-library/hooks/useStyles';
 
 const Heading: React.FC<HeadingProps> = ({ children, first }) => {
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const { styles } = useStyles(createStyles, {});
+
   return (
     <View style={[styles.setting, first && styles.firstSetting]}>
       <Text variant={TextVariant.HeadingLG} style={styles.heading}>
@@ -72,9 +71,7 @@ const Heading: React.FC<HeadingProps> = ({ children, first }) => {
 
 const Settings: React.FC = () => {
   const { trackEvent, isEnabled, createEventBuilder } = useMetrics();
-  const theme = useTheme();
-  const { colors } = theme;
-  const styles = createStyles(colors);
+  const { styles, theme: { colors, brandColors } } = useStyles(createStyles, {});
   const navigation = useNavigation();
   const params = useParams<SecuritySettingsParams>();
   const dispatch = useDispatch();
@@ -295,7 +292,7 @@ const Settings: React.FC = () => {
                 true: colors.primary.default,
                 false: colors.border.muted,
               }}
-              thumbColor={theme.brandColors.white}
+              thumbColor={brandColors.white}
               style={styles.switch}
               ios_backgroundColor={colors.border.muted}
             />
@@ -331,7 +328,7 @@ const Settings: React.FC = () => {
       colors,
       styles,
       useTransactionSimulations,
-      theme.brandColors.white,
+      brandColors.white,
       createEventBuilder,
       trackEvent,
     ],
@@ -374,10 +371,7 @@ const Settings: React.FC = () => {
         />
         <ChangePassword />
         <AutoLock />
-        <LoginOptionsSettings />
-        <View style={styles.setting}>
-          <RememberMeOptionSection />
-        </View>
+        <DeviceSecurityToggle />
         <BlockaidSettings />
         <Heading>{strings('app_settings.privacy_heading')}</Heading>
         <View>
