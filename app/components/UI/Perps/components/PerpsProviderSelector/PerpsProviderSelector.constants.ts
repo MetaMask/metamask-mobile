@@ -1,4 +1,4 @@
-import type { PerpsProviderType } from '../../controllers/types';
+import type { PerpsProviderType } from '@metamask/perps-controller';
 import type { ProviderDisplayInfo } from './PerpsProviderSelector.types';
 
 /**

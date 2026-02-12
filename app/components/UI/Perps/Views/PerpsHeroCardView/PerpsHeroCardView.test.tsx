@@ -13,7 +13,7 @@ import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
-} from '../../constants/eventNames';
+} from '@metamask/perps-controller';
 import {
   PerpsHeroCardViewSelectorsIDs,
   getPerpsHeroCardViewSelector,
@@ -488,8 +488,8 @@ describe('PerpsHeroCardView', () => {
         expect(Logger.error).toHaveBeenCalledWith(
           error,
           expect.objectContaining({
-            message: 'Error capturing Perps Hero Card',
-            context: 'PerpsHeroCardView.captureCard',
+            tags: { feature: 'perps' },
+            context: { name: 'PerpsHeroCardView.captureCard', data: {} },
           }),
         );
       });
@@ -582,8 +582,8 @@ describe('PerpsHeroCardView', () => {
         expect(Logger.error).toHaveBeenCalledWith(
           error,
           expect.objectContaining({
-            message: 'Error sharing Perps Hero Card',
-            context: 'PerpsHeroCardView.handleShare',
+            tags: { feature: 'perps' },
+            context: { name: 'PerpsHeroCardView.handleShare', data: {} },
           }),
         );
       });
