@@ -5470,7 +5470,10 @@ export class HyperLiquidProvider implements PerpsProvider {
     // eliminating duplicate metaAndAssetCtxs API calls from race conditions
     await this.ensureReady();
 
-    const infoClient = this.clientService.getInfoClient();
+    // Use HTTP transport for market data fetches — these are one-shot request/response calls
+    // that don't benefit from WebSocket. When the WebSocket is in CONNECTING state (after app
+    // backgrounding or network transitions), the SDK buffers messages causing timeouts.
+    const infoClient = this.clientService.getInfoClient({ useHttp: true });
 
     // Get enabled DEXs respecting feature flags (uses cached perpDexs)
     const enabledDexs = await this.getValidatedDexs();
@@ -5545,11 +5548,16 @@ export class HyperLiquidProvider implements PerpsProvider {
             success: true,
           };
         } catch (error) {
-          this.deps.logger.error(
-            ensureError(error, 'HyperLiquidProvider.getMarketDataWithPrices'),
-            this.getErrorContext('getMarketDataWithPrices.fetchDex', {
-              dex: dex ?? 'main',
-            }),
+          // Log per-DEX failures locally only — the aggregate error at the end
+          // of this method reports to Sentry, avoiding duplicate events.
+          this.deps.debugLogger.log(
+            `[getMarketDataWithPrices] DEX fetch failed for ${dex ?? 'main'}`,
+            {
+              error: ensureError(
+                error,
+                'HyperLiquidProvider.getMarketDataWithPrices',
+              ).message,
+            },
           );
           return {
             dex,
@@ -5592,7 +5600,16 @@ export class HyperLiquidProvider implements PerpsProvider {
     });
 
     if (combinedUniverse.length === 0) {
-      throw new Error('Failed to fetch market data - no markets available');
+      const failedDexs = dexDataResults
+        .filter((r) => !r.success)
+        .map((r) => r.dex ?? 'main');
+      const succeededDexs = dexDataResults
+        .filter((r) => r.success)
+        .map((r) => r.dex ?? 'main');
+      const wsState = this.clientService.getConnectionState();
+      throw new Error(
+        `Failed to fetch market data - no markets available (enabledDexs=${enabledDexs.length}, failed=[${failedDexs.join(',')}], succeeded=[${succeededDexs.join(',')}], wsState=${wsState})`,
+      );
     }
 
     this.deps.debugLogger.log(

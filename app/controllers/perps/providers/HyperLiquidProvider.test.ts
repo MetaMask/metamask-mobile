@@ -359,6 +359,7 @@ describe('HyperLiquidProvider', () => {
       getSubscriptionClient: jest.fn(),
       setOnReconnectCallback: jest.fn(),
       setOnTerminateCallback: jest.fn(),
+      getConnectionState: jest.fn().mockReturnValue('connected'),
     } as Partial<HyperLiquidClientService> as jest.Mocked<HyperLiquidClientService>;
 
     mockWalletService = {
@@ -3385,7 +3386,57 @@ describe('HyperLiquidProvider', () => {
         );
 
         await expect(provider.getMarketDataWithPrices()).rejects.toThrow(
-          'Failed to fetch market data - no markets available',
+          /Failed to fetch market data - no markets available/,
+        );
+      });
+
+      it('uses HTTP InfoClient for market data fetches', async () => {
+        mockClientService.getInfoClient = jest.fn().mockReturnValue(
+          createMockInfoClient({
+            meta: jest.fn().mockResolvedValue({
+              universe: [{ name: 'BTC', szDecimals: 3, maxLeverage: 50 }],
+            }),
+            allMids: jest.fn().mockResolvedValue({ BTC: '50000' }),
+            predictedFundings: jest.fn().mockResolvedValue([]),
+            metaAndAssetCtxs: jest.fn().mockResolvedValue([
+              { universe: [{ name: 'BTC', szDecimals: 3, maxLeverage: 50 }] },
+              [
+                {
+                  funding: '0.0001',
+                  openInterest: '1000',
+                  prevDayPx: '49000',
+                  dayNtlVlm: '1000000',
+                  markPx: '50000',
+                  midPx: '50000',
+                  oraclePx: '50000',
+                },
+              ],
+            ]),
+          }),
+        );
+
+        const freshProvider = createTestProvider();
+        await freshProvider.getMarketDataWithPrices();
+
+        expect(mockClientService.getInfoClient).toHaveBeenCalledWith({
+          useHttp: true,
+        });
+      });
+
+      it('includes diagnostic context in error when all DEX fetches fail', async () => {
+        mockClientService.getInfoClient = jest.fn().mockReturnValue(
+          createMockInfoClient({
+            metaAndAssetCtxs: jest
+              .fn()
+              .mockRejectedValue(new Error('WebSocket timeout')),
+            allMids: jest
+              .fn()
+              .mockRejectedValue(new Error('WebSocket timeout')),
+          }),
+        );
+
+        await expect(provider.getMarketDataWithPrices()).rejects.toThrow(
+          /enabledDexs=.*failed=.*wsState=/,
         );
       });
 
