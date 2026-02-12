@@ -233,12 +233,8 @@ describe('ReceiveRequest', () => {
     fireEvent.press(requestButton);
 
     // Assert
-    expect(mockNavigate).toHaveBeenCalledWith(
-      'PaymentRequestView',
-      expect.objectContaining({
-        screen: 'PaymentRequest',
-        params: expect.any(Object),
-      }),
-    );
+    expect(mockNavigate).toHaveBeenCalledWith('PaymentRequest', {
+      receiveAsset,
+    });
   });
 });
