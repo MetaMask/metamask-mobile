@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
- - fix: check chainRanking against ALLOWED_BRIDGE_CHAIN_IDS (#25808)
+- fix: check chainRanking against ALLOWED_BRIDGE_CHAIN_IDS (#25808)
 
 ## [7.64.0]
 
