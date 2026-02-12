@@ -16,6 +16,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { PredictEventValues } from '../../constants/eventNames';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 
+import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
 const runAfterInteractionsCallbacks: (() => void)[] = [];
 const mockRunAfterInteractions = jest.spyOn(
   InteractionManager,
@@ -322,7 +323,7 @@ function createMockMarket(overrides = {}) {
     title: 'Will Bitcoin reach $100k by end of 2024?',
     image: 'https://example.com/bitcoin.png',
     endDate: '2024-12-31T23:59:59Z',
-    providerId: 'polymarket',
+    providerId: POLYMARKET_PROVIDER_ID,
     status: 'open',
     tags: [],
     outcomes: [

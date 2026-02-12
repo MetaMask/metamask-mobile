@@ -43,7 +43,7 @@ import {
   ROUNDING_CONFIG,
   SLIPPAGE_BUY,
   SLIPPAGE_SELL,
-} from './constants';
+ POLYMARKET_PROVIDER_ID } from './constants';
 import { SafeFeeAuthorization } from './safe/types';
 import {
   ApiKeyCreds,
@@ -595,7 +595,7 @@ export const parsePolymarketMarket = (
   event: PolymarketApiEvent,
 ): PredictOutcome => ({
   id: market.conditionId,
-  providerId: 'polymarket',
+  providerId: POLYMARKET_PROVIDER_ID,
   marketId: event.id,
   title: market.question,
   description: market.description,
@@ -658,7 +658,7 @@ export const parsePolymarketEvents = (
       return {
         id: event.id,
         slug: event.slug,
-        providerId: 'polymarket',
+        providerId: POLYMARKET_PROVIDER_ID,
         title: event.title,
         description: event.description,
         image: event.icon,
@@ -720,7 +720,7 @@ export const parsePolymarketActivity = (
 
     const parsedActivity: PredictActivity = {
       id,
-      providerId: 'polymarket',
+      providerId: POLYMARKET_PROVIDER_ID,
       entry:
         entryType === 'claimWinnings'
           ? { type: 'claimWinnings', timestamp, amount }
@@ -904,7 +904,7 @@ export const parsePolymarketPositions = async ({
   const parsedPositions: PredictPosition[] = positions.map(
     (position: PolymarketPosition) => ({
       id: position.asset,
-      providerId: 'polymarket',
+      providerId: POLYMARKET_PROVIDER_ID,
       marketId: position.eventId,
       outcomeId: position.conditionId,
       outcome: position.outcome,

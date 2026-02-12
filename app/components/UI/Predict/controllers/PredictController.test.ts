@@ -39,6 +39,7 @@ import {
 } from './PredictController';
 import { analytics } from '../../../../util/analytics/analytics';
 
+import { POLYMARKET_PROVIDER_ID } from '../providers/polymarket/constants';
 // Mock the PolymarketProvider and its dependencies
 jest.mock('../providers/polymarket/PolymarketProvider');
 
@@ -138,7 +139,7 @@ describe('PredictController', () => {
   ): PredictPosition {
     return {
       id: 'position-1',
-      providerId: 'polymarket',
+      providerId: POLYMARKET_PROVIDER_ID,
       marketId: 'market-1',
       outcomeId: 'outcome-1',
       outcome: 'Yes',
@@ -763,7 +764,7 @@ describe('PredictController', () => {
     it('handle empty bookParams array', async () => {
       await withController(async ({ controller }) => {
         mockPolymarketProvider.getPrices = jest.fn().mockResolvedValue({
-          providerId: 'polymarket',
+          providerId: POLYMARKET_PROVIDER_ID,
           results: [],
         });
 
@@ -772,7 +773,7 @@ describe('PredictController', () => {
         });
 
         expect(result).toEqual({
-          providerId: 'polymarket',
+          providerId: POLYMARKET_PROVIDER_ID,
           results: [],
         });
         expect(mockPolymarketProvider.getPrices).toHaveBeenCalledWith({
@@ -2561,7 +2562,7 @@ describe('PredictController', () => {
     const mockActivity = [
       {
         id: 'activity-1',
-        providerId: 'polymarket',
+        providerId: POLYMARKET_PROVIDER_ID,
         entry: {
           type: 'buy' as const,
           timestamp: Date.now(),
@@ -2575,7 +2576,7 @@ describe('PredictController', () => {
       },
       {
         id: 'activity-2',
-        providerId: 'polymarket',
+        providerId: POLYMARKET_PROVIDER_ID,
         entry: {
           type: 'claimWinnings' as const,
           timestamp: Date.now(),
@@ -3230,7 +3231,7 @@ describe('PredictController', () => {
 
     it('updates deposit transaction in depositWithConfirmation', async () => {
       const mockBatchId = 'batch-store-test';
-      const providerId = 'polymarket';
+      const providerId = POLYMARKET_PROVIDER_ID;
       const address = '0x1234567890123456789012345678901234567890';
 
       mockPolymarketProvider.prepareDeposit.mockResolvedValue({
@@ -3265,7 +3266,7 @@ describe('PredictController', () => {
     it('clears previous deposit transaction when starting new deposit', async () => {
       const oldBatchId = 'old-batch';
       const newBatchId = 'new-batch';
-      const providerId = 'polymarket';
+      const providerId = POLYMARKET_PROVIDER_ID;
       const address = '0x1234567890123456789012345678901234567890';
 
       mockPolymarketProvider.prepareDeposit.mockResolvedValue({
@@ -3744,7 +3745,7 @@ describe('PredictController', () => {
             chainId: 137,
             transactionId: 'withdraw-1',
             status: PredictWithdrawStatus.PENDING,
-            providerId: 'polymarket',
+            providerId: POLYMARKET_PROVIDER_ID,
             predictAddress: accountAddress,
           };
         });
@@ -3770,7 +3771,7 @@ describe('PredictController', () => {
             chainId: 137,
             transactionId: 'withdraw-2',
             status: PredictWithdrawStatus.PENDING,
-            providerId: 'polymarket',
+            providerId: POLYMARKET_PROVIDER_ID,
             predictAddress: accountAddress,
           };
         });
@@ -3932,7 +3933,7 @@ describe('PredictController', () => {
             chainId: 137,
             transactionId: 'tx-1',
             status: PredictWithdrawStatus.PENDING,
-            providerId: 'polymarket',
+            providerId: POLYMARKET_PROVIDER_ID,
             predictAddress: accountAddress,
           };
         });
@@ -4260,7 +4261,7 @@ describe('PredictController', () => {
         expect(controller.state.withdrawTransaction).toEqual({
           chainId: 137,
           status: PredictWithdrawStatus.IDLE,
-          providerId: 'polymarket',
+          providerId: POLYMARKET_PROVIDER_ID,
           predictAddress: '0xPredictAddress',
           transactionId: mockBatchId,
           amount: 0,
@@ -4509,7 +4510,7 @@ describe('PredictController', () => {
           state.withdrawTransaction = {
             chainId: 137,
             status: PredictWithdrawStatus.IDLE,
-            providerId: 'polymarket',
+            providerId: POLYMARKET_PROVIDER_ID,
             predictAddress: '0xPredict' as `0x${string}`,
             transactionId: 'tx-1',
             amount: 0,
@@ -4541,7 +4542,7 @@ describe('PredictController', () => {
           state.withdrawTransaction = {
             chainId: 137,
             status: PredictWithdrawStatus.IDLE,
-            providerId: 'polymarket',
+            providerId: POLYMARKET_PROVIDER_ID,
             predictAddress: '0xPredict' as `0x${string}`,
             transactionId: 'tx-1',
             amount: 0,
@@ -4569,7 +4570,7 @@ describe('PredictController', () => {
           state.withdrawTransaction = {
             chainId: 137,
             status: PredictWithdrawStatus.IDLE,
-            providerId: 'polymarket',
+            providerId: POLYMARKET_PROVIDER_ID,
             predictAddress: '0xPredict' as `0x${string}`,
             transactionId: 'tx-1',
             amount: 0,
@@ -4602,7 +4603,7 @@ describe('PredictController', () => {
           state.withdrawTransaction = {
             chainId: 137,
             status: PredictWithdrawStatus.IDLE,
-            providerId: 'polymarket',
+            providerId: POLYMARKET_PROVIDER_ID,
             predictAddress: '0xPredict' as `0x${string}`,
             transactionId: 'tx-1',
             amount: 0,
@@ -4631,7 +4632,7 @@ describe('PredictController', () => {
           state.withdrawTransaction = {
             chainId: 137,
             status: PredictWithdrawStatus.IDLE,
-            providerId: 'polymarket',
+            providerId: POLYMARKET_PROVIDER_ID,
             predictAddress: '0xPredictAddress' as `0x${string}`,
             transactionId: 'tx-1',
             amount: 0,
@@ -4685,7 +4686,7 @@ describe('PredictController', () => {
           state.withdrawTransaction = {
             chainId: 137,
             status: PredictWithdrawStatus.IDLE,
-            providerId: 'polymarket',
+            providerId: POLYMARKET_PROVIDER_ID,
             predictAddress: '0xPredict' as `0x${string}`,
             transactionId: 'tx-1',
             amount: 0,
@@ -4706,7 +4707,7 @@ describe('PredictController', () => {
           state.withdrawTransaction = {
             chainId: 137,
             status: PredictWithdrawStatus.IDLE,
-            providerId: 'polymarket',
+            providerId: POLYMARKET_PROVIDER_ID,
             predictAddress: '0xPredict' as `0x${string}`,
             transactionId: 'tx-1',
             amount: 0,
@@ -4732,7 +4733,7 @@ describe('PredictController', () => {
           state.withdrawTransaction = {
             chainId: 137,
             status: PredictWithdrawStatus.IDLE,
-            providerId: 'polymarket',
+            providerId: POLYMARKET_PROVIDER_ID,
             predictAddress: '0xPredict' as `0x${string}`,
             transactionId: 'tx-1',
             amount: 0,
@@ -4760,7 +4761,7 @@ describe('PredictController', () => {
           state.withdrawTransaction = {
             chainId: 137,
             status: PredictWithdrawStatus.IDLE,
-            providerId: 'polymarket',
+            providerId: POLYMARKET_PROVIDER_ID,
             predictAddress: '0xPredict' as `0x${string}`,
             transactionId: 'tx-123',
             amount: 100,
@@ -4770,7 +4771,7 @@ describe('PredictController', () => {
         expect(controller.state.withdrawTransaction).toEqual({
           chainId: 137,
           status: PredictWithdrawStatus.IDLE,
-          providerId: 'polymarket',
+          providerId: POLYMARKET_PROVIDER_ID,
           predictAddress: '0xPredict',
           transactionId: 'tx-123',
           amount: 100,
@@ -4800,7 +4801,7 @@ describe('PredictController', () => {
           state.withdrawTransaction = {
             chainId: 137,
             status: PredictWithdrawStatus.PENDING,
-            providerId: 'polymarket',
+            providerId: POLYMARKET_PROVIDER_ID,
             predictAddress: '0xPredict' as `0x${string}`,
             transactionId: 'tx-456',
             amount: 500,
@@ -4819,7 +4820,7 @@ describe('PredictController', () => {
           state.withdrawTransaction = {
             chainId: 137,
             status: PredictWithdrawStatus.IDLE,
-            providerId: 'polymarket',
+            providerId: POLYMARKET_PROVIDER_ID,
             predictAddress: '0xPredict' as `0x${string}`,
             transactionId: 'tx-789',
             amount: 200,

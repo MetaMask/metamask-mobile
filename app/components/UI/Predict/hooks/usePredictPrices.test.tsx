@@ -4,6 +4,7 @@ import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { GetPriceResponse, PriceQuery } from '../types';
 import { usePredictPrices } from './usePredictPrices';
 
+import { POLYMARKET_PROVIDER_ID } from '../providers/polymarket/constants';
 jest.mock('../../../../core/Engine', () => {
   const mockContext = {
     PredictController: {
@@ -24,7 +25,7 @@ jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
 
 describe('usePredictPrices', () => {
   const mockPrices: GetPriceResponse = {
-    providerId: 'polymarket',
+    providerId: POLYMARKET_PROVIDER_ID,
     results: [
       {
         marketId: 'market-1',

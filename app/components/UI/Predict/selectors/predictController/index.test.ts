@@ -12,6 +12,7 @@ import {
 } from './index';
 import { PredictPosition, PredictPositionStatus } from '../../types';
 
+import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
 describe('Predict Controller Selectors', () => {
   describe('selectPredictControllerState', () => {
     it('selects the PredictController state', () => {
@@ -101,7 +102,7 @@ describe('Predict Controller Selectors', () => {
         [testAddress]: [
           {
             id: 'pos-1',
-            providerId: 'polymarket',
+            providerId: POLYMARKET_PROVIDER_ID,
             marketId: 'market-1',
             outcomeId: 'outcome-1',
             outcome: 'Yes',
@@ -180,7 +181,7 @@ describe('Predict Controller Selectors', () => {
         [testAddress]: [
           {
             id: 'pos-1',
-            providerId: 'polymarket',
+            providerId: POLYMARKET_PROVIDER_ID,
             marketId: 'market-1',
             outcomeId: 'outcome-1',
             outcome: 'Yes',
@@ -202,7 +203,7 @@ describe('Predict Controller Selectors', () => {
           },
           {
             id: 'pos-2',
-            providerId: 'polymarket',
+            providerId: POLYMARKET_PROVIDER_ID,
             marketId: 'market-2',
             outcomeId: 'outcome-2',
             outcome: 'No',
@@ -251,7 +252,7 @@ describe('Predict Controller Selectors', () => {
         [testAddress]: [
           {
             id: 'pos-1',
-            providerId: 'polymarket',
+            providerId: POLYMARKET_PROVIDER_ID,
             marketId: 'market-1',
             outcomeId: 'outcome-1',
             outcome: 'Yes',
@@ -322,7 +323,7 @@ describe('Predict Controller Selectors', () => {
         [testAddress]: [
           {
             id: 'pos-1',
-            providerId: 'polymarket',
+            providerId: POLYMARKET_PROVIDER_ID,
             marketId: 'market-1',
             outcomeId: 'outcome-1',
             outcome: 'Yes',
@@ -344,7 +345,7 @@ describe('Predict Controller Selectors', () => {
           },
           {
             id: 'pos-2',
-            providerId: 'polymarket',
+            providerId: POLYMARKET_PROVIDER_ID,
             marketId: 'market-2',
             outcomeId: 'outcome-2',
             outcome: 'Yes',
@@ -413,7 +414,7 @@ describe('Predict Controller Selectors', () => {
         [testAddress]: [
           {
             id: 'pos-1',
-            providerId: 'polymarket',
+            providerId: POLYMARKET_PROVIDER_ID,
             marketId: 'market-1',
             outcomeId: 'outcome-1',
             outcome: 'Yes',
@@ -462,7 +463,7 @@ describe('Predict Controller Selectors', () => {
         [testAddress]: [
           {
             id: 'pos-1',
-            providerId: 'polymarket',
+            providerId: POLYMARKET_PROVIDER_ID,
             marketId: 'market-1',
             outcomeId: 'outcome-1',
             outcome: 'Yes',
@@ -484,7 +485,7 @@ describe('Predict Controller Selectors', () => {
           },
           {
             id: 'pos-2',
-            providerId: 'polymarket',
+            providerId: POLYMARKET_PROVIDER_ID,
             marketId: 'market-2',
             outcomeId: 'outcome-2',
             outcome: 'Yes',
@@ -553,7 +554,7 @@ describe('Predict Controller Selectors', () => {
         [testAddress]: [
           {
             id: 'pos-1',
-            providerId: 'polymarket',
+            providerId: POLYMARKET_PROVIDER_ID,
             marketId: 'market-1',
             outcomeId: 'outcome-1',
             outcome: 'Yes',
@@ -996,7 +997,7 @@ describe('Predict Controller Selectors', () => {
       };
 
       const selector = selectPredictAccountMetaByAddress({
-        providerId: 'polymarket',
+        providerId: POLYMARKET_PROVIDER_ID,
         address: '0x123',
       });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -1025,7 +1026,7 @@ describe('Predict Controller Selectors', () => {
       };
 
       const selector = selectPredictAccountMetaByAddress({
-        providerId: 'polymarket',
+        providerId: POLYMARKET_PROVIDER_ID,
         address: '0x123',
       });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -1083,7 +1084,7 @@ describe('Predict Controller Selectors', () => {
       };
 
       const selector = selectPredictAccountMetaByAddress({
-        providerId: 'polymarket',
+        providerId: POLYMARKET_PROVIDER_ID,
         address: '0xNonExistent',
       });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -1102,7 +1103,7 @@ describe('Predict Controller Selectors', () => {
       };
 
       const selector = selectPredictAccountMetaByAddress({
-        providerId: 'polymarket',
+        providerId: POLYMARKET_PROVIDER_ID,
         address: '0x123',
       });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -1142,7 +1143,7 @@ describe('Predict Controller Selectors', () => {
       };
 
       const selector1 = selectPredictAccountMetaByAddress({
-        providerId: 'polymarket',
+        providerId: POLYMARKET_PROVIDER_ID,
         address: '0x456',
       });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -1179,7 +1180,7 @@ describe('Predict Controller Selectors', () => {
       };
 
       const selector = selectPredictAccountMetaByAddress({
-        providerId: 'polymarket',
+        providerId: POLYMARKET_PROVIDER_ID,
         address: '0x123',
       });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -1200,7 +1201,7 @@ describe('Predict Controller Selectors', () => {
       };
 
       const selector = selectPredictAccountMetaByAddress({
-        providerId: 'polymarket',
+        providerId: POLYMARKET_PROVIDER_ID,
         address: '0x123',
       });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

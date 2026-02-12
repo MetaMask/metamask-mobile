@@ -3,6 +3,7 @@ import Engine from '../../../../core/Engine';
 import { usePredictMarket } from './usePredictMarket';
 import { PredictMarket, Recurrence } from '../types';
 
+import { POLYMARKET_PROVIDER_ID } from '../providers/polymarket/constants';
 // Mock dependencies
 jest.mock('../../../../core/Engine', () => ({
   context: {
@@ -17,7 +18,7 @@ describe('usePredictMarket', () => {
 
   const mockMarket: PredictMarket = {
     id: 'market-1',
-    providerId: 'polymarket',
+    providerId: POLYMARKET_PROVIDER_ID,
     slug: 'bitcoin-price-prediction',
     title: 'Will Bitcoin reach $200k by end of 2025?',
     description: 'Bitcoin price prediction market',
@@ -30,7 +31,7 @@ describe('usePredictMarket', () => {
     outcomes: [
       {
         id: 'outcome-1',
-        providerId: 'polymarket',
+        providerId: POLYMARKET_PROVIDER_ID,
         marketId: 'market-1',
         title: 'Yes',
         description: 'Bitcoin will reach $200k',
@@ -48,7 +49,7 @@ describe('usePredictMarket', () => {
       },
       {
         id: 'outcome-2',
-        providerId: 'polymarket',
+        providerId: POLYMARKET_PROVIDER_ID,
         marketId: 'market-1',
         title: 'No',
         description: 'Bitcoin will not reach $200k',

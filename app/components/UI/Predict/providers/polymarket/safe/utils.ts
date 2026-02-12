@@ -28,7 +28,7 @@ import {
   MATIC_CONTRACTS,
   MIN_COLLATERAL_BALANCE_FOR_CLAIM,
   POLYGON_MAINNET_CHAIN_ID,
-} from '../constants';
+ POLYMARKET_PROVIDER_ID } from '../constants';
 import {
   encodeApprove,
   encodeClaim,
@@ -400,7 +400,7 @@ export const getDeployProxyWalletTransaction = async ({
     const errorContext: LoggerErrorOptions = {
       tags: {
         feature: PREDICT_CONSTANTS.FEATURE_NAME,
-        provider: 'polymarket',
+        provider: POLYMARKET_PROVIDER_ID,
       },
       context: {
         name: 'safeUtils',
@@ -604,7 +604,7 @@ export const getProxyWalletAllowancesTransaction = async ({
     const errorContext: LoggerErrorOptions = {
       tags: {
         feature: PREDICT_CONSTANTS.FEATURE_NAME,
-        provider: 'polymarket',
+        provider: POLYMARKET_PROVIDER_ID,
       },
       context: {
         name: 'safeUtils',

@@ -10,6 +10,7 @@ import {
   PredictGameStatus,
 } from '../../types';
 
+import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
 // Mock the hooks
 jest.mock('../../hooks/usePredictPriceHistory');
 jest.mock('../../hooks/useLiveMarketPrices');
@@ -98,7 +99,7 @@ const createMockMarket = (
     title: 'Test Game Market',
     description: 'Test description',
     image: 'https://example.com/image.png',
-    providerId: 'polymarket',
+    providerId: POLYMARKET_PROVIDER_ID,
     status: PredictMarketStatus.OPEN,
     category: 'sports',
     tags: ['NFL'],

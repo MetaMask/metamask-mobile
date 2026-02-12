@@ -2,6 +2,7 @@ import { renderHook } from '@testing-library/react-native';
 import { usePredictWithdraw } from './usePredictWithdraw';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
 
+import { POLYMARKET_PROVIDER_ID } from '../providers/polymarket/constants';
 // Create mock functions
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -95,7 +96,7 @@ function createMockWithdrawTransaction(overrides = {}) {
     amount: 100,
     chainId: 137,
     status: 'pending',
-    providerId: 'polymarket',
+    providerId: POLYMARKET_PROVIDER_ID,
     ...overrides,
   };
 }
