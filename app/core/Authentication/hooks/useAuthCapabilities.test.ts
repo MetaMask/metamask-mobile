@@ -4,26 +4,7 @@ import { Authentication } from '../Authentication';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { AuthCapabilities } from '../types';
 
-// Mock expo-local-authentication
-jest.mock('expo-local-authentication', () => ({
-  AuthenticationType: {
-    FINGERPRINT: 1,
-    FACIAL_RECOGNITION: 2,
-    IRIS: 3,
-  },
-  SecurityLevel: {
-    NONE: 0,
-    SECRET: 1,
-    BIOMETRIC_WEAK: 2,
-    BIOMETRIC_STRONG: 3,
-  },
-  isEnrolledAsync: jest.fn(),
-  supportedAuthenticationTypesAsync: jest.fn(),
-  getEnrolledLevelAsync: jest.fn(),
-}));
-
 // Mock react-redux
-const mockDispatch = jest.fn();
 let mockOsAuthEnabled = true;
 let mockAllowLoginWithRememberMe = false;
 
@@ -36,13 +17,12 @@ jest.mock('react-redux', () => ({
       },
     }),
   ),
-  useDispatch: () => mockDispatch,
 }));
 
 // Mock Authentication
 const mockGetAuthCapabilities = jest.fn<
   Promise<AuthCapabilities>,
-  [boolean, boolean]
+  [{ osAuthEnabled: boolean; allowLoginWithRememberMe: boolean }]
 >();
 
 describe('useAuthCapabilities', () => {
@@ -50,12 +30,12 @@ describe('useAuthCapabilities', () => {
 
   const mockCapabilities: AuthCapabilities = {
     isBiometricsAvailable: true,
-    biometricsDisabledOnOS: false,
-    isAuthToggleVisible: true,
-    authToggleLabel: 'Face ID',
+    passcodeAvailable: true,
+    authLabel: 'Face ID',
     osAuthEnabled: true,
     allowLoginWithRememberMe: false,
-    authStorageType: AUTHENTICATION_TYPE.BIOMETRIC,
+    authType: AUTHENTICATION_TYPE.BIOMETRIC,
+    deviceAuthRequiresSettings: false,
   };
 
   beforeEach(() => {
@@ -80,8 +60,6 @@ describe('useAuthCapabilities', () => {
     // Initially loading (synchronous check before async completes)
     expect(result.current.isLoading).toBe(true);
     expect(result.current.capabilities).toBeNull();
-    expect(typeof result.current.refresh).toBe('function');
-    expect(typeof result.current.updateOsAuthEnabled).toBe('function');
 
     // Wait for async updates to complete to avoid act warnings
     await act(async () => {
@@ -109,43 +87,14 @@ describe('useAuthCapabilities', () => {
     expect(result.current.isLoading).toBe(false);
 
     expect(getAuthCapabilitiesSpy).toHaveBeenCalledTimes(1);
-    expect(getAuthCapabilitiesSpy).toHaveBeenCalledWith(
-      mockOsAuthEnabled,
-      mockAllowLoginWithRememberMe,
-    );
-  });
-
-  it('returns default capabilities on error', async () => {
-    mockGetAuthCapabilities.mockRejectedValue(new Error('Test error'));
-    mockOsAuthEnabled = true;
-
-    const { result, waitForNextUpdate } = renderHook(() =>
-      useAuthCapabilities(),
-    );
-
-    await act(async () => {
-      await waitForNextUpdate();
-    });
-
-    expect(result.current.capabilities).toEqual({
-      isBiometricsAvailable: false,
-      biometricsDisabledOnOS: false,
-      isAuthToggleVisible: false,
-      authToggleLabel: '',
+    expect(getAuthCapabilitiesSpy).toHaveBeenCalledWith({
       osAuthEnabled: mockOsAuthEnabled,
       allowLoginWithRememberMe: mockAllowLoginWithRememberMe,
-      authStorageType: AUTHENTICATION_TYPE.PASSWORD,
     });
-
-    expect(getAuthCapabilitiesSpy).toHaveBeenCalledTimes(1);
-    expect(getAuthCapabilitiesSpy).toHaveBeenCalledWith(
-      mockOsAuthEnabled,
-      mockAllowLoginWithRememberMe,
-    );
   });
 
-  it('calls getAuthCapabilities again when refresh is called', async () => {
-    const { result, waitForNextUpdate } = renderHook(() =>
+  it('calls getAuthCapabilities again when osAuthEnabled or allowLoginWithRememberMe change', async () => {
+    const { waitForNextUpdate, rerender } = renderHook(() =>
       useAuthCapabilities(),
     );
 
@@ -154,54 +103,17 @@ describe('useAuthCapabilities', () => {
     });
     expect(getAuthCapabilitiesSpy).toHaveBeenCalledTimes(1);
 
+    mockOsAuthEnabled = false;
+    rerender();
+
     await act(async () => {
-      await result.current.refresh();
+      await waitForNextUpdate();
     });
 
     expect(getAuthCapabilitiesSpy).toHaveBeenCalledTimes(2);
-  });
-
-  it('updates capabilities after refresh', async () => {
-    const { result, waitForNextUpdate } = renderHook(() =>
-      useAuthCapabilities(),
-    );
-
-    await act(async () => {
-      await waitForNextUpdate();
-    });
-
-    expect(result.current.capabilities).toEqual(mockCapabilities);
-
-    const updatedCapabilities: AuthCapabilities = {
-      ...mockCapabilities,
-      authToggleLabel: 'Touch ID',
-    };
-    mockGetAuthCapabilities.mockResolvedValue(updatedCapabilities);
-
-    await act(async () => {
-      await result.current.refresh();
-    });
-
-    expect(result.current.capabilities).toEqual(updatedCapabilities);
-  });
-
-  it('dispatches setOsAuthEnabled with true when currently false', async () => {
-    mockOsAuthEnabled = false;
-    const { result, waitForNextUpdate } = renderHook(() =>
-      useAuthCapabilities(),
-    );
-
-    await act(async () => {
-      await waitForNextUpdate();
-    });
-
-    act(() => {
-      result.current.updateOsAuthEnabled();
-    });
-
-    expect(mockDispatch).toHaveBeenCalledWith({
-      type: 'SET_OS_AUTH_ENABLED',
-      enabled: !mockOsAuthEnabled, // Toggled from false to true
+    expect(getAuthCapabilitiesSpy).toHaveBeenLastCalledWith({
+      osAuthEnabled: false,
+      allowLoginWithRememberMe: mockAllowLoginWithRememberMe,
     });
   });
 });
