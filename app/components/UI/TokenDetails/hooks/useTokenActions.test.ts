@@ -373,15 +373,12 @@ describe('useTokenActions', () => {
       );
 
       expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS,
+        Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SHARE_ADDRESS_QR,
         {
-          screen: Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SHARE_ADDRESS_QR,
-          params: {
-            address: mockAccountAddress,
-            networkName: 'Ethereum Mainnet',
-            chainId: '0x1',
-            groupId: 'group-1',
-          },
+          address: mockAccountAddress,
+          networkName: 'Ethereum Mainnet',
+          chainId: '0x1',
+          groupId: 'group-1',
         },
       );
     });

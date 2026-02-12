@@ -88,12 +88,9 @@ describe('usePerpsActions', () => {
     result.current.handlePerpsAction?.('long');
 
     // Assert
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-      screen: Routes.PERPS.ORDER_REDIRECT,
-      params: {
-        direction: 'long',
-        asset: 'ETH',
-      },
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ORDER_REDIRECT, {
+      direction: 'long',
+      asset: 'ETH',
     });
   });
 
@@ -120,12 +117,9 @@ describe('usePerpsActions', () => {
     result.current.handlePerpsAction?.('short');
 
     // Assert
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-      screen: Routes.PERPS.ORDER_REDIRECT,
-      params: {
-        direction: 'short',
-        asset: 'BTC',
-      },
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ORDER_REDIRECT, {
+      direction: 'short',
+      asset: 'BTC',
     });
   });
 
