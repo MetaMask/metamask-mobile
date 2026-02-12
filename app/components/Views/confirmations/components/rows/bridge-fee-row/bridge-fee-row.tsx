@@ -12,10 +12,7 @@ import {
 } from '@metamask/transaction-controller';
 import { Box } from '../../../../../UI/Box/Box';
 import { FlexDirection, JustifyContent } from '../../../../../UI/Box/box.types';
-import {
-  hasTransactionType,
-  isTransactionPayWithdraw,
-} from '../../../utils/transaction';
+import { hasTransactionType } from '../../../utils/transaction';
 import {
   TransactionPayQuote,
   TransactionPayTotals,
@@ -87,30 +84,15 @@ function TransactionFeeRow({
 }) {
   const formatFiat = useFiatFormatter({ currency: 'usd' });
 
-  const isWithdraw = isTransactionPayWithdraw(transactionMeta);
-
   const feeTotalUsd = useMemo(() => {
     if (!totals?.fees) return '';
-
-    // For withdrawals, show the user's actual tx gas + provider (bridge/relay) fee.
-    // totals.fees.transactionGas is the gas cost of the original Polygon tx,
-    // calculated from the tx's own gas params via calculateTransactionGasCost.
-    // The sourceNetwork fee in bridge totals is the bridge contract gas,
-    // not the user's simple send gas.
-    if (isWithdraw) {
-      return formatFiat(
-        new BigNumber(totals.fees.provider.usd).plus(
-          totals.fees.transactionGas?.usd ?? 0,
-        ),
-      );
-    }
 
     return formatFiat(
       new BigNumber(totals.fees.provider.usd)
         .plus(totals.fees.sourceNetwork.estimate.usd)
         .plus(totals.fees.targetNetwork.usd),
     );
-  }, [totals, formatFiat, isWithdraw]);
+  }, [totals, formatFiat]);
 
   if (isLoading) return <InfoRowSkeleton testId="bridge-fee-row-skeleton" />;
 

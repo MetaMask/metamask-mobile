@@ -15,8 +15,9 @@ jest.mock('../../../hooks/pay/useTransactionPayData');
 
 const INPUT_AMOUNT_USD_MOCK = '100';
 const PROVIDER_FEE_USD_MOCK = '0.50';
-const TX_GAS_USD_MOCK = '0.02';
-const EXPECTED_RECEIVE_MOCK = '$99.48';
+const SOURCE_NETWORK_FEE_USD_MOCK = '0.02';
+const TARGET_NETWORK_FEE_USD_MOCK = '0.10';
+const EXPECTED_RECEIVE_MOCK = '$99.38';
 
 function render(inputAmountUsd: string = INPUT_AMOUNT_USD_MOCK) {
   return renderWithProvider(<ReceiveRow inputAmountUsd={inputAmountUsd} />, {
@@ -41,14 +42,15 @@ describe('ReceiveRow', () => {
     useTransactionPayTotalsMock.mockReturnValue({
       fees: {
         provider: { usd: PROVIDER_FEE_USD_MOCK },
-        transactionGas: { usd: TX_GAS_USD_MOCK },
+        sourceNetwork: { estimate: { usd: SOURCE_NETWORK_FEE_USD_MOCK } },
+        targetNetwork: { usd: TARGET_NETWORK_FEE_USD_MOCK },
       },
-    } as TransactionPayTotals);
+    } as unknown as TransactionPayTotals);
 
     useIsTransactionPayLoadingMock.mockReturnValue(false);
   });
 
-  it('renders the receive amount (input minus provider fee and tx gas)', () => {
+  it('renders the receive amount (input minus all fees)', () => {
     const { getByText } = render();
     expect(getByText(EXPECTED_RECEIVE_MOCK)).toBeDefined();
   });
@@ -65,9 +67,10 @@ describe('ReceiveRow', () => {
     useTransactionPayTotalsMock.mockReturnValue({
       fees: {
         provider: { usd: '200' },
-        transactionGas: { usd: '1' },
+        sourceNetwork: { estimate: { usd: '1' } },
+        targetNetwork: { usd: '0' },
       },
-    } as TransactionPayTotals);
+    } as unknown as TransactionPayTotals);
 
     const { getByText } = render('100');
     expect(getByText('$0')).toBeDefined();

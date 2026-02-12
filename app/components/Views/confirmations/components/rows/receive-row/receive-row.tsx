@@ -22,10 +22,9 @@ export interface ReceiveRowProps {
 
 /**
  * Row component that displays "You'll receive" for withdrawal transactions.
- * Calculates: Input amount - Provider fee - Transaction gas
- * The provider fee covers the bridge/relay cost. Transaction gas is the
- * user's actual tx gas on the source network. Source and target network
- * fees from bridge quotes are not the user's direct cost.
+ * Calculates: Input amount - (Provider fee + Source network fee + Target network fee)
+ * For post-quote withdrawals, the source network fee already includes the
+ * original transaction gas (added in relay-quotes.ts when isPostQuote).
  */
 export function ReceiveRow({ inputAmountUsd }: ReceiveRowProps) {
   const formatFiat = useFiatFormatter({ currency: 'usd' });
@@ -37,9 +36,15 @@ export function ReceiveRow({ inputAmountUsd }: ReceiveRowProps) {
 
     const inputUsd = new BigNumber(inputAmountUsd);
     const providerFee = new BigNumber(totals.fees?.provider?.usd ?? 0);
-    const txGas = new BigNumber(totals.fees?.transactionGas?.usd ?? 0);
+    const sourceNetworkFee = new BigNumber(
+      totals.fees?.sourceNetwork?.estimate?.usd ?? 0,
+    );
+    const targetNetworkFee = new BigNumber(
+      totals.fees?.targetNetwork?.usd ?? 0,
+    );
 
-    const youReceive = inputUsd.minus(providerFee).minus(txGas);
+    const totalFees = providerFee.plus(sourceNetworkFee).plus(targetNetworkFee);
+    const youReceive = inputUsd.minus(totalFees);
     return formatFiat(youReceive.isPositive() ? youReceive : new BigNumber(0));
   }, [totals, formatFiat, inputAmountUsd]);
 
