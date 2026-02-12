@@ -12,6 +12,8 @@ jest.mock('../../../../core/Engine', () => ({
     RampsController: {
       startQuotePolling: jest.fn(),
       stopQuotePolling: jest.fn(),
+      getQuotes: jest.fn(),
+      setSelectedQuote: jest.fn(),
       getWidgetUrl: jest.fn(),
     },
   },
@@ -77,6 +79,8 @@ describe('useRampsQuotes', () => {
       });
       expect(typeof result.current.startQuotePolling).toBe('function');
       expect(typeof result.current.stopQuotePolling).toBe('function');
+      expect(typeof result.current.getQuotes).toBe('function');
+      expect(typeof result.current.setSelectedQuote).toBe('function');
       expect(typeof result.current.getWidgetUrl).toBe('function');
     });
   });

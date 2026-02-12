@@ -744,7 +744,7 @@
     "subscriptions": {}
   },
   "PredictController": {
-    "eligibility": {},
+    "eligibility": { "eligible": false },
     "lastError": null,
     "lastUpdateTimestamp": 0,
     "balances": {},

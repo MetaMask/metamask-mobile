@@ -5,12 +5,10 @@ import {
   type QueryObserverResult,
 } from '@tanstack/react-query';
 import { usePredictNetworkManagement } from './usePredictNetworkManagement';
-import { POLYMARKET_PROVIDER_ID } from '../providers/polymarket/constants';
 import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
 import { predictQueries } from '../queries';
 
 interface UsePredictBalanceOptions {
-  providerId?: string;
   enabled?: boolean;
   // TODO: Remove once confirmations code migrates to `data` from useQuery.
   loadOnMount?: boolean;
@@ -36,7 +34,7 @@ interface UsePredictBalanceResult {
 export function usePredictBalance(
   options?: UsePredictBalanceOptions,
 ): UsePredictBalanceResult {
-  const { providerId = POLYMARKET_PROVIDER_ID, enabled = true } = options ?? {};
+  const { enabled = true } = options ?? {};
 
   const { ensurePolygonNetworkExists } = usePredictNetworkManagement();
 
@@ -51,7 +49,7 @@ export function usePredictBalance(
   }, [enabled, ensurePolygonNetworkExists]);
 
   const query = useQuery({
-    ...predictQueries.balance.options({ address, providerId }),
+    ...predictQueries.balance.options({ address }),
     enabled,
   });
 

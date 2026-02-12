@@ -40,7 +40,6 @@ import { usePredictClaim } from '../../hooks/usePredictClaim';
 import { usePredictDeposit } from '../../hooks/usePredictDeposit';
 import { useUnrealizedPnL } from '../../hooks/useUnrealizedPnL';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
-import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
 import { selectPredictWonPositions } from '../../selectors/predictController';
 import { PredictPosition } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
@@ -72,7 +71,6 @@ const PredictPositionsHeader = forwardRef<
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const tw = useTailwind();
   const { executeGuardedAction } = usePredictActionGuard({
-    providerId: POLYMARKET_PROVIDER_ID,
     navigation,
   });
   const queryClient = useQueryClient();
@@ -93,9 +91,7 @@ const PredictPositionsHeader = forwardRef<
     isLoading: isUnrealizedPnLLoading,
     loadUnrealizedPnL,
     error: pnlError,
-  } = useUnrealizedPnL({
-    providerId: POLYMARKET_PROVIDER_ID,
-  });
+  } = useUnrealizedPnL();
 
   // Notify parent of errors while keeping state isolated
   useEffect(() => {

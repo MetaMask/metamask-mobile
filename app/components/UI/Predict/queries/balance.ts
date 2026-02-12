@@ -11,35 +11,18 @@ import { GetBalanceParams } from '../providers/types';
  */
 export const predictBalanceKeys = {
   all: () => ['predict', 'balance'] as const,
-  detail: (providerId: string, address: string) =>
-    [...predictBalanceKeys.all(), providerId, address] as const,
+  detail: (address: string) => [...predictBalanceKeys.all(), address] as const,
 };
 
-/**
- * Returns `queryOptions` for fetching a Predict balance.
- *
- * The returned object includes `queryKey`, `queryFn`, and `staleTime`,
- * and can be spread directly into `useQuery` or passed to
- * `queryClient.prefetchQuery`.
- *
- * @param params - Provider ID and wallet address.
- */
-export const predictBalanceOptions = ({
-  address = '',
-  providerId,
-}: GetBalanceParams) =>
+export const predictBalanceOptions = ({ address = '' }: GetBalanceParams) =>
   queryOptions({
-    queryKey: predictBalanceKeys.detail(providerId, address),
+    queryKey: predictBalanceKeys.detail(address),
     queryFn: async (): Promise<number> => {
       const balance = await Engine.context.PredictController.getBalance({
         address,
-        providerId,
       });
 
-      DevLogger.log('usePredictBalance: Loaded balance', {
-        balance,
-        providerId,
-      });
+      DevLogger.log('usePredictBalance: Loaded balance', { balance });
 
       return balance;
     },

@@ -90,7 +90,6 @@ describe('usePredictBalance', () => {
       expect(result.current.error).toBeNull();
       expect(mockGetBalance).toHaveBeenCalledWith({
         address: MOCK_ADDRESS,
-        providerId: 'polymarket',
       });
     });
 
@@ -104,26 +103,7 @@ describe('usePredictBalance', () => {
       expect(mockGetBalance).not.toHaveBeenCalled();
     });
 
-    it('uses custom providerId when specified', async () => {
-      const { Wrapper } = createWrapper();
-      mockGetBalance.mockResolvedValue(200);
-
-      const { result } = renderHook(
-        () => usePredictBalance({ providerId: 'custom-provider' }),
-        { wrapper: Wrapper },
-      );
-
-      await waitFor(() => {
-        expect(result.current.data).toBe(200);
-      });
-
-      expect(mockGetBalance).toHaveBeenCalledWith({
-        address: MOCK_ADDRESS,
-        providerId: 'custom-provider',
-      });
-    });
-
-    it('fetches with default providerId when no options provided', async () => {
+    it('fetches with default options when no options provided', async () => {
       const { Wrapper } = createWrapper();
       mockGetBalance.mockResolvedValue(42);
 
@@ -137,7 +117,6 @@ describe('usePredictBalance', () => {
 
       expect(mockGetBalance).toHaveBeenCalledWith({
         address: MOCK_ADDRESS,
-        providerId: 'polymarket',
       });
     });
   });
