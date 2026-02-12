@@ -15,8 +15,8 @@ import {
   PerpsStreamProvider,
   type PerpsStreamManager,
 } from '../../../../components/UI/Perps/providers/PerpsStreamManager';
-import type { Position } from '../../../../components/UI/Perps/controllers/types';
 import PerpsSelectModifyActionView from '../../../../components/UI/Perps/Views/PerpsSelectModifyActionView/PerpsSelectModifyActionView';
+import { Position } from '@metamask/perps-controller';
 
 /** No-op unsubscribe for test stream channels; subscribe() must return () => void */
 const noopUnsubscribe = (): void => undefined;
