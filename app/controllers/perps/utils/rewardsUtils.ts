@@ -46,12 +46,15 @@ export const formatAccountToCaipAccountId = (
 
     return toCaipAccountId(namespace, reference, normalizedAddress);
   } catch (error) {
-    logger?.error(ensureError(error), {
-      context: {
-        name: 'rewardsUtils.formatAccountToCaipAccountId',
-        data: { address, chainId },
+    logger?.error(
+      ensureError(error, 'rewardsUtils.formatAccountToCaipAccountId'),
+      {
+        context: {
+          name: 'rewardsUtils.formatAccountToCaipAccountId',
+          data: { address, chainId },
+        },
       },
-    });
+    );
     return null;
   }
 };
@@ -83,7 +86,7 @@ export const handleRewardsError = (
   logger?: PerpsLogger,
   context?: Record<string, unknown>,
 ): string => {
-  logger?.error(ensureError(error), {
+  logger?.error(ensureError(error, 'rewardsUtils.handleRewardsError'), {
     context: {
       name: 'rewardsUtils.handleRewardsError',
       data: { additionalContext: context },

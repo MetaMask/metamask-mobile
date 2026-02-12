@@ -571,6 +571,15 @@ export class HyperLiquidProvider implements PerpsProvider {
       });
       completeInFlight();
     } catch (error) {
+      // If keyring is locked, don't cache so it retries when unlocked
+      if (ensureError(error).message === PERPS_ERROR_CODES.KEYRING_LOCKED) {
+        this.deps.debugLogger.log(
+          '[ensureDexAbstractionEnabled] Keyring locked, will retry later',
+        );
+        completeInFlight();
+        return;
+      }
+
       // Cache the attempt (even on failure) to prevent repeated signing requests
       // This is CRITICAL for hardware wallets - if user rejects, don't ask again
       TradingReadinessCache.set(network, userAddress, {
@@ -594,7 +603,7 @@ export class HyperLiquidProvider implements PerpsProvider {
 
       // Don't blindly disable the flag on any error
       this.deps.logger.error(
-        ensureError(error),
+        ensureError(error, 'HyperLiquidProvider.ensureDexAbstractionEnabled'),
         this.getErrorContext('ensureDexAbstractionEnabled', {
           note: 'Could not enable DEX abstraction (may already be enabled, user rejected, or network error)',
         }),
@@ -723,7 +732,10 @@ export class HyperLiquidProvider implements PerpsProvider {
       // Set up referral code
       await this.ensureReferralSet();
 
-      this.tradingSetupComplete = true;
+      // Only mark complete if keyring was unlocked (signing could actually happen)
+      if (this.walletService.isKeyringUnlocked()) {
+        this.tradingSetupComplete = true;
+      }
     })();
 
     try {
@@ -882,7 +894,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       return [null, ...availableHip3Dexs];
     } catch (error) {
       this.deps.logger.error(
-        ensureError(error),
+        ensureError(error, 'HyperLiquidProvider.getAllAvailableDexs'),
         this.getErrorContext('getAllAvailableDexs'),
       );
       return [null]; // Fallback to main DEX only
@@ -952,7 +964,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       allDexs = await infoClient.perpDexs();
     } catch (error) {
       this.deps.logger.error(
-        ensureError(error),
+        ensureError(error, 'HyperLiquidProvider.fetchValidatedDexsInternal'),
         this.getErrorContext('getValidatedDexs.perpDexs'),
       );
       this.cachedAllPerpDexs = [null];
@@ -1323,7 +1335,10 @@ export class HyperLiquidProvider implements PerpsProvider {
         {
           dexName,
           assetSymbol,
-          error: ensureError(error).message,
+          error: ensureError(
+            error,
+            'HyperLiquidProvider.calculateHip3FeeMultiplier',
+          ).message,
         },
       );
       // Safe fallback: standard HIP-3 2x multiplier (no Growth Mode discount)
@@ -2249,6 +2264,15 @@ export class HyperLiquidProvider implements PerpsProvider {
       }
       completeInFlight();
     } catch (error) {
+      // If keyring is locked, don't cache so it retries when unlocked
+      if (ensureError(error).message === PERPS_ERROR_CODES.KEYRING_LOCKED) {
+        this.deps.debugLogger.log(
+          '[ensureBuilderFeeApproval] Keyring locked, will retry later',
+        );
+        completeInFlight();
+        return;
+      }
+
       // Cache failure to prevent retries
       PerpsSigningCache.setBuilderFee(network, userAddress, {
         attempted: true,
@@ -2726,7 +2750,10 @@ export class HyperLiquidProvider implements PerpsProvider {
         } catch (rebalanceError) {
           // Don't fail the order if rebalance fails (order already succeeded)
           this.deps.logger.error(
-            ensureError(rebalanceError),
+            ensureError(
+              rebalanceError,
+              'HyperLiquidProvider.placeOrder:autoRebalance',
+            ),
             this.getErrorContext('placeOrder:autoRebalance', {
               dex: dexName,
               excessAmount: excessAmount.toFixed(2),
@@ -2747,7 +2774,10 @@ export class HyperLiquidProvider implements PerpsProvider {
     } catch (balanceCheckError) {
       // Don't fail the order if balance check fails - log for monitoring
       this.deps.logger.error(
-        ensureError(balanceCheckError),
+        ensureError(
+          balanceCheckError,
+          'HyperLiquidProvider.placeOrder:postOrderBalanceCheck',
+        ),
         this.getErrorContext('placeOrder:postOrderBalanceCheck', {
           dex: dexName,
           note: 'Failed to verify post-order balance for auto-rebalance',
@@ -2807,7 +2837,7 @@ export class HyperLiquidProvider implements PerpsProvider {
     } catch (rollbackError) {
       // Log but don't throw - original order error is more important
       this.deps.logger.error(
-        ensureError(rollbackError),
+        ensureError(rollbackError, 'HyperLiquidProvider.placeOrder:rollback'),
         this.getErrorContext('placeOrder:rollback:exception', {
           dex: dexName,
           amount: transferInfo.amount.toFixed(USDC_DECIMALS),
@@ -3064,7 +3094,7 @@ export class HyperLiquidProvider implements PerpsProvider {
     const { error, symbol, orderType, isBuy } = params;
 
     this.deps.logger.error(
-      ensureError(error),
+      ensureError(error, 'HyperLiquidProvider.handleOrderError'),
       this.getErrorContext('placeOrder', {
         symbol,
         orderType,
@@ -3430,7 +3460,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       };
     } catch (error) {
       this.deps.logger.error(
-        ensureError(error),
+        ensureError(error, 'HyperLiquidProvider.editOrder'),
         this.getErrorContext('editOrder', {
           orderId: params.orderId,
           coin: params.newOrder.symbol,
@@ -3484,7 +3514,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       };
     } catch (error) {
       this.deps.logger.error(
-        ensureError(error),
+        ensureError(error, 'HyperLiquidProvider.cancelOrder'),
         this.getErrorContext('cancelOrder', {
           orderId: params.orderId,
           coin: params.symbol,
@@ -3560,7 +3590,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       };
     } catch (error) {
       this.deps.logger.error(
-        ensureError(error),
+        ensureError(error, 'HyperLiquidProvider.cancelOrders'),
         this.getErrorContext('cancelOrders', {
           orderCount: params.length,
         }),
@@ -3782,7 +3812,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       };
     } catch (error) {
       this.deps.logger.error(
-        ensureError(error),
+        ensureError(error, 'HyperLiquidProvider.closePositions'),
         this.getErrorContext('closePositions', {
           positionCount: positionsToClose.length,
         }),
@@ -3852,7 +3882,7 @@ export class HyperLiquidProvider implements PerpsProvider {
           positions = await this.getPositions({ skipCache: true });
         } catch (error) {
           this.deps.logger.error(
-            ensureError(error),
+            ensureError(error, 'HyperLiquidProvider.updatePositionTPSL'),
             this.getErrorContext('updatePositionTPSL > getPositions', {
               symbol,
             }),
@@ -4100,7 +4130,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       };
     } catch (error) {
       this.deps.logger.error(
-        ensureError(error),
+        ensureError(error, 'HyperLiquidProvider.updatePositionTPSL'),
         this.getErrorContext('updatePositionTPSL', {
           symbol: params.symbol,
           hasTakeProfit: params.takeProfitPrice !== undefined,
@@ -4231,7 +4261,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       return result;
     } catch (error) {
       this.deps.logger.error(
-        ensureError(error),
+        ensureError(error, 'HyperLiquidProvider.closePosition'),
         this.getErrorContext('closePosition', {
           coin: params.symbol,
           orderType: params.orderType,
@@ -4875,7 +4905,10 @@ export class HyperLiquidProvider implements PerpsProvider {
       return rawLedgerUpdates || [];
     } catch (error) {
       this.deps.logger.error(
-        ensureError(error),
+        ensureError(
+          error,
+          'HyperLiquidProvider.getUserNonFundingLedgerUpdates',
+        ),
         this.getErrorContext('getUserNonFundingLedgerUpdates', params),
       );
       return [];
@@ -4910,7 +4943,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       return adaptHyperLiquidLedgerUpdateToUserHistoryItem(rawLedgerUpdates);
     } catch (error) {
       this.deps.logger.error(
-        ensureError(error),
+        ensureError(error, 'HyperLiquidProvider.getUserHistory'),
         this.getErrorContext('getUserHistory'),
       );
       return [];
@@ -5159,7 +5192,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       return aggregatedAccountState;
     } catch (error) {
       this.deps.logger.error(
-        ensureError(error),
+        ensureError(error, 'HyperLiquidProvider.getAccountState'),
         this.getErrorContext('getAccountState', {
           accountId: params?.accountId,
         }),
@@ -5289,7 +5322,7 @@ export class HyperLiquidProvider implements PerpsProvider {
                 });
               } catch (error) {
                 this.deps.logger.error(
-                  ensureError(error),
+                  ensureError(error, 'HyperLiquidProvider.getMarkets'),
                   this.getErrorContext('getMarkets.multiDex', {
                     dex: dex ?? 'main',
                   }),
@@ -5317,7 +5350,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       });
     } catch (error) {
       this.deps.logger.error(
-        ensureError(error),
+        ensureError(error, 'HyperLiquidProvider.getMarkets'),
         this.getErrorContext('getMarkets', {
           dex: params?.dex,
           symbolCount: params?.symbols?.length,
@@ -5396,7 +5429,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       return dexsWithMarkets.sort((a, b) => a.localeCompare(b));
     } catch (error) {
       this.deps.logger.error(
-        ensureError(error),
+        ensureError(error, 'HyperLiquidProvider.getAvailableHip3Dexs'),
         this.getErrorContext('getAvailableHip3Dexs'),
       );
       return [];
@@ -5496,7 +5529,7 @@ export class HyperLiquidProvider implements PerpsProvider {
           };
         } catch (error) {
           this.deps.logger.error(
-            ensureError(error),
+            ensureError(error, 'HyperLiquidProvider.getMarketDataWithPrices'),
             this.getErrorContext('getMarketDataWithPrices.fetchDex', {
               dex: dex ?? 'main',
             }),
@@ -6210,7 +6243,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       })
       .catch((error) => {
         this.deps.logger.error(
-          ensureError(error),
+          ensureError(error, 'HyperLiquidProvider.subscribeToPrices'),
           this.getErrorContext('subscribeToPrices', {
             symbols: params.symbols,
           }),
@@ -6452,7 +6485,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       return String(Math.max(0, liquidationPrice));
     } catch (error) {
       this.deps.logger.error(
-        ensureError(error),
+        ensureError(error, 'HyperLiquidProvider.calculateLiquidationPrice'),
         this.getErrorContext('calculateLiquidationPrice', {
           asset: params.asset,
           entryPrice: params.entryPrice,
@@ -6542,7 +6575,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       return assetInfo.maxLeverage;
     } catch (error) {
       this.deps.logger.error(
-        ensureError(error),
+        ensureError(error, 'HyperLiquidProvider.getMaxLeverage'),
         this.getErrorContext('getMaxLeverage', {
           asset,
         }),
@@ -7016,7 +7049,7 @@ export class HyperLiquidProvider implements PerpsProvider {
         'HyperLiquid: WebSocket health check ping failed',
         error,
       );
-      throw ensureError(error);
+      throw ensureError(error, 'HyperLiquidProvider.ping');
     } finally {
       clearTimeout(timeoutId);
     }
@@ -7073,12 +7106,15 @@ export class HyperLiquidProvider implements PerpsProvider {
       // Map DEX objects to names: null -> '' (main DEX), object -> object.name
       return dexs.map((dex) => (dex === null ? '' : dex.name));
     } catch (error) {
-      this.deps.logger.error(ensureError(error), {
-        context: {
-          name: 'HyperLiquidProvider.getAvailableDexs',
-          data: { action: 'fetch_available_dexs' },
+      this.deps.logger.error(
+        ensureError(error, 'HyperLiquidProvider.getAvailableDexs'),
+        {
+          context: {
+            name: 'HyperLiquidProvider.getAvailableDexs',
+            data: { action: 'fetch_available_dexs' },
+          },
         },
-      });
+      );
       throw error;
     }
   }
@@ -7239,6 +7275,15 @@ export class HyperLiquidProvider implements PerpsProvider {
       }
       completeInFlight();
     } catch (error) {
+      // If keyring is locked, don't cache so it retries when unlocked
+      if (ensureError(error).message === PERPS_ERROR_CODES.KEYRING_LOCKED) {
+        this.deps.debugLogger.log(
+          '[ensureReferralSet] Keyring locked, will retry later',
+        );
+        completeInFlight();
+        return;
+      }
+
       // Cache failure to prevent retries
       PerpsSigningCache.setReferral(network, userAddress, {
         attempted: true,
@@ -7256,7 +7301,7 @@ export class HyperLiquidProvider implements PerpsProvider {
 
       // Non-blocking: Log to Sentry but don't throw
       this.deps.logger.error(
-        ensureError(error),
+        ensureError(error, 'HyperLiquidProvider.ensureReferralSet'),
         this.getErrorContext('ensureReferralSet', {
           note: 'Referral setup failed (non-blocking), cached to prevent retries',
         }),
@@ -7301,7 +7346,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       return false;
     } catch (error) {
       this.deps.logger.error(
-        ensureError(error),
+        ensureError(error, 'HyperLiquidProvider.isReferralCodeReady'),
         this.getErrorContext('isReferralCodeReady', {
           code: this.getReferralCode(this.clientService.isTestnetMode()),
           referrerAddress: this.getBuilderAddress(
@@ -7335,7 +7380,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       return Boolean(referralData?.referredBy?.code);
     } catch (error) {
       this.deps.logger.error(
-        ensureError(error),
+        ensureError(error, 'HyperLiquidProvider.checkReferralSet'),
         this.getErrorContext('checkReferralSet', {
           note: 'Error checking referral status, will retry',
         }),
@@ -7373,7 +7418,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       return result?.status === 'ok';
     } catch (error) {
       this.deps.logger.error(
-        ensureError(error),
+        ensureError(error, 'HyperLiquidProvider.setReferralCode'),
         this.getErrorContext('setReferralCode', {
           code: this.getReferralCode(this.clientService.isTestnetMode()),
         }),

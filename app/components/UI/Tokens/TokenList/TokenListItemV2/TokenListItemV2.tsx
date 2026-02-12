@@ -59,8 +59,7 @@ import useEarnTokens from '../../../Earn/hooks/useEarnTokens';
 import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
 import { EVENT_LOCATIONS as EARN_EVENT_LOCATIONS } from '../../../Earn/constants/events/earnEvents';
 import { useStablecoinLendingRedirect } from '../../../Earn/hooks/useStablecoinLendingRedirect';
-import BigNumber from 'bignumber.js';
-import { MINIMUM_BALANCE_FOR_EARN_CTA } from '../../../Earn/constants/token';
+import { useMusdCtaVisibility } from '../../../Earn/hooks/useMusdCtaVisibility';
 import { selectTokenMarketData } from '../../../../../selectors/tokenRatesController';
 import {
   selectCurrencyRates,
@@ -136,7 +135,6 @@ interface TokenListItemV2Props {
   assetKey: FlashListAssetKey;
   showRemoveMenu: (arg: TokenI) => void;
   setShowScamWarningModal: (arg: boolean) => void;
-  shouldShowTokenListItemCta: (asset?: TokenI) => boolean;
   privacyMode: boolean;
   showPercentageChange?: boolean;
   isFullView?: boolean;
@@ -147,7 +145,6 @@ export const TokenListItemV2 = React.memo(
     assetKey,
     showRemoveMenu,
     setShowScamWarningModal,
-    shouldShowTokenListItemCta,
     privacyMode,
     showPercentageChange = true,
     isFullView = false,
@@ -188,6 +185,7 @@ export const TokenListItemV2 = React.memo(
 
     const earnToken = getEarnToken(asset as TokenI);
 
+    const { shouldShowTokenListItemCta } = useMusdCtaVisibility();
     const { initiateConversion, hasSeenConversionEducationScreen } =
       useMusdConversion();
 
@@ -358,10 +356,7 @@ export const TokenListItemV2 = React.memo(
 
       if (
         isStablecoinLendingEnabled &&
-        earnToken?.experience?.type === EARN_EXPERIENCES.STABLECOIN_LENDING &&
-        new BigNumber(earnToken?.balanceFiatNumber || '0').gte(
-          MINIMUM_BALANCE_FOR_EARN_CTA,
-        )
+        earnToken?.experience?.type === EARN_EXPERIENCES.STABLECOIN_LENDING
       ) {
         return {
           text: `${strings('stake.earn')}`,
@@ -393,11 +388,11 @@ export const TokenListItemV2 = React.memo(
     }, [
       hasClaimableBonus,
       shouldShowConvertToMusdCta,
-      earnToken,
       isStablecoinLendingEnabled,
-      asset,
+      earnToken?.experience?.type,
       hasPercentageChange,
       pricePercentChange1d,
+      asset,
       onItemPress,
       handleConvertToMUSD,
       handleLendingRedirect,
