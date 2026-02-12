@@ -13,11 +13,11 @@ import Icon, {
   IconColor,
 } from '../../../../component-library/components/Icons/Icon';
 import StyledButton from '../../../UI/StyledButton';
-import { CommonSelectorsIDs } from '../../../../util/Common.testIds';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../component-library/components/Buttons/ButtonIcon';
 import styleSheet from './AccountConnectMaliciousWarning.styles';
+import { AccountConnectMaliciousWarningSelectorsIDs } from './AccountConnectMaliciousWarning.testIds';
 
 interface AccountConnectMaliciousWarningProps {
   /** The dapp URL to display as a threat. */
@@ -37,7 +37,10 @@ const AccountConnectMaliciousWarning = ({
   const { styles } = useStyles(styleSheet, {});
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView
+      style={styles.safeArea}
+      testID={AccountConnectMaliciousWarningSelectorsIDs.CONTAINER}
+    >
       <View style={styles.mainContainer}>
         <View style={styles.contentContainer}>
           {/* Header with close button */}
@@ -48,7 +51,7 @@ const AccountConnectMaliciousWarning = ({
               iconName={IconName.Close}
               iconColor={IconColor.Default}
               onPress={onClose}
-              testID={CommonSelectorsIDs.CANCEL_BUTTON}
+              testID={AccountConnectMaliciousWarningSelectorsIDs.CLOSE_BUTTON}
             />
           </View>
 
@@ -62,12 +65,19 @@ const AccountConnectMaliciousWarning = ({
           </View>
 
           {/* Title */}
-          <TextComponent variant={TextVariant.HeadingMD} style={styles.title}>
+          <TextComponent
+            variant={TextVariant.HeadingMD}
+            style={styles.title}
+            testID={AccountConnectMaliciousWarningSelectorsIDs.WARNING_TITLE}
+          >
             {strings('accounts.malicious_site_detected')}
           </TextComponent>
 
           {/* URL with warning icon */}
-          <View style={styles.urlContainer}>
+          <View
+            style={styles.urlContainer}
+            testID={AccountConnectMaliciousWarningSelectorsIDs.WARNING_URL}
+          >
             <TextComponent
               variant={TextVariant.BodyMD}
               color={TextColor.Error}
@@ -87,6 +97,7 @@ const AccountConnectMaliciousWarning = ({
           {/* Warning message box */}
           <View
             style={[styles.warningBox, { backgroundColor: colors.error.muted }]}
+            testID={AccountConnectMaliciousWarningSelectorsIDs.WARNING_BOX}
           >
             <TextComponent variant={TextVariant.BodyMD}>
               {strings('accounts.malicious_site_warning')}
@@ -100,7 +111,9 @@ const AccountConnectMaliciousWarning = ({
             type="danger"
             onPress={onConnectAnyway}
             containerStyle={styles.connectAnywayButton}
-            testID={CommonSelectorsIDs.CONNECT_BUTTON}
+            testID={
+              AccountConnectMaliciousWarningSelectorsIDs.CONNECT_ANYWAY_BUTTON
+            }
           >
             {strings('accounts.connect_anyway')}
           </StyledButton>

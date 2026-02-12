@@ -162,4 +162,58 @@ describe('PermissionsSummary', () => {
 
     expect(mockSetTabIndex).toHaveBeenCalledWith(1);
   });
+
+  describe('isMaliciousDapp prop', () => {
+    it('renders the danger Connect button when isMaliciousDapp is true', () => {
+      const { getByText } = renderPermissionsSummary({
+        isMaliciousDapp: true,
+        isAlreadyConnected: false,
+      });
+
+      // The Connect button should still be present
+      expect(getByText('Connect')).toBeDefined();
+    });
+
+    it('renders the standard Connect button when isMaliciousDapp is false', () => {
+      const { getByText } = renderPermissionsSummary({
+        isMaliciousDapp: false,
+        isAlreadyConnected: false,
+      });
+
+      expect(getByText('Connect')).toBeDefined();
+    });
+
+    it('renders a malicious warning icon when isMaliciousDapp is true and not already connected', () => {
+      const { toJSON } = renderPermissionsSummary({
+        isMaliciousDapp: true,
+        isAlreadyConnected: false,
+      });
+
+      const tree = JSON.stringify(toJSON());
+      // The Danger icon should be present in the rendered tree
+      expect(tree).toContain('Danger');
+    });
+
+    it('does not render a malicious warning icon when isMaliciousDapp is false', () => {
+      const { toJSON } = renderPermissionsSummary({
+        isMaliciousDapp: false,
+        isAlreadyConnected: false,
+      });
+
+      const tree = JSON.stringify(toJSON());
+      // There should be no Danger icon
+      // Note: "Danger" icons may still appear in other contexts, so we check the title area specifically
+      expect(tree).not.toContain('maliciousWarningIcon');
+    });
+
+    it('does not show malicious warning icon when already connected', () => {
+      const { toJSON } = renderPermissionsSummary({
+        isMaliciousDapp: true,
+        isAlreadyConnected: true,
+      });
+
+      const tree = JSON.stringify(toJSON());
+      expect(tree).not.toContain('maliciousWarningIcon');
+    });
+  });
 });

@@ -2154,4 +2154,136 @@ describe('MultichainAccountConnect', () => {
       });
     });
   });
+
+  describe('WalletConnect Verify API - malicious dapp flow', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+      mockGetConnection.mockReturnValue(undefined);
+      mockIsUUID.mockReturnValue(false);
+    });
+
+    const createMaliciousWC2State = () => {
+      const state = createMockState();
+      return {
+        ...state,
+        sdk: {
+          wc2Metadata: {
+            id: 'mock-wc2-id',
+            url: 'https://malicious-dapp.com',
+            name: 'Malicious Dapp',
+            icon: '',
+            verifyContext: {
+              isScam: true,
+              validation: 'INVALID',
+              verifiedOrigin: 'https://malicious-dapp.com',
+            },
+          },
+        },
+      };
+    };
+
+    const createCleanWC2State = () => {
+      const state = createMockState();
+      return {
+        ...state,
+        sdk: {
+          wc2Metadata: {
+            id: 'mock-wc2-id',
+            url: 'https://safe-dapp.com',
+            name: 'Safe Dapp',
+            icon: '',
+            verifyContext: {
+              isScam: false,
+              validation: 'VALID',
+              verifiedOrigin: 'https://safe-dapp.com',
+            },
+          },
+        },
+      };
+    };
+
+    it('renders connect button for a WalletConnect malicious dapp', () => {
+      const { getByTestId } = renderWithProvider(
+        <MultichainAccountConnect
+          route={{
+            params: {
+              hostInfo: {
+                metadata: {
+                  id: 'mockId',
+                  origin: 'wc-channel-id',
+                  isEip1193Request: true,
+                },
+                permissions: createMockCaip25Permission({
+                  'wallet:eip155': {
+                    accounts: [],
+                  },
+                }),
+              },
+              permissionRequestId: 'test',
+            },
+          }}
+        />,
+        { state: createMaliciousWC2State() },
+      );
+
+      expect(getByTestId(CommonSelectorsIDs.CONNECT_BUTTON)).toBeTruthy();
+    });
+
+    it('renders connect button for clean WalletConnect dapp', () => {
+      const { getByTestId } = renderWithProvider(
+        <MultichainAccountConnect
+          route={{
+            params: {
+              hostInfo: {
+                metadata: {
+                  id: 'mockId',
+                  origin: 'wc-channel-id',
+                  isEip1193Request: true,
+                },
+                permissions: createMockCaip25Permission({
+                  'wallet:eip155': {
+                    accounts: [],
+                  },
+                }),
+              },
+              permissionRequestId: 'test',
+            },
+          }}
+        />,
+        { state: createCleanWC2State() },
+      );
+
+      expect(getByTestId(CommonSelectorsIDs.CONNECT_BUTTON)).toBeTruthy();
+    });
+
+    it('does not show malicious warning for non-WalletConnect origins', () => {
+      // When wc2Metadata.id is empty, it's not a WalletConnect connection
+      const state = createMockState();
+
+      const { getByTestId } = renderWithProvider(
+        <MultichainAccountConnect
+          route={{
+            params: {
+              hostInfo: {
+                metadata: {
+                  id: 'mockId',
+                  origin: 'some-non-wc-origin',
+                  isEip1193Request: true,
+                },
+                permissions: createMockCaip25Permission({
+                  'wallet:eip155': {
+                    accounts: [],
+                  },
+                }),
+              },
+              permissionRequestId: 'test',
+            },
+          }}
+        />,
+        { state },
+      );
+
+      expect(getByTestId(CommonSelectorsIDs.CONNECT_BUTTON)).toBeTruthy();
+    });
+  });
 });

@@ -967,16 +967,18 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
       >
         {renderMultiConnectNetworkSelectorScreen()}
       </ScreenContainer>
-      <ScreenContainer
-        isVisible={screen === AccountConnectScreens.MaliciousWarning}
-        styles={styles}
-      >
-        <AccountConnectMaliciousWarning
-          url={urlWithProtocol}
-          onConnectAnyway={handleConnectAnyway}
-          onClose={handleMaliciousWarningClose}
-        />
-      </ScreenContainer>
+      {isMaliciousDapp && (
+        <ScreenContainer
+          isVisible={screen === AccountConnectScreens.MaliciousWarning}
+          styles={styles}
+        >
+          <AccountConnectMaliciousWarning
+            url={urlWithProtocol}
+            onConnectAnyway={handleConnectAnyway}
+            onClose={handleMaliciousWarningClose}
+          />
+        </ScreenContainer>
+      )}
       {renderPhishingModal()}
     </Box>
   );

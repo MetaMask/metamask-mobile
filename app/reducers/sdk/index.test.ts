@@ -57,6 +57,41 @@ describe('SDK Reducer', () => {
       const result = sdkReducer(stateWithMetadata, action);
       expect(result.wc2Metadata).toBeUndefined();
     });
+
+    it('should store wc2Metadata with verifyContext', () => {
+      const metadataWithVerify = {
+        ...mockWC2Metadata,
+        verifyContext: {
+          isScam: true,
+          validation: 'INVALID' as const,
+          verifiedOrigin: 'https://malicious-dapp.com',
+        },
+      };
+
+      const action = {
+        type: ActionType.WC2_METADATA as const,
+        metadata: metadataWithVerify,
+      };
+
+      const result = sdkReducer(initialState, action);
+      expect(result.wc2Metadata).toEqual(metadataWithVerify);
+      expect(result.wc2Metadata?.verifyContext?.isScam).toBe(true);
+      expect(result.wc2Metadata?.verifyContext?.validation).toBe('INVALID');
+      expect(result.wc2Metadata?.verifyContext?.verifiedOrigin).toBe(
+        'https://malicious-dapp.com',
+      );
+    });
+
+    it('should store wc2Metadata without verifyContext', () => {
+      const action = {
+        type: ActionType.WC2_METADATA as const,
+        metadata: mockWC2Metadata,
+      };
+
+      const result = sdkReducer(initialState, action);
+      expect(result.wc2Metadata).toEqual(mockWC2Metadata);
+      expect(result.wc2Metadata?.verifyContext).toBeUndefined();
+    });
   });
 
   describe('Connection Actions', () => {
