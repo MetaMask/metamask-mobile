@@ -258,6 +258,14 @@ describe('LedgerConfirmationModal', () => {
     );
   });
 
+  it('renders ErrorStep when there is a ledger EthAppNotOpen error', async () => {
+    checkLedgerCommunicationErrorFlow(
+      LedgerCommunicationErrors.EthAppNotOpen,
+      strings('ledger.eth_app_not_open'),
+      strings('ledger.eth_app_not_open_message'),
+    );
+  });
+
   it('renders ErrorStep when there is a ledger LedgerHasPendingConfirmation error', async () => {
     checkLedgerCommunicationErrorFlow(
       LedgerCommunicationErrors.LedgerHasPendingConfirmation,
