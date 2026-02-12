@@ -23,11 +23,8 @@ export const selectTokenDetailsV2Enabled = createSelector(
 export const selectTokenDetailsV2ButtonsEnabled = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags): boolean => {
-    if (
-      process.env.OVERRIDE_REMOTE_FEATURE_FLAGS === 'true' &&
-      process.env.TOKEN_DETAILS_V2_BUTTONS_ENABLED === 'true'
-    ) {
-      return true;
+    if (process.env.OVERRIDE_REMOTE_FEATURE_FLAGS === 'true') {
+      return process.env.TOKEN_DETAILS_V2_BUTTONS_ENABLED === 'true';
     }
 
     const flagValue =
