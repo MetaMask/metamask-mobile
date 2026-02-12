@@ -83,7 +83,7 @@ export function usePerpsBalanceTokenFilter(): (
           token.isSelected && isPerpsBalanceSelected ? false : token.isSelected,
       }));
 
-      if (allowListAssets.length > 0) {
+      if ((allowListAssets?.length ?? 0) > 0) {
         const allowSet = new Set(allowListAssets);
         mappedTokens = mappedTokens.filter((token) => {
           const key = `${token.chainId}.${(token.address ?? '').toLowerCase()}`;
