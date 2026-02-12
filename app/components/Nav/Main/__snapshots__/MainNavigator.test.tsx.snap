@@ -200,6 +200,13 @@ exports[`MainNavigator Tab Bar Visibility hides tab bar when browser is active 1
   <Screen
     component={[Function]}
     name="EarnScreens"
+    options={
+      {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
+        "headerShown": false,
+      }
+    }
   />
   <Screen
     component={[Function]}
@@ -255,6 +262,39 @@ exports[`MainNavigator Tab Bar Visibility hides tab bar when browser is active 1
   />
   <Screen
     component={[Function]}
+    name="ExploreSearch"
+    options={
+      {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
+        "headerShown": false,
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
+    name="SitesFullView"
+    options={
+      {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
+        "headerShown": false,
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
+    name="BrowserTabHome"
+    options={
+      {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
+        "headerShown": false,
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
     headerStyle={
       {
         "borderBottomWidth": 0,
@@ -275,7 +315,7 @@ exports[`MainNavigator Tab Bar Visibility hides tab bar when browser is active 1
     name="GeneralSettings"
     options={
       {
-        "headerShown": true,
+        "headerShown": false,
       }
     }
   />
@@ -518,6 +558,13 @@ exports[`MainNavigator Tab Bar Visibility shows tab bar when not in browser 1`] 
   <Screen
     component={[Function]}
     name="EarnScreens"
+    options={
+      {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
+        "headerShown": false,
+      }
+    }
   />
   <Screen
     component={[Function]}
@@ -573,6 +620,39 @@ exports[`MainNavigator Tab Bar Visibility shows tab bar when not in browser 1`] 
   />
   <Screen
     component={[Function]}
+    name="ExploreSearch"
+    options={
+      {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
+        "headerShown": false,
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
+    name="SitesFullView"
+    options={
+      {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
+        "headerShown": false,
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
+    name="BrowserTabHome"
+    options={
+      {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
+        "headerShown": false,
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
     headerStyle={
       {
         "borderBottomWidth": 0,
@@ -593,7 +673,7 @@ exports[`MainNavigator Tab Bar Visibility shows tab bar when not in browser 1`] 
     name="GeneralSettings"
     options={
       {
-        "headerShown": true,
+        "headerShown": false,
       }
     }
   />
@@ -836,6 +916,13 @@ exports[`MainNavigator matches rendered snapshot 1`] = `
   <Screen
     component={[Function]}
     name="EarnScreens"
+    options={
+      {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
+        "headerShown": false,
+      }
+    }
   />
   <Screen
     component={[Function]}
@@ -891,6 +978,39 @@ exports[`MainNavigator matches rendered snapshot 1`] = `
   />
   <Screen
     component={[Function]}
+    name="ExploreSearch"
+    options={
+      {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
+        "headerShown": false,
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
+    name="SitesFullView"
+    options={
+      {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
+        "headerShown": false,
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
+    name="BrowserTabHome"
+    options={
+      {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
+        "headerShown": false,
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
     headerStyle={
       {
         "borderBottomWidth": 0,
@@ -911,7 +1031,7 @@ exports[`MainNavigator matches rendered snapshot 1`] = `
     name="GeneralSettings"
     options={
       {
-        "headerShown": true,
+        "headerShown": false,
       }
     }
   />

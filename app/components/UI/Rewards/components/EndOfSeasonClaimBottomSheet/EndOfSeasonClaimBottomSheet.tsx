@@ -9,7 +9,8 @@ import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import useRewardsToast from '../../hooks/useRewardsToast';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../locales/i18n';
 import { TouchableOpacity } from 'react-native';
@@ -46,9 +47,7 @@ import AvatarAccount from '../../../../../component-library/components/Avatars/A
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 import { createAccountSelectorNavDetails } from '../../../../Views/AccountSelector';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import TextField, {
-  TextFieldSize,
-} from '../../../../../component-library/components/Form/TextField';
+import TextField from '../../../../../component-library/components/Form/TextField';
 import useClaimReward from '../../hooks/useClaimReward';
 import useLineaSeasonOneTokenReward from '../../hooks/useLineaSeasonOneTokenReward';
 import { validateEmail } from '../../utils/formatUtils';
@@ -94,7 +93,7 @@ const EndOfSeasonClaimBottomSheet = ({
   const tw = useTailwind();
   const { showToast: showRewardsToast, RewardsToastOptions } =
     useRewardsToast();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const { claimReward, isClaimingReward } = useClaimReward();
   const { lineaTokenReward } = useLineaSeasonOneTokenReward();
   const {
@@ -326,11 +325,6 @@ const EndOfSeasonClaimBottomSheet = ({
           onChangeText={handleEmailChange}
           value={email}
           isError={emailValidationError}
-          size={TextFieldSize.Lg}
-          style={tw.style(
-            'bg-background-pressed',
-            emailValidationError && 'border-error-default',
-          )}
           keyboardType="email-address"
           autoCapitalize="none"
           isDisabled={isClaimingReward}
@@ -364,8 +358,6 @@ const EndOfSeasonClaimBottomSheet = ({
           placeholder={strings('rewards.metal_card_claim.telegram_placeholder')}
           onChangeText={setTelegram}
           value={telegram}
-          size={TextFieldSize.Lg}
-          style={tw.style('bg-background-pressed')}
           autoCapitalize="none"
           isDisabled={isClaimingReward}
           testID={REWARDS_VIEW_SELECTORS.CLAIM_MODAL_TELEGRAM_INPUT}

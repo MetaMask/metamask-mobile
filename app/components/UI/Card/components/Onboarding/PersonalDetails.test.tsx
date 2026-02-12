@@ -85,12 +85,6 @@ jest.mock('../../../../../component-library/components/Form/TextField', () => {
   const React = jest.requireActual('react');
   const { TextInput } = jest.requireActual('react-native');
 
-  const TextFieldSize = {
-    Sm: 'sm',
-    Md: 'md',
-    Lg: 'lg',
-  };
-
   const MockTextField = ({
     testID,
     onChangeText,
@@ -98,7 +92,6 @@ jest.mock('../../../../../component-library/components/Form/TextField', () => {
     value,
     placeholder,
     maxLength,
-    size,
     accessibilityLabel,
     ...props
   }: {
@@ -108,7 +101,6 @@ jest.mock('../../../../../component-library/components/Form/TextField', () => {
     value?: string;
     placeholder?: string;
     maxLength?: number;
-    size?: string;
     accessibilityLabel?: string;
   }) =>
     React.createElement(TextInput, {
@@ -122,12 +114,9 @@ jest.mock('../../../../../component-library/components/Form/TextField', () => {
       ...props,
     });
 
-  MockTextField.Size = TextFieldSize;
-
   return {
     __esModule: true,
     default: MockTextField,
-    TextFieldSize,
   };
 });
 
@@ -858,134 +847,9 @@ describe('PersonalDetails Component', () => {
 
       const { getByText, queryByText } = render(<PersonalDetails />);
 
-      // The nationality should show Canada (from countryOfNationality), not US (from countryOfResidence)
+      // The nationality should show Canada (from countryOfNationality)
       expect(getByText('Canada')).toBeTruthy();
       expect(queryByText('United States')).toBeNull();
-    });
-
-    it('falls back to countryOfResidence when countryOfNationality is not provided', () => {
-      const mockUserData = {
-        firstName: 'John',
-        lastName: 'Doe',
-        dateOfBirth: '1990-01-01T00:00:00.000Z',
-        countryOfNationality: null,
-        countryOfResidence: 'US',
-        ssn: '123456789',
-      };
-      (useCardSDK as jest.Mock).mockReturnValue({
-        user: mockUserData,
-        setUser: mockSetUser,
-        fetchUserData: mockFetchUserData,
-        logoutFromProvider: jest.fn(),
-      });
-
-      const { getByText } = render(<PersonalDetails />);
-
-      // The nationality should show United States (from countryOfResidence fallback)
-      expect(getByText('United States')).toBeTruthy();
-    });
-
-    it('falls back to countryOfResidence when countryOfNationality is empty string', () => {
-      const mockUserData = {
-        firstName: 'John',
-        lastName: 'Doe',
-        dateOfBirth: '1990-01-01T00:00:00.000Z',
-        countryOfNationality: '',
-        countryOfResidence: 'CA',
-        ssn: '123456789',
-      };
-      (useCardSDK as jest.Mock).mockReturnValue({
-        user: mockUserData,
-        setUser: mockSetUser,
-        fetchUserData: mockFetchUserData,
-        logoutFromProvider: jest.fn(),
-      });
-
-      const { getByText } = render(<PersonalDetails />);
-
-      // The nationality should show Canada (from countryOfResidence fallback)
-      expect(getByText('Canada')).toBeTruthy();
-    });
-
-    it('falls back to countryOfResidence when countryOfNationality is undefined', () => {
-      const mockUserData = {
-        firstName: 'John',
-        lastName: 'Doe',
-        dateOfBirth: '1990-01-01T00:00:00.000Z',
-        countryOfResidence: 'US',
-        ssn: '123456789',
-      };
-      (useCardSDK as jest.Mock).mockReturnValue({
-        user: mockUserData,
-        setUser: mockSetUser,
-        fetchUserData: mockFetchUserData,
-        logoutFromProvider: jest.fn(),
-      });
-
-      const { getByText } = render(<PersonalDetails />);
-
-      // The nationality should show United States (from countryOfResidence fallback)
-      expect(getByText('United States')).toBeTruthy();
-    });
-
-    it('leaves nationality empty when both countryOfNationality and countryOfResidence are not provided', () => {
-      const mockUserData = {
-        firstName: 'John',
-        lastName: 'Doe',
-        dateOfBirth: '1990-01-01T00:00:00.000Z',
-        ssn: '123456789',
-      };
-      (useCardSDK as jest.Mock).mockReturnValue({
-        user: mockUserData,
-        setUser: mockSetUser,
-        fetchUserData: mockFetchUserData,
-        logoutFromProvider: jest.fn(),
-      });
-
-      const { queryByText } = render(<PersonalDetails />);
-
-      // The nationality should be empty - neither country name should appear in the selector
-      expect(queryByText('Canada')).toBeNull();
-      expect(queryByText('United States')).toBeNull();
-    });
-
-    it('enables continue button when nationality is set via countryOfResidence fallback', async () => {
-      const mockUserData = {
-        firstName: 'John',
-        lastName: 'Doe',
-        dateOfBirth: '1990-01-01T00:00:00.000Z',
-        countryOfNationality: null,
-        countryOfResidence: 'US',
-        ssn: '123456789',
-      };
-      (useCardSDK as jest.Mock).mockReturnValue({
-        user: mockUserData,
-        setUser: mockSetUser,
-        fetchUserData: mockFetchUserData,
-        logoutFromProvider: jest.fn(),
-      });
-
-      mockRegisterPersonalDetails.mockResolvedValue({
-        user: { id: 'user-123' },
-      });
-
-      const { getByTestId } = render(<PersonalDetails />);
-
-      // The form should be pre-filled and the continue button should not be disabled
-      // due to missing nationality (since countryOfResidence is used as fallback)
-      const continueButton = getByTestId('personal-details-continue-button');
-
-      // Button should be enabled since all required fields are populated
-      await act(async () => {
-        fireEvent.press(continueButton);
-      });
-
-      // Should have called registerPersonalDetails with the countryOfResidence as nationality
-      expect(mockRegisterPersonalDetails).toHaveBeenCalledWith(
-        expect.objectContaining({
-          countryOfNationality: 'US',
-        }),
-      );
     });
   });
 

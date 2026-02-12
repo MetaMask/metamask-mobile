@@ -23,7 +23,6 @@ import {
   trustedProtocolToDeeplink,
   getAlertMessage,
   allowLinkOpen,
-  getUrlObj,
 } from '../../../util/browser';
 import {
   SPA_urlChangeListener,
@@ -65,15 +64,12 @@ import useFavicon from '../../hooks/useFavicon/useFavicon';
 import {
   HOMEPAGE_HOST,
   IPFS_GATEWAY_DISABLED_ERROR,
-  OLD_HOMEPAGE_URL_HOST,
   NOTIFICATION_NAMES,
-  MM_MIXPANEL_TOKEN,
 } from './constants';
 import GestureWebViewWrapper from './GestureWebViewWrapper';
 import { regex } from '../../../../app/util/regex';
 import { selectEvmChainId } from '../../../selectors/networkController';
 import { BrowserViewSelectorsIDs } from './BrowserView.testIds';
-import { useMetrics } from '../../../components/hooks/useMetrics';
 import { trackDappViewedEvent } from '../../../util/metrics';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { selectPermissionControllerState } from '../../../selectors/snaps/permissionController';
@@ -138,7 +134,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     linkType,
     updateTabInfo,
     addToBrowserHistory,
-    bookmarks,
     initialUrl,
     ipfsGateway,
     newTab,
@@ -203,7 +198,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       onDisconnect: () => void;
       onMessage: (message: Record<string, unknown>) => void;
     }>();
-    const fromHomepage = useRef(false);
     const searchEngine = useSelector(selectSearchEngine);
     const isAssetsTrendingTokensEnabled = useSelector(
       selectAssetsTrendingTokensEnabled,
@@ -241,7 +235,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     );
 
     const { faviconURI: favicon } = useFavicon(resolvedUrlRef.current);
-    const { isEnabled, getMetaMetricsId } = useMetrics();
+
     /**
      * Is the current tab the active tab
      */
@@ -255,18 +249,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     const whitelist = useSelector(
       (state: RootState) => state.browser.whitelist,
     );
-
-    /**
-     * Checks if a given url or the current url is the homepage
-     */
-    const isHomepage = useCallback((checkUrl?: string | null) => {
-      const currentPage = checkUrl || resolvedUrlRef.current;
-      const prefixedUrl = prefixUrlWithProtocol(currentPage);
-      const { host: currentHost } = getUrlObj(prefixedUrl);
-      return (
-        currentHost === HOMEPAGE_HOST || currentHost === OLD_HOMEPAGE_URL_HOST
-      );
-    }, []);
 
     const notifyAllConnections = useCallback((payload: unknown) => {
       backgroundBridgeRef.current?.sendNotificationEip1193(payload);
@@ -588,36 +570,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     }, [goBack, isTabActive, navigation]);
 
     /**
-     * Inject home page scripts to get the favourites and set analytics key
-     */
-    const injectHomePageScripts = useCallback(
-      async (injectedBookmarks?: string[]) => {
-        const { current } = webviewRef;
-        const analyticsEnabled = isEnabled();
-        const disctinctId = await getMetaMetricsId();
-        const homepageScripts = `
-              window.__mmFavorites = ${JSON.stringify(
-                injectedBookmarks || bookmarks,
-              )};
-              window.__mmSearchEngine = "${searchEngine}";
-              window.__mmMetametrics = ${analyticsEnabled};
-              window.__mmDistinctId = "${disctinctId}";
-              window.__mmMixpanelToken = "${MM_MIXPANEL_TOKEN}";
-              (function () {
-                  try {
-                      window.dispatchEvent(new Event('metamask_onHomepageScriptsInjected'));
-                  } catch (e) {
-                      //Nothing to do
-                  }
-              })()
-          `;
-
-        current?.injectJavaScript(homepageScripts);
-      },
-      [isEnabled, getMetaMetricsId, bookmarks, searchEngine],
-    );
-
-    /**
      * Handles error for example, ssl certificate error or cannot open page
      */
     const handleError = useCallback(
@@ -716,82 +668,88 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
      * Function that allows custom handling of any web view requests.
      * Return `true` to continue loading the request and `false` to stop loading.
      */
-    const onShouldStartLoadWithRequest = ({
-      url: urlToLoad,
-    }: {
-      url: string;
-    }) => {
-      webStates.current[urlToLoad] = {
-        ...webStates.current[urlToLoad],
-        requested: true,
-      };
+    const onShouldStartLoadWithRequest = useCallback(
+      ({ url: urlToLoad }: { url: string }) => {
+        if (!isTabActive) return false;
 
-      if (!isIpfsGatewayEnabled && isResolvedIpfsUrl) {
-        setIpfsBannerVisible(true);
-        return false;
-      }
+        webStates.current[urlToLoad] = {
+          ...webStates.current[urlToLoad],
+          requested: true,
+        };
 
-      // Check if this is an internal MetaMask deeplink that should be handled within the app
-      if (isInternalDeepLink(urlToLoad)) {
-        // Handle the deeplink internally instead of passing to OS
-        SharedDeeplinkManager.getInstance()
-          .parse(urlToLoad, {
-            origin: AppConstants.DEEPLINKS.ORIGIN_IN_APP_BROWSER,
-            browserCallBack: (url: string) => {
-              // If the deeplink handler wants to navigate to a different URL in the browser
-              if (url && webviewRef.current) {
-                webviewRef.current.injectJavaScript(`
+        if (!isIpfsGatewayEnabled && isResolvedIpfsUrl) {
+          setIpfsBannerVisible(true);
+          return false;
+        }
+
+        // Check if this is an internal MetaMask deeplink that should be handled within the app
+        if (isInternalDeepLink(urlToLoad)) {
+          // Handle the deeplink internally instead of passing to OS
+          SharedDeeplinkManager.getInstance()
+            .parse(urlToLoad, {
+              origin: AppConstants.DEEPLINKS.ORIGIN_IN_APP_BROWSER,
+              browserCallBack: (url: string) => {
+                // If the deeplink handler wants to navigate to a different URL in the browser
+                if (url && webviewRef.current) {
+                  webviewRef.current.injectJavaScript(`
                 window.location.href = '${sanitizeUrlInput(url)}';
                 true;  // Required for iOS
               `);
-              }
-            },
-          })
-          .catch((deeplinkError) => {
-            Logger.error(
-              deeplinkError,
-              'BrowserTab: Failed to handle internal deeplink in browser',
-            );
-          });
-        return false; // Stop the webview from loading this URL
-      }
+                }
+              },
+            })
+            .catch((deeplinkError) => {
+              Logger.error(
+                deeplinkError,
+                'BrowserTab: Failed to handle internal deeplink in browser',
+              );
+            });
+          return false; // Stop the webview from loading this URL
+        }
 
-      const { protocol } = new URLParse(urlToLoad);
+        const { protocol } = new URLParse(urlToLoad);
 
-      if (trustedProtocolToDeeplink.includes(protocol)) {
-        allowLinkOpen(urlToLoad);
+        if (trustedProtocolToDeeplink.includes(protocol)) {
+          allowLinkOpen(urlToLoad);
 
-        // Webview should not load deeplink protocols
-        // We redirect them to the OS linking system instead
+          // Webview should not load deeplink protocols
+          // We redirect them to the OS linking system instead
+          return false;
+        }
+
+        if (protocolAllowList.includes(protocol)) {
+          // Continue with the URL loading on the Webview
+          return true;
+        }
+
+        // Use Sentry Breadcumbs to log the untrusted protocol
+        Logger.log(`Protocol not allowed ${protocol}`);
+
+        // Pop up an alert dialog box to prompt the user for permission
+        // to execute the request
+        const alertMsg = getAlertMessage(protocol, strings);
+        Alert.alert(strings('onboarding.warning_title'), alertMsg, [
+          {
+            text: strings('browser.protocol_alert_options.ignore'),
+            onPress: () => null,
+            style: 'cancel',
+          },
+          {
+            text: strings('browser.protocol_alert_options.allow'),
+            onPress: () => allowLinkOpen(urlToLoad),
+            style: 'default',
+          },
+        ]);
+
         return false;
-      }
-
-      if (protocolAllowList.includes(protocol)) {
-        // Continue with the URL loading on the Webview
-        return true;
-      }
-
-      // Use Sentry Breadcumbs to log the untrusted protocol
-      Logger.log(`Protocol not allowed ${protocol}`);
-
-      // Pop up an alert dialog box to prompt the user for permission
-      // to execute the request
-      const alertMsg = getAlertMessage(protocol, strings);
-      Alert.alert(strings('onboarding.warning_title'), alertMsg, [
-        {
-          text: strings('browser.protocol_alert_options.ignore'),
-          onPress: () => null,
-          style: 'cancel',
-        },
-        {
-          text: strings('browser.protocol_alert_options.allow'),
-          onPress: () => allowLinkOpen(urlToLoad),
-          style: 'default',
-        },
-      ]);
-
-      return false;
-    };
+      },
+      [
+        isIpfsGatewayEnabled,
+        isResolvedIpfsUrl,
+        setIpfsBannerVisible,
+        isTabActive,
+      ],
+    );
 
     /**
      * Sets loading bar progress
@@ -873,57 +831,56 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     /**
      * Handle message from website
      */
-    const onMessage = ({ nativeEvent }: WebViewMessageEvent) => {
-      const data = nativeEvent.data;
-      try {
-        if (data.length > MAX_MESSAGE_LENGTH) {
-          console.warn(
-            `message exceeded size limit and will be dropped: ${data.slice(
-              0,
-              1000,
-            )}...`,
-          );
-          return;
-        }
-        const dataParsed = typeof data === 'string' ? JSON.parse(data) : data;
-        if (!dataParsed || (!dataParsed.type && !dataParsed.name)) {
-          return;
-        }
-        if (dataParsed.type === 'SCROLL_POSITION') {
-          // Update scroll position - gesture wrapper derives "at top" directly from this value
-          scrollY.value = dataParsed.payload?.scrollY || 0;
-          return;
-        }
-        if (
-          dataParsed.type === 'IFRAME_DETECTED' &&
-          Array.isArray(dataParsed.iframeUrls) &&
-          dataParsed.iframeUrls.length > 0
-        ) {
-          const validIframeUrls = dataParsed.iframeUrls.filter(
-            (url: unknown): url is string =>
-              typeof url === 'string' && url.trim().length > 0,
-          );
-          if (validIframeUrls.length > 0) {
-            checkIFrameUrls(validIframeUrls);
+    const onMessage = useCallback(
+      ({ nativeEvent }: WebViewMessageEvent) => {
+        const data = nativeEvent.data;
+        try {
+          if (data.length > MAX_MESSAGE_LENGTH) {
+            console.warn(
+              `message exceeded size limit and will be dropped: ${data.slice(
+                0,
+                1000,
+              )}...`,
+            );
+            return;
           }
-          return;
+          const dataParsed = typeof data === 'string' ? JSON.parse(data) : data;
+          if (!dataParsed || (!dataParsed.type && !dataParsed.name)) {
+            return;
+          }
+          if (dataParsed.type === 'SCROLL_POSITION') {
+            // Update scroll position - gesture wrapper derives "at top" directly from this value
+            scrollY.value = dataParsed.payload?.scrollY || 0;
+            return;
+          }
+          if (
+            dataParsed.type === 'IFRAME_DETECTED' &&
+            Array.isArray(dataParsed.iframeUrls) &&
+            dataParsed.iframeUrls.length > 0
+          ) {
+            const validIframeUrls = dataParsed.iframeUrls.filter(
+              (url: unknown): url is string =>
+                typeof url === 'string' && url.trim().length > 0,
+            );
+            if (validIframeUrls.length > 0) {
+              checkIFrameUrls(validIframeUrls);
+            }
+            return;
+          }
+          if (dataParsed.name) {
+            backgroundBridgeRef.current?.onMessage(dataParsed);
+            return;
+          }
+        } catch (e: unknown) {
+          const onMessageError = e as Error;
+          Logger.error(
+            onMessageError,
+            `Browser::onMessage on ${resolvedUrlRef.current}`,
+          );
         }
-        if (dataParsed.name) {
-          backgroundBridgeRef.current?.onMessage(dataParsed);
-          return;
-        }
-      } catch (e: unknown) {
-        const onMessageError = e as Error;
-        Logger.error(
-          onMessageError,
-          `Browser::onMessage on ${resolvedUrlRef.current}`,
-        );
-      }
-    };
-
-    const toggleUrlModal = useCallback(() => {
-      urlBarRef.current?.focus();
-    }, []);
+      },
+      [checkIFrameUrls, scrollY],
+    );
 
     const initializeBackgroundBridge = useCallback(
       (urlBridge: string, isMainFrame: boolean) => {
@@ -948,13 +905,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
               url: resolvedUrlRef,
               title: titleRef,
               icon: iconRef,
-              // Bookmarks
-              isHomepage,
-              // Show autocomplete
-              fromHomepage,
-              toggleUrlModal,
               tabId,
-              injectHomePageScripts,
               // TODO: This properties were missing, and were not optional
               isWalletConnect: false,
               isMMSDK: false,
@@ -964,7 +915,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         });
         backgroundBridgeRef.current = newBridge;
       },
-      [navigation, isHomepage, toggleUrlModal, tabId, injectHomePageScripts],
+      [navigation, tabId],
     );
 
     const sendActiveAccount = useCallback(
@@ -1045,9 +996,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         sendActiveAccount(nativeEvent.url);
 
         iconRef.current = undefined;
-        if (isHomepage(nativeEvent.url)) {
-          injectHomePageScripts();
-        }
 
         initializeBackgroundBridge(urlOrigin, true);
       },
@@ -1055,8 +1003,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         isAllowedOrigin,
         handleNotAllowedUrl,
         sendActiveAccount,
-        isHomepage,
-        injectHomePageScripts,
         initializeBackgroundBridge,
       ],
     );
@@ -1174,6 +1120,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       }: {
         nativeEvent: { downloadUrl: string };
       }) => {
+        if (!isTabActive) return;
         const downloadResponse = await downloadFile(downloadUrl);
         if (downloadResponse) {
           reload();
@@ -1182,15 +1129,15 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
           reload();
         }
       },
-      [reload],
+      [reload, isTabActive],
     );
 
     /**
      * Return to the MetaMask Dapp Homepage
      */
-    const returnHome = () => {
+    const returnHome = useCallback(() => {
       onSubmitEditing(HOMEPAGE_HOST);
-    };
+    }, [onSubmitEditing]);
 
     /**
      * Render the bottom navigation bar
@@ -1431,9 +1378,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       [onLoadEnd],
     );
 
-    // Don't render webview unless ready to load. This should save on performance for initial app start.
-    if (!isWebViewReadyToLoad.current) return null;
-
     /*
      * Wildcard '*' matches all URL that go through WebView,
      * so that all content gets filtered by onShouldStartLoadWithRequest function.
@@ -1444,7 +1388,37 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
      * source: https://github.com/react-native-webview/react-native-webview/blob/master/docs/Reference.md#originwhitelist
      *
      */
-    const webViewOriginWhitelist = ['*'];
+    const webViewOriginWhitelist = useMemo(() => ['*'], []);
+
+    const onReload = useCallback(() => {
+      webviewRef.current?.reload?.();
+    }, []);
+
+    const renderError = useCallback(
+      () => <WebviewErrorComponent error={error} returnHome={returnHome} />,
+      [error, returnHome],
+    );
+
+    const webViewSource = useMemo(
+      () => ({
+        uri: prefixUrlWithProtocol(initialUrl),
+        ...(isExternalLink ? { headers: { Cookie: '' } } : null),
+      }),
+      [initialUrl, isExternalLink],
+    );
+
+    const webViewTestProps = useMemo(
+      () => (process.env.IS_TEST === 'true' ? { javaScriptEnabled: true } : {}),
+      [],
+    );
+
+    const androidCollapsableProps = useMemo(
+      () => (Device.isAndroid() ? { collapsable: false } : {}),
+      [],
+    );
+
+    // Don't render webview unless ready to load. This should save on performance for initial app start.
+    if (!isWebViewReadyToLoad.current) return null;
 
     /**
      * Main render
@@ -1452,21 +1426,20 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     return (
       <ErrorBoundary navigation={navigation} view="BrowserTab">
         <View style={[styles.wrapper, !isTabActive && styles.hide]}>
-          <View
-            style={styles.wrapper}
-            {...(Device.isAndroid() ? { collapsable: false } : {})}
-          >
+          <View style={styles.wrapper} {...androidCollapsableProps}>
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
               twClassName="gap-2"
             >
-              <ButtonIcon
-                iconName={IconName.Close}
-                size={ButtonIconSize.Lg}
-                onPress={handleClosePress}
-                testID="browser-tab-close-button"
-              />
+              {!isUrlBarFocused && (
+                <ButtonIcon
+                  iconName={IconName.ArrowLeft}
+                  size={ButtonIconSize.Lg}
+                  onPress={handleClosePress}
+                  testID="browser-tab-close-button"
+                />
+              )}
               <Box twClassName="flex-1">
                 <BrowserUrlBar
                   ref={urlBarRef}
@@ -1480,9 +1453,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
                   activeUrl={resolvedUrlRef.current}
                   setIsUrlBarFocused={setIsUrlBarFocused}
                   isUrlBarFocused={isUrlBarFocused}
-                  showCloseButton={
-                    fromTrending && isAssetsTrendingTokensEnabled
-                  }
                   showTabs={showTabsView}
                 />
               </Box>
@@ -1499,7 +1469,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
                     forwardEnabled={forwardEnabled}
                     onGoBack={goBack}
                     onGoForward={goForward}
-                    onReload={() => webviewRef.current?.reload?.()}
+                    onReload={onReload}
                     scrollY={scrollY}
                     isRefreshing={isRefreshing}
                   >
@@ -1508,18 +1478,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
                         originWhitelist={webViewOriginWhitelist}
                         decelerationRate={0.998}
                         ref={webviewRef}
-                        renderError={() => (
-                          <WebviewErrorComponent
-                            error={error}
-                            returnHome={returnHome}
-                          />
-                        )}
-                        source={{
-                          uri: prefixUrlWithProtocol(initialUrl),
-                          ...(isExternalLink
-                            ? { headers: { Cookie: '' } }
-                            : null),
-                        }}
+                        renderError={renderError}
+                        source={webViewSource}
                         injectedJavaScriptBeforeContentLoaded={entryScriptWeb3}
                         style={styles.webview}
                         onLoadStart={handleWebviewNavigationChange(OnLoadStart)}
@@ -1533,14 +1493,14 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
                           onShouldStartLoadWithRequest
                         }
                         allowsInlineMediaPlayback
-                        {...(process.env.IS_TEST === 'true'
-                          ? { javaScriptEnabled: true }
-                          : {})}
+                        {...webViewTestProps}
                         testID={BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID}
                         applicationNameForUserAgent={'WebView MetaMaskMobile'}
                         onFileDownload={handleOnFileDownload}
                         webviewDebuggingEnabled={isTest}
                         paymentRequestEnabled
+                        allowFileDownloads={isTabActive}
+                        suppressJavaScriptDialogs={!isTabActive}
                       />
                       {ipfsBannerVisible && (
                         <IpfsBanner
@@ -1579,7 +1539,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
 );
 
 const mapStateToProps = (state: RootState) => ({
-  bookmarks: state.bookmarks,
   ipfsGateway: selectIpfsGateway(state),
   selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
   isIpfsGatewayEnabled: selectIsIpfsGatewayEnabled(state),

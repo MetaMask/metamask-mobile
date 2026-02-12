@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
 import {
+  CHAIN_IDS,
   TransactionType,
   WalletDevice,
 } from '@metamask/transaction-controller';
@@ -12,7 +13,7 @@ import { selectDefaultEndpointByChainId } from '../../../../../../selectors/netw
 import { addTransaction } from '../../../../../../util/transaction-controller';
 import { TokenI } from '../../../../Tokens/types';
 import { RootState } from '../../../../../../reducers';
-import { fetchMerklRewardsForAsset, getClaimChainId } from '../merkl-client';
+import { fetchMerklRewardsForAsset } from '../merkl-client';
 import {
   DISTRIBUTOR_CLAIM_ABI,
   MERKL_CLAIM_ORIGIN,
@@ -24,7 +25,7 @@ import {
  * After successful submission, user is navigated to home page.
  * Toast notifications and balance refresh are handled globally by useMerklClaimStatus.
  */
-export const useMerklClaim = (asset: TokenI) => {
+export const useMerklClaim = (asset: TokenI | undefined) => {
   const [isClaiming, setIsClaiming] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -43,7 +44,7 @@ export const useMerklClaim = (asset: TokenI) => {
 
   // Get the chain ID where claims should be executed
   // For mUSD, claims always go to Linea regardless of which chain the user is viewing
-  const claimChainId = getClaimChainId(asset);
+  const claimChainId = CHAIN_IDS.LINEA_MAINNET as Hex;
 
   const endpoint = useSelector((state: RootState) =>
     selectDefaultEndpointByChainId(state, claimChainId),
@@ -51,10 +52,14 @@ export const useMerklClaim = (asset: TokenI) => {
   const networkClientId = endpoint?.networkClientId;
 
   const claimRewards = useCallback(async () => {
+    if (!asset) {
+      setError('No asset available for claiming');
+      return undefined;
+    }
+
     if (!selectedAddress || !networkClientId) {
-      const errorMessage = 'No account or network selected';
-      setError(errorMessage);
-      throw new Error(errorMessage);
+      setError('No account or network selected');
+      return undefined;
     }
 
     // Abort any previous in-flight request
@@ -74,7 +79,9 @@ export const useMerklClaim = (asset: TokenI) => {
       );
 
       if (!rewardData) {
-        throw new Error('No claimable rewards found');
+        setError('No claimable rewards found');
+        setIsClaiming(false);
+        return undefined;
       }
 
       // Prepare claim parameters
@@ -111,31 +118,37 @@ export const useMerklClaim = (asset: TokenI) => {
         deviceConfirmedOn: WalletDevice.MM_MOBILE,
         networkClientId,
         origin: MERKL_CLAIM_ORIGIN,
-        type: TransactionType.contractInteraction,
+        type: TransactionType.musdClaim,
       });
+
+      // Transaction request is now visible — stop showing the loader
+      setIsClaiming(false);
 
       // transactionMeta can be undefined if user cancels before tx is created
       if (!transactionMeta) {
-        setIsClaiming(false);
         return undefined;
       }
 
       // Wait for transaction hash (indicates tx is submitted to network)
       const txHash = await result;
 
-      // Don't reset isClaiming here - component will unmount after navigation
-      // and useMerklClaimStatus will handle the rest globally
-
       return { txHash, transactionMeta };
     } catch (e) {
+      const { name, code, message } = e as Error & { code?: number };
+
       // Ignore AbortError - component unmounted or request was cancelled
-      if ((e as Error).name === 'AbortError') {
+      if (name === 'AbortError') {
         return undefined;
       }
-      const errorMessage = (e as Error).message;
-      setError(errorMessage);
+
+      // Don't show error if user rejected/cancelled the transaction (EIP-1193 code 4001)
+      const isUserRejection = code === 4001;
+
+      if (!isUserRejection) {
+        setError(message);
+      }
       setIsClaiming(false);
-      throw e;
+      return undefined;
     }
   }, [selectedAddress, networkClientId, asset, claimChainId]);
 

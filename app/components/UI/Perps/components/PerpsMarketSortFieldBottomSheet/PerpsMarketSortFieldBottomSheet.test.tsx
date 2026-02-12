@@ -184,7 +184,7 @@ describe('PerpsMarketSortFieldBottomSheet', () => {
       ).toBeOnTheScreen();
     });
 
-    it('shows direction indicator only on priceChange option when selected', () => {
+    it('shows direction indicator on priceChange option when selected', () => {
       render(
         <PerpsMarketSortFieldBottomSheet
           isVisible
@@ -205,7 +205,7 @@ describe('PerpsMarketSortFieldBottomSheet', () => {
       ).toBeOnTheScreen();
     });
 
-    it('shows checkmark for non-priceChange options when selected', () => {
+    it('shows direction indicator for all options when selected', () => {
       render(
         <PerpsMarketSortFieldBottomSheet
           isVisible
@@ -217,15 +217,13 @@ describe('PerpsMarketSortFieldBottomSheet', () => {
         />,
       );
 
-      // Should show checkmark for volume
+      // Should show direction indicator for volume (all options now support direction toggle)
       expect(
-        screen.getByTestId('sort-field-sheet-checkmark-volume'),
+        screen.getByTestId('sort-field-sheet-direction-indicator'),
       ).toBeOnTheScreen();
-
-      // Should not show direction indicator
       expect(
-        screen.queryByTestId('sort-field-sheet-direction-indicator'),
-      ).not.toBeOnTheScreen();
+        screen.getByTestId('sort-field-sheet-direction-text'),
+      ).toHaveTextContent('High to low');
     });
 
     it('renders apply button', () => {
@@ -259,9 +257,9 @@ describe('PerpsMarketSortFieldBottomSheet', () => {
         />,
       );
 
-      // Initially volume is selected (has checkmark)
+      // Initially volume is selected (has direction indicator)
       expect(
-        screen.getByTestId('sort-field-sheet-checkmark-volume'),
+        screen.getByTestId('sort-field-sheet-direction-indicator'),
       ).toBeOnTheScreen();
 
       // Press priceChange option
@@ -309,7 +307,7 @@ describe('PerpsMarketSortFieldBottomSheet', () => {
       expect(mockOnOptionSelect).not.toHaveBeenCalled();
     });
 
-    it('does not toggle direction for non-priceChange options when pressed again', () => {
+    it('toggles direction for all options when pressed again', () => {
       render(
         <PerpsMarketSortFieldBottomSheet
           isVisible
@@ -321,21 +319,24 @@ describe('PerpsMarketSortFieldBottomSheet', () => {
         />,
       );
 
-      // Volume should have checkmark
+      // Volume should have direction indicator showing "High to low"
       expect(
-        screen.getByTestId('sort-field-sheet-checkmark-volume'),
+        screen.getByTestId('sort-field-sheet-direction-indicator'),
       ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('sort-field-sheet-direction-text'),
+      ).toHaveTextContent('High to low');
 
-      // Press volume again (same option)
+      // Press volume again (same option) to toggle direction
       fireEvent.press(screen.getByTestId('sort-field-sheet-option-volume'));
 
-      // Should still show checkmark, not direction indicator
+      // Should now show "Low to high" (direction toggled)
       expect(
-        screen.getByTestId('sort-field-sheet-checkmark-volume'),
+        screen.getByTestId('sort-field-sheet-direction-indicator'),
       ).toBeOnTheScreen();
       expect(
-        screen.queryByTestId('sort-field-sheet-direction-indicator'),
-      ).not.toBeOnTheScreen();
+        screen.getByTestId('sort-field-sheet-direction-text'),
+      ).toHaveTextContent('Low to high');
 
       // onOptionSelect should NOT be called until Apply is pressed
       expect(mockOnOptionSelect).not.toHaveBeenCalled();
@@ -463,10 +464,13 @@ describe('PerpsMarketSortFieldBottomSheet', () => {
         />,
       );
 
-      // Initially volume is selected
+      // Initially volume is selected with "High to low"
       expect(
-        screen.getByTestId('sort-field-sheet-checkmark-volume'),
+        screen.getByTestId('sort-field-sheet-direction-indicator'),
       ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('sort-field-sheet-direction-text'),
+      ).toHaveTextContent('High to low');
 
       // Change props to priceChange with asc direction
       rerender(
@@ -480,14 +484,13 @@ describe('PerpsMarketSortFieldBottomSheet', () => {
         />,
       );
 
-      // Now priceChange should have direction indicator
+      // Now priceChange should have direction indicator showing "Low to high"
       expect(
         screen.getByTestId('sort-field-sheet-direction-indicator'),
       ).toBeOnTheScreen();
-      // Volume checkmark should be gone
       expect(
-        screen.queryByTestId('sort-field-sheet-checkmark-volume'),
-      ).not.toBeOnTheScreen();
+        screen.getByTestId('sort-field-sheet-direction-text'),
+      ).toHaveTextContent('Low to high');
     });
 
     it('resets uncommitted changes when reopening the sheet', () => {
@@ -502,10 +505,13 @@ describe('PerpsMarketSortFieldBottomSheet', () => {
         />,
       );
 
-      // Initially volume is selected
+      // Initially volume is selected with "High to low"
       expect(
-        screen.getByTestId('sort-field-sheet-checkmark-volume'),
+        screen.getByTestId('sort-field-sheet-direction-indicator'),
       ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('sort-field-sheet-direction-text'),
+      ).toHaveTextContent('High to low');
 
       // User makes changes without applying - select priceChange
       fireEvent.press(
@@ -541,13 +547,13 @@ describe('PerpsMarketSortFieldBottomSheet', () => {
         />,
       );
 
-      // Local state should be reset to volume (uncommitted changes discarded)
+      // Local state should be reset to volume with "High to low" (uncommitted changes discarded)
       expect(
-        screen.getByTestId('sort-field-sheet-checkmark-volume'),
+        screen.getByTestId('sort-field-sheet-direction-indicator'),
       ).toBeOnTheScreen();
       expect(
-        screen.queryByTestId('sort-field-sheet-direction-indicator'),
-      ).not.toBeOnTheScreen();
+        screen.getByTestId('sort-field-sheet-direction-text'),
+      ).toHaveTextContent('High to low');
     });
   });
 });

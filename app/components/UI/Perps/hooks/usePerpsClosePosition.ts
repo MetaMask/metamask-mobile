@@ -1,7 +1,11 @@
 import { useCallback, useState } from 'react';
 import { strings } from '../../../../../locales/i18n';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
-import type { OrderResult, Position, TrackingData } from '../controllers/types';
+import {
+  type OrderResult,
+  type Position,
+  type TrackingData,
+} from '@metamask/perps-controller';
 import { handlePerpsError } from '../utils/translatePerpsError';
 import usePerpsToasts from './usePerpsToasts';
 import { usePerpsTrading } from './usePerpsTrading';
@@ -126,6 +130,8 @@ export const usePerpsClosePosition = (
           usdAmount: slippage?.usdAmount,
           priceAtCalculation: slippage?.priceAtCalculation,
           maxSlippageBps: slippage?.maxSlippageBps,
+          // Pass live position to avoid getPositions() API call (prevents 429 rate limiting)
+          position,
         });
 
         DevLogger.log('usePerpsClosePosition: Close result', result);

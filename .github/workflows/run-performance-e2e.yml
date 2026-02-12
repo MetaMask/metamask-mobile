@@ -59,6 +59,11 @@ on:
         description: 'Branch name to use for build names (defaults to auto-detection)'
         required: false
         type: string
+      build_variant:
+        description: 'Build variant for Bitrise (rc = release, exp = experimental)'
+        required: false
+        type: string
+        default: 'rc'
 
 permissions:
   contents: read
@@ -67,7 +72,9 @@ permissions:
 
 concurrency:
   group: performance-e2e-${{ github.ref }}-${{ github.event_name }}
-  cancel-in-progress: true
+  # Do not cancel in-progress runs: scheduled runs every 3h can overlap with long Bitrise builds.
+  # New runs will wait in queue until the current one finishes instead of canceling it.
+  cancel-in-progress: false
 
 env:
   BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
@@ -181,6 +188,7 @@ jobs:
     if: (!inputs.browserstack_app_url_android_onboarding && !inputs.browserstack_app_url_android_imported_wallet)
     with:
       branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
+      build_variant: ${{ inputs.build_variant || 'rc' }}
     secrets: inherit
 
   trigger-ios-dual-versions:
@@ -190,6 +198,7 @@ jobs:
     if: (!inputs.browserstack_app_url_ios_onboarding && !inputs.browserstack_app_url_ios_imported_wallet)
     with:
       branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
+      build_variant: ${{ inputs.build_variant || 'rc' }}
     secrets: inherit
 
   # =============================================================================
@@ -312,6 +321,7 @@ jobs:
       - name: Run aggregation script
         env:
           BRANCH_NAME: ${{ needs.determine-branch-name.outputs.branch_name }}
+          BUILD_VARIANT: ${{ inputs.build_variant || 'rc' }}
         run: |
           echo "Processing all test results..."
           echo "Running aggregation script..."

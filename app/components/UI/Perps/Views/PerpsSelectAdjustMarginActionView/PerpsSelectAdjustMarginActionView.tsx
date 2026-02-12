@@ -5,7 +5,11 @@ import {
   type NavigationProp,
   type RouteProp,
 } from '@react-navigation/native';
-import type { Position } from '../../controllers/types';
+import {
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+  type Position,
+} from '@metamask/perps-controller';
 import type { PerpsNavigationParamList } from '../../types/navigation';
 import PerpsAdjustMarginActionSheet, {
   type AdjustMarginAction,
@@ -13,10 +17,6 @@ import PerpsAdjustMarginActionSheet, {
 import { usePerpsNavigation } from '../../hooks/usePerpsNavigation';
 import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
-import {
-  PerpsEventProperties,
-  PerpsEventValues,
-} from '../../constants/eventNames';
 
 interface PerpsSelectAdjustMarginActionViewProps {
   sheetRef?: React.RefObject<BottomSheetRef>;
@@ -50,17 +50,17 @@ const PerpsSelectAdjustMarginActionView: React.FC<
 
       // Track UI interaction for add/remove margin selection
       const interactionType = {
-        add_margin: PerpsEventValues.INTERACTION_TYPE.ADD_MARGIN,
-        reduce_margin: PerpsEventValues.INTERACTION_TYPE.REMOVE_MARGIN,
+        add_margin: PERPS_EVENT_VALUE.INTERACTION_TYPE.ADD_MARGIN,
+        reduce_margin: PERPS_EVENT_VALUE.INTERACTION_TYPE.REMOVE_MARGIN,
       }[action];
 
       trackEvent(
         createEventBuilder(MetaMetricsEvents.PERPS_UI_INTERACTION)
           .addProperties({
-            [PerpsEventProperties.INTERACTION_TYPE]: interactionType,
-            [PerpsEventProperties.ASSET]: position.symbol,
-            [PerpsEventProperties.SOURCE]:
-              PerpsEventValues.SOURCE.POSITION_SCREEN,
+            [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]: interactionType,
+            [PERPS_EVENT_PROPERTY.ASSET]: position.symbol,
+            [PERPS_EVENT_PROPERTY.SOURCE]:
+              PERPS_EVENT_VALUE.SOURCE.POSITION_SCREEN,
           })
           .build(),
       );
