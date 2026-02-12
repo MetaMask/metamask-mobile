@@ -263,7 +263,7 @@ The `minimumVersion` field ensures features only activate on compatible app vers
 - **Tests:** `app/components/UI/Perps/selectors/featureFlags/index.test.ts`
 - **Version validation:** `app/util/remoteFeatureFlag/index.ts`
 - **Controller init:** `app/core/Engine/controllers/remote-feature-flag-controller-init.ts`
-- **Configuration service:** `app/components/UI/Perps/controllers/services/FeatureFlagConfigurationService.ts`
+- **Configuration service:** `app/controllers/perps/services/FeatureFlagConfigurationService.ts`
 
 ---
 
