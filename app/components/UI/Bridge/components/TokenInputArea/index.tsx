@@ -5,6 +5,7 @@ import {
   TextInput,
   StyleProp,
   ViewStyle,
+  Platform,
 } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -77,6 +78,7 @@ const createStyles = ({
       lineHeight: vars.fontSize * 1.25,
       height: vars.fontSize * 1.25,
       fontSize: vars.fontSize,
+      paddingVertical: Platform.OS === 'ios' ? 2 : 1,
     },
     currencyContainer: {
       flex: 1,

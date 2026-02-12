@@ -789,12 +789,14 @@ export const getParsedMarketsFromPolymarketApi = async (
     const active = `active=true`;
     const archived = `archived=false`;
     const closed = `closed=false`;
-    const ascending = `ascending=false`;
+    const ascendingCategories: Set<PredictCategory> = new Set(['ending-soon']);
+    const ascending = `ascending=${ascendingCategories.has(category)}`;
     const volume = `volume_min=${10000.0}`;
     const liquidity = `liquidity_min=${10000.0}`;
 
     const categoryTagMap: Record<PredictCategory, string> = {
       trending: '&order=volume24hr',
+      'ending-soon': '&order=endDate',
       new: '&order=startDate&exclude_tag_id=102169',
       sports: '&tag_slug=sports&order=volume24hr',
       crypto: '&tag_slug=crypto&order=volume24hr',
