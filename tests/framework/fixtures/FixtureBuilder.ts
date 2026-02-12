@@ -388,22 +388,24 @@ class FixtureBuilder {
     const currencyPath = selectedRegion.currencies[0];
     const currency = currencyPath.split('/').pop()?.toUpperCase();
 
-    this.fixture.state.engine.backgroundState.RampsController.userRegion = {
-      country: {
-        isoCode: selectedRegion.countryIsoCode,
-        name: selectedRegion.countryName,
-        flag: selectedRegion.emoji,
-        phone: {
-          prefix: '',
-          placeholder: '',
-          template: '',
-        },
-        currency,
-        supported: {
-          buy: selectedRegion.support?.buy ?? true,
-          sell: selectedRegion.support?.sell ?? true,
-        },
+    const countryObject = {
+      isoCode: selectedRegion.countryIsoCode,
+      name: selectedRegion.countryName,
+      flag: selectedRegion.emoji,
+      phone: {
+        prefix: '',
+        placeholder: '',
+        template: '',
       },
+      currency,
+      supported: {
+        buy: selectedRegion.support?.buy ?? true,
+        sell: selectedRegion.support?.sell ?? true,
+      },
+    };
+
+    this.fixture.state.engine.backgroundState.RampsController.userRegion = {
+      country: countryObject,
       state: selectedRegion.stateIsoCode
         ? {
             stateId: selectedRegion.stateIsoCode,
@@ -416,6 +418,10 @@ class FixtureBuilder {
         : null,
       regionCode,
     };
+
+    // Also set the legacy fiatOrders.selectedRegionAgg for backwards compatibility
+    // with the sell/offramp flow which still uses the aggregator SDK
+    this.fixture.state.fiatOrders.selectedRegionAgg = countryObject;
 
     return this;
   }
