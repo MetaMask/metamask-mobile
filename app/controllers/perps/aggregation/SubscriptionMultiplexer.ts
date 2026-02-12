@@ -226,17 +226,20 @@ export class SubscriptionMultiplexer {
         unsubscribers.push(unsub);
       } catch (error) {
         // Log to Sentry before cleanup
-        this.logger?.error(ensureError(error), {
-          tags: {
-            feature: PERPS_CONSTANTS.FeatureName,
-            provider: providerId,
-            method: 'subscribeToPrices',
+        this.logger?.error(
+          ensureError(error, 'SubscriptionMultiplexer.subscribeToPrices'),
+          {
+            tags: {
+              feature: PERPS_CONSTANTS.FeatureName,
+              provider: providerId,
+              method: 'subscribeToPrices',
+            },
+            context: {
+              name: 'SubscriptionMultiplexer',
+              data: { subscribedCount: unsubscribers.length },
+            },
           },
-          context: {
-            name: 'SubscriptionMultiplexer',
-            data: { subscribedCount: unsubscribers.length },
-          },
-        });
+        );
 
         // Clean up any subscriptions created before the failure
         unsubscribers.forEach((unsub) => unsub());
@@ -284,17 +287,20 @@ export class SubscriptionMultiplexer {
         const unsub = provider.subscribeToPositions(subscribeParams);
         unsubscribers.push(unsub);
       } catch (error) {
-        this.logger?.error(ensureError(error), {
-          tags: {
-            feature: PERPS_CONSTANTS.FeatureName,
-            provider: providerId,
-            method: 'subscribeToPositions',
+        this.logger?.error(
+          ensureError(error, 'SubscriptionMultiplexer.subscribeToPositions'),
+          {
+            tags: {
+              feature: PERPS_CONSTANTS.FeatureName,
+              provider: providerId,
+              method: 'subscribeToPositions',
+            },
+            context: {
+              name: 'SubscriptionMultiplexer',
+              data: { subscribedCount: unsubscribers.length },
+            },
           },
-          context: {
-            name: 'SubscriptionMultiplexer',
-            data: { subscribedCount: unsubscribers.length },
-          },
-        });
+        );
         unsubscribers.forEach((unsub) => unsub());
         throw error;
       }
@@ -337,17 +343,20 @@ export class SubscriptionMultiplexer {
         const unsub = provider.subscribeToOrderFills(subscribeParams);
         unsubscribers.push(unsub);
       } catch (error) {
-        this.logger?.error(ensureError(error), {
-          tags: {
-            feature: PERPS_CONSTANTS.FeatureName,
-            provider: providerId,
-            method: 'subscribeToOrderFills',
+        this.logger?.error(
+          ensureError(error, 'SubscriptionMultiplexer.subscribeToOrderFills'),
+          {
+            tags: {
+              feature: PERPS_CONSTANTS.FeatureName,
+              provider: providerId,
+              method: 'subscribeToOrderFills',
+            },
+            context: {
+              name: 'SubscriptionMultiplexer',
+              data: { subscribedCount: unsubscribers.length },
+            },
           },
-          context: {
-            name: 'SubscriptionMultiplexer',
-            data: { subscribedCount: unsubscribers.length },
-          },
-        });
+        );
         unsubscribers.forEach((unsub) => unsub());
         throw error;
       }
@@ -388,17 +397,20 @@ export class SubscriptionMultiplexer {
         const unsub = provider.subscribeToOrders(subscribeParams);
         unsubscribers.push(unsub);
       } catch (error) {
-        this.logger?.error(ensureError(error), {
-          tags: {
-            feature: PERPS_CONSTANTS.FeatureName,
-            provider: providerId,
-            method: 'subscribeToOrders',
+        this.logger?.error(
+          ensureError(error, 'SubscriptionMultiplexer.subscribeToOrders'),
+          {
+            tags: {
+              feature: PERPS_CONSTANTS.FeatureName,
+              provider: providerId,
+              method: 'subscribeToOrders',
+            },
+            context: {
+              name: 'SubscriptionMultiplexer',
+              data: { subscribedCount: unsubscribers.length },
+            },
           },
-          context: {
-            name: 'SubscriptionMultiplexer',
-            data: { subscribedCount: unsubscribers.length },
-          },
-        });
+        );
         unsubscribers.forEach((unsub) => unsub());
         throw error;
       }
@@ -446,17 +458,20 @@ export class SubscriptionMultiplexer {
         const unsub = provider.subscribeToAccount(subscribeParams);
         unsubscribers.push(unsub);
       } catch (error) {
-        this.logger?.error(ensureError(error), {
-          tags: {
-            feature: PERPS_CONSTANTS.FeatureName,
-            provider: providerId,
-            method: 'subscribeToAccount',
+        this.logger?.error(
+          ensureError(error, 'SubscriptionMultiplexer.subscribeToAccount'),
+          {
+            tags: {
+              feature: PERPS_CONSTANTS.FeatureName,
+              provider: providerId,
+              method: 'subscribeToAccount',
+            },
+            context: {
+              name: 'SubscriptionMultiplexer',
+              data: { subscribedCount: unsubscribers.length },
+            },
           },
-          context: {
-            name: 'SubscriptionMultiplexer',
-            data: { subscribedCount: unsubscribers.length },
-          },
-        });
+        );
         unsubscribers.forEach((unsub) => unsub());
         throw error;
       }

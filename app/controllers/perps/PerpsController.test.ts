@@ -37,16 +37,6 @@ import Engine from '../../core/Engine';
 jest.mock('./providers/HyperLiquidProvider');
 jest.mock('./providers/MYXProvider');
 
-// Mock feature flag resolver for MYX provider tests
-const mockResolvePerpsMyxProviderEnabled = jest.fn(
-  (_remoteFeatureFlags?: Record<string, unknown>) => false,
-);
-jest.mock('../../components/UI/Perps/selectors/featureFlags', () => ({
-  resolvePerpsMyxProviderEnabled: (
-    remoteFeatureFlags?: Record<string, unknown>,
-  ) => mockResolvePerpsMyxProviderEnabled(remoteFeatureFlags),
-}));
-
 // Mock transaction controller utility
 const mockAddTransaction = jest.fn();
 jest.mock('../../util/transaction-controller', () => ({
@@ -4067,28 +4057,50 @@ describe('PerpsController', () => {
     });
 
     it('switches to myx provider successfully', async () => {
-      // Enable MYX feature flag so init() creates the MYX provider
-      mockResolvePerpsMyxProviderEnabled.mockReturnValue(true);
+      // Enable MYX feature flag via remote flags + version gating
+      const mockCall = jest.fn().mockImplementation((action: string) => {
+        if (action === 'RemoteFeatureFlagController:getState') {
+          return {
+            remoteFeatureFlags: {
+              perpsPerpTradingGeoBlockedCountriesV2: { blockedRegions: [] },
+              perpsMyxProviderEnabled: {
+                enabled: true,
+                minimumVersion: '0.0.0',
+              },
+            },
+          };
+        }
+        return undefined;
+      });
 
-      await controller.init();
+      // Create controller with MYX-enabled mocks
+      const myxInfrastructure = createMockInfrastructure();
+      (
+        myxInfrastructure.featureFlags.validateVersionGated as jest.Mock
+      ).mockReturnValue(true);
+
+      const myxController = new TestablePerpsController({
+        messenger: createMockMessenger({ call: mockCall }),
+        state: getDefaultPerpsControllerState(),
+        infrastructure: myxInfrastructure,
+      });
+
+      await myxController.init();
 
       // Register a mock MYX provider
       const mockMYXProvider = {
         ...createMockHyperLiquidProvider(),
         protocolId: 'myx',
       };
-      const providers = controller.testGetProviders();
+      const providers = myxController.testGetProviders();
       providers.set('myx', mockMYXProvider as any);
-      controller.testSetProviders(providers);
+      myxController.testSetProviders(providers);
 
-      const result = await controller.switchProvider('myx');
+      const result = await myxController.switchProvider('myx');
 
       expect(result.success).toBe(true);
       expect(result.providerId).toBe('myx');
-      expect(controller.state.activeProvider).toBe('myx');
-
-      // Restore default
-      mockResolvePerpsMyxProviderEnabled.mockReturnValue(false);
+      expect(myxController.state.activeProvider).toBe('myx');
     });
 
     it('rolls back to previous provider on init failure', async () => {
@@ -4170,7 +4182,7 @@ describe('PerpsController', () => {
         state.activeProvider = 'myx';
       });
 
-      // resolvePerpsMyxProviderEnabled is mocked to return false by default
+      // isMYXProviderEnabled() returns false by default (no perpsMyxProviderEnabled in remote flags)
       await controller.init();
 
       // The init path should detect MYX is not available and fall back
