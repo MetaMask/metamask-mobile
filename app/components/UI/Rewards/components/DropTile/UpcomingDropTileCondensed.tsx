@@ -9,7 +9,7 @@ import {
   DropStatus,
   type SeasonDropDto,
 } from '../../../../../core/Engine/controllers/rewards-controller/types';
-import { getDropStatusInfo } from './DropTile.utils';
+import { getDropStatusInfo } from './DropTile.Utils';
 
 interface UpcomingDropTileCondensedProps {
   /**
