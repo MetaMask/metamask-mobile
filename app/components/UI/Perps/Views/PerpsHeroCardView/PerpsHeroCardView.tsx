@@ -365,9 +365,8 @@ const PerpsHeroCardView: React.FC = () => {
       return null;
     } catch (error) {
       Logger.error(ensureError(error, 'PerpsHeroCardView.captureCard'), {
-        feature: PERPS_CONSTANTS.FeatureName,
-        message: 'Error capturing Perps Hero Card',
-        context: 'PerpsHeroCardView.captureCard',
+        tags: { feature: PERPS_CONSTANTS.FeatureName },
+        context: { name: 'PerpsHeroCardView.captureCard', data: {} },
       });
       return null;
     }
@@ -442,9 +441,8 @@ const PerpsHeroCardView: React.FC = () => {
       }
 
       Logger.error(ensureError(error, 'PerpsHeroCardView.handleShare'), {
-        feature: PERPS_CONSTANTS.FeatureName,
-        message: 'Error sharing Perps Hero Card',
-        context: 'PerpsHeroCardView.handleShare',
+        tags: { feature: PERPS_CONSTANTS.FeatureName },
+        context: { name: 'PerpsHeroCardView.handleShare', data: {} },
       });
     } finally {
       setIsSharing(false);

@@ -536,8 +536,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       // Just reset the UI state and the chart will update automatically
     } catch (error) {
       Logger.error(ensureError(error, 'PerpsMarketDetailsView.onRefresh'), {
-        feature: PERPS_CONSTANTS.FeatureName,
-        message: 'Failed to refresh chart state',
+        tags: { feature: PERPS_CONSTANTS.FeatureName },
+        context: { name: 'PerpsMarketDetailsView.handleRefresh', data: {} },
       });
     } finally {
       setRefreshing(false);
@@ -656,10 +656,16 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
   const handleTradingViewPress = useCallback(() => {
     Linking.openURL('https://www.tradingview.com/').catch((error: unknown) => {
-      Logger.error(ensureError(error, 'PerpsMarketDetailsView.handleTradingViewPress'), {
-        feature: PERPS_CONSTANTS.FeatureName,
-        message: 'Failed to open Trading View URL',
-      });
+      Logger.error(
+        ensureError(error, 'PerpsMarketDetailsView.handleTradingViewPress'),
+        {
+          tags: { feature: PERPS_CONSTANTS.FeatureName },
+          context: {
+            name: 'PerpsMarketDetailsView.handleTradingViewPress',
+            data: {},
+          },
+        },
+      );
     });
   }, []);
 
@@ -907,10 +913,16 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         [PERPS_EVENT_PROPERTY.STOP_LOSS_PRICE]: suggestedStopLossPrice,
       });
     } catch (error) {
-      Logger.error(ensureError(error, 'PerpsMarketDetailsView.handleSetStopLoss'), {
-        feature: PERPS_CONSTANTS.FeatureName,
-        message: 'Failed to set stop loss from prompt banner',
-      });
+      Logger.error(
+        ensureError(error, 'PerpsMarketDetailsView.handleSetStopLoss'),
+        {
+          tags: { feature: PERPS_CONSTANTS.FeatureName },
+          context: {
+            name: 'PerpsMarketDetailsView.handleSetStopLossFromBanner',
+            data: {},
+          },
+        },
+      );
     } finally {
       setIsSettingStopLoss(false);
     }
@@ -958,7 +970,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const handleChartError = useCallback(() => {
     // Log the error but don't block the UI
     Logger.error(new Error('Chart rendering error in market details view'), {
-      feature: PERPS_CONSTANTS.FeatureName,
+      tags: { feature: PERPS_CONSTANTS.FeatureName },
     });
   }, []);
 

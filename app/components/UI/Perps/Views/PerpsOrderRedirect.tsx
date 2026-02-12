@@ -79,8 +79,8 @@ const PerpsOrderRedirect: React.FC = () => {
       .catch((error: unknown) => {
         const err = ensureError(error, 'PerpsOrderRedirect.depositWithOrder');
         Logger.error(err, {
-          feature: PERPS_CONSTANTS.FeatureName,
-          message: 'Failed to start one-click trade from asset details',
+          tags: { feature: PERPS_CONSTANTS.FeatureName },
+          context: { name: 'PerpsOrderRedirect.depositWithOrder', data: {} },
         });
         showToast(
           PerpsToastOptions.accountManagement.oneClickTrade.txCreationFailed,
