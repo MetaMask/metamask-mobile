@@ -7470,7 +7470,7 @@
       "claim_label": "Réclamer",
       "claimed_label": "Réclamé",
       "reward_claimed": "Récompense réclamée",
-      "time_left": "Il reste",
+      "time_left": "Il reste {{time}}",
       "expired": "Expiré"
     },
     "end_of_season_rewards": {
