@@ -12,6 +12,7 @@ import {
   stripQuotes,
 } from '@metamask/perps-controller';
 import { hasProperty } from '@metamask/utils';
+import { parseAllowlistAssets } from '../../utils/parseAllowlistAssets';
 
 /**
  * Valid variants for button color A/B test (TAT-1937)
@@ -187,31 +188,13 @@ export const selectPerpsTradeWithAnyTokenEnabledFlag = createSelector(
 );
 
 /**
- * Parses a remote list value (string or array of strings) into normalized
- * "chainId.address" entries (lowercased for case-insensitive address comparison).
- */
-function parseAllowlistAssets(remoteValue: unknown): string[] {
-  if (typeof remoteValue === 'string') {
-    return parseCommaSeparatedString(remoteValue)
-      .map((s) => stripQuotes(s).trim().toLowerCase())
-      .filter((s) => s.length > 0);
-  }
-  if (
-    Array.isArray(remoteValue) &&
-    remoteValue.every((item) => typeof item === 'string')
-  ) {
-    return (remoteValue as string[])
-      .map((s) => stripQuotes(s.trim()).toLowerCase())
-      .filter((s) => s.length > 0);
-  }
-  return [];
-}
-
-/**
  * Selector for Perps Pay With Any Token allowlist assets.
  * When non-empty, only tokens matching "chainId.address" entries in this list
  * are shown in the pay-with modal (in addition to the Perps balance option).
  * Env MM_PERPS_PAY_WITH_ANY_TOKEN_ALLOWLIST_ASSETS overrides the remote flag.
+ *
+ * If the remote LaunchDarkly value fails to parse (wrong format), returns []
+ * so that the app falls back to allowing all tokens instead of blocking.
  *
  * @returns string[] - Normalized "chainId.address" entries (lowercase)
  */
