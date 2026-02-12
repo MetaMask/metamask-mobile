@@ -42,7 +42,7 @@ track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
 
 ### 2. Controller Tracking (Transactions)
 
-**Location:** `app/components/UI/Perps/controllers/PerpsController.ts`
+**Location:** `app/controllers/perps/PerpsController.ts`
 
 ```typescript
 import MetaMetrics from '../../../../core/Analytics/MetaMetrics';
@@ -549,5 +549,5 @@ usePerpsEventTracking({
 - **Event Tracking Hook**: `app/components/UI/Perps/hooks/usePerpsEventTracking.ts`
 - **Events**: `app/core/Analytics/MetaMetrics.events.ts`
 - **Properties & Values**: `app/components/UI/Perps/constants/eventNames.ts`
-- **Controller**: `app/components/UI/Perps/controllers/PerpsController.ts`
-- **Trading Service**: `app/components/UI/Perps/controllers/services/TradingService.ts`
+- **Controller**: `app/controllers/perps/PerpsController.ts`
+- **Trading Service**: `app/controllers/perps/services/TradingService.ts`
