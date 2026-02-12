@@ -36,6 +36,7 @@ import { selectSeedlessOnboardingLoginFlow } from '../../../../../../selectors/s
 import { storePna25Acknowledged } from '../../../../../../actions/legalNotices';
 import { selectIsPna25Acknowledged } from '../../../../../../selectors/legalNotices';
 import { selectIsPna25FlagEnabled } from '../../../../../../selectors/featureFlagController/legalNotices';
+import { useStyles } from '../../../../../../component-library/hooks/useStyles';
 
 interface MetaMetricsAndDataCollectionSectionProps {
   hideMarketingSection?: boolean;
@@ -44,9 +45,8 @@ interface MetaMetricsAndDataCollectionSectionProps {
 const MetaMetricsAndDataCollectionSection: React.FC<
   MetaMetricsAndDataCollectionSectionProps
 > = ({ hideMarketingSection = false }) => {
-  const theme = useTheme();
+  const { styles, theme } = useStyles(createStyles, {});
   const { colors } = theme;
-  const styles = createStyles(colors);
   const [analyticsEnabled, setAnalyticsEnabled] = useState(false);
   const dispatch = useDispatch();
   const isDataCollectionForMarketingEnabled = useSelector(
