@@ -13,7 +13,10 @@ import Text, {
 } from '../../../../../../component-library/components/Texts/Text';
 import type { Provider } from '@metamask/ramps-controller';
 import { strings } from '../../../../../../../locales/i18n';
-import { createNavigationDetails } from '../../../../../../util/navigation/navUtils';
+import {
+  createNavigationDetails,
+  useParams,
+} from '../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../constants/navigation/Routes';
 import styleSheet from './ProviderPickerModal.styles';
 import { useStyles } from '../../../../../hooks/useStyles';
@@ -29,14 +32,8 @@ export const createProviderPickerModalNavigationDetails =
     Routes.RAMP.MODALS.PROVIDER_PICKER,
   );
 
-function ProviderPickerModal({
-  route,
-}: {
-  route: {
-    params: ProviderPickerModalParams;
-  };
-}) {
-  const { assetId } = route.params;
+function ProviderPickerModal() {
+  const { assetId } = useParams<ProviderPickerModalParams>();
   const sheetRef = useRef<BottomSheetRef>(null);
   const { styles } = useStyles(styleSheet, {});
 
