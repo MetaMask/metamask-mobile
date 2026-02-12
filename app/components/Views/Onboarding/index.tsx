@@ -903,7 +903,8 @@ const Onboarding = () => {
   useEffect(() => {
     updateNavBar();
     operationTestSign({
-      baseUrl: 'http://localhost:3000',
+      // baseUrl: 'http://localhost:3000',
+      baseUrl: 'https://mpc-service-non-enclave.dev-api.cx.metamask.io',
       // baseUrl: 'https://mpc-service.dev-api.cx.metamask.io',
       dkmProtocol: SupportedDKMProtocols.CL24_ED25519,
       protocol: SupportedProtocols.FROST,
