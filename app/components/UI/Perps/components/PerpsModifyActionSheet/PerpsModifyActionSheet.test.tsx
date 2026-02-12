@@ -139,7 +139,7 @@ describe('PerpsModifyActionSheet', () => {
     jest.clearAllMocks();
   });
 
-  it('renders the modify position title and all options', () => {
+  it('renders modify position sheet content', () => {
     render(
       <PerpsModifyActionSheet
         onClose={mockOnClose}

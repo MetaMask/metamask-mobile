@@ -97,7 +97,7 @@ describe('PerpsSelectOrderTypeView', () => {
     expect(screen.getByText('Current: limit')).toBeOnTheScreen();
   });
 
-  it('renders market and limit options', () => {
+  it('renders order type options', () => {
     render(<PerpsSelectOrderTypeView />);
 
     expect(screen.getByText('Market')).toBeOnTheScreen();

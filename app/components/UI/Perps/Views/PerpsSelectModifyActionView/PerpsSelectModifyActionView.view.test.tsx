@@ -9,7 +9,7 @@ import { fireEvent, screen } from '@testing-library/react-native';
 import { Text } from 'react-native';
 import Routes from '../../../../../constants/navigation/Routes';
 import PerpsSelectModifyActionView from './PerpsSelectModifyActionView';
-import type { Position } from '../../controllers/types';
+import type { Position } from '../../controllers/types/index';
 import { renderScreenWithRoutes } from '../../../../../util/test/component-view/render';
 import { initialStatePerps } from '../../../../../util/test/component-view/presets/perps';
 import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
