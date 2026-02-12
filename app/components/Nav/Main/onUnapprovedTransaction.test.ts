@@ -86,7 +86,7 @@ describe('onUnapprovedTransaction', () => {
     expect(callbacks.autoSign).toHaveBeenCalledTimes(1);
   });
 
-  it('does not call autoSign for software wallet swap', () => {
+  it('does not call autoSign for non-hardware wallet swap', () => {
     isHardwareAccountMock.mockReturnValue(false);
     const callbacks = mockCallbacks();
     const txMeta = buildSwapTxMeta();
@@ -106,7 +106,7 @@ describe('onUnapprovedTransaction', () => {
     expect(callbacks.autoSign).toHaveBeenCalledTimes(1);
   });
 
-  it('does not call autoSign for software wallet bridge', () => {
+  it('does not call autoSign for non-hardware wallet bridge', () => {
     isHardwareAccountMock.mockReturnValue(false);
     const callbacks = mockCallbacks();
     const txMeta = buildBridgeTxMeta();
