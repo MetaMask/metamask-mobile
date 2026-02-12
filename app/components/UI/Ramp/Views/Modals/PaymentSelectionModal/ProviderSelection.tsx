@@ -74,7 +74,7 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
     [quotes, providerIds],
   );
 
-  const currency = userRegion?.country?.currency ?? 'USD';
+  const currency = userRegion?.country?.currency || 'USD';
   const symbol = selectedToken?.symbol ?? '';
 
   if (quotesLoading) {
