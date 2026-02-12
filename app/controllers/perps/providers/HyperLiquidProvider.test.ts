@@ -379,6 +379,7 @@ describe('HyperLiquidProvider', () => {
       getUserAddressWithDefault: jest
         .fn()
         .mockResolvedValue('0x1234567890123456789012345678901234567890'),
+      isKeyringUnlocked: jest.fn().mockReturnValue(true),
     } as Partial<HyperLiquidWalletService> as jest.Mocked<HyperLiquidWalletService>;
 
     mockSubscriptionService = {
@@ -5243,6 +5244,37 @@ describe('HyperLiquidProvider', () => {
       );
       expect(mockCompleteInFlight).toHaveBeenCalled();
     });
+
+    it('skips cache when KEYRING_LOCKED error is thrown', async () => {
+      // Arrange
+      const mockCompleteInFlight = jest.fn();
+      (
+        TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>
+      ).setInFlight.mockReturnValue(mockCompleteInFlight);
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          maxBuilderFee: jest.fn().mockResolvedValue(0),
+        }),
+      );
+      mockClientService.getExchangeClient = jest.fn().mockReturnValue(
+        createMockExchangeClient({
+          approveBuilderFee: jest
+            .fn()
+            .mockRejectedValue(new Error(PERPS_ERROR_CODES.KEYRING_LOCKED)),
+        }),
+      );
+
+      // Act - should resolve without throwing
+      await testableProvider.ensureBuilderFeeApproval();
+
+      // Assert - cache should NOT be set (so it retries when unlocked)
+      expect(
+        (TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>)
+          .setBuilderFee,
+      ).not.toHaveBeenCalled();
+      // Assert - in-flight lock should be released
+      expect(mockCompleteInFlight).toHaveBeenCalled();
+    });
   });
 
   describe('Referral Global Cache (PR #25334)', () => {
@@ -5418,6 +5450,56 @@ describe('HyperLiquidProvider', () => {
       expect(
         mockClientService.getExchangeClient().setReferrer,
       ).not.toHaveBeenCalled();
+    });
+
+    it('skips cache and Sentry when KEYRING_LOCKED error is thrown', async () => {
+      // Arrange
+      const mockCompleteInFlight = jest.fn();
+      (
+        TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>
+      ).setInFlight.mockReturnValue(mockCompleteInFlight);
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          referral: jest.fn().mockResolvedValue({
+            referrerState: {
+              stage: 'ready',
+              data: { code: 'MMCSI' },
+            },
+            referredBy: null,
+          }),
+        }),
+      );
+      mockClientService.getExchangeClient = jest.fn().mockReturnValue(
+        createMockExchangeClient({
+          setReferrer: jest
+            .fn()
+            .mockRejectedValue(new Error(PERPS_ERROR_CODES.KEYRING_LOCKED)),
+        }),
+      );
+
+      // Act - should resolve without throwing
+      await testableProvider.ensureReferralSet();
+
+      // Assert - cache should NOT be set (so it retries when unlocked)
+      expect(
+        (TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>)
+          .setReferral,
+      ).not.toHaveBeenCalled();
+      // Assert - ensureReferralSet's catch does NOT call logger.error for KEYRING_LOCKED.
+      // Note: setReferralCode() internally logs to Sentry before rethrowing, so
+      // logger.error is called once (from setReferralCode), but NOT a second time
+      // from ensureReferralSet's catch block (which is the behavior under test).
+      expect(mockPlatformDependencies.logger.error).toHaveBeenCalledTimes(1);
+      expect(mockPlatformDependencies.logger.error).toHaveBeenCalledWith(
+        expect.any(Error),
+        expect.objectContaining({
+          context: expect.objectContaining({
+            data: expect.objectContaining({ method: 'setReferralCode' }),
+          }),
+        }),
+      );
+      // Assert - in-flight lock should be released
+      expect(mockCompleteInFlight).toHaveBeenCalled();
     });
   });
 
@@ -7176,6 +7258,42 @@ describe('HyperLiquidProvider', () => {
         // Should NOT call exchange client since already enabled
         expect(mockClientService.getExchangeClient).not.toHaveBeenCalled();
       });
+
+      it('skips cache and Sentry when KEYRING_LOCKED error is thrown', async () => {
+        // Arrange
+        const mockCompleteInFlight = jest.fn();
+        (
+          TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>
+        ).setInFlight.mockReturnValue(mockCompleteInFlight);
+        const mockExchangeClient = createMockExchangeClient();
+        mockExchangeClient.agentEnableDexAbstraction = jest
+          .fn()
+          .mockRejectedValue(new Error(PERPS_ERROR_CODES.KEYRING_LOCKED));
+        mockClientService.getInfoClient = jest.fn().mockReturnValue(
+          createMockInfoClient({
+            userDexAbstraction: jest.fn().mockResolvedValue(false),
+          }),
+        );
+        mockClientService.getExchangeClient = jest
+          .fn()
+          .mockReturnValue(mockExchangeClient);
+        mockWalletService.getUserAddressWithDefault = jest
+          .fn()
+          .mockResolvedValue('0xUserAddress');
+
+        // Act - should resolve without throwing
+        await testableProvider.ensureDexAbstractionEnabled();
+
+        // Assert - cache should NOT be set (so it retries when unlocked)
+        expect(
+          (TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>)
+            .set,
+        ).not.toHaveBeenCalled();
+        // Assert - Sentry logger.error should NOT be called
+        expect(mockPlatformDependencies.logger.error).not.toHaveBeenCalled();
+        // Assert - in-flight lock should be released
+        expect(mockCompleteInFlight).toHaveBeenCalled();
+      });
     });
 
     describe('ensureReadyForTrading', () => {
@@ -7254,6 +7372,39 @@ describe('HyperLiquidProvider', () => {
 
         // Assert
         expect(testableProvider.tradingSetupComplete).toBe(true);
+      });
+
+      it('keeps tradingSetupComplete false when keyring is locked', async () => {
+        // Arrange
+        jest.spyOn(testableProvider, 'ensureReady').mockResolvedValue();
+        // Mock all caches as already attempted to skip signing
+        (
+          TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>
+        ).get.mockReturnValue({
+          attempted: true,
+          enabled: true,
+          timestamp: Date.now(),
+        });
+        (
+          TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>
+        ).getBuilderFee.mockReturnValue({
+          attempted: true,
+          success: true,
+        });
+        (
+          TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>
+        ).getReferral.mockReturnValue({
+          attempted: true,
+          success: true,
+        });
+        // Keyring is locked
+        mockWalletService.isKeyringUnlocked = jest.fn().mockReturnValue(false);
+
+        // Act
+        await testableProvider.ensureReadyForTrading();
+
+        // Assert - tradingSetupComplete should remain false
+        expect(testableProvider.tradingSetupComplete).toBe(false);
       });
     });
 
