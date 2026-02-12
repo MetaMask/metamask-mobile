@@ -161,11 +161,44 @@ jest.mock('../../../Stake/hooks/useStakingChain', () => ({
   useStakingChainByChainId: () => ({ isStakingSupportedChain: false }),
 }));
 
+const mockClaimRewards = jest.fn();
+const mockUseMerklClaim = jest.fn((_asset?: unknown) => ({
+  claimRewards: mockClaimRewards,
+  isClaiming: false,
+  error: null,
+}));
+jest.mock('../../../Earn/components/MerklRewards/hooks/useMerklClaim', () => ({
+  useMerklClaim: (...args: [unknown]) => mockUseMerklClaim(...args),
+}));
+
+const mockUsePendingMerklClaim = jest.fn(() => ({
+  hasPendingClaim: false,
+}));
+jest.mock(
+  '../../../Earn/components/MerklRewards/hooks/usePendingMerklClaim',
+  () => ({
+    usePendingMerklClaim: () => mockUsePendingMerklClaim(),
+  }),
+);
+
+const mockUseMerklRewards = jest.fn((_opts?: unknown) => ({
+  claimableReward: null as string | null,
+  isLoading: false,
+}));
+jest.mock(
+  '../../../Earn/components/MerklRewards/hooks/useMerklRewards',
+  () => ({
+    useMerklRewards: (...args: [unknown]) => mockUseMerklRewards(...args),
+    isEligibleForMerklRewards: jest.fn(() => false),
+  }),
+);
+
 jest.mock('../../../Earn/selectors/featureFlags', () => ({
   selectPooledStakingEnabledFlag: jest.fn(() => true),
   selectStablecoinLendingEnabledFlag: jest.fn(() => false),
   selectIsMusdConversionFlowEnabledFlag: jest.fn(() => false),
   selectMusdConversionPaymentTokensAllowlist: jest.fn(() => ({})),
+  selectMerklCampaignClaimingEnabledFlag: jest.fn(() => false),
 }));
 
 const mockSelectIsMusdConversionFlowEnabledFlag =
