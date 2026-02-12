@@ -343,12 +343,9 @@ describe('AssetOptions Component', () => {
     fireEvent.press(getByText('View on block explorer'));
     jest.runAllTimers();
     await waitFor(() => {
-      expect(mockNavigation.navigate).toHaveBeenCalledWith('Webview', {
-        screen: 'SimpleWebview',
-        params: {
-          url: 'https://example-explorer.com/address/0x123',
-          title: 'example-explorer.com',
-        },
+      expect(mockNavigation.navigate).toHaveBeenCalledWith('SimpleWebview', {
+        url: 'https://example-explorer.com/address/0x123',
+        title: 'example-explorer.com',
       });
     });
   });
@@ -394,10 +391,12 @@ describe('AssetOptions Component', () => {
 
     fireEvent.press(getByText('Remove token'));
     jest.runAllTimers();
-    expect(mockNavigation.navigate).toHaveBeenCalledWith('RootModalFlow', {
-      screen: 'AssetHideConfirmation',
-      params: expect.anything(),
-    });
+    expect(mockNavigation.navigate).toHaveBeenCalledWith(
+      'AssetHideConfirmation',
+      {
+        onConfirm: expect.any(Function),
+      },
+    );
   });
 
   it('handles "Token Details" press', () => {
@@ -729,9 +728,9 @@ describe('AssetOptions Component', () => {
       jest.runAllTimers();
 
       const navigateCall = mockNavigation.navigate.mock.calls.find(
-        (call) => call[0] === 'RootModalFlow',
+        (call) => call[0] === 'AssetHideConfirmation',
       );
-      const onConfirm = navigateCall?.[1]?.params?.onConfirm;
+      const onConfirm = navigateCall?.[1]?.onConfirm;
 
       expect(onConfirm).toBeDefined();
 
@@ -805,9 +804,9 @@ describe('AssetOptions Component', () => {
       jest.runAllTimers();
 
       const navigateCall = mockNavigation.navigate.mock.calls.find(
-        (call) => call[0] === 'RootModalFlow',
+        (call) => call[0] === 'AssetHideConfirmation',
       );
-      const onConfirm = navigateCall?.[1]?.params?.onConfirm;
+      const onConfirm = navigateCall?.[1]?.onConfirm;
 
       expect(onConfirm).toBeDefined();
 
@@ -886,9 +885,9 @@ describe('AssetOptions Component', () => {
       jest.runAllTimers();
 
       const navigateCall = mockNavigation.navigate.mock.calls.find(
-        (call) => call[0] === 'RootModalFlow',
+        (call) => call[0] === 'AssetHideConfirmation',
       );
-      const onConfirm = navigateCall?.[1]?.params?.onConfirm;
+      const onConfirm = navigateCall?.[1]?.onConfirm;
 
       await onConfirm();
 
@@ -954,9 +953,9 @@ describe('AssetOptions Component', () => {
       jest.runAllTimers();
 
       const navigateCall = mockNavigation.navigate.mock.calls.find(
-        (call) => call[0] === 'RootModalFlow',
+        (call) => call[0] === 'AssetHideConfirmation',
       );
-      const onConfirm = navigateCall?.[1]?.params?.onConfirm;
+      const onConfirm = navigateCall?.[1]?.onConfirm;
 
       await onConfirm();
 
