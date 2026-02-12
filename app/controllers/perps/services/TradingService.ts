@@ -2,6 +2,7 @@ import { ensureError } from '../utils/errorUtils';
 import { isTPSLOrder } from '../constants/orderTypes';
 import { v4 as uuidv4 } from 'uuid';
 import { PerpsMeasurementName } from '../constants/performanceMetrics';
+import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 import type { RewardsIntegrationService } from './RewardsIntegrationService';
 import {
   PERPS_EVENT_PROPERTY,
@@ -226,21 +227,24 @@ export class TradingService {
         ? parseFloat(params.takeProfitPrice)
         : undefined,
     }).catch((error) => {
-      this.deps.logger.error(ensureError(error), {
-        tags: {
-          feature: 'perps',
-          provider: context.tracingContext.provider,
-          network: context.tracingContext.isTestnet ? 'testnet' : 'mainnet',
-        },
-        context: {
-          name: context.errorContext.controller,
-          data: {
-            method: context.errorContext.method,
-            operation: 'reportOrderToDataLake',
-            symbol: params.symbol,
+      this.deps.logger.error(
+        ensureError(error, 'TradingService.handleOrderSuccess'),
+        {
+          tags: {
+            feature: PERPS_CONSTANTS.FeatureName,
+            provider: context.tracingContext.provider,
+            network: context.tracingContext.isTestnet ? 'testnet' : 'mainnet',
+          },
+          context: {
+            name: context.errorContext.controller,
+            data: {
+              method: context.errorContext.method,
+              operation: 'reportOrderToDataLake',
+              symbol: params.symbol,
+            },
           },
         },
-      });
+      );
     });
   }
 
@@ -397,9 +401,9 @@ export class TradingService {
 
       // withFeeDiscount handles fee discount cleanup automatically
 
-      this.deps.logger.error(ensureError(error), {
+      this.deps.logger.error(ensureError(error, 'TradingService.placeOrder'), {
         tags: {
-          feature: 'perps',
+          feature: PERPS_CONSTANTS.FeatureName,
           provider: context.tracingContext.provider,
           network: context.tracingContext.isTestnet ? 'testnet' : 'mainnet',
         },
@@ -690,21 +694,24 @@ export class TradingService {
       action: 'close',
       symbol,
     }).catch((error) => {
-      this.deps.logger.error(ensureError(error), {
-        tags: {
-          feature: 'perps',
-          provider: context.tracingContext.provider,
-          network: context.tracingContext.isTestnet ? 'testnet' : 'mainnet',
-        },
-        context: {
-          name: context.errorContext.controller,
-          data: {
-            method: context.errorContext.method,
-            operation: 'reportOrderToDataLake',
-            symbol,
+      this.deps.logger.error(
+        ensureError(error, 'TradingService.handleDataLakeReporting'),
+        {
+          tags: {
+            feature: PERPS_CONSTANTS.FeatureName,
+            provider: context.tracingContext.provider,
+            network: context.tracingContext.isTestnet ? 'testnet' : 'mainnet',
+          },
+          context: {
+            name: context.errorContext.controller,
+            data: {
+              method: context.errorContext.method,
+              operation: 'reportOrderToDataLake',
+              symbol,
+            },
           },
         },
-      });
+      );
     });
   }
 
@@ -871,9 +878,9 @@ export class TradingService {
           error instanceof Error ? error.message : 'Unknown error',
       });
 
-      this.deps.logger.error(ensureError(error), {
+      this.deps.logger.error(ensureError(error, 'TradingService.editOrder'), {
         tags: {
-          feature: 'perps',
+          feature: PERPS_CONSTANTS.FeatureName,
           provider: context.tracingContext.provider,
           network: context.tracingContext.isTestnet ? 'testnet' : 'mainnet',
         },
@@ -988,7 +995,7 @@ export class TradingService {
       );
 
       this.deps.logger.error(
-        ensureError(error),
+        ensureError(error, 'TradingService.cancelOrder'),
         this.getErrorContext('cancelOrder', { symbol: params.symbol }),
       );
 
@@ -1138,7 +1145,7 @@ export class TradingService {
       operationError =
         error instanceof Error ? error : new Error(String(error));
       this.deps.logger.error(
-        ensureError(error),
+        ensureError(error, 'TradingService.cancelOrders'),
         this.getErrorContext('cancelOrders'),
       );
       throw error;
@@ -1274,20 +1281,23 @@ export class TradingService {
         duration: completionDuration,
       });
 
-      this.deps.logger.error(ensureError(error), {
-        tags: {
-          feature: 'perps',
-          provider: context.tracingContext.provider,
-          network: context.tracingContext.isTestnet ? 'testnet' : 'mainnet',
-        },
-        context: {
-          name: context.errorContext.controller,
-          data: {
-            method: context.errorContext.method,
-            symbol: params.symbol,
+      this.deps.logger.error(
+        ensureError(error, 'TradingService.closePosition'),
+        {
+          tags: {
+            feature: PERPS_CONSTANTS.FeatureName,
+            provider: context.tracingContext.provider,
+            network: context.tracingContext.isTestnet ? 'testnet' : 'mainnet',
+          },
+          context: {
+            name: context.errorContext.controller,
+            data: {
+              method: context.errorContext.method,
+              symbol: params.symbol,
+            },
           },
         },
-      });
+      );
 
       throw error;
     } finally {
@@ -1426,7 +1436,7 @@ export class TradingService {
       operationError =
         error instanceof Error ? error : new Error(String(error));
       this.deps.logger.error(
-        ensureError(error),
+        ensureError(error, 'TradingService.closePositions'),
         this.getErrorContext('closePositions', {
           symbols: params.symbols?.length || 0,
           closeAll: params.closeAll,
@@ -1674,7 +1684,7 @@ export class TradingService {
         error instanceof Error ? error.message : 'Unknown error';
 
       this.deps.logger.error(
-        ensureError(error),
+        ensureError(error, 'TradingService.updateMargin'),
         this.getErrorContext('updateMargin', { symbol, amount }),
       );
 
@@ -1808,7 +1818,7 @@ export class TradingService {
         error instanceof Error ? error.message : 'Unknown error';
 
       this.deps.logger.error(
-        ensureError(error),
+        ensureError(error, 'TradingService.flipPosition'),
         this.getErrorContext('flipPosition', { symbol: position.symbol }),
       );
 
