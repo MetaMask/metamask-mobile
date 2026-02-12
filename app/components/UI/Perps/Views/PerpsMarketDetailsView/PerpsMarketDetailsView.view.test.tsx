@@ -13,10 +13,7 @@ import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
 import type { RootState } from '../../../../../reducers';
 
 import { PerpsMarketDetailsViewSelectorsIDs } from '../../Perps.testIds';
-import type {
-  PerpsMarketData,
-  Position,
-} from 'app/components/UI/Perps/controllers/types';
+import type { PerpsMarketData, Position } from '../../controllers/types';
 
 const mockMarket: PerpsMarketData = {
   symbol: 'ETH',
