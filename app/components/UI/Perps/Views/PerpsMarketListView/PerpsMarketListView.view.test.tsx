@@ -11,7 +11,7 @@ import PerpsMarketListView from './PerpsMarketListView';
 import { renderPerpsView } from '../../../../../util/test/component-view/renderers/perps';
 import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
 import type { RootState } from '../../../../../reducers';
-import type { PerpsMarketData } from '../../controllers/types/index';
+import type { PerpsMarketData } from '../../controllers/types';
 import { PerpsMarketListViewSelectorsIDs } from '../../Perps.testIds';
 
 /** Crypto market (no HIP-3): counted in marketCounts.crypto */
