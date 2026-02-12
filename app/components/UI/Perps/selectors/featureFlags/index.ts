@@ -7,10 +7,6 @@ import {
 } from '../../../../../util/remoteFeatureFlag';
 import type { RootState } from '../../../../../reducers';
 import type { ButtonColorVariantName } from '../../utils/abTesting/types';
-import {
-  parseCommaSeparatedString,
-  stripQuotes,
-} from '@metamask/perps-controller';
 import { hasProperty } from '@metamask/utils';
 import { parseAllowlistAssets } from '../../utils/parseAllowlistAssets';
 
@@ -203,9 +199,7 @@ export const selectPerpsPayWithAnyTokenAllowlistAssets = createSelector(
   (remoteFeatureFlags): string[] => {
     const envValue =
       process.env.MM_PERPS_PAY_WITH_ANY_TOKEN_ALLOWLIST_ASSETS ?? '';
-    const localList = parseCommaSeparatedString(envValue)
-      .map((s) => stripQuotes(s).trim().toLowerCase())
-      .filter((s) => s.length > 0);
+    const localList = parseAllowlistAssets(envValue);
     if (localList.length > 0) {
       return localList;
     }
