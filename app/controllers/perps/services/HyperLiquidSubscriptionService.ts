@@ -1313,6 +1313,9 @@ export class HyperLiquidSubscriptionService {
     userAddress: string,
     dexName: string,
   ): Promise<void> {
+    await this.clientService.ensureSubscriptionClient(
+      this.walletService.createWalletAdapter(),
+    );
     const subscriptionClient = this.clientService.getSubscriptionClient();
     if (!subscriptionClient) {
       throw new Error('Subscription client not available');
@@ -1440,6 +1443,9 @@ export class HyperLiquidSubscriptionService {
     userAddress: string,
     dexName: string,
   ): Promise<void> {
+    await this.clientService.ensureSubscriptionClient(
+      this.walletService.createWalletAdapter(),
+    );
     const subscriptionClient = this.clientService.getSubscriptionClient();
     if (!subscriptionClient) {
       throw new Error('Subscription client not available');
