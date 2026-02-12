@@ -873,7 +873,7 @@ export class PerpsController extends BaseController<
       // 1. The fallback blocked regions already set above
       // 2. The subscription to catch updates when RemoteFeatureFlagController is ready
       this.logError(
-        ensureError(error),
+        ensureError(error, 'PerpsController.constructor'),
         this.getErrorContext('constructor', {
           operation: 'readRemoteFeatureFlags',
         }),
@@ -1100,7 +1100,7 @@ export class PerpsController extends BaseController<
       } catch (err) {
         // Log error to Sentry but continue pausing remaining channels
         this.logError(
-          ensureError(err),
+          ensureError(err, 'PerpsController.withStreamPause'),
           this.getErrorContext('withStreamPause', {
             operation: 'pause',
             channel: String(channel),
@@ -1121,7 +1121,7 @@ export class PerpsController extends BaseController<
         } catch (err) {
           // Log error to Sentry but continue resuming remaining channels
           this.logError(
-            ensureError(err),
+            ensureError(err, 'PerpsController.withStreamPause'),
             this.getErrorContext('withStreamPause', {
               operation: 'resume',
               channel: String(channel),
@@ -1296,7 +1296,7 @@ export class PerpsController extends BaseController<
 
         return; // Exit retry loop on success
       } catch (error) {
-        lastError = ensureError(error);
+        lastError = ensureError(error, 'PerpsController.performInitialization');
 
         this.logError(
           lastError,
@@ -2278,7 +2278,7 @@ export class PerpsController extends BaseController<
       return this.marketDataService.getWithdrawalRoutes({ provider });
     } catch (error) {
       this.logError(
-        ensureError(error),
+        ensureError(error, 'PerpsController.getWithdrawalRoutes'),
         this.getErrorContext('getWithdrawalRoutes'),
       );
       // Return empty array if provider is not available
@@ -2429,7 +2429,7 @@ export class PerpsController extends BaseController<
       });
 
       this.logError(
-        ensureError(error),
+        ensureError(error, 'PerpsController.switchProvider'),
         this.getErrorContext('switchProvider', { providerId }),
       );
 
@@ -2453,7 +2453,7 @@ export class PerpsController extends BaseController<
           state.initializationState = InitializationState.Failed;
         });
         this.logError(
-          ensureError(reinitError),
+          ensureError(reinitError, 'PerpsController.switchProvider.rollback'),
           this.getErrorContext('switchProvider.rollback', { previousProvider }),
         );
       }
@@ -2549,7 +2549,7 @@ export class PerpsController extends BaseController<
       }
     } catch (error) {
       this.logError(
-        ensureError(error),
+        ensureError(error, 'PerpsController.reconnect'),
         this.getErrorContext('reconnect', {
           operation: 'websocket_reconnect',
         }),
@@ -2568,7 +2568,7 @@ export class PerpsController extends BaseController<
       return provider.subscribeToPrices(params);
     } catch (error) {
       this.logError(
-        ensureError(error),
+        ensureError(error, 'PerpsController.subscribeToPrices'),
         this.getErrorContext('subscribeToPrices', {
           symbols: params.symbols?.join(','),
         }),
@@ -2589,7 +2589,7 @@ export class PerpsController extends BaseController<
       return provider.subscribeToPositions(params);
     } catch (error) {
       this.logError(
-        ensureError(error),
+        ensureError(error, 'PerpsController.subscribeToPositions'),
         this.getErrorContext('subscribeToPositions', {
           accountId: params.accountId,
         }),
@@ -2610,7 +2610,7 @@ export class PerpsController extends BaseController<
       return provider.subscribeToOrderFills(params);
     } catch (error) {
       this.logError(
-        ensureError(error),
+        ensureError(error, 'PerpsController.subscribeToOrderFills'),
         this.getErrorContext('subscribeToOrderFills', {
           accountId: params.accountId,
         }),
@@ -2631,7 +2631,7 @@ export class PerpsController extends BaseController<
       return provider.subscribeToOrders(params);
     } catch (error) {
       this.logError(
-        ensureError(error),
+        ensureError(error, 'PerpsController.subscribeToOrders'),
         this.getErrorContext('subscribeToOrders', {
           accountId: params.accountId,
         }),
@@ -2667,7 +2667,7 @@ export class PerpsController extends BaseController<
       });
     } catch (error) {
       this.logError(
-        ensureError(error),
+        ensureError(error, 'PerpsController.subscribeToAccount'),
         this.getErrorContext('subscribeToAccount', {
           accountId: params.accountId,
         }),
@@ -2689,7 +2689,7 @@ export class PerpsController extends BaseController<
       return provider.subscribeToOrderBook(params);
     } catch (error) {
       this.logError(
-        ensureError(error),
+        ensureError(error, 'PerpsController.subscribeToOrderBook'),
         this.getErrorContext('subscribeToOrderBook', {
           symbol: params.symbol,
           levels: params.levels,
@@ -2711,7 +2711,7 @@ export class PerpsController extends BaseController<
       return provider.subscribeToCandles(params);
     } catch (error) {
       this.logError(
-        ensureError(error),
+        ensureError(error, 'PerpsController.subscribeToCandles'),
         this.getErrorContext('subscribeToCandles', {
           symbol: params.symbol,
           interval: params.interval,
@@ -2735,7 +2735,7 @@ export class PerpsController extends BaseController<
       return provider.subscribeToOICaps(params);
     } catch (error) {
       this.logError(
-        ensureError(error),
+        ensureError(error, 'PerpsController.subscribeToOICaps'),
         this.getErrorContext('subscribeToOICaps', {
           accountId: params.accountId,
         }),
@@ -2756,7 +2756,7 @@ export class PerpsController extends BaseController<
       provider.setLiveDataConfig(config);
     } catch (error) {
       this.logError(
-        ensureError(error),
+        ensureError(error, 'PerpsController.setLiveDataConfig'),
         this.getErrorContext('setLiveDataConfig'),
       );
     }
@@ -2792,7 +2792,10 @@ export class PerpsController extends BaseController<
         const provider = this.getActiveProvider();
         await provider.disconnect();
       } catch (error) {
-        this.logError(ensureError(error), this.getErrorContext('disconnect'));
+        this.logError(
+          ensureError(error, 'PerpsController.disconnect'),
+          this.getErrorContext('disconnect'),
+        );
       }
     }
 
@@ -2839,7 +2842,7 @@ export class PerpsController extends BaseController<
       });
     } catch (error) {
       this.logError(
-        ensureError(error),
+        ensureError(error, 'PerpsController.refreshEligibility'),
         this.getErrorContext('refreshEligibility'),
       );
 
