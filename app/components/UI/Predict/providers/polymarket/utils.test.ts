@@ -18,7 +18,8 @@ import {
   MATIC_CONTRACTS,
   MSG_TO_SIGN,
   POLYGON_MAINNET_CHAIN_ID,
- POLYMARKET_PROVIDER_ID } from './constants';
+  POLYMARKET_PROVIDER_ID,
+} from './constants';
 import { DEFAULT_FEE_COLLECTION_FLAG } from '../../constants/flags';
 import {
   ApiKeyCreds,

@@ -43,7 +43,8 @@ import {
   ROUNDING_CONFIG,
   SLIPPAGE_BUY,
   SLIPPAGE_SELL,
- POLYMARKET_PROVIDER_ID } from './constants';
+  POLYMARKET_PROVIDER_ID,
+} from './constants';
 import { SafeFeeAuthorization } from './safe/types';
 import {
   ApiKeyCreds,

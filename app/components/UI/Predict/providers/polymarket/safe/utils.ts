@@ -28,7 +28,8 @@ import {
   MATIC_CONTRACTS,
   MIN_COLLATERAL_BALANCE_FOR_CLAIM,
   POLYGON_MAINNET_CHAIN_ID,
- POLYMARKET_PROVIDER_ID } from '../constants';
+  POLYMARKET_PROVIDER_ID,
+} from '../constants';
 import {
   encodeApprove,
   encodeClaim,

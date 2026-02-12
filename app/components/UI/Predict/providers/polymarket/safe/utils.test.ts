@@ -1,6 +1,10 @@
 import { Interface } from 'ethers/lib/utils';
 import Engine from '../../../../../../core/Engine';
-import { MATIC_CONTRACTS, POLYGON_MAINNET_CHAIN_ID , POLYMARKET_PROVIDER_ID } from '../constants';
+import {
+  MATIC_CONTRACTS,
+  POLYGON_MAINNET_CHAIN_ID,
+  POLYMARKET_PROVIDER_ID,
+} from '../constants';
 import { SAFE_FACTORY_ADDRESS, SAFE_MULTISEND_ADDRESS } from './constants';
 import {
   computeProxyAddress,
