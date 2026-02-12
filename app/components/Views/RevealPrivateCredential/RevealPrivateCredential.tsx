@@ -121,15 +121,15 @@ const RevealPrivateCredential = ({
   }, []);
 
   useEffect(() => {
-    Device.isAndroid() &&
+    if (Device.isAndroid()) {
       Device.getDeviceAPILevel().then((apiLevel) => {
-        if (apiLevel < AppConstants.LEAST_SUPPORTED_ANDROID_API_LEVEL) {
-          setClipboardEnabled(false);
-          return;
-        }
+        setClipboardEnabled(
+          apiLevel >= AppConstants.LEAST_SUPPORTED_ANDROID_API_LEVEL,
+        );
       });
-
-    setClipboardEnabled(true);
+    } else {
+      setClipboardEnabled(true);
+    }
   }, []);
 
   const navigateBack = useCallback(() => {
