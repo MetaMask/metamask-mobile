@@ -758,5 +758,139 @@ describe('BuildQuote', () => {
       expect(mockNavigate).not.toHaveBeenCalled();
       expect(mockGetWidgetUrl).not.toHaveBeenCalled();
     });
+
+    it('shows loading state while fetching widget URL', async () => {
+      mockSelectedQuote = {
+        provider: '/providers/mercuryo',
+        quote: {
+          amountIn: 100,
+          amountOut: 0.05,
+          paymentMethod: '/payments/debit-credit-card',
+          buyURL:
+            'https://on-ramp.uat-api.cx.metamask.io/providers/mercuryo/buy-widget',
+        },
+        providerInfo: {
+          id: '/providers/mercuryo',
+          name: 'Mercuryo',
+          type: 'aggregator',
+        },
+      };
+      mockSelectedPaymentMethod = {
+        id: '/payments/debit-credit-card',
+        name: 'Card',
+      };
+
+      let resolveGetWidgetUrl: (value: string) => void;
+      const widgetUrlPromise = new Promise<string>((resolve) => {
+        resolveGetWidgetUrl = resolve;
+      });
+      mockGetWidgetUrl.mockReturnValue(widgetUrlPromise);
+
+      const { getByTestId } = renderWithTheme(<BuildQuote />);
+      const continueButton = getByTestId('build-quote-continue-button');
+
+      expect(continueButton.props.accessibilityState?.disabled).toBe(false);
+
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
+
+      expect(continueButton.props.accessibilityState?.disabled).toBe(true);
+
+      await act(async () => {
+        resolveGetWidgetUrl('https://global.transak.com/?apiKey=test');
+        await widgetUrlPromise;
+      });
+
+      expect(mockNavigate).toHaveBeenCalled();
+    });
+
+    it('clears loading state after navigation error', async () => {
+      const mockLogger = jest.spyOn(Logger, 'error');
+      mockGetWidgetUrl.mockRejectedValue(new Error('Network error'));
+
+      mockSelectedQuote = {
+        provider: '/providers/mercuryo',
+        quote: {
+          amountIn: 100,
+          amountOut: 0.05,
+          paymentMethod: '/payments/debit-credit-card',
+          buyURL:
+            'https://on-ramp.uat-api.cx.metamask.io/providers/mercuryo/buy-widget',
+        },
+        providerInfo: {
+          id: '/providers/mercuryo',
+          name: 'Mercuryo',
+          type: 'aggregator',
+        },
+      };
+      mockSelectedPaymentMethod = {
+        id: '/payments/debit-credit-card',
+        name: 'Card',
+      };
+
+      const { getByTestId } = renderWithTheme(<BuildQuote />);
+      const continueButton = getByTestId('build-quote-continue-button');
+
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(mockLogger).toHaveBeenCalled();
+      expect(continueButton.props.accessibilityState?.disabled).toBe(false);
+
+      mockLogger.mockRestore();
+    });
+
+    it('prevents double-tap during navigation', async () => {
+      mockSelectedQuote = {
+        provider: '/providers/mercuryo',
+        quote: {
+          amountIn: 100,
+          amountOut: 0.05,
+          paymentMethod: '/payments/debit-credit-card',
+          buyURL:
+            'https://on-ramp.uat-api.cx.metamask.io/providers/mercuryo/buy-widget',
+        },
+        providerInfo: {
+          id: '/providers/mercuryo',
+          name: 'Mercuryo',
+          type: 'aggregator',
+        },
+      };
+      mockSelectedPaymentMethod = {
+        id: '/payments/debit-credit-card',
+        name: 'Card',
+      };
+
+      let resolveGetWidgetUrl: (value: string) => void;
+      const widgetUrlPromise = new Promise<string>((resolve) => {
+        resolveGetWidgetUrl = resolve;
+      });
+      mockGetWidgetUrl.mockReturnValue(widgetUrlPromise);
+
+      const { getByTestId } = renderWithTheme(<BuildQuote />);
+      const continueButton = getByTestId('build-quote-continue-button');
+
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
+
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
+
+      await act(async () => {
+        resolveGetWidgetUrl('https://global.transak.com/?apiKey=test');
+        await widgetUrlPromise;
+      });
+
+      expect(mockGetWidgetUrl).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledTimes(1);
+    });
   });
 });

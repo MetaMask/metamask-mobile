@@ -79,6 +79,7 @@ function BuildQuote() {
   const [amount, setAmount] = useState<string>(() => String(DEFAULT_AMOUNT));
   const [amountAsNumber, setAmountAsNumber] = useState<number>(DEFAULT_AMOUNT);
   const [userHasEnteredAmount, setUserHasEnteredAmount] = useState(false);
+  const [isNavigating, setIsNavigating] = useState(false);
 
   const {
     userRegion,
@@ -218,6 +219,7 @@ function BuildQuote() {
     // Note: CustomActions (e.g., PayPal) are handled through the same flow.
     // If the API returns a quote with a URL, it will be opened in the checkout webview.
     // If customActions appear without a URL, they will error here (needs backend fix).
+    setIsNavigating(true);
     try {
       const widgetUrl = await getWidgetUrl(selectedQuote);
 
@@ -242,6 +244,8 @@ function BuildQuote() {
         message: 'Failed to fetch widget URL',
       });
       // TODO: Show user-facing error (alert or inline)
+    } finally {
+      setIsNavigating(false);
     }
   }, [
     selectedQuote,
@@ -288,6 +292,7 @@ function BuildQuote() {
   const canContinue =
     hasAmount &&
     !quotesLoading &&
+    !isNavigating &&
     selectedQuote !== null &&
     quoteMatchesAmount &&
     quoteMatchesCurrentContext;
@@ -338,7 +343,7 @@ function BuildQuote() {
                 onPress={handleContinuePress}
                 isFullWidth
                 isDisabled={!canContinue}
-                isLoading={quotesLoading}
+                isLoading={quotesLoading || isNavigating}
                 testID="build-quote-continue-button"
               >
                 {strings('fiat_on_ramp.continue')}
