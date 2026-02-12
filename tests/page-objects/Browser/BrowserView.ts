@@ -19,6 +19,12 @@ interface TransactionParams {
 }
 
 class Browser {
+  get backButton(): DetoxElement {
+    return Matchers.getElementByID(
+      BrowserViewSelectorsIDs.BROWSER_CLOSE_BUTTON,
+    );
+  }
+
   get reloadButton(): DetoxElement {
     return Matchers.getElementByID(BrowserViewSelectorsIDs.RELOAD_BUTTON);
   }
@@ -143,6 +149,12 @@ class Browser {
   async tapLocalHostDefaultAvatar(): Promise<void> {
     await Gestures.waitAndTap(this.DefaultAvatarImageForLocalHost, {
       elemDescription: 'Local host default avatar',
+    });
+  }
+
+  async tapBackButton(): Promise<void> {
+    await Gestures.waitAndTap(this.backButton, {
+      elemDescription: 'Browser close button',
     });
   }
 
