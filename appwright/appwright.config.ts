@@ -156,5 +156,36 @@ export default defineConfig({
         expectTimeout: 30 * 1000, //90 seconds  increased since login the app takes longer
       },
     },
+    // WalletConnect v2 Tests
+    {
+      name: 'walletconnect-android-local',
+      testMatch: '**/tests/walletconnect/**/*.spec.js',
+      use: {
+        platform: Platform.ANDROID,
+        device: {
+          provider: 'emulator',
+          name: 'Medium_Phone_API_36.0', // this can be changed to your emulator name
+          osVersion: '16', // this can be changed to your emulator version
+        },
+        buildPath: process.env.APK_PATH || 'metamask-main-rc-3092.apk',
+        expectTimeout: 30 * 1000,
+        // Note: fullReset is NOT set (defaults to false) so existing wallet is preserved
+        // The emulator must have MetaMask installed with a wallet already set up
+      },
+    },
+    {
+      name: 'walletconnect-android-browserstack',
+      testMatch: '**/tests/walletconnect/**/*.spec.js',
+      use: {
+        platform: Platform.ANDROID,
+        device: {
+          provider: 'browserstack',
+          name: process.env.BROWSERSTACK_DEVICE || 'Samsung Galaxy S23 Ultra',
+          osVersion: process.env.BROWSERSTACK_OS_VERSION || '13.0',
+        },
+        buildPath: process.env.BROWSERSTACK_ANDROID_APP_URL,
+        expectTimeout: 30 * 1000,
+      },
+    },
   ],
 });
