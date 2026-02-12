@@ -13,13 +13,11 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../../../locales/i18n';
 import { selectDropsRewardsEnabledFlag } from '../../../../../../../selectors/featureFlagController/rewards';
 import { useSeasonDrops } from '../../../../hooks/useSeasonDrops';
-import {
-  DropTile,
-  UpcomingDropTileCondensed,
-} from '../../../../components/DropTile';
+import DropTile from '../../../../components/DropTile/DropTile';
 import { Skeleton } from '../../../../../../../component-library/components/Skeleton';
 import RewardsErrorBanner from '../../../../components/RewardsErrorBanner';
 import { REWARDS_VIEW_SELECTORS } from '../../../../Views/RewardsView.constants';
+import UpcomingDropTileCondensed from '../../../DropTile/UpcomingDropTileCondensed';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const CARD_WIDTH = SCREEN_WIDTH - 32; // Full width minus padding

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
-import { DropTile } from '../../DropTile';
+import DropTile from '../../DropTile/DropTile';
 import type { SeasonDropDto } from '../../../../../../core/Engine/controllers/rewards-controller/types';
 
 interface DropsGroupProps {
