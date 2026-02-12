@@ -60,10 +60,6 @@ import {
   accountActivityServiceInit,
 } from './controllers/core-backend';
 import { assetsControllerInit } from './controllers/assets-controller/assets-controller-init';
-import {
-  isAssetsUnifyStateFeatureEnabled,
-  ASSETS_UNIFY_STATE_FLAG,
-} from '../../selectors/featureFlagController/assetsUnifyState';
 import { AppStateWebSocketManager } from '../AppStateWebSocketManager';
 import { backupVault } from '../BackupVault';
 import {
@@ -271,13 +267,6 @@ export class Engine {
 
     const codefiTokenApiV2 = new CodefiTokenPricesServiceV2();
 
-    // Check if AssetsController feature flag is enabled
-    const isAssetsControllerEnabled = isAssetsUnifyStateFeatureEnabled(
-      initialState.RemoteFeatureFlagController?.remoteFeatureFlags?.[
-        ASSETS_UNIFY_STATE_FLAG
-      ],
-    );
-
     const initRequest = {
       getState: () => store.getState(),
       getGlobalChainId: () => currentChainId,
@@ -309,9 +298,6 @@ export class Engine {
         AccountTreeController: accountTreeControllerInit,
         AppMetadataController: appMetadataControllerInit,
         AssetsContractController: assetsContractControllerInit,
-        ...(isAssetsControllerEnabled && {
-          AssetsController: assetsControllerInit,
-        }),
         AccountTrackerController: accountTrackerControllerInit,
         SelectedNetworkController: selectedNetworkControllerInit,
         ApprovalController: ApprovalControllerInit,
@@ -368,6 +354,7 @@ export class Engine {
         SamplePetnamesController: samplePetnamesControllerInit,
         ///: END:ONLY_INCLUDE_IF
         PerpsController: perpsControllerInit,
+        AssetsController: assetsControllerInit,
         PhishingController: phishingControllerInit,
         PredictController: predictControllerInit,
         RewardsController: rewardsControllerInit,
@@ -508,9 +495,7 @@ export class Engine {
       AppMetadataController: controllersByName.AppMetadataController,
       ConnectivityController: connectivityController,
       AssetsContractController: assetsContractController,
-      ...(isAssetsControllerEnabled && {
-        AssetsController: controllersByName.AssetsController,
-      }),
+      AssetsController: controllersByName.AssetsController,
       NftController: nftController,
       TokensController: tokensController,
       TokenListController: tokenListController,
@@ -1362,9 +1347,7 @@ export default {
       AppMetadataController: AppMetadataController.state,
       AnalyticsController: AnalyticsController.state,
       ApprovalController: ApprovalController.state,
-      ...(instance.context.AssetsController && {
-        AssetsController: instance.context.AssetsController.state,
-      }),
+      AssetsController: instance.context.AssetsController.state,
       BridgeController: BridgeController.state,
       BridgeStatusController: BridgeStatusController.state,
       ConnectivityController: ConnectivityController.state,

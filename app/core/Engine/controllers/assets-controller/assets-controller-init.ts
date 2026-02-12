@@ -11,6 +11,7 @@ import {
   ASSETS_UNIFY_STATE_FLAG,
   ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
 } from '../../../../selectors/featureFlagController/assetsUnifyState';
+import type { ControllerInitFunction } from '../../types';
 import {
   type AssetsControllerMessenger,
   type AssetsControllerInitMessenger,
@@ -74,17 +75,6 @@ function getApiClient(
   return apiClient;
 }
 
-interface AssetsControllerInitRequest {
-  controllerMessenger: AssetsControllerMessenger;
-  persistedState: Record<string, unknown>;
-  initMessenger: AssetsControllerInitMessenger;
-  getController: (name: 'RemoteFeatureFlagController') => {
-    state: {
-      remoteFeatureFlags: Record<string, unknown>;
-    };
-  };
-}
-
 /**
  * Init function for the AssetsController.
  *
@@ -95,33 +85,41 @@ interface AssetsControllerInitRequest {
  * @param request.getController - Function to get a controller by name.
  * @returns The initialized controller.
  */
-export const assetsControllerInit = ({
+export const assetsControllerInit: ControllerInitFunction<
+  AssetsController,
+  AssetsControllerMessenger,
+  AssetsControllerInitMessenger
+> = ({
   controllerMessenger,
   persistedState,
   initMessenger,
-  getController,
-}: AssetsControllerInitRequest): { controller: AssetsController } => {
+  getController: _getController,
+}) => {
   /**
    * Check if the AssetsController feature is enabled based on the remote feature flag.
+   * Uses initMessenger.call('RemoteFeatureFlagController:getState') to get the flag.
    *
    * @returns True if the feature is enabled, false otherwise.
    */
   const isEnabled = (): boolean => {
     try {
-      const remoteFeatureFlagController = getController(
-        'RemoteFeatureFlagController',
+      const remoteFeatureFlagState = initMessenger.call(
+        'RemoteFeatureFlagController:getState',
       );
       const featureFlag =
-        remoteFeatureFlagController.state.remoteFeatureFlags[
-          ASSETS_UNIFY_STATE_FLAG
-        ];
+        remoteFeatureFlagState?.remoteFeatureFlags?.[ASSETS_UNIFY_STATE_FLAG];
 
       return isAssetsUnifyStateFeatureEnabled(
         featureFlag,
         ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
       );
     } catch {
-      return false;
+      // When getState isn't ready, fall back to flag check with undefined
+      // so that forcing isAssetsUnifyStateFeatureEnabled to true still enables the controller
+      return isAssetsUnifyStateFeatureEnabled(
+        undefined,
+        ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
+      );
     }
   };
 
@@ -132,12 +130,11 @@ export const assetsControllerInit = ({
   const controller = new AssetsController({
     messenger:
       controllerMessenger as unknown as PackageAssetsControllerMessenger,
-    state:
-      (
-        persistedState as unknown as {
-          AssetsController?: Record<string, unknown>;
-        }
-      ).AssetsController ?? {},
+    state: persistedState?.AssetsController ?? {
+      assetPreferences: {},
+      assetsMetadata: {},
+      assetsBalance: {},
+    },
     isEnabled,
     queryApiClient: getApiClient(initMessenger),
     rpcDataSourceConfig: { tokenDetectionEnabled },

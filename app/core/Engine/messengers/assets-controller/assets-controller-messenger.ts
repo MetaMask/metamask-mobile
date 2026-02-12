@@ -1,17 +1,72 @@
 import { Messenger } from '@metamask/messenger';
 import { AuthenticationController } from '@metamask/profile-sync-controller';
 import type { PreferencesControllerGetStateAction } from '@metamask/preferences-controller';
-import type { NetworkControllerGetStateAction } from '@metamask/network-controller';
-import type { AccountsControllerGetSelectedAccountAction } from '@metamask/accounts-controller';
+import type {
+  NetworkControllerGetStateAction,
+  NetworkControllerGetNetworkClientByIdAction,
+  NetworkControllerStateChangeEvent,
+} from '@metamask/network-controller';
+import type {
+  AccountsControllerGetSelectedAccountAction,
+  AccountsControllerAccountBalancesUpdatesEvent,
+} from '@metamask/accounts-controller';
+import type {
+  NetworkEnablementControllerGetStateAction,
+  NetworkEnablementControllerEvents,
+} from '@metamask/network-enablement-controller';
+import type { GetTokenListState } from '@metamask/assets-controllers';
+import type {
+  KeyringControllerLockEvent,
+  KeyringControllerUnlockEvent,
+} from '@metamask/keyring-controller';
+import type {
+  AccountTreeControllerGetAccountsFromSelectedAccountGroupAction,
+  AccountTreeControllerSelectedAccountGroupChangeEvent,
+} from '@metamask/account-tree-controller';
+import type {
+  BackendWebSocketServiceActions,
+  BackendWebSocketServiceEvents,
+} from '@metamask/core-backend';
+import type {
+  GetPermissions,
+  PermissionControllerStateChange,
+} from '@metamask/permission-controller';
+import type {
+  HandleSnapRequest,
+  GetRunnableSnaps,
+} from '@metamask/snaps-controllers';
+import type { RemoteFeatureFlagControllerGetStateAction } from '@metamask/remote-feature-flag-controller';
 import { RootExtendedMessenger, RootMessenger } from '../../types';
 
-// Actions that AssetsController needs access to
+/**
+ * Actions allowed for AssetsController messenger.
+ * Aligned with extension: core controller + RpcDataSource + BackendWebsocketDataSource + SnapDataSource + TokenDataSource.
+ */
 type AssetsControllerAllowedActions =
   | NetworkControllerGetStateAction
-  | AccountsControllerGetSelectedAccountAction;
+  | NetworkControllerGetNetworkClientByIdAction
+  | AccountsControllerGetSelectedAccountAction
+  | NetworkEnablementControllerGetStateAction
+  | GetTokenListState
+  | AccountTreeControllerGetAccountsFromSelectedAccountGroupAction
+  | BackendWebSocketServiceActions
+  | HandleSnapRequest
+  | GetRunnableSnaps
+  | GetPermissions;
 
-// Events that AssetsController needs to subscribe to
-type AssetsControllerAllowedEvents = never;
+/**
+ * Events that AssetsController and its data sources subscribe to.
+ * Aligned with extension: core + RpcDataSource + BackendWebsocketDataSource + SnapDataSource.
+ */
+type AssetsControllerAllowedEvents =
+  | KeyringControllerUnlockEvent
+  | KeyringControllerLockEvent
+  | AccountTreeControllerSelectedAccountGroupChangeEvent
+  | NetworkEnablementControllerEvents
+  | BackendWebSocketServiceEvents
+  | NetworkControllerStateChangeEvent
+  | AccountsControllerAccountBalancesUpdatesEvent
+  | PermissionControllerStateChange;
 
 export type AssetsControllerMessenger = ReturnType<
   typeof getAssetsControllerMessenger
@@ -38,10 +93,28 @@ export function getAssetsControllerMessenger(
   });
   rootExtendedMessenger.delegate({
     actions: [
+      'AccountTreeController:getAccountsFromSelectedAccountGroup',
+      'NetworkEnablementController:getState',
       'NetworkController:getState',
-      'AccountsController:getSelectedAccount',
+      'NetworkController:getNetworkClientById',
+      'TokenListController:getState',
+      'BackendWebSocketService:subscribe',
+      'BackendWebSocketService:getConnectionInfo',
+      'BackendWebSocketService:findSubscriptionsByChannelPrefix',
+      'SnapController:handleRequest',
+      'SnapController:getRunnableSnaps',
+      'PermissionController:getPermissions',
     ],
-    events: [],
+    events: [
+      'AccountTreeController:selectedAccountGroupChange',
+      'NetworkEnablementController:stateChange',
+      'KeyringController:lock',
+      'KeyringController:unlock',
+      'NetworkController:stateChange',
+      'BackendWebSocketService:connectionStateChanged',
+      'AccountsController:accountBalancesUpdated',
+      'PermissionController:stateChange',
+    ],
     messenger,
   });
   return messenger;
@@ -65,7 +138,8 @@ export function getAssetsControllerInitMessenger(
   const messenger = new Messenger<
     'AssetsControllerInit',
     | AuthenticationController.AuthenticationControllerGetBearerToken
-    | PreferencesControllerGetStateAction,
+    | PreferencesControllerGetStateAction
+    | RemoteFeatureFlagControllerGetStateAction,
     never,
     RootMessenger
   >({
@@ -76,6 +150,7 @@ export function getAssetsControllerInitMessenger(
     actions: [
       'AuthenticationController:getBearerToken',
       'PreferencesController:getState',
+      'RemoteFeatureFlagController:getState',
     ],
     events: [],
     messenger,

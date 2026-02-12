@@ -2,7 +2,11 @@ import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import {
   getAssetsControllerMessenger,
   getAssetsControllerInitMessenger,
+  type AssetsControllerInitMessenger,
+  type AssetsControllerMessenger,
 } from '../../messengers/assets-controller';
+import type { ControllerInitRequest } from '../../types';
+import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import { assetsControllerInit } from './assets-controller-init';
 import { AssetsController } from '@metamask/assets-controller';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
@@ -30,7 +34,21 @@ const mockRemoteFeatureFlagController = {
   },
 };
 
-function buildMockMessenger() {
+interface RemoteFeatureFlagState {
+  remoteFeatureFlags: Record<
+    string,
+    {
+      enabled: boolean;
+      featureVersion: string | null;
+      minimumVersion: string | null;
+    }
+  >;
+}
+
+function buildMockMessenger(overrides?: {
+  remoteFeatureFlagState?: RemoteFeatureFlagState;
+  remoteFeatureFlagGetStateThrows?: boolean;
+}) {
   const baseMessenger = new ExtendedMessenger<MockAnyNamespace, never, never>({
     namespace: MOCK_ANY_NAMESPACE,
   });
@@ -47,28 +65,47 @@ function buildMockMessenger() {
     () => Promise.resolve('mock-bearer-token'),
   );
 
+  (baseMessenger.registerActionHandler as jest.Mock)(
+    'RemoteFeatureFlagController:getState',
+    () => {
+      if (overrides?.remoteFeatureFlagGetStateThrows) {
+        throw new Error('Controller not available');
+      }
+      if (overrides?.remoteFeatureFlagState !== undefined) {
+        return overrides.remoteFeatureFlagState;
+      }
+      return mockRemoteFeatureFlagController.state;
+    },
+  );
+
   return baseMessenger;
 }
 
-function getInitRequestMock() {
-  const baseMessenger = buildMockMessenger();
+function getInitRequestMock(overrides?: {
+  remoteFeatureFlagState?: RemoteFeatureFlagState;
+  remoteFeatureFlagGetStateThrows?: boolean;
+}): jest.Mocked<
+  ControllerInitRequest<
+    AssetsControllerMessenger,
+    AssetsControllerInitMessenger
+  >
+> {
+  const baseMessenger = buildMockMessenger(overrides);
 
   const controllerMessenger = getAssetsControllerMessenger(baseMessenger);
   const initMessenger = getAssetsControllerInitMessenger(baseMessenger);
 
-  const getController = jest.fn().mockImplementation((name: string) => {
-    if (name === 'RemoteFeatureFlagController') {
-      return mockRemoteFeatureFlagController;
-    }
-    throw new Error(`Controller "${name}" not found.`);
-  });
-
   return {
+    ...buildControllerInitRequestMock(baseMessenger),
     controllerMessenger,
     initMessenger,
     persistedState: {},
-    getController,
-  };
+  } as jest.Mocked<
+    ControllerInitRequest<
+      AssetsControllerMessenger,
+      AssetsControllerInitMessenger
+    >
+  >;
 }
 
 describe('assetsControllerInit', () => {
@@ -88,13 +125,15 @@ describe('assetsControllerInit', () => {
     assetsControllerInit(getInitRequestMock());
 
     const controllerMock = jest.mocked(AssetsController);
-    expect(controllerMock).toHaveBeenCalledWith({
-      messenger: expect.any(Object),
-      state: {},
-      isEnabled: expect.any(Function),
-      queryApiClient: expect.any(Object),
-      rpcDataSourceConfig: { tokenDetectionEnabled: true },
-    });
+    expect(controllerMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        messenger: expect.any(Object),
+        state: expect.any(Object),
+        isEnabled: expect.any(Function),
+        queryApiClient: expect.any(Object),
+        rpcDataSourceConfig: { tokenDetectionEnabled: true },
+      }),
+    );
   });
 
   it('uses persisted state when available', () => {
@@ -104,7 +143,7 @@ describe('assetsControllerInit', () => {
     };
     requestMock.persistedState = {
       AssetsController: mockPersistedState,
-    };
+    } as typeof requestMock.persistedState;
 
     assetsControllerInit(requestMock);
 
@@ -125,7 +164,7 @@ describe('assetsControllerInit', () => {
     const controllerMock = jest.mocked(AssetsController);
     expect(controllerMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        state: {},
+        state: expect.any(Object),
       }),
     );
   });
@@ -154,9 +193,8 @@ describe('assetsControllerInit', () => {
     });
 
     it('returns false when feature flag is disabled', () => {
-      const requestMock = getInitRequestMock();
-      requestMock.getController.mockReturnValue({
-        state: {
+      const requestMock = getInitRequestMock({
+        remoteFeatureFlagState: {
           remoteFeatureFlags: {
             [ASSETS_UNIFY_STATE_FLAG]: {
               enabled: false,
@@ -177,9 +215,8 @@ describe('assetsControllerInit', () => {
     });
 
     it('returns false when feature version does not match', () => {
-      const requestMock = getInitRequestMock();
-      requestMock.getController.mockReturnValue({
-        state: {
+      const requestMock = getInitRequestMock({
+        remoteFeatureFlagState: {
           remoteFeatureFlags: {
             [ASSETS_UNIFY_STATE_FLAG]: {
               enabled: true,
@@ -199,10 +236,9 @@ describe('assetsControllerInit', () => {
       expect(isEnabled()).toBe(false);
     });
 
-    it('returns false when getController throws an error', () => {
-      const requestMock = getInitRequestMock();
-      requestMock.getController.mockImplementation(() => {
-        throw new Error('Controller not available');
+    it('returns false when RemoteFeatureFlagController:getState throws', () => {
+      const requestMock = getInitRequestMock({
+        remoteFeatureFlagGetStateThrows: true,
       });
 
       assetsControllerInit(requestMock);
@@ -215,11 +251,8 @@ describe('assetsControllerInit', () => {
     });
 
     it('returns false when feature flag is undefined', () => {
-      const requestMock = getInitRequestMock();
-      requestMock.getController.mockReturnValue({
-        state: {
-          remoteFeatureFlags: {},
-        },
+      const requestMock = getInitRequestMock({
+        remoteFeatureFlagState: { remoteFeatureFlags: {} },
       });
 
       assetsControllerInit(requestMock);
@@ -265,17 +298,22 @@ describe('assetsControllerInit', () => {
         () => Promise.resolve('mock-bearer-token'),
       );
 
+      (baseMessenger.registerActionHandler as jest.Mock)(
+        'RemoteFeatureFlagController:getState',
+        () => mockRemoteFeatureFlagController.state,
+      );
+
       const controllerMessenger = getAssetsControllerMessenger(baseMessenger);
       const initMessenger = getAssetsControllerInitMessenger(baseMessenger);
 
-      assetsControllerInit({
+      const requestMock = {
+        ...buildControllerInitRequestMock(baseMessenger),
         controllerMessenger,
         initMessenger,
         persistedState: {},
-        getController: jest
-          .fn()
-          .mockReturnValue(mockRemoteFeatureFlagController),
-      });
+      };
+
+      assetsControllerInit(requestMock);
 
       const controllerMock = jest.mocked(AssetsController);
       expect(controllerMock).toHaveBeenCalledWith(
