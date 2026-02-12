@@ -470,12 +470,9 @@ describe('TransactionDetailsSummary', () => {
 
     fireEvent.press(getByTestId('block-explorer-button'));
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.WEBVIEW.MAIN, {
-      screen: Routes.WEBVIEW.SIMPLE,
-      params: {
-        url: BLOCK_EXPLORER_URL_MOCK,
-        title: BLOCK_EXPLORER_TITLE_MOCK,
-      },
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.WEBVIEW.SIMPLE, {
+      url: BLOCK_EXPLORER_URL_MOCK,
+      title: BLOCK_EXPLORER_TITLE_MOCK,
     });
   });
 
