@@ -1,15 +1,26 @@
-import React, { useEffect, useMemo, useRef } from 'react';
-import { ScrollView } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import { ScrollView, View } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
+import {
+  Box,
+  Text,
+  TextVariant,
+  FontWeight,
+  Icon,
+  IconName,
+  IconSize,
+  BoxFlexDirection,
+  ButtonIcon,
+  ButtonIconSize,
+  IconColor,
+} from '@metamask/design-system-react-native';
 import { getNavigationOptionsTitle } from '../../Navbar';
 import { strings } from '../../../../../locales/i18n';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import { useTheme } from '../../../../util/theme';
 import DropTile from '../components/DropTile/DropTile';
 import DropPrerequisiteList from '../components/DropPrerequisite/DropPrerequisiteList';
-import DropPrerequisiteItem from '../components/DropPrerequisite/DropPrerequisiteItem';
 import RewardsErrorBanner from '../components/RewardsErrorBanner';
 import { useSeasonDrops } from '../hooks/useSeasonDrops';
 import { useDropEligibility } from '../hooks/useDropEligibility';
@@ -23,6 +34,7 @@ import { useDropLeaderboard } from '../hooks/useDropLeaderboard';
 import DropCTAButtons from '../components/DropCTAButtons/DropCTAButtons';
 import DropAccountSection from '../components/DropAccountSection/DropAccountSection';
 import DropLeaderboard from '../components/DropLeaderboard';
+import useTooltipModal from '../../../hooks/useTooltipModal';
 
 /**
  * DropDetailView displays detailed information about a specific drop.
@@ -35,6 +47,7 @@ const DropDetailView: React.FC = () => {
   const route = useRoute<RouteProp<{ params: { dropId: string } }, 'params'>>();
   const { dropId } = route?.params ?? { dropId: '' };
   const { showToast, RewardsToastOptions } = useRewardsToast();
+  const { openTooltipModal } = useTooltipModal();
   const hasRedirected = useRef(false);
 
   // Get drops using the hook
@@ -59,24 +72,19 @@ const DropDetailView: React.FC = () => {
     [leaderboard],
   );
 
-  const sectionVisibility = useMemo(() => {
-    const isOpenOrUpcoming = [DropStatus.UPCOMING, DropStatus.OPEN].includes(
-      drop?.status as DropStatus,
-    );
-
-    return {
+  const sectionVisibility = useMemo(() => ({
       showQualifyNow: Boolean(
-        drop?.prerequisites && !eligibility?.eligible && isOpenOrUpcoming,
+        !eligibility?.eligible && eligibility?.canCommit && !hasCommitted,
       ),
       showCommitment: Boolean(
-        !eligibility?.eligible && !hasCommitted && eligibility?.canCommit,
+        eligibility?.eligible && eligibility?.canCommit && !hasCommitted,
       ),
       showLeaderboard: Boolean(
-        (eligibility?.eligible && hasCommitted) || !isOpenOrUpcoming,
+        hasCommitted ||
+          (drop?.status !== DropStatus.UPCOMING &&
+            drop?.status !== DropStatus.OPEN),
       ),
-    };
-  }, [
-    drop?.prerequisites,
+    }), [
     drop?.status,
     eligibility?.eligible,
     eligibility?.canCommit,
@@ -116,7 +124,31 @@ const DropDetailView: React.FC = () => {
     RewardsToastOptions,
   ]);
 
-  // Set navigation title with back button
+  const handleInfoPress = useCallback(() => {
+    openTooltipModal(
+      strings('rewards.drop_detail.info_title'),
+      strings('rewards.drop_detail.info_description'),
+    );
+  }, [openTooltipModal]);
+
+  const headerRightStyle = useMemo(() => tw.style('mr-4'), [tw]);
+
+  const HeaderRight = useCallback(
+    () => (
+      <View style={headerRightStyle}>
+        <ButtonIcon
+          iconName={IconName.Question}
+          size={ButtonIconSize.Lg}
+          iconProps={{ color: IconColor.IconDefault }}
+          onPress={handleInfoPress}
+          testID="drop-detail-info-button"
+        />
+      </View>
+    ),
+    [headerRightStyle, handleInfoPress],
+  );
+
+  // Set navigation title with back button and info icon
   useEffect(() => {
     navigation.setOptions({
       ...getNavigationOptionsTitle(
@@ -126,8 +158,9 @@ const DropDetailView: React.FC = () => {
         colors,
       ),
       headerTitleAlign: 'center',
+      headerRight: HeaderRight,
     });
-  }, [colors, navigation]);
+  }, [colors, navigation, HeaderRight]);
 
   const renderSkeletonLoading = () => (
     <Box twClassName="h-40 bg-background-muted rounded-lg animate-pulse" />
@@ -172,7 +205,7 @@ const DropDetailView: React.FC = () => {
             </Text>
             <DropPrerequisiteList
               prerequisites={drop.prerequisites}
-              prerequisiteStatuses={eligibility?.prerequisites}
+              prerequisiteStatuses={eligibility?.prerequisiteStatuses}
             />
             <DropCTAButtons prerequisites={drop.prerequisites} />
           </Box>
@@ -184,17 +217,28 @@ const DropDetailView: React.FC = () => {
             <Text variant={TextVariant.HeadingMd} twClassName="text-default">
               {strings('rewards.drops.enter_the_drop')}
             </Text>
-            <DropPrerequisiteItem
-              prerequisite={{
-                type: 'ACTIVITY_COUNT',
-                activityTypes: [],
-                iconName: 'Explore',
-                title: strings('rewards.drops.spend_points_title'),
-                description: strings('rewards.drops.spend_points_description'),
-                minCount: 0,
-              }}
-              hideStatus
-            />
+            <Box twClassName="gap-2">
+              <Box flexDirection={BoxFlexDirection.Row} gap={3}>
+                <Icon name={IconName.Explore} size={IconSize.Lg} />
+                <Text
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
+                  twClassName="text-text-default flex-1"
+                >
+                  {strings('rewards.drops.spend_points_title')}
+                </Text>
+              </Box>
+              <Box flexDirection={BoxFlexDirection.Row}>
+                <Box twClassName="w-9" />
+                <Text
+                  variant={TextVariant.BodySm}
+                  fontWeight={FontWeight.Medium}
+                  twClassName="text-alternative text-left flex-1"
+                >
+                  {strings('rewards.drops.spend_points_description')}
+                </Text>
+              </Box>
+            </Box>
             <DropAccountSection
               eligibility={eligibility}
               onEnterPress={() =>

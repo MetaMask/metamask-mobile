@@ -44,7 +44,7 @@ interface DropAccountSectionProps {
 
 /**
  * DropAccountSection displays the account selector and Enter button for drop commitment.
- * This section is only visible when `eligibility?.canCommit === true`.
+ * This section is only visible when `eligibility?.eligible` and `eligibility?.canCommit` are both true.
  *
  * Features:
  * - Displays a description label

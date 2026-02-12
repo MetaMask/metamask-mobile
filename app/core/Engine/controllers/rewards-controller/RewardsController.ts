@@ -3272,14 +3272,24 @@ export class RewardsController extends BaseController<
             eligibility: {
               dropId: payload.dropId,
               eligible: payload.eligible,
-              prerequisiteLogic: payload.prerequisiteLogic,
-              prerequisites: payload.prerequisites.map((prerequisite) => ({
-                satisfied: prerequisite.satisfied,
-                current: prerequisite.current,
-                required: prerequisite.required,
-              })),
-              dropStatus: payload.dropStatus,
               canCommit: payload.canCommit,
+              prerequisiteLogic: payload.prerequisiteLogic,
+              prerequisiteStatuses: payload.prerequisiteStatuses.map(
+                (status) => ({
+                  satisfied: status.satisfied,
+                  current: status.current,
+                  required: status.required,
+                  prerequisite: {
+                    type: status.prerequisite.type,
+                    activityTypes: status.prerequisite.activityTypes,
+                    minCount: status.prerequisite.minCount,
+                    chainId: status.prerequisite.chainId,
+                    title: status.prerequisite.title,
+                    description: status.prerequisite.description,
+                    iconName: status.prerequisite.iconName,
+                  },
+                }),
+              ),
             },
             lastFetched: Date.now(),
           };

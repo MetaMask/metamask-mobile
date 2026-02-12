@@ -281,6 +281,11 @@ export interface DropPrerequisiteStatusDto {
    * @example 1
    */
   required: number;
+
+  /**
+   * The prerequisite definition with localized title and description
+   */
+  prerequisite: DropPrerequisiteDto;
 }
 
 /**
@@ -306,21 +311,15 @@ export interface DropEligibilityDto {
   prerequisiteLogic: 'AND' | 'OR';
 
   /**
-   * Array of prerequisites with their status
-   */
-  prerequisites: DropPrerequisiteStatusDto[];
-
-  /**
-   * Current status of the drop
-   * @example 'live'
-   */
-  dropStatus: DropStatus;
-
-  /**
    * Whether the user can commit points to this drop
    * @example true
    */
   canCommit: boolean;
+
+  /**
+   * Prerequisite statuses as they appear in order of the drop prerequisites
+   */
+  prerequisiteStatuses: DropPrerequisiteStatusDto[];
 }
 
 /**
@@ -1134,6 +1133,7 @@ export type DropPrerequisiteStatusState = {
   satisfied: boolean;
   current: number;
   required: number;
+  prerequisite: DropPrerequisiteState;
 };
 
 /**
@@ -1144,10 +1144,9 @@ export type DropEligibilityState = {
   eligibility: {
     dropId: string;
     eligible: boolean;
-    prerequisiteLogic: 'AND' | 'OR';
-    prerequisites: DropPrerequisiteStatusState[];
-    dropStatus: DropStatus;
     canCommit: boolean;
+    prerequisiteLogic: 'AND' | 'OR';
+    prerequisiteStatuses: DropPrerequisiteStatusState[];
   };
   lastFetched: number;
 };

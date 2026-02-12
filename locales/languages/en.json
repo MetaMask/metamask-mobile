@@ -7538,6 +7538,8 @@
     },
     "drop_detail": {
       "title": "Airdrop",
+      "info_title": "What's an airdrop?",
+      "info_description": "Airdrops are token distributions you can claim using your points. New airdrops appear throughout the season.",
       "not_found": "Airdrop not found",
       "error_title": "Unable to load airdrop",
       "error_description": "We couldn't load the airdrop. Please try again.",
