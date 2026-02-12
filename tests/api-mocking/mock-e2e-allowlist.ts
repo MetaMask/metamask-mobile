@@ -21,9 +21,6 @@ export const ALLOWLISTED_HOSTS = [
   'mainnet.infura.io',
   'linea-sepolia.infura.io',
   'linea-mainnet.infura.io',
-  'on-ramp-cache.uat-api.cx.metamask.io',
-  'on-ramp.uat-api.cx.metamask.io',
-  'on-ramp-content.uat-api.cx.metamask.io',
 ];
 
 export const ALLOWLISTED_URLS = [

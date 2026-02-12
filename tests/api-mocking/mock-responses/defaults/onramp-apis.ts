@@ -23,12 +23,6 @@ export const DEFAULT_RAMPS_API_MOCKS: MockEventsObject = {
     },
     {
       urlEndpoint:
-        /^https:\/\/on-ramp-cache\.api\.cx\.metamask\.io\/regions\/networks\?.*$/,
-      responseCode: 200,
-      response: RAMPS_NETWORKS_RESPONSE,
-    },
-    {
-      urlEndpoint:
         /^https:\/\/on-ramp-cache\.uat-api\.cx\.metamask\.io\/regions\/networks\?.*$/,
       responseCode: 200,
       response: RAMPS_NETWORKS_RESPONSE,
@@ -58,6 +52,372 @@ export const DEFAULT_RAMPS_API_MOCKS: MockEventsObject = {
         /^https:\/\/on-ramp-cache\.uat-api\.cx\.metamask\.io\/v2\/regions\/countries\?.*$/,
       responseCode: 200,
       response: [],
+    },
+    {
+      urlEndpoint:
+        /^https:\/\/on-ramp-cache\.uat-api\.cx\.metamask\.io\/v2\/regions\/[^/]+\/topTokens\?.*$/,
+      responseCode: 200,
+      response: {
+        topTokens: [
+          {
+            assetId:
+              'eip155:1/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
+            chainId: 'eip155:1',
+            decimals: 6,
+            name: 'MetaMask USD',
+            symbol: 'MUSD',
+            iconUrl:
+              'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xaca92e438df0b2401ff60da7e4337b687a2435da.png',
+            tokenSupported: true,
+          },
+          {
+            assetId:
+              'eip155:59144/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
+            chainId: 'eip155:59144',
+            decimals: 6,
+            name: 'MetaMask USD',
+            symbol: 'MUSD',
+            iconUrl:
+              'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/59144/erc20/0xaca92e438df0b2401ff60da7e4337b687a2435da.png',
+            tokenSupported: true,
+          },
+          {
+            assetId: 'eip155:1/slip44:60',
+            chainId: 'eip155:1',
+            decimals: 18,
+            name: 'Ethereum',
+            symbol: 'ETH',
+            iconUrl:
+              'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/slip44/60.png',
+            tokenSupported: true,
+          },
+          {
+            assetId: 'bip122:000000000019d6689c085ae165831e93/slip44:0',
+            chainId: 'bip122:000000000019d6689c085ae165831e93',
+            decimals: 8,
+            name: 'Bitcoin',
+            symbol: 'BTC',
+            iconUrl:
+              'https://static.cx.metamask.io/api/v2/tokenIcons/assets/bip122/000000000019d6689c085ae165831e93/slip44/0.png',
+            tokenSupported: true,
+          },
+          {
+            assetId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+            chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+            decimals: 9,
+            name: 'Solana',
+            symbol: 'SOL',
+            iconUrl:
+              'https://static.cx.metamask.io/api/v2/tokenIcons/assets/solana/5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44/501.png',
+            tokenSupported: true,
+          },
+          {
+            assetId: 'eip155:56/slip44:714',
+            chainId: 'eip155:56',
+            decimals: 18,
+            name: 'Binance Coin',
+            symbol: 'BNB',
+            iconUrl:
+              'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/56/slip44/714.png',
+            tokenSupported: true,
+          },
+        ],
+        allTokens: [
+          {
+            assetId:
+              'eip155:1/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
+            chainId: 'eip155:1',
+            decimals: 6,
+            name: 'MetaMask USD',
+            symbol: 'MUSD',
+            iconUrl:
+              'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xaca92e438df0b2401ff60da7e4337b687a2435da.png',
+            tokenSupported: true,
+          },
+          {
+            assetId:
+              'eip155:59144/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
+            chainId: 'eip155:59144',
+            decimals: 6,
+            name: 'MetaMask USD',
+            symbol: 'MUSD',
+            iconUrl:
+              'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/59144/erc20/0xaca92e438df0b2401ff60da7e4337b687a2435da.png',
+            tokenSupported: true,
+          },
+          {
+            assetId: 'eip155:1/slip44:60',
+            chainId: 'eip155:1',
+            decimals: 18,
+            name: 'Ethereum',
+            symbol: 'ETH',
+            iconUrl:
+              'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/slip44/60.png',
+            tokenSupported: true,
+          },
+          {
+            assetId: 'bip122:000000000019d6689c085ae165831e93/slip44:0',
+            chainId: 'bip122:000000000019d6689c085ae165831e93',
+            decimals: 8,
+            name: 'Bitcoin',
+            symbol: 'BTC',
+            iconUrl:
+              'https://static.cx.metamask.io/api/v2/tokenIcons/assets/bip122/000000000019d6689c085ae165831e93/slip44/0.png',
+            tokenSupported: true,
+          },
+          {
+            assetId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+            chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+            decimals: 9,
+            name: 'Solana',
+            symbol: 'SOL',
+            iconUrl:
+              'https://static.cx.metamask.io/api/v2/tokenIcons/assets/solana/5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44/501.png',
+            tokenSupported: true,
+          },
+          {
+            assetId: 'eip155:56/slip44:714',
+            chainId: 'eip155:56',
+            decimals: 18,
+            name: 'Binance Coin',
+            symbol: 'BNB',
+            iconUrl:
+              'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/56/slip44/714.png',
+            tokenSupported: true,
+          },
+        ],
+      },
+    },
+    {
+      urlEndpoint:
+        /^https:\/\/on-ramp-cache\.uat-api\.cx\.metamask\.io\/v2\/regions\/[^/]+\/providers\?.*$/,
+      responseCode: 200,
+      response: {
+        providers: [
+          {
+            id: '/providers/mercuryo-staging',
+            name: 'Mercuryo (Staging)',
+            environmentType: 'STAGING',
+            description:
+              'Per Mercuryo: "Mercuryo offers easy onboarding for MetaMask users, with a speedy purchase process of under 15 seconds Light KYC up to 700$. With support for 20+ tokens, customers can pay using preferred methods, such as Apple Pay and bank cards."',
+            hqAddress: 'London, United Kingdom, 77 Gracechurch, EC3V0AG',
+            links: [
+              {
+                name: 'Homepage',
+                url: 'https://mercuryo.io/',
+              },
+              {
+                name: 'Privacy Policy',
+                url: 'https://mercuryo.io/legal/privacy/',
+              },
+              {
+                name: 'Support',
+                url: 'https://help.mercuryo.io/en/',
+              },
+            ],
+            logos: {
+              light: '/assets/providers/mercuryo_light.png',
+              dark: '/assets/providers/mercuryo_dark.png',
+              height: 24,
+              width: 88,
+            },
+            features: {
+              buy: {
+                enabled: true,
+                userAgent: null,
+                padCustomOrderId: false,
+                orderCustomId: '',
+                browser: 'APP_BROWSER',
+                orderCustomIdRequired: false,
+                orderCustomIdExpiration: null,
+                orderCustomIdSeparator: null,
+                orderCustomIdPrefixes: ['c-', ''],
+                supportedByBackend: true,
+                redirection: 'JSON_REDIRECTION',
+              },
+              quotes: {
+                enabled: false,
+                supportedByBackend: false,
+              },
+              sell: {
+                enabled: true,
+              },
+              sellQuotes: {
+                enabled: true,
+              },
+              recurringBuy: {
+                enabled: true,
+              },
+            },
+            type: 'aggregator',
+            supportedCryptoCurrencies: {
+              'eip155:1/slip44:60': true,
+              'eip155:59144/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da': true,
+              'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501': true,
+              'bip122:000000000019d6689c085ae165831e93/slip44:0': true,
+            },
+            supportedFiatCurrencies: {
+              '/currencies/fiat/eur': true,
+              '/currencies/fiat/usd': true,
+            },
+            supportedPaymentMethods: {
+              '/payments/debit-credit-card': true,
+              '/payments/apple-pay': true,
+            },
+          },
+          {
+            id: '/providers/banxa-staging',
+            name: 'Banxa (Staging)',
+            environmentType: 'STAGING',
+            description:
+              'Per Banxa: "Established from 2014, Banxa is the world\'s first publicly listed Financial technology platform, powering a world-leading fiat to crypto gateway solution for customers to buy, sell and trade digital assets. Banxa\'s payment infrastructure offers online payment services across multiple currencies, crypto, and payment types from card to local bank transfers. Banxa now supports over 130+ countries and more than 80 currencies."',
+            hqAddress: '2/6 Gwynne St, Cremorne VIC 3121, Australia',
+            links: [
+              {
+                name: 'Homepage',
+                url: 'https://banxa.com/',
+              },
+              {
+                name: 'Terms of Service',
+                url: 'https://banxa.com/wp-content/uploads/2022/10/Customer-Terms-and-Conditions-1-July-2022.pdf',
+              },
+              {
+                name: 'Support',
+                url: 'https://support.banxa.com/en/support/tickets/new',
+              },
+            ],
+            logos: {
+              light: '/assets/providers/banxa_light.png',
+              dark: '/assets/providers/banxa_dark.png',
+              height: 24,
+              width: 65,
+            },
+            features: {
+              buy: {
+                userAgent: null,
+                padCustomOrderId: false,
+                orderCustomId: '',
+                browser: 'APP_BROWSER',
+                orderCustomIdRequired: false,
+                orderCustomIdExpiration: null,
+                orderCustomIdSeparator: null,
+                orderCustomIdPrefixes: ['c-', ''],
+                supportedByBackend: true,
+                redirection: 'JSON_REDIRECTION',
+              },
+              quotes: {
+                enabled: false,
+                supportedByBackend: false,
+              },
+              sell: {
+                enabled: true,
+              },
+              sellQuotes: {
+                enabled: true,
+              },
+              recurringBuy: {},
+            },
+            type: 'aggregator',
+            supportedCryptoCurrencies: {
+              'eip155:1/slip44:60': true,
+              'eip155:59144/slip44:60': true,
+              'bip122:000000000019d6689c085ae165831e93/slip44:0': true,
+            },
+            supportedFiatCurrencies: {
+              '/currencies/fiat/eur': true,
+              '/currencies/fiat/usd': true,
+            },
+            supportedPaymentMethods: {
+              '/payments/debit-credit-card': true,
+              '/payments/apple-pay': true,
+            },
+          },
+        ],
+      },
+    },
+    {
+      urlEndpoint:
+        /^https:\/\/on-ramp-cache\.uat-api\.cx\.metamask\.io\/v2\/regions\/[^/]+\/payments\?.*$/,
+      responseCode: 200,
+      response: {
+        payments: [
+          {
+            id: '/payments/debit-credit-card',
+            paymentType: 'debit-credit-card',
+            name: 'Debit or Credit',
+            score: 90,
+            icons: [
+              {
+                type: 'materialIcons',
+                name: 'card',
+              },
+            ],
+            logo: {
+              light: [
+                'assets/Visa-regular@3x.png',
+                'assets/Mastercard-regular@3x.png',
+              ],
+              dark: ['assets/Visa@3x.png', 'assets/Mastercard@3x.png'],
+            },
+            disclaimer:
+              "Credit card purchases may incur your bank's cash advance fees, subject to your bank's policies.",
+            delay: [5, 10],
+            pendingOrderDescription:
+              'Card purchases may take a few minutes to complete.',
+            amountTier: [1, 3],
+            sellEnabled: true,
+            sell: {
+              enabled: true,
+            },
+            recurringBuy: {
+              enabled: true,
+            },
+            buy: {
+              enabled: true,
+            },
+          },
+          {
+            id: '/payments/apple-pay',
+            paymentType: 'apple-pay',
+            name: 'Apple Pay',
+            score: 100,
+            icons: [
+              {
+                type: 'fontAwesome',
+                name: 'apple',
+              },
+            ],
+            logo: {
+              light: [
+                'assets/Visa-regular@3x.png',
+                'assets/Mastercard-regular@3x.png',
+              ],
+              dark: ['assets/Visa@3x.png', 'assets/Mastercard@3x.png'],
+            },
+            disclaimer: 'Apple Cash is not supported.',
+            delay: [0, 0],
+            pendingOrderDescription:
+              'Card purchases may take a few minutes to complete.',
+            amountTier: [1, 3],
+            isApplePay: true,
+            sell: {
+              enabled: false,
+            },
+            recurringBuy: {
+              enabled: true,
+            },
+            buy: {
+              enabled: true,
+            },
+          },
+        ],
+        sorted: [
+          {
+            sortBy: '1',
+            ids: ['/payments/debit-credit-card', '/payments/apple-pay'],
+          },
+        ],
+      },
     },
   ],
 };
