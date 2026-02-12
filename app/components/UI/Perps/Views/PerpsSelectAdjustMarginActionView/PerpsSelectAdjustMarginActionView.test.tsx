@@ -94,11 +94,21 @@ describe('PerpsSelectAdjustMarginActionView', () => {
     mockRouteParams = {};
   });
 
-  it('renders the adjust margin action sheet with all options', () => {
+  it('renders the adjust margin action sheet', () => {
     render(<PerpsSelectAdjustMarginActionView />);
 
     expect(screen.getByTestId('adjust-margin-action-sheet')).toBeOnTheScreen();
+  });
+
+  it('renders add margin option', () => {
+    render(<PerpsSelectAdjustMarginActionView />);
+
     expect(screen.getByText('Add Margin')).toBeOnTheScreen();
+  });
+
+  it('renders reduce margin option', () => {
+    render(<PerpsSelectAdjustMarginActionView />);
+
     expect(screen.getByText('Remove Margin')).toBeOnTheScreen();
   });
 
