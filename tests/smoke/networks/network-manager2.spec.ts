@@ -1,16 +1,17 @@
-import { SmokeNetworkAbstractions } from '../../../e2e/tags';
-import { loginToApp, navigateToBrowserView } from '../../../e2e/viewHelper';
+import { SmokeNetworkAbstractions } from '../../tags';
+import { loginToApp } from '../../flows/wallet.flow';
+import { navigateToBrowserView } from '../../flows/browser.flow';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import NetworkManager from '../../../e2e/pages/wallet/NetworkManager';
+import NetworkManager from '../../page-objects/wallet/NetworkManager';
 import { NetworkToCaipChainId } from '../../../app/components/UI/NetworkMultiSelector/NetworkMultiSelector.constants';
 import Assertions from '../../framework/Assertions';
 import { DappVariants } from '../../framework/Constants';
-import TabBarComponent from '../../../e2e/pages/wallet/TabBarComponent';
-import Browser from '../../../e2e/pages/Browser/BrowserView';
-import TestDApp from '../../../e2e/pages/Browser/TestDApp';
-import ConnectedAccountsModal from '../../../e2e/pages/Browser/ConnectedAccountsModal';
-import ConnectBottomSheet from '../../../e2e/pages/Browser/ConnectBottomSheet';
+import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
+import Browser from '../../page-objects/Browser/BrowserView';
+import TestDApp from '../../page-objects/Browser/TestDApp';
+import ConnectedAccountsModal from '../../page-objects/Browser/ConnectedAccountsModal';
+import ConnectBottomSheet from '../../page-objects/Browser/ConnectBottomSheet';
 import { CustomNetworks } from '../../resources/networks.e2e';
 
 const POLYGON = CustomNetworks.Tenderly.Polygon.providerConfig.nickname;

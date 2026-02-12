@@ -14,6 +14,7 @@ import {
   OutboundRequest,
   OutboundResponse,
   SetClientActive,
+  SnapsRegistryStateChangeEvent,
 } from '@metamask/snaps-controllers';
 import {
   GetEndowments,
@@ -44,6 +45,12 @@ import { NetworkControllerGetNetworkClientByIdAction } from '@metamask/network-c
 import { SelectedNetworkControllerGetNetworkClientIdForDomainAction } from '@metamask/selected-network-controller';
 import { RootMessenger } from '../../types';
 import { AnalyticsControllerActions } from '@metamask/analytics-controller';
+import {
+  StorageServiceClearAction,
+  StorageServiceGetItemAction,
+  StorageServiceRemoveItemAction,
+  StorageServiceSetItemAction,
+} from '@metamask/storage-service';
 
 type Actions =
   | GetEndowments
@@ -72,13 +79,18 @@ type Actions =
   | CreateInterface
   | GetInterface
   | NetworkControllerGetNetworkClientByIdAction
-  | SelectedNetworkControllerGetNetworkClientIdForDomainAction;
+  | SelectedNetworkControllerGetNetworkClientIdForDomainAction
+  | StorageServiceSetItemAction
+  | StorageServiceGetItemAction
+  | StorageServiceRemoveItemAction
+  | StorageServiceClearAction;
 
 type Events =
   | ErrorMessageEvent
   | OutboundRequest
   | OutboundResponse
-  | KeyringControllerLockEvent;
+  | KeyringControllerLockEvent
+  | SnapsRegistryStateChangeEvent;
 
 export type SnapControllerMessenger = ReturnType<
   typeof getSnapControllerMessenger
@@ -130,12 +142,17 @@ export function getSnapControllerMessenger(rootMessenger: RootMessenger) {
       `SnapInterfaceController:getInterface`,
       'NetworkController:getNetworkClientById',
       'SelectedNetworkController:getNetworkClientIdForDomain',
+      'StorageService:setItem',
+      'StorageService:getItem',
+      'StorageService:removeItem',
+      'StorageService:clear',
     ],
     events: [
       'ExecutionService:unhandledError',
       'ExecutionService:outboundRequest',
       'ExecutionService:outboundResponse',
       'KeyringController:lock',
+      'SnapsRegistry:stateChange',
     ],
     messenger,
   });

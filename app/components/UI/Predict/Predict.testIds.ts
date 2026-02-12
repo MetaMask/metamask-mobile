@@ -130,6 +130,12 @@ export const PredictCashOutSelectorsIDs = {
   SELL_PREVIEW_CASH_OUT_BUTTON: 'predict-sell-preview-cash-out-button',
 } as const;
 
+export const PredictOrderRetrySheetSelectorsIDs = {
+  CONTAINER: 'predict-order-retry-sheet-container',
+  RETRY_BUTTON: 'predict-order-retry-sheet-retry-button',
+  CLOSE_BUTTON: 'predict-order-retry-sheet-close-button',
+} as const;
+
 // ========================================
 // PREDICT CLAIM CONFIRMATION SELECTORS
 // ========================================

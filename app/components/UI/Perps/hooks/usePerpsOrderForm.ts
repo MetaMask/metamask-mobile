@@ -1,9 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
-import { TRADING_DEFAULTS } from '../constants/hyperLiquidConfig';
-import { OrderType } from '../controllers/types';
-import type { OrderFormState } from '../types/perps-types';
-import { getMaxAllowedAmount } from '../utils/orderCalculations';
+import {
+  TRADING_DEFAULTS,
+  OrderType,
+  getMaxAllowedAmount,
+  selectTradeConfiguration,
+  selectPendingTradeConfiguration,
+  type OrderFormState,
+} from '@metamask/perps-controller';
 import {
   usePerpsLiveAccount,
   usePerpsLivePositions,
@@ -11,10 +15,6 @@ import {
 } from './stream';
 import { usePerpsMarketData } from './usePerpsMarketData';
 import { usePerpsNetwork } from './usePerpsNetwork';
-import {
-  selectTradeConfiguration,
-  selectPendingTradeConfiguration,
-} from '../controllers/selectors';
 import { usePerpsSelector } from './usePerpsSelector';
 
 interface UsePerpsOrderFormParams {
@@ -250,13 +250,19 @@ export function usePerpsOrderForm(
 
   // When user changes payment token (or effective balance drops), reset amount to MAX if current amount exceeds new max
   useEffect(() => {
-    const current = Number.parseFloat(orderForm.amount || '0');
-    if (maxPossibleAmount >= 0 && current > maxPossibleAmount) {
-      setOrderForm((prev) => ({
-        ...prev,
-        amount: String(Math.floor(maxPossibleAmount)),
-      }));
-    }
+    const currentAmount = Number.parseFloat(orderForm.amount);
+    if (
+      currentAmount === 0 ||
+      maxPossibleAmount === 0 ||
+      currentAmount < maxPossibleAmount
+    )
+      return;
+    const newValue = String(Math.floor(maxPossibleAmount));
+
+    setOrderForm((prev) => ({
+      ...prev,
+      amount: newValue,
+    }));
   }, [balanceForMax, maxPossibleAmount, orderForm.amount]);
 
   // Update entire form

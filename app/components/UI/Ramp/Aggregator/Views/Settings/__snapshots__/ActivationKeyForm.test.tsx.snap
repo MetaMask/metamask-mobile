@@ -168,7 +168,7 @@ exports[`AddActivationKey renders correctly 1`] = `
                       {
                         "alignItems": "center",
                         "backgroundColor": "transparent",
-                        "borderRadius": 2,
+                        "borderRadius": 8,
                         "height": 40,
                         "justifyContent": "center",
                         "opacity": 1,
@@ -188,8 +188,8 @@ exports[`AddActivationKey renders correctly 1`] = `
                       [
                         {
                           "color": "#121314",
-                          "height": 24,
-                          "width": 24,
+                          "height": 32,
+                          "width": 32,
                         },
                         undefined,
                       ]
@@ -575,6 +575,7 @@ exports[`AddActivationKey renders correctly 1`] = `
                                     onFocus={[Function]}
                                     onSubmitEditing={[Function]}
                                     placeholder="Add a label to this key"
+                                    placeholderTextColor="#686e7d"
                                     returnKeyType="done"
                                     style={
                                       {
@@ -588,7 +589,6 @@ exports[`AddActivationKey renders correctly 1`] = `
                                         "height": 46,
                                         "letterSpacing": 0,
                                         "opacity": 1,
-                                        "paddingVertical": 2,
                                         "textAlignVertical": "center",
                                       }
                                     }
@@ -688,6 +688,7 @@ exports[`AddActivationKey renders correctly 1`] = `
                                     onFocus={[Function]}
                                     onSubmitEditing={[Function]}
                                     placeholder="Paste or type an activation key"
+                                    placeholderTextColor="#686e7d"
                                     returnKeyType="done"
                                     spellCheck={false}
                                     style={
@@ -702,7 +703,6 @@ exports[`AddActivationKey renders correctly 1`] = `
                                         "height": 46,
                                         "letterSpacing": 0,
                                         "opacity": 1,
-                                        "paddingVertical": 2,
                                         "textAlignVertical": "center",
                                       }
                                     }

@@ -1,342 +1,315 @@
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { LocalNode, LocalNodeType } from '../../framework/types';
-import SoftAssert from '../../framework/SoftAssert';
+import { LocalNodeType } from '../../framework/types';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import Assertions from '../../framework/Assertions';
-import WalletView from '../../../e2e/pages/wallet/WalletView';
-import { SmokeTrade } from '../../../e2e/tags';
-import ActivitiesView from '../../../e2e/pages/Transactions/ActivitiesView';
-import { ActivitiesViewSelectorsText } from '../../../app/components/Views/ActivityView/ActivitiesView.testIds';
+import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
+import WalletView from '../../page-objects/wallet/WalletView';
+import { SmokeTrade } from '../../tags';
+import {
+  submitSwapUnifiedUI,
+  checkSwapActivity,
+} from '../../helpers/swap/swap-unified-ui';
+import { loginToApp } from '../../flows/wallet.flow';
+import { prepareSwapsTestEnvironment } from '../../helpers/swap/prepareSwapsTestEnvironment';
+import { testSpecificMock } from '../../helpers/swap/swap-mocks';
+import { DEFAULT_ANVIL_PORT } from '../../seeder/anvil-manager';
 import {
   EventPayload,
   getEventsPayloads,
 } from '../../helpers/analytics/helpers';
-import { submitSwapUnifiedUI } from '../../helpers/swap/swap-unified-ui';
-import { loginToApp } from '../../../e2e/viewHelper';
-import { prepareSwapsTestEnvironment } from '../../helpers/swap/prepareSwapsTestEnvironment';
-import { logger } from '../../framework/logger';
-import { testSpecificMock } from '../../helpers/swap/swap-mocks';
-import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
-import { AnvilManager } from '../../seeder/anvil-manager';
+import SoftAssert from '../../framework/SoftAssert';
+import Assertions from '../../framework/Assertions';
 
-const EVENT_NAMES = {
-  SWAP_STARTED: 'Swap Started',
-  SWAP_COMPLETED: 'Swap Completed',
-  SWAPS_OPENED: 'Swaps Opened',
-  QUOTES_RECEIVED: 'Quotes Received',
+const expectedEvents = {
+  ActionButtonClicked: 'Action Button Clicked',
+  UnifiedSwapBridgeInputChanged: 'Unified SwapBridge Input Changed',
+  UnifiedSwapBridgeQuotesRequested: 'Unified SwapBridge Quotes Requested',
+  UnifiedSwapBridgeQuotesReceived: 'Unified SwapBridge Quotes Received',
+  UnifiedSwapBridgeSubmitted: 'Unified SwapBridge Submitted',
+  UnifiedSwapBridgeCompleted: 'Unified SwapBridge Completed',
+  UnifiedSwapBridgeFailed: 'Unified SwapBridge Failed',
+  UnifiedSwapBridgeCancelled: 'Unified SwapBridge Cancelled',
 };
 
-describe(SmokeTrade('Swap from Actions'), (): void => {
-  const FIRST_ROW: number = 0;
-  let capturedEvents: EventPayload[] = [];
+const expectedEventNames = [
+  expectedEvents.ActionButtonClicked,
+  expectedEvents.UnifiedSwapBridgeInputChanged,
+  expectedEvents.UnifiedSwapBridgeQuotesRequested,
+  expectedEvents.UnifiedSwapBridgeQuotesReceived,
+  expectedEvents.UnifiedSwapBridgeSubmitted,
+  expectedEvents.UnifiedSwapBridgeCompleted,
+];
 
+describe(SmokeTrade('Swap from Actions'), (): void => {
   beforeEach(async (): Promise<void> => {
-    jest.setTimeout(120000);
+    jest.setTimeout(180000);
   });
 
-  it('swaps ETH to USDC with custom slippage', async (): Promise<void> => {
-    const quantity = '1';
-    const sourceTokenSymbol = 'ETH';
-    const destTokenSymbol = 'USDC';
-    const chainId = '0x1';
+  let eventsToCheck: EventPayload[];
 
+  it('swaps ETH->USDC with custom slippage and USDC->ETH', async (): Promise<void> => {
     await withFixtures(
       {
-        fixture: ({ localNodes }: { localNodes?: LocalNode[] }) => {
-          const node = localNodes?.[0] as unknown as AnvilManager;
-          const rpcPort =
-            node instanceof AnvilManager
-              ? (node.getPort() ?? AnvilPort())
-              : undefined;
-
-          return new FixtureBuilder()
-            .withNetworkController({
-              providerConfig: {
-                chainId,
-                rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
-                type: 'custom',
-                nickname: 'Localhost',
-                ticker: 'ETH',
-              },
-            })
-            .withMetaMetricsOptIn()
-            .withDisabledSmartTransactions()
-            .build();
-        },
+        fixture: new FixtureBuilder()
+          .withNetworkController({
+            providerConfig: {
+              chainId: '0x1',
+              rpcUrl: `http://localhost:${DEFAULT_ANVIL_PORT}`,
+              type: 'custom',
+              nickname: 'Localhost',
+              ticker: 'ETH',
+            },
+          })
+          .withDisabledSmartTransactions()
+          .withMetaMetricsOptIn()
+          .build(),
         localNodeOptions: [
           {
             type: LocalNodeType.anvil,
             options: {
               chainId: 1,
+              // Load pre-built state with USDC and DAI contracts + balances
+              // This avoids needing a mainnet fork while still having readable token balances
+              loadState: './tests/smoke/swap/withTokens.json',
             },
           },
         ],
         testSpecificMock,
         restartDevice: true,
-        endTestfn: async ({ mockServer }) => {
-          try {
-            // Capture all events without filtering.
-            // When fixing the test skipped below the filter needs to be applied there.
-            capturedEvents = await getEventsPayloads(mockServer, [], 30000);
-          } catch (error: unknown) {
-            const errorMessage =
-              error instanceof Error ? error.message : String(error);
-            logger.error(`Error capturing events: ${errorMessage}`);
-          }
-        },
       },
-      async () => {
+      async ({ mockServer }) => {
         await loginToApp();
         await prepareSwapsTestEnvironment();
         await WalletView.tapWalletSwapButton();
 
-        // Submit swap with 3.5% custom slippage
-        await submitSwapUnifiedUI(
-          quantity,
-          sourceTokenSymbol,
-          destTokenSymbol,
-          chainId,
-          { slippage: '3.5' },
-        );
+        // Submit first swap: ETH->ERC20 (USDC) with custom slippage
+        await submitSwapUnifiedUI('1', 'ETH', 'USDC', '0x1', {
+          slippage: '3.5',
+        });
+        await checkSwapActivity('ETH', 'USDC');
 
-        // Check the swap activity completed
-        await Assertions.expectElementToBeVisible(ActivitiesView.title);
-        await Assertions.expectElementToHaveText(
-          ActivitiesView.transactionStatus(FIRST_ROW),
-          ActivitiesViewSelectorsText.CONFIRM_TEXT,
-          { timeout: 60000 },
-        );
+        // Get Events from the first swap
+        eventsToCheck = await getEventsPayloads(mockServer, expectedEventNames);
+
+        await TabBarComponent.tapWallet();
+        await WalletView.tapWalletSwapButton();
+
+        // Submit second swap: ERC20->ETH
+        // Uses pre-funded USDC balance from loadState
+        await submitSwapUnifiedUI('100', 'USDC', 'ETH', '0x1');
+        await checkSwapActivity('USDC', 'ETH');
       },
     );
   });
 
-  it.skip('should validate segment/metametric events for a successful swap', async (): Promise<void> => {
-    const testCases = [
-      {
-        type: 'swap',
-        sourceTokenSymbol: 'ETH',
-        destTokenSymbol: 'USDC',
-        quantity: '1',
-      },
-    ];
+  it('validates the segment events from the swap action smoke test', async (): Promise<void> => {
+    if (!eventsToCheck) {
+      throw new Error('Events to check are not defined');
+    }
 
-    // METAMETRICS EVENTS
-    const events = capturedEvents;
-
-    const softAssert: SoftAssert = new SoftAssert();
-
-    // Filter events by type
-    const swapsOpenedEvents = events.filter(
-      (e) => e.event === EVENT_NAMES.SWAPS_OPENED,
-    );
-    const quotesReceivedEvents = events.filter(
-      (e) => e.event === EVENT_NAMES.QUOTES_RECEIVED,
-    );
-    const swapStartedEvents = events.filter(
-      (e) => e.event === EVENT_NAMES.SWAP_STARTED,
-    );
-    const swapCompletedEvents = events.filter(
-      (e) => e.event === EVENT_NAMES.SWAP_COMPLETED,
-    );
-
-    const checkEventCount = softAssert.checkAndCollect(
-      () => Assertions.checkIfArrayHasLength(events, 8),
-      `Events: Should have 8 events (2 for each type)`,
-    );
-
-    const checkSwapsOpenedCount = softAssert.checkAndCollect(
-      () =>
-        Assertions.checkIfArrayHasLength(swapsOpenedEvents, testCases.length),
-      'Swaps Opened: Should have 2 events',
-    );
-
-    const checkQuotesReceivedCount = softAssert.checkAndCollect(
-      () =>
-        Assertions.checkIfArrayHasLength(
-          quotesReceivedEvents,
-          testCases.length,
-        ),
-      'Swap Completed: Should have 2 events',
-    );
-
-    const checkSwapStartedCount = softAssert.checkAndCollect(
-      () =>
-        Assertions.checkIfArrayHasLength(swapStartedEvents, testCases.length),
-      'Swap Started: Should have 2 events',
-    );
-
-    const checkSwapCompletedCount = softAssert.checkAndCollect(
-      () =>
-        Assertions.checkIfArrayHasLength(swapCompletedEvents, testCases.length),
-      'Swap Completed: Should have 2 events',
-    );
-
-    const swapsOpenedAssertions = [];
-    for (let i = 0; i < swapsOpenedEvents.length; i++) {
-      swapsOpenedAssertions.push(
-        softAssert.checkAndCollect(async () => {
-          Assertions.checkIfObjectContains(swapsOpenedEvents[i].properties, {
-            action: 'Swap',
-            name: 'Swaps',
-            source: 'MainView',
-            chain_id: '1',
-          });
-        }, `Swaps Opened [${i}]: Check properties (sourceToken: ${testCases[i]?.sourceTokenSymbol})`),
+    const softAssert = new SoftAssert();
+    for (const ev of expectedEventNames) {
+      const event = eventsToCheck.find((event) => event.event === ev);
+      await softAssert.checkAndCollect(
+        async () => await Assertions.checkIfValueIsDefined(event),
+        `${ev}: Should be defined`,
       );
     }
 
-    const quotesReceivedAssertions = [];
-    for (let i = 0; i < quotesReceivedEvents.length; i++) {
-      quotesReceivedAssertions.push(
-        softAssert.checkAndCollect(async () => {
-          Assertions.checkIfObjectContains(quotesReceivedEvents[i].properties, {
-            action: 'Quote',
-            name: 'Swaps',
-            token_from: testCases[i].sourceTokenSymbol,
-            token_to: testCases[i].destTokenSymbol,
-            request_type: 'Order',
-            slippage: 0,
-            custom_slippage: true,
-            best_quote_source: 'wrappedNative',
-            available_quotes: 1,
-            chain_id: '1',
-            token_from_amount: testCases[i].quantity,
-            token_to_amount: testCases[i].quantity,
-          });
-        }, `Quotes Received [${i}]: Check properties (sourceToken: ${testCases[i]?.sourceTokenSymbol})`),
-        softAssert.checkAndCollect(
-          () =>
-            Assertions.checkIfValueIsDefined(
-              quotesReceivedEvents[i].properties.response_time,
-            ),
-          `Quotes Received [${i}]: Check response_time (sourceToken: ${testCases[i]?.sourceTokenSymbol})`,
+    /**
+     * Unified SwapBridge Input Changed
+     * --------------------------------
+     * The first 3 events are fired as soon as the page is viewed since source
+     * and destination are prefilled (chainSource, chainDestination, token destination)
+     * The remaning 3 events correspond to:
+     * - token destination
+     * - slippage twice
+     */
+    const unifiedSwapBridgeInputChanged = eventsToCheck.filter(
+      (event) => event.event === expectedEvents.UnifiedSwapBridgeInputChanged,
+    );
+    // Check that all input changed events have the correct properties
+    await softAssert.checkAndCollect(
+      async () =>
+        await Assertions.checkIfArrayHasLength(
+          unifiedSwapBridgeInputChanged,
+          6,
         ),
-        softAssert.checkAndCollect(
-          () =>
-            Assertions.checkIfValueIsDefined(
-              quotesReceivedEvents[i].properties.network_fees_USD,
-            ),
-          `Quotes Received [${i}]: Check network_fees_USD (sourceToken: ${testCases[i]?.sourceTokenSymbol})`,
+      'Unified SwapBridge Input Changed: Should have 6 events',
+    );
+    for (const event of unifiedSwapBridgeInputChanged) {
+      await softAssert.checkAndCollect(
+        async () =>
+          await Assertions.checkIfValueIsDefined(event.properties.input),
+        'Unified SwapBridge Input Changed: input should be defined',
+      );
+      await softAssert.checkAndCollect(
+        async () =>
+          await Assertions.checkIfValueIsDefined(event.properties.input_value),
+        'Unified SwapBridge Input Changed: input_value should be defined',
+      );
+      await softAssert.checkAndCollect(
+        async () =>
+          await Assertions.checkIfValueIsDefined(event.properties.action_type),
+        'Unified SwapBridge Input Changed: action_type should be defined',
+      );
+    }
+    await softAssert.checkAndCollect(
+      async () =>
+        await Assertions.checkIfValueIsDefined(
+          unifiedSwapBridgeInputChanged.some(
+            (event) => event.properties.input === 'chain_source',
+          ) || undefined,
         ),
-        softAssert.checkAndCollect(
-          () =>
-            Assertions.checkIfValueIsDefined(
-              quotesReceivedEvents[i].properties.network_fees_ETH,
-            ),
-          `Quotes Received [${i}]: Check network_fees_ETH (sourceToken: ${testCases[i]?.sourceTokenSymbol})`,
+      'Unified SwapBridge Input Changed: Should have an event with input=chain_source',
+    );
+    await softAssert.checkAndCollect(
+      async () =>
+        await Assertions.checkIfValueIsDefined(
+          unifiedSwapBridgeInputChanged.some(
+            (event) => event.properties.input === 'token_destination',
+          ) || undefined,
         ),
+      'Unified SwapBridge Input Changed: Should have an event with input=token_destination',
+    );
+    await softAssert.checkAndCollect(
+      async () =>
+        await Assertions.checkIfValueIsDefined(
+          unifiedSwapBridgeInputChanged.some(
+            (event) => event.properties.input === 'slippage',
+          ) || undefined,
+        ),
+      'Unified SwapBridge Input Changed: Should have an event with input=slippage',
+    );
+
+    /**
+     * Unified SwapBridge Quotes Requested
+     */
+    const unifiedSwapBridgeQuotesRequested = eventsToCheck.filter(
+      (event) =>
+        event.event === expectedEvents.UnifiedSwapBridgeQuotesRequested,
+    );
+    await softAssert.checkAndCollect(
+      async () =>
+        await Assertions.checkIfArrayHasLength(
+          unifiedSwapBridgeQuotesRequested,
+          3,
+        ),
+      'Unified SwapBridge Quotes Requested: Should have 3 events',
+    );
+    for (const event of unifiedSwapBridgeQuotesRequested) {
+      await softAssert.checkAndCollect(
+        async () =>
+          await Assertions.checkIfObjectHasKeysAndValidValues(
+            event.properties,
+            {
+              chain_id_source: 'string',
+              chain_id_destination: 'string',
+              token_address_source: 'string',
+              token_address_destination: 'string',
+              slippage_limit: 'number',
+              swap_type: 'string',
+              custom_slippage: 'boolean',
+              is_hardware_wallet: 'boolean',
+              has_sufficient_funds: 'boolean',
+              stx_enabled: 'boolean',
+              token_symbol_source: 'string',
+              token_symbol_destination: 'string',
+              security_warnings: 'array',
+              warnings: 'array',
+              usd_amount_source: 'number',
+              action_type: 'string',
+            },
+          ),
+        'Unified SwapBridge Quotes Requested: Should have the correct properties',
       );
     }
 
-    const swapStartedAssertions = [];
-    for (let i = 0; i < swapStartedEvents.length; i++) {
-      swapStartedAssertions.push(
-        softAssert.checkAndCollect(async () => {
-          Assertions.checkIfObjectContains(swapStartedEvents[i].properties, {
-            action: 'Swap',
-            name: 'Swaps',
-            account_type: 'Imported',
-            token_from: testCases[i].sourceTokenSymbol,
-            token_to: testCases[i].destTokenSymbol,
-            request_type: 'Order',
-            custom_slippage: true,
-            best_quote_source: 'wrappedNative',
-            available_quotes: 1,
-            other_quote_selected: false,
-            chain_id: '1',
-            is_smart_transaction: false,
-            gas_included: false,
-            token_from_amount: testCases[i].quantity,
-            token_to_amount: testCases[i].quantity,
-          });
-        }, `Swap Started [${i}]: Check properties (sourceToken: ${testCases[i]?.sourceTokenSymbol})`),
-        softAssert.checkAndCollect(
-          () =>
-            Assertions.checkIfValueIsDefined(
-              quotesReceivedEvents[i].properties.network_fees_USD,
-            ),
-          `Swap Started [${i}]: Check network_fees_USD (sourceToken: ${testCases[i]?.sourceTokenSymbol})`,
+    /**
+     * Unified SwapBridge Submitted
+     */
+    const unifiedSwapBridgeSubmitted = eventsToCheck.filter(
+      (event) => event.event === expectedEvents.UnifiedSwapBridgeSubmitted,
+    );
+    await softAssert.checkAndCollect(
+      async () =>
+        await Assertions.checkIfArrayHasLength(unifiedSwapBridgeSubmitted, 1),
+      'Unified SwapBridge Submitted: Should have 1 event',
+    );
+    await softAssert.checkAndCollect(
+      async () =>
+        await Assertions.checkIfObjectHasKeysAndValidValues(
+          unifiedSwapBridgeSubmitted[0]?.properties ?? {},
+          {
+            action_type: 'string',
+            price_impact: 'number',
+            usd_quoted_gas: 'number',
+            gas_included: 'boolean',
+            gas_included_7702: 'boolean',
+            provider: 'string',
+            quoted_time_minutes: 'number',
+            usd_quoted_return: 'number',
+            chain_id_source: 'string',
+            token_symbol_source: 'string',
+            chain_id_destination: 'string',
+            token_symbol_destination: 'string',
+            is_hardware_wallet: 'boolean',
+            swap_type: 'string',
+            usd_amount_source: 'number',
+            stx_enabled: 'boolean',
+            custom_slippage: 'boolean',
+          },
         ),
-        softAssert.checkAndCollect(
-          () =>
-            Assertions.checkIfValueIsDefined(
-              quotesReceivedEvents[i].properties.network_fees_ETH,
-            ),
-          `Swap Started [${i}]: Check network_fees_ETH (sourceToken: ${testCases[i]?.sourceTokenSymbol})`,
-        ),
-      );
-    }
+      'Unified SwapBridge Submitted: Should have the correct properties',
+    );
 
-    const swapCompletedAssertions = [];
-    for (let i = 0; i < swapCompletedEvents.length; i++) {
-      swapCompletedAssertions.push(
-        softAssert.checkAndCollect(async () => {
-          Assertions.checkIfObjectContains(swapCompletedEvents[i].properties, {
-            action: 'Swap',
-            name: 'Swaps',
-            custom_slippage: true,
-            best_quote_source: 'wrappedNative',
-            available_quotes: 1,
-            chain_id: '1',
-            is_smart_transaction: false,
-            other_quote_selected: false,
-            request_type: 'Order',
-            token_from: testCases[i].sourceTokenSymbol,
-            token_to: testCases[i].destTokenSymbol,
-            token_from_amount: testCases[i].quantity,
-            token_to_amount: testCases[i].quantity,
-            token_to_amount_received: 'NaN',
-          });
-        }, `Swap Completed [${i}]: Check properties (sourceToken: ${testCases[i]?.sourceTokenSymbol})`),
-        softAssert.checkAndCollect(
-          () =>
-            Assertions.checkIfValueIsDefined(
-              quotesReceivedEvents[i].properties.network_fees_USD,
-            ),
-          `Swap Completed [${i}]: Check network_fees_USD (sourceToken: ${testCases[i]?.sourceTokenSymbol})`,
+    /**
+     * Unified SwapBridge Completed
+     */
+    const unifiedSwapBridgeCompleted = eventsToCheck.filter(
+      (event) => event.event === expectedEvents.UnifiedSwapBridgeCompleted,
+    );
+    await softAssert.checkAndCollect(
+      async () =>
+        await Assertions.checkIfArrayHasLength(unifiedSwapBridgeCompleted, 1),
+      'Unified SwapBridge Completed: Should have 1 event',
+    );
+    await softAssert.checkAndCollect(
+      async () =>
+        await Assertions.checkIfObjectHasKeysAndValidValues(
+          unifiedSwapBridgeCompleted[0]?.properties ?? {},
+          {
+            action_type: 'string',
+            chain_id_source: 'string',
+            token_symbol_source: 'string',
+            token_address_source: 'string',
+            chain_id_destination: 'string',
+            token_symbol_destination: 'string',
+            token_address_destination: 'string',
+            slippage_limit: 'number',
+            custom_slippage: 'boolean',
+            usd_amount_source: 'number',
+            swap_type: 'string',
+            is_hardware_wallet: 'boolean',
+            stx_enabled: 'boolean',
+            security_warnings: 'array',
+            usd_quoted_gas: 'number',
+            gas_included: 'boolean',
+            gas_included_7702: 'boolean',
+            provider: 'string',
+            quoted_time_minutes: 'number',
+            usd_quoted_return: 'number',
+            source_transaction: 'string',
+            destination_transaction: 'string',
+            actual_time_minutes: 'number',
+            usd_actual_return: 'number',
+            usd_actual_gas: 'string',
+            quote_vs_execution_ratio: 'number',
+            quoted_vs_used_gas_ratio: 'number',
+            price_impact: 'number',
+          },
         ),
-        softAssert.checkAndCollect(
-          () =>
-            Assertions.checkIfValueIsDefined(
-              quotesReceivedEvents[i].properties.network_fees_ETH,
-            ),
-          `Swap Completed [${i}]: Check network_fees_ETH (sourceToken: ${testCases[i]?.sourceTokenSymbol})`,
-        ),
-        softAssert.checkAndCollect(
-          () =>
-            Assertions.checkIfValueIsDefined(
-              swapCompletedEvents[i].properties.time_to_mine,
-            ),
-          `Swap Completed [${i}]: Check time_to_mine (sourceToken: ${testCases[i]?.sourceTokenSymbol})`,
-        ),
-        softAssert.checkAndCollect(
-          () =>
-            Assertions.checkIfValueIsDefined(
-              swapCompletedEvents[i].properties.estimated_vs_used_gasRatio,
-            ),
-          `Swap Completed [${i}]: Check estimated_vs_used_gasRatio (sourceToken: ${testCases[i]?.sourceTokenSymbol})`,
-        ),
-        softAssert.checkAndCollect(
-          () =>
-            Assertions.checkIfValueIsDefined(
-              swapCompletedEvents[i].properties.quote_vs_executionRatio,
-            ),
-          `Swap Completed [${i}]: Check quote_vs_executionRatio (sourceToken: ${testCases[i]?.sourceTokenSymbol})`,
-        ),
-      );
-    }
-
-    await Promise.all([
-      checkEventCount,
-      checkSwapsOpenedCount,
-      checkQuotesReceivedCount,
-      checkSwapStartedCount,
-      checkSwapCompletedCount,
-      ...swapsOpenedAssertions,
-      ...quotesReceivedAssertions,
-      ...swapStartedAssertions,
-      ...swapCompletedAssertions,
-    ]);
+      'Unified SwapBridge Completed: Should have the correct properties',
+    );
 
     softAssert.throwIfErrors();
   });

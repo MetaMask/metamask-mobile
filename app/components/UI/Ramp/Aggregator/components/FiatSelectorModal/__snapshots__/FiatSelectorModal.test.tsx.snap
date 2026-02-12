@@ -436,7 +436,7 @@ exports[`FiatSelectorModal renders the modal with currency list 1`] = `
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "height": 56,
+                                  "minHeight": 56,
                                   "paddingLeft": 8,
                                   "paddingRight": 8,
                                 },
@@ -552,7 +552,7 @@ exports[`FiatSelectorModal renders the modal with currency list 1`] = `
                                         {
                                           "alignItems": "center",
                                           "backgroundColor": "transparent",
-                                          "borderRadius": 2,
+                                          "borderRadius": 8,
                                           "height": 32,
                                           "justifyContent": "center",
                                           "opacity": 1,
@@ -570,8 +570,8 @@ exports[`FiatSelectorModal renders the modal with currency list 1`] = `
                                         [
                                           {
                                             "color": "#121314",
-                                            "height": 20,
-                                            "width": 20,
+                                            "height": 24,
+                                            "width": 24,
                                           },
                                           undefined,
                                         ]
@@ -673,6 +673,7 @@ exports[`FiatSelectorModal renders the modal with currency list 1`] = `
                                   onChangeText={[Function]}
                                   onFocus={[Function]}
                                   placeholder="Search for a currency"
+                                  placeholderTextColor="#686e7d"
                                   style={
                                     {
                                       "backgroundColor": "inherit",
@@ -685,7 +686,6 @@ exports[`FiatSelectorModal renders the modal with currency list 1`] = `
                                       "height": 46,
                                       "letterSpacing": 0,
                                       "opacity": 1,
-                                      "paddingVertical": 2,
                                       "textAlignVertical": "center",
                                     }
                                   }
@@ -1436,7 +1436,7 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "height": 56,
+                                  "minHeight": 56,
                                   "paddingLeft": 8,
                                   "paddingRight": 8,
                                 },
@@ -1552,7 +1552,7 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                                         {
                                           "alignItems": "center",
                                           "backgroundColor": "transparent",
-                                          "borderRadius": 2,
+                                          "borderRadius": 8,
                                           "height": 32,
                                           "justifyContent": "center",
                                           "opacity": 1,
@@ -1570,8 +1570,8 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                                         [
                                           {
                                             "color": "#121314",
-                                            "height": 20,
-                                            "width": 20,
+                                            "height": 24,
+                                            "width": 24,
                                           },
                                           undefined,
                                         ]
@@ -1673,6 +1673,7 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                                   onChangeText={[Function]}
                                   onFocus={[Function]}
                                   placeholder="Search for a currency"
+                                  placeholderTextColor="#686e7d"
                                   style={
                                     {
                                       "backgroundColor": "inherit",
@@ -1685,7 +1686,6 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                                       "height": 46,
                                       "letterSpacing": 0,
                                       "opacity": 1,
-                                      "paddingVertical": 2,
                                       "textAlignVertical": "center",
                                     }
                                   }
@@ -2436,7 +2436,7 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "height": 56,
+                                  "minHeight": 56,
                                   "paddingLeft": 8,
                                   "paddingRight": 8,
                                 },
@@ -2552,7 +2552,7 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                                         {
                                           "alignItems": "center",
                                           "backgroundColor": "transparent",
-                                          "borderRadius": 2,
+                                          "borderRadius": 8,
                                           "height": 32,
                                           "justifyContent": "center",
                                           "opacity": 1,
@@ -2570,8 +2570,8 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                                         [
                                           {
                                             "color": "#121314",
-                                            "height": 20,
-                                            "width": 20,
+                                            "height": 24,
+                                            "width": 24,
                                           },
                                           undefined,
                                         ]
@@ -2673,6 +2673,7 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                                   onChangeText={[Function]}
                                   onFocus={[Function]}
                                   placeholder="Search for a currency"
+                                  placeholderTextColor="#686e7d"
                                   style={
                                     {
                                       "backgroundColor": "inherit",
@@ -2685,7 +2686,6 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                                       "height": 46,
                                       "letterSpacing": 0,
                                       "opacity": 1,
-                                      "paddingVertical": 2,
                                       "textAlignVertical": "center",
                                     }
                                   }
@@ -3436,7 +3436,7 @@ exports[`FiatSelectorModal search displays max 20 results 1`] = `
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "height": 56,
+                                  "minHeight": 56,
                                   "paddingLeft": 8,
                                   "paddingRight": 8,
                                 },
@@ -3552,7 +3552,7 @@ exports[`FiatSelectorModal search displays max 20 results 1`] = `
                                         {
                                           "alignItems": "center",
                                           "backgroundColor": "transparent",
-                                          "borderRadius": 2,
+                                          "borderRadius": 8,
                                           "height": 32,
                                           "justifyContent": "center",
                                           "opacity": 1,
@@ -3570,8 +3570,8 @@ exports[`FiatSelectorModal search displays max 20 results 1`] = `
                                         [
                                           {
                                             "color": "#121314",
-                                            "height": 20,
-                                            "width": 20,
+                                            "height": 24,
+                                            "width": 24,
                                           },
                                           undefined,
                                         ]
@@ -3673,6 +3673,7 @@ exports[`FiatSelectorModal search displays max 20 results 1`] = `
                                   onChangeText={[Function]}
                                   onFocus={[Function]}
                                   placeholder="Search for a currency"
+                                  placeholderTextColor="#686e7d"
                                   style={
                                     {
                                       "backgroundColor": "inherit",
@@ -3685,7 +3686,6 @@ exports[`FiatSelectorModal search displays max 20 results 1`] = `
                                       "height": 46,
                                       "letterSpacing": 0,
                                       "opacity": 1,
-                                      "paddingVertical": 2,
                                       "textAlignVertical": "center",
                                     }
                                   }
