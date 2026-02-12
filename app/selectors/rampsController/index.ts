@@ -9,6 +9,7 @@ import {
   type ResourceState,
   type Quote,
   type QuotesResponse,
+  type TransakState,
 } from '@metamask/ramps-controller';
 import { RootState } from '../../reducers';
 
@@ -97,4 +98,15 @@ export const selectQuotes = createSelector(
   (rampsControllerState): ResourceState<QuotesResponse | null, Quote | null> =>
     rampsControllerState?.quotes ??
     createDefaultResourceState<QuotesResponse | null, Quote | null>(null, null),
+);
+
+export const selectTransak = createSelector(
+  selectRampsControllerState,
+  (rampsControllerState): TransakState =>
+    rampsControllerState?.transak ?? {
+      isAuthenticated: false,
+      userDetails: createDefaultResourceState(null),
+      buyQuote: createDefaultResourceState(null),
+      kycRequirement: createDefaultResourceState(null),
+    },
 );

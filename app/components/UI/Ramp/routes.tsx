@@ -4,6 +4,8 @@ import Routes from '../../../constants/navigation/Routes';
 import TokenSelection from './Views/TokenSelection';
 import BuildQuote from './Views/BuildQuote';
 import Checkout from './Views/Checkout';
+import V2EnterEmail from './Views/NativeFlow/EnterEmail';
+import V2OtpCode from './Views/NativeFlow/OtpCode';
 import UnsupportedTokenModal from './Views/Modals/UnsupportedTokenModal';
 import SettingsModal from './Views/Modals/SettingsModal';
 import PaymentSelectionModal from './Views/Modals/PaymentSelectionModal';
@@ -30,6 +32,8 @@ const MainRoutes = () => (
       component={TokenSelection}
     />
     <Stack.Screen name={Routes.RAMP.AMOUNT_INPUT} component={BuildQuote} />
+    <Stack.Screen name={Routes.RAMP.ENTER_EMAIL} component={V2EnterEmail} />
+    <Stack.Screen name={Routes.RAMP.OTP_CODE} component={V2OtpCode} />
     <Stack.Screen
       name={Routes.RAMP.CHECKOUT}
       component={Checkout}

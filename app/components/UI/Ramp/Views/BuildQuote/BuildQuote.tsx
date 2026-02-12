@@ -22,7 +22,7 @@ import { getRampsBuildQuoteNavbarOptions } from '../../../Navbar';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './BuildQuote.styles';
-import { formatCurrency } from '../../utils/formatCurrency';
+import { useFormatters } from '../../../../hooks/useFormatters';
 import { useTokenNetworkInfo } from '../../hooks/useTokenNetworkInfo';
 import { useRampsController } from '../../hooks/useRampsController';
 import { createSettingsModalNavDetails } from '../Modals/SettingsModal';
@@ -37,6 +37,9 @@ import {
 } from '../../types';
 import { createDepositNavigationDetails } from '../../Deposit/routes/utils';
 import Logger from '../../../../../util/Logger';
+import { useTransakController } from '../../hooks/useTransakController';
+import { useTransakRouting } from '../../hooks/useTransakRouting';
+import { createV2EnterEmailNavDetails } from '../NativeFlow/EnterEmail';
 
 interface BuildQuoteParams {
   assetId?: string;
@@ -75,6 +78,7 @@ const DEFAULT_AMOUNT = 100;
 function BuildQuote() {
   const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
+  const { formatCurrency } = useFormatters();
 
   const [amount, setAmount] = useState<string>(() => String(DEFAULT_AMOUNT));
   const [amountAsNumber, setAmountAsNumber] = useState<number>(DEFAULT_AMOUNT);
@@ -103,6 +107,17 @@ function BuildQuote() {
     paymentMethodsLoading,
     selectedPaymentMethod,
   } = useRampsController();
+
+  const {
+    isAuthenticated: transakIsAuthenticated,
+    checkExistingToken: transakCheckExistingToken,
+    getBuyQuote: transakGetBuyQuote,
+  } = useTransakController();
+
+  const { routeAfterAuthentication: transakRouteAfterAuth } =
+    useTransakRouting({
+      walletAddress: null,
+    });
 
   const currency = userRegion?.country?.currency || 'USD';
   const quickAmounts = userRegion?.country?.quickAmounts ?? [50, 100, 200, 400];
@@ -227,16 +242,33 @@ function BuildQuote() {
       }
     }
 
-    // Native/whitelabel provider (e.g. Transak Native) -> deposit flow
     if (isNativeProvider(selectedQuote)) {
-      navigation.navigate(
-        ...createDepositNavigationDetails({
-          assetId: selectedToken?.assetId,
-          amount: String(amountAsNumber),
-          currency,
-          shouldRouteImmediately: true,
-        }),
-      );
+      try {
+        const hasToken = await transakCheckExistingToken();
+
+        if (hasToken) {
+          const quote = await transakGetBuyQuote(
+            currency,
+            selectedToken?.assetId || '',
+            selectedToken?.chainId || '',
+            selectedPaymentMethod?.id || '',
+            String(amountAsNumber),
+          );
+          await transakRouteAfterAuth(quote);
+        } else {
+          navigation.navigate(
+            ...createV2EnterEmailNavDetails({
+              amount: String(amountAsNumber),
+              currency,
+              assetId: selectedToken?.assetId,
+            }),
+          );
+        }
+      } catch (error) {
+        Logger.error(error as Error, {
+          message: 'Failed to route native provider flow',
+        });
+      }
       return;
     }
 
@@ -277,6 +309,9 @@ function BuildQuote() {
     selectedToken,
     currency,
     selectedPaymentMethod,
+    transakCheckExistingToken,
+    transakGetBuyQuote,
+    transakRouteAfterAuth,
   ]);
 
   const hasAmount = amountAsNumber > 0;

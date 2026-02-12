@@ -5,8 +5,6 @@ import { renderNumber } from '../../../../../util/number';
 import { strings } from '../../../../../../locales/i18n';
 import { AppThemeKey, Colors } from '../../../../../util/theme/models';
 
-// Re-export currency utilities from outer Ramp utils
-export { formatCurrency } from '../../utils/formatCurrency';
 
 const emailRegex =
   /^[-!#$%&'*+/0-9=?A-Z^_a-z`{|}~](\.?[-!#$%&'*+/0-9=?A-Z^_a-z`{|}~])*@[a-zA-Z0-9](-*\.?[a-zA-Z0-9])*\.[a-zA-Z](-?[a-zA-Z0-9])+$/;

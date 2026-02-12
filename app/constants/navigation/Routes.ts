@@ -20,6 +20,8 @@ const Routes = {
     SETTINGS: 'RampSettings',
     ACTIVATION_KEY_FORM: 'RampActivationKeyForm',
     AMOUNT_INPUT: 'RampAmountInput',
+    ENTER_EMAIL: 'RampEnterEmail',
+    OTP_CODE: 'RampOtpCode',
     MODALS: {
       ID: 'RampModals',
       TOKEN_SELECTOR: 'RampTokenSelectorModal',
