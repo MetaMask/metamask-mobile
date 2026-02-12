@@ -12,22 +12,20 @@ import {
   TraceOperation,
 } from '../../../../util/trace';
 import PerpsConnectionManager from '../services/PerpsConnectionManager';
-import type {
-  PriceUpdate,
-  Position,
-  Order,
-  OrderFill,
-  AccountState,
-  PerpsMarketData,
-} from '../controllers/types';
 import {
   PERFORMANCE_CONFIG,
   PERPS_CONSTANTS,
-  PROVIDER_CONFIG,
-} from '../constants/perpsConfig';
-import { PerpsMeasurementName } from '../constants/performanceMetrics';
+  PerpsMeasurementName,
+  findEvmAccount,
+  type PriceUpdate,
+  type Position,
+  type Order,
+  type OrderFill,
+  type AccountState,
+  type PerpsMarketData,
+} from '@metamask/perps-controller';
+import { PROVIDER_CONFIG } from '../constants/perpsConfig';
 import { getE2EMockStreamManager } from '../utils/e2eBridgePerps';
-import { findEvmAccount } from '../utils/accountUtils';
 import { CandleStreamChannel } from './channels/CandleStreamChannel';
 
 /**
