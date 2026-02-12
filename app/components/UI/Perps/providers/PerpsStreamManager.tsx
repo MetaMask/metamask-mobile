@@ -1342,11 +1342,19 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
           ? Date.now() - this.lastFetchTime
           : null;
         Logger.error(ensureError(error, 'PerpsStreamManager.fetchMarketData'), {
-          context: 'PerpsStreamManager.fetchMarketData',
-          fetchTimeMs: fetchTime,
-          hadCachedData: !!existing,
-          cachedMarketCount: existing?.length ?? 0,
-          cacheStalenessMs,
+          tags: {
+            feature: PERPS_CONSTANTS.FeatureName,
+          },
+          context: {
+            name: 'PerpsStreamManager',
+            data: {
+              method: 'fetchMarketData',
+              fetchTimeMs: fetchTime,
+              hadCachedData: !!existing,
+              cachedMarketCount: existing?.length ?? 0,
+              cacheStalenessMs,
+            },
+          },
         });
         // Keep existing cache if fetch fails
         if (existing) {
