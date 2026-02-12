@@ -7470,7 +7470,7 @@
       "claim_label": "Einfordern",
       "claimed_label": "Eingefordert",
       "reward_claimed": "Belohnung eingefordert",
-      "time_left": "verbleibend",
+      "time_left": "{{time}} verbleibend",
       "expired": "Abgelaufen"
     },
     "end_of_season_rewards": {

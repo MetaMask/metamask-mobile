@@ -51,13 +51,15 @@ import { BridgeToken } from '../Bridge/types';
 import { useExploreSearch } from '../../Views/TrendingView/hooks/useExploreSearch';
 import { type SectionId } from '../../Views/TrendingView/sections.config';
 import type { TrendingAsset } from '@metamask/assets-controllers';
-import type { PerpsMarketData } from '../Perps/controllers/types';
+import { type PerpsMarketData } from '@metamask/perps-controller';
 import type { PredictMarket } from '../Predict/types';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import { PerpsConnectionProvider } from '../Perps/providers/PerpsConnectionProvider';
 import { PerpsStreamProvider } from '../Perps/providers/PerpsStreamManager';
 import { isCaipChainId, parseCaipChainId, type Hex } from '@metamask/utils';
 import { NATIVE_SWAPS_TOKEN_ADDRESS } from '../../../constants/bridge';
+import SitesSearchFooter from '../Sites/components/SitesSearchFooter/SitesSearchFooter';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 export * from './types';
 
@@ -191,6 +193,7 @@ const SearchContent: React.FC<SearchContentProps> = ({
   hide,
   styles,
 }) => {
+  const tw = useTailwind();
   const navigation = useNavigation();
   const isBasicFunctionalityEnabled = useSelector(
     selectBasicFunctionalityEnabled,
@@ -405,7 +408,27 @@ const SearchContent: React.FC<SearchContentProps> = ({
     [],
   );
 
-  if (searchResults.length === 0) {
+  /**
+   * Handler for search footer URL selection
+   * Creates a FuseSearchResult and calls onSelect
+   */
+  const handleSearchFooterSelect = useCallback(
+    (url: string) => {
+      const searchResult: FuseSearchResult = {
+        category: UrlAutocompleteCategory.Sites,
+        url,
+        name: url,
+      };
+      hide();
+      onSelect(searchResult);
+    },
+    [hide, onSelect],
+  );
+
+  // Always show search footer when there's a search query
+  const showSearchFooter = searchQuery.trim().length > 0;
+
+  if (searchResults.length === 0 && !showSearchFooter) {
     return null;
   }
 
@@ -418,6 +441,15 @@ const SearchContent: React.FC<SearchContentProps> = ({
         renderSectionHeader={renderSectionHeader}
         renderItem={renderItem}
         keyboardShouldPersistTaps="handled"
+        ListFooterComponent={
+          showSearchFooter ? (
+            <SitesSearchFooter
+              searchQuery={searchQuery}
+              onPress={handleSearchFooterSelect}
+              containerStyle={tw`px-4`}
+            />
+          ) : null
+        }
       />
       {networkModal}
     </>

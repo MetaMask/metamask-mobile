@@ -1,6 +1,6 @@
-import WalletView from '../../../e2e/pages/wallet/WalletView';
-import PerpsTabView from '../../../e2e/pages/Perps/PerpsTabView';
-import PerpsOnboarding from '../../../e2e/pages/Perps/PerpsOnboarding';
+import WalletView from '../../page-objects/wallet/WalletView';
+import PerpsTabView from '../../page-objects/Perps/PerpsTabView';
+import PerpsOnboarding from '../../page-objects/Perps/PerpsOnboarding';
 import { createLogger, LogLevel } from '../../framework/logger';
 
 const logger = createLogger({

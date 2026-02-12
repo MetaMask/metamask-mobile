@@ -26,7 +26,10 @@ import HeaderCompactStandard from '../../../../../component-library/components-t
 import PerpsTransactionDetailAssetHero from '../../components/PerpsTransactionDetailAssetHero';
 import { usePerpsBlockExplorerUrl } from '../../hooks';
 import { PerpsNavigationParamList } from '../../types/navigation';
-import type { PerpsMarketData } from '../../controllers/types';
+import {
+  PERPS_EVENT_VALUE,
+  type PerpsMarketData,
+} from '@metamask/perps-controller';
 import {
   PerpsPositionTransactionRouteProp,
   PerpsTransaction,
@@ -38,7 +41,6 @@ import {
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
 import { styleSheet } from './PerpsPositionTransactionView.styles';
-import { PERPS_EVENT_VALUE } from '../../constants/eventNames';
 
 const PerpsPositionTransactionView: React.FC = () => {
   const { styles } = useStyles(styleSheet, {});

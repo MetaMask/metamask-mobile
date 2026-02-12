@@ -27,13 +27,12 @@ jest.mock('../../../store', () => ({
 // A valid, sample connection request payload for use in tests
 const mockConnectionRequest: ConnectionRequest = {
   sessionRequest: {
-    id: 'test-conn-id',
+    id: '11111111-2222-3333-4444-555555555555',
     publicKeyB64: 'AoBDLWxRbJNe8yUv5bmmoVnNo8DCilzbFz/nWD+RKC2V',
     channel: 'websocket-channel-id',
     mode: 'trusted',
     expiresAt: 1757410033264,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } as any,
+  },
   metadata: {
     dapp: {
       name: 'Test DApp',
@@ -48,7 +47,7 @@ const mockConnectionRequest: ConnectionRequest = {
 
 // A valid, sample connection request payload for use in tests
 const mockConnectionInfo: ConnectionInfo = {
-  id: 'test-conn-id',
+  id: '11111111-2222-3333-4444-555555555555',
   metadata: {
     dapp: {
       name: 'Test DApp',
@@ -267,7 +266,7 @@ describe('ConnectionRegistry', () => {
     it('should not show error if connection is found in the store', async () => {
       const persistedConnInfo = {
         ...mockConnectionInfo,
-        id: 'mock-conn-id',
+        id: '00000000-0000-0000-0000-000000000000',
         metadata: { ...mockConnectionInfo.metadata },
         expiresAt: Date.now() + 100000,
       };
@@ -430,6 +429,38 @@ describe('ConnectionRegistry', () => {
       );
 
       const invalidDeeplink = 'metamask://connect/mwp?p=not-json';
+
+      await registry.handleConnectDeeplink(invalidDeeplink);
+
+      // Error alert is shown
+      expect(mockHostApp.showConnectionError).toHaveBeenCalledTimes(1);
+
+      // Nothing else happens
+      expect(mockHostApp.showConnectionLoading).not.toHaveBeenCalled();
+      expect(Connection.create).not.toHaveBeenCalled();
+
+      // No data is persisted or UI updates made for invalid requests
+      expect(mockConnection.disconnect).not.toHaveBeenCalled();
+      expect(mockStore.save).not.toHaveBeenCalled();
+      expect(mockHostApp.syncConnectionList).not.toHaveBeenCalled();
+      expect(mockHostApp.hideConnectionLoading).not.toHaveBeenCalled();
+    });
+
+    it('should show error and not save anything if the id in the payload is not a UUID', async () => {
+      registry = new ConnectionRegistry(
+        RELAY_URL,
+        mockKeyManager,
+        mockHostApp,
+        mockStore,
+      );
+
+      const invalidSessionRequest = {
+        ...mockConnectionRequest.sessionRequest,
+        id: 'not-a-uuid',
+      };
+      const invalidDeeplink = `metamask://connect/mwp?p=${encodeURIComponent(
+        JSON.stringify(invalidSessionRequest),
+      )}`;
 
       await registry.handleConnectDeeplink(invalidDeeplink);
 
