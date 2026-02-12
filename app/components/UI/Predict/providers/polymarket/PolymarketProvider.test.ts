@@ -1432,7 +1432,6 @@ describe('PolymarketProvider', () => {
         },
       });
       const orderParams: PlaceOrderParams = {
-        providerId: 'polymarket',
         preview,
       };
 
@@ -1454,7 +1453,6 @@ describe('PolymarketProvider', () => {
         },
       });
       const orderParams: PlaceOrderParams = {
-        providerId: 'polymarket',
         preview,
       };
 
@@ -1481,7 +1479,6 @@ describe('PolymarketProvider', () => {
         },
       });
       const orderParams: PlaceOrderParams = {
-        providerId: 'polymarket',
         preview,
       };
 
@@ -1508,7 +1505,6 @@ describe('PolymarketProvider', () => {
         },
       });
       const orderParams: PlaceOrderParams = {
-        providerId: 'polymarket',
         preview,
       };
 
@@ -1545,7 +1541,6 @@ describe('PolymarketProvider', () => {
         },
       });
       const orderParams: PlaceOrderParams = {
-        providerId: 'polymarket',
         preview,
       };
 
@@ -3521,7 +3516,6 @@ describe('PolymarketProvider', () => {
 
       // When preparing deposit
       const result = await provider.prepareDeposit({
-        providerId: 'polymarket',
         signer: mockSigner,
       });
 
@@ -3545,7 +3539,6 @@ describe('PolymarketProvider', () => {
 
       // When preparing deposit
       const result = await provider.prepareDeposit({
-        providerId: 'polymarket',
         signer: mockSigner,
       });
 
@@ -3564,7 +3557,6 @@ describe('PolymarketProvider', () => {
 
       // When preparing deposit
       const result = await provider.prepareDeposit({
-        providerId: 'polymarket',
         signer: mockSigner,
       });
 
@@ -3587,7 +3579,6 @@ describe('PolymarketProvider', () => {
       // Then it throws an error
       await expect(
         provider.prepareDeposit({
-          providerId: 'polymarket',
           signer: mockSigner,
         }),
       ).rejects.toThrow('Failed to get deploy proxy wallet transaction params');
@@ -3602,7 +3593,6 @@ describe('PolymarketProvider', () => {
 
       // When preparing deposit
       const result = await provider.prepareDeposit({
-        providerId: 'polymarket',
         signer: mockSigner,
       });
 
@@ -3624,7 +3614,6 @@ describe('PolymarketProvider', () => {
 
       await expect(
         provider.prepareDeposit({
-          providerId: 'polymarket',
           signer: mockSignerWithoutAddress,
         }),
       ).rejects.toThrow('Signer address is required');
@@ -3638,7 +3627,6 @@ describe('PolymarketProvider', () => {
 
       await expect(
         provider.prepareDeposit({
-          providerId: 'polymarket',
           signer: mockSigner,
         }),
       ).rejects.toThrow('Invalid deploy transaction: missing params');
@@ -3652,7 +3640,6 @@ describe('PolymarketProvider', () => {
 
       await expect(
         provider.prepareDeposit({
-          providerId: 'polymarket',
           signer: mockSigner,
         }),
       ).rejects.toThrow('Invalid allowance transaction: missing params');
@@ -3666,7 +3653,6 @@ describe('PolymarketProvider', () => {
 
       await expect(
         provider.prepareDeposit({
-          providerId: 'polymarket',
           signer: mockSigner,
         }),
       ).rejects.toThrow(
@@ -4032,7 +4018,6 @@ describe('PolymarketProvider', () => {
       // When getting balance
       const result = await provider.getBalance({
         address: '0x1234567890123456789012345678901234567890',
-        providerId: 'polymarket',
       });
 
       // Then balance is returned
@@ -4043,9 +4028,9 @@ describe('PolymarketProvider', () => {
     it('throws error when address is missing', async () => {
       const provider = createProvider();
 
-      await expect(
-        provider.getBalance({ address: '', providerId: 'polymarket' }),
-      ).rejects.toThrow('address is required');
+      await expect(provider.getBalance({ address: '' })).rejects.toThrow(
+        'address is required',
+      );
     });
 
     it('uses cached address when available', async () => {
@@ -4062,7 +4047,6 @@ describe('PolymarketProvider', () => {
 
       await provider.getBalance({
         address: userAddress,
-        providerId: 'polymarket',
       });
 
       expect(computeProxyAddress).not.toHaveBeenCalled();
@@ -4089,7 +4073,6 @@ describe('PolymarketProvider', () => {
 
       const result = await provider.prepareWithdraw({
         signer: mockSigner,
-        providerId: 'polymarket',
       });
 
       expect(result).toHaveProperty('chainId');
@@ -4109,7 +4092,6 @@ describe('PolymarketProvider', () => {
       await expect(
         provider.prepareWithdraw({
           signer: mockSigner,
-          providerId: 'polymarket',
         }),
       ).rejects.toThrow('Signer address is required');
     });
@@ -4128,7 +4110,6 @@ describe('PolymarketProvider', () => {
 
       const result = await provider.prepareWithdraw({
         signer: mockSigner,
-        providerId: 'polymarket',
       });
 
       expect(result.predictAddress).toBe('0xSafeAddress');

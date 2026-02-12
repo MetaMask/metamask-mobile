@@ -2281,7 +2281,6 @@ describe('polymarket utils', () => {
       });
 
       const params: GetMarketsParams = {
-        providerId: 'polymarket',
         q: 'weather',
         limit: 10,
         offset: 5,
@@ -2312,7 +2311,6 @@ describe('polymarket utils', () => {
       });
 
       const params: GetMarketsParams = {
-        providerId: 'polymarket',
         q: 'nhl',
         limit: 10,
         offset: 0,
@@ -2339,7 +2337,6 @@ describe('polymarket utils', () => {
       });
 
       const params: GetMarketsParams = {
-        providerId: 'polymarket',
         q: 'nhl',
         limit: 10,
         offset: 0,
@@ -2362,7 +2359,6 @@ describe('polymarket utils', () => {
       });
 
       const params: GetMarketsParams = {
-        providerId: 'polymarket',
         category: 'crypto',
         limit: 5,
       };
