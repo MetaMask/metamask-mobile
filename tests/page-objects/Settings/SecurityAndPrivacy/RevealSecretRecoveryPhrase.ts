@@ -79,10 +79,10 @@ class RevealSecretRecoveryPhrase {
   }
 
   async enterPasswordToRevealSecretCredential(password: string): Promise<void> {
-    // Wait for password screen to be ready (e.g. after navigation or quiz on iOS)
+    // Wait for password screen to be ready (e.g. after navigation or quiz on iOS/Android CI)
     await Utilities.waitForElementToBeVisible(
       this.passwordInputToRevealCredential,
-      10000,
+      15000,
     );
     await Gestures.typeText(this.passwordInputToRevealCredential, password, {
       hideKeyboard: true,
@@ -91,7 +91,8 @@ class RevealSecretRecoveryPhrase {
   }
 
   async tapConfirmButton(): Promise<void> {
-    await Utilities.waitForElementToBeVisible(this.confirmButton, 10000);
+    // Allow time for keyboard to dismiss after password entry (Android CI)
+    await Utilities.waitForElementToBeVisible(this.confirmButton, 15000);
     await Gestures.waitAndTap(this.confirmButton, {
       elemDescription: 'Confirm button to reveal credential',
     });

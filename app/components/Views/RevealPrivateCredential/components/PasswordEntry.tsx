@@ -35,7 +35,6 @@ const PasswordEntry = ({
         testID={RevealSeedViewSelectorsIDs.PASSWORD_INPUT_BOX_ID}
         returnKeyType="done"
         autoComplete="new-password"
-        autoFocus
         endAccessory={
           <ButtonIcon
             iconName={showPassword ? IconName.Eye : IconName.EyeSlash}
