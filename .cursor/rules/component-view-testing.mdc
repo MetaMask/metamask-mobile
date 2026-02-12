@@ -3,7 +3,7 @@ description: Mobile component-view testing rules (project-wide). Engine-only moc
 globs:
   - "**/*.view.test.{ts,tsx,js,jsx}"
   - "app/util/test/component-view/**"
-alwaysApply: false
+alwaysApply: true
 ---
 
 ## Component-view Testing (Project-wide)

@@ -248,9 +248,7 @@ jobs:
           command: yarn install --immutable
       - name: Clean state and following up dependencies installation
         run: yarn setup:github-ci --node
-      - run: yarn test:view --forceExit --silent --coverageReporters=json
-        env:
-          NODE_OPTIONS: --max_old_space_size=20480
+      - run: yarn test:view:ci
       - name: Rename coverage report and generate HTML
         shell: bash
         run: |
