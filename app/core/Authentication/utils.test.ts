@@ -8,9 +8,11 @@ import { UNLOCK_WALLET_ERROR_MESSAGES } from './constants';
 import {
   handlePasswordSubmissionError,
   checkPasswordRequirement,
-  getAuthToggleLabel,
+  getAuthType,
+  getAuthLabel,
 } from './utils';
 import { AuthenticationType } from 'expo-local-authentication';
+import AUTHENTICATION_TYPE from '../../constants/userProperties';
 
 // Mock expo-local-authentication
 jest.mock('expo-local-authentication', () => ({
@@ -112,157 +114,243 @@ describe('checkPasswordRequirement', () => {
   });
 });
 
-describe('getAuthToggleLabel', () => {
+const baseAuthUtilParams = {
+  allowLoginWithRememberMe: false,
+  legacyUserChoseBiometrics: false,
+  legacyUserChosePasscode: false,
+  isBiometricsAvailable: false,
+  passcodeAvailable: false,
+  supportedBiometricTypes: [] as number[],
+};
+
+describe('getAuthType', () => {
+  it('returns REMEMBER_ME when allowLoginWithRememberMe is true', () => {
+    expect(
+      getAuthType({
+        ...baseAuthUtilParams,
+        allowLoginWithRememberMe: true,
+        osAuthEnabled: false,
+        isBiometricsAvailable: true,
+        passcodeAvailable: true,
+      }),
+    ).toBe(AUTHENTICATION_TYPE.REMEMBER_ME);
+  });
+
+  it('returns BIOMETRIC when legacyUserChoseBiometrics is true and isBiometricsAvailable is true', () => {
+    expect(
+      getAuthType({
+        ...baseAuthUtilParams,
+        allowLoginWithRememberMe: false,
+        osAuthEnabled: true,
+        legacyUserChoseBiometrics: true,
+        isBiometricsAvailable: true,
+        passcodeAvailable: true,
+      }),
+    ).toBe(AUTHENTICATION_TYPE.BIOMETRIC);
+  });
+
+  it('returns PASSWORD when legacyUserChoseBiometrics is true and isBiometricsAvailable is false', () => {
+    expect(
+      getAuthType({
+        ...baseAuthUtilParams,
+        allowLoginWithRememberMe: false,
+        osAuthEnabled: true,
+        legacyUserChoseBiometrics: true,
+        isBiometricsAvailable: false,
+        passcodeAvailable: true,
+      }),
+    ).toBe(AUTHENTICATION_TYPE.PASSWORD);
+  });
+
+  it('returns PASSCODE when legacyUserChosePasscode is true and passcodeAvailable is true', () => {
+    expect(
+      getAuthType({
+        ...baseAuthUtilParams,
+        allowLoginWithRememberMe: false,
+        osAuthEnabled: true,
+        legacyUserChosePasscode: true,
+        isBiometricsAvailable: true,
+        passcodeAvailable: true,
+      }),
+    ).toBe(AUTHENTICATION_TYPE.PASSCODE);
+  });
+
+  it('returns PASSWORD when legacyUserChosePasscode is true and passcodeAvailable is false', () => {
+    expect(
+      getAuthType({
+        ...baseAuthUtilParams,
+        allowLoginWithRememberMe: false,
+        osAuthEnabled: true,
+        legacyUserChosePasscode: true,
+        isBiometricsAvailable: false,
+        passcodeAvailable: false,
+      }),
+    ).toBe(AUTHENTICATION_TYPE.PASSWORD);
+  });
+
+  it('returns PASSWORD when osAuthEnabled is false', () => {
+    expect(
+      getAuthType({
+        ...baseAuthUtilParams,
+        allowLoginWithRememberMe: false,
+        osAuthEnabled: false,
+        isBiometricsAvailable: true,
+        passcodeAvailable: true,
+      }),
+    ).toBe(AUTHENTICATION_TYPE.PASSWORD);
+  });
+
+  it('returns BIOMETRIC when isBiometricsAvailable is true and passcodeAvailable is true', () => {
+    expect(
+      getAuthType({
+        ...baseAuthUtilParams,
+        allowLoginWithRememberMe: false,
+        osAuthEnabled: true,
+        isBiometricsAvailable: true,
+        passcodeAvailable: true,
+      }),
+    ).toBe(AUTHENTICATION_TYPE.BIOMETRIC);
+  });
+
+  it('returns PASSCODE when isBiometricsAvailable is false and passcodeAvailable is true', () => {
+    expect(
+      getAuthType({
+        ...baseAuthUtilParams,
+        allowLoginWithRememberMe: false,
+        osAuthEnabled: true,
+        isBiometricsAvailable: false,
+        passcodeAvailable: true,
+      }),
+    ).toBe(AUTHENTICATION_TYPE.PASSCODE);
+  });
+
+  it('returns PASSWORD when isBiometricsAvailable is false and passcodeAvailable is false', () => {
+    expect(
+      getAuthType({
+        ...baseAuthUtilParams,
+        allowLoginWithRememberMe: false,
+        osAuthEnabled: true,
+        isBiometricsAvailable: false,
+        passcodeAvailable: false,
+      }),
+    ).toBe(AUTHENTICATION_TYPE.PASSWORD);
+  });
+});
+
+describe('getAuthLabel', () => {
   afterEach(() => {
     jest.restoreAllMocks();
   });
 
-  describe('iOS', () => {
+  it('returns "Remember Me" when allowLoginWithRememberMe is true', () => {
+    const result = getAuthLabel({
+      ...baseAuthUtilParams,
+      allowLoginWithRememberMe: true,
+    });
+    expect(result).toBe('Remember Me');
+  });
+
+  it('returns "Password" when isBiometricsAvailable is false and passcodeAvailable is false', () => {
+    const result = getAuthLabel({
+      ...baseAuthUtilParams,
+      isBiometricsAvailable: false,
+      passcodeAvailable: false,
+    });
+    expect(result).toBe('Password');
+  });
+
+  describe('ios', () => {
     beforeEach(() => {
       jest.replaceProperty(Platform, 'OS', 'ios');
     });
 
-    it('returns "Remember Me" when allowLoginWithRememberMe is true', () => {
-      const result = getAuthToggleLabel({
-        isBiometricsAvailable: true,
-        supportedOSAuthenticationTypes: [AuthenticationType.FACIAL_RECOGNITION],
-        passcodeAvailable: true,
-        allowLoginWithRememberMe: true,
-      });
-      expect(result).toBe('Remember Me');
-    });
-
-    it('returns "Face ID" when facial recognition is available', () => {
-      const result = getAuthToggleLabel({
-        isBiometricsAvailable: true,
-        supportedOSAuthenticationTypes: [AuthenticationType.FACIAL_RECOGNITION],
-        passcodeAvailable: true,
+    it('returns "Face ID" when legacyUserChoseBiometrics is true and facial recognition is supported', () => {
+      const result = getAuthLabel({
+        ...baseAuthUtilParams,
+        legacyUserChoseBiometrics: true,
+        supportedBiometricTypes: [AuthenticationType.FACIAL_RECOGNITION],
       });
       expect(result).toBe('Face ID');
     });
 
-    it('returns "Touch ID" when fingerprint is available', () => {
-      const result = getAuthToggleLabel({
-        isBiometricsAvailable: true,
-        supportedOSAuthenticationTypes: [AuthenticationType.FINGERPRINT],
-        passcodeAvailable: true,
+    it('returns "Touch ID" when legacyUserChoseBiometrics is true and fingerprint is supported', () => {
+      const result = getAuthLabel({
+        ...baseAuthUtilParams,
+        legacyUserChoseBiometrics: true,
+        supportedBiometricTypes: [AuthenticationType.FINGERPRINT],
       });
       expect(result).toBe('Touch ID');
     });
 
-    it('returns "Face ID" when both facial recognition and fingerprint are available (Face ID priority)', () => {
-      const result = getAuthToggleLabel({
+    it('returns "Device Passcode" when legacyUserChosePasscode is true', () => {
+      const result = getAuthLabel({
+        ...baseAuthUtilParams,
+        legacyUserChosePasscode: true,
+      });
+      expect(result).toBe('Device Passcode');
+    });
+
+    it('returns "Face ID" when isBiometricsAvailable is true and facial recognition is supported', () => {
+      const result = getAuthLabel({
+        ...baseAuthUtilParams,
         isBiometricsAvailable: true,
-        supportedOSAuthenticationTypes: [
-          AuthenticationType.FACIAL_RECOGNITION,
-          AuthenticationType.FINGERPRINT,
-        ],
-        passcodeAvailable: true,
+        supportedBiometricTypes: [AuthenticationType.FACIAL_RECOGNITION],
       });
       expect(result).toBe('Face ID');
     });
 
-    it('returns "Device Passcode" when no biometrics but passcode is available', () => {
-      const result = getAuthToggleLabel({
-        isBiometricsAvailable: false,
-        supportedOSAuthenticationTypes: [],
-        passcodeAvailable: true,
-      });
-      expect(result).toBe('Device Passcode');
-    });
-
-    it('returns empty string when nothing is available', () => {
-      const result = getAuthToggleLabel({
-        isBiometricsAvailable: false,
-        supportedOSAuthenticationTypes: [],
-        passcodeAvailable: false,
-      });
-      expect(result).toBe('');
-    });
-
-    it('returns "Device Passcode" when biometrics hardware exists but is disabled', () => {
-      const result = getAuthToggleLabel({
-        isBiometricsAvailable: false,
-        supportedOSAuthenticationTypes: [AuthenticationType.FACIAL_RECOGNITION],
-        passcodeAvailable: true,
-      });
-      expect(result).toBe('Device Passcode');
-    });
-
-    it('returns empty string when isBiometricsAvailable is true but supportedOSAuthenticationTypes is empty', () => {
-      const result = getAuthToggleLabel({
+    it('returns "Touch ID" when isBiometricsAvailable is true and fingerprint is supported', () => {
+      const result = getAuthLabel({
+        ...baseAuthUtilParams,
         isBiometricsAvailable: true,
-        supportedOSAuthenticationTypes: [],
-        passcodeAvailable: false,
+        supportedBiometricTypes: [AuthenticationType.FINGERPRINT],
       });
-      expect(result).toBe('');
+      expect(result).toBe('Touch ID');
+    });
+
+    it('returns "Device Passcode" when isBiometricsAvailable is false and passcodeAvailable is true', () => {
+      const result = getAuthLabel({
+        ...baseAuthUtilParams,
+        isBiometricsAvailable: false,
+        passcodeAvailable: true,
+      });
+      expect(result).toBe('Device Passcode');
     });
   });
 
-  describe('Android', () => {
+  describe('android', () => {
     beforeEach(() => {
       jest.replaceProperty(Platform, 'OS', 'android');
     });
 
-    it('returns "Remember Me" when allowLoginWithRememberMe is true', () => {
-      const result = getAuthToggleLabel({
-        isBiometricsAvailable: true,
-        supportedOSAuthenticationTypes: [AuthenticationType.FINGERPRINT],
-        passcodeAvailable: true,
-        allowLoginWithRememberMe: true,
-      });
-      expect(result).toBe('Remember Me');
-    });
-
-    it('returns "Biometrics" when fingerprint is available', () => {
-      const result = getAuthToggleLabel({
-        isBiometricsAvailable: true,
-        supportedOSAuthenticationTypes: [AuthenticationType.FINGERPRINT],
-        passcodeAvailable: true,
+    it('returns "Biometrics" when legacyUserChoseBiometrics is true', () => {
+      const result = getAuthLabel({
+        ...baseAuthUtilParams,
+        legacyUserChoseBiometrics: true,
       });
       expect(result).toBe('Biometrics');
     });
 
-    it('returns "Biometrics" when facial recognition is available', () => {
-      const result = getAuthToggleLabel({
-        isBiometricsAvailable: true,
-        supportedOSAuthenticationTypes: [AuthenticationType.FACIAL_RECOGNITION],
-        passcodeAvailable: true,
-      });
-      expect(result).toBe('Biometrics');
-    });
-
-    it('returns "Biometrics" when iris is available', () => {
-      const result = getAuthToggleLabel({
-        isBiometricsAvailable: true,
-        supportedOSAuthenticationTypes: [AuthenticationType.IRIS],
-        passcodeAvailable: true,
-      });
-      expect(result).toBe('Biometrics');
-    });
-
-    it('returns "Device PIN/Pattern" when no biometrics but passcode is available', () => {
-      const result = getAuthToggleLabel({
-        isBiometricsAvailable: false,
-        supportedOSAuthenticationTypes: [],
-        passcodeAvailable: true,
+    it("returns 'Device PIN/Pattern' when legacyUserChosePasscode is true", () => {
+      const result = getAuthLabel({
+        ...baseAuthUtilParams,
+        legacyUserChosePasscode: true,
       });
       expect(result).toBe('Device PIN/Pattern');
     });
 
-    it('returns empty string when nothing is available', () => {
-      const result = getAuthToggleLabel({
-        isBiometricsAvailable: false,
-        supportedOSAuthenticationTypes: [],
-        passcodeAvailable: false,
+    it('returns "Biometrics" when isBiometricsAvailable is true', () => {
+      const result = getAuthLabel({
+        ...baseAuthUtilParams,
+        isBiometricsAvailable: true,
       });
-      expect(result).toBe('');
+      expect(result).toBe('Biometrics');
     });
 
-    it('returns "Device PIN/Pattern" when biometrics hardware exists but is not enrolled', () => {
-      const result = getAuthToggleLabel({
+    it('returns "Device PIN/Pattern" when isBiometricsAvailable is false and passcodeAvailable is true', () => {
+      const result = getAuthLabel({
+        ...baseAuthUtilParams,
         isBiometricsAvailable: false,
-        supportedOSAuthenticationTypes: [AuthenticationType.FINGERPRINT],
         passcodeAvailable: true,
       });
       expect(result).toBe('Device PIN/Pattern');

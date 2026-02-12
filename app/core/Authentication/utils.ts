@@ -4,6 +4,7 @@ import { MIN_PASSWORD_LENGTH, UNLOCK_WALLET_ERROR_MESSAGES } from './constants';
 import { SeedlessOnboardingControllerError } from '../Engine/controllers/seedless-onboarding-controller/error';
 import { AuthenticationType } from 'expo-local-authentication';
 import { Platform } from 'react-native';
+import AUTHENTICATION_TYPE from '../../constants/userProperties';
 
 /**
  * Handles password submission errors by throwing the appropriate error.
@@ -76,56 +77,116 @@ export const handlePasswordSubmissionError = (error: Error) => {
 };
 
 /**
- * Gets a human-readable label for the authentication toggle based on device capabilities.
- * Priority: Remember Me > Biometrics > Device Passcode > ""
+ * Derives the auth type for keychain storage (what the system actually uses).
+ * Order: Remember Me > osAuthEnabled > legacy explicit choice > new tiered fallback (biometrics → passcode → password).
  *
- * iOS: "Remember Me" | "Face ID" | "Touch ID" | "Device Passcode" | ""
- * Android: "Remember Me" | "Biometrics" | "Device PIN/Pattern" | ""
+ * @param params.allowLoginWithRememberMe - Legacy - Whether the user has enabled remember me
+ * @param params.osAuthEnabled - Whether the user has enabled os auth
+ * @param params.legacyUserChoseBiometrics - Legacy - Whether the user has chosen biometrics
+ * @param params.legacyUserChosePasscode - Legacy - Whether the user has chosen passcode
+ * @param params.isBiometricsAvailable - Whether the device has biometrics available
+ * @param params.passcodeAvailable - Whether the device has passcode available
+ * @returns The AUTHENTICATION_TYPE to use for keychain/auth
  */
-export const getAuthToggleLabel = ({
+export const getAuthType = ({
+  allowLoginWithRememberMe,
+  osAuthEnabled,
+  legacyUserChoseBiometrics,
+  legacyUserChosePasscode,
   isBiometricsAvailable,
-  supportedOSAuthenticationTypes,
   passcodeAvailable,
-  allowLoginWithRememberMe = false,
 }: {
+  allowLoginWithRememberMe: boolean;
+  osAuthEnabled: boolean;
+  legacyUserChoseBiometrics: boolean;
+  legacyUserChosePasscode: boolean;
   isBiometricsAvailable: boolean;
-  supportedOSAuthenticationTypes: AuthenticationType[];
   passcodeAvailable: boolean;
-  allowLoginWithRememberMe?: boolean;
-}): string => {
-  // Priority 1: Remember Me (if enabled)
+}): AUTHENTICATION_TYPE => {
+  // Legacy condition
   if (allowLoginWithRememberMe) {
-    return 'Remember Me';
+    return AUTHENTICATION_TYPE.REMEMBER_ME;
+  } else if (!osAuthEnabled) {
+    return AUTHENTICATION_TYPE.PASSWORD;
   }
+  // Legacy condition
+  if (legacyUserChoseBiometrics) {
+    return isBiometricsAvailable
+      ? AUTHENTICATION_TYPE.BIOMETRIC
+      : AUTHENTICATION_TYPE.PASSWORD;
+  }
+  // Legacy condition
+  if (legacyUserChosePasscode) {
+    return passcodeAvailable
+      ? AUTHENTICATION_TYPE.PASSCODE
+      : AUTHENTICATION_TYPE.PASSWORD;
+  }
+  if (isBiometricsAvailable) {
+    return AUTHENTICATION_TYPE.BIOMETRIC;
+  }
+  if (passcodeAvailable) {
+    return AUTHENTICATION_TYPE.PASSCODE;
+  }
+  return AUTHENTICATION_TYPE.PASSWORD;
+};
 
-  // Priority 2: Biometrics (if available)
-  if (isBiometricsAvailable && supportedOSAuthenticationTypes.length > 0) {
+/**
+ * Gets a human-readable label based on the authentication and supported biometric types.
+ *
+ * iOS: "Remember Me" | "Face ID" | "Touch ID" | "Device Passcode" | "Password"
+ * Android: "Remember Me" | "Biometrics" | "Device PIN/Pattern" | "Password"
+ *
+ * @param params.supportedBiometricTypes - The supported biometric types
+ * @param params.allowLoginWithRememberMe - Legacy - Whether the user has enabled remember me
+ * @param params.legacyUserChoseBiometrics - Legacy - Whether the user has chosen biometrics
+ * @param params.legacyUserChosePasscode - Legacy - Whether the user has chosen passcode
+ * @param params.isBiometricsAvailable - Whether the device has biometrics available
+ * @param params.passcodeAvailable - Whether the device has passcode available
+ * @returns The human-readable label for the authentication type
+ */
+export const getAuthLabel = ({
+  supportedBiometricTypes,
+  allowLoginWithRememberMe,
+  legacyUserChoseBiometrics,
+  legacyUserChosePasscode,
+  isBiometricsAvailable,
+  passcodeAvailable,
+}: {
+  supportedBiometricTypes: AuthenticationType[];
+  allowLoginWithRememberMe: boolean;
+  legacyUserChoseBiometrics: boolean;
+  legacyUserChosePasscode: boolean;
+  isBiometricsAvailable: boolean;
+  passcodeAvailable: boolean;
+}): string => {
+  const getIosBiometricsLabel = () => {
     if (Platform.OS === 'ios') {
       if (
-        supportedOSAuthenticationTypes.includes(
-          AuthenticationType.FACIAL_RECOGNITION,
-        )
+        supportedBiometricTypes.includes(AuthenticationType.FACIAL_RECOGNITION)
       ) {
         return 'Face ID';
       }
-      if (
-        supportedOSAuthenticationTypes.includes(AuthenticationType.FINGERPRINT)
-      ) {
+      if (supportedBiometricTypes.includes(AuthenticationType.FINGERPRINT)) {
         return 'Touch ID';
       }
-    } else {
-      // Android uses generic "Biometrics" label
-      return 'Biometrics';
     }
-  }
+    // Android uses generic "Biometrics" label
+    return 'Biometrics';
+  };
 
-  // Priority 3: Device passcode (if available)
-  if (passcodeAvailable) {
+  if (allowLoginWithRememberMe) {
+    return 'Remember Me';
+  } else if (legacyUserChoseBiometrics) {
+    return getIosBiometricsLabel();
+  } else if (legacyUserChosePasscode) {
+    return Platform.OS === 'ios' ? 'Device Passcode' : 'Device PIN/Pattern';
+  } else if (isBiometricsAvailable) {
+    return getIosBiometricsLabel();
+  } else if (passcodeAvailable) {
     return Platform.OS === 'ios' ? 'Device Passcode' : 'Device PIN/Pattern';
   }
 
-  // Priority 4: No OS authentication available
-  return '';
+  return 'Password';
 };
 
 /**
