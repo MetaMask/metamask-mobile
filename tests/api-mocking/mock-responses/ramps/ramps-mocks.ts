@@ -10,7 +10,6 @@ export const RAMPS_GEOLOCATION_RESPONSE = {
   emoji: '🇫🇷',
   detected: true,
 };
-
 // Networks response
 export const RAMPS_NETWORKS_RESPONSE = {
   networks: [
@@ -251,3 +250,313 @@ export const RAMPS_AMOUNT_RESPONSE = {
   cryptoAmount: '1.0',
   fiatAmount: '3924.50',
 };
+
+// Top Tokens response (V2 Unified Buy)
+// Note: The API returns an object with topTokens and allTokens arrays
+// RampsToken type requires: assetId (CAIP-19), chainId (CAIP-2), name, symbol, decimals, iconUrl, tokenSupported
+const TOKENS_LIST = [
+  // ========== Ethereum Mainnet (eip155:1) ==========
+  {
+    assetId: 'eip155:1/erc20:0x0000000000000000000000000000000000000000',
+    chainId: 'eip155:1',
+    symbol: 'ETH',
+    name: 'Ethereum',
+    decimals: 18,
+    iconUrl:
+      'https://uat-static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0x0000000000000000000000000000000000000000.png',
+    tokenSupported: true,
+  },
+  {
+    assetId: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+    chainId: 'eip155:1',
+    symbol: 'USDC',
+    name: 'USD Coin',
+    decimals: 6,
+    iconUrl:
+      'https://uat-static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.png',
+    tokenSupported: true,
+  },
+  {
+    assetId: 'eip155:1/erc20:0x6b175474e89094c44da98b954eedeac495271d0f',
+    chainId: 'eip155:1',
+    symbol: 'DAI',
+    name: 'Dai Stablecoin',
+    decimals: 18,
+    iconUrl:
+      'https://uat-static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0x6b175474e89094c44da98b954eedeac495271d0f.png',
+    tokenSupported: true,
+  },
+  {
+    assetId: 'eip155:1/erc20:0x437cc33344a0b27a429f795ff6b469c72698b291',
+    chainId: 'eip155:1',
+    symbol: 'mUSD',
+    name: 'MetaMask USD',
+    decimals: 18,
+    iconUrl:
+      'https://uat-static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0x437cc33344a0b27a429f795ff6b469c72698b291.png',
+    tokenSupported: true,
+  },
+  {
+    assetId: 'eip155:1/erc20:0xdac17f958d2ee523a2206206994597c13d831ec7',
+    chainId: 'eip155:1',
+    symbol: 'USDT',
+    name: 'Tether USD',
+    decimals: 6,
+    iconUrl:
+      'https://uat-static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xdac17f958d2ee523a2206206994597c13d831ec7.png',
+    tokenSupported: true,
+  },
+
+  // ========== Linea (eip155:59144) ==========
+  {
+    assetId: 'eip155:59144/erc20:0x0000000000000000000000000000000000000000',
+    chainId: 'eip155:59144',
+    symbol: 'ETH',
+    name: 'Ethereum',
+    decimals: 18,
+    iconUrl:
+      'https://uat-static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/59144/erc20/0x0000000000000000000000000000000000000000.png',
+    tokenSupported: true,
+  },
+  {
+    assetId: 'eip155:59144/erc20:0x176211869ca2b568f2a7d4ee941e073a821ee1ff',
+    chainId: 'eip155:59144',
+    symbol: 'USDC',
+    name: 'USD Coin',
+    decimals: 6,
+    iconUrl:
+      'https://uat-static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/59144/erc20/0x176211869ca2b568f2a7d4ee941e073a821ee1ff.png',
+    tokenSupported: true,
+  },
+  {
+    assetId: 'eip155:59144/erc20:0x5a7a183b6b44dc4ec2e3d2ef43f98c5152b1d76d',
+    chainId: 'eip155:59144',
+    symbol: 'mUSD',
+    name: 'MetaMask USD',
+    decimals: 18,
+    iconUrl:
+      'https://uat-static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/59144/erc20/0x5a7a183b6b44dc4ec2e3d2ef43f98c5152b1d76d.png',
+    tokenSupported: true,
+  },
+
+  // ========== Polygon (eip155:137) ==========
+  {
+    assetId: 'eip155:137/erc20:0x0000000000000000000000000000000000001010',
+    chainId: 'eip155:137',
+    symbol: 'MATIC',
+    name: 'Polygon',
+    decimals: 18,
+    iconUrl:
+      'https://uat-static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/137/erc20/0x0000000000000000000000000000000000001010.png',
+    tokenSupported: true,
+  },
+  {
+    assetId: 'eip155:137/erc20:0x3c499c542cef5e3811e1192ce70d8cc03d5c3359',
+    chainId: 'eip155:137',
+    symbol: 'USDC',
+    name: 'USD Coin',
+    decimals: 6,
+    iconUrl:
+      'https://uat-static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/137/erc20/0x3c499c542cef5e3811e1192ce70d8cc03d5c3359.png',
+    tokenSupported: true,
+  },
+  {
+    assetId: 'eip155:137/erc20:0xc2132d05d31c914a87c6611c10748aeb04b58e8f',
+    chainId: 'eip155:137',
+    symbol: 'USDT',
+    name: 'Tether USD',
+    decimals: 6,
+    iconUrl:
+      'https://uat-static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/137/erc20/0xc2132d05d31c914a87c6611c10748aeb04b58e8f.png',
+    tokenSupported: true,
+  },
+
+  // ========== Base (eip155:8453) ==========
+  {
+    assetId: 'eip155:8453/erc20:0x0000000000000000000000000000000000000000',
+    chainId: 'eip155:8453',
+    symbol: 'ETH',
+    name: 'Ethereum',
+    decimals: 18,
+    iconUrl:
+      'https://uat-static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/8453/erc20/0x0000000000000000000000000000000000000000.png',
+    tokenSupported: true,
+  },
+  {
+    assetId: 'eip155:8453/erc20:0x833589fcd6edb6e08f4c7c32d4f71b54bda02913',
+    chainId: 'eip155:8453',
+    symbol: 'USDC',
+    name: 'USD Coin',
+    decimals: 6,
+    iconUrl:
+      'https://uat-static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/8453/erc20/0x833589fcd6edb6e08f4c7c32d4f71b54bda02913.png',
+    tokenSupported: true,
+  },
+
+  // ========== Optimism (eip155:10) ==========
+  {
+    assetId: 'eip155:10/erc20:0x0000000000000000000000000000000000000000',
+    chainId: 'eip155:10',
+    symbol: 'ETH',
+    name: 'Ethereum',
+    decimals: 18,
+    iconUrl:
+      'https://uat-static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/10/erc20/0x0000000000000000000000000000000000000000.png',
+    tokenSupported: true,
+  },
+  {
+    assetId: 'eip155:10/erc20:0x0b2c639c533813f4aa9d7837caf62653d097ff85',
+    chainId: 'eip155:10',
+    symbol: 'USDC',
+    name: 'USD Coin',
+    decimals: 6,
+    iconUrl:
+      'https://uat-static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/10/erc20/0x0b2c639c533813f4aa9d7837caf62653d097ff85.png',
+    tokenSupported: true,
+  },
+];
+
+export const RAMPS_TOP_TOKENS_RESPONSE = {
+  // Top tokens: Most popular tokens (Ethereum and Linea only - networks in default fixture)
+  topTokens: [
+    TOKENS_LIST[0], // ETH (Ethereum)
+    TOKENS_LIST[1], // USDC (Ethereum)
+    TOKENS_LIST[3], // mUSD (Ethereum)
+    TOKENS_LIST[5], // ETH (Linea)
+    TOKENS_LIST[6], // USDC (Linea)
+    TOKENS_LIST[7], // mUSD (Linea)
+  ],
+  // All tokens: Only Ethereum and Linea (networks available in default fixture)
+  allTokens: [
+    TOKENS_LIST[0], // ETH (Ethereum)
+    TOKENS_LIST[1], // USDC (Ethereum)
+    TOKENS_LIST[2], // DAI (Ethereum)
+    TOKENS_LIST[3], // mUSD (Ethereum)
+    TOKENS_LIST[4], // USDT (Ethereum)
+    TOKENS_LIST[5], // ETH (Linea)
+    TOKENS_LIST[6], // USDC (Linea)
+    TOKENS_LIST[7], // mUSD (Linea)
+  ],
+};
+
+// Providers response (V2 Unified Buy)
+// Provider type requires: id, name, environmentType, description, hqAddress, links, logos (with height/width)
+// Also includes supportedPaymentMethods to specify which payment methods each provider accepts
+export const RAMPS_PROVIDERS_RESPONSE = [
+  {
+    id: '/providers/transak-native-staging',
+    name: 'Transak',
+    environmentType: 'staging',
+    description: 'Buy crypto with credit card, debit card, or bank transfer',
+    hqAddress: 'Miami, FL',
+    links: [
+      {
+        name: 'Support',
+        url: 'https://support.transak.com',
+      },
+      {
+        name: 'Privacy Policy',
+        url: 'https://transak.com/privacy-policy',
+      },
+    ],
+    logos: {
+      light: 'https://uat-static.cx.metamask.io/assets/transak-light.png',
+      dark: 'https://uat-static.cx.metamask.io/assets/transak-dark.png',
+      height: 32,
+      width: 120,
+    },
+    supportedPaymentMethods: {
+      '/payments/apple-pay': true,
+      '/payments/debit-credit-card': true,
+      '/payments/bank-transfer': true,
+      '/payments/google-pay': true,
+    },
+  },
+  {
+    id: '/providers/moonpay-staging',
+    name: 'MoonPay',
+    environmentType: 'staging',
+    description: 'Buy crypto instantly with card or bank transfer',
+    hqAddress: 'London, UK',
+    links: [
+      {
+        name: 'Support',
+        url: 'https://support.moonpay.com',
+      },
+      {
+        name: 'Privacy Policy',
+        url: 'https://www.moonpay.com/privacy_policy',
+      },
+    ],
+    logos: {
+      light: 'https://uat-static.cx.metamask.io/assets/moonpay-light.png',
+      dark: 'https://uat-static.cx.metamask.io/assets/moonpay-dark.png',
+      height: 32,
+      width: 120,
+    },
+    supportedPaymentMethods: {
+      '/payments/apple-pay': true,
+      '/payments/debit-credit-card': true,
+      '/payments/google-pay': true,
+      '/payments/instant-ach': true,
+    },
+  },
+];
+
+// Payments V2 response (per-provider payment methods)
+// PaymentMethod type requires: id, paymentType, name, score, icon
+export const RAMPS_PAYMENTS_V2_RESPONSE = [
+  {
+    id: '/payments/apple-pay',
+    paymentType: 'apple-pay',
+    name: 'Apple Pay',
+    score: 285,
+    icon: 'apple',
+    disclaimer: 'Apple Cash is not supported.',
+    delay: [0, 0],
+    pendingOrderDescription:
+      'Card purchases may take a few minutes to complete.',
+  },
+  {
+    id: '/payments/debit-credit-card',
+    paymentType: 'debit-credit-card',
+    name: 'Debit or Credit',
+    score: 268,
+    icon: 'card',
+    disclaimer:
+      "Credit card purchases may incur your bank's cash advance fees, subject to your bank's policies.",
+    delay: [5, 10],
+    pendingOrderDescription:
+      'Card purchases may take a few minutes to complete.',
+  },
+  {
+    id: '/payments/bank-transfer',
+    paymentType: 'bank-transfer',
+    name: 'Bank Transfer',
+    score: 250,
+    icon: 'bank',
+    delay: [1440, 2880],
+    pendingOrderDescription:
+      'Bank transfers may take 1-2 business days to complete.',
+  },
+  {
+    id: '/payments/google-pay',
+    paymentType: 'google-pay',
+    name: 'Google Pay',
+    score: 280,
+    icon: 'google',
+    delay: [0, 0],
+    pendingOrderDescription:
+      'Card purchases may take a few minutes to complete.',
+  },
+  {
+    id: '/payments/instant-ach',
+    paymentType: 'instant-ach',
+    name: 'Instant ACH',
+    score: 260,
+    icon: 'bank',
+    delay: [5, 15],
+    pendingOrderDescription:
+      'ACH transfers may take a few minutes to complete.',
+  },
+];
