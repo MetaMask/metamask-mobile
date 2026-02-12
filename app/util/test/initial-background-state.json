@@ -461,13 +461,6 @@
     "pendingApprovalCount": 0,
     "approvalFlows": []
   },
-  "AssetsController": {
-    "assetPreferences": {},
-    "assetsBalance": {},
-    "assetsMetadata": {},
-    "assetsPrice": {},
-    "customAssets": {}
-  },
   "PermissionController": {
     "subjects": {}
   },

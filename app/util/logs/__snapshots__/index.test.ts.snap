@@ -37,13 +37,6 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "pendingApprovalCount": 0,
         "pendingApprovals": {},
       },
-      "AssetsController": {
-        "assetPreferences": {},
-        "assetsBalance": {},
-        "assetsMetadata": {},
-        "assetsPrice": {},
-        "customAssets": {},
-      },
       "AuthenticationController": {
         "isSignedIn": false,
       },
@@ -862,13 +855,6 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "approvalFlows": [],
         "pendingApprovalCount": 0,
         "pendingApprovals": {},
-      },
-      "AssetsController": {
-        "assetPreferences": {},
-        "assetsBalance": {},
-        "assetsMetadata": {},
-        "assetsPrice": {},
-        "customAssets": {},
       },
       "AuthenticationController": {
         "isSignedIn": false,
