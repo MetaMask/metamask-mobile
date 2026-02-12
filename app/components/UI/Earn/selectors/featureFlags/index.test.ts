@@ -890,6 +890,7 @@ describe('Earn Feature Flag Selectors', () => {
     });
 
     it('falls back to local flag when conversion flow is enabled and remote flag is invalid', () => {
+      process.env.GITHUB_ACTIONS = 'false';
       process.env.MM_MUSD_CONVERSION_FLOW_ENABLED = 'true';
       process.env.MM_MUSD_CTA_ENABLED = 'true';
 
@@ -949,6 +950,7 @@ describe('Earn Feature Flag Selectors', () => {
     });
 
     it('falls back to local flag when conversion flow is enabled and remote flag is invalid', () => {
+      process.env.GITHUB_ACTIONS = 'false';
       process.env.MM_MUSD_CONVERSION_FLOW_ENABLED = 'true';
       process.env.MM_MUSD_CONVERSION_ASSET_OVERVIEW_CTA = 'true';
 
@@ -1008,6 +1010,7 @@ describe('Earn Feature Flag Selectors', () => {
     });
 
     it('falls back to local flag when conversion flow is enabled and remote flag is invalid', () => {
+      process.env.GITHUB_ACTIONS = 'false';
       process.env.MM_MUSD_CONVERSION_FLOW_ENABLED = 'true';
       process.env.MM_MUSD_CONVERSION_TOKEN_LIST_ITEM_CTA = 'true';
 
@@ -1113,6 +1116,7 @@ describe('Earn Feature Flag Selectors', () => {
     });
 
     it('falls back to local flag when conversion flow is enabled and remote flag is invalid', () => {
+      process.env.GITHUB_ACTIONS = 'false';
       process.env.MM_MUSD_CONVERSION_FLOW_ENABLED = 'true';
       process.env.MM_MUSD_CONVERSION_REWARDS_UI_ENABLED = 'true';
 
