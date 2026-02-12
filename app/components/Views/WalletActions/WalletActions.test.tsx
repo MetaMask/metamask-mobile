@@ -128,7 +128,7 @@ jest.mock('../../../reducers/swaps', () => ({
 
 jest.mock('../../../core/redux/slices/bridge', () => ({
   ...jest.requireActual('../../../core/redux/slices/bridge'),
-  selectAllBridgeableNetworks: jest.fn().mockReturnValue([]),
+  selectEnabledSourceChains: jest.fn().mockReturnValue([]),
   selectIsSwapsEnabled: jest.fn().mockReturnValue(true),
 }));
 

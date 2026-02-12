@@ -36,10 +36,7 @@ import { useCallback, useMemo } from 'react';
 import { updateEditableParams } from '../../../../util/transaction-controller';
 import { selectTokensByChainIdAndAddress } from '../../../../selectors/tokensController';
 import { getTokenTransferData } from '../utils/transaction-pay';
-import {
-  convertMusdClaimAmount,
-  decodeMerklClaimAmount,
-} from '../../../UI/Earn/utils/musd';
+import useMerklClaimAmount from './earn/useMerklClaimAmount';
 
 interface TokenAmountProps {
   /**
@@ -134,6 +131,9 @@ export const useTokenAmount = ({
     networkClientId,
   );
 
+  const { pending: merklClaimPending, claimAmount: merklClaimAmount } =
+    useMerklClaimAmount(transaction, nativeConversionRate, usdConversionRate);
+
   const transactionData = useMemo(
     () => parseStandardTokenTransactionData(tokenData?.data),
     [tokenData?.data],
@@ -221,13 +221,10 @@ export const useTokenAmount = ({
       break;
     }
     case TransactionType.musdClaim: {
-      const claimAmountRaw = decodeMerklClaimAmount(txParams?.data as string);
-      if (claimAmountRaw) {
-        const { claimAmountDecimal, fiatValue } = convertMusdClaimAmount({
-          claimAmountRaw,
-          conversionRate: nativeConversionRate,
-          usdConversionRate,
-        });
+      if (merklClaimPending) break;
+
+      if (merklClaimAmount) {
+        const { claimAmountDecimal, fiatValue } = merklClaimAmount;
 
         return {
           amount: formatAmount(I18n.locale, claimAmountDecimal),

@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import PerpsWatchlistMarkets from './PerpsWatchlistMarkets';
-import type { PerpsMarketData } from '../../controllers/types';
+import { type PerpsMarketData } from '@metamask/perps-controller';
 import Routes from '../../../../../constants/navigation/Routes';
 
 // Mock dependencies

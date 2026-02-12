@@ -127,15 +127,27 @@ export function convertMusdClaimAmount({
 }
 
 /**
- * Decode the claim amount from a Merkl claim transaction data.
+ * Decoded Merkl claim transaction parameters
+ */
+export interface MerklClaimParams {
+  /** Total cumulative reward amount (raw, in base units) */
+  totalAmount: string;
+  /** User address */
+  userAddress: string;
+  /** Reward token address */
+  tokenAddress: string;
+}
+
+/**
+ * Decode all parameters from a Merkl claim transaction data.
  * The claim function signature is: claim(address[] users, address[] tokens, uint256[] amounts, bytes32[][] proofs)
  *
  * @param data - The transaction data hex string
- * @returns The first claim amount as a string (raw value, not adjusted for decimals), or null if decoding fails
+ * @returns Decoded claim parameters, or null if decoding fails
  */
-export function decodeMerklClaimAmount(
+export function decodeMerklClaimParams(
   data: string | undefined,
-): string | null {
+): MerklClaimParams | null {
   if (!data || typeof data !== 'string') {
     return null;
   }
@@ -143,13 +155,31 @@ export function decodeMerklClaimAmount(
   try {
     const contractInterface = new Interface(DISTRIBUTOR_CLAIM_ABI);
     const decoded = contractInterface.decodeFunctionData('claim', data);
-    // amounts is the 3rd parameter (index 2)
-    const amounts = decoded[2];
-    if (!amounts || amounts.length === 0) {
+    const [users, tokens, amounts] = decoded;
+
+    if (!users?.length || !tokens?.length || !amounts?.length) {
       return null;
     }
-    return amounts[0].toString();
+
+    return {
+      totalAmount: amounts[0].toString(),
+      userAddress: users[0],
+      tokenAddress: tokens[0],
+    };
   } catch {
     return null;
   }
+}
+
+/**
+ * Decode the claim amount from a Merkl claim transaction data.
+ * Convenience wrapper around decodeMerklClaimParams that returns only the amount.
+ *
+ * @param data - The transaction data hex string
+ * @returns The first claim amount as a string (raw value, not adjusted for decimals), or null if decoding fails
+ */
+export function decodeMerklClaimAmount(
+  data: string | undefined,
+): string | null {
+  return decodeMerklClaimParams(data)?.totalAmount ?? null;
 }
