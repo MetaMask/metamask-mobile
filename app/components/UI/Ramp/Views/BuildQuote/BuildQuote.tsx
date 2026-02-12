@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import type { CaipChainId } from '@metamask/utils';
 
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
@@ -79,6 +79,17 @@ function BuildQuote() {
   const [amount, setAmount] = useState<string>(() => String(DEFAULT_AMOUNT));
   const [amountAsNumber, setAmountAsNumber] = useState<number>(DEFAULT_AMOUNT);
   const [userHasEnteredAmount, setUserHasEnteredAmount] = useState(false);
+  const [isOnBuildQuoteScreen, setIsOnBuildQuoteScreen] =
+    useState<boolean>(true);
+
+  useFocusEffect(
+    useCallback(() => {
+      setIsOnBuildQuoteScreen(true);
+      return () => {
+        setIsOnBuildQuoteScreen(false);
+      };
+    }, []),
+  );
 
   const {
     userRegion,
@@ -148,8 +159,22 @@ function BuildQuote() {
     setUserHasEnteredAmount(true);
   }, []);
 
+  const handlePaymentPillPress = useCallback(() => {
+    if (debouncedPollingAmount <= 0) {
+      return;
+    }
+
+    stopQuotePolling();
+    navigation.navigate(
+      ...createPaymentSelectionModalNavigationDetails({
+        amount: debouncedPollingAmount,
+      }),
+    );
+  }, [debouncedPollingAmount, navigation, stopQuotePolling]);
+
   useEffect(() => {
     if (
+      !isOnBuildQuoteScreen ||
       !walletAddress ||
       !selectedPaymentMethod ||
       debouncedPollingAmount <= 0
@@ -173,6 +198,7 @@ function BuildQuote() {
     debouncedPollingAmount,
     startQuotePolling,
     stopQuotePolling,
+    isOnBuildQuoteScreen,
   ]);
 
   const handleContinuePress = useCallback(async () => {
@@ -314,11 +340,7 @@ function BuildQuote() {
                   strings('fiat_on_ramp.select_payment_method')
                 }
                 isLoading={paymentMethodsLoading}
-                onPress={() => {
-                  navigation.navigate(
-                    ...createPaymentSelectionModalNavigationDetails(),
-                  );
-                }}
+                onPress={handlePaymentPillPress}
               />
             </View>
           </View>
