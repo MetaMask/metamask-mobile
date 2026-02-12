@@ -87,16 +87,7 @@ jest.mock('../../hooks/useTokenPricePercentageChange', () => ({
   useTokenPricePercentageChange: jest.fn(),
 }));
 
-interface MockEarnToken {
-  balanceFiatNumber?: number;
-  experience?: {
-    type?: EARN_EXPERIENCES;
-  };
-}
-
-const mockGetEarnToken: jest.MockedFunction<
-  (token: TokenI) => MockEarnToken | undefined
-> = jest.fn();
+const mockGetEarnToken = jest.fn();
 
 jest.mock('../../../Earn/hooks/useEarnTokens', () => ({
   __esModule: true,
@@ -312,7 +303,7 @@ describe('TokenListItemV2 - Component Rendering Tests for Coverage', () => {
     isGeoEligible?: boolean;
     isStockToken?: boolean;
     isStablecoinLendingEnabled?: boolean;
-    earnToken?: MockEarnToken | null;
+    earnToken?: Record<string, unknown> | null;
   }
 
   function prepareMocks({
@@ -327,9 +318,9 @@ describe('TokenListItemV2 - Component Rendering Tests for Coverage', () => {
   }: PrepareMocksOptions = {}) {
     jest.clearAllMocks();
 
-    mockGetEarnToken.mockReturnValue(earnToken);
+    mockGetEarnToken.mockReturnValue(earnToken ?? null);
     mockSelectStablecoinLendingEnabledFlag.mockReturnValue(
-      isStablecoinLendingEnabled,
+      isStablecoinLendingEnabled ?? false,
     );
 
     // Stock token mocks
