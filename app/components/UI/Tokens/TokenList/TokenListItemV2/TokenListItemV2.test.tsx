@@ -312,7 +312,7 @@ describe('TokenListItemV2 - Component Rendering Tests for Coverage', () => {
     isGeoEligible?: boolean;
     isStockToken?: boolean;
     isStablecoinLendingEnabled?: boolean;
-    earnToken?: MockEarnToken;
+    earnToken?: MockEarnToken | null;
   }
 
   function prepareMocks({
@@ -1014,15 +1014,13 @@ describe('TokenListItemV2 - Component Rendering Tests for Coverage', () => {
     };
 
     it('renders percentage change when stablecoin lending Earn CTA balance is below minimum', () => {
-      // Arrange
+      // Arrange — earnToken is null because getEarnToken does not return
+      // tokens whose fiat balance is below the minimum threshold.
       prepareMocks({
         asset: { ...defaultAsset, balance: '0.009' },
         pricePercentChange1d: 1.23,
         isStablecoinLendingEnabled: true,
-        earnToken: {
-          balanceFiatNumber: 0.009,
-          experience: { type: EARN_EXPERIENCES.STABLECOIN_LENDING },
-        },
+        earnToken: null,
       });
 
       // Act
