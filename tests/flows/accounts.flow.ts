@@ -32,15 +32,18 @@ export const completeSrpQuiz = async (expectedSrp: string) => {
   await SrpQuizModal.tapQuestionRightAnswerButton(2);
   await SrpQuizModal.tapQuestionContinueButton(2);
 
-  // Check if already unlocked via biometrics or need password entry
-  const isAlreadyUnlocked = await RevealSecretRecoveryPhrase.isUnlocked();
+  // Check if already unlocked (biometrics) or need password entry
+  let isAlreadyUnlocked = await RevealSecretRecoveryPhrase.isUnlocked();
 
   if (!isAlreadyUnlocked) {
     await RevealSecretRecoveryPhrase.enterPasswordToRevealSecretCredential(
       PASSWORD,
     );
-    // Tap confirm button to unlock and show the tab view with blur overlay
-    await RevealSecretRecoveryPhrase.tapConfirmButton();
+    // Re-check: "Done" on keyboard triggers tryUnlock() so app may already be on "Tap to reveal"
+    isAlreadyUnlocked = await RevealSecretRecoveryPhrase.isUnlocked();
+    if (!isAlreadyUnlocked) {
+      await RevealSecretRecoveryPhrase.tapConfirmButton();
+    }
   }
 
   // Tap the blur overlay to reveal the SRP

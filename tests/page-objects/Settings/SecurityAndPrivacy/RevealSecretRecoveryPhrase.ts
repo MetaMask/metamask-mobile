@@ -91,24 +91,23 @@ class RevealSecretRecoveryPhrase {
   }
 
   async tapConfirmButton(): Promise<void> {
-    // Allow time for keyboard to dismiss after password entry (Android CI)
-    await Utilities.waitForElementToBeVisible(this.confirmButton, 15000);
     await Gestures.waitAndTap(this.confirmButton, {
       elemDescription: 'Confirm button to reveal credential',
     });
   }
 
   /**
-   * Check if the component is already unlocked (biometrics succeeded).
-   * When unlocked, the reveal button (blur overlay) is visible instead of password input.
+   * Check if the component is already unlocked (blur overlay / "Tap to reveal" visible).
+   * Waits up to 3s so we can detect transition after keyboard submit (onSubmitEditing → tryUnlock).
    */
   async isUnlocked(): Promise<boolean> {
     try {
-      // If the reveal button is visible, we're unlocked
-      await expect(this.revealSecretRecoveryPhraseButton).toBeVisible();
+      await Utilities.waitForElementToBeVisible(
+        this.revealSecretRecoveryPhraseButton,
+        3000,
+      );
       return true;
     } catch {
-      // If not visible, we need password entry
       return false;
     }
   }
