@@ -8025,19 +8025,26 @@ describe('HyperLiquidProvider', () => {
         });
       });
 
-      it('throws error when standalone client fails', async () => {
+      it('returns fallback account state when standalone client fails', async () => {
         // Arrange
         mockStandaloneInfoClient.clearinghouseState.mockRejectedValue(
           new Error('API unavailable'),
         );
 
-        // Act & Assert
-        await expect(
-          provider.getAccountState({
-            standalone: true,
-            userAddress: mockUserAddress,
-          }),
-        ).rejects.toThrow('API unavailable');
+        // Act
+        const result = await provider.getAccountState({
+          standalone: true,
+          userAddress: mockUserAddress,
+        });
+
+        // Assert — all DEX queries failed, aggregateAccountStates([]) returns fallback
+        expect(result).toEqual({
+          availableBalance: '--',
+          totalBalance: '--',
+          marginUsed: '--',
+          unrealizedPnl: '--',
+          returnOnEquity: '--',
+        });
       });
     });
 
