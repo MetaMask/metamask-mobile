@@ -285,23 +285,11 @@ const ChoosePassword = () => {
 
   const handleWalletCreation = useCallback(
     async (authType: AuthData, previous_screen: string | undefined) => {
+      // Ask user to allow biometrics access control
+      authType.currentAuthType = await Authentication.requestBiometricsAccessControlForIOS(authType.currentAuthType);
+
       if (previous_screen?.toLowerCase() === ONBOARDING.toLowerCase()) {
-
-        // Ask user to allow biometrics access control
-        if (Platform.OS === 'ios') {
-          try {
-            // Prompt user for biometrics access control
-            const result = await authenticateAsync({ disableDeviceFallback: true })
-            if (!result.success) {
-              authType.currentAuthType = AUTHENTICATION_TYPE.PASSWORD;
-            }
-          } catch (error) {
-            authType.currentAuthType = AUTHENTICATION_TYPE.PASSWORD;
-          }
-        }
-
         await Authentication.newWalletAndKeychain(password, authType);
-
         keyringControllerPasswordSet.current = true;
         dispatch(seedphraseNotBackedUp());
       } else {

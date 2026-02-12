@@ -111,6 +111,7 @@ jest.mock('../../../core/Authentication', () => ({
     currentAuthType: 'passcode',
     availableBiometryType: 'faceID',
   }),
+  requestBiometricsAccessControlForIOS: jest.fn((authType) => Promise.resolve(authType)),
   newWalletAndKeychain: jest
     .fn()
     .mockImplementation(
@@ -815,7 +816,11 @@ describe('ChoosePassword', () => {
   it('on iOS onboarding, when biometrics are declined uses PASSWORD auth type for new wallet', async () => {
     const originalOS = Platform.OS;
     (Platform as { OS: string }).OS = 'ios';
-    mockAuthenticateAsync.mockResolvedValueOnce({ success: false });
+    // ChoosePassword calls requestBiometricsAccessControlForIOS (Authentication); that method calls authenticateAsync.
+    // We mock the whole Authentication module, so simulate "user declined" by making requestBiometricsAccessControlForIOS return PASSWORD.
+    (Authentication.requestBiometricsAccessControlForIOS as jest.Mock).mockResolvedValueOnce(
+      AUTHENTICATION_TYPE.PASSWORD,
+    );
 
     mockRoute.params = {
       ...mockRoute.params,
@@ -864,9 +869,6 @@ describe('ChoosePassword', () => {
     });
 
     await waitFor(() => {
-      expect(mockAuthenticateAsync).toHaveBeenCalledWith({
-        disableDeviceFallback: true,
-      });
       expect(mockNewWalletAndKeychain).toHaveBeenCalled();
     });
 
@@ -877,7 +879,10 @@ describe('ChoosePassword', () => {
   it('on iOS onboarding, when biometrics succeed uses chosen auth type (biometric) for new wallet', async () => {
     const originalOS = Platform.OS;
     (Platform as { OS: string }).OS = 'ios';
-    mockAuthenticateAsync.mockResolvedValueOnce({ success: true });
+    // Simulate "user approved" by having requestBiometricsAccessControlForIOS return BIOMETRIC (pass-through).
+    (Authentication.requestBiometricsAccessControlForIOS as jest.Mock).mockResolvedValueOnce(
+      AUTHENTICATION_TYPE.BIOMETRIC,
+    );
 
     mockRoute.params = {
       ...mockRoute.params,
@@ -935,9 +940,6 @@ describe('ChoosePassword', () => {
     });
 
     await waitFor(() => {
-      expect(mockAuthenticateAsync).toHaveBeenCalledWith({
-        disableDeviceFallback: true,
-      });
       expect(mockNewWalletAndKeychain).toHaveBeenCalled();
     });
 
