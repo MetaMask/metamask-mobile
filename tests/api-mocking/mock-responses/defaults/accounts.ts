@@ -1241,7 +1241,7 @@ export const DEFAULT_ACCOUNTS_MOCK: MockEventsObject = {
       response: ACCOUNTS_API_TRANSACTIONS_RESPONSE,
     },
     {
-      urlEndpoint: 'https://accounts.api.cx.metamask.io/v1/supportedNetworks',
+      urlEndpoint: 'https://accounts.api.cx.metamask.io/v2/supportedNetworks',
       responseCode: 200,
       response: {
         fullSupport: [
