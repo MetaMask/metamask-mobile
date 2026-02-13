@@ -111,9 +111,9 @@ describe('usePerpsOrderDepositTracking', () => {
 
   it('invokes callback when transaction status becomes confirmed', () => {
     const { result } = renderHook(() => usePerpsOrderDepositTracking());
-    let statusUpdatedHandler: (payload: {
-      transactionMeta: TransactionMeta;
-    }) => void;
+    const handlers: {
+      statusUpdated?: (payload: { transactionMeta: TransactionMeta }) => void;
+    } = {};
 
     mockSubscribe.mockImplementation(
       (
@@ -121,7 +121,7 @@ describe('usePerpsOrderDepositTracking', () => {
         handler: (payload: { transactionMeta: TransactionMeta }) => void,
       ) => {
         if (_event === 'TransactionController:transactionStatusUpdated') {
-          statusUpdatedHandler = handler;
+          handlers.statusUpdated = handler;
         }
       },
     );
@@ -131,6 +131,7 @@ describe('usePerpsOrderDepositTracking', () => {
       result.current.handleDepositConfirm(perpsDepositMeta, callback);
     });
 
+    const statusUpdatedHandler = handlers.statusUpdated;
     expect(statusUpdatedHandler).toBeDefined();
     act(() => {
       (
@@ -151,9 +152,9 @@ describe('usePerpsOrderDepositTracking', () => {
 
   it('does not invoke callback when transaction confirms after cancel trade requested', () => {
     const { result } = renderHook(() => usePerpsOrderDepositTracking());
-    let statusUpdatedHandler: (payload: {
-      transactionMeta: TransactionMeta;
-    }) => void;
+    const handlers: {
+      statusUpdated?: (payload: { transactionMeta: TransactionMeta }) => void;
+    } = {};
 
     mockSubscribe.mockImplementation(
       (
@@ -161,7 +162,7 @@ describe('usePerpsOrderDepositTracking', () => {
         handler: (payload: { transactionMeta: TransactionMeta }) => void,
       ) => {
         if (_event === 'TransactionController:transactionStatusUpdated') {
-          statusUpdatedHandler = handler;
+          handlers.statusUpdated = handler;
         }
       },
     );
@@ -187,6 +188,7 @@ describe('usePerpsOrderDepositTracking', () => {
       closeButtonOptions?.closeButtonOptions?.onPress?.();
     });
 
+    const statusUpdatedHandler = handlers.statusUpdated;
     expect(statusUpdatedHandler).toBeDefined();
     act(() => {
       (
@@ -207,7 +209,9 @@ describe('usePerpsOrderDepositTracking', () => {
 
   it('shows error toast when transaction fails with matching id', () => {
     const { result } = renderHook(() => usePerpsOrderDepositTracking());
-    let failedHandler: (payload: { transactionMeta: TransactionMeta }) => void;
+    const handlers: {
+      failed?: (payload: { transactionMeta: TransactionMeta }) => void;
+    } = {};
 
     mockSubscribe.mockImplementation(
       (
@@ -215,7 +219,7 @@ describe('usePerpsOrderDepositTracking', () => {
         handler: (payload: { transactionMeta: TransactionMeta }) => void,
       ) => {
         if (_event === 'TransactionController:transactionFailed') {
-          failedHandler = handler;
+          handlers.failed = handler;
         }
       },
     );
@@ -226,10 +230,12 @@ describe('usePerpsOrderDepositTracking', () => {
 
     mockShowToast.mockClear();
 
-    expect(failedHandler).toBeDefined();
+    expect(handlers.failed).toBeDefined();
     act(() => {
       (
-        failedHandler as (payload: { transactionMeta: TransactionMeta }) => void
+        handlers.failed as (payload: {
+          transactionMeta: TransactionMeta;
+        }) => void
       )({
         transactionMeta: {
           id: transactionId,
