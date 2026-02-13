@@ -97,6 +97,7 @@ function BuildQuote() {
     isCritical: boolean;
   } | null>(null);
   const hasShownErrorRef = useRef<RampErrorType | null>(null);
+  const prevErrorStateRef = useRef<typeof errorState>(null);
   const [isOnBuildQuoteScreen, setIsOnBuildQuoteScreen] =
     useState<boolean>(true);
 
@@ -269,7 +270,7 @@ function BuildQuote() {
 
   // Handle quote fetch errors
   useEffect(() => {
-    if (quotesError && hasShownErrorRef.current !== 'quote_fetch') {
+    if (quotesError && hasShownErrorRef.current === null) {
       setErrorState({ type: 'quote_fetch', isCritical: false });
       hasShownErrorRef.current = 'quote_fetch';
     } else if (!quotesError && hasShownErrorRef.current === 'quote_fetch') {
@@ -288,7 +289,7 @@ function BuildQuote() {
       quotes &&
       quotes.success.length === 0;
 
-    if (hasNoQuotes && hasShownErrorRef.current !== 'no_quotes') {
+    if (hasNoQuotes && hasShownErrorRef.current === null) {
       setErrorState({ type: 'no_quotes', isCritical: false });
       hasShownErrorRef.current = 'no_quotes';
     } else if (!hasNoQuotes && hasShownErrorRef.current === 'no_quotes') {
@@ -298,9 +299,13 @@ function BuildQuote() {
     }
   }, [quotesLoading, quotesError, hasAmount, quotes]);
 
-  // Navigate to error modal when error state is set
+  // Navigate to error modal when error state changes from null to a value
   useEffect(() => {
-    if (errorState) {
+    const prevErrorState = prevErrorStateRef.current;
+    prevErrorStateRef.current = errorState;
+
+    // Only navigate if error state changed from null to a value
+    if (errorState && !prevErrorState) {
       navigation.navigate(
         ...createRampErrorModalNavigationDetails({
           errorType: errorState.type,

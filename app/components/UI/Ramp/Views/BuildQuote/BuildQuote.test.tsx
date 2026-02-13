@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render, act } from '@testing-library/react-native';
+import { fireEvent, render, act, waitFor } from '@testing-library/react-native';
 import BuildQuote from './BuildQuote';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
 import type { UseRampsQuotesResult } from '../../hooks/useRampsQuotes';
@@ -1100,7 +1100,7 @@ describe('BuildQuote', () => {
       // navigation should only be called once
     });
 
-    it('clears error state when quotes become available after no_quotes error', () => {
+    it('clears error state when quotes become available after no_quotes error', async () => {
       mockQuotes = {
         success: [],
         sorted: [],
@@ -1145,15 +1145,105 @@ describe('BuildQuote', () => {
         error: [],
       };
 
-      rerender(<BuildQuote />);
+      act(() => {
+        rerender(
+          <ThemeContext.Provider value={mockTheme}>
+            <BuildQuote />
+          </ThemeContext.Provider>,
+        );
+      });
 
-      // Should not navigate to error modal since quotes are now available
-      expect(mockNavigate).not.toHaveBeenCalledWith(
+      // Wait for effects to settle before asserting
+      await waitFor(() => {
+        // Should not navigate to error modal since quotes are now available
+        expect(mockNavigate).not.toHaveBeenCalledWith(
+          'RootModalFlow',
+          expect.objectContaining({
+            screen: 'RampErrorModal',
+          }),
+        );
+      });
+    });
+
+    it('does not overwrite existing error with different error type', async () => {
+      mockSelectedQuote = {
+        provider: '/providers/mercuryo',
+        quote: {
+          amountIn: 100,
+          amountOut: 0.05,
+          paymentMethod: '/payments/debit-credit-card',
+          buyURL:
+            'https://on-ramp.uat-api.cx.metamask.io/providers/mercuryo/buy-widget',
+        },
+        providerInfo: {
+          id: '/providers/mercuryo',
+          name: 'Mercuryo',
+          type: 'aggregator',
+        },
+      };
+      mockSelectedPaymentMethod = {
+        id: '/payments/debit-credit-card',
+        name: 'Card',
+      };
+
+      // Set up getWidgetUrl to fail, which will trigger widget_url_failed error
+      mockGetWidgetUrl.mockRejectedValue(new Error('Network error'));
+
+      const { getByTestId, rerender } = renderWithTheme(<BuildQuote />);
+      const continueButton = getByTestId('build-quote-continue-button');
+
+      // Trigger widget error
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      // Should have navigated to widget_url_failed error modal
+      expect(mockNavigate).toHaveBeenCalledWith(
         'RootModalFlow',
         expect.objectContaining({
           screen: 'RampErrorModal',
+          params: expect.objectContaining({
+            errorType: 'widget_url_failed',
+          }),
         }),
       );
+
+      mockNavigate.mockClear();
+
+      // Now trigger a quote fetch error by changing mockQuotesError
+      mockQuotesError = 'Failed to fetch quotes';
+
+      act(() => {
+        rerender(
+          <ThemeContext.Provider value={mockTheme}>
+            <BuildQuote />
+          </ThemeContext.Provider>,
+        );
+      });
+
+      // Wait for effects to settle
+      await waitFor(() => {
+        // Should NOT navigate to a new error modal because widget_url_failed error is already shown
+        expect(mockNavigate).not.toHaveBeenCalledWith(
+          'RootModalFlow',
+          expect.objectContaining({
+            screen: 'RampErrorModal',
+            params: expect.objectContaining({
+              errorType: 'quote_fetch',
+            }),
+          }),
+        );
+      });
+
+      // Verify no additional navigation occurred
+      expect(mockNavigate).not.toHaveBeenCalled();
+
+      // Clean up
+      mockQuotesError = null;
     });
   });
 
