@@ -1535,8 +1535,8 @@ export function isVersionGatedFeatureFlag(
   return (
     typeof value === 'object' &&
     value !== null &&
-    Object.hasOwn(value, 'enabled') &&
-    Object.hasOwn(value, 'minimumVersion') &&
+    'enabled' in value &&
+    'minimumVersion' in value &&
     typeof (value as { enabled: unknown }).enabled === 'boolean' &&
     typeof (value as { minimumVersion: unknown }).minimumVersion === 'string'
   );

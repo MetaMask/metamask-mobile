@@ -33,7 +33,7 @@ export function calculateOpenInterestUSD(
   openInterest: string | number | undefined,
   currentPrice: string | number | undefined,
 ): number {
-  if (openInterest === null || currentPrice === null) {
+  if (openInterest == null || currentPrice == null) {
     return NaN;
   }
 
@@ -222,7 +222,7 @@ export function transformMarketData(
     // Get current funding rate from assetCtx - this is the actual current funding rate
     let fundingRate: number | undefined;
 
-    if (assetCtx && Object.hasOwn(assetCtx, 'funding')) {
+    if (assetCtx && 'funding' in assetCtx) {
       fundingRate = parseFloat(assetCtx.funding);
     }
 

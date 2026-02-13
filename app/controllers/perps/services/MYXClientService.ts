@@ -300,8 +300,10 @@ export class MYXClientService {
     try {
       const tickers = await this.getTickers(this.#pollingSymbols);
       // Re-check: polling may have been stopped during the await
-      if (this.#pollingCallback) {
-        this.#pollingCallback(tickers);
+      // (TS narrows after early return but can't track mutations across await)
+      const callback = this.#pollingCallback;
+      if (callback) {
+        callback(tickers);
       }
     } catch (caughtError) {
       const wrappedError = ensureError(

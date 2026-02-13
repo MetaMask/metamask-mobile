@@ -47,7 +47,7 @@ export const hasExceededSignificantFigures = (
 
   const cleaned = priceString.replace(/[$,]/gu, '').trim();
   const number = parseFloat(cleaned);
-  if (isNaN(num)) {
+  if (isNaN(number)) {
     return false;
   }
 
@@ -93,7 +93,7 @@ export const roundToSignificantFigures = (
   const allowedDecimalDigits = maxSigFigs - integerSigFigs;
 
   if (allowedDecimalDigits <= 0) {
-    return Math.round(num).toString();
+    return Math.round(number).toString();
   }
 
   if (decimalPart.length <= allowedDecimalDigits) {

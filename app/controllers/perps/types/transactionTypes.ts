@@ -62,7 +62,7 @@ export type TransactionRecord = {
 export function isTransactionRecord(
   result: LastTransactionResult | TransactionRecord,
 ): result is TransactionRecord {
-  return Object.hasOwn(result, 'id') && Object.hasOwn(result, 'status');
+  return 'id' in result && 'status' in result;
 }
 
 /**
@@ -74,5 +74,5 @@ export function isTransactionRecord(
 export function isLastTransactionResult(
   result: LastTransactionResult | TransactionRecord,
 ): result is LastTransactionResult {
-  return !Object.hasOwn(result, 'id') || !Object.hasOwn(result, 'status');
+  return !('id' in result) || !('status' in result);
 }

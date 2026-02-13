@@ -311,7 +311,7 @@ export function formatHyperLiquidSize(params: {
   const { size, szDecimals } = params;
   const number = typeof size === 'string' ? parseFloat(size) : size;
 
-  if (isNaN(num)) {
+  if (isNaN(number)) {
     return '0';
   }
 
@@ -385,13 +385,10 @@ export function adaptHyperLiquidLedgerUpdateToUserHistoryItem(
       let amount = '0';
       let asset = 'USDC';
 
-      if (Object.hasOwn(update.delta, 'usdc') && update.delta.usdc) {
+      if ('usdc' in update.delta && update.delta.usdc) {
         amount = Math.abs(parseFloat(update.delta.usdc)).toString();
       }
-      if (
-        Object.hasOwn(update.delta, 'coin') &&
-        typeof update.delta.coin === 'string'
-      ) {
+      if ('coin' in update.delta && typeof update.delta.coin === 'string') {
         asset = update.delta.coin;
       }
 

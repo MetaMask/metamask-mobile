@@ -85,8 +85,8 @@ describe('DataLakeService', () => {
       const result = await dataLakeService.reportOrder({
         action: 'open',
         symbol: 'BTC',
-        sl_price: 45000,
-        tp_price: 55000,
+        slPrice: 45000,
+        tpPrice: 55000,
         isTestnet: false,
         context: mockContext,
       });
@@ -383,8 +383,8 @@ describe('DataLakeService', () => {
       await dataLakeService.reportOrder({
         action: 'close',
         symbol: 'BTC',
-        sl_price: 45000,
-        tp_price: 55000,
+        slPrice: 45000,
+        tpPrice: 55000,
         isTestnet: false,
         context: mockContext,
       });

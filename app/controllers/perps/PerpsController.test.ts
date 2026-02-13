@@ -30,6 +30,7 @@ import { PERPS_ERROR_CODES } from './perpsErrorCodes';
 import { HyperLiquidProvider } from './providers/HyperLiquidProvider';
 import type {
   AccountState,
+  GetAvailableDexsParams,
   PerpsProvider,
   PerpsPlatformDependencies,
   PerpsProviderType,
@@ -2297,7 +2298,7 @@ describe('PerpsController', () => {
 
     it('passes filter parameters to provider', async () => {
       const mockDexs = ['dex1'];
-      const filterParams = { validated: true };
+      const filterParams = {} as GetAvailableDexsParams;
       jest
         .spyOn(mockMarketDataServiceInstance, 'getAvailableDexs')
         .mockResolvedValue(mockDexs);

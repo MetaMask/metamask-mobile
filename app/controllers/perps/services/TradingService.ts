@@ -143,11 +143,11 @@ export class TradingService {
     };
 
     // Add optional properties
-    if (params.trackingData?.marginUsed !== null) {
+    if (params.trackingData?.marginUsed != null) {
       properties[PERPS_EVENT_PROPERTY.MARGIN_USED] =
         params.trackingData.marginUsed;
     }
-    if (params.trackingData?.totalFee !== null) {
+    if (params.trackingData?.totalFee != null) {
       properties[PERPS_EVENT_PROPERTY.FEES] = params.trackingData.totalFee;
     }
     if (result?.averagePrice ?? params.trackingData?.marketPrice) {
@@ -168,11 +168,11 @@ export class TradingService {
     properties[PERPS_EVENT_PROPERTY.TRADE_WITH_TOKEN] =
       params.trackingData?.tradeWithToken === true;
     if (params.trackingData?.tradeWithToken === true) {
-      if (params.trackingData.mmPayTokenSelected !== null) {
+      if (params.trackingData.mmPayTokenSelected != null) {
         properties[PERPS_EVENT_PROPERTY.MM_PAY_TOKEN_SELECTED] =
           params.trackingData.mmPayTokenSelected;
       }
-      if (params.trackingData.mmPayNetworkSelected !== null) {
+      if (params.trackingData.mmPayNetworkSelected != null) {
         properties[PERPS_EVENT_PROPERTY.MM_PAY_NETWORK_SELECTED] =
           params.trackingData.mmPayNetworkSelected;
       }
@@ -180,19 +180,19 @@ export class TradingService {
 
     // Add success-specific properties
     if (status === PERPS_EVENT_VALUE.STATUS.EXECUTED) {
-      if (params.trackingData?.metamaskFee !== null) {
+      if (params.trackingData?.metamaskFee != null) {
         properties[PERPS_EVENT_PROPERTY.METAMASK_FEE] =
           params.trackingData.metamaskFee;
       }
-      if (params.trackingData?.metamaskFeeRate !== null) {
+      if (params.trackingData?.metamaskFeeRate != null) {
         properties[PERPS_EVENT_PROPERTY.METAMASK_FEE_RATE] =
           params.trackingData.metamaskFeeRate;
       }
-      if (params.trackingData?.feeDiscountPercentage !== null) {
+      if (params.trackingData?.feeDiscountPercentage != null) {
         properties[PERPS_EVENT_PROPERTY.DISCOUNT_PERCENTAGE] =
           params.trackingData.feeDiscountPercentage;
       }
-      if (params.trackingData?.estimatedPoints !== null) {
+      if (params.trackingData?.estimatedPoints != null) {
         properties[PERPS_EVENT_PROPERTY.ESTIMATED_REWARDS] =
           params.trackingData.estimatedPoints;
       }
@@ -615,21 +615,21 @@ export class TradingService {
         [PERPS_EVENT_PROPERTY.PNL_PERCENT]:
           parseFloat(position.returnOnEquity) * 100,
       }),
-      ...(params.trackingData?.totalFee !== null && {
+      ...(params.trackingData?.totalFee != null && {
         [PERPS_EVENT_PROPERTY.FEE]: params.trackingData.totalFee,
       }),
-      ...(params.trackingData?.metamaskFee !== null && {
+      ...(params.trackingData?.metamaskFee != null && {
         [PERPS_EVENT_PROPERTY.METAMASK_FEE]: params.trackingData.metamaskFee,
       }),
-      ...(params.trackingData?.metamaskFeeRate !== null && {
+      ...(params.trackingData?.metamaskFeeRate != null && {
         [PERPS_EVENT_PROPERTY.METAMASK_FEE_RATE]:
           params.trackingData.metamaskFeeRate,
       }),
-      ...(params.trackingData?.feeDiscountPercentage !== null && {
+      ...(params.trackingData?.feeDiscountPercentage != null && {
         [PERPS_EVENT_PROPERTY.DISCOUNT_PERCENTAGE]:
           params.trackingData.feeDiscountPercentage,
       }),
-      ...(params.trackingData?.estimatedPoints !== null && {
+      ...(params.trackingData?.estimatedPoints != null && {
         [PERPS_EVENT_PROPERTY.ESTIMATED_REWARDS]:
           params.trackingData.estimatedPoints,
       }),
@@ -642,7 +642,7 @@ export class TradingService {
         params.price && {
           [PERPS_EVENT_PROPERTY.LIMIT_PRICE]: parseFloat(params.price),
         }),
-      ...(params.trackingData?.receivedAmount !== null && {
+      ...(params.trackingData?.receivedAmount != null && {
         [PERPS_EVENT_PROPERTY.RECEIVED_AMOUNT]:
           params.trackingData.receivedAmount,
       }),
@@ -1461,7 +1461,7 @@ export class TradingService {
 
       this.#deps.debugLogger.log('[closePositions] Batch method check', {
         providerType: provider.protocolId,
-        hasBatchMethod: Object.hasOwn(provider, 'closePositions'),
+        hasBatchMethod: 'closePositions' in provider,
         providerKeys: Object.keys(provider).filter((key) =>
           key.includes('close'),
         ),

@@ -199,10 +199,9 @@ module.exports = {
             message:
               'Use ES private class fields (#field) instead of TypeScript private keyword.',
           },
-          {
-            selector: "BinaryExpression[operator='in']",
-            message: 'Use Object.hasOwn() instead of the "in" operator.',
-          },
+          // NOTE: BinaryExpression[operator='in'] rule deferred to Core.
+          // Object.hasOwn() requires lib:es2022 (mobile uses es2017) and
+          // doesn't provide TS type narrowing like the `in` operator does.
         ],
         'id-denylist': [
           'error',
@@ -227,7 +226,9 @@ module.exports = {
           },
         ],
         'no-negated-condition': 'error',
-        'no-eq-null': 'error',
+        // NOTE: no-eq-null deferred to Core. The `!= null` pattern is idiomatic
+        // for guarding both null and undefined with optional chaining (x?.y != null).
+        'no-eq-null': 'off',
         'no-nested-ternary': 'error',
         'no-plusplus': ['error', { allowForLoopAfterthoughts: true }],
         'require-unicode-regexp': 'error',

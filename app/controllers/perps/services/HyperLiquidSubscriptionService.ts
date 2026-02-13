@@ -2308,7 +2308,8 @@ export class HyperLiquidSubscriptionService {
    */
   #ensureGlobalAllMidsSubscription(): void {
     // Check both the subscription AND the promise to prevent race conditions
-    if (this.#globalAllMidsSubscription ?? this.#globalAllMidsPromise) {
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    if (this.#globalAllMidsSubscription || this.#globalAllMidsPromise) {
       return;
     }
 
@@ -2439,9 +2440,9 @@ export class HyperLiquidSubscriptionService {
             const isPerpsContext = (
               event: ActiveAssetCtxWsEvent | ActiveSpotAssetCtxWsEvent,
             ): event is ActiveAssetCtxWsEvent =>
-              Object.hasOwn(event.ctx, 'funding') &&
-              Object.hasOwn(event.ctx, 'openInterest') &&
-              Object.hasOwn(event.ctx, 'oraclePx');
+              'funding' in event.ctx &&
+              'openInterest' in event.ctx &&
+              'oraclePx' in event.ctx;
 
             const { ctx } = data;
 
@@ -2641,7 +2642,7 @@ export class HyperLiquidSubscriptionService {
           // Use cached meta to map ctxs array indices to symbols (no REST API call!)
           validatedMeta.universe.forEach((asset, index) => {
             const ctx = data.ctxs[index];
-            if (ctx && Object.hasOwn(ctx, 'funding')) {
+            if (ctx && 'funding' in ctx) {
               // This is a perps context
               const ctxPrice = ctx.midPx ?? ctx.markPx;
               const openInterestUSD = calculateOpenInterestUSD(

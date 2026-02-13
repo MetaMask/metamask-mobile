@@ -1015,19 +1015,11 @@ describe('HyperLiquidProvider', () => {
     });
 
     it('handles editOrder when asset ID is not found', async () => {
-      // Create a spy on the symbolToAssetId.get method to return undefined for BTC
-      // eslint-disable-next-line dot-notation
-      const originalGet = provider['symbolToAssetId'].get;
-      const getSpy = jest
-        // eslint-disable-next-line dot-notation
-        .spyOn(provider['symbolToAssetId'], 'get')
-        .mockImplementation((symbol: string) => {
-          if (symbol === 'BTC') {
-            return undefined; // Simulate BTC not found in mapping
-          }
-          // eslint-disable-next-line dot-notation
-          return originalGet.call(provider['symbolToAssetId'], symbol);
-        });
+      // Override symbolToAssetId with a map that doesn't include BTC
+      Object.defineProperty(provider, 'symbolToAssetId', {
+        value: new Map([['ETH', 1]]),
+        writable: true,
+      });
 
       const editParams = {
         orderId: '123',
@@ -1045,8 +1037,14 @@ describe('HyperLiquidProvider', () => {
       expect(result.success).toBe(false);
       expect(result.error).toContain('Asset ID not found for BTC');
 
-      // Restore only this specific spy (not all mocks)
-      getSpy.mockRestore();
+      // Restore the original map for subsequent tests
+      Object.defineProperty(provider, 'symbolToAssetId', {
+        value: new Map([
+          ['BTC', 0],
+          ['ETH', 1],
+        ]),
+        writable: true,
+      });
     });
 
     it('cancels an order successfully', async () => {

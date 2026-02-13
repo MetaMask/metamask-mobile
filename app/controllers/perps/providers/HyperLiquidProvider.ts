@@ -1775,12 +1775,12 @@ export class HyperLiquidProvider implements PerpsProvider {
 
       // Check order status
       const status = result.response?.data?.statuses?.[0];
-      if (isStatusObject(status) && Object.hasOwn(status, 'error')) {
+      if (isStatusObject(status) && 'error' in status) {
         return { success: false, error: String(status.error) };
       }
 
       const filledSize =
-        isStatusObject(status) && Object.hasOwn(status, 'filled')
+        isStatusObject(status) && 'filled' in status
           ? parseFloat(status.filled?.totalSz ?? '0')
           : 0;
 
@@ -3198,13 +3198,9 @@ export class HyperLiquidProvider implements PerpsProvider {
 
       const status = result.response?.data?.statuses?.[0];
       const restingOrder =
-        isStatusObject(status) && Object.hasOwn(status, 'resting')
-          ? status.resting
-          : null;
+        isStatusObject(status) && 'resting' in status ? status.resting : null;
       const filledOrder =
-        isStatusObject(status) && Object.hasOwn(status, 'filled')
-          ? status.filled
-          : null;
+        isStatusObject(status) && 'filled' in status ? status.filled : null;
 
       // Success - auto-rebalance excess funds
       if (isHip3Order && transferInfo && dexName) {
@@ -3920,8 +3916,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       const { statuses } = result.response.data;
       const successCount = statuses.filter(
         (stat) =>
-          isStatusObject(stat) &&
-          (Object.hasOwn(stat, 'filled') || Object.hasOwn(stat, 'resting')),
+          isStatusObject(stat) && ('filled' in stat || 'resting' in stat),
       ).length;
       const failureCount = statuses.length - successCount;
 
@@ -3931,8 +3926,7 @@ export class HyperLiquidProvider implements PerpsProvider {
           const status = statuses[i];
           const isSuccess =
             isStatusObject(status) &&
-            (Object.hasOwn(status, 'filled') ||
-              Object.hasOwn(status, 'resting'));
+            ('filled' in status || 'resting' in status);
 
           if (isSuccess && hip3Transfers[i]) {
             const { sourceDex, freedMargin } = hip3Transfers[i];
@@ -3958,10 +3952,9 @@ export class HyperLiquidProvider implements PerpsProvider {
           symbol: positionsToClose[index].symbol,
           success:
             isStatusObject(status) &&
-            (Object.hasOwn(status, 'filled') ||
-              Object.hasOwn(status, 'resting')),
+            ('filled' in status || 'resting' in status),
           error:
-            isStatusObject(status) && Object.hasOwn(status, 'error')
+            isStatusObject(status) && 'error' in status
               ? String(status.error)
               : undefined,
         })),
@@ -5606,7 +5599,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       // Extract HIP-3 DEX names (filter out null which is main DEX)
       const hip3DexNames: string[] = [];
       allDexs.forEach((dex) => {
-        if (dex !== null && Object.hasOwn(dex, 'name')) {
+        if (dex !== null && 'name' in dex) {
           hip3DexNames.push(dex.name);
         }
       });

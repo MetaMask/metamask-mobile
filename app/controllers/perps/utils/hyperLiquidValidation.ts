@@ -371,10 +371,7 @@ export function applyPathFilters(
     });
   }
 
-  if (
-    params.symbol &&
-    Object.hasOwn(HYPERLIQUID_ASSET_CONFIGS, params.symbol)
-  ) {
+  if (params.symbol && params.symbol in HYPERLIQUID_ASSET_CONFIGS) {
     const config =
       HYPERLIQUID_ASSET_CONFIGS[
         params.symbol as keyof typeof HYPERLIQUID_ASSET_CONFIGS
