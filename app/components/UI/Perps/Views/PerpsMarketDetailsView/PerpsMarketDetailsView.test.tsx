@@ -228,32 +228,61 @@ jest.mock('../../providers/PerpsConnectionProvider', () => ({
   }),
 }));
 
+interface MockOpenOrder {
+  id: string;
+  orderId: string;
+  symbol: string;
+  side: string;
+  size: string;
+  originalSize: string;
+  price: string;
+  status: string;
+  timestamp: number;
+  lastUpdated: number;
+  orderType: string;
+  filledSize: string;
+  remainingSize: string;
+  detailedOrderType: string;
+  isTrigger: boolean;
+  reduceOnly: boolean;
+  isPositionTpsl?: boolean;
+}
+
+interface MockUsePerpsOpenOrdersResult {
+  orders: MockOpenOrder[];
+  refresh: jest.Mock;
+  isLoading: boolean;
+  error: string | null;
+}
+
 const mockRefreshOrders = jest.fn();
-const mockUsePerpsOpenOrdersImpl = jest.fn(() => ({
-  orders: [
-    {
-      id: 'order1',
-      orderId: 'order1',
-      symbol: 'BTC',
-      side: 'buy',
-      size: '0.1',
-      originalSize: '0.1',
-      price: '45000',
-      status: 'open',
-      timestamp: Date.now(),
-      lastUpdated: Date.now(),
-      orderType: 'limit',
-      filledSize: '0',
-      remainingSize: '0.1',
-      detailedOrderType: 'Limit Order',
-      isTrigger: false,
-      reduceOnly: false,
-    },
-  ],
-  refresh: mockRefreshOrders,
-  isLoading: false,
-  error: null,
-}));
+const mockUsePerpsOpenOrdersImpl = jest.fn<MockUsePerpsOpenOrdersResult, []>(
+  () => ({
+    orders: [
+      {
+        id: 'order1',
+        orderId: 'order1',
+        symbol: 'BTC',
+        side: 'buy',
+        size: '0.1',
+        originalSize: '0.1',
+        price: '45000',
+        status: 'open',
+        timestamp: Date.now(),
+        lastUpdated: Date.now(),
+        orderType: 'limit',
+        filledSize: '0',
+        remainingSize: '0.1',
+        detailedOrderType: 'Limit Order',
+        isTrigger: false,
+        reduceOnly: false,
+      },
+    ],
+    refresh: mockRefreshOrders,
+    isLoading: false,
+    error: null,
+  }),
+);
 
 jest.mock('../../hooks/usePerpsOpenOrders', () => ({
   usePerpsOpenOrders: () => mockUsePerpsOpenOrdersImpl(),
