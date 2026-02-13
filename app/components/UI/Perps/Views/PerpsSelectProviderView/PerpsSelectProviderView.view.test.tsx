@@ -16,7 +16,7 @@ const myxEnabledOverrides = {
           perpsMyxProviderEnabled: {
             enabled: true,
             featureVersion: null,
-            minimumVersion: null,
+            minimumVersion: '0.0.0',
           },
         },
       },
