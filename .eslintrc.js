@@ -175,6 +175,12 @@ module.exports = {
       },
     },
     {
+      files: ['app/controllers/perps/**/*.{ts,tsx}'],
+      rules: {
+        '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
+      },
+    },
+    {
       files: ['app/**/*.{ts,tsx}'],
       excludedFiles: ['app/controllers/perps/**/*.{ts,tsx}'],
       rules: {
@@ -218,6 +224,7 @@ module.exports = {
     'import/resolver': {
       typescript: {}, // this loads <rootdir>/tsconfig.json to eslint
     },
+    'import/internal-regex': '^@metamask/perps-controller',
   },
 
   rules: {
