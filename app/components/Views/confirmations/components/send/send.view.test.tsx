@@ -50,13 +50,13 @@ describeForPlatforms('Send', () => {
   });
 
   /**
-   * Regression test for Issue #22789 and related to #22702
+   * Regression test for Issue #22789 and related to #23251
    * TRON send flow: selecting a destination account must move the flow forward
    * (previously it stayed on the recipient list and did not navigate).
    * Exits early when TRON is not in the build (recipient list empty).
    */
 
-  it('TRON send: selecting destination account updates selection and flow moves forward (issue #22789)', async () => {
+  it('TRON send: selecting destination account updates selection', async () => {
     const TRON_SENDER = 'TLa2f6VPqDgRE67v1736s7bJ8Ray5wYjU7';
     const tronRecipientAddresses = [
       'TA9vN2KmER9cuVBaHxQjzzRtXnBCdF7D4u',
@@ -207,7 +207,7 @@ describeForPlatforms('Send', () => {
    * WETH send flow must not get stuck; user can enter amount, continue to recipient,
    * enter address, and tap Review without the app hanging or crashing.
    */
-  it('WETH send flow completes through Review without getting stuck (issue #22357)', async () => {
+  it('WETH send flow completes through Review without getting stuck', async () => {
     const WETH_ADDRESS = '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2';
     const recipientAddress = '0x0000000000000000000000000000000000000002';
 
@@ -252,7 +252,7 @@ describeForPlatforms('Send', () => {
    * When sending an ERC-721 token, the Next/Continue button must be enabled so the user
    * can proceed from Amount to Recipient (and not get stuck with "Fiat conversions not available").
    */
-  it('ERC-721 send: Amount screen shows enabled Continue button and user can proceed to Recipient (issue #12317)', async () => {
+  it('ERC-721 send: Amount screen shows enabled Continue button and user can proceed to Recipient', async () => {
     const erc721Asset = {
       address: '0x4B3E2eD66631FE2dE488CB0c23eF3A91A41601f7',
       chainId: '0x1',
@@ -293,7 +293,7 @@ describeForPlatforms('Send', () => {
    * When starting Send from home and selecting an ERC-721 NFT in the asset picker,
    * the flow must go to Recipient (not Amount). ERC721 must not be treated as ERC1155.
    */
-  it('ERC-721 selected from Asset screen navigates to Recipient not Amount (issue #19002)', async () => {
+  it('ERC-721 selected from Asset screen navigates to Recipient not Amount', async () => {
     const accountAddress = '0x0000000000000000000000000000000000000001';
     const erc721InState = {
       address: '0x4B3E2eD66631FE2dE488CB0c23eF3A91A41601f7',
@@ -349,7 +349,7 @@ describeForPlatforms('Send', () => {
    * EVM contacts must not appear in non-EVM (e.g. Solana, BTC) send flow Recipient screen.
    * Only contacts for the current chain/protocol should be shown.
    */
-  it('Solana send Recipient screen does not show EVM contacts (issue #22205)', async () => {
+  it('Solana send Recipient screen does not show EVM contacts ', async () => {
     const SOLANA_CHAIN_ID = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
     const EVM_CONTACT_ADDRESS = '0x1234567890123456789012345678901234567890';
 
@@ -407,7 +407,7 @@ describeForPlatforms('Send', () => {
    * Recipient list (accounts or contacts) must render each entry with the expected avatar.
    * Uses address-book contacts to avoid dependency on multichain account tree/feature flags.
    */
-  it('Recipient list renders each contact with avatar (issue #22806)', async () => {
+  it('Recipient list renders each contact with avatar', async () => {
     const contactAddresses = [
       '0x0000000000000000000000000000000000000002',
       '0x0000000000000000000000000000000000000003',
@@ -469,9 +469,8 @@ describeForPlatforms('Send', () => {
   /**
    * Regression test for issue #22702
    * Keypad and amount area on Send Amount screen must be visible and not overflowing
-   * (especially on small devices).
    */
-  it('Amount screen shows keypad and amount area visible (issue #22702)', async () => {
+  it('Amount screen shows keypad and amount area visible', async () => {
     const state = initialStateWallet().withOverrides(baseOverrides).build();
 
     const { getByTestId, unmount } = renderScreenWithRoutes(

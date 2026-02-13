@@ -42,11 +42,13 @@ export const Send = () => {
           <Stack.Screen
             name={Routes.SEND.ASSET}
             component={Asset}
+            initialParams={initialParams}
             options={sendNavigationOptions.Asset}
           />
           <Stack.Screen
             name={Routes.SEND.RECIPIENT}
             component={Recipient}
+            initialParams={initialParams}
             options={sendNavigationOptions.Recipient}
           />
           <Stack.Screen
