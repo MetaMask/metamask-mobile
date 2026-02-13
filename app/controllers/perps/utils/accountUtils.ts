@@ -23,11 +23,11 @@ export function getEvmAccountFromAccountGroup(
   return evmAccount ? { address: evmAccount.address } : undefined;
 }
 
-interface AccountTreeMessenger {
+type AccountTreeMessenger = {
   call: (
     action: 'AccountTreeController:getAccountsFromSelectedAccountGroup',
   ) => InternalAccount[];
-}
+};
 
 export function getSelectedEvmAccount(
   messenger: AccountTreeMessenger,
@@ -38,10 +38,10 @@ export function getSelectedEvmAccount(
   return getEvmAccountFromAccountGroup(accounts);
 }
 
-export interface ReturnOnEquityInput {
+export type ReturnOnEquityInput = {
   unrealizedPnl: string | number;
   returnOnEquity: string | number;
-}
+};
 
 export function calculateWeightedReturnOnEquity(
   accounts: ReturnOnEquityInput[],

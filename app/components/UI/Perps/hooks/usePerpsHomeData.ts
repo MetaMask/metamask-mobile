@@ -19,10 +19,7 @@ import type { PerpsTransaction } from '../types/transactionHistory';
 import { transformFillsToTransactions } from '../utils/transactionTransforms';
 import Engine from '../../../../core/Engine';
 import { HOME_SCREEN_CONFIG } from '../constants/perpsConfig';
-import {
-  selectPerpsWatchlistMarkets,
-  selectPerpsMarketFilterPreferences,
-} from '../selectors/perpsController';
+import { selectPerpsWatchlistMarkets } from '../selectors/perpsController';
 
 interface UsePerpsHomeDataParams {
   positionsLimit?: number;
@@ -154,9 +151,6 @@ export const usePerpsHomeData = ({
   // Get watchlist symbols from Redux
   const watchlistSymbols = useSelector(selectPerpsWatchlistMarkets);
 
-  // Get saved market filter preferences
-  const savedSortPreference = useSelector(selectPerpsMarketFilterPreferences);
-
   // Filter markets that are in watchlist
   const watchlistMarkets = useMemo(
     () =>
@@ -164,17 +158,8 @@ export const usePerpsHomeData = ({
     [allMarkets, watchlistSymbols],
   );
 
-  // Derive sort field from saved preference
-  const { sortBy, direction } = useMemo(() => {
-    const sortOption = MARKET_SORTING_CONFIG.SortOptions.find(
-      (opt) => opt.id === savedSortPreference.optionId,
-    );
-
-    return {
-      sortBy: sortOption?.field ?? MARKET_SORTING_CONFIG.SortFields.Volume,
-      direction: savedSortPreference.direction,
-    };
-  }, [savedSortPreference]);
+  const sortBy = MARKET_SORTING_CONFIG.SortFields.Volume;
+  const direction = MARKET_SORTING_CONFIG.DefaultDirection;
 
   // Filter and sort markets by type
   // Perps (crypto) - exclude all non-crypto markets

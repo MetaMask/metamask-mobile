@@ -154,12 +154,12 @@ const isStatusObject = (status: unknown): status is Record<string, unknown> =>
   typeof status === 'object' && status !== null;
 
 // Helper method parameter interfaces (module-level for class-dependent methods only)
-interface GetAssetInfoParams {
+type GetAssetInfoParams = {
   symbol: string;
   dexName: string | null;
-}
+};
 
-interface GetAssetInfoResult {
+type GetAssetInfoResult = {
   assetInfo: {
     name: string;
     szDecimals: number;
@@ -167,15 +167,15 @@ interface GetAssetInfoResult {
   };
   currentPrice: number;
   meta: MetaResponse;
-}
+};
 
-interface PrepareAssetForTradingParams {
+type PrepareAssetForTradingParams = {
   symbol: string;
   assetId: number;
   leverage?: number;
-}
+};
 
-interface HandleHip3PreOrderParams {
+type HandleHip3PreOrderParams = {
   dexName: string;
   symbol: string;
   orderPrice: number;
@@ -183,13 +183,13 @@ interface HandleHip3PreOrderParams {
   leverage: number;
   isBuy: boolean;
   maxLeverage: number;
-}
+};
 
-interface HandleHip3PreOrderResult {
+type HandleHip3PreOrderResult = {
   transferInfo: { amount: number; sourceDex: string } | null;
-}
+};
 
-interface SubmitOrderWithRollbackParams {
+type SubmitOrderWithRollbackParams = {
   orders: SDKOrderParams[];
   grouping: 'na' | 'normalTpsl' | 'positionTpsl';
   isHip3Order: boolean;
@@ -197,19 +197,19 @@ interface SubmitOrderWithRollbackParams {
   transferInfo: { amount: number; sourceDex: string } | null;
   symbol: string;
   assetId: number;
-}
+};
 
-interface HandleOrderErrorParams {
+type HandleOrderErrorParams = {
   error: unknown;
   symbol: string;
   orderType: 'market' | 'limit';
   isBuy: boolean;
-}
+};
 
-interface GetOrFetchPriceParams {
+type GetOrFetchPriceParams = {
   symbol: string;
   dexName: string | null;
-}
+};
 
 /**
  * HyperLiquid provider implementation
@@ -360,15 +360,15 @@ export class HyperLiquidProvider implements PerpsProvider {
     // NOTE: Clients are NOT initialized here - they'll be initialized lazily
     // when first needed. This avoids accessing Engine.context before it's ready.
 
-    // Pre-compile filter patterns for performance
-    this.compiledAllowlistPatterns = this.allowlistMarkets.map((pattern) => ({
-      pattern,
-      matcher: compileMarketPattern(pattern),
-    }));
-    this.compiledBlocklistPatterns = this.blocklistMarkets.map((pattern) => ({
-      pattern,
-      matcher: compileMarketPattern(pattern),
-    }));
+    // Pre-compile filter patterns for performance (invalid patterns are skipped)
+    this.compiledAllowlistPatterns = this.compilePatternsSafely(
+      this.allowlistMarkets,
+      'allowlist',
+    );
+    this.compiledBlocklistPatterns = this.compilePatternsSafely(
+      this.blocklistMarkets,
+      'blocklist',
+    );
 
     // Debug: Confirm batch methods exist and show HIP-3 config
     this.deps.debugLogger.log('[HyperLiquidProvider] Constructor complete', {
@@ -380,6 +380,28 @@ export class HyperLiquidProvider implements PerpsProvider {
       blocklistMarkets: this.blocklistMarkets,
       isTestnet,
     });
+  }
+
+  /**
+   * Compile market patterns safely, skipping any that fail validation.
+   * Prevents a single bad pattern from crashing the entire constructor.
+   */
+  private compilePatternsSafely(
+    patterns: string[],
+    listName: string,
+  ): CompiledMarketPattern[] {
+    const compiled: CompiledMarketPattern[] = [];
+    for (const pattern of patterns) {
+      try {
+        compiled.push({ pattern, matcher: compileMarketPattern(pattern) });
+      } catch (error) {
+        this.deps.logger.error(
+          ensureError(error, `HyperLiquidProvider.compilePatternsSafely`),
+          this.getErrorContext('compilePatternsSafely', { listName, pattern }),
+        );
+      }
+    }
+    return compiled;
   }
 
   /**
