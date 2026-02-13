@@ -18,8 +18,8 @@ describe(SmokeConfirmations('Send Bitcoin'), () => {
         await device.disableSynchronization();
         await WalletView.tapOnToken('Bitcoin');
         await TokenOverview.tapSendButton();
-        await SendView.enterZeroAmount();
-        await SendView.checkInsufficientFundsError();
+        await SendView.waitForAmountScreen();
+        await SendView.enterZeroAmountAndCheckInsufficientFundsError();
       },
     );
   });

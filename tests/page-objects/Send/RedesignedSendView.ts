@@ -5,6 +5,8 @@ import { Utilities, Assertions } from '../../framework';
 import { CommonSelectorsIDs } from '../../../app/util/Common.testIds';
 import { SendActionViewSelectorsIDs } from '../../selectors/SendFlow/SendActionView.selectors';
 
+const SEND_AMOUNT_TEST_ID = 'send_amount';
+
 class SendView {
   get ethereumTokenButton(): DetoxElement {
     return Matchers.getElementByText('Ethereum');
@@ -169,6 +171,46 @@ class SendView {
     await Assertions.expectElementToBeVisible(this.insufficientFundsError, {
       description: 'Insufficient funds error message',
     });
+  }
+
+  get sendAmountDisplay(): DetoxElement {
+    return Matchers.getElementByID(SEND_AMOUNT_TEST_ID);
+  }
+
+  async waitForAmountScreen(): Promise<void> {
+    await Assertions.expectElementToBeVisible(this.sendAmountDisplay, {
+      description: 'Send amount screen should be visible',
+    });
+  }
+
+  /**
+   * Taps the "0" button on the keyboard and verifies the "Insufficient funds" error appears.
+   * Uses executeWithRetry to handle cases where the keyboard tap doesn't register
+   * (e.g., during screen transition animations with disabled synchronization).
+   */
+  async enterZeroAmountAndCheckInsufficientFundsError(): Promise<void> {
+    return Utilities.executeWithRetry(
+      async () => {
+        await Gestures.waitAndTap(this.zeroButton, {
+          timeout: 2000,
+          elemDescription: '0 button on send keyboard',
+        });
+
+        await Assertions.expectElementToBeVisible(
+          this.insufficientFundsError,
+          {
+            timeout: 5000,
+            description: 'Insufficient funds error message',
+          },
+        );
+      },
+      {
+        timeout: 30000,
+        description:
+          'tap zero amount and verify insufficient funds error appears',
+        elemDescription: 'Send amount keyboard 0 button',
+      },
+    );
   }
 }
 export default new SendView();
