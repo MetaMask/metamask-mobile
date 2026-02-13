@@ -728,7 +728,25 @@ describe('Authentication', () => {
       jest.replaceProperty(Platform, 'OS', 'ios'); // restore default for other tests
     });
 
-    it('returns authType when Platform.OS is ios and authenticateAsync succeeds', async () => {
+    it('returns authType unchanged when Platform.OS is ios but authType is not BIOMETRIC', async () => {
+      jest.replaceProperty(Platform, 'OS', 'ios');
+
+      const passcodeResult =
+        await Authentication.requestBiometricsAccessControlForIOS(
+          AUTHENTICATION_TYPE.PASSCODE,
+        );
+      expect(passcodeResult).toBe(AUTHENTICATION_TYPE.PASSCODE);
+      expect(mockAuthenticateAsync).not.toHaveBeenCalled();
+
+      const passwordResult =
+        await Authentication.requestBiometricsAccessControlForIOS(
+          AUTHENTICATION_TYPE.PASSWORD,
+        );
+      expect(passwordResult).toBe(AUTHENTICATION_TYPE.PASSWORD);
+      expect(mockAuthenticateAsync).not.toHaveBeenCalled();
+    });
+
+    it('returns authType when Platform.OS is ios and authType is BIOMETRIC and authenticateAsync succeeds', async () => {
       jest.replaceProperty(Platform, 'OS', 'ios');
       mockAuthenticateAsync.mockResolvedValue({ success: true });
 
@@ -742,7 +760,7 @@ describe('Authentication', () => {
       });
     });
 
-    it('returns PASSWORD when Platform.OS is ios and authenticateAsync returns success false', async () => {
+    it('returns PASSWORD when Platform.OS is ios and authType is BIOMETRIC and authenticateAsync returns success false', async () => {
       jest.replaceProperty(Platform, 'OS', 'ios');
       mockAuthenticateAsync.mockResolvedValue({ success: false });
 
@@ -756,7 +774,7 @@ describe('Authentication', () => {
       });
     });
 
-    it('returns PASSWORD when Platform.OS is ios and authenticateAsync throws', async () => {
+    it('returns PASSWORD when Platform.OS is ios and authType is BIOMETRIC and authenticateAsync throws', async () => {
       jest.replaceProperty(Platform, 'OS', 'ios');
       mockAuthenticateAsync.mockRejectedValue(new Error('User cancelled'));
 
