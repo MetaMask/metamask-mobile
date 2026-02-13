@@ -7,6 +7,12 @@ on:
     branches:
       - 'release/*'
 
+# Required so the reusable workflow run-performance-e2e.yml can use id-token and actions
+permissions:
+  contents: read
+  id-token: write
+  actions: write
+
 jobs:
   check-release-trigger:
     name: Check if Release Performance Tests Should Run
