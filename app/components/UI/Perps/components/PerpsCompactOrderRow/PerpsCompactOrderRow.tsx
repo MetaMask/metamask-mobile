@@ -57,8 +57,15 @@ const PerpsCompactOrderRow: React.FC<PerpsCompactOrderRowProps> = ({
       orderTypeLabel = strings('perps.order.market_price');
     }
 
-    // Format price - trigger orders already have triggerPx mapped to price by adapter
-    const priceValue = parseFloat(order.price || '0');
+    // For trigger orders, display trigger condition price when available.
+    // `order.price` may represent execution limit/slippage protection for SL/TP.
+    const parsedTriggerPrice = parseFloat(order.triggerPrice || '0');
+    const hasTriggerPrice =
+      Number.isFinite(parsedTriggerPrice) && parsedTriggerPrice > 0;
+    const priceValue =
+      order.isTrigger && hasTriggerPrice
+        ? parsedTriggerPrice
+        : parseFloat(order.price || '0');
     const formattedPrice = formatPerpsFiat(priceValue, {
       ranges: PRICE_RANGES_MINIMAL_VIEW,
     });
