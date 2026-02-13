@@ -542,7 +542,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
         isStaked: false,
       };
 
-      const { queryByTestId } = renderWithProvider(
+      const { getByTestId } = renderWithProvider(
         <TokenListItem
           assetKey={assetKey}
           showRemoveMenu={jest.fn()}
@@ -551,7 +551,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
         />,
       );
 
-      expect(queryByTestId(SECONDARY_BALANCE_TEST_ID)).not.toBeOnTheScreen();
+      expect(getByTestId(SECONDARY_BALANCE_TEST_ID).props.children).toBe('-');
     });
 
     it('covers Number.isFinite check preventing NaN', () => {
@@ -566,7 +566,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
         isStaked: false,
       };
 
-      const { queryByTestId } = renderWithProvider(
+      const { getByTestId } = renderWithProvider(
         <TokenListItem
           assetKey={assetKey}
           showRemoveMenu={jest.fn()}
@@ -575,7 +575,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
         />,
       );
 
-      expect(queryByTestId(SECONDARY_BALANCE_TEST_ID)).not.toBeOnTheScreen();
+      expect(getByTestId(SECONDARY_BALANCE_TEST_ID).props.children).toBe('-');
     });
 
     it('covers Number.isFinite check preventing negative Infinity', () => {
@@ -590,7 +590,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
         isStaked: false,
       };
 
-      const { queryByTestId } = renderWithProvider(
+      const { getByTestId } = renderWithProvider(
         <TokenListItem
           assetKey={assetKey}
           showRemoveMenu={jest.fn()}
@@ -599,7 +599,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
         />,
       );
 
-      expect(queryByTestId(SECONDARY_BALANCE_TEST_ID)).not.toBeOnTheScreen();
+      expect(getByTestId(SECONDARY_BALANCE_TEST_ID).props.children).toBe('-');
     });
   });
 

@@ -385,8 +385,8 @@ export const TokenListItem = React.memo(
             asset.isNative || isMusdToken(asset.address) ? null : showRemoveMenu
           }
           asset={asset}
-          balance={asset.balanceFiat}
-          secondaryBalance={secondaryBalanceDisplay.text}
+          balance={asset.balanceFiat || '—'}
+          secondaryBalance={secondaryBalanceDisplay.text || '-'}
           secondaryBalanceColor={secondaryBalanceDisplay.color}
           privacyMode={privacyMode}
           hideSecondaryBalanceInPrivacyMode={false}
