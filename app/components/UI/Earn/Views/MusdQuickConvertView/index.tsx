@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { View, SectionList, Linking } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
@@ -28,6 +28,7 @@ import { TagProps } from '../../../../../component-library/components/Tags/Tag/T
 import { MUSD_CONVERSION_APY } from '../../constants/musd';
 import AppConstants from '../../../../../core/AppConstants';
 import MusdBalanceCard from './components/MusdBalanceCard';
+import Engine from '../../../../../core/Engine';
 
 interface SectionHeaderProps {
   title: string;
@@ -79,6 +80,24 @@ const MusdQuickConvertView = () => {
     selectMusdConversionStatuses,
   );
 
+  const [failedTransactionKeys, setFailedTransactionKeys] = useState<
+    Set<string>
+  >(new Set());
+
+  const subscribeToFailedTx = (transactionId: string) => {
+    Engine.controllerMessenger.subscribeOnceIf(
+      'TransactionController:transactionFailed',
+      () => {
+        setFailedTransactionKeys((prev) => new Set([...prev, transactionId]));
+      },
+      ({ transactionMeta }) => transactionMeta.id === transactionId,
+    );
+  };
+
+  const clearFailedTransactionKeys = () => {
+    setFailedTransactionKeys(new Set());
+  };
+
   // Set up navigation header
   useFocusEffect(
     useCallback(() => {
@@ -93,12 +112,17 @@ const MusdQuickConvertView = () => {
   // navigate to max conversion bottom sheet
   const handleMaxPress = useCallback(
     async (token: AssetType) => {
+      clearFailedTransactionKeys();
+
       if (!token.rawBalance) {
         // TODO: Handle error instead of returning silently.
         return;
       }
 
-      await initiateMaxConversion(token);
+      const { transactionId } = await initiateMaxConversion(token);
+      if (transactionId) {
+        subscribeToFailedTx(transactionId);
+      }
     },
     [initiateMaxConversion],
   );
@@ -106,12 +130,17 @@ const MusdQuickConvertView = () => {
   // navigate to existing confirmation screen
   const handleEditPress = useCallback(
     async (token: AssetType) => {
-      await initiateCustomConversion({
+      clearFailedTransactionKeys();
+
+      const transactionId = await initiateCustomConversion({
         preferredPaymentToken: {
           address: token.address as Hex,
           chainId: token.chainId as Hex,
         },
       });
+      if (transactionId) {
+        subscribeToFailedTx(transactionId);
+      }
     },
     [initiateCustomConversion],
   );
@@ -150,7 +179,7 @@ const MusdQuickConvertView = () => {
           ? createTokenChainKey(tokenAddress, tokenChainId)
           : undefined;
 
-      const statusInfo = tokenChainKey
+      const txStatusInfo = tokenChainKey
         ? conversionStatusesByTokenChainKey[tokenChainKey]
         : undefined;
 
@@ -160,9 +189,11 @@ const MusdQuickConvertView = () => {
           onMaxPress={handleMaxPress}
           onEditPress={handleEditPress}
           isActionsDisabled={hasInFlightMusdConversion}
-          isConversionPending={Boolean(statusInfo?.isPending)}
+          isConversionPending={Boolean(txStatusInfo?.isPending)}
           errorMessage={
-            statusInfo?.isFailed
+            txStatusInfo?.txId &&
+            txStatusInfo.isFailed &&
+            failedTransactionKeys.has(txStatusInfo.txId)
               ? strings(
                   'earn.musd_conversion.quick_convert.inline_failed_message',
                 )
@@ -173,6 +204,7 @@ const MusdQuickConvertView = () => {
     },
     [
       conversionStatusesByTokenChainKey,
+      failedTransactionKeys,
       handleEditPress,
       handleMaxPress,
       hasInFlightMusdConversion,
