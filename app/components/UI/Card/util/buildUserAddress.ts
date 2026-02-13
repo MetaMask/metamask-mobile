@@ -107,11 +107,25 @@ export function buildShippingAddress(
 }
 
 /**
+ * Sanitize a name part by trimming whitespace and removing non-alphanumeric characters.
+ * This matches the regex used by Galileo for card ordering.
+ *
+ * @param name - The name string to sanitize
+ * @returns Sanitized name containing only alphanumeric characters and spaces
+ */
+function sanitizeName(name: string): string {
+  return name.trim().replace(/[^a-zA-Z0-9 ]/g, '');
+}
+
+/**
  * Build cardholder full name from user details
+ *
+ * Uses firstName and lastName from KYC details, sanitized through the same
+ * regex used for card ordering at Galileo: `name.trim().replace(/[^a-zA-Z0-9 ]/g, '')`
  *
  * @param userDetails - User details from KYC status
  * @param fallback - Fallback name if user details are incomplete (default: 'Card Holder')
- * @returns Full cardholder name
+ * @returns Sanitized full cardholder name
  */
 export function buildCardholderName(
   userDetails: UserResponse | null | undefined,
@@ -121,7 +135,11 @@ export function buildCardholderName(
     return fallback;
   }
 
-  return [userDetails.firstName, userDetails.lastName]
+  const result = [userDetails.firstName, userDetails.lastName]
+    .filter(Boolean)
+    .map((name) => sanitizeName(name as string))
     .filter(Boolean)
     .join(' ');
+
+  return result || fallback;
 }

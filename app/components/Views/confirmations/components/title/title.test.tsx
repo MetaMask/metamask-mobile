@@ -29,6 +29,40 @@ import Title from './title';
 jest.mock('../../hooks/useGetTokenStandardAndDetails');
 
 describe('Confirm Title', () => {
+  const typedSignRequestId = 'fb2029e1-b0ab-11ef-9227-05a11087c334';
+  const daiPermitAllowedStringFalseData = JSON.stringify({
+    types: {
+      EIP712Domain: [
+        { name: 'name', type: 'string' },
+        { name: 'version', type: 'string' },
+        { name: 'chainId', type: 'uint256' },
+        { name: 'verifyingContract', type: 'address' },
+      ],
+      Permit: [
+        { name: 'holder', type: 'address' },
+        { name: 'spender', type: 'address' },
+        { name: 'nonce', type: 'uint256' },
+        { name: 'expiry', type: 'uint256' },
+        { name: 'allowed', type: 'bool' },
+      ],
+    },
+    primaryType: 'Permit',
+    domain: {
+      name: 'Dai Stablecoin',
+      version: '1',
+      chainId: 1,
+      verifyingContract: '0x6b175474e89094c44da98b954eedeac495271d0f',
+    },
+    message: {
+      holder: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
+      spender: '0x5B38Da6a701c568545dCfcB03FcB875f56beddC4',
+      nonce: '0',
+      expiry:
+        '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff',
+      allowed: 'false',
+    },
+  });
+
   const mockUseGetTokenStandardAndDetails = jest.mocked(
     useGetTokenStandardAndDetails,
   );
@@ -52,6 +86,43 @@ describe('Confirm Title', () => {
     expect(
       getByText('This site wants permission to spend your tokens.'),
     ).toBeTruthy();
+  });
+
+  it('renders permit title for DAI permit when allowed is string "false"', () => {
+    const state = merge({}, typedSignV4ConfirmationState, {
+      engine: {
+        backgroundState: {
+          ApprovalController: {
+            pendingApprovals: {
+              [typedSignRequestId]: {
+                requestData: {
+                  data: daiPermitAllowedStringFalseData,
+                },
+              },
+            },
+          },
+          SignatureController: {
+            signatureRequests: {
+              [typedSignRequestId]: {
+                messageParams: {
+                  data: daiPermitAllowedStringFalseData,
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const { getByText, queryByText } = renderWithProvider(<Title />, {
+      state,
+    });
+
+    expect(getByText('Spending cap request')).toBeTruthy();
+    expect(
+      getByText('This site wants permission to spend your tokens.'),
+    ).toBeTruthy();
+    expect(queryByText('Remove permission')).toBeNull();
   });
 
   it('renders the title and subtitle for a permit NFT signature', () => {
@@ -212,6 +283,46 @@ describe('Confirm Title', () => {
         getByText('This site wants decrease the spending cap for your tokens.'),
       ).toBeTruthy();
     });
+  });
+
+  it('renders correct title and subtitle for musdClaim', () => {
+    const musdClaimState = merge({}, generateContractInteractionState, {
+      engine: {
+        backgroundState: {
+          TransactionController: {
+            transactions: [
+              {
+                type: TransactionType.musdClaim,
+                chainId: '0xe708',
+              },
+            ],
+          },
+          NetworkController: {
+            networkConfigurationsByChainId: {
+              '0xe708': {
+                name: 'Linea Mainnet',
+                nativeCurrency: 'ETH',
+                rpcEndpoints: [
+                  {
+                    networkClientId: 'linea-mainnet',
+                    url: 'https://linea-mainnet.infura.io/v3/test',
+                    name: 'Linea Mainnet',
+                  },
+                ],
+                defaultRpcEndpointIndex: 0,
+              },
+            },
+          },
+        },
+      },
+    });
+    const { getByText } = renderWithProvider(<Title />, {
+      state: musdClaimState,
+    });
+    expect(getByText('Claim bonus')).toBeTruthy();
+    expect(
+      getByText('Bonus payout will be on Linea Mainnet Network.'),
+    ).toBeTruthy();
   });
 
   it.each([TransactionType.lendingDeposit, TransactionType.lendingWithdraw])(

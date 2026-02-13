@@ -1,8 +1,8 @@
 /**
  * Base Wallet Provider Adapter
  *
- * Abstract base class providing common functionality for wallet adapters.
- * Handles module loading, activation listeners, and eligibility determination.
+ * Abstract base class providing common functionality for wallet adapters:
+ * module loading, activation listeners, and eligibility determination.
  */
 
 import { Platform, PlatformOSType } from 'react-native';
@@ -19,14 +19,6 @@ import Logger from '../../../../../../util/Logger';
 import { strings } from '../../../../../../../locales/i18n';
 import { getWalletName } from '../../constants';
 
-/**
- * Base class for wallet adapters providing common functionality
- *
- * Subclasses must implement:
- * - walletType, platform properties
- * - provisionCard method
- * - onActivationEvent method (for handling activation events)
- */
 export abstract class BaseWalletAdapter {
   abstract readonly walletType: WalletType;
   abstract readonly platform: PlatformOSType;
@@ -43,24 +35,10 @@ export abstract class BaseWalletAdapter {
     this.activationListeners = new Set();
   }
 
-  /**
-   * Get the adapter name for logging
-   */
   protected abstract getAdapterName(): string;
-
-  /**
-   * Get the expected platform for this adapter
-   */
   protected abstract getExpectedPlatform(): PlatformOSType;
-
-  /**
-   * Handle raw activation event data from native module
-   */
   protected abstract handleNativeActivationEvent(data: unknown): void;
 
-  /**
-   * Initialize the wallet module lazily
-   */
   protected async initializeWalletModule(): Promise<void> {
     if (Platform.OS !== this.getExpectedPlatform()) {
       return;
@@ -79,9 +57,6 @@ export abstract class BaseWalletAdapter {
     }
   }
 
-  /**
-   * Get the wallet module, ensuring it's loaded
-   */
   protected async getWalletModule(): Promise<
     typeof import('@expensify/react-native-wallet')
   > {
@@ -120,9 +95,6 @@ export abstract class BaseWalletAdapter {
     return this.walletModule;
   }
 
-  /**
-   * Check if wallet is available on this device
-   */
   async checkAvailability(): Promise<boolean> {
     if (Platform.OS !== this.getExpectedPlatform()) {
       Logger.log(
@@ -148,9 +120,6 @@ export abstract class BaseWalletAdapter {
     }
   }
 
-  /**
-   * Check the status of a specific card in the wallet
-   */
   async getCardStatus(lastFourDigits: string): Promise<CardTokenStatus> {
     try {
       const wallet = await this.getWalletModule();
@@ -162,9 +131,6 @@ export abstract class BaseWalletAdapter {
     }
   }
 
-  /**
-   * Get detailed wallet eligibility information
-   */
   async getEligibility(lastFourDigits?: string): Promise<WalletEligibility> {
     const isAvailable = await this.checkAvailability();
 
@@ -186,13 +152,11 @@ export abstract class BaseWalletAdapter {
       existingCardStatus = await this.getCardStatus(lastFourDigits);
     }
 
-    // Get additional eligibility info (e.g., tokenReferenceId for Google)
     const additionalInfo = await this.getAdditionalEligibilityInfo(
       lastFourDigits,
       existingCardStatus,
     );
 
-    // Determine recommended action based on card status
     const { canAddCard, recommendedAction, ineligibilityReason } =
       this.determineActionForStatus(existingCardStatus);
 
@@ -206,9 +170,7 @@ export abstract class BaseWalletAdapter {
     };
   }
 
-  /**
-   * Get additional eligibility information (override in subclasses)
-   */
+  /** Override in subclasses to provide extra eligibility data (e.g., tokenReferenceId) */
   protected async getAdditionalEligibilityInfo(
     _lastFourDigits?: string,
     _existingCardStatus?: CardTokenStatus,
@@ -216,10 +178,7 @@ export abstract class BaseWalletAdapter {
     return {};
   }
 
-  /**
-   * Determine the recommended action based on card status
-   * Can be overridden by subclasses for platform-specific behavior
-   */
+  /** Determine recommended action based on card status. Override for platform-specific behavior. */
   protected determineActionForStatus(status?: CardTokenStatus): {
     canAddCard: boolean;
     recommendedAction: WalletEligibility['recommendedAction'];
@@ -278,22 +237,15 @@ export abstract class BaseWalletAdapter {
     }
   }
 
-  /**
-   * Add a listener for card activation events
-   */
   addActivationListener(
     callback: (event: CardActivationEvent) => void,
   ): () => void {
     this.activationListeners.add(callback);
-
-    // Set up the native listener asynchronously once the module is loaded
     this.setupNativeListenerIfNeeded();
 
-    // Return unsubscribe function
     return () => {
       this.activationListeners.delete(callback);
 
-      // Remove native listener if no more listeners
       if (this.activationListeners.size === 0 && this.listenerSubscription) {
         this.listenerSubscription.remove();
         this.listenerSubscription = undefined;
@@ -301,25 +253,18 @@ export abstract class BaseWalletAdapter {
     };
   }
 
-  /**
-   * Set up the native event listener once the module is loaded
-   */
   protected async setupNativeListenerIfNeeded(): Promise<void> {
-    // Already have a listener subscription
     if (this.listenerSubscription) {
       return;
     }
 
-    // No listeners registered, don't set up native listener
     if (this.activationListeners.size === 0) {
       return;
     }
 
     try {
-      // Wait for the module to load
       const wallet = await this.getWalletModule();
 
-      // Check again after await - subscription might have been set up or listeners removed
       if (this.listenerSubscription || this.activationListeners.size === 0) {
         return;
       }
@@ -338,9 +283,6 @@ export abstract class BaseWalletAdapter {
     }
   }
 
-  /**
-   * Notify all activation listeners
-   */
   protected notifyActivationListeners(event: CardActivationEvent): void {
     this.activationListeners.forEach((callback) => {
       try {
@@ -353,9 +295,6 @@ export abstract class BaseWalletAdapter {
     });
   }
 
-  /**
-   * Create a platform not supported error result
-   */
   protected createPlatformNotSupportedError(): ProvisioningError {
     return new ProvisioningError(
       ProvisioningErrorCode.PLATFORM_NOT_SUPPORTED,
@@ -363,9 +302,6 @@ export abstract class BaseWalletAdapter {
     );
   }
 
-  /**
-   * Create an invalid card data error result
-   */
   protected createInvalidCardDataError(): ProvisioningError {
     return new ProvisioningError(
       ProvisioningErrorCode.INVALID_CARD_DATA,

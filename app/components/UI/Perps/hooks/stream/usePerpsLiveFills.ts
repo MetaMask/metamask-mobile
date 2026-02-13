@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { usePerpsStream } from '../../providers/PerpsStreamManager';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
-import type { OrderFill } from '../../controllers/types';
+import { type OrderFill } from '@metamask/perps-controller';
 
 // Stable empty array reference to prevent re-renders
 const EMPTY_FILLS: OrderFill[] = [];

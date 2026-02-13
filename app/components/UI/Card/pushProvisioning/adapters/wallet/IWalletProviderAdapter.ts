@@ -1,8 +1,7 @@
 /**
  * Wallet Provider Adapter Interface
  *
- * Defines the contract for mobile wallet adapters that handle
- * card tokenization and provisioning to mobile wallets.
+ * Abstracts wallet SDK interactions for card tokenization and provisioning.
  */
 
 import { PlatformOSType } from 'react-native';
@@ -16,89 +15,23 @@ import {
 } from '../../types';
 import { TokenInfo } from './utils';
 
-/**
- * Interface for mobile wallet provider adapters.
- *
- * Wallet providers handle the device-side tokenization of cards.
- * This interface abstracts the wallet SDK interactions.
- *
- * Responsibilities:
- * - Check wallet availability on device
- * - Check existing card status in wallet
- * - Retrieve wallet-specific data for provisioning
- * - Handle the provisioning flow with the native SDK
- * - Resume provisioning for cards requiring activation
- * - Listen for card activation events
- */
 export interface IWalletProviderAdapter {
-  /**
-   * The type of wallet this adapter handles
-   */
   readonly walletType: WalletType;
-
-  /**
-   * The platform this adapter is for
-   */
   readonly platform: PlatformOSType;
 
-  /**
-   * Check if the wallet is available on this device
-   *
-   * This checks if:
-   * - The device supports the wallet (hardware/software requirements)
-   * - The wallet app is installed
-   * - The user can add payment cards
-   *
-   * @returns Promise resolving to true if wallet is available
-   */
+  /** Check if the wallet is available on this device */
   checkAvailability(): Promise<boolean>;
 
-  /**
-   * Get detailed wallet eligibility information
-   *
-   * This provides more details than checkAvailability(), including
-   * whether a specific card is already in the wallet and its status.
-   *
-   * @param lastFourDigits - Optional card last 4 digits to check for existing card
-   * @returns Promise resolving to wallet eligibility details
-   */
+  /** Get detailed wallet eligibility including existing card status */
   getEligibility(lastFourDigits?: string): Promise<WalletEligibility>;
 
-  /**
-   * Check the status of a specific card in the wallet
-   *
-   * @param lastFourDigits - The last 4 digits of the card to check
-   * @returns Promise resolving to the card's token status
-   */
+  /** Check the status of a specific card in the wallet */
   getCardStatus(lastFourDigits: string): Promise<CardTokenStatus>;
 
-  /**
-   * Provision a card to the wallet
-   *
-   * This initiates the native provisioning flow which presents
-   * the wallet UI to the user.
-   *
-   * For Android/Google Wallet:
-   * - Uses the pre-encrypted opaque payment card
-   * - Calls pushTokenize on the Tap and Pay SDK
-   *
-   * @param params - The provisioning parameters including encrypted payload
-   * @returns Promise resolving to the provisioning result
-   */
+  /** Initiate the native provisioning flow */
   provisionCard(params: ProvisionCardParams): Promise<ProvisioningResult>;
 
-  /**
-   * Resume provisioning for a card that requires activation (Yellow Path)
-   *
-   * On Android, if a card was previously added but requires additional
-   * verification, this method resumes the provisioning flow.
-   *
-   * @param tokenReferenceId - The token reference ID from Google
-   * @param cardNetwork - The card network (e.g., 'MASTERCARD')
-   * @param cardholderName - Optional cardholder name
-   * @param lastFourDigits - Optional last 4 digits of the card
-   * @returns Promise resolving to the provisioning result
-   */
+  /** Resume provisioning for a card requiring activation (Yellow Path, Android) */
   resumeProvisioning?(
     tokenReferenceId: string,
     cardNetwork: string,
@@ -106,25 +39,10 @@ export interface IWalletProviderAdapter {
     lastFourDigits?: string,
   ): Promise<ProvisioningResult>;
 
-  /**
-   * List all tokens in the wallet
-   *
-   * Returns information about all tokenized cards in the wallet.
-   * Useful for syncing card status and finding token IDs for resume flow.
-   *
-   * @returns Promise resolving to array of token information
-   */
+  /** List all tokenized cards in the wallet */
   listTokens?(): Promise<TokenInfo[]>;
 
-  /**
-   * Add a listener for card activation events
-   *
-   * The wallet SDK may emit events when a card is activated
-   * after provisioning (especially for Yellow Path flows).
-   *
-   * @param callback - The callback to invoke on activation events
-   * @returns A function to remove the listener
-   */
+  /** Add a listener for card activation events; returns unsubscribe function */
   addActivationListener(
     callback: (event: CardActivationEvent) => void,
   ): () => void;
