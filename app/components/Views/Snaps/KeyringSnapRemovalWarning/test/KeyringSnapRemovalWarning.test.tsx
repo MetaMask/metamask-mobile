@@ -100,6 +100,8 @@ describe('KeyringSnapRemovalWarning', () => {
         origin: 'https://metamask.github.io',
       },
     ],
+    auxiliaryFiles: [],
+    localizationFiles: [],
   };
 
   const MOCK_ADDRESS_1 = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';

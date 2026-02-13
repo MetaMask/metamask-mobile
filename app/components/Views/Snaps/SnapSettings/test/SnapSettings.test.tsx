@@ -357,6 +357,8 @@ describe('SnapSettings with keyring snap', () => {
         origin: 'https://metamask.github.io',
       },
     ],
+    auxiliaryFiles: [],
+    localizationFiles: [],
   };
 
   beforeEach(() => {
