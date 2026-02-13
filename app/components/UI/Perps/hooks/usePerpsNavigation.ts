@@ -156,11 +156,10 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
           );
         })
         .catch((error: unknown) => {
-          const err = ensureError(error);
+          const err = ensureError(error, 'usePerpsNavigation.navigateToOrder');
           Logger.error(err, {
-            feature: PERPS_CONSTANTS.FeatureName,
-            message:
-              'Failed to start one-click trade (deposit rejected or failed)',
+            tags: { feature: PERPS_CONSTANTS.FeatureName },
+            context: { name: 'usePerpsNavigation.navigateToOrder', data: {} },
           });
 
           track(MetaMetricsEvents.PERPS_ERROR, {
