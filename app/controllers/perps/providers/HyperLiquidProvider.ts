@@ -360,15 +360,15 @@ export class HyperLiquidProvider implements PerpsProvider {
     // NOTE: Clients are NOT initialized here - they'll be initialized lazily
     // when first needed. This avoids accessing Engine.context before it's ready.
 
-    // Pre-compile filter patterns for performance
-    this.compiledAllowlistPatterns = this.allowlistMarkets.map((pattern) => ({
-      pattern,
-      matcher: compileMarketPattern(pattern),
-    }));
-    this.compiledBlocklistPatterns = this.blocklistMarkets.map((pattern) => ({
-      pattern,
-      matcher: compileMarketPattern(pattern),
-    }));
+    // Pre-compile filter patterns for performance (invalid patterns are skipped)
+    this.compiledAllowlistPatterns = this.compilePatternsSafely(
+      this.allowlistMarkets,
+      'allowlist',
+    );
+    this.compiledBlocklistPatterns = this.compilePatternsSafely(
+      this.blocklistMarkets,
+      'blocklist',
+    );
 
     // Debug: Confirm batch methods exist and show HIP-3 config
     this.deps.debugLogger.log('[HyperLiquidProvider] Constructor complete', {
@@ -380,6 +380,28 @@ export class HyperLiquidProvider implements PerpsProvider {
       blocklistMarkets: this.blocklistMarkets,
       isTestnet,
     });
+  }
+
+  /**
+   * Compile market patterns safely, skipping any that fail validation.
+   * Prevents a single bad pattern from crashing the entire constructor.
+   */
+  private compilePatternsSafely(
+    patterns: string[],
+    listName: string,
+  ): CompiledMarketPattern[] {
+    const compiled: CompiledMarketPattern[] = [];
+    for (const pattern of patterns) {
+      try {
+        compiled.push({ pattern, matcher: compileMarketPattern(pattern) });
+      } catch (error) {
+        this.deps.logger.error(
+          ensureError(error, `HyperLiquidProvider.compilePatternsSafely`),
+          this.getErrorContext('compilePatternsSafely', { listName, pattern }),
+        );
+      }
+    }
+    return compiled;
   }
 
   /**
