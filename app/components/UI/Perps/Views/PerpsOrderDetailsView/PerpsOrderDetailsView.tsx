@@ -43,6 +43,12 @@ interface OrderDetailsRouteParams {
   order: Order;
 }
 
+interface DetailRow {
+  key: string;
+  label: string;
+  value: string;
+}
+
 const PerpsOrderDetailsView: React.FC = () => {
   const navigation = useNavigation();
   const route =
@@ -251,6 +257,73 @@ const PerpsOrderDetailsView: React.FC = () => {
     return null;
   }
 
+  const detailRows: DetailRow[] = [
+    {
+      key: 'date',
+      label: strings('perps.order_details.date'),
+      value: orderDetails.dateString,
+    },
+    ...(orderDetails.triggerCondition
+      ? [
+          {
+            key: 'trigger-condition',
+            label: strings('perps.order_details.trigger_condition'),
+            value: orderDetails.triggerCondition,
+          },
+        ]
+      : []),
+    {
+      key: 'price',
+      label: strings('perps.order_details.price'),
+      value: orderDetails.priceText,
+    },
+    ...(orderDetails.takeProfitPriceText
+      ? [
+          {
+            key: 'take-profit',
+            label: strings('perps.order_details.take_profit'),
+            value: orderDetails.takeProfitPriceText,
+          },
+        ]
+      : []),
+    ...(orderDetails.stopLossPriceText
+      ? [
+          {
+            key: 'stop-loss',
+            label: strings('perps.order_details.stop_loss'),
+            value: orderDetails.stopLossPriceText,
+          },
+        ]
+      : []),
+    {
+      key: 'size',
+      label: strings('perps.order_details.size'),
+      value: `${formatPositionSize(parseFloat(order.size))} ${order.symbol}`,
+    },
+    {
+      key: 'original-size',
+      label: strings('perps.order_details.original_size'),
+      value: `${formatPositionSize(parseFloat(order.originalSize))} ${
+        order.symbol
+      }`,
+    },
+    {
+      key: 'order-value',
+      label: strings('perps.order_details.order_value'),
+      value: formatPerpsFiat(orderDetails.originalSizeInUSD),
+    },
+    {
+      key: 'reduce-only',
+      label: strings('perps.order_details.reduce_only'),
+      value: orderDetails.reduceOnlyText,
+    },
+    {
+      key: 'fee',
+      label: strings('perps.order_details.fee'),
+      value: formatPerpsFiat(totalFee),
+    },
+  ];
+
   return (
     <SafeAreaView style={styles.container}>
       {/* Header with back button */}
@@ -287,44 +360,18 @@ const PerpsOrderDetailsView: React.FC = () => {
         {/* Order Details Card */}
         <View style={styles.section}>
           <View style={styles.detailsCard}>
-            {/* Date */}
-            <View style={styles.detailRow}>
-              <Text
-                variant={TextVariant.BodyMD}
-                color={TextColor.Alternative}
-                style={styles.detailLabel}
-              >
-                {strings('perps.order_details.date')}
-              </Text>
-              <View style={styles.detailValue}>
-                <Text variant={TextVariant.BodyMD}>
-                  {orderDetails.dateString}
-                </Text>
-              </View>
-            </View>
-
-            <View
-              style={[
-                styles.separator,
-                { backgroundColor: colors.border.muted },
-              ]}
-            />
-
-            {/* Trigger condition */}
-            {orderDetails.triggerCondition && (
-              <>
+            {detailRows.map((detailRow) => (
+              <React.Fragment key={detailRow.key}>
                 <View style={styles.detailRow}>
                   <Text
                     variant={TextVariant.BodyMD}
                     color={TextColor.Alternative}
                     style={styles.detailLabel}
                   >
-                    {strings('perps.order_details.trigger_condition')}
+                    {detailRow.label}
                   </Text>
                   <View style={styles.detailValue}>
-                    <Text variant={TextVariant.BodyMD}>
-                      {orderDetails.triggerCondition}
-                    </Text>
+                    <Text variant={TextVariant.BodyMD}>{detailRow.value}</Text>
                   </View>
                 </View>
 
@@ -334,201 +381,8 @@ const PerpsOrderDetailsView: React.FC = () => {
                     { backgroundColor: colors.border.muted },
                   ]}
                 />
-              </>
-            )}
-
-            {/* Price */}
-            <View style={styles.detailRow}>
-              <Text
-                variant={TextVariant.BodyMD}
-                color={TextColor.Alternative}
-                style={styles.detailLabel}
-              >
-                {strings('perps.order_details.price')}
-              </Text>
-              <View style={styles.detailValue}>
-                <Text variant={TextVariant.BodyMD}>
-                  {orderDetails.priceText}
-                </Text>
-              </View>
-            </View>
-
-            <View
-              style={[
-                styles.separator,
-                { backgroundColor: colors.border.muted },
-              ]}
-            />
-
-            {/* Take profit */}
-            {orderDetails.takeProfitPriceText && (
-              <>
-                <View style={styles.detailRow}>
-                  <Text
-                    variant={TextVariant.BodyMD}
-                    color={TextColor.Alternative}
-                    style={styles.detailLabel}
-                  >
-                    {strings('perps.order_details.take_profit')}
-                  </Text>
-                  <View style={styles.detailValue}>
-                    <Text variant={TextVariant.BodyMD}>
-                      {orderDetails.takeProfitPriceText}
-                    </Text>
-                  </View>
-                </View>
-
-                <View
-                  style={[
-                    styles.separator,
-                    { backgroundColor: colors.border.muted },
-                  ]}
-                />
-              </>
-            )}
-
-            {/* Stop loss */}
-            {orderDetails.stopLossPriceText && (
-              <>
-                <View style={styles.detailRow}>
-                  <Text
-                    variant={TextVariant.BodyMD}
-                    color={TextColor.Alternative}
-                    style={styles.detailLabel}
-                  >
-                    {strings('perps.order_details.stop_loss')}
-                  </Text>
-                  <View style={styles.detailValue}>
-                    <Text variant={TextVariant.BodyMD}>
-                      {orderDetails.stopLossPriceText}
-                    </Text>
-                  </View>
-                </View>
-
-                <View
-                  style={[
-                    styles.separator,
-                    { backgroundColor: colors.border.muted },
-                  ]}
-                />
-              </>
-            )}
-
-            {/* Size */}
-            <View style={styles.detailRow}>
-              <Text
-                variant={TextVariant.BodyMD}
-                color={TextColor.Alternative}
-                style={styles.detailLabel}
-              >
-                {strings('perps.order_details.size')}
-              </Text>
-              <View style={styles.detailValue}>
-                <Text variant={TextVariant.BodyMD}>
-                  {formatPositionSize(parseFloat(order.size))} {order.symbol}
-                </Text>
-              </View>
-            </View>
-
-            <View
-              style={[
-                styles.separator,
-                { backgroundColor: colors.border.muted },
-              ]}
-            />
-
-            {/* Original size */}
-            <View style={styles.detailRow}>
-              <Text
-                variant={TextVariant.BodyMD}
-                color={TextColor.Alternative}
-                style={styles.detailLabel}
-              >
-                {strings('perps.order_details.original_size')}
-              </Text>
-              <View style={styles.detailValue}>
-                <Text variant={TextVariant.BodyMD}>
-                  {formatPositionSize(parseFloat(order.originalSize))}{' '}
-                  {order.symbol}
-                </Text>
-              </View>
-            </View>
-
-            <View
-              style={[
-                styles.separator,
-                { backgroundColor: colors.border.muted },
-              ]}
-            />
-
-            {/* Order value */}
-            <View style={styles.detailRow}>
-              <Text
-                variant={TextVariant.BodyMD}
-                color={TextColor.Alternative}
-                style={styles.detailLabel}
-              >
-                {strings('perps.order_details.order_value')}
-              </Text>
-              <View style={styles.detailValue}>
-                <Text variant={TextVariant.BodyMD}>
-                  {formatPerpsFiat(orderDetails.originalSizeInUSD)}
-                </Text>
-              </View>
-            </View>
-
-            <View
-              style={[
-                styles.separator,
-                { backgroundColor: colors.border.muted },
-              ]}
-            />
-
-            {/* Reduce only */}
-            <View style={styles.detailRow}>
-              <Text
-                variant={TextVariant.BodyMD}
-                color={TextColor.Alternative}
-                style={styles.detailLabel}
-              >
-                {strings('perps.order_details.reduce_only')}
-              </Text>
-              <View style={styles.detailValue}>
-                <Text variant={TextVariant.BodyMD}>
-                  {orderDetails.reduceOnlyText}
-                </Text>
-              </View>
-            </View>
-
-            <View
-              style={[
-                styles.separator,
-                { backgroundColor: colors.border.muted },
-              ]}
-            />
-
-            {/* Fee */}
-            <View style={styles.detailRow}>
-              <Text
-                variant={TextVariant.BodyMD}
-                color={TextColor.Alternative}
-                style={styles.detailLabel}
-              >
-                {strings('perps.order_details.fee')}
-              </Text>
-              <View style={styles.detailValue}>
-                <Text variant={TextVariant.BodyMD}>
-                  {formatPerpsFiat(totalFee)}
-                </Text>
-              </View>
-            </View>
-
-            <View
-              style={[
-                styles.separator,
-                { backgroundColor: colors.border.muted },
-              ]}
-            />
+              </React.Fragment>
+            ))}
 
             {/* Status */}
             <View style={styles.detailRow}>
