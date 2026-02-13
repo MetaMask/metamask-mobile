@@ -164,6 +164,8 @@ remote_feature_flags:        →     REMOTE_FEATURE_FLAG_DEFAULTS={"perpsPerpTra
 - Each build overrides only what differs: prod/rc use defaults as-is; test/e2e/exp/dev list overrides inline (e.g. UAT URLs, `IS_TEST`, `SEEDLESS_ONBOARDING_ENABLED`). Later keys in the same `env` block override the merged defaults.
 - GitHub Environment determines actual secret values (same secret names, different values per environment).
 
+**E2E builds (build-ios-e2e / build-android-e2e):** These workflows run in GitHub but do **not** use the prepare step that injects `builds.yml` env. They set `E2E=true` and their own env (e.g. `METAMASK_ENVIRONMENT`). The app treats `GITHUB_ACTIONS && E2E` like Bitrise/local: it uses `METAMASK_ENVIRONMENT`, `process.env` for feature flags, and AppConstants for URLs, so E2E tests get consistent behavior without builds.yml.
+
 ---
 
 ### 4. `scripts/validate-build-config.js` — Config Validator
