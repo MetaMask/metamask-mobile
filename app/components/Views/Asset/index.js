@@ -76,6 +76,8 @@ import {
 } from '../../../selectors/transactionController';
 import { TOKEN_CATEGORY_HASH } from '../../UI/TransactionElement/utils';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
+import { TransactionType } from '@metamask/transaction-controller';
+import { isMusdClaimForCurrentView } from '../../UI/Earn/utils/musd';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { selectNonEvmTransactionsForSelectedAccountGroup } from '../../../selectors/multichain';
 ///: END:ONLY_INCLUDE_IF
@@ -223,6 +225,7 @@ AssetInlineHeader.propTypes = {
   colors: PropTypes.object,
 };
 
+// TODO: Delete when TokenDetailsV2 flag is fully rolled out
 /**
  * View that displays a specific asset (Token or ETH)
  * including the overview (Amount, Balance, Symbol, Logo)
@@ -358,6 +361,18 @@ class Asset extends PureComponent {
   didTxStatusesChange = (newTxsPending) =>
     this.txsPending.length !== newTxsPending.length;
 
+  // Wrapper for shared mUSD claim detection utility
+  checkIsMusdClaimForCurrentView = (tx) => {
+    const { chainId } = this.props;
+    return isMusdClaimForCurrentView({
+      tx,
+      navAddress: this.navAddress,
+      navSymbol: this.navSymbol?.toLowerCase() ?? '',
+      chainId,
+      selectedAddress: this.selectedAddress,
+    });
+  };
+
   ethFilter = (tx) => {
     const { networkId } = store.getState().inpageProvider;
     const { chainId } = this.props;
@@ -367,6 +382,10 @@ class Asset extends PureComponent {
       transferInformation,
       type,
     } = tx;
+
+    if (this.checkIsMusdClaimForCurrentView(tx)) {
+      return true;
+    }
 
     if (
       (areAddressesEqual(from, this.selectedAddress) ||
@@ -397,6 +416,11 @@ class Asset extends PureComponent {
       isTransfer,
       transferInformation,
     } = tx;
+
+    if (this.checkIsMusdClaimForCurrentView(tx)) {
+      return true;
+    }
+
     if (
       (areAddressesEqual(from, this.selectedAddress) ||
         areAddressesEqual(to, this.selectedAddress)) &&

@@ -1,10 +1,11 @@
-import React, { forwardRef, useImperativeHandle, useRef, useMemo } from 'react';
+import React, { forwardRef, useImperativeHandle, useRef } from 'react';
 import {
   StyleSheet,
   ImageSourcePropType,
   TextInput,
   StyleProp,
   ViewStyle,
+  Platform,
 } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -32,9 +33,7 @@ import { useNavigation } from '@react-navigation/native';
 import {
   setDestTokenExchangeRate,
   setSourceTokenExchangeRate,
-  selectIsGaslessSwapEnabled,
 } from '../../../../../core/redux/slices/bridge';
-import { RootState } from '../../../../../reducers';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { selectMultichainAssetsRates } from '../../../../../selectors/multichain';
 ///: END:ONLY_INCLUDE_IF(keyring-snaps)
@@ -48,6 +47,7 @@ import { isNativeAddress } from '@metamask/bridge-controller';
 import { Theme } from '../../../../../util/theme/models';
 import parseAmount from '../../../../../util/parseAmount';
 import { useTokenAddress } from '../../hooks/useTokenAddress';
+import { useShouldRenderMaxOption } from '../../hooks/useShouldRenderMaxOption';
 import { calculateInputFontSize } from '../../utils/calculateInputFontSize';
 import { formatAmountWithLocaleSeparators } from '../../utils/formatAmountWithLocaleSeparators';
 
@@ -78,6 +78,7 @@ const createStyles = ({
       lineHeight: vars.fontSize * 1.25,
       height: vars.fontSize * 1.25,
       fontSize: vars.fontSize,
+      paddingVertical: Platform.OS === 'ios' ? 2 : 1,
     },
     currencyContainer: {
       flex: 1,
@@ -184,10 +185,6 @@ export const TokenInputArea = forwardRef<
   ) => {
     const currentCurrency = useSelector(selectCurrentCurrency);
 
-    const isGaslessSwapEnabled = useSelector((state: RootState) =>
-      token?.chainId ? selectIsGaslessSwapEnabled(state, token.chainId) : false,
-    );
-
     // Need to fetch the exchange rate for the token if we don't have it already
     useBridgeExchangeRates({
       token,
@@ -266,11 +263,12 @@ export const TokenInputArea = forwardRef<
 
     const isNativeAsset = isNativeAddress(tokenAddress);
 
-    // Show max button for native tokens if gasless swap is enabled OR quote is sponsored
-    const shouldShowMaxButton = useMemo(() => {
-      if (!isNativeAsset) return true; // Always show for non-native tokens
-      return isGaslessSwapEnabled || isQuoteSponsored;
-    }, [isNativeAsset, isGaslessSwapEnabled, isQuoteSponsored]);
+    const shouldShowMaxButton = useShouldRenderMaxOption(
+      token,
+      tokenBalance,
+      isQuoteSponsored,
+    );
+
     const formattedAddress =
       tokenAddress && !isNativeAsset ? formatAddress(tokenAddress) : undefined;
 
@@ -359,7 +357,6 @@ export const TokenInputArea = forwardRef<
                 <Box
                   flexDirection={
                     tokenType === TokenInputAreaType.Source &&
-                    tokenBalance &&
                     onMaxPress &&
                     shouldShowMaxButton
                       ? FlexDirection.Row

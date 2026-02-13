@@ -13,10 +13,6 @@ import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
 
 interface UsePredictPositionsOptions {
   /**
-   * The provider ID to load positions for
-   */
-  providerId?: string;
-  /**
    * Whether to load positions on mount
    * @default true
    */
@@ -60,7 +56,6 @@ export function usePredictPositions(
   options: UsePredictPositionsOptions = {},
 ): UsePredictPositionsReturn {
   const {
-    providerId,
     loadOnMount = true,
     refreshOnFocus = true,
     claimable = false,
@@ -74,9 +69,12 @@ export function usePredictPositions(
   // `positions` state only stores active positions
   const [positions, setPositions] = useState<PredictPosition[]>([]);
 
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(loadOnMount);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [dataLoadedForAddress, setDataLoadedForAddress] = useState<
+    string | null
+  >(null);
 
   const evmAccount = getEvmAccountFromSelectedAccountGroup();
   const selectedInternalAccountAddress = evmAccount?.address ?? '0x0';
@@ -122,7 +120,6 @@ export function usePredictPositions(
         // Get positions from Predict controller
         const positionsData = await getPositions({
           address: selectedInternalAccountAddress,
-          providerId,
           claimable,
           // Always load ALL positions when claimable is true
           marketId: claimable ? undefined : marketId,
@@ -162,7 +159,6 @@ export function usePredictPositions(
               method: 'loadPositions',
               action: 'positions_load',
               operation: 'data_fetching',
-              providerId,
               claimable,
               marketId,
             },
@@ -171,17 +167,12 @@ export function usePredictPositions(
       } finally {
         setIsLoading(false);
         setIsRefreshing(false);
+        setDataLoadedForAddress(selectedInternalAccountAddress);
       }
     },
     // eslint-disable-next-line react-compiler/react-compiler
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [
-      getPositions,
-      selectedInternalAccountAddress,
-      providerId,
-      claimable,
-      marketId,
-    ],
+    [getPositions, selectedInternalAccountAddress, claimable, marketId],
   );
 
   // Load positions on mount if enabled
@@ -221,12 +212,16 @@ export function usePredictPositions(
     };
   }, [autoRefreshTimeout]);
 
+  const isDataStale =
+    dataLoadedForAddress !== null &&
+    dataLoadedForAddress !== selectedInternalAccountAddress;
+
   return {
     // Get claimable positions from controller state if claimable is true.
     // This will ensure that we can refresh claimable positions when the user
     // performs a claim operation.
     positions: claimable ? filteredClaimablePositions : positions,
-    isLoading,
+    isLoading: isLoading || isDataStale,
     isRefreshing,
     error,
     loadPositions,

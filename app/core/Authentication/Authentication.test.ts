@@ -3,7 +3,6 @@ import {
   BIOMETRY_CHOICE_DISABLED,
   TRUE,
   PASSCODE_DISABLED,
-  SOLANA_DISCOVERY_PENDING,
   OPTIN_META_METRICS_UI_SEEN,
   PREVIOUS_AUTH_TYPE_BEFORE_REMEMBER_ME,
 } from '../../constants/storage';
@@ -34,7 +33,6 @@ import {
 } from '@metamask/keyring-controller';
 import { EncryptionKey } from '@metamask/browser-passworder';
 import { uint8ArrayToMnemonic } from '../../util/mnemonic';
-import { SolScope } from '@metamask/keyring-api';
 import {
   logOut,
   setExistingUser,
@@ -53,13 +51,15 @@ import MetaMetrics from '../Analytics/MetaMetrics';
 import { resetProviderToken as depositResetProviderToken } from '../../components/UI/Ramp/Deposit/utils/ProviderTokenVault';
 import { clearAllVaultBackups } from '../BackupVault/backupVault';
 import { Engine as EngineClass } from '../Engine/Engine';
+import { cancelBulkLink } from '../../store/sagas/rewardsBulkLinkAccountGroups';
 import Logger from '../../util/Logger';
-import { Alert } from 'react-native';
+import { Alert, Platform } from 'react-native';
 import { strings } from '../../../locales/i18n';
 import trackErrorAsAnalytics from '../../util/metrics/TrackError/trackErrorAsAnalytics';
 import Routes from '../../constants/navigation/Routes';
 import { IconName } from '../../component-library/components/Icons/Icon';
 import { ReauthenticateErrorType } from './types';
+import { AuthenticationType, SecurityLevel } from 'expo-local-authentication';
 
 export type RecursivePartial<T> = {
   [P in keyof T]?: RecursivePartial<T[P]>;
@@ -78,7 +78,37 @@ jest.mock('../../selectors/accountsController', () => ({
   selectSelectedInternalAccountId: jest.fn(),
 }));
 
+// Mock the bulk link saga to avoid import chain issues
+jest.mock('../../store/sagas/rewardsBulkLinkAccountGroups', () => ({
+  cancelBulkLink: jest.fn(() => ({ type: 'rewards/bulkLink/CANCEL' })),
+}));
+
 jest.useFakeTimers();
+
+// Mock expo-local-authentication
+const mockIsEnrolledAsync = jest.fn();
+const mockSupportedAuthenticationTypesAsync = jest.fn();
+const mockGetEnrolledLevelAsync = jest.fn();
+const mockAuthenticateAsync = jest.fn();
+
+jest.mock('expo-local-authentication', () => ({
+  isEnrolledAsync: () => mockIsEnrolledAsync(),
+  supportedAuthenticationTypesAsync: () =>
+    mockSupportedAuthenticationTypesAsync(),
+  getEnrolledLevelAsync: () => mockGetEnrolledLevelAsync(),
+  authenticateAsync: (...args: unknown[]) => mockAuthenticateAsync(...args),
+  AuthenticationType: {
+    FINGERPRINT: 1,
+    FACIAL_RECOGNITION: 2,
+    IRIS: 3,
+  },
+  SecurityLevel: {
+    NONE: 0,
+    SECRET: 1,
+    BIOMETRIC_WEAK: 2,
+    BIOMETRIC_STRONG: 3,
+  },
+}));
 
 jest.mock('../../util/exponential-retry', () => ({
   retryWithExponentialDelay: jest.fn((fn) => fn()),
@@ -102,19 +132,23 @@ jest.mock('../../store/storage-wrapper', () => ({
   }),
 }));
 
-const mockSnapClient = {
-  addDiscoveredAccounts: jest.fn(),
-};
-
-const mockIsMultichainAccountsState2Enabled = jest.fn().mockReturnValue(false);
 const mockResyncAccounts = jest.fn().mockResolvedValue(undefined);
 
-jest.mock('../SnapKeyring/MultichainWalletSnapClient', () => ({
-  ...jest.requireActual('../SnapKeyring/MultichainWalletSnapClient'),
-  MultichainWalletSnapFactory: {
-    createClient: () => mockSnapClient,
-  },
-}));
+// HD_KEY_TREE is the string value of KeyringTypes.hd
+// We use the string literal here because this mock runs at module load time,
+// before the KeyringTypes import is resolved.
+const HD_KEY_TREE = 'HD Key Tree';
+
+/**
+ * Creates a mock HD keyring object for testing.
+ * Used to mock KeyringController.state.keyrings entries.
+ * @param id - The keyring metadata id, defaults to 'test-keyring-id'
+ * @returns A mock keyring object with HD type and metadata
+ */
+const createMockHdKeyring = (id = 'test-keyring-id') => ({
+  type: HD_KEY_TREE,
+  metadata: { id },
+});
 
 jest.mock('../Engine', () => ({
   resetState: jest.fn(),
@@ -131,7 +165,7 @@ jest.mock('../Engine', () => ({
       removeAccount: jest.fn(),
       verifyPassword: jest.fn(),
       state: {
-        keyrings: [{ metadata: { id: 'test-keyring-id' } }],
+        keyrings: [createMockHdKeyring()],
       },
     },
 
@@ -215,11 +249,6 @@ jest.mock('../../components/UI/Ramp/Deposit/utils/ProviderTokenVault', () => ({
 jest.mock('../../multichain-accounts/AccountTreeInitService', () => ({
   initializeAccountTree: jest.fn().mockResolvedValue(undefined),
   clearState: jest.fn().mockResolvedValue(undefined),
-}));
-
-jest.mock('../../multichain-accounts/remote-feature-flag', () => ({
-  isMultichainAccountsState2Enabled: () =>
-    mockIsMultichainAccountsState2Enabled(),
 }));
 
 const mockUint8ArrayToMnemonic = jest
@@ -681,12 +710,89 @@ describe('Authentication', () => {
     expect(result.currentAuthType).toEqual(AUTHENTICATION_TYPE.BIOMETRIC);
   });
 
-  describe('storePassword (protected method tested via updateAuthPreference)', () => {
+  describe('requestBiometricsAccessControlForIOS', () => {
+    beforeEach(() => {
+      mockAuthenticateAsync.mockReset();
+    });
+
+    it('returns authType unchanged when Platform.OS is not ios', async () => {
+      jest.replaceProperty(Platform, 'OS', 'android');
+
+      const result = await Authentication.requestBiometricsAccessControlForIOS(
+        AUTHENTICATION_TYPE.BIOMETRIC,
+      );
+
+      expect(result).toBe(AUTHENTICATION_TYPE.BIOMETRIC);
+      expect(mockAuthenticateAsync).not.toHaveBeenCalled();
+
+      jest.replaceProperty(Platform, 'OS', 'ios'); // restore default for other tests
+    });
+
+    it('returns authType unchanged when Platform.OS is ios but authType is not BIOMETRIC', async () => {
+      jest.replaceProperty(Platform, 'OS', 'ios');
+
+      const passcodeResult =
+        await Authentication.requestBiometricsAccessControlForIOS(
+          AUTHENTICATION_TYPE.PASSCODE,
+        );
+      expect(passcodeResult).toBe(AUTHENTICATION_TYPE.PASSCODE);
+      expect(mockAuthenticateAsync).not.toHaveBeenCalled();
+
+      const passwordResult =
+        await Authentication.requestBiometricsAccessControlForIOS(
+          AUTHENTICATION_TYPE.PASSWORD,
+        );
+      expect(passwordResult).toBe(AUTHENTICATION_TYPE.PASSWORD);
+      expect(mockAuthenticateAsync).not.toHaveBeenCalled();
+    });
+
+    it('returns authType when Platform.OS is ios and authType is BIOMETRIC and authenticateAsync succeeds', async () => {
+      jest.replaceProperty(Platform, 'OS', 'ios');
+      mockAuthenticateAsync.mockResolvedValue({ success: true });
+
+      const result = await Authentication.requestBiometricsAccessControlForIOS(
+        AUTHENTICATION_TYPE.BIOMETRIC,
+      );
+
+      expect(result).toBe(AUTHENTICATION_TYPE.BIOMETRIC);
+      expect(mockAuthenticateAsync).toHaveBeenCalledWith({
+        disableDeviceFallback: true,
+      });
+    });
+
+    it('returns PASSWORD when Platform.OS is ios and authType is BIOMETRIC and authenticateAsync returns success false', async () => {
+      jest.replaceProperty(Platform, 'OS', 'ios');
+      mockAuthenticateAsync.mockResolvedValue({ success: false });
+
+      const result = await Authentication.requestBiometricsAccessControlForIOS(
+        AUTHENTICATION_TYPE.BIOMETRIC,
+      );
+
+      expect(result).toBe(AUTHENTICATION_TYPE.PASSWORD);
+      expect(mockAuthenticateAsync).toHaveBeenCalledWith({
+        disableDeviceFallback: true,
+      });
+    });
+
+    it('returns PASSWORD when Platform.OS is ios and authType is BIOMETRIC and authenticateAsync throws', async () => {
+      jest.replaceProperty(Platform, 'OS', 'ios');
+      mockAuthenticateAsync.mockRejectedValue(new Error('User cancelled'));
+
+      const result = await Authentication.requestBiometricsAccessControlForIOS(
+        AUTHENTICATION_TYPE.BIOMETRIC,
+      );
+
+      expect(result).toBe(AUTHENTICATION_TYPE.PASSWORD);
+      expect(mockAuthenticateAsync).toHaveBeenCalledWith({
+        disableDeviceFallback: true,
+      });
+    });
+  });
+
+  describe('storePassword', () => {
     const mockPassword = 'test-password-123';
-    let Engine: typeof import('../Engine').default;
 
     beforeEach(() => {
-      Engine = jest.requireMock('../Engine');
       jest.clearAllMocks();
 
       jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
@@ -698,23 +804,10 @@ describe('Authentication', () => {
         }),
       } as unknown as ReduxStore);
 
-      Engine.context.KeyringController.exportSeedPhrase = jest
-        .fn()
-        .mockResolvedValue(undefined) as jest.MockedFunction<
-        typeof Engine.context.KeyringController.exportSeedPhrase
-      >;
-
-      jest.spyOn(Authentication, 'getPassword').mockResolvedValue({
-        password: mockPassword,
-        username: 'metamask-user',
-      } as unknown as import('react-native-keychain').UserCredentials);
-
-      jest.spyOn(Authentication, 'resetPassword').mockResolvedValue(undefined);
       jest
         .spyOn(SecureKeychain, 'setGenericPassword')
         .mockResolvedValue(undefined);
 
-      // Mock SecureKeychain methods needed by checkAuthenticationMethod
       SecureKeychain.getSupportedBiometryType = jest
         .fn()
         .mockReturnValue(Keychain.BIOMETRY_TYPE.FACE_ID);
@@ -730,10 +823,10 @@ describe('Authentication', () => {
       const removeItemSpy = jest.spyOn(StorageWrapper, 'removeItem');
       const setItemSpy = jest.spyOn(StorageWrapper, 'setItem');
 
-      await Authentication.updateAuthPreference({
-        authType: AUTHENTICATION_TYPE.BIOMETRIC,
-        password: mockPassword,
-      });
+      await Authentication.storePassword(
+        mockPassword,
+        AUTHENTICATION_TYPE.BIOMETRIC,
+      );
 
       expect(SecureKeychain.setGenericPassword).toHaveBeenCalledWith(
         mockPassword,
@@ -748,10 +841,10 @@ describe('Authentication', () => {
       const removeItemSpy = jest.spyOn(StorageWrapper, 'removeItem');
       const setItemSpy = jest.spyOn(StorageWrapper, 'setItem');
 
-      await Authentication.updateAuthPreference({
-        authType: AUTHENTICATION_TYPE.PASSCODE,
-        password: mockPassword,
-      });
+      await Authentication.storePassword(
+        mockPassword,
+        AUTHENTICATION_TYPE.PASSCODE,
+      );
 
       expect(SecureKeychain.setGenericPassword).toHaveBeenCalledWith(
         mockPassword,
@@ -765,33 +858,126 @@ describe('Authentication', () => {
     it('stores password with REMEMBER_ME and manages storage flags correctly', async () => {
       const setItemSpy = jest.spyOn(StorageWrapper, 'setItem');
 
-      await Authentication.updateAuthPreference({
-        authType: AUTHENTICATION_TYPE.REMEMBER_ME,
-        password: mockPassword,
-      });
+      jest
+        .spyOn(
+          Authentication as unknown as {
+            checkAuthenticationMethod: () => Promise<{
+              currentAuthType: string;
+              availableBiometryType: string;
+            }>;
+          },
+          'checkAuthenticationMethod',
+        )
+        .mockResolvedValue({
+          currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
+          availableBiometryType: 'Face ID',
+        });
+
+      await Authentication.storePassword(
+        mockPassword,
+        AUTHENTICATION_TYPE.REMEMBER_ME,
+      );
 
       expect(SecureKeychain.setGenericPassword).toHaveBeenCalledWith(
         mockPassword,
         SecureKeychain.TYPES.REMEMBER_ME,
       );
-
-      // But can store previous auth type (expected behavior)
       expect(setItemSpy).toHaveBeenCalledWith(
         PREVIOUS_AUTH_TYPE_BEFORE_REMEMBER_ME,
-        expect.any(String),
+        AUTHENTICATION_TYPE.BIOMETRIC,
       );
       expect(setItemSpy).toHaveBeenCalledWith(PASSCODE_DISABLED, TRUE);
       expect(setItemSpy).toHaveBeenCalledWith(BIOMETRY_CHOICE_DISABLED, TRUE);
       expect(mockDispatch).toHaveBeenCalledWith(passwordSet());
     });
 
-    it('stores password with PASSWORD and disables both biometric and passcode', async () => {
+    it('does not store previous auth type when already on REMEMBER_ME', async () => {
       const setItemSpy = jest.spyOn(StorageWrapper, 'setItem');
 
-      await Authentication.updateAuthPreference({
-        authType: AUTHENTICATION_TYPE.PASSWORD,
-        password: mockPassword,
-      });
+      jest
+        .spyOn(
+          Authentication as unknown as {
+            checkAuthenticationMethod: () => Promise<{
+              currentAuthType: string;
+              availableBiometryType: string;
+            }>;
+          },
+          'checkAuthenticationMethod',
+        )
+        .mockResolvedValue({
+          currentAuthType: AUTHENTICATION_TYPE.REMEMBER_ME,
+          availableBiometryType: 'Face ID',
+        });
+
+      await Authentication.storePassword(
+        mockPassword,
+        AUTHENTICATION_TYPE.REMEMBER_ME,
+      );
+
+      expect(SecureKeychain.setGenericPassword).toHaveBeenCalledWith(
+        mockPassword,
+        SecureKeychain.TYPES.REMEMBER_ME,
+      );
+      expect(setItemSpy).not.toHaveBeenCalledWith(
+        PREVIOUS_AUTH_TYPE_BEFORE_REMEMBER_ME,
+        expect.any(String),
+      );
+      expect(mockDispatch).toHaveBeenCalledWith(passwordSet());
+    });
+
+    it('stores password with PASSWORD and disables both biometric and passcode', async () => {
+      const setItemSpy = jest.spyOn(StorageWrapper, 'setItem');
+      const removeItemSpy = jest.spyOn(StorageWrapper, 'removeItem');
+
+      await Authentication.storePassword(
+        mockPassword,
+        AUTHENTICATION_TYPE.PASSWORD,
+      );
+
+      expect(SecureKeychain.setGenericPassword).toHaveBeenCalledWith(
+        mockPassword,
+        undefined,
+      );
+      expect(setItemSpy).toHaveBeenCalledWith(BIOMETRY_CHOICE_DISABLED, TRUE);
+      expect(setItemSpy).toHaveBeenCalledWith(PASSCODE_DISABLED, TRUE);
+      expect(removeItemSpy).toHaveBeenCalledWith(
+        PREVIOUS_AUTH_TYPE_BEFORE_REMEMBER_ME,
+      );
+      expect(mockDispatch).toHaveBeenCalledWith(passwordSet());
+    });
+
+    it('stores password with PASSWORD and skips clearing previous auth type when remember me is disabled', async () => {
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        dispatch: mockDispatch,
+        getState: () => ({
+          security: { allowLoginWithRememberMe: false },
+        }),
+      } as unknown as ReduxStore);
+
+      const setItemSpy = jest.spyOn(StorageWrapper, 'setItem');
+      const removeItemSpy = jest.spyOn(StorageWrapper, 'removeItem');
+
+      await Authentication.storePassword(
+        mockPassword,
+        AUTHENTICATION_TYPE.PASSWORD,
+      );
+
+      expect(SecureKeychain.setGenericPassword).toHaveBeenCalledWith(
+        mockPassword,
+        undefined,
+      );
+      expect(setItemSpy).toHaveBeenCalledWith(BIOMETRY_CHOICE_DISABLED, TRUE);
+      expect(setItemSpy).toHaveBeenCalledWith(PASSCODE_DISABLED, TRUE);
+      expect(removeItemSpy).not.toHaveBeenCalledWith(
+        PREVIOUS_AUTH_TYPE_BEFORE_REMEMBER_ME,
+      );
+      expect(mockDispatch).toHaveBeenCalledWith(passwordSet());
+    });
+
+    it('stores password with unknown authType using default (password) behavior', async () => {
+      const setItemSpy = jest.spyOn(StorageWrapper, 'setItem');
+
+      await Authentication.storePassword(mockPassword, 'UnknownType' as never);
 
       expect(SecureKeychain.setGenericPassword).toHaveBeenCalledWith(
         mockPassword,
@@ -802,24 +988,24 @@ describe('Authentication', () => {
       expect(mockDispatch).toHaveBeenCalledWith(passwordSet());
     });
 
-    it('throws AuthenticationError when SecureKeychain fails', async () => {
-      const error = new Error('Keychain error');
+    it('throws AuthenticationError with AUTHENTICATION_STORE_PASSWORD_FAILED when SecureKeychain fails', async () => {
+      const keychainError = new Error('Keychain error');
       jest
         .spyOn(SecureKeychain, 'setGenericPassword')
-        .mockRejectedValueOnce(error);
+        .mockRejectedValueOnce(keychainError);
 
       await expect(
-        Authentication.updateAuthPreference({
-          authType: AUTHENTICATION_TYPE.PASSWORD,
-          password: mockPassword,
-        }),
+        Authentication.storePassword(
+          mockPassword,
+          AUTHENTICATION_TYPE.PASSWORD,
+        ),
       ).rejects.toThrow(AuthenticationError);
 
       try {
-        await Authentication.updateAuthPreference({
-          authType: AUTHENTICATION_TYPE.PASSWORD,
-          password: mockPassword,
-        });
+        await Authentication.storePassword(
+          mockPassword,
+          AUTHENTICATION_TYPE.PASSWORD,
+        );
       } catch (authError) {
         expect(authError).toBeInstanceOf(AuthenticationError);
         expect((authError as AuthenticationError).customErrorMessage).toBe(
@@ -831,258 +1017,94 @@ describe('Authentication', () => {
       }
     });
 
-    it('falls back to PASSWORD authType when biometric storePassword fails in newWalletAndKeychain', async () => {
-      const fallbackMockDispatch = jest.fn();
-      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
-        dispatch: fallbackMockDispatch,
-        getState: () => ({ security: { allowLoginWithRememberMe: true } }),
-      } as unknown as ReduxStore);
+    it('throws AuthenticationError when SecureKeychain fails for BIOMETRIC (no fallback)', async () => {
+      const keychainError = new Error('Biometric keychain failed');
+      jest
+        .spyOn(SecureKeychain, 'setGenericPassword')
+        .mockRejectedValueOnce(keychainError);
 
-      const fallbackEngine = jest.requireMock('../Engine');
+      await expect(
+        Authentication.storePassword(
+          mockPassword,
+          AUTHENTICATION_TYPE.BIOMETRIC,
+        ),
+      ).rejects.toThrow(AuthenticationError);
 
-      // Mock successful vault creation
-      fallbackEngine.context.KeyringController.createNewVaultAndKeychain.mockResolvedValueOnce(
-        undefined,
-      );
-      fallbackEngine.resetState = jest.fn().mockResolvedValueOnce(undefined);
-
-      // Mock storePassword to fail on first call (biometric), succeed on second (password)
-      // Use type casting to access protected method for testing
-      const storePasswordSpy = jest
-        .spyOn(
-          Authentication as unknown as { storePassword: jest.Mock },
-          'storePassword',
-        )
-        .mockRejectedValueOnce(new Error('Biometric storage failed'))
-        .mockResolvedValueOnce(undefined);
-
-      await Authentication.newWalletAndKeychain('password', {
-        currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
-      });
-
-      // Verifies storePassword was called twice: first with BIOMETRIC (failed), then with PASSWORD (succeeded)
-      expect(storePasswordSpy).toHaveBeenCalledTimes(2);
-      expect(storePasswordSpy).toHaveBeenNthCalledWith(
-        1,
-        'password',
-        AUTHENTICATION_TYPE.BIOMETRIC,
-      );
-      expect(storePasswordSpy).toHaveBeenNthCalledWith(
-        2,
-        'password',
-        AUTHENTICATION_TYPE.PASSWORD,
-      );
-
-      // Verifies operation completed successfully
-      expect(fallbackMockDispatch).toHaveBeenCalledWith(setExistingUser(true));
-      expect(fallbackMockDispatch).toHaveBeenCalledWith(logIn());
-
-      storePasswordSpy.mockRestore();
+      try {
+        await Authentication.storePassword(
+          mockPassword,
+          AUTHENTICATION_TYPE.BIOMETRIC,
+        );
+      } catch (authError) {
+        expect(authError).toBeInstanceOf(AuthenticationError);
+        expect((authError as AuthenticationError).customErrorMessage).toBe(
+          AUTHENTICATION_STORE_PASSWORD_FAILED,
+        );
+      }
     });
 
-    it('falls back to PASSWORD authType when biometric storePassword fails in newWalletAndRestore', async () => {
-      const restoreMockDispatch = jest.fn();
-      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
-        dispatch: restoreMockDispatch,
-        getState: () => ({ security: { allowLoginWithRememberMe: true } }),
-      } as unknown as ReduxStore);
-
-      const restoreEngine = jest.requireMock('../Engine');
-
-      // Mock successful vault restoration
-      restoreEngine.context.KeyringController.createNewVaultAndRestore.mockResolvedValueOnce(
-        undefined,
-      );
-      restoreEngine.resetState = jest.fn().mockResolvedValueOnce(undefined);
-
-      // Mock storePassword to fail on first call (biometric), succeed on second (password)
-      // Use type casting to access protected method for testing
-      const storePasswordSpy = jest
-        .spyOn(
-          Authentication as unknown as { storePassword: jest.Mock },
-          'storePassword',
-        )
+    it('when fallbackToPassword is true, retries with PASSWORD when BIOMETRIC storage fails and succeeds', async () => {
+      const setGenericPasswordSpy = jest
+        .spyOn(SecureKeychain, 'setGenericPassword')
         .mockRejectedValueOnce(new Error('Biometric storage failed'))
         .mockResolvedValueOnce(undefined);
 
-      await Authentication.newWalletAndRestore(
-        'password',
-        {
-          currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
-        },
-        'test seed phrase',
+      await Authentication.storePassword(
+        mockPassword,
+        AUTHENTICATION_TYPE.BIOMETRIC,
         true,
       );
 
-      // Verifies storePassword was called twice: first with BIOMETRIC (failed), then with PASSWORD (succeeded)
-      expect(storePasswordSpy).toHaveBeenCalledTimes(2);
-      expect(storePasswordSpy).toHaveBeenNthCalledWith(
+      expect(setGenericPasswordSpy).toHaveBeenCalledTimes(2);
+      expect(setGenericPasswordSpy).toHaveBeenNthCalledWith(
         1,
-        'password',
-        AUTHENTICATION_TYPE.BIOMETRIC,
+        mockPassword,
+        SecureKeychain.TYPES.BIOMETRICS,
       );
-      expect(storePasswordSpy).toHaveBeenNthCalledWith(
+      expect(setGenericPasswordSpy).toHaveBeenNthCalledWith(
         2,
-        'password',
-        AUTHENTICATION_TYPE.PASSWORD,
+        mockPassword,
+        undefined,
       );
-
-      // Verifies operation completed successfully
-      expect(restoreMockDispatch).toHaveBeenCalledWith(setExistingUser(true));
-      expect(restoreMockDispatch).toHaveBeenCalledWith(logIn());
-
-      storePasswordSpy.mockRestore();
+      expect(mockDispatch).toHaveBeenCalledWith(passwordSet());
     });
 
-    it('throws error when PASSWORD authType storePassword fails in newWalletAndKeychain', async () => {
-      const errorMockDispatch = jest.fn();
-      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
-        dispatch: errorMockDispatch,
-        getState: () => ({ security: { allowLoginWithRememberMe: true } }),
-      } as unknown as ReduxStore);
+    it('when fallbackToPassword is true and both BIOMETRIC and PASSWORD storage fail, throws AuthenticationError', async () => {
+      jest
+        .spyOn(SecureKeychain, 'setGenericPassword')
+        .mockRejectedValueOnce(new Error('Biometric storage failed'))
+        .mockRejectedValueOnce(new Error('Password storage failed'));
 
-      const errorEngine = jest.requireMock('../Engine');
-
-      errorEngine.context.KeyringController.setLocked.mockResolvedValue(
-        undefined,
-      );
-
-      // Mock successful vault creation
-      errorEngine.context.KeyringController.createNewVaultAndKeychain.mockResolvedValueOnce(
-        undefined,
-      );
-      errorEngine.resetState = jest.fn().mockResolvedValueOnce(undefined);
-
-      // Mock storePassword to fail even with PASSWORD authType
-      // Use type casting to access protected method for testing
-      const storePasswordSpy = jest
-        .spyOn(
-          Authentication as unknown as { storePassword: jest.Mock },
-          'storePassword',
-        )
-        .mockRejectedValue(new Error('Password storage failed'));
+      await expect(
+        Authentication.storePassword(
+          mockPassword,
+          AUTHENTICATION_TYPE.BIOMETRIC,
+          true,
+        ),
+      ).rejects.toThrow(AuthenticationError);
 
       try {
-        await Authentication.newWalletAndKeychain('password', {
-          currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
-        });
-        throw new Error('Expected an error to be thrown');
-      } catch (error) {
-        expect(error).toBeInstanceOf(AuthenticationError);
-        expect((error as AuthenticationError).customErrorMessage).toBe(
-          AUTHENTICATION_FAILED_WALLET_CREATION,
-        );
-        expect((error as AuthenticationError).message).toBe(
-          'Password storage failed',
-        );
-        // Verifies storePassword was called only once since it's PASSWORD authType (no fallback)
-        expect(storePasswordSpy).toHaveBeenCalledTimes(1);
-        await Promise.resolve();
-        jest.runAllTimers();
-        expect(errorMockDispatch).toHaveBeenCalledWith(logOut());
-      }
-
-      storePasswordSpy.mockRestore();
-    });
-
-    it('throws error when PASSWORD authType storePassword fails in newWalletAndRestore', async () => {
-      const restoreErrorMockDispatch = jest.fn();
-      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
-        dispatch: restoreErrorMockDispatch,
-        getState: () => ({ security: { allowLoginWithRememberMe: true } }),
-      } as unknown as ReduxStore);
-
-      const restoreErrorEngine = jest.requireMock('../Engine');
-
-      restoreErrorEngine.context.KeyringController.setLocked.mockResolvedValue(
-        undefined,
-      );
-
-      // Mock successful vault restoration
-      restoreErrorEngine.context.KeyringController.createNewVaultAndRestore.mockResolvedValueOnce(
-        undefined,
-      );
-      restoreErrorEngine.resetState = jest
-        .fn()
-        .mockResolvedValueOnce(undefined);
-
-      // Mock storePassword to fail even with PASSWORD authType
-      // Use type casting to access protected method for testing
-      const storePasswordSpy = jest
-        .spyOn(
-          Authentication as unknown as { storePassword: jest.Mock },
-          'storePassword',
-        )
-        .mockRejectedValue(new Error('Password storage failed'));
-
-      try {
-        await Authentication.newWalletAndRestore(
-          'password',
-          {
-            currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
-          },
-          'test seed phrase',
+        await Authentication.storePassword(
+          mockPassword,
+          AUTHENTICATION_TYPE.BIOMETRIC,
           true,
         );
-        throw new Error('Expected an error to be thrown');
-      } catch (error) {
-        expect(error).toBeInstanceOf(AuthenticationError);
-        expect((error as AuthenticationError).customErrorMessage).toBe(
-          AUTHENTICATION_FAILED_WALLET_CREATION,
+      } catch (authError) {
+        expect(authError).toBeInstanceOf(AuthenticationError);
+        expect((authError as AuthenticationError).customErrorMessage).toBe(
+          AUTHENTICATION_STORE_PASSWORD_FAILED,
         );
-        expect((error as AuthenticationError).message).toBe(
+        expect((authError as AuthenticationError).message).toBe(
           'Password storage failed',
         );
-        // Verifies storePassword was called only once since it's PASSWORD authType (no fallback)
-        expect(storePasswordSpy).toHaveBeenCalledTimes(1);
-        await Promise.resolve();
-        jest.runAllTimers();
-        expect(restoreErrorMockDispatch).toHaveBeenCalledWith(logOut());
       }
-
-      storePasswordSpy.mockRestore();
     });
   });
 
   describe('Multichain - discoverAccounts', () => {
-    beforeEach(() => {
-      mockIsMultichainAccountsState2Enabled.mockReturnValue(false);
-    });
-
-    it('calls discoverAccounts after vault creation in newWalletAndKeychain', async () => {
-      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
-        dispatch: jest.fn(),
-        getState: () => ({ security: { allowLoginWithRememberMe: true } }),
-      } as unknown as ReduxStore);
-      await Authentication.newWalletAndKeychain('1234', {
-        currentAuthType: AUTHENTICATION_TYPE.UNKNOWN,
-      });
-      expect(mockSnapClient.addDiscoveredAccounts).toHaveBeenCalledWith(
-        expect.any(String), // mock entropySource
-        SolScope.Mainnet,
-      );
-    });
-
-    it('calls discoverAccounts in newWalletVaultAndRestore', async () => {
-      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
-        dispatch: jest.fn(),
-        getState: () => ({ security: { allowLoginWithRememberMe: true } }),
-      } as unknown as ReduxStore);
-      await Authentication.newWalletAndRestore(
-        '1234',
-        {
-          currentAuthType: AUTHENTICATION_TYPE.UNKNOWN,
-        },
-        '1234',
-        false,
-      );
-      expect(mockSnapClient.addDiscoveredAccounts).toHaveBeenCalledWith(
-        expect.any(String), // mock entropySource
-        SolScope.Mainnet,
-      );
-    });
-
     describe('Account discovery failure handling', () => {
+      let mockAttemptMultichainAccountWalletDiscovery: jest.SpyInstance;
+
       beforeEach(() => {
         jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
           dispatch: jest.fn(),
@@ -1092,371 +1114,253 @@ describe('Authentication', () => {
         jest.spyOn(console, 'log').mockImplementation();
         jest.spyOn(console, 'error').mockImplementation();
         jest.clearAllMocks();
-        mockSnapClient.addDiscoveredAccounts.mockClear();
-        mockIsMultichainAccountsState2Enabled.mockReturnValue(false);
+
+        mockAttemptMultichainAccountWalletDiscovery = jest
+          .spyOn(
+            Authentication as unknown as {
+              attemptMultichainAccountWalletDiscovery: () => Promise<void>;
+            },
+            'attemptMultichainAccountWalletDiscovery',
+          )
+          .mockResolvedValue(undefined);
       });
 
       afterEach(() => {
         jest.restoreAllMocks();
-        mockIsMultichainAccountsState2Enabled.mockReturnValue(false);
+        mockAttemptMultichainAccountWalletDiscovery.mockRestore();
       });
 
-      it('completes wallet creation when discovery fails', async () => {
-        mockSnapClient.addDiscoveredAccounts.mockRejectedValueOnce(
-          new Error('RPC error'),
-        );
-
-        await expect(
-          Authentication.newWalletAndKeychain('1234', {
-            currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
-          }),
-        ).resolves.not.toThrow();
-
-        // Verify discovery was attempted
-        expect(mockSnapClient.addDiscoveredAccounts).toHaveBeenCalled();
-      });
-
-      it('does not break authentication flow when discovery fails', async () => {
+      it('throws AuthenticationError when newWalletAndRestore fails', async () => {
+        const mockDispatch = jest.fn();
         jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
           dispatch: mockDispatch,
-          getState: () => ({
-            user: { existingUser: true },
-          }),
+          getState: () => ({ security: { allowLoginWithRememberMe: true } }),
         } as unknown as ReduxStore);
 
-        // Mock MetaMetrics.getInstance to return true for isEnabled
-        jest
-          .spyOn(MetaMetrics, 'getInstance')
-          .mockReturnValue({ isEnabled: () => true } as MetaMetrics);
+        const Engine = jest.requireMock('../Engine');
 
-        // Set up pending discovery that will be checked on unlock
-        await StorageWrapper.setItem(SOLANA_DISCOVERY_PENDING, 'true');
+        Engine.context.KeyringController.setLocked.mockResolvedValue(undefined);
+
+        // Mock KeyringController.createNewVaultAndRestore to throw an error
+        Engine.context.KeyringController.createNewVaultAndRestore.mockRejectedValueOnce(
+          new Error('Wallet creation failed'),
+        );
+
+        try {
+          await Authentication.newWalletAndRestore(
+            'password',
+            { currentAuthType: AUTHENTICATION_TYPE.PASSWORD },
+            'test seed phrase',
+            false,
+          );
+          throw new Error('Expected an error to be thrown');
+        } catch (error) {
+          expect(mockDispatch).toHaveBeenCalledWith(logOut());
+          expect(error).toBeInstanceOf(AuthenticationError);
+          expect((error as AuthenticationError).customErrorMessage).toBe(
+            AUTHENTICATION_FAILED_WALLET_CREATION,
+          );
+          expect((error as AuthenticationError).message).toBe(
+            'Wallet creation failed',
+          );
+          await Promise.resolve();
+          jest.runAllTimers();
+          expect(mockDispatch).toHaveBeenCalledWith(logOut());
+        }
+      });
+
+      it('throws AuthenticationError when newWalletAndKeychain fails', async () => {
+        const mockDispatch = jest.fn();
+        jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+          dispatch: mockDispatch,
+          getState: () => ({ security: { allowLoginWithRememberMe: true } }),
+        } as unknown as ReduxStore);
+
+        const Engine = jest.requireMock('../Engine');
+
+        // Ensure KeyringController.setLocked resolves immediately
+        Engine.context.KeyringController.setLocked.mockResolvedValue(undefined);
+
+        // Mock KeyringController.createNewVaultAndKeychain to throw an error
+        Engine.context.KeyringController.createNewVaultAndKeychain.mockRejectedValueOnce(
+          new Error('Keychain creation failed'),
+        );
+
+        try {
+          await Authentication.newWalletAndKeychain('password', {
+            currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
+          });
+          throw new Error('Expected an error to be thrown');
+        } catch (error) {
+          expect(mockDispatch).toHaveBeenCalledWith(logOut());
+          expect(error).toBeInstanceOf(AuthenticationError);
+          expect((error as AuthenticationError).customErrorMessage).toBe(
+            AUTHENTICATION_FAILED_WALLET_CREATION,
+          );
+          expect((error as AuthenticationError).message).toBe(
+            'Keychain creation failed',
+          );
+          // Wait for async lockApp operations to complete
+          await Promise.resolve();
+          jest.runAllTimers();
+          expect(mockDispatch).toHaveBeenCalledWith(logOut());
+        }
+      });
+
+      it('falls back to PASSWORD when biometric storePassword fails in newWalletAndKeychain', async () => {
+        const fallbackMockDispatch = jest.fn();
+        jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+          dispatch: fallbackMockDispatch,
+          getState: () => ({ security: { allowLoginWithRememberMe: true } }),
+        } as unknown as ReduxStore);
+
+        const fallbackEngine = jest.requireMock('../Engine');
+
+        fallbackEngine.context.KeyringController.createNewVaultAndKeychain.mockResolvedValueOnce(
+          undefined,
+        );
+        fallbackEngine.resetState = jest.fn().mockResolvedValueOnce(undefined);
+
+        const setGenericPasswordSpy = jest
+          .spyOn(SecureKeychain, 'setGenericPassword')
+          .mockRejectedValueOnce(new Error('Biometric storage failed'))
+          .mockResolvedValueOnce(undefined);
+
+        await Authentication.newWalletAndKeychain('password', {
+          currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
+        });
+
+        expect(setGenericPasswordSpy).toHaveBeenCalledTimes(2);
+        expect(setGenericPasswordSpy).toHaveBeenNthCalledWith(
+          1,
+          'password',
+          SecureKeychain.TYPES.BIOMETRICS,
+        );
+        expect(setGenericPasswordSpy).toHaveBeenNthCalledWith(
+          2,
+          'password',
+          undefined,
+        );
+        expect(fallbackMockDispatch).toHaveBeenCalledWith(
+          setExistingUser(true),
+        );
+        expect(fallbackMockDispatch).toHaveBeenCalledWith(logIn());
+      });
+
+      it('falls back to PASSWORD when biometric storePassword fails in newWalletAndRestore', async () => {
+        const restoreMockDispatch = jest.fn();
+        jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+          dispatch: restoreMockDispatch,
+          getState: () => ({ security: { allowLoginWithRememberMe: true } }),
+        } as unknown as ReduxStore);
+
+        const restoreEngine = jest.requireMock('../Engine');
+
+        restoreEngine.context.KeyringController.createNewVaultAndRestore.mockResolvedValueOnce(
+          undefined,
+        );
+        restoreEngine.resetState = jest.fn().mockResolvedValueOnce(undefined);
+
+        const setGenericPasswordSpy = jest
+          .spyOn(SecureKeychain, 'setGenericPassword')
+          .mockRejectedValueOnce(new Error('Biometric storage failed'))
+          .mockResolvedValueOnce(undefined);
+
+        await Authentication.newWalletAndRestore(
+          'password',
+          { currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC },
+          'test seed phrase',
+          true,
+        );
+
+        expect(setGenericPasswordSpy).toHaveBeenCalledTimes(2);
+        expect(setGenericPasswordSpy).toHaveBeenNthCalledWith(
+          1,
+          'password',
+          SecureKeychain.TYPES.BIOMETRICS,
+        );
+        expect(setGenericPasswordSpy).toHaveBeenNthCalledWith(
+          2,
+          'password',
+          undefined,
+        );
+        expect(restoreMockDispatch).toHaveBeenCalledWith(setExistingUser(true));
+        expect(restoreMockDispatch).toHaveBeenCalledWith(logIn());
+      });
+
+      it('resyncs accounts after login', async () => {
+        const Engine = jest.requireMock('../Engine');
+        Engine.context.KeyringController.state.keyrings = [
+          { type: KeyringTypes.hd, metadata: { id: 'test-keyring-id' } },
+        ];
 
         const mockCredentials = { username: 'test', password: 'test' };
         SecureKeychain.getGenericPassword = jest
           .fn()
           .mockReturnValue(mockCredentials);
 
-        // App unlock should succeed even if retry fails
-        await expect(Authentication.unlockWallet()).resolves.not.toThrow();
-      });
+        jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+          dispatch: jest.fn(),
+          getState: () => ({
+            user: { existingUser: true },
+            security: { allowLoginWithRememberMe: true },
+          }),
+        } as unknown as ReduxStore);
 
-      it('sets SOLANA_DISCOVERY_PENDING when discovery fails in createWalletVaultAndKeychain', async () => {
-        const setItemSpy = jest.spyOn(StorageWrapper, 'setItem');
         jest
-          .spyOn(
-            Authentication as unknown as {
-              attemptAccountDiscovery: () => Promise<void>;
-            },
-            'attemptAccountDiscovery',
-          )
-          .mockRejectedValue(new Error('RPC error'));
+          .spyOn(MetaMetrics, 'getInstance')
+          .mockReturnValue({ isEnabled: () => true } as MetaMetrics);
 
-        await Authentication.newWalletAndKeychain('1234', {
-          currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
-        });
+        await Authentication.unlockWallet();
+
+        // Wait for the asynchronous call to `postLoginAsyncOperations`.
         await Promise.resolve();
 
-        expect(setItemSpy).toHaveBeenCalledWith(
-          SOLANA_DISCOVERY_PENDING,
-          'true',
-        );
+        // Account resynchronization runs after logging in
+        expect(mockResyncAccounts).toHaveBeenCalled();
       });
 
-      it('sets SOLANA_DISCOVERY_PENDING when discovery fails in newWalletVaultAndRestore', async () => {
-        const setItemSpy = jest.spyOn(StorageWrapper, 'setItem');
-        jest
-          .spyOn(
-            Authentication as unknown as {
-              attemptAccountDiscovery: () => Promise<void>;
-            },
-            'attemptAccountDiscovery',
-          )
-          .mockRejectedValue(new Error('RPC error'));
+      it('runs discovery and alignment on all HD wallets after login', async () => {
+        const Engine = jest.requireMock('../Engine');
+        Engine.context.KeyringController.state.keyrings = [
+          { type: KeyringTypes.hd, metadata: { id: 'test-keyring-1' } },
+          { type: KeyringTypes.hd, metadata: { id: 'test-keyring-2' } },
+          // Does not run discovery for this one.
+          { type: KeyringTypes.simple, metadata: { id: 'test-keyring-3' } },
+        ];
 
-        await Authentication.newWalletAndRestore(
-          '1234',
-          { currentAuthType: AUTHENTICATION_TYPE.PASSWORD },
-          'test seed phrase',
-          true,
-        );
+        const mockCredentials = { username: 'test', password: 'test' };
+        SecureKeychain.getGenericPassword = jest
+          .fn()
+          .mockReturnValue(mockCredentials);
+
+        jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+          dispatch: jest.fn(),
+          getState: () => ({
+            user: { existingUser: true },
+            security: { allowLoginWithRememberMe: true },
+          }),
+        } as unknown as ReduxStore);
+
+        jest
+          .spyOn(MetaMetrics, 'getInstance')
+          .mockReturnValue({ isEnabled: () => true } as MetaMetrics);
+
+        await Authentication.unlockWallet();
+
+        // Wait for the asynchronous call to `postLoginAsyncOperations`.
         await Promise.resolve();
 
-        expect(setItemSpy).toHaveBeenCalledWith(SOLANA_DISCOVERY_PENDING, TRUE);
-      });
-
-      describe('retryDiscoveryIfPending behavior', () => {
-        let mockAttemptAccountDiscovery: jest.SpyInstance;
-        let mockAttemptMultichainAccountWalletDiscovery: jest.SpyInstance;
-
-        beforeEach(() => {
-          // Mock Redux store with user state for unlockWallet tests
-          jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
-            dispatch: mockDispatch,
-            getState: () => ({
-              user: { existingUser: true },
-              security: { allowLoginWithRememberMe: true },
-            }),
-          } as unknown as ReduxStore);
-
-          // Mock MetaMetrics.getInstance to return true for isEnabled
-          jest
-            .spyOn(MetaMetrics, 'getInstance')
-            .mockReturnValue({ isEnabled: () => true } as MetaMetrics);
-
-          // Spy on the private method
-          mockAttemptAccountDiscovery = jest
-            .spyOn(
-              Authentication as unknown as {
-                attemptAccountDiscovery: () => Promise<void>;
-              },
-              'attemptAccountDiscovery',
-            )
-            .mockResolvedValue(undefined);
-
-          mockAttemptMultichainAccountWalletDiscovery = jest
-            .spyOn(
-              Authentication as unknown as {
-                attemptMultichainAccountWalletDiscovery: () => Promise<void>;
-              },
-              'attemptMultichainAccountWalletDiscovery',
-            )
-            .mockResolvedValue(undefined);
-        });
-
-        afterEach(() => {
-          mockAttemptAccountDiscovery.mockRestore();
-          mockAttemptMultichainAccountWalletDiscovery.mockRestore();
-        });
-
-        it('calls attemptAccountDiscovery when flag is set to true', async () => {
-          await StorageWrapper.setItem(SOLANA_DISCOVERY_PENDING, 'true');
-
-          const mockCredentials = { username: 'test', password: 'test' };
-          SecureKeychain.getGenericPassword = jest
-            .fn()
-            .mockReturnValue(mockCredentials);
-
-          await Authentication.unlockWallet();
-
-          expect(mockAttemptAccountDiscovery).toHaveBeenCalled();
-        });
-
-        it('does not call attemptAccountDiscovery when flag is not set', async () => {
-          await StorageWrapper.removeItem(SOLANA_DISCOVERY_PENDING);
-
-          const mockCredentials = { username: 'test', password: 'test' };
-          SecureKeychain.getGenericPassword = jest
-            .fn()
-            .mockReturnValue(mockCredentials);
-
-          await Authentication.unlockWallet();
-
-          expect(mockAttemptAccountDiscovery).not.toHaveBeenCalled();
-        });
-
-        it('does not call attemptAccountDiscovery when flag is false', async () => {
-          await StorageWrapper.setItem(SOLANA_DISCOVERY_PENDING, 'false');
-
-          const mockCredentials = { username: 'test', password: 'test' };
-          SecureKeychain.getGenericPassword = jest
-            .fn()
-            .mockReturnValue(mockCredentials);
-
-          await Authentication.unlockWallet();
-
-          expect(mockAttemptAccountDiscovery).not.toHaveBeenCalled();
-        });
-
-        it('retries on unlockWallet when flag is set', async () => {
-          await StorageWrapper.setItem(SOLANA_DISCOVERY_PENDING, 'true');
-
-          await Authentication.unlockWallet({
-            password: '1234',
-            authPreference: { currentAuthType: AUTHENTICATION_TYPE.PASSWORD },
-          });
-
-          expect(mockAttemptAccountDiscovery).toHaveBeenCalled();
-        });
-
-        it('handles storage errors gracefully without breaking authentication', async () => {
-          const originalGetItem = StorageWrapper.getItem;
-          StorageWrapper.getItem = jest
-            .fn()
-            .mockRejectedValueOnce(new Error('Storage read error'));
-
-          const mockCredentials = { username: 'test', password: 'test' };
-          SecureKeychain.getGenericPassword = jest
-            .fn()
-            .mockReturnValue(mockCredentials);
-
-          await expect(Authentication.unlockWallet()).resolves.not.toThrow();
-
-          expect(console.warn).toHaveBeenCalledWith(
-            'Failed to check/retry discovery:',
-            'solana',
-            expect.any(Error),
-          );
-
-          // Does not attempt discovery due to storage error
-          expect(mockAttemptAccountDiscovery).not.toHaveBeenCalled();
-
-          // Restore original method
-          StorageWrapper.getItem = originalGetItem;
-        });
-
-        it('handles discovery attempt errors gracefully', async () => {
-          await StorageWrapper.setItem(SOLANA_DISCOVERY_PENDING, 'true');
-          mockAttemptAccountDiscovery.mockRejectedValueOnce(
-            new Error('Discovery failed'),
-          );
-
-          const mockCredentials = { username: 'test', password: 'test' };
-          SecureKeychain.getGenericPassword = jest
-            .fn()
-            .mockReturnValue(mockCredentials);
-
-          // Does not throw and completes authentication
-          await expect(Authentication.unlockWallet()).resolves.not.toThrow();
-
-          expect(mockAttemptAccountDiscovery).toHaveBeenCalled();
-          expect(console.warn).toHaveBeenCalledWith(
-            'Failed to check/retry discovery:',
-            'solana',
-            expect.any(Error),
-          );
-        });
-
-        it('throws AuthenticationError when newWalletAndRestore fails', async () => {
-          const mockDispatch = jest.fn();
-          jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
-            dispatch: mockDispatch,
-            getState: () => ({ security: { allowLoginWithRememberMe: true } }),
-          } as unknown as ReduxStore);
-
-          const Engine = jest.requireMock('../Engine');
-
-          Engine.context.KeyringController.setLocked.mockResolvedValue(
-            undefined,
-          );
-
-          // Mock KeyringController.createNewVaultAndRestore to throw an error
-          Engine.context.KeyringController.createNewVaultAndRestore.mockRejectedValueOnce(
-            new Error('Wallet creation failed'),
-          );
-
-          try {
-            await Authentication.newWalletAndRestore(
-              'password',
-              { currentAuthType: AUTHENTICATION_TYPE.PASSWORD },
-              'test seed phrase',
-              false,
-            );
-            throw new Error('Expected an error to be thrown');
-          } catch (error) {
-            expect(mockDispatch).toHaveBeenCalledWith(logOut());
-            expect(error).toBeInstanceOf(AuthenticationError);
-            expect((error as AuthenticationError).customErrorMessage).toBe(
-              AUTHENTICATION_FAILED_WALLET_CREATION,
-            );
-            expect((error as AuthenticationError).message).toBe(
-              'Wallet creation failed',
-            );
-            await Promise.resolve();
-            jest.runAllTimers();
-            expect(mockDispatch).toHaveBeenCalledWith(logOut());
-          }
-        });
-
-        it('throws AuthenticationError when newWalletAndKeychain fails', async () => {
-          const mockDispatch = jest.fn();
-          jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
-            dispatch: mockDispatch,
-            getState: () => ({ security: { allowLoginWithRememberMe: true } }),
-          } as unknown as ReduxStore);
-
-          const Engine = jest.requireMock('../Engine');
-
-          // Ensure KeyringController.setLocked resolves immediately
-          Engine.context.KeyringController.setLocked.mockResolvedValue(
-            undefined,
-          );
-
-          // Mock KeyringController.createNewVaultAndKeychain to throw an error
-          Engine.context.KeyringController.createNewVaultAndKeychain.mockRejectedValueOnce(
-            new Error('Keychain creation failed'),
-          );
-
-          try {
-            await Authentication.newWalletAndKeychain('password', {
-              currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
-            });
-            throw new Error('Expected an error to be thrown');
-          } catch (error) {
-            expect(mockDispatch).toHaveBeenCalledWith(logOut());
-            expect(error).toBeInstanceOf(AuthenticationError);
-            expect((error as AuthenticationError).customErrorMessage).toBe(
-              AUTHENTICATION_FAILED_WALLET_CREATION,
-            );
-            expect((error as AuthenticationError).message).toBe(
-              'Keychain creation failed',
-            );
-            // Wait for async lockApp operations to complete
-            await Promise.resolve();
-            jest.runAllTimers();
-            expect(mockDispatch).toHaveBeenCalledWith(logOut());
-          }
-        });
-
-        it('resync accounts after login - state 2', async () => {
-          mockIsMultichainAccountsState2Enabled.mockReturnValue(true);
-
-          const mockCredentials = { username: 'test', password: 'test' };
-          SecureKeychain.getGenericPassword = jest
-            .fn()
-            .mockReturnValue(mockCredentials);
-
-          await Authentication.unlockWallet();
-
-          // Wait for the asynchronous call to `postLoginAsyncOperations`.
-          await Promise.resolve();
-
-          // We should have ran account resynchronization after logging in.
-          expect(mockResyncAccounts).toHaveBeenCalled();
-        });
-
-        it('runs discovery and alignment on all HD wallets - state 2', async () => {
-          const Engine = jest.requireMock('../Engine');
-          Engine.context.KeyringController.state.keyrings = [
-            { type: KeyringTypes.hd, metadata: { id: 'test-keyring-1' } },
-            { type: KeyringTypes.hd, metadata: { id: 'test-keyring-2' } },
-            // Does not run discovery for this one.
-            { type: KeyringTypes.simple, metadata: { id: 'test-keyring-3' } },
-          ];
-
-          mockIsMultichainAccountsState2Enabled.mockReturnValue(true);
-
-          const mockCredentials = { username: 'test', password: 'test' };
-          SecureKeychain.getGenericPassword = jest
-            .fn()
-            .mockReturnValue(mockCredentials);
-
-          await Authentication.unlockWallet();
-
-          // Wait for the asynchronous call to `postLoginAsyncOperations`.
-          await Promise.resolve();
-
-          // We should have ran discovery + alignment on all HD keyrings only.
-          expect(
-            mockAttemptMultichainAccountWalletDiscovery,
-          ).toHaveBeenCalledTimes(2);
-          expect(
-            mockAttemptMultichainAccountWalletDiscovery,
-          ).toHaveBeenNthCalledWith(1, 'test-keyring-1');
-          expect(
-            mockAttemptMultichainAccountWalletDiscovery,
-          ).toHaveBeenNthCalledWith(2, 'test-keyring-2');
-        });
+        // Discovery + alignment runs on all HD keyrings only
+        expect(
+          mockAttemptMultichainAccountWalletDiscovery,
+        ).toHaveBeenCalledTimes(2);
+        expect(
+          mockAttemptMultichainAccountWalletDiscovery,
+        ).toHaveBeenNthCalledWith(1, 'test-keyring-1');
+        expect(
+          mockAttemptMultichainAccountWalletDiscovery,
+        ).toHaveBeenNthCalledWith(2, 'test-keyring-2');
       });
     });
   });
@@ -1642,14 +1546,14 @@ describe('Authentication', () => {
 
   describe('lockApp', () => {
     let Engine: typeof import('../Engine').default;
-    let mockDispatch: jest.Mock;
+    let lockAppMockDispatch: jest.Mock;
 
     beforeEach(() => {
       Engine = jest.requireMock('../Engine');
-      mockDispatch = jest.fn();
+      lockAppMockDispatch = jest.fn();
 
       jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
-        dispatch: mockDispatch,
+        dispatch: lockAppMockDispatch,
         getState: () => ({
           security: { allowLoginWithRememberMe: true },
           engine: {
@@ -1666,6 +1570,9 @@ describe('Authentication', () => {
       Engine.context.KeyringController = {
         isUnlocked: jest.fn().mockReturnValue(true),
         setLocked: jest.fn().mockResolvedValue(undefined),
+        state: {
+          keyrings: [createMockHdKeyring()],
+        },
       } as unknown as KeyringController;
 
       Engine.context.SeedlessOnboardingController = {
@@ -1686,7 +1593,7 @@ describe('Authentication', () => {
     it('dispatches setAllowLoginWithRememberMe with false when allowRememberMe is false', async () => {
       await Authentication.lockApp({ allowRememberMe: false });
 
-      expect(mockDispatch).toHaveBeenCalledWith(
+      expect(lockAppMockDispatch).toHaveBeenCalledWith(
         setAllowLoginWithRememberMe(false),
       );
     });
@@ -1694,7 +1601,7 @@ describe('Authentication', () => {
     it('does not dispatch setAllowLoginWithRememberMe when allowRememberMe is not provided', async () => {
       await Authentication.lockApp();
 
-      expect(mockDispatch).not.toHaveBeenCalledWith(
+      expect(lockAppMockDispatch).not.toHaveBeenCalledWith(
         setAllowLoginWithRememberMe(false),
       );
     });
@@ -1702,7 +1609,7 @@ describe('Authentication', () => {
     it('does not dispatch setAllowLoginWithRememberMe when allowRememberMe is true', async () => {
       await Authentication.lockApp({ allowRememberMe: true });
 
-      expect(mockDispatch).not.toHaveBeenCalledWith(
+      expect(lockAppMockDispatch).not.toHaveBeenCalledWith(
         setAllowLoginWithRememberMe(false),
       );
     });
@@ -1710,7 +1617,7 @@ describe('Authentication', () => {
     it('dispatches setAllowLoginWithRememberMe before calling resetPassword when allowRememberMe is false', async () => {
       const callOrder: string[] = [];
 
-      mockDispatch.mockImplementation(() => {
+      lockAppMockDispatch.mockImplementation(() => {
         callOrder.push('dispatch');
       });
 
@@ -1819,9 +1726,7 @@ describe('Authentication', () => {
               await callback({ keyring: mockKeyring }),
           ),
         state: {
-          keyrings: [
-            { name: 'HD Key Tree', metadata: { id: 'test-keyring-id' } },
-          ],
+          keyrings: [createMockHdKeyring()],
         },
         exportEncryptionKey: jest.fn(),
         exportSeedPhrase: jest.fn(),
@@ -1864,7 +1769,7 @@ describe('Authentication', () => {
         uint8ArrayToMnemonic(mockSeedPhrase1, []),
         false,
       );
-      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(4); // logIn, passwordSet (from storePassword -> dispatchPasswordSet), setExistingUser, and dispatchLogin
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(5); // logIn, passwordSet (from storePassword -> dispatchPasswordSet), dispatchLogin, dispatchOauthReset, and setExistingUser
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
 
@@ -1941,7 +1846,7 @@ describe('Authentication', () => {
         keyringId: 'new-keyring-id',
         type: 'mnemonic',
       });
-      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(4); // logIn, passwordSet (from storePassword -> dispatchPasswordSet), setExistingUser, and dispatchLogin
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(5); // logIn, passwordSet (from storePassword -> dispatchPasswordSet), dispatchLogin, dispatchOauthReset, and setExistingUser
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
 
@@ -1987,7 +1892,7 @@ describe('Authentication', () => {
           shouldSelectAccount: false,
         },
       );
-      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(4); // logIn, passwordSet (from storePassword -> dispatchPasswordSet), setExistingUser, and dispatchLogin
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(5); // logIn, passwordSet (from storePassword -> dispatchPasswordSet), dispatchLogin, dispatchOauthReset, and setExistingUser
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
 
@@ -2017,7 +1922,7 @@ describe('Authentication', () => {
 
       expect(newWalletAndRestoreSpy).toHaveBeenCalled();
       expect(Logger.error).toHaveBeenCalledWith(expect.any(Error), 'unknown');
-      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(4); // logIn, passwordSet (from storePassword -> dispatchPasswordSet), setExistingUser, and dispatchLogin
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(5); // logIn, passwordSet (from storePassword -> dispatchPasswordSet), dispatchLogin, dispatchOauthReset, and setExistingUser
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
 
@@ -2056,7 +1961,7 @@ describe('Authentication', () => {
         importError,
         'Error in rehydrateSeedPhrase- SeedlessOnboardingController',
       );
-      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(4); // logIn, passwordSet (from storePassword -> dispatchPasswordSet), setExistingUser, and dispatchLogin
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(5); // logIn, passwordSet (from storePassword -> dispatchPasswordSet), dispatchLogin, dispatchOauthReset, and setExistingUser
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
 
@@ -2144,7 +2049,7 @@ describe('Authentication', () => {
         error,
         'Error in rehydrateSeedPhrase- SeedlessOnboardingController',
       );
-      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(4); // logIn, passwordSet (from storePassword -> dispatchPasswordSet), setExistingUser, and dispatchLogin
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(5); // logIn, passwordSet (from storePassword -> dispatchPasswordSet), dispatchLogin, dispatchOauthReset, and setExistingUser
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
 
@@ -2720,6 +2625,9 @@ describe('Authentication', () => {
       Engine.context.KeyringController = {
         submitPassword: jest.fn(),
         verifyPassword: jest.fn().mockResolvedValue(undefined),
+        state: {
+          keyrings: [createMockHdKeyring()],
+        },
       } as unknown as KeyringController;
 
       // Mock MetaMetrics.getInstance to return true for isEnabled
@@ -2775,6 +2683,9 @@ describe('Authentication', () => {
               await callback({ keyring: mockKeyring }),
           ),
         removeAccount: jest.fn(),
+        state: {
+          keyrings: [createMockHdKeyring()],
+        },
       } as unknown as KeyringController;
 
       Engine.context.SeedlessOnboardingController = {
@@ -2785,9 +2696,6 @@ describe('Authentication', () => {
 
       // Mock Engine.setSelectedAddress
       Engine.setSelectedAddress = jest.fn();
-
-      // Mock multichain client
-      mockSnapClient.addDiscoveredAccounts.mockResolvedValue(2);
 
       // Setup default Redux store mock
       jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
@@ -2869,7 +2777,6 @@ describe('Authentication', () => {
         data: new Uint8Array([1, 2, 3, 4]),
         type: SecretType.Mnemonic,
       });
-      expect(mockSnapClient.addDiscoveredAccounts).not.toHaveBeenCalled();
       expect(result).toEqual({
         id: 'test-keyring-id',
       });
@@ -2921,6 +2828,9 @@ describe('Authentication', () => {
           .fn()
           .mockResolvedValue(mockImportedAddress),
         removeAccount: jest.fn().mockResolvedValue(undefined),
+        state: {
+          keyrings: [createMockHdKeyring()],
+        },
       } as unknown as KeyringController;
 
       Engine.context.SeedlessOnboardingController = {
@@ -3677,7 +3587,7 @@ describe('Authentication', () => {
 
   describe('deleteWallet', () => {
     let Engine: typeof import('../Engine').default;
-    let mockDispatch: jest.Mock;
+    let deleteWalletMockDispatch: jest.Mock;
     let mockMetaMetricsInstance: {
       createDataDeletionTask: jest.MockedFunction<() => Promise<unknown>>;
     };
@@ -3686,13 +3596,13 @@ describe('Authentication', () => {
       Engine = jest.requireMock('../Engine');
       jest.clearAllMocks();
       EngineClass.disableAutomaticVaultBackup = false;
-      mockDispatch = jest.fn();
+      deleteWalletMockDispatch = jest.fn();
       mockMetaMetricsInstance = {
         createDataDeletionTask: jest.fn().mockResolvedValue(undefined),
       };
 
       jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
-        dispatch: mockDispatch,
+        dispatch: deleteWalletMockDispatch,
         getState: () => ({ security: { allowLoginWithRememberMe: true } }),
       } as unknown as ReduxStore);
 
@@ -3704,6 +3614,9 @@ describe('Authentication', () => {
       Engine.context.KeyringController = {
         setLocked: jest.fn().mockResolvedValue(undefined),
         isUnlocked: jest.fn(() => true),
+        state: {
+          keyrings: [createMockHdKeyring()],
+        },
       } as unknown as KeyringController;
 
       jest
@@ -3757,12 +3670,16 @@ describe('Authentication', () => {
       // Assert
       expect(clearVaultSpy).toHaveBeenCalledTimes(1);
       expect(clearStateSpy).toHaveBeenCalledTimes(1);
-      expect(mockDispatch).toHaveBeenCalledWith(setExistingUser(false));
+      expect(deleteWalletMockDispatch).toHaveBeenCalledWith(
+        setExistingUser(false),
+      );
       expect(
         mockMetaMetricsInstance.createDataDeletionTask,
       ).toHaveBeenCalledTimes(1);
       expect(removeItemSpy).toHaveBeenCalledWith(OPTIN_META_METRICS_UI_SEEN);
-      expect(mockDispatch).toHaveBeenCalledWith(setCompletedOnboarding(false));
+      expect(deleteWalletMockDispatch).toHaveBeenCalledWith(
+        setCompletedOnboarding(false),
+      );
       expect(EngineClass.disableAutomaticVaultBackup).toBe(false);
     });
   });
@@ -3788,6 +3705,9 @@ describe('Authentication', () => {
       Engine.context.KeyringController = {
         setLocked: jest.fn().mockResolvedValue(undefined),
         isUnlocked: jest.fn(() => true),
+        state: {
+          keyrings: [createMockHdKeyring()],
+        },
       } as unknown as KeyringController;
 
       jest
@@ -3900,23 +3820,40 @@ describe('Authentication', () => {
         expect.stringContaining('Failed to createNewVaultAndKeychain'),
       );
     });
+
+    it('dispatches cancelBulkLink action to cancel running bulk link saga', async () => {
+      // Arrange
+      const localDispatch = jest.fn();
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        dispatch: localDispatch,
+        getState: () => ({ security: { allowLoginWithRememberMe: true } }),
+      } as unknown as ReduxStore);
+
+      // Act
+      await (
+        Authentication as unknown as { resetWalletState: () => Promise<void> }
+      ).resetWalletState();
+
+      // Assert
+      expect(localDispatch).toHaveBeenCalledWith(cancelBulkLink());
+    });
   });
 
   describe('deleteUser', () => {
-    let mockDispatch: jest.Mock;
+    let deleteUserMockDispatch: jest.Mock;
     let mockMetaMetricsInstance: {
       createDataDeletionTask: jest.MockedFunction<() => Promise<unknown>>;
     };
 
     beforeEach(() => {
       jest.clearAllMocks();
-      mockDispatch = jest.fn();
+      deleteUserMockDispatch = jest.fn();
       mockMetaMetricsInstance = {
         createDataDeletionTask: jest.fn().mockResolvedValue(undefined),
       };
 
       jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
-        dispatch: mockDispatch,
+        dispatch: deleteUserMockDispatch,
         getState: () => ({ security: { allowLoginWithRememberMe: true } }),
       } as unknown as ReduxStore);
 
@@ -3932,7 +3869,9 @@ describe('Authentication', () => {
       ).deleteUser();
 
       // Assert
-      expect(mockDispatch).toHaveBeenCalledWith(setExistingUser(false));
+      expect(deleteUserMockDispatch).toHaveBeenCalledWith(
+        setExistingUser(false),
+      );
       expect(
         mockMetaMetricsInstance.createDataDeletionTask,
       ).toHaveBeenCalledTimes(1);
@@ -3986,7 +3925,7 @@ describe('Authentication', () => {
     it('logs error when Redux dispatch fails', async () => {
       // Arrange
       const error = new Error('Dispatch failed');
-      mockDispatch.mockImplementation(() => {
+      deleteUserMockDispatch.mockImplementation(() => {
         throw error;
       });
       const loggerSpy = jest.spyOn(Logger, 'log');
@@ -4008,15 +3947,15 @@ describe('Authentication', () => {
     const mockPassword = 'test-password-123';
 
     let Engine: typeof import('../Engine').default;
-    let mockDispatch: jest.Mock;
+    let updateAuthMockDispatch: jest.Mock;
 
     beforeEach(() => {
       Engine = jest.requireMock('../Engine');
-      mockDispatch = jest.fn();
+      updateAuthMockDispatch = jest.fn();
       jest.clearAllMocks();
 
       jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
-        dispatch: mockDispatch,
+        dispatch: updateAuthMockDispatch,
         getState: () => ({
           settings: { lockTime: 30000 },
           security: { allowLoginWithRememberMe: true },
@@ -4040,6 +3979,7 @@ describe('Authentication', () => {
         username: 'metamask-user',
       } as unknown as import('react-native-keychain').UserCredentials);
 
+      jest.spyOn(Authentication, 'resetPassword').mockResolvedValue(undefined);
       jest
         .spyOn(SecureKeychain, 'setGenericPassword')
         .mockResolvedValue(undefined);
@@ -4067,7 +4007,7 @@ describe('Authentication', () => {
       );
       expect(removeItemSpy).toHaveBeenCalledWith(BIOMETRY_CHOICE_DISABLED);
       expect(setItemSpy).toHaveBeenCalledWith(PASSCODE_DISABLED, TRUE);
-      expect(mockDispatch).toHaveBeenCalledWith(passwordSet());
+      expect(updateAuthMockDispatch).toHaveBeenCalledWith(passwordSet());
     });
 
     it('updates auth preference to BIOMETRIC with provided password', async () => {
@@ -4089,7 +4029,7 @@ describe('Authentication', () => {
       );
       expect(removeItemSpy).toHaveBeenCalledWith(BIOMETRY_CHOICE_DISABLED);
       expect(setItemSpy).toHaveBeenCalledWith(PASSCODE_DISABLED, TRUE);
-      expect(mockDispatch).toHaveBeenCalledWith(passwordSet());
+      expect(updateAuthMockDispatch).toHaveBeenCalledWith(passwordSet());
     });
 
     it('updates auth preference to PASSCODE with password from keychain', async () => {
@@ -4109,7 +4049,7 @@ describe('Authentication', () => {
       );
       expect(removeItemSpy).toHaveBeenCalledWith(PASSCODE_DISABLED);
       expect(setItemSpy).toHaveBeenCalledWith(BIOMETRY_CHOICE_DISABLED, TRUE);
-      expect(mockDispatch).toHaveBeenCalledWith(passwordSet());
+      expect(updateAuthMockDispatch).toHaveBeenCalledWith(passwordSet());
     });
 
     it('updates auth preference to PASSWORD with password from keychain', async () => {
@@ -4128,7 +4068,7 @@ describe('Authentication', () => {
       );
       expect(setItemSpy).toHaveBeenCalledWith(BIOMETRY_CHOICE_DISABLED, TRUE);
       expect(setItemSpy).toHaveBeenCalledWith(PASSCODE_DISABLED, TRUE);
-      expect(mockDispatch).toHaveBeenCalledWith(passwordSet());
+      expect(updateAuthMockDispatch).toHaveBeenCalledWith(passwordSet());
     });
 
     it('shows alert and tracks error when password is invalid', async () => {
@@ -4248,7 +4188,7 @@ describe('Authentication', () => {
       );
       expect(removeItemSpy).toHaveBeenCalledWith(BIOMETRY_CHOICE_DISABLED);
       expect(setItemSpy).toHaveBeenCalledWith(PASSCODE_DISABLED, TRUE);
-      expect(mockDispatch).toHaveBeenCalledWith(passwordSet());
+      expect(updateAuthMockDispatch).toHaveBeenCalledWith(passwordSet());
     });
   });
   describe('checkAndShowSeedlessPasswordOutdatedModal', () => {
@@ -4527,6 +4467,9 @@ describe('Authentication', () => {
       Engine.context.KeyringController = {
         submitPassword: jest.fn(),
         verifyPassword: jest.fn(),
+        state: {
+          keyrings: [createMockHdKeyring()],
+        },
       };
 
       // Mock existing user state.
@@ -4820,6 +4763,220 @@ describe('Authentication', () => {
             password: passwordToUse,
           }),
         ).rejects.toThrow('Failed to sync password and unlock wallet');
+      });
+    });
+  });
+
+  describe('getAuthCapabilities', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    describe('when allowLoginWithRememberMe is true', () => {
+      beforeEach(() => {
+        mockIsEnrolledAsync.mockResolvedValue(true);
+        mockSupportedAuthenticationTypesAsync.mockResolvedValue([
+          AuthenticationType.FACIAL_RECOGNITION,
+        ]);
+        mockGetEnrolledLevelAsync.mockResolvedValue(
+          SecurityLevel.BIOMETRIC_STRONG,
+        );
+      });
+
+      it('returns REMEMBER_ME storage type regardless of other settings', async () => {
+        const osAuthEnabled = true;
+        const allowLoginWithRememberMe = true;
+        const result = await Authentication.getAuthCapabilities(
+          osAuthEnabled,
+          allowLoginWithRememberMe,
+        );
+
+        expect(result).toEqual({
+          isBiometricsAvailable: true,
+          biometricsDisabledOnOS: false,
+          isAuthToggleVisible: true,
+          authToggleLabel: expect.any(String),
+          osAuthEnabled,
+          allowLoginWithRememberMe,
+          authStorageType: AUTHENTICATION_TYPE.REMEMBER_ME,
+        });
+      });
+
+      it('returns REMEMBER_ME even when osAuthEnabled is false', async () => {
+        const osAuthEnabled = false;
+        const allowLoginWithRememberMe = true;
+        const result = await Authentication.getAuthCapabilities(
+          osAuthEnabled,
+          allowLoginWithRememberMe,
+        );
+
+        expect(result.authStorageType).toBe(AUTHENTICATION_TYPE.REMEMBER_ME);
+      });
+    });
+
+    describe('when biometrics is available', () => {
+      beforeEach(() => {
+        mockIsEnrolledAsync.mockResolvedValue(true);
+        mockSupportedAuthenticationTypesAsync.mockResolvedValue([
+          AuthenticationType.FACIAL_RECOGNITION,
+        ]);
+        mockGetEnrolledLevelAsync.mockResolvedValue(
+          SecurityLevel.BIOMETRIC_STRONG,
+        ); // Biometrics
+      });
+
+      it('returns BIOMETRIC storage type when osAuthEnabled is true', async () => {
+        const osAuthEnabled = true;
+        const allowLoginWithRememberMe = false;
+        const result = await Authentication.getAuthCapabilities(
+          osAuthEnabled,
+          allowLoginWithRememberMe,
+        );
+
+        expect(result).toEqual({
+          isBiometricsAvailable: true,
+          biometricsDisabledOnOS: false,
+          isAuthToggleVisible: true,
+          authToggleLabel: expect.any(String),
+          osAuthEnabled,
+          allowLoginWithRememberMe,
+          authStorageType: AUTHENTICATION_TYPE.BIOMETRIC,
+        });
+      });
+
+      it('returns PASSWORD storage type when osAuthEnabled is false', async () => {
+        const osAuthEnabled = false;
+        const allowLoginWithRememberMe = false;
+        const result = await Authentication.getAuthCapabilities(
+          osAuthEnabled,
+          allowLoginWithRememberMe,
+        );
+
+        expect(result).toEqual({
+          isBiometricsAvailable: true,
+          biometricsDisabledOnOS: false,
+          isAuthToggleVisible: true,
+          authToggleLabel: expect.any(String),
+          osAuthEnabled,
+          allowLoginWithRememberMe,
+          authStorageType: AUTHENTICATION_TYPE.PASSWORD,
+        });
+      });
+    });
+
+    describe('when biometrics is disabled on OS but passcode is available', () => {
+      beforeEach(() => {
+        mockIsEnrolledAsync.mockResolvedValue(false);
+        mockSupportedAuthenticationTypesAsync.mockResolvedValue([
+          AuthenticationType.IRIS,
+        ]);
+        mockGetEnrolledLevelAsync.mockResolvedValue(SecurityLevel.SECRET); // Device Passcode / Pin / Pattern
+      });
+
+      it('returns PASSCODE storage type when osAuthEnabled is true', async () => {
+        const osAuthEnabled = true;
+        const allowLoginWithRememberMe = false;
+        const result = await Authentication.getAuthCapabilities(
+          osAuthEnabled,
+          allowLoginWithRememberMe,
+        );
+
+        expect(result).toEqual({
+          isBiometricsAvailable: false,
+          biometricsDisabledOnOS: true,
+          isAuthToggleVisible: true,
+          authToggleLabel: expect.any(String),
+          osAuthEnabled,
+          allowLoginWithRememberMe,
+          authStorageType: AUTHENTICATION_TYPE.PASSCODE,
+        });
+      });
+
+      it('returns PASSWORD storage type when osAuthEnabled is false', async () => {
+        const osAuthEnabled = false;
+        const allowLoginWithRememberMe = false;
+        const result = await Authentication.getAuthCapabilities(
+          osAuthEnabled,
+          allowLoginWithRememberMe,
+        );
+
+        expect(result).toEqual({
+          isBiometricsAvailable: false,
+          biometricsDisabledOnOS: true,
+          isAuthToggleVisible: true,
+          authToggleLabel: expect.any(String),
+          osAuthEnabled,
+          allowLoginWithRememberMe,
+          authStorageType: AUTHENTICATION_TYPE.PASSWORD,
+        });
+      });
+    });
+
+    describe('when neither biometrics nor passcode is available', () => {
+      beforeEach(() => {
+        mockIsEnrolledAsync.mockResolvedValue(false);
+        mockSupportedAuthenticationTypesAsync.mockResolvedValue([]);
+        mockGetEnrolledLevelAsync.mockResolvedValue(SecurityLevel.NONE); // NONE
+      });
+
+      it('returns PASSWORD storage type regardless of osAuthEnabled', async () => {
+        const resultEnabled = await Authentication.getAuthCapabilities(
+          true,
+          false,
+        );
+
+        expect(resultEnabled.authStorageType).toBe(
+          AUTHENTICATION_TYPE.PASSWORD,
+        );
+      });
+
+      it('sets isAuthToggleVisible to false', async () => {
+        const result = await Authentication.getAuthCapabilities(true, false);
+
+        expect(result.isAuthToggleVisible).toBe(false);
+      });
+    });
+
+    describe('error handling', () => {
+      it('returns default capabilities when LocalAuthentication APIs fail', async () => {
+        const osAuthEnabled = true;
+        const allowLoginWithRememberMe = false;
+        mockIsEnrolledAsync.mockRejectedValue(new Error('API error'));
+
+        const result = await Authentication.getAuthCapabilities(
+          osAuthEnabled,
+          allowLoginWithRememberMe,
+        );
+
+        expect(result).toEqual({
+          isBiometricsAvailable: false,
+          biometricsDisabledOnOS: false,
+          isAuthToggleVisible: false,
+          authToggleLabel: '',
+          osAuthEnabled,
+          allowLoginWithRememberMe,
+          authStorageType: AUTHENTICATION_TYPE.PASSWORD,
+        });
+      });
+    });
+
+    describe('API calls', () => {
+      beforeEach(() => {
+        mockIsEnrolledAsync.mockResolvedValue(true);
+        mockSupportedAuthenticationTypesAsync.mockResolvedValue([
+          AuthenticationType.FACIAL_RECOGNITION,
+        ]);
+        mockGetEnrolledLevelAsync.mockResolvedValue(
+          SecurityLevel.BIOMETRIC_STRONG,
+        );
+      });
+
+      it('calls all LocalAuthentication APIs in parallel', async () => {
+        await Authentication.getAuthCapabilities(true, false);
+
+        expect(mockIsEnrolledAsync).toHaveBeenCalledTimes(1);
+        expect(mockSupportedAuthenticationTypesAsync).toHaveBeenCalledTimes(1);
+        expect(mockGetEnrolledLevelAsync).toHaveBeenCalledTimes(1);
       });
     });
   });

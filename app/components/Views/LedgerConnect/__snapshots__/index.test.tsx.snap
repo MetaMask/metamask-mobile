@@ -507,6 +507,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
               "borderRadius": 5,
               "borderWidth": 2,
               "height": 45,
+              "justifyContent": "center",
               "width": 42.5,
             }
           }

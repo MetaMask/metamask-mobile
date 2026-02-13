@@ -54,7 +54,10 @@ import {
   GetOrderStatusResponse,
 } from '../types';
 import { getDefaultBaanxApiBaseUrlForMetaMaskEnv } from '../util/mapBaanxApiUrl';
-import { getCardBaanxToken } from '../util/cardTokenVault';
+import {
+  getCardBaanxToken,
+  removeCardBaanxToken,
+} from '../util/cardTokenVault';
 import { CaipChainId } from '@metamask/utils';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { isZeroValue } from '../../../../util/number';
@@ -455,15 +458,9 @@ export class CardSDK {
 
   getGeoLocation = async (): Promise<string> => {
     try {
-      const env = process.env.NODE_ENV ?? 'production';
-      const environment = env === 'production' ? 'PROD' : 'DEV';
-
-      const GEOLOCATION_URLS = {
-        DEV: 'https://on-ramp.dev-api.cx.metamask.io/geolocation',
-        PROD: 'https://on-ramp.api.cx.metamask.io/geolocation',
-      };
-      const url = GEOLOCATION_URLS[environment];
-      const response = await fetch(url);
+      const response = await fetch(
+        'https://on-ramp.api.cx.metamask.io/geolocation',
+      );
 
       if (!response.ok) {
         throw new Error(`Failed to get geolocation: ${response.statusText}`);
@@ -842,6 +839,48 @@ export class CardSDK {
 
     const data = await response.json();
     return data as CardLoginResponse;
+  };
+
+  /**
+   * Logs out the user from the Card provider.
+   *
+   * This method always clears the local token, regardless of whether the server
+   * logout succeeds. This ensures users can always log out even if the server
+   * is unreachable or the token is already invalidated server-side.
+   *
+   * @throws {CardError} If the server logout fails (after local cleanup is done)
+   */
+  logout = async (): Promise<void> => {
+    let serverError: Error | null = null;
+
+    try {
+      const response = await this.makeRequest('/v1/auth/logout', {
+        fetchOptions: { method: 'POST' },
+        authenticated: true,
+      });
+
+      if (!response.ok) {
+        serverError = this.logAndCreateError(
+          CardErrorType.SERVER_ERROR,
+          'Failed to logout from server.',
+          'logout',
+          'auth/logout',
+          response.status,
+        );
+      }
+    } catch (error) {
+      Logger.error(error as Error, {
+        message:
+          '[CardSDK] Server logout failed, proceeding with local cleanup',
+      });
+      serverError = error as Error;
+    }
+
+    await removeCardBaanxToken();
+
+    if (serverError) {
+      throw serverError;
+    }
   };
 
   sendOtpLogin = async (body: {
@@ -2228,4 +2267,181 @@ export class CardSDK {
       name: token.name || null,
     };
   }
+
+  /**
+   * Create Google Wallet provisioning request
+   *
+   * This method sends card ID to the card provider API
+   * to generate an encrypted opaque payment card for Google Wallet provisioning.
+   *
+   * Google Wallet provisioning flow:
+   * 1. Card provider returns opaquePaymentCard (OPC)
+   *
+   * @param params - The Google Wallet provisioning request parameters
+   * @returns Promise resolving to the provisioning response with encrypted opaque payment card
+   * @see https://dev.api.baanx.com/v1/card/wallet/provision/google
+   */
+  createGoogleWalletProvisioningRequest = async (): Promise<{
+    cardNetwork: string;
+    lastFourDigits: string;
+    cardholderName: string;
+    cardDescription?: string;
+    opaquePaymentCard: string;
+  }> => {
+    const endpoint = 'card/wallet/provision/google';
+
+    const response = await this.makeRequest(`/v1/${endpoint}`, {
+      fetchOptions: {
+        method: 'POST',
+        body: JSON.stringify({}),
+      },
+      authenticated: true,
+    });
+
+    if (!response.ok) {
+      const errorType =
+        response.status === 401 || response.status === 403
+          ? CardErrorType.INVALID_CREDENTIALS
+          : response.status === 404
+            ? CardErrorType.NO_CARD
+            : CardErrorType.SERVER_ERROR;
+
+      throw this.logAndCreateError(
+        errorType,
+        'Failed to create Google Wallet provisioning request. Please try again.',
+        'createGoogleWalletProvisioningRequest',
+        endpoint,
+        response.status,
+      );
+    }
+
+    const responseData = (await response.json()) as {
+      success: boolean;
+      data?: {
+        cardNetwork?: string;
+        lastFourDigits?: string;
+        panLast4?: string;
+        cardholderName?: string;
+        holderName?: string;
+        cardDescription?: string;
+        opaquePaymentCard?: string;
+      };
+    };
+
+    if (!responseData.success || !responseData.data?.opaquePaymentCard) {
+      throw this.logAndCreateError(
+        CardErrorType.SERVER_ERROR,
+        'Google Wallet provisioning response missing opaquePaymentCard',
+        'createGoogleWalletProvisioningRequest',
+        endpoint,
+      );
+    }
+
+    const data = responseData.data;
+
+    return {
+      cardNetwork: data.cardNetwork || 'MASTERCARD',
+      lastFourDigits: data.lastFourDigits || data.panLast4 || '',
+      cardholderName: data.cardholderName || data.holderName || '',
+      cardDescription: data.cardDescription,
+      opaquePaymentCard: data.opaquePaymentCard as string,
+    };
+  };
+
+  /**
+   * Create Apple Pay provisioning request
+   *
+   * This method sends cryptographic data from PassKit to the card provider API
+   * to generate an encrypted payload for Apple Pay in-app provisioning.
+   *
+   * Apple Pay in-app provisioning flow:
+   * 1. App presents PKAddPaymentPassViewController
+   * 2. PassKit SDK returns nonce, nonceSignature, and certificates
+   * 3. This method sends those to the card provider API
+   * 4. Card provider returns encrypted payload
+   * 5. App returns encrypted payload to PassKit to complete provisioning
+   *
+   * @param params - The Apple Pay provisioning request parameters (all values hex-encoded)
+   * @returns Promise resolving to the encrypted Apple Pay payload
+   * @see https://dev.api.baanx.com/v1/card/wallet/provision/apple
+   */
+  createApplePayProvisioningRequest = async (params: {
+    /** The leaf certificate from PassKit (hex-encoded, from PKAddPaymentPassRequest.certificates[0]) */
+    leafCertificate: string;
+    /** The intermediate certificate from PassKit (hex-encoded, from PKAddPaymentPassRequest.certificates[1]) */
+    intermediateCertificate: string;
+    /** The nonce from PassKit (hex-encoded) */
+    nonce: string;
+    /** The nonce signature from PassKit (hex-encoded) */
+    nonceSignature: string;
+  }): Promise<{
+    encryptedPassData: string;
+    activationData: string;
+    ephemeralPublicKey: string;
+  }> => {
+    const endpoint = 'card/wallet/provision/apple';
+
+    const response = await this.makeRequest(`/v1/${endpoint}`, {
+      fetchOptions: {
+        method: 'POST',
+        body: JSON.stringify({
+          leafCertificate: params.leafCertificate,
+          intermediateCertificate: params.intermediateCertificate,
+          nonce: params.nonce,
+          nonceSignature: params.nonceSignature,
+        }),
+      },
+      authenticated: true,
+    });
+
+    if (!response.ok) {
+      const errorType =
+        response.status === 401 || response.status === 403
+          ? CardErrorType.INVALID_CREDENTIALS
+          : response.status === 404
+            ? CardErrorType.NO_CARD
+            : CardErrorType.SERVER_ERROR;
+
+      throw this.logAndCreateError(
+        errorType,
+        'Failed to create Apple Pay provisioning request. Please try again.',
+        'createApplePayProvisioningRequest',
+        endpoint,
+        response.status,
+      );
+    }
+
+    const responseData = (await response.json()) as {
+      success?: boolean;
+      data?: {
+        encryptedPassData?: string;
+        activationData?: string;
+        ephemeralPublicKey?: string;
+      };
+      encryptedPassData?: string;
+      activationData?: string;
+      ephemeralPublicKey?: string;
+    };
+
+    const data = responseData.data || responseData;
+
+    if (
+      !data.encryptedPassData ||
+      !data.activationData ||
+      !data.ephemeralPublicKey
+    ) {
+      throw this.logAndCreateError(
+        CardErrorType.SERVER_ERROR,
+        'Apple Pay provisioning response missing required fields',
+        'createApplePayProvisioningRequest',
+        endpoint,
+      );
+    }
+
+    return {
+      encryptedPassData: data.encryptedPassData,
+      activationData: data.activationData,
+      ephemeralPublicKey: data.ephemeralPublicKey,
+    };
+  };
 }

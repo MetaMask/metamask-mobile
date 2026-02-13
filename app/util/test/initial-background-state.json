@@ -461,6 +461,13 @@
     "pendingApprovalCount": 0,
     "approvalFlows": []
   },
+  "AssetsController": {
+    "assetPreferences": {},
+    "assetsBalance": {},
+    "assetsMetadata": {},
+    "assetsPrice": {},
+    "customAssets": {}
+  },
   "PermissionController": {
     "subjects": {}
   },
@@ -507,7 +514,8 @@
       "direction": "desc"
     },
     "hip3ConfigVersion": 0,
-    "perpsBalances": {}
+    "perpsBalances": {},
+    "selectedPaymentToken": null
   },
   "RemoteFeatureFlagController": {
     "cacheTimestamp": 0,
@@ -735,6 +743,7 @@
     "activeBoosts": {},
     "pointsEstimateHistory": [],
     "pointsEvents": {},
+    "snapshots": {},
     "unlockedRewards": {},
     "seasonStatuses": {},
     "seasons": {},
@@ -742,7 +751,7 @@
     "subscriptions": {}
   },
   "PredictController": {
-    "eligibility": {},
+    "eligibility": { "eligible": false },
     "lastError": null,
     "lastUpdateTimestamp": 0,
     "balances": {},
@@ -752,14 +761,37 @@
     "accountMeta": {}
   },
   "RampsController": {
-    "countries": [],
-    "paymentMethods": [],
     "userRegion": null,
-    "selectedProvider": null,
-    "providers": [],
-    "selectedPaymentMethod": null,
-    "selectedToken": null,
-    "tokens": null,
+    "countries": {
+      "data": [],
+      "selected": null,
+      "isLoading": false,
+      "error": null
+    },
+    "providers": {
+      "data": [],
+      "selected": null,
+      "isLoading": false,
+      "error": null
+    },
+    "tokens": {
+      "data": null,
+      "selected": null,
+      "isLoading": false,
+      "error": null
+    },
+    "paymentMethods": {
+      "data": [],
+      "selected": null,
+      "isLoading": false,
+      "error": null
+    },
+    "quotes": {
+      "data": null,
+      "selected": null,
+      "isLoading": false,
+      "error": null
+    },
     "requests": {}
   }
 }

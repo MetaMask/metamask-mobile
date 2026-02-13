@@ -13,6 +13,8 @@ export enum FeatureFlagNames {
   importSrpWordSuggestion = 'importSrpWordSuggestion',
   assetsDefiPositionsEnabled = 'assetsDefiPositionsEnabled',
   tokenDetailsV2 = 'tokenDetailsV2',
+  tokenDetailsV2Buttons = 'tokenDetailsV2Buttons',
+  tokenDetailsV2ButtonLayout = 'tokenDetailsV2ButtonLayout',
 }
 
 export const DEFAULT_FEATURE_FLAG_VALUES: Partial<
@@ -20,4 +22,6 @@ export const DEFAULT_FEATURE_FLAG_VALUES: Partial<
 > = {
   [FeatureFlagNames.assetsDefiPositionsEnabled]: true,
   [FeatureFlagNames.tokenDetailsV2]: false,
+  [FeatureFlagNames.tokenDetailsV2Buttons]: false,
+  [FeatureFlagNames.tokenDetailsV2ButtonLayout]: false,
 };

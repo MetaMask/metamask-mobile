@@ -23,12 +23,14 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { PerpsNavigationParamList } from '../../types/navigation';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import { selectChainId } from '../../../../../selectors/networkController';
-import { formatAccountToCaipAccountId } from '../../utils/rewardsUtils';
+import {
+  formatAccountToCaipAccountId,
+  PERPS_TRANSACTIONS_HISTORY_CONSTANTS,
+} from '@metamask/perps-controller';
 
 // Import PerpsController hooks
 import PerpsTransactionItem from '../../components/PerpsTransactionItem';
 import PerpsTransactionsSkeleton from '../../components/PerpsTransactionsSkeleton';
-import { PERPS_TRANSACTIONS_HISTORY_CONSTANTS } from '../../constants/transactionsHistoryConfig';
 import { usePerpsConnection, usePerpsTransactionHistory } from '../../hooks';
 import {
   FilterTab,

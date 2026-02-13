@@ -17,45 +17,23 @@ exports[`AssetOverview should render native balances when non evm network is sel
         }
       }
     >
-      <View>
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#686e7d",
-              "fontFamily": "Geist-Medium",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#686e7d",
+            "fontFamily": "Geist-Medium",
+            "fontSize": 16,
+            "letterSpacing": 0,
+            "lineHeight": 24,
           }
-        >
-          Ethereum
-        </Text>
-        <View
-          style={
-            {
-              "flexDirection": "row",
-              "justifyContent": "flex-start",
-            }
-          }
-        >
-          <Text
-            accessibilityRole="text"
-            style={
-              {
-                "color": "#686e7d",
-                "fontFamily": "Geist-Medium",
-                "fontSize": 16,
-                "letterSpacing": 0,
-                "lineHeight": 24,
-              }
-            }
-          >
-            ETH
-          </Text>
-        </View>
-      </View>
+        }
+      >
+        Ethereum
+         (
+        ETH
+        )
+      </Text>
       <Text
         accessibilityRole="text"
         style={

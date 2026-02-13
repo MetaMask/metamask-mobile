@@ -7,6 +7,7 @@ import Browser from '../../Views/Browser';
 import { ChainId } from '@metamask/controller-utils';
 import AddBookmark from '../../Views/AddBookmark';
 import SimpleWebview from '../../Views/SimpleWebview';
+import AccountsMenu from '../../Views/AccountsMenu';
 import Settings from '../../Views/Settings';
 import GeneralSettings from '../../Views/Settings/GeneralSettings';
 import AdvancedSettings from '../../Views/Settings/AdvancedSettings';
@@ -14,7 +15,7 @@ import BackupAndSyncSettings from '../../Views/Settings/Identity/BackupAndSyncSe
 import SecuritySettings from '../../Views/Settings/SecuritySettings';
 import ExperimentalSettings from '../../Views/Settings/ExperimentalSettings';
 import NotificationsSettings from '../../Views/Settings/NotificationsSettings';
-import RegionSelector from '../../Views/Settings/RegionSelector/RegionSelector';
+import RegionSelector from '../../UI/Ramp/Views/Settings/RegionSelector/RegionSelector';
 import NotificationsView from '../../Views/Notifications';
 import NotificationsDetails from '../../Views/Notifications/Details';
 import OptIn from '../../Views/Notifications/OptIn';
@@ -26,7 +27,6 @@ import Wallet from '../../Views/Wallet';
 import Asset from '../../Views/Asset';
 import AssetDetails from '../../Views/AssetDetails';
 import AddAsset from '../../Views/AddAsset';
-import Collectible from '../../Views/Collectible';
 import NftFullView from '../../Views/NftFullView';
 import TokensFullView from '../../Views/TokensFullView';
 import TrendingTokensFullView from '../../Views/TrendingTokens/TrendingTokensFullView/TrendingTokensFullView';
@@ -121,10 +121,9 @@ import { TransactionDetails } from '../../Views/confirmations/components/activit
 import RewardsBottomSheetModal from '../../UI/Rewards/components/RewardsBottomSheetModal';
 import RewardsClaimBottomSheetModal from '../../UI/Rewards/components/Tabs/LevelsTab/RewardsClaimBottomSheetModal';
 import RewardOptInAccountGroupModal from '../../UI/Rewards/components/Settings/RewardOptInAccountGroupModal';
-import ReferralBottomSheetModal from '../../UI/Rewards/components/ReferralBottomSheetModal';
 import EndOfSeasonClaimBottomSheet from '../../UI/Rewards/components/EndOfSeasonClaimBottomSheet/EndOfSeasonClaimBottomSheet';
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
-import getHeaderCenterNavbarOptions from '../../../component-library/components-temp/HeaderCenter/getHeaderCenterNavbarOptions';
+import getHeaderCompactStandardNavbarOptions from '../../../component-library/components-temp/HeaderCompactStandard/getHeaderCompactStandardNavbarOptions';
 import {
   TOKEN_TITLE,
   NFT_TITLE,
@@ -184,6 +183,11 @@ const AssetStackFlow = (props) => (
       component={AssetDetails}
       initialParams={{ address: props.route.params?.address }}
     />
+    <Stack.Screen
+      name={Routes.TRANSACTION_DETAILS}
+      component={TransactionDetails}
+      options={{ headerShown: true }}
+    />
   </Stack.Navigator>
 );
 
@@ -207,11 +211,6 @@ const WalletTabStackFlow = () => (
       name="WalletView"
       component={WalletModalFlow}
       options={{ headerShown: false }}
-    />
-    <Stack.Screen
-      name="Collectible"
-      component={Collectible}
-      options={Collectible.navigationOptions}
     />
     <Stack.Screen
       name={Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL}
@@ -271,10 +270,6 @@ const RewardsHome = () => (
       name={Routes.MODAL.REWARDS_OPTIN_ACCOUNT_GROUP_MODAL}
       component={RewardOptInAccountGroupModal}
       options={{ headerShown: false }}
-    />
-    <Stack.Screen
-      name={Routes.MODAL.REWARDS_REFERRAL_BOTTOM_SHEET_MODAL}
-      component={ReferralBottomSheetModal}
     />
     <Stack.Screen
       name={Routes.MODAL.REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET}
@@ -354,7 +349,12 @@ const NotificationsOptInStack = () => (
 );
 
 const SettingsFlow = () => (
-  <Stack.Navigator initialRouteName={'Settings'}>
+  <Stack.Navigator initialRouteName={Routes.ACCOUNTS_MENU_VIEW}>
+    <Stack.Screen
+      name={Routes.ACCOUNTS_MENU_VIEW}
+      component={AccountsMenu}
+      options={{ headerShown: false }}
+    />
     <Stack.Screen
       name="Settings"
       component={Settings}
@@ -940,20 +940,7 @@ const MainNavigator = () => {
         component={TokensFullView}
         options={{ headerShown: false }}
       />
-      <Stack.Screen
-        name="AddAsset"
-        component={AddAsset}
-        options={({ route, navigation }) => ({
-          ...getHeaderCenterNavbarOptions({
-            title: strings(
-              `add_asset.${route.params?.assetType === TOKEN ? TOKEN_TITLE : NFT_TITLE}`,
-            ),
-            onBack: () => navigation.goBack(),
-            includesTopInset: true,
-          }),
-          headerShown: true,
-        })}
-      />
+      <Stack.Screen name="AddAsset" component={AddAsset} />
       <Stack.Screen
         name="ConfirmAddAsset"
         component={ConfirmAddAsset}
@@ -1112,7 +1099,26 @@ const MainNavigator = () => {
           }),
         }}
       />
-      <Stack.Screen name={Routes.EARN.ROOT} component={EarnScreenStack} />
+      <Stack.Screen
+        name={Routes.EARN.ROOT}
+        component={EarnScreenStack}
+        options={{
+          headerShown: false,
+          animationEnabled: true,
+          cardStyleInterpolator: ({ current, layouts }) => ({
+            cardStyle: {
+              transform: [
+                {
+                  translateX: current.progress.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [layouts.screen.width, 0],
+                  }),
+                },
+              ],
+            },
+          }),
+        }}
+      />
       <Stack.Screen
         name={Routes.EARN.MODALS.ROOT}
         component={EarnModalStack}

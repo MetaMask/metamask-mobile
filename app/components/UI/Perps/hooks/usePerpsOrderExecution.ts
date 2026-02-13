@@ -5,10 +5,12 @@ import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { TraceName, TraceOperation } from '../../../../util/trace';
 import { MetaMetricsEvents } from '../../../hooks/useMetrics';
 import {
-  PerpsEventProperties,
-  PerpsEventValues,
-} from '../constants/eventNames';
-import type { OrderParams, OrderResult, Position } from '../controllers/types';
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+  type OrderParams,
+  type OrderResult,
+  type Position,
+} from '@metamask/perps-controller';
 import { usePerpsEventTracking } from './usePerpsEventTracking';
 import { usePerpsMeasurement } from './usePerpsMeasurement';
 import { usePerpsTrading } from './usePerpsTrading';
@@ -79,19 +81,32 @@ export function usePerpsOrderExecution(
 
           if (isPartiallyFilled) {
             // Track partially filled event
-            track(MetaMetricsEvents.PERPS_TRADE_TRANSACTION, {
-              [PerpsEventProperties.STATUS]:
-                PerpsEventValues.STATUS.PARTIALLY_FILLED,
-              [PerpsEventProperties.ASSET]: orderParams.symbol,
-              [PerpsEventProperties.DIRECTION]: orderParams.isBuy
-                ? PerpsEventValues.DIRECTION.LONG
-                : PerpsEventValues.DIRECTION.SHORT,
-              [PerpsEventProperties.LEVERAGE]: orderParams.leverage || 1,
-              [PerpsEventProperties.ORDER_SIZE]: orderSize,
-              [PerpsEventProperties.ORDER_TYPE]: orderParams.orderType,
-              [PerpsEventProperties.AMOUNT_FILLED]: filledSize,
-              [PerpsEventProperties.REMAINING_AMOUNT]: orderSize - filledSize,
-            });
+            const partialProps: Record<string, string | number | boolean> = {
+              [PERPS_EVENT_PROPERTY.STATUS]:
+                PERPS_EVENT_VALUE.STATUS.PARTIALLY_FILLED,
+              [PERPS_EVENT_PROPERTY.ASSET]: orderParams.symbol,
+              [PERPS_EVENT_PROPERTY.DIRECTION]: orderParams.isBuy
+                ? PERPS_EVENT_VALUE.DIRECTION.LONG
+                : PERPS_EVENT_VALUE.DIRECTION.SHORT,
+              [PERPS_EVENT_PROPERTY.LEVERAGE]: orderParams.leverage || 1,
+              [PERPS_EVENT_PROPERTY.ORDER_SIZE]: orderSize,
+              [PERPS_EVENT_PROPERTY.ORDER_TYPE]: orderParams.orderType,
+              [PERPS_EVENT_PROPERTY.AMOUNT_FILLED]: filledSize,
+              [PERPS_EVENT_PROPERTY.REMAINING_AMOUNT]: orderSize - filledSize,
+              [PERPS_EVENT_PROPERTY.TRADE_WITH_TOKEN]:
+                orderParams.trackingData?.tradeWithToken === true,
+            };
+            if (orderParams.trackingData?.tradeWithToken === true) {
+              if (orderParams.trackingData.mmPayTokenSelected != null) {
+                partialProps[PERPS_EVENT_PROPERTY.MM_PAY_TOKEN_SELECTED] =
+                  orderParams.trackingData.mmPayTokenSelected;
+              }
+              if (orderParams.trackingData.mmPayNetworkSelected != null) {
+                partialProps[PERPS_EVENT_PROPERTY.MM_PAY_NETWORK_SELECTED] =
+                  orderParams.trackingData.mmPayNetworkSelected;
+              }
+            }
+            track(MetaMetricsEvents.PERPS_TRADE_TRANSACTION, partialProps);
           }
 
           // Try to fetch the newly created position
@@ -132,16 +147,29 @@ export function usePerpsOrderExecution(
           DevLogger.log('usePerpsOrderExecution: Order failed', errorMessage);
 
           // Track order failure with specific event
-          track(MetaMetricsEvents.PERPS_TRADE_TRANSACTION, {
-            [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
-            [PerpsEventProperties.ASSET]: orderParams.symbol,
-            [PerpsEventProperties.DIRECTION]: orderParams.isBuy
-              ? PerpsEventValues.DIRECTION.LONG
-              : PerpsEventValues.DIRECTION.SHORT,
-            [PerpsEventProperties.ORDER_TYPE]: orderParams.orderType,
-            [PerpsEventProperties.ORDER_SIZE]: orderParams.size,
-            [PerpsEventProperties.ERROR_MESSAGE]: errorMessage,
-          });
+          const failedProps: Record<string, string | number | boolean> = {
+            [PERPS_EVENT_PROPERTY.STATUS]: PERPS_EVENT_VALUE.STATUS.FAILED,
+            [PERPS_EVENT_PROPERTY.ASSET]: orderParams.symbol,
+            [PERPS_EVENT_PROPERTY.DIRECTION]: orderParams.isBuy
+              ? PERPS_EVENT_VALUE.DIRECTION.LONG
+              : PERPS_EVENT_VALUE.DIRECTION.SHORT,
+            [PERPS_EVENT_PROPERTY.ORDER_TYPE]: orderParams.orderType,
+            [PERPS_EVENT_PROPERTY.ORDER_SIZE]: orderParams.size,
+            [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: errorMessage,
+            [PERPS_EVENT_PROPERTY.TRADE_WITH_TOKEN]:
+              orderParams.trackingData?.tradeWithToken === true,
+          };
+          if (orderParams.trackingData?.tradeWithToken === true) {
+            if (orderParams.trackingData.mmPayTokenSelected != null) {
+              failedProps[PERPS_EVENT_PROPERTY.MM_PAY_TOKEN_SELECTED] =
+                orderParams.trackingData.mmPayTokenSelected;
+            }
+            if (orderParams.trackingData.mmPayNetworkSelected != null) {
+              failedProps[PERPS_EVENT_PROPERTY.MM_PAY_NETWORK_SELECTED] =
+                orderParams.trackingData.mmPayNetworkSelected;
+            }
+          }
+          track(MetaMetricsEvents.PERPS_TRADE_TRANSACTION, failedProps);
 
           onError?.(errorMessage);
         }
@@ -175,16 +203,29 @@ export function usePerpsOrderExecution(
         });
 
         // Track exception with specific event
-        track(MetaMetricsEvents.PERPS_TRADE_TRANSACTION, {
-          [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
-          [PerpsEventProperties.ASSET]: orderParams.symbol,
-          [PerpsEventProperties.DIRECTION]: orderParams.isBuy
-            ? PerpsEventValues.DIRECTION.LONG
-            : PerpsEventValues.DIRECTION.SHORT,
-          [PerpsEventProperties.ORDER_TYPE]: orderParams.orderType,
-          [PerpsEventProperties.ORDER_SIZE]: orderParams.size,
-          [PerpsEventProperties.ERROR_MESSAGE]: errorMessage,
-        });
+        const exceptionProps: Record<string, string | number | boolean> = {
+          [PERPS_EVENT_PROPERTY.STATUS]: PERPS_EVENT_VALUE.STATUS.FAILED,
+          [PERPS_EVENT_PROPERTY.ASSET]: orderParams.symbol,
+          [PERPS_EVENT_PROPERTY.DIRECTION]: orderParams.isBuy
+            ? PERPS_EVENT_VALUE.DIRECTION.LONG
+            : PERPS_EVENT_VALUE.DIRECTION.SHORT,
+          [PERPS_EVENT_PROPERTY.ORDER_TYPE]: orderParams.orderType,
+          [PERPS_EVENT_PROPERTY.ORDER_SIZE]: orderParams.size,
+          [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: errorMessage,
+          [PERPS_EVENT_PROPERTY.TRADE_WITH_TOKEN]:
+            orderParams.trackingData?.tradeWithToken === true,
+        };
+        if (orderParams.trackingData?.tradeWithToken === true) {
+          if (orderParams.trackingData.mmPayTokenSelected != null) {
+            exceptionProps[PERPS_EVENT_PROPERTY.MM_PAY_TOKEN_SELECTED] =
+              orderParams.trackingData.mmPayTokenSelected;
+          }
+          if (orderParams.trackingData.mmPayNetworkSelected != null) {
+            exceptionProps[PERPS_EVENT_PROPERTY.MM_PAY_NETWORK_SELECTED] =
+              orderParams.trackingData.mmPayNetworkSelected;
+          }
+        }
+        track(MetaMetricsEvents.PERPS_TRADE_TRANSACTION, exceptionProps);
 
         onError?.(errorMessage);
       } finally {
