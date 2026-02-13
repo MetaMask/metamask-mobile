@@ -565,13 +565,24 @@ export function transformUserHistoryToTransactions(
       const displayAmount = `${isDeposit ? '+' : '-'}$${amountBN.toFixed(2)}`;
 
       // For completed transactions, status is always positive (green)
-      const statusText = 'Completed';
+      const statusText = strings(
+        'perps.transactions.activity.status_completed',
+      );
+      const title = isDeposit
+        ? strings('perps.transactions.activity.deposited_amount', {
+            amount,
+            symbol: asset,
+          })
+        : strings('perps.transactions.activity.withdrew_amount', {
+            amount,
+            symbol: asset,
+          });
 
       return {
         id: `${type}-${id}`,
         type: isDeposit ? 'deposit' : 'withdrawal',
         category: isDeposit ? 'deposit' : 'withdrawal',
-        title: `${isDeposit ? 'Deposited' : 'Withdrew'} ${amount} ${asset}`,
+        title,
         subtitle: statusText,
         timestamp,
         asset,
@@ -636,19 +647,24 @@ export function transformWalletPerpsDepositsToTransactions(
       const status = WALLET_STATUS_TO_DEPOSIT_STATUS[tx.status] ?? 'pending';
       const statusText =
         status === 'completed'
-          ? 'Completed'
+          ? strings('perps.transactions.activity.status_completed')
           : status === 'failed'
-            ? 'Failed'
-            : 'Pending';
+            ? strings('perps.transactions.activity.status_failed')
+            : strings('perps.transactions.activity.status_pending');
+
+      const title =
+        amountBN.isZero() || !amountWei
+          ? strings('perps.transactions.activity.deposit_title')
+          : strings('perps.transactions.activity.deposited_amount', {
+              amount: amountBN.toFixed(2),
+              symbol: ARBITRUM_USDC.symbol,
+            });
 
       return {
         id: `wallet-deposit-${tx.id}`,
         type: 'deposit' as const,
         category: 'deposit' as const,
-        title:
-          amountBN.isZero() || !amountWei
-            ? 'Deposit'
-            : `Deposited ${amountBN.toFixed(2)} ${ARBITRUM_USDC.symbol}`,
+        title,
         subtitle: statusText,
         timestamp: tx.time ?? 0,
         asset: ARBITRUM_USDC.symbol,
@@ -684,14 +700,19 @@ export function transformWithdrawalRequestsToTransactions(
       const displayAmount = `-$${amountBN.toFixed(2)}`;
 
       // For completed withdrawals, status is always positive (green)
-      const statusText = 'Completed';
+      const statusText = strings(
+        'perps.transactions.activity.status_completed',
+      );
       const isPositive = true;
 
       return {
         id: `withdrawal-${id}`,
         type: 'withdrawal' as const,
         category: 'withdrawal' as const,
-        title: `Withdrew ${amount} ${asset}`,
+        title: strings('perps.transactions.activity.withdrew_amount', {
+          amount,
+          symbol: asset,
+        }),
         subtitle: statusText,
         timestamp,
         asset,
@@ -727,14 +748,19 @@ export function transformDepositRequestsToTransactions(
       const displayAmount = `+$${amountBN.toFixed(2)}`;
 
       // For completed deposits, status is always positive (green)
-      const statusText = 'Completed';
+      const statusText = strings(
+        'perps.transactions.activity.status_completed',
+      );
       const isPositive = true;
 
       // Create title based on whether we have the actual amount
       const title =
         amount === '0' || amount === '0.00'
-          ? 'Deposit'
-          : `Deposited ${amount} ${asset}`;
+          ? strings('perps.transactions.activity.deposit_title')
+          : strings('perps.transactions.activity.deposited_amount', {
+              amount,
+              symbol: asset,
+            });
 
       return {
         id: `deposit-${id}`,
