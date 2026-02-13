@@ -76,16 +76,16 @@ describe('RampErrorModal', () => {
       });
 
       expect(toJSON()).toMatchSnapshot();
-      expect(getByText('Unable to fetch quotes')).toBeTruthy();
+      expect(getByText('Unable to fetch quotes')).toBeOnTheScreen();
       expect(
         getByText(
           "We couldn't load quotes from providers. Please check your connection and try again.",
         ),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
       expect(
         getByTestId('ramp-error-modal-contact-support-button'),
-      ).toBeTruthy();
-      expect(getByTestId('ramp-error-modal-got-it-button')).toBeTruthy();
+      ).toBeOnTheScreen();
+      expect(getByTestId('ramp-error-modal-got-it-button')).toBeOnTheScreen();
     });
 
     it('renders widget URL failed error with contact support button', () => {
@@ -94,15 +94,15 @@ describe('RampErrorModal', () => {
         isCritical: true,
       });
 
-      expect(getByText('Unable to continue')).toBeTruthy();
+      expect(getByText('Unable to continue')).toBeOnTheScreen();
       expect(
         getByText(
           "We couldn't load the provider page. Please try again or contact support if the issue persists.",
         ),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
       expect(
         getByTestId('ramp-error-modal-contact-support-button'),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
     });
 
     it('renders widget URL missing error with contact support button', () => {
@@ -111,15 +111,15 @@ describe('RampErrorModal', () => {
         isCritical: true,
       });
 
-      expect(getByText('Provider unavailable')).toBeTruthy();
+      expect(getByText('Provider unavailable')).toBeOnTheScreen();
       expect(
         getByText(
           'This provider is temporarily unavailable. Please try a different provider or contact support.',
         ),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
       expect(
         getByTestId('ramp-error-modal-contact-support-button'),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
     });
 
     it('opens support URL when contact support button is pressed', () => {
@@ -148,14 +148,16 @@ describe('RampErrorModal', () => {
       });
 
       expect(toJSON()).toMatchSnapshot();
-      expect(getByText('No quotes available')).toBeTruthy();
+      expect(getByText('No quotes available')).toBeOnTheScreen();
       expect(
         getByText(
           'There are currently no quotes available for this amount and payment method. Try adjusting your amount or selecting a different payment method.',
         ),
-      ).toBeTruthy();
-      expect(getByTestId('ramp-error-modal-try-again-button')).toBeTruthy();
-      expect(getByTestId('ramp-error-modal-got-it-button')).toBeTruthy();
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId('ramp-error-modal-try-again-button'),
+      ).toBeOnTheScreen();
+      expect(getByTestId('ramp-error-modal-got-it-button')).toBeOnTheScreen();
     });
 
     it('calls onRetry and closes modal when try again button is pressed', () => {
