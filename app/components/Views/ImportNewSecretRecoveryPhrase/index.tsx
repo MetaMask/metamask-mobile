@@ -36,7 +36,7 @@ import {
   IconColor,
 } from '@metamask/design-system-react-native';
 import { IconName as ComponentIconName } from '../../../component-library/components/Icons/Icon';
-import HeaderWithTitleLeft from '../../../component-library/components-temp/HeaderWithTitleLeft';
+import HeaderStackedStandard from '../../../component-library/components-temp/HeaderStackedStandard';
 import {
   ToastContext,
   ToastVariants,
@@ -47,7 +47,6 @@ import useMetrics from '../../hooks/useMetrics/useMetrics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
 import { Authentication } from '../../../core';
-import { isMultichainAccountsState2Enabled } from '../../../multichain-accounts/remote-feature-flag';
 import Routes from '../../../constants/navigation/Routes';
 import { QRTabSwitcherScreens } from '../QRTabSwitcher';
 import Logger from '../../../util/Logger';
@@ -190,15 +189,14 @@ const ImportNewSecretRecoveryPhrase = () => {
         return;
       }
 
-      // In case state 2 is enabled, discoverAccounts will be 0 because accounts are synced and then discovered
-      // in a non-blocking way. So we rely on the callback to track the event when the discovery is done.
-      const { discoveredAccountsCount } = await importNewSecretRecoveryPhrase(
+      await importNewSecretRecoveryPhrase(
         phrase,
         undefined,
         async ({ discoveredAccountsCount }) => {
           trackDiscoveryEvent(discoveredAccountsCount);
         },
       );
+
       setLoading(false);
       setSeedPhrase(['']);
 
@@ -216,10 +214,6 @@ const ImportNewSecretRecoveryPhrase = () => {
       });
 
       fetchAccountsWithActivity();
-
-      if (!isMultichainAccountsState2Enabled()) {
-        trackDiscoveryEvent(discoveredAccountsCount);
-      }
 
       navigation.navigate('WalletView');
     } catch (e) {
@@ -248,7 +242,7 @@ const ImportNewSecretRecoveryPhrase = () => {
 
   const content = (
     <SafeAreaView edges={{ bottom: 'additive' }} style={styles.mainWrapper}>
-      <HeaderWithTitleLeft
+      <HeaderStackedStandard
         includesTopInset
         backButtonProps={{
           onPress: dismiss,
@@ -261,7 +255,7 @@ const ImportNewSecretRecoveryPhrase = () => {
             testID: 'qr-code-button',
           },
         ]}
-        titleLeftProps={{
+        titleStandardProps={{
           testID: ImportSRPIDs.SCREEN_TITLE_ID,
           title: strings(
             'import_new_secret_recovery_phrase.import_wallet_title',

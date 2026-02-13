@@ -7,7 +7,7 @@ import SettingsView from '../Settings/SettingsView';
 import BrowserView from '../Browser/BrowserView';
 import WalletView from './WalletView';
 import TrendingView from '../Trending/TrendingView';
-import AccountMenu from '../AccountMenu/AccountMenu';
+
 class TabBarComponent {
   get tabBarExploreButton(): DetoxElement {
     return Matchers.getElementByID(TabBarSelectorIDs.EXPLORE);
@@ -89,7 +89,6 @@ class TabBarComponent {
         // Ensure we're on WalletView where the hamburger menu is located
         await this.tapWallet();
         await WalletView.tapHamburgerMenu();
-        await AccountMenu.tapSettings();
         await Assertions.expectElementToBeVisible(SettingsView.title);
       },
       {

@@ -154,10 +154,18 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
   }
 
   useEffect(() => {
+    let cancelled = false;
     if (!hasPermission && visible) {
-      requestPermission();
+      requestPermission().then((granted) => {
+        if (!cancelled && !granted) {
+          onScanError(strings('transaction.no_camera_permission'));
+        }
+      });
     }
-  }, [hasPermission, requestPermission, visible]);
+    return () => {
+      cancelled = true;
+    };
+  }, [hasPermission, requestPermission, visible, onScanError]);
 
   const reset = useCallback(() => {
     setURDecoder(new URRegistryDecoder());
@@ -273,13 +281,6 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
     ),
     [purpose, styles],
   );
-
-  // Handle camera permission error
-  useEffect(() => {
-    if (visible && !hasPermission) {
-      onScanError(strings('transaction.no_camera_permission'));
-    }
-  }, [visible, hasPermission, onScanError]);
 
   return (
     <Modal
