@@ -70,6 +70,7 @@ function parseLedgerCommunicationError(
         walletType,
       );
 
+    case LedgerCommunicationErrors.EthAppNotOpen:
     case LedgerCommunicationErrors.FailedToOpenApp:
     case LedgerCommunicationErrors.FailedToCloseApp:
       return createHardwareWalletError(

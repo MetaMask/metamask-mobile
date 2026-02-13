@@ -72,6 +72,15 @@ describe('parseErrorByType', () => {
       expect(result.code).toBe(ErrorCode.DeviceStateEthAppClosed);
     });
 
+    it('parses EthAppNotOpen', () => {
+      const result = parseErrorByType(
+        LedgerCommunicationErrors.EthAppNotOpen,
+        walletType,
+      );
+
+      expect(result.code).toBe(ErrorCode.DeviceStateEthAppClosed);
+    });
+
     it('parses UserRefusedConfirmation', () => {
       const result = parseErrorByType(
         LedgerCommunicationErrors.UserRefusedConfirmation,
