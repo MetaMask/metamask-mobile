@@ -13,6 +13,7 @@ import {
 import {
   findMatchingPostEvent,
   processPostRequestBody,
+  setupAccountsV2SupportedNetworksMock,
 } from './helpers/mockHelpers.ts';
 import { getLocalHost } from '../framework/fixtures/FixtureUtils.ts';
 import PortManager, { ResourceType } from '../framework/PortManager.ts';
@@ -223,6 +224,8 @@ export default class MockServerE2E implements Resource {
       logger.info('Applying testSpecificMock function (takes precedence)');
       await this._testSpecificMock(this._server);
     }
+
+    await setupAccountsV2SupportedNetworksMock(this._server);
 
     await this._server
       .forAnyRequest()
