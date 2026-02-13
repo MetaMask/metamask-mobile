@@ -147,6 +147,7 @@ jest.mock('../../app/core/Engine', () => {
           getOrderFills: jest.fn().mockResolvedValue([]),
         })),
         getActiveProviderOrNull: jest.fn(() => null),
+        switchProvider: jest.fn().mockResolvedValue({ success: true }),
         subscribeToPrices: jest.fn(() => () => undefined),
         getOrderFills: jest.fn().mockResolvedValue([]),
         closePosition: jest.fn().mockResolvedValue(undefined),

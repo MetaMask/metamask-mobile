@@ -31,6 +31,19 @@ const mockBatchedUpdates = jest.fn((fn) => {
 
 jest.mock('react-native', () => {
   const originalModule = jest.requireActual('react-native');
+
+  // Compatibility shim for legacy libraries (e.g. @metamask/react-native-button)
+  // still reading deprecated React Native prop-types.
+  originalModule.Text.propTypes = {
+    ...(originalModule.Text.propTypes || {}),
+    allowFontScaling: true,
+    style: true,
+  };
+  originalModule.ViewPropTypes = {
+    ...(originalModule.ViewPropTypes || {}),
+    style: true,
+  };
+
   originalModule.unstable_batchedUpdates = mockBatchedUpdates;
   return originalModule;
 });

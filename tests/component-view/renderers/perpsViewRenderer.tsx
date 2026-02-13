@@ -321,3 +321,16 @@ export function renderPerpsTabView(options: RenderPerpsViewOptions = {}) {
     options,
   );
 }
+
+/**
+ * Renders PerpsSelectProviderView. Use in PerpsSelectProviderView.view.test.tsx.
+ */
+export function renderPerpsSelectProviderView(
+  options: RenderPerpsViewOptions = {},
+) {
+  return renderPerpsView(
+    PerpsSelectProviderView as unknown as React.ComponentType,
+    Routes.PERPS.MODALS.SELECT_PROVIDER,
+    options,
+  );
+}
