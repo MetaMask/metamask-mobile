@@ -4,6 +4,7 @@ import {
   RampsControllerMessenger,
   getDefaultRampsControllerState,
 } from '@metamask/ramps-controller';
+import { initRampsDebugBridge } from '../../../../components/UI/Ramp/debug/RampsDebugBridge';
 
 /**
  * Initialize the ramps controller.
@@ -24,6 +25,10 @@ export const rampsControllerInit: ControllerInitFunction<
     messenger: controllerMessenger,
     state: rampsControllerState,
   });
+
+  if (__DEV__) {
+    initRampsDebugBridge(controller, controllerMessenger);
+  }
 
   // Initialize controller at app startup (non-blocking)
   // Defer to next tick to avoid affecting initial state snapshot

@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Ramps Debug Dashboard</title>
+<style>
+  :root {
+    --bg-primary: #0d1117;
+    --bg-secondary: #161b22;
+    --bg-tertiary: #21262d;
+    --border: #30363d;
+    --text-primary: #f0f6fc;
+    --text-secondary: #c9d1d9;
+    --text-muted: #8b949e;
+    --text-dim: #484f58;
+    --blue: #58a6ff;
+    --green: #3fb950;
+    --yellow: #d29922;
+    --red: #f85149;
+    --purple: #bc8cff;
+    --cyan: #79c0ff;
+    --orange: #d18616;
+    --font-mono: 'SF Mono', 'Fira Code', 'Fira Mono', Menlo, Consolas, monospace;
+    --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg-primary);
+    color: var(--text-secondary);
+    font-family: var(--font-sans);
+    font-size: 13px;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Top Bar */
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 16px;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    gap: 16px;
+  }
+
+  .topbar-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .topbar-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: 0.3px;
+  }
+
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--red);
+    flex-shrink: 0;
+  }
+
+  .status-dot.connected { background: var(--green); }
+
+  .status-text {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+  }
+
+  .topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .topbar-btn {
+    padding: 4px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: var(--font-sans);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--bg-tertiary);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  .topbar-btn:hover { background: var(--border); }
+
+  .timestamp {
+    font-size: 11px;
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+  }
+
+  /* Layout */
+  .main {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  /* Panels */
+  .panel {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .panel-state { flex: 1; min-width: 0; border-right: 1px solid var(--border); }
+  .panel-methods { width: 420px; flex-shrink: 0; }
+
+  .panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .panel-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+  }
+
+  .panel-badge {
+    font-size: 11px;
+    font-family: var(--font-mono);
+    color: var(--text-dim);
+    background: var(--bg-tertiary);
+    padding: 1px 6px;
+    border-radius: 10px;
+  }
+
+  .panel-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 0;
+  }
+
+  .panel-body::-webkit-scrollbar { width: 6px; }
+  .panel-body::-webkit-scrollbar-track { background: transparent; }
+  .panel-body::-webkit-scrollbar-thumb { background: var(--bg-tertiary); border-radius: 3px; }
+  .panel-body::-webkit-scrollbar-thumb:hover { background: var(--border); }
+
+  /* Search */
+  .search-bar {
+    padding: 6px 12px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .search-input {
+    width: 100%;
+    padding: 5px 8px;
+    font-size: 12px;
+    font-family: var(--font-mono);
+    background: var(--bg-primary);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text-secondary);
+    outline: none;
+  }
+
+  .search-input:focus { border-color: var(--blue); }
+  .search-input::placeholder { color: var(--text-dim); }
+
+  /* JSON Tree */
+  .json-tree { padding: 0 8px; }
+
+  .json-node {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    line-height: 20px;
+  }
+
+  .json-row {
+    display: flex;
+    align-items: flex-start;
+    padding: 0 4px;
+    border-radius: 3px;
+    cursor: default;
+    min-height: 20px;
+  }
+
+  .json-row:hover { background: rgba(136, 198, 255, 0.04); }
+
+  .json-toggle {
+    width: 16px;
+    height: 20px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--text-dim);
+    font-size: 10px;
+    flex-shrink: 0;
+    user-select: none;
+  }
+
+  .json-toggle:hover { color: var(--text-secondary); }
+
+  .json-indent {
+    display: inline-block;
+    width: 16px;
+    flex-shrink: 0;
+  }
+
+  .json-key { color: var(--cyan); }
+  .json-colon { color: var(--text-dim); margin: 0 4px; }
+  .json-string { color: #a5d6ff; }
+  .json-number { color: var(--cyan); }
+  .json-boolean { color: var(--red); }
+  .json-null { color: var(--text-dim); font-style: italic; }
+  .json-bracket { color: var(--text-dim); }
+  .json-preview { color: var(--text-dim); font-style: italic; margin-left: 4px; }
+  .json-size { color: var(--text-dim); font-size: 11px; margin-left: 6px; }
+
+  .json-hidden { display: none; }
+
+  .json-search-match { background: rgba(210, 153, 34, 0.3); border-radius: 2px; }
+
+  /* State Section Headers */
+  .state-section {
+    margin: 0 8px 4px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  .state-section-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    background: var(--bg-secondary);
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .state-section-header:hover { background: var(--bg-tertiary); }
+
+  .state-section-chevron {
+    font-size: 10px;
+    color: var(--text-dim);
+    width: 12px;
+    transition: transform 0.15s;
+  }
+
+  .state-section-chevron.open { transform: rotate(90deg); }
+
+  .state-section-name {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .state-section-badges {
+    display: flex;
+    gap: 4px;
+    margin-left: auto;
+  }
+
+  .badge {
+    font-size: 10px;
+    font-family: var(--font-mono);
+    font-weight: 600;
+    padding: 1px 6px;
+    border-radius: 10px;
+    background: var(--bg-tertiary);
+    color: var(--text-dim);
+  }
+
+  .badge-loading { background: #2d1b00; color: var(--yellow); }
+  .badge-error { background: #3d1014; color: var(--red); }
+  .badge-selected { background: #0c2d1e; color: var(--green); }
+  .badge-count { background: var(--bg-tertiary); color: var(--text-muted); }
+  .badge-null { background: var(--bg-tertiary); color: var(--text-dim); }
+
+  .state-section-body {
+    border-top: 1px solid var(--border);
+    padding: 4px 0;
+    display: none;
+  }
+
+  .state-section-body.open { display: block; }
+
+  /* Method Log */
+  .method-entry {
+    padding: 6px 12px;
+    border-bottom: 1px solid rgba(48, 54, 61, 0.4);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    cursor: pointer;
+  }
+
+  .method-entry:hover { background: rgba(136, 198, 255, 0.04); }
+
+  .method-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .method-name { color: var(--purple); font-weight: 600; }
+
+  .method-duration {
+    color: var(--text-dim);
+    font-size: 10px;
+    margin-left: auto;
+  }
+
+  .method-duration.slow { color: var(--yellow); }
+  .method-duration.very-slow { color: var(--red); }
+
+  .method-time {
+    color: var(--text-dim);
+    font-size: 10px;
+  }
+
+  .method-args {
+    color: var(--text-muted);
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+  }
+
+  .method-detail {
+    display: none;
+    margin-top: 4px;
+    padding: 6px 8px;
+    background: var(--bg-primary);
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    white-space: pre-wrap;
+    word-break: break-all;
+    max-height: 200px;
+    overflow-y: auto;
+    color: var(--text-secondary);
+  }
+
+  .method-detail.open { display: block; }
+
+  .method-error { color: var(--red); }
+
+  /* Empty state */
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: var(--text-dim);
+    gap: 8px;
+    padding: 24px;
+    text-align: center;
+  }
+
+  .empty-state-icon { font-size: 32px; opacity: 0.5; }
+  .empty-state-text { font-size: 13px; }
+  .empty-state-hint { font-size: 11px; font-family: var(--font-mono); }
+
+  /* Patches */
+  .patch-entry {
+    padding: 2px 12px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    line-height: 18px;
+  }
+
+  .patch-op-replace { color: var(--yellow); }
+  .patch-op-add { color: var(--green); }
+  .patch-op-remove { color: var(--red); }
+  .patch-path { color: var(--text-muted); }
+  .patch-value { color: var(--text-secondary); }
+
+  /* Resize handle */
+  .resize-handle {
+    width: 4px;
+    cursor: col-resize;
+    background: transparent;
+    flex-shrink: 0;
+    transition: background 0.15s;
+  }
+
+  .resize-handle:hover,
+  .resize-handle.active { background: var(--blue); }
+
+  /* Tabs */
+  .tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-secondary);
+    flex-shrink: 0;
+  }
+
+  .tab {
+    padding: 6px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.15s;
+  }
+
+  .tab:hover { color: var(--text-secondary); }
+  .tab.active { color: var(--text-primary); border-bottom-color: var(--blue); }
+
+  .tab-panel { display: none; flex: 1; overflow-y: auto; }
+  .tab-panel.active { display: flex; flex-direction: column; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <span class="topbar-title">Ramps Debug</span>
+    <span class="status-dot" id="statusDot"></span>
+    <span class="status-text" id="statusText">Disconnected</span>
+  </div>
+  <div class="topbar-right">
+    <span class="timestamp" id="lastUpdate"></span>
+    <button class="topbar-btn" id="btnClear" title="Clear method log">Clear Log</button>
+    <button class="topbar-btn" id="btnCollapseAll" title="Collapse all state sections">Collapse All</button>
+    <button class="topbar-btn" id="btnExpandAll" title="Expand all state sections">Expand All</button>
+  </div>
+</div>
+
+<div class="main">
+  <div class="panel panel-state" id="panelState">
+    <div class="search-bar">
+      <input class="search-input" id="stateSearch" type="text" placeholder="Filter state keys..." />
+    </div>
+    <div class="panel-body" id="stateBody">
+      <div class="empty-state" id="stateEmpty">
+        <div class="empty-state-icon">{ }</div>
+        <div class="empty-state-text">Waiting for state...</div>
+        <div class="empty-state-hint">Run <code>yarn ramps:debug</code> and start the mobile app</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="resize-handle" id="resizeHandle"></div>
+
+  <div class="panel panel-methods" id="panelMethods">
+    <div class="tabs">
+      <div class="tab active" data-tab="methods">Methods</div>
+      <div class="tab" data-tab="patches">Patches</div>
+    </div>
+    <div class="tab-panel active" id="tabMethods">
+      <div class="panel-body" id="methodsBody">
+        <div class="empty-state" id="methodsEmpty">
+          <div class="empty-state-icon">( )</div>
+          <div class="empty-state-text">No method calls yet</div>
+          <div class="empty-state-hint">Interact with the ramp flow in the app</div>
+        </div>
+      </div>
+    </div>
+    <div class="tab-panel" id="tabPatches">
+      <div class="panel-body" id="patchesBody">
+        <div class="empty-state" id="patchesEmpty">
+          <div class="empty-state-icon">&Delta;</div>
+          <div class="empty-state-text">No state patches yet</div>
+          <div class="empty-state-hint">Patches appear when controller state changes</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  // --- State ---
+  let ws = null;
+  let currentState = null;
+  let methodCount = 0;
+  let patchCount = 0;
+  const expandedPaths = new Set();
+  const STATE_SECTIONS = [
+    'userRegion', 'providers', 'tokens', 'paymentMethods', 'quotes', 'countries', 'requests', 'transak',
+  ];
+  const openSections = new Set(['userRegion', 'providers', 'tokens', 'paymentMethods', 'quotes']);
+
+  // --- DOM refs ---
+  const statusDot = document.getElementById('statusDot');
+  const statusText = document.getElementById('statusText');
+  const lastUpdate = document.getElementById('lastUpdate');
+  const stateBody = document.getElementById('stateBody');
+  const stateEmpty = document.getElementById('stateEmpty');
+  const methodsBody = document.getElementById('methodsBody');
+  const methodsEmpty = document.getElementById('methodsEmpty');
+  const patchesBody = document.getElementById('patchesBody');
+  const patchesEmpty = document.getElementById('patchesEmpty');
+  const btnClear = document.getElementById('btnClear');
+  const btnCollapseAll = document.getElementById('btnCollapseAll');
+  const btnExpandAll = document.getElementById('btnExpandAll');
+  const stateSearch = document.getElementById('stateSearch');
+  const resizeHandle = document.getElementById('resizeHandle');
+  const panelMethods = document.getElementById('panelMethods');
+
+  // --- Tabs ---
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById('tab' + capitalize(tab.dataset.tab)).classList.add('active');
+    });
+  });
+
+  function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+  // --- Resize ---
+  let isResizing = false;
+  resizeHandle.addEventListener('mousedown', (e) => {
+    isResizing = true;
+    resizeHandle.classList.add('active');
+    e.preventDefault();
+  });
+  document.addEventListener('mousemove', (e) => {
+    if (!isResizing) return;
+    const containerWidth = document.querySelector('.main').getBoundingClientRect().width;
+    const newWidth = containerWidth - e.clientX;
+    if (newWidth >= 250 && newWidth <= 800) {
+      panelMethods.style.width = newWidth + 'px';
+    }
+  });
+  document.addEventListener('mouseup', () => {
+    isResizing = false;
+    resizeHandle.classList.remove('active');
+  });
+
+  // --- WebSocket ---
+  function connect() {
+    const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+    ws = new WebSocket(`${proto}//${location.host}`);
+
+    ws.onopen = () => {
+      statusDot.classList.add('connected');
+      statusText.textContent = 'Server connected';
+    };
+
+    ws.onclose = () => {
+      statusDot.classList.remove('connected');
+      statusText.textContent = 'Disconnected';
+      setTimeout(connect, 2000);
+    };
+
+    ws.onerror = () => ws.close();
+
+    ws.onmessage = (e) => {
+      try {
+        const msg = JSON.parse(e.data);
+        handleMessage(msg);
+      } catch { /* ignore */ }
+    };
+  }
+
+  function handleMessage(msg) {
+    switch (msg.type) {
+      case 'state':
+        currentState = msg.state;
+        statusDot.classList.add('connected');
+        statusText.textContent = 'Mobile connected';
+        lastUpdate.textContent = formatTime(msg.timestamp);
+        renderState();
+        if (msg.patches && msg.patches.length > 0) {
+          renderPatches(msg.patches, msg.timestamp);
+        }
+        break;
+      case 'method':
+        renderMethod(msg);
+        break;
+      case 'mobile-connected':
+        statusText.textContent = 'Mobile connected';
+        break;
+      case 'mobile-disconnected':
+        statusText.textContent = 'Mobile disconnected';
+        break;
+    }
+  }
+
+  // --- State Rendering ---
+  function renderState() {
+    if (!currentState) return;
+    stateEmpty.style.display = 'none';
+
+    const filter = stateSearch.value.toLowerCase().trim();
+    const sections = STATE_SECTIONS.filter(k => currentState[k] !== undefined);
+    const extraKeys = Object.keys(currentState).filter(k => !STATE_SECTIONS.includes(k));
+    const allKeys = [...sections, ...extraKeys];
+
+    let html = '';
+    for (const key of allKeys) {
+      if (filter && !key.toLowerCase().includes(filter) && !jsonContains(currentState[key], filter)) {
+        continue;
+      }
+      html += renderStateSection(key, currentState[key]);
+    }
+
+    // Keep scroll position
+    const scrollTop = stateBody.scrollTop;
+    stateBody.innerHTML = html || `<div class="empty-state"><div class="empty-state-text">No matching keys</div></div>`;
+    stateBody.scrollTop = scrollTop;
+
+    // Re-attach section toggle listeners
+    stateBody.querySelectorAll('.state-section-header').forEach(header => {
+      header.addEventListener('click', () => {
+        const key = header.dataset.key;
+        const body = header.nextElementSibling;
+        const chevron = header.querySelector('.state-section-chevron');
+        if (openSections.has(key)) {
+          openSections.delete(key);
+          body.classList.remove('open');
+          chevron.classList.remove('open');
+        } else {
+          openSections.add(key);
+          body.classList.add('open');
+          chevron.classList.add('open');
+        }
+      });
+    });
+
+    // Re-attach json toggle listeners
+    attachJsonToggles(stateBody);
+  }
+
+  function renderStateSection(key, value) {
+    const isOpen = openSections.has(key);
+    const badges = getSectionBadges(key, value);
+
+    return `<div class="state-section">
+      <div class="state-section-header" data-key="${key}">
+        <span class="state-section-chevron ${isOpen ? 'open' : ''}">&#9654;</span>
+        <span class="state-section-name">${key}</span>
+        <span class="state-section-badges">${badges}</span>
+      </div>
+      <div class="state-section-body ${isOpen ? 'open' : ''}">
+        <div class="json-tree">${renderJson(value, key, 0)}</div>
+      </div>
+    </div>`;
+  }
+
+  function getSectionBadges(key, value) {
+    if (value === null || value === undefined) {
+      return '<span class="badge badge-null">null</span>';
+    }
+    let badges = '';
+    if (typeof value === 'object') {
+      if (value.isLoading) {
+        badges += '<span class="badge badge-loading">loading</span>';
+      }
+      if (value.error) {
+        badges += '<span class="badge badge-error">error</span>';
+      }
+      if (value.selected !== undefined && value.selected !== null) {
+        const label = value.selected?.name || value.selected?.id || 'yes';
+        badges += `<span class="badge badge-selected">selected: ${esc(String(label))}</span>`;
+      }
+      if (Array.isArray(value.data)) {
+        badges += `<span class="badge badge-count">${value.data.length} items</span>`;
+      } else if (value.data && typeof value.data === 'object') {
+        const keys = Object.keys(value.data);
+        badges += `<span class="badge badge-count">${keys.length} keys</span>`;
+      }
+    }
+    return badges;
+  }
+
+  // --- JSON Tree Renderer ---
+  function renderJson(value, path, depth) {
+    if (value === null) return `<span class="json-null">null</span>`;
+    if (value === undefined) return `<span class="json-null">undefined</span>`;
+
+    const type = typeof value;
+    if (type === 'string') return `<span class="json-string">"${esc(truncate(value, 500))}"</span>`;
+    if (type === 'number') return `<span class="json-number">${value}</span>`;
+    if (type === 'boolean') return `<span class="json-boolean">${value}</span>`;
+
+    if (Array.isArray(value)) {
+      if (value.length === 0) return `<span class="json-bracket">[]</span>`;
+      return renderExpandable(value, path, depth, true);
+    }
+
+    if (type === 'object') {
+      const keys = Object.keys(value);
+      if (keys.length === 0) return `<span class="json-bracket">{}</span>`;
+      return renderExpandable(value, path, depth, false);
+    }
+
+    return `<span class="json-string">${esc(String(value))}</span>`;
+  }
+
+  function renderExpandable(obj, path, depth, isArray) {
+    const keys = isArray ? obj.map((_, i) => i) : Object.keys(obj);
+    const isExpanded = expandedPaths.has(path);
+    const openBracket = isArray ? '[' : '{';
+    const closeBracket = isArray ? ']' : '}';
+    const preview = getPreview(obj, isArray);
+    const size = keys.length;
+
+    let html = '';
+    html += `<span class="json-toggle" data-path="${esc(path)}">${isExpanded ? '&#9660;' : '&#9654;'}</span>`;
+    html += `<span class="json-bracket">${openBracket}</span>`;
+
+    if (!isExpanded) {
+      html += `<span class="json-preview">${esc(preview)}</span>`;
+      html += `<span class="json-size">${size} ${size === 1 ? 'item' : 'items'}</span>`;
+      html += `<span class="json-bracket">${closeBracket}</span>`;
+      return html;
+    }
+
+    html += '<div class="json-children">';
+    const limit = Math.min(keys.length, 200);
+    for (let i = 0; i < limit; i++) {
+      const k = keys[i];
+      const childPath = path + '.' + k;
+      const val = isArray ? obj[k] : obj[k];
+      html += '<div class="json-row">';
+      html += indent(1);
+      if (!isArray) {
+        html += `<span class="json-key">${esc(String(k))}</span><span class="json-colon">:</span>`;
+      } else {
+        html += `<span class="json-key" style="color:var(--text-dim)">${k}</span><span class="json-colon">:</span>`;
+      }
+      html += renderJson(val, childPath, depth + 1);
+      html += '</div>';
+    }
+    if (keys.length > limit) {
+      html += `<div class="json-row">${indent(1)}<span class="json-preview">... ${keys.length - limit} more items</span></div>`;
+    }
+    html += '</div>';
+    html += `<div class="json-row"><span class="json-bracket">${closeBracket}</span></div>`;
+    return html;
+  }
+
+  function getPreview(obj, isArray) {
+    if (isArray) {
+      if (obj.length <= 3) {
+        return obj.map(v => primitivePreview(v)).join(', ');
+      }
+      return obj.slice(0, 3).map(v => primitivePreview(v)).join(', ') + ', ...';
+    }
+    const keys = Object.keys(obj);
+    if (keys.length <= 3) {
+      return keys.join(', ');
+    }
+    return keys.slice(0, 3).join(', ') + ', ...';
+  }
+
+  function primitivePreview(v) {
+    if (v === null) return 'null';
+    if (typeof v === 'string') return '"' + truncate(v, 20) + '"';
+    if (typeof v === 'object') return Array.isArray(v) ? `[${v.length}]` : '{...}';
+    return String(v);
+  }
+
+  function attachJsonToggles(container) {
+    container.querySelectorAll('.json-toggle').forEach(toggle => {
+      toggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const path = toggle.dataset.path;
+        if (expandedPaths.has(path)) {
+          expandedPaths.delete(path);
+        } else {
+          expandedPaths.add(path);
+        }
+        renderState();
+      });
+    });
+  }
+
+  function indent(n) {
+    let s = '';
+    for (let i = 0; i < n; i++) s += '<span class="json-indent"></span>';
+    return s;
+  }
+
+  function jsonContains(value, filter) {
+    if (value === null || value === undefined) return false;
+    if (typeof value === 'string') return value.toLowerCase().includes(filter);
+    if (typeof value === 'number' || typeof value === 'boolean') return String(value).includes(filter);
+    if (Array.isArray(value)) return value.some(v => jsonContains(v, filter));
+    if (typeof value === 'object') {
+      for (const k of Object.keys(value)) {
+        if (k.toLowerCase().includes(filter) || jsonContains(value[k], filter)) return true;
+      }
+    }
+    return false;
+  }
+
+  // --- Method Log ---
+  function renderMethod(msg) {
+    methodsEmpty.style.display = 'none';
+    methodCount++;
+
+    const el = document.createElement('div');
+    el.className = 'method-entry';
+
+    let durationClass = '';
+    if (msg.duration > 5000) durationClass = 'very-slow';
+    else if (msg.duration > 1000) durationClass = 'slow';
+
+    const argsPreview = msg.args ? truncate(JSON.stringify(msg.args), 120) : '()';
+    const time = formatTime(msg.timestamp);
+
+    el.innerHTML = `
+      <div class="method-header">
+        <span class="method-name">${esc(msg.name)}</span>
+        <span class="method-time">${time}</span>
+        <span class="method-duration ${durationClass}">${msg.duration != null ? msg.duration + 'ms' : ''}</span>
+      </div>
+      <div class="method-args">${esc(argsPreview)}</div>
+      <div class="method-detail">
+        <div><strong>Args:</strong>\n${formatJsonSafe(msg.args)}</div>
+        ${msg.error ? `<div class="method-error"><strong>Error:</strong> ${esc(msg.error)}</div>` : ''}
+        ${msg.result !== undefined ? `<div><strong>Result:</strong>\n${formatJsonSafe(msg.result)}</div>` : ''}
+      </div>`;
+
+    el.addEventListener('click', () => {
+      el.querySelector('.method-detail').classList.toggle('open');
+    });
+
+    const body = methodsBody;
+    if (body.firstChild === methodsEmpty) {
+      body.insertBefore(el, methodsEmpty.nextSibling);
+    } else {
+      body.insertBefore(el, body.firstChild);
+    }
+
+    // Cap entries
+    while (body.children.length > 501) {
+      body.removeChild(body.lastChild);
+    }
+  }
+
+  // --- Patches ---
+  function renderPatches(patches, timestamp) {
+    patchesEmpty.style.display = 'none';
+
+    const group = document.createElement('div');
+    group.style.borderBottom = '1px solid var(--border)';
+    group.style.paddingBottom = '4px';
+    group.style.marginBottom = '4px';
+
+    const header = document.createElement('div');
+    header.style.cssText = 'padding: 4px 12px; font-size: 10px; color: var(--text-dim); font-family: var(--font-mono);';
+    header.textContent = `${formatTime(timestamp)} - ${patches.length} patch${patches.length !== 1 ? 'es' : ''}`;
+    group.appendChild(header);
+
+    for (const patch of patches) {
+      const el = document.createElement('div');
+      el.className = 'patch-entry';
+      const opClass = `patch-op-${patch.op}`;
+      const pathStr = '/' + (patch.path || []).join('/');
+      let valueStr = '';
+      if (patch.value !== undefined) {
+        valueStr = ' = ' + truncate(JSON.stringify(patch.value), 100);
+      }
+      el.innerHTML = `<span class="${opClass}">${patch.op}</span> <span class="patch-path">${esc(pathStr)}</span><span class="patch-value">${esc(valueStr)}</span>`;
+      group.appendChild(el);
+    }
+
+    const body = patchesBody;
+    if (body.firstChild === patchesEmpty) {
+      body.insertBefore(group, patchesEmpty.nextSibling);
+    } else {
+      body.insertBefore(group, body.firstChild);
+    }
+
+    while (body.children.length > 201) {
+      body.removeChild(body.lastChild);
+    }
+  }
+
+  // --- Utilities ---
+  function formatTime(ts) {
+    if (!ts) return '';
+    const d = new Date(ts);
+    return d.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' }) +
+      '.' + String(d.getMilliseconds()).padStart(3, '0');
+  }
+
+  function esc(s) {
+    const div = document.createElement('div');
+    div.textContent = s;
+    return div.innerHTML;
+  }
+
+  function truncate(s, max) {
+    if (!s) return '';
+    if (typeof s !== 'string') s = String(s);
+    return s.length > max ? s.slice(0, max) + '...' : s;
+  }
+
+  function formatJsonSafe(v) {
+    try {
+      return esc(JSON.stringify(v, null, 2));
+    } catch {
+      return esc(String(v));
+    }
+  }
+
+  // --- Buttons ---
+  btnClear.addEventListener('click', () => {
+    methodCount = 0;
+    methodsBody.innerHTML = '';
+    methodsBody.appendChild(methodsEmpty);
+    methodsEmpty.style.display = '';
+    patchCount = 0;
+    patchesBody.innerHTML = '';
+    patchesBody.appendChild(patchesEmpty);
+    patchesEmpty.style.display = '';
+  });
+
+  btnCollapseAll.addEventListener('click', () => {
+    openSections.clear();
+    expandedPaths.clear();
+    renderState();
+  });
+
+  btnExpandAll.addEventListener('click', () => {
+    STATE_SECTIONS.forEach(k => openSections.add(k));
+    renderState();
+  });
+
+  stateSearch.addEventListener('input', () => renderState());
+
+  // --- Start ---
+  connect();
+})();
+</script>
+</body>
+</html>
