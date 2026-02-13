@@ -543,6 +543,53 @@ describe('useAddressTrustSignalAlerts', () => {
       expect(result.current[0].field).toBe(RowAlertKey.Spender);
     });
 
+    it('returns alerts for non-approval contract interactions even when revoke loading is true', () => {
+      // For non-approval contract interactions (no extractable spender),
+      // useApproveTransactionData may return isLoading: true permanently.
+      // Alerts should NOT be suppressed in this case.
+      mockUseApproveTransactionData.mockReturnValue({
+        isRevoke: false,
+        isLoading: true,
+      });
+      mockExtractSpender.mockReturnValue(undefined);
+      mockUseTransferRecipient.mockReturnValue(
+        '0x1234567890123456789012345678901234567890',
+      );
+      mockUseTransactionMetadataRequest.mockReturnValue({
+        txParams: {
+          to: '0x1234567890123456789012345678901234567890',
+          data: '0xef5cfb8c000000000000000000000000',
+        },
+        chainId: '0x1',
+      } as unknown as TransactionMeta);
+
+      const { result } = renderHookWithProvider(
+        () => useAddressTrustSignalAlerts(),
+        {
+          state: {
+            engine: {
+              backgroundState: {
+                PhishingController: {
+                  addressScanCache: {
+                    '0x1:0x1234567890123456789012345678901234567890': {
+                      data: {
+                        // @ts-expect-error - AddressScanResultType is not exported in PhishingController
+                        result_type: 'Malicious',
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      );
+
+      expect(result.current.length).toBe(1);
+      expect(result.current[0].key).toBe(AlertKeys.AddressTrustSignalMalicious);
+      expect(result.current[0].field).toBe(RowAlertKey.InteractingWith);
+    });
+
     it('uses InteractingWith field for contract interactions with data but no spender', () => {
       mockUseApproveTransactionData.mockReturnValue({
         isRevoke: false,
@@ -659,11 +706,13 @@ describe('useAddressTrustSignalAlerts', () => {
     });
 
     it('returns no alerts while revoke detection is loading for approval transactions', () => {
+      const spenderAddress = '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd';
       mockUseApproveTransactionData.mockReturnValue({
         isRevoke: false,
         isLoading: true,
       });
-      // Must have approval data for isRevokeLoading to gate alerts
+      // Must have a spender for isRevokeLoading to gate alerts
+      mockExtractSpender.mockReturnValue(spenderAddress);
       mockUseTransactionMetadataRequest.mockReturnValue({
         txParams: {
           to: '0x1234567890123456789012345678901234567890',
