@@ -5890,7 +5890,7 @@
       "convert_and_get_percentage_bonus": "Convert and get {{percentage}}%",
       "no_boost": "No boost",
       "your_musd": "Your mUSD",
-      "balance_breakdown_title": "You mUSD balances by network",
+      "balance_breakdown_title": "Your mUSD balances by network",
       "balance_amount": "{{amount}} mUSD",
       "balance_amount_with_symbol": "{{amount}} {{symbol}}",
       "balance_fiat_unavailable": "—",
