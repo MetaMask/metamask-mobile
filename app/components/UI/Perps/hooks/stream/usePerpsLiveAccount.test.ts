@@ -7,6 +7,22 @@ jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
 }));
 
+// Mock Engine for lazy isInitialLoading check
+const mockEngineState = {
+  cachedAccountState: null as AccountState | null,
+  cachedUserDataTimestamp: 0,
+};
+
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    PerpsController: {
+      get state() {
+        return mockEngineState;
+      },
+    },
+  },
+}));
+
 // Mock PerpsStreamManager
 const mockSubscribe = jest.fn();
 jest.mock('../../providers/PerpsStreamManager', () => ({
@@ -240,6 +256,69 @@ describe('usePerpsLiveAccount', () => {
       expect(result.current?.account?.availableBalance).toBe(
         result.current?.account?.totalBalance,
       );
+    });
+  });
+
+  describe('initial state from cache', () => {
+    it('should seed account from cache when fresh cached data exists', () => {
+      const cachedAccount: AccountState = {
+        availableBalance: '5000',
+        marginUsed: '2000',
+        unrealizedPnl: '100',
+        returnOnEquity: '2.0',
+        totalBalance: '7100',
+      };
+
+      mockEngineState.cachedAccountState = cachedAccount;
+      mockEngineState.cachedUserDataTimestamp = Date.now();
+
+      // Mock subscription to NOT call the callback (no WebSocket data yet)
+      mockSubscribe.mockImplementation(() => jest.fn());
+
+      const { result } = renderHookWithProvider(() => usePerpsLiveAccount(), {
+        state: {},
+      });
+
+      // First render should already have cached data
+      expect(result.current).toEqual({
+        account: cachedAccount,
+        isInitialLoading: false,
+      });
+    });
+
+    it('should return cached account regardless of timestamp age', () => {
+      mockEngineState.cachedAccountState = {
+        availableBalance: '5000',
+      } as AccountState;
+      mockEngineState.cachedUserDataTimestamp = Date.now() - 61_000;
+
+      mockSubscribe.mockImplementation(() => jest.fn());
+
+      const { result } = renderHookWithProvider(() => usePerpsLiveAccount(), {
+        state: {},
+      });
+
+      // Cache freshness is managed by controller's preload cycle, not hooks
+      expect(result.current).toEqual({
+        account: { availableBalance: '5000' },
+        isInitialLoading: false,
+      });
+    });
+
+    it('should have null account when no cache exists', () => {
+      mockEngineState.cachedAccountState = null;
+      mockEngineState.cachedUserDataTimestamp = 0;
+
+      mockSubscribe.mockImplementation(() => jest.fn());
+
+      const { result } = renderHookWithProvider(() => usePerpsLiveAccount(), {
+        state: {},
+      });
+
+      expect(result.current).toEqual({
+        account: null,
+        isInitialLoading: true,
+      });
     });
   });
 

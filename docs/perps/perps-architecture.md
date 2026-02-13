@@ -324,6 +324,41 @@ const prices = useLivePrices({
 
 **See [perps-connection-architecture.md](./perps-connection-architecture.md) for WebSocket architecture details.**
 
+### Background Preloading
+
+Market data and user data are preloaded in the background before the user opens Perps, enabling instant rendering of all sections on the home screen.
+
+#### Preload Pipeline
+
+| Step              | Method                                  | What It Does                                                 |
+| ----------------- | --------------------------------------- | ------------------------------------------------------------ |
+| 1. Trigger        | `startMarketDataPreload()` (Wallet tab) | Starts immediate fetch + 5-min periodic refresh              |
+| 2. Market data    | `performMarketDataPreload()`            | Fetches market data via standalone REST → `cachedMarketData` |
+| 3. User data      | `performUserDataPreload()`              | Fetches positions, orders, account state → cached fields     |
+| 4. Cache guard    | `PRELOAD_GUARD_MS` (30s)                | Debounce to prevent rapid re-fetches                         |
+| 5. Account change | State-change handler                    | Clears user data cache, re-preloads                          |
+
+#### Cache-Seeded Hook Initialization
+
+Hooks use lazy `useState` initializers to read cached data from the controller, so the first render already has data instead of showing an empty skeleton.
+
+| Utility                          | Purpose                                              |
+| -------------------------------- | ---------------------------------------------------- |
+| `hasPreloadedUserData(field)`    | Returns `true` if controller cache field is non-null |
+| `getPreloadedUserData<T>(field)` | Returns cached value or `null`                       |
+
+Cache freshness is managed by the controller's 5-minute preload cycle, not by the hooks — there is no client-side TTL.
+
+#### What the User Sees
+
+| Timing       | Content                                                                              |
+| ------------ | ------------------------------------------------------------------------------------ |
+| **Instant**  | Market lists, positions, orders, and account balance populated from cached REST data |
+| **~1-2s**    | Live WebSocket data replaces cache with real-time updates                            |
+| **On error** | `PerpsConnectionErrorView` renders (unchanged behavior)                              |
+
+**See [perps-connection-architecture.md](./perps-connection-architecture.md) for detailed preloading architecture.**
+
 ### Form Management
 
 Component input → Hook state → Validation → Controller action

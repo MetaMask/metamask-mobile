@@ -3,6 +3,22 @@ import React from 'react';
 import { usePerpsLiveOrders } from './index';
 import { type Order } from '@metamask/perps-controller';
 
+// Mock Engine for lazy isInitialLoading check
+const mockEngineState = {
+  cachedOrders: null as Order[] | null,
+  cachedUserDataTimestamp: 0,
+};
+
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    PerpsController: {
+      get state() {
+        return mockEngineState;
+      },
+    },
+  },
+}));
+
 // Mock the stream provider
 const mockSubscribe = jest.fn();
 
@@ -183,6 +199,62 @@ describe('usePerpsLiveOrders', () => {
 
     await waitFor(() => {
       expect(result.current.orders).toEqual(validOrders);
+    });
+  });
+
+  describe('initial state from cache', () => {
+    it('should seed orders from cache when fresh cached data exists', () => {
+      const cachedOrders: Order[] = [
+        mockOrder,
+        { ...mockOrder, orderId: 'order-2', symbol: 'ETH-PERP' } as Order,
+      ];
+
+      mockEngineState.cachedOrders = cachedOrders;
+      mockEngineState.cachedUserDataTimestamp = Date.now();
+
+      mockSubscribe.mockReturnValue(jest.fn());
+
+      const { result } = renderHook(() => usePerpsLiveOrders());
+
+      expect(result.current.orders).toEqual(cachedOrders);
+      expect(result.current.isInitialLoading).toBe(false);
+    });
+
+    it('should return cached orders regardless of timestamp age', () => {
+      mockEngineState.cachedOrders = [mockOrder];
+      mockEngineState.cachedUserDataTimestamp = Date.now() - 61_000;
+
+      mockSubscribe.mockReturnValue(jest.fn());
+
+      const { result } = renderHook(() => usePerpsLiveOrders());
+
+      // Cache freshness is managed by controller's preload cycle, not hooks
+      expect(result.current.orders).toEqual([mockOrder]);
+      expect(result.current.isInitialLoading).toBe(false);
+    });
+
+    it('should return empty orders when no cache exists', () => {
+      mockEngineState.cachedOrders = null;
+      mockEngineState.cachedUserDataTimestamp = 0;
+
+      mockSubscribe.mockReturnValue(jest.fn());
+
+      const { result } = renderHook(() => usePerpsLiveOrders());
+
+      expect(result.current.orders).toEqual([]);
+      expect(result.current.isInitialLoading).toBe(true);
+    });
+
+    it('should handle empty cached orders array (valid cache, no orders)', () => {
+      mockEngineState.cachedOrders = [];
+      mockEngineState.cachedUserDataTimestamp = Date.now();
+
+      mockSubscribe.mockReturnValue(jest.fn());
+
+      const { result } = renderHook(() => usePerpsLiveOrders());
+
+      expect(result.current.orders).toEqual([]);
+      expect(result.current.isInitialLoading).toBe(false);
     });
   });
 

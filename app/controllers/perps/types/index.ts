@@ -676,6 +676,8 @@ export type GetOrdersParams = {
   limit?: number; // Optional: max number of results for pagination
   offset?: number; // Optional: offset for pagination
   skipCache?: boolean; // Optional: bypass WebSocket cache and force API call (default: false)
+  standalone?: boolean; // Optional: lightweight mode - skip full initialization, use standalone HTTP client (no wallet/WebSocket needed)
+  userAddress?: string; // Optional: required when standalone is true - user address to query orders for
 };
 
 export type GetFundingParams = {

@@ -31,7 +31,10 @@ export function usePerpsLiveFills(
   const { throttleMs = 0 } = options;
   const stream = usePerpsStream();
   const [fills, setFills] = useState<OrderFill[]>(EMPTY_FILLS);
-  const [isInitialLoading, setIsInitialLoading] = useState(true);
+  // FillStreamChannel.getCachedData() always returns [] (never null),
+  // so subscribe() will always call the callback synchronously in useEffect.
+  // Start with false to avoid a 1-frame skeleton flash.
+  const [isInitialLoading, setIsInitialLoading] = useState(false);
   const lastFillsRef = useRef<OrderFill[]>(EMPTY_FILLS);
   const hasReceivedFirstUpdate = useRef(false);
 

@@ -23,13 +23,6 @@ jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
 jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key) => key),
 }));
-jest.mock('../components/PerpsLoadingSkeleton', () => ({
-  __esModule: true,
-  default: () => {
-    const { View } = jest.requireActual('react-native');
-    return <View testID="perps-loading-skeleton" />;
-  },
-}));
 jest.mock('../components/PerpsConnectionErrorView', () => ({
   __esModule: true,
   default: ({
@@ -149,22 +142,22 @@ describe('PerpsConnectionProvider', () => {
     expect(getByText('Child Component')).toBeDefined();
   });
 
-  it('should render loading skeleton when initializing', () => {
-    // Set isInitialized to false to trigger loading skeleton
+  it('should render children immediately even while connecting', () => {
+    // Children should render even when isInitialized is false and isConnecting is true
+    // Individual sections handle their own loading states with per-row skeletons
     mockGetConnectionState.mockReturnValue({
       isConnected: false,
       isConnecting: true,
       isInitialized: false,
     });
 
-    const { getByTestId, queryByText } = render(
+    const { getByText } = render(
       <PerpsConnectionProvider>
         <Text>Child Component</Text>
       </PerpsConnectionProvider>,
     );
 
-    expect(getByTestId('perps-loading-skeleton')).toBeDefined();
-    expect(queryByText('Child Component')).toBeNull();
+    expect(getByText('Child Component')).toBeDefined();
   });
 
   it('should connect on mount', async () => {

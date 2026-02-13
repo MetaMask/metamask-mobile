@@ -6,6 +6,7 @@ import {
   type PerpsMarketData,
 } from '@metamask/perps-controller';
 import { usePerpsStream } from '../providers/PerpsStreamManager';
+import { hasPreloadedUserData } from './stream/hasCachedPerpsData';
 
 export type PerpsMarketDataWithVolumeNumber = PerpsMarketData & {
   volumeNumber: number;
@@ -76,7 +77,10 @@ export const usePerpsMarkets = (
 
   const streamManager = usePerpsStream();
   const [markets, setMarkets] = useState<PerpsMarketDataWithVolumeNumber[]>([]);
-  const [isLoading, setIsLoading] = useState(!skipInitialFetch);
+  const [isLoading, setIsLoading] = useState(() => {
+    if (skipInitialFetch) return false;
+    return !hasPreloadedUserData('cachedMarketData');
+  });
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 

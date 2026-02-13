@@ -7,7 +7,6 @@ import React, {
   useRef,
 } from 'react';
 import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
-import PerpsLoadingSkeleton from '../components/PerpsLoadingSkeleton';
 import { usePerpsConnectionLifecycle } from '../hooks/usePerpsConnectionLifecycle';
 import { isE2E } from '../../../../util/test/utils';
 import PerpsConnectionErrorView from '../components/PerpsConnectionErrorView';
@@ -298,16 +297,6 @@ export const PerpsConnectionProvider: React.FC<
           showBackButton={shouldShowBackButton}
           retryAttempts={retryAttempts}
         />
-      </PerpsConnectionContext.Provider>
-    );
-  }
-
-  // Show skeleton loading UI while connection is initializing
-  // This prevents components from trying to load data before the connection is ready
-  if (connectionState.isConnecting || !connectionState.isInitialized) {
-    return (
-      <PerpsConnectionContext.Provider value={contextValue}>
-        <PerpsLoadingSkeleton />
       </PerpsConnectionContext.Provider>
     );
   }

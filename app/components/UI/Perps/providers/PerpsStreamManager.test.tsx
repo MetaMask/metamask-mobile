@@ -92,6 +92,15 @@ describe('PerpsStreamManager', () => {
       getMarkets: jest
         .fn()
         .mockResolvedValue([{ name: 'BTC-PERP' }, { name: 'ETH-PERP' }]),
+      state: {
+        cachedMarketData: null,
+        cachedMarketDataTimestamp: 0,
+        cachedPositions: null,
+        cachedOrders: null,
+        cachedAccountState: null,
+        cachedUserDataTimestamp: 0,
+        cachedUserDataAddress: null,
+      },
     } as unknown as typeof mockEngine.context.PerpsController;
 
     // Mock AccountTreeController for getEvmAccountFromSelectedAccountGroup
@@ -114,6 +123,14 @@ describe('PerpsStreamManager', () => {
     } as unknown as typeof mockEngine.context.AccountTreeController;
 
     mockDevLogger.log = jest.fn();
+
+    // Mock PerpsConnectionManager.getConnectionState for channel connect guards
+    mockPerpsConnectionManager.getConnectionState = jest.fn().mockReturnValue({
+      isInitialized: true,
+      isConnected: true,
+      isConnecting: false,
+      error: null,
+    });
   });
 
   afterEach(() => {
@@ -1475,18 +1492,10 @@ describe('PerpsStreamManager', () => {
       },
     ];
 
-    const mockProvider = {
-      getMarketDataWithPrices: mockGetMarketDataWithPrices,
-    };
-
     beforeEach(() => {
       mockGetMarketDataWithPrices.mockResolvedValue(mockMarketData);
-      mockEngine.context.PerpsController.getActiveProvider = jest
-        .fn()
-        .mockReturnValue(mockProvider);
-      mockEngine.context.PerpsController.getActiveProviderOrNull = jest
-        .fn()
-        .mockReturnValue(mockProvider);
+      mockEngine.context.PerpsController.getMarketDataWithPrices =
+        mockGetMarketDataWithPrices;
     });
 
     afterEach(() => {
@@ -1662,6 +1671,136 @@ describe('PerpsStreamManager', () => {
       unsubscribe1();
       unsubscribe2();
     });
+
+    it('should use controller preloaded cache when fresh', async () => {
+      const callback = jest.fn();
+
+      // Set up controller with fresh cached market data
+      (
+        mockEngine.context.PerpsController as unknown as Record<string, unknown>
+      ).state = {
+        cachedMarketData: mockMarketData,
+        cachedMarketDataTimestamp: Date.now(),
+        activeProvider: 'hyperliquid',
+      };
+
+      const streamManager = new PerpsStreamManager();
+
+      const unsubscribe = streamManager.marketData.subscribe({
+        callback,
+        throttleMs: 0,
+      });
+
+      // Callback should have been invoked SYNCHRONOUSLY during subscribe()
+      // via getCachedData() fallback to controller cache — no async wait needed.
+      // connect() may also fire a second notification via fetchMarketData()
+      // with the same data, but the important thing is the FIRST call is
+      // synchronous (eliminates skeleton flash).
+      expect(callback).toHaveBeenCalled();
+      expect(callback.mock.calls[0][0]).toEqual(mockMarketData);
+
+      // getMarketDataWithPrices should NOT have been called (controller cache used)
+      expect(mockGetMarketDataWithPrices).not.toHaveBeenCalled();
+
+      unsubscribe();
+
+      // Reset state for other tests
+      (
+        mockEngine.context.PerpsController as unknown as Record<string, unknown>
+      ).state = {
+        cachedMarketData: null,
+        cachedMarketDataTimestamp: 0,
+      };
+    });
+
+    it('should serve preloaded market data instantly via getCachedData before connect', () => {
+      // Track call order to prove synchronous delivery
+      const callTimings: { data: PerpsMarketData[]; callIndex: number }[] =
+        [];
+      const callback = jest.fn((data: PerpsMarketData[]) => {
+        callTimings.push({ data, callIndex: callTimings.length });
+      });
+
+      // Set up controller with fresh cached market data
+      (
+        mockEngine.context.PerpsController as unknown as Record<string, unknown>
+      ).state = {
+        cachedMarketData: mockMarketData,
+        cachedMarketDataTimestamp: Date.now(),
+        activeProvider: 'hyperliquid',
+      };
+
+      const streamManager = new PerpsStreamManager();
+
+      // subscribe() should call getCachedData() which reads the controller
+      // cache as a fallback when the channel's internal cache is empty.
+      // The callback fires synchronously within subscribe(), before connect().
+      const unsubscribe = streamManager.marketData.subscribe({
+        callback,
+        throttleMs: 0,
+      });
+
+      // Verify data was served synchronously — at least one call happened
+      // immediately during subscribe(), before any microtask/async work
+      expect(callTimings.length).toBeGreaterThanOrEqual(1);
+      expect(callTimings[0].data).toEqual(mockMarketData);
+
+      // No API fetch should have been triggered — controller cache was used
+      expect(mockGetMarketDataWithPrices).not.toHaveBeenCalled();
+
+      unsubscribe();
+
+      // Reset state for other tests
+      (
+        mockEngine.context.PerpsController as unknown as Record<string, unknown>
+      ).state = {
+        cachedMarketData: null,
+        cachedMarketDataTimestamp: 0,
+      };
+    });
+
+    it('should fetch from API when controller cache is stale', async () => {
+      const callback = jest.fn();
+
+      // Set up controller with stale cached market data (very old timestamp)
+      (
+        mockEngine.context.PerpsController as unknown as Record<string, unknown>
+      ).state = {
+        cachedMarketData: mockMarketData,
+        cachedMarketDataTimestamp: 0, // epoch = very stale
+        activeProvider: 'hyperliquid',
+      };
+
+      const streamManager = new PerpsStreamManager();
+
+      const unsubscribe = streamManager.marketData.subscribe({
+        callback,
+        throttleMs: 0,
+      });
+
+      // getCachedData() should NOT return stale controller cache
+      // so callback should NOT have been called synchronously
+      expect(callback).not.toHaveBeenCalled();
+
+      // Should fall through to API fetch since cache is stale
+      await waitFor(() => {
+        expect(mockGetMarketDataWithPrices).toHaveBeenCalledTimes(1);
+      });
+
+      await waitFor(() => {
+        expect(callback).toHaveBeenCalledWith(mockMarketData);
+      });
+
+      unsubscribe();
+
+      // Reset state for other tests
+      (
+        mockEngine.context.PerpsController as unknown as Record<string, unknown>
+      ).state = {
+        cachedMarketData: null,
+        cachedMarketDataTimestamp: 0,
+      };
+    });
   });
 
   describe('MarketDataChannel race condition prevention', () => {
@@ -1669,13 +1808,10 @@ describe('PerpsStreamManager', () => {
       // Arrange
       mockPerpsConnectionManager.isCurrentlyConnecting = jest.fn(() => false);
 
-      // Mock minimal provider with just the method we need
-      const mockProvider = {
-        getMarketDataWithPrices: jest.fn().mockResolvedValue([]),
-      };
-      mockEngine.context.PerpsController.getActiveProvider = jest
+      // Mock getMarketDataWithPrices on the controller (fetchMarketData calls controller directly)
+      mockEngine.context.PerpsController.getMarketDataWithPrices = jest
         .fn()
-        .mockReturnValue(mockProvider);
+        .mockResolvedValue([]);
 
       const streamManager = new PerpsStreamManager();
 
@@ -1736,17 +1872,13 @@ describe('PerpsStreamManager', () => {
         resolveMarketData = resolve;
       });
 
-      const mockProvider = {
-        getMarketDataWithPrices: jest.fn().mockReturnValue(pendingFetch),
-      };
+      const mockControllerGetMarketData = jest
+        .fn()
+        .mockReturnValue(pendingFetch);
 
       // Start with providerA
-      mockEngine.context.PerpsController.getActiveProvider = jest
-        .fn()
-        .mockReturnValue(mockProvider);
-      mockEngine.context.PerpsController.getActiveProviderOrNull = jest
-        .fn()
-        .mockReturnValue(mockProvider);
+      mockEngine.context.PerpsController.getMarketDataWithPrices =
+        mockControllerGetMarketData;
       (
         mockEngine.context.PerpsController as unknown as Record<string, unknown>
       ).state = {
@@ -1767,7 +1899,7 @@ describe('PerpsStreamManager', () => {
         await Promise.resolve();
       });
 
-      expect(mockProvider.getMarketDataWithPrices).toHaveBeenCalledTimes(1);
+      expect(mockControllerGetMarketData).toHaveBeenCalledTimes(1);
 
       // Simulate provider switch while fetch is in-flight
       (
@@ -3043,6 +3175,238 @@ describe('PerpsStreamManager', () => {
 
       unsubscribe();
       pricesDisconnect.mockRestore();
+    });
+  });
+
+  describe('Cached user data preloading', () => {
+    const mockOrders: Order[] = [
+      {
+        orderId: '1',
+        symbol: 'BTC',
+        side: 'buy',
+        orderType: 'limit',
+        price: '50000',
+        size: '1',
+        filledSize: '0',
+        remainingSize: '1',
+        status: 'open',
+        timestamp: Date.now(),
+        lastUpdated: Date.now(),
+        isTrigger: false,
+        reduceOnly: false,
+      } as Order,
+    ];
+
+    const mockPositions = [
+      {
+        symbol: 'BTC',
+        side: 'long',
+        size: '1',
+        entryPrice: '50000',
+        markPrice: '51000',
+        unrealizedPnl: '1000',
+        leverage: { type: 'cross', value: 10 },
+        liquidationPrice: '45000',
+        maxLeverage: 50,
+        returnOnEquity: '0.2',
+        cumulativeFunding: { allTime: '10', sinceChange: '5', sinceOpen: '3' },
+        takeProfitCount: 0,
+        stopLossCount: 0,
+      },
+    ];
+
+    const mockAccountState: AccountState = {
+      totalBalance: '10000',
+      availableBalance: '5000',
+      unrealizedPnl: '1000',
+      initialMargin: '4000',
+      maintenanceMargin: '2000',
+      leverage: '2x',
+      accountValue1dAgo: '9500',
+    } as AccountState;
+
+    it('should serve cached orders instantly via getCachedData before isInitialized', () => {
+      // Controller is NOT yet initialized - connect() will defer
+      mockPerpsConnectionManager.getConnectionState = jest
+        .fn()
+        .mockReturnValue({
+          isInitialized: false,
+          isConnected: false,
+          isConnecting: true,
+          error: null,
+        });
+
+      // Set up controller with fresh cached orders
+      (
+        mockEngine.context.PerpsController as unknown as Record<string, unknown>
+      ).state = {
+        ...mockEngine.context.PerpsController.state,
+        cachedOrders: mockOrders,
+        cachedUserDataTimestamp: Date.now(),
+      };
+
+      const streamManager = new PerpsStreamManager();
+      const callback = jest.fn();
+
+      streamManager.orders.subscribe({
+        callback,
+        throttleMs: 0,
+      });
+
+      // Should receive cached orders immediately via getCachedData() even before isInitialized
+      expect(callback).toHaveBeenCalledWith(mockOrders);
+      // WebSocket subscription should NOT have been called (connect deferred)
+      expect(mockSubscribeToOrders).not.toHaveBeenCalled();
+    });
+
+    it('should serve cached positions instantly via getCachedData before isInitialized', () => {
+      // Controller is NOT yet initialized
+      mockPerpsConnectionManager.getConnectionState = jest
+        .fn()
+        .mockReturnValue({
+          isInitialized: false,
+          isConnected: false,
+          isConnecting: true,
+          error: null,
+        });
+
+      // Set up controller with fresh cached positions
+      (
+        mockEngine.context.PerpsController as unknown as Record<string, unknown>
+      ).state = {
+        ...mockEngine.context.PerpsController.state,
+        cachedPositions: mockPositions,
+        cachedUserDataTimestamp: Date.now(),
+      };
+
+      const streamManager = new PerpsStreamManager();
+      const callback = jest.fn();
+
+      streamManager.positions.subscribe({
+        callback,
+        throttleMs: 0,
+      });
+
+      // Should receive cached positions immediately via getCachedData()
+      expect(callback).toHaveBeenCalledWith(mockPositions);
+      expect(mockSubscribeToPositions).not.toHaveBeenCalled();
+    });
+
+    it('should serve cached account state instantly via getCachedData before isInitialized', () => {
+      // Controller is NOT yet initialized
+      mockPerpsConnectionManager.getConnectionState = jest
+        .fn()
+        .mockReturnValue({
+          isInitialized: false,
+          isConnected: false,
+          isConnecting: true,
+          error: null,
+        });
+
+      // Set up controller with fresh cached account state
+      (
+        mockEngine.context.PerpsController as unknown as Record<string, unknown>
+      ).state = {
+        ...mockEngine.context.PerpsController.state,
+        cachedAccountState: mockAccountState,
+        cachedUserDataTimestamp: Date.now(),
+      };
+
+      const streamManager = new PerpsStreamManager();
+      const callback = jest.fn();
+
+      streamManager.account.subscribe({
+        callback,
+        throttleMs: 0,
+      });
+
+      // Should receive cached account state immediately via getCachedData()
+      expect(callback).toHaveBeenCalledWith(mockAccountState);
+      expect(mockSubscribeToAccount).not.toHaveBeenCalled();
+    });
+
+    it('should not use stale cached orders', () => {
+      // Set up controller with stale cached orders (very old timestamp)
+      (
+        mockEngine.context.PerpsController as unknown as Record<string, unknown>
+      ).state = {
+        ...mockEngine.context.PerpsController.state,
+        cachedOrders: mockOrders,
+        cachedUserDataTimestamp: 0, // epoch = very stale
+      };
+
+      const streamManager = new PerpsStreamManager();
+      const callback = jest.fn();
+
+      streamManager.orders.subscribe({
+        callback,
+        throttleMs: 0,
+      });
+
+      // Should NOT receive cached orders since they're stale
+      // The callback should not have been called with the stale data
+      // (it will be called when WebSocket delivers data instead)
+      expect(callback).not.toHaveBeenCalledWith(mockOrders);
+    });
+
+    it('should use empty cached orders as valid cache', () => {
+      // Set up controller with empty cached orders — [] means "fetched, user has none"
+      (
+        mockEngine.context.PerpsController as unknown as Record<string, unknown>
+      ).state = {
+        ...mockEngine.context.PerpsController.state,
+        cachedOrders: [],
+        cachedUserDataTimestamp: Date.now(),
+      };
+
+      const streamManager = new PerpsStreamManager();
+      const callback = jest.fn();
+
+      streamManager.orders.subscribe({
+        callback,
+        throttleMs: 0,
+      });
+
+      // Empty array IS valid cache (user has no orders), should be served instantly
+      expect(callback).toHaveBeenCalledWith([]);
+    });
+
+    it('should prefer channel cache over controller cache', () => {
+      // Set up controller with cached orders
+      (
+        mockEngine.context.PerpsController as unknown as Record<string, unknown>
+      ).state = {
+        ...mockEngine.context.PerpsController.state,
+        cachedOrders: mockOrders,
+        cachedUserDataTimestamp: Date.now(),
+      };
+
+      const streamManager = new PerpsStreamManager();
+      const callback1 = jest.fn();
+      const callback2 = jest.fn();
+
+      // First subscribe gets controller cache
+      streamManager.orders.subscribe({
+        callback: callback1,
+        throttleMs: 0,
+      });
+      expect(callback1).toHaveBeenCalledWith(mockOrders);
+
+      // Simulate WebSocket delivering data (which sets channel cache via connect callback)
+      // After the first subscriber got controller cache, the WebSocket callback
+      // will eventually update the channel's internal cache
+      const wsCallback = mockSubscribeToOrders.mock.calls[0]?.[0]?.callback;
+      const liveOrders = [{ ...mockOrders[0], price: '51000' }] as Order[];
+      if (wsCallback) {
+        wsCallback(liveOrders);
+      }
+
+      // Second subscribe should get channel cache (live data), not controller cache
+      streamManager.orders.subscribe({
+        callback: callback2,
+        throttleMs: 0,
+      });
+      expect(callback2).toHaveBeenCalledWith(liveOrders);
     });
   });
 });

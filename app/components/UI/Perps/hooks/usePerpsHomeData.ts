@@ -20,6 +20,7 @@ import { transformFillsToTransactions } from '../utils/transactionTransforms';
 import Engine from '../../../../core/Engine';
 import { HOME_SCREEN_CONFIG } from '../constants/perpsConfig';
 import { selectPerpsWatchlistMarkets } from '../selectors/perpsController';
+import { usePerpsConnection } from './usePerpsConnection';
 
 interface UsePerpsHomeDataParams {
   positionsLimit?: number;
@@ -61,6 +62,9 @@ export const usePerpsHomeData = ({
   activityLimit = HOME_SCREEN_CONFIG.RecentActivityLimit,
   searchQuery = '',
 }: UsePerpsHomeDataParams = {}): UsePerpsHomeDataReturn => {
+  // Get connection state to guard REST calls that require an initialized controller
+  const { isConnected, isInitialized } = usePerpsConnection();
+
   // Fetch positions via WebSocket with throttling for performance
   const { positions, isInitialLoading: isPositionsLoading } =
     usePerpsLivePositions({
@@ -89,6 +93,11 @@ export const usePerpsHomeData = ({
   // Note: We don't track loading state - WebSocket data displays immediately,
   // REST fills merge silently in the background via mergedFills
   useEffect(() => {
+    // Guard: Skip REST fetch until connection is ready
+    if (!isConnected || !isInitialized) {
+      return;
+    }
+
     const fetchFills = async () => {
       try {
         const controller = Engine.context.PerpsController;
@@ -105,7 +114,7 @@ export const usePerpsHomeData = ({
       }
     };
     fetchFills();
-  }, []);
+  }, [isConnected, isInitialized]);
 
   // Merge REST + WebSocket fills with deduplication
   // Live fills take precedence over REST fills (more up-to-date)

@@ -71,8 +71,8 @@ describe('usePerpsLiveFills', () => {
 
     const { result } = renderHook(() => usePerpsLiveFills());
 
-    // Initially empty
-    expect(result.current).toEqual({ fills: [], isInitialLoading: true });
+    // Initially empty with isInitialLoading false (fills always start as [])
+    expect(result.current).toEqual({ fills: [], isInitialLoading: false });
 
     // Simulate fills update
     const fills: OrderFill[] = [

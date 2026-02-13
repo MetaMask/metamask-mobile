@@ -207,6 +207,10 @@ export class HyperLiquidSubscriptionService {
     }
   >();
 
+  // Flag to suppress error logging during intentional disconnect
+  // Set in clearAll() and never reset (service instance is discarded after disconnect)
+  private isClearing = false;
+
   // Platform dependencies for logging
   private readonly deps: PerpsPlatformDependencies;
 
@@ -1646,18 +1650,20 @@ export class HyperLiquidSubscriptionService {
       if (this.webData3Subscriptions.size > 0) {
         this.webData3Subscriptions.forEach((subscription, dexName) => {
           subscription.unsubscribe().catch((error: Error) => {
-            this.deps.logger.error(
-              ensureError(
-                error,
-                'HyperLiquidSubscriptionService.cleanupSharedWebData3ISubscription',
-              ),
-              this.getErrorContext(
-                'cleanupSharedWebData3ISubscription.webData3',
-                {
-                  dex: dexName,
-                },
-              ),
-            );
+            if (!this.isClearing) {
+              this.deps.logger.error(
+                ensureError(
+                  error,
+                  'HyperLiquidSubscriptionService.cleanupSharedWebData3ISubscription',
+                ),
+                this.getErrorContext(
+                  'cleanupSharedWebData3ISubscription.webData3',
+                  {
+                    dex: dexName,
+                  },
+                ),
+              );
+            }
           });
         });
         this.webData3Subscriptions.clear();
@@ -1669,18 +1675,20 @@ export class HyperLiquidSubscriptionService {
         this.clearinghouseStateSubscriptions.forEach(
           (subscription, dexName) => {
             subscription.unsubscribe().catch((error: Error) => {
-              this.deps.logger.error(
-                ensureError(
-                  error,
-                  'HyperLiquidSubscriptionService.cleanupSharedWebData3ISubscription',
-                ),
-                this.getErrorContext(
-                  'cleanupSharedWebData3ISubscription.clearinghouseState',
-                  {
-                    dex: dexName,
-                  },
-                ),
-              );
+              if (!this.isClearing) {
+                this.deps.logger.error(
+                  ensureError(
+                    error,
+                    'HyperLiquidSubscriptionService.cleanupSharedWebData3ISubscription',
+                  ),
+                  this.getErrorContext(
+                    'cleanupSharedWebData3ISubscription.clearinghouseState',
+                    {
+                      dex: dexName,
+                    },
+                  ),
+                );
+              }
             });
           },
         );
@@ -1690,18 +1698,20 @@ export class HyperLiquidSubscriptionService {
       if (this.openOrdersSubscriptions.size > 0) {
         this.openOrdersSubscriptions.forEach((subscription, dexName) => {
           subscription.unsubscribe().catch((error: Error) => {
-            this.deps.logger.error(
-              ensureError(
-                error,
-                'HyperLiquidSubscriptionService.cleanupSharedWebData3ISubscription',
-              ),
-              this.getErrorContext(
-                'cleanupSharedWebData3ISubscription.openOrders',
-                {
-                  dex: dexName,
-                },
-              ),
-            );
+            if (!this.isClearing) {
+              this.deps.logger.error(
+                ensureError(
+                  error,
+                  'HyperLiquidSubscriptionService.cleanupSharedWebData3ISubscription',
+                ),
+                this.getErrorContext(
+                  'cleanupSharedWebData3ISubscription.openOrders',
+                  {
+                    dex: dexName,
+                  },
+                ),
+              );
+            }
           });
         });
         this.openOrdersSubscriptions.clear();
@@ -3039,6 +3049,11 @@ export class HyperLiquidSubscriptionService {
    * Clear all subscriptions and cached data (multi-DEX support)
    */
   public clearAll(): void {
+    // Suppress error logging for pending unsubscribe requests during intentional disconnect.
+    // The WebSocket will be closed after this, causing pending unsubscribe promises to reject
+    // with WebSocketRequestError - these are expected and should not be logged to Sentry.
+    this.isClearing = true;
+
     // Clear all local subscriber collections
     this.priceSubscribers.clear();
     this.positionSubscribers.clear();
@@ -3108,12 +3123,14 @@ export class HyperLiquidSubscriptionService {
     if (this.clearinghouseStateSubscriptions.size > 0) {
       this.clearinghouseStateSubscriptions.forEach((subscription, dexName) => {
         subscription.unsubscribe().catch((error: Error) => {
-          this.deps.logger.error(
-            ensureError(error, 'HyperLiquidSubscriptionService.clearAll'),
-            this.getErrorContext('clearAll.clearinghouseState', {
-              dex: dexName,
-            }),
-          );
+          if (!this.isClearing) {
+            this.deps.logger.error(
+              ensureError(error, 'HyperLiquidSubscriptionService.clearAll'),
+              this.getErrorContext('clearAll.clearinghouseState', {
+                dex: dexName,
+              }),
+            );
+          }
         });
       });
       this.clearinghouseStateSubscriptions.clear();
@@ -3122,12 +3139,14 @@ export class HyperLiquidSubscriptionService {
     if (this.openOrdersSubscriptions.size > 0) {
       this.openOrdersSubscriptions.forEach((subscription, dexName) => {
         subscription.unsubscribe().catch((error: Error) => {
-          this.deps.logger.error(
-            ensureError(error, 'HyperLiquidSubscriptionService.clearAll'),
-            this.getErrorContext('clearAll.openOrders', {
-              dex: dexName,
-            }),
-          );
+          if (!this.isClearing) {
+            this.deps.logger.error(
+              ensureError(error, 'HyperLiquidSubscriptionService.clearAll'),
+              this.getErrorContext('clearAll.openOrders', {
+                dex: dexName,
+              }),
+            );
+          }
         });
       });
       this.openOrdersSubscriptions.clear();
