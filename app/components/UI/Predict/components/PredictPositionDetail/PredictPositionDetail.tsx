@@ -69,7 +69,6 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const { navigate } = navigation;
   const { executeGuardedAction } = usePredictActionGuard({
-    providerId: currentPosition.providerId,
     navigation,
   });
 
@@ -82,7 +81,6 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
       : undefined;
 
   const { preview, isLoading: isPreviewLoading } = usePredictOrderPreview({
-    providerId: currentPosition.providerId,
     marketId: currentPosition.marketId,
     outcomeId: currentPosition.outcomeId,
     outcomeTokenId: currentPosition.outcomeTokenId,

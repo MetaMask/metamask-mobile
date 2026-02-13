@@ -1,0 +1,78 @@
+diff --git a/dist/bridge-controller.cjs b/dist/bridge-controller.cjs
+index c203cad4f6ec44415adf77c64a0daf3f1195c3d1..cc9ee0d06463008acaf293fee02b16f827518f1b 100644
+--- a/dist/bridge-controller.cjs
++++ b/dist/bridge-controller.cjs
+@@ -125,7 +125,6 @@ class BridgeController extends (0, polling_controller_1.StaticIntervalPollingCon
+             this.update((state) => {
+                 state.quoteRequest = updatedQuoteRequest;
+             });
+-            await __classPrivateFieldGet(this, _BridgeController_fetchAssetExchangeRates, "f").call(this, updatedQuoteRequest).catch((error) => console.warn('Failed to fetch asset exchange rates', error));
+             if ((0, quote_1.isValidQuoteRequest)(updatedQuoteRequest)) {
+                 __classPrivateFieldSet(this, _BridgeController_quotesFirstFetched, Date.now(), "f");
+                 const isSrcChainNonEVM = (0, bridge_2.isNonEvmChainId)(updatedQuoteRequest.srcChainId);
+@@ -330,6 +329,7 @@ class BridgeController extends (0, polling_controller_1.StaticIntervalPollingCon
+         _BridgeController_fetchBridgeQuotes.set(this, async ({ updatedQuoteRequest, context, }) => {
+             __classPrivateFieldGet(this, _BridgeController_abortController, "f")?.abort(constants_1.AbortReason.NewQuoteRequest);
+             __classPrivateFieldSet(this, _BridgeController_abortController, new AbortController(), "f");
++            __classPrivateFieldGet(this, _BridgeController_fetchAssetExchangeRates, "f").call(this, updatedQuoteRequest).catch((error) => console.warn('Failed to fetch asset exchange rates', error));
+             this.trackUnifiedSwapBridgeEvent(constants_1.UnifiedSwapBridgeEventName.QuotesRequested, context);
+             const { sse, maxRefreshCount } = (0, feature_flags_1.getBridgeFeatureFlags)(this.messenger);
+             const shouldStream = sse?.enabled &&
+diff --git a/dist/bridge-controller.mjs b/dist/bridge-controller.mjs
+index 1de7775a849180414cd68543b215cbef1cc394d6..0ee429bcdb8a664bb30a30562d82c6310cce9b54 100644
+--- a/dist/bridge-controller.mjs
++++ b/dist/bridge-controller.mjs
+@@ -122,7 +122,6 @@ export class BridgeController extends StaticIntervalPollingController() {
+             this.update((state) => {
+                 state.quoteRequest = updatedQuoteRequest;
+             });
+-            await __classPrivateFieldGet(this, _BridgeController_fetchAssetExchangeRates, "f").call(this, updatedQuoteRequest).catch((error) => console.warn('Failed to fetch asset exchange rates', error));
+             if (isValidQuoteRequest(updatedQuoteRequest)) {
+                 __classPrivateFieldSet(this, _BridgeController_quotesFirstFetched, Date.now(), "f");
+                 const isSrcChainNonEVM = isNonEvmChainId(updatedQuoteRequest.srcChainId);
+@@ -327,6 +326,7 @@ export class BridgeController extends StaticIntervalPollingController() {
+         _BridgeController_fetchBridgeQuotes.set(this, async ({ updatedQuoteRequest, context, }) => {
+             __classPrivateFieldGet(this, _BridgeController_abortController, "f")?.abort(AbortReason.NewQuoteRequest);
+             __classPrivateFieldSet(this, _BridgeController_abortController, new AbortController(), "f");
++            __classPrivateFieldGet(this, _BridgeController_fetchAssetExchangeRates, "f").call(this, updatedQuoteRequest).catch((error) => console.warn('Failed to fetch asset exchange rates', error));
+             this.trackUnifiedSwapBridgeEvent(UnifiedSwapBridgeEventName.QuotesRequested, context);
+             const { sse, maxRefreshCount } = getBridgeFeatureFlags(this.messenger);
+             const shouldStream = sse?.enabled &&
+diff --git a/dist/selectors.cjs b/dist/selectors.cjs
+index 2226a2f7a7aff0262a729b67ef85d76ef97ece33..f9dd333ee49838db8a00d677ea7844418e4f7317 100644
+--- a/dist/selectors.cjs
++++ b/dist/selectors.cjs
+@@ -218,7 +218,13 @@ const selectSortedBridgeQuotes = createBridgeSelector([
+         case types_1.SortOrder.ETA_ASC:
+             return (0, lodash_1.orderBy)(quotesWithMetadata, (quote) => quote.estimatedProcessingTimeInSeconds, 'asc');
+         default:
+-            return (0, lodash_1.orderBy)(quotesWithMetadata, ({ cost }) => cost.valueInCurrency ? Number(cost.valueInCurrency) : 0, 'asc');
++            if (quotesWithMetadata.every((quote) => quote.cost.valueInCurrency)) {
++                return (0, lodash_1.orderBy)(quotesWithMetadata, ({ cost }) => Number(cost.valueInCurrency), 'asc');
++            }
++            if (quotesWithMetadata.every((quote) => quote.quote.priceData?.priceImpact)) {
++                return (0, lodash_1.orderBy)(quotesWithMetadata, ({ quote }) => Number(quote.priceData?.priceImpact), 'asc');
++            }
++            return (0, lodash_1.orderBy)(quotesWithMetadata, ({ quote }) => Number(quote.destTokenAmount), 'desc');
+     }
+ });
+ const selectRecommendedQuote = createBridgeSelector([selectSortedBridgeQuotes], (quotes) => (quotes.length > 0 ? quotes[0] : null));
+diff --git a/dist/selectors.mjs b/dist/selectors.mjs
+index 90dc1282ada72abf36afbc69eb5201d7b258480d..c49ce3cc18e66036d473a2947f9e1454df75f54f 100644
+--- a/dist/selectors.mjs
++++ b/dist/selectors.mjs
+@@ -214,7 +214,13 @@ const selectSortedBridgeQuotes = createBridgeSelector([
+         case SortOrder.ETA_ASC:
+             return orderBy(quotesWithMetadata, (quote) => quote.estimatedProcessingTimeInSeconds, 'asc');
+         default:
+-            return orderBy(quotesWithMetadata, ({ cost }) => cost.valueInCurrency ? Number(cost.valueInCurrency) : 0, 'asc');
++            if (quotesWithMetadata.every((quote) => quote.cost.valueInCurrency)) {
++                return orderBy(quotesWithMetadata, ({ cost }) => Number(cost.valueInCurrency), 'asc');
++            }
++            if (quotesWithMetadata.every((quote) => quote.quote.priceData?.priceImpact)) {
++                return orderBy(quotesWithMetadata, ({ quote }) => Number(quote.priceData?.priceImpact), 'asc');
++            }
++            return orderBy(quotesWithMetadata, ({ quote }) => Number(quote.destTokenAmount), 'desc');
+     }
+ });
+ const selectRecommendedQuote = createBridgeSelector([selectSortedBridgeQuotes], (quotes) => (quotes.length > 0 ? quotes[0] : null));

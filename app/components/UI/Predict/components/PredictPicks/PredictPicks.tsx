@@ -36,7 +36,6 @@ const PredictPicks: React.FC<PredictPicksProps> = ({
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const { navigate } = navigation;
   const { executeGuardedAction } = usePredictActionGuard({
-    providerId: market.providerId,
     navigation,
   });
 

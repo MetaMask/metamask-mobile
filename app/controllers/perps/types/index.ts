@@ -124,6 +124,11 @@ export interface TrackingData {
 
   // Entry source for analytics (e.g., 'trending' for Trending page discovery)
   source?: string;
+
+  // Pay with any token: true when user paid with a custom token (not Perps balance)
+  tradeWithToken?: boolean;
+  mmPayTokenSelected?: string; // Token symbol when tradeWithToken is true
+  mmPayNetworkSelected?: string; // chainId when tradeWithToken is true
 }
 
 // TP/SL-specific tracking data for analytics events
@@ -1492,6 +1497,7 @@ export interface PaymentToken {
   description?: string;
   address: string;
   chainId?: string;
+  symbol?: string;
 }
 
 /**
@@ -1502,6 +1508,7 @@ export type PerpsSelectedPaymentToken = {
   description?: string;
   address: string;
   chainId: string;
+  symbol?: string;
 };
 
 // ============================================================================
