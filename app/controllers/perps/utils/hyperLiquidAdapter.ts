@@ -23,11 +23,47 @@ import {
   roundToSignificantFigures,
 } from './significantFigures';
 
-type FrontendOrderWithParentTpsl = FrontendOrder & {
-  takeProfitPrice?: string;
-  stopLossPrice?: string;
-  takeProfitOrderId?: string | number;
-  stopLossOrderId?: string | number;
+const hasOwn = <K extends PropertyKey>(
+  value: object,
+  key: K,
+): value is Record<K, unknown> =>
+  Object.prototype.hasOwnProperty.call(value, key);
+
+const readOptionalString = (value: unknown): string | undefined =>
+  typeof value === 'string' && value.length > 0 ? value : undefined;
+
+const readOptionalOrderId = (value: unknown): string | undefined => {
+  if (typeof value === 'string' && value.length > 0) {
+    return value;
+  }
+
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return value.toString();
+  }
+
+  return undefined;
+};
+
+const getParentTpslMetadata = (rawOrder: FrontendOrder) => {
+  const takeProfitPrice = hasOwn(rawOrder, 'takeProfitPrice')
+    ? readOptionalString(rawOrder.takeProfitPrice)
+    : undefined;
+  const stopLossPrice = hasOwn(rawOrder, 'stopLossPrice')
+    ? readOptionalString(rawOrder.stopLossPrice)
+    : undefined;
+  const takeProfitOrderId = hasOwn(rawOrder, 'takeProfitOrderId')
+    ? readOptionalOrderId(rawOrder.takeProfitOrderId)
+    : undefined;
+  const stopLossOrderId = hasOwn(rawOrder, 'stopLossOrderId')
+    ? readOptionalOrderId(rawOrder.stopLossOrderId)
+    : undefined;
+
+  return {
+    takeProfitPrice,
+    stopLossPrice,
+    takeProfitOrderId,
+    stopLossOrderId,
+  };
 };
 
 /**
@@ -111,9 +147,9 @@ export function adaptOrderFromSDK(
   rawOrder: FrontendOrder,
   position?: Position,
 ): Order {
-  // TODO: Remove this cast when the SDK FrontendOrder type includes parent-level
-  // TP/SL metadata fields (takeProfitPrice/stopLossPrice and child IDs).
-  const rawOrderWithParentTpsl = rawOrder as FrontendOrderWithParentTpsl;
+  // TODO: Remove parent metadata runtime extraction once FrontendOrder includes
+  // takeProfitPrice/stopLossPrice and takeProfitOrderId/stopLossOrderId.
+  const parentTpslMetadata = getParentTpslMetadata(rawOrder);
 
   // Extract basic fields with appropriate conversions
   const orderId = rawOrder.oid.toString();
@@ -168,17 +204,17 @@ export function adaptOrderFromSDK(
   }
 
   // Fallback: preserve parent-level TP/SL metadata when children are absent.
-  if (!takeProfitPrice && rawOrderWithParentTpsl.takeProfitPrice) {
-    takeProfitPrice = rawOrderWithParentTpsl.takeProfitPrice;
+  if (!takeProfitPrice && parentTpslMetadata.takeProfitPrice) {
+    takeProfitPrice = parentTpslMetadata.takeProfitPrice;
   }
-  if (!stopLossPrice && rawOrderWithParentTpsl.stopLossPrice) {
-    stopLossPrice = rawOrderWithParentTpsl.stopLossPrice;
+  if (!stopLossPrice && parentTpslMetadata.stopLossPrice) {
+    stopLossPrice = parentTpslMetadata.stopLossPrice;
   }
-  if (!takeProfitOrderId && rawOrderWithParentTpsl.takeProfitOrderId) {
-    takeProfitOrderId = rawOrderWithParentTpsl.takeProfitOrderId.toString();
+  if (!takeProfitOrderId && parentTpslMetadata.takeProfitOrderId) {
+    takeProfitOrderId = parentTpslMetadata.takeProfitOrderId;
   }
-  if (!stopLossOrderId && rawOrderWithParentTpsl.stopLossOrderId) {
-    stopLossOrderId = rawOrderWithParentTpsl.stopLossOrderId.toString();
+  if (!stopLossOrderId && parentTpslMetadata.stopLossOrderId) {
+    stopLossOrderId = parentTpslMetadata.stopLossOrderId;
   }
 
   // Build the order object
