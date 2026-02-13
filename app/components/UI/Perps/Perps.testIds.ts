@@ -370,6 +370,8 @@ export const PerpsMarketHeaderSelectorsIDs = {
   ASSET_NAME: 'perps-market-header-asset-name',
   PRICE: 'perps-market-header-price',
   PRICE_CHANGE: 'perps-market-header-price-change',
+  PRICE_COMPACT: 'perps-market-header-price-compact',
+  PRICE_CHANGE_COMPACT: 'perps-market-header-price-change-compact',
   MORE_BUTTON: 'perps-market-header-more-button',
 };
 

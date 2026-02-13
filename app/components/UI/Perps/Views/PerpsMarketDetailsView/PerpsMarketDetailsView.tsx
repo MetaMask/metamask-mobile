@@ -1102,8 +1102,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
               <LivePriceHeader
                 symbol={market.symbol}
                 currentPrice={chartCurrentPrice}
-                testIDPrice={PerpsMarketHeaderSelectorsIDs.PRICE}
-                testIDChange={PerpsMarketHeaderSelectorsIDs.PRICE_CHANGE}
+                testIDPrice={PerpsMarketHeaderSelectorsIDs.PRICE_COMPACT}
+                testIDChange={
+                  PerpsMarketHeaderSelectorsIDs.PRICE_CHANGE_COMPACT
+                }
                 throttleMs={1000}
               />
             </Box>

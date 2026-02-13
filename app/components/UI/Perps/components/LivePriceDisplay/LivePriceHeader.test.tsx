@@ -43,14 +43,13 @@ describe('LivePriceHeader', () => {
         timestamp: Date.now(),
       },
     });
-    const { UNSAFE_getAllByType } = render(
+    const { getByText } = render(
       <LivePriceHeader symbol="ETH" currentPrice={3000} />,
     );
-    const textElements = UNSAFE_getAllByType(Text);
-    const priceText = textElements.find((el) => el.props.children === '$3,000');
-    expect(priceText).toBeDefined();
-    expect(priceText?.props.variant).toBe('sBodySMMedium');
-    expect(priceText?.props.color).toBe('Alternative');
+    const priceText = getByText('$3,000');
+    expect(priceText).toBeOnTheScreen();
+    expect(priceText.props.variant).toBe('sBodySMMedium');
+    expect(priceText.props.color).toBe('Alternative');
   });
 
   it('should show placeholders when price is invalid (zero)', () => {
