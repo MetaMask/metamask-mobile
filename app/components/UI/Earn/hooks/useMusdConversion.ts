@@ -22,10 +22,7 @@ import { selectTransactionsByIds } from '../../../../selectors/transactionContro
 import { AssetType } from '../../../Views/confirmations/types/token';
 import { toHex } from '@metamask/controller-utils';
 import EngineService from '../../../../core/EngineService';
-
-export enum MusdConversionVariant {
-  QUICK_CONVERT = 'quickConvert',
-}
+import { MusdConversionVariant } from '../types/musd.types';
 
 /**
  * Why do we have BOTH `existingPendingMusdConversion` AND `inFlightInitiationPromises`?

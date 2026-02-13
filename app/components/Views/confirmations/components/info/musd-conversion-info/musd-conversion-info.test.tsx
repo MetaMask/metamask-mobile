@@ -2,6 +2,10 @@ import React from 'react';
 import { Hex } from '@metamask/utils';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { MusdConversionInfo } from './musd-conversion-info';
+import {
+  MUSD_TOKEN,
+  MUSD_TOKEN_ADDRESS_BY_CHAIN,
+} from '../../../../../UI/Earn/constants/musd';
 import { useAddToken } from '../../../hooks/tokens/useAddToken';
 import { useRoute } from '@react-navigation/native';
 import { CustomAmountInfo } from '../custom-amount-info';
@@ -153,10 +157,10 @@ describe('MusdConversionInfo', () => {
 
       expect(mockUseAddToken).toHaveBeenCalledWith({
         chainId: '0x1',
-        decimals: 6,
-        name: 'MUSD',
-        symbol: 'MUSD',
-        tokenAddress: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+        decimals: MUSD_TOKEN.decimals,
+        name: MUSD_TOKEN.name,
+        symbol: MUSD_TOKEN.symbol,
+        tokenAddress: MUSD_TOKEN_ADDRESS_BY_CHAIN['0x1' as Hex],
       });
     });
   });

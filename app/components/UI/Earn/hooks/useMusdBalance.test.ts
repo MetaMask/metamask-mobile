@@ -146,7 +146,7 @@ describe('useMusdBalance', () => {
 
       expect(result.current.tokenBalanceAggregated).toBe('0');
       expect(result.current.fiatBalanceAggregated).toBeUndefined();
-      expect(result.current.fiatBalanceAggregatedFormatted).toBeUndefined();
+      expect(result.current.fiatBalanceAggregatedFormatted).toBe('$0.00');
     });
 
     it('computes per-chain and aggregated values when rates are available', () => {
@@ -233,7 +233,7 @@ describe('useMusdBalance', () => {
         result.current.fiatBalanceFormattedByChain[CHAIN_IDS.MAINNET],
       ).toBeUndefined();
       expect(result.current.fiatBalanceAggregated).toBeUndefined();
-      expect(result.current.fiatBalanceAggregatedFormatted).toBeUndefined();
+      expect(result.current.fiatBalanceAggregatedFormatted).toBe('$0.00');
     });
 
     it('returns token balances but omits fiat when token price is missing', () => {
@@ -275,7 +275,7 @@ describe('useMusdBalance', () => {
         result.current.fiatBalanceFormattedByChain[CHAIN_IDS.MAINNET],
       ).toBeUndefined();
       expect(result.current.fiatBalanceAggregated).toBeUndefined();
-      expect(result.current.fiatBalanceAggregatedFormatted).toBeUndefined();
+      expect(result.current.fiatBalanceAggregatedFormatted).toBe('$0.00');
     });
   });
 
