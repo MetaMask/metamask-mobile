@@ -1,10 +1,9 @@
 import { useCallback, useEffect, useState, useMemo, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
-import { usePerpsSelector } from './usePerpsSelector';
-import { useStableArray } from './useStableArray';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
+import { selectWithdrawalRequestsBySelectedAccount } from '../../../../selectors/perps/withdrawalRequests';
 
 export interface WithdrawalRequest {
   id: string;
@@ -55,16 +54,9 @@ export const useWithdrawalRequests = (
   )?.address;
 
   // Get pending withdrawals from controller state, filtered by current account
-  // useStableArray ensures we only get a new reference when the actual data changes
-  const pendingWithdrawals = useStableArray(
-    usePerpsSelector((state) => {
-      const allWithdrawals = state?.withdrawalRequests || [];
-      if (!selectedAddress) return [];
-      return allWithdrawals.filter(
-        (req) =>
-          req.accountAddress?.toLowerCase() === selectedAddress.toLowerCase(),
-      );
-    }),
+  // Uses a memoized selector with deep equality to avoid new references on every Redux change
+  const pendingWithdrawals = useSelector(
+    selectWithdrawalRequestsBySelectedAccount,
   );
 
   // Track previous withdrawal states to detect meaningful changes
@@ -141,9 +133,10 @@ export const useWithdrawalRequests = (
         throw new Error('PerpsController not available');
       }
 
-      const provider = controller.getActiveProvider();
+      const provider = controller.getActiveProviderOrNull();
       if (!provider) {
-        throw new Error('No active provider available');
+        setIsLoading(false);
+        return;
       }
 
       // Check if provider has the getUserNonFundingLedgerUpdates method
