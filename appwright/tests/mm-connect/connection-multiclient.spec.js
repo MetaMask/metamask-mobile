@@ -20,6 +20,8 @@ import {
   setupAdbReverse,
   cleanupAdbReverse,
 } from './utils.js';
+import AppwrightGestures from '../../../tests/framework/AppwrightGestures.ts';
+import AccountListComponent from '../../../wdio/screen-objects/AccountListComponent.js';
 
 const DAPP_NAME = 'MetaMask MultiChain API Test Dapp';
 const DAPP_PORT = 8090;
@@ -62,6 +64,7 @@ test('@metamask/connect-multichain (multiple clients) - Connect multiple clients
   BrowserPlaygroundDapp.device = device;
   AndroidScreenHelpers.device = device;
   DappConnectionModal.device = device;
+  AccountListComponent.device = device;
 
   await device.webDriverClient.updateSettings({
     waitForIdleTimeout: 100,
@@ -76,8 +79,20 @@ test('@metamask/connect-multichain (multiple clients) - Connect multiple clients
   await AppwrightHelpers.withNativeAction(device, async () => {
     await login(device);
     await WalletMainScreen.isMainWalletViewVisible();
+
+    // Cycle the app to ensure solana accounts are created
+    await AppwrightGestures.terminateApp(device);
+    await AppwrightGestures.activateApp(device);
+    await login(device);
+    await WalletMainScreen.isMainWalletViewVisible();
+    await WalletMainScreen.tapIdenticon();
+    await AccountListComponent.isComponentDisplayed();
+    await AccountListComponent.waitForSyncingToComplete();
+    await AccountListComponent.tapOnAccountByName('Account 1');
+
     await launchMobileBrowser(device);
     await navigateToDapp(device, DAPP_URL, DAPP_NAME);
+
   });
 
   await new Promise((resolve) => setTimeout(resolve, 5000));
