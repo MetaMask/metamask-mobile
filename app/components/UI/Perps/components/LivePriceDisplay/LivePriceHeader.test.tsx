@@ -34,6 +34,25 @@ describe('LivePriceHeader', () => {
     expect(component).toBeDefined();
   });
 
+  it('uses BodySMMedium and Alternative for price text (subpage header style)', () => {
+    mockUsePerpsLivePrices.mockReturnValue({
+      ETH: {
+        symbol: 'ETH',
+        price: '3000',
+        percentChange24h: '1',
+        timestamp: Date.now(),
+      },
+    });
+    const { UNSAFE_getAllByType } = render(
+      <LivePriceHeader symbol="ETH" currentPrice={3000} />,
+    );
+    const textElements = UNSAFE_getAllByType(Text);
+    const priceText = textElements.find((el) => el.props.children === '$3,000');
+    expect(priceText).toBeDefined();
+    expect(priceText?.props.variant).toBe('sBodySMMedium');
+    expect(priceText?.props.color).toBe('Alternative');
+  });
+
   it('should show placeholders when price is invalid (zero)', () => {
     mockUsePerpsLivePrices.mockReturnValue({
       ETH: {

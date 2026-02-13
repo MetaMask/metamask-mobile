@@ -1,6 +1,5 @@
 import {
   Box,
-  BoxFlexDirection,
   ButtonSize as ButtonSizeRNDesignSystem,
 } from '@metamask/design-system-react-native';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
@@ -59,13 +58,13 @@ import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip/Pe
 import type { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
 import HeaderStackedSubpage from '../../../../../component-library/components-temp/HeaderStackedSubpage';
 import PerpsLeverage from '../../components/PerpsLeverage/PerpsLeverage';
+import LivePriceHeader from '../../components/LivePriceDisplay/LivePriceHeader';
 import PerpsTokenLogo from '../../components/PerpsTokenLogo';
 import PerpsOrderBookDepthChart from '../../components/PerpsOrderBookDepthChart';
 import PerpsOrderBookTable, {
   type UnitDisplay,
 } from '../../components/PerpsOrderBookTable';
 import {
-  PERPS_CONSTANTS,
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
   getPerpsDisplaySymbol,
@@ -87,7 +86,6 @@ import { selectPerpsEligibility } from '../../selectors/perpsController';
 import { BUTTON_COLOR_TEST } from '../../utils/abTesting/tests';
 import { usePerpsABTest } from '../../utils/abTesting/usePerpsABTest';
 import {
-  formatPercentage,
   formatPerpsFiat,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
@@ -236,46 +234,6 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
     return marketPrice ?? 0;
   }, [livePrices, symbol, marketPrice]);
 
-  const priceData = symbol ? livePrices[symbol] : undefined;
-  const headerDisplayChange = useMemo(() => {
-    if (priceData?.percentChange24h == null) return null;
-    return Number.parseFloat(priceData.percentChange24h);
-  }, [priceData]);
-
-  const headerFormattedPrice = useMemo(() => {
-    if (!currentPrice || currentPrice <= 0 || !Number.isFinite(currentPrice)) {
-      return PERPS_CONSTANTS.FallbackPriceDisplay;
-    }
-    try {
-      return formatPerpsFiat(currentPrice, {
-        ranges: PRICE_RANGES_UNIVERSAL,
-      });
-    } catch {
-      return PERPS_CONSTANTS.FallbackPriceDisplay;
-    }
-  }, [currentPrice]);
-
-  const headerFormattedChange = useMemo(() => {
-    if (headerDisplayChange === null) {
-      return PERPS_CONSTANTS.FallbackPercentageDisplay;
-    }
-    if (!currentPrice || currentPrice <= 0 || !Number.isFinite(currentPrice)) {
-      return PERPS_CONSTANTS.FallbackPercentageDisplay;
-    }
-    try {
-      return formatPercentage(headerDisplayChange.toString());
-    } catch {
-      return PERPS_CONSTANTS.FallbackPercentageDisplay;
-    }
-  }, [currentPrice, headerDisplayChange]);
-
-  const headerChangeColor =
-    headerDisplayChange === null
-      ? TextColor.Default
-      : headerDisplayChange >= 0
-        ? TextColor.Success
-        : TextColor.Error;
-
   const spreadMetrics = useMemo(() => {
     const bidStr = topOfBook?.bestBid;
     const askStr = topOfBook?.bestAsk;
@@ -384,35 +342,17 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
               </Box>
             ) : undefined,
             bottomAccessory: (
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                twClassName="gap-1.5 items-baseline"
-              >
-                <Text
-                  variant={TextVariant.BodySMMedium}
-                  color={TextColor.Alternative}
-                  testID={PerpsMarketHeaderSelectorsIDs.PRICE}
-                >
-                  {headerFormattedPrice}
-                </Text>
-                <Text
-                  variant={TextVariant.BodySMMedium}
-                  color={headerChangeColor}
-                  testID={PerpsMarketHeaderSelectorsIDs.PRICE_CHANGE}
-                >
-                  {headerFormattedChange}
-                </Text>
-              </Box>
+              <LivePriceHeader
+                symbol={market.symbol}
+                currentPrice={currentPrice}
+                testIDPrice={PerpsMarketHeaderSelectorsIDs.PRICE}
+                testIDChange={PerpsMarketHeaderSelectorsIDs.PRICE_CHANGE}
+                throttleMs={1000}
+              />
             ),
           }
         : undefined,
-    [
-      market,
-      marketDisplayTitle,
-      headerFormattedPrice,
-      headerFormattedChange,
-      headerChangeColor,
-    ],
+    [market, marketDisplayTitle, currentPrice],
   );
 
   // Handle grouping dropdown press

@@ -1,6 +1,6 @@
 import {
   Box,
-  BoxFlexDirection,
+  BoxAlignItems,
   ButtonSize as ButtonSizeRNDesignSystem,
   IconName,
 } from '@metamask/design-system-react-native';
@@ -24,6 +24,7 @@ import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
   PERPS_CONSTANTS,
+  getPerpsDisplaySymbol,
   type Position,
   type PerpsMarketData,
   type TPSLTrackingData,
@@ -62,6 +63,7 @@ import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip/Pe
 import type { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
 import PerpsCandlePeriodBottomSheet from '../../components/PerpsCandlePeriodBottomSheet';
 import PerpsCandlePeriodSelector from '../../components/PerpsCandlePeriodSelector';
+import LivePriceHeader from '../../components/LivePriceDisplay/LivePriceHeader';
 import PerpsChartFullscreenModal from '../../components/PerpsChartFullscreenModal/PerpsChartFullscreenModal';
 import PerpsCompactOrderRow from '../../components/PerpsCompactOrderRow';
 import PerpsFlipPositionConfirmSheet from '../../components/PerpsFlipPositionConfirmSheet';
@@ -126,12 +128,6 @@ import {
 import { BUTTON_COLOR_TEST } from '../../utils/abTesting/tests';
 import { usePerpsABTest } from '../../utils/abTesting/usePerpsABTest';
 import { getMarketHoursStatus } from '../../utils/marketHours';
-import {
-  formatPercentage,
-  formatPerpsFiat,
-  PRICE_RANGES_UNIVERSAL,
-} from '../../utils/formatUtils';
-import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
 import PerpsLeverage from '../../components/PerpsLeverage/PerpsLeverage';
 import PerpsTokenLogo from '../../components/PerpsTokenLogo';
 import { ensureError } from '../../../../../util/errorUtils';
@@ -396,54 +392,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     const lastCandle = candleData.candles.at(-1);
     return lastCandle?.close ? Number.parseFloat(lastCandle.close) : 0;
   }, [candleData]);
-
-  const priceData = market?.symbol ? livePrices[market.symbol] : undefined;
-  const headerDisplayChange = useMemo(() => {
-    if (priceData?.percentChange24h == null) return null;
-    return Number.parseFloat(priceData.percentChange24h);
-  }, [priceData]);
-
-  const headerFormattedPrice = useMemo(() => {
-    if (
-      !chartCurrentPrice ||
-      chartCurrentPrice <= 0 ||
-      !Number.isFinite(chartCurrentPrice)
-    ) {
-      return PERPS_CONSTANTS.FallbackPriceDisplay;
-    }
-    try {
-      return formatPerpsFiat(chartCurrentPrice, {
-        ranges: PRICE_RANGES_UNIVERSAL,
-      });
-    } catch {
-      return PERPS_CONSTANTS.FallbackPriceDisplay;
-    }
-  }, [chartCurrentPrice]);
-
-  const headerFormattedChange = useMemo(() => {
-    if (headerDisplayChange === null) {
-      return PERPS_CONSTANTS.FallbackPercentageDisplay;
-    }
-    if (
-      !chartCurrentPrice ||
-      chartCurrentPrice <= 0 ||
-      !Number.isFinite(chartCurrentPrice)
-    ) {
-      return PERPS_CONSTANTS.FallbackPercentageDisplay;
-    }
-    try {
-      return formatPercentage(headerDisplayChange.toString());
-    } catch {
-      return PERPS_CONSTANTS.FallbackPercentageDisplay;
-    }
-  }, [chartCurrentPrice, headerDisplayChange]);
-
-  const headerChangeColor =
-    headerDisplayChange === null
-      ? TextColor.Default
-      : headerDisplayChange >= 0
-        ? TextColor.Success
-        : TextColor.Error;
 
   // Auto-zoom to latest candle when interval changes and new data arrives
   // This ensures the chart shows the most recent data after interval change
@@ -1142,35 +1090,17 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
               </Box>
             ) : undefined,
             bottomAccessory: (
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                twClassName="gap-1.5 items-baseline"
-              >
-                <Text
-                  variant={TextVariant.BodySMMedium}
-                  color={TextColor.Alternative}
-                  testID={PerpsMarketHeaderSelectorsIDs.PRICE}
-                >
-                  {headerFormattedPrice}
-                </Text>
-                <Text
-                  variant={TextVariant.BodySMMedium}
-                  color={headerChangeColor}
-                  testID={PerpsMarketHeaderSelectorsIDs.PRICE_CHANGE}
-                >
-                  {headerFormattedChange}
-                </Text>
-              </Box>
+              <LivePriceHeader
+                symbol={market.symbol}
+                currentPrice={chartCurrentPrice}
+                testIDPrice={PerpsMarketHeaderSelectorsIDs.PRICE}
+                testIDChange={PerpsMarketHeaderSelectorsIDs.PRICE_CHANGE}
+                throttleMs={1000}
+              />
             ),
           }
         : undefined,
-    [
-      market,
-      marketDisplayTitle,
-      headerFormattedPrice,
-      headerFormattedChange,
-      headerChangeColor,
-    ],
+    [market, marketDisplayTitle, chartCurrentPrice],
   );
 
   if (!market) {
@@ -1195,8 +1125,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         testID={PerpsMarketDetailsViewSelectorsIDs.CONTAINER}
       >
         <HeaderCollapsibleSubpage
-          title={marketDisplayTitle}
-          subtitle={headerFormattedPrice}
           onBack={handleBackPress}
           backButtonProps={{
             testID: PerpsMarketHeaderSelectorsIDs.BACK_BUTTON,
@@ -1218,7 +1146,22 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           onExpandedHeightChange={setExpandedHeight}
           isInsideSafeAreaView
           testID={PerpsMarketDetailsViewSelectorsIDs.HEADER}
-        />
+        >
+          <Box alignItems={BoxAlignItems.Center}>
+            <Text variant={TextVariant.BodyMDBold} numberOfLines={1}>
+              {marketDisplayTitle}
+            </Text>
+            <Box twClassName="-mt-0.5">
+              <LivePriceHeader
+                symbol={market.symbol}
+                currentPrice={chartCurrentPrice}
+                testIDPrice={PerpsMarketHeaderSelectorsIDs.PRICE}
+                testIDChange={PerpsMarketHeaderSelectorsIDs.PRICE_CHANGE}
+                throttleMs={1000}
+              />
+            </Box>
+          </Box>
+        </HeaderCollapsibleSubpage>
 
         <View style={styles.scrollableContentContainer}>
           <ScrollView
