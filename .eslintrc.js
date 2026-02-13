@@ -176,8 +176,136 @@ module.exports = {
     },
     {
       files: ['app/controllers/perps/**/*.{ts,tsx}'],
+      excludedFiles: ['**/*.test.ts', '**/*.test.tsx'],
       rules: {
+        // === Existing rule ===
         '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
+
+        // === Core base rules (from @metamask/eslint-config) ===
+        'no-restricted-syntax': [
+          'error',
+          {
+            selector: 'TSParameterProperty',
+            message:
+              'Prefer explicit property declaration and assignment in constructor.',
+          },
+          {
+            selector: "MethodDefinition[accessibility='private']",
+            message:
+              'Use ES private class fields (#field) instead of TypeScript private keyword.',
+          },
+          {
+            selector: "PropertyDefinition[accessibility='private']",
+            message:
+              'Use ES private class fields (#field) instead of TypeScript private keyword.',
+          },
+          {
+            selector: "BinaryExpression[operator='in']",
+            message: 'Use Object.hasOwn() instead of the "in" operator.',
+          },
+        ],
+        'id-denylist': [
+          'error',
+          'buf',
+          'cat',
+          'err',
+          'cb',
+          'cfg',
+          'hex',
+          'int',
+          'msg',
+          'num',
+          'opt',
+          'sig',
+        ],
+        'id-length': [
+          'error',
+          {
+            min: 2,
+            exceptionPatterns: ['_', 'a', 'b', 'i', 'j', 'k'],
+            properties: 'never',
+          },
+        ],
+        'no-negated-condition': 'error',
+        'no-eq-null': 'error',
+        'no-nested-ternary': 'error',
+        'no-plusplus': ['error', { allowForLoopAfterthoughts: true }],
+        'require-unicode-regexp': 'error',
+        'consistent-return': 'error',
+        'prefer-template': 'error',
+        'prefer-destructuring': [
+          'error',
+          {
+            VariableDeclarator: { array: false, object: true },
+            AssignmentExpression: { array: false, object: false },
+          },
+          { enforceForRenamedProperties: false },
+        ],
+        'no-implicit-coercion': 'error',
+        'no-param-reassign': 'error',
+        'no-duplicate-imports': 'off',
+        curly: ['error', 'all'],
+
+        // === TypeScript type-aware rules ===
+        '@typescript-eslint/prefer-nullish-coalescing': 'error',
+        '@typescript-eslint/prefer-readonly': 'error',
+        '@typescript-eslint/explicit-function-return-type': 'error',
+        '@typescript-eslint/naming-convention': [
+          'error',
+          {
+            selector: 'typeLike',
+            format: ['PascalCase'],
+          },
+          {
+            selector: 'typeParameter',
+            format: ['PascalCase'],
+            custom: { regex: '^.{3,}', match: true },
+          },
+        ],
+        '@typescript-eslint/consistent-type-exports': 'error',
+        '@typescript-eslint/no-floating-promises': 'error',
+        '@typescript-eslint/restrict-template-expressions': 'error',
+
+        // === Import rules (using 'import' plugin, not 'import-x') ===
+        'import/consistent-type-specifier-style': ['error', 'prefer-top-level'],
+        'import/no-named-as-default': 'error',
+        'import/order': [
+          'error',
+          {
+            groups: [
+              'builtin',
+              'external',
+              'internal',
+              'parent',
+              'sibling',
+              'index',
+            ],
+            alphabetize: { order: 'asc', caseInsensitive: true },
+            'newlines-between': 'always',
+          },
+        ],
+
+        // === JSDoc rules ===
+        'jsdoc/check-alignment': 'error',
+        'jsdoc/tag-lines': ['error', 'any', { startLines: 1 }],
+        'jsdoc/check-param-names': 'error',
+        'jsdoc/require-param': 'error',
+        'jsdoc/require-param-description': 'error',
+        'jsdoc/require-returns': 'error',
+        'jsdoc/require-returns-description': 'error',
+
+        // === Promise rules — SKIPPED (eslint-plugin-promise not installed in mobile) ===
+        // These Core rules cannot be enforced in mobile until the plugin is added:
+        // 'promise/always-return', 'promise/no-nesting', 'promise/no-callback-in-promise', 'promise/param-names'
+        // The code already complies — this comment documents the gap.
+      },
+    },
+    {
+      // Perps test files use top-level type imports (import type + import from same module),
+      // which conflicts with the global no-duplicate-imports rule.
+      files: ['app/controllers/perps/**/*.test.{ts,tsx}'],
+      rules: {
+        'no-duplicate-imports': 'off',
       },
     },
     {

@@ -1,26 +1,27 @@
-import { TradingService } from './TradingService';
-import type { ServiceContext } from './ServiceContext';
-import {
-  PerpsAnalyticsEvent,
-  type PerpsProvider,
-  type OrderParams,
-  type OrderResult,
-  type EditOrderParams,
-  type CancelOrderParams,
-  type CancelOrdersParams,
-  type ClosePositionParams,
-  type ClosePositionsParams,
-  type Position,
-  type Order,
-  type UpdatePositionTPSLParams,
-  type PerpsPlatformDependencies,
-} from '../types';
+import { createMockHyperLiquidProvider } from '../../../components/UI/Perps/__mocks__/providerMocks';
 import {
   createMockServiceContext,
   createMockPerpsControllerState,
   createMockInfrastructure,
 } from '../../../components/UI/Perps/__mocks__/serviceMocks';
-import { createMockHyperLiquidProvider } from '../../../components/UI/Perps/__mocks__/providerMocks';
+import { PerpsAnalyticsEvent } from '../types';
+import type {
+  PerpsProvider,
+  OrderParams,
+  OrderResult,
+  EditOrderParams,
+  CancelOrderParams,
+  CancelOrdersParams,
+  ClosePositionParams,
+  ClosePositionsParams,
+  Position,
+  Order,
+  UpdatePositionTPSLParams,
+  PerpsPlatformDependencies,
+} from '../types';
+
+import type { ServiceContext } from './ServiceContext';
+import { TradingService } from './TradingService';
 
 jest.mock('uuid', () => ({ v4: () => 'mock-trace-id' }));
 

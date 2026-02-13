@@ -5,22 +5,24 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import type { CaipAccountId, Hex } from '@metamask/utils';
+
+import { createMockInfrastructure } from '../../../components/UI/Perps/__mocks__/serviceMocks';
 import type {
   SubscribeOrderBookParams,
   SubscribeOrderFillsParams,
   SubscribePositionsParams,
   SubscribePricesParams,
 } from '../types';
+import { adaptAccountStateFromSDK } from '../utils/hyperLiquidAdapter';
+
 import type { HyperLiquidClientService } from './HyperLiquidClientService';
 import { HyperLiquidSubscriptionService } from './HyperLiquidSubscriptionService';
 import type { HyperLiquidWalletService } from './HyperLiquidWalletService';
-import { adaptAccountStateFromSDK } from '../utils/hyperLiquidAdapter';
-import { createMockInfrastructure } from '../../../components/UI/Perps/__mocks__/serviceMocks';
 
 // Mock HyperLiquid SDK types
-type MockSubscription = {
+interface MockSubscription {
   unsubscribe: jest.Mock;
-};
+}
 
 // Mock adapter
 jest.mock('../utils/hyperLiquidAdapter', () => ({
@@ -1587,7 +1589,7 @@ describe('HyperLiquidSubscriptionService', () => {
 
       // Should still receive price updates, but without bid/ask
       expect(mockCallback).toHaveBeenCalled();
-      const calls = mockCallback.mock.calls;
+      const { calls } = mockCallback.mock;
       const lastCall = calls[calls.length - 1][0];
 
       // Check that bestBid and bestAsk are either undefined or '0'
@@ -1656,7 +1658,7 @@ describe('HyperLiquidSubscriptionService', () => {
       await jest.runAllTimersAsync();
 
       expect(mockCallback).toHaveBeenCalled();
-      const calls = mockCallback.mock.calls;
+      const { calls } = mockCallback.mock;
       const lastCall = calls[calls.length - 1][0];
       expect(lastCall).toEqual(
         expect.arrayContaining([

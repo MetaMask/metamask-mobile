@@ -5,15 +5,17 @@
  * Portable: no mobile-specific imports.
  * Logger is injected as optional parameter for platform-agnostic error reporting.
  */
+import { formatChainIdToCaip } from '@metamask/bridge-controller';
+import { toChecksumHexAddress } from '@metamask/controller-utils';
 import {
   toCaipAccountId,
   CaipAccountId,
   parseCaipChainId,
 } from '@metamask/utils';
-import { ensureError } from './errorUtils';
-import { formatChainIdToCaip } from '@metamask/bridge-controller';
-import { toChecksumHexAddress } from '@metamask/controller-utils';
+
 import type { PerpsLogger } from '../types';
+
+import { ensureError } from './errorUtils';
 
 /**
  * Formats an address to CAIP-10 account ID format
@@ -22,7 +24,6 @@ import type { PerpsLogger } from '../types';
  * @param chainId - The chain ID (e.g., '1' for mainnet, '42161' for Arbitrum)
  * @param logger - Optional logger for error reporting
  * @returns CAIP-10 formatted account ID or null if formatting fails
- *
  * @example
  * ```typescript
  * const caipId = formatAccountToCaipAccountId('0x123...', '42161');
@@ -66,7 +67,9 @@ export const formatAccountToCaipAccountId = (
  * @returns True if value is a valid CAIP account ID
  */
 export const isCaipAccountId = (value: unknown): value is CaipAccountId => {
-  if (typeof value !== 'string') return false;
+  if (typeof value !== 'string') {
+    return false;
+  }
 
   // CAIP-10 format: namespace:reference:account_address
   const parts = value.split(':');

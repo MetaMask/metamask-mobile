@@ -1,12 +1,14 @@
-import { isValidHexAddress, type CaipAssetId, type Hex } from '@metamask/utils';
+import { isValidHexAddress } from '@metamask/utils';
+import type { CaipAssetId, Hex } from '@metamask/utils';
+
 import {
   HYPERLIQUID_ASSET_CONFIGS,
   getSupportedAssets,
   TRADING_DEFAULTS,
 } from '../constants/hyperLiquidConfig';
-import type { GetSupportedPathsParams, PerpsDebugLogger } from '../types';
 import { HYPERLIQUID_ORDER_LIMITS } from '../constants/perpsConfig';
 import { PERPS_ERROR_CODES } from '../perpsErrorCodes';
+import type { GetSupportedPathsParams, PerpsDebugLogger } from '../types';
 
 /**
  * Optional debug logger for validation functions.
@@ -27,8 +29,8 @@ export type ValidationDebugLogger = PerpsDebugLogger | undefined;
  * @returns The error response with success=false and error message
  */
 export function createErrorResult<
-  T extends { success: boolean; error?: string },
->(error: unknown, defaultResponse: T): T {
+  TValue extends { success: boolean; error?: string },
+>(error: unknown, defaultResponse: TValue): TValue {
   return {
     ...defaultResponse,
     success: false,
@@ -57,9 +59,9 @@ export function validateWithdrawalParams(
 ): { isValid: boolean; error?: string } {
   debugLogger?.log('validateWithdrawalParams: Starting validation', {
     params,
-    hasAssetId: !!params.assetId,
-    hasAmount: !!params.amount,
-    hasDestination: !!params.destination,
+    hasAssetId: Boolean(params.assetId),
+    hasAmount: Boolean(params.amount),
+    hasDestination: Boolean(params.destination),
   });
 
   // Validate required parameters
@@ -116,7 +118,7 @@ export function validateWithdrawalParams(
   debugLogger?.log('validateWithdrawalParams: All validations passed', {
     assetId: params.assetId,
     amount: params.amount,
-    destination: params.destination || 'will use user wallet',
+    destination: params.destination ?? 'will use user wallet',
   });
 
   return { isValid: true };
@@ -142,8 +144,8 @@ export function validateDepositParams(
 ): { isValid: boolean; error?: string } {
   debugLogger?.log('validateDepositParams: Starting validation', {
     params,
-    hasAssetId: !!params.assetId,
-    hasAmount: !!params.amount,
+    hasAssetId: Boolean(params.assetId),
+    hasAmount: Boolean(params.amount),
     isTestnet: params.isTestnet,
   });
 
@@ -309,8 +311,7 @@ export function validateBalance(
       withdrawAmount,
       availableBalance,
       shortfall,
-      percentageOfAvailable:
-        ((withdrawAmount / availableBalance) * 100).toFixed(2) + '%',
+      percentageOfAvailable: `${((withdrawAmount / availableBalance) * 100).toFixed(2)}%`,
     });
 
     return {
@@ -324,8 +325,7 @@ export function validateBalance(
     withdrawAmount,
     availableBalance,
     remainingBalance,
-    percentageUsed:
-      ((withdrawAmount / availableBalance) * 100).toFixed(2) + '%',
+    percentageUsed: `${((withdrawAmount / availableBalance) * 100).toFixed(2)}%`,
   });
 
   return { isValid: true };
@@ -371,7 +371,10 @@ export function applyPathFilters(
     });
   }
 
-  if (params.symbol && params.symbol in HYPERLIQUID_ASSET_CONFIGS) {
+  if (
+    params.symbol &&
+    Object.hasOwn(HYPERLIQUID_ASSET_CONFIGS, params.symbol)
+  ) {
     const config =
       HYPERLIQUID_ASSET_CONFIGS[
         params.symbol as keyof typeof HYPERLIQUID_ASSET_CONFIGS

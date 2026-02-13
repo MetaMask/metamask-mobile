@@ -6,12 +6,11 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import {
-  HyperLiquidClientService,
-  type ValidCandleInterval,
-} from './HyperLiquidClientService';
-import { CandlePeriod } from '../constants/chartConfig';
 import { createMockInfrastructure } from '../../../components/UI/Perps/__mocks__/serviceMocks';
+import { CandlePeriod } from '../constants/chartConfig';
+
+import { HyperLiquidClientService } from './HyperLiquidClientService';
+import type { ValidCandleInterval } from './HyperLiquidClientService';
 
 // Mock WebSocket for Jest environment (React Native provides this globally)
 (global as any).WebSocket = jest.fn();

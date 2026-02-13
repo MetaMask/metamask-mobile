@@ -1,6 +1,7 @@
-import type { ClearinghouseStateResponse } from '../types/hyperliquid-types';
 import { HttpTransport, InfoClient } from '@nktkas/hyperliquid';
+
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
+import type { ClearinghouseStateResponse } from '../types/hyperliquid-types';
 
 export type StandaloneInfoClientOptions = {
   /** Whether to use testnet API endpoint */
@@ -12,6 +13,9 @@ export type StandaloneInfoClientOptions = {
 /**
  * Creates a standalone InfoClient for lightweight read-only queries.
  * Does not require full perps initialization (no wallet, WebSocket, etc.)
+ *
+ * @param options - The configuration options for the standalone client.
+ * @returns A new InfoClient instance configured for read-only queries.
  */
 export const createStandaloneInfoClient = (
   options: StandaloneInfoClientOptions,
@@ -29,6 +33,11 @@ export const createStandaloneInfoClient = (
 /**
  * Query clearinghouseState across multiple DEXs in parallel.
  * Used by standalone mode to aggregate positions/account state across HIP-3 DEXs.
+ *
+ * @param infoClient - The HyperLiquid InfoClient instance to use for queries.
+ * @param userAddress - The user's wallet address to query state for.
+ * @param dexs - The array of DEX identifiers to query (null for main DEX).
+ * @returns A promise that resolves to an array of clearinghouse state responses.
  */
 export const queryStandaloneClearinghouseStates = async (
   infoClient: InfoClient,
@@ -49,8 +58,8 @@ export const queryStandaloneClearinghouseStates = async (
 
   return results
     .filter(
-      (r): r is PromiseFulfilledResult<ClearinghouseStateResponse> =>
-        r.status === 'fulfilled',
+      (result): result is PromiseFulfilledResult<ClearinghouseStateResponse> =>
+        result.status === 'fulfilled',
     )
-    .map((r) => r.value);
+    .map((result) => result.value);
 };

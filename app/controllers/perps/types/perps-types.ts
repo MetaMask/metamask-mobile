@@ -1,6 +1,10 @@
 /**
  * Test result states for SDK validation
  */
+import { CandlePeriod } from '../constants/chartConfig';
+
+import { OrderType } from '.';
+
 export type TestResultStatus =
   | 'idle'
   | 'loading'
@@ -42,9 +46,6 @@ export type CandleStick = {
   volume: string;
 };
 
-import { CandlePeriod } from '../constants/chartConfig';
-import { OrderType } from './index';
-
 /**
  * Represents historical candlestick data for a specific symbol and interval
  */
@@ -56,8 +57,8 @@ export type CandleData = {
 };
 
 // Export all configuration types directly
-export * from './config';
-export * from './token';
+export type * from './config';
+export type * from './token';
 
 /**
  * Order form state for the Perps order view
@@ -92,6 +93,7 @@ export type ReconnectOptions = {
 /**
  * Extended asset metadata including Growth Mode fields not in SDK types.
  * The HyperLiquid API returns these fields but the SDK doesn't type them.
+ *
  * @see https://hyperliquid.gitbook.io/hyperliquid-docs/trading/fees#fee-formula-for-developers
  */
 export type ExtendedAssetMeta = {
@@ -107,6 +109,7 @@ export type ExtendedAssetMeta = {
 /**
  * Extended perp DEX info including fee scale fields not in SDK types.
  * The HyperLiquid API returns these fields but the SDK doesn't type them.
+ *
  * @see https://hyperliquid.gitbook.io/hyperliquid-docs/trading/fees#fee-formula-for-developers
  */
 export type ExtendedPerpDex = {

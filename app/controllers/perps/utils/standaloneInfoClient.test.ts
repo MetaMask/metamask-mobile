@@ -1,5 +1,7 @@
 import { HttpTransport, InfoClient } from '@nktkas/hyperliquid';
+
 import type { ClearinghouseStateResponse } from '../types/hyperliquid-types';
+
 import {
   createStandaloneInfoClient,
   queryStandaloneClearinghouseStates,
@@ -23,6 +25,7 @@ const MockedInfoClient = InfoClient as unknown as jest.Mock;
 /**
  * Factory for mock ClearinghouseStateResponse.
  * Returns a minimal valid shape; callers can spread overrides.
+ * @param overrides
  */
 const createMockClearinghouseResponse = (
   overrides: Partial<ClearinghouseStateResponse> = {},

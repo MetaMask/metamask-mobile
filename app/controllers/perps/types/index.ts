@@ -5,8 +5,9 @@ import type {
   Hex,
 } from '@metamask/utils';
 
-import type { CandleData } from './perps-types';
 import type { CandlePeriod, TimeDuration } from '../constants/chartConfig';
+
+import type { CandleData } from './perps-types';
 
 /**
  * Connection states for WebSocket management.
@@ -693,9 +694,7 @@ export type GetSupportedPathsParams = {
   chainId?: CaipChainId; // Optional: filter by chain (CAIP-2 format)
 };
 
-export type GetAvailableDexsParams = {
-  // Reserved for future extensibility (filters, pagination, etc.)
-};
+export type GetAvailableDexsParams = Record<string, never>;
 
 export type GetMarketsParams = {
   symbols?: string[]; // Optional symbol filter (e.g., ['BTC', 'xyz:XYZ100'])
@@ -937,6 +936,7 @@ export type PerpsProvider = {
    * Get fills using WebSocket cache first, falling back to REST API.
    * OPTIMIZATION: Uses cached fills when available (0 API weight), only calls REST on cache miss.
    * Purpose: Prevent 429 errors during rapid market switching by reusing cached fills.
+   *
    * @param params - Optional filter parameters (startTime, symbol)
    */
   getOrFetchFills(params?: GetOrFetchFillsParams): Promise<OrderFill[]>;
@@ -945,6 +945,7 @@ export type PerpsProvider = {
    * Get historical portfolio data
    * Purpose: Retrieve account value from previous periods for PnL tracking
    * Example: Get account value from yesterday to calculate 24h percentage change
+   *
    * @param params - Optional parameters for historical portfolio retrieval
    */
   getHistoricalPortfolio(
@@ -1034,6 +1035,7 @@ export type PerpsProvider = {
   // HIP-3 (Builder-deployed DEXs) operations - optional for backward compatibility
   /**
    * Get list of available HIP-3 builder-deployed DEXs
+   *
    * @param params - Optional parameters (reserved for future filters/pagination)
    * @returns Array of DEX names (empty string '' represents main DEX)
    */
@@ -1523,6 +1525,9 @@ export type VersionGatedFeatureFlag = {
 /**
  * Type guard for VersionGatedFeatureFlag.
  * Pure logic, no platform dependencies.
+ *
+ * @param value - The value to check.
+ * @returns True if the value is a VersionGatedFeatureFlag.
  */
 export function isVersionGatedFeatureFlag(
   value: unknown,
@@ -1530,8 +1535,8 @@ export function isVersionGatedFeatureFlag(
   return (
     typeof value === 'object' &&
     value !== null &&
-    'enabled' in value &&
-    'minimumVersion' in value &&
+    Object.hasOwn(value, 'enabled') &&
+    Object.hasOwn(value, 'minimumVersion') &&
     typeof (value as { enabled: unknown }).enabled === 'boolean' &&
     typeof (value as { minimumVersion: unknown }).minimumVersion === 'string'
   );
@@ -1542,7 +1547,7 @@ export function isVersionGatedFeatureFlag(
 // These types live in separate files within types/ and need to be accessible
 // from the root barrel via `export * from './types'`.
 // ============================================================================
-export * from './perps-types';
+export type * from './perps-types';
 export * from './transactionTypes';
 // hyperliquid-types: selective export to avoid OrderType clash with main types
 export type {

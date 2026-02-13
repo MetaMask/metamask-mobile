@@ -1,12 +1,22 @@
 import type { CaipAssetId, Hex } from '@metamask/utils';
-import { HyperLiquidClientService } from '../services/HyperLiquidClientService';
+
 import {
   createMockInfrastructure,
   createMockMessenger,
 } from '../../../components/UI/Perps/__mocks__/serviceMocks';
+import { REFERRAL_CONFIG } from '../constants/hyperLiquidConfig';
+import { PERPS_ERROR_CODES } from '../perpsErrorCodes';
+import { HyperLiquidClientService } from '../services/HyperLiquidClientService';
 import { HyperLiquidSubscriptionService } from '../services/HyperLiquidSubscriptionService';
 import { HyperLiquidWalletService } from '../services/HyperLiquidWalletService';
-import { REFERRAL_CONFIG } from '../constants/hyperLiquidConfig';
+import { TradingReadinessCache } from '../services/TradingReadinessCache';
+import type {
+  ClosePositionParams,
+  DepositParams,
+  PerpsPlatformDependencies,
+  LiveDataConfig,
+  OrderParams,
+} from '../types';
 import {
   validateAssetSupport,
   validateBalance,
@@ -15,17 +25,9 @@ import {
   validateOrderParams,
   validateWithdrawalParams,
 } from '../utils/hyperLiquidValidation';
-import type {
-  ClosePositionParams,
-  DepositParams,
-  PerpsPlatformDependencies,
-  LiveDataConfig,
-  OrderParams,
-} from '../types';
-import { HyperLiquidProvider } from './HyperLiquidProvider';
-import { PERPS_ERROR_CODES } from '../perpsErrorCodes';
-import { TradingReadinessCache } from '../services/TradingReadinessCache';
 import { createStandaloneInfoClient } from '../utils/standaloneInfoClient';
+
+import { HyperLiquidProvider } from './HyperLiquidProvider';
 
 jest.mock('../services/HyperLiquidClientService');
 jest.mock('../services/HyperLiquidWalletService');
@@ -302,6 +304,12 @@ const mockMessenger = createMockMessenger();
 
 /**
  * Helper to create HyperLiquidProvider with mock platform dependencies
+ * @param options
+ * @param options.isTestnet
+ * @param options.hip3Enabled
+ * @param options.allowlistMarkets
+ * @param options.blocklistMarkets
+ * @param options.useDexAbstraction
  */
 const createTestProvider = (
   options: {
@@ -5162,9 +5170,9 @@ describe('HyperLiquidProvider', () => {
   });
 
   describe('Builder Fee Global Cache (PR #25334)', () => {
-    type ProviderWithBuilderFee = {
+    interface ProviderWithBuilderFee {
       ensureBuilderFeeApproval(): Promise<void>;
-    };
+    }
 
     let testableProvider: ProviderWithBuilderFee;
 
@@ -5329,9 +5337,9 @@ describe('HyperLiquidProvider', () => {
   });
 
   describe('Referral Global Cache (PR #25334)', () => {
-    type ProviderWithReferral = {
+    interface ProviderWithReferral {
       ensureReferralSet(): Promise<void>;
-    };
+    }
 
     let testableProvider: ProviderWithReferral;
 
@@ -5856,9 +5864,9 @@ describe('HyperLiquidProvider', () => {
 
     it('handles isFeeCacheValid with non-existent address', async () => {
       // Access private method for edge case testing
-      type ProviderWithPrivateMethods = {
+      interface ProviderWithPrivateMethods {
         isFeeCacheValid(userAddress: string): boolean;
-      };
+      }
       const testableProvider =
         provider as unknown as ProviderWithPrivateMethods;
       const result = testableProvider.isFeeCacheValid('0xnonexistent');
@@ -6762,7 +6770,7 @@ describe('HyperLiquidProvider', () => {
   });
 
   describe('HIP-3 Private Methods', () => {
-    type ProviderWithPrivateMethods = {
+    interface ProviderWithPrivateMethods {
       getUsdcTokenId(): Promise<string>;
       getBalanceForDex(params: { dex: string | null }): Promise<number>;
       findSourceDexWithBalance(params: {
@@ -6770,7 +6778,7 @@ describe('HyperLiquidProvider', () => {
         requiredAmount: number;
       }): Promise<{ sourceDex: string; available: number } | null>;
       cachedUsdcTokenId?: string;
-    };
+    }
 
     let testableProvider: ProviderWithPrivateMethods;
 
@@ -6859,10 +6867,10 @@ describe('HyperLiquidProvider', () => {
     });
 
     describe('getAllAvailableDexs', () => {
-      type ProviderWithDexMethods = {
+      interface ProviderWithDexMethods {
         getAllAvailableDexs(): Promise<(string | null)[]>;
         cachedAllPerpDexs: ({ name: string; url: string } | null)[] | null;
-      };
+      }
 
       // eslint-disable-next-line @typescript-eslint/no-shadow
       let testableProvider: ProviderWithDexMethods;
@@ -7001,10 +7009,10 @@ describe('HyperLiquidProvider', () => {
     });
 
     describe('ensureDexAbstractionEnabled', () => {
-      type ProviderWithDexAbstraction = {
+      interface ProviderWithDexAbstraction {
         ensureDexAbstractionEnabled(): Promise<void>;
         useDexAbstraction: boolean;
-      };
+      }
 
       // eslint-disable-next-line @typescript-eslint/no-shadow
       let testableProvider: ProviderWithDexAbstraction;
@@ -7348,11 +7356,11 @@ describe('HyperLiquidProvider', () => {
     });
 
     describe('ensureReadyForTrading', () => {
-      type ProviderWithTradingSetup = {
+      interface ProviderWithTradingSetup {
         ensureReadyForTrading(): Promise<void>;
         ensureReady(): Promise<void>;
         tradingSetupComplete: boolean;
-      };
+      }
 
       // eslint-disable-next-line @typescript-eslint/no-shadow
       let testableProvider: ProviderWithTradingSetup;
@@ -7460,7 +7468,7 @@ describe('HyperLiquidProvider', () => {
     });
 
     describe('autoTransferForHip3Order', () => {
-      type ProviderWithAutoTransfer = {
+      interface ProviderWithAutoTransfer {
         autoTransferForHip3Order(params: {
           targetDex: string;
           requiredMargin: number;
@@ -7475,7 +7483,7 @@ describe('HyperLiquidProvider', () => {
           destinationDex: string;
           amount: string;
         }): Promise<{ success: boolean; error?: string }>;
-      };
+      }
 
       // eslint-disable-next-line @typescript-eslint/no-shadow
       let testableProvider: ProviderWithAutoTransfer;
@@ -7562,7 +7570,7 @@ describe('HyperLiquidProvider', () => {
     });
 
     describe('calculateHip3RequiredMargin', () => {
-      type ProviderWithMarginCalc = {
+      interface ProviderWithMarginCalc {
         calculateHip3RequiredMargin(params: {
           symbol: string;
           dexName: string;
@@ -7574,7 +7582,7 @@ describe('HyperLiquidProvider', () => {
         getPositions(): Promise<
           { symbol: string; size: string; marginUsed: string }[]
         >;
-      };
+      }
 
       // eslint-disable-next-line @typescript-eslint/no-shadow
       let testableProvider: ProviderWithMarginCalc;

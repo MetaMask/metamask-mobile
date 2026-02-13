@@ -1,8 +1,8 @@
-import type { PerpsMarketData } from '../types';
 import {
   MARKET_SORTING_CONFIG,
   PERPS_CONSTANTS,
 } from '../constants/perpsConfig';
+import type { PerpsMarketData } from '../types';
 
 export type SortField =
   | 'volume'
@@ -17,7 +17,7 @@ export type SortMarketsParams = {
   direction?: SortDirection;
 };
 
-const VOLUME_SUFFIX_REGEX = /\$?([\d.,]+)([KMBT])?/;
+const VOLUME_SUFFIX_REGEX = /\$?([\d.,]+)([KMBT])?/u;
 
 const multipliers: Record<string, number> = {
   K: 1e3,
@@ -31,7 +31,9 @@ const removeCommas = (str: string): string => {
   // eslint-disable-next-line @typescript-eslint/prefer-for-of
   for (let i = 0; i < str.length; i++) {
     const char = str[i];
-    if (char !== ',') result += char;
+    if (char !== ',') {
+      result += char;
+    }
   }
   return result;
 };
@@ -39,31 +41,48 @@ const removeCommas = (str: string): string => {
 /**
  * Parse a formatted volume string (e.g., "$1.5M", "$2.3B") to a numeric value.
  * Extracted from hooks/usePerpsMarkets.ts for portability.
+ *
+ * @param volumeStr - The formatted volume string to parse.
+ * @returns The numeric volume value, or -1 if unparseable.
  */
 export const parseVolume = (volumeStr: string | undefined): number => {
-  if (!volumeStr) return -1;
+  if (!volumeStr) {
+    return -1;
+  }
 
-  if (volumeStr === PERPS_CONSTANTS.FallbackPriceDisplay) return -1;
-  if (volumeStr === '$<1') return 0.5;
+  if (volumeStr === PERPS_CONSTANTS.FallbackPriceDisplay) {
+    return -1;
+  }
+  if (volumeStr === '$<1') {
+    return 0.5;
+  }
 
   const suffixMatch = VOLUME_SUFFIX_REGEX.exec(volumeStr);
   if (suffixMatch) {
     const [, numberPart, suffix] = suffixMatch;
     const baseValue = Number.parseFloat(removeCommas(numberPart));
 
-    if (Number.isNaN(baseValue)) return -1;
+    if (Number.isNaN(baseValue)) {
+      return -1;
+    }
 
     return suffix ? baseValue * multipliers[suffix] : baseValue;
   }
 
   // Fallback: try to parse as plain number
-  const cleaned = volumeStr.replace(/[$,]/g, '');
+  const cleaned = volumeStr.replace(/[$,]/gu, '');
   const parsed = Number.parseFloat(cleaned);
   return Number.isNaN(parsed) ? -1 : parsed;
 };
 
 /**
  * Sorts markets based on the specified criteria.
+ *
+ * @param options0 - The sorting configuration.
+ * @param options0.markets - The array of market data to sort.
+ * @param options0.sortBy - The field to sort by (volume, priceChange, fundingRate, or openInterest).
+ * @param options0.direction - The sort direction (asc or desc).
+ * @returns A new sorted array of market data.
  */
 export const sortMarkets = ({
   markets,
@@ -85,10 +104,10 @@ export const sortMarkets = ({
 
       case MARKET_SORTING_CONFIG.SortFields.PriceChange: {
         const changeA = parseFloat(
-          a.change24hPercent?.replace(/[%+]/g, '') || '0',
+          a.change24hPercent?.replace(/[%+]/gu, '') || '0',
         );
         const changeB = parseFloat(
-          b.change24hPercent?.replace(/[%+]/g, '') || '0',
+          b.change24hPercent?.replace(/[%+]/gu, '') || '0',
         );
         compareValue = changeA - changeB;
         break;

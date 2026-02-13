@@ -55,18 +55,24 @@ export type TransactionRecord = {
 
 /**
  * Type guard to check if a transaction result is a TransactionRecord
+ *
+ * @param result - The transaction result to check.
+ * @returns True if the result is a TransactionRecord with id and status fields.
  */
 export function isTransactionRecord(
   result: LastTransactionResult | TransactionRecord,
 ): result is TransactionRecord {
-  return 'id' in result && 'status' in result;
+  return Object.hasOwn(result, 'id') && Object.hasOwn(result, 'status');
 }
 
 /**
  * Type guard to check if a transaction result is a LastTransactionResult
+ *
+ * @param result - The transaction result to check.
+ * @returns True if the result is a LastTransactionResult without id or status fields.
  */
 export function isLastTransactionResult(
   result: LastTransactionResult | TransactionRecord,
 ): result is LastTransactionResult {
-  return !('id' in result) || !('status' in result);
+  return !Object.hasOwn(result, 'id') || !Object.hasOwn(result, 'status');
 }
