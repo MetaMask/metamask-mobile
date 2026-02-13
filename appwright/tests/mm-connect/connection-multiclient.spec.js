@@ -90,7 +90,10 @@ test('@metamask/connect-multichain (multiple clients) - Connect multiple clients
   await AppwrightHelpers.withWebAction(
     device,
     async () => {
-      await BrowserPlaygroundDapp.tapConnect();
+      // Note: the Solana wallet standard provider itself has an issue where it does not
+      // listen for wallet_sessionChanged events, so we need to use the Solana's connect button
+      // as the entrypoint for now.
+      await BrowserPlaygroundDapp.tapSolanaConnect();
     },
     DAPP_URL,
   );
@@ -98,13 +101,9 @@ test('@metamask/connect-multichain (multiple clients) - Connect multiple clients
   // Handle connection approval in MetaMask
   await AppwrightHelpers.withNativeAction(device, async () => {
     await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
-    await DappConnectionModal.tapEditNetworksButton();
-    await DappConnectionModal.tapNetworkButton('Solana');
-    await DappConnectionModal.tapUpdateNetworksButton();
     await DappConnectionModal.tapConnectButton();
   });
 
-  // Explicit pause to avoid navigating back too fast to the dapp
   await new Promise((resolve) => setTimeout(resolve, 1000));
   await launchMobileBrowser(device);
   await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -112,26 +111,20 @@ test('@metamask/connect-multichain (multiple clients) - Connect multiple clients
   await AppwrightHelpers.withWebAction(
     device,
     async () => {
-      // Verify connected by checking for scope cards section
       await BrowserPlaygroundDapp.assertMultichainConnected(true);
-
-      // Verify at least one scope card is visible (eip155:1 is default)
       await BrowserPlaygroundDapp.assertScopeCardVisible('eip155:1');
 
-      // Verify evm card is visible
       await BrowserPlaygroundDapp.assertConnected(true);
       await BrowserPlaygroundDapp.assertChainIdValue('0x1');
       await BrowserPlaygroundDapp.assertActiveAccount(ACCOUNT_1_ADDRESS);
 
-      // Verify wagmi card is visible
       await BrowserPlaygroundDapp.assertWagmiConnected(true);
       await BrowserPlaygroundDapp.assertWagmiChainIdValue('1');
       await BrowserPlaygroundDapp.assertWagmiActiveAccount(ACCOUNT_1_ADDRESS);
 
-      // NOTE: The solana wallet standard does not respond to wallet_sessionChanged events
-      // meaning that we must manually trigger the client to check if it is connected.
-      // Since we are, there will be no approval prompt necessary to accept.
-      // TODO
+      await BrowserPlaygroundDapp.assertSolanaConnected(true);
+      await BrowserPlaygroundDapp.assertSolanaActiveAccount(ACCOUNT_1_ADDRESS);
+
     },
     DAPP_URL,
   );

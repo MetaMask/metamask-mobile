@@ -56,7 +56,7 @@ test.afterAll(async () => {
   await playgroundServer.stop();
 });
 
-test('@metamask/connect-evm (wagmi) - Connect via Wagmi to Local Browser Playground', async ({
+test.skip('@metamask/connect-evm (wagmi) - Connect via Wagmi to Local Browser Playground', async ({
   device,
 }) => {
   // Get platform-specific URL

@@ -182,6 +182,22 @@ class BrowserPlaygroundDapp {
   }
 
   // ============================================================
+  // SOLANA CARD SELECTORS
+  // ============================================================
+
+  get solanaCard() {
+    return this._getByTestId('solana-card');
+  }
+
+  get solanaConnectButton() {
+    return this._getByTestId('app-btn-connect-solana');
+  }
+
+  get solanaAddressContainer() {
+    return this._getByTestId('solana-address-container');
+  }
+
+  // ============================================================
   // MULTICHAIN / SCOPE CARD SELECTORS
   // ============================================================
 
@@ -293,6 +309,16 @@ class BrowserPlaygroundDapp {
     if (!this._device) return;
     const element = await this.wagmiSignMessageInput;
     await AppwrightGestures.typeText(element, message);
+  }
+
+  // ============================================================
+  // SOLANA ACTIONS
+  // ============================================================
+
+  async tapSolanaConnect() {
+    if (!this._device) return;
+    const element = await this.solanaConnectButton;
+    await AppwrightGestures.tap(element);
   }
 
   // ============================================================
@@ -453,6 +479,37 @@ class BrowserPlaygroundDapp {
       return false;
     }
   }
+
+  // ============================================================
+  // SOLANA ASSERTIONS
+  // ============================================================
+
+  /**
+   * Assert Solana is connected by checking for the solana address container
+   * @param {boolean} isConnected - Expected connection state
+   */
+  async assertSolanaConnected(isConnected = true) {
+    if (!this._device) return;
+
+    if (isConnected) {
+      const solanaCard = await this.solanaCard;
+      await expect(solanaCard).toBeVisible({ timeout: 10000 });
+    } else {
+      const solanaConnectButton = await this.solanaConnectButton;
+      await expect(solanaConnectButton).toBeVisible({ timeout: 10000 });
+    }
+  }
+
+  /**
+   * Assert Solana active account address
+   * @param {string} expectedAccount - Expected account address
+   */
+    async assertSolanaActiveAccount(expectedAddress) {
+      if (!this._device) return;
+      const addressElement = await this.solanaAddressContainer;
+      const text = await addressElement.getText();
+      expect(text.toLowerCase()).toContain(expectedAddress);
+    }
 
   // ============================================================
   // MULTICHAIN ASSERTIONS

@@ -7982,10 +7982,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/browser-playground@npm:0.2.0":
+"@metamask/browser-playground@file:../connect-monorepo/playground/browser-playground::locator=metamask%40workspace%3A.":
   version: 0.2.0
-  resolution: "@metamask/browser-playground@npm:0.2.0"
-  checksum: 10/4c06720cce0925cf6e6a4c7287dee64976037b3f772c933c5659dd16538658fd171d9377ab1e7790c89f08db72edccd37c6d477a72a75f91f72ee81dd9322eb6
+  resolution: "@metamask/browser-playground@file:../connect-monorepo/playground/browser-playground#../connect-monorepo/playground/browser-playground::hash=66de85&locator=metamask%40workspace%3A."
+  checksum: 10/0925ed3e0d671c00e7d7c9730c71123e083e578fe27092996be44656f951603f8d4fdf8765ce3b77e5fe9b1f5bfe37343bb089a0e80beb8f3b1f98a114b3f829
   languageName: node
   linkType: hard
 
@@ -35125,7 +35125,7 @@ __metadata:
     "@metamask/bridge-controller": "npm:^65.2.0"
     "@metamask/bridge-status-controller": "npm:^66.0.0"
     "@metamask/browser-passworder": "npm:^5.0.0"
-    "@metamask/browser-playground": "npm:0.2.0"
+    "@metamask/browser-playground": "file:../connect-monorepo/playground/browser-playground"
     "@metamask/build-utils": "npm:^3.0.0"
     "@metamask/chain-agnostic-permission": "npm:^1.3.0"
     "@metamask/connectivity-controller": "npm:^0.1.0"
