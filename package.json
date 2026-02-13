@@ -90,7 +90,7 @@
     "test:view": "yarn test:view:base --coverage=false --testPathPattern='.*\\.view(\\..*)?\\.test\\.(ts|tsx|js|jsx)$'",
     "test:view:one": "yarn test:view:base --verbose --coverage=false --testTimeout=30000",
     "test:view:coverage": "yarn test:view:base --coverage --testPathPattern='.*\\.view(\\..*)?\\.test\\.(ts|tsx|js|jsx)$'",
-    "test:view:ci": "yarn test:view:coverage --forceExit --silent --coverageReporters=json",
+    "test:view:ci": "TEST_OS=ios yarn test:view:coverage --forceExit --silent --coverageReporters=json",
     "test:unit:update": "time jest -u ./app/",
     "test:api-specs": "detox reset-lock-file && detox test -c ios.sim.apiSpecs",
     "test:e2e:android:main:ci": "IS_TEST='true' NODE_OPTIONS='--experimental-vm-modules' detox test -c android.emu.main.ci --headless",
