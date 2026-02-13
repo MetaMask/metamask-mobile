@@ -235,16 +235,29 @@ function sanitizeResult(result: unknown): unknown {
 }
 
 function safeStringify(value: unknown): string {
-  const seen = new WeakSet();
-  return JSON.stringify(value, (_key, val) => {
-    if (val !== null && typeof val === 'object') {
-      if (seen.has(val)) return '[Circular]';
-      seen.add(val);
-    }
+  // Track the current ancestor stack so that shared references (e.g. selected
+  // pointing to the same object inside data[]) are serialised normally, while
+  // true back-references (cycles) are replaced with '[Circular]'.
+  const ancestors: object[] = [];
+
+  return JSON.stringify(value, function replacer(this: unknown, _key, val) {
     if (typeof val === 'bigint') return val.toString();
     if (typeof val === 'function')
       return `[Function: ${val.name || 'anonymous'}]`;
     if (val instanceof Error) return { message: val.message, stack: val.stack };
+
+    if (val !== null && typeof val === 'object') {
+      // Pop finished branches: `this` is the parent object that contains _key.
+      // Walk back the ancestors stack until we find `this`, trimming siblings
+      // that JSON.stringify has already finished visiting.
+      while (ancestors.length > 0 && ancestors[ancestors.length - 1] !== this) {
+        ancestors.pop();
+      }
+
+      if (ancestors.includes(val)) return '[Circular]';
+      ancestors.push(val);
+    }
+
     return val;
   });
 }
