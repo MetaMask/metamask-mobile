@@ -1,12 +1,15 @@
 import { SmokeNetworkExpansion } from '../../../tags';
-import TronTestDApp from '../../../pages/Browser/TronTestDApp';
+import TronTestDApp from '../../../page-objects/Browser/TronTestDApp';
+import { loginToApp } from '../../../flows/wallet.flow';
+import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import {
   account1Short,
   connectTronTestDapp,
   navigateToTronTestDApp,
   EXPECTED_SIGNED_MESSAGE,
 } from './testHelpers';
-import { withTronAccountEnabled } from '../../../common-tron';
+import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
+import { DappVariants } from '../../../framework/Constants';
 
 describe(SmokeNetworkExpansion('Tron Connect E2E - Sign message'), () => {
   beforeAll(async () => {
@@ -14,24 +17,36 @@ describe(SmokeNetworkExpansion('Tron Connect E2E - Sign message'), () => {
   });
 
   it('Signs a message', async () => {
-    await withTronAccountEnabled({}, async () => {
-      await navigateToTronTestDApp();
+    await withFixtures(
+      {
+        fixture: new FixtureBuilder().build(),
+        restartDevice: true,
+        dapps: [
+          {
+            dappVariant: DappVariants.TRON_TEST_DAPP,
+          },
+        ],
+      },
+      async () => {
+        await loginToApp();
+        await navigateToTronTestDApp();
 
-      // 1. Connect
-      await connectTronTestDapp();
+        // 1. Connect
+        await connectTronTestDapp();
 
-      // Verify we are connected
-      await TronTestDApp.verifyConnectedAccount(account1Short);
-      await TronTestDApp.verifyConnectionStatus('Connected');
+        // Verify we are connected
+        await TronTestDApp.verifyConnectedAccount(account1Short);
+        await TronTestDApp.verifyConnectionStatus('Connected');
 
-      // 2. Sign a message
-      await TronTestDApp.signMessage();
+        // 2. Sign a message
+        await TronTestDApp.signMessage();
 
-      // Approve the signature
-      await TronTestDApp.confirmSignMessage();
+        // Approve the signature
+        await TronTestDApp.confirmSignMessage();
 
-      // Verify signature
-      await TronTestDApp.verifySignedMessage(EXPECTED_SIGNED_MESSAGE);
-    });
+        // Verify signature
+        await TronTestDApp.verifySignedMessage(EXPECTED_SIGNED_MESSAGE);
+      },
+    );
   });
 });

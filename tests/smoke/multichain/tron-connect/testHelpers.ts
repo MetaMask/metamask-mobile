@@ -1,8 +1,8 @@
-import BrowserView from '../../../pages/Browser/BrowserView';
-import ConnectBottomSheet from '../../../pages/Browser/ConnectBottomSheet';
-import ConnectedAccountsModal from '../../../pages/Browser/ConnectedAccountsModal';
-import TronTestDApp from '../../../pages/Browser/TronTestDApp';
-import TabBarComponent from '../../../pages/wallet/TabBarComponent';
+import BrowserView from '../../../page-objects/Browser/BrowserView';
+import ConnectBottomSheet from '../../../page-objects/Browser/ConnectBottomSheet';
+import ConnectedAccountsModal from '../../../page-objects/Browser/ConnectedAccountsModal';
+import TronTestDApp from '../../../page-objects/Browser/TronTestDApp';
+import TabBarComponent from '../../../page-objects/wallet/TabBarComponent';
 import Assertions from '../../../../tests/framework/Assertions';
 
 export const account1Short = 'TLSL...nf2T';
