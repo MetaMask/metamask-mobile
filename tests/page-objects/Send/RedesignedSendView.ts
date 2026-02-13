@@ -4,7 +4,6 @@ import { RedesignedSendViewSelectorsIDs } from '../../../app/components/Views/co
 import { Utilities, Assertions } from '../../framework';
 import { CommonSelectorsIDs } from '../../../app/util/Common.testIds';
 import { SendActionViewSelectorsIDs } from '../../selectors/SendFlow/SendActionView.selectors';
-import { waitFor } from 'detox';
 
 class SendView {
   get ethereumTokenButton(): DetoxElement {
@@ -167,15 +166,11 @@ class SendView {
   }
 
   async checkInsufficientFundsError(): Promise<void> {
-    await Utilities.executeWithRetry(
-      async () => {
-        const insufficientFundsError = await this.insufficientFundsError;
-        await waitFor(insufficientFundsError).toExist().withTimeout(100);
-      },
+    await Assertions.expectElementToHaveText(
+      this.insufficientFundsError,
+      SendActionViewSelectorsIDs.INSUFFICIENT_FUNDS_ERROR,
       {
-        timeout: 15000,
-        description: 'Assert Insufficient funds error message exists',
-        elemDescription: 'Insufficient funds error message',
+        description: 'Insufficient funds error message',
       },
     );
   }
