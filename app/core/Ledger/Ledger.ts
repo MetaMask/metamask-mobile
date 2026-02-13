@@ -1,5 +1,4 @@
 import type BleTransport from '@ledgerhq/react-native-hw-transport-ble';
-import type Transport from '@ledgerhq/hw-transport';
 import {
   KeyringMetadata,
   SignTypedDataVersion,
@@ -64,7 +63,7 @@ export const connectLedgerHardware = async (
     keyring.setDeviceId(deviceId);
 
     const bridge = keyring.bridge as LedgerMobileBridge;
-    await bridge.updateTransportMethod(transport as unknown as Transport);
+    await bridge.updateTransportMethod(transport);
     return await bridge.getAppNameAndVersion();
   });
 

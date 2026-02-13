@@ -7310,18 +7310,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ledgerhq/devices@npm:8.4.6, @ledgerhq/devices@npm:^8.4.5":
-  version: 8.4.6
-  resolution: "@ledgerhq/devices@npm:8.4.6"
-  dependencies:
-    "@ledgerhq/errors": "npm:^6.21.0"
-    "@ledgerhq/logs": "npm:^6.13.0"
-    rxjs: "npm:^7.8.1"
-    semver: "npm:^7.3.5"
-  checksum: 10/8645c556f53160246d0601af4d077fb99d09deabeed778b5ee332958cdfab6505cbe41375eb788f3e8c3255a2c0c8c7e9a65797830cb957d6eccdf11fa257c75
-  languageName: node
-  linkType: hard
-
 "@ledgerhq/domain-service@npm:^1.2.15":
   version: 1.2.15
   resolution: "@ledgerhq/domain-service@npm:1.2.15"
@@ -7412,18 +7400,6 @@ __metadata:
     "@ledgerhq/logs": "npm:^6.14.0"
     events: "npm:^3.3.0"
   checksum: 10/5f98044fe23aa9684717f4e0884673e026b61168d7a6ac445c9396844923c2844ee80edfe3d72dfe1ba3d8c8f79b776228704bb005bcc66b3fdfe931916527e1
-  languageName: node
-  linkType: hard
-
-"@ledgerhq/hw-transport@npm:^6.31.4, @ledgerhq/hw-transport@npm:^6.31.5, @ledgerhq/hw-transport@npm:^6.31.6":
-  version: 6.31.6
-  resolution: "@ledgerhq/hw-transport@npm:6.31.6"
-  dependencies:
-    "@ledgerhq/devices": "npm:8.4.6"
-    "@ledgerhq/errors": "npm:^6.21.0"
-    "@ledgerhq/logs": "npm:^6.13.0"
-    events: "npm:^3.3.0"
-  checksum: 10/e05514de4de8933e90a1494c0b5e5ae1de523df21ab6fe78558122f41ee67817489b776c8c38ff31ec676991a8cdfb1800f8bb1de59c100e349b599c05dfe6eb
   languageName: node
   linkType: hard
 
@@ -8378,19 +8354,20 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/eth-ledger-bridge-keyring@npm:11.2.0":
-  version: 11.2.0
-  resolution: "@metamask/eth-ledger-bridge-keyring@npm:11.2.0"
+"@metamask/eth-ledger-bridge-keyring@npm:11.3.0":
+  version: 11.3.0
+  resolution: "@metamask/eth-ledger-bridge-keyring@npm:11.3.0"
   dependencies:
     "@ethereumjs/rlp": "npm:^5.0.2"
     "@ethereumjs/tx": "npm:^5.4.0"
     "@ethereumjs/util": "npm:^9.1.0"
     "@ledgerhq/hw-app-eth": "npm:^6.42.0"
     "@metamask/eth-sig-util": "npm:^8.2.0"
-    "@metamask/keyring-api": "npm:^21.3.0"
-    "@metamask/keyring-utils": "npm:^3.1.0"
+    "@metamask/hw-wallet-sdk": "npm:^0.4.0"
+    "@metamask/keyring-api": "npm:^21.4.0"
+    "@metamask/keyring-utils": "npm:^3.2.0"
     hdkey: "npm:^2.1.0"
-  checksum: 10/5658a0e63b1796d3eabe95b69686f95d40d09a4318da6748d20b2990cea07f2ff63b4412f4c9272ec529bfd3b4d249bebe4fc38814a2e379814a768abda859c8
+  checksum: 10/7f8bc5be11cab39acddaa677a3aabb676c308195c31a1e29032ace1eb038c840aeb8c06ce5702c9b191cdd90b16c094a1d39258c53933bde7f7c107cba59da35
   languageName: node
   linkType: hard
 
@@ -8642,6 +8619,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/hw-wallet-sdk@npm:^0.4.0":
+  version: 0.4.0
+  resolution: "@metamask/hw-wallet-sdk@npm:0.4.0"
+  checksum: 10/ef32e257f63674d8920a234e43933062c418ac893e1be06dee69c56a3966311646a0a20fa4a3063da02d37d6058a5efe2beecd5bac0f76cbfedbf752e3ca9f0e
+  languageName: node
+  linkType: hard
+
 "@metamask/json-rpc-engine@npm:^10.0.0, @metamask/json-rpc-engine@npm:^10.0.2, @metamask/json-rpc-engine@npm:^10.0.3, @metamask/json-rpc-engine@npm:^10.1.0, @metamask/json-rpc-engine@npm:^10.1.1, @metamask/json-rpc-engine@npm:^10.2.0, @metamask/json-rpc-engine@npm:^10.2.1":
   version: 10.2.1
   resolution: "@metamask/json-rpc-engine@npm:10.2.1"
@@ -8694,7 +8678,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/keyring-api@npm:^21.0.0, @metamask/keyring-api@npm:^21.2.0, @metamask/keyring-api@npm:^21.3.0, @metamask/keyring-api@npm:^21.4.0":
+"@metamask/keyring-api@npm:^21.0.0, @metamask/keyring-api@npm:^21.2.0, @metamask/keyring-api@npm:^21.4.0":
   version: 21.4.0
   resolution: "@metamask/keyring-api@npm:21.4.0"
   dependencies:
@@ -35145,7 +35129,7 @@ __metadata:
     "@metamask/eth-hd-keyring": "npm:^13.0.0"
     "@metamask/eth-json-rpc-filters": "npm:^9.0.0"
     "@metamask/eth-json-rpc-middleware": "npm:^23.1.0"
-    "@metamask/eth-ledger-bridge-keyring": "npm:11.2.0"
+    "@metamask/eth-ledger-bridge-keyring": "npm:11.3.0"
     "@metamask/eth-qr-keyring": "npm:^1.1.0"
     "@metamask/eth-query": "npm:^4.0.0"
     "@metamask/eth-sig-util": "npm:^8.0.0"
