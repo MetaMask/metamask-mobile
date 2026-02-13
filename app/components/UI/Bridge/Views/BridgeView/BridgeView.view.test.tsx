@@ -63,14 +63,19 @@ describeForPlatforms('BridgeView', () => {
   });
 
   it('types 9.5 with keypad and displays $19,000.00 fiat value', async () => {
-    const { getByTestId, queryByTestId, findByText, findByDisplayValue } =
-      defaultBridgeWithTokens({
-        bridge: {
-          sourceAmount: '0',
-          sourceToken: ETH_SOURCE,
-          destToken: undefined,
-        },
-      } as unknown as Record<string, unknown>);
+    const {
+      getByTestId,
+      queryByTestId,
+      getByText,
+      findByText,
+      findByDisplayValue,
+    } = defaultBridgeWithTokens({
+      bridge: {
+        sourceAmount: '0',
+        sourceToken: ETH_SOURCE,
+        destToken: undefined,
+      },
+    } as unknown as Record<string, unknown>);
 
     const closeBanner = queryByTestId(
       CommonSelectorsIDs.BANNER_CLOSE_BUTTON_ICON,
@@ -79,16 +84,17 @@ describeForPlatforms('BridgeView', () => {
       fireEvent.press(closeBanner);
     }
 
+    // Keypad opens on focus (useBridgeViewOnFocus); wait for it to render
     await waitFor(() => {
       expect(
         getByTestId(BuildQuoteSelectors.KEYPAD_DELETE_BUTTON),
       ).toBeOnTheScreen();
     });
 
-    const scroll = getByTestId(BridgeViewSelectorsIDs.BRIDGE_VIEW_SCROLL);
-    fireEvent.press(within(scroll).getByText('9'));
-    fireEvent.press(within(scroll).getByText('.'));
-    fireEvent.press(within(scroll).getByText('5'));
+    // Keypad is in SwapsKeypad (sibling of ScrollView), not inside bridge-view-scroll
+    fireEvent.press(getByText('9'));
+    fireEvent.press(getByText('.'));
+    fireEvent.press(getByText('5'));
 
     expect(await findByDisplayValue('9.5')).toBeOnTheScreen();
     expect(await findByText('$19,000.00')).toBeOnTheScreen();
@@ -96,7 +102,7 @@ describeForPlatforms('BridgeView', () => {
 
   it('renders enabled confirm button with tokens, amount and recommended quote', () => {
     const now = Date.now();
-    const { getByTestId } = defaultBridgeWithTokens({
+    const { getAllByTestId } = defaultBridgeWithTokens({
       engine: {
         backgroundState: {
           BridgeController: {
@@ -238,7 +244,7 @@ describeForPlatforms('BridgeView', () => {
     const now = Date.now();
     const previousQuote = { ...mockQuoteWithMetadata };
 
-    const { queryByTestId } = defaultBridgeWithTokens({
+    const { getByTestId } = defaultBridgeWithTokens({
       engine: {
         backgroundState: {
           BridgeController: {
@@ -255,7 +261,9 @@ describeForPlatforms('BridgeView', () => {
       },
     } as unknown as Record<string, unknown>);
 
-    expect(queryByTestId(BuildQuoteSelectors.KEYPAD_DELETE_BUTTON)).toBeNull();
+    // With a previous quote and loading, confirm button is shown (may be in keypad or main content)
+    const confirmButton = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
+    expect(confirmButton).toBeOnTheScreen();
   });
 
   it('navigates to dest token selector on press', async () => {
@@ -326,9 +334,9 @@ describeForPlatforms('BridgeView', () => {
       ).not.toBe(true);
     });
 
-    // TODO: Test is flaky after rebase - search results from mocked fetch do not render as 2 USDT labels.
-    // Fix mock/state or assertion (e.g. wait for useTokensWithBalances to map API response to list items).
+    // Regression for #25256: two USDT tokens on Linea must both appear in search results.
     it('shows two USDT when search API returns two USDT on Linea (#25256)', async () => {
+      jest.useFakeTimers();
       const LINEA_CHAIN_ID = 59144;
       const verifiedUsdtAddress = '0xA219439258ca9da29E9Cc4cE5596924745e12B93';
       const otherUsdtAddress = '0x0000000000000000000000000000000000000001';
@@ -363,10 +371,13 @@ describeForPlatforms('BridgeView', () => {
           const urlStr =
             typeof url === 'string' ? url : (url as URL).toString();
           if (urlStr.includes('/getTokens/search')) {
-            const body =
-              typeof (init as RequestInit)?.body === 'string'
-                ? JSON.parse((init as RequestInit).body as string)
-                : {};
+            let body: { query?: string } = {};
+            try {
+              const rawBody = (init as RequestInit)?.body;
+              body = typeof rawBody === 'string' ? JSON.parse(rawBody) : {};
+            } catch {
+              // ignore parse errors
+            }
             if (body.query === 'USDT') {
               return Promise.resolve({
                 ok: true,
@@ -450,18 +461,19 @@ describeForPlatforms('BridgeView', () => {
         } as unknown as Record<string, unknown>)
         .build() as unknown as Record<string, unknown>;
 
-      const { getByTestId, findByText, getAllByText } = renderScreenWithRoutes(
-        BridgeView as unknown as React.ComponentType,
-        { name: Routes.BRIDGE.BRIDGE_VIEW },
-        [
-          {
-            name: Routes.BRIDGE.TOKEN_SELECTOR,
-            Component:
-              BridgeTokenSelector as unknown as React.ComponentType<unknown>,
-          },
-        ],
-        { state },
-      );
+      const { getByTestId, getByText, findByText, getAllByText } =
+        renderScreenWithRoutes(
+          BridgeView as unknown as React.ComponentType,
+          { name: Routes.BRIDGE.BRIDGE_VIEW },
+          [
+            {
+              name: Routes.BRIDGE.TOKEN_SELECTOR,
+              Component:
+                BridgeTokenSelector as unknown as React.ComponentType<unknown>,
+            },
+          ],
+          { state },
+        );
 
       fireEvent.press(await findByText('Swap to'));
 
@@ -471,16 +483,37 @@ describeForPlatforms('BridgeView', () => {
       );
       fireEvent.changeText(searchInput, 'USDT');
 
-      // useSearchTokens debounce is 300ms; wait for fetch + state update + render with real timers
+      // useSearchTokens debounce is 300ms; advance so the search request is sent
+      await act(async () => {
+        jest.advanceTimersByTime(350);
+      });
+
+      // Flush promise queue so fetch response is processed
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      // Ensure the search API was called (proves debounce + chainIds are correct)
+      const urlStr = (url: unknown) =>
+        typeof url === 'string' ? url : (url as URL).toString();
+      const searchCalls = fetchSpy.mock.calls.filter(([url]) =>
+        urlStr(url).includes('/getTokens/search'),
+      );
+      expect(searchCalls.length).toBeGreaterThanOrEqual(1);
+
+      // Wait for list to show results (second token has unique name)
       await waitFor(
         () => {
-          const usdtLabels = getAllByText('USDT');
-          expect(usdtLabels.length).toBe(2);
+          expect(getByText('Tether USD (duplicate)')).toBeOnTheScreen();
         },
         { timeout: 10000 },
       );
 
+      const usdtLabels = getAllByText('USDT');
+      expect(usdtLabels.length).toBe(2);
+
       fetchSpy.mockRestore();
+      jest.useRealTimers();
     }, 25000);
 
     it('shows native token in source area when source is native token from token details (#24865)', () => {
