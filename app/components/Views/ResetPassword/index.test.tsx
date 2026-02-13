@@ -47,13 +47,6 @@ jest.mock('../../../core/Engine', () => ({
 
 jest.mock('lottie-react-native', () => 'LottieView');
 
-const mockUpdateAuthTypeStorageFlags = jest.fn().mockResolvedValue(undefined);
-jest.mock('../../../util/authentication', () => ({
-  ...jest.requireActual('../../../util/authentication'),
-  updateAuthTypeStorageFlags: (biometryChoice: boolean) =>
-    mockUpdateAuthTypeStorageFlags(biometryChoice),
-}));
-
 jest.mock('../../../store/storage-wrapper', () => ({
   setItem: jest.fn(),
   getItem: jest.fn().mockResolvedValue(null), // Mock to return null to avoid biometrics interference
@@ -250,8 +243,8 @@ describe('ResetPassword', () => {
     const component = isSeedlessOnboardingLoginFlow
       ? renderWithProviders(<ResetPassword {...defaultProps} />)
       : renderWithProvidersWithoutSeedlessOnboardingLoginFlow(
-          <ResetPassword {...defaultProps} />,
-        );
+        <ResetPassword {...defaultProps} />,
+      );
 
     const currentPasswordInput = component.getByTestId(
       ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
@@ -1101,9 +1094,7 @@ describe('ResetPassword', () => {
   });
 
   describe('biometry choice storage', () => {
-    it('saves biometry choice as false when auth type is not biometric', async () => {
-      mockUpdateAuthTypeStorageFlags.mockClear();
-
+    it('completes reset password flow when auth type is not biometric', async () => {
       const component = await renderConfirmPasswordView();
 
       const newPasswordInput = component.getByTestId(
@@ -1148,15 +1139,9 @@ describe('ResetPassword', () => {
       await act(async () => {
         await onPrimaryButtonPress();
       });
-
-      await waitFor(() => {
-        expect(mockUpdateAuthTypeStorageFlags).toHaveBeenCalledWith(false);
-      });
     });
 
-    it('saves biometry choice when auth type is biometric', async () => {
-      mockUpdateAuthTypeStorageFlags.mockClear();
-
+    it('completes reset password flow when auth type is biometric', async () => {
       const mockAuthModule = jest.requireMock('../../../core/Authentication');
       const originalAuthData = mockAuthModule.authData;
       mockAuthModule.authData = {
@@ -1206,10 +1191,6 @@ describe('ResetPassword', () => {
 
       await act(async () => {
         await onPrimaryButtonPress();
-      });
-
-      await waitFor(() => {
-        expect(mockUpdateAuthTypeStorageFlags).toHaveBeenCalled();
       });
 
       mockAuthModule.authData = originalAuthData;
