@@ -55,7 +55,7 @@ const PerpsOrderDetailsView: React.FC = () => {
   const navigation = useNavigation();
   const route =
     useRoute<RouteProp<{ params: OrderDetailsRouteParams }, 'params'>>();
-  const { order } = route.params || {};
+  const { order } = route.params ?? {};
   const { styles } = useStyles(styleSheet, {});
   const { colors } = useTheme();
   const { cancelOrder } = usePerpsTrading();
@@ -99,7 +99,7 @@ const PerpsOrderDetailsView: React.FC = () => {
         ? (parseFloat(order.filledSize) / parseFloat(order.originalSize)) * 100
         : 0;
 
-    const parsedPrice = parseFloat(order.price || '0');
+    const parsedPrice = parseFloat(order.price ?? '0');
     const validTriggerPrice = getValidTriggerPrice(order);
     const hasPrice = Number.isFinite(parsedPrice) && parsedPrice > 0;
     const priceForValue = hasPrice ? parsedPrice : (validTriggerPrice ?? 0);
@@ -108,7 +108,7 @@ const PerpsOrderDetailsView: React.FC = () => {
 
     const isMarketExecution =
       order.orderType === 'market' ||
-      (order.detailedOrderType || '').toLowerCase().includes('market');
+      (order.detailedOrderType ?? '').toLowerCase().includes('market');
 
     const priceText = isMarketExecution
       ? strings('perps.order_details.market')
@@ -131,11 +131,11 @@ const PerpsOrderDetailsView: React.FC = () => {
     }
 
     const parsedTakeProfitPrice = Number.parseFloat(
-      order.takeProfitPrice || '',
+      order.takeProfitPrice ?? '',
     );
     const hasTakeProfitPrice =
       Number.isFinite(parsedTakeProfitPrice) && parsedTakeProfitPrice > 0;
-    const parsedStopLossPrice = Number.parseFloat(order.stopLossPrice || '');
+    const parsedStopLossPrice = Number.parseFloat(order.stopLossPrice ?? '');
     const hasStopLossPrice =
       Number.isFinite(parsedStopLossPrice) && parsedStopLossPrice > 0;
 

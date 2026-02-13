@@ -79,7 +79,7 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
     labelText = `${formatPnl(pnlValue)} (${formatPercentage(roeValue, 1)})`;
   } else if (order) {
     const displaySymbol = getPerpsDisplaySymbol(order.symbol);
-    const detailedOrderType = order.detailedOrderType || '';
+    const detailedOrderType = order.detailedOrderType ?? '';
     const normalizedDetailedOrderType = detailedOrderType.toLowerCase();
     const isTriggerOrder = Boolean(
       order.isTrigger || isTPSLOrder(order.detailedOrderType),
@@ -91,7 +91,7 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
     const validTriggerPrice = getValidTriggerPrice(order);
     const triggerOrLimitPrice =
       validTriggerPrice !== null ? order.triggerPrice : order.price;
-    const parsedOrderPrice = parseFloat(triggerOrLimitPrice || '0');
+    const parsedOrderPrice = parseFloat(triggerOrLimitPrice ?? '0');
 
     primaryText = formatOrderLabel(order);
     secondaryText = `${formatPositionSize(order.originalSize)} ${displaySymbol}`;

@@ -64,7 +64,7 @@ const PerpsCompactOrderRow: React.FC<PerpsCompactOrderRowProps> = ({
     const priceValue =
       order.isTrigger && validTriggerPrice !== null
         ? validTriggerPrice
-        : parseFloat(order.price || '0');
+        : parseFloat(order.price ?? '0');
     const formattedPrice = formatPerpsFiat(priceValue, {
       ranges: PRICE_RANGES_MINIMAL_VIEW,
     });
@@ -75,7 +75,7 @@ const PerpsCompactOrderRow: React.FC<PerpsCompactOrderRowProps> = ({
     const symbol = getPerpsDisplaySymbol(order.symbol);
 
     // Order type display (e.g., "Limit long", "Stop Market")
-    const orderTypeDisplay = order.detailedOrderType || 'Limit';
+    const orderTypeDisplay = order.detailedOrderType ?? 'Limit';
 
     return {
       direction,
