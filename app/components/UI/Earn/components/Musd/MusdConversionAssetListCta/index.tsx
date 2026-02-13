@@ -19,8 +19,6 @@ import { useRampNavigation } from '../../../../Ramp/hooks/useRampNavigation';
 import { RampIntent } from '../../../../Ramp/types';
 import { strings } from '../../../../../../../locales/i18n';
 import { EARN_TEST_IDS } from '../../../constants/testIds';
-import { useNavigation } from '@react-navigation/native';
-import Routes from '../../../../../../constants/navigation/Routes';
 import Logger from '../../../../../../util/Logger';
 import { useStyles } from '../../../../../hooks/useStyles';
 import { useMusdConversion } from '../../../hooks/useMusdConversion';
@@ -31,8 +29,6 @@ import {
 import { useMusdConversionFlowData } from '../../../hooks/useMusdConversionFlowData';
 import AvatarToken from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import { AvatarSize } from '../../../../../../component-library/components/Avatars/Avatar';
-import { selectMusdQuickConvertEnabledFlag } from '../../../selectors/featureFlags';
-import { useSelector } from 'react-redux';
 import BadgeWrapper, {
   BadgePosition,
 } from '../../../../../../component-library/components/Badges/BadgeWrapper';
@@ -68,10 +64,6 @@ const MusdConversionAssetListCta = () => {
     shouldShowBuyGetMusdCta();
 
   const networkName = useNetworkName(selectedChainId ?? undefined);
-
-  const navigation = useNavigation();
-
-  const isQuickConvertEnabled = useSelector(selectMusdQuickConvertEnabledFlag);
 
   const buttonText =
     variant === BUY_GET_MUSD_CTA_VARIANT.BUY
@@ -136,13 +128,6 @@ const MusdConversionAssetListCta = () => {
     }
 
     try {
-      if (isQuickConvertEnabled) {
-        navigation.navigate(Routes.EARN.ROOT, {
-          screen: Routes.EARN.MUSD.QUICK_CONVERT,
-        });
-        return;
-      }
-
       await initiateCustomConversion({
         preferredPaymentToken: paymentToken,
       });

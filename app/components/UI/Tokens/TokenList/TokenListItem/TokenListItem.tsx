@@ -229,7 +229,6 @@ export const TokenListItem = React.memo(
         }
 
         const assetChainId = toHex(asset.chainId);
-
         await initiateCustomConversion({
           preferredPaymentToken: {
             address: toHex(asset.address),

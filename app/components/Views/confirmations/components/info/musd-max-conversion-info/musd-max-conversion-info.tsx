@@ -67,26 +67,22 @@ export const MusdMaxConversionInfo = () => {
   const { styles } = useStyles(musdMaxConversionInfoStyleSheet, {});
   const networkName = useSelector(selectNetworkName);
 
-  // TODO: Check if there's a confirmations hook that can be used to get the token instead of using navigation params.
-  // Get token from navigation params
   const { token } = useParams<MusdMaxConversionParams>();
 
   const quotes = useTransactionPayQuotes();
 
-  // Transaction and quote data
   const transactionMetadata = useTransactionMetadataRequest();
   const isQuoteLoading = useIsTransactionPayLoading();
   const noPayTokenQuotesAlert = useNoPayTokenQuotesAlert();
 
-  // Confirmation actions
   const { onConfirm } = useTransactionConfirm();
   const { hasBlockingAlerts } = useAlerts();
 
   const formatFiat = useFiatFormatter();
-  // Derived state
+
   const isLoading =
     !transactionMetadata || isQuoteLoading || quotes?.length === 0;
-  // Confirm button disabled state
+
   const isConfirmDisabled = isLoading || hasBlockingAlerts;
 
   return (
@@ -100,33 +96,24 @@ export const MusdMaxConversionInfo = () => {
           color={TextColor.Error}
           style={styles.errorText}
         >
-          {/* TODO: PLACEHOLDER TEXT FOR UAT BUILD */}
-          {'Failed to get quotes. Please close this modal and try again.'}
+          {strings('earn.musd_conversion.quick_convert.failed_to_get_quotes')}
         </Text>
       ) : (
         <>
-          {/* Asset Header */}
           <MusdMaxConversionAssetHeader
             token={token}
             networkName={networkName}
             formatFiat={formatFiat}
           />
-
-          {/* Details Section */}
           <View style={styles.detailsSection}>
             <RelayYouReceiveRow
               label={strings('earn.musd_conversion.you_receive')}
               testID={MusdMaxConversionInfoTestIds.AMOUNT_ROW}
             />
-
             <BridgeFeeRow />
             <TotalRow />
-
-            {/* Earning Row */}
             <PercentageRow />
           </View>
-
-          {/* Confirm Button */}
           <View style={styles.buttonContainer}>
             <Button
               onPress={onConfirm}

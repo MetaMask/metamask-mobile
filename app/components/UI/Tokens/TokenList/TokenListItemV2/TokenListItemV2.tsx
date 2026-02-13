@@ -199,7 +199,7 @@ export const TokenListItemV2 = React.memo(
     const earnToken = getEarnToken(asset as TokenI);
 
     const { shouldShowTokenListItemCta } = useMusdCtaVisibility();
-    const { initiateConversion, hasSeenConversionEducationScreen } =
+    const { initiateCustomConversion, hasSeenConversionEducationScreen } =
       useMusdConversion();
 
     const shouldShowConvertToMusdCta = useMemo(
@@ -324,7 +324,7 @@ export const TokenListItemV2 = React.memo(
 
         const assetChainId = toHex(asset.chainId);
 
-        await initiateConversion({
+        await initiateCustomConversion({
           preferredPaymentToken: {
             address: toHex(asset.address),
             chainId: assetChainId,
@@ -344,7 +344,7 @@ export const TokenListItemV2 = React.memo(
       chainId,
       createEventBuilder,
       hasSeenConversionEducationScreen,
-      initiateConversion,
+      initiateCustomConversion,
       networkName,
       trackEvent,
     ]);

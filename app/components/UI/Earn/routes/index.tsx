@@ -66,7 +66,7 @@ const EarnModalStack = () => (
       options={{ headerShown: false }}
     />
     <ModalStack.Screen
-      name={Routes.EARN.MODALS.MUSD_MAX_CONVERSION}
+      name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
       component={Confirm}
       options={{ headerShown: false }}
     />

@@ -355,7 +355,6 @@ const Routes = {
       ROOT: 'EarnModals',
       LENDING_MAX_WITHDRAWAL: 'EarnLendingMaxWithdrawalModal',
       LENDING_LEARN_MORE: 'EarnLendingLearnMoreModal',
-      MUSD_MAX_CONVERSION: 'EarnMusdMaxConversionModal',
       MUSD_BALANCES_BY_NETWORK: 'EarnMusdBalancesByNetworkBottomSheet',
     },
   },

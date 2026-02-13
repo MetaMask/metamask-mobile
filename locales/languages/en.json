@@ -5936,7 +5936,8 @@
         "inline_failed_message": "Conversion failed. Try again.",
         "confirmation": {
           "title": "Convert Max"
-        }
+        },
+        "failed_to_get_quotes": "Failed to get quotes. Please close this modal and try again."
       },
       "percentage_boost": "{{percentage}}% boost"
     },
