@@ -539,8 +539,8 @@ class AuthenticationService {
           return AUTHENTICATION_TYPE.PASSWORD;
         }
         return authType;
-      } catch (error) {
-        // Fallback to use password as authentication type
+      } catch {
+        // NOSONAR - intentional fallback to password on any biometric failure
         return AUTHENTICATION_TYPE.PASSWORD;
       }
     }

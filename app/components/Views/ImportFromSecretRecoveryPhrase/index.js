@@ -24,7 +24,6 @@ import {
 } from 'react-native-keyboard-controller';
 import { isTest } from '../../../util/test/utils';
 import AppConstants from '../../../core/AppConstants';
-import Device from '../../../util/device';
 import {
   failedSeedPhraseRequirements,
   isValidMnemonic,
@@ -74,12 +73,7 @@ import Text, {
   TextColor,
 } from '../../../component-library/components/Texts/Text';
 import { CommonActions } from '@react-navigation/native';
-import {
-  SRP_LENGTHS,
-  SPACE_CHAR,
-  PASSCODE_NOT_SET_ERROR,
-  IOS_REJECTED_BIOMETRICS_ERROR,
-} from './constant';
+import { SRP_LENGTHS, SPACE_CHAR, PASSCODE_NOT_SET_ERROR } from './constant';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
 import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
