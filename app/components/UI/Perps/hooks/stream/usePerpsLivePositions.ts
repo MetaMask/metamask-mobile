@@ -102,7 +102,10 @@ export function usePerpsLivePositions(
 ): UsePerpsLivePositionsReturn {
   const { throttleMs = 0, useLivePnl = false } = options; // No live PnL by default to avoid unnecessary re-renders
   const stream = usePerpsStream();
-  const [positions, setPositions] = useState<Position[]>(EMPTY_POSITIONS);
+  const [positions, setPositions] = useState<Position[]>(
+    () =>
+      getPreloadedUserData<Position[]>('cachedPositions') ?? EMPTY_POSITIONS,
+  );
   const [isInitialLoading, setIsInitialLoading] = useState(
     () => !hasPreloadedUserData('cachedPositions'),
   );

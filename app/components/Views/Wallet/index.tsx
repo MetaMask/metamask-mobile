@@ -469,6 +469,7 @@ const WalletTokensTabView = forwardRef<
     } else {
       controller.stopMarketDataPreload();
     }
+    return () => controller.stopMarketDataPreload();
   }, [isPerpsEnabled]);
 
   // Handle deep link effects

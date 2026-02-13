@@ -62,6 +62,8 @@ abstract class StreamChannel<T> {
   protected isPaused = false;
   // Retry counter for deferred connect() calls
   protected connectRetryCount = 0;
+  // Timer handle for deferConnect so it can be cancelled on disconnect
+  protected deferConnectTimer: ReturnType<typeof setTimeout> | null = null;
   private static readonly MAX_CONNECT_RETRIES = 150; // 30s at 200ms
 
   protected notifySubscribers(updates: T) {
@@ -167,7 +169,7 @@ abstract class StreamChannel<T> {
     }
 
     this.connectRetryCount++;
-    setTimeout(() => this.connect(), delayMs);
+    this.deferConnectTimer = setTimeout(() => this.connect(), delayMs);
   }
 
   /**
@@ -184,6 +186,10 @@ abstract class StreamChannel<T> {
 
   public disconnect() {
     this.connectRetryCount = 0;
+    if (this.deferConnectTimer) {
+      clearTimeout(this.deferConnectTimer);
+      this.deferConnectTimer = null;
+    }
     // This prevents orphaned timers from continuing to run after disconnect
     this.subscribers.forEach((subscriber) => {
       if (subscriber.timer) {
@@ -1045,7 +1051,7 @@ class AccountStreamChannel extends StreamChannel<AccountState | null> {
   protected getCachedData(): AccountState | null {
     // Return channel cache if available (from WebSocket)
     const cached = this.cache.get('account');
-    if (cached) return cached;
+    if (cached !== undefined) return cached;
 
     // Fallback: read controller preloaded cache (from REST preload)
     const controller = Engine.context.PerpsController;
@@ -1123,6 +1129,12 @@ class OICapStreamChannel extends StreamChannel<string[]> {
     // Check if controller is reinitializing - wait before attempting connection
     if (Engine.context.PerpsController.isCurrentlyReinitializing()) {
       this.deferConnect(PERPS_CONSTANTS.ReconnectionCleanupDelayMs);
+      return;
+    }
+
+    // Check if controller is not yet initialized - defer until ready
+    if (!PerpsConnectionManager.getConnectionState().isInitialized) {
+      this.deferConnect(200);
       return;
     }
 
@@ -1541,22 +1553,6 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
       // Send empty array to indicate "no market data" rather than "loading"
       subscriber.callback([]);
     });
-  }
-
-  /**
-   * Seed cache with externally-fetched market data (e.g., from background preload).
-   * Uses the same cache and lastFetchTime as fetchMarketData(),
-   * so when the channel later connects via subscribe() or prewarm(), it finds
-   * warm data and serves it immediately without an HTTP fetch.
-   */
-  public seedCache(data: PerpsMarketData[]): void {
-    if (!data || data.length === 0) return;
-    this.cache.set('markets', data);
-    this.lastFetchTime = Date.now();
-    // Notify any existing subscribers (unlikely pre-navigation, but correct)
-    if (this.subscribers.size > 0) {
-      this.notifySubscribers(data);
-    }
   }
 }
 
