@@ -79,7 +79,8 @@ export const useFeeCalculations = (
   const { gasFeeEstimates } = useGasFeeEstimates(networkClientId);
   const shouldHideFiat =
     (isTestNet(chainId as Hex) && !showFiatOnTestnets) ||
-    nativeConversionRate === null;
+    nativeConversionRate === null ||
+    nativeConversionRate === undefined;
 
   // `gasUsed` is the gas limit actually used by the transaction in the
   // simulation environment.
