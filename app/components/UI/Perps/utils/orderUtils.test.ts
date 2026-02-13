@@ -330,6 +330,11 @@ describe('orderUtils', () => {
       stopLossCount: 0,
     };
 
+    const mockShortPosition: Position = {
+      ...mockLongPosition,
+      size: '-1.0',
+    };
+
     const mockReduceOnlyOrder: Order = {
       orderId: 'tp-order',
       symbol: 'BTC',
@@ -359,6 +364,15 @@ describe('orderUtils', () => {
       const result = isOrderAssociatedWithFullPosition(
         mockReduceOnlyOrder,
         mockLongPosition,
+      );
+
+      expect(result).toBe(true);
+    });
+
+    it('associates full-position TP/SL for short positions via size fallback when flag is missing', () => {
+      const result = isOrderAssociatedWithFullPosition(
+        { ...mockReduceOnlyOrder, side: 'buy' },
+        mockShortPosition,
       );
 
       expect(result).toBe(true);
@@ -404,6 +418,15 @@ describe('orderUtils', () => {
       const result = shouldDisplayOrderInMarketDetailsOrders(
         { ...mockReduceOnlyOrder, isPositionTpsl: true },
         mockLongPosition,
+      );
+
+      expect(result).toBe(false);
+    });
+
+    it('hides full-position reduce-only TP/SL orders for short positions from Market Details orders section', () => {
+      const result = shouldDisplayOrderInMarketDetailsOrders(
+        { ...mockReduceOnlyOrder, side: 'buy' },
+        mockShortPosition,
       );
 
       expect(result).toBe(false);
@@ -503,6 +526,7 @@ describe('orderUtils', () => {
         {
           ...parentLimitOrder,
           takeProfitPrice: '95000',
+          takeProfitOrderId: 'real-child-tp',
         },
         {
           orderId: 'real-child-tp',
@@ -525,6 +549,50 @@ describe('orderUtils', () => {
 
       expect(result).toHaveLength(2);
       expect(result.find((order) => order.isSynthetic)).toBeUndefined();
+    });
+
+    it('does not suppress synthetic rows for a different parent with the same trigger price', () => {
+      const secondParentOrder: Order = {
+        ...parentLimitOrder,
+        orderId: 'parent-limit-2',
+      };
+
+      const result = buildDisplayOrdersWithSyntheticTpsl([
+        {
+          ...parentLimitOrder,
+          takeProfitPrice: '95000',
+          takeProfitOrderId: 'real-child-parent-1',
+        },
+        {
+          ...secondParentOrder,
+          takeProfitPrice: '95000',
+        },
+        {
+          orderId: 'real-child-parent-1',
+          symbol: 'BTC',
+          side: 'sell',
+          orderType: 'limit',
+          size: '0.5',
+          originalSize: '0.5',
+          price: '95000',
+          filledSize: '0',
+          remainingSize: '0.5',
+          status: 'open',
+          timestamp,
+          detailedOrderType: 'Take Profit Limit',
+          isTrigger: true,
+          reduceOnly: true,
+          triggerPrice: '95000',
+        },
+      ]);
+
+      expect(result).toHaveLength(4);
+      expect(
+        result.find((order) => order.orderId === 'parent-limit-1-synthetic-tp'),
+      ).toBeUndefined();
+      expect(
+        result.find((order) => order.orderId === 'parent-limit-2-synthetic-tp'),
+      ).toBeDefined();
     });
   });
 

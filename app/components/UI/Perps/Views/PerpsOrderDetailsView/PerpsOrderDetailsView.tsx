@@ -105,10 +105,10 @@ const PerpsOrderDetailsView: React.FC = () => {
     const hasTriggerPrice =
       Number.isFinite(parsedTriggerPrice) && parsedTriggerPrice > 0;
     const hasPrice = Number.isFinite(parsedPrice) && parsedPrice > 0;
-    const priceForValue = hasTriggerPrice
-      ? parsedTriggerPrice
-      : hasPrice
-        ? parsedPrice
+    const priceForValue = hasPrice
+      ? parsedPrice
+      : hasTriggerPrice
+        ? parsedTriggerPrice
         : 0;
 
     const originalSizeUSD = parseFloat(order.originalSize) * priceForValue;

@@ -33,7 +33,7 @@ const getAbsolutePositionSize = (position?: Position): BigNumber | null => {
   }
 
   const parsedSize = new BigNumber(position.size);
-  if (!parsedSize.isFinite() || parsedSize.lte(0)) {
+  if (!parsedSize.isFinite() || parsedSize.isZero()) {
     return null;
   }
 
@@ -57,9 +57,31 @@ const getOrderTriggerPrice = (order: Order): BigNumber | null => {
 const hasMatchingRealReduceOnlyTrigger = (
   orders: Order[],
   syntheticOrder: Order,
-): boolean =>
-  orders.some((order) => {
+): boolean => {
+  if (!syntheticOrder.parentOrderId) {
+    return false;
+  }
+
+  const parentOrder = orders.find(
+    (order) => order.orderId === syntheticOrder.parentOrderId,
+  );
+
+  return orders.some((order) => {
     if (order.isSynthetic) {
+      return false;
+    }
+
+    const isSameParentByChildLink = Boolean(
+      order.parentOrderId &&
+        order.parentOrderId === syntheticOrder.parentOrderId,
+    );
+    const isSameParentByParentReference = Boolean(
+      parentOrder &&
+        (parentOrder.takeProfitOrderId === order.orderId ||
+          parentOrder.stopLossOrderId === order.orderId),
+    );
+
+    if (!isSameParentByChildLink && !isSameParentByParentReference) {
       return false;
     }
 
@@ -84,6 +106,7 @@ const hasMatchingRealReduceOnlyTrigger = (
       .abs()
       .lte(ORDER_PRICE_MATCH_TOLERANCE);
   });
+};
 
 const isClosingSideForPosition = (
   order: Order,
