@@ -62,6 +62,19 @@ const QUOTE_MOCK = {
   strategy: TransactionPayStrategy.Bridge,
 } as TransactionPayQuote<Json>;
 
+const RELAY_QUOTE_MOCK = {
+  dust: {
+    fiat: '0.6',
+    usd: '0.5',
+  },
+  strategy: TransactionPayStrategy.Relay,
+  original: {
+    metamask: {
+      twoPhaseQuoteForMaxAmount: true,
+    },
+  },
+} as unknown as TransactionPayQuote<Json>;
+
 function runHook({ type }: { type?: TransactionType } = {}) {
   const state = merge(
     {},
@@ -486,6 +499,52 @@ describe('useTransactionPayMetrics', () => {
           properties: expect.objectContaining({
             mm_pay_chain_highest_balance_caip:
               'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+          }),
+          sensitiveProperties: {},
+        },
+      });
+    });
+  });
+
+  describe('two-phase gasless metrics', () => {
+    it('includes two-phase metrics when relay quote has twoPhaseQuote flag', async () => {
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: PAY_TOKEN_MOCK,
+        setPayToken: noop,
+      } as ReturnType<typeof useTransactionPayToken>);
+      useTransactionPayQuotesMock.mockReturnValue([RELAY_QUOTE_MOCK]);
+
+      runHook();
+
+      await act(async () => noop());
+
+      expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
+        id: transactionIdMock,
+        params: {
+          properties: expect.objectContaining({
+            mm_pay_max_gasless_phase2_triggered: true,
+          }),
+          sensitiveProperties: {},
+        },
+      });
+    });
+
+    it('does not include two-phase metrics for non-relay quotes', async () => {
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: PAY_TOKEN_MOCK,
+        setPayToken: noop,
+      } as ReturnType<typeof useTransactionPayToken>);
+      useTransactionPayQuotesMock.mockReturnValue([QUOTE_MOCK]);
+
+      runHook();
+
+      await act(async () => noop());
+
+      expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
+        id: transactionIdMock,
+        params: {
+          properties: expect.not.objectContaining({
+            mm_pay_max_gasless_phase2_triggered: expect.anything(),
           }),
           sensitiveProperties: {},
         },
