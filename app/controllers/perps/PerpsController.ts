@@ -3429,7 +3429,7 @@ export class PerpsController extends BaseController<
       | null
       | undefined;
     const initialPaymentMethod =
-      current === null ||
+      current == null ||
       current?.description === PERPS_CONSTANTS.PerpsBalanceTokenDescription
         ? 'perps_balance'
         : (current?.symbol ?? 'unknown');

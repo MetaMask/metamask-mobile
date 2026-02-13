@@ -383,8 +383,8 @@ describe('TradingService', () => {
       expect(mockReportOrderToDataLake).toHaveBeenCalledWith({
         action: 'open',
         symbol: 'BTC',
-        sl_price: 45000,
-        tp_price: 55000,
+        slPrice: 45000,
+        tpPrice: 55000,
       });
     });
 
@@ -1275,8 +1275,6 @@ describe('TradingService', () => {
       expect(mockReportOrderToDataLake).toHaveBeenCalledWith({
         action: 'close',
         symbol: 'BTC',
-        sl_price: undefined,
-        tp_price: undefined,
       });
     });
 

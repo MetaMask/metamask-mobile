@@ -2246,8 +2246,8 @@ describe('PerpsController', () => {
       const orderParams = {
         action: 'open' as const,
         symbol: 'BTC',
-        sl_price: 45000,
-        tp_price: 55000,
+        slPrice: 45000,
+        tpPrice: 55000,
       };
 
       const result = await controller.testReportOrderToDataLake(orderParams);
@@ -2256,8 +2256,8 @@ describe('PerpsController', () => {
       expect(mockDataLakeServiceInstance.reportOrder).toHaveBeenCalledWith({
         action: orderParams.action,
         symbol: orderParams.symbol,
-        sl_price: orderParams.sl_price,
-        tp_price: orderParams.tp_price,
+        slPrice: orderParams.slPrice,
+        tpPrice: orderParams.tpPrice,
         isTestnet: controller.state.isTestnet,
         context: expect.objectContaining({
           tracingContext: expect.any(Object),
