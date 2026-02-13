@@ -3531,13 +3531,13 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.65.123
+      VERSION_NAME: 7.64.93
     - opts:
         is_expand: false
       VERSION_NUMBER: 3713
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.65.123
+      FLASK_VERSION_NAME: 7.64.93
     - opts:
         is_expand: false
       FLASK_VERSION_NUMBER: 3713
