@@ -64,11 +64,29 @@ const PerpsOrderDetailsView: React.FC = () => {
   const [isCanceling, setIsCanceling] = useState(false);
   const canCancel = order ? isSyntheticOrderCancelable(order) : false;
 
+  const priceMetrics = useMemo(() => {
+    if (!order) {
+      return {
+        parsedPrice: 0,
+        validTriggerPrice: null as number | null,
+        hasPrice: false,
+        effectivePrice: 0,
+      };
+    }
+
+    const parsedPrice = parseFloat(order.price ?? '0');
+    const validTriggerPrice = getValidTriggerPrice(order);
+    const hasPrice = Number.isFinite(parsedPrice) && parsedPrice > 0;
+    const effectivePrice = hasPrice ? parsedPrice : (validTriggerPrice ?? 0);
+
+    return { parsedPrice, validTriggerPrice, hasPrice, effectivePrice };
+  }, [order]);
+
   // Calculate size in USD for fee calculation
   const sizeInUSD = useMemo(() => {
     if (!order) return '0';
-    return (parseFloat(order.size) * parseFloat(order.price)).toString();
-  }, [order]);
+    return (parseFloat(order.size) * priceMetrics.effectivePrice).toString();
+  }, [order, priceMetrics.effectivePrice]);
 
   // Get order fees
   const { totalFee } = usePerpsOrderFees({
@@ -99,12 +117,9 @@ const PerpsOrderDetailsView: React.FC = () => {
         ? (parseFloat(order.filledSize) / parseFloat(order.originalSize)) * 100
         : 0;
 
-    const parsedPrice = parseFloat(order.price ?? '0');
-    const validTriggerPrice = getValidTriggerPrice(order);
-    const hasPrice = Number.isFinite(parsedPrice) && parsedPrice > 0;
-    const priceForValue = hasPrice ? parsedPrice : (validTriggerPrice ?? 0);
-
-    const originalSizeUSD = parseFloat(order.originalSize) * priceForValue;
+    const { parsedPrice, validTriggerPrice, hasPrice, effectivePrice } =
+      priceMetrics;
+    const originalSizeUSD = parseFloat(order.originalSize) * effectivePrice;
 
     const isMarketExecution =
       order.orderType === 'market' ||
@@ -159,7 +174,7 @@ const PerpsOrderDetailsView: React.FC = () => {
         ? formatPerpsFiat(parsedStopLossPrice)
         : undefined,
     };
-  }, [order]);
+  }, [order, priceMetrics]);
 
   const handleCancelOrder = useCallback(async () => {
     if (!order || !canCancel) return;
