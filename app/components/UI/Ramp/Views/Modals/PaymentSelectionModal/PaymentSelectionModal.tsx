@@ -209,7 +209,7 @@ function PaymentSelectionModal() {
     [setSelectedPaymentMethod, onPaymentMethodSelect],
   );
 
-  const currency = userRegion?.country?.currency ?? 'USD';
+  const currency = userRegion?.country?.currency || 'USD';
   const tokenSymbol = selectedToken?.symbol ?? '';
 
   const renderPaymentMethod = useCallback(
