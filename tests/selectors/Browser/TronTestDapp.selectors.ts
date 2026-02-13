@@ -11,7 +11,7 @@ export interface TronTestDappWebIDs {
  * Web element IDs for the Tron Test Dapp
  */
 export const TronTestDappSelectorsWebIDs: TronTestDappWebIDs = {
-  WALLET_BUTTON: '.adapter-react-button', // Important space between classes to indicate a parent-child relationship
+  WALLET_BUTTON: '.adapter-react-button',
   DISCONNECT_BUTTON: '.adapter-dropdown-list-item',
   CONFIRM_SIGN_MESSAGE_BUTTON:
     'confirm-sign-message-confirm-snap-footer-button',
