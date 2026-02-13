@@ -41,6 +41,7 @@ jest.mock('../../../../../../../../locales/i18n', () => ({
       'rewards.events.points_boost': 'Boost',
       'rewards.events.points_total': 'Total',
       'rewards.events.description': 'Description',
+      'rewards.events.code': 'Code',
       'rewards.events.for_deposit_period': 'For deposit period',
     };
     return t[key] || key;
@@ -157,10 +158,10 @@ describe('ActivityDetailsSheet', () => {
       );
 
       // Verify GenericEventDetails content is rendered (base component)
-      expect(screen.getByText('Details')).toBeTruthy();
+      expect(screen.getByText('Details')).toBeOnTheScreen();
       // Verify SwapEventDetails specific content
-      expect(screen.getByText('Asset')).toBeTruthy();
-      expect(screen.getByText('1 ETH to 1 USDC')).toBeTruthy();
+      expect(screen.getByText('Asset')).toBeOnTheScreen();
+      expect(screen.getByText('1 ETH to 1 USDC')).toBeOnTheScreen();
     });
 
     it('renders CardEventDetails for CARD event type', () => {
@@ -188,10 +189,10 @@ describe('ActivityDetailsSheet', () => {
       );
 
       // Verify GenericEventDetails content is rendered (base component)
-      expect(screen.getByText('Details')).toBeTruthy();
+      expect(screen.getByText('Details')).toBeOnTheScreen();
       // Verify CardEventDetails specific content
-      expect(screen.getByText('Amount')).toBeTruthy();
-      expect(screen.getByText('43.25 USDC')).toBeTruthy();
+      expect(screen.getByText('Amount')).toBeOnTheScreen();
+      expect(screen.getByText('43.25 USDC')).toBeOnTheScreen();
     });
 
     it('renders MusdDepositEventDetails for MUSD_DEPOSIT event type', () => {
@@ -215,10 +216,55 @@ describe('ActivityDetailsSheet', () => {
       );
 
       // Verify GenericEventDetails content is rendered (base component)
-      expect(screen.getByText('Details')).toBeTruthy();
+      expect(screen.getByText('Details')).toBeOnTheScreen();
       // Verify MusdDepositEventDetails specific content
-      expect(screen.getByText('For deposit period')).toBeTruthy();
-      expect(screen.getByText('Nov 11, 2025')).toBeTruthy();
+      expect(screen.getByText('For deposit period')).toBeOnTheScreen();
+      expect(screen.getByText('Nov 11, 2025')).toBeOnTheScreen();
+    });
+
+    it('renders BonusCodeEventDetails for BONUS_CODE event type', () => {
+      const bonusCodeEvent: Extract<PointsEventDto, { type: 'BONUS_CODE' }> = {
+        ...baseEvent,
+        type: 'BONUS_CODE',
+        payload: {
+          code: 'BNS123',
+        },
+      };
+
+      render(
+        <ActivityDetailsSheet
+          event={bonusCodeEvent}
+          accountName="Primary"
+          activityTypes={mockActivityTypes}
+        />,
+      );
+
+      // Verify GenericEventDetails content is rendered (base component)
+      expect(screen.getByText('Details')).toBeOnTheScreen();
+      // Verify BonusCodeEventDetails specific content
+      expect(screen.getByText('Code')).toBeOnTheScreen();
+      expect(screen.getByText('BNS123')).toBeOnTheScreen();
+    });
+
+    it('renders BonusCodeEventDetails without code row when payload is null', () => {
+      const bonusCodeEventNoPayload = {
+        ...baseEvent,
+        type: 'BONUS_CODE' as const,
+        payload: null,
+      };
+
+      render(
+        <ActivityDetailsSheet
+          event={bonusCodeEventNoPayload}
+          accountName="Primary"
+          activityTypes={mockActivityTypes}
+        />,
+      );
+
+      // Verify GenericEventDetails content is rendered
+      expect(screen.getByText('Details')).toBeOnTheScreen();
+      // Code row should not be present
+      expect(screen.queryByText('Code')).toBeNull();
     });
 
     it('renders GenericEventDetails for unspecified type when payload exists', () => {
@@ -237,9 +283,9 @@ describe('ActivityDetailsSheet', () => {
       );
 
       // Verify GenericEventDetails content is rendered
-      expect(screen.getByText('Details')).toBeTruthy();
-      expect(screen.getByText('Points')).toBeTruthy();
-      expect(screen.getByText('Date')).toBeTruthy();
+      expect(screen.getByText('Details')).toBeOnTheScreen();
+      expect(screen.getByText('Points')).toBeOnTheScreen();
+      expect(screen.getByText('Date')).toBeOnTheScreen();
     });
 
     it('renders GenericEventDetails for unspecified type when payload is null', () => {
@@ -258,9 +304,9 @@ describe('ActivityDetailsSheet', () => {
       );
 
       // Verify GenericEventDetails content is rendered
-      expect(screen.getByText('Details')).toBeTruthy();
-      expect(screen.getByText('Points')).toBeTruthy();
-      expect(screen.getByText('Date')).toBeTruthy();
+      expect(screen.getByText('Details')).toBeOnTheScreen();
+      expect(screen.getByText('Points')).toBeOnTheScreen();
+      expect(screen.getByText('Date')).toBeOnTheScreen();
     });
   });
 
@@ -380,7 +426,7 @@ describe('ActivityDetailsSheet', () => {
       // Verify the component can be rendered (checks it's a valid React element)
       const { description } = callArgs;
       render(description);
-      expect(screen.getByText('Details')).toBeTruthy();
+      expect(screen.getByText('Details')).toBeOnTheScreen();
     });
 
     it('handles undefined accountName', () => {

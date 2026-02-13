@@ -5,6 +5,11 @@ import {
 import { CaipAccountId, CaipAssetType } from '@metamask/utils';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 
+/**
+ * Crockford's Base32 alphabet — excludes I, L, O, U to avoid ambiguity.
+ */
+export const BASE32_REGEX = /^[0-9A-HJKMNP-TV-Z]+$/i;
+
 export interface LoginResponseDto {
   sessionId: string;
   subscription: SubscriptionDto;
@@ -72,6 +77,14 @@ export interface ApplyReferralDto {
    * @example 'ABC123'
    */
   referralCode: string;
+}
+
+export interface ApplyBonusCodeDto {
+  /**
+   * The bonus code to apply
+   * @example 'BNS123'
+   */
+  bonusCode: string;
 }
 
 /**
@@ -443,6 +456,17 @@ export interface MusdDepositEventPayload {
 }
 
 /**
+ * Bonus code event payload
+ */
+export interface BonusCodeEventPayload {
+  /**
+   * Bonus code
+   * @example 'BNS123'
+   */
+  code: string;
+}
+
+/**
  * Base points event interface
  */
 interface BasePointsEventDto {
@@ -516,6 +540,7 @@ export type PointsEventDto = BasePointsEventDto &
         type: 'REFERRAL' | 'SIGN_UP_BONUS' | 'LOYALTY_BONUS' | 'ONE_TIME_BONUS';
         payload: null;
       }
+    | { type: 'BONUS_CODE'; payload: BonusCodeEventPayload | null }
     | { type: string; payload: Record<string, string> | null }
   );
 
@@ -1410,6 +1435,14 @@ export interface RewardsControllerValidateReferralCodeAction {
 }
 
 /**
+ * Action for validating bonus codes
+ */
+export interface RewardsControllerValidateBonusCodeAction {
+  type: 'RewardsController:validateBonusCode';
+  handler: (code: string, subscriptionId: string) => Promise<boolean>;
+}
+
+/**
  * Action for checking if an account supports opt-in
  */
 export interface RewardsControllerIsOptInSupportedAction {
@@ -1534,6 +1567,14 @@ export interface RewardsControllerApplyReferralCodeAction {
 }
 
 /**
+ * Action for applying a bonus code to an existing subscription
+ */
+export interface RewardsControllerApplyBonusCodeAction {
+  type: 'RewardsController:applyBonusCode';
+  handler: (bonusCode: string, subscriptionId: string) => Promise<void>;
+}
+
+/**
  * Actions that can be performed by the RewardsController
  */
 export type RewardsControllerActions =
@@ -1552,6 +1593,7 @@ export type RewardsControllerActions =
   | RewardsControllerLogoutAction
   | RewardsControllerGetGeoRewardsMetadataAction
   | RewardsControllerValidateReferralCodeAction
+  | RewardsControllerValidateBonusCodeAction
   | RewardsControllerIsOptInSupportedAction
   | RewardsControllerGetActualSubscriptionIdAction
   | RewardsControllerGetFirstSubscriptionIdAction
@@ -1565,7 +1607,8 @@ export type RewardsControllerActions =
   | RewardsControllerClaimRewardAction
   | RewardsControllerGetSeasonOneLineaRewardTokensAction
   | RewardsControllerResetAllAction
-  | RewardsControllerApplyReferralCodeAction;
+  | RewardsControllerApplyReferralCodeAction
+  | RewardsControllerApplyBonusCodeAction;
 
 /**
  * Input DTO for getting opt-in status of multiple addresses

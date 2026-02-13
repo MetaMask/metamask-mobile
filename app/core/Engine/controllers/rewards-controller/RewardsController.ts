@@ -31,6 +31,7 @@ import {
   type SeasonMetadataDto,
   type SeasonStateDto,
   type LineaTokenRewardDto,
+  BASE32_REGEX,
 } from './types';
 import type { RewardsControllerMessenger } from '../../messengers/rewards-controller-messenger';
 import {
@@ -520,6 +521,10 @@ export class RewardsController extends BaseController<
       this.validateReferralCode.bind(this),
     );
     this.messenger.registerActionHandler(
+      'RewardsController:validateBonusCode',
+      this.validateBonusCode.bind(this),
+    );
+    this.messenger.registerActionHandler(
       'RewardsController:linkAccountToSubscriptionCandidate',
       this.linkAccountToSubscriptionCandidate.bind(this),
     );
@@ -578,6 +583,10 @@ export class RewardsController extends BaseController<
     this.messenger.registerActionHandler(
       'RewardsController:applyReferralCode',
       this.applyReferralCode.bind(this),
+    );
+    this.messenger.registerActionHandler(
+      'RewardsController:applyBonusCode',
+      this.applyBonusCode.bind(this),
     );
   }
 
@@ -2578,6 +2587,10 @@ export class RewardsController extends BaseController<
       return false;
     }
 
+    if (!BASE32_REGEX.test(code)) {
+      return false;
+    }
+
     try {
       const response = await this.messenger.call(
         'RewardsDataService:validateReferralCode',
@@ -2587,6 +2600,49 @@ export class RewardsController extends BaseController<
     } catch (error) {
       Logger.log(
         'RewardsController: Failed to validate referral code:',
+        error instanceof Error ? error.message : String(error),
+      );
+      throw error;
+    }
+  }
+
+  /**
+   * Validate a bonus code
+   * @param code - The bonus code to validate
+   * @param subscriptionId - The subscription ID for authentication
+   * @returns Promise<boolean> - True if the code is valid, false otherwise
+   */
+  async validateBonusCode(
+    code: string,
+    subscriptionId: string,
+  ): Promise<boolean> {
+    const rewardsEnabled = this.isRewardsFeatureEnabled();
+    if (!rewardsEnabled) {
+      return false;
+    }
+
+    if (!code.trim()) {
+      return false;
+    }
+
+    if (code.length < 4 || code.length > 16) {
+      return false;
+    }
+
+    if (!BASE32_REGEX.test(code)) {
+      return false;
+    }
+
+    try {
+      const response = await this.messenger.call(
+        'RewardsDataService:validateBonusCode',
+        code,
+        subscriptionId,
+      );
+      return response.valid;
+    } catch (error) {
+      Logger.log(
+        'RewardsController: Failed to validate bonus code:',
         error instanceof Error ? error.message : String(error),
       );
       throw error;
@@ -3273,6 +3329,45 @@ export class RewardsController extends BaseController<
     } catch (error) {
       Logger.log(
         'RewardsController: Failed to apply referral code:',
+        error instanceof Error ? error.message : String(error),
+      );
+      throw error;
+    }
+  }
+
+  /**
+   * Apply a bonus code to a subscription.
+   * @param bonusCode - The bonus code to apply.
+   * @param subscriptionId - The subscription ID to apply the bonus code to.
+   * @returns Promise that resolves when the bonus code is applied successfully.
+   * @throws Error with the error message from the API response.
+   */
+  async applyBonusCode(
+    bonusCode: string,
+    subscriptionId: string,
+  ): Promise<void> {
+    const rewardsEnabled = this.isRewardsFeatureEnabled();
+    if (!rewardsEnabled) {
+      throw new Error('Rewards are not enabled');
+    }
+
+    try {
+      await this.messenger.call(
+        'RewardsDataService:applyBonusCode',
+        { bonusCode },
+        subscriptionId,
+      );
+
+      // Invalidate caches so hooks refetch fresh data on next render
+      this.invalidateSubscriptionCache(subscriptionId);
+
+      Logger.log(
+        'RewardsController: Successfully applied bonus code',
+        subscriptionId,
+      );
+    } catch (error) {
+      Logger.log(
+        'RewardsController: Failed to apply bonus code:',
         error instanceof Error ? error.message : String(error),
       );
       throw error;

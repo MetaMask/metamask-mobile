@@ -188,6 +188,7 @@ const ReferredByCodeSection: React.FC = () => {
           placeholder={strings('rewards.referred_by_code.input_placeholder')}
           value={hasReferredByCode ? (referredByCode ?? '') : inputCode}
           onChangeText={hasReferredByCode ? undefined : handleInputChange}
+          maxLength={6}
           isDisabled={hasReferredByCode}
           autoCapitalize="characters"
           endAccessory={renderIcon()}

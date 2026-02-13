@@ -206,6 +206,19 @@ const urlWayToEarn = createWayToEarn({
   buttonAction: { url: 'https://example.com/earn' },
 });
 
+const bonusCodeWayToEarn = createWayToEarn({
+  id: 'bonus-code-id',
+  type: 'BONUS_CODE',
+  title: 'Bonus code',
+  icon: 'Gift',
+  shortDescription: 'Redeem a code',
+  bottomSheetTitle: 'Enter bonus code',
+  pointsEarningRule: 'Varies',
+  description: 'Enter a bonus code to earn points.',
+  buttonLabel: 'Submit',
+  buttonAction: undefined,
+});
+
 const noActionWayToEarn = createWayToEarn({
   id: 'no-action-id',
   type: 'INFO_ONLY',
@@ -359,6 +372,74 @@ describe('WaysToEarn', () => {
       );
       expect(modalCall?.[1]?.description).toBeTruthy();
       expect(modalCall?.[1]?.description.type).toBeDefined();
+    });
+  });
+
+  describe('BONUS_CODE earning way press', () => {
+    it('navigates to BonusCodeBottomSheet instead of generic modal', () => {
+      // Arrange
+      const mockUseSelector = jest.requireMock('react-redux')
+        .useSelector as jest.Mock;
+      mockUseSelector.mockReturnValue([bonusCodeWayToEarn]);
+
+      const { getByText } = render(<WaysToEarn />);
+
+      // Act
+      fireEvent.press(getByText('Bonus code'));
+
+      // Assert
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MODAL.REWARDS_BONUS_CODE_BOTTOM_SHEET,
+        expect.objectContaining({
+          ctaLabel: 'Submit',
+        }),
+      );
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
+        expect.anything(),
+      );
+    });
+
+    it('passes title and description to BonusCodeBottomSheet', () => {
+      // Arrange
+      const mockUseSelector = jest.requireMock('react-redux')
+        .useSelector as jest.Mock;
+      mockUseSelector.mockReturnValue([bonusCodeWayToEarn]);
+
+      const { getByText } = render(<WaysToEarn />);
+
+      // Act
+      fireEvent.press(getByText('Bonus code'));
+
+      // Assert
+      const navCall = mockNavigate.mock.calls.find(
+        (call) => call[0] === Routes.MODAL.REWARDS_BONUS_CODE_BOTTOM_SHEET,
+      );
+      expect(navCall?.[1]?.title).toBeTruthy();
+      expect(navCall?.[1]?.description).toBeTruthy();
+      expect(navCall?.[1]?.ctaLabel).toBe('Submit');
+    });
+
+    it('tracks button click event for BONUS_CODE type', () => {
+      // Arrange
+      const mockUseSelector = jest.requireMock('react-redux')
+        .useSelector as jest.Mock;
+      mockUseSelector.mockReturnValue([bonusCodeWayToEarn]);
+
+      const { getByText } = render(<WaysToEarn />);
+
+      // Act
+      fireEvent.press(getByText('Bonus code'));
+
+      // Assert
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.REWARDS_PAGE_BUTTON_CLICKED,
+      );
+      const builder = mockCreateEventBuilder.mock.results[0].value;
+      expect(builder.addProperties).toHaveBeenCalledWith({
+        button_type: RewardsMetricsButtons.WAYS_TO_EARN,
+        ways_to_earn_type: 'BONUS_CODE',
+      });
     });
   });
 
