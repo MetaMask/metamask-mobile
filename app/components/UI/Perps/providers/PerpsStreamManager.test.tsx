@@ -1672,7 +1672,7 @@ describe('PerpsStreamManager', () => {
       unsubscribe2();
     });
 
-    it('should use controller preloaded cache when fresh', async () => {
+    it('uses controller preloaded cache when fresh', async () => {
       const callback = jest.fn();
 
       // Set up controller with fresh cached market data
@@ -1713,7 +1713,7 @@ describe('PerpsStreamManager', () => {
       };
     });
 
-    it('should serve preloaded market data instantly via getCachedData before connect', () => {
+    it('serves preloaded market data instantly via getCachedData before connect', () => {
       // Track call order to prove synchronous delivery
       const callTimings: { data: PerpsMarketData[]; callIndex: number }[] = [];
       const callback = jest.fn((data: PerpsMarketData[]) => {
@@ -1758,7 +1758,7 @@ describe('PerpsStreamManager', () => {
       };
     });
 
-    it('should fetch from API when controller cache is stale', async () => {
+    it('fetches from API when controller cache is stale', async () => {
       const callback = jest.fn();
 
       // Set up controller with stale cached market data (very old timestamp)
@@ -3222,7 +3222,7 @@ describe('PerpsStreamManager', () => {
       returnOnEquity: '0.1',
     };
 
-    it('should serve cached orders instantly via getCachedData before isInitialized', () => {
+    it('serves cached orders instantly via getCachedData before isInitialized', () => {
       // Controller is NOT yet initialized - connect() will defer
       mockPerpsConnectionManager.getConnectionState = jest
         .fn()
@@ -3256,7 +3256,7 @@ describe('PerpsStreamManager', () => {
       expect(mockSubscribeToOrders).not.toHaveBeenCalled();
     });
 
-    it('should serve cached positions instantly via getCachedData before isInitialized', () => {
+    it('serves cached positions instantly via getCachedData before isInitialized', () => {
       // Controller is NOT yet initialized
       mockPerpsConnectionManager.getConnectionState = jest
         .fn()
@@ -3289,7 +3289,7 @@ describe('PerpsStreamManager', () => {
       expect(mockSubscribeToPositions).not.toHaveBeenCalled();
     });
 
-    it('should serve cached account state instantly via getCachedData before isInitialized', () => {
+    it('serves cached account state instantly via getCachedData before isInitialized', () => {
       // Controller is NOT yet initialized
       mockPerpsConnectionManager.getConnectionState = jest
         .fn()
@@ -3322,7 +3322,7 @@ describe('PerpsStreamManager', () => {
       expect(mockSubscribeToAccount).not.toHaveBeenCalled();
     });
 
-    it('should not use stale cached orders', () => {
+    it('does not use stale cached orders', () => {
       // Set up controller with stale cached orders (very old timestamp)
       (
         mockEngine.context.PerpsController as unknown as Record<string, unknown>
@@ -3346,7 +3346,7 @@ describe('PerpsStreamManager', () => {
       expect(callback).not.toHaveBeenCalledWith(mockOrders);
     });
 
-    it('should use empty cached orders as valid cache', () => {
+    it('uses empty cached orders as valid cache', () => {
       // Set up controller with empty cached orders — [] means "fetched, user has none"
       (
         mockEngine.context.PerpsController as unknown as Record<string, unknown>
@@ -3368,7 +3368,7 @@ describe('PerpsStreamManager', () => {
       expect(callback).toHaveBeenCalledWith([]);
     });
 
-    it('should prefer channel cache over controller cache', () => {
+    it('prefers channel cache over controller cache', () => {
       // Set up controller with cached orders
       (
         mockEngine.context.PerpsController as unknown as Record<string, unknown>

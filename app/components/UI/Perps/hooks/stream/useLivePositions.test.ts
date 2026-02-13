@@ -637,7 +637,7 @@ describe('usePerpsLivePositions', () => {
   });
 
   describe('initial state from cache', () => {
-    it('should seed positions from cache when fresh cached data exists', () => {
+    it('seeds positions from cache when fresh cached data exists', () => {
       const cachedPositions: Position[] = [
         { ...mockPosition, symbol: 'BTC-PERP', size: '2.0' },
         { ...mockPosition, symbol: 'ETH-PERP', size: '10.0' },
@@ -655,7 +655,7 @@ describe('usePerpsLivePositions', () => {
       expect(result.current.isInitialLoading).toBe(false);
     });
 
-    it('should return cached positions regardless of timestamp age', () => {
+    it('returns cached positions regardless of timestamp age', () => {
       mockEngineState.cachedPositions = [mockPosition];
       mockEngineState.cachedUserDataTimestamp = Date.now() - 61_000;
 
@@ -669,7 +669,7 @@ describe('usePerpsLivePositions', () => {
       expect(result.current.isInitialLoading).toBe(false);
     });
 
-    it('should return empty positions when no cache exists', () => {
+    it('returns empty positions when no cache exists', () => {
       mockEngineState.cachedPositions = null;
       mockEngineState.cachedUserDataTimestamp = 0;
 
@@ -682,7 +682,7 @@ describe('usePerpsLivePositions', () => {
       expect(result.current.isInitialLoading).toBe(true);
     });
 
-    it('should handle empty cached positions array (valid cache, no positions)', () => {
+    it('handles empty cached positions array (valid cache, no positions)', () => {
       mockEngineState.cachedPositions = [];
       mockEngineState.cachedUserDataTimestamp = Date.now();
 

@@ -260,7 +260,7 @@ describe('usePerpsLiveAccount', () => {
   });
 
   describe('initial state from cache', () => {
-    it('should seed account from cache when fresh cached data exists', () => {
+    it('seeds account from cache when fresh cached data exists', () => {
       const cachedAccount: AccountState = {
         availableBalance: '5000',
         marginUsed: '2000',
@@ -286,7 +286,7 @@ describe('usePerpsLiveAccount', () => {
       });
     });
 
-    it('should return cached account regardless of timestamp age', () => {
+    it('returns cached account regardless of timestamp age', () => {
       mockEngineState.cachedAccountState = {
         availableBalance: '5000',
       } as AccountState;
@@ -305,7 +305,7 @@ describe('usePerpsLiveAccount', () => {
       });
     });
 
-    it('should have null account when no cache exists', () => {
+    it('has null account when no cache exists', () => {
       mockEngineState.cachedAccountState = null;
       mockEngineState.cachedUserDataTimestamp = 0;
 

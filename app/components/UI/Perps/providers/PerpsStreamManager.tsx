@@ -49,6 +49,9 @@ interface StreamSubscription<T> {
   hasReceivedFirstUpdate?: boolean; // Track if subscriber has received first update
 }
 
+/** Maximum age (ms) of controller-preloaded user data before it's considered stale. */
+const USER_DATA_CACHE_STALE_MS = 60_000;
+
 // Base class for any stream type
 abstract class StreamChannel<T> {
   protected cache = new Map<string, T>();
@@ -169,6 +172,9 @@ abstract class StreamChannel<T> {
     }
 
     this.connectRetryCount++;
+    if (this.deferConnectTimer) {
+      clearTimeout(this.deferConnectTimer);
+    }
     this.deferConnectTimer = setTimeout(() => this.connect(), delayMs);
   }
 
@@ -609,7 +615,11 @@ class OrderStreamChannel extends StreamChannel<Order[]> {
     const preloaded = controller.state?.cachedOrders;
     const cacheAge =
       Date.now() - (controller.state?.cachedUserDataTimestamp ?? 0);
-    if (preloaded != null && cacheAge < 60_000) {
+    if (preloaded != null && cacheAge < USER_DATA_CACHE_STALE_MS) {
+      const cachedAddr = controller.state?.cachedUserDataAddress?.toLowerCase();
+      const currentAddr =
+        getEvmAccountFromSelectedAccountGroup()?.address?.toLowerCase();
+      if (cachedAddr && currentAddr && cachedAddr !== currentAddr) return null;
       return preloaded;
     }
 
@@ -764,7 +774,11 @@ class PositionStreamChannel extends StreamChannel<Position[]> {
     const preloaded = controller.state?.cachedPositions;
     const cacheAge =
       Date.now() - (controller.state?.cachedUserDataTimestamp ?? 0);
-    if (preloaded != null && cacheAge < 60_000) {
+    if (preloaded != null && cacheAge < USER_DATA_CACHE_STALE_MS) {
+      const cachedAddr = controller.state?.cachedUserDataAddress?.toLowerCase();
+      const currentAddr =
+        getEvmAccountFromSelectedAccountGroup()?.address?.toLowerCase();
+      if (cachedAddr && currentAddr && cachedAddr !== currentAddr) return null;
       return preloaded;
     }
 
@@ -1058,7 +1072,11 @@ class AccountStreamChannel extends StreamChannel<AccountState | null> {
     const preloaded = controller.state?.cachedAccountState;
     const cacheAge =
       Date.now() - (controller.state?.cachedUserDataTimestamp ?? 0);
-    if (preloaded && cacheAge < 60_000) {
+    if (preloaded && cacheAge < USER_DATA_CACHE_STALE_MS) {
+      const cachedAddr = controller.state?.cachedUserDataAddress?.toLowerCase();
+      const currentAddr =
+        getEvmAccountFromSelectedAccountGroup()?.address?.toLowerCase();
+      if (cachedAddr && currentAddr && cachedAddr !== currentAddr) return null;
       return preloaded;
     }
 
