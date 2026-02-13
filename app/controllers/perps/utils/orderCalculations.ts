@@ -14,26 +14,26 @@ import {
  */
 export type OrderCalculationsDebugLogger = PerpsDebugLogger | undefined;
 
-interface PositionSizeParams {
+type PositionSizeParams = {
   amount: string;
   price: number;
   szDecimals: number;
-}
+};
 
-interface MarginRequiredParams {
+type MarginRequiredParams = {
   amount: string;
   leverage: number;
-}
+};
 
-interface MaxAllowedAmountParams {
+type MaxAllowedAmountParams = {
   availableBalance: number;
   assetPrice: number;
   assetSzDecimals: number;
   leverage: number;
-}
+};
 
 // Advanced order calculation interfaces
-export interface CalculateFinalPositionSizeParams {
+export type CalculateFinalPositionSizeParams = {
   usdAmount?: string;
   size?: string;
   currentPrice: number;
@@ -42,13 +42,13 @@ export interface CalculateFinalPositionSizeParams {
   szDecimals: number;
   leverage?: number;
   debugLogger?: OrderCalculationsDebugLogger;
-}
+};
 
-export interface CalculateFinalPositionSizeResult {
+export type CalculateFinalPositionSizeResult = {
   finalPositionSize: number;
-}
+};
 
-export interface CalculateOrderPriceAndSizeParams {
+export type CalculateOrderPriceAndSizeParams = {
   orderType: 'market' | 'limit';
   isBuy: boolean;
   finalPositionSize: number;
@@ -56,15 +56,15 @@ export interface CalculateOrderPriceAndSizeParams {
   limitPrice?: string;
   slippage?: number;
   szDecimals: number;
-}
+};
 
-export interface CalculateOrderPriceAndSizeResult {
+export type CalculateOrderPriceAndSizeResult = {
   orderPrice: number;
   formattedSize: string;
   formattedPrice: string;
-}
+};
 
-export interface BuildOrdersArrayParams {
+export type BuildOrdersArrayParams = {
   assetId: number;
   isBuy: boolean;
   formattedPrice: string;
@@ -76,12 +76,12 @@ export interface BuildOrdersArrayParams {
   stopLossPrice?: string;
   szDecimals: number;
   grouping?: 'na' | 'normalTpsl' | 'positionTpsl';
-}
+};
 
-export interface BuildOrdersArrayResult {
+export type BuildOrdersArrayResult = {
   orders: SDKOrderParams[];
   grouping: 'na' | 'normalTpsl' | 'positionTpsl';
-}
+};
 
 /**
  * Calculate position size based on USD amount and asset price
