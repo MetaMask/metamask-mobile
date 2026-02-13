@@ -93,7 +93,6 @@ test('@metamask/connect-multichain (multiple clients) - Connect multiple clients
 
     await launchMobileBrowser(device);
     await navigateToDapp(device, DAPP_URL, DAPP_NAME);
-
   });
 
   await new Promise((resolve) => setTimeout(resolve, 5000));
@@ -129,6 +128,9 @@ test('@metamask/connect-multichain (multiple clients) - Connect multiple clients
     async () => {
       await BrowserPlaygroundDapp.assertMultichainConnected(true);
       await BrowserPlaygroundDapp.assertScopeCardVisible('eip155:1');
+      await BrowserPlaygroundDapp.assertScopeCardVisible(
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+      );
 
       await BrowserPlaygroundDapp.assertConnected(true);
       await BrowserPlaygroundDapp.assertChainIdValue('0x1');
@@ -136,10 +138,110 @@ test('@metamask/connect-multichain (multiple clients) - Connect multiple clients
 
       await BrowserPlaygroundDapp.assertWagmiConnected(true);
       await BrowserPlaygroundDapp.assertWagmiChainIdValue('1');
-      await BrowserPlaygroundDapp.assertWagmiActiveAccount(ACCOUNT_1_EVM_ADDRESS);
+      await BrowserPlaygroundDapp.assertWagmiActiveAccount(
+        ACCOUNT_1_EVM_ADDRESS,
+      );
 
       await BrowserPlaygroundDapp.assertSolanaConnected(true);
-      await BrowserPlaygroundDapp.assertSolanaActiveAccount(ACCOUNT_1_SOLANA_ADDRESS);
+      await BrowserPlaygroundDapp.assertSolanaActiveAccount(
+        ACCOUNT_1_SOLANA_ADDRESS,
+      );
+
+      // Disconnect EVM
+      await BrowserPlaygroundDapp.tapWagmiDisconnect();
+
+      await BrowserPlaygroundDapp.assertMultichainConnected(true);
+      await BrowserPlaygroundDapp.assertScopeCardNotVisible('eip155:1');
+      await BrowserPlaygroundDapp.assertScopeCardVisible(
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+      );
+
+      await BrowserPlaygroundDapp.assertConnected(false);
+      await BrowserPlaygroundDapp.assertWagmiConnected(false);
+      await BrowserPlaygroundDapp.assertSolanaConnected(true);
+
+      // Reconnect EVM
+      await BrowserPlaygroundDapp.tapConnectWagmi();
+    },
+    DAPP_URL,
+  );
+
+  await AppwrightHelpers.withNativeAction(device, async () => {
+    await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
+    await DappConnectionModal.tapConnectButton();
+  });
+
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+  await launchMobileBrowser(device);
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+
+  await AppwrightHelpers.withWebAction(
+    device,
+    async () => {
+      await BrowserPlaygroundDapp.assertScopeCardVisible('eip155:1');
+
+      await BrowserPlaygroundDapp.assertConnected(true);
+      await BrowserPlaygroundDapp.assertChainIdValue('0x1');
+      await BrowserPlaygroundDapp.assertActiveAccount(ACCOUNT_1_EVM_ADDRESS);
+
+      await BrowserPlaygroundDapp.assertWagmiConnected(true);
+      await BrowserPlaygroundDapp.assertWagmiChainIdValue('1');
+      await BrowserPlaygroundDapp.assertWagmiActiveAccount(
+        ACCOUNT_1_EVM_ADDRESS,
+      );
+
+      // Make sure solana is still connected
+      await BrowserPlaygroundDapp.assertScopeCardVisible(
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+      );
+      await BrowserPlaygroundDapp.assertSolanaConnected(true);
+      await BrowserPlaygroundDapp.assertSolanaActiveAccount(
+        ACCOUNT_1_SOLANA_ADDRESS,
+      );
+
+      // Disconnect Solana
+      await BrowserPlaygroundDapp.tapSolanaDisconnect();
+
+      await BrowserPlaygroundDapp.assertScopeCardNotVisible(
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+      );
+      await BrowserPlaygroundDapp.assertSolanaConnected(false);
+
+      // Make sure EVM is still connected
+      await BrowserPlaygroundDapp.assertScopeCardVisible('eip155:1');
+      await BrowserPlaygroundDapp.assertConnected(true);
+      await BrowserPlaygroundDapp.assertWagmiConnected(true);
+
+      // Reconnect Solana
+      await BrowserPlaygroundDapp.tapConnectSolana();
+    },
+    DAPP_URL,
+  );
+
+  await AppwrightHelpers.withNativeAction(device, async () => {
+    await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
+    await DappConnectionModal.tapConnectButton();
+  });
+
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+  await launchMobileBrowser(device);
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+
+  await AppwrightHelpers.withWebAction(
+    device,
+    async () => {
+      await BrowserPlaygroundDapp.assertScopeCardVisible(
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+      );
+      await BrowserPlaygroundDapp.assertSolanaConnected(true);
+      await BrowserPlaygroundDapp.assertSolanaActiveAccount(
+        ACCOUNT_1_SOLANA_ADDRESS,
+      );
+
+      // Make sure EVM is still connected
+      await BrowserPlaygroundDapp.assertScopeCardVisible('eip155:1');
+      await BrowserPlaygroundDapp.assertConnected(true);
+      await BrowserPlaygroundDapp.assertWagmiConnected(true);
     },
     DAPP_URL,
   );

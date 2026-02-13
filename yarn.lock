@@ -7984,8 +7984,8 @@ __metadata:
 
 "@metamask/browser-playground@file:../connect-monorepo/playground/browser-playground::locator=metamask%40workspace%3A.":
   version: 0.2.0
-  resolution: "@metamask/browser-playground@file:../connect-monorepo/playground/browser-playground#../connect-monorepo/playground/browser-playground::hash=66de85&locator=metamask%40workspace%3A."
-  checksum: 10/0925ed3e0d671c00e7d7c9730c71123e083e578fe27092996be44656f951603f8d4fdf8765ce3b77e5fe9b1f5bfe37343bb089a0e80beb8f3b1f98a114b3f829
+  resolution: "@metamask/browser-playground@file:../connect-monorepo/playground/browser-playground#../connect-monorepo/playground/browser-playground::hash=8de179&locator=metamask%40workspace%3A."
+  checksum: 10/5e6211b2902c4f87c67e59a78ad58df202d0bd423a2b52e01dc3b26ae7c759b1f29553e8454a4e2659732fb81cb42600a61e67e0016ea9e38b8b85cc323abbb1
   languageName: node
   linkType: hard
 

@@ -125,6 +125,10 @@ class BrowserPlaygroundDapp {
     return this._getByTestId('app-btn-connect-wagmi');
   }
 
+  get wagmiDisconnectButton() {
+    return this._getByTestId('wagmi-btn-disconnect');
+  }
+
   get wagmiCard() {
     return this._getByTestId('wagmi-card');
   }
@@ -219,7 +223,7 @@ class BrowserPlaygroundDapp {
    */
   getScopeCard(scope) {
     // The scope card ID uses dashes instead of colons (e.g., 'eip155-1' not 'eip155:1')
-    const escapedScope = scope.replace(/:/g, '-');
+    const escapedScope = scope.toLowerCase().replace(/:/g, '-');
     return this._getByTestId(`scope-card-${escapedScope}`);
   }
 
@@ -288,6 +292,12 @@ class BrowserPlaygroundDapp {
   async tapConnectWagmi() {
     if (!this._device) return;
     const element = await this.connectWagmiButton;
+    await AppwrightGestures.tap(element);
+  }
+
+  async tapWagmiDisconnect() {
+    if (!this._device) return;
+    const element = await this.wagmiDisconnectButton;
     await AppwrightGestures.tap(element);
   }
 
@@ -549,6 +559,16 @@ class BrowserPlaygroundDapp {
     if (!this._device) return;
     const scopeCard = await this.getScopeCard(scope);
     await expect(scopeCard).toBeVisible({ timeout: 10000 });
+  }
+
+  /**
+   * Assert a specific scope card is notvisible
+   * @param {string} scope - The CAIP-2 scope (e.g., 'eip155:1')
+   */
+  async assertScopeCardNotVisible(scope) {
+    if (!this._device) return;
+    const scopeCard = await this.getScopeCard(scope);
+    await expect(scopeCard).not.toBeVisible({ timeout: 10000 });
   }
 }
 
