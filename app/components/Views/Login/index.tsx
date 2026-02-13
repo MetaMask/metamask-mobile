@@ -265,18 +265,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         return;
       }
 
-      const isBiometricCancellation =
-        containsErrorMessage(loginError, DENY_PIN_ERROR_ANDROID) ||
-        containsErrorMessage(
-          loginError,
-          UNLOCK_WALLET_ERROR_MESSAGES.IOS_USER_CANCELLED_BIOMETRICS,
-        );
-
-      if (isBiometricCancellation) {
-        setLoading(false);
-        return;
-      }
-
       const isVaultCorruption =
         containsErrorMessage(loginError, VAULT_ERROR) ||
         containsErrorMessage(loginError, JSON_PARSE_ERROR_UNEXPECTED_TOKEN);
@@ -314,16 +302,29 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     [handlePasswordError, handleVaultCorruption, navigation],
   );
 
+  const checkIsBiometricCancellation = useCallback(
+    (loginError: Error): boolean => {
+      const isBiometricCancellation =
+        containsErrorMessage(
+          loginError,
+          UNLOCK_WALLET_ERROR_MESSAGES.ANDROID_BIOMETRICS_CANCELLED,
+        ) ||
+        containsErrorMessage(loginError, DENY_PIN_ERROR_ANDROID) ||
+        containsErrorMessage(
+          loginError,
+          UNLOCK_WALLET_ERROR_MESSAGES.IOS_USER_CANCELLED_BIOMETRICS,
+        );
+      return isBiometricCancellation;
+    },
+    [],
+  );
+
   // biometric cancellation handling for seedless password flow
   // for password sync, if user enter the correct password, the vault is already synced before biometric authentication
   // so we need to handle the biometric cancellation and login with password instead
   // we also reseted the password so that the state is correct
-  const handleBiometricCancellation = useCallback(
-    async (loginError: Error, password: string): Promise<boolean> => {
-      if (!containsErrorMessage(loginError, 'cancel')) {
-        return false;
-      }
-
+  const handleSeedlessBiometricCancellation = useCallback(
+    async (password: string): Promise<void> => {
       setLoading(false);
       // show alert to user that will login with password instead of biometric authentication
       Alert.alert(
@@ -334,6 +335,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
             text: strings('login.biometric_authentication_cancelled_button'),
             onPress: async () => {
               try {
+                setLoading(true);
                 await Authentication.resetPassword();
                 await unlockWallet({ password });
               } catch (error) {
@@ -343,10 +345,8 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
           },
         ],
       );
-      setError(strings('login.biometric_authentication_cancelled'));
-      return true;
     },
-    [setError, setLoading, handleLoginError, unlockWallet],
+    [setLoading, handleLoginError, unlockWallet],
   );
 
   const unlockWithPassword = useCallback(async () => {
@@ -359,6 +359,9 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
 
     endTrace({ name: TraceName.LoginUserInteraction });
 
+    const isSeedlessPasswordOutdated =
+      await Authentication.checkIsSeedlessPasswordOutdated(false);
+
     try {
       await trace(
         {
@@ -370,13 +373,16 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         },
       );
     } catch (loginErr) {
-      const handledBiometricCancel = await handleBiometricCancellation(
-        loginErr as Error,
-        password,
-      );
-      if (!handledBiometricCancel) {
-        await handleLoginError(loginErr as Error);
+      if (checkIsBiometricCancellation(loginErr as Error)) {
+        setLoading(false);
+        if (isSeedlessPasswordOutdated) {
+          await handleSeedlessBiometricCancellation(password);
+        }
+        // return early to avoid calling handleLoginError
+        return;
       }
+
+      await handleLoginError(loginErr as Error);
     } finally {
       setLoading(false);
     }
@@ -385,7 +391,8 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     loading,
     handleLoginError,
     unlockWallet,
-    handleBiometricCancellation,
+    checkIsBiometricCancellation,
+    handleSeedlessBiometricCancellation,
   ]);
 
   const unlockWithBiometrics = useCallback(async () => {

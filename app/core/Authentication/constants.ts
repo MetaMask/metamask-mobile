@@ -7,6 +7,7 @@ export const UNLOCK_WALLET_ERROR_MESSAGES = {
     'error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT',
   ANDROID_WRONG_PASSWORD_2: 'error in DoCipher, status: 2',
   ANDROID_PIN_DENIED: 'Error: Cancel',
+  ANDROID_BIOMETRICS_CANCELLED: 'code: 13, msg: Cancel',
   // iOS specific error messages.
   IOS_USER_CANCELLED_BIOMETRICS: 'User canceled the operation',
   // General error messages.
