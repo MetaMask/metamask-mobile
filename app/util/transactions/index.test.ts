@@ -1267,6 +1267,7 @@ const dappTxMeta = {
 };
 const sendEthTxMeta = {
   chainId: '0x1',
+  type: TransactionType.simpleSend,
   origin: 'MetaMask Mobile',
   transaction: {
     from: '0xc5fe6ef47965741f6f7a4734bf784bf3ae3f2452',
@@ -1282,6 +1283,7 @@ const sendEthTxMeta = {
 };
 const sendERC20TxMeta = {
   chainId: '0x1',
+  type: TransactionType.tokenMethodTransfer,
   origin: 'MetaMask Mobile',
   transaction: {
     from: '0xc5fe6ef47965741f6f7a4734bf784bf3ae3f2452',
@@ -1378,7 +1380,7 @@ describe('Transactions utils :: getIsSwapApproveOrSwapTransaction', () => {
       sendERC20TxMeta.transaction.data,
       sendERC20TxMeta.transaction.to,
       sendERC20TxMeta.chainId,
-      undefined,
+      sendERC20TxMeta.type,
     );
     expect(result).toBe(false);
   });
@@ -1387,7 +1389,7 @@ describe('Transactions utils :: getIsSwapApproveOrSwapTransaction', () => {
       sendEthTxMeta.transaction.data,
       sendEthTxMeta.transaction.to,
       sendEthTxMeta.chainId,
-      undefined,
+      sendEthTxMeta.type,
     );
     expect(result).toBe(false);
   });
@@ -1470,7 +1472,7 @@ describe('Transactions utils :: isHardwareSwapApproveOrSwapTransaction', () => {
       sendERC20TxMeta.transaction.data,
       sendERC20TxMeta.transaction.to,
       sendERC20TxMeta.chainId,
-      undefined,
+      sendERC20TxMeta.type,
       sendERC20TxMeta.transaction.from,
     );
 
@@ -1502,7 +1504,7 @@ describe('Transactions utils :: getIsSwapApproveTransaction', () => {
       sendEthTxMeta.transaction.data,
       sendEthTxMeta.transaction.to,
       sendEthTxMeta.chainId,
-      undefined,
+      sendEthTxMeta.type,
     );
     expect(result).toBe(false);
   });
@@ -1511,7 +1513,7 @@ describe('Transactions utils :: getIsSwapApproveTransaction', () => {
       sendERC20TxMeta.transaction.data,
       sendERC20TxMeta.transaction.to,
       sendERC20TxMeta.chainId,
-      undefined,
+      sendERC20TxMeta.type,
     );
     expect(result).toBe(false);
   });
@@ -1559,7 +1561,7 @@ describe('Transactions utils :: getIsSwapTransaction', () => {
       sendEthTxMeta.transaction.data,
       sendEthTxMeta.transaction.to,
       sendEthTxMeta.chainId,
-      undefined,
+      sendEthTxMeta.type,
     );
     expect(result).toBe(false);
   });
