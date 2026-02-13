@@ -543,6 +543,49 @@ describe('useAddressTrustSignalAlerts', () => {
       expect(result.current[0].field).toBe(RowAlertKey.Spender);
     });
 
+    it('uses InteractingWith field for contract interactions with data but no spender', () => {
+      mockUseApproveTransactionData.mockReturnValue({
+        isRevoke: false,
+        isLoading: false,
+      });
+      mockExtractSpender.mockReturnValue(undefined);
+      mockUseTransferRecipient.mockReturnValue(
+        '0x1234567890123456789012345678901234567890',
+      );
+      mockUseTransactionMetadataRequest.mockReturnValue({
+        txParams: {
+          to: '0x1234567890123456789012345678901234567890',
+          data: '0xef5cfb8c000000000000000000000000',
+        },
+        chainId: '0x1',
+      } as unknown as TransactionMeta);
+
+      const { result } = renderHookWithProvider(
+        () => useAddressTrustSignalAlerts(),
+        {
+          state: {
+            engine: {
+              backgroundState: {
+                PhishingController: {
+                  addressScanCache: {
+                    '0x1:0x1234567890123456789012345678901234567890': {
+                      data: {
+                        // @ts-expect-error - AddressScanResultType is not exported in PhishingController
+                        result_type: 'Malicious',
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      );
+
+      expect(result.current.length).toBe(1);
+      expect(result.current[0].field).toBe(RowAlertKey.InteractingWith);
+    });
+
     it('uses FromToAddress field for simple transfers without data', () => {
       mockUseApproveTransactionData.mockReturnValue({
         isRevoke: false,

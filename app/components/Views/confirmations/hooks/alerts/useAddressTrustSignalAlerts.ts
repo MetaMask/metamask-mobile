@@ -64,11 +64,20 @@ export function useAddressTrustSignalAlerts(): Alert[] {
 
   const isRevoke = Boolean(isTransactionRevoke) || isSignatureRevoke;
 
-  // Determine if this transaction has data that could represent an approval.
-  // For simple ETH transfers (no data or '0x'), useApproveTransactionData
-  // returns isLoading: true permanently because there's nothing to parse.
-  // We should only gate on isRevokeLoading when there's actual approval data.
-  const hasApprovalData = Boolean(
+  // Extract spender from approval data (if any).
+  // This is computed outside useMemo so it can also be used for revoke suppression.
+  const spenderAddress = useMemo(
+    () =>
+      transactionMetadata?.txParams?.data
+        ? extractSpenderFromApprovalData(
+            transactionMetadata.txParams.data as unknown as Hex,
+          )
+        : undefined,
+    [transactionMetadata?.txParams?.data],
+  );
+
+  // Whether the transaction has data beyond '0x' (i.e. is a contract interaction).
+  const hasData = Boolean(
     transactionMetadata?.txParams?.data &&
       transactionMetadata.txParams.data !== '0x',
   );
@@ -82,13 +91,6 @@ export function useAddressTrustSignalAlerts(): Alert[] {
     const toAddress = transactionMetadata.txParams?.to;
     const addresses: AddressToScan[] = [];
 
-    // Extract spender from approval data (if any)
-    const spenderAddress = transactionMetadata.txParams?.data
-      ? extractSpenderFromApprovalData(
-          transactionMetadata.txParams.data as unknown as Hex,
-        )
-      : undefined;
-
     // Determine if the transfer recipient differs from txParams.to
     // (e.g. for token transfers, `to` is the token contract, the real recipient is in the data)
     const hasTransferRecipient =
@@ -98,10 +100,11 @@ export function useAddressTrustSignalAlerts(): Alert[] {
       // For approvals/contract interactions: the `to` address is the contract → InteractingWith
       // For simple sends: the `to` address is the recipient → FromToAddress
       // For token transfers with a different recipient: `to` is the contract → InteractingWith
-      const toField =
-        spenderAddress || hasTransferRecipient
-          ? RowAlertKey.InteractingWith
-          : RowAlertKey.FromToAddress;
+      const isContractInteraction =
+        spenderAddress || hasTransferRecipient || hasData;
+      const toField = isContractInteraction
+        ? RowAlertKey.InteractingWith
+        : RowAlertKey.FromToAddress;
 
       addresses.push({ address: toAddress, chainId, alertField: toField });
     }
@@ -125,16 +128,19 @@ export function useAddressTrustSignalAlerts(): Alert[] {
     }
 
     return addresses;
-  }, [transactionMetadata, transferRecipient]);
+  }, [transactionMetadata, transferRecipient, spenderAddress, hasData]);
 
   const trustSignalResults = useAddressTrustSignals(addressesToScan);
 
   // Always suppress for confirmed revokes (transaction or signature).
-  // Only gate on isRevokeLoading when there's actual approval data to parse.
-  // For simple transfers without data, useApproveTransactionData returns
-  // isLoading: true permanently, so we skip that check.
+  // Only gate on isRevokeLoading when a spender was extracted, meaning
+  // the transaction is an actual approval that could be a revoke.
+  // For non-approval contract interactions and simple transfers,
+  // useApproveTransactionData may return isLoading: true permanently
+  // (because the data doesn't match any known approval pattern),
+  // so we must not gate on isRevokeLoading in those cases.
   const shouldSuppressForRevoke =
-    isRevoke || (hasApprovalData && isRevokeLoading);
+    isRevoke || (Boolean(spenderAddress) && isRevokeLoading);
 
   return useMemo(() => {
     if (addressesToScan.length === 0 || shouldSuppressForRevoke) {
