@@ -34,6 +34,8 @@ import Toast, {
 import PerpsWebSocketHealthToast, {
   WebSocketHealthToastProvider,
 } from '../../UI/Perps/components/PerpsWebSocketHealthToast';
+import { ControllerEventToastBridge } from './ControllerEventToastBridge';
+import { usePredictToastRegistrations } from '../../UI/Predict/hooks/usePredictToastRegistrations';
 import AccountSelector from '../../../components/Views/AccountSelector';
 import AddressSelector from '../../../components/Views/AddressSelector';
 import { TokenSortBottomSheet } from '../../UI/Tokens/TokenSortBottomSheet/TokenSortBottomSheet';
@@ -68,6 +70,7 @@ import AccountActions from '../../../components/Views/AccountActions';
 import FiatOnTestnetsFriction from '../../../components/Views/Settings/AdvancedSettings/FiatOnTestnetsFriction';
 import WalletActions from '../../Views/WalletActions';
 import FundActionMenu from '../../UI/FundActionMenu';
+import ClaimOnLineaBottomSheet from '../../UI/Earn/components/MerklRewards/ClaimOnLineaBottomSheet';
 import MoreTokenActionsMenu from '../../UI/TokenDetails/components/MoreTokenActionsMenu';
 import NetworkSelector from '../../../components/Views/NetworkSelector';
 import ReturnToAppNotification from '../../Views/ReturnToAppNotification';
@@ -85,6 +88,7 @@ import SDKSessionModal from '../../Views/SDK/SDKSessionModal/SDKSessionModal';
 import ExperienceEnhancerModal from '../../../../app/components/Views/ExperienceEnhancerModal';
 import LedgerSelectAccount from '../../Views/LedgerSelectAccount';
 import OnboardingSuccess from '../../Views/OnboardingSuccess';
+import WalletCreationError from '../../Views/WalletCreationError';
 import DefaultSettings from '../../Views/OnboardingSuccess/DefaultSettings';
 import OnboardingGeneralSettings from '../../Views/OnboardingSuccess/OnboardingGeneralSettings';
 import OnboardingAssetsSettings from '../../Views/OnboardingSuccess/OnboardingAssetsSettings';
@@ -153,6 +157,7 @@ import SocialLoginIosUser from '../../Views/SocialLoginIosUser';
 import { useOTAUpdates } from '../../hooks/useOTAUpdates';
 import MultichainTransactionDetailsSheet from '../../UI/MultichainTransactionDetailsModal/MultichainTransactionDetailsSheet';
 import TransactionDetailsSheet from '../../UI/TransactionElement/TransactionDetailsSheet';
+import ImportWalletTipBottomSheet from '../../UI/TransactionElement/ImportWalletTipBottomSheet';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -277,6 +282,11 @@ const OnboardingNav = () => (
       component={OAuthRehydration}
       options={{ headerShown: false }}
     />
+    <Stack.Screen
+      name={Routes.ONBOARDING.WALLET_CREATION_ERROR}
+      component={WalletCreationError}
+      options={{ headerShown: false }}
+    />
   </Stack.Navigator>
 );
 
@@ -368,6 +378,10 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <Stack.Screen
       name={Routes.MODAL.FUND_ACTION_MENU}
       component={FundActionMenu}
+    />
+    <Stack.Screen
+      name={Routes.MODAL.CLAIM_ON_LINEA}
+      component={ClaimOnLineaBottomSheet}
     />
     <Stack.Screen
       name={Routes.MODAL.MORE_TOKEN_ACTIONS_MENU}
@@ -601,6 +615,10 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <Stack.Screen
       name={Routes.SHEET.TRANSACTION_DETAILS}
       component={TransactionDetailsSheet}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.IMPORT_WALLET_TIP}
+      component={ImportWalletTipBottomSheet}
     />
   </Stack.Navigator>
 );
@@ -1089,6 +1107,7 @@ const App: React.FC = () => {
   );
 
   useOTAUpdates();
+  const predictRegistrations = usePredictToastRegistrations();
 
   if (isFirstRender.current) {
     trace({
@@ -1163,6 +1182,7 @@ const App: React.FC = () => {
       <AppFlow />
       <Toast ref={toastRef} />
       <PerpsWebSocketHealthToast />
+      <ControllerEventToastBridge registrations={predictRegistrations} />
       <ProfilerManager />
     </WebSocketHealthToastProvider>
   );

@@ -21,11 +21,7 @@ module.exports = {
   ],
   overrides: [
     {
-      files: [
-        'e2e/**/*.{js,ts}',
-        'tests/**/*.{js,ts}',
-        'appwright/**/*.{js,ts}',
-      ],
+      files: ['tests/**/*.{js,ts}', 'appwright/**/*.{js,ts}'],
       extends: ['./tests/framework/.eslintrc.js'],
     },
     {
@@ -178,6 +174,30 @@ module.exports = {
         ],
       },
     },
+    {
+      files: ['app/controllers/perps/**/*.{ts,tsx}'],
+      rules: {
+        '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
+      },
+    },
+    {
+      files: ['app/**/*.{ts,tsx}'],
+      excludedFiles: ['app/controllers/perps/**/*.{ts,tsx}'],
+      rules: {
+        'no-restricted-imports': [
+          'error',
+          {
+            patterns: [
+              {
+                group: ['**/controllers/perps', '**/controllers/perps/**'],
+                message:
+                  'Use @metamask/perps-controller instead of relative imports into app/controllers/perps/.',
+              },
+            ],
+          },
+        ],
+      },
+    },
   ],
 
   globals: {
@@ -204,6 +224,7 @@ module.exports = {
     'import/resolver': {
       typescript: {}, // this loads <rootdir>/tsconfig.json to eslint
     },
+    'import/internal-regex': '^@metamask/perps-controller',
   },
 
   rules: {
