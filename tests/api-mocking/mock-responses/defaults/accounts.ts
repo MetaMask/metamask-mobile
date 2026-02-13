@@ -1244,7 +1244,6 @@ export const DEFAULT_ACCOUNTS_MOCK: MockEventsObject = {
       urlEndpoint: 'https://accounts.api.cx.metamask.io/v2/supportedNetworks',
       responseCode: 200,
       response: {
-        // EVM chains: 1, 137, 56, 59144, 8453, 10, 42161, 534352, 1329 (eip155 format)
         fullSupport: [
           'eip155:1',
           'eip155:137',
