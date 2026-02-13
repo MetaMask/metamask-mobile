@@ -22,7 +22,7 @@ import {
   formatPercentage,
   PRICE_RANGES_MINIMAL_VIEW,
 } from '../../utils/formatUtils';
-import { formatOrderLabel } from '../../utils/orderUtils';
+import { formatOrderLabel, getValidTriggerPrice } from '../../utils/orderUtils';
 import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
 import PerpsTokenLogo from '../PerpsTokenLogo';
 import styleSheet from './PerpsCard.styles';
@@ -88,12 +88,9 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
       order.orderType === 'limit' ||
         normalizedDetailedOrderType.includes('limit'),
     );
-    const parsedTriggerPrice = parseFloat(order.triggerPrice || '0');
-    const hasTriggerPrice =
-      Number.isFinite(parsedTriggerPrice) && parsedTriggerPrice > 0;
-    const triggerOrLimitPrice = hasTriggerPrice
-      ? order.triggerPrice
-      : order.price;
+    const validTriggerPrice = getValidTriggerPrice(order);
+    const triggerOrLimitPrice =
+      validTriggerPrice !== null ? order.triggerPrice : order.price;
     const parsedOrderPrice = parseFloat(triggerOrLimitPrice || '0');
 
     primaryText = formatOrderLabel(order);
@@ -107,7 +104,7 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
         : strings('perps.order.market');
 
     labelText = isTriggerOrder
-      ? hasTriggerPrice
+      ? validTriggerPrice !== null
         ? strings('perps.order.trigger_price')
         : strings('perps.order.market_price')
       : isLimitOrder
