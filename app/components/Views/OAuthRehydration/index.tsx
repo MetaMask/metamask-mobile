@@ -91,7 +91,6 @@ import Label from '../../../component-library/components/Form/Label';
 import TextField, {
   TextFieldSize,
 } from '../../../component-library/components/Form/TextField';
-import { updateAuthTypeStorageFlags } from '../../../util/authentication';
 import HelpText, {
   HelpTextSeverity,
 } from '../../../component-library/components/Form/HelpText';
@@ -170,18 +169,11 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   );
 
   const [biometryChoice, setBiometryChoice] = useState(true);
-  const updateBiometryChoice = useCallback(
-    async (newBiometryChoice: boolean) => {
-      await updateAuthTypeStorageFlags(newBiometryChoice);
-      setBiometryChoice(newBiometryChoice);
-    },
-    [],
-  );
 
   // default biometric choice to true
   useEffect(() => {
-    updateBiometryChoice(true);
-  }, [updateBiometryChoice]);
+    setBiometryChoice(true);
+  }, [setBiometryChoice]);
 
   const tooManyAttemptsError = useCallback(
     async (initialRemainingTime: number) => {
@@ -414,7 +406,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         );
 
       if (isBiometricCancellation) {
-        updateBiometryChoice(false);
+        setBiometryChoice(false);
         setLoading(false);
         return;
       }
@@ -446,7 +438,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       track,
       handleSeedlessOnboardingControllerError,
       handlePasswordError,
-      updateBiometryChoice,
+      setBiometryChoice,
       route.params?.onboardingTraceCtx,
       isComingFromOauthOnboarding,
     ],
