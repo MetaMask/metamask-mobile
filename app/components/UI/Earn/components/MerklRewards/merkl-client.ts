@@ -74,11 +74,20 @@ export const clearMerklRewardsCache = (): void => {
  * 1. If a cached response exists and is within TTL → return immediately.
  * 2. If an identical request is already in-flight → return that promise (dedup).
  * 3. Otherwise, fire a new request, cache the result, and return.
+ *
+ * **Signal handling**: The `signal` is intentionally NOT forwarded to the
+ * underlying `fetch()`. Because concurrent requests are deduplicated into a
+ * single promise, forwarding one caller's signal would abort the shared
+ * request for *all* callers. Instead, each caller's signal is checked after
+ * the shared promise settles, so aborting one consumer never affects others.
  */
 const fetchMerklRewardsCached = async (
   url: string,
   signal?: AbortSignal,
 ): Promise<MerklRewardData[]> => {
+  // Respect the caller's abort signal before doing any work
+  signal?.throwIfAborted();
+
   // 1. Check cache
   const cached = merklCache.get(url);
   if (cached && Date.now() - cached.timestamp < MERKL_REWARDS_CACHE_TTL_MS) {
@@ -88,13 +97,16 @@ const fetchMerklRewardsCached = async (
   // 2. Deduplicate concurrent requests to the same URL
   const pending = pendingRequests.get(url);
   if (pending) {
-    return pending;
+    // Await the shared promise, then honour *this* caller's signal
+    const data = await pending;
+    signal?.throwIfAborted();
+    return data;
   }
 
-  // 3. Fire a new request
+  // 3. Fire a new request — no signal passed so one caller can't cancel for all
   const request = (async (): Promise<MerklRewardData[]> => {
     try {
-      const response = await fetch(url, { signal });
+      const response = await fetch(url);
 
       if (!response.ok) {
         throw new Error(`Failed to fetch Merkl rewards: ${response.status}`);
@@ -113,7 +125,11 @@ const fetchMerklRewardsCached = async (
   })();
 
   pendingRequests.set(url, request);
-  return request;
+
+  const data = await request;
+  // Honour this caller's signal after the shared request completes
+  signal?.throwIfAborted();
+  return data;
 };
 
 /**

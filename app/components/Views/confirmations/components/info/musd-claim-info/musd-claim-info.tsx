@@ -14,7 +14,12 @@ import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTr
 
 export const MusdClaimInfo = () => {
   const transactionMetadata = useTransactionMetadataRequest();
-  const chainId = transactionMetadata?.chainId as Hex;
+
+  if (!transactionMetadata) {
+    return null;
+  }
+
+  const chainId = transactionMetadata.chainId as Hex;
 
   return (
     <View testID={ConfirmationInfoComponentIDs.MUSD_CLAIM}>
