@@ -56,6 +56,8 @@ describe('MusdConversionAssetListCta', () => {
 
   const mockGoToBuy = jest.fn();
   const mockInitiateConversion = jest.fn();
+  const mockInitiateMaxConversion = jest.fn();
+  const mockClearError = jest.fn();
   const mockLoggerError = jest.spyOn(Logger, 'error');
 
   const mockGetPreferredPaymentToken = jest.fn();
@@ -96,7 +98,9 @@ describe('MusdConversionAssetListCta', () => {
     (
       useMusdConversion as jest.MockedFunction<typeof useMusdConversion>
     ).mockReturnValue({
-      initiateConversion: mockInitiateConversion,
+      initiateMaxConversion: mockInitiateMaxConversion,
+      initiateCustomConversion: mockInitiateConversion,
+      clearError: mockClearError,
       error: null,
       hasSeenConversionEducationScreen: true,
     });
@@ -330,7 +334,7 @@ describe('MusdConversionAssetListCta', () => {
       });
     });
 
-    it('does not call initiateConversion when wallet is empty', () => {
+    it('does not call initiateCustomConversion when wallet is empty', () => {
       const { getByText } = renderWithProvider(<MusdConversionAssetListCta />, {
         state: initialRootState,
       });
@@ -342,7 +346,7 @@ describe('MusdConversionAssetListCta', () => {
   });
 
   describe('button press - with tokens', () => {
-    it('calls initiateConversion with correct parameters', async () => {
+    it('calls initiateCustomConversion with correct parameters', async () => {
       const { getByText } = renderWithProvider(<MusdConversionAssetListCta />, {
         state: initialRootState,
       });
@@ -510,7 +514,7 @@ describe('MusdConversionAssetListCta', () => {
   });
 
   describe('error handling', () => {
-    it('logs error when initiateConversion fails with Error instance', async () => {
+    it('logs error when initiateCustomConversion fails with Error instance', async () => {
       const testError = new Error('Network error');
       mockInitiateConversion.mockRejectedValue(testError);
 
@@ -530,7 +534,7 @@ describe('MusdConversionAssetListCta', () => {
       });
     });
 
-    it('logs error when initiateConversion fails with non-Error value', async () => {
+    it('logs error when initiateCustomConversion fails with non-Error value', async () => {
       const nonErrorValue = 'string error';
       mockInitiateConversion.mockRejectedValue(nonErrorValue);
 
@@ -724,7 +728,9 @@ describe('MusdConversionAssetListCta', () => {
       (
         useMusdConversion as jest.MockedFunction<typeof useMusdConversion>
       ).mockReturnValue({
-        initiateConversion: mockInitiateConversion,
+        initiateMaxConversion: mockInitiateMaxConversion,
+        initiateCustomConversion: mockInitiateConversion,
+        clearError: mockClearError,
         error: null,
         hasSeenConversionEducationScreen,
       });

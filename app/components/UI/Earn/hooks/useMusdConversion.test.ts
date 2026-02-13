@@ -2,8 +2,8 @@ import { renderHook, act } from '@testing-library/react-hooks';
 import { useMusdConversion } from './useMusdConversion';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
+import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import { generateTransferData } from '../../../../util/transactions';
-import { MMM_ORIGIN } from '../../../Views/confirmations/constants/confirmations';
 import Routes from '../../../../constants/navigation/Routes';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
 import { Hex } from '@metamask/utils';
@@ -16,11 +16,16 @@ import { RootState } from '../../../../reducers';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { useMusdConversionTokens } from './useMusdConversionTokens';
 import { AssetType } from '../../../Views/confirmations/types/token';
+import { MusdConversionVariant } from '../types/musd.types';
 
 const mockTrace = trace as jest.MockedFunction<typeof trace>;
 
 // Mock all external dependencies
 jest.mock('../../../../core/Engine');
+jest.mock('../../../../core/EngineService', () => ({
+  __esModule: true,
+  default: { flushState: jest.fn() },
+}));
 jest.mock('../../../../util/Logger');
 jest.mock('../../../../util/transactions');
 jest.mock('@react-navigation/native');
@@ -76,7 +81,13 @@ const mockTransactionController = {
 };
 
 const mockTransactionPayController = {
+  setTransactionConfig: jest.fn(),
   updatePaymentToken: jest.fn(),
+};
+
+const mockFetchGasFeeEstimates = jest.fn().mockResolvedValue(undefined);
+const mockGasFeeController = {
+  fetchGasFeeEstimates: mockFetchGasFeeEstimates,
 };
 
 const mockUseNavigation = useNavigation as jest.MockedFunction<
@@ -139,6 +150,7 @@ describe('useMusdConversion', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockFetchGasFeeEstimates.mockResolvedValue(undefined);
 
     mockUseNavigation.mockReturnValue(mockNavigation);
 
@@ -147,6 +159,7 @@ describe('useMusdConversion', () => {
         NetworkController: mockNetworkController,
         TransactionController: mockTransactionController,
         TransactionPayController: mockTransactionPayController,
+        GasFeeController: mockGasFeeController,
       },
       writable: true,
       configurable: true,
@@ -332,7 +345,7 @@ describe('useMusdConversion', () => {
         },
         {
           networkClientId: 'mainnet',
-          origin: MMM_ORIGIN,
+          origin: ORIGIN_METAMASK,
           skipInitialGasEstimate: true,
           type: TransactionType.musdConversion,
         },
@@ -621,12 +634,11 @@ describe('useMusdConversion', () => {
         expect.objectContaining({
           to: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
           from: '0x123456789abcdef',
-          chainId: '0x1',
           value: '0x0',
         }),
         expect.objectContaining({
           skipInitialGasEstimate: true,
-          origin: MMM_ORIGIN,
+          origin: ORIGIN_METAMASK,
           type: TransactionType.musdConversion,
         }),
       );
@@ -648,6 +660,9 @@ describe('useMusdConversion', () => {
         await result.current.initiateMaxConversion(mockToken);
       });
 
+      expect(
+        mockTransactionPayController.setTransactionConfig,
+      ).toHaveBeenCalledWith('tx-max-123', expect.any(Function));
       expect(
         mockTransactionPayController.updatePaymentToken,
       ).toHaveBeenCalledWith({
@@ -676,17 +691,16 @@ describe('useMusdConversion', () => {
       expect(mockNavigation.navigate).toHaveBeenCalledWith(
         Routes.EARN.MODALS.ROOT,
         {
-          screen: Routes.EARN.MODALS.MUSD_MAX_CONVERSION,
+          screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
           params: {
-            maxValueMode: true,
-            outputChainId: '0x1',
+            variant: MusdConversionVariant.QUICK_CONVERT,
             token: mockToken,
           },
         },
       );
     });
 
-    it('returns transaction ID and output chain ID on success', async () => {
+    it('returns transaction ID on success', async () => {
       setupUseSelectorMock();
 
       mockNetworkController.findNetworkClientIdByChainId.mockReturnValue(
@@ -706,7 +720,6 @@ describe('useMusdConversion', () => {
 
       expect(conversionResult).toEqual({
         transactionId: 'tx-max-123',
-        outputChainId: '0x1',
       });
     });
 
@@ -776,46 +789,6 @@ describe('useMusdConversion', () => {
       });
 
       expect(Logger.error).toHaveBeenCalled();
-    });
-
-    it('tracks loading state during transaction creation', async () => {
-      setupUseSelectorMock();
-
-      mockNetworkController.findNetworkClientIdByChainId.mockReturnValue(
-        'mainnet',
-      );
-
-      let resolveTransaction: (value: {
-        transactionMeta: { id: string };
-      }) => void;
-      const transactionPromise = new Promise<{
-        transactionMeta: { id: string };
-      }>((resolve) => {
-        resolveTransaction = resolve;
-      });
-
-      mockTransactionController.addTransaction.mockReturnValue(
-        transactionPromise,
-      );
-
-      const { result } = renderHook(() => useMusdConversion());
-
-      expect(result.current.isMaxConversionLoading).toBe(false);
-
-      const conversionPromise = act(async () => {
-        await result.current.initiateMaxConversion(mockToken);
-      });
-
-      // Loading state should be true while transaction is pending
-      expect(result.current.isMaxConversionLoading).toBe(true);
-
-      // Resolve the transaction
-      await act(async () => {
-        resolveTransaction({ transactionMeta: { id: 'tx-123' } });
-        await conversionPromise;
-      });
-
-      expect(result.current.isMaxConversionLoading).toBe(false);
     });
 
     it('sets error state when transaction creation fails', async () => {

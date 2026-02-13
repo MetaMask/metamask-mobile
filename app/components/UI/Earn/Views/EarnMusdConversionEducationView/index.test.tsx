@@ -136,6 +136,8 @@ const mockConversionToken = {
 describe('EarnMusdConversionEducationView', () => {
   const mockDispatch = jest.fn();
   const mockInitiateConversion = jest.fn();
+  const mockInitiateMaxConversion = jest.fn();
+  const mockClearError = jest.fn();
   const mockGoToAggregator = jest.fn();
   const mockGetPreferredPaymentToken = jest.fn();
   const mockGetChainIdForBuyFlow = jest.fn();
@@ -168,7 +170,9 @@ describe('EarnMusdConversionEducationView', () => {
     });
     mockUseParams.mockReturnValue(mockRouteParams);
     mockUseMusdConversion.mockReturnValue({
-      initiateConversion: mockInitiateConversion,
+      initiateMaxConversion: mockInitiateMaxConversion,
+      initiateCustomConversion: mockInitiateConversion,
+      clearError: mockClearError,
       error: null,
       hasSeenConversionEducationScreen: false,
     });
@@ -281,7 +285,7 @@ describe('EarnMusdConversionEducationView', () => {
         );
       });
 
-      // Should call initiateConversion directly, not deeplink logic
+      // Should call initiateCustomConversion directly, not deeplink logic
       await waitFor(() => {
         expect(mockInitiateConversion).toHaveBeenCalledWith({
           preferredPaymentToken: {
@@ -591,7 +595,7 @@ describe('EarnMusdConversionEducationView', () => {
         callOrder.push('dispatch');
       });
       mockInitiateConversion.mockImplementation(async () => {
-        callOrder.push('initiateConversion');
+        callOrder.push('initiateCustomConversion');
       });
 
       const { getByTestId } = renderWithProvider(
@@ -608,13 +612,13 @@ describe('EarnMusdConversionEducationView', () => {
       });
 
       await waitFor(() => {
-        expect(callOrder).toEqual(['dispatch', 'initiateConversion']);
+        expect(callOrder).toEqual(['dispatch', 'initiateCustomConversion']);
       });
     });
   });
 
   describe('conversion initiation', () => {
-    it('calls initiateConversion with correct params when preferredPaymentToken provided', async () => {
+    it('calls initiateCustomConversion with correct params when preferredPaymentToken provided', async () => {
       const { getByTestId } = renderWithProvider(
         <EarnMusdConversionEducationView />,
         { state: {} },
@@ -852,7 +856,7 @@ describe('EarnMusdConversionEducationView', () => {
   });
 
   describe('error handling', () => {
-    it('logs error when initiateConversion throws error', async () => {
+    it('logs error when initiateCustomConversion throws error', async () => {
       const testError = new Error('Conversion failed');
       mockInitiateConversion.mockRejectedValue(testError);
 

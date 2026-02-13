@@ -42,6 +42,8 @@ describe('MusdConversionAssetOverviewCta', () => {
   const mockBuild = jest.fn();
 
   const mockInitiateConversion = jest.fn();
+  const mockInitiateMaxConversion = jest.fn();
+  const mockClearError = jest.fn();
   const mockLoggerError = jest.mocked(Logger.error);
 
   beforeEach(() => {
@@ -65,7 +67,9 @@ describe('MusdConversionAssetOverviewCta', () => {
     ).mockReturnValue('Ethereum Mainnet');
 
     jest.mocked(useMusdConversion).mockReturnValue({
-      initiateConversion: mockInitiateConversion,
+      initiateMaxConversion: mockInitiateMaxConversion,
+      initiateCustomConversion: mockInitiateConversion,
+      clearError: mockClearError,
       error: null,
       hasSeenConversionEducationScreen: true,
     });
@@ -182,13 +186,15 @@ describe('MusdConversionAssetOverviewCta', () => {
   describe('press handler - conversion path', () => {
     beforeEach(() => {
       jest.mocked(useMusdConversion).mockReturnValue({
-        initiateConversion: mockInitiateConversion,
+        initiateMaxConversion: mockInitiateMaxConversion,
+        initiateCustomConversion: mockInitiateConversion,
+        clearError: mockClearError,
         error: null,
         hasSeenConversionEducationScreen: true,
       });
     });
 
-    it('calls initiateConversion when user has seen education screen', async () => {
+    it('calls initiateCustomConversion when user has seen education screen', async () => {
       const mockToken = createMockToken();
 
       const { getByTestId } = renderWithProvider(
@@ -207,7 +213,7 @@ describe('MusdConversionAssetOverviewCta', () => {
       });
     });
 
-    it('passes correct config to initiateConversion', async () => {
+    it('passes correct config to initiateCustomConversion', async () => {
       const mockToken = createMockToken({
         address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
         chainId: '0x1',
@@ -239,7 +245,9 @@ describe('MusdConversionAssetOverviewCta', () => {
   describe('error handling', () => {
     beforeEach(() => {
       jest.mocked(useMusdConversion).mockReturnValue({
-        initiateConversion: mockInitiateConversion,
+        initiateMaxConversion: mockInitiateMaxConversion,
+        initiateCustomConversion: mockInitiateConversion,
+        clearError: mockClearError,
         error: null,
         hasSeenConversionEducationScreen: true,
       });
@@ -333,7 +341,7 @@ describe('MusdConversionAssetOverviewCta', () => {
       });
     });
 
-    it('logs error when initiateConversion fails with Error instance', async () => {
+    it('logs error when initiateCustomConversion fails with Error instance', async () => {
       const testError = new Error('Conversion failed');
       mockInitiateConversion.mockRejectedValue(testError);
 
@@ -365,7 +373,9 @@ describe('MusdConversionAssetOverviewCta', () => {
     it('tracks mUSD conversion CTA clicked event when user has not seen education screen', async () => {
       // Arrange
       jest.mocked(useMusdConversion).mockReturnValue({
-        initiateConversion: mockInitiateConversion,
+        initiateMaxConversion: mockInitiateMaxConversion,
+        initiateCustomConversion: mockInitiateConversion,
+        clearError: mockClearError,
         error: null,
         hasSeenConversionEducationScreen: false,
       });
@@ -410,7 +420,9 @@ describe('MusdConversionAssetOverviewCta', () => {
     it('tracks mUSD conversion CTA clicked event when user has seen education screen', async () => {
       // Arrange
       jest.mocked(useMusdConversion).mockReturnValue({
-        initiateConversion: mockInitiateConversion,
+        initiateMaxConversion: mockInitiateMaxConversion,
+        initiateCustomConversion: mockInitiateConversion,
+        clearError: mockClearError,
         error: null,
         hasSeenConversionEducationScreen: true,
       });
