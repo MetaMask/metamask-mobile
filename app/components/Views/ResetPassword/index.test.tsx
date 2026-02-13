@@ -243,8 +243,8 @@ describe('ResetPassword', () => {
     const component = isSeedlessOnboardingLoginFlow
       ? renderWithProviders(<ResetPassword {...defaultProps} />)
       : renderWithProvidersWithoutSeedlessOnboardingLoginFlow(
-        <ResetPassword {...defaultProps} />,
-      );
+          <ResetPassword {...defaultProps} />,
+        );
 
     const currentPasswordInput = component.getByTestId(
       ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,

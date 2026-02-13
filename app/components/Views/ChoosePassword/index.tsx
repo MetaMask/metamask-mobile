@@ -283,7 +283,10 @@ const ChoosePassword = () => {
   const handleWalletCreation = useCallback(
     async (authType: AuthData, previous_screen: string | undefined) => {
       // Ask user to allow biometrics access control
-      authType.currentAuthType = await Authentication.requestBiometricsAccessControlForIOS(authType.currentAuthType);
+      authType.currentAuthType =
+        await Authentication.requestBiometricsAccessControlForIOS(
+          authType.currentAuthType,
+        );
 
       if (previous_screen?.toLowerCase() === ONBOARDING.toLowerCase()) {
         await Authentication.newWalletAndKeychain(password, authType);
@@ -639,11 +642,11 @@ const ChoosePassword = () => {
                       >
                         {Platform.OS === 'ios' && getOauth2LoginSuccess()
                           ? strings(
-                            'choose_password.description_social_login_update_ios',
-                          )
+                              'choose_password.description_social_login_update_ios',
+                            )
                           : strings(
-                            'choose_password.description_social_login_update',
-                          )}
+                              'choose_password.description_social_login_update',
+                            )}
                         {Platform.OS === 'android' && (
                           <Text
                             variant={TextVariant.BodyMD}

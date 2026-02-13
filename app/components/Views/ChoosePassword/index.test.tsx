@@ -111,7 +111,9 @@ jest.mock('../../../core/Authentication', () => ({
     currentAuthType: 'passcode',
     availableBiometryType: 'faceID',
   }),
-  requestBiometricsAccessControlForIOS: jest.fn((authType) => Promise.resolve(authType)),
+  requestBiometricsAccessControlForIOS: jest.fn((authType) =>
+    Promise.resolve(authType),
+  ),
   newWalletAndKeychain: jest
     .fn()
     .mockImplementation(
@@ -818,9 +820,9 @@ describe('ChoosePassword', () => {
     (Platform as { OS: string }).OS = 'ios';
     // ChoosePassword calls requestBiometricsAccessControlForIOS (Authentication); that method calls authenticateAsync.
     // We mock the whole Authentication module, so simulate "user declined" by making requestBiometricsAccessControlForIOS return PASSWORD.
-    (Authentication.requestBiometricsAccessControlForIOS as jest.Mock).mockResolvedValueOnce(
-      AUTHENTICATION_TYPE.PASSWORD,
-    );
+    (
+      Authentication.requestBiometricsAccessControlForIOS as jest.Mock
+    ).mockResolvedValueOnce(AUTHENTICATION_TYPE.PASSWORD);
 
     mockRoute.params = {
       ...mockRoute.params,
@@ -880,9 +882,9 @@ describe('ChoosePassword', () => {
     const originalOS = Platform.OS;
     (Platform as { OS: string }).OS = 'ios';
     // Simulate "user approved" by having requestBiometricsAccessControlForIOS return BIOMETRIC (pass-through).
-    (Authentication.requestBiometricsAccessControlForIOS as jest.Mock).mockResolvedValueOnce(
-      AUTHENTICATION_TYPE.BIOMETRIC,
-    );
+    (
+      Authentication.requestBiometricsAccessControlForIOS as jest.Mock
+    ).mockResolvedValueOnce(AUTHENTICATION_TYPE.BIOMETRIC);
 
     mockRoute.params = {
       ...mockRoute.params,
@@ -947,10 +949,12 @@ describe('ChoosePassword', () => {
     mockNewWalletAndKeychain.mockRestore();
     mockComponentAuthenticationType.mockRestore();
     // Re-establish default so later tests (e.g. OAuth) get a valid authType object
-    (Authentication.componentAuthenticationType as jest.Mock).mockResolvedValue({
-      currentAuthType: 'passcode',
-      availableBiometryType: 'faceID',
-    });
+    (Authentication.componentAuthenticationType as jest.Mock).mockResolvedValue(
+      {
+        currentAuthType: 'passcode',
+        availableBiometryType: 'faceID',
+      },
+    );
   });
 
   it('confirm password input is cleared when password input is cleared', async () => {
@@ -1154,10 +1158,12 @@ describe('ChoosePassword', () => {
   });
 
   it('should navigate to success screen when oauth2Login is true and metrics enabled', async () => {
-    (Authentication.componentAuthenticationType as jest.Mock).mockResolvedValue({
-      currentAuthType: 'biometrics',
-      availableBiometryType: 'faceID',
-    });
+    (Authentication.componentAuthenticationType as jest.Mock).mockResolvedValue(
+      {
+        currentAuthType: 'biometrics',
+        availableBiometryType: 'faceID',
+      },
+    );
     const mockNewWalletAndKeychain = jest.spyOn(
       Authentication,
       'newWalletAndKeychain',
@@ -1224,10 +1230,12 @@ describe('ChoosePassword', () => {
   });
 
   it('should navigate to success screen when oauth2Login is true', async () => {
-    (Authentication.componentAuthenticationType as jest.Mock).mockResolvedValue({
-      currentAuthType: 'biometrics',
-      availableBiometryType: 'faceID',
-    });
+    (Authentication.componentAuthenticationType as jest.Mock).mockResolvedValue(
+      {
+        currentAuthType: 'biometrics',
+        availableBiometryType: 'faceID',
+      },
+    );
     const mockNewWalletAndKeychain = jest.spyOn(
       Authentication,
       'newWalletAndKeychain',
@@ -1322,7 +1330,9 @@ describe('ChoosePassword', () => {
 
   describe('ErrorBoundary Tests', () => {
     it('should not trigger ErrorBoundary for OAuth password creation failures when analytics enabled', async () => {
-      (Authentication.componentAuthenticationType as jest.Mock).mockResolvedValue({
+      (
+        Authentication.componentAuthenticationType as jest.Mock
+      ).mockResolvedValue({
         currentAuthType: 'biometrics',
         availableBiometryType: 'faceID',
       });
@@ -1549,7 +1559,9 @@ describe('ChoosePassword', () => {
     });
 
     it('should call updateMarketingOptInStatus API when OAuth user creates password with marketing opt-in enabled', async () => {
-      (Authentication.componentAuthenticationType as jest.Mock).mockResolvedValue({
+      (
+        Authentication.componentAuthenticationType as jest.Mock
+      ).mockResolvedValue({
         currentAuthType: 'biometrics',
         availableBiometryType: 'faceID',
       });
