@@ -22,10 +22,10 @@ const TRIGGER_CONDITION_PRICE_BELOW = 'perps.order_details.price_below';
 
 /**
  * Parses the trigger price from an order, returning null when absent or invalid.
- * Use this instead of inline `parseFloat(order.triggerPrice || '0')` + validity checks.
+ * Use this instead of inline `parseFloat(order.triggerPrice ?? '')` + validity checks.
  */
 export const getValidTriggerPrice = (order: Order): number | null => {
-  const parsed = parseFloat(order.triggerPrice || '');
+  const parsed = parseFloat(order.triggerPrice ?? '');
   return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
 };
 
@@ -125,7 +125,7 @@ const isClosingSideForPosition = (
   order: Order,
   position: Position,
 ): boolean => {
-  const positionSize = new BigNumber(position.size || '0');
+  const positionSize = new BigNumber(position.size ?? '0');
   if (!positionSize.isFinite() || positionSize.isZero()) {
     return false;
   }
@@ -146,12 +146,12 @@ export const inferTriggerConditionKey = (params: {
 }): TriggerConditionKey | undefined => {
   const { detailedOrderType, side, triggerPrice, price } = params;
 
-  const parsedTriggerPrice = Number.parseFloat(triggerPrice || '');
+  const parsedTriggerPrice = Number.parseFloat(triggerPrice ?? '');
   if (!Number.isFinite(parsedTriggerPrice) || parsedTriggerPrice <= 0) {
     return undefined;
   }
 
-  const normalizedDetailedOrderType = (detailedOrderType || '').toLowerCase();
+  const normalizedDetailedOrderType = (detailedOrderType ?? '').toLowerCase();
   const isTakeProfit = normalizedDetailedOrderType.includes('take profit');
   const isStop = normalizedDetailedOrderType.includes('stop');
 
@@ -163,7 +163,7 @@ export const inferTriggerConditionKey = (params: {
     return TRIGGER_CONDITION_PRICE_BELOW;
   }
 
-  const parsedPrice = Number.parseFloat(price || '');
+  const parsedPrice = Number.parseFloat(price ?? '');
   const hasPrice = Number.isFinite(parsedPrice) && parsedPrice > 0;
   if (hasPrice && parsedTriggerPrice !== parsedPrice) {
     if (side === 'sell') {
