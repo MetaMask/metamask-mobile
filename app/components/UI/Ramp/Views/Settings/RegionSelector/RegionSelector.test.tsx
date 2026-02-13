@@ -118,7 +118,7 @@ const mockUseRampsControllerInitialValues: ReturnType<
   setSelectedQuote: jest.fn(),
   startQuotePolling: jest.fn(),
   stopQuotePolling: jest.fn(),
-  getWidgetUrl: jest.fn(),
+  widgetUrl: null,
   quotesLoading: false,
   quotesError: null,
 };

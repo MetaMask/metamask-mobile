@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render, act } from '@testing-library/react-native';
+import { fireEvent, render } from '@testing-library/react-native';
 import BuildQuote from './BuildQuote';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
 import type { RampsToken } from '../../hooks/useRampTokens';
@@ -13,12 +13,6 @@ const mockSetOptions = jest.fn();
 const mockGoBack = jest.fn();
 const mockStartQuotePolling = jest.fn();
 const mockStopQuotePolling = jest.fn();
-const mockGetWidgetUrl = jest.fn(async (quote) => {
-  const buyUrl = quote?.quote?.buyURL;
-  if (!buyUrl) return null;
-  // Simulate the fetch behavior
-  return 'https://global.transak.com/?apiKey=test';
-});
 
 const MOCK_ASSET_ID =
   'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
@@ -119,6 +113,8 @@ let mockSelectedProvider: unknown = null;
 let mockSelectedQuote: unknown = null;
 let mockQuotesLoading = false;
 let mockSelectedPaymentMethod: unknown = null;
+let mockWidgetUrl: { url: string; browser?: string; orderId?: string } | null =
+  null;
 let mockTokens: {
   allTokens: ReturnType<typeof createMockToken>[];
   topTokens: ReturnType<typeof createMockToken>[];
@@ -136,7 +132,7 @@ jest.mock('../../hooks/useRampsController', () => ({
     quotesLoading: mockQuotesLoading,
     startQuotePolling: mockStartQuotePolling,
     stopQuotePolling: mockStopQuotePolling,
-    getWidgetUrl: mockGetWidgetUrl,
+    widgetUrl: mockWidgetUrl,
     paymentMethodsLoading: false,
     selectedPaymentMethod: mockSelectedPaymentMethod,
   }),
@@ -157,6 +153,7 @@ describe('BuildQuote', () => {
     mockSelectedQuote = null;
     mockQuotesLoading = false;
     mockSelectedPaymentMethod = null;
+    mockWidgetUrl = null;
     mockTokens = {
       allTokens: [createMockToken()],
       topTokens: [createMockToken()],
@@ -443,7 +440,7 @@ describe('BuildQuote', () => {
       expect(continueButton).not.toBeDisabled();
     });
 
-    it('navigates to checkout webview for aggregator provider with URL', async () => {
+    it('navigates to checkout webview for aggregator provider with URL', () => {
       mockSelectedQuote = {
         provider: '/providers/mercuryo',
         quote: {
@@ -467,22 +464,14 @@ describe('BuildQuote', () => {
         id: '/payments/debit-credit-card',
         name: 'Card',
       };
+      mockWidgetUrl = {
+        url: 'https://global.transak.com/?apiKey=test',
+      };
 
       const { getByTestId } = renderWithTheme(<BuildQuote />);
 
       const continueButton = getByTestId('build-quote-continue-button');
-
-      mockGetWidgetUrl.mockResolvedValue(
-        'https://global.transak.com/?apiKey=test',
-      );
-
-      await act(async () => {
-        fireEvent.press(continueButton);
-      });
-
-      await act(async () => {
-        await Promise.resolve();
-      });
+      fireEvent.press(continueButton);
 
       expect(mockNavigate).toHaveBeenCalledWith(
         'Checkout',
@@ -493,7 +482,7 @@ describe('BuildQuote', () => {
       );
     });
 
-    it('passes userAgent to Checkout when quote has providerInfo.features.buy.userAgent', async () => {
+    it('passes userAgent to Checkout when quote has providerInfo.features.buy.userAgent', () => {
       mockSelectedQuote = {
         provider: '/providers/mercuryo',
         quote: {
@@ -518,20 +507,13 @@ describe('BuildQuote', () => {
         id: '/payments/debit-credit-card',
         name: 'Card',
       };
-      mockGetWidgetUrl.mockResolvedValue(
-        'https://global.transak.com/?apiKey=test',
-      );
+      mockWidgetUrl = {
+        url: 'https://global.transak.com/?apiKey=test',
+      };
 
       const { getByTestId } = renderWithTheme(<BuildQuote />);
       const continueButton = getByTestId('build-quote-continue-button');
-
-      await act(async () => {
-        fireEvent.press(continueButton);
-      });
-
-      await act(async () => {
-        await Promise.resolve();
-      });
+      fireEvent.press(continueButton);
 
       expect(mockNavigate).toHaveBeenCalledWith(
         'Checkout',
@@ -623,9 +605,9 @@ describe('BuildQuote', () => {
       });
     });
 
-    it('logs error when aggregator provider has no URL', async () => {
+    it('logs error when aggregator provider has no URL', () => {
       const mockLogger = jest.spyOn(Logger, 'error');
-      mockGetWidgetUrl.mockResolvedValue(null);
+      mockWidgetUrl = null;
 
       mockSelectedQuote = {
         provider: '/providers/mercuryo',
@@ -653,14 +635,7 @@ describe('BuildQuote', () => {
       const { getByTestId } = renderWithTheme(<BuildQuote />);
 
       const continueButton = getByTestId('build-quote-continue-button');
-
-      await act(async () => {
-        fireEvent.press(continueButton);
-      });
-
-      await act(async () => {
-        await Promise.resolve();
-      });
+      fireEvent.press(continueButton);
 
       expect(mockLogger).toHaveBeenCalledWith(
         expect.any(Error),
@@ -671,7 +646,7 @@ describe('BuildQuote', () => {
       expect(mockNavigate).not.toHaveBeenCalled();
     });
 
-    it('does not navigate when quote amount does not match current amount', async () => {
+    it('does not navigate when quote amount does not match current amount', () => {
       mockSelectedQuote = {
         provider: '/providers/mercuryo',
         quote: {
@@ -695,15 +670,12 @@ describe('BuildQuote', () => {
       const { getByTestId } = renderWithTheme(<BuildQuote />);
 
       const continueButton = getByTestId('build-quote-continue-button');
-      await act(async () => {
-        fireEvent.press(continueButton);
-      });
+      fireEvent.press(continueButton);
 
       expect(mockNavigate).not.toHaveBeenCalled();
-      expect(mockGetWidgetUrl).not.toHaveBeenCalled();
     });
 
-    it('does not navigate when quote payment method does not match selected payment method', async () => {
+    it('does not navigate when quote payment method does not match selected payment method', () => {
       mockSelectedQuote = {
         provider: '/providers/mercuryo',
         quote: {
@@ -727,15 +699,12 @@ describe('BuildQuote', () => {
       const { getByTestId } = renderWithTheme(<BuildQuote />);
 
       const continueButton = getByTestId('build-quote-continue-button');
-      await act(async () => {
-        fireEvent.press(continueButton);
-      });
+      fireEvent.press(continueButton);
 
       expect(mockNavigate).not.toHaveBeenCalled();
-      expect(mockGetWidgetUrl).not.toHaveBeenCalled();
     });
 
-    it('does not navigate when quote has payment method but selectedPaymentMethod is missing', async () => {
+    it('does not navigate when quote has payment method but selectedPaymentMethod is missing', () => {
       mockSelectedQuote = {
         provider: '/providers/mercuryo',
         quote: {
@@ -756,12 +725,9 @@ describe('BuildQuote', () => {
       const { getByTestId } = renderWithTheme(<BuildQuote />);
 
       const continueButton = getByTestId('build-quote-continue-button');
-      await act(async () => {
-        fireEvent.press(continueButton);
-      });
+      fireEvent.press(continueButton);
 
       expect(mockNavigate).not.toHaveBeenCalled();
-      expect(mockGetWidgetUrl).not.toHaveBeenCalled();
     });
   });
 });

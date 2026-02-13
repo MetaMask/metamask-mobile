@@ -16,6 +16,10 @@ import {
   type UseRampsPaymentMethodsResult,
 } from './useRampsPaymentMethods';
 import { useRampsQuotes, type UseRampsQuotesResult } from './useRampsQuotes';
+import {
+  useRampsWidgetUrl,
+  type UseRampsWidgetUrlResult,
+} from './useRampsWidgetUrl';
 
 /**
  * Result returned by the useRampsController hook.
@@ -61,9 +65,13 @@ export interface UseRampsControllerResult {
   setSelectedQuote: UseRampsQuotesResult['setSelectedQuote'];
   startQuotePolling: UseRampsQuotesResult['startQuotePolling'];
   stopQuotePolling: UseRampsQuotesResult['stopQuotePolling'];
-  getWidgetUrl: UseRampsQuotesResult['getWidgetUrl'];
   quotesLoading: UseRampsQuotesResult['isLoading'];
   quotesError: UseRampsQuotesResult['error'];
+
+  // Widget URL
+  widgetUrl: UseRampsWidgetUrlResult['widgetUrl'];
+  widgetUrlLoading: UseRampsWidgetUrlResult['isLoading'];
+  widgetUrlError: UseRampsWidgetUrlResult['error'];
 }
 
 /**
@@ -115,6 +123,11 @@ export interface UseRampsControllerResult {
  *   getQuotes,
  *   setSelectedQuote,
  *
+ *   // Widget URL
+ *   widgetUrl,
+ *   widgetUrlLoading,
+ *   widgetUrlError,
+ *
  * } = useRampsController();
  * ```
  */
@@ -156,12 +169,17 @@ export function useRampsController(): UseRampsControllerResult {
     selectedQuote,
     startQuotePolling,
     stopQuotePolling,
-    getWidgetUrl,
     isLoading: quotesLoading,
     error: quotesError,
     getQuotes,
     setSelectedQuote,
   } = useRampsQuotes();
+
+  const {
+    widgetUrl,
+    isLoading: widgetUrlLoading,
+    error: widgetUrlError,
+  } = useRampsWidgetUrl();
 
   return {
     // User region
@@ -202,9 +220,13 @@ export function useRampsController(): UseRampsControllerResult {
     setSelectedQuote,
     startQuotePolling,
     stopQuotePolling,
-    getWidgetUrl,
     quotesLoading,
     quotesError,
+
+    // Widget URL
+    widgetUrl,
+    widgetUrlLoading,
+    widgetUrlError,
   };
 }
 

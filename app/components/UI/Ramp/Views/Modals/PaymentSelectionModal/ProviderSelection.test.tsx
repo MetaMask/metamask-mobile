@@ -65,7 +65,7 @@ const defaultMockController: UseRampsControllerResult = {
   setSelectedQuote: mockSetSelectedQuote,
   startQuotePolling: jest.fn(),
   stopQuotePolling: jest.fn(),
-  getWidgetUrl: jest.fn(),
+  widgetUrl: null,
   quotesLoading: false,
   quotesError: null,
 };

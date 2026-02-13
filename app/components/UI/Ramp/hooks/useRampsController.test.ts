@@ -63,6 +63,14 @@ jest.mock('./useRampsPaymentMethods', () => ({
   })),
 }));
 
+jest.mock('./useRampsWidgetUrl', () => ({
+  useRampsWidgetUrl: jest.fn(() => ({
+    widgetUrl: null,
+    isLoading: false,
+    error: null,
+  })),
+}));
+
 const createMockStore = () =>
   configureStore({
     reducer: {
@@ -120,6 +128,9 @@ describe('useRampsController', () => {
       selectedPaymentMethod: null,
       paymentMethodsLoading: false,
       paymentMethodsError: null,
+      widgetUrl: null,
+      widgetUrlLoading: false,
+      widgetUrlError: null,
     });
 
     expect(typeof result.current.setUserRegion).toBe('function');

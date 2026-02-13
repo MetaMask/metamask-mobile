@@ -69,13 +69,6 @@ export interface UseRampsQuotesResult {
    */
   stopQuotePolling: () => void;
   /**
-   * Fetches the widget URL from a quote for redirect providers.
-   * Makes a request to the buyURL endpoint to get the actual provider widget URL.
-   * @param quote - The quote to fetch the widget URL from.
-   * @returns Promise resolving to the widget URL string, or null if not available.
-   */
-  getWidgetUrl: (quote: Quote) => Promise<string | null>;
-  /**
    * Whether the quotes request is currently loading.
    */
   isLoading: boolean;
@@ -122,11 +115,6 @@ export function useRampsQuotes(): UseRampsQuotesResult {
     [],
   );
 
-  const getWidgetUrl = useCallback(
-    (quote: Quote) => Engine.context.RampsController.getWidgetUrl(quote),
-    [],
-  );
-
   return {
     quotes,
     selectedQuote,
@@ -134,7 +122,6 @@ export function useRampsQuotes(): UseRampsQuotesResult {
     setSelectedQuote,
     startQuotePolling,
     stopQuotePolling,
-    getWidgetUrl,
     isLoading,
     error,
   };
