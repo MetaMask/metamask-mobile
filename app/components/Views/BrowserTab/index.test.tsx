@@ -55,10 +55,33 @@ jest.mock('../../../core/Engine', () => ({
   context: {
     AccountsController: {
       listMultichainAccounts: () => [],
+      getSelectedAccount: () => ({
+        address: '0x1234567890123456789012345678901234567890',
+      }),
     },
     CurrencyRateController: {
       updateExchangeRate: jest.fn(),
     },
+    PermissionController: {
+      state: {
+        subjects: {},
+      },
+    },
+  },
+  controllerMessenger: {
+    call: jest.fn().mockImplementation((method: string) => {
+      if (method === 'SelectedNetworkController:getNetworkClientIdForDomain') {
+        return 'mainnet';
+      }
+      if (method === 'NetworkController:getNetworkClientById') {
+        return {
+          configuration: {
+            chainId: '0x1',
+          },
+        };
+      }
+      return undefined;
+    }),
   },
 }));
 
@@ -67,10 +90,21 @@ jest.mock('../../../core/EntryScriptWeb3', () => ({
   get: () => '',
 }));
 
+jest.mock('../../../core/BackgroundBridge/BackgroundBridge', () =>
+  jest.fn().mockImplementation(() => ({
+    onMessage: jest.fn(),
+    onDisconnect: jest.fn(),
+  })),
+);
+
+const mockGetPhishingTestResultAsync = jest.fn<
+  Promise<{ result: boolean; name: string }>,
+  [string]
+>(() => Promise.resolve({ result: false, name: '' }));
+
 jest.mock('../../../util/phishingDetection', () => ({
-  getPhishingTestResultAsync: jest.fn(() =>
-    Promise.resolve({ result: false, name: '' }),
-  ),
+  getPhishingTestResultAsync: (origin: string) =>
+    mockGetPhishingTestResultAsync(origin),
 }));
 
 const mockProps = {
@@ -213,6 +247,108 @@ describe('BrowserTab', () => {
           url: 'javascript://example.com',
         }),
       ).toBe(false);
+    });
+  });
+
+  describe('Phishing Detection', () => {
+    beforeEach(() => {
+      mockGetPhishingTestResultAsync.mockClear();
+    });
+
+    it('updates URL bar when phishing site is detected during onLoadStart', async () => {
+      // Arrange: Configure phishing detection to flag the malicious URL
+      mockGetPhishingTestResultAsync.mockImplementation((origin: string) => {
+        if (origin === 'https://malicious-site.com') {
+          return Promise.resolve({ result: true, name: 'Phishing' });
+        }
+        return Promise.resolve({ result: false, name: '' });
+      });
+
+      renderWithProvider(<BrowserTab {...mockProps} />, {
+        state: mockInitialState,
+      });
+
+      await waitFor(() =>
+        expect(screen.getByTestId('browser-webview')).toBeVisible(),
+      );
+
+      const webView = screen.getByTestId('browser-webview');
+      const onLoadStart = webView.props.onLoadStart;
+
+      // Act: Simulate WebView starting to load a phishing URL
+      await onLoadStart({
+        nativeEvent: {
+          url: 'https://malicious-site.com/phishing-page',
+        },
+      });
+
+      // Assert: Verify phishing detection was called with the correct origin
+      expect(mockGetPhishingTestResultAsync).toHaveBeenCalledWith(
+        'https://malicious-site.com',
+      );
+    });
+
+    it('allows loading of non-phishing URLs', async () => {
+      // Arrange: Configure phishing detection to allow the URL
+      mockGetPhishingTestResultAsync.mockResolvedValue({
+        result: false,
+        name: '',
+      });
+
+      renderWithProvider(<BrowserTab {...mockProps} />, {
+        state: mockInitialState,
+      });
+
+      await waitFor(() =>
+        expect(screen.getByTestId('browser-webview')).toBeVisible(),
+      );
+
+      const webView = screen.getByTestId('browser-webview');
+      const onLoadStart = webView.props.onLoadStart;
+
+      // Act: Simulate WebView starting to load a safe URL
+      await onLoadStart({
+        nativeEvent: {
+          url: 'https://safe-website.com/page',
+        },
+      });
+
+      // Assert: Verify phishing detection was called
+      expect(mockGetPhishingTestResultAsync).toHaveBeenCalledWith(
+        'https://safe-website.com',
+      );
+    });
+
+    it('bypasses phishing detection for whitelisted URLs', async () => {
+      // Arrange: Add URL to whitelist in state
+      const stateWithWhitelist = {
+        ...mockInitialState,
+        browser: {
+          ...mockInitialState.browser,
+          whitelist: ['https://whitelisted-site.com'],
+        },
+      };
+
+      renderWithProvider(<BrowserTab {...mockProps} />, {
+        state: stateWithWhitelist,
+      });
+
+      await waitFor(() =>
+        expect(screen.getByTestId('browser-webview')).toBeVisible(),
+      );
+
+      const webView = screen.getByTestId('browser-webview');
+      const onLoadStart = webView.props.onLoadStart;
+
+      // Act: Simulate WebView starting to load a whitelisted URL
+      await onLoadStart({
+        nativeEvent: {
+          url: 'https://whitelisted-site.com/page',
+        },
+      });
+
+      // Assert: Verify phishing detection was NOT called because URL is whitelisted
+      expect(mockGetPhishingTestResultAsync).not.toHaveBeenCalled();
     });
   });
 });
