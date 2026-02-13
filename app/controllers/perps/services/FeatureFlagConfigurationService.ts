@@ -6,6 +6,7 @@ import {
   parseCommaSeparatedString,
   stripQuotes,
 } from '../utils/stringParseUtils';
+import { validateMarketPattern } from '../utils/marketUtils';
 import type { ServiceContext } from './ServiceContext';
 import {
   isVersionGatedFeatureFlag,
@@ -60,7 +61,10 @@ export class FeatureFlagConfigurationService {
     // LaunchDarkly returns comma-separated strings for list values
     // Values may have literal quotes (e.g., '"xyz"') due to JSON encoding quirks
     if (typeof remoteValue === 'string') {
-      const parsed = parseCommaSeparatedString(remoteValue).map(stripQuotes);
+      const parsed = this.filterValidPatterns(
+        parseCommaSeparatedString(remoteValue).map(stripQuotes),
+        fieldName,
+      );
 
       if (parsed.length > 0) {
         this.deps.debugLogger.log(
@@ -82,9 +86,12 @@ export class FeatureFlagConfigurationService {
       Array.isArray(remoteValue) &&
       remoteValue.every((item) => typeof item === 'string' && item.length > 0)
     ) {
-      const validatedMarkets = (remoteValue as string[])
-        .map((market) => stripQuotes(market.trim()))
-        .filter((market) => market.length > 0);
+      const validatedMarkets = this.filterValidPatterns(
+        (remoteValue as string[])
+          .map((market) => stripQuotes(market.trim()))
+          .filter((market) => market.length > 0),
+        fieldName,
+      );
 
       this.deps.debugLogger.log(
         `PerpsController: HIP-3 ${fieldName} validated from array`,
@@ -103,6 +110,34 @@ export class FeatureFlagConfigurationService {
       },
     );
     return undefined;
+  }
+
+  /**
+   * Filter out patterns that fail market pattern validation.
+   * Invalid patterns are logged and dropped instead of propagated downstream.
+   */
+  private filterValidPatterns(patterns: string[], fieldName: string): string[] {
+    return patterns.filter((pattern) => {
+      try {
+        validateMarketPattern(pattern);
+        return true;
+      } catch (error) {
+        this.deps.logger.error(
+          ensureError(
+            error,
+            `FeatureFlagConfigurationService.filterValidPatterns`,
+          ),
+          {
+            tags: { feature: PERPS_CONSTANTS.FeatureName },
+            context: {
+              name: 'FeatureFlagConfigurationService.filterValidPatterns',
+              data: { fieldName, pattern },
+            },
+          },
+        );
+        return false;
+      }
+    });
   }
 
   /**

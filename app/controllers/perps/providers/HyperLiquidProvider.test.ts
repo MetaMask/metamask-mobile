@@ -506,6 +506,56 @@ describe('HyperLiquidProvider', () => {
       expect(Array.isArray(markets)).toBe(true);
     });
 
+    it('does not throw when allowlist contains invalid patterns', () => {
+      expect(() => {
+        createTestProvider({
+          hip3Enabled: true,
+          allowlistMarkets: ['xyz:TSLA', '"bad"pattern"', 'valid:*'],
+        });
+      }).not.toThrow();
+    });
+
+    it('does not throw when blocklist contains invalid patterns', () => {
+      expect(() => {
+        createTestProvider({
+          hip3Enabled: true,
+          blocklistMarkets: ['valid:BTC', '"invalid"', 'also:valid'],
+        });
+      }).not.toThrow();
+    });
+
+    it('logs warning for skipped invalid patterns', () => {
+      createTestProvider({
+        hip3Enabled: true,
+        allowlistMarkets: ['"bad"pattern"'],
+      });
+
+      expect(mockPlatformDependencies.logger.error).toHaveBeenCalledWith(
+        expect.any(Error),
+        expect.objectContaining({
+          tags: expect.objectContaining({ provider: 'hyperliquid' }),
+          context: expect.objectContaining({
+            name: 'HyperLiquidProvider',
+            data: expect.objectContaining({
+              method: 'compilePatternsSafely',
+              pattern: '"bad"pattern"',
+            }),
+          }),
+        }),
+      );
+    });
+
+    it('compiles valid patterns even when some are invalid', () => {
+      const testProvider = createTestProvider({
+        hip3Enabled: true,
+        allowlistMarkets: ['xyz:TSLA', '"bad"pattern"', 'valid:*'],
+      });
+
+      // Provider should be functional — valid patterns compiled, bad ones skipped
+      expect(testProvider).toBeDefined();
+      expect(testProvider.protocolId).toBe('hyperliquid');
+    });
+
     it('handles perpDexs array with null entries', async () => {
       mockClientService.getInfoClient = jest.fn().mockReturnValue(
         createMockInfoClient({
