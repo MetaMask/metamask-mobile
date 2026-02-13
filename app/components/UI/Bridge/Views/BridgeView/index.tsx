@@ -96,6 +96,8 @@ export interface BridgeRouteParams {
   sourceToken?: BridgeToken;
   destToken?: BridgeToken;
   sourceAmount?: string;
+  /** The entry point location for analytics, mapped to MetaMetricsSwapsEventSource */
+  location?: import('@metamask/bridge-controller').MetaMetricsSwapsEventSource;
 }
 
 const BridgeView = () => {
@@ -253,6 +255,7 @@ const BridgeView = () => {
     hasTxAlert: Boolean(blockaidError),
     isSubmitDisabled,
     isPriceImpactWarningVisible: shouldShowPriceImpactWarning,
+    location: route.params?.location,
   });
 
   // Compute error state directly from dependencies
@@ -267,6 +270,14 @@ const BridgeView = () => {
     (!activeQuote && !isError && !isLoading);
   // Hide quote whenever the keypad is displayed
   const shouldDisplayQuoteDetails = activeQuote && !shouldDisplayKeypad;
+
+  // Set the location/entry point on the bridge controller so all
+  // internally-fired events carry the correct location
+  useEffect(() => {
+    if (route.params?.location) {
+      Engine.context.BridgeController.setLocation(route.params.location);
+    }
+  }, [route.params?.location]);
 
   // Update quote parameters when relevant state changes
   useEffect(() => {
@@ -366,6 +377,7 @@ const BridgeView = () => {
 
         await submitBridgeTx({
           quoteResponse,
+          location: route.params?.location,
         });
       }
     } catch (error) {
@@ -385,11 +397,13 @@ const BridgeView = () => {
   const handleSourceTokenPress = () =>
     navigation.navigate(Routes.BRIDGE.TOKEN_SELECTOR, {
       type: 'source',
+      location: route.params?.location,
     });
 
   const handleDestTokenPress = () =>
     navigation.navigate(Routes.BRIDGE.TOKEN_SELECTOR, {
       type: 'dest',
+      location: route.params?.location,
     });
 
   const getButtonLabel = () => {

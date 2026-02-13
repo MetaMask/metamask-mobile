@@ -8,6 +8,7 @@ import {
   formatChainIdToHex,
   getNativeAssetForChainId,
   isNonEvmChainId,
+  MetaMetricsSwapsEventSource,
 } from '@metamask/bridge-controller';
 import { BridgeRouteParams } from '../../Views/BridgeView';
 import { EthScope } from '@metamask/keyring-api';
@@ -53,7 +54,35 @@ export enum SwapBridgeNavigationLocation {
   MainView = 'Main View',
   TokenView = 'Token View',
   Rewards = 'Rewards',
+  TrendingExplore = 'trending_explore',
 }
+
+/**
+ * Maps the mobile-specific SwapBridgeNavigationLocation to the core
+ * MetaMetricsSwapsEventSource enum used by the bridge-controller/bridge-status-controller.
+ *
+ * @param location - The mobile navigation location
+ * @param isFromTrending - Whether the user navigated from the trending flow
+ * @returns The corresponding MetaMetricsSwapsEventSource value
+ */
+export const toMetaMetricsSwapsEventSource = (
+  location: SwapBridgeNavigationLocation,
+  isFromTrending = false,
+): MetaMetricsSwapsEventSource => {
+  if (isFromTrending) {
+    return MetaMetricsSwapsEventSource.TrendingExplore;
+  }
+  switch (location) {
+    case SwapBridgeNavigationLocation.MainView:
+      return MetaMetricsSwapsEventSource.MainView;
+    case SwapBridgeNavigationLocation.TokenView:
+      return MetaMetricsSwapsEventSource.TokenView;
+    case SwapBridgeNavigationLocation.TrendingExplore:
+      return MetaMetricsSwapsEventSource.TrendingExplore;
+    default:
+      return MetaMetricsSwapsEventSource.MainView;
+  }
+};
 
 /**
  * Returns functions that are used to navigate to the MetaMask Bridge and MetaMask Swaps routes.
@@ -190,10 +219,15 @@ export const useSwapBridgeNavigation = ({
         }
       }
 
+      // Check if user is in an active trending session for analytics
+      const isFromTrending =
+        TrendingFeedSessionManager.getInstance().isFromTrending;
+
       const params: BridgeRouteParams = {
         sourceToken,
         sourcePage,
         bridgeViewMode,
+        location: toMetaMetricsSwapsEventSource(location, isFromTrending),
       };
 
       navigation.navigate(Routes.BRIDGE.ROOT, {
@@ -214,9 +248,6 @@ export const useSwapBridgeNavigation = ({
           ? ActionLocation.NAVBAR
           : ActionLocation.ASSET_DETAILS,
       });
-      // Check if user is in an active trending session for analytics
-      const isFromTrending =
-        TrendingFeedSessionManager.getInstance().isFromTrending;
 
       const swapEventProperties = {
         location,
@@ -231,6 +262,7 @@ export const useSwapBridgeNavigation = ({
           .addProperties(swapEventProperties)
           .build(),
       );
+
       trace({
         name: TraceName.SwapViewLoaded,
         startTime: Date.now(),

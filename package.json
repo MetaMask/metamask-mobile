@@ -135,6 +135,16 @@
       "prettier --write"
     ]
   },
+  "previewBuilds": {
+    "@metamask/bridge-controller": {
+      "type": "non-breaking",
+      "previewVersion": "66.1.1-preview-b32f1a3ca"
+    },
+    "@metamask/bridge-status-controller": {
+      "type": "non-breaking",
+      "previewVersion": "66.0.2-preview-b32f1a3ca"
+    }
+  },
   "resolutions": {
     "json-schema": "^0.4.0",
     "node-fetch": "^2.6.7",
