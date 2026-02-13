@@ -10339,16 +10339,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/transaction-pay-controller@patch:@metamask/transaction-pay-controller@npm%3A12.1.0#~/.yarn/patches/@metamask-transaction-pay-controller-npm-12.1.0-226665ee88.patch":
-  version: 12.1.0
-  resolution: "@metamask/transaction-pay-controller@patch:@metamask/transaction-pay-controller@npm%3A12.1.0#~/.yarn/patches/@metamask-transaction-pay-controller-npm-12.1.0-226665ee88.patch::version=12.1.0&hash=8bd09b"
+"@metamask/transaction-pay-controller@patch:@metamask/transaction-pay-controller@npm%3A12.2.0#~/.yarn/patches/@metamask-transaction-pay-controller-npm-12.2.0-84dbc0451c.patch":
+  version: 12.2.0
+  resolution: "@metamask/transaction-pay-controller@patch:@metamask/transaction-pay-controller@npm%3A12.2.0#~/.yarn/patches/@metamask-transaction-pay-controller-npm-12.2.0-84dbc0451c.patch::version=12.2.0&hash=7108ce"
   dependencies:
     "@ethersproject/abi": "npm:^5.7.0"
     "@ethersproject/contracts": "npm:^5.7.0"
     "@metamask/assets-controllers": "npm:^99.2.0"
     "@metamask/base-controller": "npm:^9.0.0"
-    "@metamask/bridge-controller": "npm:^65.2.0"
-    "@metamask/bridge-status-controller": "npm:^65.0.1"
+    "@metamask/bridge-controller": "npm:^65.3.0"
+    "@metamask/bridge-status-controller": "npm:^66.0.0"
     "@metamask/controller-utils": "npm:^11.18.0"
     "@metamask/gas-fee-controller": "npm:^26.0.2"
     "@metamask/messenger": "npm:^0.3.0"
@@ -10361,7 +10361,7 @@ __metadata:
     bn.js: "npm:^5.2.1"
     immer: "npm:^9.0.6"
     lodash: "npm:^4.17.21"
-  checksum: 10/00d115499e879dc43cda8c47dd331195a4db8321311cb3dd985c4abf6d1f09f92dcbac328bd312ab5f46b936985dbfa26a8d0dc59b81c494d70ab1fee70413e4
+  checksum: 10/9a8ed6bc58710e0ec34d44a8e2d1c4a976b6376c88dc4d2727104316671102c1963588f2a33c370d0aa34f79a78ff1cc9a6b4ffac3e0023b437c175178149570
   languageName: node
   linkType: hard
 
