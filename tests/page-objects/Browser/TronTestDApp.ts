@@ -106,7 +106,9 @@ class TronTestDApp {
     await this.tapButton(this.walletButtonSelector);
   }
 
-  async verifyConnectionStatus(connectionStatus: string): Promise<void> {
+  async verifyConnectionStatus(
+    expectedConnectionStatus: string,
+  ): Promise<void> {
     await Utilities.executeWithRetry(
       async () => {
         const connectionStatusDiv = await getTestElement(
@@ -114,9 +116,9 @@ class TronTestDApp {
         );
         const actualText = await connectionStatusDiv.getText();
 
-        if (actualText !== connectionStatus) {
+        if (actualText !== expectedConnectionStatus) {
           throw new Error(
-            `Expected text containing "${connectionStatus}" but got "${actualText}"`,
+            `Expected text containing "${expectedConnectionStatus}" but got "${actualText}"`,
           );
         }
       },
@@ -127,7 +129,7 @@ class TronTestDApp {
     );
   }
 
-  async verifyConnectedAccount(connectionStatus: string): Promise<void> {
+  async verifyConnectedAccount(expectedAccount: string): Promise<void> {
     await Utilities.executeWithRetry(
       async () => {
         const account = await getTestElement(
@@ -138,9 +140,9 @@ class TronTestDApp {
         );
         const actualText = await account.getText();
 
-        if (actualText !== connectionStatus) {
+        if (actualText !== expectedAccount) {
           throw new Error(
-            `Expected text containing "${connectionStatus}" but got "${actualText}"`,
+            `Expected text containing "${expectedAccount}" but got "${actualText}"`,
           );
         }
       },
