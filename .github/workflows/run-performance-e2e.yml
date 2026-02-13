@@ -214,8 +214,8 @@ jobs:
       platform: android
       build_type: onboarding
       device_matrix: ${{ needs.read-device-matrix.outputs.android_matrix }}
-      browserstack_app_url: ${{ needs.trigger-android-dual-versions.outputs.without-srp-browserstack-url || inputs.browserstack_app_url_android_onboarding }}
-      app_version: ${{ needs.trigger-android-dual-versions.outputs.without-srp-version || 'Manual-Input' }}
+      browserstack_app_url: ${{ needs.trigger-android-dual-versions.outputs.browserstack-url || inputs.browserstack_app_url_android_onboarding }}
+      app_version: ${{ needs.trigger-android-dual-versions.outputs.app-version || 'Manual-Input' }}
       branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
       browserstack_build_name: ${{ needs.set-build-names.outputs.android_build_name }}
     secrets: inherit
@@ -229,8 +229,8 @@ jobs:
       platform: ios
       build_type: onboarding
       device_matrix: ${{ needs.read-device-matrix.outputs.ios_matrix }}
-      browserstack_app_url: ${{ needs.trigger-ios-dual-versions.outputs.without-srp-browserstack-url || inputs.browserstack_app_url_ios_onboarding }}
-      app_version: ${{ needs.trigger-ios-dual-versions.outputs.without-srp-version || 'Manual-Input' }}
+      browserstack_app_url: ${{ needs.trigger-ios-dual-versions.outputs.browserstack-url || inputs.browserstack_app_url_ios_onboarding }}
+      app_version: ${{ needs.trigger-ios-dual-versions.outputs.app-version || 'Manual-Input' }}
       branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
       browserstack_build_name: ${{ needs.set-build-names.outputs.ios_build_name }}
     secrets: inherit
@@ -266,8 +266,8 @@ jobs:
       platform: android
       build_type: imported-wallet
       device_matrix: ${{ needs.read-device-matrix.outputs.android_matrix }}
-      browserstack_app_url: ${{ needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url || inputs.browserstack_app_url_android_imported_wallet }}
-      app_version: ${{ needs.trigger-android-dual-versions.outputs.with-srp-version || 'Manual-Input' }}
+      browserstack_app_url: ${{ needs.trigger-android-dual-versions.outputs.browserstack-url || inputs.browserstack_app_url_android_imported_wallet }}
+      app_version: ${{ needs.trigger-android-dual-versions.outputs.app-version || 'Manual-Input' }}
       branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
       browserstack_build_name: ${{ needs.set-build-names.outputs.android_build_name }}
     secrets: inherit
@@ -288,8 +288,8 @@ jobs:
       platform: ios
       build_type: imported-wallet
       device_matrix: ${{ needs.read-device-matrix.outputs.ios_matrix }}
-      browserstack_app_url: ${{ needs.trigger-ios-dual-versions.outputs.with-srp-browserstack-url || inputs.browserstack_app_url_ios_imported_wallet }}
-      app_version: ${{ needs.trigger-ios-dual-versions.outputs.with-srp-version || 'Manual-Input' }}
+      browserstack_app_url: ${{ needs.trigger-ios-dual-versions.outputs.browserstack-url || inputs.browserstack_app_url_ios_imported_wallet }}
+      app_version: ${{ needs.trigger-ios-dual-versions.outputs.app-version || 'Manual-Input' }}
       branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
       browserstack_build_name: ${{ needs.set-build-names.outputs.ios_build_name }}
     secrets: inherit

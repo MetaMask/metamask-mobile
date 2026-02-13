@@ -1,4 +1,5 @@
 import { test as base } from 'appwright';
+import { stopAppiumServer } from 'appwright/dist/providers/appium.js';
 import { PerformanceTracker } from '../../reporters/PerformanceTracker.js';
 import QualityGatesValidator from '../../framework/utils/QualityGatesValidator.js';
 import { getTeamInfoFromTags } from '../../../tests/teams-config.js';
@@ -7,9 +8,70 @@ import {
   hasQualityGateFailure,
   getTestId,
 } from '../../framework/utils/QualityGateError.js';
+import CommandQueueServer from './CommandQueueServer.ts';
+import { FALLBACK_COMMAND_QUEUE_SERVER_PORT } from '../Constants.ts';
+import { startResourceWithRetry } from './FixtureUtils.ts';
+import { ResourceType } from '../PortManager.ts';
 
 // Create a custom test fixture that handles performance tracking and cleanup
 export const test = base.extend({
+  /**
+   * Number of SRPs to pre-load in the app during initialization.
+   * The app fetches this from the command queue server at startup.
+   * Override per-test via test.use({ srpCount: N }) or default to 3.
+   */
+  srpCount: [0, { option: true }],
+
+  /**
+   * Command queue server that tells the app how many SRPs to import.
+   * Started before the app launches, stopped after the test completes.
+   */
+  commandQueueServer: async ({ srpCount }, use) => {
+    const server = new CommandQueueServer();
+    await startResourceWithRetry(ResourceType.COMMAND_QUEUE_SERVER, server);
+    console.log(
+      `[Performance] Command queue server started on port ${FALLBACK_COMMAND_QUEUE_SERVER_PORT} with srpCount=${srpCount}`,
+    );
+    server.setSrpCount(srpCount);
+    await use(server);
+    await server.stop();
+    console.log('[Performance] Command queue server stopped');
+  },
+
+  /**
+   * Override appwright's device fixture to ensure commandQueueServer is started
+   * before the app launches via deviceProvider.getDevice().
+   */
+  // eslint-disable-next-line no-unused-vars
+  device: async ({ deviceProvider, commandQueueServer }, use, testInfo) => {
+    const device = await deviceProvider.getDevice();
+    const deviceProviderName = testInfo.project.use.device?.provider;
+    testInfo.annotations.push({
+      type: 'providerName',
+      description: deviceProviderName,
+    });
+    testInfo.annotations.push({
+      type: 'sessionId',
+      description: deviceProvider.sessionId,
+    });
+    await deviceProvider.syncTestDetails?.({ name: testInfo.title });
+
+    await use(device);
+
+    await device.close();
+    if (
+      deviceProviderName === 'emulator' ||
+      deviceProviderName === 'local-device'
+    ) {
+      await stopAppiumServer();
+    }
+    await deviceProvider.syncTestDetails?.({
+      name: testInfo.title,
+      status: testInfo.status,
+      reason: testInfo.error?.message,
+    });
+  },
+
   // eslint-disable-next-line no-empty-pattern
   performanceTracker: async ({}, use, testInfo) => {
     const testId = getTestId(testInfo);

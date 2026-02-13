@@ -89,12 +89,10 @@ async function applyVaultInitialization() {
     hosts.push('bs-local.com');
   }
 
-  // Testing for now
-  const port = 44455;
-  const portFallback = getCommandQueueServerPortInApp();
+  const port = getCommandQueueServerPortInApp();
   // eslint-disable-next-line no-console
   console.log(
-    `[E2E - generateSkipOnboardingState] Command queue server port: ${port} (fallback: ${portFallback})`,
+    `[E2E - generateSkipOnboardingState] Command queue server port: ${port}`,
   );
 
   for (const host of hosts) {
