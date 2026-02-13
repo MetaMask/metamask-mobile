@@ -74,8 +74,10 @@ jest.mock('../../../Navbar', () => ({
     mockGetRampsBuildQuoteNavbarOptions(navigation, options),
 }));
 
-jest.mock('../../utils/formatCurrency', () => ({
-  formatCurrency: (amount: number) => `$${amount}`,
+jest.mock('../../../../hooks/useFormatters', () => ({
+  useFormatters: () => ({
+    formatCurrency: (amount: number) => `$${amount}`,
+  }),
 }));
 
 jest.mock('../../hooks/useTokenNetworkInfo', () => ({
