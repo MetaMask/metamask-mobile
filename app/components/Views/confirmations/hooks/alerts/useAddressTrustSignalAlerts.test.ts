@@ -267,6 +267,86 @@ describe('useAddressTrustSignalAlerts', () => {
     expect(result.current).toEqual([]);
   });
 
+  it('returns alerts for simple ETH transfers even when revoke loading is true', () => {
+    // For simple ETH transfers (no data), useApproveTransactionData returns
+    // isLoading: true permanently because there's nothing to parse.
+    // Alerts should NOT be suppressed in this case.
+    mockUseApproveTransactionData.mockReturnValue({
+      isRevoke: false,
+      isLoading: true,
+    });
+    mockUseTransactionMetadataRequest.mockReturnValue({
+      txParams: {
+        to: '0x1234567890123456789012345678901234567890',
+      },
+      chainId: '0x1',
+    } as unknown as TransactionMeta);
+
+    const { result } = renderHookWithProvider(
+      () => useAddressTrustSignalAlerts(),
+      {
+        state: {
+          engine: {
+            backgroundState: {
+              PhishingController: {
+                addressScanCache: {
+                  '0x1:0x1234567890123456789012345678901234567890': {
+                    data: {
+                      // @ts-expect-error - AddressScanResultType is not exported in PhishingController
+                      result_type: 'Malicious',
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    );
+
+    expect(result.current.length).toBe(1);
+    expect(result.current[0].key).toBe(AlertKeys.AddressTrustSignalMalicious);
+  });
+
+  it('returns alerts for simple ETH transfers with 0x data when revoke loading is true', () => {
+    mockUseApproveTransactionData.mockReturnValue({
+      isRevoke: false,
+      isLoading: true,
+    });
+    mockUseTransactionMetadataRequest.mockReturnValue({
+      txParams: {
+        to: '0x1234567890123456789012345678901234567890',
+        data: '0x',
+      },
+      chainId: '0x1',
+    } as unknown as TransactionMeta);
+
+    const { result } = renderHookWithProvider(
+      () => useAddressTrustSignalAlerts(),
+      {
+        state: {
+          engine: {
+            backgroundState: {
+              PhishingController: {
+                addressScanCache: {
+                  '0x1:0x1234567890123456789012345678901234567890': {
+                    data: {
+                      // @ts-expect-error - AddressScanResultType is not exported in PhishingController
+                      result_type: 'Malicious',
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    );
+
+    expect(result.current.length).toBe(1);
+    expect(result.current[0].key).toBe(AlertKeys.AddressTrustSignalMalicious);
+  });
+
   describe('revoke operations', () => {
     it('returns no alerts for transaction revoke operations with malicious address', () => {
       mockUseApproveTransactionData.mockReturnValue({
@@ -362,11 +442,19 @@ describe('useAddressTrustSignalAlerts', () => {
       expect(result.current[0].key).toBe(AlertKeys.AddressTrustSignalMalicious);
     });
 
-    it('returns no alerts while revoke detection is loading', () => {
+    it('returns no alerts while revoke detection is loading for approval transactions', () => {
       mockUseApproveTransactionData.mockReturnValue({
         isRevoke: false,
         isLoading: true,
       });
+      // Must have approval data for isRevokeLoading to gate alerts
+      mockUseTransactionMetadataRequest.mockReturnValue({
+        txParams: {
+          to: '0x1234567890123456789012345678901234567890',
+          data: '0x095ea7b3000000000000000000000000abcdef1234567890abcdef12345678901234567800000000000000000000000000000000000000000000000000000000000f4240',
+        },
+        chainId: '0x1',
+      } as unknown as TransactionMeta);
 
       const { result } = renderHookWithProvider(
         () => useAddressTrustSignalAlerts(),

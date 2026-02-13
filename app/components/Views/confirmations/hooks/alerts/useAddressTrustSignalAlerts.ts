@@ -57,6 +57,15 @@ export function useAddressTrustSignalAlerts(): Alert[] {
 
   const isRevoke = Boolean(isTransactionRevoke) || isSignatureRevoke;
 
+  // Determine if this transaction has data that could represent an approval.
+  // For simple ETH transfers (no data or '0x'), useApproveTransactionData
+  // returns isLoading: true permanently because there's nothing to parse.
+  // We should only gate on isRevokeLoading when there's actual approval data.
+  const hasApprovalData = Boolean(
+    transactionMetadata?.txParams?.data &&
+      transactionMetadata.txParams.data !== '0x',
+  );
+
   const addressesToScan = useMemo((): AddressTrustSignalRequest[] => {
     if (!transactionMetadata?.chainId) {
       return [];
@@ -89,8 +98,15 @@ export function useAddressTrustSignalAlerts(): Alert[] {
 
   const trustSignalResults = useAddressTrustSignals(addressesToScan);
 
+  // Always suppress for confirmed revokes (transaction or signature).
+  // Only gate on isRevokeLoading when there's actual approval data to parse.
+  // For simple transfers without data, useApproveTransactionData returns
+  // isLoading: true permanently, so we skip that check.
+  const shouldSuppressForRevoke =
+    isRevoke || (hasApprovalData && isRevokeLoading);
+
   return useMemo(() => {
-    if (addressesToScan.length === 0 || isRevokeLoading || isRevoke) {
+    if (addressesToScan.length === 0 || shouldSuppressForRevoke) {
       return [];
     }
 
@@ -125,7 +141,7 @@ export function useAddressTrustSignalAlerts(): Alert[] {
 
       alerts.push({
         key: alertKey,
-        field: RowAlertKey.InteractingWith,
+        field: RowAlertKey.FromToAddress,
         severity: highestSeverity,
         message,
         title,
@@ -134,5 +150,5 @@ export function useAddressTrustSignalAlerts(): Alert[] {
     }
 
     return alerts;
-  }, [addressesToScan.length, isRevoke, isRevokeLoading, trustSignalResults]);
+  }, [addressesToScan.length, shouldSuppressForRevoke, trustSignalResults]);
 }
