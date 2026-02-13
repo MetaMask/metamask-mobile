@@ -118,14 +118,11 @@ const PredictBuyPreview = () => {
   } = usePredictPlaceOrder();
 
   const { balance, isLoading: isBalanceLoading } = usePredictBalance({
-    providerId: outcome.providerId,
     loadOnMount: true,
     refreshOnFocus: true,
   });
 
-  const { deposit } = usePredictDeposit({
-    providerId: outcome.providerId,
-  });
+  const { deposit } = usePredictDeposit();
 
   const [currentValue, setCurrentValue] = useState(0);
   const [currentValueUSDString, setCurrentValueUSDString] = useState('');
@@ -139,7 +136,6 @@ const PredictBuyPreview = () => {
     error: previewError,
     isCalculating,
   } = usePredictOrderPreview({
-    providerId: outcome.providerId,
     marketId: market.id,
     outcomeId: outcome.id,
     outcomeTokenId: outcomeToken.id,
@@ -156,7 +152,6 @@ const PredictBuyPreview = () => {
   } = usePredictOrderRetry({
     preview,
     placeOrder,
-    providerId: outcome.providerId,
     analyticsProperties,
     isOrderNotFilled,
     resetOrderNotFilled,
@@ -205,7 +200,6 @@ const PredictBuyPreview = () => {
     controller.trackPredictOrderEvent({
       status: PredictTradeStatus.INITIATED,
       analyticsProperties,
-      providerId: outcome.providerId,
       sharePrice: outcomeToken?.price,
     });
     // eslint-disable-next-line react-compiler/react-compiler
@@ -263,17 +257,10 @@ const PredictBuyPreview = () => {
     if (!preview || isBelowMinimum) return;
 
     await placeOrder({
-      providerId: outcome.providerId,
       analyticsProperties,
       preview,
     });
-  }, [
-    preview,
-    isBelowMinimum,
-    placeOrder,
-    outcome.providerId,
-    analyticsProperties,
-  ]);
+  }, [preview, isBelowMinimum, placeOrder, analyticsProperties]);
 
   const handleFeesInfoPress = useCallback(() => {
     setIsFeeBreakdownVisible(true);

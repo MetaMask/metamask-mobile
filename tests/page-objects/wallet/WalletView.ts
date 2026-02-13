@@ -202,10 +202,11 @@ class WalletView {
   }
 
   async tapOnToken(token: string, index = 0): Promise<void> {
-    const elem = Matchers.getElementByText(
-      token || WalletViewSelectorsText.DEFAULT_TOKEN,
-      index,
-    );
+    const tokenLabel = token || WalletViewSelectorsText.DEFAULT_TOKEN;
+    const elem = Matchers.getElementByText(tokenLabel, index);
+    await Assertions.expectElementToBeVisible(elem, {
+      description: `${tokenLabel} token in wallet list`,
+    });
     await Gestures.waitAndTap(elem, {
       elemDescription: 'Token',
     });

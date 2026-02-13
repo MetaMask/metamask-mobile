@@ -22,24 +22,24 @@
  * - Full cache can be cleared on app restart or explicit user action
  */
 
-interface SigningOperationState {
+type SigningOperationState = {
   attempted: boolean; // Whether we've attempted this operation
   success: boolean; // Whether it succeeded (only valid if attempted=true)
-}
+};
 
-interface PerpsSigningCacheEntry {
+type PerpsSigningCacheEntry = {
   dexAbstraction: SigningOperationState;
   builderFee: SigningOperationState;
   referral: SigningOperationState;
   timestamp: number; // When this entry was last updated
-}
+};
 
 // Legacy interface for backward compatibility
-interface TradingReadinessCacheEntry {
+type TradingReadinessCacheEntry = {
   attempted: boolean;
   enabled: boolean;
   timestamp: number;
-}
+};
 
 class PerpsSigningCacheManager {
   private static instance: PerpsSigningCacheManager;

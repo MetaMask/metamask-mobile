@@ -239,13 +239,8 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   ///: END:ONLY_INCLUDE_IF
 
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
-  const tronResources = useSelector(selectTronResourcesBySelectedAccountGroup);
-
-  const strxEnergy = tronResources.find(
-    (a) => a.symbol.toLowerCase() === 'strx-energy',
-  );
-  const strxBandwidth = tronResources.find(
-    (a) => a.symbol.toLowerCase() === 'strx-bandwidth',
+  const { stakedTrxForEnergy, stakedTrxForBandwidth } = useSelector(
+    selectTronResourcesBySelectedAccountGroup,
   );
 
   // Use selector to get live Tron asset balance (not static navigation params)
@@ -595,7 +590,11 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
 
   // create Staked TRX derived asset (same as native TRX but with a new name and balance)
   const stakedTrxAsset = isTronNative
-    ? createStakedTrxAsset(asset, strxEnergy?.balance, strxBandwidth?.balance)
+    ? createStakedTrxAsset(
+        asset,
+        stakedTrxForEnergy?.balance,
+        stakedTrxForBandwidth?.balance,
+      )
     : undefined;
   ///: END:ONLY_INCLUDE_IF
 

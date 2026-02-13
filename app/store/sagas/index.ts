@@ -32,7 +32,6 @@ import { selectExistingUser } from '../../reducers/user';
 import UrlParser from 'url-parse';
 import { rewardsBulkLinkSaga } from './rewardsBulkLinkAccountGroups';
 import Authentication from '../../core/Authentication';
-import { MetaMetrics } from '../../core/Analytics';
 import { AppState, AppStateStatus } from 'react-native';
 import trackErrorAsAnalytics from '../../util/metrics/TrackError/trackErrorAsAnalytics';
 
@@ -301,13 +300,6 @@ export function* startAppServices() {
 
   // Start AppStateEventProcessor
   AppStateEventProcessor.start();
-
-  // Configure MetaMetrics
-  try {
-    yield call(MetaMetrics.getInstance().configure);
-  } catch (err) {
-    Logger.error(err as Error, 'Error configuring MetaMetrics');
-  }
 
   // Apply vault initialization
   yield call(applyVaultInitialization);

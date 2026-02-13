@@ -63,6 +63,12 @@ export interface BridgeState {
    * When false, changing source network will update dest to the default for that network.
    */
   isDestTokenManuallySet: boolean;
+  /**
+   * Network filter for the token selector screen.
+   * When set, only tokens from this chain are shown.
+   * When undefined, tokens from all chains are shown ("All" filter).
+   */
+  tokenSelectorNetworkFilter: CaipChainId | undefined;
 }
 
 export const initialState: BridgeState = {
@@ -82,6 +88,7 @@ export const initialState: BridgeState = {
   isGasIncludedSTXSendBundleSupported: false,
   isGasIncluded7702Supported: false,
   isDestTokenManuallySet: false,
+  tokenSelectorNetworkFilter: undefined,
 };
 
 const name = 'bridge';
@@ -169,6 +176,12 @@ const slice = createSlice({
     },
     setIsGasIncluded7702Supported: (state, action: PayloadAction<boolean>) => {
       state.isGasIncluded7702Supported = action.payload;
+    },
+    setTokenSelectorNetworkFilter: (
+      state,
+      action: PayloadAction<CaipChainId | undefined>,
+    ) => {
+      state.tokenSelectorNetworkFilter = action.payload;
     },
   },
   extraReducers: (builder) => {
@@ -574,6 +587,11 @@ export const selectIsSelectingToken = createSelector(
   (bridgeState) => bridgeState.isSelectingToken,
 );
 
+export const selectTokenSelectorNetworkFilter = createSelector(
+  selectBridgeState,
+  (bridgeState) => bridgeState.tokenSelectorNetworkFilter,
+);
+
 export const selectIsDestTokenManuallySet = createSelector(
   selectBridgeState,
   (bridgeState) => bridgeState.isDestTokenManuallySet,
@@ -656,4 +674,5 @@ export const {
   setIsSelectingToken,
   setIsGasIncludedSTXSendBundleSupported,
   setIsGasIncluded7702Supported,
+  setTokenSelectorNetworkFilter,
 } = actions;

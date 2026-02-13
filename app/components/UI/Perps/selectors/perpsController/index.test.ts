@@ -11,6 +11,8 @@ import {
   selectPerpsNetwork,
   selectIsFirstTimePerpsUser,
   selectPerpsInitializationState,
+  selectPerpsPayWithToken,
+  selectIsPerpsBalanceSelected,
 } from './index';
 
 describe('PerpsController Selectors', () => {
@@ -710,7 +712,13 @@ describe('PerpsController Selectors', () => {
 
     it('returns true when PerpsController state is undefined', () => {
       // Arrange
-      const mockState = createMockState(undefined);
+      const mockState = {
+        engine: {
+          backgroundState: {
+            PerpsController: undefined,
+          },
+        },
+      } as unknown as RootState;
 
       // Act
       const result = selectIsFirstTimePerpsUser(mockState);
@@ -773,6 +781,56 @@ describe('PerpsController Selectors', () => {
 
       // Assert
       expect(result).toBe(InitializationState.Uninitialized);
+    });
+  });
+
+  describe('selectIsPerpsBalanceSelected', () => {
+    it('returns true when selectedPaymentToken is null', () => {
+      const mockState = createMockState({
+        selectedPaymentToken: null,
+      });
+
+      const result = selectIsPerpsBalanceSelected(mockState);
+
+      expect(result).toBe(true);
+    });
+
+    it('returns false when selectedPaymentToken is set', () => {
+      const mockState = createMockState({
+        selectedPaymentToken: {
+          address: '0xusdc',
+          chainId: '0xa4b1',
+        },
+      });
+
+      const result = selectIsPerpsBalanceSelected(mockState);
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('selectPerpsPayWithToken', () => {
+    it('returns selectedPaymentToken from PerpsController state', () => {
+      const token = {
+        description: 'USDC',
+        address: '0xusdc',
+        chainId: '0xa4b1',
+      };
+      const mockState = createMockState({
+        selectedPaymentToken: token,
+      });
+
+      const result = selectPerpsPayWithToken(mockState);
+
+      expect(result).toEqual(token);
+    });
+
+    it('returns undefined when selectedPaymentToken is not set', () => {
+      const mockState = createMockState({});
+
+      const result = selectPerpsPayWithToken(mockState);
+
+      expect(result).toBeUndefined();
     });
   });
 });
