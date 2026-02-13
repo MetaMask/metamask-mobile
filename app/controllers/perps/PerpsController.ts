@@ -136,12 +136,12 @@ import { ORIGIN_METAMASK } from '@metamask/controller-utils';
  * Minimal payment token stored in PerpsController state.
  * Only required fields for identification, Perps balance detection, and analytics.
  */
-export interface SelectedPaymentTokenSnapshot {
+export type SelectedPaymentTokenSnapshot = {
   description?: string;
   address: string;
   chainId: string;
   symbol?: string;
-}
+};
 
 // Re-export error codes from separate file to avoid circular dependencies
 export { PERPS_ERROR_CODES, type PerpsErrorCode } from './perpsErrorCodes';
@@ -159,7 +159,6 @@ export enum InitializationState {
 /**
  * State shape for PerpsController
  */
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type PerpsControllerState = {
   // Active provider
   activeProvider: PerpsActiveProviderMode;
@@ -706,7 +705,7 @@ export type PerpsControllerMessenger = Messenger<
 /**
  * PerpsController options
  */
-export interface PerpsControllerOptions {
+export type PerpsControllerOptions = {
   messenger: PerpsControllerMessenger;
   state?: Partial<PerpsControllerState>;
   clientConfig?: PerpsControllerConfig;
@@ -716,12 +715,12 @@ export interface PerpsControllerOptions {
    * Must be provided by the platform (mobile/extension) at instantiation time.
    */
   infrastructure: PerpsPlatformDependencies;
-}
+};
 
-interface BlockedRegionList {
+type BlockedRegionList = {
   list: string[];
   source: 'remote' | 'fallback';
-}
+};
 
 /**
  * PerpsController - Protocol-agnostic perpetuals trading controller

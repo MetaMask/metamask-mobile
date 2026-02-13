@@ -2,12 +2,12 @@ import type { ClearinghouseStateResponse } from '../types/hyperliquid-types';
 import { HttpTransport, InfoClient } from '@nktkas/hyperliquid';
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 
-export interface StandaloneInfoClientOptions {
+export type StandaloneInfoClientOptions = {
   /** Whether to use testnet API endpoint */
   isTestnet: boolean;
   /** Request timeout in ms (default: CONNECTION_TIMEOUT_MS) */
   timeout?: number;
-}
+};
 
 /**
  * Creates a standalone InfoClient for lightweight read-only queries.
