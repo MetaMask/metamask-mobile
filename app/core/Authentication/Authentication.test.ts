@@ -53,7 +53,7 @@ import { clearAllVaultBackups } from '../BackupVault/backupVault';
 import { Engine as EngineClass } from '../Engine/Engine';
 import { cancelBulkLink } from '../../store/sagas/rewardsBulkLinkAccountGroups';
 import Logger from '../../util/Logger';
-import { Alert } from 'react-native';
+import { Alert, Platform } from 'react-native';
 import { strings } from '../../../locales/i18n';
 import trackErrorAsAnalytics from '../../util/metrics/TrackError/trackErrorAsAnalytics';
 import Routes from '../../constants/navigation/Routes';
@@ -89,12 +89,14 @@ jest.useFakeTimers();
 const mockIsEnrolledAsync = jest.fn();
 const mockSupportedAuthenticationTypesAsync = jest.fn();
 const mockGetEnrolledLevelAsync = jest.fn();
+const mockAuthenticateAsync = jest.fn();
 
 jest.mock('expo-local-authentication', () => ({
   isEnrolledAsync: () => mockIsEnrolledAsync(),
   supportedAuthenticationTypesAsync: () =>
     mockSupportedAuthenticationTypesAsync(),
   getEnrolledLevelAsync: () => mockGetEnrolledLevelAsync(),
+  authenticateAsync: (...args: unknown[]) => mockAuthenticateAsync(...args),
   AuthenticationType: {
     FINGERPRINT: 1,
     FACIAL_RECOGNITION: 2,
@@ -706,6 +708,67 @@ describe('Authentication', () => {
     );
     expect(result.availableBiometryType).toEqual('Fingerprint');
     expect(result.currentAuthType).toEqual(AUTHENTICATION_TYPE.BIOMETRIC);
+  });
+
+  describe('requestBiometricsAccessControlForIOS', () => {
+    beforeEach(() => {
+      mockAuthenticateAsync.mockReset();
+    });
+
+    it('returns authType unchanged when Platform.OS is not ios', async () => {
+      jest.replaceProperty(Platform, 'OS', 'android');
+
+      const result = await Authentication.requestBiometricsAccessControlForIOS(
+        AUTHENTICATION_TYPE.BIOMETRIC,
+      );
+
+      expect(result).toBe(AUTHENTICATION_TYPE.BIOMETRIC);
+      expect(mockAuthenticateAsync).not.toHaveBeenCalled();
+
+      jest.replaceProperty(Platform, 'OS', 'ios'); // restore default for other tests
+    });
+
+    it('returns authType when Platform.OS is ios and authenticateAsync succeeds', async () => {
+      jest.replaceProperty(Platform, 'OS', 'ios');
+      mockAuthenticateAsync.mockResolvedValue({ success: true });
+
+      const result = await Authentication.requestBiometricsAccessControlForIOS(
+        AUTHENTICATION_TYPE.BIOMETRIC,
+      );
+
+      expect(result).toBe(AUTHENTICATION_TYPE.BIOMETRIC);
+      expect(mockAuthenticateAsync).toHaveBeenCalledWith({
+        disableDeviceFallback: true,
+      });
+    });
+
+    it('returns PASSWORD when Platform.OS is ios and authenticateAsync returns success false', async () => {
+      jest.replaceProperty(Platform, 'OS', 'ios');
+      mockAuthenticateAsync.mockResolvedValue({ success: false });
+
+      const result = await Authentication.requestBiometricsAccessControlForIOS(
+        AUTHENTICATION_TYPE.BIOMETRIC,
+      );
+
+      expect(result).toBe(AUTHENTICATION_TYPE.PASSWORD);
+      expect(mockAuthenticateAsync).toHaveBeenCalledWith({
+        disableDeviceFallback: true,
+      });
+    });
+
+    it('returns PASSWORD when Platform.OS is ios and authenticateAsync throws', async () => {
+      jest.replaceProperty(Platform, 'OS', 'ios');
+      mockAuthenticateAsync.mockRejectedValue(new Error('User cancelled'));
+
+      const result = await Authentication.requestBiometricsAccessControlForIOS(
+        AUTHENTICATION_TYPE.BIOMETRIC,
+      );
+
+      expect(result).toBe(AUTHENTICATION_TYPE.PASSWORD);
+      expect(mockAuthenticateAsync).toHaveBeenCalledWith({
+        disableDeviceFallback: true,
+      });
+    });
   });
 
   describe('storePassword', () => {

@@ -538,6 +538,7 @@ class AuthenticationService {
           // Fallback to use password as authentication type
           return AUTHENTICATION_TYPE.PASSWORD;
         }
+        return authType;
       } catch (error) {
         // Fallback to use password as authentication type
         return AUTHENTICATION_TYPE.PASSWORD;
