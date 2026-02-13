@@ -1,0 +1,11 @@
+# Automatically label PRs based on paths
+"Area: Android":
+  - android/**/*
+"Area: iOS":
+  - ios/**/*
+"Area: Documentation":
+  - "*.md"
+"Area: Javascript":
+  - "**/*.js"
+  - "**/*.ts"
+  - "**/*.tsx"
