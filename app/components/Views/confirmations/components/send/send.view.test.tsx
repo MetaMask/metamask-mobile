@@ -50,7 +50,7 @@ describeForPlatforms('Send', () => {
   });
 
   /**
-   * Regression test for Issue #22789
+   * Regression test for Issue #22789 and related to #22702
    * TRON send flow: selecting a destination account must move the flow forward
    * (previously it stayed on the recipient list and did not navigate).
    * Exits early when TRON is not in the build (recipient list empty).
@@ -203,7 +203,7 @@ describeForPlatforms('Send', () => {
   });
 
   /**
-   * Regression test for https://github.com/MetaMask/metamask-mobile/issues/22357
+   * Regression test for issue #22357
    * WETH send flow must not get stuck; user can enter amount, continue to recipient,
    * enter address, and tap Review without the app hanging or crashing.
    */
@@ -248,7 +248,7 @@ describeForPlatforms('Send', () => {
   });
 
   /**
-   * Regression test for https://github.com/MetaMask/metamask-mobile/issues/12317
+   * Regression test for issue #12317
    * When sending an ERC-721 token, the Next/Continue button must be enabled so the user
    * can proceed from Amount to Recipient (and not get stuck with "Fiat conversions not available").
    */
@@ -289,7 +289,7 @@ describeForPlatforms('Send', () => {
   });
 
   /**
-   * Regression test for https://github.com/MetaMask/metamask-mobile/issues/19002
+   * Regression test for issue #19002
    * When starting Send from home and selecting an ERC-721 NFT in the asset picker,
    * the flow must go to Recipient (not Amount). ERC721 must not be treated as ERC1155.
    */
@@ -342,5 +342,158 @@ describeForPlatforms('Send', () => {
     fireEvent.press(nftRow);
 
     expect(await findByTestId('recipient-address-input')).toBeOnTheScreen();
+  });
+
+  /**
+   * Regression test for issue #22205
+   * EVM contacts must not appear in non-EVM (e.g. Solana, BTC) send flow Recipient screen.
+   * Only contacts for the current chain/protocol should be shown.
+   */
+  it('Solana send Recipient screen does not show EVM contacts (issue #22205)', async () => {
+    const SOLANA_CHAIN_ID = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
+    const EVM_CONTACT_ADDRESS = '0x1234567890123456789012345678901234567890';
+
+    const addressBookOverrides = {
+      engine: {
+        backgroundState: {
+          AddressBookController: {
+            addressBook: {
+              '0x1': {
+                [EVM_CONTACT_ADDRESS.toLowerCase()]: {
+                  name: 'EVM Contact',
+                  address: EVM_CONTACT_ADDRESS,
+                },
+              },
+            },
+          },
+          MultichainNetworkController: {
+            isEvmSelected: false,
+          },
+        },
+      },
+    } as unknown as Record<string, unknown>;
+
+    const solanaAsset = {
+      address: `${SOLANA_CHAIN_ID}/native`,
+      chainId: SOLANA_CHAIN_ID,
+      symbol: 'SOL',
+      decimals: 9,
+      balance: '100',
+      rawBalance: '100',
+    };
+
+    const state = initialStateWallet()
+      .withOverrides(baseOverrides)
+      .withOverrides(addressBookOverrides)
+      .build();
+
+    const { findByTestId, queryByTestId, unmount } = renderScreenWithRoutes(
+      Send as unknown as React.ComponentType,
+      { name: 'Send' },
+      [],
+      { state },
+      { asset: solanaAsset, screen: Routes.SEND.RECIPIENT },
+    );
+    unmountFn = unmount;
+
+    expect(await findByTestId('recipient-address-input')).toBeOnTheScreen();
+
+    const evmContactRow = queryByTestId(`recipient-${EVM_CONTACT_ADDRESS}`);
+    expect(evmContactRow).not.toBeOnTheScreen();
+  });
+
+  /**
+   * Regression test for issue #22806
+   * Recipient list (accounts or contacts) must render each entry with the expected avatar.
+   * Uses address-book contacts to avoid dependency on multichain account tree/feature flags.
+   */
+  it('Recipient list renders each contact with avatar (issue #22806)', async () => {
+    const contactAddresses = [
+      '0x0000000000000000000000000000000000000002',
+      '0x0000000000000000000000000000000000000003',
+    ];
+
+    const contactOverrides = {
+      engine: {
+        backgroundState: {
+          AddressBookController: {
+            addressBook: {
+              '0x1': {
+                [contactAddresses[0].toLowerCase()]: {
+                  name: 'Contact One',
+                  address: contactAddresses[0],
+                },
+                [contactAddresses[1].toLowerCase()]: {
+                  name: 'Contact Two',
+                  address: contactAddresses[1],
+                },
+              },
+            },
+          },
+        },
+      },
+    } as unknown as Record<string, unknown>;
+
+    const state = initialStateWallet()
+      .withOverrides(baseOverrides)
+      .withOverrides(contactOverrides)
+      .build();
+
+    const { getByTestId, getByRole, findByTestId, unmount } =
+      renderScreenWithRoutes(
+        Send as unknown as React.ComponentType,
+        { name: 'Send' },
+        [],
+        { state },
+        {
+          asset: { chainId: '0x1', symbol: 'ETH', decimals: 18, balance: '1' },
+        },
+      );
+    unmountFn = unmount;
+
+    expect(getByTestId('send_amount')).toBeOnTheScreen();
+
+    fireEvent.press(getByTestId('percentage-button-100'));
+    fireEvent.press(getByRole('button', { name: 'Continue' }));
+
+    expect(await findByTestId('recipient-address-input')).toBeOnTheScreen();
+
+    for (const address of contactAddresses) {
+      const recipientRow = getByTestId(`recipient-${address}`);
+      expect(recipientRow).toBeOnTheScreen();
+      const avatar = getByTestId(`recipient-avatar-${address}`);
+      expect(avatar).toBeOnTheScreen();
+    }
+  });
+
+  /**
+   * Regression test for issue #22702
+   * Keypad and amount area on Send Amount screen must be visible and not overflowing
+   * (especially on small devices).
+   */
+  it('Amount screen shows keypad and amount area visible (issue #22702)', async () => {
+    const state = initialStateWallet().withOverrides(baseOverrides).build();
+
+    const { getByTestId, unmount } = renderScreenWithRoutes(
+      Send as unknown as React.ComponentType,
+      { name: 'Send' },
+      [],
+      { state },
+      {
+        asset: {
+          chainId: '0x1',
+          symbol: 'ETH',
+          decimals: 18,
+          balance: '1',
+        },
+      },
+    );
+    unmountFn = unmount;
+
+    const amountDisplay = getByTestId('send_amount');
+    expect(amountDisplay).toBeOnTheScreen();
+
+    const keypad = getByTestId('edit-amount-keyboard');
+    expect(keypad).toBeOnTheScreen();
   });
 });
