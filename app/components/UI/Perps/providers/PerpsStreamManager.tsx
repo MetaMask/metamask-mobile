@@ -12,22 +12,20 @@ import {
   TraceOperation,
 } from '../../../../util/trace';
 import PerpsConnectionManager from '../services/PerpsConnectionManager';
-import type {
-  PriceUpdate,
-  Position,
-  Order,
-  OrderFill,
-  AccountState,
-  PerpsMarketData,
-} from '../controllers/types';
 import {
   PERFORMANCE_CONFIG,
   PERPS_CONSTANTS,
-  PROVIDER_CONFIG,
-} from '../constants/perpsConfig';
-import { PerpsMeasurementName } from '../constants/performanceMetrics';
+  PerpsMeasurementName,
+  findEvmAccount,
+  type PriceUpdate,
+  type Position,
+  type Order,
+  type OrderFill,
+  type AccountState,
+  type PerpsMarketData,
+} from '@metamask/perps-controller';
+import { PROVIDER_CONFIG } from '../constants/perpsConfig';
 import { getE2EMockStreamManager } from '../utils/e2eBridgePerps';
-import { findEvmAccount } from '../utils/accountUtils';
 import { CandleStreamChannel } from './channels/CandleStreamChannel';
 
 /**
@@ -1339,12 +1337,26 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
         });
       } catch (error) {
         const fetchTime = Date.now() - fetchStartTime;
+        const existing = this.cache.get('markets');
+        const cacheStalenessMs = this.lastFetchTime
+          ? Date.now() - this.lastFetchTime
+          : null;
         Logger.error(ensureError(error, 'PerpsStreamManager.fetchMarketData'), {
-          context: 'PerpsStreamManager.fetchMarketData',
-          fetchTimeMs: fetchTime,
+          tags: {
+            feature: PERPS_CONSTANTS.FeatureName,
+          },
+          context: {
+            name: 'PerpsStreamManager',
+            data: {
+              method: 'fetchMarketData',
+              fetchTimeMs: fetchTime,
+              hadCachedData: !!existing,
+              cachedMarketCount: existing?.length ?? 0,
+              cacheStalenessMs,
+            },
+          },
         });
         // Keep existing cache if fetch fails
-        const existing = this.cache.get('markets');
         if (existing) {
           DevLogger.log(
             'PerpsStreamManager: Using stale cache after fetch failure',

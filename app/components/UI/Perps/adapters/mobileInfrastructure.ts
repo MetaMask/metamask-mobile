@@ -15,16 +15,25 @@ import { setMeasurement } from '@sentry/react-native';
 import performance from 'react-native-performance';
 import { getStreamManagerInstance } from '../providers/PerpsStreamManager';
 import Engine from '../../../../core/Engine';
+import {
+  type PerpsPlatformDependencies,
+  type PerpsMetrics,
+  type PerpsTraceName,
+  type PerpsTraceValue,
+  type PerpsAnalyticsEvent,
+  type PerpsAnalyticsProperties,
+  type VersionGatedFeatureFlag,
+  type MarketDataFormatters,
+  type InvalidateCacheParams,
+} from '@metamask/perps-controller';
 import { PerpsCacheInvalidator } from '../services/PerpsCacheInvalidator';
-import type {
-  PerpsPlatformDependencies,
-  PerpsMetrics,
-  PerpsTraceName,
-  PerpsTraceValue,
-  PerpsAnalyticsEvent,
-  PerpsAnalyticsProperties,
-  InvalidateCacheParams,
-} from '../controllers/types';
+import { validatedVersionGatedFeatureFlag } from '../../../../util/remoteFeatureFlag';
+import {
+  formatVolume,
+  formatPerpsFiat,
+  PRICE_RANGES_UNIVERSAL,
+} from '../utils/formatUtils';
+import { getIntlNumberFormatter } from '../../../../util/intl';
 
 /**
  * Type conversion helper - isolated cast for platform bridge.
@@ -220,7 +229,41 @@ export function createMobileInfrastructure(): PerpsPlatformDependencies {
         ),
     },
 
+    // === Feature Flags ===
+    featureFlags: {
+      validateVersionGated(flag: VersionGatedFeatureFlag): boolean | undefined {
+        return validatedVersionGatedFeatureFlag(flag);
+      },
+    },
+
+    // === Market Data Formatting ===
+    marketDataFormatters: createMobileMarketDataFormatters(),
+
     // === Cache Invalidation ===
     cacheInvalidator: createCacheInvalidatorAdapter(),
+  };
+}
+
+/**
+ * Creates mobile-specific market data formatters.
+ * Wires up platform dependencies (intl, formatUtils) for portable market data transformation.
+ */
+function createMobileMarketDataFormatters(): MarketDataFormatters {
+  return {
+    formatVolume,
+    formatPerpsFiat,
+    formatPercentage: (percent: number): string => {
+      if (isNaN(percent) || !isFinite(percent)) return '0.00%';
+      if (percent === 0) return '0.00%';
+
+      const formatted = getIntlNumberFormatter('en-US', {
+        style: 'percent',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }).format(percent / 100);
+
+      return percent > 0 ? `+${formatted}` : formatted;
+    },
+    priceRangesUniversal: PRICE_RANGES_UNIVERSAL,
   };
 }

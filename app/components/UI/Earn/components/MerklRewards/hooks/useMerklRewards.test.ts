@@ -23,8 +23,6 @@ jest.mock('../../../../../../util/number', () => ({
 jest.mock('../merkl-client', () => ({
   fetchMerklRewardsForAsset: jest.fn(),
   getClaimedAmountFromContract: jest.fn(),
-  // Return the asset's chainId by default (non-mUSD behavior)
-  getClaimChainId: jest.fn((asset: { chainId: string }) => asset.chainId),
 }));
 
 // Mock Engine for refreshTokenBalances
@@ -271,10 +269,11 @@ describe('useMerklRewards', () => {
     );
 
     expect(mockFetchMerklRewardsForAsset).toHaveBeenCalled();
+    // Claims always go to Linea mainnet regardless of asset chain
     expect(mockGetClaimedAmountFromContract).toHaveBeenCalledWith(
       mockSelectedAddress,
       mockAsset.address,
-      mockAsset.chainId,
+      '0xe708', // CHAIN_IDS.LINEA_MAINNET
     );
 
     expect(mockRenderFromTokenMinimalUnit).toHaveBeenCalledWith(

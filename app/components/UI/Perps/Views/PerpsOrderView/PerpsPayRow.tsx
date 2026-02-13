@@ -1,6 +1,6 @@
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { useNavigation } from '@react-navigation/native';
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import { StyleSheet, TouchableOpacity } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Badge, {
@@ -34,12 +34,24 @@ import { useTransactionPayToken } from '../../../../Views/confirmations/hooks/pa
 import { useTokenWithBalance } from '../../../../Views/confirmations/hooks/tokens/useTokenWithBalance';
 import { useTransactionMetadataRequest } from '../../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
 import {
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+  selectPendingTradeConfiguration,
+} from '@metamask/perps-controller';
+import {
   PERPS_BALANCE_CHAIN_ID,
   PERPS_BALANCE_PLACEHOLDER_ADDRESS,
 } from '../../constants/perpsConfig';
 import { PERPS_BALANCE_ICON_URI } from '../../hooks/usePerpsBalanceTokenFilter';
-import { useIsPerpsBalanceSelected } from '../../hooks/useIsPerpsBalanceSelected';
+import {
+  useIsPerpsBalanceSelected,
+  usePerpsPayWithToken,
+} from '../../hooks/useIsPerpsBalanceSelected';
+import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { Hex } from '@metamask/utils';
+import { MetaMetricsEvents } from '../../../../../core/Analytics/MetaMetrics.events';
+import { usePerpsSelector } from '../../hooks/usePerpsSelector';
+import Engine from '../../../../../core/Engine';
 
 const tokenIconStyles = StyleSheet.create({
   iconSmall: {
@@ -84,19 +96,63 @@ export interface PerpsPayRowProps {
   onPayWithInfoPress?: () => void;
   /** When true, row is stacked below another box (e.g. TP/SL); parent provides background and border radius */
   embeddedInStack?: boolean;
+  initialAsset: string;
 }
 
 export const PerpsPayRow = ({
   onPayWithInfoPress,
   embeddedInStack = false,
+  initialAsset,
 }: PerpsPayRowProps) => {
   const navigation = useNavigation();
   const { colors } = useTheme();
   const styles = createPayRowStyles(colors);
   const { setConfirmationMetric } = useConfirmationMetricEvents();
-  const { payToken } = useTransactionPayToken();
+  const { track } = usePerpsEventTracking();
+  const { payToken, setPayToken } = useTransactionPayToken();
   const transactionMeta = useTransactionMetadataRequest();
   const matchesPerpsBalance = useIsPerpsBalanceSelected();
+  const pendingConfig = usePerpsSelector((state) =>
+    selectPendingTradeConfiguration(state, initialAsset),
+  );
+  const selectedPaymentToken = usePerpsPayWithToken();
+
+  const pendingConfigSelectedPaymentToken = pendingConfig?.selectedPaymentToken;
+
+  useEffect(() => {
+    if (!pendingConfigSelectedPaymentToken) {
+      Engine.context.PerpsController?.setSelectedPaymentToken?.(null);
+    }
+  }, [pendingConfigSelectedPaymentToken]);
+
+  useEffect(() => {
+    if (!pendingConfigSelectedPaymentToken || !selectedPaymentToken) {
+      return;
+    }
+
+    if (
+      payToken?.address !== pendingConfigSelectedPaymentToken?.address ||
+      payToken?.chainId !== pendingConfigSelectedPaymentToken?.chainId
+    ) {
+      setPayToken({
+        address: pendingConfigSelectedPaymentToken.address as Hex,
+        chainId: pendingConfigSelectedPaymentToken.chainId as Hex,
+      });
+
+      Engine.context.PerpsController?.setSelectedPaymentToken?.({
+        description: pendingConfigSelectedPaymentToken.description,
+        address: pendingConfigSelectedPaymentToken.address as Hex,
+        chainId: pendingConfigSelectedPaymentToken.chainId as Hex,
+      });
+    }
+  }, [
+    payToken,
+    pendingConfigSelectedPaymentToken,
+    setPayToken,
+    pendingConfig,
+    initialAsset,
+    selectedPaymentToken,
+  ]);
 
   const {
     txParams: { from },
@@ -111,8 +167,12 @@ export const PerpsPayRow = ({
         mm_pay_token_list_opened: true,
       },
     });
+    track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+      [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+        PERPS_EVENT_VALUE.INTERACTION_TYPE.PAYMENT_TOKEN_SELECTOR,
+    });
     navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL);
-  }, [canEdit, navigation, setConfirmationMetric]);
+  }, [canEdit, navigation, setConfirmationMetric, track]);
 
   // Display data: use local state (defaults to Perps balance) so UI always shows "Perps balance" by default
   const displayToken = matchesPerpsBalance

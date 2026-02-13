@@ -4,6 +4,7 @@ import { TouchableOpacity, View } from 'react-native';
 import { useStyles } from '../../../../../../component-library/hooks';
 import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
 import BottomModal from '../bottom-modal';
+import CopyButton from '../copy-button';
 import styleSheet from './expandable.styles';
 
 interface ExpandableProps {
@@ -13,6 +14,7 @@ interface ExpandableProps {
   collapseButtonTestID?: string;
   testID?: string;
   isCompact?: boolean;
+  copyText?: string;
 }
 
 export enum IconVerticalPosition {
@@ -26,6 +28,7 @@ const Expandable = ({
   collapseButtonTestID,
   testID,
   isCompact,
+  copyText,
 }: ExpandableProps) => {
   const { styles } = useStyles(styleSheet, { isCompact });
   const [expanded, setExpanded] = useState(false);
@@ -52,7 +55,14 @@ const Expandable = ({
                 testID: collapseButtonTestID ?? 'collapseButtonTestID',
               }}
             />
-            <View style={styles.modalExpandedContent}>{expandedContent}</View>
+            <View style={styles.modalExpandedContent}>
+              {copyText && (
+                <View style={styles.copyButtonContainer}>
+                  <CopyButton copyText={copyText} />
+                </View>
+              )}
+              {expandedContent}
+            </View>
           </View>
         </BottomModal>
       )}
