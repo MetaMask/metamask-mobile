@@ -372,6 +372,27 @@ describe('PerpsOrderDetailsView', () => {
     render(<PerpsOrderDetailsView />);
 
     expect(screen.getByText('$51000.00')).toBeOnTheScreen();
+    expect(screen.getByText('$25500.00')).toBeOnTheScreen();
+  });
+
+  it('calculates order value using execution price when both trigger and execution prices exist', () => {
+    const triggerOrder: Order = {
+      ...mockOrder,
+      size: '2',
+      originalSize: '2',
+      isTrigger: true,
+      triggerPrice: '80',
+      price: '100',
+      detailedOrderType: 'Take Profit Limit',
+      reduceOnly: true,
+      side: 'buy',
+    };
+    mockRouteParams = { order: triggerOrder };
+
+    render(<PerpsOrderDetailsView />);
+
+    expect(screen.getByText('$200.00')).toBeOnTheScreen();
+    expect(screen.queryByText('$160.00')).not.toBeOnTheScreen();
   });
 
   it('uses deterministic fallback for ambiguous trigger types (buy side, trigger below price)', () => {
