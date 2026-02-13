@@ -10,6 +10,11 @@ const selectPredictPendingDeposits = createSelector(
   (predictControllerState) => predictControllerState?.pendingDeposits || {},
 );
 
+const selectPredictWithdrawTransaction = createSelector(
+  selectPredictControllerState,
+  (predictControllerState) => predictControllerState?.withdrawTransaction,
+);
+
 const selectPredictClaimablePositions = createSelector(
   selectPredictControllerState,
   (predictControllerState) => predictControllerState?.claimablePositions || {},
@@ -93,6 +98,7 @@ const selectPredictAccountMetaByAddress = ({
 export {
   selectPredictControllerState,
   selectPredictPendingDeposits,
+  selectPredictWithdrawTransaction,
   selectPredictClaimablePositions,
   selectPredictClaimablePositionsByAddress,
   selectPredictWonPositions,

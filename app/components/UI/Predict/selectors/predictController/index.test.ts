@@ -9,6 +9,7 @@ import {
   selectPredictBalanceByAddress,
   selectPredictAccountMeta,
   selectPredictAccountMetaByAddress,
+  selectPredictWithdrawTransaction,
 } from './index';
 import { PredictPosition, PredictPositionStatus } from '../../types';
 
@@ -93,6 +94,49 @@ describe('Predict Controller Selectors', () => {
       const result = selectPredictPendingDeposits(mockState as any);
 
       expect(result).toEqual({});
+    });
+  });
+
+  describe('selectPredictWithdrawTransaction', () => {
+    it('returns withdraw transaction when it exists', () => {
+      const withdrawTransaction = {
+        amount: 100,
+        chainId: 137,
+        status: 'pending',
+        providerId: 'polymarket',
+      };
+
+      const mockState = {
+        engine: {
+          backgroundState: {
+            PredictController: {
+              withdrawTransaction,
+            },
+          },
+        },
+      };
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = selectPredictWithdrawTransaction(mockState as any);
+
+      expect(result).toEqual(withdrawTransaction);
+    });
+
+    it('returns null when withdraw transaction does not exist', () => {
+      const mockState = {
+        engine: {
+          backgroundState: {
+            PredictController: {
+              withdrawTransaction: null,
+            },
+          },
+        },
+      };
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = selectPredictWithdrawTransaction(mockState as any);
+
+      expect(result).toBeNull();
     });
   });
 
