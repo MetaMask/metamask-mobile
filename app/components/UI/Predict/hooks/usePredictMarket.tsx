@@ -7,7 +7,6 @@ import { PredictMarket } from '../types';
 
 export interface UsePredictMarketOptions {
   id?: string | number;
-  providerId?: string;
   enabled?: boolean;
 }
 
@@ -24,7 +23,7 @@ export interface UsePredictMarketResult {
 export const usePredictMarket = (
   options: UsePredictMarketOptions = {},
 ): UsePredictMarketResult => {
-  const { id, providerId, enabled = true } = options;
+  const { id, enabled = true } = options;
   const [market, setMarket] = useState<PredictMarket | null>(null);
   const [isFetching, setIsFetching] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -77,7 +76,6 @@ export const usePredictMarket = (
 
       const marketData = await controller.getMarket({
         marketId,
-        providerId,
       });
 
       if (isMountedRef.current) {
@@ -100,7 +98,6 @@ export const usePredictMarket = (
             action: 'market_load',
             operation: 'data_fetching',
             marketId: id,
-            providerId,
           },
         },
       });
@@ -114,7 +111,7 @@ export const usePredictMarket = (
         setIsFetching(false);
       }
     }
-  }, [enabled, id, providerId]);
+  }, [enabled, id]);
 
   useEffect(() => {
     fetchMarket();
