@@ -29,10 +29,10 @@ import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 /**
  * Options for constructing SubscriptionMultiplexer
  */
-export interface SubscriptionMultiplexerOptions {
+export type SubscriptionMultiplexerOptions = {
   /** Optional logger for error reporting (e.g., Sentry) */
   logger?: PerpsLogger;
-}
+};
 
 /**
  * Aggregation mode for price subscriptions
@@ -42,7 +42,7 @@ export type PriceAggregationMode = 'merge' | 'best_price';
 /**
  * Parameters for multiplexed price subscriptions
  */
-export interface MultiplexedPricesParams {
+export type MultiplexedPricesParams = {
   /** Symbols to subscribe to */
   symbols: string[];
   /** Provider instances to subscribe through */
@@ -57,47 +57,47 @@ export interface MultiplexedPricesParams {
   includeOrderBook?: boolean;
   /** Include market data (funding, OI, volume) */
   includeMarketData?: boolean;
-}
+};
 
 /**
  * Parameters for multiplexed position subscriptions
  */
-export interface MultiplexedPositionsParams {
+export type MultiplexedPositionsParams = {
   /** Provider instances to subscribe through */
   providers: [PerpsProviderType, PerpsProvider][];
   /** Callback to receive aggregated position updates */
   callback: (positions: Position[]) => void;
-}
+};
 
 /**
  * Parameters for multiplexed order fill subscriptions
  */
-export interface MultiplexedOrderFillsParams {
+export type MultiplexedOrderFillsParams = {
   /** Provider instances to subscribe through */
   providers: [PerpsProviderType, PerpsProvider][];
   /** Callback to receive aggregated order fill updates */
   callback: (fills: OrderFill[], isSnapshot?: boolean) => void;
-}
+};
 
 /**
  * Parameters for multiplexed order subscriptions
  */
-export interface MultiplexedOrdersParams {
+export type MultiplexedOrdersParams = {
   /** Provider instances to subscribe through */
   providers: [PerpsProviderType, PerpsProvider][];
   /** Callback to receive aggregated order updates */
   callback: (orders: Order[]) => void;
-}
+};
 
 /**
  * Parameters for multiplexed account subscriptions
  */
-export interface MultiplexedAccountParams {
+export type MultiplexedAccountParams = {
   /** Provider instances to subscribe through */
   providers: [PerpsProviderType, PerpsProvider][];
   /** Callback to receive account updates (one per provider) */
   callback: (accounts: AccountState[]) => void;
-}
+};
 
 /**
  * SubscriptionMultiplexer manages real-time data subscriptions across
