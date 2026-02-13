@@ -55,10 +55,14 @@ import { DepositService } from './services/DepositService';
 import { FeatureFlagConfigurationService } from './services/FeatureFlagConfigurationService';
 import { RewardsIntegrationService } from './services/RewardsIntegrationService';
 import type { ServiceContext } from './services/ServiceContext';
+import { v4 as uuidv4 } from 'uuid';
+import { PerpsMeasurementName } from './constants/performanceMetrics';
 // PerpsStreamChannelKey removed: using string for channel keys (PerpsStreamManager.pauseChannel takes string)
 import {
   WebSocketConnectionState,
   PerpsAnalyticsEvent,
+  PerpsTraceNames,
+  PerpsTraceOperations,
   isVersionGatedFeatureFlag,
   type AccountState,
   type AssetRoute,
@@ -389,7 +393,7 @@ export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
 const metadata: StateMetadata<PerpsControllerState> = {
   accountState: {
     includeInStateLogs: true,
-    persist: true,
+    persist: false,
     includeInDebugSnapshot: false,
     usedInUi: true,
   },
@@ -2401,7 +2405,23 @@ export class PerpsController extends BaseController<
     }
 
     this.isPreloading = true;
+    const traceId = uuidv4();
+    const preloadStart = performance.now();
+    let traceData:
+      | { success: boolean; marketCount?: number; error?: string }
+      | undefined;
+
     try {
+      this.options.infrastructure.tracer.trace({
+        name: PerpsTraceNames.MarketDataPreload,
+        id: traceId,
+        op: PerpsTraceOperations.Operation,
+        tags: {
+          provider: this.state.activeProvider,
+          isTestnet: this.state.isTestnet,
+        },
+      });
+
       this.debugLog('PerpsController: Fetching market data in background');
       const data = await this.getMarketDataWithPrices({ standalone: true });
 
@@ -2414,9 +2434,22 @@ export class PerpsController extends BaseController<
         marketCount: data.length,
       });
 
+      traceData = { success: true, marketCount: data.length };
+
+      this.options.infrastructure.tracer.setMeasurement(
+        PerpsMeasurementName.PerpsMarketDataPreload,
+        performance.now() - preloadStart,
+        'millisecond',
+      );
+
       // Also preload user data (fire-and-forget, non-blocking)
       this.performUserDataPreload();
     } catch (error) {
+      traceData = {
+        success: false,
+        error: ensureError(error, 'PerpsController.performMarketDataPreload')
+          .message,
+      };
       this.logError(
         ensureError(error, 'PerpsController.performMarketDataPreload'),
         this.getErrorContext('performMarketDataPreload', {
@@ -2424,6 +2457,11 @@ export class PerpsController extends BaseController<
         }),
       );
     } finally {
+      this.options.infrastructure.tracer.endTrace({
+        name: PerpsTraceNames.MarketDataPreload,
+        id: traceId,
+        data: traceData,
+      });
       this.isPreloading = false;
     }
   }
@@ -2451,8 +2489,40 @@ export class PerpsController extends BaseController<
       return;
     }
 
+    // Skip standalone REST polling when WebSocket is connected — live data is streaming
+    if (
+      this.getWebSocketConnectionState() === WebSocketConnectionState.Connected
+    ) {
+      this.debugLog(
+        'PerpsController: Skipping user data preload — WebSocket connected',
+      );
+      return;
+    }
+
     this.isPreloadingUserData = true;
+    const traceId = uuidv4();
+    const preloadStart = performance.now();
+    let traceData:
+      | {
+          success: boolean;
+          positionCount?: number;
+          orderCount?: number;
+          error?: string;
+        }
+      | undefined;
+
     try {
+      this.options.infrastructure.tracer.trace({
+        name: PerpsTraceNames.UserDataPreload,
+        id: traceId,
+        op: PerpsTraceOperations.Operation,
+        tags: {
+          provider: this.state.activeProvider,
+          isTestnet: this.state.isTestnet,
+        },
+        data: { userAddress },
+      });
+
       this.debugLog('PerpsController: Fetching user data in background', {
         userAddress,
       });
@@ -2476,7 +2546,24 @@ export class PerpsController extends BaseController<
         orderCount: orders.length,
         totalBalance: accountState.totalBalance,
       });
+
+      traceData = {
+        success: true,
+        positionCount: positions.length,
+        orderCount: orders.length,
+      };
+
+      this.options.infrastructure.tracer.setMeasurement(
+        PerpsMeasurementName.PerpsUserDataPreload,
+        performance.now() - preloadStart,
+        'millisecond',
+      );
     } catch (error) {
+      traceData = {
+        success: false,
+        error: ensureError(error, 'PerpsController.performUserDataPreload')
+          .message,
+      };
       this.logError(
         ensureError(error, 'PerpsController.performUserDataPreload'),
         this.getErrorContext('performUserDataPreload', {
@@ -2484,6 +2571,11 @@ export class PerpsController extends BaseController<
         }),
       );
     } finally {
+      this.options.infrastructure.tracer.endTrace({
+        name: PerpsTraceNames.UserDataPreload,
+        id: traceId,
+        data: traceData,
+      });
       this.isPreloadingUserData = false;
     }
   }
@@ -2896,8 +2988,13 @@ export class PerpsController extends BaseController<
    * Subscribe to live price updates
    */
   subscribeToPrices(params: SubscribePricesParams): () => void {
+    const provider = this.getActiveProviderOrNull();
+    if (!provider) {
+      return () => {
+        // No-op: Provider not initialized
+      };
+    }
     try {
-      const provider = this.getActiveProvider();
       return provider.subscribeToPrices(params);
     } catch (error) {
       this.logError(
@@ -2906,9 +3003,8 @@ export class PerpsController extends BaseController<
           symbols: params.symbols?.join(','),
         }),
       );
-      // Return a no-op unsubscribe function
       return () => {
-        // No-op: Provider not initialized
+        // No-op
       };
     }
   }
@@ -2917,8 +3013,13 @@ export class PerpsController extends BaseController<
    * Subscribe to live position updates
    */
   subscribeToPositions(params: SubscribePositionsParams): () => void {
+    const provider = this.getActiveProviderOrNull();
+    if (!provider) {
+      return () => {
+        // No-op: Provider not initialized
+      };
+    }
     try {
-      const provider = this.getActiveProvider();
       return provider.subscribeToPositions(params);
     } catch (error) {
       this.logError(
@@ -2927,9 +3028,8 @@ export class PerpsController extends BaseController<
           accountId: params.accountId,
         }),
       );
-      // Return a no-op unsubscribe function
       return () => {
-        // No-op: Provider not initialized
+        // No-op
       };
     }
   }
@@ -2938,8 +3038,13 @@ export class PerpsController extends BaseController<
    * Subscribe to live order fill updates
    */
   subscribeToOrderFills(params: SubscribeOrderFillsParams): () => void {
+    const provider = this.getActiveProviderOrNull();
+    if (!provider) {
+      return () => {
+        // No-op: Provider not initialized
+      };
+    }
     try {
-      const provider = this.getActiveProvider();
       return provider.subscribeToOrderFills(params);
     } catch (error) {
       this.logError(
@@ -2948,9 +3053,8 @@ export class PerpsController extends BaseController<
           accountId: params.accountId,
         }),
       );
-      // Return a no-op unsubscribe function
       return () => {
-        // No-op: Provider not initialized
+        // No-op
       };
     }
   }
@@ -2959,8 +3063,13 @@ export class PerpsController extends BaseController<
    * Subscribe to live order updates
    */
   subscribeToOrders(params: SubscribeOrdersParams): () => void {
+    const provider = this.getActiveProviderOrNull();
+    if (!provider) {
+      return () => {
+        // No-op: Provider not initialized
+      };
+    }
     try {
-      const provider = this.getActiveProvider();
       return provider.subscribeToOrders(params);
     } catch (error) {
       this.logError(
@@ -2969,9 +3078,8 @@ export class PerpsController extends BaseController<
           accountId: params.accountId,
         }),
       );
-      // Return a no-op unsubscribe function
       return () => {
-        // No-op: Provider not initialized
+        // No-op
       };
     }
   }
@@ -2982,8 +3090,13 @@ export class PerpsController extends BaseController<
    * like usePerpsBalanceTokenFilter (PayWithModal) see the latest balance.
    */
   subscribeToAccount(params: SubscribeAccountParams): () => void {
+    const provider = this.getActiveProviderOrNull();
+    if (!provider) {
+      return () => {
+        // No-op: Provider not initialized
+      };
+    }
     try {
-      const provider = this.getActiveProvider();
       const originalCallback = params.callback;
       return provider.subscribeToAccount({
         ...params,
@@ -3005,9 +3118,8 @@ export class PerpsController extends BaseController<
           accountId: params.accountId,
         }),
       );
-      // Return a no-op unsubscribe function
       return () => {
-        // No-op: Provider not initialized
+        // No-op
       };
     }
   }
@@ -3017,8 +3129,13 @@ export class PerpsController extends BaseController<
    * Creates a dedicated L2Book subscription for real-time order book data
    */
   subscribeToOrderBook(params: SubscribeOrderBookParams): () => void {
+    const provider = this.getActiveProviderOrNull();
+    if (!provider) {
+      return () => {
+        // No-op: Provider not initialized
+      };
+    }
     try {
-      const provider = this.getActiveProvider();
       return provider.subscribeToOrderBook(params);
     } catch (error) {
       this.logError(
@@ -3028,9 +3145,8 @@ export class PerpsController extends BaseController<
           levels: params.levels,
         }),
       );
-      // Return a no-op unsubscribe function
       return () => {
-        // No-op: Provider not initialized
+        // No-op
       };
     }
   }
@@ -3039,8 +3155,13 @@ export class PerpsController extends BaseController<
    * Subscribe to live candle updates
    */
   subscribeToCandles(params: SubscribeCandlesParams): () => void {
+    const provider = this.getActiveProviderOrNull();
+    if (!provider) {
+      return () => {
+        // No-op: Provider not initialized
+      };
+    }
     try {
-      const provider = this.getActiveProvider();
       return provider.subscribeToCandles(params);
     } catch (error) {
       this.logError(
@@ -3051,9 +3172,8 @@ export class PerpsController extends BaseController<
           duration: params.duration,
         }),
       );
-      // Return a no-op unsubscribe function
       return () => {
-        // No-op: Provider not initialized
+        // No-op
       };
     }
   }
@@ -3063,8 +3183,13 @@ export class PerpsController extends BaseController<
    * Zero additional network overhead - data comes from existing webData3 subscription
    */
   subscribeToOICaps(params: SubscribeOICapsParams): () => void {
+    const provider = this.getActiveProviderOrNull();
+    if (!provider) {
+      return () => {
+        // No-op: Provider not initialized
+      };
+    }
     try {
-      const provider = this.getActiveProvider();
       return provider.subscribeToOICaps(params);
     } catch (error) {
       this.logError(
@@ -3073,9 +3198,8 @@ export class PerpsController extends BaseController<
           accountId: params.accountId,
         }),
       );
-      // Return a no-op unsubscribe function
       return () => {
-        // No-op: Provider not initialized
+        // No-op
       };
     }
   }
