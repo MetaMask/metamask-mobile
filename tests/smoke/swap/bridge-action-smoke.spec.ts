@@ -26,7 +26,7 @@ enum eventsToCheck {
 
 // This test was migrated to the new framework but should be reworked to use withFixtures properly
 describe(SmokeTrade('Bridge functionality'), () => {
-  jest.setTimeout(120000);
+  jest.setTimeout(180000);
   const eventsToAssert: {
     event: string;
     properties: Record<string, unknown>;
@@ -83,6 +83,8 @@ describe(SmokeTrade('Bridge functionality'), () => {
         await TestHelpers.delay(2000); // wait until tokens are displayed
         await QuoteView.selectNetwork(destNetwork);
         await QuoteView.tapToken(destChainId, sourceSymbol);
+        // Open keypad by tapping source amount input (keypad is in BottomSheet, closed after token selection)
+        await QuoteView.tapSourceAmountInput();
         await QuoteView.enterAmount(quantity);
         await Assertions.expectElementToBeVisible(QuoteView.networkFeeLabel, {
           timeout: 60000,

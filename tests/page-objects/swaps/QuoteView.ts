@@ -119,6 +119,16 @@ class QuoteView {
     });
   }
 
+  /**
+   * Taps the source amount input to focus it and open the keypad (BottomSheet).
+   * Use before enterAmount() when the keypad may be closed (e.g. after returning from token/network selection).
+   */
+  async tapSourceAmountInput(): Promise<void> {
+    await Gestures.waitAndTap(this.amountInput, {
+      elemDescription: 'Tap source amount input to open keypad',
+    });
+  }
+
   async tapDestinationToken(): Promise<void> {
     await Gestures.waitAndTap(this.destinationTokenArea, {
       elemDescription: 'Tap destination asset picker',

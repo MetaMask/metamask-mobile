@@ -11,6 +11,7 @@ import { AnvilManager } from '../../seeder/anvil-manager';
 import QuoteView from '../../page-objects/swaps/QuoteView';
 import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers';
 import { GASLESS_SWAP_QUOTES_ETH_MUSD } from '../../helpers/swap/constants';
+import { setupSpotPricesMock } from '../../helpers/swap/swap-mocks';
 import { setupRemoteFeatureFlagsMock } from '../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
 
 describe(SmokeTrade('Gasless Swap - '), (): void => {
@@ -52,6 +53,7 @@ describe(SmokeTrade('Gasless Swap - '), (): void => {
           },
         ],
         testSpecificMock: async (mockServer) => {
+          await setupSpotPricesMock(mockServer);
           // Mock ETH->MUSD quote (gasless swap)
           await setupMockRequest(mockServer, {
             requestMethod: 'GET',

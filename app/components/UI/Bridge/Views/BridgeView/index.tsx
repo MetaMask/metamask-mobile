@@ -529,7 +529,10 @@ const BridgeView = () => {
           decimals={sourceToken?.decimals || 18}
         >
           {sourceAmount && sourceAmount !== '0' ? (
-            <SwapsConfirmButton latestSourceBalance={latestSourceBalance} />
+            <SwapsConfirmButton
+              latestSourceBalance={latestSourceBalance}
+              testID={BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD}
+            />
           ) : (
             <GaslessQuickPickOptions
               token={sourceToken}

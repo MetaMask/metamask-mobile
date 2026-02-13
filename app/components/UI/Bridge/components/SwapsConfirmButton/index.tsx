@@ -30,9 +30,11 @@ import Engine from '../../../../../core/Engine';
 
 interface Props {
   latestSourceBalance: ReturnType<typeof useLatestBalance>;
+  /** Optional testID override (e.g. when rendered inside keypad to avoid duplicate IDs in E2E) */
+  testID?: string;
 }
 
-export const SwapsConfirmButton = ({ latestSourceBalance }: Props) => {
+export const SwapsConfirmButton = ({ latestSourceBalance, testID }: Props) => {
   const dispatch = useDispatch();
   const navigation = useNavigation();
   const { submitBridgeTx } = useSubmitBridgeTx();
@@ -139,7 +141,7 @@ export const SwapsConfirmButton = ({ latestSourceBalance }: Props) => {
       label={label}
       onPress={needsNewQuote ? handleGetNewQuote : handleContinue}
       width={ButtonWidthTypes.Full}
-      testID={BridgeViewSelectorsIDs.CONFIRM_BUTTON}
+      testID={testID ?? BridgeViewSelectorsIDs.CONFIRM_BUTTON}
       isDisabled={needsNewQuote ? false : isSubmitDisabled}
     />
   );
