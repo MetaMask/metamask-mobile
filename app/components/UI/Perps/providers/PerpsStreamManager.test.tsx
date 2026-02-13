@@ -3406,4 +3406,100 @@ describe('PerpsStreamManager', () => {
       expect(callback2).toHaveBeenCalledWith(liveOrders);
     });
   });
+
+  describe('deferConnect edge cases', () => {
+    it('aborts deferred connect when all subscribers unsubscribe before timer fires', () => {
+      const streamManager = new PerpsStreamManager();
+      const mockSubscribeToOrderFills = jest.fn().mockReturnValue(jest.fn());
+
+      // Not initialized → deferConnect path
+      mockPerpsConnectionManager.getConnectionState = jest
+        .fn()
+        .mockReturnValue({ isInitialized: false });
+
+      mockEngine.context.PerpsController = {
+        ...mockEngine.context.PerpsController,
+        subscribeToOrderFills: mockSubscribeToOrderFills,
+        isCurrentlyReinitializing: jest.fn().mockReturnValue(false),
+      } as unknown as typeof mockEngine.context.PerpsController;
+
+      // Subscribe → triggers connect() → defers because not initialized
+      const unsub = streamManager.fills.subscribe({
+        callback: jest.fn(),
+        throttleMs: 0,
+      });
+
+      // Unsubscribe before the deferred timer fires
+      unsub();
+
+      // Advance past the defer timer
+      jest.advanceTimersByTime(300);
+
+      // subscribeToOrderFills should never have been called
+      expect(mockSubscribeToOrderFills).not.toHaveBeenCalled();
+    });
+
+    it('logs max retries when isInitialized stays false', () => {
+      const streamManager = new PerpsStreamManager();
+
+      // Not initialized permanently
+      mockPerpsConnectionManager.getConnectionState = jest
+        .fn()
+        .mockReturnValue({ isInitialized: false });
+
+      mockEngine.context.PerpsController = {
+        ...mockEngine.context.PerpsController,
+        subscribeToOrderFills: jest.fn().mockReturnValue(jest.fn()),
+        isCurrentlyReinitializing: jest.fn().mockReturnValue(false),
+      } as unknown as typeof mockEngine.context.PerpsController;
+
+      // Subscribe → triggers connect() → defers
+      streamManager.fills.subscribe({
+        callback: jest.fn(),
+        throttleMs: 0,
+      });
+
+      // Advance 150 retries × 200ms = 30,000ms
+      jest.advanceTimersByTime(150 * 200 + 100);
+
+      expect(mockDevLogger.log).toHaveBeenCalledWith(
+        expect.stringContaining('Max connect retries exceeded'),
+      );
+    });
+  });
+
+  describe('FillStreamChannel isInitialized guard', () => {
+    it('defers connect when isInitialized is false', () => {
+      const streamManager = new PerpsStreamManager();
+      const mockSubscribeToOrderFills = jest.fn().mockReturnValue(jest.fn());
+
+      // Not initialized
+      mockPerpsConnectionManager.getConnectionState = jest
+        .fn()
+        .mockReturnValue({ isInitialized: false });
+
+      mockEngine.context.PerpsController = {
+        ...mockEngine.context.PerpsController,
+        subscribeToOrderFills: mockSubscribeToOrderFills,
+        isCurrentlyReinitializing: jest.fn().mockReturnValue(false),
+      } as unknown as typeof mockEngine.context.PerpsController;
+
+      streamManager.fills.subscribe({
+        callback: jest.fn(),
+        throttleMs: 0,
+      });
+
+      // subscribeToOrderFills should NOT be called yet
+      expect(mockSubscribeToOrderFills).not.toHaveBeenCalled();
+
+      // Now make it initialized and advance timer for deferConnect
+      mockPerpsConnectionManager.getConnectionState = jest
+        .fn()
+        .mockReturnValue({ isInitialized: true });
+      jest.advanceTimersByTime(250);
+
+      // Now it should have been called
+      expect(mockSubscribeToOrderFills).toHaveBeenCalled();
+    });
+  });
 });
