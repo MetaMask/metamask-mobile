@@ -38,10 +38,11 @@ jest.mock('../../../components/UI/Perps/providers/PerpsStreamManager', () => ({
   getStreamManagerInstance: mockGetStreamManagerInstance,
 }));
 
-// Mock standalone info client for readOnly mode tests
+// Mock standalone info client for standalone mode tests
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let mockStandaloneInfoClient: any;
 jest.mock('../utils/standaloneInfoClient', () => ({
+  ...jest.requireActual('../utils/standaloneInfoClient'),
   createStandaloneInfoClient: jest.fn(() => mockStandaloneInfoClient),
 }));
 
@@ -358,6 +359,7 @@ describe('HyperLiquidProvider', () => {
       getSubscriptionClient: jest.fn(),
       setOnReconnectCallback: jest.fn(),
       setOnTerminateCallback: jest.fn(),
+      getConnectionState: jest.fn().mockReturnValue('connected'),
     } as Partial<HyperLiquidClientService> as jest.Mocked<HyperLiquidClientService>;
 
     mockWalletService = {
@@ -378,6 +380,7 @@ describe('HyperLiquidProvider', () => {
       getUserAddressWithDefault: jest
         .fn()
         .mockResolvedValue('0x1234567890123456789012345678901234567890'),
+      isKeyringUnlocked: jest.fn().mockReturnValue(true),
     } as Partial<HyperLiquidWalletService> as jest.Mocked<HyperLiquidWalletService>;
 
     mockSubscriptionService = {
@@ -3383,7 +3386,57 @@ describe('HyperLiquidProvider', () => {
         );
 
         await expect(provider.getMarketDataWithPrices()).rejects.toThrow(
-          'Failed to fetch market data - no markets available',
+          /Failed to fetch market data - no markets available/,
+        );
+      });
+
+      it('uses HTTP InfoClient for market data fetches', async () => {
+        mockClientService.getInfoClient = jest.fn().mockReturnValue(
+          createMockInfoClient({
+            meta: jest.fn().mockResolvedValue({
+              universe: [{ name: 'BTC', szDecimals: 3, maxLeverage: 50 }],
+            }),
+            allMids: jest.fn().mockResolvedValue({ BTC: '50000' }),
+            predictedFundings: jest.fn().mockResolvedValue([]),
+            metaAndAssetCtxs: jest.fn().mockResolvedValue([
+              { universe: [{ name: 'BTC', szDecimals: 3, maxLeverage: 50 }] },
+              [
+                {
+                  funding: '0.0001',
+                  openInterest: '1000',
+                  prevDayPx: '49000',
+                  dayNtlVlm: '1000000',
+                  markPx: '50000',
+                  midPx: '50000',
+                  oraclePx: '50000',
+                },
+              ],
+            ]),
+          }),
+        );
+
+        const freshProvider = createTestProvider();
+        await freshProvider.getMarketDataWithPrices();
+
+        expect(mockClientService.getInfoClient).toHaveBeenCalledWith({
+          useHttp: true,
+        });
+      });
+
+      it('includes diagnostic context in error when all DEX fetches fail', async () => {
+        mockClientService.getInfoClient = jest.fn().mockReturnValue(
+          createMockInfoClient({
+            metaAndAssetCtxs: jest
+              .fn()
+              .mockRejectedValue(new Error('WebSocket timeout')),
+            allMids: jest
+              .fn()
+              .mockRejectedValue(new Error('WebSocket timeout')),
+          }),
+        );
+
+        await expect(provider.getMarketDataWithPrices()).rejects.toThrow(
+          /enabledDexs=.*failed=.*wsState=/,
         );
       });
 
@@ -5059,9 +5112,9 @@ describe('HyperLiquidProvider', () => {
   });
 
   describe('Builder Fee Global Cache (PR #25334)', () => {
-    interface ProviderWithBuilderFee {
+    type ProviderWithBuilderFee = {
       ensureBuilderFeeApproval(): Promise<void>;
-    }
+    };
 
     let testableProvider: ProviderWithBuilderFee;
 
@@ -5192,12 +5245,43 @@ describe('HyperLiquidProvider', () => {
       );
       expect(mockCompleteInFlight).toHaveBeenCalled();
     });
+
+    it('skips cache when KEYRING_LOCKED error is thrown', async () => {
+      // Arrange
+      const mockCompleteInFlight = jest.fn();
+      (
+        TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>
+      ).setInFlight.mockReturnValue(mockCompleteInFlight);
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          maxBuilderFee: jest.fn().mockResolvedValue(0),
+        }),
+      );
+      mockClientService.getExchangeClient = jest.fn().mockReturnValue(
+        createMockExchangeClient({
+          approveBuilderFee: jest
+            .fn()
+            .mockRejectedValue(new Error(PERPS_ERROR_CODES.KEYRING_LOCKED)),
+        }),
+      );
+
+      // Act - should resolve without throwing
+      await testableProvider.ensureBuilderFeeApproval();
+
+      // Assert - cache should NOT be set (so it retries when unlocked)
+      expect(
+        (TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>)
+          .setBuilderFee,
+      ).not.toHaveBeenCalled();
+      // Assert - in-flight lock should be released
+      expect(mockCompleteInFlight).toHaveBeenCalled();
+    });
   });
 
   describe('Referral Global Cache (PR #25334)', () => {
-    interface ProviderWithReferral {
+    type ProviderWithReferral = {
       ensureReferralSet(): Promise<void>;
-    }
+    };
 
     let testableProvider: ProviderWithReferral;
 
@@ -5367,6 +5451,56 @@ describe('HyperLiquidProvider', () => {
       expect(
         mockClientService.getExchangeClient().setReferrer,
       ).not.toHaveBeenCalled();
+    });
+
+    it('skips cache and Sentry when KEYRING_LOCKED error is thrown', async () => {
+      // Arrange
+      const mockCompleteInFlight = jest.fn();
+      (
+        TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>
+      ).setInFlight.mockReturnValue(mockCompleteInFlight);
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          referral: jest.fn().mockResolvedValue({
+            referrerState: {
+              stage: 'ready',
+              data: { code: 'MMCSI' },
+            },
+            referredBy: null,
+          }),
+        }),
+      );
+      mockClientService.getExchangeClient = jest.fn().mockReturnValue(
+        createMockExchangeClient({
+          setReferrer: jest
+            .fn()
+            .mockRejectedValue(new Error(PERPS_ERROR_CODES.KEYRING_LOCKED)),
+        }),
+      );
+
+      // Act - should resolve without throwing
+      await testableProvider.ensureReferralSet();
+
+      // Assert - cache should NOT be set (so it retries when unlocked)
+      expect(
+        (TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>)
+          .setReferral,
+      ).not.toHaveBeenCalled();
+      // Assert - ensureReferralSet's catch does NOT call logger.error for KEYRING_LOCKED.
+      // Note: setReferralCode() internally logs to Sentry before rethrowing, so
+      // logger.error is called once (from setReferralCode), but NOT a second time
+      // from ensureReferralSet's catch block (which is the behavior under test).
+      expect(mockPlatformDependencies.logger.error).toHaveBeenCalledTimes(1);
+      expect(mockPlatformDependencies.logger.error).toHaveBeenCalledWith(
+        expect.any(Error),
+        expect.objectContaining({
+          context: expect.objectContaining({
+            data: expect.objectContaining({ method: 'setReferralCode' }),
+          }),
+        }),
+      );
+      // Assert - in-flight lock should be released
+      expect(mockCompleteInFlight).toHaveBeenCalled();
     });
   });
 
@@ -5672,9 +5806,9 @@ describe('HyperLiquidProvider', () => {
 
     it('handles isFeeCacheValid with non-existent address', async () => {
       // Access private method for edge case testing
-      interface ProviderWithPrivateMethods {
+      type ProviderWithPrivateMethods = {
         isFeeCacheValid(userAddress: string): boolean;
-      }
+      };
       const testableProvider =
         provider as unknown as ProviderWithPrivateMethods;
       const result = testableProvider.isFeeCacheValid('0xnonexistent');
@@ -6578,7 +6712,7 @@ describe('HyperLiquidProvider', () => {
   });
 
   describe('HIP-3 Private Methods', () => {
-    interface ProviderWithPrivateMethods {
+    type ProviderWithPrivateMethods = {
       getUsdcTokenId(): Promise<string>;
       getBalanceForDex(params: { dex: string | null }): Promise<number>;
       findSourceDexWithBalance(params: {
@@ -6586,7 +6720,7 @@ describe('HyperLiquidProvider', () => {
         requiredAmount: number;
       }): Promise<{ sourceDex: string; available: number } | null>;
       cachedUsdcTokenId?: string;
-    }
+    };
 
     let testableProvider: ProviderWithPrivateMethods;
 
@@ -6675,10 +6809,10 @@ describe('HyperLiquidProvider', () => {
     });
 
     describe('getAllAvailableDexs', () => {
-      interface ProviderWithDexMethods {
+      type ProviderWithDexMethods = {
         getAllAvailableDexs(): Promise<(string | null)[]>;
         cachedAllPerpDexs: ({ name: string; url: string } | null)[] | null;
-      }
+      };
 
       // eslint-disable-next-line @typescript-eslint/no-shadow
       let testableProvider: ProviderWithDexMethods;
@@ -6817,10 +6951,10 @@ describe('HyperLiquidProvider', () => {
     });
 
     describe('ensureDexAbstractionEnabled', () => {
-      interface ProviderWithDexAbstraction {
+      type ProviderWithDexAbstraction = {
         ensureDexAbstractionEnabled(): Promise<void>;
         useDexAbstraction: boolean;
-      }
+      };
 
       // eslint-disable-next-line @typescript-eslint/no-shadow
       let testableProvider: ProviderWithDexAbstraction;
@@ -7125,14 +7259,50 @@ describe('HyperLiquidProvider', () => {
         // Should NOT call exchange client since already enabled
         expect(mockClientService.getExchangeClient).not.toHaveBeenCalled();
       });
+
+      it('skips cache and Sentry when KEYRING_LOCKED error is thrown', async () => {
+        // Arrange
+        const mockCompleteInFlight = jest.fn();
+        (
+          TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>
+        ).setInFlight.mockReturnValue(mockCompleteInFlight);
+        const mockExchangeClient = createMockExchangeClient();
+        mockExchangeClient.agentEnableDexAbstraction = jest
+          .fn()
+          .mockRejectedValue(new Error(PERPS_ERROR_CODES.KEYRING_LOCKED));
+        mockClientService.getInfoClient = jest.fn().mockReturnValue(
+          createMockInfoClient({
+            userDexAbstraction: jest.fn().mockResolvedValue(false),
+          }),
+        );
+        mockClientService.getExchangeClient = jest
+          .fn()
+          .mockReturnValue(mockExchangeClient);
+        mockWalletService.getUserAddressWithDefault = jest
+          .fn()
+          .mockResolvedValue('0xUserAddress');
+
+        // Act - should resolve without throwing
+        await testableProvider.ensureDexAbstractionEnabled();
+
+        // Assert - cache should NOT be set (so it retries when unlocked)
+        expect(
+          (TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>)
+            .set,
+        ).not.toHaveBeenCalled();
+        // Assert - Sentry logger.error should NOT be called
+        expect(mockPlatformDependencies.logger.error).not.toHaveBeenCalled();
+        // Assert - in-flight lock should be released
+        expect(mockCompleteInFlight).toHaveBeenCalled();
+      });
     });
 
     describe('ensureReadyForTrading', () => {
-      interface ProviderWithTradingSetup {
+      type ProviderWithTradingSetup = {
         ensureReadyForTrading(): Promise<void>;
         ensureReady(): Promise<void>;
         tradingSetupComplete: boolean;
-      }
+      };
 
       // eslint-disable-next-line @typescript-eslint/no-shadow
       let testableProvider: ProviderWithTradingSetup;
@@ -7204,10 +7374,43 @@ describe('HyperLiquidProvider', () => {
         // Assert
         expect(testableProvider.tradingSetupComplete).toBe(true);
       });
+
+      it('keeps tradingSetupComplete false when keyring is locked', async () => {
+        // Arrange
+        jest.spyOn(testableProvider, 'ensureReady').mockResolvedValue();
+        // Mock all caches as already attempted to skip signing
+        (
+          TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>
+        ).get.mockReturnValue({
+          attempted: true,
+          enabled: true,
+          timestamp: Date.now(),
+        });
+        (
+          TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>
+        ).getBuilderFee.mockReturnValue({
+          attempted: true,
+          success: true,
+        });
+        (
+          TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>
+        ).getReferral.mockReturnValue({
+          attempted: true,
+          success: true,
+        });
+        // Keyring is locked
+        mockWalletService.isKeyringUnlocked = jest.fn().mockReturnValue(false);
+
+        // Act
+        await testableProvider.ensureReadyForTrading();
+
+        // Assert - tradingSetupComplete should remain false
+        expect(testableProvider.tradingSetupComplete).toBe(false);
+      });
     });
 
     describe('autoTransferForHip3Order', () => {
-      interface ProviderWithAutoTransfer {
+      type ProviderWithAutoTransfer = {
         autoTransferForHip3Order(params: {
           targetDex: string;
           requiredMargin: number;
@@ -7222,7 +7425,7 @@ describe('HyperLiquidProvider', () => {
           destinationDex: string;
           amount: string;
         }): Promise<{ success: boolean; error?: string }>;
-      }
+      };
 
       // eslint-disable-next-line @typescript-eslint/no-shadow
       let testableProvider: ProviderWithAutoTransfer;
@@ -7309,7 +7512,7 @@ describe('HyperLiquidProvider', () => {
     });
 
     describe('calculateHip3RequiredMargin', () => {
-      interface ProviderWithMarginCalc {
+      type ProviderWithMarginCalc = {
         calculateHip3RequiredMargin(params: {
           symbol: string;
           dexName: string;
@@ -7321,7 +7524,7 @@ describe('HyperLiquidProvider', () => {
         getPositions(): Promise<
           { symbol: string; size: string; marginUsed: string }[]
         >;
-      }
+      };
 
       // eslint-disable-next-line @typescript-eslint/no-shadow
       let testableProvider: ProviderWithMarginCalc;
@@ -7667,7 +7870,7 @@ describe('HyperLiquidProvider', () => {
     });
   });
 
-  describe('readOnly mode', () => {
+  describe('standalone mode', () => {
     const mockUserAddress = '0xabcdef1234567890abcdef1234567890abcdef12';
     const mockCreateStandaloneInfoClient =
       createStandaloneInfoClient as jest.MockedFunction<
@@ -7678,11 +7881,12 @@ describe('HyperLiquidProvider', () => {
       // Reset standalone client mock
       mockStandaloneInfoClient = {
         clearinghouseState: jest.fn(),
+        perpDexs: jest.fn().mockResolvedValue([null]),
       };
     });
 
-    describe('getPositions with readOnly mode', () => {
-      it('returns positions via standalone client when readOnly mode enabled', async () => {
+    describe('getPositions with standalone mode', () => {
+      it('returns positions via standalone client when standalone mode enabled', async () => {
         // Arrange
         mockStandaloneInfoClient.clearinghouseState.mockResolvedValue({
           assetPositions: [
@@ -7711,7 +7915,7 @@ describe('HyperLiquidProvider', () => {
 
         // Act
         const positions = await provider.getPositions({
-          readOnly: true,
+          standalone: true,
           userAddress: mockUserAddress,
         });
 
@@ -7727,7 +7931,7 @@ describe('HyperLiquidProvider', () => {
         expect(positions[0].size).toBe('0.5');
       });
 
-      it('filters zero-size positions in readOnly mode', async () => {
+      it('filters zero-size positions in standalone mode', async () => {
         // Arrange - include positions with zero size
         mockStandaloneInfoClient.clearinghouseState.mockResolvedValue({
           assetPositions: [
@@ -7772,7 +7976,7 @@ describe('HyperLiquidProvider', () => {
 
         // Act
         const positions = await provider.getPositions({
-          readOnly: true,
+          standalone: true,
           userAddress: mockUserAddress,
         });
 
@@ -7791,7 +7995,7 @@ describe('HyperLiquidProvider', () => {
 
         // Act
         await provider.getPositions({
-          readOnly: true,
+          standalone: true,
           userAddress: mockUserAddress,
         });
 
@@ -7809,7 +8013,7 @@ describe('HyperLiquidProvider', () => {
 
         // Act
         const positions = await provider.getPositions({
-          readOnly: true,
+          standalone: true,
           userAddress: mockUserAddress,
         });
 
@@ -7818,8 +8022,8 @@ describe('HyperLiquidProvider', () => {
       });
     });
 
-    describe('getAccountState with readOnly mode', () => {
-      it('returns account state via standalone client when readOnly mode enabled', async () => {
+    describe('getAccountState with standalone mode', () => {
+      it('returns account state via standalone client when standalone mode enabled', async () => {
         // Arrange
         mockStandaloneInfoClient.clearinghouseState.mockResolvedValue({
           assetPositions: [],
@@ -7836,7 +8040,7 @@ describe('HyperLiquidProvider', () => {
 
         // Act
         const accountState = await provider.getAccountState({
-          readOnly: true,
+          standalone: true,
           userAddress: mockUserAddress,
         });
 
@@ -7862,7 +8066,7 @@ describe('HyperLiquidProvider', () => {
 
         // Act
         await provider.getAccountState({
-          readOnly: true,
+          standalone: true,
           userAddress: mockUserAddress,
         });
 
@@ -7872,19 +8076,440 @@ describe('HyperLiquidProvider', () => {
         });
       });
 
-      it('throws error when standalone client fails', async () => {
+      it('returns fallback account state when standalone client fails', async () => {
         // Arrange
         mockStandaloneInfoClient.clearinghouseState.mockRejectedValue(
           new Error('API unavailable'),
         );
 
-        // Act & Assert
-        await expect(
-          provider.getAccountState({
-            readOnly: true,
-            userAddress: mockUserAddress,
-          }),
-        ).rejects.toThrow('API unavailable');
+        // Act
+        const result = await provider.getAccountState({
+          standalone: true,
+          userAddress: mockUserAddress,
+        });
+
+        // Assert — all DEX queries failed, aggregateAccountStates([]) returns fallback
+        expect(result).toEqual({
+          availableBalance: '--',
+          totalBalance: '--',
+          marginUsed: '--',
+          unrealizedPnl: '--',
+          returnOnEquity: '--',
+        });
+      });
+    });
+
+    describe('multi-DEX standalone mode (HIP-3)', () => {
+      let hip3Provider: HyperLiquidProvider;
+
+      beforeEach(() => {
+        hip3Provider = createTestProvider({
+          hip3Enabled: true,
+          allowlistMarkets: ['xyz:*'],
+        });
+
+        // Mock perpDexs to return main DEX + HIP-3 DEX
+        mockStandaloneInfoClient.perpDexs.mockResolvedValue([
+          null, // main DEX
+          { name: 'xyz' },
+        ]);
+      });
+
+      it('returns positions from both main DEX and HIP-3 DEXs', async () => {
+        // Arrange: main DEX has BTC, xyz DEX has TSLA
+        mockStandaloneInfoClient.clearinghouseState
+          .mockResolvedValueOnce({
+            assetPositions: [
+              {
+                position: {
+                  coin: 'BTC',
+                  szi: '0.5',
+                  entryPx: '45000',
+                  positionValue: '22500',
+                  unrealizedPnl: '500',
+                  marginUsed: '2250',
+                  leverage: { type: 'cross', value: 10 },
+                  liquidationPx: '40000',
+                  maxLeverage: 50,
+                  returnOnEquity: '22.22',
+                  cumFunding: {
+                    allTime: '10',
+                    sinceOpen: '5',
+                    sinceChange: '2',
+                  },
+                },
+                type: 'oneWay',
+              },
+            ],
+            marginSummary: {
+              totalMarginUsed: '2250',
+              accountValue: '25000',
+            },
+          })
+          .mockResolvedValueOnce({
+            assetPositions: [
+              {
+                position: {
+                  coin: 'TSLA',
+                  szi: '10',
+                  entryPx: '250',
+                  positionValue: '2500',
+                  unrealizedPnl: '100',
+                  marginUsed: '500',
+                  leverage: { type: 'cross', value: 5 },
+                  liquidationPx: '200',
+                  maxLeverage: 20,
+                  returnOnEquity: '20',
+                  cumFunding: {
+                    allTime: '1',
+                    sinceOpen: '0.5',
+                    sinceChange: '0.1',
+                  },
+                },
+                type: 'oneWay',
+              },
+            ],
+            marginSummary: {
+              totalMarginUsed: '500',
+              accountValue: '2600',
+            },
+          });
+
+        // Act
+        const positions = await hip3Provider.getPositions({
+          standalone: true,
+          userAddress: mockUserAddress,
+        });
+
+        // Assert - should have positions from both DEXs
+        expect(positions).toHaveLength(2);
+        expect(positions[0].symbol).toBe('BTC');
+        expect(positions[1].symbol).toBe('TSLA');
+        // Main DEX called without dex param, HIP-3 called with dex param
+        expect(
+          mockStandaloneInfoClient.clearinghouseState,
+        ).toHaveBeenCalledWith({ user: mockUserAddress });
+        expect(
+          mockStandaloneInfoClient.clearinghouseState,
+        ).toHaveBeenCalledWith({ user: mockUserAddress, dex: 'xyz' });
+      });
+
+      it('falls back to main DEX only when perpDexs() fails', async () => {
+        // Arrange: perpDexs fails
+        mockStandaloneInfoClient.perpDexs.mockRejectedValue(
+          new Error('Network error'),
+        );
+        mockStandaloneInfoClient.clearinghouseState.mockResolvedValue({
+          assetPositions: [
+            {
+              position: {
+                coin: 'BTC',
+                szi: '1',
+                entryPx: '45000',
+                positionValue: '45000',
+                unrealizedPnl: '0',
+                marginUsed: '4500',
+                leverage: { type: 'cross', value: 10 },
+                liquidationPx: '40000',
+                maxLeverage: 50,
+                returnOnEquity: '0',
+                cumFunding: {
+                  allTime: '0',
+                  sinceOpen: '0',
+                  sinceChange: '0',
+                },
+              },
+              type: 'oneWay',
+            },
+          ],
+          marginSummary: {
+            totalMarginUsed: '4500',
+            accountValue: '45000',
+          },
+        });
+
+        // Act
+        const positions = await hip3Provider.getPositions({
+          standalone: true,
+          userAddress: mockUserAddress,
+        });
+
+        // Assert - should fall back to main DEX only
+        expect(positions).toHaveLength(1);
+        expect(positions[0].symbol).toBe('BTC');
+        expect(
+          mockStandaloneInfoClient.clearinghouseState,
+        ).toHaveBeenCalledTimes(1);
+        expect(
+          mockStandaloneInfoClient.clearinghouseState,
+        ).toHaveBeenCalledWith({ user: mockUserAddress });
+
+        // Verify cache was NOT poisoned: a subsequent call should retry perpDexs()
+        mockStandaloneInfoClient.perpDexs.mockResolvedValue([
+          null,
+          { name: 'xyz' },
+        ]);
+        mockStandaloneInfoClient.clearinghouseState
+          .mockResolvedValueOnce({
+            assetPositions: [
+              {
+                position: {
+                  coin: 'BTC',
+                  szi: '1',
+                  entryPx: '45000',
+                  positionValue: '45000',
+                  unrealizedPnl: '0',
+                  marginUsed: '4500',
+                  leverage: { type: 'cross', value: 10 },
+                  liquidationPx: '40000',
+                  maxLeverage: 50,
+                  returnOnEquity: '0',
+                  cumFunding: {
+                    allTime: '0',
+                    sinceOpen: '0',
+                    sinceChange: '0',
+                  },
+                },
+                type: 'oneWay',
+              },
+            ],
+            marginSummary: {
+              totalMarginUsed: '4500',
+              accountValue: '45000',
+            },
+          })
+          .mockResolvedValueOnce({
+            assetPositions: [
+              {
+                position: {
+                  coin: 'TSLA',
+                  szi: '10',
+                  entryPx: '200',
+                  positionValue: '2000',
+                  unrealizedPnl: '50',
+                  marginUsed: '200',
+                  leverage: { type: 'cross', value: 10 },
+                  liquidationPx: '180',
+                  maxLeverage: 50,
+                  returnOnEquity: '25',
+                  cumFunding: {
+                    allTime: '0',
+                    sinceOpen: '0',
+                    sinceChange: '0',
+                  },
+                },
+                type: 'oneWay',
+              },
+            ],
+            marginSummary: {
+              totalMarginUsed: '200',
+              accountValue: '2000',
+            },
+          });
+
+        const retryPositions = await hip3Provider.getPositions({
+          standalone: true,
+          userAddress: mockUserAddress,
+        });
+
+        // perpDexs should have been called again (retry after transient failure)
+        expect(mockStandaloneInfoClient.perpDexs).toHaveBeenCalledTimes(2);
+        // Should now see positions from both DEXs
+        expect(retryPositions).toHaveLength(2);
+        const symbols = retryPositions.map((p) => p.symbol).sort();
+        expect(symbols).toEqual(['BTC', 'TSLA']);
+      });
+
+      it('returns only main DEX positions when hip3Enabled is false', async () => {
+        // Arrange: use provider with HIP-3 disabled
+        const disabledProvider = createTestProvider({
+          hip3Enabled: false,
+        });
+        mockStandaloneInfoClient.clearinghouseState.mockResolvedValue({
+          assetPositions: [
+            {
+              position: {
+                coin: 'ETH',
+                szi: '5',
+                entryPx: '3000',
+                positionValue: '15000',
+                unrealizedPnl: '200',
+                marginUsed: '1500',
+                leverage: { type: 'cross', value: 10 },
+                liquidationPx: '2500',
+                maxLeverage: 50,
+                returnOnEquity: '13.33',
+                cumFunding: {
+                  allTime: '5',
+                  sinceOpen: '2',
+                  sinceChange: '1',
+                },
+              },
+              type: 'oneWay',
+            },
+          ],
+          marginSummary: {
+            totalMarginUsed: '1500',
+            accountValue: '15200',
+          },
+        });
+
+        // Act
+        const positions = await disabledProvider.getPositions({
+          standalone: true,
+          userAddress: mockUserAddress,
+        });
+
+        // Assert - perpDexs should NOT be called
+        expect(mockStandaloneInfoClient.perpDexs).not.toHaveBeenCalled();
+        expect(positions).toHaveLength(1);
+        expect(positions[0].symbol).toBe('ETH');
+      });
+
+      it('caches validated DEXs across multiple readonly calls', async () => {
+        // Arrange
+        mockStandaloneInfoClient.clearinghouseState.mockResolvedValue({
+          assetPositions: [],
+          marginSummary: { totalMarginUsed: '0', accountValue: '0' },
+          withdrawable: '0',
+        });
+
+        // Act - call getPositions twice on same provider instance
+        await hip3Provider.getPositions({
+          standalone: true,
+          userAddress: mockUserAddress,
+        });
+        await hip3Provider.getPositions({
+          standalone: true,
+          userAddress: mockUserAddress,
+        });
+
+        // Assert - perpDexs should only be called once (cached on second call)
+        expect(mockStandaloneInfoClient.perpDexs).toHaveBeenCalledTimes(1);
+      });
+
+      it('aggregates account state across multiple DEXs in standalone mode', async () => {
+        // Arrange: main DEX + xyz DEX both have balances
+        mockStandaloneInfoClient.clearinghouseState
+          .mockResolvedValueOnce({
+            assetPositions: [],
+            marginSummary: {
+              totalMarginUsed: '1000',
+              accountValue: '50000',
+            },
+            withdrawable: '45000',
+          })
+          .mockResolvedValueOnce({
+            assetPositions: [],
+            marginSummary: {
+              totalMarginUsed: '500',
+              accountValue: '5000',
+            },
+            withdrawable: '4000',
+          });
+
+        // Act
+        const accountState = await hip3Provider.getAccountState({
+          standalone: true,
+          userAddress: mockUserAddress,
+        });
+
+        // Assert - balances should be aggregated
+        expect(parseFloat(accountState.totalBalance)).toBe(55000);
+        expect(parseFloat(accountState.marginUsed)).toBe(1500);
+      });
+
+      it('does not poison fully-initialized cache when standalone perpDexs() fails', async () => {
+        // Arrange: standalone perpDexs fails (transient network error)
+        mockStandaloneInfoClient.perpDexs.mockRejectedValue(
+          new Error('Network error'),
+        );
+        mockStandaloneInfoClient.clearinghouseState.mockResolvedValue({
+          assetPositions: [],
+          marginSummary: { totalMarginUsed: '0', accountValue: '0' },
+        });
+
+        // Act: standalone call falls back to main DEX only
+        await hip3Provider.getPositions({
+          standalone: true,
+          userAddress: mockUserAddress,
+        });
+
+        // Now set up the fully-initialized path's perpDexs to succeed
+        const infoClient = mockClientService.getInfoClient();
+        (infoClient.perpDexs as jest.Mock).mockResolvedValue([
+          null,
+          { name: 'xyz' },
+        ]);
+
+        // Initialize the provider for fully-initialized path
+        await hip3Provider.initialize();
+
+        // Act: fully-initialized getPositions should discover HIP-3 DEXs
+        await hip3Provider.getPositions();
+
+        // Assert: fully-initialized path called perpDexs (cache was NOT poisoned)
+        expect(infoClient.perpDexs).toHaveBeenCalled();
+        // clearinghouseState should be called for both main + xyz DEX
+        expect(infoClient.clearinghouseState).toHaveBeenCalledTimes(2);
+      });
+
+      it('does not cache invalid perpDexs response in standalone mode', async () => {
+        // Arrange: perpDexs returns invalid (non-array) response
+        mockStandaloneInfoClient.perpDexs.mockResolvedValue(null);
+        mockStandaloneInfoClient.clearinghouseState.mockResolvedValue({
+          assetPositions: [],
+          marginSummary: { totalMarginUsed: '0', accountValue: '0' },
+        });
+
+        // Act: first call gets invalid response, falls back to main DEX
+        await hip3Provider.getPositions({
+          standalone: true,
+          userAddress: mockUserAddress,
+        });
+        expect(mockStandaloneInfoClient.perpDexs).toHaveBeenCalledTimes(1);
+
+        // Fix perpDexs to return valid response
+        mockStandaloneInfoClient.perpDexs.mockResolvedValue([
+          null,
+          { name: 'xyz' },
+        ]);
+
+        // Act: second standalone call should retry perpDexs (not cached)
+        await hip3Provider.getPositions({
+          standalone: true,
+          userAddress: mockUserAddress,
+        });
+
+        // Assert: perpDexs was called again on the second call
+        expect(mockStandaloneInfoClient.perpDexs).toHaveBeenCalledTimes(2);
+      });
+
+      it('shares cache between standalone and fully-initialized when standalone succeeds', async () => {
+        // Arrange: standalone perpDexs succeeds
+        mockStandaloneInfoClient.clearinghouseState.mockResolvedValue({
+          assetPositions: [],
+          marginSummary: { totalMarginUsed: '0', accountValue: '0' },
+        });
+
+        // Act: standalone call succeeds and caches the validated DEXs
+        await hip3Provider.getPositions({
+          standalone: true,
+          userAddress: mockUserAddress,
+        });
+        expect(mockStandaloneInfoClient.perpDexs).toHaveBeenCalledTimes(1);
+
+        // Initialize the provider for fully-initialized path
+        await hip3Provider.initialize();
+        const infoClient = mockClientService.getInfoClient();
+
+        // Act: fully-initialized getPositions should reuse standalone's cache
+        await hip3Provider.getPositions();
+
+        // Assert: fully-initialized path did NOT call perpDexs (reused cache)
+        expect(infoClient.perpDexs).not.toHaveBeenCalled();
+        // clearinghouseState should be called for both main + xyz DEX (from cache)
+        expect(infoClient.clearinghouseState).toHaveBeenCalledTimes(2);
       });
     });
   });
