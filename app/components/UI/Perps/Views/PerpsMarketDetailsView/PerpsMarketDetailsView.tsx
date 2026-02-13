@@ -410,7 +410,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const displayOrders = useMemo(
     () =>
       ordersWithSyntheticTpsl.filter((order) =>
-        shouldDisplayOrderInMarketDetailsOrders(order, existingPosition),
+        shouldDisplayOrderInMarketDetailsOrders(
+          order,
+          existingPosition ?? undefined,
+        ),
       ),
     [ordersWithSyntheticTpsl, existingPosition],
   );
