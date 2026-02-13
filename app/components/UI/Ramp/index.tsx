@@ -36,12 +36,15 @@ import { NativeRampsSdk } from '@consensys/native-ramps-sdk';
 import useDetectGeolocation from './hooks/useDetectGeolocation';
 import useHydrateRampsController from './hooks/useHydrateRampsController';
 import useRampsSmartRouting from './hooks/useRampsSmartRouting';
+import useRampsUnifiedV2Enabled from './hooks/useRampsUnifiedV2Enabled';
 
 const POLLING_FREQUENCY = AppConstants.FIAT_ORDERS.POLLING_FREQUENCY;
 
 export interface ProcessorOptions {
   forced?: boolean;
   sdk?: NativeRampsSdk;
+  /** When true, use the unified V2 order processor instead of SDK-specific processors. */
+  useUnifiedProcessor?: boolean;
 }
 
 export async function processFiatOrder(
@@ -122,6 +125,7 @@ function FiatOrders() {
   useFetchRampNetworks();
   useDetectGeolocation();
   useRampsSmartRouting();
+  const isUnifiedV2Enabled = useRampsUnifiedV2Enabled();
   const dispatch = useDispatch();
   const dispatchThunk = useThunkDispatch();
   const navigation = useNavigation();
@@ -171,7 +175,9 @@ function FiatOrders() {
     async () => {
       await Promise.all(
         pendingOrders.map((order) =>
-          processFiatOrder(order, dispatchUpdateFiatOrder, dispatchThunk),
+          processFiatOrder(order, dispatchUpdateFiatOrder, dispatchThunk, {
+            useUnifiedProcessor: isUnifiedV2Enabled,
+          }),
         ),
       );
     },
@@ -201,7 +207,10 @@ function FiatOrders() {
     async () => {
       await Promise.all(
         forceUpdateOrders.map((order) =>
-          processFiatOrder(order, dispatchUpdateFiatOrder, dispatchThunk),
+          processFiatOrder(order, dispatchUpdateFiatOrder, dispatchThunk, {
+            forced: true,
+            useUnifiedProcessor: isUnifiedV2Enabled,
+          }),
         ),
       );
     },

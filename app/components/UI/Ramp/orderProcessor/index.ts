@@ -4,6 +4,7 @@ import { FiatOrder } from '../../../../reducers/fiatOrders';
 import Logger from '../../../../util/Logger';
 import { processAggregatorOrder } from '../Aggregator/orderProcessor/aggregator';
 import { processDepositOrder } from '../Deposit/orderProcessor';
+import { processUnifiedOrder } from './unifiedOrderProcessor';
 
 function processOrder(
   order: FiatOrder,
@@ -16,9 +17,15 @@ function processOrder(
       return order;
     }
     case FIAT_ORDER_PROVIDERS.AGGREGATOR: {
+      if (options?.useUnifiedProcessor) {
+        return processUnifiedOrder(order, options);
+      }
       return processAggregatorOrder(order, options);
     }
     case FIAT_ORDER_PROVIDERS.DEPOSIT: {
+      if (options?.useUnifiedProcessor) {
+        return processUnifiedOrder(order, options);
+      }
       return processDepositOrder(order, options);
     }
     default: {
