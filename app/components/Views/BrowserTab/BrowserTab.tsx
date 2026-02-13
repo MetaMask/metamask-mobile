@@ -1437,7 +1437,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
                   iconName={IconName.ArrowLeft}
                   size={ButtonIconSize.Lg}
                   onPress={handleClosePress}
-                  testID="browser-tab-close-button"
+                  testID={BrowserViewSelectorsIDs.BROWSER_CLOSE_BUTTON}
                 />
               )}
               <Box twClassName="flex-1">

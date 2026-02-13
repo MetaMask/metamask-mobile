@@ -61,7 +61,7 @@ describe(RegressionWalletPlatform('Balance Privacy Toggle'), (): void => {
           WalletView.totalBalance as DetoxElement,
           EXPECTED_HIDDEN_BALANCE,
         );
-        await TabBarComponent.tapSettings();
+
         await TabBarComponent.tapWallet();
         await Assertions.expectElementToBeVisible(WalletView.container);
         await Assertions.expectElementToBeVisible(WalletView.totalBalance);

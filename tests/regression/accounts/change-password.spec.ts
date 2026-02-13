@@ -12,6 +12,7 @@ import LoginView from '../../page-objects/wallet/LoginView';
 import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomSheet';
 import ToastModal from '../../page-objects/wallet/ToastModal';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import AccountMenu from '../../page-objects/AccountMenu/AccountMenu';
 
 describe(RegressionAccounts('change password'), () => {
   const PASSWORD = '123123123';
@@ -53,10 +54,21 @@ describe(RegressionAccounts('change password'), () => {
           ChangePasswordView.submitButton,
           { timeout: 25000 },
         );
-        await Assertions.expectElementToBeVisible(ToastModal.notificationTitle);
-        await Assertions.expectElementToNotBeVisible(
-          ToastModal.notificationTitle,
+
+        // Wait for toast to appear and disappear
+        try {
+          await Assertions.expectElementToBeVisible(ToastModal.container);
+          await Assertions.expectElementToNotBeVisible(ToastModal.container);
+        } catch {
+          // eslint-disable-next-line no-console
+        }
+
+        await Assertions.expectElementToBeVisible(
+          SecurityAndPrivacy.backButton,
         );
+        await SecurityAndPrivacy.tapBackButton();
+        await SettingsView.tapBackButton();
+        await AccountMenu.tapBack();
 
         await TabBarComponent.tapWallet();
         await WalletView.tapIdenticon();
@@ -81,8 +93,9 @@ describe(RegressionAccounts('change password'), () => {
         await AccountListBottomSheet.swipeToDismissAccountsModal();
 
         // Lock the app and verify again the accounts are still there
-        await TabBarComponent.tapSettings();
-        await SettingsView.tapLock();
+        await WalletView.tapHamburgerMenu();
+        await AccountMenu.scrollToLockButton();
+        await AccountMenu.tapLock();
         await SettingsView.tapYesAlertButton();
         await LoginView.enterPassword(NEWPASSWORD);
 

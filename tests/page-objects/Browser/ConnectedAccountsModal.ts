@@ -2,6 +2,7 @@ import {
   ConnectedAccountModalSelectorsText,
   ConnectedAccountsSelectorsIDs,
 } from '../../../app/components/Views/AccountConnect/ConnectedAccountModal.testIds';
+import { ConnectAccountBottomSheetSelectorsIDs } from '../../../app/components/Views/AccountConnect/ConnectAccountBottomSheet.testIds';
 import { WalletViewSelectorsText } from '../../../app/components/Views/Wallet/WalletView.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
@@ -94,6 +95,12 @@ class ConnectedAccountsModal {
     return Matchers.getElementByText(ConnectedAccountModalSelectorsText.TITLE);
   }
 
+  get accountSummaryHeader(): DetoxElement {
+    return Matchers.getElementByText(
+      ConnectedAccountModalSelectorsText.ACCOUNT_SUMMARY_HEADER,
+    );
+  }
+
   get selectAllNetworksButton(): DetoxElement {
     return Matchers.getElementByText(
       ConnectedAccountModalSelectorsText.SELECT_ALL,
@@ -109,6 +116,12 @@ class ConnectedAccountsModal {
   get confirmDisconnectNetworksButton(): DetoxElement {
     return Matchers.getElementByID(
       ConnectedAccountsSelectorsIDs.CONFIRM_DISCONNECT_NETWORKS_BUTTON,
+    );
+  }
+
+  get cancelButton(): DetoxElement {
+    return Matchers.getElementByID(
+      ConnectAccountBottomSheetSelectorsIDs.CANCEL_BUTTON,
     );
   }
 
@@ -200,6 +213,12 @@ class ConnectedAccountsModal {
   async tapConfirmDisconnectNetworksButton(): Promise<void> {
     await Gestures.waitAndTap(this.confirmDisconnectNetworksButton, {
       elemDescription: 'Confirm disconnect networks button',
+    });
+  }
+
+  async tapCancelButton(): Promise<void> {
+    await Gestures.waitAndTap(this.cancelButton, {
+      elemDescription: 'Cancel button',
     });
   }
 
