@@ -562,43 +562,6 @@ class FixtureBuilder {
   }
 
   /**
-   * Adds Tron account permissions for default fixture account.
-   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
-   */
-  withTronAccountPermission() {
-    const caveatValue = {
-      optionalScopes: {
-        [TrxScope.Mainnet]: {
-          accounts: [`${TrxScope.Mainnet}:${DEFAULT_TRON_FIXTURE_ACCOUNT}`],
-        },
-      },
-      requiredScopes: {},
-      sessionProperties: {},
-      isMultichainOrigin: false,
-    };
-
-    const permissionConfig = {
-      [Caip25EndowmentPermissionName]: {
-        id: 'Lde5rzDG2bUF6HbXl4xxT',
-        parentCapability: Caip25EndowmentPermissionName,
-        invoker: 'localhost',
-        caveats: [
-          {
-            type: Caip25CaveatType,
-            value: caveatValue,
-          },
-        ],
-        date: 1732715918637,
-      },
-    };
-
-    this.withPermissionController(
-      this.createPermissionControllerConfig(permissionConfig),
-    );
-    return this;
-  }
-
-  /**
    * Sets the user profile key ring in the fixture's background state.
    * @param {object} userState - The user state to set.
    * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
@@ -1477,29 +1440,6 @@ class FixtureBuilder {
           chainId: SolScope.Mainnet,
           name: 'Solana Mainnet',
           nativeCurrency: `${SolScope.Mainnet}/${SOLANA_TOKEN}`,
-          isEvm: false,
-        },
-      },
-      isEvmSelected: false,
-    };
-
-    return this;
-  }
-
-  /**
-   * Sets up a minimal Tron fixture with mainnet configuration
-   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining
-   */
-  withTronFixture() {
-    const TRON_TOKEN = 'slip44:195';
-
-    this.fixture.state.engine.backgroundState.MultichainNetworkController = {
-      selectedMultichainNetworkChainId: TrxScope.Mainnet,
-      multichainNetworkConfigurationsByChainId: {
-        [TrxScope.Mainnet]: {
-          chainId: TrxScope.Mainnet,
-          name: 'Tron Mainnet',
-          nativeCurrency: `${TrxScope.Mainnet}/${TRON_TOKEN}`,
           isEvm: false,
         },
       },
