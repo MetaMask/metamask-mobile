@@ -88,7 +88,10 @@ export function Recipient({
       onPress={handlePressRecipient}
     >
       <Box twClassName="flex-row items-center">
-        <Box twClassName="h-12 justify-center">
+        <Box
+          twClassName="h-12 justify-center"
+          testID={`recipient-avatar-${recipient.address}`}
+        >
           <Avatar
             variant={AvatarVariant.Account}
             type={accountAvatarType}
