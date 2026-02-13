@@ -96,9 +96,6 @@ import Authentication, {
   useAuthentication,
 } from '../../../core/Authentication';
 import { containsErrorMessage } from '../../../util/errorHandling';
-import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
-import AUTHENTICATION_TYPE from '../../../constants/userProperties';
-import { passcodeType } from '../../../util/authentication';
 
 const EmptyRecordConstant = {};
 
@@ -135,12 +132,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       : null,
   );
   const [disabledInput, setDisabledInput] = useState(false);
-
-  const [biometryType, setBiometryType] = useState<AUTHENTICATION_TYPE | null>(
-    null,
-  );
-
-  const [renderBiometricSwitch, setRenderBiometricSwitch] = useState(false);
 
   const { isDeletingInProgress, promptSeedlessRelogin } =
     usePromptSeedlessRelogin();
@@ -407,25 +398,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         return;
       }
 
-      const isBiometricCancellation =
-        containsErrorMessage(loginError, 'cancel') ||
-        containsErrorMessage(loginError, DENY_PIN_ERROR_ANDROID) ||
-        containsErrorMessage(
-          loginError,
-          UNLOCK_WALLET_ERROR_MESSAGES.IOS_USER_CANCELLED_BIOMETRICS,
-        );
-
-      if (isBiometricCancellation) {
-        setBiometryChoice(false);
-        setLoading(false);
-        setRenderBiometricSwitch(true);
-        setError(strings('login.biometric_authentication_cancelled'));
-        // user already successfull rehydrate or synced new password but failed biometric authentication
-        // resetPassword so that the state is correct upon user closed and reopen the app
-        Authentication.resetPassword();
-        return;
-      }
-
       const isPasscodeNotSet = loginErrorMessage === PASSCODE_NOT_SET_ERROR;
 
       if (isPasscodeNotSet) {
@@ -453,10 +425,56 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       track,
       handleSeedlessOnboardingControllerError,
       handlePasswordError,
-      setBiometryChoice,
       route.params?.onboardingTraceCtx,
       isComingFromOauthOnboarding,
     ],
+  );
+
+  const checkIsBiometricCancellation = useCallback(
+    (loginError: Error): boolean => {
+      const isBiometricCancellation =
+        containsErrorMessage(
+          loginError,
+          UNLOCK_WALLET_ERROR_MESSAGES.ANDROID_BIOMETRICS_CANCELLED,
+        ) ||
+        containsErrorMessage(loginError, DENY_PIN_ERROR_ANDROID) ||
+        containsErrorMessage(
+          loginError,
+          UNLOCK_WALLET_ERROR_MESSAGES.IOS_USER_CANCELLED_BIOMETRICS,
+        );
+      return isBiometricCancellation;
+    },
+    [],
+  );
+
+  // biometric cancellation handling for seedless password flow
+  // for password sync, if user enter the correct password, the vault is already synced before biometric authentication
+  // so we need to handle the biometric cancellation and login with password instead
+  // we also reseted the password so that the state is correct
+  const handleSeedlessBiometricCancellation = useCallback(
+    async (password: string): Promise<void> => {
+      setLoading(false);
+      // show alert to user that will login with password instead of biometric authentication
+      Alert.alert(
+        strings('login.biometric_authentication_cancelled_title'),
+        strings('login.biometric_authentication_cancelled_description'),
+        [
+          {
+            text: strings('login.biometric_authentication_cancelled_button'),
+            onPress: async () => {
+              try {
+                setLoading(true);
+                await Authentication.resetPassword();
+                await unlockWallet({ password });
+              } catch (error) {
+                await handleLoginError(error as Error);
+              }
+            },
+          },
+        ],
+      );
+    },
+    [setLoading, handleLoginError, unlockWallet],
   );
 
   const onRehydrateLogin = useCallback(async () => {
@@ -503,6 +521,16 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       setLoading(false);
       setError(null);
     } catch (loginErr) {
+      if (checkIsBiometricCancellation(loginErr as Error)) {
+        track(MetaMetricsEvents.REHYDRATION_PASSWORD_ATTEMPTED, {
+          account_type: 'social',
+          biometrics: false,
+        });
+        setLoading(false);
+        await handleSeedlessBiometricCancellation(password);
+        return;
+      }
+
       await handleLoginError(loginErr as Error);
     }
   }, [
@@ -515,6 +543,8 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     track,
     componentAuthenticationType,
     unlockWallet,
+    handleSeedlessBiometricCancellation,
+    checkIsBiometricCancellation,
   ]);
 
   const newGlobalPasswordLogin = useCallback(async () => {
@@ -542,6 +572,12 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       setLoading(false);
       setError(null);
     } catch (loginErr) {
+      if (checkIsBiometricCancellation(loginErr as Error)) {
+        setLoading(false);
+        await handleSeedlessBiometricCancellation(password);
+        return;
+      }
+
       await handleLoginError(loginErr as Error);
     }
   }, [
@@ -551,6 +587,8 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     handleLoginError,
     componentAuthenticationType,
     unlockWallet,
+    handleSeedlessBiometricCancellation,
+    checkIsBiometricCancellation,
   ]);
 
   // Cleanup for isMountedRef tracking
@@ -590,24 +628,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       });
     }
   }, [route.params?.onboardingTraceCtx]);
-
-  useEffect(() => {
-    const getBiometryType = async () => {
-      const authType = await Authentication.getType();
-
-      if (route.params?.oauthLoginSuccess && authType.availableBiometryType) {
-        setBiometryType(AUTHENTICATION_TYPE.BIOMETRIC);
-      } else if (
-        authType.currentAuthType === AUTHENTICATION_TYPE.BIOMETRIC ||
-        authType.currentAuthType === AUTHENTICATION_TYPE.PASSCODE
-      ) {
-        setBiometryType(authType.currentAuthType);
-      } else {
-        setBiometryType(null);
-      }
-    };
-    getBiometryType();
-  }, [componentAuthenticationType, route.params?.oauthLoginSuccess]);
 
   const handleUseOtherMethod = () => {
     track(MetaMetricsEvents.USE_DIFFERENT_LOGIN_METHOD_CLICKED, {
@@ -655,17 +675,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       },
     });
   };
-
-  const shouldRenderBiometricSwitch = useMemo(() => {
-    if (renderBiometricSwitch && biometryType) {
-      if (biometryType === AUTHENTICATION_TYPE.PASSCODE) {
-        return passcodeType(biometryType);
-      }
-      return biometryType.toString();
-    }
-    return null;
-  }, [renderBiometricSwitch, biometryType]);
-
   return (
     <ErrorBoundary
       navigation={navigation}
@@ -748,15 +757,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
                   </HelpText>
                 )}
               </View>
-
-              {shouldRenderBiometricSwitch && (
-                <LoginOptionsSwitch
-                  shouldRenderBiometricOption={shouldRenderBiometricSwitch}
-                  biometryChoiceState={biometryChoice}
-                  onUpdateBiometryChoice={setBiometryChoice}
-                  onUpdateRememberMe={setBiometryChoice}
-                />
-              )}
 
               <View style={styles.ctaWrapperRehydration}>
                 <Button
