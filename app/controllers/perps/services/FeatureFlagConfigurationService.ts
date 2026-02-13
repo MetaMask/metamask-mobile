@@ -93,11 +93,19 @@ export class FeatureFlagConfigurationService {
         fieldName,
       );
 
+      if (validatedMarkets.length > 0) {
+        this.deps.debugLogger.log(
+          `PerpsController: HIP-3 ${fieldName} validated from array`,
+          { validatedMarkets },
+        );
+        return validatedMarkets;
+      }
+
       this.deps.debugLogger.log(
-        `PerpsController: HIP-3 ${fieldName} validated from array`,
-        { validatedMarkets },
+        `PerpsController: HIP-3 ${fieldName} array was empty after filtering`,
+        { fallbackValue: currentValue },
       );
-      return validatedMarkets;
+      return undefined;
     }
 
     this.deps.debugLogger.log(

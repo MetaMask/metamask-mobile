@@ -461,6 +461,25 @@ describe('FeatureFlagConfigurationService', () => {
       );
     });
 
+    it('preserves current config when all array patterns are invalid', () => {
+      mockCurrentHip3Config.allowlistMarkets = ['existing:BTC'];
+      (stripQuotes as jest.Mock).mockImplementation((s: string) => s);
+      (validateMarketPattern as jest.Mock).mockImplementation(() => {
+        throw new Error('Market pattern contains invalid characters');
+      });
+
+      mockRemoteFeatureFlagState.remoteFeatureFlags = {
+        perpsHip3AllowlistMarkets: ['"bad1"', '"bad2"'],
+      };
+
+      featureFlagConfigurationService.refreshHip3Config({
+        remoteFeatureFlagControllerState: mockRemoteFeatureFlagState,
+        context: mockContext,
+      });
+
+      // Should NOT overwrite existing config with empty array
+      expect(mockContext.setHip3Config).not.toHaveBeenCalled();
+    });
     it('logs warning for dropped invalid patterns', () => {
       (parseCommaSeparatedString as jest.Mock).mockReturnValue([
         '"bad"pattern"',
