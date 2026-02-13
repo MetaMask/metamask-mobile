@@ -137,11 +137,7 @@ describe('PushProvisioningService', () => {
 
       it('provisions card successfully', async () => {
         mockCardAdapter.getOpaquePaymentCard.mockResolvedValue({
-          success: true,
-          encryptedPayload: { opaquePaymentCard: 'encrypted-data' },
-          cardNetwork: 'MASTERCARD',
-          lastFourDigits: '1234',
-          cardholderName: 'John Doe',
+          opaquePaymentCard: 'encrypted-data',
         });
         mockWalletAdapter.provisionCard.mockResolvedValue({
           status: 'success',
@@ -163,51 +159,21 @@ describe('PushProvisioningService', () => {
         });
       });
 
-      it('returns error when getOpaquePaymentCard fails', async () => {
-        mockCardAdapter.getOpaquePaymentCard.mockResolvedValue({
-          success: false,
-          encryptedPayload: {},
-          cardNetwork: 'MASTERCARD',
-          lastFourDigits: '1234',
-          cardholderName: 'John Doe',
-        });
+      it('returns error when getOpaquePaymentCard throws', async () => {
+        mockCardAdapter.getOpaquePaymentCard.mockRejectedValue(
+          new Error('Network error'),
+        );
 
         const result = await service.initiateProvisioning(
           mockProvisioningOptions,
         );
 
         expect(result.status).toBe('error');
-        expect(result.error?.code).toBe(
-          ProvisioningErrorCode.ENCRYPTION_FAILED,
-        );
-      });
-
-      it('returns error when opaquePaymentCard is missing', async () => {
-        mockCardAdapter.getOpaquePaymentCard.mockResolvedValue({
-          success: true,
-          encryptedPayload: {}, // Missing opaquePaymentCard
-          cardNetwork: 'MASTERCARD',
-          lastFourDigits: '1234',
-          cardholderName: 'John Doe',
-        });
-
-        const result = await service.initiateProvisioning(
-          mockProvisioningOptions,
-        );
-
-        expect(result.status).toBe('error');
-        expect(result.error?.code).toBe(
-          ProvisioningErrorCode.ENCRYPTION_FAILED,
-        );
       });
 
       it('returns canceled when user cancels provisioning', async () => {
         mockCardAdapter.getOpaquePaymentCard.mockResolvedValue({
-          success: true,
-          encryptedPayload: { opaquePaymentCard: 'encrypted-data' },
-          cardNetwork: 'MASTERCARD',
-          lastFourDigits: '1234',
-          cardholderName: 'John Doe',
+          opaquePaymentCard: 'encrypted-data',
         });
         mockWalletAdapter.provisionCard.mockResolvedValue({
           status: 'canceled',
@@ -222,11 +188,7 @@ describe('PushProvisioningService', () => {
 
       it('works without userAddress', async () => {
         mockCardAdapter.getOpaquePaymentCard.mockResolvedValue({
-          success: true,
-          encryptedPayload: { opaquePaymentCard: 'encrypted-data' },
-          cardNetwork: 'MASTERCARD',
-          lastFourDigits: '1234',
-          cardholderName: 'John Doe',
+          opaquePaymentCard: 'encrypted-data',
         });
         mockWalletAdapter.provisionCard.mockResolvedValue({
           status: 'success',

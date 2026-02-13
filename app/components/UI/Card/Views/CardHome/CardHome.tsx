@@ -246,13 +246,13 @@ const CardHome = () => {
       cardDetails
         ? {
             id: cardDetails.id,
-            holderName: cardDetails.holderName,
+            holderName: cardholderName,
             panLast4: cardDetails.panLast4,
             status: cardDetails.status,
             expiryDate: cardDetails.expiryDate,
           }
         : null,
-    [cardDetails],
+    [cardDetails, cardholderName],
   );
 
   const {

@@ -154,5 +154,45 @@ describe('buildUserAddress utilities', () => {
         buildCardholderName({ id: 'test', firstName: null, lastName: null }),
       ).toBe('Card Holder');
     });
+
+    it('sanitizes special characters from names', () => {
+      expect(
+        buildCardholderName({
+          id: 'test',
+          firstName: 'José',
+          lastName: "O'Brien",
+        }),
+      ).toBe('Jos OBrien');
+    });
+
+    it('sanitizes accented characters and keeps alphanumeric', () => {
+      expect(
+        buildCardholderName({
+          id: 'test',
+          firstName: 'Müller',
+          lastName: 'Straße',
+        }),
+      ).toBe('Mller Strae');
+    });
+
+    it('trims whitespace before sanitizing', () => {
+      expect(
+        buildCardholderName({
+          id: 'test',
+          firstName: '  John  ',
+          lastName: '  Doe  ',
+        }),
+      ).toBe('John Doe');
+    });
+
+    it('returns fallback when names are only special characters', () => {
+      expect(
+        buildCardholderName({
+          id: 'test',
+          firstName: '***',
+          lastName: '!!!',
+        }),
+      ).toBe('Card Holder');
+    });
   });
 });
