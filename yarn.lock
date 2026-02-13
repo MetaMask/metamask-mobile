@@ -29195,6 +29195,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"expo-web-browser@npm:^15.0.10":
+  version: 15.0.10
+  resolution: "expo-web-browser@npm:15.0.10"
+  peerDependencies:
+    expo: "*"
+    react-native: "*"
+  checksum: 10/1496e68370d8b78ba8218408668a88919ea5668fcfd4e1470541be75a8a97647d9018460284ad64ce6873931bc82e301b261e37d7e0e71f019d94b6d8737b1ee
+  languageName: node
+  linkType: hard
+
 "expo-web-browser@npm:~14.0.2":
   version: 14.0.2
   resolution: "expo-web-browser@npm:14.0.2"
@@ -35790,6 +35800,7 @@ __metadata:
     expo-screen-orientation: "npm:~8.0.4"
     expo-sensors: "npm:~14.0.2"
     expo-updates: "patch:expo-updates@npm%3A0.27.4#~/.yarn/patches/expo-updates-npm-0.27.4-2a215516d7.patch"
+    expo-web-browser: "npm:^15.0.10"
     fast-equals: "npm:^5.2.2"
     fuse.js: "npm:3.4.4"
     ganache: "npm:^7.9.2"
