@@ -139,7 +139,7 @@ describe('PerpsStreamManager', () => {
     jest.clearAllMocks();
   });
 
-  it('should render children correctly', () => {
+  it('renders children correctly', () => {
     const { getByText } = render(
       <PerpsStreamProvider testStreamManager={testStreamManager}>
         <Text>Child Component</Text>
@@ -149,7 +149,7 @@ describe('PerpsStreamManager', () => {
     expect(getByText('Child Component')).toBeDefined();
   });
 
-  it('should throw error when usePerpsStream is used outside provider', () => {
+  it('throws error when usePerpsStream is used outside provider', () => {
     // Suppress console.error for this test since we expect an error
     const originalError = console.error;
     console.error = jest.fn();
@@ -167,7 +167,7 @@ describe('PerpsStreamManager', () => {
     console.error = originalError;
   });
 
-  it('should provide immediate cached data on subscription', async () => {
+  it('provides immediate cached data on subscription', async () => {
     // Setup mock subscription that will trigger updates
     mockSubscribeToPrices.mockImplementation(
       (params: { callback: (updates: PriceUpdate[]) => void }) => {
@@ -217,7 +217,7 @@ describe('PerpsStreamManager', () => {
     });
   });
 
-  it('should throttle updates after first immediate update', async () => {
+  it('throttles updates after first immediate update', async () => {
     let controllerCallback: ((updates: PriceUpdate[]) => void) | null = null;
     mockSubscribeToPrices.mockImplementation(
       (params: { callback: (updates: PriceUpdate[]) => void }) => {
@@ -295,7 +295,7 @@ describe('PerpsStreamManager', () => {
     });
   });
 
-  it('should handle multiple rapid updates with throttling', async () => {
+  it('handles multiple rapid updates with throttling', async () => {
     let controllerCallback: ((updates: PriceUpdate[]) => void) | null = null;
     mockSubscribeToPrices.mockImplementation(
       (params: { callback: (updates: PriceUpdate[]) => void }) => {
@@ -390,7 +390,7 @@ describe('PerpsStreamManager', () => {
     });
   });
 
-  it('should handle subscription without throttling', async () => {
+  it('handles subscription without throttling', async () => {
     let controllerCallback: ((updates: PriceUpdate[]) => void) | null = null;
     mockSubscribeToPrices.mockImplementation(
       (params: { callback: (updates: PriceUpdate[]) => void }) => {
@@ -486,7 +486,7 @@ describe('PerpsStreamManager', () => {
     });
   });
 
-  it('should clean up timers on unsubscribe', async () => {
+  it('cleans up timers on unsubscribe', async () => {
     let controllerCallback: ((updates: PriceUpdate[]) => void) | null = null;
     const unsubscribeMock = jest.fn();
     mockSubscribeToPrices.mockImplementation(
@@ -549,7 +549,7 @@ describe('PerpsStreamManager', () => {
     expect(onUpdate).toHaveBeenCalledTimes(1);
   });
 
-  it('should subscribe to prices when component mounts', async () => {
+  it('subscribes to prices when component mounts', async () => {
     mockSubscribeToPrices.mockImplementation(() => jest.fn());
 
     const onUpdate = jest.fn();
@@ -569,7 +569,7 @@ describe('PerpsStreamManager', () => {
     });
   });
 
-  it('should unsubscribe when component unmounts', async () => {
+  it('unsubscribes when component unmounts', async () => {
     const mockUnsubscribe = jest.fn();
     mockSubscribeToPrices.mockReturnValue(mockUnsubscribe);
 
@@ -591,7 +591,7 @@ describe('PerpsStreamManager', () => {
     });
   });
 
-  it('should deliver first update immediately', async () => {
+  it('delivers first update immediately', async () => {
     const onUpdate = jest.fn();
     let priceCallback: (data: PriceUpdate[]) => void = jest.fn();
 
@@ -634,7 +634,7 @@ describe('PerpsStreamManager', () => {
   });
 
   describe('clearCache', () => {
-    it('should clear cache and notify subscribers with empty data', async () => {
+    it('clears cache and notifies subscribers with empty data', async () => {
       let priceCallback: (data: PriceUpdate[]) => void = jest.fn();
       const mockUnsubscribe = jest.fn();
 
@@ -702,7 +702,7 @@ describe('PerpsStreamManager', () => {
       });
     });
 
-    it('should cleanup prewarm subscription when clearing price cache', async () => {
+    it('cleans up prewarm subscription when clearing price cache', async () => {
       // Mock the cleanupPrewarm method to verify it's called
       const cleanupPrewarmSpy = jest.spyOn(
         testStreamManager.prices,
@@ -723,7 +723,7 @@ describe('PerpsStreamManager', () => {
       cleanupPrewarmSpy.mockRestore();
     });
 
-    it('should cleanup prewarm subscription when clearing order cache', () => {
+    it('cleans up prewarm subscription when clearing order cache', () => {
       // Mock the cleanupPrewarm method to verify it's called
       const cleanupPrewarmSpy = jest.spyOn(
         testStreamManager.orders,
@@ -744,7 +744,7 @@ describe('PerpsStreamManager', () => {
       cleanupPrewarmSpy.mockRestore();
     });
 
-    it('should cleanup prewarm subscription when clearing position cache', () => {
+    it('cleans up prewarm subscription when clearing position cache', () => {
       // Mock the cleanupPrewarm method to verify it's called
       const cleanupPrewarmSpy = jest.spyOn(
         testStreamManager.positions,
@@ -765,7 +765,7 @@ describe('PerpsStreamManager', () => {
       cleanupPrewarmSpy.mockRestore();
     });
 
-    it('should cleanup prewarm subscription when clearing account cache', () => {
+    it('cleans up prewarm subscription when clearing account cache', () => {
       // Mock the cleanupPrewarm method to verify it's called
       const cleanupPrewarmSpy = jest.spyOn(
         testStreamManager.account,
@@ -817,7 +817,7 @@ describe('PerpsStreamManager', () => {
       unsubscribe();
     });
 
-    it('should reset all prewarm state when clearing price cache', async () => {
+    it('resets all prewarm state when clearing price cache', async () => {
       // Mock market data to populate allMarketSymbols
       const mockGetMarketDataWithPrices = jest.fn();
       const mockMarketData = [
@@ -852,7 +852,7 @@ describe('PerpsStreamManager', () => {
       cleanupPrewarmSpy.mockRestore();
     });
 
-    it('should cleanup all prewarm subscriptions when clearing all channel caches', async () => {
+    it('cleans up all prewarm subscriptions when clearing all channel caches', async () => {
       // Create spies for all cleanupPrewarm methods
       const priceCleanupSpy = jest.spyOn(
         testStreamManager.prices,
@@ -898,7 +898,7 @@ describe('PerpsStreamManager', () => {
       accountCleanupSpy.mockRestore();
     });
 
-    it('should disconnect WebSocket when clearing cache', async () => {
+    it('disconnects WebSocket when clearing cache', async () => {
       const mockUnsubscribe = jest.fn();
       mockSubscribeToPrices.mockReturnValue(mockUnsubscribe);
 
@@ -923,7 +923,7 @@ describe('PerpsStreamManager', () => {
       expect(mockUnsubscribe).toHaveBeenCalled();
     });
 
-    it('should not reconnect after clearing cache even with active subscribers', async () => {
+    it('does not reconnect after clearing cache even with active subscribers', async () => {
       const mockUnsubscribe = jest.fn();
       mockSubscribeToPrices.mockReturnValue(mockUnsubscribe);
 
@@ -955,7 +955,7 @@ describe('PerpsStreamManager', () => {
       });
     });
 
-    it('should not reconnect if no active subscribers', async () => {
+    it('does not reconnect if no active subscribers', async () => {
       const mockUnsubscribe = jest.fn();
       mockSubscribeToPrices.mockReturnValue(mockUnsubscribe);
 
@@ -1231,7 +1231,7 @@ describe('PerpsStreamManager', () => {
     });
   });
 
-  it('should throttle subsequent updates', async () => {
+  it('throttles subsequent updates', async () => {
     const onUpdate = jest.fn();
     let priceCallback: (data: PriceUpdate[]) => void = jest.fn();
 
@@ -1305,7 +1305,7 @@ describe('PerpsStreamManager', () => {
     });
   });
 
-  it('should handle multiple subscribers with different throttle times', async () => {
+  it('handles multiple subscribers with different throttle times', async () => {
     const onUpdate1 = jest.fn();
     const onUpdate2 = jest.fn();
     let priceCallback: (data: PriceUpdate[]) => void = jest.fn();
@@ -1402,7 +1402,7 @@ describe('PerpsStreamManager', () => {
     });
   });
 
-  it('should handle subscription to multiple symbols', async () => {
+  it('handles subscription to multiple symbols', async () => {
     mockSubscribeToPrices.mockImplementation((params) => {
       expect(params.symbols).toEqual(['BTC-PERP', 'ETH-PERP']);
       return jest.fn();
@@ -1448,7 +1448,7 @@ describe('PerpsStreamManager', () => {
     });
   });
 
-  it('should cleanup all subscriptions on provider unmount', async () => {
+  it('cleans up all subscriptions on provider unmount', async () => {
     const mockUnsubscribe = jest.fn();
     mockSubscribeToPrices.mockReturnValue(mockUnsubscribe);
 
@@ -1502,7 +1502,7 @@ describe('PerpsStreamManager', () => {
       mockGetMarketDataWithPrices.mockClear();
     });
 
-    it('should fetch market data on first subscription', async () => {
+    it('fetches market data on first subscription', async () => {
       const callback = jest.fn();
 
       const unsubscribe = testStreamManager.marketData.subscribe({
@@ -1523,7 +1523,7 @@ describe('PerpsStreamManager', () => {
       unsubscribe();
     });
 
-    it('should use cached data for subsequent subscriptions within cache duration', async () => {
+    it('uses cached data for subsequent subscriptions within cache duration', async () => {
       const callback1 = jest.fn();
       const callback2 = jest.fn();
 
@@ -1555,7 +1555,7 @@ describe('PerpsStreamManager', () => {
       unsubscribe2();
     });
 
-    it('should refresh market data when refresh() is called', async () => {
+    it('refreshes market data when refresh() is called', async () => {
       const callback = jest.fn();
 
       const unsubscribe = testStreamManager.marketData.subscribe({
@@ -1581,7 +1581,7 @@ describe('PerpsStreamManager', () => {
       unsubscribe();
     });
 
-    it('should clear cache when clearCache() is called', async () => {
+    it('clears cache when clearCache() is called', async () => {
       const callback = jest.fn();
 
       // First subscription to populate cache
@@ -1603,7 +1603,7 @@ describe('PerpsStreamManager', () => {
       unsubscribe();
     });
 
-    it('should handle fetch errors gracefully', async () => {
+    it('handles fetch errors gracefully', async () => {
       const callback = jest.fn();
       const error = new Error('Network error');
 
@@ -1625,7 +1625,7 @@ describe('PerpsStreamManager', () => {
       unsubscribe();
     });
 
-    it('should prewarm market data cache', async () => {
+    it('prewarms market data cache', async () => {
       // Call prewarm
       const cleanup = testStreamManager.marketData.prewarm();
 
@@ -1639,7 +1639,7 @@ describe('PerpsStreamManager', () => {
       cleanup(); // Should not throw
     });
 
-    it('should deduplicate concurrent fetch requests', async () => {
+    it('deduplicates concurrent fetch requests', async () => {
       const callback1 = jest.fn();
       const callback2 = jest.fn();
 

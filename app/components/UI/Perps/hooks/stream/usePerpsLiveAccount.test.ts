@@ -39,7 +39,7 @@ describe('usePerpsLiveAccount', () => {
   });
 
   describe('default state', () => {
-    it('should return null account when PerpsController is undefined', () => {
+    it('returns null account when PerpsController is undefined', () => {
       // Mock the subscription to not call the callback (simulating no data)
       mockSubscribe.mockImplementation(() => jest.fn());
 
@@ -53,7 +53,7 @@ describe('usePerpsLiveAccount', () => {
       });
     });
 
-    it('should return null account when accountState is undefined', () => {
+    it('returns null account when accountState is undefined', () => {
       // Mock the subscription to not call the callback (simulating no data)
       mockSubscribe.mockImplementation(() => jest.fn());
 
@@ -69,7 +69,7 @@ describe('usePerpsLiveAccount', () => {
   });
 
   describe('state from PerpsController', () => {
-    it('should return account state from PerpsController', () => {
+    it('returns account state from PerpsController', () => {
       const mockAccountState: AccountState = {
         availableBalance: '3000',
         marginUsed: '1000',
@@ -94,7 +94,7 @@ describe('usePerpsLiveAccount', () => {
       });
     });
 
-    it('should handle zero balance account state', () => {
+    it('handles zero balance account state', () => {
       const mockAccountState: AccountState = {
         availableBalance: '0',
         marginUsed: '0',
@@ -124,7 +124,7 @@ describe('usePerpsLiveAccount', () => {
   });
 
   describe('partial state handling', () => {
-    it('should handle partial account state', () => {
+    it('handles partial account state', () => {
       const partialAccountState: AccountState = {
         availableBalance: '100',
         marginUsed: '0',
@@ -147,7 +147,7 @@ describe('usePerpsLiveAccount', () => {
       expect(result.current?.account?.totalBalance).toBe('200');
     });
 
-    it('should handle empty PerpsController state', () => {
+    it('handles empty PerpsController state', () => {
       // Mock the subscription to not call the callback (simulating no data)
       mockSubscribe.mockImplementation(() => jest.fn());
 
@@ -163,7 +163,7 @@ describe('usePerpsLiveAccount', () => {
   });
 
   describe('account state scenarios', () => {
-    it('should handle account with positive PnL', () => {
+    it('handles account with positive PnL', () => {
       const positivePnlState: AccountState = {
         availableBalance: '5000',
         marginUsed: '1000',
@@ -186,7 +186,7 @@ describe('usePerpsLiveAccount', () => {
       expect(Number(result.current?.account?.unrealizedPnl)).toBeGreaterThan(0);
     });
 
-    it('should handle account with negative PnL', () => {
+    it('handles account with negative PnL', () => {
       const negativePnlState: AccountState = {
         availableBalance: '3000',
         marginUsed: '2000',
@@ -209,7 +209,7 @@ describe('usePerpsLiveAccount', () => {
       expect(Number(result.current?.account?.unrealizedPnl)).toBeLessThan(0);
     });
 
-    it('should handle account with high margin usage', () => {
+    it('handles account with high margin usage', () => {
       const highMarginState: AccountState = {
         availableBalance: '500',
         marginUsed: '9500',
@@ -233,7 +233,7 @@ describe('usePerpsLiveAccount', () => {
       expect(Number(result.current?.account?.availableBalance)).toBe(500);
     });
 
-    it('should handle account with no margin used', () => {
+    it('handles account with no margin used', () => {
       const noMarginState: AccountState = {
         availableBalance: '10000',
         marginUsed: '0',
@@ -323,7 +323,7 @@ describe('usePerpsLiveAccount', () => {
   });
 
   describe('memoization', () => {
-    it('should return same reference for same state', () => {
+    it('returns same reference for same state', () => {
       const mockAccountState: AccountState = {
         availableBalance: '1000',
         marginUsed: '0',

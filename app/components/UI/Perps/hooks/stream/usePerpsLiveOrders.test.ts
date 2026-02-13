@@ -55,7 +55,7 @@ describe('usePerpsLiveOrders', () => {
     jest.useRealTimers();
   });
 
-  it('should subscribe to orders on mount', () => {
+  it('subscribes to orders on mount', () => {
     const throttleMs = 2000;
     mockSubscribe.mockReturnValue(jest.fn());
 
@@ -67,7 +67,7 @@ describe('usePerpsLiveOrders', () => {
     });
   });
 
-  it('should unsubscribe on unmount', () => {
+  it('unsubscribes on unmount', () => {
     const mockUnsubscribe = jest.fn();
     mockSubscribe.mockReturnValue(mockUnsubscribe);
 
@@ -78,7 +78,7 @@ describe('usePerpsLiveOrders', () => {
     expect(mockUnsubscribe).toHaveBeenCalled();
   });
 
-  it('should update orders when callback is invoked', async () => {
+  it('updates orders when callback is invoked', async () => {
     let capturedCallback: (orders: Order[]) => void = jest.fn();
     mockSubscribe.mockImplementation((params) => {
       capturedCallback = params.callback;
@@ -105,7 +105,7 @@ describe('usePerpsLiveOrders', () => {
     });
   });
 
-  it('should use default throttle value when not provided', () => {
+  it('uses default throttle value when not provided', () => {
     mockSubscribe.mockReturnValue(jest.fn());
 
     renderHook(() => usePerpsLiveOrders());
@@ -116,7 +116,7 @@ describe('usePerpsLiveOrders', () => {
     });
   });
 
-  it('should handle throttle changes', () => {
+  it('handles throttle changes', () => {
     const mockUnsubscribe1 = jest.fn();
     const mockUnsubscribe2 = jest.fn();
 
@@ -147,7 +147,7 @@ describe('usePerpsLiveOrders', () => {
     });
   });
 
-  it('should handle empty orders array', async () => {
+  it('handles empty orders array', async () => {
     let capturedCallback: (orders: Order[]) => void = jest.fn();
     mockSubscribe.mockImplementation((params) => {
       capturedCallback = params.callback;
@@ -165,7 +165,7 @@ describe('usePerpsLiveOrders', () => {
     });
   });
 
-  it('should handle null or undefined updates gracefully', async () => {
+  it('handles null or undefined updates gracefully', async () => {
     let capturedCallback: (orders: Order[]) => void = jest.fn();
     mockSubscribe.mockImplementation((params) => {
       capturedCallback = params.callback;
@@ -258,7 +258,7 @@ describe('usePerpsLiveOrders', () => {
     });
   });
 
-  it('should replace orders on each update', async () => {
+  it('replaces orders on each update', async () => {
     let capturedCallback: (orders: Order[]) => void = jest.fn();
     mockSubscribe.mockImplementation((params) => {
       capturedCallback = params.callback;

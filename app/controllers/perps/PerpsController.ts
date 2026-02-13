@@ -393,7 +393,7 @@ export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
 const metadata: StateMetadata<PerpsControllerState> = {
   accountState: {
     includeInStateLogs: true,
-    persist: false,
+    persist: true,
     includeInDebugSnapshot: false,
     usedInUi: true,
   },
