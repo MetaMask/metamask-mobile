@@ -4,7 +4,6 @@ import BuildQuote from './BuildQuote';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
 import type { RampsToken } from '../../hooks/useRampTokens';
 import type { CaipChainId } from '@metamask/utils';
-import Logger from '../../../../../util/Logger';
 
 const mockUseEffect = jest.requireActual('react').useEffect;
 
@@ -115,6 +114,7 @@ let mockQuotesLoading = false;
 let mockSelectedPaymentMethod: unknown = null;
 let mockWidgetUrl: { url: string; browser?: string; orderId?: string } | null =
   null;
+let mockWidgetUrlLoading = false;
 let mockTokens: {
   allTokens: ReturnType<typeof createMockToken>[];
   topTokens: ReturnType<typeof createMockToken>[];
@@ -133,6 +133,7 @@ jest.mock('../../hooks/useRampsController', () => ({
     startQuotePolling: mockStartQuotePolling,
     stopQuotePolling: mockStopQuotePolling,
     widgetUrl: mockWidgetUrl,
+    widgetUrlLoading: mockWidgetUrlLoading,
     paymentMethodsLoading: false,
     selectedPaymentMethod: mockSelectedPaymentMethod,
   }),
@@ -154,6 +155,7 @@ describe('BuildQuote', () => {
     mockQuotesLoading = false;
     mockSelectedPaymentMethod = null;
     mockWidgetUrl = null;
+    mockWidgetUrlLoading = false;
     mockTokens = {
       allTokens: [createMockToken()],
       topTokens: [createMockToken()],
@@ -433,6 +435,9 @@ describe('BuildQuote', () => {
         id: '/payments/debit-credit-card',
         name: 'Card',
       };
+      mockWidgetUrl = {
+        url: 'https://global.transak.com/?apiKey=test',
+      };
 
       const { getByTestId } = renderWithTheme(<BuildQuote />);
 
@@ -605,8 +610,7 @@ describe('BuildQuote', () => {
       });
     });
 
-    it('logs error when aggregator provider has no URL', () => {
-      const mockLogger = jest.spyOn(Logger, 'error');
+    it('disables continue button when aggregator provider has no widget URL', () => {
       mockWidgetUrl = null;
 
       mockSelectedQuote = {
@@ -635,15 +639,62 @@ describe('BuildQuote', () => {
       const { getByTestId } = renderWithTheme(<BuildQuote />);
 
       const continueButton = getByTestId('build-quote-continue-button');
-      fireEvent.press(continueButton);
+      expect(continueButton).toBeDisabled();
+    });
 
-      expect(mockLogger).toHaveBeenCalledWith(
-        expect.any(Error),
-        expect.objectContaining({
-          provider: '/providers/mercuryo',
-        }),
-      );
-      expect(mockNavigate).not.toHaveBeenCalled();
+    it('disables continue button when widget URL is loading for aggregator provider', () => {
+      mockWidgetUrlLoading = true;
+
+      mockSelectedQuote = {
+        provider: '/providers/mercuryo',
+        quote: {
+          amountIn: 100,
+          amountOut: 0.05,
+          paymentMethod: '/payments/debit-credit-card',
+        },
+        providerInfo: {
+          id: '/providers/mercuryo',
+          name: 'Mercuryo',
+          type: 'aggregator',
+        },
+      };
+      mockSelectedPaymentMethod = {
+        id: '/payments/debit-credit-card',
+        name: 'Card',
+      };
+
+      const { getByTestId } = renderWithTheme(<BuildQuote />);
+
+      const continueButton = getByTestId('build-quote-continue-button');
+      expect(continueButton).toBeDisabled();
+    });
+
+    it('enables continue button for native provider without widget URL', () => {
+      mockWidgetUrl = null;
+
+      mockSelectedQuote = {
+        provider: '/providers/transak-native',
+        url: null,
+        quote: {
+          amountIn: 100,
+          amountOut: 0.05,
+          paymentMethod: '/payments/debit-credit-card',
+        },
+        providerInfo: {
+          id: '/providers/transak-native',
+          name: 'Transak Native',
+          type: 'native',
+        },
+      };
+      mockSelectedPaymentMethod = {
+        id: '/payments/debit-credit-card',
+        name: 'Card',
+      };
+
+      const { getByTestId } = renderWithTheme(<BuildQuote />);
+
+      const continueButton = getByTestId('build-quote-continue-button');
+      expect(continueButton).not.toBeDisabled();
     });
 
     it('does not navigate when quote amount does not match current amount', () => {

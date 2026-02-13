@@ -101,6 +101,7 @@ function BuildQuote() {
     startQuotePolling,
     stopQuotePolling,
     widgetUrl,
+    widgetUrlLoading,
     paymentMethodsLoading,
     selectedPaymentMethod,
   } = useRampsController();
@@ -293,12 +294,19 @@ function BuildQuote() {
     return true;
   }, [selectedQuote, amountAsNumber, selectedPaymentMethod]);
 
+  const requiresWidgetUrl =
+    selectedQuote !== null && !isNativeProvider(selectedQuote);
+
+  const widgetUrlReady = !requiresWidgetUrl || Boolean(widgetUrl?.url);
+
   const canContinue =
     hasAmount &&
     !quotesLoading &&
+    !widgetUrlLoading &&
     selectedQuote !== null &&
     quoteMatchesAmount &&
-    quoteMatchesCurrentContext;
+    quoteMatchesCurrentContext &&
+    widgetUrlReady;
 
   return (
     <ScreenLayout>
@@ -343,7 +351,9 @@ function BuildQuote() {
                 onPress={handleContinuePress}
                 isFullWidth
                 isDisabled={!canContinue}
-                isLoading={quotesLoading}
+                isLoading={
+                  quotesLoading || (requiresWidgetUrl && widgetUrlLoading)
+                }
                 testID={BuildQuoteSelectors.CONTINUE_BUTTON}
               >
                 {strings('fiat_on_ramp.continue')}
