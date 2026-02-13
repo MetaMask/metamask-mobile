@@ -351,9 +351,9 @@ yarn test:e2e:android:flask:run
 
 ~~We currently utilize [Appium](https://appium.io/), [Webdriver.io](http://webdriver.io/), and [Cucumber](https://cucumber.io/) to test the application launch times and the upgrade between different versions. As a brief explanation, webdriver.io is the test framework that uses Appium Server as a service. This is responsible for communicating between our tests and devices, and cucumber as the test framework.~~
 
-**Current approach**: Performance testing is now handled by [Appwright](https://github.com/nickmaxwell10/appwright), a Playwright-based mobile testing framework. See the `appwright/` directory for performance tests including app launch times and feature-specific performance measurements.
+**Current approach**: Performance testing is now handled by [Appwright](https://github.com/nickmaxwell10/appwright), a Playwright-based mobile testing framework. See the `tests/performance` directory for performance tests including app launch times and feature-specific performance measurements.
 
-**Test Location**: `appwright/tests/performance/`
+**Test Location**: `tests/performance/`
 
 ---
 

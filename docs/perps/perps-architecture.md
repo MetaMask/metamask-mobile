@@ -344,7 +344,7 @@ if (validation.isValid) {
 }
 ```
 
-### ReadOnly Mode (Lightweight Queries)
+### Standalone Mode (Lightweight Queries)
 
 For discovery use cases that need perps data without full initialization:
 
@@ -352,18 +352,18 @@ For discovery use cases that need perps data without full initialization:
 // Check if perps market exists for an asset (usePerpsMarketForAsset hook)
 const markets = await perpsController.getMarkets({
   symbols: ['ETH'],
-  readOnly: true,
+  standalone: true,
 });
 
 // Query positions for any address without WebSocket, wallet setup, etc.
 const positions = await perpsController.getPositions({
-  readOnly: true,
+  standalone: true,
   userAddress: '0x...',
 });
 
 // Check if user has perps funds (for discovery banners)
 const accountState = await perpsController.getAccountState({
-  readOnly: true,
+  standalone: true,
   userAddress: '0x...',
 });
 ```
@@ -382,7 +382,7 @@ const accountState = await perpsController.getAccountState({
 1. Bypasses `getActiveProvider()` check (works even when controller is not initialized)
 2. Creates standalone HTTP client via `createStandaloneInfoClient` (see `utils/standaloneInfoClient.ts`)
 3. No WebSocket, wallet, or account setup required
-4. Main DEX only (no HIP-3 multi-DEX aggregation in readOnly mode)
+4. HIP-3 multi-DEX aggregation supported (positions and account state)
 
 **Limitations:**
 
@@ -392,7 +392,7 @@ const accountState = await perpsController.getAccountState({
 
 ### Cache Invalidation
 
-ReadOnly queries use client-side caching for performance (e.g., 30s TTL for positions).
+Standalone queries use client-side caching for performance (e.g., 30s TTL for positions).
 The `PerpsCacheInvalidator` service provides loosely-coupled cache invalidation when
 data changes in the perps environment:
 
