@@ -69,6 +69,7 @@ const UnknownEthereumAddress: React.FC<{
 
   return (
     <View style={[styles.base, style]}>
+      {/* If an icon override is provided, use it. Otherwise, use the icon if it is available. Otherwise, use the Identicon. */}
       {iconOverride !== undefined ? (
         iconOverride
       ) : icon ? (
@@ -145,6 +146,7 @@ const Name: React.FC<NameProperties> = ({
         onPress={() => setIsTooltipVisible(true)}
       >
         <View style={[styles.base, style]}>
+          {/* If an icon override is provided, use it. Otherwise, use the icon if it is available. Otherwise, use the Identicon. */}
           {iconOverride !== undefined ? (
             iconOverride
           ) : icon ? (
