@@ -193,6 +193,10 @@ class BrowserPlaygroundDapp {
     return this._getByTestId('app-btn-connect-solana');
   }
 
+  get solanaDisconnectButton() {
+    return this._getByTestId('solana-btn-disconnect');
+  }
+
   get solanaAddressContainer() {
     return this._getByTestId('solana-address-container');
   }
@@ -318,6 +322,12 @@ class BrowserPlaygroundDapp {
   async tapSolanaConnect() {
     if (!this._device) return;
     const element = await this.solanaConnectButton;
+    await AppwrightGestures.tap(element);
+  }
+
+  async tapSolanaDisconnect() {
+    if (!this._device) return;
+    const element = await this.solanaDisconnectButton;
     await AppwrightGestures.tap(element);
   }
 

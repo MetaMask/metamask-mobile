@@ -27,7 +27,8 @@ const DAPP_NAME = 'MetaMask MultiChain API Test Dapp';
 const DAPP_PORT = 8090;
 
 // NOTE: This test requires the testing SRP to be used
-const ACCOUNT_1_ADDRESS = '0x19a7Ad8256ab119655f1D758348501d598fC1C94';
+const ACCOUNT_1_EVM_ADDRESS = '0x19a7Ad8256ab119655f1D758348501d598fC1C94';
+const ACCOUNT_1_SOLANA_ADDRESS = '6fr9gpqbsszm6snzsjubu91jwxeduhwnvnkwxqksfwcz';
 
 // Create the playground server using the shared framework
 const playgroundServer = new DappServer({
@@ -131,15 +132,14 @@ test('@metamask/connect-multichain (multiple clients) - Connect multiple clients
 
       await BrowserPlaygroundDapp.assertConnected(true);
       await BrowserPlaygroundDapp.assertChainIdValue('0x1');
-      await BrowserPlaygroundDapp.assertActiveAccount(ACCOUNT_1_ADDRESS);
+      await BrowserPlaygroundDapp.assertActiveAccount(ACCOUNT_1_EVM_ADDRESS);
 
       await BrowserPlaygroundDapp.assertWagmiConnected(true);
       await BrowserPlaygroundDapp.assertWagmiChainIdValue('1');
-      await BrowserPlaygroundDapp.assertWagmiActiveAccount(ACCOUNT_1_ADDRESS);
+      await BrowserPlaygroundDapp.assertWagmiActiveAccount(ACCOUNT_1_EVM_ADDRESS);
 
       await BrowserPlaygroundDapp.assertSolanaConnected(true);
-      await BrowserPlaygroundDapp.assertSolanaActiveAccount(ACCOUNT_1_ADDRESS);
-
+      await BrowserPlaygroundDapp.assertSolanaActiveAccount(ACCOUNT_1_SOLANA_ADDRESS);
     },
     DAPP_URL,
   );
@@ -151,6 +151,10 @@ test('@metamask/connect-multichain (multiple clients) - Connect multiple clients
   await AppwrightHelpers.withWebAction(
     device,
     async () => {
+      // Note: the Solana wallet standard provider itself has an issue where it does not
+      // listen for wallet_sessionChanged events, so we need to use the Solana's disconnect button
+      // to ensure the solana react hook state is reset correctly.
+      await BrowserPlaygroundDapp.tapSolanaDisconnect();
       await BrowserPlaygroundDapp.tapDisconnect();
     },
     DAPP_URL,
