@@ -16,10 +16,10 @@ const ON_RAMP_GEO_BLOCKING_URLS = {
 /**
  * Geo-location cache entry
  */
-interface GeoLocationCache {
+type GeoLocationCache = {
   location: string;
   timestamp: number;
-}
+};
 
 /**
  * EligibilityService

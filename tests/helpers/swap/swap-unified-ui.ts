@@ -19,7 +19,9 @@ export async function submitSwapUnifiedUI(
 ) {
   const DEFAULT_SLIPPAGE_VALUE = '2';
   await device.disableSynchronization();
-  await Assertions.expectElementToBeVisible(QuoteView.selectAmountLabel);
+  await Assertions.expectElementToBeVisible(QuoteView.sourceTokenArea, {
+    timeout: 20000,
+  });
   await QuoteView.enterAmount(quantity);
   if (sourceTokenSymbol !== 'ETH') {
     await QuoteView.tapSourceToken();

@@ -30,7 +30,7 @@ export type ValidCandleInterval = CandlePeriod;
  * Wallet interface for HyperLiquid SDK operations.
  * Extracted for reuse across initialize(), toggleTestnet(), and ensureSubscriptionClient() methods.
  */
-export interface HyperLiquidWalletParams {
+export type HyperLiquidWalletParams = {
   signTypedData: (params: {
     domain: {
       name: string;
@@ -45,7 +45,7 @@ export interface HyperLiquidWalletParams {
     message: Record<string, unknown>;
   }) => Promise<Hex>;
   getChainId?: () => Promise<number>;
-}
+};
 
 // WebSocketConnectionState is now imported from controllers/types
 // Re-export for backward compatibility with existing consumers
