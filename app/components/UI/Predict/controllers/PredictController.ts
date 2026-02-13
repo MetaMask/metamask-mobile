@@ -56,6 +56,7 @@ import {
   PredictTradeStatus,
   PredictTradeStatusValue,
 } from '../constants/eventNames';
+import { PredictDepositAndOrderTransactionType } from '../constants/transactions';
 import { validateDepositTransactions } from '../utils/validateTransactions';
 import { PolymarketProvider } from '../providers/polymarket/PolymarketProvider';
 import {
@@ -2153,6 +2154,143 @@ export class PredictController extends BaseController<
     }
   }
 
+  /**
+   * Creates and auto-submits a deposit transaction for the deposit-and-order flow.
+   * Unlike depositWithConfirmation, this method:
+   * - Accepts a pre-calculated amount (from the bet preview)
+   * - Sets requireApproval: false to skip the confirmation screen
+   * - Uses predictDepositAndOrder transaction type for routing
+   */
+  public async depositForOrder(
+    params: PrepareDepositParams & { amount: string },
+  ): Promise<Result<{ batchId: string }>> {
+    const provider = this.providers.get(params.providerId);
+    if (!provider) {
+      throw new Error('Provider not available');
+    }
+
+    try {
+      const signer = this.getSigner();
+
+      // Clear any previous deposit transaction
+      this.update((state) => {
+        if (state.pendingDeposits[params.providerId]?.[signer.address]) {
+          delete state.pendingDeposits[params.providerId][signer.address];
+        }
+      });
+
+      const depositPreparation = await provider.prepareDeposit({
+        ...params,
+        signer,
+      });
+
+      if (!depositPreparation) {
+        throw new Error('Deposit preparation returned undefined');
+      }
+
+      const { transactions, chainId } = depositPreparation;
+
+      if (!transactions || transactions.length === 0) {
+        throw new Error('No transactions returned from deposit preparation');
+      }
+
+      if (!chainId) {
+        throw new Error('Chain ID not provided by deposit preparation');
+      }
+
+      DevLogger.log('PredictController: depositForOrder transactions', {
+        count: transactions.length,
+        amount: params.amount,
+        transactions: transactions.map((tx, index) => ({
+          index,
+          type: tx?.type,
+          to: tx?.params?.to,
+          dataLength: tx?.params?.data?.length ?? 0,
+        })),
+      });
+
+      validateDepositTransactions(transactions, {
+        providerId: params.providerId,
+      });
+
+      const networkClientId = this.messenger.call(
+        'NetworkController:findNetworkClientIdByChainId',
+        chainId,
+      );
+
+      if (!networkClientId) {
+        throw new Error(`Network client not found for chain ID: ${chainId}`);
+      }
+
+      this.update((state) => {
+        state.pendingDeposits[params.providerId] =
+          state.pendingDeposits[params.providerId] || {};
+        state.pendingDeposits[params.providerId][signer.address] = 'pending';
+      });
+
+      const transactionsWithDepositAndOrderType = transactions.map((tx) =>
+        tx.type === TransactionType.predictDeposit
+          ? {
+              ...tx,
+              type: PredictDepositAndOrderTransactionType,
+            }
+          : tx,
+      );
+
+      const batchResult = await addTransactionBatch({
+        from: signer.address as Hex,
+        origin: ORIGIN_METAMASK,
+        networkClientId,
+        disableHook: true,
+        disableSequential: true,
+        skipInitialGasEstimate: true,
+        requireApproval: false,
+        transactions: transactionsWithDepositAndOrderType,
+      });
+
+      if (!batchResult?.batchId) {
+        throw new Error('Failed to get batch ID from transaction submission');
+      }
+
+      const { batchId } = batchResult;
+
+      const parsedChainId = hexToNumber(chainId);
+      if (isNaN(parsedChainId)) {
+        throw new Error(`Invalid chain ID format: ${chainId}`);
+      }
+
+      this.update((state) => {
+        state.pendingDeposits[params.providerId] =
+          state.pendingDeposits[params.providerId] || {};
+        state.pendingDeposits[params.providerId][signer.address] = batchId;
+      });
+
+      return {
+        success: true,
+        response: {
+          batchId,
+        },
+      };
+    } catch (error) {
+      const e = ensureError(error);
+
+      Logger.error(
+        e,
+        this.getErrorContext('depositForOrder', {
+          providerId: params.providerId,
+        }),
+      );
+
+      this.clearPendingDeposit({ providerId: params.providerId });
+
+      throw new Error(
+        error instanceof Error
+          ? error.message
+          : PREDICT_ERROR_CODES.DEPOSIT_FAILED,
+      );
+    }
+  }
+
   public clearPendingDeposit({ providerId }: { providerId: string }): void {
     const selectedAddress = this.getSigner().address;
     this.clearPendingDepositForAddress({
@@ -2194,7 +2332,8 @@ export class PredictController extends BaseController<
       ({ type }) =>
         type === TransactionType.predictDeposit ||
         type === TransactionType.predictClaim ||
-        type === TransactionType.predictWithdraw,
+        type === TransactionType.predictWithdraw ||
+        type === PredictDepositAndOrderTransactionType,
     )?.type;
 
     if (!nestedTransactionType) {
@@ -2202,7 +2341,8 @@ export class PredictController extends BaseController<
     }
 
     if (
-      nestedTransactionType === TransactionType.predictDeposit &&
+      (nestedTransactionType === TransactionType.predictDeposit ||
+        nestedTransactionType === PredictDepositAndOrderTransactionType) &&
       !this.isPendingDepositTransaction(transactionMeta)
     ) {
       return;
@@ -2382,6 +2522,7 @@ export class PredictController extends BaseController<
     [TransactionType.predictDeposit]: 'deposit',
     [TransactionType.predictClaim]: 'claim',
     [TransactionType.predictWithdraw]: 'withdraw',
+    [PredictDepositAndOrderTransactionType]: 'deposit',
   };
 
   private static readonly transactionStatusMap: Partial<

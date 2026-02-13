@@ -108,3 +108,20 @@ export const selectPredictHotTabFlag = createSelector(
     return flag;
   },
 );
+
+/**
+ * Selector for Predict "Pay With Any Token" feature enablement.
+ * Allows users to place bets using any token by auto-depositing.
+ *
+ * @returns {boolean} True if feature is enabled
+ */
+export const selectPredictPayWithAnyTokenEnabled = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.predictPayWithAnyToken as unknown as VersionGatedFeatureFlag;
+
+    // Default to `false` — feature is opt-in during POC
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);

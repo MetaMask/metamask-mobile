@@ -175,6 +175,11 @@ export interface GetPositionsParams {
 
 export interface PrepareDepositParams {
   providerId: string;
+  /**
+   * When provided, the deposit transaction will be created with this USD amount pre-set.
+   * When omitted, amount defaults to 0x0 (set later by confirmation screen).
+   */
+  amount?: string;
 }
 
 export interface GetAccountStateParams {

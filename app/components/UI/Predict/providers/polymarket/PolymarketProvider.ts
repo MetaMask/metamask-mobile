@@ -3,7 +3,7 @@ import {
   type TypedMessageParams,
 } from '@metamask/keyring-controller';
 import { CHAIN_IDS, TransactionType } from '@metamask/transaction-controller';
-import { Hex, numberToHex } from '@metamask/utils';
+import { bigIntToHex, Hex, numberToHex } from '@metamask/utils';
 import { parseUnits } from 'ethers/lib/utils';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import Logger, { type LoggerErrorOptions } from '../../../../../util/Logger';
@@ -54,6 +54,7 @@ import {
   SignWithdrawResponse,
 } from '../types';
 import {
+  COLLATERAL_TOKEN_DECIMALS,
   MATIC_CONTRACTS,
   MIN_COLLATERAL_BALANCE_FOR_CLAIM,
   ORDER_RATE_LIMIT_MS,
@@ -1476,9 +1477,19 @@ export class PolymarketProvider implements PredictProvider {
       transactions.push(allowanceTransaction);
     }
 
+    const depositAmount = params.amount
+      ? bigIntToHex(
+          BigInt(
+            Math.round(
+              parseFloat(params.amount) * 10 ** COLLATERAL_TOKEN_DECIMALS,
+            ),
+          ),
+        )
+      : '0x0';
+
     const depositTransactionCallData = generateTransferData('transfer', {
       toAddress: accountState.address,
-      amount: '0x0',
+      amount: depositAmount,
     });
 
     if (!depositTransactionCallData) {

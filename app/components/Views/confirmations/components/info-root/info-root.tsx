@@ -28,6 +28,7 @@ import { MusdClaimInfo } from '../info/musd-claim-info';
 import { MusdConversionInfo } from '../info/musd-conversion-info';
 import { useRefreshSmartTransactionsLiveness } from '../../../../hooks/useRefreshSmartTransactionsLiveness';
 import PerpsOrderView from '../../../../UI/Perps/Views/PerpsOrderView';
+import { PredictDepositAndOrderTransactionType } from '../../../../UI/Predict/constants/transactions';
 
 interface ConfirmationInfoComponentRequest {
   signatureRequestVersion?: string;
@@ -113,6 +114,15 @@ const Info = ({ route }: InfoProps) => {
     hasTransactionType(transactionMetadata, [TransactionType.musdConversion])
   ) {
     return <MusdConversionInfo />;
+  }
+
+  if (
+    transactionMetadata &&
+    hasTransactionType(transactionMetadata, [
+      PredictDepositAndOrderTransactionType,
+    ])
+  ) {
+    return null;
   }
 
   if (

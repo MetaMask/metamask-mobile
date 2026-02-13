@@ -67,6 +67,10 @@ import { TraceName } from '../../../../../util/trace';
 import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
 import { PredictBuyPreviewSelectorsIDs } from '../../Predict.testIds';
 import { usePredictOrderRetry } from '../../hooks/usePredictOrderRetry';
+import { usePredictPaymentToken } from '../../hooks/usePredictPaymentToken';
+import { usePredictDepositAndOrder } from '../../hooks/usePredictDepositAndOrder';
+import PredictTokenSelector from '../../components/PredictTokenSelector';
+import PredictTokenPickerSheet from '../../components/PredictTokenPickerSheet';
 
 export const MINIMUM_BET = 1; // $1 minimum bet
 
@@ -126,6 +130,22 @@ const PredictBuyPreview = () => {
   const { deposit } = usePredictDeposit({
     providerId: outcome.providerId,
   });
+
+  const {
+    selectedToken,
+    selectFromAsset,
+    isFeatureEnabled: isPayWithAnyTokenEnabled,
+  } = usePredictPaymentToken();
+
+  const {
+    state: depositOrderState,
+    error: depositOrderError,
+    placeBet,
+    reset: resetDepositOrder,
+  } = usePredictDepositAndOrder();
+
+  const [isTokenPickerVisible, setIsTokenPickerVisible] = useState(false);
+  const tokenPickerSheetRef = useRef<BottomSheetRef>(null);
 
   const [currentValue, setCurrentValue] = useState(0);
   const [currentValueUSDString, setCurrentValueUSDString] = useState('');
@@ -275,6 +295,32 @@ const PredictBuyPreview = () => {
     analyticsProperties,
   ]);
 
+  const onPlaceBetWithToken = useCallback(async () => {
+    if (!preview || isBelowMinimum) return;
+
+    await placeBet({
+      providerId: outcome.providerId,
+      preview,
+      selectedToken,
+      analyticsProperties,
+    });
+  }, [
+    preview,
+    isBelowMinimum,
+    placeBet,
+    outcome.providerId,
+    selectedToken,
+    analyticsProperties,
+  ]);
+
+  const handleTokenPickerOpen = useCallback(() => {
+    setIsTokenPickerVisible(true);
+  }, []);
+
+  const handleTokenPickerClose = useCallback(() => {
+    setIsTokenPickerVisible(false);
+  }, []);
+
   const handleFeesInfoPress = useCallback(() => {
     setIsFeeBreakdownVisible(true);
   }, []);
@@ -288,6 +334,20 @@ const PredictBuyPreview = () => {
       feeBreakdownSheetRef.current?.onOpenBottomSheet();
     }
   }, [isFeeBreakdownVisible]);
+
+  useEffect(() => {
+    if (isTokenPickerVisible) {
+      tokenPickerSheetRef.current?.onOpenBottomSheet();
+    }
+  }, [isTokenPickerVisible]);
+
+  useEffect(() => () => resetDepositOrder(), [resetDepositOrder]);
+
+  useEffect(() => {
+    if (depositOrderState === 'success') {
+      dispatch(StackActions.pop());
+    }
+  }, [dispatch, depositOrderState]);
 
   const renderHeader = () => (
     <Box
@@ -445,10 +505,76 @@ const PredictBuyPreview = () => {
       );
     }
 
+    if (depositOrderError) {
+      return (
+        <Box twClassName="px-12 pb-4">
+          <Text
+            variant={TextVariant.BodySm}
+            color={TextColor.ErrorDefault}
+            style={tw.style('text-center')}
+          >
+            {depositOrderError}
+          </Text>
+        </Box>
+      );
+    }
+
     return null;
   };
 
+  const isDepositOrderProcessing =
+    depositOrderState === 'depositing' || depositOrderState === 'placing_order';
+
   const renderActionButton = () => {
+    if (isPayWithAnyTokenEnabled && isDepositOrderProcessing) {
+      const label =
+        depositOrderState === 'depositing'
+          ? `${strings('predict.order.depositing')}...`
+          : `${strings('predict.order.placing_prediction')}...`;
+
+      return (
+        <Button
+          label={
+            <Box twClassName="flex-row items-center gap-1">
+              <ActivityIndicator size="small" />
+              <Text
+                variant={TextVariant.BodyLg}
+                twClassName="font-medium"
+                color={TextColor.PrimaryInverse}
+              >
+                {label}
+              </Text>
+            </Box>
+          }
+          variant={ButtonVariants.Primary}
+          onPress={() => undefined}
+          size={ButtonSize.Lg}
+          width={ButtonWidthTypes.Full}
+          style={tw.style('opacity-50')}
+          disabled
+        />
+      );
+    }
+
+    if (
+      isPayWithAnyTokenEnabled &&
+      (depositOrderState === 'deposit_failed' ||
+        depositOrderState === 'order_failed')
+    ) {
+      return (
+        <Button
+          label={strings('predict.order.try_again')}
+          variant={ButtonVariants.Primary}
+          onPress={async () => {
+            resetDepositOrder();
+            await onPlaceBetWithToken();
+          }}
+          size={ButtonSize.Lg}
+          width={ButtonWidthTypes.Full}
+        />
+      );
+    }
+
     if (isLoading) {
       return (
         <Button
@@ -477,8 +603,8 @@ const PredictBuyPreview = () => {
     return (
       <ButtonHero
         testID={PredictBuyPreviewSelectorsIDs.PLACE_BET_BUTTON}
-        onPress={onPlaceBet}
-        disabled={!canPlaceBet}
+        onPress={isPayWithAnyTokenEnabled ? onPlaceBetWithToken : onPlaceBet}
+        disabled={!canPlaceBet || isDepositOrderProcessing}
         isLoading={isLoading}
         size={ButtonSizeHero.Lg}
         style={tw.style('w-full')}
@@ -541,6 +667,13 @@ const PredictBuyPreview = () => {
     <SafeAreaView style={tw.style('flex-1 bg-background-default')}>
       {renderHeader()}
       {renderAmount()}
+      {isPayWithAnyTokenEnabled && (
+        <PredictTokenSelector
+          selectedToken={selectedToken}
+          onPress={handleTokenPickerOpen}
+          disabled={isDepositOrderProcessing}
+        />
+      )}
       <PredictFeeSummary
         disabled={isInputFocused}
         total={total}
@@ -585,6 +718,15 @@ const PredictBuyPreview = () => {
         onDismiss={resetOrderNotFilled}
         isRetrying={isRetrying}
       />
+      {isTokenPickerVisible && (
+        <PredictTokenPickerSheet
+          ref={tokenPickerSheetRef}
+          selectedToken={selectedToken}
+          predictBalance={balance}
+          onSelectToken={selectFromAsset}
+          onClose={handleTokenPickerClose}
+        />
+      )}
     </SafeAreaView>
   );
 };
