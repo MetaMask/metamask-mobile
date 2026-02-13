@@ -211,7 +211,6 @@ export function usePredictPlaceOrder(
               method: 'placeOrder',
               action: 'order_placement',
               operation: 'order_management',
-              providerId: orderParams.providerId,
               side: orderParams.preview?.side,
               marketId: orderParams.analyticsProperties?.marketId,
               transactionType: orderParams.analyticsProperties?.transactionType,

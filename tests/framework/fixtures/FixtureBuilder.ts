@@ -372,15 +372,92 @@ class FixtureBuilder {
   }
 
   /**
-   * Sets the selected region for the fiat orders.
-   * @param {string} region - The region to set.
+   * @param {RampsRegion | null} region - The region to set, or null for default (Saint Lucia).
    * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   * @example
+   * new FixtureBuilder()
+   *   .withRampsSelectedRegion(RampsRegions[RampsRegionsEnum.UNITED_STATES])
+   *   .build()
    */
   withRampsSelectedRegion(region: RampsRegion | null = null) {
     const defaultRegion = RampsRegions[RampsRegionsEnum.SAINT_LUCIA];
+    const selectedRegion = region ?? defaultRegion;
 
-    // Use the provided region or fallback to the default
-    this.fixture.state.fiatOrders.selectedRegionAgg = region ?? defaultRegion;
+    // Extracting the region code and currency
+    const regionCode = selectedRegion.id.replace('/regions/', '').toLowerCase();
+    const currencyPath = selectedRegion.currencies[0];
+    const currency = currencyPath.split('/').pop()?.toUpperCase();
+
+    // Create Country object for RampsController (uses different field names)
+    const rampsControllerCountry = {
+      isoCode: selectedRegion.countryIsoCode,
+      name: selectedRegion.countryName,
+      flag: selectedRegion.emoji,
+      phone: {
+        prefix: '',
+        placeholder: '',
+        template: '',
+      },
+      currency,
+      supported: {
+        buy: selectedRegion.support?.buy ?? true,
+        sell: selectedRegion.support?.sell ?? true,
+      },
+    };
+
+    // Create Country object for aggregator SDK (legacy sell/offramp flow)
+    // Uses the SDK's Country type with fields: id, name, emoji, support, etc.
+    const aggregatorCountry = {
+      id: selectedRegion.id,
+      name: selectedRegion.countryName,
+      emoji: selectedRegion.emoji,
+      currencies: selectedRegion.currencies,
+      unsupported: selectedRegion.unsupported,
+      hidden: false,
+      states: selectedRegion.stateIsoCode
+        ? [
+            {
+              id: `${selectedRegion.id}-${selectedRegion.stateIsoCode}`,
+              name: selectedRegion.stateName || selectedRegion.name,
+              stateId: selectedRegion.stateIsoCode,
+              emoji: selectedRegion.emoji,
+              unsupported: false,
+              support: {
+                buy: selectedRegion.support?.buy ?? true,
+                sell: selectedRegion.support?.sell ?? true,
+              },
+              detected: selectedRegion.detected,
+            },
+          ]
+        : [],
+      support: {
+        buy: selectedRegion.support?.buy ?? true,
+        sell: selectedRegion.support?.sell ?? true,
+      },
+      recommended: selectedRegion.recommended,
+      enableSell: selectedRegion.support?.sell ?? true,
+      detected: selectedRegion.detected,
+    };
+
+    this.fixture.state.engine.backgroundState.RampsController.userRegion = {
+      country: rampsControllerCountry,
+      state: selectedRegion.stateIsoCode
+        ? {
+            stateId: selectedRegion.stateIsoCode,
+            name: selectedRegion.stateName || selectedRegion.name,
+            supported: {
+              buy: selectedRegion.support?.buy ?? true,
+              sell: selectedRegion.support?.sell ?? true,
+            },
+          }
+        : null,
+      regionCode,
+    };
+
+    // Also set the legacy fiatOrders.selectedRegionAgg for backwards compatibility
+    // with the sell/offramp flow which still uses the aggregator SDK
+    this.fixture.state.fiatOrders.selectedRegionAgg = aggregatorCountry;
+
     return this;
   }
 

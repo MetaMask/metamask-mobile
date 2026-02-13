@@ -11,7 +11,7 @@ import {
 } from '../../types';
 import { getFileDiff, getPRFileDiff } from '../../utils/git-utils';
 import { smokeTags, flaskTags } from '../../../../tags';
-import { performanceTags } from '../../../../../appwright/tags';
+import { performanceTags } from '../../../../tags.performance';
 
 /**
  * Derive AI config from smokeTags and flaskTags

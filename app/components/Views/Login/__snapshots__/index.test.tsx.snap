@@ -128,6 +128,7 @@ exports[`Login renders matching snapshot 1`] = `
                 "fontWeight": "400",
                 "height": 46,
                 "letterSpacing": 0,
+                "lineHeight": 0,
                 "opacity": 1,
                 "textAlignVertical": "center",
               }
@@ -430,6 +431,7 @@ exports[`Login renders matching snapshot when password input is focused 1`] = `
                 "fontWeight": "400",
                 "height": 46,
                 "letterSpacing": 0,
+                "lineHeight": 0,
                 "opacity": 1,
                 "textAlignVertical": "center",
               }

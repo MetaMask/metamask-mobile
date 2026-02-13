@@ -720,11 +720,12 @@ exports[`TokenSelection Component displays empty state when no tokens match sear
                                       "fontWeight": "400",
                                       "height": 46,
                                       "letterSpacing": 0,
+                                      "lineHeight": 0,
                                       "opacity": 1,
                                       "textAlignVertical": "center",
                                     }
                                   }
-                                  testID="textfieldsearch"
+                                  testID="token-select-modal-search-input"
                                   value="Nonexistent Token"
                                 />
                               </View>
@@ -1581,11 +1582,12 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                       "fontWeight": "400",
                                       "height": 46,
                                       "letterSpacing": 0,
+                                      "lineHeight": 0,
                                       "opacity": 1,
                                       "textAlignVertical": "center",
                                     }
                                   }
-                                  testID="textfieldsearch"
+                                  testID="token-select-modal-search-input"
                                   value=""
                                 />
                               </View>
@@ -3956,11 +3958,12 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                       "fontWeight": "400",
                                       "height": 46,
                                       "letterSpacing": 0,
+                                      "lineHeight": 0,
                                       "opacity": 1,
                                       "textAlignVertical": "center",
                                     }
                                   }
-                                  testID="textfieldsearch"
+                                  testID="token-select-modal-search-input"
                                   value=""
                                 />
                               </View>

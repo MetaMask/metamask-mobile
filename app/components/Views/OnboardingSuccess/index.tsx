@@ -61,6 +61,7 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
 
   const handleOnDone = useCallback(() => {
     const onOnboardingSuccess = async () => {
+      // Run discovery on all account providers (EVM and non-EVM)
       await discoverAccounts(
         Engine.context.KeyringController.state.keyrings[0].metadata.id,
       );
