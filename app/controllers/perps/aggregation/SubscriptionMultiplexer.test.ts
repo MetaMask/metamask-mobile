@@ -15,13 +15,13 @@ const createMockLogger = (): jest.Mocked<PerpsLogger> => ({
 });
 
 // Mock provider with test helper methods
-interface MockProviderWithEmit extends jest.Mocked<Partial<PerpsProvider>> {
+type MockProviderWithEmit = jest.Mocked<Partial<PerpsProvider>> & {
   _emitPrices: (prices: PriceUpdate[]) => void;
   _emitPositions: (positions: Position[]) => void;
   _emitOrders: (orders: Order[]) => void;
   _emitFills: (fills: OrderFill[], isSnapshot?: boolean) => void;
   _emitAccount: (account: AccountState | null) => void;
-}
+};
 
 // Mock provider factory
 const createMockProvider = (providerId: string): MockProviderWithEmit => {

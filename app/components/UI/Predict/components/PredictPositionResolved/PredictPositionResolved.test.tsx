@@ -6,6 +6,7 @@ import {
   type PredictPosition as PredictPositionType,
 } from '../../types';
 
+import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
 // Mock strings function from i18n
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string, params?: Record<string, string | number>) => {
@@ -41,7 +42,7 @@ jest.mock('dayjs', () => {
 
 const basePosition: PredictPositionType = {
   id: 'pos-1',
-  providerId: 'polymarket',
+  providerId: POLYMARKET_PROVIDER_ID,
   marketId: 'market-1',
   outcomeId: 'outcome-1',
   outcomeTokenId: '0',

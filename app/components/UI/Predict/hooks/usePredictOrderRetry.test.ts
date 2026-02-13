@@ -54,7 +54,6 @@ function createParamsObj(overrides?: Record<string, unknown>) {
       .mockResolvedValue(createSuccessOutcome()) as jest.Mock<
       Promise<PlaceOrderOutcome>
     >,
-    providerId: 'polymarket',
     analyticsProperties: {
       marketId: 'market-123',
     } as PlaceOrderParams['analyticsProperties'],
@@ -107,7 +106,6 @@ describe('usePredictOrderRetry', () => {
       expect(mockTrackEvent).toHaveBeenCalledWith(
         expect.objectContaining({
           status: 'retry_prompted',
-          providerId: 'polymarket',
         }),
       );
     });
@@ -150,7 +148,6 @@ describe('usePredictOrderRetry', () => {
 
       expect(mockPlaceOrder).toHaveBeenCalledWith(
         expect.objectContaining({
-          providerId: 'polymarket',
           preview: expect.objectContaining({ slippage: 0.99 }),
         }),
       );
@@ -188,7 +185,6 @@ describe('usePredictOrderRetry', () => {
       expect(mockTrackEvent).toHaveBeenCalledWith(
         expect.objectContaining({
           status: 'retry_submitted',
-          providerId: 'polymarket',
         }),
       );
     });

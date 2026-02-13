@@ -26,36 +26,36 @@ export type MYXNetwork = 'mainnet' | 'testnet';
 /**
  * MYX Endpoint configuration for a single network
  */
-export interface MYXEndpointConfig {
+export type MYXEndpointConfig = {
   http: string;
   ws: string;
-}
+};
 
 /**
  * MYX Endpoints for all networks
  */
-export interface MYXEndpoints {
+export type MYXEndpoints = {
   mainnet: MYXEndpointConfig;
   testnet: MYXEndpointConfig;
-}
+};
 
 /**
  * MYX Asset network configuration (token addresses per network)
  */
-export interface MYXAssetNetworkConfig {
+export type MYXAssetNetworkConfig = {
   chainId: CaipChainId;
   tokenAddress: string;
-}
+};
 
 /**
  * MYX Asset configurations by network
  */
-export interface MYXAssetConfigs {
+export type MYXAssetConfigs = {
   USDT: {
     mainnet: MYXAssetNetworkConfig;
     testnet: MYXAssetNetworkConfig;
   };
-}
+};
 
 // ============================================================================
 // Market Overlap Configuration
