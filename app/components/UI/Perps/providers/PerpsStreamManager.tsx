@@ -121,7 +121,7 @@ abstract class StreamChannel<T> {
 
     // Give immediate cached data if available
     const cached = this.getCachedData();
-    if (cached) {
+    if (cached != null) {
       params.callback(cached);
       // Mark as having received first update since we provided cached data
       subscription.hasReceivedFirstUpdate = true;
