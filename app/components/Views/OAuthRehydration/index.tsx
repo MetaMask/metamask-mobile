@@ -141,7 +141,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   );
 
   const [renderBiometricSwitch, setRenderBiometricSwitch] = useState(false);
-  const [biometryChoice, setBiometryChoice] = useState(true);
 
   const { isDeletingInProgress, promptSeedlessRelogin } =
     usePromptSeedlessRelogin();
@@ -464,6 +463,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     endTrace({ name: TraceName.LoginUserInteraction });
     track(MetaMetricsEvents.REHYDRATION_PASSWORD_ATTEMPTED, {
       account_type: 'social',
+      biometrics: biometryChoice,
     });
 
     try {
@@ -507,6 +507,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     }
   }, [
     password,
+    biometryChoice,
     finalLoading,
     rehydrationFailedAttempts,
     handleLoginError,
@@ -514,7 +515,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     track,
     componentAuthenticationType,
     unlockWallet,
-    biometryChoice,
   ]);
 
   const newGlobalPasswordLogin = useCallback(async () => {
@@ -546,11 +546,11 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     }
   }, [
     password,
+    biometryChoice,
     finalLoading,
     handleLoginError,
     componentAuthenticationType,
     unlockWallet,
-    biometryChoice,
   ]);
 
   // Cleanup for isMountedRef tracking
