@@ -10,7 +10,7 @@ on:
       build_type:
         required: true
         type: string
-        description: 'Build type (imported-wallet/onboarding)'
+        description: 'Build type (imported-wallet/onboarding/mm-connect)'
       device_matrix:
         required: true
         type: string
@@ -143,6 +143,7 @@ jobs:
       
       - name: Run Tests
         env:
+          BROWSERSTACK_LOCAL: ${{ inputs.build_type == 'mm-connect' && 'true' || '' }}
           BROWSERSTACK_LOCAL_IDENTIFIER: ${{ github.run_id }}
           BROWSERSTACK_BUILD_NAME: ${{ inputs.browserstack_build_name }}
         working-directory: '.'
@@ -157,6 +158,8 @@ jobs:
           # Run the appropriate test command based on build_type flag
           if [ "${{ inputs.build_type }}" = "onboarding" ]; then
             yarn run-appwright:${{ inputs.platform }}-onboarding-bs
+          elif [ "${{ inputs.build_type }}" = "mm-connect" ]; then
+            yarn run-appwright:mm-connect-${{ inputs.platform }}-bs
           else
             yarn run-appwright:${{ inputs.platform }}-bs
           fi
@@ -167,7 +170,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: ${{ inputs.platform }}-${{ inputs.build_type == 'onboarding' && 'onboarding-flow' || 'imported-wallet' }}-test-results-${{ matrix.device.name }}-${{ matrix.device.os_version }}
+          name: ${{ inputs.platform }}-${{ inputs.build_type == 'onboarding' && 'onboarding-flow' || inputs.build_type }}-test-results-${{ matrix.device.name }}-${{ matrix.device.os_version }}
           path: |
             tests/test-reports/appwright-report/
             tests/reporters/reports
