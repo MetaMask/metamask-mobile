@@ -22,6 +22,7 @@ import { PerformancePredict } from '../../../tags.performance.js';
  * 1. Total time from tapping Predict button until available balance is displayed
  */
 test.describe(PerformancePredict, () => {
+  test.use({ srpCount: 3 });
   test(
     'Predict Available Balance - Load Time Performance',
     { tag: '@team-predict' },

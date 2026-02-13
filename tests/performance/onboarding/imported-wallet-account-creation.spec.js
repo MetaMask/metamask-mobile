@@ -17,6 +17,7 @@ import {
 
 /* Scenario 1: Imported wallet with 50+ accounts + account creation */
 test.describe(`${PerformanceOnboarding} ${PerformanceAccountList}`, () => {
+  test.use({ srpCount: 0 });
   test.skip(
     'Account creation with 50+ accounts, SRP 1 + SRP 2 + SRP 3',
     { tag: '@metamask-onboarding-team' },

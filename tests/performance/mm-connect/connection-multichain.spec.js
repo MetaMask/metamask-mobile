@@ -1,4 +1,4 @@
-import { test } from 'appwright';
+import { test } from '../../framework/fixtures/performance-test.js';
 
 import { login } from '../../framework/utils/Flows.js';
 import {
@@ -44,6 +44,7 @@ test.afterAll(async () => {
   await playgroundServer.stop();
 });
 
+test.use({ srpCount: 1 });
 test('@metamask/connect-multichain - Connect via Multichain API to Local Browser Playground', async ({
   device,
 }) => {

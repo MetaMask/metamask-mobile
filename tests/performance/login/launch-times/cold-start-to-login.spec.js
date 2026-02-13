@@ -26,6 +26,7 @@ import {
 } from '../../../tags.performance.js';
 
 test.describe(`${PerformanceLogin} ${PerformanceLaunch}`, () => {
+  test.use({ srpCount: 3 });
   test(
     'Cold Start: Measure ColdStart To Login Screen',
     { tag: '@metamask-mobile-platform' },
