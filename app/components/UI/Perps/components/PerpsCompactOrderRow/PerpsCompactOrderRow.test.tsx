@@ -71,6 +71,7 @@ describe('PerpsCompactOrderRow', () => {
     orderType: 'limit',
     isTrigger: true,
     price: '48000',
+    triggerPrice: '47000',
     detailedOrderType: 'Stop Market',
   };
 
@@ -105,12 +106,25 @@ describe('PerpsCompactOrderRow', () => {
     expect(screen.getByText('Stop Market long')).toBeOnTheScreen();
   });
 
-  it('uses price for trigger orders', () => {
+  it('uses trigger price for trigger orders when available', () => {
     const { formatPerpsFiat } = jest.requireMock('../../utils/formatUtils');
     render(<PerpsCompactOrderRow order={mockTriggerOrder} />);
 
-    // Should have called formatPerpsFiat with the order price value (48000)
-    // Note: The adapter maps triggerPx to price, so trigger orders use price field
+    expect(formatPerpsFiat).toHaveBeenCalledWith(47000, expect.any(Object));
+  });
+
+  it('falls back to order price for trigger orders when trigger price is invalid', () => {
+    const { formatPerpsFiat } = jest.requireMock('../../utils/formatUtils');
+    const triggerOrderWithInvalidTriggerPrice: Order = {
+      ...mockTriggerOrder,
+      triggerPrice: '0',
+      price: '48000',
+    };
+
+    render(
+      <PerpsCompactOrderRow order={triggerOrderWithInvalidTriggerPrice} />,
+    );
+
     expect(formatPerpsFiat).toHaveBeenCalledWith(48000, expect.any(Object));
   });
 

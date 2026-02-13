@@ -1335,7 +1335,7 @@
     },
     "order_details": {
       "title": "Order Details",
-      "cancel_order": "Cancel Order",
+      "cancel_order": "Cancel order",
       "date": "Date",
       "trigger_condition": "Trigger condition",
       "price": "Price",
@@ -1355,6 +1355,8 @@
       "no": "No",
       "price_above": "Price above {{price}}",
       "price_below": "Price below {{price}}",
+      "take_profit": "Take profit",
+      "stop_loss": "Stop loss",
       "status": "Status",
       "view_explorer": "View on Explorer"
     },

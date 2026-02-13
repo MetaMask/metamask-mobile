@@ -113,31 +113,62 @@ const PerpsOrderDetailsView: React.FC = () => {
 
     const priceText = isMarketExecution
       ? strings('perps.order_details.market')
-      : formatPerpsFiat(hasTriggerPrice ? parsedTriggerPrice : parsedPrice);
+      : formatPerpsFiat(hasPrice ? parsedPrice : parsedTriggerPrice);
 
     let triggerCondition: string | undefined;
     if (order.isTrigger && hasTriggerPrice) {
       const detailedOrderType = (order.detailedOrderType || '').toLowerCase();
       const formattedTriggerPrice = formatPerpsFiat(parsedTriggerPrice);
+      const isTakeProfit = detailedOrderType.includes('take profit');
+      const isStop = detailedOrderType.includes('stop');
 
-      if (detailedOrderType.includes('take profit')) {
-        triggerCondition = strings('perps.order_details.price_above', {
-          price: formattedTriggerPrice,
-        });
-      } else if (detailedOrderType.includes('stop')) {
-        triggerCondition = strings('perps.order_details.price_below', {
-          price: formattedTriggerPrice,
-        });
+      let conditionKey:
+        | 'perps.order_details.price_above'
+        | 'perps.order_details.price_below';
+      if (
+        (isTakeProfit && order.side === 'sell') ||
+        (isStop && order.side === 'buy')
+      ) {
+        conditionKey = 'perps.order_details.price_above';
+      } else if (
+        (isTakeProfit && order.side === 'buy') ||
+        (isStop && order.side === 'sell')
+      ) {
+        conditionKey = 'perps.order_details.price_below';
+      } else if (hasPrice && parsedTriggerPrice !== parsedPrice) {
+        // Deterministic fallback for unsupported/ambiguous trigger types.
+        // If execution price differs from trigger, infer condition using side
+        // and trigger-vs-price relationship.
+        conditionKey =
+          order.side === 'sell'
+            ? parsedTriggerPrice > parsedPrice
+              ? 'perps.order_details.price_above'
+              : 'perps.order_details.price_below'
+            : parsedTriggerPrice < parsedPrice
+              ? 'perps.order_details.price_above'
+              : 'perps.order_details.price_below';
       } else {
-        const fallbackConditionKey =
+        // Final fallback when order type metadata is ambiguous and no reliable
+        // trigger-vs-execution comparison is available.
+        conditionKey =
           order.side === 'sell'
             ? 'perps.order_details.price_above'
             : 'perps.order_details.price_below';
-        triggerCondition = strings(fallbackConditionKey, {
-          price: formattedTriggerPrice,
-        });
       }
+
+      triggerCondition = strings(conditionKey, {
+        price: formattedTriggerPrice,
+      });
     }
+
+    const parsedTakeProfitPrice = Number.parseFloat(
+      order.takeProfitPrice || '',
+    );
+    const hasTakeProfitPrice =
+      Number.isFinite(parsedTakeProfitPrice) && parsedTakeProfitPrice > 0;
+    const parsedStopLossPrice = Number.parseFloat(order.stopLossPrice || '');
+    const hasStopLossPrice =
+      Number.isFinite(parsedStopLossPrice) && parsedStopLossPrice > 0;
 
     // Format date using formatOrderCardDate
     const dateString = formatOrderCardDate(order.timestamp);
@@ -152,6 +183,12 @@ const PerpsOrderDetailsView: React.FC = () => {
       reduceOnlyText: order.reduceOnly
         ? strings('perps.order_details.yes')
         : strings('perps.order_details.no'),
+      takeProfitPriceText: hasTakeProfitPrice
+        ? formatPerpsFiat(parsedTakeProfitPrice)
+        : undefined,
+      stopLossPriceText: hasStopLossPrice
+        ? formatPerpsFiat(parsedStopLossPrice)
+        : undefined,
     };
   }, [order]);
 
@@ -323,6 +360,60 @@ const PerpsOrderDetailsView: React.FC = () => {
               ]}
             />
 
+            {/* Take profit */}
+            {orderDetails.takeProfitPriceText && (
+              <>
+                <View style={styles.detailRow}>
+                  <Text
+                    variant={TextVariant.BodyMD}
+                    color={TextColor.Alternative}
+                    style={styles.detailLabel}
+                  >
+                    {strings('perps.order_details.take_profit')}
+                  </Text>
+                  <View style={styles.detailValue}>
+                    <Text variant={TextVariant.BodyMD}>
+                      {orderDetails.takeProfitPriceText}
+                    </Text>
+                  </View>
+                </View>
+
+                <View
+                  style={[
+                    styles.separator,
+                    { backgroundColor: colors.border.muted },
+                  ]}
+                />
+              </>
+            )}
+
+            {/* Stop loss */}
+            {orderDetails.stopLossPriceText && (
+              <>
+                <View style={styles.detailRow}>
+                  <Text
+                    variant={TextVariant.BodyMD}
+                    color={TextColor.Alternative}
+                    style={styles.detailLabel}
+                  >
+                    {strings('perps.order_details.stop_loss')}
+                  </Text>
+                  <View style={styles.detailValue}>
+                    <Text variant={TextVariant.BodyMD}>
+                      {orderDetails.stopLossPriceText}
+                    </Text>
+                  </View>
+                </View>
+
+                <View
+                  style={[
+                    styles.separator,
+                    { backgroundColor: colors.border.muted },
+                  ]}
+                />
+              </>
+            )}
+
             {/* Size */}
             <View style={styles.detailRow}>
               <Text
@@ -479,6 +570,7 @@ const PerpsOrderDetailsView: React.FC = () => {
             variant={ButtonVariants.Secondary}
             size={ButtonSize.Lg}
             width={ButtonWidthTypes.Full}
+            isDanger
             label={strings('perps.order_details.cancel_order')}
             onPress={handleCancelOrder}
             loading={isCanceling}

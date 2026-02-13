@@ -311,13 +311,37 @@ describe('PerpsOrderDetailsView', () => {
     expect(screen.getByText('perps.order_details.no')).toBeOnTheScreen();
   });
 
-  it('renders trigger condition for trigger orders', () => {
+  it('renders price below trigger condition for short take-profit orders', () => {
     const triggerOrder: Order = {
       ...mockOrder,
       isTrigger: true,
       triggerPrice: '51000',
       detailedOrderType: 'Take Profit Limit',
       reduceOnly: true,
+      side: 'buy',
+    };
+    mockRouteParams = { order: triggerOrder };
+
+    render(<PerpsOrderDetailsView />);
+
+    expect(
+      screen.getByText('perps.order_details.trigger_condition'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByText('perps.order_details.price_below'),
+    ).toBeOnTheScreen();
+    expect(screen.getByText('$50000.00')).toBeOnTheScreen();
+    expect(screen.getByText('perps.order_details.yes')).toBeOnTheScreen();
+  });
+
+  it('renders price above trigger condition for short stop-loss orders', () => {
+    const triggerOrder: Order = {
+      ...mockOrder,
+      isTrigger: true,
+      triggerPrice: '8712',
+      detailedOrderType: 'Stop Market',
+      reduceOnly: true,
+      side: 'buy',
     };
     mockRouteParams = { order: triggerOrder };
 
@@ -329,7 +353,47 @@ describe('PerpsOrderDetailsView', () => {
     expect(
       screen.getByText('perps.order_details.price_above'),
     ).toBeOnTheScreen();
+    expect(screen.getByText('perps.order_details.market')).toBeOnTheScreen();
     expect(screen.getByText('perps.order_details.yes')).toBeOnTheScreen();
+  });
+
+  it('falls back to trigger price in Price row when execution price is unavailable', () => {
+    const triggerOrder: Order = {
+      ...mockOrder,
+      isTrigger: true,
+      triggerPrice: '51000',
+      price: '0',
+      detailedOrderType: 'Take Profit Limit',
+      reduceOnly: true,
+      side: 'buy',
+    };
+    mockRouteParams = { order: triggerOrder };
+
+    render(<PerpsOrderDetailsView />);
+
+    expect(screen.getByText('$51000.00')).toBeOnTheScreen();
+  });
+
+  it('uses deterministic fallback for ambiguous trigger types (buy side, trigger below price)', () => {
+    const triggerOrder: Order = {
+      ...mockOrder,
+      isTrigger: true,
+      triggerPrice: '87.12',
+      price: '95.84',
+      detailedOrderType: 'Market',
+      reduceOnly: true,
+      side: 'buy',
+    };
+    mockRouteParams = { order: triggerOrder };
+
+    render(<PerpsOrderDetailsView />);
+
+    expect(
+      screen.getByText('perps.order_details.trigger_condition'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByText('perps.order_details.price_above'),
+    ).toBeOnTheScreen();
   });
 
   it('calls goBack when back button is pressed', () => {
@@ -403,5 +467,52 @@ describe('PerpsOrderDetailsView', () => {
     render(<PerpsOrderDetailsView />);
 
     expect(screen.getByText('BTC')).toBeOnTheScreen();
+  });
+
+  it('renders take profit and stop loss rows when prices are available', () => {
+    const orderWithTpSl: Order = {
+      ...mockOrder,
+      takeProfitPrice: '52000',
+      stopLossPrice: '48000',
+    };
+    mockRouteParams = { order: orderWithTpSl };
+
+    render(<PerpsOrderDetailsView />);
+
+    expect(
+      screen.getByText('perps.order_details.take_profit'),
+    ).toBeOnTheScreen();
+    expect(screen.getByText('perps.order_details.stop_loss')).toBeOnTheScreen();
+    expect(screen.getByText('$52000.00')).toBeOnTheScreen();
+    expect(screen.getByText('$48000.00')).toBeOnTheScreen();
+  });
+
+  it('hides take profit and stop loss rows when prices are not available', () => {
+    render(<PerpsOrderDetailsView />);
+
+    expect(
+      screen.queryByText('perps.order_details.take_profit'),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.queryByText('perps.order_details.stop_loss'),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('hides take profit and stop loss rows for invalid values', () => {
+    const orderWithInvalidTpSl: Order = {
+      ...mockOrder,
+      takeProfitPrice: '0',
+      stopLossPrice: 'abc',
+    };
+    mockRouteParams = { order: orderWithInvalidTpSl };
+
+    render(<PerpsOrderDetailsView />);
+
+    expect(
+      screen.queryByText('perps.order_details.take_profit'),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.queryByText('perps.order_details.stop_loss'),
+    ).not.toBeOnTheScreen();
   });
 });
