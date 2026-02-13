@@ -17,6 +17,8 @@ const FULL_POSITION_SIZE_TOLERANCE = new BigNumber('0.00000001');
 const ORDER_PRICE_MATCH_TOLERANCE = new BigNumber('0.00000001');
 const SYNTHETIC_TP_ID_SUFFIX = '-synthetic-tp';
 const SYNTHETIC_SL_ID_SUFFIX = '-synthetic-sl';
+const TRIGGER_CONDITION_PRICE_ABOVE = 'perps.order_details.price_above';
+const TRIGGER_CONDITION_PRICE_BELOW = 'perps.order_details.price_below';
 
 const getAbsoluteOrderSize = (order: Order): BigNumber | null => {
   const size = order.originalSize || order.size;
@@ -58,6 +60,8 @@ const hasMatchingRealReduceOnlyTrigger = (
   orders: Order[],
   syntheticOrder: Order,
 ): boolean => {
+  // TODO: Current matching is O(n) per synthetic row. If open-order volume grows
+  // significantly, precompute a parent-scoped lookup map to avoid O(n^2).
   if (!syntheticOrder.parentOrderId) {
     return false;
   }
@@ -119,6 +123,53 @@ const isClosingSideForPosition = (
 
   // For long positions, sell closes. For short positions, buy closes.
   return positionSize.gt(0) ? order.side === 'sell' : order.side === 'buy';
+};
+
+export type TriggerConditionKey =
+  | typeof TRIGGER_CONDITION_PRICE_ABOVE
+  | typeof TRIGGER_CONDITION_PRICE_BELOW;
+
+export const inferTriggerConditionKey = (params: {
+  detailedOrderType?: string;
+  side: 'buy' | 'sell';
+  triggerPrice?: string;
+  price?: string;
+}): TriggerConditionKey | undefined => {
+  const { detailedOrderType, side, triggerPrice, price } = params;
+
+  const parsedTriggerPrice = Number.parseFloat(triggerPrice || '');
+  if (!Number.isFinite(parsedTriggerPrice) || parsedTriggerPrice <= 0) {
+    return undefined;
+  }
+
+  const normalizedDetailedOrderType = (detailedOrderType || '').toLowerCase();
+  const isTakeProfit = normalizedDetailedOrderType.includes('take profit');
+  const isStop = normalizedDetailedOrderType.includes('stop');
+
+  if ((isTakeProfit && side === 'sell') || (isStop && side === 'buy')) {
+    return TRIGGER_CONDITION_PRICE_ABOVE;
+  }
+
+  if ((isTakeProfit && side === 'buy') || (isStop && side === 'sell')) {
+    return TRIGGER_CONDITION_PRICE_BELOW;
+  }
+
+  const parsedPrice = Number.parseFloat(price || '');
+  const hasPrice = Number.isFinite(parsedPrice) && parsedPrice > 0;
+  if (hasPrice && parsedTriggerPrice !== parsedPrice) {
+    if (side === 'sell') {
+      return parsedTriggerPrice > parsedPrice
+        ? TRIGGER_CONDITION_PRICE_ABOVE
+        : TRIGGER_CONDITION_PRICE_BELOW;
+    }
+    return parsedTriggerPrice < parsedPrice
+      ? TRIGGER_CONDITION_PRICE_ABOVE
+      : TRIGGER_CONDITION_PRICE_BELOW;
+  }
+
+  return side === 'sell'
+    ? TRIGGER_CONDITION_PRICE_ABOVE
+    : TRIGGER_CONDITION_PRICE_BELOW;
 };
 
 /**

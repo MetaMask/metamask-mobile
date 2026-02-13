@@ -180,6 +180,46 @@ describe('hyperLiquidAdapter', () => {
       });
     });
 
+    it('omits isPositionTpsl when the SDK payload does not include the field', () => {
+      const frontendOrder = {
+        oid: 12346,
+        coin: 'BTC',
+        side: 'B',
+        sz: '0.5',
+        origSz: '1.0',
+        limitPx: '50000',
+        orderType: 'Limit',
+        timestamp: 1234567890000,
+        isTrigger: false,
+        reduceOnly: false,
+        triggerCondition: '',
+        triggerPx: '',
+        children: [],
+        tif: null,
+        cloid: null,
+      } as unknown as FrontendOrder;
+
+      const result = adaptOrderFromSDK(frontendOrder);
+
+      expect(result).toEqual({
+        orderId: '12346',
+        symbol: 'BTC',
+        side: 'buy',
+        orderType: 'limit',
+        size: '0.5',
+        originalSize: '1.0',
+        price: '50000',
+        filledSize: '0.5',
+        remainingSize: '0.5',
+        status: 'open',
+        timestamp: 1234567890000,
+        detailedOrderType: 'Limit',
+        isTrigger: false,
+        reduceOnly: false,
+      });
+      expect(result).not.toHaveProperty('isPositionTpsl');
+    });
+
     it('should convert sell order from SDK', () => {
       const frontendOrder: FrontendOrder = {
         oid: 54321,
@@ -438,6 +478,43 @@ describe('hyperLiquidAdapter', () => {
         takeProfitOrderId: '88888',
         stopLossOrderId: '99999',
       });
+    });
+
+    it('preserves parent-level TP/SL metadata when isPositionTpsl is omitted', () => {
+      const frontendOrder = {
+        oid: 77778,
+        coin: 'BTC',
+        side: 'B',
+        sz: '0.25',
+        origSz: '0.25',
+        limitPx: '90000',
+        orderType: 'Limit',
+        timestamp: 1234567890000,
+        isTrigger: false,
+        reduceOnly: false,
+        triggerCondition: '',
+        triggerPx: '',
+        children: [],
+        tif: null,
+        cloid: null,
+        takeProfitPrice: '95000',
+        stopLossPrice: '88000',
+        takeProfitOrderId: 88889,
+        stopLossOrderId: 99998,
+      } as unknown as FrontendOrder & {
+        takeProfitPrice: string;
+        stopLossPrice: string;
+        takeProfitOrderId: number;
+        stopLossOrderId: number;
+      };
+
+      const result = adaptOrderFromSDK(frontendOrder);
+
+      expect(result.takeProfitPrice).toBe('95000');
+      expect(result.stopLossPrice).toBe('88000');
+      expect(result.takeProfitOrderId).toBe('88889');
+      expect(result.stopLossOrderId).toBe('99998');
+      expect(result).not.toHaveProperty('isPositionTpsl');
     });
 
     it('should handle partially filled order', () => {

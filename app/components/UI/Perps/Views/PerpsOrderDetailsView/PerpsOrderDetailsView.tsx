@@ -35,6 +35,7 @@ import {
 } from '../../utils/formatUtils';
 import {
   formatOrderLabel,
+  inferTriggerConditionKey,
   isSyntheticOrderCancelable,
 } from '../../utils/orderUtils';
 import { useTheme } from '../../../../../util/theme';
@@ -123,48 +124,18 @@ const PerpsOrderDetailsView: React.FC = () => {
 
     let triggerCondition: string | undefined;
     if (order.isTrigger && hasTriggerPrice) {
-      const detailedOrderType = (order.detailedOrderType || '').toLowerCase();
       const formattedTriggerPrice = formatPerpsFiat(parsedTriggerPrice);
-      const isTakeProfit = detailedOrderType.includes('take profit');
-      const isStop = detailedOrderType.includes('stop');
-
-      let conditionKey:
-        | 'perps.order_details.price_above'
-        | 'perps.order_details.price_below';
-      if (
-        (isTakeProfit && order.side === 'sell') ||
-        (isStop && order.side === 'buy')
-      ) {
-        conditionKey = 'perps.order_details.price_above';
-      } else if (
-        (isTakeProfit && order.side === 'buy') ||
-        (isStop && order.side === 'sell')
-      ) {
-        conditionKey = 'perps.order_details.price_below';
-      } else if (hasPrice && parsedTriggerPrice !== parsedPrice) {
-        // Deterministic fallback for unsupported/ambiguous trigger types.
-        // If execution price differs from trigger, infer condition using side
-        // and trigger-vs-price relationship.
-        conditionKey =
-          order.side === 'sell'
-            ? parsedTriggerPrice > parsedPrice
-              ? 'perps.order_details.price_above'
-              : 'perps.order_details.price_below'
-            : parsedTriggerPrice < parsedPrice
-              ? 'perps.order_details.price_above'
-              : 'perps.order_details.price_below';
-      } else {
-        // Final fallback when order type metadata is ambiguous and no reliable
-        // trigger-vs-execution comparison is available.
-        conditionKey =
-          order.side === 'sell'
-            ? 'perps.order_details.price_above'
-            : 'perps.order_details.price_below';
-      }
-
-      triggerCondition = strings(conditionKey, {
-        price: formattedTriggerPrice,
+      const conditionKey = inferTriggerConditionKey({
+        detailedOrderType: order.detailedOrderType,
+        side: order.side,
+        triggerPrice: order.triggerPrice,
+        price: order.price,
       });
+      if (conditionKey) {
+        triggerCondition = strings(conditionKey, {
+          price: formattedTriggerPrice,
+        });
+      }
     }
 
     const parsedTakeProfitPrice = Number.parseFloat(
