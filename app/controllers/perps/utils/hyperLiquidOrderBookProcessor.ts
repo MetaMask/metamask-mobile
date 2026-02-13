@@ -11,33 +11,33 @@ import type { PriceUpdate } from '../types';
 /**
  * Order book cache entry structure
  */
-export interface OrderBookCacheEntry {
+export type OrderBookCacheEntry = {
   bestBid?: string;
   bestAsk?: string;
   spread?: string;
   lastUpdated: number;
-}
+};
 
 /**
  * Parameters for processing L2 book data
  */
-export interface ProcessL2BookDataParams {
+export type ProcessL2BookDataParams = {
   symbol: string;
   data: L2BookResponse;
   orderBookCache: Map<string, OrderBookCacheEntry>;
   cachedPriceData: Map<string, PriceUpdate> | null;
   createPriceUpdate: (symbol: string, price: string) => PriceUpdate;
   notifySubscribers: () => void;
-}
+};
 
-export interface ProcessBboDataParams {
+export type ProcessBboDataParams = {
   symbol: string;
   data: BboWsEvent;
   orderBookCache: Map<string, OrderBookCacheEntry>;
   cachedPriceData: Map<string, PriceUpdate> | null;
   createPriceUpdate: (symbol: string, price: string) => PriceUpdate;
   notifySubscribers: () => void;
-}
+};
 
 /**
  * Process Level 2 order book data and update caches

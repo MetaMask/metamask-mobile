@@ -34,9 +34,9 @@ import {
  * Controller-level dependencies for TradingService.
  * These are singletons that don't change per-call, injected once via setControllerDependencies().
  */
-export interface TradingServiceControllerDeps {
+export type TradingServiceControllerDeps = {
   rewardsIntegrationService: RewardsIntegrationService;
-}
+};
 
 /**
  * TradingService
