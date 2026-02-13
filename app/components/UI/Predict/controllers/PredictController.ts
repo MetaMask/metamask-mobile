@@ -2243,7 +2243,7 @@ export class PredictController extends BaseController<
         networkClientId,
         disableHook: true,
         disableSequential: true,
-        skipInitialGasEstimate: true,
+        skipInitialGasEstimate: false,
         requireApproval: false,
         transactions: transactionsWithDepositAndOrderType,
       });

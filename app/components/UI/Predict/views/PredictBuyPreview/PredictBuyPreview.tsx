@@ -19,6 +19,7 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
+import { Hex } from '@metamask/utils';
 import React, {
   useState,
   useRef,
@@ -71,6 +72,11 @@ import { usePredictPaymentToken } from '../../hooks/usePredictPaymentToken';
 import { usePredictDepositAndOrder } from '../../hooks/usePredictDepositAndOrder';
 import PredictTokenSelector from '../../components/PredictTokenSelector';
 import PredictTokenPickerSheet from '../../components/PredictTokenPickerSheet';
+import { useTokenWithBalance } from '../../../../Views/confirmations/hooks/tokens/useTokenWithBalance';
+import {
+  PREDICT_BALANCE_CHAIN_ID,
+  PREDICT_BALANCE_PLACEHOLDER_ADDRESS,
+} from '../../constants/transactions';
 
 export const MINIMUM_BET = 1; // $1 minimum bet
 
@@ -136,6 +142,11 @@ const PredictBuyPreview = () => {
     selectFromAsset,
     isFeatureEnabled: isPayWithAnyTokenEnabled,
   } = usePredictPaymentToken();
+
+  const selectedTokenWithBalance = useTokenWithBalance(
+    (selectedToken.address || PREDICT_BALANCE_PLACEHOLDER_ADDRESS) as Hex,
+    (selectedToken.chainId || PREDICT_BALANCE_CHAIN_ID) as Hex,
+  );
 
   const {
     state: depositOrderState,
@@ -238,6 +249,19 @@ const PredictBuyPreview = () => {
   const metamaskFee = preview?.fees?.metamaskFee ?? 0;
   const providerFee = preview?.fees?.providerFee ?? 0;
   const total = currentValue + providerFee + metamaskFee;
+
+  const availableBalance = useMemo(() => {
+    if (!isPayWithAnyTokenEnabled || selectedToken.isPredictBalance) {
+      return balance;
+    }
+
+    return selectedTokenWithBalance?.tokenFiatAmount ?? 0;
+  }, [
+    balance,
+    isPayWithAnyTokenEnabled,
+    selectedToken.isPredictBalance,
+    selectedTokenWithBalance?.tokenFiatAmount,
+  ]);
 
   const isBelowMinimum = currentValue > 0 && currentValue < MINIMUM_BET;
   const canPlaceBet =
@@ -447,7 +471,10 @@ const PredictBuyPreview = () => {
               color={TextColor.TextAlternative}
             >
               {`${strings('predict.order.available')}: `}
-              {formatPrice(balance, { minimumDecimals: 2, maximumDecimals: 2 })}
+              {formatPrice(availableBalance, {
+                minimumDecimals: 2,
+                maximumDecimals: 2,
+              })}
             </Text>
           )}
         </Box>
