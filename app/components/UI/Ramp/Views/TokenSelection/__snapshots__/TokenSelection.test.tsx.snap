@@ -708,6 +708,7 @@ exports[`TokenSelection Component displays empty state when no tokens match sear
                                   onChangeText={[Function]}
                                   onFocus={[Function]}
                                   placeholder="Search token by name or address"
+                                  placeholderTextColor="#686e7d"
                                   style={
                                     {
                                       "backgroundColor": "inherit",
@@ -720,11 +721,10 @@ exports[`TokenSelection Component displays empty state when no tokens match sear
                                       "height": 46,
                                       "letterSpacing": 0,
                                       "opacity": 1,
-                                      "paddingVertical": 2,
                                       "textAlignVertical": "center",
                                     }
                                   }
-                                  testID="textfieldsearch"
+                                  testID="token-select-modal-search-input"
                                   value="Nonexistent Token"
                                 />
                               </View>
@@ -1569,6 +1569,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                   onChangeText={[Function]}
                                   onFocus={[Function]}
                                   placeholder="Search token by name or address"
+                                  placeholderTextColor="#686e7d"
                                   style={
                                     {
                                       "backgroundColor": "inherit",
@@ -1581,11 +1582,10 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                       "height": 46,
                                       "letterSpacing": 0,
                                       "opacity": 1,
-                                      "paddingVertical": 2,
                                       "textAlignVertical": "center",
                                     }
                                   }
-                                  testID="textfieldsearch"
+                                  testID="token-select-modal-search-input"
                                   value=""
                                 />
                               </View>
@@ -3944,6 +3944,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                   onChangeText={[Function]}
                                   onFocus={[Function]}
                                   placeholder="Search token by name or address"
+                                  placeholderTextColor="#686e7d"
                                   style={
                                     {
                                       "backgroundColor": "inherit",
@@ -3956,11 +3957,10 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                       "height": 46,
                                       "letterSpacing": 0,
                                       "opacity": 1,
-                                      "paddingVertical": 2,
                                       "textAlignVertical": "center",
                                     }
                                   }
-                                  testID="textfieldsearch"
+                                  testID="token-select-modal-search-input"
                                   value=""
                                 />
                               </View>

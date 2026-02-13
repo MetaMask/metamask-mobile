@@ -619,18 +619,6 @@ describe('CardSDK', () => {
   });
 
   describe('getGeoLocation', () => {
-    const originalNodeEnv = process.env.NODE_ENV;
-
-    afterEach(() => {
-      // Restore original NODE_ENV
-      if (originalNodeEnv === undefined) {
-        delete (process.env as { NODE_ENV?: string }).NODE_ENV;
-      } else {
-        (process.env as { NODE_ENV?: string }).NODE_ENV = originalNodeEnv;
-      }
-      jest.clearAllMocks();
-    });
-
     it('returns UNKNOWN when API call fails', async () => {
       const error = new Error('Network error');
       (global.fetch as jest.Mock).mockRejectedValueOnce(error);
@@ -4569,10 +4557,6 @@ describe('CardSDK', () => {
     const mockGoogleProvisioningResponse = {
       success: true,
       data: {
-        cardNetwork: 'MASTERCARD',
-        lastFourDigits: '1234',
-        cardholderName: 'John Doe',
-        cardDescription: 'MetaMask Card',
         opaquePaymentCard: 'encrypted-opc-data',
       },
     };
@@ -4597,10 +4581,6 @@ describe('CardSDK', () => {
       const result = await cardSDK.createGoogleWalletProvisioningRequest();
 
       expect(result).toEqual({
-        cardNetwork: 'MASTERCARD',
-        lastFourDigits: '1234',
-        cardholderName: 'John Doe',
-        cardDescription: 'MetaMask Card',
         opaquePaymentCard: 'encrypted-opc-data',
       });
     });
@@ -4638,51 +4618,6 @@ describe('CardSDK', () => {
           }),
         }),
       );
-    });
-
-    it('handles response with panLast4 fallback', async () => {
-      const responseWithPanLast4 = {
-        success: true,
-        data: {
-          cardNetwork: 'MASTERCARD',
-          panLast4: '5678',
-          holderName: 'Jane Doe',
-          opaquePaymentCard: 'encrypted-opc-data',
-        },
-      };
-
-      (global.fetch as jest.Mock).mockResolvedValueOnce({
-        ok: true,
-        json: jest.fn().mockResolvedValue(responseWithPanLast4),
-      });
-
-      const result = await cardSDK.createGoogleWalletProvisioningRequest();
-
-      expect(result).toEqual({
-        cardNetwork: 'MASTERCARD',
-        lastFourDigits: '5678',
-        cardholderName: 'Jane Doe',
-        cardDescription: undefined,
-        opaquePaymentCard: 'encrypted-opc-data',
-      });
-    });
-
-    it('uses default cardNetwork when not provided', async () => {
-      const responseWithoutNetwork = {
-        success: true,
-        data: {
-          opaquePaymentCard: 'encrypted-opc-data',
-        },
-      };
-
-      (global.fetch as jest.Mock).mockResolvedValueOnce({
-        ok: true,
-        json: jest.fn().mockResolvedValue(responseWithoutNetwork),
-      });
-
-      const result = await cardSDK.createGoogleWalletProvisioningRequest();
-
-      expect(result.cardNetwork).toBe('MASTERCARD');
     });
 
     it('throws INVALID_CREDENTIALS error on 401 response', async () => {

@@ -586,6 +586,9 @@ function setupLoadCardDataMock(
         mailingUsState?: string | null;
       } | null;
     } | null;
+    externalWalletDetailsData: {
+      mappedWalletDetails?: Record<string, unknown>[];
+    } | null;
   }>,
 ) {
   const defaults = {
@@ -599,6 +602,7 @@ function setupLoadCardDataMock(
     isBaanxLoginEnabled: true,
     isCardholder: true,
     kycStatus: { verificationState: 'VERIFIED' as const, userId: 'user-123' },
+    externalWalletDetailsData: null,
   };
 
   const config = { ...defaults, ...overrides };
@@ -1392,6 +1396,286 @@ describe('CardHome Component', () => {
         token_fiat_balance_priority: undefined,
       }),
     );
+  });
+
+  describe('CARD_HOME_VIEWED state property', () => {
+    it('includes state UNAUTHENTICATED when user is not authenticated', async () => {
+      // Given: user is not authenticated (default beforeEach state)
+      setupLoadCardDataMock({ isAuthenticated: false });
+
+      // When: component renders and fires metrics
+      render();
+      await new Promise((r) => setTimeout(r, 0));
+
+      // Then: state should be UNAUTHENTICATED
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          state: 'UNAUTHENTICATED',
+        }),
+      );
+    });
+
+    it('includes state UNAUTHENTICATED with undefined token fields when no priority token', async () => {
+      // Given: user is not authenticated and has no priority token
+      setupLoadCardDataMock({
+        isAuthenticated: false,
+        priorityToken: null,
+        allTokens: [],
+      });
+
+      // When: component renders and fires metrics
+      render();
+      await new Promise((r) => setTimeout(r, 0));
+
+      // Then: state should be UNAUTHENTICATED with undefined token fields
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          state: 'UNAUTHENTICATED',
+          token_symbol_priority: undefined,
+          token_raw_balance_priority: undefined,
+          token_fiat_balance_priority: undefined,
+          token_chain_id_priority: undefined,
+        }),
+      );
+    });
+
+    it('includes state PENDING when kycStatus is PENDING', async () => {
+      // Given: user is authenticated with PENDING KYC
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        kycStatus: { verificationState: 'PENDING', userId: 'user-123' },
+      });
+      setupMockSelectors({ isAuthenticated: true });
+
+      // When: component renders and fires metrics
+      render();
+      await new Promise((r) => setTimeout(r, 0));
+
+      // Then: state should be PENDING
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          state: 'PENDING',
+        }),
+      );
+    });
+
+    it('includes state PENDING when kycStatus is UNVERIFIED', async () => {
+      // Given: user is authenticated with UNVERIFIED KYC
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        kycStatus: { verificationState: 'UNVERIFIED', userId: 'user-123' },
+      });
+      setupMockSelectors({ isAuthenticated: true });
+
+      // When: component renders and fires metrics
+      render();
+      await new Promise((r) => setTimeout(r, 0));
+
+      // Then: state should be PENDING
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          state: 'PENDING',
+        }),
+      );
+    });
+
+    it('includes state PENDING with undefined token fields when no priority token', async () => {
+      // Given: user is authenticated with PENDING KYC and no priority token
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        kycStatus: { verificationState: 'PENDING', userId: 'user-123' },
+        priorityToken: null,
+        allTokens: [],
+      });
+      setupMockSelectors({ isAuthenticated: true });
+
+      // When: component renders and fires metrics
+      render();
+      await new Promise((r) => setTimeout(r, 0));
+
+      // Then: state should be PENDING with undefined token fields
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          state: 'PENDING',
+          token_symbol_priority: undefined,
+          token_raw_balance_priority: undefined,
+          token_fiat_balance_priority: undefined,
+          token_chain_id_priority: undefined,
+        }),
+      );
+    });
+
+    it('includes state ENABLE_CARD when VERIFIED with NoCard warning and no delegated wallets', async () => {
+      // Given: user is VERIFIED but has NoCard warning and no external wallet details
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+        warning: CardStateWarning.NoCard,
+        externalWalletDetailsData: null,
+      });
+      setupMockSelectors({ isAuthenticated: true });
+
+      // When: component renders and fires metrics
+      render();
+      await new Promise((r) => setTimeout(r, 0));
+
+      // Then: state should be ENABLE_CARD
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          state: 'ENABLE_CARD',
+        }),
+      );
+    });
+
+    it('includes state ENABLE_CARD when VERIFIED with NeedDelegation warning', async () => {
+      // Given: user is VERIFIED but has NeedDelegation warning and no delegated wallets
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+        warning: CardStateWarning.NeedDelegation,
+        externalWalletDetailsData: null,
+      });
+      setupMockSelectors({ isAuthenticated: true });
+
+      // When: component renders and fires metrics
+      render();
+      await new Promise((r) => setTimeout(r, 0));
+
+      // Then: state should be ENABLE_CARD
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          state: 'ENABLE_CARD',
+        }),
+      );
+    });
+
+    it('includes state ENABLE_CARD with undefined token fields when no priority token', async () => {
+      // Given: user is VERIFIED with NoCard warning, no wallet details, and no priority token
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+        warning: CardStateWarning.NoCard,
+        externalWalletDetailsData: null,
+        priorityToken: null,
+        allTokens: [],
+      });
+      setupMockSelectors({ isAuthenticated: true });
+
+      // When: component renders and fires metrics
+      render();
+      await new Promise((r) => setTimeout(r, 0));
+
+      // Then: state should be ENABLE_CARD with undefined token fields
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          state: 'ENABLE_CARD',
+          token_symbol_priority: undefined,
+          token_raw_balance_priority: undefined,
+          token_fiat_balance_priority: undefined,
+          token_chain_id_priority: undefined,
+        }),
+      );
+    });
+
+    it('includes state PROVISIONING_CARD when VERIFIED with NoCard warning and has delegated wallets', async () => {
+      // Given: user is VERIFIED with NoCard warning but has delegated wallet details
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+        warning: CardStateWarning.NoCard,
+        externalWalletDetailsData: {
+          mappedWalletDetails: [{ id: 'wallet-1' }],
+        },
+      });
+      setupMockSelectors({ isAuthenticated: true });
+
+      // When: component renders and fires metrics
+      render();
+      await new Promise((r) => setTimeout(r, 0));
+
+      // Then: state should be PROVISIONING_CARD
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          state: 'PROVISIONING_CARD',
+        }),
+      );
+    });
+
+    it('includes state PROVISIONING_CARD when VERIFIED with NeedDelegation warning and has delegated wallets', async () => {
+      // Given: user is VERIFIED with NeedDelegation warning and has delegated wallet details
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+        warning: CardStateWarning.NeedDelegation,
+        externalWalletDetailsData: {
+          mappedWalletDetails: [{ id: 'wallet-1' }],
+        },
+      });
+      setupMockSelectors({ isAuthenticated: true });
+
+      // When: component renders and fires metrics
+      render();
+      await new Promise((r) => setTimeout(r, 0));
+
+      // Then: state should be PROVISIONING_CARD
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          state: 'PROVISIONING_CARD',
+        }),
+      );
+    });
+
+    it('includes state PROVISIONING_CARD with undefined token fields when no priority token', async () => {
+      // Given: user is VERIFIED with NoCard warning, has wallet details, but no priority token
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+        warning: CardStateWarning.NoCard,
+        externalWalletDetailsData: {
+          mappedWalletDetails: [{ id: 'wallet-1' }],
+        },
+        priorityToken: null,
+        allTokens: [],
+      });
+      setupMockSelectors({ isAuthenticated: true });
+
+      // When: component renders and fires metrics
+      render();
+      await new Promise((r) => setTimeout(r, 0));
+
+      // Then: state should be PROVISIONING_CARD with undefined token fields
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          state: 'PROVISIONING_CARD',
+          token_symbol_priority: undefined,
+          token_raw_balance_priority: undefined,
+          token_fiat_balance_priority: undefined,
+          token_chain_id_priority: undefined,
+        }),
+      );
+    });
+
+    it('includes state VERIFIED when user is fully set up', async () => {
+      // Given: user is authenticated and VERIFIED with no warnings
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+        warning: null,
+        cardDetails: { type: CardType.VIRTUAL },
+      });
+      setupMockSelectors({ isAuthenticated: true });
+
+      // When: component renders and fires metrics
+      render();
+      await new Promise((r) => setTimeout(r, 0));
+
+      // Then: state should be VERIFIED
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          state: 'VERIFIED',
+        }),
+      );
+    });
   });
 
   describe('Swap Enabled for Priority Token', () => {
@@ -4089,6 +4373,8 @@ describe('CardHome Component', () => {
 
     const mockUserDetailsForProvisioning = {
       id: 'user-123',
+      firstName: 'John',
+      lastName: 'Doe',
       addressLine1: '123 Main St',
       addressLine2: 'Apt 4B',
       city: 'New York',
@@ -4177,7 +4463,7 @@ describe('CardHome Component', () => {
 
       // Verify userAddress uses physical address fields in provisioning format
       expect(options.userAddress).toEqual({
-        name: 'Card Holder', // Uses default since userDetails doesn't have firstName/lastName
+        name: 'John Doe', // Derived from KYC userDetails firstName/lastName
         addressOne: '123 Main St',
         addressTwo: 'Apt 4B',
         locality: 'New York',
@@ -4272,11 +4558,17 @@ describe('CardHome Component', () => {
       expect(typeof options.onError).toBe('function');
     });
 
-    it('uses holderName from cardDetails for provisioning', async () => {
-      // Given: card with holder name from card status API
+    it('uses holderName from KYC userDetails for provisioning', async () => {
+      // Given: card with different holder name, but KYC has specific names
       const cardWithHolderName = {
         ...mockCardDetailsWithHolder,
-        holderName: 'Jane Smith',
+        holderName: 'Card API Name',
+      };
+
+      const userDetailsWithName = {
+        ...mockUserDetailsForProvisioning,
+        firstName: 'Jane',
+        lastName: 'Smith',
       };
 
       setupMockSelectors({ isAuthenticated: true, userLocation: 'us' });
@@ -4288,7 +4580,7 @@ describe('CardHome Component', () => {
         kycStatus: {
           verificationState: 'VERIFIED',
           userId: 'user-123',
-          userDetails: mockUserDetailsForProvisioning,
+          userDetails: userDetailsWithName,
         },
       });
 
@@ -4299,7 +4591,7 @@ describe('CardHome Component', () => {
         expect(mockUsePushProvisioning).toHaveBeenCalled();
       });
 
-      // Then: holderName should come from cardDetails
+      // Then: holderName should come from KYC userDetails, not cardDetails
       const options = getLastCallOptions();
       const cardDetails = options.cardDetails as { holderName: string };
 
