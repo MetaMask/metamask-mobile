@@ -1258,7 +1258,7 @@ export const DEFAULT_ACCOUNTS_MOCK: MockEventsObject = {
           'solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1',
           'eip155:999',
         ],
-        partialSupport: { balances: [42220, 43114] },
+        partialSupport: { balances: ['eip155:42220', 'eip155:43114'] },
       },
     },
     {
