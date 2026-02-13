@@ -16,12 +16,14 @@ import reducer, {
   selectIsBridgeEnabledSource,
   selectDestChainRanking,
   selectSourceChainRanking,
+  setTokenSelectorNetworkFilter,
+  selectTokenSelectorNetworkFilter,
 } from '.';
 import {
   BridgeToken,
   BridgeViewMode,
 } from '../../../../components/UI/Bridge/types';
-import { Hex } from '@metamask/utils';
+import { CaipChainId, Hex } from '@metamask/utils';
 import { RootState } from '../../../../reducers';
 import { cloneDeep } from 'lodash';
 
@@ -67,6 +69,7 @@ describe('bridge slice', () => {
         isSelectingToken: false,
         isMaxSourceAmount: false,
         isDestTokenManuallySet: false,
+        tokenSelectorNetworkFilter: undefined,
       });
     });
   });
@@ -699,6 +702,65 @@ describe('bridge slice', () => {
             chain.chainId === 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
         ),
       ).toBe(true);
+    });
+  });
+
+  describe('setTokenSelectorNetworkFilter', () => {
+    it('should set the network filter to a chain ID', () => {
+      const chainId = 'eip155:1';
+      const action = setTokenSelectorNetworkFilter(chainId as CaipChainId);
+      const state = reducer(initialState, action);
+
+      expect(state.tokenSelectorNetworkFilter).toBe(chainId);
+    });
+
+    it('should clear the network filter when set to undefined', () => {
+      const stateWithFilter = {
+        ...initialState,
+        tokenSelectorNetworkFilter: 'eip155:1' as CaipChainId,
+      };
+      const action = setTokenSelectorNetworkFilter(undefined);
+      const state = reducer(stateWithFilter, action);
+
+      expect(state.tokenSelectorNetworkFilter).toBeUndefined();
+    });
+
+    it('should update the network filter from one chain to another', () => {
+      const stateWithFilter = {
+        ...initialState,
+        tokenSelectorNetworkFilter: 'eip155:1' as CaipChainId,
+      };
+      const action = setTokenSelectorNetworkFilter('eip155:137' as CaipChainId);
+      const state = reducer(stateWithFilter, action);
+
+      expect(state.tokenSelectorNetworkFilter).toBe('eip155:137');
+    });
+  });
+
+  describe('selectTokenSelectorNetworkFilter', () => {
+    it('should return undefined when no filter is set', () => {
+      const mockState = cloneDeep(mockRootState);
+      (mockState as any).bridge = { ...initialState };
+
+      const result = selectTokenSelectorNetworkFilter(
+        mockState as unknown as RootState,
+      );
+
+      expect(result).toBeUndefined();
+    });
+
+    it('should return the set chain ID', () => {
+      const mockState = cloneDeep(mockRootState);
+      (mockState as any).bridge = {
+        ...initialState,
+        tokenSelectorNetworkFilter: 'eip155:10',
+      };
+
+      const result = selectTokenSelectorNetworkFilter(
+        mockState as unknown as RootState,
+      );
+
+      expect(result).toBe('eip155:10');
     });
   });
 

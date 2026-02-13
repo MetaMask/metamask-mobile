@@ -22,13 +22,18 @@ const styleSheet = (params: {
     },
     modalContent: {
       backgroundColor: theme.colors.background.alternative,
-      paddingTop: 24,
       paddingBottom: 34,
       borderTopLeftRadius: 8,
       borderTopRightRadius: 8,
     },
     modalExpandedContent: {
       paddingHorizontal: 16,
+    },
+    copyButtonContainer: {
+      position: 'absolute',
+      top: 6,
+      right: 18,
+      zIndex: 1,
     },
   });
 };

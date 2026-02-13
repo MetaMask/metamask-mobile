@@ -8,10 +8,10 @@ export const MAX_MARKET_PATTERN_LENGTH = 100;
 
 export type MarketPatternMatcher = RegExp | string;
 
-export interface CompiledMarketPattern {
+export type CompiledMarketPattern = {
   pattern: string;
   matcher: MarketPatternMatcher;
-}
+};
 
 export const escapeRegex = (str: string): string =>
   str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -134,10 +134,10 @@ export const getPerpsDexFromSymbol = (symbol: string): string | null => {
   return null;
 };
 
-interface FundingCountdownParams {
+type FundingCountdownParams = {
   nextFundingTime?: number;
   fundingIntervalHours?: number;
-}
+};
 
 export const calculateFundingCountdown = (
   params?: FundingCountdownParams,

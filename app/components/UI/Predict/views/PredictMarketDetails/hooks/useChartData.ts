@@ -42,7 +42,6 @@ const MAX_INTERVAL_SHORT_RANGE_FIDELITY =
 interface UseChartDataParams {
   market: PredictMarket | null;
   hasAnyOutcomeToken: boolean;
-  providerId: string;
 }
 
 interface UseChartDataResult {
@@ -59,7 +58,6 @@ interface UseChartDataResult {
 export const useChartData = ({
   market,
   hasAnyOutcomeToken,
-  providerId,
 }: UseChartDataParams): UseChartDataResult => {
   const { colors } = useTheme();
   const [selectedTimeframe, setSelectedTimeframe] =
@@ -113,7 +111,6 @@ export const useChartData = ({
   } = usePredictPriceHistory({
     marketIds: chartOutcomeTokenIds,
     interval: selectedTimeframe,
-    providerId,
     fidelity: selectedFidelity,
     enabled: chartOutcomeTokenIds.length > 0,
   });

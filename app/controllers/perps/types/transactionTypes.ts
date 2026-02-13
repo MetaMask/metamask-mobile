@@ -7,20 +7,20 @@
  * Base type with core properties shared between all transaction results
  * All properties are JSON serializable for controller state compatibility
  */
-export interface BaseTransactionResult {
+export type BaseTransactionResult = {
   amount: string;
   asset: string;
   txHash?: string;
   timestamp: number;
   success: boolean; // explicit to avoid regressions
-}
+};
 
 /**
  * For transient UI feedback (toasts, progress indicators)
  * Used for immediate success/failure notifications
  * JSON serializable for controller state
  */
-export interface LastTransactionResult {
+export type LastTransactionResult = {
   amount: string;
   asset: string;
   txHash: string;
@@ -28,7 +28,7 @@ export interface LastTransactionResult {
   success: boolean;
   error: string;
   [key: string]: string | number | boolean;
-}
+};
 
 /**
  * For persistent transaction history tracking
@@ -37,16 +37,7 @@ export interface LastTransactionResult {
  */
 export type TransactionStatus = 'pending' | 'bridging' | 'completed' | 'failed';
 
-export interface LastTransactionResult {
-  amount: string;
-  asset: string;
-  txHash: string;
-  timestamp: number;
-  success: boolean;
-  error: string;
-}
-
-export interface TransactionRecord {
+export type TransactionRecord = {
   id: string;
   amount: string;
   asset: string;
@@ -60,7 +51,7 @@ export interface TransactionRecord {
   // Legacy fields for backward compatibility
   withdrawalId?: string; // for withdrawals
   depositId?: string; // for deposits
-}
+};
 
 /**
  * Type guard to check if a transaction result is a TransactionRecord
