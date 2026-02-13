@@ -12,10 +12,7 @@ import Text, {
 import type { Provider, Quote } from '@metamask/ramps-controller';
 import { strings } from '../../../../../../../locales/i18n';
 import { useRampsController } from '../../../hooks/useRampsController';
-import {
-  formatCurrency,
-  formatTokenAmount,
-} from '../../../utils/formatCurrency';
+import { useFormatters } from '../../../../../hooks/useFormatters';
 import { Skeleton } from '../../../../../../component-library/components/Skeleton';
 import QuoteDisplay from './QuoteDisplay';
 import PaymentSelectionAlert from './PaymentSelectionAlert';
@@ -54,6 +51,7 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
     quotesError,
     quotesLoading,
   } = useRampsController();
+  const { formatToken, formatCurrency } = useFormatters();
 
   const handleQuotePress = useCallback(
     (quote: Quote) => {
@@ -76,7 +74,7 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
     [quotes, providerIds],
   );
 
-  const currency = userRegion?.country?.currency ?? 'USD';
+  const currency = userRegion?.country?.currency || 'USD';
   const symbol = selectedToken?.symbol ?? '';
 
   if (quotesLoading) {
@@ -158,11 +156,14 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
           const amountOut = quote.quote?.amountOut;
           const cryptoAmount =
             amountOut != null && symbol
-              ? formatTokenAmount(amountOut, symbol)
+              ? formatToken(Number(amountOut), symbol, {
+                  maximumFractionDigits: 6,
+                  minimumFractionDigits: 0,
+                })
               : '';
           const fiatAmount =
             quote.quote?.amountOutInFiat != null
-              ? formatCurrency(quote.quote.amountOutInFiat, currency)
+              ? formatCurrency(Number(quote.quote.amountOutInFiat), currency)
               : null;
           const isSelected = selectedProvider?.id === quote.provider;
 
