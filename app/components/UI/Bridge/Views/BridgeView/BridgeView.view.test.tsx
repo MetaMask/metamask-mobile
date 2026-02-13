@@ -328,7 +328,7 @@ describeForPlatforms('BridgeView', () => {
 
     // TODO: Test is flaky after rebase - search results from mocked fetch do not render as 2 USDT labels.
     // Fix mock/state or assertion (e.g. wait for useTokensWithBalances to map API response to list items).
-    it.skip('shows two USDT when search API returns two USDT on Linea (#25256)', async () => {
+    it('shows two USDT when search API returns two USDT on Linea (#25256)', async () => {
       const LINEA_CHAIN_ID = 59144;
       const verifiedUsdtAddress = '0xA219439258ca9da29E9Cc4cE5596924745e12B93';
       const otherUsdtAddress = '0x0000000000000000000000000000000000000001';
@@ -373,6 +373,16 @@ describeForPlatforms('BridgeView', () => {
                 json: () => Promise.resolve(searchResponse),
               } as Response);
             }
+            return Promise.resolve({
+              ok: true,
+              json: () =>
+                Promise.resolve({
+                  data: [],
+                  count: 0,
+                  totalCount: 0,
+                  pageInfo: { hasNextPage: false },
+                }),
+            } as Response);
           }
           if (urlStr.includes('/getTokens/popular')) {
             return Promise.resolve({
@@ -457,30 +467,21 @@ describeForPlatforms('BridgeView', () => {
 
       const searchInput = await waitFor(
         () => getByTestId('bridge-token-search-input'),
-        { timeout: 3000 },
+        { timeout: 5000 },
       );
       fireEvent.changeText(searchInput, 'USDT');
 
-      // Flush search debounce (300ms in useSearchTokens) so the fetch runs and results render
-      jest.useFakeTimers();
-      try {
-        await act(async () => {
-          await jest.advanceTimersByTimeAsync(350);
-        });
-        jest.useRealTimers();
-        await waitFor(
-          () => {
-            const usdtLabels = getAllByText('USDT');
-            expect(usdtLabels.length).toBe(2);
-          },
-          { timeout: 6000 },
-        );
-      } finally {
-        jest.useRealTimers();
-      }
+      // useSearchTokens debounce is 300ms; wait for fetch + state update + render with real timers
+      await waitFor(
+        () => {
+          const usdtLabels = getAllByText('USDT');
+          expect(usdtLabels.length).toBe(2);
+        },
+        { timeout: 10000 },
+      );
 
       fetchSpy.mockRestore();
-    }, 15000);
+    }, 25000);
 
     it('shows native token in source area when source is native token from token details (#24865)', () => {
       const bnbChainId = '0x38';
