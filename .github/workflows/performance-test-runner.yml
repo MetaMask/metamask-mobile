@@ -10,7 +10,7 @@ on:
       build_type:
         required: true
         type: string
-        description: 'Build type (imported-wallet/onboarding)'
+        description: 'Build type (imported-wallet/onboarding/mm-connect)'
       device_matrix:
         required: true
         type: string
@@ -143,7 +143,7 @@ jobs:
       
       - name: Run Tests
         env:
-          BROWSERSTACK_LOCAL: true
+          BROWSERSTACK_LOCAL: ${{ inputs.build_type == 'mm-connect' && 'true' || '' }}
           BROWSERSTACK_LOCAL_IDENTIFIER: ${{ github.run_id }}
           BROWSERSTACK_BUILD_NAME: ${{ inputs.browserstack_build_name }}
         working-directory: '.'
@@ -172,7 +172,7 @@ jobs:
         with:
           name: ${{ inputs.platform }}-${{ inputs.build_type == 'onboarding' && 'onboarding-flow' || inputs.build_type }}-test-results-${{ matrix.device.name }}-${{ matrix.device.os_version }}
           path: |
-            appwright/test-reports/appwright-report/
+            test-reports/appwright-report/
             appwright/reporters/reports
           if-no-files-found: ignore
           retention-days: 7
