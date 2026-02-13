@@ -53,13 +53,11 @@ function setCache(
     dataRecorded: boolean;
   }>,
 ): void {
-  if (!cached) {
-    cached = {
-      deleteRegulationId: undefined,
-      deleteRegulationDate: undefined,
-      dataRecorded: false,
-    };
-  }
+  cached ??= {
+    deleteRegulationId: undefined,
+    deleteRegulationDate: undefined,
+    dataRecorded: false,
+  };
   if (updates.deleteRegulationId !== undefined)
     cached.deleteRegulationId = updates.deleteRegulationId;
   if (updates.deleteRegulationDate !== undefined)
