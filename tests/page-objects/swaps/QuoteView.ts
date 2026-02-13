@@ -52,6 +52,14 @@ class QuoteView {
     return Matchers.getElementByText(QuoteViewSelectorText.NETWORK_FEE);
   }
 
+  get bridgeViewScroll(): DetoxElement {
+    return Matchers.getElementByID(QuoteViewSelectorIDs.BRIDGE_VIEW_SCROLL);
+  }
+
+  get keypadDeleteButton(): DetoxElement {
+    return Matchers.getElementByID(QuoteViewSelectorIDs.KEYPAD_DELETE_BUTTON);
+  }
+
   get maxLink(): DetoxElement {
     return Matchers.getElementByText(QuoteViewSelectorText.MAX);
   }
@@ -126,6 +134,16 @@ class QuoteView {
   async tapSourceAmountInput(): Promise<void> {
     await Gestures.waitAndTap(this.amountInput, {
       elemDescription: 'Tap source amount input to open keypad',
+    });
+  }
+
+  /**
+   * Dismisses the keypad (swipe down on keyboard) and scrolls down so the network fee and confirm button are visible.
+   * Call after enterAmount() and before asserting on networkFeeLabel or confirmBridge.
+   */
+  async dismissKeypadAndScrollDown(): Promise<void> {
+    await Gestures.swipe(this.keypadDeleteButton, 'down', {
+      elemDescription: 'Swipe down on keyboard to dismiss keypad',
     });
   }
 

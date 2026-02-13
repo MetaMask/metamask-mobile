@@ -86,17 +86,24 @@ describe(SmokeTrade('Bridge functionality'), () => {
         // Open keypad by tapping source amount input (keypad is in BottomSheet, closed after token selection)
         await QuoteView.tapSourceAmountInput();
         await QuoteView.enterAmount(quantity);
+        await QuoteView.dismissKeypadAndScrollDown();
+
         await Assertions.expectElementToBeVisible(QuoteView.networkFeeLabel, {
           timeout: 60000,
+          description: 'Network fee label visible',
         });
-        await Assertions.expectElementToBeVisible(QuoteView.confirmBridge);
+        await Assertions.expectElementToBeVisible(QuoteView.confirmBridge, {
+          description: 'Confirm bridge button visible',
+        });
 
         await QuoteView.tapConfirmBridge();
 
-        // Check the bridge activity completed
-        await Assertions.expectElementToBeVisible(ActivitiesView.title);
+        await Assertions.expectElementToBeVisible(ActivitiesView.title, {
+          description: 'Activity title visible',
+        });
         await Assertions.expectElementToBeVisible(
           ActivitiesView.bridgeActivityTitle(destNetwork),
+          { description: 'Bridge activity for destination network visible' },
         );
       },
     );
