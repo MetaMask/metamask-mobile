@@ -424,7 +424,9 @@ export const selectIsGasIncluded7702Supported = (state: RootState) =>
 
 const selectControllerFields = (state: RootState) => ({
   ...state.engine.backgroundState.BridgeController,
-  gasFeeEstimatesByChainId: state.engine.backgroundState.GasFeeController.gasFeeEstimatesByChainId ?? {},
+  gasFeeEstimatesByChainId:
+    state.engine.backgroundState.GasFeeController.gasFeeEstimatesByChainId ??
+    {},
   ...state.engine.backgroundState.MultichainAssetsRatesController,
   ...state.engine.backgroundState.TokenRatesController,
   ...state.engine.backgroundState.CurrencyRateController,
