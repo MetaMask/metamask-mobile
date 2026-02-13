@@ -14,12 +14,12 @@ import type { PerpsProviderType, RoutingStrategy } from '../types';
 /**
  * Parameters for selecting a provider for an operation
  */
-export interface RouterSelectParams {
+export type RouterSelectParams = {
   /** Asset identifier (e.g., 'BTC', 'ETH', 'xyz:TSLA') */
   symbol?: string;
   /** Explicit provider override - if provided, always used */
   providerId?: PerpsProviderType;
-}
+};
 
 /**
  * ProviderRouter handles routing decisions for write operations

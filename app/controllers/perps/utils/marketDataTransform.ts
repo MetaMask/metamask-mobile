@@ -51,21 +51,21 @@ export function calculateOpenInterestUSD(
 /**
  * HyperLiquid-specific market data structure
  */
-export interface HyperLiquidMarketData {
+export type HyperLiquidMarketData = {
   universe: PerpsUniverse[];
   assetCtxs: PerpsAssetCtx[];
   allMids: AllMidsResponse;
   predictedFundings?: PredictedFunding[];
-}
+};
 
 /**
  * Parameters for calculating 24h percentage change
  */
-interface CalculateChange24hPercentParams {
+type CalculateChange24hPercentParams = {
   hasCurrentPrice: boolean;
   currentPrice: number;
   prevDayPrice: number;
-}
+};
 
 /**
  * Calculate 24h percentage change
@@ -90,20 +90,20 @@ function calculateChange24hPercent(
 /**
  * Funding data extracted from predicted fundings
  */
-interface FundingData {
+type FundingData = {
   nextFundingTime?: number;
   fundingIntervalHours?: number;
   predictedFundingRate?: number;
-}
+};
 
 /**
  * Parameters for extracting funding data
  */
-interface ExtractFundingDataParams {
+type ExtractFundingDataParams = {
   predictedFundings?: PredictedFunding[];
   symbol: string;
   exchangeName?: string;
-}
+};
 
 /**
  * Extract funding data for a symbol from predicted fundings.

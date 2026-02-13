@@ -461,6 +461,13 @@
     "pendingApprovalCount": 0,
     "approvalFlows": []
   },
+  "AssetsController": {
+    "assetPreferences": {},
+    "assetsBalance": {},
+    "assetsMetadata": {},
+    "assetsPrice": {},
+    "customAssets": {}
+  },
   "PermissionController": {
     "subjects": {}
   },
@@ -744,7 +751,7 @@
     "subscriptions": {}
   },
   "PredictController": {
-    "eligibility": {},
+    "eligibility": { "eligible": false },
     "lastError": null,
     "lastUpdateTimestamp": 0,
     "balances": {},

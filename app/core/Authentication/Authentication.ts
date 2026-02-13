@@ -68,13 +68,22 @@ import AccountTreeInitService from '../../multichain-accounts/AccountTreeInitSer
 import { renewSeedlessControllerRefreshTokens } from '../OAuthService/SeedlessControllerHelper';
 import { EntropySourceId } from '@metamask/keyring-api';
 import MetaMetrics from '../Analytics/MetaMetrics';
+import { createDataDeletionTask as createDataDeletionTaskUtil } from '../../util/analytics/analyticsDataDeletion';
 import { resetProviderToken as depositResetProviderToken } from '../../components/UI/Ramp/Deposit/utils/ProviderTokenVault';
 import { setAllowLoginWithRememberMe } from '../../actions/security';
-import { Alert } from 'react-native';
+import { Alert, Platform } from 'react-native';
 import { strings } from '../../../locales/i18n';
 import trackErrorAsAnalytics from '../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { IconName } from '../../component-library/components/Icons/Icon';
-import { ReauthenticateErrorType } from './types';
+import { AuthCapabilities, ReauthenticateErrorType } from './types';
+import {
+  isEnrolledAsync,
+  supportedAuthenticationTypesAsync,
+  getEnrolledLevelAsync,
+  SecurityLevel,
+  authenticateAsync,
+} from 'expo-local-authentication';
+import { getAuthToggleLabel } from './utils';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -332,9 +341,10 @@ class AuthenticationService {
    * @param authType - type of authentication required to fetch password from keychain
    * @protected
    */
-  protected storePassword = async (
+  storePassword = async (
     password: string,
     authType: AUTHENTICATION_TYPE,
+    fallbackToPassword?: boolean,
   ): Promise<void> => {
     try {
       // Store password in keychain with appropriate type
@@ -413,11 +423,15 @@ class AuthenticationService {
       }
       this.dispatchPasswordSet();
     } catch (error) {
-      throw new AuthenticationError(
-        (error as Error).message,
-        AUTHENTICATION_STORE_PASSWORD_FAILED,
-        this.authData,
-      );
+      if (fallbackToPassword) {
+        await this.storePassword(password, AUTHENTICATION_TYPE.PASSWORD);
+      } else {
+        throw new AuthenticationError(
+          (error as Error).message,
+          AUTHENTICATION_STORE_PASSWORD_FAILED,
+          this.authData,
+        );
+      }
     }
     password = this.wipeSensitiveData();
   };
@@ -433,31 +447,6 @@ class AuthenticationService {
         AUTHENTICATION_RESET_PASSWORD_FAILED,
         this.authData,
       );
-    }
-  };
-
-  /**
-   * store password with fallback to password authType if the storePassword with non Password authType fails
-   * it should only apply for create wallet, import wallet and reset password flows for now
-   *
-   * @param password - password to store
-   * @param authData - authentication data
-   * @returns void
-   */
-  storePasswordWithFallback = async (password: string, authData: AuthData) => {
-    try {
-      await this.storePassword(password, authData.currentAuthType);
-      this.authData = authData;
-    } catch (error) {
-      if (authData.currentAuthType === AUTHENTICATION_TYPE.PASSWORD) {
-        throw error;
-      }
-      // Fall back to password authType
-      await this.storePassword(password, AUTHENTICATION_TYPE.PASSWORD);
-      this.authData = {
-        currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
-        availableBiometryType: authData.availableBiometryType,
-      };
     }
   };
 
@@ -535,6 +524,32 @@ class AuthenticationService {
   };
 
   /**
+   * Request biometrics access control from the user for iOS only
+   * @param authType - type of authentication to request access control for
+   * @returns type of authentication to use after requesting access control
+   */
+  requestBiometricsAccessControlForIOS = async (
+    authType: AUTHENTICATION_TYPE,
+  ): Promise<AUTHENTICATION_TYPE> => {
+    if (Platform.OS === 'ios' && authType === AUTHENTICATION_TYPE.BIOMETRIC) {
+      try {
+        // Prompt user for biometrics access control
+        const result = await authenticateAsync({ disableDeviceFallback: true });
+        if (!result.success) {
+          // Fallback to use password as authentication type
+          return AUTHENTICATION_TYPE.PASSWORD;
+        }
+        return authType;
+      } catch {
+        // NOSONAR - intentional fallback to password on any biometric failure
+        return AUTHENTICATION_TYPE.PASSWORD;
+      }
+    }
+
+    return authType;
+  };
+
+  /**
    * Setting up a new wallet for new users
    * @param password - password provided by user
    * @param authData - type of authentication required to fetch password from keychain
@@ -551,7 +566,7 @@ class AuthenticationService {
         await this.createWalletVaultAndKeychain(password);
       }
 
-      await this.storePasswordWithFallback(password, authData);
+      await this.storePassword(password, authData.currentAuthType, true);
       ReduxService.store.dispatch(setExistingUser(true));
       await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
 
@@ -586,7 +601,7 @@ class AuthenticationService {
   ): Promise<void> => {
     try {
       await this.newWalletVaultAndRestore(password, parsedSeed, clearEngine);
-      await this.storePasswordWithFallback(password, authData);
+      await this.storePassword(password, authData.currentAuthType, true);
       ReduxService.store.dispatch(setExistingUser(true));
       await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
       await this.dispatchLogin({
@@ -604,6 +619,87 @@ class AuthenticationService {
     }
     password = this.wipeSensitiveData();
     parsedSeed = this.wipeSensitiveData();
+  };
+
+  /**
+   * Fetches the authentication capabilities of the device.
+   * Prioritizes Remember Me first, then biometrics, then passcode/pincode/pattern, then password.
+   * iOS: "Face ID" | "Touch ID" | "Device Passcode"
+   * Android: "Biometrics" | "Device PIN/Pattern"
+   *
+   * @param osAuthEnabled - Whether the OS-level authentication is enabled from user settings (from user preference state in Redux)
+   * @param allowLoginWithRememberMe - Whether Remember Me is enabled from user settings (from user preference state in Redux)
+   * @returns {AuthCapabilities} - The authentication capabilities of the device.
+   */
+  getAuthCapabilities = async (
+    osAuthEnabled: boolean,
+    allowLoginWithRememberMe: boolean,
+  ): Promise<AuthCapabilities> => {
+    try {
+      // Fetch all capabilities in parallel
+      const [
+        isBiometricsAvailable,
+        supportedOSAuthenticationTypes,
+        capabilitySecurityLevel,
+      ] = await Promise.all([
+        isEnrolledAsync(),
+        supportedAuthenticationTypesAsync(),
+        getEnrolledLevelAsync(),
+      ]);
+
+      // Device supports biometrics but they're not available
+      // iOS: user denied permission for this app
+      // Android: user hasn't enrolled biometrics on device
+      const biometricsDisabledOnOS =
+        !isBiometricsAvailable && supportedOSAuthenticationTypes.length > 0;
+
+      // Check if passcode is available
+      // iOS: if passcode is available
+      // Android: if pincode/pattern is available
+      const passcodeAvailable = capabilitySecurityLevel >= SecurityLevel.SECRET;
+
+      const isAuthToggleVisible = isBiometricsAvailable || passcodeAvailable;
+
+      // Derive the authentication type for keychain storage based on capabilities + user preference
+      // Priority: REMEMBER_ME > BIOMETRIC > PASSCODE > PASSWORD
+      let authStorageType: AUTHENTICATION_TYPE;
+
+      if (allowLoginWithRememberMe) {
+        authStorageType = AUTHENTICATION_TYPE.REMEMBER_ME;
+      } else if (isBiometricsAvailable && osAuthEnabled) {
+        authStorageType = AUTHENTICATION_TYPE.BIOMETRIC;
+      } else if (passcodeAvailable && osAuthEnabled) {
+        authStorageType = AUTHENTICATION_TYPE.PASSCODE;
+      } else {
+        authStorageType = AUTHENTICATION_TYPE.PASSWORD;
+      }
+
+      return {
+        isBiometricsAvailable,
+        biometricsDisabledOnOS,
+        isAuthToggleVisible,
+        authToggleLabel: getAuthToggleLabel({
+          isBiometricsAvailable,
+          supportedOSAuthenticationTypes,
+          passcodeAvailable,
+          allowLoginWithRememberMe,
+        }),
+        osAuthEnabled,
+        allowLoginWithRememberMe,
+        authStorageType,
+      };
+    } catch (error) {
+      // On error, default to no capabilities
+      return {
+        isBiometricsAvailable: false,
+        biometricsDisabledOnOS: false,
+        isAuthToggleVisible: false,
+        authToggleLabel: '',
+        osAuthEnabled,
+        allowLoginWithRememberMe,
+        authStorageType: AUTHENTICATION_TYPE.PASSWORD,
+      };
+    }
   };
 
   /**
@@ -675,7 +771,7 @@ class AuthenticationService {
           // Perform post login operations.
           await this.dispatchLogin();
           this.dispatchPasswordSet();
-          void this.postLoginAsyncOperations();
+          this.postLoginAsyncOperations().catch(() => undefined);
 
           // Mark user as existing after successful unlock
           ReduxService.store.dispatch(setExistingUser(true));
@@ -1404,7 +1500,7 @@ class AuthenticationService {
   protected async deleteUser(): Promise<void> {
     try {
       ReduxService.store.dispatch(setExistingUser(false));
-      await MetaMetrics.getInstance().createDataDeletionTask();
+      await createDataDeletionTaskUtil();
     } catch (error) {
       const errorMsg = `Failed to reset existingUser state in Redux`;
       Logger.log(error, errorMsg);
