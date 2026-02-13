@@ -963,6 +963,60 @@ describe('BuildQuote', () => {
       );
     });
 
+    it('does not navigate to error modal when customActions are available but success quotes are empty', () => {
+      mockQuotes = {
+        success: [],
+        sorted: [],
+        error: [],
+        customActions: [
+          {
+            buy: {
+              provider: {
+                id: '/providers/paypal',
+                name: 'PayPal',
+              },
+            },
+          },
+        ],
+      };
+      mockQuotesLoading = false;
+
+      renderWithTheme(<BuildQuote />);
+
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        'RootModalFlow',
+        expect.objectContaining({
+          screen: 'RampErrorModal',
+          params: expect.objectContaining({
+            errorType: 'no_quotes',
+          }),
+        }),
+      );
+    });
+
+    it('navigates to error modal when both success quotes and customActions are empty', () => {
+      mockQuotes = {
+        success: [],
+        sorted: [],
+        error: [],
+        customActions: [],
+      };
+      mockQuotesLoading = false;
+
+      renderWithTheme(<BuildQuote />);
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'RootModalFlow',
+        expect.objectContaining({
+          screen: 'RampErrorModal',
+          params: expect.objectContaining({
+            errorType: 'no_quotes',
+            isCritical: false,
+          }),
+        }),
+      );
+    });
+
     it('navigates to error modal when getWidgetUrl returns null', async () => {
       mockSelectedQuote = {
         provider: '/providers/mercuryo',

@@ -298,7 +298,8 @@ function BuildQuote() {
       !quotesError &&
       hasAmount &&
       quotes &&
-      quotes.success.length === 0;
+      quotes.success.length === 0 &&
+      (!quotes.customActions || quotes.customActions.length === 0);
 
     if (hasNoQuotes && hasShownErrorRef.current === null) {
       setErrorState({ type: 'no_quotes', isCritical: false });
