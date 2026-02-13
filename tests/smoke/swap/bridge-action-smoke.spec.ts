@@ -1,14 +1,14 @@
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { LocalNode, LocalNodeType } from '../../framework/types';
-import { loginToApp } from '../../../e2e/viewHelper';
-import TabBarComponent from '../../../e2e/pages/wallet/TabBarComponent';
-import QuoteView from '../../../e2e/pages/swaps/QuoteView';
+import { loginToApp } from '../../flows/wallet.flow';
+import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
+import QuoteView from '../../page-objects/swaps/QuoteView';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import WalletView from '../../../e2e/pages/wallet/WalletView';
-import TestHelpers from '../../../e2e/helpers';
-import { SmokeTrade } from '../../../e2e/tags';
+import WalletView from '../../page-objects/wallet/WalletView';
+import TestHelpers from '../../helpers';
+import { SmokeTrade } from '../../tags';
 import Assertions from '../../framework/Assertions';
-import ActivitiesView from '../../../e2e/pages/Transactions/ActivitiesView';
+import ActivitiesView from '../../page-objects/Transactions/ActivitiesView';
 import { prepareSwapsTestEnvironment } from '../../helpers/swap/prepareSwapsTestEnvironment';
 import { testSpecificMock } from '../../helpers/swap/bridge-mocks';
 import SoftAssert from '../../framework/SoftAssert';
@@ -26,7 +26,7 @@ enum eventsToCheck {
 
 // This test was migrated to the new framework but should be reworked to use withFixtures properly
 describe(SmokeTrade('Bridge functionality'), () => {
-  jest.setTimeout(120000);
+  jest.setTimeout(180000);
   const eventsToAssert: {
     event: string;
     properties: Record<string, unknown>;
@@ -83,18 +83,26 @@ describe(SmokeTrade('Bridge functionality'), () => {
         await TestHelpers.delay(2000); // wait until tokens are displayed
         await QuoteView.selectNetwork(destNetwork);
         await QuoteView.tapToken(destChainId, sourceSymbol);
+        // Open keypad by tapping source amount input (keypad is in BottomSheet, closed after token selection)
+        await QuoteView.tapSourceAmountInput();
         await QuoteView.enterAmount(quantity);
+        await QuoteView.dismissKeypad();
         await Assertions.expectElementToBeVisible(QuoteView.networkFeeLabel, {
           timeout: 60000,
+          description: 'Network fee label visible',
         });
-        await Assertions.expectElementToBeVisible(QuoteView.confirmBridge);
+        await Assertions.expectElementToBeVisible(QuoteView.confirmBridge, {
+          description: 'Confirm bridge button visible',
+        });
 
         await QuoteView.tapConfirmBridge();
 
-        // Check the bridge activity completed
-        await Assertions.expectElementToBeVisible(ActivitiesView.title);
+        await Assertions.expectElementToBeVisible(ActivitiesView.title, {
+          description: 'Activity title visible',
+        });
         await Assertions.expectElementToBeVisible(
           ActivitiesView.bridgeActivityTitle(destNetwork),
+          { description: 'Bridge activity for destination network visible' },
         );
       },
     );

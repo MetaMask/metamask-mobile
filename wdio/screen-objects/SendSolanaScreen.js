@@ -1,7 +1,7 @@
 import AppwrightSelectors from '../../tests/framework/AppwrightSelectors';
 import AppwrightGestures from '../../tests/framework/AppwrightGestures';
 import { expect as appwrightExpect } from 'appwright';
-import TimerHelper from '../../appwright/utils/TimersHelper.js';
+import TimerHelper from '../../tests/framework/utils/TimersHelper.js';
 import { SendActionViewSelectorsIDs } from '../../tests/selectors/SendFlow/SendActionView.selectors';
 
 class SendSolanaScreen {

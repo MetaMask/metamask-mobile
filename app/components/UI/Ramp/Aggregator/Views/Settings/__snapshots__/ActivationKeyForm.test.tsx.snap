@@ -575,6 +575,7 @@ exports[`AddActivationKey renders correctly 1`] = `
                                     onFocus={[Function]}
                                     onSubmitEditing={[Function]}
                                     placeholder="Add a label to this key"
+                                    placeholderTextColor="#686e7d"
                                     returnKeyType="done"
                                     style={
                                       {
@@ -587,8 +588,8 @@ exports[`AddActivationKey renders correctly 1`] = `
                                         "fontWeight": "400",
                                         "height": 46,
                                         "letterSpacing": 0,
+                                        "lineHeight": 0,
                                         "opacity": 1,
-                                        "paddingVertical": 2,
                                         "textAlignVertical": "center",
                                       }
                                     }
@@ -688,6 +689,7 @@ exports[`AddActivationKey renders correctly 1`] = `
                                     onFocus={[Function]}
                                     onSubmitEditing={[Function]}
                                     placeholder="Paste or type an activation key"
+                                    placeholderTextColor="#686e7d"
                                     returnKeyType="done"
                                     spellCheck={false}
                                     style={
@@ -701,8 +703,8 @@ exports[`AddActivationKey renders correctly 1`] = `
                                         "fontWeight": "400",
                                         "height": 46,
                                         "letterSpacing": 0,
+                                        "lineHeight": 0,
                                         "opacity": 1,
-                                        "paddingVertical": 2,
                                         "textAlignVertical": "center",
                                       }
                                     }

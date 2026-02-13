@@ -12,10 +12,13 @@ import {
   GET_POPULAR_TOKENS_MAINNET_RESPONSE,
   GET_POPULAR_TOKENS_BASE_RESPONSE,
 } from './constants';
+import { setupSpotPricesMock } from './swap-mocks';
 
 export const testSpecificMock: TestSpecificMock = async (
   mockServer: Mockttp,
 ) => {
+  await setupSpotPricesMock(mockServer);
+
   // Set up feature flags with chainRanking for network pills
   await setupRemoteFeatureFlagsMock(mockServer, {
     bridgeConfigV2: {

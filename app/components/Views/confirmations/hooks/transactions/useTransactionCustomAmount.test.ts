@@ -408,10 +408,8 @@ describe('useTransactionCustomAmount', () => {
       expect(result.current.amountFiat).toBe('1234.56');
       expect(setTransactionConfigMock).toHaveBeenCalledTimes(1);
 
-      // Verify the callback sets isMaxAmount to true
-      const callback = setTransactionConfigMock.mock.calls[0][1];
       const config = { isMaxAmount: false };
-      callback(config);
+      setTransactionConfigMock.mock.calls[0][1](config);
       expect(config.isMaxAmount).toBe(true);
     });
 
@@ -456,10 +454,8 @@ describe('useTransactionCustomAmount', () => {
         result.current.updatePendingAmountPercentage(50);
       });
 
-      // Verify the callback sets isMaxAmount to false
-      const callback = setTransactionConfigMock.mock.calls[0][1];
       const config = { isMaxAmount: true };
-      callback(config);
+      setTransactionConfigMock.mock.calls[0][1](config);
       expect(config.isMaxAmount).toBe(false);
     });
   });
@@ -473,10 +469,8 @@ describe('useTransactionCustomAmount', () => {
       result.current.updatePendingAmount('100');
     });
 
-    // Verify the callback sets isMaxAmount to false
-    const callback = setTransactionConfigMock.mock.calls[0][1];
     const config = { isMaxAmount: true };
-    callback(config);
+    setTransactionConfigMock.mock.calls[0][1](config);
     expect(config.isMaxAmount).toBe(false);
   });
 });

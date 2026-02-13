@@ -4,7 +4,7 @@ import {
   renderHookWithProvider,
   type DeepPartial,
 } from '../../../../util/test/renderWithProvider';
-import type { AccountState, Position } from '../controllers/types';
+import type { AccountState, Position } from '@metamask/perps-controller';
 import {
   usePerpsPositionForAsset,
   _clearPositionCache,
@@ -193,20 +193,20 @@ describe('usePerpsPositionForAsset', () => {
       expect(result.current.error).toBeNull();
     });
 
-    it('calls getPositions with readOnly mode and user address', async () => {
+    it('calls getPositions with standalone mode and user address', async () => {
       renderHookWithProvider(() => usePerpsPositionForAsset('ETH'), {
         state: createMockState(),
       });
 
       await waitFor(() => {
         expect(mockGetPositions).toHaveBeenCalledWith({
-          readOnly: true,
+          standalone: true,
           userAddress: mockUserAddress,
         });
       });
 
       expect(mockGetAccountState).toHaveBeenCalledWith({
-        readOnly: true,
+        standalone: true,
         userAddress: mockUserAddress,
       });
     });

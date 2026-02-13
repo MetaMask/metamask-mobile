@@ -1,22 +1,23 @@
-import { SmokeWalletPlatform } from '../../../../e2e/tags';
+import { SmokeWalletPlatform } from '../../../tags';
 import Assertions from '../../../framework/Assertions';
 import FixtureBuilder, {
   DEFAULT_FIXTURE_ACCOUNT_2,
   DEFAULT_FIXTURE_ACCOUNT_CHECKSUM,
 } from '../../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
-import TestDApp from '../../../../e2e/pages/Browser/TestDApp';
-import Browser from '../../../../e2e/pages/Browser/BrowserView';
-import ConnectedAccountsModal from '../../../../e2e/pages/Browser/ConnectedAccountsModal';
-import { loginToApp, navigateToBrowserView } from '../../../../e2e/viewHelper';
+import TestDApp from '../../../page-objects/Browser/TestDApp';
+import Browser from '../../../page-objects/Browser/BrowserView';
+import ConnectedAccountsModal from '../../../page-objects/Browser/ConnectedAccountsModal';
+import { loginToApp } from '../../../flows/wallet.flow';
+import { navigateToBrowserView } from '../../../flows/browser.flow';
 import {
   Caip25CaveatType,
   Caip25EndowmentPermissionName,
 } from '@metamask/chain-agnostic-permission';
 import { DappVariants } from '../../../framework/Constants';
-import ToastModal from '../../../../e2e/pages/wallet/ToastModal';
-import AccountListBottomSheet from '../../../../e2e/pages/wallet/AccountListBottomSheet';
-import NetworkListModal from '../../../../e2e/pages/Network/NetworkListModal';
+import ToastModal from '../../../page-objects/wallet/ToastModal';
+import AccountListBottomSheet from '../../../page-objects/wallet/AccountListBottomSheet';
+import NetworkListModal from '../../../page-objects/Network/NetworkListModal';
 import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../../api-mocking/mock-responses/feature-flags-mocks';
 
