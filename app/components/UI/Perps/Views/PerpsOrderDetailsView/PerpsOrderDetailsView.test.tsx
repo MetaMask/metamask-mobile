@@ -12,7 +12,7 @@ let mockRouteParams: { order?: Order } = {};
 const mockCancelOrder = jest.fn();
 const mockShowToast = jest.fn();
 const mockGetExplorerUrl = jest.fn();
-const mockUsePerpsOrderFees = jest.fn(() => ({
+const mockUsePerpsOrderFees = jest.fn((_params?: unknown) => ({
   totalFee: 0.5,
   makerFee: 0.2,
   takerFee: 0.3,

@@ -35,6 +35,7 @@ import {
 } from '../../utils/formatUtils';
 import {
   formatOrderLabel,
+  getValidOrderPrice,
   getValidTriggerPrice,
   inferTriggerConditionKey,
   isSyntheticOrderCancelable,
@@ -74,10 +75,11 @@ const PerpsOrderDetailsView: React.FC = () => {
       };
     }
 
-    const parsedPrice = parseFloat(order.price ?? '0');
+    const validOrderPrice = getValidOrderPrice(order);
     const validTriggerPrice = getValidTriggerPrice(order);
-    const hasPrice = Number.isFinite(parsedPrice) && parsedPrice > 0;
-    const effectivePrice = hasPrice ? parsedPrice : (validTriggerPrice ?? 0);
+    const parsedPrice = validOrderPrice ?? 0;
+    const hasPrice = validOrderPrice !== null;
+    const effectivePrice = validOrderPrice ?? validTriggerPrice ?? 0;
 
     return { parsedPrice, validTriggerPrice, hasPrice, effectivePrice };
   }, [order]);

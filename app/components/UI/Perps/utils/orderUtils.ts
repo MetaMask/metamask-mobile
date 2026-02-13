@@ -29,9 +29,21 @@ export const getValidTriggerPrice = (order: Order): number | null => {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
 };
 
+/**
+ * Parses the execution/limit price from an order, returning null when absent or invalid.
+ */
+export const getValidOrderPrice = (order: Order): number | null => {
+  const parsed = parseFloat(order.price ?? '');
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+};
+
 const getAbsoluteOrderSize = (order: Order): BigNumber | null => {
   const size = order.originalSize || order.size;
-  const parsedSize = new BigNumber(size || '0');
+  if (!size) {
+    return null;
+  }
+
+  const parsedSize = new BigNumber(size);
   if (!parsedSize.isFinite() || parsedSize.lte(0)) {
     return null;
   }
@@ -275,7 +287,10 @@ const buildSyntheticTriggerOrder = (
     triggerType === 'tp'
       ? `Take Profit ${isMarketParent ? 'Market' : 'Limit'}`
       : `Stop ${isMarketParent ? 'Market' : 'Limit'}`;
-  const size = parentOrder.originalSize || parentOrder.size || '0';
+  const size = parentOrder.originalSize || parentOrder.size;
+  if (!size) {
+    return null;
+  }
   const existingChildOrderId =
     triggerType === 'tp'
       ? parentOrder.takeProfitOrderId

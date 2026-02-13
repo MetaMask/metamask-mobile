@@ -22,7 +22,11 @@ import {
   formatPercentage,
   PRICE_RANGES_MINIMAL_VIEW,
 } from '../../utils/formatUtils';
-import { formatOrderLabel, getValidTriggerPrice } from '../../utils/orderUtils';
+import {
+  formatOrderLabel,
+  getValidOrderPrice,
+  getValidTriggerPrice,
+} from '../../utils/orderUtils';
 import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
 import PerpsTokenLogo from '../PerpsTokenLogo';
 import styleSheet from './PerpsCard.styles';
@@ -89,16 +93,15 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
         normalizedDetailedOrderType.includes('limit'),
     );
     const validTriggerPrice = getValidTriggerPrice(order);
-    const triggerOrLimitPrice =
-      validTriggerPrice !== null ? order.triggerPrice : order.price;
-    const parsedOrderPrice = parseFloat(triggerOrLimitPrice ?? '0');
+    const validOrderPrice = getValidOrderPrice(order);
+    const displayPrice = validTriggerPrice ?? validOrderPrice;
 
     primaryText = formatOrderLabel(order);
     secondaryText = `${formatPositionSize(order.originalSize)} ${displaySymbol}`;
 
     valueText =
-      parsedOrderPrice > 0
-        ? formatPerpsFiat(parsedOrderPrice, {
+      displayPrice !== null
+        ? formatPerpsFiat(displayPrice, {
             ranges: PRICE_RANGES_MINIMAL_VIEW,
           })
         : strings('perps.order.market');
