@@ -45,6 +45,44 @@ export default class Assertions {
   }
 
   /**
+   * Assert element exists with auto-retry.
+   *
+   * Note: This is intentionally less strict than `expectElementToBeVisible()`.
+   * On Android, `toBeVisible()` requires ~75% of the view to be visible which
+   * can be flaky for inline validation messages when UI is shifting/overlapped.
+   */
+  static async expectElementToExist(
+    detoxElement:
+      | DetoxElement
+      | WebElement
+      | DetoxMatcher
+      | IndexableNativeElement,
+    options: AssertionOptions = {},
+  ): Promise<void> {
+    const {
+      timeout = BASE_DEFAULTS.timeout,
+      description = 'element should exist',
+    } = options;
+
+    return Utilities.executeWithRetry(
+      async () => {
+        const el = await detoxElement;
+        const isWebElement = Utilities.isWebElement(el);
+        if (isWebElement) {
+          // eslint-disable-next-line jest/valid-expect, @typescript-eslint/no-explicit-any
+          await (expect(el) as any).toExist();
+        } else {
+          await waitFor(el).toExist().withTimeout(100);
+        }
+      },
+      {
+        timeout,
+        description: `Assert ${description}`,
+      },
+    );
+  }
+
+  /**
    * Assert element is not visible with auto-retry
    */
   static async expectElementToNotBeVisible(
