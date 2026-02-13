@@ -26,15 +26,22 @@ import { isHardwareAccount } from '../../../../../util/address';
 import { BridgeQuoteResponse } from '../../types';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
+import type { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import Engine from '../../../../../core/Engine';
 
 interface Props {
   latestSourceBalance: ReturnType<typeof useLatestBalance>;
   /** Optional testID override (e.g. when rendered inside keypad to avoid duplicate IDs in E2E) */
   testID?: string;
+  /** The entry point location for analytics (e.g. Main View, Token View, trending_explore) */
+  location?: MetaMetricsSwapsEventSource;
 }
 
-export const SwapsConfirmButton = ({ latestSourceBalance, testID }: Props) => {
+export const SwapsConfirmButton = ({
+  latestSourceBalance,
+  testID,
+  location,
+}: Props) => {
   const dispatch = useDispatch();
   const navigation = useNavigation();
   const { submitBridgeTx } = useSubmitBridgeTx();
@@ -89,6 +96,7 @@ export const SwapsConfirmButton = ({ latestSourceBalance, testID }: Props) => {
 
         await submitBridgeTx({
           quoteResponse,
+          location,
         });
       }
     } catch (error) {

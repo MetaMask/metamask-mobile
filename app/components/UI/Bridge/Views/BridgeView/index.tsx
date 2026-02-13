@@ -416,7 +416,10 @@ const BridgeView = () => {
             />
           )}
 
-          <SwapsConfirmButton latestSourceBalance={latestSourceBalance} />
+          <SwapsConfirmButton
+            latestSourceBalance={latestSourceBalance}
+            location={route.params?.location}
+          />
           <Box flexDirection={FlexDirection.Row} alignItems={AlignItems.center}>
             <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
               {hasFee
@@ -545,6 +548,7 @@ const BridgeView = () => {
             <SwapsConfirmButton
               latestSourceBalance={latestSourceBalance}
               testID={BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD}
+              location={route.params?.location}
             />
           ) : (
             <GaslessQuickPickOptions
