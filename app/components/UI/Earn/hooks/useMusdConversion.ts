@@ -106,18 +106,29 @@ export interface MusdConversionConfig {
  * transfer encoding and MetaMask Pay's Relay integration, which are specific to
  * EVM networks.
  *
- * This hook handles both transaction creation and navigation to the confirmation screen.
+ * Returns functions for both conversion entry points:
+ * - `initiateCustomConversion`: starts the custom-amount conversion flow
+ * - `initiateMaxConversion`: creates and opens a max-amount conversion flow
+ * It also exposes conversion error state and helpers.
  *
  * @example
- * const { initiateConversion } = useMusdConversion();
+ * const {
+ *   initiateCustomConversion,
+ *   initiateMaxConversion,
+ *   clearError,
+ *   error,
+ *   hasSeenConversionEducationScreen,
+ * } = useMusdConversion();
  *
- * await initiateConversion({
+ * await initiateCustomConversion({
  *   preferredPaymentToken: {
  *     address: USDC_ADDRESS_MAINNET,
  *     chainId: CHAIN_IDS.MAINNET,
  *   },
  *   navigationStack: Routes.EARN.ROOT,
  * });
+ *
+ * @returns Conversion actions (`initiateMaxConversion`, `initiateCustomConversion`, `clearError`) and conversion state (`error`, `hasSeenConversionEducationScreen`).
  */
 export const useMusdConversion = () => {
   const [error, setError] = useState<string | null>(null);
@@ -222,7 +233,7 @@ export const useMusdConversion = () => {
         // Navigate to modal stack AFTER transaction is created
         // This ensures approvalRequest exists when the confirmation screen renders
         navigation.navigate(Routes.EARN.MODALS.ROOT, {
-          screen: Routes.EARN.MODALS.MUSD_MAX_CONVERSION,
+          screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
           params: {
             variant: MusdConversionVariant.QUICK_CONVERT,
             token,

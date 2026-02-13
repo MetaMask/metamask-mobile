@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import React, { useCallback, useMemo, useRef } from 'react';
 import { ScrollView } from 'react-native';
 import { useSelector } from 'react-redux';
 import BigNumber from 'bignumber.js';
@@ -81,10 +81,6 @@ const MusdBalancesByNetworkBottomSheet = () => {
     networkConfigurations,
     tokenBalanceByChain,
   ]);
-
-  useEffect(() => {
-    bottomSheetRef.current?.onOpenBottomSheet();
-  }, []);
 
   const handleClose = useCallback(() => {
     bottomSheetRef.current?.onCloseBottomSheet();
