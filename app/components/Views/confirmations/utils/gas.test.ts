@@ -88,7 +88,7 @@ describe('gas utils', () => {
       expect(result.preciseNativeFeeInHex).toBe('0x5572e9c22d00');
     });
 
-    it('passes null conversionRate to getValueFromWeiHex when nativeConversionRate is null', () => {
+    it('passes BigNumber(0) conversionRate to getValueFromWeiHex when nativeConversionRate is null', () => {
       getFeesFromHex({
         hexFee: '0x5572e9c22d00',
         nativeConversionRate: null,
@@ -107,7 +107,7 @@ describe('gas utils', () => {
       expect(mockGetValueFromWeiHex).toHaveBeenCalledWith(
         expect.objectContaining({
           fromCurrency: 'GWEI',
-          conversionRate: null,
+          conversionRate: new BigNumber(0),
         }),
       );
     });

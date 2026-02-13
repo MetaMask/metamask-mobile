@@ -38,7 +38,7 @@ export function getFeesFromHex({
 
   const nativeConversionRateInBN =
     nativeConversionRate === undefined || nativeConversionRate === null
-      ? null
+      ? new BigNumber(0)
       : new BigNumber(nativeConversionRate);
   const locale = I18n.locale;
   const nativeCurrencyFee = formatAmount(
