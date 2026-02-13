@@ -1299,27 +1299,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         </View>
 
         {/* Fixed Actions Footer */}
-        {(hasAddFundsButton || hasLongShortButtons) && !isTradingHalted && (
+        {hasLongShortButtons && !isTradingHalted && (
           <View style={styles.actionsFooter}>
-            {hasAddFundsButton && (
-              <View style={styles.singleActionContainer}>
-                <Text
-                  variant={TextVariant.BodySM}
-                  color={TextColor.Alternative}
-                >
-                  {strings('perps.market.add_funds_to_start_trading_perps')}
-                </Text>
-                <Button
-                  variant={ButtonVariants.Primary}
-                  size={ButtonSize.Lg}
-                  width={ButtonWidthTypes.Full}
-                  label={strings('perps.market.add_funds')}
-                  onPress={handleAddFundsPress}
-                  testID={PerpsMarketDetailsViewSelectorsIDs.ADD_FUNDS_BUTTON}
-                />
-              </View>
-            )}
-
             {/* Show Modify/Close buttons when position exists */}
             {hasLongShortButtons && existingPosition && (
               <View style={styles.actionsContainer}>
