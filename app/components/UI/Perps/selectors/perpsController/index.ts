@@ -79,6 +79,10 @@ const selectIsPerpsBalanceSelected = createSelector(
   (perpsControllerState) => perpsControllerState?.selectedPaymentToken == null,
 );
 
+const selectPerpsPayWithToken = createSelector(
+  selectPerpsControllerState,
+  (perpsControllerState) => perpsControllerState?.selectedPaymentToken,
+);
 /**
  * Selects the current initialization state of the Perps controller.
  * Used by UI components to determine if operations can be performed.
@@ -114,4 +118,5 @@ export {
   selectPerpsMarketFilterPreferences,
   selectPerpsInitializationState,
   selectIsPerpsBalanceSelected,
+  selectPerpsPayWithToken,
 };

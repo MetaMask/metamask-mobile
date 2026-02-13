@@ -718,6 +718,7 @@ exports[`CardAuthentication Component Login Step - Component Rendering matches l
                                           "fontWeight": "400",
                                           "height": 46,
                                           "letterSpacing": 0,
+                                          "lineHeight": 0,
                                           "opacity": 1,
                                           "textAlignVertical": "center",
                                         }
@@ -832,6 +833,7 @@ exports[`CardAuthentication Component Login Step - Component Rendering matches l
                                           "fontWeight": "400",
                                           "height": 46,
                                           "letterSpacing": 0,
+                                          "lineHeight": 0,
                                           "opacity": 1,
                                           "textAlignVertical": "center",
                                         }
