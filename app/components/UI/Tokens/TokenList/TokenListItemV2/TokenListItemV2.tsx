@@ -490,7 +490,10 @@ export const TokenListItemV2 = React.memo(
               {renderEarnCta()}
 
               {isStockToken(asset as BridgeToken) && (
-                <StockBadge style={styles.stockBadgeWrapper} token={asset} />
+                <StockBadge
+                  style={styles.stockBadgeWrapper}
+                  token={asset as BridgeToken}
+                />
               )}
             </View>
 

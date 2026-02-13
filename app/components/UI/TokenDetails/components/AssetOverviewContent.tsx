@@ -360,7 +360,9 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           ) : (
             <AssetDetailsActions
               displayBuyButton={displayBuyButton && isBuyable}
-              displaySwapsButton={displaySwapsButton}
+              displaySwapsButton={
+                displaySwapsButton && isTokenTradingOpen(token as BridgeToken)
+              }
               goToSwaps={goToSwaps}
               onBuy={onBuy}
               onReceive={onReceive}
