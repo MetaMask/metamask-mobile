@@ -147,10 +147,13 @@ describe('rampsServiceInit', () => {
     ControllerInitRequest<RampsServiceMessenger>
   >;
   const originalEnv = process.env.METAMASK_ENVIRONMENT;
+  const originalGithubActions = process.env.GITHUB_ACTIONS;
+  const originalRampsEnvironment = process.env.RAMPS_ENVIRONMENT;
   const originalOS = Platform.OS;
 
   beforeEach(() => {
     jest.resetAllMocks();
+    process.env.GITHUB_ACTIONS = 'false';
     const baseControllerMessenger = new ExtendedMessenger<MockAnyNamespace>({
       namespace: MOCK_ANY_NAMESPACE,
     });
@@ -159,6 +162,16 @@ describe('rampsServiceInit', () => {
 
   afterEach(() => {
     process.env.METAMASK_ENVIRONMENT = originalEnv;
+    if (originalGithubActions !== undefined) {
+      process.env.GITHUB_ACTIONS = originalGithubActions;
+    } else {
+      delete process.env.GITHUB_ACTIONS;
+    }
+    if (originalRampsEnvironment !== undefined) {
+      process.env.RAMPS_ENVIRONMENT = originalRampsEnvironment;
+    } else {
+      delete process.env.RAMPS_ENVIRONMENT;
+    }
     Platform.OS = originalOS;
   });
 
