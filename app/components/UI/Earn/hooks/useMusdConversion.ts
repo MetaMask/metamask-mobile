@@ -195,7 +195,12 @@ export const useMusdConversion = () => {
         });
 
         // Must be called BEFORE updatePaymentToken.
-        TransactionPayController.setIsMaxAmount(transactionId, true);
+        TransactionPayController.setTransactionConfig(
+          transactionId,
+          (config) => {
+            config.isMaxAmount = true;
+          },
+        );
 
         await GasFeeController.fetchGasFeeEstimates({ networkClientId }).catch(
           () => undefined,
