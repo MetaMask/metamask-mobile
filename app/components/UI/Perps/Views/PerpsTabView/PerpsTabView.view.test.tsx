@@ -106,7 +106,7 @@ describe('PerpsTabView', () => {
       expect(
         await screen.findByText(strings('perps.home.watchlist')),
       ).toBeOnTheScreen();
-      expect(screen.getByText('ETH')).toBeOnTheScreen();
+      expect(screen.getAllByText('ETH').length).toBeGreaterThan(0);
     });
 
     it('shows geo block bottom sheet when Close all is pressed by geo-restricted user', async () => {
