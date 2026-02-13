@@ -29,7 +29,6 @@ import { UserResponse } from '../types';
 import { getErrorMessage } from '../util/getErrorMessage';
 import { mapCountryToLocation } from '../util/mapCountryToLocation';
 import { getCardBaanxToken } from '../util/cardTokenVault';
-import { revokeAllCardOAuth2Tokens } from '../util/revokeCardOAuth2Token';
 
 // Types
 export interface ICardSDK {
@@ -137,9 +136,9 @@ export const CardSDKProvider = ({
   const logoutFromProvider = useCallback(async () => {
     try {
       const tokenResult = await getCardBaanxToken();
-      if (tokenResult?.success && tokenResult?.tokenData) {
+      if (tokenResult?.success && tokenResult?.tokenData && sdk) {
         const { accessToken, refreshToken, location } = tokenResult.tokenData;
-        await revokeAllCardOAuth2Tokens(accessToken, refreshToken, location);
+        await sdk.revokeAllOAuth2Tokens(accessToken, refreshToken, location);
       }
     } catch (error) {
       Logger.error(error as Error, {
@@ -152,7 +151,7 @@ export const CardSDKProvider = ({
     dispatch(clearAllCache());
     dispatch(resetOnboardingState());
     setUser(null);
-  }, [dispatch]);
+  }, [dispatch, sdk]);
 
   // Memoized context value to prevent unnecessary re-renders
   const contextValue = useMemo(

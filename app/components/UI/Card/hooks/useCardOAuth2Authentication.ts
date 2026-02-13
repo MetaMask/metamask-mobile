@@ -2,9 +2,9 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Platform } from 'react-native';
 import {
   useAuthRequest,
-  exchangeCodeAsync,
   ResponseType,
   type DiscoveryDocument,
+  Prompt,
 } from 'expo-auth-session';
 // expo-web-browser is a peer dependency of expo-auth-session
 // eslint-disable-next-line import/no-extraneous-dependencies, import/namespace
@@ -24,6 +24,8 @@ import {
 } from '../../../../core/redux/slices/card';
 import { BaanxOAuth2Error, BaanxOAuth2ErrorType } from '../types';
 import { strings } from '../../../../../locales/i18n';
+import { useCardSDK } from '../sdk';
+import { generateState } from '../util/pkceHelpers';
 
 // Web only: Ensures auth popup closes properly
 maybeCompleteAuthSession();
@@ -44,22 +46,7 @@ const OAUTH2_SCOPES = [
  * Baanx DEV uses 20 minutes, production may differ.
  */
 const DEFAULT_REFRESH_TOKEN_EXPIRES_IN_SECONDS = 20 * 60;
-
-/**
- * Redirect URIs for the OAuth2 authorization flow.
- *
- * iOS uses a custom scheme (`metamask://card-oauth`) because
- * ASWebAuthenticationSession with `callbackURLScheme: "https"` can
- * interfere with intermediate HTTPS navigations inside the Baanx
- * login page, causing the page to reload after credential submission.
- * A custom scheme gives ASWebAuthenticationSession an unambiguous
- * callback target, leaving all HTTPS navigations untouched.
- *
- * Android uses a universal link (`https://link.metamask.io/card-oauth`)
- * which is registered in the DeeplinkManager as a no-op so it doesn't
- * interfere with expo-auth-session's Linking listener.
- */
-const OAUTH_REDIRECT_URI_IOS = 'metamask://card-oauth';
+const OAUTH_REDIRECT_URI_IOS = 'io.metamask.Metamask://card-oauth';
 const OAUTH_REDIRECT_URI_ANDROID = 'https://link.metamask.io/card-oauth';
 
 const getOAuthRedirectUri = (): string =>
@@ -87,12 +74,11 @@ const buildDiscoveryDocument = (baseUrl: string): DiscoveryDocument => ({
  */
 const getErrorMessage = (errorType: BaanxOAuth2ErrorType): string => {
   switch (errorType) {
-    case BaanxOAuth2ErrorType.USER_CANCELLED:
-    case BaanxOAuth2ErrorType.USER_DISMISSED:
-      return strings('card.card_authentication.errors.auth_cancelled');
     case BaanxOAuth2ErrorType.NETWORK_ERROR:
       return strings('card.card_authentication.errors.network_error');
     case BaanxOAuth2ErrorType.TOKEN_EXCHANGE_FAILED:
+      return strings('card.card_authentication.errors.server_error');
+    case BaanxOAuth2ErrorType.INVALID_STATE:
       return strings('card.card_authentication.errors.server_error');
     default:
       return strings('card.card_authentication.errors.unknown_error');
@@ -118,6 +104,7 @@ export interface UseCardOAuth2AuthenticationReturn {
 const useCardOAuth2Authentication = (): UseCardOAuth2AuthenticationReturn => {
   const dispatch = useDispatch();
   const location = useSelector(selectUserCardLocation);
+  const { sdk } = useCardSDK();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -130,6 +117,7 @@ const useCardOAuth2Authentication = (): UseCardOAuth2AuthenticationReturn => {
   );
 
   const redirectUri = getOAuthRedirectUri();
+  const state = useMemo(() => generateState(), []);
 
   useEffect(() => {
     warmUpAsync();
@@ -141,10 +129,12 @@ const useCardOAuth2Authentication = (): UseCardOAuth2AuthenticationReturn => {
   const [request, , promptAsync] = useAuthRequest(
     {
       clientId,
-      scopes: OAUTH2_SCOPES,
-      redirectUri,
       responseType: ResponseType.Code,
+      redirectUri,
+      scopes: OAUTH2_SCOPES,
       usePKCE: true,
+      state,
+      prompt: Prompt.Consent,
     },
     discovery,
   );
@@ -155,15 +145,8 @@ const useCardOAuth2Authentication = (): UseCardOAuth2AuthenticationReturn => {
     setError(null);
   }, []);
 
-  /**
-   * Start the full OAuth2 login flow:
-   * 1. Open browser for authorization
-   * 2. Exchange code for tokens
-   * 3. Store tokens
-   * 4. Update Redux state
-   */
   const login = useCallback(async (): Promise<void> => {
-    if (!isReady || !request || !clientId) {
+    if (!isReady || !request || !clientId || !sdk) {
       setError(strings('card.card_authentication.errors.configuration_error'));
       return;
     }
@@ -172,24 +155,9 @@ const useCardOAuth2Authentication = (): UseCardOAuth2AuthenticationReturn => {
     setError(null);
 
     try {
-      // Step 1: Open browser for authorization
       const result = await promptAsync();
 
-      if (result.type === 'cancel') {
-        const cancelError = new BaanxOAuth2Error(
-          BaanxOAuth2ErrorType.USER_CANCELLED,
-          'User cancelled the authorization',
-        );
-        setError(getErrorMessage(cancelError.type));
-        return;
-      }
-
-      if (result.type === 'dismiss') {
-        const dismissError = new BaanxOAuth2Error(
-          BaanxOAuth2ErrorType.USER_DISMISSED,
-          'User dismissed the authorization',
-        );
-        setError(getErrorMessage(dismissError.type));
+      if (result.type === 'cancel' || result.type === 'dismiss') {
         return;
       }
 
@@ -204,6 +172,17 @@ const useCardOAuth2Authentication = (): UseCardOAuth2AuthenticationReturn => {
         return;
       }
 
+      if (result.params.state !== request.state) {
+        Logger.error(
+          new Error(
+            `OAuth2 state mismatch: expected=${request.state}, received=${result.params.state}`,
+          ),
+          { tags: { feature: 'card', operation: 'oauth2Login' } },
+        );
+        setError(getErrorMessage(BaanxOAuth2ErrorType.INVALID_STATE));
+        return;
+      }
+
       const { code } = result.params;
       const codeVerifier = request.codeVerifier;
 
@@ -212,39 +191,27 @@ const useCardOAuth2Authentication = (): UseCardOAuth2AuthenticationReturn => {
         return;
       }
 
-      // Step 2: Exchange authorization code for tokens
-      const tokenResponse = await exchangeCodeAsync(
-        {
-          clientId,
-          code,
-          redirectUri,
-          extraParams: {
-            code_verifier: codeVerifier,
-          },
-        },
-        discovery,
-      );
+      const tokenResponse = await sdk.exchangeOAuth2Code({
+        code,
+        codeVerifier,
+        redirectUri,
+        clientId,
+        location,
+      });
 
       if (!tokenResponse.accessToken) {
         setError(getErrorMessage(BaanxOAuth2ErrorType.TOKEN_EXCHANGE_FAILED));
         return;
       }
 
-      // Step 3: Store tokens in SecureKeychain
-      // Baanx OAuth2 may not include refresh_token_expires_in in the
-      // standard response. expo-auth-session only exposes standard fields,
-      // so we use a default expiration for the refresh token.
-      const refreshTokenExpiresIn = DEFAULT_REFRESH_TOKEN_EXPIRES_IN_SECONDS;
-
       await storeCardBaanxToken({
         accessToken: tokenResponse.accessToken,
         refreshToken: tokenResponse.refreshToken,
         accessTokenExpiresAt: tokenResponse.expiresIn ?? 600,
-        refreshTokenExpiresAt: refreshTokenExpiresIn as number,
+        refreshTokenExpiresAt: DEFAULT_REFRESH_TOKEN_EXPIRES_IN_SECONDS,
         location,
       });
 
-      // Step 4: Update Redux auth state
       dispatch(setIsAuthenticatedAction(true));
       dispatch(setUserCardLocation(location));
 
@@ -266,9 +233,9 @@ const useCardOAuth2Authentication = (): UseCardOAuth2AuthenticationReturn => {
     isReady,
     request,
     clientId,
+    sdk,
     promptAsync,
     redirectUri,
-    discovery,
     location,
     dispatch,
   ]);

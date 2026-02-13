@@ -7145,8 +7145,7 @@
         "network_error": "Network error. Please check your connection and try again.",
         "timeout_error": "Request timed out. Please check your connection and try again.",
         "server_error": "Server error. Please try again later.",
-        "configuration_error": "Service is temporarily unavailable. Please try again later.",
-        "auth_cancelled": "Login was cancelled. Please try again."
+        "configuration_error": "Service is temporarily unavailable. Please try again later."
       }
     },
     "card_otp_authentication": {

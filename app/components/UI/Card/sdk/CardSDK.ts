@@ -2129,4 +2129,195 @@ export class CardSDK {
       ephemeralPublicKey: data.ephemeralPublicKey,
     };
   };
+
+  private static readonly DEFAULT_REFRESH_TOKEN_EXPIRES_IN_SECONDS = 20 * 60;
+  private static readonly OAUTH2_TIMEOUT_MS = 30_000;
+
+  exchangeOAuth2Code = async (params: {
+    code: string;
+    codeVerifier: string;
+    redirectUri: string;
+    clientId: string;
+    location?: CardLocation;
+  }): Promise<{
+    accessToken: string;
+    refreshToken?: string;
+    expiresIn?: number;
+  }> => {
+    const { code, codeVerifier, redirectUri, clientId, location } = params;
+
+    const formBody = new URLSearchParams({
+      grant_type: 'authorization_code',
+      code,
+      code_verifier: codeVerifier,
+      redirect_uri: redirectUri,
+      client_id: clientId,
+    });
+
+    const response = await this.makeRequest('/v1/auth/oauth2/token', {
+      fetchOptions: {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: formBody.toString(),
+      },
+      authenticated: false,
+      ...(location && { location }),
+      timeoutMs: CardSDK.OAUTH2_TIMEOUT_MS,
+    });
+
+    if (!response.ok) {
+      const body = await response.text().catch(() => '');
+      throw this.logAndCreateError(
+        CardErrorType.SERVER_ERROR,
+        `Token exchange failed (${response.status}): ${body}`,
+        'exchangeOAuth2Code',
+        'auth/oauth2/token',
+        response.status,
+      );
+    }
+
+    const data = await response.json();
+    return {
+      accessToken: data.access_token,
+      refreshToken: data.refresh_token,
+      expiresIn: data.expires_in,
+    };
+  };
+
+  refreshOAuth2Token = async (
+    refreshToken: string,
+    location?: CardLocation,
+  ): Promise<{
+    accessToken: string;
+    expiresIn: number;
+    refreshToken: string;
+    refreshTokenExpiresIn: number;
+    location: CardLocation;
+  }> => {
+    const resolvedLocation = location ?? this.userCardLocation;
+
+    const response = await this.makeRequest('/v1/auth/oauth2/token', {
+      fetchOptions: {
+        method: 'POST',
+        body: JSON.stringify({
+          grant_type: 'refresh_token',
+          refresh_token: refreshToken,
+        }),
+      },
+      authenticated: false,
+      location: resolvedLocation,
+      timeoutMs: CardSDK.OAUTH2_TIMEOUT_MS,
+    });
+
+    if (!response.ok) {
+      let responseBody: string | null = null;
+      try {
+        responseBody = await response.text();
+      } catch {
+        // noop
+      }
+
+      if (response.status === 401 || response.status === 403) {
+        throw this.logAndCreateError(
+          CardErrorType.INVALID_CREDENTIALS,
+          'Token refresh failed. Please try logging in again.',
+          'refreshOAuth2Token',
+          'auth/oauth2/token',
+          response.status,
+          { responseBody },
+        );
+      }
+
+      throw this.logAndCreateError(
+        CardErrorType.SERVER_ERROR,
+        `Token refresh failed with status ${response.status}`,
+        'refreshOAuth2Token',
+        'auth/oauth2/token',
+        response.status,
+        { responseBody },
+      );
+    }
+
+    const data = await response.json();
+
+    const refreshTokenExpiresIn =
+      data.refresh_token_expires_in ??
+      CardSDK.DEFAULT_REFRESH_TOKEN_EXPIRES_IN_SECONDS;
+
+    return {
+      accessToken: data.access_token,
+      expiresIn: data.expires_in,
+      refreshToken: data.refresh_token,
+      refreshTokenExpiresIn,
+      location: resolvedLocation,
+    };
+  };
+
+  revokeOAuth2Token = async (options: {
+    token: string;
+    tokenHint: 'access_token' | 'refresh_token';
+    location?: CardLocation;
+  }): Promise<boolean> => {
+    const { token, tokenHint, location } = options;
+
+    try {
+      const response = await this.makeRequest('/v1/auth/oauth2/revoke', {
+        fetchOptions: {
+          method: 'POST',
+          body: JSON.stringify({ token, token_hint: tokenHint }),
+        },
+        authenticated: false,
+        ...(location && { location }),
+        timeoutMs: CardSDK.OAUTH2_TIMEOUT_MS,
+      });
+
+      if (!response.ok) {
+        Logger.log(
+          `[CardSDK.revokeOAuth2Token] Revocation failed for ${tokenHint} with status ${response.status}`,
+        );
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      Logger.error(error as Error, {
+        tags: { feature: 'card', operation: 'revokeOAuth2Token' },
+        context: {
+          name: 'card_oauth2_revoke',
+          data: { tokenHint },
+        },
+      });
+      return false;
+    }
+  };
+
+  revokeAllOAuth2Tokens = async (
+    accessToken: string,
+    refreshToken: string | undefined,
+    location?: CardLocation,
+  ): Promise<void> => {
+    const revocations: Promise<boolean>[] = [];
+
+    revocations.push(
+      this.revokeOAuth2Token({
+        token: accessToken,
+        tokenHint: 'access_token',
+        location,
+      }),
+    );
+
+    if (refreshToken) {
+      revocations.push(
+        this.revokeOAuth2Token({
+          token: refreshToken,
+          tokenHint: 'refresh_token',
+          location,
+        }),
+      );
+    }
+
+    await Promise.allSettled(revocations);
+  };
 }
