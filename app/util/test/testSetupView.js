@@ -39,6 +39,11 @@ jest.mock('react-native', () => {
     allowFontScaling: true,
     style: true,
   };
+  originalModule.Image.propTypes = {
+    ...(originalModule.Image?.propTypes || {}),
+    source: true,
+    style: true,
+  };
   originalModule.ViewPropTypes = {
     ...(originalModule.ViewPropTypes || {}),
     style: true,
