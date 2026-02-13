@@ -41,13 +41,12 @@ export const test = base.extend({
       PlatformDetector.setPlatform(platform);
     }
     const server = new CommandQueueServer();
-    const port = await startResourceWithRetry(
-      ResourceType.COMMAND_QUEUE_SERVER,
-      server,
-    );
+    server.setServerPort(FALLBACK_COMMAND_QUEUE_SERVER_PORT);
+    await server.start();
     server.setSrpCount(srpCount);
+
     console.log(
-      `[Performance] Command queue server started on port ${port} with srpCount=${srpCount}`,
+      `[Performance] Command queue server started on port ${server.getServerPort()} with srpCount=${srpCount}`,
     );
     await use(server);
     await server.stop();
