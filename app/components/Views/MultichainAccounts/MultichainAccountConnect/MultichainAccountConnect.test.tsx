@@ -25,6 +25,7 @@ import {
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { PermissionDoesNotExistError } from '@metamask/permission-controller';
 import { RpcEndpointType, NetworkStatus } from '@metamask/network-controller';
+import { WC2VerifyValidation } from '../../../../actions/sdk/state';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -2174,7 +2175,7 @@ describe('MultichainAccountConnect', () => {
             icon: '',
             verifyContext: {
               isScam: true,
-              validation: 'INVALID',
+              validation: WC2VerifyValidation.INVALID,
               verifiedOrigin: 'https://malicious-dapp.com',
             },
           },
@@ -2194,7 +2195,7 @@ describe('MultichainAccountConnect', () => {
             icon: '',
             verifyContext: {
               isScam: false,
-              validation: 'VALID',
+              validation: WC2VerifyValidation.VALID,
               verifiedOrigin: 'https://safe-dapp.com',
             },
           },

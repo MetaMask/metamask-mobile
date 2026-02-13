@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import sdkReducer, { initialState } from './index';
 import { ActionType } from '../../actions/sdk';
-import { SDKState } from '../../actions/sdk/state';
+import { SDKState, WC2VerifyValidation } from '../../actions/sdk/state';
 import { ConnectionProps } from '../../core/SDKConnect/Connection';
 
 describe('SDK Reducer', () => {
@@ -63,7 +63,7 @@ describe('SDK Reducer', () => {
         ...mockWC2Metadata,
         verifyContext: {
           isScam: true,
-          validation: 'INVALID' as const,
+          validation: WC2VerifyValidation.INVALID,
           verifiedOrigin: 'https://malicious-dapp.com',
         },
       };

@@ -5,6 +5,7 @@ import renderWithProvider, {
 import AccountConnect from './AccountConnect';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { RootState } from '../../../reducers';
+import { WC2VerifyValidation } from '../../../actions/sdk/state';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import Engine from '../../../core/Engine';
 import {
@@ -1171,7 +1172,7 @@ describe('AccountConnect', () => {
             icon: '',
             verifyContext: {
               isScam: true,
-              validation: 'INVALID',
+              validation: WC2VerifyValidation.INVALID,
               verifiedOrigin: 'https://malicious-dapp.com',
             },
           },
@@ -1257,7 +1258,7 @@ describe('AccountConnect', () => {
             icon: '',
             verifyContext: {
               isScam: false,
-              validation: 'VALID',
+              validation: WC2VerifyValidation.VALID,
               verifiedOrigin: 'https://safe-dapp.com',
             },
           },
@@ -1304,7 +1305,7 @@ describe('AccountConnect', () => {
             icon: '',
             verifyContext: {
               isScam: true,
-              validation: 'INVALID',
+              validation: WC2VerifyValidation.INVALID,
             },
           },
         },
