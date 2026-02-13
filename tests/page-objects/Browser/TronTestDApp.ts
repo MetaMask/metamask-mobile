@@ -92,20 +92,32 @@ class TronTestDApp {
     await Gestures.tap(webElement);
   }
 
+  /**
+   * Connect to the Tron Test DApp
+   */
   async connect(): Promise<void> {
     await this.tapButton(this.connectButtonSelector);
   }
 
+  /**
+   * Disconnect from the Tron Test DApp
+   */
   async disconnect(): Promise<void> {
     await this.tapButton(this.disconnectButtonDropdownSelector);
 
     await this.tapButton(this.disconnectButtonSelector);
   }
 
+  /**
+   * Select the MetaMask wallet
+   */
   async selectMetaMask(): Promise<void> {
     await this.tapButton(this.walletButtonSelector);
   }
 
+  /**
+   * Verify the connection status
+   */
   async verifyConnectionStatus(
     expectedConnectionStatus: string,
   ): Promise<void> {
@@ -129,6 +141,9 @@ class TronTestDApp {
     );
   }
 
+  /**
+   * Verify the connected account
+   */
   async verifyConnectedAccount(expectedAccount: string): Promise<void> {
     await Utilities.executeWithRetry(
       async () => {
@@ -153,6 +168,9 @@ class TronTestDApp {
     );
   }
 
+  /**
+   * Verify the signed message
+   */
   async verifySignedMessage(signedMessage: string): Promise<void> {
     await Utilities.executeWithRetry(
       async () => {
@@ -177,6 +195,9 @@ class TronTestDApp {
     );
   }
 
+  /**
+   * Get the connected account
+   */
   async getAccount(): Promise<string> {
     const account = await getTestElement(dataTestIds.testPage.header.account, {
       extraXPath: '/div/a',
@@ -184,6 +205,9 @@ class TronTestDApp {
     return await account.getText();
   }
 
+  /**
+   * Click the sign message button
+   */
   async signMessage(): Promise<void> {
     await this.tapButton(
       getTestElement(dataTestIds.testPage.signMessage.signMessage, {
@@ -192,6 +216,9 @@ class TronTestDApp {
     );
   }
 
+  /**
+   * Click the confirm sign message button
+   */
   async confirmSignMessage(): Promise<void> {
     await Gestures.waitAndTap(this.confirmSignMessageButtonSelector);
   }
