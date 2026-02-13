@@ -32,7 +32,6 @@ import {
 import { setLockTime as setLockTimeAction } from '../../../actions/settings';
 import Engine from '../../../core/Engine';
 import OAuthLoginService from '../../../core/OAuthService/OAuthService';
-import Device from '../../../util/device';
 import { passcodeType } from '../../../util/authentication';
 import { strings } from '../../../../locales/i18n';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
@@ -188,7 +187,7 @@ const ChoosePassword = () => {
       const errorWithMessage = err as ErrorWithMessage;
       return Boolean(
         authType.oauth2Login &&
-          errorWithMessage.message?.includes('SeedlessOnboardingController'),
+        errorWithMessage.message?.includes('SeedlessOnboardingController'),
       );
     },
     [],
@@ -390,7 +389,6 @@ const ChoosePassword = () => {
       password,
       isOAuthPasswordCreationError,
       handleOAuthPasswordCreationError,
-      handleRejectedOsBiometricPrompt,
       recreateVault,
       dispatch,
     ],
@@ -729,11 +727,11 @@ const ChoosePassword = () => {
                       >
                         {Platform.OS === 'ios' && getOauth2LoginSuccess()
                           ? strings(
-                              'choose_password.description_social_login_update_ios',
-                            )
+                            'choose_password.description_social_login_update_ios',
+                          )
                           : strings(
-                              'choose_password.description_social_login_update',
-                            )}
+                            'choose_password.description_social_login_update',
+                          )}
                         {Platform.OS === 'android' && (
                           <Text
                             variant={TextVariant.BodyMD}
