@@ -27,9 +27,9 @@ export function onUnapprovedTransaction(
   if (
     isHardwareSwapApproveOrSwapTransaction(
       data,
-      transactionMeta.origin,
       to,
       transactionMeta.chainId,
+      transactionMeta.type,
       transactionMeta.txParams.from,
     ) ||
     isHardwareBridgeTransaction(transactionMeta)
