@@ -167,7 +167,8 @@
     "@metamask/assets-controllers@npm:^99.2.0": "patch:@metamask/assets-controllers@npm%3A99.2.0#~/.yarn/patches/@metamask-assets-controllers-npm-99.2.0-bf6ecbcde9.patch",
     "@metamask/bridge-controller@npm:^65.3.0": "patch:@metamask/bridge-controller@npm%3A65.3.0#~/.yarn/patches/@metamask-bridge-controller-npm-65.3.0-f766782954.patch",
     "@metamask/bridge-controller@npm:^65.2.0": "patch:@metamask/bridge-controller@npm%3A65.3.0#~/.yarn/patches/@metamask-bridge-controller-npm-65.3.0-f766782954.patch",
-    "@metamask/bridge-controller@npm:^65.1.0": "patch:@metamask/bridge-controller@npm%3A65.3.0#~/.yarn/patches/@metamask-bridge-controller-npm-65.3.0-f766782954.patch"
+    "@metamask/bridge-controller@npm:^65.1.0": "patch:@metamask/bridge-controller@npm%3A65.3.0#~/.yarn/patches/@metamask-bridge-controller-npm-65.3.0-f766782954.patch",
+    "@metamask/accounts-controller": "^36.0.0"
   },
   "dependencies": {
     "@config-plugins/detox": "^9.0.0",
