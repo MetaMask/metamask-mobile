@@ -9,36 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [7.65.0]
 
-### Uncategorized
-
-- Updates to disable hiding of mUSD token similar to network tokens but does not display by default (#25640)
-- Fixed incorrect title for confirmation screens (#25594)
-- Migrated Earn headers to use HeaderCenter component (#25053)
-- chore(release): sync stable to main for version 7.65.0 (#25471)
-- Standardized headers across activity views to use HeaderCenter component (#25075)
-- Migrated region and state selector modal headers to use HeaderCenter component (#25084)
-- Updated General Settings page and select modal headers to use consistent HeaderCenter component styling (#25356)
-- Removed usage of token-search-discovery-controller (#25435)
-- Updates the transaction details page for musd conversions such that we support gasless transaction info (#25349)
-- Remove epd feature flag (#23725)
-- Added pull-to-refresh functionality to Wallet screen that refreshes account balance and active tab content (#23618)
-- chore(release): sync stable to main for version 7.65.0 (#25381)
-- Add tempo network logo. (#25187)
-- Gate rewards referral code in Perps PnL hero card behind `rewardsReferralCodeEnabled` feature flag (#25282)
-- Added .env in expo updates step (#25236)
-- Rewards feature flag cleanup (#25316)
-- Removed "Powered by Relay" from the mUSD conversion input screen (#25318)
-- Rewards modal copy changes for eos (#25313)
-- N/a (#25018)
-- Added mitmproxy documentation and Android debug config for WebSocket traffic inspection (#25155)
-- Stop using swaps fetchTokens function (#25109)
-- Remove support for token search on the browser (#25111)
-- chore: enable ota version display in production builds (#25225)
-- chore(release): sync stable to main for version 7.65.0 (#25200)
-- Remove withdrawals restrictions (#25189)
-- Bump tron-wallet-snap package to 1.19.2 (#25166)
-- Improved error messages in Perps trading to show user-friendly descriptions instead of technical error codes (#24986)
-
 ### Added
 
 - Added WebSocket connection health toast notification for Perps trading to show real-time connection status with manual retry (#25022)
