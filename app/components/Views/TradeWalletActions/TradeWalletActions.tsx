@@ -47,6 +47,7 @@ import {
 } from '../../UI/Earn/selectors/featureFlags';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { selectPredictEnabledFlag } from '../../UI/Predict';
+import { selectLeaderboardEnabledFlag } from '../../UI/Leaderboard';
 import { PredictEventValues } from '../../UI/Predict/constants/eventNames';
 import { EVENT_LOCATIONS as STAKE_EVENT_LOCATIONS } from '../../UI/Stake/constants/events';
 import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
@@ -96,6 +97,7 @@ function TradeWalletActions() {
   const canSignTransactions = useSelector(selectCanSignTransactions);
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
+  const isLeaderboardEnabled = useSelector(selectLeaderboardEnabledFlag);
 
   const isStablecoinLendingEnabled = useSelector(
     selectStablecoinLendingEnabledFlag,
@@ -183,6 +185,13 @@ function TradeWalletActions() {
     };
     handleNavigateBack();
   }, [handleNavigateBack, navigate, trackEvent, createEventBuilder, chainId]);
+
+  const onLeaderboard = useCallback(() => {
+    postCallback.current = () => {
+      navigate(Routes.LEADERBOARD.ROOT);
+    };
+    handleNavigateBack();
+  }, [handleNavigateBack, navigate]);
 
   useFocusEffect(
     useCallback(() => {
@@ -310,6 +319,17 @@ function TradeWalletActions() {
                     onPress={onEarn}
                     testID={WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON}
                     isDisabled={!canSignTransactions}
+                  />
+                )}
+                {isLeaderboardEnabled && (
+                  <ActionListItem
+                    label={strings('leaderboard.menu_title')}
+                    description={strings('leaderboard.menu_description')}
+                    iconName={IconName.People}
+                    onPress={onLeaderboard}
+                    testID={
+                      WalletActionsBottomSheetSelectorsIDs.LEADERBOARD_BUTTON
+                    }
                   />
                 )}
               </Box>

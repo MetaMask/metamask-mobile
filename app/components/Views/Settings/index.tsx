@@ -90,6 +90,10 @@ const Settings = () => {
     navigation.navigate(Routes.RAMP.SETTINGS);
   };
 
+  const onPressLeaderboard = () => {
+    navigation.navigate(Routes.SETTINGS.LEADERBOARD);
+  };
+
   const onPressExperimental = () => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.SETTINGS_EXPERIMENTAL).build(),
@@ -194,6 +198,12 @@ const Settings = () => {
           description={strings('app_settings.fiat_on_ramp.description')}
           onPress={onPressOnRamp}
           testID={SettingsViewSelectorsIDs.ON_RAMP}
+        />
+        <SettingsDrawer
+          title={strings('leaderboard.title')}
+          description={strings('leaderboard.settings_desc')}
+          onPress={onPressLeaderboard}
+          testID={SettingsViewSelectorsIDs.LEADERBOARD}
         />
         <SettingsDrawer
           title={strings('app_settings.experimental_title')}

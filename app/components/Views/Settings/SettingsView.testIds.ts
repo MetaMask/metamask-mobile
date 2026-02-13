@@ -27,4 +27,5 @@ export const SettingsViewSelectorsIDs = {
   DEVELOPER_OPTIONS: 'developer-options-settings',
   SNAPS: 'snaps',
   REGION: 'region-settings',
+  LEADERBOARD: 'leaderboard-settings',
 };

@@ -69,6 +69,10 @@ import { BottomSheetRef } from '../../../../../component-library/components/Bott
 import PerpsNavigationCard, {
   NavigationItem,
 } from '../../components/PerpsNavigationCard/PerpsNavigationCard';
+import {
+  LeaderboardCTA,
+  selectLeaderboardEnabledFlag,
+} from '../../../Leaderboard';
 
 const PerpsHomeView = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -80,6 +84,9 @@ const PerpsHomeView = () => {
 
   // Feature flag for feedback button
   const isFeedbackEnabled = useSelector(selectPerpsFeedbackEnabledFlag);
+
+  // Feature flag for leaderboard
+  const isLeaderboardEnabled = useSelector(selectLeaderboardEnabledFlag);
 
   // Use centralized navigation hook
   const perpsNavigation = usePerpsNavigation();
@@ -406,6 +413,11 @@ const PerpsHomeView = () => {
   // Always navigate to wallet home to avoid navigation loops (tutorial/onboarding flow)
   const handleBackPress = perpsNavigation.navigateToWallet;
 
+  // Navigate to the Leaderboard screen
+  const handleLeaderboardPress = useCallback(() => {
+    navigation.navigate(Routes.LEADERBOARD.ROOT);
+  }, [navigation]);
+
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
@@ -427,6 +439,15 @@ const PerpsHomeView = () => {
         <PerpsMarketBalanceActions
           showActionButtons={HOME_SCREEN_CONFIG.ShowHeaderActionButtons}
         />
+
+        {/* Leaderboard CTA */}
+        {isLeaderboardEnabled && (
+          <LeaderboardCTA
+            onPress={handleLeaderboardPress}
+            maxTraders={3}
+            testID="perps-leaderboard-cta"
+          />
+        )}
 
         {/* Positions Section */}
         <PerpsHomeSection
