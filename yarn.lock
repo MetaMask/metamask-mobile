@@ -7298,19 +7298,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ledgerhq/devices@npm:8.4.5":
-  version: 8.4.5
-  resolution: "@ledgerhq/devices@npm:8.4.5"
+"@ledgerhq/devices@npm:8.10.0, @ledgerhq/devices@npm:^8.4.5":
+  version: 8.10.0
+  resolution: "@ledgerhq/devices@npm:8.10.0"
   dependencies:
-    "@ledgerhq/errors": "npm:^6.21.0"
-    "@ledgerhq/logs": "npm:^6.12.0"
-    rxjs: "npm:^7.8.1"
-    semver: "npm:^7.3.5"
-  checksum: 10/ef010adbf333238db752ae74aa42522b0ac8273f083effe4ba26adb8a71efe5d0bad275ed0fb2112e2e74bf0fb853645120ee4663edf049858e6035625342d89
+    "@ledgerhq/errors": "npm:^6.29.0"
+    "@ledgerhq/logs": "npm:^6.14.0"
+    rxjs: "npm:7.8.2"
+    semver: "npm:7.7.3"
+  checksum: 10/8e8f64be325610bb8abb72b1e376c2b1a803f35f23295335a6f26faa626144af8159cbe1970da127deb99ffc8a377c5b880a5f33843a727170dd8d518358e2a9
   languageName: node
   linkType: hard
 
-"@ledgerhq/devices@npm:8.4.6, @ledgerhq/devices@npm:^8.4.5":
+"@ledgerhq/devices@npm:8.4.6":
   version: 8.4.6
   resolution: "@ledgerhq/devices@npm:8.4.6"
   dependencies:
@@ -7337,10 +7337,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ledgerhq/errors@npm:^6.19.1, @ledgerhq/errors@npm:^6.21.0":
-  version: 6.21.0
-  resolution: "@ledgerhq/errors@npm:6.21.0"
-  checksum: 10/c30e6723db95f8cad8740b6e9a83280088d192098aa7f5f3d7a05dc3326413e155ea55b9c8405a9ad85c26287f604046c5b05c598b157e5cd54270d4eb0b186c
+"@ledgerhq/errors@npm:^6.19.1, @ledgerhq/errors@npm:^6.21.0, @ledgerhq/errors@npm:^6.29.0":
+  version: 6.29.0
+  resolution: "@ledgerhq/errors@npm:6.29.0"
+  checksum: 10/0c82f1d50ceb474f9ca158c6709c77a0ecc4e8ef2eaedc76f128a55ad38967afcb9613ca6a54c805fdb78615c1ddea027a30802569e67d162dc57562b1cdf11e
   languageName: node
   linkType: hard
 
@@ -7403,15 +7403,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ledgerhq/hw-transport@npm:^6.31.4, @ledgerhq/hw-transport@npm:^6.31.5, @ledgerhq/hw-transport@npm:^6.31.6":
-  version: 6.31.6
-  resolution: "@ledgerhq/hw-transport@npm:6.31.6"
+"@ledgerhq/hw-transport@npm:6.32.0, @ledgerhq/hw-transport@npm:^6.31.4, @ledgerhq/hw-transport@npm:^6.31.5, @ledgerhq/hw-transport@npm:^6.31.6":
+  version: 6.32.0
+  resolution: "@ledgerhq/hw-transport@npm:6.32.0"
   dependencies:
-    "@ledgerhq/devices": "npm:8.4.6"
-    "@ledgerhq/errors": "npm:^6.21.0"
-    "@ledgerhq/logs": "npm:^6.13.0"
+    "@ledgerhq/devices": "npm:8.10.0"
+    "@ledgerhq/errors": "npm:^6.29.0"
+    "@ledgerhq/logs": "npm:^6.14.0"
     events: "npm:^3.3.0"
-  checksum: 10/e05514de4de8933e90a1494c0b5e5ae1de523df21ab6fe78558122f41ee67817489b776c8c38ff31ec676991a8cdfb1800f8bb1de59c100e349b599c05dfe6eb
+  checksum: 10/5f98044fe23aa9684717f4e0884673e026b61168d7a6ac445c9396844923c2844ee80edfe3d72dfe1ba3d8c8f79b776228704bb005bcc66b3fdfe931916527e1
   languageName: node
   linkType: hard
 
@@ -7425,25 +7425,25 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ledgerhq/logs@npm:^6.12.0, @ledgerhq/logs@npm:^6.13.0":
-  version: 6.13.0
-  resolution: "@ledgerhq/logs@npm:6.13.0"
-  checksum: 10/3ac984bdc533505359cd1d8bc74175547fcfa51fef6294a9fd832e8ea88d462a385be5cfe68ccfa1b77cd68b840243e6f79c2be66fe28f123ae57c58625edf5f
+"@ledgerhq/logs@npm:^6.12.0, @ledgerhq/logs@npm:^6.13.0, @ledgerhq/logs@npm:^6.14.0":
+  version: 6.14.0
+  resolution: "@ledgerhq/logs@npm:6.14.0"
+  checksum: 10/b30b6aeef9df181efe99476a84f95b89ada695c038fbc3f915410f0bae244a342df642f003582c71222b4388cdc58d281e88ae2532ba85911f580d0cbfa4bd3a
   languageName: node
   linkType: hard
 
-"@ledgerhq/react-native-hw-transport-ble@npm:^6.34.1":
-  version: 6.34.1
-  resolution: "@ledgerhq/react-native-hw-transport-ble@npm:6.34.1"
+"@ledgerhq/react-native-hw-transport-ble@npm:^6.37.0":
+  version: 6.37.0
+  resolution: "@ledgerhq/react-native-hw-transport-ble@npm:6.37.0"
   dependencies:
-    "@ledgerhq/devices": "npm:8.4.5"
-    "@ledgerhq/errors": "npm:^6.21.0"
-    "@ledgerhq/hw-transport": "npm:^6.31.5"
-    "@ledgerhq/logs": "npm:^6.12.0"
+    "@ledgerhq/devices": "npm:8.10.0"
+    "@ledgerhq/errors": "npm:^6.29.0"
+    "@ledgerhq/hw-transport": "npm:6.32.0"
+    "@ledgerhq/logs": "npm:^6.14.0"
     react-native-ble-plx: "npm:3.4.0"
-    rxjs: "npm:^7.8.1"
+    rxjs: "npm:7.8.2"
     uuid: "npm:^9.0.1"
-  checksum: 10/b14ed0fc0511264d8c6104c5ddbe2dea6e9c288dc16c56f2e111cd5419e9ac30d3b60be7a79d389b0bacd079dda8ae3dc5de5f189b1ed829f600e6677f65f19a
+  checksum: 10/ad2a41b8c11f0321f691db6fd2ea5b70318ab44280488d51e2f281fc4d94125a9e38925a08d226b893bb6362e064899ad3d7601d7495800eae73150e81cc2cf9
   languageName: node
   linkType: hard
 
@@ -8442,19 +8442,20 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/eth-ledger-bridge-keyring@npm:11.2.0":
-  version: 11.2.0
-  resolution: "@metamask/eth-ledger-bridge-keyring@npm:11.2.0"
+"@metamask/eth-ledger-bridge-keyring@npm:11.3.0":
+  version: 11.3.0
+  resolution: "@metamask/eth-ledger-bridge-keyring@npm:11.3.0"
   dependencies:
     "@ethereumjs/rlp": "npm:^5.0.2"
     "@ethereumjs/tx": "npm:^5.4.0"
     "@ethereumjs/util": "npm:^9.1.0"
     "@ledgerhq/hw-app-eth": "npm:^6.42.0"
     "@metamask/eth-sig-util": "npm:^8.2.0"
-    "@metamask/keyring-api": "npm:^21.3.0"
-    "@metamask/keyring-utils": "npm:^3.1.0"
+    "@metamask/hw-wallet-sdk": "npm:^0.4.0"
+    "@metamask/keyring-api": "npm:^21.4.0"
+    "@metamask/keyring-utils": "npm:^3.2.0"
     hdkey: "npm:^2.1.0"
-  checksum: 10/5658a0e63b1796d3eabe95b69686f95d40d09a4318da6748d20b2990cea07f2ff63b4412f4c9272ec529bfd3b4d249bebe4fc38814a2e379814a768abda859c8
+  checksum: 10/7f8bc5be11cab39acddaa677a3aabb676c308195c31a1e29032ace1eb038c840aeb8c06ce5702c9b191cdd90b16c094a1d39258c53933bde7f7c107cba59da35
   languageName: node
   linkType: hard
 
@@ -8706,6 +8707,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/hw-wallet-sdk@npm:^0.4.0":
+  version: 0.4.0
+  resolution: "@metamask/hw-wallet-sdk@npm:0.4.0"
+  checksum: 10/ef32e257f63674d8920a234e43933062c418ac893e1be06dee69c56a3966311646a0a20fa4a3063da02d37d6058a5efe2beecd5bac0f76cbfedbf752e3ca9f0e
+  languageName: node
+  linkType: hard
+
 "@metamask/json-rpc-engine@npm:^10.0.0, @metamask/json-rpc-engine@npm:^10.0.2, @metamask/json-rpc-engine@npm:^10.0.3, @metamask/json-rpc-engine@npm:^10.1.0, @metamask/json-rpc-engine@npm:^10.1.1, @metamask/json-rpc-engine@npm:^10.2.0, @metamask/json-rpc-engine@npm:^10.2.1":
   version: 10.2.1
   resolution: "@metamask/json-rpc-engine@npm:10.2.1"
@@ -8758,7 +8766,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/keyring-api@npm:^21.0.0, @metamask/keyring-api@npm:^21.2.0, @metamask/keyring-api@npm:^21.3.0, @metamask/keyring-api@npm:^21.4.0":
+"@metamask/keyring-api@npm:^21.0.0, @metamask/keyring-api@npm:^21.2.0, @metamask/keyring-api@npm:^21.4.0":
   version: 21.4.0
   resolution: "@metamask/keyring-api@npm:21.4.0"
   dependencies:
@@ -35356,7 +35364,7 @@ __metadata:
     "@lavamoat/allow-scripts": "npm:^3.0.4"
     "@lavamoat/git-safe-dependencies": "npm:^0.2.1"
     "@lavamoat/react-native-lockdown": "npm:^0.0.2"
-    "@ledgerhq/react-native-hw-transport-ble": "npm:^6.34.1"
+    "@ledgerhq/react-native-hw-transport-ble": "npm:^6.37.0"
     "@metamask/abi-utils": "npm:^3.0.0"
     "@metamask/account-api": "npm:^0.12.0"
     "@metamask/account-tree-controller": "npm:^3.0.0"
@@ -35394,7 +35402,7 @@ __metadata:
     "@metamask/eth-hd-keyring": "npm:^13.0.0"
     "@metamask/eth-json-rpc-filters": "npm:^9.0.0"
     "@metamask/eth-json-rpc-middleware": "npm:^23.1.0"
-    "@metamask/eth-ledger-bridge-keyring": "npm:11.2.0"
+    "@metamask/eth-ledger-bridge-keyring": "npm:11.3.0"
     "@metamask/eth-qr-keyring": "npm:^1.1.0"
     "@metamask/eth-query": "npm:^4.0.0"
     "@metamask/eth-sig-util": "npm:^8.0.0"
@@ -42280,7 +42288,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rxjs@npm:>= 6, rxjs@npm:^7.8.1, rxjs@npm:^7.8.2":
+"rxjs@npm:7.8.2, rxjs@npm:>= 6, rxjs@npm:^7.8.1, rxjs@npm:^7.8.2":
   version: 7.8.2
   resolution: "rxjs@npm:7.8.2"
   dependencies:
