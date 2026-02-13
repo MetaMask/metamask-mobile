@@ -12,7 +12,6 @@ import {
   TrustSignalIcon,
 } from '../../Views/confirmations/utils/trust-signals';
 
-// Re-export trust signal types for convenience
 export { TrustSignalDisplayState } from '../../Views/confirmations/types/trustSignals';
 export type { TrustSignalIcon } from '../../Views/confirmations/utils/trust-signals';
 
@@ -31,11 +30,8 @@ export interface UseDisplayNameResponse {
   subtitle?: string;
   /** @deprecated Use displayState instead */
   variant: DisplayNameVariant;
-  /** The trust signal display state for the address */
   displayState: TrustSignalDisplayState;
-  /** Icon to display based on trust signal state */
   icon: TrustSignalIcon | null;
-  /** Whether this address is a user account */
   isAccount: boolean;
 }
 
@@ -96,52 +92,34 @@ function getVariant({
 }
 
 /**
- * Get the display state for an address based on trust signals and name resolution.
- *
- * Priority logic (matching extension behavior):
- * 1. Malicious takes precedence over everything
- * 2. Saved petname (account name)
- * 3. Warning
- * 4. Recognized name (e.g., "USDC", first-party contracts)
- * 5. Verified
- * 6. Unknown
- *
- * @param trustState - The trust signal state from address scan
- * @param hasPetname - Whether the user has saved a name for this address
- * @param displayName - The resolved display name (if any)
- * @returns The display state to use for rendering
+ * Priority: Malicious > Petname > Warning > Recognized > Verified > Unknown
+ * Matches extension behavior.
  */
 function getDisplayState(
   trustState: TrustSignalDisplayState | undefined,
   hasPetname: boolean,
   displayName: string | null,
 ): TrustSignalDisplayState {
-  // Priority 1: Malicious takes precedence over everything
   if (trustState === TrustSignalDisplayState.Malicious) {
     return TrustSignalDisplayState.Malicious;
   }
 
-  // Priority 2: Saved petname (account name in mobile)
   if (hasPetname) {
     return TrustSignalDisplayState.Petname;
   }
 
-  // Priority 3: Warning
   if (trustState === TrustSignalDisplayState.Warning) {
     return TrustSignalDisplayState.Warning;
   }
 
-  // Priority 4: Recognized name (e.g., "USDC", first-party contracts)
   if (displayName) {
     return TrustSignalDisplayState.Recognized;
   }
 
-  // Priority 5: Verified
   if (trustState === TrustSignalDisplayState.Verified) {
     return TrustSignalDisplayState.Verified;
   }
 
-  // Default: Unknown
   return TrustSignalDisplayState.Unknown;
 }
 
@@ -167,7 +145,6 @@ export function useDisplayNames(
   const accountWalletNames = useAccountWalletNames(requests);
   const { getResolvedENSName } = useSendFlowEnsResolutions();
 
-  // Get trust signals for all address requests
   const trustSignalRequests = requests.map(({ value, variation }) => ({
     address: value,
     chainId: variation,
@@ -183,7 +160,6 @@ export function useDisplayNames(
     const ensName = getResolvedENSName(variation, value);
     const trustSignal = trustSignals[index];
 
-    // Resolve name from various sources (excluding trust signal label initially)
     let name =
       accountName ||
       ensName ||
@@ -193,15 +169,13 @@ export function useDisplayNames(
 
     const hasPetname = Boolean(accountName);
 
-    // Calculate display state with priority logic
     const displayState = getDisplayState(
       trustSignal?.state,
       hasPetname,
       name || null,
     );
 
-    // Use trust signal label as name if no other name exists
-    // This is added after displayState calculation to avoid state recognition conflicts
+    // Applied after displayState to avoid the label triggering Recognized state
     if (!name && trustSignal?.label) {
       name = trustSignal.label;
     }

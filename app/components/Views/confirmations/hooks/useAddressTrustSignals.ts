@@ -9,17 +9,7 @@ import {
   AddressTrustSignalRequest,
 } from '../types/trustSignals';
 
-/**
- * Get the trust signal display state from an address scan result type.
- *
- * When the result type is Benign and a label is present, we consider
- * the address as Verified. This aligns with the extension's behavior
- * where labeled benign addresses are shown as verified.
- *
- * @param resultType - The result type from the address scan
- * @param label - Optional label from the scan result
- * @returns The trust signal display state
- */
+// Benign + label = Verified (matches extension behavior)
 function getTrustState(
   resultType: string | undefined,
   label: string | null | undefined,
@@ -36,10 +26,8 @@ function getTrustState(
     case AddressScanResultType.Loading:
       return TrustSignalDisplayState.Loading;
     case AddressScanResultType.Trusted:
-      // Trusted always maps to Verified
       return TrustSignalDisplayState.Verified;
     case AddressScanResultType.Benign:
-      // Benign with label = Verified, without = Unknown
       return label
         ? TrustSignalDisplayState.Verified
         : TrustSignalDisplayState.Unknown;
@@ -48,12 +36,6 @@ function getTrustState(
   }
 }
 
-/**
- * Hook to get trust signals for multiple addresses.
- *
- * @param requests - Array of address trust signal requests
- * @returns Array of trust signal results
- */
 export function useAddressTrustSignals(
   requests: AddressTrustSignalRequest[],
 ): TrustSignalResult[] {
@@ -74,13 +56,6 @@ export function useAddressTrustSignals(
   );
 }
 
-/**
- * Hook to get trust signal for a single address.
- *
- * @param address - The address to check
- * @param chainId - The chain ID
- * @returns Trust signal result with state and label
- */
 export function useAddressTrustSignal(
   address: string,
   chainId: string,

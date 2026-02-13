@@ -24,9 +24,6 @@ import styleSheet from './Name.styles';
 import { NameProperties, NameType } from './Name.types';
 import { TooltipModal } from '../../Views/confirmations/components/UI/Tooltip';
 
-/**
- * Component to render a trust signal icon if available.
- */
 const TrustIcon: React.FC<{ icon: TrustSignalIcon | null }> = ({ icon }) => {
   if (!icon) {
     return null;
