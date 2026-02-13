@@ -59,9 +59,6 @@ export const DEFAULT_IMPORTED_FIXTURE_ACCOUNT =
 export const DEFAULT_SOLANA_FIXTURE_ACCOUNT =
   'CEQ87PmqFPA8cajAXYVrFT2FQobRrAT4Wd53FvfgYrrd';
 
-export const DEFAULT_TRON_FIXTURE_ACCOUNT =
-  'TLSLTQxPqXEHYVVAM76HsLYqiKpsN4nf2T';
-
 // AccountTreeController Wallet and Group IDs - reused across fixtures
 export const ENTROPY_WALLET_1_ID = `entropy:${MOCK_ENTROPY_SOURCE}`;
 export const ENTROPY_WALLET_2_ID = `entropy:${MOCK_ENTROPY_SOURCE_2}`;
@@ -1423,29 +1420,6 @@ class FixtureBuilder {
       optedIn: true,
       analyticsId: TEST_ANALYTICS_ID,
     };
-    return this;
-  }
-
-  /**
-   * Sets up a minimal Solana fixture with mainnet configuration
-   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining
-   */
-  withSolanaFixture() {
-    const SOLANA_TOKEN = 'token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
-
-    this.fixture.state.engine.backgroundState.MultichainNetworkController = {
-      selectedMultichainNetworkChainId: SolScope.Mainnet,
-      multichainNetworkConfigurationsByChainId: {
-        [SolScope.Mainnet]: {
-          chainId: SolScope.Mainnet,
-          name: 'Solana Mainnet',
-          nativeCurrency: `${SolScope.Mainnet}/${SOLANA_TOKEN}`,
-          isEvm: false,
-        },
-      },
-      isEvmSelected: false,
-    };
-
     return this;
   }
 
