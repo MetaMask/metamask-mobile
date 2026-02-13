@@ -36,9 +36,10 @@ export function getFeesFromHex({
     };
   }
 
-  const nativeConversionRateInBN = nativeConversionRate
-    ? new BigNumber(nativeConversionRate)
-    : null;
+  const nativeConversionRateInBN =
+    nativeConversionRate === undefined || nativeConversionRate === null
+      ? null
+      : new BigNumber(nativeConversionRate);
   const locale = I18n.locale;
   const nativeCurrencyFee = formatAmount(
     locale,
