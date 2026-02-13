@@ -7,6 +7,7 @@ import { AlertKeys } from '../../constants/alerts';
 import { Severity } from '../../types/alerts';
 import { useAddressTrustSignalAlerts } from './useAddressTrustSignalAlerts';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
+import { useTransferRecipient } from '../transactions/useTransferRecipient';
 import { useApproveTransactionData } from '../useApproveTransactionData';
 import { useSignatureRequest } from '../signatures/useSignatureRequest';
 import {
@@ -14,9 +15,14 @@ import {
   parseAndNormalizeSignTypedData,
   isPermitDaiRevoke,
 } from '../../utils/signature';
+import { extractSpenderFromApprovalData } from '../../../../../lib/address-scanning/address-scan-util';
 
 jest.mock('../transactions/useTransactionMetadataRequest', () => ({
   useTransactionMetadataRequest: jest.fn(),
+}));
+
+jest.mock('../transactions/useTransferRecipient', () => ({
+  useTransferRecipient: jest.fn(),
 }));
 
 jest.mock('../useApproveTransactionData', () => ({
@@ -33,10 +39,18 @@ jest.mock('../../utils/signature', () => ({
   isPermitDaiRevoke: jest.fn(),
 }));
 
+jest.mock('../../../../../lib/address-scanning/address-scan-util', () => ({
+  ...jest.requireActual(
+    '../../../../../lib/address-scanning/address-scan-util',
+  ),
+  extractSpenderFromApprovalData: jest.fn(),
+}));
+
 describe('useAddressTrustSignalAlerts', () => {
   const mockUseTransactionMetadataRequest = jest.mocked(
     useTransactionMetadataRequest,
   );
+  const mockUseTransferRecipient = jest.mocked(useTransferRecipient);
   const mockUseApproveTransactionData = jest.mocked(useApproveTransactionData);
   const mockUseSignatureRequest = jest.mocked(useSignatureRequest);
   const mockIsRecognizedPermit = jest.mocked(isRecognizedPermit);
@@ -44,6 +58,7 @@ describe('useAddressTrustSignalAlerts', () => {
     parseAndNormalizeSignTypedData,
   );
   const mockIsPermitDaiRevoke = jest.mocked(isPermitDaiRevoke);
+  const mockExtractSpender = jest.mocked(extractSpenderFromApprovalData);
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -53,6 +68,9 @@ describe('useAddressTrustSignalAlerts', () => {
       },
       chainId: '0x1',
     } as unknown as TransactionMeta);
+    mockUseTransferRecipient.mockReturnValue(
+      '0x1234567890123456789012345678901234567890',
+    );
     mockUseApproveTransactionData.mockReturnValue({
       isRevoke: false,
       isLoading: false,
@@ -64,6 +82,7 @@ describe('useAddressTrustSignalAlerts', () => {
       message: {},
     });
     mockIsPermitDaiRevoke.mockReturnValue(false);
+    mockExtractSpender.mockReturnValue(undefined);
   });
 
   it('returns a malicious alert if the address scan result is Malicious', () => {
@@ -92,7 +111,7 @@ describe('useAddressTrustSignalAlerts', () => {
     expect(result.current).toEqual([
       {
         key: AlertKeys.AddressTrustSignalMalicious,
-        field: RowAlertKey.InteractingWith,
+        field: RowAlertKey.FromToAddress,
         message:
           'If you confirm this request, you will probably lose your assets to a scammer.',
         title: 'Malicious address',
@@ -128,7 +147,7 @@ describe('useAddressTrustSignalAlerts', () => {
     expect(result.current).toEqual([
       {
         key: AlertKeys.AddressTrustSignalWarning,
-        field: RowAlertKey.InteractingWith,
+        field: RowAlertKey.FromToAddress,
         message:
           "We can't verify this address. It may be new or unverified. Only continue if you trust the source.",
         title: 'Address needs review',
@@ -440,6 +459,160 @@ describe('useAddressTrustSignalAlerts', () => {
 
       expect(result.current.length).toBe(1);
       expect(result.current[0].key).toBe(AlertKeys.AddressTrustSignalMalicious);
+    });
+
+    it('uses InteractingWith field for contract interactions with approval data', () => {
+      const spenderAddress = '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd';
+      mockUseApproveTransactionData.mockReturnValue({
+        isRevoke: false,
+        isLoading: false,
+      });
+      mockExtractSpender.mockReturnValue(spenderAddress);
+      mockUseTransactionMetadataRequest.mockReturnValue({
+        txParams: {
+          to: '0x1234567890123456789012345678901234567890',
+          data: '0x095ea7b3',
+        },
+        chainId: '0x1',
+      } as unknown as TransactionMeta);
+
+      const { result } = renderHookWithProvider(
+        () => useAddressTrustSignalAlerts(),
+        {
+          state: {
+            engine: {
+              backgroundState: {
+                PhishingController: {
+                  addressScanCache: {
+                    '0x1:0x1234567890123456789012345678901234567890': {
+                      data: {
+                        // @ts-expect-error - AddressScanResultType is not exported in PhishingController
+                        result_type: 'Malicious',
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      );
+
+      expect(result.current.length).toBe(1);
+      expect(result.current[0].field).toBe(RowAlertKey.InteractingWith);
+    });
+
+    it('uses Spender field when the spender address is malicious', () => {
+      const spenderAddress = '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd';
+      mockUseApproveTransactionData.mockReturnValue({
+        isRevoke: false,
+        isLoading: false,
+      });
+      mockExtractSpender.mockReturnValue(spenderAddress);
+      mockUseTransactionMetadataRequest.mockReturnValue({
+        txParams: {
+          to: '0x1234567890123456789012345678901234567890',
+          data: '0x095ea7b3',
+        },
+        chainId: '0x1',
+      } as unknown as TransactionMeta);
+
+      const { result } = renderHookWithProvider(
+        () => useAddressTrustSignalAlerts(),
+        {
+          state: {
+            engine: {
+              backgroundState: {
+                PhishingController: {
+                  addressScanCache: {
+                    [`0x1:${spenderAddress}`]: {
+                      data: {
+                        // @ts-expect-error - AddressScanResultType is not exported in PhishingController
+                        result_type: 'Malicious',
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      );
+
+      expect(result.current.length).toBe(1);
+      expect(result.current[0].field).toBe(RowAlertKey.Spender);
+    });
+
+    it('uses FromToAddress field for simple transfers without data', () => {
+      mockUseApproveTransactionData.mockReturnValue({
+        isRevoke: false,
+        isLoading: false,
+      });
+
+      const { result } = renderHookWithProvider(
+        () => useAddressTrustSignalAlerts(),
+        {
+          state: {
+            engine: {
+              backgroundState: {
+                PhishingController: {
+                  addressScanCache: {
+                    '0x1:0x1234567890123456789012345678901234567890': {
+                      data: {
+                        // @ts-expect-error - AddressScanResultType is not exported in PhishingController
+                        result_type: 'Malicious',
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      );
+
+      expect(result.current.length).toBe(1);
+      expect(result.current[0].field).toBe(RowAlertKey.FromToAddress);
+    });
+
+    it('uses FromToAddress field for token transfers with malicious recipient', () => {
+      const tokenContract = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
+      const maliciousRecipient = '0x5fbdb2315678afecb367f032d93f642f64180aa3';
+
+      mockUseTransactionMetadataRequest.mockReturnValue({
+        txParams: {
+          to: tokenContract,
+          data: '0xa9059cbb', // transfer() selector — spender extraction returns nothing
+        },
+        chainId: '0x1',
+      } as unknown as TransactionMeta);
+      // The transfer recipient differs from txParams.to
+      mockUseTransferRecipient.mockReturnValue(maliciousRecipient);
+
+      const { result } = renderHookWithProvider(
+        () => useAddressTrustSignalAlerts(),
+        {
+          state: {
+            engine: {
+              backgroundState: {
+                PhishingController: {
+                  addressScanCache: {
+                    [`0x1:${maliciousRecipient}`]: {
+                      data: {
+                        // @ts-expect-error - AddressScanResultType is not exported in PhishingController
+                        result_type: 'Malicious',
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      );
+
+      expect(result.current.length).toBe(1);
+      expect(result.current[0].field).toBe(RowAlertKey.FromToAddress);
     });
 
     it('returns no alerts while revoke detection is loading for approval transactions', () => {

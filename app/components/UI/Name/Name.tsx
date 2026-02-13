@@ -65,13 +65,16 @@ const UnknownEthereumAddress: React.FC<{
   style?: ViewStyle;
   iconSize: AvatarSize;
   icon?: TrustSignalIcon | null | undefined;
-}> = ({ address, style, iconSize, icon = null }) => {
+  iconOverride?: React.ReactNode;
+}> = ({ address, style, iconSize, icon = null, iconOverride }) => {
   const displayNameVariant = DisplayNameVariant.Unknown;
   const { styles } = useStyles(styleSheet, { displayNameVariant });
 
   return (
     <View style={[styles.base, style]}>
-      {icon ? (
+      {iconOverride !== undefined ? (
+        iconOverride
+      ) : icon ? (
         <TrustIcon icon={icon} />
       ) : (
         <Identicon
@@ -95,6 +98,7 @@ const Name: React.FC<NameProperties> = ({
   value,
   variation,
   maxCharLength = 21,
+  iconOverride,
 }) => {
   const [isTooltipVisible, setIsTooltipVisible] = useState(false);
   if (type !== NameType.EthereumAddress) {
@@ -121,6 +125,7 @@ const Name: React.FC<NameProperties> = ({
         address={value}
         style={style}
         icon={icon}
+        iconOverride={iconOverride}
       />
     );
   }
@@ -143,7 +148,9 @@ const Name: React.FC<NameProperties> = ({
         onPress={() => setIsTooltipVisible(true)}
       >
         <View style={[styles.base, style]}>
-          {icon ? (
+          {iconOverride !== undefined ? (
+            iconOverride
+          ) : icon ? (
             <TrustIcon icon={icon} />
           ) : isFirstPartyContractName ? (
             <Badge

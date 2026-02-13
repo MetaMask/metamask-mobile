@@ -4,6 +4,7 @@ import { Alert, Severity } from '../../types/alerts';
 import { AlertKeys } from '../../constants/alerts';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
+import { useTransferRecipient } from '../transactions/useTransferRecipient';
 import { strings } from '../../../../../../locales/i18n';
 import { extractSpenderFromApprovalData } from '../../../../../lib/address-scanning/address-scan-util';
 import { useAddressTrustSignals } from '../useAddressTrustSignals';
@@ -19,8 +20,14 @@ import {
   parseAndNormalizeSignTypedData,
 } from '../../utils/signature';
 
+/** An address to scan with the alert field it should map to. */
+interface AddressToScan extends AddressTrustSignalRequest {
+  alertField: RowAlertKey;
+}
+
 export function useAddressTrustSignalAlerts(): Alert[] {
   const transactionMetadata = useTransactionMetadataRequest();
+  const transferRecipient = useTransferRecipient();
   const { isRevoke: isTransactionRevoke, isLoading: isRevokeLoading } =
     useApproveTransactionData();
   const signatureRequest = useSignatureRequest();
@@ -66,35 +73,59 @@ export function useAddressTrustSignalAlerts(): Alert[] {
       transactionMetadata.txParams.data !== '0x',
   );
 
-  const addressesToScan = useMemo((): AddressTrustSignalRequest[] => {
+  const addressesToScan = useMemo((): AddressToScan[] => {
     if (!transactionMetadata?.chainId) {
       return [];
     }
 
     const chainId = transactionMetadata.chainId;
-    const addresses: AddressTrustSignalRequest[] = [];
+    const toAddress = transactionMetadata.txParams?.to;
+    const addresses: AddressToScan[] = [];
 
-    if (transactionMetadata.txParams?.to) {
+    // Extract spender from approval data (if any)
+    const spenderAddress = transactionMetadata.txParams?.data
+      ? extractSpenderFromApprovalData(
+          transactionMetadata.txParams.data as unknown as Hex,
+        )
+      : undefined;
+
+    // Determine if the transfer recipient differs from txParams.to
+    // (e.g. for token transfers, `to` is the token contract, the real recipient is in the data)
+    const hasTransferRecipient =
+      transferRecipient && toAddress && transferRecipient !== toAddress;
+
+    if (toAddress) {
+      // For approvals/contract interactions: the `to` address is the contract → InteractingWith
+      // For simple sends: the `to` address is the recipient → FromToAddress
+      // For token transfers with a different recipient: `to` is the contract → InteractingWith
+      const toField =
+        spenderAddress || hasTransferRecipient
+          ? RowAlertKey.InteractingWith
+          : RowAlertKey.FromToAddress;
+
+      addresses.push({ address: toAddress, chainId, alertField: toField });
+    }
+
+    // Add the transfer recipient (for token transfers where recipient != to)
+    if (hasTransferRecipient) {
       addresses.push({
-        address: transactionMetadata.txParams.to,
+        address: transferRecipient,
         chainId,
+        alertField: RowAlertKey.FromToAddress,
       });
     }
 
-    if (transactionMetadata.txParams?.data) {
-      const spenderAddress = extractSpenderFromApprovalData(
-        transactionMetadata.txParams.data as unknown as Hex,
-      );
-      if (spenderAddress) {
-        addresses.push({
-          address: spenderAddress,
-          chainId,
-        });
-      }
+    // Add the spender address (for approvals)
+    if (spenderAddress) {
+      addresses.push({
+        address: spenderAddress,
+        chainId,
+        alertField: RowAlertKey.Spender,
+      });
     }
 
     return addresses;
-  }, [transactionMetadata]);
+  }, [transactionMetadata, transferRecipient]);
 
   const trustSignalResults = useAddressTrustSignals(addressesToScan);
 
@@ -111,21 +142,21 @@ export function useAddressTrustSignalAlerts(): Alert[] {
     }
 
     const alerts: Alert[] = [];
-    let highestSeverity: Severity | null = null;
 
-    trustSignalResults.forEach(({ state: trustSignalState }) => {
+    trustSignalResults.forEach(({ state: trustSignalState }, index) => {
+      let severity: Severity | null = null;
+
       if (trustSignalState === TrustSignalDisplayState.Malicious) {
-        highestSeverity = Severity.Danger;
-      } else if (
-        trustSignalState === TrustSignalDisplayState.Warning &&
-        highestSeverity !== Severity.Danger
-      ) {
-        highestSeverity = Severity.Warning;
+        severity = Severity.Danger;
+      } else if (trustSignalState === TrustSignalDisplayState.Warning) {
+        severity = Severity.Warning;
       }
-    });
 
-    if (highestSeverity) {
-      const isDanger = highestSeverity === Severity.Danger;
+      if (!severity) {
+        return;
+      }
+
+      const isDanger = severity === Severity.Danger;
 
       const alertKey = isDanger
         ? AlertKeys.AddressTrustSignalMalicious
@@ -141,14 +172,14 @@ export function useAddressTrustSignalAlerts(): Alert[] {
 
       alerts.push({
         key: alertKey,
-        field: RowAlertKey.FromToAddress,
-        severity: highestSeverity,
+        field: addressesToScan[index].alertField,
+        severity,
         message,
         title,
         isBlocking: false,
       });
-    }
+    });
 
     return alerts;
-  }, [addressesToScan.length, shouldSuppressForRevoke, trustSignalResults]);
+  }, [addressesToScan, shouldSuppressForRevoke, trustSignalResults]);
 }

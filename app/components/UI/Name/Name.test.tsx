@@ -67,7 +67,7 @@ describe('Name', () => {
   });
 
   describe('recognized address', () => {
-    it('should return name', () => {
+    it('returns name', () => {
       mockUseDisplayName.mockReturnValue({
         variant: DisplayNameVariant.Recognized,
         name: KNOWN_NAME_MOCK,
@@ -90,7 +90,7 @@ describe('Name', () => {
       expect(wrapper).toMatchSnapshot();
     });
 
-    it('should render image', () => {
+    it('renders image', () => {
       mockUseDisplayName.mockReturnValue({
         variant: DisplayNameVariant.Recognized,
         name: KNOWN_NAME_MOCK,
