@@ -77,7 +77,9 @@ export const useFeeCalculations = (
   const { maxFeePerGas, maxPriorityFeePerGas } =
     useEIP1559TxFees(transactionMeta);
   const { gasFeeEstimates } = useGasFeeEstimates(networkClientId);
-  const shouldHideFiat = isTestNet(chainId as Hex) && !showFiatOnTestnets;
+  const shouldHideFiat =
+    (isTestNet(chainId as Hex) && !showFiatOnTestnets) ||
+    nativeConversionRate === null;
 
   // `gasUsed` is the gas limit actually used by the transaction in the
   // simulation environment.
