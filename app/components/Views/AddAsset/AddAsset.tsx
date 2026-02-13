@@ -1,5 +1,9 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, SafeAreaView, View } from 'react-native';
+import { ActivityIndicator, TouchableOpacity, View } from 'react-native';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import TabBar from '../../../component-library/components-temp/TabBar/TabBar';
 import AddCustomToken from '../../UI/AddCustomToken';
@@ -32,9 +36,7 @@ import Routes from '../../../constants/navigation/Routes';
 import { AddAssetViewSelectorsIDs } from './AddAssetView.testIds';
 import { BottomSheetRef } from '../../../component-library/components/BottomSheets/BottomSheet';
 import { Hex } from '@metamask/utils';
-import NetworkListBottomSheet from './components/NetworkListBottomSheet';
 import Engine from '../../../core/Engine';
-import { TouchableOpacity } from 'react-native-gesture-handler';
 import Avatar, {
   AvatarSize,
   AvatarVariant,
@@ -52,6 +54,9 @@ import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import { useTopTokens } from '../../UI/Bridge/hooks/useTopTokens';
 import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
+import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
+import NetworkListBottomSheet from './components/NetworkListBottomSheet';
+import { NFT_TITLE, TOKEN, TOKEN_TITLE } from './AddAsset.constants';
 
 export enum FilterOption {
   AllNetworks,
@@ -66,6 +71,8 @@ const AddAsset = () => {
     styles,
     theme: { colors },
   } = useStyles(styleSheet, {});
+
+  const insets = useSafeAreaInsets();
 
   const providerConfig = useSelector(selectProviderConfig);
   const displayNftMedia = useSelector(selectDisplayNftMedia);
@@ -123,7 +130,17 @@ const AddAsset = () => {
   );
 
   return (
-    <SafeAreaView style={styles.wrapper} testID={`add-${assetType}-screen`}>
+    <SafeAreaView
+      edges={['left', 'right', 'bottom']}
+      style={[{ paddingTop: insets.top }, styles.wrapper]}
+      testID={`add-${assetType}-screen`}
+    >
+      <HeaderCompactStandard
+        title={strings(
+          `add_asset.${assetType === TOKEN ? TOKEN_TITLE : NFT_TITLE}`,
+        )}
+        onBack={() => navigation.goBack()}
+      />
       {assetType !== 'token' && (
         <View style={styles.infoWrapper} testID="add-asset-nft-banner">
           <Banner

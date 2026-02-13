@@ -1,11 +1,12 @@
 export const stripQuotes = (str: string): string => {
-  if (
-    (str.startsWith('"') && str.endsWith('"')) ||
-    (str.startsWith("'") && str.endsWith("'"))
+  let result = str;
+  while (
+    (result.startsWith('"') && result.endsWith('"')) ||
+    (result.startsWith("'") && result.endsWith("'"))
   ) {
-    return str.slice(1, -1);
+    result = result.slice(1, -1);
   }
-  return str;
+  return result;
 };
 
 export const parseCommaSeparatedString = (value: string): string[] =>

@@ -1,124 +1,84 @@
-import React, { useMemo, useCallback } from 'react';
-import Keypad, { KeypadChangeData, Keys } from '../../../../Base/Keypad';
+import React, {
+  useCallback,
+  useRef,
+  useImperativeHandle,
+  forwardRef,
+  useState,
+  PropsWithChildren,
+} from 'react';
+import Keypad, { KeypadChangeData } from '../../../../Base/Keypad';
 import { Box } from '../../../Box/Box';
-import { swapsKeypadStyles as styles } from './styles';
-import { QuickPickButtons } from './QuickPickButtons';
-import { BridgeToken } from '../../types';
-import { QuickPickButtonOption } from './types';
-import { useLatestBalance } from '../../hooks/useLatestBalance';
-import { BigNumber } from 'bignumber.js';
-import { useShouldRenderMaxOption } from '../../hooks/useShouldRenderMaxOption';
+import { createSwapsKeypadStyles } from './styles';
+import { SwapsKeypadRef } from './types';
+import { useTheme } from '../../../../../util/theme';
+import BottomSheetDialog from '../../../../../component-library/components/BottomSheets/BottomSheet/foundation/BottomSheetDialog/BottomSheetDialog';
+import { BottomSheetDialogRef } from '../../../../../component-library/components/BottomSheets/BottomSheet/foundation/BottomSheetDialog';
 
 interface SwapsKeypadProps {
   value: string;
   currency: string;
   decimals: number;
   onChange: (data: KeypadChangeData) => void;
-  token?: BridgeToken;
-  tokenBalance: ReturnType<typeof useLatestBalance>;
-  onMaxPress: () => void;
-  isQuoteSponsored?: boolean;
 }
 
-export const SwapsKeypad = ({
-  value,
-  currency,
-  decimals,
-  onChange,
-  token,
-  tokenBalance,
-  onMaxPress,
-  isQuoteSponsored,
-}: SwapsKeypadProps) => {
-  const onQuickOptionPress = useCallback(
-    (percentage: number) => () => {
-      if (!tokenBalance?.displayBalance) return '0';
+export const SwapsKeypad = forwardRef<
+  SwapsKeypadRef,
+  PropsWithChildren<SwapsKeypadProps>
+>(({ value, currency, decimals, onChange, children }, ref) => {
+  const theme = useTheme();
+  const styles = createSwapsKeypadStyles(theme);
+  const bottomSheetRef = useRef<BottomSheetDialogRef>(null);
+  const isOpenRef = useRef(false);
+  const [isRendered, setIsRendered] = useState(false);
 
-      const balance = new BigNumber(tokenBalance.displayBalance);
-      const amount = balance.multipliedBy(percentage / 100);
+  const handleClose = useCallback(() => {
+    isOpenRef.current = false;
+    setIsRendered(false);
+  }, []);
 
-      onChange({
-        value: amount.toString(),
-        valueAsNumber: Number(amount),
-        pressedKey: Keys.Initial,
-      });
+  useImperativeHandle(ref, () => ({
+    open: () => {
+      if (!isOpenRef.current) {
+        setIsRendered(true);
+        isOpenRef.current = true;
+      }
     },
-    [tokenBalance, onChange],
-  );
+    close: () => {
+      if (isOpenRef.current) {
+        bottomSheetRef.current?.onCloseDialog();
+      }
+    },
+    isOpen: () => isOpenRef.current,
+  }));
 
-  const standardQuickPickOptions = useMemo(
-    () =>
-      [
-        {
-          label: '25%',
-          onPress: onQuickOptionPress(25),
-        },
-        {
-          label: '50%',
-          onPress: onQuickOptionPress(50),
-        },
-        {
-          label: '75%',
-          onPress: onQuickOptionPress(75),
-        },
-        {
-          label: '90%',
-          onPress: onQuickOptionPress(90),
-        },
-      ] satisfies QuickPickButtonOption[],
-    [onQuickOptionPress],
-  );
-
-  const gasslessQuickPickOptions = useMemo(
-    () =>
-      [
-        {
-          label: '25%',
-          onPress: onQuickOptionPress(25),
-        },
-        {
-          label: '50%',
-          onPress: onQuickOptionPress(50),
-        },
-        {
-          label: '75%',
-          onPress: onQuickOptionPress(75),
-        },
-        {
-          label: 'Max',
-          onPress: onMaxPress,
-        },
-      ] satisfies QuickPickButtonOption[],
-    [onMaxPress, onQuickOptionPress],
-  );
-
-  const shouldHideQuickPickOptions = useMemo(
-    () => new BigNumber(tokenBalance?.displayBalance || 0).eq(0),
-    [tokenBalance],
-  );
-
-  const shouldRenderMaxOption = useShouldRenderMaxOption(
-    token,
-    tokenBalance?.displayBalance,
-    isQuoteSponsored,
-  );
-  const quickPickOptions = shouldRenderMaxOption
-    ? gasslessQuickPickOptions
-    : standardQuickPickOptions;
+  if (!isRendered) {
+    return null;
+  }
 
   return (
-    <Box style={styles.keypadContainer}>
-      <QuickPickButtons
-        options={quickPickOptions}
-        hidden={shouldHideQuickPickOptions}
-      />
-      <Keypad
-        style={styles.keypad}
-        value={value}
-        onChange={onChange}
-        currency={currency}
-        decimals={decimals}
-      />
-    </Box>
+    <BottomSheetDialog
+      style={styles.keypadDialog}
+      ref={bottomSheetRef}
+      isInteractable
+      onClose={handleClose}
+      onStartShouldSetResponder={() =>
+        // Prevents the native gesture system from bubbling up
+        // the event to BottomSheetDialog, causing keypad to close
+        // when user click anywhere inside the keypad area that is
+        // not a pressable component.
+        // This is required because
+        true
+      }
+    >
+      <Box style={styles.keypadContainer}>
+        {children}
+        <Keypad
+          value={value}
+          onChange={onChange}
+          currency={currency}
+          decimals={decimals}
+        />
+      </Box>
+    </BottomSheetDialog>
   );
-};
+});

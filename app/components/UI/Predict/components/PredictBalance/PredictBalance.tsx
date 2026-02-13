@@ -58,7 +58,6 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({ onLayout }) => {
   const { deposit, isDepositPending } = usePredictDeposit();
   const { withdraw } = usePredictWithdraw();
   const { executeGuardedAction } = usePredictActionGuard({
-    providerId: 'polymarket',
     navigation,
   });
 
