@@ -12,7 +12,8 @@ export const createStyles = ({ colors }: Theme) =>
       flex: 1,
       alignItems: 'flex-start',
       backgroundColor: colors.background.default,
-      paddingTop: 60,
+    },
+    contentContainer: {
       paddingHorizontal: 16,
     },
     card: {
@@ -29,10 +30,7 @@ export const createStyles = ({ colors }: Theme) =>
       width: Device.getDeviceWidth() - 32,
     },
     btnContainer: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignSelf: 'center',
-      marginBottom: 16,
+      marginBottom: Device.isAndroid() ? 0 : 16,
     },
     ctaBtn: {
       margin: 4,
@@ -41,9 +39,5 @@ export const createStyles = ({ colors }: Theme) =>
     },
     textSpace: {
       marginBottom: 16,
-    },
-    textTitle: {
-      marginBottom: 16,
-      alignSelf: 'center',
     },
   });

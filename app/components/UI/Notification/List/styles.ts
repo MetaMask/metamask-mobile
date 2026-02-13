@@ -18,13 +18,13 @@ export const createStyles = ({ colors }: Theme) =>
     unreadItemContainer: {
       flex: 1,
       paddingVertical: 10,
-      paddingHorizontal: 16,
+      paddingRight: 16,
       backgroundColor: colors.info.muted,
     },
     readItemContainer: {
       flex: 1,
       paddingVertical: 10,
-      paddingHorizontal: 16,
+      paddingRight: 16,
       backgroundColor: colors.background.default,
     },
     wrapper: {

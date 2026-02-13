@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 import type { Theme } from '@metamask/design-tokens';
 import { fontStyles } from '../../../../styles/common';
 import {
@@ -62,6 +62,8 @@ export const createStyles = ({ colors, typography }: Theme) =>
     },
     footerContainer: {
       marginTop: 'auto',
+      paddingTop: 24,
+      marginBottom: Platform.OS === 'android' ? 0 : 16,
     },
     ctaBtn: {
       width: '100%',

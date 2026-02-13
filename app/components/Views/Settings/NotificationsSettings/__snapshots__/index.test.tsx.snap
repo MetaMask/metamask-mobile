@@ -1,111 +1,275 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`NotificationsSettings render matches snapshot 1`] = `
-<RCTScrollView
+<View
   style={
     {
-      "paddingBottom": 48,
-      "paddingLeft": 16,
-      "paddingRight": 16,
+      "backgroundColor": "#ffffff",
+      "flex": 1,
     }
   }
 >
-  <View>
-    <View
-      style={
+  <View
+    style={
+      [
         {
           "alignItems": "center",
-          "display": "flex",
           "flexDirection": "row",
-          "justifyContent": "space-between",
-          "marginTop": 16,
-        }
-      }
-      testID="main-notification-toggle"
-    >
-      <Text
-        accessibilityRole="text"
-        style={
-          {
-            "color": "#121314",
-            "fontFamily": "Geist-Medium",
-            "fontSize": 18,
-            "letterSpacing": 0,
-            "lineHeight": 24,
-          }
-        }
+          "gap": 16,
+          "height": 56,
+          "paddingLeft": 8,
+          "paddingRight": 8,
+        },
+        {
+          "marginTop": 0,
+        },
+        undefined,
+      ]
+    }
+    testID="header"
+  >
+    <View>
+      <View
+        onLayout={[Function]}
       >
-        Allow notifications
-      </Text>
-      <RCTSwitch
-        accessibilityRole="switch"
-        onChange={[Function]}
-        onResponderTerminationRequest={[Function]}
-        onStartShouldSetResponder={[Function]}
-        onTintColor="#4459ff"
-        style={
-          [
-            {
-              "height": 31,
-              "width": 51,
-            },
+        <View
+          style={
             [
               {
-                "alignSelf": "flex-end",
+                "transform": [
+                  {
+                    "scale": 1,
+                  },
+                ],
               },
               {
-                "backgroundColor": "#b7bbc866",
-                "borderRadius": 16,
+                "alignItems": "center",
+                "justifyContent": "center",
               },
-            ],
-          ]
-        }
-        testID="notification-settings-notifications-toggle"
-        thumbTintColor="#ffffff"
-        tintColor="#b7bbc866"
-        value={false}
-      />
+            ]
+          }
+        >
+          <View
+            accessibilityState={
+              {
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": false,
+                "expanded": undefined,
+                "selected": undefined,
+              }
+            }
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
+            accessible={true}
+            collapsable={false}
+            focusable={true}
+            onBlur={[Function]}
+            onClick={[Function]}
+            onFocus={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "backgroundColor": "transparent",
+                  "borderRadius": 2,
+                  "height": 32,
+                  "justifyContent": "center",
+                  "opacity": 1,
+                  "width": 32,
+                },
+                undefined,
+              ]
+            }
+            testID="button-icon"
+          >
+            <SvgMock
+              fill="currentColor"
+              name="ArrowLeft"
+              style={
+                [
+                  {
+                    "color": "#121314",
+                    "height": 20,
+                    "width": 20,
+                  },
+                  undefined,
+                ]
+              }
+            />
+          </View>
+        </View>
+      </View>
     </View>
     <View
       style={
-        {
-          "marginTop": 16,
-        }
+        [
+          {
+            "alignItems": "center",
+            "display": "flex",
+            "flexBasis": "0%",
+            "flexGrow": 1,
+            "flexShrink": 1,
+          },
+          undefined,
+        ]
       }
     >
-      <Text
-        accessibilityRole="text"
+      <View
+        style={
+          [
+            {
+              "alignItems": "center",
+              "display": "flex",
+            },
+            undefined,
+          ]
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            [
+              {
+                "color": "#121314",
+                "fontFamily": "Geist-Bold",
+                "fontSize": 16,
+                "fontWeight": 400,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              },
+              undefined,
+            ]
+          }
+        >
+          Notifications
+        </Text>
+      </View>
+    </View>
+    <View>
+      <View
+        onLayout={[Function]}
+      />
+    </View>
+  </View>
+  <RCTScrollView
+    style={
+      {
+        "paddingBottom": 48,
+        "paddingLeft": 16,
+        "paddingRight": 16,
+      }
+    }
+  >
+    <View>
+      <View
         style={
           {
-            "color": "#686e7d",
-            "fontFamily": "Geist-Regular",
-            "fontSize": 16,
-            "letterSpacing": 0,
-            "lineHeight": 24,
+            "alignItems": "center",
+            "display": "flex",
+            "flexDirection": "row",
+            "justifyContent": "space-between",
+            "marginTop": 16,
+          }
+        }
+        testID="main-notification-toggle"
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "Geist-Medium",
+              "fontSize": 18,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          Allow notifications
+        </Text>
+        <RCTSwitch
+          accessibilityRole="switch"
+          onChange={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
+          onTintColor="#4459ff"
+          style={
+            [
+              {
+                "height": 31,
+                "width": 51,
+              },
+              [
+                {
+                  "alignSelf": "flex-end",
+                },
+                {
+                  "backgroundColor": "#b7bbc866",
+                  "borderRadius": 16,
+                },
+              ],
+            ]
+          }
+          testID="notification-settings-notifications-toggle"
+          thumbTintColor="#ffffff"
+          tintColor="#b7bbc866"
+          value={false}
+        />
+      </View>
+      <View
+        style={
+          {
+            "marginTop": 16,
           }
         }
       >
-        Stay in the loop on what’s happening in your wallet with notifications. To use notifications, we use a profile to sync some settings across your devices.
-         
         <Text
           accessibilityRole="text"
-          onPress={[Function]}
           style={
             {
-              "color": "#4459ff",
+              "color": "#686e7d",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
             }
           }
-          testID="main-notification-toggle--learn-more-button"
         >
-          Learn how we protect your privacy while using this feature.
+          Stay in the loop on what’s happening in your wallet with notifications. To use notifications, we use a profile to sync some settings across your devices.
+           
+          <Text
+            accessibilityRole="text"
+            onPress={[Function]}
+            style={
+              {
+                "color": "#4459ff",
+                "fontFamily": "Geist-Regular",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+            testID="main-notification-toggle--learn-more-button"
+          >
+            Learn how we protect your privacy while using this feature.
+          </Text>
         </Text>
-      </Text>
+      </View>
+      <View />
     </View>
-    <View />
-  </View>
-</RCTScrollView>
+  </RCTScrollView>
+</View>
 `;

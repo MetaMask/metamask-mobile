@@ -3,6 +3,7 @@ import { Linking } from 'react-native';
 import Button, {
   ButtonVariants,
   ButtonWidthTypes,
+  ButtonSize,
 } from '../../../../../component-library/components/Buttons/Button';
 import { ModalFooterAnnouncementCta } from '../../../../../util/notifications/notification-states/types/NotificationModalDetails';
 import useStyles from '../useStyles';
@@ -66,6 +67,7 @@ export default function AnnouncementCtaFooter(
   return (
     <Button
       variant={ButtonVariants.Primary}
+      size={ButtonSize.Lg}
       width={ButtonWidthTypes.Full}
       label={linkConfig.label}
       style={styles.ctaBtn}
