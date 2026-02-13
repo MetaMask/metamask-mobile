@@ -11,11 +11,11 @@ export type SortField =
   | 'openInterest';
 export type SortDirection = 'asc' | 'desc';
 
-export interface SortMarketsParams {
+export type SortMarketsParams = {
   markets: PerpsMarketData[];
   sortBy: SortField;
   direction?: SortDirection;
-}
+};
 
 const VOLUME_SUFFIX_REGEX = /\$?([\d.,]+)([KMBT])?/;
 

@@ -156,6 +156,7 @@ exports[`SnapUIDateTimePicker can show an error 1`] = `
                           "fontSize": 16,
                           "fontWeight": "400",
                           "letterSpacing": 0,
+                          "lineHeight": 0,
                           "opacity": 1,
                           "textAlignVertical": "center",
                         }
@@ -335,6 +336,7 @@ exports[`SnapUIDateTimePicker renders a date picker 1`] = `
                           "fontSize": 16,
                           "fontWeight": "400",
                           "letterSpacing": 0,
+                          "lineHeight": 0,
                           "opacity": 1,
                           "textAlignVertical": "center",
                         }
@@ -499,6 +501,7 @@ exports[`SnapUIDateTimePicker renders a date time picker 1`] = `
                           "fontSize": 16,
                           "fontWeight": "400",
                           "letterSpacing": 0,
+                          "lineHeight": 0,
                           "opacity": 1,
                           "textAlignVertical": "center",
                         }
@@ -663,6 +666,7 @@ exports[`SnapUIDateTimePicker renders a time picker 1`] = `
                           "fontSize": 16,
                           "fontWeight": "400",
                           "letterSpacing": 0,
+                          "lineHeight": 0,
                           "opacity": 1,
                           "textAlignVertical": "center",
                         }
@@ -842,6 +846,7 @@ exports[`SnapUIDateTimePicker renders inside a field 1`] = `
                           "fontSize": 16,
                           "fontWeight": "400",
                           "letterSpacing": 0,
+                          "lineHeight": 0,
                           "opacity": 1,
                           "textAlignVertical": "center",
                         }
