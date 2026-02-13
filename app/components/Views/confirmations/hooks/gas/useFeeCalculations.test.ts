@@ -134,7 +134,7 @@ describe('useFeeCalculations', () => {
     expect(result.current.calculateGasEstimate).toBeDefined();
   });
 
-  it('returns all nulls when currencyRates entry is null (nativeCurrency undefined)', () => {
+  it('computes fees with zero fiat when currencyRates entry is null and nativeConversionRate is undefined', () => {
     const clonedState = cloneDeep(stakingDepositConfirmationState);
 
     clonedState.engine.backgroundState.CurrencyRateController.currencyRates.ETH =
@@ -151,8 +151,9 @@ describe('useFeeCalculations', () => {
       },
     );
 
-    expect(result.current.estimatedFeeFiat).toBeNull();
-    expect(result.current.estimatedFeeNative).not.toBeNull();
+    expect(result.current.estimatedFeeFiat).toBe('< $0.01');
+    expect(result.current.estimatedFeeNative).toBe('0.0001');
+    expect(result.current.preciseNativeFeeInHex).toBe('0x5572e9c22d00');
     expect(result.current.calculateGasEstimate).toBeDefined();
   });
 
