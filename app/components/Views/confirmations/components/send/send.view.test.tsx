@@ -281,7 +281,7 @@ describeForPlatforms('Send', () => {
 
     const continueButton = getByRole('button', { name: 'Continue' });
     expect(continueButton).toBeOnTheScreen();
-    expect(continueButton.props.disabled).not.toBe(true);
+    expect(continueButton).toBeEnabled();
 
     fireEvent.press(continueButton);
 
