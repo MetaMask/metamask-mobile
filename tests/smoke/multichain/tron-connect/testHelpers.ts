@@ -1,6 +1,5 @@
 import BrowserView from '../../../page-objects/Browser/BrowserView';
 import ConnectBottomSheet from '../../../page-objects/Browser/ConnectBottomSheet';
-import ConnectedAccountsModal from '../../../page-objects/Browser/ConnectedAccountsModal';
 import TronTestDApp from '../../../page-objects/Browser/TronTestDApp';
 import TabBarComponent from '../../../page-objects/wallet/TabBarComponent';
 import Assertions from '../../../../tests/framework/Assertions';
@@ -12,29 +11,10 @@ export const EXPECTED_SIGNED_MESSAGE =
 
 /**
  * Connects the Tron test dapp to the wallet.
- *
- * @param options.selectAllAccounts - Whether we connect with all accounts or only the default one
  */
-export const connectTronTestDapp = async (
-  options: {
-    selectAllAccounts?: boolean;
-    assert?: () => Promise<void>;
-  } = {},
-): Promise<void> => {
-  const { selectAllAccounts, assert } = options;
-
+export const connectTronTestDapp = async (): Promise<void> => {
   await TronTestDApp.connect();
   await TronTestDApp.selectMetaMask();
-
-  if (selectAllAccounts) {
-    await ConnectedAccountsModal.tapAccountListBottomSheet();
-    await ConnectBottomSheet.tapSelectAllButton();
-    await ConnectBottomSheet.tapAccountConnectMultiSelectButton();
-  }
-
-  if (assert) {
-    await assert();
-  }
 
   await ConnectBottomSheet.tapConnectButton();
 };

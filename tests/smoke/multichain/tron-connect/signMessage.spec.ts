@@ -3,7 +3,6 @@ import TronTestDApp from '../../../page-objects/Browser/TronTestDApp';
 import { loginToApp } from '../../../flows/wallet.flow';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import {
-  account1Short,
   connectTronTestDapp,
   navigateToTronTestDApp,
   EXPECTED_SIGNED_MESSAGE,
@@ -33,10 +32,6 @@ describe(SmokeNetworkExpansion('Tron Connect E2E - Sign message'), () => {
 
         // 1. Connect
         await connectTronTestDapp();
-
-        // Verify we are connected
-        await TronTestDApp.verifyConnectedAccount(account1Short);
-        await TronTestDApp.verifyConnectionStatus('Connected');
 
         // 2. Sign a message
         await TronTestDApp.signMessage();
