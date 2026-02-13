@@ -86,7 +86,7 @@ jest.mock('../../hooks/useTokenNetworkInfo', () => ({
   useTokenNetworkInfo: () => mockGetTokenNetworkInfo,
 }));
 
-const mockUseRampAccountAddress = jest.fn(
+const mockUseRampAccountAddress = jest.fn<string | null, [chainId?: unknown]>(
   (_chainId?: unknown) => '0x1234567890abcdef',
 );
 
@@ -1066,6 +1066,88 @@ describe('BuildQuote', () => {
 
       renderWithTheme(<BuildQuote />);
 
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        'RootModalFlow',
+        expect.objectContaining({
+          screen: 'RampErrorModal',
+        }),
+      );
+    });
+
+    it('does not trigger navigation multiple times for persistent no_quotes condition', () => {
+      mockQuotes = {
+        success: [],
+        sorted: [],
+        error: [],
+      };
+      mockQuotesLoading = false;
+
+      renderWithTheme(<BuildQuote />);
+
+      // Should navigate to error modal exactly once
+      expect(mockNavigate).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'RootModalFlow',
+        expect.objectContaining({
+          screen: 'RampErrorModal',
+          params: expect.objectContaining({
+            errorType: 'no_quotes',
+          }),
+        }),
+      );
+
+      // Even though useEffect may run multiple times during initial render,
+      // navigation should only be called once
+    });
+
+    it('clears error state when quotes become available after no_quotes error', () => {
+      mockQuotes = {
+        success: [],
+        sorted: [],
+        error: [],
+      };
+      mockQuotesLoading = false;
+
+      const { rerender } = renderWithTheme(<BuildQuote />);
+
+      expect(mockNavigate).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'RootModalFlow',
+        expect.objectContaining({
+          screen: 'RampErrorModal',
+          params: expect.objectContaining({
+            errorType: 'no_quotes',
+          }),
+        }),
+      );
+
+      mockNavigate.mockClear();
+
+      // Now quotes become available
+      mockSelectedQuote = {
+        provider: '/providers/mercuryo',
+        quote: {
+          amountIn: 100,
+          amountOut: 0.05,
+          paymentMethod: '/payments/debit-credit-card',
+          buyURL:
+            'https://on-ramp.uat-api.cx.metamask.io/providers/mercuryo/buy-widget',
+        },
+        providerInfo: {
+          id: '/providers/mercuryo',
+          name: 'Mercuryo',
+          type: 'aggregator',
+        },
+      };
+      mockQuotes = {
+        success: [mockSelectedQuote],
+        sorted: [mockSelectedQuote],
+        error: [],
+      };
+
+      rerender(<BuildQuote />);
+
+      // Should not navigate to error modal since quotes are now available
       expect(mockNavigate).not.toHaveBeenCalledWith(
         'RootModalFlow',
         expect.objectContaining({

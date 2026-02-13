@@ -96,6 +96,7 @@ function BuildQuote() {
     type: RampErrorType;
     isCritical: boolean;
   } | null>(null);
+  const hasShownErrorRef = useRef<RampErrorType | null>(null);
   const [isOnBuildQuoteScreen, setIsOnBuildQuoteScreen] =
     useState<boolean>(true);
 
@@ -226,8 +227,9 @@ function BuildQuote() {
   const handleRetry = useCallback(() => {
     const currentErrorType = errorState?.type;
 
-    // Clear error state first
+    // Clear error state and tracking ref
     setErrorState(null);
+    hasShownErrorRef.current = null;
 
     if (!currentErrorType) return;
 
@@ -267,21 +269,32 @@ function BuildQuote() {
 
   // Handle quote fetch errors
   useEffect(() => {
-    if (quotesError) {
+    if (quotesError && hasShownErrorRef.current !== 'quote_fetch') {
       setErrorState({ type: 'quote_fetch', isCritical: false });
+      hasShownErrorRef.current = 'quote_fetch';
+    } else if (!quotesError && hasShownErrorRef.current === 'quote_fetch') {
+      // Clear error state when quote fetch error is resolved
+      setErrorState(null);
+      hasShownErrorRef.current = null;
     }
   }, [quotesError]);
 
   // Handle no quotes available scenario
   useEffect(() => {
-    if (
+    const hasNoQuotes =
       !quotesLoading &&
       !quotesError &&
       hasAmount &&
       quotes &&
-      quotes.success.length === 0
-    ) {
+      quotes.success.length === 0;
+
+    if (hasNoQuotes && hasShownErrorRef.current !== 'no_quotes') {
       setErrorState({ type: 'no_quotes', isCritical: false });
+      hasShownErrorRef.current = 'no_quotes';
+    } else if (!hasNoQuotes && hasShownErrorRef.current === 'no_quotes') {
+      // Clear error state when quotes become available
+      setErrorState(null);
+      hasShownErrorRef.current = null;
     }
   }, [quotesLoading, quotesError, hasAmount, quotes]);
 
@@ -362,6 +375,7 @@ function BuildQuote() {
           { provider: selectedQuote.provider },
         );
         setErrorState({ type: 'widget_url_missing', isCritical: false });
+        hasShownErrorRef.current = 'widget_url_missing';
       }
     } catch (error) {
       Logger.error(error as Error, {
@@ -369,6 +383,7 @@ function BuildQuote() {
         message: 'Failed to fetch widget URL',
       });
       setErrorState({ type: 'widget_url_failed', isCritical: false });
+      hasShownErrorRef.current = 'widget_url_failed';
     } finally {
       setIsNavigating(false);
       isNavigatingRef.current = false;
