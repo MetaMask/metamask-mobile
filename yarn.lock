@@ -10339,6 +10339,32 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/transaction-pay-controller@patch:@metamask/transaction-pay-controller@npm%3A12.1.0#~/.yarn/patches/@metamask-transaction-pay-controller-npm-12.1.0-226665ee88.patch":
+  version: 12.1.0
+  resolution: "@metamask/transaction-pay-controller@patch:@metamask/transaction-pay-controller@npm%3A12.1.0#~/.yarn/patches/@metamask-transaction-pay-controller-npm-12.1.0-226665ee88.patch::version=12.1.0&hash=8bd09b"
+  dependencies:
+    "@ethersproject/abi": "npm:^5.7.0"
+    "@ethersproject/contracts": "npm:^5.7.0"
+    "@metamask/assets-controllers": "npm:^99.2.0"
+    "@metamask/base-controller": "npm:^9.0.0"
+    "@metamask/bridge-controller": "npm:^65.2.0"
+    "@metamask/bridge-status-controller": "npm:^65.0.1"
+    "@metamask/controller-utils": "npm:^11.18.0"
+    "@metamask/gas-fee-controller": "npm:^26.0.2"
+    "@metamask/messenger": "npm:^0.3.0"
+    "@metamask/metamask-eth-abis": "npm:^3.1.1"
+    "@metamask/network-controller": "npm:^29.0.0"
+    "@metamask/remote-feature-flag-controller": "npm:^4.0.0"
+    "@metamask/transaction-controller": "npm:^62.14.0"
+    "@metamask/utils": "npm:^11.9.0"
+    bignumber.js: "npm:^9.1.2"
+    bn.js: "npm:^5.2.1"
+    immer: "npm:^9.0.6"
+    lodash: "npm:^4.17.21"
+  checksum: 10/00d115499e879dc43cda8c47dd331195a4db8321311cb3dd985c4abf6d1f09f92dcbac328bd312ab5f46b936985dbfa26a8d0dc59b81c494d70ab1fee70413e4
+  languageName: node
+  linkType: hard
+
 "@metamask/tron-wallet-snap@npm:^1.21.1":
   version: 1.21.1
   resolution: "@metamask/tron-wallet-snap@npm:1.21.1"
