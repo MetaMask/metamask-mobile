@@ -25,9 +25,9 @@ import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 /**
  * MYX Client Configuration
  */
-export interface MYXClientConfig {
+export type MYXClientConfig = {
   isTestnet: boolean;
-}
+};
 
 /**
  * Price polling callback type
@@ -143,7 +143,7 @@ export class MYXClientService {
 
       return this.marketsCache;
     } catch (error) {
-      const err = ensureError(error);
+      const err = ensureError(error, 'MYXClientService.getMarkets');
       this.deps.logger.error(err, this.getErrorContext('getMarkets'));
 
       // Return stale cache if available
@@ -179,7 +179,7 @@ export class MYXClientService {
 
       return tickers || [];
     } catch (error) {
-      const err = ensureError(error);
+      const err = ensureError(error, 'MYXClientService.getTickers');
       this.deps.logger.error(
         err,
         this.getErrorContext('getTickers', { poolIds }),
@@ -207,7 +207,7 @@ export class MYXClientService {
 
       return this.getTickers(poolIds);
     } catch (error) {
-      const err = ensureError(error);
+      const err = ensureError(error, 'MYXClientService.getAllTickers');
       this.deps.logger.error(err, this.getErrorContext('getAllTickers'));
       throw err;
     }
@@ -268,7 +268,7 @@ export class MYXClientService {
         this.pollingCallback(tickers);
       }
     } catch (error) {
-      const err = ensureError(error);
+      const err = ensureError(error, 'MYXClientService.pollPrices');
       this.deps.debugLogger.log('[MYXClientService] Price poll failed', {
         error: err.message,
       });
@@ -320,7 +320,7 @@ export class MYXClientService {
         timeoutPromise,
       ]);
     } catch (error) {
-      const err = ensureError(error);
+      const err = ensureError(error, 'MYXClientService.ping');
       this.deps.debugLogger.log('[MYXClientService] Ping failed', {
         error: err.message,
       });

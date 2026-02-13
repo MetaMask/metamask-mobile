@@ -40,6 +40,7 @@ import {
   getDetectedGeolocation,
 } from '../../../../../reducers/fiatOrders';
 import { selectNetworkConfigurationsByCaipChainId } from '../../../../../selectors/networkController';
+import { selectTokenSelectors } from '../../Aggregator/components/TokenSelectModal/SelectToken.testIds';
 
 export const createTokenSelectionNavDetails = createNavigationDetails(
   Routes.RAMP.TOKEN_SELECTION,
@@ -59,6 +60,7 @@ function TokenSelection() {
     tokens: controllerTokens,
     tokensLoading: controllerTokensLoading,
     tokensError: controllerTokensError,
+    setSelectedToken,
   } = useRampsController();
   const legacyTokens = useRampTokens();
 
@@ -145,11 +147,14 @@ function TokenSelection() {
         });
       }
       // V1 flow: close the modal before navigating to Deposit/Aggregator
-      // V2 flow: navigate within the same stack, no need to close modal
-      if (!isRampsUnifiedV2Enabled) {
+      // V2 flow: set selected token on controller and navigate within the same stack
+      if (isRampsUnifiedV2Enabled) {
+        setSelectedToken(assetId);
+        navigation.navigate(Routes.RAMP.AMOUNT_INPUT, { assetId });
+      } else {
         navigation.dangerouslyGetParent()?.goBack();
+        goToBuy({ assetId });
       }
-      goToBuy({ assetId });
     },
     [
       supportedTokens,
@@ -160,6 +165,7 @@ function TokenSelection() {
       isRampsUnifiedV2Enabled,
       navigation,
       goToBuy,
+      setSelectedToken,
     ],
   );
 
@@ -262,6 +268,7 @@ function TokenSelection() {
               <Text variant={TextVariant.BodyMD}>
                 {strings('deposit.token_modal.error_loading_tokens')}
               </Text>
+              <Text variant={TextVariant.BodyMD}>{error.toString()}</Text>
             </Box>
           </Box>
         </ScreenLayout.Body>
@@ -281,6 +288,7 @@ function TokenSelection() {
         </Box>
         <Box twClassName="px-4 py-3">
           <TextFieldSearch
+            testID={selectTokenSelectors.TOKEN_SELECT_MODAL_SEARCH_INPUT}
             value={searchString}
             onPressClearButton={clearSearchText}
             onFocus={scrollToTop}

@@ -74,8 +74,9 @@ jest.mock('react-redux', () => {
             backgroundState: {
               PredictController: {
                 balances: {
-                  polymarket: {
-                    [mockSelectedAddress]: mockCachedBalance,
+                  [mockSelectedAddress]: {
+                    balance: mockCachedBalance,
+                    validUntil: Date.now() + 1000,
                   },
                 },
               },
@@ -161,7 +162,6 @@ describe('usePredictBalance', () => {
 
       expect(mockGetBalance).toHaveBeenCalledWith({
         address: mockSelectedAddress,
-        providerId: 'polymarket',
       });
       expect(result.current.balance).toBe(150.5);
       expect(result.current.error).toBeNull();
@@ -176,15 +176,14 @@ describe('usePredictBalance', () => {
       expect(mockGetBalance).not.toHaveBeenCalled();
     });
 
-    it('uses custom providerId when specified', async () => {
+    it('loads balance when custom options are provided', async () => {
       // Given custom providerId
-      const customProviderId = 'custom-provider';
       mockGetBalance.mockResolvedValue(200);
       mockCachedBalance = 200;
 
       // When hook is mounted with custom providerId
       const { result } = renderHook(() =>
-        usePredictBalance({ providerId: customProviderId, loadOnMount: true }),
+        usePredictBalance({ loadOnMount: true }),
       );
 
       // Then getBalance should be called with custom providerId
@@ -194,7 +193,6 @@ describe('usePredictBalance', () => {
 
       expect(mockGetBalance).toHaveBeenCalledWith({
         address: mockSelectedAddress,
-        providerId: customProviderId,
       });
     });
   });
@@ -546,7 +544,7 @@ describe('usePredictBalance', () => {
       expect(mockGetBalance).not.toHaveBeenCalled();
     });
 
-    it('loads balance with default providerId when loadOnMount is true', async () => {
+    it('loads balance with address when loadOnMount is true', async () => {
       // Given loadOnMount is explicitly enabled
       mockGetBalance.mockResolvedValue(100);
       mockCachedBalance = 100;
@@ -556,14 +554,12 @@ describe('usePredictBalance', () => {
         usePredictBalance({ loadOnMount: true }),
       );
 
-      // Then default providerId should be used
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false);
       });
 
       expect(mockGetBalance).toHaveBeenCalledWith({
         address: mockSelectedAddress,
-        providerId: 'polymarket', // default providerId
       });
       expect(result.current.balance).toBe(100);
     });

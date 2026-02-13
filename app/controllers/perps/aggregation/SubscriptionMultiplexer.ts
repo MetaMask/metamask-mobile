@@ -29,10 +29,10 @@ import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 /**
  * Options for constructing SubscriptionMultiplexer
  */
-export interface SubscriptionMultiplexerOptions {
+export type SubscriptionMultiplexerOptions = {
   /** Optional logger for error reporting (e.g., Sentry) */
   logger?: PerpsLogger;
-}
+};
 
 /**
  * Aggregation mode for price subscriptions
@@ -42,7 +42,7 @@ export type PriceAggregationMode = 'merge' | 'best_price';
 /**
  * Parameters for multiplexed price subscriptions
  */
-export interface MultiplexedPricesParams {
+export type MultiplexedPricesParams = {
   /** Symbols to subscribe to */
   symbols: string[];
   /** Provider instances to subscribe through */
@@ -57,47 +57,47 @@ export interface MultiplexedPricesParams {
   includeOrderBook?: boolean;
   /** Include market data (funding, OI, volume) */
   includeMarketData?: boolean;
-}
+};
 
 /**
  * Parameters for multiplexed position subscriptions
  */
-export interface MultiplexedPositionsParams {
+export type MultiplexedPositionsParams = {
   /** Provider instances to subscribe through */
   providers: [PerpsProviderType, PerpsProvider][];
   /** Callback to receive aggregated position updates */
   callback: (positions: Position[]) => void;
-}
+};
 
 /**
  * Parameters for multiplexed order fill subscriptions
  */
-export interface MultiplexedOrderFillsParams {
+export type MultiplexedOrderFillsParams = {
   /** Provider instances to subscribe through */
   providers: [PerpsProviderType, PerpsProvider][];
   /** Callback to receive aggregated order fill updates */
   callback: (fills: OrderFill[], isSnapshot?: boolean) => void;
-}
+};
 
 /**
  * Parameters for multiplexed order subscriptions
  */
-export interface MultiplexedOrdersParams {
+export type MultiplexedOrdersParams = {
   /** Provider instances to subscribe through */
   providers: [PerpsProviderType, PerpsProvider][];
   /** Callback to receive aggregated order updates */
   callback: (orders: Order[]) => void;
-}
+};
 
 /**
  * Parameters for multiplexed account subscriptions
  */
-export interface MultiplexedAccountParams {
+export type MultiplexedAccountParams = {
   /** Provider instances to subscribe through */
   providers: [PerpsProviderType, PerpsProvider][];
   /** Callback to receive account updates (one per provider) */
   callback: (accounts: AccountState[]) => void;
-}
+};
 
 /**
  * SubscriptionMultiplexer manages real-time data subscriptions across
@@ -226,17 +226,20 @@ export class SubscriptionMultiplexer {
         unsubscribers.push(unsub);
       } catch (error) {
         // Log to Sentry before cleanup
-        this.logger?.error(ensureError(error), {
-          tags: {
-            feature: PERPS_CONSTANTS.FeatureName,
-            provider: providerId,
-            method: 'subscribeToPrices',
+        this.logger?.error(
+          ensureError(error, 'SubscriptionMultiplexer.subscribeToPrices'),
+          {
+            tags: {
+              feature: PERPS_CONSTANTS.FeatureName,
+              provider: providerId,
+              method: 'subscribeToPrices',
+            },
+            context: {
+              name: 'SubscriptionMultiplexer',
+              data: { subscribedCount: unsubscribers.length },
+            },
           },
-          context: {
-            name: 'SubscriptionMultiplexer',
-            data: { subscribedCount: unsubscribers.length },
-          },
-        });
+        );
 
         // Clean up any subscriptions created before the failure
         unsubscribers.forEach((unsub) => unsub());
@@ -284,17 +287,20 @@ export class SubscriptionMultiplexer {
         const unsub = provider.subscribeToPositions(subscribeParams);
         unsubscribers.push(unsub);
       } catch (error) {
-        this.logger?.error(ensureError(error), {
-          tags: {
-            feature: PERPS_CONSTANTS.FeatureName,
-            provider: providerId,
-            method: 'subscribeToPositions',
+        this.logger?.error(
+          ensureError(error, 'SubscriptionMultiplexer.subscribeToPositions'),
+          {
+            tags: {
+              feature: PERPS_CONSTANTS.FeatureName,
+              provider: providerId,
+              method: 'subscribeToPositions',
+            },
+            context: {
+              name: 'SubscriptionMultiplexer',
+              data: { subscribedCount: unsubscribers.length },
+            },
           },
-          context: {
-            name: 'SubscriptionMultiplexer',
-            data: { subscribedCount: unsubscribers.length },
-          },
-        });
+        );
         unsubscribers.forEach((unsub) => unsub());
         throw error;
       }
@@ -337,17 +343,20 @@ export class SubscriptionMultiplexer {
         const unsub = provider.subscribeToOrderFills(subscribeParams);
         unsubscribers.push(unsub);
       } catch (error) {
-        this.logger?.error(ensureError(error), {
-          tags: {
-            feature: PERPS_CONSTANTS.FeatureName,
-            provider: providerId,
-            method: 'subscribeToOrderFills',
+        this.logger?.error(
+          ensureError(error, 'SubscriptionMultiplexer.subscribeToOrderFills'),
+          {
+            tags: {
+              feature: PERPS_CONSTANTS.FeatureName,
+              provider: providerId,
+              method: 'subscribeToOrderFills',
+            },
+            context: {
+              name: 'SubscriptionMultiplexer',
+              data: { subscribedCount: unsubscribers.length },
+            },
           },
-          context: {
-            name: 'SubscriptionMultiplexer',
-            data: { subscribedCount: unsubscribers.length },
-          },
-        });
+        );
         unsubscribers.forEach((unsub) => unsub());
         throw error;
       }
@@ -388,17 +397,20 @@ export class SubscriptionMultiplexer {
         const unsub = provider.subscribeToOrders(subscribeParams);
         unsubscribers.push(unsub);
       } catch (error) {
-        this.logger?.error(ensureError(error), {
-          tags: {
-            feature: PERPS_CONSTANTS.FeatureName,
-            provider: providerId,
-            method: 'subscribeToOrders',
+        this.logger?.error(
+          ensureError(error, 'SubscriptionMultiplexer.subscribeToOrders'),
+          {
+            tags: {
+              feature: PERPS_CONSTANTS.FeatureName,
+              provider: providerId,
+              method: 'subscribeToOrders',
+            },
+            context: {
+              name: 'SubscriptionMultiplexer',
+              data: { subscribedCount: unsubscribers.length },
+            },
           },
-          context: {
-            name: 'SubscriptionMultiplexer',
-            data: { subscribedCount: unsubscribers.length },
-          },
-        });
+        );
         unsubscribers.forEach((unsub) => unsub());
         throw error;
       }
@@ -446,17 +458,20 @@ export class SubscriptionMultiplexer {
         const unsub = provider.subscribeToAccount(subscribeParams);
         unsubscribers.push(unsub);
       } catch (error) {
-        this.logger?.error(ensureError(error), {
-          tags: {
-            feature: PERPS_CONSTANTS.FeatureName,
-            provider: providerId,
-            method: 'subscribeToAccount',
+        this.logger?.error(
+          ensureError(error, 'SubscriptionMultiplexer.subscribeToAccount'),
+          {
+            tags: {
+              feature: PERPS_CONSTANTS.FeatureName,
+              provider: providerId,
+              method: 'subscribeToAccount',
+            },
+            context: {
+              name: 'SubscriptionMultiplexer',
+              data: { subscribedCount: unsubscribers.length },
+            },
           },
-          context: {
-            name: 'SubscriptionMultiplexer',
-            data: { subscribedCount: unsubscribers.length },
-          },
-        });
+        );
         unsubscribers.forEach((unsub) => unsub());
         throw error;
       }
