@@ -104,6 +104,17 @@ function BuildQuote() {
   useFocusEffect(
     useCallback(() => {
       setIsOnBuildQuoteScreen(true);
+
+      // Clear widget URL errors when screen comes into focus
+      // This handles the case where the error modal was dismissed without retry
+      if (
+        hasShownErrorRef.current === 'widget_url_failed' ||
+        hasShownErrorRef.current === 'widget_url_missing'
+      ) {
+        setErrorState(null);
+        hasShownErrorRef.current = null;
+      }
+
       return () => {
         setIsOnBuildQuoteScreen(false);
       };

@@ -8,6 +8,7 @@ import type { CaipChainId } from '@metamask/utils';
 import Logger from '../../../../../util/Logger';
 
 const mockUseEffect = jest.requireActual('react').useEffect;
+let focusEffectCallback: (() => void) | null = null;
 
 const mockNavigate = jest.fn();
 const mockSetOptions = jest.fn();
@@ -62,6 +63,7 @@ jest.mock('@react-navigation/native', () => ({
     },
   }),
   useFocusEffect: (callback: () => void) => {
+    focusEffectCallback = callback;
     mockUseEffect(() => callback(), [callback]);
   },
 }));
@@ -160,6 +162,7 @@ const renderWithTheme = (component: React.ReactElement) =>
 describe('BuildQuote', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    focusEffectCallback = null;
     mockUserRegion = defaultUserRegion;
     mockSelectedProvider = null;
     mockSelectedQuote = null;
@@ -1441,6 +1444,85 @@ describe('BuildQuote', () => {
       expect(mockNavigate).not.toHaveBeenCalled();
       expect(mockGoBack).not.toHaveBeenCalled();
       expect(mockStartQuotePolling).not.toHaveBeenCalled();
+    });
+
+    it('clears widget URL errors when screen comes back into focus', async () => {
+      mockSelectedQuote = {
+        provider: '/providers/mercuryo',
+        quote: {
+          amountIn: 100,
+          amountOut: 0.05,
+          paymentMethod: '/payments/debit-credit-card',
+          buyURL:
+            'https://on-ramp.uat-api.cx.metamask.io/providers/mercuryo/buy-widget',
+        },
+        providerInfo: {
+          id: '/providers/mercuryo',
+          name: 'Mercuryo',
+          type: 'aggregator',
+        },
+      };
+      mockSelectedPaymentMethod = {
+        id: '/payments/debit-credit-card',
+        name: 'Card',
+      };
+
+      // First failure
+      mockGetWidgetUrl.mockRejectedValueOnce(new Error('Network error'));
+
+      const { getByTestId } = renderWithTheme(<BuildQuote />);
+      const continueButton = getByTestId('build-quote-continue-button');
+
+      // Trigger first error
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      // Should navigate to error modal
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'RootModalFlow',
+        expect.objectContaining({
+          screen: 'RampErrorModal',
+          params: expect.objectContaining({
+            errorType: 'widget_url_failed',
+          }),
+        }),
+      );
+
+      mockNavigate.mockClear();
+
+      // Simulate screen regaining focus (user dismissed modal)
+      act(() => {
+        if (focusEffectCallback) {
+          focusEffectCallback();
+        }
+      });
+
+      // Second failure - should now successfully navigate to error modal again
+      mockGetWidgetUrl.mockRejectedValueOnce(new Error('Network error'));
+
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      // Should navigate to error modal again (not stuck in previous error state)
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'RootModalFlow',
+        expect.objectContaining({
+          screen: 'RampErrorModal',
+          params: expect.objectContaining({
+            errorType: 'widget_url_failed',
+          }),
+        }),
+      );
     });
   });
 });
