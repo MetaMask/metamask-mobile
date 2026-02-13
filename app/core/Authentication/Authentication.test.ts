@@ -936,7 +936,7 @@ describe('Authentication', () => {
       }
     });
 
-    it('throws AuthenticationError when SecureKeychain fails for BIOMETRIC', async () => {
+    it('throws AuthenticationError when SecureKeychain fails for BIOMETRIC (no fallback)', async () => {
       const keychainError = new Error('Biometric keychain failed');
       jest
         .spyOn(SecureKeychain, 'setGenericPassword')
@@ -958,6 +958,63 @@ describe('Authentication', () => {
         expect(authError).toBeInstanceOf(AuthenticationError);
         expect((authError as AuthenticationError).customErrorMessage).toBe(
           AUTHENTICATION_STORE_PASSWORD_FAILED,
+        );
+      }
+    });
+
+    it('when fallbackToPassword is true, retries with PASSWORD when BIOMETRIC storage fails and succeeds', async () => {
+      const setGenericPasswordSpy = jest
+        .spyOn(SecureKeychain, 'setGenericPassword')
+        .mockRejectedValueOnce(new Error('Biometric storage failed'))
+        .mockResolvedValueOnce(undefined);
+
+      await Authentication.storePassword(
+        mockPassword,
+        AUTHENTICATION_TYPE.BIOMETRIC,
+        true,
+      );
+
+      expect(setGenericPasswordSpy).toHaveBeenCalledTimes(2);
+      expect(setGenericPasswordSpy).toHaveBeenNthCalledWith(
+        1,
+        mockPassword,
+        SecureKeychain.TYPES.BIOMETRICS,
+      );
+      expect(setGenericPasswordSpy).toHaveBeenNthCalledWith(
+        2,
+        mockPassword,
+        undefined,
+      );
+      expect(mockDispatch).toHaveBeenCalledWith(passwordSet());
+    });
+
+    it('when fallbackToPassword is true and both BIOMETRIC and PASSWORD storage fail, throws AuthenticationError', async () => {
+      jest
+        .spyOn(SecureKeychain, 'setGenericPassword')
+        .mockRejectedValueOnce(new Error('Biometric storage failed'))
+        .mockRejectedValueOnce(new Error('Password storage failed'));
+
+      await expect(
+        Authentication.storePassword(
+          mockPassword,
+          AUTHENTICATION_TYPE.BIOMETRIC,
+          true,
+        ),
+      ).rejects.toThrow(AuthenticationError);
+
+      try {
+        await Authentication.storePassword(
+          mockPassword,
+          AUTHENTICATION_TYPE.BIOMETRIC,
+          true,
+        );
+      } catch (authError) {
+        expect(authError).toBeInstanceOf(AuthenticationError);
+        expect((authError as AuthenticationError).customErrorMessage).toBe(
+          AUTHENTICATION_STORE_PASSWORD_FAILED,
+        );
+        expect((authError as AuthenticationError).message).toBe(
+          'Password storage failed',
         );
       }
     });
@@ -1067,6 +1124,87 @@ describe('Authentication', () => {
           jest.runAllTimers();
           expect(mockDispatch).toHaveBeenCalledWith(logOut());
         }
+      });
+
+      it('falls back to PASSWORD when biometric storePassword fails in newWalletAndKeychain', async () => {
+        const fallbackMockDispatch = jest.fn();
+        jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+          dispatch: fallbackMockDispatch,
+          getState: () => ({ security: { allowLoginWithRememberMe: true } }),
+        } as unknown as ReduxStore);
+
+        const fallbackEngine = jest.requireMock('../Engine');
+
+        fallbackEngine.context.KeyringController.createNewVaultAndKeychain.mockResolvedValueOnce(
+          undefined,
+        );
+        fallbackEngine.resetState = jest.fn().mockResolvedValueOnce(undefined);
+
+        const setGenericPasswordSpy = jest
+          .spyOn(SecureKeychain, 'setGenericPassword')
+          .mockRejectedValueOnce(new Error('Biometric storage failed'))
+          .mockResolvedValueOnce(undefined);
+
+        await Authentication.newWalletAndKeychain('password', {
+          currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
+        });
+
+        expect(setGenericPasswordSpy).toHaveBeenCalledTimes(2);
+        expect(setGenericPasswordSpy).toHaveBeenNthCalledWith(
+          1,
+          'password',
+          SecureKeychain.TYPES.BIOMETRICS,
+        );
+        expect(setGenericPasswordSpy).toHaveBeenNthCalledWith(
+          2,
+          'password',
+          undefined,
+        );
+        expect(fallbackMockDispatch).toHaveBeenCalledWith(
+          setExistingUser(true),
+        );
+        expect(fallbackMockDispatch).toHaveBeenCalledWith(logIn());
+      });
+
+      it('falls back to PASSWORD when biometric storePassword fails in newWalletAndRestore', async () => {
+        const restoreMockDispatch = jest.fn();
+        jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+          dispatch: restoreMockDispatch,
+          getState: () => ({ security: { allowLoginWithRememberMe: true } }),
+        } as unknown as ReduxStore);
+
+        const restoreEngine = jest.requireMock('../Engine');
+
+        restoreEngine.context.KeyringController.createNewVaultAndRestore.mockResolvedValueOnce(
+          undefined,
+        );
+        restoreEngine.resetState = jest.fn().mockResolvedValueOnce(undefined);
+
+        const setGenericPasswordSpy = jest
+          .spyOn(SecureKeychain, 'setGenericPassword')
+          .mockRejectedValueOnce(new Error('Biometric storage failed'))
+          .mockResolvedValueOnce(undefined);
+
+        await Authentication.newWalletAndRestore(
+          'password',
+          { currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC },
+          'test seed phrase',
+          true,
+        );
+
+        expect(setGenericPasswordSpy).toHaveBeenCalledTimes(2);
+        expect(setGenericPasswordSpy).toHaveBeenNthCalledWith(
+          1,
+          'password',
+          SecureKeychain.TYPES.BIOMETRICS,
+        );
+        expect(setGenericPasswordSpy).toHaveBeenNthCalledWith(
+          2,
+          'password',
+          undefined,
+        );
+        expect(restoreMockDispatch).toHaveBeenCalledWith(setExistingUser(true));
+        expect(restoreMockDispatch).toHaveBeenCalledWith(logIn());
       });
 
       it('resyncs accounts after login', async () => {

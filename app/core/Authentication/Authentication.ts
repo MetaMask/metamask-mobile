@@ -343,6 +343,7 @@ class AuthenticationService {
   storePassword = async (
     password: string,
     authType: AUTHENTICATION_TYPE,
+    fallbackToPassword?: boolean,
   ): Promise<void> => {
     try {
       // Store password in keychain with appropriate type
@@ -421,11 +422,15 @@ class AuthenticationService {
       }
       this.dispatchPasswordSet();
     } catch (error) {
-      throw new AuthenticationError(
-        (error as Error).message,
-        AUTHENTICATION_STORE_PASSWORD_FAILED,
-        this.authData,
-      );
+      if (fallbackToPassword) {
+        await this.storePassword(password, AUTHENTICATION_TYPE.PASSWORD);
+      } else {
+        throw new AuthenticationError(
+          (error as Error).message,
+          AUTHENTICATION_STORE_PASSWORD_FAILED,
+          this.authData,
+        );
+      }
     }
     password = this.wipeSensitiveData();
   };
@@ -559,7 +564,7 @@ class AuthenticationService {
         await this.createWalletVaultAndKeychain(password);
       }
 
-      await this.storePassword(password, authData.currentAuthType);
+      await this.storePassword(password, authData.currentAuthType, true);
       ReduxService.store.dispatch(setExistingUser(true));
       await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
 
@@ -594,7 +599,7 @@ class AuthenticationService {
   ): Promise<void> => {
     try {
       await this.newWalletVaultAndRestore(password, parsedSeed, clearEngine);
-      await this.storePassword(password, authData.currentAuthType);
+      await this.storePassword(password, authData.currentAuthType, true);
       ReduxService.store.dispatch(setExistingUser(true));
       await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
       await this.dispatchLogin({
