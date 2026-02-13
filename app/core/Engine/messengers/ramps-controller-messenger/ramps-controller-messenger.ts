@@ -56,6 +56,8 @@ export function getRampsControllerMessenger(
       'TransakService:generatePaymentWidgetUrl',
       'TransakService:submitPurposeOfUsageForm',
       'TransakService:patchUser',
+      'TransakService:submitSsnDetails',
+      'TransakService:confirmPayment',
       'TransakService:getTranslation',
       'TransakService:getIdProofStatus',
       'TransakService:cancelOrder',

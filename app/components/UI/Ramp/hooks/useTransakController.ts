@@ -99,6 +99,11 @@ export interface UseTransakControllerResult {
   ) => string;
   submitPurposeOfUsageForm: (purpose: string[]) => Promise<void>;
   patchUser: (data: TransakPatchUserRequestBody) => Promise<unknown>;
+  submitSsnDetails: (ssn: string, quoteId: string) => Promise<unknown>;
+  confirmPayment: (
+    orderId: string,
+    paymentMethodId: string,
+  ) => Promise<{ success: boolean }>;
   getTranslation: (
     request: TransakTranslationRequest,
   ) => Promise<TransakQuoteTranslation>;
@@ -321,6 +326,20 @@ export function useTransakController(): UseTransakControllerResult {
     [],
   );
 
+  const submitSsnDetails = useCallback(
+    async (ssn: string, quoteId: string) => {
+      return getRampsController().transakSubmitSsnDetails(ssn, quoteId);
+    },
+    [],
+  );
+
+  const confirmPayment = useCallback(
+    async (orderId: string, paymentMethodId: string) => {
+      return getRampsController().transakConfirmPayment(orderId, paymentMethodId);
+    },
+    [],
+  );
+
   const getTranslation = useCallback(
     async (request: TransakTranslationRequest) => {
       return getRampsController().transakGetTranslation(request);
@@ -377,6 +396,8 @@ export function useTransakController(): UseTransakControllerResult {
     generatePaymentWidgetUrl,
     submitPurposeOfUsageForm,
     patchUser,
+    submitSsnDetails,
+    confirmPayment,
     getTranslation,
     getIdProofStatus,
     cancelOrder,

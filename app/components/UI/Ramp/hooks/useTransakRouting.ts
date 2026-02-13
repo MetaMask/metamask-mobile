@@ -33,6 +33,7 @@ interface UseTransakRoutingConfig {
 }
 
 export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
+  console.log('RAMPS: useTransakRouting 1', config);
   const navigation = useNavigation();
   const handleNewOrder = useHandleNewOrder();
   const { themeAppearance, colors } = useTheme();
@@ -316,20 +317,22 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
           postCode: userDetails?.address?.postCode || '',
           countryCode: userDetails?.address?.countryCode || '',
         };
-
+        console.log('RAMPS: routeAfterAuthentication 3', previousFormData);
         const requirements = await getKycRequirement(quote.quoteId);
-
+        
         if (!requirements) {
           throw new Error('Missing KYC requirements');
         }
 
         switch (requirements.status) {
           case 'APPROVED': {
+            console.log('RAMPS: routeAfterAuthentication 4', requirements.status);
             try {
               if (!userDetails) {
                 throw new Error('Missing user details');
               }
               
+              console.log('RAMPS: routeAfterAuthentication 5', quote, requirements.kycType);
               await checkUserLimits(quote, requirements.kycType);
 
               if (selectedPaymentMethod?.isManualBankTransfer) {
@@ -338,7 +341,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
                   walletAddress || '',
                   selectedPaymentMethod.id,
                 );
-
+                console.log('RAMPS: routeAfterAuthentication 6', order);
                 if (!order) {
                   throw new Error('Missing order');
                 }
@@ -390,6 +393,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
               kyc_type: requirements.kycType || '',
               region: regionIsoCode,
             });
+            console.log('RAMPS: routeAfterAuthentication 7', requirements.kycType, regionIsoCode);
 
             navigateToBasicInfoCallback({ quote, previousFormData });
             return;
@@ -458,11 +462,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
         const httpError = error as { status?: number };
         if (httpError.status === 401) {
           await logoutFromProvider(false);
-          navigation.navigate(
-            ...(Routes.RAMP.ENTER_EMAIL
-              ? [Routes.RAMP.ENTER_EMAIL, {}] as [string, object]
-              : [Routes.DEPOSIT.ENTER_EMAIL, {}] as [string, object]),
-          );
+          navigation.navigate(Routes.RAMP.ENTER_EMAIL as never);
           return;
         }
         throw error;

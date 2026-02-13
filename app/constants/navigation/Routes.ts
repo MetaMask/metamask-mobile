@@ -28,6 +28,7 @@ const Routes = {
     VERIFY_IDENTITY: 'RampVerifyIdentity',
     BANK_DETAILS: 'RampBankDetails',
     ADDITIONAL_VERIFICATION: 'RampAdditionalVerification',
+    ENTER_ADDRESS: 'RampEnterAddress',
     MODALS: {
       ID: 'RampModals',
       TOKEN_SELECTOR: 'RampTokenSelectorModal',

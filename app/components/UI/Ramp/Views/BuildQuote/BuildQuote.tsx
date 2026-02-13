@@ -189,6 +189,8 @@ function BuildQuote() {
   useEffect(() => {
     if (
       !isOnBuildQuoteScreen ||
+      !selectedToken ||
+      !selectedProvider ||
       !walletAddress ||
       !selectedPaymentMethod ||
       debouncedPollingAmount <= 0
@@ -197,11 +199,15 @@ function BuildQuote() {
       return;
     }
 
-    startQuotePolling({
-      walletAddress,
-      amount: debouncedPollingAmount,
-      redirectUrl: getRampCallbackBaseUrl(),
-    });
+    try {
+      startQuotePolling({
+        walletAddress,
+        amount: debouncedPollingAmount,
+        redirectUrl: getRampCallbackBaseUrl(),
+      });
+    } catch (error) {
+      Logger.log('BuildQuote: Failed to start quote polling', error);
+    }
 
     return () => {
       stopQuotePolling();
@@ -213,9 +219,12 @@ function BuildQuote() {
     startQuotePolling,
     stopQuotePolling,
     isOnBuildQuoteScreen,
+    selectedToken,
+    selectedProvider,
   ]);
 
   const handleContinuePress = useCallback(async () => {
+    console.log('RAMPS: handleContinuePress 1', selectedQuote, selectedToken, selectedProvider, selectedPaymentMethod, amountAsNumber);
     if (!selectedQuote) return;
 
     const quoteAmount =
@@ -225,6 +234,7 @@ function BuildQuote() {
       selectedQuote.quote?.paymentMethod ??
       (selectedQuote as { paymentMethod?: string }).paymentMethod;
 
+    console.log('RAMPS: handleContinuePress 2', quoteAmount, quotePaymentMethod);
     // Validate amount matches
     if (quoteAmount !== amountAsNumber) {
       return;
@@ -232,16 +242,19 @@ function BuildQuote() {
 
     // Validate payment method context matches
     if (quotePaymentMethod != null) {
+      console.log('RAMPS: handleContinuePress 3', selectedPaymentMethod, quotePaymentMethod);
       // Quote requires a payment method - must have one selected and it must match
       if (
         !selectedPaymentMethod ||
         selectedPaymentMethod.id !== quotePaymentMethod
       ) {
+        console.log('RAMPS: handleContinuePress 4', selectedPaymentMethod, quotePaymentMethod);
         return;
       }
     }
 
     if (isNativeProvider(selectedQuote)) {
+      console.log('RAMPS: handleContinuePress 5', selectedQuote);
       try {
         const hasToken = await transakCheckExistingToken();
 
@@ -253,8 +266,10 @@ function BuildQuote() {
             selectedPaymentMethod?.id || '',
             String(amountAsNumber),
           );
+          console.log('RAMPS: handleContinuePress 6', quote);
           await transakRouteAfterAuth(quote);
         } else {
+          console.log('RAMPS: handleContinuePress 7', navigation);
           navigation.navigate(
             ...createV2EnterEmailNavDetails({
               amount: String(amountAsNumber),
