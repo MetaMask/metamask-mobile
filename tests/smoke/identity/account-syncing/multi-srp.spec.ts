@@ -6,10 +6,7 @@ import Assertions from '../../../framework/Assertions';
 import { SmokeIdentity } from '../../../tags';
 import { withIdentityFixtures } from '../utils/withIdentityFixtures';
 import { arrangeTestUtils } from '../utils/helpers';
-import {
-  UserStorageMockttpControllerEvents,
-  UserStorageMockttpController,
-} from '../utils/user-storage/userStorageMockttpController';
+import { UserStorageMockttpController } from '../utils/user-storage/userStorageMockttpController';
 import { goToImportSrp, inputSrp } from '../../../flows/accounts.flow';
 import ImportSrpView from '../../../page-objects/importSrp/ImportSrpView';
 import { IDENTITY_TEAM_SEED_PHRASE_2 } from '../utils/constants';
@@ -70,10 +67,9 @@ describe(SmokeIdentity('Account syncing - Mutiple SRPs'), () => {
           },
         );
 
-        const {
-          prepareEventsEmittedCounter,
-          waitUntilSyncedAccountsNumberEquals,
-        } = arrangeTestUtils(userStorageMockttpController);
+        const { waitUntilSyncedAccountsNumberEquals } = arrangeTestUtils(
+          userStorageMockttpController,
+        );
 
         // Wait for the initial full sync to complete before adding accounts.
         // The AccountTreeController's enqueueSingleGroupSync silently drops
@@ -82,15 +78,8 @@ describe(SmokeIdentity('Account syncing - Mutiple SRPs'), () => {
         // the first full sync has finished pushing the initial group.
         await waitUntilSyncedAccountsNumberEquals(1);
 
-        // Set up event counter AFTER the initial sync completes so it only
-        // tracks events from subsequent account mutations.
-        const { waitUntilEventsEmittedNumberEquals } =
-          prepareEventsEmittedCounter(
-            UserStorageMockttpControllerEvents.PUT_SINGLE,
-          );
-
         await AccountListBottomSheet.tapAddAccountButtonV2();
-        await waitUntilEventsEmittedNumberEquals(1);
+        await waitUntilSyncedAccountsNumberEquals(2);
 
         await Assertions.expectElementToBeVisible(
           AccountListBottomSheet.getAccountElementByAccountNameV2(
@@ -154,7 +143,9 @@ describe(SmokeIdentity('Account syncing - Mutiple SRPs'), () => {
           },
         );
 
-        await waitUntilEventsEmittedNumberEquals(5);
+        // Allow time for the rename sync to reach the mock server before
+        // this fixture tears down, so Phase 3 sees the updated name.
+        await waitUntilSyncedAccountsNumberEquals(4);
       },
     );
 

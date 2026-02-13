@@ -51,12 +51,22 @@ export const arrangeTestUtils = (
   const BASE_INTERVAL = 1000;
 
   const prepareEventsEmittedCounter = (
-    event: AsEnum<typeof UserStorageMockttpControllerEvents>,
+    eventOrEvents:
+      | AsEnum<typeof UserStorageMockttpControllerEvents>
+      | AsEnum<typeof UserStorageMockttpControllerEvents>[],
   ) => {
     let counter = 0;
-    userStorageMockttpController.eventEmitter.on(event, () => {
+    const events = Array.isArray(eventOrEvents)
+      ? eventOrEvents
+      : [eventOrEvents];
+
+    const incrementCounter = () => {
       counter += 1;
-    });
+    };
+
+    for (const event of events) {
+      userStorageMockttpController.eventEmitter.on(event, incrementCounter);
+    }
 
     const waitUntilEventsEmittedNumberEquals = (
       expectedNumber: number,
@@ -85,7 +95,7 @@ export const arrangeTestUtils = (
             clearInterval(ids.interval);
             reject(
               new Error(
-                `Timeout waiting for event ${event} to be emitted ${expectedNumber} times\n Actual: ${counter}`,
+                `Timeout waiting for event(s) ${events.join(', ')} to be emitted ${expectedNumber} times\n Actual: ${counter}`,
               ),
             );
           }, BASE_TIMEOUT);
