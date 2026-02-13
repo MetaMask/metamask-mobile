@@ -12,6 +12,11 @@ let mockRouteParams: { order?: Order } = {};
 const mockCancelOrder = jest.fn();
 const mockShowToast = jest.fn();
 const mockGetExplorerUrl = jest.fn();
+const mockUsePerpsOrderFees = jest.fn(() => ({
+  totalFee: 0.5,
+  makerFee: 0.2,
+  takerFee: 0.3,
+}));
 
 // Mock dependencies
 jest.mock('react-native-safe-area-context', () => {
@@ -56,11 +61,7 @@ jest.mock('../../hooks/usePerpsMeasurement', () => ({
 }));
 
 jest.mock('../../hooks/usePerpsOrderFees', () => ({
-  usePerpsOrderFees: () => ({
-    totalFee: 0.5,
-    makerFee: 0.2,
-    takerFee: 0.3,
-  }),
+  usePerpsOrderFees: (params: unknown) => mockUsePerpsOrderFees(params),
 }));
 
 jest.mock('../../hooks/usePerpsBlockExplorerUrl', () => ({
@@ -373,6 +374,28 @@ describe('PerpsOrderDetailsView', () => {
 
     expect(screen.getByText('$51000.00')).toBeOnTheScreen();
     expect(screen.getByText('$25500.00')).toBeOnTheScreen();
+  });
+
+  it('uses trigger fallback amount for fee calculation when execution price is unavailable', () => {
+    const triggerOrder: Order = {
+      ...mockOrder,
+      isTrigger: true,
+      triggerPrice: '51000',
+      price: '0',
+      detailedOrderType: 'Take Profit Limit',
+      reduceOnly: true,
+      side: 'buy',
+    };
+    mockRouteParams = { order: triggerOrder };
+
+    render(<PerpsOrderDetailsView />);
+
+    expect(mockUsePerpsOrderFees).toHaveBeenCalledWith(
+      expect.objectContaining({
+        orderType: 'limit',
+        amount: '25500',
+      }),
+    );
   });
 
   it('calculates order value using execution price when both trigger and execution prices exist', () => {
