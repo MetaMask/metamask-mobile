@@ -159,7 +159,15 @@ function deleteNestedValue(
     current !== undefined &&
     typeof current === 'object'
   ) {
-    delete (current as Record<string, unknown>)[segments[segments.length - 1]];
+    const lastSegment = segments[segments.length - 1];
+    if (Array.isArray(current)) {
+      const index = Number(lastSegment);
+      if (!Number.isNaN(index)) {
+        current.splice(index, 1);
+      }
+    } else {
+      delete (current as Record<string, unknown>)[lastSegment];
+    }
   }
 }
 
@@ -356,7 +364,21 @@ export function mergeFixtureChanges(
     setNestedValue(result, key, getNestedValue(newState, key));
   }
 
-  for (const key of diff.missingKeys) {
+  // Sort missing keys so array indices are deleted highest-first,
+  // preventing splice from shifting later indices.
+  const sortedMissing = [...diff.missingKeys].sort((a, b) => {
+    const aParts = a.split('.');
+    const bParts = b.split('.');
+    // Group by parent path, then sort numeric last-segments descending
+    const aParent = aParts.slice(0, -1).join('.');
+    const bParent = bParts.slice(0, -1).join('.');
+    if (aParent !== bParent) return a.localeCompare(b);
+    const aIdx = Number(aParts[aParts.length - 1]);
+    const bIdx = Number(bParts[bParts.length - 1]);
+    if (!Number.isNaN(aIdx) && !Number.isNaN(bIdx)) return bIdx - aIdx;
+    return a.localeCompare(b);
+  });
+  for (const key of sortedMissing) {
     deleteNestedValue(result, key);
   }
 
