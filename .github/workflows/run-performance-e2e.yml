@@ -71,11 +71,9 @@ permissions:
   actions: write
 
 concurrency:
-  # Include build_variant so experimental (exp) and release/direct (rc) don't share the same
-  # queue — avoids "Build Apps" (direct/release) and experimental runs canceling each other.
-  # Note: GitHub allows at most 1 running + 1 pending per group; a 3rd run cancels the pending one.
-  group: performance-e2e-${{ github.ref }}-${{ github.event_name }}-${{ inputs.build_variant || 'rc' }}
-  # Do not cancel in-progress runs; pending runs can still be replaced by a newer trigger.
+  group: performance-e2e-${{ github.ref }}-${{ github.event_name }}
+  # Do not cancel in-progress runs: scheduled runs every 3h can overlap with long Bitrise builds.
+  # New runs will wait in queue until the current one finishes instead of canceling it.
   cancel-in-progress: false
 
 env:
