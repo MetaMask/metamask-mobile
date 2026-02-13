@@ -38,7 +38,7 @@ export const VAULT_INITIALIZED_KEY = '@MetaMask:vaultInitialized';
 
 export const predefinedPassword = process.env.PREDEFINED_PASSWORD;
 
-export const isPerformacneE2EContext =
+export const isPerformanceE2EContext =
   process.env.PERFORMANCE_E2E_CONTEXT === 'true';
 
 export const additionalSrps = [
@@ -69,7 +69,7 @@ export const additionalSrps = [
  * This should be called during EngineService startup
  */
 async function applyVaultInitialization() {
-  if (!isPerformacneE2EContext) {
+  if (!isPerformanceE2EContext) {
     return;
   }
   // eslint-disable-next-line no-console
@@ -104,21 +104,29 @@ async function applyVaultInitialization() {
       `[E2E - generateSkipOnboardingState] Trying command queue server at: ${testUrl}`,
     );
 
-    const response = await fetchWithTimeout(testUrl);
-    if ((response as AxiosResponse).status === 200) {
-      // eslint-disable-next-line no-console
-      console.log(
-        `[E2E - generateSkipOnboardingState] Command queue server at ${testUrl} is available`,
-      );
-
-      // The amount of SRPs is provided by the Command Queue Server
-      amountOfSrpsToImport = (response as AxiosResponse).data.srps;
-      if (amountOfSrpsToImport > additionalSrps.length) {
-        console.warn(
-          `[E2E - generateSkipOnboardingState] Amount of SRPs to import (${amountOfSrpsToImport}) is greater than the amount of SRPs available (${additionalSrps.length})`,
+    try {
+      const response = await fetchWithTimeout(testUrl);
+      if ((response as AxiosResponse).status === 200) {
+        // eslint-disable-next-line no-console
+        console.log(
+          `[E2E - generateSkipOnboardingState] Command queue server at ${testUrl} is available`,
         );
+
+        // The amount of SRPs is provided by the Command Queue Server
+        amountOfSrpsToImport = (response as AxiosResponse).data.srps;
+        if (amountOfSrpsToImport > additionalSrps.length) {
+          console.warn(
+            `[E2E - generateSkipOnboardingState] Amount of SRPs to import (${amountOfSrpsToImport}) is greater than the amount of SRPs available (${additionalSrps.length})`,
+          );
+        }
+        break;
       }
-      break;
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.debug(
+        `[E2E - generateSkipOnboardingState] Failed to reach command queue server at ${testUrl}: ${error instanceof Error ? error.message : String(error)}`,
+      );
+      // Continue to next host
     }
   }
 
