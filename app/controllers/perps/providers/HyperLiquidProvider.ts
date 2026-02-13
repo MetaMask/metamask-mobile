@@ -154,12 +154,12 @@ const isStatusObject = (status: unknown): status is Record<string, unknown> =>
   typeof status === 'object' && status !== null;
 
 // Helper method parameter interfaces (module-level for class-dependent methods only)
-interface GetAssetInfoParams {
+type GetAssetInfoParams = {
   symbol: string;
   dexName: string | null;
-}
+};
 
-interface GetAssetInfoResult {
+type GetAssetInfoResult = {
   assetInfo: {
     name: string;
     szDecimals: number;
@@ -167,15 +167,15 @@ interface GetAssetInfoResult {
   };
   currentPrice: number;
   meta: MetaResponse;
-}
+};
 
-interface PrepareAssetForTradingParams {
+type PrepareAssetForTradingParams = {
   symbol: string;
   assetId: number;
   leverage?: number;
-}
+};
 
-interface HandleHip3PreOrderParams {
+type HandleHip3PreOrderParams = {
   dexName: string;
   symbol: string;
   orderPrice: number;
@@ -183,13 +183,13 @@ interface HandleHip3PreOrderParams {
   leverage: number;
   isBuy: boolean;
   maxLeverage: number;
-}
+};
 
-interface HandleHip3PreOrderResult {
+type HandleHip3PreOrderResult = {
   transferInfo: { amount: number; sourceDex: string } | null;
-}
+};
 
-interface SubmitOrderWithRollbackParams {
+type SubmitOrderWithRollbackParams = {
   orders: SDKOrderParams[];
   grouping: 'na' | 'normalTpsl' | 'positionTpsl';
   isHip3Order: boolean;
@@ -197,19 +197,19 @@ interface SubmitOrderWithRollbackParams {
   transferInfo: { amount: number; sourceDex: string } | null;
   symbol: string;
   assetId: number;
-}
+};
 
-interface HandleOrderErrorParams {
+type HandleOrderErrorParams = {
   error: unknown;
   symbol: string;
   orderType: 'market' | 'limit';
   isBuy: boolean;
-}
+};
 
-interface GetOrFetchPriceParams {
+type GetOrFetchPriceParams = {
   symbol: string;
   dexName: string | null;
-}
+};
 
 /**
  * HyperLiquid provider implementation
