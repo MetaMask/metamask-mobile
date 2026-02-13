@@ -1,13 +1,28 @@
 import { FrameworkDetector } from './FrameworkDetector.ts';
 
 /**
- * Platform detector for Appium/WebdriverIO and Detox context
+ * Platform detector for Appium/WebdriverIO, Detox, and Appwright context
  */
 export class PlatformDetector {
+  private static _platform?: 'android' | 'ios';
+
+  /**
+   * Manually set the platform (useful for Appwright where no globals exist).
+   * Call this before any platform detection is needed.
+   */
+  static setPlatform(platform: 'android' | 'ios'): void {
+    this._platform = platform;
+  }
+
   /**
    * Get current platform (android/ios)
    */
   static async getPlatform(): Promise<'android' | 'ios'> {
+    // Return manually set platform (used by Appwright)
+    if (this._platform) {
+      return this._platform;
+    }
+
     if (FrameworkDetector.isDetox()) {
       return device.getPlatform() as 'android' | 'ios';
     }

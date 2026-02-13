@@ -12,6 +12,12 @@ import CommandQueueServer from './CommandQueueServer.ts';
 import { FALLBACK_COMMAND_QUEUE_SERVER_PORT } from '../Constants.ts';
 import { startResourceWithRetry } from './FixtureUtils.ts';
 import { ResourceType } from '../PortManager.ts';
+import { FrameworkDetector, TestFramework } from '../FrameworkDetector.ts';
+import { PlatformDetector } from '../PlatformLocator.ts';
+
+// Set framework to Appwright so FrameworkDetector/PlatformDetector
+// don't fall back to Detox globals which don't exist in this context
+FrameworkDetector.setFramework(TestFramework.APPWRIGHT);
 
 // Create a custom test fixture that handles performance tracking and cleanup
 export const test = base.extend({
@@ -26,13 +32,23 @@ export const test = base.extend({
    * Command queue server that tells the app how many SRPs to import.
    * Started before the app launches, stopped after the test completes.
    */
-  commandQueueServer: async ({ srpCount }, use) => {
+  // eslint-disable-next-line no-empty-pattern
+  commandQueueServer: async ({ srpCount }, use, testInfo) => {
+    // Set platform from appwright project config so PlatformDetector works
+    // without Detox/Appium globals or env vars
+    const platform = testInfo.project.use.platform?.toLowerCase();
+    if (platform === 'android' || platform === 'ios') {
+      PlatformDetector.setPlatform(platform);
+    }
     const server = new CommandQueueServer();
-    await startResourceWithRetry(ResourceType.COMMAND_QUEUE_SERVER, server);
-    console.log(
-      `[Performance] Command queue server started on port ${FALLBACK_COMMAND_QUEUE_SERVER_PORT} with srpCount=${srpCount}`,
+    const port = await startResourceWithRetry(
+      ResourceType.COMMAND_QUEUE_SERVER,
+      server,
     );
     server.setSrpCount(srpCount);
+    console.log(
+      `[Performance] Command queue server started on port ${port} with srpCount=${srpCount}`,
+    );
     await use(server);
     await server.stop();
     console.log('[Performance] Command queue server stopped');
