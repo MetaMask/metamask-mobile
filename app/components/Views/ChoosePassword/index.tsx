@@ -297,30 +297,6 @@ const ChoosePassword = () => {
     [password],
   );
 
-  const handleRejectedOsBiometricPrompt = useCallback(async () => {
-    const newAuthData = await Authentication.componentAuthenticationType(
-      false,
-      false,
-    );
-    const oauth2LoginSuccess = getOauth2LoginSuccess();
-    newAuthData.oauth2Login = oauth2LoginSuccess;
-    try {
-      await Authentication.newWalletAndKeychain(password, newAuthData);
-    } catch (err) {
-      if (isOAuthPasswordCreationError(err, newAuthData)) {
-        handleOAuthPasswordCreationError(err as Error, newAuthData);
-        return;
-      }
-      throw Error(strings('choose_password.disable_biometric_error'));
-    }
-    setBiometryType(newAuthData.availableBiometryType || null);
-  }, [
-    password,
-    getOauth2LoginSuccess,
-    isOAuthPasswordCreationError,
-    handleOAuthPasswordCreationError,
-  ]);
-
   const validatePasswordSubmission = useCallback(() => {
     const passwordsMatch = password !== '' && password === confirmPassword;
     const canSubmit = getOauth2LoginSuccess()
