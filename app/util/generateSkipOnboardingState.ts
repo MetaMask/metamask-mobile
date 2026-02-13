@@ -38,6 +38,9 @@ export const VAULT_INITIALIZED_KEY = '@MetaMask:vaultInitialized';
 
 export const predefinedPassword = process.env.PREDEFINED_PASSWORD;
 
+export const isPerformacneE2EContext =
+  process.env.PERFORMANCE_E2E_CONTEXT === 'true';
+
 export const additionalSrps = [
   process.env.ADDITIONAL_SRP_1,
   process.env.ADDITIONAL_SRP_2,
@@ -66,69 +69,73 @@ export const additionalSrps = [
  * This should be called during EngineService startup
  */
 async function applyVaultInitialization() {
+  if (!isPerformacneE2EContext) {
+    return;
+  }
+  // eslint-disable-next-line no-console
+  console.log(
+    '[E2E - generateSkipOnboardingState] Performance E2E Context detected',
+  );
+  let amountOfSrpsToImport = 0;
+
+  /**
+   * When running tests on BrowserStack, local services need to be accessed through
+   * BrowserStack's local tunnel hostname. For local development,
+   * standard localhost is used.
+   */
+  const hosts = ['localhost'];
+  if (Platform.OS === 'android') {
+    hosts.push('10.0.2.2');
+    hosts.push('bs-local.com');
+  }
+
+  // Testing for now
+  const port = 44455;
+  const portFallback = getCommandQueueServerPortInApp();
+  // eslint-disable-next-line no-console
+  console.log(
+    `[E2E - generateSkipOnboardingState] Command queue server port: ${port} (fallback: ${portFallback})`,
+  );
+
+  for (const host of hosts) {
+    const testUrl = `http://${host}:${port}`;
+    // eslint-disable-next-line no-console
+    console.log(
+      `[E2E - generateSkipOnboardingState] Trying command queue server at: ${testUrl}`,
+    );
+
+    const response = await fetchWithTimeout(testUrl);
+    if ((response as AxiosResponse).status === 200) {
+      // eslint-disable-next-line no-console
+      console.log(
+        `[E2E - generateSkipOnboardingState] Command queue server at ${testUrl} is available`,
+      );
+
+      // The amount of SRPs is provided by the Command Queue Server
+      amountOfSrpsToImport = (response as AxiosResponse).data.srps;
+      if (amountOfSrpsToImport > additionalSrps.length) {
+        console.warn(
+          `[E2E - generateSkipOnboardingState] Amount of SRPs to import (${amountOfSrpsToImport}) is greater than the amount of SRPs available (${additionalSrps.length})`,
+        );
+      }
+      break;
+    }
+  }
+
+  // Make sure we don't go out of bounds
+  const maxAmountOfSrpsToImport = Math.min(
+    amountOfSrpsToImport,
+    additionalSrps.length,
+  );
+
   if (
+    maxAmountOfSrpsToImport > 0 &&
     predefinedPassword &&
     !(await StorageWrapper.getItem(VAULT_INITIALIZED_KEY))
   ) {
     await Authentication.newWalletAndKeychain(predefinedPassword, {
       currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
     });
-
-    // eslint-disable-next-line no-console
-    console.log(
-      '[E2E - generateSkipOnboardingState] Performance E2E Context detected',
-    );
-    let amountOfSrpsToImport = 0;
-
-    /**
-     * When running tests on BrowserStack, local services need to be accessed through
-     * BrowserStack's local tunnel hostname. For local development,
-     * standard localhost is used.
-     */
-    const hosts = ['localhost'];
-    if (Platform.OS === 'android') {
-      hosts.push('10.0.2.2');
-      hosts.push('bs-local.com');
-    }
-
-    // Testing for now
-    const port = 44455;
-    const portFallback = getCommandQueueServerPortInApp();
-    // eslint-disable-next-line no-console
-    console.log(
-      `[E2E - generateSkipOnboardingState] Command queue server port: ${port} (fallback: ${portFallback})`,
-    );
-
-    for (const host of hosts) {
-      const testUrl = `http://${host}:${port}`;
-      // eslint-disable-next-line no-console
-      console.log(
-        `[E2E - generateSkipOnboardingState] Trying command queue server at: ${testUrl}`,
-      );
-
-      const response = await fetchWithTimeout(testUrl);
-      if ((response as AxiosResponse).status === 200) {
-        // eslint-disable-next-line no-console
-        console.log(
-          `[E2E - generateSkipOnboardingState] Command queue server at ${testUrl} is available`,
-        );
-
-        // The amount of SRPs is provided by the Command Queue Server
-        amountOfSrpsToImport = (response as AxiosResponse).data.srps;
-        if (amountOfSrpsToImport > additionalSrps.length) {
-          console.warn(
-            `[E2E - generateSkipOnboardingState] Amount of SRPs to import (${amountOfSrpsToImport}) is greater than the amount of SRPs available (${additionalSrps.length})`,
-          );
-        }
-        break;
-      }
-    }
-
-    // Make sure we don't go out of bounds
-    const maxAmountOfSrpsToImport = Math.min(
-      amountOfSrpsToImport,
-      additionalSrps.length,
-    );
 
     for (let i = 0; i < maxAmountOfSrpsToImport; i++) {
       const srp = additionalSrps[i];
