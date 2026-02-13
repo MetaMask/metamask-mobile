@@ -20,6 +20,15 @@ const SYNTHETIC_SL_ID_SUFFIX = '-synthetic-sl';
 const TRIGGER_CONDITION_PRICE_ABOVE = 'perps.order_details.price_above';
 const TRIGGER_CONDITION_PRICE_BELOW = 'perps.order_details.price_below';
 
+/**
+ * Parses the trigger price from an order, returning null when absent or invalid.
+ * Use this instead of inline `parseFloat(order.triggerPrice || '0')` + validity checks.
+ */
+export const getValidTriggerPrice = (order: Order): number | null => {
+  const parsed = parseFloat(order.triggerPrice || '');
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+};
+
 const getAbsoluteOrderSize = (order: Order): BigNumber | null => {
   const size = order.originalSize || order.size;
   const parsedSize = new BigNumber(size || '0');

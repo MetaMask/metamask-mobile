@@ -35,6 +35,7 @@ import {
 } from '../../utils/formatUtils';
 import {
   formatOrderLabel,
+  getValidTriggerPrice,
   inferTriggerConditionKey,
   isSyntheticOrderCancelable,
 } from '../../utils/orderUtils';
@@ -61,10 +62,7 @@ const PerpsOrderDetailsView: React.FC = () => {
   const { showToast, PerpsToastOptions } = usePerpsToasts();
 
   const [isCanceling, setIsCanceling] = useState(false);
-  const canCancel = useMemo(
-    () => (order ? isSyntheticOrderCancelable(order) : false),
-    [order],
-  );
+  const canCancel = order ? isSyntheticOrderCancelable(order) : false;
 
   // Calculate size in USD for fee calculation
   const sizeInUSD = useMemo(() => {
@@ -102,15 +100,9 @@ const PerpsOrderDetailsView: React.FC = () => {
         : 0;
 
     const parsedPrice = parseFloat(order.price || '0');
-    const parsedTriggerPrice = parseFloat(order.triggerPrice || '0');
-    const hasTriggerPrice =
-      Number.isFinite(parsedTriggerPrice) && parsedTriggerPrice > 0;
+    const validTriggerPrice = getValidTriggerPrice(order);
     const hasPrice = Number.isFinite(parsedPrice) && parsedPrice > 0;
-    const priceForValue = hasPrice
-      ? parsedPrice
-      : hasTriggerPrice
-        ? parsedTriggerPrice
-        : 0;
+    const priceForValue = hasPrice ? parsedPrice : (validTriggerPrice ?? 0);
 
     const originalSizeUSD = parseFloat(order.originalSize) * priceForValue;
 
@@ -120,11 +112,11 @@ const PerpsOrderDetailsView: React.FC = () => {
 
     const priceText = isMarketExecution
       ? strings('perps.order_details.market')
-      : formatPerpsFiat(hasPrice ? parsedPrice : parsedTriggerPrice);
+      : formatPerpsFiat(hasPrice ? parsedPrice : (validTriggerPrice ?? 0));
 
     let triggerCondition: string | undefined;
-    if (order.isTrigger && hasTriggerPrice) {
-      const formattedTriggerPrice = formatPerpsFiat(parsedTriggerPrice);
+    if (order.isTrigger && validTriggerPrice !== null) {
+      const formattedTriggerPrice = formatPerpsFiat(validTriggerPrice);
       const conditionKey = inferTriggerConditionKey({
         detailedOrderType: order.detailedOrderType,
         side: order.side,
