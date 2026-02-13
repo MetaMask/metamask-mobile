@@ -1,6 +1,9 @@
 import { act } from '@testing-library/react-native';
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
-import { useWithdrawalRequests } from './useWithdrawalRequests';
+import {
+  useWithdrawalRequests,
+  type WithdrawalRequest,
+} from './useWithdrawalRequests';
 import Engine from '../../../../core/Engine';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import type { RootState } from '../../../../reducers';
@@ -26,7 +29,7 @@ const mockEngine = Engine as jest.Mocked<typeof Engine>;
 const mockDevLogger = DevLogger as jest.Mocked<typeof DevLogger>;
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockSelectWithdrawalRequests =
-  selectWithdrawalRequestsBySelectedAccount as jest.Mock;
+  selectWithdrawalRequestsBySelectedAccount as unknown as jest.Mock;
 
 describe('useWithdrawalRequests', () => {
   const mockAddress = '0x1234567890123456789012345678901234567890';
@@ -144,7 +147,7 @@ describe('useWithdrawalRequests', () => {
 
   // Helper to mock the withdrawal requests selector with specific data
   const mockWithdrawalRequestsSelector = (
-    withdrawals: typeof mockPendingWithdrawals,
+    withdrawals: Partial<WithdrawalRequest>[],
   ) => {
     mockUseSelector.mockImplementation((selector) => {
       if (selector === mockSelectWithdrawalRequests) {

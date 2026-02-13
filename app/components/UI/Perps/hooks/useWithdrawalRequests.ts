@@ -55,9 +55,11 @@ export const useWithdrawalRequests = (
 
   // Get pending withdrawals from controller state, filtered by current account
   // Uses a memoized selector with deep equality to avoid new references on every Redux change
+  // The selector filters by accountAddress so all returned items are guaranteed to have it;
+  // cast to the hook's stricter WithdrawalRequest type (required accountAddress).
   const pendingWithdrawals = useSelector(
     selectWithdrawalRequestsBySelectedAccount,
-  );
+  ) as WithdrawalRequest[];
 
   // Track previous withdrawal states to detect meaningful changes
   const prevWithdrawalStatesRef = useRef<Map<string, string>>(new Map());
