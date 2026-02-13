@@ -27,7 +27,6 @@ import Wallet from '../../Views/Wallet';
 import Asset from '../../Views/Asset';
 import AssetDetails from '../../Views/AssetDetails';
 import AddAsset from '../../Views/AddAsset';
-import Collectible from '../../Views/Collectible';
 import NftFullView from '../../Views/NftFullView';
 import TokensFullView from '../../Views/TokensFullView';
 import TrendingTokensFullView from '../../Views/TrendingTokens/TrendingTokensFullView/TrendingTokensFullView';
@@ -212,11 +211,6 @@ const WalletTabStackFlow = () => (
       name="WalletView"
       component={WalletModalFlow}
       options={{ headerShown: false }}
-    />
-    <Stack.Screen
-      name="Collectible"
-      component={Collectible}
-      options={Collectible.navigationOptions}
     />
     <Stack.Screen
       name={Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL}
@@ -946,20 +940,7 @@ const MainNavigator = () => {
         component={TokensFullView}
         options={{ headerShown: false }}
       />
-      <Stack.Screen
-        name="AddAsset"
-        component={AddAsset}
-        options={({ route, navigation }) => ({
-          ...getHeaderCompactStandardNavbarOptions({
-            title: strings(
-              `add_asset.${route.params?.assetType === TOKEN ? TOKEN_TITLE : NFT_TITLE}`,
-            ),
-            onBack: () => navigation.goBack(),
-            includesTopInset: true,
-          }),
-          headerShown: true,
-        })}
-      />
+      <Stack.Screen name="AddAsset" component={AddAsset} />
       <Stack.Screen
         name="ConfirmAddAsset"
         component={ConfirmAddAsset}

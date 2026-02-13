@@ -541,7 +541,7 @@ export default class Gestures {
           await waitFor(target)
             .toBeVisible()
             .whileElement(scrollable)
-            .scroll(scrollAmount, direction);
+            .scroll(scrollAmount, direction, startPositionX, startPositionY);
         }
       },
       {

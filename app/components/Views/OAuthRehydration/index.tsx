@@ -178,6 +178,13 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     [saveOnboardingEvent],
   );
 
+  const [biometryChoice, setBiometryChoice] = useState(true);
+
+  // default biometric choice to true
+  useEffect(() => {
+    setBiometryChoice(true);
+  }, [setBiometryChoice]);
+
   const tooManyAttemptsError = useCallback(
     async (initialRemainingTime: number) => {
       const lockEnd = Date.now() + initialRemainingTime * 1000;
@@ -410,6 +417,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         );
 
       if (isBiometricCancellation) {
+        setBiometryChoice(false);
         setLoading(false);
         setRenderBiometricSwitch(true);
         setError(strings('login.biometric_authentication_cancelled'));
@@ -446,6 +454,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       track,
       handleSeedlessOnboardingControllerError,
       handlePasswordError,
+      setBiometryChoice,
       route.params?.onboardingTraceCtx,
       isComingFromOauthOnboarding,
     ],
