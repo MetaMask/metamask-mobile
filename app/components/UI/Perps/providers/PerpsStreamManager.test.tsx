@@ -1715,8 +1715,7 @@ describe('PerpsStreamManager', () => {
 
     it('should serve preloaded market data instantly via getCachedData before connect', () => {
       // Track call order to prove synchronous delivery
-      const callTimings: { data: PerpsMarketData[]; callIndex: number }[] =
-        [];
+      const callTimings: { data: PerpsMarketData[]; callIndex: number }[] = [];
       const callback = jest.fn((data: PerpsMarketData[]) => {
         callTimings.push({ data, callIndex: callTimings.length });
       });
@@ -3219,11 +3218,9 @@ describe('PerpsStreamManager', () => {
       totalBalance: '10000',
       availableBalance: '5000',
       unrealizedPnl: '1000',
-      initialMargin: '4000',
-      maintenanceMargin: '2000',
-      leverage: '2x',
-      accountValue1dAgo: '9500',
-    } as AccountState;
+      marginUsed: '4000',
+      returnOnEquity: '0.1',
+    };
 
     it('should serve cached orders instantly via getCachedData before isInitialized', () => {
       // Controller is NOT yet initialized - connect() will defer

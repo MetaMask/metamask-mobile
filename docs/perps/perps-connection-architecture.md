@@ -219,32 +219,20 @@ User data cache is automatically cleared when:
 - The selected account changes (detected in preload state handler)
 - Network or HIP-3 config changes (cleared alongside market data cache)
 
-### What the User Sees
-
-| Timing       | Content                                                                              |
-| ------------ | ------------------------------------------------------------------------------------ |
-| **Instant**  | Market lists, positions, orders, and account balance populated from cached REST data |
-| **~1-2s**    | Live WebSocket data replaces cache with real-time updates                            |
-| **On error** | `PerpsConnectionErrorView` renders (unchanged behavior)                              |
-
 ### Hook Behavior When Not Connected
 
 The stream hooks used by PerpsHomeView gracefully handle the not-yet-connected state:
 
-| Hook                    | Behavior                                 | Cache Mechanism                                            | Impact                                                    |
-| ----------------------- | ---------------------------------------- | ---------------------------------------------------------- | --------------------------------------------------------- |
-| `usePerpsLivePositions` | Reads controller cache, then WebSocket   | `getPreloadedUserData('cachedPositions')` in `useState`    | Instant display from cache, live updates when WS connects |
-| `usePerpsLiveOrders`    | Reads controller cache, then WebSocket   | `getPreloadedUserData('cachedOrders')` in `useState`       | Instant display from cache, live updates when WS connects |
-| `usePerpsLiveFills`     | Stays in `isInitialLoading: true`        | None (starts as `[]`)                                      | Skeleton shown until WS data arrives                      |
-| `usePerpsLiveAccount`   | Reads controller cache, then WebSocket   | `getPreloadedUserData('cachedAccountState')` in `useState` | Instant display from cache, live updates when WS connects |
-| `usePerpsMarkets`       | Reads controller cache                   | `hasPreloadedUserData('cachedMarketData')` in `useState`   | Renders immediately with real cached data                 |
-| `usePerpsPrices`        | Skips subscription when `!isInitialized` | None                                                       | Static cached prices shown, live prices once connected    |
+| Hook                    | Behavior                                 | Cache Mechanism                                            | Impact                                                 |
+| ----------------------- | ---------------------------------------- | ---------------------------------------------------------- | ------------------------------------------------------ |
+| `usePerpsLivePositions` | Reads controller cache, then WebSocket   | `getPreloadedUserData('cachedPositions')` in `useState`    | Positions visible immediately                          |
+| `usePerpsLiveOrders`    | Reads controller cache, then WebSocket   | `getPreloadedUserData('cachedOrders')` in `useState`       | Orders visible immediately                             |
+| `usePerpsLiveFills`     | Stays in `isInitialLoading: true`        | None (starts as `[]`)                                      | Skeleton shown until WS data arrives                   |
+| `usePerpsLiveAccount`   | Reads controller cache, then WebSocket   | `getPreloadedUserData('cachedAccountState')` in `useState` | Balance visible immediately                            |
+| `usePerpsMarkets`       | Reads controller cache                   | `hasPreloadedUserData('cachedMarketData')` in `useState`   | Renders immediately with real cached data              |
+| `usePerpsPrices`        | Skips subscription when `!isInitialized` | None                                                       | Static cached prices shown, live prices once connected |
 
 > **How this works**: Stream channels defer their WebSocket subscriptions until `PerpsConnectionManager.getConnectionState().isInitialized` is `true`, retrying every 200ms (max 150 attempts). This prevents doomed subscriptions that would permanently block data delivery. See [Stream Channel Initialization Guards](#stream-channel-initialization-guards) above.
-
-### Why No Full-Screen Skeleton
-
-`PerpsConnectionProvider` no longer blocks rendering with `PerpsLoadingSkeleton` during the connecting state. Instead, children render immediately and each section manages its own loading state via per-row skeletons. This eliminates the ~1-2s "Connecting to Perps" screen and provides a progressive loading experience. Stream channels safely defer their subscriptions until the controller is initialized (see [Stream Channel Initialization Guards](#stream-channel-initialization-guards)), preventing dead subscriptions that would cause infinite loading states.
 
 ---
 
