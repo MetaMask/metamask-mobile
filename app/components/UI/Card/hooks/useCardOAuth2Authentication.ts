@@ -6,7 +6,6 @@ import {
   type DiscoveryDocument,
   Prompt,
 } from 'expo-auth-session';
-// eslint-disable-next-line import/no-extraneous-dependencies, import/namespace
 import { warmUpAsync, coolDownAsync } from 'expo-web-browser';
 import { useDispatch, useSelector } from 'react-redux';
 import Logger from '../../../../util/Logger';
