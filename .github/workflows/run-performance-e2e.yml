@@ -137,7 +137,7 @@ jobs:
         env:
           BRANCH_NAME: ${{ needs.determine-branch-name.outputs.branch_name }}
         run: |
-          FILE="appwright/device-matrix.json"
+          FILE="tests/performance/device-matrix.json"
 
           # Push to main or release branches: Use only "low" category devices
           # Schedule and workflow_dispatch: Use all devices
@@ -333,7 +333,7 @@ jobs:
         with:
           name: aggregated-reports
           path: |
-            appwright/aggregated-reports/
+            tests/aggregated-reports/
           if-no-files-found: ignore
           retention-days: 30
 

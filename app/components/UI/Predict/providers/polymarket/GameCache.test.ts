@@ -1,6 +1,7 @@
 import { GameUpdate, PredictMarket, Recurrence } from '../../types';
 import { GameCache } from './GameCache';
 
+import { POLYMARKET_PROVIDER_ID } from './constants';
 const createMockGameUpdate = (
   overrides: Partial<GameUpdate> = {},
 ): GameUpdate => ({
@@ -17,7 +18,7 @@ const createMockMarket = (
   overrides: Partial<PredictMarket> = {},
 ): PredictMarket => ({
   id: 'market-1',
-  providerId: 'polymarket',
+  providerId: POLYMARKET_PROVIDER_ID,
   slug: 'test-market',
   title: 'Test Market',
   description: 'A test market',

@@ -1,6 +1,7 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
 import { Animated, Easing } from 'react-native';
+import BigNumber from 'bignumber.js';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -11,9 +12,9 @@ import {
   BoxJustifyContent,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
-import { TRON_RESOURCE } from '../../../../../../core/Multichain/constants';
 import { selectTronResourcesBySelectedAccountGroup } from '../../../../../../selectors/assets/assets-list';
 import type { ComputeFeeResult } from '../../../types/tron-staking.types';
+import useTronStakeApy from '../../../hooks/useTronStakeApy';
 
 export interface TronStakePreviewProps {
   fee?: ComputeFeeResult | ComputeFeeResult[0];
@@ -37,9 +38,6 @@ const Row = ({ label, value }: { label: string; value: React.ReactNode }) => (
   </Box>
 );
 
-// Temporary fixed APR until staking yield is provided
-const TRON_STAKING_APR = 0.0335; // 3.35%
-
 const TronStakePreview = ({
   fee,
   stakeAmount,
@@ -47,64 +45,50 @@ const TronStakePreview = ({
 }: TronStakePreviewProps) => {
   const tw = useTailwind();
 
-  const tronResources = useSelector(selectTronResourcesBySelectedAccountGroup);
+  const { totalStakedTrx } = useSelector(
+    selectTronResourcesBySelectedAccountGroup,
+  );
 
-  const { strxEnergy, strxBandwidth } = React.useMemo(() => {
-    let strxEnergy, strxBandwidth;
-    for (const asset of tronResources) {
-      switch (asset.symbol.toLowerCase()) {
-        case TRON_RESOURCE.STRX_ENERGY:
-          strxEnergy = asset;
-          break;
-        case TRON_RESOURCE.STRX_BANDWIDTH:
-          strxBandwidth = asset;
-          break;
-        default:
-          break;
-      }
-    }
-    return {
-      strxEnergy,
-      strxBandwidth,
-    };
-  }, [tronResources]);
-
-  const parseNum = (v?: string | number) =>
-    typeof v === 'number' ? v : parseFloat(String(v ?? '0').replace(/,/g, ''));
-
-  const strxEnergyValue = parseNum(strxEnergy?.balance);
-  const strxBandwidthValue = parseNum(strxBandwidth?.balance);
-  const totalStakedTrx = (strxEnergyValue || 0) + (strxBandwidthValue || 0);
+  const { apyDecimal } = useTronStakeApy();
 
   const feeItem: ComputeFeeResult[0] | undefined = Array.isArray(fee)
     ? fee[0]
     : fee;
 
   const estimatedAnnualReward = React.useMemo(() => {
-    const inputAmount = stakeAmount ? Number(stakeAmount) : 0;
-    const baseStaked = Number.isNaN(totalStakedTrx) ? 0 : totalStakedTrx;
-    const stake = Number.isNaN(inputAmount) ? 0 : inputAmount;
-
-    let totalForRewards = baseStaked;
-
-    if (mode === 'stake') {
-      totalForRewards = baseStaked + stake;
-    } else if (mode === 'unstake') {
-      totalForRewards = Math.max(baseStaked - stake, 0);
-    }
-
-    if (totalForRewards <= 0) {
+    if (!apyDecimal) {
       return '';
     }
 
-    const reward = totalForRewards * TRON_STAKING_APR;
-    const rewardRounded = Math.round(reward * 1000) / 1000;
+    const stakingApr = new BigNumber(apyDecimal).dividedBy(100);
 
-    return `${rewardRounded.toLocaleString(undefined, {
+    const inputAmount = new BigNumber(stakeAmount || '0');
+
+    if (inputAmount.isNaN()) {
+      return '';
+    }
+
+    const baseStaked = new BigNumber(totalStakedTrx);
+
+    const totalForRewards =
+      mode === 'stake'
+        ? baseStaked.plus(inputAmount)
+        : mode === 'unstake'
+          ? BigNumber.max(baseStaked.minus(inputAmount), 0)
+          : baseStaked;
+
+    if (totalForRewards.lte(0)) {
+      return '';
+    }
+
+    const reward = totalForRewards.multipliedBy(stakingApr);
+    const rewardRounded = reward.decimalPlaces(3, BigNumber.ROUND_HALF_UP);
+
+    return `${rewardRounded.toNumber().toLocaleString(undefined, {
       minimumFractionDigits: 3,
       maximumFractionDigits: 3,
     })} TRX`;
-  }, [stakeAmount, totalStakedTrx, mode]);
+  }, [stakeAmount, totalStakedTrx, mode, apyDecimal]);
 
   const translateY = React.useRef(new Animated.Value(40)).current;
   const opacity = React.useRef(new Animated.Value(0)).current;

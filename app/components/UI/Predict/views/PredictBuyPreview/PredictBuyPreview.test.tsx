@@ -12,6 +12,7 @@ import PredictBuyPreview from './PredictBuyPreview';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { PredictEventValues } from '../../constants/eventNames';
 
+import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
 // Mock Engine
 jest.mock('../../../../../core/Engine', () => ({
   context: {
@@ -160,7 +161,7 @@ jest.mock('../../utils/format', () => ({
 
 const mockMarket: PredictMarket = {
   id: 'market-123',
-  providerId: 'polymarket',
+  providerId: POLYMARKET_PROVIDER_ID,
   slug: 'bitcoin-price',
   title: 'Will Bitcoin reach $150,000?',
   description: 'Market description',
@@ -174,7 +175,7 @@ const mockMarket: PredictMarket = {
     {
       id: 'outcome-456',
       marketId: 'market-123',
-      providerId: 'polymarket',
+      providerId: POLYMARKET_PROVIDER_ID,
       title: 'Bitcoin Price Outcome',
       description: 'Outcome description',
       image: 'https://example.com/outcome.png',
@@ -393,7 +394,7 @@ describe('PredictBuyPreview', () => {
           {
             id: 'outcome-457',
             marketId: 'market-123',
-            providerId: 'polymarket',
+            providerId: POLYMARKET_PROVIDER_ID,
             title: 'Second Outcome',
             description: 'Second outcome description',
             image: 'https://example.com/outcome2.png',

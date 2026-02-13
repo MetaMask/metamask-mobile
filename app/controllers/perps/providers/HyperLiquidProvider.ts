@@ -1,6 +1,10 @@
 import { CaipAccountId, type Hex } from '@metamask/utils';
-import { createStandaloneInfoClient } from '../utils/standaloneInfoClient';
+import {
+  createStandaloneInfoClient,
+  queryStandaloneClearinghouseStates,
+} from '../utils/standaloneInfoClient';
 import { v4 as uuidv4 } from 'uuid';
+import { aggregateAccountStates } from '../utils/accountUtils';
 import { ensureError } from '../utils/errorUtils';
 import {
   BASIS_POINTS_DIVISOR,
@@ -65,7 +69,6 @@ import type {
   PerpsAssetCtx,
   FrontendOrder,
   SpotMetaResponse,
-  ClearinghouseStateResponse,
 } from '../types/hyperliquid-types';
 import {
   createErrorResult,
@@ -151,12 +154,12 @@ const isStatusObject = (status: unknown): status is Record<string, unknown> =>
   typeof status === 'object' && status !== null;
 
 // Helper method parameter interfaces (module-level for class-dependent methods only)
-interface GetAssetInfoParams {
+type GetAssetInfoParams = {
   symbol: string;
   dexName: string | null;
-}
+};
 
-interface GetAssetInfoResult {
+type GetAssetInfoResult = {
   assetInfo: {
     name: string;
     szDecimals: number;
@@ -164,15 +167,15 @@ interface GetAssetInfoResult {
   };
   currentPrice: number;
   meta: MetaResponse;
-}
+};
 
-interface PrepareAssetForTradingParams {
+type PrepareAssetForTradingParams = {
   symbol: string;
   assetId: number;
   leverage?: number;
-}
+};
 
-interface HandleHip3PreOrderParams {
+type HandleHip3PreOrderParams = {
   dexName: string;
   symbol: string;
   orderPrice: number;
@@ -180,13 +183,13 @@ interface HandleHip3PreOrderParams {
   leverage: number;
   isBuy: boolean;
   maxLeverage: number;
-}
+};
 
-interface HandleHip3PreOrderResult {
+type HandleHip3PreOrderResult = {
   transferInfo: { amount: number; sourceDex: string } | null;
-}
+};
 
-interface SubmitOrderWithRollbackParams {
+type SubmitOrderWithRollbackParams = {
   orders: SDKOrderParams[];
   grouping: 'na' | 'normalTpsl' | 'positionTpsl';
   isHip3Order: boolean;
@@ -194,19 +197,19 @@ interface SubmitOrderWithRollbackParams {
   transferInfo: { amount: number; sourceDex: string } | null;
   symbol: string;
   assetId: number;
-}
+};
 
-interface HandleOrderErrorParams {
+type HandleOrderErrorParams = {
   error: unknown;
   symbol: string;
   orderType: 'market' | 'limit';
   isBuy: boolean;
-}
+};
 
-interface GetOrFetchPriceParams {
+type GetOrFetchPriceParams = {
   symbol: string;
   dexName: string | null;
-}
+};
 
 /**
  * HyperLiquid provider implementation
@@ -357,15 +360,15 @@ export class HyperLiquidProvider implements PerpsProvider {
     // NOTE: Clients are NOT initialized here - they'll be initialized lazily
     // when first needed. This avoids accessing Engine.context before it's ready.
 
-    // Pre-compile filter patterns for performance
-    this.compiledAllowlistPatterns = this.allowlistMarkets.map((pattern) => ({
-      pattern,
-      matcher: compileMarketPattern(pattern),
-    }));
-    this.compiledBlocklistPatterns = this.blocklistMarkets.map((pattern) => ({
-      pattern,
-      matcher: compileMarketPattern(pattern),
-    }));
+    // Pre-compile filter patterns for performance (invalid patterns are skipped)
+    this.compiledAllowlistPatterns = this.compilePatternsSafely(
+      this.allowlistMarkets,
+      'allowlist',
+    );
+    this.compiledBlocklistPatterns = this.compilePatternsSafely(
+      this.blocklistMarkets,
+      'blocklist',
+    );
 
     // Debug: Confirm batch methods exist and show HIP-3 config
     this.deps.debugLogger.log('[HyperLiquidProvider] Constructor complete', {
@@ -377,6 +380,28 @@ export class HyperLiquidProvider implements PerpsProvider {
       blocklistMarkets: this.blocklistMarkets,
       isTestnet,
     });
+  }
+
+  /**
+   * Compile market patterns safely, skipping any that fail validation.
+   * Prevents a single bad pattern from crashing the entire constructor.
+   */
+  private compilePatternsSafely(
+    patterns: string[],
+    listName: string,
+  ): CompiledMarketPattern[] {
+    const compiled: CompiledMarketPattern[] = [];
+    for (const pattern of patterns) {
+      try {
+        compiled.push({ pattern, matcher: compileMarketPattern(pattern) });
+      } catch (error) {
+        this.deps.logger.error(
+          ensureError(error, `HyperLiquidProvider.compilePatternsSafely`),
+          this.getErrorContext('compilePatternsSafely', { listName, pattern }),
+        );
+      }
+    }
+    return compiled;
   }
 
   /**
@@ -571,6 +596,15 @@ export class HyperLiquidProvider implements PerpsProvider {
       });
       completeInFlight();
     } catch (error) {
+      // If keyring is locked, don't cache so it retries when unlocked
+      if (ensureError(error).message === PERPS_ERROR_CODES.KEYRING_LOCKED) {
+        this.deps.debugLogger.log(
+          '[ensureDexAbstractionEnabled] Keyring locked, will retry later',
+        );
+        completeInFlight();
+        return;
+      }
+
       // Cache the attempt (even on failure) to prevent repeated signing requests
       // This is CRITICAL for hardware wallets - if user rejects, don't ask again
       TradingReadinessCache.set(network, userAddress, {
@@ -723,7 +757,10 @@ export class HyperLiquidProvider implements PerpsProvider {
       // Set up referral code
       await this.ensureReferralSet();
 
-      this.tradingSetupComplete = true;
+      // Only mark complete if keyring was unlocked (signing could actually happen)
+      if (this.walletService.isKeyringUnlocked()) {
+        this.tradingSetupComplete = true;
+      }
     })();
 
     try {
@@ -2252,6 +2289,15 @@ export class HyperLiquidProvider implements PerpsProvider {
       }
       completeInFlight();
     } catch (error) {
+      // If keyring is locked, don't cache so it retries when unlocked
+      if (ensureError(error).message === PERPS_ERROR_CODES.KEYRING_LOCKED) {
+        this.deps.debugLogger.log(
+          '[ensureBuilderFeeApproval] Keyring locked, will retry later',
+        );
+        completeInFlight();
+        return;
+      }
+
       // Cache failure to prevent retries
       PerpsSigningCache.setBuilderFee(network, userAddress, {
         attempted: true,
@@ -4337,16 +4383,62 @@ export class HyperLiquidProvider implements PerpsProvider {
   }
 
   /**
-   * Get clearinghouse state for a user in readOnly mode.
-   * Creates a standalone InfoClient without requiring full initialization.
+   * Get validated DEXs for standalone mode using a standalone InfoClient.
+   * Similar to getValidatedDexs() but doesn't require full initialization.
+   * Reuses cachedValidatedDexs to avoid redundant perpDexs() calls.
    */
-  private async getReadOnlyClearinghouseState(
-    userAddress: string,
-  ): Promise<ClearinghouseStateResponse> {
+  private async getStandaloneValidatedDexs(): Promise<(string | null)[]> {
+    // Return cached result if available
+    if (this.cachedValidatedDexs !== null) {
+      return this.cachedValidatedDexs;
+    }
+
+    // Kill switch: HIP-3 disabled, return main DEX only
+    if (!this.hip3Enabled) {
+      this.cachedValidatedDexs = [null];
+      return this.cachedValidatedDexs;
+    }
+
+    // Fetch available DEXs via standalone client
     const standaloneInfoClient = createStandaloneInfoClient({
       isTestnet: this.clientService.isTestnetMode(),
     });
-    return standaloneInfoClient.clearinghouseState({ user: userAddress });
+    let allDexs;
+    try {
+      allDexs = await standaloneInfoClient.perpDexs();
+    } catch (error) {
+      this.deps.debugLogger.log(
+        'HyperLiquidProvider: standalone perpDexs() failed, falling back to main DEX only',
+      );
+      return [null];
+    }
+
+    // Validate response
+    if (!allDexs || !Array.isArray(allDexs)) {
+      return [null];
+    }
+
+    // Extract HIP-3 DEX names (filter out null which represents main DEX)
+    const availableHip3Dexs: string[] = [];
+    allDexs.forEach((dex) => {
+      if (dex !== null) {
+        availableHip3Dexs.push(dex.name);
+      }
+    });
+
+    // Filter by allowlist patterns (same logic as fetchValidatedDexsInternal)
+    const allowedDexsFromAllowlist = this.extractDexsFromAllowlist();
+    if (allowedDexsFromAllowlist.length === 0) {
+      this.cachedValidatedDexs = [null];
+      return this.cachedValidatedDexs;
+    }
+
+    const filteredDexs = availableHip3Dexs.filter((dex) =>
+      allowedDexsFromAllowlist.includes(dex),
+    );
+
+    this.cachedValidatedDexs = [null, ...filteredDexs];
+    return this.cachedValidatedDexs;
   }
 
   /**
@@ -4362,27 +4454,37 @@ export class HyperLiquidProvider implements PerpsProvider {
    */
   async getPositions(params?: GetPositionsParams): Promise<Position[]> {
     try {
-      // Path 0: Read-only mode for lightweight position queries
+      // Path 0: Standalone mode for lightweight position queries
       // Creates a standalone InfoClient without requiring full initialization
       // No wallet, WebSocket, or account setup needed - just HTTP API call
       // Use for discovery use cases like showing positions on token details page
-      if (params?.readOnly && params.userAddress) {
+      if (params?.standalone && params.userAddress) {
+        const { userAddress } = params;
         this.deps.debugLogger.log(
-          'HyperLiquidProvider: Getting positions in readOnly mode (standalone client)',
-          { userAddress: params.userAddress },
+          'HyperLiquidProvider: Getting positions in standalone mode',
+          { userAddress },
         );
 
-        const state = await this.getReadOnlyClearinghouseState(
-          params.userAddress,
+        const standaloneInfoClient = createStandaloneInfoClient({
+          isTestnet: this.clientService.isTestnetMode(),
+        });
+        const dexs = await this.getStandaloneValidatedDexs();
+        const results = await queryStandaloneClearinghouseStates(
+          standaloneInfoClient,
+          userAddress,
+          dexs,
         );
 
-        // Transform positions - skip TP/SL lookup (would require additional API call)
-        const positions = state.assetPositions
-          .filter((assetPos) => assetPos.position.szi !== '0')
-          .map((assetPos) => adaptPositionFromSDK(assetPos));
+        // Combine and filter positions from all DEXs
+        // Skip TP/SL lookup (would require additional API call)
+        const positions = results.flatMap((state) =>
+          state.assetPositions
+            .filter((assetPos) => assetPos.position.szi !== '0')
+            .map((assetPos) => adaptPositionFromSDK(assetPos)),
+        );
 
         this.deps.debugLogger.log(
-          'HyperLiquidProvider: readOnly positions fetched',
+          'HyperLiquidProvider: standalone positions fetched',
           { count: positions.length },
         );
 
@@ -5008,29 +5110,39 @@ export class HyperLiquidProvider implements PerpsProvider {
    */
   async getAccountState(params?: GetAccountStateParams): Promise<AccountState> {
     try {
-      // Path 0: Read-only mode for lightweight account state queries
+      // Path 0: Standalone mode for lightweight account state queries
       // Creates a standalone InfoClient without requiring full initialization
       // No wallet, WebSocket, or account setup needed - just HTTP API call
       // Use for discovery use cases like checking if user has perps funds
-      if (params?.readOnly && params.userAddress) {
+      if (params?.standalone && params.userAddress) {
+        const { userAddress } = params;
         this.deps.debugLogger.log(
-          'HyperLiquidProvider: Getting account state in readOnly mode (standalone client)',
-          { userAddress: params.userAddress },
+          'HyperLiquidProvider: Getting account state in standalone mode',
+          { userAddress },
         );
 
-        const perpsState = await this.getReadOnlyClearinghouseState(
-          params.userAddress,
+        const standaloneInfoClient = createStandaloneInfoClient({
+          isTestnet: this.clientService.isTestnetMode(),
+        });
+        const dexs = await this.getStandaloneValidatedDexs();
+        const results = await queryStandaloneClearinghouseStates(
+          standaloneInfoClient,
+          userAddress,
+          dexs,
         );
 
-        // Transform to AccountState - simpler version without spot balance aggregation
-        const accountState = adaptAccountStateFromSDK(perpsState);
+        // Aggregate account states across all DEXs
+        const dexAccountStates = results.map((perpsState) =>
+          adaptAccountStateFromSDK(perpsState),
+        );
+        const aggregatedAccountState = aggregateAccountStates(dexAccountStates);
 
         this.deps.debugLogger.log(
-          'HyperLiquidProvider: readOnly account state fetched',
-          { totalBalance: accountState.totalBalance },
+          'HyperLiquidProvider: standalone account state fetched',
+          { totalBalance: aggregatedAccountState.totalBalance },
         );
 
-        return accountState;
+        return aggregatedAccountState;
       }
 
       this.deps.debugLogger.log('Getting account state via HyperLiquid SDK');
@@ -5065,72 +5177,20 @@ export class HyperLiquidProvider implements PerpsProvider {
 
       // Aggregate account states from all DEXs
       // Each DEX has independent positions and margin, we sum them
-      const aggregatedAccountState = perpsStateResults.reduce<AccountState>(
-        (acc, result, index) => {
-          const { dex, data: perpsState } = result;
-
-          // Adapt this DEX's state (without spot - we'll add spot once at the end)
-          const dexAccountState = adaptAccountStateFromSDK(perpsState);
-
-          // Log each DEX contribution
-          this.deps.debugLogger.log(`DEX ${dex || 'main'} account state:`, {
+      const dexAccountStates = perpsStateResults.map((result) => {
+        const dexAccountState = adaptAccountStateFromSDK(result.data);
+        this.deps.debugLogger.log(
+          `DEX ${result.dex || 'main'} account state:`,
+          {
             totalBalance: dexAccountState.totalBalance,
             availableBalance: dexAccountState.availableBalance,
             marginUsed: dexAccountState.marginUsed,
             unrealizedPnl: dexAccountState.unrealizedPnl,
-          });
-
-          // Sum up numeric values across all DEXs
-          if (index === 0) {
-            // First DEX - initialize with its values
-            return dexAccountState;
-          }
-
-          // Subsequent DEXs - aggregate
-          return {
-            availableBalance: (
-              parseFloat(acc.availableBalance) +
-              parseFloat(dexAccountState.availableBalance)
-            ).toString(),
-            totalBalance: (
-              parseFloat(acc.totalBalance) +
-              parseFloat(dexAccountState.totalBalance)
-            ).toString(),
-            marginUsed: (
-              parseFloat(acc.marginUsed) +
-              parseFloat(dexAccountState.marginUsed)
-            ).toString(),
-            unrealizedPnl: (
-              parseFloat(acc.unrealizedPnl) +
-              parseFloat(dexAccountState.unrealizedPnl)
-            ).toString(),
-            // Return on equity is weighted average, but for simplicity we'll recalculate
-            // ROE = (unrealizedPnl / marginUsed) * 100
-            returnOnEquity: '0', // Will recalculate below
-          };
-        },
-        {
-          availableBalance: '0',
-          totalBalance: '0',
-          marginUsed: '0',
-          unrealizedPnl: '0',
-          returnOnEquity: '0',
-        },
-      );
-
-      // Recalculate return on equity across all DEXs
-      const totalMarginUsed = parseFloat(aggregatedAccountState.marginUsed);
-      const totalUnrealizedPnl = parseFloat(
-        aggregatedAccountState.unrealizedPnl,
-      );
-      if (totalMarginUsed > 0) {
-        aggregatedAccountState.returnOnEquity = (
-          (totalUnrealizedPnl / totalMarginUsed) *
-          100
-        ).toFixed(1);
-      } else {
-        aggregatedAccountState.returnOnEquity = '0';
-      }
+          },
+        );
+        return dexAccountState;
+      });
+      const aggregatedAccountState = aggregateAccountStates(dexAccountStates);
 
       // Add spot balance to totalBalance (spot is global, not per-DEX)
       let spotBalance = 0;
@@ -5192,13 +5252,13 @@ export class HyperLiquidProvider implements PerpsProvider {
    */
   async getMarkets(params?: GetMarketsParams): Promise<MarketInfo[]> {
     try {
-      // Path 0: Read-only mode for lightweight discovery queries
+      // Path 0: Standalone mode for lightweight discovery queries
       // Creates a standalone InfoClient without requiring full initialization
       // No wallet, WebSocket, or account setup needed - just HTTP API call
       // Use for discovery use cases like checking if a perps market exists
-      if (params?.readOnly) {
+      if (params?.standalone) {
         this.deps.debugLogger.log(
-          'HyperLiquidProvider: Getting markets in readOnly mode (standalone client)',
+          'HyperLiquidProvider: Getting markets in standalone mode',
           { symbolCount: params?.symbols?.length },
         );
 
@@ -5432,7 +5492,10 @@ export class HyperLiquidProvider implements PerpsProvider {
     // eliminating duplicate metaAndAssetCtxs API calls from race conditions
     await this.ensureReady();
 
-    const infoClient = this.clientService.getInfoClient();
+    // Use HTTP transport for market data fetches — these are one-shot request/response calls
+    // that don't benefit from WebSocket. When the WebSocket is in CONNECTING state (after app
+    // backgrounding or network transitions), the SDK buffers messages causing timeouts.
+    const infoClient = this.clientService.getInfoClient({ useHttp: true });
 
     // Get enabled DEXs respecting feature flags (uses cached perpDexs)
     const enabledDexs = await this.getValidatedDexs();
@@ -5507,11 +5570,16 @@ export class HyperLiquidProvider implements PerpsProvider {
             success: true,
           };
         } catch (error) {
-          this.deps.logger.error(
-            ensureError(error, 'HyperLiquidProvider.getMarketDataWithPrices'),
-            this.getErrorContext('getMarketDataWithPrices.fetchDex', {
-              dex: dex ?? 'main',
-            }),
+          // Log per-DEX failures locally only — the aggregate error at the end
+          // of this method reports to Sentry, avoiding duplicate events.
+          this.deps.debugLogger.log(
+            `[getMarketDataWithPrices] DEX fetch failed for ${dex ?? 'main'}`,
+            {
+              error: ensureError(
+                error,
+                'HyperLiquidProvider.getMarketDataWithPrices',
+              ).message,
+            },
           );
           return {
             dex,
@@ -5554,7 +5622,16 @@ export class HyperLiquidProvider implements PerpsProvider {
     });
 
     if (combinedUniverse.length === 0) {
-      throw new Error('Failed to fetch market data - no markets available');
+      const failedDexs = dexDataResults
+        .filter((r) => !r.success)
+        .map((r) => r.dex ?? 'main');
+      const succeededDexs = dexDataResults
+        .filter((r) => r.success)
+        .map((r) => r.dex ?? 'main');
+      const wsState = this.clientService.getConnectionState();
+      throw new Error(
+        `Failed to fetch market data - no markets available (enabledDexs=${enabledDexs.length}, failed=[${failedDexs.join(',')}], succeeded=[${succeededDexs.join(',')}], wsState=${wsState})`,
+      );
     }
 
     this.deps.debugLogger.log(
@@ -7254,6 +7331,15 @@ export class HyperLiquidProvider implements PerpsProvider {
       }
       completeInFlight();
     } catch (error) {
+      // If keyring is locked, don't cache so it retries when unlocked
+      if (ensureError(error).message === PERPS_ERROR_CODES.KEYRING_LOCKED) {
+        this.deps.debugLogger.log(
+          '[ensureReferralSet] Keyring locked, will retry later',
+        );
+        completeInFlight();
+        return;
+      }
+
       // Cache failure to prevent retries
       PerpsSigningCache.setReferral(network, userAddress, {
         attempted: true,

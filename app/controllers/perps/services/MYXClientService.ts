@@ -25,9 +25,9 @@ import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 /**
  * MYX Client Configuration
  */
-export interface MYXClientConfig {
+export type MYXClientConfig = {
   isTestnet: boolean;
-}
+};
 
 /**
  * Price polling callback type

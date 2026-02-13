@@ -3831,6 +3831,7 @@
     "qr_code": "QR code"
   },
   "transactions": {
+    "unavailable": "Unavailable",
     "tx_review_confirm": "Confirm",
     "tx_review_transfer": "Transfer",
     "tx_review_contract_deployment": "Contract deployment",
@@ -4759,9 +4760,14 @@
     "on_network": "on {{networkName}}",
     "debit_card": "Debit card",
     "select_payment_method": "Select payment method",
+    "loading_quote": "Loading quote...",
     "pay_with": "Pay with",
     "buying_via": "Buying via {{providerName}}.",
     "change_provider": "Change provider.",
+    "payment_error": "Something went wrong. Please try again.",
+    "no_payment_methods_available": "No payment methods are available.",
+    "error_fetching_quotes": "Something went wrong. Please try again.",
+    "no_quotes_available": "No providers available.",
     "providers": "Providers",
     "continue": "Continue",
     "powered_by_provider": "Powered by {{provider}}",

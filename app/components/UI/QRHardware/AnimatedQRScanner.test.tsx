@@ -601,26 +601,48 @@ describe('AnimatedQRScannerModal - Metrics', () => {
   });
 
   describe('Camera Permission Error', () => {
-    it('calls onScanError when camera permission is not granted', async () => {
+    it('calls onScanError only after requestPermission resolves with denial', async () => {
       const mockUseCameraPermission = jest.requireMock(
         'react-native-vision-camera',
       ).useCameraPermission;
 
+      const mockRequestPermission = jest.fn().mockResolvedValue(false);
       mockUseCameraPermission.mockReturnValue({
         hasPermission: false,
-        requestPermission: jest.fn(),
+        requestPermission: mockRequestPermission,
       });
 
       render(<AnimatedQRScannerModal {...defaultProps} />);
 
       await waitFor(() => {
+        expect(mockRequestPermission).toHaveBeenCalled();
         expect(mockOnScanError).toHaveBeenCalledWith(
           'transaction.no_camera_permission',
         );
       });
     });
 
-    it('does not call onScanError when camera permission is granted', async () => {
+    it('does not call onScanError when requestPermission is granted', async () => {
+      const mockUseCameraPermission = jest.requireMock(
+        'react-native-vision-camera',
+      ).useCameraPermission;
+
+      const mockRequestPermission = jest.fn().mockResolvedValue(true);
+      mockUseCameraPermission.mockReturnValue({
+        hasPermission: false,
+        requestPermission: mockRequestPermission,
+      });
+
+      render(<AnimatedQRScannerModal {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(mockRequestPermission).toHaveBeenCalled();
+      });
+
+      expect(mockOnScanError).not.toHaveBeenCalled();
+    });
+
+    it('does not call onScanError when camera permission is already granted', async () => {
       const mockUseCameraPermission = jest.requireMock(
         'react-native-vision-camera',
       ).useCameraPermission;
@@ -645,9 +667,10 @@ describe('AnimatedQRScannerModal - Metrics', () => {
         'react-native-vision-camera',
       ).useCameraPermission;
 
+      const mockRequestPermission = jest.fn().mockResolvedValue(false);
       mockUseCameraPermission.mockReturnValue({
         hasPermission: false,
-        requestPermission: jest.fn(),
+        requestPermission: mockRequestPermission,
       });
 
       const propsWithoutVisibility = { ...defaultProps, visible: false };
@@ -657,6 +680,9 @@ describe('AnimatedQRScannerModal - Metrics', () => {
       await waitFor(() => {
         expect(mockOnScanError).not.toHaveBeenCalled();
       });
+
+      // requestPermission should not have been called since modal is not visible
+      expect(mockRequestPermission).not.toHaveBeenCalled();
     });
   });
 
