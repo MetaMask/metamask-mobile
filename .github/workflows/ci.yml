@@ -233,6 +233,9 @@ jobs:
     uses: ./.github/workflows/needs-e2e-build.yml
   component-view-test:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        shard: [1, 2]
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -248,17 +251,49 @@ jobs:
           command: yarn install --immutable
       - name: Clean state and following up dependencies installation
         run: yarn setup:github-ci --node
-      - run: yarn test:view:ci
-      - name: Rename coverage report and generate HTML
+      # The "2" must match the length of matrix.shard (2 shards like unit's 10)
+      - run: yarn test:view:ci --shard=${{ matrix.shard }}/2
+        env:
+          NODE_OPTIONS: --max-old-space-size=20480
+      - name: Rename coverage report for this shard
         shell: bash
         run: |
-          mv ./tests/coverage/coverage-final.json ./tests/coverage/coverage-component-view.json
-          yarn nyc report --temp-dir ./tests/coverage --report-dir ./tests/coverage-component-view-lcov --reporter html
+          mv ./tests/coverage/coverage-final.json ./tests/coverage/coverage-component-view-${{ matrix.shard }}.json
       - uses: actions/upload-artifact@v4
         with:
-          name: coverage-view
-          path: ./tests/coverage/coverage-component-view.json
+          name: coverage-view-${{ matrix.shard }}
+          path: ./tests/coverage/
           if-no-files-found: error
+  merge-component-view-coverage:
+    runs-on: ubuntu-latest
+    needs: [component-view-test]
+    if: ${{ !cancelled() && github.event_name != 'merge_group' }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version-file: '.nvmrc'
+          cache: yarn
+      - name: Install Yarn dependencies with retry
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn install --immutable
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: coverage-view-*
+          path: tests/coverage-cvt/
+      - name: Gather CVT shard coverage into one directory
+        shell: bash
+        run: |
+          mkdir -p tests/coverage-cvt-merged
+          for d in tests/coverage-cvt/coverage-view-*; do
+            [ -d "$d" ] && cp "$d"/*.json tests/coverage-cvt-merged/ 2>/dev/null || true
+          done
+      - name: Generate merged CVT HTML coverage report
+        run: yarn nyc report --temp-dir ./tests/coverage-cvt-merged --report-dir ./tests/coverage-component-view-lcov --reporter html
       - uses: actions/upload-artifact@v4
         with:
           name: html-coverage-component-view
@@ -584,6 +619,7 @@ jobs:
         scripts,
         unit-tests,
         component-view-test,
+        merge-component-view-coverage,
         check-workflows,
         js-bundle-size-check,
         sonar-cloud-quality-gate-status,
