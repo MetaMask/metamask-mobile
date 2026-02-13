@@ -693,4 +693,3 @@ jobs:
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
           PROD_STRIPE_SECRET_KEY: ${{ secrets.PROD_STRIPE_SECRET_KEY }}
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-```
