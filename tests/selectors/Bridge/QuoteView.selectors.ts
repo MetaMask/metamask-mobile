@@ -10,6 +10,7 @@ export const QuoteViewSelectorText = {
   FEE_DISCLAIMER: enContent.bridge.fee_disclaimer,
   MAX: enContent.bridge.max,
   INCLUDED: enContent.bridge.included,
+  RATE: enContent.bridge.rate,
 };
 
 export const QuoteViewSelectorIDs = {

@@ -86,8 +86,7 @@ describe(SmokeTrade('Bridge functionality'), () => {
         // Open keypad by tapping source amount input (keypad is in BottomSheet, closed after token selection)
         await QuoteView.tapSourceAmountInput();
         await QuoteView.enterAmount(quantity);
-        await QuoteView.dismissKeypadAndScrollDown();
-
+        await QuoteView.dismissKeypad();
         await Assertions.expectElementToBeVisible(QuoteView.networkFeeLabel, {
           timeout: 60000,
           description: 'Network fee label visible',

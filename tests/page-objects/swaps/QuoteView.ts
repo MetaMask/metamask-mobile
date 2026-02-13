@@ -68,6 +68,10 @@ class QuoteView {
     return Matchers.getElementByText(QuoteViewSelectorText.INCLUDED);
   }
 
+  get rateLabel(): DetoxElement {
+    return Matchers.getElementByText(QuoteViewSelectorText.RATE);
+  }
+
   token(chainId: string, symbol: string): Detox.NativeElement {
     const elementId = `asset-${chainId}-${symbol}`;
     return element(by.id(elementId)).atIndex(0);
@@ -137,13 +141,9 @@ class QuoteView {
     });
   }
 
-  /**
-   * Dismisses the keypad (swipe down on keyboard) and scrolls down so the network fee and confirm button are visible.
-   * Call after enterAmount() and before asserting on networkFeeLabel or confirmBridge.
-   */
-  async dismissKeypadAndScrollDown(): Promise<void> {
-    await Gestures.swipe(this.keypadDeleteButton, 'down', {
-      elemDescription: 'Swipe down on keyboard to dismiss keypad',
+  async dismissKeypad(): Promise<void> {
+    await Gestures.waitAndTap(this.rateLabel, {
+      elemDescription: 'Tap rate label to dismiss keypad',
     });
   }
 
