@@ -1074,4 +1074,201 @@ describe('BuildQuote', () => {
       );
     });
   });
+
+  describe('Error Retry Handling', () => {
+    it('passes onRetry callback to error modal for all error types', () => {
+      mockQuotesError = 'Failed to fetch quotes';
+
+      renderWithTheme(<BuildQuote />);
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'RootModalFlow',
+        expect.objectContaining({
+          screen: 'RampErrorModal',
+          params: expect.objectContaining({
+            errorType: 'quote_fetch',
+            onRetry: expect.any(Function),
+          }),
+        }),
+      );
+    });
+
+    it('does not retry quote polling when wallet address is missing', () => {
+      mockQuotesError = 'Failed to fetch quotes';
+      mockSelectedPaymentMethod = {
+        id: '/payments/debit-credit-card',
+        name: 'Card',
+      };
+      mockUseRampAccountAddress.mockReturnValue(null);
+
+      renderWithTheme(<BuildQuote />);
+
+      const onRetry = mockNavigate.mock.calls[0][1].params.onRetry;
+
+      mockStartQuotePolling.mockClear();
+
+      act(() => {
+        onRetry();
+      });
+
+      expect(mockStartQuotePolling).not.toHaveBeenCalled();
+
+      mockUseRampAccountAddress.mockReturnValue('0x1234567890abcdef');
+    });
+
+    it('does not retry quote polling when payment method is missing', () => {
+      mockQuotesError = 'Failed to fetch quotes';
+      mockSelectedPaymentMethod = null;
+
+      renderWithTheme(<BuildQuote />);
+
+      const onRetry = mockNavigate.mock.calls[0][1].params.onRetry;
+
+      mockStartQuotePolling.mockClear();
+
+      act(() => {
+        onRetry();
+      });
+
+      expect(mockStartQuotePolling).not.toHaveBeenCalled();
+    });
+
+    it('navigates back when retrying no_quotes error', () => {
+      mockQuotes = {
+        success: [],
+        sorted: [],
+        error: [],
+      };
+      mockQuotesLoading = false;
+      mockSelectedPaymentMethod = {
+        id: '/payments/debit-credit-card',
+        name: 'Card',
+      };
+
+      renderWithTheme(<BuildQuote />);
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'RootModalFlow',
+        expect.objectContaining({
+          screen: 'RampErrorModal',
+          params: expect.objectContaining({
+            errorType: 'no_quotes',
+            onRetry: expect.any(Function),
+          }),
+        }),
+      );
+
+      const onRetry = mockNavigate.mock.calls[0][1].params.onRetry;
+
+      mockGoBack.mockClear();
+
+      act(() => {
+        onRetry();
+      });
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('does nothing when retrying widget_url_failed error', async () => {
+      mockSelectedQuote = {
+        provider: '/providers/mercuryo',
+        quote: {
+          amountIn: 100,
+          amountOut: 0.05,
+          paymentMethod: '/payments/debit-credit-card',
+          buyURL:
+            'https://on-ramp.uat-api.cx.metamask.io/providers/mercuryo/buy-widget',
+        },
+        providerInfo: {
+          id: '/providers/mercuryo',
+          name: 'Mercuryo',
+          type: 'aggregator',
+        },
+      };
+      mockSelectedPaymentMethod = {
+        id: '/payments/debit-credit-card',
+        name: 'Card',
+      };
+
+      mockGetWidgetUrl.mockRejectedValue(new Error('Network error'));
+
+      const { getByTestId } = renderWithTheme(<BuildQuote />);
+      const continueButton = getByTestId('build-quote-continue-button');
+
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      const onRetry =
+        mockNavigate.mock.calls[mockNavigate.mock.calls.length - 1][1].params
+          .onRetry;
+
+      mockNavigate.mockClear();
+      mockGoBack.mockClear();
+      mockStartQuotePolling.mockClear();
+
+      act(() => {
+        onRetry();
+      });
+
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(mockStartQuotePolling).not.toHaveBeenCalled();
+    });
+
+    it('does nothing when retrying widget_url_missing error', async () => {
+      mockSelectedQuote = {
+        provider: '/providers/mercuryo',
+        quote: {
+          amountIn: 100,
+          amountOut: 0.05,
+          paymentMethod: '/payments/debit-credit-card',
+          buyURL:
+            'https://on-ramp.uat-api.cx.metamask.io/providers/mercuryo/buy-widget',
+        },
+        providerInfo: {
+          id: '/providers/mercuryo',
+          name: 'Mercuryo',
+          type: 'aggregator',
+        },
+      };
+      mockSelectedPaymentMethod = {
+        id: '/payments/debit-credit-card',
+        name: 'Card',
+      };
+
+      mockGetWidgetUrl.mockResolvedValue(null);
+
+      const { getByTestId } = renderWithTheme(<BuildQuote />);
+      const continueButton = getByTestId('build-quote-continue-button');
+
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      const onRetry =
+        mockNavigate.mock.calls[mockNavigate.mock.calls.length - 1][1].params
+          .onRetry;
+
+      mockNavigate.mockClear();
+      mockGoBack.mockClear();
+      mockStartQuotePolling.mockClear();
+
+      act(() => {
+        onRetry();
+      });
+
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(mockStartQuotePolling).not.toHaveBeenCalled();
+    });
+  });
 });
