@@ -5,6 +5,7 @@ import {
   JsonMap,
 } from '../../core/Analytics/MetaMetrics.types';
 import { MetricsEventBuilder } from '../../core/Analytics/MetricsEventBuilder';
+import type { AnalyticsTrackingEvent } from './AnalyticsEventBuilder';
 
 export enum ActionLocation {
   HOME = 'home',
@@ -48,12 +49,12 @@ export interface ActionButtonProperties extends JsonMap {
 /**
  * Track action button click with new consolidated event
  *
- * @param trackEvent - MetaMetrics trackEvent function
- * @param createEventBuilder - MetaMetrics createEventBuilder function
+ * @param trackEvent - trackEvent function (MetaMetrics or useAnalytics)
+ * @param createEventBuilder - createEventBuilder function (MetricsEventBuilder or AnalyticsEventBuilder)
  * @param properties - Button properties
  */
 export const trackActionButtonClick = (
-  trackEvent: (event: ITrackingEvent) => void,
+  trackEvent: (event: ITrackingEvent | AnalyticsTrackingEvent) => void,
   createEventBuilder: (event: IMetaMetricsEvent) => MetricsEventBuilder,
   properties: ActionButtonProperties,
 ) => {
