@@ -3,11 +3,12 @@ import { usePredictOptimisticPositionRefresh } from './usePredictOptimisticPosit
 import { PredictPosition, PredictPositionStatus } from '../types';
 import { usePredictPositions } from './usePredictPositions';
 
+import { POLYMARKET_PROVIDER_ID } from '../providers/polymarket/constants';
 jest.mock('./usePredictPositions');
 
 const basePosition: PredictPosition = {
   id: 'pos-1',
-  providerId: 'polymarket',
+  providerId: POLYMARKET_PROVIDER_ID,
   marketId: 'market-1',
   outcomeId: 'outcome-1',
   outcome: 'Yes',

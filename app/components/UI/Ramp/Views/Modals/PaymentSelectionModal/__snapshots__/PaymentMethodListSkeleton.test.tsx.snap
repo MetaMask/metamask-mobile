@@ -1,0 +1,1910 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`PaymentMethodListSkeleton matches snapshot 1`] = `
+[
+  <TouchableOpacity
+    disabled={true}
+    style={
+      {
+        "backgroundColor": "#ffffff",
+        "borderRadius": 4,
+        "opacity": 0.5,
+        "position": "relative",
+      }
+    }
+  >
+    <View
+      accessibilityRole="none"
+      accessible={true}
+      style={
+        {
+          "padding": 16,
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "flex": -1,
+            }
+          }
+          testID="listitemcolumn"
+        >
+          <View
+            style={
+              {
+                "borderRadius": 22,
+                "height": 44,
+                "overflow": "hidden",
+                "width": 44,
+              }
+            }
+          >
+            <View
+              collapsable={false}
+              pointerEvents="none"
+              style={
+                {
+                  "backgroundColor": "#686e7d",
+                  "borderRadius": 4,
+                  "bottom": 0,
+                  "left": 0,
+                  "opacity": 0.2,
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                }
+              }
+            />
+          </View>
+        </View>
+        <View
+          accessible={false}
+          style={
+            {
+              "width": 16,
+            }
+          }
+          testID="listitem-gap"
+        />
+        <View
+          style={
+            {
+              "flex": 1,
+            }
+          }
+          testID="listitemcolumn"
+        >
+          <View
+            style={
+              {
+                "gap": 6,
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "borderRadius": 4,
+                  "height": 18,
+                  "overflow": "hidden",
+                  "width": 120,
+                }
+              }
+            >
+              <View
+                collapsable={false}
+                pointerEvents="none"
+                style={
+                  {
+                    "backgroundColor": "#686e7d",
+                    "borderRadius": 4,
+                    "bottom": 0,
+                    "left": 0,
+                    "opacity": 0.2,
+                    "position": "absolute",
+                    "right": 0,
+                    "top": 0,
+                  }
+                }
+              />
+            </View>
+            <View
+              style={
+                {
+                  "borderRadius": 4,
+                  "height": 14,
+                  "overflow": "hidden",
+                  "width": 80,
+                }
+              }
+            >
+              <View
+                collapsable={false}
+                pointerEvents="none"
+                style={
+                  {
+                    "backgroundColor": "#686e7d",
+                    "borderRadius": 4,
+                    "bottom": 0,
+                    "left": 0,
+                    "opacity": 0.2,
+                    "position": "absolute",
+                    "right": 0,
+                    "top": 0,
+                  }
+                }
+              />
+            </View>
+          </View>
+        </View>
+        <View
+          accessible={false}
+          style={
+            {
+              "width": 16,
+            }
+          }
+          testID="listitem-gap"
+        />
+        <View
+          style={
+            {
+              "flex": -1,
+            }
+          }
+          testID="listitemcolumn"
+        >
+          <View
+            style={
+              [
+                {
+                  "alignItems": "flex-end",
+                  "display": "flex",
+                },
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                {
+                  "borderRadius": 4,
+                  "height": 16,
+                  "overflow": "hidden",
+                  "width": 80,
+                }
+              }
+            >
+              <View
+                collapsable={false}
+                pointerEvents="none"
+                style={
+                  {
+                    "backgroundColor": "#686e7d",
+                    "borderRadius": 4,
+                    "bottom": 0,
+                    "left": 0,
+                    "opacity": 0.2,
+                    "position": "absolute",
+                    "right": 0,
+                    "top": 0,
+                  }
+                }
+              />
+            </View>
+            <View
+              style={
+                {
+                  "height": 6,
+                }
+              }
+            />
+            <View
+              style={
+                {
+                  "borderRadius": 4,
+                  "height": 16,
+                  "overflow": "hidden",
+                  "width": 60,
+                }
+              }
+            >
+              <View
+                collapsable={false}
+                pointerEvents="none"
+                style={
+                  {
+                    "backgroundColor": "#686e7d",
+                    "borderRadius": 4,
+                    "bottom": 0,
+                    "left": 0,
+                    "opacity": 0.2,
+                    "position": "absolute",
+                    "right": 0,
+                    "top": 0,
+                  }
+                }
+              />
+            </View>
+          </View>
+        </View>
+      </View>
+    </View>
+  </TouchableOpacity>,
+  <TouchableOpacity
+    disabled={true}
+    style={
+      {
+        "backgroundColor": "#ffffff",
+        "borderRadius": 4,
+        "opacity": 0.5,
+        "position": "relative",
+      }
+    }
+  >
+    <View
+      accessibilityRole="none"
+      accessible={true}
+      style={
+        {
+          "padding": 16,
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "flex": -1,
+            }
+          }
+          testID="listitemcolumn"
+        >
+          <View
+            style={
+              {
+                "borderRadius": 22,
+                "height": 44,
+                "overflow": "hidden",
+                "width": 44,
+              }
+            }
+          >
+            <View
+              collapsable={false}
+              pointerEvents="none"
+              style={
+                {
+                  "backgroundColor": "#686e7d",
+                  "borderRadius": 4,
+                  "bottom": 0,
+                  "left": 0,
+                  "opacity": 0.2,
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                }
+              }
+            />
+          </View>
+        </View>
+        <View
+          accessible={false}
+          style={
+            {
+              "width": 16,
+            }
+          }
+          testID="listitem-gap"
+        />
+        <View
+          style={
+            {
+              "flex": 1,
+            }
+          }
+          testID="listitemcolumn"
+        >
+          <View
+            style={
+              {
+                "gap": 6,
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "borderRadius": 4,
+                  "height": 18,
+                  "overflow": "hidden",
+                  "width": 120,
+                }
+              }
+            >
+              <View
+                collapsable={false}
+                pointerEvents="none"
+                style={
+                  {
+                    "backgroundColor": "#686e7d",
+                    "borderRadius": 4,
+                    "bottom": 0,
+                    "left": 0,
+                    "opacity": 0.2,
+                    "position": "absolute",
+                    "right": 0,
+                    "top": 0,
+                  }
+                }
+              />
+            </View>
+            <View
+              style={
+                {
+                  "borderRadius": 4,
+                  "height": 14,
+                  "overflow": "hidden",
+                  "width": 80,
+                }
+              }
+            >
+              <View
+                collapsable={false}
+                pointerEvents="none"
+                style={
+                  {
+                    "backgroundColor": "#686e7d",
+                    "borderRadius": 4,
+                    "bottom": 0,
+                    "left": 0,
+                    "opacity": 0.2,
+                    "position": "absolute",
+                    "right": 0,
+                    "top": 0,
+                  }
+                }
+              />
+            </View>
+          </View>
+        </View>
+        <View
+          accessible={false}
+          style={
+            {
+              "width": 16,
+            }
+          }
+          testID="listitem-gap"
+        />
+        <View
+          style={
+            {
+              "flex": -1,
+            }
+          }
+          testID="listitemcolumn"
+        >
+          <View
+            style={
+              [
+                {
+                  "alignItems": "flex-end",
+                  "display": "flex",
+                },
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                {
+                  "borderRadius": 4,
+                  "height": 16,
+                  "overflow": "hidden",
+                  "width": 80,
+                }
+              }
+            >
+              <View
+                collapsable={false}
+                pointerEvents="none"
+                style={
+                  {
+                    "backgroundColor": "#686e7d",
+                    "borderRadius": 4,
+                    "bottom": 0,
+                    "left": 0,
+                    "opacity": 0.2,
+                    "position": "absolute",
+                    "right": 0,
+                    "top": 0,
+                  }
+                }
+              />
+            </View>
+            <View
+              style={
+                {
+                  "height": 6,
+                }
+              }
+            />
+            <View
+              style={
+                {
+                  "borderRadius": 4,
+                  "height": 16,
+                  "overflow": "hidden",
+                  "width": 60,
+                }
+              }
+            >
+              <View
+                collapsable={false}
+                pointerEvents="none"
+                style={
+                  {
+                    "backgroundColor": "#686e7d",
+                    "borderRadius": 4,
+                    "bottom": 0,
+                    "left": 0,
+                    "opacity": 0.2,
+                    "position": "absolute",
+                    "right": 0,
+                    "top": 0,
+                  }
+                }
+              />
+            </View>
+          </View>
+        </View>
+      </View>
+    </View>
+  </TouchableOpacity>,
+  <TouchableOpacity
+    disabled={true}
+    style={
+      {
+        "backgroundColor": "#ffffff",
+        "borderRadius": 4,
+        "opacity": 0.5,
+        "position": "relative",
+      }
+    }
+  >
+    <View
+      accessibilityRole="none"
+      accessible={true}
+      style={
+        {
+          "padding": 16,
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "flex": -1,
+            }
+          }
+          testID="listitemcolumn"
+        >
+          <View
+            style={
+              {
+                "borderRadius": 22,
+                "height": 44,
+                "overflow": "hidden",
+                "width": 44,
+              }
+            }
+          >
+            <View
+              collapsable={false}
+              pointerEvents="none"
+              style={
+                {
+                  "backgroundColor": "#686e7d",
+                  "borderRadius": 4,
+                  "bottom": 0,
+                  "left": 0,
+                  "opacity": 0.2,
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                }
+              }
+            />
+          </View>
+        </View>
+        <View
+          accessible={false}
+          style={
+            {
+              "width": 16,
+            }
+          }
+          testID="listitem-gap"
+        />
+        <View
+          style={
+            {
+              "flex": 1,
+            }
+          }
+          testID="listitemcolumn"
+        >
+          <View
+            style={
+              {
+                "gap": 6,
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "borderRadius": 4,
+                  "height": 18,
+                  "overflow": "hidden",
+                  "width": 120,
+                }
+              }
+            >
+              <View
+                collapsable={false}
+                pointerEvents="none"
+                style={
+                  {
+                    "backgroundColor": "#686e7d",
+                    "borderRadius": 4,
+                    "bottom": 0,
+                    "left": 0,
+                    "opacity": 0.2,
+                    "position": "absolute",
+                    "right": 0,
+                    "top": 0,
+                  }
+                }
+              />
+            </View>
+            <View
+              style={
+                {
+                  "borderRadius": 4,
+                  "height": 14,
+                  "overflow": "hidden",
+                  "width": 80,
+                }
+              }
+            >
+              <View
+                collapsable={false}
+                pointerEvents="none"
+                style={
+                  {
+                    "backgroundColor": "#686e7d",
+                    "borderRadius": 4,
+                    "bottom": 0,
+                    "left": 0,
+                    "opacity": 0.2,
+                    "position": "absolute",
+                    "right": 0,
+                    "top": 0,
+                  }
+                }
+              />
+            </View>
+          </View>
+        </View>
+        <View
+          accessible={false}
+          style={
+            {
+              "width": 16,
+            }
+          }
+          testID="listitem-gap"
+        />
+        <View
+          style={
+            {
+              "flex": -1,
+            }
+          }
+          testID="listitemcolumn"
+        >
+          <View
+            style={
+              [
+                {
+                  "alignItems": "flex-end",
+                  "display": "flex",
+                },
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                {
+                  "borderRadius": 4,
+                  "height": 16,
+                  "overflow": "hidden",
+                  "width": 80,
+                }
+              }
+            >
+              <View
+                collapsable={false}
+                pointerEvents="none"
+                style={
+                  {
+                    "backgroundColor": "#686e7d",
+                    "borderRadius": 4,
+                    "bottom": 0,
+                    "left": 0,
+                    "opacity": 0.2,
+                    "position": "absolute",
+                    "right": 0,
+                    "top": 0,
+                  }
+                }
+              />
+            </View>
+            <View
+              style={
+                {
+                  "height": 6,
+                }
+              }
+            />
+            <View
+              style={
+                {
+                  "borderRadius": 4,
+                  "height": 16,
+                  "overflow": "hidden",
+                  "width": 60,
+                }
+              }
+            >
+              <View
+                collapsable={false}
+                pointerEvents="none"
+                style={
+                  {
+                    "backgroundColor": "#686e7d",
+                    "borderRadius": 4,
+                    "bottom": 0,
+                    "left": 0,
+                    "opacity": 0.2,
+                    "position": "absolute",
+                    "right": 0,
+                    "top": 0,
+                  }
+                }
+              />
+            </View>
+          </View>
+        </View>
+      </View>
+    </View>
+  </TouchableOpacity>,
+  <TouchableOpacity
+    disabled={true}
+    style={
+      {
+        "backgroundColor": "#ffffff",
+        "borderRadius": 4,
+        "opacity": 0.5,
+        "position": "relative",
+      }
+    }
+  >
+    <View
+      accessibilityRole="none"
+      accessible={true}
+      style={
+        {
+          "padding": 16,
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "flex": -1,
+            }
+          }
+          testID="listitemcolumn"
+        >
+          <View
+            style={
+              {
+                "borderRadius": 22,
+                "height": 44,
+                "overflow": "hidden",
+                "width": 44,
+              }
+            }
+          >
+            <View
+              collapsable={false}
+              pointerEvents="none"
+              style={
+                {
+                  "backgroundColor": "#686e7d",
+                  "borderRadius": 4,
+                  "bottom": 0,
+                  "left": 0,
+                  "opacity": 0.2,
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                }
+              }
+            />
+          </View>
+        </View>
+        <View
+          accessible={false}
+          style={
+            {
+              "width": 16,
+            }
+          }
+          testID="listitem-gap"
+        />
+        <View
+          style={
+            {
+              "flex": 1,
+            }
+          }
+          testID="listitemcolumn"
+        >
+          <View
+            style={
+              {
+                "gap": 6,
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "borderRadius": 4,
+                  "height": 18,
+                  "overflow": "hidden",
+                  "width": 120,
+                }
+              }
+            >
+              <View
+                collapsable={false}
+                pointerEvents="none"
+                style={
+                  {
+                    "backgroundColor": "#686e7d",
+                    "borderRadius": 4,
+                    "bottom": 0,
+                    "left": 0,
+                    "opacity": 0.2,
+                    "position": "absolute",
+                    "right": 0,
+                    "top": 0,
+                  }
+                }
+              />
+            </View>
+            <View
+              style={
+                {
+                  "borderRadius": 4,
+                  "height": 14,
+                  "overflow": "hidden",
+                  "width": 80,
+                }
+              }
+            >
+              <View
+                collapsable={false}
+                pointerEvents="none"
+                style={
+                  {
+                    "backgroundColor": "#686e7d",
+                    "borderRadius": 4,
+                    "bottom": 0,
+                    "left": 0,
+                    "opacity": 0.2,
+                    "position": "absolute",
+                    "right": 0,
+                    "top": 0,
+                  }
+                }
+              />
+            </View>
+          </View>
+        </View>
+        <View
+          accessible={false}
+          style={
+            {
+              "width": 16,
+            }
+          }
+          testID="listitem-gap"
+        />
+        <View
+          style={
+            {
+              "flex": -1,
+            }
+          }
+          testID="listitemcolumn"
+        >
+          <View
+            style={
+              [
+                {
+                  "alignItems": "flex-end",
+                  "display": "flex",
+                },
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                {
+                  "borderRadius": 4,
+                  "height": 16,
+                  "overflow": "hidden",
+                  "width": 80,
+                }
+              }
+            >
+              <View
+                collapsable={false}
+                pointerEvents="none"
+                style={
+                  {
+                    "backgroundColor": "#686e7d",
+                    "borderRadius": 4,
+                    "bottom": 0,
+                    "left": 0,
+                    "opacity": 0.2,
+                    "position": "absolute",
+                    "right": 0,
+                    "top": 0,
+                  }
+                }
+              />
+            </View>
+            <View
+              style={
+                {
+                  "height": 6,
+                }
+              }
+            />
+            <View
+              style={
+                {
+                  "borderRadius": 4,
+                  "height": 16,
+                  "overflow": "hidden",
+                  "width": 60,
+                }
+              }
+            >
+              <View
+                collapsable={false}
+                pointerEvents="none"
+                style={
+                  {
+                    "backgroundColor": "#686e7d",
+                    "borderRadius": 4,
+                    "bottom": 0,
+                    "left": 0,
+                    "opacity": 0.2,
+                    "position": "absolute",
+                    "right": 0,
+                    "top": 0,
+                  }
+                }
+              />
+            </View>
+          </View>
+        </View>
+      </View>
+    </View>
+  </TouchableOpacity>,
+  <TouchableOpacity
+    disabled={true}
+    style={
+      {
+        "backgroundColor": "#ffffff",
+        "borderRadius": 4,
+        "opacity": 0.5,
+        "position": "relative",
+      }
+    }
+  >
+    <View
+      accessibilityRole="none"
+      accessible={true}
+      style={
+        {
+          "padding": 16,
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "flex": -1,
+            }
+          }
+          testID="listitemcolumn"
+        >
+          <View
+            style={
+              {
+                "borderRadius": 22,
+                "height": 44,
+                "overflow": "hidden",
+                "width": 44,
+              }
+            }
+          >
+            <View
+              collapsable={false}
+              pointerEvents="none"
+              style={
+                {
+                  "backgroundColor": "#686e7d",
+                  "borderRadius": 4,
+                  "bottom": 0,
+                  "left": 0,
+                  "opacity": 0.2,
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                }
+              }
+            />
+          </View>
+        </View>
+        <View
+          accessible={false}
+          style={
+            {
+              "width": 16,
+            }
+          }
+          testID="listitem-gap"
+        />
+        <View
+          style={
+            {
+              "flex": 1,
+            }
+          }
+          testID="listitemcolumn"
+        >
+          <View
+            style={
+              {
+                "gap": 6,
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "borderRadius": 4,
+                  "height": 18,
+                  "overflow": "hidden",
+                  "width": 120,
+                }
+              }
+            >
+              <View
+                collapsable={false}
+                pointerEvents="none"
+                style={
+                  {
+                    "backgroundColor": "#686e7d",
+                    "borderRadius": 4,
+                    "bottom": 0,
+                    "left": 0,
+                    "opacity": 0.2,
+                    "position": "absolute",
+                    "right": 0,
+                    "top": 0,
+                  }
+                }
+              />
+            </View>
+            <View
+              style={
+                {
+                  "borderRadius": 4,
+                  "height": 14,
+                  "overflow": "hidden",
+                  "width": 80,
+                }
+              }
+            >
+              <View
+                collapsable={false}
+                pointerEvents="none"
+                style={
+                  {
+                    "backgroundColor": "#686e7d",
+                    "borderRadius": 4,
+                    "bottom": 0,
+                    "left": 0,
+                    "opacity": 0.2,
+                    "position": "absolute",
+                    "right": 0,
+                    "top": 0,
+                  }
+                }
+              />
+            </View>
+          </View>
+        </View>
+        <View
+          accessible={false}
+          style={
+            {
+              "width": 16,
+            }
+          }
+          testID="listitem-gap"
+        />
+        <View
+          style={
+            {
+              "flex": -1,
+            }
+          }
+          testID="listitemcolumn"
+        >
+          <View
+            style={
+              [
+                {
+                  "alignItems": "flex-end",
+                  "display": "flex",
+                },
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                {
+                  "borderRadius": 4,
+                  "height": 16,
+                  "overflow": "hidden",
+                  "width": 80,
+                }
+              }
+            >
+              <View
+                collapsable={false}
+                pointerEvents="none"
+                style={
+                  {
+                    "backgroundColor": "#686e7d",
+                    "borderRadius": 4,
+                    "bottom": 0,
+                    "left": 0,
+                    "opacity": 0.2,
+                    "position": "absolute",
+                    "right": 0,
+                    "top": 0,
+                  }
+                }
+              />
+            </View>
+            <View
+              style={
+                {
+                  "height": 6,
+                }
+              }
+            />
+            <View
+              style={
+                {
+                  "borderRadius": 4,
+                  "height": 16,
+                  "overflow": "hidden",
+                  "width": 60,
+                }
+              }
+            >
+              <View
+                collapsable={false}
+                pointerEvents="none"
+                style={
+                  {
+                    "backgroundColor": "#686e7d",
+                    "borderRadius": 4,
+                    "bottom": 0,
+                    "left": 0,
+                    "opacity": 0.2,
+                    "position": "absolute",
+                    "right": 0,
+                    "top": 0,
+                  }
+                }
+              />
+            </View>
+          </View>
+        </View>
+      </View>
+    </View>
+  </TouchableOpacity>,
+  <TouchableOpacity
+    disabled={true}
+    style={
+      {
+        "backgroundColor": "#ffffff",
+        "borderRadius": 4,
+        "opacity": 0.5,
+        "position": "relative",
+      }
+    }
+  >
+    <View
+      accessibilityRole="none"
+      accessible={true}
+      style={
+        {
+          "padding": 16,
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "flex": -1,
+            }
+          }
+          testID="listitemcolumn"
+        >
+          <View
+            style={
+              {
+                "borderRadius": 22,
+                "height": 44,
+                "overflow": "hidden",
+                "width": 44,
+              }
+            }
+          >
+            <View
+              collapsable={false}
+              pointerEvents="none"
+              style={
+                {
+                  "backgroundColor": "#686e7d",
+                  "borderRadius": 4,
+                  "bottom": 0,
+                  "left": 0,
+                  "opacity": 0.2,
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                }
+              }
+            />
+          </View>
+        </View>
+        <View
+          accessible={false}
+          style={
+            {
+              "width": 16,
+            }
+          }
+          testID="listitem-gap"
+        />
+        <View
+          style={
+            {
+              "flex": 1,
+            }
+          }
+          testID="listitemcolumn"
+        >
+          <View
+            style={
+              {
+                "gap": 6,
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "borderRadius": 4,
+                  "height": 18,
+                  "overflow": "hidden",
+                  "width": 120,
+                }
+              }
+            >
+              <View
+                collapsable={false}
+                pointerEvents="none"
+                style={
+                  {
+                    "backgroundColor": "#686e7d",
+                    "borderRadius": 4,
+                    "bottom": 0,
+                    "left": 0,
+                    "opacity": 0.2,
+                    "position": "absolute",
+                    "right": 0,
+                    "top": 0,
+                  }
+                }
+              />
+            </View>
+            <View
+              style={
+                {
+                  "borderRadius": 4,
+                  "height": 14,
+                  "overflow": "hidden",
+                  "width": 80,
+                }
+              }
+            >
+              <View
+                collapsable={false}
+                pointerEvents="none"
+                style={
+                  {
+                    "backgroundColor": "#686e7d",
+                    "borderRadius": 4,
+                    "bottom": 0,
+                    "left": 0,
+                    "opacity": 0.2,
+                    "position": "absolute",
+                    "right": 0,
+                    "top": 0,
+                  }
+                }
+              />
+            </View>
+          </View>
+        </View>
+        <View
+          accessible={false}
+          style={
+            {
+              "width": 16,
+            }
+          }
+          testID="listitem-gap"
+        />
+        <View
+          style={
+            {
+              "flex": -1,
+            }
+          }
+          testID="listitemcolumn"
+        >
+          <View
+            style={
+              [
+                {
+                  "alignItems": "flex-end",
+                  "display": "flex",
+                },
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                {
+                  "borderRadius": 4,
+                  "height": 16,
+                  "overflow": "hidden",
+                  "width": 80,
+                }
+              }
+            >
+              <View
+                collapsable={false}
+                pointerEvents="none"
+                style={
+                  {
+                    "backgroundColor": "#686e7d",
+                    "borderRadius": 4,
+                    "bottom": 0,
+                    "left": 0,
+                    "opacity": 0.2,
+                    "position": "absolute",
+                    "right": 0,
+                    "top": 0,
+                  }
+                }
+              />
+            </View>
+            <View
+              style={
+                {
+                  "height": 6,
+                }
+              }
+            />
+            <View
+              style={
+                {
+                  "borderRadius": 4,
+                  "height": 16,
+                  "overflow": "hidden",
+                  "width": 60,
+                }
+              }
+            >
+              <View
+                collapsable={false}
+                pointerEvents="none"
+                style={
+                  {
+                    "backgroundColor": "#686e7d",
+                    "borderRadius": 4,
+                    "bottom": 0,
+                    "left": 0,
+                    "opacity": 0.2,
+                    "position": "absolute",
+                    "right": 0,
+                    "top": 0,
+                  }
+                }
+              />
+            </View>
+          </View>
+        </View>
+      </View>
+    </View>
+  </TouchableOpacity>,
+  <TouchableOpacity
+    disabled={true}
+    style={
+      {
+        "backgroundColor": "#ffffff",
+        "borderRadius": 4,
+        "opacity": 0.5,
+        "position": "relative",
+      }
+    }
+  >
+    <View
+      accessibilityRole="none"
+      accessible={true}
+      style={
+        {
+          "padding": 16,
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "flex": -1,
+            }
+          }
+          testID="listitemcolumn"
+        >
+          <View
+            style={
+              {
+                "borderRadius": 22,
+                "height": 44,
+                "overflow": "hidden",
+                "width": 44,
+              }
+            }
+          >
+            <View
+              collapsable={false}
+              pointerEvents="none"
+              style={
+                {
+                  "backgroundColor": "#686e7d",
+                  "borderRadius": 4,
+                  "bottom": 0,
+                  "left": 0,
+                  "opacity": 0.2,
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                }
+              }
+            />
+          </View>
+        </View>
+        <View
+          accessible={false}
+          style={
+            {
+              "width": 16,
+            }
+          }
+          testID="listitem-gap"
+        />
+        <View
+          style={
+            {
+              "flex": 1,
+            }
+          }
+          testID="listitemcolumn"
+        >
+          <View
+            style={
+              {
+                "gap": 6,
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "borderRadius": 4,
+                  "height": 18,
+                  "overflow": "hidden",
+                  "width": 120,
+                }
+              }
+            >
+              <View
+                collapsable={false}
+                pointerEvents="none"
+                style={
+                  {
+                    "backgroundColor": "#686e7d",
+                    "borderRadius": 4,
+                    "bottom": 0,
+                    "left": 0,
+                    "opacity": 0.2,
+                    "position": "absolute",
+                    "right": 0,
+                    "top": 0,
+                  }
+                }
+              />
+            </View>
+            <View
+              style={
+                {
+                  "borderRadius": 4,
+                  "height": 14,
+                  "overflow": "hidden",
+                  "width": 80,
+                }
+              }
+            >
+              <View
+                collapsable={false}
+                pointerEvents="none"
+                style={
+                  {
+                    "backgroundColor": "#686e7d",
+                    "borderRadius": 4,
+                    "bottom": 0,
+                    "left": 0,
+                    "opacity": 0.2,
+                    "position": "absolute",
+                    "right": 0,
+                    "top": 0,
+                  }
+                }
+              />
+            </View>
+          </View>
+        </View>
+        <View
+          accessible={false}
+          style={
+            {
+              "width": 16,
+            }
+          }
+          testID="listitem-gap"
+        />
+        <View
+          style={
+            {
+              "flex": -1,
+            }
+          }
+          testID="listitemcolumn"
+        >
+          <View
+            style={
+              [
+                {
+                  "alignItems": "flex-end",
+                  "display": "flex",
+                },
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                {
+                  "borderRadius": 4,
+                  "height": 16,
+                  "overflow": "hidden",
+                  "width": 80,
+                }
+              }
+            >
+              <View
+                collapsable={false}
+                pointerEvents="none"
+                style={
+                  {
+                    "backgroundColor": "#686e7d",
+                    "borderRadius": 4,
+                    "bottom": 0,
+                    "left": 0,
+                    "opacity": 0.2,
+                    "position": "absolute",
+                    "right": 0,
+                    "top": 0,
+                  }
+                }
+              />
+            </View>
+            <View
+              style={
+                {
+                  "height": 6,
+                }
+              }
+            />
+            <View
+              style={
+                {
+                  "borderRadius": 4,
+                  "height": 16,
+                  "overflow": "hidden",
+                  "width": 60,
+                }
+              }
+            >
+              <View
+                collapsable={false}
+                pointerEvents="none"
+                style={
+                  {
+                    "backgroundColor": "#686e7d",
+                    "borderRadius": 4,
+                    "bottom": 0,
+                    "left": 0,
+                    "opacity": 0.2,
+                    "position": "absolute",
+                    "right": 0,
+                    "top": 0,
+                  }
+                }
+              />
+            </View>
+          </View>
+        </View>
+      </View>
+    </View>
+  </TouchableOpacity>,
+  <TouchableOpacity
+    disabled={true}
+    style={
+      {
+        "backgroundColor": "#ffffff",
+        "borderRadius": 4,
+        "opacity": 0.5,
+        "position": "relative",
+      }
+    }
+  >
+    <View
+      accessibilityRole="none"
+      accessible={true}
+      style={
+        {
+          "padding": 16,
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "flex": -1,
+            }
+          }
+          testID="listitemcolumn"
+        >
+          <View
+            style={
+              {
+                "borderRadius": 22,
+                "height": 44,
+                "overflow": "hidden",
+                "width": 44,
+              }
+            }
+          >
+            <View
+              collapsable={false}
+              pointerEvents="none"
+              style={
+                {
+                  "backgroundColor": "#686e7d",
+                  "borderRadius": 4,
+                  "bottom": 0,
+                  "left": 0,
+                  "opacity": 0.2,
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                }
+              }
+            />
+          </View>
+        </View>
+        <View
+          accessible={false}
+          style={
+            {
+              "width": 16,
+            }
+          }
+          testID="listitem-gap"
+        />
+        <View
+          style={
+            {
+              "flex": 1,
+            }
+          }
+          testID="listitemcolumn"
+        >
+          <View
+            style={
+              {
+                "gap": 6,
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "borderRadius": 4,
+                  "height": 18,
+                  "overflow": "hidden",
+                  "width": 120,
+                }
+              }
+            >
+              <View
+                collapsable={false}
+                pointerEvents="none"
+                style={
+                  {
+                    "backgroundColor": "#686e7d",
+                    "borderRadius": 4,
+                    "bottom": 0,
+                    "left": 0,
+                    "opacity": 0.2,
+                    "position": "absolute",
+                    "right": 0,
+                    "top": 0,
+                  }
+                }
+              />
+            </View>
+            <View
+              style={
+                {
+                  "borderRadius": 4,
+                  "height": 14,
+                  "overflow": "hidden",
+                  "width": 80,
+                }
+              }
+            >
+              <View
+                collapsable={false}
+                pointerEvents="none"
+                style={
+                  {
+                    "backgroundColor": "#686e7d",
+                    "borderRadius": 4,
+                    "bottom": 0,
+                    "left": 0,
+                    "opacity": 0.2,
+                    "position": "absolute",
+                    "right": 0,
+                    "top": 0,
+                  }
+                }
+              />
+            </View>
+          </View>
+        </View>
+        <View
+          accessible={false}
+          style={
+            {
+              "width": 16,
+            }
+          }
+          testID="listitem-gap"
+        />
+        <View
+          style={
+            {
+              "flex": -1,
+            }
+          }
+          testID="listitemcolumn"
+        >
+          <View
+            style={
+              [
+                {
+                  "alignItems": "flex-end",
+                  "display": "flex",
+                },
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                {
+                  "borderRadius": 4,
+                  "height": 16,
+                  "overflow": "hidden",
+                  "width": 80,
+                }
+              }
+            >
+              <View
+                collapsable={false}
+                pointerEvents="none"
+                style={
+                  {
+                    "backgroundColor": "#686e7d",
+                    "borderRadius": 4,
+                    "bottom": 0,
+                    "left": 0,
+                    "opacity": 0.2,
+                    "position": "absolute",
+                    "right": 0,
+                    "top": 0,
+                  }
+                }
+              />
+            </View>
+            <View
+              style={
+                {
+                  "height": 6,
+                }
+              }
+            />
+            <View
+              style={
+                {
+                  "borderRadius": 4,
+                  "height": 16,
+                  "overflow": "hidden",
+                  "width": 60,
+                }
+              }
+            >
+              <View
+                collapsable={false}
+                pointerEvents="none"
+                style={
+                  {
+                    "backgroundColor": "#686e7d",
+                    "borderRadius": 4,
+                    "bottom": 0,
+                    "left": 0,
+                    "opacity": 0.2,
+                    "position": "absolute",
+                    "right": 0,
+                    "top": 0,
+                  }
+                }
+              />
+            </View>
+          </View>
+        </View>
+      </View>
+    </View>
+  </TouchableOpacity>,
+]
+`;

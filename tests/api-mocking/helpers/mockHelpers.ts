@@ -386,3 +386,21 @@ export const setupMockEvents = async (
     }
   }
 };
+
+/**
+ * Registers a mock for GET accounts.api.cx.metamask.io/v2/supportedNetworks.
+ * Called globally from MockServerE2E so all E2E tests get this mock without per-test setup.
+ */
+export async function setupAccountsV2SupportedNetworksMock(
+  server: Mockttp,
+): Promise<void> {
+  await setupMockRequest(server, {
+    requestMethod: 'GET',
+    url: /^https:\/\/accounts\.api\.cx\.metamask\.io\/v2\/supportedNetworks(\?.*)?$/,
+    response: {
+      fullSupport: [1, 137, 56, 59144, 8453, 10, 42161, 534352, 1329],
+      partialSupport: { balances: [42220, 43114] },
+    },
+    responseCode: 200,
+  });
+}

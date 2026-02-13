@@ -3,6 +3,13 @@ import { Image, TouchableOpacity, View } from 'react-native';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import { useStyles } from '../../../../../component-library/hooks';
+import SensitiveText, {
+  SensitiveTextLength,
+} from '../../../../../component-library/components/Texts/SensitiveText';
+import {
+  TextVariant as ComponentTextVariant,
+  TextColor as ComponentTextColor,
+} from '../../../../../component-library/components/Texts/Text/Text.types';
 import { PredictPosition as PredictPositionType } from '../../types';
 import { formatPrice } from '../../utils/format';
 import styleSheet from './PredictPositionResolved.styles';
@@ -36,11 +43,13 @@ const formatMarketEndDate = (dateString: string): string => {
 interface PredictPositionResolvedProps {
   position: PredictPositionType;
   onPress?: (position: PredictPositionType) => void;
+  privacyMode: boolean;
 }
 
 const PredictPositionResolved: React.FC<PredictPositionResolvedProps> = ({
   position,
   onPress,
+  privacyMode,
 }: PredictPositionResolvedProps) => {
   const {
     icon,
@@ -73,10 +82,11 @@ const PredictPositionResolved: React.FC<PredictPositionResolvedProps> = ({
         >
           {title}
         </Text>
-        <Text
-          variant={TextVariant.BodySm}
-          color={TextColor.TextAlternative}
-          style={tw.style('font-medium')}
+        <SensitiveText
+          variant={ComponentTextVariant.BodySMMedium}
+          color={ComponentTextColor.Alternative}
+          isHidden={privacyMode}
+          length={SensitiveTextLength.Long}
           numberOfLines={1}
           ellipsizeMode="tail"
         >
@@ -85,31 +95,33 @@ const PredictPositionResolved: React.FC<PredictPositionResolvedProps> = ({
             outcome,
           })}{' '}
           • {formatMarketEndDate(endDate)}
-        </Text>
+        </SensitiveText>
       </View>
       <View>
         {percentPnl > 0 ? (
-          <Text
-            variant={TextVariant.BodyMd}
-            color={TextColor.SuccessDefault}
-            style={tw.style('font-medium')}
+          <SensitiveText
+            variant={ComponentTextVariant.BodyMDMedium}
+            color={ComponentTextColor.Success}
+            isHidden={privacyMode}
+            length={SensitiveTextLength.Medium}
             numberOfLines={1}
             ellipsizeMode="tail"
           >
             {strings('predict.market_details.won')}{' '}
             {formatPrice(currentValue, { maximumDecimals: 2 })}
-          </Text>
+          </SensitiveText>
         ) : (
-          <Text
-            variant={TextVariant.BodyMd}
-            color={TextColor.ErrorDefault}
-            style={tw.style('font-medium')}
+          <SensitiveText
+            variant={ComponentTextVariant.BodyMDMedium}
+            color={ComponentTextColor.Error}
+            isHidden={privacyMode}
+            length={SensitiveTextLength.Medium}
             numberOfLines={1}
             ellipsizeMode="tail"
           >
             {strings('predict.market_details.lost')}{' '}
             {formatPrice(initialValue - currentValue, { maximumDecimals: 2 })}
-          </Text>
+          </SensitiveText>
         )}
       </View>
     </TouchableOpacity>

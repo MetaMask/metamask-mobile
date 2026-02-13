@@ -50,7 +50,13 @@ jest.mock('@react-native-clipboard/clipboard', () => ({
 
 const initialState = {
   engine: {
-    backgroundState,
+    backgroundState: {
+      ...backgroundState,
+      PreferencesController: {
+        ...backgroundState.PreferencesController,
+        privacyMode: false,
+      },
+    },
   },
 };
 
@@ -229,6 +235,42 @@ describe('PredictBalance', () => {
 
       // Assert
       expect(getByTestId('predict-balance-card')).toBeOnTheScreen();
+    });
+
+    it('hides balance amount when privacy mode is enabled', () => {
+      // Arrange
+      mockUsePredictBalance.mockReturnValue({
+        balance: 24.66,
+        isLoading: false,
+        isRefreshing: false,
+        error: null,
+        loadBalance: jest.fn(),
+        hasNoBalance: false,
+      });
+
+      const privacyEnabledState = {
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            PreferencesController: {
+              ...backgroundState.PreferencesController,
+              privacyMode: true,
+            },
+          },
+        },
+      };
+
+      // Act
+      const { queryByText, getByText } = renderWithProvider(
+        <PredictBalance />,
+        {
+          state: privacyEnabledState,
+        },
+      );
+
+      // Assert
+      expect(queryByText('$24.66')).toBeNull();
+      expect(getByText('•••••••••')).toBeOnTheScreen();
     });
   });
 
