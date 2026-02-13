@@ -4,7 +4,7 @@ import {
   DataDeleteResponseStatus,
   MetaMetricsEvents,
 } from '../../../../../core/Analytics';
-import { useAnalytics } from '../../../../hooks/useAnalytics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { useAnalyticsDataDeletion } from '../../../../hooks/useAnalyticsDataDeletion';
 import SettingsButtonSection from '../../../../UI/SettingsButtonSection';
 import { strings } from '../../../../../../locales/i18n';
