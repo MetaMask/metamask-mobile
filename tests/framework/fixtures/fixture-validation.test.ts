@@ -95,23 +95,29 @@ describe('fixture-validation', () => {
       ]);
     });
 
-    it('does not compare object or array values directly', () => {
-      const baseline = { obj: { x: 1 }, arr: [1] };
-      const candidate = { obj: { x: 1 }, arr: [1] };
+    it('does not compare object values directly', () => {
+      const baseline = { obj: { x: 1 } };
+      const candidate = { obj: { x: 1 } };
       const diff = computeSchemaDiff(baseline, candidate, []);
       expect(diff.valueMismatches).toEqual([]);
     });
 
-    it('only processes array index 0 for schema comparison', () => {
+    it('compares full array contents, not just index 0', () => {
       const baseline = { items: ['a', 'b', 'c'] };
-      const candidate = { items: ['x'] };
+      const candidate = { items: ['a', 'b'] };
       const diff = computeSchemaDiff(baseline, candidate, []);
-      // items.0 has same type (string), different value
-      expect(diff.valueMismatches).toEqual([
-        { key: 'items.0', expected: 'a', received: 'x' },
-      ]);
-      // No diff for index 1 or 2 since only index 0 is checked
-      expect(diff.missingKeys).toEqual([]);
+      // The arrays differ, so items itself is reported as a value mismatch
+      const arrayMismatch = diff.valueMismatches.find((m) => m.key === 'items');
+      expect(arrayMismatch).toBeDefined();
+      expect(arrayMismatch?.expected).toEqual(['a', 'b', 'c']);
+      expect(arrayMismatch?.received).toEqual(['a', 'b']);
+    });
+
+    it('reports no array mismatch when contents are identical', () => {
+      const baseline = { items: [1, 2, 3] };
+      const candidate = { items: [1, 2, 3] };
+      const diff = computeSchemaDiff(baseline, candidate, []);
+      expect(diff.valueMismatches).toEqual([]);
     });
 
     it('filters ignored keys by exact prefix match', () => {

@@ -314,10 +314,17 @@ export function computeSchemaDiff(
         expected: baselineTypes[key],
         received: candidateTypes[key],
       });
-    } else if (
-      candidateTypes[key] !== 'object' &&
-      candidateTypes[key] !== 'array'
-    ) {
+    } else if (candidateTypes[key] === 'array') {
+      const baseArr = getNestedValue(baseline, key);
+      const candArr = getNestedValue(candidate, key);
+      if (JSON.stringify(baseArr) !== JSON.stringify(candArr)) {
+        diff.valueMismatches.push({
+          key,
+          expected: baseArr,
+          received: candArr,
+        });
+      }
+    } else if (candidateTypes[key] !== 'object') {
       const baseVal = getNestedValue(baseline, key);
       const candVal = getNestedValue(candidate, key);
       if (baseVal !== candVal) {
