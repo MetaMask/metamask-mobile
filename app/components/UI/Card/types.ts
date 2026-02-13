@@ -531,132 +531,13 @@ export interface GetOrderStatusResponse {
   metadata?: OrderStatusMetadata;
 }
 
-// ============================================================================
-// OAuth 2.0 Authorization Code Flow with PKCE Types (Demo)
-// Based on Baanx API v1/auth/oauth2 endpoints
-// ============================================================================
-
-/**
- * Configuration for Baanx OAuth 2.0 Authorization Code Flow with PKCE
- */
-export interface BaanxOAuth2Config {
-  /** Authorization endpoint for browser-based OAuth */
-  authorizationEndpoint: string;
-  /** Token endpoint for code exchange and refresh */
-  tokenEndpoint: string;
-  /** Revoke endpoint for token invalidation */
-  revokeEndpoint: string;
-  /** User info endpoint for token validation */
-  userEndpoint: string;
-  /** OAuth client identifier */
-  clientId: string;
-  /** OAuth scopes to request */
-  scopes: string[];
-  /** PKCE code challenge method (always S256) */
-  codeChallengeMethod: 'S256';
-}
-
-/**
- * Raw token response from Baanx OAuth2 token endpoint
- * POST /v1/auth/oauth2/token
- */
-export interface BaanxOAuth2TokenRawResponse {
-  access_token: string;
-  expires_in: number;
-  id_token?: string;
-  refresh_token: string;
-  scope: string;
-  token_type: 'Bearer';
-}
-
-/**
- * Normalized token response with camelCase properties
- */
-export interface BaanxOAuth2TokenResponse {
-  accessToken: string;
-  expiresIn: number;
-  idToken?: string;
-  refreshToken: string;
-  scope: string;
-  tokenType: 'Bearer';
-}
-
-/**
- * Response from token revocation endpoint
- * POST /v1/auth/oauth2/revoke
- */
-export interface BaanxOAuth2RevokeResponse {
-  success: boolean;
-}
-
-/**
- * Token hint for revocation - specifies which token to revoke
- */
-export type BaanxOAuth2TokenHint = 'access_token' | 'refresh_token';
-
-/**
- * Request body for token revocation
- */
-export interface BaanxOAuth2RevokeRequest {
-  token: string;
-  token_hint: BaanxOAuth2TokenHint;
-}
-
-/**
- * Request body for authorization code exchange
- */
-export interface BaanxOAuth2TokenExchangeRequest {
-  code_verifier: string;
-  redirect_uri: string;
-  grant_type: 'authorization_code';
-  code: string;
-}
-
-/**
- * Request body for token refresh
- */
-export interface BaanxOAuth2RefreshRequest {
-  grant_type: 'refresh_token';
-  refresh_token: string;
-}
-
-/**
- * Result from the OAuth2 authorization flow
- */
-export interface BaanxOAuth2AuthResult {
-  /** Whether the authorization was successful */
-  success: boolean;
-  /** Authorization code received from the authorization endpoint */
-  code?: string;
-  /** State parameter for CSRF protection */
-  state?: string;
-  /** Code verifier used for PKCE (needed for token exchange) */
-  codeVerifier?: string;
-  /** Error message if authorization failed */
-  error?: string;
-  /** Error type for programmatic handling */
-  errorType?: BaanxOAuth2ErrorType;
-}
-
 /**
  * Error types specific to OAuth2 flow
  */
 export enum BaanxOAuth2ErrorType {
-  /** User cancelled the authorization */
-  USER_CANCELLED = 'USER_CANCELLED',
-  /** User dismissed the authorization modal */
-  USER_DISMISSED = 'USER_DISMISSED',
-  /** Network error during authorization */
   NETWORK_ERROR = 'NETWORK_ERROR',
-  /** Invalid state parameter (potential CSRF attack) */
   INVALID_STATE = 'INVALID_STATE',
-  /** Token exchange failed */
   TOKEN_EXCHANGE_FAILED = 'TOKEN_EXCHANGE_FAILED',
-  /** Token refresh failed */
-  TOKEN_REFRESH_FAILED = 'TOKEN_REFRESH_FAILED',
-  /** Token revocation failed */
-  TOKEN_REVOKE_FAILED = 'TOKEN_REVOKE_FAILED',
-  /** Unknown error */
   UNKNOWN_ERROR = 'UNKNOWN_ERROR',
 }
 

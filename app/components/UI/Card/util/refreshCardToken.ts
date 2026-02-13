@@ -1,15 +1,11 @@
 import Logger from '../../../../util/Logger';
 import { CardError, CardErrorType, CardLocation } from '../types';
-import { getDefaultBaanxApiBaseUrlForMetaMaskEnv } from './mapBaanxApiUrl';
+import {
+  DEFAULT_REFRESH_TOKEN_EXPIRES_IN_SECONDS,
+  getBaanxApiBaseUrl,
+} from './mapBaanxApiUrl';
 
-// Constants
 const DEFAULT_REQUEST_TIMEOUT_MS = 30000;
-
-/**
- * Default refresh token expiration in seconds when not provided by the OAuth2 response.
- * Baanx DEV uses 20 minutes, production may differ.
- */
-const DEFAULT_REFRESH_TOKEN_EXPIRES_IN_SECONDS = 20 * 60;
 
 interface CardExchangeTokenResponse {
   accessToken: string;
@@ -34,9 +30,7 @@ export const refreshCardToken = async (
   location: CardLocation,
 ): Promise<CardExchangeTokenResponse> => {
   const apiKey = process.env.MM_CARD_BAANX_API_CLIENT_KEY;
-  const baseUrl =
-    process.env.BAANX_API_URL ||
-    getDefaultBaanxApiBaseUrlForMetaMaskEnv(process.env.METAMASK_ENVIRONMENT);
+  const baseUrl = getBaanxApiBaseUrl();
 
   if (!apiKey) {
     throw new CardError(

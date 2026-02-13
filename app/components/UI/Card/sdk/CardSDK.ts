@@ -48,7 +48,10 @@ import {
   CreateOrderResponse,
   GetOrderStatusResponse,
 } from '../types';
-import { getDefaultBaanxApiBaseUrlForMetaMaskEnv } from '../util/mapBaanxApiUrl';
+import {
+  DEFAULT_REFRESH_TOKEN_EXPIRES_IN_SECONDS,
+  getBaanxApiBaseUrl,
+} from '../util/mapBaanxApiUrl';
 import { getCardBaanxToken } from '../util/cardTokenVault';
 import { CaipChainId } from '@metamask/utils';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
@@ -79,7 +82,7 @@ export class CardSDK {
   }) {
     this.cardFeatureFlag = cardFeatureFlag;
     this.enableLogs = enableLogs;
-    this.cardBaanxApiBaseUrl = this.getBaanxApiBaseUrl();
+    this.cardBaanxApiBaseUrl = getBaanxApiBaseUrl();
     this.cardBaanxApiKey = process.env.MM_CARD_BAANX_API_CLIENT_KEY;
     this.userCardLocation = userCardLocation ?? 'international';
   }
@@ -573,15 +576,6 @@ export class CardSDK {
       nonZeroBalanceTokens,
     );
   };
-
-  private getBaanxApiBaseUrl() {
-    // always using url from env var if set
-    if (process.env.BAANX_API_URL) return process.env.BAANX_API_URL;
-    // otherwise using default per-env url
-    return getDefaultBaanxApiBaseUrlForMetaMaskEnv(
-      process.env.METAMASK_ENVIRONMENT,
-    );
-  }
 
   private async makeRequest(
     endpoint: string,
@@ -2130,28 +2124,26 @@ export class CardSDK {
     };
   };
 
-  private static readonly DEFAULT_REFRESH_TOKEN_EXPIRES_IN_SECONDS = 20 * 60;
   private static readonly OAUTH2_TIMEOUT_MS = 30_000;
 
   exchangeOAuth2Code = async (params: {
     code: string;
     codeVerifier: string;
     redirectUri: string;
-    clientId: string;
     location?: CardLocation;
   }): Promise<{
     accessToken: string;
     refreshToken?: string;
     expiresIn?: number;
   }> => {
-    const { code, codeVerifier, redirectUri, clientId, location } = params;
+    const { code, codeVerifier, redirectUri, location } = params;
 
     const formBody = new URLSearchParams({
       grant_type: 'authorization_code',
       code,
       code_verifier: codeVerifier,
       redirect_uri: redirectUri,
-      client_id: clientId,
+      client_id: this.cardBaanxApiKey ?? '',
     });
 
     const response = await this.makeRequest('/v1/auth/oauth2/token', {
@@ -2243,8 +2235,7 @@ export class CardSDK {
     const data = await response.json();
 
     const refreshTokenExpiresIn =
-      data.refresh_token_expires_in ??
-      CardSDK.DEFAULT_REFRESH_TOKEN_EXPIRES_IN_SECONDS;
+      data.refresh_token_expires_in ?? DEFAULT_REFRESH_TOKEN_EXPIRES_IN_SECONDS;
 
     return {
       accessToken: data.access_token,

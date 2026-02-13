@@ -4241,7 +4241,6 @@ describe('CardSDK', () => {
       code: 'auth-code-123',
       codeVerifier: 'pkce-verifier-456',
       redirectUri: 'io.metamask.Metamask://card-oauth',
-      clientId: 'test-api-key',
     };
 
     it('exchanges authorization code for tokens successfully', async () => {
@@ -4296,7 +4295,7 @@ describe('CardSDK', () => {
       expect(body).toContain(
         `redirect_uri=${encodeURIComponent(exchangeParams.redirectUri)}`,
       );
-      expect(body).toContain(`client_id=${exchangeParams.clientId}`);
+      expect(body).toContain('client_id=test-api-key');
     });
 
     it('throws CardError on non-ok response', async () => {

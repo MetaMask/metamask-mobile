@@ -6,17 +6,15 @@ import {
   type DiscoveryDocument,
   Prompt,
 } from 'expo-auth-session';
-// expo-web-browser is a peer dependency of expo-auth-session
 // eslint-disable-next-line import/no-extraneous-dependencies, import/namespace
-import {
-  maybeCompleteAuthSession,
-  warmUpAsync,
-  coolDownAsync,
-} from 'expo-web-browser';
+import { warmUpAsync, coolDownAsync } from 'expo-web-browser';
 import { useDispatch, useSelector } from 'react-redux';
 import Logger from '../../../../util/Logger';
 import { storeCardBaanxToken } from '../util/cardTokenVault';
-import { getDefaultBaanxApiBaseUrlForMetaMaskEnv } from '../util/mapBaanxApiUrl';
+import {
+  DEFAULT_REFRESH_TOKEN_EXPIRES_IN_SECONDS,
+  getBaanxApiBaseUrl,
+} from '../util/mapBaanxApiUrl';
 import {
   selectUserCardLocation,
   setIsAuthenticatedCard as setIsAuthenticatedAction,
@@ -26,9 +24,6 @@ import { BaanxOAuth2Error, BaanxOAuth2ErrorType } from '../types';
 import { strings } from '../../../../../locales/i18n';
 import { useCardSDK } from '../sdk';
 import { generateState } from '../util/pkceHelpers';
-
-// Web only: Ensures auth popup closes properly
-maybeCompleteAuthSession();
 
 /**
  * Default OAuth 2.0 scopes for Baanx API
@@ -41,32 +36,14 @@ const OAUTH2_SCOPES = [
   'offline_access',
 ];
 
-/**
- * Default refresh token expiration in seconds when not provided by the server.
- * Baanx DEV uses 20 minutes, production may differ.
- */
-const DEFAULT_REFRESH_TOKEN_EXPIRES_IN_SECONDS = 20 * 60;
 const OAUTH_REDIRECT_URI_IOS = 'io.metamask.Metamask://card-oauth';
 const OAUTH_REDIRECT_URI_ANDROID = 'https://link.metamask.io/card-oauth';
 
 const getOAuthRedirectUri = (): string =>
   Platform.OS === 'ios' ? OAUTH_REDIRECT_URI_IOS : OAUTH_REDIRECT_URI_ANDROID;
 
-/**
- * Resolve the Baanx API base URL from environment
- */
-const getBaanxApiBaseUrl = (): string =>
-  process.env.BAANX_API_URL ||
-  getDefaultBaanxApiBaseUrlForMetaMaskEnv(process.env.METAMASK_ENVIRONMENT);
-
-/**
- * Build the OAuth2 discovery document from the Baanx API base URL
- */
 const buildDiscoveryDocument = (baseUrl: string): DiscoveryDocument => ({
   authorizationEndpoint: `${baseUrl}/v1/auth/oauth2/authorize`,
-  tokenEndpoint: `${baseUrl}/v1/auth/oauth2/token`,
-  revocationEndpoint: `${baseUrl}/v1/auth/oauth2/revoke`,
-  userInfoEndpoint: `${baseUrl}/v1/user`,
 });
 
 /**
@@ -89,15 +66,10 @@ const getErrorMessage = (errorType: BaanxOAuth2ErrorType): string => {
  * Return type for the useCardOAuth2Authentication hook
  */
 export interface UseCardOAuth2AuthenticationReturn {
-  /** Start the OAuth2 authorization flow */
   login: () => Promise<void>;
-  /** Whether an OAuth operation is in progress */
   loading: boolean;
-  /** Whether the auth request is ready to be prompted */
   isReady: boolean;
-  /** Current user-facing error message, if any */
   error: string | null;
-  /** Clear the current error */
   clearError: () => void;
 }
 
@@ -195,7 +167,6 @@ const useCardOAuth2Authentication = (): UseCardOAuth2AuthenticationReturn => {
         code,
         codeVerifier,
         redirectUri,
-        clientId,
         location,
       });
 
