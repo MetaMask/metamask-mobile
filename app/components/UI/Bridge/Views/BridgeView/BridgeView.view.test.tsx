@@ -9,12 +9,10 @@ import { renderScreenWithRoutes } from '../../../../../util/test/component-view/
 import Routes from '../../../../../constants/navigation/Routes';
 import { initialStateBridge } from '../../../../../util/test/component-view/presets/bridge';
 import BridgeView from './index';
-import { describeForPlatforms } from '../../../../../util/test/platform';
 import { BridgeViewSelectorsIDs } from './BridgeView.testIds';
 import { BuildQuoteSelectors } from '../../../Ramp/Aggregator/Views/BuildQuote/BuildQuote.testIds';
 import { CommonSelectorsIDs } from '../../../../../util/Common.testIds';
 import Engine from '../../../../../core/Engine';
-import { DEBOUNCE_WAIT } from '../../hooks/useBridgeQuoteRequest';
 import { setSlippage } from '../../../../../core/redux/slices/bridge';
 import { BridgeTokenSelector } from '../../components/BridgeTokenSelector/BridgeTokenSelector';
 import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
@@ -39,7 +37,7 @@ const defaultBridgeWithTokens = (overrides?: Record<string, unknown>) => {
   });
 };
 
-describeForPlatforms('BridgeView', () => {
+describe('BridgeView', () => {
   it('renders input areas and hides confirm button without tokens or amount', () => {
     const { getByTestId, queryByTestId } = renderBridgeView({
       overrides: {
@@ -132,47 +130,43 @@ describeForPlatforms('BridgeView', () => {
     ).not.toBe(true);
   });
 
-  it('calls quote API with custom slippage when user has set 5% and quote is requested', () => {
-    jest.useFakeTimers();
-    try {
-      const updateQuoteSpy = jest.spyOn(
-        Engine.context.BridgeController,
-        'updateBridgeQuoteRequestParams',
-      );
+  it('calls quote API with custom slippage when user has set 5% and quote is requested', async () => {
+    const updateQuoteSpy = jest.spyOn(
+      Engine.context.BridgeController,
+      'updateBridgeQuoteRequestParams',
+    );
 
-      const { store } = defaultBridgeWithTokens({
-        bridge: { selectedDestChainId: '0x1' },
-        engine: {
-          backgroundState: {
-            BridgeController: {
-              quotesLastFetched: 0,
-              quotes: [],
-              quotesLoadingStatus: 'IDLE',
-              quoteFetchError: null,
-            },
+    const { store } = defaultBridgeWithTokens({
+      bridge: { selectedDestChainId: '0x1' },
+      engine: {
+        backgroundState: {
+          BridgeController: {
+            quotesLastFetched: 0,
+            quotes: [],
+            quotesLoadingStatus: 'IDLE',
+            quoteFetchError: null,
           },
         },
-      } as unknown as Record<string, unknown>);
+      },
+    } as unknown as Record<string, unknown>);
 
-      jest.advanceTimersByTime(DEBOUNCE_WAIT);
-      updateQuoteSpy.mockClear();
+    updateQuoteSpy.mockClear();
 
-      act(() => {
-        store.dispatch(setSlippage('5'));
-      });
-      act(() => {
-        jest.advanceTimersByTime(DEBOUNCE_WAIT);
-      });
+    act(() => {
+      store.dispatch(setSlippage('5'));
+    });
 
-      expect(updateQuoteSpy).toHaveBeenCalledWith(
-        expect.objectContaining({ slippage: 5 }),
-        expect.anything(),
-      );
+    await waitFor(
+      () => {
+        expect(updateQuoteSpy).toHaveBeenCalledWith(
+          expect.objectContaining({ slippage: 5 }),
+          expect.anything(),
+        );
+      },
+      { timeout: 1000 },
+    );
 
-      updateQuoteSpy.mockRestore();
-    } finally {
-      jest.useRealTimers();
-    }
+    updateQuoteSpy.mockRestore();
   });
 
   it('displays no MM fee disclaimer for mUSD destination with zero MM fee', async () => {
@@ -336,7 +330,6 @@ describeForPlatforms('BridgeView', () => {
 
     // Regression for #25256: two USDT tokens on Linea must both appear in search results.
     it('shows two USDT when search API returns two USDT on Linea (#25256)', async () => {
-      jest.useFakeTimers();
       const LINEA_CHAIN_ID = 59144;
       const verifiedUsdtAddress = '0xA219439258ca9da29E9Cc4cE5596924745e12B93';
       const otherUsdtAddress = '0x0000000000000000000000000000000000000001';
@@ -483,14 +476,9 @@ describeForPlatforms('BridgeView', () => {
       );
       fireEvent.changeText(searchInput, 'USDT');
 
-      // useSearchTokens debounce is 300ms; advance so the search request is sent
-      await act(async () => {
-        jest.advanceTimersByTime(350);
-      });
-
-      // Flush promise queue so fetch response is processed
-      await act(async () => {
-        await Promise.resolve();
+      // useSearchTokens debounce is 300ms; wait so the search request is sent
+      await new Promise((resolve) => {
+        setTimeout(resolve, 350);
       });
 
       // Ensure the search API was called (proves debounce + chainIds are correct)
@@ -513,7 +501,6 @@ describeForPlatforms('BridgeView', () => {
       expect(usdtLabels.length).toBe(2);
 
       fetchSpy.mockRestore();
-      jest.useRealTimers();
     }, 25000);
 
     it('shows native token in source area when source is native token from token details (#24865)', () => {

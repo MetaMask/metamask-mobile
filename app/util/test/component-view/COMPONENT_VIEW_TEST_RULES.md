@@ -133,6 +133,12 @@ If you only need the main screen (no pushed route to assert on), pass `[]` for t
 - Prefer robust assertions (presence/absence, enabled/disabled) over brittle string formatting checks, unless `deterministicFiat` is used.
 - Use Testing Library queries: `getByTestId`, `findByText`, `queryByTestId`, `within(...)`.
 
+### Avoid Fake Timers
+
+- Do **not** use `jest.useFakeTimers()`, `jest.advanceTimersByTime()`, or `jest.useRealTimers()` in component view tests.
+- Fake timers conflict with `waitFor()` and async rendering; they can cause flakiness or hangs.
+- Prefer real time: use `waitFor(..., { timeout: N })` or short real delays (e.g. `await new Promise(r => setTimeout(r, N))`) when you need to wait for debounced or timed behavior.
+
 ### Test Execution
 
 - For faster iteration:
@@ -156,6 +162,7 @@ yarn jest -c jest.config.view.js <path/to/test> -t "<name>" --runInBand --silent
   - Mock hooks or selectors
   - Rebuild entire background state manually (use presets)
   - Use arbitrary `jest.mock` in component view test files (blocked)
+  - Use fake timers (`jest.useFakeTimers`, `jest.advanceTimersByTime`, `jest.useRealTimers`); use `waitFor` or real delays instead
 
 ## Where to Find Things
 

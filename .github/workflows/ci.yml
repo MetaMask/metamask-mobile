@@ -251,7 +251,6 @@ jobs:
           command: yarn install --immutable
       - name: Clean state and following up dependencies installation
         run: yarn setup:github-ci --node
-      # The "2" must match the length of matrix.shard (2 shards like unit's 10)
       - run: yarn test:view:ci --shard=${{ matrix.shard }}/2
         env:
           NODE_OPTIONS: --max-old-space-size=20480
@@ -290,7 +289,9 @@ jobs:
         run: |
           mkdir -p tests/coverage-cvt-merged
           for d in tests/coverage-cvt/coverage-view-*; do
-            [ -d "$d" ] && cp "$d"/*.json tests/coverage-cvt-merged/ 2>/dev/null || true
+            if [ -d "$d" ]; then
+              cp "$d"/*.json tests/coverage-cvt-merged/ 2>/dev/null || true
+            fi
           done
       - name: Generate merged CVT HTML coverage report
         run: yarn nyc report --temp-dir ./tests/coverage-cvt-merged --report-dir ./tests/coverage-component-view-lcov --reporter html
