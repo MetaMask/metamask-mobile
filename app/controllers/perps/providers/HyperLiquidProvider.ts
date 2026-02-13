@@ -4702,7 +4702,9 @@ export class HyperLiquidProvider implements PerpsProvider {
             aggregateByTime: params?.aggregateByTime || false,
           });
 
-      this.deps.debugLogger.log('User fills received:', rawFills);
+      this.deps.debugLogger.log('User fills received:', {
+        count: rawFills?.length ?? 0,
+      });
 
       // Transform HyperLiquid fills to abstract OrderFill type
       const fills = (rawFills || []).reduce((acc: OrderFill[], fill) => {
@@ -4764,7 +4766,9 @@ export class HyperLiquidProvider implements PerpsProvider {
         user: userAddress,
       });
 
-      this.deps.debugLogger.log('User orders received:', rawOrders);
+      this.deps.debugLogger.log('User orders received:', {
+        count: rawOrders?.length ?? 0,
+      });
 
       // Transform HyperLiquid orders to abstract Order type
       const orders: Order[] = (rawOrders || []).map((rawOrder) => {
@@ -4971,7 +4975,9 @@ export class HyperLiquidProvider implements PerpsProvider {
         endTime: params?.endTime,
       });
 
-      this.deps.debugLogger.log('User funding received:', rawFunding);
+      this.deps.debugLogger.log('User funding received:', {
+        count: rawFunding?.length ?? 0,
+      });
 
       // Transform HyperLiquid funding to abstract Funding type
       const funding: Funding[] = (rawFunding || []).map((rawFundingItem) => {
