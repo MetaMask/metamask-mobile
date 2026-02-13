@@ -226,7 +226,7 @@ function parseErrorByMessage(
       code: ErrorCode.DeviceStateBlindSignNotSupported,
     },
     {
-      patterns: ['app'],
+      patterns: ['eth app', 'ethereum app'],
       code: ErrorCode.DeviceStateEthAppClosed,
       condition: (msg) =>
         msg.includes('open') || msg.includes('launch') || msg.includes('start'),

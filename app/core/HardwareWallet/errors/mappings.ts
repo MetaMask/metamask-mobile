@@ -16,11 +16,12 @@ interface MobileErrorExtension {
 }
 
 /**
- * Mobile specific extensions for error codes
+ * Mobile specific extensions for error codes.
  */
 export const MOBILE_ERROR_EXTENSIONS: Partial<
   Record<ErrorCode, MobileErrorExtension>
-> = {
+> &
+  Record<ErrorCode.Unknown, MobileErrorExtension> = {
   // Authentication
   [ErrorCode.AuthenticationDeviceLocked]: {
     recoveryAction: RecoveryAction.RETRY,

@@ -328,8 +328,8 @@ describe('parseErrorByType', () => {
       expect(result.code).toBe(ErrorCode.DeviceStateBlindSignNotSupported);
     });
 
-    it('parses "app" with "open" message', () => {
-      const error = new Error('Please open the app on your device');
+    it('parses "eth app" with "open" message', () => {
+      const error = new Error('Please open the Ethereum app on your device');
 
       const result = parseErrorByType(error, walletType);
 
@@ -425,8 +425,8 @@ describe('parseErrorByType', () => {
       expect(result.code).toBe(ErrorCode.DeviceDisconnected);
     });
 
-    it('parses "launch" app message as eth app closed', () => {
-      const error = new Error('Please launch the app on your device');
+    it('parses "launch" eth app message as eth app closed', () => {
+      const error = new Error('Please launch the Ethereum app on your device');
 
       const result = parseErrorByType(error, walletType);
 

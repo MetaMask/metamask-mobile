@@ -9,8 +9,13 @@ import {
   HardwareWalletErrorOptions,
   HardwareWalletType,
 } from '@metamask/hw-wallet-sdk';
-import { RecoveryAction } from './types';
 import { MOBILE_ERROR_EXTENSIONS } from './mappings';
+
+const COMBINED_ERROR_MAPPINGS = [
+  ...Object.values(LEDGER_ERROR_MAPPINGS),
+  ...Object.values(BLE_ERROR_MAPPINGS),
+  ...Object.values(MOBILE_ERROR_MAPPINGS),
+];
 
 /**
  * Get error info from SDK mappings.
@@ -18,14 +23,7 @@ import { MOBILE_ERROR_EXTENSIONS } from './mappings';
 function getSDKErrorInfo(
   code: ErrorCode,
 ): { severity: Severity; category: Category; message: string } | null {
-  // Search all SDK mappings for this error code
-  const allMappings = [
-    ...Object.values(LEDGER_ERROR_MAPPINGS),
-    ...Object.values(BLE_ERROR_MAPPINGS),
-    ...Object.values(MOBILE_ERROR_MAPPINGS),
-  ];
-
-  const sdkMapping = allMappings.find((m) => m.code === code);
+  const sdkMapping = COMBINED_ERROR_MAPPINGS.find((m) => m.code === code);
   if (sdkMapping) {
     return {
       severity: sdkMapping.severity,
@@ -62,14 +60,14 @@ export function createHardwareWalletError(
   const category = sdkInfo?.category ?? Category.Unknown;
 
   // Get Mobile extension for localized message and recovery action
-  const mobileExt =
-    MOBILE_ERROR_EXTENSIONS[code] || MOBILE_ERROR_EXTENSIONS[ErrorCode.Unknown];
+  const codeExtension = MOBILE_ERROR_EXTENSIONS[code];
+  const extension = codeExtension ?? MOBILE_ERROR_EXTENSIONS[ErrorCode.Unknown];
 
   const userMessage =
-    mobileExt?.getLocalizedMessage(walletType) ??
+    codeExtension?.getLocalizedMessage(walletType) ??
     sdkInfo?.message ??
-    'An error occurred';
-  const recoveryAction = mobileExt?.recoveryAction ?? RecoveryAction.RETRY;
+    extension.getLocalizedMessage(walletType);
+  const recoveryAction = extension.recoveryAction;
 
   const errorOptions: HardwareWalletErrorOptions = {
     code,
