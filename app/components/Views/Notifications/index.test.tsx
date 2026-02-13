@@ -31,6 +31,7 @@ import { NotificationsViewSelectorsIDs } from './NotificationsView.testIds';
 
 const navigationMock = {
   navigate: jest.fn(),
+  goBack: jest.fn(),
 } as unknown as NavigationProp<ParamListBase>;
 
 jest.mock('@react-navigation/native', () => ({
@@ -89,7 +90,7 @@ describe('NotificationsView - header', () => {
 
     expect(closeButtonTestUtils.root).toBeTruthy();
     await act(() => fireEvent(closeButtonTestUtils.root, 'onPress'));
-    expect(navigationMock.navigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
+    expect(navigationMock.goBack).toHaveBeenCalled();
   });
 
   it('finds settings button and invoke navigation when pressed', async () => {

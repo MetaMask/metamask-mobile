@@ -4,7 +4,6 @@ import NavbarTitle from '../NavbarTitle';
 import ModalNavbarTitle from '../ModalNavbarTitle';
 import AccountRightButton from '../AccountRightButton';
 import {
-  Alert,
   Image,
   Platform,
   StyleSheet,
@@ -15,15 +14,11 @@ import {
 import { colors as importedColors, fontStyles } from '../../../styles/common';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import { strings } from '../../../../locales/i18n';
-import AppConstants from '../../../core/AppConstants';
-import { SharedDeeplinkManager } from '../../../core/DeeplinkManager/DeeplinkManager';
 import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
-import { Authentication } from '../../../core';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 import Device from '../../../util/device';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { NAV_ANDROID_BACK_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
-import { BACK_BUTTON_SIMPLE_WEBVIEW } from '../../../../wdio/screen-objects/testIDs/Components/SimpleWebView.testIds';
 import Routes from '../../../constants/navigation/Routes';
 
 import {
@@ -41,7 +36,6 @@ import Icon, {
   IconColor,
 } from '../../../component-library/components/Icons/Icon';
 import { AddContactViewSelectorsIDs } from '../../Views/Settings/Contacts/AddContactView.testIds';
-import { SettingsViewSelectorsIDs } from '../../Views/Settings/SettingsView.testIds';
 import HeaderBase, {
   HeaderBaseVariant,
 } from '../../../component-library/components/HeaderBase';
@@ -880,63 +874,6 @@ export function getWalletNavbarOptions(
     },
   });
 
-  const onScanSuccess = (data, content) => {
-    if (data.private_key) {
-      Alert.alert(
-        strings('wallet.private_key_detected'),
-        strings('wallet.do_you_want_to_import_this_account'),
-        [
-          {
-            text: strings('wallet.cancel'),
-            onPress: () => false,
-            style: 'cancel',
-          },
-          {
-            text: strings('wallet.yes'),
-            onPress: async () => {
-              try {
-                await Authentication.importAccountFromPrivateKey(
-                  data.private_key,
-                );
-                navigation.navigate('ImportPrivateKeyView', {
-                  screen: 'ImportPrivateKeySuccess',
-                });
-              } catch {
-                Alert.alert(
-                  strings('import_private_key.error_title'),
-                  strings('import_private_key.error_message'),
-                );
-              }
-            },
-          },
-        ],
-        { cancelable: false },
-      );
-    } else if (data.seed) {
-      Alert.alert(
-        strings('wallet.error'),
-        strings('wallet.logout_to_import_seed'),
-      );
-    } else {
-      setTimeout(() => {
-        SharedDeeplinkManager.parse(content, {
-          origin: AppConstants.DEEPLINKS.ORIGIN_QR_CODE,
-        });
-      }, 500);
-    }
-  };
-
-  function openQRScanner() {
-    navigation.navigate(Routes.QR_TAB_SWITCHER, {
-      onScanSuccess,
-    });
-    trackEvent(
-      MetricsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.WALLET_QR_SCANNER,
-      ).build(),
-    );
-  }
-
   function handleNotificationOnPress() {
     if (isNotificationEnabled && isNotificationsFeatureEnabled()) {
       navigation.navigate(Routes.NOTIFICATIONS.VIEW);
@@ -1004,46 +941,26 @@ export function getWalletNavbarOptions(
                     touchAreaSlop={innerStyles.touchAreaSlop}
                   />
                 )}
-                <ButtonIcon
-                  iconProps={{ color: MMDSIconColor.Default }}
-                  onPress={openQRScanner}
-                  iconName={IconName.QrCode}
-                  size={ButtonIconSize.Md}
-                  testID={WalletViewSelectorsIDs.WALLET_SCAN_BUTTON}
-                  hitSlop={innerStyles.touchAreaSlop}
-                />
-                {isNotificationsFeatureEnabled() && (
-                  <BadgeWrapper
-                    position={BadgeWrapperPosition.TopRight}
-                    positionAnchorShape={
-                      BadgeWrapperPositionAnchorShape.Circular
-                    }
-                    badge={
-                      isNotificationEnabled && unreadNotificationCount > 0 ? (
-                        <BadgeStatus status={BadgeStatusStatus.Active} />
-                      ) : null
-                    }
-                  >
-                    <ButtonIcon
-                      iconProps={{ color: MMDSIconColor.Default }}
-                      onPress={handleNotificationOnPress}
-                      iconName={IconName.Notification}
-                      size={ButtonIconSize.Md}
-                      testID={
-                        WalletViewSelectorsIDs.WALLET_NOTIFICATIONS_BUTTON
-                      }
-                      hitSlop={innerStyles.touchAreaSlop}
-                    />
-                  </BadgeWrapper>
-                )}
-                <ButtonIcon
-                  iconProps={{ color: MMDSIconColor.Default }}
-                  onPress={handleHamburgerPress}
-                  iconName={IconName.Menu}
-                  size={ButtonIconSize.Md}
-                  testID="navbar-hamburger-menu-button"
-                  hitSlop={innerStyles.touchAreaSlop}
-                />
+                <BadgeWrapper
+                  position={BadgeWrapperPosition.TopRight}
+                  positionAnchorShape={BadgeWrapperPositionAnchorShape.Circular}
+                  badge={
+                    isNotificationsFeatureEnabled() &&
+                    isNotificationEnabled &&
+                    unreadNotificationCount > 0 ? (
+                      <BadgeStatus status={BadgeStatusStatus.Attention} />
+                    ) : null
+                  }
+                >
+                  <ButtonIcon
+                    iconProps={{ color: MMDSIconColor.Default }}
+                    onPress={handleHamburgerPress}
+                    iconName={IconName.Menu}
+                    size={ButtonIconSize.Md}
+                    testID="navbar-hamburger-menu-button"
+                    hitSlop={innerStyles.touchAreaSlop}
+                  />
+                </BadgeWrapper>
               </View>
             }
           </View>

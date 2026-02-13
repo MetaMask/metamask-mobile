@@ -10,7 +10,7 @@ export const AccountsMenuSelectorsIDs = {
   // Quick Actions
   DEPOSIT_BUTTON: 'deposit-button',
   EARN_BUTTON: 'earn-button',
-  SCAN_BUTTON: 'scan-button',
+  NOTIFICATIONS_BUTTON: 'notifications-button',
 
   // Manage Card
   MANAGE_CARD: 'manage-card',
