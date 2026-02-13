@@ -57,7 +57,9 @@ jobs:
       - name: Setup Main iOS App artifacts
         run: |
           mkdir -p ios/build/Build/Products/Release-iphonesimulator/
-          cp -R artifacts/main-qa-MetaMask.app ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
+          # The .app is uploaded as a zip to preserve symlinks (see build-ios-e2e.yml)
+          unzip -q artifacts/main-qa-MetaMask.app/MetaMask.app.zip -d artifacts/
+          cp -R artifacts/MetaMask.app ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
 
       - name: Repack Main iOS App
         run: node scripts/repack.js

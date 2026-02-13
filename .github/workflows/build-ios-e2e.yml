@@ -236,13 +236,25 @@ jobs:
           GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
           MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
 
-      # Upload the iOS .app file that works in simulators
+      # Compress the .app bundle into a zip to preserve symlinks.
+      # actions/upload-artifact does NOT preserve symlinks — it follows them and
+      # uploads the targets as regular files. iOS .app bundles rely on symlinks
+      # (especially inside Frameworks/), and without them `simctl install` fails
+      # with "Unable to Install". The -y flag tells zip to store symlinks as-is.
+      - name: Compress iOS App to preserve symlinks
+        run: |
+          cd ios/build/Build/Products/Release-iphonesimulator/
+          zip -r -y MetaMask.app.zip MetaMask.app
+          echo "📦 Compressed app size: $(du -sh MetaMask.app.zip | cut -f1)"
+          echo "📦 Original app size: $(du -sh MetaMask.app | cut -f1)"
+
+      # Upload the zipped iOS .app file that works in simulators
       - name: Upload iOS APP Artifact (Simulator)
         id: upload-app
         uses: actions/upload-artifact@v4
         with:
           name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
-          path: ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
+          path: ios/build/Build/Products/Release-iphonesimulator/MetaMask.app.zip
           retention-days: 7
           if-no-files-found: error
         continue-on-error: true

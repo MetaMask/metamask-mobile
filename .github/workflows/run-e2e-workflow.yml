@@ -58,7 +58,7 @@ jobs:
       test-apk-target-path: ${{ steps.determine-target-paths.outputs.test-apk-target-path }}
 
     env:
-      PREBUILT_IOS_APP_PATH: artifacts/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
+      PREBUILT_IOS_APP_PATH: artifacts/MetaMask.app
       METAMASK_ENVIRONMENT: ${{ inputs.metamask_environment }}
       METAMASK_BUILD_TYPE: ${{ inputs.build_type }}
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -185,6 +185,24 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: artifacts/
+
+      # The iOS .app is uploaded as a zip to preserve symlinks (see build-ios-e2e.yml).
+      # Extract it here so Detox can find the .app bundle at PREBUILT_IOS_APP_PATH.
+      - name: Extract iOS App from artifact
+        if: ${{ inputs.platform == 'ios' }}
+        run: |
+          ARTIFACT_DIR="artifacts/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app"
+          if [ ! -f "$ARTIFACT_DIR/MetaMask.app.zip" ]; then
+            echo "❌ Error: MetaMask.app.zip not found in $ARTIFACT_DIR"
+            echo "Contents of artifacts/:"
+            ls -la artifacts/ || true
+            echo "Contents of $ARTIFACT_DIR/:"
+            ls -la "$ARTIFACT_DIR/" || true
+            exit 1
+          fi
+          unzip -q "$ARTIFACT_DIR/MetaMask.app.zip" -d artifacts/
+          echo "✅ iOS app extracted to artifacts/MetaMask.app"
+          echo "📦 App size: $(du -sh artifacts/MetaMask.app | cut -f1)"
 
       # On re-run (run_attempt > 1), download previous test results to identify failed tests
       - name: Download previous test results (on re-run)
