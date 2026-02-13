@@ -96,7 +96,7 @@ import Authentication, {
   useAuthentication,
 } from '../../../core/Authentication';
 import { containsErrorMessage } from '../../../util/errorHandling';
-
+import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 const EmptyRecordConstant = {};
 
 interface OAuthRehydrationRouteParams {
@@ -465,7 +465,12 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
               try {
                 setLoading(true);
                 await Authentication.resetPassword();
-                await unlockWallet({ password });
+                await unlockWallet({
+                  password,
+                  authPreference: {
+                    currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
+                  },
+                });
               } catch (error) {
                 await handleLoginError(error as Error);
               }
