@@ -34,6 +34,11 @@ import { useTransactionPayToken } from '../../../../Views/confirmations/hooks/pa
 import { useTokenWithBalance } from '../../../../Views/confirmations/hooks/tokens/useTokenWithBalance';
 import { useTransactionMetadataRequest } from '../../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
 import {
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+  selectPendingTradeConfiguration,
+} from '@metamask/perps-controller';
+import {
   PERPS_BALANCE_CHAIN_ID,
   PERPS_BALANCE_PLACEHOLDER_ADDRESS,
 } from '../../constants/perpsConfig';
@@ -42,9 +47,10 @@ import {
   useIsPerpsBalanceSelected,
   usePerpsPayWithToken,
 } from '../../hooks/useIsPerpsBalanceSelected';
+import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { Hex } from '@metamask/utils';
+import { MetaMetricsEvents } from '../../../../../core/Analytics/MetaMetrics.events';
 import { usePerpsSelector } from '../../hooks/usePerpsSelector';
-import { selectPendingTradeConfiguration } from '@metamask/perps-controller';
 import Engine from '../../../../../core/Engine';
 
 const tokenIconStyles = StyleSheet.create({
@@ -102,6 +108,7 @@ export const PerpsPayRow = ({
   const { colors } = useTheme();
   const styles = createPayRowStyles(colors);
   const { setConfirmationMetric } = useConfirmationMetricEvents();
+  const { track } = usePerpsEventTracking();
   const { payToken, setPayToken } = useTransactionPayToken();
   const transactionMeta = useTransactionMetadataRequest();
   const matchesPerpsBalance = useIsPerpsBalanceSelected();
@@ -160,8 +167,12 @@ export const PerpsPayRow = ({
         mm_pay_token_list_opened: true,
       },
     });
+    track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+      [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+        PERPS_EVENT_VALUE.INTERACTION_TYPE.PAYMENT_TOKEN_SELECTOR,
+    });
     navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL);
-  }, [canEdit, navigation, setConfirmationMetric]);
+  }, [canEdit, navigation, setConfirmationMetric, track]);
 
   // Display data: use local state (defaults to Perps balance) so UI always shows "Perps balance" by default
   const displayToken = matchesPerpsBalance

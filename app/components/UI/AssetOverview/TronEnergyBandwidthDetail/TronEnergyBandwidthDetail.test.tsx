@@ -5,7 +5,10 @@ import { IconName } from '@metamask/design-system-react-native';
 import ResourceRing from './ResourceRing';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../util/test/initial-root-state';
-import { selectTronResourcesBySelectedAccountGroup } from '../../../../selectors/assets/assets-list';
+import {
+  selectTronResourcesBySelectedAccountGroup,
+  TronResourcesMap,
+} from '../../../../selectors/assets/assets-list';
 
 jest.mock('./ResourceRing', () => ({
   __esModule: true,
@@ -36,10 +39,22 @@ jest.mock('../../../../selectors/assets/assets-list', () => ({
 type SelectorReturn = ReturnType<
   typeof selectTronResourcesBySelectedAccountGroup
 >;
+
+const createEmptyResourcesMap = (): TronResourcesMap => ({
+  energy: undefined,
+  bandwidth: undefined,
+  maxEnergy: undefined,
+  maxBandwidth: undefined,
+  stakedTrxForEnergy: undefined,
+  stakedTrxForBandwidth: undefined,
+  totalStakedTrx: 0,
+});
+
 interface Resource {
   symbol: string;
   balance: number | string;
 }
+
 const res = (symbol: string, balance: number | string): Resource => ({
   symbol,
   balance,
@@ -63,16 +78,15 @@ describe('TronEnergyBandwidthDetail', () => {
   });
 
   it('renders values, coverage counts, and passes correct progress to ResourceRing', () => {
-    jest
-      .mocked(selectTronResourcesBySelectedAccountGroup)
-      .mockReturnValue([
-        res('energy', 130000),
-        res('bandwidth', 560),
-        res('max-energy', 200000),
-        res('max-bandwidth', 1000),
-        res('strx-energy', 70000),
-        res('strx-bandwidth', 500),
-      ] as unknown as SelectorReturn);
+    jest.mocked(selectTronResourcesBySelectedAccountGroup).mockReturnValue({
+      energy: res('energy', 130000),
+      bandwidth: res('bandwidth', 560),
+      maxEnergy: res('max-energy', 200000),
+      maxBandwidth: res('max-bandwidth', 1000),
+      stakedTrxForEnergy: res('strx-energy', 70000),
+      stakedTrxForBandwidth: res('strx-bandwidth', 500),
+      totalStakedTrx: 70500,
+    } as SelectorReturn);
 
     const { getByText } = renderWithProvider(<TronEnergyBandwidthDetail />, {
       state: baseState,
@@ -96,16 +110,15 @@ describe('TronEnergyBandwidthDetail', () => {
   });
 
   it('parses balances and caps progress', () => {
-    jest
-      .mocked(selectTronResourcesBySelectedAccountGroup)
-      .mockReturnValue([
-        res('energy', '1000'),
-        res('bandwidth', '2000'),
-        res('max-energy', '400'),
-        res('max-bandwidth', '1000'),
-        res('strx-energy', '500'),
-        res('strx-bandwidth', '500'),
-      ] as unknown as SelectorReturn);
+    jest.mocked(selectTronResourcesBySelectedAccountGroup).mockReturnValue({
+      energy: res('energy', '1000'),
+      bandwidth: res('bandwidth', '2000'),
+      maxEnergy: res('max-energy', '400'),
+      maxBandwidth: res('max-bandwidth', '1000'),
+      stakedTrxForEnergy: res('strx-energy', '500'),
+      stakedTrxForBandwidth: res('strx-bandwidth', '500'),
+      totalStakedTrx: 1000,
+    } as SelectorReturn);
 
     const { getByText } = renderWithProvider(<TronEnergyBandwidthDetail />, {
       state: baseState,
@@ -124,7 +137,7 @@ describe('TronEnergyBandwidthDetail', () => {
   it('handles missing resources by showing zeros and 0 progress', () => {
     jest
       .mocked(selectTronResourcesBySelectedAccountGroup)
-      .mockReturnValue([] as unknown as SelectorReturn);
+      .mockReturnValue(createEmptyResourcesMap());
 
     const { getAllByText, getByText } = renderWithProvider(
       <TronEnergyBandwidthDetail />,

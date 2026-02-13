@@ -10,8 +10,26 @@ import { useMemo } from 'react';
 import { useDeepMemo } from '../useDeepMemo';
 import { toChecksumAddress } from '../../../../../util/address';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { ARBITRUM_USDC } from '../../constants/perps';
-import { POLYGON_USDCE } from '../../constants/predict';
+
+// Pending conversion to a remote feature flag
+const STABLECOINS: Record<Hex, Hex[]> = {
+  [CHAIN_IDS.MAINNET]: [
+    '0xaca92e438df0b2401ff60da7e4337b687a2435da', // MUSD
+    '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48', // USDC
+    '0xdac17f958d2ee523a2206206994597c13d831ec7', // USDT
+  ],
+  [CHAIN_IDS.ARBITRUM]: [
+    '0xaf88d065e77c8cc2239327c5edb3a432268e5831', // USDC
+  ],
+  [CHAIN_IDS.LINEA_MAINNET]: [
+    '0xaca92e438df0b2401ff60da7e4337b687a2435da', // MUSD
+    '0x176211869ca2b568f2a7d4ee941e073a821ee1ff', // USDC
+    '0xa219439258ca9da29e9cc4ce5596924745e12b93', // USDT
+  ],
+  [CHAIN_IDS.POLYGON]: [
+    '0x2791bca1f2de4661ed88a30c99a7a9449aa84174', // USDC.e
+  ],
+};
 
 export interface TokenFiatRateRequest {
   address: Hex;
@@ -32,15 +50,11 @@ export function useTokenFiatRates(requests: TokenFiatRateRequest[]) {
         const currency = currencyOverride ?? selectedCurrency;
         const isUsd = currency.toLowerCase() === 'usd';
 
-        const isArbitrumUSDC =
-          address.toLowerCase() === ARBITRUM_USDC.address.toLowerCase() &&
-          chainId === CHAIN_IDS.ARBITRUM;
+        const isStablecoin = STABLECOINS[chainId]?.includes(
+          address.toLowerCase() as Hex,
+        );
 
-        const isPolygonUSDCE =
-          address.toLowerCase() === POLYGON_USDCE.address.toLowerCase() &&
-          chainId === CHAIN_IDS.POLYGON;
-
-        if (isUsd && (isArbitrumUSDC || isPolygonUSDCE)) {
+        if (isUsd && isStablecoin) {
           return 1;
         }
 

@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/consistent-type-definitions */
-// ESLint override: BaseController requires 'type' for Json compatibility, not 'interface'
-
 import type {
   CaipAccountId,
   CaipChainId,
@@ -24,7 +21,7 @@ export enum WebSocketConnectionState {
 }
 
 /** Provider-agnostic raw ledger update. Fields match the common shape across providers. */
-export interface RawLedgerUpdate {
+export type RawLedgerUpdate = {
   hash: string;
   time: number;
   delta: {
@@ -32,10 +29,10 @@ export interface RawLedgerUpdate {
     usdc?: string;
     coin?: string;
   };
-}
+};
 
 // User history item for deposits and withdrawals
-export interface UserHistoryItem {
+export type UserHistoryItem = {
   id: string;
   timestamp: number;
   type: 'deposit' | 'withdrawal';
@@ -51,17 +48,17 @@ export interface UserHistoryItem {
     chainId?: string;
     synthetic?: boolean;
   };
-}
+};
 
 // Parameters for getting user history
-export interface GetUserHistoryParams {
+export type GetUserHistoryParams = {
   startTime?: number;
   endTime?: number;
   accountId?: CaipAccountId;
-}
+};
 
 // Trade configuration saved per market per network
-export interface TradeConfiguration {
+export type TradeConfiguration = {
   leverage?: number; // Last used leverage for this market
   // Pending trade configuration (temporary, expires after 5 minutes)
   pendingConfig?: {
@@ -73,7 +70,7 @@ export interface TradeConfiguration {
     orderType?: OrderType; // Market vs limit
     timestamp: number; // When the config was saved (for expiration check)
   };
-}
+};
 
 // Order type enumeration
 export type OrderType = 'market' | 'limit';
@@ -104,7 +101,7 @@ export type TradeAction = 'create_position' | 'increase_exposure';
 
 // Unified tracking data interface for analytics events (never persisted in state)
 // Note: Numeric values are already parsed by hooks (usePerpsOrderFees, etc.) from API responses
-export interface TrackingData {
+export type TrackingData = {
   // Common to all operations
   totalFee: number; // Total fee for the operation (parsed by hooks)
   marketPrice: number; // Market price at operation time (parsed by hooks)
@@ -124,10 +121,15 @@ export interface TrackingData {
 
   // Entry source for analytics (e.g., 'trending' for Trending page discovery)
   source?: string;
-}
+
+  // Pay with any token: true when user paid with a custom token (not Perps balance)
+  tradeWithToken?: boolean;
+  mmPayTokenSelected?: string; // Token symbol when tradeWithToken is true
+  mmPayNetworkSelected?: string; // chainId when tradeWithToken is true
+};
 
 // TP/SL-specific tracking data for analytics events
-export interface TPSLTrackingData {
+export type TPSLTrackingData = {
   direction: 'long' | 'short'; // Position direction
   source: string; // Source of the TP/SL update (e.g., 'tp_sl_view', 'position_card')
   positionSize: number; // Unsigned position size for metrics
@@ -135,7 +137,7 @@ export interface TPSLTrackingData {
   stopLossPercentage?: number; // Stop loss percentage from entry
   isEditingExistingPosition?: boolean; // true = editing existing position, false = creating for new order
   entryPrice?: number; // Entry price for percentage calculations
-}
+};
 
 // MetaMask Perps API order parameters for PerpsController
 export type OrderParams = {
@@ -294,25 +296,25 @@ export type FlipPositionParams = {
   position: Position; // Current position to flip
 };
 
-export interface InitializeResult {
+export type InitializeResult = {
   success: boolean;
   error?: string;
   chainId?: string;
-}
+};
 
-export interface ReadyToTradeResult {
+export type ReadyToTradeResult = {
   ready: boolean;
   error?: string;
   walletConnected?: boolean;
   networkSupported?: boolean;
-}
+};
 
-export interface DisconnectResult {
+export type DisconnectResult = {
   success: boolean;
   error?: string;
-}
+};
 
-export interface MarketInfo {
+export type MarketInfo = {
   name: string; // HyperLiquid: universe name (asset symbol)
   szDecimals: number; // HyperLiquid: size decimals
   maxLeverage: number; // HyperLiquid: max leverage
@@ -321,13 +323,13 @@ export interface MarketInfo {
   isDelisted?: true; // HyperLiquid: delisted status (optional, only when true)
   minimumOrderSize?: number; // Minimum order size in USD (protocol-specific)
   providerId?: PerpsProviderType; // Multi-provider: which provider this market comes from (injected by aggregator)
-}
+};
 
 /**
  * Market data with prices for UI display
  * Protocol-agnostic interface for market information with formatted values
  */
-export interface PerpsMarketData {
+export type PerpsMarketData = {
   /**
    * Token symbol (e.g., 'BTC', 'ETH')
    */
@@ -400,15 +402,15 @@ export interface PerpsMarketData {
    * Multi-provider: which provider this market data comes from (injected by aggregator)
    */
   providerId?: PerpsProviderType;
-}
+};
 
-export interface ToggleTestnetResult {
+export type ToggleTestnetResult = {
   success: boolean;
   isTestnet: boolean;
   error?: string;
-}
+};
 
-export interface AssetRoute {
+export type AssetRoute = {
   assetId: CaipAssetId; // CAIP asset ID (e.g., "eip155:42161/erc20:0xaf88.../default")
   chainId: CaipChainId; // CAIP-2 chain ID where the bridge contract is located
   contractAddress: Hex; // Bridge contract address for deposits/withdrawals
@@ -423,26 +425,26 @@ export interface AssetRoute {
       token?: string; // Fee token symbol (e.g., 'USDC', 'ETH')
     };
   };
-}
+};
 
-export interface SwitchProviderResult {
+export type SwitchProviderResult = {
   success: boolean;
   providerId: PerpsActiveProviderMode;
   error?: string;
-}
+};
 
-export interface CancelOrderParams {
+export type CancelOrderParams = {
   orderId: string; // Order ID to cancel
   symbol: string; // Asset identifier (e.g., 'BTC', 'ETH', 'xyz:TSLA')
   providerId?: PerpsProviderType; // Multi-provider: optional provider override for routing
-}
+};
 
-export interface CancelOrderResult {
+export type CancelOrderResult = {
   success: boolean;
   orderId?: string; // Cancelled order ID
   error?: string;
   providerId?: PerpsProviderType; // Multi-provider: source provider identifier
-}
+};
 
 export type BatchCancelOrdersParams = {
   orderId: string;
@@ -467,32 +469,32 @@ export type CancelOrdersResult = {
   }[];
 };
 
-export interface EditOrderParams {
+export type EditOrderParams = {
   orderId: string | number; // Order ID or client order ID to modify
   newOrder: OrderParams; // New order parameters
-}
+};
 
-export interface DepositParams {
+export type DepositParams = {
   amount: string; // Amount to deposit
   assetId: CaipAssetId; // Asset to deposit (required for validation)
   fromChainId?: CaipChainId; // Source chain (defaults to current network)
   toChainId?: CaipChainId; // Destination chain (defaults to HyperLiquid Arbitrum)
   recipient?: Hex; // Recipient address (defaults to selected account)
-}
+};
 
 /** Params for depositWithConfirmation: prepares transaction for confirmation screen */
-export interface DepositWithConfirmationParams {
+export type DepositWithConfirmationParams = {
   /** Optional deposit amount (display/tracking; actual amount comes from prepared transaction) */
   amount?: string;
   /** If true, uses addTransaction instead of submit to avoid navigation (e.g. deposit + place order flow) */
   placeOrder?: boolean;
-}
+};
 
-export interface DepositResult {
+export type DepositResult = {
   success: boolean;
   txHash?: string;
   error?: string;
-}
+};
 
 // Enhanced deposit flow state types for multi-step deposits
 export type DepositStatus =
@@ -510,7 +512,6 @@ export type DepositFlowType =
   | 'bridge' // Different chain, same token (USDC on Ethereum → Arbitrum)
   | 'swap_bridge'; // Different chain, different token (ETH on Ethereum → USDC on Arbitrum)
 
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type DepositStepInfo = {
   totalSteps: number; // Total number of steps in this flow
   currentStep: number; // Current step (0-based index)
@@ -518,49 +519,49 @@ export type DepositStepInfo = {
   stepTxHashes?: string[]; // Transaction hashes for each completed step
 };
 
-export interface WithdrawParams {
+export type WithdrawParams = {
   amount: string; // Amount to withdraw
   destination?: Hex; // Destination address (optional, defaults to current account)
   assetId?: CaipAssetId; // Asset to withdraw (defaults to USDC)
   providerId?: PerpsProviderType; // Multi-provider: optional provider override for routing
-}
+};
 
-export interface WithdrawResult {
+export type WithdrawResult = {
   success: boolean;
   txHash?: string;
   error?: string;
   withdrawalId?: string; // Unique ID for tracking
   estimatedArrivalTime?: number; // Provider-specific arrival time
-}
+};
 
-export interface TransferBetweenDexsParams {
+export type TransferBetweenDexsParams = {
   sourceDex: string; // Source DEX name ('' = main DEX, 'xyz' = HIP-3 DEX)
   destinationDex: string; // Destination DEX name ('' = main DEX, 'xyz' = HIP-3 DEX)
   amount: string; // USDC amount to transfer
-}
+};
 
-export interface TransferBetweenDexsResult {
+export type TransferBetweenDexsResult = {
   success: boolean;
   txHash?: string;
   error?: string;
-}
+};
 
-export interface GetHistoricalPortfolioParams {
+export type GetHistoricalPortfolioParams = {
   accountId?: CaipAccountId; // Optional: defaults to selected account
-}
+};
 
-export interface HistoricalPortfolioResult {
+export type HistoricalPortfolioResult = {
   accountValue1dAgo: string;
   timestamp: number;
-}
+};
 
-export interface LiveDataConfig {
+export type LiveDataConfig = {
   priceThrottleMs?: number; // ms between price updates (default: 2000)
   positionThrottleMs?: number; // ms between position updates (default: 5000)
   maxUpdatesPerSecond?: number; // hard limit to prevent UI blocking
-}
+};
 
-export interface PerpsControllerConfig {
+export type PerpsControllerConfig = {
   /**
    * Fallback blocked regions to use when RemoteFeatureFlagController fails to fetch.
    * The fallback is set by default if defined and replaced with remote block list once available.
@@ -588,9 +589,9 @@ export interface PerpsControllerConfig {
    * The fallback is set by default if defined and replaced with remote feature flag once available.
    */
   fallbackHip3BlocklistMarkets?: string[];
-}
+};
 
-export interface PriceUpdate {
+export type PriceUpdate = {
   symbol: string; // Asset identifier (e.g., 'BTC', 'ETH', 'xyz:TSLA')
   price: string; // Current mid price (average of best bid and ask)
   timestamp: number; // Update timestamp
@@ -605,9 +606,9 @@ export interface PriceUpdate {
   openInterest?: number; // Open interest in USD
   volume24h?: number; // 24h trading volume in USD
   providerId?: PerpsProviderType; // Multi-provider: price source (injected by aggregator)
-}
+};
 
-export interface OrderFill {
+export type OrderFill = {
   orderId: string; // Order ID that was filled
   symbol: string; // Asset symbol
   side: string; // Normalized order side ('buy' or 'sell')
@@ -628,129 +629,129 @@ export interface OrderFill {
   orderType?: 'take_profit' | 'stop_loss' | 'liquidation' | 'regular';
   detailedOrderType?: string; // Original order type from exchange
   providerId?: PerpsProviderType; // Multi-provider: which provider this fill occurred on (injected by aggregator)
-}
+};
 
 // Parameter interfaces - all fully optional for better UX
-export interface CheckEligibilityParams {
+export type CheckEligibilityParams = {
   blockedRegions: string[]; // List of blocked region codes (e.g., ['US', 'CN'])
-}
+};
 
-export interface GetPositionsParams {
+export type GetPositionsParams = {
   accountId?: CaipAccountId; // Optional: defaults to selected account
   includeHistory?: boolean; // Optional: include historical positions
   skipCache?: boolean; // Optional: bypass WebSocket cache and force API call (default: false)
-  readOnly?: boolean; // Optional: lightweight mode - skip full initialization, use standalone HTTP client (no wallet/WebSocket needed)
-  userAddress?: string; // Optional: required when readOnly is true - user address to query positions for
-}
+  standalone?: boolean; // Optional: lightweight mode - skip full initialization, use standalone HTTP client (no wallet/WebSocket needed)
+  userAddress?: string; // Optional: required when standalone is true - user address to query positions for
+};
 
-export interface GetAccountStateParams {
+export type GetAccountStateParams = {
   accountId?: CaipAccountId; // Optional: defaults to selected account
   source?: string; // Optional: source of the call for tracing (e.g., 'health_check', 'initial_connection')
-  readOnly?: boolean; // Optional: lightweight mode - skip full initialization, use standalone HTTP client (no wallet/WebSocket needed)
-  userAddress?: string; // Optional: required when readOnly is true - user address to query account state for
-}
+  standalone?: boolean; // Optional: lightweight mode - skip full initialization, use standalone HTTP client (no wallet/WebSocket needed)
+  userAddress?: string; // Optional: required when standalone is true - user address to query account state for
+};
 
-export interface GetOrderFillsParams {
+export type GetOrderFillsParams = {
   accountId?: CaipAccountId; // Optional: defaults to selected account
   user?: Hex; // Optional: user address (defaults to selected account)
   startTime?: number; // Optional: start timestamp (Unix milliseconds)
   endTime?: number; // Optional: end timestamp (Unix milliseconds)
   limit?: number; // Optional: max number of results for pagination
   aggregateByTime?: boolean; // Optional: aggregate by time
-}
+};
 
 /**
  * Parameters for getOrFetchFills - optimized cache-first fill retrieval.
  * Subset of GetOrderFillsParams for cache filtering.
  */
-export interface GetOrFetchFillsParams {
+export type GetOrFetchFillsParams = {
   startTime?: number; // Optional: start timestamp (Unix milliseconds)
   symbol?: string; // Optional: filter by symbol
-}
+};
 
-export interface GetOrdersParams {
+export type GetOrdersParams = {
   accountId?: CaipAccountId; // Optional: defaults to selected account
   startTime?: number; // Optional: start timestamp (Unix milliseconds)
   endTime?: number; // Optional: end timestamp (Unix milliseconds)
   limit?: number; // Optional: max number of results for pagination
   offset?: number; // Optional: offset for pagination
   skipCache?: boolean; // Optional: bypass WebSocket cache and force API call (default: false)
-}
+};
 
-export interface GetFundingParams {
+export type GetFundingParams = {
   accountId?: CaipAccountId; // Optional: defaults to selected account
   startTime?: number; // Optional: start timestamp (Unix milliseconds)
   endTime?: number; // Optional: end timestamp (Unix milliseconds)
   limit?: number; // Optional: max number of results for pagination
   offset?: number; // Optional: offset for pagination
-}
+};
 
-export interface GetSupportedPathsParams {
+export type GetSupportedPathsParams = {
   isTestnet?: boolean; // Optional: override current testnet state
   assetId?: CaipAssetId; // Optional: filter by specific asset
   symbol?: string; // Optional: filter by asset symbol (e.g., 'USDC')
   chainId?: CaipChainId; // Optional: filter by chain (CAIP-2 format)
-}
+};
 
-export interface GetAvailableDexsParams {
+export type GetAvailableDexsParams = {
   // Reserved for future extensibility (filters, pagination, etc.)
-}
+};
 
-export interface GetMarketsParams {
+export type GetMarketsParams = {
   symbols?: string[]; // Optional symbol filter (e.g., ['BTC', 'xyz:XYZ100'])
   dex?: string; // HyperLiquid HIP-3: DEX name (empty string '' or undefined for main DEX). Other protocols: ignored.
   skipFilters?: boolean; // Skip market filtering (both allowlist and blocklist, default: false). When true, returns all markets without filtering.
-  readOnly?: boolean; // Lightweight mode: skip full initialization, only fetch market metadata (no wallet/WebSocket needed). Only main DEX markets returned. Use for discovery use cases like checking if a perps market exists.
-}
+  standalone?: boolean; // Lightweight mode: skip full initialization, only fetch market metadata (no wallet/WebSocket needed). Only main DEX markets returned. Use for discovery use cases like checking if a perps market exists.
+};
 
-export interface SubscribePricesParams {
+export type SubscribePricesParams = {
   symbols: string[];
   callback: (prices: PriceUpdate[]) => void;
   throttleMs?: number; // Future: per-subscription throttling
   includeOrderBook?: boolean; // Optional: include bid/ask data from L2 book
   includeMarketData?: boolean; // Optional: include funding, open interest, volume data
-}
+};
 
-export interface SubscribePositionsParams {
+export type SubscribePositionsParams = {
   callback: (positions: Position[]) => void;
   accountId?: CaipAccountId; // Optional: defaults to selected account
   includeHistory?: boolean; // Future: include historical data
-}
+};
 
-export interface SubscribeOrderFillsParams {
+export type SubscribeOrderFillsParams = {
   callback: (fills: OrderFill[], isSnapshot?: boolean) => void;
   accountId?: CaipAccountId; // Optional: defaults to selected account
   since?: number; // Future: only fills after timestamp
-}
+};
 
-export interface SubscribeOrdersParams {
+export type SubscribeOrdersParams = {
   callback: (orders: Order[]) => void;
   accountId?: CaipAccountId; // Optional: defaults to selected account
   includeHistory?: boolean; // Optional: include filled/canceled orders
-}
+};
 
-export interface SubscribeAccountParams {
+export type SubscribeAccountParams = {
   callback: (account: AccountState | null) => void;
   accountId?: CaipAccountId; // Optional: defaults to selected account
-}
+};
 
-export interface SubscribeOICapsParams {
+export type SubscribeOICapsParams = {
   callback: (caps: string[]) => void;
   accountId?: CaipAccountId; // Optional: defaults to selected account
-}
+};
 
-export interface SubscribeCandlesParams {
+export type SubscribeCandlesParams = {
   symbol: string;
   interval: CandlePeriod;
   duration?: TimeDuration;
   callback: (data: CandleData) => void;
   onError?: (error: Error) => void;
-}
+};
 
 /**
  * Single price level in the order book
  */
-export interface OrderBookLevel {
+export type OrderBookLevel = {
   /** Price at this level */
   price: string;
   /** Size at this level (in base asset) */
@@ -761,12 +762,12 @@ export interface OrderBookLevel {
   notional: string;
   /** Cumulative notional up to and including this level */
   totalNotional: string;
-}
+};
 
 /**
  * Full order book data with multiple price levels
  */
-export interface OrderBookData {
+export type OrderBookData = {
   /** Bid levels (buy orders) - highest price first */
   bids: OrderBookLevel[];
   /** Ask levels (sell orders) - lowest price first */
@@ -781,9 +782,9 @@ export interface OrderBookData {
   lastUpdated: number;
   /** Maximum total size across all levels (for scaling depth bars) */
   maxTotal: string;
-}
+};
 
-export interface SubscribeOrderBookParams {
+export type SubscribeOrderBookParams = {
   /** Symbol to subscribe to (e.g., 'BTC', 'ETH') */
   symbol: string;
   /** Number of levels to return per side (default: 10) */
@@ -796,30 +797,30 @@ export interface SubscribeOrderBookParams {
   callback: (orderBook: OrderBookData) => void;
   /** Callback for errors */
   onError?: (error: Error) => void;
-}
+};
 
-export interface LiquidationPriceParams {
+export type LiquidationPriceParams = {
   entryPrice: number;
   leverage: number;
   direction: 'long' | 'short';
   positionSize?: number; // Optional: for more accurate calculations
   marginType?: 'isolated' | 'cross'; // Optional: defaults to isolated
   asset?: string; // Optional: for asset-specific maintenance margins
-}
+};
 
-export interface MaintenanceMarginParams {
+export type MaintenanceMarginParams = {
   asset: string;
   positionSize?: number; // Optional: for tiered margin systems
-}
+};
 
-export interface FeeCalculationParams {
+export type FeeCalculationParams = {
   orderType: 'market' | 'limit';
   isMaker?: boolean;
   amount?: string;
   symbol: string; // Required: Asset identifier for HIP-3 fee calculation (e.g., 'BTC', 'xyz:TSLA')
-}
+};
 
-export interface FeeCalculationResult {
+export type FeeCalculationResult = {
   // Total fees (protocol + MetaMask)
   feeRate?: number; // Total fee rate as decimal (e.g., 0.00145 for 0.145%), undefined when unavailable
   feeAmount?: number; // Total fee amount in USD (when amount is provided)
@@ -839,9 +840,9 @@ export interface FeeCalculationResult {
     volumeDiscount?: number;
     stakingDiscount?: number;
   };
-}
+};
 
-export interface UpdatePositionTPSLParams {
+export type UpdatePositionTPSLParams = {
   symbol: string; // Asset identifier (e.g., 'BTC', 'ETH', 'xyz:TSLA')
   takeProfitPrice?: string; // Optional: undefined to remove
   stopLossPrice?: string; // Optional: undefined to remove
@@ -854,9 +855,9 @@ export interface UpdatePositionTPSLParams {
    * If not provided, falls back to fetching positions via REST API.
    */
   position?: Position;
-}
+};
 
-export interface Order {
+export type Order = {
   orderId: string; // Order ID
   symbol: string; // Asset symbol (e.g., 'ETH', 'BTC')
   side: 'buy' | 'sell'; // Normalized order side
@@ -879,17 +880,17 @@ export interface Order {
   reduceOnly?: boolean; // Whether this is a reduce-only order
   triggerPrice?: string; // Trigger condition price for trigger orders (e.g., TP/SL trigger level)
   providerId?: PerpsProviderType; // Multi-provider: which provider this order is on (injected by aggregator)
-}
+};
 
-export interface Funding {
+export type Funding = {
   symbol: string; // Asset symbol (e.g., 'ETH', 'BTC')
   amountUsd: string; // Funding amount in USD (positive = received, negative = paid)
   rate: string; // Funding rate applied
   timestamp: number; // Funding payment timestamp
   transactionHash?: string; // Optional transaction hash
-}
+};
 
-export interface PerpsProvider {
+export type PerpsProvider = {
   readonly protocolId: string;
 
   // Unified asset and route information
@@ -1037,7 +1038,7 @@ export interface PerpsProvider {
    * @returns Array of DEX names (empty string '' represents main DEX)
    */
   getAvailableDexs?(params?: GetAvailableDexsParams): Promise<string[]>;
-}
+};
 
 // ============================================================================
 // Multi-Provider Aggregation Types (Phase 1)
@@ -1073,7 +1074,7 @@ export type RoutingStrategy = 'default_provider';
 /**
  * Configuration for AggregatedPerpsProvider
  */
-export interface AggregatedProviderConfig {
+export type AggregatedProviderConfig = {
   /** Map of provider ID to provider instance */
   providers: Map<PerpsProviderType, PerpsProvider>;
   /** Default provider for write operations when providerId not specified */
@@ -1082,12 +1083,12 @@ export interface AggregatedProviderConfig {
   aggregationMode?: AggregationMode;
   /** Platform dependencies for logging, metrics, etc. */
   infrastructure: PerpsPlatformDependencies;
-}
+};
 
 /**
  * Provider-specific error with context for multi-provider error handling
  */
-export interface ProviderError {
+export type ProviderError = {
   /** Which provider the error originated from */
   providerId: PerpsProviderType;
   /** Human-readable error message */
@@ -1096,17 +1097,17 @@ export interface ProviderError {
   originalError?: Error;
   /** Whether the operation can be retried */
   isRetryable?: boolean;
-}
+};
 
 /**
  * Aggregated account state combining data from multiple providers
  */
-export interface AggregatedAccountState {
+export type AggregatedAccountState = {
   /** Combined totals across all providers */
   total: AccountState;
   /** Per-provider breakdown */
   byProvider: Map<PerpsProviderType, AccountState>;
-}
+};
 
 // ============================================================================
 // Injectable Dependency Interfaces
@@ -1118,7 +1119,7 @@ export interface AggregatedAccountState {
  * Injectable logger interface for error reporting.
  * Allows core package to be platform-agnostic (mobile: Sentry, extension: different impl)
  */
-export interface PerpsLogger {
+export type PerpsLogger = {
   error(
     error: Error,
     options?: {
@@ -1127,7 +1128,7 @@ export interface PerpsLogger {
       extras?: Record<string, unknown>;
     },
   ): void;
-}
+};
 
 /**
  * Analytics events specific to Perps feature.
@@ -1267,7 +1268,7 @@ export type PerpsAnalyticsProperties = Record<
  * Injectable metrics interface for analytics.
  * Allows core package to work with different analytics backends.
  */
-export interface PerpsMetrics {
+export type PerpsMetrics = {
   isEnabled(): boolean;
 
   /**
@@ -1281,16 +1282,16 @@ export interface PerpsMetrics {
     event: PerpsAnalyticsEvent,
     properties: PerpsAnalyticsProperties,
   ): void;
-}
+};
 
 /**
  * Injectable debug logger for development logging.
  * Only logs in development mode.
  * Accepts `unknown` to allow logging error objects from catch blocks.
  */
-export interface PerpsDebugLogger {
+export type PerpsDebugLogger = {
   log(...args: unknown[]): void;
-}
+};
 
 /**
  * Injectable stream manager interface for pause/resume during critical operations.
@@ -1322,19 +1323,19 @@ export interface PerpsDebugLogger {
  * - Mobile: Wrap existing singleton (streamManager[channel].pause())
  * - Extension: Implement with whatever streaming solution they use
  */
-export interface PerpsStreamManager {
+export type PerpsStreamManager = {
   pauseChannel(channel: string): void;
   resumeChannel(channel: string): void;
   clearAllChannels(): void;
-}
+};
 
 /**
  * Injectable performance monitor interface.
  * Wraps react-native-performance or browser Performance API.
  */
-export interface PerpsPerformance {
+export type PerpsPerformance = {
   now(): number;
-}
+};
 
 /**
  * Injectable tracer interface for Sentry/observability tracing.
@@ -1343,7 +1344,7 @@ export interface PerpsPerformance {
  * Note: trace() returns void because services use name/id pairs to identify traces.
  * The actual span management is handled internally by the platform adapter.
  */
-export interface PerpsTracer {
+export type PerpsTracer = {
   trace(params: {
     name: PerpsTraceName;
     id: string;
@@ -1359,7 +1360,7 @@ export interface PerpsTracer {
   }): void;
 
   setMeasurement(name: string, value: number, unit: string): void;
-}
+};
 
 // ============================================================================
 // Rewards Interface
@@ -1369,7 +1370,7 @@ export interface PerpsTracer {
  * Rewards controller operations required by Perps.
  * Provides fee discount capabilities for MetaMask rewards program.
  */
-export interface PerpsRewardsOperations {
+export type PerpsRewardsOperations = {
   /**
    * Get fee discount for an account.
    * Returns discount in basis points (e.g., 6500 = 65% discount)
@@ -1377,7 +1378,7 @@ export interface PerpsRewardsOperations {
   getFeeDiscount(
     caipAccountId: `${string}:${string}:${string}`,
   ): Promise<number>;
-}
+};
 
 /**
  * Platform dependencies for PerpsController and services.
@@ -1386,11 +1387,11 @@ export interface PerpsRewardsOperations {
  * - Observability: logger, debugLogger, metrics, performance, tracer
  * - Platform: streamManager (mobile/extension specific)
  * - Rewards: fee discount operations
- * - Cache: cache invalidation for readOnly queries
+ * - Cache: cache invalidation for standalone queries
  *
  * Controller access uses messenger pattern (messenger.call()).
  */
-export interface PerpsPlatformDependencies {
+export type PerpsPlatformDependencies = {
   // === Observability (stateless utilities) ===
   logger: PerpsLogger;
   debugLogger: PerpsDebugLogger;
@@ -1420,13 +1421,13 @@ export interface PerpsPlatformDependencies {
   // === Market Data Formatting (platform-specific number formatting) ===
   marketDataFormatters: MarketDataFormatters;
 
-  // === Cache Invalidation (for readOnly query caches) ===
+  // === Cache Invalidation (for standalone query caches) ===
   cacheInvalidator: PerpsCacheInvalidator;
-}
+};
 
 /**
  * Cache types that can be invalidated.
- * Used by readOnly query caches (e.g., usePerpsPositionForAsset).
+ * Used by standalone query caches (e.g., usePerpsPositionForAsset).
  */
 export type PerpsCacheType = 'positions' | 'accountState' | 'markets';
 
@@ -1439,11 +1440,11 @@ export type InvalidateCacheParams = {
 };
 
 /**
- * Cache invalidation interface for readOnly query caches.
+ * Cache invalidation interface for standalone query caches.
  * Allows services to signal when data has changed without depending on
  * mobile-specific implementations.
  */
-export interface PerpsCacheInvalidator {
+export type PerpsCacheInvalidator = {
   /**
    * Invalidate a specific cache type.
    * Notifies all subscribers that cached data is stale.
@@ -1454,7 +1455,7 @@ export interface PerpsCacheInvalidator {
    * Invalidate all cache types.
    */
   invalidateAll(): void;
-}
+};
 
 // ============================================================================
 // Market Data Formatting
@@ -1468,7 +1469,7 @@ export interface PerpsCacheInvalidator {
  * (FiatRangeConfig on mobile) is platform-specific. The formatter
  * implementation casts internally.
  */
-export interface MarketDataFormatters {
+export type MarketDataFormatters = {
   /** Format a number as a USD volume string (e.g., '$1.2B', '$850M') */
   formatVolume(value: number): string;
   /** Format a number as a USD fiat string with adaptive precision */
@@ -1477,7 +1478,7 @@ export interface MarketDataFormatters {
   formatPercentage(percent: number): string;
   /** Universal price ranges for formatting (opaque to portable code) */
   priceRangesUniversal: unknown[];
-}
+};
 
 // ============================================================================
 // Payment Token (portable replacement for mobile-only AssetType)
@@ -1488,11 +1489,12 @@ export interface MarketDataFormatters {
  * Only the fields actually used by PerpsController are included.
  * Replaces the mobile-only AssetType (which extends TokenI and uses ImageSourcePropType).
  */
-export interface PaymentToken {
+export type PaymentToken = {
   description?: string;
   address: string;
   chainId?: string;
-}
+  symbol?: string;
+};
 
 /**
  * Selected pay-with token shape used in PerpsController state, pending trade config,
@@ -1502,6 +1504,7 @@ export type PerpsSelectedPaymentToken = {
   description?: string;
   address: string;
   chainId: string;
+  symbol?: string;
 };
 
 // ============================================================================
@@ -1512,10 +1515,10 @@ export type PerpsSelectedPaymentToken = {
  * Structure for a version-gated feature flag from LaunchDarkly.
  * Portable: no platform-specific imports.
  */
-export interface VersionGatedFeatureFlag {
+export type VersionGatedFeatureFlag = {
   enabled: boolean;
   minimumVersion: string;
-}
+};
 
 /**
  * Type guard for VersionGatedFeatureFlag.
