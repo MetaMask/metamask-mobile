@@ -23,6 +23,13 @@ import {
   roundToSignificantFigures,
 } from './significantFigures';
 
+type FrontendOrderWithParentTpsl = FrontendOrder & {
+  takeProfitPrice?: string;
+  stopLossPrice?: string;
+  takeProfitOrderId?: string | number;
+  stopLossOrderId?: string | number;
+};
+
 /**
  * HyperLiquid SDK Adapter Utilities
  *
@@ -104,12 +111,9 @@ export function adaptOrderFromSDK(
   rawOrder: FrontendOrder,
   position?: Position,
 ): Order {
-  const rawOrderWithParentTpsl = rawOrder as FrontendOrder & {
-    takeProfitPrice?: string;
-    stopLossPrice?: string;
-    takeProfitOrderId?: string | number;
-    stopLossOrderId?: string | number;
-  };
+  // TODO: Remove this cast when the SDK FrontendOrder type includes parent-level
+  // TP/SL metadata fields (takeProfitPrice/stopLossPrice and child IDs).
+  const rawOrderWithParentTpsl = rawOrder as FrontendOrderWithParentTpsl;
 
   // Extract basic fields with appropriate conversions
   const orderId = rawOrder.oid.toString();

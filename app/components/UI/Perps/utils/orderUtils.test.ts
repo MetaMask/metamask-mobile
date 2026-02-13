@@ -1,5 +1,6 @@
 import {
   buildDisplayOrdersWithSyntheticTpsl,
+  inferTriggerConditionKey,
   isOrderAssociatedWithFullPosition,
   isSyntheticOrderCancelable,
   isSyntheticPlaceholderOrderId,
@@ -306,6 +307,74 @@ describe('orderUtils', () => {
     it('should return short for negative position', () => {
       const result = getOrderDirection('buy', '-1.5');
       expect(result).toBe('short');
+    });
+  });
+
+  describe('inferTriggerConditionKey', () => {
+    it('returns price_above for long take-profit', () => {
+      const result = inferTriggerConditionKey({
+        detailedOrderType: 'Take Profit Limit',
+        side: 'sell',
+        triggerPrice: '55000',
+        price: '55000',
+      });
+
+      expect(result).toBe('perps.order_details.price_above');
+    });
+
+    it('returns price_below for short take-profit', () => {
+      const result = inferTriggerConditionKey({
+        detailedOrderType: 'Take Profit Limit',
+        side: 'buy',
+        triggerPrice: '45000',
+        price: '45000',
+      });
+
+      expect(result).toBe('perps.order_details.price_below');
+    });
+
+    it('returns price_below for long stop-loss', () => {
+      const result = inferTriggerConditionKey({
+        detailedOrderType: 'Stop Market',
+        side: 'sell',
+        triggerPrice: '43000',
+        price: '0',
+      });
+
+      expect(result).toBe('perps.order_details.price_below');
+    });
+
+    it('returns price_above for short stop-loss', () => {
+      const result = inferTriggerConditionKey({
+        detailedOrderType: 'Stop Market',
+        side: 'buy',
+        triggerPrice: '87000',
+        price: '0',
+      });
+
+      expect(result).toBe('perps.order_details.price_above');
+    });
+
+    it('uses deterministic fallback for ambiguous types based on trigger vs execution price', () => {
+      const result = inferTriggerConditionKey({
+        detailedOrderType: 'Market',
+        side: 'buy',
+        triggerPrice: '87.12',
+        price: '95.84',
+      });
+
+      expect(result).toBe('perps.order_details.price_above');
+    });
+
+    it('returns undefined when trigger price is missing or invalid', () => {
+      expect(
+        inferTriggerConditionKey({
+          detailedOrderType: 'Stop Market',
+          side: 'buy',
+          triggerPrice: '0',
+          price: '95.84',
+        }),
+      ).toBeUndefined();
     });
   });
 
