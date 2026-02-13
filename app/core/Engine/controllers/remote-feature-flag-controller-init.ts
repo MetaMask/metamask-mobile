@@ -39,10 +39,10 @@ function getBuildTimeFeatureFlagDefaults(): Record<string, unknown> {
 function getInitialState(
   persistedState: RemoteFeatureFlagControllerState | undefined,
 ): RemoteFeatureFlagControllerState | undefined {
-  // TEMPORARY: Only apply the new built-in defaults when built via GitHub Actions.
-  // Bitrise does not set REMOTE_FEATURE_FLAG_DEFAULTS; skip merge there so both CI paths work.
-  // Remove this block once Bitrise is deprecated and all builds use GH Actions + builds.yml.
-  if (process.env.GITHUB_ACTIONS !== 'true') {
+  // TEMPORARY: Only apply the new built-in defaults when built via GitHub Actions (build.yml), not E2E.
+  // E2E builds run in GitHub but don't use builds.yml; skip merge so they use persisted/empty flags.
+  // Bitrise does not set REMOTE_FEATURE_FLAG_DEFAULTS; skip merge there. Remove once Bitrise is deprecated.
+  if (process.env.GITHUB_ACTIONS !== 'true' || process.env.E2E === 'true') {
     return persistedState;
   }
 

@@ -10,14 +10,14 @@ import {
 } from '../../utils/wildcardTokenList';
 import { DEFAULT_MUSD_BLOCKED_COUNTRIES } from '../../constants/musd';
 
-// TEMPORARY: When GITHUB_ACTIONS use build-time default from remote flags; when not (Bitrise / .js.env) use process.env. Remove once Bitrise is deprecated.
+// TEMPORARY: When GITHUB_ACTIONS (and not E2E) use build-time default from remote flags; E2E/Bitrise/.js.env use process.env. Remove once Bitrise is deprecated.
 export const selectPooledStakingEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
     const remoteFlag =
       remoteFeatureFlags?.earnPooledStakingEnabled as unknown as VersionGatedFeatureFlag;
     const fallback =
-      process.env.GITHUB_ACTIONS === 'true'
+      process.env.GITHUB_ACTIONS === 'true' && process.env.E2E !== 'true'
         ? (remoteFeatureFlags?.earnPooledStakingEnabled as boolean)
         : process.env.MM_POOLED_STAKING_ENABLED === 'true';
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? fallback;
@@ -29,7 +29,7 @@ export const selectPooledStakingServiceInterruptionBannerEnabledFlag =
     const remoteFlag =
       remoteFeatureFlags?.earnPooledStakingServiceInterruptionBannerEnabled as unknown as VersionGatedFeatureFlag;
     const fallback =
-      process.env.GITHUB_ACTIONS === 'true'
+      process.env.GITHUB_ACTIONS === 'true' && process.env.E2E !== 'true'
         ? (remoteFeatureFlags?.earnPooledStakingServiceInterruptionBannerEnabled as boolean)
         : process.env.MM_POOLED_STAKING_SERVICE_INTERRUPTION_BANNER_ENABLED ===
           'true';
@@ -42,7 +42,7 @@ export const selectStablecoinLendingEnabledFlag = createSelector(
     const remoteFlag =
       remoteFeatureFlags?.earnStablecoinLendingEnabled as unknown as VersionGatedFeatureFlag;
     const fallback =
-      process.env.GITHUB_ACTIONS === 'true'
+      process.env.GITHUB_ACTIONS === 'true' && process.env.E2E !== 'true'
         ? (remoteFeatureFlags?.earnStablecoinLendingEnabled as boolean)
         : process.env.MM_STABLECOIN_LENDING_UI_ENABLED === 'true';
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? fallback;
@@ -54,7 +54,7 @@ export const selectStablecoinLendingServiceInterruptionBannerEnabledFlag =
     const remoteFlag =
       remoteFeatureFlags?.earnStablecoinLendingServiceInterruptionBannerEnabled as unknown as VersionGatedFeatureFlag;
     const fallback =
-      process.env.GITHUB_ACTIONS === 'true'
+      process.env.GITHUB_ACTIONS === 'true' && process.env.E2E !== 'true'
         ? (remoteFeatureFlags?.earnStablecoinLendingServiceInterruptionBannerEnabled as boolean)
         : process.env.MM_STABLE_COIN_SERVICE_INTERRUPTION_BANNER_ENABLED ===
           'true';
@@ -67,7 +67,7 @@ export const selectIsMusdConversionFlowEnabledFlag = createSelector(
     const remoteFlag =
       remoteFeatureFlags?.earnMusdConversionFlowEnabled as unknown as VersionGatedFeatureFlag;
     const fallback =
-      process.env.GITHUB_ACTIONS === 'true'
+      process.env.GITHUB_ACTIONS === 'true' && process.env.E2E !== 'true'
         ? (remoteFeatureFlags?.earnMusdConversionFlowEnabled as boolean)
         : process.env.MM_MUSD_CONVERSION_FLOW_ENABLED === 'true';
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? fallback;
@@ -89,7 +89,7 @@ export const selectIsMusdGetBuyCtaEnabledFlag = createSelector(
     const remoteFlag =
       remoteFeatureFlags?.earnMusdCtaEnabled as unknown as VersionGatedFeatureFlag;
     const fallback =
-      process.env.GITHUB_ACTIONS === 'true'
+      process.env.GITHUB_ACTIONS === 'true' && process.env.E2E !== 'true'
         ? (remoteFeatureFlags?.earnMusdCtaEnabled as boolean)
         : process.env.MM_MUSD_CTA_ENABLED === 'true';
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? fallback;
@@ -111,7 +111,7 @@ export const selectIsMusdConversionAssetOverviewEnabledFlag = createSelector(
     const remoteFlag =
       remoteFeatureFlags?.earnMusdConversionAssetOverviewCtaEnabled as unknown as VersionGatedFeatureFlag;
     const fallback =
-      process.env.GITHUB_ACTIONS === 'true'
+      process.env.GITHUB_ACTIONS === 'true' && process.env.E2E !== 'true'
         ? (remoteFeatureFlags?.earnMusdConversionAssetOverviewCtaEnabled as boolean)
         : process.env.MM_MUSD_CONVERSION_ASSET_OVERVIEW_CTA === 'true';
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? fallback;
@@ -133,7 +133,7 @@ export const selectIsMusdConversionTokenListItemCtaEnabledFlag = createSelector(
     const remoteFlag =
       remoteFeatureFlags?.earnMusdConversionTokenListItemCtaEnabled as unknown as VersionGatedFeatureFlag;
     const fallback =
-      process.env.GITHUB_ACTIONS === 'true'
+      process.env.GITHUB_ACTIONS === 'true' && process.env.E2E !== 'true'
         ? (remoteFeatureFlags?.earnMusdConversionTokenListItemCtaEnabled as boolean)
         : process.env.MM_MUSD_CONVERSION_TOKEN_LIST_ITEM_CTA === 'true';
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? fallback;
@@ -237,7 +237,7 @@ export const selectIsMusdConversionRewardsUiEnabledFlag = createSelector(
     const remoteFlag =
       remoteFeatureFlags?.earnMusdConversionRewardsUiEnabled as unknown as VersionGatedFeatureFlag;
     const fallback =
-      process.env.GITHUB_ACTIONS === 'true'
+      process.env.GITHUB_ACTIONS === 'true' && process.env.E2E !== 'true'
         ? (remoteFeatureFlags?.earnMusdConversionRewardsUiEnabled as boolean)
         : process.env.MM_MUSD_CONVERSION_REWARDS_UI_ENABLED === 'true';
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? fallback;
@@ -326,7 +326,7 @@ export const selectMerklCampaignClaimingEnabledFlag = createSelector(
     const remoteFlag =
       remoteFeatureFlags?.earnMerklCampaignClaiming as unknown as VersionGatedFeatureFlag;
     const fallback =
-      process.env.GITHUB_ACTIONS === 'true'
+      process.env.GITHUB_ACTIONS === 'true' && process.env.E2E !== 'true'
         ? (remoteFeatureFlags?.earnMerklCampaignClaiming as boolean)
         : process.env.MM_EARN_MERKL_CAMPAIGN_CLAIMING === 'true';
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? fallback;

@@ -17,7 +17,7 @@ const VALID_BUTTON_COLOR_VARIANTS: readonly ButtonColorVariantName[] = [
   'monochrome',
 ];
 
-// TEMPORARY: When GITHUB_ACTIONS use build-time default from remote flags; when not (Bitrise / .js.env) use process.env. Remove once Bitrise is deprecated.
+// TEMPORARY: When GITHUB_ACTIONS (and not E2E) use build-time default from remote flags; E2E/Bitrise/.js.env use process.env. Remove once Bitrise is deprecated.
 export const selectPerpsEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
@@ -25,7 +25,7 @@ export const selectPerpsEnabledFlag = createSelector(
     const remoteFlag =
       remoteFeatureFlags?.perpsPerpTradingEnabled as unknown as VersionGatedFeatureFlag;
     const fallback =
-      process.env.GITHUB_ACTIONS === 'true'
+      process.env.GITHUB_ACTIONS === 'true' && process.env.E2E !== 'true'
         ? (remoteFeatureFlags?.perpsPerpTradingEnabled as boolean)
         : localFlag;
     return (
@@ -42,7 +42,7 @@ export const selectPerpsServiceInterruptionBannerEnabledFlag = createSelector(
     const remoteFlag =
       remoteFeatureFlags?.perpsPerpTradingServiceInterruptionBannerEnabled as unknown as VersionGatedFeatureFlag;
     const fallback =
-      process.env.GITHUB_ACTIONS === 'true'
+      process.env.GITHUB_ACTIONS === 'true' && process.env.E2E !== 'true'
         ? (remoteFeatureFlags?.perpsPerpTradingServiceInterruptionBannerEnabled as boolean)
         : localFlag;
     return (
@@ -58,7 +58,7 @@ export const selectPerpsGtmOnboardingModalEnabledFlag = createSelector(
     const remoteFlag =
       remoteFeatureFlags?.perpsPerpGtmOnboardingModalEnabled as unknown as VersionGatedFeatureFlag;
     const fallback =
-      process.env.GITHUB_ACTIONS === 'true'
+      process.env.GITHUB_ACTIONS === 'true' && process.env.E2E !== 'true'
         ? (remoteFeatureFlags?.perpsPerpGtmOnboardingModalEnabled as boolean)
         : localFlag;
     return (
@@ -80,7 +80,7 @@ export const selectPerpsOrderBookEnabledFlag = createSelector(
     const remoteFlag =
       remoteFeatureFlags?.perpsOrderBookEnabled as unknown as VersionGatedFeatureFlag;
     const fallback =
-      process.env.GITHUB_ACTIONS === 'true'
+      process.env.GITHUB_ACTIONS === 'true' && process.env.E2E !== 'true'
         ? (remoteFeatureFlags?.perpsOrderBookEnabled as boolean)
         : localFlag;
     return (
@@ -175,7 +175,7 @@ export const selectPerpsFeedbackEnabledFlag = createSelector(
     const remoteFlag =
       remoteFeatureFlags?.perpsFeedbackEnabled as unknown as VersionGatedFeatureFlag;
     const fallback =
-      process.env.GITHUB_ACTIONS === 'true'
+      process.env.GITHUB_ACTIONS === 'true' && process.env.E2E !== 'true'
         ? (remoteFeatureFlags?.perpsFeedbackEnabled as boolean)
         : localFlag;
     return (
@@ -199,7 +199,7 @@ export const selectPerpsTradeWithAnyTokenEnabledFlag = createSelector(
     const remoteFlag =
       remoteFeatureFlags?.perpsTradeWithAnyTokenIsEnabled as unknown as VersionGatedFeatureFlag;
     const fallback =
-      process.env.GITHUB_ACTIONS === 'true'
+      process.env.GITHUB_ACTIONS === 'true' && process.env.E2E !== 'true'
         ? (remoteFeatureFlags?.perpsTradeWithAnyTokenIsEnabled as boolean)
         : localFlag;
     return (
