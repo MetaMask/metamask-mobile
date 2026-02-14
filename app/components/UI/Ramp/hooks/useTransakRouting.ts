@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { StackNavigationProp } from '@react-navigation/stack';
 import { useSelector } from 'react-redux';
 import type { CaipChainId } from '@metamask/utils';
 import { strings } from '../../../../../locales/i18n';
@@ -23,6 +24,30 @@ import { getTransakEnvironment } from '../../../../core/Engine/controllers/ramps
 import { selectTokens } from '../../../../selectors/rampsController';
 import useRampAccountAddress from './useRampAccountAddress';
 
+interface RampStackParamList {
+  RampVerifyIdentity: { quote: TransakBuyQuote };
+  RampBasicInfo: {
+    quote: TransakBuyQuote;
+    previousFormData?: BasicInfoFormData & AddressFormData;
+  };
+  RampBankDetails: { orderId: string; shouldUpdate?: boolean };
+  RampOrderProcessing: { orderId: string };
+  RampAdditionalVerification: {
+    quote: TransakBuyQuote;
+    kycUrl: string;
+    workFlowRunId: string;
+  };
+  RampKycProcessing: { quote: TransakBuyQuote };
+  RampEnterEmail: undefined;
+  Checkout: {
+    url: string;
+    providerName: string;
+    userAgent?: string;
+    onNavigationStateChange?: (navState: { url: string }) => void;
+  };
+  [key: string]: object | undefined;
+}
+
 class LimitExceededError extends Error {
   constructor(message: string) {
     super(message);
@@ -35,7 +60,7 @@ interface UseTransakRoutingConfig {
 }
 
 export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<StackNavigationProp<RampStackParamList>>();
   const handleNewOrder = useHandleNewOrder();
   const { themeAppearance, colors } = useTheme();
   const trackEvent = useAnalytics();
@@ -130,10 +155,7 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
 
   const navigateToVerifyIdentityCallback = useCallback(
     ({ quote }: { quote: TransakBuyQuote }) => {
-      navigation.navigate(
-        Routes.RAMP.VERIFY_IDENTITY as never,
-        { quote } as never,
-      );
+      navigation.navigate(Routes.RAMP.VERIFY_IDENTITY, { quote });
     },
     [navigation],
   );
@@ -146,10 +168,7 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
       quote: TransakBuyQuote;
       previousFormData?: BasicInfoFormData & AddressFormData;
     }) => {
-      navigation.navigate(
-        Routes.RAMP.BASIC_INFO as never,
-        { quote, previousFormData } as never,
-      );
+      navigation.navigate(Routes.RAMP.BASIC_INFO, { quote, previousFormData });
     },
     [navigation],
   );
@@ -166,8 +185,8 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
         index: 0,
         routes: [
           {
-            name: Routes.RAMP.BANK_DETAILS as never,
-            params: { orderId, shouldUpdate } as never,
+            name: Routes.RAMP.BANK_DETAILS,
+            params: { orderId, shouldUpdate },
           },
         ],
       });
@@ -177,10 +196,7 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
 
   const navigateToOrderProcessingCallback = useCallback(
     ({ orderId }: { orderId: string }) => {
-      navigation.navigate(
-        Routes.RAMP.ORDER_PROCESSING as never,
-        { orderId } as never,
-      );
+      navigation.navigate(Routes.RAMP.ORDER_PROCESSING, { orderId });
     },
     [navigation],
   );
@@ -195,14 +211,11 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
       kycUrl: string;
       workFlowRunId: string;
     }) => {
-      navigation.navigate(
-        Routes.RAMP.ADDITIONAL_VERIFICATION as never,
-        {
-          quote,
-          kycUrl,
-          workFlowRunId,
-        } as never,
-      );
+      navigation.navigate(Routes.RAMP.ADDITIONAL_VERIFICATION, {
+        quote,
+        kycUrl,
+        workFlowRunId,
+      });
     },
     [navigation],
   );
@@ -298,10 +311,7 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
 
   const navigateToKycProcessingCallback = useCallback(
     ({ quote }: { quote: TransakBuyQuote }) => {
-      navigation.navigate(
-        Routes.RAMP.KYC_PROCESSING as never,
-        { quote } as never,
-      );
+      navigation.navigate(Routes.RAMP.KYC_PROCESSING, { quote });
     },
     [navigation],
   );
@@ -474,7 +484,7 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
         const httpError = error as { status?: number };
         if (httpError.status === 401) {
           await logoutFromProvider(false);
-          navigation.navigate(Routes.RAMP.ENTER_EMAIL as never);
+          navigation.navigate(Routes.RAMP.ENTER_EMAIL);
           return;
         }
         throw error;
