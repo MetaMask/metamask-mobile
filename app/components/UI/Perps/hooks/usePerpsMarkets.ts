@@ -1,15 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
-import {
-  PERPS_CONSTANTS,
-  parseVolume,
-  type PerpsMarketData,
-} from '@metamask/perps-controller';
+import { type PerpsMarketData } from '@metamask/perps-controller';
 import { usePerpsStream } from '../providers/PerpsStreamManager';
 import {
   hasPreloadedData,
   getPreloadedData,
 } from './stream/hasCachedPerpsData';
+import { filterAndSortMarkets } from '../utils/filterAndSortMarkets';
 
 export type PerpsMarketDataWithVolumeNumber = PerpsMarketData & {
   volumeNumber: number;
@@ -83,7 +80,7 @@ export const usePerpsMarkets = (
     () => {
       const cached = getPreloadedData<PerpsMarketData[]>('cachedMarketData');
       if (!cached) return [];
-      return cached.map((m) => ({ ...m, volumeNumber: parseVolume(m.volume) }));
+      return filterAndSortMarkets({ marketData: cached, showZeroVolume });
     },
   );
   const [isLoading, setIsLoading] = useState(() => {
@@ -95,40 +92,8 @@ export const usePerpsMarkets = (
 
   // Helper function to filter and sort markets by volume
   const sortMarketsByVolume = useCallback(
-    (marketData: PerpsMarketData[]): PerpsMarketDataWithVolumeNumber[] => {
-      // Filter out invalid volume (unless showZeroVolume is true)
-      const filteredData = !showZeroVolume
-        ? marketData.filter((market) => {
-            // Filter out fallback/error values
-            if (
-              market.volume === PERPS_CONSTANTS.FallbackPriceDisplay ||
-              market.volume === PERPS_CONSTANTS.FallbackDataDisplay
-            ) {
-              return false;
-            }
-            // Filter out zero and missing values
-            if (
-              !market.volume ||
-              market.volume === PERPS_CONSTANTS.ZeroAmountDisplay ||
-              market.volume === PERPS_CONSTANTS.ZeroAmountDetailedDisplay
-            ) {
-              return false;
-            }
-            return true;
-          })
-        : marketData;
-
-      return (
-        filteredData
-          // pregenerate volumeNumber for sorting to avoid recalculating it on every sort
-          .map((item) => ({ ...item, volumeNumber: parseVolume(item.volume) }))
-          .sort((a, b) => {
-            const volumeA = a.volumeNumber;
-            const volumeB = b.volumeNumber;
-            return volumeB - volumeA;
-          })
-      );
-    },
+    (marketData: PerpsMarketData[]) =>
+      filterAndSortMarkets({ marketData, showZeroVolume }),
     [showZeroVolume],
   );
 

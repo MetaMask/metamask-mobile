@@ -13,6 +13,9 @@ const USER_DATA_FIELDS: CacheField[] = [
   'cachedAccountState',
 ];
 
+/** Must match USER_DATA_CACHE_STALE_MS in PerpsStreamManager.tsx */
+const USER_DATA_CACHE_STALE_MS = 60_000;
+
 /**
  * Check if the controller's cached data belongs to the currently selected
  * EVM account.  Market data is not account-specific, so it always passes.
@@ -47,11 +50,11 @@ export function hasPreloadedData(cacheField: CacheField): boolean {
   const preloaded = controller?.state?.[cacheField];
   // null/undefined = not loaded yet, [] = loaded with no data (valid cache)
   if (preloaded == null) return false;
-  if (
-    USER_DATA_FIELDS.includes(cacheField) &&
-    !isCacheForCurrentAccount(controller)
-  ) {
-    return false;
+  if (USER_DATA_FIELDS.includes(cacheField)) {
+    const timestamp = controller?.state?.cachedUserDataTimestamp;
+    if (!timestamp || Date.now() - timestamp >= USER_DATA_CACHE_STALE_MS)
+      return false;
+    if (!isCacheForCurrentAccount(controller)) return false;
   }
   return true;
 }
@@ -68,11 +71,11 @@ export function getPreloadedData<T>(cacheField: CacheField): T | null {
   const controller = Engine.context.PerpsController;
   const preloaded = (controller?.state?.[cacheField] as T) ?? null;
   if (preloaded == null) return null;
-  if (
-    USER_DATA_FIELDS.includes(cacheField) &&
-    !isCacheForCurrentAccount(controller)
-  ) {
-    return null;
+  if (USER_DATA_FIELDS.includes(cacheField)) {
+    const timestamp = controller?.state?.cachedUserDataTimestamp;
+    if (!timestamp || Date.now() - timestamp >= USER_DATA_CACHE_STALE_MS)
+      return null;
+    if (!isCacheForCurrentAccount(controller)) return null;
   }
   return preloaded;
 }
