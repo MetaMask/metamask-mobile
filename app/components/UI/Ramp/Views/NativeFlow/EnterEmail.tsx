@@ -27,6 +27,7 @@ import PoweredByTransak from '../../Deposit/components/PoweredByTransak';
 import Logger from '../../../../../util/Logger';
 import useAnalytics from '../../hooks/useAnalytics';
 import { useTransakController } from '../../hooks/useTransakController';
+import { parseUserFacingError } from '../../utils/parseUserFacingError';
 
 export interface V2EnterEmailParams {
   amount?: string;
@@ -98,11 +99,7 @@ const V2EnterEmail = () => {
         setValidationError(true);
       }
     } catch (e) {
-      setError(
-        e instanceof Error && e.message
-          ? e.message
-          : strings('deposit.enter_email.error'),
-      );
+      setError(parseUserFacingError(e, strings('deposit.enter_email.error')));
       Logger.error(e as Error, 'Error submitting email');
     } finally {
       setIsLoading(false);

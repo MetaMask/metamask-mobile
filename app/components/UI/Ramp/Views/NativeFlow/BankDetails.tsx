@@ -36,11 +36,12 @@ import Button, {
 } from '../../../../../component-library/components/Buttons/Button';
 import PrivacySection from '../../Deposit/components/PrivacySection';
 import useAnalytics from '../../hooks/useAnalytics';
-import { isString } from 'lodash';
+
 import Logger from '../../../../../util/Logger';
 import { useTransakController } from '../../hooks/useTransakController';
 import { useRampsUserRegion } from '../../hooks/useRampsUserRegion';
 import { selectTokens } from '../../../../../selectors/rampsController';
+import { parseUserFacingError } from '../../utils/parseUserFacingError';
 
 export interface BankDetailsParams {
   orderId: string;
@@ -257,13 +258,12 @@ const V2BankDetails = () => {
         fetchError as Error,
         'V2BankDetails: handleBankTransferSent',
       );
-      if (isString(fetchError)) {
-        setConfirmPaymentError(fetchError);
-      } else if (isString((fetchError as Error)?.message)) {
-        setConfirmPaymentError((fetchError as Error).message);
-      } else {
-        setConfirmPaymentError(strings('deposit.bank_details.error_message'));
-      }
+      setConfirmPaymentError(
+        parseUserFacingError(
+          fetchError,
+          strings('deposit.bank_details.error_message'),
+        ),
+      );
     } finally {
       setIsLoadingConfirmPayment(false);
     }

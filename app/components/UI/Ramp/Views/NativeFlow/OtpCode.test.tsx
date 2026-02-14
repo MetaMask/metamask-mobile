@@ -29,6 +29,7 @@ jest.mock('../../../Navbar', () => ({
 const mockVerifyUserOtp = jest.fn();
 const mockSetAuthToken = jest.fn();
 const mockSendUserOtp = jest.fn();
+const mockGetBuyQuote = jest.fn();
 
 jest.mock('../../hooks/useTransakController', () => ({
   useTransakController: () => ({
@@ -36,7 +37,7 @@ jest.mock('../../hooks/useTransakController', () => ({
     verifyUserOtp: mockVerifyUserOtp,
     sendUserOtp: mockSendUserOtp,
     isAuthenticated: false,
-    getBuyQuote: jest.fn(),
+    getBuyQuote: mockGetBuyQuote,
   }),
 }));
 
@@ -210,5 +211,56 @@ describe('V2OtpCode', () => {
   it('renders the paste button', () => {
     const { getByTestId } = renderWithTheme(<V2OtpCode />);
     expect(getByTestId('otp-code-paste-button')).toBeOnTheScreen();
+  });
+
+  it('fetches buy quote and routes after successful OTP verification', async () => {
+    jest.useRealTimers();
+
+    const mockToken = { accessToken: 'otp-token', ttl: 3600 };
+    const mockQuote = { quoteId: 'q1', fiatAmount: 100 };
+    mockVerifyUserOtp.mockResolvedValue(mockToken);
+    mockSetAuthToken.mockResolvedValue(true);
+    mockGetBuyQuote.mockResolvedValue(mockQuote);
+    mockRouteAfterAuthentication.mockResolvedValue(undefined);
+
+    const { getByTestId } = renderWithTheme(<V2OtpCode />);
+
+    await act(async () => {
+      fireEvent.changeText(getByTestId('otp-code-input'), '123456');
+    });
+
+    await waitFor(() => {
+      expect(mockGetBuyQuote).toHaveBeenCalledWith(
+        'USD',
+        'eip155:1/erc20:0x123',
+        'eip155:1',
+        'pm-1',
+        '100',
+      );
+      expect(mockRouteAfterAuthentication).toHaveBeenCalledWith(mockQuote);
+    });
+
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('navigates back to BuildQuote with error when post-auth routing fails', async () => {
+    jest.useRealTimers();
+
+    const mockToken = { accessToken: 'otp-token', ttl: 3600 };
+    mockVerifyUserOtp.mockResolvedValue(mockToken);
+    mockSetAuthToken.mockResolvedValue(true);
+    mockGetBuyQuote.mockRejectedValue(new Error('Limit exceeded'));
+
+    const { getByTestId } = renderWithTheme(<V2OtpCode />);
+
+    await act(async () => {
+      fireEvent.changeText(getByTestId('otp-code-input'), '123456');
+    });
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('RampAmountInput', {
+        nativeFlowError: 'Limit exceeded',
+      });
+    });
   });
 });

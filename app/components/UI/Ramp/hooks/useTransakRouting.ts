@@ -25,6 +25,7 @@ import { useRampsPaymentMethods } from './useRampsPaymentMethods';
 import { getTransakEnvironment } from '../../../../core/Engine/controllers/ramps-controller/transak-service-init';
 import { selectTokens } from '../../../../selectors/rampsController';
 import useRampAccountAddress from './useRampAccountAddress';
+import { parseUserFacingError } from '../utils/parseUserFacingError';
 
 interface RampStackParamList {
   RampVerifyIdentity: { quote: TransakBuyQuote };
@@ -158,7 +159,13 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
 
   const navigateToVerifyIdentityCallback = useCallback(
     ({ quote }: { quote: TransakBuyQuote }) => {
-      navigation.navigate(Routes.RAMP.VERIFY_IDENTITY, { quote });
+      navigation.reset({
+        index: 1,
+        routes: [
+          { name: Routes.RAMP.AMOUNT_INPUT },
+          { name: Routes.RAMP.VERIFY_IDENTITY, params: { quote } },
+        ],
+      });
     },
     [navigation],
   );
@@ -171,7 +178,16 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
       quote: TransakBuyQuote;
       previousFormData?: BasicInfoFormData & AddressFormData;
     }) => {
-      navigation.navigate(Routes.RAMP.BASIC_INFO, { quote, previousFormData });
+      navigation.reset({
+        index: 1,
+        routes: [
+          { name: Routes.RAMP.AMOUNT_INPUT },
+          {
+            name: Routes.RAMP.BASIC_INFO,
+            params: { quote, previousFormData },
+          },
+        ],
+      });
     },
     [navigation],
   );
@@ -199,7 +215,10 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
 
   const navigateToOrderProcessingCallback = useCallback(
     ({ orderId }: { orderId: string }) => {
-      navigation.navigate(Routes.RAMP.ORDER_PROCESSING, { orderId });
+      navigation.reset({
+        index: 0,
+        routes: [{ name: Routes.RAMP.ORDER_PROCESSING, params: { orderId } }],
+      });
     },
     [navigation],
   );
@@ -214,10 +233,15 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
       kycUrl: string;
       workFlowRunId: string;
     }) => {
-      navigation.navigate(Routes.RAMP.ADDITIONAL_VERIFICATION, {
-        quote,
-        kycUrl,
-        workFlowRunId,
+      navigation.reset({
+        index: 1,
+        routes: [
+          { name: Routes.RAMP.AMOUNT_INPUT },
+          {
+            name: Routes.RAMP.ADDITIONAL_VERIFICATION,
+            params: { quote, kycUrl, workFlowRunId },
+          },
+        ],
       });
     },
     [navigation],
@@ -277,9 +301,10 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
               });
             } catch (error) {
               throw new Error(
-                error instanceof Error && error.message
-                  ? error.message
-                  : 'Failed to process order from navigation',
+                parseUserFacingError(
+                  error,
+                  strings('deposit.buildQuote.unexpectedError'),
+                ),
               );
             }
           }
@@ -301,32 +326,48 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
 
   const navigateToWebviewModalCallback = useCallback(
     ({ paymentUrl }: { paymentUrl: string }) => {
-      navigation.navigate(
-        ...createCheckoutNavDetails({
-          url: paymentUrl,
-          providerName: 'Transak',
-          onNavigationStateChange: handleNavigationStateChange,
-        }),
-      );
+      const [routeName, routeParams] = createCheckoutNavDetails({
+        url: paymentUrl,
+        providerName: 'Transak',
+        onNavigationStateChange: handleNavigationStateChange,
+      });
+      navigation.reset({
+        index: 1,
+        routes: [
+          { name: Routes.RAMP.AMOUNT_INPUT },
+          { name: routeName, params: routeParams },
+        ],
+      });
     },
     [navigation, handleNavigationStateChange],
   );
 
   const navigateToKycProcessingCallback = useCallback(
     ({ quote }: { quote: TransakBuyQuote }) => {
-      navigation.navigate(Routes.RAMP.KYC_PROCESSING, { quote });
+      navigation.reset({
+        index: 1,
+        routes: [
+          { name: Routes.RAMP.AMOUNT_INPUT },
+          { name: Routes.RAMP.KYC_PROCESSING, params: { quote } },
+        ],
+      });
     },
     [navigation],
   );
 
   const navigateToKycWebviewCallback = useCallback(
     ({ kycUrl }: { kycUrl: string }) => {
-      navigation.navigate(
-        ...createCheckoutNavDetails({
-          url: kycUrl,
-          providerName: 'Transak',
-        }),
-      );
+      const [routeName, routeParams] = createCheckoutNavDetails({
+        url: kycUrl,
+        providerName: 'Transak',
+      });
+      navigation.reset({
+        index: 1,
+        routes: [
+          { name: Routes.RAMP.AMOUNT_INPUT },
+          { name: routeName, params: routeParams },
+        ],
+      });
     },
     [navigation],
   );
@@ -408,9 +449,10 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
               return true;
             } catch (error) {
               throw new Error(
-                error instanceof Error && error.message
-                  ? error.message
-                  : 'Failed to process KYC flow',
+                parseUserFacingError(
+                  error,
+                  strings('deposit.buildQuote.unexpectedError'),
+                ),
               );
             }
           }

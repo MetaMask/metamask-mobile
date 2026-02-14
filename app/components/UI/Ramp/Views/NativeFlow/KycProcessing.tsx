@@ -31,6 +31,7 @@ import type {
   TransakBuyQuote,
   TransakUserDetails,
 } from '@metamask/ramps-controller';
+import { parseUserFacingError } from '../../utils/parseUserFacingError';
 
 interface V2KycProcessingParams {
   quote: TransakBuyQuote;
@@ -74,7 +75,10 @@ const V2KycProcessing = () => {
         setKycForms(result);
       } catch (err) {
         setKycFormsError(
-          err instanceof Error ? err.message : 'Failed to fetch KYC forms',
+          parseUserFacingError(
+            err,
+            strings('deposit.kyc_processing.error_description'),
+          ),
         );
       }
     };
@@ -88,7 +92,10 @@ const V2KycProcessing = () => {
       return result;
     } catch (err) {
       setUserDetailsError(
-        err instanceof Error ? err.message : 'Failed to fetch user details',
+        parseUserFacingError(
+          err,
+          strings('deposit.kyc_processing.error_description'),
+        ),
       );
       return null;
     }

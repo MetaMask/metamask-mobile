@@ -39,6 +39,7 @@ import { useTransakController } from '../../hooks/useTransakController';
 import { useRampsUserRegion } from '../../hooks/useRampsUserRegion';
 import type { TransakBuyQuote } from '@metamask/ramps-controller';
 import type { AddressFormData } from '../../Deposit/Views/EnterAddress/EnterAddress';
+import { parseUserFacingError } from '../../utils/parseUserFacingError';
 
 export interface BasicInfoFormData {
   firstName: string;
@@ -203,10 +204,10 @@ const V2BasicInfo = (): JSX.Element => {
       const isPhoneError = apiError?.errorCode === 2020;
       setIsPhoneRegisteredError(isPhoneError);
 
-      const errorMessageText =
-        submissionError instanceof Error && submissionError.message
-          ? submissionError.message
-          : strings('deposit.basic_info.unexpected_error');
+      const errorMessageText = parseUserFacingError(
+        submissionError,
+        strings('deposit.basic_info.unexpected_error'),
+      );
 
       let errorMessage = errorMessageText;
       if (isPhoneError && errorMessageText) {

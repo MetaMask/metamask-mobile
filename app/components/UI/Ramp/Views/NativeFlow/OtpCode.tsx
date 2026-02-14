@@ -38,6 +38,7 @@ import { Box, BoxAlignItems } from '@metamask/design-system-react-native';
 import { useTransakController } from '../../hooks/useTransakController';
 import { useTransakRouting } from '../../hooks/useTransakRouting';
 import { useRampsController } from '../../hooks/useRampsController';
+import { parseUserFacingError } from '../../utils/parseUserFacingError';
 
 export interface V2OtpCodeParams {
   email: string;
@@ -214,14 +215,13 @@ const V2OtpCode = () => {
             );
             await routeAfterAuthentication(quote);
           } catch (routeError) {
-            const errorMessage =
-              routeError instanceof Error && routeError.message
-                ? routeError.message
-                : strings('deposit.otp_code.error');
             navigation.navigate(
               Routes.RAMP.AMOUNT_INPUT as never,
               {
-                nativeFlowError: errorMessage,
+                nativeFlowError: parseUserFacingError(
+                  routeError,
+                  strings('deposit.otp_code.error'),
+                ),
               } as never,
             );
           }
@@ -233,11 +233,7 @@ const V2OtpCode = () => {
           ramp_type: 'DEPOSIT',
           region: userRegion?.regionCode || '',
         });
-        setError(
-          e instanceof Error && e.message
-            ? e.message
-            : strings('deposit.otp_code.error'),
-        );
+        setError(parseUserFacingError(e, strings('deposit.otp_code.error')));
         Logger.error(e as Error, 'Error submitting OTP code or verifying');
       } finally {
         setIsLoading(false);

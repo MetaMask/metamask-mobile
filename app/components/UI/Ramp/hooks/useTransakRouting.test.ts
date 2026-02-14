@@ -199,10 +199,16 @@ describe('useTransakRouting', () => {
         await result.current.routeAfterAuthentication(mockQuote as never);
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith(
-        'RampBasicInfo',
+      expect(mockReset).toHaveBeenCalledWith(
         expect.objectContaining({
-          quote: mockQuote,
+          index: 1,
+          routes: [
+            expect.objectContaining({ name: 'RampAmountInput' }),
+            expect.objectContaining({
+              name: 'RampBasicInfo',
+              params: expect.objectContaining({ quote: mockQuote }),
+            }),
+          ],
         }),
       );
       expect(mockTrackEvent).toHaveBeenCalledWith(
@@ -244,11 +250,19 @@ describe('useTransakRouting', () => {
         MOCK_WALLET_ADDRESS,
         expect.any(Object),
       );
-      expect(mockNavigate).toHaveBeenCalledWith(
-        'Checkout',
+      expect(mockReset).toHaveBeenCalledWith(
         expect.objectContaining({
-          url: 'https://payment.example.com',
-          providerName: 'Transak',
+          index: 1,
+          routes: [
+            expect.objectContaining({ name: 'RampAmountInput' }),
+            expect.objectContaining({
+              name: 'Checkout',
+              params: expect.objectContaining({
+                url: 'https://payment.example.com',
+                providerName: 'Transak',
+              }),
+            }),
+          ],
         }),
       );
     });
@@ -317,9 +331,17 @@ describe('useTransakRouting', () => {
         await result.current.routeAfterAuthentication(mockQuote as never);
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith(
-        'RampKycProcessing',
-        expect.objectContaining({ quote: mockQuote }),
+      expect(mockReset).toHaveBeenCalledWith(
+        expect.objectContaining({
+          index: 1,
+          routes: [
+            expect.objectContaining({ name: 'RampAmountInput' }),
+            expect.objectContaining({
+              name: 'RampKycProcessing',
+              params: expect.objectContaining({ quote: mockQuote }),
+            }),
+          ],
+        }),
       );
     });
 
@@ -401,12 +423,20 @@ describe('useTransakRouting', () => {
         await result.current.routeAfterAuthentication(mockQuote as never);
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith(
-        'RampAdditionalVerification',
+      expect(mockReset).toHaveBeenCalledWith(
         expect.objectContaining({
-          quote: mockQuote,
-          kycUrl: 'https://kyc.example.com',
-          workFlowRunId: 'wf-123',
+          index: 1,
+          routes: [
+            expect.objectContaining({ name: 'RampAmountInput' }),
+            expect.objectContaining({
+              name: 'RampAdditionalVerification',
+              params: expect.objectContaining({
+                quote: mockQuote,
+                kycUrl: 'https://kyc.example.com',
+                workFlowRunId: 'wf-123',
+              }),
+            }),
+          ],
         }),
       );
     });
@@ -435,22 +465,30 @@ describe('useTransakRouting', () => {
   });
 
   describe('navigateToVerifyIdentity', () => {
-    it('navigates to the verify identity route', () => {
+    it('resets navigation stack with BuildQuote base and verify identity on top', () => {
       const { result } = renderHook(() => useTransakRouting());
 
       act(() => {
         result.current.navigateToVerifyIdentity({ quote: mockQuote as never });
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith(
-        'RampVerifyIdentity',
-        expect.objectContaining({ quote: mockQuote }),
+      expect(mockReset).toHaveBeenCalledWith(
+        expect.objectContaining({
+          index: 1,
+          routes: [
+            expect.objectContaining({ name: 'RampAmountInput' }),
+            expect.objectContaining({
+              name: 'RampVerifyIdentity',
+              params: expect.objectContaining({ quote: mockQuote }),
+            }),
+          ],
+        }),
       );
     });
   });
 
   describe('navigateToKycWebview', () => {
-    it('navigates to the KYC webview', () => {
+    it('resets navigation stack to the KYC webview', () => {
       const { result } = renderHook(() => useTransakRouting());
 
       act(() => {
@@ -459,11 +497,19 @@ describe('useTransakRouting', () => {
         });
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith(
-        'Checkout',
+      expect(mockReset).toHaveBeenCalledWith(
         expect.objectContaining({
-          url: 'https://kyc.example.com',
-          providerName: 'Transak',
+          index: 1,
+          routes: [
+            expect.objectContaining({ name: 'RampAmountInput' }),
+            expect.objectContaining({
+              name: 'Checkout',
+              params: expect.objectContaining({
+                url: 'https://kyc.example.com',
+                providerName: 'Transak',
+              }),
+            }),
+          ],
         }),
       );
     });

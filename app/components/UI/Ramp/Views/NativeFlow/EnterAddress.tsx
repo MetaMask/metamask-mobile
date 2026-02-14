@@ -31,6 +31,7 @@ import { useRampsUserRegion } from '../../hooks/useRampsUserRegion';
 import { useTransakRouting } from '../../hooks/useTransakRouting';
 import type { TransakBuyQuote } from '@metamask/ramps-controller';
 import type { BasicInfoFormData } from './BasicInfo';
+import { parseUserFacingError } from '../../utils/parseUserFacingError';
 
 export interface AddressFormData {
   addressLine1: string;
@@ -194,9 +195,10 @@ const V2EnterAddress = (): JSX.Element => {
     } catch (submissionError) {
       setLoading(false);
       setError(
-        submissionError instanceof Error && submissionError.message
-          ? submissionError.message
-          : strings('deposit.enter_address.unexpected_error'),
+        parseUserFacingError(
+          submissionError,
+          strings('deposit.enter_address.unexpected_error'),
+        ),
       );
       Logger.error(
         submissionError as Error,
