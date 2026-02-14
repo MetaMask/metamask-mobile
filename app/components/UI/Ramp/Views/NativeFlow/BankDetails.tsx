@@ -101,7 +101,9 @@ const V2BankDetails = () => {
       setIsRefreshing(true);
       const updatedDepositOrder = await getOrder(order.id, order.account);
       if (updatedDepositOrder) {
-        const updatedFiatOrder = depositOrderToFiatOrder(updatedDepositOrder);
+        const updatedFiatOrder = depositOrderToFiatOrder(
+          updatedDepositOrder as Parameters<typeof depositOrderToFiatOrder>[0],
+        );
         dispatchUpdateFiatOrder({
           ...updatedFiatOrder,
           account: order.account,

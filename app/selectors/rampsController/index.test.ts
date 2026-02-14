@@ -342,7 +342,7 @@ describe('RampsController Selectors', () => {
     it('returns widget URL resource state', () => {
       const mockBuyWidget = {
         url: 'https://global.transak.com/?apiKey=test',
-        browser: 'in-app',
+        browser: 'APP_BROWSER' as const,
         orderId: 'order-123',
       };
       const state = createMockState({

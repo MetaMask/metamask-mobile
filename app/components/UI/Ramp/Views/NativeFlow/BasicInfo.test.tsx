@@ -101,9 +101,7 @@ jest.mock('../../Deposit/hooks/useForm', () => ({
   }) => {
     const ReactActual = jest.requireActual('react');
     const [formData, setFormData] = ReactActual.useState(initialFormData);
-    const [errors, setErrors] = ReactActual.useState<Record<string, string>>(
-      {},
-    );
+    const [errors, setErrors] = ReactActual.useState({});
 
     return {
       formData,

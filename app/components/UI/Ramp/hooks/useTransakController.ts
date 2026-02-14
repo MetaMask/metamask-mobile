@@ -27,7 +27,7 @@ import type {
   TransakIdProofStatus,
   TransakOrderPaymentMethod,
   TransakState,
-  PatchUserRequestBody as TransakPatchUserRequestBody,
+  TransakPatchUserRequestBody,
   TransakOrder,
   UserRegion,
   PaymentMethod,
@@ -111,7 +111,7 @@ export interface UseTransakControllerResult {
   ) => Promise<TransakQuoteTranslation>;
   getIdProofStatus: (workFlowRunId: string) => Promise<TransakIdProofStatus>;
   cancelOrder: (depositOrderId: string) => Promise<void>;
-  cancelAllActiveOrders: () => Promise<void>;
+  cancelAllActiveOrders: () => Promise<Error[]>;
   getActiveOrders: () => Promise<TransakOrder[]>;
 }
 

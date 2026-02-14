@@ -227,7 +227,9 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
               }
 
               const processedOrder = {
-                ...depositOrderToFiatOrder(order),
+                ...depositOrderToFiatOrder(
+                  order as Parameters<typeof depositOrderToFiatOrder>[0],
+                ),
                 account: walletAddress || order.walletAddress,
               };
 
@@ -358,7 +360,9 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
                 }
 
                 const processedOrder = {
-                  ...depositOrderToFiatOrder(order),
+                  ...depositOrderToFiatOrder(
+                    order as Parameters<typeof depositOrderToFiatOrder>[0],
+                  ),
                   account: walletAddress || order.walletAddress,
                 };
 
