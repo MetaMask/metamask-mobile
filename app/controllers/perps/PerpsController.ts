@@ -132,6 +132,7 @@ import type {
   RemoteFeatureFlagControllerGetStateAction,
 } from '@metamask/remote-feature-flag-controller';
 import type { Json } from '@metamask/utils';
+import type { Patch } from 'immer';
 import { wait } from './utils/wait';
 import { getSelectedEvmAccount } from './utils/accountUtils';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
@@ -2275,6 +2276,13 @@ export class PerpsController extends BaseController<
   // Market Data Preload (client-agnostic background caching)
   // ============================================================================
 
+  /** State paths that the preload stateChange handler reads. */
+  private static readonly PRELOAD_WATCHED_PATHS = new Set([
+    'isTestnet',
+    'hip3ConfigVersion',
+    'cachedUserDataAddress',
+  ]);
+
   private preloadTimer: ReturnType<typeof setInterval> | null = null;
   private isPreloading = false;
   private isPreloadingUserData = false;
@@ -2309,8 +2317,16 @@ export class PerpsController extends BaseController<
       this.performMarketDataPreload();
     }, PerpsController.PRELOAD_REFRESH_MS);
 
-    // Watch for isTestnet / hip3ConfigVersion changes
-    const handler = () => {
+    // Watch for isTestnet / hip3ConfigVersion / cachedUserDataAddress changes
+    const handler = (_state: PerpsControllerState, patches: Patch[]) => {
+      // Early-return when no watched field changed (skips ~46 unrelated updates)
+      const hasRelevantChange = patches.some(
+        (p) =>
+          typeof p.path[0] === 'string' &&
+          PerpsController.PRELOAD_WATCHED_PATHS.has(p.path[0]),
+      );
+      if (!hasRelevantChange) return;
+
       const currentIsTestnet = this.state.isTestnet;
       const currentHip3Version = this.state.hip3ConfigVersion;
 

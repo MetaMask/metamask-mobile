@@ -27,6 +27,7 @@ import {
 import { PROVIDER_CONFIG } from '../constants/perpsConfig';
 import { getE2EMockStreamManager } from '../utils/e2eBridgePerps';
 import { CandleStreamChannel } from './channels/CandleStreamChannel';
+import { isCacheForCurrentAccount } from '../hooks/stream/hasCachedPerpsData';
 
 /**
  * Gets the EVM account from the selected account group.
@@ -49,7 +50,11 @@ interface StreamSubscription<T> {
   hasReceivedFirstUpdate?: boolean; // Track if subscriber has received first update
 }
 
-/** Maximum age (ms) of controller-preloaded user data before it's considered stale. */
+/**
+ * Maximum age (ms) of controller-preloaded user data before it's considered stale.
+ * Intentionally shorter than the controller's 5-minute refresh cycle — WebSocket
+ * streams should take over within seconds, making REST preload cache irrelevant.
+ */
 const USER_DATA_CACHE_STALE_MS = 60_000;
 
 // Base class for any stream type
@@ -616,10 +621,7 @@ class OrderStreamChannel extends StreamChannel<Order[]> {
     const cacheAge =
       Date.now() - (controller.state?.cachedUserDataTimestamp ?? 0);
     if (preloaded != null && cacheAge < USER_DATA_CACHE_STALE_MS) {
-      const cachedAddr = controller.state?.cachedUserDataAddress?.toLowerCase();
-      const currentAddr =
-        getEvmAccountFromSelectedAccountGroup()?.address?.toLowerCase();
-      if (cachedAddr && currentAddr && cachedAddr !== currentAddr) return null;
+      if (!isCacheForCurrentAccount(controller)) return null;
       return preloaded;
     }
 
@@ -775,10 +777,7 @@ class PositionStreamChannel extends StreamChannel<Position[]> {
     const cacheAge =
       Date.now() - (controller.state?.cachedUserDataTimestamp ?? 0);
     if (preloaded != null && cacheAge < USER_DATA_CACHE_STALE_MS) {
-      const cachedAddr = controller.state?.cachedUserDataAddress?.toLowerCase();
-      const currentAddr =
-        getEvmAccountFromSelectedAccountGroup()?.address?.toLowerCase();
-      if (cachedAddr && currentAddr && cachedAddr !== currentAddr) return null;
+      if (!isCacheForCurrentAccount(controller)) return null;
       return preloaded;
     }
 
@@ -1072,11 +1071,8 @@ class AccountStreamChannel extends StreamChannel<AccountState | null> {
     const preloaded = controller.state?.cachedAccountState;
     const cacheAge =
       Date.now() - (controller.state?.cachedUserDataTimestamp ?? 0);
-    if (preloaded && cacheAge < USER_DATA_CACHE_STALE_MS) {
-      const cachedAddr = controller.state?.cachedUserDataAddress?.toLowerCase();
-      const currentAddr =
-        getEvmAccountFromSelectedAccountGroup()?.address?.toLowerCase();
-      if (cachedAddr && currentAddr && cachedAddr !== currentAddr) return null;
+    if (preloaded != null && cacheAge < USER_DATA_CACHE_STALE_MS) {
+      if (!isCacheForCurrentAccount(controller)) return null;
       return preloaded;
     }
 

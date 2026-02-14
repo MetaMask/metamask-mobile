@@ -1,10 +1,7 @@
 import { useEffect, useState, useMemo, useRef } from 'react';
 import { usePerpsStream } from '../../providers/PerpsStreamManager';
 import { isTPSLOrder, type Order } from '@metamask/perps-controller';
-import {
-  hasPreloadedUserData,
-  getPreloadedUserData,
-} from './hasCachedPerpsData';
+import { hasPreloadedData, getPreloadedData } from './hasCachedPerpsData';
 
 // Stable empty array reference to prevent re-renders
 const EMPTY_ORDERS: Order[] = [];
@@ -39,10 +36,10 @@ export function usePerpsLiveOrders(
   const { throttleMs = 0, hideTpSl = false } = options; // No throttling by default for instant updates
   const stream = usePerpsStream();
   const [orders, setOrders] = useState<Order[]>(
-    () => getPreloadedUserData<Order[]>('cachedOrders') ?? EMPTY_ORDERS,
+    () => getPreloadedData<Order[]>('cachedOrders') ?? EMPTY_ORDERS,
   );
   const [isInitialLoading, setIsInitialLoading] = useState(
-    () => !hasPreloadedUserData('cachedOrders'),
+    () => !hasPreloadedData('cachedOrders'),
   );
   const lastOrdersRef = useRef<Order[]>(EMPTY_ORDERS);
   const hasReceivedFirstUpdate = useRef(false);

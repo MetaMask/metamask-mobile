@@ -17,7 +17,7 @@ const USER_DATA_FIELDS: CacheField[] = [
  * Check if the controller's cached data belongs to the currently selected
  * EVM account.  Market data is not account-specific, so it always passes.
  */
-function isCacheForCurrentAccount(controller: {
+export function isCacheForCurrentAccount(controller: {
   state?: { cachedUserDataAddress?: string | null };
 }): boolean {
   const cachedAddr = controller?.state?.cachedUserDataAddress;
@@ -42,7 +42,7 @@ function isCacheForCurrentAccount(controller: {
  * Cache freshness is managed by the controller's 5-minute preload cycle
  * (startMarketDataPreload), not by the hooks.
  */
-export function hasPreloadedUserData(cacheField: CacheField): boolean {
+export function hasPreloadedData(cacheField: CacheField): boolean {
   const controller = Engine.context.PerpsController;
   const preloaded = controller?.state?.[cacheField];
   // null/undefined = not loaded yet, [] = loaded with no data (valid cache)
@@ -64,7 +64,7 @@ export function hasPreloadedUserData(cacheField: CacheField): boolean {
  * Cache freshness is managed by the controller's 5-minute preload cycle
  * (startMarketDataPreload), not by the hooks.
  */
-export function getPreloadedUserData<T>(cacheField: CacheField): T | null {
+export function getPreloadedData<T>(cacheField: CacheField): T | null {
   const controller = Engine.context.PerpsController;
   const preloaded = (controller?.state?.[cacheField] as T) ?? null;
   if (preloaded == null) return null;
