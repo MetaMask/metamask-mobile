@@ -88,9 +88,7 @@ const V2OtpCode = () => {
 
   const { selectedToken } = useRampsController();
 
-  const { routeAfterAuthentication } = useTransakRouting({
-    walletAddress: null,
-  });
+  const { routeAfterAuthentication } = useTransakRouting();
 
   const [currentStateToken, setCurrentStateToken] = useState(stateToken);
   const [latestValueSubmitted, setLatestValueSubmitted] = useState<
