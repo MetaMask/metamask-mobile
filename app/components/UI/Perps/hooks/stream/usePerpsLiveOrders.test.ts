@@ -220,7 +220,7 @@ describe('usePerpsLiveOrders', () => {
       expect(result.current.isInitialLoading).toBe(false);
     });
 
-    it('returns cached orders regardless of timestamp age', () => {
+    it('returns empty orders for stale cache (older than 60s)', () => {
       mockEngineState.cachedOrders = [mockOrder];
       mockEngineState.cachedUserDataTimestamp = Date.now() - 61_000;
 
@@ -228,9 +228,9 @@ describe('usePerpsLiveOrders', () => {
 
       const { result } = renderHook(() => usePerpsLiveOrders());
 
-      // Cache freshness is managed by controller's preload cycle, not hooks
-      expect(result.current.orders).toEqual([mockOrder]);
-      expect(result.current.isInitialLoading).toBe(false);
+      // getPreloadedData enforces 60s TTL — stale cache is not used
+      expect(result.current.orders).toEqual([]);
+      expect(result.current.isInitialLoading).toBe(true);
     });
 
     it('returns empty orders when no cache exists', () => {

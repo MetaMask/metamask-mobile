@@ -655,7 +655,7 @@ describe('usePerpsLivePositions', () => {
       expect(result.current.isInitialLoading).toBe(false);
     });
 
-    it('returns cached positions regardless of timestamp age', () => {
+    it('returns empty positions for stale cache (older than 60s)', () => {
       mockEngineState.cachedPositions = [mockPosition];
       mockEngineState.cachedUserDataTimestamp = Date.now() - 61_000;
 
@@ -664,9 +664,9 @@ describe('usePerpsLivePositions', () => {
 
       const { result } = renderHook(() => usePerpsLivePositions());
 
-      // Cache freshness is managed by controller's preload cycle, not hooks
-      expect(result.current.positions).toEqual([mockPosition]);
-      expect(result.current.isInitialLoading).toBe(false);
+      // getPreloadedData enforces 60s TTL — stale cache is not used
+      expect(result.current.positions).toEqual([]);
+      expect(result.current.isInitialLoading).toBe(true);
     });
 
     it('returns empty positions when no cache exists', () => {

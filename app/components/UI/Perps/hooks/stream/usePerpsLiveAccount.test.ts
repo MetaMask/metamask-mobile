@@ -286,7 +286,7 @@ describe('usePerpsLiveAccount', () => {
       });
     });
 
-    it('returns cached account regardless of timestamp age', () => {
+    it('returns null for stale cached account (older than 60s)', () => {
       mockEngineState.cachedAccountState = {
         availableBalance: '5000',
       } as AccountState;
@@ -298,10 +298,10 @@ describe('usePerpsLiveAccount', () => {
         state: {},
       });
 
-      // Cache freshness is managed by controller's preload cycle, not hooks
+      // getPreloadedData enforces 60s TTL — stale cache is not used
       expect(result.current).toEqual({
-        account: { availableBalance: '5000' },
-        isInitialLoading: false,
+        account: null,
+        isInitialLoading: true,
       });
     });
 
