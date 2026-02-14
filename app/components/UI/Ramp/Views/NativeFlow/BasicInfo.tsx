@@ -36,6 +36,7 @@ import Logger from '../../../../../util/Logger';
 import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
 import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 import { useTransakController } from '../../hooks/useTransakController';
+import { useRampsUserRegion } from '../../hooks/useRampsUserRegion';
 import type { TransakBuyQuote } from '@metamask/ramps-controller';
 import type { AddressFormData } from '../../Deposit/Views/EnterAddress/EnterAddress';
 
@@ -57,8 +58,9 @@ const V2BasicInfo = (): JSX.Element => {
   const { styles, theme } = useStyles(styleSheet, {});
   const trackEvent = useAnalytics();
   const { quote, previousFormData } = useParams<V2BasicInfoParams>();
-  const { userRegion, logoutFromProvider, patchUser, submitSsnDetails } =
+  const { logoutFromProvider, patchUser, submitSsnDetails } =
     useTransakController();
+  const { userRegion } = useRampsUserRegion();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isPhoneRegisteredError, setIsPhoneRegisteredError] = useState(false);

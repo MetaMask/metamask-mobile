@@ -24,8 +24,8 @@ jest.mock('../../../Navbar', () => ({
   getDepositNavbarOptions: jest.fn(() => ({})),
 }));
 
-jest.mock('../../hooks/useTransakController', () => ({
-  useTransakController: () => ({
+jest.mock('../../hooks/useRampsUserRegion', () => ({
+  useRampsUserRegion: () => ({
     userRegion: {
       country: { isoCode: 'US', currency: 'USD' },
       regionCode: 'us-ca',

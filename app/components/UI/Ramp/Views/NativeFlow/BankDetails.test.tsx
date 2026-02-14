@@ -63,14 +63,19 @@ const mockLogoutFromProvider = jest.fn();
 
 jest.mock('../../hooks/useTransakController', () => ({
   useTransakController: () => ({
-    userRegion: {
-      country: { isoCode: 'US', currency: 'USD' },
-      regionCode: 'us-ca',
-    },
     logoutFromProvider: mockLogoutFromProvider,
     getOrder: mockGetOrder,
     confirmPayment: mockConfirmPayment,
     cancelOrder: mockCancelOrder,
+  }),
+}));
+
+jest.mock('../../hooks/useRampsUserRegion', () => ({
+  useRampsUserRegion: () => ({
+    userRegion: {
+      country: { isoCode: 'US', currency: 'USD' },
+      regionCode: 'us-ca',
+    },
   }),
 }));
 

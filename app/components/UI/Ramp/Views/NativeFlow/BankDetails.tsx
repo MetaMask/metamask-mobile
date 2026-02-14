@@ -39,6 +39,7 @@ import useAnalytics from '../../hooks/useAnalytics';
 import { isString } from 'lodash';
 import Logger from '../../../../../util/Logger';
 import { useTransakController } from '../../hooks/useTransakController';
+import { useRampsUserRegion } from '../../hooks/useRampsUserRegion';
 import { selectTokens } from '../../../../../selectors/rampsController';
 
 export interface BankDetailsParams {
@@ -52,12 +53,12 @@ const V2BankDetails = () => {
   const { colors } = useTheme();
   const dispatch = useDispatch();
   const {
-    userRegion,
     logoutFromProvider,
     getOrder,
     confirmPayment,
     cancelOrder: transakCancelOrder,
   } = useTransakController();
+  const { userRegion } = useRampsUserRegion();
   const tokensResource = useSelector(selectTokens);
   const selectedCryptoCurrency = tokensResource?.selected;
   const trackEvent = useAnalytics();

@@ -24,12 +24,12 @@ import {
   CONSENSYS_PRIVACY_POLICY_URL,
   TRANSAK_URL,
 } from '../../Deposit/constants/constants';
-import { useTransakController } from '../../hooks/useTransakController';
+import { useRampsUserRegion } from '../../hooks/useRampsUserRegion';
 
 const V2VerifyIdentity = () => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
-  const { userRegion } = useTransakController();
+  const { userRegion } = useRampsUserRegion();
 
   const regionIsoCode = userRegion?.country?.isoCode || '';
 

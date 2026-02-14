@@ -1,10 +1,6 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
-import {
-  selectTransak,
-  selectUserRegion,
-  selectPaymentMethods,
-} from '../../../../selectors/rampsController';
+import { selectTransak } from '../../../../selectors/rampsController';
 import { selectDepositProviderApiKey } from '../../../../selectors/featureFlagController/deposit';
 import {
   getProviderToken,
@@ -29,9 +25,6 @@ import type {
   TransakState,
   TransakPatchUserRequestBody,
   TransakOrder,
-  UserRegion,
-  PaymentMethod,
-  ResourceState,
 } from '@metamask/ramps-controller';
 
 export interface UseTransakControllerResult {
@@ -46,9 +39,6 @@ export interface UseTransakControllerResult {
   kycRequirement: TransakKycRequirement | null;
   kycRequirementLoading: boolean;
   kycRequirementError: string | null;
-
-  userRegion: UserRegion | null;
-  selectedPaymentMethod: PaymentMethod | null;
 
   checkExistingToken: () => Promise<boolean>;
   setAuthToken: (token: TransakAccessToken) => Promise<boolean>;
@@ -121,11 +111,6 @@ function getRampsController() {
 
 export function useTransakController(): UseTransakControllerResult {
   const transakState = useSelector(selectTransak);
-  const userRegion = useSelector(selectUserRegion);
-  const paymentMethodsResource: ResourceState<
-    PaymentMethod[],
-    PaymentMethod | null
-  > = useSelector(selectPaymentMethods);
   const providerApiKey = useSelector(selectDepositProviderApiKey);
 
   const apiKeySetRef = useRef(false);
@@ -364,9 +349,6 @@ export function useTransakController(): UseTransakControllerResult {
     kycRequirement: transakState.kycRequirement.data,
     kycRequirementLoading: transakState.kycRequirement.isLoading,
     kycRequirementError: transakState.kycRequirement.error,
-
-    userRegion,
-    selectedPaymentMethod: paymentMethodsResource.selected,
 
     checkExistingToken,
     setAuthToken,

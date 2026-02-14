@@ -62,44 +62,12 @@ const mockTransakState = {
   kycRequirement: { data: null, isLoading: false, error: null },
 };
 
-const mockUserRegion = {
-  country: {
-    isoCode: 'US',
-    name: 'United States',
-    flag: '🇺🇸',
-    phone: {
-      prefix: '+1',
-      placeholder: '(XXX) XXX-XXXX',
-      template: 'XXX-XXX-XXXX',
-    },
-    currency: 'USD',
-    supported: { buy: true, sell: true },
-  },
-  state: { stateId: 'CA', name: 'California' },
-  regionCode: 'us-ca',
-};
-
-const mockPaymentMethod = {
-  id: '/payments/debit-credit-card',
-  paymentType: 'debit-credit-card',
-  name: 'Debit/Credit Card',
-  score: 100,
-  icon: 'card',
-};
-
 const createMockStore = (overrides = {}) =>
   configureStore({
     reducer: {
       engine: () => ({
         backgroundState: {
           RampsController: {
-            userRegion: mockUserRegion,
-            paymentMethods: {
-              data: [mockPaymentMethod],
-              selected: mockPaymentMethod,
-              isLoading: false,
-              error: null,
-            },
             nativeProviders: {
               transak: mockTransakState,
             },
@@ -141,8 +109,6 @@ describe('useTransakController', () => {
         kycRequirement: null,
         kycRequirementLoading: false,
         kycRequirementError: null,
-        userRegion: mockUserRegion,
-        selectedPaymentMethod: mockPaymentMethod,
       });
     });
 

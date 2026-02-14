@@ -53,10 +53,15 @@ let mockUserRegion: unknown = {
 
 jest.mock('../../hooks/useTransakController', () => ({
   useTransakController: () => ({
-    userRegion: mockUserRegion,
     logoutFromProvider: mockLogoutFromProvider,
     patchUser: mockPatchUser,
     submitSsnDetails: mockSubmitSsnDetails,
+  }),
+}));
+
+jest.mock('../../hooks/useRampsUserRegion', () => ({
+  useRampsUserRegion: () => ({
+    userRegion: mockUserRegion,
   }),
 }));
 

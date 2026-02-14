@@ -27,6 +27,7 @@ import useAnalytics from '../../hooks/useAnalytics';
 import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
 import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 import { useTransakController } from '../../hooks/useTransakController';
+import { useRampsUserRegion } from '../../hooks/useRampsUserRegion';
 import { useTransakRouting } from '../../hooks/useTransakRouting';
 import type { TransakBuyQuote } from '@metamask/ramps-controller';
 import type { BasicInfoFormData } from './BasicInfo';
@@ -49,7 +50,8 @@ const V2EnterAddress = (): JSX.Element => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
   const { quote, previousFormData } = useParams<V2EnterAddressParams>();
-  const { userRegion, patchUser } = useTransakController();
+  const { patchUser } = useTransakController();
+  const { userRegion } = useRampsUserRegion();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const trackEvent = useAnalytics();

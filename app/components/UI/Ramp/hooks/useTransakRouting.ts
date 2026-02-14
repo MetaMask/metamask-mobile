@@ -20,6 +20,8 @@ import useAnalytics from './useAnalytics';
 import Logger from '../../../../util/Logger';
 import Routes from '../../../../constants/navigation/Routes';
 import { useTransakController } from './useTransakController';
+import { useRampsUserRegion } from './useRampsUserRegion';
+import { useRampsPaymentMethods } from './useRampsPaymentMethods';
 import { getTransakEnvironment } from '../../../../core/Engine/controllers/ramps-controller/transak-service-init';
 import { selectTokens } from '../../../../selectors/rampsController';
 import useRampAccountAddress from './useRampAccountAddress';
@@ -66,8 +68,6 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
   const trackEvent = useAnalytics();
 
   const {
-    userRegion,
-    selectedPaymentMethod,
     logoutFromProvider,
     getUserDetails,
     getKycRequirement,
@@ -79,6 +79,9 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
     generatePaymentWidgetUrl,
     submitPurposeOfUsageForm,
   } = useTransakController();
+
+  const { userRegion } = useRampsUserRegion();
+  const { selectedPaymentMethod } = useRampsPaymentMethods();
 
   const { selected: selectedToken } = useSelector(selectTokens);
   const walletAddress = useRampAccountAddress(

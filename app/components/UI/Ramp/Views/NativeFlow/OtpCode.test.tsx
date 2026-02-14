@@ -36,9 +36,7 @@ jest.mock('../../hooks/useTransakController', () => ({
     verifyUserOtp: mockVerifyUserOtp,
     sendUserOtp: mockSendUserOtp,
     isAuthenticated: false,
-    userRegion: { regionCode: 'us-ca' },
     getBuyQuote: jest.fn(),
-    selectedPaymentMethod: { id: 'pm-1' },
   }),
 }));
 
@@ -53,6 +51,8 @@ jest.mock('../../hooks/useTransakRouting', () => ({
 jest.mock('../../hooks/useRampsController', () => ({
   useRampsController: () => ({
     selectedToken: { chainId: 'eip155:1' },
+    userRegion: { regionCode: 'us-ca' },
+    selectedPaymentMethod: { id: 'pm-1' },
   }),
 }));
 

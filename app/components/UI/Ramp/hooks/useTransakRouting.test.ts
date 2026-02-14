@@ -79,8 +79,6 @@ let mockSelectedPaymentMethod: unknown = {
 
 jest.mock('./useTransakController', () => ({
   useTransakController: () => ({
-    userRegion: mockUserRegion,
-    selectedPaymentMethod: mockSelectedPaymentMethod,
     logoutFromProvider: mockLogoutFromProvider,
     getUserDetails: mockGetUserDetails,
     getKycRequirement: mockGetKycRequirement,
@@ -91,6 +89,18 @@ jest.mock('./useTransakController', () => ({
     requestOtt: mockRequestOtt,
     generatePaymentWidgetUrl: mockGeneratePaymentWidgetUrl,
     submitPurposeOfUsageForm: mockSubmitPurposeOfUsageForm,
+  }),
+}));
+
+jest.mock('./useRampsUserRegion', () => ({
+  useRampsUserRegion: () => ({
+    userRegion: mockUserRegion,
+  }),
+}));
+
+jest.mock('./useRampsPaymentMethods', () => ({
+  useRampsPaymentMethods: () => ({
+    selectedPaymentMethod: mockSelectedPaymentMethod,
   }),
 }));
 

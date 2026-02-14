@@ -81,12 +81,11 @@ const V2OtpCode = () => {
     setAuthToken,
     verifyUserOtp,
     sendUserOtp,
-    userRegion,
     getBuyQuote: transakGetBuyQuote,
-    selectedPaymentMethod,
   } = useTransakController();
 
-  const { selectedToken } = useRampsController();
+  const { selectedToken, userRegion, selectedPaymentMethod } =
+    useRampsController();
 
   const { routeAfterAuthentication } = useTransakRouting();
 
