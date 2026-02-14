@@ -26,17 +26,7 @@ const multipliers: Record<string, number> = {
   T: 1e12,
 } as const;
 
-const removeCommas = (str: string): string => {
-  let result = '';
-  // eslint-disable-next-line @typescript-eslint/prefer-for-of
-  for (let i = 0; i < str.length; i++) {
-    const char = str[i];
-    if (char !== ',') {
-      result += char;
-    }
-  }
-  return result;
-};
+const removeCommas = (str: string): string => str.replace(/,/gu, '');
 
 /**
  * Parse a formatted volume string (e.g., "$1.5M", "$2.3B") to a numeric value.

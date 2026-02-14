@@ -275,6 +275,14 @@ step_verify_fixes() {
 step_eslint_fix() {
   cd "$CORE_PATH"
 
+  # Back up suppressions file so we don't leave dirty changes in Core
+  local supp_file="$CORE_PATH/eslint-suppressions.json"
+  local supp_backup=""
+  if [[ -f "$supp_file" ]]; then
+    supp_backup=$(mktemp)
+    cp "$supp_file" "$supp_backup"
+  fi
+
   progress "  ├─ Running --fix"
   npx eslint packages/perps-controller/src/ --ext .ts --fix || true
 
@@ -285,10 +293,10 @@ step_eslint_fix() {
   npx eslint packages/perps-controller/src/ --ext .ts --prune-suppressions || true
 
   # Count suppressions
-  if [[ -f "$CORE_PATH/eslint-suppressions.json" ]]; then
+  if [[ -f "$supp_file" ]]; then
     SUPPRESSION_COUNT=$(jq \
       '[to_entries[] | select(.key | startswith("packages/perps-controller/")) | .value | to_entries[].value.count] | add // 0' \
-      "$CORE_PATH/eslint-suppressions.json" 2>/dev/null || echo "0")
+      "$supp_file" 2>/dev/null || echo "0")
     echo "Perps suppression count: $SUPPRESSION_COUNT"
 
     if (( SUPPRESSION_COUNT > 20 )); then
@@ -297,6 +305,11 @@ step_eslint_fix() {
   else
     echo "WARN: eslint-suppressions.json not found"
     SUPPRESSION_COUNT=0
+  fi
+
+  # Restore original suppressions file
+  if [[ -n "$supp_backup" ]]; then
+    mv "$supp_backup" "$supp_file"
   fi
 
   cd "$MOBILE_ROOT"

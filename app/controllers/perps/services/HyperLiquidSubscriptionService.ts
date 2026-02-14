@@ -2307,8 +2307,7 @@ export class HyperLiquidSubscriptionService {
    */
   #ensureGlobalAllMidsSubscription(): void {
     // Check both the subscription AND the promise to prevent race conditions
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    if (this.#globalAllMidsSubscription || this.#globalAllMidsPromise) {
+    if (this.#globalAllMidsSubscription ?? this.#globalAllMidsPromise) {
       return;
     }
 
