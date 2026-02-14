@@ -4763,6 +4763,47 @@ describe('PerpsController', () => {
       // Should not crash
       expect(preloadController.state.cachedPositions).toBeNull();
     });
+
+    it('skips when cache is fresh for same account', async () => {
+      preloadController.testMarkInitialized();
+      preloadController.testSetProviders(
+        new Map([['hyperliquid', preloadMockProvider]]),
+      );
+      preloadMockProvider.getMarketDataWithPrices.mockResolvedValue([]);
+      preloadMockProvider.getWebSocketConnectionState.mockReturnValue(
+        WSState.Disconnected,
+      );
+      preloadMockProvider.getPositions.mockResolvedValue([]);
+      preloadMockProvider.getOpenOrders.mockResolvedValue([]);
+      preloadMockProvider.getAccountState.mockResolvedValue({
+        availableBalance: '100',
+        totalBalance: '100',
+        marginUsed: '0',
+        unrealizedPnl: '0',
+        returnOnEquity: '0',
+      });
+
+      // First preload — populates the cache
+      preloadController.startMarketDataPreload();
+      await jest.advanceTimersByTimeAsync(500);
+
+      expect(preloadController.state.cachedUserDataAddress).toBe(
+        mockEvmAccount.address,
+      );
+      expect(preloadController.state.cachedUserDataTimestamp).toBeGreaterThan(
+        0,
+      );
+
+      // Reset call counts
+      preloadMockProvider.getPositions.mockClear();
+      preloadMockProvider.getOpenOrders.mockClear();
+      preloadMockProvider.getAccountState.mockClear();
+
+      // Trigger another preload cycle — should skip (cache is fresh, same account)
+      await jest.advanceTimersByTimeAsync(60_000);
+
+      expect(preloadMockProvider.getPositions).not.toHaveBeenCalled();
+    });
   });
 
   describe('subscribe method hardening', () => {
@@ -4788,6 +4829,66 @@ describe('PerpsController', () => {
       expect(typeof unsub).toBe('function');
       unsub();
       expect(mockProvider.subscribeToOrders).not.toHaveBeenCalled();
+    });
+
+    it('subscribeToPositions returns no-op when provider is null', () => {
+      controller.testSetInitialized(false);
+
+      const unsub = controller.subscribeToPositions({
+        callback: jest.fn(),
+      });
+
+      expect(typeof unsub).toBe('function');
+      unsub();
+      expect(mockProvider.subscribeToPositions).not.toHaveBeenCalled();
+    });
+
+    it('subscribeToOrderFills returns no-op when provider is null', () => {
+      controller.testSetInitialized(false);
+
+      const unsub = controller.subscribeToOrderFills({
+        callback: jest.fn(),
+      });
+
+      expect(typeof unsub).toBe('function');
+      unsub();
+      expect(mockProvider.subscribeToOrderFills).not.toHaveBeenCalled();
+    });
+
+    it('subscribeToOrderBook returns no-op when provider is null', () => {
+      controller.testSetInitialized(false);
+
+      const unsub = controller.subscribeToOrderBook({
+        symbol: 'BTC',
+        callback: jest.fn(),
+      });
+
+      expect(typeof unsub).toBe('function');
+      unsub();
+    });
+
+    it('subscribeToCandles returns no-op when provider is null', () => {
+      controller.testSetInitialized(false);
+
+      const unsub = controller.subscribeToCandles({
+        symbol: 'BTC',
+        interval: '1h' as never,
+        callback: jest.fn(),
+      });
+
+      expect(typeof unsub).toBe('function');
+      unsub();
+    });
+
+    it('subscribeToOICaps returns no-op when provider is null', () => {
+      controller.testSetInitialized(false);
+
+      const unsub = controller.subscribeToOICaps({
+        callback: jest.fn(),
+      });
+
+      expect(typeof unsub).toBe('function');
+      unsub();
     });
   });
 });
