@@ -859,5 +859,70 @@ describe('BuildQuote', () => {
       expect(mockNavigate).not.toHaveBeenCalled();
       expect(mockGetWidgetUrl).not.toHaveBeenCalled();
     });
+
+    it('logs error when getWidgetUrl throws', async () => {
+      const mockLogger = jest.spyOn(Logger, 'error');
+      mockGetWidgetUrl.mockRejectedValue(new Error('Widget URL fetch failed'));
+
+      mockSelectedQuote = {
+        provider: '/providers/mercuryo',
+        quote: {
+          amountIn: 100,
+          amountOut: 0.05,
+          paymentMethod: '/payments/debit-credit-card',
+          buyURL:
+            'https://on-ramp.uat-api.cx.metamask.io/providers/mercuryo/buy-widget',
+        },
+        providerInfo: {
+          id: '/providers/mercuryo',
+          name: 'Mercuryo',
+          type: 'aggregator',
+        },
+      };
+      mockSelectedPaymentMethod = {
+        id: '/payments/debit-credit-card',
+        name: 'Card',
+      };
+
+      const { getByTestId } = renderWithTheme(<BuildQuote />);
+
+      const continueButton = getByTestId('build-quote-continue-button');
+
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(mockLogger).toHaveBeenCalledWith(
+        expect.any(Error),
+        expect.objectContaining({
+          provider: '/providers/mercuryo',
+          message: 'Failed to fetch widget URL',
+        }),
+      );
+    });
+
+    it('does nothing when selectedQuote is null on continue press', async () => {
+      mockSelectedQuote = null;
+      mockSelectedPaymentMethod = {
+        id: '/payments/debit-credit-card',
+        name: 'Card',
+      };
+
+      const { getByTestId } = renderWithTheme(<BuildQuote />);
+
+      const continueButton = getByTestId('build-quote-continue-button');
+
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
+
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockGetWidgetUrl).not.toHaveBeenCalled();
+      expect(mockTransakCheckExistingToken).not.toHaveBeenCalled();
+    });
   });
 });

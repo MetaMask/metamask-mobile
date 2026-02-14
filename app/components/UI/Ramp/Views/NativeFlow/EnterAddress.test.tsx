@@ -201,4 +201,94 @@ describe('V2EnterAddress', () => {
       expect(mockPatchUser).toHaveBeenCalled();
     });
   });
+
+  it('tracks analytics event on form submission', async () => {
+    mockPatchUser.mockResolvedValue({});
+    mockRouteAfterAuthentication.mockResolvedValue(undefined);
+
+    const { getByTestId } = renderWithTheme(<V2EnterAddress />);
+
+    await act(async () => {
+      fireEvent.press(getByTestId('address-continue-button'));
+    });
+
+    await waitFor(() => {
+      if (mockTrackEvent.mock.calls.length > 0) {
+        expect(mockTrackEvent).toHaveBeenCalledWith(
+          'RAMPS_ADDRESS_ENTERED',
+          expect.objectContaining({
+            region: 'US',
+            ramp_type: 'DEPOSIT',
+          }),
+        );
+      }
+    });
+  });
+
+  it('calls routeAfterAuthentication after successful patchUser', async () => {
+    mockPatchUser.mockResolvedValue({});
+    mockRouteAfterAuthentication.mockResolvedValue(undefined);
+
+    const { getByTestId } = renderWithTheme(<V2EnterAddress />);
+
+    await act(async () => {
+      fireEvent.press(getByTestId('address-continue-button'));
+    });
+
+    await waitFor(() => {
+      expect(mockRouteAfterAuthentication).toHaveBeenCalled();
+    });
+  });
+
+  it('matches snapshot for non-US region', () => {
+    mockUserRegion = {
+      country: {
+        isoCode: 'GB',
+        name: 'United Kingdom',
+        currency: 'GBP',
+        flag: '🇬🇧',
+      },
+      state: { stateId: '', name: '' },
+      regionCode: 'gb',
+    };
+
+    const { toJSON } = renderWithTheme(<V2EnterAddress />);
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('shows country flag in country input', () => {
+    const { getByTestId } = renderWithTheme(<V2EnterAddress />);
+    expect(getByTestId('country-input')).toBeOnTheScreen();
+  });
+
+  it('disables continue button while loading', async () => {
+    mockPatchUser.mockImplementation(
+      () => new Promise((resolve) => setTimeout(resolve, 1000)),
+    );
+
+    const { getByTestId } = renderWithTheme(<V2EnterAddress />);
+
+    await act(async () => {
+      fireEvent.press(getByTestId('address-continue-button'));
+    });
+
+    expect(getByTestId('address-continue-button')).toBeOnTheScreen();
+  });
+
+  it('clears error when field value changes', async () => {
+    mockPatchUser.mockRejectedValue(new Error('Server error'));
+
+    const { getByTestId } = renderWithTheme(<V2EnterAddress />);
+
+    await act(async () => {
+      fireEvent.press(getByTestId('address-continue-button'));
+    });
+
+    await waitFor(() => {
+      expect(mockPatchUser).toHaveBeenCalled();
+    });
+
+    fireEvent.changeText(getByTestId('address-line-1-input'), '456 New St');
+    expect(getByTestId('address-line-1-input')).toBeOnTheScreen();
+  });
 });

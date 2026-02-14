@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { render, fireEvent, act, waitFor } from '@testing-library/react-native';
 import V2BankDetails from './BankDetails';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
 import { FIAT_ORDER_STATES } from '../../../../../constants/on-ramp';
@@ -266,5 +266,329 @@ describe('V2BankDetails', () => {
     expect(
       getByTestId('bank-details-refresh-control-scrollview'),
     ).toBeOnTheScreen();
+  });
+
+  it('toggles bank info when show/hide button is pressed', () => {
+    mockOrder = {
+      id: 'test-order-id',
+      state: FIAT_ORDER_STATES.CREATED,
+      account: '0xabc',
+      cryptoAmount: '0.05',
+      data: {
+        fiatAmount: '100',
+        fiatCurrency: 'USD',
+        exchangeRate: '2000',
+        totalFeesFiat: '5',
+        paymentMethod: { id: 'pm-1', shortName: 'Bank Transfer' },
+        paymentDetails: [
+          {
+            fields: [
+              { name: 'Amount', value: '$100.00' },
+              { name: 'Bank Name', value: 'test bank' },
+              { name: 'Bank Address', value: '123 Bank St' },
+              { name: 'Recipient Address', value: '456 Beneficiary Ave' },
+            ],
+          },
+        ],
+      },
+    };
+    const { getByText, queryByText } = renderWithTheme(<V2BankDetails />);
+
+    expect(queryByText('Test Bank')).toBeNull();
+
+    fireEvent.press(getByText('deposit.bank_details.show_bank_info'));
+
+    expect(getByText('Test Bank')).toBeOnTheScreen();
+  });
+
+  it('handles confirm payment button press', async () => {
+    mockConfirmPayment.mockResolvedValue(undefined);
+    mockGetOrder.mockResolvedValue({
+      id: 'test-order-id',
+      walletAddress: '0xabc',
+      fiatAmount: '100',
+      cryptoAmount: '0.05',
+      exchangeRate: '2000',
+      totalFeesFiat: '5',
+      fiatCurrency: 'USD',
+      paymentMethod: { id: 'pm-1' },
+      network: { chainId: 'eip155:1' },
+      cryptoCurrency: { assetId: 'asset1', symbol: 'ETH' },
+    });
+
+    mockOrder = {
+      id: 'test-order-id',
+      state: FIAT_ORDER_STATES.CREATED,
+      account: '0xabc',
+      cryptoAmount: '0.05',
+      data: {
+        fiatAmount: '100',
+        fiatCurrency: 'USD',
+        exchangeRate: '2000',
+        totalFeesFiat: '5',
+        paymentMethod: { id: 'pm-1', shortName: 'Bank Transfer' },
+        paymentDetails: [
+          {
+            fields: [{ name: 'Amount', value: '$100.00' }],
+          },
+        ],
+      },
+    };
+
+    const { getByTestId } = renderWithTheme(<V2BankDetails />);
+
+    await act(async () => {
+      fireEvent.press(getByTestId('main-action-button'));
+    });
+
+    await waitFor(() => {
+      expect(mockConfirmPayment).toHaveBeenCalledWith('test-order-id', 'pm-1');
+    });
+  });
+
+  it('handles cancel order button press', async () => {
+    mockCancelOrder.mockResolvedValue(undefined);
+    mockGetOrder.mockResolvedValue({
+      id: 'test-order-id',
+      walletAddress: '0xabc',
+    });
+
+    mockOrder = {
+      id: 'test-order-id',
+      state: FIAT_ORDER_STATES.CREATED,
+      account: '0xabc',
+      cryptoAmount: '0.05',
+      data: {
+        fiatAmount: '100',
+        fiatCurrency: 'USD',
+        exchangeRate: '2000',
+        totalFeesFiat: '5',
+        paymentMethod: { id: 'pm-1', shortName: 'Bank Transfer' },
+        paymentDetails: [
+          {
+            fields: [{ name: 'Amount', value: '$100.00' }],
+          },
+        ],
+      },
+    };
+
+    const { getByText } = renderWithTheme(<V2BankDetails />);
+
+    await act(async () => {
+      fireEvent.press(
+        getByText('deposit.order_processing.cancel_order_button'),
+      );
+    });
+
+    await waitFor(() => {
+      expect(mockCancelOrder).toHaveBeenCalledWith('test-order-id');
+    });
+  });
+
+  it('navigates to AMOUNT_INPUT when order state is CANCELLED', () => {
+    mockOrder = {
+      id: 'test-order-id',
+      state: FIAT_ORDER_STATES.CANCELLED,
+      account: '0xabc',
+      data: {
+        paymentMethod: { id: 'pm-1', shortName: 'Bank Transfer' },
+        paymentDetails: [],
+      },
+    };
+
+    renderWithTheme(<V2BankDetails />);
+
+    expect(mockNavigate).toHaveBeenCalledWith('RampAmountInput');
+  });
+
+  it('replaces navigation to ORDER_PROCESSING when order state is PENDING', () => {
+    mockOrder = {
+      id: 'test-order-id',
+      state: FIAT_ORDER_STATES.PENDING,
+      account: '0xabc',
+      data: {
+        paymentMethod: { id: 'pm-1', shortName: 'Bank Transfer' },
+        paymentDetails: [],
+      },
+    };
+
+    renderWithTheme(<V2BankDetails />);
+
+    expect(mockDispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'Navigation/REPLACE',
+        routeName: 'RampOrderProcessing',
+      }),
+    );
+  });
+
+  it('handles 401 error during confirm payment', async () => {
+    const error = { status: 401 };
+    mockConfirmPayment.mockRejectedValue(error);
+    mockLogoutFromProvider.mockResolvedValue(undefined);
+
+    mockOrder = {
+      id: 'test-order-id',
+      state: FIAT_ORDER_STATES.CREATED,
+      account: '0xabc',
+      cryptoAmount: '0.05',
+      data: {
+        fiatAmount: '100',
+        fiatCurrency: 'USD',
+        exchangeRate: '2000',
+        totalFeesFiat: '5',
+        paymentMethod: { id: 'pm-1', shortName: 'Bank Transfer' },
+        paymentDetails: [
+          {
+            fields: [{ name: 'Amount', value: '$100.00' }],
+          },
+        ],
+      },
+    };
+
+    const { getByTestId } = renderWithTheme(<V2BankDetails />);
+
+    await act(async () => {
+      fireEvent.press(getByTestId('main-action-button'));
+    });
+
+    await waitFor(() => {
+      expect(mockLogoutFromProvider).toHaveBeenCalledWith(false);
+    });
+  });
+
+  it('handles 401 error during cancel order', async () => {
+    const error = { status: 401 };
+    mockCancelOrder.mockRejectedValue(error);
+    mockLogoutFromProvider.mockResolvedValue(undefined);
+
+    mockOrder = {
+      id: 'test-order-id',
+      state: FIAT_ORDER_STATES.CREATED,
+      account: '0xabc',
+      cryptoAmount: '0.05',
+      data: {
+        fiatAmount: '100',
+        fiatCurrency: 'USD',
+        exchangeRate: '2000',
+        totalFeesFiat: '5',
+        paymentMethod: { id: 'pm-1', shortName: 'Bank Transfer' },
+        paymentDetails: [
+          {
+            fields: [{ name: 'Amount', value: '$100.00' }],
+          },
+        ],
+      },
+    };
+
+    const { getByText } = renderWithTheme(<V2BankDetails />);
+
+    await act(async () => {
+      fireEvent.press(
+        getByText('deposit.order_processing.cancel_order_button'),
+      );
+    });
+
+    await waitFor(() => {
+      expect(mockLogoutFromProvider).toHaveBeenCalledWith(false);
+    });
+  });
+
+  it('renders IBAN and BIC fields when present', () => {
+    mockOrder = {
+      id: 'test-order-id',
+      state: FIAT_ORDER_STATES.CREATED,
+      account: '0xabc',
+      cryptoAmount: '0.05',
+      data: {
+        fiatAmount: '100',
+        fiatCurrency: 'USD',
+        exchangeRate: '2000',
+        totalFeesFiat: '5',
+        paymentMethod: { id: 'pm-1', shortName: 'Bank Transfer' },
+        paymentDetails: [
+          {
+            fields: [
+              { name: 'Amount', value: '€100.00' },
+              { name: 'IBAN', value: 'DE89370400440532013000' },
+              { name: 'BIC', value: 'COBADEFFXXX' },
+            ],
+          },
+        ],
+      },
+    };
+
+    const { toJSON } = renderWithTheme(<V2BankDetails />);
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('shows confirm payment error when confirmPayment fails with non-401', async () => {
+    mockConfirmPayment.mockRejectedValue(new Error('Network error'));
+
+    mockOrder = {
+      id: 'test-order-id',
+      state: FIAT_ORDER_STATES.CREATED,
+      account: '0xabc',
+      cryptoAmount: '0.05',
+      data: {
+        fiatAmount: '100',
+        fiatCurrency: 'USD',
+        exchangeRate: '2000',
+        totalFeesFiat: '5',
+        paymentMethod: { id: 'pm-1', shortName: 'Bank Transfer' },
+        paymentDetails: [
+          {
+            fields: [{ name: 'Amount', value: '$100.00' }],
+          },
+        ],
+      },
+    };
+
+    const { getByTestId, getByText } = renderWithTheme(<V2BankDetails />);
+
+    await act(async () => {
+      fireEvent.press(getByTestId('main-action-button'));
+    });
+
+    await waitFor(() => {
+      expect(getByText('Network error')).toBeOnTheScreen();
+    });
+  });
+
+  it('shows cancel order error when cancel fails with non-401', async () => {
+    mockCancelOrder.mockRejectedValue(new Error('Cancel failed'));
+
+    mockOrder = {
+      id: 'test-order-id',
+      state: FIAT_ORDER_STATES.CREATED,
+      account: '0xabc',
+      cryptoAmount: '0.05',
+      data: {
+        fiatAmount: '100',
+        fiatCurrency: 'USD',
+        exchangeRate: '2000',
+        totalFeesFiat: '5',
+        paymentMethod: { id: 'pm-1', shortName: 'Bank Transfer' },
+        paymentDetails: [
+          {
+            fields: [{ name: 'Amount', value: '$100.00' }],
+          },
+        ],
+      },
+    };
+
+    const { getByText } = renderWithTheme(<V2BankDetails />);
+
+    await act(async () => {
+      fireEvent.press(
+        getByText('deposit.order_processing.cancel_order_button'),
+      );
+    });
+
+    await waitFor(() => {
+      expect(
+        getByText('deposit.bank_details.cancel_order_error'),
+      ).toBeOnTheScreen();
+    });
   });
 });

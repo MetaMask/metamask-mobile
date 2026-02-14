@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, act, waitFor } from '@testing-library/react-native';
+import { render, act, waitFor, fireEvent } from '@testing-library/react-native';
 import V2KycProcessing from './KycProcessing';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
 
@@ -135,6 +135,167 @@ describe('V2KycProcessing', () => {
       expect(
         getByText('deposit.kyc_processing.error_heading'),
       ).toBeOnTheScreen();
+    });
+  });
+
+  it('renders success state when KYC is APPROVED', async () => {
+    mockGetAdditionalRequirements.mockResolvedValue({
+      formsRequired: [],
+    });
+    mockGetUserDetails.mockResolvedValue({
+      kyc: { status: 'APPROVED', type: 'SIMPLE' },
+    });
+
+    const { getByText } = renderWithTheme(<V2KycProcessing />);
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    await act(async () => {
+      jest.advanceTimersByTime(100);
+    });
+
+    await waitFor(() => {
+      expect(
+        getByText('deposit.kyc_processing.success_heading'),
+      ).toBeOnTheScreen();
+    });
+  });
+
+  it('renders error state when KYC is REJECTED', async () => {
+    mockGetAdditionalRequirements.mockResolvedValue({
+      formsRequired: [],
+    });
+    mockGetUserDetails.mockResolvedValue({
+      kyc: { status: 'REJECTED', type: 'SIMPLE' },
+    });
+
+    const { getByText } = renderWithTheme(<V2KycProcessing />);
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    await act(async () => {
+      jest.advanceTimersByTime(100);
+    });
+
+    await waitFor(() => {
+      expect(
+        getByText('deposit.kyc_processing.error_heading'),
+      ).toBeOnTheScreen();
+    });
+  });
+
+  it('tracks RAMPS_KYC_APPLICATION_APPROVED when KYC is approved', async () => {
+    mockGetAdditionalRequirements.mockResolvedValue({
+      formsRequired: [],
+    });
+    mockGetUserDetails.mockResolvedValue({
+      kyc: { status: 'APPROVED', type: 'SIMPLE' },
+    });
+
+    renderWithTheme(<V2KycProcessing />);
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    await act(async () => {
+      jest.advanceTimersByTime(100);
+    });
+
+    await waitFor(() => {
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        'RAMPS_KYC_APPLICATION_APPROVED',
+        expect.objectContaining({
+          ramp_type: 'DEPOSIT',
+        }),
+      );
+    });
+  });
+
+  it('tracks RAMPS_KYC_APPLICATION_FAILED when KYC is rejected', async () => {
+    mockGetAdditionalRequirements.mockResolvedValue({
+      formsRequired: [],
+    });
+    mockGetUserDetails.mockResolvedValue({
+      kyc: { status: 'REJECTED', type: 'SIMPLE' },
+    });
+
+    renderWithTheme(<V2KycProcessing />);
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    await act(async () => {
+      jest.advanceTimersByTime(100);
+    });
+
+    await waitFor(() => {
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        'RAMPS_KYC_APPLICATION_FAILED',
+        expect.objectContaining({
+          ramp_type: 'DEPOSIT',
+        }),
+      );
+    });
+  });
+
+  it('renders error state when getUserDetails fails', async () => {
+    mockGetAdditionalRequirements.mockResolvedValue({
+      formsRequired: [],
+    });
+    mockGetUserDetails.mockRejectedValue(new Error('User details failed'));
+
+    const { getByText } = renderWithTheme(<V2KycProcessing />);
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    await act(async () => {
+      jest.advanceTimersByTime(100);
+    });
+
+    await waitFor(() => {
+      expect(getByText('User details failed')).toBeOnTheScreen();
+    });
+  });
+
+  it('calls routeAfterAuthentication when continue button is pressed in success state', async () => {
+    mockGetAdditionalRequirements.mockResolvedValue({
+      formsRequired: [],
+    });
+    mockGetUserDetails.mockResolvedValue({
+      kyc: { status: 'APPROVED', type: 'SIMPLE' },
+    });
+    mockRouteAfterAuthentication.mockResolvedValue(undefined);
+
+    const { getByText } = renderWithTheme(<V2KycProcessing />);
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    await act(async () => {
+      jest.advanceTimersByTime(100);
+    });
+
+    await waitFor(() => {
+      expect(
+        getByText('deposit.kyc_processing.success_button'),
+      ).toBeOnTheScreen();
+    });
+
+    await act(async () => {
+      fireEvent.press(getByText('deposit.kyc_processing.success_button'));
+    });
+
+    await waitFor(() => {
+      expect(mockRouteAfterAuthentication).toHaveBeenCalled();
     });
   });
 });

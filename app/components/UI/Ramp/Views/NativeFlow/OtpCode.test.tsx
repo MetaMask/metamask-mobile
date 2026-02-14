@@ -57,17 +57,19 @@ jest.mock('../../hooks/useRampsController', () => ({
   }),
 }));
 
+const mockUseParams = jest.fn(() => ({
+  email: 'test@example.com',
+  stateToken: 'test-state-token',
+  amount: '100',
+  currency: 'USD',
+  assetId: 'eip155:1/erc20:0x123',
+}));
+
 jest.mock('../../../../../util/navigation/navUtils', () => ({
   createNavigationDetails:
     (..._args: unknown[]) =>
     (params: unknown) => ['MockRoute', params],
-  useParams: () => ({
-    email: 'test@example.com',
-    stateToken: 'test-state-token',
-    amount: '100',
-    currency: 'USD',
-    assetId: 'eip155:1/erc20:0x123',
-  }),
+  useParams: () => mockUseParams(),
 }));
 
 const mockTrackEvent = jest.fn();
@@ -261,6 +263,162 @@ describe('V2OtpCode', () => {
       expect(mockNavigate).toHaveBeenCalledWith('RampAmountInput', {
         nativeFlowError: 'Limit exceeded',
       });
+    });
+  });
+
+  it('navigates to AMOUNT_INPUT when no amount/currency/assetId params', async () => {
+    jest.useRealTimers();
+
+    mockUseParams.mockReturnValue({
+      email: 'test@example.com',
+      stateToken: 'test-state-token',
+      amount: undefined,
+      currency: undefined,
+      assetId: undefined,
+    });
+
+    const mockToken = { accessToken: 'otp-token', ttl: 3600 };
+    mockVerifyUserOtp.mockResolvedValue(mockToken);
+    mockSetAuthToken.mockResolvedValue(true);
+
+    const { getByTestId } = renderWithTheme(<V2OtpCode />);
+
+    await act(async () => {
+      fireEvent.changeText(getByTestId('otp-code-input'), '123456');
+    });
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('RampAmountInput');
+    });
+
+    mockUseParams.mockReturnValue({
+      email: 'test@example.com',
+      stateToken: 'test-state-token',
+      amount: '100',
+      currency: 'USD',
+      assetId: 'eip155:1/erc20:0x123',
+    });
+  });
+
+  it('handles resend OTP', async () => {
+    mockSendUserOtp.mockResolvedValue({ stateToken: 'new-state-token' });
+
+    const { getByText } = renderWithTheme(<V2OtpCode />);
+
+    await act(async () => {
+      fireEvent.press(getByText('deposit.otp_code.resend_code_button'));
+    });
+
+    await waitFor(() => {
+      expect(mockSendUserOtp).toHaveBeenCalledWith('test@example.com');
+    });
+  });
+
+  it('shows cooldown state after resend', async () => {
+    mockSendUserOtp.mockResolvedValue({ stateToken: 'new-state-token' });
+
+    const { getByText } = renderWithTheme(<V2OtpCode />);
+
+    await act(async () => {
+      fireEvent.press(getByText('deposit.otp_code.resend_code_button'));
+    });
+
+    await waitFor(() => {
+      expect(getByText('deposit.otp_code.resend_cooldown')).toBeOnTheScreen();
+    });
+  });
+
+  it('shows error when verifyUserOtp returns null', async () => {
+    jest.useRealTimers();
+
+    mockVerifyUserOtp.mockResolvedValue(null);
+
+    const { getByTestId, getByText } = renderWithTheme(<V2OtpCode />);
+
+    await act(async () => {
+      fireEvent.changeText(getByTestId('otp-code-input'), '123456');
+    });
+
+    await waitFor(() => {
+      expect(getByText('No response from verifyUserOtp')).toBeOnTheScreen();
+    });
+  });
+
+  it('tracks RAMPS_OTP_CONFIRMED on successful verification', async () => {
+    jest.useRealTimers();
+
+    const mockToken = { accessToken: 'otp-token', ttl: 3600 };
+    const mockQuote = { quoteId: 'q1', fiatAmount: 100 };
+    mockVerifyUserOtp.mockResolvedValue(mockToken);
+    mockSetAuthToken.mockResolvedValue(true);
+    mockGetBuyQuote.mockResolvedValue(mockQuote);
+    mockRouteAfterAuthentication.mockResolvedValue(undefined);
+
+    const { getByTestId } = renderWithTheme(<V2OtpCode />);
+
+    await act(async () => {
+      fireEvent.changeText(getByTestId('otp-code-input'), '123456');
+    });
+
+    await waitFor(() => {
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        'RAMPS_OTP_CONFIRMED',
+        expect.objectContaining({
+          ramp_type: 'DEPOSIT',
+        }),
+      );
+    });
+  });
+
+  it('tracks RAMPS_OTP_FAILED on verification error', async () => {
+    jest.useRealTimers();
+
+    mockVerifyUserOtp.mockRejectedValue(new Error('Invalid OTP'));
+
+    const { getByTestId } = renderWithTheme(<V2OtpCode />);
+
+    await act(async () => {
+      fireEvent.changeText(getByTestId('otp-code-input'), '123456');
+    });
+
+    await waitFor(() => {
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        'RAMPS_OTP_FAILED',
+        expect.objectContaining({
+          ramp_type: 'DEPOSIT',
+        }),
+      );
+    });
+  });
+
+  it('does not submit when code length is less than 6', async () => {
+    jest.useRealTimers();
+
+    const { getByTestId } = renderWithTheme(<V2OtpCode />);
+
+    await act(async () => {
+      fireEvent.changeText(getByTestId('otp-code-input'), '123');
+    });
+
+    expect(mockVerifyUserOtp).not.toHaveBeenCalled();
+  });
+
+  it('handles paste from clipboard', async () => {
+    jest.useRealTimers();
+
+    const Clipboard = jest.requireMock<
+      typeof import('@react-native-clipboard/clipboard')
+    >('@react-native-clipboard/clipboard');
+    (Clipboard.getString as jest.Mock).mockResolvedValue('654321');
+
+    const { getByTestId } = renderWithTheme(<V2OtpCode />);
+
+    await act(async () => {
+      fireEvent.press(getByTestId('otp-code-paste-button'));
+    });
+
+    await waitFor(() => {
+      expect(Clipboard.getString).toHaveBeenCalled();
     });
   });
 });

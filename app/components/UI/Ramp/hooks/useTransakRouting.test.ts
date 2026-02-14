@@ -462,6 +462,254 @@ describe('useTransakRouting', () => {
         }),
       ).rejects.toThrow();
     });
+
+    it('throws LimitExceededError when monthly limit is exceeded', async () => {
+      mockGetUserDetails.mockResolvedValue({
+        firstName: 'John',
+        address: {},
+      });
+      mockGetKycRequirement.mockResolvedValue({
+        status: 'APPROVED',
+        kycType: 'SIMPLE',
+      });
+      mockGetUserLimits.mockResolvedValue({
+        remaining: { '1': 10000, '30': 50, '365': 200000 },
+      });
+
+      const { result } = renderHook(() => useTransakRouting());
+
+      await expect(
+        act(async () => {
+          await result.current.routeAfterAuthentication(mockQuote as never);
+        }),
+      ).rejects.toThrow();
+    });
+
+    it('throws LimitExceededError when yearly limit is exceeded', async () => {
+      mockGetUserDetails.mockResolvedValue({
+        firstName: 'John',
+        address: {},
+      });
+      mockGetKycRequirement.mockResolvedValue({
+        status: 'APPROVED',
+        kycType: 'SIMPLE',
+      });
+      mockGetUserLimits.mockResolvedValue({
+        remaining: { '1': 10000, '30': 50000, '365': 50 },
+      });
+
+      const { result } = renderHook(() => useTransakRouting());
+
+      await expect(
+        act(async () => {
+          await result.current.routeAfterAuthentication(mockQuote as never);
+        }),
+      ).rejects.toThrow();
+    });
+
+    it('skips limit check when remaining is null', async () => {
+      mockGetUserDetails.mockResolvedValue({
+        firstName: 'John',
+        address: {},
+      });
+      mockGetKycRequirement.mockResolvedValue({
+        status: 'APPROVED',
+        kycType: 'SIMPLE',
+      });
+      mockGetUserLimits.mockResolvedValue({ remaining: null });
+      mockRequestOtt.mockResolvedValue({ ott: 'test-ott' });
+      mockGeneratePaymentWidgetUrl.mockReturnValue(
+        'https://payment.example.com',
+      );
+
+      const { result } = renderHook(() => useTransakRouting());
+
+      await act(async () => {
+        await result.current.routeAfterAuthentication(mockQuote as never);
+      });
+
+      expect(mockRequestOtt).toHaveBeenCalled();
+    });
+
+    it('skips limit check when individual limits are undefined', async () => {
+      mockGetUserDetails.mockResolvedValue({
+        firstName: 'John',
+        address: {},
+      });
+      mockGetKycRequirement.mockResolvedValue({
+        status: 'APPROVED',
+        kycType: 'SIMPLE',
+      });
+      mockGetUserLimits.mockResolvedValue({
+        remaining: { '1': undefined, '30': undefined, '365': undefined },
+      });
+      mockRequestOtt.mockResolvedValue({ ott: 'test-ott' });
+      mockGeneratePaymentWidgetUrl.mockReturnValue(
+        'https://payment.example.com',
+      );
+
+      const { result } = renderHook(() => useTransakRouting());
+
+      await act(async () => {
+        await result.current.routeAfterAuthentication(mockQuote as never);
+      });
+
+      expect(mockRequestOtt).toHaveBeenCalled();
+    });
+
+    it('throws error for unknown KYC status (default case)', async () => {
+      mockGetUserDetails.mockResolvedValue({
+        firstName: 'John',
+        address: {},
+      });
+      mockGetKycRequirement.mockResolvedValue({
+        status: 'UNKNOWN_STATUS',
+        kycType: 'SIMPLE',
+      });
+
+      const { result } = renderHook(() => useTransakRouting());
+
+      await expect(
+        act(async () => {
+          await result.current.routeAfterAuthentication(mockQuote as never);
+        }),
+      ).rejects.toThrow();
+    });
+
+    it('throws when KYC requirements are null', async () => {
+      mockGetUserDetails.mockResolvedValue({
+        firstName: 'John',
+        address: {},
+      });
+      mockGetKycRequirement.mockResolvedValue(null);
+
+      const { result } = renderHook(() => useTransakRouting());
+
+      await expect(
+        act(async () => {
+          await result.current.routeAfterAuthentication(mockQuote as never);
+        }),
+      ).rejects.toThrow();
+    });
+
+    it('navigates to KycProcessing for ADDITIONAL_FORMS_REQUIRED with no matching forms', async () => {
+      mockGetUserDetails.mockResolvedValue({
+        firstName: 'John',
+        address: {},
+      });
+      mockGetKycRequirement.mockResolvedValue({
+        status: 'ADDITIONAL_FORMS_REQUIRED',
+        kycType: 'STANDARD',
+      });
+      mockGetAdditionalRequirements.mockResolvedValue({
+        formsRequired: [{ type: 'SOME_UNKNOWN_FORM' }],
+      });
+
+      const { result } = renderHook(() => useTransakRouting());
+
+      await act(async () => {
+        await result.current.routeAfterAuthentication(mockQuote as never);
+      });
+
+      expect(mockReset).toHaveBeenCalledWith(
+        expect.objectContaining({
+          index: 1,
+          routes: [
+            expect.objectContaining({ name: 'RampAmountInput' }),
+            expect.objectContaining({
+              name: 'RampKycProcessing',
+            }),
+          ],
+        }),
+      );
+    });
+
+    it('throws error when user details are missing and status is APPROVED', async () => {
+      mockGetUserDetails.mockResolvedValue(null);
+      mockGetKycRequirement.mockResolvedValue({
+        status: 'APPROVED',
+        kycType: 'SIMPLE',
+      });
+
+      const { result } = renderHook(() => useTransakRouting());
+
+      await expect(
+        act(async () => {
+          await result.current.routeAfterAuthentication(mockQuote as never);
+        }),
+      ).rejects.toThrow();
+    });
+
+    it('throws error when OTT request fails', async () => {
+      mockGetUserDetails.mockResolvedValue({
+        firstName: 'John',
+        address: {},
+      });
+      mockGetKycRequirement.mockResolvedValue({
+        status: 'APPROVED',
+        kycType: 'SIMPLE',
+      });
+      mockGetUserLimits.mockResolvedValue({
+        remaining: { '1': 10000, '30': 50000, '365': 200000 },
+      });
+      mockRequestOtt.mockResolvedValue(null);
+
+      const { result } = renderHook(() => useTransakRouting());
+
+      await expect(
+        act(async () => {
+          await result.current.routeAfterAuthentication(mockQuote as never);
+        }),
+      ).rejects.toThrow();
+    });
+
+    it('throws error when payment URL generation fails', async () => {
+      mockGetUserDetails.mockResolvedValue({
+        firstName: 'John',
+        address: {},
+      });
+      mockGetKycRequirement.mockResolvedValue({
+        status: 'APPROVED',
+        kycType: 'SIMPLE',
+      });
+      mockGetUserLimits.mockResolvedValue({
+        remaining: { '1': 10000, '30': 50000, '365': 200000 },
+      });
+      mockRequestOtt.mockResolvedValue({ ott: 'test-ott' });
+      mockGeneratePaymentWidgetUrl.mockReturnValue(null);
+
+      const { result } = renderHook(() => useTransakRouting());
+
+      await expect(
+        act(async () => {
+          await result.current.routeAfterAuthentication(mockQuote as never);
+        }),
+      ).rejects.toThrow();
+    });
+
+    it('logs error and returns when getUserLimits throws a non-limit error', async () => {
+      mockGetUserDetails.mockResolvedValue({
+        firstName: 'John',
+        address: {},
+      });
+      mockGetKycRequirement.mockResolvedValue({
+        status: 'APPROVED',
+        kycType: 'SIMPLE',
+      });
+      mockGetUserLimits.mockRejectedValue(new Error('Network failure'));
+      mockRequestOtt.mockResolvedValue({ ott: 'test-ott' });
+      mockGeneratePaymentWidgetUrl.mockReturnValue(
+        'https://payment.example.com',
+      );
+
+      const { result } = renderHook(() => useTransakRouting());
+
+      await act(async () => {
+        await result.current.routeAfterAuthentication(mockQuote as never);
+      });
+
+      expect(mockRequestOtt).toHaveBeenCalled();
+    });
   });
 
   describe('navigateToVerifyIdentity', () => {
