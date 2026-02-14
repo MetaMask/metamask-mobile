@@ -1584,7 +1584,9 @@ export class PerpsStreamManager {
   public readonly marketData = new MarketDataChannel();
   public readonly oiCaps = new OICapStreamChannel();
   public readonly topOfBook = new TopOfBookStreamChannel();
-  public readonly candles = new CandleStreamChannel();
+  public readonly candles = new CandleStreamChannel(
+    () => PerpsConnectionManager.getConnectionState().isInitialized,
+  );
 
   // Future channels can be added here:
   // public readonly funding = new FundingStreamChannel();
