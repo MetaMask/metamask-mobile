@@ -293,6 +293,18 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
       return;
     }
 
+    // Check if controller is reinitializing - wait before attempting connection
+    if (Engine.context.PerpsController.isCurrentlyReinitializing()) {
+      this.deferConnect(PERPS_CONSTANTS.ReconnectionCleanupDelayMs);
+      return;
+    }
+
+    // Check if controller is not yet initialized - defer until ready
+    if (!PerpsConnectionManager.getConnectionState().isInitialized) {
+      this.deferConnect(200);
+      return;
+    }
+
     // If we have a prewarm subscription, we're already subscribed to all markets
     // No need to create another subscription
     if (this.prewarmUnsubscribe) {
@@ -317,6 +329,7 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
       return;
     }
 
+    this.connectRetryCount = 0;
     this.wsSubscription = Engine.context.PerpsController.subscribeToPrices({
       symbols: allSymbols,
       callback: (updates: PriceUpdate[]) => {
