@@ -206,7 +206,16 @@ export const isOrderAssociatedWithFullPosition = (
   order: Order,
   position?: Position,
 ): boolean => {
-  if (!order.reduceOnly || !position) {
+  if (!order.reduceOnly) {
+    return false;
+  }
+
+  // Provider-native flag is authoritative, even while position data is loading.
+  if (order.isPositionTpsl === true) {
+    return true;
+  }
+
+  if (!position) {
     return false;
   }
 
@@ -215,10 +224,6 @@ export const isOrderAssociatedWithFullPosition = (
     !isClosingSideForPosition(order, position)
   ) {
     return false;
-  }
-
-  if (order.isPositionTpsl === true) {
-    return true;
   }
 
   // Only fall back to size matching when the provider did not send the flag.
@@ -338,6 +343,7 @@ export const buildDisplayOrdersWithSyntheticTpsl = (
   }
 
   const displayOrders: Order[] = [];
+  const realOrderIds = new Set(orders.map((order) => order.orderId));
 
   orders.forEach((order) => {
     displayOrders.push(order);
@@ -349,7 +355,11 @@ export const buildDisplayOrdersWithSyntheticTpsl = (
     const syntheticTpOrder = buildSyntheticTriggerOrder(order, 'tp');
     if (
       syntheticTpOrder &&
-      !hasMatchingRealReduceOnlyTrigger(orders, syntheticTpOrder)
+      !hasMatchingRealReduceOnlyTrigger(orders, syntheticTpOrder) &&
+      !realOrderIds.has(syntheticTpOrder.orderId) &&
+      !displayOrders.some(
+        (displayOrder) => displayOrder.orderId === syntheticTpOrder.orderId,
+      )
     ) {
       displayOrders.push(syntheticTpOrder);
     }
@@ -357,7 +367,11 @@ export const buildDisplayOrdersWithSyntheticTpsl = (
     const syntheticSlOrder = buildSyntheticTriggerOrder(order, 'sl');
     if (
       syntheticSlOrder &&
-      !hasMatchingRealReduceOnlyTrigger(orders, syntheticSlOrder)
+      !hasMatchingRealReduceOnlyTrigger(orders, syntheticSlOrder) &&
+      !realOrderIds.has(syntheticSlOrder.orderId) &&
+      !displayOrders.some(
+        (displayOrder) => displayOrder.orderId === syntheticSlOrder.orderId,
+      )
     ) {
       displayOrders.push(syntheticSlOrder);
     }

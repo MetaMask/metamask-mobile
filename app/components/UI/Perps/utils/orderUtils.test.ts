@@ -429,6 +429,15 @@ describe('orderUtils', () => {
       expect(result).toBe(true);
     });
 
+    it('associates full-position TP/SL via native flag even when position is unavailable', () => {
+      const result = isOrderAssociatedWithFullPosition(
+        { ...mockReduceOnlyOrder, isPositionTpsl: true },
+        undefined,
+      );
+
+      expect(result).toBe(true);
+    });
+
     it('associates full-position TP/SL via size fallback when flag is missing', () => {
       const result = isOrderAssociatedWithFullPosition(
         mockReduceOnlyOrder,
@@ -662,6 +671,37 @@ describe('orderUtils', () => {
       expect(
         result.find((order) => order.orderId === 'parent-limit-2-synthetic-tp'),
       ).toBeDefined();
+    });
+
+    it('does not add synthetic row when a real order with the same orderId already exists', () => {
+      const result = buildDisplayOrdersWithSyntheticTpsl([
+        {
+          ...parentLimitOrder,
+          takeProfitPrice: '95000',
+          takeProfitOrderId: 'existing-order-id',
+        },
+        {
+          orderId: 'existing-order-id',
+          symbol: 'BTC',
+          side: 'sell',
+          orderType: 'limit',
+          size: '0.5',
+          originalSize: '0.5',
+          price: '93000',
+          filledSize: '0',
+          remainingSize: '0.5',
+          status: 'open',
+          timestamp,
+          detailedOrderType: 'Limit',
+          isTrigger: false,
+          reduceOnly: false,
+        },
+      ]);
+
+      expect(
+        result.filter((order) => order.orderId === 'existing-order-id'),
+      ).toHaveLength(1);
+      expect(result.find((order) => order.isSynthetic)).toBeUndefined();
     });
   });
 

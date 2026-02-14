@@ -53,14 +53,6 @@ const PerpsCompactOrderRow: React.FC<PerpsCompactOrderRowProps> = ({
       ? theme.colors.success.default
       : theme.colors.error.default;
 
-    // Format order type
-    let orderTypeLabel = strings('perps.order.limit_price');
-    if (order.isTrigger) {
-      orderTypeLabel = strings('perps.order.trigger_price');
-    } else if (order.detailedOrderType?.includes('Market')) {
-      orderTypeLabel = strings('perps.order.market_price');
-    }
-
     // For trigger orders, display trigger condition price when available.
     // `order.price` may represent execution limit/slippage protection for SL/TP.
     const validTriggerPrice = getValidTriggerPrice(order);
@@ -75,6 +67,14 @@ const PerpsCompactOrderRow: React.FC<PerpsCompactOrderRowProps> = ({
             ranges: PRICE_RANGES_MINIMAL_VIEW,
           })
         : strings('perps.order.market');
+
+    // Label should match the actual displayed price source.
+    const orderTypeLabel =
+      order.isTrigger && validTriggerPrice !== null
+        ? strings('perps.order.trigger_price')
+        : order.detailedOrderType?.includes('Market')
+          ? strings('perps.order.market_price')
+          : strings('perps.order.limit_price');
 
     // Format size
     const size = Math.abs(parseFloat(order.size));

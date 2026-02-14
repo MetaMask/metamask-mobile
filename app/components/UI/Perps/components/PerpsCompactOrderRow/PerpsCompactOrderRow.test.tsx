@@ -126,6 +126,24 @@ describe('PerpsCompactOrderRow', () => {
     );
 
     expect(formatPerpsFiat).toHaveBeenCalledWith(48000, expect.any(Object));
+    expect(screen.getByText('Market price')).toBeOnTheScreen();
+    expect(screen.queryByText('Trigger price')).toBeNull();
+  });
+
+  it('uses limit price label when trigger price is invalid for trigger-limit orders', () => {
+    const triggerLimitOrderWithInvalidTriggerPrice: Order = {
+      ...mockTriggerOrder,
+      detailedOrderType: 'Take Profit Limit',
+      triggerPrice: '0',
+      price: '46000',
+    };
+
+    render(
+      <PerpsCompactOrderRow order={triggerLimitOrderWithInvalidTriggerPrice} />,
+    );
+
+    expect(screen.getByText('Limit price')).toBeOnTheScreen();
+    expect(screen.queryByText('Trigger price')).toBeNull();
   });
 
   it('uses order price for limit orders', () => {
