@@ -43,11 +43,23 @@ const MainRoutes = () => (
     <Stack.Screen name={Routes.RAMP.OTP_CODE} component={V2OtpCode} />
     <Stack.Screen name={Routes.RAMP.BASIC_INFO} component={V2BasicInfo} />
     <Stack.Screen name={Routes.RAMP.ENTER_ADDRESS} component={V2EnterAddress} />
-    <Stack.Screen name={Routes.RAMP.VERIFY_IDENTITY} component={V2VerifyIdentity} />
+    <Stack.Screen
+      name={Routes.RAMP.VERIFY_IDENTITY}
+      component={V2VerifyIdentity}
+    />
     <Stack.Screen name={Routes.RAMP.BANK_DETAILS} component={V2BankDetails} />
-    <Stack.Screen name={Routes.RAMP.ORDER_PROCESSING} component={V2OrderProcessing} />
-    <Stack.Screen name={Routes.RAMP.KYC_PROCESSING} component={V2KycProcessing} />
-    <Stack.Screen name={Routes.RAMP.ADDITIONAL_VERIFICATION} component={V2AdditionalVerification} />
+    <Stack.Screen
+      name={Routes.RAMP.ORDER_PROCESSING}
+      component={V2OrderProcessing}
+    />
+    <Stack.Screen
+      name={Routes.RAMP.KYC_PROCESSING}
+      component={V2KycProcessing}
+    />
+    <Stack.Screen
+      name={Routes.RAMP.ADDITIONAL_VERIFICATION}
+      component={V2AdditionalVerification}
+    />
     <Stack.Screen
       name={Routes.RAMP.CHECKOUT}
       component={Checkout}

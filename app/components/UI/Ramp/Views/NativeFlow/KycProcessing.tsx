@@ -27,7 +27,10 @@ import Logger from '../../../../../util/Logger';
 import useAnalytics from '../../hooks/useAnalytics';
 import { useTransakController } from '../../hooks/useTransakController';
 import { useTransakRouting } from '../../hooks/useTransakRouting';
-import type { TransakBuyQuote, TransakUserDetails } from '@metamask/ramps-controller';
+import type {
+  TransakBuyQuote,
+  TransakUserDetails,
+} from '@metamask/ramps-controller';
 
 interface V2KycProcessingParams {
   quote: TransakBuyQuote;
@@ -44,9 +47,13 @@ const V2KycProcessing = () => {
     screenLocation: 'V2 KycProcessing Screen',
   });
 
-  const [kycForms, setKycForms] = useState<{ formsRequired: { type: string }[] } | null>(null);
+  const [kycForms, setKycForms] = useState<{
+    formsRequired: { type: string }[];
+  } | null>(null);
   const [kycFormsError, setKycFormsError] = useState<string | null>(null);
-  const [userDetails, setUserDetails] = useState<TransakUserDetails | null>(null);
+  const [userDetails, setUserDetails] = useState<TransakUserDetails | null>(
+    null,
+  );
   const [userDetailsError, setUserDetailsError] = useState<string | null>(null);
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
 

@@ -144,6 +144,28 @@ jest.mock('../../hooks/useRampsController', () => ({
   }),
 }));
 
+const mockTransakCheckExistingToken = jest.fn();
+const mockTransakGetBuyQuote = jest.fn();
+
+jest.mock('../../hooks/useTransakController', () => ({
+  useTransakController: () => ({
+    checkExistingToken: mockTransakCheckExistingToken,
+    getBuyQuote: mockTransakGetBuyQuote,
+  }),
+}));
+
+const mockTransakRouteAfterAuth = jest.fn();
+
+jest.mock('../../hooks/useTransakRouting', () => ({
+  useTransakRouting: () => ({
+    routeAfterAuthentication: mockTransakRouteAfterAuth,
+  }),
+}));
+
+jest.mock('../NativeFlow/EnterEmail', () => ({
+  createV2EnterEmailNavDetails: (params: unknown) => ['RampEnterEmail', params],
+}));
+
 const renderWithTheme = (component: React.ReactElement) =>
   render(
     <ThemeContext.Provider value={mockTheme}>
@@ -164,6 +186,9 @@ describe('BuildQuote', () => {
       topTokens: [createMockToken()],
     };
     mockGetTokenNetworkInfo.mockReturnValue(mockTokenNetworkInfo);
+    mockTransakCheckExistingToken.mockResolvedValue(false);
+    mockTransakGetBuyQuote.mockResolvedValue(null);
+    mockTransakRouteAfterAuth.mockResolvedValue(undefined);
   });
 
   afterEach(() => {
@@ -545,7 +570,9 @@ describe('BuildQuote', () => {
       );
     });
 
-    it('navigates to deposit flow for native provider', () => {
+    it('navigates to enter email for native provider when no existing token', async () => {
+      mockTransakCheckExistingToken.mockResolvedValue(false);
+
       mockSelectedQuote = {
         provider: '/providers/transak-native',
         url: null,
@@ -572,22 +599,33 @@ describe('BuildQuote', () => {
       const { getByTestId } = renderWithTheme(<BuildQuote />);
 
       const continueButton = getByTestId('build-quote-continue-button');
-      fireEvent.press(continueButton);
 
-      expect(mockNavigate).toHaveBeenCalledWith('Deposit', {
-        screen: 'DepositRoot',
-        params: {
-          assetId: MOCK_ASSET_ID,
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(mockTransakCheckExistingToken).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'RampEnterEmail',
+        expect.objectContaining({
           amount: '100',
           currency: 'USD',
-          shouldRouteImmediately: true,
-        },
-      });
+        }),
+      );
     });
 
-    it('navigates to deposit flow for native provider when ID does not end with -native (uses metadata)', () => {
+    it('routes after authentication for native provider when existing token found', async () => {
+      const mockBuyQuote = { quoteId: 'q1', fiatAmount: 100 };
+      mockTransakCheckExistingToken.mockResolvedValue(true);
+      mockTransakGetBuyQuote.mockResolvedValue(mockBuyQuote);
+      mockTransakRouteAfterAuth.mockResolvedValue(undefined);
+
       mockSelectedQuote = {
-        provider: '/providers/whitelabel-in-app',
+        provider: '/providers/transak-native',
         url: null,
         quote: {
           amountIn: 100,
@@ -595,14 +633,14 @@ describe('BuildQuote', () => {
           paymentMethod: '/payments/debit-credit-card',
         },
         providerInfo: {
-          id: '/providers/whitelabel-in-app',
-          name: 'Whitelabel',
+          id: '/providers/transak-native',
+          name: 'Transak Native',
           type: 'native',
         },
       };
       mockSelectedProvider = {
-        id: '/providers/whitelabel-in-app',
-        name: 'Whitelabel',
+        id: '/providers/transak-native',
+        name: 'Transak Native',
       };
       mockSelectedPaymentMethod = {
         id: '/payments/debit-credit-card',
@@ -612,17 +650,73 @@ describe('BuildQuote', () => {
       const { getByTestId } = renderWithTheme(<BuildQuote />);
 
       const continueButton = getByTestId('build-quote-continue-button');
-      fireEvent.press(continueButton);
 
-      expect(mockNavigate).toHaveBeenCalledWith('Deposit', {
-        screen: 'DepositRoot',
-        params: {
-          assetId: MOCK_ASSET_ID,
-          amount: '100',
-          currency: 'USD',
-          shouldRouteImmediately: true,
-        },
+      await act(async () => {
+        fireEvent.press(continueButton);
       });
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(mockTransakCheckExistingToken).toHaveBeenCalled();
+      expect(mockTransakGetBuyQuote).toHaveBeenCalledWith(
+        'USD',
+        MOCK_ASSET_ID,
+        MOCK_CHAIN_ID,
+        '/payments/debit-credit-card',
+        '100',
+      );
+      expect(mockTransakRouteAfterAuth).toHaveBeenCalledWith(mockBuyQuote);
+    });
+
+    it('logs error when native provider flow fails', async () => {
+      const mockLogger = jest.spyOn(Logger, 'error');
+      mockTransakCheckExistingToken.mockRejectedValue(
+        new Error('Token check failed'),
+      );
+
+      mockSelectedQuote = {
+        provider: '/providers/transak-native',
+        url: null,
+        quote: {
+          amountIn: 100,
+          amountOut: 0.05,
+          paymentMethod: '/payments/debit-credit-card',
+        },
+        providerInfo: {
+          id: '/providers/transak-native',
+          name: 'Transak Native',
+          type: 'native',
+        },
+      };
+      mockSelectedProvider = {
+        id: '/providers/transak-native',
+        name: 'Transak Native',
+      };
+      mockSelectedPaymentMethod = {
+        id: '/payments/debit-credit-card',
+        name: 'Card',
+      };
+
+      const { getByTestId } = renderWithTheme(<BuildQuote />);
+
+      const continueButton = getByTestId('build-quote-continue-button');
+
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(mockLogger).toHaveBeenCalledWith(
+        expect.any(Error),
+        expect.objectContaining({
+          message: 'Failed to route native provider flow',
+        }),
+      );
     });
 
     it('logs error when aggregator provider has no URL', async () => {

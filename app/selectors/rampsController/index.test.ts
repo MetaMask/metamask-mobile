@@ -15,6 +15,7 @@ import {
   selectRampsControllerState,
   selectQuotes,
   selectWidgetUrl,
+  selectTransak,
 } from './index';
 
 const createDefaultResourceState = <TData, TSelected = null>(
@@ -389,6 +390,81 @@ describe('RampsController Selectors', () => {
       } as unknown as RootState;
 
       expect(selectRampsControllerState(state)).toBeUndefined();
+    });
+  });
+
+  describe('selectTransak', () => {
+    it('returns transak state when nativeProviders.transak is set', () => {
+      const mockTransakState = {
+        isAuthenticated: true,
+        userDetails: {
+          data: { firstName: 'John', lastName: 'Doe' },
+          isLoading: false,
+          error: null,
+        },
+        buyQuote: {
+          data: { quoteId: 'q1', fiatAmount: 100 },
+          isLoading: false,
+          error: null,
+        },
+        kycRequirement: {
+          data: { status: 'APPROVED', kycType: 'SIMPLE' },
+          isLoading: false,
+          error: null,
+        },
+      };
+
+      const state = createMockState({
+        nativeProviders: {
+          transak: mockTransakState,
+        },
+      } as never);
+
+      const result = selectTransak(state);
+      expect(result).toEqual(mockTransakState);
+    });
+
+    it('returns default transak state when nativeProviders is undefined', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            RampsController: {
+              userRegion: null,
+              countries: createDefaultResourceState([]),
+              providers: createDefaultResourceState([], null),
+              tokens: createDefaultResourceState(null, null),
+              paymentMethods: createDefaultResourceState([], null),
+              quotes: createDefaultResourceState(null),
+              widgetUrl: createDefaultResourceState(null),
+              requests: {},
+            },
+          },
+        },
+      } as unknown as RootState;
+
+      const result = selectTransak(state);
+      expect(result).toEqual({
+        isAuthenticated: false,
+        userDetails: createDefaultResourceState(null),
+        buyQuote: createDefaultResourceState(null),
+        kycRequirement: createDefaultResourceState(null),
+      });
+    });
+
+    it('returns isAuthenticated true when user is authenticated', () => {
+      const state = createMockState({
+        nativeProviders: {
+          transak: {
+            isAuthenticated: true,
+            userDetails: createDefaultResourceState(null),
+            buyQuote: createDefaultResourceState(null),
+            kycRequirement: createDefaultResourceState(null),
+          },
+        },
+      } as never);
+
+      const result = selectTransak(state);
+      expect(result.isAuthenticated).toBe(true);
     });
   });
 });

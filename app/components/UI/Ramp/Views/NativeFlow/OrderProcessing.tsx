@@ -28,9 +28,7 @@ const V2OrderProcessing = () => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
   const { orderId } = useParams<OrderProcessingParams>();
-  const order = useSelector((state: RootState) =>
-    getOrderById(state, orderId),
-  );
+  const order = useSelector((state: RootState) => getOrderById(state, orderId));
 
   const handleMainAction = useCallback(() => {
     if (

@@ -36,7 +36,6 @@ import useAnalytics from '../../hooks/useAnalytics';
 import { trace, TraceName } from '../../../../../util/trace';
 import { Box, BoxAlignItems } from '@metamask/design-system-react-native';
 import { useTransakController } from '../../hooks/useTransakController';
-import { useTransakRouting } from '../../hooks/useTransakRouting';
 
 export interface V2OtpCodeParams {
   email: string;
@@ -72,21 +71,11 @@ const ResendButton: FC<{
 const V2OtpCode = () => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
-  const { email, stateToken, amount, currency, assetId } =
-    useParams<V2OtpCodeParams>();
+  const { email, stateToken } = useParams<V2OtpCodeParams>();
   const trackEvent = useAnalytics();
 
-  const {
-    setAuthToken,
-    verifyUserOtp,
-    sendUserOtp,
-    isAuthenticated,
-    userRegion,
-  } = useTransakController();
-
-  const { routeAfterAuthentication } = useTransakRouting({
-    walletAddress: null,
-  });
+  const { setAuthToken, verifyUserOtp, sendUserOtp, userRegion } =
+    useTransakController();
 
   const [currentStateToken, setCurrentStateToken] = useState(stateToken);
   const [latestValueSubmitted, setLatestValueSubmitted] = useState<
@@ -213,10 +202,7 @@ const V2OtpCode = () => {
             ? e.message
             : strings('deposit.otp_code.error'),
         );
-        Logger.error(
-          e as Error,
-          'Error submitting OTP code or verifying',
-        );
+        Logger.error(e as Error, 'Error submitting OTP code or verifying');
       } finally {
         setIsLoading(false);
       }

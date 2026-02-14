@@ -20,7 +20,6 @@ import Icon, {
 } from '../../../../../component-library/components/Icons/Icon';
 import Loader from '../../../../../component-library/components-temp/Loader/Loader';
 import BankDetailRow from '../../Deposit/components/BankDetailRow';
-import useThunkDispatch from '../../../../hooks/useThunkDispatch';
 import {
   FiatOrder,
   getOrderById,
@@ -52,7 +51,6 @@ const V2BankDetails = () => {
   const { styles, theme } = useStyles(styleSheet, {});
   const { colors } = useTheme();
   const dispatch = useDispatch();
-  const dispatchThunk = useThunkDispatch();
   const {
     userRegion,
     logoutFromProvider,
@@ -67,9 +65,7 @@ const V2BankDetails = () => {
   const regionIsoCode = userRegion?.country?.isoCode || '';
 
   const { orderId, shouldUpdate = true } = useParams<BankDetailsParams>();
-  const order = useSelector((state: RootState) =>
-    getOrderById(state, orderId),
-  );
+  const order = useSelector((state: RootState) => getOrderById(state, orderId));
 
   const [showBankInfo, setShowBankInfo] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -348,9 +344,7 @@ const V2BankDetails = () => {
 
                 {accountName ? (
                   <BankDetailRow
-                    label={strings(
-                      'deposit.bank_details.account_holder_name',
-                    )}
+                    label={strings('deposit.bank_details.account_holder_name')}
                     value={accountName}
                   />
                 ) : null}
@@ -427,9 +421,7 @@ const V2BankDetails = () => {
                       : strings('deposit.bank_details.show_bank_info')}
                   </Text>
                   <Icon
-                    name={
-                      showBankInfo ? IconName.ArrowUp : IconName.ArrowDown
-                    }
+                    name={showBankInfo ? IconName.ArrowUp : IconName.ArrowDown}
                     size={IconSize.Sm}
                     color={theme.colors.primary.default}
                   />
@@ -470,9 +462,7 @@ const V2BankDetails = () => {
                 style={styles.button}
                 variant={ButtonVariants.Secondary}
                 onPress={handleCancelOrder}
-                label={strings(
-                  'deposit.order_processing.cancel_order_button',
-                )}
+                label={strings('deposit.order_processing.cancel_order_button')}
                 size={ButtonSize.Lg}
                 loading={isLoadingCancelOrder}
                 disabled={isLoadingConfirmPayment}

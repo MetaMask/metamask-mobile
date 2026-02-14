@@ -120,9 +120,7 @@ const V2VerifyIdentity = () => {
               style={styles.linkText}
               onPress={handleTransakTermsLink}
             >
-              {strings(
-                'deposit.verify_identity.agreement_text_transak_terms',
-              )}
+              {strings('deposit.verify_identity.agreement_text_transak_terms')}
             </Text>
             {strings('deposit.verify_identity.agreement_text_and')}
             <Text
@@ -132,9 +130,7 @@ const V2VerifyIdentity = () => {
               onPress={handlePrivacyPolicyLink}
               testID="privacy-policy-link-2"
             >
-              {strings(
-                'deposit.verify_identity.agreement_text_privacy_policy',
-              )}
+              {strings('deposit.verify_identity.agreement_text_privacy_policy')}
             </Text>
             {strings('deposit.verify_identity.agreement_text_part2')}
           </Text>

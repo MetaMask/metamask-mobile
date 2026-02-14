@@ -45,7 +45,12 @@ const Checkout = () => {
   const params = useParams<CheckoutParams>();
   const { styles } = useStyles(styleSheet, {});
 
-  const { url: uri, providerName, userAgent, onNavigationStateChange } = params ?? {};
+  const {
+    url: uri,
+    providerName,
+    userAgent,
+    onNavigationStateChange,
+  } = params ?? {};
   const headerTitle = providerName ?? '';
   const initialUriRef = useRef(uri);
 
