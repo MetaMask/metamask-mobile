@@ -28,6 +28,7 @@ import { useRampsController } from '../../hooks/useRampsController';
 import { createSettingsModalNavDetails } from '../Modals/SettingsModal';
 import useRampAccountAddress from '../../hooks/useRampAccountAddress';
 import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
+import { BuildQuoteSelectors } from '../../Aggregator/Views/BuildQuote/BuildQuote.testIds';
 import { createPaymentSelectionModalNavigationDetails } from '../Modals/PaymentSelectionModal';
 import { createCheckoutNavDetails } from '../Checkout';
 import {
@@ -190,8 +191,6 @@ function BuildQuote() {
   useEffect(() => {
     if (
       !isOnBuildQuoteScreen ||
-      !selectedToken ||
-      !selectedProvider ||
       !walletAddress ||
       !selectedPaymentMethod ||
       debouncedPollingAmount <= 0
@@ -220,8 +219,6 @@ function BuildQuote() {
     startQuotePolling,
     stopQuotePolling,
     isOnBuildQuoteScreen,
-    selectedToken,
-    selectedProvider,
   ]);
 
   const handleContinuePress = useCallback(async () => {
@@ -371,6 +368,7 @@ function BuildQuote() {
           <View style={styles.centerGroup}>
             <View style={styles.amountContainer}>
               <Text
+                testID={BuildQuoteSelectors.AMOUNT_INPUT}
                 variant={TextVariant.HeadingLG}
                 style={styles.mainAmount}
                 numberOfLines={1}
@@ -407,7 +405,7 @@ function BuildQuote() {
                 isFullWidth
                 isDisabled={!canContinue}
                 isLoading={quotesLoading || isContinueLoading}
-                testID="build-quote-continue-button"
+                testID={BuildQuoteSelectors.CONTINUE_BUTTON}
               >
                 {strings('fiat_on_ramp.continue')}
               </Button>

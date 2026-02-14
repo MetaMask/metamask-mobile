@@ -8,19 +8,12 @@ import Logger from '../../../../util/Logger';
 import { useAppThemeFromContext } from '../../../../util/theme';
 import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
 import { PREDICT_CONSTANTS } from '../constants/errors';
-import { POLYMARKET_PROVIDER_ID } from '../providers/polymarket/constants';
 import { ensureError } from '../utils/predictErrorHandler';
 import { usePredictTrading } from './usePredictTrading';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
 import Routes from '../../../../constants/navigation/Routes';
 
-interface UsePredictClaimParams {
-  providerId?: string;
-}
-
-export const usePredictClaim = ({
-  providerId = POLYMARKET_PROVIDER_ID,
-}: UsePredictClaimParams = {}) => {
+export const usePredictClaim = () => {
   const { navigateToConfirmation } = useConfirmNavigation();
   const { claim: claimWinnings } = usePredictTrading();
   const theme = useAppThemeFromContext();
@@ -35,7 +28,7 @@ export const usePredictClaim = ({
         // TODO: remove once navigation stack is fixed properly
         stack: Routes.PREDICT.ROOT,
       });
-      await claimWinnings({ providerId });
+      await claimWinnings({});
     } catch (err) {
       // Log error with claim context
       Logger.error(ensureError(err), {
@@ -49,7 +42,6 @@ export const usePredictClaim = ({
             method: 'claim',
             action: 'claim_winnings',
             operation: 'position_management',
-            providerId,
           },
         },
       });
@@ -83,7 +75,6 @@ export const usePredictClaim = ({
     claimWinnings,
     navigateToConfirmation,
     navigation,
-    providerId,
     theme.colors.accent04.normal,
     theme.colors.error.default,
     toastRef,

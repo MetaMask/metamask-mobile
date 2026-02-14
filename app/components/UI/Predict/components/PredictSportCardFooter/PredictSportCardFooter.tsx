@@ -61,13 +61,10 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
   });
 
   const { executeGuardedAction } = usePredictActionGuard({
-    providerId: market.providerId,
     navigation,
   });
 
-  const { claim } = usePredictClaim({
-    providerId: market.providerId,
-  });
+  const { claim } = usePredictClaim();
 
   const outcome = market.outcomes?.[0];
   const isMarketOpen =

@@ -11,11 +11,11 @@ export type TestResultStatus =
 /**
  * Test result data structure
  */
-export interface TestResult {
+export type TestResult = {
   status: TestResultStatus;
   message: string;
   data?: Record<string, unknown>;
-}
+};
 
 /**
  * SDK test types
@@ -25,22 +25,22 @@ export type SDKTestType = 'connection' | 'asset-listing' | 'websocket';
 /**
  * Hyperliquid asset interface (basic structure)
  */
-export interface HyperliquidAsset {
+export type HyperliquidAsset = {
   name: string;
   [key: string]: unknown;
-}
+};
 
 /**
  * Represents a single candlestick data point
  */
-export interface CandleStick {
+export type CandleStick = {
   time: number;
   open: string;
   high: string;
   low: string;
   close: string;
   volume: string;
-}
+};
 
 import { CandlePeriod } from '../constants/chartConfig';
 import { OrderType } from './index';
@@ -48,12 +48,12 @@ import { OrderType } from './index';
 /**
  * Represents historical candlestick data for a specific symbol and interval
  */
-export interface CandleData {
+export type CandleData = {
   /** Asset identifier (e.g., 'BTC', 'ETH'). Protocol-agnostic terminology for multi-provider support. */
   symbol: string;
   interval: CandlePeriod;
   candles: CandleStick[];
-}
+};
 
 // Export all configuration types directly
 export * from './config';
@@ -62,7 +62,7 @@ export * from './token';
 /**
  * Order form state for the Perps order view
  */
-export interface OrderFormState {
+export type OrderFormState = {
   asset: string;
   direction: 'long' | 'short';
   amount: string;
@@ -72,14 +72,14 @@ export interface OrderFormState {
   stopLossPrice?: string;
   limitPrice?: string;
   type: OrderType;
-}
+};
 
 export type OrderDirection = 'long' | 'short';
 
 /**
  * Options for reconnecting the Perps connection
  */
-export interface ReconnectOptions {
+export type ReconnectOptions = {
   /**
    * If true, forces immediate disconnect and cancels all pending operations.
    * Use for user-initiated retry actions.
@@ -87,14 +87,14 @@ export interface ReconnectOptions {
    * Use for automatic reconnections like account switches.
    */
   force?: boolean;
-}
+};
 
 /**
  * Extended asset metadata including Growth Mode fields not in SDK types.
  * The HyperLiquid API returns these fields but the SDK doesn't type them.
  * @see https://hyperliquid.gitbook.io/hyperliquid-docs/trading/fees#fee-formula-for-developers
  */
-export interface ExtendedAssetMeta {
+export type ExtendedAssetMeta = {
   name: string;
   szDecimals: number;
   maxLeverage: number;
@@ -102,14 +102,14 @@ export interface ExtendedAssetMeta {
   growthMode?: 'enabled' | null;
   /** ISO timestamp of last Growth Mode change */
   lastGrowthModeChangeTime?: string;
-}
+};
 
 /**
  * Extended perp DEX info including fee scale fields not in SDK types.
  * The HyperLiquid API returns these fields but the SDK doesn't type them.
  * @see https://hyperliquid.gitbook.io/hyperliquid-docs/trading/fees#fee-formula-for-developers
  */
-export interface ExtendedPerpDex {
+export type ExtendedPerpDex = {
   name: string;
   fullName?: string;
   deployer?: string;
@@ -117,4 +117,4 @@ export interface ExtendedPerpDex {
   deployerFeeScale?: string;
   /** ISO timestamp of last fee scale change */
   lastDeployerFeeScaleChangeTime?: string;
-}
+};

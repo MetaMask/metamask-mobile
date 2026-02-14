@@ -18,9 +18,9 @@ import { adaptAccountStateFromSDK } from '../utils/hyperLiquidAdapter';
 import { createMockInfrastructure } from '../../../components/UI/Perps/__mocks__/serviceMocks';
 
 // Mock HyperLiquid SDK types
-interface MockSubscription {
+type MockSubscription = {
   unsubscribe: jest.Mock;
-}
+};
 
 // Mock adapter
 jest.mock('../utils/hyperLiquidAdapter', () => ({

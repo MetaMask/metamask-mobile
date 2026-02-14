@@ -130,6 +130,18 @@ import type { Json } from '@metamask/utils';
 import { wait } from './utils/wait';
 import { getSelectedEvmAccount } from './utils/accountUtils';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
+// PaymentToken: minimal interface for deposit flow (replaces mobile-only AssetType)
+
+/**
+ * Minimal payment token stored in PerpsController state.
+ * Only required fields for identification, Perps balance detection, and analytics.
+ */
+export type SelectedPaymentTokenSnapshot = {
+  description?: string;
+  address: string;
+  chainId: string;
+  symbol?: string;
+};
 
 // Re-export error codes from separate file to avoid circular dependencies
 export { PERPS_ERROR_CODES, type PerpsErrorCode } from './perpsErrorCodes';
@@ -147,7 +159,6 @@ export enum InitializationState {
 /**
  * State shape for PerpsController
  */
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type PerpsControllerState = {
   // Active provider
   activeProvider: PerpsActiveProviderMode;
@@ -694,7 +705,7 @@ export type PerpsControllerMessenger = Messenger<
 /**
  * PerpsController options
  */
-export interface PerpsControllerOptions {
+export type PerpsControllerOptions = {
   messenger: PerpsControllerMessenger;
   state?: Partial<PerpsControllerState>;
   clientConfig?: PerpsControllerConfig;
@@ -704,12 +715,12 @@ export interface PerpsControllerOptions {
    * Must be provided by the platform (mobile/extension) at instantiation time.
    */
   infrastructure: PerpsPlatformDependencies;
-}
+};
 
-interface BlockedRegionList {
+type BlockedRegionList = {
   list: string[];
   source: 'remote' | 'fallback';
-}
+};
 
 /**
  * PerpsController - Protocol-agnostic perpetuals trading controller
@@ -3189,7 +3200,7 @@ export class PerpsController extends BaseController<
   /**
    * Set the selected payment token for the Perps order/deposit flow.
    * Pass null or a token with description PERPS_CONSTANTS.PerpsBalanceTokenDescription to select Perps balance.
-   * Only required fields (address, chainId) are stored; description is optional.
+   * Only required fields (address, chainId) are stored in state; description and symbol are optional.
    */
   setSelectedPaymentToken(token: PerpsSelectedPaymentToken | null): void {
     let normalized: PerpsSelectedPaymentToken | null = null;
@@ -3200,6 +3211,30 @@ export class PerpsController extends BaseController<
       normalized = token;
     }
 
+    const current = this.state.selectedPaymentToken as
+      | SelectedPaymentTokenSnapshot
+      | null
+      | undefined;
+    const initialPaymentMethod =
+      current == null ||
+      current?.description === PERPS_CONSTANTS.PerpsBalanceTokenDescription
+        ? 'perps_balance'
+        : (current?.symbol ?? 'unknown');
+    const newPaymentMethod =
+      token == null ||
+      token.description === PERPS_CONSTANTS.PerpsBalanceTokenDescription
+        ? 'perps_balance'
+        : (token.symbol ?? 'unknown');
+
+    if (initialPaymentMethod !== newPaymentMethod) {
+      this.getMetrics().trackPerpsEvent(PerpsAnalyticsEvent.UiInteraction, {
+        [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+          PERPS_EVENT_VALUE.INTERACTION_TYPE.PAYMENT_METHOD_CHANGED,
+        [PERPS_EVENT_PROPERTY.INITIAL_PAYMENT_METHOD]: initialPaymentMethod,
+        [PERPS_EVENT_PROPERTY.NEW_PAYMENT_METHOD]: newPaymentMethod,
+      });
+    }
+
     let snapshot: Json | null = null;
     if (normalized !== null) {
       snapshot = {
@@ -3208,6 +3243,7 @@ export class PerpsController extends BaseController<
         }),
         address: normalized.address,
         chainId: normalized.chainId,
+        symbol: normalized.symbol,
       } as unknown as Json;
     }
 

@@ -45,6 +45,7 @@ import {
   DeFiPositionsControllerState,
   DeFiPositionsControllerEvents,
   DeFiPositionsControllerActions,
+
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   MultichainBalancesControllerState,
   MultichainBalancesController,
@@ -67,6 +68,12 @@ import {
   TokenDetectionControllerActions,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/assets-controllers';
+import {
+  AssetsController,
+  AssetsControllerActions,
+  AssetsControllerEvents,
+  AssetsControllerState,
+} from '@metamask/assets-controller';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import {
   MultichainTransactionsController,
@@ -448,6 +455,7 @@ type GlobalActions =
   | SamplePetnamesControllerActions
   ///: END:ONLY_INCLUDE_IF
   | AccountTrackerControllerActions
+  | AssetsControllerActions
   | NftControllerActions
   | SwapsControllerActions
   | AddressBookControllerActions
@@ -525,6 +533,7 @@ type GlobalEvents =
   | SamplePetnamesControllerEvents
   ///: END:ONLY_INCLUDE_IF
   | AccountTrackerControllerEvents
+  | AssetsControllerEvents
   | NftControllerEvents
   | SwapsControllerEvents
   | AddressBookControllerEvents
@@ -639,6 +648,7 @@ export type Controllers = {
   ConnectivityController: ConnectivityController;
   ApprovalController: ApprovalController;
   AssetsContractController: AssetsContractController;
+  AssetsController: AssetsController;
   CurrencyRateController: CurrencyRateController;
   ErrorReportingService: ErrorReportingService;
   GasFeeController: GasFeeController;
@@ -726,6 +736,7 @@ export type EngineContext = RequiredControllers & Partial<OptionalControllers>;
 export type EngineState = {
   AccountTrackerController: AccountTrackerControllerState;
   AddressBookController: AddressBookControllerState;
+  AssetsController: AssetsControllerState;
   AppMetadataController: AppMetadataControllerState;
   ConnectivityController: ConnectivityControllerState;
   NftController: NftControllerState;
@@ -821,6 +832,7 @@ export type ControllersToInitialize =
   | 'AccountTrackerController'
   | 'AddressBookController'
   | 'AssetsContractController'
+  | 'AssetsController'
   | 'ConnectivityController'
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   | 'AuthenticationController'

@@ -34,9 +34,9 @@ import {
  * Controller-level dependencies for TradingService.
  * These are singletons that don't change per-call, injected once via setControllerDependencies().
  */
-export interface TradingServiceControllerDeps {
+export type TradingServiceControllerDeps = {
   rewardsIntegrationService: RewardsIntegrationService;
-}
+};
 
 /**
  * TradingService
@@ -147,6 +147,19 @@ export class TradingService {
     }
     if (params.trackingData?.tradeAction) {
       properties[PERPS_EVENT_PROPERTY.ACTION] = params.trackingData.tradeAction;
+    }
+    // Pay with any token: trade_with_token (boolean); when true, include mm_pay_token_selected and mm_pay_network_selected
+    properties[PERPS_EVENT_PROPERTY.TRADE_WITH_TOKEN] =
+      params.trackingData?.tradeWithToken === true;
+    if (params.trackingData?.tradeWithToken === true) {
+      if (params.trackingData.mmPayTokenSelected != null) {
+        properties[PERPS_EVENT_PROPERTY.MM_PAY_TOKEN_SELECTED] =
+          params.trackingData.mmPayTokenSelected;
+      }
+      if (params.trackingData.mmPayNetworkSelected != null) {
+        properties[PERPS_EVENT_PROPERTY.MM_PAY_NETWORK_SELECTED] =
+          params.trackingData.mmPayNetworkSelected;
+      }
     }
 
     // Add success-specific properties
