@@ -340,6 +340,7 @@ export class HyperLiquidProvider implements PerpsProvider {
     useDexAbstraction?: boolean;
     platformDependencies: PerpsPlatformDependencies;
     messenger: PerpsControllerMessenger;
+    initialAssetMapping?: [string, number][];
   }) {
     this.#deps = options.platformDependencies;
     const isTestnet = options.isTestnet ?? false;
@@ -383,6 +384,13 @@ export class HyperLiquidProvider implements PerpsProvider {
       this.#blocklistMarkets,
       'blocklist',
     );
+
+    // Populate initial asset mapping if provided (used for DI in tests)
+    if (options.initialAssetMapping) {
+      for (const [symbol, assetId] of options.initialAssetMapping) {
+        this.#symbolToAssetId.set(symbol, assetId);
+      }
+    }
 
     // Debug: Confirm batch methods exist and show HIP-3 config
     this.#deps.debugLogger.log('[HyperLiquidProvider] Constructor complete', {

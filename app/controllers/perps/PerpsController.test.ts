@@ -717,9 +717,7 @@ describe('PerpsController', () => {
     it('returns null during reinitialization', () => {
       markControllerAsInitialized();
       controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
-      (
-        controller as unknown as { isReinitializing: boolean }
-      ).isReinitializing = true;
+      jest.spyOn(controller, 'isCurrentlyReinitializing').mockReturnValue(true);
 
       const result = controller.getActiveProviderOrNull();
 
@@ -3205,7 +3203,7 @@ describe('PerpsController', () => {
   describe('toggleTestnet', () => {
     it('returns error when already reinitializing', async () => {
       await controller.init();
-      (controller as any).isReinitializing = true;
+      jest.spyOn(controller, 'isCurrentlyReinitializing').mockReturnValue(true);
 
       const result = await controller.toggleTestnet();
 
@@ -4039,7 +4037,7 @@ describe('PerpsController', () => {
       providers.set('myx', mockMYXProvider as any);
       controller.testSetProviders(providers);
 
-      (controller as any).isReinitializing = true;
+      jest.spyOn(controller, 'isCurrentlyReinitializing').mockReturnValue(true);
 
       const result = await controller.switchProvider('myx');
 
@@ -4157,7 +4155,7 @@ describe('PerpsController', () => {
 
       await controller.switchProvider('myx');
 
-      expect((controller as any).isReinitializing).toBe(false);
+      expect(controller.isCurrentlyReinitializing()).toBe(false);
     });
 
     it('clears isReinitializing flag after failure', async () => {
@@ -4180,7 +4178,7 @@ describe('PerpsController', () => {
 
       await controller.switchProvider('myx');
 
-      expect((controller as any).isReinitializing).toBe(false);
+      expect(controller.isCurrentlyReinitializing()).toBe(false);
 
       jest.restoreAllMocks();
     });

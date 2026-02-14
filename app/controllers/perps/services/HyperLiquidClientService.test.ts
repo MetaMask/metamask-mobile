@@ -732,8 +732,10 @@ describe('HyperLiquidClientService', () => {
       // Arrange
       const serviceWithNoSubClient = new HyperLiquidClientService(mockDeps);
       await serviceWithNoSubClient.initialize(mockWallet);
-      // Force subscription client to be undefined
-      (serviceWithNoSubClient as any).subscriptionClient = undefined;
+      // Mock public getter to return undefined
+      jest
+        .spyOn(serviceWithNoSubClient, 'getSubscriptionClient')
+        .mockReturnValue(undefined);
 
       // Act & Assert
       expect(() =>
@@ -742,7 +744,7 @@ describe('HyperLiquidClientService', () => {
           interval: '1h' as ValidCandleInterval,
           callback: jest.fn(),
         }),
-      ).toThrow('CLIENT_NOT_INITIALIZED');
+      ).toThrow('SUBSCRIPTION_CLIENT_NOT_AVAILABLE');
     });
 
     it('fetches historical data and setup WebSocket subscription', async () => {

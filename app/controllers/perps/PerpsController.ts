@@ -1485,7 +1485,7 @@ export class PerpsController extends BaseController<
    */
   getActiveProvider(): PerpsProvider {
     // Check if we're in the middle of reinitializing
-    if (this.#isReinitializing) {
+    if (this.isCurrentlyReinitializing()) {
       this.update((state) => {
         state.lastError = PERPS_ERROR_CODES.CLIENT_REINITIALIZING;
         state.lastUpdateTimestamp = Date.now();
@@ -1531,7 +1531,7 @@ export class PerpsController extends BaseController<
    */
   getActiveProviderOrNull(): PerpsProvider | null {
     // Return null during reinitialization
-    if (this.#isReinitializing) {
+    if (this.isCurrentlyReinitializing()) {
       return null;
     }
 
@@ -2448,7 +2448,7 @@ export class PerpsController extends BaseController<
    */
   async toggleTestnet(): Promise<ToggleTestnetResult> {
     // Prevent concurrent reinitializations
-    if (this.#isReinitializing) {
+    if (this.isCurrentlyReinitializing()) {
       this.#debugLog(
         'PerpsController: Already reinitializing, skipping toggle',
         {
@@ -2532,7 +2532,7 @@ export class PerpsController extends BaseController<
     }
 
     // Prevent concurrent switches
-    if (this.#isReinitializing) {
+    if (this.isCurrentlyReinitializing()) {
       return {
         success: false,
         providerId: this.state.activeProvider,
@@ -2980,7 +2980,7 @@ export class PerpsController extends BaseController<
     );
 
     // Only disconnect the provider if we're initialized
-    if (this.isInitialized && !this.#isReinitializing) {
+    if (this.isInitialized && !this.isCurrentlyReinitializing()) {
       try {
         const provider = this.getActiveProvider();
         await provider.disconnect();
