@@ -9596,14 +9596,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/ramps-controller@npm:^8.0.0":
-  version: 8.0.0
-  resolution: "@metamask/ramps-controller@npm:8.0.0"
+"@metamask/ramps-controller@npm:@metamask-previews/ramps-controller@8.0.0-preview-eb9a46682":
+  version: 8.0.0-preview-eb9a46682
+  resolution: "@metamask-previews/ramps-controller@npm:8.0.0-preview-eb9a46682"
   dependencies:
     "@metamask/base-controller": "npm:^9.0.0"
     "@metamask/controller-utils": "npm:^11.18.0"
     "@metamask/messenger": "npm:^0.3.0"
-  checksum: 10/fd016f8d51c835a120da2bd62816dc11f0ab670f1559b17d7bf280842b66c4d6b238a1efa16ce786eedf5876bb275d512a3cba7cdb740ac1ea8620139070ba6b
+  checksum: 10/aad93785c5732b2b434513f42596ce65c4bc76a64efa13ff20aa5112b8b65d94bc92519640f0aa6a496008b20188e6dfee68e3dc543f62991972def2b26d9ae2
   languageName: node
   linkType: hard
 
