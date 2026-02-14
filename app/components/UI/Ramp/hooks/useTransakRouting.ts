@@ -2,11 +2,10 @@ import { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
-import type {
-  TransakBuyQuote,
+import {
+  type TransakBuyQuote,
+  TransakOrderIdTransformer,
 } from '@metamask/ramps-controller';
-import { TransakOrderIdTransformer, TransakEnvironment } from '@metamask/ramps-controller';
-
 import { REDIRECTION_URL } from '../Deposit/constants';
 import { depositOrderToFiatOrder } from '../Deposit/orderProcessor';
 import useHandleNewOrder from '../Deposit/hooks/useHandleNewOrder';
@@ -33,7 +32,6 @@ interface UseTransakRoutingConfig {
 }
 
 export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
-  console.log('RAMPS: useTransakRouting 1', config);
   const navigation = useNavigation();
   const handleNewOrder = useHandleNewOrder();
   const { themeAppearance, colors } = useTheme();
@@ -126,7 +124,10 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
 
   const navigateToVerifyIdentityCallback = useCallback(
     ({ quote }: { quote: TransakBuyQuote }) => {
-      navigation.navigate(Routes.RAMP.VERIFY_IDENTITY as never, { quote } as never);
+      navigation.navigate(
+        Routes.RAMP.VERIFY_IDENTITY as never,
+        { quote } as never,
+      );
     },
     [navigation],
   );
@@ -139,7 +140,10 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
       quote: TransakBuyQuote;
       previousFormData?: BasicInfoFormData & AddressFormData;
     }) => {
-      navigation.navigate(Routes.RAMP.BASIC_INFO as never, { quote, previousFormData } as never);
+      navigation.navigate(
+        Routes.RAMP.BASIC_INFO as never,
+        { quote, previousFormData } as never,
+      );
     },
     [navigation],
   );
@@ -154,7 +158,12 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
     }) => {
       navigation.reset({
         index: 0,
-        routes: [{ name: Routes.RAMP.BANK_DETAILS as never, params: { orderId, shouldUpdate } as never }],
+        routes: [
+          {
+            name: Routes.RAMP.BANK_DETAILS as never,
+            params: { orderId, shouldUpdate } as never,
+          },
+        ],
       });
     },
     [navigation],
@@ -162,7 +171,10 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
 
   const navigateToOrderProcessingCallback = useCallback(
     ({ orderId }: { orderId: string }) => {
-      navigation.navigate(Routes.RAMP.ORDER_PROCESSING as never, { orderId } as never);
+      navigation.navigate(
+        Routes.RAMP.ORDER_PROCESSING as never,
+        { orderId } as never,
+      );
     },
     [navigation],
   );
@@ -177,11 +189,14 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
       kycUrl: string;
       workFlowRunId: string;
     }) => {
-      navigation.navigate(Routes.RAMP.ADDITIONAL_VERIFICATION as never, {
-        quote,
-        kycUrl,
-        workFlowRunId,
-      } as never);
+      navigation.navigate(
+        Routes.RAMP.ADDITIONAL_VERIFICATION as never,
+        {
+          quote,
+          kycUrl,
+          workFlowRunId,
+        } as never,
+      );
     },
     [navigation],
   );
@@ -205,10 +220,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
                 orderId: transformedOrderId,
               });
 
-              const order = await getOrder(
-                orderId,
-                walletAddress || '',
-              );
+              const order = await getOrder(orderId, walletAddress || '');
 
               if (!order) {
                 throw new Error('Missing order');
@@ -278,7 +290,10 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
 
   const navigateToKycProcessingCallback = useCallback(
     ({ quote }: { quote: TransakBuyQuote }) => {
-      navigation.navigate(Routes.RAMP.KYC_PROCESSING as never, { quote } as never);
+      navigation.navigate(
+        Routes.RAMP.KYC_PROCESSING as never,
+        { quote } as never,
+      );
     },
     [navigation],
   );
@@ -317,22 +332,19 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
           postCode: userDetails?.address?.postCode || '',
           countryCode: userDetails?.address?.countryCode || '',
         };
-        console.log('RAMPS: routeAfterAuthentication 3', previousFormData);
         const requirements = await getKycRequirement(quote.quoteId);
-        
+
         if (!requirements) {
           throw new Error('Missing KYC requirements');
         }
 
         switch (requirements.status) {
           case 'APPROVED': {
-            console.log('RAMPS: routeAfterAuthentication 4', requirements.status);
             try {
               if (!userDetails) {
                 throw new Error('Missing user details');
               }
-              
-              console.log('RAMPS: routeAfterAuthentication 5', quote, requirements.kycType);
+
               await checkUserLimits(quote, requirements.kycType);
 
               if (selectedPaymentMethod?.isManualBankTransfer) {
@@ -341,7 +353,6 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
                   walletAddress || '',
                   selectedPaymentMethod.id,
                 );
-                console.log('RAMPS: routeAfterAuthentication 6', order);
                 if (!order) {
                   throw new Error('Missing order');
                 }
@@ -393,7 +404,6 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
               kyc_type: requirements.kycType || '',
               region: regionIsoCode,
             });
-            console.log('RAMPS: routeAfterAuthentication 7', requirements.kycType, regionIsoCode);
 
             navigateToBasicInfoCallback({ quote, previousFormData });
             return;
@@ -422,9 +432,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
               return;
             }
 
-            const idProofForm = formsRequired.find(
-              (f) => f.type === 'IDPROOF',
-            );
+            const idProofForm = formsRequired.find((f) => f.type === 'IDPROOF');
 
             if (idProofForm) {
               const { metadata } = idProofForm;

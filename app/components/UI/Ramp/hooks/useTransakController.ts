@@ -29,8 +29,10 @@ import type {
   TransakState,
   PatchUserRequestBody as TransakPatchUserRequestBody,
   TransakOrder,
-} from '@metamask/ramps-controller';
-import type { UserRegion, PaymentMethod, ResourceState } from '@metamask/ramps-controller';
+
+  UserRegion,
+  PaymentMethod,
+  ResourceState} from '@metamask/ramps-controller';
 
 export interface UseTransakControllerResult {
   transak: TransakState;
@@ -120,8 +122,10 @@ function getRampsController() {
 export function useTransakController(): UseTransakControllerResult {
   const transakState = useSelector(selectTransak);
   const userRegion = useSelector(selectUserRegion);
-  const paymentMethodsResource: ResourceState<PaymentMethod[], PaymentMethod | null> =
-    useSelector(selectPaymentMethods);
+  const paymentMethodsResource: ResourceState<
+    PaymentMethod[],
+    PaymentMethod | null
+  > = useSelector(selectPaymentMethods);
   const providerApiKey = useSelector(selectDepositProviderApiKey);
 
   const apiKeySetRef = useRef(false);
@@ -211,9 +215,7 @@ export function useTransakController(): UseTransakControllerResult {
     [],
   );
 
-  const getUserDetails = useCallback(async () => {
-    return getRampsController().transakGetUserDetails();
-  }, []);
+  const getUserDetails = useCallback(async () => getRampsController().transakGetUserDetails(), []);
 
   const getBuyQuote = useCallback(
     async (
@@ -222,46 +224,26 @@ export function useTransakController(): UseTransakControllerResult {
       network: string,
       paymentMethod: string,
       fiatAmount: string,
-    ) => {
-      console.log('RAMPS: useTransakController.getBuyQuote called', {
-        fiatCurrency,
-        cryptoCurrency,
-        network,
-        paymentMethod,
-        paymentMethodType: typeof paymentMethod,
-        fiatAmount,
-      });
-      return getRampsController().transakGetBuyQuote(
+    ) => getRampsController().transakGetBuyQuote(
         fiatCurrency,
         cryptoCurrency,
         network,
         paymentMethod,
         fiatAmount,
-      );
-    },
+      ),
     [],
   );
 
-  const getKycRequirement = useCallback(async (quoteId: string) => {
-    return getRampsController().transakGetKycRequirement(quoteId);
-  }, []);
+  const getKycRequirement = useCallback(async (quoteId: string) => getRampsController().transakGetKycRequirement(quoteId), []);
 
-  const getAdditionalRequirements = useCallback(async (quoteId: string) => {
-    return getRampsController().transakGetAdditionalRequirements(quoteId);
-  }, []);
+  const getAdditionalRequirements = useCallback(async (quoteId: string) => getRampsController().transakGetAdditionalRequirements(quoteId), []);
 
   const createOrder = useCallback(
-    async (
-      quoteId: string,
-      walletAddress: string,
-      paymentMethodId: string,
-    ) => {
-      return getRampsController().transakCreateOrder(
+    async (quoteId: string, walletAddress: string, paymentMethodId: string) => getRampsController().transakCreateOrder(
         quoteId,
         walletAddress,
         paymentMethodId,
-      );
-    },
+      ),
     [],
   );
 
@@ -270,30 +252,24 @@ export function useTransakController(): UseTransakControllerResult {
       orderId: string,
       wallet: string,
       paymentDetails?: TransakOrderPaymentMethod[],
-    ) => {
-      return getRampsController().transakGetOrder(
+    ) => getRampsController().transakGetOrder(
         orderId,
         wallet,
         paymentDetails,
-      );
-    },
+      ),
     [],
   );
 
   const getUserLimits = useCallback(
-    async (fiatCurrency: string, paymentMethod: string, kycType: string) => {
-      return getRampsController().transakGetUserLimits(
+    async (fiatCurrency: string, paymentMethod: string, kycType: string) => getRampsController().transakGetUserLimits(
         fiatCurrency,
         paymentMethod,
         kycType,
-      );
-    },
+      ),
     [],
   );
 
-  const requestOtt = useCallback(async () => {
-    return getRampsController().transakRequestOtt();
-  }, []);
+  const requestOtt = useCallback(async () => getRampsController().transakRequestOtt(), []);
 
   const generatePaymentWidgetUrl = useCallback(
     (
@@ -301,67 +277,41 @@ export function useTransakController(): UseTransakControllerResult {
       quote: TransakBuyQuote,
       walletAddress: string,
       extraParams?: Record<string, string>,
-    ) => {
-      return getRampsController().transakGeneratePaymentWidgetUrl(
+    ) => getRampsController().transakGeneratePaymentWidgetUrl(
         ottToken,
         quote,
         walletAddress,
         extraParams,
-      );
-    },
+      ),
     [],
   );
 
-  const submitPurposeOfUsageForm = useCallback(
-    async (purpose: string[]) => {
-      return getRampsController().transakSubmitPurposeOfUsageForm(purpose);
-    },
-    [],
-  );
+  const submitPurposeOfUsageForm = useCallback(async (purpose: string[]) => getRampsController().transakSubmitPurposeOfUsageForm(purpose), []);
 
-  const patchUser = useCallback(
-    async (data: TransakPatchUserRequestBody) => {
-      return getRampsController().transakPatchUser(data);
-    },
-    [],
-  );
+  const patchUser = useCallback(async (data: TransakPatchUserRequestBody) => getRampsController().transakPatchUser(data), []);
 
-  const submitSsnDetails = useCallback(
-    async (ssn: string, quoteId: string) => {
-      return getRampsController().transakSubmitSsnDetails(ssn, quoteId);
-    },
-    [],
-  );
+  const submitSsnDetails = useCallback(async (ssn: string, quoteId: string) => getRampsController().transakSubmitSsnDetails(ssn, quoteId), []);
 
   const confirmPayment = useCallback(
-    async (orderId: string, paymentMethodId: string) => {
-      return getRampsController().transakConfirmPayment(orderId, paymentMethodId);
-    },
+    async (orderId: string, paymentMethodId: string) => getRampsController().transakConfirmPayment(
+        orderId,
+        paymentMethodId,
+      ),
     [],
   );
 
   const getTranslation = useCallback(
-    async (request: TransakTranslationRequest) => {
-      return getRampsController().transakGetTranslation(request);
-    },
+    async (request: TransakTranslationRequest) => getRampsController().transakGetTranslation(request),
     [],
   );
 
-  const getIdProofStatus = useCallback(async (workFlowRunId: string) => {
-    return getRampsController().transakGetIdProofStatus(workFlowRunId);
-  }, []);
+  const getIdProofStatus = useCallback(async (workFlowRunId: string) => getRampsController().transakGetIdProofStatus(workFlowRunId), []);
 
-  const cancelOrder = useCallback(async (depositOrderId: string) => {
-    return getRampsController().transakCancelOrder(depositOrderId);
-  }, []);
+  const cancelOrder = useCallback(async (depositOrderId: string) => getRampsController().transakCancelOrder(depositOrderId), []);
 
-  const cancelAllActiveOrders = useCallback(async () => {
-    return getRampsController().transakCancelAllActiveOrders();
-  }, []);
+  const cancelAllActiveOrders = useCallback(async () => getRampsController().transakCancelAllActiveOrders(), []);
 
-  const getActiveOrders = useCallback(async () => {
-    return getRampsController().transakGetActiveOrders();
-  }, []);
+  const getActiveOrders = useCallback(async () => getRampsController().transakGetActiveOrders(), []);
 
   return {
     transak: transakState,

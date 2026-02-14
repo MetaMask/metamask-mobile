@@ -17,6 +17,7 @@ import { useForm } from '../../Deposit/hooks/useForm';
 import DepositProgressBar from '../../Deposit/components/DepositProgressBar';
 import DepositDateField from '../../Deposit/components/DepositDateField';
 import { VALIDATION_REGEX } from '../../Deposit/constants/constants';
+import { formatNumberToTemplate } from '../../Deposit/components/DepositPhoneField/formatNumberToTemplate';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -74,10 +75,7 @@ const V2BasicInfo = (): JSX.Element => {
   const timestamp = utcDateToPrefill.getTime();
   const localTimestampToUseInternally = isNaN(timestamp)
     ? ''
-    : (
-        timestamp +
-        utcDateToPrefill.getTimezoneOffset() * 60 * 1000
-      ).toString();
+    : (timestamp + utcDateToPrefill.getTimezoneOffset() * 60 * 1000).toString();
 
   const initialFormData: BasicInfoFormData = {
     firstName: previousFormData?.firstName || '',
@@ -184,14 +182,19 @@ const V2BasicInfo = (): JSX.Element => {
         await submitSsnDetails(ssn, quote.quoteId);
       }
 
-      navigation.navigate(Routes.RAMP.ENTER_ADDRESS as never, {
-        previousFormData,
-        quote,
-      } as never);
+      navigation.navigate(
+        Routes.RAMP.ENTER_ADDRESS as never,
+        {
+          previousFormData,
+          quote,
+        } as never,
+      );
     } catch (submissionError) {
       const apiError = (
         submissionError as {
-          response?: { data?: { error?: { errorCode?: number; message?: string } } };
+          response?: {
+            data?: { error?: { errorCode?: number; message?: string } };
+          };
         }
       )?.response?.data?.error;
 
@@ -205,9 +208,7 @@ const V2BasicInfo = (): JSX.Element => {
 
       let errorMessage = errorMessageText;
       if (isPhoneError && errorMessageText) {
-        const emailMatch = errorMessageText.match(
-          /[\w*]+@[\w*]+(?:\.[\w*]+)*/,
-        );
+        const emailMatch = errorMessageText.match(/[\w*]+@[\w*]+(?:\.[\w*]+)*/);
         const email = emailMatch ? emailMatch[0] : '';
         if (email) {
           errorMessage = strings(
@@ -274,6 +275,30 @@ const V2BasicInfo = (): JSX.Element => {
   );
 
   const phonePrefix = userRegion?.country?.phone?.prefix ?? '';
+  const phoneTemplate =
+    userRegion?.country?.phone?.template ?? '(XXX) XXX-XXXX';
+
+  const rawPhoneDigits = phonePrefix
+    ? formData.mobileNumber
+        .replace(/\D/g, '')
+        .replace(new RegExp(`^${phonePrefix.replace(/\D/g, '')}`), '')
+    : formData.mobileNumber.replace(/\D/g, '');
+  const formattedPhoneValue = formatNumberToTemplate(
+    rawPhoneDigits,
+    phoneTemplate,
+  );
+
+  const handlePhoneChange = useCallback(
+    (text: string) => {
+      const digits = text.replace(/\D/g, '');
+      const fullNumber = phonePrefix ? phonePrefix + digits : digits;
+      handleFieldChange(
+        'mobileNumber',
+        focusNextField(dateInputRef),
+      )(fullNumber);
+    },
+    [phonePrefix, handleFieldChange, focusNextField, dateInputRef],
+  );
 
   return (
     <ScreenLayout>
@@ -299,9 +324,7 @@ const V2BasicInfo = (): JSX.Element => {
                     isPhoneRegisteredError
                       ? {
                           variant: ButtonVariants.Link,
-                          label: strings(
-                            'deposit.basic_info.login_with_email',
-                          ),
+                          label: strings('deposit.basic_info.login_with_email'),
                           onPress: handleLogout,
                           labelTextVariant: TextVariant.BodyMD,
                           testID: 'basic-info-logout-button',
@@ -354,15 +377,11 @@ const V2BasicInfo = (): JSX.Element => {
             <DepositTextField
               label={strings('deposit.basic_info.phone_number')}
               placeholder={
-                phonePrefix
-                  ? `${phonePrefix} (XXX) XXX-XXXX`
-                  : strings('deposit.basic_info.enter_phone_number')
+                userRegion?.country?.phone?.placeholder ??
+                strings('deposit.basic_info.enter_phone_number')
               }
-              value={formData.mobileNumber}
-              onChangeText={handleFieldChange(
-                'mobileNumber',
-                focusNextField(dateInputRef),
-              )}
+              value={formattedPhoneValue}
+              onChangeText={handlePhoneChange}
               error={errors.mobileNumber}
               ref={phoneInputRef}
               onSubmitEditing={focusNextField(dateInputRef)}
@@ -371,9 +390,14 @@ const V2BasicInfo = (): JSX.Element => {
               autoComplete="tel"
               startAccessory={
                 userRegion?.country?.flag ? (
-                  <Text style={{ fontSize: 16 }}>
-                    {userRegion.country.flag}
-                  </Text>
+                  <View style={styles.phoneFlagRow}>
+                    <Text style={styles.phoneFlagEmoji}>
+                      {userRegion.country.flag}
+                    </Text>
+                    {phonePrefix ? (
+                      <Text style={styles.phonePrefix}>{phonePrefix}</Text>
+                    ) : null}
+                  </View>
                 ) : undefined
               }
             />

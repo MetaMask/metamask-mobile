@@ -84,6 +84,7 @@ function BuildQuote() {
   const [userHasEnteredAmount, setUserHasEnteredAmount] = useState(false);
   const [isOnBuildQuoteScreen, setIsOnBuildQuoteScreen] =
     useState<boolean>(true);
+  const [isContinueLoading, setIsContinueLoading] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -108,15 +109,15 @@ function BuildQuote() {
   } = useRampsController();
 
   const {
-    isAuthenticated: transakIsAuthenticated,
     checkExistingToken: transakCheckExistingToken,
     getBuyQuote: transakGetBuyQuote,
   } = useTransakController();
 
-  const { routeAfterAuthentication: transakRouteAfterAuth } =
-    useTransakRouting({
+  const { routeAfterAuthentication: transakRouteAfterAuth } = useTransakRouting(
+    {
       walletAddress: null,
-    });
+    },
+  );
 
   const currency = userRegion?.country?.currency || 'USD';
   const quickAmounts = userRegion?.country?.quickAmounts ?? [50, 100, 200, 400];
@@ -224,7 +225,6 @@ function BuildQuote() {
   ]);
 
   const handleContinuePress = useCallback(async () => {
-    console.log('RAMPS: handleContinuePress 1', selectedQuote, selectedToken, selectedProvider, selectedPaymentMethod, amountAsNumber);
     if (!selectedQuote) return;
 
     const quoteAmount =
@@ -234,7 +234,6 @@ function BuildQuote() {
       selectedQuote.quote?.paymentMethod ??
       (selectedQuote as { paymentMethod?: string }).paymentMethod;
 
-    console.log('RAMPS: handleContinuePress 2', quoteAmount, quotePaymentMethod);
     // Validate amount matches
     if (quoteAmount !== amountAsNumber) {
       return;
@@ -242,19 +241,17 @@ function BuildQuote() {
 
     // Validate payment method context matches
     if (quotePaymentMethod != null) {
-      console.log('RAMPS: handleContinuePress 3', selectedPaymentMethod, quotePaymentMethod);
       // Quote requires a payment method - must have one selected and it must match
       if (
         !selectedPaymentMethod ||
         selectedPaymentMethod.id !== quotePaymentMethod
       ) {
-        console.log('RAMPS: handleContinuePress 4', selectedPaymentMethod, quotePaymentMethod);
         return;
       }
     }
 
     if (isNativeProvider(selectedQuote)) {
-      console.log('RAMPS: handleContinuePress 5', selectedQuote);
+      setIsContinueLoading(true);
       try {
         const hasToken = await transakCheckExistingToken();
 
@@ -266,10 +263,8 @@ function BuildQuote() {
             selectedPaymentMethod?.id || '',
             String(amountAsNumber),
           );
-          console.log('RAMPS: handleContinuePress 6', quote);
           await transakRouteAfterAuth(quote);
         } else {
-          console.log('RAMPS: handleContinuePress 7', navigation);
           navigation.navigate(
             ...createV2EnterEmailNavDetails({
               amount: String(amountAsNumber),
@@ -282,6 +277,8 @@ function BuildQuote() {
         Logger.error(error as Error, {
           message: 'Failed to route native provider flow',
         });
+      } finally {
+        setIsContinueLoading(false);
       }
       return;
     }
@@ -409,7 +406,7 @@ function BuildQuote() {
                 onPress={handleContinuePress}
                 isFullWidth
                 isDisabled={!canContinue}
-                isLoading={quotesLoading}
+                isLoading={quotesLoading || isContinueLoading}
                 testID="build-quote-continue-button"
               >
                 {strings('fiat_on_ramp.continue')}

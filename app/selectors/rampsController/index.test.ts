@@ -14,6 +14,7 @@ import {
   selectPaymentMethods,
   selectRampsControllerState,
   selectQuotes,
+  selectWidgetUrl,
 } from './index';
 
 const createDefaultResourceState = <TData, TSelected = null>(
@@ -47,7 +48,16 @@ const createMockState = (
             PaymentMethod | null
           >([], null),
           quotes: createDefaultResourceState(null),
+          widgetUrl: createDefaultResourceState(null),
           requests: {},
+          nativeProviders: {
+            transak: {
+              isAuthenticated: false,
+              userDetails: createDefaultResourceState(null),
+              buyQuote: createDefaultResourceState(null),
+              kycRequirement: createDefaultResourceState(null),
+            },
+          },
           ...rampsController,
         },
       },
@@ -324,6 +334,41 @@ describe('RampsController Selectors', () => {
       const result = selectQuotes(state);
 
       expect(result.error).toBe('Failed to fetch quotes');
+    });
+  });
+
+  describe('selectWidgetUrl', () => {
+    it('returns widget URL resource state', () => {
+      const mockBuyWidget = {
+        url: 'https://global.transak.com/?apiKey=test',
+        browser: 'in-app',
+        orderId: 'order-123',
+      };
+      const state = createMockState({
+        widgetUrl: {
+          data: mockBuyWidget,
+          selected: null,
+          isLoading: false,
+          error: null,
+        },
+      });
+
+      const result = selectWidgetUrl(state);
+      expect(result.data).toEqual(mockBuyWidget);
+    });
+
+    it('returns default resource state when widgetUrl is undefined', () => {
+      const state = createMockState({
+        widgetUrl: undefined,
+      });
+
+      const result = selectWidgetUrl(state);
+      expect(result).toEqual({
+        data: null,
+        selected: null,
+        isLoading: false,
+        error: null,
+      });
     });
   });
 

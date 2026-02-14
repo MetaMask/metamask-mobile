@@ -21,7 +21,6 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
 import PrivacySection from '../../Deposit/components/PrivacySection';
-import StateSelector from '../../Deposit/components/StateSelector';
 import { VALIDATION_REGEX } from '../../Deposit/constants/constants';
 import Logger from '../../../../../util/Logger';
 import useAnalytics from '../../hooks/useAnalytics';
@@ -64,13 +63,14 @@ const V2EnterAddress = (): JSX.Element => {
   const addressLine1InputRef = useRef<TextInput>(null);
   const addressLine2InputRef = useRef<TextInput>(null);
   const cityInputRef = useRef<TextInput>(null);
-  const stateInputRef = useRef<TextInput>(null);
   const postCodeInputRef = useRef<TextInput>(null);
+
+  const stateName = userRegion?.state?.name || '';
 
   const initialFormData: AddressFormData = {
     addressLine1: previousFormData?.addressLine1 || '',
     addressLine2: previousFormData?.addressLine2 || '',
-    state: previousFormData?.state || '',
+    state: previousFormData?.state || stateName,
     city: previousFormData?.city || '',
     postCode: previousFormData?.postCode || '',
     countryCode: previousFormData?.countryCode || regionIsoCode,
@@ -282,7 +282,7 @@ const V2EnterAddress = (): JSX.Element => {
                 value={formData.city}
                 onChangeText={handleFieldChange(
                   'city',
-                  focusNextField(stateInputRef),
+                  focusNextField(postCodeInputRef),
                 )}
                 error={errors.city}
                 returnKeyType="next"
@@ -291,38 +291,18 @@ const V2EnterAddress = (): JSX.Element => {
                 ref={cityInputRef}
                 textContentType="addressCity"
                 autoCapitalize="words"
-                onSubmitEditing={focusNextField(stateInputRef)}
+                onSubmitEditing={focusNextField(postCodeInputRef)}
               />
 
-              {regionIsoCode === 'US' ? (
-                <StateSelector
-                  label={strings('deposit.enter_address.state')}
-                  selectedValue={formData.state}
-                  onValueChange={handleFormDataChange('state')}
-                  error={errors.state}
-                  containerStyle={styles.nameInputContainer}
-                  defaultValue={strings('deposit.enter_address.select_state')}
-                  testID="state-input"
-                />
-              ) : (
-                <DepositTextField
-                  label={strings('deposit.enter_address.state')}
-                  placeholder={strings('deposit.enter_address.state')}
-                  value={formData.state}
-                  onChangeText={handleFieldChange(
-                    'state',
-                    focusNextField(postCodeInputRef),
-                  )}
-                  error={errors.state}
-                  returnKeyType="next"
-                  testID="state-input"
-                  containerStyle={styles.nameInputContainer}
-                  ref={stateInputRef}
-                  textContentType="addressState"
-                  autoCapitalize="words"
-                  onSubmitEditing={focusNextField(postCodeInputRef)}
-                />
-              )}
+              <DepositTextField
+                label={strings('deposit.enter_address.state')}
+                placeholder={strings('deposit.enter_address.state')}
+                value={formData.state}
+                error={errors.state}
+                testID="state-input"
+                containerStyle={styles.nameInputContainer}
+                isDisabled
+              />
             </View>
 
             <View style={styles.nameInputRow}>
