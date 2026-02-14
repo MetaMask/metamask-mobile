@@ -98,6 +98,7 @@ export const usePerpsHomeData = ({
       return;
     }
 
+    let isMounted = true;
     const fetchFills = async () => {
       try {
         const controller = Engine.context.PerpsController;
@@ -107,13 +108,18 @@ export const usePerpsHomeData = ({
         }
 
         const fills = await provider.getOrderFills({ aggregateByTime: false });
-        setRestFills(fills);
+        if (isMounted) {
+          setRestFills(fills);
+        }
       } catch (error) {
         // Log error but don't fail - WebSocket fills still work
         console.error('[usePerpsHomeData] Failed to fetch REST fills:', error);
       }
     };
     fetchFills();
+    return () => {
+      isMounted = false;
+    };
   }, [isConnected, isInitialized]);
 
   // Merge REST + WebSocket fills with deduplication

@@ -956,6 +956,13 @@ class FillStreamChannel extends StreamChannel<OrderFill[]> {
       this.prewarmUnsubscribe = undefined;
     }
   }
+
+  public clearCache(): void {
+    // Cleanup pre-warm subscription
+    this.cleanupPrewarm();
+    // Call parent clearCache
+    super.clearCache();
+  }
 }
 
 // Specific channel for account state
@@ -1210,6 +1217,20 @@ class TopOfBookStreamChannel extends StreamChannel<
       return;
     }
 
+    // Check if controller is reinitializing - wait before attempting connection
+    if (Engine.context.PerpsController.isCurrentlyReinitializing()) {
+      this.deferConnect(PERPS_CONSTANTS.ReconnectionCleanupDelayMs);
+      return;
+    }
+
+    // Check if controller is not yet initialized - defer until ready
+    if (!PerpsConnectionManager.getConnectionState().isInitialized) {
+      this.deferConnect(200);
+      return;
+    }
+
+    this.connectRetryCount = 0;
+
     DevLogger.log(`TopOfBookStreamChannel: Subscribing to top of book`, {
       symbol: this.currentSymbol,
     });
@@ -1298,7 +1319,7 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
   protected connect() {
     // Check if connection manager is still connecting - retry later if so
     if (PerpsConnectionManager.isCurrentlyConnecting()) {
-      setTimeout(() => this.connect(), 200);
+      this.deferConnect(200);
       return;
     }
 
@@ -1366,10 +1387,19 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
 
         // One-time read of controller-level preloaded cache (REST snapshot).
         // This avoids an HTTP round-trip when the controller already has fresh data.
+        // Only use cache if it belongs to the currently active provider.
+        const controllerProviderId =
+          controller.state?.activeProvider || PROVIDER_CONFIG.DefaultProvider;
         const cached = controller.state?.cachedMarketData;
         const cacheAge =
           Date.now() - (controller.state?.cachedMarketDataTimestamp ?? 0);
-        if (cached && cached.length > 0 && cacheAge < this.CACHE_DURATION) {
+        if (
+          cached &&
+          cached.length > 0 &&
+          cacheAge < this.CACHE_DURATION &&
+          (!this.cachedProviderId ||
+            this.cachedProviderId === controllerProviderId)
+        ) {
           DevLogger.log(
             'PerpsStreamManager: Using controller preloaded market data',
             {
@@ -1482,6 +1512,12 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
 
     // Fallback: read controller preloaded cache (from REST preload)
     const controller = Engine.context.PerpsController;
+    const currentProviderId =
+      controller.state?.activeProvider || PROVIDER_CONFIG.DefaultProvider;
+    // Reject preloaded cache if it belongs to a different provider
+    if (this.cachedProviderId && this.cachedProviderId !== currentProviderId) {
+      return null;
+    }
     const preloaded = controller.state?.cachedMarketData;
     const cacheAge =
       Date.now() - (controller.state?.cachedMarketDataTimestamp ?? 0);
