@@ -3,6 +3,7 @@ import {
   ControllerGetStateAction,
   ControllerStateChangeEvent,
   StateMetadata,
+  type StateChangeListener,
 } from '@metamask/base-controller';
 import type { Messenger } from '@metamask/messenger';
 import type {
@@ -132,7 +133,6 @@ import type {
   RemoteFeatureFlagControllerGetStateAction,
 } from '@metamask/remote-feature-flag-controller';
 import type { Json } from '@metamask/utils';
-import type { Patch } from 'immer';
 import { wait } from './utils/wait';
 import { getSelectedEvmAccount } from './utils/accountUtils';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
@@ -2318,7 +2318,10 @@ export class PerpsController extends BaseController<
     }, PerpsController.PRELOAD_REFRESH_MS);
 
     // Watch for isTestnet / hip3ConfigVersion / cachedUserDataAddress changes
-    const handler = (_state: PerpsControllerState, patches: Patch[]) => {
+    const handler: StateChangeListener<PerpsControllerState> = (
+      _state,
+      patches,
+    ) => {
       // Early-return when no watched field changed (skips ~46 unrelated updates)
       const hasRelevantChange = patches.some(
         (p) =>
