@@ -926,7 +926,7 @@ describe('PerpsConnectionProvider', () => {
       };
 
       const { getByText } = render(
-        <PerpsConnectionProvider isVisible={false}>
+        <PerpsConnectionProvider isVisible>
           <TestComponentDisconnect />
         </PerpsConnectionProvider>,
       );

@@ -38,10 +38,11 @@ interface PerpsConnectionProviderProps {
 }
 
 /**
- * Provider that manages WebSocket connections for Perps components
- * Uses a singleton connection manager to share state between screen and modal stacks
- * Automatically connects when mounted and disconnects when unmounted
- * Only disconnects when all providers have unmounted
+ * Provider that manages WebSocket connections for Perps components.
+ * Uses a singleton connection manager to share state between screen and modal stacks.
+ * When the tab is explicitly hidden, unmount children so stream hooks stop
+ * background retry/subscription work. isVisible === undefined (fullscreen/modal
+ * contexts) always renders children.
  */
 export const PerpsConnectionProvider: React.FC<
   PerpsConnectionProviderProps
@@ -303,7 +304,7 @@ export const PerpsConnectionProvider: React.FC<
 
   return (
     <PerpsConnectionContext.Provider value={contextValue}>
-      {children}
+      {isVisible === false ? null : children}
     </PerpsConnectionContext.Provider>
   );
 };

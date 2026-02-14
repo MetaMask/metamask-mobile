@@ -11,7 +11,10 @@ import type {
   NetworkControllerGetNetworkClientByIdAction,
   NetworkControllerFindNetworkClientIdByChainIdAction,
 } from '@metamask/network-controller';
-import type { AccountTreeControllerGetAccountsFromSelectedAccountGroupAction } from '@metamask/account-tree-controller';
+import type {
+  AccountTreeControllerGetAccountsFromSelectedAccountGroupAction,
+  AccountTreeControllerSelectedAccountGroupChangeEvent,
+} from '@metamask/account-tree-controller';
 import type {
   KeyringControllerGetStateAction,
   KeyringControllerSignTypedMessageAction,
@@ -757,7 +760,8 @@ export type AllowedEvents =
   | TransactionControllerTransactionSubmittedEvent
   | TransactionControllerTransactionConfirmedEvent
   | TransactionControllerTransactionFailedEvent
-  | RemoteFeatureFlagControllerStateChangeEvent;
+  | RemoteFeatureFlagControllerStateChangeEvent
+  | AccountTreeControllerSelectedAccountGroupChangeEvent;
 
 /**
  * PerpsController messenger constraints
@@ -2280,13 +2284,13 @@ export class PerpsController extends BaseController<
   private static readonly PRELOAD_WATCHED_PATHS = new Set([
     'isTestnet',
     'hip3ConfigVersion',
-    'cachedUserDataAddress',
   ]);
 
   private preloadTimer: ReturnType<typeof setInterval> | null = null;
   private isPreloading = false;
   private isPreloadingUserData = false;
   private preloadStateUnsubscribe: (() => void) | null = null;
+  private accountChangeUnsubscribe: (() => void) | null = null;
   private previousIsTestnet: boolean | null = null;
   private previousHip3ConfigVersion: number | null = null;
   private static PRELOAD_REFRESH_MS = 5 * 60 * 1000; // 5 min
@@ -2363,8 +2367,15 @@ export class PerpsController extends BaseController<
 
         this.performMarketDataPreload();
       }
+    };
 
-      // Watch for account changes - clear stale user data cache
+    this.messenger.subscribe('PerpsController:stateChange', handler);
+    this.preloadStateUnsubscribe = () => {
+      this.messenger.unsubscribe('PerpsController:stateChange', handler);
+    };
+
+    // Watch for account changes via AccountTreeController
+    const accountChangeHandler = () => {
       const evmAccount = getSelectedEvmAccount(this.messenger);
       const currentAddress = evmAccount?.address ?? null;
       if (
@@ -2385,10 +2396,15 @@ export class PerpsController extends BaseController<
         this.performUserDataPreload();
       }
     };
-
-    this.messenger.subscribe('PerpsController:stateChange', handler);
-    this.preloadStateUnsubscribe = () => {
-      this.messenger.unsubscribe('PerpsController:stateChange', handler);
+    this.messenger.subscribe(
+      'AccountTreeController:selectedAccountGroupChange',
+      accountChangeHandler,
+    );
+    this.accountChangeUnsubscribe = () => {
+      this.messenger.unsubscribe(
+        'AccountTreeController:selectedAccountGroupChange',
+        accountChangeHandler,
+      );
     };
   }
 
@@ -2404,6 +2420,10 @@ export class PerpsController extends BaseController<
     if (this.preloadStateUnsubscribe) {
       this.preloadStateUnsubscribe();
       this.preloadStateUnsubscribe = null;
+    }
+    if (this.accountChangeUnsubscribe) {
+      this.accountChangeUnsubscribe();
+      this.accountChangeUnsubscribe = null;
     }
     this.previousIsTestnet = null;
     this.previousHip3ConfigVersion = null;
