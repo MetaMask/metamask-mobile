@@ -13,8 +13,12 @@ const USER_DATA_FIELDS: CacheField[] = [
   'cachedAccountState',
 ];
 
-/** Must match USER_DATA_CACHE_STALE_MS in PerpsStreamManager.tsx */
-const USER_DATA_CACHE_STALE_MS = 60_000;
+/**
+ * Maximum age (ms) of controller-preloaded user data before it's considered stale.
+ * Intentionally shorter than the controller's 5-minute refresh cycle — WebSocket
+ * streams should take over within seconds, making REST preload cache irrelevant.
+ */
+export const USER_DATA_CACHE_STALE_MS = 60_000;
 
 /**
  * Check if the controller's cached data belongs to the currently selected

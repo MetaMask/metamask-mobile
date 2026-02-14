@@ -198,7 +198,7 @@ The Perps system preloads market data and user data in the background before the
 4. **`OrderStreamChannel`**, **`PositionStreamChannel`**, and **`AccountStreamChannel`** read cached user data on `connect()`, providing instant display before WebSocket data arrives
 5. **PerpsHomeView renders immediately** — markets, positions, orders, and account state populate from the cache, then update with live WebSocket data
 
-> **Two-tier cache**: Stream channels check their WebSocket cache first (populated by `prewarm()`). If empty, hooks fall back to the controller's preloaded REST cache via `getPreloadedUserData()`. Data is available on first render even before WebSocket connection is attempted.
+> **Two-tier cache**: Stream channels check their WebSocket cache first (populated by `prewarm()`). If empty, hooks fall back to the controller's preloaded REST cache via `getPreloadedData()`. Data is available on first render even before WebSocket connection is attempted.
 
 ### Cached User Data
 
@@ -223,14 +223,14 @@ User data cache is automatically cleared when:
 
 The stream hooks used by PerpsHomeView gracefully handle the not-yet-connected state:
 
-| Hook                    | Behavior                                 | Cache Mechanism                                            | Impact                                                 |
-| ----------------------- | ---------------------------------------- | ---------------------------------------------------------- | ------------------------------------------------------ |
-| `usePerpsLivePositions` | Reads controller cache, then WebSocket   | `getPreloadedUserData('cachedPositions')` in `useState`    | Positions visible immediately                          |
-| `usePerpsLiveOrders`    | Reads controller cache, then WebSocket   | `getPreloadedUserData('cachedOrders')` in `useState`       | Orders visible immediately                             |
-| `usePerpsLiveFills`     | Stays in `isInitialLoading: true`        | None (starts as `[]`)                                      | Skeleton shown until WS data arrives                   |
-| `usePerpsLiveAccount`   | Reads controller cache, then WebSocket   | `getPreloadedUserData('cachedAccountState')` in `useState` | Balance visible immediately                            |
-| `usePerpsMarkets`       | Reads controller cache                   | `hasPreloadedUserData('cachedMarketData')` in `useState`   | Renders immediately with real cached data              |
-| `usePerpsPrices`        | Skips subscription when `!isInitialized` | None                                                       | Static cached prices shown, live prices once connected |
+| Hook                    | Behavior                                 | Cache Mechanism                                        | Impact                                                 |
+| ----------------------- | ---------------------------------------- | ------------------------------------------------------ | ------------------------------------------------------ |
+| `usePerpsLivePositions` | Reads controller cache, then WebSocket   | `getPreloadedData('cachedPositions')` in `useState`    | Positions visible immediately                          |
+| `usePerpsLiveOrders`    | Reads controller cache, then WebSocket   | `getPreloadedData('cachedOrders')` in `useState`       | Orders visible immediately                             |
+| `usePerpsLiveFills`     | Stays in `isInitialLoading: true`        | None (starts as `[]`)                                  | Skeleton shown until WS data arrives                   |
+| `usePerpsLiveAccount`   | Reads controller cache, then WebSocket   | `getPreloadedData('cachedAccountState')` in `useState` | Balance visible immediately                            |
+| `usePerpsMarkets`       | Reads controller cache                   | `hasPreloadedData('cachedMarketData')` in `useState`   | Renders immediately with real cached data              |
+| `usePerpsPrices`        | Skips subscription when `!isInitialized` | None                                                   | Static cached prices shown, live prices once connected |
 
 > **How this works**: Stream channels defer their WebSocket subscriptions until `PerpsConnectionManager.getConnectionState().isInitialized` is `true`, retrying every 200ms (max 150 attempts). This prevents doomed subscriptions that would permanently block data delivery. See [Stream Channel Initialization Guards](#stream-channel-initialization-guards) above.
 

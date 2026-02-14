@@ -27,7 +27,7 @@ import {
 import { PROVIDER_CONFIG } from '../constants/perpsConfig';
 import { getE2EMockStreamManager } from '../utils/e2eBridgePerps';
 import { CandleStreamChannel } from './channels/CandleStreamChannel';
-import { isCacheForCurrentAccount } from '../hooks/stream/hasCachedPerpsData';
+import { getPreloadedData } from '../hooks/stream/hasCachedPerpsData';
 
 /**
  * Gets the EVM account from the selected account group.
@@ -49,13 +49,6 @@ interface StreamSubscription<T> {
   pendingUpdate?: T;
   hasReceivedFirstUpdate?: boolean; // Track if subscriber has received first update
 }
-
-/**
- * Maximum age (ms) of controller-preloaded user data before it's considered stale.
- * Intentionally shorter than the controller's 5-minute refresh cycle — WebSocket
- * streams should take over within seconds, making REST preload cache irrelevant.
- */
-const USER_DATA_CACHE_STALE_MS = 60_000;
 
 // Base class for any stream type
 abstract class StreamChannel<T> {
@@ -623,22 +616,9 @@ class OrderStreamChannel extends StreamChannel<Order[]> {
   }
 
   protected getCachedData() {
-    // Return channel cache if available (from WebSocket)
     const cached = this.cache.get('orders');
     if (cached !== undefined) return cached;
-
-    // Fallback: read controller preloaded cache (from REST preload)
-    // null = not loaded yet, [] = loaded with no data (valid cache)
-    const controller = Engine.context.PerpsController;
-    const preloaded = controller.state?.cachedOrders;
-    const cacheAge =
-      Date.now() - (controller.state?.cachedUserDataTimestamp ?? 0);
-    if (preloaded != null && cacheAge < USER_DATA_CACHE_STALE_MS) {
-      if (!isCacheForCurrentAccount(controller)) return null;
-      return preloaded;
-    }
-
-    return null;
+    return getPreloadedData<Order[]>('cachedOrders');
   }
 
   protected getClearedData(): Order[] {
@@ -779,22 +759,9 @@ class PositionStreamChannel extends StreamChannel<Position[]> {
   }
 
   protected getCachedData() {
-    // Return channel cache if available (from WebSocket)
     const cached = this.cache.get('positions');
     if (cached !== undefined) return cached;
-
-    // Fallback: read controller preloaded cache (from REST preload)
-    // null = not loaded yet, [] = loaded with no data (valid cache)
-    const controller = Engine.context.PerpsController;
-    const preloaded = controller.state?.cachedPositions;
-    const cacheAge =
-      Date.now() - (controller.state?.cachedUserDataTimestamp ?? 0);
-    if (preloaded != null && cacheAge < USER_DATA_CACHE_STALE_MS) {
-      if (!isCacheForCurrentAccount(controller)) return null;
-      return preloaded;
-    }
-
-    return null;
+    return getPreloadedData<Position[]>('cachedPositions');
   }
 
   protected getClearedData(): Position[] {
@@ -1075,21 +1042,9 @@ class AccountStreamChannel extends StreamChannel<AccountState | null> {
   }
 
   protected getCachedData(): AccountState | null {
-    // Return channel cache if available (from WebSocket)
     const cached = this.cache.get('account');
     if (cached !== undefined) return cached;
-
-    // Fallback: read controller preloaded cache (from REST preload)
-    const controller = Engine.context.PerpsController;
-    const preloaded = controller.state?.cachedAccountState;
-    const cacheAge =
-      Date.now() - (controller.state?.cachedUserDataTimestamp ?? 0);
-    if (preloaded != null && cacheAge < USER_DATA_CACHE_STALE_MS) {
-      if (!isCacheForCurrentAccount(controller)) return null;
-      return preloaded;
-    }
-
-    return null;
+    return getPreloadedData<AccountState>('cachedAccountState');
   }
 
   protected getClearedData(): AccountState | null {
@@ -1523,7 +1478,7 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
   protected getCachedData(): PerpsMarketData[] | null {
     // Return channel cache if available (from previous fetch)
     const cached = this.cache.get('markets');
-    if (cached) return cached;
+    if (cached !== undefined) return cached;
 
     // Fallback: read controller preloaded cache (from REST preload)
     const controller = Engine.context.PerpsController;

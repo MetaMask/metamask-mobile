@@ -342,10 +342,10 @@ Market data and user data are preloaded in the background before the user opens 
 
 Hooks use lazy `useState` initializers to read cached data from the controller, so the first render already has data instead of showing an empty skeleton.
 
-| Utility                          | Purpose                                              |
-| -------------------------------- | ---------------------------------------------------- |
-| `hasPreloadedUserData(field)`    | Returns `true` if controller cache field is non-null |
-| `getPreloadedUserData<T>(field)` | Returns cached value or `null`                       |
+| Utility                      | Purpose                                              |
+| ---------------------------- | ---------------------------------------------------- |
+| `hasPreloadedData(field)`    | Returns `true` if controller cache field is non-null |
+| `getPreloadedData<T>(field)` | Returns cached value or `null`                       |
 
 Cache freshness is managed by the controller's 5-minute preload cycle, not by the hooks — there is no client-side TTL.
 
