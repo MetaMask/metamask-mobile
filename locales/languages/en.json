@@ -6376,6 +6376,7 @@
     "deselect_all_networks": "Deselect all",
     "see_all": "See all",
     "all": "All",
+    "more_networks": "+{{count}} more",
     "apply": "Apply",
     "slippage": "Slippage",
     "slippage_info": "If the price changes between the time your order is placed and confirmed it’s called “slippage.” Your swap will automatically cancel if slippage exceeds the tolerance you set here.",
