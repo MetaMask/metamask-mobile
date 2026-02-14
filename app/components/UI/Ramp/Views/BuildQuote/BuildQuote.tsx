@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { View } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import type { CaipChainId } from '@metamask/utils';
 
@@ -30,6 +30,7 @@ import useRampAccountAddress from '../../hooks/useRampAccountAddress';
 import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 import { BuildQuoteSelectors } from '../../Aggregator/Views/BuildQuote/BuildQuote.testIds';
 import { createPaymentSelectionModalNavigationDetails } from '../Modals/PaymentSelectionModal';
+import { createProviderPickerModalNavigationDetails } from '../Modals/ProviderPickerModal';
 import { createCheckoutNavDetails } from '../Checkout';
 import {
   isNativeProvider,
@@ -199,6 +200,16 @@ function BuildQuote() {
       }),
     );
   }, [debouncedPollingAmount, navigation, stopQuotePolling]);
+
+  const handleProviderPress = useCallback(() => {
+    if (!selectedToken?.assetId) return;
+    stopQuotePolling();
+    navigation.navigate(
+      ...createProviderPickerModalNavigationDetails({
+        assetId: selectedToken.assetId,
+      }),
+    );
+  }, [selectedToken?.assetId, navigation, stopQuotePolling]);
 
   useEffect(() => {
     if (
@@ -410,11 +421,17 @@ function BuildQuote() {
 
           <View style={styles.actionSection}>
             {selectedProvider && (
-              <Text variant={TextVariant.BodySM} style={styles.poweredByText}>
-                {strings('fiat_on_ramp.powered_by_provider', {
-                  provider: selectedProvider.name,
-                })}
-              </Text>
+              <TouchableOpacity
+                onPress={handleProviderPress}
+                testID="provider-picker-trigger"
+                accessibilityRole="button"
+              >
+                <Text variant={TextVariant.BodySM} style={styles.poweredByText}>
+                  {strings('fiat_on_ramp.powered_by_provider', {
+                    provider: selectedProvider.name,
+                  })}
+                </Text>
+              </TouchableOpacity>
             )}
             {hasAmount ? (
               <Button
