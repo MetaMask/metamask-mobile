@@ -14,7 +14,6 @@ import {
 } from '@metamask/utils';
 
 import type { PerpsLogger } from '../types';
-
 import { ensureError } from './errorUtils';
 
 /**

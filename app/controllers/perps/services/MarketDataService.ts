@@ -31,10 +31,9 @@ import type {
   AssetRoute,
   PerpsPlatformDependencies,
 } from '../types';
+import type { ServiceContext } from './ServiceContext';
 import type { CandleData } from '../types/perps-types';
 import { ensureError } from '../utils/errorUtils';
-
-import type { ServiceContext } from './ServiceContext';
 
 /**
  * MarketDataService

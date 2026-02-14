@@ -8,10 +8,9 @@ import {
 import type { PerpsControllerMessenger } from '../PerpsController';
 import { PerpsTraceNames, PerpsTraceOperations } from '../types';
 import type { PerpsPlatformDependencies } from '../types';
+import type { ServiceContext } from './ServiceContext';
 import { getSelectedEvmAccount } from '../utils/accountUtils';
 import { ensureError } from '../utils/errorUtils';
-
-import type { ServiceContext } from './ServiceContext';
 
 /**
  * DataLakeService

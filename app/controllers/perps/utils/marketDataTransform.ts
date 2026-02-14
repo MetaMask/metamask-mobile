@@ -11,14 +11,13 @@ import type {
   MarketType,
   MarketDataFormatters,
 } from '../types';
+import { parseAssetName } from './hyperLiquidAdapter';
 import type {
   AllMidsResponse,
   PerpsUniverse,
   PerpsAssetCtx,
   PredictedFunding,
 } from '../types/hyperliquid-types';
-
-import { parseAssetName } from './hyperLiquidAdapter';
 
 /**
  * Calculate open interest in USD
@@ -33,7 +32,7 @@ export function calculateOpenInterestUSD(
   openInterest: string | number | undefined,
   currentPrice: string | number | undefined,
 ): number {
-  if (openInterest == null || currentPrice == null) {
+  if (openInterest === undefined || currentPrice === undefined) {
     return NaN;
   }
 

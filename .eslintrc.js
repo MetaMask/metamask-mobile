@@ -16,6 +16,7 @@ module.exports = {
   plugins: [
     '@typescript-eslint',
     '@metamask/design-tokens',
+    'promise',
     'react-compiler',
     'tailwindcss',
   ],
@@ -174,6 +175,17 @@ module.exports = {
         ],
       },
     },
+    // ── Perps controller Core-alignment override ──
+    // Enforces the same ESLint rules that Core's @metamask/eslint-config
+    // applies to packages/perps-controller so that code written in mobile
+    // passes Core's linter after a straight copy.
+    //
+    // Plugin differences from Core:
+    //   - mobile uses `import` (eslint-plugin-import); Core uses `import-x`
+    //     (eslint-plugin-import-x). Rules are identical; `--fix` in Core
+    //     handles any formatting delta.
+    //
+    // See docs/perps/perps-core-sync.md for the full sync workflow.
     {
       files: ['app/controllers/perps/**/*.{ts,tsx}'],
       excludedFiles: ['**/*.test.ts', '**/*.test.tsx'],
@@ -226,9 +238,7 @@ module.exports = {
           },
         ],
         'no-negated-condition': 'error',
-        // NOTE: no-eq-null deferred to Core. The `!= null` pattern is idiomatic
-        // for guarding both null and undefined with optional chaining (x?.y != null).
-        'no-eq-null': 'off',
+        'no-eq-null': 'error',
         'no-nested-ternary': 'error',
         'no-plusplus': ['error', { allowForLoopAfterthoughts: true }],
         'require-unicode-regexp': 'error',
@@ -248,6 +258,8 @@ module.exports = {
         curly: ['error', 'all'],
 
         // === TypeScript type-aware rules ===
+        'no-shadow': 'off',
+        '@typescript-eslint/no-shadow': ['error', { builtinGlobals: true }],
         '@typescript-eslint/prefer-nullish-coalescing': 'error',
         '@typescript-eslint/prefer-readonly': 'error',
         '@typescript-eslint/explicit-function-return-type': 'error',
@@ -274,12 +286,8 @@ module.exports = {
           'error',
           {
             groups: [
-              'builtin',
-              'external',
-              'internal',
-              'parent',
-              'sibling',
-              'index',
+              ['builtin', 'external'],
+              ['internal', 'parent', 'sibling', 'index'],
             ],
             alphabetize: { order: 'asc', caseInsensitive: true },
             'newlines-between': 'always',
@@ -295,10 +303,11 @@ module.exports = {
         'jsdoc/require-returns': 'error',
         'jsdoc/require-returns-description': 'error',
 
-        // === Promise rules — SKIPPED (eslint-plugin-promise not installed in mobile) ===
-        // These Core rules cannot be enforced in mobile until the plugin is added:
-        // 'promise/always-return', 'promise/no-nesting', 'promise/no-callback-in-promise', 'promise/param-names'
-        // The code already complies — this comment documents the gap.
+        // === Promise rules (eslint-plugin-promise) ===
+        'promise/always-return': 'error',
+        'promise/no-nesting': 'error',
+        'promise/no-callback-in-promise': 'error',
+        'promise/param-names': 'error',
       },
     },
     {

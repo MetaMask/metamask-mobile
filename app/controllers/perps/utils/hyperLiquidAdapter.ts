@@ -11,6 +11,10 @@ import type {
   RawLedgerUpdate,
   UserHistoryItem,
 } from '../types';
+import {
+  countSignificantFigures,
+  roundToSignificantFigures,
+} from './significantFigures';
 import type {
   AssetPosition,
   FrontendOrder,
@@ -19,11 +23,6 @@ import type {
   MetaResponse,
   SDKOrderParams,
 } from '../types/hyperliquid-types';
-
-import {
-  countSignificantFigures,
-  roundToSignificantFigures,
-} from './significantFigures';
 
 /**
  * HyperLiquid SDK Adapter Utilities

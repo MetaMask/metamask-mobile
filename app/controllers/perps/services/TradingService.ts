@@ -1,5 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 
+import type { RewardsIntegrationService } from './RewardsIntegrationService';
+import type { ServiceContext } from './ServiceContext';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
@@ -30,9 +32,6 @@ import type {
   PerpsPlatformDependencies,
 } from '../types';
 import { ensureError } from '../utils/errorUtils';
-
-import type { RewardsIntegrationService } from './RewardsIntegrationService';
-import type { ServiceContext } from './ServiceContext';
 
 /**
  * Controller-level dependencies for TradingService.
@@ -143,11 +142,11 @@ export class TradingService {
     };
 
     // Add optional properties
-    if (params.trackingData?.marginUsed != null) {
+    if (params.trackingData?.marginUsed !== undefined) {
       properties[PERPS_EVENT_PROPERTY.MARGIN_USED] =
         params.trackingData.marginUsed;
     }
-    if (params.trackingData?.totalFee != null) {
+    if (params.trackingData?.totalFee !== undefined) {
       properties[PERPS_EVENT_PROPERTY.FEES] = params.trackingData.totalFee;
     }
     if (result?.averagePrice ?? params.trackingData?.marketPrice) {
@@ -168,11 +167,11 @@ export class TradingService {
     properties[PERPS_EVENT_PROPERTY.TRADE_WITH_TOKEN] =
       params.trackingData?.tradeWithToken === true;
     if (params.trackingData?.tradeWithToken === true) {
-      if (params.trackingData.mmPayTokenSelected != null) {
+      if (params.trackingData.mmPayTokenSelected !== undefined) {
         properties[PERPS_EVENT_PROPERTY.MM_PAY_TOKEN_SELECTED] =
           params.trackingData.mmPayTokenSelected;
       }
-      if (params.trackingData.mmPayNetworkSelected != null) {
+      if (params.trackingData.mmPayNetworkSelected !== undefined) {
         properties[PERPS_EVENT_PROPERTY.MM_PAY_NETWORK_SELECTED] =
           params.trackingData.mmPayNetworkSelected;
       }
@@ -180,19 +179,19 @@ export class TradingService {
 
     // Add success-specific properties
     if (status === PERPS_EVENT_VALUE.STATUS.EXECUTED) {
-      if (params.trackingData?.metamaskFee != null) {
+      if (params.trackingData?.metamaskFee !== undefined) {
         properties[PERPS_EVENT_PROPERTY.METAMASK_FEE] =
           params.trackingData.metamaskFee;
       }
-      if (params.trackingData?.metamaskFeeRate != null) {
+      if (params.trackingData?.metamaskFeeRate !== undefined) {
         properties[PERPS_EVENT_PROPERTY.METAMASK_FEE_RATE] =
           params.trackingData.metamaskFeeRate;
       }
-      if (params.trackingData?.feeDiscountPercentage != null) {
+      if (params.trackingData?.feeDiscountPercentage !== undefined) {
         properties[PERPS_EVENT_PROPERTY.DISCOUNT_PERCENTAGE] =
           params.trackingData.feeDiscountPercentage;
       }
-      if (params.trackingData?.estimatedPoints != null) {
+      if (params.trackingData?.estimatedPoints !== undefined) {
         properties[PERPS_EVENT_PROPERTY.ESTIMATED_REWARDS] =
           params.trackingData.estimatedPoints;
       }
@@ -615,21 +614,21 @@ export class TradingService {
         [PERPS_EVENT_PROPERTY.PNL_PERCENT]:
           parseFloat(position.returnOnEquity) * 100,
       }),
-      ...(params.trackingData?.totalFee != null && {
+      ...(params.trackingData?.totalFee !== undefined && {
         [PERPS_EVENT_PROPERTY.FEE]: params.trackingData.totalFee,
       }),
-      ...(params.trackingData?.metamaskFee != null && {
+      ...(params.trackingData?.metamaskFee !== undefined && {
         [PERPS_EVENT_PROPERTY.METAMASK_FEE]: params.trackingData.metamaskFee,
       }),
-      ...(params.trackingData?.metamaskFeeRate != null && {
+      ...(params.trackingData?.metamaskFeeRate !== undefined && {
         [PERPS_EVENT_PROPERTY.METAMASK_FEE_RATE]:
           params.trackingData.metamaskFeeRate,
       }),
-      ...(params.trackingData?.feeDiscountPercentage != null && {
+      ...(params.trackingData?.feeDiscountPercentage !== undefined && {
         [PERPS_EVENT_PROPERTY.DISCOUNT_PERCENTAGE]:
           params.trackingData.feeDiscountPercentage,
       }),
-      ...(params.trackingData?.estimatedPoints != null && {
+      ...(params.trackingData?.estimatedPoints !== undefined && {
         [PERPS_EVENT_PROPERTY.ESTIMATED_REWARDS]:
           params.trackingData.estimatedPoints,
       }),
@@ -642,7 +641,7 @@ export class TradingService {
         params.price && {
           [PERPS_EVENT_PROPERTY.LIMIT_PRICE]: parseFloat(params.price),
         }),
-      ...(params.trackingData?.receivedAmount != null && {
+      ...(params.trackingData?.receivedAmount !== undefined && {
         [PERPS_EVENT_PROPERTY.RECEIVED_AMOUNT]:
           params.trackingData.receivedAmount,
       }),

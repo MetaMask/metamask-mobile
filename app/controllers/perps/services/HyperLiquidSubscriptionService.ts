@@ -33,6 +33,8 @@ import type {
   OrderBookLevel,
   PerpsPlatformDependencies,
 } from '../types';
+import type { HyperLiquidClientService } from './HyperLiquidClientService';
+import type { HyperLiquidWalletService } from './HyperLiquidWalletService';
 import { calculateWeightedReturnOnEquity } from '../utils/accountUtils';
 import { ensureError } from '../utils/errorUtils';
 import {
@@ -43,9 +45,6 @@ import {
 } from '../utils/hyperLiquidAdapter';
 import { processBboData } from '../utils/hyperLiquidOrderBookProcessor';
 import { calculateOpenInterestUSD } from '../utils/marketDataTransform';
-
-import type { HyperLiquidClientService } from './HyperLiquidClientService';
-import type { HyperLiquidWalletService } from './HyperLiquidWalletService';
 
 /**
  * Service for managing HyperLiquid WebSocket subscriptions

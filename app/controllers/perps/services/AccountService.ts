@@ -19,11 +19,10 @@ import type {
   WithdrawResult,
   PerpsPlatformDependencies,
 } from '../types';
+import type { ServiceContext } from './ServiceContext';
 import type { TransactionStatus } from '../types/transactionTypes';
 import { getSelectedEvmAccount } from '../utils/accountUtils';
 import { ensureError } from '../utils/errorUtils';
-
-import type { ServiceContext } from './ServiceContext';
 
 /**
  * AccountService

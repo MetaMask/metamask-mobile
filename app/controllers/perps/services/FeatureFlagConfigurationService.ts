@@ -4,14 +4,13 @@ import { hasProperty } from '@metamask/utils';
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 import { isVersionGatedFeatureFlag } from '../types';
 import type { PerpsPlatformDependencies } from '../types';
+import type { ServiceContext } from './ServiceContext';
 import { ensureError } from '../utils/errorUtils';
 import { validateMarketPattern } from '../utils/marketUtils';
 import {
   parseCommaSeparatedString,
   stripQuotes,
 } from '../utils/stringParseUtils';
-
-import type { ServiceContext } from './ServiceContext';
 
 /**
  * FeatureFlagConfigurationService
