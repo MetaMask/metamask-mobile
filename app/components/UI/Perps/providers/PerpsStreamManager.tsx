@@ -177,6 +177,24 @@ abstract class StreamChannel<T> {
   }
 
   /**
+   * Common initialization guard for connect().
+   * Returns true if the channel is ready to connect, false if deferred.
+   * Resets connectRetryCount on success.
+   */
+  protected ensureReady(): boolean {
+    if (Engine.context.PerpsController.isCurrentlyReinitializing()) {
+      this.deferConnect(PERPS_CONSTANTS.ReconnectionCleanupDelayMs);
+      return false;
+    }
+    if (!PerpsConnectionManager.getConnectionState().isInitialized) {
+      this.deferConnect(200);
+      return false;
+    }
+    this.connectRetryCount = 0;
+    return true;
+  }
+
+  /**
    * Reconnect the channel after WebSocket reconnection
    * Clears dead subscription and re-establishes if there are active subscribers
    */
@@ -286,17 +304,7 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
       return;
     }
 
-    // Check if controller is reinitializing - wait before attempting connection
-    if (Engine.context.PerpsController.isCurrentlyReinitializing()) {
-      this.deferConnect(PERPS_CONSTANTS.ReconnectionCleanupDelayMs);
-      return;
-    }
-
-    // Check if controller is not yet initialized - defer until ready
-    if (!PerpsConnectionManager.getConnectionState().isInitialized) {
-      this.deferConnect(200);
-      return;
-    }
+    if (!this.ensureReady()) return;
 
     // If we have a prewarm subscription, we're already subscribed to all markets
     // No need to create another subscription
@@ -322,7 +330,6 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
       return;
     }
 
-    this.connectRetryCount = 0;
     this.wsSubscription = Engine.context.PerpsController.subscribeToPrices({
       symbols: allSymbols,
       callback: (updates: PriceUpdate[]) => {
@@ -544,17 +551,7 @@ class OrderStreamChannel extends StreamChannel<Order[]> {
   protected connect() {
     if (this.wsSubscription) return;
 
-    // Check if controller is reinitializing - wait before attempting connection
-    if (Engine.context.PerpsController.isCurrentlyReinitializing()) {
-      this.deferConnect(PERPS_CONSTANTS.ReconnectionCleanupDelayMs);
-      return;
-    }
-
-    // Check if controller is not yet initialized - defer until ready
-    if (!PerpsConnectionManager.getConnectionState().isInitialized) {
-      this.deferConnect(200);
-      return;
-    }
+    if (!this.ensureReady()) return;
 
     // Start trace for first data measurement (before subscription)
     this.firstDataTraceId = uuidv4();
@@ -567,7 +564,6 @@ class OrderStreamChannel extends StreamChannel<Order[]> {
     // Track WebSocket connection start time for duration calculation
     this.wsConnectionStartTime = performance.now();
 
-    this.connectRetryCount = 0;
     this.wsSubscription = Engine.context.PerpsController.subscribeToOrders({
       callback: (orders: Order[]) => {
         // Validate account context
@@ -683,17 +679,7 @@ class PositionStreamChannel extends StreamChannel<Position[]> {
   protected connect() {
     if (this.wsSubscription) return;
 
-    // Check if controller is reinitializing - wait before attempting connection
-    if (Engine.context.PerpsController.isCurrentlyReinitializing()) {
-      this.deferConnect(PERPS_CONSTANTS.ReconnectionCleanupDelayMs);
-      return;
-    }
-
-    // Check if controller is not yet initialized - defer until ready
-    if (!PerpsConnectionManager.getConnectionState().isInitialized) {
-      this.deferConnect(200);
-      return;
-    }
+    if (!this.ensureReady()) return;
 
     // Start trace for first data measurement (before subscription)
     this.firstDataTraceId = uuidv4();
@@ -706,7 +692,6 @@ class PositionStreamChannel extends StreamChannel<Position[]> {
     // Track WebSocket connection start time for duration calculation
     this.wsConnectionStartTime = performance.now();
 
-    this.connectRetryCount = 0;
     this.wsSubscription = Engine.context.PerpsController.subscribeToPositions({
       callback: (positions: Position[]) => {
         // Validate account context
@@ -879,19 +864,8 @@ class FillStreamChannel extends StreamChannel<OrderFill[]> {
   protected connect() {
     if (this.wsSubscription) return;
 
-    // Check if controller is reinitializing - wait before attempting connection
-    if (Engine.context.PerpsController.isCurrentlyReinitializing()) {
-      this.deferConnect(PERPS_CONSTANTS.ReconnectionCleanupDelayMs);
-      return;
-    }
+    if (!this.ensureReady()) return;
 
-    // Check if controller is not yet initialized - defer until ready
-    if (!PerpsConnectionManager.getConnectionState().isInitialized) {
-      this.deferConnect(200);
-      return;
-    }
-
-    this.connectRetryCount = 0;
     this.wsSubscription = Engine.context.PerpsController.subscribeToOrderFills({
       callback: (fills: OrderFill[], isSnapshot?: boolean) => {
         let updated: OrderFill[];
@@ -973,17 +947,7 @@ class AccountStreamChannel extends StreamChannel<AccountState | null> {
   protected connect() {
     if (this.wsSubscription) return;
 
-    // Check if controller is reinitializing - wait before attempting connection
-    if (Engine.context.PerpsController.isCurrentlyReinitializing()) {
-      this.deferConnect(PERPS_CONSTANTS.ReconnectionCleanupDelayMs);
-      return;
-    }
-
-    // Check if controller is not yet initialized - defer until ready
-    if (!PerpsConnectionManager.getConnectionState().isInitialized) {
-      this.deferConnect(200);
-      return;
-    }
+    if (!this.ensureReady()) return;
 
     // Start trace for first data measurement (before subscription)
     this.firstDataTraceId = uuidv4();
@@ -996,7 +960,6 @@ class AccountStreamChannel extends StreamChannel<AccountState | null> {
     // Track WebSocket connection start time for duration calculation
     this.wsConnectionStartTime = performance.now();
 
-    this.connectRetryCount = 0;
     this.wsSubscription = Engine.context.PerpsController.subscribeToAccount({
       callback: (account: AccountState | null) => {
         // Validate account context
@@ -1115,19 +1078,8 @@ class OICapStreamChannel extends StreamChannel<string[]> {
   protected connect() {
     if (this.wsSubscription) return;
 
-    // Check if controller is reinitializing - wait before attempting connection
-    if (Engine.context.PerpsController.isCurrentlyReinitializing()) {
-      this.deferConnect(PERPS_CONSTANTS.ReconnectionCleanupDelayMs);
-      return;
-    }
+    if (!this.ensureReady()) return;
 
-    // Check if controller is not yet initialized - defer until ready
-    if (!PerpsConnectionManager.getConnectionState().isInitialized) {
-      this.deferConnect(200);
-      return;
-    }
-
-    this.connectRetryCount = 0;
     // Subscribe to OI cap updates (zero overhead - extracted from existing webData3)
     this.wsSubscription = Engine.context.PerpsController.subscribeToOICaps({
       callback: (caps: string[]) => {
@@ -1217,19 +1169,7 @@ class TopOfBookStreamChannel extends StreamChannel<
       return;
     }
 
-    // Check if controller is reinitializing - wait before attempting connection
-    if (Engine.context.PerpsController.isCurrentlyReinitializing()) {
-      this.deferConnect(PERPS_CONSTANTS.ReconnectionCleanupDelayMs);
-      return;
-    }
-
-    // Check if controller is not yet initialized - defer until ready
-    if (!PerpsConnectionManager.getConnectionState().isInitialized) {
-      this.deferConnect(200);
-      return;
-    }
-
-    this.connectRetryCount = 0;
+    if (!this.ensureReady()) return;
 
     DevLogger.log(`TopOfBookStreamChannel: Subscribing to top of book`, {
       symbol: this.currentSymbol,
@@ -1317,6 +1257,8 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
     PERFORMANCE_CONFIG.MarketDataCacheDurationMs;
 
   protected connect() {
+    if (!this.ensureReady()) return;
+
     // Check if connection manager is still connecting - retry later if so
     if (PerpsConnectionManager.isCurrentlyConnecting()) {
       this.deferConnect(200);
