@@ -1,5 +1,7 @@
 import { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
+import type { CaipChainId } from '@metamask/utils';
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
 import {
@@ -18,6 +20,8 @@ import Logger from '../../../../util/Logger';
 import Routes from '../../../../constants/navigation/Routes';
 import { useTransakController } from './useTransakController';
 import { getTransakEnvironment } from '../../../../core/Engine/controllers/ramps-controller/transak-service-init';
+import { selectTokens } from '../../../../selectors/rampsController';
+import useRampAccountAddress from './useRampAccountAddress';
 
 class LimitExceededError extends Error {
   constructor(message: string) {
@@ -28,10 +32,9 @@ class LimitExceededError extends Error {
 
 interface UseTransakRoutingConfig {
   screenLocation?: string;
-  walletAddress?: string | null;
 }
 
-export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
+export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
   const navigation = useNavigation();
   const handleNewOrder = useHandleNewOrder();
   const { themeAppearance, colors } = useTheme();
@@ -52,7 +55,10 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
     submitPurposeOfUsageForm,
   } = useTransakController();
 
-  const walletAddress = config?.walletAddress ?? null;
+  const { selected: selectedToken } = useSelector(selectTokens);
+  const walletAddress = useRampAccountAddress(
+    selectedToken?.chainId as CaipChainId,
+  );
 
   const transakEnvironment = getTransakEnvironment();
   const fiatCurrency = userRegion?.country?.currency || '';
@@ -301,13 +307,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
   );
 
   const navigateToKycWebviewCallback = useCallback(
-    ({
-      kycUrl,
-    }: {
-      quote: TransakBuyQuote;
-      kycUrl: string;
-      workFlowRunId: string;
-    }) => {
+    ({ kycUrl }: { kycUrl: string }) => {
       navigation.navigate(
         ...createCheckoutNavDetails({
           url: kycUrl,

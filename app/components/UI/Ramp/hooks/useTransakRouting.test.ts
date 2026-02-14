@@ -12,6 +12,19 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
+const MOCK_WALLET_ADDRESS = '0xabcdef1234567890';
+
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(() => ({
+    selected: { chainId: 'eip155:1' },
+  })),
+}));
+
+jest.mock('./useRampAccountAddress', () => ({
+  __esModule: true,
+  default: () => MOCK_WALLET_ADDRESS,
+}));
+
 jest.mock('../../../../util/theme', () => ({
   useTheme: () => ({
     themeAppearance: 'light',
@@ -87,6 +100,10 @@ jest.mock(
     getTransakEnvironment: () => 'STAGING',
   }),
 );
+
+jest.mock('../../../../selectors/rampsController', () => ({
+  selectTokens: jest.fn(),
+}));
 
 jest.mock('../Deposit/orderProcessor', () => ({
   depositOrderToFiatOrder: jest.fn((order) => ({
@@ -214,7 +231,7 @@ describe('useTransakRouting', () => {
       expect(mockGeneratePaymentWidgetUrl).toHaveBeenCalledWith(
         'test-ott',
         mockQuote,
-        '',
+        MOCK_WALLET_ADDRESS,
         expect.any(Object),
       );
       expect(mockNavigate).toHaveBeenCalledWith(
@@ -259,7 +276,7 @@ describe('useTransakRouting', () => {
 
       expect(mockTransakCreateOrder).toHaveBeenCalledWith(
         'test-quote-id',
-        '',
+        MOCK_WALLET_ADDRESS,
         '/payments/bank-transfer',
       );
       expect(mockReset).toHaveBeenCalledWith(
@@ -428,9 +445,7 @@ describe('useTransakRouting', () => {
 
       act(() => {
         result.current.navigateToKycWebview({
-          quote: mockQuote as never,
           kycUrl: 'https://kyc.example.com',
-          workFlowRunId: 'wf-123',
         });
       });
 

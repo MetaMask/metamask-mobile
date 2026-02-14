@@ -36,6 +36,8 @@ import useAnalytics from '../../hooks/useAnalytics';
 import { trace, TraceName } from '../../../../../util/trace';
 import { Box, BoxAlignItems } from '@metamask/design-system-react-native';
 import { useTransakController } from '../../hooks/useTransakController';
+import { useTransakRouting } from '../../hooks/useTransakRouting';
+import { useRampsController } from '../../hooks/useRampsController';
 
 export interface V2OtpCodeParams {
   email: string;
@@ -71,11 +73,24 @@ const ResendButton: FC<{
 const V2OtpCode = () => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
-  const { email, stateToken } = useParams<V2OtpCodeParams>();
+  const { email, stateToken, amount, currency, assetId } =
+    useParams<V2OtpCodeParams>();
   const trackEvent = useAnalytics();
 
-  const { setAuthToken, verifyUserOtp, sendUserOtp, userRegion } =
-    useTransakController();
+  const {
+    setAuthToken,
+    verifyUserOtp,
+    sendUserOtp,
+    userRegion,
+    getBuyQuote: transakGetBuyQuote,
+    selectedPaymentMethod,
+  } = useTransakController();
+
+  const { selectedToken } = useRampsController();
+
+  const { routeAfterAuthentication } = useTransakRouting({
+    walletAddress: null,
+  });
 
   const [currentStateToken, setCurrentStateToken] = useState(stateToken);
   const [latestValueSubmitted, setLatestValueSubmitted] = useState<
@@ -191,7 +206,31 @@ const V2OtpCode = () => {
           region: userRegion?.regionCode || '',
         });
 
-        navigation.navigate(Routes.RAMP.AMOUNT_INPUT);
+        if (amount && currency && assetId) {
+          try {
+            const quote = await transakGetBuyQuote(
+              currency,
+              assetId,
+              selectedToken?.chainId || '',
+              selectedPaymentMethod?.id || '',
+              amount,
+            );
+            await routeAfterAuthentication(quote);
+          } catch (routeError) {
+            const errorMessage =
+              routeError instanceof Error && routeError.message
+                ? routeError.message
+                : strings('deposit.otp_code.error');
+            navigation.navigate(
+              Routes.RAMP.AMOUNT_INPUT as never,
+              {
+                nativeFlowError: errorMessage,
+              } as never,
+            );
+          }
+        } else {
+          navigation.navigate(Routes.RAMP.AMOUNT_INPUT);
+        }
       } catch (e) {
         trackEvent('RAMPS_OTP_FAILED', {
           ramp_type: 'DEPOSIT',
@@ -217,6 +256,13 @@ const V2OtpCode = () => {
     currentStateToken,
     userRegion?.regionCode,
     trackEvent,
+    amount,
+    currency,
+    assetId,
+    transakGetBuyQuote,
+    selectedToken?.chainId,
+    selectedPaymentMethod?.id,
+    routeAfterAuthentication,
   ]);
 
   const handleValueChange = useCallback((text: string) => {

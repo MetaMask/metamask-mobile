@@ -37,12 +37,16 @@ import {
   getQuoteBuyUserAgent,
 } from '../../types';
 import Logger from '../../../../../util/Logger';
+import { useParams } from '../../../../../util/navigation/navUtils';
+import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
+import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 import { useTransakController } from '../../hooks/useTransakController';
 import { useTransakRouting } from '../../hooks/useTransakRouting';
 import { createV2EnterEmailNavDetails } from '../NativeFlow/EnterEmail';
 
 interface BuildQuoteParams {
   assetId?: string;
+  nativeFlowError?: string;
 }
 
 /**
@@ -86,6 +90,15 @@ function BuildQuote() {
   const [isOnBuildQuoteScreen, setIsOnBuildQuoteScreen] =
     useState<boolean>(true);
   const [isContinueLoading, setIsContinueLoading] = useState(false);
+  const [nativeFlowError, setNativeFlowError] = useState<string | null>(null);
+  const params = useParams<BuildQuoteParams>();
+
+  useEffect(() => {
+    if (params?.nativeFlowError) {
+      setNativeFlowError(params.nativeFlowError);
+      navigation.setParams({ nativeFlowError: undefined });
+    }
+  }, [params?.nativeFlowError, navigation]);
 
   useFocusEffect(
     useCallback(() => {
@@ -114,11 +127,8 @@ function BuildQuote() {
     getBuyQuote: transakGetBuyQuote,
   } = useTransakController();
 
-  const { routeAfterAuthentication: transakRouteAfterAuth } = useTransakRouting(
-    {
-      walletAddress: null,
-    },
-  );
+  const { routeAfterAuthentication: transakRouteAfterAuth } =
+    useTransakRouting();
 
   const currency = userRegion?.country?.currency || 'USD';
   const quickAmounts = userRegion?.country?.quickAmounts ?? [50, 100, 200, 400];
@@ -165,6 +175,7 @@ function BuildQuote() {
       setAmount(value || '0');
       setAmountAsNumber(valueAsNumber || 0);
       setUserHasEnteredAmount(true);
+      setNativeFlowError(null);
     },
     [],
   );
@@ -173,6 +184,7 @@ function BuildQuote() {
     setAmount(String(quickAmount));
     setAmountAsNumber(quickAmount);
     setUserHasEnteredAmount(true);
+    setNativeFlowError(null);
   }, []);
 
   const handlePaymentPillPress = useCallback(() => {
@@ -388,6 +400,13 @@ function BuildQuote() {
               />
             </View>
           </View>
+
+          {nativeFlowError && (
+            <BannerAlert
+              severity={BannerAlertSeverity.Error}
+              description={nativeFlowError}
+            />
+          )}
 
           <View style={styles.actionSection}>
             {selectedProvider && (
