@@ -19,8 +19,9 @@ export const initialStateWalletActions = (
       engine: {
         backgroundState: {
           MultichainNetworkController: {
-            selectedMultichainNetworkChainId:
-              'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+            selectedMultichainNetworkChainId: isEvmSelected
+              ? 'eip155:1'
+              : 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
           },
         },
       },

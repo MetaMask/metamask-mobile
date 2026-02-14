@@ -73,13 +73,6 @@ export const initialStateAssetDetails = (
     builder.withOverrides({
       engine: {
         backgroundState: {
-          CurrencyRateController: {
-            currentCurrency: 'USD',
-            currencyRates: {
-              ETH: { conversionRate: 2000 },
-              POL: { conversionRate: 0.5 },
-            },
-          },
           TokenRatesController: { marketData: {} },
           MultichainAssetsRatesController: { conversionRates: {} },
         },
