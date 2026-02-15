@@ -159,7 +159,7 @@ export const getAuthLabel = ({
   isBiometricsAvailable: boolean;
   passcodeAvailable: boolean;
 }): string => {
-  const getIosBiometricsLabel = () => {
+  const getBiometricsLabel = () => {
     if (Platform.OS === 'ios') {
       if (
         supportedBiometricTypes.includes(AuthenticationType.FACIAL_RECOGNITION)
@@ -170,20 +170,23 @@ export const getAuthLabel = ({
         return 'Touch ID';
       }
     }
-    // Android uses generic "Biometrics" label
-    return 'Biometrics';
+    // Android uses generic "Device Authentication" label
+    return 'Device Authentication';
   };
+
+  const getPasscodeLabel = () =>
+    Platform.OS === 'ios' ? 'Device Passcode' : 'Device Authentication'; // Android uses generic "Device Authentication" label
 
   if (allowLoginWithRememberMe) {
     return 'Remember Me';
   } else if (legacyUserChoseBiometrics) {
-    return getIosBiometricsLabel();
+    return getBiometricsLabel();
   } else if (legacyUserChosePasscode) {
-    return Platform.OS === 'ios' ? 'Device Passcode' : 'Device PIN/Pattern';
+    return getPasscodeLabel();
   } else if (isBiometricsAvailable) {
-    return getIosBiometricsLabel();
+    return getBiometricsLabel();
   } else if (passcodeAvailable) {
-    return Platform.OS === 'ios' ? 'Device Passcode' : 'Device PIN/Pattern';
+    return getPasscodeLabel();
   }
 
   return 'Password';

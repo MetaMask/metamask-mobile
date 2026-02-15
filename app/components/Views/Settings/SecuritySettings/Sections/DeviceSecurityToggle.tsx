@@ -167,7 +167,7 @@ const DeviceSecurityToggle = ({
           isFullWidth
           onPress={onOpenDeviceSettings}
         >
-          {strings('app_settings.enable_biometrics_in_settings')}
+          {strings('app_settings.enable_device_authentication')}
         </Button>
       ) : (
         <SecurityOptionToggle

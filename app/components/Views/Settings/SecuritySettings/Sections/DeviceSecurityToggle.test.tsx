@@ -102,7 +102,7 @@ describe('DeviceSecurityToggle', () => {
       const { getByText } = renderComponent();
       await waitFor(() => {
         // strings('app_settings.enable_biometrics_in_settings') from en.json
-        expect(getByText('Enable biometrics in Settings')).toBeTruthy();
+        expect(getByText('Enable Device Authentication')).toBeTruthy();
       });
     });
 
