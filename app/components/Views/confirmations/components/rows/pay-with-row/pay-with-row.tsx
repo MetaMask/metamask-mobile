@@ -63,9 +63,12 @@ export function PayWithRow() {
     ? strings('confirm.label.receive_as')
     : strings('confirm.label.pay_with');
 
-  // For withdrawals, default to the first required token (where funds are going)
+  // For withdrawals, default to the primary required token (where funds are going)
   // if no payment token has been explicitly selected.
-  const defaultWithdrawToken = requiredTokens?.[0];
+  // Filter out skipIfBalance entries — they are optional and not the destination token.
+  const defaultWithdrawToken = requiredTokens?.find(
+    (token) => !token.skipIfBalance,
+  );
   const displayToken = useMemo(() => {
     if (isWithdraw) {
       return payToken ?? defaultWithdrawToken ?? null;
