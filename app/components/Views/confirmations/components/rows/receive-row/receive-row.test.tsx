@@ -76,6 +76,11 @@ describe('ReceiveRow', () => {
     expect(getByText('$0')).toBeDefined();
   });
 
+  it('renders $0 when inputAmountUsd is "0"', () => {
+    const { getByText } = render('0');
+    expect(getByText('$0')).toBeDefined();
+  });
+
   it('renders empty string if totals is undefined', () => {
     useTransactionPayTotalsMock.mockReturnValue(undefined);
 

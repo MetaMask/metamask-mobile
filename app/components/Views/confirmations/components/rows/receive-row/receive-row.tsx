@@ -32,7 +32,7 @@ export function ReceiveRow({ inputAmountUsd }: ReceiveRowProps) {
   const totals = useTransactionPayTotals();
 
   const receiveUsd = useMemo(() => {
-    if (!totals || !inputAmountUsd) return '';
+    if (!totals || inputAmountUsd == null) return '';
 
     const inputUsd = new BigNumber(inputAmountUsd);
     const providerFee = new BigNumber(totals.fees?.provider?.usd ?? 0);
