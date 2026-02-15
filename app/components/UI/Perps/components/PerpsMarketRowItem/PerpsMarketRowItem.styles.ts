@@ -22,7 +22,7 @@ const styleSheet = (params: { vars: { compact: boolean } }) =>
     tokenHeader: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 8,
+      gap: 6,
     },
     secondRow: {
       flexDirection: 'row',
