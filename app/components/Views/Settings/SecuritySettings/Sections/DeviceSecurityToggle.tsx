@@ -98,7 +98,7 @@ const DeviceSecurityToggle = ({
         const isPasswordRequiredError =
           error instanceof AuthenticationError &&
           error.customErrorMessage ===
-          AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS;
+            AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS;
 
         if (isPasswordRequiredError) {
           // Navigate to password entry - keep optimistic value until callback completes
