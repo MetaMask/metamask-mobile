@@ -155,7 +155,7 @@ describe('DeviceSecurityToggle', () => {
       });
     });
 
-    it('calls updateOsAuthEnabled only when requiresReauthentication is false', async () => {
+    it('calls updateOsAuthEnabled only when requiresReauthentication is false (turning on)', async () => {
       const { getByTestId } = renderComponent({ requiresReauthentication: false });
       const toggle = await waitFor(() =>
         getByTestId(SecurityPrivacyViewSelectorsIDs.DEVICE_SECURITY_TOGGLE),
@@ -164,6 +164,24 @@ describe('DeviceSecurityToggle', () => {
 
       await waitFor(() => {
         expect(mockUpdateOsAuthEnabled).toHaveBeenCalledWith(true);
+        expect(mockUpdateAuthPreference).not.toHaveBeenCalled();
+        expect(mockGetAuthCapabilities).not.toHaveBeenCalled();
+      });
+    });
+
+    it('calls updateOsAuthEnabled only when requiresReauthentication is false (turning off)', async () => {
+      mockUseAuthCapabilities.mockReturnValue({
+        isLoading: false,
+        capabilities: { ...defaultCapabilities, osAuthEnabled: true },
+      });
+      const { getByTestId } = renderComponent({ requiresReauthentication: false });
+      const toggle = await waitFor(() =>
+        getByTestId(SecurityPrivacyViewSelectorsIDs.DEVICE_SECURITY_TOGGLE),
+      );
+      fireEvent(toggle, 'onValueChange', false);
+
+      await waitFor(() => {
+        expect(mockUpdateOsAuthEnabled).toHaveBeenCalledWith(false);
         expect(mockUpdateAuthPreference).not.toHaveBeenCalled();
         expect(mockGetAuthCapabilities).not.toHaveBeenCalled();
       });
@@ -248,6 +266,58 @@ describe('DeviceSecurityToggle', () => {
           password: 'test-password',
         });
       });
+    });
+
+    it('clears optimistic state when user cancels password entry', async () => {
+      let onCancel: (() => void) | undefined;
+      mockUpdateAuthPreference.mockRejectedValueOnce(
+        new MockedAuthenticationError(
+          'Password required',
+          AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
+        ),
+      );
+      mockNavigate.mockImplementation(
+        (_: string, params?: { onCancel?: () => void }) => {
+          if (params?.onCancel) onCancel = params.onCancel;
+        },
+      );
+
+      const { getByTestId } = renderComponent();
+      const toggle = await waitFor(() =>
+        getByTestId(SecurityPrivacyViewSelectorsIDs.DEVICE_SECURITY_TOGGLE),
+      );
+      fireEvent(toggle, 'onValueChange', true);
+
+      await waitFor(() => expect(mockNavigate).toHaveBeenCalled());
+      expect(onCancel).toBeDefined();
+      onCancel!();
+
+      await waitFor(() => {
+        const toggleAfterCancel = getByTestId(SecurityPrivacyViewSelectorsIDs.DEVICE_SECURITY_TOGGLE);
+        expect(toggleAfterCancel.props.value).toBe(false);
+      });
+    });
+  });
+
+  describe('onDeviceSecurityToggle success', () => {
+    it('clears optimistic value after updateAuthPreference succeeds', async () => {
+      jest.useFakeTimers();
+      const { getByTestId } = renderComponent();
+      const toggle = await waitFor(() =>
+        getByTestId(SecurityPrivacyViewSelectorsIDs.DEVICE_SECURITY_TOGGLE),
+      );
+      fireEvent(toggle, 'onValueChange', true);
+
+      await waitFor(() => expect(mockUpdateAuthPreference).toHaveBeenCalled());
+      expect(toggle.props.value).toBe(true);
+
+      jest.runAllTimers();
+
+      await waitFor(() => {
+        const toggleAfterSuccess = getByTestId(SecurityPrivacyViewSelectorsIDs.DEVICE_SECURITY_TOGGLE);
+        expect(toggleAfterSuccess.props.disabled).toBe(false);
+      });
+      jest.useRealTimers();
     });
   });
 
