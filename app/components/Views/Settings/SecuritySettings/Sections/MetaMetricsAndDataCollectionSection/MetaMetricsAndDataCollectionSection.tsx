@@ -16,7 +16,6 @@ import Button, {
 import { HOW_TO_MANAGE_METRAMETRICS_SETTINGS } from '../../../../../../constants/urls';
 import React, { useEffect, useState } from 'react';
 import createStyles from '../../SecuritySettings.styles';
-import { useTheme } from '../../../../../../util/theme';
 import generateDeviceAnalyticsMetaData, {
   UserSettingsAnalyticsMetaData as generateUserSettingsAnalyticsMetaData,
 } from '../../../../../../util/metrics';

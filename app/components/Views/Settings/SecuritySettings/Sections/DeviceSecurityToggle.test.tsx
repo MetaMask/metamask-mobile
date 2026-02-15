@@ -293,7 +293,7 @@ describe('DeviceSecurityToggle', () => {
 
       await waitFor(() => expect(mockNavigate).toHaveBeenCalled());
       expect(onPasswordSet).toBeDefined();
-      await onPasswordSet!('test-password');
+      if (onPasswordSet) await onPasswordSet('test-password');
 
       await waitFor(() => {
         expect(mockUpdateAuthPreference).toHaveBeenLastCalledWith({
@@ -325,7 +325,7 @@ describe('DeviceSecurityToggle', () => {
 
       await waitFor(() => expect(mockNavigate).toHaveBeenCalled());
       expect(onCancel).toBeDefined();
-      onCancel!();
+      if (onCancel) onCancel();
 
       await waitFor(() => {
         const toggleAfterCancel = getByTestId(

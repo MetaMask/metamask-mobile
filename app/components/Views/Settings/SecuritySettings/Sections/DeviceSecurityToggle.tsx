@@ -39,7 +39,7 @@ interface DeviceSecurityToggleProps {
  * - Whether the toggle is enabled
  *
  * @param requiresReauthentication - When true (default), toggling triggers reauthentication.
- *   Set to false for preset flows (e.g., onboarding) where only the preference should be saved.
+ * Set to false for preset flows (e.g., onboarding) where only the preference should be saved.
  *
  * The toggle is disabled when Remember Me is enabled.
  */
@@ -98,7 +98,7 @@ const DeviceSecurityToggle = ({
         const isPasswordRequiredError =
           error instanceof AuthenticationError &&
           error.customErrorMessage ===
-            AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS;
+          AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS;
 
         if (isPasswordRequiredError) {
           // Navigate to password entry - keep optimistic value until callback completes
@@ -135,6 +135,7 @@ const DeviceSecurityToggle = ({
     },
     [
       capabilities,
+      getAuthCapabilities,
       navigation,
       requiresReauthentication,
       updateAuthPreference,
