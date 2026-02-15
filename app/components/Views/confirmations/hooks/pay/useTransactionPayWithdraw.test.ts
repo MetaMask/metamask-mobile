@@ -8,6 +8,7 @@ import { otherControllersMock } from '../../__mocks__/controllers/other-controll
 import { TransactionType } from '@metamask/transaction-controller';
 
 const STATE_MOCK = merge(
+  {},
   simpleSendTransactionControllerMock,
   transactionApprovalControllerMock,
   otherControllersMock,
