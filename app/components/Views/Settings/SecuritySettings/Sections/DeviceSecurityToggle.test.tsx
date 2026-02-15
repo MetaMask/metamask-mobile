@@ -64,6 +64,15 @@ jest.mock(
   }),
 );
 
+jest.mock('react-native/Libraries/Linking/Linking', () => ({
+  openSettings: jest.fn(),
+  openURL: jest.fn(),
+  addEventListener: jest.fn(),
+  removeEventListener: jest.fn(),
+  getInitialURL: jest.fn(() => Promise.resolve(null)),
+  canOpenURL: jest.fn(() => Promise.resolve(true)),
+}));
+
 const defaultCapabilities = {
   isBiometricsAvailable: true,
   passcodeAvailable: true,
@@ -126,6 +135,23 @@ describe('DeviceSecurityToggle', () => {
         // strings('app_settings.enable_biometrics_in_settings') from en.json
         expect(getByText('Enable Device Authentication')).toBeTruthy();
       });
+    });
+
+    it('calls Linking.openSettings when device settings button is pressed', async () => {
+      const { Linking } = require('react-native');
+      mockUseAuthCapabilities.mockReturnValue({
+        isLoading: false,
+        capabilities: {
+          ...defaultCapabilities,
+          deviceAuthRequiresSettings: true,
+        },
+      });
+      const { getByText } = renderComponent();
+      const button = await waitFor(() =>
+        getByText('Enable Device Authentication'),
+      );
+      fireEvent.press(button);
+      expect(Linking.openSettings).toHaveBeenCalled();
     });
 
     it('renders toggle when deviceAuthRequiresSettings is false', async () => {
@@ -332,6 +358,51 @@ describe('DeviceSecurityToggle', () => {
           SecurityPrivacyViewSelectorsIDs.DEVICE_SECURITY_TOGGLE,
         );
         expect(toggleAfterCancel.props.value).toBe(false);
+      });
+    });
+
+    it('logs error and clears optimistic state when updateAuthPreference fails after password entry', async () => {
+      const Logger = require('../../../../../util/Logger');
+      const updateError = new Error('Update failed after password');
+      let onPasswordSet: ((password: string) => Promise<void>) | undefined;
+      mockUpdateAuthPreference
+        .mockRejectedValueOnce(
+          new MockedAuthenticationError(
+            'Password required',
+            AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
+          ),
+        )
+        .mockRejectedValueOnce(updateError);
+      mockNavigate.mockImplementation(
+        (
+          _: string,
+          params?: { onPasswordSet?: (p: string) => Promise<void> },
+        ) => {
+          if (params?.onPasswordSet) onPasswordSet = params.onPasswordSet;
+        },
+      );
+
+      const { getByTestId } = renderComponent();
+      const toggle = await waitFor(() =>
+        getByTestId(SecurityPrivacyViewSelectorsIDs.DEVICE_SECURITY_TOGGLE),
+      );
+      fireEvent(toggle, 'onValueChange', true);
+
+      await waitFor(() => expect(mockNavigate).toHaveBeenCalled());
+      expect(onPasswordSet).toBeDefined();
+      if (onPasswordSet) await onPasswordSet('test-password');
+
+      await waitFor(() => {
+        expect(Logger.error).toHaveBeenCalledWith(
+          updateError,
+          'Failed to update auth preference after password entry',
+        );
+      });
+      await waitFor(() => {
+        const toggleAfterError = getByTestId(
+          SecurityPrivacyViewSelectorsIDs.DEVICE_SECURITY_TOGGLE,
+        );
+        expect(toggleAfterError.props.value).toBe(false);
       });
     });
   });
