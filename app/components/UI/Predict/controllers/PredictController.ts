@@ -2411,7 +2411,7 @@ export class PredictController extends BaseController<
         disableHook: true,
         disableSequential: true,
         requireApproval: true,
-        skipInitialGasEstimate: true,
+        skipInitialGasEstimate: Boolean(safeGas),
         // Temporarily breaking abstraction, can instead be abstracted via provider.
         gasFeeToken: MATIC_CONTRACTS.collateral as Hex,
         transactions: [withdrawTransaction],
