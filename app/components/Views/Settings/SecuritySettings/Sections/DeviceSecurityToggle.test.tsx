@@ -28,7 +28,10 @@ jest.mock('../../../../../core/Authentication/AuthenticationError', () => {
 
 const MockedAuthenticationError = jest.requireMock(
   '../../../../../core/Authentication/AuthenticationError',
-).default as new (message: string, code: string) => Error & { customErrorMessage: string };
+).default as new (
+  message: string,
+  code: string,
+) => Error & { customErrorMessage: string };
 
 const mockUpdateAuthPreference = jest.fn();
 const mockGetAuthCapabilities = jest.fn();
@@ -43,14 +46,23 @@ jest.mock('../../../../../core/Authentication', () => ({
 }));
 
 const mockUseAuthCapabilities = jest.fn();
-jest.mock('../../../../../core/Authentication/hooks/useAuthCapabilities', () => ({
-  __esModule: true,
-  default: () => mockUseAuthCapabilities(),
-}));
+jest.mock(
+  '../../../../../core/Authentication/hooks/useAuthCapabilities',
+  () => ({
+    __esModule: true,
+    default: () => mockUseAuthCapabilities(),
+  }),
+);
 
-jest.mock('../../../../UI/TurnOffRememberMeModal/TurnOffRememberMeModal', () => ({
-  createTurnOffRememberMeModalNavDetails: () => ['TurnOffRememberMeModal', {}],
-}));
+jest.mock(
+  '../../../../UI/TurnOffRememberMeModal/TurnOffRememberMeModal',
+  () => ({
+    createTurnOffRememberMeModalNavDetails: () => [
+      'TurnOffRememberMeModal',
+      {},
+    ],
+  }),
+);
 
 const defaultCapabilities = {
   isBiometricsAvailable: true,
@@ -82,22 +94,32 @@ describe('DeviceSecurityToggle', () => {
       ({ osAuthEnabled }: { osAuthEnabled: boolean }) =>
         Promise.resolve({
           ...defaultCapabilities,
-          authType: osAuthEnabled ? AUTHENTICATION_TYPE.BIOMETRIC : AUTHENTICATION_TYPE.PASSWORD,
+          authType: osAuthEnabled
+            ? AUTHENTICATION_TYPE.BIOMETRIC
+            : AUTHENTICATION_TYPE.PASSWORD,
         }),
     );
   });
 
   describe('render', () => {
     it('returns null when capabilities are not yet loaded', () => {
-      mockUseAuthCapabilities.mockReturnValue({ isLoading: true, capabilities: null });
+      mockUseAuthCapabilities.mockReturnValue({
+        isLoading: true,
+        capabilities: null,
+      });
       const { queryByTestId } = renderComponent();
-      expect(queryByTestId(SecurityPrivacyViewSelectorsIDs.DEVICE_SECURITY_TOGGLE)).toBeNull();
+      expect(
+        queryByTestId(SecurityPrivacyViewSelectorsIDs.DEVICE_SECURITY_TOGGLE),
+      ).toBeNull();
     });
 
     it('renders device settings button when deviceAuthRequiresSettings is true', async () => {
       mockUseAuthCapabilities.mockReturnValue({
         isLoading: false,
-        capabilities: { ...defaultCapabilities, deviceAuthRequiresSettings: true },
+        capabilities: {
+          ...defaultCapabilities,
+          deviceAuthRequiresSettings: true,
+        },
       });
       const { getByText } = renderComponent();
       await waitFor(() => {
@@ -109,7 +131,9 @@ describe('DeviceSecurityToggle', () => {
     it('renders toggle when deviceAuthRequiresSettings is false', async () => {
       const { getByTestId } = renderComponent();
       await waitFor(() => {
-        expect(getByTestId(SecurityPrivacyViewSelectorsIDs.DEVICE_SECURITY_TOGGLE)).toBeTruthy();
+        expect(
+          getByTestId(SecurityPrivacyViewSelectorsIDs.DEVICE_SECURITY_TOGGLE),
+        ).toBeTruthy();
       });
     });
   });
@@ -136,7 +160,11 @@ describe('DeviceSecurityToggle', () => {
     it('calls getAuthCapabilities and updateAuthPreference when turning off', async () => {
       mockUseAuthCapabilities.mockReturnValue({
         isLoading: false,
-        capabilities: { ...defaultCapabilities, osAuthEnabled: true, authType: AUTHENTICATION_TYPE.BIOMETRIC },
+        capabilities: {
+          ...defaultCapabilities,
+          osAuthEnabled: true,
+          authType: AUTHENTICATION_TYPE.BIOMETRIC,
+        },
       });
       const { getByTestId } = renderComponent();
       const toggle = await waitFor(() =>
@@ -156,7 +184,9 @@ describe('DeviceSecurityToggle', () => {
     });
 
     it('calls updateOsAuthEnabled only when requiresReauthentication is false (turning on)', async () => {
-      const { getByTestId } = renderComponent({ requiresReauthentication: false });
+      const { getByTestId } = renderComponent({
+        requiresReauthentication: false,
+      });
       const toggle = await waitFor(() =>
         getByTestId(SecurityPrivacyViewSelectorsIDs.DEVICE_SECURITY_TOGGLE),
       );
@@ -174,7 +204,9 @@ describe('DeviceSecurityToggle', () => {
         isLoading: false,
         capabilities: { ...defaultCapabilities, osAuthEnabled: true },
       });
-      const { getByTestId } = renderComponent({ requiresReauthentication: false });
+      const { getByTestId } = renderComponent({
+        requiresReauthentication: false,
+      });
       const toggle = await waitFor(() =>
         getByTestId(SecurityPrivacyViewSelectorsIDs.DEVICE_SECURITY_TOGGLE),
       );
@@ -245,7 +277,10 @@ describe('DeviceSecurityToggle', () => {
         )
         .mockResolvedValueOnce(undefined);
       mockNavigate.mockImplementation(
-        (_: string, params?: { onPasswordSet?: (p: string) => Promise<void> }) => {
+        (
+          _: string,
+          params?: { onPasswordSet?: (p: string) => Promise<void> },
+        ) => {
           if (params?.onPasswordSet) onPasswordSet = params.onPasswordSet;
         },
       );
@@ -293,7 +328,9 @@ describe('DeviceSecurityToggle', () => {
       onCancel!();
 
       await waitFor(() => {
-        const toggleAfterCancel = getByTestId(SecurityPrivacyViewSelectorsIDs.DEVICE_SECURITY_TOGGLE);
+        const toggleAfterCancel = getByTestId(
+          SecurityPrivacyViewSelectorsIDs.DEVICE_SECURITY_TOGGLE,
+        );
         expect(toggleAfterCancel.props.value).toBe(false);
       });
     });
@@ -314,7 +351,9 @@ describe('DeviceSecurityToggle', () => {
       jest.runAllTimers();
 
       await waitFor(() => {
-        const toggleAfterSuccess = getByTestId(SecurityPrivacyViewSelectorsIDs.DEVICE_SECURITY_TOGGLE);
+        const toggleAfterSuccess = getByTestId(
+          SecurityPrivacyViewSelectorsIDs.DEVICE_SECURITY_TOGGLE,
+        );
         expect(toggleAfterSuccess.props.disabled).toBe(false);
       });
       jest.useRealTimers();
@@ -329,13 +368,17 @@ describe('DeviceSecurityToggle', () => {
       });
       const { getByTestId } = renderComponent();
       await waitFor(() => {
-        const toggle = getByTestId(SecurityPrivacyViewSelectorsIDs.DEVICE_SECURITY_TOGGLE);
+        const toggle = getByTestId(
+          SecurityPrivacyViewSelectorsIDs.DEVICE_SECURITY_TOGGLE,
+        );
         expect(toggle.props.disabled).toBe(true);
       });
     });
 
     it('handles updateAuthPreference rejection and clears optimistic state', async () => {
-      mockUpdateAuthPreference.mockRejectedValueOnce(new Error('Update failed'));
+      mockUpdateAuthPreference.mockRejectedValueOnce(
+        new Error('Update failed'),
+      );
       const { getByTestId } = renderComponent();
       const toggle = await waitFor(() =>
         getByTestId(SecurityPrivacyViewSelectorsIDs.DEVICE_SECURITY_TOGGLE),
@@ -348,7 +391,9 @@ describe('DeviceSecurityToggle', () => {
 
       // Optimistic state should be cleared in catch: toggle reverts to capabilities (off)
       await waitFor(() => {
-        const toggleAfterError = getByTestId(SecurityPrivacyViewSelectorsIDs.DEVICE_SECURITY_TOGGLE);
+        const toggleAfterError = getByTestId(
+          SecurityPrivacyViewSelectorsIDs.DEVICE_SECURITY_TOGGLE,
+        );
         expect(toggleAfterError.props.value).toBe(false);
       });
     });

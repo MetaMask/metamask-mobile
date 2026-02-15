@@ -75,7 +75,10 @@ const Heading: React.FC<HeadingProps> = ({ children, first }) => {
 
 const Settings: React.FC = () => {
   const { trackEvent, isEnabled, createEventBuilder } = useMetrics();
-  const { styles, theme: { colors, brandColors } } = useStyles(createStyles, {});
+  const {
+    styles,
+    theme: { colors, brandColors },
+  } = useStyles(createStyles, {});
   const navigation = useNavigation();
   const params = useParams<SecuritySettingsParams>();
   const dispatch = useDispatch();
