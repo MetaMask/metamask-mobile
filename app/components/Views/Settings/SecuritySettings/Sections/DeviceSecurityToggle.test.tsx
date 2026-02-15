@@ -1,10 +1,12 @@
 import React from 'react';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, waitFor } from '@testing-library/react-native';
+import { Linking } from 'react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import DeviceSecurityToggle from './DeviceSecurityToggle';
 import AUTHENTICATION_TYPE from '../../../../../constants/userProperties';
 import { SecurityPrivacyViewSelectorsIDs } from '../SecurityPrivacyView.testIds';
 import { AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS } from '../../../../../constants/error';
+import Logger from '../../../../../util/Logger';
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => {
@@ -138,7 +140,6 @@ describe('DeviceSecurityToggle', () => {
     });
 
     it('calls Linking.openSettings when device settings button is pressed', async () => {
-      const { Linking } = require('react-native');
       mockUseAuthCapabilities.mockReturnValue({
         isLoading: false,
         capabilities: {
@@ -319,7 +320,9 @@ describe('DeviceSecurityToggle', () => {
 
       await waitFor(() => expect(mockNavigate).toHaveBeenCalled());
       expect(onPasswordSet).toBeDefined();
-      if (onPasswordSet) await onPasswordSet('test-password');
+      await act(async () => {
+        if (onPasswordSet) await onPasswordSet('test-password');
+      });
 
       await waitFor(() => {
         expect(mockUpdateAuthPreference).toHaveBeenLastCalledWith({
@@ -351,7 +354,9 @@ describe('DeviceSecurityToggle', () => {
 
       await waitFor(() => expect(mockNavigate).toHaveBeenCalled());
       expect(onCancel).toBeDefined();
-      if (onCancel) onCancel();
+      act(() => {
+        onCancel?.();
+      });
 
       await waitFor(() => {
         const toggleAfterCancel = getByTestId(
@@ -362,7 +367,6 @@ describe('DeviceSecurityToggle', () => {
     });
 
     it('logs error and clears optimistic state when updateAuthPreference fails after password entry', async () => {
-      const Logger = require('../../../../../util/Logger');
       const updateError = new Error('Update failed after password');
       let onPasswordSet: ((password: string) => Promise<void>) | undefined;
       mockUpdateAuthPreference
@@ -390,7 +394,9 @@ describe('DeviceSecurityToggle', () => {
 
       await waitFor(() => expect(mockNavigate).toHaveBeenCalled());
       expect(onPasswordSet).toBeDefined();
-      if (onPasswordSet) await onPasswordSet('test-password');
+      await act(async () => {
+        if (onPasswordSet) await onPasswordSet('test-password');
+      });
 
       await waitFor(() => {
         expect(Logger.error).toHaveBeenCalledWith(
@@ -419,7 +425,9 @@ describe('DeviceSecurityToggle', () => {
       await waitFor(() => expect(mockUpdateAuthPreference).toHaveBeenCalled());
       expect(toggle.props.value).toBe(true);
 
-      jest.runAllTimers();
+      act(() => {
+        jest.runAllTimers();
+      });
 
       await waitFor(() => {
         const toggleAfterSuccess = getByTestId(
