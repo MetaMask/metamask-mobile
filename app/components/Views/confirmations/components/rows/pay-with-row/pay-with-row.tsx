@@ -65,9 +65,10 @@ export function PayWithRow() {
 
   // For withdrawals, default to the primary required token (where funds are going)
   // if no payment token has been explicitly selected.
-  // Filter out skipIfBalance entries — they are optional and not the destination token.
+  // Filter out skipIfBalance (optional if user already holds) and allowUnderMinimum
+  // (fallback/optional) entries — neither represents the primary destination token.
   const defaultWithdrawToken = requiredTokens?.find(
-    (token) => !token.skipIfBalance,
+    (token) => !token.skipIfBalance && !token.allowUnderMinimum,
   );
   const displayToken = useMemo(() => {
     if (isWithdraw) {
