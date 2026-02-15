@@ -5,10 +5,12 @@ import {
 } from '../Engine/controllers/seedless-onboarding-controller/error';
 import { UnlockWalletErrorType } from './types';
 import { UNLOCK_WALLET_ERROR_MESSAGES } from './constants';
+import AUTHENTICATION_TYPE from '../../constants/userProperties';
 import {
   handlePasswordSubmissionError,
   checkPasswordRequirement,
   getAuthLabel,
+  getAuthType,
 } from './utils';
 import { AuthenticationType } from 'expo-local-authentication';
 
@@ -92,6 +94,109 @@ describe('handlePasswordSubmissionError', () => {
     expect(() => handlePasswordSubmissionError(error)).toThrow(
       expectedThrownError,
     );
+  });
+});
+
+describe('getAuthType', () => {
+  const baseParams = {
+    allowLoginWithRememberMe: false,
+    osAuthEnabled: false,
+    legacyUserChoseBiometrics: false,
+    legacyUserChosePasscode: false,
+    isBiometricsAvailable: false,
+    passcodeAvailable: false,
+  };
+
+  it('returns REMEMBER_ME when allowLoginWithRememberMe is true', () => {
+    const result = getAuthType({
+      ...baseParams,
+      allowLoginWithRememberMe: true,
+      osAuthEnabled: true,
+      isBiometricsAvailable: true,
+      passcodeAvailable: true,
+    });
+    expect(result).toBe(AUTHENTICATION_TYPE.REMEMBER_ME);
+  });
+
+  it('returns PASSWORD when osAuthEnabled is false', () => {
+    const result = getAuthType({
+      ...baseParams,
+      osAuthEnabled: false,
+      isBiometricsAvailable: true,
+      passcodeAvailable: true,
+    });
+    expect(result).toBe(AUTHENTICATION_TYPE.PASSWORD);
+  });
+
+  it('returns BIOMETRIC when legacyUserChoseBiometrics and isBiometricsAvailable', () => {
+    const result = getAuthType({
+      ...baseParams,
+      osAuthEnabled: true,
+      legacyUserChoseBiometrics: true,
+      isBiometricsAvailable: true,
+    });
+    expect(result).toBe(AUTHENTICATION_TYPE.BIOMETRIC);
+  });
+
+  it('returns PASSWORD when legacyUserChoseBiometrics but not isBiometricsAvailable', () => {
+    const result = getAuthType({
+      ...baseParams,
+      osAuthEnabled: true,
+      legacyUserChoseBiometrics: true,
+      isBiometricsAvailable: false,
+      passcodeAvailable: true,
+    });
+    expect(result).toBe(AUTHENTICATION_TYPE.PASSWORD);
+  });
+
+  it('returns PASSCODE when legacyUserChosePasscode and passcodeAvailable', () => {
+    const result = getAuthType({
+      ...baseParams,
+      osAuthEnabled: true,
+      legacyUserChosePasscode: true,
+      passcodeAvailable: true,
+    });
+    expect(result).toBe(AUTHENTICATION_TYPE.PASSCODE);
+  });
+
+  it('returns PASSWORD when legacyUserChosePasscode but not passcodeAvailable', () => {
+    const result = getAuthType({
+      ...baseParams,
+      osAuthEnabled: true,
+      legacyUserChosePasscode: true,
+      passcodeAvailable: false,
+    });
+    expect(result).toBe(AUTHENTICATION_TYPE.PASSWORD);
+  });
+
+  it('returns BIOMETRIC when osAuthEnabled and isBiometricsAvailable (tiered fallback)', () => {
+    const result = getAuthType({
+      ...baseParams,
+      osAuthEnabled: true,
+      isBiometricsAvailable: true,
+      passcodeAvailable: true,
+    });
+    expect(result).toBe(AUTHENTICATION_TYPE.BIOMETRIC);
+  });
+
+  it('returns PASSCODE when osAuthEnabled, no biometrics, passcodeAvailable (tiered fallback)', () => {
+    const result = getAuthType({
+      ...baseParams,
+      osAuthEnabled: true,
+      isBiometricsAvailable: false,
+      passcodeAvailable: true,
+    });
+    expect(result).toBe(AUTHENTICATION_TYPE.PASSCODE);
+  });
+
+  it('returns PASSWORD when osAuthEnabled but neither biometrics nor passcode available', () => {
+    const result = getAuthType({
+      ...baseParams,
+      osAuthEnabled: true,
+      isBiometricsAvailable: false,
+      passcodeAvailable: false,
+    });
+    expect(result).toBe(AUTHENTICATION_TYPE.PASSWORD);
   });
 });
 
