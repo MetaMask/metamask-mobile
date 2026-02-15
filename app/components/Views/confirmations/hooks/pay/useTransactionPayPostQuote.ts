@@ -20,13 +20,17 @@ const log = createProjectLogger('transaction-pay-post-quote');
  * withdrawals will use same-token-same-chain flow without bridging.
  */
 export function useTransactionPayPostQuote(): void {
-  const isSet = useRef(false);
+  const isSet = useRef<string | undefined>();
   const { canSelectWithdrawToken } = useTransactionPayWithdraw();
   const transactionMeta = useTransactionMetadataRequest();
   const transactionId = transactionMeta?.id;
 
   useEffect(() => {
-    if (!canSelectWithdrawToken || !transactionId || isSet.current) {
+    if (
+      !canSelectWithdrawToken ||
+      !transactionId ||
+      isSet.current === transactionId
+    ) {
       return;
     }
 
@@ -38,7 +42,7 @@ export function useTransactionPayPostQuote(): void {
         config.isPostQuote = true;
       });
 
-      isSet.current = true;
+      isSet.current = transactionId;
 
       log('Initialized post-quote transaction', { transactionId });
     } catch (error) {
