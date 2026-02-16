@@ -143,16 +143,14 @@ const Name: React.FC<NameProperties> = ({
     <>
       <Pressable
         testID={`name-${value}`}
-        onPress={() => {
-          if (!iconOverride) {
-            setIsTooltipVisible(true);
-          }
-        }}
+        onPress={() => setIsTooltipVisible(true)}
       >
         <View style={[styles.base, style]}>
-          {/* If an icon override is provided, use it. Otherwise, use the icon if it is available. Otherwise, use the Identicon. */}
+          {/* If an icon override is provided, wrap it so its touch does not
+              propagate to the parent Pressable (avoids opening the tooltip
+              when the user taps an InlineAlert icon). */}
           {iconOverride !== undefined ? (
-            iconOverride
+            <View onStartShouldSetResponder={() => true}>{iconOverride}</View>
           ) : icon ? (
             <TrustIcon icon={icon} />
           ) : isFirstPartyContractName ? (
