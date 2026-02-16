@@ -21,6 +21,7 @@ import {
   useAutomaticTransactionPayToken,
 } from '../../../hooks/pay/useAutomaticTransactionPayToken';
 import { useTransactionPayPostQuote } from '../../../hooks/pay/useTransactionPayPostQuote';
+import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
 import { AlertMessage } from '../../alerts/alert-message';
 import {
   CustomAmount,
@@ -43,10 +44,7 @@ import { useAccountTokens } from '../../../hooks/send/useAccountTokens';
 import { toCaipAssetType } from '@metamask/utils';
 import { AlignItems } from '../../../../../UI/Box/box.types';
 import { strings } from '../../../../../../../locales/i18n';
-import {
-  hasTransactionType,
-  isTransactionPayWithdraw,
-} from '../../../utils/transaction';
+import { hasTransactionType } from '../../../utils/transaction';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { TransactionType } from '@metamask/transaction-controller';
 import Button, {
@@ -92,8 +90,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
   }) => {
     useClearConfirmationOnBackSwipe();
 
-    const transactionMeta = useTransactionMetadataRequest();
-    const isWithdraw = isTransactionPayWithdraw(transactionMeta);
+    const { canSelectWithdrawToken } = useTransactionPayWithdraw();
 
     useAutomaticTransactionPayToken({
       disable: disablePay,
@@ -168,7 +165,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             <Box>
               <BridgeFeeRow />
               <BridgeTimeRow />
-              {isWithdraw ? (
+              {canSelectWithdrawToken ? (
                 <ReceiveRow inputAmountUsd={amountFiat} />
               ) : (
                 <TotalRow />
