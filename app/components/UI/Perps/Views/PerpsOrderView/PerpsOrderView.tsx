@@ -48,7 +48,6 @@ import Text, {
 import useTooltipModal from '../../../../../components/hooks/useTooltipModal';
 import Routes from '../../../../../constants/navigation/Routes';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
-import Engine from '../../../../../core/Engine';
 import { useTheme } from '../../../../../util/theme';
 import { TraceName } from '../../../../../util/trace';
 import Keypad from '../../../../Base/Keypad';
@@ -120,6 +119,7 @@ import {
   usePerpsLivePrices,
   usePerpsTopOfBook,
 } from '../../hooks/stream';
+import { usePerpsConnection } from '../../hooks/usePerpsConnection';
 import { useIsPerpsBalanceSelected } from '../../hooks/useIsPerpsBalanceSelected';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
@@ -257,6 +257,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const orderStartTimeRef = useRef<number>(0);
   const inputMethodRef = useRef<InputMethod>('default');
 
+  const { isInitialized } = usePerpsConnection();
+  const { subscribeToPrices, updatePositionTPSL } = usePerpsTrading();
   const { account, isInitialLoading: isLoadingAccount } = usePerpsLiveAccount();
 
   // Get order form state from context; balanceForValidation respects custom token amount when set
@@ -379,42 +381,25 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   // undefined when entering from Token Details (no prior market data sub).
   // This subscription populates the cache for the traded asset so that
   // subsequent allMids price updates include markPrice.
+  //
+  // We gate on isInitialized (from usePerpsConnection) so the subscription
+  // is deferred until the controller is ready. This mirrors the pattern in
+  // usePerpsPrices and avoids a silent failure that would leave markPrice
+  // undefined with no retry (the old deps would never change).
   useEffect(() => {
-    if (!isDataReady || !orderForm.asset) return;
+    if (!isDataReady || !isInitialized || !orderForm.asset) return;
 
-    let unsubscribe: (() => void) | undefined;
-    let cancelled = false;
+    const unsubscribe = subscribeToPrices({
+      symbols: [orderForm.asset],
+      includeMarketData: true,
+      callback: () => {
+        // No-op callback — the side effect of populating the
+        // marketDataCache with oraclePrice is all we need.
+      },
+    });
 
-    const subscribe = async () => {
-      try {
-        const unsub = await Engine.context.PerpsController.subscribeToPrices({
-          symbols: [orderForm.asset],
-          includeMarketData: true,
-          callback: () => {
-            // No-op callback — the side effect of populating the
-            // marketDataCache with oraclePrice is all we need.
-          },
-        });
-
-        if (cancelled) {
-          // Cleanup already ran while we were awaiting; tear down immediately.
-          unsub();
-        } else {
-          unsubscribe = unsub;
-        }
-      } catch {
-        // Non-critical: margin display will fall back to $0 but
-        // order placement still works via the controller.
-      }
-    };
-
-    subscribe();
-
-    return () => {
-      cancelled = true;
-      unsubscribe?.();
-    };
-  }, [isDataReady, orderForm.asset]);
+    return unsubscribe;
+  }, [isDataReady, isInitialized, orderForm.asset, subscribeToPrices]);
 
   // Get real-time price data using new stream architecture (deferred)
   // Uses single WebSocket subscription with component-level debouncing
@@ -567,8 +552,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     const balanceUsd = Number(payToken.balanceUsd);
     return requiredUsd > balanceUsd;
   }, [hasCustomTokenSelected, marginRequired, payToken]);
-
-  const { updatePositionTPSL } = usePerpsTrading();
 
   // Order execution using new hook
   const { placeOrder: executeOrder, isPlacing: isPlacingOrder } =
