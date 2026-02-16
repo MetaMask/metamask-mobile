@@ -1,11 +1,6 @@
 import { createSelector } from 'reselect';
 import { selectRemoteFeatureFlags } from '..';
-import {
-  validatedVersionGatedFeatureFlag,
-  VersionGatedFeatureFlag,
-} from '../../../util/remoteFeatureFlag';
-
-const TOKEN_LIST_LAYOUT_FLAG_KEY = 'tokenListItemV2AbtestVersioned';
+import { validatedVersionGatedFeatureFlag } from '../../../util/remoteFeatureFlag';
 
 /**
  * Selector for token list item V2 A/B test from LaunchDarkly.
@@ -20,9 +15,7 @@ const TOKEN_LIST_LAYOUT_FLAG_KEY = 'tokenListItemV2AbtestVersioned';
 export const selectTokenListLayoutV2Enabled = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags): boolean => {
-    const remoteFlag = remoteFeatureFlags[
-      TOKEN_LIST_LAYOUT_FLAG_KEY
-    ] as unknown as VersionGatedFeatureFlag;
+    const remoteFlag = remoteFeatureFlags?.tokenListItemV2AbtestVersioned;
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
   },
 );
