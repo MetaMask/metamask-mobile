@@ -51,6 +51,7 @@ jest.mock('../../../../../../util/navigation/navUtils', () => ({
 
 jest.mock('../../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
+  locale: 'en',
 }));
 
 jest.mock('react-native', () => {

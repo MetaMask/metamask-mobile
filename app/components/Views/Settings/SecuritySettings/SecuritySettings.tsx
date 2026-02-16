@@ -33,7 +33,10 @@ import createStyles from './SecuritySettings.styles';
 import { HeadingProps, SecuritySettingsParams } from './SecuritySettings.types';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useParams } from '../../../../util/navigation/navUtils';
-import { CLEAR_BROWSER_HISTORY_SECTION } from './SecuritySettings.constants';
+import {
+  CLEAR_BROWSER_HISTORY_SECTION,
+  SDK_SECTION,
+} from './SecuritySettings.constants';
 import Text, {
   TextVariant,
   TextColor,
@@ -57,6 +60,7 @@ import IPFSGatewaySettings from '../../Settings/IPFSGatewaySettings';
 import BatchAccountBalanceSettings from '../../Settings/BatchAccountBalanceSettings';
 import useCheckNftAutoDetectionModal from '../../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../../hooks/useCheckMultiRpcModal';
+import { useAccountMenuEnabled } from '../../../../selectors/featureFlagController/accountMenu/useAccountMenuEnabled';
 
 const Heading: React.FC<HeadingProps> = ({ children, first }) => {
   const { colors } = useTheme();
@@ -86,6 +90,7 @@ const Settings: React.FC = () => {
   const isBasicFunctionalityEnabled = useSelector(
     (state: RootState) => state?.settings?.basicFunctionalityEnabled,
   );
+  const isAccountMenuEnabled = useAccountMenuEnabled();
 
   const scrollViewRef = useRef<ScrollView>(null);
   const detectNftComponentRef = useRef<View>(null);
@@ -220,6 +225,34 @@ const Settings: React.FC = () => {
       );
     }
   };
+
+  const goToSDKSessionManager = () => {
+    navigation.navigate('SDKSessionsManager');
+  };
+
+  const renderSDKSettings = () => (
+    <View style={styles.halfSetting} testID={SDK_SECTION}>
+      <Text variant={TextVariant.BodyLGMedium}>
+        {strings('app_settings.manage_sdk_connections_title')}
+      </Text>
+      <Text
+        variant={TextVariant.BodyMD}
+        color={TextColor.Alternative}
+        style={styles.desc}
+      >
+        {strings('app_settings.manage_sdk_connections_text')}
+      </Text>
+      <View style={styles.accessory}>
+        <Button
+          variant={ButtonVariants.Secondary}
+          size={ButtonSize.Lg}
+          width={ButtonWidthTypes.Full}
+          label={strings('app_settings.manage_sdk_connections_title')}
+          onPress={goToSDKSessionManager}
+        />
+      </View>
+    </View>
+  );
 
   const toggleClearBrowserHistoryModal = () => {
     setBrowserHistoryModalVisible(!browserHistoryModalVisible);
@@ -399,6 +432,7 @@ const Settings: React.FC = () => {
         >
           {strings('app_settings.privacy_browser_subheading')}
         </Text>
+        {!isAccountMenuEnabled && renderSDKSettings()}
         <ClearPrivacy />
         {renderClearBrowserHistorySection()}
         <ClearCookiesSection />

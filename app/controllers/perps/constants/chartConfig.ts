@@ -139,10 +139,13 @@ export const DEFAULT_CANDLE_PERIOD = CandlePeriod.FifteenMinutes;
 
 /**
  * Get available candle periods for a specific duration
+ *
+ * @param duration - The time duration to retrieve candle periods for.
+ * @returns The list of candle period options available for the given duration.
  */
 export const getCandlePeriodsForDuration = (
   duration: TimeDuration | string,
-) => {
+): readonly { label: string; value: CandlePeriod }[] => {
   const periods =
     DURATION_CANDLE_PERIODS[duration as TimeDuration]?.periods || [];
 
@@ -151,6 +154,9 @@ export const getCandlePeriodsForDuration = (
 
 /**
  * Get the default candle period for a specific duration
+ *
+ * @param duration - The time duration to retrieve the default candle period for.
+ * @returns The default candle period for the given duration.
  */
 export const getDefaultCandlePeriodForDuration = (
   duration: TimeDuration | string,
@@ -160,13 +166,17 @@ export const getDefaultCandlePeriodForDuration = (
 
 /**
  * Calculate the number of candles to fetch based on duration and candle period
+ *
+ * @param duration - The time duration for the chart display.
+ * @param candlePeriod - The candle period interval.
+ * @returns The number of candles to fetch, capped at MAX_CANDLE_COUNT.
  */
 export const calculateCandleCount = (
   duration: TimeDuration | string,
   candlePeriod: CandlePeriod | string,
 ): number => {
   // Convert candle period to minutes
-  const periodInMinutes = (() => {
+  const periodInMinutes = ((): number => {
     switch (candlePeriod) {
       case CandlePeriod.OneMinute:
         return 1;
@@ -202,7 +212,7 @@ export const calculateCandleCount = (
   })();
 
   // Convert duration to total minutes needed
-  const durationInMinutes = (() => {
+  const durationInMinutes = ((): number => {
     switch (duration) {
       case TimeDuration.OneHour:
         return 60; // 1 hour

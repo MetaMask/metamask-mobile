@@ -67,18 +67,18 @@ The test suite is configured in `tests/appwright.config.ts`, which defines multi
 
 ### Available Projects
 
-| Project Name                      | Platform | Environment     | Test Scope            |
-| --------------------------------- | -------- | --------------- | --------------------- |
-| `android`                         | Android  | Local Emulator  | All performance tests |
-| `ios`                             | iOS      | Local Simulator | All performance tests |
-| `browserstack-android`            | Android  | BrowserStack    | Login tests only      |
-| `browserstack-ios`                | iOS      | BrowserStack    | Login tests only      |
-| `android-onboarding`              | Android  | BrowserStack    | Onboarding tests only |
-| `ios-onboarding`                  | iOS      | BrowserStack    | Onboarding tests only |
-| `mm-connect-ios-browserstack`     | iOS      | BrowserStack    | MM Connect tests only |
-| `mm-connect-ios-local`            | iOS      | Local Simulator | MM Connect tests only |
-| `mm-connect-android-browserstack` | Android  | BrowserStack    | MM Connect tests only |
-| `mm-connect-android-local`        | Android  | Local Emulator  | MM Connect tests only |
+| Project Name                      | Platform | Environment     | Test Scope                 |
+| --------------------------------- | -------- | --------------- | -------------------------- |
+| `android`                         | Android  | Local Emulator  | All performance tests      |
+| `ios`                             | iOS      | Local Simulator | All performance tests      |
+| `browserstack-android`            | Android  | BrowserStack    | Login tests only           |
+| `browserstack-ios`                | iOS      | BrowserStack    | Login tests only           |
+| `android-onboarding`              | Android  | BrowserStack    | Onboarding tests only      |
+| `ios-onboarding`                  | iOS      | BrowserStack    | Onboarding tests only      |
+| `mm-connect-android-local`        | Android  | Local Emulator  | connection-multichain only |
+| `mm-connect-android-browserstack` | Android  | BrowserStack    | connection-multichain only |
+| `mm-connect-ios-local`            | iOS      | Local Simulator | MM Connect tests           |
+| `mm-connect-ios-browserstack`     | iOS      | BrowserStack    | MM Connect tests           |
 
 ### Configuration Details
 
@@ -127,7 +127,40 @@ yarn run-appwright:android-bs       # Run login tests on BrowserStack Android
 yarn run-appwright:ios-bs           # Run login tests on BrowserStack iOS
 yarn run-appwright:android-onboarding-bs  # Run onboarding tests on BrowserStack Android
 yarn run-appwright:ios-onboarding-bs      # Run onboarding tests on BrowserStack iOS
+
+# MM Connect (Multichain API + local Browser Playground dapp)
+yarn run-appwright:mm-connect-android-local    # Local Android emulator (dapp on 10.0.2.2:8090)
+yarn run-appwright:mm-connect-android-bs      # BrowserStack Android (no tunnel; use remote dapp if any)
+yarn run-appwright:mm-connect-android-bs-local # BrowserStack Android + Local tunnel (see below)
 ```
+
+#### MM Connect on BrowserStack (local dapp)
+
+The `connection-multichain` test starts a **local dapp server** (Browser Playground) on port **8090**. To run it on BrowserStack, the cloud device must reach that server via **BrowserStack Local** (tunnel).
+
+1. **Start the BrowserStack Local binary** (in a separate terminal):
+   - Download from [BrowserStack Local](https://www.browserstack.com/docs/local-testing/binary-params) if needed.
+   - Run: `./BrowserStackLocal --key $BROWSERSTACK_ACCESS_KEY` (optionally add `--verbose --force-local`).
+   - Keep it running until you see: `[SUCCESS] You can now access your local server(s) in our remote browser`.
+
+2. **Run the test** with Local enabled:
+
+   ```bash
+   yarn run-appwright:mm-connect-android-bs-local
+   ```
+
+   That command sets `BROWSERSTACK_LOCAL=true` for the run, so the patch sets `local: true` in BrowserStack capabilities and the test uses **`http://bs-local.com:8090`** for the dapp.
+
+3. Ensure `.e2e.env` has `BROWSERSTACK_USERNAME` and `BROWSERSTACK_ACCESS_KEY`. The mm-connect BrowserStack project uses `BROWSERSTACK_ANDROID_APP_URL` (or the default `bs://...` in config) for the app; override via env for a custom build.
+
+**Local Android (emulator):** When you run `yarn run-appwright:mm-connect-android-local`, Chrome is launched with a single tab: the test clears Chrome data, starts Chrome, and dismisses first-run modals (sign-in, ad privacy, notifications) with short timeouts so the flow reaches the dapp before the app auto-locks. After the connection is confirmed in MetaMask, the test switches back to the browser with `switchToMobileBrowser` (no reload), so the dapp page state is preserved.
+
+**If you see `BROWSERSTACK_LOCAL_CONNECTION_FAILED`:**
+
+- **Start the binary before the test** and wait until it prints: `[SUCCESS] You can now access your local server(s) in our remote browser`. Then wait 5–10 seconds before running the test.
+- **Use the same credentials:** the key passed to `./BrowserStackLocal --key <key>` must be the same as `BROWSERSTACK_ACCESS_KEY` in `.e2e.env` (and the binary must be using the same BrowserStack account as `BROWSERSTACK_USERNAME`).
+- **One tunnel per account:** don’t run multiple Local binaries for the same account unless you use different `localIdentifier` values and pass them in capabilities.
+- **Tunnel timeouts** (`TIMEOUT_CONNECTING` to port 45691 in the Local terminal): the cloud device cannot reach your Local binary. Allow incoming connections for ports **45690** and **45691** in your firewall, or try a different network (e.g. avoid strict NAT). See [BrowserStack Local troubleshooting](https://www.browserstack.com/docs/app-automate/appium/troubleshooting/local-issues) for more.
 
 ### Using Appwright CLI Directly
 
@@ -664,6 +697,11 @@ test('My Performance Test', async ({
 - Verify credentials in `.e2e.env`
 - Check app URLs are valid
 - Ensure account has available sessions
+
+**BrowserStack Local testing shows "Off" for mm-connect**
+
+- Use `yarn run-appwright:mm-connect-android-bs-local` (it sets `BROWSERSTACK_LOCAL` for the run). Ensure the patch is applied (`yarn install`).
+- Start the BrowserStack Local binary before the test and wait for the success message.
 
 **Quality gates failing unexpectedly**
 

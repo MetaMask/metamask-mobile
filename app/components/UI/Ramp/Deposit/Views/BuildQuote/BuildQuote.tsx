@@ -56,7 +56,7 @@ import { createUnsupportedRegionModalNavigationDetails } from '../Modals/Unsuppo
 import { createIncompatibleAccountTokenModalNavigationDetails } from '../Modals/IncompatibleAccountTokenModal';
 import { createConfigurationModalNavigationDetails } from '../Modals/ConfigurationModal/ConfigurationModal';
 
-import { formatCurrency } from '../../utils';
+import { useFormatters } from '../../../../../hooks/useFormatters';
 import { getNetworkImageSource } from '../../../../../../util/networks';
 import { strings } from '../../../../../../../locales/i18n';
 import { getDepositNavbarOptions } from '../../../../Navbar';
@@ -86,6 +86,7 @@ const BuildQuote = () => {
 
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
+  const { formatCurrency } = useFormatters();
   const trackEvent = useAnalytics();
   const depositOrders = useSelector(getAllDepositOrders);
 
