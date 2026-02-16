@@ -148,7 +148,9 @@ jobs:
           SEGMENT_WRITE_KEY: ${{ secrets.SEGMENT_WRITE_KEY }}
           SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
           WALLET_CONNECT_PROJECT_ID: ${{ secrets.WALLET_CONNECT_PROJECT_ID }}
-        run: node scripts/set-secrets-from-config.js
+        run: |
+          node scripts/validate-secrets.js
+          node scripts/set-secrets-from-config.js
 
       # Android only: minimal env (SDK is pre-installed on Cirrus runner)
       - name: Set Android environment variables
