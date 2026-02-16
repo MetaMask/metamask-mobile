@@ -43,8 +43,8 @@ test.describe(`${PerformanceLogin} ${PerformanceSwaps}`, () => {
       await WalletMainScreen.tapSwapButton();
       await timer1.measure(() => BridgeScreen.isVisible());
 
-      await BridgeScreen.selectNetworkAndTokenTo('Solana', 'SOL');
       await BridgeScreen.enterSourceTokenAmount('1');
+      await BridgeScreen.selectNetworkAndTokenTo('Solana', 'SOL');
 
       const timer2 = new TimerHelper(
         'Time since the user enters the amount until the quote is displayed',

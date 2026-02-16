@@ -44,8 +44,8 @@ test.describe(`${PerformanceLogin} ${PerformanceSwaps}`, () => {
         { ios: 9000, android: 7000 },
         device,
       );
-      await BridgeScreen.selectNetworkAndTokenTo('Ethereum', 'LINK');
       await BridgeScreen.enterSourceTokenAmount('1');
+      await BridgeScreen.selectNetworkAndTokenTo('Ethereum', 'LINK');
 
       await swapTimer.measure(() => BridgeScreen.isQuoteDisplayed());
 
