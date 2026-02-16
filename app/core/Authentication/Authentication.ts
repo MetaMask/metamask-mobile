@@ -717,12 +717,15 @@ class AuthenticationService {
     {
       password,
       authPreference,
+      fallbackToPassword,
     }: {
       password?: string;
       authPreference?: AuthData;
+      fallbackToPassword?: boolean;
     } = {
       password: undefined,
       authPreference: undefined,
+      fallbackToPassword: false,
     },
   ) => {
     let passwordToUse: string | undefined;
@@ -747,6 +750,7 @@ class AuthenticationService {
           if (authPreference?.oauth2Login) {
             // if seedless flow - rehydrate
             await this.rehydrateSeedPhrase(passwordToUse);
+            fallbackToPassword = true;
           } else if (await this.checkIsSeedlessPasswordOutdated(false)) {
             // If seedless flow completed && seedless password is outdated, sync the password and unlock the wallet
             await this.syncPasswordAndUnlockWallet(passwordToUse);
@@ -755,6 +759,7 @@ class AuthenticationService {
               true,
               false,
             );
+            fallbackToPassword = true;
           }
 
           // Unlock keyrings.
@@ -765,6 +770,7 @@ class AuthenticationService {
             await this.updateAuthPreference({
               password: passwordToUse,
               authType: authPreference.currentAuthType,
+              fallbackToPassword,
             });
           }
 
@@ -1524,14 +1530,19 @@ class AuthenticationService {
   updateAuthPreference = async (options: {
     authType: AUTHENTICATION_TYPE;
     password?: string;
+    fallbackToPassword?: boolean;
   }): Promise<void> => {
-    const { authType, password } = options;
+    const { authType, password, fallbackToPassword } = options;
     // Password found or provided. Validate and update the auth preference.
     try {
       const passwordToUse = await this.reauthenticate(password);
 
       // storePassword handles all storage flag management internally
-      await this.storePassword(passwordToUse.password, authType);
+      await this.storePassword(
+        passwordToUse.password,
+        authType,
+        fallbackToPassword,
+      );
     } catch (e) {
       const errorWithMessage = e as { message: string };
 
