@@ -144,7 +144,6 @@ import createStyles from './PerpsOrderView.styles';
 import { PerpsPayRow } from './PerpsPayRow';
 import { useUpdateTokenAmount } from '../../../../Views/confirmations/hooks/transactions/useUpdateTokenAmount';
 import { useConfirmActions } from '../../../../Views/confirmations/hooks/useConfirmActions';
-import Engine from '../../../../../core/Engine';
 
 // Navigation params interface
 interface OrderRouteParams {
@@ -210,14 +209,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     [],
   );
 
-  // Reset selected payment token to Perps balance when leaving the order view
-  useEffect(
-    () => () => {
-      Engine.context.PerpsController?.resetSelectedPaymentToken?.();
-    },
-    [],
-  );
-
   useTransactionPayMetrics();
 
   const styles = createStyles(colors);
@@ -262,7 +253,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const orderTypeRef = useRef<OrderType>('market');
 
   const isSubmittingRef = useRef(false);
-  const hasShownSubmittedToastRef = useRef(false);
   const orderStartTimeRef = useRef<number>(0);
   const inputMethodRef = useRef<InputMethod>('default');
 
@@ -539,6 +529,15 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   // Order execution using new hook
   const { placeOrder: executeOrder, isPlacing: isPlacingOrder } =
     usePerpsOrderExecution({
+      onSubmitted: () => {
+        showToast(
+          PerpsToastOptions.orderManagement[orderForm.type].submitted(
+            orderForm.direction,
+            positionSize,
+            orderForm.asset,
+          ),
+        );
+      },
       onSuccess: (_position) => {
         showToast(
           PerpsToastOptions.orderManagement[orderForm.type].confirmed(
@@ -558,30 +557,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         );
       },
     });
-
-  useEffect(() => {
-    if (isPlacingOrder && !hasShownSubmittedToastRef.current) {
-      showToast(
-        PerpsToastOptions.orderManagement[orderForm.type].submitted(
-          orderForm.direction,
-          positionSize,
-          orderForm.asset,
-        ),
-      );
-      hasShownSubmittedToastRef.current = true;
-    } else if (!isPlacingOrder && hasShownSubmittedToastRef.current) {
-      // Reset the flag when order placement is complete
-      hasShownSubmittedToastRef.current = false;
-    }
-  }, [
-    PerpsToastOptions.orderManagement,
-    isPlacingOrder,
-    orderForm.asset,
-    orderForm.direction,
-    orderForm.type,
-    positionSize,
-    showToast,
-  ]);
 
   // Memoize liquidation price params to prevent infinite recalculation
   const liquidationPriceParams = useMemo(() => {
@@ -846,14 +821,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
         // Show deposit toast and set up tracking before confirming
         handleDepositConfirm(activeTransactionMeta, () => {
-          hasShownSubmittedToastRef.current = true;
-          showToast(
-            PerpsToastOptions.orderManagement[orderForm.type].submitted(
-              orderForm.direction,
-              positionSize,
-              orderForm.asset,
-            ),
-          );
           handlePlaceOrder(true);
         });
 
@@ -1000,6 +967,13 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             tradeAction: currentMarketPosition
               ? 'increase_exposure'
               : 'create_position',
+            // Pay with any token: track when user paid with a custom token (not Perps balance)
+            tradeWithToken: hasCustomTokenSelected,
+            ...(hasCustomTokenSelected &&
+              payToken && {
+                mmPayTokenSelected: payToken.symbol ?? '',
+                mmPayNetworkSelected: String(payToken.chainId ?? ''),
+              }),
           },
         };
 
@@ -1061,7 +1035,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       executeOrder,
       showToast,
       PerpsToastOptions.formValidation.orderForm,
-      PerpsToastOptions.orderManagement,
       PerpsToastOptions.positionManagement.tpsl,
       updatePositionTPSL,
       marginRequired,
@@ -1077,6 +1050,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       depositAmount,
       activeTransactionMeta,
       hasCustomTokenSelected,
+      payToken,
       onDepositConfirm,
       handleDepositConfirm,
     ],
@@ -1349,6 +1323,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               <View style={[styles.detailItem, styles.detailItemLast]}>
                 <PerpsPayRow
                   embeddedInStack
+                  initialAsset={orderForm.asset}
                   onPayWithInfoPress={() => handleTooltipPress('pay_with')}
                 />
               </View>

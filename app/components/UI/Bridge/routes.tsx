@@ -9,6 +9,7 @@ import BlockaidModal from './components/BlockaidModal';
 import RecipientSelectorModal from './components/RecipientSelectorModal';
 import { DefaultSlippageModal } from './components/SlippageModal/DefaultSlippageModal';
 import { CustomSlippageModal } from './components/SlippageModal/CustomSlippageModal';
+import NetworkListModal from './components/BridgeTokenSelector/NetworkListModal';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -68,6 +69,10 @@ export const BridgeModalStack = () => (
     <ModalStack.Screen
       name={Routes.BRIDGE.MODALS.RECIPIENT_SELECTOR_MODAL}
       component={RecipientSelectorModal}
+    />
+    <ModalStack.Screen
+      name={Routes.BRIDGE.MODALS.NETWORK_LIST_MODAL}
+      component={NetworkListModal}
     />
   </ModalStack.Navigator>
 );

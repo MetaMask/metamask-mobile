@@ -44,6 +44,7 @@ import NegativePnlCharacter2 from '../../../../../images/negative_pnl_character_
 import PositivePnlCharacter2 from '../../../../../images/positive_pnl_character_2_3x.png';
 import PositivePnlCharacter3 from '../../../../../images/positive_pnl_character_3_3x.png';
 import {
+  PERPS_CONSTANTS,
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
   getPerpsDisplaySymbol,
@@ -363,9 +364,9 @@ const PerpsHeroCardView: React.FC = () => {
       }
       return null;
     } catch (error) {
-      Logger.error(ensureError(error), {
-        message: 'Error capturing Perps Hero Card',
-        context: 'PerpsHeroCardView.captureCard',
+      Logger.error(ensureError(error, 'PerpsHeroCardView.captureCard'), {
+        tags: { feature: PERPS_CONSTANTS.FeatureName },
+        context: { name: 'PerpsHeroCardView.captureCard', data: {} },
       });
       return null;
     }
@@ -439,9 +440,9 @@ const PerpsHeroCardView: React.FC = () => {
         showToast(PerpsToastOptions.contentSharing.pnlHeroCard.shareFailed);
       }
 
-      Logger.error(ensureError(error), {
-        message: 'Error sharing Perps Hero Card',
-        context: 'PerpsHeroCardView.handleShare',
+      Logger.error(ensureError(error, 'PerpsHeroCardView.handleShare'), {
+        tags: { feature: PERPS_CONSTANTS.FeatureName },
+        context: { name: 'PerpsHeroCardView.handleShare', data: {} },
       });
     } finally {
       setIsSharing(false);

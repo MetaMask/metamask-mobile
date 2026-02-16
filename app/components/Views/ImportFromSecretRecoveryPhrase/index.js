@@ -24,7 +24,6 @@ import {
 } from 'react-native-keyboard-controller';
 import { isTest } from '../../../util/test/utils';
 import AppConstants from '../../../core/AppConstants';
-import Device from '../../../util/device';
 import {
   failedSeedPhraseRequirements,
   isValidMnemonic,
@@ -74,12 +73,7 @@ import Text, {
   TextColor,
 } from '../../../component-library/components/Texts/Text';
 import { CommonActions } from '@react-navigation/native';
-import {
-  SRP_LENGTHS,
-  SPACE_CHAR,
-  PASSCODE_NOT_SET_ERROR,
-  IOS_REJECTED_BIOMETRICS_ERROR,
-} from './constant';
+import { SRP_LENGTHS, SPACE_CHAR, PASSCODE_NOT_SET_ERROR } from './constant';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
 import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
@@ -303,28 +297,6 @@ const ImportFromSecretRecoveryPhrase = ({
     [],
   );
 
-  /**
-   * This function handles the case when the user rejects the OS prompt for allowing use of biometrics.
-   * If this occurs we will create the wallet automatically with password as the login method
-   */
-  const handleRejectedOsBiometricPrompt = async (parsedSeed) => {
-    const newAuthData = await Authentication.componentAuthenticationType(
-      false,
-      false,
-    );
-    try {
-      await Authentication.newWalletAndRestore(
-        password,
-        newAuthData,
-        parsedSeed,
-        true,
-      );
-    } catch (err) {
-      this.setState({ loading: false, error: err.toString() });
-    }
-    setBiometryType(newAuthData.availableBiometryType);
-  };
-
   const onPasswordChange = (value) => {
     setPassword(value);
     if (value === '') {
@@ -462,25 +434,20 @@ const ImportFromSecretRecoveryPhrase = ({
           false,
         );
 
-        try {
-          await Authentication.newWalletAndRestore(
-            password,
-            authData,
-            parsedSeed,
-            true,
+        // Ask user to allow biometrics access control
+        authData.currentAuthType =
+          await Authentication.requestBiometricsAccessControlForIOS(
+            authData.currentAuthType,
           );
-        } catch (err) {
-          // retry faceID if the user cancels biometric prompt
-          if (
-            Device.isIos &&
-            err.toString() === IOS_REJECTED_BIOMETRICS_ERROR
-          ) {
-            await handleRejectedOsBiometricPrompt(parsedSeed);
-          } else {
-            // Re-throw other errors
-            throw err;
-          }
-        }
+
+        await Authentication.newWalletAndRestore(
+          password,
+          authData,
+          parsedSeed,
+          true,
+        );
+
+        setBiometryType(authData.availableBiometryType);
         setLoading(false);
         passwordSet();
         setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);

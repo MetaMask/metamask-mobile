@@ -57,7 +57,7 @@ export const convertPerpsAmountToUSD = (
     // Invalid input - return formatted zero
     return formatPerpsFiat(0);
   } catch (error) {
-    logger?.error(ensureError(error), {
+    logger?.error(ensureError(error, 'amountConversion.convertAmountToUsd'), {
       context: {
         name: PERPS_CONSTANTS.FeatureName,
         data: { message: `Error converting Perps amount to USD: ${amount}` },
