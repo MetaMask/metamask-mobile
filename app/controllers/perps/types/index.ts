@@ -676,6 +676,8 @@ export type GetOrdersParams = {
   limit?: number; // Optional: max number of results for pagination
   offset?: number; // Optional: offset for pagination
   skipCache?: boolean; // Optional: bypass WebSocket cache and force API call (default: false)
+  standalone?: boolean; // Optional: lightweight mode - skip full initialization, use standalone HTTP client (no wallet/WebSocket needed)
+  userAddress?: string; // Optional: required when standalone is true - user address to query orders for
 };
 
 export type GetFundingParams = {
@@ -1192,7 +1194,9 @@ export type PerpsTraceName =
   | 'Perps Close Position View'
   | 'Perps Withdraw View'
   | 'Perps Connection Establishment'
-  | 'Perps Account Switch Reconnection';
+  | 'Perps Account Switch Reconnection'
+  | 'Perps Market Data Preload'
+  | 'Perps User Data Preload';
 
 /**
  * Perps trace name constants. Values match TraceName enum in mobile.
@@ -1236,6 +1240,8 @@ export const PerpsTraceNames = {
   RewardsApiCall: 'Perps Rewards API Call',
   ConnectionEstablishment: 'Perps Connection Establishment',
   AccountSwitchReconnection: 'Perps Account Switch Reconnection',
+  MarketDataPreload: 'Perps Market Data Preload',
+  UserDataPreload: 'Perps User Data Preload',
 } as const satisfies Record<string, PerpsTraceName>;
 
 /**

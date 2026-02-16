@@ -2,6 +2,7 @@ import { CaipAccountId, type Hex } from '@metamask/utils';
 import {
   createStandaloneInfoClient,
   queryStandaloneClearinghouseStates,
+  queryStandaloneOpenOrders,
 } from '../utils/standaloneInfoClient';
 import { v4 as uuidv4 } from 'uuid';
 import { aggregateAccountStates } from '../utils/accountUtils';
@@ -4701,7 +4702,9 @@ export class HyperLiquidProvider implements PerpsProvider {
             aggregateByTime: params?.aggregateByTime || false,
           });
 
-      this.deps.debugLogger.log('User fills received:', rawFills);
+      this.deps.debugLogger.log('User fills received:', {
+        count: rawFills?.length ?? 0,
+      });
 
       // Transform HyperLiquid fills to abstract OrderFill type
       const fills = (rawFills || []).reduce((acc: OrderFill[], fill) => {
@@ -4763,7 +4766,9 @@ export class HyperLiquidProvider implements PerpsProvider {
         user: userAddress,
       });
 
-      this.deps.debugLogger.log('User orders received:', rawOrders);
+      this.deps.debugLogger.log('User orders received:', {
+        count: rawOrders?.length ?? 0,
+      });
 
       // Transform HyperLiquid orders to abstract Order type
       const orders: Order[] = (rawOrders || []).map((rawOrder) => {
@@ -4844,6 +4849,39 @@ export class HyperLiquidProvider implements PerpsProvider {
    */
   async getOpenOrders(params?: GetOrdersParams): Promise<Order[]> {
     try {
+      // Path 0: Standalone mode for lightweight open order queries
+      // Creates a standalone InfoClient without requiring full initialization
+      // No wallet, WebSocket, or account setup needed - just HTTP API call
+      if (params?.standalone && params.userAddress) {
+        const { userAddress } = params;
+        this.deps.debugLogger.log(
+          'HyperLiquidProvider: Getting open orders in standalone mode',
+          { userAddress },
+        );
+
+        const standaloneInfoClient = createStandaloneInfoClient({
+          isTestnet: this.clientService.isTestnetMode(),
+        });
+        const dexs = await this.getStandaloneValidatedDexs();
+        const orderResults = await queryStandaloneOpenOrders(
+          standaloneInfoClient,
+          userAddress,
+          dexs,
+        );
+
+        // Combine all orders from all DEXs and adapt (without position context in standalone mode)
+        const orders = orderResults.flatMap((dexOrders) =>
+          dexOrders.map((order) => adaptOrderFromSDK(order, undefined)),
+        );
+
+        this.deps.debugLogger.log(
+          'HyperLiquidProvider: standalone open orders fetched',
+          { count: orders.length },
+        );
+
+        return orders;
+      }
+
       // Try WebSocket cache first (unless explicitly bypassed)
       // Use atomic getter to prevent race condition between check and get
       if (!params?.skipCache) {
@@ -4937,7 +4975,9 @@ export class HyperLiquidProvider implements PerpsProvider {
         endTime: params?.endTime,
       });
 
-      this.deps.debugLogger.log('User funding received:', rawFunding);
+      this.deps.debugLogger.log('User funding received:', {
+        count: rawFunding?.length ?? 0,
+      });
 
       // Transform HyperLiquid funding to abstract Funding type
       const funding: Funding[] = (rawFunding || []).map((rawFundingItem) => {

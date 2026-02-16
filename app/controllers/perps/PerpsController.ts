@@ -3,6 +3,7 @@ import {
   ControllerGetStateAction,
   ControllerStateChangeEvent,
   StateMetadata,
+  type StateChangeListener,
 } from '@metamask/base-controller';
 import type { Messenger } from '@metamask/messenger';
 import type {
@@ -10,7 +11,10 @@ import type {
   NetworkControllerGetNetworkClientByIdAction,
   NetworkControllerFindNetworkClientIdByChainIdAction,
 } from '@metamask/network-controller';
-import type { AccountTreeControllerGetAccountsFromSelectedAccountGroupAction } from '@metamask/account-tree-controller';
+import type {
+  AccountTreeControllerGetAccountsFromSelectedAccountGroupAction,
+  AccountTreeControllerSelectedAccountGroupChangeEvent,
+} from '@metamask/account-tree-controller';
 import type {
   KeyringControllerGetStateAction,
   KeyringControllerSignTypedMessageAction,
@@ -55,10 +59,14 @@ import { DepositService } from './services/DepositService';
 import { FeatureFlagConfigurationService } from './services/FeatureFlagConfigurationService';
 import { RewardsIntegrationService } from './services/RewardsIntegrationService';
 import type { ServiceContext } from './services/ServiceContext';
+import { v4 as uuidv4 } from 'uuid';
+import { PerpsMeasurementName } from './constants/performanceMetrics';
 // PerpsStreamChannelKey removed: using string for channel keys (PerpsStreamManager.pauseChannel takes string)
 import {
   WebSocketConnectionState,
   PerpsAnalyticsEvent,
+  PerpsTraceNames,
+  PerpsTraceOperations,
   isVersionGatedFeatureFlag,
   type AccountState,
   type AssetRoute,
@@ -93,6 +101,7 @@ import {
   type OrderParams,
   type OrderResult,
   type PerpsControllerConfig,
+  type PerpsMarketData,
   type Position,
   type SubscribeAccountParams,
   type SubscribeCandlesParams,
@@ -307,6 +316,17 @@ export type PerpsControllerState = {
 
   // Selected payment token for Perps order/deposit flow (null = Perps balance). Stored as Json (minimal shape: description, address, chainId).
   selectedPaymentToken: Json | null;
+
+  // Cached market data from background preloading (REST snapshots, not WebSocket)
+  cachedMarketData: PerpsMarketData[] | null;
+  cachedMarketDataTimestamp: number;
+
+  // Cached user data from background preloading (REST snapshots, not WebSocket)
+  cachedPositions: Position[] | null;
+  cachedOrders: Order[] | null;
+  cachedAccountState: AccountState | null;
+  cachedUserDataTimestamp: number;
+  cachedUserDataAddress: string | null;
 };
 
 /**
@@ -362,6 +382,13 @@ export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
   },
   hip3ConfigVersion: 0,
   selectedPaymentToken: null,
+  cachedMarketData: null,
+  cachedMarketDataTimestamp: 0,
+  cachedPositions: null,
+  cachedOrders: null,
+  cachedAccountState: null,
+  cachedUserDataTimestamp: 0,
+  cachedUserDataAddress: null,
 });
 
 /**
@@ -517,6 +544,48 @@ const metadata: StateMetadata<PerpsControllerState> = {
     persist: false,
     includeInDebugSnapshot: false,
     usedInUi: true,
+  },
+  cachedMarketData: {
+    includeInStateLogs: false,
+    persist: false,
+    includeInDebugSnapshot: false,
+    usedInUi: true,
+  },
+  cachedMarketDataTimestamp: {
+    includeInStateLogs: false,
+    persist: false,
+    includeInDebugSnapshot: false,
+    usedInUi: false,
+  },
+  cachedPositions: {
+    includeInStateLogs: false,
+    persist: false,
+    includeInDebugSnapshot: false,
+    usedInUi: true,
+  },
+  cachedOrders: {
+    includeInStateLogs: false,
+    persist: false,
+    includeInDebugSnapshot: false,
+    usedInUi: true,
+  },
+  cachedAccountState: {
+    includeInStateLogs: false,
+    persist: false,
+    includeInDebugSnapshot: false,
+    usedInUi: true,
+  },
+  cachedUserDataTimestamp: {
+    includeInStateLogs: false,
+    persist: false,
+    includeInDebugSnapshot: false,
+    usedInUi: false,
+  },
+  cachedUserDataAddress: {
+    includeInStateLogs: false,
+    persist: false,
+    includeInDebugSnapshot: false,
+    usedInUi: false,
   },
 };
 
@@ -691,7 +760,8 @@ export type AllowedEvents =
   | TransactionControllerTransactionSubmittedEvent
   | TransactionControllerTransactionConfirmedEvent
   | TransactionControllerTransactionFailedEvent
-  | RemoteFeatureFlagControllerStateChangeEvent;
+  | RemoteFeatureFlagControllerStateChangeEvent
+  | AccountTreeControllerSelectedAccountGroupChangeEvent;
 
 /**
  * PerpsController messenger constraints
@@ -2053,8 +2123,26 @@ export class PerpsController extends BaseController<
   /**
    * Get currently open orders (real-time status)
    * Thin delegation to MarketDataService
+   *
+   * For standalone mode, bypasses getActiveProvider() to allow open order queries
+   * without full perps initialization (e.g., for background preloading)
    */
   async getOpenOrders(params?: GetOrdersParams): Promise<Order[]> {
+    // For standalone mode, access provider directly without initialization check
+    if (params?.standalone && params.userAddress) {
+      const provider =
+        this.activeProviderInstance ??
+        new HyperLiquidProvider({
+          isTestnet: this.state.isTestnet,
+          hip3Enabled: this.hip3Enabled,
+          allowlistMarkets: this.hip3AllowlistMarkets,
+          blocklistMarkets: this.hip3BlocklistMarkets,
+          platformDependencies: this.options.infrastructure,
+          messenger: this.messenger,
+        });
+      return provider.getOpenOrders(params);
+    }
+
     const provider = this.getActiveProvider();
     return this.marketDataService.getOpenOrders({
       provider,
@@ -2157,6 +2245,378 @@ export class PerpsController extends BaseController<
       params,
       context: this.createServiceContext('getMarkets'),
     });
+  }
+
+  /**
+   * Get market data with prices (includes price, volume, 24h change)
+   *
+   * For standalone mode, bypasses getActiveProvider() to allow market data queries
+   * without full perps initialization (e.g., for background preloading on app start)
+   */
+  async getMarketDataWithPrices(params?: {
+    standalone?: boolean;
+  }): Promise<PerpsMarketData[]> {
+    if (params?.standalone) {
+      // Use activeProviderInstance if available (respects provider abstraction)
+      // Fallback to creating HyperLiquidProvider for pre-initialization discovery
+      const provider =
+        this.activeProviderInstance ??
+        new HyperLiquidProvider({
+          isTestnet: this.state.isTestnet,
+          hip3Enabled: this.hip3Enabled,
+          allowlistMarkets: this.hip3AllowlistMarkets,
+          blocklistMarkets: this.hip3BlocklistMarkets,
+          platformDependencies: this.options.infrastructure,
+          messenger: this.messenger,
+        });
+      return provider.getMarketDataWithPrices();
+    }
+
+    const provider = this.getActiveProvider();
+    return provider.getMarketDataWithPrices();
+  }
+
+  // ============================================================================
+  // Market Data Preload (client-agnostic background caching)
+  // ============================================================================
+
+  /** State paths that the preload stateChange handler reads. */
+  private static readonly PRELOAD_WATCHED_PATHS = new Set([
+    'isTestnet',
+    'hip3ConfigVersion',
+  ]);
+
+  private preloadTimer: ReturnType<typeof setInterval> | null = null;
+  private isPreloading = false;
+  private isPreloadingUserData = false;
+  private preloadStateUnsubscribe: (() => void) | null = null;
+  private accountChangeUnsubscribe: (() => void) | null = null;
+  private previousIsTestnet: boolean | null = null;
+  private previousHip3ConfigVersion: number | null = null;
+  private static PRELOAD_REFRESH_MS = 5 * 60 * 1000; // 5 min
+  private static PRELOAD_GUARD_MS = 30_000; // 30s debounce
+
+  /**
+   * Start background market data preloading.
+   * Fetches market data immediately and refreshes every 5 minutes.
+   * Watches for isTestnet and hip3ConfigVersion changes to re-preload.
+   */
+  startMarketDataPreload(): void {
+    if (this.preloadTimer) {
+      this.debugLog('PerpsController: Preload already started, skipping');
+      return;
+    }
+
+    this.debugLog('PerpsController: Starting market data preload');
+
+    // Track current values for change detection
+    this.previousIsTestnet = this.state.isTestnet;
+    this.previousHip3ConfigVersion = this.state.hip3ConfigVersion;
+
+    // Immediate preload
+    this.performMarketDataPreload();
+
+    // Periodic refresh
+    this.preloadTimer = setInterval(() => {
+      this.performMarketDataPreload();
+    }, PerpsController.PRELOAD_REFRESH_MS);
+
+    // Watch for isTestnet / hip3ConfigVersion / cachedUserDataAddress changes
+    const handler: StateChangeListener<PerpsControllerState> = (
+      _state,
+      patches,
+    ) => {
+      // Early-return when no watched field changed (skips ~46 unrelated updates)
+      const hasRelevantChange = patches.some(
+        (p) =>
+          typeof p.path[0] === 'string' &&
+          PerpsController.PRELOAD_WATCHED_PATHS.has(p.path[0]),
+      );
+      if (!hasRelevantChange) return;
+
+      const currentIsTestnet = this.state.isTestnet;
+      const currentHip3Version = this.state.hip3ConfigVersion;
+
+      const testnetChanged = currentIsTestnet !== this.previousIsTestnet;
+      const hip3Changed = currentHip3Version !== this.previousHip3ConfigVersion;
+
+      if (testnetChanged || hip3Changed) {
+        this.debugLog(
+          'PerpsController: Network/config changed, re-preloading',
+          {
+            testnetChanged,
+            hip3Changed,
+            isTestnet: currentIsTestnet,
+            hip3ConfigVersion: currentHip3Version,
+          },
+        );
+
+        this.previousIsTestnet = currentIsTestnet;
+        this.previousHip3ConfigVersion = currentHip3Version;
+
+        // Clear stale cache (market + user data)
+        this.update((state) => {
+          state.cachedMarketData = null;
+          state.cachedMarketDataTimestamp = 0;
+          state.cachedPositions = null;
+          state.cachedOrders = null;
+          state.cachedAccountState = null;
+          state.cachedUserDataTimestamp = 0;
+          state.cachedUserDataAddress = null;
+        });
+
+        this.performMarketDataPreload();
+      }
+    };
+
+    this.messenger.subscribe('PerpsController:stateChange', handler);
+    this.preloadStateUnsubscribe = () => {
+      this.messenger.unsubscribe('PerpsController:stateChange', handler);
+    };
+
+    // Watch for account changes via AccountTreeController
+    const accountChangeHandler = () => {
+      const evmAccount = getSelectedEvmAccount(this.messenger);
+      const currentAddress = evmAccount?.address ?? null;
+      if (
+        currentAddress &&
+        this.state.cachedUserDataAddress !== null &&
+        currentAddress !== this.state.cachedUserDataAddress
+      ) {
+        this.debugLog(
+          'PerpsController: Account changed, clearing user data cache',
+        );
+        this.update((state) => {
+          state.cachedPositions = null;
+          state.cachedOrders = null;
+          state.cachedAccountState = null;
+          state.cachedUserDataTimestamp = 0;
+          state.cachedUserDataAddress = null;
+        });
+        this.performUserDataPreload();
+      }
+    };
+    this.messenger.subscribe(
+      'AccountTreeController:selectedAccountGroupChange',
+      accountChangeHandler,
+    );
+    this.accountChangeUnsubscribe = () => {
+      this.messenger.unsubscribe(
+        'AccountTreeController:selectedAccountGroupChange',
+        accountChangeHandler,
+      );
+    };
+  }
+
+  /**
+   * Stop background market data preloading.
+   */
+  stopMarketDataPreload(): void {
+    this.debugLog('PerpsController: Stopping market data preload');
+    if (this.preloadTimer) {
+      clearInterval(this.preloadTimer);
+      this.preloadTimer = null;
+    }
+    if (this.preloadStateUnsubscribe) {
+      this.preloadStateUnsubscribe();
+      this.preloadStateUnsubscribe = null;
+    }
+    if (this.accountChangeUnsubscribe) {
+      this.accountChangeUnsubscribe();
+      this.accountChangeUnsubscribe = null;
+    }
+    this.previousIsTestnet = null;
+    this.previousHip3ConfigVersion = null;
+  }
+
+  /**
+   * Perform a single market data preload (best-effort, no throw).
+   */
+  private async performMarketDataPreload(): Promise<void> {
+    if (this.isPreloading) return;
+
+    const now = Date.now();
+    if (
+      now - this.state.cachedMarketDataTimestamp <
+      PerpsController.PRELOAD_GUARD_MS
+    ) {
+      return;
+    }
+
+    this.isPreloading = true;
+    const traceId = uuidv4();
+    const preloadStart = performance.now();
+    let traceData:
+      | { success: boolean; marketCount?: number; error?: string }
+      | undefined;
+
+    try {
+      this.options.infrastructure.tracer.trace({
+        name: PerpsTraceNames.MarketDataPreload,
+        id: traceId,
+        op: PerpsTraceOperations.Operation,
+        tags: {
+          provider: this.state.activeProvider,
+          isTestnet: this.state.isTestnet,
+        },
+      });
+
+      this.debugLog('PerpsController: Fetching market data in background');
+      const data = await this.getMarketDataWithPrices({ standalone: true });
+
+      this.update((state) => {
+        state.cachedMarketData = data;
+        state.cachedMarketDataTimestamp = Date.now();
+      });
+
+      this.debugLog('PerpsController: Market data preloaded', {
+        marketCount: data.length,
+      });
+
+      traceData = { success: true, marketCount: data.length };
+
+      this.options.infrastructure.tracer.setMeasurement(
+        PerpsMeasurementName.PerpsMarketDataPreload,
+        performance.now() - preloadStart,
+        'millisecond',
+      );
+
+      // Also preload user data (fire-and-forget, non-blocking)
+      this.performUserDataPreload();
+    } catch (error) {
+      traceData = {
+        success: false,
+        error: ensureError(error, 'PerpsController.performMarketDataPreload')
+          .message,
+      };
+      this.logError(
+        ensureError(error, 'PerpsController.performMarketDataPreload'),
+        this.getErrorContext('performMarketDataPreload', {
+          message: 'Background preload failed',
+        }),
+      );
+    } finally {
+      this.options.infrastructure.tracer.endTrace({
+        name: PerpsTraceNames.MarketDataPreload,
+        id: traceId,
+        data: traceData,
+      });
+      this.isPreloading = false;
+    }
+  }
+
+  /**
+   * Perform a single user data preload (best-effort, no throw).
+   * Fetches positions, open orders, and account state via lightweight REST calls.
+   */
+  private async performUserDataPreload(): Promise<void> {
+    if (this.isPreloadingUserData) return;
+
+    // Get current user address
+    const evmAccount = getSelectedEvmAccount(this.messenger);
+    if (!evmAccount?.address) return;
+
+    const userAddress = evmAccount.address;
+
+    // Skip if cache is fresh and for same account
+    const now = Date.now();
+    if (
+      this.state.cachedUserDataAddress === userAddress &&
+      now - this.state.cachedUserDataTimestamp <
+        PerpsController.PRELOAD_GUARD_MS
+    ) {
+      return;
+    }
+
+    // Skip standalone REST polling when WebSocket is connected — live data is streaming
+    if (
+      this.getWebSocketConnectionState() === WebSocketConnectionState.Connected
+    ) {
+      this.debugLog(
+        'PerpsController: Skipping user data preload — WebSocket connected',
+      );
+      return;
+    }
+
+    this.isPreloadingUserData = true;
+    const traceId = uuidv4();
+    const preloadStart = performance.now();
+    let traceData:
+      | {
+          success: boolean;
+          positionCount?: number;
+          orderCount?: number;
+          error?: string;
+        }
+      | undefined;
+
+    try {
+      this.options.infrastructure.tracer.trace({
+        name: PerpsTraceNames.UserDataPreload,
+        id: traceId,
+        op: PerpsTraceOperations.Operation,
+        tags: {
+          provider: this.state.activeProvider,
+          isTestnet: this.state.isTestnet,
+        },
+        data: { userAddress },
+      });
+
+      this.debugLog('PerpsController: Fetching user data in background', {
+        userAddress,
+      });
+
+      const [positions, orders, accountState] = await Promise.all([
+        this.getPositions({ standalone: true, userAddress }),
+        this.getOpenOrders({ standalone: true, userAddress }),
+        this.getAccountState({ standalone: true, userAddress }),
+      ]);
+
+      this.update((state) => {
+        state.cachedPositions = positions;
+        state.cachedOrders = orders;
+        state.cachedAccountState = accountState;
+        state.cachedUserDataTimestamp = Date.now();
+        state.cachedUserDataAddress = userAddress;
+      });
+
+      this.debugLog('PerpsController: User data preloaded', {
+        positionCount: positions.length,
+        orderCount: orders.length,
+        totalBalance: accountState.totalBalance,
+      });
+
+      traceData = {
+        success: true,
+        positionCount: positions.length,
+        orderCount: orders.length,
+      };
+
+      this.options.infrastructure.tracer.setMeasurement(
+        PerpsMeasurementName.PerpsUserDataPreload,
+        performance.now() - preloadStart,
+        'millisecond',
+      );
+    } catch (error) {
+      traceData = {
+        success: false,
+        error: ensureError(error, 'PerpsController.performUserDataPreload')
+          .message,
+      };
+      this.logError(
+        ensureError(error, 'PerpsController.performUserDataPreload'),
+        this.getErrorContext('performUserDataPreload', {
+          message: 'Background user data preload failed',
+        }),
+      );
+    } finally {
+      this.options.infrastructure.tracer.endTrace({
+        name: PerpsTraceNames.UserDataPreload,
+        id: traceId,
+        data: traceData,
+      });
+      this.isPreloadingUserData = false;
+    }
   }
 
   /**
@@ -2567,8 +3027,13 @@ export class PerpsController extends BaseController<
    * Subscribe to live price updates
    */
   subscribeToPrices(params: SubscribePricesParams): () => void {
+    const provider = this.getActiveProviderOrNull();
+    if (!provider) {
+      return () => {
+        // No-op: Provider not initialized
+      };
+    }
     try {
-      const provider = this.getActiveProvider();
       return provider.subscribeToPrices(params);
     } catch (error) {
       this.logError(
@@ -2577,9 +3042,8 @@ export class PerpsController extends BaseController<
           symbols: params.symbols?.join(','),
         }),
       );
-      // Return a no-op unsubscribe function
       return () => {
-        // No-op: Provider not initialized
+        // No-op
       };
     }
   }
@@ -2588,8 +3052,13 @@ export class PerpsController extends BaseController<
    * Subscribe to live position updates
    */
   subscribeToPositions(params: SubscribePositionsParams): () => void {
+    const provider = this.getActiveProviderOrNull();
+    if (!provider) {
+      return () => {
+        // No-op: Provider not initialized
+      };
+    }
     try {
-      const provider = this.getActiveProvider();
       return provider.subscribeToPositions(params);
     } catch (error) {
       this.logError(
@@ -2598,9 +3067,8 @@ export class PerpsController extends BaseController<
           accountId: params.accountId,
         }),
       );
-      // Return a no-op unsubscribe function
       return () => {
-        // No-op: Provider not initialized
+        // No-op
       };
     }
   }
@@ -2609,8 +3077,13 @@ export class PerpsController extends BaseController<
    * Subscribe to live order fill updates
    */
   subscribeToOrderFills(params: SubscribeOrderFillsParams): () => void {
+    const provider = this.getActiveProviderOrNull();
+    if (!provider) {
+      return () => {
+        // No-op: Provider not initialized
+      };
+    }
     try {
-      const provider = this.getActiveProvider();
       return provider.subscribeToOrderFills(params);
     } catch (error) {
       this.logError(
@@ -2619,9 +3092,8 @@ export class PerpsController extends BaseController<
           accountId: params.accountId,
         }),
       );
-      // Return a no-op unsubscribe function
       return () => {
-        // No-op: Provider not initialized
+        // No-op
       };
     }
   }
@@ -2630,8 +3102,13 @@ export class PerpsController extends BaseController<
    * Subscribe to live order updates
    */
   subscribeToOrders(params: SubscribeOrdersParams): () => void {
+    const provider = this.getActiveProviderOrNull();
+    if (!provider) {
+      return () => {
+        // No-op: Provider not initialized
+      };
+    }
     try {
-      const provider = this.getActiveProvider();
       return provider.subscribeToOrders(params);
     } catch (error) {
       this.logError(
@@ -2640,9 +3117,8 @@ export class PerpsController extends BaseController<
           accountId: params.accountId,
         }),
       );
-      // Return a no-op unsubscribe function
       return () => {
-        // No-op: Provider not initialized
+        // No-op
       };
     }
   }
@@ -2653,8 +3129,13 @@ export class PerpsController extends BaseController<
    * like usePerpsBalanceTokenFilter (PayWithModal) see the latest balance.
    */
   subscribeToAccount(params: SubscribeAccountParams): () => void {
+    const provider = this.getActiveProviderOrNull();
+    if (!provider) {
+      return () => {
+        // No-op: Provider not initialized
+      };
+    }
     try {
-      const provider = this.getActiveProvider();
       const originalCallback = params.callback;
       return provider.subscribeToAccount({
         ...params,
@@ -2676,9 +3157,8 @@ export class PerpsController extends BaseController<
           accountId: params.accountId,
         }),
       );
-      // Return a no-op unsubscribe function
       return () => {
-        // No-op: Provider not initialized
+        // No-op
       };
     }
   }
@@ -2688,8 +3168,13 @@ export class PerpsController extends BaseController<
    * Creates a dedicated L2Book subscription for real-time order book data
    */
   subscribeToOrderBook(params: SubscribeOrderBookParams): () => void {
+    const provider = this.getActiveProviderOrNull();
+    if (!provider) {
+      return () => {
+        // No-op: Provider not initialized
+      };
+    }
     try {
-      const provider = this.getActiveProvider();
       return provider.subscribeToOrderBook(params);
     } catch (error) {
       this.logError(
@@ -2699,9 +3184,8 @@ export class PerpsController extends BaseController<
           levels: params.levels,
         }),
       );
-      // Return a no-op unsubscribe function
       return () => {
-        // No-op: Provider not initialized
+        // No-op
       };
     }
   }
@@ -2710,8 +3194,13 @@ export class PerpsController extends BaseController<
    * Subscribe to live candle updates
    */
   subscribeToCandles(params: SubscribeCandlesParams): () => void {
+    const provider = this.getActiveProviderOrNull();
+    if (!provider) {
+      return () => {
+        // No-op: Provider not initialized
+      };
+    }
     try {
-      const provider = this.getActiveProvider();
       return provider.subscribeToCandles(params);
     } catch (error) {
       this.logError(
@@ -2722,9 +3211,8 @@ export class PerpsController extends BaseController<
           duration: params.duration,
         }),
       );
-      // Return a no-op unsubscribe function
       return () => {
-        // No-op: Provider not initialized
+        // No-op
       };
     }
   }
@@ -2734,8 +3222,13 @@ export class PerpsController extends BaseController<
    * Zero additional network overhead - data comes from existing webData3 subscription
    */
   subscribeToOICaps(params: SubscribeOICapsParams): () => void {
+    const provider = this.getActiveProviderOrNull();
+    if (!provider) {
+      return () => {
+        // No-op: Provider not initialized
+      };
+    }
     try {
-      const provider = this.getActiveProvider();
       return provider.subscribeToOICaps(params);
     } catch (error) {
       this.logError(
@@ -2744,9 +3237,8 @@ export class PerpsController extends BaseController<
           accountId: params.accountId,
         }),
       );
-      // Return a no-op unsubscribe function
       return () => {
-        // No-op: Provider not initialized
+        // No-op
       };
     }
   }
