@@ -1,4 +1,7 @@
-import type { AccountTreeControllerGetAccountsFromSelectedAccountGroupAction } from '@metamask/account-tree-controller';
+import type {
+  AccountTreeControllerGetAccountsFromSelectedAccountGroupAction,
+  AccountTreeControllerSelectedAccountGroupChangeEvent,
+} from '@metamask/account-tree-controller';
 import {
   BaseController,
   ControllerGetStateAction,
@@ -2404,7 +2407,7 @@ export class PerpsController extends BaseController<
   // ============================================================================
 
   /** State paths that the preload stateChange handler reads. */
-  static readonly #PRELOAD_WATCHED_PATHS = new Set([
+  static readonly #preloadWatchedPaths = new Set([
     'isTestnet',
     'hip3ConfigVersion',
   ]);
@@ -2416,8 +2419,8 @@ export class PerpsController extends BaseController<
   #accountChangeUnsubscribe: (() => void) | null = null;
   #previousIsTestnet: boolean | null = null;
   #previousHip3ConfigVersion: number | null = null;
-  static readonly #PRELOAD_REFRESH_MS = 5 * 60 * 1000; // 5 min
-  static readonly #PRELOAD_GUARD_MS = 30_000; // 30s debounce
+  static readonly #preloadRefreshMs = 5 * 60 * 1000; // 5 min
+  static readonly #preloadGuardMs = 30_000; // 30s debounce
 
   /**
    * Start background market data preloading.
@@ -2437,12 +2440,16 @@ export class PerpsController extends BaseController<
     this.#previousHip3ConfigVersion = this.state.hip3ConfigVersion;
 
     // Immediate preload
-    void this.#performMarketDataPreload();
+    this.#performMarketDataPreload().catch(() => {
+      /* fire-and-forget */
+    });
 
     // Periodic refresh
     this.#preloadTimer = setInterval(() => {
-      void this.#performMarketDataPreload();
-    }, PerpsController.#PRELOAD_REFRESH_MS);
+      this.#performMarketDataPreload().catch(() => {
+        /* fire-and-forget */
+      });
+    }, PerpsController.#preloadRefreshMs);
 
     // Watch for isTestnet / hip3ConfigVersion / cachedUserDataAddress changes
     const handler: StateChangeListener<PerpsControllerState> = (
@@ -2453,7 +2460,7 @@ export class PerpsController extends BaseController<
       const hasRelevantChange = patches.some(
         (patch) =>
           typeof patch.path[0] === 'string' &&
-          PerpsController.#PRELOAD_WATCHED_PATHS.has(patch.path[0]),
+          PerpsController.#preloadWatchedPaths.has(patch.path[0]),
       );
       if (!hasRelevantChange) {
         return;
@@ -2491,7 +2498,9 @@ export class PerpsController extends BaseController<
           state.cachedUserDataAddress = null;
         });
 
-        void this.#performMarketDataPreload();
+        this.#performMarketDataPreload().catch(() => {
+          /* fire-and-forget */
+        });
       }
     };
 
@@ -2519,7 +2528,9 @@ export class PerpsController extends BaseController<
           state.cachedUserDataTimestamp = 0;
           state.cachedUserDataAddress = null;
         });
-        void this.#performUserDataPreload();
+        this.#performUserDataPreload().catch(() => {
+          /* fire-and-forget */
+        });
       }
     };
     this.messenger.subscribe(
@@ -2566,7 +2577,7 @@ export class PerpsController extends BaseController<
     const now = Date.now();
     if (
       now - this.state.cachedMarketDataTimestamp <
-      PerpsController.#PRELOAD_GUARD_MS
+      PerpsController.#preloadGuardMs
     ) {
       return;
     }
@@ -2610,7 +2621,9 @@ export class PerpsController extends BaseController<
       );
 
       // Also preload user data (fire-and-forget, non-blocking)
-      void this.#performUserDataPreload();
+      this.#performUserDataPreload().catch(() => {
+        /* fire-and-forget */
+      });
     } catch (error) {
       traceData = {
         success: false,
@@ -2654,8 +2667,7 @@ export class PerpsController extends BaseController<
     const now = Date.now();
     if (
       this.state.cachedUserDataAddress === userAddress &&
-      now - this.state.cachedUserDataTimestamp <
-        PerpsController.#PRELOAD_GUARD_MS
+      now - this.state.cachedUserDataTimestamp < PerpsController.#preloadGuardMs
     ) {
       return;
     }

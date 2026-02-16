@@ -256,6 +256,7 @@ module.exports = {
         'no-param-reassign': 'error',
         'no-duplicate-imports': 'off',
         curly: ['error', 'all'],
+        'no-void': 'error',
 
         // === TypeScript type-aware rules ===
         'no-shadow': 'off',
@@ -266,6 +267,36 @@ module.exports = {
         '@typescript-eslint/naming-convention': [
           'error',
           {
+            selector: 'default',
+            format: ['camelCase'],
+            leadingUnderscore: 'allow',
+            trailingUnderscore: 'forbid',
+          },
+          {
+            selector: 'enumMember',
+            format: ['PascalCase'],
+          },
+          {
+            selector: 'import',
+            format: ['camelCase', 'PascalCase', 'snake_case', 'UPPER_CASE'],
+          },
+          {
+            selector: 'interface',
+            format: ['PascalCase'],
+            custom: {
+              regex: '^I[A-Z]',
+              match: false,
+            },
+          },
+          {
+            selector: 'objectLiteralMethod',
+            format: ['camelCase', 'PascalCase', 'UPPER_CASE'],
+          },
+          {
+            selector: 'objectLiteralProperty',
+            format: null,
+          },
+          {
             selector: 'typeLike',
             format: ['PascalCase'],
           },
@@ -273,6 +304,30 @@ module.exports = {
             selector: 'typeParameter',
             format: ['PascalCase'],
             custom: { regex: '^.{3,}', match: true },
+          },
+          {
+            selector: 'variable',
+            format: ['camelCase', 'UPPER_CASE', 'PascalCase'],
+            leadingUnderscore: 'allow',
+          },
+          {
+            selector: 'parameter',
+            format: ['camelCase', 'PascalCase'],
+            leadingUnderscore: 'allow',
+          },
+          {
+            selector: [
+              'classProperty',
+              'objectLiteralProperty',
+              'typeProperty',
+              'classMethod',
+              'objectLiteralMethod',
+              'typeMethod',
+              'accessor',
+              'enumMember',
+            ],
+            format: null,
+            modifiers: ['requiresQuotes'],
           },
         ],
         '@typescript-eslint/consistent-type-exports': 'error',
