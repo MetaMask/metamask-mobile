@@ -1968,6 +1968,14 @@
       },
       "view_on_explorer": "View on block explorer",
       "trade_again": "Trade again",
+      "activity": {
+        "deposit_title": "Deposit",
+        "deposited_amount": "Deposited {{amount}} {{symbol}}",
+        "withdrew_amount": "Withdrew {{amount}} {{symbol}}",
+        "status_completed": "Completed",
+        "status_failed": "Failed",
+        "status_pending": "Pending"
+      },
       "empty_state": {
         "no_transactions": "No {{type}} transactions yet. Your trading history will appear here"
       }
