@@ -364,11 +364,9 @@ const AddCustomToken = ({
 
   const getInputStyle = (hasError: boolean) =>
     tw.style(
-      'rounded-lg px-4 py-3',
+      'rounded-lg px-4 py-3 text-default',
       baseInputFont,
-      hasError
-        ? 'border-2 border-error-default'
-        : 'border border-default text-default',
+      hasError ? 'border-2 border-error-default' : 'border border-default',
     );
 
   // --- Render ---
