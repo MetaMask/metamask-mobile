@@ -97,6 +97,7 @@ type InitMessengerActions =
   | CurrencyRateControllerActions
   | DelegationControllerSignDelegationAction
   | NetworkControllerFindNetworkClientIdByChainIdAction
+  | NetworkControllerGetNetworkClientByIdAction
   | KeyringControllerSignEip7702AuthorizationAction
   | KeyringControllerSignTypedMessageAction
   | NetworkControllerGetEIP1559CompatibilityAction
@@ -154,6 +155,7 @@ export function getTransactionControllerInitMessenger(
       'DelegationController:signDelegation',
       'NetworkController:findNetworkClientIdByChainId',
       'NetworkController:getEIP1559Compatibility',
+      'NetworkController:getNetworkClientById',
       'KeyringController:signEip7702Authorization',
       'KeyringController:signTypedMessage',
       'RemoteFeatureFlagController:getState',
