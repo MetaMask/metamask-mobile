@@ -23,11 +23,12 @@ import {
   roundToSignificantFigures,
 } from './significantFigures';
 
-const hasOwn = <K extends PropertyKey>(
-  value: object,
-  key: K,
-): value is Record<K, unknown> =>
-  Object.prototype.hasOwnProperty.call(value, key);
+type FrontendOrderWithParentTpsl = FrontendOrder & {
+  takeProfitPrice?: unknown;
+  stopLossPrice?: unknown;
+  takeProfitOrderId?: unknown;
+  stopLossOrderId?: unknown;
+};
 
 const readOptionalString = (value: unknown): string | undefined =>
   typeof value === 'string' && value.length > 0 ? value : undefined;
@@ -44,27 +45,12 @@ const readOptionalOrderId = (value: unknown): string | undefined => {
   return undefined;
 };
 
-const getParentTpslMetadata = (rawOrder: FrontendOrder) => {
-  const takeProfitPrice = hasOwn(rawOrder, 'takeProfitPrice')
-    ? readOptionalString(rawOrder.takeProfitPrice)
-    : undefined;
-  const stopLossPrice = hasOwn(rawOrder, 'stopLossPrice')
-    ? readOptionalString(rawOrder.stopLossPrice)
-    : undefined;
-  const takeProfitOrderId = hasOwn(rawOrder, 'takeProfitOrderId')
-    ? readOptionalOrderId(rawOrder.takeProfitOrderId)
-    : undefined;
-  const stopLossOrderId = hasOwn(rawOrder, 'stopLossOrderId')
-    ? readOptionalOrderId(rawOrder.stopLossOrderId)
-    : undefined;
-
-  return {
-    takeProfitPrice,
-    stopLossPrice,
-    takeProfitOrderId,
-    stopLossOrderId,
-  };
-};
+const getParentTpslMetadata = (rawOrder: FrontendOrderWithParentTpsl) => ({
+  takeProfitPrice: readOptionalString(rawOrder.takeProfitPrice),
+  stopLossPrice: readOptionalString(rawOrder.stopLossPrice),
+  takeProfitOrderId: readOptionalOrderId(rawOrder.takeProfitOrderId),
+  stopLossOrderId: readOptionalOrderId(rawOrder.stopLossOrderId),
+});
 
 /**
  * HyperLiquid SDK Adapter Utilities
@@ -147,9 +133,11 @@ export function adaptOrderFromSDK(
   rawOrder: FrontendOrder,
   position?: Position,
 ): Order {
-  // TODO: Remove parent metadata runtime extraction once FrontendOrder includes
+  // TODO: Remove this widened boundary type when FrontendOrder includes
   // takeProfitPrice/stopLossPrice and takeProfitOrderId/stopLossOrderId.
-  const parentTpslMetadata = getParentTpslMetadata(rawOrder);
+  const parentTpslMetadata = getParentTpslMetadata(
+    rawOrder as FrontendOrderWithParentTpsl,
+  );
 
   // Extract basic fields with appropriate conversions
   const orderId = rawOrder.oid.toString();
