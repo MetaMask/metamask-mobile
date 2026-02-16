@@ -672,7 +672,7 @@
     "network_not_found_title": "Network not found",
     "network_not_found_description": "Network with chain ID {{chain_id}} not found in your wallet. Please add the network first.",
     "network_missing_id": "Missing chain ID.",
-    "search_tokens":"Search tokens",
+    "search_tokens": "Search tokens",
     "search_tokens_and_nfts": "Search tokens and NFTs",
     "tokens": "Tokens",
     "nfts": "NFTs",
@@ -1968,6 +1968,14 @@
       },
       "view_on_explorer": "View on block explorer",
       "trade_again": "Trade again",
+      "activity": {
+        "deposit_title": "Deposit",
+        "deposited_amount": "Deposited {{amount}} {{symbol}}",
+        "withdrew_amount": "Withdrew {{amount}} {{symbol}}",
+        "status_completed": "Completed",
+        "status_failed": "Failed",
+        "status_pending": "Pending"
+      },
       "empty_state": {
         "no_transactions": "No {{type}} transactions yet. Your trading history will appear here"
       }
@@ -3201,9 +3209,6 @@
     "security_alerts_desc": "This feature alerts you to malicious activity by locally reviewing your transaction and signature requests. Always do your own due diligence before approving any requests. There's no guarantee that this feature will detect all malicious activity. By enabling this feature you agree to the provider's terms of use.",
     "dismiss_smart_account_update_heading": "Dismiss \"Switch to smart account\" suggestion",
     "dismiss_smart_account_update_desc": "Turn this on to no longer see the \"Switch to smart account\" suggestion on any account. Smart accounts unlocks faster transactions, lower network fees and more flexibility on payment for those.",
-    "use_smart_account_heading": "Use smart account",
-    "use_smart_account_desc": "Keep this on to automatically switch accounts created within MetaMask to smart accounts whenever relevant features are available, such as faster transactions, lower network fees and payment flexibility on payment for those.",
-    "use_smart_account_learn_more": "Learn more",
     "smart_transactions_opt_in_heading": "Smart Transactions",
     "smart_transactions_opt_in_desc_supported_networks": "Turn on Smart Transactions for more reliable and secure transactions on supported networks.",
     "smart_transactions_learn_more": "Learn more",
@@ -3831,6 +3836,7 @@
     "qr_code": "QR code"
   },
   "transactions": {
+    "unavailable": "Unavailable",
     "tx_review_confirm": "Confirm",
     "tx_review_transfer": "Transfer",
     "tx_review_contract_deployment": "Contract deployment",
@@ -4759,9 +4765,14 @@
     "on_network": "on {{networkName}}",
     "debit_card": "Debit card",
     "select_payment_method": "Select payment method",
+    "loading_quote": "Loading quote...",
     "pay_with": "Pay with",
     "buying_via": "Buying via {{providerName}}.",
     "change_provider": "Change provider.",
+    "payment_error": "Something went wrong. Please try again.",
+    "no_payment_methods_available": "No payment methods are available.",
+    "error_fetching_quotes": "Something went wrong. Please try again.",
+    "no_quotes_available": "No providers available.",
     "providers": "Providers",
     "continue": "Continue",
     "powered_by_provider": "Powered by {{provider}}",
@@ -5790,7 +5801,7 @@
     "earn_a_percentage_bonus": "Earn a {{percentage}}% bonus",
     "claimable_bonus": "Claimable bonus",
     "claim_bonus": "Claim bonus",
-    "claim_bonus_subtitle": "Bonus payout will be on {{networkName}} Network.",
+    "claim_bonus_subtitle": "Bonus will be paid out on {{networkName}}.",
     "empty_state_cta": {
       "heading": "Lend {{tokenSymbol}} and earn",
       "body": "Lend your {{tokenSymbol}} with {{protocol}} and earn",
@@ -6178,8 +6189,11 @@
       "switching_to": "Switching to",
       "bridge_estimated_time": "Est. time",
       "pay_with": "Pay with",
+      "receive_as": "Receive",
       "total": "Total",
+      "you_receive": "You'll receive",
       "transaction_fee": "Transaction fee",
+      "transaction_fees": "Transaction fees",
       "metamask_fee": "MetaMask fee",
       "network_fee": "Network fee",
       "bridge_fee": "Bridge provider fee"
@@ -6218,6 +6232,9 @@
       },
       "predict_deposit": {
         "transaction_fee": "We'll swap your tokens for USDC.e on Polygon, the network used by Predictions. Swap providers may charge a fee, but MetaMask won't."
+      },
+      "predict_withdraw": {
+        "transaction_fee": "MetaMask will swap to your desired token for you. No MetaMask fee applies when you swap to MUSD."
       },
       "musd_conversion": {
         "transaction_fee": "mUSD conversion fees include network costs and may include provider fees."
@@ -6331,7 +6348,7 @@
     "transferRequest": "Transfer request",
     "nested_transaction_heading": "Transaction {{index}}",
     "transaction": "Transaction",
-    "available_balance": "Available: ",
+    "available_balance": "Available balance: ",
     "edit_amount_done": "Continue",
     "deposit_edit_amount_done": "Add funds",
     "deposit_edit_amount_predict_withdraw": "Withdraw",
@@ -6370,6 +6387,7 @@
     "deselect_all_networks": "Deselect all",
     "see_all": "See all",
     "all": "All",
+    "more_networks": "+{{count}} more",
     "apply": "Apply",
     "slippage": "Slippage",
     "slippage_info": "If the price changes between the time your order is placed and confirmed it’s called “slippage.” Your swap will automatically cancel if slippage exceeds the tolerance you set here.",
@@ -6908,7 +6926,7 @@
       },
       "physical_address": {
         "title": "Add your address",
-        "description":"Enter your current home address. We’ll use this for verification purposes.",
+        "description": "Enter your current home address. We’ll use this for verification purposes.",
         "address_line_1_label": "Address line 1",
         "address_line_2_label": "Address line 2",
         "city_label": "City",
@@ -6945,7 +6963,7 @@
         "description": "The email address {{email}} is already associated with a Card account.",
         "confirm_button": "Log in"
       },
-      "keep_going":{
+      "keep_going": {
         "title": "Let's keep going",
         "description": "Pick up where you left off and finish setting up your card.",
         "confirm_button": "Continue"
@@ -7195,6 +7213,7 @@
   },
   "pay_with_modal": {
     "title": "Select payment method",
+    "title_receive": "Select receive token",
     "no_gas": "No native balance for gas"
   },
   "connection_removed_modal": {
@@ -7213,7 +7232,7 @@
       "title": "Opt-in failed",
       "description": "Check your connection and try again."
     },
-    "season_error":{
+    "season_error": {
       "error_fetching_title": "Season couldn’t be loaded",
       "error_fetching_description": "Check your connection and try again.",
       "retry_button": "Retry"
@@ -7279,7 +7298,7 @@
       "email_validation_error": "Please enter a valid email address",
       "telegram_label": "Telegram handle",
       "telegram_placeholder": "Optional"
-     },
+    },
     "accounts_opt_in_state_error": {
       "error_fetching_title": "Accounts couldn’t be loaded",
       "error_fetching_description": "Check your connection and try again.",
