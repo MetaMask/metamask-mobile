@@ -201,9 +201,8 @@ describe('PermissionsSummary', () => {
       });
 
       const tree = JSON.stringify(toJSON());
-      // There should be no Danger icon
-      // Note: "Danger" icons may still appear in other contexts, so we check the title area specifically
-      expect(tree).not.toContain('maliciousWarningIcon');
+      // The MaliciousDappUrlIcon uses the "urlIcon" style; it should not be rendered
+      expect(tree).not.toContain('urlIcon');
     });
 
     it('does not show malicious warning icon when already connected', () => {
@@ -213,7 +212,7 @@ describe('PermissionsSummary', () => {
       });
 
       const tree = JSON.stringify(toJSON());
-      expect(tree).not.toContain('maliciousWarningIcon');
+      expect(tree).not.toContain('urlIcon');
     });
   });
 });

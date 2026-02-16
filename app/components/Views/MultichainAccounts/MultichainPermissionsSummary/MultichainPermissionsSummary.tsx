@@ -2,7 +2,6 @@ import React, { useCallback, useMemo } from 'react';
 import {
   ImageSourcePropType,
   SafeAreaView,
-  Text as RNText,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -34,6 +33,10 @@ import { getHost } from '../../../../util/browser';
 import WebsiteIcon from '../../../UI/WebsiteIcon';
 import styleSheet from './MultichainPermissionsSummary.styles';
 import { useStyles } from '../../../../component-library/hooks';
+import {
+  MaliciousDappUrlIcon,
+  DangerConnectButtonContent,
+} from '../../../UI/PermissionsSummary/MaliciousDappIndicators';
 import Routes from '../../../../constants/navigation/Routes';
 import ButtonIcon, {
   ButtonIconSizes,
@@ -594,14 +597,7 @@ const MultichainPermissionsSummary = ({
                       dappUrl: hostname,
                     })}
             </TextComponent>
-            {isMaliciousDapp && !isAlreadyConnected && (
-              <Icon
-                name={IconName.Danger}
-                size={IconSize.Sm}
-                color={IconColor.Error}
-                style={styles.maliciousWarningIcon}
-              />
-            )}
+            {isMaliciousDapp && !isAlreadyConnected && <MaliciousDappUrlIcon />}
             <TextComponent variant={TextVariant.BodyMD}>
               {strings('account_dapp_connections.account_summary_header')}
             </TextComponent>
@@ -667,16 +663,7 @@ const MultichainPermissionsSummary = ({
                 testID={CommonSelectorsIDs.CONNECT_BUTTON}
               >
                 {isMaliciousDapp && !isNetworkSwitch ? (
-                  <View style={styles.dangerButtonContent}>
-                    <Icon
-                      name={IconName.Danger}
-                      size={IconSize.Sm}
-                      color={IconColor.Inverse}
-                    />
-                    <RNText style={styles.dangerButtonText}>
-                      {strings('accounts.connect')}
-                    </RNText>
-                  </View>
+                  <DangerConnectButtonContent />
                 ) : isNetworkSwitch ? (
                   strings('confirmation_modal.confirm_cta')
                 ) : (
