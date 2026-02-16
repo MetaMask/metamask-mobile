@@ -695,6 +695,7 @@ export type GetSupportedPathsParams = {
   chainId?: CaipChainId; // Optional: filter by chain (CAIP-2 format)
 };
 
+/** Placeholder for future filter/pagination params (e.g., validated, chain). Empty today so the API signature is stable. */
 export type GetAvailableDexsParams = Record<string, never>;
 
 export type GetMarketsParams = {
