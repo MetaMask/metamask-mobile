@@ -509,7 +509,7 @@ class TransactionElement extends PureComponent {
         : status;
 
     const renderNormalActions =
-      (transactionStatus === 'failed' ||
+      (transactionStatus === 'submitted' ||
         (transactionStatus === 'approved' &&
           !isQRHardwareAccount &&
           !isLedgerAccount)) &&

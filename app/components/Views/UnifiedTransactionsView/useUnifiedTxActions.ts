@@ -1,7 +1,9 @@
 import { providerErrors } from '@metamask/rpc-errors';
 import {
+  CANCEL_RATE,
   GasFeeEstimateLevel,
   GasFeeEstimateType,
+  SPEED_UP_RATE,
   type FeeMarketGasFeeEstimates,
   type GasFeeEstimates,
   type GasPriceGasFeeEstimates,
@@ -44,6 +46,14 @@ interface ReplacementGasParams {
   error?: string;
   suggestedMaxFeePerGasHex?: string;
   suggestedMaxPriorityFeePerGasHex?: string;
+}
+
+/** Params from CancelSpeedupModal for controller */
+export interface CancelSpeedupParams {
+  error?: string;
+  maxFeePerGas?: string;
+  maxPriorityFeePerGas?: string;
+  gasPrice?: string;
 }
 
 interface LedgerSignRequest {
@@ -196,21 +206,17 @@ export function useUnifiedTxActions() {
       setSpeedUp1559IsOpen(false);
       return;
     }
-    setExistingGas(nextExistingGas ?? null);
-    setExistingTx(tx ?? null);
-    setSpeedUpTxId(tx?.id ?? null);
-    if (nextExistingGas?.isEIP1559Transaction) {
-      setSpeedUp1559IsOpen(true);
-    } else {
-      if (!tx) {
-        return;
-      }
-      const disabled = Boolean(
-        validateTransactionActionBalance(tx, '1.1', accounts),
-      );
-      setSpeedUpConfirmDisabled(disabled);
-      setSpeedUpIsOpen(true);
+    if (!tx) {
+      return;
     }
+    setExistingGas(nextExistingGas ?? null);
+    setExistingTx(tx);
+    setSpeedUpTxId(tx.id ?? null);
+    const disabled = Boolean(
+      validateTransactionActionBalance(tx, SPEED_UP_RATE.toString(), accounts),
+    );
+    setSpeedUpConfirmDisabled(disabled);
+    setSpeedUpIsOpen(true);
   };
 
   const onCancelAction = (
@@ -223,21 +229,17 @@ export function useUnifiedTxActions() {
       setCancel1559IsOpen(false);
       return;
     }
-    setExistingGas(nextExistingGas ?? null);
-    setExistingTx(tx ?? null);
-    setCancelTxId(tx?.id ?? null);
-    if (nextExistingGas?.isEIP1559Transaction) {
-      setCancel1559IsOpen(true);
-    } else {
-      if (!tx) {
-        return;
-      }
-      const disabled = Boolean(
-        validateTransactionActionBalance(tx, '1.1', accounts),
-      );
-      setCancelConfirmDisabled(disabled);
-      setCancelIsOpen(true);
+    if (!tx) {
+      return;
     }
+    setExistingGas(nextExistingGas ?? null);
+    setExistingTx(tx);
+    setCancelTxId(tx.id ?? null);
+    const disabled = Boolean(
+      validateTransactionActionBalance(tx, CANCEL_RATE.toString(), accounts),
+    );
+    setCancelConfirmDisabled(disabled);
+    setCancelIsOpen(true);
   };
 
   const onSpeedUpCompleted = () => {
@@ -256,17 +258,32 @@ export function useUnifiedTxActions() {
     setExistingTx(null);
   };
 
+  const getParamsToSend = (
+    params?: ReplacementGasParams | CancelSpeedupParams,
+  ) => {
+    if (params?.error) {
+      return undefined;
+    }
+    if (
+      params &&
+      ('maxFeePerGas' in params || 'gasPrice' in params)
+    ) {
+      return params;
+    }
+    return getCancelOrSpeedupValues(params as ReplacementGasParams);
+  };
+
   const speedUpTransaction = async (
-    transactionObject?: ReplacementGasParams,
+    params?: ReplacementGasParams | CancelSpeedupParams,
   ) => {
     try {
-      if (transactionObject?.error) {
-        throw new Error(transactionObject.error);
+      if (params && 'error' in params && params.error) {
+        throw new Error(params.error);
       }
       if (!speedUpTxId) {
         throw new Error('Missing transaction id for speed up');
       }
-      await speedUpTx(speedUpTxId, getCancelOrSpeedupValues(transactionObject));
+      await speedUpTx(speedUpTxId, getParamsToSend(params));
       onSpeedUpCompleted();
     } catch (error: unknown) {
       toggleRetry(getErrorMessage(error));
@@ -276,18 +293,18 @@ export function useUnifiedTxActions() {
   };
 
   const cancelTransaction = async (
-    transactionObject?: ReplacementGasParams,
+    params?: ReplacementGasParams | CancelSpeedupParams,
   ) => {
     try {
-      if (transactionObject?.error) {
-        throw new Error(transactionObject.error);
+      if (params && 'error' in params && params.error) {
+        throw new Error(params.error);
       }
       if (!cancelTxId) {
         throw new Error('Missing transaction id for cancel');
       }
       await Engine.context.TransactionController.stopTransaction(
         cancelTxId,
-        getCancelOrSpeedupValues(transactionObject),
+        getParamsToSend(params),
       );
       onCancelCompleted();
     } catch (error: unknown) {
