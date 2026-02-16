@@ -1,13 +1,14 @@
-import { DataLakeService } from './DataLakeService';
 import {
   createMockServiceContext,
   createMockEvmAccount,
   createMockInfrastructure,
   createMockMessenger,
 } from '../../../components/UI/Perps/__mocks__/serviceMocks';
-import type { ServiceContext } from './ServiceContext';
-import type { PerpsPlatformDependencies } from '../types';
 import type { PerpsControllerMessenger } from '../PerpsController';
+import type { PerpsPlatformDependencies } from '../types';
+
+import { DataLakeService } from './DataLakeService';
+import type { ServiceContext } from './ServiceContext';
 
 jest.mock('uuid', () => ({ v4: () => 'mock-trace-id' }));
 
@@ -84,8 +85,8 @@ describe('DataLakeService', () => {
       const result = await dataLakeService.reportOrder({
         action: 'open',
         symbol: 'BTC',
-        sl_price: 45000,
-        tp_price: 55000,
+        slPrice: 45000,
+        tpPrice: 55000,
         isTestnet: false,
         context: mockContext,
       });
@@ -382,8 +383,8 @@ describe('DataLakeService', () => {
       await dataLakeService.reportOrder({
         action: 'close',
         symbol: 'BTC',
-        sl_price: 45000,
-        tp_price: 55000,
+        slPrice: 45000,
+        tpPrice: 55000,
         isTestnet: false,
         context: mockContext,
       });
