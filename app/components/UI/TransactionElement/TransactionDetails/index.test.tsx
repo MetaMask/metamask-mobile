@@ -1,6 +1,6 @@
 import React from 'react';
 import { query } from '@metamask/controller-utils';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import TransactionDetails from './';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../util/test/accountsControllerTestUtils';
@@ -345,6 +345,37 @@ describe('TransactionDetails', () => {
       },
       buttonText: 'View on Custom-block-explorer',
       expectedUrl: 'https://custom-block-explorer.net/tx/0x3',
+    });
+  });
+
+  it('should render speed up and cancel buttons', async () => {
+    const { getByText } = renderComponent({
+      state: {
+        ...initialState,
+        engine: {
+          ...initialState.engine,
+          backgroundState: {
+            ...initialState.engine.backgroundState,
+            PreferencesController: {
+              smartTransactionsOptInStatus: false,
+            },
+          },
+        },
+      },
+      hash: '0x3',
+      txParams: {
+        multiLayerL1FeeTotal: '0x1',
+      },
+      status: 'submitted',
+    });
+
+    await waitFor(() => {
+      const speedUpButton = getByText('Speed up');
+      expect(speedUpButton).toBeDefined();
+      const cancelButton = getByText('Cancel');
+      expect(cancelButton).toBeDefined();
+      fireEvent.press(speedUpButton);
+      fireEvent.press(cancelButton);
     });
   });
 
