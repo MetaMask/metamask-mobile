@@ -211,9 +211,6 @@ module.exports = {
             message:
               'Use ES private class fields (#field) instead of TypeScript private keyword.',
           },
-          // NOTE: BinaryExpression[operator='in'] rule deferred to Core.
-          // Object.hasOwn() requires lib:es2022 (mobile uses es2017) and
-          // doesn't provide TS type narrowing like the `in` operator does.
         ],
         'id-denylist': [
           'error',
