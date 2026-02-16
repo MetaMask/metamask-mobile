@@ -88,7 +88,9 @@ export function useAddressTrustSignalAlerts(): Alert[] {
     const addresses: AddressToScan[] = [];
 
     const hasTransferRecipient =
-      transferRecipient && toAddress && transferRecipient !== toAddress;
+      transferRecipient &&
+      toAddress &&
+      transferRecipient.toLowerCase() !== toAddress.toLowerCase();
 
     if (toAddress) {
       const isContractInteraction =
@@ -148,9 +150,11 @@ export function useAddressTrustSignalAlerts(): Alert[] {
 
       const isDanger = severity === Severity.Danger;
 
-      const alertKey = isDanger
+      const baseKey = isDanger
         ? AlertKeys.AddressTrustSignalMalicious
         : AlertKeys.AddressTrustSignalWarning;
+
+      const alertKey = `${baseKey}_${addressesToScan[index].alertField}`;
 
       const message = isDanger
         ? strings('alert_system.address_trust_signal.malicious.message')

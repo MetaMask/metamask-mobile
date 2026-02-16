@@ -110,7 +110,7 @@ describe('useAddressTrustSignalAlerts', () => {
 
     expect(result.current).toEqual([
       {
-        key: AlertKeys.AddressTrustSignalMalicious,
+        key: `${AlertKeys.AddressTrustSignalMalicious}_${RowAlertKey.FromToAddress}`,
         field: RowAlertKey.FromToAddress,
         message:
           'If you confirm this request, you will probably lose your assets to a scammer.',
@@ -146,7 +146,7 @@ describe('useAddressTrustSignalAlerts', () => {
 
     expect(result.current).toEqual([
       {
-        key: AlertKeys.AddressTrustSignalWarning,
+        key: `${AlertKeys.AddressTrustSignalWarning}_${RowAlertKey.FromToAddress}`,
         field: RowAlertKey.FromToAddress,
         message:
           "We can't verify this address. It may be new or unverified. Only continue if you trust the source.",
@@ -324,7 +324,9 @@ describe('useAddressTrustSignalAlerts', () => {
     );
 
     expect(result.current.length).toBe(1);
-    expect(result.current[0].key).toBe(AlertKeys.AddressTrustSignalMalicious);
+    expect(result.current[0].key).toBe(
+      `${AlertKeys.AddressTrustSignalMalicious}_${RowAlertKey.FromToAddress}`,
+    );
   });
 
   it('returns alerts for simple ETH transfers with 0x data when revoke loading is true', () => {
@@ -363,7 +365,9 @@ describe('useAddressTrustSignalAlerts', () => {
     );
 
     expect(result.current.length).toBe(1);
-    expect(result.current[0].key).toBe(AlertKeys.AddressTrustSignalMalicious);
+    expect(result.current[0].key).toBe(
+      `${AlertKeys.AddressTrustSignalMalicious}_${RowAlertKey.FromToAddress}`,
+    );
   });
 
   describe('revoke operations', () => {
@@ -458,7 +462,9 @@ describe('useAddressTrustSignalAlerts', () => {
       );
 
       expect(result.current.length).toBe(1);
-      expect(result.current[0].key).toBe(AlertKeys.AddressTrustSignalMalicious);
+      expect(result.current[0].key).toBe(
+        `${AlertKeys.AddressTrustSignalMalicious}_${RowAlertKey.FromToAddress}`,
+      );
     });
 
     it('uses InteractingWith field for contract interactions with approval data', () => {
@@ -586,7 +592,9 @@ describe('useAddressTrustSignalAlerts', () => {
       );
 
       expect(result.current.length).toBe(1);
-      expect(result.current[0].key).toBe(AlertKeys.AddressTrustSignalMalicious);
+      expect(result.current[0].key).toBe(
+        `${AlertKeys.AddressTrustSignalMalicious}_${RowAlertKey.InteractingWith}`,
+      );
       expect(result.current[0].field).toBe(RowAlertKey.InteractingWith);
     });
 
@@ -836,7 +844,9 @@ describe('useAddressTrustSignalAlerts', () => {
       );
 
       expect(result.current.length).toBe(1);
-      expect(result.current[0].key).toBe(AlertKeys.AddressTrustSignalMalicious);
+      expect(result.current[0].key).toBe(
+        `${AlertKeys.AddressTrustSignalMalicious}_${RowAlertKey.FromToAddress}`,
+      );
     });
 
     it('returns alerts for NFT permit with tokenId (not treated as ERC20 revoke)', () => {
@@ -853,7 +863,9 @@ describe('useAddressTrustSignalAlerts', () => {
       );
 
       expect(result.current.length).toBe(1);
-      expect(result.current[0].key).toBe(AlertKeys.AddressTrustSignalMalicious);
+      expect(result.current[0].key).toBe(
+        `${AlertKeys.AddressTrustSignalMalicious}_${RowAlertKey.FromToAddress}`,
+      );
     });
 
     it('returns alerts for NFT permit with tokenId as number 0', () => {
@@ -870,7 +882,9 @@ describe('useAddressTrustSignalAlerts', () => {
       );
 
       expect(result.current.length).toBe(1);
-      expect(result.current[0].key).toBe(AlertKeys.AddressTrustSignalMalicious);
+      expect(result.current[0].key).toBe(
+        `${AlertKeys.AddressTrustSignalMalicious}_${RowAlertKey.FromToAddress}`,
+      );
     });
 
     it('returns alerts for non-permit signature', () => {
@@ -883,7 +897,9 @@ describe('useAddressTrustSignalAlerts', () => {
       );
 
       expect(result.current.length).toBe(1);
-      expect(result.current[0].key).toBe(AlertKeys.AddressTrustSignalMalicious);
+      expect(result.current[0].key).toBe(
+        `${AlertKeys.AddressTrustSignalMalicious}_${RowAlertKey.FromToAddress}`,
+      );
     });
 
     it('returns alerts when signature request messageParams data is missing', () => {
@@ -898,7 +914,9 @@ describe('useAddressTrustSignalAlerts', () => {
       );
 
       expect(result.current.length).toBe(1);
-      expect(result.current[0].key).toBe(AlertKeys.AddressTrustSignalMalicious);
+      expect(result.current[0].key).toBe(
+        `${AlertKeys.AddressTrustSignalMalicious}_${RowAlertKey.FromToAddress}`,
+      );
     });
 
     it('returns alerts when parseAndNormalizeSignTypedData throws', () => {
@@ -914,7 +932,9 @@ describe('useAddressTrustSignalAlerts', () => {
       );
 
       expect(result.current.length).toBe(1);
-      expect(result.current[0].key).toBe(AlertKeys.AddressTrustSignalMalicious);
+      expect(result.current[0].key).toBe(
+        `${AlertKeys.AddressTrustSignalMalicious}_${RowAlertKey.FromToAddress}`,
+      );
     });
   });
 });

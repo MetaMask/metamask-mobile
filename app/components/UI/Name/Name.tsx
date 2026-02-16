@@ -143,7 +143,11 @@ const Name: React.FC<NameProperties> = ({
     <>
       <Pressable
         testID={`name-${value}`}
-        onPress={() => setIsTooltipVisible(true)}
+        onPress={() => {
+          if (!iconOverride) {
+            setIsTooltipVisible(true);
+          }
+        }}
       >
         <View style={[styles.base, style]}>
           {/* If an icon override is provided, use it. Otherwise, use the icon if it is available. Otherwise, use the Identicon. */}
