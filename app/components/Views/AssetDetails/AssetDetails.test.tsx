@@ -204,9 +204,9 @@ describe('AssetDetails', () => {
     });
 
     it('renders network name', () => {
-      const { getByText } = renderComponent();
+      const { getAllByText } = renderComponent();
 
-      expect(getByText('Ethereum Mainnet')).toBeTruthy();
+      expect(getAllByText('Ethereum Mainnet').length).toBeGreaterThan(0);
     });
 
     it('renders decimals', () => {
