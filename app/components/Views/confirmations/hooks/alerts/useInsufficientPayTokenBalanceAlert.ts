@@ -52,9 +52,14 @@ export function useInsufficientPayTokenBalanceAlert({
     selectTickerByChainId(state, sourceChainId),
   );
 
+  // Must also compare chainId: in post-quote withdrawals payToken is on the
+  // destination chain, which may share the same native-token address as the
+  // source chain. Without the chainId guard, a native destination token would
+  // incorrectly suppress the source-network gas insufficiency check.
   const isPayTokenNative =
     Boolean(payToken) &&
-    payToken?.address.toLowerCase() === nativeToken?.address.toLowerCase();
+    payToken?.address.toLowerCase() === nativeToken?.address.toLowerCase() &&
+    payToken?.chainId === sourceChainId;
 
   const totalAmountUsd = useMemo(
     () =>
