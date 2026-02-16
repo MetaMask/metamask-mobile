@@ -1,14 +1,14 @@
 import React from 'react';
 import { shallow } from 'enzyme';
-import AddCustomCollectible from './';
+import AddCustomCollectible from './AddCustomCollectible';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
-import initialRootState from '../../../util/test/initial-root-state';
-import renderWithProvider from '../../../util/test/renderWithProvider';
+import initialRootState from '../../../../../util/test/initial-root-state';
+import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
-import Engine from '../../../core/Engine';
+import Engine from '../../../../../core/Engine';
 // eslint-disable-next-line import/no-namespace
-import * as utilsTransactions from '../../../util/transactions';
+import * as utilsTransactions from '../../../../../util/transactions';
 
 /* eslint-disable @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires */
 jest.mock('../../../core/Engine', () => ({

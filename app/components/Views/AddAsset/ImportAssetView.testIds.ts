@@ -29,3 +29,12 @@ export const ImportTokenViewSelectorsText = {
   TOKEN_SYMBOL: enContent.token.token_symbol,
   CUSTOM_TOKEN_TAB: enContent.add_asset.custom_token,
 };
+
+export const NFTImportScreenSelectorsIDs = {
+  CONTAINER: 'import-nft-screen',
+  ADDRESS_INPUT_BOX: 'input-collectible-address',
+  ADDRESS_WARNING_MESSAGE: 'collectible-address-warning',
+  IDENTIFIER_WARNING_MESSAGE: 'collectible-identifier-warning',
+  IDENTIFIER_INPUT_BOX: 'input-collectible-identifier',
+  NEXT_BUTTON_CUSTOM_IMPORT: 'next-button-custom-import',
+};

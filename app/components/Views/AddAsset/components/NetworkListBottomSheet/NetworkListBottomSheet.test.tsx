@@ -4,8 +4,8 @@ import NetworkListBottomSheet, {
   NETWORK_LIST_BOTTOM_SHEET,
 } from './NetworkListBottomSheet';
 import { Hex } from '@metamask/utils';
-import renderWithProvider from '../../../../util/test/renderWithProvider';
-import { strings } from '../../../../../locales/i18n';
+import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import { strings } from '../../../../../../locales/i18n';
 
 const mockInitialState = {
   settings: {},

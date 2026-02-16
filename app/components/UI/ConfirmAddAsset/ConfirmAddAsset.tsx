@@ -32,8 +32,7 @@ import Modal from 'react-native-modal';
 import Box from '../Ramp/Aggregator/components/Box';
 import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
 import Routes from '../../../constants/navigation/Routes';
-import { ImportTokenViewSelectorsIDs } from '../../Views/AddAsset/ImportTokenView.testIds';
-import { TOKEN_TITLE } from '../../../components/Views/AddAsset/AddAsset.constants';
+import { ImportTokenViewSelectorsIDs } from '../../Views/AddAsset/ImportAssetView.testIds';
 import { Hex } from '@metamask/utils';
 import { NetworkBadgeSource } from '../AssetOverview/Balance/Balance';
 import { BridgeToken } from '../Bridge/types';
@@ -114,7 +113,7 @@ const ConfirmAddAsset = () => {
   const updateNavBar = useCallback(() => {
     navigation.setOptions(
       getHeaderCompactStandardNavbarOptions({
-        title: strings(`add_asset.${TOKEN_TITLE}`),
+        title: strings(`add_asset.title`),
         onBack: () => setShowExitModal(true),
         includesTopInset: true,
       }),

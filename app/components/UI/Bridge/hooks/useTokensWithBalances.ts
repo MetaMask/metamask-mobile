@@ -13,7 +13,7 @@ import { BalancesByAssetId } from './useBalancesByAssetId';
  * Converts API tokens to BridgeTokens with proper address and chainId formatting
  * based on whether the chain is EVM or non-EVM
  */
-const convertAPITokensToBridgeTokens = (
+export const convertAPITokensToBridgeTokens = (
   apiTokens: PopularToken[],
 ): (BridgeToken & { assetId: CaipAssetType })[] =>
   apiTokens.map((token) => {

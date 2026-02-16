@@ -2,10 +2,8 @@ import React from 'react';
 import ListItemMultiSelect from '../../../component-library/components/List/ListItemMultiSelect';
 import stylesheet from './MultiAssetListItems.styles';
 import { useStyles } from '../../../component-library/hooks';
-import Text, {
-  TextVariant,
-} from '../../../component-library/components/Texts/Text';
-import { View } from 'react-native';
+
+import { Image, View } from 'react-native';
 import Badge, {
   BadgeVariant,
 } from '../../../component-library/components/Badges/Badge';
@@ -14,11 +12,20 @@ import BadgeWrapper, {
 } from '../../../component-library/components/Badges/BadgeWrapper';
 import AssetIcon from '../AssetIcon';
 import { strings } from '../../../../locales/i18n';
-import { ImportTokenViewSelectorsIDs } from '../../Views/AddAsset/ImportTokenView.testIds';
+import { ImportTokenViewSelectorsIDs } from '../../Views/AddAsset/ImportAssetView.testIds';
 import { NetworkBadgeSource } from '../AssetOverview/Balance/Balance';
 import { BridgeToken } from '../Bridge/types';
 import { FlashList } from '@shopify/flash-list';
-
+import { Skeleton } from '../../../component-library/components/Skeleton';
+import { useAssetFromTheme } from '../../../util/theme';
+import emptyStateDefiLight from '../../../images/empty-state-defi-light.png';
+import emptyStateDefiDark from '../../../images/empty-state-defi-dark.png';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import {
+  Text,
+  TextVariant,
+  TextColor,
+} from '@metamask/design-system-react-native';
 interface Props {
   /**
    * Array of assets objects returned from the search
@@ -52,7 +59,27 @@ interface Props {
    * Set of already added token addresses (lowercase)
    */
   alreadyAddedTokens?: Set<string>;
+  /**
+   * Whether the search results are loading
+   */
+  isLoading?: boolean;
 }
+
+const TokenSkeleton = () => {
+  const { styles } = useStyles(stylesheet, {});
+
+  return (
+    <ListItemMultiSelect isDisabled style={styles.base}>
+      <View style={styles.Icon}>
+        <Skeleton width={40} height={40} style={styles.skeletonIcon} />
+      </View>
+      <View style={styles.tokens}>
+        <Skeleton width={120} height={20} style={styles.skeletonText} />
+        <Skeleton width={60} height={16} />
+      </View>
+    </ListItemMultiSelect>
+  );
+};
 
 const MultiAssetListItems = ({
   searchResults,
@@ -61,8 +88,46 @@ const MultiAssetListItems = ({
   searchQuery,
   networkName,
   alreadyAddedTokens,
+  isLoading = false,
 }: Props) => {
+  const tw = useTailwind();
   const { styles } = useStyles(stylesheet, {});
+  const tokensImage = useAssetFromTheme(
+    emptyStateDefiLight,
+    emptyStateDefiDark,
+  );
+
+  // Show skeleton loaders when loading
+  if (isLoading) {
+    return (
+      <FlashList
+        data={Array(5).fill(null)}
+        renderItem={() => <TokenSkeleton />}
+        keyExtractor={(_, index) => `skeleton-${index}`}
+      />
+    );
+  }
+
+  if (searchResults.length === 0) {
+    return (
+      <View style={styles.emptyContainer}>
+        <Image
+          source={tokensImage}
+          resizeMode="contain"
+          style={tw.style('w-[72px] h-[72px]')}
+        />
+        <Text
+          variant={TextVariant.BodyMd}
+          color={TextColor.TextAlternative}
+          twClassName="text-center"
+        >
+          {searchQuery?.length === 0
+            ? strings('token.tokens_empty_description')
+            : strings('token.no_tokens_found')}
+        </Text>
+      </View>
+    );
+  }
 
   return (
     <FlashList
@@ -110,21 +175,13 @@ const MultiAssetListItems = ({
               </BadgeWrapper>
             </View>
             <View style={styles.tokens}>
-              <Text variant={TextVariant.BodyLGMedium}>{name}</Text>
-              <Text variant={TextVariant.BodyMD}>{symbol}</Text>
+              <Text variant={TextVariant.BodyLg}>{name}</Text>
+              <Text variant={TextVariant.BodyMd}>{symbol}</Text>
             </View>
           </ListItemMultiSelect>
         );
       }}
       keyExtractor={(_, index) => `token-search-row-${index}`}
-      decelerationRate="fast"
-      ListEmptyComponent={
-        searchQuery?.length > 0 ? (
-          <Text style={styles.normalText}>
-            {strings('token.no_tokens_found')}
-          </Text>
-        ) : null
-      }
     />
   );
 };

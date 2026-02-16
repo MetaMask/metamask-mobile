@@ -26,7 +26,7 @@ import FeatureFlagOverride from '../../Views/FeatureFlagOverride';
 import Wallet from '../../Views/Wallet';
 import Asset from '../../Views/Asset';
 import AssetDetails from '../../Views/AssetDetails';
-import AddAsset from '../../Views/AddAsset';
+import AddAsset from '../../Views/AddAsset/AddAsset';
 import NftFullView from '../../Views/NftFullView';
 import TokensFullView from '../../Views/TokensFullView';
 import TrendingTokensFullView from '../../Views/TrendingTokens/TrendingTokensFullView/TrendingTokensFullView';
@@ -124,13 +124,6 @@ import RewardsClaimBottomSheetModal from '../../UI/Rewards/components/Tabs/Level
 import RewardOptInAccountGroupModal from '../../UI/Rewards/components/Settings/RewardOptInAccountGroupModal';
 import EndOfSeasonClaimBottomSheet from '../../UI/Rewards/components/EndOfSeasonClaimBottomSheet/EndOfSeasonClaimBottomSheet';
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
-import getHeaderCompactStandardNavbarOptions from '../../../component-library/components-temp/HeaderCompactStandard/getHeaderCompactStandardNavbarOptions';
-import {
-  TOKEN_TITLE,
-  NFT_TITLE,
-  TOKEN,
-} from '../../Views/AddAsset/AddAsset.constants';
-import { strings } from '../../../../locales/i18n';
 import SitesFullView from '../../Views/SitesFullView/SitesFullView';
 import { TokenDetails } from '../../UI/TokenDetails/Views/TokenDetails';
 

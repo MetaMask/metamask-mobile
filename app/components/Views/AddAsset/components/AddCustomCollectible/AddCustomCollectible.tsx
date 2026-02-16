@@ -1,110 +1,31 @@
 import React, { useState, useEffect, useCallback, useContext } from 'react';
 import { useSelector } from 'react-redux';
-import {
-  Text,
-  TextInput,
-  View,
-  StyleSheet,
-  TouchableOpacity,
-} from 'react-native';
+import { TextInput } from 'react-native';
 import {
   ToastContext,
   ToastVariants,
-} from '../../../component-library/components/Toast';
-import { fontStyles } from '../../../styles/common';
-import Engine from '../../../core/Engine';
-import { strings } from '../../../../locales/i18n';
+} from '../../../../../component-library/components/Toast';
+import Engine from '../../../../../core/Engine';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
+import { strings } from '../../../../../../locales/i18n';
 import { isValidAddress } from 'ethereumjs-util';
-import ActionView from '../ActionView';
-import { isSmartContractAddress } from '../../../util/transactions';
-import Device from '../../../util/device';
-import { MetaMetricsEvents } from '../../../core/Analytics';
+import ActionView from '../../../../UI/ActionView';
+import { isSmartContractAddress } from '../../../../../util/transactions';
+import Device from '../../../../../util/device';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 
-import { useTheme } from '../../../util/theme';
-import { NFTImportScreenSelectorsIDs } from './ImportNFTView.testIds';
+import { useTheme } from '../../../../../util/theme';
 import {
   selectChainId,
   selectSelectedNetworkClientId,
-} from '../../../selectors/networkController';
-import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
-import {
-  getDecimalChainId,
-  getNetworkImageSource,
-} from '../../../util/networks';
-import { useMetrics } from '../../../components/hooks/useMetrics';
-import Logger from '../../../util/Logger';
-import { TraceName, endTrace, trace } from '../../../util/trace';
-import {
-  IconColor,
-  IconName,
-} from '../../../component-library/components/Icons/Icon';
-import { ImportTokenViewSelectorsIDs } from '../../Views/AddAsset/ImportTokenView.testIds';
-import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
-import Avatar, {
-  AvatarSize,
-  AvatarVariant,
-} from '../../../component-library/components/Avatars/Avatar';
-
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const createStyles = (colors: any) =>
-  StyleSheet.create({
-    wrapper: {
-      backgroundColor: colors.background.default,
-      flex: 1,
-    },
-    rowWrapper: {
-      paddingHorizontal: 16,
-      paddingVertical: 20,
-    },
-    rowTitleText: {
-      paddingBottom: 3,
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ...(fontStyles.normal as any),
-      color: colors.text.default,
-    },
-    textInput: {
-      borderWidth: 1,
-      borderRadius: 4,
-      borderColor: colors.border.default,
-      padding: 16,
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ...(fontStyles.normal as any),
-      color: colors.text.default,
-    },
-    warningText: {
-      marginTop: 15,
-      color: colors.error.default,
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ...(fontStyles.normal as any),
-    },
-    networkSelectorContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      padding: 16,
-      borderWidth: 1,
-      borderColor: colors.border.default,
-      borderRadius: 8,
-      marginBottom: 16,
-    },
-    networkSelectorText: {
-      ...fontStyles.normal,
-      color: colors.text.default,
-      fontSize: 16,
-    },
-    overlappingAvatarsContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-    },
-    buttonIcon: {
-      marginLeft: 16,
-    },
-  });
+} from '../../../../../selectors/networkController';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
+import { getDecimalChainId } from '../../../../../util/networks';
+import { useMetrics } from '../../../../hooks/useMetrics';
+import Logger from '../../../../../util/Logger';
+import { TraceName, endTrace, trace } from '../../../../../util/trace';
+import { NFTImportScreenSelectorsIDs } from '../../ImportAssetView.testIds';
 
 interface AddCustomCollectibleProps {
   // TODO: Replace "any" with type
@@ -113,8 +34,6 @@ interface AddCustomCollectibleProps {
   collectibleContract?: {
     address: string;
   };
-  setOpenNetworkSelector: (open: boolean) => void;
-  networkId: string;
   selectedNetwork: string | null;
   networkClientId: string | null;
 }
@@ -122,8 +41,6 @@ interface AddCustomCollectibleProps {
 const AddCustomCollectible = ({
   navigation,
   collectibleContract,
-  setOpenNetworkSelector,
-  networkId,
   selectedNetwork,
   networkClientId,
 }: AddCustomCollectibleProps) => {
@@ -142,7 +59,7 @@ const AddCustomCollectible = ({
   const { colors, themeAppearance } = useTheme();
   const { trackEvent, createEventBuilder } = useMetrics();
   const { toastRef } = useContext(ToastContext);
-  const styles = createStyles(colors);
+  const tw = useTailwind();
 
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
@@ -312,7 +229,10 @@ const AddCustomCollectible = ({
   };
 
   return (
-    <View style={styles.wrapper} testID={NFTImportScreenSelectorsIDs.CONTAINER}>
+    <Box
+      twClassName="flex-1 bg-default"
+      testID={NFTImportScreenSelectorsIDs.CONTAINER}
+    >
       <ActionView
         cancelText={strings('add_asset.collectibles.cancel_add_collectible')}
         confirmText={strings('add_asset.collectibles.add_collectible')}
@@ -322,50 +242,17 @@ const AddCustomCollectible = ({
         loading={loading}
         confirmTestID={'add-collectible-button'}
       >
-        <View>
-          <View style={styles.rowWrapper}>
-            <TouchableOpacity
-              style={styles.networkSelectorContainer}
-              onPress={() => setOpenNetworkSelector(true)}
-              onLongPress={() => setOpenNetworkSelector(true)}
-            >
-              <Text style={styles.networkSelectorText}>
-                {selectedNetwork || strings('networks.select_network')}
-              </Text>
-
-              <View style={styles.overlappingAvatarsContainer}>
-                {selectedNetwork ? (
-                  <Avatar
-                    variant={AvatarVariant.Network}
-                    size={AvatarSize.Sm}
-                    name={selectedNetwork}
-                    imageSource={getNetworkImageSource({
-                      networkType: 'evm',
-                      chainId: networkId,
-                    })}
-                    testID={ImportTokenViewSelectorsIDs.SELECT_NETWORK_BUTTON}
-                  />
-                ) : null}
-
-                <ButtonIcon
-                  iconName={IconName.ArrowDown}
-                  iconColor={IconColor.Default}
-                  testID={ImportTokenViewSelectorsIDs.SELECT_NETWORK_BUTTON}
-                  onPress={() => setOpenNetworkSelector(true)}
-                  accessibilityRole="button"
-                  style={styles.buttonIcon}
-                />
-              </View>
-            </TouchableOpacity>
-
-            <Text style={styles.rowTitleText}>
+        <Box>
+          <Box twClassName="px-4 py-5">
+            <Text variant={TextVariant.BodyMd} style={tw.style('pb-[3px]')}>
               {strings('collectible.collectible_address')}
             </Text>
             <TextInput
-              style={[
-                styles.textInput,
+              style={tw.style(
+                'border border-default rounded p-4 text-default',
+                { fontFamily: 'Geist-Regular' },
                 inputWidth ? { width: inputWidth } : {},
-              ]}
+              )}
               placeholder={'0x...'}
               placeholderTextColor={colors.text.muted}
               value={address}
@@ -376,21 +263,23 @@ const AddCustomCollectible = ({
               keyboardAppearance={themeAppearance}
             />
             <Text
-              style={styles.warningText}
+              variant={TextVariant.BodyMd}
+              style={tw.style('mt-[15px] text-error-default')}
               testID={NFTImportScreenSelectorsIDs.ADDRESS_WARNING_MESSAGE}
             >
               {warningAddress}
             </Text>
-          </View>
-          <View style={styles.rowWrapper}>
-            <Text style={styles.rowTitleText}>
+          </Box>
+          <Box twClassName="px-4 py-5">
+            <Text variant={TextVariant.BodyMd} style={tw.style('pb-[3px]')}>
               {strings('collectible.collectible_token_id')}
             </Text>
             <TextInput
-              style={[
-                styles.textInput,
+              style={tw.style(
+                'border border-default rounded p-4 text-default',
+                { fontFamily: 'Geist-Regular' },
                 inputWidth ? { width: inputWidth } : {},
-              ]}
+              )}
               value={tokenId}
               keyboardType="numeric"
               onChangeText={onTokenIdChange}
@@ -403,15 +292,16 @@ const AddCustomCollectible = ({
               keyboardAppearance={themeAppearance}
             />
             <Text
-              style={styles.warningText}
+              variant={TextVariant.BodyMd}
+              style={tw.style('mt-[15px] text-error-default')}
               testID={NFTImportScreenSelectorsIDs.IDENTIFIER_WARNING_MESSAGE}
             >
               {warningTokenId}
             </Text>
-          </View>
-        </View>
+          </Box>
+        </Box>
       </ActionView>
-    </View>
+    </Box>
   );
 };
 

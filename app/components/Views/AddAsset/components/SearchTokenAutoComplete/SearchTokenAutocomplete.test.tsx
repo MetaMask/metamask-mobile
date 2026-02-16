@@ -2,16 +2,16 @@ import React, { FunctionComponent } from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider, {
   renderScreen,
-} from '../../../util/test/renderWithProvider';
-import SearchTokenAutocomplete from './';
-import { backgroundState } from '../../../util/test/initial-root-state';
-import { ImportTokenViewSelectorsIDs } from '../../Views/AddAsset/ImportTokenView.testIds';
-import { BridgeToken } from '../Bridge/types';
-import Engine from '../../../core/Engine';
+} from '../../../../../util/test/renderWithProvider';
+import SearchTokenAutocomplete from './SearchTokenAutocomplete';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
+import { ImportTokenViewSelectorsIDs } from '../../ImportAssetView.testIds';
+import { BridgeToken } from '../../../../UI/Bridge/types';
+import Engine from '../../../../../core/Engine';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
-import { selectTokensByChainIdAndAddress } from '../../../selectors/tokensController';
-import { selectMultichainAssets } from '../../../selectors/multichain/multichain';
-import { isNonEvmChainId } from '../../../core/Multichain/utils';
+import { selectTokensByChainIdAndAddress } from '../../../../../selectors/tokensController';
+import { selectMultichainAssets } from '../../../../../selectors/multichain/multichain';
+import { isNonEvmChainId } from '../../../../../core/Multichain/utils';
 
 const mockAllTokens: BridgeToken[] = [
   {

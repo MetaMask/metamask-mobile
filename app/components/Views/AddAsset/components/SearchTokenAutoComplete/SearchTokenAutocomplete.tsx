@@ -4,42 +4,55 @@ import {
   StyleSheet,
   InteractionManager,
   Text,
+  TextInput,
   LayoutAnimation,
   Platform,
 } from 'react-native';
-import { strings } from '../../../../locales/i18n';
-import AssetSearch from '../AssetSearch';
-import Engine from '../../../core/Engine';
-import { MetaMetricsEvents } from '../../../core/Analytics';
+import { strings } from '../../../../../../locales/i18n';
+import { fontStyles } from '../../../../../styles/common';
+import Engine from '../../../../../core/Engine';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 
-import Alert, { AlertType } from '../../Base/Alert';
+import Alert, { AlertType } from '../../../../Base/Alert';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { useSelector } from 'react-redux';
-import { FORMATTED_NETWORK_NAMES } from '../../../constants/on-ramp';
-import NotificationManager from '../../../core/NotificationManager';
-import { useTheme } from '../../../util/theme';
-import { selectEvmTicker } from '../../../selectors/networkController';
-import { selectNetworkName } from '../../../selectors/networkInfos';
-import { selectUseTokenDetection } from '../../../selectors/preferencesController';
-import { getDecimalChainId } from '../../../util/networks';
-import { useMetrics } from '../../../components/hooks/useMetrics';
-import Routes from '../../../constants/navigation/Routes';
-import MultiAssetListItems from '../MultiAssetListItems/MultiAssetListItems';
+import { FORMATTED_NETWORK_NAMES } from '../../../../../constants/on-ramp';
+import NotificationManager from '../../../../../core/NotificationManager';
+import { useTheme } from '../../../../../util/theme';
+import { selectEvmTicker } from '../../../../../selectors/networkController';
+import { selectNetworkName } from '../../../../../selectors/networkInfos';
+import { selectUseTokenDetection } from '../../../../../selectors/preferencesController';
+import { getDecimalChainId } from '../../../../../util/networks';
+import { useMetrics } from '../../../../hooks/useMetrics';
+import Routes from '../../../../../constants/navigation/Routes';
+import MultiAssetListItems from '../../../../UI/MultiAssetListItems/MultiAssetListItems';
 import Button, {
   ButtonSize,
   ButtonVariants,
   ButtonWidthTypes,
-} from '../../../component-library/components/Buttons/Button';
-import { ImportTokenViewSelectorsIDs } from '../../Views/AddAsset/ImportTokenView.testIds';
-import Logger from '../../../util/Logger';
-import { Hex } from '@metamask/utils';
+} from '../../../../../component-library/components/Buttons/Button';
+import { ImportTokenViewSelectorsIDs } from '../../ImportAssetView.testIds';
+import Icon, {
+  IconName,
+  IconSize,
+} from '../../../../../component-library/components/Icons/Icon';
+import ButtonIcon, {
+  ButtonIconSizes,
+} from '../../../../../component-library/components/Buttons/ButtonIcon';
+import Logger from '../../../../../util/Logger';
+import { CaipAssetType, Hex } from '@metamask/utils';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
-import { BridgeToken } from '../Bridge/types';
-import { isNonEvmChainId } from '../../../core/Multichain/utils';
-import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
-import { selectTokensByChainIdAndAddress } from '../../../selectors/tokensController';
-import { selectMultichainAssets } from '../../../selectors/multichain/multichain';
-import { RootState } from '../../../reducers';
+import { isNonEvmChainId } from '../../../../../core/Multichain/utils';
+import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
+import { selectTokensByChainIdAndAddress } from '../../../../../selectors/tokensController';
+import { selectMultichainAssets } from '../../../../../selectors/multichain/multichain';
+import { RootState } from '../../../../../reducers';
+import { NATIVE_SWAPS_TOKEN_ADDRESS } from '../../../../../constants/bridge';
+import { useSearchRequest } from '../../../../UI/Trending/hooks/useSearchRequest/useSearchRequest';
+import { formatChainIdToCaip } from '@metamask/bridge-controller';
+import { getTrendingTokenImageUrl } from '../../../../UI/Trending/utils/getTrendingTokenImageUrl';
+import { convertAPITokensToBridgeTokens } from '../../../../UI/Bridge/hooks/useTokensWithBalances';
+import { PopularToken } from '../../../../UI/Bridge/hooks/usePopularTokens';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -77,6 +90,43 @@ const createStyles = (colors: any) =>
     searchInput: {
       margin: 16,
     },
+    searchSection: {
+      flexDirection: 'row' as const,
+      justifyContent: 'center' as const,
+      alignItems: 'center' as const,
+      borderRadius: 8,
+      borderWidth: 1,
+      borderColor: colors.border.default,
+    },
+    searchSectionFocused: {
+      flexDirection: 'row' as const,
+      justifyContent: 'center' as const,
+      alignItems: 'center' as const,
+      borderRadius: 8,
+      borderWidth: 2,
+      borderColor: colors.primary.default,
+    },
+    searchTextInput: {
+      ...fontStyles.normal,
+      color: colors.text.default,
+      height: 42,
+    },
+    searchIcon: {
+      position: 'absolute' as const,
+      left: 16,
+      color: colors.icon.alternative,
+    },
+    searchClearIcon: {
+      position: 'absolute' as const,
+      right: 16,
+      color: colors.icon.alternative,
+    },
+    searchInputWrapper: {
+      width: '100%',
+      paddingHorizontal: 42,
+      color: colors.icon.alternative,
+      borderColor: colors.primary.alternative,
+    },
   });
 
 interface Props {
@@ -92,28 +142,47 @@ interface Props {
    * The selected network chain ID
    */
   selectedChainId: SupportedCaipChainId | Hex | null;
-
-  allTokens: BridgeToken[];
 }
 
 /**
  * Component that provides ability to add searched assets with metadata.
  */
-const SearchTokenAutocomplete = ({
-  navigation,
-  selectedChainId,
-  allTokens,
-}: Props) => {
+const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
   const { trackEvent, createEventBuilder } = useMetrics();
-  const [searchResults, setSearchResults] = useState<BridgeToken[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Fetch search results from the API based on user's search query.
+  // Debouncing and loading state (including debounce period) are handled
+  // internally by useSearchRequest.
+  const { results: apiResults, isLoading } = useSearchRequest({
+    chainIds: selectedChainId ? [formatChainIdToCaip(selectedChainId)] : [],
+    query: searchQuery,
+    limit: 50,
+    includeMarketData: false,
+    enableDebounce: true,
+  });
+
+  // Convert API search results to BridgeToken format
+  const allTokens = useMemo(() => {
+    if (!selectedChainId) return [];
+
+    const tokensAsPopular: PopularToken[] = apiResults.map((result) => ({
+      assetId: result.assetId as CaipAssetType,
+      decimals: result.decimals,
+      name: result.name,
+      symbol: result.symbol,
+      iconUrl: getTrendingTokenImageUrl(result.assetId),
+    }));
+
+    return convertAPITokensToBridgeTokens(tokensAsPopular);
+  }, [apiResults, selectedChainId]);
 
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [selectedAssets, setSelectedAssets] = useState<any[]>([]);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
 
-  const { colors } = useTheme();
+  const { colors, themeAppearance } = useTheme();
   const styles = createStyles(colors);
 
   const isTokenDetectionEnabled = useSelector(selectUseTokenDetection);
@@ -136,6 +205,9 @@ const SearchTokenAutocomplete = ({
   // Create a Set of already added token addresses for quick lookup
   const alreadyAddedTokens = useMemo(() => {
     const addresses = new Set<string>();
+
+    // Native tokens are always "added" since they're inherent to the chain
+    addresses.add(NATIVE_SWAPS_TOKEN_ADDRESS.toLowerCase());
 
     if (selectedChainId) {
       if (isNonEvmChainId(selectedChainId)) {
@@ -197,18 +269,6 @@ const SearchTokenAutocomplete = ({
       }
     },
     [selectedChainId],
-  );
-
-  const handleSearch = useCallback(
-    (opts: { results: BridgeToken[]; searchQuery: string }) => {
-      if (opts.searchQuery.length === 0) {
-        setSearchResults(allTokens);
-      } else {
-        setSearchResults(opts.results);
-      }
-      setSearchQuery(opts.searchQuery);
-    },
-    [setSearchResults, setSearchQuery, allTokens],
   );
 
   const handleSelectAsset = useCallback(
@@ -318,7 +378,6 @@ const SearchTokenAutocomplete = ({
   const addTokenList = useCallback(async () => {
     await addTokens();
 
-    setSearchResults([]);
     setSelectedAssets([]);
 
     InteractionManager.runAfterInteractions(() => {
@@ -417,24 +476,54 @@ const SearchTokenAutocomplete = ({
 
       <View style={styles.content}>
         <View style={styles.searchInput}>
-          <AssetSearch
-            onSearch={handleSearch}
-            onFocus={() => {
-              setFocusState(true);
-            }}
-            onBlur={() => setFocusState(false)}
-            allTokens={allTokens}
-          />
+          <View
+            style={
+              isSearchFocused
+                ? styles.searchSectionFocused
+                : styles.searchSection
+            }
+            testID={ImportTokenViewSelectorsIDs.ASSET_SEARCH_CONTAINER}
+          >
+            <View style={styles.searchIcon}>
+              <Icon name={IconName.Search} size={IconSize.Sm} />
+            </View>
+
+            <View style={styles.searchInputWrapper}>
+              <TextInput
+                style={styles.searchTextInput}
+                value={searchQuery}
+                onFocus={() => setFocusState(true)}
+                onBlur={() => setFocusState(false)}
+                placeholder={strings('token.search_tokens_placeholder')}
+                placeholderTextColor={colors.text.muted}
+                onChangeText={setSearchQuery}
+                testID={ImportTokenViewSelectorsIDs.SEARCH_BAR}
+                keyboardAppearance={themeAppearance}
+              />
+            </View>
+
+            {searchQuery.length > 0 && (
+              <View style={styles.searchClearIcon}>
+                <ButtonIcon
+                  size={ButtonIconSizes.Sm}
+                  iconName={IconName.Close}
+                  onPress={() => setSearchQuery('')}
+                  testID={ImportTokenViewSelectorsIDs.CLEAR_SEARCH_BAR}
+                />
+              </View>
+            )}
+          </View>
         </View>
 
         <MultiAssetListItems
-          searchResults={searchResults}
+          searchResults={allTokens}
           searchQuery={searchQuery}
           handleSelectAsset={handleSelectAsset}
           selectedAsset={selectedAssets}
           chainId={selectedChainId ?? ''}
           networkName={networkName}
           alreadyAddedTokens={alreadyAddedTokens}
+          isLoading={isLoading && searchQuery.length > 0}
         />
       </View>
 

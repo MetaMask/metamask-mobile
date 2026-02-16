@@ -11,15 +11,13 @@ exports[`AddAsset component renders collectible view correctly 1`] = `
     }
   }
   style={
-    [
-      {
-        "paddingTop": 0,
-      },
-      {
-        "backgroundColor": "#ffffff",
-        "flex": 1,
-      },
-    ]
+    {
+      "backgroundColor": "#ffffff",
+      "flexBasis": "0%",
+      "flexGrow": 1,
+      "flexShrink": 1,
+      "paddingTop": 0,
+    }
   }
   testID="add-collectible-screen"
 >
@@ -178,11 +176,16 @@ exports[`AddAsset component renders collectible view correctly 1`] = `
   </View>
   <View
     style={
-      {
-        "alignItems": "center",
-        "paddingHorizontal": 16,
-        "paddingTop": 16,
-      }
+      [
+        {
+          "alignItems": "center",
+          "display": "flex",
+          "paddingLeft": 16,
+          "paddingRight": 16,
+          "paddingTop": 16,
+        },
+        undefined,
+      ]
     }
     testID="add-asset-nft-banner"
   >
@@ -246,6 +249,145 @@ exports[`AddAsset component renders collectible view correctly 1`] = `
         </Text>
       </View>
     </View>
+  </View>
+  <View
+    style={
+      [
+        {
+          "display": "flex",
+          "paddingLeft": 16,
+          "paddingRight": 16,
+          "paddingTop": 16,
+        },
+        undefined,
+      ]
+    }
+    testID="add-asset-network-selector"
+  >
+    <TouchableOpacity
+      onLongPress={[Function]}
+      onPress={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "borderColor": "#b7bbc8",
+          "borderRadius": 8,
+          "borderWidth": 1,
+          "flexDirection": "row",
+          "marginBottom": 16,
+          "marginTop": 4,
+          "paddingBottom": 16,
+          "paddingLeft": 16,
+          "paddingRight": 16,
+          "paddingTop": 16,
+        }
+      }
+    >
+      <View
+        style={
+          [
+            {
+              "display": "flex",
+              "marginRight": 8,
+            },
+            undefined,
+          ]
+        }
+      >
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "backgroundColor": "#ffffff",
+              "borderRadius": 8,
+              "height": 24,
+              "justifyContent": "center",
+              "overflow": "hidden",
+              "width": 24,
+            }
+          }
+          testID="select-network-button"
+        >
+          <Image
+            onError={[Function]}
+            resizeMode="contain"
+            source="ethereum"
+            style={
+              {
+                "height": 24,
+                "width": 24,
+              }
+            }
+            testID="network-avatar-image"
+          />
+        </View>
+      </View>
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "Geist-Regular",
+            "fontSize": 16,
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+      >
+        Ethereum
+      </Text>
+      <View
+        style={
+          [
+            {
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "row",
+              "paddingLeft": 16,
+              "paddingRight": 16,
+              "position": "absolute",
+              "right": 0,
+            },
+            undefined,
+          ]
+        }
+      >
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessible={true}
+          activeOpacity={1}
+          disabled={false}
+          onPress={[Function]}
+          onPressIn={[Function]}
+          onPressOut={[Function]}
+          style={
+            {
+              "alignItems": "center",
+              "borderRadius": 8,
+              "height": 24,
+              "justifyContent": "center",
+              "opacity": 1,
+              "width": 24,
+            }
+          }
+          testID="select-network-button"
+        >
+          <SvgMock
+            color="#121314"
+            fill="currentColor"
+            height={16}
+            name="ArrowDown"
+            style={
+              {
+                "height": 16,
+                "width": 16,
+              }
+            }
+            width={16}
+          />
+        </TouchableOpacity>
+      </View>
+    </TouchableOpacity>
   </View>
   <View
     style={
@@ -336,106 +478,6 @@ exports[`AddAsset component renders collectible view correctly 1`] = `
                 }
               }
             >
-              <TouchableOpacity
-                onLongPress={[Function]}
-                onPress={[Function]}
-                style={
-                  {
-                    "alignItems": "center",
-                    "borderColor": "#b7bbc8",
-                    "borderRadius": 8,
-                    "borderWidth": 1,
-                    "flexDirection": "row",
-                    "justifyContent": "space-between",
-                    "marginBottom": 16,
-                    "padding": 16,
-                  }
-                }
-              >
-                <Text
-                  style={
-                    {
-                      "color": "#121314",
-                      "fontFamily": "Geist-Regular",
-                      "fontSize": 16,
-                    }
-                  }
-                >
-                  Ethereum
-                </Text>
-                <View
-                  style={
-                    {
-                      "alignItems": "center",
-                      "flexDirection": "row",
-                      "justifyContent": "space-between",
-                    }
-                  }
-                >
-                  <View
-                    style={
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "#ffffff",
-                        "borderRadius": 8,
-                        "height": 24,
-                        "justifyContent": "center",
-                        "overflow": "hidden",
-                        "width": 24,
-                      }
-                    }
-                    testID="select-network-button"
-                  >
-                    <Image
-                      onError={[Function]}
-                      resizeMode="contain"
-                      source="ethereum"
-                      style={
-                        {
-                          "height": 24,
-                          "width": 24,
-                        }
-                      }
-                      testID="network-avatar-image"
-                    />
-                  </View>
-                  <TouchableOpacity
-                    accessibilityRole="button"
-                    accessible={true}
-                    activeOpacity={1}
-                    disabled={false}
-                    onPress={[Function]}
-                    onPressIn={[Function]}
-                    onPressOut={[Function]}
-                    style={
-                      {
-                        "alignItems": "center",
-                        "borderRadius": 8,
-                        "height": 28,
-                        "justifyContent": "center",
-                        "marginLeft": 16,
-                        "opacity": 1,
-                        "width": 28,
-                      }
-                    }
-                    testID="select-network-button"
-                  >
-                    <SvgMock
-                      color="#121314"
-                      fill="currentColor"
-                      height={20}
-                      name="ArrowDown"
-                      style={
-                        {
-                          "height": 20,
-                          "width": 20,
-                        }
-                      }
-                      width={20}
-                    />
-                  </TouchableOpacity>
-                </View>
-              </TouchableOpacity>
               <Text
                 style={
                   {
@@ -652,15 +694,13 @@ exports[`AddAsset component renders token view correctly 1`] = `
     }
   }
   style={
-    [
-      {
-        "paddingTop": 0,
-      },
-      {
-        "backgroundColor": "#ffffff",
-        "flex": 1,
-      },
-    ]
+    {
+      "backgroundColor": "#ffffff",
+      "flexBasis": "0%",
+      "flexGrow": 1,
+      "flexShrink": 1,
+      "paddingTop": 0,
+    }
   }
   testID="add-token-screen"
 >
@@ -819,10 +859,15 @@ exports[`AddAsset component renders token view correctly 1`] = `
   </View>
   <View
     style={
-      {
-        "paddingHorizontal": 16,
-        "paddingTop": 16,
-      }
+      [
+        {
+          "display": "flex",
+          "paddingLeft": 16,
+          "paddingRight": 16,
+          "paddingTop": 16,
+        },
+        undefined,
+      ]
     }
     testID="add-asset-network-selector"
   >
@@ -838,15 +883,22 @@ exports[`AddAsset component renders token view correctly 1`] = `
           "flexDirection": "row",
           "marginBottom": 16,
           "marginTop": 4,
-          "padding": 16,
+          "paddingBottom": 16,
+          "paddingLeft": 16,
+          "paddingRight": 16,
+          "paddingTop": 16,
         }
       }
     >
       <View
         style={
-          {
-            "marginRight": 8,
-          }
+          [
+            {
+              "display": "flex",
+              "marginRight": 8,
+            },
+            undefined,
+          ]
         }
       >
         <View
@@ -893,13 +945,18 @@ exports[`AddAsset component renders token view correctly 1`] = `
       </Text>
       <View
         style={
-          {
-            "alignItems": "center",
-            "flexDirection": "row",
-            "paddingHorizontal": 16,
-            "position": "absolute",
-            "right": 0,
-          }
+          [
+            {
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "row",
+              "paddingLeft": 16,
+              "paddingRight": 16,
+              "position": "absolute",
+              "right": 0,
+            },
+            undefined,
+          ]
         }
       >
         <TouchableOpacity
@@ -941,248 +998,26 @@ exports[`AddAsset component renders token view correctly 1`] = `
   </View>
   <View
     style={
-      {
-        "flex": 1,
-      }
-    }
-    testID="add-asset-tabs-container"
-  >
-    <View
-      style={
+      [
         {
-          "backgroundColor": "#ffffff",
-          "flex": 1,
-          "paddingHorizontal": 16,
-        }
-      }
-    >
-      <RCTScrollView>
-        <View>
-          <View
-            style={
-              [
-                {
-                  "borderRadius": 8,
-                  "borderWidth": 1,
-                  "flexDirection": "row",
-                  "paddingHorizontal": 12,
-                  "paddingVertical": 8,
-                },
-                undefined,
-                {
-                  "backgroundColor": "#4459ff1a",
-                  "borderColor": "#4459ff",
-                },
-                {
-                  "marginTop": 20,
-                },
-              ]
-            }
-          >
-            <View
-              style={
-                {
-                  "alignItems": "center",
-                }
-              }
-            >
-              <Text
-                allowFontScaling={false}
-                selectable={false}
-                style={
-                  [
-                    {
-                      "color": "#4459ff",
-                      "fontSize": 18,
-                    },
-                    {
-                      "paddingRight": 8,
-                      "paddingTop": 4,
-                    },
-                    {
-                      "fontFamily": "FontAwesome",
-                      "fontStyle": "normal",
-                      "fontWeight": "normal",
-                    },
-                    {},
-                  ]
-                }
-              >
-                
-              </Text>
-            </View>
-            <Text
-              style={
-                [
-                  {
-                    "color": "#121314",
-                    "fontFamily": "Geist-Regular",
-                    "fontSize": 30,
-                    "marginVertical": 2,
-                  },
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  [
-                    {
-                      "color": "#121314",
-                      "flex": 1,
-                      "fontSize": 14,
-                      "lineHeight": 17,
-                    },
-                    {
-                      "marginRight": 12,
-                    },
-                  ],
-                ]
-              }
-            >
-              <Text
-                style={
-                  {
-                    "color": "#121314",
-                  }
-                }
-              >
-                Token detection is not available on this network yet. Please import token manually and make sure you trust it. Learn about 
-              </Text>
-              <Text
-                onPress={[Function]}
-                style={
-                  {
-                    "color": "#4459ff",
-                  }
-                }
-                suppressHighlighting={true}
-              >
-                token scams and security risks.
-              </Text>
-            </Text>
-          </View>
-          <View
-            style={
-              {
-                "paddingTop": 16,
-              }
-            }
-          >
-            <Text
-              style={
-                {
-                  "color": "#121314",
-                  "fontFamily": "Geist-Regular",
-                }
-              }
-            >
-              Token contract address
-            </Text>
-            <TextInput
-              keyboardAppearance="light"
-              onBlur={[Function]}
-              onChangeText={[Function]}
-              onFocus={[Function]}
-              onSubmitEditing={[Function]}
-              placeholder="0x..."
-              placeholderTextColor="#b7bbc8"
-              returnKeyType="next"
-              style={
-                {
-                  "borderColor": "#b7bbc8",
-                  "borderRadius": 8,
-                  "borderWidth": 1,
-                  "color": "#121314",
-                  "fontFamily": "Geist-Regular",
-                  "paddingHorizontal": 16,
-                  "paddingVertical": 12,
-                }
-              }
-              testID="input-token-address"
-              value=""
-            />
-            <Text
-              style={
-                {
-                  "color": "#ca3542",
-                  "fontFamily": "Geist-Regular",
-                  "marginTop": 0,
-                  "paddingBottom": 8,
-                }
-              }
-              testID="token-address-warning"
-            />
-          </View>
-        </View>
-      </RCTScrollView>
-      <View
-        style={
-          {
-            "margin": 16,
-            "paddingBottom": 0,
-            "paddingVertical": 16,
-          }
-        }
-      >
-        <TouchableOpacity
-          accessibilityRole="button"
-          accessible={true}
-          activeOpacity={1}
-          disabled={true}
-          onPress={[Function]}
-          onPressIn={[Function]}
-          onPressOut={[Function]}
-          style={
-            {
-              "alignItems": "center",
-              "alignSelf": "stretch",
-              "backgroundColor": "#121314",
-              "borderRadius": 12,
-              "flexDirection": "row",
-              "height": 48,
-              "justifyContent": "center",
-              "opacity": 0.5,
-              "overflow": "hidden",
-              "paddingHorizontal": 16,
-            }
-          }
-          testID="token-import-next-button"
-        >
-          <Text
-            accessibilityRole="text"
-            style={
-              {
-                "color": "#ffffff",
-                "fontFamily": "Geist-Medium",
-                "fontSize": 16,
-                "letterSpacing": 0,
-                "lineHeight": 24,
-              }
-            }
-          >
-            Next
-          </Text>
-        </TouchableOpacity>
-      </View>
-    </View>
+          "alignItems": "center",
+          "display": "flex",
+          "flexBasis": "0%",
+          "flexGrow": 1,
+          "flexShrink": 1,
+          "justifyContent": "center",
+          "paddingLeft": 16,
+          "paddingRight": 16,
+        },
+        undefined,
+      ]
+    }
+    testID="add-asset-loading-indicator"
+  >
+    <ActivityIndicator
+      color="#4459ff"
+      size="large"
+    />
   </View>
 </RNCSafeAreaView>
 `;

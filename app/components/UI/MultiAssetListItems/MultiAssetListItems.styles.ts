@@ -38,6 +38,18 @@ const styleSheet = () =>
     normalText: {
       ...fontStyles.normal,
     },
+    emptyContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingHorizontal: 30,
+    },
+    skeletonIcon: {
+      borderRadius: 20,
+    },
+    skeletonText: {
+      marginBottom: 8,
+    },
   });
 
 export default styleSheet;

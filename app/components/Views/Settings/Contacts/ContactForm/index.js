@@ -39,7 +39,7 @@ import {
 import { AddContactViewSelectorsIDs } from '../AddContactView.testIds';
 import { selectInternalAccounts } from '../../../../../selectors/accountsController';
 import { selectAddressBook } from '../../../../../selectors/addressBookController';
-import NetworkListBottomSheet from '../../../AddAsset/components/NetworkListBottomSheet';
+import NetworkListBottomSheet from '../../../AddAsset/components/NetworkListBottomSheet/NetworkListBottomSheet';
 import Avatar, {
   AvatarSize,
   AvatarVariant,

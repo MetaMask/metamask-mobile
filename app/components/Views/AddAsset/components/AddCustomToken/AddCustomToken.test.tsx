@@ -1,17 +1,31 @@
 import React from 'react';
-import AddCustomToken from './';
-import renderWithProvider from '../../../util/test/renderWithProvider';
-import { backgroundState } from '../../../util/test/initial-root-state';
-import { ImportTokenViewSelectorsIDs } from '../../Views/AddAsset/ImportTokenView.testIds';
+import AddCustomToken from './AddCustomToken';
+import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
+import { ImportTokenViewSelectorsIDs } from '../../ImportAssetView.testIds';
 import { act, fireEvent } from '@testing-library/react-native';
-import { isSmartContractAddress } from '../../../util/transactions';
-import Engine from '../../../core/Engine';
+import { isSmartContractAddress } from '../../../../../util/transactions';
+import Engine from '../../../../../core/Engine';
 
-jest.mock('../../../util/transactions', () => ({
+const mockNavigate = jest.fn();
+const mockPush = jest.fn();
+jest.mock('@react-navigation/native', () => {
+  const actualNav = jest.requireActual('@react-navigation/native');
+  return {
+    ...actualNav,
+    useNavigation: () => ({
+      navigate: mockNavigate,
+      push: mockPush,
+      goBack: jest.fn(),
+    }),
+  };
+});
+
+jest.mock('../../../../../util/transactions', () => ({
   isSmartContractAddress: jest.fn(),
 }));
 
-jest.mock('../../../core/Engine', () => ({
+jest.mock('../../../../../core/Engine', () => ({
   context: {
     AssetsContractController: {
       getERC20TokenDecimals: jest.fn().mockResolvedValue(18),
@@ -35,10 +49,11 @@ const mockInitialState = {
   },
 };
 
-jest.mock('../../../util/networks', () => ({
+jest.mock('../../../../../util/networks', () => ({
   getBlockExplorerAddressUrl: jest
     .fn()
     .mockReturnValue({ title: 'test-network', url: 'https://test-2.com/' }),
+  getDecimalChainId: jest.fn().mockReturnValue('1'),
   isMainnetByChainId: jest.fn().mockReturnValue(true),
 }));
 
@@ -48,26 +63,15 @@ describe('AddCustomToken', () => {
   });
 
   it('renders correctly with required props', () => {
-    const { toJSON } = renderWithProvider(
-      <AddCustomToken
-        chainId={'0x1'}
-        networkName="Ethereum Mainnet"
-        selectedNetwork="Ethereum Mainnet"
-        networkClientId="mainnet"
-      />,
-      { state: mockInitialState },
-    );
+    const { toJSON } = renderWithProvider(<AddCustomToken chainId={'0x1'} />, {
+      state: mockInitialState,
+    });
     expect(toJSON()).toMatchSnapshot();
   });
 
   it('displays warning for short address', () => {
     const { getByTestId } = renderWithProvider(
-      <AddCustomToken
-        chainId={'0x1'}
-        networkName="Ethereum Mainnet"
-        selectedNetwork="Ethereum Mainnet"
-        networkClientId="mainnet"
-      />,
+      <AddCustomToken chainId={'0x1'} />,
       { state: mockInitialState },
     );
 
@@ -94,12 +98,7 @@ describe('AddCustomToken', () => {
       Engine.context.AssetsContractController.getERC20TokenName as jest.Mock
     ).mockResolvedValue('Wrapped Bitcoin');
     const { getByTestId, queryByTestId } = renderWithProvider(
-      <AddCustomToken
-        chainId={'0x1'}
-        networkName="Ethereum Mainnet"
-        selectedNetwork="Ethereum Mainnet"
-        networkClientId="mainnet"
-      />,
+      <AddCustomToken chainId={'0x1'} />,
       { state: mockInitialState },
     );
 
@@ -129,12 +128,7 @@ describe('AddCustomToken', () => {
 
   it('accepts 42 character address', async () => {
     const { getByTestId } = renderWithProvider(
-      <AddCustomToken
-        chainId={'0x1'}
-        networkName="Ethereum Mainnet"
-        selectedNetwork="Ethereum Mainnet"
-        networkClientId="mainnet"
-      />,
+      <AddCustomToken chainId={'0x1'} />,
       { state: mockInitialState },
     );
 
@@ -146,15 +140,10 @@ describe('AddCustomToken', () => {
     expect(tokenSearch.props.value).toBe(fullAddress);
   });
 
-  it('disables next button when selectedNetwork is null', () => {
+  it('disables next button when chainId is empty', () => {
     mockIsSmartContractAddress.mockResolvedValue(true);
     const { getByTestId } = renderWithProvider(
-      <AddCustomToken
-        chainId={'0x1'}
-        networkName="Ethereum Mainnet"
-        selectedNetwork={null}
-        networkClientId="mainnet"
-      />,
+      <AddCustomToken chainId={''} />,
       { state: mockInitialState },
     );
 

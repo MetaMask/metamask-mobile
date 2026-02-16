@@ -2,13 +2,14 @@ import React from 'react';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import AddAsset from './AddAsset';
-import { AddAssetViewSelectorsIDs } from './AddAssetView.testIds';
-import { ImportTokenViewSelectorsIDs } from './ImportTokenView.testIds';
-import { NFTImportScreenSelectorsIDs } from '../../UI/AddCustomCollectible/ImportNFTView.testIds';
+import {
+  ImportTokenViewSelectorsIDs,
+  NFTImportScreenSelectorsIDs,
+} from './ImportAssetView.testIds';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { useTopTokens } from '../../UI/Bridge/hooks/useTopTokens';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
+import { useSearchRequest } from '../../UI/Trending/hooks/useSearchRequest/useSearchRequest';
 
 const mockNavigate = jest.fn();
 const mockSetOptions = jest.fn();
@@ -70,11 +71,12 @@ jest.mock(
     ({ children }: { children: React.ReactNode }) => <>{children}</>,
 );
 
-jest.mock('../../UI/Bridge/hooks/useTopTokens', () => ({
-  useTopTokens: jest.fn(() => ({
-    topTokens: [],
-    remainingTokens: [],
-    pending: false,
+jest.mock('../../UI/Trending/hooks/useSearchRequest/useSearchRequest', () => ({
+  useSearchRequest: jest.fn(() => ({
+    results: [],
+    isLoading: false,
+    error: null,
+    search: jest.fn(),
   })),
 }));
 
@@ -154,16 +156,17 @@ const renderComponent = (component: React.ReactElement) =>
     },
   );
 
-const mockUseTopTokens = jest.mocked(useTopTokens);
+const mockUseSearchRequest = jest.mocked(useSearchRequest);
 
 describe('AddAsset component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockIsNonEvmChainId.mockReturnValue(false);
-    mockUseTopTokens.mockReturnValue({
-      topTokens: [],
-      remainingTokens: [],
-      pending: false,
+    mockUseSearchRequest.mockReturnValue({
+      results: [],
+      isLoading: false,
+      error: null,
+      search: jest.fn(),
     });
   });
 
@@ -191,9 +194,7 @@ describe('AddAsset component', () => {
       state: initialState,
     });
 
-    expect(
-      getByTestId(AddAssetViewSelectorsIDs.WARNING_ENABLE_DISPLAY_MEDIA),
-    ).toBeOnTheScreen();
+    expect(getByTestId('warning-display-media-enabled-text')).toBeOnTheScreen();
   });
 
   describe('NFT Display Settings', () => {
@@ -241,7 +242,7 @@ describe('AddAsset component', () => {
       });
 
       expect(
-        getByTestId(AddAssetViewSelectorsIDs.WARNING_ENABLE_DISPLAY_MEDIA),
+        getByTestId('warning-display-media-enabled-text'),
       ).toBeOnTheScreen();
     });
   });
@@ -255,118 +256,90 @@ describe('AddAsset component', () => {
     });
   });
 
-  describe('useTopTokens hook integration', () => {
-    it('displays loading indicator when useTopTokens pending is true', () => {
+  describe('useSearchRequest probe integration', () => {
+    it('displays loading indicator when isLoading is true', () => {
       mockUseParamsValues.assetType = 'token';
 
-      mockUseTopTokens.mockReturnValue({
-        topTokens: [],
-        remainingTokens: [],
-        pending: true,
+      mockUseSearchRequest.mockReturnValue({
+        results: [],
+        isLoading: true,
+        error: null,
+        search: jest.fn(),
       });
 
       const { getByTestId, queryByTestId } = renderComponent(<AddAsset />);
 
       expect(getByTestId('add-token-screen')).toBeOnTheScreen();
-      // Verify loading indicator is rendered when pending
+      // Verify loading indicator is rendered when loading
       expect(getByTestId('add-asset-loading-indicator')).toBeOnTheScreen();
       // Verify tabs container is NOT rendered while loading
       expect(queryByTestId('add-asset-tabs-container')).toBeNull();
     });
 
-    it('renders tabs container when tokens are available', () => {
+    it('renders tabs container when chain supports search (no error)', () => {
       mockUseParamsValues.assetType = 'token';
 
-      const mockTopTokens = [
-        {
-          address: '0x123',
-          symbol: 'TOP1',
-          name: 'Top Token 1',
-          decimals: 18,
-          chainId: '0x1' as const,
-        },
-      ];
-
-      const mockRemainingTokens = [
-        {
-          address: '0x456',
-          symbol: 'REM1',
-          name: 'Remaining Token 1',
-          decimals: 18,
-          chainId: '0x1' as const,
-        },
-      ];
-
-      mockUseTopTokens.mockReturnValue({
-        topTokens: mockTopTokens,
-        remainingTokens: mockRemainingTokens,
-        pending: false,
+      mockUseSearchRequest.mockReturnValue({
+        results: [],
+        isLoading: false,
+        error: null,
+        search: jest.fn(),
       });
 
       const { getByTestId, queryByTestId } = renderComponent(<AddAsset />);
 
       expect(getByTestId('add-token-screen')).toBeOnTheScreen();
-      // Verify tabs container is rendered when not pending
+      // Verify tabs container is rendered when not loading
       expect(getByTestId('add-asset-tabs-container')).toBeOnTheScreen();
       // Verify loading indicator is NOT shown
       expect(queryByTestId('add-asset-loading-indicator')).toBeNull();
-      // Verify SearchTokenAutocomplete is rendered when tokens are available
+      // Verify SearchTokenAutocomplete is rendered when chain supports search
       expect(queryByTestId('add-searched-token-screen')).toBeTruthy();
     });
 
-    it('renders tabs container when only topTokens are available', () => {
+    it('renders tabs container with search tab when chain is supported', () => {
       mockUseParamsValues.assetType = 'token';
 
-      const mockTopTokens = [
-        {
-          address: '0x123',
-          symbol: 'TEST',
-          name: 'Test Token',
-          decimals: 18,
-          chainId: '0x1' as const,
-        },
-      ];
-
-      mockUseTopTokens.mockReturnValue({
-        topTokens: mockTopTokens,
-        remainingTokens: [],
-        pending: false,
+      mockUseSearchRequest.mockReturnValue({
+        results: [],
+        isLoading: false,
+        error: null,
+        search: jest.fn(),
       });
 
       const { getByTestId, queryByTestId } = renderComponent(<AddAsset />);
 
       expect(getByTestId('add-token-screen')).toBeOnTheScreen();
       expect(getByTestId('add-asset-tabs-container')).toBeOnTheScreen();
-      // SearchTokenAutocomplete should be rendered when allTokens has items
+      // SearchTokenAutocomplete should be rendered when chain supports search
       expect(queryByTestId('add-searched-token-screen')).toBeTruthy();
     });
 
-    it('renders tabs container but not SearchTokenAutocomplete when allTokens is empty', () => {
+    it('renders tabs container but not SearchTokenAutocomplete when search probe returns error', () => {
       mockUseParamsValues.assetType = 'token';
 
-      mockUseTopTokens.mockReturnValue({
-        topTokens: [],
-        remainingTokens: [],
-        pending: false,
+      mockUseSearchRequest.mockReturnValue({
+        results: [],
+        isLoading: false,
+        error: new Error('Bad Request'),
+        search: jest.fn(),
       });
 
       const { getByTestId, queryByTestId } = renderComponent(<AddAsset />);
 
       expect(getByTestId('add-token-screen')).toBeOnTheScreen();
-      // Tabs container should be rendered even when no tokens
+      // Tabs container should be rendered even when chain doesn't support search
       expect(getByTestId('add-asset-tabs-container')).toBeOnTheScreen();
-      // SearchTokenAutocomplete tab should NOT be rendered when no tokens available
+      // SearchTokenAutocomplete tab should NOT be rendered when search probe errors
       expect(queryByTestId('add-searched-token-screen')).toBeNull();
     });
 
-    it('calls useTopTokens with selected network chainId', () => {
+    it('calls useSearchRequest hook for search support probe', () => {
       mockUseParamsValues.assetType = 'token';
 
       renderComponent(<AddAsset />);
 
-      expect(mockUseTopTokens).toHaveBeenCalledWith({
-        chainId: '0x1',
-      });
+      expect(mockUseSearchRequest).toHaveBeenCalled();
     });
   });
 
@@ -374,6 +347,13 @@ describe('AddAsset component', () => {
     it('renders AddCustomToken for EVM chains', () => {
       mockUseParamsValues.assetType = 'token';
       mockIsNonEvmChainId.mockReturnValue(false);
+
+      mockUseSearchRequest.mockReturnValue({
+        results: [],
+        isLoading: false,
+        error: null,
+        search: jest.fn(),
+      });
 
       const { getByTestId, queryByTestId } = renderComponent(<AddAsset />);
 

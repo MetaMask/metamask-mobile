@@ -1,29 +1,30 @@
 import React, { useMemo } from 'react';
-import { ScrollView, View } from 'react-native';
+import { ScrollView } from 'react-native';
 import BottomSheet, {
   BottomSheetRef,
-} from '../../../../component-library/components/BottomSheets/BottomSheet';
-import { strings } from '../../../../../locales/i18n';
-import styleSheet from '../AddAsset.styles';
+} from '../../../../../component-library/components/BottomSheets/BottomSheet';
+import { strings } from '../../../../../../locales/i18n';
 import { useSelector } from 'react-redux';
-import { useStyles } from '../../../hooks/useStyles';
-import { selectNetworkConfigurations } from '../../../../selectors/networkController';
+import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { Box } from '@metamask/design-system-react-native';
+import Device from '../../../../../util/device';
 import Cell, {
   CellVariant,
-} from '../../../../component-library/components/Cells/Cell';
+} from '../../../../../component-library/components/Cells/Cell';
 import {
   AvatarSize,
   AvatarVariant,
-} from '../../../../component-library/components/Avatars/Avatar';
+} from '../../../../../component-library/components/Avatars/Avatar';
 import { CaipChainId, Hex } from '@metamask/utils';
-import { getNetworkImageSource } from '../../../../util/networks';
-import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
+import { getNetworkImageSource } from '../../../../../util/networks';
+import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import {
   MultichainNetworkConfiguration,
   SupportedCaipChainId,
 } from '@metamask/multichain-network-controller';
-import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
-import { isNonEvmChainId } from '../../../../core/Multichain/utils';
+import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
+import { isNonEvmChainId } from '../../../../../core/Multichain/utils';
 
 export const NETWORK_LIST_BOTTOM_SHEET = 'NETWORK_LIST_BOTTOM_SHEET';
 
@@ -40,7 +41,7 @@ export default function NetworkListBottomSheet({
   sheetRef: React.RefObject<BottomSheetRef>;
   displayEvmNetworksOnly?: boolean;
 }) {
-  const { styles } = useStyles(styleSheet, {});
+  const tw = useTailwind();
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const getAccountByScope = useSelector(selectSelectedInternalAccountByScope);
 
@@ -77,7 +78,9 @@ export default function NetworkListBottomSheet({
       shouldNavigateBack={false}
       ref={sheetRef}
       onClose={() => setOpenNetworkSelector(false)}
-      style={styles.bottomSheetWrapperContent}
+      style={tw.style(
+        `max-h-[${Math.round(Device.getDeviceHeight() * 0.7)}px]`,
+      )}
       testID={NETWORK_LIST_BOTTOM_SHEET}
     >
       <HeaderCompactStandard
@@ -91,7 +94,7 @@ export default function NetworkListBottomSheet({
 
       <ScrollView>
         {Object.values(filteredNetworkConfigurations).map((network) => (
-          <View style={styles.bottomSheetWrapper} key={network.chainId}>
+          <Box twClassName="items-start" key={network.chainId}>
             <Cell
               variant={CellVariant.Select}
               title={network.name}
@@ -111,7 +114,7 @@ export default function NetworkListBottomSheet({
               }}
               isSelected={selectedNetwork === network.chainId}
             />
-          </View>
+          </Box>
         ))}
       </ScrollView>
     </BottomSheet>

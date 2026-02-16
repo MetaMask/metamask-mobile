@@ -2642,6 +2642,7 @@
     "decimals_cant_be_empty": "Token decimals can't be empty.",
     "decimals_is_required": "Decimal is required. Find it on:",
     "no_tokens_found": "We couldn't find any tokens with that name.",
+    "tokens_empty_description": "Search for any token and import it",
     "select_token": "Select token",
     "address_must_be_smart_contract": "Personal address detected. Enter the token contract address.",
     "billion_abbreviation": "B",
