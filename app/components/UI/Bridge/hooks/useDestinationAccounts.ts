@@ -9,7 +9,7 @@ import { selectMultichainAccountsState2Enabled } from '../../../../selectors/fea
  * Custom hook that provides filtered destination accounts for bridge operations
  */
 export const useDestinationAccounts = () => {
-  const { accounts, ensByAccountAddress } = useAccounts();
+  const { accounts, ensByAccountAddress } = useAccounts({ fetchENS: false });
 
   // Filter accounts using BIP-44 aware multichain selectors via account IDs
   const validDestIds = useSelector(selectValidDestInternalAccountIds);
