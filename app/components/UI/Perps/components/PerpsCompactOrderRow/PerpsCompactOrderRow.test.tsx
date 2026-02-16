@@ -31,6 +31,11 @@ jest.mock('../../utils/formatUtils', () => ({
 
 jest.mock('@metamask/perps-controller', () => ({
   getPerpsDisplaySymbol: jest.fn((symbol) => symbol),
+  isTPSLOrder: jest.fn(
+    (detailedOrderType?: string) =>
+      (detailedOrderType ?? '').toLowerCase().includes('take profit') ||
+      (detailedOrderType ?? '').toLowerCase().includes('stop'),
+  ),
 }));
 
 jest.mock('../PerpsTokenLogo', () => 'PerpsTokenLogo');
@@ -113,10 +118,12 @@ describe('PerpsCompactOrderRow', () => {
     expect(formatPerpsFiat).toHaveBeenCalledWith(47000, expect.any(Object));
   });
 
-  it('falls back to order price for trigger orders when trigger price is invalid', () => {
+  it('falls back to order price for trigger-market orders when trigger price is invalid', () => {
     const { formatPerpsFiat } = jest.requireMock('../../utils/formatUtils');
     const triggerOrderWithInvalidTriggerPrice: Order = {
       ...mockTriggerOrder,
+      orderType: 'market',
+      detailedOrderType: 'Stop Market',
       triggerPrice: '0',
       price: '48000',
     };
