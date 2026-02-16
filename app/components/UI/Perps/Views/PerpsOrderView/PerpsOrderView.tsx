@@ -48,6 +48,7 @@ import Text, {
 import useTooltipModal from '../../../../../components/hooks/useTooltipModal';
 import Routes from '../../../../../constants/navigation/Routes';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
+import Engine from '../../../../../core/Engine';
 import { useTheme } from '../../../../../util/theme';
 import { TraceName } from '../../../../../util/trace';
 import Keypad from '../../../../Base/Keypad';
@@ -371,6 +372,40 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       }),
     },
   });
+
+  // Ensure oracle price (markPrice) is available for margin calculation.
+  // The PriceStreamChannel subscribes without includeMarketData, so the
+  // HyperLiquid marketDataCache has no oraclePrice and markPrice is always
+  // undefined when entering from Token Details (no prior market data sub).
+  // This subscription populates the cache for the traded asset so that
+  // subsequent allMids price updates include markPrice.
+  useEffect(() => {
+    if (!isDataReady || !orderForm.asset) return;
+
+    let unsubscribe: (() => void) | undefined;
+
+    const subscribe = async () => {
+      try {
+        unsubscribe = await Engine.context.PerpsController.subscribeToPrices({
+          symbols: [orderForm.asset],
+          includeMarketData: true,
+          callback: () => {
+            // No-op callback — the side effect of populating the
+            // marketDataCache with oraclePrice is all we need.
+          },
+        });
+      } catch {
+        // Non-critical: margin display will fall back to $0 but
+        // order placement still works via the controller.
+      }
+    };
+
+    subscribe();
+
+    return () => {
+      unsubscribe?.();
+    };
+  }, [isDataReady, orderForm.asset]);
 
   // Get real-time price data using new stream architecture (deferred)
   // Uses single WebSocket subscription with component-level debouncing
