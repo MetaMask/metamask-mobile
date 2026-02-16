@@ -132,7 +132,7 @@ function parseLedgerStatusCode(
     // Special handling for ErrorCode.UserRejected which can mean user rejected OR blind signing
     if (hexCode === USER_REJECTED_STATUS_CODE && originalError) {
       const message = originalError.message?.toLowerCase() || '';
-      if (message.includes('blind sign') || message.includes('blind signing')) {
+      if (message.includes('blind sign')) {
         return createHardwareWalletError(
           ErrorCode.DeviceStateBlindSignNotSupported,
           walletType,
