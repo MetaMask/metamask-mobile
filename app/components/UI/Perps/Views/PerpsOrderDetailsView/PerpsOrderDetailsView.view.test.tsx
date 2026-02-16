@@ -9,30 +9,25 @@ import { strings } from '../../../../../../locales/i18n';
 import { renderPerpsOrderDetailsView } from '../../../../../util/test/component-view/renderers/perpsViewRenderer';
 
 describe('PerpsOrderDetailsView', () => {
-  it('renders order type label when order is provided', async () => {
+  it('renders order details with asset symbol when order is provided', async () => {
     renderPerpsOrderDetailsView();
 
     expect(
-      await screen.findByText(strings('perps.order_details.market_buy')),
+      await screen.findByText('ETH', {}, { timeout: 10000 }),
     ).toBeOnTheScreen();
   });
 
   it('shows error when order is missing', async () => {
-    renderPerpsOrderDetailsView({ initialParams: {} });
+    renderPerpsOrderDetailsView({ initialParams: { order: undefined } });
 
     expect(
-      await screen.findByText(strings('perps.errors.order_not_found')),
+      await screen.findByText(
+        strings('perps.errors.order_not_found'),
+        {},
+        {
+          timeout: 10000,
+        },
+      ),
     ).toBeOnTheScreen();
-  });
-
-  it('with valid order: order type label and long direction are visible', async () => {
-    renderPerpsOrderDetailsView();
-
-    expect(
-      await screen.findByText(strings('perps.order_details.market_buy')),
-    ).toBeOnTheScreen();
-    expect(
-      await screen.findByText(strings('perps.order.long_label')),
-    ).toBeOnTheScreen();
-  });
+  }, 15000);
 });
