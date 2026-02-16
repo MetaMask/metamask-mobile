@@ -10313,9 +10313,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/transaction-pay-controller@npm:^14.0.0":
-  version: 14.0.0
-  resolution: "@metamask/transaction-pay-controller@npm:14.0.0"
+"@metamask/transaction-pay-controller@npm:^15.0.1":
+  version: 15.0.1
+  resolution: "@metamask/transaction-pay-controller@npm:15.0.1"
   dependencies:
     "@ethersproject/abi": "npm:^5.7.0"
     "@ethersproject/contracts": "npm:^5.7.0"
@@ -10335,7 +10335,7 @@ __metadata:
     bn.js: "npm:^5.2.1"
     immer: "npm:^9.0.6"
     lodash: "npm:^4.17.21"
-  checksum: 10/b9d8f850c534596e0babc80d40247b934f413cd797c3e539f36b6f45be4824fbe96ed380193d4d45cf0d076e9c14003caad31ce91af58342241f14bc8bc5fc6a
+  checksum: 10/088e3e86cd9af66618fec66b3aaf7f4f34bafb36118b0a08f1a200bbe7f457f8335cae07f409a481b4a415dd732a6baa3bd91812aba8efa35b2370c1db7a325f
   languageName: node
   linkType: hard
 
@@ -27987,6 +27987,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"eslint-plugin-promise@npm:^7.2.1":
+  version: 7.2.1
+  resolution: "eslint-plugin-promise@npm:7.2.1"
+  dependencies:
+    "@eslint-community/eslint-utils": "npm:^4.4.0"
+  peerDependencies:
+    eslint: ^7.0.0 || ^8.0.0 || ^9.0.0
+  checksum: 10/e7447159d52dbc0fdaacfad18571906bb783f9f41f497e73f9b0351e9cc79497f9a9053fbef8141d0c027c16c768a1ef7f8cd4709a4a5cbb14636e862a1ccb34
+  languageName: node
+  linkType: hard
+
 "eslint-plugin-react-compiler@npm:^19.1.0-rc.2":
   version: 19.1.0-rc.2
   resolution: "eslint-plugin-react-compiler@npm:19.1.0-rc.2"
@@ -35621,7 +35632,7 @@ __metadata:
     "@metamask/test-dapp-multichain": "npm:^0.17.1"
     "@metamask/test-dapp-solana": "npm:^0.3.0"
     "@metamask/transaction-controller": "npm:^62.16.0"
-    "@metamask/transaction-pay-controller": "npm:^14.0.0"
+    "@metamask/transaction-pay-controller": "npm:^15.0.1"
     "@metamask/tron-wallet-snap": "npm:^1.21.1"
     "@metamask/utils": "npm:^11.8.1"
     "@myx-trade/sdk": "npm:^0.1.265"
@@ -35762,6 +35773,7 @@ __metadata:
     eslint-plugin-import: "npm:^2.27.5"
     eslint-plugin-jsdoc: "npm:43.0.7"
     eslint-plugin-prettier: "npm:^3.3.1"
+    eslint-plugin-promise: "npm:^7.2.1"
     eslint-plugin-react: "npm:7.34.1"
     eslint-plugin-react-compiler: "npm:^19.1.0-rc.2"
     eslint-plugin-react-native: "npm:^4.0.0"

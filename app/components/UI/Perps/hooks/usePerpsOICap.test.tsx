@@ -3,80 +3,41 @@
  */
 
 import { renderHook, act, waitFor } from '@testing-library/react-native';
-import React from 'react';
 import { usePerpsOICap } from './usePerpsOICap';
-import {
-  PerpsStreamProvider,
-  PerpsStreamManager,
-} from '../providers/PerpsStreamManager';
-import Engine from '../../../../core/Engine';
 
-jest.mock('../../../../core/Engine');
 jest.mock('../../../../core/SDKConnect/utils/DevLogger');
 jest.mock('../../../../util/Logger');
 
-const mockEngine = Engine as jest.Mocked<typeof Engine>;
+// Mock PerpsStreamManager — same pattern as usePerpsMarkets.test.ts
+const mockSubscribe = jest.fn();
+const mockOiCaps = {
+  subscribe: mockSubscribe,
+};
 
-// Wrapper component for hook tests
-const createWrapper =
-  (testStreamManager: PerpsStreamManager) =>
-  ({ children }: { children: React.ReactNode }) => (
-    <PerpsStreamProvider testStreamManager={testStreamManager}>
-      {children}
-    </PerpsStreamProvider>
-  );
+jest.mock('../providers/PerpsStreamManager', () => ({
+  usePerpsStream: jest.fn(() => ({
+    oiCaps: mockOiCaps,
+  })),
+}));
 
 describe('usePerpsOICap', () => {
-  let testStreamManager: PerpsStreamManager;
-  let mockSubscribeToOICaps: jest.Mock;
-  let mockUnsubscribeFromOICaps: jest.Mock;
+  let mockUnsubscribe: jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
-
-    // Create fresh stream manager for each test
-    testStreamManager = new PerpsStreamManager();
-
-    // Setup mocks
-    mockSubscribeToOICaps = jest.fn();
-    mockUnsubscribeFromOICaps = jest.fn();
-
-    mockEngine.context.PerpsController = {
-      subscribeToOICaps: mockSubscribeToOICaps,
-      isCurrentlyReinitializing: jest.fn().mockReturnValue(false),
-    } as unknown as typeof mockEngine.context.PerpsController;
-
-    mockEngine.context.AccountTreeController = {
-      getAccountsFromSelectedAccountGroup: jest.fn().mockReturnValue([
-        {
-          address: '0x123456789',
-          id: 'account-1',
-          type: 'eip155:eoa',
-          metadata: {
-            name: 'Test Account',
-            importTime: 0,
-            keyring: { type: 'HD Key Tree' },
-          },
-          methods: [],
-          options: {},
-          scopes: [],
-        },
-      ]),
-    } as unknown as typeof mockEngine.context.AccountTreeController;
+    mockUnsubscribe = jest.fn();
   });
 
   it('returns isAtCap true when symbol in caps list', async () => {
-    let oiCapCallback: ((caps: string[]) => void) | null = null;
-    mockSubscribeToOICaps.mockImplementation(
-      (params: { callback: (caps: string[]) => void }) => {
-        oiCapCallback = params.callback;
-        return mockUnsubscribeFromOICaps;
+    let capturedCallback: ((caps: string[]) => void) | null = null;
+    mockSubscribe.mockImplementation(
+      ({ callback }: { callback: (caps: string[]) => void }) => {
+        capturedCallback = callback;
+        return mockUnsubscribe;
       },
     );
 
-    const { result } = renderHook(() => usePerpsOICap('BTC'), {
-      wrapper: createWrapper(testStreamManager),
-    });
+    const { result } = renderHook(() => usePerpsOICap('BTC'));
 
     // Initial state - loading
     expect(result.current.isLoading).toBe(true);
@@ -84,7 +45,7 @@ describe('usePerpsOICap', () => {
 
     // Send OI cap update with BTC at cap
     await act(async () => {
-      oiCapCallback?.(['BTC', 'ETH']);
+      capturedCallback?.(['BTC', 'ETH']);
     });
 
     // Should indicate BTC is at cap
@@ -95,21 +56,19 @@ describe('usePerpsOICap', () => {
   });
 
   it('returns isAtCap false when symbol not in caps list', async () => {
-    let oiCapCallback: ((caps: string[]) => void) | null = null;
-    mockSubscribeToOICaps.mockImplementation(
-      (params: { callback: (caps: string[]) => void }) => {
-        oiCapCallback = params.callback;
-        return mockUnsubscribeFromOICaps;
+    let capturedCallback: ((caps: string[]) => void) | null = null;
+    mockSubscribe.mockImplementation(
+      ({ callback }: { callback: (caps: string[]) => void }) => {
+        capturedCallback = callback;
+        return mockUnsubscribe;
       },
     );
 
-    const { result } = renderHook(() => usePerpsOICap('SOL'), {
-      wrapper: createWrapper(testStreamManager),
-    });
+    const { result } = renderHook(() => usePerpsOICap('SOL'));
 
     // Send OI cap update without SOL
     await act(async () => {
-      oiCapCallback?.(['BTC', 'ETH']);
+      capturedCallback?.(['BTC', 'ETH']);
     });
 
     // Should indicate SOL is NOT at cap
@@ -121,11 +80,9 @@ describe('usePerpsOICap', () => {
 
   it('returns isLoading true until first data received', () => {
     // Don't call callback - simulates waiting for first data
-    mockSubscribeToOICaps.mockImplementation(() => mockUnsubscribeFromOICaps);
+    mockSubscribe.mockImplementation(() => mockUnsubscribe);
 
-    const { result } = renderHook(() => usePerpsOICap('BTC'), {
-      wrapper: createWrapper(testStreamManager),
-    });
+    const { result } = renderHook(() => usePerpsOICap('BTC'));
 
     // Should be loading before first data
     expect(result.current.isLoading).toBe(true);
@@ -133,24 +90,22 @@ describe('usePerpsOICap', () => {
   });
 
   it('returns isLoading false after first data received', async () => {
-    let oiCapCallback: ((caps: string[]) => void) | null = null;
-    mockSubscribeToOICaps.mockImplementation(
-      (params: { callback: (caps: string[]) => void }) => {
-        oiCapCallback = params.callback;
-        return mockUnsubscribeFromOICaps;
+    let capturedCallback: ((caps: string[]) => void) | null = null;
+    mockSubscribe.mockImplementation(
+      ({ callback }: { callback: (caps: string[]) => void }) => {
+        capturedCallback = callback;
+        return mockUnsubscribe;
       },
     );
 
-    const { result } = renderHook(() => usePerpsOICap('BTC'), {
-      wrapper: createWrapper(testStreamManager),
-    });
+    const { result } = renderHook(() => usePerpsOICap('BTC'));
 
     // Initial loading state
     expect(result.current.isLoading).toBe(true);
 
     // Send first data (empty caps list)
     await act(async () => {
-      oiCapCallback?.([]);
+      capturedCallback?.([]);
     });
 
     // Should not be loading anymore
@@ -160,70 +115,47 @@ describe('usePerpsOICap', () => {
   });
 
   it('handles undefined symbol gracefully', async () => {
-    let oiCapCallback: ((caps: string[]) => void) | null = null;
-    mockSubscribeToOICaps.mockImplementation(
-      (params: { callback: (caps: string[]) => void }) => {
-        oiCapCallback = params.callback;
-        return mockUnsubscribeFromOICaps;
-      },
-    );
+    mockSubscribe.mockImplementation(() => mockUnsubscribe);
 
-    const { result } = renderHook(() => usePerpsOICap(undefined), {
-      wrapper: createWrapper(testStreamManager),
-    });
+    const { result } = renderHook(() => usePerpsOICap(undefined));
 
     // Should not crash with undefined symbol
     expect(result.current.isLoading).toBe(true);
     expect(result.current.isAtCap).toBe(false);
 
-    // Send data
-    await act(async () => {
-      oiCapCallback?.(['BTC']);
-    });
-
-    // Should still handle data but return false for isAtCap
-    await waitFor(() => {
-      expect(result.current.isAtCap).toBe(false);
-    });
+    // subscribe should not have been called (symbol is undefined)
+    expect(mockSubscribe).not.toHaveBeenCalled();
   });
 
-  it('unsubscribes when component unmounts', async () => {
-    mockSubscribeToOICaps.mockReturnValue(mockUnsubscribeFromOICaps);
+  it('unsubscribes when component unmounts', () => {
+    mockSubscribe.mockReturnValue(mockUnsubscribe);
 
-    const { unmount } = renderHook(() => usePerpsOICap('BTC'), {
-      wrapper: createWrapper(testStreamManager),
-    });
+    const { unmount } = renderHook(() => usePerpsOICap('BTC'));
 
     // Subscription should be created
-    await waitFor(() => {
-      expect(mockSubscribeToOICaps).toHaveBeenCalled();
-    });
+    expect(mockSubscribe).toHaveBeenCalled();
 
     // Unmount component
     unmount();
 
     // Should have called unsubscribe
-    await waitFor(() => {
-      expect(mockUnsubscribeFromOICaps).toHaveBeenCalled();
-    });
+    expect(mockUnsubscribe).toHaveBeenCalled();
   });
 
   it('updates isAtCap when caps list changes', async () => {
-    let oiCapCallback: ((caps: string[]) => void) | null = null;
-    mockSubscribeToOICaps.mockImplementation(
-      (params: { callback: (caps: string[]) => void }) => {
-        oiCapCallback = params.callback;
-        return mockUnsubscribeFromOICaps;
+    let capturedCallback: ((caps: string[]) => void) | null = null;
+    mockSubscribe.mockImplementation(
+      ({ callback }: { callback: (caps: string[]) => void }) => {
+        capturedCallback = callback;
+        return mockUnsubscribe;
       },
     );
 
-    const { result } = renderHook(() => usePerpsOICap('BTC'), {
-      wrapper: createWrapper(testStreamManager),
-    });
+    const { result } = renderHook(() => usePerpsOICap('BTC'));
 
     // First update - BTC not at cap
     await act(async () => {
-      oiCapCallback?.(['ETH', 'SOL']);
+      capturedCallback?.(['ETH', 'SOL']);
     });
 
     await waitFor(() => {
@@ -232,7 +164,7 @@ describe('usePerpsOICap', () => {
 
     // Second update - BTC now at cap
     await act(async () => {
-      oiCapCallback?.(['BTC', 'ETH', 'SOL']);
+      capturedCallback?.(['BTC', 'ETH', 'SOL']);
     });
 
     await waitFor(() => {
@@ -241,7 +173,7 @@ describe('usePerpsOICap', () => {
 
     // Third update - BTC no longer at cap
     await act(async () => {
-      oiCapCallback?.(['ETH', 'SOL']);
+      capturedCallback?.(['ETH', 'SOL']);
     });
 
     await waitFor(() => {
@@ -250,21 +182,19 @@ describe('usePerpsOICap', () => {
   });
 
   it('handles empty caps list correctly', async () => {
-    let oiCapCallback: ((caps: string[]) => void) | null = null;
-    mockSubscribeToOICaps.mockImplementation(
-      (params: { callback: (caps: string[]) => void }) => {
-        oiCapCallback = params.callback;
-        return mockUnsubscribeFromOICaps;
+    let capturedCallback: ((caps: string[]) => void) | null = null;
+    mockSubscribe.mockImplementation(
+      ({ callback }: { callback: (caps: string[]) => void }) => {
+        capturedCallback = callback;
+        return mockUnsubscribe;
       },
     );
 
-    const { result } = renderHook(() => usePerpsOICap('BTC'), {
-      wrapper: createWrapper(testStreamManager),
-    });
+    const { result } = renderHook(() => usePerpsOICap('BTC'));
 
     // Send empty caps list
     await act(async () => {
-      oiCapCallback?.([]);
+      capturedCallback?.([]);
     });
 
     await waitFor(() => {
@@ -273,73 +203,61 @@ describe('usePerpsOICap', () => {
     });
   });
 
-  it('resubscribes when symbol changes', async () => {
-    mockSubscribeToOICaps.mockReturnValue(mockUnsubscribeFromOICaps);
+  it('resubscribes when symbol changes', () => {
+    mockSubscribe.mockReturnValue(mockUnsubscribe);
 
     const { rerender } = renderHook(({ symbol }) => usePerpsOICap(symbol), {
       initialProps: { symbol: 'BTC' as string | undefined },
-      wrapper: createWrapper(testStreamManager),
     });
 
-    await waitFor(() => {
-      expect(mockSubscribeToOICaps).toHaveBeenCalledTimes(1);
-    });
+    expect(mockSubscribe).toHaveBeenCalledTimes(1);
 
     // Change symbol
     rerender({ symbol: 'ETH' });
 
     // Should have unsubscribed from old and subscribed to new
-    await waitFor(() => {
-      expect(mockUnsubscribeFromOICaps).toHaveBeenCalledTimes(1);
-      expect(mockSubscribeToOICaps).toHaveBeenCalledTimes(2);
-    });
+    expect(mockUnsubscribe).toHaveBeenCalledTimes(1);
+    expect(mockSubscribe).toHaveBeenCalledTimes(2);
   });
 
   it('does not subscribe when symbol is undefined', () => {
-    mockSubscribeToOICaps.mockReturnValue(mockUnsubscribeFromOICaps);
+    mockSubscribe.mockReturnValue(mockUnsubscribe);
 
-    renderHook(() => usePerpsOICap(undefined), {
-      wrapper: createWrapper(testStreamManager),
-    });
+    renderHook(() => usePerpsOICap(undefined));
 
     // Should not have subscribed
-    expect(mockSubscribeToOICaps).not.toHaveBeenCalled();
+    expect(mockSubscribe).not.toHaveBeenCalled();
   });
 
   it('uses memoized isAtCap value to avoid unnecessary re-renders', async () => {
-    let oiCapCallback: ((caps: string[]) => void) | null = null;
-    mockSubscribeToOICaps.mockImplementation(
-      (params: { callback: (caps: string[]) => void }) => {
-        oiCapCallback = params.callback;
-        return mockUnsubscribeFromOICaps;
+    let capturedCallback: ((caps: string[]) => void) | null = null;
+    mockSubscribe.mockImplementation(
+      ({ callback }: { callback: (caps: string[]) => void }) => {
+        capturedCallback = callback;
+        return mockUnsubscribe;
       },
     );
 
     const renderSpy = jest.fn();
-    const { result } = renderHook(
-      () => {
-        const hookResult = usePerpsOICap('BTC');
-        renderSpy();
-        return hookResult;
-      },
-      {
-        wrapper: createWrapper(testStreamManager),
-      },
-    );
+    const { result } = renderHook(() => {
+      const hookResult = usePerpsOICap('BTC');
+      renderSpy();
+      return hookResult;
+    });
 
     const initialRenderCount = renderSpy.mock.calls.length;
 
     // Send same caps list multiple times
     await act(async () => {
-      oiCapCallback?.(['BTC']);
+      capturedCallback?.(['BTC']);
     });
 
     await act(async () => {
-      oiCapCallback?.(['BTC']);
+      capturedCallback?.(['BTC']);
     });
 
     await act(async () => {
-      oiCapCallback?.(['BTC']);
+      capturedCallback?.(['BTC']);
     });
 
     // isAtCap should remain true
