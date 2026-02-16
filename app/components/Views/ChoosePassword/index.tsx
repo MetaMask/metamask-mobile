@@ -282,9 +282,14 @@ const ChoosePassword = () => {
 
   const handleWalletCreation = useCallback(
     async (authType: AuthData, previous_screen: string | undefined) => {
+      // Ask user to allow biometrics access control
+      authType.currentAuthType =
+        await Authentication.requestBiometricsAccessControlForIOS(
+          authType.currentAuthType,
+        );
+
       if (previous_screen?.toLowerCase() === ONBOARDING.toLowerCase()) {
         await Authentication.newWalletAndKeychain(password, authType);
-
         keyringControllerPasswordSet.current = true;
         dispatch(seedphraseNotBackedUp());
       } else {
@@ -675,7 +680,6 @@ const ChoosePassword = () => {
                     onChangeText={onPasswordChange}
                     onFocus={() => setIsPasswordFieldFocused(true)}
                     onBlur={() => setIsPasswordFieldFocused(false)}
-                    placeholderTextColor={colors.text.muted}
                     testID={ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID}
                     onSubmitEditing={jumpToConfirmPassword}
                     submitBehavior="submit"
@@ -684,7 +688,6 @@ const ChoosePassword = () => {
                     autoCapitalize="none"
                     keyboardAppearance={themeAppearance}
                     isError={isPasswordTooShort}
-                    style={isPasswordTooShort ? styles.errorBorder : undefined}
                     endAccessory={
                       <TouchableOpacity onPress={() => toggleShowPassword(0)}>
                         <Icon
@@ -726,7 +729,6 @@ const ChoosePassword = () => {
                     value={confirmPassword}
                     onChangeText={setConfirmPasswordValue}
                     secureTextEntry={showPasswordIndex.includes(1)}
-                    placeholderTextColor={colors.text.muted}
                     testID={
                       ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID
                     }

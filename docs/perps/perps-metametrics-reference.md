@@ -42,7 +42,7 @@ track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
 
 ### 2. Controller Tracking (Transactions)
 
-**Location:** `app/components/UI/Perps/controllers/PerpsController.ts`
+**Location:** `app/controllers/perps/PerpsController.ts`
 
 ```typescript
 import MetaMetrics from '../../../../core/Analytics/MetaMetrics';
@@ -117,6 +117,7 @@ MetaMetrics.getInstance().trackEvent(
   - **Watchlist interactions:** `'favorite_toggled'` (add/remove from watchlist)
   - **Position management:** `'add_margin'` | `'remove_margin'` | `'increase_exposure'` | `'reduce_exposure'` | `'flip_position'` | `'contact_support'` | `'stop_loss_one_click_prompt'`
   - **Hero card interactions:** `'display_hero_card'` | `'share_pnl_hero_card'`
+  - **Pay-with interactions:** `'payment_token_selector'` | `'payment_method_changed'`
 - `action` (optional): Specific action performed: `'connection_retry'` | `'share'` | `'add_margin'` | `'remove_margin'` | `'edit_tp_sl'` | `'create_tp_sl'` | `'create_position'` | `'increase_exposure'`
 - `attempt_number` (optional): Retry attempt number when action is 'connection_retry' (number)
 - `action_type` (optional): `'start_trading'` | `'skip'` | `'stop_loss_set'` | `'take_profit_set'` | `'adl_learn_more'` | `'learn_more'` | `'favorite_market'` | `'unfavorite_market'` (Note: `favorite_market` = add to watchlist, `unfavorite_market` = remove from watchlist)
@@ -131,6 +132,8 @@ MetaMetrics.getInstance().trackEvent(
 - `favorites_count` (optional): Total number of markets in watchlist after toggle (number, used with `favorite_toggled`)
 - `button_clicked` (optional): Button identifier for entry point tracking (see [Entry Point Tracking](#entry-point-tracking)): `'deposit'` | `'withdraw'` | `'perps_home'` | `'tutorial'` | `'tooltip'` | `'market_list'` | `'open_position'` | `'magnifying_glass'` | `'crypto'` | `'stocks'` | `'give_feedback'`
 - `button_location` (optional): Location of the button for entry point tracking (see [Entry Point Tracking](#entry-point-tracking)): `'perps_home'` | `'perps_tutorial'` | `'perps_home_empty_state'` | `'perps_asset_screen'` | `'perps_tab'` | `'trade_menu_action'` | `'wallet_home'` | `'market_list'` | `'screen'` | `'tooltip'` | `'perp_market_details'` | `'order_book'` | `'full_screen_chart'`
+- `initial_payment_method` (optional): Payment method before change (e.g. `'perps_balance'` or token symbol; used with `payment_method_changed`)
+- `new_payment_method` (optional): Payment method after change (e.g. `'perps_balance'` or token symbol; used with `payment_method_changed`)
 - `source` (optional): Source context for favorites (e.g., `'perp_asset_screen'`)
 - `tab_name` (optional): Tab being viewed (e.g., `'trades'` | `'orders'` | `'funding'` | `'deposits'`)
 - `screen_name` (optional): Screen name context (e.g., `'connection_error'` | `'perps_hero_card'` | `'perps_activity_history'`)
@@ -166,6 +169,9 @@ MetaMetrics.getInstance().trackEvent(
 - `stop_loss_price` (optional): Stop loss trigger price (number)
 - `input_method` (optional): How value was entered: `'slider' | 'keyboard' | 'preset' | 'manual' | 'percentage_button'`
 - `limit_price` (optional): Limit order price (for limit orders) (number)
+- `trade_with_token` (optional): Whether the user paid with a token other than Perps balance (boolean)
+- `mm_pay_token_selected` (optional): Token symbol selected for pay-with (e.g. `'USDC'`), included when `trade_with_token` is true
+- `mm_pay_network_selected` (optional): Network/chain for pay-with (e.g. `'ethereum'`), included when `trade_with_token` is true
 - `error_message` (optional): Error description when status is 'failed'
 
 ### 4. PERPS_POSITION_CLOSE_TRANSACTION
@@ -549,5 +555,5 @@ usePerpsEventTracking({
 - **Event Tracking Hook**: `app/components/UI/Perps/hooks/usePerpsEventTracking.ts`
 - **Events**: `app/core/Analytics/MetaMetrics.events.ts`
 - **Properties & Values**: `app/components/UI/Perps/constants/eventNames.ts`
-- **Controller**: `app/components/UI/Perps/controllers/PerpsController.ts`
-- **Trading Service**: `app/components/UI/Perps/controllers/services/TradingService.ts`
+- **Controller**: `app/controllers/perps/PerpsController.ts`
+- **Trading Service**: `app/controllers/perps/services/TradingService.ts`
