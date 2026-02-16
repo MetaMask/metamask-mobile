@@ -174,6 +174,17 @@ jobs:
           aws-secret-name: ${{ needs.prepare.outputs.signing_aws_secret }}
           android-keystore-path: ${{ needs.prepare.outputs.signing_android_keystore_path }}
 
+      # iOS: install Ruby, Bundler, and CocoaPods so setup:github-ci has a working Ruby (fixes self-hosted runners)
+      - name: Installing iOS Environment Setup
+        if: matrix.platform == 'ios'
+        timeout-minutes: 15
+        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@v1
+        with:
+          platform: ios
+          configure-keystores: false
+          setup-simulator: false
+          ruby-version: '3.1.6'
+
       - name: Setup project dependencies with retry
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         with:
