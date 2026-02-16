@@ -8,8 +8,8 @@ import { fetch as expoFetch } from 'expo/fetch';
 import { ControllerInitFunction, ControllerInitRequest } from '../../types';
 import type { BridgeControllerInitMessenger } from '../../messengers/bridge-controller-messenger';
 import { TransactionParams } from '@metamask/transaction-controller';
-import type { AnalyticsEventProperties } from '@metamask/analytics-controller';
 import { buildAndTrackEvent } from '../../utils/analytics';
+import type { AnalyticsUnfilteredProperties } from '../../../../util/analytics/analytics.types';
 import {
   ChainId,
   handleFetch,
@@ -68,7 +68,7 @@ export const bridgeControllerInit: ControllerInitFunction<
         buildAndTrackEvent(
           initMessenger,
           event,
-          properties as AnalyticsEventProperties | null | undefined,
+          properties as AnalyticsUnfilteredProperties,
         );
       },
       traceFn: trace as TraceCallback,

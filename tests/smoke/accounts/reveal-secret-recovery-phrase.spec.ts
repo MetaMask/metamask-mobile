@@ -1,12 +1,12 @@
-import { SmokeAccounts } from '../../../e2e/tags.js';
-import { loginToApp } from '../../../e2e/viewHelper';
-import TabBarComponent from '../../../e2e/pages/wallet/TabBarComponent';
-import SettingsView from '../../../e2e/pages/Settings/SettingsView';
-import SecurityAndPrivacy from '../../../e2e/pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
+import { SmokeAccounts } from '../../tags.js';
+import { loginToApp } from '../../flows/wallet.flow';
+import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
+import SettingsView from '../../page-objects/Settings/SettingsView';
+import SecurityAndPrivacy from '../../page-objects/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import Assertions from '../../framework/Assertions';
-import { completeSrpQuiz } from '../../../e2e/specs/multisrp/utils';
+import { completeSrpQuiz } from '../../flows/accounts.flow';
 import { defaultGanacheOptions } from '../../framework/Constants';
 
 describe(SmokeAccounts('Secret Recovery Phrase Reveal from Settings'), () => {

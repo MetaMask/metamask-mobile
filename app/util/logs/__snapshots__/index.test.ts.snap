@@ -37,6 +37,13 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "pendingApprovalCount": 0,
         "pendingApprovals": {},
       },
+      "AssetsController": {
+        "assetPreferences": {},
+        "assetsBalance": {},
+        "assetsMetadata": {},
+        "assetsPrice": {},
+        "customAssets": {},
+      },
       "AuthenticationController": {
         "isSignedIn": false,
       },
@@ -440,22 +447,16 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
           "bip122": {
             "bip122:000000000019d6689c085ae165831e93": true,
             "bip122:000000000933ea01ad0ee984209779ba": false,
-            "bip122:00000000da84f2bafbbc53dee25a72ae": false,
             "bip122:00000008819873e925422c1ff0f99f7c": false,
-            "bip122:regtest": false,
           },
           "eip155": {
             "0x1": true,
-            "0x18c7": false,
             "0x2105": true,
-            "0x279f": false,
             "0x38": true,
             "0x531": true,
             "0x89": true,
             "0xa": true,
             "0xa4b1": true,
-            "0xaa36a7": false,
-            "0xe705": false,
             "0xe708": true,
           },
           "solana": {
@@ -469,6 +470,7 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
             "tron:728126428": true,
           },
         },
+        "nativeAssetIdentifiers": {},
       },
       "NotificationServicesController": {
         "isCheckingAccountsPresence": false,
@@ -493,6 +495,13 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
       "PerpsController": {
         "accountState": null,
         "activeProvider": "hyperliquid",
+        "cachedAccountState": null,
+        "cachedMarketData": null,
+        "cachedMarketDataTimestamp": 0,
+        "cachedOrders": null,
+        "cachedPositions": null,
+        "cachedUserDataAddress": null,
+        "cachedUserDataTimestamp": 0,
         "depositInProgress": false,
         "depositRequests": [],
         "hasPlacedFirstOrder": {
@@ -519,6 +528,7 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
           "optionId": "volume",
         },
         "perpsBalances": {},
+        "selectedPaymentToken": null,
         "tradeConfigurations": {
           "mainnet": {},
           "testnet": {},
@@ -592,12 +602,37 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "syncQueue": {},
       },
       "RampsController": {
-        "paymentMethods": [],
-        "preferredProvider": null,
-        "providers": [],
+        "countries": {
+          "data": [],
+          "error": null,
+          "isLoading": false,
+          "selected": null,
+        },
+        "paymentMethods": {
+          "data": [],
+          "error": null,
+          "isLoading": false,
+          "selected": null,
+        },
+        "providers": {
+          "data": [],
+          "error": null,
+          "isLoading": false,
+          "selected": null,
+        },
+        "quotes": {
+          "data": null,
+          "error": null,
+          "isLoading": false,
+          "selected": null,
+        },
         "requests": {},
-        "selectedPaymentMethod": null,
-        "tokens": null,
+        "tokens": {
+          "data": null,
+          "error": null,
+          "isLoading": false,
+          "selected": null,
+        },
         "userRegion": null,
       },
       "RemoteFeatureFlagController": {
@@ -610,9 +645,11 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "accounts": {},
         "activeAccount": null,
         "activeBoosts": {},
+        "pointsEstimateHistory": [],
         "pointsEvents": {},
         "seasonStatuses": {},
         "seasons": {},
+        "snapshots": {},
         "subscriptionReferralDetails": {},
         "subscriptions": {},
         "unlockedRewards": {},
@@ -764,18 +801,12 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "tokenBalances": {},
       },
       "TokenListController": {
-        "preventPollingOnNetworkRestart": false,
         "tokensChainsCache": {},
       },
       "TokenRatesController": {
         "marketData": {},
       },
-      "TokenSearchDiscoveryController": {
-        "lastSearchTimestamp": null,
-        "recentSearches": [],
-      },
       "TokenSearchDiscoveryDataController": {
-        "swapsTokenAddressesByChainId": {},
         "tokenDisplayData": [],
       },
       "TransactionController": {
@@ -838,6 +869,13 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "approvalFlows": [],
         "pendingApprovalCount": 0,
         "pendingApprovals": {},
+      },
+      "AssetsController": {
+        "assetPreferences": {},
+        "assetsBalance": {},
+        "assetsMetadata": {},
+        "assetsPrice": {},
+        "customAssets": {},
       },
       "AuthenticationController": {
         "isSignedIn": false,
@@ -1242,22 +1280,16 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
           "bip122": {
             "bip122:000000000019d6689c085ae165831e93": true,
             "bip122:000000000933ea01ad0ee984209779ba": false,
-            "bip122:00000000da84f2bafbbc53dee25a72ae": false,
             "bip122:00000008819873e925422c1ff0f99f7c": false,
-            "bip122:regtest": false,
           },
           "eip155": {
             "0x1": true,
-            "0x18c7": false,
             "0x2105": true,
-            "0x279f": false,
             "0x38": true,
             "0x531": true,
             "0x89": true,
             "0xa": true,
             "0xa4b1": true,
-            "0xaa36a7": false,
-            "0xe705": false,
             "0xe708": true,
           },
           "solana": {
@@ -1271,6 +1303,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
             "tron:728126428": true,
           },
         },
+        "nativeAssetIdentifiers": {},
       },
       "NotificationServicesController": {
         "isCheckingAccountsPresence": false,
@@ -1295,6 +1328,13 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       "PerpsController": {
         "accountState": null,
         "activeProvider": "hyperliquid",
+        "cachedAccountState": null,
+        "cachedMarketData": null,
+        "cachedMarketDataTimestamp": 0,
+        "cachedOrders": null,
+        "cachedPositions": null,
+        "cachedUserDataAddress": null,
+        "cachedUserDataTimestamp": 0,
         "depositInProgress": false,
         "depositRequests": [],
         "hasPlacedFirstOrder": {
@@ -1321,6 +1361,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
           "optionId": "volume",
         },
         "perpsBalances": {},
+        "selectedPaymentToken": null,
         "tradeConfigurations": {
           "mainnet": {},
           "testnet": {},
@@ -1394,12 +1435,37 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "syncQueue": {},
       },
       "RampsController": {
-        "paymentMethods": [],
-        "preferredProvider": null,
-        "providers": [],
+        "countries": {
+          "data": [],
+          "error": null,
+          "isLoading": false,
+          "selected": null,
+        },
+        "paymentMethods": {
+          "data": [],
+          "error": null,
+          "isLoading": false,
+          "selected": null,
+        },
+        "providers": {
+          "data": [],
+          "error": null,
+          "isLoading": false,
+          "selected": null,
+        },
+        "quotes": {
+          "data": null,
+          "error": null,
+          "isLoading": false,
+          "selected": null,
+        },
         "requests": {},
-        "selectedPaymentMethod": null,
-        "tokens": null,
+        "tokens": {
+          "data": null,
+          "error": null,
+          "isLoading": false,
+          "selected": null,
+        },
         "userRegion": null,
       },
       "RemoteFeatureFlagController": {
@@ -1412,9 +1478,11 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "accounts": {},
         "activeAccount": null,
         "activeBoosts": {},
+        "pointsEstimateHistory": [],
         "pointsEvents": {},
         "seasonStatuses": {},
         "seasons": {},
+        "snapshots": {},
         "subscriptionReferralDetails": {},
         "subscriptions": {},
         "unlockedRewards": {},
@@ -1549,18 +1617,12 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "tokenBalances": {},
       },
       "TokenListController": {
-        "preventPollingOnNetworkRestart": false,
         "tokensChainsCache": {},
       },
       "TokenRatesController": {
         "marketData": {},
       },
-      "TokenSearchDiscoveryController": {
-        "lastSearchTimestamp": null,
-        "recentSearches": [],
-      },
       "TokenSearchDiscoveryDataController": {
-        "swapsTokenAddressesByChainId": {},
         "tokenDisplayData": [],
       },
       "TransactionController": {

@@ -18,7 +18,6 @@ export enum PredictPriceHistoryInterval {
 
 export interface GetPositionsParams {
   address?: string;
-  providerId?: string;
 }
 
 export enum PredictMarketStatus {
@@ -107,10 +106,12 @@ export type PredictSeries = {
 
 export type PredictCategory =
   | 'trending'
+  | 'ending-soon'
   | 'new'
   | 'sports'
   | 'crypto'
-  | 'politics';
+  | 'politics'
+  | 'hot';
 
 // Sports league types
 export type PredictSportsLeague = 'nfl' | 'nba';
@@ -276,7 +277,6 @@ export interface PredictPriceHistoryPoint {
 
 export interface GetPriceHistoryParams {
   marketId: string;
-  providerId?: string;
   fidelity?: number;
   interval?: PredictPriceHistoryInterval;
   startTs?: number;
@@ -287,7 +287,6 @@ export interface GetPriceHistoryParams {
  * Parameters for fetching prices from CLOB /prices endpoint
  */
 export interface GetPriceParams {
-  providerId: string;
   queries: PriceQuery[];
 }
 
@@ -352,9 +351,8 @@ export type PredictBalance = {
   validUntil: number;
 };
 
-export interface ClaimParams {
-  providerId: string;
-}
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface ClaimParams {}
 
 export interface GetMarketPriceResponse {
   price: number;

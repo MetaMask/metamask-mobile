@@ -92,8 +92,8 @@ jest.mock('../RewardsLegalDisclaimer', () => {
   // Import the mocked react-native to use mocked Linking
   const MockedRN = jest.requireMock('react-native');
   const {
-    REWARDS_ONBOARD_TERMS_URL,
-    REWARDS_ONBOARD_OPTIN_LEGAL_LEARN_MORE_URL,
+    REWARDS_ONBOARD_TERMS_URL: MOCK_TERMS_URL,
+    REWARDS_ONBOARD_OPTIN_LEGAL_LEARN_MORE_URL: MOCK_LEARN_MORE_URL,
   } = jest.requireActual('../constants');
   return {
     __esModule: true,
@@ -127,7 +127,7 @@ jest.mock('../RewardsLegalDisclaimer', () => {
           {
             testID: 'terms-link',
             onPress: () => {
-              MockedRN.Linking.openURL(REWARDS_ONBOARD_TERMS_URL);
+              MockedRN.Linking.openURL(MOCK_TERMS_URL);
             },
           },
           ReactActual.createElement(RNText, {}, disclaimerPart2),
@@ -142,9 +142,7 @@ jest.mock('../RewardsLegalDisclaimer', () => {
           {
             testID: 'learn-more-link',
             onPress: () => {
-              MockedRN.Linking.openURL(
-                REWARDS_ONBOARD_OPTIN_LEGAL_LEARN_MORE_URL,
-              );
+              MockedRN.Linking.openURL(MOCK_LEARN_MORE_URL);
             },
           },
           ReactActual.createElement(RNText, {}, disclaimerPart4),
@@ -163,6 +161,48 @@ jest.mock(
   '../../../../../images/rewards/rewards-onboarding-step1-bg.svg',
   () => 'Step1BgImg',
 );
+
+// Mock Checkbox component
+const mockCheckboxOnPress = jest.fn();
+jest.mock('../../../../../../component-library/components/Checkbox', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View, Text: RNText, Pressable } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({
+      isChecked,
+      onPress,
+      isDisabled,
+      label,
+    }: {
+      isChecked: boolean;
+      onPress: () => void;
+      isDisabled?: boolean;
+      label?: React.ReactNode;
+    }) => {
+      mockCheckboxOnPress.mockImplementation(onPress);
+      return ReactActual.createElement(
+        Pressable,
+        {
+          testID: 'bulk-link-checkbox',
+          onPress: isDisabled ? undefined : onPress,
+          disabled: isDisabled,
+          accessibilityState: { checked: isChecked, disabled: isDisabled },
+        },
+        ReactActual.createElement(
+          View,
+          { testID: 'checkbox-indicator' },
+          ReactActual.createElement(
+            RNText,
+            { testID: 'checkbox-checked-state' },
+            isChecked ? 'checked' : 'unchecked',
+          ),
+        ),
+        label,
+      );
+    },
+  };
+});
 
 // Mock design system components
 jest.mock('@metamask/design-system-react-native', () => {
@@ -319,6 +359,7 @@ describe('OnboardingNoActiveSeasonStep', () => {
     mockUseOptin.optinLoading = false;
     mockCanContinue.mockReturnValue(true);
     mockRewardsLegalDisclaimer.mockClear();
+    mockCheckboxOnPress.mockClear();
 
     // Set up default useSelector mock
     const mockUseSelector = jest.requireMock('react-redux')
@@ -613,7 +654,7 @@ describe('OnboardingNoActiveSeasonStep', () => {
   });
 
   describe('next button interaction', () => {
-    it('calls optin with empty object when next button is pressed and canContinue returns true', () => {
+    it('calls optin with bulkLink false when next button is pressed and checkbox is unchecked', () => {
       mockCanContinue.mockReturnValue(true);
 
       renderWithProviders(
@@ -624,7 +665,26 @@ describe('OnboardingNoActiveSeasonStep', () => {
       fireEvent.press(nextButton);
 
       expect(mockCanContinue).toHaveBeenCalled();
-      expect(mockOptin).toHaveBeenCalledWith({});
+      expect(mockOptin).toHaveBeenCalledWith({ bulkLink: false });
+    });
+
+    it('calls optin with bulkLink true when checkbox is checked before pressing next', () => {
+      mockCanContinue.mockReturnValue(true);
+
+      renderWithProviders(
+        <OnboardingNoActiveSeasonStep canContinue={mockCanContinue} />,
+      );
+
+      // Toggle the checkbox to check it
+      const checkbox = screen.getByTestId('bulk-link-checkbox');
+      fireEvent.press(checkbox);
+
+      // Press next button
+      const nextButton = screen.getByTestId('next-button');
+      fireEvent.press(nextButton);
+
+      expect(mockCanContinue).toHaveBeenCalled();
+      expect(mockOptin).toHaveBeenCalledWith({ bulkLink: true });
     });
 
     it('does not call optin when canContinue returns false', () => {
@@ -639,6 +699,82 @@ describe('OnboardingNoActiveSeasonStep', () => {
 
       expect(mockCanContinue).toHaveBeenCalled();
       expect(mockOptin).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('bulk link checkbox', () => {
+    it('renders bulk link checkbox', () => {
+      renderWithProviders(
+        <OnboardingNoActiveSeasonStep canContinue={mockCanContinue} />,
+      );
+
+      expect(screen.getByTestId('bulk-link-checkbox')).toBeDefined();
+    });
+
+    it('renders checkbox initially unchecked', () => {
+      renderWithProviders(
+        <OnboardingNoActiveSeasonStep canContinue={mockCanContinue} />,
+      );
+
+      const checkedState = screen.getByTestId('checkbox-checked-state');
+      expect(checkedState.props.children).toBe('unchecked');
+    });
+
+    it('toggles checkbox state when pressed', () => {
+      renderWithProviders(
+        <OnboardingNoActiveSeasonStep canContinue={mockCanContinue} />,
+      );
+
+      const checkbox = screen.getByTestId('bulk-link-checkbox');
+      fireEvent.press(checkbox);
+
+      const checkedState = screen.getByTestId('checkbox-checked-state');
+      expect(checkedState.props.children).toBe('checked');
+    });
+
+    it('toggles checkbox back to unchecked when pressed twice', () => {
+      renderWithProviders(
+        <OnboardingNoActiveSeasonStep canContinue={mockCanContinue} />,
+      );
+
+      const checkbox = screen.getByTestId('bulk-link-checkbox');
+      fireEvent.press(checkbox);
+      fireEvent.press(checkbox);
+
+      const checkedState = screen.getByTestId('checkbox-checked-state');
+      expect(checkedState.props.children).toBe('unchecked');
+    });
+
+    it('disables checkbox when optinLoading is true', () => {
+      mockUseOptin.optinLoading = true;
+
+      renderWithProviders(
+        <OnboardingNoActiveSeasonStep canContinue={mockCanContinue} />,
+      );
+
+      const checkbox = screen.getByTestId('bulk-link-checkbox');
+      expect(checkbox.props.accessibilityState.disabled).toBe(true);
+    });
+
+    it('enables checkbox when optinLoading is false', () => {
+      mockUseOptin.optinLoading = false;
+
+      renderWithProviders(
+        <OnboardingNoActiveSeasonStep canContinue={mockCanContinue} />,
+      );
+
+      const checkbox = screen.getByTestId('bulk-link-checkbox');
+      expect(checkbox.props.accessibilityState.disabled).toBe(false);
+    });
+
+    it('renders checkbox with correct label text', () => {
+      renderWithProviders(
+        <OnboardingNoActiveSeasonStep canContinue={mockCanContinue} />,
+      );
+
+      expect(
+        screen.getByText('mocked_rewards.onboarding.step4_bulk_link_checkbox'),
+      ).toBeDefined();
     });
   });
 

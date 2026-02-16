@@ -1,5 +1,5 @@
 import { renderHook } from '@testing-library/react-hooks';
-import { CandlePeriod } from '../constants/chartConfig';
+import { CandlePeriod } from '@metamask/perps-controller';
 import { usePerpsMarketStats } from './usePerpsMarketStats';
 
 // Mock Engine
@@ -48,7 +48,7 @@ describe('usePerpsMarketStats', () => {
 
   const mockCandleData = {
     symbol: 'BTC',
-    interval: CandlePeriod.ONE_HOUR,
+    interval: CandlePeriod.OneHour,
     candles: [
       {
         open: '44000',

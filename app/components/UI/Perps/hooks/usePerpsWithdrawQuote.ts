@@ -3,10 +3,12 @@ import { strings } from '../../../../../locales/i18n';
 import Engine from '../../../../core/Engine';
 import {
   HYPERLIQUID_ASSET_CONFIGS,
+  WITHDRAWAL_CONSTANTS,
+} from '@metamask/perps-controller';
+import {
   METAMASK_WITHDRAWAL_FEE,
   METAMASK_WITHDRAWAL_FEE_PLACEHOLDER,
-} from '../constants/hyperLiquidConfig';
-import { WITHDRAWAL_CONSTANTS } from '../constants/perpsConfig';
+} from '../constants/perpsUIConfig';
 
 interface PerpsWithdrawQuoteParams {
   amount: string;
@@ -52,8 +54,8 @@ export const usePerpsWithdrawQuote = ({ amount }: PerpsWithdrawQuoteParams) => {
 
     // Find USDC route
     const usdcAssetId = isTestnet
-      ? HYPERLIQUID_ASSET_CONFIGS.USDC.testnet
-      : HYPERLIQUID_ASSET_CONFIGS.USDC.mainnet;
+      ? HYPERLIQUID_ASSET_CONFIGS.usdc.testnet
+      : HYPERLIQUID_ASSET_CONFIGS.usdc.mainnet;
 
     return routes.find((route) => route.assetId === usdcAssetId);
   }, []);

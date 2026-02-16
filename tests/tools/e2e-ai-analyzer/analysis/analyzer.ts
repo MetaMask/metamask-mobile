@@ -6,7 +6,13 @@
  * Provider-agnostic: works with Anthropic, OpenAI, or Google.
  */
 
-import { ToolInput, ModeAnalysisTypes } from '../types';
+import {
+  ToolInput,
+  ModeAnalysisTypes,
+  SkillMetadata,
+  AnalysisContext,
+  type ModeConfig,
+} from '../types';
 import { LLM_CONFIG } from '../config';
 import { getToolDefinitions } from '../ai-tools/tool-registry';
 import { executeTool, ToolContext } from '../ai-tools/tool-executor';
@@ -25,13 +31,20 @@ import {
   createConservativeResult as createSelectTagsConservativeResult,
   createEmptyResult as createSelectTagsEmptyResult,
   outputAnalysis as outputSelectTagsAnalysis,
+  checkHardRules as checkSelectTagsHardRules,
 } from '../modes/select-tags/handlers';
 
 /**
- * Mode Registry
- * Each mode defines its metadata and prompt builders.
+ * Mode Registry — see ModeConfig in types/index.ts for the full interface.
+ *
+ * To add a new mode:
+ * 1. Define its result type and add it to ModeAnalysisTypes
+ * 2. Implement all required ModeConfig<T> fields
+ * 3. Register it here
  */
-export const MODES = {
+export const MODES: {
+  [K in keyof ModeAnalysisTypes]: ModeConfig<ModeAnalysisTypes[K]>;
+} = {
   'select-tags': {
     description: 'Analyze code changes and select E2E test tags to run',
     finalizeToolName: 'finalize_tag_selection',
@@ -41,18 +54,8 @@ export const MODES = {
     createConservativeResult: createSelectTagsConservativeResult,
     createEmptyResult: createSelectTagsEmptyResult,
     outputAnalysis: outputSelectTagsAnalysis,
+    checkHardRules: checkSelectTagsHardRules,
   },
-  // Future modes (add imports and register here):
-  // 'suggest-migration': {
-  //   description: 'Identify E2E tests that could be unit/integration tests',
-  //   finalizeToolName: 'finalize_migration_suggestions',
-  //   systemPromptBuilder: buildMigrationSystemPrompt,
-  //   taskPromptBuilder: buildMigrationTaskPrompt,
-  //   processAnalysis: migrationHandlers.processAnalysis,
-  //   createConservativeFallback: migrationHandlers.createConservativeFallback,
-  //   createEmptyResult: migrationHandlers.createEmptyResult,
-  //   outputAnalysis: migrationHandlers.outputAnalysis,
-  // },
 };
 
 // Type aliases for mode keys and analysis results
@@ -74,16 +77,6 @@ export function validateMode(modeInput?: string): ModeKey {
 }
 
 /**
- * Analysis context containing all parameters needed for the analysis
- */
-export interface AnalysisContext {
-  baseDir: string;
-  baseBranch: string;
-  prNumber?: number;
-  githubRepo?: string;
-}
-
-/**
  * Main AI analysis using agentic loop with tools
  *
  * @param provider - The LLM provider to use (Anthropic, OpenAI, or Google)
@@ -91,6 +84,7 @@ export interface AnalysisContext {
  * @param criticalFiles - List of critical files that need special attention
  * @param mode - The analysis mode to use
  * @param context - Analysis context (baseDir, baseBranch, prNumber, githubRepo)
+ * @param availableSkills - Metadata for available skills (loaded on-demand via load_skill tool)
  */
 export async function analyzeWithAgent<M extends ModeKey>(
   provider: ILLMProvider,
@@ -98,10 +92,23 @@ export async function analyzeWithAgent<M extends ModeKey>(
   criticalFiles: string[],
   mode: M,
   context: AnalysisContext,
+  availableSkills: SkillMetadata[],
 ): Promise<ModeAnalysisResult<M>> {
-  // Get mode configuration with prompt builders
+  // Get mode configuration
   const modeConfig = MODES[mode];
-  const systemPrompt = modeConfig.systemPromptBuilder();
+
+  // Check mode-specific hard rules before AI analysis
+  if (modeConfig.checkHardRules) {
+    const hardRuleResult = modeConfig.checkHardRules(allChangedFiles, context);
+    if (hardRuleResult) {
+      return hardRuleResult as ModeAnalysisResult<M>;
+    }
+  }
+
+  // Build system prompt with available skills metadata
+  const systemPrompt = modeConfig.systemPromptBuilder(availableSkills);
+
+  // Build dynamic task prompt
   const taskPrompt = modeConfig.taskPromptBuilder(
     allChangedFiles,
     criticalFiles,

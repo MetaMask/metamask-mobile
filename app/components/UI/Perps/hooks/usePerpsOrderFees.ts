@@ -11,12 +11,12 @@ import {
   EstimatePointsDto,
   EstimatedPointsDto,
 } from '../../../../core/Engine/controllers/rewards-controller/types';
-import { PerpsMeasurementName } from '../constants/performanceMetrics';
 import {
-  DEVELOPMENT_CONFIG,
+  PerpsMeasurementName,
   PERFORMANCE_CONFIG,
-} from '../constants/perpsConfig';
-import { formatAccountToCaipAccountId } from '../utils/rewardsUtils';
+  formatAccountToCaipAccountId,
+} from '@metamask/perps-controller';
+import { DEVELOPMENT_CONFIG } from '../constants/perpsConfig';
 import { usePerpsTrading } from './usePerpsTrading';
 import { determineMakerStatus } from '../utils/orderUtils';
 
@@ -189,7 +189,7 @@ export function usePerpsOrderFees({
 
         // Measure fee discount API call performance
         setMeasurement(
-          PerpsMeasurementName.PERPS_REWARDS_FEE_DISCOUNT_API_CALL,
+          PerpsMeasurementName.PerpsRewardsFeeDiscountApiCall,
           feeDiscountDuration,
           'millisecond',
         );
@@ -277,7 +277,7 @@ export function usePerpsOrderFees({
 
         // Measure points estimation API call performance
         setMeasurement(
-          PerpsMeasurementName.PERPS_REWARDS_POINTS_ESTIMATION_API_CALL,
+          PerpsMeasurementName.PerpsRewardsPointsEstimationApiCall,
           pointsEstimationDuration,
           'millisecond',
         );

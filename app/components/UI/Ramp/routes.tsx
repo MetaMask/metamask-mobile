@@ -1,9 +1,12 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import Routes from '../../../constants/navigation/Routes';
-import TokenSelection from './components/TokenSelection';
-import BuildQuote from './components/BuildQuote';
-import UnsupportedTokenModal from './components/UnsupportedTokenModal';
+import TokenSelection from './Views/TokenSelection';
+import BuildQuote from './Views/BuildQuote';
+import Checkout from './Views/Checkout';
+import UnsupportedTokenModal from './Views/Modals/UnsupportedTokenModal';
+import SettingsModal from './Views/Modals/SettingsModal';
+import PaymentSelectionModal from './Views/Modals/PaymentSelectionModal';
 
 const RootStack = createStackNavigator();
 const Stack = createStackNavigator();
@@ -27,6 +30,17 @@ const MainRoutes = () => (
       component={TokenSelection}
     />
     <Stack.Screen name={Routes.RAMP.AMOUNT_INPUT} component={BuildQuote} />
+    <Stack.Screen
+      name={Routes.RAMP.CHECKOUT}
+      component={Checkout}
+      options={{
+        headerShown: false,
+        cardStyle: { backgroundColor: 'transparent' },
+        animationEnabled: false,
+        gestureEnabled: false,
+        detachPreviousScreen: false,
+      }}
+    />
   </Stack.Navigator>
 );
 
@@ -38,6 +52,14 @@ const TokenListModalsRoutes = () => (
     <ModalsStack.Screen
       name={Routes.RAMP.MODALS.UNSUPPORTED_TOKEN}
       component={UnsupportedTokenModal}
+    />
+    <ModalsStack.Screen
+      name={Routes.RAMP.MODALS.BUILD_QUOTE_SETTINGS}
+      component={SettingsModal}
+    />
+    <ModalsStack.Screen
+      name={Routes.RAMP.MODALS.PAYMENT_SELECTION}
+      component={PaymentSelectionModal}
     />
   </ModalsStack.Navigator>
 );

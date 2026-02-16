@@ -184,7 +184,6 @@ export const sentryStateMask = {
         },
       },
       TokenListController: {
-        preventPollingOnNetworkRestart: true,
         tokensChainsCache: {
           [AllProperties]: false,
         },

@@ -11,14 +11,13 @@
  */
 
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
-import { DECIMAL_PRECISION_CONFIG } from '../constants/perpsConfig';
-// Re-export significant figures utilities from formatUtils for backwards compatibility
-// These utilities are now consolidated in formatUtils.ts to avoid duplication
+import { DECIMAL_PRECISION_CONFIG } from '@metamask/perps-controller';
+// Re-export significant figures utilities from controller for backwards compatibility
 export {
   countSignificantFigures,
   hasExceededSignificantFigures,
   roundToSignificantFigures,
-} from './formatUtils';
+} from '@metamask/perps-controller';
 
 interface ValidationParams {
   currentPrice: number;
@@ -29,7 +28,13 @@ interface ValidationParams {
 }
 
 /**
- * Validates if a take profit price is valid for the given direction
+ * Validates if a take profit price is valid for the given direction.
+ *
+ * @param price - The take profit price to validate
+ * @param validationParams - Validation parameters
+ * @param validationParams.currentPrice - The current market price
+ * @param validationParams.direction - The position direction (long or short)
+ * @returns True if the take profit price is valid, false otherwise
  */
 export const isValidTakeProfitPrice = (
   price: string,
@@ -45,7 +50,13 @@ export const isValidTakeProfitPrice = (
 };
 
 /**
- * Validates if a stop loss price is valid for the given direction
+ * Validates if a stop loss price is valid for the given direction.
+ *
+ * @param price - The stop loss price to validate
+ * @param validationParams - Validation parameters
+ * @param validationParams.currentPrice - The current market price
+ * @param validationParams.direction - The position direction (long or short)
+ * @returns True if the stop loss price is valid, false otherwise
  */
 export const isValidStopLossPrice = (
   price: string,
@@ -61,10 +72,14 @@ export const isValidStopLossPrice = (
 };
 
 /**
- * Validates if a stop loss price is within the liquidation price
- * For long positions: stop loss must be ABOVE liquidation price
- * For short positions: stop loss must be BELOW liquidation price
+ * Validates if a stop loss price is within the liquidation price.
+ * For long positions: stop loss must be ABOVE liquidation price.
+ * For short positions: stop loss must be BELOW liquidation price.
  *
+ * @param price - The stop loss price to validate
+ * @param liquidationPrice - The liquidation price threshold
+ * @param direction - The position direction (long or short)
+ * @returns True if the stop loss is safe from liquidation, false otherwise
  */
 export const isStopLossSafeFromLiquidation = (
   price?: string,
@@ -87,7 +102,12 @@ export const isStopLossSafeFromLiquidation = (
 };
 
 /**
- * Validates both take profit and stop loss prices
+ * Validates both take profit and stop loss prices.
+ *
+ * @param takeProfitPrice - The take profit price to validate
+ * @param stopLossPrice - The stop loss price to validate
+ * @param params - Validation parameters including currentPrice, direction, and liquidationPrice
+ * @returns True if both prices are valid, false otherwise
  */
 export const validateTPSLPrices = (
   takeProfitPrice: string | undefined,
@@ -120,7 +140,10 @@ export const validateTPSLPrices = (
 };
 
 /**
- * Gets the direction text for take profit error message
+ * Gets the direction text for take profit error message.
+ *
+ * @param direction - The position direction (long or short)
+ * @returns Direction text (above/below) or empty string if no direction
  */
 export const getTakeProfitErrorDirection = (
   direction?: 'long' | 'short',
@@ -130,7 +153,10 @@ export const getTakeProfitErrorDirection = (
 };
 
 /**
- * Gets the direction text for stop loss error message
+ * Gets the direction text for stop loss error message.
+ *
+ * @param direction - The position direction (long or short)
+ * @returns Direction text (below/above) or empty string if no direction
  */
 export const getStopLossErrorDirection = (
   direction?: 'long' | 'short',
@@ -140,7 +166,10 @@ export const getStopLossErrorDirection = (
 };
 
 /**
- * Gets the direction text for stop loss liquidation error message
+ * Gets the direction text for stop loss liquidation error message.
+ *
+ * @param direction - The position direction (long or short)
+ * @returns Direction text (above/below) or empty string if no direction
  */
 export const getStopLossLiquidationErrorDirection = (
   direction?: 'long' | 'short',
@@ -150,10 +179,13 @@ export const getStopLossLiquidationErrorDirection = (
 };
 
 /**
- * Calculates price based on percentage change from current price
- * @param percentage The percentage change
- * @param isProfit Whether this is for take profit (true) or stop loss (false)
- * @param params Current price and direction
+ * Calculates price based on percentage change from current price.
+ *
+ * @param percentage - The percentage change
+ * @param isProfit - Whether this is for take profit (true) or stop loss (false)
+ * @param validationParams - Validation parameters
+ * @param validationParams.currentPrice - The current market price
+ * @param validationParams.direction - The position direction (long or short)
  * @returns The calculated price as a string
  */
 export const calculatePriceForPercentage = (
@@ -176,10 +208,13 @@ export const calculatePriceForPercentage = (
 };
 
 /**
- * Calculates percentage change based on target price
- * @param price The target price (as string, may include formatting)
- * @param isProfit Whether this is for take profit (true) or stop loss (false)
- * @param params Current price and direction
+ * Calculates percentage change based on target price.
+ *
+ * @param price - The target price (as string, may include formatting)
+ * @param isProfit - Whether this is for take profit (true) or stop loss (false)
+ * @param validationParams - Validation parameters
+ * @param validationParams.currentPrice - The current market price
+ * @param validationParams.direction - The position direction (long or short)
  * @returns The percentage as a string
  */
 export const calculatePercentageForPrice = (
@@ -246,14 +281,18 @@ export const hasTPSLValuesChanged = (
 };
 
 /**
- * Calculates the trigger price for a given RoE percentage
+ * Calculates the trigger price for a given RoE percentage.
  * RoE% = (PnL / marginUsed) * 100
  * PnL = (exitPrice - entryPrice) * size (for long)
  * PnL = (entryPrice - exitPrice) * size (for short)
  *
- * @param roePercentage The target RoE percentage (e.g., 10 for +10%, -5 for -5%)
- * @param isProfit Whether this is for take profit (true) or stop loss (false)
- * @param params Entry price, direction, and leverage
+ * @param roePercentage - The target RoE percentage (e.g., 10 for +10%, -5 for -5%)
+ * @param isProfit - Whether this is for take profit (true) or stop loss (false)
+ * @param validationParams - Validation parameters
+ * @param validationParams.currentPrice - The current market price
+ * @param validationParams.direction - The position direction (long or short)
+ * @param validationParams.leverage - The position leverage multiplier
+ * @param validationParams.entryPrice - The entry price for existing positions
  * @returns The calculated trigger price as a string
  */
 export const calculatePriceForRoE = (
@@ -357,12 +396,16 @@ export const calculatePriceForRoE = (
 };
 
 /**
- * Calculates the RoE percentage for a given trigger price
+ * Calculates the RoE percentage for a given trigger price.
  *
- * @param price The trigger price (as string, may include formatting)
- * @param isProfit Whether this is for take profit (true) or stop loss (false)
- * @param isForPositionBoundTpsl Whether this is for position bound TP/SL roe calculation
- * @param params Current/entry price, direction, and leverage
+ * @param price - The trigger price (as string, may include formatting)
+ * @param isProfit - Whether this is for take profit (true) or stop loss (false)
+ * @param isForPositionBoundTpsl - Whether this is for position bound TP/SL roe calculation
+ * @param validationParams - Validation parameters
+ * @param validationParams.currentPrice - The current market price
+ * @param validationParams.direction - The position direction (long or short)
+ * @param validationParams.leverage - The position leverage multiplier
+ * @param validationParams.entryPrice - The entry price for existing positions
  * @returns The RoE percentage as a string
  */
 export const calculateRoEForPrice = (

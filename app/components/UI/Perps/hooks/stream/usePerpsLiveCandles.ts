@@ -1,8 +1,11 @@
 import { useEffect, useState, useRef } from 'react';
 import { usePerpsStream } from '../../providers/PerpsStreamManager';
-import type { CandleData } from '../../types/perps-types';
-import { CandlePeriod, TimeDuration } from '../../constants/chartConfig';
-import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
+import {
+  CandlePeriod,
+  TimeDuration,
+  PERPS_CONSTANTS,
+  type CandleData,
+} from '@metamask/perps-controller';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../../util/Logger';
 import { ensureError } from '../../../../../util/errorUtils';
@@ -10,7 +13,7 @@ import { ensureError } from '../../../../../util/errorUtils';
 // Stable empty candle data reference to prevent re-renders
 const EMPTY_CANDLE_DATA: CandleData = {
   symbol: '',
-  interval: CandlePeriod.ONE_HOUR,
+  interval: CandlePeriod.OneHour,
   candles: [],
 };
 
@@ -53,8 +56,8 @@ export interface UsePerpsLiveCandlesReturn {
  * ```
  * const { candleData, isLoading } = usePerpsLiveCandles({
  *   symbol: 'BTC',
- *   interval: CandlePeriod.ONE_HOUR,
- *   duration: TimeDuration.ONE_DAY,
+ *   interval: CandlePeriod.OneHour,
+ *   duration: TimeDuration.OneDay,
  *   throttleMs: 1000
  * });
  * ```
@@ -124,7 +127,7 @@ export function usePerpsLiveCandles(
         },
         throttleMs,
         onError: (err: Error) => {
-          const errorInstance = ensureError(err);
+          const errorInstance = ensureError(err, 'usePerpsLiveCandles.onError');
 
           // Log to Sentry: async subscription initialization failure
           Logger.error(errorInstance, {
@@ -154,20 +157,23 @@ export function usePerpsLiveCandles(
       const errorInstance = err instanceof Error ? err : new Error(String(err));
 
       // Log to Sentry: subscription setup failure prevents live updates
-      Logger.error(ensureError(errorInstance), {
-        tags: {
-          feature: PERPS_CONSTANTS.FeatureName,
-          component: 'usePerpsLiveCandles',
-        },
-        context: {
-          name: 'candle_subscription',
-          data: {
-            operation: 'subscribe',
-            symbol,
-            interval,
+      Logger.error(
+        ensureError(errorInstance, 'usePerpsLiveCandles.subscribe'),
+        {
+          tags: {
+            feature: PERPS_CONSTANTS.FeatureName,
+            component: 'usePerpsLiveCandles',
+          },
+          context: {
+            name: 'candle_subscription',
+            data: {
+              operation: 'subscribe',
+              symbol,
+              interval,
+            },
           },
         },
-      });
+      );
 
       setError(errorInstance);
       setIsLoading(false);

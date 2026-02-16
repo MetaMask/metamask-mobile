@@ -1,0 +1,216 @@
+name: Build Mobile App
+
+on:
+  workflow_call:
+    inputs:
+      build_name:
+        required: true
+        type: string
+      platform:
+        required: true
+        type: string # android, ios, or both
+  workflow_dispatch:
+    inputs:
+      build_name:
+        required: true
+        type: choice
+        options:
+          - main-prod
+          - main-beta
+          - main-rc
+          - main-test
+          - main-e2e
+          - main-exp
+          - main-dev
+          - flask-prod
+          - flask-test
+          - flask-e2e
+          - flask-dev
+          - qa-prod
+          - qa-dev
+      platform:
+        required: true
+        type: choice
+        options: [android, ios, both]
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  # Load config 
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      github_environment: ${{ steps.config.outputs.github_environment }}
+      secrets_json: ${{ steps.config.outputs.secrets_json }}
+      signing_aws_role: ${{ steps.config.outputs.signing_aws_role }}
+      signing_aws_secret: ${{ steps.config.outputs.signing_aws_secret }}
+      signing_android_keystore_path: ${{ steps.config.outputs.signing_android_keystore_path }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: yarn install --immutable
+      - run: node scripts/validate-build-config.js
+
+      - name: Load config
+        id: config
+        run: |
+          node -e "
+          const yaml = require('js-yaml');
+          const fs = require('fs');
+          const config = yaml.load(fs.readFileSync('builds.yml', 'utf8'));
+          const build = config.builds['${{ inputs.build_name }}'];
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'github_environment=' + build.github_environment + '\n');
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'secrets_json=' + JSON.stringify(build.secrets || {}) + '\n');
+          const signing = build.signing;
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'signing_aws_role=' + (signing ? signing.aws_role || '' : '') + '\n');
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'signing_aws_secret=' + (signing ? signing.aws_secret || '' : '') + '\n');
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'signing_android_keystore_path=' + (signing && signing.android_keystore_path ? signing.android_keystore_path : '') + '\n');
+          "
+
+  # Build
+  build:
+    needs: [prepare]
+    strategy:
+      matrix:
+        platform: ${{ inputs.platform == 'both' && fromJSON('["android", "ios"]') || fromJSON(format('["{0}"]', inputs.platform)) }}
+    # Android: Cirrus lg (large) runner for 8GB Gradle heap; iOS: GitHub-hosted macOS
+    runs-on: ${{ matrix.platform == 'ios' && 'ghcr.io/cirruslabs/macos-runner:sequoia-xl' || 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg' }}
+    environment: ${{ needs.prepare.outputs.github_environment }}
+    env:
+      # So bundle exec (in yarn pod:install) finds ios/Gemfile when running from repo root
+      BUNDLE_GEMFILE: ios/Gemfile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+      - run: yarn install --immutable
+
+      - name: Apply build config
+        run: |
+          # Load env vars from builds.yml (this step only)
+          eval "$(node scripts/apply-build-config.js ${{ inputs.build_name }} --export)"
+          # Persist to GITHUB_ENV so later steps (e.g. Build) see CONFIGURATION, IS_SIM_BUILD, etc.
+          node scripts/apply-build-config.js ${{ inputs.build_name }} --export-github-env >> "$GITHUB_ENV"
+
+      - name: Set secrets
+        env:
+          CONFIG_SECRETS: ${{ needs.prepare.outputs.secrets_json }}
+          # Injected from builds.yml (run scripts/generate-build-workflow-secrets-env.js after changing secrets)
+          ANDROID_APPLE_CLIENT_ID: ${{ secrets.ANDROID_APPLE_CLIENT_ID }}
+          ANDROID_GOOGLE_CLIENT_ID: ${{ secrets.ANDROID_GOOGLE_CLIENT_ID }}
+          ANDROID_GOOGLE_SERVER_CLIENT_ID: ${{ secrets.ANDROID_GOOGLE_SERVER_CLIENT_ID }}
+          FCM_CONFIG_API_KEY: ${{ secrets.FCM_CONFIG_API_KEY }}
+          FCM_CONFIG_APP_ID: ${{ secrets.FCM_CONFIG_APP_ID }}
+          FCM_CONFIG_AUTH_DOMAIN: ${{ secrets.FCM_CONFIG_AUTH_DOMAIN }}
+          FCM_CONFIG_MEASUREMENT_ID: ${{ secrets.FCM_CONFIG_MEASUREMENT_ID }}
+          FCM_CONFIG_MESSAGING_SENDER_ID: ${{ secrets.FCM_CONFIG_MESSAGING_SENDER_ID }}
+          FCM_CONFIG_PROJECT_ID: ${{ secrets.FCM_CONFIG_PROJECT_ID }}
+          FCM_CONFIG_STORAGE_BUCKET: ${{ secrets.FCM_CONFIG_STORAGE_BUCKET }}
+          FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN: ${{ secrets.FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN }}
+          FEATURES_ANNOUNCEMENTS_SPACE_ID: ${{ secrets.FEATURES_ANNOUNCEMENTS_SPACE_ID }}
+          GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
+          GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
+          IOS_GOOGLE_CLIENT_ID: ${{ secrets.IOS_GOOGLE_CLIENT_ID }}
+          IOS_GOOGLE_REDIRECT_URI: ${{ secrets.IOS_GOOGLE_REDIRECT_URI }}
+          MAIN_ANDROID_APPLE_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_APPLE_CLIENT_ID_UAT }}
+          MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT }}
+          MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT }}
+          MAIN_IOS_GOOGLE_CLIENT_ID_UAT: ${{ secrets.MAIN_IOS_GOOGLE_CLIENT_ID_UAT }}
+          MAIN_IOS_GOOGLE_REDIRECT_URI_UAT: ${{ secrets.MAIN_IOS_GOOGLE_REDIRECT_URI_UAT }}
+          MM_BRANCH_KEY_LIVE: ${{ secrets.MM_BRANCH_KEY_LIVE }}
+          MM_CARD_BAANX_API_CLIENT_KEY: ${{ secrets.MM_CARD_BAANX_API_CLIENT_KEY }}
+          MM_CARD_BAANX_API_CLIENT_KEY_UAT: ${{ secrets.MM_CARD_BAANX_API_CLIENT_KEY_UAT }}
+          MM_FOX_CODE: ${{ secrets.MM_FOX_CODE }}
+          MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
+          MM_SENTRY_AUTH_TOKEN: ${{ secrets.MM_SENTRY_AUTH_TOKEN }}
+          MM_SENTRY_DSN: ${{ secrets.MM_SENTRY_DSN }}
+          QUICKNODE_ARBITRUM_URL: ${{ secrets.QUICKNODE_ARBITRUM_URL }}
+          QUICKNODE_AVALANCHE_URL: ${{ secrets.QUICKNODE_AVALANCHE_URL }}
+          QUICKNODE_BASE_URL: ${{ secrets.QUICKNODE_BASE_URL }}
+          QUICKNODE_LINEA_MAINNET_URL: ${{ secrets.QUICKNODE_LINEA_MAINNET_URL }}
+          QUICKNODE_MAINNET_URL: ${{ secrets.QUICKNODE_MAINNET_URL }}
+          QUICKNODE_MONAD_URL: ${{ secrets.QUICKNODE_MONAD_URL }}
+          QUICKNODE_OPTIMISM_URL: ${{ secrets.QUICKNODE_OPTIMISM_URL }}
+          QUICKNODE_POLYGON_URL: ${{ secrets.QUICKNODE_POLYGON_URL }}
+          SEGMENT_DELETE_API_SOURCE_ID: ${{ secrets.SEGMENT_DELETE_API_SOURCE_ID }}
+          SEGMENT_DELETE_API_SOURCE_ID_QA: ${{ secrets.SEGMENT_DELETE_API_SOURCE_ID_QA }}
+          SEGMENT_PROXY_URL: ${{ secrets.SEGMENT_PROXY_URL }}
+          SEGMENT_PROXY_URL_QA: ${{ secrets.SEGMENT_PROXY_URL_QA }}
+          SEGMENT_REGULATIONS_ENDPOINT: ${{ secrets.SEGMENT_REGULATIONS_ENDPOINT }}
+          SEGMENT_REGULATIONS_ENDPOINT_QA: ${{ secrets.SEGMENT_REGULATIONS_ENDPOINT_QA }}
+          SEGMENT_WRITE_KEY: ${{ secrets.SEGMENT_WRITE_KEY }}
+          SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
+          WALLET_CONNECT_PROJECT_ID: ${{ secrets.WALLET_CONNECT_PROJECT_ID }}
+        run: node scripts/set-secrets-from-config.js
+
+      # Android only: minimal env (SDK is pre-installed on Cirrus runner)
+      - name: Set Android environment variables
+        if: matrix.platform == 'android'
+        run: |
+          echo "ANDROID_HOME=/opt/android-sdk" >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=/opt/android-sdk" >> "$GITHUB_ENV"
+
+      - name: Setup Java
+        if: matrix.platform == 'android'
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      # Signing: uses role + secret from builds.yml (skip for dev builds - main-dev, flask-dev, qa-dev use debug/simulator)
+      - name: Configure signing certificates
+        if: needs.prepare.outputs.signing_aws_role != ''
+        uses: ./.github/actions/configure-signing
+        with:
+          aws-role-to-assume: ${{ needs.prepare.outputs.signing_aws_role }}
+          aws-region: 'us-east-2'
+          platform: ${{ matrix.platform }}
+          aws-secret-name: ${{ needs.prepare.outputs.signing_aws_secret }}
+          android-keystore-path: ${{ needs.prepare.outputs.signing_android_keystore_path }}
+
+      - name: Setup project dependencies with retry
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: |
+            echo "🚀 Setting up project..."
+            if [ "${{ matrix.platform }}" = "ios" ]; then
+              yarn setup:github-ci --build-ios --no-build-android
+            else
+              yarn setup:github-ci --no-build-ios
+            fi
+
+      # Android: use CI Gradle settings (8GB heap, OOM handling) to avoid daemon OOM
+      - name: Use CI Gradle properties (Android)
+        if: matrix.platform == 'android'
+        run: cp android/gradle.properties.github android/gradle.properties
+
+      - name: Build ${{ matrix.platform }}
+        timeout-minutes: 115
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 55
+          max_attempts: 2
+          retry_wait_seconds: 60
+          command: |
+            export NODE_OPTIONS='--max-old-space-size=4096'
+            export METRO_MAX_WORKERS='4'
+            BUILD_NAME="${{ inputs.build_name }}"
+            SCRIPT_NAME="build:${{ matrix.platform }}:${BUILD_NAME//-/:}"
+            yarn "$SCRIPT_NAME"
+
+      # Expo development builds: upload iOS .app for simulator (Runway-style artifact)
+      - name: Upload iOS Expo development build
+        if: matrix.platform == 'ios' && (inputs.build_name == 'main-dev' || inputs.build_name == 'flask-dev' || inputs.build_name == 'qa-dev')
+        uses: actions/upload-artifact@v4
+        with:
+          name: expo-dev-ios-${{ inputs.build_name }}
+          path: ios/build/Build/Products/Debug-iphonesimulator/

@@ -1,9 +1,9 @@
-import { RegressionWalletPlatform } from '../../../../e2e/tags';
-import TabBarComponent from '../../../../e2e/pages/wallet/TabBarComponent';
-import SettingsView from '../../../../e2e/pages/Settings/SettingsView';
-import ContactsView from '../../../../e2e/pages/Settings/Contacts/ContactsView';
-import AddContactView from '../../../../e2e/pages/Settings/Contacts/AddContactView';
-import { loginToApp } from '../../../../e2e/viewHelper';
+import { RegressionWalletPlatform } from '../../../tags';
+import TabBarComponent from '../../../page-objects/wallet/TabBarComponent';
+import SettingsView from '../../../page-objects/Settings/SettingsView';
+import ContactsView from '../../../page-objects/Settings/Contacts/ContactsView';
+import AddContactView from '../../../page-objects/Settings/Contacts/AddContactView';
+import { loginToApp } from '../../../flows/wallet.flow';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import Assertions from '../../../framework/Assertions';
@@ -17,10 +17,10 @@ import {
   SIMULATION_ENABLED_NETWORKS_MOCK,
   SEND_ETH_SIMULATION_MOCK,
 } from '../../../api-mocking/mock-responses/simulations';
-import { confirmationsRedesignedFeatureFlags } from '../../../api-mocking/mock-responses/feature-flags-mocks';
-import CommonView from '../../../../e2e/pages/CommonView';
+import { confirmationFeatureFlags } from '../../../api-mocking/mock-responses/feature-flags-mocks';
+import CommonView from '../../../page-objects/CommonView';
 import enContent from '../../../../locales/languages/en.json';
-import WalletView from '../../../../e2e/pages/wallet/WalletView';
+import WalletView from '../../../page-objects/wallet/WalletView';
 import { device } from 'detox';
 
 const MEMO = 'Test adding ENS';
@@ -29,7 +29,7 @@ const INVALID_ADDRESS = '0xB8B4EE5B1b693971eB60bDa15211570df2dB221L';
 const testSpecificMock = async (mockServer: Mockttp) => {
   await setupRemoteFeatureFlagsMock(
     mockServer,
-    Object.assign({}, ...confirmationsRedesignedFeatureFlags),
+    Object.assign({}, ...confirmationFeatureFlags),
   );
 
   await setupMockRequest(mockServer, {

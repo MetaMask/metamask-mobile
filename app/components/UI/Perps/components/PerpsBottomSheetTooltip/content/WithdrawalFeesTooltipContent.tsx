@@ -12,9 +12,9 @@ import { formatPerpsFiat } from '../../../utils/formatUtils';
 import Engine from '../../../../../../core/Engine';
 import {
   HYPERLIQUID_ASSET_CONFIGS,
-  METAMASK_WITHDRAWAL_FEE_PLACEHOLDER,
-} from '../../../constants/hyperLiquidConfig';
-import { WITHDRAWAL_CONSTANTS } from '../../../constants/perpsConfig';
+  WITHDRAWAL_CONSTANTS,
+} from '@metamask/perps-controller';
+import { METAMASK_WITHDRAWAL_FEE_PLACEHOLDER } from '../../../constants/perpsUIConfig';
 
 const WithdrawalFeesTooltipContent: React.FC<TooltipContentProps> = ({
   testID,
@@ -29,8 +29,8 @@ const WithdrawalFeesTooltipContent: React.FC<TooltipContentProps> = ({
 
     // Find USDC route
     const usdcAssetId = isTestnet
-      ? HYPERLIQUID_ASSET_CONFIGS.USDC.testnet
-      : HYPERLIQUID_ASSET_CONFIGS.USDC.mainnet;
+      ? HYPERLIQUID_ASSET_CONFIGS.usdc.testnet
+      : HYPERLIQUID_ASSET_CONFIGS.usdc.mainnet;
 
     return routes.find((route) => route.assetId === usdcAssetId);
   }, []);

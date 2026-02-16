@@ -34,7 +34,6 @@ jest.mock('../../hooks/usePredictActionGuard', () => ({
   usePredictActionGuard: () => ({
     executeGuardedAction: mockExecuteGuardedAction,
     isEligible: true,
-    hasNoBalance: false,
   }),
 }));
 
@@ -51,7 +50,13 @@ jest.mock('@react-native-clipboard/clipboard', () => ({
 
 const initialState = {
   engine: {
-    backgroundState,
+    backgroundState: {
+      ...backgroundState,
+      PreferencesController: {
+        ...backgroundState.PreferencesController,
+        privacyMode: false,
+      },
+    },
   },
 };
 
@@ -231,6 +236,42 @@ describe('PredictBalance', () => {
       // Assert
       expect(getByTestId('predict-balance-card')).toBeOnTheScreen();
     });
+
+    it('hides balance amount when privacy mode is enabled', () => {
+      // Arrange
+      mockUsePredictBalance.mockReturnValue({
+        balance: 24.66,
+        isLoading: false,
+        isRefreshing: false,
+        error: null,
+        loadBalance: jest.fn(),
+        hasNoBalance: false,
+      });
+
+      const privacyEnabledState = {
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            PreferencesController: {
+              ...backgroundState.PreferencesController,
+              privacyMode: true,
+            },
+          },
+        },
+      };
+
+      // Act
+      const { queryByText, getByText } = renderWithProvider(
+        <PredictBalance />,
+        {
+          state: privacyEnabledState,
+        },
+      );
+
+      // Assert
+      expect(queryByText('$24.66')).toBeNull();
+      expect(getByText('•••••••••')).toBeOnTheScreen();
+    });
   });
 
   describe('button display', () => {
@@ -294,7 +335,7 @@ describe('PredictBalance', () => {
       expect(queryByText(/Withdraw/i)).not.toBeOnTheScreen();
     });
 
-    it('calls deposit function when Add Funds button is pressed', () => {
+    it('calls deposit function with analytics properties when Add Funds button is pressed', () => {
       // Arrange
       const mockDeposit = jest.fn();
       mockUsePredictBalance.mockReturnValue({
@@ -319,6 +360,11 @@ describe('PredictBalance', () => {
 
       // Assert
       expect(mockDeposit).toHaveBeenCalledTimes(1);
+      expect(mockDeposit).toHaveBeenCalledWith({
+        analyticsProperties: {
+          entryPoint: 'homepage_balance',
+        },
+      });
     });
 
     it('calls executeGuardedAction when Add Funds button is pressed', () => {

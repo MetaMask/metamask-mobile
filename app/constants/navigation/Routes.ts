@@ -2,6 +2,7 @@ const Routes = {
   WALLET_VIEW: 'WalletView',
   BROWSER_TAB_HOME: 'BrowserTabHome',
   BROWSER_VIEW: 'BrowserView',
+  ACCOUNTS_MENU_VIEW: 'AccountsMenuView',
   SETTINGS_VIEW: 'SettingsView',
   DEPRECATED_NETWORK_DETAILS: 'DeprecatedNetworkDetails',
   RAMP: {
@@ -28,7 +29,9 @@ const Routes = {
       UNSUPPORTED_REGION: 'RampUnsupportedRegionModal',
       UNSUPPORTED_TOKEN: 'RampUnsupportedTokenModal',
       PAYMENT_METHOD_SELECTOR: 'RampPaymentMethodSelectorModal',
+      PAYMENT_SELECTION: 'RampPaymentSelectionModal',
       SETTINGS: 'RampSettingsModal',
+      BUILD_QUOTE_SETTINGS: 'RampBuildQuoteSettingsModal',
     },
   },
   DEPOSIT: {
@@ -70,6 +73,7 @@ const Routes = {
   },
   LEDGER_MESSAGE_SIGN_MODAL: 'LedgerMessageSignModal',
   LEDGER_TRANSACTION_MODAL: 'LedgerTransactionModal',
+  QR_SIGNING_TRANSACTION_MODAL: 'QRSigningTransactionModal',
   QR_TAB_SWITCHER: 'QRTabSwitcher',
   OPTIONS_SHEET: 'OptionsSheet',
   QR_SCANNER: 'QRScanner',
@@ -102,6 +106,7 @@ const Routes = {
     WALLET_ACTIONS: 'WalletActions',
     TRADE_WALLET_ACTIONS: 'TradeWalletActions',
     FUND_ACTION_MENU: 'FundActionMenu',
+    MORE_TOKEN_ACTIONS_MENU: 'MoreTokenActionsMenu',
     NFT_AUTO_DETECTION_MODAL: 'NFTAutoDetectionModal',
     MULTI_RPC_MIGRATION_MODAL: 'MultiRPcMigrationModal',
     MAX_BROWSER_TABS_MODAL: 'MaxBrowserTabsModal',
@@ -112,11 +117,10 @@ const Routes = {
     PNA25_NOTICE_BOTTOM_SHEET: 'Pna25BottomSheet',
     REWARDS_BOTTOM_SHEET_MODAL: 'RewardsBottomSheetModal',
     REWARDS_CLAIM_BOTTOM_SHEET_MODAL: 'RewardsClaimBottomSheetModal',
-    REWARDS_INTRO_MODAL: 'RewardsIntroModal',
     REWARDS_OPTIN_ACCOUNT_GROUP_MODAL: 'RewardOptInAccountGroupModal',
-    REWARDS_REFERRAL_BOTTOM_SHEET_MODAL: 'RewardsReferralBottomSheetModal',
     OTA_UPDATES_MODAL: 'OTAUpdatesModal',
     REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET: 'EndOfSeasonClaimBottomSheet',
+    CLAIM_ON_LINEA: 'ClaimOnLineaModal',
   },
   ONBOARDING: {
     ROOT_NAV: 'OnboardingRootNav',
@@ -141,6 +145,7 @@ const Routes = {
     OPTIN_METRICS: 'OptinMetrics',
     SOCIAL_LOGIN_SUCCESS_EXISTING_USER: 'SocialLoginSuccessExistingUser',
     REHYDRATE: 'Rehydrate',
+    WALLET_CREATION_ERROR: 'WalletCreationError',
   },
   SEND_FLOW: {
     SEND_TO: 'SendTo',
@@ -151,6 +156,9 @@ const Routes = {
     STEP_1_B: 'AccountBackupStep1B',
   },
   SETTINGS: {
+    ROOT: 'Settings',
+    CONTACTS: 'ContactsSettings',
+    COMPANY: 'CompanySettings',
     SECURITY_SETTINGS: 'SecuritySettings',
     ADVANCED_SETTINGS: 'AdvancedSettings',
     CHANGE_PASSWORD: 'ResetPassword',
@@ -200,6 +208,9 @@ const Routes = {
     SUCCESS_ERROR_SHEET: 'SuccessErrorSheet',
     ELIGIBILITY_FAILED_MODAL: 'EligibilityFailedModal',
     UNSUPPORTED_REGION_MODAL: 'UnsupportedRegionModal',
+    MULTICHAIN_TRANSACTION_DETAILS: 'MultichainTransactionDetails',
+    TRANSACTION_DETAILS: 'TransactionDetailsSheet',
+    IMPORT_WALLET_TIP: 'ImportWalletTipSheet',
     MULTICHAIN_ACCOUNT_DETAILS: {
       ACCOUNT_ACTIONS: 'MultichainAccountActions',
       EDIT_ACCOUNT_NAME: 'EditMultichainAccountName',
@@ -245,18 +256,20 @@ const Routes = {
     TOKEN_SELECTOR: 'BridgeTokenSelector',
     MODALS: {
       ROOT: 'BridgeModals',
-      SLIPPAGE_MODAL: 'SlippageModal',
+      DEFAULT_SLIPPAGE_MODAL: 'DefaultSlippageModal',
+      CUSTOM_SLIPPAGE_MODAL: 'CustomSlippageModal',
       TRANSACTION_DETAILS_BLOCK_EXPLORER: 'TransactionDetailsBlockExplorer',
       QUOTE_EXPIRED_MODAL: 'QuoteExpiredModal',
       BLOCKAID_MODAL: 'BlockaidModal',
       RECIPIENT_SELECTOR_MODAL: 'RecipientSelectorModal',
+      NETWORK_LIST_MODAL: 'NetworkListModal',
     },
     BRIDGE_TRANSACTION_DETAILS: 'BridgeTransactionDetails',
   },
   PERPS: {
     ROOT: 'Perps',
     PERPS_TAB: 'PerpsTradingView', // Redirect to wallet home and select perps tab
-    ORDER: 'PerpsOrder',
+    ORDER_REDIRECT: 'PerpsOrderRedirect', // Redirect for one-click trade from token details
     WITHDRAW: 'PerpsWithdraw',
     POSITIONS: 'PerpsPositions',
     PERPS_HOME: 'PerpsMarketListView', // Home screen (positions, orders, watchlist, markets)
@@ -283,6 +296,7 @@ const Routes = {
       CANCEL_ALL_ORDERS: 'PerpsCancelAllOrders',
       TOOLTIP: 'PerpsTooltip',
       CROSS_MARGIN_WARNING: 'PerpsCrossMarginWarning',
+      SELECT_PROVIDER: 'PerpsSelectProvider',
     },
     POSITION_TRANSACTION: 'PerpsPositionTransaction',
     ORDER_TRANSACTION: 'PerpsOrderTransaction',
@@ -335,7 +349,6 @@ const Routes = {
     LENDING_WITHDRAWAL_CONFIRMATION: 'EarnLendingWithdrawalConfirmation',
     MUSD: {
       CONVERSION_EDUCATION: 'EarnMusdConversionEducation',
-      CONVERSION_TRANSACTION_DETAILS: 'MusdConversionTransactionDetails',
     },
     MODALS: {
       ROOT: 'EarnModals',
@@ -390,6 +403,9 @@ const Routes = {
     SPENDING_LIMIT: 'CardSpendingLimit',
     CHANGE_ASSET: 'CardChangeAsset',
     VERIFYING_REGISTRATION: 'VerifyingRegistration',
+    CHOOSE_YOUR_CARD: 'ChooseYourCard',
+    REVIEW_ORDER: 'ReviewOrder',
+    ORDER_COMPLETED: 'OrderCompleted',
     ONBOARDING: {
       ROOT: 'CardOnboarding',
       SIGN_UP: 'CardOnboardingSignUp',
@@ -403,6 +419,7 @@ const Routes = {
       MAILING_ADDRESS: 'CardOnboardingMailingAddress',
       COMPLETE: 'CardOnboardingComplete',
       KYC_FAILED: 'CardOnboardingKYCFailed',
+      KYC_PENDING: 'CardOnboardingKYCPending',
       WEBVIEW: 'CardOnboardingWebview',
     },
     MODALS: {
@@ -411,6 +428,9 @@ const Routes = {
       ASSET_SELECTION: 'CardAssetSelectionModal',
       REGION_SELECTION: 'CardRegionSelectionModal',
       CONFIRM_MODAL: 'CardConfirmModal',
+      PASSWORD: 'CardPasswordModal',
+      RECURRING_FEE: 'CardRecurringFeeModal',
+      DAIMO_PAY: 'CardDaimoPayModal',
     },
   },
   SEND: {

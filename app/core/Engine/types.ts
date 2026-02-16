@@ -45,6 +45,7 @@ import {
   DeFiPositionsControllerState,
   DeFiPositionsControllerEvents,
   DeFiPositionsControllerActions,
+
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   MultichainBalancesControllerState,
   MultichainBalancesController,
@@ -67,6 +68,12 @@ import {
   TokenDetectionControllerActions,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/assets-controllers';
+import {
+  AssetsController,
+  AssetsControllerActions,
+  AssetsControllerEvents,
+  AssetsControllerState,
+} from '@metamask/assets-controller';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import {
   MultichainTransactionsController,
@@ -267,12 +274,6 @@ import {
   ActionConstraint,
   EventConstraint,
 } from '@metamask/messenger';
-import {
-  TokenSearchDiscoveryController,
-  TokenSearchDiscoveryControllerState,
-  TokenSearchDiscoveryControllerActions,
-  TokenSearchDiscoveryControllerEvents,
-} from '@metamask/token-search-discovery-controller';
 import { SnapKeyringEvents } from '@metamask/eth-snap-keyring';
 import {
   MultichainNetworkController,
@@ -303,7 +304,7 @@ import {
   PerpsControllerState,
   PerpsControllerActions,
   PerpsControllerEvents,
-} from '../../components/UI/Perps/controllers/PerpsController';
+} from '@metamask/perps-controller';
 import { RewardsController } from './controllers/rewards-controller/RewardsController';
 import {
   RewardsDataService,
@@ -451,6 +452,7 @@ type GlobalActions =
   | SamplePetnamesControllerActions
   ///: END:ONLY_INCLUDE_IF
   | AccountTrackerControllerActions
+  | AssetsControllerActions
   | NftControllerActions
   | SwapsControllerActions
   | AddressBookControllerActions
@@ -500,7 +502,6 @@ type GlobalActions =
   | SmartTransactionsControllerActions
   | AssetsContractControllerActions
   | RemoteFeatureFlagControllerActions
-  | TokenSearchDiscoveryControllerActions
   | TokenSearchDiscoveryDataControllerActions
   | MultichainNetworkControllerActions
   | BridgeControllerActions
@@ -528,6 +529,7 @@ type GlobalEvents =
   | SamplePetnamesControllerEvents
   ///: END:ONLY_INCLUDE_IF
   | AccountTrackerControllerEvents
+  | AssetsControllerEvents
   | NftControllerEvents
   | SwapsControllerEvents
   | AddressBookControllerEvents
@@ -577,7 +579,6 @@ type GlobalEvents =
   | SmartTransactionsControllerEvents
   | AssetsContractControllerEvents
   | RemoteFeatureFlagControllerEvents
-  | TokenSearchDiscoveryControllerEvents
   | TokenSearchDiscoveryDataControllerEvents
   | SnapKeyringEvents
   | MultichainNetworkControllerEvents
@@ -642,6 +643,7 @@ export type Controllers = {
   ConnectivityController: ConnectivityController;
   ApprovalController: ApprovalController;
   AssetsContractController: AssetsContractController;
+  AssetsController: AssetsController;
   CurrencyRateController: CurrencyRateController;
   ErrorReportingService: ErrorReportingService;
   GasFeeController: GasFeeController;
@@ -665,7 +667,6 @@ export type Controllers = {
   TokenListController: TokenListController;
   TokenDetectionController: TokenDetectionController;
   TokenRatesController: TokenRatesController;
-  TokenSearchDiscoveryController: TokenSearchDiscoveryController;
   TokensController: TokensController;
   DeFiPositionsController: DeFiPositionsController;
   TransactionController: TransactionController;
@@ -729,6 +730,7 @@ export type EngineContext = RequiredControllers & Partial<OptionalControllers>;
 export type EngineState = {
   AccountTrackerController: AccountTrackerControllerState;
   AddressBookController: AddressBookControllerState;
+  AssetsController: AssetsControllerState;
   AppMetadataController: AppMetadataControllerState;
   ConnectivityController: ConnectivityControllerState;
   NftController: NftControllerState;
@@ -743,7 +745,6 @@ export type EngineState = {
   PhishingController: PhishingControllerState;
   TokenBalancesController: TokenBalancesControllerState;
   TokenRatesController: TokenRatesControllerState;
-  TokenSearchDiscoveryController: TokenSearchDiscoveryControllerState;
   TransactionController: TransactionControllerState;
   TransactionPayController: TransactionPayControllerState;
   SmartTransactionsController: SmartTransactionsControllerState;
@@ -825,6 +826,7 @@ export type ControllersToInitialize =
   | 'AccountTrackerController'
   | 'AddressBookController'
   | 'AssetsContractController'
+  | 'AssetsController'
   | 'ConnectivityController'
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   | 'AuthenticationController'
@@ -877,7 +879,6 @@ export type ControllersToInitialize =
   | 'TokenListController'
   | 'TokenRatesController'
   | 'TokensController'
-  | 'TokenSearchDiscoveryController'
   | 'TokenSearchDiscoveryDataController'
   | 'TransactionController'
   | 'TransactionPayController'

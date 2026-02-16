@@ -18,6 +18,7 @@ import {
   SafeAreaView,
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
+import { useSelector } from 'react-redux';
 import { PerpsOrderBookViewSelectorsIDs } from '../../Perps.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import ButtonSemantic, {
@@ -55,9 +56,10 @@ import PerpsOrderBookTable, {
   type UnitDisplay,
 } from '../../components/PerpsOrderBookTable';
 import {
-  PerpsEventProperties,
-  PerpsEventValues,
-} from '../../constants/eventNames';
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+  getPerpsDisplaySymbol,
+} from '@metamask/perps-controller';
 import {
   usePerpsMarkets,
   usePerpsNavigation,
@@ -65,18 +67,19 @@ import {
 } from '../../hooks';
 import { useHasExistingPosition } from '../../hooks/useHasExistingPosition';
 import { usePerpsLiveOrderBook } from '../../hooks/stream/usePerpsLiveOrderBook';
+import { usePerpsLivePrices } from '../../hooks/stream/usePerpsLivePrices';
 import { usePerpsTopOfBook } from '../../hooks/stream/usePerpsTopOfBook';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { usePerpsOrderBookGrouping } from '../../hooks/usePerpsOrderBookGrouping';
 import { selectPerpsButtonColorTestVariant } from '../../selectors/featureFlags';
+import { selectPerpsEligibility } from '../../selectors/perpsController';
 import { BUTTON_COLOR_TEST } from '../../utils/abTesting/tests';
 import { usePerpsABTest } from '../../utils/abTesting/usePerpsABTest';
 import {
   formatPerpsFiat,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
-import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
 import {
   calculateAggregationParams,
   calculateGroupingOptions,
@@ -112,6 +115,11 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
     test: BUTTON_COLOR_TEST,
     featureFlagSelector: selectPerpsButtonColorTestVariant,
   });
+
+  // Geo-restriction eligibility check
+  const isEligible = useSelector(selectPerpsEligibility);
+  const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
+    useState(false);
 
   // Get market data for the header
   const { markets } = usePerpsMarkets();
@@ -196,6 +204,27 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
   // This is intentionally independent from order book aggregation/grouping.
   const topOfBook = usePerpsTopOfBook({ symbol: symbol || '' });
 
+  // Subscribe to live price updates for header display (TAT-2441)
+  // This ensures the price in the header updates in real-time
+  const livePrices = usePerpsLivePrices({
+    symbols: symbol ? [symbol] : [],
+    throttleMs: 1000,
+  });
+
+  // Current price for header - use live price with fallback to static market price
+  const currentPrice = useMemo(() => {
+    const priceData = livePrices[symbol || ''];
+    if (priceData?.price) {
+      const parsed = parseFloat(priceData.price);
+      // Validate parsed value - fallback to marketPrice if invalid
+      if (Number.isFinite(parsed) && parsed > 0) {
+        return parsed;
+      }
+    }
+    // Fallback to static market price if live price not available or invalid
+    return marketPrice ?? 0;
+  }, [livePrices, symbol, marketPrice]);
+
   const spreadMetrics = useMemo(() => {
     const bidStr = topOfBook?.bestBid;
     const askStr = topOfBook?.bestAsk;
@@ -265,9 +294,9 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
     eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
     conditions: [!!symbol, !!orderBook],
     properties: {
-      [PerpsEventProperties.SCREEN_TYPE]:
-        PerpsEventValues.SCREEN_TYPE.ORDER_BOOK,
-      [PerpsEventProperties.ASSET]: symbol || '',
+      [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+        PERPS_EVENT_VALUE.SCREEN_TYPE.ORDER_BOOK,
+      [PERPS_EVENT_PROPERTY.ASSET]: symbol || '',
     },
   });
 
@@ -301,9 +330,9 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
       setIsDepthBandSheetVisible(false);
 
       track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-        [PerpsEventProperties.INTERACTION_TYPE]:
-          PerpsEventValues.INTERACTION_TYPE.TAP,
-        [PerpsEventProperties.ASSET]: symbol || '',
+        [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+          PERPS_EVENT_VALUE.INTERACTION_TYPE.TAP,
+        [PERPS_EVENT_PROPERTY.ASSET]: symbol || '',
       });
     },
     [symbol, track, saveGrouping],
@@ -333,9 +362,9 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
       setUnitDisplay(unit);
 
       track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-        [PerpsEventProperties.INTERACTION_TYPE]:
-          PerpsEventValues.INTERACTION_TYPE.TAP,
-        [PerpsEventProperties.ASSET]: symbol || '',
+        [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+          PERPS_EVENT_VALUE.INTERACTION_TYPE.TAP,
+        [PERPS_EVENT_PROPERTY.ASSET]: symbol || '',
       });
     },
     [symbol, track],
@@ -343,14 +372,26 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
 
   // Handle Long button press
   const handleLongPress = useCallback(() => {
+    // Geo-restriction check
+    if (!isEligible) {
+      track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
+        [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+          PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+        [PERPS_EVENT_PROPERTY.SOURCE]:
+          PERPS_EVENT_VALUE.SOURCE.ORDER_BOOK_LONG_BUTTON,
+      });
+      setIsEligibilityModalVisible(true);
+      return;
+    }
+
     track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-      [PerpsEventProperties.INTERACTION_TYPE]:
-        PerpsEventValues.INTERACTION_TYPE.TAP,
-      [PerpsEventProperties.ASSET]: symbol || '',
-      [PerpsEventProperties.DIRECTION]: PerpsEventValues.DIRECTION.LONG,
-      [PerpsEventProperties.SOURCE]: PerpsEventValues.SOURCE.PERP_ASSET_SCREEN,
+      [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+        PERPS_EVENT_VALUE.INTERACTION_TYPE.TAP,
+      [PERPS_EVENT_PROPERTY.ASSET]: symbol || '',
+      [PERPS_EVENT_PROPERTY.DIRECTION]: PERPS_EVENT_VALUE.DIRECTION.LONG,
+      [PERPS_EVENT_PROPERTY.SOURCE]: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
       ...(isButtonColorTestEnabled && {
-        [PerpsEventProperties.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
+        [PERPS_EVENT_PROPERTY.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
       }),
     });
 
@@ -359,6 +400,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
       asset: symbol || '',
     });
   }, [
+    isEligible,
     symbol,
     navigateToOrder,
     track,
@@ -368,14 +410,26 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
 
   // Handle Short button press
   const handleShortPress = useCallback(() => {
+    // Geo-restriction check
+    if (!isEligible) {
+      track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
+        [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+          PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+        [PERPS_EVENT_PROPERTY.SOURCE]:
+          PERPS_EVENT_VALUE.SOURCE.ORDER_BOOK_SHORT_BUTTON,
+      });
+      setIsEligibilityModalVisible(true);
+      return;
+    }
+
     track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-      [PerpsEventProperties.INTERACTION_TYPE]:
-        PerpsEventValues.INTERACTION_TYPE.TAP,
-      [PerpsEventProperties.ASSET]: symbol || '',
-      [PerpsEventProperties.DIRECTION]: PerpsEventValues.DIRECTION.SHORT,
-      [PerpsEventProperties.SOURCE]: PerpsEventValues.SOURCE.PERP_ASSET_SCREEN,
+      [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+        PERPS_EVENT_VALUE.INTERACTION_TYPE.TAP,
+      [PERPS_EVENT_PROPERTY.ASSET]: symbol || '',
+      [PERPS_EVENT_PROPERTY.DIRECTION]: PERPS_EVENT_VALUE.DIRECTION.SHORT,
+      [PERPS_EVENT_PROPERTY.SOURCE]: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
       ...(isButtonColorTestEnabled && {
-        [PerpsEventProperties.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
+        [PERPS_EVENT_PROPERTY.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
       }),
     });
 
@@ -384,6 +438,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
       asset: symbol || '',
     });
   }, [
+    isEligible,
     symbol,
     navigateToOrder,
     track,
@@ -394,14 +449,40 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
   // Handle Close position button press
   const handleClosePosition = useCallback(() => {
     if (!existingPosition) return;
+
+    // Geo-restriction check
+    if (!isEligible) {
+      track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
+        [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+          PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+        [PERPS_EVENT_PROPERTY.SOURCE]:
+          PERPS_EVENT_VALUE.SOURCE.ORDER_BOOK_CLOSE_BUTTON,
+      });
+      setIsEligibilityModalVisible(true);
+      return;
+    }
+
     navigateToClosePosition(existingPosition);
-  }, [existingPosition, navigateToClosePosition]);
+  }, [existingPosition, navigateToClosePosition, isEligible, track]);
 
   // Handle Modify position button press
   const handleModifyPress = useCallback(() => {
     if (!existingPosition) return;
+
+    // Geo-restriction check
+    if (!isEligible) {
+      track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
+        [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+          PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+        [PERPS_EVENT_PROPERTY.SOURCE]:
+          PERPS_EVENT_VALUE.SOURCE.ORDER_BOOK_MODIFY_BUTTON,
+      });
+      setIsEligibilityModalVisible(true);
+      return;
+    }
+
     openModifySheet();
-  }, [existingPosition, openModifySheet]);
+  }, [existingPosition, openModifySheet, isEligible, track]);
 
   // Error state
   if (error) {
@@ -411,7 +492,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
           <PerpsMarketHeader
             market={market}
             onBackPress={handleBack}
-            currentPrice={marketPrice ?? 0}
+            currentPrice={currentPrice}
           />
         ) : (
           <View style={styles.header}>
@@ -445,7 +526,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
         <PerpsMarketHeader
           market={market}
           onBackPress={handleBack}
-          currentPrice={marketPrice ?? 0}
+          currentPrice={currentPrice}
         />
       )}
 
@@ -707,6 +788,16 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
           position={existingPosition ?? undefined}
           onClose={closeModifySheet}
           onReversePosition={handleReversePosition}
+        />
+      )}
+
+      {/* Geo-restriction Modal */}
+      {isEligibilityModalVisible && (
+        <PerpsBottomSheetTooltip
+          isVisible
+          onClose={() => setIsEligibilityModalVisible(false)}
+          contentKey={'geo_block'}
+          testID={`${PerpsOrderBookViewSelectorsIDs.CONTAINER}-geo-block-tooltip`}
         />
       )}
     </SafeAreaView>

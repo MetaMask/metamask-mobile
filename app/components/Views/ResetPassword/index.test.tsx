@@ -47,13 +47,6 @@ jest.mock('../../../core/Engine', () => ({
 
 jest.mock('lottie-react-native', () => 'LottieView');
 
-const mockUpdateAuthTypeStorageFlags = jest.fn().mockResolvedValue(undefined);
-jest.mock('../../../util/authentication', () => ({
-  ...jest.requireActual('../../../util/authentication'),
-  updateAuthTypeStorageFlags: (biometryChoice: boolean) =>
-    mockUpdateAuthTypeStorageFlags(biometryChoice),
-}));
-
 jest.mock('../../../store/storage-wrapper', () => ({
   setItem: jest.fn(),
   getItem: jest.fn().mockResolvedValue(null), // Mock to return null to avoid biometrics interference
@@ -492,6 +485,86 @@ describe('ResetPassword', () => {
         }),
       ),
     ).toBeOnTheScreen();
+  });
+
+  it('shows error state only after password field loses focus with invalid password', async () => {
+    const component = await renderConfirmPasswordView();
+
+    const newPasswordInput = component.getByTestId(
+      ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+    );
+
+    // Type a short password
+    await act(async () => {
+      fireEvent.changeText(newPasswordInput, '1234567');
+    });
+
+    // Helper text should be visible
+    const helperText = component.getByText(
+      strings('reset_password.must_be_at_least', { number: 8 }),
+    );
+    expect(helperText).toBeOnTheScreen();
+
+    // Blur the password field to trigger error state
+    await act(async () => {
+      fireEvent(newPasswordInput, 'blur');
+    });
+
+    // After blur, helper text should still be visible
+    expect(
+      component.getByText(
+        strings('reset_password.must_be_at_least', { number: 8 }),
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('hides error state when user focuses back on password field', async () => {
+    const component = await renderConfirmPasswordView();
+
+    const newPasswordInput = component.getByTestId(
+      ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+    );
+
+    // Type a short password
+    await act(async () => {
+      fireEvent.changeText(newPasswordInput, '1234567');
+    });
+
+    // Blur to trigger error state
+    await act(async () => {
+      fireEvent(newPasswordInput, 'blur');
+    });
+
+    // Focus back on the password field
+    await act(async () => {
+      fireEvent(newPasswordInput, 'focus');
+    });
+
+    // Helper text should still be visible but error state should be reset
+    const helperText = component.getByText(
+      strings('reset_password.must_be_at_least', { number: 8 }),
+    );
+    expect(helperText).toBeOnTheScreen();
+  });
+
+  it('helper text disappears when password meets minimum length', async () => {
+    const component = await renderConfirmPasswordView();
+
+    const newPasswordInput = component.getByTestId(
+      ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+    );
+
+    // Type a password that meets minimum length
+    await act(async () => {
+      fireEvent.changeText(newPasswordInput, '12345678');
+    });
+
+    // Helper text should not be visible when password meets minimum length
+    expect(
+      component.queryByText(
+        strings('reset_password.must_be_at_least', { number: 8 }),
+      ),
+    ).toBeNull();
   });
 
   it('password does not match, it shows an error', async () => {
@@ -1021,9 +1094,7 @@ describe('ResetPassword', () => {
   });
 
   describe('biometry choice storage', () => {
-    it('saves biometry choice as false when auth type is not biometric', async () => {
-      mockUpdateAuthTypeStorageFlags.mockClear();
-
+    it('completes reset password flow when auth type is not biometric', async () => {
       const component = await renderConfirmPasswordView();
 
       const newPasswordInput = component.getByTestId(
@@ -1068,15 +1139,9 @@ describe('ResetPassword', () => {
       await act(async () => {
         await onPrimaryButtonPress();
       });
-
-      await waitFor(() => {
-        expect(mockUpdateAuthTypeStorageFlags).toHaveBeenCalledWith(false);
-      });
     });
 
-    it('saves biometry choice when auth type is biometric', async () => {
-      mockUpdateAuthTypeStorageFlags.mockClear();
-
+    it('completes reset password flow when auth type is biometric', async () => {
       const mockAuthModule = jest.requireMock('../../../core/Authentication');
       const originalAuthData = mockAuthModule.authData;
       mockAuthModule.authData = {
@@ -1126,10 +1191,6 @@ describe('ResetPassword', () => {
 
       await act(async () => {
         await onPrimaryButtonPress();
-      });
-
-      await waitFor(() => {
-        expect(mockUpdateAuthTypeStorageFlags).toHaveBeenCalled();
       });
 
       mockAuthModule.authData = originalAuthData;

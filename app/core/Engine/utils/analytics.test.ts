@@ -163,7 +163,7 @@ describe('trackEvent', () => {
         expect(AnalyticsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
           'test-event',
         );
-        expect(mockBuilder.addProperties).toHaveBeenCalledWith({});
+        expect(mockBuilder.addProperties).toHaveBeenCalledWith(undefined);
         expect(mockBuilder.build).toHaveBeenCalled();
         expect(buildAndTrackEventCall).toHaveBeenCalledWith(
           'AnalyticsController:trackEvent',
@@ -192,7 +192,7 @@ describe('trackEvent', () => {
         expect(AnalyticsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
           'test-event',
         );
-        expect(mockBuilder.addProperties).toHaveBeenCalledWith({});
+        expect(mockBuilder.addProperties).toHaveBeenCalledWith(null);
         expect(mockBuilder.build).toHaveBeenCalled();
         expect(buildAndTrackEventCall).toHaveBeenCalledWith(
           'AnalyticsController:trackEvent',

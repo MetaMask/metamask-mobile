@@ -19,6 +19,9 @@ import { strings } from '../../../../../locales/i18n';
 import { formatPrice } from '../utils/format';
 import { ensureError, parseErrorMessage } from '../utils/predictErrorHandler';
 import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../constants/errors';
+import { usePredictBalance } from './usePredictBalance';
+import { usePredictDeposit } from './usePredictDeposit';
+import { PredictEventValues } from '../constants/eventNames';
 
 interface UsePredictPlaceOrderOptions {
   /**
@@ -35,8 +38,26 @@ interface UsePredictPlaceOrderReturn {
   error?: string;
   isLoading: boolean;
   result: Result | null;
-  placeOrder: (params: PlaceOrderParams) => Promise<void>;
+  placeOrder: (params: PlaceOrderParams) => Promise<PlaceOrderOutcome>;
+  isOrderNotFilled: boolean;
+  resetOrderNotFilled: () => void;
 }
+
+export type PlaceOrderOutcome =
+  | {
+      status: 'success';
+      result: Result;
+    }
+  | {
+      status: 'deposit_required';
+    }
+  | {
+      status: 'order_not_filled';
+    }
+  | {
+      status: 'error';
+      error: string;
+    };
 
 /**
  * Hook for placing Predict orders with loading states and error handling
@@ -52,7 +73,10 @@ export function usePredictPlaceOrder(
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string>();
   const [result, setResult] = useState<Result | null>(null);
+  const [isOrderNotFilled, setIsOrderNotFilled] = useState(false);
   const { toastRef } = useContext(ToastContext);
+  const { balance } = usePredictBalance({ loadOnMount: false });
+  const { deposit } = usePredictDeposit();
 
   const showCashedOutToast = useCallback(
     (amount: string) => {
@@ -123,13 +147,28 @@ export function usePredictPlaceOrder(
   }, [toastRef]);
 
   const placeOrder = useCallback(
-    async (orderParams: PlaceOrderParams) => {
+    async (orderParams: PlaceOrderParams): Promise<PlaceOrderOutcome> => {
       const {
-        preview: { minAmountReceived, side },
+        preview: { minAmountReceived, side, maxAmountSpent },
       } = orderParams;
+
+      // Check if user has sufficient balance for the bet amount
+      // maxAmountSpent includes the bet amount plus all fees
+      if (side === Side.BUY && balance < maxAmountSpent) {
+        await deposit({
+          amountUsd: maxAmountSpent,
+          analyticsProperties: {
+            ...orderParams.analyticsProperties,
+            marketId: orderParams.preview.marketId,
+            entryPoint: PredictEventValues.ENTRY_POINT.BUY_PREVIEW,
+          },
+        });
+        return { status: 'deposit_required' };
+      }
 
       try {
         setIsLoading(true);
+
         // Place order using Predict controller
         const orderResult = await controllerPlaceOrder(orderParams);
 
@@ -149,6 +188,7 @@ export function usePredictPlaceOrder(
         }
 
         DevLogger.log('usePredictPlaceOrder: Order placed successfully');
+        return { status: 'success', result: orderResult };
       } catch (err) {
         const parsedErrorMessage = parseErrorMessage({
           error: err,
@@ -171,7 +211,6 @@ export function usePredictPlaceOrder(
               method: 'placeOrder',
               action: 'order_placement',
               operation: 'order_management',
-              providerId: orderParams.providerId,
               side: orderParams.preview?.side,
               marketId: orderParams.analyticsProperties?.marketId,
               transactionType: orderParams.analyticsProperties?.transactionType,
@@ -179,25 +218,45 @@ export function usePredictPlaceOrder(
           },
         });
 
+        const rawMessage = err instanceof Error ? err.message : String(err);
+        const isNotFilled =
+          rawMessage === PREDICT_ERROR_CODES.BUY_ORDER_NOT_FULLY_FILLED ||
+          rawMessage === PREDICT_ERROR_CODES.SELL_ORDER_NOT_FULLY_FILLED;
+
+        if (isNotFilled) {
+          setIsOrderNotFilled(true);
+          return { status: 'order_not_filled' };
+        }
+
         setError(parsedErrorMessage);
         onError?.(parsedErrorMessage);
+        return { status: 'error', error: parsedErrorMessage };
       } finally {
         setIsLoading(false);
       }
     },
     [
+      balance,
+      deposit,
       controllerPlaceOrder,
       onComplete,
-      showCashedOutToast,
       showOrderPlacedToast,
+      showCashedOutToast,
       onError,
     ],
   );
+
+  const resetOrderNotFilled = useCallback(() => {
+    setIsOrderNotFilled(false);
+    setError(undefined);
+  }, []);
 
   return {
     error,
     isLoading,
     result,
     placeOrder,
+    isOrderNotFilled,
+    resetOrderNotFilled,
   };
 }

@@ -1,17 +1,11 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
-import Engine from '../../../../core/Engine';
+import { selectTokens } from '../../../../selectors/rampsController';
 import {
-  selectTokens,
-  selectTokensRequest,
-} from '../../../../selectors/rampsController';
-import {
-  ExecuteRequestOptions,
-  RequestSelectorResult,
-  type RampsControllerState,
+  type RampsToken,
+  type TokensResponse,
 } from '@metamask/ramps-controller';
-
-type TokensResponse = NonNullable<RampsControllerState['tokens']>;
+import Engine from '../../../../core/Engine';
 
 /**
  * Result returned by the useRampsTokens hook.
@@ -22,6 +16,15 @@ export interface UseRampsTokensResult {
    */
   tokens: TokensResponse | null;
   /**
+   * The currently selected token, or null if none selected.
+   */
+  selectedToken: RampsToken | null;
+  /**
+   * Sets the selected token by asset ID.
+   * @param assetId - The asset ID of the token to select.
+   */
+  setSelectedToken: (assetId: string) => void;
+  /**
    * Whether the tokens request is currently loading.
    */
   isLoading: boolean;
@@ -29,67 +32,34 @@ export interface UseRampsTokensResult {
    * The error message if the request failed, or null.
    */
   error: string | null;
-  /**
-   * Fetch tokens for a given region and action.
-   */
-  fetchTokens: (
-    region?: string,
-    action?: 'buy' | 'sell',
-    options?: ExecuteRequestOptions,
-  ) => Promise<TokensResponse>;
 }
 
 /**
  * Hook to get tokens state from RampsController.
  * This hook assumes Engine is already initialized.
  *
- * @param region - Optional region code to use for request state. If not provided, uses userRegion from state.
- * @param action - Optional action type ('buy' or 'sell'). Defaults to 'buy'.
- * @returns Tokens state and fetch function.
+ * @returns Tokens state.
  */
-export function useRampsTokens(
-  region?: string,
-  action: 'buy' | 'sell' = 'buy',
-): UseRampsTokensResult {
-  const tokens = useSelector(selectTokens);
-  const userRegion = useSelector(
-    (state: Parameters<typeof selectTokens>[0]) =>
-      state.engine.backgroundState.RampsController?.userRegion,
-  );
+export function useRampsTokens(): UseRampsTokensResult {
+  const {
+    data: tokens,
+    selected: selectedToken,
+    isLoading,
+    error,
+  } = useSelector(selectTokens);
 
-  const regionCode = useMemo(
-    () => region ?? userRegion?.regionCode ?? '',
-    [region, userRegion?.regionCode],
-  );
-
-  const requestSelector = useMemo(
-    () => selectTokensRequest(regionCode, action),
-    [regionCode, action],
-  );
-
-  const { isFetching, error } = useSelector(
-    requestSelector,
-  ) as RequestSelectorResult<TokensResponse>;
-
-  const fetchTokens = useCallback(
-    async (
-      fetchRegion?: string,
-      fetchAction: 'buy' | 'sell' = action,
-      options?: ExecuteRequestOptions,
-    ) =>
-      await Engine.context.RampsController.getTokens(
-        fetchRegion ?? regionCode,
-        fetchAction,
-        options,
-      ),
-    [action, regionCode],
+  const setSelectedToken = useCallback(
+    (assetId: string) =>
+      Engine.context.RampsController.setSelectedToken(assetId),
+    [],
   );
 
   return {
     tokens,
-    isLoading: isFetching,
+    selectedToken,
+    setSelectedToken,
+    isLoading,
     error,
-    fetchTokens,
   };
 }
 

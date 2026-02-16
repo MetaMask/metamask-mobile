@@ -6,13 +6,13 @@ import { parseOpenRPCDocument } from '@open-rpc/schema-utils-js';
 import JsonSchemaFakerRule from '@open-rpc/test-coverage/build/rules/json-schema-faker-rule';
 import HtmlReporter from '@open-rpc/test-coverage/build/reporters/html-reporter';
 
-import Browser from '../../../e2e/pages/Browser/BrowserView';
+import Browser from '../../page-objects/Browser/BrowserView';
 // eslint-disable-next-line import/no-commonjs
 const mockServer = require('@open-rpc/mock-server/build/index').default;
-import TabBarComponent from '../../../e2e/pages/wallet/TabBarComponent';
+import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { loginToApp } from '../../../e2e/viewHelper';
+import { loginToApp } from '../../flows/wallet.flow';
 
 import ExamplesRule from '@open-rpc/test-coverage/build/rules/examples-rule';
 import ConfirmationsRejectRule from './ConfirmationsRejectionRule';
@@ -21,7 +21,7 @@ import { BrowserViewSelectorsIDs } from '../../../app/components/Views/BrowserTa
 import { DappVariants } from '../../framework/Constants';
 import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import { oldConfirmationsRemoteFeatureFlags } from '../../api-mocking/mock-responses/feature-flags-mocks';
+import { confirmationsRedesignedFeatureFlags } from '../../api-mocking/mock-responses/feature-flags-mocks';
 
 // API spec tests use a mock RPC server instead of Ganache (disableLocalNodes: true)
 // Fixed port is fine since tests don't run in parallel
@@ -158,13 +158,6 @@ const main = async () => {
   const server = mockServer(port, openrpcDocument);
   server.start();
 
-  const testSpecificMock = async (mockServer) => {
-    await setupRemoteFeatureFlagsMock(
-      mockServer,
-      Object.assign({}, ...oldConfirmationsRemoteFeatureFlags),
-    );
-  };
-
   await withFixtures(
     {
       dapps: [
@@ -175,7 +168,6 @@ const main = async () => {
       fixture: new FixtureBuilder().withGanacheNetwork().build(),
       disableLocalNodes: true,
       restartDevice: true,
-      testSpecificMock,
     },
     async () => {
       await loginToApp();

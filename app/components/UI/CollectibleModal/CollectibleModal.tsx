@@ -7,8 +7,7 @@ import React, {
   useState,
 } from 'react';
 import { View } from 'react-native';
-import { useDispatch, useSelector } from 'react-redux';
-import { newAssetTransaction } from '../../../actions/transaction';
+import { useSelector } from 'react-redux';
 import CollectibleMedia from '../CollectibleMedia';
 import { baseStyles } from '../../../styles/common';
 import ReusableModal, { ReusableModalRef } from '../ReusableModal';
@@ -34,7 +33,6 @@ import { useSendNavigation } from '../../Views/confirmations/hooks/useSendNaviga
 
 const CollectibleModal = () => {
   const navigation = useNavigation();
-  const dispatch = useDispatch();
   const { trackEvent, createEventBuilder } = useMetrics();
   const chainId = useSelector(selectChainId);
 
@@ -86,12 +84,11 @@ const CollectibleModal = () => {
   }, [chainId, source]);
 
   const onSend = useCallback(async () => {
-    dispatch(newAssetTransaction({ contractName, ...collectible }));
     navigateToSendPage({
       location: InitSendLocation.CollectibleModal,
       asset: collectible,
     });
-  }, [contractName, collectible, dispatch, navigateToSendPage]);
+  }, [collectible, navigateToSendPage]);
 
   const isTradable = useCallback(
     () => collectible.standard === 'ERC721',

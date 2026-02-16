@@ -1,10 +1,9 @@
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
-import SheetHeader from '../../../component-library/components/Sheet/SheetHeader';
+import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
-import IconCheck from 'react-native-vector-icons/MaterialCommunityIcons';
-import React, { useRef } from 'react';
+import React, { useRef, useMemo } from 'react';
 import {
   createNavigationDetails,
   useParams,
@@ -13,7 +12,7 @@ import { OptionsSheetParams } from './types';
 import { useTheme } from '../../../util/theme';
 import createStyles from './styles';
 import Routes from '../../../constants/navigation/Routes';
-import { SELECT_OPTION_PREFIX, SELECT_VALUE_TICK_PREFIX } from './constants';
+import { SELECT_OPTION_PREFIX } from './constants';
 
 export const createOptionsSheetNavDetails = (params: OptionsSheetParams) =>
   createNavigationDetails<OptionsSheetParams>(Routes.OPTIONS_SHEET)({
@@ -26,7 +25,19 @@ const OptionsSheet = () => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
-  const options = params.options;
+  // Sort options alphabetically by label, keeping 'all' at the top
+  const sortedOptions = useMemo(() => {
+    const allOption = params.options.find((opt) => opt.key === 'all');
+    const otherOptions = params.options
+      .filter((opt) => opt.key !== 'all')
+      .sort((a, b) => {
+        const labelA = a.label || '';
+        const labelB = b.label || '';
+        return labelA.localeCompare(labelB);
+      });
+
+    return allOption ? [allOption, ...otherOptions] : otherOptions;
+  }, [params.options]);
 
   const onSelectedValueChange = (val?: string) => {
     if (!val) {
@@ -36,34 +47,37 @@ const OptionsSheet = () => {
     bottomSheetRef.current?.onCloseBottomSheet();
   };
 
+  const handleClose = () => {
+    bottomSheetRef.current?.onCloseBottomSheet();
+  };
+
   return (
     <BottomSheet ref={bottomSheetRef}>
-      <SheetHeader title={params.label} />
+      <BottomSheetHeader onClose={handleClose}>
+        {params.label}
+      </BottomSheetHeader>
       <ScrollView style={styles.list}>
         <View style={styles.listWrapper}>
-          {options.map((option) => (
-            <TouchableOpacity
-              onPress={() =>
-                option.value && onSelectedValueChange(option.value)
-              }
-              style={styles.optionButton}
-              key={option.key}
-              testID={SELECT_OPTION_PREFIX + option.key}
-            >
-              <Text style={styles.optionLabel} numberOfLines={1}>
-                {option.label}
-              </Text>
-              {params.selectedValue === option.value ? (
-                <IconCheck
-                  style={styles.icon}
-                  name="check"
-                  size={24}
-                  color={colors.primary.default}
-                  testID={SELECT_VALUE_TICK_PREFIX + option.key}
-                />
-              ) : null}
-            </TouchableOpacity>
-          ))}
+          {sortedOptions.map((option) => {
+            const isSelected = option.value === params.selectedValue;
+            return (
+              <TouchableOpacity
+                onPress={() =>
+                  option.value && onSelectedValueChange(option.value)
+                }
+                style={[
+                  styles.optionButton,
+                  isSelected && styles.optionButtonSelected,
+                ]}
+                key={option.key}
+                testID={SELECT_OPTION_PREFIX + option.key}
+              >
+                <Text style={styles.optionLabel} numberOfLines={1}>
+                  {option.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
         </View>
       </ScrollView>
     </BottomSheet>

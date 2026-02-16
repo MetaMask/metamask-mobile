@@ -2,7 +2,7 @@ import AppwrightSelectors from '../../tests/framework/AppwrightSelectors';
 import AppwrightGestures from '../../tests/framework/AppwrightGestures';
 import AmountScreen from './AmountScreen';
 import { expect as appwrightExpect } from 'appwright';
-import { splitAmountIntoDigits } from 'appwright/utils/Utils';
+import { splitAmountIntoDigits } from '../../tests/framework/utils/Utils';
 import PerpsPositionDetailsView from './PerpsPositionDetailsView';
 
 class PerpsOrderView {
@@ -58,6 +58,11 @@ class PerpsOrderView {
     await AppwrightGestures.tap(await this.leverageButton);
     await AppwrightGestures.tap(await this.leverageOption(leverage));
     await AppwrightGestures.tap(await this.confirmLeverageButton(leverage));
+  }
+
+  async checkOrderScreenVisible() {
+    const orderScreen = await this.placeOrderButton;
+    await appwrightExpect(orderScreen).toBeVisible();
   }
 }
 

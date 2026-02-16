@@ -12,7 +12,6 @@ import { connect } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';
 import { showAlert } from '../../../actions/alert';
-import { newAssetTransaction } from '../../../actions/transaction';
 import { protectWalletModalVisible } from '../../../actions/user';
 import Routes from '../../../constants/navigation/Routes';
 import ClipboardManager from '../../../core/ClipboardManager';
@@ -461,8 +460,6 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = (dispatch) => ({
   showAlert: (config) => dispatch(showAlert(config)),
   protectWalletModalVisible: () => dispatch(protectWalletModalVisible()),
-  newAssetTransaction: (selectedAsset) =>
-    dispatch(newAssetTransaction(selectedAsset)),
 });
 
 AccountOverview.contextType = ThemeContext;

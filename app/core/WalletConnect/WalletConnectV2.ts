@@ -29,13 +29,13 @@ import DevLogger from '../SDKConnect/utils/DevLogger';
 import getAllUrlParams from '../SDKConnect/utils/getAllUrlParams.util';
 import { wait, waitForKeychainUnlocked } from '../SDKConnect/utils/wait.util';
 import extractApprovedAccounts from './extractApprovedAccounts';
-import WalletConnect from './WalletConnect';
 import {
   getHostname,
   getScopedPermissions,
   hideWCLoadingState,
   parseWalletConnectUri,
   showWCLoadingState,
+  isValidUrl,
 } from './wc-utils';
 
 import {
@@ -444,6 +444,16 @@ export class WC2Manager {
     const icons = metadata.icons;
     const icon = icons?.[0] ?? '';
 
+    // Validate new session proposal URL without normalizing - reject if invalid.
+    if (!isValidUrl(url)) {
+      console.warn(`WC2::session_proposal rejected - invalid dApp URL: ${url}`);
+      await this.web3Wallet.rejectSession({
+        id: proposal.id,
+        reason: getSdkError('USER_REJECTED_METHODS'),
+      });
+      return;
+    }
+
     if (url === ORIGIN_METAMASK) {
       console.warn(`WC2::session_proposal rejected - invalid url: ${url}`);
       await this.web3Wallet.rejectSession({
@@ -459,7 +469,7 @@ export class WC2Manager {
     const origin = url;
 
     DevLogger.log(
-      `WC2::session_proposal metadata url=${origin} normalized to hostname=${hostname}`,
+      `WC2::session_proposal metadata url=${origin} hostname=${hostname}`,
     );
 
     // Save Connection info to redux store to be retrieved in ui.
@@ -706,8 +716,14 @@ export class WC2Manager {
       }
 
       if (params.version === 1) {
-        await WalletConnect.newSession(wcUri, redirectUrl, false, origin);
-      } else if (params.version === 2) {
+        // WalletConnect V1 was shut down on June 28, 2023. V1 URIs are no longer supported.
+        console.warn(
+          `WalletConnect V1 is no longer supported. V1 was shut down on June 28, 2023. URI: ${wcUri}`,
+        );
+        return;
+      }
+
+      if (params.version === 2) {
         // check if already connected
         const activeSession = this.getSessions().find(
           (session) =>
@@ -742,9 +758,10 @@ export class WC2Manager {
             JSON.stringify(this.deeplinkSessions),
           );
         }
-      } else {
-        console.warn(`Invalid wallet connect uri`, wcUri);
+        return;
       }
+
+      console.warn(`Invalid wallet connect uri`, wcUri);
     } catch (err) {
       console.error(`Failed to connect uri=${wcUri}`, err);
     }

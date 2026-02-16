@@ -37,6 +37,7 @@ export enum AppInstallationStatus {
  */
 export enum DeepLinkRoute {
   HOME = 'home',
+  ASSET = 'asset',
   SWAP = 'swap',
   PERPS = 'perps',
   DEPOSIT = 'deposit',
@@ -54,6 +55,7 @@ export enum DeepLinkRoute {
   ENABLE_CARD_BUTTON = 'enable-card-button',
   CARD_ONBOARDING = 'card-onboarding',
   CARD_HOME = 'card-home',
+  NFT = 'nft',
   INVALID = 'invalid',
 }
 

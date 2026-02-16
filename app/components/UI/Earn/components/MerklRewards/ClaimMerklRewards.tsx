@@ -1,6 +1,7 @@
-import React from 'react';
-import { View } from 'react-native';
+import React, { useCallback } from 'react';
+import { DeviceEventEmitter, View } from 'react-native';
 import { useSelector } from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
 import {
   Button,
   ButtonSize,
@@ -8,9 +9,11 @@ import {
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import { strings } from '../../../../../../locales/i18n';
 import { useMerklClaim } from './hooks/useMerklClaim';
+import { usePendingMerklClaim } from './hooks/usePendingMerklClaim';
 import { TokenI } from '../../../Tokens/types';
 import styleSheet from './MerklRewards.styles';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -18,36 +21,34 @@ import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { selectNetworkConfigurationByChainId } from '../../../../../selectors/networkController';
 import { RootState } from '../../../../../reducers';
 import { MUSD_EVENTS_CONSTANTS } from '../../constants/events/musdEvents';
+import Routes from '../../../../../constants/navigation/Routes';
+import { ClaimOnLineaBottomSheetParams } from './ClaimOnLineaBottomSheet/ClaimOnLineaBottomSheet';
+import { MUSD_TOKEN_ADDRESS_BY_CHAIN } from '../../constants/musd';
+import { SCROLL_TO_TOKEN_EVENT } from '../../../Tokens/constants';
 
 interface ClaimMerklRewardsProps {
   asset: TokenI;
-  onClaimSuccess: () => void;
 }
 
 /**
  * Component to display the claim button for Merkl rewards
  */
-const ClaimMerklRewards: React.FC<ClaimMerklRewardsProps> = ({
-  asset,
-  onClaimSuccess,
-}) => {
+const ClaimMerklRewards: React.FC<ClaimMerklRewardsProps> = ({ asset }) => {
   const { styles } = useStyles(styleSheet, {});
   const { trackEvent, createEventBuilder } = useMetrics();
+  const navigation = useNavigation();
   const network = useSelector((state: RootState) =>
     selectNetworkConfigurationByChainId(state, asset.chainId as Hex),
   );
 
-  const {
-    claimRewards,
-    isClaiming,
-    error: claimError,
-  } = useMerklClaim({
-    asset,
-    // This callback is triggered when the transaction is confirmed on-chain
-    onTransactionConfirmed: onClaimSuccess,
-  });
+  const { claimRewards, isClaiming, error: claimError } = useMerklClaim(asset);
+  const { hasPendingClaim } = usePendingMerklClaim();
 
-  const handleClaim = async () => {
+  // Show loading if currently claiming OR if there's an in-flight claim transaction
+  // (e.g., user navigated away and came back while tx is still processing)
+  const isLoading = isClaiming || hasPendingClaim;
+
+  const trackClaimButtonClicked = useCallback(() => {
     const buttonText = strings('asset_overview.merkl_rewards.claim');
 
     trackEvent(
@@ -62,15 +63,59 @@ const ClaimMerklRewards: React.FC<ClaimMerklRewardsProps> = ({
         })
         .build(),
     );
+  }, [
+    trackEvent,
+    createEventBuilder,
+    asset.chainId,
+    asset.symbol,
+    network?.name,
+  ]);
 
-    try {
-      await claimRewards();
-      // Transaction submitted - confirmation listener in useMerklClaim
-      // will call onClaimSuccess when the transaction is confirmed
-    } catch (error) {
-      // Error is handled by useMerklClaim hook and displayed via claimError
+  const handleContinueClaim = useCallback(async () => {
+    const result = await claimRewards();
+    // Transaction submitted successfully
+    // Toast notifications and balance refresh are handled globally by useMerklClaimStatus
+    if (result?.txHash) {
+      // Navigate to home page
+      navigation.navigate(Routes.WALLET.HOME);
+
+      // Emit event to scroll to Linea mUSD token in the token list
+      // Use a delay to allow navigation and list rendering to complete
+      // Note: Using plain setTimeout (not stored in ref) intentionally -
+      // this must execute even after component unmounts during navigation
+      setTimeout(() => {
+        DeviceEventEmitter?.emit?.(SCROLL_TO_TOKEN_EVENT, {
+          address: MUSD_TOKEN_ADDRESS_BY_CHAIN[CHAIN_IDS.LINEA_MAINNET],
+          chainId: CHAIN_IDS.LINEA_MAINNET,
+        });
+      }, 700);
     }
-  };
+  }, [claimRewards, navigation]);
+
+  const handleClaimPress = useCallback(() => {
+    trackClaimButtonClicked();
+
+    const params: ClaimOnLineaBottomSheetParams = {
+      onContinue: handleContinueClaim,
+      analyticsContext: {
+        network_chain_id: asset.chainId,
+        network_name: network?.name,
+        asset_symbol: asset.symbol,
+      },
+    };
+
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.MODAL.CLAIM_ON_LINEA,
+      params,
+    });
+  }, [
+    trackClaimButtonClicked,
+    handleContinueClaim,
+    navigation,
+    asset.chainId,
+    asset.symbol,
+    network?.name,
+  ]);
 
   return (
     <View style={styles.claimButtonContainer}>
@@ -79,9 +124,9 @@ const ClaimMerklRewards: React.FC<ClaimMerklRewardsProps> = ({
         variant={ButtonVariant.Secondary}
         size={ButtonSize.Lg}
         twClassName="w-full"
-        onPress={handleClaim}
-        isDisabled={isClaiming}
-        isLoading={isClaiming}
+        onPress={handleClaimPress}
+        isDisabled={isLoading}
+        isLoading={isLoading}
       >
         {strings('asset_overview.merkl_rewards.claim')}
       </Button>
@@ -90,7 +135,7 @@ const ClaimMerklRewards: React.FC<ClaimMerklRewardsProps> = ({
           variant={TextVariant.BodySm}
           twClassName="text-error-default mt-2"
         >
-          {claimError}
+          {strings('asset_overview.merkl_rewards.unexpected_error')}
         </Text>
       )}
     </View>

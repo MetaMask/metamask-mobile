@@ -23,8 +23,6 @@ jest.mock('../../../../../../util/number', () => ({
 jest.mock('../merkl-client', () => ({
   fetchMerklRewardsForAsset: jest.fn(),
   getClaimedAmountFromContract: jest.fn(),
-  // Return the asset's chainId by default (non-mUSD behavior)
-  getClaimChainId: jest.fn((asset: { chainId: string }) => asset.chainId),
 }));
 
 // Mock Engine for refreshTokenBalances
@@ -271,10 +269,11 @@ describe('useMerklRewards', () => {
     );
 
     expect(mockFetchMerklRewardsForAsset).toHaveBeenCalled();
+    // Claims always go to Linea mainnet regardless of asset chain
     expect(mockGetClaimedAmountFromContract).toHaveBeenCalledWith(
       mockSelectedAddress,
       mockAsset.address,
-      mockAsset.chainId,
+      '0xe708', // CHAIN_IDS.LINEA_MAINNET
     );
 
     expect(mockRenderFromTokenMinimalUnit).toHaveBeenCalledWith(
@@ -481,6 +480,99 @@ describe('useMerklRewards', () => {
 
     // Should remain null when amount rounds to zero
     expect(result.current.claimableReward).toBe(null);
+  });
+
+  it('formats single decimal values to 2 decimal places (0.9 -> 0.90)', async () => {
+    const mockRewardData = {
+      token: {
+        address: AGLAMERKL_ADDRESS_MAINNET,
+        chainId: 1,
+        symbol: 'aglaMerkl',
+        decimals: 18,
+        price: null,
+      },
+      accumulated: '0',
+      unclaimed: '900000000000000000', // 0.9 tokens
+      pending: '0',
+      proofs: [],
+      amount: '900000000000000000',
+      claimed: '0',
+      recipient: mockSelectedAddress,
+    };
+
+    mockFetchMerklRewardsForAsset.mockResolvedValueOnce(mockRewardData);
+    mockGetClaimedAmountFromContract.mockResolvedValueOnce('0');
+    // Simulate renderFromTokenMinimalUnit returning a value without trailing zero
+    mockRenderFromTokenMinimalUnit.mockReturnValueOnce('0.9');
+
+    const { result } = renderHook(() => useMerklRewards({ asset: mockAsset }));
+
+    await waitFor(() => {
+      // Should format to 2 decimal places
+      expect(result.current.claimableReward).toBe('0.90');
+    });
+  });
+
+  it('formats whole numbers to 2 decimal places (1 -> 1.00)', async () => {
+    const mockRewardData = {
+      token: {
+        address: AGLAMERKL_ADDRESS_MAINNET,
+        chainId: 1,
+        symbol: 'aglaMerkl',
+        decimals: 18,
+        price: null,
+      },
+      accumulated: '0',
+      unclaimed: '1000000000000000000', // 1 token
+      pending: '0',
+      proofs: [],
+      amount: '1000000000000000000',
+      claimed: '0',
+      recipient: mockSelectedAddress,
+    };
+
+    mockFetchMerklRewardsForAsset.mockResolvedValueOnce(mockRewardData);
+    mockGetClaimedAmountFromContract.mockResolvedValueOnce('0');
+    // Simulate renderFromTokenMinimalUnit returning a whole number
+    mockRenderFromTokenMinimalUnit.mockReturnValueOnce('1');
+
+    const { result } = renderHook(() => useMerklRewards({ asset: mockAsset }));
+
+    await waitFor(() => {
+      // Should format to 2 decimal places
+      expect(result.current.claimableReward).toBe('1.00');
+    });
+  });
+
+  it('formats values like 12.5 to 12.50', async () => {
+    const mockRewardData = {
+      token: {
+        address: AGLAMERKL_ADDRESS_MAINNET,
+        chainId: 1,
+        symbol: 'aglaMerkl',
+        decimals: 18,
+        price: null,
+      },
+      accumulated: '0',
+      unclaimed: '12500000000000000000', // 12.5 tokens
+      pending: '0',
+      proofs: [],
+      amount: '12500000000000000000',
+      claimed: '0',
+      recipient: mockSelectedAddress,
+    };
+
+    mockFetchMerklRewardsForAsset.mockResolvedValueOnce(mockRewardData);
+    mockGetClaimedAmountFromContract.mockResolvedValueOnce('0');
+    // Simulate renderFromTokenMinimalUnit returning single decimal
+    mockRenderFromTokenMinimalUnit.mockReturnValueOnce('12.5');
+
+    const { result } = renderHook(() => useMerklRewards({ asset: mockAsset }));
+
+    await waitFor(() => {
+      // Should format to 2 decimal places
+      expect(result.current.claimableReward).toBe('12.50');
+    });
   });
 
   it('converts "< 0.00001" to "< 0.01" for small amounts', async () => {
@@ -949,251 +1041,5 @@ describe('useMerklRewards', () => {
     // Verify fetch was called again
     expect(mockFetchMerklRewardsForAsset).toHaveBeenCalled();
     expect(mockGetClaimedAmountFromContract).toHaveBeenCalled();
-  });
-
-  describe('clearReward', () => {
-    it('immediately sets claimableReward to null and isProcessingClaim to true', async () => {
-      const mockRewardData = {
-        token: {
-          address: AGLAMERKL_ADDRESS_MAINNET,
-          chainId: 1,
-          symbol: 'aglaMerkl',
-          decimals: 18,
-          price: null,
-        },
-        accumulated: '0',
-        unclaimed: '1500000000000000000',
-        pending: '0',
-        proofs: [],
-        amount: '1500000000000000000',
-        claimed: '0',
-        recipient: mockSelectedAddress,
-      };
-
-      mockFetchMerklRewardsForAsset.mockResolvedValue(mockRewardData);
-      mockGetClaimedAmountFromContract.mockResolvedValue('0');
-
-      const { result } = renderHook(() =>
-        useMerklRewards({ asset: mockAsset }),
-      );
-
-      // Wait for initial fetch
-      await waitFor(
-        () => {
-          expect(result.current.claimableReward).toBe('1.50');
-        },
-        { timeout: 3000 },
-      );
-
-      expect(result.current.isProcessingClaim).toBe(false);
-
-      // Call clearReward
-      act(() => {
-        result.current.clearReward();
-      });
-
-      // Should immediately clear reward and set processing
-      expect(result.current.claimableReward).toBe(null);
-      expect(result.current.isProcessingClaim).toBe(true);
-    });
-
-    it('prevents stale refetches from restoring reward after clearReward', async () => {
-      const mockRewardData = {
-        token: {
-          address: AGLAMERKL_ADDRESS_MAINNET,
-          chainId: 1,
-          symbol: 'aglaMerkl',
-          decimals: 18,
-          price: null,
-        },
-        accumulated: '0',
-        unclaimed: '1500000000000000000',
-        pending: '0',
-        proofs: [],
-        amount: '1500000000000000000',
-        claimed: '0',
-        recipient: mockSelectedAddress,
-      };
-
-      mockFetchMerklRewardsForAsset.mockResolvedValue(mockRewardData);
-      mockGetClaimedAmountFromContract.mockResolvedValue('0');
-
-      const { result } = renderHook(() =>
-        useMerklRewards({ asset: mockAsset }),
-      );
-
-      // Wait for initial fetch
-      await waitFor(
-        () => {
-          expect(result.current.claimableReward).toBe('1.50');
-        },
-        { timeout: 3000 },
-      );
-
-      // Call clearReward (simulating claim started)
-      act(() => {
-        result.current.clearReward();
-      });
-
-      expect(result.current.claimableReward).toBe(null);
-
-      // Call refetch - should not restore reward due to claimProcessedRef
-      act(() => {
-        result.current.refetch();
-      });
-
-      // Wait a bit for any async operations
-      await waitFor(
-        () => {
-          expect(mockFetchMerklRewardsForAsset).toHaveBeenCalled();
-        },
-        { timeout: 3000 },
-      );
-
-      // Reward should still be null because claimProcessedRef prevents restoration
-      expect(result.current.claimableReward).toBe(null);
-    });
-  });
-
-  describe('refetchWithRetry', () => {
-    beforeEach(() => {
-      jest.useFakeTimers();
-    });
-
-    afterEach(() => {
-      jest.useRealTimers();
-    });
-
-    it('retries fetching until claim is confirmed', async () => {
-      jest.useRealTimers();
-
-      const mockRewardData = {
-        token: {
-          address: AGLAMERKL_ADDRESS_MAINNET,
-          chainId: 1,
-          symbol: 'aglaMerkl',
-          decimals: 18,
-          price: null,
-        },
-        accumulated: '0',
-        unclaimed: '1500000000000000000',
-        pending: '0',
-        proofs: [],
-        amount: '1500000000000000000',
-        claimed: '0',
-        recipient: mockSelectedAddress,
-      };
-
-      mockFetchMerklRewardsForAsset.mockResolvedValue(mockRewardData);
-      mockGetClaimedAmountFromContract.mockResolvedValue('0');
-
-      const { result } = renderHook(() =>
-        useMerklRewards({ asset: mockAsset }),
-      );
-
-      // Wait for initial fetch
-      await waitFor(
-        () => {
-          expect(result.current.claimableReward).toBe('1.50');
-        },
-        { timeout: 3000 },
-      );
-
-      // Clear reward first (simulates claim started)
-      act(() => {
-        result.current.clearReward();
-      });
-
-      // Now set up contract to return claimed amount (claim succeeded)
-      mockGetClaimedAmountFromContract.mockResolvedValue('1500000000000000000');
-
-      // Start refetchWithRetry with short delays for testing
-      let refetchPromise: Promise<void> = Promise.resolve();
-      act(() => {
-        refetchPromise = result.current.refetchWithRetry({
-          maxRetries: 3,
-          delayMs: 100,
-        });
-      });
-
-      // Wait for the retry to complete
-      await waitFor(
-        () => {
-          expect(result.current.isProcessingClaim).toBe(false);
-        },
-        { timeout: 5000 },
-      );
-
-      await refetchPromise;
-
-      // Claim flag should be cleared
-      expect(result.current.isProcessingClaim).toBe(false);
-    });
-
-    it('prevents duplicate retry calls', async () => {
-      jest.useRealTimers();
-
-      const mockRewardData = {
-        token: {
-          address: AGLAMERKL_ADDRESS_MAINNET,
-          chainId: 1,
-          symbol: 'aglaMerkl',
-          decimals: 18,
-          price: null,
-        },
-        accumulated: '0',
-        unclaimed: '1500000000000000000',
-        pending: '0',
-        proofs: [],
-        amount: '1500000000000000000',
-        claimed: '0',
-        recipient: mockSelectedAddress,
-      };
-
-      mockFetchMerklRewardsForAsset.mockResolvedValue(mockRewardData);
-      mockGetClaimedAmountFromContract.mockResolvedValue('0');
-
-      const { result } = renderHook(() =>
-        useMerklRewards({ asset: mockAsset }),
-      );
-
-      // Wait for initial fetch
-      await waitFor(
-        () => {
-          expect(result.current.claimableReward).toBe('1.50');
-        },
-        { timeout: 3000 },
-      );
-
-      // Clear mocks to count calls
-      mockFetchMerklRewardsForAsset.mockClear();
-
-      // Make contract return claimed (claim succeeded)
-      mockGetClaimedAmountFromContract.mockResolvedValue('1500000000000000000');
-
-      // Start two refetchWithRetry calls simultaneously
-      let promise1: Promise<void> = Promise.resolve();
-      let promise2: Promise<void> = Promise.resolve();
-
-      act(() => {
-        result.current.clearReward();
-        promise1 = result.current.refetchWithRetry({
-          maxRetries: 2,
-          delayMs: 100,
-        });
-        promise2 = result.current.refetchWithRetry({
-          maxRetries: 2,
-          delayMs: 100,
-        });
-      });
-
-      await Promise.all([promise1, promise2]);
-
-      // Second call should have been skipped (retryInProgressRef)
-      // The first call makes 1-2 retries, the second should be ignored
-      expect(
-        mockFetchMerklRewardsForAsset.mock.calls.length,
-      ).toBeLessThanOrEqual(2);
-    });
   });
 });

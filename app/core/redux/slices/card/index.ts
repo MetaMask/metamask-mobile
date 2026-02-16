@@ -43,6 +43,7 @@ export interface CardSliceState {
   userCardLocation: CardLocation;
   onboarding: OnboardingState;
   cache: CacheState;
+  isDaimoDemo: boolean;
 }
 
 export const initialState: CardSliceState = {
@@ -67,6 +68,7 @@ export const initialState: CardSliceState = {
     data: {},
     timestamps: {},
   },
+  isDaimoDemo: false,
 };
 
 // Async thunk for loading cardholder accounts
@@ -129,6 +131,9 @@ const slice = createSlice({
     setIsAuthenticatedCard: (state, action: PayloadAction<boolean>) => {
       state.isAuthenticated = action.payload;
     },
+    setIsDaimoDemo: (state, action: PayloadAction<boolean>) => {
+      state.isDaimoDemo = action.payload;
+    },
     setUserCardLocation: (
       state,
       action: PayloadAction<CardLocation | null>,
@@ -158,7 +163,6 @@ const slice = createSlice({
     resetAuthenticatedData: (state) => {
       state.authenticatedPriorityToken = null;
       state.authenticatedPriorityTokenLastFetched = null;
-      state.userCardLocation = 'international';
       state.isAuthenticated = false;
     },
     setCacheData: (
@@ -195,8 +199,9 @@ const slice = createSlice({
       })
       .addCase(verifyCardAuthentication.fulfilled, (state, action) => {
         state.isAuthenticated = action.payload.isAuthenticated;
-        state.userCardLocation =
-          action.payload.userCardLocation ?? 'international';
+        if (action.payload.userCardLocation) {
+          state.userCardLocation = action.payload.userCardLocation;
+        }
       })
       .addCase(verifyCardAuthentication.rejected, (state, action) => {
         Logger.log(
@@ -206,7 +211,6 @@ const slice = createSlice({
         state.isAuthenticated = false;
         state.authenticatedPriorityToken = null;
         state.authenticatedPriorityTokenLastFetched = null;
-        state.userCardLocation = 'international';
       });
   },
 });
@@ -327,6 +331,11 @@ export const selectUserCardLocation = createSelector(
   (card) => card.userCardLocation,
 );
 
+export const selectIsDaimoDemo = createSelector(
+  selectCardState,
+  (card) => card.isDaimoDemo,
+);
+
 export const selectDisplayCardButton = createSelector(
   selectIsCardholder,
   selectAlwaysShowCardButton,
@@ -397,4 +406,5 @@ export const {
   clearCacheData,
   clearAllCache,
   resetAuthenticatedData,
+  setIsDaimoDemo,
 } = actions;

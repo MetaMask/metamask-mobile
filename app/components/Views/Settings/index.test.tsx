@@ -15,9 +15,17 @@ jest.mock('../../../core', () => ({
   },
 }));
 
+// Mock whenEngineReady to prevent Jest environment teardown errors
+jest.mock('../../../core/Analytics/whenEngineReady', () => ({
+  whenEngineReady: jest.fn(() => Promise.resolve()),
+  isEngineReady: jest.fn(() => false),
+  getEngine: jest.fn(() => ({})),
+}));
+
 // Import the mocked Authentication
 import { Authentication } from '../../../core';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar';
+import { useAccountMenuEnabled } from '../../../selectors/featureFlagController/accountMenu/useAccountMenuEnabled';
 
 const initialState = {
   user: { seedphraseBackedUp: true, passwordSet: true },
@@ -33,8 +41,8 @@ const initialState = {
   },
 };
 
-const mockSetOptions = jest.fn();
 const mockNavigate = jest.fn();
+const mockGoBack = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -42,7 +50,7 @@ jest.mock('@react-navigation/native', () => {
     ...actualReactNavigation,
     useNavigation: () => ({
       navigate: mockNavigate,
-      setOptions: mockSetOptions,
+      goBack: mockGoBack,
     }),
   };
 });
@@ -56,9 +64,22 @@ jest.mock('../../../util/notifications/constants/config', () => ({
   isNotificationsFeatureEnabled: jest.fn(() => true),
 }));
 
+jest.mock(
+  '../../../selectors/featureFlagController/accountMenu/useAccountMenuEnabled',
+  () => ({
+    useAccountMenuEnabled: jest.fn(() => false),
+  }),
+);
+
 describe('Settings', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  afterAll(() => {
+    jest.clearAllTimers();
+    jest.clearAllMocks();
+    jest.restoreAllMocks();
   });
 
   it('renders settings component with all sections', () => {
@@ -67,6 +88,26 @@ describe('Settings', () => {
     });
     expect(toJSON()).toMatchSnapshot();
   });
+
+  it('renders header with correct title', () => {
+    const { getByTestId, getByText } = renderWithProvider(<Settings />, {
+      state: initialState,
+    });
+    const header = getByTestId(SettingsViewSelectorsIDs.SETTINGS_HEADER);
+    expect(header).toBeDefined();
+    expect(getByText(strings('app_settings.title'))).toBeDefined();
+  });
+
+  it('navigates back when back button is pressed', () => {
+    const { getByTestId } = renderWithProvider(<Settings />, {
+      state: initialState,
+    });
+    const header = getByTestId(SettingsViewSelectorsIDs.SETTINGS_HEADER);
+    const backButton = header.findByProps({ iconName: 'ArrowLeft' });
+    fireEvent.press(backButton);
+    expect(mockGoBack).toHaveBeenCalled();
+  });
+
   it('renders general settings button', () => {
     const { getByTestId } = renderWithProvider(<Settings />, {
       state: initialState,
@@ -88,7 +129,8 @@ describe('Settings', () => {
     const advancedSettings = getByTestId(SettingsViewSelectorsIDs.ADVANCED);
     expect(advancedSettings).toBeDefined();
   });
-  it('renders contacts settings button', () => {
+  it('renders contacts settings button when account menu is disabled', () => {
+    jest.mocked(useAccountMenuEnabled).mockReturnValue(false);
     const { getByTestId } = renderWithProvider(<Settings />, {
       state: initialState,
     });
@@ -139,7 +181,8 @@ describe('Settings', () => {
     const lock = getByTestId(SettingsViewSelectorsIDs.LOCK);
     expect(lock).toBeDefined();
   });
-  it('renders permissions settings button when enabled', () => {
+  it('renders permissions settings button when enabled and account menu is disabled', () => {
+    jest.mocked(useAccountMenuEnabled).mockReturnValue(false);
     const { getByTestId } = renderWithProvider(<Settings />, {
       state: initialState,
     });
@@ -206,6 +249,81 @@ describe('Settings', () => {
       );
 
       expect(featureFlagOverrideTitle).toBeDefined();
+    });
+  });
+
+  describe('Account Menu Feature Flag', () => {
+    it('hides contacts when account menu is enabled', () => {
+      jest.mocked(useAccountMenuEnabled).mockReturnValue(true);
+
+      const { queryByTestId } = renderWithProvider(<Settings />, {
+        state: initialState,
+      });
+
+      expect(queryByTestId(SettingsViewSelectorsIDs.CONTACTS)).toBeNull();
+    });
+
+    it('hides permissions when account menu is enabled', () => {
+      jest.mocked(useAccountMenuEnabled).mockReturnValue(true);
+
+      const { queryByTestId } = renderWithProvider(<Settings />, {
+        state: initialState,
+      });
+
+      expect(queryByTestId(SettingsViewSelectorsIDs.PERMISSIONS)).toBeNull();
+    });
+
+    it('hides about metamask when account menu is enabled', () => {
+      jest.mocked(useAccountMenuEnabled).mockReturnValue(true);
+
+      const { queryByTestId } = renderWithProvider(<Settings />, {
+        state: initialState,
+      });
+
+      expect(queryByTestId(SettingsViewSelectorsIDs.ABOUT_METAMASK)).toBeNull();
+    });
+
+    it('hides request feature when account menu is enabled', () => {
+      jest.mocked(useAccountMenuEnabled).mockReturnValue(true);
+
+      const { queryByTestId } = renderWithProvider(<Settings />, {
+        state: initialState,
+      });
+
+      expect(queryByTestId(SettingsViewSelectorsIDs.REQUEST)).toBeNull();
+    });
+
+    it('hides contact support when account menu is enabled', () => {
+      jest.mocked(useAccountMenuEnabled).mockReturnValue(true);
+
+      const { queryByTestId } = renderWithProvider(<Settings />, {
+        state: initialState,
+      });
+
+      expect(queryByTestId(SettingsViewSelectorsIDs.CONTACT)).toBeNull();
+    });
+
+    it('hides lock button when account menu is enabled', () => {
+      jest.mocked(useAccountMenuEnabled).mockReturnValue(true);
+
+      const { queryByTestId } = renderWithProvider(<Settings />, {
+        state: initialState,
+      });
+
+      expect(queryByTestId(SettingsViewSelectorsIDs.LOCK)).toBeNull();
+    });
+
+    it('still renders core settings sections when account menu is enabled', () => {
+      jest.mocked(useAccountMenuEnabled).mockReturnValue(true);
+
+      const { getByTestId } = renderWithProvider(<Settings />, {
+        state: initialState,
+      });
+
+      expect(getByTestId(SettingsViewSelectorsIDs.GENERAL)).toBeDefined();
+      expect(getByTestId(SettingsViewSelectorsIDs.SECURITY)).toBeDefined();
+      expect(getByTestId(SettingsViewSelectorsIDs.ADVANCED)).toBeDefined();
+      expect(getByTestId(SettingsViewSelectorsIDs.EXPERIMENTAL)).toBeDefined();
     });
   });
 });

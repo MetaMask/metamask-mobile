@@ -1,6 +1,9 @@
+/* eslint-disable @metamask/design-tokens/color-no-hex */
 import { Platform, StyleSheet } from 'react-native';
 import { colors as importedColors } from '../../../../../styles/common';
 import { Theme } from '@metamask/design-tokens';
+
+export const GRADIENT_COLORS = ['#1D002E', '#3D065F'];
 
 // Platform-specific base dimensions
 const BASE_WIDTH = 375;
@@ -52,8 +55,14 @@ const createScalingFunctions = (dimensions: WindowDimensions) => {
 };
 
 const createStyles = (theme: Theme, dimensions: WindowDimensions) => {
-  const { screenHeight, scaleSize, scaleFont, scaleVertical, scaleHorizontal } =
-    createScalingFunctions(dimensions);
+  const {
+    screenWidth,
+    screenHeight,
+    scaleSize,
+    scaleFont,
+    scaleVertical,
+    scaleHorizontal,
+  } = createScalingFunctions(dimensions);
 
   return StyleSheet.create({
     pageContainer: {
@@ -61,41 +70,28 @@ const createStyles = (theme: Theme, dimensions: WindowDimensions) => {
       position: 'relative',
       maxHeight: '100%',
       width: '100%',
-      backgroundColor: theme.colors.accent03.dark,
-    },
-    imageContainer: {
-      flex: 1,
-      alignItems: 'center',
-      justifyContent: 'center',
-      marginBottom: scaleVertical(16),
-    },
-    image: {
-      width: '100%',
-      height: '100%',
-      resizeMode: 'cover',
-    },
-    contentContainer: {
-      flex: 1,
+      // Background is handled by LinearGradient wrapper
     },
     headerContainer: {
       alignItems: 'center',
       paddingHorizontal: scaleHorizontal(16),
       paddingVertical: scaleVertical(16),
+      zIndex: 2,
     },
     title: {
       fontFamily: 'MMPoly-Regular',
       fontWeight: '400',
       // make it smaller on smaller screens
       fontSize:
-        screenHeight < MIN_SCREEN_HEIGHT_FOR_SMALL_SCREEN_STYLES ? 40 : 50,
+        screenHeight < MIN_SCREEN_HEIGHT_FOR_SMALL_SCREEN_STYLES ? 40 : 45,
       lineHeight:
-        screenHeight < MIN_SCREEN_HEIGHT_FOR_SMALL_SCREEN_STYLES ? 40 : 50, // 100% of font size
+        screenHeight < MIN_SCREEN_HEIGHT_FOR_SMALL_SCREEN_STYLES ? 40 : 45, // 100% of font size
       letterSpacing: 0,
       textAlign: 'center',
       paddingTop: scaleVertical(
         screenHeight < MIN_SCREEN_HEIGHT_FOR_SMALL_SCREEN_STYLES ? 8 : 12,
       ),
-      color: theme.colors.accent03.light,
+      color: theme.colors.accent02.light,
     },
     titleDescription: {
       // make it smaller on smaller screens
@@ -108,12 +104,44 @@ const createStyles = (theme: Theme, dimensions: WindowDimensions) => {
       fontWeight: '500',
       lineHeight: 24, // Line Height BodyMd
       letterSpacing: 0,
-      color: theme.colors.accent03.light,
+      color: theme.colors.accent02.light,
+    },
+    imageContainer: {
+      position: 'absolute',
+      // Push image further down on smaller screens to avoid overlapping with header text
+      top:
+        screenHeight < MIN_SCREEN_HEIGHT_FOR_SMALL_SCREEN_STYLES
+          ? '34%'
+          : '25%',
+      left: 0,
+      right: 0,
+      bottom: 0,
+      alignItems: 'center',
+      justifyContent: 'flex-start',
+      zIndex: 1,
+    },
+    image: {
+      // Scale image size based on screen height - smaller on small screens
+      width:
+        screenHeight < MIN_SCREEN_HEIGHT_FOR_SMALL_SCREEN_STYLES
+          ? screenWidth * 0.95
+          : screenWidth * 1.2,
+      height:
+        screenHeight < MIN_SCREEN_HEIGHT_FOR_SMALL_SCREEN_STYLES
+          ? screenHeight * 0.55
+          : screenHeight * 0.7,
+      resizeMode: 'contain',
     },
     footerContainer: {
+      position: 'absolute',
+      bottom: 0,
+      left: 0,
+      right: 0,
       display: 'flex',
       rowGap: scaleVertical(8),
       paddingHorizontal: scaleHorizontal(30),
+      paddingBottom: scaleVertical(2),
+      zIndex: 3,
     },
     getStartedButton: {
       borderRadius: scaleSize(12),

@@ -1,11 +1,16 @@
 import { BigNumber } from 'bignumber.js';
+import {
+  TransactionMeta,
+  TransactionType,
+} from '@metamask/transaction-controller';
 import { strings } from '../../../../../locales/i18n';
 import {
   Funding,
   Order,
   OrderFill,
   UserHistoryItem,
-} from '../controllers/types';
+  getPerpsDisplaySymbol,
+} from '@metamask/perps-controller';
 import {
   FillType,
   PerpsOrderTransactionStatus,
@@ -13,7 +18,10 @@ import {
   PerpsTransaction,
 } from '../types/transactionHistory';
 import { formatOrderLabel } from './orderUtils';
-import { getPerpsDisplaySymbol } from './marketUtils';
+import { getTokenTransferData } from '../../../Views/confirmations/utils/transaction-pay';
+import { parseStandardTokenTransactionData } from '../../../Views/confirmations/utils/transaction';
+import { calcTokenAmount } from '../../../../util/transactions';
+import { ARBITRUM_USDC } from '../../../Views/confirmations/constants/perps';
 
 /**
  * Determines the close direction category for aggregation purposes.
@@ -376,10 +384,15 @@ export function transformFillsToTransactions(
 /**
  * Transform abstract Order objects to PerpsTransaction format
  * @param orders - Array of abstract Order objects
+ * @param fillSizeByOrderId - Optional map of orderId to total filled size (from actual fills).
+ * When provided, uses actual fill data to calculate accurate filled percentages.
+ * This is important because HyperLiquid's historical orders API returns sz=0 for all
+ * completed orders, making it impossible to calculate partial fill percentages without fill data.
  * @returns Array of PerpsTransaction objects
  */
 export function transformOrdersToTransactions(
   orders: Order[],
+  fillSizeByOrderId?: Map<string, BigNumber>,
 ): PerpsTransaction[] {
   return orders.map((order) => {
     const {
@@ -428,15 +441,50 @@ export function transformOrdersToTransactions(
         : PerpsOrderTransactionStatus.Queued;
     }
 
-    // Calculate filled percentage from abstract types
-    const filledPercent = BigNumber(size).isEqualTo(0)
-      ? '100'
-      : BigNumber(originalSize)
+    // Calculate filled percentage - prefer actual fill data when available
+    let filledPercent: string;
+    const actualFilledSize = fillSizeByOrderId?.get(orderId);
+
+    if (actualFilledSize !== undefined) {
+      // Use actual fill data for accurate percentage
+      const origSize = BigNumber(originalSize);
+
+      if (origSize.isZero()) {
+        filledPercent = '0';
+      } else {
+        filledPercent = actualFilledSize
+          .dividedBy(origSize)
+          .multipliedBy(100)
+          .toFixed(0); // Round to whole number
+      }
+    } else if (isCompleted || isTriggered) {
+      // Filled/triggered orders are 100% filled
+      filledPercent = '100';
+    } else if (isCancelled || isRejected) {
+      // Canceled/rejected orders without fills = 0% filled
+      filledPercent = '0';
+    } else {
+      // Open/pending orders - use the order's size fields
+      const sizeIsZero = BigNumber(size).isEqualTo(0);
+      const originalSizeIsZero = BigNumber(originalSize).isZero();
+
+      if (sizeIsZero && originalSizeIsZero) {
+        // Position-bound TP/SL orders have no fixed size (both are 0)
+        // They're not filled yet - they're just tied to the position size
+        filledPercent = '0';
+      } else if (sizeIsZero) {
+        // Regular order with 0 remaining size = fully filled
+        filledPercent = '100';
+      } else {
+        // Partially filled order
+        filledPercent = BigNumber(originalSize)
           .minus(size)
           .dividedBy(originalSize)
           .absoluteValue()
           .multipliedBy(100)
           .toString();
+      }
+    }
 
     return {
       id: `${orderId}-${timestamp}`,
@@ -517,13 +565,24 @@ export function transformUserHistoryToTransactions(
       const displayAmount = `${isDeposit ? '+' : '-'}$${amountBN.toFixed(2)}`;
 
       // For completed transactions, status is always positive (green)
-      const statusText = 'Completed';
+      const statusText = strings(
+        'perps.transactions.activity.status_completed',
+      );
+      const title = isDeposit
+        ? strings('perps.transactions.activity.deposited_amount', {
+            amount,
+            symbol: asset,
+          })
+        : strings('perps.transactions.activity.withdrew_amount', {
+            amount,
+            symbol: asset,
+          });
 
       return {
         id: `${type}-${id}`,
         type: isDeposit ? 'deposit' : 'withdrawal',
         category: isDeposit ? 'deposit' : 'withdrawal',
-        title: `${isDeposit ? 'Deposited' : 'Withdrew'} ${amount} ${asset}`,
+        title,
         subtitle: statusText,
         timestamp,
         asset,
@@ -535,6 +594,88 @@ export function transformUserHistoryToTransactions(
           txHash: txHash || '',
           status,
           type: isDeposit ? 'deposit' : 'withdrawal',
+        },
+      };
+    });
+}
+
+/** Wallet transaction status to perps deposit/withdrawal status */
+const WALLET_STATUS_TO_DEPOSIT_STATUS: Record<
+  string,
+  'completed' | 'failed' | 'pending' | 'bridging'
+> = {
+  confirmed: 'completed',
+  failed: 'failed',
+  rejected: 'failed',
+  dropped: 'failed',
+  signed: 'pending',
+  submitted: 'pending',
+  approved: 'pending',
+  unapproved: 'pending',
+  pending: 'pending',
+};
+
+/**
+ * Transform wallet TransactionMeta (perpsDeposit / perpsDepositAndOrder) to PerpsTransaction format.
+ * Ensures wallet-originated perps deposits appear in the Perps activity Deposits tab.
+ * @param transactions - Array of TransactionMeta with type perpsDeposit or perpsDepositAndOrder
+ * @returns Array of PerpsTransaction objects with type 'deposit'
+ */
+export function transformWalletPerpsDepositsToTransactions(
+  transactions: TransactionMeta[],
+): PerpsTransaction[] {
+  return transactions
+    .filter(
+      (tx) =>
+        tx.type === TransactionType.perpsDeposit ||
+        tx.type === TransactionType.perpsDepositAndOrder,
+    )
+    .map((tx) => {
+      const tokenData = getTokenTransferData(tx);
+      const decoded = tokenData?.data
+        ? parseStandardTokenTransactionData(tokenData.data)
+        : undefined;
+      const amountWei = decoded?.args?._value?.toString?.();
+      const amountBN =
+        amountWei !== undefined
+          ? new BigNumber(
+              calcTokenAmount(amountWei, ARBITRUM_USDC.decimals).toString(),
+            )
+          : new BigNumber(0);
+
+      const displayAmount = `+$${amountBN.toFixed(2)}`;
+      const status = WALLET_STATUS_TO_DEPOSIT_STATUS[tx.status] ?? 'pending';
+      const statusText =
+        status === 'completed'
+          ? strings('perps.transactions.activity.status_completed')
+          : status === 'failed'
+            ? strings('perps.transactions.activity.status_failed')
+            : strings('perps.transactions.activity.status_pending');
+
+      const title =
+        amountBN.isZero() || !amountWei
+          ? strings('perps.transactions.activity.deposit_title')
+          : strings('perps.transactions.activity.deposited_amount', {
+              amount: amountBN.toFixed(2),
+              symbol: ARBITRUM_USDC.symbol,
+            });
+
+      return {
+        id: `wallet-deposit-${tx.id}`,
+        type: 'deposit' as const,
+        category: 'deposit' as const,
+        title,
+        subtitle: statusText,
+        timestamp: tx.time ?? 0,
+        asset: ARBITRUM_USDC.symbol,
+        depositWithdrawal: {
+          amount: displayAmount,
+          amountNumber: amountBN.toNumber(),
+          isPositive: true,
+          asset: ARBITRUM_USDC.symbol,
+          txHash: tx.hash ?? '',
+          status,
+          type: 'deposit' as const,
         },
       };
     });
@@ -559,14 +700,19 @@ export function transformWithdrawalRequestsToTransactions(
       const displayAmount = `-$${amountBN.toFixed(2)}`;
 
       // For completed withdrawals, status is always positive (green)
-      const statusText = 'Completed';
+      const statusText = strings(
+        'perps.transactions.activity.status_completed',
+      );
       const isPositive = true;
 
       return {
         id: `withdrawal-${id}`,
         type: 'withdrawal' as const,
         category: 'withdrawal' as const,
-        title: `Withdrew ${amount} ${asset}`,
+        title: strings('perps.transactions.activity.withdrew_amount', {
+          amount,
+          symbol: asset,
+        }),
         subtitle: statusText,
         timestamp,
         asset,
@@ -602,14 +748,19 @@ export function transformDepositRequestsToTransactions(
       const displayAmount = `+$${amountBN.toFixed(2)}`;
 
       // For completed deposits, status is always positive (green)
-      const statusText = 'Completed';
+      const statusText = strings(
+        'perps.transactions.activity.status_completed',
+      );
       const isPositive = true;
 
       // Create title based on whether we have the actual amount
       const title =
         amount === '0' || amount === '0.00'
-          ? 'Deposit'
-          : `Deposited ${amount} ${asset}`;
+          ? strings('perps.transactions.activity.deposit_title')
+          : strings('perps.transactions.activity.deposited_amount', {
+              amount,
+              symbol: asset,
+            });
 
       return {
         id: `deposit-${id}`,

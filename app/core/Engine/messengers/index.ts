@@ -79,6 +79,10 @@ import {
 import { getTokenSearchDiscoveryDataControllerMessenger } from './token-search-discovery-data-controller-messenger';
 import { getAssetsContractControllerMessenger } from './assets-contract-controller-messenger';
 import {
+  getAssetsControllerMessenger,
+  getAssetsControllerInitMessenger,
+} from './assets-controller';
+import {
   getTokensControllerInitMessenger,
   getTokensControllerMessenger,
 } from './tokens-controller-messenger';
@@ -86,7 +90,6 @@ import {
   getTokenListControllerInitMessenger,
   getTokenListControllerMessenger,
 } from './token-list-controller-messenger';
-import { getTokenSearchDiscoveryControllerMessenger } from './token-search-discovery-controller-messenger';
 import {
   getTokenDetectionControllerInitMessenger,
   getTokenDetectionControllerMessenger,
@@ -173,6 +176,10 @@ export const CONTROLLER_MESSENGERS = {
   AssetsContractController: {
     getMessenger: getAssetsContractControllerMessenger,
     getInitMessenger: noop,
+  },
+  AssetsController: {
+    getMessenger: getAssetsControllerMessenger,
+    getInitMessenger: getAssetsControllerInitMessenger,
   },
   EarnController: {
     getMessenger: getEarnControllerMessenger,
@@ -406,10 +413,6 @@ export const CONTROLLER_MESSENGERS = {
   },
   TokenRatesController: {
     getMessenger: getTokenRatesControllerMessenger,
-    getInitMessenger: noop,
-  },
-  TokenSearchDiscoveryController: {
-    getMessenger: getTokenSearchDiscoveryControllerMessenger,
     getInitMessenger: noop,
   },
   TokenSearchDiscoveryDataController: {

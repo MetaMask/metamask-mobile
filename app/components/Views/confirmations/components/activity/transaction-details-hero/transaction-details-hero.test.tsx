@@ -1,4 +1,5 @@
 import React from 'react';
+import { Interface } from '@ethersproject/abi';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
 import {
@@ -9,6 +10,7 @@ import { TransactionDetailsHero } from './transaction-details-hero';
 import { merge } from 'lodash';
 import { otherControllersMock } from '../../../__mocks__/controllers/other-controllers-mock';
 import { useTokenWithBalance } from '../../../hooks/tokens/useTokenWithBalance';
+import { DISTRIBUTOR_CLAIM_ABI } from '../../../../../UI/Earn/components/MerklRewards/constants';
 
 jest.mock('../../../hooks/activity/useTransactionDetails');
 jest.mock('../../../hooks/tokens/useTokenWithBalance');
@@ -148,5 +150,63 @@ describe('TransactionDetailsHero', () => {
     const { getByText } = render();
 
     expect(getByText('$456.78')).toBeDefined();
+  });
+
+  it('renders amount for musdConversion transactions', () => {
+    useTransactionDetailsMock.mockReturnValue({
+      transactionMeta: {
+        ...TRANSACTION_META_MOCK,
+        type: TransactionType.musdConversion,
+        metamaskPay: {
+          targetFiat: '100.00',
+        },
+      } as unknown as TransactionMeta,
+    });
+
+    const { getByText } = render();
+
+    expect(getByText('$100')).toBeDefined();
+  });
+
+  it('renders claim amount for musdClaim with valid claim data', () => {
+    const USER_ADDRESS = '0x1234567890123456789012345678901234567890';
+    const TOKEN_ADDRESS = '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd';
+    const claimAmount = '75500000'; // 75.5 mUSD (6 decimals)
+
+    const contractInterface = new Interface(DISTRIBUTOR_CLAIM_ABI);
+    const claimData = contractInterface.encodeFunctionData('claim', [
+      [USER_ADDRESS],
+      [TOKEN_ADDRESS],
+      [claimAmount],
+      [[]],
+    ]);
+
+    useTransactionDetailsMock.mockReturnValue({
+      transactionMeta: {
+        ...TRANSACTION_META_MOCK,
+        type: TransactionType.musdClaim,
+        txParams: {
+          data: claimData,
+        },
+      } as unknown as TransactionMeta,
+    });
+
+    const { getByText } = render();
+    expect(getByText('$75.50')).toBeDefined();
+  });
+
+  it('renders nothing for musdClaim without valid claim data', () => {
+    useTransactionDetailsMock.mockReturnValue({
+      transactionMeta: {
+        ...TRANSACTION_META_MOCK,
+        type: TransactionType.musdClaim,
+        txParams: {
+          data: '0x123', // Invalid claim data
+        },
+      } as unknown as TransactionMeta,
+    });
+
+    const { queryByTestId } = render();
+    expect(queryByTestId('transaction-details-hero')).toBeNull();
   });
 });

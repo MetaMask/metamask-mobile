@@ -1,13 +1,13 @@
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { SmokePredictions } from '../../../e2e/tags';
-import { loginToApp } from '../../../e2e/viewHelper';
-import TabBarComponent from '../../../e2e/pages/wallet/TabBarComponent';
-import WalletActionsBottomSheet from '../../../e2e/pages/wallet/WalletActionsBottomSheet';
+import { SmokePredictions } from '../../tags';
+import { loginToApp } from '../../flows/wallet.flow';
+import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
+import WalletActionsBottomSheet from '../../page-objects/wallet/WalletActionsBottomSheet';
 import PredictMarketList from '../../page-objects/Predict/PredictMarketList';
 import PredictDetailsPage from '../../page-objects/Predict/PredictDetailsPage';
 import Assertions from '../../framework/Assertions';
-import WalletView from '../../../e2e/pages/wallet/WalletView';
+import WalletView from '../../page-objects/wallet/WalletView';
 import { remoteFeatureFlagPredictEnabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
@@ -17,8 +17,8 @@ import {
   POLYMARKET_POST_OPEN_POSITION_MOCKS,
   POLYMARKET_UPDATE_USDC_BALANCE_MOCKS,
 } from '../../api-mocking/mock-responses/polymarket/polymarket-mocks';
-import ActivitiesView from '../../../e2e/pages/Transactions/ActivitiesView';
-import PredictActivityDetails from '../../../e2e/pages/Transactions/predictionsActivityDetails';
+import ActivitiesView from '../../page-objects/Transactions/ActivitiesView';
+import PredictActivityDetails from '../../page-objects/Transactions/predictionsActivityDetails';
 import { getEventsPayloads } from '../../helpers/analytics/helpers';
 import SoftAssert from '../../framework/SoftAssert';
 

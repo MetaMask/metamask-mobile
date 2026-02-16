@@ -188,7 +188,10 @@ describe('CustomAmountInfo', () => {
     });
 
     useAccountTokensMock.mockReturnValue([]);
-    useTransactionPayAvailableTokensMock.mockReturnValue([{}] as AssetType[]);
+    useTransactionPayAvailableTokensMock.mockReturnValue({
+      availableTokens: [{}] as AssetType[],
+      hasTokens: true,
+    });
     useTransactionPayRequiredTokensMock.mockReturnValue([]);
     useTransactionConfirmMock.mockReturnValue({} as never);
     useIsTransactionPayLoadingMock.mockReturnValue(false);
@@ -247,7 +250,10 @@ describe('CustomAmountInfo', () => {
   });
 
   it('renders buy button if no available tokens', () => {
-    useTransactionPayAvailableTokensMock.mockReturnValue([]);
+    useTransactionPayAvailableTokensMock.mockReturnValue({
+      availableTokens: [],
+      hasTokens: false,
+    });
 
     const { getByText } = render();
 
@@ -257,7 +263,10 @@ describe('CustomAmountInfo', () => {
   });
 
   it('navigates to ramps if buy button pressed', () => {
-    useTransactionPayAvailableTokensMock.mockReturnValue([]);
+    useTransactionPayAvailableTokensMock.mockReturnValue({
+      availableTokens: [],
+      hasTokens: false,
+    });
 
     useAccountTokensMock.mockReturnValue([
       {
@@ -324,5 +333,17 @@ describe('CustomAmountInfo', () => {
     expect(
       queryByText(new RegExp(strings('confirm.label.pay_with'))),
     ).toBeNull();
+  });
+
+  it('calls onAmountSubmit when Done button is pressed', async () => {
+    const mockOnAmountSubmit = jest.fn();
+
+    const { getByText } = render({ onAmountSubmit: mockOnAmountSubmit });
+
+    await act(async () => {
+      fireEvent.press(getByText(strings('confirm.edit_amount_done')));
+    });
+
+    expect(mockOnAmountSubmit).toHaveBeenCalledTimes(1);
   });
 });

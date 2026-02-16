@@ -24,8 +24,10 @@ import { PredictDepositInfo } from '../info/predict-deposit-info';
 import { hasTransactionType } from '../../utils/transaction';
 import { PredictClaimInfo } from '../info/predict-claim-info';
 import { PredictWithdrawInfo } from '../info/predict-withdraw-info';
+import { MusdClaimInfo } from '../info/musd-claim-info';
 import { MusdConversionInfo } from '../info/musd-conversion-info';
 import { useRefreshSmartTransactionsLiveness } from '../../../../hooks/useRefreshSmartTransactionsLiveness';
+import PerpsOrderView from '../../../../UI/Perps/Views/PerpsOrderView';
 
 interface ConfirmationInfoComponentRequest {
   signatureRequestVersion?: string;
@@ -63,6 +65,8 @@ const ConfirmationInfoComponentMap = {
         return Approve;
       case TransactionType.perpsDeposit:
         return PerpsDepositInfo;
+      case TransactionType.perpsDepositAndOrder:
+        return PerpsOrderView;
       // Default to contract interaction as generic transaction confirmation
       case TransactionType.lendingDeposit:
       case TransactionType.lendingWithdraw:
@@ -95,6 +99,13 @@ const Info = ({ route }: InfoProps) => {
 
   if (isSigningQRObject) {
     return <QRInfo />;
+  }
+
+  if (
+    transactionMetadata &&
+    hasTransactionType(transactionMetadata, [TransactionType.musdClaim])
+  ) {
+    return <MusdClaimInfo />;
   }
 
   if (

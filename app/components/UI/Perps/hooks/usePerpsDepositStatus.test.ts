@@ -20,7 +20,7 @@ import { NotificationFeedbackType } from 'expo-haptics';
 import {
   USDC_ARBITRUM_MAINNET_ADDRESS,
   ARBITRUM_MAINNET_CHAIN_ID_HEX,
-} from '../constants/hyperLiquidConfig';
+} from '@metamask/perps-controller';
 import { selectTransactionBridgeQuotesById } from '../../../../core/redux/slices/confirmationMetrics';
 
 // Mock dependencies
@@ -45,6 +45,10 @@ jest.mock('../../../../core/Engine', () => ({
 
 jest.mock('../../../../core/redux/slices/confirmationMetrics', () => ({
   selectTransactionBridgeQuotesById: jest.fn(),
+}));
+
+jest.mock('../providers/PerpsStreamManager', () => ({
+  getStreamManagerInstance: jest.fn(() => ({})),
 }));
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
@@ -138,6 +142,29 @@ describe('usePerpsDepositStatus', () => {
             ],
             hapticsType: NotificationFeedbackType.Success,
           })),
+          takingLonger: {
+            variant: ToastVariants.Icon,
+            iconName: IconName.Warning,
+            hasNoTimeout: true,
+            labelOptions: [
+              { label: 'Deposit taking longer', isBold: true },
+              { label: 'Your deposit is still processing' },
+            ],
+            hapticsType: NotificationFeedbackType.Warning,
+          } as PerpsToastOptions,
+          tradeCanceled: {
+            variant: ToastVariants.Icon,
+            iconName: IconName.Warning,
+            hasNoTimeout: false,
+            labelOptions: [
+              { label: 'Trade canceled', isBold: true },
+              { label: 'Funds returned to account' },
+            ],
+            hapticsType: NotificationFeedbackType.Warning,
+          } as PerpsToastOptions,
+        },
+        oneClickTrade: {
+          txCreationFailed: {} as PerpsToastOptions,
         },
         withdrawal: {
           withdrawalInProgress: {

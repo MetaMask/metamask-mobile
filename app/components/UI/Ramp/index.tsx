@@ -34,6 +34,7 @@ import Routes from '../../../constants/navigation/Routes';
 import getOrderAnalyticsPayload from './utils/getOrderAnalyticsPayload';
 import { NativeRampsSdk } from '@consensys/native-ramps-sdk';
 import useDetectGeolocation from './hooks/useDetectGeolocation';
+import useHydrateRampsController from './hooks/useHydrateRampsController';
 import useRampsSmartRouting from './hooks/useRampsSmartRouting';
 
 const POLLING_FREQUENCY = AppConstants.FIAT_ORDERS.POLLING_FREQUENCY;
@@ -117,6 +118,7 @@ const styles = StyleSheet.create({
 });
 
 function FiatOrders() {
+  useHydrateRampsController();
   useFetchRampNetworks();
   useDetectGeolocation();
   useRampsSmartRouting();
