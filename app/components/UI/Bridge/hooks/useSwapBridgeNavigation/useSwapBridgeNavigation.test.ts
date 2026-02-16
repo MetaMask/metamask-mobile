@@ -91,6 +91,9 @@ jest.mock('../../../../../core/Engine', () => ({
       MultichainNetworkController: {
         setActiveNetwork: jest.fn(),
       },
+      BridgeController: {
+        setLocation: jest.fn(),
+      },
     },
   },
 }));
@@ -226,6 +229,7 @@ describe('useSwapBridgeNavigation', () => {
         },
         sourcePage: mockSourcePage,
         bridgeViewMode: BridgeViewMode.Unified,
+        location: 'Main View',
       },
     });
   });
@@ -257,6 +261,7 @@ describe('useSwapBridgeNavigation', () => {
         sourceToken: mockToken,
         sourcePage: mockSourcePage,
         bridgeViewMode: BridgeViewMode.Unified,
+        location: 'Main View',
       },
     });
   });
@@ -296,6 +301,7 @@ describe('useSwapBridgeNavigation', () => {
         sourceToken: overrideToken,
         sourcePage: mockSourcePage,
         bridgeViewMode: BridgeViewMode.Unified,
+        location: 'Main View',
       },
     });
   });
@@ -344,6 +350,7 @@ describe('useSwapBridgeNavigation', () => {
         },
         sourcePage: mockSourcePage,
         bridgeViewMode: BridgeViewMode.Unified,
+        location: 'Main View',
       },
     });
   });
@@ -366,6 +373,7 @@ describe('useSwapBridgeNavigation', () => {
         sourceToken: mockNativeAsset,
         sourcePage: mockSourcePage,
         bridgeViewMode: BridgeViewMode.Unified,
+        location: 'Main View',
       },
     });
   });
@@ -428,6 +436,7 @@ describe('useSwapBridgeNavigation', () => {
         },
         sourcePage: mockSourcePage,
         bridgeViewMode: BridgeViewMode.Unified,
+        location: 'Main View',
       },
     });
   });
@@ -471,6 +480,7 @@ describe('useSwapBridgeNavigation', () => {
         },
         sourcePage: mockSourcePage,
         bridgeViewMode: BridgeViewMode.Unified,
+        location: 'Main View',
       },
     });
   });
@@ -494,6 +504,7 @@ describe('useSwapBridgeNavigation', () => {
           sourceToken: mockNativeAsset,
           sourcePage: mockSourcePage,
           bridgeViewMode: BridgeViewMode.Unified,
+          location: 'Main View',
         },
       });
     });
@@ -624,6 +635,7 @@ describe('useSwapBridgeNavigation', () => {
           sourceToken: sourceOverride,
           sourcePage: mockSourcePage,
           bridgeViewMode: BridgeViewMode.Unified,
+          location: 'Main View',
         },
       });
       expect(mockSetDestToken).toHaveBeenCalledWith(destOverride);
@@ -768,6 +780,7 @@ describe('useSwapBridgeNavigation', () => {
           },
           sourcePage: mockSourcePage,
           bridgeViewMode: BridgeViewMode.Unified,
+          location: 'Main View',
         },
       });
     });
@@ -817,6 +830,7 @@ describe('useSwapBridgeNavigation', () => {
           },
           sourcePage: mockSourcePage,
           bridgeViewMode: BridgeViewMode.Unified,
+          location: 'Main View',
         },
       });
     });
@@ -868,6 +882,7 @@ describe('useSwapBridgeNavigation', () => {
           },
           sourcePage: mockSourcePage,
           bridgeViewMode: BridgeViewMode.Unified,
+          location: 'Main View',
         },
       });
     });
@@ -921,6 +936,7 @@ describe('useSwapBridgeNavigation', () => {
           },
           sourcePage: mockSourcePage,
           bridgeViewMode: BridgeViewMode.Unified,
+          location: 'Main View',
         },
       });
     });
@@ -972,6 +988,7 @@ describe('useSwapBridgeNavigation', () => {
           },
           sourcePage: mockSourcePage,
           bridgeViewMode: BridgeViewMode.Unified,
+          location: 'Main View',
         },
       });
     });
@@ -1025,6 +1042,7 @@ describe('useSwapBridgeNavigation', () => {
           },
           sourcePage: mockSourcePage,
           bridgeViewMode: BridgeViewMode.Unified,
+          location: 'Main View',
         },
       });
     });
