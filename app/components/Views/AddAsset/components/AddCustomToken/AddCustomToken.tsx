@@ -5,7 +5,8 @@ import React, {
   useRef,
   useMemo,
 } from 'react';
-import { TextInput, ScrollView, Platform } from 'react-native';
+import { TextInput, Platform, ActivityIndicator } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
@@ -25,7 +26,6 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import NotificationManager from '../../../../../core/NotificationManager';
 import { useTheme } from '../../../../../util/theme';
 import { ImportTokenViewSelectorsIDs } from '../../ImportAssetView.testIds';
-import { regex } from '../../../../../util/regex';
 import {
   getBlockExplorerAddressUrl,
   getDecimalChainId,
@@ -55,32 +55,133 @@ import {
 } from '../../../../../selectors/networkController';
 import { RootState } from '../../../../../reducers';
 
+// --- Types ---
+
 interface AddCustomTokenProps {
-  /** The chain ID for the current selected network */
   chainId: string;
-  /** Checks if token detection is supported */
   isTokenDetectionSupported?: boolean;
-  /** Tab label for ScrollableTabView */
   tabLabel?: string;
 }
+
+// --- Pure validation helpers ---
+
+const getAddressError = (addr: string, isContract: boolean | null): string => {
+  const trimmed = addr.trim();
+  if (!trimmed) return strings('token.address_cant_be_empty');
+  if (!isValidAddress(trimmed)) return strings('token.address_must_be_valid');
+  if (isContract === false)
+    return strings('token.address_must_be_smart_contract');
+  return '';
+};
+
+const getSymbolError = (sym: string): string => {
+  if (!sym.trim()) return strings('token.symbol_cant_be_empty');
+  return '';
+};
+
+const getSymbolWarning = (sym: string): string => {
+  if (sym.trim() && sym.length >= 11) return strings('token.symbol_length');
+  return '';
+};
+
+const getDecimalsError = (dec: string): string => {
+  if (!dec.trim()) return strings('token.decimals_is_required');
+  return '';
+};
+
+// --- Hook: token metadata fetching ---
+
+function useTokenMetadata(
+  address: string,
+  chainId: string,
+  networkClientId: string | null,
+) {
+  const [symbol, setSymbol] = useState('');
+  const [decimals, setDecimals] = useState('');
+  const [name, setName] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSmartContract, setIsSmartContract] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const trimmed = address.trim();
+
+    if (!isValidAddress(trimmed)) {
+      setIsSmartContract(null);
+      setSymbol('');
+      setDecimals('');
+      setName('');
+      return;
+    }
+
+    let cancelled = false;
+
+    setIsLoading(true);
+    setIsSmartContract(null);
+    setSymbol('');
+    setDecimals('');
+    setName('');
+
+    const run = async () => {
+      try {
+        const isContract = await isSmartContractAddress(trimmed, chainId);
+        if (cancelled) return;
+        setIsSmartContract(Boolean(isContract));
+
+        if (!isContract) return;
+
+        const { AssetsContractController } = Engine.context;
+        const clientId = networkClientId ?? undefined;
+        const [d, s, n] = await Promise.all([
+          AssetsContractController.getERC20TokenDecimals(trimmed, clientId),
+          AssetsContractController.getERC721AssetSymbol(trimmed, clientId),
+          AssetsContractController.getERC20TokenName(trimmed, clientId),
+        ]);
+        if (cancelled) return;
+
+        setDecimals(String(d));
+        setSymbol(s);
+        setName(n);
+      } catch (error) {
+        Logger.error(
+          error as Error,
+          'useTokenMetadata: failed to fetch token metadata',
+        );
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    };
+
+    run();
+    return () => {
+      cancelled = true;
+    };
+  }, [address, chainId, networkClientId]);
+
+  return {
+    symbol,
+    setSymbol,
+    decimals,
+    setDecimals,
+    name,
+    isLoading,
+    isSmartContract,
+  };
+}
+
+// --- Component ---
 
 const AddCustomToken = ({
   chainId,
   isTokenDetectionSupported,
 }: AddCustomTokenProps) => {
   const [address, setAddress] = useState('');
-  const [symbol, setSymbol] = useState('');
-  const [decimals, setDecimals] = useState('');
-  const [name, setName] = useState('');
-  const [warningAddress, setWarningAddress] = useState('');
-  const [warningSymbol, setWarningSymbol] = useState('');
-  const [warningDecimals, setWarningDecimals] = useState('');
-  const [isSymbolEditable, setIsSymbolEditable] = useState(true);
-  const [isDecimalEditable, setIsDecimalEditable] = useState(true);
-  const [onFocusAddress, setOnFocusAddress] = useState(false);
+  const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [touchedFields, setTouchedFields] = useState<Record<string, boolean>>(
+    {},
+  );
 
-  const assetSymbolInput = useRef<TextInput>(null);
-  const assetPrecisionInput = useRef<TextInput>(null);
+  const symbolInputRef = useRef<TextInput>(null);
+  const decimalsInputRef = useRef<TextInput>(null);
 
   const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
   const { colors, themeAppearance } = useTheme();
@@ -88,7 +189,7 @@ const AddCustomToken = ({
   const tw = useTailwind();
   const insets = useSafeAreaInsets();
 
-  // Derive network details from chainId via selectors
+  // Network selectors
   const networkConfig = useSelector((state: RootState) =>
     selectNetworkConfigurationByChainId(state, chainId),
   );
@@ -101,109 +202,75 @@ const AddCustomToken = ({
 
   const networkName = networkConfig?.name ?? '';
   const ticker = networkConfig?.nativeCurrency ?? '';
-  const networkClientId = useMemo(
-    () => defaultEndpoint?.networkClientId ?? null,
-    [defaultEndpoint],
-  );
+  const networkClientId = defaultEndpoint?.networkClientId ?? null;
 
-  // Reset fields when the network changes
+  // Token metadata (async validation + RPC fetch)
+  const {
+    symbol,
+    setSymbol,
+    decimals,
+    setDecimals,
+    name,
+    isLoading,
+    isSmartContract,
+  } = useTokenMetadata(address, chainId, networkClientId);
+
+  // Reset form on network change (hook resets its own state when address clears)
   useEffect(() => {
     setAddress('');
-    setSymbol('');
-    setDecimals('');
-    setName('');
-    setWarningAddress('');
-    setWarningSymbol('');
-    setWarningDecimals('');
+    setTouchedFields({});
+    setHasSubmitted(false);
   }, [chainId]);
 
-  const getTokenAddedAnalyticsParams = useCallback(() => {
-    try {
-      return {
-        token_address: address,
-        token_symbol: symbol,
-        chain_id: getDecimalChainId(chainId),
-        source: 'Custom token',
-      };
-    } catch (error) {
-      Logger.error(
-        error as Error,
-        'AddCustomToken.getTokenAddedAnalyticsParams error',
-      );
-      return undefined;
-    }
-  }, [address, symbol, chainId]);
+  // --- Derived validation ---
 
-  const validateCustomTokenAddress = useCallback(
-    async (addr: string): Promise<boolean> => {
-      let validated = true;
-      const isValidTokenAddress = isValidAddress(addr);
-      const toSmartContract =
-        isValidTokenAddress && (await isSmartContractAddress(addr, chainId));
+  const addressError = useMemo(
+    () => getAddressError(address, isSmartContract),
+    [address, isSmartContract],
+  );
+  const symbolError = useMemo(() => getSymbolError(symbol), [symbol]);
+  const symbolWarning = useMemo(() => getSymbolWarning(symbol), [symbol]);
+  const decimalsError = useMemo(() => getDecimalsError(decimals), [decimals]);
 
-      const addressWithoutSpaces = addr.replace(regex.addressWithSpaces, '');
-      if (addressWithoutSpaces.length === 0) {
-        setWarningAddress(strings('token.address_cant_be_empty'));
-        validated = false;
-      } else if (!isValidTokenAddress) {
-        setWarningAddress(strings('token.address_must_be_valid'));
-        validated = false;
-      } else if (!toSmartContract) {
-        setWarningAddress(strings('token.address_must_be_smart_contract'));
-        validated = false;
-      } else {
-        setWarningAddress('');
-      }
-      return validated;
-    },
-    [chainId],
+  const showSecondaryFields =
+    isValidAddress(address.trim()) && isSmartContract === true && !isLoading;
+
+  const showAddressError = (!!address.trim() || hasSubmitted) && !!addressError;
+  const showSymbolError =
+    (touchedFields.symbol || hasSubmitted) && !!symbolError;
+  const showDecimalsError =
+    (touchedFields.decimals || hasSubmitted) && !!decimalsError;
+
+  const isNextDisabled =
+    !!addressError || !!symbolError || !!decimalsError || isLoading;
+
+  const { title: explorerTitle, url: explorerUrl } = getBlockExplorerAddressUrl(
+    providerType ?? '',
+    address,
   );
 
-  const validateCustomTokenSymbol = useCallback((): boolean => {
-    let validated = true;
-    const symbolWithoutSpaces = symbol.replace(regex.addressWithSpaces, '');
-    if (symbolWithoutSpaces.length === 0) {
-      setWarningSymbol(strings('token.symbol_cant_be_empty'));
-      validated = false;
-    } else if (symbol.length >= 11) {
-      setWarningSymbol(strings('token.symbol_length'));
-    } else {
-      setWarningSymbol('');
-    }
-    return validated;
-  }, [symbol]);
+  // --- Handlers ---
 
-  const validateCustomTokenDecimals = useCallback((): boolean => {
-    let validated = true;
-    const decimalsWithoutSpaces = decimals.replace(regex.addressWithSpaces, '');
-    if (decimalsWithoutSpaces.length === 0) {
-      setWarningDecimals(strings('token.decimals_is_required'));
-      validated = false;
-    } else {
-      setWarningDecimals('');
-    }
-    return validated;
-  }, [decimals]);
+  const markTouched = useCallback((field: string) => {
+    setTouchedFields((prev) => ({ ...prev, [field]: true }));
+  }, []);
 
-  const validateCustomToken = useCallback(async (): Promise<boolean> => {
-    const validatedAddress = await validateCustomTokenAddress(address);
-    const validatedSymbol = validateCustomTokenSymbol();
-    const validatedDecimals = validateCustomTokenDecimals();
-    return validatedAddress && validatedSymbol && validatedDecimals;
-  }, [
-    address,
-    validateCustomTokenAddress,
-    validateCustomTokenSymbol,
-    validateCustomTokenDecimals,
-  ]);
+  const navigateToSecurityTips = useCallback(() => {
+    navigation.navigate('Webview', {
+      screen: 'SimpleWebview',
+      params: {
+        url: AppConstants.URLS.SECURITY,
+        title: strings('add_asset.banners.custom_security_tips'),
+      },
+    });
+  }, [navigation]);
 
   const addToken = useCallback(async (): Promise<void> => {
-    if (!(await validateCustomToken())) return;
     const { TokensController } = Engine.context;
 
     trace({ name: TraceName.ImportTokens });
     await TokensController.addToken({
-      address,
+      address: address.trim(),
       symbol,
       decimals: Number(decimals),
       name,
@@ -211,22 +278,27 @@ const AddCustomToken = ({
     });
     endTrace({ name: TraceName.ImportTokens });
 
-    const analyticsParams = getTokenAddedAnalyticsParams();
-    if (analyticsParams) {
+    try {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.TOKEN_ADDED)
-          .addProperties(analyticsParams)
+          .addProperties({
+            token_address: address.trim(),
+            token_symbol: symbol,
+            chain_id: getDecimalChainId(chainId),
+            source: 'Custom token',
+          })
           .build(),
+      );
+    } catch (error) {
+      Logger.error(
+        error as Error,
+        'AddCustomToken.getTokenAddedAnalyticsParams error',
       );
     }
 
-    // Clear state before closing
     setAddress('');
-    setSymbol('');
-    setDecimals('');
-    setWarningAddress('');
-    setWarningSymbol('');
-    setWarningDecimals('');
+    setHasSubmitted(false);
+    setTouchedFields({});
 
     NotificationManager.showSimpleNotification({
       status: 'import_success',
@@ -240,97 +312,42 @@ const AddCustomToken = ({
     decimals,
     name,
     networkClientId,
-    validateCustomToken,
-    getTokenAddedAnalyticsParams,
+    chainId,
     trackEvent,
     createEventBuilder,
   ]);
 
-  const onAddressChange = useCallback(
-    async (newAddress: string): Promise<void> => {
-      setAddress(newAddress);
-      const validated = await validateCustomTokenAddress(newAddress);
+  const handleNext = useCallback(() => {
+    setHasSubmitted(true);
+    if (addressError || symbolError || decimalsError || isLoading) return;
 
-      if (newAddress.length === 42) {
-        try {
-          setIsSymbolEditable(false);
-          setIsDecimalEditable(false);
-
-          if (validated) {
-            const { AssetsContractController } = Engine.context;
-            const clientId = networkClientId ?? undefined;
-            const [fetchedDecimals, fetchedSymbol, fetchedName] =
-              await Promise.all([
-                AssetsContractController.getERC20TokenDecimals(
-                  newAddress,
-                  clientId,
-                ),
-                AssetsContractController.getERC721AssetSymbol(
-                  newAddress,
-                  clientId,
-                ),
-                AssetsContractController.getERC20TokenName(
-                  newAddress,
-                  clientId,
-                ),
-              ]);
-            setDecimals(String(fetchedDecimals));
-            setSymbol(fetchedSymbol);
-            setName(fetchedName);
-          } else {
-            setIsSymbolEditable(true);
-            setIsDecimalEditable(true);
-          }
-        } catch {
-          setIsSymbolEditable(true);
-          setIsDecimalEditable(true);
-        }
-      } else {
-        setDecimals('');
-        setSymbol('');
-        setName('');
-        setWarningSymbol('');
-        setWarningDecimals('');
-      }
-    },
-    [networkClientId, validateCustomTokenAddress],
-  );
-
-  const jumpToAssetSymbol = useCallback((): void => {
-    validateCustomToken();
-    validateCustomTokenSymbol();
-    setIsSymbolEditable(true);
-  }, [validateCustomToken, validateCustomTokenSymbol]);
-
-  const jumpToAssetPrecision = useCallback((): void => {
-    assetPrecisionInput.current?.focus();
-  }, []);
-
-  const goToConfirmAddToken = useCallback((): void => {
-    const selectedAsset = [
-      {
-        symbol,
-        address,
-        iconUrl: formatIconUrlWithProxy({
-          chainId: chainId as Hex,
-          tokenAddress: address,
-        }),
-        name,
-        decimals,
-        chainId,
-      },
-    ];
-
+    const trimmedAddress = address.trim();
     navigation.push('ConfirmAddAsset', {
-      selectedAsset,
+      selectedAsset: [
+        {
+          symbol,
+          address: trimmedAddress,
+          iconUrl: formatIconUrlWithProxy({
+            chainId: chainId as Hex,
+            tokenAddress: trimmedAddress,
+          }),
+          name,
+          decimals,
+          chainId,
+        },
+      ],
       networkName,
       chainId,
       ticker,
       addTokenList: addToken,
     });
   }, [
-    symbol,
+    addressError,
+    symbolError,
+    decimalsError,
+    isLoading,
     address,
+    symbol,
     name,
     decimals,
     chainId,
@@ -340,208 +357,185 @@ const AddCustomToken = ({
     addToken,
   ]);
 
-  const { title, url } = getBlockExplorerAddressUrl(
-    providerType ?? '',
-    address,
-  );
-
-  const renderInfoBanner = () => (
-    <Alert
-      type={AlertType.Info}
-      style={tw.style('mt-5')}
-      renderIcon={() => (
-        <FontAwesome
-          style={tw.style('pt-1 pr-2')}
-          name={'exclamation-circle'}
-          color={colors.primary.default}
-          size={18}
-        />
-      )}
-    >
-      <>
-        <Text variant={TextVariant.BodyMd} style={tw.style('text-default')}>
-          {strings('add_asset.banners.custom_info_desc')}
-        </Text>
-        <Text
-          variant={TextVariant.BodyMd}
-          style={tw.style('text-primary-default')}
-          onPress={() => {
-            navigation.navigate('Webview', {
-              screen: 'SimpleWebview',
-              params: {
-                url: AppConstants.URLS.SECURITY,
-                title: strings('add_asset.banners.custom_security_tips'),
-              },
-            });
-          }}
-        >
-          {strings('add_asset.banners.custom_info_link')}
-        </Text>
-      </>
-    </Alert>
-  );
-
-  const renderWarningBanner = () => (
-    <Box twClassName="mt-5">
-      <Banner
-        variant={BannerVariant.Alert}
-        severity={BannerAlertSeverity.Warning}
-        description={
-          <CLText>
-            {strings('add_asset.banners.custom_warning_desc')}
-            <CLText
-              style={tw.style('text-info-default')}
-              onPress={() => {
-                navigation.navigate('Webview', {
-                  screen: 'SimpleWebview',
-                  params: {
-                    url: AppConstants.URLS.SECURITY,
-                    title: strings('add_asset.banners.custom_security_tips'),
-                  },
-                });
-              }}
-            >
-              {strings('add_asset.banners.custom_warning_link')}
-            </CLText>
-          </CLText>
-        }
-      />
-    </Box>
-  );
+  // --- Styles ---
 
   const baseInputFont = { fontFamily: 'Geist-Regular' };
   const bottomInset = Platform.OS === 'ios' ? 0 : insets.bottom;
-  const isDisabled = !symbol || !decimals || !chainId;
 
-  const addressInputStyle = tw.style(
-    'rounded-lg px-4 py-3',
-    baseInputFont,
-    onFocusAddress
-      ? 'border-2 border-primary-default text-default'
-      : warningAddress
+  const getInputStyle = (hasError: boolean) =>
+    tw.style(
+      'rounded-lg px-4 py-3',
+      baseInputFont,
+      hasError
         ? 'border-2 border-error-default'
         : 'border border-default text-default',
-  );
+    );
 
-  const textInputSymbolStyle = tw.style(
-    'rounded-lg px-4 py-3',
-    baseInputFont,
-    !isSymbolEditable
-      ? 'border border-default text-muted font-bold'
-      : warningSymbol
-        ? 'border-2 border-error-default'
-        : 'border border-default text-default',
-  );
-
-  const textInputDecimalsStyle = tw.style(
-    'rounded-lg px-4 py-3',
-    baseInputFont,
-    !isDecimalEditable
-      ? 'border border-default text-muted font-bold'
-      : warningDecimals
-        ? 'border-2 border-error-default'
-        : 'border border-default text-default',
-  );
+  // --- Render ---
 
   return (
     <Box twClassName="flex-1 bg-default px-4">
-      <ScrollView>
-        {isTokenDetectionSupported ? renderWarningBanner() : renderInfoBanner()}
+      <KeyboardAwareScrollView extraScrollHeight={20}>
+        {/* Banner */}
+        {isTokenDetectionSupported ? (
+          <Box twClassName="mt-5">
+            <Banner
+              variant={BannerVariant.Alert}
+              severity={BannerAlertSeverity.Warning}
+              description={
+                <CLText>
+                  {strings('add_asset.banners.custom_warning_desc')}
+                  <CLText
+                    style={tw.style('text-info-default')}
+                    onPress={navigateToSecurityTips}
+                  >
+                    {strings('add_asset.banners.custom_warning_link')}
+                  </CLText>
+                </CLText>
+              }
+            />
+          </Box>
+        ) : (
+          <Alert
+            type={AlertType.Info}
+            style={tw.style('mt-5')}
+            renderIcon={() => (
+              <FontAwesome
+                style={tw.style('pt-1 pr-2')}
+                name={'exclamation-circle'}
+                color={colors.primary.default}
+                size={18}
+              />
+            )}
+          >
+            <>
+              <Text
+                variant={TextVariant.BodyMd}
+                style={tw.style('text-default')}
+              >
+                {strings('add_asset.banners.custom_info_desc')}
+              </Text>
+              <Text
+                variant={TextVariant.BodyMd}
+                style={tw.style('text-primary-default')}
+                onPress={navigateToSecurityTips}
+              >
+                {strings('add_asset.banners.custom_info_link')}
+              </Text>
+            </>
+          </Alert>
+        )}
 
+        {/* Address */}
         <Box twClassName="pt-4">
           <Text variant={TextVariant.BodyMd} style={tw.style('pb-[3px]')}>
             {strings('asset_details.address')}
           </Text>
           <TextInput
-            style={addressInputStyle}
-            placeholder={onFocusAddress ? '' : '0x...'}
+            style={getInputStyle(showAddressError)}
+            placeholder="0x..."
             placeholderTextColor={colors.text.muted}
             value={address}
-            onChangeText={onAddressChange}
-            onFocus={() => setOnFocusAddress(true)}
-            onBlur={() => setOnFocusAddress(false)}
+            onChangeText={setAddress}
+            onBlur={() => markTouched('address')}
             testID={ImportTokenViewSelectorsIDs.ADDRESS_INPUT}
-            onSubmitEditing={jumpToAssetSymbol}
+            onSubmitEditing={() => symbolInputRef.current?.focus()}
             returnKeyType="next"
             keyboardAppearance={themeAppearance}
           />
-          <Text
-            variant={TextVariant.BodyMd}
-            style={tw.style('mt-0 text-error-default pb-2')}
-            testID={ImportTokenViewSelectorsIDs.ADDRESS_WARNING_MESSAGE}
-          >
-            {warningAddress}
-          </Text>
+          {showAddressError ? (
+            <Text
+              variant={TextVariant.BodyMd}
+              style={tw.style('mt-1 text-error-default pb-2')}
+              testID={ImportTokenViewSelectorsIDs.ADDRESS_WARNING_MESSAGE}
+            >
+              {addressError}
+            </Text>
+          ) : null}
+          {isLoading ? (
+            <Box twClassName="mt-4 items-center">
+              <ActivityIndicator size="small" color={colors.primary.default} />
+            </Box>
+          ) : null}
         </Box>
 
-        {address && !onFocusAddress && !warningAddress ? (
-          <Box twClassName="px-4">
+        {/* Symbol */}
+        {showSecondaryFields ? (
+          <Box twClassName="pt-4 px-4">
             <Text variant={TextVariant.BodyMd} style={tw.style('pb-[3px]')}>
               {strings('token.token_symbol')}
             </Text>
             <TextInput
-              style={textInputSymbolStyle}
+              style={getInputStyle(showSymbolError)}
               placeholder="GNO"
               placeholderTextColor={colors.text.muted}
               value={symbol}
               onChangeText={setSymbol}
-              onBlur={validateCustomTokenSymbol}
+              onBlur={() => markTouched('symbol')}
               testID={ImportTokenViewSelectorsIDs.SYMBOL_INPUT}
-              ref={assetSymbolInput}
-              onSubmitEditing={jumpToAssetPrecision}
+              ref={symbolInputRef}
+              onSubmitEditing={() => decimalsInputRef.current?.focus()}
               returnKeyType="next"
               keyboardAppearance={themeAppearance}
-              editable={isSymbolEditable}
             />
-            <Text
-              variant={TextVariant.BodyMd}
-              style={tw.style('mt-0 text-error-default pb-2')}
-            >
-              {warningSymbol}
-            </Text>
+            {showSymbolError ? (
+              <Text
+                variant={TextVariant.BodyMd}
+                style={tw.style('mt-1 text-error-default pb-2')}
+              >
+                {symbolError}
+              </Text>
+            ) : null}
+            {!showSymbolError && symbolWarning ? (
+              <Text
+                variant={TextVariant.BodyMd}
+                style={tw.style('mt-1 text-error-default pb-2')}
+              >
+                {symbolWarning}
+              </Text>
+            ) : null}
           </Box>
         ) : null}
 
-        {address && !onFocusAddress && !warningAddress ? (
-          <Box twClassName="px-4">
+        {/* Decimals */}
+        {showSecondaryFields ? (
+          <Box twClassName="pt-4 px-4">
             <Text variant={TextVariant.BodyMd} style={tw.style('pb-[3px]')}>
               {strings('token.token_decimal')}
             </Text>
             <TextInput
-              style={textInputDecimalsStyle}
+              style={getInputStyle(showDecimalsError)}
               value={decimals}
               keyboardType="numeric"
               maxLength={2}
               placeholder="18"
               placeholderTextColor={colors.text.muted}
               onChangeText={setDecimals}
-              onBlur={validateCustomTokenDecimals}
+              onBlur={() => markTouched('decimals')}
               testID={ImportTokenViewSelectorsIDs.DECIMAL_INPUT}
-              ref={assetPrecisionInput}
-              onSubmitEditing={addToken}
+              ref={decimalsInputRef}
+              onSubmitEditing={handleNext}
               returnKeyType="done"
               keyboardAppearance={themeAppearance}
-              editable={isDecimalEditable}
             />
-
-            {warningDecimals ? (
+            {showDecimalsError ? (
               <Text
                 variant={TextVariant.BodyMd}
-                style={tw.style('mt-0 text-error-default pb-2')}
+                style={tw.style('mt-1 text-error-default pb-2')}
                 testID={ImportTokenViewSelectorsIDs.PRECISION_WARNING_MESSAGE}
               >
-                {warningDecimals}{' '}
+                {decimalsError}{' '}
                 <Text
                   variant={TextVariant.BodyMd}
                   style={tw.style('text-info-default')}
                   onPress={() => {
                     navigation.navigate('Webview', {
                       screen: 'SimpleWebview',
-                      params: { url, title },
+                      params: { url: explorerUrl, title: explorerTitle },
                     });
                   }}
                 >
-                  {title}{' '}
+                  {explorerTitle}{' '}
                   <Icon
                     style={tw.style('text-info-default')}
                     size={IconSize.Xss}
@@ -552,15 +546,16 @@ const AddCustomToken = ({
             ) : null}
           </Box>
         ) : null}
-      </ScrollView>
+      </KeyboardAwareScrollView>
+
       <Box style={tw.style('pt-4 m-4', { paddingBottom: bottomInset })}>
         <Button
           variant={ButtonVariants.Primary}
           size={ButtonSize.Lg}
           width={ButtonWidthTypes.Full}
           label={strings('transaction.next')}
-          onPress={goToConfirmAddToken}
-          isDisabled={isDisabled}
+          onPress={handleNext}
+          isDisabled={isNextDisabled}
           testID={ImportTokenViewSelectorsIDs.NEXT_BUTTON}
         />
       </Box>

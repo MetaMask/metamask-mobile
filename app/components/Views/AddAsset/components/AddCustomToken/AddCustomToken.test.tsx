@@ -5,16 +5,14 @@ import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { ImportTokenViewSelectorsIDs } from '../../ImportAssetView.testIds';
 import { act, fireEvent } from '@testing-library/react-native';
 import { isSmartContractAddress } from '../../../../../util/transactions';
-import Engine from '../../../../../core/Engine';
 
-const mockNavigate = jest.fn();
 const mockPush = jest.fn();
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
   return {
     ...actualNav,
     useNavigation: () => ({
-      navigate: mockNavigate,
+      navigate: jest.fn(),
       push: mockPush,
       goBack: jest.fn(),
     }),
@@ -35,7 +33,18 @@ jest.mock('../../../../../core/Engine', () => ({
   },
 }));
 
+jest.mock('../../../../../util/networks', () => ({
+  getBlockExplorerAddressUrl: jest
+    .fn()
+    .mockReturnValue({ title: 'Etherscan', url: 'https://etherscan.io' }),
+  getDecimalChainId: jest.fn().mockReturnValue('1'),
+  isMainnetByChainId: jest.fn().mockReturnValue(true),
+}));
+
 const mockIsSmartContractAddress = isSmartContractAddress as jest.Mock;
+
+const VALID_ADDRESS = '0x1234567890123456789012345678901234567890';
+const SHORT_ADDRESS = '0x12345';
 
 const mockInitialState = {
   settings: {},
@@ -49,106 +58,126 @@ const mockInitialState = {
   },
 };
 
-jest.mock('../../../../../util/networks', () => ({
-  getBlockExplorerAddressUrl: jest
-    .fn()
-    .mockReturnValue({ title: 'test-network', url: 'https://test-2.com/' }),
-  getDecimalChainId: jest.fn().mockReturnValue('1'),
-  isMainnetByChainId: jest.fn().mockReturnValue(true),
-}));
+const renderComponent = (props = {}) =>
+  renderWithProvider(<AddCustomToken chainId="0x1" {...props} />, {
+    state: mockInitialState,
+  });
 
 describe('AddCustomToken', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it('renders correctly with required props', () => {
-    const { toJSON } = renderWithProvider(<AddCustomToken chainId={'0x1'} />, {
-      state: mockInitialState,
-    });
-    expect(toJSON()).toMatchSnapshot();
-  });
+  it('shows address error for an invalid address', () => {
+    const { getByTestId } = renderComponent();
 
-  it('displays warning for short address', () => {
-    const { getByTestId } = renderWithProvider(
-      <AddCustomToken chainId={'0x1'} />,
-      { state: mockInitialState },
+    fireEvent.changeText(
+      getByTestId(ImportTokenViewSelectorsIDs.ADDRESS_INPUT),
+      SHORT_ADDRESS,
     );
 
-    const tokenSearch = getByTestId(ImportTokenViewSelectorsIDs.ADDRESS_INPUT);
-    const shortAddress = '0x12345';
-
-    fireEvent.changeText(tokenSearch, shortAddress);
-
-    const warningAddress = getByTestId('token-address-warning');
-
-    expect(warningAddress).toBeOnTheScreen();
+    expect(
+      getByTestId(ImportTokenViewSelectorsIDs.ADDRESS_WARNING_MESSAGE),
+    ).toBeOnTheScreen();
   });
 
-  it('does not display symbol and decimals fields when address changes to short address', async () => {
-    mockIsSmartContractAddress.mockResolvedValue(true);
+  it('shows address error when address is not a smart contract', async () => {
+    mockIsSmartContractAddress.mockResolvedValue(false);
 
-    (
-      Engine.context.AssetsContractController.getERC20TokenDecimals as jest.Mock
-    ).mockResolvedValue(18);
-    (
-      Engine.context.AssetsContractController.getERC721AssetSymbol as jest.Mock
-    ).mockResolvedValue('WBTC');
-    (
-      Engine.context.AssetsContractController.getERC20TokenName as jest.Mock
-    ).mockResolvedValue('Wrapped Bitcoin');
-    const { getByTestId, queryByTestId } = renderWithProvider(
-      <AddCustomToken chainId={'0x1'} />,
-      { state: mockInitialState },
-    );
-
-    const tokenSearch = getByTestId(ImportTokenViewSelectorsIDs.ADDRESS_INPUT);
-    const shortAddress = '0x12345';
+    const { getByTestId } = renderComponent();
 
     await act(async () => {
       fireEvent.changeText(
-        tokenSearch,
-        '0x1234567890123456789012345678901234567890',
+        getByTestId(ImportTokenViewSelectorsIDs.ADDRESS_INPUT),
+        VALID_ADDRESS,
       );
     });
 
-    const decimalsInput = getByTestId('input-token-decimal');
-    const symbolInput = getByTestId('input-token-symbol');
+    expect(
+      getByTestId(ImportTokenViewSelectorsIDs.ADDRESS_WARNING_MESSAGE),
+    ).toBeOnTheScreen();
+  });
 
-    expect(decimalsInput.props.value).toBe('18');
-    expect(symbolInput.props.value).toBe('WBTC');
+  it('fetches and displays token metadata for a valid contract address', async () => {
+    mockIsSmartContractAddress.mockResolvedValue(true);
+
+    const { getByTestId } = renderComponent();
 
     await act(async () => {
-      fireEvent.changeText(tokenSearch, shortAddress);
+      fireEvent.changeText(
+        getByTestId(ImportTokenViewSelectorsIDs.ADDRESS_INPUT),
+        VALID_ADDRESS,
+      );
     });
 
-    expect(queryByTestId('input-token-decimal')).toBeNull();
-    expect(queryByTestId('input-token-symbol')).toBeNull();
+    expect(
+      getByTestId(ImportTokenViewSelectorsIDs.SYMBOL_INPUT).props.value,
+    ).toBe('WBTC');
+    expect(
+      getByTestId(ImportTokenViewSelectorsIDs.DECIMAL_INPUT).props.value,
+    ).toBe('18');
   });
 
-  it('accepts 42 character address', async () => {
-    const { getByTestId } = renderWithProvider(
-      <AddCustomToken chainId={'0x1'} />,
-      { state: mockInitialState },
-    );
-
-    const tokenSearch = getByTestId(ImportTokenViewSelectorsIDs.ADDRESS_INPUT);
-    const fullAddress = '0x1234567890123456789012345678901234567890';
-
-    fireEvent.changeText(tokenSearch, fullAddress);
-
-    expect(tokenSearch.props.value).toBe(fullAddress);
-  });
-
-  it('disables next button when chainId is empty', () => {
+  it('hides symbol and decimals fields when address becomes invalid', async () => {
     mockIsSmartContractAddress.mockResolvedValue(true);
-    const { getByTestId } = renderWithProvider(
-      <AddCustomToken chainId={''} />,
-      { state: mockInitialState },
-    );
+
+    const { getByTestId, queryByTestId } = renderComponent();
+
+    await act(async () => {
+      fireEvent.changeText(
+        getByTestId(ImportTokenViewSelectorsIDs.ADDRESS_INPUT),
+        VALID_ADDRESS,
+      );
+    });
+
+    expect(
+      getByTestId(ImportTokenViewSelectorsIDs.SYMBOL_INPUT),
+    ).toBeOnTheScreen();
+
+    await act(async () => {
+      fireEvent.changeText(
+        getByTestId(ImportTokenViewSelectorsIDs.ADDRESS_INPUT),
+        SHORT_ADDRESS,
+      );
+    });
+
+    expect(queryByTestId(ImportTokenViewSelectorsIDs.SYMBOL_INPUT)).toBeNull();
+    expect(queryByTestId(ImportTokenViewSelectorsIDs.DECIMAL_INPUT)).toBeNull();
+  });
+
+  it('disables Next button when form is incomplete', () => {
+    const { getByTestId } = renderComponent();
 
     const nextButton = getByTestId(ImportTokenViewSelectorsIDs.NEXT_BUTTON);
-
     expect(nextButton.props.disabled || nextButton.props.isDisabled).toBe(true);
+  });
+
+  it('navigates to ConfirmAddAsset when form is valid and Next is pressed', async () => {
+    mockIsSmartContractAddress.mockResolvedValue(true);
+
+    const { getByTestId } = renderComponent();
+
+    await act(async () => {
+      fireEvent.changeText(
+        getByTestId(ImportTokenViewSelectorsIDs.ADDRESS_INPUT),
+        VALID_ADDRESS,
+      );
+    });
+
+    fireEvent.press(getByTestId(ImportTokenViewSelectorsIDs.NEXT_BUTTON));
+
+    expect(mockPush).toHaveBeenCalledWith(
+      'ConfirmAddAsset',
+      expect.objectContaining({
+        chainId: '0x1',
+        selectedAsset: expect.arrayContaining([
+          expect.objectContaining({
+            address: VALID_ADDRESS,
+            symbol: 'WBTC',
+            decimals: '18',
+          }),
+        ]),
+      }),
+    );
   });
 });
