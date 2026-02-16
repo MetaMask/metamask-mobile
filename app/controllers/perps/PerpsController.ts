@@ -881,6 +881,17 @@ export class PerpsController extends BaseController<
    */
   protected activeProviderInstance: PerpsProvider | null = null;
 
+  /**
+   * Cached standalone provider for pre-initialization discovery queries.
+   * Avoids creating a new HyperLiquidProvider (and potentially leaking WebSocket
+   * connections) on every standalone call from the preload cycle.
+   */
+  #standaloneProvider: HyperLiquidProvider | null = null;
+
+  #standaloneProviderIsTestnet: boolean | null = null;
+
+  #standaloneProviderHip3Version: number | null = null;
+
   // Store options for dependency injection (allows core package to inject platform-specific services)
   readonly #options: PerpsControllerOptions;
 
@@ -1014,6 +1025,74 @@ export class PerpsController extends BaseController<
     ...args: (string | number | boolean | object | null | undefined)[]
   ): void {
     this.#options.infrastructure.debugLogger.log(...args);
+  }
+
+  /**
+   * Returns a cached standalone HyperLiquidProvider for pre-initialization
+   * discovery queries. Creates a new instance on first call or when the
+   * isTestnet / hip3ConfigVersion has changed since the last creation.
+   *
+   * @returns A HyperLiquidProvider suitable for standalone REST calls.
+   */
+  #getOrCreateStandaloneProvider(): HyperLiquidProvider {
+    const currentIsTestnet = this.state.isTestnet;
+    const currentHip3Version = this.state.hip3ConfigVersion ?? 0;
+
+    if (
+      this.#standaloneProvider &&
+      this.#standaloneProviderIsTestnet === currentIsTestnet &&
+      this.#standaloneProviderHip3Version === currentHip3Version
+    ) {
+      return this.#standaloneProvider;
+    }
+
+    // Stale or missing — tear down old one (fire-and-forget)
+    if (this.#standaloneProvider) {
+      const old = this.#standaloneProvider;
+      Promise.resolve(old.disconnect()).catch(() => {
+        /* best-effort */
+      });
+    }
+
+    this.#standaloneProvider = new HyperLiquidProvider({
+      isTestnet: currentIsTestnet,
+      hip3Enabled: this.#hip3Enabled,
+      allowlistMarkets: this.#hip3AllowlistMarkets,
+      blocklistMarkets: this.#hip3BlocklistMarkets,
+      platformDependencies: this.#options.infrastructure,
+      messenger: this.messenger,
+    });
+    this.#standaloneProviderIsTestnet = currentIsTestnet;
+    this.#standaloneProviderHip3Version = currentHip3Version;
+
+    return this.#standaloneProvider;
+  }
+
+  /**
+   * Disconnect and discard the cached standalone provider (if any).
+   * Best-effort — errors are silently caught.
+   */
+  async #cleanupStandaloneProvider(): Promise<void> {
+    if (!this.#standaloneProvider) {
+      return;
+    }
+    try {
+      await this.#standaloneProvider.disconnect();
+    } catch {
+      /* best-effort */
+    }
+    this.#standaloneProvider = null;
+    this.#standaloneProviderIsTestnet = null;
+    this.#standaloneProviderHip3Version = null;
+  }
+
+  /**
+   * Test-observable accessor for whether a standalone provider is cached.
+   *
+   * @returns True if a standalone provider instance exists.
+   */
+  protected hasStandaloneProvider(): boolean {
+    return this.#standaloneProvider !== null;
   }
 
   /**
@@ -1314,6 +1393,7 @@ export class PerpsController extends BaseController<
           );
         }
         this.providers.clear();
+        await this.#cleanupStandaloneProvider();
 
         const { activeProvider } = this.state;
 
@@ -2187,18 +2267,10 @@ export class PerpsController extends BaseController<
     // This allows discovery use cases (checking if user has positions) without full perps setup
     if (params?.standalone && params.userAddress) {
       // Use activeProviderInstance if available (respects provider abstraction)
-      // Fallback to creating HyperLiquidProvider for pre-initialization discovery
+      // Fallback to cached standalone provider for pre-initialization discovery
       // TODO: When adding new providers (MYX), consider a provider factory pattern
       const provider =
-        this.activeProviderInstance ??
-        new HyperLiquidProvider({
-          isTestnet: this.state.isTestnet,
-          hip3Enabled: this.#hip3Enabled,
-          allowlistMarkets: this.#hip3AllowlistMarkets,
-          blocklistMarkets: this.#hip3BlocklistMarkets,
-          platformDependencies: this.#options.infrastructure,
-          messenger: this.messenger,
-        });
+        this.activeProviderInstance ?? this.#getOrCreateStandaloneProvider();
       return provider.getPositions(params);
     }
 
@@ -2256,15 +2328,7 @@ export class PerpsController extends BaseController<
     // For standalone mode, access provider directly without initialization check
     if (params?.standalone && params.userAddress) {
       const provider =
-        this.activeProviderInstance ??
-        new HyperLiquidProvider({
-          isTestnet: this.state.isTestnet,
-          hip3Enabled: this.#hip3Enabled,
-          allowlistMarkets: this.#hip3AllowlistMarkets,
-          blocklistMarkets: this.#hip3BlocklistMarkets,
-          platformDependencies: this.#options.infrastructure,
-          messenger: this.messenger,
-        });
+        this.activeProviderInstance ?? this.#getOrCreateStandaloneProvider();
       return provider.getOpenOrders(params);
     }
 
@@ -2307,17 +2371,9 @@ export class PerpsController extends BaseController<
     // This allows discovery use cases (checking if user has perps funds) without full perps setup
     if (params?.standalone && params.userAddress) {
       // Use activeProviderInstance if available (respects provider abstraction)
-      // Fallback to creating HyperLiquidProvider for pre-initialization discovery
+      // Fallback to cached standalone provider for pre-initialization discovery
       const provider =
-        this.activeProviderInstance ??
-        new HyperLiquidProvider({
-          isTestnet: this.state.isTestnet,
-          hip3Enabled: this.#hip3Enabled,
-          allowlistMarkets: this.#hip3AllowlistMarkets,
-          blocklistMarkets: this.#hip3BlocklistMarkets,
-          platformDependencies: this.#options.infrastructure,
-          messenger: this.messenger,
-        });
+        this.activeProviderInstance ?? this.#getOrCreateStandaloneProvider();
       return provider.getAccountState(params);
     }
 
@@ -2362,17 +2418,9 @@ export class PerpsController extends BaseController<
     // This allows discovery use cases (checking if market exists) without full perps setup
     if (params?.standalone) {
       // Use activeProviderInstance if available (respects provider abstraction)
-      // Fallback to creating HyperLiquidProvider for pre-initialization discovery
+      // Fallback to cached standalone provider for pre-initialization discovery
       const provider =
-        this.activeProviderInstance ??
-        new HyperLiquidProvider({
-          isTestnet: this.state.isTestnet,
-          hip3Enabled: this.#hip3Enabled,
-          allowlistMarkets: this.#hip3AllowlistMarkets,
-          blocklistMarkets: this.#hip3BlocklistMarkets,
-          platformDependencies: this.#options.infrastructure,
-          messenger: this.messenger,
-        });
+        this.activeProviderInstance ?? this.#getOrCreateStandaloneProvider();
       return provider.getMarkets(params);
     }
 
@@ -2399,17 +2447,9 @@ export class PerpsController extends BaseController<
   }): Promise<PerpsMarketData[]> {
     if (params?.standalone) {
       // Use activeProviderInstance if available (respects provider abstraction)
-      // Fallback to creating HyperLiquidProvider for pre-initialization discovery
+      // Fallback to cached standalone provider for pre-initialization discovery
       const provider =
-        this.activeProviderInstance ??
-        new HyperLiquidProvider({
-          isTestnet: this.state.isTestnet,
-          hip3Enabled: this.#hip3Enabled,
-          allowlistMarkets: this.#hip3AllowlistMarkets,
-          blocklistMarkets: this.#hip3BlocklistMarkets,
-          platformDependencies: this.#options.infrastructure,
-          messenger: this.messenger,
-        });
+        this.activeProviderInstance ?? this.#getOrCreateStandaloneProvider();
       return provider.getMarketDataWithPrices();
     }
 
@@ -2579,6 +2619,9 @@ export class PerpsController extends BaseController<
     }
     this.#previousIsTestnet = null;
     this.#previousHip3ConfigVersion = null;
+    this.#cleanupStandaloneProvider().catch(() => {
+      /* fire-and-forget to preserve sync signature */
+    });
   }
 
   /**
@@ -2964,6 +3007,8 @@ export class PerpsController extends BaseController<
     const previousIsTestnet = this.state.isTestnet;
 
     try {
+      await this.#cleanupStandaloneProvider();
+
       const previousNetwork = previousIsTestnet ? 'testnet' : 'mainnet';
 
       this.update((state) => {
@@ -3026,6 +3071,11 @@ export class PerpsController extends BaseController<
   async switchProvider(
     providerId: PerpsActiveProviderMode,
   ): Promise<SwitchProviderResult> {
+    // No-op if already on this provider (regardless of init state)
+    if (this.state.activeProvider === providerId) {
+      return { success: true, providerId };
+    }
+
     // Validate provider is available
     // 'aggregated' is always valid, individual providers must exist in the map
     const isValidProvider =
@@ -3037,11 +3087,6 @@ export class PerpsController extends BaseController<
         providerId: this.state.activeProvider,
         error: `Provider ${providerId} not available`,
       };
-    }
-
-    // Skip if already on this provider
-    if (this.state.activeProvider === providerId) {
-      return { success: true, providerId };
     }
 
     // Prevent concurrent switches
@@ -3059,6 +3104,8 @@ export class PerpsController extends BaseController<
     const previousProvider = this.state.activeProvider;
 
     try {
+      await this.#cleanupStandaloneProvider();
+
       this.#debugLog('PerpsController: Provider switch initiated', {
         from: previousProvider,
         to: providerId,
@@ -3536,6 +3583,9 @@ export class PerpsController extends BaseController<
         );
       }
     }
+
+    // Cleanup cached standalone provider (if any)
+    await this.#cleanupStandaloneProvider();
 
     // Reset initialization state to ensure proper reconnection
     this.isInitialized = false;

@@ -385,6 +385,10 @@ class TestablePerpsController extends PerpsController {
   public testReportOrderToDataLake(data: any): Promise<any> {
     return this.reportOrderToDataLake(data);
   }
+
+  public testHasStandaloneProvider(): boolean {
+    return this.hasStandaloneProvider();
+  }
 }
 
 describe('PerpsController', () => {
@@ -4058,6 +4062,109 @@ describe('PerpsController', () => {
         expect(accountState).toEqual(mockAccountState);
       });
     });
+
+    describe('standalone provider caching', () => {
+      it('reuses the same standalone provider across multiple calls', async () => {
+        const tempMockProvider = createMockHyperLiquidProvider();
+        tempMockProvider.getPositions.mockResolvedValue([]);
+        tempMockProvider.getOpenOrders.mockResolvedValue([]);
+        MockedHyperLiquidProvider.mockImplementation(() => tempMockProvider);
+
+        // Two standalone calls — should only create one provider
+        await controller.getPositions({
+          standalone: true,
+          userAddress: mockUserAddress,
+        });
+        await controller.getOpenOrders({
+          standalone: true,
+          userAddress: mockUserAddress,
+        });
+
+        expect(MockedHyperLiquidProvider).toHaveBeenCalledTimes(1);
+        expect(controller.testHasStandaloneProvider()).toBe(true);
+      });
+
+      it('cleans up standalone provider on init()', async () => {
+        const tempMockProvider = createMockHyperLiquidProvider();
+        tempMockProvider.getPositions.mockResolvedValue([]);
+        MockedHyperLiquidProvider.mockImplementation(() => tempMockProvider);
+
+        // Create a cached standalone provider
+        await controller.getPositions({
+          standalone: true,
+          userAddress: mockUserAddress,
+        });
+        expect(controller.testHasStandaloneProvider()).toBe(true);
+
+        // init() should clean it up
+        await controller.init();
+
+        expect(controller.testHasStandaloneProvider()).toBe(false);
+        expect(tempMockProvider.disconnect).toHaveBeenCalled();
+      });
+
+      it('invalidates cached provider when isTestnet changes', async () => {
+        const firstProvider = createMockHyperLiquidProvider();
+        firstProvider.getPositions.mockResolvedValue([]);
+        const secondProvider = createMockHyperLiquidProvider();
+        secondProvider.getPositions.mockResolvedValue([]);
+        MockedHyperLiquidProvider.mockImplementationOnce(
+          () => firstProvider,
+        ).mockImplementationOnce(() => secondProvider);
+
+        // First standalone call on mainnet
+        await controller.getPositions({
+          standalone: true,
+          userAddress: mockUserAddress,
+        });
+        expect(MockedHyperLiquidProvider).toHaveBeenCalledTimes(1);
+
+        // Toggle testnet flag (simulates config change)
+        controller.testUpdate((state) => {
+          state.isTestnet = true;
+        });
+
+        // Second standalone call — should create a new provider
+        await controller.getPositions({
+          standalone: true,
+          userAddress: mockUserAddress,
+        });
+        expect(MockedHyperLiquidProvider).toHaveBeenCalledTimes(2);
+        // Old provider should have been disconnected
+        expect(firstProvider.disconnect).toHaveBeenCalled();
+      });
+
+      it('cleans up standalone provider on disconnect()', async () => {
+        const tempMockProvider = createMockHyperLiquidProvider();
+        tempMockProvider.getMarketDataWithPrices.mockResolvedValue([]);
+        MockedHyperLiquidProvider.mockImplementation(() => tempMockProvider);
+
+        await controller.getMarketDataWithPrices({ standalone: true });
+        expect(controller.testHasStandaloneProvider()).toBe(true);
+
+        await controller.disconnect();
+
+        expect(controller.testHasStandaloneProvider()).toBe(false);
+        expect(tempMockProvider.disconnect).toHaveBeenCalled();
+      });
+
+      it('cleans up standalone provider on stopMarketDataPreload()', async () => {
+        const tempMockProvider = createMockHyperLiquidProvider();
+        tempMockProvider.getMarkets.mockResolvedValue([]);
+        MockedHyperLiquidProvider.mockImplementation(() => tempMockProvider);
+
+        await controller.getMarkets({ standalone: true });
+        expect(controller.testHasStandaloneProvider()).toBe(true);
+
+        controller.stopMarketDataPreload();
+
+        // Fire-and-forget — give microtask a tick to resolve
+        await new Promise((resolve) => setTimeout(resolve, 0));
+
+        expect(controller.testHasStandaloneProvider()).toBe(false);
+        expect(tempMockProvider.disconnect).toHaveBeenCalled();
+      });
+    });
   });
 
   describe('setSelectedPaymentToken', () => {
@@ -4121,6 +4228,15 @@ describe('PerpsController', () => {
   });
 
   describe('switchProvider', () => {
+    it('returns success as no-op before init() when already on requested provider', async () => {
+      // Before init(), providers map is empty.
+      // switchProvider should still succeed as a no-op because activeProvider already matches.
+      const result = await controller.switchProvider('hyperliquid');
+
+      expect(result.success).toBe(true);
+      expect(result.providerId).toBe('hyperliquid');
+    });
+
     it('returns success without re-init when switching to same provider', async () => {
       await controller.init();
 
