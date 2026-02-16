@@ -1,4 +1,4 @@
-/* eslint-disable import/no-nodejs-modules */
+/* eslint-disable import-x/no-nodejs-modules */
 import { Platform } from 'react-native';
 import {
   getRandomValues,
@@ -28,7 +28,7 @@ import '@walletconnect/react-native-compat';
 import 'react-native-url-polyfill/auto';
 
 // Needed to polyfill browser
-require('react-native-browser-polyfill'); // eslint-disable-line import/no-commonjs
+require('react-native-browser-polyfill'); // eslint-disable-line import-x/no-commonjs
 
 // Log early if running in E2E mode to help diagnose accidental js.env flags
 if (isE2E) {
@@ -89,10 +89,10 @@ if (typeof process === 'undefined') {
 }
 
 // Use faster Buffer implementation for React Native
-global.Buffer = require('@craftzdog/react-native-buffer').Buffer; // eslint-disable-line import/no-commonjs
+global.Buffer = require('@craftzdog/react-native-buffer').Buffer; // eslint-disable-line import-x/no-commonjs
 
 // Polyfill crypto after process is polyfilled
-const crypto = require('crypto'); // eslint-disable-line import/no-commonjs
+const crypto = require('crypto'); // eslint-disable-line import-x/no-commonjs
 
 // Needed to polyfill crypto
 global.crypto = {

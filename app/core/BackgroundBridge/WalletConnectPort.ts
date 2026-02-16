@@ -3,7 +3,7 @@ import AppConstants from '../AppConstants';
 import { selectEvmChainId } from '../../selectors/networkController';
 import { store } from '../../store';
 
-// eslint-disable-next-line import/no-nodejs-modules, import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
+// eslint-disable-next-line import-x/no-nodejs-modules, import-x/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
 const EventEmitter = require('events').EventEmitter;
 
 const { NOTIFICATION_NAMES } = AppConstants;

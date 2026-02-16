@@ -1,4 +1,4 @@
-/* eslint-disable import/no-commonjs */
+/* eslint-disable import-x/no-commonjs */
 /**
  * Metro configuration for React Native
  * https://github.com/facebook/react-native
@@ -10,9 +10,9 @@ const { getDefaultConfig } = require('expo/metro-config');
 const { mergeConfig } = require('@react-native/metro-config');
 const { lockdownSerializer } = require('@lavamoat/react-native-lockdown');
 
-// eslint-disable-next-line import/no-nodejs-modules
+// eslint-disable-next-line import-x/no-nodejs-modules
 const { parseArgs } = require('node:util');
-// eslint-disable-next-line import/no-nodejs-modules
+// eslint-disable-next-line import-x/no-nodejs-modules
 const os = require('node:os');
 
 const parsedArgs = parseArgs({
@@ -26,13 +26,13 @@ const parsedArgs = parseArgs({
 });
 
 const getPolyfills = () => [
-  // eslint-disable-next-line import/no-extraneous-dependencies
+  // eslint-disable-next-line import-x/no-extraneous-dependencies
   ...require('@react-native/js-polyfills')(),
   require.resolve('reflect-metadata'),
 ];
 
 // We should replace path for react-native-fs
-// eslint-disable-next-line import/no-nodejs-modules
+// eslint-disable-next-line import-x/no-nodejs-modules
 const path = require('path');
 const {
   wrapWithReanimatedMetroConfig,

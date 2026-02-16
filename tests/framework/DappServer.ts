@@ -1,4 +1,4 @@
-/* eslint-disable import/no-nodejs-modules */
+/* eslint-disable import-x/no-nodejs-modules */
 import { createLogger, Resource, ServerStatus } from './index.ts';
 import http from 'http';
 import serveHandler from 'serve-handler';

@@ -1,7 +1,7 @@
 import { NetworkConfiguration } from '@metamask/network-controller';
 
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as TransactionUtil from '../../utils/transaction';
 import { EIP7702NetworkConfiguration } from './useEIP7702Networks';
 import { useEIP7702Accounts } from './useEIP7702Accounts';
