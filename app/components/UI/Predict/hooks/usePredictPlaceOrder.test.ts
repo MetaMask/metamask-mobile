@@ -10,6 +10,7 @@ import { usePredictTrading } from './usePredictTrading';
 import { usePredictBalance } from './usePredictBalance';
 import { usePredictDeposit } from './usePredictDeposit';
 
+import { POLYMARKET_PROVIDER_ID } from '../providers/polymarket/constants';
 // Mock dependencies
 jest.mock('../../../../component-library/components/Toast');
 jest.mock('../../../../core/SDKConnect/utils/DevLogger');
@@ -95,7 +96,7 @@ describe('usePredictPlaceOrder', () => {
   }
 
   const mockOrderParams = {
-    providerId: 'polymarket',
+    providerId: POLYMARKET_PROVIDER_ID,
     preview: createMockOrderPreview(),
   };
 
@@ -483,7 +484,6 @@ describe('usePredictPlaceOrder', () => {
       await act(async () => {
         const updatedPreview = createMockOrderPreview({ maxAmountSpent: 200 });
         await result.current.placeOrder({
-          providerId: 'polymarket',
           preview: updatedPreview,
         });
       });

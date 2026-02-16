@@ -7,6 +7,7 @@ import type {
   OrderFill,
   AccountState,
 } from '../types';
+
 import { SubscriptionMultiplexer } from './SubscriptionMultiplexer';
 
 // Mock logger factory
@@ -15,13 +16,13 @@ const createMockLogger = (): jest.Mocked<PerpsLogger> => ({
 });
 
 // Mock provider with test helper methods
-interface MockProviderWithEmit extends jest.Mocked<Partial<PerpsProvider>> {
+type MockProviderWithEmit = jest.Mocked<Partial<PerpsProvider>> & {
   _emitPrices: (prices: PriceUpdate[]) => void;
   _emitPositions: (positions: Position[]) => void;
   _emitOrders: (orders: Order[]) => void;
   _emitFills: (fills: OrderFill[], isSnapshot?: boolean) => void;
   _emitAccount: (account: AccountState | null) => void;
-}
+};
 
 // Mock provider factory
 const createMockProvider = (providerId: string): MockProviderWithEmit => {
@@ -38,35 +39,45 @@ const createMockProvider = (providerId: string): MockProviderWithEmit => {
       priceCallbacks.push(params.callback);
       return () => {
         const idx = priceCallbacks.indexOf(params.callback);
-        if (idx > -1) priceCallbacks.splice(idx, 1);
+        if (idx > -1) {
+          priceCallbacks.splice(idx, 1);
+        }
       };
     }),
     subscribeToPositions: jest.fn((params) => {
       positionCallbacks.push(params.callback);
       return () => {
         const idx = positionCallbacks.indexOf(params.callback);
-        if (idx > -1) positionCallbacks.splice(idx, 1);
+        if (idx > -1) {
+          positionCallbacks.splice(idx, 1);
+        }
       };
     }),
     subscribeToOrders: jest.fn((params) => {
       orderCallbacks.push(params.callback);
       return () => {
         const idx = orderCallbacks.indexOf(params.callback);
-        if (idx > -1) orderCallbacks.splice(idx, 1);
+        if (idx > -1) {
+          orderCallbacks.splice(idx, 1);
+        }
       };
     }),
     subscribeToOrderFills: jest.fn((params) => {
       fillCallbacks.push(params.callback);
       return () => {
         const idx = fillCallbacks.indexOf(params.callback);
-        if (idx > -1) fillCallbacks.splice(idx, 1);
+        if (idx > -1) {
+          fillCallbacks.splice(idx, 1);
+        }
       };
     }),
     subscribeToAccount: jest.fn((params) => {
       accountCallbacks.push(params.callback);
       return () => {
         const idx = accountCallbacks.indexOf(params.callback);
-        if (idx > -1) accountCallbacks.splice(idx, 1);
+        if (idx > -1) {
+          accountCallbacks.splice(idx, 1);
+        }
       };
     }),
     // Helper to emit updates in tests

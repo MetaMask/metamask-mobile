@@ -166,9 +166,13 @@ class SendView {
   }
 
   async checkInsufficientFundsError(): Promise<void> {
-    await Assertions.expectElementToBeVisible(this.insufficientFundsError, {
-      description: 'Insufficient funds error message',
-    });
+    await Assertions.expectElementToHaveText(
+      this.insufficientFundsError,
+      SendActionViewSelectorsIDs.INSUFFICIENT_FUNDS_ERROR,
+      {
+        description: 'Insufficient funds error message',
+      },
+    );
   }
 }
 export default new SendView();
