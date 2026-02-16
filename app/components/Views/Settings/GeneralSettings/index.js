@@ -31,14 +31,13 @@ import AvatarAccount, {
 } from '../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
-import { withMetricsAwareness } from '../../../../components/hooks/useMetrics';
+import { withAnalyticsAwareness } from '../../../../components/hooks/useAnalytics/withAnalyticsAwareness';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import Text, {
   TextVariant,
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
 import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import { colors as staticColors } from '../../../../styles/common';
 
@@ -64,7 +63,8 @@ export const updateUserTraitsWithCurrentCurrency = (currency, metrics) => {
   const traits = { [UserProfileProperty.CURRENT_CURRENCY]: currency };
   metrics.addTraitsToUser(traits);
   metrics.trackEvent(
-    MetricsEventBuilder.createEventBuilder(MetaMetricsEvents.CURRENCY_CHANGED)
+    metrics
+      .createEventBuilder(MetaMetricsEvents.CURRENCY_CHANGED)
       .addProperties({
         ...traits,
         location: 'app_settings',
@@ -566,4 +566,4 @@ const mapDispatchToProps = (dispatch) => ({
 export default connect(
   mapStateToProps,
   mapDispatchToProps,
-)(withMetricsAwareness(Settings));
+)(withAnalyticsAwareness(Settings));

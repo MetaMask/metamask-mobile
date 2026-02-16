@@ -8,21 +8,12 @@ const mockCreateEventBuilder = jest.fn().mockReturnValue({
 });
 
 jest.mock('../../../../../core/Analytics', () => ({
-  MetaMetrics: {
-    getInstance: jest.fn(() => ({
-      addTraitsToUser: jest.fn(),
-      trackEvent: mockTrackEvent,
-      updateDataRecordingFlag: jest.fn(),
-    })),
-  },
   MetaMetricsEvents: {
     NETWORK_REMOVED: 'Network Removed',
     RPC_ADDED: { category: 'RPC Added' },
     RPC_REMOVED: { category: 'RPC Removed' },
   },
 }));
-
-jest.mock('../../../../../core/Analytics/MetricsEventBuilder');
 
 import React from 'react';
 import { shallow } from 'enzyme';
@@ -38,11 +29,7 @@ import * as jsonRequest from '../../../../../util/jsonRpcRequest';
 import Logger from '../../../../../util/Logger';
 import Engine from '../../../../../core/Engine';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder';
 const { PreferencesController } = Engine.context;
-
-// Set up MetricsEventBuilder mock after import
-MetricsEventBuilder.createEventBuilder = mockCreateEventBuilder;
 
 jest.mock(
   '../../../../../util/metrics/MultichainAPI/networkMetricUtils',
@@ -56,13 +43,26 @@ jest.mock(
   }),
 );
 
-jest.mock('../../../../../components/hooks/useMetrics', () => ({
-  useMetrics: () => ({
-    trackEvent: mockTrackEvent,
-    createEventBuilder: mockCreateEventBuilder,
-  }),
-  withMetricsAwareness: (Component: unknown) => Component,
-}));
+// HOC mock must inject metrics; mock factory runs before imports so React is not in scope (hence require).
+jest.mock(
+  '../../../../../components/hooks/useAnalytics/withAnalyticsAwareness',
+  () => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires -- hoisted mock factory
+    const ReactModule = require('react');
+    return {
+      withAnalyticsAwareness:
+        (Component: unknown) => (props: Record<string, unknown>) =>
+          ReactModule.createElement(Component, {
+            ...props,
+            metrics: {
+              trackEvent: mockTrackEvent,
+              createEventBuilder: mockCreateEventBuilder,
+              addTraitsToUser: jest.fn(),
+            },
+          }),
+    };
+  },
+);
 
 // Mock the feature flag
 jest.mock('../../../../../util/networks', () => {
@@ -141,7 +141,14 @@ jest.mock('../../../../../core/Engine', () => ({
 
 const store = mockStore(initialState);
 
+const mockMetrics = {
+  trackEvent: mockTrackEvent,
+  createEventBuilder: mockCreateEventBuilder,
+  addTraitsToUser: jest.fn(),
+};
+
 const SAMPLE_NETWORKSETTINGS_PROPS = {
+  metrics: mockMetrics,
   route: { params: {} },
   providerConfig: {
     rpcUrl: 'https://mainnet.infura.io/v3/YOUR-PROJECT-ID',
@@ -301,6 +308,7 @@ describe('NetworkSettings', () => {
 
   it('should update state and call getCurrentState on RPC URL change', async () => {
     const SAMPLE_NETWORKSETTINGS_PROPS_2 = {
+      metrics: mockMetrics,
       route: {
         params: {
           network: 'mainnet',
@@ -355,6 +363,7 @@ describe('NetworkSettings', () => {
 
   it('should initialize state correctly when networkTypeOrRpcUrl is provided', () => {
     const SAMPLE_NETWORKSETTINGS_PROPS_2 = {
+      metrics: mockMetrics,
       route: {
         params: {
           network: 'mainnet',
@@ -403,6 +412,7 @@ describe('NetworkSettings', () => {
 
   it('should initialize state correctly when networkTypeOrRpcUrl is provided and isCustomMainnet is true', () => {
     const SAMPLE_NETWORKSETTINGS_PROPS_2 = {
+      metrics: mockMetrics,
       route: {
         params: { network: 'mainnet', isCustomMainnet: true },
       },
@@ -453,6 +463,7 @@ describe('NetworkSettings', () => {
 
   it('should initialize state correctly when networkTypeOrRpcUrl is provided and allNetworks is not found', () => {
     const SAMPLE_NETWORKSETTINGS_PROPS_2 = {
+      metrics: mockMetrics,
       route: {
         params: { network: 'https://mainnet.infura.io/v3/YOUR-PROJECT-ID' },
       },
@@ -1380,6 +1391,7 @@ describe('NetworkSettings', () => {
   describe('NetworkSettings componentDidMount', () => {
     it('should correctly initialize state when networkTypeOrRpcUrl is provided', () => {
       const SAMPLE_NETWORKSETTINGS_PROPS_2 = {
+        metrics: mockMetrics,
         route: {
           params: {
             network: 'mainnet',
@@ -1432,6 +1444,7 @@ describe('NetworkSettings', () => {
 
     it('should set addMode to true if no networkTypeOrRpcUrl is provided', () => {
       const SAMPLE_NETWORKSETTINGS_PROPS_3 = {
+        metrics: mockMetrics,
         route: {
           params: {},
         },
@@ -1462,6 +1475,7 @@ describe('NetworkSettings', () => {
 
     it('should handle cases where the network is custom', () => {
       const SAMPLE_NETWORKSETTINGS_PROPS_4 = {
+        metrics: mockMetrics,
         route: {
           params: { network: 'https://custom-network.io' },
         },

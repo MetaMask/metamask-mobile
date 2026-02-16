@@ -57,7 +57,7 @@ import {
 import { hexToNumber } from '@metamask/utils';
 import { CustomDefaultNetworkIDs } from '../CustomDefaultNetwork.testIds';
 import { updateIncomingTransactions } from '../../../../../util/transaction-controller';
-import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
+import { withAnalyticsAwareness } from '../../../../../components/hooks/useAnalytics/withAnalyticsAwareness';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
@@ -90,8 +90,7 @@ import Tag from '../../../../../component-library/components/Tags/Tag/Tag';
 import { CellComponentSelectorsIDs } from '../../../../../component-library/components/Cells/Cell/CellComponent.testIds';
 import stripProtocol from '../../../../../util/stripProtocol';
 import stripKeyFromInfuraUrl from '../../../../../util/stripKeyFromInfuraUrl';
-import { MetaMetrics, MetaMetricsEvents } from '../../../../../core/Analytics';
-import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
   addItemToChainIdList,
   removeItemFromChainIdList,
@@ -661,7 +660,7 @@ export class NetworkSettings extends PureComponent {
         ...networkConfig,
       });
 
-      MetaMetrics.getInstance().addTraitsToUser(
+      this.props.metrics.addTraitsToUser(
         addItemToChainIdList(networkConfig.chainId),
       );
     }
@@ -1047,8 +1046,9 @@ export class NetworkSettings extends PureComponent {
 
     // Track RPC Added event
     if (this.state.chainId) {
-      MetaMetrics.getInstance().trackEvent(
-        MetricsEventBuilder.createEventBuilder(MetaMetricsEvents.RPC_ADDED)
+      this.props.metrics.trackEvent(
+        this.props.metrics
+          .createEventBuilder(MetaMetricsEvents.RPC_ADDED)
           .addProperties({
             chain_id: toHex(this.state.chainId),
             source: 'Network Settings',
@@ -1165,8 +1165,9 @@ export class NetworkSettings extends PureComponent {
 
     // Track RPC Removed event
     if (chainId && rpcUrlIndex !== -1) {
-      MetaMetrics.getInstance().trackEvent(
-        MetricsEventBuilder.createEventBuilder(MetaMetricsEvents.RPC_REMOVED)
+      this.props.metrics.trackEvent(
+        this.props.metrics
+          .createEventBuilder(MetaMetricsEvents.RPC_REMOVED)
           .addProperties({
             chain_id: toHex(chainId),
             source: 'Network Settings',
@@ -1364,7 +1365,7 @@ export class NetworkSettings extends PureComponent {
     const { NetworkController } = Engine.context;
     NetworkController.removeNetwork(networkConfiguration.chainId);
 
-    MetaMetrics.getInstance().addTraitsToUser(
+    this.props.metrics.addTraitsToUser(
       removeItemFromChainIdList(networkConfiguration.chainId),
     );
 
@@ -2330,4 +2331,4 @@ const mapStateToProps = (state) => ({
 export default compose(
   connect(mapStateToProps, mapDispatchToProps),
   withIsOriginalNativeToken,
-)(withMetricsAwareness(NetworkSettings));
+)(withAnalyticsAwareness(NetworkSettings));

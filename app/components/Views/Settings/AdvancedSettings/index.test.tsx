@@ -60,6 +60,30 @@ jest.mock('../../../../core/Engine', () => {
   };
 });
 
+// HOC mock must inject metrics; mock factory runs before imports so React is not in scope (hence require).
+jest.mock(
+  '../../../../components/hooks/useAnalytics/withAnalyticsAwareness',
+  () => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires -- hoisted mock factory
+    const ReactModule = require('react');
+    return {
+      withAnalyticsAwareness:
+        (Component: unknown) => (props: Record<string, unknown>) =>
+          ReactModule.createElement(Component, {
+            ...props,
+            metrics: {
+              trackEvent: jest.fn(),
+              createEventBuilder: jest.fn(() => ({
+                addProperties: jest.fn().mockReturnThis(),
+                build: jest.fn(),
+              })),
+              addTraitsToUser: jest.fn(),
+            },
+          }),
+    };
+  },
+);
+
 describe('AdvancedSettings', () => {
   it('should render correctly', () => {
     const container = renderWithProvider(

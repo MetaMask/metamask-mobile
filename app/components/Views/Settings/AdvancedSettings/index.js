@@ -40,7 +40,7 @@ import Button, {
   ButtonSize,
   ButtonWidthTypes,
 } from '../../../../component-library/components/Buttons/Button';
-import { withMetricsAwareness } from '../../../../components/hooks/useMetrics';
+import { withAnalyticsAwareness } from '../../../../components/hooks/useAnalytics/withAnalyticsAwareness';
 import AppConstants from '../../../../../app/core/AppConstants';
 import { downloadStateLogs } from '../../../../util/logs';
 import AutoDetectTokensSettings from '../AutoDetectTokensSettings';
@@ -510,4 +510,4 @@ const mapDispatchToProps = (dispatch) => ({
 export default connect(
   mapStateToProps,
   mapDispatchToProps,
-)(withMetricsAwareness(AdvancedSettings));
+)(withAnalyticsAwareness(AdvancedSettings));
