@@ -67,7 +67,7 @@ describe('PayWithRow', () => {
       canSelectWithdrawToken: false,
     });
 
-    useTransactionPayRequiredTokensMock.mockReturnValue(undefined);
+    useTransactionPayRequiredTokensMock.mockReturnValue(undefined as never);
 
     jest.mocked(useTransactionPayToken).mockReturnValue({
       payToken: {
@@ -190,7 +190,7 @@ describe('PayWithRow', () => {
         setPayToken: jest.fn(),
       });
 
-      useTransactionPayRequiredTokensMock.mockReturnValue(undefined);
+      useTransactionPayRequiredTokensMock.mockReturnValue(undefined as never);
 
       const { getByTestId } = render();
       expect(getByTestId('pay-with-row-skeleton')).toBeDefined();
