@@ -236,15 +236,17 @@ describe('AssetDetails', () => {
       };
 
       const { toJSON } = renderWithProvider(
-        <AssetDetails
-          route={{
-            params: {
-              address: '0xnonexistent' as Hex,
-              chainId: MOCK_CHAIN_ID,
-              asset: undefined as unknown as typeof mockAsset,
-            },
-          }}
-        />,
+        <ToastContext.Provider value={{ toastRef: mockToastRef }}>
+          <AssetDetails
+            route={{
+              params: {
+                address: '0xnonexistent' as Hex,
+                chainId: MOCK_CHAIN_ID,
+                asset: undefined as unknown as typeof mockAsset,
+              },
+            }}
+          />
+        </ToastContext.Provider>,
         { state: stateWithoutToken },
       );
 
@@ -392,15 +394,17 @@ describe('AssetDetails', () => {
       };
 
       const { queryByTestId } = renderWithProvider(
-        <AssetDetails
-          route={{
-            params: {
-              address: MOCK_TOKEN_ADDRESS,
-              chainId: MOCK_CHAIN_ID,
-              asset: assetWithNoAggregators,
-            },
-          }}
-        />,
+        <ToastContext.Provider value={{ toastRef: mockToastRef }}>
+          <AssetDetails
+            route={{
+              params: {
+                address: MOCK_TOKEN_ADDRESS,
+                chainId: MOCK_CHAIN_ID,
+                asset: assetWithNoAggregators,
+              },
+            }}
+          />
+        </ToastContext.Provider>,
         { state: stateWithUntrustworthyToken },
       );
 
@@ -437,15 +441,17 @@ describe('AssetDetails', () => {
       };
 
       const { getByText } = renderWithProvider(
-        <AssetDetails
-          route={{
-            params: {
-              address: '0xnewtoken' as Hex,
-              chainId: MOCK_CHAIN_ID,
-              asset: newTokenAsset,
-            },
-          }}
-        />,
+        <ToastContext.Provider value={{ toastRef: mockToastRef }}>
+          <AssetDetails
+            route={{
+              params: {
+                address: '0xnewtoken' as Hex,
+                chainId: MOCK_CHAIN_ID,
+                asset: newTokenAsset,
+              },
+            }}
+          />
+        </ToastContext.Provider>,
         { state: stateWithoutToken },
       );
 
@@ -481,20 +487,22 @@ describe('AssetDetails', () => {
       };
 
       const { getByText } = renderWithProvider(
-        <AssetDetails
-          route={{
-            params: {
-              address: MOCK_TOKEN_ADDRESS,
-              chainId: MOCK_CHAIN_ID,
-              asset: mockAsset,
-            },
-          }}
-        />,
+        <ToastContext.Provider value={{ toastRef: mockToastRef }}>
+          <AssetDetails
+            route={{
+              params: {
+                address: MOCK_TOKEN_ADDRESS,
+                chainId: MOCK_CHAIN_ID,
+                asset: mockAsset,
+              },
+            }}
+          />
+        </ToastContext.Provider>,
         { state: stateWithNoBalance },
       );
 
       // Warning message should be shown
-      expect(getByText(/were unable/i)).toBeTruthy();
+      expect(getByText(/unable to load/i)).toBeTruthy();
     });
 
     it('renders balance with fiat when primaryCurrency is fiat', () => {
@@ -506,15 +514,17 @@ describe('AssetDetails', () => {
       };
 
       const { queryByText } = renderWithProvider(
-        <AssetDetails
-          route={{
-            params: {
-              address: MOCK_TOKEN_ADDRESS,
-              chainId: MOCK_CHAIN_ID,
-              asset: mockAsset,
-            },
-          }}
-        />,
+        <ToastContext.Provider value={{ toastRef: mockToastRef }}>
+          <AssetDetails
+            route={{
+              params: {
+                address: MOCK_TOKEN_ADDRESS,
+                chainId: MOCK_CHAIN_ID,
+                asset: mockAsset,
+              },
+            }}
+          />
+        </ToastContext.Provider>,
         { state: stateWithFiatPrimary },
       );
 
