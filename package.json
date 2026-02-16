@@ -140,7 +140,9 @@
   "resolutions": {
     "@appium/schema/json-schema": "^0.4.0",
     "@metamask/react-native-payments/validator": "^13.7.0",
+    "@unrs/resolver-binding-wasm32-wasi": "file:./scripts/empty-package",
     "d3-color": "3.1.0",
+    "napi-postinstall": "file:./scripts/empty-package",
     "axios": "^1.13.5",
     "redux-persist-filesystem-storage/react-native-blob-util": "^0.19.9",
     "@ethersproject/providers/ws": "^7.5.10",
