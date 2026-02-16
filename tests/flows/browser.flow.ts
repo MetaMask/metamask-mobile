@@ -1,6 +1,6 @@
 import Assertions from '../framework/Assertions';
 import Matchers from '../framework/Matchers';
-import Utilities from '../framework/Utilities';
+// import Utilities from '../framework/Utilities';
 import BrowserView from '../page-objects/Browser/BrowserView';
 import TestDApp from '../page-objects/Browser/TestDApp';
 import { BrowserViewSelectorsIDs } from '../../app/components/Views/BrowserTab/BrowserView.testIds';
@@ -94,19 +94,19 @@ export const waitForTestSnapsToLoad = async (): Promise<void> => {
  */
 export const navigateToBrowserView = async (): Promise<void> => {
   // Check if Explore button is visible on tab bar (short timeout for quick check)
-  const hasExploreButton = await Utilities.isElementVisible(
-    TabBarComponent.tabBarExploreButton,
-    500,
-  );
+  // const hasExploreButton = await Utilities.isElementVisible(
+  //   TabBarComponent.tabBarExploreButton,
+  //   500,
+  // );
 
-  if (hasExploreButton) {
-    // Explore tab exists - navigate to it first
-    await TabBarComponent.tapExploreButton();
-    await TrendingView.tapBrowserButton();
-  } else {
-    // No Explore tab - use browser tab button directly
-    await TabBarComponent.tapBrowser();
-  }
+  // if (hasExploreButton) {
+  // Explore tab exists - navigate to it first
+  await TabBarComponent.tapExploreButton();
+  await TrendingView.tapBrowserButton();
+  // } else {
+  //   // No Explore tab - use browser tab button directly
+  //   await TabBarComponent.tapBrowser();
+  // }
 
   // Verify we're in browser view regardless of which path we took
   await Assertions.expectElementToBeVisible(BrowserView.urlInputBoxID, {
