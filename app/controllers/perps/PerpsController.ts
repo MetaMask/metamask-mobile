@@ -1032,12 +1032,6 @@ export class PerpsController extends BaseController<
       'RemoteFeatureFlagController:stateChange',
       featureFlagHandler,
     );
-    this.#featureFlagUnsubscribe = (): void => {
-      this.messenger.unsubscribe(
-        'RemoteFeatureFlagController:stateChange',
-        featureFlagHandler,
-      );
-    };
 
     this.providers = new Map();
 
@@ -1987,6 +1981,7 @@ export class PerpsController extends BaseController<
 
       let result: Promise<string>;
       let transactionMeta: { id: string };
+      let depositOrderResult: Promise<string> | null = null;
 
       const defaultTransactionOptions = {
         networkClientId,
@@ -2001,9 +1996,10 @@ export class PerpsController extends BaseController<
           type: TransactionType.perpsDepositAndOrder,
         });
         transactionMeta = addResult.transactionMeta;
-        // For deposit+order, transaction lifecycle is handled via the confirmation UI.
-        // Return a resolved promise with the transaction ID (fire-and-forget semantics).
+        // Return transaction ID immediately (fire-and-forget for caller)
         result = Promise.resolve(transactionMeta.id);
+        // Track deposit request lifecycle via the real transaction result
+        depositOrderResult = addResult.result;
       } else {
         // submit shows the confirmation screen and returns a promise
         // The promise will resolve when transaction completes or reject if cancelled/failed
@@ -2117,6 +2113,43 @@ export class PerpsController extends BaseController<
                 }
               });
             }
+          });
+      } else if (depositOrderResult) {
+        // Track deposit request lifecycle for deposit+order flow
+        depositOrderResult
+          .then((actualTxHash) => {
+            this.update((state) => {
+              const requestToUpdate = state.depositRequests.find(
+                (req) => req.id === currentDepositId,
+              );
+              if (requestToUpdate) {
+                requestToUpdate.status = 'completed' as TransactionStatus;
+                requestToUpdate.success = true;
+                requestToUpdate.txHash = actualTxHash;
+              }
+            });
+            return undefined;
+          })
+          .catch((error) => {
+            const errorMessage = ensureError(
+              error,
+              'PerpsController.depositWithOrder',
+            ).message;
+            const isCancellation =
+              errorMessage.includes('User denied') ||
+              errorMessage.includes('User rejected') ||
+              errorMessage.includes('cancelled');
+            this.update((state) => {
+              const requestToUpdate = state.depositRequests.find(
+                (req) => req.id === currentDepositId,
+              );
+              if (requestToUpdate) {
+                requestToUpdate.status = (
+                  isCancellation ? 'cancelled' : 'failed'
+                ) as TransactionStatus;
+                requestToUpdate.success = false;
+              }
+            });
           });
       }
 
@@ -2522,7 +2555,6 @@ export class PerpsController extends BaseController<
   #isPreloadingUserData = false;
   #preloadStateUnsubscribe: (() => void) | null = null;
   #accountChangeUnsubscribe: (() => void) | null = null;
-  #featureFlagUnsubscribe: (() => void) | null = null;
   #previousIsTestnet: boolean | null = null;
   #previousHip3ConfigVersion: number | null = null;
   static readonly #preloadRefreshMs = 5 * 60 * 1000; // 5 min
@@ -2619,8 +2651,9 @@ export class PerpsController extends BaseController<
     const accountChangeHandler = (): void => {
       const evmAccount = getSelectedEvmAccount(this.messenger);
       const currentAddress = evmAccount?.address ?? null;
+
+      // If there's cached data from a different account (or no EVM account now), clear it
       if (
-        currentAddress &&
         this.state.cachedUserDataAddress !== null &&
         currentAddress !== this.state.cachedUserDataAddress
       ) {
@@ -2634,9 +2667,12 @@ export class PerpsController extends BaseController<
           state.cachedUserDataTimestamp = 0;
           state.cachedUserDataAddress = null;
         });
-        this.#performUserDataPreload().catch(() => {
-          /* fire-and-forget */
-        });
+        // Only preload if the new account is an EVM account
+        if (currentAddress) {
+          this.#performUserDataPreload().catch(() => {
+            /* fire-and-forget */
+          });
+        }
       }
     };
     this.messenger.subscribe(
@@ -3638,10 +3674,10 @@ export class PerpsController extends BaseController<
     // Cleanup cached standalone provider (if any)
     await this.#cleanupStandaloneProvider();
 
-    if (this.#featureFlagUnsubscribe) {
-      this.#featureFlagUnsubscribe();
-      this.#featureFlagUnsubscribe = null;
-    }
+    // Note: Feature-flag subscription is NOT cleaned up here.
+    // It is a controller-lifetime concern (set once in the constructor),
+    // not a session-lifetime concern. Unsubscribing here would break
+    // geo-blocking / HIP-3 flag propagation after disconnect → reconnect.
 
     // Reset initialization state to ensure proper reconnection
     this.isInitialized = false;
