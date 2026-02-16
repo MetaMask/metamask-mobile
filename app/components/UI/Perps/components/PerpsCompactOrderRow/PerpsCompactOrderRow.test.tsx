@@ -108,7 +108,7 @@ describe('PerpsCompactOrderRow', () => {
   it('renders Stop Market order type for trigger orders', () => {
     render(<PerpsCompactOrderRow order={mockTriggerOrder} />);
 
-    expect(screen.getByText('Stop Market long')).toBeOnTheScreen();
+    expect(screen.getByText('Stop market close short')).toBeOnTheScreen();
   });
 
   it('uses trigger price for trigger orders when available', () => {
@@ -224,5 +224,33 @@ describe('PerpsCompactOrderRow', () => {
 
     // Falls back to 'Limit' for order type display
     expect(screen.getByText('Limit long')).toBeOnTheScreen();
+  });
+
+  it('shows close long for reduce-only sell orders', () => {
+    const reduceOnlySellOrder: Order = {
+      ...mockLimitBuyOrder,
+      side: 'sell',
+      reduceOnly: true,
+      detailedOrderType: 'Take Profit Limit',
+      isTrigger: true,
+    };
+
+    render(<PerpsCompactOrderRow order={reduceOnlySellOrder} />);
+
+    expect(screen.getByText('Take profit limit close long')).toBeOnTheScreen();
+  });
+
+  it('shows close short for reduce-only buy orders', () => {
+    const reduceOnlyBuyOrder: Order = {
+      ...mockLimitBuyOrder,
+      side: 'buy',
+      reduceOnly: true,
+      detailedOrderType: 'Stop Market',
+      isTrigger: true,
+    };
+
+    render(<PerpsCompactOrderRow order={reduceOnlyBuyOrder} />);
+
+    expect(screen.getByText('Stop market close short')).toBeOnTheScreen();
   });
 });
