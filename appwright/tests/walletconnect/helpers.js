@@ -16,7 +16,8 @@ import DappConnectionModal from '../../../wdio/screen-objects/Modals/DappConnect
 import LoginScreen from '../../../wdio/screen-objects/LoginScreen.js';
 import WalletConnectDapp from '../../../wdio/screen-objects/WalletConnectDapp.js';
 
-export const WC_TEST_DAPP_URL = 'https://react-app.walletconnect.com/';
+export const WC_TEST_DAPP_URL = 'http://192.168.1.65:9011/'; //'localhost:9011';
+export const WC_SESSION_NAME = 'metamask.github.io';
 
 /**
  * Navigate Chrome to a URL. Handles both fresh Chrome (home page with search
@@ -78,7 +79,7 @@ export async function dismissChromeOnboarding(device) {
 
 /**
  * Full WalletConnect connection setup:
- *   login → launch Chrome → navigate to dapp → select network →
+ *   login → launch Chrome → navigate to dapp →
  *   connect → tap MetaMask → handle app chooser → unlock → approve session →
  *   verify connected
  *
@@ -99,6 +100,7 @@ export async function connectWalletConnectSession(device) {
 
   // ── Phase 1: Login (native) ──────────────────────────────────────
   await AppwrightHelpers.withNativeAction(device, async () => {
+    await LoginScreen.waitForScreenToDisplay();
     await login(device);
   });
 
@@ -109,15 +111,13 @@ export async function connectWalletConnectSession(device) {
     await navigateChromeToUrl(device, WC_TEST_DAPP_URL);
   });
 
-  // Wait for React app to hydrate
+  // Wait for page load
   await AppwrightGestures.wait(5000);
 
-  // ── Phase 3: Select network & initiate connection (web context) ───
+  // ── Phase 3: Initiate connection (web context) ─────────────────────
   await AppwrightHelpers.withWebAction(
     device,
     async () => {
-      await WalletConnectDapp.tapEthereumSepolia();
-      await AppwrightGestures.wait(1000);
       await WalletConnectDapp.tapConnectButton();
     },
     WC_TEST_DAPP_URL,

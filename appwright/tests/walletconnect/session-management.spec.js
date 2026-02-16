@@ -24,7 +24,7 @@ import WalletConnectDapp from '../../../wdio/screen-objects/WalletConnectDapp.js
 import WalletConnectSessionsScreen from '../../../wdio/screen-objects/WalletConnectSessionsScreen.js';
 import LoginScreen from '../../../wdio/screen-objects/LoginScreen.js';
 import { getPasswordForScenario } from '../../utils/TestConstants.js';
-import { connectWalletConnectSession, WC_TEST_DAPP_URL } from './helpers.js';
+import { connectWalletConnectSession, WC_TEST_DAPP_URL, WC_SESSION_NAME } from './helpers.js';
 
 test('WalletConnect v2 - disconnect session from MetaMask sessions view', async ({
   device,
@@ -50,14 +50,14 @@ test('WalletConnect v2 - disconnect session from MetaMask sessions view', async 
   // ── Verify the connected session is listed ────────────────────────
   await AppwrightHelpers.withNativeAction(device, async () => {
     await WalletConnectSessionsScreen.assertSessionExists(
-      'react-app.walletconnect.com',
+      WC_SESSION_NAME,
     );
   });
 
   // ── Disconnect the session via long-press → "End" ────────────────
   await AppwrightHelpers.withNativeAction(device, async () => {
     await WalletConnectSessionsScreen.disconnectSession(
-      'react-app.walletconnect.com',
+      WC_SESSION_NAME,
     );
   });
 
@@ -121,14 +121,14 @@ test('WalletConnect v2 - session persists across app restart', async ({
   // ── Verify session still exists after restart ─────────────────────
   await AppwrightHelpers.withNativeAction(device, async () => {
     await WalletConnectSessionsScreen.assertSessionExists(
-      'react-app.walletconnect.com',
+      WC_SESSION_NAME,
     );
   });
 
   // ── Cleanup: disconnect from sessions view ────────────────────────
   await AppwrightHelpers.withNativeAction(device, async () => {
     await WalletConnectSessionsScreen.disconnectSession(
-      'react-app.walletconnect.com',
+      WC_SESSION_NAME,
     );
   });
 

@@ -89,35 +89,35 @@ test('WalletConnect v2 - signing flows (approve, reject, transaction)', async ({
   await signingFlow(device, {
     tapMethod: () => WalletConnectDapp.tapPersonalSignButton(),
     confirm: true,
-    assertResult: () => WalletConnectDapp.assertRequestApproved(),
+    assertResult: () => WalletConnectDapp.assertPersonalSignApproved(),
   });
 
   // ── personal_sign reject ──────────────────────────────────────────
   await signingFlow(device, {
     tapMethod: () => WalletConnectDapp.tapPersonalSignButton(),
     confirm: false,
-    assertResult: () => WalletConnectDapp.assertRequestRejected(),
+    assertResult: () => WalletConnectDapp.assertPersonalSignRejected(),
   });
 
   // ── eth_signTypedData_v4 approve ──────────────────────────────────
   await signingFlow(device, {
     tapMethod: () => WalletConnectDapp.tapSignTypedDataV4Button(),
     confirm: true,
-    assertResult: () => WalletConnectDapp.assertRequestApproved(),
+    assertResult: () => WalletConnectDapp.assertSignTypedDataV4Approved(),
   });
 
   // ── eth_signTypedData_v4 reject ───────────────────────────────────
   await signingFlow(device, {
     tapMethod: () => WalletConnectDapp.tapSignTypedDataV4Button(),
     confirm: false,
-    assertResult: () => WalletConnectDapp.assertRequestRejected(),
+    assertResult: () => WalletConnectDapp.assertSignTypedDataV4Rejected(),
   });
 
   // ── eth_sendTransaction reject (NEVER confirm) ────────────────────
   await signingFlow(device, {
     tapMethod: () => WalletConnectDapp.tapSendTransactionButton(),
     confirm: false,
-    assertResult: () => WalletConnectDapp.assertRequestRejected(),
+    assertResult: () => WalletConnectDapp.assertSendTransactionRejected(),
   });
 
   // ── Cleanup: Disconnect ──────────────────────────────────────────
