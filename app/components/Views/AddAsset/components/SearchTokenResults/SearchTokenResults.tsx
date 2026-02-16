@@ -1,31 +1,30 @@
 import React from 'react';
-import ListItemMultiSelect from '../../../component-library/components/List/ListItemMultiSelect';
-import stylesheet from './MultiAssetListItems.styles';
-import { useStyles } from '../../../component-library/hooks';
-
-import { Image, View } from 'react-native';
+import ListItemMultiSelect from '../../../../../component-library/components/List/ListItemMultiSelect';
+import { Image } from 'react-native';
 import Badge, {
   BadgeVariant,
-} from '../../../component-library/components/Badges/Badge';
+} from '../../../../../component-library/components/Badges/Badge';
 import BadgeWrapper, {
   BadgePosition,
-} from '../../../component-library/components/Badges/BadgeWrapper';
-import AssetIcon from '../AssetIcon';
-import { strings } from '../../../../locales/i18n';
-import { ImportTokenViewSelectorsIDs } from '../../Views/AddAsset/ImportAssetView.testIds';
-import { NetworkBadgeSource } from '../AssetOverview/Balance/Balance';
-import { BridgeToken } from '../Bridge/types';
+} from '../../../../../component-library/components/Badges/BadgeWrapper';
+import AssetIcon from '../../../../UI/AssetIcon';
+import { strings } from '../../../../../../locales/i18n';
+import { ImportTokenViewSelectorsIDs } from '../../ImportAssetView.testIds';
+import { NetworkBadgeSource } from '../../../../UI/AssetOverview/Balance/Balance';
+import { BridgeToken } from '../../../../UI/Bridge/types';
 import { FlashList } from '@shopify/flash-list';
-import { Skeleton } from '../../../component-library/components/Skeleton';
-import { useAssetFromTheme } from '../../../util/theme';
-import emptyStateDefiLight from '../../../images/empty-state-defi-light.png';
-import emptyStateDefiDark from '../../../images/empty-state-defi-dark.png';
+import { Skeleton } from '../../../../../component-library/components/Skeleton';
+import { useAssetFromTheme } from '../../../../../util/theme';
+import emptyStateDefiLight from '../../../../../images/empty-state-defi-light.png';
+import emptyStateDefiDark from '../../../../../images/empty-state-defi-dark.png';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
+  Box,
   Text,
   TextVariant,
   TextColor,
 } from '@metamask/design-system-react-native';
+
 interface Props {
   /**
    * Array of assets objects returned from the search
@@ -66,22 +65,22 @@ interface Props {
 }
 
 const TokenSkeleton = () => {
-  const { styles } = useStyles(stylesheet, {});
+  const tw = useTailwind();
 
   return (
-    <ListItemMultiSelect isDisabled style={styles.base}>
-      <View style={styles.Icon}>
-        <Skeleton width={40} height={40} style={styles.skeletonIcon} />
-      </View>
-      <View style={styles.tokens}>
-        <Skeleton width={120} height={20} style={styles.skeletonText} />
+    <ListItemMultiSelect isDisabled style={tw.style('flex-1')}>
+      <Box twClassName="flex-col items-start px-0.5">
+        <Skeleton width={40} height={40} style={tw.style('rounded-[20px]')} />
+      </Box>
+      <Box twClassName="flex-1 justify-center px-1">
+        <Skeleton width={120} height={20} style={tw.style('mb-2')} />
         <Skeleton width={60} height={16} />
-      </View>
+      </Box>
     </ListItemMultiSelect>
   );
 };
 
-const MultiAssetListItems = ({
+const SearchTokenResults = ({
   searchResults,
   handleSelectAsset,
   selectedAsset,
@@ -91,7 +90,6 @@ const MultiAssetListItems = ({
   isLoading = false,
 }: Props) => {
   const tw = useTailwind();
-  const { styles } = useStyles(stylesheet, {});
   const tokensImage = useAssetFromTheme(
     emptyStateDefiLight,
     emptyStateDefiDark,
@@ -110,7 +108,7 @@ const MultiAssetListItems = ({
 
   if (searchResults.length === 0) {
     return (
-      <View style={styles.emptyContainer}>
+      <Box twClassName="flex-1 justify-center items-center px-[30px]">
         <Image
           source={tokensImage}
           resizeMode="contain"
@@ -125,7 +123,7 @@ const MultiAssetListItems = ({
             ? strings('token.tokens_empty_description')
             : strings('token.no_tokens_found')}
         </Text>
-      </View>
+      </Box>
     );
   }
 
@@ -147,12 +145,12 @@ const MultiAssetListItems = ({
           <ListItemMultiSelect
             isSelected={isSelected || isAlreadyAdded}
             isDisabled={isDisabled}
-            style={styles.base}
+            style={tw.style('flex-1')}
             key={`search-result-${index}`}
             onPress={() => !isDisabled && handleSelectAsset(item)}
             testID={ImportTokenViewSelectorsIDs.SEARCH_TOKEN_RESULT}
           >
-            <View style={styles.Icon}>
+            <Box twClassName="flex-col items-start px-0.5">
               <BadgeWrapper
                 badgePosition={BadgePosition.BottomRight}
                 badgeElement={
@@ -169,15 +167,15 @@ const MultiAssetListItems = ({
                   <AssetIcon
                     address={address}
                     logo={image}
-                    customStyle={styles.assetIcon}
+                    customStyle={tw.style('w-8 h-8')}
                   />
                 )}
               </BadgeWrapper>
-            </View>
-            <View style={styles.tokens}>
+            </Box>
+            <Box twClassName="flex-1 justify-center px-1">
               <Text variant={TextVariant.BodyLg}>{name}</Text>
               <Text variant={TextVariant.BodyMd}>{symbol}</Text>
-            </View>
+            </Box>
           </ListItemMultiSelect>
         );
       }}
@@ -186,4 +184,4 @@ const MultiAssetListItems = ({
   );
 };
 
-export default MultiAssetListItems;
+export default SearchTokenResults;

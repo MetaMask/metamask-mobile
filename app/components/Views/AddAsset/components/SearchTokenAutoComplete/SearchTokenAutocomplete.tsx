@@ -25,7 +25,7 @@ import { selectUseTokenDetection } from '../../../../../selectors/preferencesCon
 import { getDecimalChainId } from '../../../../../util/networks';
 import { useMetrics } from '../../../../hooks/useMetrics';
 import Routes from '../../../../../constants/navigation/Routes';
-import MultiAssetListItems from '../../../../UI/MultiAssetListItems/MultiAssetListItems';
+import SearchTokenResults from '../SearchTokenResults/SearchTokenResults';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -515,7 +515,7 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
           </View>
         </View>
 
-        <MultiAssetListItems
+        <SearchTokenResults
           searchResults={allTokens}
           searchQuery={searchQuery}
           handleSelectAsset={handleSelectAsset}
