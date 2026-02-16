@@ -37,9 +37,14 @@ jest.mock('../../../utils/transaction-pay');
 jest.mock('../../../../../UI/Perps/hooks/usePerpsPaymentToken');
 jest.mock('../../../../../UI/Perps/hooks/usePerpsBalanceTokenFilter');
 
-jest.mock('../../../hooks/send/useAccountTokens', () => ({
-  useAccountTokens: () => [],
-}));
+jest.mock('../../../hooks/send/useAccountTokens', () => {
+  // Return a stable reference to avoid infinite re-render loops.
+  // Returning `[]` inline creates a new array on every call, which makes
+  // `useSendTokens` → `Asset.tokens` → `NetworkFilter` effect fire in a
+  // loop when the tokenFilter is an identity function (withdraw mode).
+  const stableEmptyTokens: never[] = [];
+  return { useAccountTokens: () => stableEmptyTokens };
+});
 
 const CHAIN_ID_1_MOCK = CHAIN_IDS.MAINNET as Hex;
 const CHAIN_ID_2_MOCK = '0x2' as Hex;
