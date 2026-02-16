@@ -1,16 +1,18 @@
-import { FeatureFlagConfigurationService } from './FeatureFlagConfigurationService';
+import type { RemoteFeatureFlagControllerState } from '@metamask/remote-feature-flag-controller';
+
 import {
   createMockServiceContext,
   createMockInfrastructure,
 } from '../../../components/UI/Perps/__mocks__/serviceMocks';
+import type { PerpsPlatformDependencies } from '../types';
+import { validateMarketPattern } from '../utils/marketUtils';
 import {
   parseCommaSeparatedString,
   stripQuotes,
 } from '../utils/stringParseUtils';
-import { validateMarketPattern } from '../utils/marketUtils';
+
+import { FeatureFlagConfigurationService } from './FeatureFlagConfigurationService';
 import type { ServiceContext } from './ServiceContext';
-import type { RemoteFeatureFlagControllerState } from '@metamask/remote-feature-flag-controller';
-import type { PerpsPlatformDependencies } from '../types';
 
 jest.mock('../utils/stringParseUtils');
 jest.mock('../utils/marketUtils', () => ({

@@ -164,6 +164,8 @@ jest.mock('../../../core/Engine', () => {
         getTradeConfiguration: jest.fn().mockResolvedValue(null),
         getMarketFilterPreferences: jest.fn().mockResolvedValue({}),
         getOrderBookGrouping: jest.fn().mockResolvedValue(null),
+        startMarketDataPreload: jest.fn(),
+        stopMarketDataPreload: jest.fn(),
       },
     },
     controllerMessenger: {
