@@ -17,6 +17,7 @@ import { selectTickerByChainId } from '../../../../../selectors/networkControlle
 import { RootState } from '../../../../../reducers';
 import { useTokenWithBalance } from '../tokens/useTokenWithBalance';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
+import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 
 export function useInsufficientPayTokenBalanceAlert({
   pendingAmountUsd,
@@ -31,8 +32,14 @@ export function useInsufficientPayTokenBalanceAlert({
   const isPendingAlert = Boolean(pendingAmountUsd !== undefined);
   const isMax = useTransactionPayIsMaxAmount();
   const isPostQuote = useTransactionPayIsPostQuote();
+  const transactionMeta = useTransactionMetadataRequest();
 
-  const sourceChainId = payToken?.chainId ?? '0x0';
+  // In post-quote (withdrawal) flows, payToken is the *destination* token,
+  // so payToken.chainId is the destination chain. The source chain (where gas
+  // is actually paid) is the transaction's own chainId.
+  const sourceChainId = isPostQuote
+    ? (transactionMeta?.chainId ?? '0x0')
+    : (payToken?.chainId ?? '0x0');
 
   const nativeToken = useTokenWithBalance(
     getNativeTokenAddress(sourceChainId),
