@@ -10313,7 +10313,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/transaction-pay-controller@npm:^14.0.0":
+"@metamask/transaction-pay-controller@npm:14.0.0":
   version: 14.0.0
   resolution: "@metamask/transaction-pay-controller@npm:14.0.0"
   dependencies:
@@ -10336,6 +10336,32 @@ __metadata:
     immer: "npm:^9.0.6"
     lodash: "npm:^4.17.21"
   checksum: 10/b9d8f850c534596e0babc80d40247b934f413cd797c3e539f36b6f45be4824fbe96ed380193d4d45cf0d076e9c14003caad31ce91af58342241f14bc8bc5fc6a
+  languageName: node
+  linkType: hard
+
+"@metamask/transaction-pay-controller@patch:@metamask/transaction-pay-controller@npm%3A14.0.0#~/.yarn/patches/@metamask-transaction-pay-controller-npm-14.0.0-6192f9bce6.patch":
+  version: 14.0.0
+  resolution: "@metamask/transaction-pay-controller@patch:@metamask/transaction-pay-controller@npm%3A14.0.0#~/.yarn/patches/@metamask-transaction-pay-controller-npm-14.0.0-6192f9bce6.patch::version=14.0.0&hash=f8bdb6"
+  dependencies:
+    "@ethersproject/abi": "npm:^5.7.0"
+    "@ethersproject/contracts": "npm:^5.7.0"
+    "@metamask/assets-controllers": "npm:^99.3.2"
+    "@metamask/base-controller": "npm:^9.0.0"
+    "@metamask/bridge-controller": "npm:^66.1.1"
+    "@metamask/bridge-status-controller": "npm:^66.0.2"
+    "@metamask/controller-utils": "npm:^11.18.0"
+    "@metamask/gas-fee-controller": "npm:^26.0.2"
+    "@metamask/messenger": "npm:^0.3.0"
+    "@metamask/metamask-eth-abis": "npm:^3.1.1"
+    "@metamask/network-controller": "npm:^29.0.0"
+    "@metamask/remote-feature-flag-controller": "npm:^4.0.0"
+    "@metamask/transaction-controller": "npm:^62.17.0"
+    "@metamask/utils": "npm:^11.9.0"
+    bignumber.js: "npm:^9.1.2"
+    bn.js: "npm:^5.2.1"
+    immer: "npm:^9.0.6"
+    lodash: "npm:^4.17.21"
+  checksum: 10/f2b80fc4ff07bfe19a8b42e5c14d78fa1d89c1749ba23f2a74a42ff0224aca06832d25344fcf8abed8b424e17e2fbc1dfcaa473cfbd0c2965988f09c4baf45d2
   languageName: node
   linkType: hard
 
@@ -35632,7 +35658,7 @@ __metadata:
     "@metamask/test-dapp-multichain": "npm:^0.17.1"
     "@metamask/test-dapp-solana": "npm:^0.3.0"
     "@metamask/transaction-controller": "npm:^62.16.0"
-    "@metamask/transaction-pay-controller": "npm:^14.0.0"
+    "@metamask/transaction-pay-controller": "patch:@metamask/transaction-pay-controller@npm%3A14.0.0#~/.yarn/patches/@metamask-transaction-pay-controller-npm-14.0.0-6192f9bce6.patch"
     "@metamask/tron-wallet-snap": "npm:^1.21.1"
     "@metamask/utils": "npm:^11.8.1"
     "@myx-trade/sdk": "npm:^0.1.265"

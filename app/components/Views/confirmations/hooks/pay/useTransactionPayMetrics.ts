@@ -129,6 +129,22 @@ export function useTransactionPayMetrics() {
     properties.mm_pay_provider_fee_usd = totals.fees.provider.usd;
   }
 
+  const relayQuote = quotes?.find(
+    (q) => q.strategy === TransactionPayStrategy.Relay,
+  );
+
+  const quoteMetadata = relayQuote?.original as
+    | {
+        metamask?: {
+          twoPhaseQuoteForMaxAmount?: boolean;
+        };
+      }
+    | undefined;
+
+  if (quoteMetadata?.metamask?.twoPhaseQuoteForMaxAmount) {
+    properties.mm_pay_max_gasless_phase2_triggered = true;
+  }
+
   const params = useDeepMemo(
     () => ({
       properties,

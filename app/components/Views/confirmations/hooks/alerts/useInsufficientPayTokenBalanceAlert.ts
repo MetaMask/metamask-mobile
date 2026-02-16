@@ -101,7 +101,8 @@ export function useInsufficientPayTokenBalanceAlert({
       !isPayTokenNative &&
       !isPendingAlert &&
       !isSourceGasFeeToken &&
-      totalSourceNetworkFeeRaw.isGreaterThan(nativeToken?.balanceRaw ?? '0'),
+      totalSourceNetworkFeeRaw.isGreaterThan(nativeToken?.balanceRaw ?? '0') &&
+      !isMax,
     [
       isPayTokenNative,
       isPendingAlert,
@@ -109,6 +110,7 @@ export function useInsufficientPayTokenBalanceAlert({
       nativeToken?.balanceRaw,
       payToken,
       totalSourceNetworkFeeRaw,
+      isMax,
     ],
   );
 
