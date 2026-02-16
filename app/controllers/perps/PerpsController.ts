@@ -797,6 +797,43 @@ type BlockedRegionList = {
   source: 'remote' | 'fallback';
 };
 
+const MESSENGER_EXPOSED_METHODS = [
+  'placeOrder',
+  'editOrder',
+  'cancelOrder',
+  'cancelOrders',
+  'closePosition',
+  'closePositions',
+  'withdraw',
+  'getPositions',
+  'getOrderFills',
+  'getOrders',
+  'getOpenOrders',
+  'getFunding',
+  'getAccountState',
+  'getMarkets',
+  'refreshEligibility',
+  'toggleTestnet',
+  'disconnect',
+  'calculateFees',
+  'markTutorialCompleted',
+  'markFirstOrderCompleted',
+  'getHistoricalPortfolio',
+  'resetFirstTimeUserState',
+  'clearPendingTransactionRequests',
+  'saveTradeConfiguration',
+  'getTradeConfiguration',
+  'saveMarketFilterPreferences',
+  'getMarketFilterPreferences',
+  'savePendingTradeConfiguration',
+  'getPendingTradeConfiguration',
+  'clearPendingTradeConfiguration',
+  'getOrderBookGrouping',
+  'saveOrderBookGrouping',
+  'setSelectedPaymentToken',
+  'resetSelectedPaymentToken',
+] as const;
+
 /**
  * PerpsController - Protocol-agnostic perpetuals trading controller
  *
@@ -989,15 +1026,28 @@ export class PerpsController extends BaseController<
       );
     }
 
+    const featureFlagHandler =
+      this.refreshEligibilityOnFeatureFlagChange.bind(this);
     this.messenger.subscribe(
       'RemoteFeatureFlagController:stateChange',
-      this.refreshEligibilityOnFeatureFlagChange.bind(this),
+      featureFlagHandler,
     );
+    this.#featureFlagUnsubscribe = (): void => {
+      this.messenger.unsubscribe(
+        'RemoteFeatureFlagController:stateChange',
+        featureFlagHandler,
+      );
+    };
 
     this.providers = new Map();
 
     // Migrate old persisted data without accountAddress
     this.#migrateRequestsIfNeeded();
+
+    this.messenger.registerMethodActionHandlers(
+      this,
+      MESSENGER_EXPOSED_METHODS,
+    );
   }
 
   // ============================================================================
@@ -2472,6 +2522,7 @@ export class PerpsController extends BaseController<
   #isPreloadingUserData = false;
   #preloadStateUnsubscribe: (() => void) | null = null;
   #accountChangeUnsubscribe: (() => void) | null = null;
+  #featureFlagUnsubscribe: (() => void) | null = null;
   #previousIsTestnet: boolean | null = null;
   #previousHip3ConfigVersion: number | null = null;
   static readonly #preloadRefreshMs = 5 * 60 * 1000; // 5 min
@@ -3586,6 +3637,11 @@ export class PerpsController extends BaseController<
 
     // Cleanup cached standalone provider (if any)
     await this.#cleanupStandaloneProvider();
+
+    if (this.#featureFlagUnsubscribe) {
+      this.#featureFlagUnsubscribe();
+      this.#featureFlagUnsubscribe = null;
+    }
 
     // Reset initialization state to ensure proper reconnection
     this.isInitialized = false;
