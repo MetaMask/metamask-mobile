@@ -308,11 +308,6 @@ export function parseErrorByType(
       return parsedByName;
     }
 
-    const statusCode = extractStatusCode(error);
-    if (statusCode !== null) {
-      return parseLedgerStatusCode(statusCode, walletType, error);
-    }
-
     const parsedByMessage = parseErrorByMessage(error, walletType);
     if (parsedByMessage) {
       return parsedByMessage;
