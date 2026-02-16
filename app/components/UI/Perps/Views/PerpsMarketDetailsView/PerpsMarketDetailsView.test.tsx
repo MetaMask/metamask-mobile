@@ -246,6 +246,10 @@ interface MockOpenOrder {
   isTrigger: boolean;
   reduceOnly: boolean;
   isPositionTpsl?: boolean;
+  takeProfitPrice?: string;
+  stopLossPrice?: string;
+  takeProfitOrderId?: string;
+  stopLossOrderId?: string;
 }
 
 interface MockUsePerpsOpenOrdersResult {
@@ -2778,6 +2782,81 @@ describe('PerpsMarketDetailsView', () => {
 
       expect(getByTestId('compact-order-standalone-tpsl')).toBeTruthy();
       expect(getByText('Take profit limit close long')).toBeTruthy();
+    });
+
+    it('shows synthetic TP/SL rows when parent metadata exists and size matches existing position', () => {
+      const timestamp = Date.now();
+      mockUseHasExistingPosition.mockReturnValue({
+        hasPosition: true,
+        isLoading: false,
+        error: null,
+        existingPosition: {
+          symbol: 'BTC',
+          size: '1.0',
+          entryPrice: '45000',
+          positionValue: '45000',
+          unrealizedPnl: '0',
+          marginUsed: '2000',
+          leverage: { type: 'isolated', value: 5 },
+          liquidationPrice: '40000',
+          maxLeverage: 20,
+          returnOnEquity: '0',
+          cumulativeFunding: {
+            allTime: '0',
+            sinceOpen: '0',
+            sinceChange: '0',
+          },
+          takeProfitCount: 0,
+          stopLossCount: 0,
+        },
+        refreshPosition: jest.fn(),
+        positionOpenedTimestamp: undefined,
+      });
+
+      mockUsePerpsOpenOrdersImpl.mockReturnValue({
+        orders: [
+          {
+            id: 'parent-order-with-metadata',
+            orderId: 'parent-order-with-metadata',
+            symbol: 'BTC',
+            side: 'buy',
+            size: '1.0',
+            originalSize: '1.0',
+            price: '45000',
+            orderType: 'limit',
+            status: 'open',
+            timestamp,
+            lastUpdated: timestamp,
+            filledSize: '0',
+            remainingSize: '1.0',
+            detailedOrderType: 'Limit',
+            isTrigger: false,
+            reduceOnly: false,
+            takeProfitPrice: '50000',
+            stopLossPrice: '43000',
+          },
+        ],
+        refresh: jest.fn(),
+        isLoading: false,
+        error: null,
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        { state: initialState },
+      );
+
+      expect(
+        getByTestId('compact-order-parent-order-with-metadata'),
+      ).toBeTruthy();
+      expect(
+        getByTestId('compact-order-parent-order-with-metadata-synthetic-tp'),
+      ).toBeTruthy();
+      expect(
+        getByTestId('compact-order-parent-order-with-metadata-synthetic-sl'),
+      ).toBeTruthy();
     });
 
     it('uses size fallback when isPositionTpsl is undefined', () => {

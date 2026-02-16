@@ -628,6 +628,7 @@ describe('orderUtils', () => {
         orderId: 'parent-limit-1-synthetic-tp',
         parentOrderId: 'parent-limit-1',
         isSynthetic: true,
+        isPositionTpsl: false,
         isTrigger: true,
         reduceOnly: true,
         side: 'sell',
@@ -778,6 +779,49 @@ describe('orderUtils', () => {
         result.filter((order) => order.orderId === 'existing-order-id'),
       ).toHaveLength(1);
       expect(result.find((order) => order.isSynthetic)).toBeUndefined();
+    });
+
+    it('keeps synthetic rows visible in Orders when position size matches fallback association', () => {
+      const result = buildDisplayOrdersWithSyntheticTpsl([
+        {
+          ...parentLimitOrder,
+          takeProfitPrice: '95000',
+        },
+      ]);
+
+      const syntheticTpOrder = result.find(
+        (order) => order.orderId === 'parent-limit-1-synthetic-tp',
+      );
+
+      expect(syntheticTpOrder).toBeDefined();
+      expect(syntheticTpOrder?.isPositionTpsl).toBe(false);
+
+      const existingPosition: Position = {
+        symbol: 'BTC',
+        size: '0.5',
+        entryPrice: '45000',
+        positionValue: '22500',
+        unrealizedPnl: '0',
+        marginUsed: '1000',
+        leverage: { type: 'isolated', value: 5 },
+        liquidationPrice: '40000',
+        maxLeverage: 20,
+        returnOnEquity: '0',
+        cumulativeFunding: {
+          allTime: '0',
+          sinceOpen: '0',
+          sinceChange: '0',
+        },
+        takeProfitCount: 0,
+        stopLossCount: 0,
+      };
+
+      expect(
+        shouldDisplayOrderInMarketDetailsOrders(
+          syntheticTpOrder as Order,
+          existingPosition,
+        ),
+      ).toBe(true);
     });
   });
 
