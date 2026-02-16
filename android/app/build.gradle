@@ -368,6 +368,31 @@ android {
     }
 }
 
+configurations.all {
+    resolutionStrategy.dependencySubstitution {
+        substitute module('org.bouncycastle:bcprov-jdk15to18') using module('org.bouncycastle:bcprov-jdk18on:1.78.1')
+        substitute module('org.bouncycastle:bcutil-jdk15to18') using module('org.bouncycastle:bcutil-jdk18on:1.78.1')
+    }
+}
+
+// Veriff SDK sub-libraries declare minSdkVersion 26 in their manifests.
+// tools:overrideLibrary in AndroidManifest.xml conflicts with the AGP-generated <uses-sdk>,
+// so we patch the extracted Veriff AAR manifests to use our minSdkVersion before the merge.
+project.afterEvaluate {
+    tasks.matching { it.name ==~ /process.*MainManifest/ }.configureEach { task ->
+        task.doFirst {
+            def transformsDir = new File(gradle.gradleUserHomeDir, "caches/${gradle.gradleVersion}/transforms")
+            if (transformsDir.exists()) {
+                fileTree(dir: transformsDir, includes: ['**/transformed/jetified-*-7.14.1/AndroidManifest.xml']).each { file ->
+                    def content = file.text
+                    if (content.contains('android:minSdkVersion="26"')) {
+                        file.text = content.replace('android:minSdkVersion="26"', 'android:minSdkVersion="' + rootProject.ext.minSdkVersion + '"')
+                    }
+                }
+            }
+        }
+    }
+}
 
 dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
