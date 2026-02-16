@@ -1,6 +1,6 @@
-// eslint-disable-next-line import/no-nodejs-modules, import/no-namespace
+// eslint-disable-next-line import-x/no-nodejs-modules, import-x/no-namespace
 import * as fs from 'fs';
-// eslint-disable-next-line import/no-namespace, import/no-nodejs-modules
+// eslint-disable-next-line import-x/no-namespace, import-x/no-nodejs-modules
 import * as path from 'path';
 import { RegressionWalletPlatform } from '../../tags';
 import { CreateNewWallet } from '../../flows/wallet.flow';

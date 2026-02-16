@@ -1,4 +1,4 @@
-import * as Keychain from 'react-native-keychain'; // eslint-disable-line import/no-namespace
+import * as Keychain from 'react-native-keychain'; // eslint-disable-line import-x/no-namespace
 import { Encryptor, LEGACY_DERIVATION_OPTIONS } from './Encryptor';
 import { strings } from '../../locales/i18n';
 import { MetaMetricsEvents, MetaMetrics } from './Analytics';

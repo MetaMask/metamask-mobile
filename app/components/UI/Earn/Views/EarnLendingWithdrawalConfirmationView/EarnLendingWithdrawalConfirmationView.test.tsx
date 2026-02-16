@@ -23,7 +23,7 @@ import {
 } from '@metamask/transaction-controller';
 import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder';
 import { useMetrics } from '../../../../hooks/useMetrics';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as NavbarUtils from '../../../Navbar';
 import { MOCK_USDC_MAINNET_ASSET } from '../../../Stake/__mocks__/stakeMockData';
 import useEarnToken from '../../hooks/useEarnToken';

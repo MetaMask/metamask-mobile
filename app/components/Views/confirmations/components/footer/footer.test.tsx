@@ -8,7 +8,7 @@ import {
   personalSignatureConfirmationState,
   stakingDepositConfirmationState,
 } from '../../../../../util/test/confirm-data-helpers';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as QRHardwareHook from '../../context/qr-hardware-context/qr-hardware-context';
 import { Footer } from './footer';
 import { useAlerts } from '../../context/alert-system-context';

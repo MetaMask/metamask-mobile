@@ -1,6 +1,6 @@
 import React from 'react';
 import { fireEvent, waitFor } from '@testing-library/react-native';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as PushNotificationToggleHooksModule from './PushNotificationToggle.hooks';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import {

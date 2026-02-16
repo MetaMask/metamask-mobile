@@ -45,7 +45,7 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
-// eslint-disable-next-line import/first
+// eslint-disable-next-line import-x/first
 import Engine from '../../../../core/Engine';
 
 interface MockEngine {

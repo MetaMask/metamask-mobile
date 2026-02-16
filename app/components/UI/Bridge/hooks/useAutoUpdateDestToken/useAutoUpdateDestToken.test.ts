@@ -8,9 +8,9 @@ import { useAutoUpdateDestToken } from '.';
 import { BridgeToken } from '../../types';
 import { Hex } from '@metamask/utils';
 import { BtcScope, SolScope } from '@metamask/keyring-api';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as bridgeSlice from '../../../../../core/redux/slices/bridge';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as tokenUtils from '../../utils/tokenUtils';
 
 describe('useAutoUpdateDestToken', () => {

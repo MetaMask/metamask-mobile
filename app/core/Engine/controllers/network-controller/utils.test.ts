@@ -1,5 +1,5 @@
 // Jest tests run in Node, so this is okay.
-// eslint-disable-next-line import/no-nodejs-modules
+// eslint-disable-next-line import-x/no-nodejs-modules
 import assert from 'assert';
 import { generateDeterministicRandomNumber } from '@metamask/remote-feature-flag-controller';
 

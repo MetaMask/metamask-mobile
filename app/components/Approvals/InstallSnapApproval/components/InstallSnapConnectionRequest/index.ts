@@ -1,5 +1,5 @@
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-/* eslint-disable import/prefer-default-export */
+/* eslint-disable import-x/prefer-default-export */
 import InstallSnapConnectionRequest from './InstallSnapConnectionRequest';
 
 export { InstallSnapConnectionRequest };

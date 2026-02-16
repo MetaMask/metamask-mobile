@@ -11,7 +11,7 @@ import {
   wipeSmartTransactions,
 } from './index';
 import { SmartTransactionsController } from '@metamask/smart-transactions-controller';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as environment from '../environment';
 import Engine, { type RootExtendedMessenger } from '../../core/Engine';
 

@@ -12,7 +12,7 @@ import {
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/keyring-api';
 
-/* eslint-disable @typescript-eslint/no-require-imports, import/no-commonjs */
+/* eslint-disable @typescript-eslint/no-require-imports, import-x/no-commonjs */
 const InfuraKey = process.env.MM_INFURA_PROJECT_ID;
 const infuraProjectId = InfuraKey === 'null' ? '' : InfuraKey;
 
@@ -435,7 +435,7 @@ export const NETWORK_CHAIN_ID: {
   ...CHAIN_IDS,
 };
 
-/* eslint-disable @typescript-eslint/no-require-imports, import/no-commonjs */
+/* eslint-disable @typescript-eslint/no-require-imports, import-x/no-commonjs */
 export const CustomNetworkImgMapping: Record<Hex, string> = {
   [NETWORK_CHAIN_ID.FLARE_MAINNET]: require('../../images/flare-mainnet.png'),
   [NETWORK_CHAIN_ID.SONGBIRD_TESTNET]: require('../../images/songbird.png'),

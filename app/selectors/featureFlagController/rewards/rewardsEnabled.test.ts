@@ -9,7 +9,7 @@ import {
   TRON_REWARDS_FLAG_NAME,
   SNAPSHOTS_REWARDS_FLAG_NAME,
 } from './rewardsEnabled';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as remoteFeatureFlagModule from '../../../util/remoteFeatureFlag';
 
 jest.mock('react-native-device-info', () => ({

@@ -1,8 +1,8 @@
-// eslint-disable-next-line import/no-nodejs-modules
+// eslint-disable-next-line import-x/no-nodejs-modules
 import fs from 'fs';
-// eslint-disable-next-line import/no-extraneous-dependencies
+// eslint-disable-next-line import-x/no-extraneous-dependencies
 import simpleGit from 'simple-git';
-// eslint-disable-next-line import/no-extraneous-dependencies
+// eslint-disable-next-line import-x/no-extraneous-dependencies
 import { Octokit } from '@octokit/rest';
 
 // "GITHUB_TOKEN" is an automatically generated, repository-specific access token provided by GitHub Actions.

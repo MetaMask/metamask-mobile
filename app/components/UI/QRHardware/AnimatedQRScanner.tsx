@@ -113,7 +113,7 @@ const createStyles = (theme: Theme) =>
     },
   });
 
-const frameImage = require('../../../images/frame.png'); // eslint-disable-line import/no-commonjs
+const frameImage = require('../../../images/frame.png'); // eslint-disable-line import-x/no-commonjs
 
 interface AnimatedQRScannerProps {
   visible: boolean;

@@ -7,7 +7,7 @@ import CollectibleMedia from './CollectibleMedia';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { mockNetworkState } from '../../../util/test/network';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as AssetControllers from '@metamask/assets-controllers';
 
 const mockInitialState = {

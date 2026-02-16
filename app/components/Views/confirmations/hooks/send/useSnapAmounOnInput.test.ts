@@ -2,9 +2,9 @@ import { InternalAccount } from '@metamask/keyring-internal-api';
 import { CaipAssetType } from '@metamask/utils';
 
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as SendContext from '../../context/send-context/send-context';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as MultichainSnaps from '../../utils/multichain-snaps';
 import { useSnapAmountOnInput } from './useSnapAmountOnInput';
 

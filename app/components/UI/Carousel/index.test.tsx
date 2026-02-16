@@ -15,7 +15,7 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import Engine from '../../../core/Engine';
 import { fetchCarouselSlidesFromContentful } from './fetchCarouselSlidesFromContentful';
 import { CarouselSlide } from './types';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as FeatureFlagSelectorsModule from './selectors/featureFlags';
 import { RootState } from '../../../reducers';
 import { selectLastSelectedSolanaAccount } from '../../../selectors/accountsController';

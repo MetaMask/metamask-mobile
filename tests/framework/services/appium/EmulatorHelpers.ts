@@ -1,4 +1,4 @@
-/* eslint-disable import/no-nodejs-modules */
+/* eslint-disable import-x/no-nodejs-modules */
 import { exec } from 'child_process';
 import path from 'path';
 import { Platform } from '../../types.ts';

@@ -22,7 +22,7 @@ import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { RootState } from '../../../reducers';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { useMetrics } from '../../../components/hooks/useMetrics';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as UseNotificationsModule from '../../../util/notifications/hooks/useNotifications';
 import NotificationsService from '../../../util/notifications/services/NotificationService';
 import Routes from '../../../constants/navigation/Routes';

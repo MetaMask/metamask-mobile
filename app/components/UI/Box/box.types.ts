@@ -427,14 +427,12 @@ type PropsToOmit<C extends React.ElementType, P> = keyof (AsProp<C> & P);
  */
 type PolymorphicComponentProp<
   C extends React.ElementType,
-  // eslint-disable-next-line @typescript-eslint/ban-types
   Props = {},
 > = React.PropsWithChildren<Props & AsProp<C>> &
   Omit<React.ComponentPropsWithoutRef<C>, PropsToOmit<C, Props>>;
 
 export type PolymorphicComponentPropWithRef<
   C extends React.ElementType,
-  // eslint-disable-next-line @typescript-eslint/ban-types
   Props = {},
 > = PolymorphicComponentProp<C, Props> & { ref?: PolymorphicRef<C> };
 

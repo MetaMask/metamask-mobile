@@ -3,7 +3,7 @@ import { Hex } from '@metamask/utils';
 import { Text } from 'react-native';
 import { TransactionMeta } from '@metamask/transaction-controller';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as TransactionMetadataRequestHook from '../../hooks/transactions/useTransactionMetadataRequest';
 import { ConfirmationAssetPollingProvider } from './confirmation-asset-polling-provider';
 import { AssetPollingProvider } from '../../../../hooks/AssetPolling/AssetPollingProvider';

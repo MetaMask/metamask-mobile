@@ -18,7 +18,7 @@ import {
 import NotificationsDetails from './index';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import MOCK_NOTIFICATIONS from '../../../../components/UI/Notification/__mocks__/mock_notifications';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as UseNotificationsModule from '../../../../util/notifications/hooks/useNotifications';
 import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar';
 

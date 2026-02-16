@@ -43,7 +43,7 @@ jest.mock('../../../core/Analytics', () => ({
   },
 }));
 
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as selectedNetworkControllerFcts from '../../../selectors/selectedNetworkController';
 
 const mockEngine = Engine;

@@ -1,7 +1,7 @@
-/* eslint-disable import/no-nodejs-modules */
+/* eslint-disable import-x/no-nodejs-modules */
 import React from 'react';
 import { shallow } from 'enzyme';
-// eslint-disable-next-line import/named
+// eslint-disable-next-line import-x/named
 import { NavigationContainer } from '@react-navigation/native';
 import Main from './';
 import configureMockStore from 'redux-mock-store';
