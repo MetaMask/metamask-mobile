@@ -672,7 +672,7 @@
     "network_not_found_title": "Network not found",
     "network_not_found_description": "Network with chain ID {{chain_id}} not found in your wallet. Please add the network first.",
     "network_missing_id": "Missing chain ID.",
-    "search_tokens":"Search tokens",
+    "search_tokens": "Search tokens",
     "search_tokens_and_nfts": "Search tokens and NFTs",
     "tokens": "Tokens",
     "nfts": "NFTs",
@@ -6908,7 +6908,7 @@
       },
       "physical_address": {
         "title": "Add your address",
-        "description":"Enter your current home address. We’ll use this for verification purposes.",
+        "description": "Enter your current home address. We’ll use this for verification purposes.",
         "address_line_1_label": "Address line 1",
         "address_line_2_label": "Address line 2",
         "city_label": "City",
@@ -6945,7 +6945,7 @@
         "description": "The email address {{email}} is already associated with a Card account.",
         "confirm_button": "Log in"
       },
-      "keep_going":{
+      "keep_going": {
         "title": "Let's keep going",
         "description": "Pick up where you left off and finish setting up your card.",
         "confirm_button": "Continue"
@@ -7213,7 +7213,7 @@
       "title": "Opt-in failed",
       "description": "Check your connection and try again."
     },
-    "season_error":{
+    "season_error": {
       "error_fetching_title": "Season couldn’t be loaded",
       "error_fetching_description": "Check your connection and try again.",
       "retry_button": "Retry"
@@ -7279,7 +7279,7 @@
       "email_validation_error": "Please enter a valid email address",
       "telegram_label": "Telegram handle",
       "telegram_placeholder": "Optional"
-     },
+    },
     "accounts_opt_in_state_error": {
       "error_fetching_title": "Accounts couldn’t be loaded",
       "error_fetching_description": "Check your connection and try again.",
