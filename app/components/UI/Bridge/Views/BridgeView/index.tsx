@@ -250,7 +250,6 @@ const BridgeView = () => {
     hasTxAlert: Boolean(blockaidError),
     isSubmitDisabled,
     isPriceImpactWarningVisible: shouldShowPriceImpactWarning,
-    location: route.params?.location,
   });
 
   // Compute error state directly from dependencies
@@ -258,14 +257,6 @@ const BridgeView = () => {
 
   // Always show quote details when there's an active quote
   const shouldDisplayQuoteDetails = !!activeQuote;
-
-  // Set the location/entry point on the bridge controller so all
-  // internally-fired events carry the correct location
-  useEffect(() => {
-    if (route.params?.location) {
-      Engine.context.BridgeController.setLocation(route.params.location);
-    }
-  }, [route.params?.location]);
 
   // Update quote parameters when relevant state changes
   useEffect(() => {
@@ -350,13 +341,11 @@ const BridgeView = () => {
   const handleSourceTokenPress = () =>
     navigation.navigate(Routes.BRIDGE.TOKEN_SELECTOR, {
       type: 'source',
-      location: route.params?.location,
     });
 
   const handleDestTokenPress = () =>
     navigation.navigate(Routes.BRIDGE.TOKEN_SELECTOR, {
       type: 'dest',
-      location: route.params?.location,
     });
 
   useRenderQuoteExpireModal({ inputRef, latestSourceBalance });

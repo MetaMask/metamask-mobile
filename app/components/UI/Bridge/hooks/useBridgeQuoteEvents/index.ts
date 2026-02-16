@@ -7,15 +7,13 @@ import { useEffect, useMemo } from 'react';
 import Engine from '../../../../../core/Engine';
 import {
   getQuotesReceivedProperties,
-  MetaMetricsSwapsEventSource,
   QuoteWarning,
   UnifiedSwapBridgeEventName,
 } from '@metamask/bridge-controller';
 
 /**
- * Hook for publishing the QuotesReceived event
- *
- * @param params.location - The entry point location for analytics (e.g. Main View, Token View, trending_explore)
+ * Hook for publishing the QuotesReceived event.
+ * Location is automatically injected by the bridge controller via setLocation().
  */
 export const useBridgeQuoteEvents = ({
   hasInsufficientBalance,
@@ -24,7 +22,6 @@ export const useBridgeQuoteEvents = ({
   hasTxAlert,
   isSubmitDisabled,
   isPriceImpactWarningVisible,
-  location,
 }: {
   hasInsufficientBalance: boolean;
   hasNoQuotesAvailable: boolean;
@@ -32,7 +29,6 @@ export const useBridgeQuoteEvents = ({
   hasTxAlert: boolean;
   isSubmitDisabled: boolean;
   isPriceImpactWarningVisible: boolean;
-  location?: MetaMetricsSwapsEventSource;
 }) => {
   const { quoteFetchError, quotesRefreshCount } = useSelector(
     selectBridgeControllerState,
@@ -64,15 +60,12 @@ export const useBridgeQuoteEvents = ({
     if (!isLoading && quotesRefreshCount > 0 && !quoteFetchError) {
       Engine.context.BridgeController.trackUnifiedSwapBridgeEvent(
         UnifiedSwapBridgeEventName.QuotesReceived,
-        {
-          ...getQuotesReceivedProperties(
-            activeQuote,
-            warnings,
-            !isSubmitDisabled,
-            recommendedQuote,
-          ),
-          location: location ?? MetaMetricsSwapsEventSource.MainView,
-        },
+        getQuotesReceivedProperties(
+          activeQuote,
+          warnings,
+          !isSubmitDisabled,
+          recommendedQuote,
+        ),
       );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

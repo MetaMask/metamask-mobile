@@ -27,7 +27,6 @@ import {
 } from '../../../../../core/redux/slices/bridge';
 import {
   formatChainIdToCaip,
-  MetaMetricsSwapsEventSource,
   UnifiedSwapBridgeEventName,
 } from '@metamask/bridge-controller';
 import {
@@ -60,7 +59,6 @@ import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 
 export interface BridgeTokenSelectorRouteParams {
   type: TokenSelectorType;
-  location?: MetaMetricsSwapsEventSource;
 }
 
 const MIN_SEARCH_LENGTH = 3;
@@ -345,12 +343,10 @@ export const BridgeTokenSelector: React.FC = () => {
           token_contract: item.address,
           chain_name: networkName,
           chain_id: item.chainId,
-          location:
-            route.params?.location ?? MetaMetricsSwapsEventSource.MainView,
         },
       );
     },
-    [navigation, enabledChainRanking, route.params?.location],
+    [navigation, enabledChainRanking],
   );
 
   const renderToken = useCallback(

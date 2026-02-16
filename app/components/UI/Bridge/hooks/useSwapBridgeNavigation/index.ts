@@ -28,6 +28,7 @@ import {
   setIsDestTokenManuallySet,
 } from '../../../../../core/redux/slices/bridge';
 import { trace, TraceName } from '../../../../../util/trace';
+import Engine from '../../../../../core/Engine';
 import { useCurrentNetworkInfo } from '../../../../hooks/useCurrentNetworkInfo';
 import { strings } from '../../../../../../locales/i18n';
 import {
@@ -223,11 +224,19 @@ export const useSwapBridgeNavigation = ({
       const isFromTrending =
         TrendingFeedSessionManager.getInstance().isFromTrending;
 
+      // Set the location on the bridge controller once so all internally-fired
+      // events (InputChanged, QuotesRequested, QuotesReceived, etc.) carry it
+      const mappedLocation = toMetaMetricsSwapsEventSource(
+        location,
+        isFromTrending,
+      );
+      Engine.context.BridgeController.setLocation(mappedLocation);
+
       const params: BridgeRouteParams = {
         sourceToken,
         sourcePage,
         bridgeViewMode,
-        location: toMetaMetricsSwapsEventSource(location, isFromTrending),
+        location: mappedLocation,
       };
 
       navigation.navigate(Routes.BRIDGE.ROOT, {
