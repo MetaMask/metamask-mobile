@@ -205,26 +205,37 @@ export function usePerpsOrderForm(
     }
   }, [initialAmountValue]);
 
-  // Restore pending config values on mount (only once)
+  // Restore pending config values on mount (only once when pendingConfig is already available).
+  // If pendingConfig is undefined on first run (e.g. first visit or expired) and becomes
+  // available later (e.g. rehydration or async load), do NOT restore - the user may have
+  // already changed the form (e.g. selected Limit); restoring would revert their choice.
   const hasRestoredPendingConfig = useRef(false);
+  const skippedRestoreBecausePendingConfigWasFalsy = useRef(false);
   useEffect(() => {
-    if (!hasRestoredPendingConfig.current && pendingConfig) {
-      setOrderForm((prev) => ({
-        ...prev,
-        ...(pendingConfig.amount && { amount: pendingConfig.amount }),
-        ...(pendingConfig.leverage && { leverage: pendingConfig.leverage }),
-        ...(pendingConfig.takeProfitPrice !== undefined && {
-          takeProfitPrice: pendingConfig.takeProfitPrice,
-        }),
-        ...(pendingConfig.stopLossPrice !== undefined && {
-          stopLossPrice: pendingConfig.stopLossPrice,
-        }),
-        ...(pendingConfig.limitPrice !== undefined && {
-          limitPrice: pendingConfig.limitPrice,
-        }),
-        ...(pendingConfig.orderType && { type: pendingConfig.orderType }),
-      }));
-      hasRestoredPendingConfig.current = true;
+    if (pendingConfig) {
+      if (
+        !skippedRestoreBecausePendingConfigWasFalsy.current &&
+        !hasRestoredPendingConfig.current
+      ) {
+        setOrderForm((prev) => ({
+          ...prev,
+          ...(pendingConfig.amount && { amount: pendingConfig.amount }),
+          ...(pendingConfig.leverage && { leverage: pendingConfig.leverage }),
+          ...(pendingConfig.takeProfitPrice !== undefined && {
+            takeProfitPrice: pendingConfig.takeProfitPrice,
+          }),
+          ...(pendingConfig.stopLossPrice !== undefined && {
+            stopLossPrice: pendingConfig.stopLossPrice,
+          }),
+          ...(pendingConfig.limitPrice !== undefined && {
+            limitPrice: pendingConfig.limitPrice,
+          }),
+          ...(pendingConfig.orderType && { type: pendingConfig.orderType }),
+        }));
+        hasRestoredPendingConfig.current = true;
+      }
+    } else {
+      skippedRestoreBecausePendingConfigWasFalsy.current = true;
     }
   }, [pendingConfig]);
 
