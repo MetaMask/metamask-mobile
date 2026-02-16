@@ -100,16 +100,32 @@ const renderComponent = (
   );
 };
 
-const fillForm = (
+/**
+ * Fills the form and waits for async smart contract validation to resolve.
+ */
+const fillFormAndWait = async (
   utils: ReturnType<typeof renderComponent>,
   address = VALID_ADDRESS,
   tokenId = '55',
 ) => {
-  fireEvent.changeText(utils.getByTestId('input-collectible-address'), address);
-  fireEvent.changeText(
-    utils.getByTestId('input-collectible-identifier'),
-    tokenId,
-  );
+  await act(async () => {
+    fireEvent.changeText(
+      utils.getByTestId('input-collectible-address'),
+      address,
+    );
+  });
+  // Wait for the async smart contract check to complete
+  await waitFor(() => {
+    expect(
+      utils.getByTestId('add-collectible-button').props.disabled,
+    ).toBeDefined();
+  });
+  await act(async () => {
+    fireEvent.changeText(
+      utils.getByTestId('input-collectible-identifier'),
+      tokenId,
+    );
+  });
 };
 
 // --- Tests ---
@@ -135,7 +151,7 @@ describe('AddCustomCollectible', () => {
       navigation: { navigate: jest.fn(), goBack: mockGoBack },
     });
 
-    fillForm(utils);
+    await fillFormAndWait(utils);
 
     await act(async () => {
       fireEvent.press(utils.getByTestId('add-collectible-button'));
@@ -146,26 +162,15 @@ describe('AddCustomCollectible', () => {
   });
 
   describe('address validation', () => {
-    it('shows error when address is empty on blur', async () => {
+    it('shows error for invalid address after typing', async () => {
       const { getByTestId } = renderComponent();
 
-      fireEvent(getByTestId('input-collectible-address'), 'onBlur');
-
-      await waitFor(() => {
-        expect(getByTestId('collectible-address-warning').props.children).toBe(
-          'collectible.address_cant_be_empty',
+      await act(async () => {
+        fireEvent.changeText(
+          getByTestId('input-collectible-address'),
+          'invalid-address',
         );
       });
-    });
-
-    it('shows error when address is invalid on blur', async () => {
-      const { getByTestId } = renderComponent();
-
-      fireEvent.changeText(
-        getByTestId('input-collectible-address'),
-        'invalid-address',
-      );
-      fireEvent(getByTestId('input-collectible-address'), 'onBlur');
 
       await waitFor(() => {
         expect(getByTestId('collectible-address-warning').props.children).toBe(
@@ -174,18 +179,19 @@ describe('AddCustomCollectible', () => {
       });
     });
 
-    it('shows error when address is not a smart contract on blur', async () => {
+    it('shows error when address is not a smart contract', async () => {
       jest
         .spyOn(utilsTransactions, 'isSmartContractAddress')
         .mockResolvedValue(false);
 
       const { getByTestId } = renderComponent();
 
-      fireEvent.changeText(
-        getByTestId('input-collectible-address'),
-        VALID_ADDRESS,
-      );
-      fireEvent(getByTestId('input-collectible-address'), 'onBlur');
+      await act(async () => {
+        fireEvent.changeText(
+          getByTestId('input-collectible-address'),
+          VALID_ADDRESS,
+        );
+      });
 
       await waitFor(() => {
         expect(getByTestId('collectible-address-warning').props.children).toBe(
@@ -194,19 +200,34 @@ describe('AddCustomCollectible', () => {
       });
     });
 
-    it('clears error when address is a valid smart contract on blur', async () => {
-      const { getByTestId } = renderComponent();
+    it('shows no error when address is a valid smart contract', async () => {
+      const { getByTestId, queryByTestId } = renderComponent();
 
-      fireEvent.changeText(
-        getByTestId('input-collectible-address'),
-        VALID_ADDRESS,
-      );
-      fireEvent(getByTestId('input-collectible-address'), 'onBlur');
+      await act(async () => {
+        fireEvent.changeText(
+          getByTestId('input-collectible-address'),
+          VALID_ADDRESS,
+        );
+      });
 
       await waitFor(() => {
-        expect(getByTestId('collectible-address-warning').props.children).toBe(
-          '',
-        );
+        expect(queryByTestId('collectible-address-warning')).toBeNull();
+      });
+    });
+
+    it('shows empty address error on submit', async () => {
+      const utils = renderComponent({
+        navigation: { navigate: jest.fn(), goBack: jest.fn() },
+      });
+
+      await act(async () => {
+        fireEvent.press(utils.getByTestId('add-collectible-button'));
+      });
+
+      await waitFor(() => {
+        expect(
+          utils.getByTestId('collectible-address-warning').props.children,
+        ).toBe('collectible.address_cant_be_empty');
       });
     });
   });
@@ -222,15 +243,13 @@ describe('AddCustomCollectible', () => {
       );
     });
 
-    it('clears error when token ID has value on blur', () => {
-      const { getByTestId } = renderComponent();
+    it('shows no error when token ID has value', () => {
+      const { getByTestId, queryByTestId } = renderComponent();
 
       fireEvent.changeText(getByTestId('input-collectible-identifier'), '123');
       fireEvent(getByTestId('input-collectible-identifier'), 'onBlur');
 
-      expect(getByTestId('collectible-identifier-warning').props.children).toBe(
-        '',
-      );
+      expect(queryByTestId('collectible-identifier-warning')).toBeNull();
     });
   });
 
@@ -245,7 +264,7 @@ describe('AddCustomCollectible', () => {
         withToast: true,
       });
 
-      fillForm(utils);
+      await fillFormAndWait(utils);
 
       await act(async () => {
         fireEvent.press(utils.getByTestId('add-collectible-button'));
@@ -271,7 +290,7 @@ describe('AddCustomCollectible', () => {
         withToast: true,
       });
 
-      fillForm(utils);
+      await fillFormAndWait(utils);
 
       await act(async () => {
         fireEvent.press(utils.getByTestId('add-collectible-button'));
@@ -296,23 +315,27 @@ describe('AddCustomCollectible', () => {
       expect(getByTestId('add-collectible-button').props.disabled).toBeTruthy();
     });
 
-    it('is enabled when all required fields are filled', () => {
+    it('is enabled when all required fields are filled and validated', async () => {
       const utils = renderComponent();
-      fillForm(utils);
-      expect(
-        utils.getByTestId('add-collectible-button').props.disabled,
-      ).toBeFalsy();
+      await fillFormAndWait(utils);
+
+      await waitFor(() => {
+        expect(
+          utils.getByTestId('add-collectible-button').props.disabled,
+        ).toBeFalsy();
+      });
     });
 
-    it('is disabled when network is not selected', () => {
+    it('is disabled when network is not selected', async () => {
       const utils = renderComponent({ selectedNetwork: null });
-      fillForm(utils);
+      await fillFormAndWait(utils);
+
       expect(
         utils.getByTestId('add-collectible-button').props.disabled,
       ).toBeTruthy();
     });
 
-    it('is disabled during loading', async () => {
+    it('is disabled during submission', async () => {
       (Engine.context.NftController.addNft as jest.Mock).mockImplementation(
         () => new Promise((resolve) => setTimeout(resolve, 100)),
       );
@@ -320,7 +343,7 @@ describe('AddCustomCollectible', () => {
       const utils = renderComponent({
         navigation: { navigate: jest.fn(), goBack: jest.fn() },
       });
-      fillForm(utils);
+      await fillFormAndWait(utils);
 
       act(() => {
         fireEvent.press(utils.getByTestId('add-collectible-button'));

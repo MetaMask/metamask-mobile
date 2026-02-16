@@ -107,6 +107,7 @@ function useTokenMetadata(
 
     if (!isValidAddress(trimmed)) {
       setIsSmartContract(null);
+      setIsLoading(false);
       setSymbol('');
       setDecimals('');
       setName('');

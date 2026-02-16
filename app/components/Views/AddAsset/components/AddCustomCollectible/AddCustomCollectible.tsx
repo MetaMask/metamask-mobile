@@ -1,4 +1,11 @@
-import React, { useState, useEffect, useCallback, useContext } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useContext,
+  useRef,
+  useMemo,
+} from 'react';
 import { useSelector } from 'react-redux';
 import { TextInput } from 'react-native';
 import {
@@ -12,7 +19,6 @@ import { strings } from '../../../../../../locales/i18n';
 import { isValidAddress } from 'ethereumjs-util';
 import ActionView from '../../../../UI/ActionView';
 import { isSmartContractAddress } from '../../../../../util/transactions';
-import Device from '../../../../../util/device';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 
 import { useTheme } from '../../../../../util/theme';
@@ -27,6 +33,77 @@ import Logger from '../../../../../util/Logger';
 import { TraceName, endTrace, trace } from '../../../../../util/trace';
 import { NFTImportScreenSelectorsIDs } from '../../ImportAssetView.testIds';
 
+// --- Pure validation helpers ---
+
+const getAddressError = (addr: string, isContract: boolean | null): string => {
+  const trimmed = addr.trim();
+  if (!trimmed) return strings('collectible.address_cant_be_empty');
+  if (!isValidAddress(trimmed))
+    return strings('collectible.address_must_be_valid');
+  if (isContract === false)
+    return strings('collectible.address_must_be_smart_contract');
+  return '';
+};
+
+const getTokenIdError = (id: string): string => {
+  if (!id.trim()) return strings('collectible.token_id_cant_be_empty');
+  return '';
+};
+
+// --- Hook: smart contract validation ---
+
+function useSmartContractCheck(
+  address: string,
+  chainId: string,
+  networkClientId: string | null,
+) {
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSmartContract, setIsSmartContract] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const trimmed = address.trim();
+
+    if (!isValidAddress(trimmed)) {
+      setIsSmartContract(null);
+      setIsLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+
+    setIsLoading(true);
+    setIsSmartContract(null);
+
+    const run = async () => {
+      try {
+        const isContract = await isSmartContractAddress(
+          trimmed,
+          chainId,
+          networkClientId ?? undefined,
+        );
+        if (cancelled) return;
+        setIsSmartContract(Boolean(isContract));
+      } catch (error) {
+        Logger.error(
+          error as Error,
+          'useSmartContractCheck: failed to validate address',
+        );
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    };
+
+    run();
+    return () => {
+      cancelled = true;
+    };
+  }, [address, chainId, networkClientId]);
+
+  return { isLoading, isSmartContract };
+}
+
+// --- Types ---
+
 interface AddCustomCollectibleProps {
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -38,24 +115,24 @@ interface AddCustomCollectibleProps {
   networkClientId: string | null;
 }
 
+// --- Component ---
+
 const AddCustomCollectible = ({
   navigation,
   collectibleContract,
   selectedNetwork,
   networkClientId,
 }: AddCustomCollectibleProps) => {
-  const [mounted, setMounted] = useState<boolean>(true);
-  const [address, setAddress] = useState<string>('');
-  const [tokenId, setTokenId] = useState<string>('');
-  const [warningAddress, setWarningAddress] = useState<string>('');
-  const [warningTokenId, setWarningTokenId] = useState<string>('');
-  const [inputWidth, setInputWidth] = useState<string | undefined>(
-    Device.isAndroid() ? '99%' : undefined,
+  const [address, setAddress] = useState('');
+  const [tokenId, setTokenId] = useState('');
+  const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [touchedFields, setTouchedFields] = useState<Record<string, boolean>>(
+    {},
   );
-  const [loading, setLoading] = useState(false);
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const assetTokenIdInput = React.createRef() as any;
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const tokenIdInputRef = useRef<TextInput>(null);
+
   const { colors, themeAppearance } = useTheme();
   const { trackEvent, createEventBuilder } = useMetrics();
   const { toastRef } = useContext(ToastContext);
@@ -67,166 +144,150 @@ const AddCustomCollectible = ({
   const chainId = useSelector(selectChainId);
   const selectedNetworkClientId = useSelector(selectSelectedNetworkClientId);
 
+  // Pre-fill address from prop
   useEffect(() => {
-    setMounted(true);
-    // Workaround https://github.com/facebook/react-native/issues/9958
-    inputWidth &&
-      setTimeout(() => {
-        mounted && setInputWidth('100%');
-      }, 100);
-    collectibleContract && setAddress(collectibleContract.address);
-    return () => {
-      setMounted(false);
-    };
-  }, [mounted, collectibleContract, inputWidth]);
-
-  const getAnalyticsParams = useCallback(() => {
-    try {
-      return {
-        chain_id: getDecimalChainId(chainId),
-        source: 'manual',
-      };
-    } catch (error) {
-      Logger.error(error as Error, 'AddCustomCollectible.getAnalyticsParams');
-      return undefined;
+    if (collectibleContract?.address) {
+      setAddress(collectibleContract.address);
     }
-  }, [chainId]);
+  }, [collectibleContract]);
 
-  const validateCustomCollectibleAddress = async (): Promise<boolean> => {
-    let validated = true;
-    const isValidEthAddress = isValidAddress(address);
-    const clientId = networkClientId || selectedNetworkClientId;
-    if (address.length === 0) {
-      setWarningAddress(strings('collectible.address_cant_be_empty'));
-      validated = false;
-    } else if (!isValidEthAddress) {
-      setWarningAddress(strings('collectible.address_must_be_valid'));
-      validated = false;
-    } else if (!(await isSmartContractAddress(address, chainId, clientId))) {
-      setWarningAddress(strings('collectible.address_must_be_smart_contract'));
-      validated = false;
-    } else {
-      setWarningAddress(``);
-    }
-    return validated;
-  };
+  // Reactive smart contract validation
+  const clientId = networkClientId || selectedNetworkClientId;
+  const { isLoading: isValidating, isSmartContract } = useSmartContractCheck(
+    address,
+    chainId,
+    clientId,
+  );
 
-  const validateCustomCollectibleTokenId = (): boolean => {
-    let validated = false;
-    if (tokenId.length === 0) {
-      setWarningTokenId(strings('collectible.token_id_cant_be_empty'));
-    } else {
-      setWarningTokenId(``);
-      validated = true;
-    }
-    return validated;
-  };
+  // --- Derived validation ---
 
-  const validateCustomCollectible = async (): Promise<boolean> => {
-    const validatedAddress = await validateCustomCollectibleAddress();
-    const validatedTokenId = validateCustomCollectibleTokenId();
-    return validatedAddress && validatedTokenId;
-  };
+  const addressError = useMemo(
+    () => getAddressError(address, isSmartContract),
+    [address, isSmartContract],
+  );
+  const tokenIdError = useMemo(() => getTokenIdError(tokenId), [tokenId]);
 
-  /**
-   * Method to validate collectible ownership.
-   *
-   * @returns Promise that resolves ownershio as a boolean.
-   */
-  const validateCollectibleOwnership = async (): Promise<boolean> => {
-    try {
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { NftController } = Engine.context as any;
-      const isOwner = await NftController.isNftOwner(
-        selectedAddress,
-        address,
-        tokenId,
-        networkClientId,
-      );
+  const showAddressError = (!!address.trim() || hasSubmitted) && !!addressError;
+  const showTokenIdError =
+    (touchedFields.tokenId || hasSubmitted) && !!tokenIdError;
 
-      if (!isOwner)
+  const confirmDisabled =
+    !!addressError || !!tokenIdError || isValidating || !selectedNetwork;
+
+  // --- Handlers ---
+
+  const markTouched = useCallback((field: string) => {
+    setTouchedFields((prev) => ({ ...prev, [field]: true }));
+  }, []);
+
+  const validateCollectibleOwnership =
+    useCallback(async (): Promise<boolean> => {
+      try {
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { NftController } = Engine.context as any;
+        const isOwner = await NftController.isNftOwner(
+          selectedAddress,
+          address,
+          tokenId,
+          networkClientId,
+        );
+
+        if (!isOwner) {
+          toastRef?.current?.showToast({
+            variant: ToastVariants.Plain,
+            labelOptions: [
+              { label: strings('collectible.not_owner_error_title') },
+            ],
+            descriptionOptions: {
+              description: strings('collectible.not_owner_error'),
+            },
+            hasNoTimeout: false,
+          });
+        }
+
+        return isOwner;
+      } catch {
         toastRef?.current?.showToast({
           variant: ToastVariants.Plain,
           labelOptions: [
             {
-              label: strings('collectible.not_owner_error_title'),
+              label: strings('collectible.ownership_verification_error_title'),
             },
           ],
           descriptionOptions: {
-            description: strings('collectible.not_owner_error'),
+            description: strings('collectible.ownership_verification_error'),
           },
           hasNoTimeout: false,
         });
 
-      return isOwner;
-    } catch {
-      toastRef?.current?.showToast({
-        variant: ToastVariants.Plain,
-        labelOptions: [
-          {
-            label: strings('collectible.ownership_verification_error_title'),
-          },
-        ],
-        descriptionOptions: {
-          description: strings('collectible.ownership_verification_error'),
-        },
-        hasNoTimeout: false,
-      });
+        return false;
+      }
+    }, [selectedAddress, address, tokenId, networkClientId, toastRef]);
 
-      return false;
+  const addNft = useCallback(async (): Promise<void> => {
+    setHasSubmitted(true);
+    if (addressError || tokenIdError || isValidating) return;
+
+    setIsSubmitting(true);
+    try {
+      if (!(await validateCollectibleOwnership())) return;
+
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { NftController } = Engine.context as any;
+
+      trace({ name: TraceName.ImportNfts });
+      await NftController.addNft(address, tokenId, networkClientId);
+      endTrace({ name: TraceName.ImportNfts });
+
+      try {
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.COLLECTIBLE_ADDED)
+            .addProperties({
+              chain_id: getDecimalChainId(chainId),
+              source: 'manual',
+            })
+            .build(),
+        );
+      } catch (error) {
+        Logger.error(error as Error, 'AddCustomCollectible.analytics error');
+      }
+
+      navigation.goBack();
+    } finally {
+      setIsSubmitting(false);
     }
-  };
+  }, [
+    addressError,
+    tokenIdError,
+    isValidating,
+    validateCollectibleOwnership,
+    address,
+    tokenId,
+    networkClientId,
+    chainId,
+    trackEvent,
+    createEventBuilder,
+    navigation,
+  ]);
 
-  const addNft = async (): Promise<void> => {
-    setLoading(true);
-    if (!(await validateCustomCollectible())) {
-      setLoading(false);
-      return;
-    }
-    if (!(await validateCollectibleOwnership())) {
-      setLoading(false);
-      return;
-    }
-
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { NftController } = Engine.context as any;
-
-    trace({ name: TraceName.ImportNfts });
-
-    await NftController.addNft(address, tokenId, networkClientId);
-
-    endTrace({ name: TraceName.ImportNfts });
-
-    const params = getAnalyticsParams();
-    if (params) {
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.COLLECTIBLE_ADDED)
-          .addProperties(params)
-          .build(),
-      );
-    }
-
-    setLoading(false);
+  const cancelAddCollectible = useCallback((): void => {
     navigation.goBack();
-  };
+  }, [navigation]);
 
-  const cancelAddCollectible = (): void => {
-    navigation.goBack();
-  };
+  // --- Styles ---
 
-  const onAddressChange = (newAddress: string): void => {
-    setAddress(newAddress);
-  };
+  const baseInputFont = { fontFamily: 'Geist-Regular' };
 
-  const onTokenIdChange = (newTokenId: string): void => {
-    setTokenId(newTokenId);
-  };
+  const getInputStyle = (hasError: boolean) =>
+    tw.style(
+      'rounded-lg px-4 py-3 text-default',
+      baseInputFont,
+      hasError ? 'border-2 border-error-default' : 'border border-default',
+    );
 
-  const jumpToAssetTokenId = (): void => {
-    assetTokenIdInput.current?.focus();
-  };
+  // --- Render ---
 
   return (
     <Box
@@ -238,66 +299,68 @@ const AddCustomCollectible = ({
         confirmText={strings('add_asset.collectibles.add_collectible')}
         onCancelPress={cancelAddCollectible}
         onConfirmPress={addNft}
-        confirmDisabled={!address || !tokenId || !selectedNetwork}
-        loading={loading}
+        confirmDisabled={confirmDisabled}
+        loading={isSubmitting}
         confirmTestID={'add-collectible-button'}
+        extraScrollHeight={20}
       >
         <Box>
-          <Box twClassName="px-4 py-5">
+          {/* Address */}
+          <Box twClassName="px-4 pt-4">
             <Text variant={TextVariant.BodyMd} style={tw.style('pb-[3px]')}>
               {strings('collectible.collectible_address')}
             </Text>
             <TextInput
-              style={tw.style(
-                'border border-default rounded p-4 text-default',
-                { fontFamily: 'Geist-Regular' },
-                inputWidth ? { width: inputWidth } : {},
-              )}
-              placeholder={'0x...'}
+              style={getInputStyle(showAddressError)}
+              placeholder="0x..."
               placeholderTextColor={colors.text.muted}
               value={address}
-              onChangeText={onAddressChange}
-              onBlur={validateCustomCollectibleAddress}
+              onChangeText={setAddress}
+              onBlur={() => markTouched('address')}
               testID={NFTImportScreenSelectorsIDs.ADDRESS_INPUT_BOX}
-              onSubmitEditing={jumpToAssetTokenId}
+              onSubmitEditing={() => tokenIdInputRef.current?.focus()}
+              returnKeyType="next"
               keyboardAppearance={themeAppearance}
             />
-            <Text
-              variant={TextVariant.BodyMd}
-              style={tw.style('mt-[15px] text-error-default')}
-              testID={NFTImportScreenSelectorsIDs.ADDRESS_WARNING_MESSAGE}
-            >
-              {warningAddress}
-            </Text>
+            {showAddressError ? (
+              <Text
+                variant={TextVariant.BodyMd}
+                style={tw.style('mt-1 text-error-default pb-2')}
+                testID={NFTImportScreenSelectorsIDs.ADDRESS_WARNING_MESSAGE}
+              >
+                {addressError}
+              </Text>
+            ) : null}
           </Box>
-          <Box twClassName="px-4 py-5">
+
+          {/* Token ID */}
+          <Box twClassName="px-4 pt-4">
             <Text variant={TextVariant.BodyMd} style={tw.style('pb-[3px]')}>
               {strings('collectible.collectible_token_id')}
             </Text>
             <TextInput
-              style={tw.style(
-                'border border-default rounded p-4 text-default',
-                { fontFamily: 'Geist-Regular' },
-                inputWidth ? { width: inputWidth } : {},
-              )}
+              style={getInputStyle(showTokenIdError)}
               value={tokenId}
               keyboardType="numeric"
-              onChangeText={onTokenIdChange}
-              onBlur={validateCustomCollectibleTokenId}
+              onChangeText={setTokenId}
+              onBlur={() => markTouched('tokenId')}
               testID={NFTImportScreenSelectorsIDs.IDENTIFIER_INPUT_BOX}
-              ref={assetTokenIdInput}
+              ref={tokenIdInputRef}
               onSubmitEditing={addNft}
               placeholder={strings('collectible.id_placeholder')}
               placeholderTextColor={colors.text.muted}
+              returnKeyType="done"
               keyboardAppearance={themeAppearance}
             />
-            <Text
-              variant={TextVariant.BodyMd}
-              style={tw.style('mt-[15px] text-error-default')}
-              testID={NFTImportScreenSelectorsIDs.IDENTIFIER_WARNING_MESSAGE}
-            >
-              {warningTokenId}
-            </Text>
+            {showTokenIdError ? (
+              <Text
+                variant={TextVariant.BodyMd}
+                style={tw.style('mt-1 text-error-default pb-2')}
+                testID={NFTImportScreenSelectorsIDs.IDENTIFIER_WARNING_MESSAGE}
+              >
+                {tokenIdError}
+              </Text>
+            ) : null}
           </Box>
         </Box>
       </ActionView>
