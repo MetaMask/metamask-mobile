@@ -117,9 +117,14 @@ export function useInsufficientPayTokenBalanceAlert({
 
   // For post-quote flows, we still need to check if the user has enough native
   // token to pay for gas on the source network (e.g., POL for Polygon)
+  // In post-quote (withdrawal) flows payToken may be unset when the user keeps
+  // the default receive token (auto-selection is intentionally skipped). The
+  // source-network gas check only needs the native token balance vs. the fee,
+  // both of which are independent of payToken, so allow it to run when
+  // payToken is absent as long as we're in a post-quote flow.
   const isInsufficientForSourceNetwork = useMemo(
     () =>
-      payToken &&
+      (payToken || isPostQuote) &&
       !isPayTokenNative &&
       !isPendingAlert &&
       !isSourceGasFeeToken &&
@@ -127,6 +132,7 @@ export function useInsufficientPayTokenBalanceAlert({
     [
       isPayTokenNative,
       isPendingAlert,
+      isPostQuote,
       isSourceGasFeeToken,
       nativeToken?.balanceRaw,
       payToken,

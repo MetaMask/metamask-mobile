@@ -469,6 +469,36 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
       ]);
     });
 
+    it('fires source gas alert when payToken is unset (default withdraw token)', () => {
+      // In withdrawal flows auto-selection is skipped, so payToken can remain undefined.
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: undefined,
+        setPayToken: jest.fn(),
+      });
+
+      // Source-chain native balance too low to cover gas
+      useTokenWithBalanceMock.mockReturnValue({
+        ...NATIVE_TOKEN_MOCK,
+        balanceRaw: '50', // Less than max gas fee (100)
+      } as ReturnType<typeof useTokenWithBalance>);
+
+      const { result } = runHook({}, polygonNetworkState);
+
+      expect(result.current).toStrictEqual([
+        {
+          key: AlertKeys.InsufficientPayTokenNative,
+          field: RowAlertKey.Amount,
+          isBlocking: true,
+          title: strings('alert_system.insufficient_pay_token_balance.message'),
+          message: strings(
+            'alert_system.insufficient_pay_token_native.message',
+            { ticker: 'POL' },
+          ),
+          severity: Severity.Danger,
+        },
+      ]);
+    });
+
     it('does not suppress source gas check when destination native token matches source native address', () => {
       // payToken is native on the *destination* chain (0x1) — same canonical
       // address as the source chain's native token, but different chainId.
