@@ -70,7 +70,10 @@ import { useInitialSlippage } from '../../hooks/useInitialSlippage/index.ts';
 import { useHasSufficientGas } from '../../hooks/useHasSufficientGas/index.ts';
 import { useRecipientInitialization } from '../../hooks/useRecipientInitialization';
 import ApprovalTooltip from '../../components/ApprovalText';
-import { BRIDGE_MM_FEE_RATE } from '@metamask/bridge-controller';
+import {
+  BRIDGE_MM_FEE_RATE,
+  type MetaMetricsSwapsEventSource,
+} from '@metamask/bridge-controller';
 import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
 import { isNullOrUndefined, Hex } from '@metamask/utils';
 import { useBridgeQuoteEvents } from '../../hooks/useBridgeQuoteEvents/index.ts';
@@ -94,8 +97,7 @@ export interface BridgeRouteParams {
   sourceToken?: BridgeToken;
   destToken?: BridgeToken;
   sourceAmount?: string;
-  /** The entry point location for analytics, mapped to MetaMetricsSwapsEventSource */
-  location?: import('@metamask/bridge-controller').MetaMetricsSwapsEventSource;
+  location?: MetaMetricsSwapsEventSource;
 }
 
 const BridgeView = () => {
