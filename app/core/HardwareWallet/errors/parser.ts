@@ -4,15 +4,20 @@ import {
   LEDGER_ERROR_MAPPINGS,
   HardwareWalletType,
 } from '@metamask/hw-wallet-sdk';
+import { add0x } from '@metamask/utils';
 import { LedgerCommunicationErrors } from '../../Ledger/ledgerErrors';
 import { createHardwareWalletError } from './factory';
 import { ERROR_NAME_MAPPINGS } from './mappings';
+
+const USER_REJECTED_STATUS_CODE = Object.entries(LEDGER_ERROR_MAPPINGS).find(
+  ([_, mapping]) => mapping.code === ErrorCode.UserRejected,
+)?.[0];
 
 /**
  * Convert a numeric status code to hex string format used by SDK mappings
  */
 function toHexStatusCode(statusCode: number): string {
-  return `0x${statusCode.toString(16).padStart(4, '0')}`;
+  return add0x(statusCode.toString(16).padStart(4, '0'));
 }
 
 /**
@@ -124,8 +129,8 @@ function parseLedgerStatusCode(
   const mapping = LEDGER_ERROR_MAPPINGS[hexCode];
 
   if (mapping) {
-    // Special handling for 0x6985 which can mean user rejected OR blind signing
-    if (hexCode === '0x6985' && originalError) {
+    // Special handling for ErrorCode.UserRejected which can mean user rejected OR blind signing
+    if (hexCode === USER_REJECTED_STATUS_CODE && originalError) {
       const message = originalError.message?.toLowerCase() || '';
       if (message.includes('blind sign') || message.includes('blind signing')) {
         return createHardwareWalletError(

@@ -20,7 +20,7 @@ export const getHardwareWalletTypeName = (
 };
 
 /**
- * Detect the hardware wallet type for a given address.
+ * Get the hardware wallet type for a given address.
  *
  * @param address - The wallet address to check
  * @returns The HardwareWalletType if it's a hardware wallet, undefined otherwise
