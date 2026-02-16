@@ -1808,14 +1808,20 @@ export class PerpsController extends BaseController<
   ): Promise<{ result: Promise<string> }> {
     const { amount, placeOrder } = params;
 
+    let currentDepositId: string | undefined;
+
     try {
       // Clear any stale results when starting a new deposit flow
       // Don't set depositInProgress yet - wait until user confirms
 
       // Prepare deposit transaction using DepositService
       const provider = this.getActiveProvider();
-      const { transaction, assetChainId, currentDepositId } =
-        await this.#depositService.prepareTransaction({ provider });
+      const {
+        transaction,
+        assetChainId,
+        currentDepositId: depositId,
+      } = await this.#depositService.prepareTransaction({ provider });
+      currentDepositId = depositId;
 
       // Get current account address via messenger (outside of update() for proper typing)
       const evmAccount = getSelectedEvmAccount(this.messenger);
@@ -2004,6 +2010,17 @@ export class PerpsController extends BaseController<
         this.update((state) => {
           state.lastDepositTransactionId = null;
           // Note: lastDepositResult is already set in the catch block above
+
+          // Mark deposit request as failed if one was created
+          if (currentDepositId) {
+            const request = state.depositRequests.find(
+              (req) => req.id === currentDepositId,
+            );
+            if (request) {
+              request.status = 'failed' as TransactionStatus;
+              request.success = false;
+            }
+          }
         });
       }
       throw error;

@@ -2566,6 +2566,36 @@ describe('PerpsController', () => {
       ).rejects.toThrow('Network client not found');
     });
 
+    it('marks deposit request as failed when networkClientId is not found', async () => {
+      depositController.testMarkInitialized();
+      depositController.testSetProviders(
+        new Map([['hyperliquid', mockProvider]]),
+      );
+      depositMessengerMock.mockImplementation((action: string) => {
+        if (action === 'NetworkController:findNetworkClientIdByChainId') {
+          return undefined;
+        }
+        if (
+          action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return [{ address: mockTransaction.from, type: 'eip155:eoa' }];
+        }
+        return undefined;
+      });
+
+      await expect(
+        depositController.depositWithConfirmation({ amount: '100' }),
+      ).rejects.toThrow('No network client found for chain');
+
+      // Verify the deposit request was marked as failed, not left as pending
+      const depositRequest = depositController.state.depositRequests.find(
+        (req) => req.id === mockDepositId,
+      );
+      expect(depositRequest).toBeDefined();
+      expect(depositRequest?.status).toBe('failed');
+      expect(depositRequest?.success).toBe(false);
+    });
+
     it('propagates TransactionController:addTransaction errors', async () => {
       depositController.testMarkInitialized();
       depositController.testSetProviders(
