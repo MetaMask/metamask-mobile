@@ -100,7 +100,6 @@ import { GEO_BLOCKED_COUNTRIES } from '../constants/geoblock';
 import {
   MATIC_CONTRACTS,
   POLYMARKET_PROVIDER_ID,
-  SAFE_EXEC_GAS_LIMIT,
 } from '../providers/polymarket/constants';
 import {
   DEFAULT_FEE_COLLECTION_FLAG,
@@ -2356,10 +2355,6 @@ export class PredictController extends BaseController<
           amount: 0,
         };
       });
-
-      (transaction.params as { gas?: Hex }).gas = numberToHex(
-        SAFE_EXEC_GAS_LIMIT,
-      ) as Hex;
 
       const { batchId } = await addTransactionBatch({
         from: signer.address as Hex,
