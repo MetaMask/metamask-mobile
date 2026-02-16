@@ -391,7 +391,7 @@ describe('SignUp Component', () => {
         </Provider>,
       );
 
-      expect(getByText('Canada')).toBeTruthy();
+      expect(getByText('Canada')).toBeOnTheScreen();
       expect(storeWithGeo.getState().card.userCardLocation).toBe(
         'international',
       );

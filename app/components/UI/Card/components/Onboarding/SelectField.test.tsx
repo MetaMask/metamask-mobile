@@ -66,7 +66,7 @@ describe('SelectField', () => {
 
   it('renders the value text', () => {
     const { getByText } = render(<SelectField value="United States" />);
-    expect(getByText('United States')).toBeTruthy();
+    expect(getByText('United States')).toBeOnTheScreen();
   });
 
   it('renders as read-only when onPress is not provided', () => {
@@ -74,7 +74,7 @@ describe('SelectField', () => {
       <SelectField value="Canada" />,
     );
 
-    expect(queryByText('Canada')).toBeTruthy();
+    expect(queryByText('Canada')).toBeOnTheScreen();
     expect(queryByTestId('icon-arrow-down')).toBeNull();
   });
 
@@ -96,7 +96,7 @@ describe('SelectField', () => {
     const { getByTestId } = render(
       <SelectField value="United States" onPress={mockOnPress} />,
     );
-    expect(getByTestId('icon-arrow-down')).toBeTruthy();
+    expect(getByTestId('icon-arrow-down')).toBeOnTheScreen();
   });
 
   it('hides the arrow-down icon when hideIcon is true', () => {
@@ -170,7 +170,7 @@ describe('SelectField', () => {
     const { getByTestId } = render(
       <SelectField onPress={mockOnPress} testID="select-field" />,
     );
-    expect(getByTestId('select-field')).toBeTruthy();
+    expect(getByTestId('select-field')).toBeOnTheScreen();
   });
 
   it('wraps content in TouchableOpacity when interactive', () => {
@@ -178,7 +178,7 @@ describe('SelectField', () => {
       <SelectField value="Test" onPress={mockOnPress} testID="select-field" />,
     );
     const touchable = getByTestId('select-field');
-    expect(touchable).toBeTruthy();
+    expect(touchable).toBeOnTheScreen();
   });
 
   it('does not wrap content in TouchableOpacity when read-only', () => {
