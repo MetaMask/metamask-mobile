@@ -88,7 +88,10 @@ class TabBarComponent {
         // Ensure we're on WalletView where the hamburger menu is located
         await this.tapWallet();
         await WalletView.tapHamburgerMenu();
-        await Assertions.expectElementToBeVisible(SettingsView.title);
+        // Wait for the Settings scroll view to be visible to ensure the view is fully loaded
+        await Assertions.expectElementToBeVisible(
+          SettingsView.settingsScrollView,
+        );
       },
       {
         timeout: 10000,

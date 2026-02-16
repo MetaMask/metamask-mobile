@@ -11,6 +11,10 @@ class SettingsView {
     return Matchers.getElementByText(SettingsViewSelectorsText.TITLE);
   }
 
+  get settingsScrollView(): DetoxElement {
+    return Matchers.getElementByID(SettingsViewSelectorsIDs.SETTINGS_SCROLL_ID);
+  }
+
   get generalSettingsButton(): DetoxElement {
     return Matchers.getElementByID(SettingsViewSelectorsIDs.GENERAL);
   }
@@ -105,6 +109,13 @@ class SettingsView {
   }
 
   async tapAdvancedTitle(): Promise<void> {
+    await Gestures.scrollToElement(
+      this.advancedButton,
+      this.scrollViewIdentifier,
+      {
+        elemDescription: 'Scroll to Advanced Settings Button',
+      },
+    );
     await Gestures.waitAndTap(this.advancedButton, {
       elemDescription: 'Settings - Advanced Settings Button',
     });
