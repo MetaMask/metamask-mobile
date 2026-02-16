@@ -202,6 +202,11 @@ describe('QrScanner', () => {
       false,
     );
 
+    // Reset SharedDeeplinkManager.parse to default (not handled) so each
+    // test starts with a clean slate. jest.clearAllMocks() only clears call
+    // counts, not implementations set via mockResolvedValue.
+    (SharedDeeplinkManager.parse as jest.Mock).mockResolvedValue(false);
+
     // Setup useSelector mock
     mockUseSelector.mockImplementation(
       (selector: (state: unknown) => unknown) => {
