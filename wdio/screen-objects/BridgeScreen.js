@@ -56,12 +56,11 @@ class BridgeScreen {
   }
 
   async enterSourceTokenAmount(amount) {
-    // Tap each digit on the numeric keypad
-    const digits = amount.split('');
+    // Tap each digit on the numeric keypad. Use AmountScreen.tapNumberKey (XPath for keypad button only)
+    // instead of getElementByText(digit), which matches label == "1" etc. and can find multiple elements.
+    const digits = splitAmountIntoDigits(amount);
     AmountScreen.device = this._device;
     for (const digit of digits) {
-      const digitButton = await AppwrightSelectors.getElementByText(this._device, digit, true);
-      await appwrightExpect(digitButton).toBeVisible({ timeout: 10000 });
       await AmountScreen.tapNumberKey(digit);
     }
   }
@@ -82,15 +81,18 @@ class BridgeScreen {
       tokenNetworkId = `solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp`;
     }
     const tokenId = `asset-${tokenNetworkId}-${token}`;
-    // Multiple elements can match (e.g. list rows); use first match to avoid "Find multiple elements"
+    // Escape single quotes for XPath: in XPath 1.0, '' inside a quoted string is one literal '
+    const escapedTokenId = tokenId.replace(/'/g, "''");
+    // Exact match so we don't select a different asset whose id contains this as substring (e.g. LINK vs wrapped-LINK).
+    // Multiple rows may share the same testID; use first match to avoid "Find multiple elements".
     const tokenButton = AppwrightSelectors.isIOS(this._device)
       ? await AppwrightSelectors.getElementByXpath(
           this._device,
-          `(//*[contains(@name, '${tokenId}')])[1]`,
+          `(//*[@name='${escapedTokenId}'])[1]`,
         )
       : await AppwrightSelectors.getElementByXpath(
           this._device,
-          `(//*[contains(@resource-id, '${tokenId}')])[1]`,
+          `(//*[@resource-id='${escapedTokenId}'])[1]`,
         );
     await appwrightExpect(tokenButton).toBeVisible({ timeout: 15000 });
     await AppwrightGestures.tap(tokenButton);
