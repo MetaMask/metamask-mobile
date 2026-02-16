@@ -33,7 +33,7 @@ interface Props {
   latestSourceBalance: ReturnType<typeof useLatestBalance>;
   /** Optional testID override (e.g. when rendered inside keypad to avoid duplicate IDs in E2E) */
   testID?: string;
-  /** The entry point location for analytics (e.g. Main View, Token View, trending_explore) */
+  /** The entry point location for analytics (e.g. Main View, Token View, Trending Explore) */
   location?: MetaMetricsSwapsEventSource;
 }
 

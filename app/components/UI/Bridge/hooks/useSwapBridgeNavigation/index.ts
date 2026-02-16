@@ -55,7 +55,7 @@ export enum SwapBridgeNavigationLocation {
   MainView = 'Main View',
   TokenView = 'Token View',
   Rewards = 'Rewards',
-  TrendingExplore = 'trending_explore',
+  TrendingExplore = 'Trending Explore',
 }
 
 /**
