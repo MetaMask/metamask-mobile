@@ -14,7 +14,7 @@ export type CompiledMarketPattern = {
 };
 
 export const escapeRegex = (str: string): string =>
-  str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  str.replace(/[.*+?^${}()|[\]\\]/gu, '\\$&');
 
 export const validateMarketPattern = (pattern: string): boolean => {
   if (!pattern || pattern.trim().length === 0) {
@@ -29,14 +29,14 @@ export const validateMarketPattern = (pattern: string): boolean => {
     );
   }
 
-  const dangerousChars = /[\\()[\]{}^$+?.|]/;
+  const dangerousChars = /[\\()[\]{}^$+?.|]/u;
   if (dangerousChars.test(normalizedPattern)) {
     throw new Error(
       `Market pattern contains invalid regex characters: ${normalizedPattern}`,
     );
   }
 
-  const validPattern = /^[a-zA-Z0-9:_\-*]+$/;
+  const validPattern = /^[a-zA-Z0-9:_\-*]+$/u;
   if (!validPattern.test(normalizedPattern)) {
     throw new Error(
       `Market pattern contains invalid characters: ${normalizedPattern}`,
@@ -52,11 +52,11 @@ export const compileMarketPattern = (pattern: string): MarketPatternMatcher => {
 
   if (normalizedPattern.endsWith(':*')) {
     const prefix = normalizedPattern.slice(0, -2);
-    return new RegExp(`^${escapeRegex(prefix)}:`);
+    return new RegExp(`^${escapeRegex(prefix)}:`, 'u');
   }
 
   if (!normalizedPattern.includes(':')) {
-    return new RegExp(`^${escapeRegex(normalizedPattern)}:`);
+    return new RegExp(`^${escapeRegex(normalizedPattern)}:`, 'u');
   }
 
   return normalizedPattern;

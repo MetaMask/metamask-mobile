@@ -15,6 +15,9 @@
  */
 
 import type { CaipAccountId } from '@metamask/utils';
+
+import { SubscriptionMultiplexer } from '../aggregation/SubscriptionMultiplexer';
+import { ProviderRouter } from '../routing/ProviderRouter';
 import type {
   AccountState,
   AggregatedProviderConfig,
@@ -76,8 +79,6 @@ import type {
   WithdrawResult,
   RawLedgerUpdate,
 } from '../types';
-import { ProviderRouter } from '../routing/ProviderRouter';
-import { SubscriptionMultiplexer } from '../aggregation/SubscriptionMultiplexer';
 
 /**
  * AggregatedPerpsProvider implements PerpsProvider by coordinating
@@ -110,33 +111,38 @@ import { SubscriptionMultiplexer } from '../aggregation/SubscriptionMultiplexer'
 export class AggregatedPerpsProvider implements PerpsProvider {
   readonly protocolId = 'aggregated';
 
-  private readonly providers: Map<PerpsProviderType, PerpsProvider>;
-  private readonly defaultProvider: PerpsProviderType;
-  private readonly aggregationMode: AggregationMode;
-  private readonly deps: PerpsPlatformDependencies;
-  private readonly router: ProviderRouter;
-  private readonly subscriptionMux: SubscriptionMultiplexer;
+  readonly #providers: Map<PerpsProviderType, PerpsProvider>;
+
+  readonly #defaultProvider: PerpsProviderType;
+
+  readonly #aggregationMode: AggregationMode;
+
+  readonly #deps: PerpsPlatformDependencies;
+
+  readonly #router: ProviderRouter;
+
+  readonly #subscriptionMux: SubscriptionMultiplexer;
 
   constructor(config: AggregatedProviderConfig) {
-    this.providers = config.providers;
-    this.defaultProvider = config.defaultProvider;
-    this.aggregationMode = config.aggregationMode ?? 'all';
-    this.deps = config.infrastructure;
+    this.#providers = config.providers;
+    this.#defaultProvider = config.defaultProvider;
+    this.#aggregationMode = config.aggregationMode ?? 'all';
+    this.#deps = config.infrastructure;
 
     // Initialize router with default provider
-    this.router = new ProviderRouter({
-      defaultProvider: this.defaultProvider,
+    this.#router = new ProviderRouter({
+      defaultProvider: this.#defaultProvider,
     });
 
     // Initialize subscription multiplexer with logger for error reporting
-    this.subscriptionMux = new SubscriptionMultiplexer({
-      logger: this.deps.logger,
+    this.#subscriptionMux = new SubscriptionMultiplexer({
+      logger: this.#deps.logger,
     });
 
-    this.deps.debugLogger.log('[AggregatedPerpsProvider] Initialized', {
-      providers: Array.from(this.providers.keys()),
-      defaultProvider: this.defaultProvider,
-      aggregationMode: this.aggregationMode,
+    this.#deps.debugLogger.log('[AggregatedPerpsProvider] Initialized', {
+      providers: Array.from(this.#providers.keys()),
+      defaultProvider: this.#defaultProvider,
+      aggregationMode: this.#aggregationMode,
     });
   }
 
@@ -147,20 +153,24 @@ export class AggregatedPerpsProvider implements PerpsProvider {
   /**
    * Get list of active providers as tuples for iteration.
    * Returns array of [providerId, provider] pairs.
+   *
+   * @returns The result of the operation.
    */
-  private getActiveProviders(): [PerpsProviderType, PerpsProvider][] {
-    return Array.from(this.providers.entries());
+  #getActiveProviders(): [PerpsProviderType, PerpsProvider][] {
+    return Array.from(this.#providers.entries());
   }
 
   /**
    * Get the default provider instance.
    * Throws if default provider is not available.
+   *
+   * @returns The result of the operation.
    */
-  private getDefaultProvider(): PerpsProvider {
-    const provider = this.providers.get(this.defaultProvider);
+  #getDefaultProvider(): PerpsProvider {
+    const provider = this.#providers.get(this.#defaultProvider);
     if (!provider) {
       throw new Error(
-        `[AggregatedPerpsProvider] Default provider '${this.defaultProvider}' not available`,
+        `[AggregatedPerpsProvider] Default provider '${this.#defaultProvider}' not available`,
       );
     }
     return provider;
@@ -168,17 +178,20 @@ export class AggregatedPerpsProvider implements PerpsProvider {
 
   /**
    * Get provider by ID, falling back to default if not found.
+   *
+   * @param providerId - The provider id value.
+   * @returns The result of the operation.
    */
-  private getProviderOrDefault(
+  #getProviderOrDefault(
     providerId?: PerpsProviderType,
   ): [PerpsProviderType, PerpsProvider] {
-    const id = providerId ?? this.defaultProvider;
-    const provider = this.providers.get(id);
+    const id = providerId ?? this.#defaultProvider;
+    const provider = this.#providers.get(id);
     if (!provider) {
-      this.deps.debugLogger.log(
+      this.#deps.debugLogger.log(
         `[AggregatedPerpsProvider] Provider '${id}' not found, using default`,
       );
-      return [this.defaultProvider, this.getDefaultProvider()];
+      return [this.#defaultProvider, this.#getDefaultProvider()];
     }
     return [id, provider];
   }
@@ -191,7 +204,7 @@ export class AggregatedPerpsProvider implements PerpsProvider {
    * @param context - Context string for logging
    * @returns Array of successful values
    */
-  private extractSuccessfulResults<TResult>(
+  #extractSuccessfulResults<TResult>(
     results: PromiseSettledResult<TResult>[],
     context: string,
   ): TResult[] {
@@ -200,7 +213,7 @@ export class AggregatedPerpsProvider implements PerpsProvider {
       if (result.status === 'fulfilled') {
         successful.push(result.value);
       } else {
-        this.deps.debugLogger.log(
+        this.#deps.debugLogger.log(
           `[AggregatedPerpsProvider] ${context} failed for provider ${index}`,
           { error: result.reason },
         );
@@ -214,11 +227,11 @@ export class AggregatedPerpsProvider implements PerpsProvider {
   // ============================================================================
 
   getDepositRoutes(params?: GetSupportedPathsParams): AssetRoute[] {
-    return this.getDefaultProvider().getDepositRoutes(params);
+    return this.#getDefaultProvider().getDepositRoutes(params);
   }
 
   getWithdrawalRoutes(params?: GetSupportedPathsParams): AssetRoute[] {
-    return this.getDefaultProvider().getWithdrawalRoutes(params);
+    return this.#getDefaultProvider().getWithdrawalRoutes(params);
   }
 
   // ============================================================================
@@ -227,31 +240,31 @@ export class AggregatedPerpsProvider implements PerpsProvider {
 
   async getPositions(params?: GetPositionsParams): Promise<Position[]> {
     const results = await Promise.allSettled(
-      this.getActiveProviders().map(async ([id, provider]) => {
+      this.#getActiveProviders().map(async ([id, provider]) => {
         const positions = await provider.getPositions(params);
         return positions.map((pos) => ({ ...pos, providerId: id }));
       }),
     );
 
-    return this.extractSuccessfulResults(results, 'getPositions').flat();
+    return this.#extractSuccessfulResults(results, 'getPositions').flat();
   }
 
   async getAccountState(params?: GetAccountStateParams): Promise<AccountState> {
     // Return account state from default provider with providerId injected
-    const provider = this.getDefaultProvider();
+    const provider = this.#getDefaultProvider();
     const state = await provider.getAccountState(params);
-    return { ...state, providerId: this.defaultProvider };
+    return { ...state, providerId: this.#defaultProvider };
   }
 
   async getMarkets(params?: GetMarketsParams): Promise<MarketInfo[]> {
     const results = await Promise.allSettled(
-      this.getActiveProviders().map(async ([id, provider]) => {
+      this.#getActiveProviders().map(async ([id, provider]) => {
         const markets = await provider.getMarkets(params);
         return markets.map((market) => ({ ...market, providerId: id }));
       }),
     );
 
-    const allMarkets = this.extractSuccessfulResults(
+    const allMarkets = this.#extractSuccessfulResults(
       results,
       'getMarkets',
     ).flat();
@@ -271,13 +284,13 @@ export class AggregatedPerpsProvider implements PerpsProvider {
 
   async getMarketDataWithPrices(): Promise<PerpsMarketData[]> {
     const results = await Promise.allSettled(
-      this.getActiveProviders().map(async ([id, provider]) => {
+      this.#getActiveProviders().map(async ([id, provider]) => {
         const data = await provider.getMarketDataWithPrices();
         return data.map((item) => ({ ...item, providerId: id }));
       }),
     );
 
-    return this.extractSuccessfulResults(
+    return this.#extractSuccessfulResults(
       results,
       'getMarketDataWithPrices',
     ).flat();
@@ -285,65 +298,65 @@ export class AggregatedPerpsProvider implements PerpsProvider {
 
   async getOrderFills(params?: GetOrderFillsParams): Promise<OrderFill[]> {
     const results = await Promise.allSettled(
-      this.getActiveProviders().map(async ([id, provider]) => {
+      this.#getActiveProviders().map(async ([id, provider]) => {
         const fills = await provider.getOrderFills(params);
         return fills.map((fill) => ({ ...fill, providerId: id }));
       }),
     );
 
-    return this.extractSuccessfulResults(results, 'getOrderFills').flat();
+    return this.#extractSuccessfulResults(results, 'getOrderFills').flat();
   }
 
   async getOrFetchFills(params?: GetOrFetchFillsParams): Promise<OrderFill[]> {
     const results = await Promise.allSettled(
-      this.getActiveProviders().map(async ([id, provider]) => {
+      this.#getActiveProviders().map(async ([id, provider]) => {
         const fills = await provider.getOrFetchFills(params);
         return fills.map((fill) => ({ ...fill, providerId: id }));
       }),
     );
 
-    return this.extractSuccessfulResults(results, 'getOrFetchFills').flat();
+    return this.#extractSuccessfulResults(results, 'getOrFetchFills').flat();
   }
 
   async getOrders(params?: GetOrdersParams): Promise<Order[]> {
     const results = await Promise.allSettled(
-      this.getActiveProviders().map(async ([id, provider]) => {
+      this.#getActiveProviders().map(async ([id, provider]) => {
         const orders = await provider.getOrders(params);
         return orders.map((order) => ({ ...order, providerId: id }));
       }),
     );
 
-    return this.extractSuccessfulResults(results, 'getOrders').flat();
+    return this.#extractSuccessfulResults(results, 'getOrders').flat();
   }
 
   async getOpenOrders(params?: GetOrdersParams): Promise<Order[]> {
     const results = await Promise.allSettled(
-      this.getActiveProviders().map(async ([id, provider]) => {
+      this.#getActiveProviders().map(async ([id, provider]) => {
         const orders = await provider.getOpenOrders(params);
         return orders.map((order) => ({ ...order, providerId: id }));
       }),
     );
 
-    return this.extractSuccessfulResults(results, 'getOpenOrders').flat();
+    return this.#extractSuccessfulResults(results, 'getOpenOrders').flat();
   }
 
   async getFunding(params?: GetFundingParams): Promise<Funding[]> {
     const results = await Promise.allSettled(
-      this.getActiveProviders().map(async ([_providerId, provider]) => {
+      this.#getActiveProviders().map(async ([_providerId, provider]) => {
         const funding = await provider.getFunding(params);
         // Funding type doesn't have providerId - we could add it if needed
         return funding;
       }),
     );
 
-    return this.extractSuccessfulResults(results, 'getFunding').flat();
+    return this.#extractSuccessfulResults(results, 'getFunding').flat();
   }
 
   async getHistoricalPortfolio(
     params?: GetHistoricalPortfolioParams,
   ): Promise<HistoricalPortfolioResult> {
     // Delegate to default provider
-    return this.getDefaultProvider().getHistoricalPortfolio(params);
+    return this.#getDefaultProvider().getHistoricalPortfolio(params);
   }
 
   /**
@@ -361,7 +374,7 @@ export class AggregatedPerpsProvider implements PerpsProvider {
     endTime?: number;
   }): Promise<RawLedgerUpdate[]> {
     // Delegate to default provider (protocol-specific)
-    return this.getDefaultProvider().getUserNonFundingLedgerUpdates(params);
+    return this.#getDefaultProvider().getUserNonFundingLedgerUpdates(params);
   }
 
   /**
@@ -379,13 +392,13 @@ export class AggregatedPerpsProvider implements PerpsProvider {
     endTime?: number;
   }): Promise<UserHistoryItem[]> {
     const results = await Promise.allSettled(
-      this.getActiveProviders().map(async ([id, provider]) => {
+      this.#getActiveProviders().map(async ([id, provider]) => {
         const history = await provider.getUserHistory(params);
         return history.map((item) => ({ ...item, providerId: id }));
       }),
     );
 
-    return this.extractSuccessfulResults(results, 'getUserHistory').flat();
+    return this.#extractSuccessfulResults(results, 'getUserHistory').flat();
   }
 
   // ============================================================================
@@ -393,9 +406,11 @@ export class AggregatedPerpsProvider implements PerpsProvider {
   // ============================================================================
 
   async placeOrder(params: OrderParams): Promise<OrderResult> {
-    const [providerId, provider] = this.getProviderOrDefault(params.providerId);
+    const [providerId, provider] = this.#getProviderOrDefault(
+      params.providerId,
+    );
 
-    this.deps.debugLogger.log('[AggregatedPerpsProvider] placeOrder routing', {
+    this.#deps.debugLogger.log('[AggregatedPerpsProvider] placeOrder routing', {
       requestedProvider: params.providerId,
       actualProvider: providerId,
       symbol: params.symbol,
@@ -407,7 +422,7 @@ export class AggregatedPerpsProvider implements PerpsProvider {
 
   async editOrder(params: EditOrderParams): Promise<OrderResult> {
     // EditOrderParams contains OrderParams in newOrder which may have providerId
-    const [providerId, provider] = this.getProviderOrDefault(
+    const [providerId, provider] = this.#getProviderOrDefault(
       params.newOrder.providerId,
     );
     const result = await provider.editOrder(params);
@@ -415,7 +430,9 @@ export class AggregatedPerpsProvider implements PerpsProvider {
   }
 
   async cancelOrder(params: CancelOrderParams): Promise<CancelOrderResult> {
-    const [providerId, provider] = this.getProviderOrDefault(params.providerId);
+    const [providerId, provider] = this.#getProviderOrDefault(
+      params.providerId,
+    );
     const result = await provider.cancelOrder(params);
     return { ...result, providerId };
   }
@@ -424,7 +441,7 @@ export class AggregatedPerpsProvider implements PerpsProvider {
     params: BatchCancelOrdersParams,
   ): Promise<CancelOrdersResult> {
     // Batch cancel delegates to default provider
-    const provider = this.getDefaultProvider();
+    const provider = this.#getDefaultProvider();
     if (!provider.cancelOrders) {
       return {
         success: false,
@@ -442,7 +459,9 @@ export class AggregatedPerpsProvider implements PerpsProvider {
   }
 
   async closePosition(params: ClosePositionParams): Promise<OrderResult> {
-    const [providerId, provider] = this.getProviderOrDefault(params.providerId);
+    const [providerId, provider] = this.#getProviderOrDefault(
+      params.providerId,
+    );
     const result = await provider.closePosition(params);
     return { ...result, providerId };
   }
@@ -451,7 +470,7 @@ export class AggregatedPerpsProvider implements PerpsProvider {
     params: ClosePositionsParams,
   ): Promise<ClosePositionsResult> {
     // Batch close delegates to default provider
-    const provider = this.getDefaultProvider();
+    const provider = this.#getDefaultProvider();
     if (!provider.closePositions) {
       return {
         success: false,
@@ -466,18 +485,20 @@ export class AggregatedPerpsProvider implements PerpsProvider {
   async updatePositionTPSL(
     params: UpdatePositionTPSLParams,
   ): Promise<OrderResult> {
-    const [providerId, provider] = this.getProviderOrDefault(params.providerId);
+    const [providerId, provider] = this.#getProviderOrDefault(
+      params.providerId,
+    );
     const result = await provider.updatePositionTPSL(params);
     return { ...result, providerId };
   }
 
   async updateMargin(params: UpdateMarginParams): Promise<MarginResult> {
-    const [, provider] = this.getProviderOrDefault(params.providerId);
+    const [, provider] = this.#getProviderOrDefault(params.providerId);
     return provider.updateMargin(params);
   }
 
   async withdraw(params: WithdrawParams): Promise<WithdrawResult> {
-    const [, provider] = this.getProviderOrDefault(params.providerId);
+    const [, provider] = this.#getProviderOrDefault(params.providerId);
     return provider.withdraw(params);
   }
 
@@ -488,27 +509,27 @@ export class AggregatedPerpsProvider implements PerpsProvider {
   async validateDeposit(
     params: DepositParams,
   ): Promise<{ isValid: boolean; error?: string }> {
-    return this.getDefaultProvider().validateDeposit(params);
+    return this.#getDefaultProvider().validateDeposit(params);
   }
 
   async validateOrder(
     params: OrderParams,
   ): Promise<{ isValid: boolean; error?: string }> {
-    const [, provider] = this.getProviderOrDefault(params.providerId);
+    const [, provider] = this.#getProviderOrDefault(params.providerId);
     return provider.validateOrder(params);
   }
 
   async validateClosePosition(
     params: ClosePositionParams,
   ): Promise<{ isValid: boolean; error?: string }> {
-    const [, provider] = this.getProviderOrDefault(params.providerId);
+    const [, provider] = this.#getProviderOrDefault(params.providerId);
     return provider.validateClosePosition(params);
   }
 
   async validateWithdrawal(
     params: WithdrawParams,
   ): Promise<{ isValid: boolean; error?: string }> {
-    const [, provider] = this.getProviderOrDefault(params.providerId);
+    const [, provider] = this.#getProviderOrDefault(params.providerId);
     return provider.validateWithdrawal(params);
   }
 
@@ -519,23 +540,23 @@ export class AggregatedPerpsProvider implements PerpsProvider {
   async calculateLiquidationPrice(
     params: LiquidationPriceParams,
   ): Promise<string> {
-    return this.getDefaultProvider().calculateLiquidationPrice(params);
+    return this.#getDefaultProvider().calculateLiquidationPrice(params);
   }
 
   async calculateMaintenanceMargin(
     params: MaintenanceMarginParams,
   ): Promise<number> {
-    return this.getDefaultProvider().calculateMaintenanceMargin(params);
+    return this.#getDefaultProvider().calculateMaintenanceMargin(params);
   }
 
   async getMaxLeverage(asset: string): Promise<number> {
-    return this.getDefaultProvider().getMaxLeverage(asset);
+    return this.#getDefaultProvider().getMaxLeverage(asset);
   }
 
   async calculateFees(
     params: FeeCalculationParams,
   ): Promise<FeeCalculationResult> {
-    return this.getDefaultProvider().calculateFees(params);
+    return this.#getDefaultProvider().calculateFees(params);
   }
 
   // ============================================================================
@@ -543,31 +564,31 @@ export class AggregatedPerpsProvider implements PerpsProvider {
   // ============================================================================
 
   subscribeToPrices(params: SubscribePricesParams): () => void {
-    return this.subscriptionMux.subscribeToPrices({
+    return this.#subscriptionMux.subscribeToPrices({
       ...params,
-      providers: this.getActiveProviders(),
+      providers: this.#getActiveProviders(),
       aggregationMode: 'merge',
     });
   }
 
   subscribeToPositions(params: SubscribePositionsParams): () => void {
-    return this.subscriptionMux.subscribeToPositions({
+    return this.#subscriptionMux.subscribeToPositions({
       ...params,
-      providers: this.getActiveProviders(),
+      providers: this.#getActiveProviders(),
     });
   }
 
   subscribeToOrderFills(params: SubscribeOrderFillsParams): () => void {
-    return this.subscriptionMux.subscribeToOrderFills({
+    return this.#subscriptionMux.subscribeToOrderFills({
       ...params,
-      providers: this.getActiveProviders(),
+      providers: this.#getActiveProviders(),
     });
   }
 
   subscribeToOrders(params: SubscribeOrdersParams): () => void {
-    return this.subscriptionMux.subscribeToOrders({
+    return this.#subscriptionMux.subscribeToOrders({
       ...params,
-      providers: this.getActiveProviders(),
+      providers: this.#getActiveProviders(),
     });
   }
 
@@ -575,22 +596,22 @@ export class AggregatedPerpsProvider implements PerpsProvider {
     // For account subscriptions, we emit as array for multi-provider
     // but the callback expects single AccountState
     // Delegate to default provider for now
-    return this.getDefaultProvider().subscribeToAccount(params);
+    return this.#getDefaultProvider().subscribeToAccount(params);
   }
 
   subscribeToOICaps(params: SubscribeOICapsParams): () => void {
     // Delegate to default provider
-    return this.getDefaultProvider().subscribeToOICaps(params);
+    return this.#getDefaultProvider().subscribeToOICaps(params);
   }
 
   subscribeToCandles(params: SubscribeCandlesParams): () => void {
     // Delegate to default provider
-    return this.getDefaultProvider().subscribeToCandles(params);
+    return this.#getDefaultProvider().subscribeToCandles(params);
   }
 
   subscribeToOrderBook(params: SubscribeOrderBookParams): () => void {
     // Delegate to default provider
-    return this.getDefaultProvider().subscribeToOrderBook(params);
+    return this.#getDefaultProvider().subscribeToOrderBook(params);
   }
 
   // ============================================================================
@@ -599,14 +620,14 @@ export class AggregatedPerpsProvider implements PerpsProvider {
 
   setLiveDataConfig(config: Partial<LiveDataConfig>): void {
     // Apply config to all providers
-    this.providers.forEach((provider) => {
+    this.#providers.forEach((provider) => {
       provider.setLiveDataConfig(config);
     });
   }
 
   setUserFeeDiscount(discountBips: number | undefined): void {
     // Apply to all providers that support it
-    this.providers.forEach((provider) => {
+    this.#providers.forEach((provider) => {
       if (provider.setUserFeeDiscount) {
         provider.setUserFeeDiscount(discountBips);
       }
@@ -618,12 +639,12 @@ export class AggregatedPerpsProvider implements PerpsProvider {
   // ============================================================================
 
   async toggleTestnet(): Promise<ToggleTestnetResult> {
-    return this.getDefaultProvider().toggleTestnet();
+    return this.#getDefaultProvider().toggleTestnet();
   }
 
   async initialize(): Promise<InitializeResult> {
     // Initialize default provider
-    const result = await this.getDefaultProvider().initialize();
+    const result = await this.#getDefaultProvider().initialize();
 
     // Optionally initialize other providers in background
     // For Phase 1, we only initialize default provider
@@ -631,17 +652,17 @@ export class AggregatedPerpsProvider implements PerpsProvider {
   }
 
   async isReadyToTrade(): Promise<ReadyToTradeResult> {
-    return this.getDefaultProvider().isReadyToTrade();
+    return this.#getDefaultProvider().isReadyToTrade();
   }
 
   async disconnect(): Promise<DisconnectResult> {
     // Disconnect all providers
     const results = await Promise.allSettled(
-      this.getActiveProviders().map(([, provider]) => provider.disconnect()),
+      this.#getActiveProviders().map(([, provider]) => provider.disconnect()),
     );
 
     // Clear subscription cache
-    this.subscriptionMux.clearCache();
+    this.#subscriptionMux.clearCache();
 
     // Return success if at least one succeeded
     const successCount = results.filter(
@@ -654,7 +675,7 @@ export class AggregatedPerpsProvider implements PerpsProvider {
   }
 
   async ping(timeoutMs?: number): Promise<void> {
-    return this.getDefaultProvider().ping(timeoutMs);
+    return this.#getDefaultProvider().ping(timeoutMs);
   }
 
   // ============================================================================
@@ -662,7 +683,7 @@ export class AggregatedPerpsProvider implements PerpsProvider {
   // ============================================================================
 
   getBlockExplorerUrl(address?: string): string {
-    return this.getDefaultProvider().getBlockExplorerUrl(address);
+    return this.#getDefaultProvider().getBlockExplorerUrl(address);
   }
 
   // ============================================================================
@@ -670,7 +691,7 @@ export class AggregatedPerpsProvider implements PerpsProvider {
   // ============================================================================
 
   async getAvailableDexs(params?: GetAvailableDexsParams): Promise<string[]> {
-    const provider = this.getDefaultProvider();
+    const provider = this.#getDefaultProvider();
     if (!provider.getAvailableDexs) {
       return [];
     }
@@ -688,8 +709,8 @@ export class AggregatedPerpsProvider implements PerpsProvider {
    * @param provider - Provider instance
    */
   addProvider(providerId: PerpsProviderType, provider: PerpsProvider): void {
-    this.providers.set(providerId, provider);
-    this.deps.debugLogger.log('[AggregatedPerpsProvider] Provider added', {
+    this.#providers.set(providerId, provider);
+    this.#deps.debugLogger.log('[AggregatedPerpsProvider] Provider added', {
       providerId,
     });
   }
@@ -701,9 +722,9 @@ export class AggregatedPerpsProvider implements PerpsProvider {
    * @returns true if removed, false if not found
    */
   removeProvider(providerId: PerpsProviderType): boolean {
-    const removed = this.providers.delete(providerId);
+    const removed = this.#providers.delete(providerId);
     if (removed) {
-      this.deps.debugLogger.log('[AggregatedPerpsProvider] Provider removed', {
+      this.#deps.debugLogger.log('[AggregatedPerpsProvider] Provider removed', {
         providerId,
       });
     }
@@ -712,22 +733,29 @@ export class AggregatedPerpsProvider implements PerpsProvider {
 
   /**
    * Get list of all registered provider IDs.
+   *
+   * @returns The result of the operation.
    */
   getProviderIds(): PerpsProviderType[] {
-    return Array.from(this.providers.keys());
+    return Array.from(this.#providers.keys());
   }
 
   /**
    * Check if a provider is registered.
+   *
+   * @param providerId - The provider id value.
+   * @returns True if the condition is met.
    */
   hasProvider(providerId: PerpsProviderType): boolean {
-    return this.providers.has(providerId);
+    return this.#providers.has(providerId);
   }
 
   /**
    * Get the router instance for external configuration.
+   *
+   * @returns The result of the operation.
    */
   getRouter(): ProviderRouter {
-    return this.router;
+    return this.#router;
   }
 }
