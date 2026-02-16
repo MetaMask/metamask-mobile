@@ -4341,11 +4341,21 @@ describe('PredictController', () => {
           expect.objectContaining({
             from: '0x1234567890123456789012345678901234567890',
             origin: 'metamask',
-            networkClientId: expect.any(String),
+            networkClientId: 'polygon-mainnet',
             disableHook: true,
             disableSequential: true,
             requireApproval: true,
-            transactions: [mockWithdrawResponse.transaction],
+            skipInitialGasEstimate: true,
+            gasFeeToken: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+            transactions: [
+              {
+                ...mockWithdrawResponse.transaction,
+                params: {
+                  ...mockWithdrawResponse.transaction.params,
+                  gas: '0x1d8a8',
+                },
+              },
+            ],
           }),
         );
       });

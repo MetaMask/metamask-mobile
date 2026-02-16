@@ -73,4 +73,56 @@ describe('useTransactionPayPostQuote', () => {
       expect.any(Function),
     );
   });
+
+  it('does not call setTransactionConfig twice for the same transactionId', () => {
+    useTransactionMetadataRequestMock.mockReturnValue({
+      id: TRANSACTION_ID_MOCK,
+    } as never);
+    useTransactionPayWithdrawMock.mockReturnValue({
+      isWithdraw: true,
+      canSelectWithdrawToken: true,
+    });
+
+    const { rerender } = renderHook(() => useTransactionPayPostQuote());
+    rerender();
+
+    expect(setTransactionConfigMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('handles setTransactionConfig error gracefully', () => {
+    useTransactionMetadataRequestMock.mockReturnValue({
+      id: TRANSACTION_ID_MOCK,
+    } as never);
+    useTransactionPayWithdrawMock.mockReturnValue({
+      isWithdraw: true,
+      canSelectWithdrawToken: true,
+    });
+
+    setTransactionConfigMock.mockImplementation(() => {
+      throw new Error('Controller error');
+    });
+
+    // Should not throw
+    expect(() => renderHook(() => useTransactionPayPostQuote())).not.toThrow();
+  });
+
+  it('calls setTransactionConfig again when transactionId changes', () => {
+    useTransactionPayWithdrawMock.mockReturnValue({
+      isWithdraw: true,
+      canSelectWithdrawToken: true,
+    });
+    useTransactionMetadataRequestMock.mockReturnValue({
+      id: TRANSACTION_ID_MOCK,
+    } as never);
+
+    const { rerender } = renderHook(() => useTransactionPayPostQuote());
+    expect(setTransactionConfigMock).toHaveBeenCalledTimes(1);
+
+    useTransactionMetadataRequestMock.mockReturnValue({
+      id: 'transaction-456',
+    } as never);
+    rerender();
+
+    expect(setTransactionConfigMock).toHaveBeenCalledTimes(2);
+  });
 });
