@@ -16,4 +16,15 @@ describe('PerpsCancelAllOrdersView', () => {
       screen.findByText(strings('perps.cancel_all_modal.title')),
     ).resolves.toBeOnTheScreen();
   });
+
+  it('with zero orders: shows title and no-orders empty state', async () => {
+    renderPerpsCancelAllOrdersView({ streamOverrides: { orders: [] } });
+
+    expect(
+      await screen.findByText(strings('perps.cancel_all_modal.title')),
+    ).toBeOnTheScreen();
+    expect(
+      await screen.findByText(strings('perps.order.no_orders')),
+    ).toBeOnTheScreen();
+  });
 });

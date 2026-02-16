@@ -49,4 +49,28 @@ describe('PerpsEmptyState', () => {
 
     expect(onAction).toHaveBeenCalledTimes(1);
   });
+
+  it('keeps description and button visible after pressing start trading (state unchanged)', async () => {
+    const onAction = jest.fn();
+    const ScreenWithCallback = () => <PerpsEmptyState onAction={onAction} />;
+
+    renderPerpsView(
+      ScreenWithCallback as unknown as React.ComponentType,
+      'PerpsEmptyState',
+      {},
+    );
+
+    const button = await screen.findByText(
+      strings('perps.position.list.start_trading'),
+    );
+    fireEvent.press(button);
+
+    expect(onAction).toHaveBeenCalledTimes(1);
+    expect(
+      screen.getByText(strings('perps.position.list.first_time_description')),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByText(strings('perps.position.list.start_trading')),
+    ).toBeOnTheScreen();
+  });
 });

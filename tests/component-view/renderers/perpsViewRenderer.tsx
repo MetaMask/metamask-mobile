@@ -89,6 +89,22 @@ const noopChannel = () => ({
   subscribe: (): (() => void) => noopUnsubscribe,
 });
 
+/** Top-of-book channel: usePerpsTopOfBook calls subscribeToSymbol (e.g. PerpsClosePositionView, PerpsOrderBookView) */
+function topOfBookChannel() {
+  return {
+    subscribe: (): (() => void) => noopUnsubscribe,
+    subscribeToSymbol: (params: {
+      symbol: string;
+      callback: (data: unknown) => void;
+    }): (() => void) => {
+      if (params?.callback) {
+        params.callback(undefined);
+      }
+      return noopUnsubscribe;
+    },
+  };
+}
+
 /** Prices channel: usePerpsLivePrices calls subscribeToSymbols */
 const pricesChannel = () => ({
   subscribe: (): (() => void) => noopUnsubscribe,
@@ -117,7 +133,7 @@ function createTestStreamManager(
     account: channelWithInitialValue(initialAccount),
     marketData: channelWithInitialValue(marketData),
     oiCaps: noopChannel(),
-    topOfBook: noopChannel(),
+    topOfBook: topOfBookChannel(),
     candles: noopChannel(),
     clearAllChannels: (): void => undefined,
   } as unknown as PerpsStreamManager;

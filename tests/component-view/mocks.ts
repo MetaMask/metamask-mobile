@@ -143,6 +143,7 @@ jest.mock('../../app/core/Engine', () => {
       // Perps: stub so hooks (usePerpsClosePosition, usePerpsMarkets, etc.) do not throw
       // getMarkets returns one market so PerpsTabView explore section renders "See all perps"
       PerpsController: {
+        state: { isTestnet: false },
         getActiveProvider: jest.fn(() => ({
           getOrderFills: jest.fn().mockResolvedValue([]),
         })),
@@ -170,6 +171,12 @@ jest.mock('../../app/core/Engine', () => {
         getTradeConfiguration: jest.fn().mockResolvedValue(null),
         getMarketFilterPreferences: jest.fn().mockResolvedValue({}),
         getOrderBookGrouping: jest.fn().mockResolvedValue(null),
+        getWithdrawalRoutes: jest.fn(() => [
+          {
+            assetId: 'usdc-mainnet',
+            constraints: { minAmount: 10 },
+          },
+        ]),
         startMarketDataPreload: jest.fn(),
         stopMarketDataPreload: jest.fn(),
       },

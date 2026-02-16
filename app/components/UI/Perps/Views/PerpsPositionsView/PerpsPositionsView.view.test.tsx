@@ -49,4 +49,34 @@ describe('PerpsPositionsView', () => {
       await screen.findByText(strings('perps.position.list.open_positions')),
     ).toBeOnTheScreen();
   });
+
+  it('with positions: account summary and position count are visible, back remains', async () => {
+    renderPerpsPositionsView({
+      streamOverrides: { positions: [defaultPositionForViews] },
+    });
+
+    expect(
+      await screen.findByTestId(PerpsPositionsViewSelectorsIDs.BACK_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      await screen.findByText(strings('perps.position.account.summary_title')),
+    ).toBeOnTheScreen();
+    expect(
+      await screen.findByText(strings('perps.position.list.open_positions')),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByText(strings('perps.position.list.empty_title')),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('with empty stream: no positions section, empty title and description shown', async () => {
+    renderPerpsPositionsView({ streamOverrides: { positions: [] } });
+
+    expect(
+      await screen.findByText(strings('perps.position.list.empty_title')),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(PerpsPositionsViewSelectorsIDs.POSITIONS_SECTION),
+    ).not.toBeOnTheScreen();
+  });
 });

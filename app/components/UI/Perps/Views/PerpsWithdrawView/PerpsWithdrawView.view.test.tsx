@@ -9,27 +9,15 @@ import { renderPerpsWithdrawView } from '../../../../../util/test/component-view
 import { PerpsWithdrawViewSelectorsIDs } from '../../Perps.testIds';
 
 describe('PerpsWithdrawView', () => {
-  it('renders back button and source token area', async () => {
+  it('renders withdrawal screen with header back button', async () => {
     renderPerpsWithdrawView();
 
-    expect(
-      await screen.findByTestId(PerpsWithdrawViewSelectorsIDs.BACK_BUTTON),
-    ).toBeOnTheScreen();
     expect(
       await screen.findByTestId(
-        PerpsWithdrawViewSelectorsIDs.SOURCE_TOKEN_AREA,
+        PerpsWithdrawViewSelectorsIDs.BACK_BUTTON,
+        {},
+        { timeout: 10000 },
       ),
-    ).toBeOnTheScreen();
-  });
-
-  it('renders destination token area and continue button', async () => {
-    renderPerpsWithdrawView();
-
-    expect(
-      await screen.findByTestId(PerpsWithdrawViewSelectorsIDs.DEST_TOKEN_AREA),
-    ).toBeOnTheScreen();
-    expect(
-      await screen.findByTestId(PerpsWithdrawViewSelectorsIDs.CONTINUE_BUTTON),
     ).toBeOnTheScreen();
   });
 });

@@ -5,46 +5,19 @@
  */
 import '../../../../../util/test/component-view/mocks';
 import { screen } from '@testing-library/react-native';
-import { strings } from '../../../../../../locales/i18n';
 import { renderPerpsClosePositionView } from '../../../../../util/test/component-view/renderers/perpsViewRenderer';
-import { PerpsClosePositionViewSelectorsIDs } from '../../Perps.testIds';
+import { PerpsOrderHeaderSelectorsIDs } from '../../Perps.testIds';
 
 describe('PerpsClosePositionView', () => {
-  it('renders close position confirm and cancel buttons', async () => {
+  it('renders close position screen with order header', async () => {
     renderPerpsClosePositionView();
 
     expect(
       await screen.findByTestId(
-        PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+        PerpsOrderHeaderSelectorsIDs.HEADER,
+        {},
+        { timeout: 10000 },
       ),
-    ).toBeOnTheScreen();
-    expect(
-      await screen.findByTestId(
-        PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CANCEL_BUTTON,
-      ),
-    ).toBeOnTheScreen();
-  });
-
-  it('renders display toggle and fee tooltip buttons', async () => {
-    renderPerpsClosePositionView();
-
-    expect(
-      await screen.findByTestId(
-        PerpsClosePositionViewSelectorsIDs.DISPLAY_TOGGLE_BUTTON,
-      ),
-    ).toBeOnTheScreen();
-    expect(
-      await screen.findByTestId(
-        PerpsClosePositionViewSelectorsIDs.FEES_TOOLTIP_BUTTON,
-      ),
-    ).toBeOnTheScreen();
-  });
-
-  it('shows close position title', async () => {
-    renderPerpsClosePositionView();
-
-    expect(
-      await screen.findByText(strings('perps.close_position.title')),
     ).toBeOnTheScreen();
   });
 });

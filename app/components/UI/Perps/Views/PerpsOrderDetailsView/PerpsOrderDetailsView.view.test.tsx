@@ -24,4 +24,15 @@ describe('PerpsOrderDetailsView', () => {
       await screen.findByText(strings('perps.errors.order_not_found')),
     ).toBeOnTheScreen();
   });
+
+  it('with valid order: order type label and long direction are visible', async () => {
+    renderPerpsOrderDetailsView();
+
+    expect(
+      await screen.findByText(strings('perps.order_details.market_buy')),
+    ).toBeOnTheScreen();
+    expect(
+      await screen.findByText(strings('perps.order.long_label')),
+    ).toBeOnTheScreen();
+  });
 });

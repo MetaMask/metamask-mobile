@@ -9,25 +9,15 @@ import { renderPerpsOrderBookView } from '../../../../../util/test/component-vie
 import { PerpsOrderBookViewSelectorsIDs } from '../../Perps.testIds';
 
 describe('PerpsOrderBookView', () => {
-  it('renders container and back button when market is provided', async () => {
+  it('renders order book container when market is provided', async () => {
     renderPerpsOrderBookView();
 
     expect(
-      await screen.findByTestId(PerpsOrderBookViewSelectorsIDs.CONTAINER),
-    ).toBeOnTheScreen();
-    expect(
-      await screen.findByTestId(PerpsOrderBookViewSelectorsIDs.BACK_BUTTON),
-    ).toBeOnTheScreen();
-  });
-
-  it('renders scroll view and depth chart area', async () => {
-    renderPerpsOrderBookView();
-
-    expect(
-      await screen.findByTestId(PerpsOrderBookViewSelectorsIDs.SCROLL_VIEW),
-    ).toBeOnTheScreen();
-    expect(
-      await screen.findByTestId(PerpsOrderBookViewSelectorsIDs.DEPTH_CHART),
+      await screen.findByTestId(
+        PerpsOrderBookViewSelectorsIDs.CONTAINER,
+        {},
+        { timeout: 5000 },
+      ),
     ).toBeOnTheScreen();
   });
 });

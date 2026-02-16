@@ -4,7 +4,7 @@
  * Run with: yarn test:view --testPathPattern="PerpsHeroCardView.view.test"
  */
 import '../../../../../util/test/component-view/mocks';
-import { screen } from '@testing-library/react-native';
+import { fireEvent, screen } from '@testing-library/react-native';
 import { renderPerpsHeroCardView } from '../../../../../util/test/component-view/renderers/perpsViewRenderer';
 import {
   PerpsHeroCardViewSelectorsIDs,
@@ -31,6 +31,24 @@ describe('PerpsHeroCardView', () => {
     ).toBeOnTheScreen();
     expect(
       await screen.findByTestId(getPerpsHeroCardViewSelector.assetSymbol(0)),
+    ).toBeOnTheScreen();
+  });
+
+  it('share button is present; after pressing close, container still mounted', async () => {
+    renderPerpsHeroCardView();
+
+    const shareButton = await screen.findByTestId(
+      PerpsHeroCardViewSelectorsIDs.SHARE_BUTTON,
+    );
+    expect(shareButton).toBeOnTheScreen();
+
+    const closeButton = await screen.findByTestId(
+      PerpsHeroCardViewSelectorsIDs.CLOSE_BUTTON,
+    );
+    fireEvent.press(closeButton);
+
+    expect(
+      screen.getByTestId(PerpsHeroCardViewSelectorsIDs.CONTAINER),
     ).toBeOnTheScreen();
   });
 });
