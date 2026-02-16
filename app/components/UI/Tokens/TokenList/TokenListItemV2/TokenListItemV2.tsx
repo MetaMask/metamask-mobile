@@ -107,10 +107,15 @@ const createStyles = (colors: Colors) =>
     assetNameContainer: {
       flexDirection: 'row',
       alignItems: 'center',
+      flexShrink: 1,
     },
     assetName: {
       flexDirection: 'row',
       gap: 8,
+      flexShrink: 1,
+    },
+    assetNameText: {
+      flexShrink: 1,
     },
     percentageChange: {
       flexDirection: 'row',
@@ -518,7 +523,11 @@ export const TokenListItemV2 = React.memo(
                */}
               <View style={styles.assetNameContainer}>
                 <View style={styles.assetName}>
-                  <Text variant={TextVariant.BodyMDBold} numberOfLines={1}>
+                  <Text
+                    variant={TextVariant.BodyMDBold}
+                    numberOfLines={1}
+                    style={styles.assetNameText}
+                  >
                     {asset.name || asset.symbol}
                   </Text>
                   {label && (
