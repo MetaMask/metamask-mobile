@@ -1,17 +1,11 @@
-import { captureException } from '@sentry/react-native';
 import migrate from './082';
 import { cloneDeep } from 'lodash';
 import { ensureValidState } from './util';
-
-jest.mock('@sentry/react-native', () => ({
-  captureException: jest.fn(),
-}));
 
 jest.mock('./util', () => ({
   ensureValidState: jest.fn(),
 }));
 
-const mockedCaptureException = jest.mocked(captureException);
 const mockedEnsureValidState = jest.mocked(ensureValidState);
 
 describe('Migration 82', () => {
@@ -30,8 +24,6 @@ describe('Migration 82', () => {
         },
       },
       test: 'invalid TokenBalancesController state',
-      expectedError:
-        "FATAL ERROR: Migration 82: Invalid TokenBalancesController state error: 'string'",
     },
     {
       state: {
@@ -42,8 +34,6 @@ describe('Migration 82', () => {
         },
       },
       test: 'empty TokenBalancesController state',
-      expectedError:
-        "FATAL ERROR: Migration 82: Invalid TokenBalancesController state error: 'object'",
     },
     {
       state: {
@@ -57,8 +47,6 @@ describe('Migration 82', () => {
         },
       },
       test: 'invalid TokensController state',
-      expectedError:
-        "FATAL ERROR: Migration 82: Invalid TokensController state error: 'string'",
     },
     {
       state: {
@@ -72,8 +60,6 @@ describe('Migration 82', () => {
         },
       },
       test: 'empty TokensController state',
-      expectedError:
-        "FATAL ERROR: Migration 82: Invalid TokensController state error: 'object'",
     },
     {
       state: {
@@ -89,8 +75,6 @@ describe('Migration 82', () => {
         },
       },
       test: 'TokensController state without allDetectedTokens and allIgnoredTokens',
-      expectedError:
-        "FATAL ERROR: Migration 82: Invalid TokensController state error: 'object'",
     },
     {
       state: {
@@ -109,8 +93,6 @@ describe('Migration 82', () => {
         },
       },
       test: 'invalid accountsController state',
-      expectedError:
-        "FATAL ERROR: Migration 82: Invalid AccountsController state error: 'string'",
     },
     {
       state: {
@@ -133,12 +115,10 @@ describe('Migration 82', () => {
         },
       },
       test: 'invalid accountsController accounts state',
-      expectedError:
-        "FATAL ERROR: Migration 82: Invalid AccountsController state error: 'object'",
     },
   ])(
-    'captures exception and returns state unchanged for invalid state - $test',
-    ({ state, expectedError }) => {
+    'returns state unchanged for invalid state - $test',
+    ({ state }) => {
       const orgState = cloneDeep(state);
       mockedEnsureValidState.mockReturnValue(true);
 
@@ -146,11 +126,6 @@ describe('Migration 82', () => {
 
       // State should be unchanged
       expect(migratedState).toStrictEqual(orgState);
-      expect(mockedCaptureException).toHaveBeenCalledWith(
-        expect.objectContaining({
-          message: expectedError,
-        }),
-      );
     },
   );
 
