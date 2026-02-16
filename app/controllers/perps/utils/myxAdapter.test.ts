@@ -1,6 +1,9 @@
 import BigNumber from 'bignumber.js';
-import type { MYXPoolSymbol, MYXTicker } from '../types/myx-types';
+
 import { MYX_PRICE_DECIMALS } from '../constants/myxConfig';
+import type { MarketDataFormatters } from '../types';
+import type { MYXPoolSymbol, MYXTicker } from '../types/myx-types';
+
 import {
   adaptMarketFromMYX,
   adaptPriceFromMYX,
@@ -11,7 +14,6 @@ import {
   buildSymbolPoolsMap,
   extractSymbolFromPoolId,
 } from './myxAdapter';
-import type { MarketDataFormatters } from '../types';
 
 // Mock formatters matching the MarketDataFormatters interface
 const mockFormatters: MarketDataFormatters = {
