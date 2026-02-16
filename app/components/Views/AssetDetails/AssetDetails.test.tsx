@@ -11,6 +11,7 @@ import { mockNetworkState } from '../../../util/test/network';
 import ClipboardManager from '../../../core/ClipboardManager';
 import Routes from '../../../constants/navigation/Routes';
 import { Hex } from '@metamask/utils';
+import { ToastContext } from '../../../component-library/components/Toast';
 
 // Mock dependencies
 const mockNavigate = jest.fn();
@@ -36,41 +37,12 @@ jest.mock('../../../core/ClipboardManager', () => ({
 }));
 
 const mockShowToast = jest.fn();
-jest.mock('../../../component-library/components/Toast', () => ({
-  ...jest.requireActual('../../../component-library/components/Toast'),
-  ToastContext: {
-    Provider: ({ children }: { children: React.ReactNode }) => children,
-    Consumer: ({
-      children,
-    }: {
-      children: (value: unknown) => React.ReactNode;
-    }) =>
-      children({
-        toastRef: {
-          current: {
-            showToast: mockShowToast,
-          },
-        },
-      }),
+const mockToastRef = {
+  current: {
+    showToast: mockShowToast,
+    closeToast: jest.fn(),
   },
-}));
-
-// Use the actual ToastContext
-jest.mock('react', () => ({
-  ...jest.requireActual('react'),
-  useContext: jest.fn().mockImplementation((context) => {
-    if (context.displayName === 'ToastContext') {
-      return {
-        toastRef: {
-          current: {
-            showToast: mockShowToast,
-          },
-        },
-      };
-    }
-    return jest.requireActual('react').useContext(context);
-  }),
-}));
+};
 
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -200,7 +172,9 @@ const renderComponent = (customProps = {}) => {
   };
 
   return renderWithProvider(
-    <AssetDetails {...defaultProps} {...customProps} />,
+    <ToastContext.Provider value={{ toastRef: mockToastRef }}>
+      <AssetDetails {...defaultProps} {...customProps} />
+    </ToastContext.Provider>,
     { state: mockInitialState },
   );
 };
@@ -280,9 +254,9 @@ describe('AssetDetails', () => {
 
   describe('Navigation', () => {
     it('calls goBack when back button is pressed', () => {
-      const { getByRole } = renderComponent();
+      const { getByTestId } = renderComponent();
 
-      const backButton = getByRole('button');
+      const backButton = getByTestId('button-icon');
       fireEvent.press(backButton);
 
       expect(mockGoBack).toHaveBeenCalled();
