@@ -676,6 +676,8 @@ export type GetOrdersParams = {
   limit?: number; // Optional: max number of results for pagination
   offset?: number; // Optional: offset for pagination
   skipCache?: boolean; // Optional: bypass WebSocket cache and force API call (default: false)
+  standalone?: boolean; // Optional: lightweight mode - skip full initialization, use standalone HTTP client (no wallet/WebSocket needed)
+  userAddress?: string; // Optional: required when standalone is true - user address to query orders for
 };
 
 export type GetFundingParams = {
@@ -693,9 +695,8 @@ export type GetSupportedPathsParams = {
   chainId?: CaipChainId; // Optional: filter by chain (CAIP-2 format)
 };
 
-export type GetAvailableDexsParams = {
-  // Reserved for future extensibility (filters, pagination, etc.)
-};
+/** Placeholder for future filter/pagination params (e.g., validated, chain). Empty today so the API signature is stable. */
+export type GetAvailableDexsParams = Record<string, never>;
 
 export type GetMarketsParams = {
   symbols?: string[]; // Optional symbol filter (e.g., ['BTC', 'xyz:XYZ100'])
@@ -937,6 +938,7 @@ export type PerpsProvider = {
    * Get fills using WebSocket cache first, falling back to REST API.
    * OPTIMIZATION: Uses cached fills when available (0 API weight), only calls REST on cache miss.
    * Purpose: Prevent 429 errors during rapid market switching by reusing cached fills.
+   *
    * @param params - Optional filter parameters (startTime, symbol)
    */
   getOrFetchFills(params?: GetOrFetchFillsParams): Promise<OrderFill[]>;
@@ -945,6 +947,7 @@ export type PerpsProvider = {
    * Get historical portfolio data
    * Purpose: Retrieve account value from previous periods for PnL tracking
    * Example: Get account value from yesterday to calculate 24h percentage change
+   *
    * @param params - Optional parameters for historical portfolio retrieval
    */
   getHistoricalPortfolio(
@@ -1034,6 +1037,7 @@ export type PerpsProvider = {
   // HIP-3 (Builder-deployed DEXs) operations - optional for backward compatibility
   /**
    * Get list of available HIP-3 builder-deployed DEXs
+   *
    * @param params - Optional parameters (reserved for future filters/pagination)
    * @returns Array of DEX names (empty string '' represents main DEX)
    */
@@ -1192,7 +1196,9 @@ export type PerpsTraceName =
   | 'Perps Close Position View'
   | 'Perps Withdraw View'
   | 'Perps Connection Establishment'
-  | 'Perps Account Switch Reconnection';
+  | 'Perps Account Switch Reconnection'
+  | 'Perps Market Data Preload'
+  | 'Perps User Data Preload';
 
 /**
  * Perps trace name constants. Values match TraceName enum in mobile.
@@ -1236,6 +1242,8 @@ export const PerpsTraceNames = {
   RewardsApiCall: 'Perps Rewards API Call',
   ConnectionEstablishment: 'Perps Connection Establishment',
   AccountSwitchReconnection: 'Perps Account Switch Reconnection',
+  MarketDataPreload: 'Perps Market Data Preload',
+  UserDataPreload: 'Perps User Data Preload',
 } as const satisfies Record<string, PerpsTraceName>;
 
 /**
@@ -1523,6 +1531,9 @@ export type VersionGatedFeatureFlag = {
 /**
  * Type guard for VersionGatedFeatureFlag.
  * Pure logic, no platform dependencies.
+ *
+ * @param value - The value to check.
+ * @returns True if the value is a VersionGatedFeatureFlag.
  */
 export function isVersionGatedFeatureFlag(
   value: unknown,
@@ -1542,7 +1553,7 @@ export function isVersionGatedFeatureFlag(
 // These types live in separate files within types/ and need to be accessible
 // from the root barrel via `export * from './types'`.
 // ============================================================================
-export * from './perps-types';
+export type * from './perps-types';
 export * from './transactionTypes';
 // hyperliquid-types: selective export to avoid OrderType clash with main types
 export type {
