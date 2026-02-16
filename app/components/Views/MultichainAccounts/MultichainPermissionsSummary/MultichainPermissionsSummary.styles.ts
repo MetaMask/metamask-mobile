@@ -164,6 +164,18 @@ const createStyles = (params: { theme: Theme }) => {
       marginTop: 2,
       alignSelf: 'center',
     },
+    dangerButtonContent: {
+      flexDirection: 'row' as const,
+      alignItems: 'center' as const,
+      justifyContent: 'center' as const,
+      gap: 4,
+    },
+    dangerButtonText: {
+      color: colors.primary.inverse,
+      fontSize: 14,
+      fontFamily: 'Geist-Bold',
+      textAlign: 'center' as const,
+    },
     // Permissions Management
     permissionsManagementContainer: {
       marginTop: 8,

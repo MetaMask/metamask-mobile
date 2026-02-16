@@ -2,6 +2,7 @@ import React, { useCallback, useMemo, useState } from 'react';
 import {
   ImageSourcePropType,
   SafeAreaView,
+  Text as RNText,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -717,9 +718,22 @@ const PermissionsSummary = ({
                 ]}
                 testID={CommonSelectorsIDs.CONNECT_BUTTON}
               >
-                {isNetworkSwitch
-                  ? strings('confirmation_modal.confirm_cta')
-                  : strings('accounts.connect')}
+                {isMaliciousDapp && !isNetworkSwitch ? (
+                  <View style={styles.dangerButtonContent}>
+                    <Icon
+                      name={IconName.Danger}
+                      size={IconSize.Sm}
+                      color={IconColor.Inverse}
+                    />
+                    <RNText style={styles.dangerButtonText}>
+                      {strings('accounts.connect')}
+                    </RNText>
+                  </View>
+                ) : isNetworkSwitch ? (
+                  strings('confirmation_modal.confirm_cta')
+                ) : (
+                  strings('accounts.connect')
+                )}
               </StyledButton>
             </View>
           )}
