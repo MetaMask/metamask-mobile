@@ -81,7 +81,17 @@ class BridgeScreen {
     else if (network == 'Solana'){
       tokenNetworkId = `solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp`;
     }
-    const tokenButton = await AppwrightSelectors.getElementByID(this._device, `asset-${tokenNetworkId}-${token}`);
+    const tokenId = `asset-${tokenNetworkId}-${token}`;
+    // Multiple elements can match (e.g. list rows); use first match to avoid "Find multiple elements"
+    const tokenButton = AppwrightSelectors.isIOS(this._device)
+      ? await AppwrightSelectors.getElementByXpath(
+          this._device,
+          `(//*[contains(@name, '${tokenId}')])[1]`,
+        )
+      : await AppwrightSelectors.getElementByXpath(
+          this._device,
+          `(//*[contains(@resource-id, '${tokenId}')])[1]`,
+        );
     await appwrightExpect(tokenButton).toBeVisible({ timeout: 15000 });
     await AppwrightGestures.tap(tokenButton);
   }
