@@ -23,6 +23,7 @@
 # Shared env (non-secret): servers + build flags. Production defaults.
 # Each build merges <<: *public_envs and overrides only what differs (inline in that build).
 _public_envs: &public_envs # Servers (production)
+  TAP_AND_PAY_SDK_REPO_SSH: 'git@github.com:MetaMask/tap-and-pay-sdk.git'
   PORTFOLIO_API_URL: 'https://portfolio.api.cx.metamask.io'
   SECURITY_ALERTS_API_URL: 'https://security-alerts.api.cx.metamask.io'
   DECODING_API_URL: 'https://signature-insights.api.cx.metamask.io/v1'
