@@ -20,7 +20,19 @@ import {
 import PerpsMarketDetailsView from '../../../app/components/UI/Perps/Views/PerpsMarketDetailsView/PerpsMarketDetailsView';
 import PerpsMarketListView from '../../../app/components/UI/Perps/Views/PerpsMarketListView/PerpsMarketListView';
 import PerpsSelectModifyActionView from '../../../app/components/UI/Perps/Views/PerpsSelectModifyActionView/PerpsSelectModifyActionView';
+import PerpsSelectProviderView from '../../../app/components/UI/Perps/Views/PerpsSelectProviderView/PerpsSelectProviderView';
 import PerpsTabView from '../../../app/components/UI/Perps/Views/PerpsTabView/PerpsTabView';
+import PerpsPositionsView from '../../../app/components/UI/Perps/Views/PerpsPositionsView/PerpsPositionsView';
+import PerpsHomeView from '../../../app/components/UI/Perps/Views/PerpsHomeView/PerpsHomeView';
+import PerpsClosePositionView from '../../../app/components/UI/Perps/Views/PerpsClosePositionView/PerpsClosePositionView';
+import PerpsOrderBookView from '../../../app/components/UI/Perps/Views/PerpsOrderBookView/PerpsOrderBookView';
+import PerpsWithdrawView from '../../../app/components/UI/Perps/Views/PerpsWithdrawView/PerpsWithdrawView';
+import PerpsTransactionsView from '../../../app/components/UI/Perps/Views/PerpsTransactionsView/PerpsTransactionsView';
+import PerpsHeroCardView from '../../../app/components/UI/Perps/Views/PerpsHeroCardView/PerpsHeroCardView';
+import PerpsTPSLView from '../../../app/components/UI/Perps/Views/PerpsTPSLView/PerpsTPSLView';
+import PerpsOrderDetailsView from '../../../app/components/UI/Perps/Views/PerpsOrderDetailsView/PerpsOrderDetailsView';
+import PerpsCancelAllOrdersView from '../../../app/components/UI/Perps/Views/PerpsCancelAllOrdersView/PerpsCancelAllOrdersView';
+import PerpsCloseAllPositionsView from '../../../app/components/UI/Perps/Views/PerpsCloseAllPositionsView/PerpsCloseAllPositionsView';
 import { Position } from '@metamask/perps-controller';
 
 /** No-op unsubscribe for test stream channels; subscribe() must return () => void */
@@ -331,6 +343,248 @@ export function renderPerpsSelectProviderView(
   return renderPerpsView(
     PerpsSelectProviderView as unknown as React.ComponentType,
     Routes.PERPS.MODALS.SELECT_PROVIDER,
+    options,
+  );
+}
+
+/** Default position for view tests that need a single position (Close, OrderBook, HeroCard, TPSL). */
+export const defaultPositionForViews: Position = {
+  symbol: 'ETH',
+  size: '2.5',
+  marginUsed: '500',
+  entryPrice: '2000',
+  liquidationPrice: '1900',
+  unrealizedPnl: '100',
+  returnOnEquity: '0.20',
+  leverage: { value: 10, type: 'isolated' },
+  cumulativeFunding: { sinceOpen: '5', allTime: '10', sinceChange: '2' },
+  positionValue: '5000',
+  maxLeverage: 50,
+  takeProfitCount: 0,
+  stopLossCount: 0,
+};
+
+/**
+ * Renders PerpsPositionsView. Use in PerpsPositionsView.view.test.tsx.
+ */
+export function renderPerpsPositionsView(options: RenderPerpsViewOptions = {}) {
+  return renderPerpsView(
+    PerpsPositionsView as unknown as React.ComponentType,
+    Routes.PERPS.POSITIONS,
+    options,
+  );
+}
+
+/**
+ * Renders PerpsHomeView. Use in PerpsHomeView.view.test.tsx.
+ */
+export function renderPerpsHomeView(options: RenderPerpsViewOptions = {}) {
+  return renderPerpsView(
+    PerpsHomeView as unknown as React.ComponentType,
+    Routes.PERPS.PERPS_HOME,
+    options,
+  );
+}
+
+/**
+ * Renders PerpsClosePositionView. Use in PerpsClosePositionView.view.test.tsx.
+ */
+export function renderPerpsClosePositionView(
+  options: {
+    overrides?: DeepPartial<RootState>;
+    initialParams?: Record<string, unknown>;
+    streamOverrides?: PerpsStreamOverrides;
+  } = {},
+) {
+  const position = options.initialParams?.position ?? defaultPositionForViews;
+  return renderPerpsView(
+    PerpsClosePositionView as unknown as React.ComponentType,
+    Routes.PERPS.CLOSE_POSITION,
+    {
+      ...options,
+      initialParams: { ...options.initialParams, position },
+      streamOverrides: {
+        positions: [position],
+        ...options.streamOverrides,
+      },
+    },
+  );
+}
+
+/** Default market for PerpsOrderBookView. */
+const defaultOrderBookMarket = {
+  symbol: 'ETH',
+  name: 'Ethereum',
+  price: '$2,000.00',
+  change24h: '+$50.00',
+  change24hPercent: '+2.5%',
+  volume: '$1.5B',
+  maxLeverage: '50x',
+  marketType: 'crypto' as const,
+};
+
+/**
+ * Renders PerpsOrderBookView. Use in PerpsOrderBookView.view.test.tsx.
+ */
+export function renderPerpsOrderBookView(options: RenderPerpsViewOptions = {}) {
+  const initialParams = {
+    market: defaultOrderBookMarket,
+    ...options.initialParams,
+  };
+  return renderPerpsView(
+    PerpsOrderBookView as unknown as React.ComponentType,
+    Routes.PERPS.ORDER_BOOK,
+    { ...options, initialParams },
+  );
+}
+
+/**
+ * Renders PerpsWithdrawView. Use in PerpsWithdrawView.view.test.tsx.
+ */
+export function renderPerpsWithdrawView(options: RenderPerpsViewOptions = {}) {
+  return renderPerpsView(
+    PerpsWithdrawView as unknown as React.ComponentType,
+    Routes.PERPS.WITHDRAW,
+    options,
+  );
+}
+
+/**
+ * Renders PerpsTransactionsView. Use in PerpsTransactionsView.view.test.tsx.
+ */
+export function renderPerpsTransactionsView(
+  options: RenderPerpsViewOptions = {},
+) {
+  return renderPerpsView(
+    PerpsTransactionsView as unknown as React.ComponentType,
+    Routes.PERPS.ACTIVITY,
+    options,
+  );
+}
+
+/**
+ * Renders PerpsHeroCardView. Use in PerpsHeroCardView.view.test.tsx.
+ */
+export function renderPerpsHeroCardView(
+  options: {
+    overrides?: DeepPartial<RootState>;
+    initialParams?: Record<string, unknown>;
+    streamOverrides?: PerpsStreamOverrides;
+  } = {},
+) {
+  const initialParams = {
+    position: defaultPositionForViews,
+    ...options.initialParams,
+  };
+  return renderPerpsView(
+    PerpsHeroCardView as unknown as React.ComponentType,
+    Routes.PERPS.PNL_HERO_CARD,
+    { ...options, initialParams, streamOverrides: options.streamOverrides },
+  );
+}
+
+/** Minimal TPSL route params for PerpsTPSLView. */
+const defaultTPSLParams = {
+  asset: 'ETH',
+  currentPrice: '2000',
+  direction: 'long' as const,
+  position: defaultPositionForViews,
+  initialTakeProfitPrice: '',
+  initialStopLossPrice: '',
+  leverage: 10,
+  orderType: 'market' as const,
+  limitPrice: '',
+  amount: '1',
+  szDecimals: 2,
+  onConfirm: (): void => undefined,
+};
+
+/**
+ * Renders PerpsTPSLView. Use in PerpsTPSLView.view.test.tsx.
+ */
+export function renderPerpsTPSLView(
+  options: {
+    overrides?: DeepPartial<RootState>;
+    initialParams?: Record<string, unknown>;
+    streamOverrides?: PerpsStreamOverrides;
+  } = {},
+) {
+  const initialParams = {
+    ...defaultTPSLParams,
+    ...options.initialParams,
+  };
+  return renderPerpsView(
+    PerpsTPSLView as unknown as React.ComponentType,
+    Routes.PERPS.TPSL,
+    { ...options, initialParams, streamOverrides: options.streamOverrides },
+  );
+}
+
+/** Minimal order for PerpsOrderDetailsView. */
+const defaultOrderDetailsOrder = {
+  orderId: 'order_1',
+  symbol: 'ETH',
+  side: 'buy' as const,
+  orderType: 'market' as const,
+  size: '1',
+  originalSize: '1',
+  price: '2000',
+  reduceOnly: false,
+  triggerPrice: undefined,
+  triggerDirection: undefined,
+  timeInForce: 'Gtc' as const,
+  status: 'open' as const,
+  timestamp: Date.now(),
+  createdAt: Date.now(),
+  updatedAt: Date.now(),
+  fee: '0',
+  averageFillPrice: undefined,
+  filledSize: '0',
+};
+
+/**
+ * Renders PerpsOrderDetailsView. Use in PerpsOrderDetailsView.view.test.tsx.
+ */
+export function renderPerpsOrderDetailsView(
+  options: {
+    overrides?: DeepPartial<RootState>;
+    initialParams?: Record<string, unknown>;
+    streamOverrides?: PerpsStreamOverrides;
+  } = {},
+) {
+  const initialParams = {
+    order: defaultOrderDetailsOrder,
+    ...options.initialParams,
+  };
+  return renderPerpsView(
+    PerpsOrderDetailsView as unknown as React.ComponentType,
+    Routes.PERPS.ORDER_DETAILS,
+    { ...options, initialParams, streamOverrides: options.streamOverrides },
+  );
+}
+
+/**
+ * Renders PerpsCancelAllOrdersView (as full screen for view test). Use in PerpsCancelAllOrdersView.view.test.tsx.
+ */
+export function renderPerpsCancelAllOrdersView(
+  options: RenderPerpsViewOptions = {},
+) {
+  return renderPerpsView(
+    PerpsCancelAllOrdersView as unknown as React.ComponentType,
+    Routes.PERPS.MODALS.CANCEL_ALL_ORDERS,
+    options,
+  );
+}
+
+/**
+ * Renders PerpsCloseAllPositionsView (as full screen for view test). Use in PerpsCloseAllPositionsView.view.test.tsx.
+ */
+export function renderPerpsCloseAllPositionsView(
+  options: RenderPerpsViewOptions = {},
+) {
+  return renderPerpsView(
+    PerpsCloseAllPositionsView as unknown as React.ComponentType,
+    Routes.PERPS.MODALS.CLOSE_ALL_POSITIONS,
     options,
   );
 }
