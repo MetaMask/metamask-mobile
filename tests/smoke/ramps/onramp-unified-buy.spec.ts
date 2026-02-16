@@ -14,7 +14,10 @@ import { Mockttp } from 'mockttp';
 import { setupRegionAwareOnRampMocks } from '../../api-mocking/mock-responses/ramps/ramps-region-aware-mock-setup';
 import { remoteFeatureFlagRampsUnifiedEnabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import { getEventsPayloads , EventPayload } from '../../helpers/analytics/helpers';
+import {
+  getEventsPayloads,
+  EventPayload,
+} from '../../helpers/analytics/helpers';
 import SoftAssert from '../../framework/SoftAssert';
 import { RampsRegion } from '../../framework/types';
 import { UnifiedRampRoutingType } from '../../../app/reducers/fiatOrders/types';
@@ -136,15 +139,17 @@ describe(SmokeRamps('Onramp Unified Buy'), () => {
     );
     await softAssert.checkAndCollect(
       async () =>
-        await Assertions.checkIfValueIsDefined(
-          rampsButtonClicked?.properties.location === 'FundActionMenu',
+        await Assertions.checkIfObjectContains(
+          rampsButtonClicked?.properties ?? {},
+          { location: 'FundActionMenu' },
         ),
       `Ramps Button Clicked: location should be FundActionMenu`,
     );
     await softAssert.checkAndCollect(
       async () =>
-        await Assertions.checkIfValueIsDefined(
-          rampsButtonClicked?.properties.ramp_type === 'UNIFIED_BUY',
+        await Assertions.checkIfObjectContains(
+          rampsButtonClicked?.properties ?? {},
+          { ramp_type: 'UNIFIED_BUY' },
         ),
       `Ramps Button Clicked: ramp_type should be UNIFIED_BUY`,
     );
@@ -153,9 +158,9 @@ describe(SmokeRamps('Onramp Unified Buy'), () => {
     ) as RampsRegion;
     await softAssert.checkAndCollect(
       async () =>
-        await Assertions.checkIfValueIsDefined(
-          rampsButtonClickedRegion.id === selectedRegion.id &&
-            rampsButtonClickedRegion.name === selectedRegion.name,
+        await Assertions.checkIfObjectContains(
+          rampsButtonClickedRegion as unknown as Record<string, unknown>,
+          { id: selectedRegion.id, name: selectedRegion.name },
         ),
       `Ramps Button Clicked: region should be ${selectedRegion.name} and ${selectedRegion.id}`,
     );
@@ -190,27 +195,26 @@ describe(SmokeRamps('Onramp Unified Buy'), () => {
     ) as RampsRegion;
     await softAssert.checkAndCollect(
       async () =>
-        await Assertions.checkIfValueIsDefined(
-          rampsTokenSelectedRegion.id === selectedRegion.id &&
-            rampsTokenSelectedRegion.name === selectedRegion.name,
+        await Assertions.checkIfObjectContains(
+          rampsTokenSelectedRegion as unknown as Record<string, unknown>,
+          { id: selectedRegion.id, name: selectedRegion.name },
         ),
       `Ramps Token Selected: region should be ${selectedRegion.name} and ${selectedRegion.id}`,
     );
 
     await softAssert.checkAndCollect(
       async () =>
-        await Assertions.checkIfValueIsDefined(
-          rampsTokenSelected?.properties.token_symbol === tokenToBuy &&
-            rampsTokenSelected?.properties.token_caip19 ===
-              `eip155:1/slip44:60` &&
-            rampsTokenSelected?.properties.currency_destination ===
-              `eip155:1/slip44:60` &&
-            rampsTokenSelected?.properties.currency_destination_symbol ===
-              tokenToBuy &&
-            rampsTokenSelected?.properties.currency_destination_network ===
-              CustomNetworks.Tenderly.Mainnet.providerConfig.nickname &&
-            rampsTokenSelected?.properties.ramp_routing ===
-              UnifiedRampRoutingType.DEPOSIT,
+        await Assertions.checkIfObjectContains(
+          rampsTokenSelected?.properties ?? {},
+          {
+            token_symbol: tokenToBuy,
+            token_caip19: 'eip155:1/slip44:60',
+            currency_destination: 'eip155:1/slip44:60',
+            currency_destination_symbol: tokenToBuy,
+            currency_destination_network:
+              CustomNetworks.Tenderly.Mainnet.providerConfig.nickname,
+            ramp_routing: UnifiedRampRoutingType.DEPOSIT,
+          },
         ),
       `Ramps Token Selected: token_symbol should be ${tokenToBuy}`,
     );
