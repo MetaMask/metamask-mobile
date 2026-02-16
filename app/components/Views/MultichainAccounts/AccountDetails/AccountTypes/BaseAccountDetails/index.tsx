@@ -32,7 +32,6 @@ import {
   selectWalletByAccount,
   selectAccountToGroupMap,
 } from '../../../../../../selectors/multichainAccounts/accountTreeController';
-import { selectMultichainAccountsState2Enabled } from '../../../../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
 import { selectAvatarAccountType } from '../../../../../../selectors/settings';
 
 interface BaseAccountDetailsProps {
@@ -50,39 +49,19 @@ export const BaseAccountDetails = ({
   const accountAvatarType = useSelector(selectAvatarAccountType);
   const selectWallet = useSelector(selectWalletByAccount);
   const wallet = selectWallet?.(account.id);
-
-  // Feature flag and selectors for conditional navigation
-  const isMultichainAccountsState2Enabled = useSelector(
-    selectMultichainAccountsState2Enabled,
-  );
   const accountToGroupMap = useSelector(selectAccountToGroupMap);
 
   const handleEditAccountName = useCallback(() => {
-    if (isMultichainAccountsState2Enabled) {
-      // Use multichain edit account name for account groups
-      // Navigate to account group details with nested screen
-      const accountGroup = accountToGroupMap[account.id];
-      if (accountGroup) {
-        navigation.navigate(Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_GROUP_DETAILS, {
-          accountGroup,
-          screen: Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.EDIT_ACCOUNT_NAME,
-          params: { accountGroup },
-        });
-      }
-    } else {
-      // Use legacy edit account name for individual accounts
-      navigation.navigate(Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS, {
-        screen:
-          Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.LEGACY_EDIT_ACCOUNT_NAME,
-        params: { account },
+    // Navigate to account group details with nested screen
+    const accountGroup = accountToGroupMap[account.id];
+    if (accountGroup) {
+      navigation.navigate(Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_GROUP_DETAILS, {
+        accountGroup,
+        screen: Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.EDIT_ACCOUNT_NAME,
+        params: { accountGroup },
       });
     }
-  }, [
-    navigation,
-    account,
-    isMultichainAccountsState2Enabled,
-    accountToGroupMap,
-  ]);
+  }, [navigation, account.id, accountToGroupMap]);
 
   const handleShareAddress = useCallback(() => {
     navigation.navigate(Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS, {

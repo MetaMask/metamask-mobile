@@ -3,7 +3,7 @@ import {
   usePerpsOrderForm,
   UsePerpsOrderFormReturn,
 } from '../hooks/usePerpsOrderForm';
-import { OrderType, Position } from '../controllers/types';
+import { OrderType, Position } from '@metamask/perps-controller';
 
 interface PerpsOrderContextType extends UsePerpsOrderFormReturn {
   existingPosition?: Position;

@@ -705,6 +705,7 @@ exports[`CardAuthentication Component Login Step - Component Rendering matches l
                                       onBlur={[Function]}
                                       onChangeText={[Function]}
                                       onFocus={[Function]}
+                                      placeholderTextColor="#686e7d"
                                       returnKeyType="next"
                                       style={
                                         {
@@ -717,8 +718,8 @@ exports[`CardAuthentication Component Login Step - Component Rendering matches l
                                           "fontWeight": "400",
                                           "height": 46,
                                           "letterSpacing": 0,
+                                          "lineHeight": 0,
                                           "opacity": 1,
-                                          "paddingVertical": 2,
                                           "textAlignVertical": "center",
                                         }
                                       }
@@ -818,6 +819,7 @@ exports[`CardAuthentication Component Login Step - Component Rendering matches l
                                       onChangeText={[Function]}
                                       onFocus={[Function]}
                                       onSubmitEditing={[Function]}
+                                      placeholderTextColor="#686e7d"
                                       returnKeyType="done"
                                       secureTextEntry={true}
                                       style={
@@ -831,8 +833,8 @@ exports[`CardAuthentication Component Login Step - Component Rendering matches l
                                           "fontWeight": "400",
                                           "height": 46,
                                           "letterSpacing": 0,
+                                          "lineHeight": 0,
                                           "opacity": 1,
-                                          "paddingVertical": 2,
                                           "textAlignVertical": "center",
                                         }
                                       }

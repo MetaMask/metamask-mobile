@@ -1,15 +1,15 @@
-import { loginToApp } from '../../../e2e/viewHelper.ts';
-import WalletView from '../../../e2e/pages/wallet/WalletView.ts';
-import FundActionMenu from '../../../e2e/pages/UI/FundActionMenu.ts';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.ts';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper.ts';
-import { SmokeRamps } from '../../../e2e/tags';
+import { loginToApp } from '../../flows/wallet.flow';
+import WalletView from '../../page-objects/wallet/WalletView';
+import FundActionMenu from '../../page-objects/UI/FundActionMenu';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import { SmokeRamps } from '../../tags';
 import { CustomNetworks } from '../../resources/networks.e2e';
-import BuildQuoteView from '../../../e2e/pages/Ramps/BuildQuoteView.ts';
-import Assertions from '../../framework/Assertions.ts';
-import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants.ts';
+import BuildQuoteView from '../../page-objects/Ramps/BuildQuoteView';
+import Assertions from '../../framework/Assertions';
+import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
 import { Mockttp } from 'mockttp';
-import { setupRegionAwareOnRampMocks } from '../../api-mocking/mock-responses/ramps/ramps-region-aware-mock-setup.ts';
+import { setupRegionAwareOnRampMocks } from '../../api-mocking/mock-responses/ramps/ramps-region-aware-mock-setup';
 
 describe(SmokeRamps('Off-ramp token amounts'), () => {
   beforeEach(async () => {

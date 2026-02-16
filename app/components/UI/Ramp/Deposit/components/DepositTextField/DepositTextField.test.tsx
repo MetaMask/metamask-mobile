@@ -52,9 +52,6 @@ describe('DepositTextField', () => {
     const wrapper = shallow(<DepositTextField {...defaultProps} />);
     const textFieldComponent = wrapper.find(TextField);
     expect(textFieldComponent.exists()).toBe(true);
-    expect(textFieldComponent.prop('placeholderTextColor')).toBe(
-      mockTheme.colors.text.muted,
-    );
     expect(textFieldComponent.prop('keyboardAppearance')).toBe(
       mockTheme.themeAppearance,
     );

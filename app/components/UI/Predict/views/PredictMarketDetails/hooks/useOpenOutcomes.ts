@@ -4,7 +4,6 @@ import type { PriceQuery, PredictMarket, PredictOutcome } from '../../../types';
 
 interface UseOpenOutcomesParams {
   market: PredictMarket | null;
-  providerId: string;
   isMarketFetching: boolean;
 }
 
@@ -16,7 +15,6 @@ interface UseOpenOutcomesResult {
 
 export const useOpenOutcomes = ({
   market,
-  providerId,
   isMarketFetching,
 }: UseOpenOutcomesParams): UseOpenOutcomesResult => {
   const closedOutcomes = useMemo(
@@ -46,7 +44,6 @@ export const useOpenOutcomes = ({
   // fetch real-time prices once after market loads
   const { prices } = usePredictPrices({
     queries: priceQueries,
-    providerId,
     enabled: !isMarketFetching && priceQueries.length > 0,
   });
 
