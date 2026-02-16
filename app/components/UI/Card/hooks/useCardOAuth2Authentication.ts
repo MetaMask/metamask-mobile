@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { Platform } from 'react-native';
 import {
   useAuthRequest,
@@ -6,7 +6,6 @@ import {
   type DiscoveryDocument,
   Prompt,
 } from 'expo-auth-session';
-import { warmUpAsync, coolDownAsync } from 'expo-web-browser';
 import { useDispatch, useSelector } from 'react-redux';
 import Logger from '../../../../util/Logger';
 import { storeCardBaanxToken } from '../util/cardTokenVault';
@@ -89,13 +88,6 @@ const useCardOAuth2Authentication = (): UseCardOAuth2AuthenticationReturn => {
 
   const redirectUri = getOAuthRedirectUri();
   const state = useMemo(() => generateState(), []);
-
-  useEffect(() => {
-    warmUpAsync();
-    return () => {
-      coolDownAsync();
-    };
-  }, []);
 
   const [request, , promptAsync] = useAuthRequest(
     {

@@ -1,9 +1,3 @@
-// Mock expo modules to prevent EventEmitter errors
-jest.mock('expo-web-browser', () => ({
-  warmUpAsync: jest.fn(),
-  coolDownAsync: jest.fn(),
-}));
-
 jest.mock('expo-auth-session', () => ({
   useAuthRequest: jest.fn(() => [null, null, jest.fn()]),
   ResponseType: { Code: 'code' },
