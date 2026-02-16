@@ -78,8 +78,7 @@ describe('SecretRecoveryPhrase', () => {
     const button = getByTestId(AccountDetailsIds.SECRET_RECOVERY_PHRASE_LINK);
     fireEvent.press(button);
 
-    expect(mockNavigate).toHaveBeenCalledWith('RootModalFlow', {
-      screen: 'SRPRevealQuiz',
+    expect(mockNavigate).toHaveBeenCalledWith('SRPRevealQuiz', {
       keyringId: 'mock-entropy-source',
     });
   });
@@ -95,9 +94,8 @@ describe('SecretRecoveryPhrase', () => {
     );
     fireEvent.press(backupButton);
 
-    expect(mockNavigate).toHaveBeenCalledWith('SetPasswordFlow', {
-      screen: 'ManualBackupStep1',
-      params: { backupFlow: true },
+    expect(mockNavigate).toHaveBeenCalledWith('ManualBackupStep1', {
+      backupFlow: true,
     });
   });
 });
