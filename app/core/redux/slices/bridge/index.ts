@@ -28,7 +28,7 @@ import {
   BridgeToken,
   BridgeViewMode,
 } from '../../../../components/UI/Bridge/types';
-import { MetaMetrics } from '../../../Analytics';
+import { analytics } from '../../../../util/analytics/analytics';
 import { selectRemoteFeatureFlags } from '../../../../selectors/featureFlagController';
 import { getTokenExchangeRate } from '../../../../components/UI/Bridge/utils/exchange-rates';
 import { selectCanSignTransactions } from '../../../../selectors/accountsController';
@@ -443,7 +443,7 @@ const selectControllerFields = (state: RootState) => ({
   ...state.engine.backgroundState.MultichainAssetsRatesController,
   ...state.engine.backgroundState.TokenRatesController,
   ...state.engine.backgroundState.CurrencyRateController,
-  participateInMetaMetrics: MetaMetrics.getInstance().isEnabled(),
+  participateInMetaMetrics: analytics.isEnabled(),
   remoteFeatureFlags: {
     bridgeConfig: selectRemoteFeatureFlags(state).bridgeConfig,
   },
