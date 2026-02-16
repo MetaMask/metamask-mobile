@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
 import { FlatList, ListRenderItem } from 'react-native';
+import { useSelector } from 'react-redux';
 import {
   Box,
   Text,
@@ -23,6 +24,19 @@ import {
   DropStatus,
 } from '../../../../../core/Engine/controllers/rewards-controller/types';
 import { DROP_LEADERBOARD_RANK_TBD } from '../../../../../reducers/rewards';
+import { useDropCommittedAddress } from '../../hooks/useDropCommittedAddress';
+import AvatarAccount from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
+import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
+import { selectAvatarAccountType } from '../../../../../selectors/settings';
+import { Skeleton } from '../../../../../component-library/components/Skeleton';
+
+/**
+ * Shortens an address to 0x1234...5678 format
+ */
+const shortenAddress = (address: string): string => {
+  if (address.length <= 12) return address;
+  return `${address.slice(0, 6)}...${address.slice(-4)}`;
+};
 
 interface DropLeaderboardProps {
   leaderboard: DropLeaderboardDto | null;
@@ -30,7 +44,10 @@ interface DropLeaderboardProps {
   error: string | null;
   canCommit: boolean;
   dropStatus: DropStatus;
+  dropId?: string;
   onAddMorePoints?: () => void;
+  onChangeAccount?: () => void;
+  isChangingAccount?: boolean;
 }
 
 const DropLeaderboard: React.FC<DropLeaderboardProps> = ({
@@ -39,15 +56,31 @@ const DropLeaderboard: React.FC<DropLeaderboardProps> = ({
   error,
   canCommit,
   dropStatus,
+  dropId,
   onAddMorePoints,
+  onChangeAccount,
+  isChangingAccount,
 }) => {
   const userRank = leaderboard?.userPosition?.rank;
+  const userPoints = leaderboard?.userPosition?.points;
+  const avatarAccountType = useSelector(selectAvatarAccountType);
+  const {
+    committedAddress,
+    accountGroupInfo,
+    isLoading: isLoadingCommittedAddress,
+  } = useDropCommittedAddress(dropId);
   const renderEntry: ListRenderItem<DropLeaderboardEntryDto> = useCallback(
     ({ item }) => {
       const isUserRow = userRank !== undefined && item.rank === userRank;
+      // If this is the user's row and the leaderboard entry has lower points than the user's actual points,
+      // use the user's points instead (handles stale leaderboard data)
+      const displayPoints =
+        isUserRow && userPoints !== undefined && item.points < userPoints
+          ? userPoints
+          : item.points;
       return (
         <Box
-          twClassName={`flex-row items-center py-3 px-2 ${isUserRow ? 'bg-primary-muted rounded-lg' : ''}`}
+          twClassName={`flex-row items-center py-3 px-2 rounded-lg`}
           testID={`leaderboard-entry-${item.rank}`}
         >
           {/* Rank circle */}
@@ -69,13 +102,13 @@ const DropLeaderboard: React.FC<DropLeaderboardProps> = ({
           {/* Points */}
           <Text variant={TextVariant.BodySm} twClassName="text-alternative">
             {strings('rewards.drop_detail.leaderboard_pts', {
-              points: formatNumber(item.points),
+              points: formatNumber(displayPoints),
             })}
           </Text>
         </Box>
       );
     },
-    [userRank],
+    [userRank, userPoints],
   );
 
   const keyExtractor = useCallback(
@@ -121,10 +154,13 @@ const DropLeaderboard: React.FC<DropLeaderboardProps> = ({
   const { userPosition, top20, totalParticipants } = leaderboard;
   const showAddMorePoints = canCommit && dropStatus === DropStatus.OPEN;
 
+  // Don't show user position if totalParticipants is 0 (empty leaderboard)
+  const showUserPosition = userPosition && totalParticipants > 0;
+
   return (
     <Box twClassName="gap-4" testID="drop-leaderboard">
       {/* User Position Panel */}
-      {userPosition && (
+      {showUserPosition && (
         <Box
           twClassName="bg-section rounded-xl p-4"
           testID="leaderboard-user-position"
@@ -159,22 +195,51 @@ const DropLeaderboard: React.FC<DropLeaderboardProps> = ({
           {/* Divider */}
           <Box twClassName="h-px bg-border-muted my-3" />
 
-          {/* Bottom row */}
+          {/* Bottom row - account info */}
           <Box twClassName="flex-row items-center">
-            <Text
-              variant={TextVariant.BodySm}
-              twClassName="flex-1 text-alternative"
-              numberOfLines={1}
-            >
-              {userPosition.identifier ?? '—'}
-            </Text>
-            <TextButton
-              size={TextButtonSize.BodySm}
-              isDisabled
-              testID="leaderboard-change-button"
-            >
-              {strings('rewards.drop_detail.leaderboard_change')}
-            </TextButton>
+            {isLoadingCommittedAddress || isChangingAccount ? (
+              <Box twClassName="flex-1">
+                <Skeleton width={120} height={16} />
+              </Box>
+            ) : accountGroupInfo ? (
+              <Box
+                twClassName="flex-row items-center flex-1"
+                testID="leaderboard-account-group"
+              >
+                <AvatarAccount
+                  accountAddress={accountGroupInfo.evmAddress}
+                  type={avatarAccountType}
+                  size={AvatarSize.Xs}
+                />
+                <Text
+                  variant={TextVariant.BodySm}
+                  twClassName="text-alternative ml-2"
+                  numberOfLines={1}
+                >
+                  {accountGroupInfo.name}
+                </Text>
+              </Box>
+            ) : (
+              <Text
+                variant={TextVariant.BodySm}
+                twClassName="flex-1 text-alternative"
+                numberOfLines={1}
+              >
+                {committedAddress
+                  ? shortenAddress(committedAddress)
+                  : (userPosition.identifier ?? '—')}
+              </Text>
+            )}
+
+            {!isLoadingCommittedAddress && !isChangingAccount && (
+              <TextButton
+                size={TextButtonSize.BodySm}
+                onPress={onChangeAccount}
+                testID="leaderboard-change-button"
+              >
+                {strings('rewards.drop_detail.leaderboard_change')}
+              </TextButton>
+            )}
           </Box>
         </Box>
       )}
@@ -196,7 +261,7 @@ const DropLeaderboard: React.FC<DropLeaderboardProps> = ({
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
           onPress={onAddMorePoints}
-          twClassName="w-full mt-4"
+          twClassName="w-full"
           testID="leaderboard-add-more-points"
         >
           {strings('rewards.drop_detail.leaderboard_add_more_points')}

@@ -15,10 +15,10 @@ import { OnboardingStep } from './types';
 import { AccountGroupId } from '@metamask/account-api';
 
 /**
- * Represents a recent drop commit stored in UI state.
+ * Represents a recent drop point commit stored in UI state.
  * Used to optimistically show user's position before backend caching is updated.
  */
-export interface RecentDropCommit {
+export interface RecentDropPointCommit {
   /** The commit response from the API */
   response: CommitDropPointsResponseDto;
   /** Unix timestamp (ms) when the commit was made */
@@ -26,10 +26,29 @@ export interface RecentDropCommit {
 }
 
 /**
- * Map of drop IDs to their most recent commit data.
+ * Map of drop IDs to their most recent point commit data.
  * Used to handle backend caching delays.
  */
-export type RecentDropCommitsMap = Record<string, RecentDropCommit>;
+export type RecentDropPointCommitsMap = Record<string, RecentDropPointCommit>;
+
+/**
+ * Represents a recent drop address commit stored in UI state.
+ * Used to optimistically show committed address before backend cache is updated.
+ */
+export interface RecentDropAddressCommit {
+  /** The blockchain address committed for this drop */
+  address: string;
+  /** Unix timestamp (ms) when the address was committed/updated */
+  committedAt: number;
+}
+
+/**
+ * Map of drop IDs to their most recent address commit data.
+ */
+export type RecentDropAddressCommitsMap = Record<
+  string,
+  RecentDropAddressCommit
+>;
 
 /** Time window (in ms) during which recent commit data is considered valid */
 export const RECENT_COMMIT_VALIDITY_WINDOW_MS = 5 * 60 * 1000; // 5 minutes
@@ -144,8 +163,11 @@ export interface RewardsState {
   seasonDropsLoading: boolean;
   seasonDropsError: boolean;
 
-  // Recent drop commits state (for handling backend caching delays)
-  recentDropCommits: RecentDropCommitsMap;
+  // Recent drop point commits state (for handling backend caching delays)
+  recentDropPointCommits: RecentDropPointCommitsMap;
+
+  // Recent drop address commits state (for optimistic address display)
+  recentDropAddressCommits: RecentDropAddressCommitsMap;
 }
 
 export const initialState: RewardsState = {
@@ -213,8 +235,11 @@ export const initialState: RewardsState = {
   seasonDropsLoading: false,
   seasonDropsError: false,
 
-  // Recent drop commits initial state
-  recentDropCommits: {},
+  // Recent drop point commits initial state
+  recentDropPointCommits: {},
+
+  // Recent drop address commits initial state
+  recentDropAddressCommits: {},
 };
 
 interface RehydrateAction extends Action<'persist/REHYDRATE'> {
@@ -380,7 +405,8 @@ const rewardsSlice = createSlice({
         state.unlockedRewards = initialState.unlockedRewards;
         state.seasonDrops = initialState.seasonDrops;
         // Also clear recent drop commits as they belong to the previous subscription
-        state.recentDropCommits = initialState.recentDropCommits;
+        state.recentDropPointCommits = initialState.recentDropPointCommits;
+        state.recentDropAddressCommits = initialState.recentDropAddressCommits;
       }
 
       state.candidateSubscriptionId = action.payload;
@@ -485,24 +511,41 @@ const rewardsSlice = createSlice({
       state.seasonDropsError = action.payload;
     },
 
-    // Recent drop commits reducers
-    setRecentDropCommit: (
+    // Recent drop point commits reducers
+    setRecentDropPointCommit: (
       state,
       action: PayloadAction<{
         dropId: string;
         response: CommitDropPointsResponseDto;
       }>,
     ) => {
-      state.recentDropCommits[action.payload.dropId] = {
+      state.recentDropPointCommits[action.payload.dropId] = {
         response: action.payload.response,
         committedAt: Date.now(),
       };
     },
-    clearRecentDropCommit: (state, action: PayloadAction<string>) => {
-      delete state.recentDropCommits[action.payload];
+    clearRecentDropPointCommit: (state, action: PayloadAction<string>) => {
+      delete state.recentDropPointCommits[action.payload];
     },
-    clearAllRecentDropCommits: (state) => {
-      state.recentDropCommits = {};
+    clearAllRecentDropPointCommits: (state) => {
+      state.recentDropPointCommits = {};
+    },
+
+    // Recent drop address commits reducers
+    setRecentDropAddressCommit: (
+      state,
+      action: PayloadAction<{
+        dropId: string;
+        address: string;
+      }>,
+    ) => {
+      state.recentDropAddressCommits[action.payload.dropId] = {
+        address: action.payload.address,
+        committedAt: Date.now(),
+      };
+    },
+    clearRecentDropAddressCommit: (state, action: PayloadAction<string>) => {
+      delete state.recentDropAddressCommits[action.payload];
     },
 
     // Bulk link reducers
@@ -579,23 +622,37 @@ const rewardsSlice = createSlice({
           const previousBulkLink = action.payload.rewards.bulkLink;
           const wasInterrupted = previousBulkLink?.isRunning === true;
 
-          let validRecentDropCommits: RecentDropCommitsMap = {};
+          let validRecentDropPointCommits: RecentDropPointCommitsMap = {};
+          let validRecentDropAddressCommits: RecentDropAddressCommitsMap = {};
 
           try {
-            // Filter out expired recent drop commits (older than 5 minutes)
+            // Filter out expired recent drop point commits (older than 5 minutes)
             const now = Date.now();
-            const previousRecentDropCommits =
-              action.payload.rewards.recentDropCommits ?? {};
+            const previousRecentDropPointCommits =
+              action.payload.rewards.recentDropPointCommits ?? {};
 
             for (const [dropId, commit] of Object.entries(
-              previousRecentDropCommits,
+              previousRecentDropPointCommits,
             )) {
               if (now - commit.committedAt < RECENT_COMMIT_VALIDITY_WINDOW_MS) {
-                validRecentDropCommits[dropId] = commit;
+                validRecentDropPointCommits[dropId] = commit;
+              }
+            }
+
+            // Filter out expired recent drop address commits
+            const previousRecentDropAddressCommits =
+              action.payload.rewards.recentDropAddressCommits ?? {};
+
+            for (const [dropId, commit] of Object.entries(
+              previousRecentDropAddressCommits,
+            )) {
+              if (now - commit.committedAt < RECENT_COMMIT_VALIDITY_WINDOW_MS) {
+                validRecentDropAddressCommits[dropId] = commit;
               }
             }
           } catch {
-            validRecentDropCommits = {};
+            validRecentDropPointCommits = {};
+            validRecentDropAddressCommits = {};
           }
 
           return {
@@ -629,8 +686,11 @@ const rewardsSlice = createSlice({
             hideCurrentAccountNotOptedInBanner:
               action.payload.rewards.hideCurrentAccountNotOptedInBanner,
 
-            // Recent drop commits - restore only valid (non-expired) entries
-            recentDropCommits: validRecentDropCommits,
+            // Recent drop point commits - restore only valid (non-expired) entries
+            recentDropPointCommits: validRecentDropPointCommits,
+
+            // Recent drop address commits - restore only valid (non-expired) entries
+            recentDropAddressCommits: validRecentDropAddressCommits,
 
             // Bulk link state - preserve interrupted status for resume capability
             bulkLink: {
@@ -692,10 +752,13 @@ export const {
   bulkLinkSubscriptionChanged,
   bulkLinkReset,
   bulkLinkResumed,
-  // Recent drop commits actions
-  setRecentDropCommit,
-  clearRecentDropCommit,
-  clearAllRecentDropCommits,
+  // Recent drop point commits actions
+  setRecentDropPointCommit,
+  clearRecentDropPointCommit,
+  clearAllRecentDropPointCommits,
+  // Recent drop address commits actions
+  setRecentDropAddressCommit,
+  clearRecentDropAddressCommit,
 } = rewardsSlice.actions;
 
 export default rewardsSlice.reducer;

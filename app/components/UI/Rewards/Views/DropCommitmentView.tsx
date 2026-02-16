@@ -13,7 +13,6 @@ import {
   Text,
   TextVariant,
   BoxFlexDirection,
-  FontWeight,
 } from '@metamask/design-system-react-native';
 import { useSelector } from 'react-redux';
 import Button, {
@@ -30,8 +29,10 @@ import { formatNumber } from '../utils/formatUtils';
 import PercentageButtons, {
   PercentageButtonOption,
 } from '../components/PercentageButtons/PercentageButtons';
+import RewardPointsAnimation, {
+  RewardAnimationState,
+} from '../components/RewardPointsAnimation';
 import { useCommitForDrop } from '../hooks/useCommitForDrop';
-import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
 import useRewardsToast from '../hooks/useRewardsToast';
 
 const PERCENTAGE_OPTIONS: PercentageButtonOption[] = [
@@ -56,19 +57,18 @@ const DropCommitmentView: React.FC = () => {
           dropId: string;
           dropName: string;
           hasExistingCommitment: boolean;
+          selectedBlockchainAddress?: string;
         };
       },
       'params'
     >
   >();
-  const { dropId, dropName, hasExistingCommitment } = route.params;
+  const { dropId, dropName, hasExistingCommitment, selectedBlockchainAddress } =
+    route.params;
   const { showToast, RewardsToastOptions } = useRewardsToast();
 
   // Get available points from season status
   const availablePoints = useSelector(selectBalanceTotal) ?? 0;
-  const selectedAccountAddress = useSelector(
-    selectSelectedInternalAccountAddress,
-  );
 
   // Commit for drop hook
   const { commitForDrop, isCommitting, commitError, clearCommitError } =
@@ -156,18 +156,18 @@ const DropCommitmentView: React.FC = () => {
       const response = await commitForDrop(
         dropId,
         amountValue,
-        selectedAccountAddress,
+        selectedBlockchainAddress,
       );
 
       if (response) {
-        showToast(
-          RewardsToastOptions.success(
-            strings('rewards.drops.commit_success_title'),
-            strings('rewards.drops.commit_success_description', {
-              points: formatNumber(amountValue),
-            }),
-          ),
-        );
+        const toastTitle = hasExistingCommitment
+          ? strings('rewards.drops.add_points_success_title')
+          : strings('rewards.drops.commit_success_title');
+        const toastDescription = hasExistingCommitment
+          ? strings('rewards.drops.add_points_success_description')
+          : strings('rewards.drops.commit_success_description');
+
+        showToast(RewardsToastOptions.success(toastTitle, toastDescription));
         navigation.goBack();
       }
     } catch {
@@ -183,15 +183,13 @@ const DropCommitmentView: React.FC = () => {
     commitForDrop,
     dropId,
     amountValue,
-    selectedAccountAddress,
+    selectedBlockchainAddress,
     showToast,
     RewardsToastOptions,
     navigation,
     commitError,
+    hasExistingCommitment,
   ]);
-
-  // Determine if commit button should be disabled
-  const isCommitDisabled = amountValue === 0 || isCommitting;
 
   return (
     <ErrorBoundary navigation={navigation} view="DropCommitmentView">
@@ -210,42 +208,64 @@ const DropCommitmentView: React.FC = () => {
             twClassName="items-center justify-center"
           >
             <Text
-              variant={TextVariant.DisplayLg}
-              fontWeight={FontWeight.Medium}
-              twClassName="text-default"
+              twClassName="text-default text-[64px] leading-[72px] font-['Geist-Medium']"
               testID="commitment-amount-display"
             >
               {formatNumber(amountValue)}
             </Text>
             <Animated.View
               style={[
-                tw.style('w-0.5 h-12 bg-primary-default ml-1'),
+                tw.style('w-0.5 h-16 bg-primary-default ml-1'),
                 { opacity: cursorOpacity },
               ]}
               testID="blinking-cursor"
             />
           </Box>
 
-          {/* Balance Label */}
-          <Text
-            variant={TextVariant.BodyMd}
-            twClassName="text-alternative mt-2"
+          {/* Balance Label with Rewards Icon */}
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            twClassName="items-center mt-2"
             testID="available-points-label"
           >
-            {strings('rewards.drops.points_available', {
-              points: formatNumber(availablePoints),
-            })}
-          </Text>
+            <RewardPointsAnimation
+              value={availablePoints}
+              variant={TextVariant.BodyMd}
+              state={RewardAnimationState.Idle}
+              height={16}
+              width={16}
+            />
+            <Text
+              variant={TextVariant.BodyMd}
+              twClassName="text-alternative ml-1"
+            >
+              {strings('rewards.drops.points_available_label')}
+            </Text>
+          </Box>
         </Box>
 
         {/* Keypad Section */}
         <Box twClassName="bg-background-alternative rounded-t-2xl pt-4 pb-6">
-          {/* Percentage Buttons */}
-          <PercentageButtons
-            options={PERCENTAGE_OPTIONS}
-            onPress={handlePercentagePress}
-            testID="percentage-buttons"
-          />
+          {/* Percentage Buttons or Confirm CTA */}
+          {amountValue > 0 ? (
+            <Box twClassName="px-4 mb-4">
+              <Button
+                testID="confirm-button"
+                label={strings('rewards.drops.confirm')}
+                variant={ButtonVariants.Primary}
+                size={ButtonSize.Lg}
+                onPress={handleCommitPress}
+                loading={isCommitting}
+                style={tw.style('w-full')}
+              />
+            </Box>
+          ) : (
+            <PercentageButtons
+              options={PERCENTAGE_OPTIONS}
+              onPress={handlePercentagePress}
+              testID="percentage-buttons"
+            />
+          )}
 
           {/* Numeric Keypad */}
           <KeypadComponent
@@ -259,20 +279,6 @@ const DropCommitmentView: React.FC = () => {
             }}
             testID="commitment-keypad"
           />
-
-          {/* Commit Button */}
-          <Box twClassName="px-4 mt-4">
-            <Button
-              testID="commit-button"
-              label={strings('rewards.drops.commit')}
-              variant={ButtonVariants.Primary}
-              size={ButtonSize.Lg}
-              onPress={handleCommitPress}
-              isDisabled={isCommitDisabled}
-              loading={isCommitting}
-              style={tw.style('w-full')}
-            />
-          </Box>
         </Box>
       </View>
     </ErrorBoundary>

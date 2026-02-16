@@ -4458,7 +4458,7 @@ describe('setSeasonDrops', () => {
     tokenAmount: '50000000000000000000000',
     tokenChainId: '1',
     tokenAddress: '0x1234567890abcdef1234567890abcdef12345678',
-    receivingBlockchain: 'Ethereum',
+    receivingBlockchain: 1,
     opensAt: '2025-03-01T00:00:00.000Z',
     closesAt: '2025-03-15T00:00:00.000Z',
     calculatedAt: '2025-03-16T00:00:00.000Z',
@@ -4575,7 +4575,7 @@ describe('setSeasonDropsLoading', () => {
       tokenSymbol: 'MONAD',
       tokenAmount: '50000000000000000000000',
       tokenChainId: '1',
-      receivingBlockchain: 'Ethereum',
+      receivingBlockchain: 1,
       opensAt: '2025-03-01T00:00:00.000Z',
       closesAt: '2025-03-15T00:00:00.000Z',
       image: {
@@ -4622,7 +4622,7 @@ describe('setSeasonDropsLoading', () => {
       tokenSymbol: 'MONAD',
       tokenAmount: '50000000000000000000000',
       tokenChainId: '1',
-      receivingBlockchain: 'Ethereum',
+      receivingBlockchain: 1,
       opensAt: '2025-03-01T00:00:00.000Z',
       closesAt: '2025-03-15T00:00:00.000Z',
       image: {
@@ -4733,7 +4733,7 @@ describe('setSeasonDropsError', () => {
       tokenSymbol: 'MONAD',
       tokenAmount: '50000000000000000000000',
       tokenChainId: '1',
-      receivingBlockchain: 'Ethereum',
+      receivingBlockchain: 1,
       opensAt: '2025-03-01T00:00:00.000Z',
       closesAt: '2025-03-15T00:00:00.000Z',
       image: {

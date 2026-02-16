@@ -82,7 +82,7 @@ const createTestDrop = (
   tokenAmount: '1000000000000000000000',
   tokenChainId: '1',
   tokenAddress: '0x1234567890abcdef1234567890abcdef12345678',
-  receivingBlockchain: 'Ethereum',
+  receivingBlockchain: 1,
   opensAt: '2025-03-01T00:00:00.000Z',
   closesAt: '2025-03-15T00:00:00.000Z',
   image: {

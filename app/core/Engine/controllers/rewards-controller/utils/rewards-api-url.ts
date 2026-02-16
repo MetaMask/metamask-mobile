@@ -6,7 +6,7 @@ export const getDefaultRewardsApiBaseUrlForMetaMaskEnv = (
   switch (metaMaskEnv) {
     case 'e2e':
     case 'exp':
-      return AppConstants.REWARDS_API_URL.UAT;
+      return AppConstants.REWARDS_API_URL.DEV;
     case 'production':
     case 'beta':
     case 'pre-release':
@@ -15,6 +15,6 @@ export const getDefaultRewardsApiBaseUrlForMetaMaskEnv = (
     case 'dev':
     case 'local':
     default:
-      return AppConstants.REWARDS_API_URL.UAT;
+      return AppConstants.REWARDS_API_URL.DEV;
   }
 };

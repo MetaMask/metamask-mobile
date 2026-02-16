@@ -4,20 +4,23 @@ import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import { handleRewardsErrorMessage } from '../utils';
 import Engine from '../../../../core/Engine';
 import type { CommitDropPointsResponseDto } from '../../../../core/Engine/controllers/rewards-controller/types';
-import { setRecentDropCommit } from '../../../../reducers/rewards';
+import {
+  setRecentDropPointCommit,
+  setRecentDropAddressCommit,
+} from '../../../../reducers/rewards';
 
 export interface UseCommitForDropResult {
   /**
    * Function to commit points to a drop
    * @param dropId - The drop ID to commit points to
    * @param points - The number of points to commit
-   * @param accountId - Optional account ID (required for first commitment)
+   * @param address - Optional blockchain address matching the drop's receivingBlockchain (required for first commitment)
    * @returns The commit response with commitment details and updated leaderboard position
    */
   commitForDrop: (
     dropId: string,
     points: number,
-    accountId?: string,
+    address?: string,
   ) => Promise<CommitDropPointsResponseDto | null>;
 
   /**
@@ -51,7 +54,7 @@ export const useCommitForDrop = (): UseCommitForDropResult => {
     async (
       dropId: string,
       points: number,
-      accountId?: string,
+      address?: string,
     ): Promise<CommitDropPointsResponseDto | null> => {
       if (!subscriptionId) {
         setCommitError('No subscription found. Please try again.');
@@ -77,11 +80,21 @@ export const useCommitForDrop = (): UseCommitForDropResult => {
           dropId,
           points,
           subscriptionId,
-          accountId,
+          address,
         );
 
-        // Store the recent commit in Redux to handle backend caching delays
-        dispatch(setRecentDropCommit({ dropId, response }));
+        // Store the recent point commit in Redux to handle backend caching delays
+        dispatch(
+          setRecentDropPointCommit({
+            dropId,
+            response,
+          }),
+        );
+
+        // Store the address commit separately if an address was provided (first commitment)
+        if (address) {
+          dispatch(setRecentDropAddressCommit({ dropId, address }));
+        }
 
         return response;
       } catch (error) {

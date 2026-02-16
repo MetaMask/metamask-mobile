@@ -29,6 +29,7 @@ import type {
   DropLeaderboardDto,
   CommitDropPointsDto,
   CommitDropPointsResponseDto,
+  UpdateDropReceivingAddressDto,
 } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
 import Logger from '../../../../../util/Logger';
@@ -215,6 +216,16 @@ export interface RewardsDataServiceCommitDropPointsAction {
   handler: RewardsDataService['commitDropPoints'];
 }
 
+export interface RewardsDataServiceUpdateDropReceivingAddressAction {
+  type: `${typeof SERVICE_NAME}:updateDropReceivingAddress`;
+  handler: RewardsDataService['updateDropReceivingAddress'];
+}
+
+export interface RewardsDataServiceGetDropCommittedAddressAction {
+  type: `${typeof SERVICE_NAME}:getDropCommittedAddress`;
+  handler: RewardsDataService['getDropCommittedAddress'];
+}
+
 export type RewardsDataServiceActions =
   | RewardsDataServiceLoginAction
   | RewardsDataServiceGetPointsEventsAction
@@ -240,7 +251,9 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceGetDropsAction
   | RewardsDataServiceGetDropEligibilityAction
   | RewardsDataServiceGetDropLeaderboardAction
-  | RewardsDataServiceCommitDropPointsAction;
+  | RewardsDataServiceCommitDropPointsAction
+  | RewardsDataServiceUpdateDropReceivingAddressAction
+  | RewardsDataServiceGetDropCommittedAddressAction;
 
 export type RewardsDataServiceMessenger = Messenger<
   typeof SERVICE_NAME,
@@ -383,11 +396,17 @@ export class RewardsDataService {
       `${SERVICE_NAME}:commitDropPoints`,
       this.commitDropPoints.bind(this),
     );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:updateDropReceivingAddress`,
+      this.updateDropReceivingAddress.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getDropCommittedAddress`,
+      this.getDropCommittedAddress.bind(this),
+    );
   }
 
   private getRewardsApiBaseUrl() {
-    // always using url from env var if set
-    if (process.env.REWARDS_API_URL) return process.env.REWARDS_API_URL;
     // otherwise using default per-env url
     return getDefaultRewardsApiBaseUrlForMetaMaskEnv(
       process.env.METAMASK_ENVIRONMENT,
@@ -1151,7 +1170,7 @@ export class RewardsDataService {
     subscriptionId: string,
   ): Promise<SeasonDropDto[]> {
     const response = await this.makeRequest(
-      `/v1/seasons/${seasonId}/drops`,
+      `/seasons/${seasonId}/drops`,
       {
         method: 'GET',
       },
@@ -1187,11 +1206,7 @@ export class RewardsDataService {
       throw new Error(`Get drop eligibility failed: ${response.status}`);
     }
 
-    const data = await response.json();
-
-    // Normalize drop status from backend format (OPEN, UPCOMING, etc.)
-    // to mobile format (live, upcoming, etc.)
-    return data as DropEligibilityDto;
+    return (await response.json()) as DropEligibilityDto;
   }
 
   /**
@@ -1221,7 +1236,7 @@ export class RewardsDataService {
 
   /**
    * Commit points to a drop.
-   * @param dto - The commit points request body containing dropId, points, and optional accountId.
+   * @param dto - The commit points request body containing dropId, points, and optional address.
    * @param subscriptionId - The subscription ID for authentication.
    * @returns The commit response with commitment details and updated leaderboard position.
    */
@@ -1247,5 +1262,71 @@ export class RewardsDataService {
     }
 
     return (await response.json()) as CommitDropPointsResponseDto;
+  }
+
+  /**
+   * Update the receiving address for a drop.
+   * @param dto - The update request body containing dropId and new address.
+   * @param subscriptionId - The subscription ID for authentication.
+   */
+  async updateDropReceivingAddress(
+    dto: UpdateDropReceivingAddressDto,
+    subscriptionId: string,
+  ): Promise<void> {
+    const response = await this.makeRequest(
+      `/wr/drops/${dto.dropId}/receiving-address`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify({ address: dto.address }),
+      },
+      subscriptionId,
+    );
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      Logger.log(
+        'RewardsDataService: updateDropReceivingAddress errorData',
+        errorData,
+      );
+      throw new Error(
+        errorData?.message ||
+          `Update drop receiving address failed: ${response.status}`,
+      );
+    }
+  }
+
+  /**
+   * Get the committed receiving address for a drop.
+   * @param dropId - The ID of the drop.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @returns The committed address string, or null if not found (404).
+   */
+  async getDropCommittedAddress(
+    dropId: string,
+    subscriptionId: string,
+  ): Promise<string | null> {
+    const response = await this.makeRequest(
+      `/drops/${dropId}/receiving-address`,
+      {
+        method: 'GET',
+      },
+      subscriptionId,
+    );
+
+    if (response.status === 404) {
+      return null;
+    }
+
+    if (!response.ok) {
+      throw new Error(`Get drop committed address failed: ${response.status}`);
+    }
+
+    const text = await response.text();
+    // The backend returns the address as a plain string (possibly JSON-quoted)
+    try {
+      return JSON.parse(text) as string;
+    } catch {
+      return text;
+    }
   }
 }

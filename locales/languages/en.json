@@ -7552,22 +7552,34 @@
       "leaderboard_rank_tbd": "#TBD",
       "leaderboard_pts": "{{points}} pts",
       "leaderboard_change": "Change",
-      "leaderboard_add_more_points": "Add more points"
+      "leaderboard_add_more_points": "Add more points",
+      "eligibility_error_title": "Unable to load eligibility",
+      "eligibility_error_description": "We couldn't check your eligibility for this airdrop. Please try again."
     },
     "drops": {
       "select_account_description": "Select an account and enter",
       "enter": "Enter",
       "add_points_for": "Add Points for {{dropName}}",
-      "enter_drop": "Enter {{dropName}}",
+      "enter_drop": "Enter {{dropName}} airdrop",
       "points_available": "{{points}} points available",
+      "points_available_label": "points available",
       "commit": "Submit",
+      "confirm": "Confirm",
       "enter_the_snapshot": "Enter the airdrop",
-      "spend_points_title": "Spend points and climb the leaderboard",
-      "spend_points_description": "The more you spend, the more you receive.",
+      "enter_the_drop": "Enter the airdrop",
+      "spend_points_title": "Redeem points and climb the leaderboard",
+      "spend_points_description": "Your share is based on how many points you redeem\u2014redeem more, claim more.",
       "commit_success_title": "You've joined the airdrop",
       "commit_success_description": "We'll notify you when it ends",
+      "add_points_success_title": "Added Points to airdrop",
+      "add_points_success_description": "Successfully added more points to the airdrop",
       "commit_error_title": "Failed to join the airdrop",
-      "commit_error_description": "Failed to join the airdrop. Please try again."
+      "commit_error_description": "Failed to join the airdrop. Please try again.",
+      "no_matching_account": "Selected account does not have a {{blockchain}} address",
+      "update_account_success_title": "Updated Drop Account",
+      "update_account_success_description": "Successfully updated receiving account for this drop",
+      "update_account_error_title": "Update Drop Account Failed",
+      "update_account_error_description": "Please try again later"
     }
   },
   "time": {

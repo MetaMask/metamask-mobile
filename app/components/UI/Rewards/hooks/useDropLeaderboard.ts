@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import {
   selectRewardsSubscriptionId,
-  selectRecentDropCommitByDropId,
+  selectRecentDropPointCommitByDropId,
 } from '../../../../selectors/rewards';
 import type { DropLeaderboardDto } from '../../../../core/Engine/controllers/rewards-controller/types';
 import { useInvalidateByRewardEvents } from './useInvalidateByRewardEvents';
@@ -39,7 +39,7 @@ export const useDropLeaderboard = (
 ): UseDropLeaderboardReturn => {
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const recentCommitSelector = useMemo(
-    () => selectRecentDropCommitByDropId(dropId ?? ''),
+    () => selectRecentDropPointCommitByDropId(dropId ?? ''),
     [dropId],
   );
   const recentCommit = useSelector(recentCommitSelector);

@@ -1,7 +1,8 @@
 import { createSelector } from '@reduxjs/toolkit';
 import { RootState } from '../../reducers';
 import {
-  RecentDropCommit,
+  RecentDropPointCommit,
+  RecentDropAddressCommit,
   RECENT_COMMIT_VALIDITY_WINDOW_MS,
 } from '../../reducers/rewards';
 
@@ -57,26 +58,54 @@ export const selectRewardsActiveAccountAddress = createSelector(
 );
 
 /**
- * Selector to get all recent drop commits
+ * Selector to get all recent drop point commits
  */
-export const selectRecentDropCommits = (state: RootState) =>
-  state.rewards.recentDropCommits;
+export const selectRecentDropPointCommits = (state: RootState) =>
+  state.rewards.recentDropPointCommits;
 
 /**
- * Factory selector to get a recent drop commit by drop ID.
+ * Factory selector to get a recent drop point commit by drop ID.
  * Returns the commit only if it's still within the validity window.
- * @param dropId - The drop ID to get the recent commit for
+ * @param dropId - The drop ID to get the recent point commit for
  */
-export const selectRecentDropCommitByDropId = (dropId: string) =>
+export const selectRecentDropPointCommitByDropId = (dropId: string) =>
   createSelector(
-    selectRecentDropCommits,
-    (recentDropCommits): RecentDropCommit | null => {
-      const commit = recentDropCommits[dropId];
+    selectRecentDropPointCommits,
+    (recentDropPointCommits): RecentDropPointCommit | null => {
+      const commit = recentDropPointCommits[dropId];
       if (!commit) {
         return null;
       }
 
-      // Check if the commit is still within the validity window
+      const now = Date.now();
+      if (now - commit.committedAt >= RECENT_COMMIT_VALIDITY_WINDOW_MS) {
+        return null;
+      }
+
+      return commit;
+    },
+  );
+
+/**
+ * Selector to get all recent drop address commits
+ */
+export const selectRecentDropAddressCommits = (state: RootState) =>
+  state.rewards.recentDropAddressCommits;
+
+/**
+ * Factory selector to get a recent drop address commit by drop ID.
+ * Returns the address commit only if it's still within the validity window.
+ * @param dropId - The drop ID to get the recent address commit for
+ */
+export const selectRecentDropAddressCommitByDropId = (dropId: string) =>
+  createSelector(
+    selectRecentDropAddressCommits,
+    (recentDropAddressCommits): RecentDropAddressCommit | null => {
+      const commit = recentDropAddressCommits[dropId];
+      if (!commit) {
+        return null;
+      }
+
       const now = Date.now();
       if (now - commit.committedAt >= RECENT_COMMIT_VALIDITY_WINDOW_MS) {
         return null;

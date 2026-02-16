@@ -3128,7 +3128,7 @@ describe('Rewards selectors', () => {
       tokenSymbol: 'TEST',
       tokenAmount: '1000000000000000000',
       tokenChainId: '1',
-      receivingBlockchain: 'Ethereum',
+      receivingBlockchain: 1,
       opensAt: '2024-01-01T00:00:00.000Z',
       closesAt: '2024-01-31T00:00:00.000Z',
       image: {

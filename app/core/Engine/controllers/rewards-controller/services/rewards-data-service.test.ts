@@ -3862,7 +3862,7 @@ describe('RewardsDataService', () => {
         tokenAmount: '50000000000000000000000',
         tokenChainId: '1',
         tokenAddress: '0x1234567890abcdef1234567890abcdef12345678',
-        receivingBlockchain: 'Ethereum',
+        receivingBlockchain: 1,
         opensAt: '2025-03-01T00:00:00.000Z',
         closesAt: '2025-03-15T00:00:00.000Z',
         calculatedAt: '2025-03-16T00:00:00.000Z',
@@ -3883,7 +3883,7 @@ describe('RewardsDataService', () => {
           lightModeUrl: 'https://example.com/light.png',
           darkModeUrl: 'https://example.com/dark.png',
         },
-        receivingBlockchain: 'Ethereum',
+        receivingBlockchain: 1,
         opensAt: '2025-04-01T00:00:00.000Z',
         closesAt: '2025-04-15T00:00:00.000Z',
       },
@@ -4016,6 +4016,157 @@ describe('RewardsDataService', () => {
           }),
         }),
       );
+    });
+  });
+
+  describe('getSnapshotLeaderboard', () => {
+    const mockSnapshotId = 'snapshot-abc-123';
+    const mockSubscriptionId = 'sub-456';
+    const mockToken = 'test-bearer-token';
+
+    const mockLeaderboardResponse = {
+      snapshotId: mockSnapshotId,
+      totalParticipants: 1500,
+      totalPointsCommitted: 5000000,
+      top20: [
+        { rank: 1, points: 98500, identifier: '0x1a2b...3c4d' },
+        { rank: 2, points: 87200, identifier: '0x2b3c...4d5e' },
+        { rank: 3, points: 76800, identifier: '0x3c4d...5e6f' },
+        { rank: 4, points: 65400, identifier: '0x4d5e...6f7a' },
+        { rank: 5, points: 54000, identifier: '0x5e6f...7a8b' },
+        { rank: 6, points: 48700, identifier: '0x6f7a...8b9c' },
+        { rank: 7, points: 42300, identifier: '0x7a8b...9c0d' },
+        { rank: 8, points: 38900, identifier: '0x8b9c...0d1e' },
+        { rank: 9, points: 35100, identifier: '0x9c0d...1e2f' },
+        { rank: 10, points: 31500, identifier: '0x0d1e...2f3a' },
+        { rank: 11, points: 28200, identifier: '0x1e2f...3a4b' },
+        { rank: 12, points: 25800, identifier: '0x2f3a...4b5c' },
+        { rank: 13, points: 22400, identifier: '0x3a4b...5c6d' },
+        { rank: 14, points: 19700, identifier: '0x4b5c...6d7e' },
+        { rank: 15, points: 17100, identifier: '0x5c6d...7e8f' },
+        { rank: 16, points: 14500, identifier: '0x6d7e...8f9a' },
+        { rank: 17, points: 12200, identifier: '0x7e8f...9a0b' },
+        { rank: 18, points: 9800, identifier: '0x8f9a...0b1c' },
+        { rank: 19, points: 7400, identifier: '0x9a0b...1c2d' },
+        { rank: 20, points: 5100, identifier: '0x0b1c...2d3e' },
+      ],
+      userPosition: { rank: 42, points: 3200, identifier: '0xabcd...ef01' },
+    };
+
+    beforeEach(() => {
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockLeaderboardResponse),
+      } as unknown as Response;
+      mockGetSubscriptionToken.mockResolvedValue({
+        success: true,
+        token: mockToken,
+      });
+      mockFetch.mockResolvedValue(mockResponse);
+    });
+
+    it('should successfully get snapshot leaderboard with 20 entries and user position', async () => {
+      // Act
+      const result = await service.getSnapshotLeaderboard(
+        mockSnapshotId,
+        mockSubscriptionId,
+      );
+
+      // Assert
+      expect(mockGetSubscriptionToken).toHaveBeenCalledWith(mockSubscriptionId);
+      expect(mockFetch).toHaveBeenCalledWith(
+        `https://api.rewards.test/snapshots/${mockSnapshotId}/leaderboard`,
+        expect.objectContaining({
+          method: 'GET',
+          headers: expect.objectContaining({
+            'Accept-Language': 'en-US',
+            'Content-Type': 'application/json',
+            'rewards-client-id': 'mobile-7.50.1',
+          }),
+          credentials: 'omit',
+        }),
+      );
+      expect(result.snapshotId).toBe(mockSnapshotId);
+      expect(result.totalParticipants).toBe(1500);
+      expect(result.totalPointsCommitted).toBe(5000000);
+      expect(result.top20).toHaveLength(20);
+      expect(result.top20[0]).toEqual({
+        rank: 1,
+        points: 98500,
+        identifier: '0x1a2b...3c4d',
+      });
+      expect(result.top20[19]).toEqual({
+        rank: 20,
+        points: 5100,
+        identifier: '0x0b1c...2d3e',
+      });
+      expect(result.userPosition).toEqual({
+        rank: 42,
+        points: 3200,
+        identifier: '0xabcd...ef01',
+      });
+    });
+
+    it('should throw error when response is not ok', async () => {
+      // Arrange
+      const mockResponse = {
+        ok: false,
+        status: 404,
+      } as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act & Assert
+      await expect(
+        service.getSnapshotLeaderboard(mockSnapshotId, mockSubscriptionId),
+      ).rejects.toThrow('Get snapshot leaderboard failed: 404');
+    });
+
+    it('should throw error when response is 500', async () => {
+      // Arrange
+      const mockResponse = {
+        ok: false,
+        status: 500,
+      } as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act & Assert
+      await expect(
+        service.getSnapshotLeaderboard(mockSnapshotId, mockSubscriptionId),
+      ).rejects.toThrow('Get snapshot leaderboard failed: 500');
+    });
+
+    it('should throw error when fetch fails', async () => {
+      // Arrange
+      const fetchError = new Error('Network error');
+      mockFetch.mockRejectedValue(fetchError);
+
+      // Act & Assert
+      await expect(
+        service.getSnapshotLeaderboard(mockSnapshotId, mockSubscriptionId),
+      ).rejects.toThrow('Network error');
+    });
+
+    it('should handle leaderboard without user position', async () => {
+      // Arrange
+      const responseWithoutUser = {
+        ...mockLeaderboardResponse,
+        userPosition: undefined,
+      };
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue(responseWithoutUser),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act
+      const result = await service.getSnapshotLeaderboard(
+        mockSnapshotId,
+        mockSubscriptionId,
+      );
+
+      // Assert
+      expect(result.top20).toHaveLength(20);
+      expect(result.userPosition).toBeUndefined();
     });
   });
 });

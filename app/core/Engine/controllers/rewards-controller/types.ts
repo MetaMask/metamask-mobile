@@ -198,10 +198,11 @@ export interface SeasonDropDto {
   tokenAddress?: string;
 
   /**
-   * The blockchain where tokens will be distributed
-   * @example 'Ethereum'
+   * The blockchain ID where tokens will be distributed.
+   * Maps to BlockchainEnum values (e.g. 1 = EVM, 2 = Solana).
+   * @example 1
    */
-  receivingBlockchain: string;
+  receivingBlockchain: number;
 
   /**
    * When the drop opens (ISO date string)
@@ -258,6 +259,16 @@ export enum DropStatus {
   CLOSED = 'CLOSED',
   CALCULATED = 'CALCULATED',
   DISTRIBUTED = 'DISTRIBUTED',
+}
+
+/**
+ * Enum representing supported blockchains for drop distributions.
+ */
+export enum BlockchainEnum {
+  EVM = 1,
+  SOLANA = 2,
+  BITCOIN = 3,
+  TRON = 4,
 }
 
 /**
@@ -395,10 +406,27 @@ export interface CommitDropPointsDto {
   points: number;
 
   /**
-   * Account ID (required for the first commitment)
-   * @example '12345'
+   * Blockchain address for the receiving chain (required for the first commitment)
+   * @example '0x1234...' or 'So1ana...'
    */
-  accountId?: string;
+  address?: string;
+}
+
+/**
+ * Request DTO for updating the receiving address of a drop
+ */
+export interface UpdateDropReceivingAddressDto {
+  /**
+   * The drop ID to update the receiving address for
+   * @example '01974010-377f-7553-a365-0c33c8130980'
+   */
+  dropId: string;
+
+  /**
+   * The new blockchain address for the receiving chain
+   * @example '0x1234...' or 'So1ana...'
+   */
+  address: string;
 }
 
 /**
@@ -1110,7 +1138,7 @@ export type DropsState = {
     tokenAmount: string;
     tokenChainId: string;
     tokenAddress?: string;
-    receivingBlockchain: string;
+    receivingBlockchain: number;
     opensAt: string;
     closesAt: string;
     calculatedAt?: string;
@@ -1148,6 +1176,15 @@ export type DropEligibilityState = {
     prerequisiteLogic: 'AND' | 'OR';
     prerequisiteStatuses: DropPrerequisiteStatusState[];
   };
+  lastFetched: number;
+};
+
+/**
+ * State shape for drop committed address cache (JSON-serializable)
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type DropCommittedAddressState = {
+  address: string | null;
   lastFetched: number;
 };
 
@@ -1485,6 +1522,7 @@ export type RewardsControllerState = {
   pointsEvents: { [compositeId: string]: PointsEventsDtoState };
   drops: { [seasonId: string]: DropsState };
   dropEligibilities: { [compositeId: string]: DropEligibilityState };
+  dropCommittedAddresses: { [compositeId: string]: DropCommittedAddressState };
   /**
    * History of points estimates for Customer Support diagnostics.
    * Stores the last N successful estimates to verify user-reported discrepancies.
@@ -1563,13 +1601,27 @@ export interface RewardsControllerDropCommitEvent {
 /**
  * Events that can be emitted by the RewardsController
  */
+/**
+ * Event emitted when the committed address for a drop changes (commit or update)
+ */
+export interface RewardsControllerDropAddressCommittedEvent {
+  type: 'RewardsController:dropAddressCommitted';
+  payload: [
+    {
+      dropId: string;
+      address: string;
+    },
+  ];
+}
+
 export type RewardsControllerEvents =
   | ControllerStateChangeEvent<'RewardsController', RewardsControllerState>
   | RewardsControllerAccountLinkedEvent
   | RewardsControllerRewardClaimedEvent
   | RewardsControllerBalanceUpdatedEvent
   | RewardsControllerPointsEventsUpdatedEvent
-  | RewardsControllerDropCommitEvent;
+  | RewardsControllerDropCommitEvent
+  | RewardsControllerDropAddressCommittedEvent;
 
 /**
  * Patch type for state changes
@@ -1899,8 +1951,28 @@ export interface RewardsControllerCommitDropPointsAction {
     dropId: string,
     points: number,
     subscriptionId: string,
-    accountId?: string,
+    address?: string,
   ) => Promise<CommitDropPointsResponseDto>;
+}
+
+/**
+ * Action for updating the receiving address of a drop
+ */
+export interface RewardsControllerUpdateDropReceivingAddressAction {
+  type: 'RewardsController:updateDropReceivingAddress';
+  handler: (
+    dropId: string,
+    address: string,
+    subscriptionId: string,
+  ) => Promise<void>;
+}
+
+/**
+ * Action for getting the committed receiving address for a drop
+ */
+export interface RewardsControllerGetDropCommittedAddressAction {
+  type: 'RewardsController:getDropCommittedAddress';
+  handler: (dropId: string, subscriptionId: string) => Promise<string | null>;
 }
 
 /**
@@ -1938,7 +2010,9 @@ export type RewardsControllerActions =
   | RewardsControllerApplyReferralCodeAction
   | RewardsControllerGetDropEligibilityAction
   | RewardsControllerGetDropLeaderboardAction
-  | RewardsControllerCommitDropPointsAction;
+  | RewardsControllerCommitDropPointsAction
+  | RewardsControllerUpdateDropReceivingAddressAction
+  | RewardsControllerGetDropCommittedAddressAction;
 
 /**
  * Input DTO for getting opt-in status of multiple addresses

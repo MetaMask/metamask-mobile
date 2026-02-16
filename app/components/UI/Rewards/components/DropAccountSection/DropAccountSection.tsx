@@ -26,6 +26,7 @@ import AvatarAccount from '../../../../../component-library/components/Avatars/A
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 import { createAccountSelectorNavDetails } from '../../../../Views/AccountSelector';
 import type { DropEligibilityDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
+import { useDropAccountSelection } from '../../hooks/useDropAccountSelection';
 
 /**
  * Props for the DropAccountSection component
@@ -37,9 +38,14 @@ interface DropAccountSectionProps {
   eligibility?: DropEligibilityDto | null;
 
   /**
-   * Callback when the Enter button is pressed
+   * Callback when the Enter button is pressed, receives the resolved blockchain address
    */
-  onEnterPress?: () => void;
+  onEnterPress?: (selectedBlockchainAddress: string) => void;
+
+  /**
+   * The blockchain ID where the drop distributes tokens (e.g. 1 = EVM, 2 = Solana)
+   */
+  receivingBlockchain?: number;
 }
 
 /**
@@ -59,12 +65,17 @@ interface DropAccountSectionProps {
  */
 const DropAccountSection: React.FC<DropAccountSectionProps> = ({
   onEnterPress,
+  receivingBlockchain,
 }) => {
   const tw = useTailwind();
   const navigation = useNavigation();
 
   // Account group selectors
   const selectedAccountGroup = useSelector(selectSelectedAccountGroup);
+
+  // Blockchain-aware account validation
+  const { selectedBlockchainAddress, hasValidAccount, accountError } =
+    useDropAccountSelection(receivingBlockchain);
   const avatarAccountType = useSelector(selectAvatarAccountType);
 
   // Get EVM address for avatar using the account group ID
@@ -90,16 +101,18 @@ const DropAccountSection: React.FC<DropAccountSectionProps> = ({
   }, [navigation]);
 
   const handleEnterPress = useCallback(() => {
-    onEnterPress?.();
-  }, [onEnterPress]);
+    if (selectedBlockchainAddress) {
+      onEnterPress?.(selectedBlockchainAddress);
+    }
+  }, [onEnterPress, selectedBlockchainAddress]);
 
   return (
-    <Box twClassName="w-full mt-6" testID="drop-account-section">
+    <Box twClassName="w-full" testID="drop-account-section">
       {/* Description label */}
       <Text
         variant={TextVariant.BodyMd}
         fontWeight={FontWeight.Medium}
-        twClassName="text-text-alternative mb-4"
+        twClassName="text-text-default mb-4"
         testID="drop-account-section-description"
       >
         {strings('rewards.drops.select_account_description')}
@@ -143,11 +156,23 @@ const DropAccountSection: React.FC<DropAccountSectionProps> = ({
         </TouchableOpacity>
       )}
 
+      {/* Account error message */}
+      {accountError && (
+        <Text
+          variant={TextVariant.BodySm}
+          twClassName="text-error-default mb-2"
+          testID="drop-account-error"
+        >
+          {accountError}
+        </Text>
+      )}
+
       {/* Enter Button */}
       <Button
         variant={ButtonVariant.Primary}
         size={ButtonSize.Lg}
         onPress={handleEnterPress}
+        isDisabled={!hasValidAccount}
         testID="drop-enter-button"
         twClassName="w-full"
       >

@@ -1,6 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { ScrollView, View } from 'react-native';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import {
+  useNavigation,
+  useRoute,
+  RouteProp,
+  useFocusEffect,
+} from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -15,6 +20,7 @@ import {
   ButtonIconSize,
   IconColor,
 } from '@metamask/design-system-react-native';
+import { Skeleton } from '../../../../component-library/components/Skeleton';
 import { getNavigationOptionsTitle } from '../../Navbar';
 import { strings } from '../../../../../locales/i18n';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
@@ -28,13 +34,16 @@ import {
   SeasonDropDto,
   DropStatus,
 } from '../../../../core/Engine/controllers/rewards-controller/types';
-import useRewardsToast from '../hooks/useRewardsToast';
 import Routes from '../../../../constants/navigation/Routes';
 import { useDropLeaderboard } from '../hooks/useDropLeaderboard';
 import DropCTAButtons from '../components/DropCTAButtons/DropCTAButtons';
 import DropAccountSection from '../components/DropAccountSection/DropAccountSection';
 import DropLeaderboard from '../components/DropLeaderboard';
 import useTooltipModal from '../../../hooks/useTooltipModal';
+import { useDropAccountSelection } from '../hooks/useDropAccountSelection';
+import { useUpdateDropReceivingAddress } from '../hooks/useUpdateDropReceivingAddress';
+import useRewardsToast from '../hooks/useRewardsToast';
+import { createAccountSelectorNavDetails } from '../../../Views/AccountSelector';
 
 /**
  * DropDetailView displays detailed information about a specific drop.
@@ -46,9 +55,13 @@ const DropDetailView: React.FC = () => {
   const { colors } = useTheme();
   const route = useRoute<RouteProp<{ params: { dropId: string } }, 'params'>>();
   const { dropId } = route?.params ?? { dropId: '' };
-  const { showToast, RewardsToastOptions } = useRewardsToast();
   const { openTooltipModal } = useTooltipModal();
-  const hasRedirected = useRef(false);
+  const { showToast, RewardsToastOptions } = useRewardsToast();
+
+  // Track pending account change for the "Change" flow (ref to avoid re-renders)
+  const pendingAccountChangeRef = useRef(false);
+  // Store the address at the time the user opens the account selector
+  const addressBeforeChangeRef = useRef<string | undefined>(undefined);
 
   // Get drops using the hook
   const { drops, isLoading, hasError, fetchDrops } = useSeasonDrops();
@@ -58,8 +71,12 @@ const DropDetailView: React.FC = () => {
   );
 
   // Fetch eligibility data for prerequisite statuses
-  const { eligibility, refetch: refetchEligibility } =
-    useDropEligibility(dropId);
+  const {
+    eligibility,
+    isLoading: isLoadingEligibility,
+    error: eligibilityError,
+    refetch: refetchEligibility,
+  } = useDropEligibility(dropId);
 
   const {
     leaderboard,
@@ -67,62 +84,120 @@ const DropDetailView: React.FC = () => {
     error: leaderboardError,
   } = useDropLeaderboard(dropId);
 
+  // Account selection for change flow
+  const { selectedBlockchainAddress, hasValidAccount } =
+    useDropAccountSelection(drop?.receivingBlockchain);
+  const { updateDropReceivingAddress, isUpdating } =
+    useUpdateDropReceivingAddress();
+
+  // Keep refs in sync for use inside the focus callback
+  const selectedAddressRef = useRef(selectedBlockchainAddress);
+  selectedAddressRef.current = selectedBlockchainAddress;
+  const hasValidAccountRef = useRef(hasValidAccount);
+  hasValidAccountRef.current = hasValidAccount;
+
+  const doChangeAccountUpdate = useCallback(
+    async (address: string) => {
+      const success = await updateDropReceivingAddress(dropId, address);
+      if (success) {
+        showToast(
+          RewardsToastOptions.success(
+            strings('rewards.drops.update_account_success_title'),
+            strings('rewards.drops.update_account_success_description'),
+          ),
+        );
+      } else {
+        showToast(
+          RewardsToastOptions.error(
+            strings('rewards.drops.update_account_error_title'),
+            strings('rewards.drops.update_account_error_description'),
+          ),
+        );
+      }
+    },
+    [dropId, updateDropReceivingAddress, showToast, RewardsToastOptions],
+  );
+
+  // When the screen regains focus after the account selector closes, trigger the update
+  useFocusEffect(
+    useCallback(() => {
+      if (!pendingAccountChangeRef.current) return;
+
+      pendingAccountChangeRef.current = false;
+      const newAddress = selectedAddressRef.current;
+      const addressBefore = addressBeforeChangeRef.current;
+      addressBeforeChangeRef.current = undefined;
+
+      if (
+        newAddress &&
+        hasValidAccountRef.current &&
+        newAddress !== addressBefore
+      ) {
+        doChangeAccountUpdate(newAddress);
+      }
+    }, [doChangeAccountUpdate]),
+  );
+
+  const handleChangeAccount = useCallback(() => {
+    addressBeforeChangeRef.current = selectedBlockchainAddress;
+    pendingAccountChangeRef.current = true;
+    navigation.navigate(
+      ...createAccountSelectorNavDetails({
+        disablePrivacyMode: true,
+        disableAddAccountButton: true,
+      }),
+    );
+  }, [navigation, selectedBlockchainAddress]);
+
   const hasCommitted = useMemo(
     () => Boolean(leaderboard?.userPosition?.points),
     [leaderboard],
   );
 
-  const sectionVisibility = useMemo(() => ({
+  const eligibilityUnavailable =
+    isLoadingEligibility || (eligibilityError && !eligibility);
+
+  const sectionVisibility = useMemo(
+    () => ({
       showQualifyNow: Boolean(
-        !eligibility?.eligible && eligibility?.canCommit && !hasCommitted,
+        !eligibilityUnavailable &&
+          !isLoadingLeaderboard &&
+          drop?.prerequisites &&
+          !eligibility?.eligible &&
+          eligibility?.canCommit &&
+          !hasCommitted,
       ),
       showCommitment: Boolean(
-        eligibility?.eligible && eligibility?.canCommit && !hasCommitted,
+        !eligibilityUnavailable &&
+          !isLoadingLeaderboard &&
+          eligibility?.eligible &&
+          eligibility?.canCommit &&
+          !hasCommitted,
       ),
       showLeaderboard: Boolean(
-        hasCommitted ||
-          (drop?.status !== DropStatus.UPCOMING &&
-            drop?.status !== DropStatus.OPEN),
+        !eligibilityUnavailable &&
+          (isLoadingLeaderboard ||
+            hasCommitted ||
+            (drop?.status !== DropStatus.UPCOMING &&
+              drop?.status !== DropStatus.OPEN)),
       ),
-    }), [
-    drop?.status,
-    eligibility?.eligible,
-    eligibility?.canCommit,
-    hasCommitted,
-  ]);
+    }),
+    [
+      eligibilityUnavailable,
+      isLoadingLeaderboard,
+      drop?.prerequisites,
+      drop?.status,
+      eligibility?.eligible,
+      eligibility?.canCommit,
+      hasCommitted,
+    ],
+  );
 
   useEffect(() => {
     if (drop) {
       refetchEligibility();
     }
   }, [drop, refetchEligibility]);
-
-  // Redirect to rewards dashboard if drop not found after loading
-  useEffect(() => {
-    if (
-      !isLoading &&
-      !hasError &&
-      !hasRedirected.current &&
-      (!dropId || !drop)
-    ) {
-      hasRedirected.current = true;
-      showToast(
-        RewardsToastOptions.error(
-          strings('rewards.drop_detail.toast_not_found_title'),
-          strings('rewards.drop_detail.toast_not_found_description'),
-        ),
-      );
-      navigation.navigate(Routes.REWARDS_DASHBOARD);
-    }
-  }, [
-    isLoading,
-    hasError,
-    dropId,
-    drop,
-    navigation,
-    showToast,
-    RewardsToastOptions,
-  ]);
 
   const handleInfoPress = useCallback(() => {
     openTooltipModal(
@@ -163,7 +238,7 @@ const DropDetailView: React.FC = () => {
   }, [colors, navigation, HeaderRight]);
 
   const renderSkeletonLoading = () => (
-    <Box twClassName="h-40 bg-background-muted rounded-lg animate-pulse" />
+    <Skeleton height={160} style={tw.style('rounded-lg')} />
   );
 
   const renderContent = () => {
@@ -195,10 +270,38 @@ const DropDetailView: React.FC = () => {
 
     return (
       <Box twClassName="gap-6">
-        <DropTile drop={drop} />
+        <DropTile drop={drop} disabled />
+
+        {eligibilityUnavailable && isLoadingEligibility && (
+          <Box twClassName="gap-6">
+            <Text variant={TextVariant.HeadingMd} twClassName="text-default">
+              {strings('rewards.drop_detail.qualify_now')}
+            </Text>
+            <DropPrerequisiteList
+              prerequisites={
+                drop?.prerequisites ?? { logic: 'AND', conditions: [] }
+              }
+              isLoading
+            />
+          </Box>
+        )}
+
+        {eligibilityError &&
+          !eligibilityUnavailable &&
+          !isLoadingEligibility && (
+            <RewardsErrorBanner
+              title={strings('rewards.drop_detail.eligibility_error_title')}
+              description={strings(
+                'rewards.drop_detail.eligibility_error_description',
+              )}
+              onConfirm={refetchEligibility}
+              confirmButtonLabel={strings('rewards.drop_detail.retry')}
+              testID="drop-eligibility-error-banner"
+            />
+          )}
 
         {/*  Qualify now section */}
-        {sectionVisibility.showQualifyNow && drop.prerequisites && (
+        {sectionVisibility.showQualifyNow && drop?.prerequisites && (
           <Box twClassName="gap-6">
             <Text variant={TextVariant.HeadingMd} twClassName="text-default">
               {strings('rewards.drop_detail.qualify_now')}
@@ -211,7 +314,7 @@ const DropDetailView: React.FC = () => {
           </Box>
         )}
 
-        {/*  Initial drop commitment section */}
+        {/*  Initial drop commitment section (info only - account selector pinned to bottom) */}
         {sectionVisibility.showCommitment && (
           <Box twClassName="gap-4">
             <Text variant={TextVariant.HeadingMd} twClassName="text-default">
@@ -219,7 +322,7 @@ const DropDetailView: React.FC = () => {
             </Text>
             <Box twClassName="gap-2">
               <Box flexDirection={BoxFlexDirection.Row} gap={3}>
-                <Icon name={IconName.Explore} size={IconSize.Lg} />
+                <Icon name={IconName.MountainFlag} size={IconSize.Lg} />
                 <Text
                   variant={TextVariant.BodyMd}
                   fontWeight={FontWeight.Medium}
@@ -239,16 +342,6 @@ const DropDetailView: React.FC = () => {
                 </Text>
               </Box>
             </Box>
-            <DropAccountSection
-              eligibility={eligibility}
-              onEnterPress={() =>
-                navigation.navigate(Routes.REWARDS_DROP_COMMITMENT, {
-                  dropId: drop.id,
-                  dropName: drop.name,
-                  hasExistingCommitment: false,
-                })
-              }
-            />
           </Box>
         )}
 
@@ -264,6 +357,16 @@ const DropDetailView: React.FC = () => {
               error={leaderboardError}
               canCommit={eligibility?.canCommit ?? false}
               dropStatus={drop?.status as DropStatus}
+              dropId={drop?.id}
+              onAddMorePoints={() =>
+                navigation.navigate(Routes.REWARDS_DROP_COMMITMENT, {
+                  dropId: drop?.id,
+                  dropName: drop?.name,
+                  hasExistingCommitment: true,
+                })
+              }
+              onChangeAccount={handleChangeAccount}
+              isChangingAccount={isUpdating}
             />
           </Box>
         )}
@@ -273,14 +376,32 @@ const DropDetailView: React.FC = () => {
 
   return (
     <ErrorBoundary navigation={navigation} view="DropDetailView">
-      <ScrollView
-        style={tw.style('flex-1')}
-        contentContainerStyle={tw.style('px-4 py-4')}
-        showsVerticalScrollIndicator={false}
-        testID="drop-detail-view"
-      >
-        {renderContent()}
-      </ScrollView>
+      <View style={tw.style('flex-1')}>
+        <ScrollView
+          style={tw.style('flex-1')}
+          contentContainerStyle={tw.style('px-4 py-4')}
+          showsVerticalScrollIndicator={false}
+          testID="drop-detail-view"
+        >
+          {renderContent()}
+        </ScrollView>
+        {sectionVisibility.showCommitment && drop && (
+          <View style={tw.style('px-4 pb-4 mb-4')}>
+            <DropAccountSection
+              eligibility={eligibility}
+              receivingBlockchain={drop.receivingBlockchain}
+              onEnterPress={(blockchainAddress) =>
+                navigation.navigate(Routes.REWARDS_DROP_COMMITMENT, {
+                  dropId: drop.id,
+                  dropName: drop.name,
+                  hasExistingCommitment: false,
+                  selectedBlockchainAddress: blockchainAddress,
+                })
+              }
+            />
+          </View>
+        )}
+      </View>
     </ErrorBoundary>
   );
 };

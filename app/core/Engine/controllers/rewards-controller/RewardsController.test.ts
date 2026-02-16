@@ -17774,11 +17774,11 @@ describe('RewardsController', () => {
         tokenAmount: string;
         tokenChainId: string;
         tokenAddress: string;
-        receivingBlockchain: string;
+        receivingBlockchain: number;
         opensAt: string;
         closesAt: string;
         calculatedAt: string;
-        backgroundImage: { lightModeUrl: string; darkModeUrl: string };
+        image: { lightModeUrl: string; darkModeUrl: string };
       }> = {},
     ) => ({
       id: 'snapshot-1',
@@ -17789,11 +17789,11 @@ describe('RewardsController', () => {
       tokenAmount: '50000000000000000000000',
       tokenChainId: '1',
       tokenAddress: '0x1234567890abcdef1234567890abcdef12345678',
-      receivingBlockchain: 'Monad',
+      receivingBlockchain: 1,
       opensAt: '2025-01-01T00:00:00.000Z',
       closesAt: '2025-01-15T00:00:00.000Z',
       calculatedAt: '2025-01-16T00:00:00.000Z',
-      backgroundImage: {
+      image: {
         lightModeUrl: 'https://example.com/snapshot-light.png',
         darkModeUrl: 'https://example.com/snapshot-dark.png',
       },
@@ -18211,7 +18211,7 @@ describe('RewardsController', () => {
         tokenAmount: '80000000000000000000000',
         tokenChainId: '137',
         tokenAddress: '0xabcdef1234567890abcdef1234567890abcdef12',
-        receivingBlockchain: 'Polygon',
+        receivingBlockchain: 1,
         opensAt: '2025-02-01T00:00:00.000Z',
         closesAt: '2025-02-28T00:00:00.000Z',
         calculatedAt: '2025-03-01T00:00:00.000Z',
@@ -18244,7 +18244,7 @@ describe('RewardsController', () => {
       expect(snapshot.tokenAddress).toBe(
         '0xabcdef1234567890abcdef1234567890abcdef12',
       );
-      expect(snapshot.receivingBlockchain).toBe('Polygon');
+      expect(snapshot.receivingBlockchain).toBe(1);
       expect(snapshot.opensAt).toBe('2025-02-01T00:00:00.000Z');
       expect(snapshot.closesAt).toBe('2025-02-28T00:00:00.000Z');
       expect(snapshot.calculatedAt).toBe('2025-03-01T00:00:00.000Z');

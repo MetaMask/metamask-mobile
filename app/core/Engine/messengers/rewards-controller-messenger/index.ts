@@ -46,9 +46,12 @@ import {
   RewardsDataServiceGetSeasonMetadataAction,
   RewardsDataServiceGetSeasonOneLineaRewardTokensAction,
   RewardsDataServiceApplyReferralCodeAction,
-  RewardsDataServiceGetSnapshotsAction,
-  RewardsDataServiceGetSnapshotEligibilityAction,
-  RewardsDataServiceGetSnapshotLeaderboardAction,
+  RewardsDataServiceGetDropsAction,
+  RewardsDataServiceGetDropEligibilityAction,
+  RewardsDataServiceGetDropLeaderboardAction,
+  RewardsDataServiceCommitDropPointsAction,
+  RewardsDataServiceUpdateDropReceivingAddressAction,
+  RewardsDataServiceGetDropCommittedAddressAction,
 } from '../../controllers/rewards-controller/services/rewards-data-service';
 import { RootMessenger } from '../../types';
 
@@ -82,9 +85,12 @@ type AllowedActions =
   | RewardsDataServiceGetSeasonMetadataAction
   | RewardsDataServiceGetSeasonOneLineaRewardTokensAction
   | RewardsDataServiceApplyReferralCodeAction
-  | RewardsDataServiceGetSnapshotsAction
-  | RewardsDataServiceGetSnapshotEligibilityAction
-  | RewardsDataServiceGetSnapshotLeaderboardAction;
+  | RewardsDataServiceGetDropsAction
+  | RewardsDataServiceGetDropEligibilityAction
+  | RewardsDataServiceGetDropLeaderboardAction
+  | RewardsDataServiceCommitDropPointsAction
+  | RewardsDataServiceUpdateDropReceivingAddressAction
+  | RewardsDataServiceGetDropCommittedAddressAction;
 
 // Don't reexport as per guidelines
 type AllowedEvents =
@@ -139,9 +145,12 @@ export function getRewardsControllerMessenger(
       'RewardsDataService:getSeasonMetadata',
       'RewardsDataService:getSeasonOneLineaRewardTokens',
       'RewardsDataService:applyReferralCode',
-      'RewardsDataService:getSnapshots',
-      'RewardsDataService:getSnapshotEligibility',
-      'RewardsDataService:getSnapshotLeaderboard',
+      'RewardsDataService:getDrops',
+      'RewardsDataService:getDropEligibility',
+      'RewardsDataService:getDropLeaderboard',
+      'RewardsDataService:commitDropPoints',
+      'RewardsDataService:updateDropReceivingAddress',
+      'RewardsDataService:getDropCommittedAddress',
     ],
     events: [
       'AccountTreeController:selectedAccountGroupChange',

@@ -6,6 +6,7 @@ import {
   TextVariant,
   FontWeight,
 } from '@metamask/design-system-react-native';
+import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import type {
   DropPrerequisiteDto,
   DropPrerequisitesDto,
@@ -29,6 +30,19 @@ interface DropPrerequisiteListProps {
    * title and description, making it the preferred data source when available.
    */
   prerequisiteStatuses?: DropPrerequisiteStatusDto[];
+
+  /**
+   * Whether to render skeleton placeholders instead of content.
+   * When true, renders `skeletonCount` skeleton items.
+   * @default false
+   */
+  isLoading?: boolean;
+
+  /**
+   * Number of skeleton items to render when isLoading is true.
+   * @default 2
+   */
+  skeletonCount?: number;
 }
 
 /**
@@ -70,6 +84,8 @@ const LogicSeparator: React.FC<LogicSeparatorProps> = ({ logic }) => (
 const DropPrerequisiteList: React.FC<DropPrerequisiteListProps> = ({
   prerequisites,
   prerequisiteStatuses,
+  isLoading = false,
+  skeletonCount = 2,
 }) => {
   const { logic, conditions } = prerequisites;
 
@@ -104,6 +120,29 @@ const DropPrerequisiteList: React.FC<DropPrerequisiteListProps> = ({
     () => <LogicSeparator logic={logic} />,
     [logic],
   );
+
+  if (isLoading) {
+    return (
+      <Box
+        testID="drop-prerequisite-list-skeleton"
+        twClassName="gap-2 flex-col"
+      >
+        {Array.from({ length: skeletonCount }, (_, i) => (
+          <React.Fragment key={i}>
+            {i > 0 && (
+              <Box twClassName="py-4">
+                <Skeleton width="100%" height={16} />
+              </Box>
+            )}
+            <DropPrerequisiteItem
+              loading
+              prerequisite={{} as DropPrerequisiteDto}
+            />
+          </React.Fragment>
+        ))}
+      </Box>
+    );
+  }
 
   return (
     <Box testID="drop-prerequisite-list">
