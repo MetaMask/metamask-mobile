@@ -286,6 +286,7 @@ exports[`SnapUIRenderer prefills interactive inputs with existing state 1`] = `
                     onBlur={[Function]}
                     onChangeText={[Function]}
                     onFocus={[Function]}
+                    placeholderTextColor="#686e7d"
                     style={
                       {
                         "backgroundColor": "inherit",
@@ -297,8 +298,8 @@ exports[`SnapUIRenderer prefills interactive inputs with existing state 1`] = `
                         "fontWeight": "400",
                         "height": 46,
                         "letterSpacing": 0,
+                        "lineHeight": 0,
                         "opacity": 1,
-                        "paddingVertical": 2,
                         "textAlignVertical": "center",
                       }
                     }
@@ -447,6 +448,7 @@ exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
                     onBlur={[Function]}
                     onChangeText={[Function]}
                     onFocus={[Function]}
+                    placeholderTextColor="#686e7d"
                     style={
                       {
                         "backgroundColor": "inherit",
@@ -458,8 +460,8 @@ exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
                         "fontWeight": "400",
                         "height": 46,
                         "letterSpacing": 0,
+                        "lineHeight": 0,
                         "opacity": 1,
-                        "paddingVertical": 2,
                         "textAlignVertical": "center",
                       }
                     }
@@ -542,6 +544,7 @@ exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
                     onBlur={[Function]}
                     onChangeText={[Function]}
                     onFocus={[Function]}
+                    placeholderTextColor="#686e7d"
                     secureTextEntry={true}
                     style={
                       {
@@ -554,8 +557,8 @@ exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
                         "fontWeight": "400",
                         "height": 46,
                         "letterSpacing": 0,
+                        "lineHeight": 0,
                         "opacity": 1,
-                        "paddingVertical": 2,
                         "textAlignVertical": "center",
                       }
                     }
@@ -703,6 +706,7 @@ exports[`SnapUIRenderer re-syncs state when the interface changes 1`] = `
                     onBlur={[Function]}
                     onChangeText={[Function]}
                     onFocus={[Function]}
+                    placeholderTextColor="#686e7d"
                     style={
                       {
                         "backgroundColor": "inherit",
@@ -714,8 +718,8 @@ exports[`SnapUIRenderer re-syncs state when the interface changes 1`] = `
                         "fontWeight": "400",
                         "height": 46,
                         "letterSpacing": 0,
+                        "lineHeight": 0,
                         "opacity": 1,
-                        "paddingVertical": 2,
                         "textAlignVertical": "center",
                       }
                     }
@@ -798,6 +802,7 @@ exports[`SnapUIRenderer re-syncs state when the interface changes 1`] = `
                     onBlur={[Function]}
                     onChangeText={[Function]}
                     onFocus={[Function]}
+                    placeholderTextColor="#686e7d"
                     style={
                       {
                         "backgroundColor": "inherit",
@@ -809,8 +814,8 @@ exports[`SnapUIRenderer re-syncs state when the interface changes 1`] = `
                         "fontWeight": "400",
                         "height": 46,
                         "letterSpacing": 0,
+                        "lineHeight": 0,
                         "opacity": 1,
-                        "paddingVertical": 2,
                         "textAlignVertical": "center",
                       }
                     }
@@ -1953,6 +1958,7 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                       onBlur={[Function]}
                       onChangeText={[Function]}
                       onFocus={[Function]}
+                      placeholderTextColor="#686e7d"
                       style={
                         {
                           "backgroundColor": "inherit",
@@ -1964,8 +1970,8 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                           "fontWeight": "400",
                           "height": 46,
                           "letterSpacing": 0,
+                          "lineHeight": 0,
                           "opacity": 1,
-                          "paddingVertical": 2,
                           "textAlignVertical": "center",
                         }
                       }
@@ -2151,6 +2157,7 @@ exports[`SnapUIRenderer supports interactive inputs 1`] = `
                     onBlur={[Function]}
                     onChangeText={[Function]}
                     onFocus={[Function]}
+                    placeholderTextColor="#686e7d"
                     style={
                       {
                         "backgroundColor": "inherit",
@@ -2162,8 +2169,8 @@ exports[`SnapUIRenderer supports interactive inputs 1`] = `
                         "fontWeight": "400",
                         "height": 46,
                         "letterSpacing": 0,
+                        "lineHeight": 0,
                         "opacity": 1,
-                        "paddingVertical": 2,
                         "textAlignVertical": "center",
                       }
                     }

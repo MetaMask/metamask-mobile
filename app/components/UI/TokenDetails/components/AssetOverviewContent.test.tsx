@@ -9,6 +9,11 @@ import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../util/test/accountsCo
 import { mockNetworkState } from '../../../../util/test/network';
 import { TokenOverviewSelectorsIDs } from '../../AssetOverview/TokenOverview.testIds';
 import { TimePeriod } from '../../../hooks/useTokenHistoricalPrices';
+import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
+import {
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+} from '@metamask/perps-controller';
 
 const MOCK_CHAIN_ID = '0x1';
 
@@ -36,6 +41,8 @@ const mockInitialState = {
 };
 
 const mockNavigate = jest.fn();
+const mockHandlePerpsAction = jest.fn();
+const mockTrack = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -67,7 +74,7 @@ jest.mock('../../Perps/hooks/usePerpsPositionForAsset', () => ({
 
 jest.mock('../../Perps/hooks/usePerpsEventTracking', () => ({
   usePerpsEventTracking: jest.fn(() => ({
-    track: jest.fn(),
+    track: mockTrack,
   })),
 }));
 
@@ -535,5 +542,124 @@ describe('AssetOverviewContent with Perps', () => {
     expect(
       queryByTestId(TokenOverviewSelectorsIDs.PERPS_POSITION_CARD),
     ).toBeNull();
+  });
+});
+
+describe('AssetOverviewContent Long/Short with perps eligibility', () => {
+  const createPerpsState = (isEligible: boolean) => ({
+    engine: {
+      backgroundState: {
+        ...backgroundState,
+        NetworkController: {
+          ...mockNetworkState({
+            chainId: MOCK_CHAIN_ID,
+            id: 'mainnet',
+            nickname: 'Ethereum Mainnet',
+            ticker: 'ETH',
+          }),
+        },
+        AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+        PerpsController: {
+          isEligible,
+        },
+        RemoteFeatureFlagController: {
+          remoteFeatureFlags: {},
+        },
+      },
+    },
+    settings: {
+      primaryCurrency: 'ETH',
+    },
+  });
+
+  const perpsProps: AssetOverviewContentProps = {
+    ...defaultProps,
+    isPerpsEnabled: true,
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    // Enable perps market
+    jest.requireMock('../hooks/usePerpsActions').usePerpsActions.mockReturnValue({
+      hasPerpsMarket: true,
+      marketData: { symbol: 'ETH', name: 'ETH', maxLeverage: '50x' },
+      isLoading: false,
+      error: null,
+      handlePerpsAction: mockHandlePerpsAction,
+    });
+  });
+
+  afterEach(() => {
+    // Reset to default
+    jest.requireMock('../hooks/usePerpsActions').usePerpsActions.mockReturnValue({
+      hasPerpsMarket: false,
+      marketData: null,
+      isLoading: false,
+      handlePerpsAction: null,
+    });
+  });
+
+  it('shows geo block modal and tracks event when Long is pressed and user is not eligible', () => {
+    const { getByTestId } = renderWithProvider(
+      <AssetOverviewContent {...perpsProps} />,
+      { state: createPerpsState(false) },
+    );
+
+    fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.LONG_BUTTON));
+
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+      {
+        [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+          PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+        [PERPS_EVENT_PROPERTY.SOURCE]:
+          PERPS_EVENT_VALUE.SOURCE.ASSET_DETAIL_SCREEN,
+      },
+    );
+    expect(mockHandlePerpsAction).not.toHaveBeenCalled();
+  });
+
+  it('shows geo block modal and tracks event when Short is pressed and user is not eligible', () => {
+    const { getByTestId } = renderWithProvider(
+      <AssetOverviewContent {...perpsProps} />,
+      { state: createPerpsState(false) },
+    );
+
+    fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.SHORT_BUTTON));
+
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+      {
+        [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+          PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+        [PERPS_EVENT_PROPERTY.SOURCE]:
+          PERPS_EVENT_VALUE.SOURCE.ASSET_DETAIL_SCREEN,
+      },
+    );
+    expect(mockHandlePerpsAction).not.toHaveBeenCalled();
+  });
+
+  it('calls handlePerpsAction with long when Long is pressed and user is eligible', () => {
+    const { getByTestId } = renderWithProvider(
+      <AssetOverviewContent {...perpsProps} />,
+      { state: createPerpsState(true) },
+    );
+
+    fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.LONG_BUTTON));
+
+    expect(mockHandlePerpsAction).toHaveBeenCalledWith('long');
+    expect(mockTrack).not.toHaveBeenCalled();
+  });
+
+  it('calls handlePerpsAction with short when Short is pressed and user is eligible', () => {
+    const { getByTestId } = renderWithProvider(
+      <AssetOverviewContent {...perpsProps} />,
+      { state: createPerpsState(true) },
+    );
+
+    fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.SHORT_BUTTON));
+
+    expect(mockHandlePerpsAction).toHaveBeenCalledWith('short');
+    expect(mockTrack).not.toHaveBeenCalled();
   });
 });

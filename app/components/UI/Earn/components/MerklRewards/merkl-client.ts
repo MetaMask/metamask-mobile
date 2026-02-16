@@ -9,8 +9,8 @@ import {
   AGLAMERKL_ADDRESS_LINEA,
   MERKL_API_BASE_URL,
   MERKL_DISTRIBUTOR_ADDRESS,
-  MERKL_CLAIM_CHAIN_ID,
   DISTRIBUTOR_CLAIMED_ABI,
+  MERKL_REWARDS_CACHE_TTL_MS,
 } from './constants';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { MUSD_TOKEN_ADDRESS_BY_CHAIN } from '../../constants/musd';
@@ -37,6 +37,100 @@ export interface MerklRewardData {
     recipient: string;
   }[];
 }
+
+// ---------------------------------------------------------------------------
+// In-memory cache for Merkl rewards API responses
+// Follows the Sentinel API caching pattern (TTL + request deduplication).
+//
+// The display hook (useMerklRewards) fetches on mount, warming the cache.
+// When the user taps "Claim bonus", useMerklClaim hits the warm cache
+// instead of waiting for a fresh network round-trip.
+// ---------------------------------------------------------------------------
+
+interface MerklCacheEntry {
+  data: MerklRewardData[];
+  timestamp: number;
+}
+
+/** Cached responses keyed by request URL */
+const merklCache = new Map<string, MerklCacheEntry>();
+
+/** In-flight requests keyed by URL for deduplication */
+const pendingRequests = new Map<string, Promise<MerklRewardData[]>>();
+
+/**
+ * Clear the entire Merkl rewards cache.
+ * Call after a successful claim so the next fetch reflects the new on-chain state.
+ */
+export const clearMerklRewardsCache = (): void => {
+  merklCache.clear();
+  // Pending requests are intentionally left alone — callers already
+  // hold references to those promises and will get the in-flight result.
+};
+
+/**
+ * Fetch raw Merkl reward data with caching and request deduplication.
+ *
+ * 1. If a cached response exists and is within TTL → return immediately.
+ * 2. If an identical request is already in-flight → return that promise (dedup).
+ * 3. Otherwise, fire a new request, cache the result, and return.
+ *
+ * **Signal handling**: The `signal` is intentionally NOT forwarded to the
+ * underlying `fetch()`. Because concurrent requests are deduplicated into a
+ * single promise, forwarding one caller's signal would abort the shared
+ * request for *all* callers. Instead, each caller's signal is checked after
+ * the shared promise settles, so aborting one consumer never affects others.
+ */
+const fetchMerklRewardsCached = async (
+  url: string,
+  signal?: AbortSignal,
+): Promise<MerklRewardData[]> => {
+  // Respect the caller's abort signal before doing any work
+  signal?.throwIfAborted();
+
+  // 1. Check cache
+  const cached = merklCache.get(url);
+  if (cached && Date.now() - cached.timestamp < MERKL_REWARDS_CACHE_TTL_MS) {
+    return cached.data;
+  }
+
+  // 2. Deduplicate concurrent requests to the same URL
+  const pending = pendingRequests.get(url);
+  if (pending) {
+    // Await the shared promise, then honour *this* caller's signal
+    const data = await pending;
+    signal?.throwIfAborted();
+    return data;
+  }
+
+  // 3. Fire a new request — no signal passed so one caller can't cancel for all
+  const request = (async (): Promise<MerklRewardData[]> => {
+    try {
+      const response = await fetch(url);
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch Merkl rewards: ${response.status}`);
+      }
+
+      const data: MerklRewardData[] = await response.json();
+
+      // Populate cache before clearing the pending slot
+      merklCache.set(url, { data, timestamp: Date.now() });
+
+      return data;
+    } finally {
+      // Clear pending slot so cache TTL governs the next fetch
+      pendingRequests.delete(url);
+    }
+  })();
+
+  pendingRequests.set(url, request);
+
+  const data = await request;
+  // Honour this caller's signal after the shared request completes
+  signal?.throwIfAborted();
+  return data;
+};
 
 /**
  * Options for fetching Merkl rewards
@@ -111,20 +205,15 @@ export const fetchMerklRewards = async (
 ): Promise<MerklRewardData['rewards'][0] | null> => {
   const url = buildRewardsUrl(userAddress, chainIds, tokenAddress);
 
-  const response = await fetch(url, {
-    signal,
-  });
-
-  if (!response.ok) {
+  try {
+    const data = await fetchMerklRewardsCached(url, signal);
+    return findMatchingReward(data, tokenAddress);
+  } catch (error) {
     if (throwOnError) {
-      throw new Error(`Failed to fetch Merkl rewards: ${response.status}`);
+      throw error;
     }
     return null;
   }
-
-  const data: MerklRewardData[] = await response.json();
-
-  return findMatchingReward(data, tokenAddress);
 };
 
 /**
@@ -190,18 +279,6 @@ export const fetchMerklRewardsForAsset = async (
     },
     throwOnError,
   );
-};
-
-/**
- * Get the chain ID to use for claiming rewards.
- * For mUSD, claims always go to Linea regardless of which chain the user is viewing.
- */
-export const getClaimChainId = (asset: TokenI): Hex => {
-  const tokenAddress = asset.address as Hex;
-  if (isMusdToken(tokenAddress)) {
-    return MERKL_CLAIM_CHAIN_ID;
-  }
-  return asset.chainId as Hex;
 };
 
 /**
