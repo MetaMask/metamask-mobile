@@ -6,6 +6,7 @@ import AccountConnect from './AccountConnect';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { RootState } from '../../../reducers';
 import { WC2VerifyValidation } from '../../../actions/sdk/state';
+import { AccountConnectMaliciousWarningSelectorsIDs } from './AccountConnectMaliciousWarning/AccountConnectMaliciousWarning.testIds';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import Engine from '../../../core/Engine';
 import {
@@ -1153,6 +1154,40 @@ describe('AccountConnect', () => {
   });
 
   describe('WalletConnect Verify API - malicious dapp flow', () => {
+    const mockMaliciousState = {
+      ...mockInitialState,
+      sdk: {
+        wc2Metadata: {
+          id: 'mock-wc2-id',
+          url: 'https://malicious-dapp.com',
+          name: 'Malicious Dapp',
+          icon: '',
+          verifyContext: {
+            isScam: true,
+            validation: WC2VerifyValidation.INVALID,
+            verifiedOrigin: 'https://malicious-dapp.com',
+          },
+        },
+      },
+    };
+
+    const maliciousRoute = {
+      params: {
+        hostInfo: {
+          metadata: {
+            id: 'mockId',
+            origin: 'wc-channel-id',
+          },
+          permissions: createMockCaip25Permission({
+            'wallet:eip155': {
+              accounts: [],
+            },
+          }),
+        },
+        permissionRequestId: 'test-malicious',
+      },
+    };
+
     beforeEach(() => {
       mockGetConnection.mockReset();
       mockGetConnection.mockReturnValue(undefined);
@@ -1161,54 +1196,85 @@ describe('AccountConnect', () => {
       jest.clearAllMocks();
     });
 
-    it('renders the danger Connect button when dapp is flagged as malicious', () => {
-      const mockStateWithMalicious = {
-        ...mockInitialState,
-        sdk: {
-          wc2Metadata: {
-            id: 'mock-wc2-id',
-            url: 'https://malicious-dapp.com',
-            name: 'Malicious Dapp',
-            icon: '',
-            verifyContext: {
-              isScam: true,
-              validation: WC2VerifyValidation.INVALID,
-              verifiedOrigin: 'https://malicious-dapp.com',
-            },
-          },
-        },
-      };
-
+    it('renders the initial connect screen with connect button for a malicious dapp', () => {
       const { getByTestId, getByText } = renderWithProvider(
-        <AccountConnect
-          route={{
-            params: {
-              hostInfo: {
-                metadata: {
-                  id: 'mockId',
-                  origin: 'wc-channel-id',
-                },
-                permissions: createMockCaip25Permission({
-                  'wallet:eip155': {
-                    accounts: [],
-                  },
-                }),
-              },
-              permissionRequestId: 'test',
-            },
-          }}
-        />,
-        { state: mockStateWithMalicious },
+        <AccountConnect route={maliciousRoute} />,
+        { state: mockMaliciousState },
       );
 
-      const permissionsContainer = getByTestId('permission-summary-container');
-      expect(permissionsContainer).toBeDefined();
-      // The connect button should still be present
+      expect(getByTestId('permission-summary-container')).toBeDefined();
       expect(getByText('Connect')).toBeDefined();
     });
 
-    it('does not show malicious UI when verifyContext is absent', () => {
-      const mockStateWithCleanWC2 = {
+    it('shows MaliciousWarning screen when confirm is pressed on a malicious dapp', async () => {
+      const { getByTestId, findByTestId } = renderWithProvider(
+        <AccountConnect route={maliciousRoute} />,
+        { state: mockMaliciousState },
+      );
+
+      const connectButton = getByTestId('connect-button');
+      fireEvent.press(connectButton);
+
+      const warningContainer = await findByTestId(
+        AccountConnectMaliciousWarningSelectorsIDs.CONTAINER,
+      );
+      expect(warningContainer).toBeDefined();
+    });
+
+    it('completes connection when Connect Anyway is pressed on MaliciousWarning', async () => {
+      const mockAcceptPermissionsRequest = jest
+        .fn()
+        .mockResolvedValue(undefined);
+      Engine.context.PermissionController.acceptPermissionsRequest =
+        mockAcceptPermissionsRequest;
+
+      const { getByTestId, findByTestId } = renderWithProvider(
+        <AccountConnect route={maliciousRoute} />,
+        { state: mockMaliciousState },
+      );
+
+      // Step 1: press Connect to navigate to MaliciousWarning
+      fireEvent.press(getByTestId('connect-button'));
+
+      // Step 2: press Connect Anyway to complete the connection
+      const connectAnywayButton = await findByTestId(
+        AccountConnectMaliciousWarningSelectorsIDs.CONNECT_ANYWAY_BUTTON,
+      );
+      fireEvent.press(connectAnywayButton);
+
+      await waitFor(() => {
+        expect(mockAcceptPermissionsRequest).toHaveBeenCalled();
+      });
+    });
+
+    it('returns to initial connect screen when close is pressed on MaliciousWarning', async () => {
+      const { getByTestId, findByTestId } = renderWithProvider(
+        <AccountConnect route={maliciousRoute} />,
+        { state: mockMaliciousState },
+      );
+
+      // Navigate to MaliciousWarning
+      fireEvent.press(getByTestId('connect-button'));
+
+      const closeButton = await findByTestId(
+        AccountConnectMaliciousWarningSelectorsIDs.CLOSE_BUTTON,
+      );
+      fireEvent.press(closeButton);
+
+      // Should be back on the initial connect screen
+      await waitFor(() => {
+        expect(getByTestId('permission-summary-container')).toBeDefined();
+      });
+    });
+
+    it('does not show MaliciousWarning when confirm is pressed on a clean dapp', async () => {
+      const mockAcceptPermissionsRequest = jest
+        .fn()
+        .mockResolvedValue(undefined);
+      Engine.context.PermissionController.acceptPermissionsRequest =
+        mockAcceptPermissionsRequest;
+
+      const cleanState = {
         ...mockInitialState,
         sdk: {
           wc2Metadata: {
@@ -1220,14 +1286,15 @@ describe('AccountConnect', () => {
         },
       };
 
-      const { getByTestId, getByText } = renderWithProvider(
+      const { getByTestId, queryByTestId } = renderWithProvider(
         <AccountConnect
           route={{
             params: {
               hostInfo: {
                 metadata: {
                   id: 'mockId',
-                  origin: 'wc-channel-id',
+                  origin: 'https://clean-dapp.com',
+                  isEip1193Request: true,
                 },
                 permissions: createMockCaip25Permission({
                   'wallet:eip155': {
@@ -1235,20 +1302,26 @@ describe('AccountConnect', () => {
                   },
                 }),
               },
-              permissionRequestId: 'test',
+              permissionRequestId: 'test-clean',
             },
           }}
         />,
-        { state: mockStateWithCleanWC2 },
+        { state: cleanState },
       );
 
-      const permissionsContainer = getByTestId('permission-summary-container');
-      expect(permissionsContainer).toBeDefined();
-      expect(getByText('Connect')).toBeDefined();
+      fireEvent.press(getByTestId('connect-button'));
+
+      await waitFor(() => {
+        expect(mockAcceptPermissionsRequest).toHaveBeenCalled();
+      });
+
+      expect(
+        queryByTestId(AccountConnectMaliciousWarningSelectorsIDs.CONTAINER),
+      ).toBeNull();
     });
 
     it('does not show malicious UI when isScam is false', () => {
-      const mockStateWithVerifiedWC2 = {
+      const verifiedState = {
         ...mockInitialState,
         sdk: {
           wc2Metadata: {
@@ -1265,37 +1338,19 @@ describe('AccountConnect', () => {
         },
       };
 
-      const { getByTestId, getByText } = renderWithProvider(
-        <AccountConnect
-          route={{
-            params: {
-              hostInfo: {
-                metadata: {
-                  id: 'mockId',
-                  origin: 'wc-channel-id',
-                },
-                permissions: createMockCaip25Permission({
-                  'wallet:eip155': {
-                    accounts: [],
-                  },
-                }),
-              },
-              permissionRequestId: 'test',
-            },
-          }}
-        />,
-        { state: mockStateWithVerifiedWC2 },
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <AccountConnect route={maliciousRoute} />,
+        { state: verifiedState },
       );
 
-      const permissionsContainer = getByTestId('permission-summary-container');
-      expect(permissionsContainer).toBeDefined();
-      expect(getByText('Connect')).toBeDefined();
+      expect(getByTestId('permission-summary-container')).toBeDefined();
+      expect(
+        queryByTestId(AccountConnectMaliciousWarningSelectorsIDs.CONTAINER),
+      ).toBeNull();
     });
 
     it('does not flag non-WalletConnect connections as malicious', () => {
-      // When wc2Metadata.id is empty, it's not a WalletConnect connection,
-      // so even if verifyContext were present it should not be flagged
-      const mockStateWithEmptyWC2 = {
+      const nonWcState = {
         ...mockInitialState,
         sdk: {
           wc2Metadata: {
@@ -1311,31 +1366,27 @@ describe('AccountConnect', () => {
         },
       };
 
-      const { getByTestId, getByText } = renderWithProvider(
+      const { getByTestId, queryByTestId } = renderWithProvider(
         <AccountConnect
           route={{
             params: {
               hostInfo: {
-                metadata: {
-                  id: 'mockId',
-                  origin: 'some-origin',
-                },
+                metadata: { id: 'mockId', origin: 'some-origin' },
                 permissions: createMockCaip25Permission({
-                  'wallet:eip155': {
-                    accounts: [],
-                  },
+                  'wallet:eip155': { accounts: [] },
                 }),
               },
               permissionRequestId: 'test',
             },
           }}
         />,
-        { state: mockStateWithEmptyWC2 },
+        { state: nonWcState },
       );
 
-      const permissionsContainer = getByTestId('permission-summary-container');
-      expect(permissionsContainer).toBeDefined();
-      expect(getByText('Connect')).toBeDefined();
+      expect(getByTestId('permission-summary-container')).toBeDefined();
+      expect(
+        queryByTestId(AccountConnectMaliciousWarningSelectorsIDs.CONTAINER),
+      ).toBeNull();
     });
   });
 });

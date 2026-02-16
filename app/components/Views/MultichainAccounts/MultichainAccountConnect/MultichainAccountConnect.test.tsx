@@ -26,6 +26,7 @@ import { KeyringTypes } from '@metamask/keyring-controller';
 import { PermissionDoesNotExistError } from '@metamask/permission-controller';
 import { RpcEndpointType, NetworkStatus } from '@metamask/network-controller';
 import { WC2VerifyValidation } from '../../../../actions/sdk/state';
+import { AccountConnectMaliciousWarningSelectorsIDs } from '../../AccountConnect/AccountConnectMaliciousWarning/AccountConnectMaliciousWarning.testIds';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -2157,12 +2158,6 @@ describe('MultichainAccountConnect', () => {
   });
 
   describe('WalletConnect Verify API - malicious dapp flow', () => {
-    beforeEach(() => {
-      jest.clearAllMocks();
-      mockGetConnection.mockReturnValue(undefined);
-      mockIsUUID.mockReturnValue(false);
-    });
-
     const createMaliciousWC2State = () => {
       const state = createMockState();
       return {
@@ -2183,85 +2178,141 @@ describe('MultichainAccountConnect', () => {
       };
     };
 
-    const createCleanWC2State = () => {
-      const state = createMockState();
-      return {
-        ...state,
-        sdk: {
-          wc2Metadata: {
-            id: 'mock-wc2-id',
-            url: 'https://safe-dapp.com',
-            name: 'Safe Dapp',
-            icon: '',
-            verifyContext: {
-              isScam: false,
-              validation: WC2VerifyValidation.VALID,
-              verifiedOrigin: 'https://safe-dapp.com',
-            },
+    const maliciousRoute = {
+      params: {
+        hostInfo: {
+          metadata: {
+            id: 'mockId',
+            origin: 'wc-channel-id',
+            isEip1193Request: true,
           },
+          permissions: createMockCaip25Permission({
+            'wallet:eip155': {
+              accounts: [],
+            },
+          }),
         },
-      };
+        permissionRequestId: 'test-malicious',
+      },
     };
 
-    it('renders connect button for a WalletConnect malicious dapp', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+      mockGetConnection.mockReturnValue(undefined);
+      mockIsUUID.mockReturnValue(false);
+    });
+
+    it('renders the initial connect screen with connect button for a malicious dapp', () => {
       const { getByTestId } = renderWithProvider(
-        <MultichainAccountConnect
-          route={{
-            params: {
-              hostInfo: {
-                metadata: {
-                  id: 'mockId',
-                  origin: 'wc-channel-id',
-                  isEip1193Request: true,
-                },
-                permissions: createMockCaip25Permission({
-                  'wallet:eip155': {
-                    accounts: [],
-                  },
-                }),
-              },
-              permissionRequestId: 'test',
-            },
-          }}
-        />,
+        <MultichainAccountConnect route={maliciousRoute} />,
         { state: createMaliciousWC2State() },
       );
 
       expect(getByTestId(CommonSelectorsIDs.CONNECT_BUTTON)).toBeTruthy();
     });
 
-    it('renders connect button for clean WalletConnect dapp', () => {
-      const { getByTestId } = renderWithProvider(
+    it('shows MaliciousWarning screen when confirm is pressed on a malicious dapp', async () => {
+      const { getByTestId, findByTestId } = renderWithProvider(
+        <MultichainAccountConnect route={maliciousRoute} />,
+        { state: createMaliciousWC2State() },
+      );
+
+      const connectButton = getByTestId(CommonSelectorsIDs.CONNECT_BUTTON);
+      fireEvent.press(connectButton);
+
+      const warningContainer = await findByTestId(
+        AccountConnectMaliciousWarningSelectorsIDs.CONTAINER,
+      );
+      expect(warningContainer).toBeDefined();
+    });
+
+    it('completes connection when Connect Anyway is pressed on MaliciousWarning', async () => {
+      const mockAcceptLocal = jest.fn().mockResolvedValue(undefined);
+      Engine.context.PermissionController.acceptPermissionsRequest =
+        mockAcceptLocal;
+
+      const { getByTestId, findByTestId } = renderWithProvider(
+        <MultichainAccountConnect route={maliciousRoute} />,
+        { state: createMaliciousWC2State() },
+      );
+
+      // Step 1: press Connect to navigate to MaliciousWarning
+      fireEvent.press(getByTestId(CommonSelectorsIDs.CONNECT_BUTTON));
+
+      // Step 2: press Connect Anyway to complete the connection
+      const connectAnywayButton = await findByTestId(
+        AccountConnectMaliciousWarningSelectorsIDs.CONNECT_ANYWAY_BUTTON,
+      );
+      fireEvent.press(connectAnywayButton);
+
+      await waitFor(() => {
+        expect(mockAcceptLocal).toHaveBeenCalled();
+      });
+    });
+
+    it('returns to initial connect screen when close is pressed on MaliciousWarning', async () => {
+      const { getByTestId, findByTestId } = renderWithProvider(
+        <MultichainAccountConnect route={maliciousRoute} />,
+        { state: createMaliciousWC2State() },
+      );
+
+      // Navigate to MaliciousWarning
+      fireEvent.press(getByTestId(CommonSelectorsIDs.CONNECT_BUTTON));
+
+      const closeButton = await findByTestId(
+        AccountConnectMaliciousWarningSelectorsIDs.CLOSE_BUTTON,
+      );
+      fireEvent.press(closeButton);
+
+      // Should be back on the initial connect screen with the connect button visible
+      await waitFor(() => {
+        expect(getByTestId(CommonSelectorsIDs.CONNECT_BUTTON)).toBeTruthy();
+      });
+    });
+
+    it('does not show MaliciousWarning when confirm is pressed on a clean dapp', async () => {
+      const mockAcceptLocal = jest.fn().mockResolvedValue(undefined);
+      Engine.context.PermissionController.acceptPermissionsRequest =
+        mockAcceptLocal;
+
+      const cleanState = createMockState();
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
         <MultichainAccountConnect
           route={{
             params: {
               hostInfo: {
                 metadata: {
                   id: 'mockId',
-                  origin: 'wc-channel-id',
+                  origin: 'https://clean-dapp.com',
                   isEip1193Request: true,
                 },
                 permissions: createMockCaip25Permission({
-                  'wallet:eip155': {
-                    accounts: [],
-                  },
+                  'wallet:eip155': { accounts: [] },
                 }),
               },
-              permissionRequestId: 'test',
+              permissionRequestId: 'test-clean',
             },
           }}
         />,
-        { state: createCleanWC2State() },
+        { state: cleanState },
       );
 
-      expect(getByTestId(CommonSelectorsIDs.CONNECT_BUTTON)).toBeTruthy();
+      fireEvent.press(getByTestId(CommonSelectorsIDs.CONNECT_BUTTON));
+
+      await waitFor(() => {
+        expect(mockAcceptLocal).toHaveBeenCalled();
+      });
+
+      expect(
+        queryByTestId(AccountConnectMaliciousWarningSelectorsIDs.CONTAINER),
+      ).toBeNull();
     });
 
-    it('does not show malicious warning for non-WalletConnect origins', () => {
-      // When wc2Metadata.id is empty, it's not a WalletConnect connection
+    it('does not flag non-WalletConnect connections as malicious', () => {
       const state = createMockState();
 
-      const { getByTestId } = renderWithProvider(
+      const { getByTestId, queryByTestId } = renderWithProvider(
         <MultichainAccountConnect
           route={{
             params: {
@@ -2272,9 +2323,7 @@ describe('MultichainAccountConnect', () => {
                   isEip1193Request: true,
                 },
                 permissions: createMockCaip25Permission({
-                  'wallet:eip155': {
-                    accounts: [],
-                  },
+                  'wallet:eip155': { accounts: [] },
                 }),
               },
               permissionRequestId: 'test',
@@ -2285,6 +2334,9 @@ describe('MultichainAccountConnect', () => {
       );
 
       expect(getByTestId(CommonSelectorsIDs.CONNECT_BUTTON)).toBeTruthy();
+      expect(
+        queryByTestId(AccountConnectMaliciousWarningSelectorsIDs.CONTAINER),
+      ).toBeNull();
     });
   });
 });
