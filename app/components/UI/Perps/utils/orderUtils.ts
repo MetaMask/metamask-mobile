@@ -353,6 +353,7 @@ const buildSyntheticTriggerOrder = (
     orderId: syntheticOrderId,
     parentOrderId: parentOrder.orderId,
     isSynthetic: true,
+    isPositionTpsl: false,
     symbol: parentOrder.symbol,
     side: syntheticSide,
     orderType: syntheticOrderType,
