@@ -51,6 +51,8 @@ export type MYXAssetNetworkConfig = {
  * MYX Asset configurations by network
  */
 export type MYXAssetConfigs = {
+  // USDT is the token symbol used as API key - not a variable name
+  // eslint-disable-next-line @typescript-eslint/naming-convention
   USDT: {
     mainnet: MYXAssetNetworkConfig;
     testnet: MYXAssetNetworkConfig;
