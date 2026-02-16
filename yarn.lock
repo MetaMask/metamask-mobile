@@ -9420,16 +9420,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/react-native-webview@npm:^14.6.0":
+"@metamask/react-native-webview@file:../../webview/main::locator=metamask%40workspace%3A.":
   version: 14.6.0
-  resolution: "@metamask/react-native-webview@npm:14.6.0"
+  resolution: "@metamask/react-native-webview@file:../../webview/main#../../webview/main::hash=fc97a2&locator=metamask%40workspace%3A."
   dependencies:
     escape-string-regexp: "npm:^4.0.0"
     invariant: "npm:2.2.4"
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: 10/e3c993afb0c9750970d66090e4dee0a0a3dac95e1a8d236950cb5be11f68d5cf726bad51c8361b18ba7d95ef7a69d61067840c07ea8abd5f308f1c869ca51093
+  checksum: 10/3be6b3b9649188c4ec09cbd269c7fdfd0ba03b25e574c665ae053c583363fd58b57e1d80c2bde58bbe63ab0937173bd3b501d766359f0360cfb8f0c153e69f5c
   languageName: node
   linkType: hard
 
@@ -35272,7 +35272,7 @@ __metadata:
     "@metamask/react-native-button": "npm:^3.0.0"
     "@metamask/react-native-payments": "npm:^2.0.0"
     "@metamask/react-native-search-api": "npm:1.0.1"
-    "@metamask/react-native-webview": "npm:^14.6.0"
+    "@metamask/react-native-webview": ../../webview/main
     "@metamask/remote-feature-flag-controller": "npm:^4.0.0"
     "@metamask/rpc-errors": "npm:^7.0.2"
     "@metamask/sample-controllers": "npm:^3.0.0"
