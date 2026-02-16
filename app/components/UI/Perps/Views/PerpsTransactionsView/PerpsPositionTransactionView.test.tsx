@@ -417,11 +417,8 @@ describe('PerpsPositionTransactionView', () => {
     const blockExplorerButton = getByText('View on block explorer');
     fireEvent.press(blockExplorerButton);
 
-    expect(mockNavigate).toHaveBeenCalledWith('Webview', {
-      screen: 'SimpleWebview',
-      params: {
-        url: 'https://app.hyperliquid.xyz/explorer/address/0x1234567890abcdef1234567890abcdef12345678',
-      },
+    expect(mockNavigate).toHaveBeenCalledWith('SimpleWebview', {
+      url: 'https://app.hyperliquid.xyz/explorer/address/0x1234567890abcdef1234567890abcdef12345678',
     });
   });
 
@@ -435,11 +432,8 @@ describe('PerpsPositionTransactionView', () => {
     const blockExplorerButton = getByText('View on block explorer');
     fireEvent.press(blockExplorerButton);
 
-    expect(mockNavigate).toHaveBeenCalledWith('Webview', {
-      screen: 'SimpleWebview',
-      params: {
-        url: 'https://app.hyperliquid-testnet.xyz/explorer/address/0x1234567890abcdef1234567890abcdef12345678',
-      },
+    expect(mockNavigate).toHaveBeenCalledWith('SimpleWebview', {
+      url: 'https://app.hyperliquid-testnet.xyz/explorer/address/0x1234567890abcdef1234567890abcdef12345678',
     });
   });
 
@@ -638,12 +632,9 @@ describe('PerpsPositionTransactionView', () => {
 
     // PerpsPositionTransactionView passes minimal market data (symbol, name)
     // PerpsMarketDetailsView will enrich it with full market data from usePerpsMarkets
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-      screen: Routes.PERPS.MARKET_DETAILS,
-      params: {
-        market: { symbol: 'ETH', name: 'ETH' },
-        source: PERPS_EVENT_VALUE.SOURCE.TRADE_DETAILS,
-      },
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.MARKET_DETAILS, {
+      market: { symbol: 'ETH', name: 'ETH' },
+      source: PERPS_EVENT_VALUE.SOURCE.TRADE_DETAILS,
     });
   });
 
