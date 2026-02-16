@@ -340,7 +340,7 @@ export type PerpsControllerState = {
  * - 'aggregated': Multi-provider aggregation mode
  * - 'myx': MYX provider (future implementation)
  *
- * @returns The result of the operation.
+ * @returns The default perps controller state.
  */
 export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
   activeProvider: 'hyperliquid',
@@ -1019,7 +1019,7 @@ export class PerpsController extends BaseController<
   /**
    * Get metrics instance from platform dependencies
    *
-   * @returns The result of the operation.
+   * @returns The platform metrics instance.
    */
   #getMetrics(): PerpsPlatformDependencies['metrics'] {
     return this.#options.infrastructure.metrics;
@@ -1057,7 +1057,7 @@ export class PerpsController extends BaseController<
    * @param options.origin - The transaction origin.
    * @param options.type - The transaction type.
    * @param options.skipInitialGasEstimate - Whether to skip initial gas estimation.
-   * @returns The result of the operation.
+   * @returns The transaction result containing a hash promise and transaction metadata.
    */
   async #submitTransaction(
     txParams: {
@@ -1219,10 +1219,10 @@ export class PerpsController extends BaseController<
       try {
         streamManager.pauseChannel(channel);
         pausedChannels.push(channel);
-      } catch (_error) {
+      } catch (error) {
         // Log error to Sentry but continue pausing remaining channels
         this.#logError(
-          ensureError(_error, 'PerpsController.withStreamPause'),
+          ensureError(error, 'PerpsController.withStreamPause'),
           this.#getErrorContext('withStreamPause', {
             operation: 'pause',
             channel: String(channel),
@@ -1240,10 +1240,10 @@ export class PerpsController extends BaseController<
       for (const channel of pausedChannels) {
         try {
           streamManager.resumeChannel(channel);
-        } catch (_error) {
+        } catch (error) {
           // Log error to Sentry but continue resuming remaining channels
           this.#logError(
-            ensureError(_error, 'PerpsController.withStreamPause'),
+            ensureError(error, 'PerpsController.withStreamPause'),
             this.#getErrorContext('withStreamPause', {
               operation: 'resume',
               channel: String(channel),
@@ -1497,7 +1497,7 @@ export class PerpsController extends BaseController<
    * Returns current controller state as PerpsControllerState.
    * Used by createServiceContext to avoid deep type instantiation when building stateManager.
    *
-   * @returns The result of the operation.
+   * @returns The current controller state cast to PerpsControllerState.
    */
   #getControllerState(): PerpsControllerState {
     return this.state as unknown as PerpsControllerState;
@@ -1621,7 +1621,7 @@ export class PerpsController extends BaseController<
    * Thin delegation to TradingService
    *
    * @param params - The operation parameters.
-   * @returns The result of the operation.
+   * @returns The order result with order ID and status.
    */
   async placeOrder(params: OrderParams): Promise<OrderResult> {
     const provider = this.getActiveProvider();
@@ -1644,7 +1644,7 @@ export class PerpsController extends BaseController<
    * Thin delegation to TradingService
    *
    * @param params - The operation parameters.
-   * @returns The result of the operation.
+   * @returns The updated order result with order ID and status.
    */
   async editOrder(params: EditOrderParams): Promise<OrderResult> {
     const provider = this.getActiveProvider();
@@ -1661,7 +1661,7 @@ export class PerpsController extends BaseController<
    * Cancel an existing order
    *
    * @param params - The operation parameters.
-   * @returns The result of the operation.
+   * @returns The cancellation result with status.
    */
   async cancelOrder(params: CancelOrderParams): Promise<CancelOrderResult> {
     const provider = this.getActiveProvider();
@@ -1678,7 +1678,7 @@ export class PerpsController extends BaseController<
    * Batch version of cancelOrder() that cancels multiple orders simultaneously
    *
    * @param params - The operation parameters.
-   * @returns The result of the operation.
+   * @returns The batch cancellation results for each order.
    */
   async cancelOrders(params: CancelOrdersParams): Promise<CancelOrdersResult> {
     const provider = this.getActiveProvider();
@@ -1701,7 +1701,7 @@ export class PerpsController extends BaseController<
    * Thin delegation to TradingService
    *
    * @param params - The operation parameters.
-   * @returns The result of the operation.
+   * @returns The order result from the close position request.
    */
   async closePosition(params: ClosePositionParams): Promise<OrderResult> {
     const provider = this.getActiveProvider();
@@ -1723,7 +1723,7 @@ export class PerpsController extends BaseController<
    * Batch version of closePosition() that closes multiple positions simultaneously
    *
    * @param params - The operation parameters.
-   * @returns The result of the operation.
+   * @returns The batch close results for each position.
    */
   async closePositions(
     params: ClosePositionsParams,
@@ -1744,7 +1744,7 @@ export class PerpsController extends BaseController<
    * Update TP/SL for an existing position
    *
    * @param params - The operation parameters.
-   * @returns The result of the operation.
+   * @returns The order result from the TP/SL update.
    */
   async updatePositionTPSL(
     params: UpdatePositionTPSLParams,
@@ -1763,7 +1763,7 @@ export class PerpsController extends BaseController<
    * Update margin for an existing position (add or remove)
    *
    * @param params - The operation parameters.
-   * @returns The result of the operation.
+   * @returns The margin update result.
    */
   async updateMargin(params: UpdateMarginParams): Promise<MarginResult> {
     const provider = this.getActiveProvider();
@@ -1781,7 +1781,7 @@ export class PerpsController extends BaseController<
    * Flip position (reverse direction while keeping size and leverage)
    *
    * @param params - The operation parameters.
-   * @returns The result of the operation.
+   * @returns The order result from the position flip.
    */
   async flipPosition(params: FlipPositionParams): Promise<OrderResult> {
     const provider = this.getActiveProvider();
@@ -1801,7 +1801,7 @@ export class PerpsController extends BaseController<
    * @param params - Parameters for the deposit flow
    * @param params.amount - Optional deposit amount
    * @param params.placeOrder - If true, uses addTransaction instead of submit to avoid navigation
-   * @returns The result of the operation.
+   * @returns An object containing a promise that resolves to the transaction hash.
    */
   async depositWithConfirmation(
     params: DepositWithConfirmationParams = {},
@@ -2121,7 +2121,7 @@ export class PerpsController extends BaseController<
   /**
    * Get current withdrawal progress
    *
-   * @returns The result of the operation.
+   * @returns The withdrawal progress, last update timestamp, and active withdrawal ID.
    */
   getWithdrawalProgress(): {
     progress: number;
@@ -2165,7 +2165,7 @@ export class PerpsController extends BaseController<
    * without full perps initialization (e.g., for showing positions on token details page)
    *
    * @param params - The operation parameters.
-   * @returns The result of the operation.
+   * @returns Array of open positions for the active provider.
    */
   async getPositions(params?: GetPositionsParams): Promise<Position[]> {
     // For standalone mode, access provider directly without initialization check
@@ -2200,7 +2200,7 @@ export class PerpsController extends BaseController<
    * Thin delegation to MarketDataService
    *
    * @param params - The operation parameters.
-   * @returns The result of the operation.
+   * @returns Array of historical trade executions (fills).
    */
   async getOrderFills(params?: GetOrderFillsParams): Promise<OrderFill[]> {
     const provider = this.getActiveProvider();
@@ -2216,7 +2216,7 @@ export class PerpsController extends BaseController<
    * Thin delegation to MarketDataService
    *
    * @param params - The operation parameters.
-   * @returns The result of the operation.
+   * @returns Array of historical orders.
    */
   async getOrders(params?: GetOrdersParams): Promise<Order[]> {
     const provider = this.getActiveProvider();
@@ -2266,7 +2266,7 @@ export class PerpsController extends BaseController<
    * Thin delegation to MarketDataService
    *
    * @param params - The operation parameters.
-   * @returns The result of the operation.
+   * @returns Array of historical funding payments.
    */
   async getFunding(params?: GetFundingParams): Promise<Funding[]> {
     const provider = this.getActiveProvider();
@@ -2319,7 +2319,7 @@ export class PerpsController extends BaseController<
    * Thin delegation to MarketDataService
    *
    * @param params - The operation parameters.
-   * @returns The result of the operation.
+   * @returns The historical portfolio data points.
    */
   async getHistoricalPortfolio(
     params?: GetHistoricalPortfolioParams,
@@ -2340,7 +2340,7 @@ export class PerpsController extends BaseController<
    * without full perps initialization (e.g., for discovery banners on spot screens)
    *
    * @param params - The operation parameters.
-   * @returns The result of the operation.
+   * @returns Array of available markets matching the filter criteria.
    */
   async getMarkets(params?: GetMarketsParams): Promise<MarketInfo[]> {
     // For standalone mode, access provider directly without initialization check
@@ -2788,7 +2788,7 @@ export class PerpsController extends BaseController<
    * @param options.interval - The candle interval period.
    * @param options.limit - Maximum number of items to fetch.
    * @param options.endTime - End timestamp in milliseconds.
-   * @returns The result of the operation.
+   * @returns The historical candle data for the requested symbol and interval.
    */
   async fetchHistoricalCandles(options: {
     symbol: string;
@@ -2906,7 +2906,7 @@ export class PerpsController extends BaseController<
   /**
    * Get supported withdrawal routes - returns complete asset and routing information
    *
-   * @returns The result of the operation.
+   * @returns Array of supported asset routes for withdrawals.
    */
   getWithdrawalRoutes(): AssetRoute[] {
     try {
@@ -2925,7 +2925,7 @@ export class PerpsController extends BaseController<
   /**
    * Toggle between testnet and mainnet
    *
-   * @returns The result of the operation.
+   * @returns The toggle result with success status and current network mode.
    */
   async toggleTestnet(): Promise<ToggleTestnetResult> {
     // Prevent concurrent reinitializations
@@ -2989,7 +2989,7 @@ export class PerpsController extends BaseController<
    * This ensures complete state reset including WebSocket connections and caches.
    *
    * @param providerId - The provider identifier.
-   * @returns The result of the operation.
+   * @returns The switch result with success status and active provider.
    */
   async switchProvider(
     providerId: PerpsActiveProviderMode,
@@ -3117,7 +3117,7 @@ export class PerpsController extends BaseController<
   /**
    * Get current network (mainnet/testnet)
    *
-   * @returns The result of the operation.
+   * @returns Either 'mainnet' or 'testnet' based on the current configuration.
    */
   getCurrentNetwork(): 'mainnet' | 'testnet' {
     return this.state.isTestnet ? 'testnet' : 'mainnet';
@@ -3470,7 +3470,7 @@ export class PerpsController extends BaseController<
    * Each provider implements its own fee structure
    *
    * @param params - The operation parameters.
-   * @returns The result of the operation.
+   * @returns The fee calculation result for the trade.
    */
   async calculateFees(
     params: FeeCalculationParams,
@@ -3858,7 +3858,7 @@ export class PerpsController extends BaseController<
    * Get saved market filter preferences
    * Handles backward compatibility with legacy string format
    *
-   * @returns The result of the operation.
+   * @returns The saved sort option ID and direction.
    */
   getMarketFilterPreferences(): {
     optionId: SortOptionId;
@@ -4103,7 +4103,7 @@ export class PerpsController extends BaseController<
    * @param params.tpPrice - The take profit price.
    * @param params.retryCount - Internal retry counter.
    * @param params._traceId - Internal trace ID.
-   * @returns The result of the operation.
+   * @returns Whether the report was sent successfully, with an optional error message.
    */
   protected async reportOrderToDataLake(params: {
     action: 'open' | 'close';
