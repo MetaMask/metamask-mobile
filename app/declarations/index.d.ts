@@ -441,8 +441,35 @@ declare module '@veriff/react-native-sdk' {
     error?: string;
   }
 
+  interface VeriffFontConfig {
+    regular?: string;
+    medium?: string;
+    bold?: string;
+  }
+
+  export interface VeriffBranding {
+    logo?: string | { uri: string };
+    background?: string;
+    onBackground?: string;
+    onBackgroundSecondary?: string;
+    onBackgroundTertiary?: string;
+    primary?: string;
+    onPrimary?: string;
+    secondary?: string;
+    onSecondary?: string;
+    outline?: string;
+    cameraOverlay?: string;
+    onCameraOverlay?: string;
+    error?: string;
+    success?: string;
+    buttonRadius?: number;
+    iOSFont?: VeriffFontConfig;
+    androidFont?: VeriffFontConfig;
+  }
+
   interface VeriffConfig {
     sessionUrl: string;
+    branding?: VeriffBranding;
   }
 
   interface VeriffSdkModule {
