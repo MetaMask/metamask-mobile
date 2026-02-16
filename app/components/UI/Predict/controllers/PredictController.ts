@@ -2346,13 +2346,6 @@ export class PredictController extends BaseController<
           signer,
         });
 
-      const networkClientId = this.messenger.call(
-        'NetworkController:findNetworkClientIdByChainId',
-        chainId,
-      );
-
-      const safeGas = numberToHex(SAFE_EXEC_GAS_LIMIT) as Hex;
-
       this.update((state) => {
         state.withdrawTransaction = {
           chainId: hexToNumber(chainId),
@@ -2364,28 +2357,23 @@ export class PredictController extends BaseController<
         };
       });
 
-      // Set the Safe gas on the transaction BEFORE addTransactionBatch so
-      // relay-quotes reads the correct value. Use skipInitialGasEstimate to
-      // prevent TC from overriding it with the lower raw ERC20 transfer estimate.
-      const withdrawTransaction = {
-        ...transaction,
-        params: {
-          ...transaction.params,
-          gas: safeGas,
-        } as typeof transaction.params,
-      };
+      (transaction.params as { gas?: Hex }).gas = numberToHex(
+        SAFE_EXEC_GAS_LIMIT,
+      ) as Hex;
 
       const { batchId } = await addTransactionBatch({
         from: signer.address as Hex,
         origin: ORIGIN_METAMASK,
-        networkClientId,
+        networkClientId: this.messenger.call(
+          'NetworkController:findNetworkClientIdByChainId',
+          chainId,
+        ),
         disableHook: true,
         disableSequential: true,
         requireApproval: true,
-        skipInitialGasEstimate: true,
         // Temporarily breaking abstraction, can instead be abstracted via provider.
         gasFeeToken: MATIC_CONTRACTS.collateral as Hex,
-        transactions: [withdrawTransaction],
+        transactions: [transaction],
       });
 
       this.update((state) => {
