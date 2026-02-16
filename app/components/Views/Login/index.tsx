@@ -128,7 +128,12 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   const setAllowLoginWithRememberMe = (enabled: boolean) =>
     setAllowLoginWithRememberMeUtil(enabled);
 
-  const { unlockWallet, lockApp, getAuthType } = useAuthentication();
+  const {
+    unlockWallet,
+    lockApp,
+    getAuthType,
+    checkIsSeedlessPasswordOutdated,
+  } = useAuthentication();
 
   const track = (
     event: IMetaMetricsEvent,
@@ -330,7 +335,25 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
           op: TraceOperation.Login,
         },
         async () => {
+          const isSeedlessPasswordOutdated =
+            await checkIsSeedlessPasswordOutdated(false);
           await unlockWallet({ password });
+          if (isSeedlessPasswordOutdated) {
+            const authData = await getAuthType();
+            if (authData.currentAuthType === AUTHENTICATION_TYPE.PASSWORD) {
+              Alert.alert(
+                strings('login.biometric_authentication_cancelled_title'),
+                strings('login.biometric_authentication_cancelled_description'),
+                [
+                  {
+                    text: strings(
+                      'login.biometric_authentication_cancelled_button',
+                    ),
+                  },
+                ],
+              );
+            }
+          }
         },
       );
     } catch (loginErr) {
@@ -338,7 +361,14 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     } finally {
       setLoading(false);
     }
-  }, [password, loading, handleLoginError, unlockWallet]);
+  }, [
+    password,
+    loading,
+    handleLoginError,
+    unlockWallet,
+    getAuthType,
+    checkIsSeedlessPasswordOutdated,
+  ]);
 
   const unlockWithBiometrics = useCallback(async () => {
     if (loading) return;

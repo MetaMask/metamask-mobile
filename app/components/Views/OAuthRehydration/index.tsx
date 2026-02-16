@@ -94,6 +94,7 @@ import HelpText, {
 } from '../../../component-library/components/Form/HelpText';
 import { useAuthentication } from '../../../core/Authentication';
 import { containsErrorMessage } from '../../../util/errorHandling';
+import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 
 const EmptyRecordConstant = {};
 
@@ -149,7 +150,8 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
 
   const passwordLoginAttemptTraceCtxRef = useRef<TraceContext | null>(null);
 
-  const { componentAuthenticationType, unlockWallet } = useAuthentication();
+  const { componentAuthenticationType, unlockWallet, getAuthType } =
+    useAuthentication();
 
   const track = useCallback(
     (
@@ -167,6 +169,21 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   );
 
   const [biometryChoice, setBiometryChoice] = useState(true);
+
+  const prommptBiometricFailedAlert = useCallback(async () => {
+    const authData = await getAuthType();
+    if (authData.currentAuthType === AUTHENTICATION_TYPE.PASSWORD) {
+      Alert.alert(
+        strings('login.biometric_authentication_cancelled_title'),
+        strings('login.biometric_authentication_cancelled_description'),
+        [
+          {
+            text: strings('login.biometric_authentication_cancelled_button'),
+          },
+        ],
+      );
+    }
+  }, [getAuthType]);
 
   // default biometric choice to true
   useEffect(() => {
@@ -467,6 +484,8 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         },
         async () => {
           await unlockWallet({ password, authPreference: authType });
+          // prompt biometric failed alert if biometric failed
+          await prommptBiometricFailedAlert();
         },
       );
 
@@ -496,6 +515,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     handleLoginError,
     passwordLoginAttemptTraceCtxRef,
     track,
+    prommptBiometricFailedAlert,
     componentAuthenticationType,
     unlockWallet,
   ]);
@@ -519,6 +539,8 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         },
         async () => {
           await unlockWallet({ password, authPreference: authType });
+          // prompt biometric failed alert if biometric failed
+          await prommptBiometricFailedAlert();
         },
       );
 
@@ -532,6 +554,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     biometryChoice,
     finalLoading,
     handleLoginError,
+    prommptBiometricFailedAlert,
     componentAuthenticationType,
     unlockWallet,
   ]);
