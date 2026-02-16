@@ -383,10 +383,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     if (!isDataReady || !orderForm.asset) return;
 
     let unsubscribe: (() => void) | undefined;
+    let cancelled = false;
 
     const subscribe = async () => {
       try {
-        unsubscribe = await Engine.context.PerpsController.subscribeToPrices({
+        const unsub = await Engine.context.PerpsController.subscribeToPrices({
           symbols: [orderForm.asset],
           includeMarketData: true,
           callback: () => {
@@ -394,6 +395,13 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             // marketDataCache with oraclePrice is all we need.
           },
         });
+
+        if (cancelled) {
+          // Cleanup already ran while we were awaiting; tear down immediately.
+          unsub();
+        } else {
+          unsubscribe = unsub;
+        }
       } catch {
         // Non-critical: margin display will fall back to $0 but
         // order placement still works via the controller.
@@ -403,6 +411,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     subscribe();
 
     return () => {
+      cancelled = true;
       unsubscribe?.();
     };
   }, [isDataReady, orderForm.asset]);
