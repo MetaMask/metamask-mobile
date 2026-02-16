@@ -1,4 +1,4 @@
-import type { MarketInsightsTweet } from '../../types/marketInsights';
+import type { MarketInsightsTweet } from '@metamask-previews/ai-controllers';
 
 export interface MarketInsightsTweetCardProps {
   /** The tweet data to render */

@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
   TouchableOpacity,
   View,
@@ -48,7 +48,13 @@ import PerpsDiscoveryBanner from '../../Perps/components/PerpsDiscoveryBanner';
 import { isTokenTrustworthyForPerps } from '../../Perps/constants/perpsConfig';
 import { selectTokenDetailsV2ButtonsEnabled } from '../../../../selectors/featureFlagController/tokenDetailsV2';
 import useTokenBuyability from '../hooks/useTokenBuyability';
-import { MarketInsightsEntryCard, useMarketInsights, selectMarketInsightsEnabled } from '../../MarketInsights';
+import {
+  MarketInsightsEntryCard,
+  useMarketInsights,
+  selectMarketInsightsEnabled,
+} from '../../MarketInsights';
+import { isCaipAssetType } from '@metamask/utils';
+import { formatAddressToAssetId } from '@metamask/bridge-controller';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import TronEnergyBandwidthDetail from '../../AssetOverview/TronEnergyBandwidthDetail/TronEnergyBandwidthDetail';
 ///: END:ONLY_INCLUDE_IF
@@ -82,6 +88,9 @@ const styleSheet = (params: { theme: Theme }) => {
     tokenDetailsWrapper: {
       marginBottom: 20,
       paddingHorizontal: 16,
+    } as ViewStyle,
+    marketInsightsWrapper: {
+      paddingTop: 16,
     } as ViewStyle,
     perpsPositionCardContainer: {
       paddingHorizontal: 16,
@@ -240,8 +249,27 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   );
 
   const isMarketInsightsEnabled = useSelector(selectMarketInsightsEnabled);
+  const marketInsightsCaip19Id = useMemo(() => {
+    if (!isMarketInsightsEnabled) {
+      return null;
+    }
+
+    try {
+      if (isCaipAssetType(token.address)) {
+        return token.address;
+      }
+
+      if (!token.chainId) {
+        return null;
+      }
+
+      return formatAddressToAssetId(token.address, token.chainId) ?? null;
+    } catch {
+      return null;
+    }
+  }, [isMarketInsightsEnabled, token.address, token.chainId]);
   const { report: marketInsightsReport, timeAgo: marketInsightsTimeAgo } =
-    useMarketInsights(isMarketInsightsEnabled ? token.symbol : null);
+    useMarketInsights(marketInsightsCaip19Id);
 
   const goToBrowserUrl = (url: string) => {
     const [screen, params] = createWebviewNavDetails({
@@ -257,6 +285,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
 
     navigation.navigate(Routes.MARKET_INSIGHTS.VIEW, {
       assetSymbol: token.symbol,
+      caip19Id: marketInsightsCaip19Id,
       tokenImageUrl: token.image || token.logo,
       pricePercentChange: percentChange,
       // Pass token data needed for swap navigation
@@ -268,6 +297,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   }, [
     navigation,
     token.symbol,
+    marketInsightsCaip19Id,
     token.image,
     token.logo,
     token.address,
@@ -413,7 +443,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             </View>
           )}
           {isMarketInsightsEnabled && marketInsightsReport ? (
-            <View style={{ paddingTop: 16 }}>
+            <View style={styles.marketInsightsWrapper}>
               <MarketInsightsEntryCard
                 report={marketInsightsReport}
                 timeAgo={marketInsightsTimeAgo}

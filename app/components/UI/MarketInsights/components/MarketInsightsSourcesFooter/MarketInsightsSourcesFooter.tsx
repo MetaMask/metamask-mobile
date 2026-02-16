@@ -24,7 +24,7 @@ import type {
   MarketInsightsSourcesFooterProps,
   MarketInsightsSourcesBottomSheetProps,
 } from './MarketInsightsSourcesFooter.types';
-import type { MarketInsightsSource } from '../../types/marketInsights';
+import type { MarketInsightsSource } from '@metamask-previews/ai-controllers';
 
 // Maximum number of source icons to show in the pill before "+N"
 const MAX_VISIBLE_SOURCES = 4;
@@ -48,18 +48,21 @@ const SourceIcon: React.FC<{
   source: MarketInsightsSource;
   index: number;
   isStacked?: boolean;
-}> = ({ source, index, isStacked = false }) => (
-  <Box
-    twClassName={`w-5 h-5 rounded-full bg-default border border-muted overflow-hidden ${
-      isStacked && index > 0 ? '-ml-2' : ''
-    }`}
-  >
-    <Image
-      source={{ uri: getFaviconUrl(source.url) }}
-      style={{ width: 20, height: 20, borderRadius: 10 }}
-    />
-  </Box>
-);
+}> = ({ source, index, isStacked = false }) => {
+  const tw = useTailwind();
+  return (
+    <Box
+      twClassName={`w-5 h-5 rounded-full bg-default border border-muted overflow-hidden ${
+        isStacked && index > 0 ? '-ml-2' : ''
+      }`}
+    >
+      <Image
+        source={{ uri: getFaviconUrl(source.url) }}
+        style={tw.style('w-5 h-5 rounded-full')}
+      />
+    </Box>
+  );
+};
 
 // MarketInsightsSourcesBottomSheet renders a scrollable list of all sources
 const MarketInsightsSourcesBottomSheet: React.FC<
@@ -120,14 +123,11 @@ const MarketInsightsSourcesBottomSheet: React.FC<
             <Box twClassName="w-8 h-8 rounded-full overflow-hidden mr-3">
               <Image
                 source={{ uri: getFaviconUrl(source.url) }}
-                style={{ width: 32, height: 32, borderRadius: 16 }}
+                style={tw.style('w-8 h-8 rounded-full')}
               />
             </Box>
             <Box twClassName="flex-1">
-              <Text
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Medium}
-              >
+              <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
                 {source.name}
               </Text>
               <Text

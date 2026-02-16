@@ -33,11 +33,12 @@ import {
   SwapBridgeNavigationLocation,
 } from '../../../Bridge/hooks/useSwapBridgeNavigation';
 import { NATIVE_SWAPS_TOKEN_ADDRESS } from '../../../../../constants/bridge';
-import type { MarketInsightsTweet } from '../../types/marketInsights';
+import type { MarketInsightsTweet } from '@metamask-previews/ai-controllers';
 
-type MarketInsightsRouteParams = {
+interface MarketInsightsRouteParams {
   MarketInsightsView: {
     assetSymbol: string;
+    caip19Id: string;
     tokenImageUrl?: string;
     pricePercentChange?: number;
     /** Token address for swap navigation */
@@ -49,7 +50,7 @@ type MarketInsightsRouteParams = {
     /** Token chainId for swap navigation */
     tokenChainId?: string;
   };
-};
+}
 
 /**
  * MarketInsightsView is the full-page Market Insights screen.
@@ -69,6 +70,7 @@ const MarketInsightsView: React.FC = () => {
     useRoute<RouteProp<MarketInsightsRouteParams, 'MarketInsightsView'>>();
   const {
     assetSymbol,
+    caip19Id,
     tokenImageUrl,
     pricePercentChange,
     tokenAddress,
@@ -77,7 +79,7 @@ const MarketInsightsView: React.FC = () => {
     tokenChainId,
   } = route.params;
 
-  const { report } = useMarketInsights(assetSymbol);
+  const { report } = useMarketInsights(caip19Id);
 
   // Build BridgeToken from route params for swap navigation
   const sourceToken = useMemo(() => {

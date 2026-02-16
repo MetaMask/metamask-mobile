@@ -1,29 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { getMockMarketInsights } from '../mocks/mockMarketInsightsData';
-import type { MarketInsightsReport } from '../types/marketInsights';
-
-// TODO: Once @metamask/ai-controllers is integrated in the mobile Engine,
-//
-// Since @metamask/ai-controllers isn't yet integrated in the mobile app,
-// the hook can't call the controller directly yet.
-// The integration into the mobile Engine is a separate step
-// that requires adding the controller to the Engine's controller list, setting up the messenger, etc.
-//
-// replace local mock usage with the controller messenger call:
-//
-// import Engine from '../../../../core/Engine';
-//
-// const report = await Engine.context.AiDigestController.fetchMarketInsights(caip19Id);
-//
-// Or via selector from controller state:
-//
-// import { useSelector } from 'react-redux';
-// const marketInsights = useSelector(
-//   (state) => state.engine.backgroundState.AiDigestController.marketInsights[caip19Id],
-// );
-//
-// The types (MarketInsightsReport, etc.) are now defined in @metamask/ai-controllers
-// and can be imported from there instead of the local types file.
+import type { MarketInsightsReport } from '@metamask-previews/ai-controllers';
+import Engine from '../../../../core/Engine';
 
 /**
  * Result interface for the useMarketInsights hook
@@ -57,29 +34,21 @@ const getTimeAgo = (dateString: string): string => {
 /**
  * Hook to fetch market insights for a given asset.
  *
- * Currently uses local mock data. When @metamask/ai-controllers is integrated
- * in the mobile Engine, this hook will call AiDigestController.fetchMarketInsights(caip19Id)
- * which communicates with the API endpoint: GET /digests/search?caip19Ids=<id>
+ * This hook reads market insights through AiDigestController, which caches
+ * insights per CAIP-19 ID and fetches them from the digest service as needed.
  *
- * Integration flow:
- * 1. Mobile Engine initializes AiDigestController with AiDigestService
- * 2. This hook calls controller.fetchMarketInsights(caip19Id) via messenger
- * 3. Controller calls service.searchDigests(caip19Id) → API call
- * 4. Controller caches the result (10 min TTL, 50 max entries)
- * 5. Hook reads from controller state and returns to component
- *
- * @param assetSymbol - The asset symbol (for example "BTC"). TODO: Replace with caip19Id.
+ * @param caip19Id - The CAIP-19 asset identifier.
  * @returns Market insights report data with loading/error states
  */
 export const useMarketInsights = (
-  assetSymbol: string | undefined | null,
+  caip19Id: string | undefined | null,
 ): UseMarketInsightsResult => {
   const [report, setReport] = useState<MarketInsightsReport | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const fetchInsights = useCallback(async () => {
-    if (!assetSymbol) {
+    if (!caip19Id) {
       setReport(null);
       return;
     }
@@ -88,9 +57,8 @@ export const useMarketInsights = (
     setError(null);
 
     try {
-      // TODO: Replace with controller call when Engine integration is ready:
-      // const data = await Engine.context.AiDigestController.fetchMarketInsights(caip19Id);
-      const data = getMockMarketInsights(assetSymbol);
+      const data =
+        await Engine.context.AiDigestController.fetchMarketInsights(caip19Id);
       setReport(data ?? null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch insights');
@@ -98,7 +66,7 @@ export const useMarketInsights = (
     } finally {
       setIsLoading(false);
     }
-  }, [assetSymbol]);
+  }, [caip19Id]);
 
   useEffect(() => {
     fetchInsights();

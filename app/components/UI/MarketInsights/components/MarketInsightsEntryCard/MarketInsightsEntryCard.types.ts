@@ -1,4 +1,4 @@
-import type { MarketInsightsReport } from '../../types/marketInsights';
+import type { MarketInsightsReport } from '@metamask-previews/ai-controllers';
 
 export interface MarketInsightsEntryCardProps {
   /** The market insights report data */

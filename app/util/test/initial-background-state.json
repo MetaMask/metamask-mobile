@@ -753,6 +753,10 @@
     "withdrawTransaction": null,
     "accountMeta": {}
   },
+  "AiDigestController": {
+    "digests": {},
+    "marketInsights": {}
+  },
   "RampsController": {
     "userRegion": null,
     "countries": {

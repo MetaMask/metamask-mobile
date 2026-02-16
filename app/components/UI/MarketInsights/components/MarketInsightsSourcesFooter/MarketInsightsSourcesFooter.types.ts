@@ -1,4 +1,4 @@
-import type { MarketInsightsSource } from '../../types/marketInsights';
+import type { MarketInsightsSource } from '@metamask-previews/ai-controllers';
 
 export interface MarketInsightsSourcesFooterProps {
   /** List of sources used for the report */
