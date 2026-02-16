@@ -12,10 +12,7 @@ import {
 } from '../../utils/formatUtils';
 import { getPerpsDisplaySymbol, type Order } from '@metamask/perps-controller';
 import { strings } from '../../../../../../locales/i18n';
-import {
-  getValidOrderPrice,
-  getValidTriggerPrice,
-} from '../../utils/orderUtils';
+import { resolveOrderDisplayPriceAndLabel } from '../../utils/orderUtils';
 import styleSheet from './PerpsCompactOrderRow.styles';
 import PerpsTokenLogo from '../PerpsTokenLogo';
 
@@ -53,14 +50,7 @@ const PerpsCompactOrderRow: React.FC<PerpsCompactOrderRowProps> = ({
       ? theme.colors.success.default
       : theme.colors.error.default;
 
-    // For trigger orders, display trigger condition price when available.
-    // `order.price` may represent execution limit/slippage protection for SL/TP.
-    const validTriggerPrice = getValidTriggerPrice(order);
-    const validOrderPrice = getValidOrderPrice(order);
-    const priceValue =
-      order.isTrigger && validTriggerPrice !== null
-        ? validTriggerPrice
-        : validOrderPrice;
+    const { priceValue, labelKey } = resolveOrderDisplayPriceAndLabel(order);
     const formattedPrice =
       priceValue !== null
         ? formatPerpsFiat(priceValue, {
@@ -68,13 +58,7 @@ const PerpsCompactOrderRow: React.FC<PerpsCompactOrderRowProps> = ({
           })
         : strings('perps.order.market');
 
-    // Label should match the actual displayed price source.
-    const orderTypeLabel =
-      order.isTrigger && validTriggerPrice !== null
-        ? strings('perps.order.trigger_price')
-        : order.detailedOrderType?.includes('Market')
-          ? strings('perps.order.market_price')
-          : strings('perps.order.limit_price');
+    const orderTypeLabel = strings(labelKey);
 
     // Format size
     const size = Math.abs(parseFloat(order.size));

@@ -1,5 +1,6 @@
 import { capitalize } from 'lodash';
 import {
+  isTPSLOrder,
   type OrderParams,
   type Order,
   type PerpsDebugLogger,
@@ -35,6 +36,47 @@ export const getValidTriggerPrice = (order: Order): number | null => {
 export const getValidOrderPrice = (order: Order): number | null => {
   const parsed = parseFloat(order.price ?? '');
   return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+};
+
+type OrderPriceLabelKey =
+  | 'perps.order.trigger_price'
+  | 'perps.order.limit_price'
+  | 'perps.order.market_price';
+
+export const resolveOrderDisplayPriceAndLabel = (
+  order: Order,
+): { priceValue: number | null; labelKey: OrderPriceLabelKey } => {
+  const detailedOrderType = order.detailedOrderType ?? '';
+  const normalizedDetailedOrderType = detailedOrderType.toLowerCase();
+  const isTriggerOrder = Boolean(
+    order.isTrigger || isTPSLOrder(order.detailedOrderType),
+  );
+  const isLimitOrder = Boolean(
+    order.orderType === 'limit' ||
+      normalizedDetailedOrderType.includes('limit'),
+  );
+  const validTriggerPrice = getValidTriggerPrice(order);
+  const validOrderPrice = getValidOrderPrice(order);
+  const priceValue = validTriggerPrice ?? validOrderPrice;
+
+  if (isTriggerOrder && validTriggerPrice !== null) {
+    return {
+      priceValue,
+      labelKey: 'perps.order.trigger_price',
+    };
+  }
+
+  if (isLimitOrder && validOrderPrice !== null) {
+    return {
+      priceValue,
+      labelKey: 'perps.order.limit_price',
+    };
+  }
+
+  return {
+    priceValue,
+    labelKey: 'perps.order.market_price',
+  };
 };
 
 const getAbsoluteOrderSize = (order: Order): BigNumber | null => {

@@ -10,7 +10,6 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import {
   getPerpsDisplaySymbol,
-  isTPSLOrder,
   PERPS_EVENT_VALUE,
   PERPS_EVENT_PROPERTY,
 } from '@metamask/perps-controller';
@@ -24,8 +23,7 @@ import {
 } from '../../utils/formatUtils';
 import {
   formatOrderLabel,
-  getValidOrderPrice,
-  getValidTriggerPrice,
+  resolveOrderDisplayPriceAndLabel,
 } from '../../utils/orderUtils';
 import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
 import PerpsTokenLogo from '../PerpsTokenLogo';
@@ -83,36 +81,19 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
     labelText = `${formatPnl(pnlValue)} (${formatPercentage(roeValue, 1)})`;
   } else if (order) {
     const displaySymbol = getPerpsDisplaySymbol(order.symbol);
-    const detailedOrderType = order.detailedOrderType ?? '';
-    const normalizedDetailedOrderType = detailedOrderType.toLowerCase();
-    const isTriggerOrder = Boolean(
-      order.isTrigger || isTPSLOrder(order.detailedOrderType),
-    );
-    const isLimitOrder = Boolean(
-      order.orderType === 'limit' ||
-        normalizedDetailedOrderType.includes('limit'),
-    );
-    const validTriggerPrice = getValidTriggerPrice(order);
-    const validOrderPrice = getValidOrderPrice(order);
-    const displayPrice = validTriggerPrice ?? validOrderPrice;
+    const { priceValue, labelKey } = resolveOrderDisplayPriceAndLabel(order);
 
     primaryText = formatOrderLabel(order);
     secondaryText = `${formatPositionSize(order.originalSize)} ${displaySymbol}`;
 
     valueText =
-      displayPrice !== null
-        ? formatPerpsFiat(displayPrice, {
+      priceValue !== null
+        ? formatPerpsFiat(priceValue, {
             ranges: PRICE_RANGES_MINIMAL_VIEW,
           })
         : strings('perps.order.market');
 
-    labelText = isTriggerOrder
-      ? validTriggerPrice !== null
-        ? strings('perps.order.trigger_price')
-        : strings('perps.order.market_price')
-      : isLimitOrder
-        ? strings('perps.order.limit_price')
-        : strings('perps.order.market_price');
+    labelText = strings(labelKey);
     valueColor = TextColor.Alternative;
   }
 

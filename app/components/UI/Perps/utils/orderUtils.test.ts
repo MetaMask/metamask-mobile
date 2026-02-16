@@ -6,6 +6,7 @@ import {
   isSyntheticPlaceholderOrderId,
   shouldDisplayOrderInMarketDetailsOrders,
   formatOrderLabel,
+  resolveOrderDisplayPriceAndLabel,
   getOrderLabelDirection,
   getOrderDirection,
   willFlipPosition,
@@ -375,6 +376,81 @@ describe('orderUtils', () => {
           price: '95.84',
         }),
       ).toBeUndefined();
+    });
+  });
+
+  describe('resolveOrderDisplayPriceAndLabel', () => {
+    const baseOrder: Order = {
+      orderId: '1',
+      symbol: 'BTC',
+      side: 'sell',
+      orderType: 'limit',
+      size: '1',
+      originalSize: '1',
+      price: '50000',
+      filledSize: '0',
+      remainingSize: '1',
+      status: 'open',
+      timestamp: Date.now(),
+      reduceOnly: true,
+      isTrigger: true,
+      detailedOrderType: 'Take Profit Limit',
+    };
+
+    it('returns trigger price label when trigger price is valid', () => {
+      const result = resolveOrderDisplayPriceAndLabel({
+        ...baseOrder,
+        triggerPrice: '51000',
+      });
+
+      expect(result).toEqual({
+        priceValue: 51000,
+        labelKey: 'perps.order.trigger_price',
+      });
+    });
+
+    it('returns limit price label for trigger-limit when trigger price is invalid', () => {
+      const result = resolveOrderDisplayPriceAndLabel({
+        ...baseOrder,
+        triggerPrice: '0',
+        price: '49500',
+      });
+
+      expect(result).toEqual({
+        priceValue: 49500,
+        labelKey: 'perps.order.limit_price',
+      });
+    });
+
+    it('returns market label when trigger market has no valid prices', () => {
+      const result = resolveOrderDisplayPriceAndLabel({
+        ...baseOrder,
+        orderType: 'market',
+        detailedOrderType: 'Stop Market',
+        triggerPrice: '0',
+        price: '0',
+      });
+
+      expect(result).toEqual({
+        priceValue: null,
+        labelKey: 'perps.order.market_price',
+      });
+    });
+
+    it('returns limit label for non-trigger limit order', () => {
+      const result = resolveOrderDisplayPriceAndLabel({
+        ...baseOrder,
+        isTrigger: false,
+        reduceOnly: false,
+        detailedOrderType: 'Limit',
+        triggerPrice: undefined,
+        price: '48000',
+      });
+
+      expect(result).toEqual({
+        priceValue: 48000,
+        labelKey: 'perps.order.limit_price',
+      });
     });
   });
 
