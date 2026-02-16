@@ -38,7 +38,8 @@ describe('MaliciousDappIndicators', () => {
     it('renders with a row layout', () => {
       const { toJSON } = render(<DangerConnectButtonContent />);
       const root = toJSON();
-      expect(root?.props?.style?.flexDirection).toBe('row');
+      const node = Array.isArray(root) ? root[0] : root;
+      expect(node?.props?.style?.flexDirection).toBe('row');
     });
   });
 });
