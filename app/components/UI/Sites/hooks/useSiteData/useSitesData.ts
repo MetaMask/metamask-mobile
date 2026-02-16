@@ -28,9 +28,20 @@ interface UseSitesDataResult {
   refetch: () => void;
 }
 
+// Module-level cache so fetched sites persist across mounts
+let cachedSites: SiteData[] | null = null;
+
+/**
+ * Clears the in-memory sites cache.
+ * Primarily exposed for testing purposes.
+ */
+export const clearSitesCache = (): void => {
+  cachedSites = null;
+};
+
 // Assets team is now hosting the explore-sites endpoint on the NFT API (Temporarily)
 const NFT_API_BASE_URL = 'https://nft.api.cx.metamask.io/';
-const DEFAULT_SITES_LIMIT = 200;
+const DEFAULT_SITES_LIMIT = 100;
 const PORTFOLIO_HOSTNAME = 'portfolio.metamask.io';
 
 /**
@@ -92,26 +103,30 @@ const mergePortfolioSite = (sites: SiteData[]): SiteData[] => {
 };
 
 /**
- * Hook to fetch sites data from the Portfolio API
- * @param params - Parameters for the API request
- * @returns Sites data, loading state, and error
+ * Hook to fetch and cache sites data from the NFT API.
+ * Results are cached in memory; subsequent mounts return cached data instantly.
+ * Use `refetch` to bypass the cache and fetch fresh data.
+ * @param searchQuery - Optional search query to filter sites locally
+ * @returns Sites data, loading state, error, and refetch function
  */
-export const useSitesData = (
-  searchQuery?: string,
-  limit = DEFAULT_SITES_LIMIT,
-): UseSitesDataResult => {
-  const [allSites, setAllSites] = useState<SiteData[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+export const useSitesData = (searchQuery?: string): UseSitesDataResult => {
+  const [allSites, setAllSites] = useState<SiteData[]>(cachedSites ?? []);
+  const [isLoading, setIsLoading] = useState(!cachedSites);
   const [error, setError] = useState<Error | null>(null);
 
   const fetchSites = useCallback(async () => {
     try {
+      if (cachedSites) {
+        setAllSites(cachedSites);
+        return;
+      }
+
       setIsLoading(true);
       setError(null);
 
       // Use current timestamp
       const timestamp = Date.now();
-      const url = `${NFT_API_BASE_URL}explore/sites?limit=${limit}&ts=${timestamp}`;
+      const url = `${NFT_API_BASE_URL}explore/sites?limit=${DEFAULT_SITES_LIMIT}&ts=${timestamp}`;
       const response = await fetch(url);
 
       if (!response.ok) {
@@ -132,6 +147,9 @@ export const useSitesData = (
 
       // Ensure Portfolio is always included in the list
       const sitesWithPortfolio = mergePortfolioSite(transformedSites);
+
+      // Update module-level cache
+      cachedSites = sitesWithPortfolio;
       setAllSites(sitesWithPortfolio);
     } catch (err) {
       const fetchError = err instanceof Error ? err : new Error(String(err));
@@ -142,13 +160,15 @@ export const useSitesData = (
     } finally {
       setIsLoading(false);
     }
-  }, [limit]);
+  }, []);
 
   useEffect(() => {
     fetchSites();
   }, [fetchSites]);
 
+  // refetch always bypasses the cache
   const refetch = useCallback(() => {
+    clearSitesCache();
     fetchSites();
   }, [fetchSites]);
 
