@@ -1865,11 +1865,9 @@ export class PerpsController extends BaseController<
           type: TransactionType.perpsDepositAndOrder,
         });
         transactionMeta = addResult.transactionMeta;
-        // For deposit+order, we don't await the result promise - transaction will be confirmed via useTransactionConfirm
-        // Return a resolved promise that never resolves (transaction handled via confirmation flow)
-        result = new Promise(() => {
-          // Never resolves - transaction handled via confirmation flow
-        });
+        // For deposit+order, transaction lifecycle is handled via the confirmation UI.
+        // Return a resolved promise with the transaction ID (fire-and-forget semantics).
+        result = Promise.resolve(transactionMeta.id);
       } else {
         // submit shows the confirmation screen and returns a promise
         // The promise will resolve when transaction completes or reject if cancelled/failed
@@ -2945,8 +2943,11 @@ export class PerpsController extends BaseController<
 
     this.#isReinitializing = true;
 
+    // Store previous isTestnet for rollback on failure
+    const previousIsTestnet = this.state.isTestnet;
+
     try {
-      const previousNetwork = this.state.isTestnet ? 'testnet' : 'mainnet';
+      const previousNetwork = previousIsTestnet ? 'testnet' : 'mainnet';
 
       this.update((state) => {
         state.isTestnet = !state.isTestnet;
@@ -2965,6 +2966,15 @@ export class PerpsController extends BaseController<
       this.#initializationPromise = null;
       await this.init();
 
+      // Check if initialization actually succeeded — performInitialization()
+      // does not throw on failure, it sets state to Failed and resolves.
+      if (this.state.initializationState === InitializationState.Failed) {
+        throw new Error(
+          this.state.initializationError ??
+            'Network toggle initialization failed',
+        );
+      }
+
       this.#debugLog('PerpsController: Network toggle completed', {
         newNetwork,
         isTestnet: this.state.isTestnet,
@@ -2973,6 +2983,11 @@ export class PerpsController extends BaseController<
 
       return { success: true, isTestnet: this.state.isTestnet };
     } catch (error) {
+      // Rollback isTestnet to previous value
+      this.update((state) => {
+        state.isTestnet = previousIsTestnet;
+      });
+
       return {
         success: false,
         isTestnet: this.state.isTestnet,

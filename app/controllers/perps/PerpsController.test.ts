@@ -2826,6 +2826,23 @@ describe('PerpsController', () => {
       );
     });
 
+    it('returns resolved promise with transaction ID when placeOrder is true', async () => {
+      depositController.testMarkInitialized();
+      depositController.testSetProviders(
+        new Map([['hyperliquid', mockProvider]]),
+      );
+
+      const { result } = await depositController.depositWithConfirmation({
+        amount: '100',
+        placeOrder: true,
+      });
+
+      // This would hang indefinitely with the old never-resolving promise
+      const txId = await result;
+      expect(typeof txId).toBe('string');
+      expect(txId).toBe('tx-meta-123');
+    });
+
     it('clears depositInProgress after successful transaction', async () => {
       jest.useFakeTimers();
       depositController.testMarkInitialized();
@@ -3240,6 +3257,45 @@ describe('PerpsController', () => {
       expect(result.success).toBe(true);
       expect(result.isTestnet).toBe(!initialTestnetState);
       expect(controller.state.isTestnet).toBe(!initialTestnetState);
+    });
+
+    it('returns failure and rolls back isTestnet when init sets InitializationState.Failed', async () => {
+      await controller.init();
+      const initialTestnetState = controller.state.isTestnet;
+
+      // Make init set state to Failed (mimics performInitialization catching an error)
+      jest.spyOn(controller, 'init').mockImplementationOnce(async () => {
+        controller.testUpdate((state) => {
+          state.initializationState = InitializationState.Failed;
+          state.initializationError = 'Network toggle init failed';
+        });
+      });
+
+      const result = await controller.toggleTestnet();
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Network toggle init failed');
+      // isTestnet should be rolled back to its original value
+      expect(result.isTestnet).toBe(initialTestnetState);
+      expect(controller.state.isTestnet).toBe(initialTestnetState);
+
+      jest.restoreAllMocks();
+    });
+
+    it('clears isReinitializing flag after init failure', async () => {
+      await controller.init();
+
+      jest.spyOn(controller, 'init').mockImplementationOnce(async () => {
+        controller.testUpdate((state) => {
+          state.initializationState = InitializationState.Failed;
+        });
+      });
+
+      await controller.toggleTestnet();
+
+      expect(controller.isCurrentlyReinitializing()).toBe(false);
+
+      jest.restoreAllMocks();
     });
   });
 
