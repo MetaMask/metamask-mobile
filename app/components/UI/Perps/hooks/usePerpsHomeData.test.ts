@@ -27,6 +27,8 @@ import {
   selectPerpsWatchlistMarkets,
   selectPerpsMarketFilterPreferences,
 } from '../selectors/perpsController';
+import { usePerpsConnection } from './usePerpsConnection';
+import Engine from '../../../../core/Engine';
 
 // Mock dependencies
 jest.mock('./stream');
@@ -49,6 +51,13 @@ jest.mock('./usePerpsConnection', () => ({
   })),
 }));
 jest.mock('./usePerpsTransactionHistory');
+jest.mock('../../../../core/Engine', () => ({
+  context: {
+    PerpsController: {
+      getActiveProvider: jest.fn(),
+    },
+  },
+}));
 
 // Type mock functions
 const mockUsePerpsLivePositions = usePerpsLivePositions as jest.MockedFunction<
@@ -77,6 +86,9 @@ const mockSelectPerpsMarketFilterPreferences =
   selectPerpsMarketFilterPreferences as jest.MockedFunction<
     typeof selectPerpsMarketFilterPreferences
   >;
+const mockUsePerpsConnection = usePerpsConnection as jest.MockedFunction<
+  typeof usePerpsConnection
+>;
 
 // Test data helper functions
 const createMockPosition = (overrides: Partial<Position> = {}): Position => ({
@@ -809,6 +821,62 @@ describe('usePerpsHomeData', () => {
       expect(result.current.perpsMarkets).toEqual(mockMarkets);
       // recentActivity now comes from WebSocket fills (transformed to transactions)
       expect(result.current.recentActivity).toHaveLength(mockFills.length);
+    });
+
+    it('skips REST fills fetch when not connected or not initialized', () => {
+      mockUsePerpsConnection.mockReturnValue({
+        isConnected: false,
+        isInitialized: false,
+        isConnecting: false,
+        error: null,
+        connect: jest.fn(),
+        disconnect: jest.fn(),
+        resetError: jest.fn(),
+      } as never);
+
+      renderHook(() => usePerpsHomeData());
+
+      // getActiveProvider should NOT be called when not connected
+      expect(
+        Engine.context.PerpsController.getActiveProvider,
+      ).not.toHaveBeenCalled();
+    });
+
+    it('fetches REST fills when connected and initialized', async () => {
+      const mockFillsFromRest = [
+        createMockOrderFill({
+          orderId: 'rest-fill-1',
+          symbol: 'BTC',
+          timestamp: 1234567800,
+        }),
+      ];
+      const mockGetOrderFills = jest.fn().mockResolvedValue(mockFillsFromRest);
+      (
+        Engine.context.PerpsController.getActiveProvider as jest.Mock
+      ).mockReturnValue({
+        getOrderFills: mockGetOrderFills,
+      });
+
+      mockUsePerpsConnection.mockReturnValue({
+        isConnected: true,
+        isInitialized: true,
+        isConnecting: false,
+        error: null,
+        connect: jest.fn(),
+        disconnect: jest.fn(),
+        resetError: jest.fn(),
+      } as never);
+
+      await act(async () => {
+        renderHook(() => usePerpsHomeData());
+      });
+
+      expect(
+        Engine.context.PerpsController.getActiveProvider,
+      ).toHaveBeenCalled();
+      expect(mockGetOrderFills).toHaveBeenCalledWith({
+        aggregateByTime: false,
+      });
     });
 
     it('handles special characters in search query', () => {

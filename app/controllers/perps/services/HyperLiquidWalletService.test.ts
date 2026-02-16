@@ -114,13 +114,15 @@ jest.mock('../../../core/SDKConnect/utils/DevLogger', () => ({
 }));
 
 import type { CaipAccountId } from '@metamask/utils';
-import { HyperLiquidWalletService } from './HyperLiquidWalletService';
+
 import {
   createMockInfrastructure,
   createMockMessenger,
   createMockEvmAccount,
 } from '../../../components/UI/Perps/__mocks__/serviceMocks';
 import type { PerpsControllerMessenger } from '../PerpsController';
+
+import { HyperLiquidWalletService } from './HyperLiquidWalletService';
 
 describe('HyperLiquidWalletService', () => {
   let service: HyperLiquidWalletService;

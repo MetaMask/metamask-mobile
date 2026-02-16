@@ -324,12 +324,6 @@ const BridgeView = () => {
     dispatch(setSourceAmount(value || undefined));
   };
 
-  const onFlipButtonPress = async () => {
-    await handleSwitchTokens(destTokenAmount)();
-    inputRef.current?.focus();
-    keypadRef.current?.open();
-  };
-
   const handleSourceMaxPress = () => {
     if (latestSourceBalance?.displayBalance) {
       dispatch(setSourceAmountAsMax(latestSourceBalance.displayBalance));
@@ -465,7 +459,7 @@ const BridgeView = () => {
             isQuoteSponsored={isQuoteSponsored}
           />
           <FLipQuoteButton
-            onPress={onFlipButtonPress}
+            onPress={handleSwitchTokens(destTokenAmount)}
             disabled={
               !destChainId ||
               !destToken ||
@@ -483,6 +477,7 @@ const BridgeView = () => {
             }
             testID={BridgeViewSelectorsIDs.DESTINATION_TOKEN_AREA}
             tokenType={TokenInputAreaType.Destination}
+            onInputPress={() => keypadRef.current?.close()}
             onTokenPress={handleDestTokenPress}
             isLoading={!destTokenAmount && isLoading}
             style={styles.destTokenArea}
