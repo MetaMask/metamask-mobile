@@ -1912,7 +1912,7 @@ export class PerpsController extends BaseController<
 
         // Add deposit request to tracking
         const depositRequest = {
-          id: currentDepositId,
+          id: currentDepositId ?? uuidv4(),
           timestamp: Date.now(),
           amount: amount ?? '0', // Use provided amount or default to '0'
           asset: USDC_SYMBOL,
