@@ -1,6 +1,7 @@
 # List things here that *are - 'used, that depcheck is wrong about'
 
 ignores:
+  - '@metamask/browser-playground'
   - '@metamask/oss-attribution-generator'
   - '@metamask/test-dapp-multichain'
   - 'webpack-cli'
@@ -42,6 +43,8 @@ ignores:
   # jest-junit is used as a Jest reporter in tests/jest.e2e.detox.config.js
   - 'jest-junit'
 
+  # tsconfig path alias pointing to app/controllers/perps (not an npm package)
+  - '@metamask/perps-controller'
   # Used in scripts/repack for CI optimization
   - '@expo/repack-app'
   # Note: Everything below this line should be removed after investigation

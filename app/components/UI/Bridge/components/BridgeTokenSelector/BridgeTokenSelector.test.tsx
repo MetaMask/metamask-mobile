@@ -49,6 +49,7 @@ const createMockStore = () =>
       bridge: () => ({
         sourceToken: null,
         destToken: null,
+        tokenSelectorNetworkFilter: undefined,
       }),
     },
   });
@@ -100,6 +101,11 @@ jest.mock('../../../../../core/redux/slices/bridge', () => {
     ),
     setIsSelectingToken: jest.fn(() => ({
       type: 'bridge/setIsSelectingToken',
+    })),
+    selectTokenSelectorNetworkFilter: jest.fn(() => undefined),
+    setTokenSelectorNetworkFilter: jest.fn((chainId) => ({
+      type: 'bridge/setTokenSelectorNetworkFilter',
+      payload: chainId,
     })),
   };
 });
@@ -194,6 +200,15 @@ jest.mock('../../../../../component-library/hooks', () => ({
   }),
 }));
 
+jest.mock('../../../../../constants/navigation/Routes', () => ({
+  BRIDGE: {
+    MODALS: {
+      ROOT: 'BridgeModals',
+      NETWORK_LIST_MODAL: 'NetworkListModal',
+    },
+  },
+}));
+
 const mockFormatAddressToAssetId = jest.fn<string | null, [string, string]>(
   () => 'eip155:1/erc20:0x1234',
 );
@@ -225,7 +240,27 @@ jest.mock('@metamask/design-system-react-native', () => {
       createElement(TouchableOpacity, { onPress, testID: 'button-icon-info' }),
     ButtonIconSize: { Md: 'Md' },
     IconColor: { IconAlternative: 'IconAlternative' },
-    IconName: { Info: 'Info' },
+    IconName: { Info: 'Info', Check: 'Check' },
+    Icon: 'Icon',
+    IconSize: { Md: 'Md' },
+    TextVariant: {
+      HeadingSm: 'HeadingSm',
+      HeadingMd: 'HeadingMd',
+      HeadingLg: 'HeadingLg',
+      BodyMd: 'BodyMd',
+      BodySm: 'BodySm',
+    },
+    TextColor: {
+      TextDefault: 'text-default',
+      TextAlternative: 'text-alternative',
+      PrimaryInverse: 'text-primary-inverse',
+    },
+    AvatarNetwork: 'AvatarNetwork',
+    AvatarNetworkSize: { Xs: '16', Sm: '24' },
+    AvatarBaseShape: { Circle: 'circle', Square: 'square' },
+    BoxAlignItems: { Center: 'center' },
+    BoxFlexDirection: { Row: 'row' },
+    FontWeight: { Medium: '500' },
   };
 });
 
@@ -273,20 +308,18 @@ jest.mock(
       onChangeText,
       testID,
       value,
-      showClearButton,
       onPressClearButton,
     }: {
       onChangeText: (text: string) => void;
       testID: string;
       value?: string;
-      showClearButton?: boolean;
       onPressClearButton?: () => void;
     }) =>
       createElement(
         View,
         null,
         createElement(TextInput, { onChangeText, testID, value }),
-        showClearButton &&
+        !!value &&
           createElement(TouchableOpacity, {
             testID: 'bridge-token-search-clear-button',
             onPress: onPressClearButton,
@@ -295,7 +328,7 @@ jest.mock(
   },
 );
 
-jest.mock('../BridgeTokenSelectorBase', () => ({
+jest.mock('../SkeletonItem', () => ({
   SkeletonItem: () => {
     const { createElement } = jest.requireActual('react');
     const { View } = jest.requireActual('react-native');

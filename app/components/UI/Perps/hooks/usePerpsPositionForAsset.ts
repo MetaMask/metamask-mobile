@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
-import type { AccountState, Position } from '../controllers/types';
+import type { AccountState, Position } from '@metamask/perps-controller';
 import { usePerpsTrading } from './usePerpsTrading';
 import { usePerpsNetwork } from './usePerpsNetwork';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
@@ -66,7 +66,7 @@ export const _clearPositionCache = (): void => {
  *
  * Key Features:
  * - Module-level caching to avoid repeated API calls
- * - Uses readOnly mode - works without full perps initialization (no wallet/WebSocket)
+ * - Uses standalone mode - works without full perps initialization (no wallet/WebSocket)
  * - Queries positions and account state in parallel for efficiency
  * - 30s cache TTL (shorter than market cache due to position volatility)
  *
@@ -170,15 +170,15 @@ export const usePerpsPositionForAsset = (
     }
 
     try {
-      // Fetch positions and account state in parallel using readOnly mode
-      // readOnly: true bypasses full initialization (no wallet/WebSocket needed)
+      // Fetch positions and account state in parallel using standalone mode
+      // standalone: true bypasses full initialization (no wallet/WebSocket needed)
       const [positions, accountState] = await Promise.all([
         getPositions({
-          readOnly: true,
+          standalone: true,
           userAddress,
         }),
         getAccountState({
-          readOnly: true,
+          standalone: true,
           userAddress,
         }),
       ]);

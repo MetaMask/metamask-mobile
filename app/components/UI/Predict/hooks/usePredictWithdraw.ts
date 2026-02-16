@@ -14,13 +14,7 @@ import {
 } from '../../../../component-library/components/Toast';
 import { strings } from '../../../../../locales/i18n';
 
-interface UsePredictWithdrawParams {
-  providerId?: string;
-}
-
-export const usePredictWithdraw = ({
-  providerId = 'polymarket',
-}: UsePredictWithdrawParams = {}) => {
+export const usePredictWithdraw = () => {
   const { prepareWithdraw } = usePredictTrading();
   const { navigateToConfirmation } = useConfirmNavigation();
   const navigation =
@@ -40,7 +34,7 @@ export const usePredictWithdraw = ({
         loader: ConfirmationLoader.CustomAmount,
       });
 
-      const response = await prepareWithdraw({ providerId });
+      const response = await prepareWithdraw({});
 
       return response;
     } catch (err) {
@@ -65,13 +59,7 @@ export const usePredictWithdraw = ({
 
       console.error('Failed to proceed with withdraw:', err);
     }
-  }, [
-    navigateToConfirmation,
-    navigation,
-    prepareWithdraw,
-    providerId,
-    toastRef,
-  ]);
+  }, [navigateToConfirmation, navigation, prepareWithdraw, toastRef]);
 
   return { withdraw, withdrawTransaction };
 };
