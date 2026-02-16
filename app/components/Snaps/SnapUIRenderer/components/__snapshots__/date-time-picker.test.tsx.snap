@@ -143,6 +143,7 @@ exports[`SnapUIDateTimePicker can show an error 1`] = `
                       editable={true}
                       onBlur={[Function]}
                       onFocus={[Function]}
+                      placeholderTextColor="#686e7d"
                       pointerEvents="none"
                       readOnly={true}
                       style={
@@ -154,10 +155,9 @@ exports[`SnapUIDateTimePicker can show an error 1`] = `
                           "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "fontWeight": "400",
-                          "height": 24,
                           "letterSpacing": 0,
+                          "lineHeight": 0,
                           "opacity": 1,
-                          "paddingVertical": 2,
                           "textAlignVertical": "center",
                         }
                       }
@@ -323,6 +323,7 @@ exports[`SnapUIDateTimePicker renders a date picker 1`] = `
                       editable={true}
                       onBlur={[Function]}
                       onFocus={[Function]}
+                      placeholderTextColor="#686e7d"
                       pointerEvents="none"
                       readOnly={true}
                       style={
@@ -334,10 +335,9 @@ exports[`SnapUIDateTimePicker renders a date picker 1`] = `
                           "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "fontWeight": "400",
-                          "height": 24,
                           "letterSpacing": 0,
+                          "lineHeight": 0,
                           "opacity": 1,
-                          "paddingVertical": 2,
                           "textAlignVertical": "center",
                         }
                       }
@@ -488,6 +488,7 @@ exports[`SnapUIDateTimePicker renders a date time picker 1`] = `
                       editable={true}
                       onBlur={[Function]}
                       onFocus={[Function]}
+                      placeholderTextColor="#686e7d"
                       pointerEvents="none"
                       readOnly={true}
                       style={
@@ -499,10 +500,9 @@ exports[`SnapUIDateTimePicker renders a date time picker 1`] = `
                           "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "fontWeight": "400",
-                          "height": 24,
                           "letterSpacing": 0,
+                          "lineHeight": 0,
                           "opacity": 1,
-                          "paddingVertical": 2,
                           "textAlignVertical": "center",
                         }
                       }
@@ -653,6 +653,7 @@ exports[`SnapUIDateTimePicker renders a time picker 1`] = `
                       editable={true}
                       onBlur={[Function]}
                       onFocus={[Function]}
+                      placeholderTextColor="#686e7d"
                       pointerEvents="none"
                       readOnly={true}
                       style={
@@ -664,10 +665,9 @@ exports[`SnapUIDateTimePicker renders a time picker 1`] = `
                           "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "fontWeight": "400",
-                          "height": 24,
                           "letterSpacing": 0,
+                          "lineHeight": 0,
                           "opacity": 1,
-                          "paddingVertical": 2,
                           "textAlignVertical": "center",
                         }
                       }
@@ -833,6 +833,7 @@ exports[`SnapUIDateTimePicker renders inside a field 1`] = `
                       editable={true}
                       onBlur={[Function]}
                       onFocus={[Function]}
+                      placeholderTextColor="#686e7d"
                       pointerEvents="none"
                       readOnly={true}
                       style={
@@ -844,10 +845,9 @@ exports[`SnapUIDateTimePicker renders inside a field 1`] = `
                           "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "fontWeight": "400",
-                          "height": 24,
                           "letterSpacing": 0,
+                          "lineHeight": 0,
                           "opacity": 1,
-                          "paddingVertical": 2,
                           "textAlignVertical": "center",
                         }
                       }
