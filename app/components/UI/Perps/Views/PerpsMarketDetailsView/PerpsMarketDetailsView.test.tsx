@@ -2769,7 +2769,7 @@ describe('PerpsMarketDetailsView', () => {
         error: null,
       });
 
-      const { getByTestId } = renderWithProvider(
+      const { getByTestId, getByText } = renderWithProvider(
         <PerpsConnectionProvider>
           <PerpsMarketDetailsView />
         </PerpsConnectionProvider>,
@@ -2777,6 +2777,7 @@ describe('PerpsMarketDetailsView', () => {
       );
 
       expect(getByTestId('compact-order-standalone-tpsl')).toBeTruthy();
+      expect(getByText('Take profit limit close long')).toBeTruthy();
     });
 
     it('uses size fallback when isPositionTpsl is undefined', () => {
