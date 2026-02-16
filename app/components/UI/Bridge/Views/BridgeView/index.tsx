@@ -59,7 +59,7 @@ import { useGasFeeEstimates } from '../../../../Views/confirmations/hooks/gas/us
 import { selectSelectedNetworkClientId } from '../../../../../selectors/networkController';
 import { useIsNetworkEnabled } from '../../hooks/useIsNetworkEnabled';
 import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
-import { BridgeToken, BridgeViewMode } from '../../types';
+import { BridgeToken } from '../../types';
 import { useSwitchTokens } from '../../hooks/useSwitchTokens';
 import { ScrollView } from 'react-native';
 import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
@@ -70,10 +70,7 @@ import { useInitialSlippage } from '../../hooks/useInitialSlippage/index.ts';
 import { useHasSufficientGas } from '../../hooks/useHasSufficientGas/index.ts';
 import { useRecipientInitialization } from '../../hooks/useRecipientInitialization';
 import ApprovalTooltip from '../../components/ApprovalText';
-import {
-  BRIDGE_MM_FEE_RATE,
-  type MetaMetricsSwapsEventSource,
-} from '@metamask/bridge-controller';
+import { BRIDGE_MM_FEE_RATE } from '@metamask/bridge-controller';
 import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
 import { isNullOrUndefined, Hex } from '@metamask/utils';
 import { useBridgeQuoteEvents } from '../../hooks/useBridgeQuoteEvents/index.ts';
@@ -90,15 +87,7 @@ import { GaslessQuickPickOptions } from '../../components/GaslessQuickPickOption
 import { SwapsConfirmButton } from '../../components/SwapsConfirmButton/index.tsx';
 import { useBridgeViewOnFocus } from '../../hooks/useBridgeViewOnFocus/index.ts';
 import { useRenderQuoteExpireModal } from '../../hooks/useRenderQuoteExpireModal/index.ts';
-
-export interface BridgeRouteParams {
-  sourcePage: string;
-  bridgeViewMode: BridgeViewMode;
-  sourceToken?: BridgeToken;
-  destToken?: BridgeToken;
-  sourceAmount?: string;
-  location?: MetaMetricsSwapsEventSource;
-}
+import { type BridgeRouteParams } from '../../hooks/useSwapBridgeNavigation/index.ts';
 
 const BridgeView = () => {
   const [isErrorBannerVisible, setIsErrorBannerVisible] = useState(true);
@@ -407,10 +396,7 @@ const BridgeView = () => {
             />
           )}
 
-          <SwapsConfirmButton
-            latestSourceBalance={latestSourceBalance}
-            location={route.params?.location}
-          />
+          <SwapsConfirmButton latestSourceBalance={latestSourceBalance} />
           <Box flexDirection={FlexDirection.Row} alignItems={AlignItems.center}>
             <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
               {hasFee
@@ -539,7 +525,6 @@ const BridgeView = () => {
             <SwapsConfirmButton
               latestSourceBalance={latestSourceBalance}
               testID={BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD}
-              location={route.params?.location}
             />
           ) : (
             <GaslessQuickPickOptions

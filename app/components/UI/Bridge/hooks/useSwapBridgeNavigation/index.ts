@@ -10,7 +10,6 @@ import {
   isNonEvmChainId,
   MetaMetricsSwapsEventSource,
 } from '@metamask/bridge-controller';
-import { BridgeRouteParams } from '../../Views/BridgeView';
 import { EthScope } from '@metamask/keyring-api';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { getDecimalChainId } from '../../../../../util/networks';
@@ -51,11 +50,20 @@ export const isAssetFromTrending = (asset: unknown) =>
   'isFromTrending' in asset &&
   asset.isFromTrending === true;
 
+export interface BridgeRouteParams {
+  sourcePage: string;
+  bridgeViewMode: BridgeViewMode;
+  sourceToken?: BridgeToken;
+  destToken?: BridgeToken;
+  sourceAmount?: string;
+  location: MetaMetricsSwapsEventSource;
+}
+
 export enum SwapBridgeNavigationLocation {
-  MainView = 'Main View',
-  TokenView = 'Token View',
+  MainView = MetaMetricsSwapsEventSource.MainView,
+  TokenView = MetaMetricsSwapsEventSource.TokenView,
   Rewards = 'Rewards',
-  TrendingExplore = 'Trending Explore',
+  TrendingExplore = MetaMetricsSwapsEventSource.TrendingExplore,
 }
 
 /**
