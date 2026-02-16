@@ -51,7 +51,7 @@ describe('refreshCardToken', () => {
       const result = await promise;
 
       expect(global.fetch).toHaveBeenCalledWith(
-        `${mockBaseUrl}/v1/auth/oauth/token`,
+        `${mockBaseUrl}/v1/auth/oauth2/token`,
         {
           method: 'POST',
           credentials: 'omit',
@@ -59,7 +59,6 @@ describe('refreshCardToken', () => {
             'Content-Type': 'application/json',
             'x-us-env': 'true',
             'x-client-key': mockApiKey,
-            'x-secret-key': mockApiKey,
           },
           body: JSON.stringify({
             grant_type: 'refresh_token',
@@ -96,7 +95,7 @@ describe('refreshCardToken', () => {
       const result = await promise;
 
       expect(global.fetch).toHaveBeenCalledWith(
-        `${mockBaseUrl}/v1/auth/oauth/token`,
+        `${mockBaseUrl}/v1/auth/oauth2/token`,
         expect.objectContaining({
           headers: expect.objectContaining({
             'x-us-env': 'false',
@@ -134,7 +133,7 @@ describe('refreshCardToken', () => {
       await promise;
 
       expect(global.fetch).toHaveBeenCalledWith(
-        `${customBaseUrl}/v1/auth/oauth/token`,
+        `${customBaseUrl}/v1/auth/oauth2/token`,
         expect.any(Object),
       );
     });
@@ -440,7 +439,7 @@ describe('refreshCardToken', () => {
       );
     });
 
-    it('includes both client and secret keys in headers', async () => {
+    it('includes client key in headers', async () => {
       const mockResponseData = {
         access_token: 'token',
         expires_in: 3600,
@@ -462,7 +461,6 @@ describe('refreshCardToken', () => {
         expect.objectContaining({
           headers: expect.objectContaining({
             'x-client-key': mockApiKey,
-            'x-secret-key': mockApiKey,
           }),
         }),
       );
