@@ -13,7 +13,7 @@ export const ALLOWLISTED_HOSTS = [
   'virtual.linea.rpc.tenderly.co',
   'portfolio.dev-api.cx.metamask.io',
   'portfolio.uat-api.cx.metamask.io',
-  'portfolio.api.cx.metamask.io',
+  'nft.api.cx.metamask.io',
   'gamma-api.polymarket.com',
   'clob.polymarket.com',
   '*.polymarket.com',
