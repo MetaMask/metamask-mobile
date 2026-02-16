@@ -5,12 +5,14 @@ import type { ClearinghouseStateResponse } from '../types/hyperliquid-types';
 import {
   createStandaloneInfoClient,
   queryStandaloneClearinghouseStates,
+  queryStandaloneOpenOrders,
 } from './standaloneInfoClient';
 
 // Mock instances — must use 'mock' prefix for Jest hoisting
 const mockHttpTransportInstance = { url: 'http://mock' };
 const mockInfoClientInstance = {
   clearinghouseState: jest.fn(),
+  frontendOpenOrders: jest.fn(),
 };
 
 jest.mock('@nktkas/hyperliquid', () => ({
@@ -237,6 +239,86 @@ describe('standaloneInfoClient', () => {
       );
 
       expect(results).toEqual([]);
+    });
+  });
+
+  // ----------------------------------------------------------------
+  // queryStandaloneOpenOrders
+  // ----------------------------------------------------------------
+  describe('queryStandaloneOpenOrders', () => {
+    const userAddress = '0xABCDEF1234567890abcdef1234567890ABCDEF12';
+
+    let mockInfoClient: {
+      frontendOpenOrders: jest.Mock;
+    };
+
+    beforeEach(() => {
+      mockInfoClient = {
+        frontendOpenOrders: jest.fn(),
+      };
+    });
+
+    it('returns orders from all DEXs combined', async () => {
+      const ordersA = [{ oid: 1, coin: 'BTC', side: 'A' }];
+      const ordersB = [{ oid: 2, coin: 'ETH', side: 'B' }];
+
+      mockInfoClient.frontendOpenOrders
+        .mockResolvedValueOnce(ordersA)
+        .mockResolvedValueOnce(ordersB);
+
+      const results = await queryStandaloneOpenOrders(
+        mockInfoClient as unknown as InfoClient,
+        userAddress,
+        [null, 'xyz'],
+      );
+
+      expect(results).toEqual([ordersA, ordersB]);
+      expect(mockInfoClient.frontendOpenOrders).toHaveBeenCalledTimes(2);
+    });
+
+    it('returns only fulfilled results when some DEX queries fail', async () => {
+      const ordersA = [{ oid: 1, coin: 'BTC', side: 'A' }];
+
+      mockInfoClient.frontendOpenOrders
+        .mockResolvedValueOnce(ordersA)
+        .mockRejectedValueOnce(new Error('DEX timeout'));
+
+      const results = await queryStandaloneOpenOrders(
+        mockInfoClient as unknown as InfoClient,
+        userAddress,
+        [null, 'failing-dex'],
+      );
+
+      expect(results).toEqual([ordersA]);
+    });
+
+    it('omits dex param when DEX is null', async () => {
+      mockInfoClient.frontendOpenOrders.mockResolvedValue([]);
+
+      await queryStandaloneOpenOrders(
+        mockInfoClient as unknown as InfoClient,
+        userAddress,
+        [null],
+      );
+
+      expect(mockInfoClient.frontendOpenOrders).toHaveBeenCalledWith({
+        user: userAddress,
+      });
+    });
+
+    it('passes dex param for non-null DEX', async () => {
+      mockInfoClient.frontendOpenOrders.mockResolvedValue([]);
+
+      await queryStandaloneOpenOrders(
+        mockInfoClient as unknown as InfoClient,
+        userAddress,
+        ['xyz'],
+      );
+
+      expect(mockInfoClient.frontendOpenOrders).toHaveBeenCalledWith({
+        user: userAddress,
+        dex: 'xyz',
+      });
     });
   });
 });

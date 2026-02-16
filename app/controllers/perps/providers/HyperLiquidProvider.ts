@@ -145,6 +145,7 @@ import {
 import {
   createStandaloneInfoClient,
   queryStandaloneClearinghouseStates,
+  queryStandaloneOpenOrders,
 } from '../utils/standaloneInfoClient';
 // getStreamManagerInstance removed: use this.#deps.streamManager instead
 
@@ -5000,6 +5001,39 @@ export class HyperLiquidProvider implements PerpsProvider {
    */
   async getOpenOrders(params?: GetOrdersParams): Promise<Order[]> {
     try {
+      // Path 0: Standalone mode for lightweight open order queries
+      // Creates a standalone InfoClient without requiring full initialization
+      // No wallet, WebSocket, or account setup needed - just HTTP API call
+      if (params?.standalone && params.userAddress) {
+        const { userAddress } = params;
+        this.#deps.debugLogger.log(
+          'HyperLiquidProvider: Getting open orders in standalone mode',
+          { userAddress },
+        );
+
+        const standaloneInfoClient = createStandaloneInfoClient({
+          isTestnet: this.#clientService.isTestnetMode(),
+        });
+        const dexs = await this.#getStandaloneValidatedDexs();
+        const orderResults = await queryStandaloneOpenOrders(
+          standaloneInfoClient,
+          userAddress,
+          dexs,
+        );
+
+        // Combine all orders from all DEXs and adapt (without position context in standalone mode)
+        const orders = orderResults.flatMap((dexOrders) =>
+          dexOrders.map((order) => adaptOrderFromSDK(order, undefined)),
+        );
+
+        this.#deps.debugLogger.log(
+          'HyperLiquidProvider: standalone open orders fetched',
+          { count: orders.length },
+        );
+
+        return orders;
+      }
+
       // Try WebSocket cache first (unless explicitly bypassed)
       // Use atomic getter to prevent race condition between check and get
       if (!params?.skipCache) {

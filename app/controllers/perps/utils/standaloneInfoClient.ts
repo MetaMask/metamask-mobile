@@ -1,7 +1,10 @@
 import { HttpTransport, InfoClient } from '@nktkas/hyperliquid';
 
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
-import type { ClearinghouseStateResponse } from '../types/hyperliquid-types';
+import type {
+  ClearinghouseStateResponse,
+  FrontendOpenOrdersResponse,
+} from '../types/hyperliquid-types';
 
 export type StandaloneInfoClientOptions = {
   /** Whether to use testnet API endpoint */
@@ -59,6 +62,40 @@ export const queryStandaloneClearinghouseStates = async (
   return results
     .filter(
       (result): result is PromiseFulfilledResult<ClearinghouseStateResponse> =>
+        result.status === 'fulfilled',
+    )
+    .map((result) => result.value);
+};
+
+/**
+ * Query frontendOpenOrders across multiple DEXs in parallel.
+ * Used by standalone mode to fetch open orders across HIP-3 DEXs.
+ *
+ * @param infoClient - The HyperLiquid InfoClient instance to use for queries.
+ * @param userAddress - The user's wallet address to query orders for.
+ * @param dexs - The array of DEX identifiers to query (null for main DEX).
+ * @returns A promise that resolves to an array of frontend open orders responses.
+ */
+export const queryStandaloneOpenOrders = async (
+  infoClient: InfoClient,
+  userAddress: string,
+  dexs: (string | null)[],
+): Promise<FrontendOpenOrdersResponse[]> => {
+  const results = await Promise.allSettled(
+    dexs.map(async (dex) => {
+      const queryParams: { user: string; dex?: string } = {
+        user: userAddress,
+      };
+      if (dex) {
+        queryParams.dex = dex;
+      }
+      return infoClient.frontendOpenOrders(queryParams);
+    }),
+  );
+
+  return results
+    .filter(
+      (result): result is PromiseFulfilledResult<FrontendOpenOrdersResponse> =>
         result.status === 'fulfilled',
     )
     .map((result) => result.value);

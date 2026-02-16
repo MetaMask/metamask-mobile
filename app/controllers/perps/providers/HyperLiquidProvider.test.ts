@@ -5241,7 +5241,7 @@ describe('HyperLiquidProvider', () => {
         createMockExchangeClient({
           approveBuilderFee: jest
             .fn()
-            .mockRejectedValue(new Error(PERPS_ERROR_CODES.KEYRING_LOCKED)),
+            .mockRejectedValue(new Error('KEYRING_LOCKED')),
         }),
       );
 
@@ -5453,9 +5453,7 @@ describe('HyperLiquidProvider', () => {
       );
       mockClientService.getExchangeClient = jest.fn().mockReturnValue(
         createMockExchangeClient({
-          setReferrer: jest
-            .fn()
-            .mockRejectedValue(new Error(PERPS_ERROR_CODES.KEYRING_LOCKED)),
+          setReferrer: jest.fn().mockRejectedValue(new Error('KEYRING_LOCKED')),
         }),
       );
 
@@ -7244,7 +7242,7 @@ describe('HyperLiquidProvider', () => {
         const mockExchangeClient = createMockExchangeClient();
         mockExchangeClient.agentEnableDexAbstraction = jest
           .fn()
-          .mockRejectedValue(new Error(PERPS_ERROR_CODES.KEYRING_LOCKED));
+          .mockRejectedValue(new Error('KEYRING_LOCKED'));
         mockClientService.getInfoClient = jest.fn().mockReturnValue(
           createMockInfoClient({
             userDexAbstraction: jest.fn().mockResolvedValue(false),
@@ -7374,7 +7372,9 @@ describe('HyperLiquidProvider', () => {
           success: true,
         });
         // Keyring is locked
-        mockWalletService.isKeyringUnlocked = jest.fn().mockReturnValue(false);
+        (
+          mockWalletService as unknown as { isKeyringUnlocked: jest.Mock }
+        ).isKeyringUnlocked.mockReturnValue(false);
 
         // Act
         await testableProvider.ensureReadyForTrading();
@@ -7856,6 +7856,7 @@ describe('HyperLiquidProvider', () => {
       // Reset standalone client mock
       mockStandaloneInfoClient = {
         clearinghouseState: jest.fn(),
+        frontendOpenOrders: jest.fn(),
         perpDexs: jest.fn().mockResolvedValue([null]),
       };
     });
@@ -8071,6 +8072,62 @@ describe('HyperLiquidProvider', () => {
           unrealizedPnl: '--',
           returnOnEquity: '--',
         });
+      });
+    });
+
+    describe('getOpenOrders with standalone mode', () => {
+      it('returns orders via standalone client when standalone mode enabled', async () => {
+        // Arrange - mock with all required FrontendOrder fields for adaptOrderFromSDK
+        mockStandaloneInfoClient.frontendOpenOrders.mockResolvedValue([
+          {
+            coin: 'BTC',
+            oid: 12345,
+            side: 'B',
+            limitPx: '50000',
+            sz: '0.1',
+            origSz: '0.1',
+            timestamp: Date.now(),
+            orderType: 'Limit',
+            isTrigger: false,
+            reduceOnly: false,
+            isPositionTpsl: false,
+            cloid: undefined,
+            children: [],
+          },
+        ]);
+
+        // Act
+        const orders = await provider.getOpenOrders({
+          standalone: true,
+          userAddress: mockUserAddress,
+        });
+
+        // Assert
+        expect(mockCreateStandaloneInfoClient).toHaveBeenCalledWith({
+          isTestnet: false,
+        });
+        expect(
+          mockStandaloneInfoClient.frontendOpenOrders,
+        ).toHaveBeenCalledWith({ user: mockUserAddress });
+        expect(orders).toHaveLength(1);
+        expect(orders[0].symbol).toBe('BTC');
+        expect(orders[0].side).toBe('buy');
+      });
+
+      it('returns empty array when standalone client fails', async () => {
+        // Arrange
+        mockStandaloneInfoClient.frontendOpenOrders.mockRejectedValue(
+          new Error('API unavailable'),
+        );
+
+        // Act
+        const orders = await provider.getOpenOrders({
+          standalone: true,
+          userAddress: mockUserAddress,
+        });
+
+        // Assert — all DEX queries failed, flatMap([]) returns empty
+        expect(orders).toEqual([]);
       });
     });
 
