@@ -102,9 +102,9 @@ exports[`BrowserTab render Browser 1`] = `
             style={
               [
                 {
-              "color": "#121314",
-              "height": 32,
-              "width": 32,
+                  "color": "#121314",
+                  "height": 32,
+                  "width": 32,
                 },
                 undefined,
               ]
@@ -717,13 +717,13 @@ exports[`BrowserTab render Browser 1`] = `
             style={
               [
                 {
-                "alignItems": "center",
-                "backgroundColor": "transparent",
-                "borderRadius": 8,
-                "height": 40,
-                "justifyContent": "center",
-                "opacity": 0.5,
-                "width": 40,
+                  "alignItems": "center",
+                  "backgroundColor": "transparent",
+                  "borderRadius": 8,
+                  "height": 40,
+                  "justifyContent": "center",
+                  "opacity": 0.5,
+                  "width": 40,
                 },
                 undefined,
               ]
@@ -736,9 +736,9 @@ exports[`BrowserTab render Browser 1`] = `
               style={
                 [
                   {
-              "color": "#121314",
-              "height": 32,
-              "width": 32,
+                    "color": "#121314",
+                    "height": 32,
+                    "width": 32,
                   },
                   undefined,
                 ]
@@ -796,13 +796,13 @@ exports[`BrowserTab render Browser 1`] = `
             style={
               [
                 {
-                "alignItems": "center",
-                "backgroundColor": "transparent",
-                "borderRadius": 8,
-                "height": 40,
-                "justifyContent": "center",
-                "opacity": 0.5,
-                "width": 40,
+                  "alignItems": "center",
+                  "backgroundColor": "transparent",
+                  "borderRadius": 8,
+                  "height": 40,
+                  "justifyContent": "center",
+                  "opacity": 0.5,
+                  "width": 40,
                 },
                 undefined,
               ]
@@ -815,9 +815,9 @@ exports[`BrowserTab render Browser 1`] = `
               style={
                 [
                   {
-              "color": "#121314",
-              "height": 32,
-              "width": 32,
+                    "color": "#121314",
+                    "height": 32,
+                    "width": 32,
                   },
                   undefined,
                 ]
@@ -875,13 +875,13 @@ exports[`BrowserTab render Browser 1`] = `
             style={
               [
                 {
-            "alignItems": "center",
-            "backgroundColor": "transparent",
-            "borderRadius": 8,
-            "height": 40,
-            "justifyContent": "center",
-            "opacity": 1,
-            "width": 40,
+                  "alignItems": "center",
+                  "backgroundColor": "transparent",
+                  "borderRadius": 8,
+                  "height": 40,
+                  "justifyContent": "center",
+                  "opacity": 1,
+                  "width": 40,
                 },
                 undefined,
               ]
@@ -894,9 +894,9 @@ exports[`BrowserTab render Browser 1`] = `
               style={
                 [
                   {
-              "color": "#121314",
-              "height": 32,
-              "width": 32,
+                    "color": "#121314",
+                    "height": 32,
+                    "width": 32,
                   },
                   undefined,
                 ]
@@ -968,13 +968,13 @@ exports[`BrowserTab render Browser 1`] = `
             style={
               [
                 {
-                "alignItems": "center",
-                "backgroundColor": "transparent",
-                "borderRadius": 8,
-                "height": 40,
-                "justifyContent": "center",
-                "opacity": 0.5,
-                "width": 40,
+                  "alignItems": "center",
+                  "backgroundColor": "transparent",
+                  "borderRadius": 8,
+                  "height": 40,
+                  "justifyContent": "center",
+                  "opacity": 0.5,
+                  "width": 40,
                 },
                 undefined,
               ]
@@ -987,9 +987,9 @@ exports[`BrowserTab render Browser 1`] = `
               style={
                 [
                   {
-              "color": "#121314",
-              "height": 32,
-              "width": 32,
+                    "color": "#121314",
+                    "height": 32,
+                    "width": 32,
                   },
                   undefined,
                 ]
@@ -1047,13 +1047,13 @@ exports[`BrowserTab render Browser 1`] = `
             style={
               [
                 {
-            "alignItems": "center",
-            "backgroundColor": "transparent",
-            "borderRadius": 8,
-            "height": 40,
-            "justifyContent": "center",
-            "opacity": 1,
-            "width": 40,
+                  "alignItems": "center",
+                  "backgroundColor": "transparent",
+                  "borderRadius": 8,
+                  "height": 40,
+                  "justifyContent": "center",
+                  "opacity": 1,
+                  "width": 40,
                 },
                 undefined,
               ]
@@ -1066,9 +1066,9 @@ exports[`BrowserTab render Browser 1`] = `
               style={
                 [
                   {
-              "color": "#121314",
-              "height": 32,
-              "width": 32,
+                    "color": "#121314",
+                    "height": 32,
+                    "width": 32,
                   },
                   undefined,
                 ]

@@ -565,14 +565,14 @@ exports[`StateSelectorModal Component Snapshot Tests renders cleared search stat
                                   >
                                     <SvgMock
                                       fill="currentColor"
-                                          name="Close"
-                                            style={
-                                              [
-                                                {
-                                                  "color": "#121314",
-                                                  "height": 24,
-                                                  "width": 24,
-                                                },
+                                      name="Close"
+                                      style={
+                                        [
+                                          {
+                                            "color": "#121314",
+                                            "height": 24,
+                                            "width": 24,
+                                          },
                                           undefined,
                                         ]
                                       }
@@ -1430,14 +1430,14 @@ exports[`StateSelectorModal Component Snapshot Tests renders empty state when no
                                   >
                                     <SvgMock
                                       fill="currentColor"
-                                          name="Close"
-                                            style={
-                                              [
-                                                {
-                                                  "color": "#121314",
-                                                  "height": 24,
-                                                  "width": 24,
-                                                },
+                                      name="Close"
+                                      style={
+                                        [
+                                          {
+                                            "color": "#121314",
+                                            "height": 24,
+                                            "width": 24,
+                                          },
                                           undefined,
                                         ]
                                       }
@@ -2239,14 +2239,14 @@ exports[`StateSelectorModal Component Snapshot Tests renders filtered state when
                                   >
                                     <SvgMock
                                       fill="currentColor"
-                                          name="Close"
-                                            style={
-                                              [
-                                                {
-                                                  "color": "#121314",
-                                                  "height": 24,
-                                                  "width": 24,
-                                                },
+                                      name="Close"
+                                      style={
+                                        [
+                                          {
+                                            "color": "#121314",
+                                            "height": 24,
+                                            "width": 24,
+                                          },
                                           undefined,
                                         ]
                                       }
@@ -3104,14 +3104,14 @@ exports[`StateSelectorModal Component Snapshot Tests renders filtered state when
                                   >
                                     <SvgMock
                                       fill="currentColor"
-                                          name="Close"
-                                            style={
-                                              [
-                                                {
-                                                  "color": "#121314",
-                                                  "height": 24,
-                                                  "width": 24,
-                                                },
+                                      name="Close"
+                                      style={
+                                        [
+                                          {
+                                            "color": "#121314",
+                                            "height": 24,
+                                            "width": 24,
+                                          },
                                           undefined,
                                         ]
                                       }
@@ -3969,14 +3969,14 @@ exports[`StateSelectorModal Component Snapshot Tests renders initial state corre
                                   >
                                     <SvgMock
                                       fill="currentColor"
-                                          name="Close"
-                                            style={
-                                              [
-                                                {
-                                                  "color": "#121314",
-                                                  "height": 24,
-                                                  "width": 24,
-                                                },
+                                      name="Close"
+                                      style={
+                                        [
+                                          {
+                                            "color": "#121314",
+                                            "height": 24,
+                                            "width": 24,
+                                          },
                                           undefined,
                                         ]
                                       }
@@ -5097,14 +5097,14 @@ exports[`StateSelectorModal Component Snapshot Tests renders partial search resu
                                   >
                                     <SvgMock
                                       fill="currentColor"
-                                          name="Close"
-                                            style={
-                                              [
-                                                {
-                                                  "color": "#121314",
-                                                  "height": 24,
-                                                  "width": 24,
-                                                },
+                                      name="Close"
+                                      style={
+                                        [
+                                          {
+                                            "color": "#121314",
+                                            "height": 24,
+                                            "width": 24,
+                                          },
                                           undefined,
                                         ]
                                       }
