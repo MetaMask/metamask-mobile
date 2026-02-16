@@ -452,6 +452,7 @@ describe('usePerpsCloseAllPositions', () => {
     (
       Engine.context.PerpsController.closePositions as jest.Mock
     ).mockResolvedValue(mockResult);
+    mockNavigation.canGoBack.mockReturnValue(true);
     const calculations = {
       totalMargin: '1000',
       totalPnl: '100',
