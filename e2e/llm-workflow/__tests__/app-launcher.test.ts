@@ -1,6 +1,7 @@
 /* eslint-disable import/no-nodejs-modules */
 import { existsSync } from 'fs';
 import { execFile as execFileCb } from 'node:child_process';
+import path from 'path';
 /* eslint-enable import/no-nodejs-modules */
 import {
   MetaMaskMobileAppLauncher,
@@ -48,6 +49,8 @@ const MockedIOSPlatformDriver = IOSPlatformDriver as jest.MockedClass<
 const MockedXCUITestClient = XCUITestClient as jest.MockedClass<
   typeof XCUITestClient
 >;
+const originalFetch = global.fetch;
+const mockFetch = jest.fn();
 
 describe('MetaMaskMobileAppLauncher', () => {
   let appLauncher: MetaMaskMobileAppLauncher;
@@ -55,13 +58,19 @@ describe('MetaMaskMobileAppLauncher', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({ ok: true }),
+    });
+    global.fetch = mockFetch as unknown as typeof fetch;
+
     mockExistsSync.mockReturnValue(true);
     mockIsBooted.mockResolvedValue(true);
     mockBootDevice.mockResolvedValue(undefined);
     mockLaunchApp.mockResolvedValue(undefined);
     mockTerminateApp.mockResolvedValue(undefined);
     mockStartRunner.mockResolvedValue(8100);
-    mockStopRunner.mockReturnValue(undefined);
+    mockStopRunner.mockResolvedValue(undefined);
     mockWaitForReady.mockResolvedValue(true);
     mockSetPlatformDriver.mockReturnValue(undefined);
     mockClearPlatformDriver.mockReturnValue(undefined);
@@ -78,6 +87,7 @@ describe('MetaMaskMobileAppLauncher', () => {
   });
 
   afterEach(() => {
+    global.fetch = originalFetch;
     jest.resetAllMocks();
   });
 
@@ -95,11 +105,11 @@ describe('MetaMaskMobileAppLauncher', () => {
       expect(result).toEqual({
         simulatorDeviceId: validOptions.simulatorDeviceId,
         runnerPort: 8100,
-        appBundleId: 'io.metamask',
+        appBundleId: 'io.metamask.MetaMask',
       });
       expect(mockLaunchApp).toHaveBeenCalledWith(
         validOptions.simulatorDeviceId,
-        'io.metamask',
+        'io.metamask.MetaMask',
       );
       expect(mockStartRunner).toHaveBeenCalled();
       expect(mockSetPlatformDriver).toHaveBeenCalled();
@@ -176,7 +186,11 @@ describe('MetaMaskMobileAppLauncher', () => {
         expect.any(Object),
         validOptions.simulatorDeviceId,
         expect.objectContaining({
-          screenshotDir: '/tmp/ios-screenshots',
+          screenshotDir: path.join(
+            process.cwd(),
+            'test-artifacts',
+            'ios-screenshots',
+          ),
         }),
       );
     });
@@ -211,6 +225,90 @@ describe('MetaMaskMobileAppLauncher', () => {
       expect(mockStopRunner).toHaveBeenCalled();
       expect(mockClearPlatformDriver).toHaveBeenCalled();
     });
+
+    it('stabilizes after metro attach and retries runner bind', async () => {
+      const sleepSpy = jest
+        .spyOn(
+          appLauncher as unknown as {
+            sleep: (durationMs: number) => Promise<void>;
+          },
+          'sleep',
+        )
+        .mockResolvedValue(undefined);
+
+      // In watch mode there is no initial bindRunnerToApp — only stabilize calls.
+      // Sequence: stabilize sleep → bind fail → retry sleep → bind succeed.
+      mockFetch
+        .mockRejectedValueOnce(new Error('transient bind error'))
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({ ok: true }),
+        });
+
+      const optionsWithMetro = {
+        ...validOptions,
+        metroPort: 8082,
+      };
+
+      await expect(appLauncher.launch(optionsWithMetro)).resolves.toMatchObject(
+        {
+          simulatorDeviceId: validOptions.simulatorDeviceId,
+          runnerPort: 8100,
+        },
+      );
+
+      expect(mockFetch).toHaveBeenCalledTimes(2);
+      expect(sleepSpy).toHaveBeenCalledTimes(2);
+      expect(sleepSpy).toHaveBeenNthCalledWith(1, 1500);
+      expect(sleepSpy).toHaveBeenNthCalledWith(2, 1000);
+      sleepSpy.mockRestore();
+    });
+
+    it('skips install and launchApp in watch mode', async () => {
+      const mockExecFile = execFileCb as unknown as jest.Mock;
+
+      const optionsWithMetro = {
+        ...validOptions,
+        metroPort: 8082,
+      };
+
+      await appLauncher.launch(optionsWithMetro);
+
+      expect(mockLaunchApp).not.toHaveBeenCalled();
+      const installCalls = mockExecFile.mock.calls.filter(
+        (call: unknown[]) =>
+          Array.isArray(call[1]) && call[1].includes('install'),
+      );
+      expect(installCalls).toHaveLength(0);
+    });
+
+    it('fails launch when post-metro stabilization retries are exhausted', async () => {
+      const sleepSpy = jest
+        .spyOn(
+          appLauncher as unknown as {
+            sleep: (durationMs: number) => Promise<void>;
+          },
+          'sleep',
+        )
+        .mockResolvedValue(undefined);
+
+      // In watch mode there is no initial bindRunnerToApp — all fetch calls are
+      // stabilize bind retries, all of which fail.
+      mockFetch.mockRejectedValue(new Error('runner unavailable'));
+
+      const optionsWithMetro = {
+        ...validOptions,
+        metroPort: 8082,
+      };
+
+      await expect(appLauncher.launch(optionsWithMetro)).rejects.toThrow(
+        'Post-Metro stabilization failed after retries',
+      );
+
+      expect(mockStopRunner).toHaveBeenCalled();
+      expect(sleepSpy).toHaveBeenCalledTimes(5);
+      sleepSpy.mockRestore();
+    });
   });
 
   describe('stop', () => {
@@ -237,7 +335,7 @@ describe('MetaMaskMobileAppLauncher', () => {
 
       expect(mockTerminateApp).toHaveBeenCalledWith(
         validOptions.simulatorDeviceId,
-        'io.metamask',
+        'io.metamask.MetaMask',
       );
     });
 

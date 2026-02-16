@@ -3,6 +3,8 @@
   "version": "7.66.0",
   "private": true,
   "scripts": {
+    "mcp:build": "node e2e/llm-workflow/mcp-server/build.mjs",
+    "mcp:start": "node e2e/llm-workflow/mcp-server/start.mjs",
     "install:foundryup": "yarn mm-foundryup",
     "anvil": "node_modules/.bin/anvil",
     "audit:ci": "yarn npm audit --environment production --severity moderate --no-deprecations",
@@ -512,7 +514,7 @@
     "@metamask/auto-changelog": "^5.3.0",
     "@metamask/browser-passworder": "^5.0.0",
     "@metamask/build-utils": "^3.0.0",
-    "@metamask/client-mcp-core": "portal:/Users/joaotavares/Documents/projects/consensys/client-mcp-core-worktrees",
+    "@metamask/client-mcp-core": "file:.yalc/@metamask/client-mcp-core",
     "@metamask/eslint-config-typescript": "^10.0.0",
     "@metamask/eslint-plugin-design-tokens": "^1.0.0",
     "@metamask/foundryup": "1.0.0",
@@ -616,7 +618,6 @@
     "nyc": "^15.1.0",
     "openai": "^4.77.0",
     "patch-package": "^6.2.2",
-    "playwright": "^1.49.0",
     "prettier": "^3.6.2",
     "prettier-2": "npm:prettier@^2.8.8",
     "react-compiler-runtime": "^19.1.0-rc.2",
@@ -636,6 +637,7 @@
     "simple-git": "^3.25.0",
     "tailwindcss": "^3.4.0",
     "ts-node": "^10.9.2",
+    "tsx": "^4.21.0",
     "typescript": "~5.4.5",
     "webdriverio": "^9.21.0",
     "webextension-polyfill": "^0.12.0",
@@ -741,7 +743,8 @@
       "appium-chromium-driver>appium-chromedriver>@appium/support>sharp": false,
       "@metamask/transaction-controller>babel-runtime>core-js": false,
       "webdriverio>@wdio/utils>edgedriver": false,
-      "webdriverio>@wdio/utils>geckodriver": false
+      "webdriverio>@wdio/utils>geckodriver": false,
+      "tsx>esbuild": false
     }
   },
   "packageManager": "yarn@4.10.3",

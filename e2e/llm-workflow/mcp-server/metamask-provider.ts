@@ -32,14 +32,28 @@ import {
 type PageFromInterface = ReturnType<ISessionManager['getPage']>;
 type BrowserContextFromInterface = ReturnType<ISessionManager['getContext']>;
 
+type BuildCapabilityWithWatch = BuildCapability & {
+  startWatchMode?: (options?: {
+    port?: number;
+    clean?: boolean;
+    logFile?: string;
+  }) => Promise<{ port: number; logFile?: string; pid?: number }>;
+  stopWatchMode?: () => Promise<void>;
+  isWatching?: () => boolean;
+};
+
 import {
   launchMetaMaskMobile,
   type MetaMaskMobileAppLauncher,
 } from '../app-launcher';
-import { createMetaMaskMobileE2EContext } from '../capabilities/factory';
+import {
+  createMetaMaskMobileE2EContext,
+  createMetaMaskMobileProdContext,
+} from '../capabilities/factory';
 
 const DEFAULT_ANVIL_PORT = 8545;
 const DEFAULT_FIXTURE_SERVER_PORT = 12345;
+const DEFAULT_MOCK_SERVER_PORT = 8000;
 
 /**
  * MetaMask Mobile Session Manager
@@ -108,164 +122,261 @@ export class MetaMaskMobileSessionManager implements ISessionManager {
     const stateMode = input.stateMode ?? 'default';
     const autoBuild = input.autoBuild ?? true;
 
-    // ---- Step 1: Build app if autoBuild ----
-    let appBundlePath = input.appBundlePath ?? input.extensionPath;
-    if (autoBuild) {
-      const buildCapability = this.getBuildCapability();
-      if (!buildCapability) {
-        throw new Error(
-          'autoBuild is enabled but BuildCapability is not available.\n\n' +
-            'Options:\n' +
-            '  1. Use mm_build tool first to build the app\n' +
-            '  2. Set autoBuild: false and provide appBundlePath\n' +
-            '  3. Ensure BuildCapability is registered in the workflow context',
-        );
-      }
+    // Resolve ports upfront — these are the actual ports services will bind to
+    const anvilPort = input.ports?.anvil ?? DEFAULT_ANVIL_PORT;
+    const fixtureServerPort =
+      input.ports?.fixtureServer ?? DEFAULT_FIXTURE_SERVER_PORT;
+    const mockServerPort = DEFAULT_MOCK_SERVER_PORT;
 
-      const buildResult = await buildCapability.build({ force: false });
-      if (!buildResult.success) {
-        throw new Error(
-          `Build failed: ${buildResult.error ?? 'Unknown error'}\n\n` +
-            'Use mm_build tool to diagnose build issues.',
-        );
-      }
-
-      if (!appBundlePath && buildResult.extensionPath) {
-        appBundlePath = buildResult.extensionPath;
-      }
-    }
-
-    // ---- Step 2: Start chain ----
-    const chainCapability = this.getChainCapability();
-    if (chainCapability) {
-      const anvilPort = input.ports?.anvil ?? DEFAULT_ANVIL_PORT;
-      if (chainCapability.setPort) {
-        chainCapability.setPort(anvilPort);
-      }
-      await chainCapability.start();
-    }
-
-    // ---- Step 3: Start fixture server ----
-    const fixtureCapability = this.getFixtureCapability();
-    if (fixtureCapability) {
-      const fixtureState = this.resolveFixtureState(fixtureCapability, {
-        stateMode,
-        fixturePreset: input.fixturePreset,
-        fixture: input.fixture,
-      });
-      await fixtureCapability.start(fixtureState);
-    }
-
-    // ---- Step 4: Start mock server ----
-    const mockServerCapability = this.getMockServerCapability();
-    if (mockServerCapability) {
-      await mockServerCapability.start();
-    }
-
-    // ---- Step 5: Initialize contract seeding ----
-    const contractSeedingCapability = this.getContractSeedingCapability();
-    if (contractSeedingCapability) {
-      contractSeedingCapability.initialize();
-
-      // ---- Step 6: Deploy pre-seeded contracts ----
-      if (input.seedContracts?.length) {
-        await contractSeedingCapability.deployContracts(input.seedContracts);
-      }
-    } else if (input.seedContracts?.length) {
-      throw new Error(
-        'seedContracts provided but ContractSeedingCapability is not available.',
-      );
-    }
-
-    // ---- Step 7: Launch app via AppLauncher ----
-    const launcher = await launchMetaMaskMobile({
-      simulatorDeviceId: input.simulatorDeviceId,
-      appBundlePath,
-      anvilPort: input.ports?.anvil ?? DEFAULT_ANVIL_PORT,
-      fixtureServerPort:
-        input.ports?.fixtureServer ?? DEFAULT_FIXTURE_SERVER_PORT,
-      stateMode,
-    });
-
-    // ---- Step 8: Capture initial state ----
-    const stateSnapshot = this.getStateSnapshotCapability();
-    let extensionState: ExtensionState;
-    if (stateSnapshot) {
-      // Page param is ignored on iOS — pass undefined cast to Page
-      extensionState = await stateSnapshot.getState(
-        undefined as unknown as PageFromInterface,
-        {
-          extensionId: 'ios-app',
-          chainId: this.workflowContext?.config?.defaultChainId ?? 1337,
-        },
-      );
-    } else {
-      extensionState = {
-        isLoaded: true,
-        currentUrl: '',
-        extensionId: 'ios-app',
-        isUnlocked: false,
-        currentScreen: 'unknown',
-        accountAddress: null,
-        networkName: null,
-        chainId: null,
-        balance: null,
-      };
-    }
-
-    const startedAt = new Date().toISOString();
-
-    this.activeSession = {
-      state: {
-        sessionId,
-        extensionId: 'ios-app',
-        startedAt,
-        ports: {
-          anvil: input.ports?.anvil ?? DEFAULT_ANVIL_PORT,
-          fixtureServer:
-            input.ports?.fixtureServer ?? DEFAULT_FIXTURE_SERVER_PORT,
-        },
-        stateMode,
-      },
-      launcher,
-    };
-
-    // ---- Step 9: Write session metadata to knowledge store ----
-    const metadata: SessionMetadata = {
-      schemaVersion: 1,
-      sessionId,
-      createdAt: startedAt,
-      goal: input.goal,
-      flowTags: input.flowTags ?? [],
-      tags: input.tags ?? [],
-      build: {
-        buildType: 'build:test',
-        extensionPathResolved: appBundlePath,
-      },
-      launch: {
-        stateMode,
-        fixturePreset: input.fixturePreset ?? null,
-        extensionPath: appBundlePath,
-        ports: {
-          anvil: input.ports?.anvil ?? DEFAULT_ANVIL_PORT,
-          fixtureServer:
-            input.ports?.fixtureServer ?? DEFAULT_FIXTURE_SERVER_PORT,
-        },
-      },
-    };
+    let launcher: MetaMaskMobileAppLauncher | null = null;
 
     try {
-      await knowledgeStore.writeSessionMetadata(metadata);
-    } catch (e) {
-      console.warn('Failed to write session metadata:', e);
-    }
-    this.sessionMetadata = metadata;
+      // ---- Step 1: Build or Watch Mode ----
+      let appBundlePath = input.appBundlePath ?? input.extensionPath;
+      const useWatchMode = input.useWatchMode ?? false;
+      const watchModePort = input.watchModePort;
+      let watchModeResult: { port: number; logFile?: string } | undefined;
 
-    return {
-      sessionId,
-      extensionId: 'ios-app',
-      state: extensionState,
-    };
+      if (useWatchMode) {
+        const buildCapability = this.getBuildCapability() as
+          | BuildCapabilityWithWatch
+          | undefined;
+        if (!buildCapability?.startWatchMode) {
+          throw new Error(
+            'useWatchMode is enabled but BuildCapability does not support watch mode.\n\n' +
+              'Ensure the BuildCapability implementation provides startWatchMode().',
+          );
+        }
+
+        const isBuilt = await buildCapability.isBuilt();
+        if (!isBuilt && !appBundlePath) {
+          throw new Error(
+            'useWatchMode requires the app to already be built.\n\n' +
+              'Options:\n' +
+              '  1. Run mm_build first to build the native app\n' +
+              '  2. Provide appBundlePath to a pre-built .app bundle\n' +
+              '  3. Set useWatchMode: false for a full native rebuild',
+          );
+        }
+
+        if (!appBundlePath) {
+          appBundlePath = buildCapability.getExtensionPath();
+        }
+
+        const result = await buildCapability.startWatchMode({
+          port: watchModePort ?? 8081,
+          clean: false,
+          logFile: undefined,
+        });
+        watchModeResult = { port: result.port, logFile: result.logFile };
+      } else if (autoBuild) {
+        const buildCapability = this.getBuildCapability() as
+          | BuildCapabilityWithWatch
+          | undefined;
+        if (!buildCapability) {
+          throw new Error(
+            'autoBuild is enabled but BuildCapability is not available.\n\n' +
+              'Options:\n' +
+              '  1. Use mm_build tool first to build the app\n' +
+              '  2. Set autoBuild: false and provide appBundlePath\n' +
+              '  3. Ensure BuildCapability is registered in the workflow context',
+          );
+        }
+
+        const buildResult = await buildCapability.build({ force: false });
+        if (!buildResult.success) {
+          throw new Error(
+            `Build failed: ${buildResult.error ?? 'Unknown error'}\n\n` +
+              'Use mm_build tool to diagnose build issues.',
+          );
+        }
+
+        if (!appBundlePath && buildResult.extensionPath) {
+          appBundlePath = buildResult.extensionPath;
+        }
+      }
+
+      // ---- Step 2: Start chain ----
+      const chainCapability = this.getChainCapability();
+      if (chainCapability) {
+        chainCapability.setPort(anvilPort);
+        await chainCapability.start();
+      }
+
+      // ---- Step 3: Start fixture server ----
+      const fixtureCapability = this.getFixtureCapability();
+      if (fixtureCapability) {
+        const fixtureWithPort =
+          fixtureCapability as typeof fixtureCapability & {
+            setPort?: (port: number) => void;
+          };
+        fixtureWithPort.setPort?.(fixtureServerPort);
+
+        const fixtureState = this.resolveFixtureState(fixtureCapability, {
+          stateMode,
+          fixturePreset: input.fixturePreset,
+          fixture: input.fixture,
+        });
+        await fixtureCapability.start(fixtureState);
+      }
+
+      // ---- Step 4: Start mock server ----
+      const mockServerCapability = this.getMockServerCapability();
+      if (mockServerCapability) {
+        const mockWithPort =
+          mockServerCapability as typeof mockServerCapability & {
+            setPort?: (port: number) => void;
+          };
+        mockWithPort.setPort?.(mockServerPort);
+        await mockServerCapability.start();
+      }
+
+      // ---- Step 5: Initialize contract seeding ----
+      const contractSeedingCapability = this.getContractSeedingCapability();
+      if (contractSeedingCapability) {
+        contractSeedingCapability.initialize();
+
+        if (input.seedContracts?.length) {
+          await contractSeedingCapability.deployContracts(input.seedContracts);
+        }
+      } else if (input.seedContracts?.length) {
+        throw new Error(
+          'seedContracts provided but ContractSeedingCapability is not available.',
+        );
+      }
+
+      // ---- Step 6: Launch app via AppLauncher ----
+      launcher = await launchMetaMaskMobile({
+        simulatorDeviceId: input.simulatorDeviceId,
+        appBundlePath,
+        anvilPort,
+        fixtureServerPort,
+        stateMode,
+        metroPort: watchModeResult?.port ?? watchModePort,
+      });
+
+      // ---- Step 7: Capture initial state ----
+      const stateSnapshot = this.getStateSnapshotCapability();
+      let extensionState: ExtensionState;
+      if (stateSnapshot) {
+        extensionState = await stateSnapshot.getState(
+          undefined as unknown as PageFromInterface,
+          {
+            extensionId: 'ios-app',
+            chainId: this.workflowContext?.config?.defaultChainId ?? 1337,
+          },
+        );
+      } else {
+        extensionState = {
+          isLoaded: true,
+          currentUrl: '',
+          extensionId: 'ios-app',
+          isUnlocked: false,
+          currentScreen: 'unknown',
+          accountAddress: null,
+          networkName: null,
+          chainId: null,
+          balance: null,
+        };
+      }
+
+      const startedAt = new Date().toISOString();
+
+      this.activeSession = {
+        state: {
+          sessionId,
+          extensionId: 'ios-app',
+          startedAt,
+          ports: {
+            anvil: anvilPort,
+            fixtureServer: fixtureServerPort,
+          },
+          stateMode,
+          watchModePort: watchModeResult?.port,
+        },
+        launcher,
+      };
+
+      // ---- Step 8: Write session metadata to knowledge store ----
+      const metadata: SessionMetadata = {
+        schemaVersion: 1,
+        sessionId,
+        createdAt: startedAt,
+        goal: input.goal,
+        flowTags: input.flowTags ?? [],
+        tags: input.tags ?? [],
+        build: {
+          buildType: 'build:test',
+          extensionPathResolved: appBundlePath,
+        },
+        launch: {
+          stateMode,
+          fixturePreset: input.fixturePreset ?? null,
+          extensionPath: appBundlePath,
+          ports: {
+            anvil: anvilPort,
+            fixtureServer: fixtureServerPort,
+          },
+        },
+      };
+
+      try {
+        await knowledgeStore.writeSessionMetadata(metadata);
+      } catch (e) {
+        console.warn('Failed to write session metadata:', e);
+      }
+      this.sessionMetadata = metadata;
+
+      return {
+        sessionId,
+        extensionId: 'ios-app',
+        state: extensionState,
+      };
+    } catch (error) {
+      // Best-effort teardown of any subsystems that started
+      await this.teardownStartedServices(launcher);
+      throw error;
+    }
+  }
+
+  private async teardownStartedServices(
+    launcher: MetaMaskMobileAppLauncher | null,
+  ): Promise<void> {
+    try {
+      const build = this.getBuildCapability() as
+        | BuildCapabilityWithWatch
+        | undefined;
+      if (build?.isWatching?.()) {
+        await build.stopWatchMode?.();
+      }
+    } catch (e) {
+      console.warn('Teardown: failed to stop watch mode:', e);
+    }
+    if (launcher) {
+      try {
+        await launcher.stop();
+      } catch (e) {
+        console.warn('Teardown: failed to stop launcher:', e);
+      }
+    }
+    try {
+      const mock = this.getMockServerCapability();
+      if (mock) await mock.stop();
+    } catch (e) {
+      console.warn('Teardown: failed to stop mock server:', e);
+    }
+    try {
+      const fixture = this.getFixtureCapability();
+      if (fixture) await fixture.stop();
+    } catch (e) {
+      console.warn('Teardown: failed to stop fixture server:', e);
+    }
+    try {
+      const chain = this.getChainCapability();
+      if (chain) await chain.stop();
+    } catch (e) {
+      console.warn('Teardown: failed to stop chain:', e);
+    }
   }
 
   async cleanup(): Promise<boolean> {
@@ -274,6 +385,19 @@ export class MetaMaskMobileSessionManager implements ISessionManager {
     }
 
     const cleanupErrors: Error[] = [];
+
+    // Step 0: Stop watch mode (Metro bundler) if running
+    try {
+      const buildCapability = this.getBuildCapability() as
+        | BuildCapabilityWithWatch
+        | undefined;
+      if (buildCapability?.isWatching?.()) {
+        await buildCapability.stopWatchMode?.();
+      }
+    } catch (e) {
+      console.warn('Failed to stop watch mode:', e);
+      cleanupErrors.push(e instanceof Error ? e : new Error(String(e)));
+    }
 
     // Step 1: Stop app via AppLauncher
     try {
@@ -316,7 +440,18 @@ export class MetaMaskMobileSessionManager implements ISessionManager {
       cleanupErrors.push(e instanceof Error ? e : new Error(String(e)));
     }
 
-    // Step 5: Clear session state
+    // Step 5: Clear contract seeding registry
+    try {
+      const contractSeeding = this.getContractSeedingCapability();
+      if (contractSeeding) {
+        contractSeeding.clearRegistry();
+      }
+    } catch (e) {
+      console.warn('Failed to clear contract registry:', e);
+      cleanupErrors.push(e instanceof Error ? e : new Error(String(e)));
+    }
+
+    // Step 6: Clear session state
     this.activeSession = null;
     this.sessionMetadata = undefined;
     this.clearRefMap();
@@ -538,17 +673,9 @@ export class MetaMaskMobileSessionManager implements ISessionManager {
     }
 
     if (context === 'e2e') {
-      const newContext = createMetaMaskMobileE2EContext();
-      this.setWorkflowContext(newContext);
+      this.setWorkflowContext(createMetaMaskMobileE2EContext());
     } else {
-      // Prod mode: minimal context with no testing capabilities
-      this.setWorkflowContext({
-        config: {
-          extensionName: 'MetaMask',
-          toolPrefix: 'mm',
-          environment: 'prod',
-        },
-      });
+      this.setWorkflowContext(createMetaMaskMobileProdContext());
     }
   }
 
@@ -617,12 +744,10 @@ export class MetaMaskMobileSessionManager implements ISessionManager {
     }
 
     if (stateMode === 'custom' && fixture) {
-      return { data: fixture, meta: undefined };
+      return { data: fixture };
     }
 
     // Default state
     return fixtureCapability.getDefaultState();
   }
 }
-
-export const metaMaskMobileSessionManager = new MetaMaskMobileSessionManager();

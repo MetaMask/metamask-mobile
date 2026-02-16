@@ -1,8 +1,9 @@
 import { FrameworkDetector } from './FrameworkDetector.ts';
 
-/**
- * Platform detector for Appium/WebdriverIO and Detox context
- */
+interface WebdriverGlobalDriver {
+  capabilities: Promise<{ platformName?: string }>;
+}
+
 export class PlatformDetector {
   /**
    * Get current platform (android/ios)
@@ -13,8 +14,14 @@ export class PlatformDetector {
     }
 
     // For Appium/WebdriverIO
-    if (typeof driver !== 'undefined') {
-      const capabilities = await driver.capabilities;
+    const wdioDriver = (
+      globalThis as typeof globalThis & {
+        driver?: WebdriverGlobalDriver;
+      }
+    ).driver;
+
+    if (wdioDriver) {
+      const capabilities = await wdioDriver.capabilities;
       return capabilities.platformName?.toLowerCase() === 'android'
         ? 'android'
         : 'ios';

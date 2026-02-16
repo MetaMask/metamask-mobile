@@ -6,5 +6,7 @@ export { MetaMaskMobileStateSnapshotCapability } from './state-snapshot';
 export { MetaMaskMobileMockServerCapability } from './mock-server';
 export {
   createMetaMaskMobileE2EContext,
+  createMetaMaskMobileProdContext,
   type CreateMetaMaskMobileE2EContextOptions,
+  type CreateMetaMaskMobileProdContextOptions,
 } from './factory';

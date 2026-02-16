@@ -14,6 +14,9 @@ export type MobileLaunchOptions = SessionLaunchInput & {
   anvilPort?: number;
   /** Port for fixture server (default: 12345) */
   fixtureServerPort?: number;
+  /** Port of the running Metro bundler — triggers openurl after app launch to connect app to Metro */
+  metroPort?: number;
+  runnerDerivedDataPath?: string;
 };
 
 /**

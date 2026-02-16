@@ -11,11 +11,11 @@ import {
 /* eslint-enable import/extensions */
 /* eslint-enable import/no-nodejs-modules */
 
-import { createMetaMaskMobileE2EContext } from '../capabilities/factory';
+import { createMetaMaskMobileProdContext } from '../capabilities/factory';
 import { MetaMaskMobileSessionManager } from './metamask-provider';
 
 function initializeWorkflowContext(): WorkflowContext {
-  return createMetaMaskMobileE2EContext();
+  return createMetaMaskMobileProdContext();
 }
 
 async function main() {

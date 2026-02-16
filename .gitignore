@@ -177,3 +177,6 @@ temp/
 tests/coverage-systems/
 
 runway-artifacts/
+
+test-artifacts/
+e2e/llm-workflow/mcp-server/dist/

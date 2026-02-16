@@ -118,6 +118,12 @@ scripts/                  # Build and automation scripts
 - **Testing**: Mandatory for all code, AAA pattern, mock everything external
 - **Commands**: ONLY use yarn (never npm/npx)
 
+## Agent Skill Loading
+
+- **Load `metamask-mobile-testing` skill** for any task that requires iOS simulator interaction, MCP `mm_*` tool usage, visual UI validation, flow verification (onboarding/send/swap/unlock), or screenshot-based confirmation.
+- **Do not skip this skill** for mobile visual testing tasks, even when changes are small.
+- **Do not load this skill** for tasks that are strictly non-UI and do not require simulator/runtime validation.
+
 ## Environment Setup
 
 See detailed setup documentation:
