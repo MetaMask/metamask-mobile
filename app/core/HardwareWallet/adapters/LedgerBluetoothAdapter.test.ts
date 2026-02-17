@@ -182,6 +182,29 @@ describe('LedgerBluetoothAdapter', () => {
       );
     });
 
+    it('does not emit Connected when destroy() is called while connect is in flight', async () => {
+      let resolveOpen: (value: typeof mockTransportInstance) => void;
+      const openPromise = new Promise<typeof mockTransportInstance>(
+        (resolve) => {
+          resolveOpen = resolve;
+        },
+      );
+      mockedTransportBLE.open.mockReturnValue(
+        openPromise as unknown as ReturnType<typeof mockedTransportBLE.open>,
+      );
+
+      const connectPromise = adapter.connect('device-123');
+      adapter.destroy();
+      resolveOpen(mockTransportInstance);
+
+      await connectPromise;
+
+      expect(onDeviceEvent).not.toHaveBeenCalledWith(
+        expect.objectContaining({ event: DeviceEvent.Connected }),
+      );
+      expect(adapter.isConnected()).toBe(false);
+    });
+
     it('emits ConnectionFailed with normalized error when connect rejects non-Error', async () => {
       mockedTransportBLE.open.mockRejectedValueOnce('connection failed');
 
@@ -314,6 +337,14 @@ describe('LedgerBluetoothAdapter', () => {
     beforeEach(async () => {
       (connectLedgerHardware as jest.Mock).mockResolvedValue('Ethereum');
       mockGetAddress.mockResolvedValue({ address: '0x1234' });
+    });
+
+    it('throws when adapter is destroyed', async () => {
+      adapter.destroy();
+
+      await expect(adapter.ensureDeviceReady('device-123')).rejects.toThrow(
+        'Adapter has been destroyed',
+      );
     });
 
     it('connects if not already connected', async () => {
@@ -562,6 +593,14 @@ describe('LedgerBluetoothAdapter', () => {
   });
 
   describe('startDeviceDiscovery', () => {
+    it('throws when adapter is destroyed', () => {
+      adapter.destroy();
+
+      expect(() => adapter.startDeviceDiscovery(jest.fn(), jest.fn())).toThrow(
+        'Adapter has been destroyed',
+      );
+    });
+
     it('starts BLE scanning', () => {
       const onDeviceFound = jest.fn();
       const onError = jest.fn();
