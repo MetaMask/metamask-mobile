@@ -382,7 +382,6 @@ describe('BaseControlBar', () => {
 
   describe('Disabled states', () => {
     it('should not be disabled when custom isDisabled not provided', () => {
-      // here
       const { getByTestId } = renderComponent();
       const filterButton = getByTestId('test-network-filter');
 
@@ -435,6 +434,15 @@ describe('BaseControlBar', () => {
       const filterButton = getByTestId('test-network-filter');
 
       expect(filterButton).toBeTruthy();
+    });
+
+    it('should respect custom isDisabled when provided', () => {
+      const { getByTestId } = renderComponent({
+        isDisabled: true,
+      });
+      const filterButton = getByTestId('test-network-filter');
+
+      expect(filterButton.props.disabled).toBe(true);
     });
   });
 
