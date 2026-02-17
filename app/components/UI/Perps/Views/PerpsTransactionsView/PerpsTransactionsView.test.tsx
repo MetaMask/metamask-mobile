@@ -869,26 +869,28 @@ describe('PerpsTransactionsView', () => {
         expect(mockUsePerpsTransactionHistory).toHaveBeenCalled();
       });
 
-      const transactionItems = component.queryAllByTestId(
-        PerpsTransactionSelectorsIDs.TRANSACTION_ITEM,
+      let transactionItems: ReturnType<typeof component.queryAllByTestId> = [];
+      await waitFor(() => {
+        transactionItems = component.queryAllByTestId(
+          PerpsTransactionSelectorsIDs.TRANSACTION_ITEM,
+        );
+        expect(transactionItems.length).toBeGreaterThan(0);
+      });
+
+      await act(async () => {
+        fireEvent.press(transactionItems[0]);
+      });
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        TRANSACTION_DETAIL_EVENTS.LIST_ITEM_CLICKED,
       );
-
-      if (transactionItems.length > 0) {
-        await act(async () => {
-          fireEvent.press(transactionItems[0]);
-        });
-
-        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-          TRANSACTION_DETAIL_EVENTS.LIST_ITEM_CLICKED,
-        );
-        expect(mockAddProperties).toHaveBeenCalledWith(
-          expect.objectContaining({
-            transaction_type: 'perps_trade',
-            monetized_primitive: MonetizedPrimitive.Perps,
-          }),
-        );
-        expect(mockTrackEvent).toHaveBeenCalled();
-      }
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          transaction_type: 'perps_trade',
+          monetized_primitive: MonetizedPrimitive.Perps,
+        }),
+      );
+      expect(mockTrackEvent).toHaveBeenCalled();
     });
   });
 });
