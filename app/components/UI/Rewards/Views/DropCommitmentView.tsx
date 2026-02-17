@@ -71,8 +71,7 @@ const DropCommitmentView: React.FC = () => {
   const availablePoints = useSelector(selectBalanceTotal) ?? 0;
 
   // Commit for drop hook
-  const { commitForDrop, isCommitting, commitError, clearCommitError } =
-    useCommitForDrop();
+  const { commitForDrop, isCommitting, clearCommitError } = useCommitForDrop();
 
   // Amount input state
   const [amountString, setAmountString] = useState('0');
@@ -170,11 +169,13 @@ const DropCommitmentView: React.FC = () => {
         showToast(RewardsToastOptions.success(toastTitle, toastDescription));
         navigation.goBack();
       }
-    } catch {
+    } catch (error) {
       showToast(
         RewardsToastOptions.error(
           strings('rewards.drops.commit_error_title'),
-          commitError ?? strings('rewards.drops.commit_error_description'),
+          error instanceof Error
+            ? error.message
+            : strings('rewards.drops.commit_error_description'),
         ),
       );
     }
@@ -187,7 +188,6 @@ const DropCommitmentView: React.FC = () => {
     showToast,
     RewardsToastOptions,
     navigation,
-    commitError,
     hasExistingCommitment,
   ]);
 

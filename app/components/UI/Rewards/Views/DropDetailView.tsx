@@ -1,10 +1,17 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { InteractionManager, ScrollView, TouchableOpacity, View } from 'react-native';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
-  useNavigation,
-  useRoute,
-  RouteProp,
-} from '@react-navigation/native';
+  InteractionManager,
+  ScrollView,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -63,7 +70,6 @@ import MultichainAccountSelectorList from '../../../../component-library/compone
 import AvatarAccount from '../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { AvatarSize } from '../../../../component-library/components/Avatars/Avatar';
 import { RootState } from '../../../../reducers';
-import Logger from '../../../../util/Logger';
 import { setIsValidatingDropAddress } from '../../../../reducers/rewards';
 
 type AccountPickerMode = 'commit' | 'change';
@@ -87,10 +93,12 @@ const DropDetailView: React.FC = () => {
   // Shared account picker state
   const accountPickerRef = useRef<BottomSheetRef>(null);
   const [showAccountPicker, setShowAccountPicker] = useState(false);
-  const [accountPickerMode, setAccountPickerMode] = useState<AccountPickerMode>('commit');
+  const [accountPickerMode, setAccountPickerMode] =
+    useState<AccountPickerMode>('commit');
 
   // Local account group state for commit flow (avoids changing global active account)
-  const [localAccountGroup, setLocalAccountGroup] = useState<AccountGroupObject | null>(null);
+  const [localAccountGroup, setLocalAccountGroup] =
+    useState<AccountGroupObject | null>(null);
   const [localAddress, setLocalAddress] = useState<string | null>(null);
   const dispatch = useDispatch();
 
@@ -119,8 +127,7 @@ const DropDetailView: React.FC = () => {
   const getAccountsByGroupId = useSelector(selectInternalAccountsByGroupId);
   const avatarAccountType = useSelector(selectAvatarAccountType);
 
-  const { updateDropReceivingAddress } =
-    useUpdateDropReceivingAddress();
+  const { updateDropReceivingAddress } = useUpdateDropReceivingAddress();
 
   // EVM address for avatar rendering
   const evmAddress = useSelector((state: RootState) => {
@@ -137,7 +144,6 @@ const DropDetailView: React.FC = () => {
 
   const doChangeAccountUpdate = useCallback(
     async (address: string) => {
-      Logger.log('doChangeAccountUpdate', { address });
       const success = await updateDropReceivingAddress(dropId, address);
       if (success) {
         showToast(
@@ -178,11 +184,11 @@ const DropDetailView: React.FC = () => {
       const matching = findMatchingBlockchainAccount(accounts, required);
       if (!matching) {
         showToast(
-            RewardsToastOptions.error(
-              strings('rewards.drops.cant_select_account_title'),
-              strings('rewards.drops.cant_select_account_description'),
-            ),
-          );
+          RewardsToastOptions.error(
+            strings('rewards.drops.cant_select_account_title'),
+            strings('rewards.drops.cant_select_account_description'),
+          ),
+        );
         return null;
       }
 
@@ -240,7 +246,12 @@ const DropDetailView: React.FC = () => {
 
       return matching.address;
     },
-    [drop?.receivingBlockchain, getAccountsByGroupId, showToast, RewardsToastOptions],
+    [
+      drop?.receivingBlockchain,
+      getAccountsByGroupId,
+      showToast,
+      RewardsToastOptions,
+    ],
   );
 
   // Open the shared account picker in a given mode
@@ -270,26 +281,29 @@ const DropDetailView: React.FC = () => {
     (accountGroup: AccountGroupObject) => {
       accountPickerRef.current?.onCloseBottomSheet(() => {
         InteractionManager.runAfterInteractions(async () => {
-            Logger.log('handleSelectAccountGroup', { accountGroup });
-            dispatch(setIsValidatingDropAddress(true));
-            try {
-              const address = await validateAccountGroupForDrop(accountGroup);
-              Logger.log('handleSelectAccountGroup validated address', { address });
-              if (!address) return;
+          dispatch(setIsValidatingDropAddress(true));
+          try {
+            const address = await validateAccountGroupForDrop(accountGroup);
+            if (!address) return;
 
-              if (accountPickerMode === 'commit') {
-                setLocalAccountGroup(accountGroup);
-                setLocalAddress(address);
-              } else {
-                doChangeAccountUpdate(address);
-              }
-            } finally {
-              dispatch(setIsValidatingDropAddress(false));
+            if (accountPickerMode === 'commit') {
+              setLocalAccountGroup(accountGroup);
+              setLocalAddress(address);
+            } else {
+              doChangeAccountUpdate(address);
             }
+          } finally {
+            dispatch(setIsValidatingDropAddress(false));
+          }
         });
       });
     },
-    [accountPickerMode, validateAccountGroupForDrop, doChangeAccountUpdate, dispatch],
+    [
+      accountPickerMode,
+      validateAccountGroupForDrop,
+      doChangeAccountUpdate,
+      dispatch,
+    ],
   );
 
   const handleChangeAccount = useCallback(() => {

@@ -70,7 +70,6 @@ const DropCTAButtons: React.FC<DropCTAButtonsProps> = ({ prerequisites }) => {
     ({ condition, activityType }: ConditionWithActivityType) => {
       const config = CTA_CONFIG[activityType];
       if (config) {
-        // TODO: Swap set source/dest token with chainId from condition?
         config.handler(handlerParams, condition);
       }
     },
