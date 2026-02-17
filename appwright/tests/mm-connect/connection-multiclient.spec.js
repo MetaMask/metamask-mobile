@@ -213,7 +213,7 @@ test('@metamask/connect-multichain (multiple clients) - Connect multiple clients
       await BrowserPlaygroundDapp.assertWagmiConnected(true);
 
       // Reconnect Solana
-      await BrowserPlaygroundDapp.tapConnectSolana();
+      await BrowserPlaygroundDapp.tapSolanaConnect();
     },
     DAPP_URL,
   );
