@@ -173,6 +173,8 @@ _remote_feature_flags: &remote_feature_flags # Perps
   earnMusdConversionTokenListItemCtaEnabled: false
   earnMusdConversionRewardsUiEnabled: false
   earnMerklCampaignClaiming: false
+  # Predict
+  predictGtmOnboardingModalEnabled: false
 
 # =============================================================================
 # Build Configurations

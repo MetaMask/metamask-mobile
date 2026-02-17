@@ -1,4 +1,8 @@
-import { selectPredictEnabledFlag, selectPredictHotTabFlag } from '.';
+import {
+  selectPredictEnabledFlag,
+  selectPredictGtmOnboardingModalEnabledFlag,
+  selectPredictHotTabFlag,
+} from '.';
 import mockedEngine from '../../../../../core/__mocks__/MockedEngine';
 import {
   mockedState,
@@ -183,6 +187,111 @@ describe('Predict Feature Flag Selectors', () => {
 
         expect(result).toBe(true);
       });
+    });
+  });
+
+  describe('selectPredictGtmOnboardingModalEnabledFlag', () => {
+    const originalGithubActions = process.env.GITHUB_ACTIONS;
+    const originalE2E = process.env.E2E;
+    const originalMmPredictGtm = process.env.MM_PREDICT_GTM_MODAL_ENABLED;
+
+    afterEach(() => {
+      if (originalGithubActions !== undefined) {
+        process.env.GITHUB_ACTIONS = originalGithubActions;
+      } else {
+        delete process.env.GITHUB_ACTIONS;
+      }
+      if (originalE2E !== undefined) {
+        process.env.E2E = originalE2E;
+      } else {
+        delete process.env.E2E;
+      }
+      if (originalMmPredictGtm !== undefined) {
+        process.env.MM_PREDICT_GTM_MODAL_ENABLED = originalMmPredictGtm;
+      } else {
+        delete process.env.MM_PREDICT_GTM_MODAL_ENABLED;
+      }
+    });
+
+    it('when not GITHUB_ACTIONS falls back to process.env.MM_PREDICT_GTM_MODAL_ENABLED', () => {
+      process.env.GITHUB_ACTIONS = 'false';
+      delete process.env.E2E;
+
+      const emptyRemoteState = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {},
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+      const emptyRemoteState2 = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {},
+              cacheTimestamp: 1,
+            },
+          },
+        },
+      };
+
+      process.env.MM_PREDICT_GTM_MODAL_ENABLED = 'true';
+      expect(selectPredictGtmOnboardingModalEnabledFlag(emptyRemoteState)).toBe(
+        true,
+      );
+
+      process.env.MM_PREDICT_GTM_MODAL_ENABLED = 'false';
+      expect(
+        selectPredictGtmOnboardingModalEnabledFlag(emptyRemoteState2),
+      ).toBe(false);
+    });
+
+    it('when GITHUB_ACTIONS and not E2E uses remote build-time default as fallback', () => {
+      process.env.GITHUB_ACTIONS = 'true';
+      delete process.env.E2E;
+      delete process.env.MM_PREDICT_GTM_MODAL_ENABLED;
+
+      // Use version-gated shape so validator returns value; when validator returns undefined we use fallback (remote as boolean)
+      const stateWithRemoteTrue = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                predictGtmOnboardingModalEnabled: {
+                  enabled: true,
+                  minimumVersion: '1.0.0',
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+      const stateWithRemoteFalse = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                predictGtmOnboardingModalEnabled: {
+                  enabled: false,
+                  minimumVersion: '1.0.0',
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      expect(
+        selectPredictGtmOnboardingModalEnabledFlag(stateWithRemoteTrue),
+      ).toBe(true);
+      expect(
+        selectPredictGtmOnboardingModalEnabledFlag(stateWithRemoteFalse),
+      ).toBe(false);
     });
   });
 
