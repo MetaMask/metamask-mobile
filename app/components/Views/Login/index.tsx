@@ -340,7 +340,10 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
           await unlockWallet({ password });
           if (isSeedlessPasswordOutdated) {
             const authData = await getAuthType();
-            if (authData.currentAuthType === AUTHENTICATION_TYPE.PASSWORD) {
+            if (
+              authData.currentAuthType === AUTHENTICATION_TYPE.PASSWORD &&
+              authData.availableBiometryType
+            ) {
               Alert.alert(
                 strings('login.biometric_authentication_cancelled_title'),
                 strings('login.biometric_authentication_cancelled_description'),
