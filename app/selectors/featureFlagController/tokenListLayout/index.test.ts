@@ -18,7 +18,7 @@ describe('selectTokenListLayoutV2Enabled', () => {
 
   it('returns true when flag is valid and enabled', () => {
     const result = selectTokenListLayoutV2Enabled.resultFunc({
-      tokenListItemV2Abtest: {
+      tokenListItemV2AbtestVersioned: {
         enabled: true,
         minimumVersion: '1.0.0',
       },
@@ -28,7 +28,7 @@ describe('selectTokenListLayoutV2Enabled', () => {
 
   it('returns false when flag is valid but disabled', () => {
     const result = selectTokenListLayoutV2Enabled.resultFunc({
-      tokenListItemV2Abtest: {
+      tokenListItemV2AbtestVersioned: {
         enabled: false,
         minimumVersion: '1.0.0',
       },
@@ -39,7 +39,7 @@ describe('selectTokenListLayoutV2Enabled', () => {
   it('returns false when version check fails', () => {
     jest.mocked(hasMinimumRequiredVersion).mockReturnValue(false);
     const result = selectTokenListLayoutV2Enabled.resultFunc({
-      tokenListItemV2Abtest: {
+      tokenListItemV2AbtestVersioned: {
         enabled: true,
         minimumVersion: '99.0.0',
       },
@@ -49,7 +49,7 @@ describe('selectTokenListLayoutV2Enabled', () => {
 
   it('returns false when flag has invalid types', () => {
     const result = selectTokenListLayoutV2Enabled.resultFunc({
-      tokenListItemV2Abtest: {
+      tokenListItemV2AbtestVersioned: {
         enabled: 'invalid',
         minimumVersion: 123,
       },
@@ -62,7 +62,7 @@ describe('selectTokenListLayoutV2Enabled', () => {
     expect(result).toBe(false);
   });
 
-  it('returns false when tokenListItemV2Abtest flag is missing', () => {
+  it('returns false when tokenListItemV2AbtestVersioned flag is missing', () => {
     const result = selectTokenListLayoutV2Enabled.resultFunc({
       someOtherFlag: true,
     });
@@ -71,14 +71,14 @@ describe('selectTokenListLayoutV2Enabled', () => {
 
   it('returns false when flag is a plain boolean (legacy shape)', () => {
     const result = selectTokenListLayoutV2Enabled.resultFunc({
-      tokenListItemV2Abtest: true,
+      tokenListItemV2AbtestVersioned: true,
     });
     expect(result).toBe(false);
   });
 
   it('handles progressive rollout wrapper shape', () => {
     const result = selectTokenListLayoutV2Enabled.resultFunc({
-      tokenListItemV2Abtest: {
+      tokenListItemV2AbtestVersioned: {
         name: 'token-list-item-v2-abtest',
         value: {
           enabled: true,
