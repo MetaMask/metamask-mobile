@@ -120,7 +120,6 @@ const Routes = {
     REWARDS_OPTIN_ACCOUNT_GROUP_MODAL: 'RewardOptInAccountGroupModal',
     OTA_UPDATES_MODAL: 'OTAUpdatesModal',
     REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET: 'EndOfSeasonClaimBottomSheet',
-    CLAIM_ON_LINEA: 'ClaimOnLineaModal',
   },
   ONBOARDING: {
     ROOT_NAV: 'OnboardingRootNav',

@@ -3399,19 +3399,6 @@
     "bridge": "Bridge",
     "earn": "Earn",
     "convert_to_musd": "Convert to mUSD",
-    "merkl_rewards": {
-      "annual_bonus": "{{apy}}% bonus",
-      "claimable_bonus": "Claimable bonus",
-      "claimable_bonus_tooltip_description": "mUSD bonuses are claimed on Linea.",
-      "terms_apply": "Terms apply.",
-      "ok": "OK",
-      "claim": "Claim",
-      "processing_claim": "Processing claim...",
-      "claim_on_linea_title": "Claim bonuses on Linea",
-      "claim_on_linea_description": "Your bonus will be issued on Linea, separate from your Ethereum mUSD balance.",
-      "continue": "Continue",
-      "unexpected_error": "Unexpected error. Please try again."
-    },
     "tron": {
       "daily_resource_new_energy": "New daily energy",
       "sufficient_to_cover": "Sufficient to cover",

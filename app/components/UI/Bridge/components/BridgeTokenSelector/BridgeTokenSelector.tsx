@@ -27,8 +27,7 @@ import { CaipChainId } from '@metamask/utils';
 import { useStyles } from '../../../../../component-library/hooks';
 import TextFieldSearch from '../../../../../component-library/components/Form/TextFieldSearch';
 import {
-  selectSourceChainRanking,
-  selectDestChainRanking,
+  selectAllowedChainRanking,
   selectTokenSelectorNetworkFilter,
   setIsSelectingToken,
   setTokenSelectorNetworkFilter,
@@ -104,13 +103,7 @@ export const BridgeTokenSelector: React.FC = () => {
     [searchString],
   );
 
-  // Use appropriate chain ranking based on selector type
-  const sourceChainRanking = useSelector(selectSourceChainRanking);
-  const destChainRanking = useSelector(selectDestChainRanking);
-  const enabledChainRanking =
-    route.params?.type === TokenSelectorType.Source
-      ? sourceChainRanking
-      : destChainRanking;
+  const enabledChainRanking = useSelector(selectAllowedChainRanking);
 
   // Set navigation options for header
   useEffect(() => {
@@ -539,10 +532,8 @@ export const BridgeTokenSelector: React.FC = () => {
           onMorePress={() =>
             navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
               screen: Routes.BRIDGE.MODALS.NETWORK_LIST_MODAL,
-              params: { type: route.params?.type },
             })
           }
-          type={route.params?.type}
         />
 
         <TextFieldSearch
