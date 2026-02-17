@@ -192,6 +192,21 @@ class AppInformation extends PureComponent {
     this.setState({ showEnvironmentInfo: true });
   };
 
+  getCodeFencingFeatures = () => {
+    try {
+      const codeFencingFeatures = process.env.CODE_FENCING_FEATURES;
+      if (!codeFencingFeatures) {
+        return 'None';
+      }
+      const features = JSON.parse(codeFencingFeatures);
+      return Array.isArray(features) && features.length > 0
+        ? features.join(', ')
+        : 'None';
+    } catch (error) {
+      return 'Error parsing features';
+    }
+  };
+
   render = () => {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
@@ -261,6 +276,10 @@ class AppInformation extends PureComponent {
                     </Text>
                   </>
                 )}
+
+                <Text style={styles.branchInfo}>
+                  {`Code Fencing Features: ${this.getCodeFencingFeatures()}`}
+                </Text>
 
                 {this.props.preinstalledSnaps.map((snap) => (
                   <Text key={snap.name} style={styles.branchInfo}>
