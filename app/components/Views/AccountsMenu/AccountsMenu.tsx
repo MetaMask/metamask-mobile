@@ -396,7 +396,7 @@ const AccountsMenu = () => {
             label={strings('accounts_menu.notifications')}
             endAccessory={renderNotificationsEndAccessory}
             onPress={onPressNotifications}
-            testID={WalletViewSelectorsIDs.WALLET_NOTIFICATIONS_BUTTON}
+            testID={AccountsMenuSelectorsIDs.NOTIFICATIONS_BUTTON}
           />
         )}
 
