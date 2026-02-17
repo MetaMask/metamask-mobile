@@ -12,6 +12,7 @@ import {
 import { otherControllersMock } from '../../../__mocks__/controllers/other-controllers-mock';
 import { initialState } from '../../../../../UI/Bridge/_mocks_/initialState';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
+import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
 import {
   CHAIN_IDS,
   TransactionType,
@@ -30,14 +31,20 @@ import { usePerpsBalanceTokenFilter } from '../../../../../UI/Perps/hooks/usePer
 
 jest.mock('../../../hooks/pay/useTransactionPayToken');
 jest.mock('../../../hooks/pay/useTransactionPayData');
+jest.mock('../../../hooks/pay/useTransactionPayWithdraw');
 jest.mock('../../../hooks/transactions/useTransactionMetadataRequest');
 jest.mock('../../../utils/transaction-pay');
 jest.mock('../../../../../UI/Perps/hooks/usePerpsPaymentToken');
 jest.mock('../../../../../UI/Perps/hooks/usePerpsBalanceTokenFilter');
 
-jest.mock('../../../hooks/send/useAccountTokens', () => ({
-  useAccountTokens: () => [],
-}));
+jest.mock('../../../hooks/send/useAccountTokens', () => {
+  // Return a stable reference to avoid infinite re-render loops.
+  // Returning `[]` inline creates a new array on every call, which makes
+  // `useSendTokens` → `Asset.tokens` → `NetworkFilter` effect fire in a
+  // loop when the tokenFilter is an identity function (withdraw mode).
+  const stableEmptyTokens: never[] = [];
+  return { useAccountTokens: () => stableEmptyTokens };
+});
 
 const CHAIN_ID_1_MOCK = CHAIN_IDS.MAINNET as Hex;
 const CHAIN_ID_2_MOCK = '0x2' as Hex;
@@ -164,6 +171,7 @@ describe('PayWithModal', () => {
   const setPayTokenMock = jest.fn();
   const onPerpsPaymentTokenChangeMock = jest.fn();
   const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
+  const useTransactionPayWithdrawMock = jest.mocked(useTransactionPayWithdraw);
   const getAvailableTokensMock = jest.mocked(getAvailableTokens);
   const useTransactionPayRequiredTokensMock = jest.mocked(
     useTransactionPayRequiredTokens,
@@ -178,6 +186,11 @@ describe('PayWithModal', () => {
 
   beforeEach(() => {
     jest.resetAllMocks();
+
+    useTransactionPayWithdrawMock.mockReturnValue({
+      isWithdraw: false,
+      canSelectWithdrawToken: false,
+    });
 
     getAvailableTokensMock.mockReturnValue(TOKENS_MOCK);
     useTransactionPayRequiredTokensMock.mockReturnValue(REQUIRED_TOKENS_MOCK);
@@ -277,5 +290,37 @@ describe('PayWithModal', () => {
     render();
 
     expect(perpsFilterFn).toHaveBeenCalledWith(TOKENS_MOCK);
+  });
+
+  describe('withdraw mode', () => {
+    beforeEach(() => {
+      useTransactionPayWithdrawMock.mockReturnValue({
+        isWithdraw: true,
+        canSelectWithdrawToken: true,
+      });
+
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: transactionIdMock,
+        chainId: CHAIN_ID_1_MOCK,
+        networkClientId: '',
+        status: TransactionStatus.unapproved,
+        time: 0,
+        txParams: { from: EMPTY_ADDRESS },
+        type: TransactionType.predictWithdraw,
+        nestedTransactions: [{ type: TransactionType.predictWithdraw }],
+      } as unknown as ReturnType<typeof useTransactionMetadataRequest>);
+    });
+
+    it('shows "Select receive token" title for withdrawal transactions', () => {
+      const { getByText } = render();
+      expect(getByText('Select receive token')).toBeDefined();
+    });
+
+    it('bypasses token filtering for withdrawal transactions', () => {
+      render();
+      // For withdrawals, getAvailableTokens should NOT be called since
+      // the filter early-returns all tokens for withdraw types
+      expect(getAvailableTokensMock).not.toHaveBeenCalled();
+    });
   });
 });
