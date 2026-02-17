@@ -204,9 +204,11 @@ export default {
     MUSD_CONVERSION_BONUS_TERMS_OF_USE:
       'https://metamask.io/musd-bonus-terms-of-use',
   },
+  // URL set at build time via builds.yml
   DECODING_API_URL:
     process.env.DECODING_API_URL ||
     'https://signature-insights.api.cx.metamask.io/v1',
+  // Used when !GITHUB_ACTIONS (Bitrise / .js.env). When GITHUB_ACTIONS, rewards-api-url/mapBaanxApiUrl use process.env set by builds.yml.
   REWARDS_API_URL: {
     DEV: 'https://rewards.dev-api.cx.metamask.io',
     UAT: 'https://rewards.uat-api.cx.metamask.io',

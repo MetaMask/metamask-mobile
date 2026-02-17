@@ -138,6 +138,7 @@ describe('Perps Feature Flag Selectors', () => {
       });
 
       it('falls back to local flag (true) when remote flag is invalid', () => {
+        process.env.GITHUB_ACTIONS = 'false';
         process.env.MM_PERPS_ENABLED = 'true';
 
         const stateWithInvalidRemoteFlag = {
@@ -200,6 +201,70 @@ describe('Perps Feature Flag Selectors', () => {
 
         const result = selectPerpsEnabledFlag(stateWithUndefinedController);
         expect(result).toBe(false);
+      });
+    });
+
+    describe('when GITHUB_ACTIONS is true', () => {
+      beforeEach(() => {
+        process.env.GITHUB_ACTIONS = 'true';
+      });
+
+      it('uses boolean remote flag (true) from build config as fallback', () => {
+        process.env.MM_PERPS_ENABLED = 'false';
+        const stateWithBooleanRemote = {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  perpsPerpTradingEnabled: true,
+                },
+                cacheTimestamp: 0,
+              },
+            },
+          },
+        };
+        const result = selectPerpsEnabledFlag(stateWithBooleanRemote);
+        expect(result).toBe(true);
+      });
+
+      it('uses boolean remote flag (false) from build config as fallback', () => {
+        process.env.MM_PERPS_ENABLED = 'true';
+        const stateWithBooleanRemote = {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  perpsPerpTradingEnabled: false,
+                },
+                cacheTimestamp: 0,
+              },
+            },
+          },
+        };
+        const result = selectPerpsEnabledFlag(stateWithBooleanRemote);
+        expect(result).toBe(false);
+      });
+
+      it('uses validated version-gated remote when present', () => {
+        mockHasMinimumRequiredVersion.mockReturnValue(true);
+        process.env.MM_PERPS_ENABLED = 'false';
+        const stateWithVersionGatedRemote = {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  perpsPerpTradingEnabled: {
+                    enabled: true,
+                    minimumVersion: '1.0.0',
+                  },
+                },
+                cacheTimestamp: 0,
+              },
+            },
+          },
+        };
+        const result = selectPerpsEnabledFlag(stateWithVersionGatedRemote);
+        expect(result).toBe(true);
       });
     });
   });
@@ -291,6 +356,7 @@ describe('Perps Feature Flag Selectors', () => {
       });
 
       it('falls back to local flag (true) when remote flag is invalid', () => {
+        process.env.GITHUB_ACTIONS = 'false';
         process.env.MM_PERPS_SERVICE_INTERRUPTION_BANNER_ENABLED = 'true';
 
         const stateWithInvalidRemoteFlag = {
@@ -468,6 +534,7 @@ describe('Perps Feature Flag Selectors', () => {
       });
 
       it('falls back to local flag (true) when remote flag is invalid', () => {
+        process.env.GITHUB_ACTIONS = 'false';
         process.env.MM_PERPS_GTM_MODAL_ENABLED = 'true';
 
         const stateWithInvalidRemoteFlag = {
@@ -655,6 +722,7 @@ describe('Perps Feature Flag Selectors', () => {
       });
 
       it('falls back to local flag (false by default) when remote flag is invalid', () => {
+        process.env.GITHUB_ACTIONS = 'false';
         delete process.env.MM_PERPS_ORDER_BOOK_ENABLED;
 
         const stateWithInvalidRemoteFlag = {
@@ -831,6 +899,7 @@ describe('Perps Feature Flag Selectors', () => {
       });
 
       it('falls back to local flag (false by default) when remote flag is invalid', () => {
+        process.env.GITHUB_ACTIONS = 'false';
         delete process.env.MM_PERPS_FEEDBACK_ENABLED;
 
         const stateWithInvalidRemoteFlag = {
@@ -1463,6 +1532,7 @@ describe('Perps Feature Flag Selectors', () => {
       });
 
       it('falls back to local flag (false by default) when remote flag is invalid', () => {
+        process.env.GITHUB_ACTIONS = 'false';
         delete process.env.MM_PERPS_TRADE_WITH_ANY_TOKEN_ENABLED;
 
         const stateWithInvalidRemoteFlag = {
@@ -1488,6 +1558,7 @@ describe('Perps Feature Flag Selectors', () => {
       });
 
       it('falls back to local flag (true) when remote flag is invalid and env is true', () => {
+        process.env.GITHUB_ACTIONS = 'false';
         process.env.MM_PERPS_TRADE_WITH_ANY_TOKEN_ENABLED = 'true';
 
         const stateWithInvalidRemoteFlag = {

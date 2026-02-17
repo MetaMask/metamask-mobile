@@ -4,6 +4,7 @@ import {
   ClientType,
   RemoteFeatureFlagController,
   type RemoteFeatureFlagControllerMessenger,
+  type RemoteFeatureFlagControllerState,
 } from '@metamask/remote-feature-flag-controller';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import AppConstants from '../../AppConstants';
@@ -14,6 +15,53 @@ import {
   isRemoteFeatureFlagOverrideActivated,
 } from './remote-feature-flag-controller';
 import { getBaseSemVerVersion } from '../../../util/version';
+
+/**
+ * Get build-time feature flag defaults from environment variable.
+ * Set by apply-build-config.js from builds.yml (e.g. in GitHub Actions "Apply build config" step).
+ */
+function getBuildTimeFeatureFlagDefaults(): Record<string, unknown> {
+  try {
+    const defaults = process.env.REMOTE_FEATURE_FLAG_DEFAULTS;
+    if (defaults) {
+      return JSON.parse(defaults);
+    }
+  } catch (error) {
+    Logger.log('Failed to parse REMOTE_FEATURE_FLAG_DEFAULTS:', error);
+  }
+  return {};
+}
+
+/**
+ * Merge build-time defaults with persisted state.
+ * Build-time defaults (from builds.yml) are used as initial values; persisted state takes precedence.
+ */
+function getInitialState(
+  persistedState: RemoteFeatureFlagControllerState | undefined,
+): RemoteFeatureFlagControllerState | undefined {
+  // TEMPORARY: Only apply the new built-in defaults when built via GitHub Actions (build.yml), not E2E.
+  // E2E builds run in GitHub but don't use builds.yml; skip merge so they use persisted/empty flags.
+  // Bitrise does not set REMOTE_FEATURE_FLAG_DEFAULTS; skip merge there. Remove once Bitrise is deprecated.
+  if (process.env.GITHUB_ACTIONS !== 'true' || process.env.E2E === 'true') {
+    return persistedState;
+  }
+
+  const buildTimeDefaults = getBuildTimeFeatureFlagDefaults();
+
+  if (Object.keys(buildTimeDefaults).length === 0) {
+    return persistedState;
+  }
+
+  const mergedRemoteFeatureFlags = {
+    ...buildTimeDefaults,
+    ...(persistedState?.remoteFeatureFlags ?? {}),
+  };
+
+  return {
+    ...persistedState,
+    remoteFeatureFlags: mergedRemoteFeatureFlags,
+  } as RemoteFeatureFlagControllerState;
+}
 
 /**
  * Initialize the remote feature flag controller.
@@ -28,9 +76,16 @@ export const remoteFeatureFlagControllerInit: ControllerInitFunction<
 > = ({ controllerMessenger, persistedState, getState, analyticsId }) => {
   const disabled = !selectBasicFunctionalityEnabled(getState());
 
+  // Merge build-time defaults with persisted state (TEMPORARY: only when GITHUB_ACTIONS; see getInitialState)
+  const initialState = getInitialState(
+    persistedState.RemoteFeatureFlagController as
+      | RemoteFeatureFlagControllerState
+      | undefined,
+  );
+
   const controller = new RemoteFeatureFlagController({
     messenger: controllerMessenger,
-    state: persistedState.RemoteFeatureFlagController,
+    state: initialState,
     disabled,
     getMetaMetricsId: () => analyticsId,
     clientVersion: getBaseSemVerVersion(),

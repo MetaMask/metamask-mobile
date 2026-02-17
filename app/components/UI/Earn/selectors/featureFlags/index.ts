@@ -10,62 +10,67 @@ import {
 } from '../../utils/wildcardTokenList';
 import { DEFAULT_MUSD_BLOCKED_COUNTRIES } from '../../constants/musd';
 
+// TEMPORARY: When GITHUB_ACTIONS (and not E2E) use build-time default from remote flags; E2E/Bitrise/.js.env use process.env. Remove once Bitrise is deprecated.
 export const selectPooledStakingEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
-    const localFlag = process.env.MM_POOLED_STAKING_ENABLED === 'true';
     const remoteFlag =
       remoteFeatureFlags?.earnPooledStakingEnabled as unknown as VersionGatedFeatureFlag;
-
-    // Fallback to local flag if remote flag is not available
-    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+    const fallback =
+      process.env.GITHUB_ACTIONS === 'true' && process.env.E2E !== 'true'
+        ? (remoteFeatureFlags?.earnPooledStakingEnabled as boolean)
+        : process.env.MM_POOLED_STAKING_ENABLED === 'true';
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? fallback;
   },
 );
 
 export const selectPooledStakingServiceInterruptionBannerEnabledFlag =
   createSelector(selectRemoteFeatureFlags, (remoteFeatureFlags) => {
-    const localFlag =
-      process.env.MM_POOLED_STAKING_SERVICE_INTERRUPTION_BANNER_ENABLED ===
-      'true';
     const remoteFlag =
       remoteFeatureFlags?.earnPooledStakingServiceInterruptionBannerEnabled as unknown as VersionGatedFeatureFlag;
-
-    // Fallback to local flag if remote flag is not available
-    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+    const fallback =
+      process.env.GITHUB_ACTIONS === 'true' && process.env.E2E !== 'true'
+        ? (remoteFeatureFlags?.earnPooledStakingServiceInterruptionBannerEnabled as boolean)
+        : process.env.MM_POOLED_STAKING_SERVICE_INTERRUPTION_BANNER_ENABLED ===
+          'true';
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? fallback;
   });
 
 export const selectStablecoinLendingEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
-  (remoteFeatureFlags): boolean => {
-    const localFlag = process.env.MM_STABLECOIN_LENDING_UI_ENABLED === 'true';
+  (remoteFeatureFlags) => {
     const remoteFlag =
       remoteFeatureFlags?.earnStablecoinLendingEnabled as unknown as VersionGatedFeatureFlag;
-
-    // Fallback to local flag if remote flag is not available
-    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+    const fallback =
+      process.env.GITHUB_ACTIONS === 'true' && process.env.E2E !== 'true'
+        ? (remoteFeatureFlags?.earnStablecoinLendingEnabled as boolean)
+        : process.env.MM_STABLECOIN_LENDING_UI_ENABLED === 'true';
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? fallback;
   },
 );
 
 export const selectStablecoinLendingServiceInterruptionBannerEnabledFlag =
   createSelector(selectRemoteFeatureFlags, (remoteFeatureFlags) => {
-    const localFlag =
-      process.env.MM_STABLE_COIN_SERVICE_INTERRUPTION_BANNER_ENABLED === 'true';
     const remoteFlag =
       remoteFeatureFlags?.earnStablecoinLendingServiceInterruptionBannerEnabled as unknown as VersionGatedFeatureFlag;
-
-    // Fallback to local flag if remote flag is not available
-    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+    const fallback =
+      process.env.GITHUB_ACTIONS === 'true' && process.env.E2E !== 'true'
+        ? (remoteFeatureFlags?.earnStablecoinLendingServiceInterruptionBannerEnabled as boolean)
+        : process.env.MM_STABLE_COIN_SERVICE_INTERRUPTION_BANNER_ENABLED ===
+          'true';
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? fallback;
   });
 
 export const selectIsMusdConversionFlowEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
-    const localFlag = process.env.MM_MUSD_CONVERSION_FLOW_ENABLED === 'true';
     const remoteFlag =
       remoteFeatureFlags?.earnMusdConversionFlowEnabled as unknown as VersionGatedFeatureFlag;
-
-    // Fallback to local flag if remote flag is not available
-    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+    const fallback =
+      process.env.GITHUB_ACTIONS === 'true' && process.env.E2E !== 'true'
+        ? (remoteFeatureFlags?.earnMusdConversionFlowEnabled as boolean)
+        : process.env.MM_MUSD_CONVERSION_FLOW_ENABLED === 'true';
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? fallback;
   },
 );
 
@@ -78,17 +83,16 @@ export const selectIsMusdGetBuyCtaEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   selectIsMusdConversionFlowEnabledFlag,
   (remoteFeatureFlags, isMusdConversionFlowEnabled) => {
-    const localFlag = process.env.MM_MUSD_CTA_ENABLED === 'true';
-    const remoteFlag =
-      remoteFeatureFlags?.earnMusdCtaEnabled as unknown as VersionGatedFeatureFlag;
-
-    // mUSD conversion flow must be enabled to show the mUSD CTA
     if (!isMusdConversionFlowEnabled) {
       return false;
     }
-
-    // Fallback to local flag if remote flag is not available
-    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+    const remoteFlag =
+      remoteFeatureFlags?.earnMusdCtaEnabled as unknown as VersionGatedFeatureFlag;
+    const fallback =
+      process.env.GITHUB_ACTIONS === 'true' && process.env.E2E !== 'true'
+        ? (remoteFeatureFlags?.earnMusdCtaEnabled as boolean)
+        : process.env.MM_MUSD_CTA_ENABLED === 'true';
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? fallback;
   },
 );
 
@@ -101,18 +105,16 @@ export const selectIsMusdConversionAssetOverviewEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   selectIsMusdConversionFlowEnabledFlag,
   (remoteFeatureFlags, isMusdConversionFlowEnabled) => {
-    const localFlag =
-      process.env.MM_MUSD_CONVERSION_ASSET_OVERVIEW_CTA === 'true';
-    const remoteFlag =
-      remoteFeatureFlags?.earnMusdConversionAssetOverviewCtaEnabled as unknown as VersionGatedFeatureFlag;
-
-    // mUSD conversion flow must be enabled to show the mUSD CTA
     if (!isMusdConversionFlowEnabled) {
       return false;
     }
-
-    // Fallback to local flag if remote flag is not available
-    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+    const remoteFlag =
+      remoteFeatureFlags?.earnMusdConversionAssetOverviewCtaEnabled as unknown as VersionGatedFeatureFlag;
+    const fallback =
+      process.env.GITHUB_ACTIONS === 'true' && process.env.E2E !== 'true'
+        ? (remoteFeatureFlags?.earnMusdConversionAssetOverviewCtaEnabled as boolean)
+        : process.env.MM_MUSD_CONVERSION_ASSET_OVERVIEW_CTA === 'true';
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? fallback;
   },
 );
 
@@ -125,23 +127,21 @@ export const selectIsMusdConversionTokenListItemCtaEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   selectIsMusdConversionFlowEnabledFlag,
   (remoteFeatureFlags, isMusdConversionFlowEnabled) => {
-    const localFlag =
-      process.env.MM_MUSD_CONVERSION_TOKEN_LIST_ITEM_CTA === 'true';
-    const remoteFlag =
-      remoteFeatureFlags?.earnMusdConversionTokenListItemCtaEnabled as unknown as VersionGatedFeatureFlag;
-
-    // mUSD conversion flow must be enabled to show the mUSD CTA
     if (!isMusdConversionFlowEnabled) {
       return false;
     }
-
-    // Fallback to local flag if remote flag is not available
-    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+    const remoteFlag =
+      remoteFeatureFlags?.earnMusdConversionTokenListItemCtaEnabled as unknown as VersionGatedFeatureFlag;
+    const fallback =
+      process.env.GITHUB_ACTIONS === 'true' && process.env.E2E !== 'true'
+        ? (remoteFeatureFlags?.earnMusdConversionTokenListItemCtaEnabled as boolean)
+        : process.env.MM_MUSD_CONVERSION_TOKEN_LIST_ITEM_CTA === 'true';
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? fallback;
   },
 );
 
 /**
- * Selects the tokens to have conversion CTAs (spotlight) from remote config or local fallback.
+ * Selects the tokens to have conversion CTAs (spotlight) from remote config.
  * Returns a wildcard list mapping chain IDs (or "*") to token symbols (or ["*"]).
  *
  * Supports wildcards:
@@ -153,8 +153,8 @@ export const selectIsMusdConversionTokenListItemCtaEnabledFlag = createSelector(
  * - { "0x1": ["*"] }            - Have conversion CTAs for ALL tokens on Ethereum mainnet
  * - { "0xa4b1": ["USDT", "DAI"] } - Have conversion CTAs for specific tokens on specific chain
  *
- * Remote flag takes precedence over local env var.
- * If both are unavailable, returns {} (no conversion CTAs).
+ * Build-time defaults are seeded into remoteFeatureFlags via builds.yml.
+ * If unavailable, returns {} (no conversion CTAs).
  */
 export const selectMusdConversionCTATokens = createSelector(
   selectRemoteFeatureFlags,
@@ -162,13 +162,13 @@ export const selectMusdConversionCTATokens = createSelector(
     getWildcardTokenListFromConfig(
       remoteFeatureFlags?.earnMusdConversionCtaTokens,
       'earnMusdConversionCtaTokens',
-      process.env.MM_MUSD_CTA_TOKENS,
-      'MM_MUSD_CTA_TOKENS',
+      undefined,
+      '', // No local env fallback - build-time defaults are seeded via builds.yml
     ),
 );
 
 /**
- * Selects the allowed payment tokens for mUSD conversion from remote config or local fallback.
+ * Selects the allowed payment tokens for mUSD conversion from remote config.
  * Returns a wildcard allowlist mapping chain IDs (or "*") to token symbols (or ["*"]).
  *
  * Supports wildcards:
@@ -180,8 +180,8 @@ export const selectMusdConversionCTATokens = createSelector(
  * - { "0x1": ["*"] }            - Allow ALL tokens on Ethereum mainnet
  * - { "0x1": ["USDC", "USDT", "DAI"], "0xe708": ["USDC", "USDT"] } - Allow specific tokens on specific chains
  *
- * Remote flag takes precedence over local env var.
- * If both are unavailable, returns {} (empty allowlist = allow all tokens).
+ * Build-time defaults are seeded into remoteFeatureFlags via builds.yml.
+ * If unavailable, returns {} (empty allowlist = allow all tokens).
  */
 export const selectMusdConversionPaymentTokensAllowlist = createSelector(
   selectRemoteFeatureFlags,
@@ -189,13 +189,13 @@ export const selectMusdConversionPaymentTokensAllowlist = createSelector(
     getWildcardTokenListFromConfig(
       remoteFeatureFlags?.earnMusdConvertibleTokensAllowlist,
       'earnMusdConvertibleTokensAllowlist',
-      process.env.MM_MUSD_CONVERTIBLE_TOKENS_ALLOWLIST,
-      'MM_MUSD_CONVERTIBLE_TOKENS_ALLOWLIST',
+      undefined,
+      '', // No local env fallback - build-time defaults are seeded via builds.yml
     ),
 );
 
 /**
- * Selects the blocked payment tokens for mUSD conversion from remote config or local fallback.
+ * Selects the blocked payment tokens for mUSD conversion from remote config.
  * Returns a wildcard blocklist mapping chain IDs (or "*") to token symbols (or ["*"]).
  *
  * Supports wildcards:
@@ -207,8 +207,8 @@ export const selectMusdConversionPaymentTokensAllowlist = createSelector(
  * - { "0x1": ["*"] }            - Block ALL tokens on Ethereum mainnet
  * - { "0xa4b1": ["USDT", "DAI"] } - Block specific tokens on specific chain
  *
- * Remote flag takes precedence over local env var.
- * If both are unavailable, returns {} (no blocking).
+ * Build-time defaults are seeded into remoteFeatureFlags via builds.yml.
+ * If unavailable, returns {} (no blocking).
  */
 export const selectMusdConversionPaymentTokensBlocklist = createSelector(
   selectRemoteFeatureFlags,
@@ -216,8 +216,8 @@ export const selectMusdConversionPaymentTokensBlocklist = createSelector(
     getWildcardTokenListFromConfig(
       remoteFeatureFlags?.earnMusdConvertibleTokensBlocklist,
       'earnMusdConvertibleTokensBlocklist',
-      process.env.MM_MUSD_CONVERTIBLE_TOKENS_BLOCKLIST,
-      'MM_MUSD_CONVERTIBLE_TOKENS_BLOCKLIST',
+      undefined,
+      '', // No local env fallback - build-time defaults are seeded via builds.yml
     ),
 );
 
@@ -234,12 +234,13 @@ export const selectIsMusdConversionRewardsUiEnabledFlag = createSelector(
       return false;
     }
 
-    const localFlag =
-      process.env.MM_MUSD_CONVERSION_REWARDS_UI_ENABLED === 'true';
     const remoteFlag =
       remoteFeatureFlags?.earnMusdConversionRewardsUiEnabled as unknown as VersionGatedFeatureFlag;
-
-    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+    const fallback =
+      process.env.GITHUB_ACTIONS === 'true' && process.env.E2E !== 'true'
+        ? (remoteFeatureFlags?.earnMusdConversionRewardsUiEnabled as boolean)
+        : process.env.MM_MUSD_CONVERSION_REWARDS_UI_ENABLED === 'true';
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? fallback;
   },
 );
 
@@ -261,25 +262,23 @@ export const parseBlockedCountriesEnv = (envValue?: string): string[] => {
 };
 
 /**
- * Selects the geo-blocked countries for mUSD conversion from remote config or local fallback.
+ * Selects the geo-blocked countries for mUSD conversion from remote config.
  * Returns an array of ISO 3166-1 alpha-2 country codes (e.g., ['GB', 'US']).
  *
  * The Ramps geolocation API returns country codes like "GB" or "US-CA" (country-region).
  * Matching uses startsWith to handle both country-only and country-region formats.
  *
- * Remote flag takes precedence over local env var.
+ * Build-time defaults are seeded into remoteFeatureFlags via builds.yml.
  *
  * Examples:
  * - Remote: { "blockedRegions": ["GB"] }      - Block users in Great Britain
  * - Remote: { "blockedRegions": ["GB", "US"] } - Block users in GB and US
- * - Local env: "GB,US,FR"                        - Block users in GB, US, and FR
  *
- * If both remote and local are unavailable or invalid, defaults to blocking Great Britain.
+ * If remote flag is unavailable or invalid, defaults to blocking Great Britain.
  */
 export const selectMusdConversionBlockedCountries = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags): string[] => {
-    // Try remote flag first (takes precedence)
     const remoteFlag =
       remoteFeatureFlags?.earnMusdConversionGeoBlockedCountries as
         | { blockedRegions?: string[] }
@@ -289,15 +288,8 @@ export const selectMusdConversionBlockedCountries = createSelector(
       return remoteFlag.blockedRegions;
     }
 
-    // Fallback to local env var
-    const envBlockedCountries = parseBlockedCountriesEnv(
-      process.env.MM_MUSD_CONVERSION_GEO_BLOCKED_COUNTRIES,
-    );
-
-    // If env var is also empty, use default blocked countries
-    return envBlockedCountries.length > 0
-      ? envBlockedCountries
-      : DEFAULT_MUSD_BLOCKED_COUNTRIES;
+    // Fallback to default blocked countries
+    return DEFAULT_MUSD_BLOCKED_COUNTRIES;
   },
 );
 
@@ -306,10 +298,6 @@ const FALLBACK_MIN_ASSET_BALANCE_REQUIRED = 0.01; // 1 cent
 export const selectMusdConversionMinAssetBalanceRequired = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
-    const localRaw = process.env.MM_MUSD_CONVERSION_MIN_ASSET_BALANCE_REQUIRED;
-    const local =
-      localRaw === undefined ? undefined : Number.parseFloat(localRaw);
-
     const remoteRaw =
       remoteFeatureFlags?.earnMusdConversionMinAssetBalanceRequired;
     const remote =
@@ -320,9 +308,9 @@ export const selectMusdConversionMinAssetBalanceRequired = createSelector(
           : undefined;
 
     const remoteValue = Number.isFinite(remote) ? remote : undefined;
-    const localValue = Number.isFinite(local) ? local : undefined;
 
-    return remoteValue ?? localValue ?? FALLBACK_MIN_ASSET_BALANCE_REQUIRED;
+    // Build-time defaults are seeded into remoteFeatureFlags via builds.yml
+    return remoteValue ?? FALLBACK_MIN_ASSET_BALANCE_REQUIRED;
   },
 );
 
@@ -335,11 +323,12 @@ export const selectMusdConversionMinAssetBalanceRequired = createSelector(
 export const selectMerklCampaignClaimingEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
-    const localFlag = process.env.MM_EARN_MERKL_CAMPAIGN_CLAIMING === 'true';
     const remoteFlag =
       remoteFeatureFlags?.earnMerklCampaignClaiming as unknown as VersionGatedFeatureFlag;
-
-    // Fallback to local flag if remote flag is not available
-    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+    const fallback =
+      process.env.GITHUB_ACTIONS === 'true' && process.env.E2E !== 'true'
+        ? (remoteFeatureFlags?.earnMerklCampaignClaiming as boolean)
+        : process.env.MM_EARN_MERKL_CAMPAIGN_CLAIMING === 'true';
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? fallback;
   },
 );

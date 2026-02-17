@@ -158,11 +158,13 @@ remote_feature_flags:        →     REMOTE_FEATURE_FLAG_DEFAULTS={"perpsPerpTra
   earnPooledStakingEnabled: true
 ```
 
-**Server URL Strategy:**
+**Env strategy (servers + build flags):**
 
-- `_servers` anchor: Production URLs as defaults
-- Test/e2e/exp/dev builds override with UAT/dev URLs
-- GitHub Environment determines actual secret values (same secret names, different values per environment)
+- `_public_envs` anchor: Production server URLs and build flags as defaults. All builds merge `<<: *public_envs`.
+- Each build overrides only what differs: prod/rc use defaults as-is; test/e2e/exp/dev list overrides inline (e.g. UAT URLs, `IS_TEST`, `SEEDLESS_ONBOARDING_ENABLED`). Later keys in the same `env` block override the merged defaults.
+- GitHub Environment determines actual secret values (same secret names, different values per environment).
+
+**E2E builds (build-ios-e2e / build-android-e2e):** These workflows run in GitHub but do **not** use the prepare step that injects `builds.yml` env. They set `E2E=true` and their own env (e.g. `METAMASK_ENVIRONMENT`). The app treats `GITHUB_ACTIONS && E2E` like Bitrise/local: it uses `METAMASK_ENVIRONMENT`, `process.env` for feature flags, and AppConstants for URLs, so E2E tests get consistent behavior without builds.yml.
 
 ---
 
@@ -313,7 +315,7 @@ export RAMPS_ENVIRONMENT="staging"
 
 ### Pattern: Single Anchor with Overrides
 
-Following the same pattern as `_servers` and `_secrets`:
+Following the same pattern as `_public_envs` and `_secrets`:
 
 ```yaml
 # Single anchor with production (conservative) defaults
@@ -446,46 +448,83 @@ Configure these GitHub Environments with the secrets required by the build workf
 
 ---
 
+## Signing Configuration (AWS Secrets Manager)
+
+Builds that produce signed device binaries (not simulator/debug) use AWS Secrets Manager for code signing. The `signing` section in `builds.yml` maps each build to an AWS role and secret.
+
+| Build type                             | AWS Role                    | AWS Secret                        | Android keystore         |
+| -------------------------------------- | --------------------------- | --------------------------------- | ------------------------ |
+| main-prod                              | metamask-mobile-prod-signer | metamask-mobile-main-prod-signer  | release.keystore         |
+| main-rc                                | metamask-mobile-rc-signer   | metamask-mobile-main-rc-signer    | rc.keystore              |
+| main-test, main-e2e, main-exp, qa-prod | metamask-mobile-uat-signer  | metamask-mobile-main-uat-signer   | internalRelease.keystore |
+| flask-prod                             | metamask-mobile-prod-signer | metamask-mobile-flask-prod-signer | flaskRelease.keystore    |
+| flask-test, flask-e2e                  | metamask-mobile-uat-signer  | metamask-mobile-flask-uat-signer  | flask-uat.keystore       |
+
+**Dev builds** (main-dev, flask-dev, qa-dev) omit `signing` — they use simulator/debug and require no certificates.
+
+**AWS secret structure** (per build.gradle expectations): The secret must contain keys such as `ANDROID_KEYSTORE` (base64), `BITRISEIO_ANDROID_QA_KEYSTORE_PASSWORD`, `BITRISEIO_ANDROID_QA_KEYSTORE_ALIAS`, `BITRISEIO_ANDROID_QA_KEYSTORE_PRIVATE_KEY_PASSWORD` for UAT builds; adjust for prod/rc/flask variants.
+
+---
+
 ## YAML Anchors
 
-`builds.yml` uses YAML anchors to avoid repetition. The pattern is: **single anchor with production defaults, override in specific builds as needed**.
+`builds.yml` uses YAML anchors to avoid repetition. The pattern is: **single anchor with production defaults, override inline in each build as needed**.
 
 ```yaml
-# Define anchors with production (conservative) defaults
-_servers: &servers
+# Shared env: servers + build flags (production defaults)
+_public_envs: &public_envs
   PORTFOLIO_API_URL: 'https://portfolio.api.cx.metamask.io'
   SECURITY_ALERTS_API_URL: 'https://security-alerts.api.cx.metamask.io'
+  BRIDGE_USE_DEV_APIS: 'false'
+  IS_TEST: 'false'
+  SEEDLESS_ONBOARDING_ENABLED: 'true'
 
 _remote_feature_flags: &remote_feature_flags
   perpsPerpTradingEnabled: false
   earnPooledStakingEnabled: true
   earnMusdConversionFlowEnabled: false
 
-# Reuse via aliases, override as needed
+# Each build merges <<: *public_envs and overrides only what differs (inline)
 builds:
   main-prod:
     env:
-      <<: *servers
-    remote_feature_flags: *remote_feature_flags # Use defaults directly
+      <<: *public_envs
+      METAMASK_ENVIRONMENT: 'production'
+      METAMASK_BUILD_TYPE: 'main'
+    remote_feature_flags: *remote_feature_flags
+
+  main-test:
+    env:
+      <<: *public_envs
+      METAMASK_ENVIRONMENT: 'test'
+      METAMASK_BUILD_TYPE: 'main'
+      PORTFOLIO_API_URL: 'https://portfolio.dev-api.cx.metamask.io'
+      BRIDGE_USE_DEV_APIS: 'true'
+      IS_TEST: 'true'
+    remote_feature_flags: *remote_feature_flags
 
   main-dev:
     env:
-      <<: *servers
-      PORTFOLIO_API_URL: 'https://portfolio.dev-api.cx.metamask.io' # Override URL
+      <<: *public_envs
+      METAMASK_ENVIRONMENT: 'dev'
+      METAMASK_BUILD_TYPE: 'main'
+      PORTFOLIO_API_URL: 'https://portfolio.dev-api.cx.metamask.io'
+      IS_SIM_BUILD: 'true'
+      CONFIGURATION: 'Debug'
+      DEV_OAUTH_CONFIG: 'true'
     remote_feature_flags:
       <<: *remote_feature_flags
-      # Override specific flags for dev testing
       perpsPerpTradingEnabled: true
       earnMusdConversionFlowEnabled: true
 ```
 
-**Key:** Anchors are resolved at YAML parse time, not runtime. No magic inheritance logic needed.
+**Key:** Anchors are resolved at YAML parse time. Each build's `env` merges `*public_envs` then lists overrides; later keys in the same mapping override the merged defaults.
 
-**Pattern Benefits:**
+**Pattern benefits:**
 
-- Single source of truth for defaults
-- Explicit overrides show exactly what differs from production
-- Adding a new flag only requires updating one anchor
+- Single source of truth for defaults (`_public_envs`, `_remote_feature_flags`)
+- Each build only lists what it overrides; no separate override anchors
+- Adding a new env var or flag: add to `_public_envs` (or the relevant anchor) or override inline in the build
 
 ---
 
