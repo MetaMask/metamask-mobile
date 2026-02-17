@@ -344,6 +344,12 @@ jest.mock('../../util/cardTokenVault', () => ({
   removeCardBaanxToken: () => mockRemoveCardBaanxToken(),
 }));
 
+jest.mock('../../util/tokenManager', () => ({
+  tokenManager: {
+    getValidAccessToken: jest.fn().mockResolvedValue('mock-token'),
+  },
+}));
+
 // Mock Redux card actions
 const mockResetAuthenticatedData = jest.fn(() => ({
   type: 'card/resetAuthenticatedData',
@@ -653,6 +659,7 @@ describe('CardHome Component', () => {
 
     // Clear SDK mocks
     mockLogoutFromProvider.mockClear();
+    mockLogoutFromProvider.mockResolvedValue(undefined);
     mockSetIsAuthenticated.mockClear();
 
     // Clear authentication error handling mocks
@@ -2534,7 +2541,7 @@ describe('CardHome Component', () => {
   });
 
   describe('Authentication Error Handling', () => {
-    it('clears auth state and navigates to welcome when authentication error occurs', async () => {
+    it('calls logoutFromProvider and navigates when authentication error occurs', async () => {
       // Given: authenticated user with authentication error
       setupMockSelectors({ isAuthenticated: true });
       mockIsAuthenticationError.mockReturnValue(true);
@@ -2546,18 +2553,9 @@ describe('CardHome Component', () => {
       // When: component renders with authentication error
       render();
 
-      // Then: should clear token, reset auth state, and navigate to welcome
+      // Then: should call logoutFromProvider and navigate to authentication
       await waitFor(() => {
-        expect(mockRemoveCardBaanxToken).toHaveBeenCalledTimes(1);
-      });
-
-      await waitFor(() => {
-        expect(mockDispatch).toHaveBeenCalledWith(
-          expect.objectContaining({ type: 'card/resetAuthenticatedData' }),
-        );
-        expect(mockDispatch).toHaveBeenCalledWith(
-          expect.objectContaining({ type: 'card/clearAllCache' }),
-        );
+        expect(mockLogoutFromProvider).toHaveBeenCalledTimes(1);
       });
 
       await waitFor(() => {
@@ -2586,9 +2584,7 @@ describe('CardHome Component', () => {
       render();
 
       // Then: should not trigger authentication error handling
-      expect(mockRemoveCardBaanxToken).not.toHaveBeenCalled();
-      expect(mockResetAuthenticatedData).not.toHaveBeenCalled();
-      expect(mockClearAllCache).not.toHaveBeenCalled();
+      expect(mockLogoutFromProvider).not.toHaveBeenCalled();
       expect(mockNavigationDispatch).not.toHaveBeenCalledWith(
         expect.objectContaining({ type: 'REPLACE' }),
       );
@@ -2607,9 +2603,7 @@ describe('CardHome Component', () => {
       render();
 
       // Then: should not trigger authentication error handling
-      expect(mockRemoveCardBaanxToken).not.toHaveBeenCalled();
-      expect(mockResetAuthenticatedData).not.toHaveBeenCalled();
-      expect(mockClearAllCache).not.toHaveBeenCalled();
+      expect(mockLogoutFromProvider).not.toHaveBeenCalled();
     });
 
     it('does nothing when error is not an authentication error', () => {
@@ -2625,21 +2619,17 @@ describe('CardHome Component', () => {
       render();
 
       // Then: should not trigger authentication error handling
-      expect(mockRemoveCardBaanxToken).not.toHaveBeenCalled();
-      expect(mockResetAuthenticatedData).not.toHaveBeenCalled();
-      expect(mockClearAllCache).not.toHaveBeenCalled();
+      expect(mockLogoutFromProvider).not.toHaveBeenCalled();
       expect(mockNavigationDispatch).not.toHaveBeenCalledWith(
         expect.objectContaining({ type: 'REPLACE' }),
       );
     });
 
-    it('still navigates when token removal fails', async () => {
-      // Given: authenticated user with authentication error and token removal fails
+    it('still navigates when logoutFromProvider fails', async () => {
+      // Given: authenticated user with authentication error and logout fails
       setupMockSelectors({ isAuthenticated: true });
       mockIsAuthenticationError.mockReturnValue(true);
-      mockRemoveCardBaanxToken.mockRejectedValue(
-        new Error('Failed to remove token'),
-      );
+      mockLogoutFromProvider.mockRejectedValue(new Error('Failed to logout'));
       setupLoadCardDataMock({
         error: 'Token expired',
         isAuthenticated: true,
@@ -2648,9 +2638,9 @@ describe('CardHome Component', () => {
       // When: component renders
       render();
 
-      // Then: should still navigate even if token removal fails
+      // Then: should still navigate even if logout fails
       await waitFor(() => {
-        expect(mockRemoveCardBaanxToken).toHaveBeenCalled();
+        expect(mockLogoutFromProvider).toHaveBeenCalled();
       });
 
       await waitFor(() => {
@@ -2666,11 +2656,10 @@ describe('CardHome Component', () => {
       });
     });
 
-    it('dispatches Redux actions after successful token removal', async () => {
+    it('navigates to authentication after logoutFromProvider resolves', async () => {
       // Given: authenticated user with authentication error
       setupMockSelectors({ isAuthenticated: true });
       mockIsAuthenticationError.mockReturnValue(true);
-      mockRemoveCardBaanxToken.mockResolvedValue(undefined);
       setupLoadCardDataMock({
         error: 'Unauthorized',
         isAuthenticated: true,
@@ -2679,17 +2668,14 @@ describe('CardHome Component', () => {
       // When: component renders
       render();
 
-      // Then: should dispatch Redux actions after token removal
+      // Then: should call logoutFromProvider and then navigate
       await waitFor(() => {
-        expect(mockRemoveCardBaanxToken).toHaveBeenCalled();
+        expect(mockLogoutFromProvider).toHaveBeenCalled();
       });
 
       await waitFor(() => {
-        expect(mockDispatch).toHaveBeenCalledWith(
-          expect.objectContaining({ type: 'card/resetAuthenticatedData' }),
-        );
-        expect(mockDispatch).toHaveBeenCalledWith(
-          expect.objectContaining({ type: 'card/clearAllCache' }),
+        expect(StackActions.replace).toHaveBeenCalledWith(
+          Routes.CARD.AUTHENTICATION,
         );
       });
     });
@@ -2713,7 +2699,7 @@ describe('CardHome Component', () => {
       });
     });
 
-    it('runs authentication cleanup once even when error persists across renders', async () => {
+    it('runs logout once even when error persists across renders', async () => {
       // Given: authenticated user with persistent authentication error
       setupMockSelectors({ isAuthenticated: true });
       mockIsAuthenticationError.mockReturnValue(true);
@@ -2736,50 +2722,50 @@ describe('CardHome Component', () => {
       // When: component renders with authentication error
       render();
 
-      // Then: cleanup runs once on initial render
+      // Then: logout runs once on initial render
       await waitFor(() => {
-        expect(mockRemoveCardBaanxToken).toHaveBeenCalledTimes(1);
+        expect(mockLogoutFromProvider).toHaveBeenCalledTimes(1);
       });
     });
 
-    it('does not dispatch Redux actions if token removal throws and component unmounts', async () => {
+    it('does not navigate if component unmounts before logout completes', async () => {
       // Given: authenticated user with authentication error
       setupMockSelectors({ isAuthenticated: true });
       mockIsAuthenticationError.mockReturnValue(true);
-      let resolveTokenRemoval!: () => void;
-      const tokenRemovalPromise = new Promise<void>((resolve) => {
-        resolveTokenRemoval = resolve;
+      let resolveLogout: () => void = () => undefined;
+      const logoutPromise = new Promise<void>((resolve) => {
+        resolveLogout = resolve;
       });
-      mockRemoveCardBaanxToken.mockReturnValue(tokenRemovalPromise);
+      mockLogoutFromProvider.mockReturnValue(logoutPromise);
       setupLoadCardDataMock({
         error: 'Token expired',
         isAuthenticated: true,
       });
 
-      // When: component renders and unmounts before token removal completes
+      // When: component renders and unmounts before logout completes
       const { unmount } = render();
 
-      // Wait for token removal to be called
+      // Wait for logout to be called
       await waitFor(() => {
-        expect(mockRemoveCardBaanxToken).toHaveBeenCalled();
+        expect(mockLogoutFromProvider).toHaveBeenCalled();
       });
 
       // Unmount before resolving
       unmount();
 
       // Resolve the promise after unmount
-      resolveTokenRemoval();
+      resolveLogout();
 
-      // Wait a bit to ensure no actions are dispatched
+      // Wait a bit to ensure no navigation occurs
       await new Promise((r) => setTimeout(r, 100));
 
-      // Then: should not dispatch actions after unmount
-      // Note: This is a safety check - the component guards against this with isMounted
-      // The exact behavior depends on timing, so we just verify no errors occur
-      expect(mockRemoveCardBaanxToken).toHaveBeenCalledTimes(1);
+      // Then: should not navigate after unmount
+      expect(mockNavigationDispatch).not.toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'REPLACE' }),
+      );
     });
 
-    it('clears auth state when authentication error is detected', async () => {
+    it('delegates cleanup to logoutFromProvider when authentication error is detected', async () => {
       // Given: authenticated user with authentication error
       setupMockSelectors({ isAuthenticated: true });
       mockIsAuthenticationError.mockReturnValue(true);
@@ -2791,38 +2777,23 @@ describe('CardHome Component', () => {
       // When: component renders
       render();
 
-      // Then: should clear auth state and navigate to welcome
+      // Then: should delegate cleanup to logoutFromProvider and navigate
       await waitFor(() => {
-        expect(mockRemoveCardBaanxToken).toHaveBeenCalled();
-        expect(mockDispatch).toHaveBeenCalledWith(
-          expect.objectContaining({ type: 'card/resetAuthenticatedData' }),
-        );
-        expect(mockDispatch).toHaveBeenCalledWith(
-          expect.objectContaining({ type: 'card/clearAllCache' }),
-        );
+        expect(mockLogoutFromProvider).toHaveBeenCalled();
         expect(StackActions.replace).toHaveBeenCalledWith(
           Routes.CARD.AUTHENTICATION,
         );
       });
     });
 
-    it('executes cleanup operations in correct order', async () => {
+    it('executes logout before navigation', async () => {
       // Given: authenticated user with authentication error
       setupMockSelectors({ isAuthenticated: true });
       mockIsAuthenticationError.mockReturnValue(true);
       const callOrder: string[] = [];
 
-      mockRemoveCardBaanxToken.mockImplementation(async () => {
-        callOrder.push('removeToken');
-      });
-
-      mockDispatch.mockImplementation((action) => {
-        if (action.type === 'card/resetAuthenticatedData') {
-          callOrder.push('resetAuth');
-        } else if (action.type === 'card/clearAllCache') {
-          callOrder.push('clearCache');
-        }
-        return action;
+      mockLogoutFromProvider.mockImplementation(async () => {
+        callOrder.push('logout');
       });
 
       mockNavigationDispatch.mockImplementation(() => {
@@ -2837,22 +2808,16 @@ describe('CardHome Component', () => {
       // When: component renders
       render();
 
-      // Then: operations should execute in correct order
+      // Then: logout should complete before navigation
       await waitFor(() => {
-        expect(callOrder).toEqual([
-          'removeToken',
-          'resetAuth',
-          'clearCache',
-          'navigate',
-        ]);
+        expect(callOrder).toEqual(['logout', 'navigate']);
       });
     });
 
-    it('completes full auth error cleanup flow including toast display', async () => {
+    it('completes full auth error flow: logout, toast, and navigate', async () => {
       // Given: authenticated user with authentication error
       setupMockSelectors({ isAuthenticated: true });
       mockIsAuthenticationError.mockReturnValue(true);
-      mockRemoveCardBaanxToken.mockResolvedValue(undefined);
       setupLoadCardDataMock({
         error: 'Token expired',
         isAuthenticated: true,
@@ -2861,23 +2826,13 @@ describe('CardHome Component', () => {
       // When: component renders with authentication error
       render();
 
-      // Then: should complete full cleanup flow:
-      // 1. Remove token
+      // Then: should complete full flow:
+      // 1. Call logoutFromProvider
       await waitFor(() => {
-        expect(mockRemoveCardBaanxToken).toHaveBeenCalled();
+        expect(mockLogoutFromProvider).toHaveBeenCalled();
       });
 
-      // 2. Dispatch Redux actions
-      await waitFor(() => {
-        expect(mockDispatch).toHaveBeenCalledWith(
-          expect.objectContaining({ type: 'card/resetAuthenticatedData' }),
-        );
-        expect(mockDispatch).toHaveBeenCalledWith(
-          expect.objectContaining({ type: 'card/clearAllCache' }),
-        );
-      });
-
-      // 3. Navigate to authentication screen (this happens after toast is shown)
+      // 2. Navigate to authentication screen
       await waitFor(() => {
         expect(StackActions.replace).toHaveBeenCalledWith(
           Routes.CARD.AUTHENTICATION,

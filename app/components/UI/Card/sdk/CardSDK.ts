@@ -52,7 +52,7 @@ import {
   DEFAULT_REFRESH_TOKEN_EXPIRES_IN_SECONDS,
   getBaanxApiBaseUrl,
 } from '../util/mapBaanxApiUrl';
-import { getCardBaanxToken } from '../util/cardTokenVault';
+import { tokenManager } from '../util/tokenManager';
 import { CaipChainId } from '@metamask/utils';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { isZeroValue } from '../../../../util/number';
@@ -601,81 +601,118 @@ export class CardSDK {
     }
 
     const isUSEnv = location === 'us';
-    const headers: HeadersInit = {
-      'Content-Type': 'application/json',
-      'x-us-env': String(isUSEnv),
-      'x-client-key': apiKey,
-    };
 
-    // Add bearer token for authenticated requests
-    try {
+    const buildHeaders = async (): Promise<HeadersInit> => {
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+        'x-us-env': String(isUSEnv),
+        'x-client-key': apiKey,
+      };
+
       if (authenticated) {
-        const tokenResult = await getCardBaanxToken();
-        if (tokenResult.success && tokenResult.tokenData?.accessToken) {
-          headers.Authorization = `Bearer ${tokenResult.tokenData.accessToken}`;
+        try {
+          const accessToken = await tokenManager.getValidAccessToken();
+          if (accessToken) {
+            headers.Authorization = `Bearer ${accessToken}`;
+          }
+        } catch (error) {
+          Logger.error(error as Error, {
+            tags: { feature: 'card', operation: 'makeRequest' },
+            context: {
+              name: 'card_auth',
+              data: { action: 'retrieveBearerToken' },
+            },
+          });
         }
       }
-    } catch (error) {
-      // Continue without bearer token if retrieval fails
-      Logger.error(error as Error, {
-        tags: { feature: 'card', operation: 'makeRequest' },
-        context: {
-          name: 'card_auth',
-          data: { action: 'retrieveBearerToken' },
-        },
-      });
-    }
+
+      return headers;
+    };
 
     const url = `${this.cardBaanxApiBaseUrl}${endpoint}${
       fetchOptions.query ? `?${fetchOptions.query}` : ''
     }`;
 
-    // Create AbortController for timeout handling
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => {
-      controller.abort();
-    }, timeoutMs);
+    const performFetch = async (headers: HeadersInit): Promise<Response> => {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => {
+        controller.abort();
+      }, timeoutMs);
 
-    try {
-      const response = await fetch(url, {
-        credentials: 'omit',
-        ...fetchOptions,
-        headers: {
-          ...headers,
-          ...fetchOptions.headers,
-        },
-        signal: controller.signal,
-      });
+      try {
+        const response = await fetch(url, {
+          credentials: 'omit',
+          ...fetchOptions,
+          headers: {
+            ...headers,
+            ...fetchOptions.headers,
+          },
+          signal: controller.signal,
+        });
 
-      clearTimeout(timeoutId);
-      return response;
-    } catch (error) {
-      clearTimeout(timeoutId);
+        clearTimeout(timeoutId);
+        return response;
+      } catch (error) {
+        clearTimeout(timeoutId);
 
-      // Check if the error is due to timeout
-      if (error instanceof Error && error.name === 'AbortError') {
+        if (error instanceof Error && error.name === 'AbortError') {
+          throw new CardError(
+            CardErrorType.TIMEOUT_ERROR,
+            'Request timed out. Please check your connection.',
+            error,
+          );
+        }
+
+        if (error instanceof Error) {
+          throw new CardError(
+            CardErrorType.NETWORK_ERROR,
+            'Network error. Please check your connection.',
+            error,
+          );
+        }
+
         throw new CardError(
-          CardErrorType.TIMEOUT_ERROR,
-          'Request timed out. Please check your connection.',
-          error,
+          CardErrorType.UNKNOWN_ERROR,
+          'An unexpected error occurred.',
+          error instanceof Error ? error : undefined,
         );
       }
+    };
 
-      // Network or other fetch errors
-      if (error instanceof Error) {
-        throw new CardError(
-          CardErrorType.NETWORK_ERROR,
-          'Network error. Please check your connection.',
-          error,
-        );
+    const headers = await buildHeaders();
+    const response = await performFetch(headers);
+
+    // On 401, attempt a single retry with a force-refreshed token
+    if (authenticated && response.status === 401) {
+      try {
+        const newToken = await tokenManager.getValidAccessToken(true);
+        if (newToken) {
+          const retryHeaders = {
+            ...headers,
+            Authorization: `Bearer ${newToken}`,
+          };
+          return performFetch(retryHeaders);
+        }
+      } catch (error) {
+        Logger.error(error as Error, {
+          tags: { feature: 'card', operation: 'makeRequest' },
+          context: {
+            name: 'card_auth',
+            data: { action: 'retryAfter401' },
+          },
+        });
       }
 
-      throw new CardError(
-        CardErrorType.UNKNOWN_ERROR,
-        'An unexpected error occurred.',
-        error instanceof Error ? error : undefined,
+      throw this.logAndCreateError(
+        CardErrorType.INVALID_CREDENTIALS,
+        'Authentication failed. Please log in again.',
+        'makeRequest',
+        endpoint,
+        401,
       );
     }
+
+    return response;
   }
 
   getUserDetails = async (): Promise<UserResponse> => {

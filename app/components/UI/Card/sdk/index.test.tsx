@@ -396,12 +396,12 @@ describe('CardSDK Context', () => {
         await result.current.logoutFromProvider();
       });
 
-      // Then: SDK revokeAllOAuth2Tokens should be called and Redux actions dispatched
       expect(mockRevokeAll).toHaveBeenCalledWith(
         'access-token',
         'refresh-token',
         'us',
       );
+      expect(mockRemoveCardBaanxToken).toHaveBeenCalled();
       expect(mockDispatch).toHaveBeenCalled();
     });
 
@@ -495,6 +495,7 @@ describe('CardSDK Context', () => {
       });
 
       // Then: Redux state should still be cleared (revocation skipped gracefully)
+      expect(mockRemoveCardBaanxToken).toHaveBeenCalled();
       expect(mockDispatch).toHaveBeenCalledWith(
         expect.objectContaining({ type: 'card/resetAuthenticatedData' }),
       );
@@ -539,6 +540,7 @@ describe('CardSDK Context', () => {
 
       // Then: Redux state should still be cleared
       expect(mockRevokeAll).toHaveBeenCalled();
+      expect(mockRemoveCardBaanxToken).toHaveBeenCalled();
       expect(mockDispatch).toHaveBeenCalledWith(
         expect.objectContaining({ type: 'card/resetAuthenticatedData' }),
       );

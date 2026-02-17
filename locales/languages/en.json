@@ -7157,7 +7157,11 @@
         "network_error": "Network error. Please check your connection and try again.",
         "timeout_error": "Request timed out. Please check your connection and try again.",
         "server_error": "Server error. Please try again later.",
-        "configuration_error": "Service is temporarily unavailable. Please try again later."
+        "configuration_error": "Service is temporarily unavailable. Please try again later.",
+        "access_denied": "Authentication was denied. Please try again.",
+        "temporarily_unavailable": "Service temporarily unavailable. Please try again later.",
+        "login_required": "Please log in to continue.",
+        "session_expired": "Your session has expired. Please log in again."
       }
     },
     "card_otp_authentication": {

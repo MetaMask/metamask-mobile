@@ -44,17 +44,38 @@ const buildDiscoveryDocument = (baseUrl: string): DiscoveryDocument => ({
   authorizationEndpoint: `${baseUrl}/v1/auth/oauth2/authorize`,
 });
 
-/**
- * Maps error types to user-friendly localized error messages
- */
+const USER_FACING_AUTH_ERRORS: Record<string, BaanxOAuth2ErrorType> = {
+  access_denied: BaanxOAuth2ErrorType.ACCESS_DENIED,
+  temporarily_unavailable: BaanxOAuth2ErrorType.TEMPORARILY_UNAVAILABLE,
+  login_required: BaanxOAuth2ErrorType.LOGIN_REQUIRED,
+  consent_required: BaanxOAuth2ErrorType.LOGIN_REQUIRED,
+  interaction_required: BaanxOAuth2ErrorType.LOGIN_REQUIRED,
+  account_selection_required: BaanxOAuth2ErrorType.LOGIN_REQUIRED,
+  invalid_grant: BaanxOAuth2ErrorType.SESSION_EXPIRED,
+};
+
+const mapOAuthErrorCode = (code: string | undefined): BaanxOAuth2ErrorType => {
+  if (!code) {
+    return BaanxOAuth2ErrorType.UNKNOWN_ERROR;
+  }
+  return USER_FACING_AUTH_ERRORS[code] ?? BaanxOAuth2ErrorType.UNKNOWN_ERROR;
+};
+
 const getErrorMessage = (errorType: BaanxOAuth2ErrorType): string => {
   switch (errorType) {
     case BaanxOAuth2ErrorType.NETWORK_ERROR:
       return strings('card.card_authentication.errors.network_error');
     case BaanxOAuth2ErrorType.TOKEN_EXCHANGE_FAILED:
-      return strings('card.card_authentication.errors.server_error');
     case BaanxOAuth2ErrorType.INVALID_STATE:
       return strings('card.card_authentication.errors.server_error');
+    case BaanxOAuth2ErrorType.ACCESS_DENIED:
+      return strings('card.card_authentication.errors.access_denied');
+    case BaanxOAuth2ErrorType.TEMPORARILY_UNAVAILABLE:
+      return strings('card.card_authentication.errors.temporarily_unavailable');
+    case BaanxOAuth2ErrorType.LOGIN_REQUIRED:
+      return strings('card.card_authentication.errors.login_required');
+    case BaanxOAuth2ErrorType.SESSION_EXPIRED:
+      return strings('card.card_authentication.errors.session_expired');
     default:
       return strings('card.card_authentication.errors.unknown_error');
   }
@@ -124,14 +145,21 @@ const useCardOAuth2Authentication = (): UseCardOAuth2AuthenticationReturn => {
         return;
       }
 
+      Logger.log('result', JSON.stringify(result, null, 2));
+
       if (result.type !== 'success') {
-        const authError = new BaanxOAuth2Error(
-          BaanxOAuth2ErrorType.UNKNOWN_ERROR,
-          result.type === 'error'
-            ? result.error?.message || 'Authorization failed'
-            : 'Unknown authorization error',
+        const errorCode =
+          result.type === 'error' ? result.error?.code : undefined;
+        const errorType = mapOAuthErrorCode(errorCode);
+
+        Logger.error(
+          new Error(
+            `OAuth2 auth error: code=${errorCode}, description=${result.type === 'error' ? result.error?.description : result.type}`,
+          ),
+          { tags: { feature: 'card', operation: 'oauth2Login' } },
         );
-        setError(getErrorMessage(authError.type));
+
+        setError(getErrorMessage(errorType));
         return;
       }
 

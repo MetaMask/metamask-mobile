@@ -28,7 +28,10 @@ import {
 import { UserResponse } from '../types';
 import { getErrorMessage } from '../util/getErrorMessage';
 import { mapCountryToLocation } from '../util/mapCountryToLocation';
-import { getCardBaanxToken } from '../util/cardTokenVault';
+import {
+  getCardBaanxToken,
+  removeCardBaanxToken,
+} from '../util/cardTokenVault';
 
 // Types
 export interface ICardSDK {
@@ -147,6 +150,7 @@ export const CardSDKProvider = ({
       });
     }
 
+    await removeCardBaanxToken();
     dispatch(resetAuthenticatedData());
     dispatch(clearAllCache());
     dispatch(resetOnboardingState());

@@ -14,7 +14,7 @@ import {
   DelegationSettingsNetwork,
 } from '../types';
 import Logger from '../../../../util/Logger';
-import { getCardBaanxToken } from '../util/cardTokenVault';
+import { tokenManager } from '../util/tokenManager';
 import AppConstants from '../../../../core/AppConstants';
 
 // Type definition for accessing private methods in tests
@@ -60,12 +60,12 @@ jest.mock('../../../../util/Logger', () => ({
   log: jest.fn(),
 }));
 
-// Mock cardTokenVault
-const mockRemoveCardBaanxToken = jest.fn();
-jest.mock('../util/cardTokenVault', () => ({
-  getCardBaanxToken: jest.fn(),
-  removeCardBaanxToken: () => mockRemoveCardBaanxToken(),
+jest.mock('../util/tokenManager', () => ({
+  tokenManager: {
+    getValidAccessToken: jest.fn(),
+  },
 }));
+const mockGetValidAccessToken = jest.mocked(tokenManager.getValidAccessToken);
 
 // Mock network utilities
 jest.mock('../../../../util/networks', () => ({
@@ -155,11 +155,9 @@ describe('CardSDK', () => {
       cardFeatureFlag: mockCardFeatureFlag,
     });
 
-    // Setup default mock for getCardBaanxToken
-    (getCardBaanxToken as jest.Mock).mockResolvedValue({
-      success: true,
-      tokenData: { accessToken: 'mock-token' },
-    });
+    mockGetValidAccessToken.mockImplementation((forceRefresh?: boolean) =>
+      Promise.resolve(forceRefresh ? null : 'mock-token'),
+    );
   });
 
   describe('constructor', () => {
@@ -2784,10 +2782,9 @@ describe('CardSDK', () => {
     };
 
     beforeEach(() => {
-      (getCardBaanxToken as jest.Mock).mockResolvedValue({
-        success: true,
-        tokenData: { accessToken: 'mock-access-token' },
-      });
+      mockGetValidAccessToken.mockImplementation((forceRefresh?: boolean) =>
+        Promise.resolve(forceRefresh ? null : 'mock-access-token'),
+      );
     });
 
     afterEach(() => {
@@ -2816,20 +2813,15 @@ describe('CardSDK', () => {
     });
 
     it('should throw CardError with INVALID_CREDENTIALS for 401 status', async () => {
-      const mockErrorResponse = {
-        message: 'Unauthorized access',
-      };
-
       (global.fetch as jest.Mock).mockResolvedValue({
         ok: false,
         status: 401,
-        json: jest.fn().mockResolvedValue(mockErrorResponse),
+        json: jest.fn().mockResolvedValue({ message: 'Unauthorized access' }),
       });
 
       await expect(cardSDK.getUserDetails()).rejects.toThrow(CardError);
       await expect(cardSDK.getUserDetails()).rejects.toMatchObject({
         type: CardErrorType.INVALID_CREDENTIALS,
-        message: mockErrorResponse.message,
       });
     });
 
@@ -2936,7 +2928,7 @@ describe('CardSDK', () => {
         expect.objectContaining({
           tags: expect.objectContaining({
             feature: 'card',
-            operation: 'getUserDetails',
+            operation: 'makeRequest',
           }),
         }),
       );
@@ -2944,10 +2936,9 @@ describe('CardSDK', () => {
 
     it('should use authenticated request with bearer token', async () => {
       const mockAccessToken = 'test-bearer-token';
-      (getCardBaanxToken as jest.Mock).mockResolvedValue({
-        success: true,
-        tokenData: { accessToken: mockAccessToken },
-      });
+      mockGetValidAccessToken.mockImplementation((forceRefresh?: boolean) =>
+        Promise.resolve(forceRefresh ? null : mockAccessToken),
+      );
 
       (global.fetch as jest.Mock).mockResolvedValue({
         ok: true,
@@ -2967,9 +2958,7 @@ describe('CardSDK', () => {
     });
 
     it('should handle missing bearer token gracefully', async () => {
-      (getCardBaanxToken as jest.Mock).mockResolvedValue({
-        success: false,
-      });
+      mockGetValidAccessToken.mockResolvedValue(null);
 
       (global.fetch as jest.Mock).mockResolvedValue({
         ok: true,
@@ -2984,7 +2973,7 @@ describe('CardSDK', () => {
     });
 
     it('should handle bearer token retrieval error', async () => {
-      (getCardBaanxToken as jest.Mock).mockRejectedValue(
+      mockGetValidAccessToken.mockRejectedValue(
         new Error('Token retrieval failed'),
       );
 
@@ -3268,10 +3257,9 @@ describe('CardSDK', () => {
     };
 
     beforeEach(() => {
-      (getCardBaanxToken as jest.Mock).mockResolvedValue({
-        success: true,
-        tokenData: { accessToken: 'test-access-token' },
-      });
+      mockGetValidAccessToken.mockImplementation((forceRefresh?: boolean) =>
+        Promise.resolve(forceRefresh ? null : 'test-access-token'),
+      );
     });
 
     it('generates card details token successfully', async () => {
@@ -3428,10 +3416,9 @@ describe('CardSDK', () => {
     };
 
     beforeEach(() => {
-      (getCardBaanxToken as jest.Mock).mockResolvedValue({
-        success: true,
-        tokenData: { accessToken: 'mock-access-token' },
-      });
+      mockGetValidAccessToken.mockImplementation((forceRefresh?: boolean) =>
+        Promise.resolve(forceRefresh ? null : 'mock-access-token'),
+      );
     });
 
     afterEach(() => {
@@ -3587,10 +3574,9 @@ describe('CardSDK', () => {
     };
 
     beforeEach(() => {
-      (getCardBaanxToken as jest.Mock).mockResolvedValue({
-        success: true,
-        tokenData: { accessToken: 'mock-access-token' },
-      });
+      mockGetValidAccessToken.mockImplementation((forceRefresh?: boolean) =>
+        Promise.resolve(forceRefresh ? null : 'mock-access-token'),
+      );
     });
 
     afterEach(() => {
@@ -3778,10 +3764,9 @@ describe('CardSDK', () => {
     };
 
     beforeEach(() => {
-      (getCardBaanxToken as jest.Mock).mockResolvedValue({
-        success: true,
-        tokenData: { accessToken: 'mock-access-token' },
-      });
+      mockGetValidAccessToken.mockImplementation((forceRefresh?: boolean) =>
+        Promise.resolve(forceRefresh ? null : 'mock-access-token'),
+      );
     });
 
     afterEach(() => {
@@ -4014,10 +3999,9 @@ describe('CardSDK', () => {
     };
 
     beforeEach(() => {
-      (getCardBaanxToken as jest.Mock).mockResolvedValue({
-        success: true,
-        tokenData: { accessToken: 'mock-access-token' },
-      });
+      mockGetValidAccessToken.mockImplementation((forceRefresh?: boolean) =>
+        Promise.resolve(forceRefresh ? null : 'mock-access-token'),
+      );
     });
 
     afterEach(() => {
@@ -4380,8 +4364,8 @@ describe('CardSDK', () => {
 
       const result = await cardSDK.refreshOAuth2Token('old-refresh', 'us');
 
-      // Default is 20 minutes (1200 seconds)
-      expect(result.refreshTokenExpiresIn).toBe(20 * 60);
+      // Default is 14 days (1209600 seconds)
+      expect(result.refreshTokenExpiresIn).toBe(14 * 24 * 60 * 60);
     });
 
     it('throws INVALID_CREDENTIALS on 401', async () => {
