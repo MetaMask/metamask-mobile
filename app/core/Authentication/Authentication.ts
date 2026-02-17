@@ -68,6 +68,7 @@ import AccountTreeInitService from '../../multichain-accounts/AccountTreeInitSer
 import { renewSeedlessControllerRefreshTokens } from '../OAuthService/SeedlessControllerHelper';
 import { EntropySourceId } from '@metamask/keyring-api';
 import MetaMetrics from '../Analytics/MetaMetrics';
+import { createDataDeletionTask as createDataDeletionTaskUtil } from '../../util/analytics/analyticsDataDeletion';
 import { resetProviderToken as depositResetProviderToken } from '../../components/UI/Ramp/Deposit/utils/ProviderTokenVault';
 import { setAllowLoginWithRememberMe } from '../../actions/security';
 import { Alert, Platform } from 'react-native';
@@ -770,7 +771,7 @@ class AuthenticationService {
           // Perform post login operations.
           await this.dispatchLogin();
           this.dispatchPasswordSet();
-          void this.postLoginAsyncOperations();
+          this.postLoginAsyncOperations().catch(() => undefined);
 
           // Mark user as existing after successful unlock
           ReduxService.store.dispatch(setExistingUser(true));
@@ -1499,7 +1500,7 @@ class AuthenticationService {
   protected async deleteUser(): Promise<void> {
     try {
       ReduxService.store.dispatch(setExistingUser(false));
-      await MetaMetrics.getInstance().createDataDeletionTask();
+      await createDataDeletionTaskUtil();
     } catch (error) {
       const errorMsg = `Failed to reset existingUser state in Redux`;
       Logger.log(error, errorMsg);

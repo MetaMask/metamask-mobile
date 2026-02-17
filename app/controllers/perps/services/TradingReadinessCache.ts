@@ -42,28 +42,33 @@ type TradingReadinessCacheEntry = {
 };
 
 class PerpsSigningCacheManager {
-  private static instance: PerpsSigningCacheManager;
-  private cache: Map<string, PerpsSigningCacheEntry> = new Map();
+  static #instance: PerpsSigningCacheManager;
+
+  readonly #cache: Map<string, PerpsSigningCacheEntry> = new Map();
 
   // Global in-flight locks to prevent concurrent signing attempts across providers
   // Key: operationType:network:userAddress, Value: Promise that resolves when operation completes
-  private inFlightOperations: Map<string, Promise<void>> = new Map();
+  readonly #inFlightOperations: Map<string, Promise<void>> = new Map();
 
-  private constructor() {
-    // Private constructor for singleton
+  // Singleton: use getInstance() instead of new
+  protected constructor() {
+    // Protected constructor for singleton
   }
 
   public static getInstance(): PerpsSigningCacheManager {
-    if (!PerpsSigningCacheManager.instance) {
-      PerpsSigningCacheManager.instance = new PerpsSigningCacheManager();
-    }
-    return PerpsSigningCacheManager.instance;
+    PerpsSigningCacheManager.#instance ??= new PerpsSigningCacheManager();
+    return PerpsSigningCacheManager.#instance;
   }
 
   // ===== In-Flight Lock Methods =====
 
   /**
    * Check if an operation is currently in-flight for this user/network
+   *
+   * @param operationType - The type of operation being performed.
+   * @param network - The network environment.
+   * @param userAddress - The user's wallet address.
+   * @returns The resulting string value.
    */
   public isInFlight(
     operationType: 'dexAbstraction' | 'builderFee' | 'referral',
@@ -71,12 +76,17 @@ class PerpsSigningCacheManager {
     userAddress: string,
   ): Promise<void> | undefined {
     const key = `${operationType}:${network}:${userAddress.toLowerCase()}`;
-    return this.inFlightOperations.get(key);
+    return this.#inFlightOperations.get(key);
   }
 
   /**
    * Set an operation as in-flight
    * Returns a function to call when operation completes
+   *
+   * @param operationType - The type of operation being performed.
+   * @param network - The network environment.
+   * @param userAddress - The user's wallet address.
+   * @returns The resulting string value.
    */
   public setInFlight(
     operationType: 'dexAbstraction' | 'builderFee' | 'referral',
@@ -88,26 +98,23 @@ class PerpsSigningCacheManager {
     const promise = new Promise<void>((resolve) => {
       resolvePromise = resolve;
     });
-    this.inFlightOperations.set(key, promise);
+    this.#inFlightOperations.set(key, promise);
     return () => {
-      this.inFlightOperations.delete(key);
+      this.#inFlightOperations.delete(key);
       resolvePromise();
     };
   }
 
-  private getCacheKey(
-    network: 'mainnet' | 'testnet',
-    userAddress: string,
-  ): string {
+  #getCacheKey(network: 'mainnet' | 'testnet', userAddress: string): string {
     return `${network}:${userAddress.toLowerCase()}`;
   }
 
-  private getOrCreateEntry(
+  #getOrCreateEntry(
     network: 'mainnet' | 'testnet',
     userAddress: string,
   ): PerpsSigningCacheEntry {
-    const key = this.getCacheKey(network, userAddress);
-    let entry = this.cache.get(key);
+    const key = this.#getCacheKey(network, userAddress);
+    let entry = this.#cache.get(key);
     if (!entry) {
       entry = {
         dexAbstraction: { attempted: false, success: false },
@@ -115,7 +122,7 @@ class PerpsSigningCacheManager {
         referral: { attempted: false, success: false },
         timestamp: Date.now(),
       };
-      this.cache.set(key, entry);
+      this.#cache.set(key, entry);
     }
     return entry;
   }
@@ -124,14 +131,20 @@ class PerpsSigningCacheManager {
 
   /**
    * Get DEX abstraction cache entry (legacy compatibility)
+   *
+   * @param network - The network environment.
+   * @param userAddress - The user's wallet address.
+   * @returns The resulting string value.
    */
   public get(
     network: 'mainnet' | 'testnet',
     userAddress: string,
   ): TradingReadinessCacheEntry | undefined {
-    const key = this.getCacheKey(network, userAddress);
-    const entry = this.cache.get(key);
-    if (!entry) return undefined;
+    const key = this.#getCacheKey(network, userAddress);
+    const entry = this.#cache.get(key);
+    if (!entry) {
+      return undefined;
+    }
     return {
       attempted: entry.dexAbstraction.attempted,
       enabled: entry.dexAbstraction.success,
@@ -141,13 +154,19 @@ class PerpsSigningCacheManager {
 
   /**
    * Set DEX abstraction cache entry (legacy compatibility)
+   *
+   * @param network - The network environment.
+   * @param userAddress - The user's wallet address.
+   * @param data - The transaction data payload.
+   * @param data.attempted - Whether the operation was attempted.
+   * @param data.enabled - Whether the feature is enabled.
    */
   public set(
     network: 'mainnet' | 'testnet',
     userAddress: string,
     data: { attempted: boolean; enabled: boolean },
   ): void {
-    const entry = this.getOrCreateEntry(network, userAddress);
+    const entry = this.#getOrCreateEntry(network, userAddress);
     entry.dexAbstraction = { attempted: data.attempted, success: data.enabled };
     entry.timestamp = Date.now();
   }
@@ -156,25 +175,33 @@ class PerpsSigningCacheManager {
 
   /**
    * Check if builder fee approval was attempted
+   *
+   * @param network - The network environment.
+   * @param userAddress - The user's wallet address.
+   * @returns The resulting string value.
    */
   public getBuilderFee(
     network: 'mainnet' | 'testnet',
     userAddress: string,
   ): SigningOperationState | undefined {
-    const key = this.getCacheKey(network, userAddress);
-    const entry = this.cache.get(key);
+    const key = this.#getCacheKey(network, userAddress);
+    const entry = this.#cache.get(key);
     return entry?.builderFee;
   }
 
   /**
    * Set builder fee approval state
+   *
+   * @param network - The network environment.
+   * @param userAddress - The user's wallet address.
+   * @param state - The current state.
    */
   public setBuilderFee(
     network: 'mainnet' | 'testnet',
     userAddress: string,
     state: SigningOperationState,
   ): void {
-    const entry = this.getOrCreateEntry(network, userAddress);
+    const entry = this.#getOrCreateEntry(network, userAddress);
     entry.builderFee = state;
     entry.timestamp = Date.now();
   }
@@ -183,25 +210,33 @@ class PerpsSigningCacheManager {
 
   /**
    * Check if referral setup was attempted
+   *
+   * @param network - The network environment.
+   * @param userAddress - The user's wallet address.
+   * @returns The resulting string value.
    */
   public getReferral(
     network: 'mainnet' | 'testnet',
     userAddress: string,
   ): SigningOperationState | undefined {
-    const key = this.getCacheKey(network, userAddress);
-    const entry = this.cache.get(key);
+    const key = this.#getCacheKey(network, userAddress);
+    const entry = this.#cache.get(key);
     return entry?.referral;
   }
 
   /**
    * Set referral setup state
+   *
+   * @param network - The network environment.
+   * @param userAddress - The user's wallet address.
+   * @param state - The current state.
    */
   public setReferral(
     network: 'mainnet' | 'testnet',
     userAddress: string,
     state: SigningOperationState,
   ): void {
-    const entry = this.getOrCreateEntry(network, userAddress);
+    const entry = this.#getOrCreateEntry(network, userAddress);
     entry.referral = state;
     entry.timestamp = Date.now();
   }
@@ -211,13 +246,16 @@ class PerpsSigningCacheManager {
   /**
    * Clear only DEX abstraction state for a specific network and user address
    * This preserves builder fee and referral states
+   *
+   * @param network - The network environment.
+   * @param userAddress - The user's wallet address.
    */
   public clearDexAbstraction(
     network: 'mainnet' | 'testnet',
     userAddress: string,
   ): void {
-    const key = this.getCacheKey(network, userAddress);
-    const entry = this.cache.get(key);
+    const key = this.#getCacheKey(network, userAddress);
+    const entry = this.#cache.get(key);
     if (entry) {
       entry.dexAbstraction = { attempted: false, success: false };
       entry.timestamp = Date.now();
@@ -227,13 +265,16 @@ class PerpsSigningCacheManager {
   /**
    * Clear only builder fee state for a specific network and user address
    * This preserves DEX abstraction and referral states
+   *
+   * @param network - The network environment.
+   * @param userAddress - The user's wallet address.
    */
   public clearBuilderFee(
     network: 'mainnet' | 'testnet',
     userAddress: string,
   ): void {
-    const key = this.getCacheKey(network, userAddress);
-    const entry = this.cache.get(key);
+    const key = this.#getCacheKey(network, userAddress);
+    const entry = this.#cache.get(key);
     if (entry) {
       entry.builderFee = { attempted: false, success: false };
       entry.timestamp = Date.now();
@@ -243,13 +284,16 @@ class PerpsSigningCacheManager {
   /**
    * Clear only referral state for a specific network and user address
    * This preserves DEX abstraction and builder fee states
+   *
+   * @param network - The network environment.
+   * @param userAddress - The user's wallet address.
    */
   public clearReferral(
     network: 'mainnet' | 'testnet',
     userAddress: string,
   ): void {
-    const key = this.getCacheKey(network, userAddress);
-    const entry = this.cache.get(key);
+    const key = this.#getCacheKey(network, userAddress);
+    const entry = this.#cache.get(key);
     if (entry) {
       entry.referral = { attempted: false, success: false };
       entry.timestamp = Date.now();
@@ -259,10 +303,13 @@ class PerpsSigningCacheManager {
   /**
    * Clear entire cache entry for a specific network and user address
    * WARNING: This clears ALL signing operation states (dexAbstraction, builderFee, referral)
+   *
+   * @param network - The network environment.
+   * @param userAddress - The user's wallet address.
    */
   public clear(network: 'mainnet' | 'testnet', userAddress: string): void {
-    const key = this.getCacheKey(network, userAddress);
-    this.cache.delete(key);
+    const key = this.#getCacheKey(network, userAddress);
+    this.#cache.delete(key);
   }
 
   /**
@@ -270,29 +317,35 @@ class PerpsSigningCacheManager {
    * WARNING: This clears ALL signing operation states for ALL users
    */
   public clearAll(): void {
-    this.cache.clear();
+    this.#cache.clear();
   }
 
   /**
    * Get all cache entries (for debugging)
+   *
+   * @returns The result of the operation.
    */
   public getAll(): Map<string, PerpsSigningCacheEntry> {
-    return new Map(this.cache);
+    return new Map(this.#cache);
   }
 
   /**
    * Get cache size (for debugging)
+   *
+   * @returns The resulting numeric value.
    */
   public size(): number {
-    return this.cache.size;
+    return this.#cache.size;
   }
 
   /**
    * Get full cache state for debugging
+   *
+   * @returns The resulting string value.
    */
   public debugState(): string {
     const entries: string[] = [];
-    this.cache.forEach((entry, key) => {
+    this.#cache.forEach((entry, key) => {
       entries.push(
         `${key}: dex=${entry.dexAbstraction.attempted}/${entry.dexAbstraction.success}, ` +
           `builder=${entry.builderFee.attempted}/${entry.builderFee.success}, ` +
