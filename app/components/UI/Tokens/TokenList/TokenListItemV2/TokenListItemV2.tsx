@@ -1,4 +1,4 @@
-import { Hex } from '@metamask/utils';
+import { CaipAssetType, Hex } from '@metamask/utils';
 import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useMemo, useState } from 'react';
 import { Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
@@ -64,6 +64,7 @@ import { EVENT_LOCATIONS as EARN_EVENT_LOCATIONS } from '../../../Earn/constants
 import { useStablecoinLendingRedirect } from '../../../Earn/hooks/useStablecoinLendingRedirect';
 import { useMusdCtaVisibility } from '../../../Earn/hooks/useMusdCtaVisibility';
 import { selectTokenMarketData } from '../../../../../selectors/tokenRatesController';
+import { selectMultichainAssetsRates } from '../../../../../selectors/multichain/multichain';
 import {
   selectCurrencyRates,
   selectCurrentCurrency,
@@ -106,10 +107,15 @@ const createStyles = (colors: Colors) =>
     assetNameContainer: {
       flexDirection: 'row',
       alignItems: 'center',
+      flexShrink: 1,
     },
     assetName: {
       flexDirection: 'row',
       gap: 8,
+      flexShrink: 1,
+    },
+    assetNameText: {
+      flexShrink: 1,
     },
     percentageChange: {
       flexDirection: 'row',
@@ -159,6 +165,10 @@ export const TokenListItemV2 = React.memo(
 
     const tokenMarketData = useSelector(selectTokenMarketData);
     const currencyRates = useSelector(selectCurrencyRates);
+
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    const multichainAssetsRates = useSelector(selectMultichainAssetsRates);
+    ///: END:ONLY_INCLUDE_IF
 
     const asset = useSelector((state: RootState) =>
       selectAsset(state, {
@@ -230,7 +240,21 @@ export const TokenListItemV2 = React.memo(
 
     // Calculate token price in fiat currency
     const tokenPriceInFiat = useMemo(() => {
-      if (!asset?.address || !asset?.chainId || !nativeCurrency) {
+      if (!asset?.address || !asset?.chainId) {
+        return undefined;
+      }
+
+      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+      // Non-EVM: use MultichainAssetsRatesController (rate is already in fiat)
+      const multichainRate =
+        multichainAssetsRates?.[asset.address as CaipAssetType]?.rate;
+      if (multichainRate !== undefined) {
+        return multichainRate;
+      }
+      ///: END:ONLY_INCLUDE_IF
+
+      // EVM: convert token price from native currency to fiat
+      if (!nativeCurrency) {
         return undefined;
       }
 
@@ -252,7 +276,15 @@ export const TokenListItemV2 = React.memo(
 
       // Calculate final fiat price
       return tokenPriceInNative * nativeToFiatRate;
-    }, [asset, tokenMarketData, currencyRates, nativeCurrency]);
+    }, [
+      asset,
+      tokenMarketData,
+      currencyRates,
+      nativeCurrency,
+      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+      multichainAssetsRates,
+      ///: END:ONLY_INCLUDE_IF
+    ]);
 
     const handleConvertToMUSD = useCallback(async () => {
       const submitCtaPressedEvent = () => {
@@ -491,7 +523,11 @@ export const TokenListItemV2 = React.memo(
                */}
               <View style={styles.assetNameContainer}>
                 <View style={styles.assetName}>
-                  <Text variant={TextVariant.BodyMDBold} numberOfLines={1}>
+                  <Text
+                    variant={TextVariant.BodyMDBold}
+                    numberOfLines={1}
+                    style={styles.assetNameText}
+                  >
                     {asset.name || asset.symbol}
                   </Text>
                   {label && (
