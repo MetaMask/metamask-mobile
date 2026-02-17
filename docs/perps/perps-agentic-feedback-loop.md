@@ -107,6 +107,7 @@ scripts/agentic/app-state.sh can-go-back                  # check if can go back
 scripts/agentic/app-state.sh go-back                      # navigate back
 scripts/agentic/screenshot.sh [label]                     # take screenshot, returns path
 scripts/agentic/start-metro.sh                            # ensure Metro is running
+scripts/agentic/stop-metro.sh                             # stop Metro background process
 ```
 
 **Metro log**: `.agent/metro.log` — grep for errors after changes.
@@ -119,7 +120,8 @@ scripts/agentic/
 ├── app-navigate.sh     # Navigate wrapper (calls cdp-bridge + auto-screenshot)
 ├── app-state.sh        # State/route/eval wrapper (calls cdp-bridge)
 ├── screenshot.sh       # Cross-platform screenshot (iOS simctl / Android adb)
-└── start-metro.sh      # Metro lifecycle management
+├── start-metro.sh      # Start Metro (or attach to existing)
+└── stop-metro.sh       # Stop Metro background process
 ```
 
 The `__AGENTIC__` bridge on `globalThis` exposes: `navigate()`, `getRoute()`, `getState()`, `canGoBack()`, `goBack()`. These work identically on both platforms via Metro's Hermes CDP.
@@ -232,7 +234,7 @@ Other useful routes: `WalletTabHome`, `SettingsView`, `DeveloperOptions`, `Brows
 
 | Problem                      | Solution                                                                                              |
 | ---------------------------- | ----------------------------------------------------------------------------------------------------- |
-| Metro crash / stale PID      | `scripts/agentic/start-metro.sh` (or `lsof -ti:${WATCHER_PORT:-8081} \| xargs kill` first)            |
+| Metro crash / stale PID      | `scripts/agentic/stop-metro.sh` then `scripts/agentic/start-metro.sh`                                 |
 | CDP connection failure       | Check Metro running + device booted (iOS: `xcrun simctl list devices booted`, Android: `adb devices`) |
 | Hot-reload resets app        | `app-navigate.sh WalletTabHome` then target screen                                                    |
 | App crash                    | Rebuild: `yarn start:ios` or `yarn start:android`, then navigate                                      |
