@@ -120,6 +120,16 @@ _code_fencing_main: &code_fencing_main
   - bitcoin
   - tron
 
+# Beta code fencing features (main + beta-specific overrides)
+_code_fencing_beta: &code_fencing_beta
+  - beta
+  - preinstalled-snaps
+  - keyring-snaps
+  - multi-srp
+  - solana
+  - bitcoin
+  - tron
+
 # Flask code fencing features (includes experimental)
 _code_fencing_flask: &code_fencing_flask
   - flask
@@ -186,7 +196,7 @@ builds:
       METAMASK_ENVIRONMENT: 'beta'
       METAMASK_BUILD_TYPE: 'main'
     secrets: *secrets
-    code_fencing: *code_fencing_main
+    code_fencing: *code_fencing_beta
     remote_feature_flags: *remote_feature_flags
 
   # Release candidate
