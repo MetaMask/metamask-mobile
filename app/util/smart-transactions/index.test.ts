@@ -1,4 +1,7 @@
-import { TransactionMeta } from '@metamask/transaction-controller';
+import {
+  TransactionMeta,
+  TransactionType,
+} from '@metamask/transaction-controller';
 import {
   getShouldStartApprovalRequest,
   getShouldUpdateApprovalRequest,
@@ -181,6 +184,7 @@ describe('Smart Transactions utils', () => {
     it('returns correct type type for Swap transaction for ETH From token', () => {
       const txMeta = {
         chainId: '0x1',
+        type: TransactionType.swap,
         deviceConfirmedOn: 'metamask_mobile',
         gasFeeEstimatesLoaded: true,
         id: 'b3095a90-0990-11ef-9909-c3c3278f64e5',
@@ -220,6 +224,7 @@ describe('Smart Transactions utils', () => {
     it('returns correct type type for Swap approve transaction for ERC20 From token', () => {
       const txMeta = {
         chainId: '0x1',
+        type: TransactionType.swapApproval,
         deviceConfirmedOn: 'metamask_mobile',
         gasFeeEstimatesLoaded: true,
         id: '15879650-0991-11ef-9ce4-2f3037ea41a6',
@@ -259,6 +264,7 @@ describe('Smart Transactions utils', () => {
     it('returns correct type type for Swap transaction for ERC20 From token', () => {
       const txMeta = {
         chainId: '0x1',
+        type: TransactionType.swap,
         deviceConfirmedOn: 'metamask_mobile',
         gasFeeEstimatesLoaded: true,
         id: '1587e470-0991-11ef-9ce4-2f3037ea41a6',
