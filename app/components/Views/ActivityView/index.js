@@ -35,10 +35,8 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import Routes from '../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { isNonEvmAddress } from '../../../core/Multichain/utils';
 import { selectAccountsByChainId } from '../../../selectors/accountTrackerController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
-import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { selectChainId } from '../../../selectors/networkController';
 import { selectNetworkName } from '../../../selectors/networkInfos';
@@ -62,8 +60,6 @@ import {
 } from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { useStyles } from '../../hooks/useStyles';
 import ErrorBoundary from '../ErrorBoundary';
-import MultichainTransactionsView from '../MultichainTransactionsView';
-import TransactionsView from '../TransactionsView';
 import UnifiedTransactionsView from '../UnifiedTransactionsView/UnifiedTransactionsView';
 
 const createStyles = (params) => {
@@ -251,21 +247,6 @@ const ActivityView = () => {
     chainId: firstEnabledChainId,
   });
 
-  const isMultichainAccountsState2Enabled = useSelector(
-    selectMultichainAccountsState2Enabled,
-  );
-  const showUnifiedActivityList = isMultichainAccountsState2Enabled;
-
-  const renderTransactionsView = () => {
-    if (showUnifiedActivityList) {
-      return <UnifiedTransactionsView chainId={currentChainId} />;
-    }
-    if (selectedAddress && isNonEvmAddress(selectedAddress)) {
-      return <MultichainTransactionsView chainId={currentChainId} />;
-    }
-    return <TransactionsView />;
-  };
-
   return (
     <ErrorBoundary navigation={navigation} view="ActivityView">
       <Box
@@ -327,26 +308,14 @@ const ActivityView = () => {
                     </View>
                   </>
                 }
-                isDisabled={isDisabled && !isMultichainAccountsState2Enabled}
-                onPress={
-                  isEvmSelected || isMultichainAccountsState2Enabled
-                    ? showFilterControls
-                    : () => null
-                }
-                endIconName={
-                  isEvmSelected || isMultichainAccountsState2Enabled
-                    ? IconName.ArrowDown
-                    : undefined
-                }
-                style={
-                  isDisabled && !isMultichainAccountsState2Enabled
-                    ? styles.controlButtonDisabled
-                    : styles.controlButton
-                }
-                disabled={isDisabled && !isMultichainAccountsState2Enabled}
+                isDisabled={false}
+                onPress={showFilterControls}
+                endIconName={IconName.ArrowDown}
+                style={styles.controlButton}
+                disabled={false}
               />
             </View>
-            {renderTransactionsView()}
+            <UnifiedTransactionsView chainId={currentChainId} />
           </View>
           <View
             key="orders"
