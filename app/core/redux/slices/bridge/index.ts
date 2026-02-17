@@ -69,6 +69,12 @@ export interface BridgeState {
    * When undefined, tokens from all chains are shown ("All" filter).
    */
   tokenSelectorNetworkFilter: CaipChainId | undefined;
+  /**
+   * Ordered list of chain IDs shown as pills in the token selector.
+   * Shared across source and dest pickers so pill order persists within a session.
+   * When undefined, defaults to the first N entries from chainRanking.
+   */
+  visiblePillChainIds: CaipChainId[] | undefined;
 }
 
 export const initialState: BridgeState = {
@@ -89,6 +95,7 @@ export const initialState: BridgeState = {
   isGasIncluded7702Supported: false,
   isDestTokenManuallySet: false,
   tokenSelectorNetworkFilter: undefined,
+  visiblePillChainIds: undefined,
 };
 
 const name = 'bridge';
@@ -182,6 +189,12 @@ const slice = createSlice({
       action: PayloadAction<CaipChainId | undefined>,
     ) => {
       state.tokenSelectorNetworkFilter = action.payload;
+    },
+    setVisiblePillChainIds: (
+      state,
+      action: PayloadAction<CaipChainId[] | undefined>,
+    ) => {
+      state.visiblePillChainIds = action.payload;
     },
   },
   extraReducers: (builder) => {
@@ -592,6 +605,11 @@ export const selectTokenSelectorNetworkFilter = createSelector(
   (bridgeState) => bridgeState.tokenSelectorNetworkFilter,
 );
 
+export const selectVisiblePillChainIds = createSelector(
+  selectBridgeState,
+  (bridgeState) => bridgeState.visiblePillChainIds,
+);
+
 export const selectIsDestTokenManuallySet = createSelector(
   selectBridgeState,
   (bridgeState) => bridgeState.isDestTokenManuallySet,
@@ -675,4 +693,5 @@ export const {
   setIsGasIncludedSTXSendBundleSupported,
   setIsGasIncluded7702Supported,
   setTokenSelectorNetworkFilter,
+  setVisiblePillChainIds,
 } = actions;

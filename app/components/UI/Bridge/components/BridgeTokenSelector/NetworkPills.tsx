@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { useSelector } from 'react-redux';
+import React, { useEffect, useMemo, useRef } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   AvatarBaseShape,
@@ -17,6 +17,8 @@ import { strings } from '../../../../../../locales/i18n';
 import {
   selectSourceChainRanking,
   selectDestChainRanking,
+  selectVisiblePillChainIds,
+  setVisiblePillChainIds,
 } from '../../../../../core/redux/slices/bridge';
 import { CaipChainId } from '@metamask/utils';
 import { ScrollView } from 'react-native-gesture-handler';
@@ -58,16 +60,18 @@ export const NetworkPills: React.FC<NetworkPillsProps> = ({
   type,
 }) => {
   const tw = useTailwind();
+  const dispatch = useDispatch();
   const scrollViewRef = useRef<ScrollView>(null);
   const sourceChainRanking = useSelector(selectSourceChainRanking);
   const destChainRanking = useSelector(selectDestChainRanking);
   const chainRanking: ChainRankingEntry[] =
     type === TokenSelectorType.Source ? sourceChainRanking : destChainRanking;
 
-  // Track which chain IDs are visible as pills
-  const [visibleChainIds, setVisibleChainIds] = useState<CaipChainId[]>(() =>
-    getVisibleChainIds(chainRanking),
-  );
+  // Visible pill chain IDs from Redux (shared across source/dest pickers).
+  // Falls back to first N from chainRanking on initial mount.
+  const reduxVisibleChainIds = useSelector(selectVisiblePillChainIds);
+  const visibleChainIds =
+    reduxVisibleChainIds ?? getVisibleChainIds(chainRanking);
 
   // Resolve visible chains to full entries from chainRanking
   const visibleChains = useMemo(
@@ -85,11 +89,10 @@ export const NetworkPills: React.FC<NetworkPillsProps> = ({
   // Also scroll the pills to bring the selected network into view.
   //
   // Only `selectedChainId` is listed as a dependency because
-  // `visibleChainIds` is a state variable that this effect mutates;
+  // `visibleChainIds` is derived from Redux state that this effect updates;
   // including it would cause an infinite update loop.
   useEffect(() => {
     if (!selectedChainId) {
-      // "All" selected — scroll to start
       scrollViewRef.current?.scrollTo({ x: 0, animated: true });
       return;
     }
@@ -98,10 +101,12 @@ export const NetworkPills: React.FC<NetworkPillsProps> = ({
 
     if (existingIndex === -1) {
       // Non-visible network: push to front and scroll to start
-      setVisibleChainIds((prev) => [
-        selectedChainId,
-        ...prev.slice(0, MAX_VISIBLE_PILLS - 1),
-      ]);
+      dispatch(
+        setVisiblePillChainIds([
+          selectedChainId,
+          ...visibleChainIds.slice(0, MAX_VISIBLE_PILLS - 1),
+        ]),
+      );
       scrollViewRef.current?.scrollTo({ x: 0, animated: true });
     } else {
       // Already visible: scroll to bring it into view
