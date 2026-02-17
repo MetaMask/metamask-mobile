@@ -5,6 +5,7 @@ const EVENT_PROVIDERS = {
 const EVENT_LOCATIONS = {
   HOME_SCREEN: 'home',
   TOKEN_LIST_ITEM: 'token_list_item',
+  ASSET_OVERVIEW: 'asset_overview',
   CONVERSION_EDUCATION_SCREEN: 'conversion_education_screen',
   CUSTOM_AMOUNT_SCREEN: 'custom_amount_screen', // Single convert screen.
   BUY_SCREEN: 'buy_screen', // Buy mUSD screen.
