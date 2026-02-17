@@ -1,6 +1,7 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import DropPrerequisiteList from './DropPrerequisiteList';
+import DropPrerequisiteItem from './DropPrerequisiteItem';
 import {
   DropPrerequisitesDto,
   DropPrerequisiteDto,
@@ -122,8 +123,6 @@ describe('DropPrerequisiteList', () => {
       />,
     );
 
-    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-    const DropPrerequisiteItem = require('./DropPrerequisiteItem').default;
     expect(DropPrerequisiteItem).toHaveBeenCalledTimes(3);
   });
 });
