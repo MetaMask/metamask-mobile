@@ -82,19 +82,6 @@ const mockHighlightedAsset: HighlightedAssetListItem = {
   action: jest.fn(),
 };
 
-const mockHighlightedAction: HighlightedActionListItem = {
-  type: 'highlighted_action',
-  icon: 'https://example.com/perps.png',
-  name: 'Perps Balance',
-  name_description: '$0.00',
-  actions: [
-    {
-      buttonLabel: 'Add',
-      onPress: jest.fn(),
-    },
-  ],
-};
-
 jest.mock('../../../hooks/send/useSendTokens', () => ({
   useSendTokens: jest.fn(),
 }));
@@ -756,26 +743,6 @@ describe('Asset', () => {
       expect.anything(),
       expect.anything(),
     );
-  });
-
-  it('renders highlighted actions when tokenFilter includes highlighted_action', () => {
-    const tokenFilter = (): TokenListItem[] => [mockHighlightedAction];
-
-    mockUseTokenSearch.mockReturnValue({
-      searchQuery: '',
-      setSearchQuery: mockSetSearchQuery,
-      filteredTokens: [],
-      filteredNfts: [],
-      clearSearch: mockClearSearch,
-    });
-
-    render(<Asset tokenFilter={tokenFilter} />);
-
-    expect(screen.getByTestId('highlighted-action-row')).toBeOnTheScreen();
-    expect(screen.getByTestId('search-input')).toBeOnTheScreen();
-    expect(
-      screen.getByText('TokenList with 0 tokens and 0 highlighted assets'),
-    ).toBeOnTheScreen();
   });
 
   it('passes highlighted assets to TokenList when tokenFilter includes highlighted_asset', () => {

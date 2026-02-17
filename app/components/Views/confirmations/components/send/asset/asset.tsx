@@ -160,9 +160,7 @@ export const Asset: React.FC<AssetProps> = (props = {}) => {
 
   const hasActiveFilters = searchQuery.length > 0 || hasActiveNetworkFilter;
   const hasNoTokenResults =
-    filteredTokens.length === 0 &&
-    filteredHighlightedAssets.length === 0 &&
-    highlightedActions.length === 0;
+    filteredTokens.length === 0 && filteredHighlightedAssets.length === 0;
   const hasNoResults = hasNoTokenResults && filteredNfts.length === 0;
 
   const handleClearAllFilters = useCallback(() => {
