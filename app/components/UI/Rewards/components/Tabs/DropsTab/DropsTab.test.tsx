@@ -12,8 +12,9 @@ jest.mock('../../../hooks/useSeasonDrops', () => ({
   useSeasonDrops: jest.fn(),
 }));
 
-jest.mock('../../DropTile', () => ({
-  DropTile: jest.fn(() => null),
+jest.mock('../../DropTile/DropTile', () => ({
+  __esModule: true,
+  default: jest.fn(() => null),
 }));
 
 jest.mock('./DropsGroup', () => ({

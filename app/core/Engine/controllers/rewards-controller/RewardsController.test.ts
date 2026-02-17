@@ -8130,7 +8130,7 @@ describe('RewardsController', () => {
 
       // Assert
       expect(result).toEqual({
-        currentTier: null,
+        currentTier: undefined,
         nextTier: undefined,
         nextTierPointsNeeded: undefined,
       });
@@ -8151,8 +8151,8 @@ describe('RewardsController', () => {
 
       // Assert
       expect(result.currentTier?.id).toBe(lastTierCurrentTierId);
-      expect(result.nextTier).toBeNull();
-      expect(result.nextTierPointsNeeded).toBeNull();
+      expect(result.nextTier).toBeUndefined();
+      expect(result.nextTierPointsNeeded).toBeUndefined();
     });
 
     it('should calculate nextTierPointsNeeded correctly with Math.max', () => {
@@ -15372,11 +15372,13 @@ describe('RewardsController', () => {
           "accounts": {},
           "activeAccount": null,
           "activeBoosts": {},
+          "dropCommittedAddresses": {},
+          "dropEligibilities": {},
+          "drops": {},
           "pointsEstimateHistory": [],
           "pointsEvents": {},
           "seasonStatuses": {},
           "seasons": {},
-          "drops": {},
           "subscriptionReferralDetails": {},
           "subscriptions": {},
           "unlockedRewards": {},
@@ -15392,11 +15394,13 @@ describe('RewardsController', () => {
           "accounts": {},
           "activeAccount": null,
           "activeBoosts": {},
+          "dropCommittedAddresses": {},
+          "dropEligibilities": {},
+          "drops": {},
           "pointsEstimateHistory": [],
           "pointsEvents": {},
           "seasonStatuses": {},
           "seasons": {},
-          "drops": {},
           "subscriptionReferralDetails": {},
           "subscriptions": {},
           "unlockedRewards": {},
@@ -15416,10 +15420,12 @@ describe('RewardsController', () => {
           "accounts": {},
           "activeAccount": null,
           "activeBoosts": {},
+          "dropCommittedAddresses": {},
+          "dropEligibilities": {},
+          "drops": {},
           "pointsEvents": {},
           "seasonStatuses": {},
           "seasons": {},
-          "drops": {},
           "subscriptionReferralDetails": {},
           "subscriptions": {},
           "unlockedRewards": {},
@@ -17509,7 +17515,7 @@ describe('RewardsController', () => {
       ]);
 
       const accountState1: RewardsAccountState = {
-        account: CAIP_ACCOUNT_1,
+        account: TEST_CAIP_ACCOUNT_1,
         hasOptedIn: true,
         subscriptionId: 'sub-1',
         perpsFeeDiscount: 500,
@@ -17522,7 +17528,7 @@ describe('RewardsController', () => {
         state: {
           activeAccount: null,
           accounts: {
-            [CAIP_ACCOUNT_1]: accountState1,
+            [TEST_CAIP_ACCOUNT_1]: accountState1,
           },
           subscriptions: {},
         },
@@ -17553,7 +17559,7 @@ describe('RewardsController', () => {
       ]);
 
       const accountState1: RewardsAccountState = {
-        account: CAIP_ACCOUNT_1,
+        account: TEST_CAIP_ACCOUNT_1,
         hasOptedIn: undefined as any, // Explicitly undefined
         subscriptionId: 'sub-1',
         perpsFeeDiscount: 500,
@@ -17561,7 +17567,7 @@ describe('RewardsController', () => {
       };
 
       const accountState2: RewardsAccountState = {
-        account: CAIP_ACCOUNT_2,
+        account: TEST_CAIP_ACCOUNT_2,
         hasOptedIn: false,
         subscriptionId: null,
         perpsFeeDiscount: 0,
@@ -17574,8 +17580,8 @@ describe('RewardsController', () => {
         state: {
           activeAccount: null,
           accounts: {
-            [CAIP_ACCOUNT_1]: accountState1,
-            [CAIP_ACCOUNT_2]: accountState2,
+            [TEST_CAIP_ACCOUNT_1]: accountState1,
+            [TEST_CAIP_ACCOUNT_2]: accountState2,
           },
           subscriptions: {},
         },
@@ -17602,7 +17608,7 @@ describe('RewardsController', () => {
       ]);
 
       const accountState1: RewardsAccountState = {
-        account: CAIP_ACCOUNT_1,
+        account: TEST_CAIP_ACCOUNT_1,
         hasOptedIn: true,
         subscriptionId: 'sub-1',
         perpsFeeDiscount: 500,
@@ -17614,7 +17620,7 @@ describe('RewardsController', () => {
         state: {
           activeAccount: null,
           accounts: {
-            [CAIP_ACCOUNT_1]: accountState1,
+            [TEST_CAIP_ACCOUNT_1]: accountState1,
           },
           subscriptions: {},
         },
@@ -17660,17 +17666,8 @@ describe('RewardsController', () => {
         [TEST_ADDRESS_2.toLowerCase(), mockInternalAccount2],
       ]);
 
-      // Mock convertInternalAccountToCaipAccountId to return null for TEST_ADDRESS_1
-      jest
-        .spyOn(controller, 'convertInternalAccountToCaipAccountId')
-        .mockImplementation((account: InternalAccount) => {
-          if (account.address === TEST_ADDRESS_1) return null;
-          if (account.address === TEST_ADDRESS_2) return CAIP_ACCOUNT_2;
-          return null;
-        });
-
       const accountState2: RewardsAccountState = {
-        account: CAIP_ACCOUNT_2,
+        account: TEST_CAIP_ACCOUNT_2,
         hasOptedIn: true,
         subscriptionId: 'sub-2',
         perpsFeeDiscount: 750,
@@ -17682,11 +17679,20 @@ describe('RewardsController', () => {
         state: {
           activeAccount: null,
           accounts: {
-            [CAIP_ACCOUNT_2]: accountState2,
+            [TEST_CAIP_ACCOUNT_2]: accountState2,
           },
           subscriptions: {},
         },
       });
+
+      // Mock convertInternalAccountToCaipAccountId to return null for TEST_ADDRESS_1
+      jest
+        .spyOn(controller, 'convertInternalAccountToCaipAccountId')
+        .mockImplementation((account: InternalAccount) => {
+          if (account.address === TEST_ADDRESS_1) return null;
+          if (account.address === TEST_ADDRESS_2) return TEST_CAIP_ACCOUNT_2;
+          return null;
+        });
 
       // Act
       const result = controller.checkOptInStatusAgainstCache(
@@ -17710,7 +17716,7 @@ describe('RewardsController', () => {
       ]);
 
       const accountState1: RewardsAccountState = {
-        account: CAIP_ACCOUNT_1,
+        account: TEST_CAIP_ACCOUNT_1,
         hasOptedIn: true,
         subscriptionId: 'sub-1',
         perpsFeeDiscount: 500,
@@ -17719,7 +17725,7 @@ describe('RewardsController', () => {
       };
 
       const accountState2: RewardsAccountState = {
-        account: CAIP_ACCOUNT_2,
+        account: TEST_CAIP_ACCOUNT_2,
         hasOptedIn: false,
         subscriptionId: null,
         perpsFeeDiscount: 0,
@@ -17728,7 +17734,7 @@ describe('RewardsController', () => {
       };
 
       const accountState3: RewardsAccountState = {
-        account: CAIP_ACCOUNT_3,
+        account: TEST_CAIP_ACCOUNT_3,
         hasOptedIn: true,
         subscriptionId: 'sub-3',
         perpsFeeDiscount: 1000,
@@ -17741,9 +17747,9 @@ describe('RewardsController', () => {
         state: {
           activeAccount: null,
           accounts: {
-            [CAIP_ACCOUNT_1]: accountState1,
-            [CAIP_ACCOUNT_2]: accountState2,
-            [CAIP_ACCOUNT_3]: accountState3,
+            [TEST_CAIP_ACCOUNT_1]: accountState1,
+            [TEST_CAIP_ACCOUNT_2]: accountState2,
+            [TEST_CAIP_ACCOUNT_3]: accountState3,
           },
           subscriptions: {},
         },
