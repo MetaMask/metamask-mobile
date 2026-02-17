@@ -388,13 +388,6 @@ const AccountsMenu = () => {
           </Box>
         </Box>
 
-        {/* Manage Section */}
-        <Box style={tw.style('px-4 py-3')}>
-          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-            {strings('accounts_menu.manage')}
-          </Text>
-        </Box>
-
         {/* Notifications Row */}
         {isNotificationsFeatureEnabled() && (
           <ActionListItem
@@ -407,6 +400,26 @@ const AccountsMenu = () => {
             testID={AccountsMenuSelectorsIDs.NOTIFICATIONS_BUTTON}
           />
         )}
+
+        {/* MetaMask Card Row */}
+        {shouldDisplayCardButton && (
+          <ActionListItem
+            startAccessory={<Icon name={IconName.Card} size={IconSize.Lg} />}
+            label={strings('accounts_menu.card_title')}
+            onPress={onPressManageWallet}
+            endAccessory={arrowRightIcon}
+            testID={AccountsMenuSelectorsIDs.MANAGE_CARD}
+          />
+        )}
+
+        {separator}
+
+        {/* Manage Section */}
+        <Box style={tw.style('px-4 py-3')}>
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+            {strings('accounts_menu.manage')}
+          </Text>
+        </Box>
 
         {/* Settings Row */}
         <ActionListItem
@@ -425,17 +438,6 @@ const AccountsMenu = () => {
           onPress={onPressContacts}
           testID={AccountsMenuSelectorsIDs.CONTACTS}
         />
-
-        {/* MetaMask Card Row */}
-        {shouldDisplayCardButton && (
-          <ActionListItem
-            startAccessory={<Icon name={IconName.Card} size={IconSize.Lg} />}
-            label={strings('accounts_menu.card_title')}
-            onPress={onPressManageWallet}
-            endAccessory={arrowRightIcon}
-            testID={AccountsMenuSelectorsIDs.MANAGE_CARD}
-          />
-        )}
 
         {/* Permissions Row */}
         {isPermissionsSettingsV1Enabled && (
