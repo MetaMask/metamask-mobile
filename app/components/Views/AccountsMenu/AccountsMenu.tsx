@@ -90,7 +90,7 @@ const AccountsMenu = () => {
     rampsButtonClickData,
   ]);
 
-  const onPressNotifications = () => {
+  const onPressNotifications = useCallback(() => {
     if (isNotificationEnabled && isNotificationsFeatureEnabled()) {
       navigation.navigate(Routes.NOTIFICATIONS.VIEW);
       trackEvent(
@@ -112,7 +112,15 @@ const AccountsMenu = () => {
           .build(),
       );
     }
-  };
+  }, [
+    isNotificationEnabled,
+    navigation,
+    trackEvent,
+    createEventBuilder,
+    unreadNotificationCount,
+    readNotificationCount,
+    isBackupAndSyncEnabled,
+  ]);
 
   const handleBack = useCallback(() => {
     navigation.goBack();
