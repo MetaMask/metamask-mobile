@@ -1,7 +1,9 @@
 /* eslint-disable no-console */
 /* eslint-disable import/no-nodejs-modules */
 /* eslint-disable import/no-commonjs */
+const fs = require('fs');
 const path = require('path');
+const yaml = require('js-yaml');
 const {
   removeFencedCode,
   lintTransformedFile,
@@ -58,9 +60,58 @@ const flaskFeatureSet = new Set([
 ]);
 const experimentalFeatureSet = new Set([...mainFeatureSet, 'experimental']);
 
+/** Cached code_fencing from builds.yml when CODE_FENCING_FEATURES is unset (local/Bitrise). Avoids re-reading file on every transform. */
+let codeFencingFromBuildsYmlCache = null;
+
+/**
+ * Computes build name (e.g. main-prod, flask-dev) from METAMASK_BUILD_TYPE + METAMASK_ENVIRONMENT.
+ * Matches keys in builds.yml so we can look up code_fencing.
+ *
+ * @returns {string|null} Build name or null if env vars are missing/invalid.
+ */
+function getBuildNameFromEnv() {
+  const buildType = (process.env.METAMASK_BUILD_TYPE ?? 'main').toLowerCase();
+  const env = (process.env.METAMASK_ENVIRONMENT ?? 'production').toLowerCase();
+  const envPart = env === 'production' ? 'prod' : env;
+  if (!buildType || !envPart) return null;
+  return `${buildType}-${envPart}`;
+}
+
+/**
+ * Loads code_fencing for the current build from builds.yml (single source of truth).
+ * Used when CODE_FENCING_FEATURES is not set (local or Bitrise). Returns null on any error so we can fall back to hardcoded sets.
+ *
+ * @returns {string[]|null} Code fencing feature array or null.
+ */
+function loadCodeFencingFromBuildsYml() {
+  if (codeFencingFromBuildsYmlCache !== null) {
+    return codeFencingFromBuildsYmlCache;
+  }
+  try {
+    const buildName = getBuildNameFromEnv();
+    if (!buildName) {
+      codeFencingFromBuildsYmlCache = null;
+      return null;
+    }
+    const buildsPath = path.join(__dirname, 'builds.yml');
+    if (!fs.existsSync(buildsPath)) {
+      codeFencingFromBuildsYmlCache = null;
+      return null;
+    }
+    const config = yaml.load(fs.readFileSync(buildsPath, 'utf8'));
+    const build = config?.builds?.[buildName];
+    const codeFencing = build?.code_fencing ?? null;
+    codeFencingFromBuildsYmlCache = codeFencing;
+    return codeFencing;
+  } catch {
+    codeFencingFromBuildsYmlCache = null;
+    return null;
+  }
+}
+
 /**
  * Gets features from METAMASK_BUILD_TYPE + METAMASK_ENVIRONMENT (main branch logic).
- * Used when CODE_FENCING_FEATURES is not set (Bitrise or local).
+ * Used when CODE_FENCING_FEATURES is not set and builds.yml lookup failed or was skipped (Bitrise / local fallback).
  *
  * @returns {Set<string>} The set of features to be included in the build.
  */
@@ -99,13 +150,14 @@ function getBuildTypeFeaturesFromEnv() {
  * Gets the features for the current build type, used to determine which code
  * fences to remove.
  *
- * Default (GH Actions): use CODE_FENCING_FEATURES from env (set by apply-build-config.js from builds.yml).
- * Fallback (Bitrise / local): use METAMASK_BUILD_TYPE + METAMASK_ENVIRONMENT with hardcoded sets.
+ * 1. GH Actions: CODE_FENCING_FEATURES from env (set by apply-build-config.js from builds.yml).
+ * 2. Local / Bitrise: try builds.yml by build name (METAMASK_BUILD_TYPE + METAMASK_ENVIRONMENT).
+ * 3. Fallback: hardcoded sets (getBuildTypeFeaturesFromEnv) if builds.yml missing or build not found.
  *
  * @returns {Set<string>} The set of features to be included in the build.
  */
 function getBuildTypeFeatures() {
-  // Prefer GH Actions path: single source of truth from builds.yml
+  // 1. GH Actions: single source of truth from builds.yml (already in env)
   if (process.env.CODE_FENCING_FEATURES) {
     const features = JSON.parse(process.env.CODE_FENCING_FEATURES);
     const featureSet = new Set(features);
@@ -115,7 +167,17 @@ function getBuildTypeFeatures() {
     return featureSet;
   }
 
-  // Fallback: Bitrise / local (hardcoded sets by build type + environment)
+  // 2. Local / Bitrise: load code_fencing from builds.yml when env is set
+  const codeFencing = loadCodeFencingFromBuildsYml();
+  if (Array.isArray(codeFencing) && codeFencing.length > 0) {
+    const featureSet = new Set(codeFencing);
+    if (process.env.INCLUDE_SAMPLE_FEATURE === 'true') {
+      featureSet.add('sample-feature');
+    }
+    return featureSet;
+  }
+
+  // 3. Fallback: hardcoded sets (e.g. builds.yml missing or build name not found)
   const featureSet = getBuildTypeFeaturesFromEnv();
   if (process.env.INCLUDE_SAMPLE_FEATURE === 'true') {
     featureSet.add('sample-feature');
