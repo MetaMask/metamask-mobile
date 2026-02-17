@@ -49,6 +49,7 @@ const createMockStore = () =>
       bridge: () => ({
         sourceToken: null,
         destToken: null,
+        tokenSelectorNetworkFilter: undefined,
       }),
     },
   });
@@ -61,12 +62,14 @@ const renderWithReduxProvider = (component: React.ReactElement) =>
 
 const mockSetOptions = jest.fn();
 const mockNavigate = jest.fn();
+const mockNavigationDispatch = jest.fn();
 let mockRouteParams: { type: 'source' | 'dest' } = { type: 'source' };
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     navigate: mockNavigate,
+    dispatch: mockNavigationDispatch,
     goBack: jest.fn(),
     setOptions: mockSetOptions,
   }),
@@ -100,6 +103,11 @@ jest.mock('../../../../../core/redux/slices/bridge', () => {
     ),
     setIsSelectingToken: jest.fn(() => ({
       type: 'bridge/setIsSelectingToken',
+    })),
+    selectTokenSelectorNetworkFilter: jest.fn(() => undefined),
+    setTokenSelectorNetworkFilter: jest.fn((chainId) => ({
+      type: 'bridge/setTokenSelectorNetworkFilter',
+      payload: chainId,
     })),
   };
 });
@@ -194,6 +202,15 @@ jest.mock('../../../../../component-library/hooks', () => ({
   }),
 }));
 
+jest.mock('../../../../../constants/navigation/Routes', () => ({
+  BRIDGE: {
+    MODALS: {
+      ROOT: 'BridgeModals',
+      NETWORK_LIST_MODAL: 'NetworkListModal',
+    },
+  },
+}));
+
 const mockFormatAddressToAssetId = jest.fn<string | null, [string, string]>(
   () => 'eip155:1/erc20:0x1234',
 );
@@ -225,7 +242,27 @@ jest.mock('@metamask/design-system-react-native', () => {
       createElement(TouchableOpacity, { onPress, testID: 'button-icon-info' }),
     ButtonIconSize: { Md: 'Md' },
     IconColor: { IconAlternative: 'IconAlternative' },
-    IconName: { Info: 'Info' },
+    IconName: { Info: 'Info', Check: 'Check' },
+    Icon: 'Icon',
+    IconSize: { Md: 'Md' },
+    TextVariant: {
+      HeadingSm: 'HeadingSm',
+      HeadingMd: 'HeadingMd',
+      HeadingLg: 'HeadingLg',
+      BodyMd: 'BodyMd',
+      BodySm: 'BodySm',
+    },
+    TextColor: {
+      TextDefault: 'text-default',
+      TextAlternative: 'text-alternative',
+      PrimaryInverse: 'text-primary-inverse',
+    },
+    AvatarNetwork: 'AvatarNetwork',
+    AvatarNetworkSize: { Xs: '16', Sm: '24' },
+    AvatarBaseShape: { Circle: 'circle', Square: 'square' },
+    BoxAlignItems: { Center: 'center' },
+    BoxFlexDirection: { Row: 'row' },
+    FontWeight: { Medium: '500' },
   };
 });
 
@@ -364,6 +401,7 @@ const resetMocks = () => {
   mockSelectedToken = null;
   mockFormatAddressToAssetId.mockReturnValue('eip155:1/erc20:0x1234');
   mockIsNonEvmChainId.mockReturnValue(false);
+  mockNavigationDispatch.mockReset();
 };
 
 describe('tokenToIncludeAsset', () => {
@@ -655,15 +693,21 @@ describe('BridgeTokenSelector', () => {
       await act(async () => {
         fireEvent.press(getByTestId('button-icon-info'));
       });
-      expect(mockNavigate).toHaveBeenCalledWith(
-        'Asset',
+      expect(mockNavigationDispatch).toHaveBeenCalledWith(
         expect.objectContaining({
-          symbol: 'USDC',
-          name: 'USD Coin',
-          assetId: 'eip155:1/erc20:0x1234567890123456789012345678901234567890',
-          chainId: '0x1',
-          decimals: 18,
-          image: 'https://example.com/token.png',
+          type: 'PUSH',
+          payload: expect.objectContaining({
+            name: 'Asset',
+            params: expect.objectContaining({
+              symbol: 'USDC',
+              name: 'USD Coin',
+              assetId:
+                'eip155:1/erc20:0x1234567890123456789012345678901234567890',
+              chainId: '0x1',
+              decimals: 18,
+              image: 'https://example.com/token.png',
+            }),
+          }),
         }),
       );
       expect(mockTrackEvent).toHaveBeenCalled();

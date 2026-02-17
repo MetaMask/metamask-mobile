@@ -45,9 +45,13 @@ These rules are written to align with Cursor Context Rules so the guidance is ea
 - Presets:
   - `initialStateBridge` → `app/util/test/component-view/presets/bridge.ts`
   - `initialStateWallet` → `app/util/test/component-view/presets/wallet.ts`
+  - `initialStatePerps` → `app/util/test/component-view/presets/perpsStatePreset.ts`
 - Renderers:
   - `renderBridgeView` → `app/util/test/component-view/renderers/bridge.ts`
   - `renderWalletView` → `app/util/test/component-view/renderers/wallet.ts`
+  - `renderPerpsView` / `renderPerpsSelectModifyActionView` → `app/util/test/component-view/renderers/perpsViewRenderer.tsx`
+- Helpers (labels for view tests; use i18n for consistency):
+  - `getModifyActionLabels` → `app/util/test/component-view/helpers/perpsViewTestHelpers.ts`
 - Global Engine + native mocks:
   - `app/util/test/component-view/mocks.ts`
 - State fixture and helpers:

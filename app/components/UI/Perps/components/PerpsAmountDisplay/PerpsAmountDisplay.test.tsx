@@ -110,7 +110,9 @@ describe('PerpsAmountDisplay', () => {
 
       // Assert
       expect(
-        getByText('No funds available. Please deposit first.'),
+        getByText(
+          'Not enough funds available. Deposit funds or select a different payment method',
+        ),
       ).toBeTruthy();
     });
 
