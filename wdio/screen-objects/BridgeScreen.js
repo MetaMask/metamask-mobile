@@ -2,8 +2,7 @@ import AppwrightGestures from '../../tests/framework/AppwrightGestures';
 import AppwrightSelectors from '../../tests/framework/AppwrightSelectors';
 import { SWAP_SCREEN_DESTINATION_TOKEN_INPUT_ID, SWAP_SCREEN_QUOTE_DISPLAYED_ID, SWAP_SCREEN_SOURCE_TOKEN_INPUT_ID } from './testIDs/Screens/SwapScreen.testIds';
 import { expect as appwrightExpect } from 'appwright';
-import { PerpsWithdrawViewSelectorsIDs } from '../../app/components/UI/Perps/Perps.testIds';
-import { QuoteViewSelectorText } from '../../tests/selectors/Bridge/QuoteView.selectors';
+import { QuoteViewSelectorIDs } from '../../tests/selectors/Bridge/QuoteView.selectors';
 import Selectors from '../helpers/Selectors.js';
 import { LoginViewSelectors } from '../../app/components/Views/Login/LoginView.testIds';
 import AmountScreen from './AmountScreen';
@@ -29,8 +28,12 @@ class BridgeScreen {
   get quoteDisplayed() {
     return AppwrightSelectors.getElementByID(this._device, SWAP_SCREEN_QUOTE_DISPLAYED_ID);
   }
-  get destinationTokenArea(){
-    return AppwrightSelectors.getElementByID(this._device, PerpsWithdrawViewSelectorsIDs.DEST_TOKEN_AREA);
+  get destinationTokenArea() {
+    return AppwrightSelectors.getElementByID(
+      this._device,
+      QuoteViewSelectorIDs.DESTINATION_TOKEN_AREA,
+      true, // exact match: token button, not dest-token-area-input
+    );
   }
 
   getNetworkButton(networkName) {
@@ -54,7 +57,13 @@ class BridgeScreen {
 
   }
 
+  get sourceTokenAreaInput() {
+    return AppwrightSelectors.getElementByID(this._device, 'source-token-area-input');
+  }
+
   async enterSourceTokenAmount(amount) {
+    const sourceInput = await this.sourceTokenAreaInput;
+    await AppwrightGestures.tap(sourceInput);
     // Tap each digit on the numeric keypad
     const digits = amount.split('');
     AmountScreen.device = this._device;
@@ -67,22 +76,33 @@ class BridgeScreen {
 
   async selectNetworkAndTokenTo(network, token) {
     const destinationToken = await this.destinationTokenArea;
+    await appwrightExpect(destinationToken).toBeVisible({ timeout: 10000 });
     await AppwrightGestures.tap(destinationToken);
+
     const networkButton = await this.getNetworkButton(network);
     await AppwrightGestures.tap(networkButton);
+
     let tokenNetworkId;
-    if (network == 'Ethereum'){
-      tokenNetworkId = `0x1`;
+    if (network === 'Ethereum') {
+      tokenNetworkId = '0x1';
+    } else if (network === 'Polygon') {
+      tokenNetworkId = '0x89';
+    } else if (network === 'Solana') {
+      tokenNetworkId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
     }
-    else if (network == 'Polygon'){
-      tokenNetworkId = `0x89`;
-    }
-    else if (network == 'Solana'){
-      tokenNetworkId = `solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp`;
-    }
-    const tokenButton = await AppwrightSelectors.getElementByID(this._device, `asset-${tokenNetworkId}-${token}`);
-    await appwrightExpect(tokenButton).toBeVisible({ timeout: 15000 });
-    await AppwrightGestures.tap(tokenButton);
+    const tokenSelector = `asset-${tokenNetworkId}-${token}`;
+    const tokenButton = await AppwrightSelectors.getElementByID(
+      this._device,
+      tokenSelector,
+      true,
+    );
+    // Scroll down the list to bring token into view (e.g. LINK is below ETH, USDT, etc.)
+    const tokenElement = await AppwrightGestures.scrollIntoView(
+      this._device,
+      tokenButton,
+      { scrollParams: { direction: 'down' } },
+    );
+    await AppwrightGestures.tap(tokenElement);
   }
 
   async enterDestinationTokenAmount(amount) {
