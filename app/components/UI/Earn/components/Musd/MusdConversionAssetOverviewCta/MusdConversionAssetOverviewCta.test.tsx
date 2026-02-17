@@ -275,6 +275,7 @@ describe('MusdConversionAssetOverviewCta', () => {
         );
       });
 
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
       expect(mockInitiateConversion).not.toHaveBeenCalled();
     });
 
@@ -365,6 +366,35 @@ describe('MusdConversionAssetOverviewCta', () => {
           '[mUSD Conversion] Failed to initiate conversion from asset overview CTA',
         );
       });
+
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    });
+
+    it('logs error when asset address is undefined', async () => {
+      const mockToken = {
+        ...createMockToken(),
+        address: undefined,
+      } as unknown as TokenI;
+
+      const { getByTestId } = renderWithProvider(
+        <MusdConversionAssetOverviewCta asset={mockToken} />,
+        { state: initialRootState },
+      );
+
+      await act(async () => {
+        fireEvent.press(
+          getByTestId(EARN_TEST_IDS.MUSD.ASSET_OVERVIEW_CONVERSION_CTA),
+        );
+      });
+
+      await waitFor(() => {
+        expect(mockLoggerError).toHaveBeenCalledWith(
+          expect.any(Error),
+          '[mUSD Conversion] Failed to initiate conversion from asset overview CTA',
+        );
+      });
+
+      expect(mockInitiateConversion).not.toHaveBeenCalled();
     });
   });
 

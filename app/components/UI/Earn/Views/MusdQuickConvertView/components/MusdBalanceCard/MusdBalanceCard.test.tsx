@@ -31,6 +31,7 @@ import Routes from '../../../../../../../constants/navigation/Routes';
 import initialRootState from '../../../../../../../util/test/initial-root-state';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
+import { AVATARGROUP_CONTAINER_TESTID } from '../../../../../../../component-library/components/Avatars/AvatarGroup/AvatarGroup.constants';
 
 const mockNavigate = jest.fn();
 
@@ -52,6 +53,59 @@ const mockUseNavigation = useNavigation as jest.MockedFunction<
 >;
 const mockUseStyles = useStyles as jest.MockedFunction<typeof useStyles>;
 
+const createSingleChainBalanceMock = (
+  overrides: {
+    fiatBalanceAggregatedFormatted?: string;
+    tokenBalanceByChain?: Record<Hex, string>;
+    fiatBalanceByChain?: Record<Hex, string>;
+  } = {},
+) => ({
+  tokenBalanceByChain: { [CHAIN_IDS.MAINNET]: '100' } as Record<Hex, string>,
+  fiatBalanceByChain: { [CHAIN_IDS.MAINNET]: '100' } as Record<Hex, string>,
+  fiatBalanceAggregatedFormatted: '$100.00',
+  hasMusdBalanceOnAnyChain: true,
+  hasMusdBalanceOnChain: jest.fn(),
+  fiatBalanceFormattedByChain: {},
+  tokenBalanceAggregated: '100',
+  fiatBalanceAggregated: '100',
+  ...overrides,
+});
+
+const createMultiChainBalanceMock = (
+  overrides: {
+    fiatBalanceAggregatedFormatted?: string;
+    tokenBalanceByChain?: Record<Hex, string>;
+    fiatBalanceByChain?: Record<Hex, string>;
+  } = {},
+) => ({
+  tokenBalanceByChain: {
+    [CHAIN_IDS.MAINNET]: '100',
+    [CHAIN_IDS.LINEA_MAINNET]: '50',
+  } as Record<Hex, string>,
+  fiatBalanceByChain: {
+    [CHAIN_IDS.MAINNET]: '100',
+    [CHAIN_IDS.LINEA_MAINNET]: '50',
+  } as Record<Hex, string>,
+  fiatBalanceAggregatedFormatted: '$150.00',
+  hasMusdBalanceOnAnyChain: true,
+  hasMusdBalanceOnChain: jest.fn(),
+  fiatBalanceFormattedByChain: {},
+  tokenBalanceAggregated: '150',
+  fiatBalanceAggregated: '150',
+  ...overrides,
+});
+
+const createEmptyBalanceMock = () => ({
+  tokenBalanceByChain: {} as Record<Hex, string>,
+  fiatBalanceByChain: {} as Record<Hex, string>,
+  fiatBalanceAggregatedFormatted: undefined as unknown as string,
+  hasMusdBalanceOnAnyChain: false,
+  hasMusdBalanceOnChain: jest.fn(),
+  fiatBalanceFormattedByChain: {},
+  tokenBalanceAggregated: '0',
+  fiatBalanceAggregated: undefined,
+});
+
 describe('MusdBalanceCard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -69,7 +123,7 @@ describe('MusdBalanceCard', () => {
       setOptions: jest.fn(),
       addListener: jest.fn(),
       removeListener: jest.fn(),
-    } as ReturnType<typeof useNavigation>);
+    } as unknown as ReturnType<typeof useNavigation>);
     mockUseStyles.mockReturnValue({
       styles: createMockStyles(),
       theme: {},
@@ -78,22 +132,9 @@ describe('MusdBalanceCard', () => {
 
   describe('rendering', () => {
     it('renders card with musd-balance-card testID', () => {
-      mockUseMusdBalance.mockReturnValue({
-        tokenBalanceByChain: { [CHAIN_IDS.MAINNET]: '100' } as Record<
-          Hex,
-          string
-        >,
-        fiatBalanceByChain: { [CHAIN_IDS.MAINNET]: '100' } as Record<
-          Hex,
-          string
-        >,
-        fiatBalanceAggregatedFormatted: '$100.00',
-        hasMusdBalanceOnAnyChain: true,
-        hasMusdBalanceOnChain: jest.fn(),
-        fiatBalanceFormattedByChain: {},
-        tokenBalanceAggregated: '100',
-        fiatBalanceAggregated: '100',
-      });
+      mockUseMusdBalance.mockReturnValue(
+        createSingleChainBalanceMock() as ReturnType<typeof useMusdBalance>,
+      );
 
       const { getByTestId } = renderWithProvider(<MusdBalanceCard />, {
         state: initialRootState,
@@ -104,22 +145,11 @@ describe('MusdBalanceCard', () => {
 
     it('displays aggregated fiat balance from useMusdBalance', () => {
       const formattedBalance = '$1,234.56';
-      mockUseMusdBalance.mockReturnValue({
-        tokenBalanceByChain: { [CHAIN_IDS.MAINNET]: '100' } as Record<
-          Hex,
-          string
-        >,
-        fiatBalanceByChain: { [CHAIN_IDS.MAINNET]: '100' } as Record<
-          Hex,
-          string
-        >,
-        fiatBalanceAggregatedFormatted: formattedBalance,
-        hasMusdBalanceOnAnyChain: true,
-        hasMusdBalanceOnChain: jest.fn(),
-        fiatBalanceFormattedByChain: {},
-        tokenBalanceAggregated: '100',
-        fiatBalanceAggregated: '1234.56',
-      });
+      mockUseMusdBalance.mockReturnValue(
+        createSingleChainBalanceMock({
+          fiatBalanceAggregatedFormatted: formattedBalance,
+        }) as ReturnType<typeof useMusdBalance>,
+      );
 
       const { getByText } = renderWithProvider(<MusdBalanceCard />, {
         state: initialRootState,
@@ -129,22 +159,9 @@ describe('MusdBalanceCard', () => {
     });
 
     it('displays mUSD symbol when single network has balance', () => {
-      mockUseMusdBalance.mockReturnValue({
-        tokenBalanceByChain: { [CHAIN_IDS.MAINNET]: '100' } as Record<
-          Hex,
-          string
-        >,
-        fiatBalanceByChain: { [CHAIN_IDS.MAINNET]: '100' } as Record<
-          Hex,
-          string
-        >,
-        fiatBalanceAggregatedFormatted: '$100.00',
-        hasMusdBalanceOnAnyChain: true,
-        hasMusdBalanceOnChain: jest.fn(),
-        fiatBalanceFormattedByChain: {},
-        tokenBalanceAggregated: '100',
-        fiatBalanceAggregated: '100',
-      });
+      mockUseMusdBalance.mockReturnValue(
+        createSingleChainBalanceMock() as ReturnType<typeof useMusdBalance>,
+      );
 
       const { getByText } = renderWithProvider(<MusdBalanceCard />, {
         state: initialRootState,
@@ -154,22 +171,9 @@ describe('MusdBalanceCard', () => {
     });
 
     it('displays percentage boost text from localization', () => {
-      mockUseMusdBalance.mockReturnValue({
-        tokenBalanceByChain: { [CHAIN_IDS.MAINNET]: '100' } as Record<
-          Hex,
-          string
-        >,
-        fiatBalanceByChain: { [CHAIN_IDS.MAINNET]: '100' } as Record<
-          Hex,
-          string
-        >,
-        fiatBalanceAggregatedFormatted: '$100.00',
-        hasMusdBalanceOnAnyChain: true,
-        hasMusdBalanceOnChain: jest.fn(),
-        fiatBalanceFormattedByChain: {},
-        tokenBalanceAggregated: '100',
-        fiatBalanceAggregated: '100',
-      });
+      mockUseMusdBalance.mockReturnValue(
+        createSingleChainBalanceMock() as ReturnType<typeof useMusdBalance>,
+      );
 
       const { getByText } = renderWithProvider(<MusdBalanceCard />, {
         state: initialRootState,
@@ -179,22 +183,9 @@ describe('MusdBalanceCard', () => {
     });
 
     it('displays percent change as +0.00% when percentChange is zero', () => {
-      mockUseMusdBalance.mockReturnValue({
-        tokenBalanceByChain: { [CHAIN_IDS.MAINNET]: '100' } as Record<
-          Hex,
-          string
-        >,
-        fiatBalanceByChain: { [CHAIN_IDS.MAINNET]: '100' } as Record<
-          Hex,
-          string
-        >,
-        fiatBalanceAggregatedFormatted: '$100.00',
-        hasMusdBalanceOnAnyChain: true,
-        hasMusdBalanceOnChain: jest.fn(),
-        fiatBalanceFormattedByChain: {},
-        tokenBalanceAggregated: '100',
-        fiatBalanceAggregated: '100',
-      });
+      mockUseMusdBalance.mockReturnValue(
+        createSingleChainBalanceMock() as ReturnType<typeof useMusdBalance>,
+      );
 
       const { getByText } = renderWithProvider(<MusdBalanceCard />, {
         state: initialRootState,
@@ -204,22 +195,9 @@ describe('MusdBalanceCard', () => {
     });
 
     it('displays AvatarGroup when multiple networks have balance', () => {
-      mockUseMusdBalance.mockReturnValue({
-        tokenBalanceByChain: {
-          [CHAIN_IDS.MAINNET]: '100',
-          [CHAIN_IDS.LINEA_MAINNET]: '50',
-        } as Record<Hex, string>,
-        fiatBalanceByChain: {
-          [CHAIN_IDS.MAINNET]: '100',
-          [CHAIN_IDS.LINEA_MAINNET]: '50',
-        } as Record<Hex, string>,
-        fiatBalanceAggregatedFormatted: '$150.00',
-        hasMusdBalanceOnAnyChain: true,
-        hasMusdBalanceOnChain: jest.fn(),
-        fiatBalanceFormattedByChain: {},
-        tokenBalanceAggregated: '150',
-        fiatBalanceAggregated: '150',
-      });
+      mockUseMusdBalance.mockReturnValue(
+        createMultiChainBalanceMock() as ReturnType<typeof useMusdBalance>,
+      );
 
       const { getByTestId, queryByText } = renderWithProvider(
         <MusdBalanceCard />,
@@ -228,29 +206,48 @@ describe('MusdBalanceCard', () => {
         },
       );
 
-      expect(getByTestId('musd-balance-card')).toBeOnTheScreen();
+      expect(getByTestId(AVATARGROUP_CONTAINER_TESTID)).toBeOnTheScreen();
       expect(queryByText(MUSD_TOKEN.symbol)).toBeNull();
+    });
+
+    it('renders with three chains having balance', () => {
+      const aggregatedFormatted = '$175.00';
+      mockUseMusdBalance.mockReturnValue(
+        createMultiChainBalanceMock({
+          tokenBalanceByChain: {
+            [CHAIN_IDS.MAINNET]: '100',
+            [CHAIN_IDS.LINEA_MAINNET]: '50',
+            [CHAIN_IDS.BSC]: '25',
+          } as Record<Hex, string>,
+          fiatBalanceByChain: {
+            [CHAIN_IDS.MAINNET]: '100',
+            [CHAIN_IDS.LINEA_MAINNET]: '50',
+            [CHAIN_IDS.BSC]: '25',
+          } as Record<Hex, string>,
+          fiatBalanceAggregatedFormatted: aggregatedFormatted,
+        }) as ReturnType<typeof useMusdBalance>,
+      );
+
+      const { getByTestId, getByText } = renderWithProvider(
+        <MusdBalanceCard />,
+        {
+          state: initialRootState,
+        },
+      );
+
+      expect(getByTestId(AVATARGROUP_CONTAINER_TESTID)).toBeOnTheScreen();
+      expect(getByText(aggregatedFormatted)).toBeOnTheScreen();
+      expect(
+        getByTestId('musd-balance-card').props.accessibilityState?.disabled,
+      ).toBe(false);
     });
   });
 
   describe('press behavior', () => {
     it('card is disabled when single chain has balance', () => {
-      mockUseMusdBalance.mockReturnValue({
-        tokenBalanceByChain: { [CHAIN_IDS.MAINNET]: '100' } as Record<
-          Hex,
-          string
-        >,
-        fiatBalanceByChain: { [CHAIN_IDS.MAINNET]: '100' } as Record<
-          Hex,
-          string
-        >,
-        fiatBalanceAggregatedFormatted: '$100.00',
-        hasMusdBalanceOnAnyChain: true,
-        hasMusdBalanceOnChain: jest.fn(),
-        fiatBalanceFormattedByChain: {},
-        tokenBalanceAggregated: '100',
-        fiatBalanceAggregated: '100',
-      });
+      mockUseMusdBalance.mockReturnValue(
+        createSingleChainBalanceMock() as ReturnType<typeof useMusdBalance>,
+      );
 
       const { getByTestId } = renderWithProvider(<MusdBalanceCard />, {
         state: initialRootState,
@@ -262,22 +259,9 @@ describe('MusdBalanceCard', () => {
     });
 
     it('card is enabled when multiple chains have balance', () => {
-      mockUseMusdBalance.mockReturnValue({
-        tokenBalanceByChain: {
-          [CHAIN_IDS.MAINNET]: '100',
-          [CHAIN_IDS.LINEA_MAINNET]: '50',
-        } as Record<Hex, string>,
-        fiatBalanceByChain: {
-          [CHAIN_IDS.MAINNET]: '100',
-          [CHAIN_IDS.LINEA_MAINNET]: '50',
-        } as Record<Hex, string>,
-        fiatBalanceAggregatedFormatted: '$150.00',
-        hasMusdBalanceOnAnyChain: true,
-        hasMusdBalanceOnChain: jest.fn(),
-        fiatBalanceFormattedByChain: {},
-        tokenBalanceAggregated: '150',
-        fiatBalanceAggregated: '150',
-      });
+      mockUseMusdBalance.mockReturnValue(
+        createMultiChainBalanceMock() as ReturnType<typeof useMusdBalance>,
+      );
 
       const { getByTestId } = renderWithProvider(<MusdBalanceCard />, {
         state: initialRootState,
@@ -289,22 +273,9 @@ describe('MusdBalanceCard', () => {
     });
 
     it('navigates to MUSD_BALANCES_BY_NETWORK when card is pressed and multiple chains', async () => {
-      mockUseMusdBalance.mockReturnValue({
-        tokenBalanceByChain: {
-          [CHAIN_IDS.MAINNET]: '100',
-          [CHAIN_IDS.LINEA_MAINNET]: '50',
-        } as Record<Hex, string>,
-        fiatBalanceByChain: {
-          [CHAIN_IDS.MAINNET]: '100',
-          [CHAIN_IDS.LINEA_MAINNET]: '50',
-        } as Record<Hex, string>,
-        fiatBalanceAggregatedFormatted: '$150.00',
-        hasMusdBalanceOnAnyChain: true,
-        hasMusdBalanceOnChain: jest.fn(),
-        fiatBalanceFormattedByChain: {},
-        tokenBalanceAggregated: '150',
-        fiatBalanceAggregated: '150',
-      });
+      mockUseMusdBalance.mockReturnValue(
+        createMultiChainBalanceMock() as ReturnType<typeof useMusdBalance>,
+      );
 
       const { getByTestId } = renderWithProvider(<MusdBalanceCard />, {
         state: initialRootState,
@@ -322,22 +293,9 @@ describe('MusdBalanceCard', () => {
     });
 
     it('does not navigate when card is pressed and single chain', async () => {
-      mockUseMusdBalance.mockReturnValue({
-        tokenBalanceByChain: { [CHAIN_IDS.MAINNET]: '100' } as Record<
-          Hex,
-          string
-        >,
-        fiatBalanceByChain: { [CHAIN_IDS.MAINNET]: '100' } as Record<
-          Hex,
-          string
-        >,
-        fiatBalanceAggregatedFormatted: '$100.00',
-        hasMusdBalanceOnAnyChain: true,
-        hasMusdBalanceOnChain: jest.fn(),
-        fiatBalanceFormattedByChain: {},
-        tokenBalanceAggregated: '100',
-        fiatBalanceAggregated: '100',
-      });
+      mockUseMusdBalance.mockReturnValue(
+        createSingleChainBalanceMock() as ReturnType<typeof useMusdBalance>,
+      );
 
       const { getByTestId } = renderWithProvider(<MusdBalanceCard />, {
         state: initialRootState,
@@ -355,16 +313,9 @@ describe('MusdBalanceCard', () => {
 
   describe('edge cases', () => {
     it('renders with empty balance when no chains have mUSD', () => {
-      mockUseMusdBalance.mockReturnValue({
-        tokenBalanceByChain: {} as Record<Hex, string>,
-        fiatBalanceByChain: {} as Record<Hex, string>,
-        fiatBalanceAggregatedFormatted: undefined as unknown as string,
-        hasMusdBalanceOnAnyChain: false,
-        hasMusdBalanceOnChain: jest.fn(),
-        fiatBalanceFormattedByChain: {},
-        tokenBalanceAggregated: '0',
-        fiatBalanceAggregated: undefined,
-      });
+      mockUseMusdBalance.mockReturnValue(
+        createEmptyBalanceMock() as ReturnType<typeof useMusdBalance>,
+      );
 
       const { getByTestId } = renderWithProvider(<MusdBalanceCard />, {
         state: initialRootState,
@@ -374,16 +325,9 @@ describe('MusdBalanceCard', () => {
     });
 
     it('card is disabled when no chains have balance', () => {
-      mockUseMusdBalance.mockReturnValue({
-        tokenBalanceByChain: {} as Record<Hex, string>,
-        fiatBalanceByChain: {} as Record<Hex, string>,
-        fiatBalanceAggregatedFormatted: undefined as unknown as string,
-        hasMusdBalanceOnAnyChain: false,
-        hasMusdBalanceOnChain: jest.fn(),
-        fiatBalanceFormattedByChain: {},
-        tokenBalanceAggregated: '0',
-        fiatBalanceAggregated: undefined,
-      });
+      mockUseMusdBalance.mockReturnValue(
+        createEmptyBalanceMock() as ReturnType<typeof useMusdBalance>,
+      );
 
       const { getByTestId } = renderWithProvider(<MusdBalanceCard />, {
         state: initialRootState,

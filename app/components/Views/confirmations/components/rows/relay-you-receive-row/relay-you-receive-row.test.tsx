@@ -1,8 +1,14 @@
 import React from 'react';
-import { TransactionPayQuote, TransactionPayStrategy } from '@metamask/transaction-pay-controller';
+import {
+  TransactionPayQuote,
+  TransactionPayStrategy,
+} from '@metamask/transaction-pay-controller';
 import { Json } from '@metamask/utils';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
-import { useTransactionPayQuotes } from '../../../hooks/pay/useTransactionPayData';
+import {
+  useIsTransactionPayLoading,
+  useTransactionPayQuotes,
+} from '../../../hooks/pay/useTransactionPayData';
 import { selectSelectedInternalAccountByScope } from '../../../../../../selectors/multichainAccounts/accounts';
 import { EVM_SCOPE } from '../../../../../UI/Earn/constants/networks';
 import { RelayYouReceiveRow } from './relay-you-receive-row';
@@ -24,22 +30,23 @@ const createRelayQuote = ({
   ({
     strategy: TransactionPayStrategy.Relay,
     original: {
-      quote: {
-        details: {
-          recipient,
-          currencyOut: {
-            currency: {
-              symbol,
-              decimals: 6,
-            },
-            amountFormatted,
+      details: {
+        recipient,
+        currencyOut: {
+          currency: {
+            symbol,
+            decimals: 6,
           },
+          amountFormatted,
         },
       },
     },
   }) as unknown as TransactionPayQuote<Json>;
 
 describe('RelayYouReceiveRow', () => {
+  const useIsTransactionPayLoadingMock = jest.mocked(
+    useIsTransactionPayLoading,
+  );
   const useTransactionPayQuotesMock = jest.mocked(useTransactionPayQuotes);
   const selectSelectedInternalAccountByScopeMock = jest.mocked(
     selectSelectedInternalAccountByScope,
@@ -48,13 +55,13 @@ describe('RelayYouReceiveRow', () => {
   beforeEach(() => {
     jest.resetAllMocks();
 
-    // Return a function that returns the selected internal account object for EVM_SCOPE.
+    useIsTransactionPayLoadingMock.mockReturnValue(false);
     selectSelectedInternalAccountByScopeMock.mockImplementation(
-      () =>
-        (scope) =>
-          scope === EVM_SCOPE ? ({ address: RECIPIENT_ADDRESS } as never) : undefined,
+      () => (scope: string) =>
+        scope === EVM_SCOPE
+          ? ({ address: RECIPIENT_ADDRESS } as never)
+          : undefined,
     );
-
     useTransactionPayQuotesMock.mockReturnValue([createRelayQuote()]);
   });
 
@@ -69,9 +76,31 @@ describe('RelayYouReceiveRow', () => {
     expect(getByText('1.23 MUSD')).toBeOnTheScreen();
   });
 
+  it('renders InfoRowSkeleton when loading', () => {
+    useIsTransactionPayLoadingMock.mockReturnValue(true);
+
+    const { getByTestId } = renderWithProvider(
+      <RelayYouReceiveRow label="You receive" />,
+    );
+
+    expect(getByTestId('relay-you-receive-row-skeleton')).toBeOnTheScreen();
+  });
+
+  it('renders InfoRow with custom testID when provided', () => {
+    const customTestID = 'relay-you-receive-custom';
+
+    const { getByTestId } = renderWithProvider(
+      <RelayYouReceiveRow label="You receive" testID={customTestID} />,
+    );
+
+    expect(getByTestId(customTestID)).toBeOnTheScreen();
+  });
+
   it('returns null when no matching output exists for active address', () => {
     useTransactionPayQuotesMock.mockReturnValue([
-      createRelayQuote({ recipient: '0x0000000000000000000000000000000000000001' }),
+      createRelayQuote({
+        recipient: '0x0000000000000000000000000000000000000001',
+      }),
     ]);
 
     const { queryByText } = renderWithProvider(
@@ -80,5 +109,38 @@ describe('RelayYouReceiveRow', () => {
 
     expect(queryByText('You receive')).toBeNull();
   });
-});
 
+  it('returns null when selected EVM address is undefined', () => {
+    selectSelectedInternalAccountByScopeMock.mockImplementation(
+      () => () => undefined,
+    );
+
+    const { queryByText } = renderWithProvider(
+      <RelayYouReceiveRow label="You receive" />,
+    );
+
+    expect(queryByText('You receive')).toBeNull();
+  });
+
+  it('returns null when quotes array is empty', () => {
+    useTransactionPayQuotesMock.mockReturnValue([]);
+
+    const { queryByText } = renderWithProvider(
+      <RelayYouReceiveRow label="You receive" />,
+    );
+
+    expect(queryByText('You receive')).toBeNull();
+  });
+
+  it('formats receive amount with symbol from quote', () => {
+    useTransactionPayQuotesMock.mockReturnValue([
+      createRelayQuote({ amountFormatted: '99.5', symbol: 'ETH' }),
+    ]);
+
+    const { getByText } = renderWithProvider(
+      <RelayYouReceiveRow label="You receive" />,
+    );
+
+    expect(getByText('99.5 ETH')).toBeOnTheScreen();
+  });
+});
