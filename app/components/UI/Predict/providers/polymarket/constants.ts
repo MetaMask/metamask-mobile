@@ -67,6 +67,12 @@ export const ROUNDING_CONFIG: Record<TickSize, RoundConfig> = {
   },
 };
 
+/**
+ * Gas limit for the Safe execTransaction call used during withdrawals.
+ * The actual execution uses ~93k gas; includes a 30% buffer.
+ */
+export const SAFE_EXEC_GAS_LIMIT = 121000;
+
 export const MATIC_CONTRACTS: ContractConfig = {
   exchange: '0x4bFb41d5B3570DeFd03C39a9A4D8dE6Bd8B8982E',
   negRiskAdapter: '0xd91E80cF2E7be2e162c6513ceD06f1dD0dA35296',

@@ -4,6 +4,7 @@ import { login } from '../../framework/utils/Flows.js';
 import {
   launchMobileBrowser,
   navigateToDapp,
+  switchToMobileBrowser,
 } from '../../framework/utils/MobileBrowser.js';
 import WalletMainScreen from '../../../wdio/screen-objects/WalletMainScreen.js';
 import BrowserPlaygroundDapp from '../../../wdio/screen-objects/BrowserPlaygroundDapp.js';
@@ -46,9 +47,13 @@ test.afterAll(async () => {
 test('@metamask/connect-multichain - Connect via Multichain API to Local Browser Playground', async ({
   device,
 }) => {
-  // Get platform-specific URL
+  // Get platform-specific URL (use bs-local.com when running on BrowserStack Local tunnel)
   const platform = device.getPlatform?.() || 'android';
-  const DAPP_URL = getDappUrlForBrowser(platform);
+  const useBrowserStackLocal =
+    process.env.BROWSERSTACK_LOCAL?.toLowerCase() === 'true';
+  const DAPP_URL = useBrowserStackLocal
+    ? `http://bs-local.com:${DAPP_PORT}`
+    : getDappUrlForBrowser(platform);
 
   // Initialize page objects with device
   WalletMainScreen.device = device;
@@ -73,7 +78,8 @@ test('@metamask/connect-multichain - Connect via Multichain API to Local Browser
     await navigateToDapp(device, DAPP_URL, DAPP_NAME);
   });
 
-  await new Promise((resolve) => setTimeout(resolve, 5000));
+  // Short delay so dapp loads before tap Connect (avoid auto-lock)
+  await new Promise((resolve) => setTimeout(resolve, 1000));
 
   //
   // Connect via Multichain API
@@ -94,10 +100,9 @@ test('@metamask/connect-multichain - Connect via Multichain API to Local Browser
     await DappConnectionModal.tapConnectButton();
   });
 
-  // Explicit pause to avoid navigating back too fast to the dapp
-  await new Promise((resolve) => setTimeout(resolve, 1000));
-  await launchMobileBrowser(device);
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+  // Switch back to browser; existing dapp tab is unchanged (no reload/clear)
+  await switchToMobileBrowser(device);
+  await new Promise((resolve) => setTimeout(resolve, 500));
 
   //
   // Verify connection
