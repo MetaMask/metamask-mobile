@@ -9,6 +9,7 @@ import { renderScreenWithRoutes } from '../../../../../util/test/component-view/
 import Routes from '../../../../../constants/navigation/Routes';
 import { initialStateBridge } from '../../../../../util/test/component-view/presets/bridge';
 import BridgeView from './index';
+import { describeForPlatforms } from '../../../../../util/test/platform';
 import { BridgeViewSelectorsIDs } from './BridgeView.testIds';
 import { BuildQuoteSelectors } from '../../../Ramp/Aggregator/Views/BuildQuote/BuildQuote.testIds';
 import { CommonSelectorsIDs } from '../../../../../util/Common.testIds';
@@ -37,7 +38,7 @@ const defaultBridgeWithTokens = (overrides?: Record<string, unknown>) => {
   });
 };
 
-describe('BridgeView', () => {
+describeForPlatforms('BridgeView', () => {
   it('renders input areas and hides confirm button without tokens or amount', () => {
     const { getByTestId, queryByTestId } = renderBridgeView({
       overrides: {
