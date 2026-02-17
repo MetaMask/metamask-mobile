@@ -464,7 +464,7 @@
   "AssetsController": {
     "assetPreferences": {},
     "assetsBalance": {},
-    "assetsMetadata": {},
+    "assetsInfo": {},
     "assetsPrice": {},
     "customAssets": {}
   },
@@ -660,7 +660,7 @@
   },
   "MultichainAssetsController": {
     "accountsAssets": {},
-    "assetsMetadata": {},
+    "assetsInfo": {},
     "allIgnoredAssets": {}
   },
   "BridgeController": {
