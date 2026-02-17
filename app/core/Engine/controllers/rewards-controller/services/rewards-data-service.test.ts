@@ -60,7 +60,7 @@ describe('RewardsDataService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     process.env = { ...originalEnv };
-    process.env.GITHUB_ACTIONS = 'false';
+    process.env.BITRISE = 'true';
 
     mockMessenger = {
       registerActionHandler: jest.fn(),

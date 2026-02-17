@@ -3,7 +3,8 @@ import { getDefaultBaanxApiBaseUrlForMetaMaskEnv } from './mapBaanxApiUrl';
 
 describe('getDefaultBaanxApiBaseUrlForMetaMaskEnv', () => {
   const originalBaanxUrl = process.env.BAANX_API_URL;
-  const originalGitHubActions = process.env.GITHUB_ACTIONS;
+  const originalBitrise = process.env.BITRISE;
+  const originalE2e = process.env.E2E;
 
   afterEach(() => {
     if (originalBaanxUrl !== undefined) {
@@ -11,16 +12,22 @@ describe('getDefaultBaanxApiBaseUrlForMetaMaskEnv', () => {
     } else {
       delete process.env.BAANX_API_URL;
     }
-    if (originalGitHubActions !== undefined) {
-      process.env.GITHUB_ACTIONS = originalGitHubActions;
+    if (originalBitrise !== undefined) {
+      process.env.BITRISE = originalBitrise;
     } else {
-      delete process.env.GITHUB_ACTIONS;
+      delete process.env.BITRISE;
+    }
+    if (originalE2e !== undefined) {
+      process.env.E2E = originalE2e;
+    } else {
+      delete process.env.E2E;
     }
   });
 
-  describe('when GITHUB_ACTIONS (builds.yml path)', () => {
+  describe('when not Bitrise and not E2E (builds.yml path: GitHub Actions / local)', () => {
     beforeEach(() => {
-      process.env.GITHUB_ACTIONS = 'true';
+      delete process.env.BITRISE;
+      delete process.env.E2E;
     });
 
     it('returns BAANX_API_URL from environment when set', () => {
@@ -55,9 +62,9 @@ describe('getDefaultBaanxApiBaseUrlForMetaMaskEnv', () => {
     });
   });
 
-  describe('when not GITHUB_ACTIONS (Bitrise / .js.env path)', () => {
+  describe('when Bitrise or E2E (legacy path)', () => {
     beforeEach(() => {
-      delete process.env.GITHUB_ACTIONS;
+      process.env.BITRISE = 'true';
     });
 
     it('returns AppConstants.BAANX_API_URL.PRD for production/rc', () => {
