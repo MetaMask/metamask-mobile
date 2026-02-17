@@ -78,17 +78,14 @@ test('@metamask/connect-multichain - Connect via Multichain API to Local Browser
     await navigateToDapp(device, DAPP_URL, DAPP_NAME);
   });
 
-  // Short delay so dapp loads before tap Connect (avoid auto-lock)
-  await new Promise((resolve) => setTimeout(resolve, 1000));
-
   //
-  // Connect via Multichain API
+  // Connect via Multichain API (wait for dapp ready then tap Connect to minimize idle time / auto-lock)
   //
 
-  // Tap the Connect button (multichain API - default scopes)
   await AppwrightHelpers.withWebAction(
     device,
     async () => {
+      await BrowserPlaygroundDapp.waitForConnectButtonVisible(15000);
       await BrowserPlaygroundDapp.tapConnect();
     },
     DAPP_URL,

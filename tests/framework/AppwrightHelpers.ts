@@ -7,7 +7,7 @@ interface ContextInfo {
 
 export default class AppwrightHelpers {
   private static readonly WEBVIEW_TIMEOUT_MS = 30_000;
-  private static readonly POLL_INTERVAL_MS = 1_000;
+  private static readonly POLL_INTERVAL_MS = 500;
   private static readonly APP_PACKAGE = 'io.metamask';
 
   static async switchToNativeContext(deviceInstance: Device): Promise<void> {
