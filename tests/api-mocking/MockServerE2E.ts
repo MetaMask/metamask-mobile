@@ -483,7 +483,8 @@ export default class MockServerE2E implements Resource {
    * rejects and Jest catches it as an unhandled rejection, failing the test suite.
    *
    * This method temporarily replaces the process `unhandledRejection` handlers with a filter
-   * that suppresses "Aborted" errors (forwarding all other rejections to the original handlers).
+   * that suppresses "Aborted" errors originating from mockttp's buffer-utils (verified via
+   * stack trace), forwarding all other rejections to the original handlers.
    * After the server is stopped and a brief drain period elapses, the original handlers are
    * restored along with any handlers that were added by other code during the shutdown window.
    */
@@ -494,7 +495,11 @@ export default class MockServerE2E implements Resource {
 
     let suppressCount = 0;
     const filterHandler = (reason: unknown, promise: Promise<unknown>) => {
-      if (reason instanceof Error && reason.message === 'Aborted') {
+      if (
+        reason instanceof Error &&
+        reason.message === 'Aborted' &&
+        reason.stack?.includes('mockttp')
+      ) {
         // Mark the promise as handled so Node.js does not consider it unhandled.
         // eslint-disable-next-line no-empty-function
         promise.catch(() => {});
