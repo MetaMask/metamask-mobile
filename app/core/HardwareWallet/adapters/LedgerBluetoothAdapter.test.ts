@@ -195,7 +195,8 @@ describe('LedgerBluetoothAdapter', () => {
 
       const connectPromise = adapter.connect('device-123');
       adapter.destroy();
-      resolveOpen(mockTransportInstance);
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      resolveOpen!(mockTransportInstance);
 
       await connectPromise;
 
@@ -824,6 +825,21 @@ describe('LedgerBluetoothAdapter', () => {
       await expect(adapter.connect('device-123')).rejects.toThrow(
         'Adapter has been destroyed',
       );
+    });
+
+    it('does not hang isTransportAvailable when destroyed before BLE state arrives', async () => {
+      // Override observeState to NOT immediately fire the observer
+      mockedTransportBLE.observeState.mockImplementationOnce(() =>
+        // Don't call observer.next — simulate slow BLE init
+         mockBleStateSubscription
+      );
+
+      const freshAdapter = new LedgerBluetoothAdapter(mockOptions);
+      freshAdapter.destroy();
+
+      // This would hang forever without the fix
+      const result = await freshAdapter.isTransportAvailable();
+      expect(result).toBe(false);
     });
   });
 });

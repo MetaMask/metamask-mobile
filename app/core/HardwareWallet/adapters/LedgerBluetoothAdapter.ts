@@ -501,6 +501,7 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
   destroy(): void {
     this.isDestroyed = true;
     this.stopBluetoothMonitoring();
+    this.resolveInitialBleStateIfPending();
     this.stopDeviceDiscovery();
     this.transportStateCallbacks.clear();
 
