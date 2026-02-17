@@ -48,11 +48,11 @@ import { selectTokensByChainIdAndAddress } from '../../../../../selectors/tokens
 import { selectMultichainAssets } from '../../../../../selectors/multichain/multichain';
 import { RootState } from '../../../../../reducers';
 import { NATIVE_SWAPS_TOKEN_ADDRESS } from '../../../../../constants/bridge';
-import { useSearchRequest } from '../../../../UI/Trending/hooks/useSearchRequest/useSearchRequest';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { getTrendingTokenImageUrl } from '../../../../UI/Trending/utils/getTrendingTokenImageUrl';
 import { convertAPITokensToBridgeTokens } from '../../../../UI/Bridge/hooks/useTokensWithBalances';
 import { PopularToken } from '../../../../UI/Bridge/hooks/usePopularTokens';
+import { useTrendingSearch } from '../../../../UI/Trending/hooks/useTrendingSearch/useTrendingSearch';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -154,10 +154,10 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
   // Fetch search results from the API based on user's search query.
   // Debouncing and loading state (including debounce period) are handled
   // internally by useSearchRequest.
-  const { results: apiResults, isLoading } = useSearchRequest({
+  const { data: apiResults, isLoading } = useTrendingSearch({
     chainIds: selectedChainId ? [formatChainIdToCaip(selectedChainId)] : [],
-    query: searchQuery,
-    limit: 50,
+    searchQuery,
+    sortBy: 'h24_trending',
     includeMarketData: false,
     enableDebounce: true,
   });
@@ -523,7 +523,7 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
           chainId={selectedChainId ?? ''}
           networkName={networkName}
           alreadyAddedTokens={alreadyAddedTokens}
-          isLoading={isLoading && searchQuery.length > 0}
+          isLoading={isLoading}
         />
       </View>
 

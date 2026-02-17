@@ -33,12 +33,14 @@ export const useTrendingSearch = (opts?: {
   sortBy?: SortTrendingBy;
   chainIds?: CaipChainId[] | null;
   enableDebounce?: boolean;
+  includeMarketData?: boolean;
 }) => {
   const {
     searchQuery,
     sortBy,
     chainIds,
     enableDebounce = true,
+    includeMarketData = true,
   } = useStableReference(opts ?? {});
 
   const [debouncedQuery, setDebouncedQuery] = useState(searchQuery);
@@ -59,7 +61,7 @@ export const useTrendingSearch = (opts?: {
       query: debouncedQuery || '',
       limit: 20,
       chainIds: chainIds ?? undefined,
-      includeMarketData: true,
+      includeMarketData,
     });
 
   const {
