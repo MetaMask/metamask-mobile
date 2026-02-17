@@ -27,7 +27,6 @@ import { useTokenBalance } from '../hooks/useTokenBalance';
 import { useTokenActions } from '../hooks/useTokenActions';
 import { useTokenTransactions } from '../hooks/useTokenTransactions';
 import { selectPerpsEnabledFlag } from '../../Perps';
-import { selectMerklCampaignClaimingEnabledFlag } from '../../Earn/selectors/featureFlags';
 import { TraceName, endTrace } from '../../../../util/trace';
 import {
   isNetworkRampNativeTokenSupported,
@@ -127,9 +126,6 @@ const TokenDetails: React.FC<{ token: TokenDetailsRouteParams }> = ({
   };
 
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
-  const isMerklCampaignClaimingEnabled = useSelector(
-    selectMerklCampaignClaimingEnabledFlag,
-  );
 
   const {
     currentPrice,
@@ -211,7 +207,6 @@ const TokenDetails: React.FC<{ token: TokenDetailsRouteParams }> = ({
         setTimePeriod={setTimePeriod}
         chartNavigationButtons={chartNavigationButtons}
         isPerpsEnabled={isPerpsEnabled}
-        isMerklCampaignClaimingEnabled={isMerklCampaignClaimingEnabled}
         displayBuyButton={isRampAvailable}
         displaySwapsButton={displaySwapsButton}
         currentCurrency={currentCurrency}

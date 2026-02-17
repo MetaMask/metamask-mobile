@@ -7,6 +7,7 @@
  * Ensures we have a proper Error object for logging.
  * Converts unknown/string errors to proper Error instances.
  * Handles undefined/null specially for better Sentry context.
+ *
  * @param error - The caught error (could be Error, string, or unknown)
  * @param context - Optional context string to help identify the source of the error
  * @returns A proper Error instance
@@ -21,5 +22,12 @@ export function ensureError(error: unknown, context?: string): Error {
     const baseMessage = 'Unknown error (no details provided)';
     return new Error(context ? `${baseMessage} [${context}]` : baseMessage);
   }
-  return new Error(String(error));
+  if (typeof error === 'string') {
+    return new Error(error);
+  }
+  return new Error(
+    typeof error === 'object' && error !== null && 'message' in error
+      ? String((error as { message: unknown }).message)
+      : 'Unknown error',
+  );
 }

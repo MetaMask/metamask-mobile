@@ -29,7 +29,7 @@ import {
   BridgeViewMode,
 } from '../../../../components/UI/Bridge/types';
 import { selectGasFeeControllerEstimates } from '../../../../selectors/gasFeeController';
-import { MetaMetrics } from '../../../Analytics';
+import { analytics } from '../../../../util/analytics/analytics';
 import { GasFeeEstimates } from '@metamask/gas-fee-controller';
 import { selectRemoteFeatureFlags } from '../../../../selectors/featureFlagController';
 import { getTokenExchangeRate } from '../../../../components/UI/Bridge/utils/exchange-rates';
@@ -64,9 +64,11 @@ export interface BridgeState {
    */
   isDestTokenManuallySet: boolean;
   /**
-   * Analytics context set when navigating to bridge/swap from Token Details.
-   * Contains entry_point and ab_test variant for page-viewed event attribution.
+   * Network filter for the token selector screen.
+   * When set, only tokens from this chain are shown.
+   * When undefined, tokens from all chains are shown ("All" filter).
    */
+  tokenSelectorNetworkFilter: CaipChainId | undefined;
   abTestContext?: {
     entry_point?: string;
     ab_test_token_details_layout?: string;
@@ -91,6 +93,7 @@ export const initialState: BridgeState = {
   isGasIncluded7702Supported: false,
   isDestTokenManuallySet: false,
   abTestContext: undefined,
+  tokenSelectorNetworkFilter: undefined,
 };
 
 const name = 'bridge';
@@ -186,6 +189,12 @@ const slice = createSlice({
       action: PayloadAction<BridgeState['abTestContext']>,
     ) => {
       state.abTestContext = action.payload;
+    },
+    setTokenSelectorNetworkFilter: (
+      state,
+      action: PayloadAction<CaipChainId | undefined>,
+    ) => {
+      state.tokenSelectorNetworkFilter = action.payload;
     },
   },
   extraReducers: (builder) => {
@@ -447,7 +456,7 @@ const selectControllerFields = (state: RootState) => ({
   ...state.engine.backgroundState.MultichainAssetsRatesController,
   ...state.engine.backgroundState.TokenRatesController,
   ...state.engine.backgroundState.CurrencyRateController,
-  participateInMetaMetrics: MetaMetrics.getInstance().isEnabled(),
+  participateInMetaMetrics: analytics.isEnabled(),
   remoteFeatureFlags: {
     bridgeConfig: selectRemoteFeatureFlags(state).bridgeConfig,
   },
@@ -591,6 +600,11 @@ export const selectIsSelectingToken = createSelector(
   (bridgeState) => bridgeState.isSelectingToken,
 );
 
+export const selectTokenSelectorNetworkFilter = createSelector(
+  selectBridgeState,
+  (bridgeState) => bridgeState.tokenSelectorNetworkFilter,
+);
+
 export const selectIsDestTokenManuallySet = createSelector(
   selectBridgeState,
   (bridgeState) => bridgeState.isDestTokenManuallySet,
@@ -679,4 +693,5 @@ export const {
   setIsGasIncludedSTXSendBundleSupported,
   setIsGasIncluded7702Supported,
   setAbTestContext,
+  setTokenSelectorNetworkFilter,
 } = actions;
