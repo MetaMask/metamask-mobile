@@ -21,8 +21,10 @@ import { useMusdConversionTokens } from '../../../Earn/hooks/useMusdConversionTo
 import { useMusdConversionEligibility } from '../../../Earn/hooks/useMusdConversionEligibility';
 import {
   selectIsMusdConversionFlowEnabledFlag,
+  selectMerklCampaignClaimingEnabledFlag,
   selectStablecoinLendingEnabledFlag,
 } from '../../../Earn/selectors/featureFlags';
+import { isEligibleForMerklRewards } from '../../../Earn/components/MerklRewards/hooks/useMerklRewards';
 import { MUSD_CONVERSION_APY } from '../../../Earn/constants/musd';
 import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
 
@@ -161,11 +163,44 @@ jest.mock('../../../Stake/hooks/useStakingChain', () => ({
   useStakingChainByChainId: () => ({ isStakingSupportedChain: false }),
 }));
 
+const mockClaimRewards = jest.fn();
+const mockUseMerklClaim = jest.fn((_asset?: unknown) => ({
+  claimRewards: mockClaimRewards,
+  isClaiming: false,
+  error: null,
+}));
+jest.mock('../../../Earn/components/MerklRewards/hooks/useMerklClaim', () => ({
+  useMerklClaim: (...args: [unknown]) => mockUseMerklClaim(...args),
+}));
+
+const mockUsePendingMerklClaim = jest.fn(() => ({
+  hasPendingClaim: false,
+}));
+jest.mock(
+  '../../../Earn/components/MerklRewards/hooks/usePendingMerklClaim',
+  () => ({
+    usePendingMerklClaim: () => mockUsePendingMerklClaim(),
+  }),
+);
+
+const mockUseMerklRewards = jest.fn((_opts?: unknown) => ({
+  claimableReward: null as string | null,
+  isLoading: false,
+}));
+jest.mock(
+  '../../../Earn/components/MerklRewards/hooks/useMerklRewards',
+  () => ({
+    useMerklRewards: (...args: [unknown]) => mockUseMerklRewards(...args),
+    isEligibleForMerklRewards: jest.fn(() => false),
+  }),
+);
+
 jest.mock('../../../Earn/selectors/featureFlags', () => ({
   selectPooledStakingEnabledFlag: jest.fn(() => true),
   selectStablecoinLendingEnabledFlag: jest.fn(() => false),
   selectIsMusdConversionFlowEnabledFlag: jest.fn(() => false),
   selectMusdConversionPaymentTokensAllowlist: jest.fn(() => ({})),
+  selectMerklCampaignClaimingEnabledFlag: jest.fn(() => false),
 }));
 
 const mockSelectIsMusdConversionFlowEnabledFlag =
@@ -176,6 +211,11 @@ const mockSelectIsMusdConversionFlowEnabledFlag =
 const mockSelectStablecoinLendingEnabledFlag =
   selectStablecoinLendingEnabledFlag as jest.MockedFunction<
     typeof selectStablecoinLendingEnabledFlag
+  >;
+
+const mockSelectMerklCampaignClaimingEnabledFlag =
+  selectMerklCampaignClaimingEnabledFlag as jest.MockedFunction<
+    typeof selectMerklCampaignClaimingEnabledFlag
   >;
 
 jest.mock('../../util/deriveBalanceFromAssetMarketDetails', () => ({
@@ -304,6 +344,9 @@ describe('TokenListItemV2 - Component Rendering Tests for Coverage', () => {
     isStockToken?: boolean;
     isStablecoinLendingEnabled?: boolean;
     earnToken?: Record<string, unknown> | null;
+    isMerklClaimingEnabled?: boolean;
+    claimableReward?: string | null;
+    isMerklEligible?: boolean;
   }
 
   function prepareMocks({
@@ -315,6 +358,9 @@ describe('TokenListItemV2 - Component Rendering Tests for Coverage', () => {
     isStockToken = false,
     isStablecoinLendingEnabled = false,
     earnToken,
+    isMerklClaimingEnabled = false,
+    claimableReward = null,
+    isMerklEligible = false,
   }: PrepareMocksOptions = {}) {
     jest.clearAllMocks();
 
@@ -322,6 +368,14 @@ describe('TokenListItemV2 - Component Rendering Tests for Coverage', () => {
     mockSelectStablecoinLendingEnabledFlag.mockReturnValue(
       isStablecoinLendingEnabled ?? false,
     );
+    mockSelectMerklCampaignClaimingEnabledFlag.mockReturnValue(
+      isMerklClaimingEnabled,
+    );
+    mockUseMerklRewards.mockReturnValue({
+      claimableReward,
+      isLoading: false,
+    });
+    (isEligibleForMerklRewards as jest.Mock).mockReturnValue(isMerklEligible);
 
     // Stock token mocks
     mockIsStockToken.mockReturnValue(isStockToken);
@@ -368,6 +422,10 @@ describe('TokenListItemV2 - Component Rendering Tests for Coverage', () => {
 
         if (selector === selectStablecoinLendingEnabledFlag) {
           return isStablecoinLendingEnabled;
+        }
+
+        if (selector === selectMerklCampaignClaimingEnabledFlag) {
+          return isMerklClaimingEnabled;
         }
 
         const selectorString = selector.toString();
@@ -1124,6 +1182,62 @@ describe('TokenListItemV2 - Component Rendering Tests for Coverage', () => {
           symbol: 'TEST',
         }),
       );
+    });
+  });
+
+  describe('Merkl Claim Bonus', () => {
+    const claimableAsset = {
+      ...defaultAsset,
+      address: '0x8d652c6d4A8F3Db96Cd866C1a9220B1447F29898',
+    };
+    const assetKey: FlashListAssetKey = {
+      address: claimableAsset.address,
+      chainId: '0x1',
+      isStaked: false,
+    };
+
+    it('shows "Claim bonus" replacing percentage when all conditions are met', () => {
+      prepareMocks({
+        asset: claimableAsset,
+        pricePercentChange1d: 5.0,
+        isMerklClaimingEnabled: true,
+        claimableReward: '1000000000000000000',
+        isMerklEligible: true,
+      });
+
+      const { getByText, queryByText } = renderWithProvider(
+        <TokenListItemV2
+          assetKey={assetKey}
+          showRemoveMenu={jest.fn()}
+          setShowScamWarningModal={jest.fn()}
+          privacyMode={false}
+        />,
+      );
+
+      expect(getByText(strings('earn.claim_bonus'))).toBeOnTheScreen();
+      expect(queryByText('+5.00%')).toBeNull();
+    });
+
+    it('falls back to percentage when merkl claiming is disabled', () => {
+      prepareMocks({
+        asset: claimableAsset,
+        pricePercentChange1d: 1.5,
+        isMerklClaimingEnabled: false,
+        claimableReward: '1000000000000000000',
+        isMerklEligible: true,
+      });
+
+      const { queryByText, getByText } = renderWithProvider(
+        <TokenListItemV2
+          assetKey={assetKey}
+          showRemoveMenu={jest.fn()}
+          setShowScamWarningModal={jest.fn()}
+          privacyMode={false}
+        />,
+      );
+
+      expect(queryByText(strings('earn.claim_bonus'))).toBeNull();
+      expect(getByText('+1.50%')).toBeOnTheScreen();
     });
   });
 });

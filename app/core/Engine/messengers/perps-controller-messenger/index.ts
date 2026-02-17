@@ -41,6 +41,7 @@ export function getPerpsControllerMessenger(
       'TransactionController:transactionConfirmed',
       'TransactionController:transactionFailed',
       'RemoteFeatureFlagController:stateChange',
+      'AccountTreeController:selectedAccountGroupChange',
     ],
     messenger,
   });
