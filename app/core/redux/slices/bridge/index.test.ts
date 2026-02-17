@@ -687,7 +687,7 @@ describe('bridge slice', () => {
   });
 
   describe('setVisiblePillChainIds', () => {
-    it('should set the visible pill chain IDs', () => {
+    it('sets the visible pill chain IDs', () => {
       const chainIds = ['eip155:1', 'eip155:137'] as CaipChainId[];
       const action = setVisiblePillChainIds(chainIds);
       const state = reducer(initialState, action);
@@ -695,7 +695,7 @@ describe('bridge slice', () => {
       expect(state.visiblePillChainIds).toEqual(chainIds);
     });
 
-    it('should clear visible pill chain IDs when set to undefined', () => {
+    it('clears visible pill chain IDs when set to undefined', () => {
       const stateWithPills = {
         ...initialState,
         visiblePillChainIds: ['eip155:1'] as CaipChainId[],
@@ -708,7 +708,7 @@ describe('bridge slice', () => {
   });
 
   describe('selectVisiblePillChainIds', () => {
-    it('should return undefined when no pills are set', () => {
+    it('returns undefined when no pills are set', () => {
       const mockState = cloneDeep(mockRootState);
       (mockState as any).bridge = { ...initialState };
 
@@ -719,7 +719,7 @@ describe('bridge slice', () => {
       expect(result).toBeUndefined();
     });
 
-    it('should return the set chain IDs', () => {
+    it('returns the set chain IDs', () => {
       const mockState = cloneDeep(mockRootState);
       (mockState as any).bridge = {
         ...initialState,

@@ -6,7 +6,7 @@ import {
   setIsDestTokenManuallySet,
 } from '../../../../core/redux/slices/bridge';
 import { createMockToken } from '../testUtils/fixtures';
-import { TokenSelectorType } from '../types';
+import { BridgeToken, TokenSelectorType } from '../types';
 
 const mockDispatch = jest.fn();
 const mockHandleSwitchTokensInner = jest.fn().mockResolvedValue(undefined);
@@ -85,7 +85,14 @@ const mockDestToken = createMockToken({
 });
 const mockDestAmount = '100';
 
-const defaultSelectorState = {
+interface SelectorState {
+  sourceToken: BridgeToken | null;
+  destToken: BridgeToken | null;
+  destAmount: string;
+  networkConfigurations: Record<string, unknown> | undefined;
+}
+
+const defaultSelectorState: SelectorState = {
   sourceToken: mockSourceToken,
   destToken: mockDestToken,
   destAmount: mockDestAmount,
@@ -97,7 +104,7 @@ const defaultSelectorState = {
 
 const renderTokenSelectionHook = (
   type: TokenSelectorType,
-  selectorOverrides: Partial<typeof defaultSelectorState> = {},
+  selectorOverrides: Partial<SelectorState> = {},
 ) => {
   const selectorState = {
     ...defaultSelectorState,
