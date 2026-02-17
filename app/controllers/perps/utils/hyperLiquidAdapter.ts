@@ -1,12 +1,11 @@
-import type {
-  AssetPosition,
-  FrontendOrder,
-  ClearinghouseStateResponse,
-  SpotClearinghouseStateResponse,
-  MetaResponse,
-  SDKOrderParams,
-} from '../types/hyperliquid-types';
 import { Hex, isHexString } from '@metamask/utils';
+
+import {
+  countSignificantFigures,
+  roundToSignificantFigures,
+} from './significantFigures';
+import { HIP3_ASSET_ID_CONFIG } from '../constants/hyperLiquidConfig';
+import { DECIMAL_PRECISION_CONFIG } from '../constants/perpsConfig';
 import type {
   AccountState,
   MarketInfo,
@@ -16,12 +15,14 @@ import type {
   RawLedgerUpdate,
   UserHistoryItem,
 } from '../types';
-import { DECIMAL_PRECISION_CONFIG } from '../constants/perpsConfig';
-import { HIP3_ASSET_ID_CONFIG } from '../constants/hyperLiquidConfig';
-import {
-  countSignificantFigures,
-  roundToSignificantFigures,
-} from './significantFigures';
+import type {
+  AssetPosition,
+  FrontendOrder,
+  ClearinghouseStateResponse,
+  SpotClearinghouseStateResponse,
+  MetaResponse,
+  SDKOrderParams,
+} from '../types/hyperliquid-types';
 
 /**
  * HyperLiquid SDK Adapter Utilities
@@ -58,9 +59,9 @@ export function adaptOrderToSDK(
   return {
     a: assetId,
     b: order.isBuy,
-    p: order.price || '0',
+    p: order.price ?? '0',
     s: order.size,
-    r: order.reduceOnly || false,
+    r: order.reduceOnly ?? false,
     t:
       order.orderType === 'limit'
         ? {
@@ -108,8 +109,8 @@ export function adaptOrderFromSDK(
   const symbol = rawOrder.coin;
   const side: 'buy' | 'sell' = rawOrder.side === 'B' ? 'buy' : 'sell';
   const detailedOrderType = rawOrder.orderType;
-  const isTrigger = rawOrder.isTrigger;
-  const reduceOnly = rawOrder.reduceOnly;
+  const { isTrigger } = rawOrder;
+  const { reduceOnly } = rawOrder;
 
   let orderType: 'limit' | 'market' = 'market';
   if (detailedOrderType.toLowerCase().includes('limit') || rawOrder.limitPx) {
@@ -228,8 +229,8 @@ export function adaptAccountStateFromSDK(
   );
   const totalReturnOnEquityPercentage =
     totalMarginUsed > 0
-      ? ((weightedReturnOnEquity / totalMarginUsed) * 100).toFixed(1)
-      : '0.0';
+      ? ((weightedReturnOnEquity / totalMarginUsed) * 100).toString()
+      : '0';
 
   const perpsBalance = parseFloat(perpsState.marginSummary.accountValue);
 
@@ -237,7 +238,7 @@ export function adaptAccountStateFromSDK(
   if (spotState?.balances && Array.isArray(spotState.balances)) {
     spotBalance = spotState.balances.reduce(
       (sum: number, balance: { total?: string }) =>
-        sum + parseFloat(balance.total || '0'),
+        sum + parseFloat(balance.total ?? '0'),
       0,
     );
   }
@@ -307,17 +308,19 @@ export function formatHyperLiquidSize(params: {
   szDecimals: number;
 }): string {
   const { size, szDecimals } = params;
-  const num = typeof size === 'string' ? parseFloat(size) : size;
+  const number = typeof size === 'string' ? parseFloat(size) : size;
 
-  if (isNaN(num)) return '0';
+  if (isNaN(number)) {
+    return '0';
+  }
 
-  const formatted = num.toFixed(szDecimals);
+  const formatted = number.toFixed(szDecimals);
 
   if (!formatted.includes('.')) {
     return formatted;
   }
 
-  return formatted.replace(/\.?0+$/, '');
+  return formatted.replace(/\.?0+$/u, '');
 }
 
 export function calculatePositionSize(params: {
@@ -362,11 +365,17 @@ export function adaptHyperLiquidLedgerUpdateToUserHistoryItem(
 ): UserHistoryItem[] {
   return (rawLedgerUpdates || [])
     .filter((update) => {
-      if (update.delta.type === 'deposit') return true;
-      if (update.delta.type === 'withdraw') return true;
+      if (update.delta.type === 'deposit') {
+        return true;
+      }
+      if (update.delta.type === 'withdraw') {
+        return true;
+      }
       if (update.delta.type === 'internalTransfer') {
         const usdc = Number.parseFloat(update.delta.usdc ?? '0');
-        if (Number.isNaN(usdc)) return false;
+        if (Number.isNaN(usdc)) {
+          return false;
+        }
         return usdc > 0;
       }
       return false;

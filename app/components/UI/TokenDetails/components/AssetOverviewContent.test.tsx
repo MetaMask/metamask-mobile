@@ -21,29 +21,29 @@ const mockTrack = jest.fn();
 const mockNavigate = jest.fn();
 
 jest.mock('../../MarketInsights', () => ({
-    __esModule: true,
-    MarketInsightsEntryCard: ({
-      onPress,
-      testID,
-    }: {
-      onPress?: () => void;
-      testID?: string;
-    }) => <MockPressable onPress={onPress} testID={testID} />,
-    useMarketInsights: () => ({
-      report: {
-        asset: 'eth',
-        generatedAt: '2026-02-17T11:55:00.000Z',
-        headline: 'ETH outlook stays positive',
-        summary: 'Momentum remains constructive.',
-        trends: [],
-        sources: [],
-      },
-      isLoading: false,
-      error: null,
-      timeAgo: '5m ago',
-    }),
-    selectMarketInsightsEnabled: () => true,
-  }));
+  __esModule: true,
+  MarketInsightsEntryCard: ({
+    onPress,
+    testID,
+  }: {
+    onPress?: () => void;
+    testID?: string;
+  }) => <MockPressable onPress={onPress} testID={testID} />,
+  useMarketInsights: () => ({
+    report: {
+      asset: 'eth',
+      generatedAt: '2026-02-17T11:55:00.000Z',
+      headline: 'ETH outlook stays positive',
+      summary: 'Momentum remains constructive.',
+      trends: [],
+      sources: [],
+    },
+    isLoading: false,
+    error: null,
+    timeAgo: '5m ago',
+  }),
+  selectMarketInsightsEnabled: () => true,
+}));
 
 jest.mock('../hooks/usePerpsActions', () => ({
   usePerpsActions: () => ({
@@ -62,6 +62,11 @@ jest.mock('../../Perps/hooks/usePerpsEventTracking', () => ({
 jest.mock('../../Perps/components/PerpsBottomSheetTooltip', () => ({
   __esModule: true,
   default: () => null,
+}));
+
+jest.mock('../../../../selectors/featureFlagController/tokenDetailsV2', () => ({
+  selectTokenDetailsV2Enabled: jest.fn(() => true),
+  selectTokenDetailsV2ButtonsEnabled: jest.fn(() => true),
 }));
 
 jest.mock('@react-navigation/native', () => {
@@ -88,9 +93,7 @@ function createState(isEligible: boolean) {
         RemoteFeatureFlagController: {
           ...(backgroundState as { RemoteFeatureFlagController?: object })
             .RemoteFeatureFlagController,
-          remoteFeatureFlags: {
-            tokenDetailsV2Buttons: true,
-          },
+          remoteFeatureFlags: {},
         },
         AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
       },
