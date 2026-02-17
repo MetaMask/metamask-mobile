@@ -7,7 +7,6 @@ import Badge, {
 import BadgeWrapper, {
   BadgePosition,
 } from '../../../../../component-library/components/Badges/BadgeWrapper';
-import AssetIcon from '../../../../UI/AssetIcon';
 import { strings } from '../../../../../../locales/i18n';
 import { ImportTokenViewSelectorsIDs } from '../../ImportAssetView.testIds';
 import { NetworkBadgeSource } from '../../../../UI/AssetOverview/Balance/Balance';
@@ -24,6 +23,8 @@ import {
   TextVariant,
   TextColor,
 } from '@metamask/design-system-react-native';
+import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
+import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 
 interface Props {
   /**
@@ -164,10 +165,10 @@ const SearchTokenResults = ({
                 }
               >
                 {image && (
-                  <AssetIcon
-                    address={address}
-                    logo={image}
-                    customStyle={tw.style('w-8 h-8')}
+                  <AvatarToken
+                    name={symbol}
+                    imageSource={{ uri: image }}
+                    size={AvatarSize.Lg}
                   />
                 )}
               </BadgeWrapper>
