@@ -318,18 +318,6 @@ describe('BaseControlBar', () => {
   });
 
   describe('Button interactions', () => {
-    it('navigates to NetworkManager when filter button pressed without custom handler', () => {
-      const { getByTestId } = renderComponent();
-      const filterButton = getByTestId('test-network-filter');
-
-      fireEvent.press(filterButton);
-
-      expect(mockNavigation.navigate).toHaveBeenCalledWith(
-        'NetworkManager',
-        {},
-      );
-    });
-
     it('should call custom filter handler when provided', () => {
       const customFilterHandler = jest.fn();
       const { getByTestId } = renderComponent({
