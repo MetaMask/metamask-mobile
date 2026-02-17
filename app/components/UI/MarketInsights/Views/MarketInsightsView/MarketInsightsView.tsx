@@ -36,20 +36,18 @@ import { NATIVE_SWAPS_TOKEN_ADDRESS } from '../../../../../constants/bridge';
 import type { MarketInsightsTweet } from '@metamask-previews/ai-controllers';
 
 interface MarketInsightsRouteParams {
-  MarketInsightsView: {
-    assetSymbol: string;
-    caip19Id: string;
-    tokenImageUrl?: string;
-    pricePercentChange?: number;
-    /** Token address for swap navigation */
-    tokenAddress?: string;
-    /** Token decimals for swap navigation */
-    tokenDecimals?: number;
-    /** Token name for swap navigation */
-    tokenName?: string;
-    /** Token chainId for swap navigation */
-    tokenChainId?: string;
-  };
+  assetSymbol: string;
+  caip19Id: string;
+  tokenImageUrl?: string;
+  pricePercentChange?: number;
+  /** Token address for swap navigation */
+  tokenAddress?: string;
+  /** Token decimals for swap navigation */
+  tokenDecimals?: number;
+  /** Token name for swap navigation */
+  tokenName?: string;
+  /** Token chainId for swap navigation */
+  tokenChainId?: string;
 }
 
 /**
@@ -67,7 +65,7 @@ const MarketInsightsView: React.FC = () => {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const route =
-    useRoute<RouteProp<MarketInsightsRouteParams, 'MarketInsightsView'>>();
+    useRoute<RouteProp<{ params: MarketInsightsRouteParams }, 'params'>>();
   const {
     assetSymbol,
     caip19Id,
