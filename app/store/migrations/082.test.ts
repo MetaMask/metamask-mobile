@@ -116,18 +116,15 @@ describe('Migration 82', () => {
       },
       test: 'invalid accountsController accounts state',
     },
-  ])(
-    'returns state unchanged for invalid state - $test',
-    ({ state }) => {
-      const orgState = cloneDeep(state);
-      mockedEnsureValidState.mockReturnValue(true);
+  ])('returns state unchanged for invalid state - $test', ({ state }) => {
+    const orgState = cloneDeep(state);
+    mockedEnsureValidState.mockReturnValue(true);
 
-      const migratedState = migrate(state);
+    const migratedState = migrate(state);
 
-      // State should be unchanged
-      expect(migratedState).toStrictEqual(orgState);
-    },
-  );
+    // State should be unchanged
+    expect(migratedState).toStrictEqual(orgState);
+  });
 
   it('does not remove any tokens from state if all accounts in TokensController state exist in AccountsController state', () => {
     mockedEnsureValidState.mockReturnValue(true);
