@@ -205,28 +205,26 @@ export function usePerpsOrderForm(
     }
   }, [initialAmountValue]);
 
-  // Restore pending config values on mount (only once)
-  const hasRestoredPendingConfig = useRef(false);
   useEffect(() => {
-    if (!hasRestoredPendingConfig.current && pendingConfig) {
-      setOrderForm((prev) => ({
-        ...prev,
-        ...(pendingConfig.amount && { amount: pendingConfig.amount }),
-        ...(pendingConfig.leverage && { leverage: pendingConfig.leverage }),
-        ...(pendingConfig.takeProfitPrice !== undefined && {
-          takeProfitPrice: pendingConfig.takeProfitPrice,
-        }),
-        ...(pendingConfig.stopLossPrice !== undefined && {
-          stopLossPrice: pendingConfig.stopLossPrice,
-        }),
-        ...(pendingConfig.limitPrice !== undefined && {
-          limitPrice: pendingConfig.limitPrice,
-        }),
-        ...(pendingConfig.orderType && { type: pendingConfig.orderType }),
-      }));
-      hasRestoredPendingConfig.current = true;
-    }
-  }, [pendingConfig]);
+    if (!pendingConfig) return;
+    setOrderForm((prev) => ({
+      ...prev,
+      ...(pendingConfig.amount && { amount: pendingConfig.amount }),
+      ...(pendingConfig.leverage && { leverage: pendingConfig.leverage }),
+      ...(pendingConfig.takeProfitPrice !== undefined && {
+        takeProfitPrice: pendingConfig.takeProfitPrice,
+      }),
+      ...(pendingConfig.stopLossPrice !== undefined && {
+        stopLossPrice: pendingConfig.stopLossPrice,
+      }),
+      ...(pendingConfig.limitPrice !== undefined && {
+        limitPrice: pendingConfig.limitPrice,
+      }),
+      ...(pendingConfig.orderType && { type: pendingConfig.orderType }),
+    }));
+    // We don't need to depend on pendingConfig because we only want to restore it once when the component mounts
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Sync leverage from existing position when it loads asynchronously
   // This handles the case where positions haven't loaded yet when form initializes
