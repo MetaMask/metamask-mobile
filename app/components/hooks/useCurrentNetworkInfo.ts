@@ -87,6 +87,7 @@ export const useCurrentNetworkInfo = (): CurrentNetworkInfo => {
     },
     [enabledNetworks, networksByCaipChainId],
   );
+
   // Check if multiple namespaces are enabled (e.g., "All popular networks" mode)
   const hasMultipleNamespacesEnabled = useMemo(() => {
     const enabledNamespaces = Object.keys(enabledNetworksByNamespace).filter(

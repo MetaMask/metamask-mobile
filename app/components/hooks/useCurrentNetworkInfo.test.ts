@@ -40,7 +40,7 @@ describe('useCurrentNetworkInfo', () => {
   });
 
   describe('hasMultipleNamespacesEnabled', () => {
-    it('should return false when only one namespace is enabled', () => {
+    it('returns false when only one namespace is enabled', () => {
       mockUseNetworkEnablement.mockReturnValue({
         namespace: KnownCaipNamespace.Eip155,
         enabledNetworksByNamespace: {
@@ -56,7 +56,7 @@ describe('useCurrentNetworkInfo', () => {
       expect(result.current.hasMultipleNamespacesEnabled).toBe(false);
     });
 
-    it('should return true when multiple namespaces are enabled', () => {
+    it('returns true when multiple namespaces are enabled', () => {
       mockUseNetworkEnablement.mockReturnValue({
         namespace: KnownCaipNamespace.Eip155,
         enabledNetworksByNamespace: {
@@ -75,7 +75,7 @@ describe('useCurrentNetworkInfo', () => {
       expect(result.current.hasMultipleNamespacesEnabled).toBe(true);
     });
 
-    it('should return false when no namespaces are enabled', () => {
+    it('returns false when no namespaces are enabled', () => {
       mockUseNetworkEnablement.mockReturnValue({
         namespace: KnownCaipNamespace.Eip155,
         enabledNetworksByNamespace: {},
@@ -86,7 +86,7 @@ describe('useCurrentNetworkInfo', () => {
       expect(result.current.hasMultipleNamespacesEnabled).toBe(false);
     });
 
-    it('should return false when all namespaces have no enabled networks', () => {
+    it('returns false when all namespaces have no enabled networks', () => {
       mockUseNetworkEnablement.mockReturnValue({
         namespace: KnownCaipNamespace.Eip155,
         enabledNetworksByNamespace: {
@@ -105,7 +105,7 @@ describe('useCurrentNetworkInfo', () => {
       expect(result.current.hasMultipleNamespacesEnabled).toBe(false);
     });
 
-    it('should return true when exactly two namespaces have enabled networks', () => {
+    it('returns true when exactly two namespaces have enabled networks', () => {
       mockUseNetworkEnablement.mockReturnValue({
         namespace: KnownCaipNamespace.Eip155,
         enabledNetworksByNamespace: {
@@ -126,7 +126,7 @@ describe('useCurrentNetworkInfo', () => {
       expect(result.current.hasMultipleNamespacesEnabled).toBe(true);
     });
 
-    it('should handle non-object values in enabledNetworksByNamespace', () => {
+    it('handles non-object values in enabledNetworksByNamespace', () => {
       mockUseNetworkEnablement.mockReturnValue({
         namespace: KnownCaipNamespace.Eip155,
         enabledNetworksByNamespace: {
@@ -144,7 +144,7 @@ describe('useCurrentNetworkInfo', () => {
   });
 
   describe('isNetworkEnabledForDefi', () => {
-    it('should return true when namespace is EVM (Eip155)', () => {
+    it('returns true when namespace is EVM (Eip155)', () => {
       mockUseNetworkEnablement.mockReturnValue({
         namespace: KnownCaipNamespace.Eip155,
         enabledNetworksByNamespace: {
@@ -159,7 +159,7 @@ describe('useCurrentNetworkInfo', () => {
       expect(result.current.isNetworkEnabledForDefi).toBe(true);
     });
 
-    it('should return false when namespace is Bitcoin (Bip122)', () => {
+    it('returns false when namespace is Bitcoin (Bip122)', () => {
       mockUseNetworkEnablement.mockReturnValue({
         namespace: KnownCaipNamespace.Bip122,
         enabledNetworksByNamespace: {
@@ -174,7 +174,7 @@ describe('useCurrentNetworkInfo', () => {
       expect(result.current.isNetworkEnabledForDefi).toBe(false);
     });
 
-    it('should return false when namespace is Solana', () => {
+    it('returns false when namespace is Solana', () => {
       mockUseNetworkEnablement.mockReturnValue({
         namespace: 'solana',
         enabledNetworksByNamespace: {
@@ -189,7 +189,7 @@ describe('useCurrentNetworkInfo', () => {
       expect(result.current.isNetworkEnabledForDefi).toBe(false);
     });
 
-    it('should return true when multiple namespaces are enabled (even if current is non-EVM)', () => {
+    it('returns true when multiple namespaces are enabled (even if current is non-EVM)', () => {
       mockUseNetworkEnablement.mockReturnValue({
         namespace: KnownCaipNamespace.Bip122,
         enabledNetworksByNamespace: {
@@ -208,7 +208,7 @@ describe('useCurrentNetworkInfo', () => {
       expect(result.current.hasMultipleNamespacesEnabled).toBe(true);
     });
 
-    it('should return true when namespace is EVM and multiple namespaces are enabled', () => {
+    it('returns true when namespace is EVM and multiple namespaces are enabled', () => {
       mockUseNetworkEnablement.mockReturnValue({
         namespace: KnownCaipNamespace.Eip155,
         enabledNetworksByNamespace: {
@@ -226,7 +226,7 @@ describe('useCurrentNetworkInfo', () => {
       expect(result.current.isNetworkEnabledForDefi).toBe(true);
     });
 
-    it('should return false when no networks are enabled', () => {
+    it('returns false when no networks are enabled', () => {
       mockUseNetworkEnablement.mockReturnValue({
         namespace: KnownCaipNamespace.Bip122,
         enabledNetworksByNamespace: {},
@@ -239,7 +239,7 @@ describe('useCurrentNetworkInfo', () => {
   });
 
   describe('integration tests', () => {
-    it('should return correct values for "All Popular Networks" mode', () => {
+    it('returns correct values for "All Popular Networks" mode', () => {
       mockUseNetworkEnablement.mockReturnValue({
         namespace: KnownCaipNamespace.Eip155,
         enabledNetworksByNamespace: {
@@ -262,7 +262,7 @@ describe('useCurrentNetworkInfo', () => {
       expect(result.current.isNetworkEnabledForDefi).toBe(true);
     });
 
-    it('should return correct values for single EVM network', () => {
+    it('returns correct values for single EVM network', () => {
       mockUseNetworkEnablement.mockReturnValue({
         namespace: KnownCaipNamespace.Eip155,
         enabledNetworksByNamespace: {
@@ -278,7 +278,7 @@ describe('useCurrentNetworkInfo', () => {
       expect(result.current.isNetworkEnabledForDefi).toBe(true);
     });
 
-    it('should return correct values for single non-EVM network', () => {
+    it('returns correct values for single non-EVM network', () => {
       mockUseNetworkEnablement.mockReturnValue({
         namespace: KnownCaipNamespace.Bip122,
         enabledNetworksByNamespace: {
