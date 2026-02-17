@@ -334,6 +334,18 @@ jest.mock('../../hooks', () => ({
 }));
 
 // Mock direct hook imports (when imported from specific file paths)
+jest.mock('../../hooks/usePerpsConnection', () => ({
+  usePerpsConnection: jest.fn(() => ({
+    isConnected: true,
+    isConnecting: false,
+    isInitialized: true,
+    error: null,
+    connect: jest.fn(),
+    disconnect: jest.fn(),
+    resetError: jest.fn(),
+  })),
+}));
+
 jest.mock('../../hooks/usePerpsPaymentTokens', () => ({
   usePerpsPaymentTokens: jest.fn(() => [
     {
@@ -679,6 +691,7 @@ const defaultMockHooks = {
     placeOrder: jest.fn(),
     depositWithConfirmation: jest.fn().mockResolvedValue(undefined),
     withdrawWithConfirmation: jest.fn(),
+    subscribeToPrices: jest.fn(() => jest.fn()),
     getMarkets: jest.fn().mockResolvedValue([
       {
         name: 'ETH',
@@ -3216,7 +3229,9 @@ describe('PerpsOrderView', () => {
 
       // Assert - Should NOT show "No funds available" warning while loading
       expect(
-        queryByText('No funds available. Please deposit first.'),
+        queryByText(
+          'Not enough funds available. Deposit funds or select a different payment method',
+        ),
       ).toBeNull();
     });
 
