@@ -5,8 +5,7 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import DisplayNFTMediaSettings from '.';
 import { NFT_DISPLAY_MEDIA_MODE_SECTION } from './index.constants';
-import { useMetrics } from '../../../hooks/useMetrics';
-import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 
 let mockSetDisplayNftMedia: jest.Mock;
 let mockSetUseNftDetection: jest.Mock;
@@ -32,14 +31,20 @@ jest.mock('../../../../core/Engine', () => {
   };
 });
 
-jest.mock('../../../hooks/useMetrics');
+jest.mock('../../../hooks/useAnalytics/useAnalytics');
 
-const mockTrackEvent = jest.fn();
 const mockAddTraitsToUser = jest.fn();
 
-(useMetrics as jest.MockedFn<typeof useMetrics>).mockReturnValue({
-  trackEvent: mockTrackEvent,
-  createEventBuilder: MetricsEventBuilder.createEventBuilder,
+(useAnalytics as jest.MockedFn<typeof useAnalytics>).mockReturnValue({
+  createEventBuilder: jest.fn(() => ({
+    addProperties: jest.fn().mockReturnThis(),
+    addSensitiveProperties: jest.fn().mockReturnThis(),
+    removeProperties: jest.fn().mockReturnThis(),
+    removeSensitiveProperties: jest.fn().mockReturnThis(),
+    setSaveDataRecording: jest.fn().mockReturnThis(),
+    build: jest.fn(),
+  })) as ReturnType<typeof useAnalytics>['createEventBuilder'],
+  trackEvent: jest.fn(),
   enable: jest.fn(),
   addTraitsToUser: mockAddTraitsToUser,
   createDataDeletionTask: jest.fn(),
@@ -48,7 +53,7 @@ const mockAddTraitsToUser = jest.fn();
   getDeleteRegulationId: jest.fn(),
   isDataRecorded: jest.fn(),
   isEnabled: jest.fn(),
-  getMetaMetricsId: jest.fn(),
+  getAnalyticsId: jest.fn(),
 });
 
 describe('DisplayNFTMediaSettings', () => {
