@@ -105,11 +105,19 @@ export const useSwapBridgeNavigation = ({
   sourcePage,
   sourceToken: sourceTokenBase,
   destToken: destTokenBase,
+  skipLocationUpdate = false,
 }: {
   location: SwapBridgeNavigationLocation;
   sourcePage: string;
   sourceToken?: BridgeToken;
   destToken?: BridgeToken;
+  /**
+   * When true, skip calling setLocation on the bridge controller.
+   * Use this when re-entering the bridge flow from a page that was opened
+   * within an existing bridge session (e.g. Token Details opened from the
+   * bridge asset picker) to preserve the original entry-point location.
+   */
+  skipLocationUpdate?: boolean;
 }) => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
@@ -233,12 +241,17 @@ export const useSwapBridgeNavigation = ({
         TrendingFeedSessionManager.getInstance().isFromTrending;
 
       // Set the location on the bridge controller once so all internally-fired
-      // events (InputChanged, QuotesRequested, QuotesReceived, etc.) carry it
+      // events (InputChanged, QuotesRequested, QuotesReceived, etc.) carry it.
+      // Skip when re-entering from a page within an existing bridge session
+      // (e.g. Token Details opened from the bridge asset picker) to preserve
+      // the original entry-point location.
       const mappedLocation = toMetaMetricsSwapsEventSource(
         location,
         isFromTrending,
       );
-      Engine.context.BridgeController.setLocation(mappedLocation);
+      if (!skipLocationUpdate) {
+        Engine.context.BridgeController.setLocation(mappedLocation);
+      }
 
       const params: BridgeRouteParams = {
         sourceToken,
@@ -296,6 +309,7 @@ export const useSwapBridgeNavigation = ({
       location,
       currentNetworkInfo,
       getIsBridgeEnabledSource,
+      skipLocationUpdate,
     ],
   );
   const { networkModal } = useAddNetwork();
