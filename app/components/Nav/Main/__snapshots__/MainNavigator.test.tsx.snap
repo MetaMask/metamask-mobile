@@ -261,17 +261,6 @@ exports[`MainNavigator Tab Bar Visibility hides tab bar when browser is active 1
   />
   <Screen
     component={[Function]}
-    name="MarketInsightsView"
-    options={
-      {
-        "animationEnabled": true,
-        "cardStyleInterpolator": [Function],
-        "headerShown": false,
-      }
-    }
-  />
-  <Screen
-    component={[Function]}
     name="ExploreSearch"
     options={
       {
@@ -629,17 +618,6 @@ exports[`MainNavigator Tab Bar Visibility shows tab bar when not in browser 1`] 
   />
   <Screen
     component={[Function]}
-    name="MarketInsightsView"
-    options={
-      {
-        "animationEnabled": true,
-        "cardStyleInterpolator": [Function],
-        "headerShown": false,
-      }
-    }
-  />
-  <Screen
-    component={[Function]}
     name="ExploreSearch"
     options={
       {
@@ -991,17 +969,6 @@ exports[`MainNavigator matches rendered snapshot 1`] = `
           "backgroundColor": "transparent",
           "cardStyleInterpolator": [Function],
         },
-        "headerShown": false,
-      }
-    }
-  />
-  <Screen
-    component={[Function]}
-    name="MarketInsightsView"
-    options={
-      {
-        "animationEnabled": true,
-        "cardStyleInterpolator": [Function],
         "headerShown": false,
       }
     }
