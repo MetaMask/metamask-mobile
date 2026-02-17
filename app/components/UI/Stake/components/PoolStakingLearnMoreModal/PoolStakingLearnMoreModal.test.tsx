@@ -76,4 +76,47 @@ describe('PoolStakingLearnMoreModal', () => {
 
     expect(toJSON()).toMatchSnapshot();
   });
+
+  it('renders with different chainId from route params', async () => {
+    const customRoute = {
+      params: { chainId: '0xaa36a7' as const }, // Sepolia
+      key: 'LearnMore',
+      name: 'LearnMore' as const,
+    };
+
+    const { getByTestId } = renderWithProvider(
+      <SafeAreaProvider initialMetrics={initialMetrics}>
+        <PoolStakingLearnMoreModal route={customRoute} />
+      </SafeAreaProvider>,
+    );
+
+    const chartContainer = getByTestId(
+      INTERACTIVE_TIMESPAN_CHART_DEFAULT_TEST_ID,
+    );
+    expect(chartContainer).toBeTruthy();
+  });
+
+  it('uses default chainId when route params are undefined', async () => {
+    const routeWithNoParams = {
+      params: undefined,
+      key: 'LearnMore',
+      name: 'LearnMore' as const,
+    };
+
+    const { getByTestId } = renderWithProvider(
+      <SafeAreaProvider initialMetrics={initialMetrics}>
+        <PoolStakingLearnMoreModal
+          route={
+            routeWithNoParams as unknown as ReturnType<typeof createMockRoute>
+          }
+        />
+      </SafeAreaProvider>,
+    );
+
+    // Should render with default chainId '0x1'
+    const chartContainer = getByTestId(
+      INTERACTIVE_TIMESPAN_CHART_DEFAULT_TEST_ID,
+    );
+    expect(chartContainer).toBeTruthy();
+  });
 });

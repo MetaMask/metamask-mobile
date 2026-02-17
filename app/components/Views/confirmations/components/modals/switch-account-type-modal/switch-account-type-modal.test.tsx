@@ -87,6 +87,10 @@ const MOCK_STATE = {
 } as unknown as RootState;
 
 describe('Switch Account Type Modal', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('displays information correctly', () => {
     jest.spyOn(Networks7702, 'useEIP7702Networks').mockReturnValue({
       pending: false,
@@ -102,6 +106,42 @@ describe('Switch Account Type Modal', () => {
     expect(getByText('Sepolia')).toBeTruthy();
     expect(getByText('Smart account')).toBeTruthy();
     expect(getByText('Switch back')).toBeTruthy();
+  });
+
+  it('uses selected account address when route params address is undefined', () => {
+    jest.spyOn(Networks7702, 'useEIP7702Networks').mockReturnValue({
+      pending: false,
+      network7702List: [MOCK_NETWORK],
+      networkSupporting7702Present: true,
+    });
+
+    const routeWithNoAddress = {
+      params: {},
+      key: 'ConfirmationSwitchAccountType',
+      name: 'ConfirmationSwitchAccountType' as const,
+    };
+
+    const { getByText } = renderWithProvider(
+      <SwitchAccountTypeModal route={routeWithNoAddress} />,
+      { state: MOCK_STATE },
+    );
+    // Should still render using the selected account from AccountsController
+    expect(getByText('Account 1')).toBeTruthy();
+  });
+
+  it('uses custom address from route params', () => {
+    const customAddress = '0x1234567890abcdef1234567890abcdef12345678';
+    jest.spyOn(Networks7702, 'useEIP7702Networks').mockReturnValue({
+      pending: false,
+      network7702List: [MOCK_NETWORK],
+      networkSupporting7702Present: true,
+    });
+
+    const { getByText } = renderWithProvider(
+      <SwitchAccountTypeModal route={createMockRoute(customAddress)} />,
+      { state: MOCK_STATE },
+    );
+    expect(getByText('Account 1')).toBeTruthy();
   });
 
   it('displays spinner when network list is loading', () => {

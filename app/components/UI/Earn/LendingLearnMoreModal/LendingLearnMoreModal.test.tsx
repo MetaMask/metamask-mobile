@@ -221,4 +221,46 @@ describe('LendingLearnMoreModal', () => {
 
     expect(Linking.openURL).toHaveBeenCalledWith(EARN_URLS.LENDING_FAQ);
   });
+
+  describe('route params handling', () => {
+    it('renders with asset from route params', async () => {
+      const { toJSON, getByTestId } = renderWithProvider(
+        <SafeAreaProvider initialMetrics={initialMetrics}>
+          <LendingLearnMoreModal route={createMockRoute()} />
+        </SafeAreaProvider>,
+        { state: mockInitialState },
+      );
+
+      const chartContainer = getByTestId('interactive-timespan-chart');
+      const areaChart = chartContainer.find(
+        (child) => child.type === AreaChart,
+      );
+
+      fireLayoutEvent(areaChart);
+
+      expect(toJSON()).toMatchSnapshot();
+    });
+
+    it('handles undefined route params', async () => {
+      const routeWithNoParams = {
+        params: undefined,
+        key: 'EarnLendingLearnMoreModal',
+        name: 'EarnLendingLearnMoreModal' as const,
+      };
+
+      // Should not crash with undefined params
+      const { getByTestId } = renderWithProvider(
+        <SafeAreaProvider initialMetrics={initialMetrics}>
+          <LendingLearnMoreModal
+            route={
+              routeWithNoParams as unknown as ReturnType<typeof createMockRoute>
+            }
+          />
+        </SafeAreaProvider>,
+        { state: mockInitialState },
+      );
+
+      expect(getByTestId('interactive-timespan-chart')).toBeTruthy();
+    });
+  });
 });

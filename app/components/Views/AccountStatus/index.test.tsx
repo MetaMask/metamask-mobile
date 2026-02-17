@@ -278,4 +278,50 @@ describe('AccountStatus', () => {
       expect(JSON.stringify(tree)).toContain('bottom');
     });
   });
+
+  describe('Route params handling', () => {
+    it('uses default type when route params are empty', () => {
+      const { getByText } = renderWithProvider(
+        <AccountStatus route={createMockRoute()} />,
+      );
+      // Default type is 'not_exist' which shows "Create a new wallet" button
+      expect(
+        getByText(strings('account_status.create_new_wallet')),
+      ).toBeTruthy();
+    });
+
+    it('renders with undefined route params', () => {
+      const routeWithNoParams = {
+        params: undefined,
+        key: 'AccountStatus',
+        name: 'AccountStatus' as const,
+      };
+
+      const { getByText } = renderWithProvider(
+        <AccountStatus
+          route={
+            routeWithNoParams as unknown as ReturnType<typeof createMockRoute>
+          }
+        />,
+      );
+      // Should render with default type 'not_exist'
+      expect(
+        getByText(strings('account_status.create_new_wallet')),
+      ).toBeTruthy();
+    });
+
+    it('renders with all route params provided', () => {
+      const { getByText } = renderWithProvider(
+        <AccountStatus
+          route={createMockRoute({
+            type: 'found',
+            accountName: 'user@example.com',
+            oauthLoginSuccess: true,
+            provider: 'google',
+          })}
+        />,
+      );
+      expect(getByText(strings('account_status.log_in'))).toBeTruthy();
+    });
+  });
 });

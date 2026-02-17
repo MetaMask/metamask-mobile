@@ -319,4 +319,44 @@ describe('OnboardingSuccess', () => {
       expect(toJSON()).toMatchSnapshot();
     });
   });
+
+  describe('route params handling', () => {
+    it('uses default successFlow when route params are undefined', () => {
+      const routeWithNoParams = {
+        params: undefined,
+        key: 'OnboardingSuccess',
+        name: 'OnboardingSuccess' as const,
+      };
+
+      const { toJSON } = renderWithProvider(
+        <OnboardingSuccess
+          route={
+            routeWithNoParams as unknown as ReturnType<typeof createMockRoute>
+          }
+        />,
+      );
+      // Should render with default BACKED_UP_SRP flow
+      expect(toJSON()).toMatchSnapshot();
+    });
+
+    it('uses default successFlow when successFlow param is undefined', () => {
+      const routeWithEmptyParams = {
+        params: {},
+        key: 'OnboardingSuccess',
+        name: 'OnboardingSuccess' as const,
+      };
+
+      const { toJSON } = renderWithProvider(
+        <OnboardingSuccess
+          route={
+            routeWithEmptyParams as unknown as ReturnType<
+              typeof createMockRoute
+            >
+          }
+        />,
+      );
+      // Should render with default BACKED_UP_SRP flow
+      expect(toJSON()).toMatchSnapshot();
+    });
+  });
 });
