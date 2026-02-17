@@ -14,6 +14,7 @@ import { hasTransactionType } from '../../utils/transaction';
 import { useTransactionPayHasSourceAmount } from '../pay/useTransactionPayHasSourceAmount';
 import { selectUseTransactionSimulations } from '../../../../../selectors/preferencesController';
 import { useHasInsufficientBalance } from '../useHasInsufficientBalance';
+import { useIsTransactionPayLoading } from '../pay/useTransactionPayData';
 
 const IGNORE_TYPES = [TransactionType.predictWithdraw];
 
@@ -32,6 +33,7 @@ export const useInsufficientBalanceAlert = ({
   const isSimulationEnabled = useSelector(selectUseTransactionSimulations);
   const { hasInsufficientBalance, nativeCurrency } =
     useHasInsufficientBalance();
+  const isQuotesLoading = useIsTransactionPayLoading();
 
   return useMemo(() => {
     if (!transactionMetadata || isTransactionValueUpdating || isUsingPay) {
@@ -63,7 +65,7 @@ export const useInsufficientBalanceAlert = ({
       isGaslessCheckComplete &&
       (!isGaslessSupported ||
         isGasFeeTokensEmpty ||
-        (!isGasFeeTokensEmpty && !selectedGasFeeToken));
+        (!isGasFeeTokensEmpty && !selectedGasFeeToken && !isQuotesLoading));
 
     const showAlert =
       hasInsufficientBalance &&
@@ -109,6 +111,7 @@ export const useInsufficientBalanceAlert = ({
     isUsingPay,
     hasInsufficientBalance,
     nativeCurrency,
+    isQuotesLoading,
     goToBuy,
     onReject,
   ]);

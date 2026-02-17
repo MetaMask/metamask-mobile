@@ -462,6 +462,17 @@ const WalletTokensTabView = forwardRef<
     }
   }, [currentTabIndex, perpsTabIndex, isPerpsTabVisible, isPerpsEnabled]);
 
+  // Background preload perps market data when feature is enabled
+  useEffect(() => {
+    const controller = Engine.context.PerpsController;
+    if (isPerpsEnabled) {
+      controller.startMarketDataPreload();
+    } else {
+      controller.stopMarketDataPreload();
+    }
+    return () => controller.stopMarketDataPreload();
+  }, [isPerpsEnabled]);
+
   // Handle deep link effects
   useHomeDeepLinkEffects({
     navigation,

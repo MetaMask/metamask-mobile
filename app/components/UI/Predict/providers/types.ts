@@ -207,6 +207,7 @@ export interface PrepareWithdrawResponse {
     params: {
       to: Hex;
       data: Hex;
+      gas?: Hex;
     };
     type?: TransactionType;
   };

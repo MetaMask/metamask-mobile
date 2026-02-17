@@ -1,8 +1,10 @@
-import { EligibilityService } from './EligibilityService';
 import { successfulFetch } from '@metamask/controller-utils';
-import { getEnvironment } from '../utils';
+
 import { createMockInfrastructure } from '../../../components/UI/Perps/__mocks__/serviceMocks';
 import type { PerpsPlatformDependencies } from '../types';
+import { getEnvironment } from '../utils';
+
+import { EligibilityService } from './EligibilityService';
 
 jest.mock('@metamask/controller-utils');
 jest.mock('../utils');
