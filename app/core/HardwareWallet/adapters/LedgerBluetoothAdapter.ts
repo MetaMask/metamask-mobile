@@ -89,30 +89,31 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
     }
 
     try {
-      this.transport = await TransportBLE.open(deviceId);
+      const transport = await TransportBLE.open(deviceId);
+      this.transport = transport;
       this.deviceId = deviceId;
       this.restartCount = 0;
 
-      // Set up disconnect handler
-      this.transport?.on('disconnect', () => {
+      // Set up disconnect handler. Ignore events from a transport we've since replaced (stale events after reconnect).
+      transport.on('disconnect', () => {
+        if (this.transport !== transport) return;
         this.handleDisconnect();
       });
 
-      // Set up error handler to catch BLE errors after disconnect
-      // This prevents unhandled errors from crashing the app
-      this.transport?.on('error', (error: Error) => {
+      // Set up error handler to catch BLE errors after disconnect.
+      // Ignore events from a transport we've since replaced (stale events after reconnect).
+      transport.on('error', (error: Error) => {
+        if (this.transport !== transport) return;
         DevLogger.log(
           '[LedgerBluetoothAdapter] Transport error:',
           error.message,
         );
-        // If flow is complete, ignore the error (it's expected after disconnect)
         if (this.flowComplete) {
           DevLogger.log(
             '[LedgerBluetoothAdapter] Flow complete - ignoring transport error',
           );
           return;
         }
-        // Otherwise, handle it as a disconnect
         this.handleDisconnect();
       });
 
