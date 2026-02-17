@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { MarketInsightsReport } from '@metamask-previews/ai-controllers';
 import Engine from '../../../../core/Engine';
+import { formatRelativeTime } from '../utils/marketInsightsFormatting';
 
 /**
  * Result interface for the useMarketInsights hook
@@ -15,21 +16,6 @@ export interface UseMarketInsightsResult {
   /** Relative time since the report was generated (e.g., "3m ago") */
   timeAgo: string;
 }
-
-// TODO: Move to a shared utility file.
-const getTimeAgo = (dateString: string): string => {
-  const now = new Date();
-  const generated = new Date(dateString);
-  const diffMs = now.getTime() - generated.getTime();
-  const diffMins = Math.floor(diffMs / 60000);
-  const diffHours = Math.floor(diffMins / 60);
-  const diffDays = Math.floor(diffHours / 24);
-
-  if (diffMins < 1) return 'just now';
-  if (diffMins < 60) return `${diffMins}m ago`;
-  if (diffHours < 24) return `${diffHours}h ago`;
-  return `${diffDays}d ago`;
-};
 
 /**
  * Hook to fetch market insights for a given asset.
@@ -73,7 +59,7 @@ export const useMarketInsights = (
   }, [fetchInsights]);
 
   const timeAgo = useMemo(
-    () => (report ? getTimeAgo(report.generatedAt) : ''),
+    () => (report ? formatRelativeTime(report.generatedAt) : ''),
     [report],
   );
 

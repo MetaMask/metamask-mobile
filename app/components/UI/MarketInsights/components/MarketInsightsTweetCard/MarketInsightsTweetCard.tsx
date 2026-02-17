@@ -16,21 +16,7 @@ import {
   FontWeight,
 } from '@metamask/design-system-react-native';
 import type { MarketInsightsTweetCardProps } from './MarketInsightsTweetCard.types';
-
-// TODO: Move to a shared utility file.
-const getRelativeTime = (dateString: string): string => {
-  const now = new Date();
-  const date = new Date(dateString);
-  const diffMs = now.getTime() - date.getTime();
-  const diffMins = Math.floor(diffMs / 60000);
-  const diffHours = Math.floor(diffMins / 60);
-  const diffDays = Math.floor(diffHours / 24);
-
-  if (diffMins < 1) return 'now';
-  if (diffMins < 60) return `${diffMins}m ago`;
-  if (diffHours < 24) return `${diffHours}h ago`;
-  return `${diffDays}d ago`;
-};
+import { formatRelativeTime } from '../../utils/marketInsightsFormatting';
 
 // MarketInsightsTweetCard renders a social media post card.
 const MarketInsightsTweetCard: React.FC<MarketInsightsTweetCardProps> = ({
@@ -40,7 +26,7 @@ const MarketInsightsTweetCard: React.FC<MarketInsightsTweetCardProps> = ({
 }) => {
   const tw = useTailwind();
   const relativeTime = useMemo(
-    () => getRelativeTime(tweet.date),
+    () => formatRelativeTime(tweet.date, { nowLabel: 'now' }),
     [tweet.date],
   );
 

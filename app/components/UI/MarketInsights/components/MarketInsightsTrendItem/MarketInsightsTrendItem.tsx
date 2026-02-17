@@ -21,6 +21,8 @@ const getFaviconUrl = (source: string): string => {
   }
 };
 
+const SOURCE_ICON_IMAGE_STYLE = { width: 16, height: 16, borderRadius: 8 };
+
 // StackedSourceIcons renders overlapping circular favicons for article sources.
 const StackedSourceIcons: React.FC<{ sources: string[] }> = ({ sources }) => (
   <Box
@@ -37,7 +39,7 @@ const StackedSourceIcons: React.FC<{ sources: string[] }> = ({ sources }) => (
       >
         <Image
           source={{ uri: getFaviconUrl(source) }}
-          style={{ width: 16, height: 16, borderRadius: 8 }}
+          style={SOURCE_ICON_IMAGE_STYLE}
         />
       </Box>
     ))}
@@ -48,7 +50,6 @@ const MarketInsightsTrendItem: React.FC<MarketInsightsTrendItemProps> = ({
   trend,
   testID,
 }) => {
-
   const uniqueSources = useMemo(() => {
     const seen = new Set<string>();
     return trend.articles

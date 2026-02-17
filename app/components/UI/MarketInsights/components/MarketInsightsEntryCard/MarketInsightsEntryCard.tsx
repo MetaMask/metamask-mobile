@@ -18,6 +18,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import type { MarketInsightsEntryCardProps } from './MarketInsightsEntryCard.types';
+import { buildHighlightedSegments } from '../../utils/marketInsightsFormatting';
 
 // Gradient colors for the "Market insights" title
 const TITLE_GRADIENT_COLORS = ['#FFA680', '#BAF24A'];
@@ -76,41 +77,10 @@ const HighlightedSummary: React.FC<{
   summary: string;
   trendTitles: string[];
 }> = ({ summary, trendTitles }) => {
-  const segments = useMemo(() => {
-    if (trendTitles.length === 0) {
-      return [{ text: summary, highlighted: false }];
-    }
-
-    // Regex to find all trend titles in the summary (case-insensitive)
-    const escapedTitles = trendTitles.map((t) =>
-      t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
-    );
-    const pattern = new RegExp(`(${escapedTitles.join('|')})`, 'gi');
-
-    const parts: { text: string; highlighted: boolean }[] = [];
-    let lastIndex = 0;
-    let match: RegExpExecArray | null;
-
-    // TODO: Move to a shared utility file.
-    while ((match = pattern.exec(summary)) !== null) {
-      if (match.index > lastIndex) {
-        parts.push({
-          text: summary.slice(lastIndex, match.index),
-          highlighted: false,
-        });
-      }
-      parts.push({ text: match[0], highlighted: true });
-      lastIndex = pattern.lastIndex;
-    }
-
-    if (lastIndex < summary.length) {
-      parts.push({ text: summary.slice(lastIndex), highlighted: false });
-    }
-
-    return parts.length > 0
-      ? parts
-      : [{ text: summary, highlighted: false }];
-  }, [summary, trendTitles]);
+  const segments = useMemo(
+    () => buildHighlightedSegments(summary, trendTitles),
+    [summary, trendTitles],
+  );
 
   return (
     <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
