@@ -31,7 +31,6 @@ import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 import { createPaymentSelectionModalNavigationDetails } from '../Modals/PaymentSelectionModal';
 import { callbackBaseUrl } from '../../Aggregator/sdk';
 import { createCheckoutNavDetails } from '../Checkout/Checkout';
-import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
 
 interface BuildQuoteParams {
@@ -145,53 +144,43 @@ function BuildQuote() {
     stopQuotePolling,
   ]);
 
-  const [isLoadingWidget, setIsLoadingWidget] = useState(false);
-
-  const handleContinuePress = useCallback(async () => {
+  const handleContinuePress = useCallback(() => {
     if (!selectedQuote || !walletAddress) return;
 
-    setIsLoadingWidget(true);
-    try {
-      const buyWidget =
-        await Engine.context.RampsController.getBuyWidget(selectedQuote);
+    // The quote response already includes buyWidget with the URL and orderId.
+    // No need to make a separate getBuyWidget call.
+    const buyWidget = selectedQuote.quote?.buyWidget;
 
-      if (!buyWidget?.url) {
-        Logger.error(new Error('No widget URL returned'), {
-          message: 'BuildQuote: getBuyWidget returned no URL',
-        });
-        return;
-      }
-
-      // Extract provider code from the quote's provider path (e.g., "/providers/moonpay" -> "moonpay")
-      const providerCode = selectedQuote.provider.startsWith('/providers/')
-        ? selectedQuote.provider.split('/')[2] || selectedQuote.provider
-        : selectedQuote.provider;
-
-      const chainId = selectedToken?.chainId as CaipChainId | undefined;
-      // Extract numeric chain ID from CAIP format if present (e.g., "eip155:1" -> "1")
-      const network = chainId?.includes(':')
-        ? chainId.split(':')[1] || ''
-        : chainId || '';
-
-      navigation.navigate(
-        ...createCheckoutNavDetails({
-          url: buyWidget.url,
-          providerCode,
-          providerName: selectedProvider?.name || providerCode,
-          customOrderId: buyWidget.orderId,
-          walletAddress,
-          network,
-          currency,
-          cryptocurrency: selectedToken?.symbol || '',
-        }),
-      );
-    } catch (err) {
-      Logger.error(err as Error, {
-        message: 'BuildQuote: error fetching buy widget',
+    if (!buyWidget?.url) {
+      Logger.error(new Error('No widget URL in quote'), {
+        message: 'BuildQuote: selectedQuote.quote.buyWidget.url is missing',
       });
-    } finally {
-      setIsLoadingWidget(false);
+      return;
     }
+
+    // Extract provider code from the quote's provider path (e.g., "/providers/moonpay" -> "moonpay")
+    const providerCode = selectedQuote.provider.startsWith('/providers/')
+      ? selectedQuote.provider.split('/')[2] || selectedQuote.provider
+      : selectedQuote.provider;
+
+    const chainId = selectedToken?.chainId as CaipChainId | undefined;
+    // Extract numeric chain ID from CAIP format if present (e.g., "eip155:1" -> "1")
+    const network = chainId?.includes(':')
+      ? chainId.split(':')[1] || ''
+      : chainId || '';
+
+    navigation.navigate(
+      ...createCheckoutNavDetails({
+        url: buyWidget.url,
+        providerCode,
+        providerName: selectedProvider?.name || providerCode,
+        customOrderId: buyWidget.orderId,
+        walletAddress,
+        network,
+        currency,
+        cryptocurrency: selectedToken?.symbol || '',
+      }),
+    );
   }, [
     selectedQuote,
     selectedProvider,
@@ -207,11 +196,7 @@ function BuildQuote() {
     debouncedPollingAmount === amountAsNumber && debouncedPollingAmount > 0;
 
   const canContinue =
-    hasAmount &&
-    !quotesLoading &&
-    !isLoadingWidget &&
-    selectedQuote !== null &&
-    quoteMatchesAmount;
+    hasAmount && !quotesLoading && selectedQuote !== null && quoteMatchesAmount;
 
   return (
     <ScreenLayout>
@@ -259,7 +244,7 @@ function BuildQuote() {
                 onPress={handleContinuePress}
                 isFullWidth
                 isDisabled={!canContinue}
-                isLoading={quotesLoading || isLoadingWidget}
+                isLoading={quotesLoading}
                 testID="build-quote-continue-button"
               >
                 {strings('fiat_on_ramp.continue')}
