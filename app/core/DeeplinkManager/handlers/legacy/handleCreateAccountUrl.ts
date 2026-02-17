@@ -3,7 +3,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import ReduxService from '../../../redux';
 import { selectAccountsWithNativeBalanceByChainId } from '../../../../selectors/multichain';
 import { BridgeViewMode } from '../../../../components/UI/Bridge/types';
-import { BridgeRouteParams } from '../../../../components/UI/Bridge/Views/BridgeView';
+import { BridgeRouteParams } from '../../../../components/UI/Bridge/hooks/useSwapBridgeNavigation';
 import { WalletClientType } from '../../../SnapKeyring/MultichainWalletSnapClient';
 import {
   BtcScope,

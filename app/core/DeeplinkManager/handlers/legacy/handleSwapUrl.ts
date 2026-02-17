@@ -12,7 +12,7 @@ import {
   BridgeViewMode,
 } from '../../../../components/UI/Bridge/types';
 import Routes from '../../../../constants/navigation/Routes';
-import { BridgeRouteParams } from '../../../../components/UI/Bridge/Views/BridgeView';
+import { BridgeRouteParams } from '../../../../components/UI/Bridge/hooks/useSwapBridgeNavigation';
 import { fetchAssetMetadata } from '../../../../components/UI/Bridge/hooks/useAssetMetadata/utils';
 import { isNonEvmChainId } from '@metamask/bridge-controller';
 import { ethers } from 'ethers';
