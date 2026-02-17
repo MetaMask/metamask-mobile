@@ -6,7 +6,6 @@ import { ScrollView } from 'react-native';
 import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import { useTheme } from '../../../../../util/theme';
 
-import { useRoute, RouteProp } from '@react-navigation/native';
 import { POOLED_STAKING_FAQ_URL } from '../../constants';
 import styleSheet from './PoolStakingLearnMoreModal.styles';
 import { useStyles } from '../../../../hooks/useStyles';
@@ -34,21 +33,26 @@ import {
   StakingInfoBodyText,
   StakingInfoStrings,
 } from '../LearnMoreModal';
+import type { RouteProp } from '@react-navigation/native';
 
 interface PoolStakingLearnMoreModalRouteParams {
   chainId: Hex;
 }
 
-type PoolStakingLearnMoreModalRouteProp = RouteProp<
-  { params: PoolStakingLearnMoreModalRouteParams },
-  'params'
->;
+interface PoolStakingLearnMoreModalParamList {
+  LearnMore: PoolStakingLearnMoreModalRouteParams;
+}
 
-const PoolStakingLearnMoreModal = () => {
+interface PoolStakingLearnMoreModalProps {
+  route: RouteProp<PoolStakingLearnMoreModalParamList, 'LearnMore'>;
+}
+
+const PoolStakingLearnMoreModal = ({
+  route,
+}: PoolStakingLearnMoreModalProps) => {
   const { styles } = useStyles(styleSheet, {});
   const { colors } = useTheme();
 
-  const route = useRoute<PoolStakingLearnMoreModalRouteProp>();
   const { chainId: routeChainId } = route.params;
 
   const sheetRef = useRef<BottomSheetRef>(null);

@@ -47,12 +47,15 @@ jest.mock('@react-navigation/native', () => {
       navigate: mockNavigate,
       goBack: jest.fn(),
     }),
-    useRoute: () => ({
-      params: {
-        asset: mockAUsdc,
-      },
-    }),
   };
+});
+
+const createMockRoute = () => ({
+  params: {
+    asset: mockAUsdc,
+  },
+  key: 'EarnLendingLearnMoreModal',
+  name: 'EarnLendingLearnMoreModal' as const,
 });
 
 jest.mock('../../../../core/Engine', () => ({
@@ -183,7 +186,7 @@ describe('LendingLearnMoreModal', () => {
   it('render lending history apy chart', async () => {
     const { toJSON, getByTestId } = renderWithProvider(
       <SafeAreaProvider initialMetrics={initialMetrics}>
-        <LendingLearnMoreModal />
+        <LendingLearnMoreModal route={createMockRoute()} />
       </SafeAreaProvider>,
       { state: mockInitialState },
     );
@@ -205,7 +208,7 @@ describe('LendingLearnMoreModal', () => {
   it('navigates to learn more link', async () => {
     const { getByText } = renderWithProvider(
       <SafeAreaProvider initialMetrics={initialMetrics}>
-        <LendingLearnMoreModal />
+        <LendingLearnMoreModal route={createMockRoute()} />
       </SafeAreaProvider>,
       { state: mockInitialState },
     );

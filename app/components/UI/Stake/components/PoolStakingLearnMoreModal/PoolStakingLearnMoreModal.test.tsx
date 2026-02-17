@@ -18,8 +18,13 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       navigate: jest.fn(),
     }),
-    useRoute: jest.fn().mockReturnValue({ params: { chainId: '1' } }),
   };
+});
+
+const createMockRoute = () => ({
+  params: { chainId: '0x1' as const },
+  key: 'LearnMore',
+  name: 'LearnMore' as const,
 });
 
 jest.mock('../../hooks/useStakeContext', () => ({
@@ -58,7 +63,7 @@ describe('PoolStakingLearnMoreModal', () => {
   it('render matches snapshot', async () => {
     const { toJSON, getByTestId } = renderWithProvider(
       <SafeAreaProvider initialMetrics={initialMetrics}>
-        <PoolStakingLearnMoreModal />
+        <PoolStakingLearnMoreModal route={createMockRoute()} />
       </SafeAreaProvider>,
     );
 

@@ -1,6 +1,5 @@
 // Third party dependencies.
 import {
-  ImageSourcePropType,
   KeyboardAvoidingView,
   Linking,
   Switch,
@@ -10,7 +9,7 @@ import {
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ScrollView } from 'react-native-gesture-handler';
 import images from 'images/image-icons';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { useNavigation, RouteProp } from '@react-navigation/native';
 
 // External dependencies.
 import Cell, {
@@ -103,35 +102,23 @@ import { MultichainNetworkConfiguration } from '@metamask/multichain-network-con
 import { useSwitchNetworks } from './useSwitchNetworks';
 import { removeItemFromChainIdList } from '../../../util/metrics/MultichainAPI/networkMetricUtils';
 import { MetaMetrics } from '../../../core/Analytics';
-import {
-  NETWORK_SELECTOR_SOURCES,
-  NetworkSelectorSource,
-} from '../../../constants/networkSelector';
+import { NETWORK_SELECTOR_SOURCES } from '../../../constants/networkSelector';
 import { getGasFeesSponsoredNetworkEnabled } from '../../../selectors/featureFlagController/gasFeesSponsored';
+import type {
+  ShowConfirmDeleteModalState,
+  infuraNetwork,
+  NetworkSelectorRouteParams,
+} from './types';
 
-interface infuraNetwork {
-  name: string;
-  imageSource: ImageSourcePropType;
-  chainId: Hex;
+interface NetworkSelectorParamList {
+  NetworkSelector: NetworkSelectorRouteParams;
 }
 
-interface ShowConfirmDeleteModalState {
-  isVisible: boolean;
-  networkName: string;
-  chainId?: `0x${string}`;
+interface NetworkSelectorProps {
+  route: RouteProp<NetworkSelectorParamList, 'NetworkSelector'>;
 }
 
-interface NetworkSelectorRouteParams {
-  chainId?: Hex;
-  hostInfo?: {
-    metadata?: {
-      origin?: string;
-    };
-  };
-  source?: NetworkSelectorSource;
-}
-
-const NetworkSelector = () => {
+const NetworkSelector = ({ route }: NetworkSelectorProps) => {
   trace({
     name: TraceName.NetworkSwitch,
     op: TraceOperation.NetworkSwitch,
@@ -166,9 +153,6 @@ const NetworkSelector = () => {
 
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const selectedNonEvmChainId = useSelector(selectSelectedNonEvmNetworkChainId);
-
-  const route =
-    useRoute<RouteProp<Record<string, NetworkSelectorRouteParams>, string>>();
 
   // origin is defined if network selector is opened from a dapp
   const origin = route.params?.hostInfo?.metadata?.origin || '';

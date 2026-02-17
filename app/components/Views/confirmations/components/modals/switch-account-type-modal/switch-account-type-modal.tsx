@@ -2,7 +2,7 @@ import React, { useCallback } from 'react';
 import { Hex } from '@metamask/utils';
 import { TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation, RouteProp } from '@react-navigation/native';
 
 import Avatar, {
   AvatarSize,
@@ -25,13 +25,27 @@ import Icon, {
 } from '../../../../../../component-library/components/Icons/Icon';
 import Engine from '../../../../../../core/Engine';
 
-const SwitchAccountTypeModal = () => {
+interface SwitchAccountTypeModalRouteParams {
+  address?: Hex;
+}
+
+interface SwitchAccountTypeModalParamList {
+  ConfirmationSwitchAccountType: SwitchAccountTypeModalRouteParams;
+}
+
+interface SwitchAccountTypeModalProps {
+  route: RouteProp<
+    SwitchAccountTypeModalParamList,
+    'ConfirmationSwitchAccountType'
+  >;
+}
+
+const SwitchAccountTypeModal = ({ route }: SwitchAccountTypeModalProps) => {
   const { styles } = useStyles(styleSheet, {});
-  const route = useRoute();
   const navigation = useNavigation();
   const address =
-    (route?.params as { address: Hex })?.address ??
-    Engine.context.AccountsController.getSelectedAccount()?.address;
+    route?.params?.address ??
+    (Engine.context.AccountsController.getSelectedAccount()?.address as Hex);
   const { network7702List, pending } = useEIP7702Networks(address);
   const internalAccounts = useSelector(selectInternalAccounts);
   const account = internalAccounts.find(
@@ -72,6 +86,7 @@ const SwitchAccountTypeModal = () => {
             <View>
               {network7702List?.map((networkConfiguration) => (
                 <AccountNetworkRow
+                  key={networkConfiguration.chainId}
                   network={networkConfiguration}
                   address={address}
                 />
