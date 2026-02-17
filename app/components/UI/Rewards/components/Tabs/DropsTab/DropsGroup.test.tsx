@@ -1,7 +1,7 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import DropsGroup from './DropsGroup';
-import { DropTile } from '../../DropTile';
+import DropTile from '../../DropTile/DropTile';
 import {
   DropStatus,
   type SeasonDropDto,
@@ -13,8 +13,9 @@ jest.mock('@metamask/design-system-react-native', () => ({
   TextVariant: { HeadingMd: 'HeadingMd' },
 }));
 
-jest.mock('../../DropTile', () => ({
-  DropTile: jest.fn(() => null),
+jest.mock('../../DropTile/DropTile', () => ({
+  __esModule: true,
+  default: jest.fn(() => null),
 }));
 
 const createTestDrop = (

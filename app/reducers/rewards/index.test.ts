@@ -2132,6 +2132,10 @@ describe('rewardsReducer', () => {
         seasonDrops: null,
         seasonDropsLoading: false,
         seasonDropsError: false,
+        recentDropPointCommits: {},
+        recentDropAddressCommits: {},
+        isUpdatingDropAddress: false,
+        isValidatingDropAddress: false,
       };
       const action = resetRewardsState();
 
@@ -2235,6 +2239,10 @@ describe('rewardsReducer', () => {
         seasonDrops: null,
         seasonDropsLoading: false,
         seasonDropsError: false,
+        recentDropPointCommits: {},
+        recentDropAddressCommits: {},
+        isUpdatingDropAddress: false,
+        isValidatingDropAddress: false,
       };
       const rehydrateAction = {
         type: 'persist/REHYDRATE',

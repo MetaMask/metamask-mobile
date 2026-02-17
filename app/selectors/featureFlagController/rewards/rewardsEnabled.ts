@@ -115,10 +115,10 @@ export const selectDropsRewardsEnabledRawFlag = createSelector(
 export const selectDropsRewardsEnabledFlag = createSelector(
   selectBasicFunctionalityEnabled,
   selectDropsRewardsEnabledRawFlag,
-  (isBasicFunctionalityEnabled, _dropsRewardsEnabledRawFlag) => {
+  (isBasicFunctionalityEnabled, dropsRewardsEnabledRawFlag) => {
     if (!isBasicFunctionalityEnabled) {
       return false;
     }
-    return true;
+    return dropsRewardsEnabledRawFlag;
   },
 );

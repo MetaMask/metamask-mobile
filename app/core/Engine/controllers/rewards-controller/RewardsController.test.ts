@@ -8131,8 +8131,8 @@ describe('RewardsController', () => {
       // Assert
       expect(result).toEqual({
         currentTier: null,
-        nextTier: null,
-        nextTierPointsNeeded: null,
+        nextTier: undefined,
+        nextTierPointsNeeded: undefined,
       });
     });
 
@@ -9276,8 +9276,8 @@ describe('RewardsController', () => {
                   image: { lightModeUrl: '', darkModeUrl: '' },
                   rewards: [],
                 },
-                nextTier: null,
-                nextTierPointsNeeded: null,
+                nextTier: undefined,
+                nextTierPointsNeeded: undefined,
               },
               lastFetched: Date.now(),
             },
@@ -12541,8 +12541,8 @@ describe('RewardsController', () => {
                 levelNumber: '1',
                 rewards: [],
               },
-              nextTier: null,
-              nextTierPointsNeeded: null,
+              nextTier: undefined,
+              nextTierPointsNeeded: undefined,
             },
             lastFetched: Date.now(),
           },
@@ -12696,8 +12696,8 @@ describe('RewardsController', () => {
                 levelNumber: '1',
                 rewards: [],
               },
-              nextTier: null,
-              nextTierPointsNeeded: null,
+              nextTier: undefined,
+              nextTierPointsNeeded: undefined,
             },
             lastFetched: Date.now(),
           },
@@ -12808,8 +12808,8 @@ describe('RewardsController', () => {
                 levelNumber: '1',
                 rewards: [],
               },
-              nextTier: null,
-              nextTierPointsNeeded: null,
+              nextTier: undefined,
+              nextTierPointsNeeded: undefined,
             },
             lastFetched: Date.now(),
           },
@@ -12833,8 +12833,8 @@ describe('RewardsController', () => {
                 levelNumber: '2',
                 rewards: [],
               },
-              nextTier: null,
-              nextTierPointsNeeded: null,
+              nextTier: undefined,
+              nextTierPointsNeeded: undefined,
             },
             lastFetched: Date.now(),
           },
@@ -12858,8 +12858,8 @@ describe('RewardsController', () => {
                 levelNumber: '3',
                 rewards: [],
               },
-              nextTier: null,
-              nextTierPointsNeeded: null,
+              nextTier: undefined,
+              nextTierPointsNeeded: undefined,
             },
             lastFetched: Date.now(),
           },
@@ -12883,8 +12883,8 @@ describe('RewardsController', () => {
                 levelNumber: '4',
                 rewards: [],
               },
-              nextTier: null,
-              nextTierPointsNeeded: null,
+              nextTier: undefined,
+              nextTierPointsNeeded: undefined,
             },
             lastFetched: Date.now(),
           },
@@ -14950,8 +14950,8 @@ describe('RewardsController', () => {
                 levelNumber: '1',
                 rewards: [],
               },
-              nextTier: null,
-              nextTierPointsNeeded: null,
+              nextTier: undefined,
+              nextTierPointsNeeded: undefined,
             },
             lastFetched: Date.now(),
           },
@@ -15154,8 +15154,8 @@ describe('RewardsController', () => {
                 levelNumber: '2',
                 rewards: [],
               },
-              nextTier: null,
-              nextTierPointsNeeded: null,
+              nextTier: undefined,
+              nextTierPointsNeeded: undefined,
             },
             lastFetched: Date.now(),
           },
@@ -17493,9 +17493,9 @@ describe('RewardsController', () => {
       expect(result.cachedOptInResults).toEqual([null, null, null]);
       expect(result.cachedSubscriptionIds).toEqual([null, null, null]);
       expect(result.addressesNeedingFresh).toEqual([
-        ADDRESS_1,
-        ADDRESS_2,
-        ADDRESS_3,
+        TEST_ADDRESS_1,
+        TEST_ADDRESS_2,
+        TEST_ADDRESS_3,
       ]);
     });
 
@@ -17516,7 +17516,7 @@ describe('RewardsController', () => {
         lastPerpsDiscountRateFetched: Date.now(),
       };
 
-      // Only ADDRESS_1 has cached data, ADDRESS_2 and ADDRESS_3 don't
+      // Only TEST_ADDRESS_1 has cached data, TEST_ADDRESS_2 and TEST_ADDRESS_3 don't
       controller = new RewardsController({
         messenger: mockMessenger,
         state: {
@@ -17538,12 +17538,15 @@ describe('RewardsController', () => {
       // Assert
       expect(result.cachedOptInResults).toEqual([true, null, null]);
       expect(result.cachedSubscriptionIds).toEqual(['sub-1', null, null]);
-      expect(result.addressesNeedingFresh).toEqual([ADDRESS_2, ADDRESS_3]);
+      expect(result.addressesNeedingFresh).toEqual([
+        TEST_ADDRESS_2,
+        TEST_ADDRESS_3,
+      ]);
     });
 
     it('should handle addresses with undefined hasOptedIn status', () => {
       // Arrange
-      const addresses = [ADDRESS_1, ADDRESS_2];
+      const addresses = [TEST_ADDRESS_1, TEST_ADDRESS_2];
       const addressToAccountMap = new Map([
         [TEST_ADDRESS_1.toLowerCase(), mockInternalAccount1],
         [TEST_ADDRESS_2.toLowerCase(), mockInternalAccount2],
@@ -17587,7 +17590,7 @@ describe('RewardsController', () => {
       // Assert
       expect(result.cachedOptInResults).toEqual([null, false]);
       expect(result.cachedSubscriptionIds).toEqual([null, null]);
-      expect(result.addressesNeedingFresh).toEqual([ADDRESS_1]);
+      expect(result.addressesNeedingFresh).toEqual([TEST_ADDRESS_1]);
     });
 
     it('should handle addresses not found in addressToAccountMap', () => {
@@ -17595,7 +17598,7 @@ describe('RewardsController', () => {
       const addresses = [TEST_ADDRESS_1, TEST_ADDRESS_2, TEST_ADDRESS_3];
       const addressToAccountMap = new Map([
         [TEST_ADDRESS_1.toLowerCase(), mockInternalAccount1],
-        // ADDRESS_2 and ADDRESS_3 are missing from the map
+        // TEST_ADDRESS_2 and TEST_ADDRESS_3 are missing from the map
       ]);
 
       const accountState1: RewardsAccountState = {
@@ -17626,7 +17629,10 @@ describe('RewardsController', () => {
       // Assert
       expect(result.cachedOptInResults).toEqual([true, null, null]);
       expect(result.cachedSubscriptionIds).toEqual(['sub-1', null, null]);
-      expect(result.addressesNeedingFresh).toEqual([ADDRESS_2, ADDRESS_3]);
+      expect(result.addressesNeedingFresh).toEqual([
+        TEST_ADDRESS_2,
+        TEST_ADDRESS_3,
+      ]);
     });
 
     it('should handle empty addresses array', () => {
@@ -17648,18 +17654,18 @@ describe('RewardsController', () => {
 
     it('should handle convertInternalAccountToCaipAccountId returning null', () => {
       // Arrange
-      const addresses = [ADDRESS_1, ADDRESS_2];
+      const addresses = [TEST_ADDRESS_1, TEST_ADDRESS_2];
       const addressToAccountMap = new Map([
         [TEST_ADDRESS_1.toLowerCase(), mockInternalAccount1],
         [TEST_ADDRESS_2.toLowerCase(), mockInternalAccount2],
       ]);
 
-      // Mock convertInternalAccountToCaipAccountId to return null for ADDRESS_1
+      // Mock convertInternalAccountToCaipAccountId to return null for TEST_ADDRESS_1
       jest
         .spyOn(controller, 'convertInternalAccountToCaipAccountId')
         .mockImplementation((account: InternalAccount) => {
-          if (account.address === ADDRESS_1) return null;
-          if (account.address === ADDRESS_2) return CAIP_ACCOUNT_2;
+          if (account.address === TEST_ADDRESS_1) return null;
+          if (account.address === TEST_ADDRESS_2) return CAIP_ACCOUNT_2;
           return null;
         });
 
@@ -17691,12 +17697,12 @@ describe('RewardsController', () => {
       // Assert
       expect(result.cachedOptInResults).toEqual([null, true]);
       expect(result.cachedSubscriptionIds).toEqual([null, 'sub-2']);
-      expect(result.addressesNeedingFresh).toEqual([ADDRESS_1]);
+      expect(result.addressesNeedingFresh).toEqual([TEST_ADDRESS_1]);
     });
 
     it('should preserve order of results matching input addresses order', () => {
       // Arrange
-      const addresses = [ADDRESS_3, ADDRESS_1, ADDRESS_2]; // Different order
+      const addresses = [TEST_ADDRESS_3, TEST_ADDRESS_1, TEST_ADDRESS_2]; // Different order
       const addressToAccountMap = new Map([
         [TEST_ADDRESS_1.toLowerCase(), mockInternalAccount1],
         [TEST_ADDRESS_2.toLowerCase(), mockInternalAccount2],
@@ -17754,543 +17760,6 @@ describe('RewardsController', () => {
       expect(result.cachedOptInResults).toEqual([true, true, false]);
       expect(result.cachedSubscriptionIds).toEqual(['sub-3', 'sub-1', null]);
       expect(result.addressesNeedingFresh).toEqual([]);
-    });
-  });
-
-  describe('getSnapshots', () => {
-    let snapshotsController: RewardsController;
-    let snapshotsMockMessenger: jest.Mocked<RewardsControllerMessenger>;
-    const mockSeasonId = 'season123';
-    const mockSubscriptionId = 'sub123';
-
-    // Helper function to create test snapshot data
-    const createTestSnapshot = (
-      overrides: Partial<{
-        id: string;
-        seasonId: string;
-        name: string;
-        description: string;
-        tokenSymbol: string;
-        tokenAmount: string;
-        tokenChainId: string;
-        tokenAddress: string;
-        receivingBlockchain: number;
-        opensAt: string;
-        closesAt: string;
-        calculatedAt: string;
-        image: { lightModeUrl: string; darkModeUrl: string };
-      }> = {},
-    ) => ({
-      id: 'snapshot-1',
-      seasonId: mockSeasonId,
-      name: 'Monad 50000',
-      description: 'Earn MONAD tokens by participating in the airdrop',
-      tokenSymbol: 'MONAD',
-      tokenAmount: '50000000000000000000000',
-      tokenChainId: '1',
-      tokenAddress: '0x1234567890abcdef1234567890abcdef12345678',
-      receivingBlockchain: 1,
-      opensAt: '2025-01-01T00:00:00.000Z',
-      closesAt: '2025-01-15T00:00:00.000Z',
-      calculatedAt: '2025-01-16T00:00:00.000Z',
-      image: {
-        lightModeUrl: 'https://example.com/snapshot-light.png',
-        darkModeUrl: 'https://example.com/snapshot-dark.png',
-      },
-      ...overrides,
-    });
-
-    beforeEach(() => {
-      snapshotsMockMessenger = {
-        subscribe: jest.fn(),
-        call: jest.fn(),
-        registerActionHandler: jest.fn(),
-        unregisterActionHandler: jest.fn(),
-        publish: jest.fn(),
-        clearEventSubscriptions: jest.fn(),
-        registerInitialEventPayload: jest.fn(),
-        unsubscribe: jest.fn(),
-      } as unknown as jest.Mocked<RewardsControllerMessenger>;
-    });
-
-    it('returns empty array when rewards feature flag is disabled', async () => {
-      const disabledController = new RewardsController({
-        messenger: snapshotsMockMessenger,
-        state: getRewardsControllerDefaultState(),
-        isDisabled: () => true,
-        isSnapshotsEnabled: () => true,
-      });
-
-      const result = await disabledController.getSnapshots(
-        mockSeasonId,
-        mockSubscriptionId,
-      );
-
-      expect(result).toEqual([]);
-      expect(snapshotsMockMessenger.call).not.toHaveBeenCalledWith(
-        'RewardsDataService:getSnapshots',
-        expect.anything(),
-        expect.anything(),
-      );
-    });
-
-    it('throws error when drops feature is not enabled', async () => {
-      snapshotsController = new RewardsController({
-        messenger: snapshotsMockMessenger,
-        state: getRewardsControllerDefaultState(),
-        isDisabled: () => false,
-        isSnapshotsEnabled: () => false,
-      });
-
-      await expect(
-        snapshotsController.getSnapshots(mockSeasonId, mockSubscriptionId),
-      ).rejects.toThrow('Snapshots feature is not enabled');
-
-      expect(snapshotsMockMessenger.call).not.toHaveBeenCalledWith(
-        'RewardsDataService:getSnapshots',
-        expect.anything(),
-        expect.anything(),
-      );
-    });
-
-    it('returns cached drops when cache is fresh', async () => {
-      const recentTime = Date.now() - 60000; // 1 minute ago (within 5 minute threshold)
-
-      const mockCachedSnapshots = [
-        createTestSnapshot({ id: 'snapshot-1', name: 'Monad 50000' }),
-        createTestSnapshot({ id: 'snapshot-2', name: 'Linea 25000' }),
-      ];
-
-      snapshotsController = new RewardsController({
-        messenger: snapshotsMockMessenger,
-        state: {
-          activeAccount: null,
-          accounts: {},
-          subscriptions: {},
-          seasons: {},
-          subscriptionReferralDetails: {},
-          seasonStatuses: {},
-          activeBoosts: {},
-          pointsEvents: {},
-          unlockedRewards: {},
-          drops: {
-            [mockSeasonId]: {
-              drops: mockCachedSnapshots,
-              lastFetched: recentTime,
-            },
-          },
-          pointsEstimateHistory: [],
-        },
-        isSnapshotsEnabled: () => true,
-      });
-
-      const result = await snapshotsController.getSnapshots(
-        mockSeasonId,
-        mockSubscriptionId,
-      );
-
-      expect(result).toEqual(mockCachedSnapshots);
-      expect(result).toHaveLength(2);
-      expect(result[0].id).toBe('snapshot-1');
-      expect(result[0].name).toBe('Monad 50000');
-      expect(result[1].id).toBe('snapshot-2');
-      expect(result[1].name).toBe('Linea 25000');
-      expect(snapshotsMockMessenger.call).not.toHaveBeenCalledWith(
-        'RewardsDataService:getSnapshots',
-        expect.anything(),
-        expect.anything(),
-      );
-    });
-
-    it('fetches fresh drops when cache is stale', async () => {
-      const staleTime = Date.now() - 360000; // 6 minutes ago (beyond 5 minute threshold)
-
-      const mockStaleSnapshots = [
-        createTestSnapshot({ id: 'stale-snapshot', name: 'Stale 10000' }),
-      ];
-
-      const mockFreshSnapshots = [
-        createTestSnapshot({ id: 'fresh-snapshot-1', name: 'Arbitrum 75000' }),
-        createTestSnapshot({ id: 'fresh-snapshot-2', name: 'Optimism 60000' }),
-        createTestSnapshot({ id: 'fresh-snapshot-3', name: 'Base 45000' }),
-      ];
-
-      snapshotsController = new RewardsController({
-        messenger: snapshotsMockMessenger,
-        state: {
-          activeAccount: null,
-          accounts: {},
-          subscriptions: {},
-          seasons: {},
-          subscriptionReferralDetails: {},
-          seasonStatuses: {},
-          activeBoosts: {},
-          pointsEvents: {},
-          unlockedRewards: {},
-          drops: {
-            [mockSeasonId]: {
-              drops: mockStaleSnapshots,
-              lastFetched: staleTime,
-            },
-          },
-          pointsEstimateHistory: [],
-        },
-        isSnapshotsEnabled: () => true,
-      });
-
-      snapshotsMockMessenger.call.mockResolvedValue(mockFreshSnapshots);
-
-      const result = await snapshotsController.getSnapshots(
-        mockSeasonId,
-        mockSubscriptionId,
-      );
-
-      expect(snapshotsMockMessenger.call).toHaveBeenCalledWith(
-        'RewardsDataService:getSnapshots',
-        mockSeasonId,
-        mockSubscriptionId,
-      );
-      expect(result).toEqual(mockFreshSnapshots);
-      expect(result).toHaveLength(3);
-      expect(result[0].id).toBe('fresh-snapshot-1');
-      expect(result[1].name).toBe('Optimism 60000');
-      expect(result[2].id).toBe('fresh-snapshot-3');
-
-      // Verify state was updated with fresh data
-      const updatedCache = snapshotsController.state.drops[mockSeasonId];
-      expect(updatedCache).toBeDefined();
-      expect(updatedCache.drops).toEqual(mockFreshSnapshots);
-      expect(updatedCache.lastFetched).toBeGreaterThan(Date.now() - 1000);
-    });
-
-    it('handles cache miss and fetches fresh data', async () => {
-      const mockApiSnapshots = [
-        createTestSnapshot({
-          id: 'api-snapshot-1',
-          name: 'Polygon 30000',
-          tokenSymbol: 'MATIC',
-        }),
-        createTestSnapshot({
-          id: 'api-snapshot-2',
-          name: 'zkSync 55000',
-          tokenSymbol: 'ZK',
-        }),
-      ];
-
-      controller = new RewardsController({
-        messenger: mockMessenger,
-        state: getRewardsControllerDefaultState(),
-        isSnapshotsEnabled: () => true,
-      });
-
-      mockMessenger.call.mockResolvedValue(mockApiSnapshots);
-
-      const result = await controller.getSnapshots(
-        mockSeasonId,
-        mockSubscriptionId,
-      );
-
-      expect(mockMessenger.call).toHaveBeenCalledWith(
-        'RewardsDataService:getSnapshots',
-        mockSeasonId,
-        mockSubscriptionId,
-      );
-      expect(result).toEqual(mockApiSnapshots);
-      expect(result).toHaveLength(2);
-      expect(result[0].tokenSymbol).toBe('MATIC');
-      expect(result[1].tokenSymbol).toBe('ZK');
-
-      // Verify state was updated with cached data
-      const cachedData = controller.state.drops[mockSeasonId];
-      expect(cachedData).toBeDefined();
-      expect(cachedData.drops).toEqual(mockApiSnapshots);
-      expect(cachedData.lastFetched).toBeGreaterThan(Date.now() - 1000);
-    });
-
-    it('throws error when API fails', async () => {
-      controller = new RewardsController({
-        messenger: mockMessenger,
-        state: getRewardsControllerDefaultState(),
-        isSnapshotsEnabled: () => true,
-      });
-
-      mockMessenger.call.mockRejectedValue(new Error('API error'));
-
-      await expect(
-        controller.getSnapshots(mockSeasonId, mockSubscriptionId),
-      ).rejects.toThrow('API error');
-
-      expect(mockMessenger.call).toHaveBeenCalledWith(
-        'RewardsDataService:getSnapshots',
-        mockSeasonId,
-        mockSubscriptionId,
-      );
-    });
-
-    it('handles null API response by returning empty array', async () => {
-      controller = new RewardsController({
-        messenger: mockMessenger,
-        state: getRewardsControllerDefaultState(),
-        isSnapshotsEnabled: () => true,
-      });
-
-      mockMessenger.call.mockResolvedValue(null);
-
-      const result = await controller.getSnapshots(
-        mockSeasonId,
-        mockSubscriptionId,
-      );
-
-      expect(result).toEqual([]);
-
-      // Verify state was updated with empty array
-      const cachedData = controller.state.drops[mockSeasonId];
-      expect(cachedData).toBeDefined();
-      expect(cachedData.drops).toEqual([]);
-    });
-
-    it('handles empty drops array from API', async () => {
-      controller = new RewardsController({
-        messenger: mockMessenger,
-        state: getRewardsControllerDefaultState(),
-        isSnapshotsEnabled: () => true,
-      });
-
-      mockMessenger.call.mockResolvedValue([]);
-
-      const result = await controller.getSnapshots(
-        mockSeasonId,
-        mockSubscriptionId,
-      );
-
-      expect(result).toEqual([]);
-      expect(result).toHaveLength(0);
-
-      // Verify state was updated
-      const cachedData = controller.state.drops[mockSeasonId];
-      expect(cachedData).toBeDefined();
-      expect(cachedData.drops).toEqual([]);
-      expect(cachedData.lastFetched).toBeGreaterThan(Date.now() - 1000);
-    });
-
-    it('handles multiple calls with different season IDs using separate caches', async () => {
-      const seasonId1 = 'season-A';
-      const seasonId2 = 'season-B';
-
-      const mockSnapshots1 = [
-        createTestSnapshot({
-          id: 'snapshot-A',
-          seasonId: seasonId1,
-          name: 'Monad 50000',
-        }),
-      ];
-
-      const mockSnapshots2 = [
-        createTestSnapshot({
-          id: 'snapshot-B-1',
-          seasonId: seasonId2,
-          name: 'Linea 25000',
-        }),
-        createTestSnapshot({
-          id: 'snapshot-B-2',
-          seasonId: seasonId2,
-          name: 'Arbitrum 75000',
-        }),
-      ];
-
-      controller = new RewardsController({
-        messenger: mockMessenger,
-        state: {
-          activeAccount: null,
-          accounts: {},
-          subscriptions: {},
-          seasons: {},
-          subscriptionReferralDetails: {},
-          seasonStatuses: {},
-          activeBoosts: {},
-          pointsEvents: {},
-          unlockedRewards: {},
-          drops: {
-            [seasonId1]: {
-              drops: mockSnapshots1,
-              lastFetched: Date.now() - 30000, // Fresh cache
-            },
-          },
-          pointsEstimateHistory: [],
-        },
-        isSnapshotsEnabled: () => true,
-      });
-
-      // Clear any calls made during controller initialization
-      mockMessenger.call.mockClear();
-      mockMessenger.call.mockResolvedValue(mockSnapshots2);
-
-      // First call uses cache
-      const result1 = await controller.getSnapshots(
-        seasonId1,
-        mockSubscriptionId,
-      );
-
-      // Second call fetches fresh data
-      const result2 = await controller.getSnapshots(
-        seasonId2,
-        mockSubscriptionId,
-      );
-
-      // Assert
-      expect(result1).toEqual(mockSnapshots1);
-      expect(result1[0].id).toBe('snapshot-A');
-      expect(result2).toEqual(mockSnapshots2);
-      expect(result2).toHaveLength(2);
-      expect(result2[0].name).toBe('Linea 25000');
-      expect(result2[1].name).toBe('Arbitrum 75000');
-
-      // Verify API was called only once (for the second request)
-      expect(mockMessenger.call).toHaveBeenCalledTimes(1);
-      expect(mockMessenger.call).toHaveBeenCalledWith(
-        'RewardsDataService:getSnapshots',
-        seasonId2,
-        mockSubscriptionId,
-      );
-
-      // Verify both caches exist
-      expect(controller.state.drops[seasonId1]).toBeDefined();
-      expect(controller.state.drops[seasonId2]).toBeDefined();
-      expect(controller.state.drops[seasonId2].drops).toEqual(mockSnapshots2);
-    });
-
-    it('uses seasonId as cache key (not composite with subscriptionId)', async () => {
-      const mockSnapshots = [
-        createTestSnapshot({ id: 'cached-snapshot', name: 'Scroll 40000' }),
-      ];
-
-      // Pre-populate cache with seasonId as key
-      controller = new RewardsController({
-        messenger: mockMessenger,
-        state: {
-          activeAccount: null,
-          accounts: {},
-          subscriptions: {},
-          seasons: {},
-          subscriptionReferralDetails: {},
-          seasonStatuses: {},
-          activeBoosts: {},
-          pointsEvents: {},
-          unlockedRewards: {},
-          drops: {
-            [mockSeasonId]: {
-              drops: mockSnapshots,
-              lastFetched: Date.now() - 30000, // Fresh cache
-            },
-          },
-          pointsEstimateHistory: [],
-        },
-        isSnapshotsEnabled: () => true,
-      });
-
-      mockMessenger.call.mockClear();
-
-      // Call with different subscriptionId but same seasonId
-      const result = await controller.getSnapshots(
-        mockSeasonId,
-        'different-subscription-id',
-      );
-
-      // Verify cached data was returned (same cache key since it uses seasonId only)
-      expect(result).toEqual(mockSnapshots);
-      expect(mockMessenger.call).not.toHaveBeenCalled();
-    });
-
-    it('stores snapshot data with all properties correctly', async () => {
-      const mockSnapshotWithAllProps = createTestSnapshot({
-        id: 'full-snapshot',
-        seasonId: mockSeasonId,
-        name: 'Starknet 80000',
-        description: 'Earn STRK tokens by participating in the airdrop',
-        tokenSymbol: 'STRK',
-        tokenAmount: '80000000000000000000000',
-        tokenChainId: '137',
-        tokenAddress: '0xabcdef1234567890abcdef1234567890abcdef12',
-        receivingBlockchain: 1,
-        opensAt: '2025-02-01T00:00:00.000Z',
-        closesAt: '2025-02-28T00:00:00.000Z',
-        calculatedAt: '2025-03-01T00:00:00.000Z',
-      });
-
-      controller = new RewardsController({
-        messenger: mockMessenger,
-        state: getRewardsControllerDefaultState(),
-        isSnapshotsEnabled: () => true,
-      });
-
-      mockMessenger.call.mockResolvedValue([mockSnapshotWithAllProps]);
-
-      const result = await controller.getSnapshots(
-        mockSeasonId,
-        mockSubscriptionId,
-      );
-
-      expect(result).toHaveLength(1);
-      const snapshot = result[0];
-      expect(snapshot.id).toBe('full-snapshot');
-      expect(snapshot.seasonId).toBe(mockSeasonId);
-      expect(snapshot.name).toBe('Starknet 80000');
-      expect(snapshot.description).toBe(
-        'Earn STRK tokens by participating in the airdrop',
-      );
-      expect(snapshot.tokenSymbol).toBe('STRK');
-      expect(snapshot.tokenAmount).toBe('80000000000000000000000');
-      expect(snapshot.tokenChainId).toBe('137');
-      expect(snapshot.tokenAddress).toBe(
-        '0xabcdef1234567890abcdef1234567890abcdef12',
-      );
-      expect(snapshot.receivingBlockchain).toBe(1);
-      expect(snapshot.opensAt).toBe('2025-02-01T00:00:00.000Z');
-      expect(snapshot.closesAt).toBe('2025-02-28T00:00:00.000Z');
-      expect(snapshot.calculatedAt).toBe('2025-03-01T00:00:00.000Z');
-
-      // Verify stored in state correctly
-      const cachedData = controller.state.drops[mockSeasonId];
-      expect(cachedData.drops[0]).toEqual(mockSnapshotWithAllProps);
-    });
-
-    it('logs error message when API call fails', async () => {
-      controller = new RewardsController({
-        messenger: mockMessenger,
-        state: getRewardsControllerDefaultState(),
-        isSnapshotsEnabled: () => true,
-      });
-
-      const apiError = new Error('Network timeout');
-      mockMessenger.call.mockRejectedValue(apiError);
-      mockLogger.log.mockClear();
-
-      await expect(
-        controller.getSnapshots(mockSeasonId, mockSubscriptionId),
-      ).rejects.toThrow('Network timeout');
-
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        'RewardsController: Failed to get drops:',
-        'Network timeout',
-      );
-    });
-
-    it('logs when fetching fresh drops data', async () => {
-      controller = new RewardsController({
-        messenger: mockMessenger,
-        state: getRewardsControllerDefaultState(),
-        isSnapshotsEnabled: () => true,
-      });
-
-      mockMessenger.call.mockResolvedValue([]);
-      mockLogger.log.mockClear();
-
-      await controller.getSnapshots(mockSeasonId, mockSubscriptionId);
-
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        'RewardsController: Fetching fresh drops data via API call for seasonId',
-        mockSeasonId,
-      );
     });
   });
 });

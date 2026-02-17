@@ -28,10 +28,10 @@ interface CTAConfig {
  * Parameters passed to CTA handlers
  */
 interface CTAHandlerParams {
-  navigation: {
-    navigate: (route: string, params?: Record<string, unknown>) => void;
-  };
-  goToSwaps: () => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  navigation: { navigate: (...args: any[]) => void };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  goToSwaps: (...args: any[]) => void;
   isFirstTimePerpsUser?: boolean;
 }
 
