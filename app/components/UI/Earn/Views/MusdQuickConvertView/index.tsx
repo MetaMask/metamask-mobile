@@ -137,6 +137,7 @@ const MusdQuickConvertView = () => {
           address: token.address as Hex,
           chainId: token.chainId as Hex,
         },
+        navigationMode: 'custom',
       });
       if (transactionId) {
         subscribeToFailedTx(transactionId);
