@@ -22,7 +22,8 @@ describe(RegressionTrade('Swap RWA from Token view'), (): void => {
 
   it('should complete a USDC to GOOGLEon swap from the token chart', async (): Promise<void> => {
     const FIRST_ROW: number = 0;
-    const quantity: string = '10';
+    const SECOND_ROW: number = 1;
+    const quantity: string = '100';
     const sourceTokenSymbol: string = 'USDC';
     const destTokenSymbol: string = 'GOOGLEON';
     const chainId = '0x1';
@@ -54,6 +55,7 @@ describe(RegressionTrade('Swap RWA from Token view'), (): void => {
             type: LocalNodeType.anvil,
             options: {
               chainId: 1,
+              loadState: './tests/smoke/swap/withTokens.json',
             },
           },
         ],
@@ -89,6 +91,14 @@ describe(RegressionTrade('Swap RWA from Token view'), (): void => {
         await Assertions.expectElementToBeVisible(
           ActivitiesView.swapActivityTitle(sourceTokenSymbol, destTokenSymbol),
         );
+
+        await TestHelpers.delay(5000);
+
+        await Assertions.expectElementToHaveText(
+          ActivitiesView.transactionStatus(SECOND_ROW),
+          ActivitiesViewSelectorsText.CONFIRM_TEXT,
+        );
+
         await Assertions.expectElementToHaveText(
           ActivitiesView.transactionStatus(FIRST_ROW),
           ActivitiesViewSelectorsText.CONFIRM_TEXT,

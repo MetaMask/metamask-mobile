@@ -1480,13 +1480,13 @@ export const GET_QUOTE_USDC_GOOGLEON_RESPONSE = [
       },
       srcTokenAmount: '991250',
       destAsset: {
-        address: '0xdac17f958d2ee523a2206206994597c13d831ec7',
+        address: '0xba47214edd2bb43099611b208f75e4b42fdcfedc',
         chainId: 1,
-        assetId: 'eip155:1/erc20:0xdac17f958d2ee523a2206206994597c13d831ec7',
-        symbol: 'USDT',
-        decimals: 6,
-        name: 'Tether USD',
-        coingeckoId: 'tether',
+        assetId: 'eip155:1/erc20:0xba47214edd2bb43099611b208f75e4b42fdcfedc',
+        symbol: 'GOOGLEON',
+        decimals: 2,
+        name: 'Alphabet Class A (Ondo Tokenized)',
+        coingeckoId: 'alphabet-class-a-ondo-tokenized-stock',
         aggregators: [
           'metamask',
           'oneInch',
@@ -1501,7 +1501,7 @@ export const GET_QUOTE_USDC_GOOGLEON_RESPONSE = [
         ],
         occurrences: 10,
         iconUrl:
-          'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xdac17f958d2ee523a2206206994597c13d831ec7.png',
+          'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xba47214edd2bb43099611b208f75e4b42fdcfedc.png',
         metadata: {
           storage: {
             balance: 2,
