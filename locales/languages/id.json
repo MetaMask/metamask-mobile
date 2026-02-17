@@ -2261,7 +2261,6 @@
       "withdrawing": "Penarikan sedang diproses",
       "withdrawing_subtitle": "Tersedia dalam waktu sekitar 1 menit",
       "withdraw_completed": "Penarikan selesai",
-      "withdraw_completed_subtitle": "{{amount}} USDC dipindahkan ke dompet Anda",
       "error_title": "Terjadi kesalahan",
       "error_description": "Gagal melanjutkan penarikan",
       "try_again": "Coba lagi"

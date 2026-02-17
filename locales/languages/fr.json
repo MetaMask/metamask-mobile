@@ -2261,7 +2261,6 @@
       "withdrawing": "Retrait en cours ",
       "withdrawing_subtitle": "Disponible dans environ 1 minute",
       "withdraw_completed": "Retrait effectué",
-      "withdraw_completed_subtitle": "{{amount}} USDC transféré vers votre portefeuille",
       "error_title": "Quelque chose a mal tourné",
       "error_description": "Échec du retrait",
       "try_again": "Réessayez"

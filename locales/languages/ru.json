@@ -2261,7 +2261,6 @@
       "withdrawing": "Выполняется вывод средств",
       "withdrawing_subtitle": "Доступно примерно через 1 минуту",
       "withdraw_completed": "Вывод средств завершен",
-      "withdraw_completed_subtitle": "{{amount}} USDC переведены в ваш кошелек",
       "error_title": "Что-то пошло не так",
       "error_description": "Не удалось продолжить вывод средств",
       "try_again": "Повторить попытку"

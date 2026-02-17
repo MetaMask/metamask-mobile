@@ -2261,7 +2261,6 @@
       "withdrawing": "Para çekme işlemi sürüyor",
       "withdrawing_subtitle": "Yaklaşık 1 dakika sonra kullanılabilir",
       "withdraw_completed": "Çekme işlemi tamamlandı",
-      "withdraw_completed_subtitle": "{{amount}} USDC cüzdanınıza aktarıldı",
       "error_title": "Bir şeyler ters gitti",
       "error_description": "Çekme işlemine ilerlenemedi",
       "try_again": "Tekrar dene"

@@ -2261,7 +2261,6 @@
       "withdrawing": "Retirada em andamento",
       "withdrawing_subtitle": "Disponível em cerca de 1 minuto",
       "withdraw_completed": "Saque concluído",
-      "withdraw_completed_subtitle": "{{amount}} USDC transferidos para sua carteira",
       "error_title": "Ocorreu algum erro",
       "error_description": "Falha ao continuar com a retirada",
       "try_again": "Tentar novamente"

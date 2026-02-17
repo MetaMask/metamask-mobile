@@ -56,6 +56,7 @@ import {
 import {
   selectConversionRateByChainId,
   selectCurrencyRates,
+  selectUSDConversionRateByChainId,
 } from '../../../selectors/currencyRateController';
 import { selectContractExchangeRatesByChainId } from '../../../selectors/tokenRatesController';
 import { selectTokensByChainIdAndAddress } from '../../../selectors/tokensController';
@@ -236,6 +237,9 @@ class TransactionElement extends PureComponent {
      * All EVM transactions in controller state
      */
     transactions: PropTypes.arrayOf(PropTypes.object).isRequired,
+    predictWithdrawDest: PropTypes.shape({
+      chainId: PropTypes.string,
+    }),
   };
 
   state = {
@@ -448,7 +452,9 @@ class TransactionElement extends PureComponent {
         ? transactions?.find((t) => t.id === requiredTransactionIds[0])?.chainId
         : undefined;
 
-    const chainId = perpsDepositChainId ?? txChainId;
+    const predictWithdrawChainId = this.props.predictWithdrawDest?.chainId;
+
+    const chainId = perpsDepositChainId ?? predictWithdrawChainId ?? txChainId;
 
     return (
       <BadgeWrapper
@@ -735,11 +741,43 @@ const TransactionElementWithBridge = (props) => {
   const bridgeTxHistoryData = useBridgeTxHistoryData({ evmTxMeta: props.tx });
   const transactions = useSelector(selectTransactions);
 
+  // For predict withdrawals, resolve destination chain data so the activity
+  // row shows the received token (e.g. BNB) instead of the source token.
+  const isPredictWithdraw = hasTransactionType(props.tx, [
+    TransactionType.predictWithdraw,
+  ]);
+  const destChainId = isPredictWithdraw
+    ? props.tx.metamaskPay?.chainId
+    : undefined;
+  const destTicker = useSelector((state) =>
+    destChainId ? selectTickerByChainId(state, destChainId) : undefined,
+  );
+  const destConversionRate = useSelector((state) =>
+    destChainId ? selectConversionRateByChainId(state, destChainId) : undefined,
+  );
+  const destUsdConversionRate = useSelector((state) =>
+    destChainId
+      ? selectUSDConversionRateByChainId(state, destChainId)
+      : undefined,
+  );
+
+  const predictWithdrawDest =
+    destChainId && destTicker
+      ? {
+          chainId: destChainId,
+          ticker: destTicker,
+          conversionRate: destConversionRate,
+          usdConversionRate: destUsdConversionRate,
+          targetFiatUsd: props.tx.metamaskPay?.targetFiat,
+        }
+      : undefined;
+
   return (
     <TransactionElement
       {...props}
       bridgeTxHistoryData={bridgeTxHistoryData}
       transactions={transactions}
+      predictWithdrawDest={predictWithdrawDest}
     />
   );
 };

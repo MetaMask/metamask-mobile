@@ -2261,7 +2261,6 @@
       "withdrawing": "Đang rút tiền",
       "withdrawing_subtitle": "Sẽ khả dụng sau khoảng 1 phút",
       "withdraw_completed": "Rút tiền hoàn tất",
-      "withdraw_completed_subtitle": "{{amount}} USDC đã được chuyển vào ví của bạn",
       "error_title": "Đã xảy ra sự cố",
       "error_description": "Không thể thực hiện yêu cầu rút tiền",
       "try_again": "Thử lại"

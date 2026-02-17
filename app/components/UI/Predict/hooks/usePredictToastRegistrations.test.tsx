@@ -423,6 +423,35 @@ describe('usePredictToastRegistrations', () => {
       );
     });
 
+    it('uses targetFiat and destinationTicker for post-quote withdraw toast', () => {
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'withdraw',
+          status: 'confirmed',
+          senderAddress: selectedAddress,
+          amount: 0.5,
+          targetFiat: 0.42,
+          destinationTicker: 'BNB',
+        },
+        showToast,
+      );
+
+      expect(showToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          labelOptions: expect.arrayContaining([
+            expect.objectContaining({
+              label: expect.stringContaining('$0.42'),
+            }),
+            expect.objectContaining({
+              label: expect.stringContaining('BNB'),
+            }),
+          ]),
+        }),
+      );
+    });
+
     it('shows error toast with retry on failed status', async () => {
       const handler = getHandler();
 

@@ -2261,7 +2261,6 @@
       "withdrawing": "提取进行中",
       "withdrawing_subtitle": "约 1 分钟后可用",
       "withdraw_completed": "提取完成",
-      "withdraw_completed_subtitle": "{{amount}} USDC 已转移到您的钱包",
       "error_title": "出错了......",
       "error_description": "提款处理失败",
       "try_again": "请重试"

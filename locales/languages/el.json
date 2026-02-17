@@ -2261,7 +2261,6 @@
       "withdrawing": "Ανάληψη σε εξέλιξη",
       "withdrawing_subtitle": "Διαθέσιμο σε περίπου 1 λεπτό",
       "withdraw_completed": "Η ανάληψη ολοκληρώθηκε",
-      "withdraw_completed_subtitle": "{{amount}} USDC μεταφέρθηκαν στο πορτοφόλι σας",
       "error_title": "Κάτι πήγε στραβά",
       "error_description": "Δεν ήταν δυνατή η συνέχιση της ανάληψης",
       "try_again": "Προσπαθήστε ξανά"

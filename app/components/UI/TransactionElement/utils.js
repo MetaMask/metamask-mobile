@@ -184,7 +184,7 @@ function getTokenTransfer(args) {
 
   const signPrefix = isPositive ? '' : '- ';
 
-  const transactionElement = {
+  let transactionElement = {
     actionKey: renderActionKey,
     value: !renderTokenAmount
       ? strings('transaction.value_not_available')
@@ -194,6 +194,34 @@ function getTokenTransfer(args) {
     transactionType,
     nonce,
   };
+
+  // For predict withdrawals with destination chain info, show the received
+  // token (e.g. BNB) instead of the source token (USDC.E).
+  const { predictWithdrawDest } = args;
+  if (
+    hasTransactionType(tx, [TransactionType.predictWithdraw]) &&
+    predictWithdrawDest?.targetFiatUsd &&
+    predictWithdrawDest?.usdConversionRate
+  ) {
+    const {
+      ticker: destTicker,
+      usdConversionRate: destUsdRate,
+      conversionRate: destRate,
+      targetFiatUsd,
+    } = predictWithdrawDest;
+    const fiatUsd = parseFloat(targetFiatUsd);
+    const receivedAmount = fiatUsd / destUsdRate;
+
+    // Convert USD fiat to user's selected currency
+    const userFiat =
+      destRate && destUsdRate ? fiatUsd * (destRate / destUsdRate) : fiatUsd;
+
+    transactionElement = {
+      ...transactionElement,
+      value: `${receivedAmount.toPrecision(4)} ${destTicker}`,
+      fiatValue: addCurrencySymbol(userFiat.toFixed(2), currentCurrency),
+    };
+  }
 
   return [transactionElement, transactionDetails];
 }

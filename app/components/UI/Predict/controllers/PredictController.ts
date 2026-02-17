@@ -236,6 +236,10 @@ export interface PredictControllerTransactionStatusChangedEvent {
       senderAddress: string;
       transactionId?: string;
       amount?: number;
+      /** Received fiat amount in USD for post-quote withdrawals */
+      targetFiat?: number;
+      /** Destination token ticker for post-quote withdrawals (e.g. "BNB") */
+      destinationTicker?: string;
     },
   ];
 }
@@ -2057,6 +2061,7 @@ export class PredictController extends BaseController<
       senderAddress: address,
       ...(transactionId ? { transactionId } : {}),
       ...(amount !== undefined ? { amount } : {}),
+      ...this.getWithdrawDestination(type, status, transactionMeta),
     });
   }
 
@@ -2177,6 +2182,39 @@ export class PredictController extends BaseController<
     }
 
     return undefined;
+  }
+
+  /**
+   * Extracts destination token info for post-quote withdrawals from metamaskPay.
+   */
+  private getWithdrawDestination(
+    type: PredictTransactionEventType,
+    status: PredictTransactionEventStatus,
+    transactionMeta: TransactionMeta,
+  ): { targetFiat?: number; destinationTicker?: string } {
+    if (type !== 'withdraw' || status !== 'confirmed') {
+      return {};
+    }
+
+    const { metamaskPay } = transactionMeta;
+    if (!metamaskPay?.isPostQuote) {
+      return {};
+    }
+
+    const targetFiat = Number(metamaskPay.targetFiat);
+    const chainId = metamaskPay.chainId as Hex | undefined;
+
+    let destinationTicker: string | undefined;
+    if (chainId) {
+      const networkState = this.messenger.call('NetworkController:getState');
+      destinationTicker =
+        networkState.networkConfigurationsByChainId?.[chainId]?.nativeCurrency;
+    }
+
+    return {
+      ...(Number.isFinite(targetFiat) ? { targetFiat } : {}),
+      ...(destinationTicker ? { destinationTicker } : {}),
+    };
   }
 
   private static readonly transactionTypeMap: Partial<

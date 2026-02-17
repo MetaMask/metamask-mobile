@@ -2261,7 +2261,6 @@
       "withdrawing": "Retiro en curso",
       "withdrawing_subtitle": "Disponible en aproximadamente 1 minuto",
       "withdraw_completed": "Retiro finalizado",
-      "withdraw_completed_subtitle": "Se han transferido {{amount}} USDC a tu billetera",
       "error_title": "Algo salió mal",
       "error_description": "No se pudo proceder con el retiro",
       "try_again": "Inténtalo de nuevo"

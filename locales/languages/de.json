@@ -2261,7 +2261,6 @@
       "withdrawing": "Abhebung im Gange",
       "withdrawing_subtitle": "Verfügbar in etwa 1 Minute",
       "withdraw_completed": "Auszahlung abgeschlossen",
-      "withdraw_completed_subtitle": "{{amount}} USDC wurden Ihre Wallet hinzugefügt",
       "error_title": "Hoppla! Etwas ist schiefgelaufen ...",
       "error_description": "Fortfahren mit Auszahlung fehlgeschlagen",
       "try_again": "Erneut versuchen"

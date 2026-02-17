@@ -138,8 +138,15 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
   const normalizedSelectedAddress = selectedAddress.toLowerCase();
   const handleTransactionStatusChanged = useCallback(
     (payload: unknown, showToast: ToastRef['showToast']): void => {
-      const { type, status, senderAddress, transactionId, amount } =
-        payload as PredictTransactionStatusChangedPayload;
+      const {
+        type,
+        status,
+        senderAddress,
+        transactionId,
+        amount,
+        targetFiat,
+        destinationTicker,
+      } = payload as PredictTransactionStatusChangedPayload;
       const canRetry =
         Boolean(senderAddress) && senderAddress === normalizedSelectedAddress;
 
@@ -276,16 +283,18 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
 
         if (status === 'confirmed') {
           const formattedWithdrawAmount = formatPrice(
-            amount ?? withdrawTransaction?.amount ?? 0,
+            targetFiat ?? amount ?? withdrawTransaction?.amount ?? 0,
           );
+          const token = destinationTicker ?? 'USDC';
 
           showSuccessToast({
             showToast,
             title: strings('predict.withdraw.withdraw_completed'),
             description: strings(
-              'predict.withdraw.withdraw_completed_subtitle',
+              'predict.withdraw.withdraw_any_token_completed_subtitle',
               {
                 amount: formattedWithdrawAmount,
+                token,
               },
             ),
             iconColor: theme.colors.success.default,
