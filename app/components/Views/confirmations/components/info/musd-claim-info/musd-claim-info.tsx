@@ -2,7 +2,6 @@ import React from 'react';
 import { View } from 'react-native';
 
 import { strings } from '../../../../../../../locales/i18n';
-import { MERKL_CLAIM_CHAIN_ID } from '../../../../../UI/Earn/components/MerklRewards/constants';
 import InfoSection from '../../UI/info-row/info-section';
 import InfoRowDivider from '../../UI/info-row-divider';
 import { HeroRow } from '../../rows/transactions/hero-row';
@@ -15,12 +14,9 @@ export const MusdClaimInfo = () => (
   <View testID={ConfirmationInfoComponentIDs.MUSD_CLAIM}>
     <HeroRow />
     <InfoSection>
-      <AccountRow
-        label={strings('stake.claiming_to')}
-        chainId={MERKL_CLAIM_CHAIN_ID}
-      />
+      <AccountRow label={strings('stake.claiming_to')} />
       <InfoRowDivider />
-      <NetworkRow chainId={MERKL_CLAIM_CHAIN_ID} />
+      <NetworkRow />
     </InfoSection>
     <GasFeesDetailsRow disableUpdate />
   </View>

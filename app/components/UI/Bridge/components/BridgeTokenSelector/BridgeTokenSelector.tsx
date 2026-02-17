@@ -11,7 +11,12 @@ import {
   ListRenderItemInfo,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import {
+  useNavigation,
+  useRoute,
+  RouteProp,
+  StackActions,
+} from '@react-navigation/native';
 import { useSelector, useDispatch } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import { getHeaderCompactStandardNavbarOptions } from '../../../../../component-library/components-temp/HeaderCompactStandard';
@@ -371,10 +376,14 @@ export const BridgeTokenSelector: React.FC = () => {
       );
       const networkName = chainData?.name ?? '';
 
-      navigation.navigate('Asset', {
-        ...item,
-        source: TokenDetailsSource.Swap,
-      });
+      // Use push so we always open details for the tapped token.
+      // navigate('Asset') can reuse an existing Asset route with stale params.
+      navigation.dispatch(
+        StackActions.push('Asset', {
+          ...item,
+          source: TokenDetailsSource.Swap,
+        }),
+      );
 
       Engine.context.BridgeController.trackUnifiedSwapBridgeEvent(
         UnifiedSwapBridgeEventName.AssetDetailTooltipClicked,
