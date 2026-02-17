@@ -70,7 +70,12 @@ export const selectIsWatchlistMarket = (
  * Uses memoization to return stable object references and prevent unnecessary re-renders.
  *
  * Usage: selectTradeConfiguration(state, coin)
+ *
+ * @param state - The perps controller state.
+ * @param coin - The market coin symbol.
+ * @returns The trade configuration for the specified market, or undefined.
  */
+
 export const selectTradeConfiguration = createSelector(
   [
     (state: PerpsControllerState): boolean | undefined => state?.isTestnet,
@@ -98,7 +103,12 @@ export const selectTradeConfiguration = createSelector(
  * Returns undefined if config doesn't exist or has expired (more than 5 minutes old).
  *
  * Usage: selectPendingTradeConfiguration(state, coin)
+ *
+ * @param state - The perps controller state.
+ * @param coin - The market coin symbol.
+ * @returns The pending trade configuration, or undefined if expired or not found.
  */
+
 export const selectPendingTradeConfiguration = createSelector(
   [
     (state: PerpsControllerState): boolean | undefined => state?.isTestnet,
@@ -196,7 +206,12 @@ export const selectMarketFilterPreferences = (
  * Select order book grouping for a specific market on the current network.
  *
  * Usage: selectOrderBookGrouping(state, coin)
+ *
+ * @param state - The perps controller state.
+ * @param coin - The market coin symbol.
+ * @returns The order book grouping value, or undefined.
  */
+
 export const selectOrderBookGrouping = createSelector(
   [
     (state: PerpsControllerState): boolean | undefined => state?.isTestnet,

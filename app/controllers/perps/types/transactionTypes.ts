@@ -55,6 +55,9 @@ export type TransactionRecord = {
 
 /**
  * Type guard to check if a transaction result is a TransactionRecord
+ *
+ * @param result - The transaction result to check.
+ * @returns True if the result is a TransactionRecord with id and status fields.
  */
 export function isTransactionRecord(
   result: LastTransactionResult | TransactionRecord,
@@ -64,6 +67,9 @@ export function isTransactionRecord(
 
 /**
  * Type guard to check if a transaction result is a LastTransactionResult
+ *
+ * @param result - The transaction result to check.
+ * @returns True if the result is a LastTransactionResult without id or status fields.
  */
 export function isLastTransactionResult(
   result: LastTransactionResult | TransactionRecord,

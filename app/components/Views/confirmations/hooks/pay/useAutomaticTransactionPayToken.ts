@@ -8,6 +8,7 @@ import { TransactionMeta } from '@metamask/transaction-controller';
 import { useTransactionPayRequiredTokens } from './useTransactionPayData';
 import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTokens';
 import { AssetType } from '../../types/token';
+import { isTransactionPayWithdraw } from '../../utils/transaction';
 
 export interface SetPayTokenRequest {
   address: Hex;
@@ -26,7 +27,7 @@ export function useAutomaticTransactionPayToken({
   const isUpdated = useRef(false);
   const { setPayToken } = useTransactionPayToken();
   const requiredTokens = useTransactionPayRequiredTokens();
-  const tokens = useTransactionPayAvailableTokens();
+  const { availableTokens: tokens } = useTransactionPayAvailableTokens();
 
   const tokensWithBalance = useMemo(
     () => tokens.filter((t) => !t.disabled),
@@ -50,8 +51,12 @@ export function useAutomaticTransactionPayToken({
     [requiredTokens],
   );
 
+  // For withdrawals, skip auto-selection — the default token is derived
+  // from required tokens and shown via PayWithRow
+  const isWithdraw = isTransactionPayWithdraw(transactionMeta);
+
   useEffect(() => {
-    if (disable || isUpdated.current) {
+    if (disable || isWithdraw || isUpdated.current) {
       return;
     }
 
@@ -78,6 +83,7 @@ export function useAutomaticTransactionPayToken({
   }, [
     disable,
     isHardwareWallet,
+    isWithdraw,
     preferredToken,
     requiredTokens,
     setPayToken,
