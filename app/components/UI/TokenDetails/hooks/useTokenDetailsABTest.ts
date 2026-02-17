@@ -2,7 +2,7 @@
  * React hook for Token Details Layout A/B test
  *
  * Reads the variant from LaunchDarkly and returns layout selection + analytics context.
- * Falls back to 'treatment' (new layout) when the test is inactive.
+ * Falls back to 'control' (old layout) when the test is inactive.
  */
 
 import { useSelector } from 'react-redux';
@@ -10,7 +10,7 @@ import { selectTokenDetailsLayoutTestVariant } from '../../../../selectors/featu
 
 type TokenDetailsLayoutVariantName = 'control' | 'treatment';
 
-const DEFAULT_VARIANT: TokenDetailsLayoutVariantName = 'treatment';
+const DEFAULT_VARIANT: TokenDetailsLayoutVariantName = 'control';
 
 /**
  * Hook for Token Details Layout A/B test
