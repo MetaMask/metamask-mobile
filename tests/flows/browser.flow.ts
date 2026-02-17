@@ -8,9 +8,6 @@ import { BrowserViewSelectorsIDs } from '../../app/components/Views/BrowserTab/B
 import TabBarComponent from '../page-objects/wallet/TabBarComponent';
 import TrendingView from '../page-objects/Trending/TrendingView';
 
-/** i18n text for the tab list header (English). When visible, we are in the "Opened tabs" grid view. */
-const OPENED_TABS_HEADER_TEXT = 'Opened tabs';
-
 /**
  * Waits for the test dapp to load.
  * @async
@@ -100,13 +97,18 @@ export const waitForTestSnapsToLoad = async (): Promise<void> => {
  * selects the first/most recent tab so we land on the single-tab browser view.
  */
 const ensureSingleBrowserTabView = async (): Promise<void> => {
-  const openedTabsHeader = Matchers.getElementByText(OPENED_TABS_HEADER_TEXT);
+  const openedTabsHeader = Matchers.getElementByID(
+    BrowserViewSelectorsIDs.TABS_OPENED_TITLE,
+  );
   const isInTabListView = await Utilities.isElementVisible(
     openedTabsHeader,
     2000,
   );
   if (isInTabListView) {
-    const firstTab = Matchers.getElementByID(/browser-tab-\d+/, 0);
+    const firstTab = Matchers.getElementByID(
+      BrowserViewSelectorsIDs.TABS_ITEM_REGEX,
+      0,
+    );
     await Gestures.waitAndTap(firstTab, {
       elemDescription: 'First browser tab (select to open single-tab view)',
     });
@@ -114,11 +116,6 @@ const ensureSingleBrowserTabView = async (): Promise<void> => {
 };
 
 export const navigateToBrowserView = async (): Promise<void> => {
-  // Check if browser is already visible
-  // if (await Utilities.isElementVisible(BrowserView.urlInputBoxID)) {
-  //   return;
-  // }
-
   await TabBarComponent.tapExploreButton();
   await TrendingView.tapBrowserButton();
 
