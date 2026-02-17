@@ -172,7 +172,6 @@ export interface RewardsState {
   // Drop detail loading states (prevent leaderboard FlatList updates on unmounted components)
   isUpdatingDropAddress: boolean;
   isValidatingDropAddress: boolean;
-
 }
 
 export const initialState: RewardsState = {
@@ -249,7 +248,6 @@ export const initialState: RewardsState = {
   // Drop detail loading states
   isUpdatingDropAddress: false,
   isValidatingDropAddress: false,
-
 };
 
 interface RehydrateAction extends Action<'persist/REHYDRATE'> {

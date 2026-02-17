@@ -1,6 +1,8 @@
 import React, { useCallback, useRef } from 'react';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
-import BottomSheet, { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
+import BottomSheet, {
+  BottomSheetRef,
+} from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import MultichainAccountSelectorList from '../../../../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
@@ -23,23 +25,21 @@ const DropAccountPickerModal: React.FC = () => {
   const { onSelectAccountGroup } = route.params;
 
   const handleDismiss = useCallback(() => {
-     ref.current?.onCloseBottomSheet();
-  }, [navigation]);
+    ref.current?.onCloseBottomSheet();
+  }, []);
 
   const handleSelectAccount = useCallback(
     (accountGroup: AccountGroupObject) => {
-    navigation.goBack();
-    InteractionManager.runAfterInteractions(() => {
-      onSelectAccountGroup(accountGroup);
-    });
-  }, [onSelectAccountGroup, navigation]);
+      navigation.goBack();
+      InteractionManager.runAfterInteractions(() => {
+        onSelectAccountGroup(accountGroup);
+      });
+    },
+    [onSelectAccountGroup, navigation],
+  );
 
   return (
-    <BottomSheet
-      ref={ref}
-      shouldNavigateBack={false}
-      onClose={handleDismiss}
-    >
+    <BottomSheet ref={ref} shouldNavigateBack={false} onClose={handleDismiss}>
       <BottomSheetHeader onBack={handleDismiss}>
         {strings('accounts.accounts_title')}
       </BottomSheetHeader>

@@ -97,9 +97,12 @@ export const useDropCommittedAddress = (
   }, [fetchCommittedAddress]);
 
   // Track mounted state to prevent state updates after unmount
-  useEffect(() => () => {
+  useEffect(
+    () => () => {
       mountedRef.current = false;
-    }, []);
+    },
+    [],
+  );
 
   // Invalidate when drop address is committed (commit or address change)
   useInvalidateByRewardEvents(

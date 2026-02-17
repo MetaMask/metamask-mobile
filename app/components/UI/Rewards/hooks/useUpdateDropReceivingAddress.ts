@@ -3,7 +3,10 @@ import { useSelector, useDispatch } from 'react-redux';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import { handleRewardsErrorMessage } from '../utils';
 import Engine from '../../../../core/Engine';
-import { setRecentDropAddressCommit, setIsUpdatingDropAddress } from '../../../../reducers/rewards';
+import {
+  setRecentDropAddressCommit,
+  setIsUpdatingDropAddress,
+} from '../../../../reducers/rewards';
 
 export interface UseUpdateDropReceivingAddressResult {
   /**

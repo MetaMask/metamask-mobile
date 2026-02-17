@@ -132,7 +132,11 @@ const DropLeaderboard: React.FC<DropLeaderboardProps> = ({
     return `#${formatNumber(userPosition.rank)}`;
   }, [leaderboard?.userPosition]);
 
-  if ((isLoading && !leaderboard?.dropId) || isUpdatingAddress || isValidatingAccount) {
+  if (
+    (isLoading && !leaderboard?.dropId) ||
+    isUpdatingAddress ||
+    isValidatingAccount
+  ) {
     return (
       <Box
         twClassName="h-40 bg-background-muted rounded-lg animate-pulse"
