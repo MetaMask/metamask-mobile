@@ -6,7 +6,7 @@ import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { ImportTokenViewSelectorsIDs } from '../../ImportAssetView.testIds';
 import Engine from '../../../../../core/Engine';
 import { isNonEvmChainId } from '../../../../../core/Multichain/utils';
-import { useSearchRequest } from '../../../../UI/Trending/hooks/useSearchRequest/useSearchRequest';
+import { useTrendingSearch } from '../../../../UI/Trending/hooks/useTrendingSearch/useTrendingSearch';
 import { convertAPITokensToBridgeTokens } from '../../../../UI/Bridge/hooks/useTokensWithBalances';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import { Hex } from '@metamask/utils';
@@ -19,7 +19,7 @@ const mockBuild = jest.fn();
 const mockAddProperties = jest.fn(() => ({ build: mockBuild }));
 const mockSelectInternalAccountByScope = jest.fn();
 
-// --- Module mocks (correct paths relative to this test file) ---
+// --- Module mocks ---
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
@@ -90,13 +90,12 @@ jest.mock('../../../../../selectors/multichain/multichain', () => ({
 }));
 
 jest.mock(
-  '../../../../UI/Trending/hooks/useSearchRequest/useSearchRequest',
+  '../../../../UI/Trending/hooks/useTrendingSearch/useTrendingSearch',
   () => ({
-    useSearchRequest: jest.fn(() => ({
-      results: [],
+    useTrendingSearch: jest.fn(() => ({
+      data: [],
       isLoading: false,
-      error: null,
-      search: jest.fn(),
+      refetch: jest.fn(),
     })),
   }),
 );
@@ -110,12 +109,12 @@ jest.mock('../../../../UI/Bridge/hooks/useTokensWithBalances', () => ({
 const mockIsNonEvmChainId = isNonEvmChainId as jest.MockedFunction<
   typeof isNonEvmChainId
 >;
-const mockUseSearchRequest = jest.mocked(useSearchRequest);
+const mockUseTrendingSearch = jest.mocked(useTrendingSearch);
 const mockConvertTokens = jest.mocked(convertAPITokensToBridgeTokens);
 
 // --- Test data ---
 
-const mockApiResult = {
+const mockTrendingResult = {
   assetId: 'eip155:1/erc20:0x1234567890abcdef1234567890abcdef12345678' as const,
   decimals: 18,
   name: 'Test Token',
@@ -156,12 +155,12 @@ const mockNavigation = {
 // --- Helpers ---
 
 const setupWithTokenResults = () => {
-  mockUseSearchRequest.mockReturnValue({
-    results: [mockApiResult],
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  mockUseTrendingSearch.mockReturnValue({
+    data: [mockTrendingResult],
     isLoading: false,
-    error: null,
-    search: jest.fn(),
-  });
+    refetch: jest.fn(),
+  } as ReturnType<typeof useTrendingSearch>);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   mockConvertTokens.mockReturnValue([mockBridgeToken as any]);
 };
@@ -202,12 +201,11 @@ describe('SearchTokenAutocomplete', () => {
     mockBuild.mockReturnValue({ event: 'mock-event' });
     mockIsNonEvmChainId.mockReturnValue(false);
     mockSelectInternalAccountByScope.mockReturnValue(null);
-    mockUseSearchRequest.mockReturnValue({
-      results: [],
+    mockUseTrendingSearch.mockReturnValue({
+      data: [],
       isLoading: false,
-      error: null,
-      search: jest.fn(),
-    });
+      refetch: jest.fn(),
+    } as ReturnType<typeof useTrendingSearch>);
     mockConvertTokens.mockReturnValue([]);
     (Engine.context.TokensController.addTokens as jest.Mock).mockResolvedValue(
       undefined,
@@ -274,7 +272,7 @@ describe('SearchTokenAutocomplete', () => {
     expect(queryByText(/token detection/i)).toBeNull();
   });
 
-  it('displays tokens from API search results', () => {
+  it('displays tokens from search results', () => {
     setupWithTokenResults();
 
     const { getByText, getByTestId } = renderComponent();
@@ -302,6 +300,49 @@ describe('SearchTokenAutocomplete', () => {
 
     const nextButton = getByTestId(ImportTokenViewSelectorsIDs.NEXT_BUTTON);
     expect(nextButton).toHaveProp('disabled', false);
+  });
+
+  it('shows clear button when search has text and clears on press', () => {
+    const { getByTestId, queryByTestId } = renderComponent();
+
+    expect(
+      queryByTestId(ImportTokenViewSelectorsIDs.CLEAR_SEARCH_BAR),
+    ).toBeNull();
+
+    const searchBar = getByTestId(ImportTokenViewSelectorsIDs.SEARCH_BAR);
+    fireEvent.changeText(searchBar, 'ETH');
+
+    const clearButton = getByTestId(
+      ImportTokenViewSelectorsIDs.CLEAR_SEARCH_BAR,
+    );
+    expect(clearButton).toBeOnTheScreen();
+
+    fireEvent.press(clearButton);
+
+    expect(
+      queryByTestId(ImportTokenViewSelectorsIDs.CLEAR_SEARCH_BAR),
+    ).toBeNull();
+  });
+
+  it('deselects a previously selected token when pressed again', () => {
+    setupWithTokenResults();
+
+    const { getByTestId } = renderComponent();
+    const tokenResult = getByTestId(
+      ImportTokenViewSelectorsIDs.SEARCH_TOKEN_RESULT,
+    );
+
+    fireEvent.press(tokenResult);
+    expect(getByTestId(ImportTokenViewSelectorsIDs.NEXT_BUTTON)).toHaveProp(
+      'disabled',
+      false,
+    );
+
+    fireEvent.press(tokenResult);
+    expect(getByTestId(ImportTokenViewSelectorsIDs.NEXT_BUTTON)).toHaveProp(
+      'disabled',
+      true,
+    );
   });
 
   it('navigates to ConfirmAddAsset with correct params and tracks analytics', () => {
@@ -363,10 +404,10 @@ describe('SearchTokenAutocomplete', () => {
       address: 'non-evm-address',
     });
 
-    mockUseSearchRequest.mockReturnValue({
-      results: [
+    mockUseTrendingSearch.mockReturnValue({
+      data: [
         {
-          ...mockApiResult,
+          ...mockTrendingResult,
           assetId: `${solanaChainId}/slip44:501`,
           symbol: 'SOL',
           name: 'Solana',
@@ -374,9 +415,8 @@ describe('SearchTokenAutocomplete', () => {
         },
       ],
       isLoading: false,
-      error: null,
-      search: jest.fn(),
-    });
+      refetch: jest.fn(),
+    } as ReturnType<typeof useTrendingSearch>);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mockConvertTokens.mockReturnValue([mockNonEvmToken as any]);
 

@@ -2384,8 +2384,8 @@
     "no_available_tokens": "Don't see your token?",
     "add_tokens": "Import tokens",
     "are_you_sure_exit": "Are you sure you want to exit?",
-    "search_information_not_saved": "Your search information will not be saved.",
     "import_token": "Would you like to import this token?",
+    "import_tokens": "Would you like to import these tokens?",
     "tokens_detected_in_account": "{{tokenCount}} new {{tokensLabel}} found in this account",
     "token_toast": {
       "tokens_imported_title": "Imported tokens",
@@ -5540,7 +5540,7 @@
     "warning": "In order to use this feature, please update the app to the newest version"
   },
   "confirmation_modal": {
-    "cancel_cta": "Cancel",
+    "back_cta": "Back",
     "confirm_cta": "Confirm"
   },
   "automatic_security_checks": {

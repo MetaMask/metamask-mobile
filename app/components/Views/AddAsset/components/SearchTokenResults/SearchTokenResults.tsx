@@ -69,7 +69,7 @@ const TokenSkeleton = () => {
   const tw = useTailwind();
 
   return (
-    <ListItemMultiSelect isDisabled style={tw.style('flex-1')}>
+    <ListItemMultiSelect isDisabled style={tw.style('flex-1 py-2.5')}>
       <Box twClassName="flex-col items-start px-0.5">
         <Skeleton width={40} height={40} style={tw.style('rounded-[20px]')} />
       </Box>
@@ -146,7 +146,7 @@ const SearchTokenResults = ({
           <ListItemMultiSelect
             isSelected={isSelected || isAlreadyAdded}
             isDisabled={isDisabled}
-            style={tw.style('flex-1')}
+            style={tw.style('flex-1 py-2.5')}
             key={`search-result-${index}`}
             onPress={() => !isDisabled && handleSelectAsset(item)}
             testID={ImportTokenViewSelectorsIDs.SEARCH_TOKEN_RESULT}

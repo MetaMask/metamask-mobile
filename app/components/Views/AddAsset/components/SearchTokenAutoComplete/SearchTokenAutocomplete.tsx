@@ -1,15 +1,12 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import {
-  View,
-  StyleSheet,
   InteractionManager,
-  Text,
   TextInput,
+  TouchableOpacity,
   LayoutAnimation,
   Platform,
 } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
-import { fontStyles } from '../../../../../styles/common';
 import Engine from '../../../../../core/Engine';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 
@@ -32,13 +29,17 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
 import { ImportTokenViewSelectorsIDs } from '../../ImportAssetView.testIds';
-import Icon, {
+import {
+  Box,
+  BoxFlexDirection,
+  BoxAlignItems,
+  Text,
+  Icon,
   IconName,
   IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../../../component-library/components/Buttons/ButtonIcon';
+  IconColor,
+} from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import Logger from '../../../../../util/Logger';
 import { CaipAssetType, Hex } from '@metamask/utils';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
@@ -53,81 +54,6 @@ import { getTrendingTokenImageUrl } from '../../../../UI/Trending/utils/getTrend
 import { convertAPITokensToBridgeTokens } from '../../../../UI/Bridge/hooks/useTokensWithBalances';
 import { PopularToken } from '../../../../UI/Bridge/hooks/usePopularTokens';
 import { useTrendingSearch } from '../../../../UI/Trending/hooks/useTrendingSearch/useTrendingSearch';
-
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const createStyles = (colors: any) =>
-  StyleSheet.create({
-    container: {
-      flex: 1,
-    },
-    content: {
-      flex: 1,
-    },
-    base: {
-      padding: 16,
-    },
-    tokenDetectionBanner: {
-      marginHorizontal: 20,
-      marginTop: 20,
-      paddingRight: 0,
-    },
-    tokenDetectionDescription: { color: colors.text.default },
-    tokenDetectionLink: { color: colors.primary.default },
-    tokenDetectionIcon: {
-      paddingTop: 4,
-      paddingRight: 8,
-    },
-    alertBar: {
-      width: '100%',
-      marginBottom: 15,
-    },
-    button: {
-      paddingHorizontal: 16,
-      paddingTop: 24,
-      paddingBottom: Platform.OS === 'android' ? 0 : 16,
-    },
-    searchInput: {
-      margin: 16,
-    },
-    searchSection: {
-      flexDirection: 'row' as const,
-      justifyContent: 'center' as const,
-      alignItems: 'center' as const,
-      borderRadius: 8,
-      borderWidth: 1,
-      borderColor: colors.border.default,
-    },
-    searchSectionFocused: {
-      flexDirection: 'row' as const,
-      justifyContent: 'center' as const,
-      alignItems: 'center' as const,
-      borderRadius: 8,
-      borderWidth: 2,
-      borderColor: colors.primary.default,
-    },
-    searchTextInput: {
-      ...fontStyles.normal,
-      color: colors.text.default,
-      height: 42,
-    },
-    searchIcon: {
-      position: 'absolute' as const,
-      left: 16,
-      color: colors.icon.alternative,
-    },
-    searchClearIcon: {
-      position: 'absolute' as const,
-      right: 16,
-      color: colors.icon.alternative,
-    },
-    searchInputWrapper: {
-      width: '100%',
-      paddingHorizontal: 42,
-      color: colors.icon.alternative,
-      borderColor: colors.primary.alternative,
-    },
-  });
 
 interface Props {
   /**
@@ -148,6 +74,7 @@ interface Props {
  * Component that provides ability to add searched assets with metadata.
  */
 const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
+  const tw = useTailwind();
   const { trackEvent, createEventBuilder } = useMetrics();
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -183,7 +110,6 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
   const [isSearchFocused, setIsSearchFocused] = useState(false);
 
   const { colors, themeAppearance } = useTheme();
-  const styles = createStyles(colors);
 
   const isTokenDetectionEnabled = useSelector(selectUseTokenDetection);
   const ticker = useSelector(selectEvmTicker);
@@ -426,10 +352,10 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
     return (
       <Alert
         type={AlertType.Info}
-        style={styles.tokenDetectionBanner}
+        style={tw.style('mx-5 mt-5 pr-0')}
         renderIcon={() => (
           <FontAwesome
-            style={styles.tokenDetectionIcon}
+            style={tw.style('pt-1 pr-2')}
             name={'exclamation-circle'}
             color={colors.primary.default}
             size={18}
@@ -437,7 +363,7 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
         )}
       >
         <>
-          <Text style={styles.tokenDetectionDescription}>
+          <Text style={tw.style('text-default')}>
             {strings('add_asset.banners.search_desc', {
               network: selectedChainId
                 ? FORMATTED_NETWORK_NAMES[selectedChainId]
@@ -454,7 +380,7 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
                 },
               });
             }}
-            style={styles.tokenDetectionLink}
+            style={tw.style('text-primary-default')}
           >
             {strings('add_asset.banners.search_link')}
           </Text>
@@ -466,54 +392,54 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
     isSearchFocused,
     isTokenDetectionEnabled,
     colors,
-    styles,
+    tw,
     selectedChainId,
   ]);
 
   return (
-    <View style={styles.container}>
+    <Box twClassName="flex-1">
       {renderTokenDetectionBanner()}
 
-      <View style={styles.content}>
-        <View style={styles.searchInput}>
-          <View
-            style={
-              isSearchFocused
-                ? styles.searchSectionFocused
-                : styles.searchSection
-            }
+      <Box twClassName="flex-1">
+        <Box twClassName="m-4">
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="bg-muted rounded-lg px-3"
+            style={tw.style('min-h-[44px]')}
             testID={ImportTokenViewSelectorsIDs.ASSET_SEARCH_CONTAINER}
           >
-            <View style={styles.searchIcon}>
-              <Icon name={IconName.Search} size={IconSize.Sm} />
-            </View>
-
-            <View style={styles.searchInputWrapper}>
-              <TextInput
-                style={styles.searchTextInput}
-                value={searchQuery}
-                onFocus={() => setFocusState(true)}
-                onBlur={() => setFocusState(false)}
-                placeholder={strings('token.search_tokens_placeholder')}
-                placeholderTextColor={colors.text.muted}
-                onChangeText={setSearchQuery}
-                testID={ImportTokenViewSelectorsIDs.SEARCH_BAR}
-                keyboardAppearance={themeAppearance}
-              />
-            </View>
-
+            <Icon
+              name={IconName.Search}
+              size={IconSize.Md}
+              color={IconColor.IconMuted}
+              style={tw.style('mr-2')}
+            />
+            <TextInput
+              style={tw.style('flex-1 text-base text-default')}
+              value={searchQuery}
+              onFocus={() => setFocusState(true)}
+              onBlur={() => setFocusState(false)}
+              placeholder={strings('token.search_tokens_placeholder')}
+              placeholderTextColor={colors.text.muted}
+              onChangeText={setSearchQuery}
+              testID={ImportTokenViewSelectorsIDs.SEARCH_BAR}
+              keyboardAppearance={themeAppearance}
+            />
             {searchQuery.length > 0 && (
-              <View style={styles.searchClearIcon}>
-                <ButtonIcon
-                  size={ButtonIconSizes.Sm}
-                  iconName={IconName.Close}
-                  onPress={() => setSearchQuery('')}
-                  testID={ImportTokenViewSelectorsIDs.CLEAR_SEARCH_BAR}
+              <TouchableOpacity
+                onPress={() => setSearchQuery('')}
+                testID={ImportTokenViewSelectorsIDs.CLEAR_SEARCH_BAR}
+              >
+                <Icon
+                  name={IconName.CircleX}
+                  size={IconSize.Md}
+                  color={IconColor.IconAlternative}
                 />
-              </View>
+              </TouchableOpacity>
             )}
-          </View>
-        </View>
+          </Box>
+        </Box>
 
         <SearchTokenResults
           searchResults={allTokens}
@@ -525,9 +451,9 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
           alreadyAddedTokens={alreadyAddedTokens}
           isLoading={isLoading}
         />
-      </View>
+      </Box>
 
-      <View style={styles.button}>
+      <Box style={tw.style('px-4 pt-6', Platform.OS !== 'android' && 'pb-4')}>
         <Button
           variant={ButtonVariants.Primary}
           size={ButtonSize.Lg}
@@ -537,8 +463,8 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
           isDisabled={selectedAssets.length < 1}
           testID={ImportTokenViewSelectorsIDs.NEXT_BUTTON}
         />
-      </View>
-    </View>
+      </Box>
+    </Box>
   );
 };
 
