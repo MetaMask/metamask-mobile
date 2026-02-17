@@ -54,7 +54,7 @@ const PoolStakingLearnMoreModal = ({
   const { styles } = useStyles(styleSheet, {});
   const { colors } = useTheme();
 
-  const { chainId: routeChainId } = route.params;
+  const { chainId: routeChainId } = route?.params ?? { chainId: '0x1' as Hex };
 
   const sheetRef = useRef<BottomSheetRef>(null);
 

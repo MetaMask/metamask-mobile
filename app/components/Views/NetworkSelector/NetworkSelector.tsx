@@ -156,8 +156,8 @@ const NetworkSelector = ({ route }: NetworkSelectorProps) => {
   const selectedNonEvmChainId = useSelector(selectSelectedNonEvmNetworkChainId);
 
   // origin is defined if network selector is opened from a dapp
-  const origin = route.params?.hostInfo?.metadata?.origin || '';
-  const browserChainId = route.params?.chainId || null;
+  const origin = route?.params?.hostInfo?.metadata?.origin || '';
+  const browserChainId = route?.params?.chainId || null;
   const parentSpan = trace({
     name: TraceName.NetworkSwitch,
     tags: getTraceTags(store.getState()),
@@ -173,7 +173,7 @@ const NetworkSelector = ({ route }: NetworkSelectorProps) => {
   const { addPopularNetwork } = useAddPopularNetwork();
 
   const isSendFlow =
-    route.params?.source === NETWORK_SELECTOR_SOURCES.SEND_FLOW;
+    route?.params?.source === NETWORK_SELECTOR_SOURCES.SEND_FLOW;
 
   const avatarSize = isNetworkUiRedesignEnabled() ? AvatarSize.Sm : undefined;
   const modalTitle = isNetworkUiRedesignEnabled()

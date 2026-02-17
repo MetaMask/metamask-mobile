@@ -88,7 +88,7 @@ import { handleTronStakingNavigationResult } from '../../utils/tron';
 const EarnInputView = ({ route }: EarnInputViewProps) => {
   // navigation hooks
   const navigation = useNavigation();
-  const { token } = route.params;
+  const { token } = route?.params ?? {};
 
   // We want to keep track of the last quick amount pressed before navigating to review.
   const lastQuickAmountButtonPressed = useRef<string | null>(null);

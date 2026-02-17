@@ -149,7 +149,7 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
 export const OnboardingSuccess = ({ route }: OnboardingSuccessScreenProps) => {
   const navigation = useNavigation();
   const successFlow =
-    route.params?.successFlow ?? ONBOARDING_SUCCESS_FLOW.BACKED_UP_SRP;
+    route?.params?.successFlow ?? ONBOARDING_SUCCESS_FLOW.BACKED_UP_SRP;
   const nextScreen = ResetNavigationToHome;
 
   return (

@@ -67,7 +67,7 @@ const AccountStatus = ({ route, saveOnboardingEvent }: AccountStatusProps) => {
     oauthLoginSuccess,
     onboardingTraceCtx,
     provider,
-  } = route.params ?? {};
+  } = route?.params ?? {};
 
   // check for small screen size
   const isSmallScreen = Dimensions.get('window').width < 375;
