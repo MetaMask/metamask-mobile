@@ -809,4 +809,41 @@ describe('Asset', () => {
       screen.getByText('TokenList with 0 tokens and 1 highlighted assets'),
     ).toBeOnTheScreen();
   });
+
+  it('keeps highlighted_asset visible when search query matches highlighted fields', () => {
+    const tokenFilter = (): TokenListItem[] => [mockHighlightedAsset];
+
+    mockUseTokenSearch.mockReturnValue({
+      searchQuery: 'usd',
+      setSearchQuery: mockSetSearchQuery,
+      filteredTokens: [],
+      filteredNfts: [],
+      clearSearch: mockClearSearch,
+    });
+
+    render(<Asset tokenFilter={tokenFilter} hideNfts />);
+
+    expect(
+      screen.getByText('TokenList with 0 tokens and 1 highlighted assets'),
+    ).toBeOnTheScreen();
+  });
+
+  it('filters out highlighted_asset when search query does not match highlighted fields', () => {
+    const tokenFilter = (): TokenListItem[] => [mockHighlightedAsset];
+
+    mockUseTokenSearch.mockReturnValue({
+      searchQuery: 'eth',
+      setSearchQuery: mockSetSearchQuery,
+      filteredTokens: [],
+      filteredNfts: [],
+      clearSearch: mockClearSearch,
+    });
+
+    render(<Asset tokenFilter={tokenFilter} hideNfts />);
+
+    expect(screen.getByText('No tokens match your filters')).toBeOnTheScreen();
+    expect(
+      screen.queryByText('TokenList with 0 tokens and 1 highlighted assets'),
+    ).toBeNull();
+  });
 });

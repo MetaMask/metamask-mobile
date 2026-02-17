@@ -116,6 +116,26 @@ export const Asset: React.FC<AssetProps> = (props = {}) => {
     (() => void) | null
   >(null);
 
+  const filteredHighlightedAssets = useMemo(() => {
+    if (!searchQuery.trim()) {
+      return highlightedAssets;
+    }
+
+    const query = searchQuery.toLowerCase().trim();
+
+    return highlightedAssets.filter((item) => {
+      if (item.name.toLowerCase().includes(query)) {
+        return true;
+      }
+
+      if (item.name_description.toLowerCase().includes(query)) {
+        return true;
+      }
+
+      return false;
+    });
+  }, [highlightedAssets, searchQuery]);
+
   const handleFilteredTokensChange = useCallback(
     (newFilteredTokens: AssetType[]) => {
       setFilteredTokensByNetwork(newFilteredTokens);
@@ -141,7 +161,7 @@ export const Asset: React.FC<AssetProps> = (props = {}) => {
   const hasActiveFilters = searchQuery.length > 0 || hasActiveNetworkFilter;
   const hasNoTokenResults =
     filteredTokens.length === 0 &&
-    highlightedAssets.length === 0 &&
+    filteredHighlightedAssets.length === 0 &&
     highlightedActions.length === 0;
   const hasNoResults = hasNoTokenResults && filteredNfts.length === 0;
 
@@ -157,9 +177,10 @@ export const Asset: React.FC<AssetProps> = (props = {}) => {
   }, [hideNetworkFilter, tokens]);
 
   useEffect(() => {
-    const visibleTokenCount = filteredTokens.length + highlightedAssets.length;
+    const visibleTokenCount =
+      filteredTokens.length + filteredHighlightedAssets.length;
     setAssetListSize(visibleTokenCount ? visibleTokenCount.toString() : '');
-  }, [filteredTokens, highlightedAssets.length, setAssetListSize]);
+  }, [filteredTokens, filteredHighlightedAssets.length, setAssetListSize]);
 
   useEffect(() => {
     if (searchQuery.length) {
@@ -228,7 +249,8 @@ export const Asset: React.FC<AssetProps> = (props = {}) => {
         ) : (
           <>
             {!hideNfts &&
-              (filteredTokens.length > 0 || highlightedAssets.length > 0) && (
+              (filteredTokens.length > 0 ||
+                filteredHighlightedAssets.length > 0) && (
                 <Text
                   twClassName="m-4 mt-2 mb-2"
                   variant={TextVariant.BodyMd}
@@ -240,7 +262,7 @@ export const Asset: React.FC<AssetProps> = (props = {}) => {
               )}
             <TokenList
               tokens={filteredTokens}
-              highlightedAssets={highlightedAssets}
+              highlightedAssets={filteredHighlightedAssets}
               onSelect={onTokenSelect}
             />
             {!hideNfts && (
