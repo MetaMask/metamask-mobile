@@ -218,6 +218,7 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
       },
       error: (error: Error) => {
         DevLogger.log('[LedgerBluetoothAdapter] BLE scan error:', error);
+        this.stopDeviceDiscovery();
         onError(error);
       },
       complete: () => {

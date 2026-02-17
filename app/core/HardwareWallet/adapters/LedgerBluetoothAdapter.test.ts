@@ -619,6 +619,25 @@ describe('LedgerBluetoothAdapter', () => {
       expect(onError).toHaveBeenCalledWith(scanError);
     });
 
+    it('stops discovery on BLE listen error so timeout does not emit duplicate onError', async () => {
+      jest.useFakeTimers();
+      const onDeviceFound = jest.fn();
+      const onError = jest.fn();
+      const scanError = new Error('BLE scan failed');
+
+      adapter.startDeviceDiscovery(onDeviceFound, onError);
+      capturedListenObserver?.error?.(scanError);
+
+      expect(onError).toHaveBeenCalledTimes(1);
+      expect(onError).toHaveBeenCalledWith(scanError);
+
+      await jest.advanceTimersByTimeAsync(31000);
+
+      expect(onError).toHaveBeenCalledTimes(1);
+
+      jest.useRealTimers();
+    });
+
     it('calls onError with timeout message when no devices found before timeout', async () => {
       jest.useFakeTimers();
       const onDeviceFound = jest.fn();
