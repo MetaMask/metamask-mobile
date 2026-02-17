@@ -56,7 +56,11 @@ test('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Browser
   device,
 }) => {
   const platform = device.getPlatform?.() || 'android';
-  const DAPP_URL = getDappUrlForBrowser(platform);
+  const useBrowserStackLocal =
+    process.env.BROWSERSTACK_LOCAL?.toLowerCase() === 'true';
+  const DAPP_URL = useBrowserStackLocal
+    ? `http://bs-local.com:${DAPP_PORT}`
+    : getDappUrlForBrowser(platform);
 
   WalletMainScreen.device = device;
   BrowserPlaygroundDapp.device = device;
