@@ -55,14 +55,6 @@ export const MusdMaxConversionInfoTestIds = {
   ERROR: 'musd-max-conversion-info-error',
 } as const;
 
-/**
- * Info component for max-amount mUSD conversion within the confirmations flow.
- *
- * This component:
- * 1. Displays loading state while transaction is being created and quotes are being fetched
- * 2. Shows fee and total information from TransactionPayController
- * 3. Uses standard confirmation components and hooks
- */
 export const MusdMaxConversionInfo = () => {
   const { styles } = useStyles(musdMaxConversionInfoStyleSheet, {});
   const networkName = useSelector(selectNetworkName);
