@@ -22,7 +22,6 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
-  IconName,
 } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import { TextColor } from '../../../../../component-library/components/Texts/Text';
@@ -53,7 +52,7 @@ import PerpsMarketTypeSection from '../../components/PerpsMarketTypeSection';
 import PerpsRecentActivityList from '../../components/PerpsRecentActivityList/PerpsRecentActivityList';
 import PerpsHomeSection from '../../components/PerpsHomeSection';
 import PerpsRowSkeleton from '../../components/PerpsRowSkeleton';
-import HeaderCenter from '../../../../../component-library/components-temp/HeaderCenter';
+import PerpsHomeHeader from '../../components/PerpsHomeHeader';
 import type { PerpsNavigationParamList } from '../../types/navigation';
 import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import styleSheet from './PerpsHomeView.styles';
@@ -61,7 +60,7 @@ import { TraceName } from '../../../../../util/trace';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
-} from '../../constants/eventNames';
+} from '@metamask/perps-controller';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { PerpsHomeViewSelectorsIDs } from '../../Perps.testIds';
 import PerpsCloseAllPositionsView from '../PerpsCloseAllPositionsView/PerpsCloseAllPositionsView';
@@ -127,6 +126,7 @@ const PerpsHomeView = () => {
     orders,
     watchlistMarkets,
     perpsMarkets, // Crypto markets (renamed from trendingMarkets)
+    commoditiesMarkets, // Commodity markets
     stocksMarkets, // Equity markets only
     forexMarkets,
     recentActivity,
@@ -329,20 +329,16 @@ const PerpsHomeView = () => {
       });
     }
 
-    // Avoid duplicate "Learn more" button (shown in empty state card)
-    if (!isBalanceEmpty) {
-      items.push({
-        label: strings(LEARN_MORE_CONFIG.TitleKey),
-        onPress: () => navigtateToTutorial(),
-        testID: PerpsHomeViewSelectorsIDs.LEARN_MORE_BUTTON,
-      });
-    }
+    items.push({
+      label: strings(LEARN_MORE_CONFIG.TitleKey),
+      onPress: () => navigtateToTutorial(),
+      testID: PerpsHomeViewSelectorsIDs.LEARN_MORE_BUTTON,
+    });
 
     return items;
   }, [
     navigateToContactSupport,
     navigtateToTutorial,
-    isBalanceEmpty,
     isFeedbackEnabled,
     handleGiveFeedback,
   ]);
@@ -413,17 +409,9 @@ const PerpsHomeView = () => {
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
-      <HeaderCenter
-        title={strings('perps.title')}
+      <PerpsHomeHeader
         onBack={handleBackPress}
-        backButtonProps={{ testID: 'back-button' }}
-        endButtonIconProps={[
-          {
-            iconName: IconName.Search,
-            onPress: handleSearchToggle,
-            testID: 'perps-home-search-toggle',
-          },
-        ]}
+        onSearchToggle={handleSearchToggle}
         testID="perps-home"
       />
 
@@ -502,6 +490,15 @@ const PerpsHomeView = () => {
             isLoading={isLoading.markets}
           />
         </View>
+
+        {/* Commodities Markets List */}
+        <PerpsMarketTypeSection
+          title={strings('perps.home.commodities')}
+          markets={commoditiesMarkets}
+          marketType="commodities"
+          sortBy={sortBy}
+          isLoading={isLoading.markets}
+        />
 
         {/* Stocks Markets List */}
         <View onLayout={handleSectionLayout('explore_stocks')}>

@@ -1,10 +1,10 @@
 import { useCallback, useMemo } from 'react';
 import Engine from '../../../../core/Engine';
-import type {
-  PerpsActiveProviderMode,
-  SwitchProviderResult,
-  ToggleTestnetResult,
-} from '../controllers/types';
+import {
+  type PerpsActiveProviderMode,
+  type SwitchProviderResult,
+  type ToggleTestnetResult,
+} from '@metamask/perps-controller';
 
 /**
  * Hook for network and provider configuration

@@ -21,13 +21,11 @@ import Routes from '../../../constants/navigation/Routes';
 import { useTheme } from '../../../util/theme';
 import { OnboardingSuccessSelectorIDs } from './OnboardingSuccess.testIds';
 
-import importAdditionalAccounts from '../../../util/importAdditionalAccounts';
 import createStyles from './index.styles';
 import OnboardingSuccessEndAnimation from './OnboardingSuccessEndAnimation/index';
 import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
 
 import Engine from '../../../core/Engine/Engine';
-import { isMultichainAccountsState2Enabled } from '../../../multichain-accounts/remote-feature-flag';
 import { discoverAccounts } from '../../../multichain-accounts/discovery';
 
 export const ResetNavigationToHome = CommonActions.reset({
@@ -63,15 +61,10 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
 
   const handleOnDone = useCallback(() => {
     const onOnboardingSuccess = async () => {
-      // We're not running EVM discovery on its own if state 2 is enabled. The discovery
-      // will be run on every account providers (EVM included) prior to that point.
-      if (isMultichainAccountsState2Enabled()) {
-        await discoverAccounts(
-          Engine.context.KeyringController.state.keyrings[0].metadata.id,
-        );
-      } else {
-        await importAdditionalAccounts();
-      }
+      // Run discovery on all account providers (EVM and non-EVM)
+      await discoverAccounts(
+        Engine.context.KeyringController.state.keyrings[0].metadata.id,
+      );
     };
     onOnboardingSuccess();
     onDone();

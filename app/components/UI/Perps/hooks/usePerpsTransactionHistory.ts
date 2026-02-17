@@ -1,7 +1,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useSelector } from 'react-redux';
+import usePrevious from '../../../hooks/usePrevious';
+import { BigNumber } from 'bignumber.js';
+import { TransactionType } from '@metamask/transaction-controller';
 import Engine from '../../../../core/Engine';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import type { CaipAccountId } from '@metamask/utils';
+import { areAddressesEqual } from '../../../../util/address';
+import { selectNonReplacedTransactions } from '../../../../selectors/transactionController';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { PerpsTransaction } from '../types/transactionHistory';
 import { useUserHistory } from './useUserHistory';
 import { usePerpsLiveFills } from './stream/usePerpsLiveFills';
@@ -10,6 +17,7 @@ import {
   transformOrdersToTransactions,
   transformFundingToTransactions,
   transformUserHistoryToTransactions,
+  transformWalletPerpsDepositsToTransactions,
 } from '../utils/transactionTransforms';
 
 interface UsePerpsTransactionHistoryParams {
@@ -53,10 +61,28 @@ export const usePerpsTransactionHistory = ({
   // This ensures new trades appear immediately without waiting for REST refetch
   const { fills: liveFills } = usePerpsLiveFills({ throttleMs: 0 });
 
+  // Wallet perps deposits (TransactionType.perpsDeposit / perpsDepositAndOrder) for the Deposits tab
+  const walletTransactions = useSelector(selectNonReplacedTransactions);
+  const selectedAddress = useSelector(
+    selectSelectedInternalAccountFormattedAddress,
+  );
+  const walletDepositTransactions = useMemo(() => {
+    const filtered = walletTransactions.filter(
+      (tx) =>
+        selectedAddress &&
+        areAddressesEqual(tx.txParams?.from ?? '', selectedAddress) &&
+        (tx.type === TransactionType.perpsDeposit ||
+          tx.type === TransactionType.perpsDepositAndOrder),
+    );
+    return transformWalletPerpsDepositsToTransactions(filtered);
+  }, [walletTransactions, selectedAddress]);
+
   // Store userHistory in ref to avoid recreating fetchAllTransactions callback
   const userHistoryRef = useRef(userHistory);
   // Track if initial fetch has been done to prevent duplicate fetches
   const initialFetchDone = useRef(false);
+  // Track previous skipInitialFetch value to detect connection state transitions
+  const prevSkipInitialFetch = usePrevious(skipInitialFetch);
   useEffect(() => {
     userHistoryRef.current = userHistory;
   }, [userHistory]);
@@ -102,9 +128,23 @@ export const usePerpsTransactionHistory = ({
         detailedOrderType: orderMap.get(fill.orderId)?.detailedOrderType,
       }));
 
+      // Build fill size map: orderId -> total filled size
+      // This allows accurate filled percentage calculation for historical orders,
+      // since HyperLiquid's historical orders API returns sz=0 for all completed orders
+      const fillSizeByOrderId = new Map<string, BigNumber>();
+      for (const fill of fills) {
+        if (fill.orderId) {
+          const current = fillSizeByOrderId.get(fill.orderId) || BigNumber(0);
+          fillSizeByOrderId.set(fill.orderId, current.plus(fill.size || '0'));
+        }
+      }
+
       // Transform each data type to PerpsTransaction format
       const fillTransactions = transformFillsToTransactions(enrichedFills);
-      const orderTransactions = transformOrdersToTransactions(orders);
+      const orderTransactions = transformOrdersToTransactions(
+        orders,
+        fillSizeByOrderId,
+      );
       const fundingTransactions = transformFundingToTransactions(funding);
       const userHistoryTransactions = transformUserHistoryToTransactions(
         userHistoryRef.current,
@@ -153,11 +193,21 @@ export const usePerpsTransactionHistory = ({
   }, [fetchAllTransactions, refetchUserHistory]);
 
   useEffect(() => {
-    if (!skipInitialFetch && !initialFetchDone.current) {
+    // Detect transition from skipping (not connected) to not skipping (connected)
+    // This fixes the case where the component mounts before connection is established
+    const justBecameConnected = prevSkipInitialFetch && !skipInitialFetch;
+
+    // Trigger fetch if:
+    // 1. Not skipping AND haven't fetched yet (normal initial fetch)
+    // 2. Connection just became available (transition from disconnected to connected)
+    if (
+      !skipInitialFetch &&
+      (!initialFetchDone.current || justBecameConnected)
+    ) {
       initialFetchDone.current = true;
       refetch();
     }
-  }, [skipInitialFetch, refetch]);
+  }, [skipInitialFetch, prevSkipInitialFetch, refetch]);
 
   // Combine loading states
   const combinedIsLoading = useMemo(
@@ -184,9 +234,12 @@ export const usePerpsTransactionHistory = ({
     // Note: transformFillsToTransactions now aggregates split stop loss/TP fills
     const liveTransactions = transformFillsToTransactions(liveFills);
 
-    // If no REST transactions yet, return only live fills
+    // If no REST transactions yet, return live fills plus wallet deposits (sorted)
     if (transactions.length === 0) {
-      return liveTransactions;
+      const combined = [...liveTransactions, ...walletDepositTransactions].sort(
+        (a, b) => b.timestamp - a.timestamp,
+      );
+      return combined;
     }
 
     // Separate trade transactions from non-trade transactions (orders, funding, deposits)
@@ -197,6 +250,28 @@ export const usePerpsTransactionHistory = ({
     const nonTradeTransactions = transactions.filter(
       (tx) => tx.type !== 'trade',
     );
+    // Deduplicate wallet deposits against REST (user history) deposits by txHash.
+    // When a wallet-originated deposit is bridged and recorded by the perps backend,
+    // it appears in both sources; we keep the REST version and drop the wallet duplicate.
+    const restDepositTxHashes = new Set(
+      nonTradeTransactions
+        .filter(
+          (tx) =>
+            tx.type === 'deposit' &&
+            tx.depositWithdrawal?.txHash?.trim() !== '',
+        )
+        .map((tx) => (tx.depositWithdrawal?.txHash ?? '').toLowerCase().trim()),
+    );
+    const walletDepositsDeduplicated = walletDepositTransactions.filter(
+      (tx) => {
+        const h = tx.depositWithdrawal?.txHash?.toLowerCase?.()?.trim() ?? '';
+        return h === '' || !restDepositTxHashes.has(h);
+      },
+    );
+    const nonTradeIncludingWalletDeposits = [
+      ...nonTradeTransactions,
+      ...walletDepositsDeduplicated,
+    ];
 
     // Merge trades using asset+timestamp(seconds) as dedup key
     // Use seconds-truncated timestamp to handle cases where REST and WebSocket
@@ -218,15 +293,15 @@ export const usePerpsTransactionHistory = ({
       tradeMap.set(dedupKey, tx);
     }
 
-    // Combine deduplicated trades with non-trade transactions
+    // Combine deduplicated trades with non-trade transactions (including wallet deposits)
     const allTransactions = [
       ...Array.from(tradeMap.values()),
-      ...nonTradeTransactions,
+      ...nonTradeIncludingWalletDeposits,
     ];
 
     // Sort by timestamp descending
     return allTransactions.sort((a, b) => b.timestamp - a.timestamp);
-  }, [liveFills, transactions]);
+  }, [liveFills, transactions, walletDepositTransactions]);
 
   return {
     transactions: mergedTransactions,

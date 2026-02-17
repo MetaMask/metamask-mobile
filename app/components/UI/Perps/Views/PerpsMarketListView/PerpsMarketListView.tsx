@@ -12,7 +12,7 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
-import HeaderCenter from '../../../../../component-library/components-temp/HeaderCenter';
+import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import { strings } from '../../../../../../locales/i18n';
 import Text, {
   TextVariant,
@@ -31,18 +31,16 @@ import { usePerpsLivePositions, usePerpsLiveAccount } from '../../hooks/stream';
 import PerpsMarketRowSkeleton from './components/PerpsMarketRowSkeleton';
 import styleSheet from './PerpsMarketListView.styles';
 import { PerpsMarketListViewProps } from './PerpsMarketListView.types';
-import type {
-  PerpsMarketData,
-  MarketTypeFilter,
-} from '../../controllers/types';
+import {
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+  type PerpsMarketData,
+  type MarketTypeFilter,
+} from '@metamask/perps-controller';
 import { PerpsMarketListViewSelectorsIDs } from '../../Perps.testIds';
 import { useRoute, RouteProp } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { TraceName } from '../../../../../util/trace';
-import {
-  PERPS_EVENT_PROPERTY,
-  PERPS_EVENT_VALUE,
-} from '../../constants/eventNames';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { PerpsNavigationParamList } from '../../types/navigation';
@@ -373,7 +371,7 @@ const PerpsMarketListView = ({
           testID={PerpsMarketListViewSelectorsIDs.CLOSE_BUTTON}
         />
       ) : (
-        <HeaderCenter
+        <HeaderCompactStandard
           title={title || strings('perps.home.markets')}
           onBack={handleBackPressed}
           backButtonProps={{

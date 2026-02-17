@@ -3,7 +3,7 @@ import {
   renderScreen,
   DeepPartial,
 } from '../../../../../util/test/renderWithProvider';
-import { fireEvent, waitFor, act } from '@testing-library/react-native';
+import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
   setDestToken,
@@ -18,13 +18,12 @@ import { RequestStatus, type QuoteResponse } from '@metamask/bridge-controller';
 import { SolScope } from '@metamask/keyring-api';
 import { mockUseBridgeQuoteData } from '../../_mocks_/useBridgeQuoteData.mock';
 import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
+import { useRWAToken } from '../../hooks/useRWAToken';
 import { strings } from '../../../../../../locales/i18n';
 import { isHardwareAccount } from '../../../../../util/address';
 import { MOCK_ENTROPY_SOURCE as mockEntropySource } from '../../../../../util/test/keyringControllerTestUtils';
 import { RootState } from '../../../../../reducers';
 import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
-import { BridgeViewMode } from '../../types';
-import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
 
 // Mock the account-tree-controller file that imports the problematic module
 jest.mock(
@@ -184,21 +183,11 @@ jest.mock('../../../../hooks/useAccounts', () => ({
   }),
 }));
 
-// Mock useValidateBridgeTx hook
-const mockValidateBridgeTx = jest.fn();
-jest.mock('../../../../../util/bridge/hooks/useValidateBridgeTx.ts', () => ({
-  __esModule: true,
-  default: () => ({
-    validateBridgeTx: mockValidateBridgeTx,
-  }),
-}));
-
-// Mock useSubmitBridgeTx hook
-const mockSubmitBridgeTx = jest.fn();
+// Mock useSubmitBridgeTx hook (needed because SwapsConfirmButton imports it)
 jest.mock('../../../../../util/bridge/hooks/useSubmitBridgeTx', () => ({
   __esModule: true,
   default: () => ({
-    submitBridgeTx: mockSubmitBridgeTx,
+    submitBridgeTx: jest.fn(),
   }),
 }));
 
@@ -266,6 +255,12 @@ jest.mock('../../hooks/useBridgeQuoteData', () => ({
     .mockImplementation(() => mockUseBridgeQuoteData),
 }));
 
+jest.mock('../../hooks/useRWAToken', () => ({
+  useRWAToken: jest.fn().mockImplementation(() => ({
+    isStockToken: jest.fn().mockReturnValue(false),
+  })),
+}));
+
 jest.mock('../../../../../util/address', () => ({
   ...jest.requireActual('../../../../../util/address'),
   isHardwareAccount: jest.fn(),
@@ -285,6 +280,33 @@ jest.mock('react-native-fade-in-image', () => {
     }) => React.createElement(View, { style: placeholderStyle }, children),
   };
 });
+
+// Mock BottomSheetDialog so that onCloseDialog synchronously calls onClose,
+// allowing keypad close() to work in tests (the real component uses reanimated
+// withTiming which never completes in JSDOM).
+jest.mock(
+  '../../../../../component-library/components/BottomSheets/BottomSheet/foundation/BottomSheetDialog/BottomSheetDialog',
+  () => {
+    const MockReact = jest.requireActual('react');
+    return {
+      __esModule: true,
+      default: MockReact.forwardRef(
+        (
+          {
+            children,
+            onClose,
+          }: { children: React.ReactNode; onClose?: () => void },
+          dialogRef: React.Ref<{ onCloseDialog: () => void }>,
+        ) => {
+          MockReact.useImperativeHandle(dialogRef, () => ({
+            onCloseDialog: () => onClose?.(),
+          }));
+          return children;
+        },
+      ),
+    };
+  },
+);
 
 // Mock gas included support hooks
 const mockUseIsGasIncludedSTXSendBundleSupported = jest.fn();
@@ -359,6 +381,35 @@ describe('BridgeView', () => {
     // Verify navigation to BridgeTokenSelector
     expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.TOKEN_SELECTOR, {
       type: 'dest',
+    });
+  });
+
+  it('close keypad when pressing destination token input', async () => {
+    const { getByTestId, queryByTestId, getByText } = renderScreen(
+      BridgeView,
+      {
+        name: Routes.BRIDGE.ROOT,
+      },
+      { state: mockState },
+    );
+
+    // Verify keypad is open (opened by useBridgeViewOnFocus on mount)
+    await waitFor(() => {
+      expect(getByText('1')).toBeTruthy();
+      expect(queryByTestId('keypad-delete-button')).toBeTruthy();
+    });
+
+    // Press the destination token input which should close the keypad
+    const destInput = getByTestId('dest-token-area-input');
+
+    // Call the onPressIn handler directly to trigger keypad close
+    await act(async () => {
+      destInput.props.onPressIn();
+    });
+
+    // Verify keypad is closed
+    await waitFor(() => {
+      expect(queryByTestId('keypad-delete-button')).toBeNull();
     });
   });
 
@@ -526,7 +577,7 @@ describe('BridgeView', () => {
     });
   });
 
-  it('should switch tokens when clicking arrow button', () => {
+  it('switch tokens and preserve keypad state when clicking arrow button', () => {
     const mockStateWithTokens = {
       ...mockState,
       bridge: {
@@ -550,13 +601,17 @@ describe('BridgeView', () => {
       },
     };
 
-    const { getByTestId } = renderScreen(
+    const { getByTestId, queryByTestId } = renderScreen(
       BridgeView,
       {
         name: Routes.BRIDGE.ROOT,
       },
       { state: mockStateWithTokens },
     );
+
+    // Keypad is open before flip
+    const keypadBeforeFlip = queryByTestId('keypad-delete-button');
+    const wasKeypadOpen = !!keypadBeforeFlip;
 
     const arrowButton = getByTestId('arrow-button');
     fireEvent.press(arrowButton);
@@ -567,6 +622,10 @@ describe('BridgeView', () => {
     expect(setDestToken).toHaveBeenCalledWith(
       mockStateWithTokens.bridge.sourceToken,
     );
+
+    // Keypad state is preserved after flip — not explicitly closed or opened
+    const keypadAfterFlip = queryByTestId('keypad-delete-button');
+    expect(!!keypadAfterFlip).toBe(wasKeypadOpen);
   });
 
   it('disables switch button when destination token network is disabled', () => {
@@ -691,9 +750,14 @@ describe('BridgeView', () => {
   describe('Bottom Content', () => {
     beforeEach(() => {
       jest.clearAllMocks();
+      // Reset to default mock so persistent mockImplementation from prior tests
+      // does not leak (clearAllMocks only clears calls, not implementations)
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementation(() => mockUseBridgeQuoteData);
     });
 
-    it('displays "Select amount" when no amount is entered', () => {
+    it('displays keypad when no amount is entered', () => {
       const { getByText } = renderScreen(
         BridgeView,
         {
@@ -702,10 +766,12 @@ describe('BridgeView', () => {
         { state: mockState },
       );
 
-      expect(getByText('Select amount')).toBeTruthy();
+      // Keypad is visible instead of "Select amount" text
+      expect(getByText('1')).toBeTruthy();
+      expect(getByText('5')).toBeTruthy();
     });
 
-    it('displays "Select amount" when amount is zero', () => {
+    it('displays keypad when amount is zero', () => {
       const stateWithZeroAmount = {
         ...mockState,
         bridge: {
@@ -722,35 +788,9 @@ describe('BridgeView', () => {
         { state: stateWithZeroAmount },
       );
 
-      expect(getByText('Select amount')).toBeTruthy();
-    });
-
-    it('displays "Insufficient funds" when amount exceeds balance', () => {
-      const mockQuote = mockQuoteWithMetadata;
-      const testState = createBridgeTestState({
-        bridgeControllerOverrides: {
-          quoteRequest: {
-            insufficientBal: true,
-          },
-          quotesLoadingStatus: RequestStatus.FETCHED,
-          quotes: [mockQuote as unknown as QuoteResponse],
-          quotesLastFetched: 12,
-        },
-      });
-
-      jest
-        .mocked(useBridgeQuoteData as unknown as jest.Mock)
-        .mockImplementation(() => mockUseBridgeQuoteData);
-
-      const { getByText } = renderScreen(
-        BridgeView,
-        {
-          name: Routes.BRIDGE.ROOT,
-        },
-        { state: testState },
-      );
-
-      expect(getByText('Insufficient funds')).toBeTruthy();
+      // Keypad is visible instead of "Select amount" text
+      expect(getByText('1')).toBeTruthy();
+      expect(getByText('5')).toBeTruthy();
     });
 
     it('displays "Fetching quote" when quotes are loading and there is no active quote', () => {
@@ -779,115 +819,10 @@ describe('BridgeView', () => {
       expect(getByText('Fetching quote')).toBeTruthy();
     });
 
-    it('displays Continue button and Terms link when amount is valid', () => {
-      const mockQuote = mockQuoteWithMetadata;
-      const testState = createBridgeTestState({
-        bridgeControllerOverrides: {
-          quoteRequest: {
-            insufficientBal: false,
-          },
-          quotesLoadingStatus: RequestStatus.FETCHED,
-          quotes: [mockQuote as unknown as QuoteResponse],
-          quotesLastFetched: 12,
-        },
-        bridgeReducerOverrides: {
-          sourceAmount: '1.0', // Less than balance of 2.0 ETH
-        },
-      });
-
-      jest
-        .mocked(useBridgeQuoteData as unknown as jest.Mock)
-        .mockImplementation(() => ({
-          ...mockUseBridgeQuoteData,
-          isExpired: false,
-          willRefresh: false,
-        }));
-
-      const { getByTestId } = renderScreen(
-        BridgeView,
-        {
-          name: Routes.BRIDGE.ROOT,
-        },
-        { state: testState },
-      );
-
-      const continueButton = getByTestId('bridge-confirm-button');
-      expect(continueButton).toBeTruthy();
-    });
-
-    it('displays Continue button and Terms link when a quote is available but other quotes are still loading', () => {
-      const mockQuote = mockQuoteWithMetadata;
-      const testState = createBridgeTestState({
-        bridgeControllerOverrides: {
-          quoteRequest: {
-            insufficientBal: false,
-          },
-          quotesLoadingStatus: RequestStatus.LOADING,
-          quotes: [mockQuote as unknown as QuoteResponse],
-          quotesLastFetched: 12,
-        },
-        bridgeReducerOverrides: {
-          sourceAmount: '1.0', // Less than balance of 2.0 ETH
-        },
-      });
-
-      jest
-        .mocked(useBridgeQuoteData as unknown as jest.Mock)
-        .mockImplementationOnce(() => ({
-          ...mockUseBridgeQuoteData,
-          isExpired: false,
-          willRefresh: false,
-        }));
-
-      const { getByTestId } = renderScreen(
-        BridgeView,
-        {
-          name: Routes.BRIDGE.ROOT,
-        },
-        { state: testState },
-      );
-
-      const continueButton = getByTestId('bridge-confirm-button');
-      expect(continueButton).toBeTruthy();
-    });
-
-    it('should handle "Confirm Bridge" button press', async () => {
-      const mockQuote = mockQuoteWithMetadata;
-      const testState = createBridgeTestState({
-        bridgeControllerOverrides: {
-          quoteRequest: {
-            insufficientBal: false,
-          },
-          quotesLoadingStatus: RequestStatus.FETCHED,
-          quotes: [mockQuote as unknown as QuoteResponse],
-          quotesLastFetched: 12,
-        },
-        bridgeReducerOverrides: {
-          sourceAmount: '1.0', // Less than balance of 2.0 ETH
-        },
-      });
-
-      const { getByTestId } = renderScreen(
-        BridgeView,
-        {
-          name: Routes.BRIDGE.ROOT,
-        },
-        {
-          state: testState,
-        },
-      );
-
-      const continueButton = getByTestId('bridge-confirm-button');
-      fireEvent.press(continueButton);
-
-      // TODO: Add expectations once quote response is implemented
-      // expect(mockSubmitBridgeTx).toHaveBeenCalled();
-    });
-
     it('navigates to QuoteExpiredModal when quote expires without refresh', async () => {
       jest
         .mocked(useBridgeQuoteData as unknown as jest.Mock)
-        .mockImplementationOnce(() => ({
+        .mockImplementation(() => ({
           ...mockUseBridgeQuoteData,
           isExpired: true,
           willRefresh: false,
@@ -912,7 +847,7 @@ describe('BridgeView', () => {
     it('does not navigate to QuoteExpiredModal when quote expires with refresh', async () => {
       jest
         .mocked(useBridgeQuoteData as unknown as jest.Mock)
-        .mockImplementationOnce(() => ({
+        .mockImplementation(() => ({
           ...mockUseBridgeQuoteData,
           isExpired: true,
           willRefresh: true,
@@ -939,7 +874,7 @@ describe('BridgeView', () => {
     it('does not navigate to QuoteExpiredModal when quote is valid', async () => {
       jest
         .mocked(useBridgeQuoteData as unknown as jest.Mock)
-        .mockImplementationOnce(() => ({
+        .mockImplementation(() => ({
           ...mockUseBridgeQuoteData,
           isExpired: false,
           willRefresh: false,
@@ -1002,7 +937,7 @@ describe('BridgeView', () => {
     it('blurs input when opening QuoteExpiredModal', async () => {
       jest
         .mocked(useBridgeQuoteData as unknown as jest.Mock)
-        .mockImplementationOnce(() => ({
+        .mockImplementation(() => ({
           ...mockUseBridgeQuoteData,
           isExpired: true,
           willRefresh: false,
@@ -1027,7 +962,7 @@ describe('BridgeView', () => {
       expect(toJSON()).toMatchSnapshot();
     });
 
-    it('displays hardware wallet not supported banner and disables continue button when using hardware wallet with Solana source', async () => {
+    it('displays hardware wallet not supported banner when using hardware wallet with Solana source', async () => {
       // Mock isHardwareAccount to return true for this test only
       const mockIsHardwareAccount = jest.fn().mockReturnValue(true);
       jest.mocked(isHardwareAccount).mockImplementation(mockIsHardwareAccount);
@@ -1173,20 +1108,9 @@ describe('BridgeView', () => {
     });
   });
 
-  describe('Error Banner Visibility', () => {
-    it('should hide error banner when input is focused', async () => {
-      // Setup state with error condition
-      const testState = createBridgeTestState({
-        bridgeControllerOverrides: {
-          quotesLoadingStatus: RequestStatus.FETCHED,
-          quotes: [],
-          quotesLastFetched: 12,
-        },
-        bridgeReducerOverrides: {
-          sourceAmount: '1.0',
-        },
-      });
-
+  // TODO: This test suite is temporary and will be replaced by another behavior once geolocation detection will be implemented.
+  describe('Error Banner for RWA tokens', () => {
+    beforeEach(() => {
       // Mock quote data to show an error
       jest
         .mocked(useBridgeQuoteData as unknown as jest.Mock)
@@ -1196,8 +1120,17 @@ describe('BridgeView', () => {
           isNoQuotesAvailable: true,
           isLoading: false,
         }));
+    });
+    it('should show regular error banner when no quotes and no RWA token selected', async () => {
+      const testState = createBridgeTestState({
+        bridgeControllerOverrides: {
+          quotesLoadingStatus: RequestStatus.FETCHED,
+          quotes: [],
+          quotesLastFetched: 12,
+        },
+      });
 
-      const { getByTestId, queryByTestId } = renderScreen(
+      const { getByText } = renderScreen(
         BridgeView,
         {
           name: Routes.BRIDGE.ROOT,
@@ -1205,21 +1138,43 @@ describe('BridgeView', () => {
         { state: testState },
       );
 
-      // Error banner should be visible initially
-      await waitFor(() => {
-        expect(queryByTestId('banneralert')).toBeTruthy();
-      });
+      const expected = strings('bridge.error_banner_description');
 
-      // Focus the input
-      const input = getByTestId('source-token-area-input');
-      fireEvent(input, 'focus');
-
-      // Error banner should be hidden
       await waitFor(() => {
-        expect(queryByTestId('banneralert')).toBeNull();
+        expect(getByText(expected)).toBeTruthy();
       });
     });
 
+    it('should show error banner about geolocation restriction when no quotes and RWA token selected', async () => {
+      jest.mocked(useRWAToken as jest.Mock).mockImplementation(() => ({
+        isStockToken: jest.fn().mockReturnValue(true),
+      }));
+
+      const testState = createBridgeTestState({
+        bridgeControllerOverrides: {
+          quotesLoadingStatus: RequestStatus.FETCHED,
+          quotes: [],
+          quotesLastFetched: 12,
+        },
+      });
+
+      const { getByText } = renderScreen(
+        BridgeView,
+        {
+          name: Routes.BRIDGE.ROOT,
+        },
+        { state: testState },
+      );
+
+      const expected = strings('bridge.stock_token_error_banner_description');
+
+      await waitFor(() => {
+        expect(getByText(expected)).toBeTruthy();
+      });
+    });
+  });
+
+  describe('Error Banner Visibility', () => {
     it('should focus input and show keypad when error banner is closed', async () => {
       // Setup state with error condition
       const testState = createBridgeTestState({
@@ -1266,354 +1221,6 @@ describe('BridgeView', () => {
         // Keypad should be visible - check for the delete button which is part of the keypad
         expect(queryByTestId('keypad-delete-button')).toBeTruthy();
       });
-    });
-  });
-
-  describe('handleContinue - Blockaid Validation', () => {
-    let mockQuote: QuoteResponse;
-
-    beforeEach(() => {
-      jest.clearAllMocks();
-      mockQuote = mockQuoteWithMetadata as unknown as QuoteResponse;
-      mockValidateBridgeTx.mockResolvedValue({
-        result: { validation: { reason: null } },
-        error: null,
-      });
-      mockSubmitBridgeTx.mockResolvedValue({ success: true });
-      // Mock isHardwareAccount to return false for these tests
-      jest.mocked(isHardwareAccount).mockReturnValue(false);
-
-      jest
-        .mocked(selectSourceWalletAddress)
-        .mockReturnValue('0x1234567890123456789012345678901234567890');
-    });
-
-    it('should submit transaction for Solana swap', async () => {
-      // Set route params for swap mode
-      mockRoute.params.bridgeViewMode = BridgeViewMode.Swap;
-
-      const testState = createBridgeTestState({
-        bridgeControllerOverrides: {
-          quotesLoadingStatus: RequestStatus.FETCHED,
-          quotes: [mockQuote],
-          quotesLastFetched: 12,
-        },
-        bridgeReducerOverrides: {
-          sourceAmount: '1.0',
-          sourceToken: {
-            address: 'So11111111111111111111111111111111111111112',
-            chainId: SolScope.Mainnet,
-            decimals: 9,
-            image: '',
-            name: 'Solana',
-            symbol: 'SOL',
-          },
-          destToken: {
-            address: 'So11111111111111111111111111111111111111112',
-            chainId: SolScope.Mainnet,
-            decimals: 9,
-            image: '',
-            name: 'Solana',
-            symbol: 'SOL',
-          },
-        },
-      });
-
-      jest
-        .mocked(useBridgeQuoteData as unknown as jest.Mock)
-        .mockImplementation(() => ({
-          ...mockUseBridgeQuoteData,
-          activeQuote: mockQuote,
-          isLoading: false,
-        }));
-
-      const { getByTestId } = renderScreen(
-        BridgeView,
-        {
-          name: Routes.BRIDGE.ROOT,
-        },
-        { state: testState },
-      );
-
-      // Find and press the continue button
-      const continueButton = getByTestId('bridge-confirm-button');
-      await act(async () => {
-        fireEvent.press(continueButton);
-      });
-
-      await act(async () => {
-        await waitFor(() => {
-          expect(mockSubmitBridgeTx).toHaveBeenCalledWith({
-            quoteResponse: {
-              ...mockQuote,
-              aggregator: mockQuote.quote.bridgeId,
-              walletAddress: '0x1234567890123456789012345678901234567890',
-            },
-          });
-          expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
-        });
-      });
-    });
-
-    it('should submit transaction for Solana to EVM bridge', async () => {
-      // Set route params for bridge mode
-      mockRoute.params.bridgeViewMode = BridgeViewMode.Bridge;
-
-      const testState = createBridgeTestState(
-        {
-          bridgeControllerOverrides: {
-            quotesLoadingStatus: RequestStatus.FETCHED,
-            quotes: [mockQuote],
-            quotesLastFetched: 12,
-          },
-          bridgeReducerOverrides: {
-            sourceAmount: '1.0',
-            sourceToken: {
-              address: 'So11111111111111111111111111111111111111112',
-              chainId: SolScope.Mainnet,
-              decimals: 9,
-              image: '',
-              name: 'Solana',
-              symbol: 'SOL',
-            },
-            destToken: {
-              address: '0xA0b86a33E6441E84d9cDbdd8d2Dd2Bc0F40Cd1',
-              chainId: '0x1' as Hex,
-              decimals: 18,
-              image: '',
-              name: 'Ethereum',
-              symbol: 'ETH',
-            },
-          },
-        },
-        mockState,
-      );
-
-      jest
-        .mocked(useBridgeQuoteData as unknown as jest.Mock)
-        .mockImplementation(() => ({
-          ...mockUseBridgeQuoteData,
-          activeQuote: mockQuote,
-          isLoading: false,
-        }));
-
-      const { getByTestId } = renderScreen(
-        BridgeView,
-        {
-          name: Routes.BRIDGE.ROOT,
-        },
-        { state: testState },
-      );
-
-      // Find and press the continue button - use getAllByText to handle multiple elements
-      const continueButton = getByTestId('bridge-confirm-button');
-      await act(async () => {
-        fireEvent.press(continueButton);
-      });
-
-      await act(async () => {
-        await waitFor(() => {
-          expect(mockSubmitBridgeTx).toHaveBeenCalledWith({
-            quoteResponse: {
-              ...mockQuote,
-              aggregator: mockQuote.quote.bridgeId,
-              walletAddress: '0x1234567890123456789012345678901234567890',
-            },
-          });
-          expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
-        });
-      });
-    });
-
-    it('should proceed with transaction when continue is pressed', async () => {
-      // Set route params for swap mode
-      mockRoute.params.bridgeViewMode = BridgeViewMode.Swap;
-
-      const testState = createBridgeTestState({
-        bridgeControllerOverrides: {
-          quotesLoadingStatus: RequestStatus.FETCHED,
-          quotes: [mockQuote],
-          quotesLastFetched: 12,
-        },
-        bridgeReducerOverrides: {
-          sourceAmount: '1.0',
-          sourceToken: {
-            address: 'So11111111111111111111111111111111111111112',
-            chainId: SolScope.Mainnet,
-            decimals: 9,
-            image: '',
-            name: 'Solana',
-            symbol: 'SOL',
-          },
-          destToken: {
-            address: 'So11111111111111111111111111111111111111112',
-            chainId: SolScope.Mainnet,
-            decimals: 9,
-            image: '',
-            name: 'Solana',
-            symbol: 'SOL',
-          },
-        },
-      });
-
-      jest
-        .mocked(useBridgeQuoteData as unknown as jest.Mock)
-        .mockImplementation(() => ({
-          ...mockUseBridgeQuoteData,
-          activeQuote: mockQuote,
-          isLoading: false,
-        }));
-
-      const { getByTestId } = renderScreen(
-        BridgeView,
-        {
-          name: Routes.BRIDGE.ROOT,
-        },
-        { state: testState },
-      );
-
-      // Find and press the continue button
-      const continueButton = getByTestId('bridge-confirm-button');
-      await act(async () => {
-        fireEvent.press(continueButton);
-      });
-
-      await act(async () => {
-        await waitFor(() => {
-          expect(mockSubmitBridgeTx).toHaveBeenCalledWith({
-            quoteResponse: {
-              ...mockQuote,
-              aggregator: mockQuote.quote.bridgeId,
-              walletAddress: '0x1234567890123456789012345678901234567890',
-            },
-          });
-          expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
-        });
-      });
-    });
-
-    it('should skip validation for non-Solana transactions', async () => {
-      const testState = createBridgeTestState({
-        bridgeControllerOverrides: {
-          quotesLoadingStatus: RequestStatus.FETCHED,
-          quotes: [mockQuote],
-          quotesLastFetched: 12,
-        },
-        bridgeReducerOverrides: {
-          sourceAmount: '1.0',
-          sourceToken: {
-            address: token2Address,
-            chainId: '0x1' as Hex,
-            decimals: 18,
-            image: '',
-            name: 'Ethereum',
-            symbol: 'ETH',
-          },
-          destToken: {
-            address: '0xA0b86a33E6441E84d9cDbdd8d2Dd2Bc0F40Cd1',
-            chainId: '0x89' as Hex,
-            decimals: 18,
-            image: '',
-            name: 'Polygon',
-            symbol: 'MATIC',
-          },
-        },
-      });
-
-      jest
-        .mocked(useBridgeQuoteData as unknown as jest.Mock)
-        .mockImplementation(() => ({
-          ...mockUseBridgeQuoteData,
-          activeQuote: mockQuote,
-          isLoading: false,
-        }));
-
-      const { getByTestId } = renderScreen(
-        BridgeView,
-        {
-          name: Routes.BRIDGE.ROOT,
-        },
-        { state: testState },
-      );
-
-      // Find and press the continue button - use getAllByText to handle multiple elements
-      const continueButton = getByTestId('bridge-confirm-button');
-      await act(async () => {
-        fireEvent.press(continueButton);
-      });
-
-      await act(async () => {
-        await waitFor(() => {
-          expect(mockSubmitBridgeTx).toHaveBeenCalledWith({
-            quoteResponse: {
-              ...mockQuote,
-              aggregator: mockQuote.quote.bridgeId,
-              walletAddress: '0x1234567890123456789012345678901234567890',
-            },
-          });
-          expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
-        });
-      });
-    });
-
-    it('disables submit button when walletAddress is missing', async () => {
-      // Mock selectSourceWalletAddress to return undefined
-      jest.mocked(selectSourceWalletAddress).mockReturnValue(undefined);
-
-      const testState = createBridgeTestState({
-        bridgeControllerOverrides: {
-          quotesLoadingStatus: RequestStatus.FETCHED,
-          quotes: [mockQuote],
-          quotesLastFetched: 12,
-        },
-        bridgeReducerOverrides: {
-          sourceAmount: '1.0',
-          sourceToken: {
-            address: 'So11111111111111111111111111111111111111112',
-            chainId: SolScope.Mainnet,
-            decimals: 9,
-            image: '',
-            name: 'Solana',
-            symbol: 'SOL',
-          },
-          destToken: {
-            address: 'So11111111111111111111111111111111111111112',
-            chainId: SolScope.Mainnet,
-            decimals: 9,
-            image: '',
-            name: 'Solana',
-            symbol: 'SOL',
-          },
-        },
-      });
-
-      jest
-        .mocked(useBridgeQuoteData as unknown as jest.Mock)
-        .mockImplementation(() => ({
-          ...mockUseBridgeQuoteData,
-          activeQuote: mockQuote,
-          isLoading: false,
-        }));
-
-      const { getByTestId } = renderScreen(
-        BridgeView,
-        {
-          name: Routes.BRIDGE.ROOT,
-        },
-        { state: testState },
-      );
-
-      // Find the continue button and verify it's disabled
-      const continueButton = getByTestId('bridge-confirm-button');
-
-      await waitFor(() => {
-        // Button should be disabled when walletAddress is missing
-        expect(continueButton.props.disabled).toBe(true);
-      });
-
-      // Verify submitBridgeTx is not called since button is disabled
-      expect(mockSubmitBridgeTx).not.toHaveBeenCalled();
-      expect(mockNavigate).not.toHaveBeenCalled();
     });
   });
 

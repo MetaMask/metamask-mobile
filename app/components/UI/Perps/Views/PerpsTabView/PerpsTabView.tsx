@@ -30,11 +30,9 @@ import { selectPerpsEligibility } from '../../selectors/perpsController';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
-} from '../../constants/eventNames';
-import type {
-  PerpsNavigationParamList,
-  PerpsMarketData,
-} from '../../controllers/types';
+  type PerpsMarketData,
+} from '@metamask/perps-controller';
+import type { PerpsNavigationParamList } from '../../types/navigation';
 import {
   usePerpsEventTracking,
   usePerpsFirstTimeUser,
@@ -291,8 +289,11 @@ const PerpsTabView = () => {
 
   const handleSeeAllPerps = useCallback(() => {
     navigation.navigate(Routes.PERPS.ROOT, {
-      screen: Routes.PERPS.PERPS_HOME,
-      params: { source: PERPS_EVENT_VALUE.SOURCE.HOMESCREEN_TAB },
+      screen: Routes.PERPS.MARKET_LIST,
+      params: {
+        defaultMarketTypeFilter: 'all',
+        source: PERPS_EVENT_VALUE.SOURCE.HOMESCREEN_TAB,
+      },
     });
   }, [navigation]);
 

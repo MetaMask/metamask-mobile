@@ -15,6 +15,16 @@ import fs from 'fs';
 import path from 'path';
 
 /**
+ * Get build variant and display type from environment (rc = normal, exp = experimental).
+ * @returns {{ buildVariant: string, buildType: string }}
+ */
+function getBuildTypeInfo() {
+  const variant = (process.env.BUILD_VARIANT || 'rc').toLowerCase();
+  const buildType = variant === 'exp' ? 'Experimental' : 'Normal';
+  return { buildVariant: variant, buildType };
+}
+
+/**
  * Recursively find JSON files containing performance metrics
  * @param {string} dir - Directory to search
  * @param {string[]} jsonFiles - Array to collect found files
@@ -163,6 +173,9 @@ function processTestReport(testReport) {
     // Include profiling data if available
     profilingData: testReport.profilingData || null,
     profilingSummary: testReport.profilingSummary || null,
+    // BrowserStack network logs (HAR) per test
+    apiCalls: testReport.apiCalls ?? null,
+    apiCallsError: testReport.apiCallsError ?? null,
     // Include quality gates if available
     qualityGates: testReport.qualityGates || null,
   };
@@ -192,8 +205,9 @@ function createEmptyReport(outputPath) {
   };
   
   fs.writeFileSync(outputPath, JSON.stringify(emptyReport, null, 2));
-  fs.writeFileSync('appwright/aggregated-reports/aggregated-performance-report.json', JSON.stringify(emptyReport, null, 2));
+  fs.writeFileSync('tests/aggregated-reports/aggregated-performance-report.json', JSON.stringify(emptyReport, null, 2));
   
+  const { buildVariant, buildType } = getBuildTypeInfo();
   const emptySummary = {
     totalTests: 0,
     platforms: { android: 0, ios: 0 },
@@ -217,15 +231,19 @@ function createEmptyReport(outputPath) {
       jobResults: { android: "unknown", ios: "unknown" },
       branch: process.env.BRANCH_NAME || process.env.GITHUB_REF_NAME || 'unknown',
       commit: process.env.GITHUB_SHA || 'unknown',
-      workflowRun: process.env.GITHUB_RUN_ID || 'unknown'
+      workflowRun: process.env.GITHUB_RUN_ID || 'unknown',
+      buildVariant,
+      buildType
     },
     generatedAt: new Date().toISOString(),
     branch: process.env.BRANCH_NAME || process.env.GITHUB_REF_NAME || 'unknown',
     commit: process.env.GITHUB_SHA || 'unknown',
+    buildVariant,
+    buildType,
     warning: 'No test results found'
   };
   
-  fs.writeFileSync('appwright/aggregated-reports/summary.json', JSON.stringify(emptySummary, null, 2));
+  fs.writeFileSync('tests/aggregated-reports/summary.json', JSON.stringify(emptySummary, null, 2));
   console.log('✅ Empty report structure created successfully');
 }
 
@@ -244,8 +262,9 @@ function createFallbackReport(outputPath, error) {
   
   try {
     fs.writeFileSync(outputPath, JSON.stringify(fallbackReport, null, 2));
-    fs.writeFileSync('appwright/aggregated-reports/aggregated-performance-report.json', JSON.stringify(fallbackReport, null, 2));
-    fs.writeFileSync('appwright/aggregated-reports/summary.json', JSON.stringify({
+    fs.writeFileSync('tests/aggregated-reports/aggregated-performance-report.json', JSON.stringify(fallbackReport, null, 2));
+    const { buildVariant, buildType } = getBuildTypeInfo();
+    fs.writeFileSync('tests/aggregated-reports/summary.json', JSON.stringify({
       totalTests: 0,
       platforms: { android: 0, ios: 0 },
       testsByPlatform: { android: 0, ios: 0 },
@@ -268,11 +287,15 @@ function createFallbackReport(outputPath, error) {
         jobResults: { android: "error", ios: "error" },
         branch: process.env.BRANCH_NAME || process.env.GITHUB_REF_NAME || 'unknown',
         commit: process.env.GITHUB_SHA || 'unknown',
-        workflowRun: process.env.GITHUB_RUN_ID || 'unknown'
+        workflowRun: process.env.GITHUB_RUN_ID || 'unknown',
+        buildVariant,
+        buildType
       },
       generatedAt: new Date().toISOString(),
       branch: process.env.BRANCH_NAME || process.env.GITHUB_REF_NAME || 'unknown',
       commit: process.env.GITHUB_SHA || 'unknown',
+      buildVariant,
+      buildType,
       error: error.message
     }, null, 2));
     console.log('✅ Fallback reports created successfully');
@@ -481,11 +504,13 @@ function createSummary(groupedResults) {
       failedTestsByPlatform,
       branch: process.env.BRANCH_NAME || process.env.GITHUB_REF_NAME || 'unknown',
       commit: process.env.GITHUB_SHA || 'unknown',
-      workflowRun: process.env.GITHUB_RUN_ID || 'unknown'
+      workflowRun: process.env.GITHUB_RUN_ID || 'unknown',
+      ...getBuildTypeInfo()
     },
     generatedAt: new Date().toISOString(),
     branch: process.env.BRANCH_NAME || process.env.GITHUB_REF_NAME || 'unknown',
-    commit: process.env.GITHUB_SHA || 'unknown'
+    commit: process.env.GITHUB_SHA || 'unknown',
+    ...getBuildTypeInfo()
   };
   
   return summary;
@@ -1254,6 +1279,10 @@ function generateHtmlReport(groupedResults, summary) {
           <span>${timestamp}</span>
         </div>
         <div class="meta-item">
+          <span>📦</span>
+          <span>Build: ${summary.buildType || 'Normal'}</span>
+        </div>
+        <div class="meta-item">
           <span>🌿</span>
           <span>Branch: ${summary.branch || 'unknown'}</span>
         </div>
@@ -1425,7 +1454,7 @@ function aggregateReports() {
     console.log('🔍 Looking for performance JSON reports...');
     
     // Ensure output directory exists
-    const outputDir = 'appwright/aggregated-reports';
+    const outputDir = 'tests/aggregated-reports';
     if (!fs.existsSync(outputDir)) {
       fs.mkdirSync(outputDir, { recursive: true });
       console.log(`📁 Created output directory: ${outputDir}`);
@@ -1437,7 +1466,7 @@ function aggregateReports() {
       './performance-results', 
       './onboarding-results',
       './',  // Current directory where artifacts are typically extracted
-      './appwright',  // Where artifacts are uploaded from
+      './tests',  // Where artifacts are uploaded from
     ];
     
     const jsonFiles = [];
@@ -1457,7 +1486,7 @@ function aggregateReports() {
       console.log(`  ${index + 1}. ${file}`);
     });
     
-    const outputPath = 'appwright/aggregated-reports/performance-results.json';
+    const outputPath = 'tests/aggregated-reports/performance-results.json';
     
     if (jsonFiles.length === 0) {
       createEmptyReport(outputPath);
@@ -1556,29 +1585,29 @@ function aggregateReports() {
     fs.writeFileSync(outputPath, JSON.stringify(groupedResults, null, 2));
     
     // Create aggregated-performance-report.json (same structure as performance-results.json)
-    const aggregatedReportPath = 'appwright/aggregated-reports/aggregated-performance-report.json';
+    const aggregatedReportPath = 'tests/aggregated-reports/aggregated-performance-report.json';
     fs.writeFileSync(aggregatedReportPath, JSON.stringify(groupedResults, null, 2));
     
     // Create summary
     const summary = createSummary(groupedResults);
-    fs.writeFileSync('appwright/aggregated-reports/summary.json', JSON.stringify(summary, null, 2));
+    fs.writeFileSync('tests/aggregated-reports/summary.json', JSON.stringify(summary, null, 2));
     
     
     console.log(`✅ Combined report saved: ${summary.totalTests} tests across ${summary.devices.length} device configurations`);
     console.log(`📊 Profiling data: ${summary.profilingStats.testsWithProfiling} tests with profiling data (${summary.profilingStats.profilingCoverage} coverage)`);
     console.log(`⚠️ Performance issues: ${summary.profilingStats.totalPerformanceIssues} total, ${summary.profilingStats.totalCriticalIssues} critical`);
     console.log(`📈 Average CPU: ${summary.profilingStats.avgCpuUsage}, Memory: ${summary.profilingStats.avgMemoryUsage}`);
-    console.log('📋 Summary report saved to: appwright/aggregated-reports/summary.json');
-    console.log('📋 Aggregated report saved to: appwright/aggregated-reports/aggregated-performance-report.json');
+    console.log('📋 Summary report saved to: tests/aggregated-reports/summary.json');
+    console.log('📋 Aggregated report saved to: tests/aggregated-reports/aggregated-performance-report.json');
     
     // Generate HTML report
     const htmlReport = generateHtmlReport(groupedResults, summary);
-    const htmlReportPath = 'appwright/aggregated-reports/performance-report.html';
+    const htmlReportPath = 'tests/aggregated-reports/performance-report.html';
     fs.writeFileSync(htmlReportPath, htmlReport);
     console.log(`🌐 HTML report saved to: ${htmlReportPath}`);
     
   } catch (error) {
-    createFallbackReport('appwright/aggregated-reports/performance-results.json', error);
+    createFallbackReport('tests/aggregated-reports/performance-results.json', error);
   }
 }
 

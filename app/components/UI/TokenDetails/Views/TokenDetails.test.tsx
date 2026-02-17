@@ -1,8 +1,12 @@
 import React from 'react';
+import { ActivityIndicator } from 'react-native';
 import { render } from '@testing-library/react-native';
 import { TokenDetails } from './TokenDetails';
 import { TokenI } from '../../Tokens/types';
-import { selectTokenDetailsV2Enabled } from '../../../../selectors/featureFlagController/tokenDetailsV2';
+import {
+  selectTokenDetailsV2Enabled,
+  selectTokenDetailsV2ButtonsEnabled,
+} from '../../../../selectors/featureFlagController/tokenDetailsV2';
 import { selectNetworkConfigurationByChainId } from '../../../../selectors/networkController';
 import { selectPerpsEnabledFlag } from '../../Perps';
 import { selectMerklCampaignClaimingEnabledFlag } from '../../Earn/selectors/featureFlags';
@@ -13,10 +17,10 @@ import {
 } from '../../../../selectors/featureFlagController/deposit';
 
 // Mock feature flags
-const mockIsTokenDetailsRevampedEnabled = jest.fn(() => true);
+const mockSelectTokenDetailsV2ButtonsEnabled = jest.fn().mockReturnValue(true);
 jest.mock('../../../../selectors/featureFlagController/tokenDetailsV2', () => ({
   selectTokenDetailsV2Enabled: jest.fn(() => true),
-  isTokenDetailsRevampedEnabled: () => mockIsTokenDetailsRevampedEnabled(),
+  selectTokenDetailsV2ButtonsEnabled: mockSelectTokenDetailsV2ButtonsEnabled,
 }));
 
 // Mock react-redux with proper selector handling
@@ -58,8 +62,8 @@ jest.mock('../hooks/useTokenBalance', () => ({
   useTokenBalance: () => mockUseTokenBalance(),
 }));
 
-jest.mock('../hooks/useTokenBuyability', () => ({
-  useTokenBuyability: () => true,
+jest.mock('../../Ramp/hooks/useTokenBuyability', () => ({
+  useTokenBuyability: () => ({ isBuyable: true, isLoading: false }),
 }));
 
 const mockHandleBuyPress = jest.fn();
@@ -76,18 +80,22 @@ jest.mock('../hooks/useTokenActions', () => ({
   }),
 }));
 
+const defaultUseTokenTransactionsReturn = {
+  transactions: [],
+  submittedTxs: [],
+  confirmedTxs: [],
+  loading: false,
+  transactionsUpdated: true,
+  selectedAddress: '0x1234',
+  conversionRate: 1,
+  currentCurrency: 'USD',
+  isNonEvmAsset: false,
+};
+
+const mockUseTokenTransactions = jest.fn();
 jest.mock('../hooks/useTokenTransactions', () => ({
-  useTokenTransactions: () => ({
-    transactions: [],
-    submittedTxs: [],
-    confirmedTxs: [],
-    loading: false,
-    transactionsUpdated: true,
-    selectedAddress: '0x1234',
-    conversionRate: 1,
-    currentCurrency: 'USD',
-    isNonEvmAsset: false,
-  }),
+  useTokenTransactions: (...args: unknown[]) =>
+    mockUseTokenTransactions(...args),
 }));
 
 // Mock child components
@@ -171,7 +179,8 @@ describe('TokenDetails', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockIsTokenDetailsRevampedEnabled.mockReturnValue(true);
+    mockSelectTokenDetailsV2ButtonsEnabled.mockReturnValue(true);
+    mockUseTokenTransactions.mockReturnValue(defaultUseTokenTransactionsReturn);
 
     // Setup default useTokenBalance mock
     mockUseTokenBalance.mockReturnValue({
@@ -183,6 +192,8 @@ describe('TokenDetails', () => {
     // Setup default selector returns
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectTokenDetailsV2Enabled) return true;
+      if (selector === selectTokenDetailsV2ButtonsEnabled)
+        return mockSelectTokenDetailsV2ButtonsEnabled();
       if (selector === selectNetworkConfigurationByChainId)
         return { name: 'Ethereum' };
       if (selector === selectPerpsEnabledFlag) return false;
@@ -194,10 +205,19 @@ describe('TokenDetails', () => {
     });
   });
 
-  describe('Buy/Sell sticky buttons', () => {
-    it('shows sticky buttons when isTokenDetailsRevampedEnabled is true', () => {
-      mockIsTokenDetailsRevampedEnabled.mockReturnValue(true);
+  it('renders loader when txLoading is true', () => {
+    mockUseTokenTransactions.mockReturnValue({
+      ...defaultUseTokenTransactionsReturn,
+      loading: true,
+    });
 
+    const { UNSAFE_getByType } = render(<TokenDetails {...defaultProps} />);
+
+    expect(UNSAFE_getByType(ActivityIndicator)).toBeTruthy();
+  });
+
+  describe('Buy/Sell sticky buttons', () => {
+    it('shows sticky buttons when selectTokenDetailsV2ButtonsEnabled is true', () => {
       const { getByTestId, getByText } = render(
         <TokenDetails {...defaultProps} />,
       );
@@ -206,8 +226,8 @@ describe('TokenDetails', () => {
       expect(getByText('Buy')).toBeOnTheScreen();
     });
 
-    it('does not show sticky buttons when isTokenDetailsRevampedEnabled is false', () => {
-      mockIsTokenDetailsRevampedEnabled.mockReturnValue(false);
+    it('does not show sticky buttons when selectTokenDetailsV2ButtonsEnabled is false', () => {
+      mockSelectTokenDetailsV2ButtonsEnabled.mockReturnValue(false);
 
       const { queryByTestId } = render(<TokenDetails {...defaultProps} />);
 

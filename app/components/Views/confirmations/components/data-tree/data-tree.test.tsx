@@ -3,7 +3,7 @@ import React from 'react';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import DataTree, { DataTreeInput } from './data-tree';
-import { PrimaryTypeOrder } from '../../constants/signatures';
+import { PrimaryType, PrimaryTypeOrder } from '../../constants/signatures';
 import { NONE_DATE_VALUE } from '../../utils/date';
 
 const timestamp = 1647359825; // March 15, 2022  15:57:05 UTC
@@ -98,5 +98,62 @@ describe('NoChangeSimulation', () => {
     // token value field
     expect(getByText('Buy Amount')).toBeDefined();
     expect(getByText('100')).toBeDefined();
+  });
+
+  it('parses hex date fields using bigint coercion', async () => {
+    const { getByText } = renderWithProvider(
+      <DataTree
+        data={
+          {
+            expiry: {
+              type: 'uint256',
+              value: '0x62f5f80d',
+            },
+          } as DataTreeInput
+        }
+        chainId="0x1"
+        primaryType={PrimaryType.Permit}
+      />,
+      {
+        state: {
+          engine: {
+            backgroundState,
+          },
+        },
+      },
+    );
+
+    expect(getByText('Expiry')).toBeDefined();
+    expect(getByText('12 August 2022, 06:49')).toBeDefined();
+  });
+
+  it('falls back to the original string for large hex date values', async () => {
+    const largeHexDate =
+      '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
+
+    const { getByText } = renderWithProvider(
+      <DataTree
+        data={
+          {
+            expiry: {
+              type: 'uint256',
+              value: largeHexDate,
+            },
+          } as DataTreeInput
+        }
+        chainId="0x1"
+        primaryType={PrimaryType.Permit}
+      />,
+      {
+        state: {
+          engine: {
+            backgroundState,
+          },
+        },
+      },
+    );
+
+    expect(getByText('Expiry')).toBeDefined();
+    expect(getByText(largeHexDate)).toBeDefined();
   });
 });

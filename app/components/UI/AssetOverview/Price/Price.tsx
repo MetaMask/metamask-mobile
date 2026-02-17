@@ -96,23 +96,32 @@ const Price = ({
     <>
       <View style={styles.wrapper}>
         {asset.name ? (
-          <View>
-            <Text
-              variant={TextVariant.BodyMDMedium}
-              color={TextColor.Alternative}
-            >
-              {asset.name}
-            </Text>
-            <View style={styles.assetWrapper}>
+          stockTokenBadge ? (
+            <View>
               <Text
                 variant={TextVariant.BodyMDMedium}
                 color={TextColor.Alternative}
               >
-                {ticker}
+                {asset.name}
               </Text>
-              {stockTokenBadge}
+              <View style={styles.assetWrapper}>
+                <Text
+                  variant={TextVariant.BodyMDMedium}
+                  color={TextColor.Alternative}
+                >
+                  {ticker}
+                </Text>
+                {stockTokenBadge}
+              </View>
             </View>
-          </View>
+          ) : (
+            <Text
+              variant={TextVariant.BodyMDMedium}
+              color={TextColor.Alternative}
+            >
+              {asset.name} ({ticker})
+            </Text>
+          )
         ) : (
           <View style={styles.assetWrapper}>
             <Text variant={TextVariant.BodyMDMedium}>{ticker}</Text>
