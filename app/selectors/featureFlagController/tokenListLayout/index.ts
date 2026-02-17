@@ -7,7 +7,7 @@ import { validatedVersionGatedFeatureFlag } from '../../../util/remoteFeatureFla
  * Returns true if V2 layout is enabled AND the current app version meets
  * the minimum version requirement.
  *
- * LD flag name: token-list-item-v2-abtest -> camelCased to tokenListItemV2Abtest
+ * LD flag name: token-list-item-v2-abtest-versioned
  * Expected flag shape: { enabled: boolean, minimumVersion: string }
  *
  * @returns true if V2 layout is enabled, false otherwise
