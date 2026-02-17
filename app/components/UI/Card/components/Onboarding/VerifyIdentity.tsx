@@ -78,6 +78,14 @@ const VerifyIdentity = () => {
   const { sessionUrl } = verificationResponse || {};
 
   const handleContinue = useCallback(async () => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+        .addProperties({
+          action: CardActions.VERIFY_IDENTITY_BUTTON,
+        })
+        .build(),
+    );
+
     if (sessionUrl) {
       setIsLaunchingVeriff(true);
       try {
@@ -105,14 +113,6 @@ const VerifyIdentity = () => {
         setIsLaunchingVeriff(false);
       }
     }
-
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-        .addProperties({
-          action: CardActions.VERIFY_IDENTITY_BUTTON,
-        })
-        .build(),
-    );
   }, [navigation, sessionUrl, trackEvent, createEventBuilder, veriffBranding]);
 
   useEffect(() => {
