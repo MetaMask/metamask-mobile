@@ -20,6 +20,8 @@ import {
 import type { CaipAccountId } from '@metamask/utils';
 import { createMockAccountsControllerState } from '../../../../../util/test/accountsControllerTestUtils';
 import { mockNetworkState } from '../../../../../util/test/network';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { TRANSACTION_DETAIL_EVENTS } from '../../../../../core/Analytics/events/transactions';
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -835,6 +837,33 @@ describe('PerpsTransactionsView', () => {
         skipInitialFetch: false,
         accountId: secondAccountId,
       });
+    });
+  });
+
+  describe('Analytics Tracking', () => {
+    it('tracks Transaction Detail List Item Clicked when a transaction item is pressed', async () => {
+      const component = renderWithProvider(<PerpsTransactionsView />, {
+        state: mockInitialState,
+      });
+
+      await waitFor(() => {
+        expect(mockUsePerpsTransactionHistory).toHaveBeenCalled();
+      });
+
+      const transactionItems = component.queryAllByTestId(
+        PerpsTransactionSelectorsIDs.TRANSACTION_ITEM,
+      );
+
+      if (transactionItems.length > 0) {
+        await act(async () => {
+          fireEvent.press(transactionItems[0]);
+        });
+
+        const mockAnalytics = (useAnalytics as jest.Mock)();
+        expect(mockAnalytics.createEventBuilder).toHaveBeenCalledWith(
+          TRANSACTION_DETAIL_EVENTS.LIST_ITEM_CLICKED,
+        );
+      }
     });
   });
 });
