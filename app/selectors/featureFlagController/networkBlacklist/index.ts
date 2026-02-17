@@ -10,8 +10,8 @@ export interface AdditionalNetworksBlacklistFeatureFlag {
  * Allows to remove a network from the additional network selection.
  * Returns an array of chain IDs that should be hidden from the Additional Networks list.
  *
- * Supports local environment variable override via MM_ADDITIONAL_NETWORK_BLACKLIST
- * (comma-separated chain IDs, e.g., "0x8f,0x531")
+ * When GITHUB_ACTIONS (and not E2E): use only remote (builds.yml). Otherwise supports
+ * local override via MM_ADDITIONAL_NETWORK_BLACKLIST (comma-separated chain IDs).
  *
  * @param state - The Redux state
  * @returns Array of blacklisted chain IDs
@@ -23,7 +23,11 @@ export const selectAdditionalNetworksBlacklistFeatureFlag = createSelector(
       | string[]
       | undefined;
 
-    // Parse environment variable override
+    if (process.env.GITHUB_ACTIONS === 'true' && process.env.E2E !== 'true') {
+      const value = remoteValue || [];
+      return Array.isArray(value) ? value : [];
+    }
+
     const envValue = process.env.MM_ADDITIONAL_NETWORK_BLACKLIST;
     let envArray: string[] = [];
 
@@ -34,10 +38,7 @@ export const selectAdditionalNetworksBlacklistFeatureFlag = createSelector(
         .filter((id) => id.length > 0);
     }
 
-    // Use environment variable if provided, otherwise use remote value, fallback to empty array
     const finalValue = envArray.length > 0 ? envArray : remoteValue || [];
-
-    // Ensure we return an array of strings
     return Array.isArray(finalValue) ? finalValue : [];
   },
 );
