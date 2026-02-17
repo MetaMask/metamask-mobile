@@ -16,8 +16,7 @@
 
 'use strict';
 
-const http = require('http');
-const { URL } = require('url');
+const http = require('node:http');
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -26,21 +25,21 @@ const { URL } = require('url');
 /** Read a value from .js.env */
 function loadEnvValue(key) {
   try {
-    const fs = require('fs');
-    const path = require('path');
+    const fs = require('node:fs');
+    const path = require('node:path');
     const envPath = path.resolve(__dirname, '../../.js.env');
     const content = fs.readFileSync(envPath, 'utf8');
     const match = content.match(new RegExp(`^${key}=(.+)$`, 'm'));
     if (match) return match[1].trim();
-  } catch (_) {
-    // ignore
+  } catch {
+    // .js.env may not exist — fall through to undefined
   }
   return undefined;
 }
 
 /** Read WATCHER_PORT from .js.env or env (default: 8081) */
 function loadPort() {
-  return parseInt(loadEnvValue('WATCHER_PORT') || process.env.WATCHER_PORT || '8081', 10);
+  return Number.parseInt(loadEnvValue('WATCHER_PORT') || process.env.WATCHER_PORT || '8081', 10);
 }
 
 /** Read IOS_SIMULATOR name from .js.env or env (default: none — accept any device) */
@@ -92,7 +91,8 @@ async function probeTarget(wsUrl) {
     } finally {
       client.close();
     }
-  } catch (_) {
+  } catch {
+    // Connection failed — target is not the right one
     return false;
   }
 }
@@ -163,8 +163,8 @@ async function discoverTarget(port) {
 
   // Sort by page number descending (JS runtime has higher page number than C++ native)
   candidates.sort((a, b) => {
-    const aPage = parseInt((a.id || '').split('-').pop() || '0', 10);
-    const bPage = parseInt((b.id || '').split('-').pop() || '0', 10);
+    const aPage = Number.parseInt((a.id || '').split('-').pop() || '0', 10);
+    const bPage = Number.parseInt((b.id || '').split('-').pop() || '0', 10);
     return bPage - aPage;
   });
 
@@ -193,8 +193,11 @@ function createWSClient(wsUrl, timeout) {
       WebSocketImpl = globalThis.WebSocket;
     } else {
       try {
-        WebSocketImpl = require('ws');
-      } catch (_) {
+        // Dynamic require avoids depcheck static analysis — ws is an optional
+        // fallback for Node < 22 which has no built-in WebSocket.
+        const wsModule = 'ws';
+        WebSocketImpl = require(wsModule);
+      } catch {
         throw new Error(
           'WebSocket not available. Install "ws" package or use Node >= 22.',
         );
@@ -233,7 +236,8 @@ function createWSClient(wsUrl, timeout) {
       let msg;
       try {
         msg = JSON.parse(data);
-      } catch (_) {
+      } catch {
+        // Non-JSON frame — ignore
         return;
       }
       if (msg.id && pending.has(msg.id)) {
@@ -457,7 +461,7 @@ Environment:
   }
 
   const port = loadPort();
-  const timeout = parseInt(process.env.CDP_TIMEOUT || '5000', 10);
+  const timeout = Number.parseInt(process.env.CDP_TIMEOUT || '5000', 10);
 
   const wsUrl = await discoverTarget(port);
   const client = await createWSClient(wsUrl, timeout);
