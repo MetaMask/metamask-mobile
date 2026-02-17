@@ -43,6 +43,7 @@ import {
   ROUNDING_CONFIG,
   SLIPPAGE_BUY,
   SLIPPAGE_SELL,
+  POLYMARKET_PROVIDER_ID,
 } from './constants';
 import { SafeFeeAuthorization } from './safe/types';
 import {
@@ -595,7 +596,7 @@ export const parsePolymarketMarket = (
   event: PolymarketApiEvent,
 ): PredictOutcome => ({
   id: market.conditionId,
-  providerId: 'polymarket',
+  providerId: POLYMARKET_PROVIDER_ID,
   marketId: event.id,
   title: market.question,
   description: market.description,
@@ -658,7 +659,7 @@ export const parsePolymarketEvents = (
       return {
         id: event.id,
         slug: event.slug,
-        providerId: 'polymarket',
+        providerId: POLYMARKET_PROVIDER_ID,
         title: event.title,
         description: event.description,
         image: event.icon,
@@ -720,7 +721,7 @@ export const parsePolymarketActivity = (
 
     const parsedActivity: PredictActivity = {
       id,
-      providerId: 'polymarket',
+      providerId: POLYMARKET_PROVIDER_ID,
       entry:
         entryType === 'claimWinnings'
           ? { type: 'claimWinnings', timestamp, amount }
@@ -789,12 +790,14 @@ export const getParsedMarketsFromPolymarketApi = async (
     const active = `active=true`;
     const archived = `archived=false`;
     const closed = `closed=false`;
-    const ascending = `ascending=false`;
+    const ascendingCategories: Set<PredictCategory> = new Set(['ending-soon']);
+    const ascending = `ascending=${ascendingCategories.has(category)}`;
     const volume = `volume_min=${10000.0}`;
     const liquidity = `liquidity_min=${10000.0}`;
 
     const categoryTagMap: Record<PredictCategory, string> = {
       trending: '&order=volume24hr',
+      'ending-soon': '&order=endDate',
       new: '&order=startDate&exclude_tag_id=102169',
       sports: '&tag_slug=sports&order=volume24hr',
       crypto: '&tag_slug=crypto&order=volume24hr',
@@ -902,7 +905,7 @@ export const parsePolymarketPositions = async ({
   const parsedPositions: PredictPosition[] = positions.map(
     (position: PolymarketPosition) => ({
       id: position.asset,
-      providerId: 'polymarket',
+      providerId: POLYMARKET_PROVIDER_ID,
       marketId: position.eventId,
       outcomeId: position.conditionId,
       outcome: position.outcome,

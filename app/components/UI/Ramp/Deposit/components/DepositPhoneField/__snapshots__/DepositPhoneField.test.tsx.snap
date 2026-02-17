@@ -142,7 +142,7 @@ exports[`DepositPhoneField renders correctly after flag button press 1`] = `
         onChangeText={[Function]}
         onFocus={[Function]}
         placeholder="30 12345678"
-        placeholderTextColor="#b7bbc8"
+        placeholderTextColor="#686e7d"
         style={
           {
             "backgroundColor": "inherit",
@@ -154,8 +154,8 @@ exports[`DepositPhoneField renders correctly after flag button press 1`] = `
             "fontWeight": "400",
             "height": 46,
             "letterSpacing": 0,
+            "lineHeight": 0,
             "opacity": 1,
-            "paddingVertical": 2,
             "textAlignVertical": "center",
           }
         }
@@ -310,7 +310,7 @@ exports[`DepositPhoneField renders correctly after input change 1`] = `
         onChangeText={[Function]}
         onFocus={[Function]}
         placeholder="30 12345678"
-        placeholderTextColor="#b7bbc8"
+        placeholderTextColor="#686e7d"
         style={
           {
             "backgroundColor": "inherit",
@@ -322,8 +322,8 @@ exports[`DepositPhoneField renders correctly after input change 1`] = `
             "fontWeight": "400",
             "height": 46,
             "letterSpacing": 0,
+            "lineHeight": 0,
             "opacity": 1,
-            "paddingVertical": 2,
             "textAlignVertical": "center",
           }
         }
@@ -478,7 +478,7 @@ exports[`DepositPhoneField renders correctly with default props 1`] = `
         onChangeText={[Function]}
         onFocus={[Function]}
         placeholder="(555) 123-4567"
-        placeholderTextColor="#b7bbc8"
+        placeholderTextColor="#686e7d"
         style={
           {
             "backgroundColor": "inherit",
@@ -490,8 +490,8 @@ exports[`DepositPhoneField renders correctly with default props 1`] = `
             "fontWeight": "400",
             "height": 46,
             "letterSpacing": 0,
+            "lineHeight": 0,
             "opacity": 1,
-            "paddingVertical": 2,
             "textAlignVertical": "center",
           }
         }
@@ -646,7 +646,7 @@ exports[`DepositPhoneField renders correctly with different region 1`] = `
         onChangeText={[Function]}
         onFocus={[Function]}
         placeholder="30 12345678"
-        placeholderTextColor="#b7bbc8"
+        placeholderTextColor="#686e7d"
         style={
           {
             "backgroundColor": "inherit",
@@ -658,8 +658,8 @@ exports[`DepositPhoneField renders correctly with different region 1`] = `
             "fontWeight": "400",
             "height": 46,
             "letterSpacing": 0,
+            "lineHeight": 0,
             "opacity": 1,
-            "paddingVertical": 2,
             "textAlignVertical": "center",
           }
         }
@@ -814,7 +814,7 @@ exports[`DepositPhoneField renders correctly with error message 1`] = `
         onChangeText={[Function]}
         onFocus={[Function]}
         placeholder="(555) 123-4567"
-        placeholderTextColor="#b7bbc8"
+        placeholderTextColor="#686e7d"
         style={
           {
             "backgroundColor": "inherit",
@@ -826,8 +826,8 @@ exports[`DepositPhoneField renders correctly with error message 1`] = `
             "fontWeight": "400",
             "height": 46,
             "letterSpacing": 0,
+            "lineHeight": 0,
             "opacity": 1,
-            "paddingVertical": 2,
             "textAlignVertical": "center",
           }
         }
@@ -997,7 +997,7 @@ exports[`DepositPhoneField renders correctly with long phone number 1`] = `
         onChangeText={[Function]}
         onFocus={[Function]}
         placeholder="(555) 123-4567"
-        placeholderTextColor="#b7bbc8"
+        placeholderTextColor="#686e7d"
         style={
           {
             "backgroundColor": "inherit",
@@ -1009,8 +1009,8 @@ exports[`DepositPhoneField renders correctly with long phone number 1`] = `
             "fontWeight": "400",
             "height": 46,
             "letterSpacing": 0,
+            "lineHeight": 0,
             "opacity": 1,
-            "paddingVertical": 2,
             "textAlignVertical": "center",
           }
         }
@@ -1166,7 +1166,7 @@ exports[`DepositPhoneField renders correctly with onSubmitEditing callback 1`] =
         onFocus={[Function]}
         onSubmitEditing={[MockFunction]}
         placeholder="(555) 123-4567"
-        placeholderTextColor="#b7bbc8"
+        placeholderTextColor="#686e7d"
         style={
           {
             "backgroundColor": "inherit",
@@ -1178,8 +1178,8 @@ exports[`DepositPhoneField renders correctly with onSubmitEditing callback 1`] =
             "fontWeight": "400",
             "height": 46,
             "letterSpacing": 0,
+            "lineHeight": 0,
             "opacity": 1,
-            "paddingVertical": 2,
             "textAlignVertical": "center",
           }
         }
@@ -1334,7 +1334,7 @@ exports[`DepositPhoneField renders correctly with special characters in phone nu
         onChangeText={[Function]}
         onFocus={[Function]}
         placeholder="(555) 123-4567"
-        placeholderTextColor="#b7bbc8"
+        placeholderTextColor="#686e7d"
         style={
           {
             "backgroundColor": "inherit",
@@ -1346,8 +1346,8 @@ exports[`DepositPhoneField renders correctly with special characters in phone nu
             "fontWeight": "400",
             "height": 46,
             "letterSpacing": 0,
+            "lineHeight": 0,
             "opacity": 1,
-            "paddingVertical": 2,
             "textAlignVertical": "center",
           }
         }
@@ -1502,7 +1502,7 @@ exports[`DepositPhoneField renders correctly with unsupported region 1`] = `
         onChangeText={[Function]}
         onFocus={[Function]}
         placeholder="(555) 123-4567"
-        placeholderTextColor="#b7bbc8"
+        placeholderTextColor="#686e7d"
         style={
           {
             "backgroundColor": "inherit",
@@ -1514,8 +1514,8 @@ exports[`DepositPhoneField renders correctly with unsupported region 1`] = `
             "fontWeight": "400",
             "height": 46,
             "letterSpacing": 0,
+            "lineHeight": 0,
             "opacity": 1,
-            "paddingVertical": 2,
             "textAlignVertical": "center",
           }
         }
@@ -1670,7 +1670,7 @@ exports[`DepositPhoneField renders correctly with value 1`] = `
         onChangeText={[Function]}
         onFocus={[Function]}
         placeholder="(555) 123-4567"
-        placeholderTextColor="#b7bbc8"
+        placeholderTextColor="#686e7d"
         style={
           {
             "backgroundColor": "inherit",
@@ -1682,8 +1682,8 @@ exports[`DepositPhoneField renders correctly with value 1`] = `
             "fontWeight": "400",
             "height": 46,
             "letterSpacing": 0,
+            "lineHeight": 0,
             "opacity": 1,
-            "paddingVertical": 2,
             "textAlignVertical": "center",
           }
         }
@@ -1838,7 +1838,7 @@ exports[`DepositPhoneField updates phone region when region is selected from mod
         onChangeText={[Function]}
         onFocus={[Function]}
         placeholder="30 12345678"
-        placeholderTextColor="#b7bbc8"
+        placeholderTextColor="#686e7d"
         style={
           {
             "backgroundColor": "inherit",
@@ -1850,8 +1850,8 @@ exports[`DepositPhoneField updates phone region when region is selected from mod
             "fontWeight": "400",
             "height": 46,
             "letterSpacing": 0,
+            "lineHeight": 0,
             "opacity": 1,
-            "paddingVertical": 2,
             "textAlignVertical": "center",
           }
         }

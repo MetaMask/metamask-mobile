@@ -6,7 +6,7 @@ import { PerpsWithdrawViewSelectorsIDs } from '../../app/components/UI/Perps/Per
 import { QuoteViewSelectorText } from '../../tests/selectors/Bridge/QuoteView.selectors';
 import Selectors from '../helpers/Selectors.js';
 import { LoginViewSelectors } from '../../app/components/Views/Login/LoginView.testIds';
-import { splitAmountIntoDigits } from 'appwright/utils/Utils.js';
+import { splitAmountIntoDigits } from '../../tests/framework/utils/Utils.js';
 import AmountScreen from './AmountScreen';
 
 class BridgeScreen {

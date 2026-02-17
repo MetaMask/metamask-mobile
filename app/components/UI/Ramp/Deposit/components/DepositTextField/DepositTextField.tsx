@@ -54,7 +54,6 @@ const DepositTextField = forwardRef<TextInput, DepositTextFieldProps>(
           <View style={styles.label}>{label}</View>
         )}
         <TextField
-          placeholderTextColor={theme.colors.text.muted}
           keyboardAppearance={theme.themeAppearance}
           style={style}
           ref={ref}

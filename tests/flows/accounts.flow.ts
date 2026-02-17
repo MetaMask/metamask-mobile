@@ -1,16 +1,16 @@
-import ImportSrpView from '../../e2e/pages/importSrp/ImportSrpView.ts';
-import AccountListBottomSheet from '../../e2e/pages/wallet/AccountListBottomSheet.ts';
-import AddAccountBottomSheet from '../../e2e/pages/wallet/AddAccountBottomSheet.ts';
-import WalletView from '../../e2e/pages/wallet/WalletView.ts';
-import Assertions from '../framework/Assertions.ts';
-import SRPListItemComponent from '../../e2e/pages/wallet/MultiSrp/Common/SRPListItemComponent.ts';
-import SrpQuizModal from '../../e2e/pages/Settings/SecurityAndPrivacy/SrpQuizModal.ts';
-import RevealSecretRecoveryPhrase from '../../e2e/pages/Settings/SecurityAndPrivacy/RevealSecretRecoveryPhrase.ts';
-import { RevealSeedViewSelectorsText } from '../../app/components/Views/RevealPrivateCredential/RevealSeedView.testIds.ts';
-import TabBarComponent from '../../e2e/pages/wallet/TabBarComponent.ts';
-import SettingsView from '../../e2e/pages/Settings/SettingsView.ts';
-import SecurityAndPrivacyView from '../../e2e/pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView.ts';
-import AccountDetails from '../../e2e/pages/MultichainAccounts/AccountDetails.ts';
+import ImportSrpView from '../page-objects/importSrp/ImportSrpView';
+import AccountListBottomSheet from '../page-objects/wallet/AccountListBottomSheet';
+import AddAccountBottomSheet from '../page-objects/wallet/AddAccountBottomSheet';
+import WalletView from '../page-objects/wallet/WalletView';
+import Assertions from '../framework/Assertions';
+import SRPListItemComponent from '../page-objects/wallet/MultiSrp/Common/SRPListItemComponent';
+import SrpQuizModal from '../page-objects/Settings/SecurityAndPrivacy/SrpQuizModal';
+import RevealSecretRecoveryPhrase from '../page-objects/Settings/SecurityAndPrivacy/RevealSecretRecoveryPhrase';
+import { RevealSeedViewSelectorsText } from '../../app/components/Views/RevealPrivateCredential/RevealSeedView.testIds';
+import TabBarComponent from '../page-objects/wallet/TabBarComponent';
+import SettingsView from '../page-objects/Settings/SettingsView';
+import SecurityAndPrivacyView from '../page-objects/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
+import AccountDetails from '../page-objects/MultichainAccounts/AccountDetails';
 
 const PASSWORD = '123123123';
 

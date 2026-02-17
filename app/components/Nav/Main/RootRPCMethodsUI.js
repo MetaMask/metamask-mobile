@@ -5,7 +5,6 @@ import PropTypes from 'prop-types';
 import NotificationManager from '../../../core/NotificationManager';
 import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
-import WalletConnect from '../../../core/WalletConnect/WalletConnect';
 import { getIsSwapApproveOrSwapTransaction } from '../../../util/transactions';
 import Logger from '../../../util/Logger';
 import TransactionTypes from '../../../core/TransactionTypes';
@@ -15,7 +14,6 @@ import { isHardwareAccount } from '../../../util/address';
 import WatchAssetApproval from '../../Approvals/WatchAssetApproval';
 import AddChainApproval from '../../Approvals/AddChainApproval';
 import SwitchChainApproval from '../../Approvals/SwitchChainApproval';
-import WalletConnectApproval from '../../Approvals/WalletConnectApproval';
 import ConnectApproval from '../../Approvals/ConnectApproval';
 import PermissionApproval from '../../Approvals/PermissionApproval';
 import FlowLoaderModal from '../../Approvals/FlowLoaderModal';
@@ -40,10 +38,6 @@ import { getIsBridgeTransaction } from '../../UI/Bridge/utils/transaction';
 
 const RootRPCMethodsUI = (props) => {
   const { trackEvent, createEventBuilder } = useMetrics();
-
-  const initializeWalletConnect = () => {
-    WalletConnect.init();
-  };
 
   const autoSign = useCallback(
     async (transactionMeta) => {
@@ -171,17 +165,18 @@ const RootRPCMethodsUI = (props) => {
     };
   }, [onUnapprovedTransaction]);
 
-  useEffect(() => {
-    initializeWalletConnect();
-    return function cleanup() {
-      WalletConnect?.hub?.removeAllListeners();
-    };
-  }, []);
+  useEffect(
+    () =>
+      function cleanup() {
+        Engine.context.TokensController?.hub?.removeAllListeners();
+      },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  );
 
   return (
     <React.Fragment>
       <ConfirmRoot />
-      <WalletConnectApproval />
       <AddChainApproval />
       <SwitchChainApproval />
       <WatchAssetApproval />

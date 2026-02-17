@@ -2,7 +2,7 @@ import { renderHook, act } from '@testing-library/react-hooks';
 import { AppState } from 'react-native';
 import Device from '../../../../util/device';
 import { usePerpsConnectionLifecycle } from './usePerpsConnectionLifecycle';
-import { PERPS_CONSTANTS } from '../constants/perpsConfig';
+import { PERPS_CONSTANTS } from '@metamask/perps-controller';
 
 jest.mock('react-native', () => ({
   AppState: {

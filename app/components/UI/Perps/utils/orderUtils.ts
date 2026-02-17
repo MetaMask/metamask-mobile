@@ -1,9 +1,9 @@
 import { capitalize } from 'lodash';
-import type {
-  OrderParams,
-  Order,
-  PerpsDebugLogger,
-} from '../controllers/types';
+import {
+  type OrderParams,
+  type Order,
+  type PerpsDebugLogger,
+} from '@metamask/perps-controller';
 import { Position } from '../hooks';
 
 /**

@@ -1,8 +1,9 @@
 import { useEffect, useState, useRef } from 'react';
 import { usePerpsStream } from '../../providers/PerpsStreamManager';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
-import type { Position, PriceUpdate } from '../../controllers/types';
+import { type Position, type PriceUpdate } from '@metamask/perps-controller';
 import { calculateRoEForPrice } from '../../utils/tpslValidation';
+import { hasPreloadedData, getPreloadedData } from './hasCachedPerpsData';
 
 // Stable empty array reference to prevent re-renders
 const EMPTY_POSITIONS: Position[] = [];
@@ -98,12 +99,18 @@ export function usePerpsLivePositions(
 ): UsePerpsLivePositionsReturn {
   const { throttleMs = 0, useLivePnl = false } = options; // No live PnL by default to avoid unnecessary re-renders
   const stream = usePerpsStream();
-  const [positions, setPositions] = useState<Position[]>(EMPTY_POSITIONS);
-  const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [positions, setPositions] = useState<Position[]>(
+    () => getPreloadedData<Position[]>('cachedPositions') ?? EMPTY_POSITIONS,
+  );
+  const [isInitialLoading, setIsInitialLoading] = useState(
+    () => !hasPreloadedData('cachedPositions'),
+  );
   const hasReceivedFirstUpdate = useRef(false);
 
   // Store raw positions and price data in state
-  const [rawPositions, setRawPositions] = useState<Position[]>(EMPTY_POSITIONS);
+  const [rawPositions, setRawPositions] = useState<Position[]>(
+    () => getPreloadedData<Position[]>('cachedPositions') ?? EMPTY_POSITIONS,
+  );
   const [priceData, setPriceData] = useState<Record<string, PriceUpdate>>({});
 
   // Enrich and update positions whenever raw positions or prices change
