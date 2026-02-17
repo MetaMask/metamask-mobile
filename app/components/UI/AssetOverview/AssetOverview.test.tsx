@@ -770,12 +770,7 @@ describe('AssetOverview', () => {
     await Promise.resolve();
 
     // onSend now navigates to home first, then calls navigateToSendPage
-    expect(navigate).toHaveBeenCalledWith(
-      Routes.WALLET.HOME,
-      expect.objectContaining({
-        screen: Routes.WALLET.TAB_STACK_FLOW,
-      }),
-    );
+    expect(navigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
   });
 
   it('should handle swap button press', async () => {
@@ -822,16 +817,13 @@ describe('AssetOverview', () => {
     expect(navigate).toHaveBeenCalledTimes(1);
     expect(navigate).toHaveBeenNthCalledWith(
       1,
-      Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS,
-      {
-        screen: Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SHARE_ADDRESS_QR,
-        params: expect.objectContaining({
-          address: MOCK_ADDRESS_2, // Should use EVM address for EVM assets
-          networkName: 'Ethereum Mainnet',
-          chainId: MOCK_CHAIN_ID,
-          groupId: 'group-id-123',
-        }),
-      },
+      Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SHARE_ADDRESS_QR,
+      expect.objectContaining({
+        address: MOCK_ADDRESS_2, // Should use EVM address for EVM assets
+        networkName: 'Ethereum Mainnet',
+        chainId: MOCK_CHAIN_ID,
+        groupId: 'group-id-123',
+      }),
     );
   });
 
@@ -911,16 +903,13 @@ describe('AssetOverview', () => {
     expect(navigate).toHaveBeenCalledTimes(1);
     expect(navigate).toHaveBeenNthCalledWith(
       1,
-      Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS,
-      {
-        screen: Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SHARE_ADDRESS_QR,
-        params: expect.objectContaining({
-          address: SOLANA_ADDRESS, // Should use Solana address, not EVM address
-          networkName: 'Solana Mainnet',
-          chainId: SOLANA_CHAIN_ID,
-          groupId: 'group-id-123',
-        }),
-      },
+      Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SHARE_ADDRESS_QR,
+      expect.objectContaining({
+        address: SOLANA_ADDRESS, // Should use Solana address, not EVM address
+        networkName: 'Solana Mainnet',
+        chainId: SOLANA_CHAIN_ID,
+        groupId: 'group-id-123',
+      }),
     );
 
     expect(mockSelectSelectedInternalAccountByScope).toHaveBeenCalledWith(
@@ -1320,12 +1309,7 @@ describe('AssetOverview', () => {
       // Wait for all promises to resolve
       await Promise.resolve();
 
-      expect(navigate).toHaveBeenCalledWith(Routes.WALLET.HOME, {
-        screen: Routes.WALLET.TAB_STACK_FLOW,
-        params: {
-          screen: Routes.WALLET_VIEW,
-        },
-      });
+      expect(navigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
     });
 
     it('should navigate to bridge when swapping on different chain', async () => {

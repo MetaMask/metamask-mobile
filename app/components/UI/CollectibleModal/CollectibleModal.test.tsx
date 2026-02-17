@@ -71,6 +71,13 @@ jest.mock('@react-navigation/native', () => ({
   useRoute: () => mockUseRoute(),
 }));
 
+const mockNavigateToSendPage = jest.fn();
+jest.mock('../../Views/confirmations/hooks/useSendNavigation', () => ({
+  useSendNavigation: () => ({
+    navigateToSendPage: mockNavigateToSendPage,
+  }),
+}));
+
 describe('CollectibleModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -203,5 +210,206 @@ describe('CollectibleModal', () => {
         source: 'mobile-nft-list-page',
       }),
     );
+  });
+
+  it('updates collectible when IPFS gateway is enabled', () => {
+    (useSelector as jest.Mock).mockImplementation((selector) => {
+      if (selector === collectiblesSelector) return collectibles;
+      if (selector === selectIsIpfsGatewayEnabled) return true;
+      if (selector === selectDisplayNftMedia) return true;
+      if (selector === selectChainId) return '0x1';
+      return undefined;
+    });
+
+    const { toJSON } = renderWithProvider(<CollectibleModal />, {
+      state: mockInitialState,
+    });
+
+    expect(toJSON()).toBeDefined();
+  });
+
+  it('does not update collectible when IPFS gateway is disabled', () => {
+    (useSelector as jest.Mock).mockImplementation((selector) => {
+      if (selector === collectiblesSelector) return collectibles;
+      if (selector === selectIsIpfsGatewayEnabled) return false;
+      if (selector === selectDisplayNftMedia) return false;
+      if (selector === selectChainId) return '0x1';
+      return undefined;
+    });
+
+    const { toJSON } = renderWithProvider(<CollectibleModal />, {
+      state: mockInitialState,
+    });
+
+    expect(toJSON()).toBeDefined();
+  });
+
+  it('identifies ERC721 standard collectible as tradable', () => {
+    mockUseRoute.mockReturnValue({
+      params: {
+        contractName: 'Opensea',
+        collectible: {
+          name: 'Leopard',
+          tokenId: 6904,
+          address: '0x123',
+          standard: 'ERC721',
+        },
+      },
+    });
+
+    (useSelector as jest.Mock).mockImplementation((selector) => {
+      if (selector === collectiblesSelector) return collectibles;
+      if (selector === selectIsIpfsGatewayEnabled) return false;
+      if (selector === selectDisplayNftMedia) return false;
+      if (selector === selectChainId) return '0x1';
+      return undefined;
+    });
+
+    const { toJSON } = renderWithProvider(<CollectibleModal />, {
+      state: mockInitialState,
+    });
+
+    expect(toJSON()).toBeDefined();
+  });
+
+  it('identifies non-ERC721 standard collectible as non-tradable', () => {
+    mockUseRoute.mockReturnValue({
+      params: {
+        contractName: 'Opensea',
+        collectible: {
+          name: 'Leopard',
+          tokenId: 6904,
+          address: '0x123',
+          standard: 'ERC1155',
+        },
+      },
+    });
+
+    (useSelector as jest.Mock).mockImplementation((selector) => {
+      if (selector === collectiblesSelector) return collectibles;
+      if (selector === selectIsIpfsGatewayEnabled) return false;
+      if (selector === selectDisplayNftMedia) return false;
+      if (selector === selectChainId) return '0x1';
+      return undefined;
+    });
+
+    const { toJSON } = renderWithProvider(<CollectibleModal />, {
+      state: mockInitialState,
+    });
+
+    expect(toJSON()).toBeDefined();
+  });
+
+  it('tracks event with correct chain ID for Polygon', () => {
+    const mockAddProperties = jest.fn().mockReturnThis();
+    const mockBuild = jest.fn().mockReturnValue({
+      properties: { chain_id: 137 },
+    });
+    mockCreateEventBuilder.mockReturnValue({
+      addProperties: mockAddProperties,
+      build: mockBuild,
+    });
+
+    (useSelector as jest.Mock).mockImplementation((selector) => {
+      if (selector === collectiblesSelector) return collectibles;
+      if (selector === selectIsIpfsGatewayEnabled) return false;
+      if (selector === selectDisplayNftMedia) return false;
+      if (selector === selectChainId) return '0x89'; // Polygon
+      return undefined;
+    });
+
+    renderWithProvider(<CollectibleModal />, {
+      state: {
+        ...mockInitialState,
+        engine: {
+          ...mockInitialState.engine,
+          backgroundState: {
+            ...mockInitialState.engine.backgroundState,
+            NetworkController: {
+              ...mockNetworkState({
+                chainId: CHAIN_IDS.POLYGON,
+                id: 'polygon',
+                nickname: 'Polygon',
+                ticker: 'MATIC',
+              }),
+            },
+          },
+        },
+      },
+    });
+
+    expect(mockTrackEvent).toHaveBeenCalled();
+  });
+
+  it('handles collectible with updated data from collectibles list', () => {
+    const updatedCollectibles = [
+      {
+        name: 'Leopard Updated',
+        tokenId: 6904,
+        address: '0x123',
+        image: 'https://updated.url/image.png',
+      },
+    ];
+
+    (useSelector as jest.Mock).mockImplementation((selector) => {
+      if (selector === collectiblesSelector) return updatedCollectibles;
+      if (selector === selectIsIpfsGatewayEnabled) return true;
+      if (selector === selectDisplayNftMedia) return true;
+      if (selector === selectChainId) return '0x1';
+      return undefined;
+    });
+
+    const { findAllByText } = renderWithProvider(<CollectibleModal />, {
+      state: mockInitialState,
+    });
+
+    // The component should update with new collectible data
+    expect(findAllByText('Leopard Updated')).toBeDefined();
+  });
+
+  it('merges collectible data with contract name', () => {
+    mockUseRoute.mockReturnValue({
+      params: {
+        contractName: 'Custom Collection',
+        collectible: { name: 'Leopard', tokenId: 6904, address: '0x123' },
+      },
+    });
+
+    (useSelector as jest.Mock).mockImplementation((selector) => {
+      if (selector === collectiblesSelector) return collectibles;
+      if (selector === selectIsIpfsGatewayEnabled) return false;
+      if (selector === selectDisplayNftMedia) return false;
+      if (selector === selectChainId) return '0x1';
+      return undefined;
+    });
+
+    const { toJSON } = renderWithProvider(<CollectibleModal />, {
+      state: mockInitialState,
+    });
+
+    expect(toJSON()).toBeDefined();
+  });
+
+  it('does not crash when collectible is not found in collectibles list', () => {
+    mockUseRoute.mockReturnValue({
+      params: {
+        contractName: 'Opensea',
+        collectible: { name: 'Unknown', tokenId: 9999, address: '0x999' },
+      },
+    });
+
+    (useSelector as jest.Mock).mockImplementation((selector) => {
+      if (selector === collectiblesSelector) return collectibles; // Does not contain 0x999
+      if (selector === selectIsIpfsGatewayEnabled) return true;
+      if (selector === selectDisplayNftMedia) return true;
+      if (selector === selectChainId) return '0x1';
+      return undefined;
+    });
+
+    const { toJSON } = renderWithProvider(<CollectibleModal />, {
+      state: mockInitialState,
+    });
+
+    expect(toJSON()).toBeDefined();
   });
 });

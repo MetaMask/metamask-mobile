@@ -294,17 +294,14 @@ describe('AssetDetails', () => {
 
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith(
-        'RootModalFlow',
+        'AssetHideConfirmation',
         expect.objectContaining({
-          screen: 'AssetHideConfirmation',
-          params: expect.objectContaining({
-            onConfirm: expect.any(Function),
-          }),
+          onConfirm: expect.any(Function),
         }),
       );
     });
 
-    const onConfirmCallback = mockNavigate.mock.calls[0][1].params.onConfirm;
+    const onConfirmCallback = mockNavigate.mock.calls[0][1].onConfirm;
     onConfirmCallback();
 
     expect(mockNavigate).toHaveBeenCalledWith('WalletView');
@@ -433,11 +430,9 @@ describe('AssetDetails', () => {
     const troubleshootingLink = getByText('troubleshooting missing balances');
     fireEvent.press(troubleshootingLink);
 
-    expect(mockNavigate).toHaveBeenCalledWith('Webview', {
-      screen: 'SimpleWebview',
-      params: expect.objectContaining({
-        title: 'Troubleshoot',
-      }),
+    expect(mockNavigate).toHaveBeenCalledWith('SimpleWebview', {
+      url: 'https://support.metamask.io/troubleshooting/what-to-do-when-your-balance-of-tokens-is-incorrect/',
+      title: 'Troubleshoot',
     });
   });
 

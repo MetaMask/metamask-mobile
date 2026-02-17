@@ -97,13 +97,10 @@ const CollectibleModal = () => {
 
   const openLink = useCallback(
     (url: string) => {
-      navigation.navigate(Routes.BROWSER_TAB_HOME, {
-        screen: Routes.BROWSER_VIEW,
-        params: {
-          newTabUrl: url,
-          linkType: EXTERNAL_LINK_TYPE,
-          timestamp: Date.now(),
-        },
+      navigation.navigate(Routes.BROWSER_VIEW, {
+        newTabUrl: url,
+        linkType: EXTERNAL_LINK_TYPE,
+        timestamp: Date.now(),
       });
     },
     [navigation],
