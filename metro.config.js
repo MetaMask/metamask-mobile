@@ -11,9 +11,58 @@ const { mergeConfig } = require('@react-native/metro-config');
 const { lockdownSerializer } = require('@lavamoat/react-native-lockdown');
 
 // eslint-disable-next-line import/no-nodejs-modules
+const fs = require('node:fs');
+// eslint-disable-next-line import/no-nodejs-modules
 const { parseArgs } = require('node:util');
 // eslint-disable-next-line import/no-nodejs-modules
 const os = require('node:os');
+// We should replace path for react-native-fs
+// eslint-disable-next-line import/no-nodejs-modules
+const path = require('node:path');
+
+const yaml = require('js-yaml');
+
+/**
+ * Build name (e.g. main-prod, flask-dev) from METAMASK_BUILD_TYPE + METAMASK_ENVIRONMENT.
+ * Matches keys in builds.yml for code_fencing and remote_feature_flags.
+ *
+ * @returns {string|null} Build name or null if env vars are missing/invalid.
+ */
+function getBuildNameFromEnv() {
+  const buildType = (process.env.METAMASK_BUILD_TYPE ?? 'main').toLowerCase();
+  const env = (process.env.METAMASK_ENVIRONMENT ?? 'production').toLowerCase();
+  const envPart = env === 'production' ? 'prod' : env;
+  if (!buildType || !envPart) return null;
+  return `${buildType}-${envPart}`;
+}
+
+/**
+ * When REMOTE_FEATURE_FLAG_DEFAULTS is unset (local/Bitrise), load remote_feature_flags
+ * from builds.yml so local builds respect the same defaults as GH Actions.
+ * Single source of truth: builds.yml.
+ */
+function loadRemoteFeatureFlagDefaultsFromBuildsYml() {
+  if (process.env.REMOTE_FEATURE_FLAG_DEFAULTS) {
+    return;
+  }
+  try {
+    const buildName = getBuildNameFromEnv();
+    if (!buildName) return;
+    const buildsPath = path.join(__dirname, 'builds.yml');
+    if (!fs.existsSync(buildsPath)) return;
+    const config = yaml.load(fs.readFileSync(buildsPath, 'utf8'));
+    const build = config?.builds?.[buildName];
+    const remoteFeatureFlags = build?.remote_feature_flags ?? null;
+    if (remoteFeatureFlags && typeof remoteFeatureFlags === 'object') {
+      process.env.REMOTE_FEATURE_FLAG_DEFAULTS =
+        JSON.stringify(remoteFeatureFlags);
+    }
+  } catch {
+    // Ignore: app will run without build-time defaults (controller merge skipped).
+  }
+}
+
+loadRemoteFeatureFlagDefaultsFromBuildsYml();
 
 const parsedArgs = parseArgs({
   options: {
@@ -31,9 +80,6 @@ const getPolyfills = () => [
   require.resolve('reflect-metadata'),
 ];
 
-// We should replace path for react-native-fs
-// eslint-disable-next-line import/no-nodejs-modules
-const path = require('path');
 const {
   wrapWithReanimatedMetroConfig,
 } = require('react-native-reanimated/metro-config');

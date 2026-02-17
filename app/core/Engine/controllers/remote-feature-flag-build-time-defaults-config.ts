@@ -1,9 +1,14 @@
 /**
  * Config for build-time defaults.
- * Production: uses GITHUB_ACTIONS and E2E. Tests: mock this module to control shouldApply().
+ * Apply when REMOTE_FEATURE_FLAG_DEFAULTS is set (GH Actions via apply-build-config.js,
+ * or local/Bitrise via Metro loading builds.yml in metro.config.js) and not E2E.
+ * Tests: mock this module to control shouldApply().
  */
 export const buildTimeDefaultsConfig = {
   shouldApply(): boolean {
-    return process.env.GITHUB_ACTIONS === 'true' && process.env.E2E !== 'true';
+    const hasDefaults =
+      typeof process.env.REMOTE_FEATURE_FLAG_DEFAULTS === 'string' &&
+      process.env.REMOTE_FEATURE_FLAG_DEFAULTS.length > 0;
+    return hasDefaults && process.env.E2E !== 'true';
   },
 };
