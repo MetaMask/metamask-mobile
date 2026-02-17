@@ -109,6 +109,8 @@ const VerifyIdentity = () => {
             );
             break;
         }
+      } catch (error) {
+        Logger.error(error as Error, 'Veriff SDK launch failed unexpectedly');
       } finally {
         setIsLaunchingVeriff(false);
       }
