@@ -3,6 +3,7 @@ import { debounce } from 'lodash';
 import { CaipChainId } from '@metamask/utils';
 import { PopularToken, IncludeAsset } from './usePopularTokens';
 import { BRIDGE_API_BASE_URL } from '../../../../constants/bridge';
+import Engine from '../../../../core/Engine';
 
 const MIN_SEARCH_LENGTH = 3;
 
@@ -118,6 +119,7 @@ export const useSearchTokens = ({
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
+              Authorization: `Bearer ${await Engine.context.AuthenticationController.getBearerToken()}`,
             },
             body: JSON.stringify(requestBody),
           },
