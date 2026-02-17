@@ -19,7 +19,7 @@ import decodeTransaction from './utils';
 import { TRANSACTION_TYPES } from '../../../util/transactions';
 import ListItem from '../../Base/ListItem';
 import StatusText from '../../Base/StatusText';
-import { isTestNet } from '../../../util/networks';
+import { isTestNet, getDecimalChainId } from '../../../util/networks';
 import { weiHexToGweiDec } from '@metamask/controller-utils';
 import {
   TransactionType,
@@ -751,6 +751,7 @@ const TransactionElementWithBridge = (props) => {
   const trackTransactionDetailClicked = useCallback(() => {
     const tx = props.tx;
     const chainId = tx.chainId ?? '';
+    const decimalChainId = getDecimalChainId(chainId);
     const monetizedPrimitive = getMonetizedPrimitive(tx.type);
     const destChainId =
       bridgeTxHistoryData?.bridgeTxHistoryItem?.quote?.destChainId;
@@ -761,8 +762,8 @@ const TransactionElementWithBridge = (props) => {
           transaction_type: getTransactionTypeValue(tx.type, tx),
           transaction_status: tx.status,
           location: props.location ?? TransactionDetailLocation.Home,
-          chain_id_source: String(chainId),
-          chain_id_destination: String(destChainId ?? chainId),
+          chain_id_source: String(decimalChainId),
+          chain_id_destination: String(destChainId ?? decimalChainId),
           ...(monetizedPrimitive && {
             monetized_primitive: monetizedPrimitive,
           }),

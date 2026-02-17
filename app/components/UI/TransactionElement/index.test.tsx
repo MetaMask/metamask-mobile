@@ -297,8 +297,8 @@ describe('TransactionElement', () => {
           transaction_type: expect.any(String),
           transaction_status: 'confirmed',
           location: TransactionDetailLocation.Home,
-          chain_id_source: '0x1',
-          chain_id_destination: '0x1',
+          chain_id_source: '1',
+          chain_id_destination: '1',
         }),
       );
       expect(mockTrackEvent).toHaveBeenCalledWith({ name: 'test-event' });
