@@ -1,12 +1,13 @@
 import type { Hex } from '@metamask/utils';
-import { PERPS_ERROR_CODES } from '../perpsErrorCodes';
+
 import { ORDER_SLIPPAGE_CONFIG } from '../constants/perpsConfig';
-import type { SDKOrderParams } from '../types/hyperliquid-types';
+import { PERPS_ERROR_CODES } from '../perpsErrorCodes';
 import type { PerpsDebugLogger } from '../types';
 import {
   formatHyperLiquidPrice,
   formatHyperLiquidSize,
 } from './hyperLiquidAdapter';
+import type { SDKOrderParams } from '../types/hyperliquid-types';
 
 /**
  * Optional debug logger for order calculation functions.
@@ -85,6 +86,7 @@ export type BuildOrdersArrayResult = {
 
 /**
  * Calculate position size based on USD amount and asset price
+ *
  * @param params - Amount in USD, current asset price, and required decimal precision
  * @returns Position size formatted to the asset's decimal precision
  */
@@ -120,6 +122,7 @@ export function calculatePositionSize(params: PositionSizeParams): string {
 
 /**
  * Calculate margin required for a position
+ *
  * @param params - Position amount and leverage
  * @returns Margin required formatted to 2 decimal places
  */
@@ -248,7 +251,7 @@ export function calculateFinalPositionSize(
       });
     }
 
-    const requiredMargin = actualNotionalValue / (leverage || 1);
+    const requiredMargin = actualNotionalValue / (leverage ?? 1);
 
     // Log if rounding caused significant difference
     const usdDifference = Math.abs(actualNotionalValue - usdValue);
@@ -275,7 +278,7 @@ export function calculateFinalPositionSize(
     });
   } else {
     // Legacy: Use provided size (backward compatibility)
-    finalPositionSize = parseFloat(size || '0');
+    finalPositionSize = parseFloat(size ?? '0');
 
     debugLogger?.log(
       'Using legacy size calculation (no USD amount provided):',
@@ -413,9 +416,9 @@ export function buildOrdersArray(
     // HyperLiquid recommended: 10% for TP/SL orders
     const stopLossPriceNum = parseFloat(stopLossPrice);
     const slippageValue = ORDER_SLIPPAGE_CONFIG.DefaultTpslSlippageBps / 10000;
-    const limitPriceWithSlippage = !isBuy
-      ? stopLossPriceNum * (1 + slippageValue) // Buying to close short: willing to pay MORE (slippage protection)
-      : stopLossPriceNum * (1 - slippageValue); // Selling to close long: willing to accept LESS (slippage protection)
+    const limitPriceWithSlippage = isBuy
+      ? stopLossPriceNum * (1 - slippageValue) // Selling to close long: willing to accept LESS (slippage protection)
+      : stopLossPriceNum * (1 + slippageValue); // Buying to close short: willing to pay MORE (slippage protection)
 
     const slOrder: SDKOrderParams = {
       a: assetId,
@@ -442,7 +445,7 @@ export function buildOrdersArray(
 
   // Determine grouping
   const finalGrouping: 'na' | 'normalTpsl' | 'positionTpsl' =
-    grouping || (takeProfitPrice || stopLossPrice ? 'normalTpsl' : 'na');
+    grouping ?? ((takeProfitPrice ?? stopLossPrice) ? 'normalTpsl' : 'na');
 
   return { orders, grouping: finalGrouping };
 }

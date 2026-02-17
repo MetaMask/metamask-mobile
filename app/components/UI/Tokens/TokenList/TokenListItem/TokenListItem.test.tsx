@@ -1268,6 +1268,54 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       expect(mockClaimRewards).toHaveBeenCalledTimes(1);
     });
 
+    it('tracks mUSD Claim Bonus Button Clicked event when claim bonus is pressed', async () => {
+      prepareMocks({
+        asset: claimableAsset,
+        isMerklCampaignClaimingEnabled: true,
+        claimableReward: '1000000000000000000',
+        isMerklEligible: true,
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <TokenListItem
+          assetKey={assetKey}
+          showRemoveMenu={jest.fn()}
+          setShowScamWarningModal={jest.fn()}
+          privacyMode={false}
+        />,
+      );
+
+      mockTrackEvent.mockClear();
+      mockCreateEventBuilder.mockClear();
+      mockAddProperties.mockClear();
+      mockBuild.mockClear();
+
+      await act(async () => {
+        fireEvent.press(getByTestId(SECONDARY_BALANCE_BUTTON_TEST_ID));
+      });
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledTimes(1);
+      const { MetaMetricsEvents } = jest.requireActual(
+        '../../../../hooks/useMetrics',
+      );
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.MUSD_CLAIM_BONUS_BUTTON_CLICKED,
+      );
+
+      expect(mockAddProperties).toHaveBeenCalledTimes(1);
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        location: 'token_list_item',
+        action_type: 'claim_bonus',
+        button_text: strings('earn.claim_bonus'),
+        network_chain_id: claimableAsset.chainId,
+        network_name: 'Ethereum Mainnet',
+        asset_symbol: claimableAsset.symbol,
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      expect(mockTrackEvent).toHaveBeenCalledWith({ name: 'mock-built-event' });
+    });
+
     it('shows ActivityIndicator instead of text when isClaiming is true', () => {
       prepareMocks({
         asset: claimableAsset,

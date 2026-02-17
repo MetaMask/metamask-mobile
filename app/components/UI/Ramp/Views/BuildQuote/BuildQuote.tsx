@@ -45,7 +45,7 @@ import { useTransakController } from '../../hooks/useTransakController';
 import { useTransakRouting } from '../../hooks/useTransakRouting';
 import { createV2EnterEmailNavDetails } from '../NativeFlow/EnterEmail';
 
-interface BuildQuoteParams {
+export interface BuildQuoteParams {
   assetId?: string;
   nativeFlowError?: string;
 }
