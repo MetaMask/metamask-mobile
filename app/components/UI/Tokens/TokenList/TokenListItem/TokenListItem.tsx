@@ -187,7 +187,28 @@ export const TokenListItem = React.memo(
     );
 
     const { claimRewards } = merklData;
-    const handleClaimBonus = useCallback(() => claimRewards(), [claimRewards]);
+    const handleClaimBonus = useCallback(() => {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.MUSD_CLAIM_BONUS_BUTTON_CLICKED)
+          .addProperties({
+            location: MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.TOKEN_LIST_ITEM,
+            action_type: 'claim_bonus',
+            button_text: strings('earn.claim_bonus'),
+            network_chain_id: asset?.chainId,
+            network_name: networkName,
+            asset_symbol: asset?.symbol,
+          })
+          .build(),
+      );
+      claimRewards();
+    }, [
+      trackEvent,
+      createEventBuilder,
+      asset?.chainId,
+      asset?.symbol,
+      networkName,
+      claimRewards,
+    ]);
 
     const pricePercentChange1d = useTokenPricePercentageChange(asset);
 
