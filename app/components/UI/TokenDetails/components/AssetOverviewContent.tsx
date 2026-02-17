@@ -43,7 +43,6 @@ import TokenDetails from '../../AssetOverview/TokenDetails';
 import { PriceChartProvider } from '../../AssetOverview/PriceChart/PriceChart.context';
 import AssetDetailsActions from '../../../Views/AssetDetails/AssetDetailsActions';
 import { TokenDetailsActions } from './TokenDetailsActions';
-import MerklRewards from '../../Earn/components/MerklRewards';
 import PerpsDiscoveryBanner from '../../Perps/components/PerpsDiscoveryBanner';
 import { isTokenTrustworthyForPerps } from '../../Perps/constants/perpsConfig';
 import { selectTokenDetailsV2ButtonsEnabled } from '../../../../selectors/featureFlagController/tokenDetailsV2';
@@ -125,7 +124,6 @@ export interface AssetOverviewContentProps {
 
   // Feature flags
   isPerpsEnabled: boolean;
-  isMerklCampaignClaimingEnabled: boolean;
 
   // Display flags
   displayBuyButton: boolean;
@@ -170,7 +168,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   setTimePeriod,
   chartNavigationButtons,
   isPerpsEnabled,
-  isMerklCampaignClaimingEnabled,
   displayBuyButton,
   displaySwapsButton,
   currentCurrency,
@@ -437,11 +434,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             )
             ///: END:ONLY_INCLUDE_IF
           }
-          {isMerklCampaignClaimingEnabled && (
-            <View testID="merkl-rewards-section">
-              <MerklRewards asset={token} />
-            </View>
-          )}
           {isMarketInsightsEnabled && marketInsightsReport ? (
             <View style={styles.marketInsightsWrapper}>
               <MarketInsightsEntryCard

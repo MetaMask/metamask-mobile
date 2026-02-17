@@ -130,7 +130,6 @@ const defaultProps: AssetOverviewContentProps = {
   setTimePeriod: jest.fn(),
   chartNavigationButtons: ['1d', '1w', '1m'],
   isPerpsEnabled: true,
-  isMerklCampaignClaimingEnabled: false,
   displayBuyButton: false,
   displaySwapsButton: false,
   currentCurrency: 'USD',
