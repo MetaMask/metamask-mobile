@@ -1,10 +1,12 @@
 /* eslint-disable import/no-nodejs-modules */
 import { PerformanceTracker } from './PerformanceTracker';
 import { AppProfilingDataHandler } from './AppProfilingDataHandler';
-import QualityGatesValidator from '../framework/quality-gates/QualityGatesValidator';
-import QualityGatesReportFormatter from '../framework/quality-gates/QualityGatesReportFormatter';
+import {
+  QualityGatesValidator,
+  QualityGatesReportFormatter,
+  clearQualityGateFailures,
+} from '../framework/quality-gates';
 import { getTeamInfoFromTags } from '../teams-config.js';
-import { clearQualityGateFailures } from '../framework/quality-gates/QualityGateError.js';
 import fs from 'fs';
 import path from 'path';
 
