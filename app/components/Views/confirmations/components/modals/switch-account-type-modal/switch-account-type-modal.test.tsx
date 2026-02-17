@@ -40,14 +40,19 @@ const MOCK_NETWORK = {
 const mockGoBack = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
-  useRoute: jest.fn().mockReturnValue({
-    params: { address: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477' },
-  }),
   useNavigation: () => ({
     navigate: jest.fn(),
     goBack: mockGoBack,
   }),
 }));
+
+const createMockRoute = (
+  address = '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
+) => ({
+  params: { address: address as `0x${string}` },
+  key: 'ConfirmationSwitchAccountType',
+  name: 'ConfirmationSwitchAccountType' as const,
+});
 
 jest.mock('react-native-safe-area-context', () => {
   const inset = { top: 0, right: 0, bottom: 0, left: 0 };
@@ -89,9 +94,10 @@ describe('Switch Account Type Modal', () => {
       networkSupporting7702Present: true,
     });
 
-    const { getByText } = renderWithProvider(<SwitchAccountTypeModal />, {
-      state: MOCK_STATE,
-    });
+    const { getByText } = renderWithProvider(
+      <SwitchAccountTypeModal route={createMockRoute()} />,
+      { state: MOCK_STATE },
+    );
     expect(getByText('Account 1')).toBeTruthy();
     expect(getByText('Sepolia')).toBeTruthy();
     expect(getByText('Smart account')).toBeTruthy();
@@ -105,9 +111,10 @@ describe('Switch Account Type Modal', () => {
       networkSupporting7702Present: false,
     });
 
-    const container = renderWithProvider(<SwitchAccountTypeModal />, {
-      state: MOCK_STATE,
-    });
+    const container = renderWithProvider(
+      <SwitchAccountTypeModal route={createMockRoute()} />,
+      { state: MOCK_STATE },
+    );
     const { getByTestId, queryByText } = container;
     expect(queryByText('Account 1')).toBeNull();
     expect(queryByText('Sepolia')).toBeNull();
@@ -123,9 +130,10 @@ describe('Switch Account Type Modal', () => {
       networkSupporting7702Present: true,
     });
 
-    const { getByTestId } = renderWithProvider(<SwitchAccountTypeModal />, {
-      state: MOCK_STATE,
-    });
+    const { getByTestId } = renderWithProvider(
+      <SwitchAccountTypeModal route={createMockRoute()} />,
+      { state: MOCK_STATE },
+    );
     fireEvent.press(getByTestId('switch-account-goback'));
     expect(mockGoBack).toHaveBeenCalled();
   });

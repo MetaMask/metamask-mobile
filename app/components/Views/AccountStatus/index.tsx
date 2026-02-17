@@ -47,6 +47,7 @@ interface AccountStatusRouteParams {
   AccountStatus: AccountStatusParams;
   AccountAlreadyExists: AccountStatusParams;
   AccountNotFound: AccountStatusParams;
+  [key: string]: object | undefined;
 }
 
 interface AccountStatusProps {

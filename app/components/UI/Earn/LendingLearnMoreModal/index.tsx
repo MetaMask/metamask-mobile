@@ -131,6 +131,7 @@ interface EarnLendingLearnMoreModalRouteParams {
 
 interface EarnLendingLearnMoreModalParamList {
   EarnLendingLearnMoreModal: EarnLendingLearnMoreModalRouteParams;
+  [key: string]: object | undefined;
 }
 
 interface EarnLendingLearnMoreModalProps {

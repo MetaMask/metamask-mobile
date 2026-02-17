@@ -112,6 +112,7 @@ import type {
 
 interface NetworkSelectorParamList {
   NetworkSelector: NetworkSelectorRouteParams;
+  [key: string]: object | undefined;
 }
 
 interface NetworkSelectorProps {

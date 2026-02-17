@@ -12,6 +12,7 @@ export interface EarnInputViewRouteParams {
 
 interface EarnInputViewParamList {
   EarnInputView: EarnInputViewRouteParams;
+  [key: string]: object | undefined;
 }
 
 export interface EarnInputViewProps {

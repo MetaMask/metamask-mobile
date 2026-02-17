@@ -31,6 +31,7 @@ interface SwitchAccountTypeModalRouteParams {
 
 interface SwitchAccountTypeModalParamList {
   ConfirmationSwitchAccountType: SwitchAccountTypeModalRouteParams;
+  [key: string]: object | undefined;
 }
 
 interface SwitchAccountTypeModalProps {

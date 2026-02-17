@@ -39,6 +39,7 @@ interface OnboardingSuccessRouteParams {
 
 interface OnboardingSuccessParamList {
   OnboardingSuccess: OnboardingSuccessRouteParams;
+  [key: string]: object | undefined;
 }
 
 interface OnboardingSuccessScreenProps {

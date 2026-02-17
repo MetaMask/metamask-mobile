@@ -454,12 +454,13 @@ describe('EarnInputView', () => {
   });
 
   function render(
-    Component: React.ComponentType,
-    route: typeof baseProps.route = baseProps.route,
+    route: EarnInputViewProps['route'] = baseProps.route as EarnInputViewProps['route'],
     state: DeepPartial<RootState> = mockInitialState,
   ) {
+    // Create a wrapper component that passes the route prop
+    const WrappedComponent = () => <EarnInputView route={route} />;
     return renderScreen(
-      Component,
+      WrappedComponent,
       {
         name: Routes.STAKING.STAKE,
       },
@@ -470,7 +471,7 @@ describe('EarnInputView', () => {
     );
   }
 
-  const renderComponent = () => render(EarnInputView);
+  const renderComponent = () => render();
 
   it('render matches snapshot', () => {
     const { toJSON } = renderComponent();
@@ -516,7 +517,7 @@ describe('EarnInputView', () => {
         })),
       });
 
-      const { getByText, getAllByText } = render(EarnInputView, {
+      const { getByText, getAllByText } = render({
         params: {
           ...baseProps.route.params,
           token: MOCK_USDC_MAINNET_ASSET,
@@ -589,7 +590,7 @@ describe('EarnInputView', () => {
         isETH: false,
       } as unknown as typeof MOCK_ETH_MAINNET_ASSET;
 
-      const { getByTestId } = render(EarnInputView, {
+      const { getByTestId } = render({
         params: {
           token: TRX_TOKEN,
         },
@@ -632,7 +633,7 @@ describe('EarnInputView', () => {
         getOutputToken: jest.fn(() => undefined),
       });
 
-      const { getByTestId } = render(EarnInputView, {
+      const { getByTestId } = render({
         params: {
           token: TRX_TOKEN,
         },
@@ -676,7 +677,7 @@ describe('EarnInputView', () => {
         getOutputToken: jest.fn(() => undefined),
       });
 
-      const { getByText, queryByText } = render(EarnInputView, {
+      const { getByText, queryByText } = render({
         params: {
           token: TRX_TOKEN,
         },
@@ -724,7 +725,7 @@ describe('EarnInputView', () => {
         getOutputToken: jest.fn(() => undefined),
       });
 
-      const { getByText } = render(EarnInputView, {
+      const { getByText } = render({
         params: {
           token: TRX_TOKEN,
         },
@@ -968,7 +969,7 @@ describe('EarnInputView', () => {
         name: 'EarnInputView' as const,
       };
 
-      const { getByText } = render(EarnInputView, routeParamsWithUSDC);
+      const { getByText } = render(routeParamsWithUSDC);
 
       await act(async () => {
         fireEvent.press(getByText('25%'));
@@ -1049,7 +1050,7 @@ describe('EarnInputView', () => {
         name: 'EarnInputView' as const,
       };
 
-      const { getByText } = render(EarnInputView, routeParamsWithUSDC);
+      const { getByText } = render(routeParamsWithUSDC);
 
       await act(async () => {
         fireEvent.press(getByText('25%'));
@@ -1131,7 +1132,7 @@ describe('EarnInputView', () => {
           name: 'EarnInputView' as const,
         };
 
-        const { getByText } = render(EarnInputView, routeParamsWithUSDC);
+        const { getByText } = render(routeParamsWithUSDC);
 
         await act(async () => {
           fireEvent.press(getByText('25%'));
@@ -1238,7 +1239,7 @@ describe('EarnInputView', () => {
         name: 'EarnInputView' as const,
       };
 
-      render(EarnInputView, routeParamsWithUSDC);
+      render(routeParamsWithUSDC);
 
       expect(mockTrackEvent).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -1309,7 +1310,7 @@ describe('EarnInputView', () => {
         name: 'EarnInputView' as const,
       };
 
-      const { getByText } = render(EarnInputView, routeParamsWithUSDC);
+      const { getByText } = render(routeParamsWithUSDC);
 
       mockTrackEvent.mockClear();
 
@@ -1374,7 +1375,7 @@ describe('EarnInputView', () => {
         name: 'EarnInputView' as const,
       };
 
-      const { getByText } = render(EarnInputView, routeParamsWithUSDC);
+      const { getByText } = render(routeParamsWithUSDC);
 
       mockTrackEvent.mockClear();
 
@@ -1431,7 +1432,7 @@ describe('EarnInputView', () => {
         name: 'EarnInputView' as const,
       };
 
-      const { getByText } = render(EarnInputView, routeParamsWithUSDC);
+      const { getByText } = render(routeParamsWithUSDC);
 
       mockTrackEvent.mockClear();
 
@@ -1488,7 +1489,7 @@ describe('EarnInputView', () => {
         name: 'EarnInputView' as const,
       };
 
-      const { getByText } = render(EarnInputView, routeParamsWithUSDC);
+      const { getByText } = render(routeParamsWithUSDC);
 
       mockTrackEvent.mockClear();
 
@@ -1544,7 +1545,7 @@ describe('EarnInputView', () => {
         name: 'EarnInputView' as const,
       };
 
-      const { getByText } = render(EarnInputView, routeParamsWithUSDC);
+      const { getByText } = render(routeParamsWithUSDC);
 
       mockTrackEvent.mockClear();
 
@@ -1610,7 +1611,7 @@ describe('EarnInputView', () => {
           Engine.context.EarnController.getLendingTokenAllowance as jest.Mock
         ).mockImplementation(mockGetLendingTokenAllowance);
 
-        const { getByText } = render(EarnInputView, {
+        const { getByText } = render({
           params: {
             ...baseProps.route.params,
             token: MOCK_USDC_MAINNET_ASSET,
@@ -1638,7 +1639,7 @@ describe('EarnInputView', () => {
           Engine.context.EarnController.getLendingTokenAllowance as jest.Mock
         ).mockImplementation(mockGetLendingTokenAllowance);
 
-        const { getByText } = render(EarnInputView, {
+        const { getByText } = render({
           params: {
             ...baseProps.route.params,
             token: MOCK_USDC_MAINNET_ASSET,
@@ -1736,7 +1737,7 @@ describe('EarnInputView', () => {
         )
         .mockReturnValue(() => undefined);
 
-      const { getByText } = render(EarnInputView, {
+      const { getByText } = render({
         params: { token: MOCK_USDC_MAINNET_ASSET },
         key: Routes.STAKING.STAKE,
         name: 'EarnInputView' as const,
@@ -1780,7 +1781,7 @@ describe('EarnInputView', () => {
         })),
       });
 
-      const { getByText } = render(EarnInputView, {
+      const { getByText } = render({
         params: { token: MOCK_USDC_MAINNET_ASSET },
         key: Routes.STAKING.STAKE,
         name: 'EarnInputView' as const,
@@ -1901,7 +1902,7 @@ describe('EarnInputView', () => {
         name: 'EarnInputView' as const,
       };
 
-      const { getAllByTestId } = render(EarnInputView, routeParamsWithUSDC);
+      const { getAllByTestId } = render(routeParamsWithUSDC);
 
       mockTrackEvent.mockClear();
 
@@ -1957,7 +1958,7 @@ describe('EarnInputView', () => {
         name: 'EarnInputView' as const,
       };
 
-      const { getAllByTestId } = render(EarnInputView, routeParamsWithUSDC);
+      const { getAllByTestId } = render(routeParamsWithUSDC);
 
       mockTrackEvent.mockClear();
 

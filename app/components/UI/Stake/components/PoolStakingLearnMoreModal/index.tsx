@@ -41,6 +41,7 @@ interface PoolStakingLearnMoreModalRouteParams {
 
 interface PoolStakingLearnMoreModalParamList {
   LearnMore: PoolStakingLearnMoreModalRouteParams;
+  [key: string]: object | undefined;
 }
 
 interface PoolStakingLearnMoreModalProps {
