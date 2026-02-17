@@ -21902,7 +21902,7 @@ __metadata:
 
 "appwright@patch:appwright@npm%3A0.1.45#~/.yarn/patches/appwright-npm-0.1.45-f282bc1c1b.patch":
   version: 0.1.45
-  resolution: "appwright@patch:appwright@npm%3A0.1.45#~/.yarn/patches/appwright-npm-0.1.45-f282bc1c1b.patch::version=0.1.45&hash=1a5b9e"
+  resolution: "appwright@patch:appwright@npm%3A0.1.45#~/.yarn/patches/appwright-npm-0.1.45-f282bc1c1b.patch::version=0.1.45&hash=aebb2e"
   dependencies:
     "@empiricalrun/llm": "npm:^0.9.25"
     "@ffmpeg-installer/ffmpeg": "npm:^1.1.0"
@@ -21918,7 +21918,7 @@ __metadata:
     webdriver: "npm:^8.36.1"
   bin:
     appwright: dist/bin/index.js
-  checksum: 10/98ecffbac7f46eae0f0c854246ccb924ae6c6b53e54f0a7cb81c93503590f4e204faefad19d5d0133644257f6d36f6d2c534227b5380c6677aff5cb47c94876f
+  checksum: 10/97ef31d46107af5cf1b1b638f3be186d1fe1b8dcf868ed867e35b6dd7a1e10635d76ae7cbd02ae4fcf1dd7c835d5494e9d67869bbb6d2d2d6108abba40f31dfc
   languageName: node
   linkType: hard
 
