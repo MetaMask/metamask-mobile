@@ -11,6 +11,7 @@ export enum LedgerCommunicationErrors {
   UnknownError = 'UnknownError',
   NonceTooLow = 'NonceTooLow',
   BlindSignError = 'BlindSignError',
+  DeviceUnresponsive = 'DeviceUnresponsive',
 }
 
 /**
