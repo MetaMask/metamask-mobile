@@ -717,15 +717,12 @@ class AuthenticationService {
     {
       password,
       authPreference,
-      fallbackToPassword,
     }: {
       password?: string;
       authPreference?: AuthData;
-      fallbackToPassword?: boolean;
     } = {
       password: undefined,
       authPreference: undefined,
-      fallbackToPassword: false,
     },
   ) => {
     let passwordToUse: string | undefined;
@@ -736,6 +733,7 @@ class AuthenticationService {
         // User exists. Attempt to unlock wallet.
         // existing user is always false when user try to rehydrate
 
+        let fallbackToPassword = false;
         if (password !== undefined) {
           // Explicitly provided password.
           passwordToUse = password;

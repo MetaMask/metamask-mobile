@@ -170,7 +170,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
 
   const [biometryChoice, setBiometryChoice] = useState(true);
 
-  const prommptBiometricFailedAlert = useCallback(async () => {
+  const promptBiometricFailedAlert = useCallback(async () => {
     const authData = await getAuthType();
     if (authData.currentAuthType === AUTHENTICATION_TYPE.PASSWORD) {
       Alert.alert(
@@ -485,7 +485,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         async () => {
           await unlockWallet({ password, authPreference: authType });
           // prompt biometric failed alert if biometric failed
-          await prommptBiometricFailedAlert();
+          await promptBiometricFailedAlert();
         },
       );
 
@@ -515,7 +515,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     handleLoginError,
     passwordLoginAttemptTraceCtxRef,
     track,
-    prommptBiometricFailedAlert,
+    promptBiometricFailedAlert,
     componentAuthenticationType,
     unlockWallet,
   ]);
@@ -540,7 +540,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         async () => {
           await unlockWallet({ password, authPreference: authType });
           // prompt biometric failed alert if biometric failed
-          await prommptBiometricFailedAlert();
+          await promptBiometricFailedAlert();
         },
       );
 
@@ -554,7 +554,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     biometryChoice,
     finalLoading,
     handleLoginError,
-    prommptBiometricFailedAlert,
+    promptBiometricFailedAlert,
     componentAuthenticationType,
     unlockWallet,
   ]);
