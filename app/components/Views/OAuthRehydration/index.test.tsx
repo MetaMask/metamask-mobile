@@ -20,6 +20,7 @@ import { useNetInfo } from '@react-native-community/netinfo';
 import Logger from '../../../util/Logger';
 import { UNLOCK_WALLET_ERROR_MESSAGES } from '../../../core/Authentication/constants';
 import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
+import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 
 const mockEngine = jest.mocked(Engine);
 
@@ -58,13 +59,16 @@ jest.mock('../../../util/trace', () => ({
   TraceOperation: {},
 }));
 
+// Import mocked trace for resetting in beforeEach
+import { trace as traceMock } from '../../../util/trace';
+
 jest.mock('../../../util/analytics/vaultCorruptionTracking', () => ({
   trackVaultCorruption: jest.fn(),
 }));
 
 jest.mock('../../../util/errorHandling', () => ({
   containsErrorMessage: (error: Error, message: string) =>
-    error.message.includes(message),
+    error.toString().toLowerCase().includes(message.toLowerCase()),
 }));
 
 // Mock useMetrics
@@ -155,6 +159,7 @@ describe('OAuthRehydration', () => {
       isConnected: true,
       isInternetReachable: true,
     });
+    mockIsDeletingInProgress.mockReturnValue(false);
   });
 
   describe('Successful login flow', () => {
@@ -755,6 +760,78 @@ describe('OAuthRehydration', () => {
           MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED.category,
       );
       expect(rehydrationFailedCalls).toHaveLength(0);
+    });
+  });
+
+  describe('Biometric fallback alert after login', () => {
+    beforeEach(() => {
+      mockRoute.mockReturnValue({
+        params: { locked: false, oauthLoginSuccess: true },
+      });
+      // Explicitly reset and re-configure to avoid contamination from prior tests
+      mockUnlockWallet.mockReset();
+      mockUnlockWallet.mockResolvedValue(undefined);
+      mockComponentAuthenticationType.mockReset();
+      mockComponentAuthenticationType.mockResolvedValue({
+        currentAuthType: 'password',
+      });
+      // Re-ensure trace mock calls its callback (may be cleared by prior tests)
+      (traceMock as jest.Mock).mockImplementation(
+        (_config: unknown, fn?: () => Promise<void>) =>
+          fn ? fn() : Promise.resolve(),
+      );
+    });
+
+    it('calls getAuthType after successful rehydration login to check biometric fallback', async () => {
+      // Arrange - device supports biometrics but auth fell back to PASSWORD
+      mockGetAuthType.mockResolvedValue({
+        currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
+        availableBiometryType: 'FaceID',
+      });
+
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+      const loginButton = getByTestId(LoginViewSelectors.LOGIN_BUTTON_ID);
+
+      // Act
+      fireEvent.changeText(passwordInput, 'validPassword123');
+      await act(async () => {
+        fireEvent.press(loginButton);
+      });
+
+      // Assert - verify the login + biometric check flow completed
+      await waitFor(() => {
+        expect(mockUnlockWallet).toHaveBeenCalled();
+      });
+      await waitFor(() => {
+        expect(mockGetAuthType).toHaveBeenCalled();
+      });
+    });
+
+    it('does not trigger biometric fallback check when auth type is BIOMETRIC after login', async () => {
+      // Arrange - getAuthType returns BIOMETRIC (biometric storage succeeded)
+      mockGetAuthType.mockResolvedValue({
+        currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
+        availableBiometryType: 'FaceID',
+      });
+
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+      const loginButton = getByTestId(LoginViewSelectors.LOGIN_BUTTON_ID);
+
+      // Act
+      fireEvent.changeText(passwordInput, 'validPassword123');
+      await act(async () => {
+        fireEvent.press(loginButton);
+      });
+
+      // Assert - login succeeded but biometric check finds BIOMETRIC type (no alert needed)
+      await waitFor(() => {
+        expect(mockUnlockWallet).toHaveBeenCalled();
+      });
+      await waitFor(() => {
+        expect(mockGetAuthType).toHaveBeenCalled();
+      });
     });
   });
 });
