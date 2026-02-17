@@ -22,7 +22,6 @@ import { mockTheme, ThemeContext, useTheme } from '../../../../util/theme';
 import { selectChainId } from '../../../../selectors/networkController';
 import {
   selectDismissSmartAccountSuggestionEnabled,
-  selectSmartAccountOptIn,
   selectSmartTransactionsOptInStatus,
   selectUseTokenDetection,
 } from '../../../../selectors/preferencesController';
@@ -232,10 +231,6 @@ class AdvancedSettings extends PureComponent {
      * Boolean to disable smart account upgrade prompts
      */
     dismissSmartAccountSuggestionEnabled: PropTypes.bool,
-    /**
-     * Boolean for user to opt-in for smart account upgrade
-     */
-    smartAccountOptIn: PropTypes.bool,
   };
 
   scrollView = React.createRef();
@@ -327,15 +322,6 @@ class AdvancedSettings extends PureComponent {
     });
   };
 
-  toggleSmartAccountOptIn = (smartAccountOptIn) => {
-    const { PreferencesController } = Engine.context;
-    PreferencesController.setSmartAccountOptIn(smartAccountOptIn);
-
-    this.trackMetricsEvent(MetaMetricsEvents.SMART_ACCOUNT_OPT_IN, {
-      smart_account_opt_in: smartAccountOptIn,
-    });
-  };
-
   toggleDismissSmartAccountSuggestionEnabled = (
     dismissSmartAccountSuggestionEnabled,
   ) => {
@@ -357,17 +343,12 @@ class AdvancedSettings extends PureComponent {
     Linking.openURL(AppConstants.URLS.SMART_TXS);
   };
 
-  openLinkAboutSmartAccount = () => {
-    Linking.openURL(AppConstants.URLS.SMART_ACCOUNTS);
-  };
-
   render = () => {
     const {
       showHexData,
       showFiatOnTestnets,
       setShowHexData,
       setShowFiatOnTestnets,
-      smartAccountOptIn,
       smartTransactionsOptInStatus,
       dismissSmartAccountSuggestionEnabled,
     } = this.props;
@@ -411,26 +392,6 @@ class AdvancedSettings extends PureComponent {
                 style={styles.accessory}
               />
             </View>
-
-            <SettingsRow
-              heading={strings('app_settings.use_smart_account_heading')}
-              description={
-                <>
-                  {strings('app_settings.use_smart_account_desc')}{' '}
-                  <Text
-                    color={TextColor.Primary}
-                    link
-                    onPress={this.openLinkAboutSmartAccount}
-                  >
-                    {strings('app_settings.use_smart_account_learn_more')}
-                  </Text>
-                </>
-              }
-              value={smartAccountOptIn}
-              onValueChange={this.toggleSmartAccountOptIn}
-              testId={AdvancedViewSelectorsIDs.SMART_ACCOUNT_OPT_IN}
-              styles={styles}
-            />
 
             <SettingsRow
               heading={strings(
@@ -538,7 +499,6 @@ const mapStateToProps = (state) => ({
   ),
   dismissSmartAccountSuggestionEnabled:
     selectDismissSmartAccountSuggestionEnabled(state),
-  smartAccountOptIn: selectSmartAccountOptIn(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
