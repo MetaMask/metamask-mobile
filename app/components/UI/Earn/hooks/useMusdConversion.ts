@@ -22,7 +22,11 @@ import { selectTransactionsByIds } from '../../../../selectors/transactionContro
 import { AssetType } from '../../../Views/confirmations/types/token';
 import { toHex } from '@metamask/controller-utils';
 import EngineService from '../../../../core/EngineService';
-import { MusdConversionVariant } from '../types/musd.types';
+import {
+  MusdConversionVariant,
+  MusdConvertNavigationMode,
+} from '../types/musd.types';
+import { selectMusdConvertNavigationMode } from '../selectors/featureFlags';
 
 /**
  * Why do we have BOTH `existingPendingMusdConversion` AND `inFlightInitiationPromises`?
@@ -94,6 +98,10 @@ export interface MusdConversionConfig {
    * Skip the education screen check. Used when calling from the education view itself
    */
   skipEducationCheck?: boolean;
+  /**
+   * Optional navigation mode override for this initiation.
+   */
+  navigationMode?: MusdConvertNavigationMode;
 }
 
 /**
@@ -148,6 +156,9 @@ export const useMusdConversion = () => {
   const selectedAddress = selectedAccount?.address;
   const hasSeenConversionEducationScreen = useSelector(
     selectMusdConversionEducationSeen,
+  );
+  const musdConvertNavigationMode = useSelector(
+    selectMusdConvertNavigationMode,
   );
 
   /**
@@ -261,10 +272,11 @@ export const useMusdConversion = () => {
   /**
    * Navigates to the custom amount conversion screen.
    */
-  const navigateToCustomConversionScreen = useCallback(
+  const navigateToConversionScreen = useCallback(
     ({
       preferredPaymentToken,
       navigationStack = Routes.EARN.ROOT,
+      navigationMode,
     }: MusdConversionConfig) => {
       // Start trace for navigation to conversion screen
       trace({
@@ -275,6 +287,16 @@ export const useMusdConversion = () => {
         },
       });
 
+      const effectiveNavigationMode =
+        navigationMode ?? musdConvertNavigationMode;
+
+      if (effectiveNavigationMode === 'quick_convert') {
+        navigation.navigate(navigationStack, {
+          screen: Routes.EARN.MUSD.QUICK_CONVERT,
+        });
+        return;
+      }
+
       navigation.navigate(navigationStack, {
         screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
         params: {
@@ -283,7 +305,7 @@ export const useMusdConversion = () => {
         },
       });
     },
-    [navigation],
+    [musdConvertNavigationMode, navigation],
   );
 
   /**
@@ -326,6 +348,8 @@ export const useMusdConversion = () => {
       }
 
       const { preferredPaymentToken } = config;
+      const effectiveNavigationMode =
+        config.navigationMode ?? musdConvertNavigationMode;
 
       try {
         setError(null);
@@ -336,6 +360,11 @@ export const useMusdConversion = () => {
 
         if (!selectedAddress) {
           throw new Error('No account selected');
+        }
+
+        if (effectiveNavigationMode === 'quick_convert') {
+          navigateToConversionScreen(config);
+          return;
         }
 
         const existingPendingMusdConversion = findExistingPendingMusdConversion(
@@ -351,7 +380,7 @@ export const useMusdConversion = () => {
          * Typically caused by the user quickly clicking the CTA multiple times in quick succession.
          */
         if (existingPendingMusdConversion?.id) {
-          navigateToCustomConversionScreen(config);
+          navigateToConversionScreen(config);
           return existingPendingMusdConversion.id;
         }
 
@@ -385,7 +414,7 @@ export const useMusdConversion = () => {
            * since there can be a delay between the user's button press and
            * transaction creation in the background.
            */
-          navigateToCustomConversionScreen(config);
+          navigateToConversionScreen(config);
 
           try {
             const ZERO_HEX_VALUE = '0x0';
@@ -430,7 +459,8 @@ export const useMusdConversion = () => {
     },
     [
       handleEducationRedirectIfNeeded,
-      navigateToCustomConversionScreen,
+      musdConvertNavigationMode,
+      navigateToConversionScreen,
       navigation,
       pendingTransactionMetas,
       selectedAddress,
