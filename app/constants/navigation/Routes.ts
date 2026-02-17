@@ -2,6 +2,7 @@ const Routes = {
   WALLET_VIEW: 'WalletView',
   BROWSER_TAB_HOME: 'BrowserTabHome',
   BROWSER_VIEW: 'BrowserView',
+  ACCOUNTS_MENU_VIEW: 'AccountsMenuView',
   SETTINGS_VIEW: 'SettingsView',
   DEPRECATED_NETWORK_DETAILS: 'DeprecatedNetworkDetails',
   RAMP: {
@@ -117,7 +118,6 @@ const Routes = {
     REWARDS_BOTTOM_SHEET_MODAL: 'RewardsBottomSheetModal',
     REWARDS_CLAIM_BOTTOM_SHEET_MODAL: 'RewardsClaimBottomSheetModal',
     REWARDS_OPTIN_ACCOUNT_GROUP_MODAL: 'RewardOptInAccountGroupModal',
-    REWARDS_REFERRAL_BOTTOM_SHEET_MODAL: 'RewardsReferralBottomSheetModal',
     OTA_UPDATES_MODAL: 'OTAUpdatesModal',
     REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET: 'EndOfSeasonClaimBottomSheet',
     CLAIM_ON_LINEA: 'ClaimOnLineaModal',
@@ -156,6 +156,9 @@ const Routes = {
     STEP_1_B: 'AccountBackupStep1B',
   },
   SETTINGS: {
+    ROOT: 'Settings',
+    CONTACTS: 'ContactsSettings',
+    COMPANY: 'CompanySettings',
     SECURITY_SETTINGS: 'SecuritySettings',
     ADVANCED_SETTINGS: 'AdvancedSettings',
     CHANGE_PASSWORD: 'ResetPassword',
@@ -259,6 +262,7 @@ const Routes = {
       QUOTE_EXPIRED_MODAL: 'QuoteExpiredModal',
       BLOCKAID_MODAL: 'BlockaidModal',
       RECIPIENT_SELECTOR_MODAL: 'RecipientSelectorModal',
+      NETWORK_LIST_MODAL: 'NetworkListModal',
     },
     BRIDGE_TRANSACTION_DETAILS: 'BridgeTransactionDetails',
   },

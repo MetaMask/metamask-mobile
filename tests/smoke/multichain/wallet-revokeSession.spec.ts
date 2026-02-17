@@ -2,10 +2,10 @@
  * E2E tests for wallet_revokeSession API
  * Tests revoking sessions and verifying the session state afterwards
  */
-import { SmokeMultiChainAPI } from '../../../e2e/tags';
+import { SmokeMultiChainAPI } from '../../tags';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import MultichainTestDApp from '../../../e2e/pages/Browser/MultichainTestDApp';
+import MultichainTestDApp from '../../page-objects/Browser/MultichainTestDApp';
 import MultichainUtilities from '../../helpers/multichain/MultichainUtilities';
 import { DappVariants } from '../../framework/Constants';
 

@@ -24,12 +24,11 @@ const DAI_MAINNET = '0x6b175474e89094c44da98b954eedeac495271d0f';
 const USDT_MAINNET = '0xdac17f958d2ee523a2206206994597c13d831ec7';
 const WETH_MAINNET = '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2';
 
-export const testSpecificMock: TestSpecificMock = async (
-  mockServer: Mockttp,
-) => {
-  // Mock spot prices with regex to catch all price requests (prevents NaN balance issues).
-  // Include `price` so balance display (balance * price) does not show NaN.
-  // Include both lowercase and checksummed assetId keys for reliable lookup.
+/**
+ * Mock spot prices so balance display (balance * price) does not show NaN.
+ * Shared by swap and bridge E2E tests.
+ */
+export async function setupSpotPricesMock(mockServer: Mockttp): Promise<void> {
   const spotPricesResponse: Record<string, { price: number; usd: number }> = {
     'eip155:1/slip44:60': { price: 1926.42, usd: 1926.42 },
     [`eip155:1/erc20:${USDC_MAINNET}`]: { price: 0.999806, usd: 0.999806 },
@@ -60,6 +59,12 @@ export const testSpecificMock: TestSpecificMock = async (
     requestMethod: 'GET',
     responseCode: 200,
   });
+}
+
+export const testSpecificMock: TestSpecificMock = async (
+  mockServer: Mockttp,
+) => {
+  await setupSpotPricesMock(mockServer);
 
   // Mock ETH->USDC with default 2% slippage
   await setupMockRequest(mockServer, {

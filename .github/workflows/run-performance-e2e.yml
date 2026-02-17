@@ -71,8 +71,12 @@ permissions:
   actions: write
 
 concurrency:
-  group: performance-e2e-${{ github.ref }}-${{ github.event_name }}
-  cancel-in-progress: true
+  # Include build_variant so experimental (exp) and release/direct (rc) don't share the same
+  # queue — avoids "Build Apps" (direct/release) and experimental runs canceling each other.
+  # Note: GitHub allows at most 1 running + 1 pending per group; a 3rd run cancels the pending one.
+  group: performance-e2e-${{ github.ref }}-${{ github.event_name }}-${{ inputs.build_variant || 'rc' }}
+  # Do not cancel in-progress runs; pending runs can still be replaced by a newer trigger.
+  cancel-in-progress: false
 
 env:
   BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
@@ -135,7 +139,7 @@ jobs:
         env:
           BRANCH_NAME: ${{ needs.determine-branch-name.outputs.branch_name }}
         run: |
-          FILE="appwright/device-matrix.json"
+          FILE="tests/performance/device-matrix.json"
 
           # Push to main or release branches: Use only "low" category devices
           # Schedule and workflow_dispatch: Use all devices
@@ -319,6 +323,7 @@ jobs:
       - name: Run aggregation script
         env:
           BRANCH_NAME: ${{ needs.determine-branch-name.outputs.branch_name }}
+          BUILD_VARIANT: ${{ inputs.build_variant || 'rc' }}
         run: |
           echo "Processing all test results..."
           echo "Running aggregation script..."
@@ -330,7 +335,7 @@ jobs:
         with:
           name: aggregated-reports
           path: |
-            appwright/aggregated-reports/
+            tests/aggregated-reports/
           if-no-files-found: ignore
           retention-days: 30
 
