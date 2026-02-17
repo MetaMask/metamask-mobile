@@ -11,6 +11,25 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import Routes from '../../../constants/navigation/Routes';
+import {
+  TRANSACTION_DETAIL_EVENTS,
+  TransactionDetailLocation,
+} from '../../../core/Analytics/events/transactions';
+
+const mockTrackEvent = jest.fn();
+const mockAddProperties = jest.fn().mockReturnThis();
+const mockBuild = jest.fn(() => ({ name: 'test-event' }));
+const mockCreateEventBuilder = jest.fn(() => ({
+  addProperties: mockAddProperties,
+  build: mockBuild,
+}));
+
+jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
+}));
 
 const mockNavigate = jest.fn();
 
@@ -240,6 +259,122 @@ describe('TransactionElement', () => {
       );
 
       expect(component).toMatchSnapshot();
+    });
+  });
+
+  describe('analytics tracking', () => {
+    it('tracks Transaction Detail List Item Clicked when pressed', async () => {
+      const tx = {
+        id: 'tx-analytics-1',
+        type: TransactionType.simpleSend,
+        chainId: '0x1',
+        status: 'confirmed',
+        time: Date.now(),
+        txParams: {
+          to: '0x456',
+          from: '0x123',
+          nonce: '0x1',
+        },
+      };
+
+      const { getByText } = renderWithProvider(
+        <Provider store={store}>
+          <TransactionElement tx={tx} navigation={{ navigate: mockNavigate }} />
+        </Provider>,
+      );
+
+      await waitFor(() => {
+        expect(getByText('Test Action')).toBeTruthy();
+      });
+
+      fireEvent.press(getByText('Test Action'));
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        TRANSACTION_DETAIL_EVENTS.LIST_ITEM_CLICKED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          transaction_type: expect.any(String),
+          transaction_status: 'confirmed',
+          location: TransactionDetailLocation.Home,
+          chain_id_source: '0x1',
+          chain_id_destination: '0x1',
+        }),
+      );
+      expect(mockTrackEvent).toHaveBeenCalledWith({ name: 'test-event' });
+    });
+
+    it('tracks with asset_details location when provided', async () => {
+      const tx = {
+        id: 'tx-analytics-2',
+        type: TransactionType.simpleSend,
+        chainId: '0x1',
+        status: 'submitted',
+        time: Date.now(),
+        txParams: {
+          to: '0x456',
+          from: '0x123',
+          nonce: '0x2',
+        },
+      };
+
+      const { getByText } = renderWithProvider(
+        <Provider store={store}>
+          <TransactionElement
+            tx={tx}
+            navigation={{ navigate: mockNavigate }}
+            location={TransactionDetailLocation.AssetDetails}
+          />
+        </Provider>,
+      );
+
+      await waitFor(() => {
+        expect(getByText('Test Action')).toBeTruthy();
+      });
+
+      fireEvent.press(getByText('Test Action'));
+
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          location: TransactionDetailLocation.AssetDetails,
+        }),
+      );
+    });
+
+    it('includes monetized_primitive for swap transactions', async () => {
+      const swapTx = {
+        id: 'tx-analytics-swap',
+        type: TransactionType.swap,
+        chainId: '0x1',
+        status: 'confirmed',
+        time: Date.now(),
+        txParams: {
+          to: '0x456',
+          from: '0x123',
+          nonce: '0x3',
+        },
+      };
+
+      const { getByText } = renderWithProvider(
+        <Provider store={store}>
+          <TransactionElement
+            tx={swapTx}
+            navigation={{ navigate: mockNavigate }}
+          />
+        </Provider>,
+      );
+
+      await waitFor(() => {
+        expect(getByText('Test Action')).toBeTruthy();
+      });
+
+      fireEvent.press(getByText('Test Action'));
+
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          monetized_primitive: 'swaps',
+        }),
+      );
     });
   });
 });

@@ -1,4 +1,4 @@
-import React, { PureComponent } from 'react';
+import React, { PureComponent, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import {
   TouchableOpacity,
@@ -62,6 +62,13 @@ import { selectTokensByChainIdAndAddress } from '../../../selectors/tokensContro
 import Routes from '../../../constants/navigation/Routes';
 import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
 import { hasTransactionType } from '../../Views/confirmations/utils/transaction';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import {
+  TRANSACTION_DETAIL_EVENTS,
+  TransactionDetailLocation,
+  getMonetizedPrimitive,
+} from '../../../core/Analytics/events/transactions';
+import { getTransactionTypeValue } from '../../../core/Engine/controllers/transaction-controller/metrics_properties/base';
 
 const createStyles = (colors, typography) =>
   StyleSheet.create({
@@ -236,6 +243,10 @@ class TransactionElement extends PureComponent {
      * All EVM transactions in controller state
      */
     transactions: PropTypes.arrayOf(PropTypes.object).isRequired,
+    /**
+     * Callback to track transaction detail click analytics
+     */
+    trackTransactionDetailClicked: PropTypes.func,
   };
 
   state = {
@@ -279,8 +290,9 @@ class TransactionElement extends PureComponent {
   }
 
   onPressItem = () => {
-    const { tx, i, onPressItem } = this.props;
+    const { tx, i, onPressItem, trackTransactionDetailClicked } = this.props;
     onPressItem && onPressItem(tx.id, i);
+    trackTransactionDetailClicked && trackTransactionDetailClicked();
 
     const isUnifiedSwap =
       tx.type === TransactionType.swap &&
@@ -734,18 +746,50 @@ TransactionElement.contextType = ThemeContext;
 const TransactionElementWithBridge = (props) => {
   const bridgeTxHistoryData = useBridgeTxHistoryData({ evmTxMeta: props.tx });
   const transactions = useSelector(selectTransactions);
+  const { trackEvent, createEventBuilder } = useAnalytics();
+
+  const trackTransactionDetailClicked = useCallback(() => {
+    const tx = props.tx;
+    const chainId = tx.chainId ?? '';
+    const monetizedPrimitive = getMonetizedPrimitive(tx.type);
+    const destChainId =
+      bridgeTxHistoryData?.bridgeTxHistoryItem?.quote?.destChainId;
+
+    trackEvent(
+      createEventBuilder(TRANSACTION_DETAIL_EVENTS.LIST_ITEM_CLICKED)
+        .addProperties({
+          transaction_type: getTransactionTypeValue(tx.type, tx),
+          transaction_status: tx.status,
+          location: props.location ?? TransactionDetailLocation.Home,
+          chain_id_source: String(chainId),
+          chain_id_destination: String(destChainId ?? chainId),
+          ...(monetizedPrimitive && {
+            monetized_primitive: monetizedPrimitive,
+          }),
+        })
+        .build(),
+    );
+  }, [
+    props.tx,
+    props.location,
+    bridgeTxHistoryData,
+    trackEvent,
+    createEventBuilder,
+  ]);
 
   return (
     <TransactionElement
       {...props}
       bridgeTxHistoryData={bridgeTxHistoryData}
       transactions={transactions}
+      trackTransactionDetailClicked={trackTransactionDetailClicked}
     />
   );
 };
 
 TransactionElementWithBridge.propTypes = {
   tx: PropTypes.object.isRequired,
+  location: PropTypes.string,
 };
 
 export default connect(mapStateToProps)(TransactionElementWithBridge);
