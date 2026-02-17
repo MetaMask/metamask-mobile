@@ -63,7 +63,7 @@ BackupAndSyncSettings.navigationOptions = ({
 }) => ({
   headerLeft: () => (
     <ButtonIcon
-      size={ButtonIconSizes.Lg}
+      size={ButtonIconSizes.Md}
       iconName={IconName.ArrowLeft}
       onPress={() => navigation.goBack()}
       style={navigationOptionsStyles.headerLeft}

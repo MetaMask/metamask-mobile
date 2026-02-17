@@ -258,7 +258,7 @@ export function getNavigationOptionsTitle(
     headerLeft: () =>
       isFullScreenModal ? null : (
         <ButtonIcon
-          size={ButtonIconSize.Lg}
+          size={ButtonIconSize.Md}
           iconName={IconName.ArrowLeft}
           onPress={navigationPop}
           style={innerStyles.accessories}
@@ -1219,7 +1219,7 @@ export function getNetworkNavbarOptions(
             style={styles.headerLeftButton}
             onPress={() => navigation.pop()}
             testID={CommonSelectorsIDs.BACK_ARROW_BUTTON}
-            size={ButtonIconSize.Lg}
+            size={ButtonIconSize.Md}
             iconName={IconName.ArrowLeft}
             iconColor={IconColor.Default}
           />
@@ -1636,7 +1636,7 @@ export function getPerpsTransactionsDetailsNavbar(navigation, title) {
       <ButtonIcon
         iconName={IconName.Arrow2Left}
         onPress={leftAction}
-        size={ButtonIconSize.Lg}
+        size={ButtonIconSize.Md}
       />
     ),
     headerRight: () => <View style={innerStyles.rightSpacer} />,
@@ -1669,7 +1669,7 @@ export function getPerpsMarketDetailsNavbar(navigation, title) {
       <ButtonIcon
         iconName={IconName.Arrow2Left}
         onPress={leftAction}
-        size={ButtonIconSize.Lg}
+        size={ButtonIconSize.Md}
       />
     ),
   };
@@ -1886,7 +1886,7 @@ export function getStakingNavbar(
     headerLeft: () =>
       hasBackButton ? (
         <ButtonIcon
-          size={ButtonIconSize.Lg}
+          size={ButtonIconSize.Md}
           iconName={IconName.ArrowLeft}
           onPress={handleBackPress}
           style={innerStyles.headerLeft}
@@ -1932,7 +1932,7 @@ export function getDeFiProtocolPositionDetailsNavbarOptions(navigation) {
         style={styles.headerLeftButton}
         onPress={() => navigation.pop()}
         testID={CommonSelectorsIDs.BACK_ARROW_BUTTON}
-        size={ButtonIconSize.Lg}
+        size={ButtonIconSize.Md}
         iconName={IconName.ArrowLeft}
         iconColor={IconColor.Default}
       />
@@ -2001,7 +2001,7 @@ export function getRampsBuildQuoteNavbarOptions(
           <ButtonIcon
             style={innerStyles.backButton}
             onPress={() => navigation.goBack()}
-            size={ButtonIconSize.Lg}
+            size={ButtonIconSize.Md}
             iconName={IconName.ArrowLeft}
             iconColor={IconColor.Default}
             testID="build-quote-back-button"

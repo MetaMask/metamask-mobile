@@ -280,7 +280,7 @@ const ActivityView = () => {
               <ButtonIcon
                 iconName={IconName.ArrowLeft}
                 iconColor={IconColor.Default}
-                size={ButtonIconSizes.Lg}
+                size={ButtonIconSizes.Md}
                 onPress={handleBackPress}
                 testID="activity-view-back-button"
               />

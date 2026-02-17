@@ -183,7 +183,7 @@ const AssetInlineHeader = ({
       <ButtonIcon
         style={inlineHeaderStyles.leftButton}
         onPress={onBackPress}
-        size={ButtonIconSize.Lg}
+        size={ButtonIconSize.Md}
         iconName={IconName.ArrowLeft}
         iconColor={IconColor.Default}
         testID="back-arrow-button"
