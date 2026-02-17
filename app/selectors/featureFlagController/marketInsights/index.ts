@@ -11,6 +11,6 @@ export const selectMarketInsightsEnabled = createSelector(
     const remoteFlag =
       remoteFeatureFlags?.aiSocialMarketAnalysisEnabled as unknown as VersionGatedFeatureFlag;
 
-    return validatedVersionGatedFeatureFlag(remoteFlag) ?? true;
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
   },
 );
