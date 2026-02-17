@@ -485,7 +485,7 @@ export default class MockServerE2E implements Resource {
    * This method temporarily replaces the process `unhandledRejection` handlers with a filter
    * that suppresses "Aborted" errors (forwarding all other rejections to the original handlers).
    * After the server is stopped and a brief drain period elapses, the original handlers are
-   * restored.
+   * restored along with any handlers that were added by other code during the shutdown window.
    */
   private async _stopServerSuppressingAbortErrors(): Promise<void> {
     // Snapshot current handlers so we can restore them after shutdown.
@@ -502,12 +502,25 @@ export default class MockServerE2E implements Resource {
         return;
       }
       // Forward any other unhandled rejection to the original handlers (e.g. Jest).
+      if (originalHandlers.length === 0) {
+        // No original handlers were registered. Since our filterHandler is a
+        // registered listener, Node considers the rejection "handled" and skips
+        // its default behaviour (warning + exit). Re-throw so the rejection
+        // surfaces as an uncaught exception instead of being silently dropped.
+        throw reason;
+      }
+      let firstError: unknown;
       for (const handler of originalHandlers) {
         try {
           (handler as (...args: unknown[]) => void)(reason, promise);
-        } catch {
-          /* ignore errors from handlers */
+        } catch (err) {
+          if (firstError === undefined) {
+            firstError = err;
+          }
         }
+      }
+      if (firstError !== undefined) {
+        throw firstError;
       }
     };
     process.on('unhandledRejection', filterHandler);
@@ -520,9 +533,18 @@ export default class MockServerE2E implements Resource {
       // asynchronously on the next event-loop tick after `stop()` resolves.
       await new Promise((resolve) => setTimeout(resolve, 150));
     } finally {
-      // Restore original handlers.
+      // Preserve any handlers that were added by other code during the
+      // shutdown window so they are not permanently lost.
+      const currentHandlers = process
+        .rawListeners('unhandledRejection')
+        .slice();
+      const addedDuringShutdown = currentHandlers.filter(
+        (h) => h !== filterHandler && !originalHandlers.includes(h),
+      );
+
+      // Remove all and restore: originals first, then any newly added handlers.
       process.removeAllListeners('unhandledRejection');
-      for (const handler of originalHandlers) {
+      for (const handler of [...originalHandlers, ...addedDuringShutdown]) {
         process.on(
           'unhandledRejection',
           handler as (...args: unknown[]) => void,
