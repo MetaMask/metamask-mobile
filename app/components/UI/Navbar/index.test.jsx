@@ -282,6 +282,8 @@ describe('getWalletNavbarOptions', () => {
     isBackupAndSyncEnabled: null,
     unreadNotificationCount: 0,
     readNotificationCount: 0,
+    shouldDisplayCardButton: false,
+    isAccountMenuEnabled: false,
   };
 
   beforeEach(() => {
@@ -505,6 +507,8 @@ describe('getWalletNavbarOptions', () => {
         null,
         0,
         0,
+        false,
+        false,
       ];
 
       expect(() => {
@@ -517,7 +521,7 @@ describe('getWalletNavbarOptions', () => {
     it('maintains function signature consistency', () => {
       // Test that the function accepts the expected number of parameters
       const allParams = Object.values(defaultProps);
-      expect(allParams.length).toBe(12); // Verify expected parameter count
+      expect(allParams.length).toBe(14); // Verify expected parameter count
 
       const options = getWalletNavbarOptions(...allParams);
       expect(options).toBeDefined();
@@ -715,6 +719,43 @@ describe('getWalletNavbarOptions', () => {
           options.header();
         }).not.toThrow();
       });
+    });
+
+    it('handles notification badge when account menu is enabled (hamburger badge path)', () => {
+      isNotificationsFeatureEnabled.mockReturnValue(true);
+
+      const accountMenuEnabledProps = {
+        ...defaultProps,
+        isAccountMenuEnabled: true,
+        isNotificationEnabled: true,
+        unreadNotificationCount: 3,
+        readNotificationCount: 2,
+      };
+
+      const options = getWalletNavbarOptions(
+        ...Object.values(accountMenuEnabledProps),
+      );
+
+      expect(options).toBeDefined();
+      expect(options.header).toBeInstanceOf(Function);
+      expect(() => options.header()).not.toThrow();
+    });
+
+    it('handles hamburger without badge when account menu enabled and no unread', () => {
+      isNotificationsFeatureEnabled.mockReturnValue(true);
+
+      const props = {
+        ...defaultProps,
+        isAccountMenuEnabled: true,
+        isNotificationEnabled: true,
+        unreadNotificationCount: 0,
+      };
+
+      const options = getWalletNavbarOptions(...Object.values(props));
+
+      expect(options).toBeDefined();
+      expect(options.header).toBeInstanceOf(Function);
+      expect(() => options.header()).not.toThrow();
     });
   });
 });
