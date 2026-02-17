@@ -4,8 +4,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { CaipChainId } from '@metamask/utils';
 import NetworkListModal from './NetworkListModal';
 import {
-  selectSourceChainRanking,
-  selectDestChainRanking,
+  selectAllowedChainRanking,
   selectTokenSelectorNetworkFilter,
 } from '../../../../../core/redux/slices/bridge';
 
@@ -14,12 +13,6 @@ const mockOnCloseBottomSheet = jest.fn();
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
   useDispatch: jest.fn(),
-}));
-
-jest.mock('@react-navigation/native', () => ({
-  useRoute: () => ({
-    params: { type: 'source' },
-  }),
 }));
 
 jest.mock('../../../../../util/networks', () => ({
@@ -68,8 +61,7 @@ jest.mock(
 );
 
 jest.mock('../../../../../core/redux/slices/bridge', () => ({
-  selectSourceChainRanking: jest.fn(),
-  selectDestChainRanking: jest.fn(),
+  selectAllowedChainRanking: jest.fn(),
   selectTokenSelectorNetworkFilter: jest.fn(),
   setTokenSelectorNetworkFilter: jest.fn((chainId) => ({
     type: 'bridge/setTokenSelectorNetworkFilter',
@@ -119,10 +111,7 @@ describe('NetworkListModal', () => {
     (useDispatch as jest.Mock).mockReturnValue(mockDispatch);
 
     mockUseSelector.mockImplementation((selector: unknown) => {
-      if (
-        selector === selectSourceChainRanking ||
-        selector === selectDestChainRanking
-      ) {
+      if (selector === selectAllowedChainRanking) {
         return mockChainRanking;
       }
       if (selector === selectTokenSelectorNetworkFilter) {
