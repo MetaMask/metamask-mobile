@@ -14,12 +14,20 @@ import {
   ASSETS_UNIFY_STATE_FLAG,
   ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
 } from '../../../../selectors/featureFlagController/assetsUnifyState';
+import { store } from '../../../../store';
 
 jest.mock('@metamask/assets-controller');
 jest.mock('@metamask/core-backend', () => ({
   createApiPlatformClient: jest.fn().mockReturnValue({
     fetchTokenBalances: jest.fn(),
   }),
+}));
+
+jest.mock('../../../../store', () => ({
+  store: {
+    getState: jest.fn(),
+    subscribe: jest.fn(() => () => undefined),
+  },
 }));
 
 const mockRemoteFeatureFlagController = {
@@ -78,6 +86,11 @@ function buildMockMessenger(overrides?: {
     },
   );
 
+  (baseMessenger.registerActionHandler as jest.Mock)(
+    'AnalyticsController:trackEvent',
+    () => undefined,
+  );
+
   return baseMessenger;
 }
 
@@ -113,6 +126,9 @@ describe('assetsControllerInit', () => {
     jest.clearAllMocks();
     // Reset the cached API client between tests
     jest.resetModules();
+    jest.mocked(store.getState).mockReturnValue({
+      settings: { basicFunctionalityEnabled: true },
+    } as ReturnType<typeof store.getState>);
   });
 
   it('initializes the controller', () => {
@@ -129,9 +145,21 @@ describe('assetsControllerInit', () => {
       expect.objectContaining({
         messenger: expect.any(Object),
         state: expect.any(Object),
+        isBasicFunctionality: expect.any(Function),
+        subscribeToBasicFunctionalityChange: expect.any(Function),
         isEnabled: expect.any(Function),
         queryApiClient: expect.any(Object),
-        rpcDataSourceConfig: { tokenDetectionEnabled: true },
+        rpcDataSourceConfig: expect.objectContaining({
+          tokenDetectionEnabled: expect.any(Function),
+          balanceInterval: 30_000,
+          detectionInterval: 180_000,
+        }),
+        priceDataSourceConfig: { pollInterval: 180_000 },
+        stakedBalanceDataSourceConfig: {
+          pollInterval: 30_000,
+          enabled: true,
+        },
+        trackMetaMetricsEvent: expect.any(Function),
       }),
     );
   });
@@ -270,11 +298,13 @@ describe('assetsControllerInit', () => {
       assetsControllerInit(getInitRequestMock());
 
       const controllerMock = jest.mocked(AssetsController);
-      expect(controllerMock).toHaveBeenCalledWith(
-        expect.objectContaining({
-          rpcDataSourceConfig: { tokenDetectionEnabled: true },
-        }),
-      );
+      const constructorCall = controllerMock.mock.calls[0][0];
+      const getTokenDetectionEnabled =
+        constructorCall.rpcDataSourceConfig?.tokenDetectionEnabled;
+
+      expect(getTokenDetectionEnabled).toBeDefined();
+      expect(typeof getTokenDetectionEnabled).toBe('function');
+      expect((getTokenDetectionEnabled as () => boolean)()).toBe(true);
     });
 
     it('defaults to true when preferences call fails', () => {
@@ -303,6 +333,11 @@ describe('assetsControllerInit', () => {
         () => mockRemoteFeatureFlagController.state,
       );
 
+      (baseMessenger.registerActionHandler as jest.Mock)(
+        'AnalyticsController:trackEvent',
+        () => undefined,
+      );
+
       const controllerMessenger = getAssetsControllerMessenger(baseMessenger);
       const initMessenger = getAssetsControllerInitMessenger(baseMessenger);
 
@@ -316,11 +351,99 @@ describe('assetsControllerInit', () => {
       assetsControllerInit(requestMock);
 
       const controllerMock = jest.mocked(AssetsController);
-      expect(controllerMock).toHaveBeenCalledWith(
-        expect.objectContaining({
-          rpcDataSourceConfig: { tokenDetectionEnabled: true },
-        }),
-      );
+      const constructorCall = controllerMock.mock.calls[0][0];
+      const getTokenDetectionEnabled =
+        constructorCall.rpcDataSourceConfig?.tokenDetectionEnabled;
+
+      expect(getTokenDetectionEnabled).toBeDefined();
+      expect((getTokenDetectionEnabled as () => boolean)()).toBe(true);
+    });
+  });
+
+  describe('isBasicFunctionality', () => {
+    it('returns value from Redux store (true when basicFunctionalityEnabled is true)', () => {
+      jest.mocked(store.getState).mockReturnValue({
+        settings: { basicFunctionalityEnabled: true },
+      } as ReturnType<typeof store.getState>);
+
+      assetsControllerInit(getInitRequestMock());
+
+      const controllerMock = jest.mocked(AssetsController);
+      const constructorCall = controllerMock.mock.calls[0][0];
+      const isBasicFunctionality = constructorCall.isBasicFunctionality as
+        | (() => boolean)
+        | undefined;
+      expect(isBasicFunctionality).toBeDefined();
+      expect(isBasicFunctionality?.()).toBe(true);
+    });
+
+    it('returns value from Redux store (false when basicFunctionalityEnabled is false)', () => {
+      jest.mocked(store.getState).mockReturnValue({
+        settings: { basicFunctionalityEnabled: false },
+      } as ReturnType<typeof store.getState>);
+
+      assetsControllerInit(getInitRequestMock());
+
+      const controllerMock = jest.mocked(AssetsController);
+      const constructorCall = controllerMock.mock.calls[0][0];
+      const isBasicFunctionality = constructorCall.isBasicFunctionality as
+        | (() => boolean)
+        | undefined;
+      expect(isBasicFunctionality).toBeDefined();
+      expect(isBasicFunctionality?.()).toBe(false);
+    });
+  });
+
+  describe('subscribeToBasicFunctionalityChange', () => {
+    it('returns an unsubscribe function', () => {
+      assetsControllerInit(getInitRequestMock());
+
+      const controllerMock = jest.mocked(AssetsController);
+      const constructorCall = controllerMock.mock.calls[0][0];
+      const subscribeToBasicFunctionalityChange =
+        constructorCall.subscribeToBasicFunctionalityChange as
+          | ((onChange: (isBasic: boolean) => void) => () => void)
+          | undefined;
+      expect(subscribeToBasicFunctionalityChange).toBeDefined();
+      const onChange = jest.fn();
+      const unsubscribe: () => void =
+        subscribeToBasicFunctionalityChange?.(onChange) ?? (() => undefined);
+
+      expect(typeof unsubscribe).toBe('function');
+      unsubscribe();
+      expect(jest.mocked(store.subscribe)).toHaveBeenCalled();
+    });
+
+    it('calls onChange when store value changes', () => {
+      let storeListener: (() => void) | null = null;
+      jest.mocked(store.subscribe).mockImplementation((listener) => {
+        storeListener = listener as () => void;
+        return () => undefined;
+      });
+
+      assetsControllerInit(getInitRequestMock());
+
+      const controllerMock = jest.mocked(AssetsController);
+      const constructorCall = controllerMock.mock.calls[0][0];
+      const subscribeToBasicFunctionalityChange =
+        constructorCall.subscribeToBasicFunctionalityChange as
+          | ((onChange: (isBasic: boolean) => void) => () => void)
+          | undefined;
+      expect(subscribeToBasicFunctionalityChange).toBeDefined();
+      const onChange = jest.fn();
+      subscribeToBasicFunctionalityChange?.(onChange);
+
+      expect(onChange).not.toHaveBeenCalled();
+
+      jest.mocked(store.getState).mockReturnValue({
+        settings: { basicFunctionalityEnabled: false },
+      } as ReturnType<typeof store.getState>);
+      const listener = storeListener as (() => void) | null;
+      if (listener) {
+        listener();
+      }
+
+      expect(onChange).toHaveBeenCalledWith(false);
     });
   });
 });
