@@ -14,7 +14,7 @@ export const UPDATE_URL = otaConfig.UPDATE_URL;
 /**
  * Gets the full version string including OTA version
  * @param appVersion - The app version from package.json/device info
- * @returns Full version string (e.g., "7.58.0 OTA Version: v3")
+ * @returns Full version string (e.g., "7.0.0 OTA Version: v3")
  */
 export const getFullVersion = (appVersion: string): string =>
   OTA_VERSION !== 'v0' ? `${appVersion} OTA: ${OTA_VERSION}` : `${appVersion}`;
