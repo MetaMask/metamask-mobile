@@ -36,6 +36,7 @@ const KeyValueRowLabel = ({ label, tooltip }: KeyValueRowLabelProps) => {
     if (!hasTooltip) return;
     openTooltipModal(tooltip.title, tooltip.content, undefined, undefined, {
       bottomPadding: tooltip.bottomPadding,
+      hideButton: tooltip.hideButton,
     });
     tooltip?.onPress?.();
   };

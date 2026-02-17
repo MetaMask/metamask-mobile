@@ -58,6 +58,7 @@ describe('useTooltipModal', () => {
         footerText,
         buttonText,
         bottomPadding: undefined,
+        hideButton: undefined,
       },
     });
   });
@@ -95,6 +96,30 @@ describe('useTooltipModal', () => {
         footerText: undefined,
         buttonText: undefined,
         bottomPadding,
+        hideButton: undefined,
+      },
+    });
+  });
+
+  it('includes hideButton when provided', () => {
+    const { result } = renderHook(() => useTooltipModal());
+    const title = 'Title';
+    const tooltip = 'Tooltip text';
+
+    result.current.openTooltipModal(title, tooltip, undefined, undefined, {
+      hideButton: true,
+    });
+
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.TOOLTIP_MODAL,
+      params: {
+        title,
+        tooltip,
+        footerText: undefined,
+        buttonText: undefined,
+        bottomPadding: undefined,
+        hideButton: true,
       },
     });
   });

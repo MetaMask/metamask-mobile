@@ -196,6 +196,22 @@ describe('TooltipModal', () => {
 
       expect(queryByText('Footer copy')).toBeNull();
     });
+
+    it('renders footer button by default', () => {
+      arrangeParams();
+
+      const { getByText } = renderTooltipModal();
+
+      expect(getByText(strings('browser.got_it'))).toBeOnTheScreen();
+    });
+
+    it('hides footer button when hideButton is true', () => {
+      arrangeParams({ hideButton: true });
+
+      const { queryByTestId } = renderTooltipModal();
+
+      expect(queryByTestId('bottom-sheet-footer')).toBeNull();
+    });
   });
 
   describe('interactions', () => {
