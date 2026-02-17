@@ -829,9 +829,10 @@ describe('LedgerBluetoothAdapter', () => {
 
     it('does not hang isTransportAvailable when destroyed before BLE state arrives', async () => {
       // Override observeState to NOT immediately fire the observer
-      mockedTransportBLE.observeState.mockImplementationOnce(() =>
-        // Don't call observer.next — simulate slow BLE init
-         mockBleStateSubscription
+      mockedTransportBLE.observeState.mockImplementationOnce(
+        () =>
+          // Don't call observer.next — simulate slow BLE init
+          mockBleStateSubscription,
       );
 
       const freshAdapter = new LedgerBluetoothAdapter(mockOptions);

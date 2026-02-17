@@ -1,8 +1,6 @@
 // TODO: when hw overhaul is complete, all DevLogger.log calls should be removed
 
-import TransportBLE, {
-  default as BleTransport,
-} from '@ledgerhq/react-native-hw-transport-ble';
+import TransportBLE from '@ledgerhq/react-native-hw-transport-ble';
 import { State as BleState } from 'react-native-ble-plx';
 import { Observable, Subscription } from 'rxjs';
 import Eth from '@ledgerhq/hw-app-eth';
@@ -40,7 +38,7 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
   readonly walletType = HardwareWalletType.Ledger;
   readonly requiresDeviceDiscovery = true;
 
-  private transport: BleTransport | null = null;
+  private transport: TransportBLE | null = null;
   private deviceId: string | null = null;
   private options: HardwareWalletAdapterOptions;
   private restartCount = 0;
