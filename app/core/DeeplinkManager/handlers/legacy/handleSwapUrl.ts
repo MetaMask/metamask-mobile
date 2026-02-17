@@ -14,7 +14,10 @@ import {
 import Routes from '../../../../constants/navigation/Routes';
 import { BridgeRouteParams } from '../../../../components/UI/Bridge/hooks/useSwapBridgeNavigation';
 import { fetchAssetMetadata } from '../../../../components/UI/Bridge/hooks/useAssetMetadata/utils';
-import { isNonEvmChainId } from '@metamask/bridge-controller';
+import {
+  isNonEvmChainId,
+  MetaMetricsSwapsEventSource,
+} from '@metamask/bridge-controller';
 import { ethers } from 'ethers';
 import Engine from '../../../Engine';
 import { isHex } from 'viem';
@@ -128,6 +131,7 @@ export const handleSwapUrl = async ({ swapPath }: HandleSwapUrlParams) => {
       sourceAmount: sourceAmount ?? undefined,
       sourcePage: 'deeplink',
       bridgeViewMode: BridgeViewMode.Unified,
+      location: MetaMetricsSwapsEventSource.MainView,
     };
     NavigationService.navigation.navigate(Routes.BRIDGE.ROOT, {
       screen: Routes.BRIDGE.BRIDGE_VIEW,
@@ -139,6 +143,7 @@ export const handleSwapUrl = async ({ swapPath }: HandleSwapUrlParams) => {
     const params: BridgeRouteParams = {
       sourcePage: 'deeplink',
       bridgeViewMode: BridgeViewMode.Unified,
+      location: MetaMetricsSwapsEventSource.MainView,
     };
     NavigationService.navigation.navigate(Routes.BRIDGE.ROOT, {
       screen: Routes.BRIDGE.BRIDGE_VIEW,
