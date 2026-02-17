@@ -197,16 +197,19 @@ export const networkControllerInit: ControllerInitFunction<
       chainId,
       endpointUrl,
       error,
+      rpcMethodName,
     }: {
       chainId: Hex;
       endpointUrl: string;
       error: unknown;
+      rpcMethodName: string;
     }) => {
       onRpcEndpointUnavailable({
         chainId,
         endpointUrl,
         infuraProjectId,
         error,
+        rpcMethodName,
         trackEvent: ({ event, properties }) => {
           buildAndTrackEvent(initMessenger, event, properties);
         },
@@ -221,16 +224,19 @@ export const networkControllerInit: ControllerInitFunction<
       chainId,
       endpointUrl,
       error,
+      rpcMethodName,
     }: {
       chainId: Hex;
       endpointUrl: string;
       error: unknown;
+      rpcMethodName: string;
     }) => {
       onRpcEndpointDegraded({
         chainId,
         endpointUrl,
         error,
         infuraProjectId,
+        rpcMethodName,
         trackEvent: ({ event, properties }) => {
           buildAndTrackEvent(initMessenger, event, properties);
         },

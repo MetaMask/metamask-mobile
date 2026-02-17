@@ -26,6 +26,7 @@ import { MetaMetricsEvents } from '../../../Analytics/MetaMetrics.events';
  * a request to the RPC endpoint.
  * @param args.infuraProjectId - Our Infura project ID.
  * @param args.metaMetricsId - The MetaMetrics ID of the user.
+ * @param args.rpcMethodName - The JSON-RPC method that was being executed.
  * @param args.trackEvent - The function that will create the Segment event.
  */
 export function onRpcEndpointUnavailable({
@@ -34,6 +35,7 @@ export function onRpcEndpointUnavailable({
   error,
   infuraProjectId,
   metaMetricsId,
+  rpcMethodName,
   trackEvent,
 }: {
   chainId: Hex;
@@ -41,6 +43,7 @@ export function onRpcEndpointUnavailable({
   error: unknown;
   infuraProjectId: string;
   metaMetricsId: string | null | undefined;
+  rpcMethodName: string;
   trackEvent: (options: {
     event: IMetaMetricsEvent | ITrackingEvent;
     properties: JsonMap;
@@ -52,6 +55,7 @@ export function onRpcEndpointUnavailable({
     error,
     infuraProjectId,
     metaMetricsId,
+    rpcMethodName,
     trackEvent,
   });
 }
@@ -72,6 +76,7 @@ export function onRpcEndpointUnavailable({
  * a request to the RPC endpoint.
  * @param args.infuraProjectId - Our Infura project ID.
  * @param args.metaMetricsId - The MetaMetrics ID of the user.
+ * @param args.rpcMethodName - The JSON-RPC method that was being executed.
  * @param args.trackEvent - The function that will create the Segment event.
  */
 export function onRpcEndpointDegraded({
@@ -80,6 +85,7 @@ export function onRpcEndpointDegraded({
   error,
   infuraProjectId,
   metaMetricsId,
+  rpcMethodName,
   trackEvent,
 }: {
   chainId: Hex;
@@ -87,6 +93,7 @@ export function onRpcEndpointDegraded({
   error: unknown;
   infuraProjectId: string;
   metaMetricsId: string | null | undefined;
+  rpcMethodName: string;
   trackEvent: (options: {
     event: IMetaMetricsEvent | ITrackingEvent;
     properties: JsonMap;
@@ -98,6 +105,7 @@ export function onRpcEndpointDegraded({
     error,
     infuraProjectId,
     metaMetricsId,
+    rpcMethodName,
     trackEvent,
   });
 }
@@ -114,6 +122,7 @@ export function onRpcEndpointDegraded({
  * a request to the RPC endpoint.
  * @param args.infuraProjectId - Our Infura project ID.
  * @param args.metaMetricsId - The MetaMetrics ID of the user.
+ * @param args.rpcMethodName - The JSON-RPC method that was being executed.
  * @param args.trackEvent - The function that will create the Segment event.
  */
 export function trackRpcEndpointEvent(
@@ -123,6 +132,7 @@ export function trackRpcEndpointEvent(
     endpointUrl,
     error,
     infuraProjectId,
+    rpcMethodName,
     trackEvent,
     metaMetricsId,
   }: {
@@ -130,6 +140,7 @@ export function trackRpcEndpointEvent(
     endpointUrl: string;
     error: unknown;
     infuraProjectId: string;
+    rpcMethodName: string;
     trackEvent: (options: {
       event: IMetaMetricsEvent | ITrackingEvent;
       properties: JsonMap;
@@ -155,6 +166,7 @@ export function trackRpcEndpointEvent(
     // @deprecated: will be removed in a future release
     rpc_endpoint_url: rpcDomain,
     rpc_domain: rpcDomain,
+    rpc_method_name: rpcMethodName,
     ...(isObject(error) &&
     'httpStatus' in error &&
     isValidJson(error.httpStatus)
