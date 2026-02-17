@@ -104,7 +104,7 @@ jobs:
         with:
           local-testing: start
           local-identifier: ${{ github.run_id }}
-          local-args: --force-local --verbose
+          local-args: ${{ inputs.build_type == 'mm-connect' && '--force-local --verbose --include-hosts localhost 127.0.0.1' || '--force-local --verbose' }}
       
       - name: Wait for BrowserStack Local
         run: |
