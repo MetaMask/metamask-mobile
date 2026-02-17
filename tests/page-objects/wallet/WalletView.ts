@@ -13,7 +13,7 @@ import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import TestHelpers from '../../helpers.js';
 import Assertions from '../../framework/Assertions';
-import Utilities from '../../framework/Utilities.js';
+import Utilities from '../../framework/Utilities';
 
 class WalletView {
   static readonly MAX_SCROLL_ITERATIONS = 8;
