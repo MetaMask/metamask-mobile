@@ -97,7 +97,7 @@ import {
   getWalletName,
   type ProvisioningError,
 } from '../../pushProvisioning';
-import { AddToWalletButton } from '@expensify/react-native-wallet';
+import { AddToWalletButton } from '../../pushProvisioning/components/AddToWalletButton';
 import { CardScreenshotDeterrent } from '../../components/CardScreenshotDeterrent';
 import { createPasswordBottomSheetNavigationDetails } from '../../components/PasswordBottomSheet';
 import {
@@ -246,13 +246,13 @@ const CardHome = () => {
       cardDetails
         ? {
             id: cardDetails.id,
-            holderName: cardDetails.holderName,
+            holderName: cardholderName,
             panLast4: cardDetails.panLast4,
             status: cardDetails.status,
             expiryDate: cardDetails.expiryDate,
           }
         : null,
-    [cardDetails],
+    [cardDetails, cardholderName],
   );
 
   const {

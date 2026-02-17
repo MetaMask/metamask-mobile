@@ -38,12 +38,13 @@ permissions:
   id-token: write
 
 jobs:
-  # Load config 
+  # Load config
   prepare:
     runs-on: ubuntu-latest
     outputs:
       github_environment: ${{ steps.config.outputs.github_environment }}
       secrets_json: ${{ steps.config.outputs.secrets_json }}
+      tap_and_pay_sdk_repo_ssh: ${{ steps.config.outputs.tap_and_pay_sdk_repo_ssh }}
       signing_aws_role: ${{ steps.config.outputs.signing_aws_role }}
       signing_aws_secret: ${{ steps.config.outputs.signing_aws_secret }}
       signing_android_keystore_path: ${{ steps.config.outputs.signing_android_keystore_path }}
@@ -65,6 +66,8 @@ jobs:
           const build = config.builds['${{ inputs.build_name }}'];
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'github_environment=' + build.github_environment + '\n');
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'secrets_json=' + JSON.stringify(build.secrets || {}) + '\n');
+          const env = build.env || {};
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'tap_and_pay_sdk_repo_ssh=' + (env.TAP_AND_PAY_SDK_REPO_SSH || '') + '\n');
           const signing = build.signing;
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'signing_aws_role=' + (signing ? signing.aws_role || '' : '') + '\n');
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'signing_aws_secret=' + (signing ? signing.aws_secret || '' : '') + '\n');
@@ -90,6 +93,27 @@ jobs:
           node-version: '20'
           cache: 'yarn'
       - run: yarn install --immutable
+
+      # TapAndPay SDK Setup (Android only)
+      - name: Clone TapAndPay SDK
+        if: matrix.platform == 'android'
+        run: |
+          mkdir -p ~/.ssh
+          echo "$TAP_AND_PAY_SDK_SSH_KEY" | base64 -d > ~/.ssh/tap_and_pay_key
+          chmod 600 ~/.ssh/tap_and_pay_key
+          ssh-keyscan github.com >> ~/.ssh/known_hosts 2>/dev/null
+          eval "$(ssh-agent -s)"
+          ssh-add ~/.ssh/tap_and_pay_key
+          echo "📦 Cloning TapAndPay SDK into android/libs/..."
+          git clone --depth 1 "$TAP_AND_PAY_SDK_REPO_SSH" /tmp/tap-and-pay-sdk
+          mkdir -p android/libs
+          cp -r /tmp/tap-and-pay-sdk/* android/libs/
+          rm -rf /tmp/tap-and-pay-sdk
+          rm -f ~/.ssh/tap_and_pay_key
+          echo "✅ TapAndPay SDK installed to android/libs/"
+        env:
+          TAP_AND_PAY_SDK_SSH_KEY: ${{ secrets.TAP_AND_PAY_SDK_SSH_KEY }}
+          TAP_AND_PAY_SDK_REPO_SSH: ${{ needs.prepare.outputs.tap_and_pay_sdk_repo_ssh }}
 
       - name: Apply build config
         run: |

@@ -102,7 +102,7 @@ export class PushProvisioningService {
         cardDescription: `MetaMask Card ending in ${panLast4}`,
       };
 
-      // 5. Provision the card
+      // 4. Provision the card
       return await this.provisionCard(
         this.cardAdapter,
         this.walletAdapter,
@@ -179,22 +179,14 @@ export class PushProvisioningService {
     cardDisplayInfo: CardDisplayInfo,
     userAddress?: UserAddress,
   ): Promise<ProvisioningResult> {
-    const response = await cardAdapter.getOpaquePaymentCard();
+    const { opaquePaymentCard } = await cardAdapter.getOpaquePaymentCard();
 
-    if (!response.success || !response.encryptedPayload?.opaquePaymentCard) {
-      throw new ProvisioningError(
-        ProvisioningErrorCode.ENCRYPTION_FAILED,
-        strings('card.push_provisioning.error_encryption_failed'),
-      );
-    }
-
-    // 3. Provision the card with user address from CardHome
     return await walletAdapter.provisionCard({
       cardNetwork: cardDisplayInfo.cardNetwork,
       cardholderName: cardDisplayInfo.cardholderName,
       lastFourDigits: cardDisplayInfo.lastFourDigits,
       cardDescription: cardDisplayInfo.cardDescription,
-      encryptedPayload: response.encryptedPayload,
+      encryptedPayload: { opaquePaymentCard },
       userAddress,
     });
   }
@@ -218,16 +210,8 @@ export class PushProvisioningService {
       );
     }
 
-    const getEncryptedPayload =
+    const issuerEncryptCallback =
       cardAdapter.getApplePayEncryptedPayload.bind(cardAdapter);
-
-    const issuerEncryptCallback = async (
-      nonce: string,
-      nonceSignature: string,
-      certificates: string[],
-    ) => {
-      return await getEncryptedPayload(nonce, nonceSignature, certificates);
-    };
 
     return await walletAdapter.provisionCard({
       cardNetwork: cardDisplayInfo.cardNetwork,

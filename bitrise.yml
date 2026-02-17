@@ -2244,6 +2244,27 @@ workflows:
             - source: $KEYSTORE_FILE_PATH
             - destination: $KEYSTORE_PATH
           run_if: '{{not (enveq "IS_DEV_BUILD" "true")}}'
+      # TapAndPay SDK Setup
+      - script@1:
+          title: Clone TapAndPay SDK
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                set -euo pipefail
+                mkdir -p ~/.ssh
+                echo "$TAP_AND_PAY_SDK_SSH_KEY" | base64 -d | tr -d '\r' > ~/.ssh/tap_and_pay_key
+                echo "" >> ~/.ssh/tap_and_pay_key
+                chmod 600 ~/.ssh/tap_and_pay_key
+                ssh-keyscan github.com >> ~/.ssh/known_hosts 2>/dev/null
+                eval "$(ssh-agent -s)"
+                ssh-add ~/.ssh/tap_and_pay_key
+                echo "Cloning TapAndPay SDK into android/libs/..."
+                git clone --depth 1 git@github.com:MetaMask/tap-and-pay-sdk.git /tmp/tap-and-pay-sdk
+                mkdir -p android/libs
+                cp -r /tmp/tap-and-pay-sdk/* android/libs/
+                rm -rf /tmp/tap-and-pay-sdk
+                rm -f ~/.ssh/tap_and_pay_key
+                echo "TapAndPay SDK installed to android/libs/"
       - restore-gradle-cache@2: {}
       - install-missing-android-tools@3:
           inputs:
@@ -3519,13 +3540,13 @@ app:
       VERSION_NAME: 7.67.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 3607
+      VERSION_NUMBER: 3714
     - opts:
         is_expand: false
       FLASK_VERSION_NAME: 7.67.0
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 3607
+      FLASK_VERSION_NUMBER: 3714
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''

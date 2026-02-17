@@ -94,22 +94,15 @@ export function usePushProvisioning(
         : false;
 
   // Create the adapters based on user location and platform
-  const cardAdapter = useMemo(() => {
-    if (isSDKLoading) {
-      return null;
-    }
-    if (!cardSDK) {
-      return null;
-    }
+  const cardAdapter = useMemo(
+    () =>
+      isSDKLoading || !cardSDK
+        ? null
+        : getCardProvider(userCardLocation, cardSDK),
+    [cardSDK, userCardLocation, isSDKLoading],
+  );
 
-    const adapter = getCardProvider(userCardLocation, cardSDK);
-    return adapter;
-  }, [cardSDK, userCardLocation, isSDKLoading]);
-
-  const walletAdapter = useMemo(() => {
-    const adapter = getWalletProvider();
-    return adapter;
-  }, []);
+  const walletAdapter = useMemo(() => getWalletProvider(), []);
 
   // Check wallet eligibility (async) - includes availability and canAddCard checks
   const [eligibility, setEligibility] = useState<WalletEligibility | null>(
@@ -435,10 +428,6 @@ export function usePushProvisioning(
     setError(null);
   }, []);
 
-  // Simplified availability checks
-  const isCardProviderAvailable = cardAdapter !== null;
-  const isWalletProviderAvailable = walletAdapter !== null;
-
   const isLoading = isSDKLoading || isEligibilityCheckLoading;
 
   // Check if card is eligible (status must be 'ACTIVE')
@@ -450,8 +439,8 @@ export function usePushProvisioning(
     !isLoading &&
     !!cardDetails &&
     isCardEligible &&
-    isCardProviderAvailable &&
-    isWalletProviderAvailable &&
+    !!cardAdapter &&
+    !!walletAdapter &&
     eligibility?.isAvailable === true &&
     eligibility?.canAddCard === true;
 
