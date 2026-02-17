@@ -1005,14 +1005,16 @@ export function getWalletNavbarOptions(
                     touchAreaSlop={innerStyles.touchAreaSlop}
                   />
                 )}
-                <ButtonIcon
-                  iconProps={{ color: MMDSIconColor.Default }}
-                  onPress={openQRScanner}
-                  iconName={IconName.QrCode}
-                  size={ButtonIconSize.Md}
-                  testID={WalletViewSelectorsIDs.WALLET_SCAN_BUTTON}
-                  hitSlop={innerStyles.touchAreaSlop}
-                />
+                {!isAccountMenuEnabled && (
+                  <ButtonIcon
+                    iconProps={{ color: MMDSIconColor.Default }}
+                    onPress={openQRScanner}
+                    iconName={IconName.QrCode}
+                    size={ButtonIconSize.Md}
+                    testID={WalletViewSelectorsIDs.WALLET_SCAN_BUTTON}
+                    hitSlop={innerStyles.touchAreaSlop}
+                  />
+                )}
                 {isNotificationsFeatureEnabled() && !isAccountMenuEnabled && (
                   <BadgeWrapper
                     position={BadgeWrapperPosition.TopRight}
