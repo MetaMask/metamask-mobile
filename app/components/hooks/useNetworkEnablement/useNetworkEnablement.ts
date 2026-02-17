@@ -73,7 +73,6 @@ export const useNetworkEnablement = () => {
   const enableNetwork = useMemo(
     () => (chainId: CaipChainId) => {
       networkEnablementController.enableNetwork(chainId);
-      return;
     },
     [networkEnablementController],
   );
