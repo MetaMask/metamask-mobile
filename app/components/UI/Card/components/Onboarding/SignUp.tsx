@@ -24,6 +24,7 @@ import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 import useEmailVerificationSend from '../../hooks/useEmailVerificationSend';
 import useRegistrationSettings from '../../hooks/useRegistrationSettings';
 import {
+  selectCardGeoLocation,
   selectSelectedCountry,
   setContactVerificationId,
   setSelectedCountry,
@@ -41,6 +42,7 @@ import {
   setOnValueChange,
 } from './RegionSelectorModal';
 import { countryCodeToFlag } from '../../util/countryCodeToFlag';
+import SelectField from './SelectField';
 
 const SignUp = () => {
   const navigation = useNavigation();
@@ -53,6 +55,7 @@ const SignUp = () => {
   const [isPasswordValid, setIsPasswordValid] = useState(false);
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const selectedCountry = useSelector(selectSelectedCountry);
+  const geoLocation = useSelector(selectCardGeoLocation);
   const { data: registrationSettings } = useRegistrationSettings();
   const { trackEvent, createEventBuilder } = useMetrics();
 
@@ -91,6 +94,22 @@ const SignUp = () => {
         areaCode: country.callingCode,
       }));
   }, [registrationSettings]);
+
+  useEffect(() => {
+    if (selectedCountry || !regions.length || geoLocation === 'UNKNOWN') {
+      return;
+    }
+
+    const matchedRegion = regions.find((region) => region.key === geoLocation);
+    if (matchedRegion) {
+      dispatch(setSelectedCountry(matchedRegion));
+      dispatch(
+        setUserCardLocation(
+          matchedRegion.key === 'US' ? 'us' : 'international',
+        ),
+      );
+    }
+  }, [regions, geoLocation, selectedCountry, dispatch]);
 
   useEffect(() => {
     if (!debouncedEmail) {
@@ -219,17 +238,11 @@ const SignUp = () => {
     <>
       <Box>
         <Label>{strings('card.card_onboarding.sign_up.country_label')}</Label>
-        <Box twClassName="w-full border border-solid border-border-default rounded-lg py-1">
-          <TouchableOpacity
-            onPress={handleCountrySelect}
-            testID="signup-country-select"
-          >
-            <Box twClassName="flex flex-row items-center justify-between px-4 py-2">
-              <Text variant={TextVariant.BodyMd}>{selectedCountry?.name}</Text>
-              <Icon name={IconName.ArrowDown} size={IconSize.Sm} />
-            </Box>
-          </TouchableOpacity>
-        </Box>
+        <SelectField
+          value={selectedCountry?.name}
+          onPress={handleCountrySelect}
+          testID="signup-country-select"
+        />
       </Box>
 
       <Box>

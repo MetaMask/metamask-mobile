@@ -9,7 +9,7 @@ import {
 export interface HardwareWalletAdapterOptions {
   /** Called when device disconnects */
   onDisconnect: (error?: Error) => void;
-  /** Called when device events occur */
+  /** Called when device event occurs */
   onDeviceEvent: (payload: DeviceEventPayload) => void;
 }
 

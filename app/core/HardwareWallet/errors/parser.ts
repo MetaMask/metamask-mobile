@@ -4,15 +4,20 @@ import {
   LEDGER_ERROR_MAPPINGS,
   HardwareWalletType,
 } from '@metamask/hw-wallet-sdk';
+import { add0x } from '@metamask/utils';
 import { LedgerCommunicationErrors } from '../../Ledger/ledgerErrors';
 import { createHardwareWalletError } from './factory';
 import { ERROR_NAME_MAPPINGS } from './mappings';
+
+const USER_REJECTED_STATUS_CODE = Object.entries(LEDGER_ERROR_MAPPINGS).find(
+  ([_, mapping]) => mapping.code === ErrorCode.UserRejected,
+)?.[0];
 
 /**
  * Convert a numeric status code to hex string format used by SDK mappings
  */
 function toHexStatusCode(statusCode: number): string {
-  return `0x${statusCode.toString(16).padStart(4, '0')}`;
+  return add0x(statusCode.toString(16).padStart(4, '0'));
 }
 
 /**
@@ -70,6 +75,7 @@ function parseLedgerCommunicationError(
         walletType,
       );
 
+    case LedgerCommunicationErrors.EthAppNotOpen:
     case LedgerCommunicationErrors.FailedToOpenApp:
     case LedgerCommunicationErrors.FailedToCloseApp:
       return createHardwareWalletError(
@@ -92,12 +98,6 @@ function parseLedgerCommunicationError(
         walletType,
       );
 
-    case LedgerCommunicationErrors.NotSupported:
-      return createHardwareWalletError(
-        ErrorCode.MobileNotSupported,
-        walletType,
-      );
-
     case LedgerCommunicationErrors.BlindSignError:
       return createHardwareWalletError(
         ErrorCode.DeviceStateBlindSignNotSupported,
@@ -110,6 +110,7 @@ function parseLedgerCommunicationError(
         walletType,
       );
 
+    case LedgerCommunicationErrors.NotSupported:
     case LedgerCommunicationErrors.UnknownError:
     default:
       return createHardwareWalletError(ErrorCode.Unknown, walletType);
@@ -128,10 +129,10 @@ function parseLedgerStatusCode(
   const mapping = LEDGER_ERROR_MAPPINGS[hexCode];
 
   if (mapping) {
-    // Special handling for 0x6985 which can mean user rejected OR blind signing
-    if (hexCode === '0x6985' && originalError) {
+    // Special handling for ErrorCode.UserRejected which can mean user rejected OR blind signing
+    if (hexCode === USER_REJECTED_STATUS_CODE && originalError) {
       const message = originalError.message?.toLowerCase() || '';
-      if (message.includes('blind sign') || message.includes('blind signing')) {
+      if (message.includes('blind sign')) {
         return createHardwareWalletError(
           ErrorCode.DeviceStateBlindSignNotSupported,
           walletType,
@@ -170,7 +171,7 @@ function parseErrorByName(
   // The error name alone doesn't tell us what went wrong; the statusCode does
   if (name === 'TransportStatusError') {
     const statusCode = extractStatusCode(error);
-    if (statusCode) {
+    if (statusCode !== null) {
       return parseLedgerStatusCode(statusCode, walletType, error);
     }
     // If no status code found, fall through to unknown error
@@ -230,7 +231,7 @@ function parseErrorByMessage(
       code: ErrorCode.DeviceStateBlindSignNotSupported,
     },
     {
-      patterns: ['app'],
+      patterns: ['eth app', 'ethereum app'],
       code: ErrorCode.DeviceStateEthAppClosed,
       condition: (msg) =>
         msg.includes('open') || msg.includes('launch') || msg.includes('start'),
@@ -307,11 +308,6 @@ export function parseErrorByType(
       return parsedByName;
     }
 
-    const statusCode = extractStatusCode(error);
-    if (statusCode) {
-      return parseLedgerStatusCode(statusCode, walletType, error);
-    }
-
     const parsedByMessage = parseErrorByMessage(error, walletType);
     if (parsedByMessage) {
       return parsedByMessage;
@@ -340,18 +336,19 @@ export function parseErrorByType(
 
 /**
  * Type guard: error is an object with an explicit ErrorCode (e.g. { code: ErrorCode.BluetoothDisabled, message?: string }).
+ * Accepts both number and string so it works whether ErrorCode is a numeric or string enum.
  */
 function isErrorCodeObject(
   error: unknown,
 ): error is { code: ErrorCode; message?: string } {
+  if (error === null || typeof error !== 'object' || !('code' in error)) {
+    return false;
+  }
+  const { code } = error;
+  const validCodes = Object.values(ErrorCode);
   return (
-    error !== null &&
-    typeof error === 'object' &&
-    'code' in error &&
-    typeof (error as { code: unknown }).code === 'number' &&
-    Object.values(ErrorCode).includes(
-      (error as { code: number }).code as ErrorCode,
-    )
+    (typeof code === 'number' || typeof code === 'string') &&
+    validCodes.includes(code as ErrorCode)
   );
 }
 
@@ -364,7 +361,7 @@ function isErrorLike(error: unknown): error is Error {
     (error !== null &&
       typeof error === 'object' &&
       'message' in error &&
-      typeof (error as Error).message === 'string')
+      typeof error.message === 'string')
   );
 }
 
@@ -386,7 +383,7 @@ function isLedgerCommunicationError(
     error !== null &&
     typeof error === 'object' &&
     'code' in error &&
-    typeof (error as { code: unknown }).code === 'string' &&
+    typeof error.code === 'string' &&
     Object.values(LedgerCommunicationErrors).includes(
       (error as { code: LedgerCommunicationErrors }).code,
     )

@@ -37,10 +37,7 @@ import {
   MIN_PASSWORD_LENGTH,
 } from '../../../util/password';
 import NotificationManager from '../../../core/NotificationManager';
-import {
-  passcodeType,
-  updateAuthTypeStorageFlags,
-} from '../../../util/authentication';
+import { passcodeType } from '../../../util/authentication';
 import { Authentication } from '../../../core';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { ThemeContext, mockTheme } from '../../../util/theme';
@@ -530,15 +527,11 @@ class ResetPassword extends PureComponent {
           this.state.biometryChoice,
           this.state.rememberMe,
         );
-        await Authentication.storePasswordWithFallback(password, authData);
-        if (
-          Authentication.authData.currentAuthType ===
-          AUTHENTICATION_TYPE.BIOMETRIC
-        ) {
-          await updateAuthTypeStorageFlags(this.state.biometryChoice);
-        } else {
-          await updateAuthTypeStorageFlags(false);
-        }
+        await Authentication.storePassword(
+          password,
+          authData.currentAuthType,
+          true,
+        );
       } catch (error) {
         Logger.error(error);
       }
@@ -817,7 +810,6 @@ class ResetPassword extends PureComponent {
               </Label>
               <TextField
                 placeholder={'Password'}
-                placeholderTextColor={colors.text.muted}
                 onChangeText={this.onPasswordChange}
                 secureTextEntry
                 value={this.state.password}
@@ -957,7 +949,6 @@ class ResetPassword extends PureComponent {
                     placeholder={strings(
                       'reset_password.new_password_placeholder',
                     )}
-                    placeholderTextColor={colors.text.muted}
                     testID={ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID}
                     onSubmitEditing={this.jumpToConfirmPassword}
                     returnKeyType="next"
@@ -965,9 +956,6 @@ class ResetPassword extends PureComponent {
                     autoCapitalize="none"
                     keyboardAppearance={themeAppearance}
                     isError={this.isPasswordTooShort()}
-                    style={
-                      this.isPasswordTooShort() ? styles.errorBorder : undefined
-                    }
                     endAccessory={
                       <Icon
                         name={
@@ -1003,7 +991,6 @@ class ResetPassword extends PureComponent {
                     placeholder={strings(
                       'reset_password.confirm_password_placeholder',
                     )}
-                    placeholderTextColor={colors.text.muted}
                     testID={
                       ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID
                     }

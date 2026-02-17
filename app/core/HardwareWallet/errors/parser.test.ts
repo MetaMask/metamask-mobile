@@ -72,6 +72,15 @@ describe('parseErrorByType', () => {
       expect(result.code).toBe(ErrorCode.DeviceStateEthAppClosed);
     });
 
+    it('parses EthAppNotOpen', () => {
+      const result = parseErrorByType(
+        LedgerCommunicationErrors.EthAppNotOpen,
+        walletType,
+      );
+
+      expect(result.code).toBe(ErrorCode.DeviceStateEthAppClosed);
+    });
+
     it('parses UserRefusedConfirmation', () => {
       const result = parseErrorByType(
         LedgerCommunicationErrors.UserRefusedConfirmation,
@@ -126,13 +135,13 @@ describe('parseErrorByType', () => {
       expect(result.code).toBe(ErrorCode.DeviceStateEthAppClosed);
     });
 
-    it('parses NotSupported', () => {
+    it('parses NotSupported as Unknown', () => {
       const result = parseErrorByType(
         LedgerCommunicationErrors.NotSupported,
         walletType,
       );
 
-      expect(result.code).toBe(ErrorCode.MobileNotSupported);
+      expect(result.code).toBe(ErrorCode.Unknown);
     });
 
     it('parses AppIsNotInstalled', () => {
@@ -256,20 +265,20 @@ describe('parseErrorByType', () => {
   });
 
   describe('when error has additional status codes (mobile-specific)', () => {
-    it('parses 0x6a15 as ETH app closed', () => {
+    it('does not parse 0x6a15 from message only (no TransportStatusError)', () => {
       const error = new Error('Ledger error 0x6a15');
 
       const result = parseErrorByType(error, walletType);
 
-      expect(result.code).toBe(ErrorCode.DeviceStateEthAppClosed);
+      expect(result.code).toBe(ErrorCode.Unknown);
     });
 
-    it('parses 0x6511 as ETH app closed', () => {
+    it('does not parse status code from message only (no TransportStatusError)', () => {
       const error = new Error('Ledger error 0x6511');
 
       const result = parseErrorByType(error, walletType);
 
-      expect(result.code).toBe(ErrorCode.DeviceStateEthAppClosed);
+      expect(result.code).toBe(ErrorCode.Unknown);
     });
 
     it('parses unknown status code as Unknown', () => {
@@ -284,13 +293,13 @@ describe('parseErrorByType', () => {
     });
   });
 
-  describe('when error has status code in message', () => {
-    it('extracts hex status code from message', () => {
+  describe('when error has status code in message only (no TransportStatusError)', () => {
+    it('does not parse as Ledger status code and returns Unknown', () => {
       const error = new Error('Ledger error 0x6b0c');
 
       const result = parseErrorByType(error, walletType);
 
-      expect(result.code).toBe(ErrorCode.AuthenticationDeviceLocked);
+      expect(result.code).toBe(ErrorCode.Unknown);
     });
   });
 
@@ -319,8 +328,8 @@ describe('parseErrorByType', () => {
       expect(result.code).toBe(ErrorCode.DeviceStateBlindSignNotSupported);
     });
 
-    it('parses "app" with "open" message', () => {
-      const error = new Error('Please open the app on your device');
+    it('parses "eth app" with "open" message', () => {
+      const error = new Error('Please open the Ethereum app on your device');
 
       const result = parseErrorByType(error, walletType);
 
@@ -416,8 +425,8 @@ describe('parseErrorByType', () => {
       expect(result.code).toBe(ErrorCode.DeviceDisconnected);
     });
 
-    it('parses "launch" app message as eth app closed', () => {
-      const error = new Error('Please launch the app on your device');
+    it('parses "launch" eth app message as eth app closed', () => {
+      const error = new Error('Please launch the Ethereum app on your device');
 
       const result = parseErrorByType(error, walletType);
 
