@@ -104,6 +104,16 @@ function extractProviderAndOrderCode(order: FiatOrder): {
 /**
  * Converts a V2 RampsOrder to a FiatOrder for Redux storage.
  * Uses the original order's provider type to maintain routing consistency.
+ *
+ * Data strategy:
+ * - We preserve the original `order.data` structure (SDK Order / DepositOrder)
+ * so that existing detail screens and analytics that cast to those types
+ * still work for orders that were originally created via the old flows.
+ * - We merge primitive fields that the V2 API updates (txHash, amounts, etc.)
+ * into the spread so those values stay fresh.
+ * - We attach the full V2 response as `_v2Order` so that V2-aware screens
+ * (the new unified order details) can read the complete data directly
+ * without relying on the legacy SDK shape.
  */
 function rampsOrderToFiatOrder(
   rampsOrder: RampsOrder,
@@ -119,7 +129,9 @@ function rampsOrderToFiatOrder(
     cryptoFee: rampsOrder.totalFeesFiat || 0,
     currency: rampsOrder.fiatCurrency || originalOrder.currency,
     currencySymbol: originalOrder.currencySymbol || '',
-    cryptocurrency: getCryptoSymbol(rampsOrder.cryptoCurrency),
+    cryptocurrency:
+      getCryptoSymbol(rampsOrder.cryptoCurrency) ||
+      originalOrder.cryptocurrency,
     network: getNetworkChainId(rampsOrder.network) || originalOrder.network,
     state: orderStatusToFiatOrderState(rampsOrder.status),
     account: rampsOrder.walletAddress || originalOrder.account,
@@ -128,7 +140,22 @@ function rampsOrderToFiatOrder(
     orderType: rampsOrder.orderType as FiatOrder['orderType'],
     errorCount: 0,
     lastTimeFetched: Date.now(),
-    data: rampsOrder as unknown as FiatOrder['data'],
+    data: {
+      // Spread original SDK data so legacy detail screens / analytics still work.
+      ...(originalOrder.data as Record<string, unknown>),
+      // Merge primitive fields the V2 API may update between polls.
+      txHash: rampsOrder.txHash,
+      pollingSecondsMinimum: rampsOrder.pollingSecondsMinimum,
+      statusDescription: rampsOrder.statusDescription,
+      timeDescriptionPending: rampsOrder.timeDescriptionPending,
+      exchangeRate: rampsOrder.exchangeRate,
+      fiatAmountInUsd: rampsOrder.fiatAmountInUsd,
+      cryptoAmount: rampsOrder.cryptoAmount,
+      fiatAmount: rampsOrder.fiatAmount,
+      totalFeesFiat: rampsOrder.totalFeesFiat,
+      // Full V2 response for V2-aware order detail screens.
+      _v2Order: rampsOrder,
+    } as unknown as FiatOrder['data'],
   };
 }
 

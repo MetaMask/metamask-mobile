@@ -29,6 +29,10 @@ import { createSettingsModalNavDetails } from '../Modals/SettingsModal';
 import useRampAccountAddress from '../../hooks/useRampAccountAddress';
 import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 import { createPaymentSelectionModalNavigationDetails } from '../Modals/PaymentSelectionModal';
+import { callbackBaseUrl } from '../../Aggregator/sdk';
+import { createCheckoutNavDetails } from '../Checkout/Checkout';
+import Engine from '../../../../../core/Engine';
+import Logger from '../../../../../util/Logger';
 
 interface BuildQuoteParams {
   assetId?: string;
@@ -127,6 +131,7 @@ function BuildQuote() {
     startQuotePolling({
       walletAddress,
       amount: debouncedPollingAmount,
+      redirectUrl: callbackBaseUrl,
     });
 
     return () => {
@@ -140,9 +145,61 @@ function BuildQuote() {
     stopQuotePolling,
   ]);
 
-  const handleContinuePress = useCallback(() => {
-    // TODO: Navigate to next screen with amount
-  }, []);
+  const [isLoadingWidget, setIsLoadingWidget] = useState(false);
+
+  const handleContinuePress = useCallback(async () => {
+    if (!selectedQuote || !walletAddress) return;
+
+    setIsLoadingWidget(true);
+    try {
+      const buyWidget =
+        await Engine.context.RampsController.getBuyWidget(selectedQuote);
+
+      if (!buyWidget?.url) {
+        Logger.error(new Error('No widget URL returned'), {
+          message: 'BuildQuote: getBuyWidget returned no URL',
+        });
+        return;
+      }
+
+      // Extract provider code from the quote's provider path (e.g., "/providers/moonpay" -> "moonpay")
+      const providerCode = selectedQuote.provider.startsWith('/providers/')
+        ? selectedQuote.provider.split('/')[2] || selectedQuote.provider
+        : selectedQuote.provider;
+
+      const chainId = selectedToken?.chainId as CaipChainId | undefined;
+      // Extract numeric chain ID from CAIP format if present (e.g., "eip155:1" -> "1")
+      const network = chainId?.includes(':')
+        ? chainId.split(':')[1] || ''
+        : chainId || '';
+
+      navigation.navigate(
+        ...createCheckoutNavDetails({
+          url: buyWidget.url,
+          providerCode,
+          providerName: selectedProvider?.name || providerCode,
+          customOrderId: buyWidget.orderId,
+          walletAddress,
+          network,
+          currency,
+          cryptocurrency: selectedToken?.symbol || '',
+        }),
+      );
+    } catch (err) {
+      Logger.error(err as Error, {
+        message: 'BuildQuote: error fetching buy widget',
+      });
+    } finally {
+      setIsLoadingWidget(false);
+    }
+  }, [
+    selectedQuote,
+    selectedProvider,
+    selectedToken,
+    walletAddress,
+    currency,
+    navigation,
+  ]);
 
   const hasAmount = amountAsNumber > 0;
 
@@ -150,7 +207,11 @@ function BuildQuote() {
     debouncedPollingAmount === amountAsNumber && debouncedPollingAmount > 0;
 
   const canContinue =
-    hasAmount && !quotesLoading && selectedQuote !== null && quoteMatchesAmount;
+    hasAmount &&
+    !quotesLoading &&
+    !isLoadingWidget &&
+    selectedQuote !== null &&
+    quoteMatchesAmount;
 
   return (
     <ScreenLayout>
@@ -198,7 +259,7 @@ function BuildQuote() {
                 onPress={handleContinuePress}
                 isFullWidth
                 isDisabled={!canContinue}
-                isLoading={quotesLoading}
+                isLoading={quotesLoading || isLoadingWidget}
                 testID="build-quote-continue-button"
               >
                 {strings('fiat_on_ramp.continue')}
