@@ -48,7 +48,7 @@ export const useTokenSelection = (type: TokenSelectorType) => {
         token.chainId === otherToken.chainId;
 
       // Add the network if the user hasn't configured it yet
-      const isNetworkAdded = Boolean(networkConfigurations[token.chainId]);
+      const isNetworkAdded = Boolean(networkConfigurations?.[token.chainId]);
       if (!isNetworkAdded) {
         const popularNetwork = PopularList.find(
           (network) => network.chainId === token.chainId,

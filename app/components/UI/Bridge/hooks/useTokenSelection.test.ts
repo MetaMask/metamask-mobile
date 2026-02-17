@@ -11,6 +11,7 @@ import { TokenSelectorType } from '../types';
 const mockDispatch = jest.fn();
 const mockHandleSwitchTokensInner = jest.fn().mockResolvedValue(undefined);
 const mockHandleSwitchTokens = jest.fn(() => mockHandleSwitchTokensInner);
+const mockAddNetwork = jest.fn();
 
 jest.mock('react-redux', () => ({
   useDispatch: () => mockDispatch,
@@ -37,40 +38,99 @@ jest.mock('./useAutoUpdateDestToken', () => ({
   }),
 }));
 
+jest.mock('../../../../core/Engine', () => ({
+  __esModule: true,
+  default: {
+    context: {
+      NetworkController: {
+        addNetwork: mockAddNetwork,
+      },
+    },
+  },
+}));
+
+jest.mock('../../../../util/networks/customNetworks', () => {
+  const actual = jest.requireActual('../../../../util/networks/customNetworks');
+
+  return {
+    ...actual,
+    PopularList: [
+      {
+        chainId: '0xa',
+        nickname: 'OP',
+        rpcUrl: 'https://op-mainnet.infura.io/v3/mock',
+        failoverRpcUrls: [],
+        ticker: 'ETH',
+        rpcPrefs: {
+          blockExplorerUrl: 'https://optimistic.etherscan.io',
+        },
+      },
+    ],
+  };
+});
+
 import { useSelector } from 'react-redux';
 import { useIsNetworkEnabled } from './useIsNetworkEnabled';
 const mockUseSelector = useSelector as jest.Mock;
 const mockUseIsNetworkEnabled = useIsNetworkEnabled as jest.Mock;
 
-describe('useTokenSelection', () => {
-  const mockSourceToken = createMockToken({
-    address: '0xsource',
-    symbol: 'SRC',
-  });
-  const mockDestToken = createMockToken({
-    address: '0xdest',
-    symbol: 'DST',
-    chainId: '0xa',
-  });
-  const mockDestAmount = '100';
+const mockSourceToken = createMockToken({
+  address: '0xsource',
+  symbol: 'SRC',
+});
+const mockDestToken = createMockToken({
+  address: '0xdest',
+  symbol: 'DST',
+  chainId: '0xa',
+});
+const mockDestAmount = '100';
 
+const defaultSelectorState = {
+  sourceToken: mockSourceToken,
+  destToken: mockDestToken,
+  destAmount: mockDestAmount,
+  networkConfigurations: {
+    '0x1': { name: 'Ethereum Mainnet' },
+    '0xa': { name: 'OP Mainnet' },
+  } as Record<string, unknown>,
+};
+
+const renderTokenSelectionHook = (
+  type: TokenSelectorType,
+  selectorOverrides: Partial<typeof defaultSelectorState> = {},
+) => {
+  const selectorState = {
+    ...defaultSelectorState,
+    ...selectorOverrides,
+  };
+
+  const selectorValues = [
+    selectorState.sourceToken,
+    selectorState.destToken,
+    selectorState.destAmount,
+    selectorState.networkConfigurations,
+  ];
+  let selectorCallIndex = 0;
+  mockUseSelector.mockImplementation(() => {
+    const value = selectorValues[selectorCallIndex % selectorValues.length];
+    selectorCallIndex += 1;
+    return value;
+  });
+
+  return renderHook(() => useTokenSelection(type));
+};
+
+describe('useTokenSelection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseIsNetworkEnabled.mockReturnValue(true);
+    mockHandleSwitchTokensInner.mockResolvedValue(undefined);
+    mockAddNetwork.mockResolvedValue(undefined);
   });
 
   describe('source token selection', () => {
-    beforeEach(() => {
-      mockUseSelector
-        .mockReturnValueOnce(mockSourceToken) // selectSourceToken
-        .mockReturnValueOnce(mockDestToken) // selectDestToken
-        .mockReturnValueOnce(mockDestAmount); // selectDestAmount
-    });
-
     it('dispatches setSourceToken and calls autoUpdateDestToken when selecting new source token', async () => {
-      const { result } = renderHook(() =>
-        useTokenSelection(TokenSelectorType.Source),
-      );
+      const { result } = renderTokenSelectionHook(TokenSelectorType.Source);
       const newToken = createMockToken({
         address: '0xnewtoken',
         symbol: 'NEW',
@@ -86,9 +146,7 @@ describe('useTokenSelection', () => {
     });
 
     it('calls handleSwitchTokens when selecting current dest token as source', async () => {
-      const { result } = renderHook(() =>
-        useTokenSelection(TokenSelectorType.Source),
-      );
+      const { result } = renderTokenSelectionHook(TokenSelectorType.Source);
 
       await act(async () => {
         await result.current.handleTokenPress(mockDestToken);
@@ -101,14 +159,7 @@ describe('useTokenSelection', () => {
     });
 
     it('returns source token as selectedToken', () => {
-      mockUseSelector
-        .mockReturnValueOnce(mockSourceToken)
-        .mockReturnValueOnce(mockDestToken)
-        .mockReturnValueOnce(mockDestAmount);
-
-      const { result } = renderHook(() =>
-        useTokenSelection(TokenSelectorType.Source),
-      );
+      const { result } = renderTokenSelectionHook(TokenSelectorType.Source);
 
       expect(result.current.selectedToken).toBe(mockSourceToken);
     });
@@ -116,9 +167,7 @@ describe('useTokenSelection', () => {
     it('does not swap when dest network is disabled', async () => {
       mockUseIsNetworkEnabled.mockReturnValue(false);
 
-      const { result } = renderHook(() =>
-        useTokenSelection(TokenSelectorType.Source),
-      );
+      const { result } = renderTokenSelectionHook(TokenSelectorType.Source);
 
       await act(async () => {
         await result.current.handleTokenPress(mockDestToken);
@@ -130,17 +179,8 @@ describe('useTokenSelection', () => {
   });
 
   describe('dest token selection', () => {
-    beforeEach(() => {
-      mockUseSelector
-        .mockReturnValueOnce(mockSourceToken)
-        .mockReturnValueOnce(mockDestToken)
-        .mockReturnValueOnce(mockDestAmount);
-    });
-
     it('dispatches setDestToken when selecting new dest token', async () => {
-      const { result } = renderHook(() =>
-        useTokenSelection(TokenSelectorType.Dest),
-      );
+      const { result } = renderTokenSelectionHook(TokenSelectorType.Dest);
       const newToken = createMockToken({
         address: '0xnewdest',
         symbol: 'NEWDST',
@@ -158,9 +198,7 @@ describe('useTokenSelection', () => {
     });
 
     it('calls handleSwitchTokens when selecting current source token as dest', async () => {
-      const { result } = renderHook(() =>
-        useTokenSelection(TokenSelectorType.Dest),
-      );
+      const { result } = renderTokenSelectionHook(TokenSelectorType.Dest);
 
       await act(async () => {
         await result.current.handleTokenPress(mockSourceToken);
@@ -172,29 +210,60 @@ describe('useTokenSelection', () => {
     });
 
     it('returns dest token as selectedToken', () => {
-      mockUseSelector
-        .mockReturnValueOnce(mockSourceToken)
-        .mockReturnValueOnce(mockDestToken)
-        .mockReturnValueOnce(mockDestAmount);
-
-      const { result } = renderHook(() =>
-        useTokenSelection(TokenSelectorType.Dest),
-      );
+      const { result } = renderTokenSelectionHook(TokenSelectorType.Dest);
 
       expect(result.current.selectedToken).toBe(mockDestToken);
     });
   });
 
+  describe('network auto-add', () => {
+    it('aborts source selection when addNetwork rejects', async () => {
+      mockAddNetwork.mockRejectedValueOnce(new Error('addNetwork failed'));
+      const { result } = renderTokenSelectionHook(TokenSelectorType.Source, {
+        networkConfigurations: {},
+      });
+      const sourceTokenOnMissingNetwork = createMockToken({
+        chainId: '0xa',
+      });
+
+      await act(async () => {
+        await result.current.handleTokenPress(sourceTokenOnMissingNetwork);
+      });
+
+      expect(mockDispatch).not.toHaveBeenCalled();
+      expect(mockAutoUpdateDestToken).not.toHaveBeenCalled();
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('continues dest selection when addNetwork rejects', async () => {
+      mockAddNetwork.mockRejectedValueOnce(new Error('addNetwork failed'));
+      const { result } = renderTokenSelectionHook(TokenSelectorType.Dest, {
+        networkConfigurations: {},
+      });
+      const destTokenOnMissingNetwork = createMockToken({
+        address: '0xdest-new',
+        chainId: '0xa',
+      });
+
+      await act(async () => {
+        await result.current.handleTokenPress(destTokenOnMissingNetwork);
+      });
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setDestToken(destTokenOnMissingNetwork),
+      );
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setIsDestTokenManuallySet(true),
+      );
+      expect(mockGoBack).toHaveBeenCalled();
+    });
+  });
+
   describe('edge cases', () => {
     it('handles null source token', async () => {
-      mockUseSelector
-        .mockReturnValueOnce(null)
-        .mockReturnValueOnce(mockDestToken)
-        .mockReturnValueOnce(mockDestAmount);
-
-      const { result } = renderHook(() =>
-        useTokenSelection(TokenSelectorType.Source),
-      );
+      const { result } = renderTokenSelectionHook(TokenSelectorType.Source, {
+        sourceToken: null,
+      });
       const newToken = createMockToken();
 
       await act(async () => {
@@ -207,14 +276,9 @@ describe('useTokenSelection', () => {
     });
 
     it('handles null dest token', async () => {
-      mockUseSelector
-        .mockReturnValueOnce(mockSourceToken)
-        .mockReturnValueOnce(null)
-        .mockReturnValueOnce(mockDestAmount);
-
-      const { result } = renderHook(() =>
-        useTokenSelection(TokenSelectorType.Dest),
-      );
+      const { result } = renderTokenSelectionHook(TokenSelectorType.Dest, {
+        destToken: null,
+      });
       const newToken = createMockToken();
 
       await act(async () => {
@@ -226,14 +290,7 @@ describe('useTokenSelection', () => {
     });
 
     it('does not swap when addresses match but chainIds differ', async () => {
-      mockUseSelector
-        .mockReturnValueOnce(mockSourceToken)
-        .mockReturnValueOnce(mockDestToken)
-        .mockReturnValueOnce(mockDestAmount);
-
-      const { result } = renderHook(() =>
-        useTokenSelection(TokenSelectorType.Source),
-      );
+      const { result } = renderTokenSelectionHook(TokenSelectorType.Source);
       const sameAddressToken = createMockToken({
         address: mockDestToken.address,
         chainId: '0x5',
@@ -252,14 +309,7 @@ describe('useTokenSelection', () => {
     });
 
     it('does not swap when chainIds match but addresses differ', async () => {
-      mockUseSelector
-        .mockReturnValueOnce(mockSourceToken)
-        .mockReturnValueOnce(mockDestToken)
-        .mockReturnValueOnce(mockDestAmount);
-
-      const { result } = renderHook(() =>
-        useTokenSelection(TokenSelectorType.Source),
-      );
+      const { result } = renderTokenSelectionHook(TokenSelectorType.Source);
       const sameChainToken = createMockToken({
         address: '0xdifferent',
         chainId: mockDestToken.chainId,
@@ -273,6 +323,23 @@ describe('useTokenSelection', () => {
       expect(mockDispatch).toHaveBeenCalledTimes(1);
       expect(mockAutoUpdateDestToken).toHaveBeenCalledWith(sameChainToken);
       expect(mockHandleSwitchTokens).not.toHaveBeenCalled();
+    });
+
+    it('falls back to empty network configurations when selector returns undefined', async () => {
+      const { result } = renderTokenSelectionHook(TokenSelectorType.Source, {
+        networkConfigurations: undefined as unknown as Record<string, unknown>,
+      });
+      const tokenOnMissingNetwork = createMockToken({
+        chainId: '0x1',
+      });
+
+      await act(async () => {
+        await result.current.handleTokenPress(tokenOnMissingNetwork);
+      });
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setSourceToken(tokenOnMissingNetwork),
+      );
     });
   });
 });
