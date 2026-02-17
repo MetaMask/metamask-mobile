@@ -1,9 +1,10 @@
 /* eslint-disable import/no-nodejs-modules */
 import { PerformanceTracker } from './PerformanceTracker';
 import { AppProfilingDataHandler } from './AppProfilingDataHandler';
-import QualityGatesValidator from '../framework/utils/QualityGatesValidator.js';
+import QualityGatesValidator from '../framework/quality-gates/QualityGatesValidator';
+import QualityGatesReportFormatter from '../framework/quality-gates/QualityGatesReportFormatter';
 import { getTeamInfoFromTags } from '../teams-config.js';
-import { clearQualityGateFailures } from '../framework/utils/QualityGateError.js';
+import { clearQualityGateFailures } from '../framework/quality-gates/QualityGateError.js';
 import fs from 'fs';
 import path from 'path';
 
@@ -13,6 +14,7 @@ class CustomReporter {
     this.sessions = []; // Array to store all session data
     this.processedTests = new Set(); // Track processed tests to avoid duplicates
     this.qualityGatesValidator = new QualityGatesValidator();
+    this.qualityGatesReportFormatter = new QualityGatesReportFormatter();
     this.failedTestsByTeam = {}; // Track failed tests grouped by team
   }
 
@@ -207,7 +209,7 @@ class CustomReporter {
           // Log quality gates result to console
           if (qualityGatesResult.hasThresholds) {
             console.log(
-              this.qualityGatesValidator.formatConsoleReport(
+              this.qualityGatesReportFormatter.formatConsoleReport(
                 qualityGatesResult,
               ),
             );
@@ -787,7 +789,7 @@ class CustomReporter {
               </table>
               ${
                 test.qualityGates
-                  ? this.qualityGatesValidator.generateHtmlSection(
+                  ? this.qualityGatesReportFormatter.generateHtmlSection(
                       test.qualityGates,
                     )
                   : ''
@@ -1282,7 +1284,7 @@ class CustomReporter {
 
         // Add quality gates information
         if (test.qualityGates) {
-          const qgRows = this.qualityGatesValidator.generateCsvRows(
+          const qgRows = this.qualityGatesReportFormatter.generateCsvRows(
             test.qualityGates,
           );
           csvRows.push(...qgRows);
