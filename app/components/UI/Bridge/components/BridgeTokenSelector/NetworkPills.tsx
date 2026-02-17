@@ -15,8 +15,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import {
-  selectSourceChainRanking,
-  selectDestChainRanking,
+  selectAllowedChainRanking,
   selectVisiblePillChainIds,
   setVisiblePillChainIds,
 } from '../../../../../core/redux/slices/bridge';
@@ -24,7 +23,6 @@ import { CaipChainId } from '@metamask/utils';
 import { ScrollView } from 'react-native-gesture-handler';
 import ButtonToggle from '../../../../../component-library/components-temp/Buttons/ButtonToggle';
 import { ButtonSize } from '../../../../../component-library/components/Buttons/Button';
-import { TokenSelectorType } from '../../types';
 import { getNetworkImageSource } from '../../../../../util/networks';
 
 /** Maximum number of network pills visible in the horizontal list */
@@ -37,7 +35,6 @@ interface NetworkPillsProps {
   selectedChainId?: CaipChainId;
   onChainSelect: (chainId?: CaipChainId) => void;
   onMorePress: () => void;
-  type: TokenSelectorType;
 }
 
 interface ChainRankingEntry {
@@ -57,15 +54,13 @@ export const NetworkPills: React.FC<NetworkPillsProps> = ({
   selectedChainId,
   onChainSelect,
   onMorePress,
-  type,
 }) => {
   const tw = useTailwind();
   const dispatch = useDispatch();
   const scrollViewRef = useRef<ScrollView>(null);
-  const sourceChainRanking = useSelector(selectSourceChainRanking);
-  const destChainRanking = useSelector(selectDestChainRanking);
-  const chainRanking: ChainRankingEntry[] =
-    type === TokenSelectorType.Source ? sourceChainRanking : destChainRanking;
+  const chainRanking: ChainRankingEntry[] = useSelector(
+    selectAllowedChainRanking,
+  );
 
   // Visible pill chain IDs from Redux (shared across source/dest pickers).
   // Falls back to first N from chainRanking on initial mount.

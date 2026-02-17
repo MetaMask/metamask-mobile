@@ -3,10 +3,8 @@ import { render, fireEvent } from '@testing-library/react-native';
 import { NetworkPills } from './NetworkPills';
 import { CaipChainId } from '@metamask/utils';
 import { useSelector, useDispatch } from 'react-redux';
-import { TokenSelectorType } from '../../types';
 import {
-  selectSourceChainRanking,
-  selectDestChainRanking,
+  selectAllowedChainRanking,
   selectVisiblePillChainIds,
 } from '../../../../../core/redux/slices/bridge';
 
@@ -43,8 +41,7 @@ const mockSmallChainRanking = [
 ];
 
 jest.mock('../../../../../core/redux/slices/bridge', () => ({
-  selectSourceChainRanking: jest.fn(),
-  selectDestChainRanking: jest.fn(),
+  selectAllowedChainRanking: jest.fn(),
   selectVisiblePillChainIds: jest.fn(),
   setVisiblePillChainIds: jest.fn((ids) => ({
     type: 'bridge/setVisiblePillChainIds',
@@ -109,10 +106,7 @@ describe('NetworkPills', () => {
     jest.clearAllMocks();
     (useDispatch as jest.Mock).mockReturnValue(mockDispatch);
     mockUseSelector.mockImplementation((selector: unknown) => {
-      if (
-        selector === selectSourceChainRanking ||
-        selector === selectDestChainRanking
-      ) {
+      if (selector === selectAllowedChainRanking) {
         return mockChainRanking;
       }
       if (selector === selectVisiblePillChainIds) {
@@ -129,7 +123,6 @@ describe('NetworkPills', () => {
           selectedChainId={undefined}
           onChainSelect={mockOnChainSelect}
           onMorePress={mockOnMorePress}
-          type={TokenSelectorType.Source}
         />,
       );
 
@@ -151,7 +144,6 @@ describe('NetworkPills', () => {
           selectedChainId={undefined}
           onChainSelect={mockOnChainSelect}
           onMorePress={mockOnMorePress}
-          type={TokenSelectorType.Source}
         />,
       );
 
@@ -168,7 +160,6 @@ describe('NetworkPills', () => {
           selectedChainId={undefined}
           onChainSelect={mockOnChainSelect}
           onMorePress={mockOnMorePress}
-          type={TokenSelectorType.Source}
         />,
       );
 
@@ -187,7 +178,6 @@ describe('NetworkPills', () => {
           selectedChainId={undefined}
           onChainSelect={mockOnChainSelect}
           onMorePress={mockOnMorePress}
-          type={TokenSelectorType.Source}
         />,
       );
 
@@ -212,7 +202,6 @@ describe('NetworkPills', () => {
           selectedChainId={undefined}
           onChainSelect={mockOnChainSelect}
           onMorePress={mockOnMorePress}
-          type={TokenSelectorType.Source}
         />,
       );
 
@@ -233,7 +222,6 @@ describe('NetworkPills', () => {
           selectedChainId={'eip155:1' as CaipChainId}
           onChainSelect={mockOnChainSelect}
           onMorePress={mockOnMorePress}
-          type={TokenSelectorType.Source}
         />,
       );
 
@@ -248,7 +236,6 @@ describe('NetworkPills', () => {
           selectedChainId={undefined}
           onChainSelect={mockOnChainSelect}
           onMorePress={mockOnMorePress}
-          type={TokenSelectorType.Source}
         />,
       );
 
@@ -263,7 +250,6 @@ describe('NetworkPills', () => {
           selectedChainId={undefined}
           onChainSelect={mockOnChainSelect}
           onMorePress={mockOnMorePress}
-          type={TokenSelectorType.Source}
         />,
       );
 
@@ -280,7 +266,6 @@ describe('NetworkPills', () => {
           selectedChainId={'eip155:56' as CaipChainId}
           onChainSelect={mockOnChainSelect}
           onMorePress={mockOnMorePress}
-          type={TokenSelectorType.Source}
         />,
       );
 
@@ -293,7 +278,6 @@ describe('NetworkPills', () => {
           selectedChainId={undefined}
           onChainSelect={mockOnChainSelect}
           onMorePress={mockOnMorePress}
-          type={TokenSelectorType.Source}
         />,
       );
 
@@ -308,7 +292,6 @@ describe('NetworkPills', () => {
           selectedChainId={undefined}
           onChainSelect={mockOnChainSelect}
           onMorePress={mockOnMorePress}
-          type={TokenSelectorType.Source}
         />,
       );
 
@@ -318,7 +301,6 @@ describe('NetworkPills', () => {
           selectedChainId={'eip155:137' as CaipChainId}
           onChainSelect={mockOnChainSelect}
           onMorePress={mockOnMorePress}
-          type={TokenSelectorType.Source}
         />,
       );
 
@@ -340,7 +322,6 @@ describe('NetworkPills', () => {
           selectedChainId={undefined}
           onChainSelect={mockOnChainSelect}
           onMorePress={mockOnMorePress}
-          type={TokenSelectorType.Source}
         />,
       );
 
@@ -352,7 +333,6 @@ describe('NetworkPills', () => {
           selectedChainId={'eip155:1' as CaipChainId}
           onChainSelect={mockOnChainSelect}
           onMorePress={mockOnMorePress}
-          type={TokenSelectorType.Source}
         />,
       );
 

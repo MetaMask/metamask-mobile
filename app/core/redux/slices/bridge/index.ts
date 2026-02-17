@@ -300,50 +300,16 @@ const isAllowedBridgeChainId = (caipChainId: string): boolean => {
 };
 
 /**
- * Base selector: filters chainRanking from feature flags by ALLOWED_BRIDGE_CHAIN_IDS.
- * This is the single place where the allowlist check is applied to chainRanking.
- * All other chain ranking selectors should derive from this.
+ * Selector that returns chainRanking from feature flags filtered by
+ * ALLOWED_BRIDGE_CHAIN_IDS. This ensures chains added to the remote flag
+ * in the future won't be surfaced by older app versions that lack support.
  */
-const selectAllowedChainRanking = createSelector(
+export const selectAllowedChainRanking = createSelector(
   selectBridgeFeatureFlags,
   (bridgeFeatureFlags) =>
     (bridgeFeatureFlags.chainRanking ?? []).filter((chain) =>
       isAllowedBridgeChainId(chain.chainId),
     ),
-);
-
-/**
- * Selector that returns all chains from chainRanking that are supported by this
- * version of the client (filtered by ALLOWED_BRIDGE_CHAIN_IDS).
- * Used by NetworkPills in DEST mode to show all available destination networks.
- */
-export const selectDestChainRanking = selectAllowedChainRanking;
-
-/**
- * Selector that returns the chainRanking filtered by:
- * 1. Chains supported by this version of the client (via selectAllowedChainRanking)
- * 2. User-configured networks
- * Used by NetworkPills in SOURCE mode to show all networks the user has added.
- */
-export const selectSourceChainRanking = createSelector(
-  selectAllowedChainRanking,
-  selectNetworkConfigurations,
-  (allowedChains, networkConfigurations) => {
-    const configuredChainIds = new Set(Object.keys(networkConfigurations));
-
-    return allowedChains.filter((chain) => {
-      const { chainId } = chain;
-
-      // For EVM chains (eip155:*), extract the hex chain ID and check if user has it configured
-      if (chainId.startsWith('eip155:')) {
-        const hexChainId = formatChainIdToHex(chainId);
-        return configuredChainIds.has(hexChainId);
-      }
-
-      // For non-EVM chains, check directly against the CAIP chain ID
-      return configuredChainIds.has(chainId);
-    });
-  },
 );
 
 /**
