@@ -57,6 +57,10 @@ jest.mock('../../../../selectors/networkInfos', () => ({
   selectNetworkName: () => mockSelectNetworkName(),
 }));
 
+jest.mock('../../../../selectors/networkController', () => ({
+  selectEvmChainId: () => '0x1',
+}));
+
 // Mock typed functions
 const mockUseCurrentNetworkInfo = useCurrentNetworkInfo as jest.MockedFunction<
   typeof useCurrentNetworkInfo
