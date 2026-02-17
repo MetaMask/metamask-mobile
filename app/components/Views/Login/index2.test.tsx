@@ -54,21 +54,6 @@ jest.mock('../../../core/Authentication/hooks/useAuthentication', () => ({
   }),
 }));
 
-// Mock useMetrics with a dynamic isEnabled function
-const mockIsEnabled = jest.fn().mockReturnValue(true);
-const mockEnable = jest.fn().mockResolvedValue(undefined);
-jest.mock('../../hooks/useMetrics', () => {
-  const actualUseMetrics = jest.requireActual('../../hooks/useMetrics');
-  return {
-    ...actualUseMetrics,
-    useMetrics: jest.fn().mockReturnValue({
-      ...actualUseMetrics.useMetrics,
-      isEnabled: () => mockIsEnabled(),
-      enable: mockEnable,
-    }),
-  };
-});
-
 const mockNavigate = jest.fn();
 const mockReplace = jest.fn();
 const mockReset = jest.fn();
