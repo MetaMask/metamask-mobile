@@ -192,6 +192,16 @@ describe('LedgerBluetoothAdapter', () => {
       });
     });
 
+    it('does not emit Disconnected when flow is complete', async () => {
+      await adapter.connect('device-123');
+      adapter.markFlowComplete();
+      onDeviceEvent.mockClear();
+
+      await adapter.disconnect();
+
+      expect(onDeviceEvent).not.toHaveBeenCalled();
+    });
+
     it('handles disconnect when not connected', async () => {
       await expect(adapter.disconnect()).resolves.toBeUndefined();
     });

@@ -137,7 +137,7 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
     await this.closeTransport();
     this.clearTransportState();
 
-    if (previousDeviceId) {
+    if (previousDeviceId && !this.flowComplete) {
       this.emitEvent({
         event: DeviceEvent.Disconnected,
         deviceId: previousDeviceId,
@@ -314,12 +314,7 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
       try {
         return await this.doEnsureDeviceReady(deviceId);
       } catch (error) {
-        const isDisconnect =
-          error instanceof Error &&
-          (error.name === 'DisconnectedDevice' ||
-            error.name === 'DisconnectedDeviceDuringOperation');
-
-        if (isDisconnect && attempt < MAX_DISCONNECT_RETRIES) {
+        if (this.isDisconnectError(error) && attempt < MAX_DISCONNECT_RETRIES) {
           DevLogger.log(
             `[LedgerBluetoothAdapter] Disconnect during check (attempt ${attempt}/${MAX_DISCONNECT_RETRIES}), retrying...`,
           );
@@ -391,6 +386,10 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
             '[LedgerBluetoothAdapter] Verification failed:',
             verifyError,
           );
+
+          if (this.isDisconnectError(verifyError)) {
+            throw verifyError;
+          }
 
           if (this.isDeviceLocked(verifyError)) {
             DevLogger.log('[LedgerBluetoothAdapter] Device is locked');
@@ -590,7 +589,7 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
   }
 
   /**
-   * Add timeout to an async operation
+   * Add timeout to an async operation. Clears the timer when the main promise settles first.
    */
   private withTimeout<T>(
     promise: Promise<T>,
@@ -600,11 +599,25 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
     const timeoutError = new Error(errorMessage);
     timeoutError.name = 'LedgerTimeoutError';
 
+    let timeoutId: ReturnType<typeof setTimeout>;
     const timeoutPromise = new Promise<never>((_, reject) => {
-      setTimeout(() => reject(timeoutError), timeoutMs);
+      timeoutId = setTimeout(() => reject(timeoutError), timeoutMs);
     });
 
-    return Promise.race([promise, timeoutPromise]);
+    return Promise.race([promise, timeoutPromise]).finally(() =>
+      clearTimeout(timeoutId),
+    );
+  }
+
+  /**
+   * Check if error indicates a Ledger transport disconnect (so caller can retry).
+   */
+  private isDisconnectError(error: unknown): boolean {
+    return (
+      error instanceof Error &&
+      (error.name === 'DisconnectedDevice' ||
+        error.name === 'DisconnectedDeviceDuringOperation')
+    );
   }
 
   /**
