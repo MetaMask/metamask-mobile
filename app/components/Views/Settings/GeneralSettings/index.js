@@ -58,12 +58,12 @@ const infuraCurrencyOptions = sortedCurrencies.map(
   }),
 );
 
-export const updateUserTraitsWithCurrentCurrency = (currency, metrics) => {
+export const updateUserTraitsWithCurrentCurrency = (currency, analytics) => {
   // track event and add selected currency to user profile for analytics
   const traits = { [UserProfileProperty.CURRENT_CURRENCY]: currency };
-  metrics.addTraitsToUser(traits);
-  metrics.trackEvent(
-    metrics
+  analytics.addTraitsToUser(traits);
+  analytics.trackEvent(
+    analytics
       .createEventBuilder(MetaMetricsEvents.CURRENCY_CHANGED)
       .addProperties({
         ...traits,
@@ -73,10 +73,13 @@ export const updateUserTraitsWithCurrentCurrency = (currency, metrics) => {
   );
 };
 
-export const updateUserTraitsWithCurrencyType = (primaryCurrency, metrics) => {
+export const updateUserTraitsWithCurrencyType = (
+  primaryCurrency,
+  analytics,
+) => {
   // track event and add primary currency preference (fiat/crypto) to user profile for analytics
   const traits = { [UserProfileProperty.PRIMARY_CURRENCY]: primaryCurrency };
-  metrics.addTraitsToUser(traits);
+  analytics.addTraitsToUser(traits);
 };
 
 const createStyles = (colors) =>
@@ -208,9 +211,9 @@ class Settings extends PureComponent {
      */
     // appTheme: PropTypes.string,
     /**
-     * Metrics injected by withMetricsAwareness HOC
+     * Analytics injected by withAnalyticsAwareness HOC
      */
-    metrics: PropTypes.object,
+    analytics: PropTypes.object,
   };
 
   state = {
@@ -221,7 +224,7 @@ class Settings extends PureComponent {
   selectCurrency = async (currency) => {
     const { CurrencyRateController } = Engine.context;
     CurrencyRateController.setCurrentCurrency(currency);
-    updateUserTraitsWithCurrentCurrency(currency, this.props.metrics);
+    updateUserTraitsWithCurrentCurrency(currency, this.props.analytics);
   };
 
   selectLanguage = (language) => {
@@ -238,7 +241,7 @@ class Settings extends PureComponent {
   selectPrimaryCurrency = (primaryCurrency) => {
     this.props.setPrimaryCurrency(primaryCurrency);
 
-    updateUserTraitsWithCurrencyType(primaryCurrency, this.props.metrics);
+    updateUserTraitsWithCurrencyType(primaryCurrency, this.props.analytics);
   };
 
   toggleHideZeroBalanceTokens = (toggleHideZeroBalanceTokens) => {

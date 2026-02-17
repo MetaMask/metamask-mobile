@@ -43,7 +43,7 @@ jest.mock(
   }),
 );
 
-// HOC mock must inject metrics; mock factory runs before imports so React is not in scope (hence require).
+// HOC mock must inject analytics; mock factory runs before imports so React is not in scope (hence require).
 jest.mock(
   '../../../../../components/hooks/useAnalytics/withAnalyticsAwareness',
   () => {
@@ -54,7 +54,7 @@ jest.mock(
         (Component: unknown) => (props: Record<string, unknown>) =>
           ReactModule.createElement(Component, {
             ...props,
-            metrics: {
+            analytics: {
               trackEvent: mockTrackEvent,
               createEventBuilder: mockCreateEventBuilder,
               addTraitsToUser: jest.fn(),
@@ -141,14 +141,14 @@ jest.mock('../../../../../core/Engine', () => ({
 
 const store = mockStore(initialState);
 
-const mockMetrics = {
+const mockAnalytics = {
   trackEvent: mockTrackEvent,
   createEventBuilder: mockCreateEventBuilder,
   addTraitsToUser: jest.fn(),
 };
 
 const SAMPLE_NETWORKSETTINGS_PROPS = {
-  metrics: mockMetrics,
+  analytics: mockAnalytics,
   route: { params: {} },
   providerConfig: {
     rpcUrl: 'https://mainnet.infura.io/v3/YOUR-PROJECT-ID',
@@ -308,7 +308,7 @@ describe('NetworkSettings', () => {
 
   it('should update state and call getCurrentState on RPC URL change', async () => {
     const SAMPLE_NETWORKSETTINGS_PROPS_2 = {
-      metrics: mockMetrics,
+      analytics: mockAnalytics,
       route: {
         params: {
           network: 'mainnet',
@@ -363,7 +363,7 @@ describe('NetworkSettings', () => {
 
   it('should initialize state correctly when networkTypeOrRpcUrl is provided', () => {
     const SAMPLE_NETWORKSETTINGS_PROPS_2 = {
-      metrics: mockMetrics,
+      analytics: mockAnalytics,
       route: {
         params: {
           network: 'mainnet',
@@ -412,7 +412,7 @@ describe('NetworkSettings', () => {
 
   it('should initialize state correctly when networkTypeOrRpcUrl is provided and isCustomMainnet is true', () => {
     const SAMPLE_NETWORKSETTINGS_PROPS_2 = {
-      metrics: mockMetrics,
+      analytics: mockAnalytics,
       route: {
         params: { network: 'mainnet', isCustomMainnet: true },
       },
@@ -463,7 +463,7 @@ describe('NetworkSettings', () => {
 
   it('should initialize state correctly when networkTypeOrRpcUrl is provided and allNetworks is not found', () => {
     const SAMPLE_NETWORKSETTINGS_PROPS_2 = {
-      metrics: mockMetrics,
+      analytics: mockAnalytics,
       route: {
         params: { network: 'https://mainnet.infura.io/v3/YOUR-PROJECT-ID' },
       },
@@ -1391,7 +1391,7 @@ describe('NetworkSettings', () => {
   describe('NetworkSettings componentDidMount', () => {
     it('should correctly initialize state when networkTypeOrRpcUrl is provided', () => {
       const SAMPLE_NETWORKSETTINGS_PROPS_2 = {
-        metrics: mockMetrics,
+        analytics: mockAnalytics,
         route: {
           params: {
             network: 'mainnet',
@@ -1444,7 +1444,7 @@ describe('NetworkSettings', () => {
 
     it('should set addMode to true if no networkTypeOrRpcUrl is provided', () => {
       const SAMPLE_NETWORKSETTINGS_PROPS_3 = {
-        metrics: mockMetrics,
+        analytics: mockAnalytics,
         route: {
           params: {},
         },
@@ -1475,7 +1475,7 @@ describe('NetworkSettings', () => {
 
     it('should handle cases where the network is custom', () => {
       const SAMPLE_NETWORKSETTINGS_PROPS_4 = {
-        metrics: mockMetrics,
+        analytics: mockAnalytics,
         route: {
           params: { network: 'https://custom-network.io' },
         },
@@ -1693,7 +1693,7 @@ describe('NetworkSettings', () => {
     it('tracks RPC update event when trackRpcUpdateFromBanner is true', async () => {
       const PROPS_WITH_METRICS = {
         ...SAMPLE_PROPS,
-        metrics: {
+        analytics: {
           trackEvent: mockTrackEvent,
           createEventBuilder: mockCreateEventBuilder,
         },
@@ -1764,7 +1764,7 @@ describe('NetworkSettings', () => {
     it('does not track RPC update event when trackRpcUpdateFromBanner is false', async () => {
       const PROPS_WITHOUT_TRACKING = {
         ...SAMPLE_PROPS,
-        metrics: {
+        analytics: {
           trackEvent: mockTrackEvent,
           createEventBuilder: mockCreateEventBuilder,
         },
@@ -1825,7 +1825,7 @@ describe('NetworkSettings', () => {
     it('sanitizes custom RPC URLs as "custom" in tracking event', async () => {
       const PROPS_WITH_CUSTOM_RPC = {
         ...SAMPLE_PROPS,
-        metrics: {
+        analytics: {
           trackEvent: mockTrackEvent,
           createEventBuilder: mockCreateEventBuilder,
         },
@@ -1896,7 +1896,7 @@ describe('NetworkSettings', () => {
     it('tracks unknown for missing old RPC endpoint', async () => {
       const PROPS_WITHOUT_OLD_ENDPOINT = {
         ...SAMPLE_PROPS,
-        metrics: {
+        analytics: {
           trackEvent: mockTrackEvent,
           createEventBuilder: mockCreateEventBuilder,
         },

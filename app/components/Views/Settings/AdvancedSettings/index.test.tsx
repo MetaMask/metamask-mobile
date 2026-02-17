@@ -71,7 +71,7 @@ jest.mock(
         (Component: unknown) => (props: Record<string, unknown>) =>
           ReactModule.createElement(Component, {
             ...props,
-            metrics: {
+            analytics: {
               trackEvent: jest.fn(),
               createEventBuilder: jest.fn(() => ({
                 addProperties: jest.fn().mockReturnThis(),

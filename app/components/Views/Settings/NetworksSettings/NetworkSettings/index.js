@@ -166,9 +166,9 @@ export class NetworkSettings extends PureComponent {
      */
     providerConfig: PropTypes.object,
     /**
-     * Metrics injected by withMetricsAwareness HOC
+     * Analytics injected by withAnalyticsAwareness HOC
      */
-    metrics: PropTypes.object,
+    analytics: PropTypes.object,
 
     /**
      * Checks if toggle verification is enabled
@@ -640,8 +640,8 @@ export class NetworkSettings extends PureComponent {
             ? onlyKeepHost(url)
             : 'custom';
 
-        this.props.metrics.trackEvent(
-          this.props.metrics
+        this.props.analytics.trackEvent(
+          this.props.analytics
             .createEventBuilder(
               MetaMetricsEvents.NetworkConnectionBannerRpcUpdated,
             )
@@ -660,7 +660,7 @@ export class NetworkSettings extends PureComponent {
         ...networkConfig,
       });
 
-      this.props.metrics.addTraitsToUser(
+      this.props.analytics.addTraitsToUser(
         addItemToChainIdList(networkConfig.chainId),
       );
     }
@@ -1046,8 +1046,8 @@ export class NetworkSettings extends PureComponent {
 
     // Track RPC Added event
     if (this.state.chainId) {
-      this.props.metrics.trackEvent(
-        this.props.metrics
+      this.props.analytics.trackEvent(
+        this.props.analytics
           .createEventBuilder(MetaMetricsEvents.RPC_ADDED)
           .addProperties({
             chain_id: toHex(this.state.chainId),
@@ -1165,8 +1165,8 @@ export class NetworkSettings extends PureComponent {
 
     // Track RPC Removed event
     if (chainId && rpcUrlIndex !== -1) {
-      this.props.metrics.trackEvent(
-        this.props.metrics
+      this.props.analytics.trackEvent(
+        this.props.analytics
           .createEventBuilder(MetaMetricsEvents.RPC_REMOVED)
           .addProperties({
             chain_id: toHex(chainId),
@@ -1365,7 +1365,7 @@ export class NetworkSettings extends PureComponent {
     const { NetworkController } = Engine.context;
     NetworkController.removeNetwork(networkConfiguration.chainId);
 
-    this.props.metrics.addTraitsToUser(
+    this.props.analytics.addTraitsToUser(
       removeItemFromChainIdList(networkConfiguration.chainId),
     );
 

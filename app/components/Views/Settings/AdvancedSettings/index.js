@@ -220,9 +220,9 @@ class AdvancedSettings extends PureComponent {
      */
     route: PropTypes.object,
     /**
-     * Metrics injected by withMetricsAwareness HOC
+     * Analytics injected by withAnalyticsAwareness HOC
      */
-    metrics: PropTypes.object,
+    analytics: PropTypes.object,
     /**
      * Boolean that checks if smart transactions is enabled
      */
@@ -300,8 +300,8 @@ class AdvancedSettings extends PureComponent {
   };
 
   trackMetricsEvent = (event, properties) => {
-    this.props.metrics.trackEvent(
-      this.props.metrics
+    this.props.analytics.trackEvent(
+      this.props.analytics
         .createEventBuilder(event)
         .addProperties({
           location: 'Advanced Settings',
