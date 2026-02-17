@@ -324,10 +324,9 @@ describe('ActivityView', () => {
       spyOnCreateNetworkManagerNavDetails.mockRestore();
     });
 
-    it('disables filter button when network info isDisabled is true', () => {
+    it('displays filter button as disabled', () => {
       const disabledNetworkInfo = {
         ...defaultNetworkInfo,
-        isDisabled: true,
       };
       mockUseCurrentNetworkInfo.mockReturnValue(disabledNetworkInfo);
       const { getByTestId } = renderComponent(mockInitialState);

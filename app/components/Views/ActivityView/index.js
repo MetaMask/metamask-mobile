@@ -86,16 +86,6 @@ const createStyles = (params) => {
       maxWidth: '80%',
       paddingHorizontal: 12,
     },
-    controlButtonDisabled: {
-      backgroundColor: colors.background.default,
-      borderColor: colors.border.muted,
-      marginRight: 4,
-      borderWidth: 1,
-      borderRadius: 8,
-      maxWidth: '80%',
-      paddingHorizontal: 12,
-      opacity: 0.5,
-    },
     networkManagerWrapper: {
       display: 'flex',
       flexDirection: 'row',
@@ -128,8 +118,7 @@ const ActivityView = () => {
   const networkName = useSelector(selectNetworkName);
   const accountsByChainId = useSelector(selectAccountsByChainId);
 
-  const { enabledNetworks, getNetworkInfo, isDisabled } =
-    useCurrentNetworkInfo();
+  const { enabledNetworks, getNetworkInfo } = useCurrentNetworkInfo();
   const { areAllNetworksSelected } = useNetworksByNamespace({
     networkType: NetworkType.Popular,
   });
