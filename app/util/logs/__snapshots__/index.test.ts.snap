@@ -175,7 +175,7 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
       "MultichainAssetsController": {
         "accountsAssets": {},
         "allIgnoredAssets": {},
-        "assetsInfo": {},
+        "assetsMetadata": {},
       },
       "MultichainAssetsRatesController": {
         "conversionRates": {},
@@ -1008,7 +1008,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       "MultichainAssetsController": {
         "accountsAssets": {},
         "allIgnoredAssets": {},
-        "assetsInfo": {},
+        "assetsMetadata": {},
       },
       "MultichainAssetsRatesController": {
         "conversionRates": {},

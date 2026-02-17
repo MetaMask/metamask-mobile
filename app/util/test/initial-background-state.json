@@ -660,7 +660,7 @@
   },
   "MultichainAssetsController": {
     "accountsAssets": {},
-    "assetsInfo": {},
+    "assetsMetadata": {},
     "allIgnoredAssets": {}
   },
   "BridgeController": {
