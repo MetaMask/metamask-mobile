@@ -291,7 +291,6 @@ describe('CustomNetworkSelector', () => {
       evmNetworks: mockNetworks,
       solanaNetworks: mockNetworks,
       bitcoinNetworks: mockNetworks,
-      isMultichainAccountsState2Enabled: true,
       selectedEvmAccount: { id: 'evm-account' } as InternalAccount,
       selectedSolanaAccount: { id: 'solana-account' } as InternalAccount,
       selectedBitcoinAccount: { id: 'bitcoin-account' } as InternalAccount,

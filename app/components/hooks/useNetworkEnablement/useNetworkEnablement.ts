@@ -14,7 +14,6 @@ import Engine from '../../../core/Engine';
 import { selectEnabledNetworksByNamespace } from '../../../selectors/networkEnablementController';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { selectChainId } from '../../../selectors/networkController';
-import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
 
 /**
  * Manages network enablement state across namespaces (EVM, Bitcoin, etc).
@@ -55,10 +54,6 @@ export const useNetworkEnablement = () => {
     [],
   );
 
-  const isMultichainAccountsState2Enabled = useSelector(
-    selectMultichainAccountsState2Enabled,
-  );
-
   const enabledNetworksForCurrentNamespace = useMemo(
     () => enabledNetworksByNamespace?.[namespace] || {},
     [enabledNetworksByNamespace, namespace],
@@ -77,13 +72,10 @@ export const useNetworkEnablement = () => {
 
   const enableNetwork = useMemo(
     () => (chainId: CaipChainId) => {
-      if (isMultichainAccountsState2Enabled) {
-        networkEnablementController.enableNetwork(chainId);
-        return;
-      }
-      networkEnablementController.enableNetworkInNamespace(chainId, namespace);
+      networkEnablementController.enableNetwork(chainId);
+      return;
     },
-    [networkEnablementController, isMultichainAccountsState2Enabled, namespace],
+    [networkEnablementController],
   );
 
   const enableAllPopularNetworks = useMemo(
