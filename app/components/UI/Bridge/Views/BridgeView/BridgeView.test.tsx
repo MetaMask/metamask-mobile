@@ -3,7 +3,7 @@ import {
   renderScreen,
   DeepPartial,
 } from '../../../../../util/test/renderWithProvider';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
   setDestToken,
@@ -281,6 +281,33 @@ jest.mock('react-native-fade-in-image', () => {
   };
 });
 
+// Mock BottomSheetDialog so that onCloseDialog synchronously calls onClose,
+// allowing keypad close() to work in tests (the real component uses reanimated
+// withTiming which never completes in JSDOM).
+jest.mock(
+  '../../../../../component-library/components/BottomSheets/BottomSheet/foundation/BottomSheetDialog/BottomSheetDialog',
+  () => {
+    const MockReact = jest.requireActual('react');
+    return {
+      __esModule: true,
+      default: MockReact.forwardRef(
+        (
+          {
+            children,
+            onClose,
+          }: { children: React.ReactNode; onClose?: () => void },
+          dialogRef: React.Ref<{ onCloseDialog: () => void }>,
+        ) => {
+          MockReact.useImperativeHandle(dialogRef, () => ({
+            onCloseDialog: () => onClose?.(),
+          }));
+          return children;
+        },
+      ),
+    };
+  },
+);
+
 // Mock gas included support hooks
 const mockUseIsGasIncludedSTXSendBundleSupported = jest.fn();
 jest.mock(
@@ -354,6 +381,35 @@ describe('BridgeView', () => {
     // Verify navigation to BridgeTokenSelector
     expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.TOKEN_SELECTOR, {
       type: 'dest',
+    });
+  });
+
+  it('close keypad when pressing destination token input', async () => {
+    const { getByTestId, queryByTestId, getByText } = renderScreen(
+      BridgeView,
+      {
+        name: Routes.BRIDGE.ROOT,
+      },
+      { state: mockState },
+    );
+
+    // Verify keypad is open (opened by useBridgeViewOnFocus on mount)
+    await waitFor(() => {
+      expect(getByText('1')).toBeTruthy();
+      expect(queryByTestId('keypad-delete-button')).toBeTruthy();
+    });
+
+    // Press the destination token input which should close the keypad
+    const destInput = getByTestId('dest-token-area-input');
+
+    // Call the onPressIn handler directly to trigger keypad close
+    await act(async () => {
+      destInput.props.onPressIn();
+    });
+
+    // Verify keypad is closed
+    await waitFor(() => {
+      expect(queryByTestId('keypad-delete-button')).toBeNull();
     });
   });
 
@@ -521,7 +577,7 @@ describe('BridgeView', () => {
     });
   });
 
-  it('should switch tokens when clicking arrow button', () => {
+  it('switch tokens and preserve keypad state when clicking arrow button', () => {
     const mockStateWithTokens = {
       ...mockState,
       bridge: {
@@ -545,13 +601,17 @@ describe('BridgeView', () => {
       },
     };
 
-    const { getByTestId } = renderScreen(
+    const { getByTestId, queryByTestId } = renderScreen(
       BridgeView,
       {
         name: Routes.BRIDGE.ROOT,
       },
       { state: mockStateWithTokens },
     );
+
+    // Keypad is open before flip
+    const keypadBeforeFlip = queryByTestId('keypad-delete-button');
+    const wasKeypadOpen = !!keypadBeforeFlip;
 
     const arrowButton = getByTestId('arrow-button');
     fireEvent.press(arrowButton);
@@ -562,6 +622,10 @@ describe('BridgeView', () => {
     expect(setDestToken).toHaveBeenCalledWith(
       mockStateWithTokens.bridge.sourceToken,
     );
+
+    // Keypad state is preserved after flip — not explicitly closed or opened
+    const keypadAfterFlip = queryByTestId('keypad-delete-button');
+    expect(!!keypadAfterFlip).toBe(wasKeypadOpen);
   });
 
   it('disables switch button when destination token network is disabled', () => {

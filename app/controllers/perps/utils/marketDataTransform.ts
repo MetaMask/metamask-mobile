@@ -4,20 +4,20 @@
  * Portable: no mobile-specific imports.
  * Formatters are injected via MarketDataFormatters interface.
  */
-import type {
-  AllMidsResponse,
-  PerpsUniverse,
-  PerpsAssetCtx,
-  PredictedFunding,
-} from '../types/hyperliquid-types';
-import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 import { HYPERLIQUID_CONFIG } from '../constants/hyperLiquidConfig';
+import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 import type {
   PerpsMarketData,
   MarketType,
   MarketDataFormatters,
 } from '../types';
 import { parseAssetName } from './hyperLiquidAdapter';
+import type {
+  AllMidsResponse,
+  PerpsUniverse,
+  PerpsAssetCtx,
+  PredictedFunding,
+} from '../types/hyperliquid-types';
 
 /**
  * Calculate open interest in USD
@@ -32,7 +32,7 @@ export function calculateOpenInterestUSD(
   openInterest: string | number | undefined,
   currentPrice: string | number | undefined,
 ): number {
-  if (openInterest == null || currentPrice == null) {
+  if (openInterest === undefined || currentPrice === undefined) {
     return NaN;
   }
 
@@ -70,6 +70,9 @@ type CalculateChange24hPercentParams = {
 /**
  * Calculate 24h percentage change
  * Shows -100% when current price is missing but previous price exists
+ *
+ * @param params - The parameters for calculating the 24h change.
+ * @returns The 24h percentage change value.
  */
 function calculateChange24hPercent(
   params: CalculateChange24hPercentParams,
@@ -165,6 +168,7 @@ function extractFundingData(params: ExtractFundingDataParams): FundingData {
 
 /**
  * Transform raw HyperLiquid market data to UI-friendly format
+ *
  * @param hyperLiquidData - Raw data from HyperLiquid API
  * @param formatters - Injectable formatters for platform-agnostic formatting
  * @param assetMarketTypes - Optional mapping of asset symbols to market types
@@ -236,7 +240,7 @@ export function transformMarketData(
     // Extract DEX and base symbol for display
     // e.g., "flx:TSLA" → { dex: "flx", symbol: "TSLA" }
     const { dex } = parseAssetName(symbol);
-    const marketSource = dex || undefined;
+    const marketSource = dex ?? undefined;
 
     // HIP-3 markets have a DEX prefix (e.g., xyz:TSLA, flx:GOLD)
     // Crypto markets (HIP-2) don't have a prefix (e.g., BTC, ETH)
@@ -297,8 +301,12 @@ export function formatChange(
   change: number,
   formatters: MarketDataFormatters,
 ): string {
-  if (isNaN(change) || !isFinite(change)) return '$0.00';
-  if (change === 0) return '$0.00';
+  if (isNaN(change) || !isFinite(change)) {
+    return '$0.00';
+  }
+  if (change === 0) {
+    return '$0.00';
+  }
 
   const formatted = formatters.formatPerpsFiat(Math.abs(change), {
     ranges: formatters.priceRangesUniversal,

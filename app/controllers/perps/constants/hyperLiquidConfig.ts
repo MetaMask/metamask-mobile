@@ -1,4 +1,5 @@
 import type { CaipAssetId, CaipChainId, Hex } from '@metamask/utils';
+
 import type {
   HyperLiquidNetwork,
   HyperLiquidEndpoints,
