@@ -29,7 +29,7 @@ import {
   BridgeViewMode,
 } from '../../../../components/UI/Bridge/types';
 import { selectGasFeeControllerEstimates } from '../../../../selectors/gasFeeController';
-import { MetaMetrics } from '../../../Analytics';
+import { analytics } from '../../../../util/analytics/analytics';
 import { GasFeeEstimates } from '@metamask/gas-fee-controller';
 import { selectRemoteFeatureFlags } from '../../../../selectors/featureFlagController';
 import { getTokenExchangeRate } from '../../../../components/UI/Bridge/utils/exchange-rates';
@@ -443,7 +443,7 @@ const selectControllerFields = (state: RootState) => ({
   ...state.engine.backgroundState.MultichainAssetsRatesController,
   ...state.engine.backgroundState.TokenRatesController,
   ...state.engine.backgroundState.CurrencyRateController,
-  participateInMetaMetrics: MetaMetrics.getInstance().isEnabled(),
+  participateInMetaMetrics: analytics.isEnabled(),
   remoteFeatureFlags: {
     bridgeConfig: selectRemoteFeatureFlags(state).bridgeConfig,
   },
