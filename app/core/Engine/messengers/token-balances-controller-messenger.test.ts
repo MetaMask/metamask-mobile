@@ -12,7 +12,7 @@ const getRootMessenger = (): RootMessenger =>
 
 describe('getTokenBalancesControllerMessenger', () => {
   it('returns a messenger', () => {
-    const messenger: RootMessenger = getRootMessenger();
+    const messenger = getRootMessenger();
     const tokenBalancesControllerMessenger =
       getTokenBalancesControllerMessenger(messenger);
 
