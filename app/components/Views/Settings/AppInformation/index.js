@@ -24,7 +24,7 @@ import {
   checkAutomatically,
 } from 'expo-updates';
 import { connect } from 'react-redux';
-import { getFullVersion } from '../../../../constants/ota';
+import { OTA_VERSION } from '../../../../constants/ota';
 import { fontStyles } from '../../../../styles/common';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../../locales/i18n';
@@ -122,8 +122,11 @@ class AppInformation extends PureComponent {
     const appName = await getApplicationName();
     const appVersion = await getVersion();
     const buildNumber = await getBuildNumber();
+    const appInfo = `${appName} v${appVersion} (${buildNumber})`;
+    const appInfoOta = `${appName} ota ${OTA_VERSION} (${buildNumber})`;
+    const versionDisplay = isEmbeddedLaunch || __DEV__ ? appInfo : appInfoOta;
     this.setState({
-      appInfo: `${appName} v${appVersion} (${buildNumber})`,
+      appInfo: versionDisplay,
       appVersion,
     });
   };
@@ -208,9 +211,7 @@ class AppInformation extends PureComponent {
                 resizeMethod={'auto'}
               />
             </TouchableOpacity>
-            <Text style={styles.versionInfo}>
-              {getFullVersion(this.state.appInfo)}
-            </Text>
+            <Text style={styles.versionInfo}>{this.state.appInfo}</Text>
             {isQa ? (
               <Text style={styles.branchInfo}>
                 {`Branch: ${process.env['GIT_BRANCH']}`}
