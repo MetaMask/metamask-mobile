@@ -13,6 +13,7 @@ import { EARN_EXPERIENCES } from '../../constants/experiences';
 import { useMusdCtaVisibility } from '../../hooks/useMusdCtaVisibility';
 import {
   selectIsMusdConversionFlowEnabledFlag,
+  selectMusdQuickConvertEnabledFlag,
   selectPooledStakingEnabledFlag,
   selectPooledStakingServiceInterruptionBannerEnabledFlag,
   selectStablecoinLendingEnabledFlag,
@@ -161,6 +162,7 @@ jest.mock('../../hooks/useMusdConversionEligibility', () => ({
 
 jest.mock('../../selectors/featureFlags', () => ({
   selectIsMusdConversionFlowEnabledFlag: jest.fn(),
+  selectMusdQuickConvertEnabledFlag: jest.fn(),
   selectPooledStakingEnabledFlag: jest.fn(),
   selectStablecoinLendingEnabledFlag: jest.fn(),
   selectStablecoinLendingServiceInterruptionBannerEnabledFlag: jest.fn(),
@@ -229,6 +231,12 @@ describe('EarnLendingBalance', () => {
         typeof selectStablecoinLendingEnabledFlag
       >
     ).mockReturnValue(true);
+
+    (
+      selectMusdQuickConvertEnabledFlag as jest.MockedFunction<
+        typeof selectMusdQuickConvertEnabledFlag
+      >
+    ).mockReturnValue(false);
 
     (
       selectStablecoinLendingServiceInterruptionBannerEnabledFlag as jest.MockedFunction<

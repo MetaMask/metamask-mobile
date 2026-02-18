@@ -19,6 +19,7 @@ import { useNetworkName } from '../../../../../Views/confirmations/hooks/useNetw
 import { MUSD_EVENTS_CONSTANTS } from '../../../constants/events';
 import { strings } from '../../../../../../../locales/i18n';
 import { MUSD_CONVERSION_APY } from '../../../constants/musd';
+import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../../types/musd.types';
 
 const createMockToken = (overrides: Partial<TokenI> = {}): TokenI => ({
   address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
@@ -236,6 +237,7 @@ describe('MusdConversionAssetOverviewCta', () => {
             address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
             chainId: '0x1',
           },
+          navigationOverride: MUSD_CONVERSION_NAVIGATION_OVERRIDE.QUICK_CONVERT,
           navigationStack: Routes.EARN.ROOT,
         });
       });

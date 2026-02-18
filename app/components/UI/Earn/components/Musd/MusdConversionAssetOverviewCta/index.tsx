@@ -12,10 +12,7 @@ import Icon, {
   IconColor,
 } from '../../../../../../component-library/components/Icons/Icon';
 import musdIcon from '../../../../../../images/musd-icon-no-background-2x.png';
-import {
-  MUSD_CONVERSION_NAVIGATION_OVERRIDE,
-  useMusdConversion,
-} from '../../../hooks/useMusdConversion';
+import { useMusdConversion } from '../../../hooks/useMusdConversion';
 import { toHex } from '@metamask/controller-utils';
 import { TokenI } from '../../../../Tokens/types';
 import Routes from '../../../../../../constants/navigation/Routes';
@@ -27,6 +24,7 @@ import { MetaMetricsEvents, useMetrics } from '../../../../../hooks/useMetrics';
 import { MUSD_EVENTS_CONSTANTS } from '../../../constants/events';
 import { useNetworkName } from '../../../../../Views/confirmations/hooks/useNetworkName';
 import { Hex } from '@metamask/utils';
+import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../../types/musd.types';
 interface MusdConversionAssetOverviewCtaProps {
   asset: TokenI;
   testId?: string;
