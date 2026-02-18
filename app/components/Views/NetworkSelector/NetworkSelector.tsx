@@ -101,8 +101,11 @@ import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import { MultichainNetworkConfiguration } from '@metamask/multichain-network-controller';
 import { useSwitchNetworks } from './useSwitchNetworks';
 import { removeItemFromChainIdList } from '../../../util/metrics/MultichainAPI/networkMetricUtils';
-import { MetaMetrics } from '../../../core/Analytics';
-import { NETWORK_SELECTOR_SOURCES } from '../../../constants/networkSelector';
+import { analytics } from '../../../util/analytics/analytics';
+import {
+  NETWORK_SELECTOR_SOURCES,
+  NetworkSelectorSource,
+} from '../../../constants/networkSelector';
 import { getGasFeesSponsoredNetworkEnabled } from '../../../selectors/featureFlagController/gasFeesSponsored';
 import type {
   ShowConfirmDeleteModalState,
@@ -869,9 +872,7 @@ const NetworkSelector = ({ route }: NetworkSelectorProps) => {
       const { NetworkController } = Engine.context;
       NetworkController.removeNetwork(chainId);
 
-      MetaMetrics.getInstance().addTraitsToUser(
-        removeItemFromChainIdList(chainId),
-      );
+      analytics.identify(removeItemFromChainIdList(chainId));
 
       // set tokenNetworkFilter
       const { PreferencesController } = Engine.context;
