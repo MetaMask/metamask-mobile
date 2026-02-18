@@ -546,13 +546,14 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
   }
 
   async #closeTransport(): Promise<void> {
-    if (this.#transport) {
+    const transport = this.#transport;
+    if (transport) {
+      this.#transport = null;
       try {
-        await this.#transport.close();
+        await transport.close();
       } catch {
         // Ignore close errors
       }
-      this.#transport = null;
     }
   }
 
