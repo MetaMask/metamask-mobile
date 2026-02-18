@@ -6,9 +6,9 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { personalSignatureConfirmationState } from '../../../../../util/test/confirm-data-helpers';
 import { Footer } from '../../components/footer';
 import QRInfo from '../../components/qr-info';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as Camera from './useCamera';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as QRHardwareAwareness from './useQRHardwareAwareness';
 import {
   QRHardwareContextProvider,

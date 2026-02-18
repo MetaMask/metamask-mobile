@@ -25,7 +25,7 @@ import AppConstants from '../../../core/AppConstants';
 import { Authentication } from '../../../core';
 import styleSheet from './SocialLoginErrorSheet.styles';
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs
+// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import-x/no-commonjs
 const FOX_LOGO = require('../../../images/branding/fox.png');
 
 interface SocialLoginErrorSheetProps {

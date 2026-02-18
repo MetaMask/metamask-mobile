@@ -1,4 +1,4 @@
-/* eslint-disable import/no-commonjs */
+/* eslint-disable import-x/no-commonjs */
 const baseConfig = require('./jest.config.js');
 
 module.exports = {

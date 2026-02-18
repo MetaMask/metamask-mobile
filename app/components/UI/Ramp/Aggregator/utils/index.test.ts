@@ -32,7 +32,7 @@ import {
 import { FIAT_ORDER_STATES } from '../../../../../constants/on-ramp';
 import { FiatOrder, RampType } from '../../../../../reducers/fiatOrders/types';
 import { QuoteSortBy } from '@consensys/on-ramp-sdk/dist/IOnRampSdk';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as IntlModule from '../../../../../util/intl';
 
 describe('timeToDescription', () => {

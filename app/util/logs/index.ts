@@ -4,9 +4,9 @@ import {
   getBuildNumber,
   getVersion,
 } from 'react-native-device-info';
-import Share from 'react-native-share'; // eslint-disable-line  import/default
+import Share from 'react-native-share'; // eslint-disable-line  import-x/default
 import RNFS from 'react-native-fs';
-// eslint-disable-next-line import/no-nodejs-modules
+// eslint-disable-next-line import-x/no-nodejs-modules
 import { Buffer } from 'buffer';
 import Logger from '../../util/Logger';
 import { RootState } from '../../reducers';
@@ -80,7 +80,7 @@ const getSanitizedSeedlessOnboardingControllerState = () => {
 };
 
 // TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any, import/prefer-default-export
+// eslint-disable-next-line @typescript-eslint/no-explicit-any, import-x/prefer-default-export
 export const generateStateLogs = (state: any, loggedIn = true): string => {
   const fullState = JSON.parse(JSON.stringify(state));
 

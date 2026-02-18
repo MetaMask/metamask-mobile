@@ -46,7 +46,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
 import { QRType, QRScannerEventProperties, ScanResult } from './constants';
 import { getQRType } from './utils';
 
-const frameImage = require('../../../images/frame.png'); // eslint-disable-line import/no-commonjs
+const frameImage = require('../../../images/frame.png'); // eslint-disable-line import-x/no-commonjs
 
 /**
  * View that wraps the QR code scanner screen

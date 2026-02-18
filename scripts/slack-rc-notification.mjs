@@ -21,7 +21,7 @@
 import { readFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
-// eslint-disable-next-line import/no-extraneous-dependencies
+// eslint-disable-next-line import-x/no-extraneous-dependencies
 import { parseChangelog } from '@metamask/auto-changelog';
 
 const __filename = fileURLToPath(import.meta.url);

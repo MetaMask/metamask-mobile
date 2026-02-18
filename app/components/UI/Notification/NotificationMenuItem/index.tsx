@@ -1,4 +1,4 @@
-/* eslint-disable import/prefer-default-export */
+/* eslint-disable import-x/prefer-default-export */
 import NotificationRoot from './Root';
 import NotificationIcon from './Icon';
 import NotificationContent from './Content';

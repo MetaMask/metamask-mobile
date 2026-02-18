@@ -1,5 +1,5 @@
 import ParsedURL from 'url-parse';
-// eslint-disable-next-line import/no-nodejs-modules
+// eslint-disable-next-line import-x/no-nodejs-modules
 import { Buffer } from 'buffer';
 import { JsonRpcParams } from '@metamask/utils';
 

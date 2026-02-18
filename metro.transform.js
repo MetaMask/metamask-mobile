@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
-/* eslint-disable import/no-nodejs-modules */
-/* eslint-disable import/no-commonjs */
+/* eslint-disable import-x/no-nodejs-modules */
+/* eslint-disable import-x/no-commonjs */
 const path = require('path');
 const {
   removeFencedCode,

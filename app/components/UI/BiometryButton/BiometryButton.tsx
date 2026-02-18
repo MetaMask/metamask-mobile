@@ -18,7 +18,7 @@ import { LoginViewSelectors } from '../../Views/Login/LoginView.testIds';
 
 /* eslint-disable @typescript-eslint/no-require-imports */
 /* eslint-disable @typescript-eslint/no-var-requires */
-/* eslint-disable import/no-commonjs */
+/* eslint-disable import-x/no-commonjs */
 const androidIris = require('../../../images/android-iris.png');
 
 type BiometryType = BIOMETRY_TYPE | AUTHENTICATION_TYPE | string | null;

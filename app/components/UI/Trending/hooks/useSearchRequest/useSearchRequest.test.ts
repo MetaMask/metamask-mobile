@@ -2,7 +2,7 @@ import { useSearchRequest } from './useSearchRequest';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { act, waitFor } from '@testing-library/react-native';
 import { CaipChainId } from '@metamask/utils';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as assetsControllers from '@metamask/assets-controllers';
 
 const createMockSearchResult = (overrides = {}) => ({

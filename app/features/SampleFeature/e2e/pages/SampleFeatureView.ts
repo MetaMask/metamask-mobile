@@ -1,4 +1,4 @@
-/* eslint-disable import/prefer-default-export */
+/* eslint-disable import-x/prefer-default-export */
 import Matchers from '../../../../../tests/framework/Matchers';
 import Gestures from '../../../../../tests/framework/Gestures';
 import Assertions from '../../../../../tests/framework/Assertions';

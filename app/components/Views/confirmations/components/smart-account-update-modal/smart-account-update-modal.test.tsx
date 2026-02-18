@@ -7,7 +7,7 @@ import {
   getAppStateForConfirmation,
   upgradeAccountConfirmation,
 } from '../../../../../util/test/confirm-data-helpers';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as AddressUtils from '../../../../../util/address';
 import { SmartAccountUpdateModal } from './smart-account-update-modal';
 

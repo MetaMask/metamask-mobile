@@ -2,7 +2,7 @@ import React from 'react';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import { StakeSDKProvider } from '../sdk/stakeSdkProvider';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as useStakeContextHook from '../hooks/useStakeContext';
 import { View } from 'react-native';
 import Text from '../../../../component-library/components/Texts/Text';

@@ -1,4 +1,4 @@
-/* eslint-disable import/no-commonjs */
+/* eslint-disable import-x/no-commonjs */
 module.exports = {
   root: true,
   parser: '@typescript-eslint/parser',
@@ -9,7 +9,7 @@ module.exports = {
     '@react-native',
     'eslint:recommended',
     // '@metamask/eslint-config', // TODO: Enable when ready
-    'plugin:import/warnings',
+    'plugin:import-x/warnings',
     'plugin:react/recommended',
   ],
   // ESLint can find the plugin without the `eslint-plugin-` prefix. Ex. `eslint-plugin-react-compiler` -> `react-compiler`
@@ -51,6 +51,65 @@ module.exports = {
             allow: ['Text'],
           },
         ],
+
+        // These rule modifications are removing changes to our shared ESLint config made after
+        // version v9. This is a temporary measure to get us to ESLint v9 compatible versions,
+        // at which point we can restore the intended rules and use error suppression instead.
+        //
+        // TODO: Remove these modifications after the ESLint v9 update
+        '@typescript-eslint/await-thenable': 'off',
+        '@typescript-eslint/consistent-type-imports': 'off',
+        '@typescript-eslint/consistent-type-exports': 'off',
+        '@typescript-eslint/explicit-function-return-type': 'off',
+        '@typescript-eslint/naming-convention': 'off',
+        '@typescript-eslint/no-base-to-string': 'off',
+        '@typescript-eslint/no-duplicate-type-constituents': 'off',
+        '@typescript-eslint/no-empty-object-type': 'off',
+        '@typescript-eslint/no-floating-promises': 'off',
+        '@typescript-eslint/no-implied-eval': 'off',
+        '@typescript-eslint/no-misused-promises': 'off',
+        '@typescript-eslint/no-redundant-type-constituents': 'off',
+        '@typescript-eslint/no-throw-literal': 'off',
+        '@typescript-eslint/no-unnecessary-type-assertion': 'off',
+        '@typescript-eslint/no-unnecessary-type-arguments': 'off',
+        '@typescript-eslint/no-unsafe-enum-comparison': 'off',
+        '@typescript-eslint/no-unnecessary-boolean-literal-compare': 'off',
+        '@typescript-eslint/no-unused-vars': 'off',
+        '@typescript-eslint/no-wrapper-object-types': 'off',
+        '@typescript-eslint/only-throw-error': 'off',
+        '@typescript-eslint/prefer-enum-initializers': 'off',
+        '@typescript-eslint/prefer-includes': 'off',
+        '@typescript-eslint/prefer-nullish-coalescing': 'off',
+        '@typescript-eslint/prefer-optional-chain': 'off',
+        '@typescript-eslint/prefer-promise-reject-errors': 'off',
+        '@typescript-eslint/prefer-readonly': 'off',
+        '@typescript-eslint/prefer-reduce-type-parameter': 'off',
+        '@typescript-eslint/prefer-string-starts-ends-with': 'off',
+        '@typescript-eslint/promise-function-async': 'off',
+        '@typescript-eslint/restrict-plus-operands': 'off',
+        '@typescript-eslint/restrict-template-expressions': 'off',
+        '@typescript-eslint/switch-exhaustiveness-check': 'off',
+        '@typescript-eslint/unbound-method': 'off',
+        'no-restricted-syntax': [
+          'error',
+          {
+            selector: 'WithStatement',
+            message: 'With statements are not allowed',
+          },
+          {
+            selector: 'SequenceExpression',
+            message: 'Sequence expressions are not allowed',
+          },
+          // {
+          //   selector: "BinaryExpression[operator='in']",
+          //   message: 'The "in" operator is not allowed',
+          // },
+          // {
+          //   selector:
+          //     "PropertyDefinition[accessibility='private'], MethodDefinition[accessibility='private'], TSParameterProperty[accessibility='private']",
+          //   message: 'Use a hash name instead.',
+          // },
+        ],
       },
     },
     {
@@ -86,16 +145,16 @@ module.exports = {
       },
       rules: {
         'no-console': 'off',
-        'import/no-commonjs': 'off',
-        'import/no-nodejs-modules': 'off',
+        'import-x/no-commonjs': 'off',
+        'import-x/no-nodejs-modules': 'off',
       },
     },
     {
       files: ['scripts/**/*.js', 'tests/tools/**/*.{js,ts}', 'app.config.js'],
       rules: {
         'no-console': 'off',
-        'import/no-commonjs': 'off',
-        'import/no-nodejs-modules': 'off',
+        'import-x/no-commonjs': 'off',
+        'import-x/no-nodejs-modules': 'off',
       },
     },
     {
@@ -332,9 +391,12 @@ module.exports = {
         '@typescript-eslint/restrict-template-expressions': 'error',
 
         // === Import rules (using 'import' plugin, not 'import-x') ===
-        'import/consistent-type-specifier-style': ['error', 'prefer-top-level'],
-        'import/no-named-as-default': 'error',
-        'import/order': [
+        'import-x/consistent-type-specifier-style': [
+          'error',
+          'prefer-top-level',
+        ],
+        'import-x/no-named-as-default': 'error',
+        'import-x/order': [
           'error',
           {
             groups: [
@@ -411,10 +473,10 @@ module.exports = {
   },
 
   settings: {
-    'import/resolver': {
+    'import-x/resolver': {
       typescript: {}, // this loads <rootdir>/tsconfig.json to eslint
     },
-    'import/internal-regex': '^@metamask/perps-controller',
+    'import-x/internal-regex': '^@metamask/perps-controller',
   },
 
   rules: {
@@ -436,7 +498,7 @@ module.exports = {
     'no-bitwise': 'off',
     'class-methods-use-this': 'off',
     'eol-last': 'warn',
-    'import/no-named-as-default': 'off',
+    'import-x/no-named-as-default': 'off',
     'no-invalid-this': 'off',
     'no-new': 'off',
     'react/jsx-handler-names': 'off',
@@ -447,14 +509,14 @@ module.exports = {
     'arrow-body-style': 'error',
     'dot-notation': 'error',
     eqeqeq: 'error',
-    'import/no-amd': 'error',
-    'import/no-commonjs': 'error',
-    'import/no-duplicates': 'error',
-    'import/no-extraneous-dependencies': ['error', { packageDir: ['./'] }],
-    'import/no-mutable-exports': 'error',
-    'import/no-namespace': 'error',
-    'import/no-nodejs-modules': 'error',
-    'import/prefer-default-export': 'off',
+    'import-x/no-amd': 'error',
+    'import-x/no-commonjs': 'error',
+    'import-x/no-duplicates': 'error',
+    'import-x/no-extraneous-dependencies': ['error', { packageDir: ['./'] }],
+    'import-x/no-mutable-exports': 'error',
+    'import-x/no-namespace': 'error',
+    'import-x/no-nodejs-modules': 'error',
+    'import-x/prefer-default-export': 'off',
     'no-alert': 'error',
     'no-constant-condition': [
       'error',
@@ -502,7 +564,7 @@ module.exports = {
     'prefer-const': 'error',
     'prefer-rest-params': 'error',
     'prefer-spread': 'error',
-    'import/no-unresolved': 'error',
+    'import-x/no-unresolved': 'error',
     'eslint-comments/no-unlimited-disable': 'off',
     'eslint-comments/no-unused-disable': 'off',
     'react-native/no-color-literals': 'error',
@@ -529,6 +591,14 @@ module.exports = {
     'react/prefer-es6-class': 'error',
     '@metamask/design-tokens/color-no-hex': 'warn',
     radix: 'off',
+
+    // These rule modifications are removing changes to our shared ESLint config made after
+    // version v9. This is a temporary measure to get us to ESLint v9 compatible versions,
+    // at which point we can restore the intended rules and use error suppression instead.
+    //
+    // TODO: Remove these modifications after the ESLint v9 update
+    'react-hooks/rules-of-hooks': 'off',
+    'no-loss-of-precision': 'off',
   },
 
   ignorePatterns: ['wdio.conf.js', 'app/util/termsOfUse/termsOfUseContent.ts'],

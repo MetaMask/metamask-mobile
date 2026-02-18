@@ -13,7 +13,7 @@ import { useTheme } from '../../../../../util/theme';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './smart-account-update-content.styles';
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs
+// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import-x/no-commonjs
 const smartAccountUpdateImage = require('../../../../../images/smart-account-update.png');
 
 const ListItem = ({

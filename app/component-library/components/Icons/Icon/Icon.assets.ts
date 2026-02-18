@@ -1,4 +1,4 @@
-/* eslint-disable import/prefer-default-export */
+/* eslint-disable import-x/prefer-default-export */
 ///////////////////////////////////////////////////////
 // This is a generated file
 // DO NOT EDIT - Use generate-assets.js

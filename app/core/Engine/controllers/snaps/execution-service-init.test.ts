@@ -7,7 +7,7 @@ import {
 import { executionServiceInit } from './execution-service-init';
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
-// eslint-disable-next-line import/no-nodejs-modules
+// eslint-disable-next-line import-x/no-nodejs-modules
 import { Duplex } from 'stream';
 import { SnapBridge } from '../../../Snaps';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';

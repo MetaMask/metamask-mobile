@@ -1,4 +1,4 @@
-/* eslint-disable import/prefer-default-export */
+/* eslint-disable import-x/prefer-default-export */
 import compareVersions from 'compare-versions';
 import {
   WHATS_NEW_APP_VERSION_SEEN,

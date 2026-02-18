@@ -1,4 +1,4 @@
-/* eslint-disable import/no-nodejs-modules */
+/* eslint-disable import-x/no-nodejs-modules */
 import { execSync } from 'child_process';
 
 // Default port for the browser playground dapp server

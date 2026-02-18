@@ -6,7 +6,7 @@ import {
   screen,
 } from '@testing-library/react-native';
 import { FeatureAnnouncementToggle } from './FeatureAnnouncementToggle';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as UseSwitchNotificationsModule from '../../../../util/notifications/hooks/useSwitchNotifications';
 import { NotificationSettingsViewSelectorsIDs } from './NotificationSettingsView.testIds';
 

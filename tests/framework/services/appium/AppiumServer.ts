@@ -1,4 +1,4 @@
-/* eslint-disable import/no-nodejs-modules */
+/* eslint-disable import-x/no-nodejs-modules */
 import { spawn, exec, type ChildProcess } from 'child_process';
 import { createLogger } from '../../logger.ts';
 

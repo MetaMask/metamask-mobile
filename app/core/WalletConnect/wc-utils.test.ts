@@ -13,7 +13,7 @@ import {
 } from './wc-utils';
 import type { NavigationContainerRef } from '@react-navigation/native';
 import Routes from '../../../app/constants/navigation/Routes';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as StoreModule from '../../../app/store';
 import DevLogger from '../SDKConnect/utils/DevLogger';
 

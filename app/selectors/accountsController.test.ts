@@ -44,7 +44,7 @@ import {
   MOCK_KEYRING_CONTROLLER,
 } from './keyringController/testUtils';
 import { KeyringTypes } from '@metamask/keyring-controller';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as utils from '../core/Multichain/utils';
 
 /**
