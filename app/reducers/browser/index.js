@@ -67,6 +67,7 @@ const browserReducer = (state = initialState, action) => {
             url: action.url,
             ...(action.linkType && { linkType: action.linkType }),
             id: action.id,
+            lastActiveAt: Date.now(),
           },
         ],
       };
@@ -79,6 +80,9 @@ const browserReducer = (state = initialState, action) => {
       return {
         ...state,
         activeTab: action.id,
+        tabs: state.tabs.map((tab) =>
+          tab.id === action.id ? { ...tab, lastActiveAt: Date.now() } : tab,
+        ),
       };
     case 'UPDATE_TAB':
       return {
