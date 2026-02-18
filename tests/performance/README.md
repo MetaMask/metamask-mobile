@@ -45,7 +45,6 @@ tests/
 │   └── utils/
 │       ├── Flows.js                 # Shared user flows
 │       ├── TestConstants.js         # Test constants and credentials
-│       ├── BrowserStackCredentials.js # BrowserStack auth helper
 │       ├── MobileBrowser.js         # Mobile browser helpers
 │       └── Utils.js                 # General utilities
 ├── reporters/
