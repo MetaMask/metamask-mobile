@@ -4,27 +4,63 @@ import { View } from 'react-native';
 import { ConfirmationRowComponentIDs } from '../../../../ConfirmationView.testIds';
 import { useTransactionMetadataRequest } from '../../../../hooks/transactions/useTransactionMetadataRequest';
 import { useStyles } from '../../../../../../../component-library/hooks';
-import Name from '../../../../../../UI/Name/Name';
-import Icon, {
-  IconName,
-  IconSize,
-  IconColor,
-} from '../../../../../../../component-library/components/Icons/Icon';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../../../../../component-library/components/Texts/Text';
 import { NameType } from '../../../../../../UI/Name/Name.types';
 import { useTransferRecipient } from '../../../../hooks/transactions/useTransferRecipient';
 import { RowAlertKey } from '../../../UI/info-row/alert-row/constants';
 import InfoSection from '../../../UI/info-row/info-section';
-import AlertRow from '../../../UI/info-row/alert-row';
+import InlineAlert from '../../../UI/inline-alert';
+import { useAlerts } from '../../../../context/alert-system-context';
 import { Skeleton } from '../../../../../../../component-library/components/Skeleton';
+import { strings } from '../../../../../../../../locales/i18n';
+import Identicon from '../../../../../../UI/Identicon';
+import useDisplayName, {
+  DisplayNameVariant,
+} from '../../../../../../hooks/DisplayName/useDisplayName';
+import { toFormattedAddress } from '../../../../../../../util/address';
 import styleSheet from './from-to-row.styles';
+
+interface AddressDisplayProps {
+  address: string;
+  chainId: string;
+}
+
+const AddressDisplay = ({ address, chainId }: AddressDisplayProps) => {
+  const { styles } = useStyles(styleSheet, {});
+  const { name, image, variant } = useDisplayName({
+    type: NameType.EthereumAddress,
+    value: address,
+    variation: chainId,
+  });
+
+  const displayText =
+    variant === DisplayNameVariant.Unknown
+      ? toFormattedAddress(address)
+      : name || address;
+
+  return (
+    <View style={styles.addressRow}>
+      <Text
+        variant={TextVariant.BodyMD}
+        numberOfLines={1}
+        ellipsizeMode="middle"
+        style={styles.addressText}
+      >
+        {displayText}
+      </Text>
+      <Identicon address={address} imageUri={image} diameter={24} />
+    </View>
+  );
+};
 
 const FromToRow = () => {
   const { styles } = useStyles(styleSheet, {});
   const transactionMetadata = useTransactionMetadataRequest();
   const transferRecipient = useTransferRecipient();
-
-  // Do not set than 13 characters, it breaks the UI for small screens
-  const MAX_CHAR_LENGTH = 13;
+  const { fieldAlerts } = useAlerts();
 
   if (!transactionMetadata) {
     return null;
@@ -36,36 +72,32 @@ const FromToRow = () => {
   const fromAddress = from as string;
   const toAddress = transferRecipient;
 
+  const toAlert = fieldAlerts.find(
+    (a) => a.field === RowAlertKey.FromToAddress,
+  );
+
   return (
     <InfoSection testID={ConfirmationRowComponentIDs.FROM_TO}>
       <View style={styles.container}>
-        <View style={[styles.nameContainer, styles.leftNameContainer]}>
-          <Name
-            type={NameType.EthereumAddress}
-            value={fromAddress}
-            variation={chainId}
-            maxCharLength={MAX_CHAR_LENGTH}
-          />
+        <View style={styles.row}>
+          <Text
+            variant={TextVariant.BodyMD}
+            color={TextColor.Alternative}
+            style={styles.label}
+          >
+            {strings('transaction.from')}
+          </Text>
+          <AddressDisplay address={fromAddress} chainId={chainId} />
         </View>
 
-        <View style={styles.iconContainer}>
-          <Icon
-            size={IconSize.Sm}
-            name={IconName.ArrowRight}
-            color={IconColor.Alternative}
-          />
-        </View>
-
-        <View style={[styles.nameContainer, styles.rightNameContainer]}>
-          {/* Intentional empty label to trigger the alert row without a label */}
-          <AlertRow alertField={RowAlertKey.FromToAddress}>
-            <Name
-              type={NameType.EthereumAddress}
-              value={toAddress as string}
-              variation={chainId}
-              maxCharLength={MAX_CHAR_LENGTH}
-            />
-          </AlertRow>
+        <View style={[styles.row, styles.rowSeparator]}>
+          <View style={styles.labelRow}>
+            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+              {strings('send.to')}
+            </Text>
+            {toAlert && <InlineAlert alertObj={toAlert} />}
+          </View>
+          <AddressDisplay address={toAddress as string} chainId={chainId} />
         </View>
       </View>
     </InfoSection>
@@ -78,24 +110,17 @@ export function FromToRowSkeleton() {
   return (
     <InfoSection>
       <View style={styles.container}>
-        <View style={[styles.nameContainer, styles.leftNameContainer]}>
+        <View style={styles.row}>
           <Skeleton
             width={110}
-            height={36}
+            height={32}
             style={styles.skeletonBorderRadiusLarge}
           />
         </View>
-        <View style={styles.iconContainer}>
-          <Skeleton
-            width={16}
-            height={16}
-            style={styles.skeletonBorderRadiusSmall}
-          />
-        </View>
-        <View style={[styles.nameContainer, styles.rightNameContainer]}>
+        <View style={[styles.row, styles.rowSeparator]}>
           <Skeleton
             width={110}
-            height={36}
+            height={32}
             style={styles.skeletonBorderRadiusLarge}
           />
         </View>
