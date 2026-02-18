@@ -463,7 +463,9 @@ const CardHome = () => {
       ) {
         navigation.navigate(
           ...createPasswordBottomSheetNavigationDetails({
-            onSuccess: toggleFreeze,
+            onSuccess: () => {
+              toggleFreeze();
+            },
             description: strings(
               'card.password_bottomsheet.description_unfreeze',
             ),
@@ -727,7 +729,9 @@ const CardHome = () => {
       ) {
         navigation.navigate(
           ...createPasswordBottomSheetNavigationDetails({
-            onSuccess: fetchAndShowCardDetails,
+            onSuccess: () => {
+              fetchAndShowCardDetails();
+            },
           }),
         );
         return;
@@ -1285,9 +1289,8 @@ const CardHome = () => {
         )}
         {isAuthenticated &&
           !isLoading &&
-          cardDetails &&
-          cardDetails.isFreezable &&
-          cardDetails.status !== CardStatus.BLOCKED && (
+          cardDetails?.isFreezable &&
+          cardDetails?.status !== CardStatus.BLOCKED && (
             <ManageCardListItem
               title={
                 isFrozen
