@@ -161,7 +161,9 @@ const Checkout = () => {
         navigation,
         { title: providerName ?? headerTitle },
         theme,
-        () => {},
+        () => {
+          // Cancel analytics could go here
+        },
       ),
     );
   }, [navigation, theme, providerName, headerTitle]);
@@ -285,7 +287,9 @@ const Checkout = () => {
     ],
   );
 
-  const handleCancelPress = useCallback(() => {}, []);
+  const handleCancelPress = useCallback(() => {
+    // TODO: Add analytics tracking when analytics events are defined for unified flow
+  }, []);
   const handleClosePress = useCallback(() => {
     handleCancelPress();
     sheetRef.current?.onCloseBottomSheet();
@@ -366,7 +370,10 @@ const Checkout = () => {
           onHttpError={(syntheticEvent) => {
             const { nativeEvent } = syntheticEvent;
             const errorUrl = nativeEvent.url;
-            if (errorUrl === initialUriRef.current || errorUrl.startsWith(callbackBaseUrl)) {
+            if (
+              errorUrl === initialUriRef.current ||
+              errorUrl.startsWith(callbackBaseUrl)
+            ) {
               const webviewHttpError = strings(
                 'fiat_on_ramp_aggregator.webview_received_error',
                 { code: nativeEvent.statusCode },
@@ -382,7 +389,9 @@ const Checkout = () => {
           enableApplePay
           paymentRequestEnabled
           mediaPlaybackRequiresUserAction={false}
-          onNavigationStateChange={hasCallbackFlow ? handleNavigationStateChange : undefined}
+          onNavigationStateChange={
+            hasCallbackFlow ? handleNavigationStateChange : undefined
+          }
           onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
           testID="checkout-webview"
         />
@@ -414,7 +423,9 @@ const Checkout = () => {
       <ScreenLayout>
         <ScreenLayout.Body>
           <ErrorView
-            description={strings('fiat_on_ramp_aggregator.webview_no_url_provided')}
+            description={strings(
+              'fiat_on_ramp_aggregator.webview_no_url_provided',
+            )}
             location="Provider Webview"
           />
         </ScreenLayout.Body>
