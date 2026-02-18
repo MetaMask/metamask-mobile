@@ -1,6 +1,44 @@
-import { isInternalDeepLink } from './index';
+import { isInternalDeepLink, isMetaMaskUniversalLink } from './index';
 
 describe('deeplinks utils', () => {
+  describe('isMetaMaskUniversalLink', () => {
+    it('identifies MetaMask universal links by host', () => {
+      expect(isMetaMaskUniversalLink('https://link.metamask.io/swap')).toBe(
+        true,
+      );
+      expect(
+        isMetaMaskUniversalLink('https://link.metamask.io/dapp/uniswap.org'),
+      ).toBe(true);
+      expect(isMetaMaskUniversalLink('https://metamask.app.link/swap')).toBe(
+        true,
+      );
+      expect(
+        isMetaMaskUniversalLink('https://metamask.test-app.link/home'),
+      ).toBe(true);
+      expect(
+        isMetaMaskUniversalLink('https://link-test.metamask.io/send'),
+      ).toBe(true);
+    });
+
+    it('does NOT match custom-scheme URLs', () => {
+      expect(isMetaMaskUniversalLink('ethereum://pay-0x1234')).toBe(false);
+      expect(isMetaMaskUniversalLink('dapp://app.uniswap.org')).toBe(false);
+      expect(isMetaMaskUniversalLink('metamask://connect')).toBe(false);
+    });
+
+    it('does not match external URLs', () => {
+      expect(isMetaMaskUniversalLink('https://google.com')).toBe(false);
+      expect(isMetaMaskUniversalLink('https://uniswap.org')).toBe(false);
+    });
+
+    it('handles edge cases gracefully', () => {
+      expect(isMetaMaskUniversalLink('')).toBe(false);
+      expect(isMetaMaskUniversalLink(null)).toBe(false);
+      expect(isMetaMaskUniversalLink(undefined)).toBe(false);
+      expect(isMetaMaskUniversalLink('not-a-valid-url')).toBe(false);
+    });
+  });
+
   describe('isInternalDeepLink', () => {
     it('identifies MetaMask custom scheme deeplinks', () => {
       expect(isInternalDeepLink('metamask://connect')).toBe(true);
