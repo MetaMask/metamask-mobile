@@ -29,7 +29,6 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "addressBook": {},
       },
       "AiDigestController": {
-        "digests": {},
         "marketInsights": {},
       },
       "AnalyticsController": {
@@ -866,7 +865,6 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "addressBook": {},
       },
       "AiDigestController": {
-        "digests": {},
         "marketInsights": {},
       },
       "AnalyticsController": {
