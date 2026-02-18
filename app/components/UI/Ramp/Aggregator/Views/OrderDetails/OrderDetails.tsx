@@ -43,7 +43,7 @@ import AppConstants from '../../../../../../core/AppConstants';
 import { useRampNavigation } from '../../../hooks/useRampNavigation';
 import { useAggregatorOrderNetworkName } from '../../hooks/useAggregatorOrderNetworkName';
 
-interface OrderDetailsParams {
+export interface OrderDetailsParams {
   orderId?: string;
   redirectToSendTransaction?: boolean;
 }
