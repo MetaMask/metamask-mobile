@@ -23,10 +23,10 @@ describe('DeviceAuthenticationButton', () => {
       <DeviceAuthenticationButton onPress={mockOnPress} hidden={false} />,
     );
 
-    expect(getByTestId(LoginViewSelectors.BIOMETRY_BUTTON)).toBeDefined();
+    expect(getByTestId(LoginViewSelectors.BIOMETRY_BUTTON)).toBeOnTheScreen();
     expect(
       getByTestId(LoginViewSelectors.DEVICE_AUTHENTICATION_ICON),
-    ).toBeDefined();
+    ).toBeOnTheScreen();
   });
 
   it('calls onPress when pressed', () => {
