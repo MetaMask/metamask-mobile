@@ -1,15 +1,15 @@
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { RegressionAccounts } from '../../../e2e/tags.js';
-import WalletView from '../../../e2e/pages/wallet/WalletView';
-import EditAccountName from '../../../e2e/pages/MultichainAccounts/EditAccountName';
+import { RegressionAccounts } from '../../tags.js';
+import WalletView from '../../page-objects/wallet/WalletView';
+import EditAccountName from '../../page-objects/MultichainAccounts/EditAccountName';
 import Assertions from '../../framework/Assertions';
-import TabBarComponent from '../../../e2e/pages/wallet/TabBarComponent';
-import SettingsView from '../../../e2e/pages/Settings/SettingsView';
-import LoginView from '../../../e2e/pages/wallet/LoginView';
-import AccountListBottomSheet from '../../../e2e/pages/wallet/AccountListBottomSheet';
-import AccountDetails from '../../../e2e/pages/MultichainAccounts/AccountDetails';
+import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
+import SettingsView from '../../page-objects/Settings/SettingsView';
+import LoginView from '../../page-objects/wallet/LoginView';
+import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomSheet';
+import AccountDetails from '../../page-objects/MultichainAccounts/AccountDetails';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { loginToApp } from '../../../e2e/viewHelper';
+import { loginToApp } from '../../flows/wallet.flow';
 
 const NEW_ACCOUNT_NAME = 'Edited Name';
 const NEW_IMPORTED_ACCOUNT_NAME = 'New Imported Account';

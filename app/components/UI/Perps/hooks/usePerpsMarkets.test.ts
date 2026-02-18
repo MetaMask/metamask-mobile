@@ -2,9 +2,19 @@ import { renderHook, act } from '@testing-library/react-hooks';
 import { waitFor } from '@testing-library/react-native';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { usePerpsMarkets, parseVolume } from './usePerpsMarkets';
-import type { PerpsMarketData } from '../controllers/types';
+import { type PerpsMarketData } from '@metamask/perps-controller';
 
 jest.mock('../../../../core/SDKConnect/utils/DevLogger');
+jest.mock('../../../../core/Engine', () => ({
+  context: {
+    PerpsController: {
+      state: {
+        cachedMarketData: null,
+        cachedMarketDataTimestamp: 0,
+      },
+    },
+  },
+}));
 
 // Mock PerpsStreamManager
 const mockSubscribe = jest.fn();

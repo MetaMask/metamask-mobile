@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { usePerpsStream } from '../../providers/PerpsStreamManager';
-import type { PriceUpdate } from '../../controllers/types';
+import { type PriceUpdate } from '@metamask/perps-controller';
 
 export interface UsePerpsLivePricesOptions {
   /** Array of symbols to subscribe to */
