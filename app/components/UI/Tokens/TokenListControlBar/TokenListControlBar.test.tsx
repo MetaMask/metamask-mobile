@@ -17,16 +17,12 @@ jest.mock('../../../hooks/useCurrentNetworkInfo', () => ({
   useCurrentNetworkInfo: jest.fn(),
 }));
 
-jest.mock('../../../../selectors/multichainAccounts/accounts', () => ({
-  selectSelectedInternalAccountByScope: jest.fn(() => () => null),
-}));
-
-jest.mock(
-  '../../../../selectors/featureFlagController/multichainAccounts',
-  () => ({
-    selectMultichainAccountsState2Enabled: () => false,
-  }),
-);
+jest.mock('../../../../selectors/multichainAccounts/accounts', () => {
+  const stableNullAccountSelector = () => null;
+  return {
+    selectSelectedInternalAccountByScope: () => stableNullAccountSelector,
+  };
+});
 
 // Mock the useNetworksByNamespace hooks
 jest.mock(
@@ -48,6 +44,12 @@ jest.mock(
     },
   }),
 );
+
+jest.mock('../../../hooks/useNetworkEnablement/useNetworkEnablement', () => ({
+  useNetworkEnablement: jest.fn(() => ({
+    enableAllPopularNetworks: jest.fn(),
+  })),
+}));
 
 // Mock the navigation hook
 jest.mock('@react-navigation/native', () => ({
@@ -84,40 +86,8 @@ jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
 }));
 
-// Mock the selectors
-const mockSelectIsAllNetworks = jest.fn();
-const mockSelectIsPopularNetwork = jest.fn();
-const mockSelectIsEvmNetworkSelected = jest.fn();
+// Mock the selectors (BaseControlBar uses selectNetworkName)
 const mockSelectNetworkName = jest.fn();
-const mockSelectChainId = jest.fn();
-
-jest.mock('../../../../selectors/networkController', () => ({
-  selectIsAllNetworks: () => mockSelectIsAllNetworks(),
-  selectIsPopularNetwork: () => mockSelectIsPopularNetwork(),
-  selectPopularNetworkConfigurationsByCaipChainId: () => ({
-    '0x1': {
-      chainId: '0x1',
-      nickname: 'Ethereum Mainnet',
-      rpcUrl: 'https://mainnet.infura.io/v3/',
-      ticker: 'ETH',
-      caipChainId: 'eip155:1',
-    },
-  }),
-  selectCustomNetworkConfigurationsByCaipChainId: () => ({
-    '0x89': {
-      chainId: '0x89',
-      nickname: 'Polygon',
-      rpcUrl: 'https://polygon-rpc.com',
-      ticker: 'MATIC',
-      caipChainId: 'eip155:137',
-    },
-  }),
-  selectChainId: () => mockSelectChainId(),
-}));
-
-jest.mock('../../../../selectors/multichainNetworkController', () => ({
-  selectIsEvmNetworkSelected: () => mockSelectIsEvmNetworkSelected(),
-}));
 
 jest.mock('../../../../selectors/networkInfos', () => ({
   selectNetworkName: () => mockSelectNetworkName(),
@@ -217,6 +187,8 @@ describe('TokenListControlBar', () => {
     }),
     isDisabled: false,
     hasEnabledNetworks: true,
+    isNetworkEnabledForDefi: true,
+    hasMultipleNamespacesEnabled: false,
   };
 
   beforeEach(() => {
@@ -225,13 +197,7 @@ describe('TokenListControlBar', () => {
       mockNavigation as unknown as ReturnType<typeof useNavigation>,
     );
     mockUseCurrentNetworkInfo.mockReturnValue(defaultNetworkInfo);
-
-    // Reset selector mocks
-    mockSelectIsAllNetworks.mockReturnValue(false);
-    mockSelectIsPopularNetwork.mockReturnValue(false);
-    mockSelectIsEvmNetworkSelected.mockReturnValue(true);
     mockSelectNetworkName.mockReturnValue('Ethereum Mainnet');
-    mockSelectChainId.mockReturnValue('0x1');
   });
 
   const renderComponent = (props = {}, state = {}) => {
@@ -245,10 +211,7 @@ describe('TokenListControlBar', () => {
 
   describe('Network Manager Integration', () => {
     describe('Core Functionality', () => {
-      it('should navigate to NetworkManager when filter button is pressed', () => {
-        // Ensure EVM is selected for the navigation to work
-        mockSelectIsEvmNetworkSelected.mockReturnValue(true);
-
+      it('navigates to NetworkManager when filter button is pressed', () => {
         const { getByTestId } = renderComponent();
 
         const filterButton = getByTestId(
@@ -259,13 +222,7 @@ describe('TokenListControlBar', () => {
         expect(mockNavigate).toHaveBeenCalledWith('NetworkManager', {});
       });
 
-      it('should show "Popular networks text when multiple networks are enabled', () => {
-        const { getByText } = renderComponent();
-
-        expect(getByText('wallet.popular_networks')).toBeTruthy();
-      });
-
-      it('should show current network name when only one network is enabled', () => {
+      it('shows current network name when only one network is enabled', () => {
         const singleNetworkInfo = {
           enabledNetworks: [{ chainId: '1', enabled: true }],
           getNetworkInfo: jest.fn(() => ({
@@ -278,6 +235,8 @@ describe('TokenListControlBar', () => {
           })),
           isDisabled: false,
           hasEnabledNetworks: true,
+          isNetworkEnabledForDefi: true,
+          hasMultipleNamespacesEnabled: false,
         };
         mockUseCurrentNetworkInfo.mockReturnValue(singleNetworkInfo);
 
@@ -294,13 +253,15 @@ describe('TokenListControlBar', () => {
         expect(getByText('Ethereum Mainnet')).toBeTruthy();
       });
 
-      it('should show fallback text when no network info is available', () => {
+      it('shows fallback text when no network info is available', () => {
         const noNetworkInfo = {
           enabledNetworks: [],
           getNetworkInfo: jest.fn(() => null),
           getNetworkInfoByChainId: jest.fn(() => null),
           isDisabled: false,
           hasEnabledNetworks: false,
+          isNetworkEnabledForDefi: false,
+          hasMultipleNamespacesEnabled: false,
         };
         mockUseCurrentNetworkInfo.mockReturnValue(noNetworkInfo);
 
@@ -317,12 +278,14 @@ describe('TokenListControlBar', () => {
         expect(getByText('wallet.current_network')).toBeTruthy();
       });
 
-      it('should show "Popular Networks" text when all conditions are met', () => {
-        // Mock the selectors to return the expected values
-        mockSelectIsAllNetworks.mockReturnValue(true);
-        mockSelectIsPopularNetwork.mockReturnValue(true);
-        mockSelectIsEvmNetworkSelected.mockReturnValue(true);
-        mockSelectNetworkName.mockReturnValue('Ethereum Mainnet');
+      it('shows "Popular Networks" text when multiple networks are enabled', () => {
+        const useNetworksByNamespaceModule = jest.requireMock(
+          '../../../hooks/useNetworksByNamespace/useNetworksByNamespace',
+        );
+        useNetworksByNamespaceModule.useNetworksByCustomNamespace = () => ({
+          areAllNetworksSelected: false,
+          totalEnabledNetworksCount: 2,
+        });
 
         const { getByText } = renderComponent();
 
@@ -332,7 +295,7 @@ describe('TokenListControlBar', () => {
   });
 
   describe('Button interactions', () => {
-    it('should call goToAddToken when add token button is pressed', () => {
+    it('calls goToAddToken when add token button is pressed', () => {
       const goToAddToken = jest.fn();
       const { getByTestId } = renderComponent({ goToAddToken });
 
@@ -344,28 +307,16 @@ describe('TokenListControlBar', () => {
   });
 
   describe('Button states', () => {
-    it('should disable filter button when isDisabled is true', () => {
-      const disabledNetworkInfo = {
-        ...defaultNetworkInfo,
-        isDisabled: true,
-      };
-      mockUseCurrentNetworkInfo.mockReturnValue(disabledNetworkInfo);
-
+    it('does not disable filter button by default', () => {
       const { getByTestId } = renderComponent();
       const filterButton = getByTestId(
         WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER,
       );
 
-      expect(filterButton.props.disabled).toBe(true);
+      expect(filterButton.props.disabled).toBe(false);
     });
 
-    it('should enable add token button when non-EVM is selected', () => {
-      // Ensure EVM is not selected
-      mockSelectIsEvmNetworkSelected.mockReturnValue(false);
-      mockSelectChainId.mockReturnValue(
-        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-      );
-
+    it('renders add token button as enabled', () => {
       const { getByTestId } = renderComponent();
       const addTokenButton = getByTestId('import-token-button');
 

@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { selectNetworkConfigurationsByCaipChainId } from '../../selectors/networkController';
 import { useNetworkEnablement } from './useNetworkEnablement/useNetworkEnablement';
+import { KnownCaipNamespace } from '@metamask/utils';
 
 export interface NetworkInfo {
   caipChainId: string;
@@ -15,13 +16,15 @@ export interface CurrentNetworkInfo {
   getNetworkInfoByChainId: (chainId: string) => NetworkInfo | null;
   isDisabled: boolean;
   hasEnabledNetworks: boolean;
+  isNetworkEnabledForDefi: boolean;
+  hasMultipleNamespacesEnabled: boolean;
 }
 
 /**
  * Hook that provides current network information for the active namespace
  */
 export const useCurrentNetworkInfo = (): CurrentNetworkInfo => {
-  const { enabledNetworksByNamespace } = useNetworkEnablement();
+  const { namespace, enabledNetworksByNamespace } = useNetworkEnablement();
   const networksByCaipChainId = useSelector(
     selectNetworkConfigurationsByCaipChainId,
   );
@@ -70,6 +73,30 @@ export const useCurrentNetworkInfo = (): CurrentNetworkInfo => {
     [enabledNetworks, networksByCaipChainId],
   );
 
+  // Check if multiple namespaces are enabled (e.g., "All popular networks" mode)
+  const hasMultipleNamespacesEnabled = useMemo(() => {
+    const enabledNamespaces = Object.keys(enabledNetworksByNamespace).filter(
+      (ns) => {
+        const networksInNamespace = enabledNetworksByNamespace[ns];
+        if (
+          typeof networksInNamespace === 'object' &&
+          networksInNamespace !== null
+        ) {
+          return Object.values(networksInNamespace).some((enabled) => enabled);
+        }
+        return false;
+      },
+    );
+    return enabledNamespaces.length > 1;
+  }, [enabledNetworksByNamespace]);
+
+  // Check if current namespace supports DeFi (currently only EVM/Eip155)
+  const isNetworkEnabledForDefi = useMemo(
+    () =>
+      namespace === KnownCaipNamespace.Eip155 || hasMultipleNamespacesEnabled,
+    [namespace, hasMultipleNamespacesEnabled],
+  );
+
   // For now there is no use case to have it disabled
   // but leaving it here since it might be useful
   const isDisabled: boolean = false;
@@ -82,5 +109,7 @@ export const useCurrentNetworkInfo = (): CurrentNetworkInfo => {
     getNetworkInfoByChainId,
     isDisabled,
     hasEnabledNetworks,
+    isNetworkEnabledForDefi,
+    hasMultipleNamespacesEnabled,
   };
 };
