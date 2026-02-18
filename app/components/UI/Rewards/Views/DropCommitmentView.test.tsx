@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import DropCommitmentView from './DropCommitmentView';
 import { useCommitForDrop } from '../hooks/useCommitForDrop';
@@ -52,19 +52,31 @@ jest.mock('../../../../../locales/i18n', () => ({
 }));
 
 jest.mock('../../../Views/ErrorBoundary', () => {
-  const React = require('react');
+  const ActualReact = jest.requireActual('react');
   return ({ children }: { children: React.ReactNode }) =>
-    React.createElement('ErrorBoundary', null, children);
+    ActualReact.createElement('ErrorBoundary', null, children);
 });
 
 jest.mock('../../../../component-library/components/Buttons/Button', () => {
-  const React = require('react');
-  const { TouchableOpacity, Text } = require('react-native');
-  const Button = ({ testID, label, onPress, loading, isDisabled }: any) =>
-    React.createElement(
+  const ActualReact = jest.requireActual('react');
+  const { TouchableOpacity, Text: RNText } = jest.requireActual('react-native');
+  const Button = ({
+    testID,
+    label,
+    onPress,
+    loading,
+    isDisabled,
+  }: {
+    testID?: string;
+    label?: string;
+    onPress?: () => void;
+    loading?: boolean;
+    isDisabled?: boolean;
+  }) =>
+    ActualReact.createElement(
       TouchableOpacity,
       { testID, onPress, disabled: isDisabled || loading },
-      React.createElement(Text, null, label),
+      ActualReact.createElement(RNText, null, label),
     );
   Button.displayName = 'Button';
   return {
@@ -76,10 +88,11 @@ jest.mock('../../../../component-library/components/Buttons/Button', () => {
 });
 
 jest.mock('../../../Base/Keypad', () => {
-  const React = require('react');
+  const ActualReact = jest.requireActual('react');
   return {
     __esModule: true,
-    default: ({ testID }: any) => React.createElement('Keypad', { testID }),
+    default: ({ testID }: { testID?: string }) =>
+      ActualReact.createElement('Keypad', { testID }),
   };
 });
 
@@ -92,19 +105,19 @@ jest.mock('../utils/formatUtils', () => ({
 }));
 
 jest.mock('../components/PercentageButtons/PercentageButtons', () => {
-  const React = require('react');
+  const ActualReact = jest.requireActual('react');
   return {
     __esModule: true,
-    default: ({ testID }: any) =>
-      React.createElement('PercentageButtons', { testID }),
+    default: ({ testID }: { testID?: string }) =>
+      ActualReact.createElement('PercentageButtons', { testID }),
   };
 });
 
 jest.mock('../components/RewardPointsAnimation', () => {
-  const React = require('react');
+  const ActualReact = jest.requireActual('react');
   return {
     __esModule: true,
-    default: () => React.createElement('RewardPointsAnimation'),
+    default: () => ActualReact.createElement('RewardPointsAnimation'),
     RewardAnimationState: { Idle: 'Idle' },
   };
 });

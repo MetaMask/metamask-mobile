@@ -21,9 +21,14 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 }));
 
 jest.mock('../../../../../component-library/base-components/TagBase', () => {
-  const React = require('react');
-  const TagBase = ({ children, testID }: any) =>
-    React.createElement('TagBase', { testID }, children);
+  const ActualReact = jest.requireActual('react');
+  const TagBase = ({
+    children,
+    testID,
+  }: {
+    children?: React.ReactNode;
+    testID?: string;
+  }) => ActualReact.createElement('TagBase', { testID }, children);
   return {
     __esModule: true,
     default: TagBase,

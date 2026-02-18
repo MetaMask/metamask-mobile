@@ -66,9 +66,9 @@ jest.mock('../../../../../locales/i18n', () => ({
 }));
 
 jest.mock('../../../Views/ErrorBoundary', () => {
-  const React = require('react');
+  const ActualReact = jest.requireActual('react');
   return ({ children }: { children: React.ReactNode }) =>
-    React.createElement('ErrorBoundary', null, children);
+    ActualReact.createElement('ErrorBoundary', null, children);
 });
 
 jest.mock('../../../../component-library/components/Skeleton', () => ({
@@ -90,10 +90,10 @@ jest.mock('../components/DropLeaderboard', () => 'DropLeaderboard');
 jest.mock(
   '../../../../component-library/components/BottomSheets/BottomSheet',
   () => {
-    const React = require('react');
-    const BottomSheet = React.forwardRef(
+    const ActualReact = jest.requireActual('react');
+    const BottomSheet = ActualReact.forwardRef(
       ({ children }: { children: React.ReactNode }, _ref: React.Ref<unknown>) =>
-        React.createElement('BottomSheet', null, children),
+        ActualReact.createElement('BottomSheet', null, children),
     );
     BottomSheet.displayName = 'BottomSheet';
     return { __esModule: true, default: BottomSheet };
