@@ -2,19 +2,7 @@
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
-
-/**
- * Custom error class for Quality Gate failures.
- * Tests that fail with this error should NOT be retried
- * because the performance measurement was successful - only the threshold was exceeded.
- */
-class QualityGateError extends Error {
-  constructor(message) {
-    super(message);
-    this.name = 'QualityGateError';
-    this.isQualityGateError = true;
-  }
-}
+import type { TestInfo } from '@playwright/test';
 
 // File-based registry to track tests that failed due to quality gates
 // This persists across Playwright workers which run in separate processes
@@ -25,18 +13,17 @@ const QUALITY_GATE_FAILURES_FILE = path.join(
 
 /**
  * Load quality gate failures from file
- * @returns {Set<string>}
  */
-function loadFailures() {
+function loadFailures(): Set<string> {
   try {
     if (fs.existsSync(QUALITY_GATE_FAILURES_FILE)) {
       const data = fs.readFileSync(QUALITY_GATE_FAILURES_FILE, 'utf-8');
-      return new Set(JSON.parse(data));
+      return new Set(JSON.parse(data) as string[]);
     }
   } catch (error) {
     console.warn(
       '⚠️ Could not load quality gate failures file:',
-      error.message,
+      (error as Error).message,
     );
   }
   return new Set();
@@ -44,9 +31,8 @@ function loadFailures() {
 
 /**
  * Save quality gate failures to file
- * @param {Set<string>} failures
  */
-function saveFailures(failures) {
+function saveFailures(failures: Set<string>): void {
   try {
     fs.writeFileSync(
       QUALITY_GATE_FAILURES_FILE,
@@ -56,16 +42,16 @@ function saveFailures(failures) {
   } catch (error) {
     console.warn(
       '⚠️ Could not save quality gate failures file:',
-      error.message,
+      (error as Error).message,
     );
   }
 }
 
 /**
  * Mark a test as failed due to quality gates
- * @param {string} testId - Unique test identifier
+ * @param testId - Unique test identifier
  */
-export function markQualityGateFailure(testId) {
+export function markQualityGateFailure(testId: string): void {
   const failures = loadFailures();
   failures.add(testId);
   saveFailures(failures);
@@ -76,10 +62,9 @@ export function markQualityGateFailure(testId) {
 
 /**
  * Check if a test previously failed due to quality gates
- * @param {string} testId - Unique test identifier
- * @returns {boolean}
+ * @param testId - Unique test identifier
  */
-export function hasQualityGateFailure(testId) {
+export function hasQualityGateFailure(testId: string): boolean {
   const failures = loadFailures();
   return failures.has(testId);
 }
@@ -87,7 +72,7 @@ export function hasQualityGateFailure(testId) {
 /**
  * Clear all quality gate failures (call at the start of a test run)
  */
-export function clearQualityGateFailures() {
+export function clearQualityGateFailures(): void {
   try {
     if (fs.existsSync(QUALITY_GATE_FAILURES_FILE)) {
       fs.unlinkSync(QUALITY_GATE_FAILURES_FILE);
@@ -96,18 +81,15 @@ export function clearQualityGateFailures() {
   } catch (error) {
     console.warn(
       '⚠️ Could not clear quality gate failures file:',
-      error.message,
+      (error as Error).message,
     );
   }
 }
 
 /**
  * Generate a unique test ID from testInfo
- * @param {Object} testInfo - Playwright testInfo object
- * @returns {string}
+ * @param testInfo - Playwright testInfo object
  */
-export function getTestId(testInfo) {
+export function getTestId(testInfo: TestInfo): string {
   return `${testInfo.project.name}::${testInfo.titlePath.join('::')}`;
 }
-
-export default QualityGateError;

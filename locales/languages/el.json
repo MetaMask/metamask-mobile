@@ -6298,19 +6298,7 @@
       "standardAccountLabel": "Standard account",
       "switch": "Αλλαγή",
       "switchBack": "Επιστροφή",
-      "splashpage": {
-        "accept": "Ναι",
-        "betterTransaction": "Ταχύτερες συναλλαγές, χαμηλότερα τέλη",
-        "betterTransactionDescription": "Εξοικονομήσετε χρόνο και χρήματα ομαδοποιώντας τις συναλλαγές σας.",
-        "featuresDescription": "Διατηρήστε την ίδια διεύθυνση λογαριασμού και μπορείτε να επανέλθετε οποιαδήποτε στιγμή.",
-        "payToken": "Πληρώστε με οποιοδήποτε token, οποιαδήποτε στιγμή",
-        "payTokenDescription": "Χρησιμοποιήστε τα tokens που έχετε ήδη για να πληρώσετε τα τέλη δικτύου.",
-        "reject": "Όχι",
-        "sameAccount": "Ίδιος λογαριασμός, πιο έξυπνες λειτουργίες.",
-        "splashTitle": "Χρησιμοποιήστε έξυπνο λογαριασμό?"
-      },
       "includes_transaction": "Περιλαμβάνει {{transactionCount}} συναλλαγές",
-      "useSmartAccount": "Χρησιμοποιήστε έξυπνο λογαριασμό",
       "successful": "Επιτυχία",
       "success_message": "Ο λογαριασμός σας θα μετατραπεί σε έξυπνο λογαριασμό κατά την επόμενη συναλλαγή."
     },
