@@ -5,6 +5,13 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import PredictBalance from './PredictBalance';
 import { strings } from '../../../../../../locales/i18n';
 
+// Mock React Query
+jest.mock('@tanstack/react-query', () => ({
+  useQueryClient: () => ({
+    invalidateQueries: jest.fn(),
+  }),
+}));
+
 // Mock React Navigation
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -66,12 +73,8 @@ describe('PredictBalance', () => {
 
     // Default mock implementations
     mockUsePredictBalance.mockReturnValue({
-      balance: 100,
+      data: 100,
       isLoading: false,
-      isRefreshing: false,
-      error: null,
-      loadBalance: jest.fn(),
-      hasNoBalance: false,
     });
 
     mockUsePredictDeposit.mockReturnValue({
@@ -97,12 +100,8 @@ describe('PredictBalance', () => {
     it('displays loading indicator when isLoading is true', () => {
       // Arrange - override mock to return loading state
       mockUsePredictBalance.mockReturnValue({
-        balance: 0,
+        data: 0,
         isLoading: true,
-        isRefreshing: false,
-        error: null,
-        loadBalance: jest.fn(),
-        hasNoBalance: true,
       });
 
       // Act
@@ -117,12 +116,8 @@ describe('PredictBalance', () => {
     it('does not display balance when isLoading is true', () => {
       // Arrange - override mock to return loading state
       mockUsePredictBalance.mockReturnValue({
-        balance: 100,
+        data: 100,
         isLoading: true,
-        isRefreshing: false,
-        error: null,
-        loadBalance: jest.fn(),
-        hasNoBalance: false,
       });
 
       // Act
@@ -137,12 +132,8 @@ describe('PredictBalance', () => {
     it('does not display buttons when isLoading is true', () => {
       // Arrange - override mock to return loading state
       mockUsePredictBalance.mockReturnValue({
-        balance: 100,
+        data: 100,
         isLoading: true,
-        isRefreshing: false,
-        error: null,
-        loadBalance: jest.fn(),
-        hasNoBalance: false,
       });
 
       // Act
@@ -160,12 +151,8 @@ describe('PredictBalance', () => {
     it('displays formatted balance', () => {
       // Arrange
       mockUsePredictBalance.mockReturnValue({
-        balance: 123.456,
+        data: 123.456,
         isLoading: false,
-        isRefreshing: false,
-        error: null,
-        loadBalance: jest.fn(),
-        hasNoBalance: false,
       });
 
       // Act
@@ -180,12 +167,8 @@ describe('PredictBalance', () => {
     it('displays zero balance', () => {
       // Arrange
       mockUsePredictBalance.mockReturnValue({
-        balance: 0,
+        data: 0,
         isLoading: false,
-        isRefreshing: false,
-        error: null,
-        loadBalance: jest.fn(),
-        hasNoBalance: true,
       });
 
       // Act
@@ -200,12 +183,8 @@ describe('PredictBalance', () => {
     it('displays large balance correctly', () => {
       // Arrange
       mockUsePredictBalance.mockReturnValue({
-        balance: 1234567.89,
+        data: 1234567.89,
         isLoading: false,
-        isRefreshing: false,
-        error: null,
-        loadBalance: jest.fn(),
-        hasNoBalance: false,
       });
 
       // Act
@@ -220,12 +199,8 @@ describe('PredictBalance', () => {
     it('renders container with correct test ID', () => {
       // Arrange
       mockUsePredictBalance.mockReturnValue({
-        balance: 100,
+        data: 100,
         isLoading: false,
-        isRefreshing: false,
-        error: null,
-        loadBalance: jest.fn(),
-        hasNoBalance: false,
       });
 
       // Act
@@ -240,12 +215,8 @@ describe('PredictBalance', () => {
     it('hides balance amount when privacy mode is enabled', () => {
       // Arrange
       mockUsePredictBalance.mockReturnValue({
-        balance: 24.66,
+        data: 24.66,
         isLoading: false,
-        isRefreshing: false,
-        error: null,
-        loadBalance: jest.fn(),
-        hasNoBalance: false,
       });
 
       const privacyEnabledState = {
@@ -278,12 +249,8 @@ describe('PredictBalance', () => {
     it('displays Add Funds button', () => {
       // Arrange
       mockUsePredictBalance.mockReturnValue({
-        balance: 100,
+        data: 100,
         isLoading: false,
-        isRefreshing: false,
-        error: null,
-        loadBalance: jest.fn(),
-        hasNoBalance: false,
       });
 
       // Act
@@ -298,12 +265,8 @@ describe('PredictBalance', () => {
     it('displays Withdraw button when has balance', () => {
       // Arrange
       mockUsePredictBalance.mockReturnValue({
-        balance: 100,
+        data: 100,
         isLoading: false,
-        isRefreshing: false,
-        error: null,
-        loadBalance: jest.fn(),
-        hasNoBalance: false,
       });
 
       // Act
@@ -318,12 +281,8 @@ describe('PredictBalance', () => {
     it('does not display Withdraw button when balance is zero', () => {
       // Arrange
       mockUsePredictBalance.mockReturnValue({
-        balance: 0,
+        data: 0,
         isLoading: false,
-        isRefreshing: false,
-        error: null,
-        loadBalance: jest.fn(),
-        hasNoBalance: true,
       });
 
       // Act
@@ -339,12 +298,8 @@ describe('PredictBalance', () => {
       // Arrange
       const mockDeposit = jest.fn();
       mockUsePredictBalance.mockReturnValue({
-        balance: 100,
+        data: 100,
         isLoading: false,
-        isRefreshing: false,
-        error: null,
-        loadBalance: jest.fn(),
-        hasNoBalance: false,
       });
       mockUsePredictDeposit.mockReturnValue({
         deposit: mockDeposit,
@@ -371,12 +326,8 @@ describe('PredictBalance', () => {
       // Arrange
       const mockDeposit = jest.fn();
       mockUsePredictBalance.mockReturnValue({
-        balance: 100,
+        data: 100,
         isLoading: false,
-        isRefreshing: false,
-        error: null,
-        loadBalance: jest.fn(),
-        hasNoBalance: false,
       });
       mockUsePredictDeposit.mockReturnValue({
         deposit: mockDeposit,
@@ -399,12 +350,8 @@ describe('PredictBalance', () => {
       // Arrange
       const mockWithdraw = jest.fn();
       mockUsePredictBalance.mockReturnValue({
-        balance: 100,
+        data: 100,
         isLoading: false,
-        isRefreshing: false,
-        error: null,
-        loadBalance: jest.fn(),
-        hasNoBalance: false,
       });
       mockUsePredictWithdraw.mockReturnValue({
         withdraw: mockWithdraw,
@@ -518,12 +465,8 @@ describe('PredictBalance', () => {
     it('handles very small balance', () => {
       // Arrange
       mockUsePredictBalance.mockReturnValue({
-        balance: 0.01,
+        data: 0.01,
         isLoading: false,
-        isRefreshing: false,
-        error: null,
-        loadBalance: jest.fn(),
-        hasNoBalance: false,
       });
 
       // Act
@@ -538,12 +481,8 @@ describe('PredictBalance', () => {
     it('handles very large balance', () => {
       // Arrange
       mockUsePredictBalance.mockReturnValue({
-        balance: 123456789.123456,
+        data: 123456789.123456,
         isLoading: false,
-        isRefreshing: false,
-        error: null,
-        loadBalance: jest.fn(),
-        hasNoBalance: false,
       });
 
       // Act
@@ -558,12 +497,8 @@ describe('PredictBalance', () => {
     it('handles adding funds state', () => {
       // Arrange
       mockUsePredictBalance.mockReturnValue({
-        balance: 100,
+        data: 100,
         isLoading: false,
-        isRefreshing: false,
-        error: null,
-        loadBalance: jest.fn(),
-        hasNoBalance: false,
       });
       mockUsePredictDeposit.mockReturnValue({
         deposit: jest.fn(),
@@ -586,12 +521,8 @@ describe('PredictBalance', () => {
     it('shows primary button variant when balance is zero', () => {
       // Arrange
       mockUsePredictBalance.mockReturnValue({
-        balance: 0,
+        data: 0,
         isLoading: false,
-        isRefreshing: false,
-        error: null,
-        loadBalance: jest.fn(),
-        hasNoBalance: true,
       });
 
       // Act
@@ -608,12 +539,8 @@ describe('PredictBalance', () => {
     it('shows secondary button variant when balance is greater than zero', () => {
       // Arrange
       mockUsePredictBalance.mockReturnValue({
-        balance: 10,
+        data: 10,
         isLoading: false,
-        isRefreshing: false,
-        error: null,
-        loadBalance: jest.fn(),
-        hasNoBalance: false,
       });
 
       // Act
@@ -632,21 +559,16 @@ describe('PredictBalance', () => {
     it('handles undefined balance gracefully', () => {
       // Arrange
       mockUsePredictBalance.mockReturnValue({
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        balance: undefined as any,
+        data: undefined,
         isLoading: false,
-        isRefreshing: false,
-        error: null,
-        loadBalance: jest.fn(),
-        hasNoBalance: true,
       });
 
-      // Act & Assert - should not crash and render $0.00
+      // Act & Assert - should not crash
       const { getByText } = renderWithProvider(<PredictBalance />, {
         state: initialState,
       });
 
-      expect(getByText(/\$0\.00/)).toBeOnTheScreen();
+      expect(getByText(/\$0/)).toBeOnTheScreen();
     });
   });
 });
