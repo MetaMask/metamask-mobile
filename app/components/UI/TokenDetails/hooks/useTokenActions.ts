@@ -150,7 +150,6 @@ export const useTokenActions = ({
     sourceToken,
     destToken,
     abTestContext: {
-      entry_point: 'token_details',
       ...(isTestActive && { ab_test_token_details_layout: variantName }),
     },
   });
@@ -222,7 +221,6 @@ export const useTokenActions = ({
         ab_tests: { token_details_layout: variantName },
       }),
     };
-
     trackEvent(
       createEventBuilder(MetaMetricsEvents.ACTION_BUTTON_CLICKED)
         .addProperties(sendEventProps)

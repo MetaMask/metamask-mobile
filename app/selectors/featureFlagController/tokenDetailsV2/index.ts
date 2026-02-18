@@ -4,38 +4,50 @@ import {
   DEFAULT_FEATURE_FLAG_VALUES,
   FeatureFlagNames,
 } from '../../../constants/featureFlags';
-import { validatedVersionGatedFeatureFlag } from '../../../util/remoteFeatureFlag';
+import {
+  validatedVersionGatedFeatureFlag,
+  hasMinimumRequiredVersion,
+} from '../../../util/remoteFeatureFlag';
 
 // Valid variants for the layout A/B test
 const VALID_LAYOUT_VARIANTS = ['control', 'treatment'] as const;
+type LayoutVariant = (typeof VALID_LAYOUT_VARIANTS)[number];
+
+const isValidVariant = (value: unknown): value is LayoutVariant =>
+  typeof value === 'string' &&
+  VALID_LAYOUT_VARIANTS.includes(value as LayoutVariant);
 
 /**
- * Selector for Token Details Layout A/B test variant
+ * Selector for Token Details Layout A/B test variant.
  *
- * Reads the variant name from LaunchDarkly feature flag.
- * Returns null if the test is disabled or flag is not set.
+ * Reads the version-gated JSON flag from LaunchDarkly:
+ * { "variant": "control"|"treatment", "minimumVersion": "7.66.0" }
  *
- * @returns 'control' | 'treatment' | null
+ * Returns null when the test is inactive (flag unset, invalid, or version gate fails).
  */
 export const selectTokenDetailsLayoutTestVariant = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags): string | null => {
-    const remoteFlag = remoteFeatureFlags?.tokenDetailsLayoutAbTest;
+    return 'treatment';
+    const remoteFlag = remoteFeatureFlags?.tokenDetailsV2AbTest;
 
     if (!remoteFlag) {
       return null;
     }
 
-    // Direct string variant from LaunchDarkly
-    if (typeof remoteFlag === 'string') {
+    // Version-gated JSON { variant, minimumVersion }
+    if (typeof remoteFlag === 'object' && 'variant' in remoteFlag) {
+      const { variant, minimumVersion } = remoteFlag as {
+        variant: unknown;
+        minimumVersion: unknown;
+      };
       if (
-        VALID_LAYOUT_VARIANTS.includes(
-          remoteFlag as (typeof VALID_LAYOUT_VARIANTS)[number],
-        )
+        typeof minimumVersion === 'string' &&
+        !hasMinimumRequiredVersion(minimumVersion)
       ) {
-        return remoteFlag;
+        return null;
       }
-      return null;
+      return isValidVariant(variant) ? variant : null;
     }
 
     return null;

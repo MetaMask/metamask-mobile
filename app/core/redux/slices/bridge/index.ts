@@ -68,7 +68,6 @@ export interface BridgeState {
    */
   tokenSelectorNetworkFilter: CaipChainId | undefined;
   abTestContext?: {
-    entry_point?: string;
     ab_test_token_details_layout?: string;
   };
   /**

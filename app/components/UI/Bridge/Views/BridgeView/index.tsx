@@ -298,16 +298,12 @@ const BridgeView = () => {
         token_symbol_destination: destToken?.symbol,
         token_address_source: sourceToken.address,
         token_address_destination: destToken?.address,
-        ...(abTestContext?.entry_point && {
-          entry_point: abTestContext.entry_point,
-        }),
         ...(abTestContext?.ab_test_token_details_layout && {
           ab_tests: {
             token_details_layout: abTestContext.ab_test_token_details_layout,
           },
         }),
       };
-
       trackEvent(
         createEventBuilder(MetaMetricsEvents.SWAP_PAGE_VIEWED)
           .addProperties(pageViewedProperties)

@@ -347,7 +347,6 @@ const useTokenDetailsOpenedTracking = (params: TokenDetailsRouteParams) => {
         },
       }),
     };
-
     const event = createEventBuilder(MetaMetricsEvents.TOKEN_DETAILS_OPENED)
       .addProperties(eventProperties)
       .build();

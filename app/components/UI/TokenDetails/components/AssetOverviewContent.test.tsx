@@ -41,8 +41,10 @@ jest.mock('../../Perps/components/PerpsBottomSheetTooltip', () => ({
 
 jest.mock('../../../../selectors/featureFlagController/tokenDetailsV2', () => ({
   selectTokenDetailsV2Enabled: jest.fn(() => true),
-  selectTokenDetailsLayoutTestVariant: jest.fn(() => null),
+  selectTokenDetailsLayoutTestVariant: jest.fn(() => 'treatment'),
 }));
+
+jest.mock('../../AssetOverview/TokenDetails', () => () => null);
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
