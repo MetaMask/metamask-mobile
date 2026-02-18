@@ -104,12 +104,15 @@ jobs:
         with:
           local-testing: start
           local-identifier: ${{ github.run_id }}
-          local-args: ${{ inputs.build_type == 'mm-connect' && '--force-local --verbose --include-hosts localhost 127.0.0.1' || '--force-local --verbose' }}
+          # Use same args for all build types. Do not use --include-hosts for mm-connect:
+          # bs-local.com requests must be forwarded to localhost; --include-hosts can block them.
+          local-args: '--force-local --verbose'
       
       - name: Wait for BrowserStack Local
         run: |
           echo "Waiting for BrowserStack Local to be ready..."
-          sleep 10
+          # mm-connect needs the tunnel ready so the device can reach bs-local.com:8090; allow extra time
+          sleep ${{ inputs.build_type == 'mm-connect' && 15 || 10 }}
           echo "BrowserStack Local should be ready now"
       
       - name: Set Test Environment

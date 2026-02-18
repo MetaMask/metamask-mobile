@@ -167,6 +167,8 @@ The `connection-multichain` test starts a **local dapp server** (Browser Playgro
 - **One tunnel per account:** don’t run multiple Local binaries for the same account unless you use different `localIdentifier` values and pass them in capabilities.
 - **Tunnel timeouts** (`TIMEOUT_CONNECTING` to port 45691 in the Local terminal): the cloud device cannot reach your Local binary. Allow incoming connections for ports **45690** and **45691** in your firewall, or try a different network (e.g. avoid strict NAT). See [BrowserStack Local troubleshooting](https://www.browserstack.com/docs/app-automate/appium/troubleshooting/local-issues) for more.
 
+**CI:** The workflow starts BrowserStack Local with `--force-local --verbose` only (no `--include-hosts`). Using `--include-hosts localhost 127.0.0.1` can prevent requests to `bs-local.com:8090` from being forwarded to the runner’s localhost; the device then cannot load the dapp. The workflow also waits 15s for mm-connect (10s for other build types) after starting the tunnel before running tests.
+
 ### Using Appwright CLI Directly
 
 ```bash
