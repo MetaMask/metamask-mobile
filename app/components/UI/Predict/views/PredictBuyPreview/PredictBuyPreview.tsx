@@ -117,10 +117,8 @@ const PredictBuyPreview = () => {
     resetOrderNotFilled,
   } = usePredictPlaceOrder();
 
-  const { balance, isLoading: isBalanceLoading } = usePredictBalance({
-    loadOnMount: true,
-    refreshOnFocus: true,
-  });
+  const { data: balance = 0, isLoading: isBalanceLoading } =
+    usePredictBalance();
 
   const { deposit } = usePredictDeposit();
 

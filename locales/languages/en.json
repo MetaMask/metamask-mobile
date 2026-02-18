@@ -6288,19 +6288,7 @@
       "standardAccountLabel": "Standard account",
       "switch": "Switch",
       "switchBack": "Switch back",
-      "splashpage": {
-        "accept": "Yes",
-        "betterTransaction": "Faster transactions, lower fees",
-        "betterTransactionDescription": "Save time and money by processing transactions together.",
-        "featuresDescription": "Keep the same account address, and you can switch back anytime.",
-        "payToken": "Pay with any token, any time",
-        "payTokenDescription": "Use the tokens you already have to cover network fees.",
-        "reject": "No",
-        "sameAccount": "Same account, smarter features.",
-        "splashTitle": "Use smart account?"
-      },
       "includes_transaction": "Includes {{transactionCount}} transactions",
-      "useSmartAccount": "Use smart account",
       "successful": "Success",
       "success_message": "Your account will be updated to smart account with your next transaction."
     },
