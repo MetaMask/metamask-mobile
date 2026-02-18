@@ -73,10 +73,10 @@ describe('FromToRow', () => {
       state: nativeTransferState,
     });
 
-    expect(getByText('From')).toBeDefined();
-    expect(getByText('To')).toBeDefined();
-    expect(getByText(/^0xDc47789/)).toBeDefined();
-    expect(getByText(/^0x97Cb1/)).toBeDefined();
+    expect(getByText('From')).toBeOnTheScreen();
+    expect(getByText('To')).toBeOnTheScreen();
+    expect(getByText(/^0xDc47789/)).toBeOnTheScreen();
+    expect(getByText(/^0x97Cb1/)).toBeOnTheScreen();
   });
 
   it('displays the correct addresses for erc20 transfer', async () => {
@@ -84,9 +84,9 @@ describe('FromToRow', () => {
       state: erc20TransferState,
     });
 
-    expect(getByText('From')).toBeDefined();
-    expect(getByText('To')).toBeDefined();
-    expect(getByText(/^0xDc47789/)).toBeDefined();
-    expect(getByText(/^0x97cb1/)).toBeDefined();
+    expect(getByText('From')).toBeOnTheScreen();
+    expect(getByText('To')).toBeOnTheScreen();
+    expect(getByText(/^0xDc47789/)).toBeOnTheScreen();
+    expect(getByText(/^0x97cb1/)).toBeOnTheScreen();
   });
 });
