@@ -1,4 +1,4 @@
-import { useNavigation, type NavigationProp } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import BigNumber from 'bignumber.js';
 import React, { useCallback, useState } from 'react';
 import { Modal, TouchableOpacity, View } from 'react-native';
@@ -32,7 +32,6 @@ import {
   PERPS_EVENT_VALUE,
   type PerpsMarketData,
 } from '@metamask/perps-controller';
-import type { PerpsNavigationParamList } from '../../types/navigation';
 import {
   usePerpsEventTracking,
   usePerpsFirstTimeUser,
@@ -54,7 +53,7 @@ const PerpsTabView = () => {
   const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
     useState(false);
 
-  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
+  const navigation = useNavigation();
   const { account } = usePerpsLiveAccount();
   const isHomepageRedesignV1Enabled = useSelector(
     selectHomepageRedesignV1Enabled,

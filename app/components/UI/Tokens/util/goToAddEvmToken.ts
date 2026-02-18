@@ -1,4 +1,4 @@
-import { StackNavigationProp } from '@react-navigation/stack';
+import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import {
   IMetaMetricsEvent,
   ITrackingEvent,
@@ -6,13 +6,8 @@ import {
 import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
 import { MetaMetricsEvents } from '../../../hooks/useMetrics';
 
-interface TokenListNavigationParamList {
-  AddAsset: { assetType: string };
-  [key: string]: undefined | object;
-}
-
 interface GoToAddEvmTokenProps {
-  navigation: StackNavigationProp<TokenListNavigationParamList, 'AddAsset'>;
+  navigation: NavigationProp<ParamListBase>;
   trackEvent: (event: ITrackingEvent, saveDataRecording?: boolean) => void;
   createEventBuilder: (event: IMetaMetricsEvent) => MetricsEventBuilder;
   getDecimalChainId: (chainId: string) => number;
@@ -26,7 +21,7 @@ export const goToAddEvmToken = ({
   getDecimalChainId,
   currentChainId,
 }: GoToAddEvmTokenProps) => {
-  navigation.push('AddAsset', { assetType: 'token' });
+  navigation.navigate('AddAsset', { assetType: 'token' });
 
   trackEvent(
     createEventBuilder(MetaMetricsEvents.TOKEN_IMPORT_CLICKED)

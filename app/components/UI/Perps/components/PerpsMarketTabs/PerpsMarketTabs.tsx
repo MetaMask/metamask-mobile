@@ -5,7 +5,7 @@ import React, {
   useRef,
   useMemo,
 } from 'react';
-import { useNavigation, NavigationProp } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import Text, {
   TextVariant,
   TextColor,
@@ -31,7 +31,6 @@ import {
   type Position,
   type Order,
 } from '@metamask/perps-controller';
-import type { PerpsNavigationParamList } from '../../types/navigation';
 import { usePerpsMarketStats } from '../../hooks/usePerpsMarketStats';
 import {
   usePerpsLivePositions,
@@ -220,7 +219,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
   activeSLOrderId,
 }) => {
   const { styles } = useStyles(styleSheet, {});
-  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
+  const navigation = useNavigation();
   const hasUserInteracted = useRef(false);
   const hasSetInitialTab = useRef(false);
   const tabsListRef = useRef<TabsListRef>(null);

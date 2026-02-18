@@ -67,15 +67,14 @@ import {
 } from './constants';
 import { UNLOCK_WALLET_ERROR_MESSAGES } from '../../../core/Authentication/constants';
 import {
-  ParamListBase,
   RouteProp,
+  StackActions,
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
 import { useStyles } from '../../../component-library/hooks/useStyles';
 import stylesheet from './styles';
 import ReduxService from '../../../core/redux';
-import { StackNavigationProp } from '@react-navigation/stack';
 import { BIOMETRY_TYPE } from 'react-native-keychain';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import {
@@ -119,7 +118,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     undefined | 'Start' | 'Loader'
   >(undefined);
 
-  const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
+  const navigation = useNavigation();
   const route = useRoute<RouteProp<{ params: LoginRouteParams }, 'params'>>();
   const {
     styles,
@@ -215,10 +214,12 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       if (backupResult.vault) {
         const vaultSeed = await parseVaultValue(password, backupResult.vault);
         if (vaultSeed) {
-          navigation.replace(
-            ...createRestoreWalletNavDetailsNested({
-              previousScreen: Routes.ONBOARDING.LOGIN,
-            }),
+          navigation.dispatch(
+            StackActions.replace(
+              ...createRestoreWalletNavDetailsNested({
+                previousScreen: Routes.ONBOARDING.LOGIN,
+              }),
+            ),
           );
           setLoading(false);
           setError(null);
@@ -300,9 +301,11 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         await handleVaultCorruption();
       } else if (isSeedlessOnboardingControllerError) {
         // Detected seedless onboarding error. Defer to OAuthRehydration screen to handle subsequent log in attempts.
-        navigation.replace(Routes.ONBOARDING.REHYDRATE, {
-          isSeedlessPasswordOutdated: true,
-        });
+        navigation.dispatch(
+          StackActions.replace(Routes.ONBOARDING.REHYDRATE, {
+            isSeedlessPasswordOutdated: true,
+          }),
+        );
       } else {
         setError(loginErrorMessage);
       }
