@@ -39,7 +39,7 @@ import {
 import { createDepositNavigationDetails } from '../../Deposit/routes/utils';
 import Logger from '../../../../../util/Logger';
 
-interface BuildQuoteParams {
+export interface BuildQuoteParams {
   assetId?: string;
 }
 
