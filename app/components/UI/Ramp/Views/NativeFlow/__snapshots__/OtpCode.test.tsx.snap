@@ -1,0 +1,525 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`V2OtpCode matches snapshot 1`] = `
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "additive",
+      "right": "additive",
+      "top": "off",
+    }
+  }
+  style={
+    {
+      "flex": 1,
+    }
+  }
+>
+  <View
+    style={
+      [
+        {
+          "backgroundColor": "#ffffff",
+          "flex": 1,
+        },
+        undefined,
+      ]
+    }
+  >
+    <View
+      style={
+        [
+          {
+            "flex": 1,
+          },
+          undefined,
+        ]
+      }
+    >
+      <View
+        style={
+          [
+            {
+              "padding": 15,
+              "paddingHorizontal": 16,
+            },
+            {
+              "flex": 1,
+            },
+            undefined,
+          ]
+        }
+      >
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "justifyContent": "center",
+              "paddingBottom": 12,
+              "width": "100%",
+            }
+          }
+          testID="deposit-progress-container"
+        >
+          <View
+            style={
+              [
+                [
+                  {
+                    "borderRadius": 2,
+                    "flex": 1,
+                    "height": 4,
+                  },
+                  {
+                    "backgroundColor": "#4459ff",
+                  },
+                ],
+                {
+                  "marginRight": 10,
+                },
+              ]
+            }
+            testID="deposit-progress-step-0"
+          />
+          <View
+            style={
+              [
+                [
+                  {
+                    "borderRadius": 2,
+                    "flex": 1,
+                    "height": 4,
+                  },
+                  {
+                    "backgroundColor": "#2c3dc5",
+                  },
+                ],
+                {
+                  "marginRight": 10,
+                },
+              ]
+            }
+            testID="deposit-progress-step-1"
+          />
+          <View
+            style={
+              [
+                [
+                  {
+                    "borderRadius": 2,
+                    "flex": 1,
+                    "height": 4,
+                  },
+                  {
+                    "backgroundColor": "#b7bbc8",
+                  },
+                ],
+                {
+                  "marginRight": 10,
+                },
+              ]
+            }
+            testID="deposit-progress-step-2"
+          />
+          <View
+            style={
+              [
+                [
+                  {
+                    "borderRadius": 2,
+                    "flex": 1,
+                    "height": 4,
+                  },
+                  {
+                    "backgroundColor": "#b7bbc8",
+                  },
+                ],
+                undefined,
+              ]
+            }
+            testID="deposit-progress-step-3"
+          />
+        </View>
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "Geist-Bold",
+              "fontSize": 24,
+              "fontWeight": "bold",
+              "letterSpacing": 0,
+              "lineHeight": 32,
+              "marginTop": 24,
+            }
+          }
+        >
+          deposit.otp_code.title
+        </Text>
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#686e7d",
+              "fontFamily": "Geist-Regular",
+              "fontSize": 16,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+              "marginTop": 8,
+            }
+          }
+        >
+          deposit.otp_code.description
+        </Text>
+        <View
+          style={
+            [
+              {
+                "alignItems": "flex-end",
+                "display": "flex",
+              },
+              undefined,
+            ]
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            onPress={[Function]}
+            style={
+              {
+                "color": "#4459ff",
+                "fontFamily": "Geist-Regular",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+            testID="otp-code-paste-button"
+          >
+            deposit.otp_code.paste
+          </Text>
+        </View>
+        <View>
+          <TextInput
+            onChangeText={[Function]}
+            testID="otp-code-input"
+            value=""
+          />
+          <View
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "backgroundColor": "#3c4d9d0f",
+                  "borderColor": "#b7bbc866",
+                  "borderRadius": 8,
+                  "borderWidth": 1,
+                  "height": 50,
+                  "justifyContent": "center",
+                  "width": 50,
+                },
+                false,
+              ]
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "Geist-Bold",
+                  "fontSize": 24,
+                  "fontWeight": "bold",
+                  "letterSpacing": 0,
+                  "lineHeight": 30,
+                  "textAlign": "center",
+                }
+              }
+            />
+          </View>
+          <View
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "backgroundColor": "#3c4d9d0f",
+                  "borderColor": "#b7bbc866",
+                  "borderRadius": 8,
+                  "borderWidth": 1,
+                  "height": 50,
+                  "justifyContent": "center",
+                  "width": 50,
+                },
+                false,
+              ]
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "Geist-Bold",
+                  "fontSize": 24,
+                  "fontWeight": "bold",
+                  "letterSpacing": 0,
+                  "lineHeight": 30,
+                  "textAlign": "center",
+                }
+              }
+            />
+          </View>
+          <View
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "backgroundColor": "#3c4d9d0f",
+                  "borderColor": "#b7bbc866",
+                  "borderRadius": 8,
+                  "borderWidth": 1,
+                  "height": 50,
+                  "justifyContent": "center",
+                  "width": 50,
+                },
+                false,
+              ]
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "Geist-Bold",
+                  "fontSize": 24,
+                  "fontWeight": "bold",
+                  "letterSpacing": 0,
+                  "lineHeight": 30,
+                  "textAlign": "center",
+                }
+              }
+            />
+          </View>
+          <View
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "backgroundColor": "#3c4d9d0f",
+                  "borderColor": "#b7bbc866",
+                  "borderRadius": 8,
+                  "borderWidth": 1,
+                  "height": 50,
+                  "justifyContent": "center",
+                  "width": 50,
+                },
+                false,
+              ]
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "Geist-Bold",
+                  "fontSize": 24,
+                  "fontWeight": "bold",
+                  "letterSpacing": 0,
+                  "lineHeight": 30,
+                  "textAlign": "center",
+                }
+              }
+            />
+          </View>
+          <View
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "backgroundColor": "#3c4d9d0f",
+                  "borderColor": "#b7bbc866",
+                  "borderRadius": 8,
+                  "borderWidth": 1,
+                  "height": 50,
+                  "justifyContent": "center",
+                  "width": 50,
+                },
+                false,
+              ]
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "Geist-Bold",
+                  "fontSize": 24,
+                  "fontWeight": "bold",
+                  "letterSpacing": 0,
+                  "lineHeight": 30,
+                  "textAlign": "center",
+                }
+              }
+            />
+          </View>
+          <View
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "backgroundColor": "#3c4d9d0f",
+                  "borderColor": "#b7bbc866",
+                  "borderRadius": 8,
+                  "borderWidth": 1,
+                  "height": 50,
+                  "justifyContent": "center",
+                  "width": 50,
+                },
+                false,
+              ]
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "Geist-Bold",
+                  "fontSize": 24,
+                  "fontWeight": "bold",
+                  "letterSpacing": 0,
+                  "lineHeight": 30,
+                  "textAlign": "center",
+                }
+              }
+            />
+          </View>
+        </View>
+        <View
+          style={
+            [
+              {
+                "marginVertical": 8,
+              },
+              undefined,
+              undefined,
+              {
+                "flexDirection": "row",
+                "marginTop": 12,
+              },
+            ]
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#686e7d",
+                "fontFamily": "Geist-Regular",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "marginRight": 4,
+              }
+            }
+          >
+            deposit.otp_code.resend_code_description
+          </Text>
+          <TouchableOpacity
+            onPress={[Function]}
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#686e7d",
+                  "fontFamily": "Geist-Regular",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                  "marginLeft": 4,
+                  "textDecorationLine": "underline",
+                }
+              }
+            >
+              deposit.otp_code.resend_code_button
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </View>
+    <View>
+      <View
+        style={
+          [
+            {
+              "padding": 15,
+              "paddingHorizontal": 16,
+            },
+            undefined,
+            {
+              "gap": 8,
+            },
+          ]
+        }
+      >
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessible={true}
+          activeOpacity={1}
+          disabled={true}
+          loading={false}
+          onPress={[Function]}
+          onPressIn={[Function]}
+          onPressOut={[Function]}
+          style={
+            {
+              "alignItems": "center",
+              "alignSelf": "stretch",
+              "backgroundColor": "#121314",
+              "borderRadius": 12,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "opacity": 0.5,
+              "overflow": "hidden",
+              "paddingHorizontal": 16,
+            }
+          }
+          testID="otp-code-submit-button"
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#ffffff",
+                "fontFamily": "Geist-Medium",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+          >
+            deposit.otp_code.submit_button
+          </Text>
+        </TouchableOpacity>
+        <SvgMock
+          fill="currentColor"
+          name="powered-by-transak-logo"
+          style={
+            {
+              "color": "#686e7d",
+              "height": 24,
+            }
+          }
+        />
+      </View>
+    </View>
+  </View>
+</RNCSafeAreaView>
+`;
