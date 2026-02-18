@@ -230,14 +230,14 @@ class Tabs extends PureComponent {
   }
 
   onNewTabPress = () => {
-    const { tabs, newTab, closeTabsView } = this.props;
-    const tabCreated = newTab(); // No URL = opens empty DiscoveryTab, returns false if max tabs modal shown
+    const { tabs, newTab } = this.props;
+    newTab(); // No URL = opens empty DiscoveryTab, returns false if max tabs modal shown
     this.trackNewTabEvent(tabs.length);
-    // Only dismiss tabs view if a tab was actually created
-    // If max tabs modal is shown, keep tabs view open so user can close tabs
-    if (tabCreated) {
-      closeTabsView();
-    }
+    // Don't call closeTabsView() here. When a tab is created, the "new tab
+    // added" useEffect in Browser calls switchToTab which closes the tabs view
+    // via hideTabsAndUpdateUrl. Calling closeTabsView eagerly would set
+    // shouldShowTabs=false before switchToTab runs, causing it to capture a
+    // screenshot of the still-visible Tabs grid instead of the tab content.
   };
 
   trackNewTabEvent = (tabsNumber) => {

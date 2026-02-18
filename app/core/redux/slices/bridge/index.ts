@@ -28,9 +28,7 @@ import {
   BridgeToken,
   BridgeViewMode,
 } from '../../../../components/UI/Bridge/types';
-import { selectGasFeeControllerEstimates } from '../../../../selectors/gasFeeController';
-import { MetaMetrics } from '../../../Analytics';
-import { GasFeeEstimates } from '@metamask/gas-fee-controller';
+import { analytics } from '../../../../util/analytics/analytics';
 import { selectRemoteFeatureFlags } from '../../../../selectors/featureFlagController';
 import { getTokenExchangeRate } from '../../../../components/UI/Bridge/utils/exchange-rates';
 import { selectCanSignTransactions } from '../../../../selectors/accountsController';
@@ -69,6 +67,12 @@ export interface BridgeState {
    * When undefined, tokens from all chains are shown ("All" filter).
    */
   tokenSelectorNetworkFilter: CaipChainId | undefined;
+  /**
+   * Ordered list of chain IDs shown as pills in the token selector.
+   * Shared across source and dest pickers so pill order persists within a session.
+   * When undefined, defaults to the first N entries from chainRanking.
+   */
+  visiblePillChainIds: CaipChainId[] | undefined;
 }
 
 export const initialState: BridgeState = {
@@ -89,6 +93,7 @@ export const initialState: BridgeState = {
   isGasIncluded7702Supported: false,
   isDestTokenManuallySet: false,
   tokenSelectorNetworkFilter: undefined,
+  visiblePillChainIds: undefined,
 };
 
 const name = 'bridge';
@@ -182,6 +187,12 @@ const slice = createSlice({
       action: PayloadAction<CaipChainId | undefined>,
     ) => {
       state.tokenSelectorNetworkFilter = action.payload;
+    },
+    setVisiblePillChainIds: (
+      state,
+      action: PayloadAction<CaipChainId[] | undefined>,
+    ) => {
+      state.visiblePillChainIds = action.payload;
     },
   },
   extraReducers: (builder) => {
@@ -287,50 +298,16 @@ const isAllowedBridgeChainId = (caipChainId: string): boolean => {
 };
 
 /**
- * Base selector: filters chainRanking from feature flags by ALLOWED_BRIDGE_CHAIN_IDS.
- * This is the single place where the allowlist check is applied to chainRanking.
- * All other chain ranking selectors should derive from this.
+ * Selector that returns chainRanking from feature flags filtered by
+ * ALLOWED_BRIDGE_CHAIN_IDS. This ensures chains added to the remote flag
+ * in the future won't be surfaced by older app versions that lack support.
  */
-const selectAllowedChainRanking = createSelector(
+export const selectAllowedChainRanking = createSelector(
   selectBridgeFeatureFlags,
   (bridgeFeatureFlags) =>
     (bridgeFeatureFlags.chainRanking ?? []).filter((chain) =>
       isAllowedBridgeChainId(chain.chainId),
     ),
-);
-
-/**
- * Selector that returns all chains from chainRanking that are supported by this
- * version of the client (filtered by ALLOWED_BRIDGE_CHAIN_IDS).
- * Used by NetworkPills in DEST mode to show all available destination networks.
- */
-export const selectDestChainRanking = selectAllowedChainRanking;
-
-/**
- * Selector that returns the chainRanking filtered by:
- * 1. Chains supported by this version of the client (via selectAllowedChainRanking)
- * 2. User-configured networks
- * Used by NetworkPills in SOURCE mode to show all networks the user has added.
- */
-export const selectSourceChainRanking = createSelector(
-  selectAllowedChainRanking,
-  selectNetworkConfigurations,
-  (allowedChains, networkConfigurations) => {
-    const configuredChainIds = new Set(Object.keys(networkConfigurations));
-
-    return allowedChains.filter((chain) => {
-      const { chainId } = chain;
-
-      // For EVM chains (eip155:*), extract the hex chain ID and check if user has it configured
-      if (chainId.startsWith('eip155:')) {
-        const hexChainId = formatChainIdToHex(chainId);
-        return configuredChainIds.has(hexChainId);
-      }
-
-      // For non-EVM chains, check directly against the CAIP chain ID
-      return configuredChainIds.has(chainId);
-    });
-  },
 );
 
 /**
@@ -439,11 +416,13 @@ export const selectIsGasIncluded7702Supported = (state: RootState) =>
 
 const selectControllerFields = (state: RootState) => ({
   ...state.engine.backgroundState.BridgeController,
-  gasFeeEstimates: selectGasFeeControllerEstimates(state) as GasFeeEstimates,
+  gasFeeEstimatesByChainId:
+    state.engine.backgroundState.GasFeeController.gasFeeEstimatesByChainId ??
+    {},
   ...state.engine.backgroundState.MultichainAssetsRatesController,
   ...state.engine.backgroundState.TokenRatesController,
   ...state.engine.backgroundState.CurrencyRateController,
-  participateInMetaMetrics: MetaMetrics.getInstance().isEnabled(),
+  participateInMetaMetrics: analytics.isEnabled(),
   remoteFeatureFlags: {
     bridgeConfig: selectRemoteFeatureFlags(state).bridgeConfig,
   },
@@ -592,6 +571,11 @@ export const selectTokenSelectorNetworkFilter = createSelector(
   (bridgeState) => bridgeState.tokenSelectorNetworkFilter,
 );
 
+export const selectVisiblePillChainIds = createSelector(
+  selectBridgeState,
+  (bridgeState) => bridgeState.visiblePillChainIds,
+);
+
 export const selectIsDestTokenManuallySet = createSelector(
   selectBridgeState,
   (bridgeState) => bridgeState.isDestTokenManuallySet,
@@ -675,4 +659,5 @@ export const {
   setIsGasIncludedSTXSendBundleSupported,
   setIsGasIncluded7702Supported,
   setTokenSelectorNetworkFilter,
+  setVisiblePillChainIds,
 } = actions;

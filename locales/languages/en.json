@@ -1040,7 +1040,7 @@
       "title": "Amount to deposit",
       "get_usdc_hyperliquid": "Get USDC • Hyperliquid",
       "insufficient_funds": "Insufficient funds",
-      "no_funds_available": "No funds available. Please deposit first.",
+      "no_funds_available": "Not enough funds available. Deposit funds or select a different payment method",
       "enter_amount": "Enter amount",
       "fetching_quote": "Fetching quote",
       "submitting": "Submitting transaction",
@@ -3402,19 +3402,6 @@
     "bridge": "Bridge",
     "earn": "Earn",
     "convert_to_musd": "Convert to mUSD",
-    "merkl_rewards": {
-      "annual_bonus": "{{apy}}% bonus",
-      "claimable_bonus": "Claimable bonus",
-      "claimable_bonus_tooltip_description": "mUSD bonuses are claimed on Linea.",
-      "terms_apply": "Terms apply.",
-      "ok": "OK",
-      "claim": "Claim",
-      "processing_claim": "Processing claim...",
-      "claim_on_linea_title": "Claim bonuses on Linea",
-      "claim_on_linea_description": "Your bonus will be issued on Linea, separate from your Ethereum mUSD balance.",
-      "continue": "Continue",
-      "unexpected_error": "Unexpected error. Please try again."
-    },
     "tron": {
       "daily_resource_new_energy": "New daily energy",
       "sufficient_to_cover": "Sufficient to cover",
@@ -3798,7 +3785,7 @@
     "no_tabs_desc": "To browse the decentralized web, add a new tab",
     "got_it": "Got it",
     "max_tabs_title": "Maximum tabs reached",
-    "max_tabs_desc": "We currently only support 5 open tabs at once. Please close existing tabs before adding new ones.",
+    "max_tabs_desc": "We currently only support 20 open tabs at once. Please close existing tabs before adding new ones.",
     "failed_to_resolve_ens_name": "We couldn't resolve that ENS name",
     "remove_bookmark_title": "Remove favorite",
     "remove_bookmark_msg": "Do you really want to remove this site from your favorites?",
@@ -6192,8 +6179,11 @@
       "switching_to": "Switching to",
       "bridge_estimated_time": "Est. time",
       "pay_with": "Pay with",
+      "receive_as": "Receive",
       "total": "Total",
+      "you_receive": "You'll receive",
       "transaction_fee": "Transaction fee",
+      "transaction_fees": "Transaction fees",
       "metamask_fee": "MetaMask fee",
       "network_fee": "Network fee",
       "bridge_fee": "Bridge provider fee"
@@ -6232,6 +6222,9 @@
       },
       "predict_deposit": {
         "transaction_fee": "We'll swap your tokens for USDC.e on Polygon, the network used by Predictions. Swap providers may charge a fee, but MetaMask won't."
+      },
+      "predict_withdraw": {
+        "transaction_fee": "MetaMask will swap to your desired token for you. No MetaMask fee applies when you swap to MUSD."
       },
       "musd_conversion": {
         "transaction_fee": "mUSD conversion fees include network costs and may include provider fees."
@@ -6345,7 +6338,7 @@
     "transferRequest": "Transfer request",
     "nested_transaction_heading": "Transaction {{index}}",
     "transaction": "Transaction",
-    "available_balance": "Available: ",
+    "available_balance": "Available balance: ",
     "edit_amount_done": "Continue",
     "deposit_edit_amount_done": "Add funds",
     "deposit_edit_amount_predict_withdraw": "Withdraw",
@@ -7210,6 +7203,7 @@
   },
   "pay_with_modal": {
     "title": "Select payment method",
+    "title_receive": "Select receive token",
     "no_gas": "No native balance for gas"
   },
   "connection_removed_modal": {
