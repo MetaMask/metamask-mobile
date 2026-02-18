@@ -11,6 +11,7 @@ export const QuoteViewSelectorText = {
   MAX: enContent.bridge.max,
   INCLUDED: enContent.bridge.included,
   RATE: enContent.bridge.rate,
+  INSUFFICIENT_FUNDS: enContent.bridge.insufficient_funds,
 };
 
 export const QuoteViewSelectorIDs = {

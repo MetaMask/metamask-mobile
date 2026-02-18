@@ -115,12 +115,13 @@ The `tests/performance/device-matrix.json` file defines device configurations fo
 
 ## Running Tests
 
-### Local iOS: building the app
+### Building the app locally
 
 Use this command to build the app for Appwright:
 
 ```bash
 yarn build:ios:main:e2e
+yarn build:android:main:e2e
 ```
 
 Make sure you the following to `.e2e.env`:

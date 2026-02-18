@@ -2,7 +2,10 @@ import AppwrightGestures from '../../tests/framework/AppwrightGestures';
 import AppwrightSelectors from '../../tests/framework/AppwrightSelectors';
 import { SWAP_SCREEN_DESTINATION_TOKEN_INPUT_ID, SWAP_SCREEN_QUOTE_DISPLAYED_ID, SWAP_SCREEN_SOURCE_TOKEN_INPUT_ID } from './testIDs/Screens/SwapScreen.testIds';
 import { expect as appwrightExpect } from 'appwright';
-import { QuoteViewSelectorIDs } from '../../tests/selectors/Bridge/QuoteView.selectors';
+import {
+  QuoteViewSelectorIDs,
+  QuoteViewSelectorText,
+} from '../../tests/selectors/Bridge/QuoteView.selectors';
 import Selectors from '../helpers/Selectors.js';
 import { LoginViewSelectors } from '../../app/components/Views/Login/LoginView.testIds';
 import AmountScreen from './AmountScreen';
@@ -51,14 +54,30 @@ class BridgeScreen {
   }
 
   async isQuoteDisplayed() {
-      const mmFee = await AppwrightSelectors.getElementByCatchAll(this._device, "Includes 0.875% MetaMask fee");
-      await appwrightExpect(mmFee).toBeVisible({ timeout: 30000 });
+    const mmFee = await AppwrightSelectors.getElementByCatchAll(
+      this._device,
+      QuoteViewSelectorText.INSUFFICIENT_FUNDS,
+    );
+    await appwrightExpect(mmFee).toBeVisible({ timeout: 30000 });
+  }
 
-
+  /**
+   * Returns true if the "trade route isn't available" error banner is visible.
+   * Use this to skip the test when there is lack of liquidity.
+   */
+  async isRouteUnavailableVisible() {
+    const banner = await AppwrightSelectors.getElementByCatchAll(
+      this._device,
+      'available right now',
+    );
+    return banner.isVisible({ timeout: 10000 }).catch(() => false);
   }
 
   get sourceTokenAreaInput() {
-    return AppwrightSelectors.getElementByID(this._device, 'source-token-area-input');
+    return AppwrightSelectors.getElementByID(
+      this._device,
+      QuoteViewSelectorIDs.SOURCE_TOKEN_INPUT,
+    );
   }
 
   async enterSourceTokenAmount(amount) {
@@ -79,8 +98,10 @@ class BridgeScreen {
     await appwrightExpect(destinationToken).toBeVisible({ timeout: 10000 });
     await AppwrightGestures.tap(destinationToken);
 
-    const networkButton = await this.getNetworkButton(network);
-    await AppwrightGestures.tap(networkButton);
+    if (network !== 'Ethereum') {
+      const networkButton = await this.getNetworkButton(network);
+      await AppwrightGestures.tap(networkButton);
+    }
 
     let tokenNetworkId;
     if (network === 'Ethereum') {
