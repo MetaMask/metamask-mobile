@@ -34,11 +34,15 @@ tests/
 ├── framework/
 │   ├── fixtures/
 │   │   └── performance-test.js      # Custom test fixture with performance tracking
+│   ├── quality-gates/
+│   │   ├── types.ts                 # Shared type definitions for quality gates
+│   │   ├── QualityGateError.ts      # Custom error class for threshold failures
+│   │   ├── QualityGatesValidator.ts # Threshold validation engine
+│   │   ├── QualityGatesReportFormatter.ts # Console, HTML, and CSV report formatting
+│   │   └── helpers.ts               # File-based failure tracking across workers
 │   └── utils/
 │       ├── Timers.js                # Low-level timer management
 │       ├── TimersHelper.js          # Timer helper with thresholds support
-│       ├── QualityGatesValidator.js # Threshold validation engine
-│       ├── QualityGateError.js      # Quality gate failure handling
 │       ├── Flows.js                 # Shared user flows
 │       ├── TestConstants.js         # Test constants and credentials
 │       ├── BrowserStackCredentials.js # BrowserStack auth helper
@@ -279,7 +283,11 @@ The performance tracking system consists of three main components:
 
 1. **TimerHelper** (`tests/framework/utils/TimersHelper.js`) - Creates and manages individual timers with platform-specific thresholds
 2. **PerformanceTracker** (`tests/reporters/PerformanceTracker.js`) - Collects all timers and generates metrics
-3. **QualityGatesValidator** (`tests/framework/utils/QualityGatesValidator.js`) - Validates metrics against defined thresholds
+3. **Quality Gates** (`tests/framework/quality-gates/`) - TypeScript module for threshold validation and reporting:
+   - `QualityGatesValidator` - Validates metrics against defined thresholds
+   - `QualityGatesReportFormatter` - Formats results as console, HTML, and CSV reports
+   - `QualityGateError` - Custom error class for threshold failures
+   - `helpers` - File-based failure tracking across Playwright workers
 
 ### TimerHelper
 
@@ -374,7 +382,17 @@ test('My test', async ({ device, performanceTracker }, testInfo) => {
 // Effective thresholds will be: iOS = 1100ms, Android = 1650ms
 ```
 
-### QualityGatesValidator
+### Quality Gates Module (`tests/framework/quality-gates/`)
+
+The quality gates module is organized into focused TypeScript files by responsibility:
+
+| File                             | Responsibility                                                                         |
+| -------------------------------- | -------------------------------------------------------------------------------------- |
+| `types.ts`                       | Shared interfaces (`TimerLike`, `StepResult`, `QualityGatesResult`, `Violation`, etc.) |
+| `QualityGatesValidator.ts`       | Core validation logic (`validateTimers`, `validateMetrics`, `assertThresholds`)        |
+| `QualityGatesReportFormatter.ts` | Report formatting (`formatConsoleReport`, `generateHtmlSection`, `generateCsvRows`)    |
+| `QualityGateError.ts`            | Custom error class for threshold failures (non-retryable)                              |
+| `helpers.ts`                     | File-based failure tracking that persists across Playwright workers                    |
 
 The validator runs automatically after each test (via the fixture) if any timer has thresholds defined:
 
