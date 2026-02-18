@@ -351,6 +351,11 @@ export type PredictPosition = {
   optimistic?: boolean;
 };
 
+export interface GetAllPositionsResult {
+  activePositions: PredictPosition[];
+  claimablePositions: PredictPosition[];
+}
+
 export type PredictBalance = {
   balance: number;
   validUntil: number;

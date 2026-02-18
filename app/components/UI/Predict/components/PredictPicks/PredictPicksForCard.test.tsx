@@ -7,17 +7,12 @@ import { formatPrice } from '../../utils/format';
 
 import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
 jest.mock('../../hooks/usePredictPositions');
-jest.mock('../../hooks/useLivePositions', () => ({
-  useLivePositions: jest.fn((positions: unknown[]) => ({
+jest.mock('../../hooks/usePredictLivePositions', () => ({
+  usePredictLivePositions: jest.fn((positions: unknown[]) => ({
     livePositions: positions ?? [],
     isConnected: false,
     lastUpdateTime: null,
   })),
-}));
-jest.mock('../../hooks/usePredictOptimisticPositionRefresh', () => ({
-  usePredictOptimisticPositionRefresh: jest.fn(
-    ({ position }: { position: unknown }) => position,
-  ),
 }));
 jest.mock('../../utils/format');
 
@@ -53,7 +48,7 @@ const createMockPosition = (
 });
 
 describe('PredictPicksForCard', () => {
-  const mockLoadPositions = jest.fn();
+  const mockRefetch = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -62,7 +57,7 @@ describe('PredictPicksForCard', () => {
       isLoading: false,
       isRefreshing: false,
       error: null,
-      loadPositions: mockLoadPositions,
+      refetch: mockRefetch,
     });
     mockFormatPrice.mockImplementation(
       (value: number | string, _options?: { maximumDecimals?: number }) => {
@@ -84,7 +79,7 @@ describe('PredictPicksForCard', () => {
         isLoading: false,
         isRefreshing: false,
         error: null,
-        loadPositions: mockLoadPositions,
+        refetch: mockRefetch,
       });
 
       render(<PredictPicksForCard marketId="market-1" />);
@@ -100,7 +95,7 @@ describe('PredictPicksForCard', () => {
         isLoading: false,
         isRefreshing: false,
         error: null,
-        loadPositions: mockLoadPositions,
+        refetch: mockRefetch,
       });
 
       render(
@@ -118,7 +113,7 @@ describe('PredictPicksForCard', () => {
         isLoading: false,
         isRefreshing: false,
         error: null,
-        loadPositions: mockLoadPositions,
+        refetch: mockRefetch,
       });
 
       render(<PredictPicksForCard marketId="market-1" />);
@@ -134,7 +129,7 @@ describe('PredictPicksForCard', () => {
         isLoading: false,
         isRefreshing: false,
         error: null,
-        loadPositions: mockLoadPositions,
+        refetch: mockRefetch,
       });
 
       render(<PredictPicksForCard marketId="market-1" />);
@@ -148,7 +143,7 @@ describe('PredictPicksForCard', () => {
         isLoading: false,
         isRefreshing: false,
         error: null,
-        loadPositions: mockLoadPositions,
+        refetch: mockRefetch,
       });
 
       render(<PredictPicksForCard marketId="market-1" />);
@@ -162,7 +157,7 @@ describe('PredictPicksForCard', () => {
         isLoading: false,
         isRefreshing: false,
         error: null,
-        loadPositions: mockLoadPositions,
+        refetch: mockRefetch,
       });
 
       render(<PredictPicksForCard marketId="market-1" />);
@@ -176,7 +171,7 @@ describe('PredictPicksForCard', () => {
         isLoading: false,
         isRefreshing: false,
         error: null,
-        loadPositions: mockLoadPositions,
+        refetch: mockRefetch,
       });
 
       render(<PredictPicksForCard marketId="market-1" />);
@@ -190,7 +185,7 @@ describe('PredictPicksForCard', () => {
         isLoading: false,
         isRefreshing: false,
         error: null,
-        loadPositions: mockLoadPositions,
+        refetch: mockRefetch,
       });
 
       render(<PredictPicksForCard marketId="market-1" />);
@@ -204,7 +199,7 @@ describe('PredictPicksForCard', () => {
         isLoading: false,
         isRefreshing: false,
         error: null,
-        loadPositions: mockLoadPositions,
+        refetch: mockRefetch,
       });
 
       render(<PredictPicksForCard marketId="market-1" />);
@@ -227,7 +222,7 @@ describe('PredictPicksForCard', () => {
         isLoading: false,
         isRefreshing: false,
         error: null,
-        loadPositions: mockLoadPositions,
+        refetch: mockRefetch,
       });
 
       render(<PredictPicksForCard marketId="market-1" />);
@@ -250,7 +245,7 @@ describe('PredictPicksForCard', () => {
         isLoading: false,
         isRefreshing: false,
         error: null,
-        loadPositions: mockLoadPositions,
+        refetch: mockRefetch,
       });
 
       render(<PredictPicksForCard marketId="market-1" />);
@@ -271,7 +266,7 @@ describe('PredictPicksForCard', () => {
         isLoading: false,
         isRefreshing: false,
         error: null,
-        loadPositions: mockLoadPositions,
+        refetch: mockRefetch,
       });
 
       render(<PredictPicksForCard marketId="market-1" />);
@@ -291,7 +286,7 @@ describe('PredictPicksForCard', () => {
         isLoading: false,
         isRefreshing: false,
         error: null,
-        loadPositions: mockLoadPositions,
+        refetch: mockRefetch,
       });
 
       render(<PredictPicksForCard marketId="market-1" />);
@@ -310,7 +305,7 @@ describe('PredictPicksForCard', () => {
         isLoading: false,
         isRefreshing: false,
         error: null,
-        loadPositions: mockLoadPositions,
+        refetch: mockRefetch,
       });
 
       render(<PredictPicksForCard marketId="market-1" />);
@@ -327,7 +322,7 @@ describe('PredictPicksForCard', () => {
         isLoading: false,
         isRefreshing: false,
         error: null,
-        loadPositions: mockLoadPositions,
+        refetch: mockRefetch,
       });
 
       render(<PredictPicksForCard marketId="specific-market-456" />);
@@ -335,7 +330,7 @@ describe('PredictPicksForCard', () => {
       expect(mockUsePredictPositions).toHaveBeenCalledWith({
         marketId: 'specific-market-456',
         autoRefreshTimeout: 10000,
-        loadOnMount: true,
+        enabled: true,
         refreshOnFocus: true,
       });
     });
@@ -346,7 +341,7 @@ describe('PredictPicksForCard', () => {
         isLoading: false,
         isRefreshing: false,
         error: null,
-        loadPositions: mockLoadPositions,
+        refetch: mockRefetch,
       });
 
       render(<PredictPicksForCard marketId="market-1" />);
@@ -371,7 +366,7 @@ describe('PredictPicksForCard', () => {
       expect(mockUsePredictPositions).toHaveBeenCalledWith({
         marketId: 'market-1',
         autoRefreshTimeout: undefined,
-        loadOnMount: false,
+        enabled: false,
         refreshOnFocus: false,
       });
     });
@@ -390,7 +385,7 @@ describe('PredictPicksForCard', () => {
         isLoading: false,
         isRefreshing: false,
         error: null,
-        loadPositions: mockLoadPositions,
+        refetch: mockRefetch,
       });
 
       render(
@@ -451,7 +446,7 @@ describe('PredictPicksForCard', () => {
         isLoading: false,
         isRefreshing: false,
         error: null,
-        loadPositions: mockLoadPositions,
+        refetch: mockRefetch,
       });
 
       render(<PredictPicksForCard marketId="market-1" />);
@@ -467,7 +462,7 @@ describe('PredictPicksForCard', () => {
         isLoading: false,
         isRefreshing: false,
         error: null,
-        loadPositions: mockLoadPositions,
+        refetch: mockRefetch,
       });
 
       render(<PredictPicksForCard marketId="market-1" showSeparator />);
@@ -483,7 +478,7 @@ describe('PredictPicksForCard', () => {
         isLoading: false,
         isRefreshing: false,
         error: null,
-        loadPositions: mockLoadPositions,
+        refetch: mockRefetch,
       });
 
       render(<PredictPicksForCard marketId="market-1" showSeparator={false} />);
@@ -499,7 +494,7 @@ describe('PredictPicksForCard', () => {
         isLoading: false,
         isRefreshing: false,
         error: null,
-        loadPositions: mockLoadPositions,
+        refetch: mockRefetch,
       });
 
       render(<PredictPicksForCard marketId="market-1" showSeparator />);
@@ -515,7 +510,7 @@ describe('PredictPicksForCard', () => {
         isLoading: false,
         isRefreshing: false,
         error: null,
-        loadPositions: mockLoadPositions,
+        refetch: mockRefetch,
       });
 
       render(

@@ -219,7 +219,7 @@ const setupPositionsMock = (config: MockPositionsConfig = {}) => {
     isLoading,
     isRefreshing: false,
     error: null,
-    loadPositions: jest.fn(),
+    refetch: jest.fn(),
   }));
 };
 
@@ -295,6 +295,7 @@ describe('PredictSportCardFooter', () => {
 
       expect(mockUsePredictPositions).toHaveBeenCalledWith({
         marketId: 'specific-market-123',
+        claimable: false,
         autoRefreshTimeout: 10000,
       });
     });

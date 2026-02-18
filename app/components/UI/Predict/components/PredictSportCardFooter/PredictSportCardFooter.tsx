@@ -52,6 +52,7 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
 
   const { positions, isLoading } = usePredictPositions({
     marketId: market.id,
+    claimable: false,
     autoRefreshTimeout: 10000,
   });
 

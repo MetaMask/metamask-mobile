@@ -2,7 +2,7 @@ import React from 'react';
 import { Box } from '@metamask/design-system-react-native';
 
 import { usePredictPositions } from '../../hooks/usePredictPositions';
-import { useLivePositions } from '../../hooks/useLivePositions';
+import { usePredictLivePositions } from '../../hooks/usePredictLivePositions';
 import type { PredictPosition } from '../../types';
 import PredictPicksForCardItem from './PredictPicksForCardItem';
 
@@ -30,12 +30,12 @@ const PredictPicksForCard: React.FC<PredictPicksForCardProps> = ({
   const { positions: fetchedPositions } = usePredictPositions({
     marketId,
     autoRefreshTimeout: positionsProp ? undefined : 10000,
-    loadOnMount: !positionsProp,
+    enabled: !positionsProp,
     refreshOnFocus: !positionsProp,
   });
 
   const basePositions = positionsProp ?? fetchedPositions;
-  const { livePositions } = useLivePositions(basePositions);
+  const { livePositions } = usePredictLivePositions(basePositions);
 
   if (livePositions.length === 0) {
     return null;

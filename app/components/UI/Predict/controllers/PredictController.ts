@@ -67,6 +67,7 @@ import {
   GetAccountStateParams,
   GetBalanceParams,
   GetMarketsParams,
+  GetAllPositionsResult,
   GetPositionsParams,
   GetPriceHistoryParams,
   GetPriceParams,
@@ -883,6 +884,33 @@ export class PredictController extends BaseController<
         data: traceData,
       });
     }
+  }
+
+  /**
+   * Get all user positions (active + claimable) in a single call.
+   *
+   * Fires two parallel requests to the provider and keeps the Redux
+   * `claimablePositions` slice in sync for confirmation-screen selectors.
+   */
+  async getAllPositions(params: {
+    address?: string;
+  }): Promise<GetAllPositionsResult> {
+    const selectedAddress = params.address ?? this.getSigner().address;
+    const provider = this.provider;
+
+    const [activePositions, claimablePositions] = await Promise.all([
+      provider.getPositions({ address: selectedAddress, claimable: false }),
+      provider.getPositions({ address: selectedAddress, claimable: true }),
+    ]);
+
+    // Keep Redux in sync for confirmation screens (transitional)
+    this.update((state) => {
+      state.lastUpdateTimestamp = Date.now();
+      state.lastError = null;
+      state.claimablePositions[selectedAddress] = [...claimablePositions];
+    });
+
+    return { activePositions, claimablePositions };
   }
 
   /**

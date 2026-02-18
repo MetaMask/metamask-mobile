@@ -189,7 +189,7 @@ jest.mock('../../hooks/usePredictPositions', () => ({
     isLoading: false,
     isRefreshing: false,
     error: null,
-    loadPositions: jest.fn(),
+    refetch: jest.fn(),
   })),
 }));
 
@@ -416,7 +416,7 @@ interface PredictPositionsHookResultMock {
   isLoading: boolean;
   isRefreshing: boolean;
   error: unknown;
-  loadPositions: jest.Mock;
+  refetch: jest.Mock;
 }
 
 interface SplitPositionsOverrides {
@@ -537,7 +537,7 @@ function setupPredictMarketDetailsTest(
     isLoading: false,
     isRefreshing: false,
     error: null,
-    loadPositions: jest.fn(),
+    refetch: jest.fn(),
     ...activeOverride,
   };
 
@@ -546,7 +546,7 @@ function setupPredictMarketDetailsTest(
     isLoading: false,
     isRefreshing: false,
     error: null,
-    loadPositions: jest.fn(),
+    refetch: jest.fn(),
     ...claimableOverride,
   };
 
@@ -1436,7 +1436,7 @@ describe('PredictMarketDetails', () => {
     it('triggers market, price history, and active positions refresh', async () => {
       const mockRefetchMarket = jest.fn(() => Promise.resolve());
       const mockRefetchPriceHistory = jest.fn(() => Promise.resolve());
-      const mockLoadActivePositions = jest.fn(() => Promise.resolve());
+      const mockRefetchActivePositions = jest.fn(() => Promise.resolve());
 
       setupPredictMarketDetailsTest(
         {},
@@ -1444,7 +1444,7 @@ describe('PredictMarketDetails', () => {
         {
           market: { refetch: mockRefetchMarket },
           priceHistory: { refetch: mockRefetchPriceHistory },
-          positions: { loadPositions: mockLoadActivePositions },
+          positions: { refetch: mockRefetchActivePositions },
         },
       );
 
@@ -1459,10 +1459,7 @@ describe('PredictMarketDetails', () => {
       await waitFor(() => {
         expect(mockRefetchMarket).toHaveBeenCalledTimes(1);
         expect(mockRefetchPriceHistory).toHaveBeenCalledTimes(1);
-        expect(mockLoadActivePositions).toHaveBeenCalled();
-        expect(mockLoadActivePositions).toHaveBeenCalledWith({
-          isRefresh: true,
-        });
+        expect(mockRefetchActivePositions).toHaveBeenCalled();
       });
     });
   });
@@ -2579,7 +2576,7 @@ describe('PredictMarketDetails', () => {
         isLoading: false,
         isRefreshing: false,
         error: null,
-        loadPositions: jest.fn(),
+        refetch: jest.fn(),
       });
 
       rerender(<PredictMarketDetails />);

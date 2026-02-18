@@ -107,7 +107,7 @@ describe('PredictHomePositions', () => {
     isLoading: false,
     isRefreshing: false,
     error: null,
-    loadPositions: jest.fn(),
+    refetch: jest.fn(),
   };
 
   beforeEach(() => {
@@ -210,19 +210,19 @@ describe('PredictHomePositions', () => {
     expect(queryByTestId('predict-home-featured')).not.toBeOnTheScreen();
   });
 
-  it('invokes loadPositions refresh when ref refresh is called', async () => {
-    const mockLoadPositions = jest.fn().mockResolvedValue(undefined);
-    const mockLoadClaimable = jest.fn().mockResolvedValue(undefined);
+  it('invokes refetch when ref refresh is called', async () => {
+    const mockRefetch = jest.fn().mockResolvedValue(undefined);
+    const mockRefetchClaimable = jest.fn().mockResolvedValue(undefined);
     mockUsePredictPositions
       .mockReturnValueOnce({
         ...defaultMockReturn,
         positions: [createMockPosition()],
-        loadPositions: mockLoadPositions,
+        refetch: mockRefetch,
       })
       .mockReturnValueOnce({
         ...defaultMockReturn,
         positions: [],
-        loadPositions: mockLoadClaimable,
+        refetch: mockRefetchClaimable,
       });
 
     const ref = React.createRef<PredictHomePositionsHandle>();
@@ -232,8 +232,7 @@ describe('PredictHomePositions', () => {
       await ref.current?.refresh();
     });
 
-    expect(mockLoadPositions).toHaveBeenCalledWith({ isRefresh: true });
-    expect(mockLoadClaimable).toHaveBeenCalledWith({ isRefresh: true });
+    expect(mockRefetch).toHaveBeenCalled();
   });
 
   it('calls onError when active positions error occurs', () => {

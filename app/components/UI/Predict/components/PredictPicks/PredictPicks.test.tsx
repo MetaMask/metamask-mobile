@@ -22,17 +22,12 @@ jest.mock('@react-navigation/native', () => ({
 }));
 jest.mock('../../hooks/usePredictPositions');
 jest.mock('../../hooks/usePredictActionGuard');
-jest.mock('../../hooks/useLivePositions', () => ({
-  useLivePositions: jest.fn((positions: unknown[]) => ({
+jest.mock('../../hooks/usePredictLivePositions', () => ({
+  usePredictLivePositions: jest.fn((positions: unknown[]) => ({
     livePositions: positions ?? [],
     isConnected: false,
     lastUpdateTime: null,
   })),
-}));
-jest.mock('../../hooks/usePredictOptimisticPositionRefresh', () => ({
-  usePredictOptimisticPositionRefresh: jest.fn(
-    ({ position }: { position: unknown }) => position,
-  ),
 }));
 jest.mock('../../utils/format');
 
@@ -66,7 +61,7 @@ const setupPositionsMock = (config: MockPositionsConfig = {}) => {
     isLoading,
     isRefreshing,
     error,
-    loadPositions: jest.fn(),
+    refetch: jest.fn(),
   }));
 };
 
@@ -404,6 +399,7 @@ describe('PredictPicks', () => {
 
       expect(mockUsePredictPositions).toHaveBeenCalledWith({
         marketId: 'specific-market-123',
+        claimable: false,
         autoRefreshTimeout: 10000,
       });
     });
