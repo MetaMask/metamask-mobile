@@ -7547,7 +7547,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/account-tree-controller@npm:^4.0.0, @metamask/account-tree-controller@npm:^4.1.0, @metamask/account-tree-controller@npm:^4.1.1":
+"@metamask/account-tree-controller@npm:^4.1.0, @metamask/account-tree-controller@npm:^4.1.1":
   version: 4.1.1
   resolution: "@metamask/account-tree-controller@npm:4.1.1"
   dependencies:
@@ -8904,36 +8904,6 @@ __metadata:
     "@metamask/utils": "npm:^9.1.0"
     uuid: "npm:^11.1.0"
   checksum: 10/e3a82e7bf4673940ef433a0b16d8622a3d74cf69aa2c236c47b60f5f6e71d3da99c8ea8845a2635be592fd4ec5805d05a69bb31a2e13a00333c3ec455e18b9da
-  languageName: node
-  linkType: hard
-
-"@metamask/multichain-account-service@npm:^5.1.0":
-  version: 5.1.0
-  resolution: "@metamask/multichain-account-service@npm:5.1.0"
-  dependencies:
-    "@ethereumjs/util": "npm:^9.1.0"
-    "@metamask/accounts-controller": "npm:^35.0.2"
-    "@metamask/base-controller": "npm:^9.0.0"
-    "@metamask/eth-snap-keyring": "npm:^18.0.0"
-    "@metamask/key-tree": "npm:^10.1.1"
-    "@metamask/keyring-api": "npm:^21.0.0"
-    "@metamask/keyring-controller": "npm:^25.0.0"
-    "@metamask/keyring-internal-api": "npm:^9.0.0"
-    "@metamask/keyring-snap-client": "npm:^8.0.0"
-    "@metamask/keyring-utils": "npm:^3.1.0"
-    "@metamask/messenger": "npm:^0.3.0"
-    "@metamask/snaps-controllers": "npm:^17.2.0"
-    "@metamask/snaps-sdk": "npm:^10.3.0"
-    "@metamask/snaps-utils": "npm:^11.7.0"
-    "@metamask/superstruct": "npm:^3.1.0"
-    "@metamask/utils": "npm:^11.9.0"
-    async-mutex: "npm:^0.5.0"
-    lodash: "npm:^4.17.21"
-  peerDependencies:
-    "@metamask/account-api": ^0.12.0
-    "@metamask/providers": ^22.0.0
-    webextension-polyfill: ^0.10.0 || ^0.11.0 || ^0.12.0
-  checksum: 10/800ab4ec699ab3f3f602f54126b451934186754f1c02d19a3c398138ef48ebc816117c1dabd261ab8b9cbd383c2c0a35f9f55a01ac33a1382507d4c509a8de70
   languageName: node
   linkType: hard
 
