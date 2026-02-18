@@ -3,7 +3,13 @@ import Login from './';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { fireEvent, act } from '@testing-library/react-native';
 import { LoginViewSelectors } from './LoginView.testIds';
-import { InteractionManager, BackHandler, Image, Platform } from 'react-native';
+import {
+  InteractionManager,
+  BackHandler,
+  Image,
+  Platform,
+  Alert,
+} from 'react-native';
 import METAMASK_NAME from '../../../images/branding/metamask-name.png';
 import Routes from '../../../constants/navigation/Routes';
 import { strings } from '../../../../locales/i18n';
@@ -23,6 +29,17 @@ import {
   SeedlessOnboardingControllerError,
   SeedlessOnboardingControllerErrorType,
 } from '../../../core/Engine/controllers/seedless-onboarding-controller/error';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import {
+  PASSCODE_NOT_SET_ERROR,
+  JSON_PARSE_ERROR_UNEXPECTED_TOKEN,
+  VAULT_ERROR,
+  DENY_PIN_ERROR_ANDROID,
+} from './constants';
+import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
+import { trackVaultCorruption } from '../../../util/analytics/vaultCorruptionTracking';
+import { downloadStateLogs } from '../../../util/logs';
+import { getVaultFromBackup } from '../../../core/BackupVault';
 
 const mockNavigate = jest.fn();
 const mockReplace = jest.fn();
@@ -236,6 +253,28 @@ jest.mock('@react-native-community/netinfo', () => ({
   })),
 }));
 
+jest.mock('../../../util/metrics/TrackError/trackErrorAsAnalytics', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+
+jest.mock('../../../util/analytics/vaultCorruptionTracking', () => ({
+  trackVaultCorruption: jest.fn(),
+}));
+
+jest.mock('../../../util/logs', () => ({
+  downloadStateLogs: jest.fn(),
+}));
+
+jest.mock('../../../core/redux', () => ({
+  __esModule: true,
+  default: {
+    store: {
+      getState: jest.fn(() => ({ mock: 'state' })),
+    },
+  },
+}));
+
 const mockBackHandlerAddEventListener = jest.fn();
 const mockBackHandlerRemoveEventListener = jest.fn();
 
@@ -245,9 +284,17 @@ describe('Login', () => {
   const mockTrackOnboarding = jest.mocked(
     jest.requireMock('../../../util/metrics/TrackOnboarding/trackOnboarding'),
   );
+  const mockTrackErrorAsAnalytics =
+    trackErrorAsAnalytics as jest.MockedFunction<typeof trackErrorAsAnalytics>;
+  const mockTrackVaultCorruption = jest.mocked(trackVaultCorruption);
+  const mockDownloadStateLogs = jest.mocked(downloadStateLogs);
+  const mockGetVaultFromBackup = jest.mocked(getVaultFromBackup);
+  const mockAlertAlert = jest.fn();
+  const originalAlert = Alert.alert;
 
   beforeEach(() => {
     jest.clearAllMocks();
+    Alert.alert = mockAlertAlert;
     mockNavigate.mockClear();
     mockReplace.mockClear();
     mockGoBack.mockClear();
@@ -283,6 +330,7 @@ describe('Login', () => {
   afterEach(() => {
     jest.clearAllTimers();
     jest.useRealTimers();
+    Alert.alert = originalAlert;
   });
 
   it('renders matching snapshot', () => {
@@ -871,6 +919,251 @@ describe('Login', () => {
       const scrollView = UNSAFE_root.findByProps({ extraScrollHeight: 0 });
       expect(scrollView).toBeDefined();
       expect(scrollView.props.extraScrollHeight).toBe(0);
+    });
+  });
+
+  describe('Analytics Tracking', () => {
+    it('tracks LOGIN_SCREEN_VIEWED on mount', () => {
+      renderWithProvider(<Login />);
+
+      expect(mockTrackOnboarding).toHaveBeenCalledWith(
+        MetaMetricsEvents.LOGIN_SCREEN_VIEWED,
+        expect.any(Function),
+      );
+    });
+
+    it('tracks FORGOT_PASSWORD_CLICKED when reset wallet is pressed', () => {
+      const { getByTestId } = renderWithProvider(<Login />);
+
+      fireEvent.press(getByTestId(LoginViewSelectors.RESET_WALLET));
+
+      expect(mockTrackOnboarding).toHaveBeenCalledWith(
+        MetaMetricsEvents.FORGOT_PASSWORD_CLICKED,
+        expect.any(Function),
+      );
+    });
+
+    it('tracks LOGIN_DOWNLOAD_LOGS and calls downloadStateLogs on long press', () => {
+      const { getByTestId } = renderWithProvider(<Login />);
+      const foxAnimationMock = getByTestId('fox-animation-mock');
+      const foxWrapper = foxAnimationMock.parent;
+
+      if (!foxWrapper) {
+        throw new Error('Fox animation wrapper not found');
+      }
+
+      fireEvent(foxWrapper, 'longPress');
+
+      expect(mockTrackOnboarding).toHaveBeenCalledWith(
+        MetaMetricsEvents.LOGIN_DOWNLOAD_LOGS,
+        expect.any(Function),
+      );
+      expect(mockDownloadStateLogs).toHaveBeenCalledWith(
+        { mock: 'state' },
+        false,
+      );
+    });
+
+    it('calls trackErrorAsAnalytics on wrong password error', async () => {
+      const errorMsg = 'Decrypt failed';
+      mockUnlockWallet.mockReset().mockRejectedValue(new Error(errorMsg));
+
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'wrong-password');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      expect(mockTrackErrorAsAnalytics).toHaveBeenCalledWith(
+        'Login: Invalid Password',
+        errorMsg,
+      );
+    });
+  });
+
+  describe('PASSCODE_NOT_SET_ERROR', () => {
+    it('shows security alert when passcode is not set', async () => {
+      mockUnlockWallet.mockRejectedValue(new Error(PASSCODE_NOT_SET_ERROR));
+
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'some-password');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      expect(mockAlertAlert).toHaveBeenCalledWith(
+        strings('login.security_alert_title'),
+        strings('login.security_alert_desc'),
+      );
+    });
+  });
+
+  describe('JSON_PARSE_ERROR vault corruption', () => {
+    it('triggers vault corruption flow on JSON parse error', async () => {
+      mockUnlockWallet.mockRejectedValue(
+        new Error(JSON_PARSE_ERROR_UNEXPECTED_TOKEN),
+      );
+      mockGetVaultFromBackup.mockResolvedValueOnce({
+        success: false,
+        error: 'corrupted',
+      });
+
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'some-password');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      expect(mockTrackVaultCorruption).toHaveBeenCalledWith(
+        JSON_PARSE_ERROR_UNEXPECTED_TOKEN,
+        expect.objectContaining({
+          error_type: 'json_parse_error',
+          context: 'login_authentication',
+        }),
+      );
+      expect(mockGetVaultFromBackup).toHaveBeenCalled();
+    });
+  });
+
+  describe('trackVaultCorruption in handleVaultCorruption', () => {
+    it('tracks vault corruption at the start of recovery', async () => {
+      mockUnlockWallet.mockRejectedValue(new Error(VAULT_ERROR));
+      mockGetVaultFromBackup.mockResolvedValueOnce({
+        success: false,
+        error: 'no backup',
+      });
+
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'some-password');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      expect(mockTrackVaultCorruption).toHaveBeenCalledWith(
+        VAULT_ERROR,
+        expect.objectContaining({
+          error_type: 'vault_corruption_handling',
+          context: 'vault_corruption_recovery_attempt',
+        }),
+      );
+    });
+  });
+
+  describe('Password change clears error', () => {
+    it('clears error message when user types after an error', async () => {
+      mockUnlockWallet.mockRejectedValue(new Error('Decrypt failed'));
+
+      const { getByTestId, queryByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'wrong-password');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      expect(getByTestId(LoginViewSelectors.PASSWORD_ERROR)).toBeOnTheScreen();
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'new-attempt');
+      });
+
+      expect(
+        queryByTestId(LoginViewSelectors.PASSWORD_ERROR),
+      ).not.toBeOnTheScreen();
+    });
+  });
+
+  describe('DENY_PIN_ERROR_ANDROID cancellation', () => {
+    it('silently cancels without displaying an error', async () => {
+      mockUnlockWallet.mockRejectedValue(new Error(DENY_PIN_ERROR_ANDROID));
+
+      const { getByTestId, queryByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'some-password');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      expect(
+        queryByTestId(LoginViewSelectors.PASSWORD_ERROR),
+      ).not.toBeOnTheScreen();
+    });
+  });
+
+  describe('Login button disabled state', () => {
+    it('renders login button as disabled when password is empty', () => {
+      const { getByTestId } = renderWithProvider(<Login />);
+      const loginButton = getByTestId(LoginViewSelectors.LOGIN_BUTTON_ID);
+
+      expect(loginButton).toHaveProp('disabled', true);
+    });
+
+    it('renders login button as enabled when password is entered', () => {
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      fireEvent.changeText(passwordInput, 'some-password');
+
+      const loginButton = getByTestId(LoginViewSelectors.LOGIN_BUTTON_ID);
+      expect(loginButton).toHaveProp('disabled', false);
+    });
+  });
+
+  describe('Biometric error re-enables credentials', () => {
+    beforeEach(() => {
+      mockRoute.mockReturnValue({
+        params: {
+          locked: false,
+          oauthLoginSuccess: false,
+        },
+      });
+      (passcodeType as jest.Mock).mockReturnValue('TouchID');
+      mockGetAuthType.mockResolvedValue({
+        currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
+        availableBiometryType: 'TouchID',
+      });
+      (StorageWrapper.getItem as jest.Mock).mockReset();
+    });
+
+    it('keeps biometric button visible after biometric unlock fails', async () => {
+      mockUnlockWallet.mockRejectedValueOnce(
+        new Error('Biometric auth failed'),
+      );
+
+      const { getByTestId } = renderWithProvider(<Login />);
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      const biometryButton = getByTestId(LoginViewSelectors.BIOMETRY_BUTTON);
+
+      await act(async () => {
+        fireEvent.press(biometryButton);
+      });
+
+      expect(getByTestId(LoginViewSelectors.BIOMETRY_BUTTON)).toBeOnTheScreen();
     });
   });
 });
