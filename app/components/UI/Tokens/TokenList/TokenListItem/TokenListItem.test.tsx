@@ -95,11 +95,11 @@ jest.mock('../../../Earn/hooks/useEarnTokens', () => ({
   default: () => ({ getEarnToken: mockGetEarnToken }),
 }));
 
-const mockInitiateConversion = jest.fn();
+const mockInitiateCustomConversion = jest.fn().mockResolvedValue(undefined);
 let mockHasSeenConversionEducationScreen = true;
 jest.mock('../../../Earn/hooks/useMusdConversion', () => ({
   useMusdConversion: () => ({
-    initiateConversion: mockInitiateConversion,
+    initiateCustomConversion: mockInitiateCustomConversion,
     error: null,
     hasSeenConversionEducationScreen: mockHasSeenConversionEducationScreen,
   }),
@@ -761,7 +761,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       });
 
       await waitFor(() => {
-        expect(mockInitiateConversion).toHaveBeenCalledWith({
+        expect(mockInitiateCustomConversion).toHaveBeenCalledWith({
           preferredPaymentToken: {
             address: toHex('0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48'),
             chainId: toHex('0x1'),
@@ -1252,7 +1252,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
         isMerklEligible: true,
       });
 
-      const { getByTestId } = renderWithProvider(
+      const { getByTestId, getByText } = renderWithProvider(
         <TokenListItem
           assetKey={assetKey}
           showRemoveMenu={jest.fn()}
@@ -1260,6 +1260,10 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
           privacyMode={false}
         />,
       );
+
+      await waitFor(() => {
+        expect(getByText(strings('earn.claim_bonus'))).toBeOnTheScreen();
+      });
 
       await act(async () => {
         fireEvent.press(getByTestId(SECONDARY_BALANCE_BUTTON_TEST_ID));
