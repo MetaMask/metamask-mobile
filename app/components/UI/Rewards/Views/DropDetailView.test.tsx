@@ -444,10 +444,10 @@ describe('DropDetailView', () => {
         .spyOn(InteractionManager, 'runAfterInteractions')
         .mockImplementation((cb) => {
           if (typeof cb === 'function') cb();
-          const donePromise = Promise.resolve();
           return {
-            then: donePromise.then.bind(donePromise),
-            done: donePromise,
+            then: (onfulfilled?: () => any, onrejected?: () => any) =>
+              Promise.resolve().then(onfulfilled, onrejected),
+            done: jest.fn(),
             cancel: jest.fn(),
           };
         });
