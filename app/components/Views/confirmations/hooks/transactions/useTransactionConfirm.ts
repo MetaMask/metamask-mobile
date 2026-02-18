@@ -129,7 +129,9 @@ export function useTransactionConfirm() {
     if (type === TransactionType.perpsDepositAndOrder) {
       return;
     } else if (type === TransactionType.perpsDeposit) {
-      navigation.navigate(Routes.PERPS.PERPS_HOME);
+      navigation.navigate(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.PERPS_HOME,
+      });
     } else if (type === TransactionType.musdConversion) {
       navigation.navigate(Routes.WALLET_VIEW);
     } else if (
