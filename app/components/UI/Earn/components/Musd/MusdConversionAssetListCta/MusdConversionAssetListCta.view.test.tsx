@@ -6,6 +6,19 @@ import React from 'react';
 import { View } from 'react-native';
 import MusdConversionAssetListCta from './index';
 import { EARN_TEST_IDS } from '../../../constants/testIds';
+import { initialState as initialFiatOrdersState } from '../../../../../../reducers/fiatOrders';
+
+const fiatOrdersNoFetch = {
+  ...initialFiatOrdersState,
+  detectedGeolocation: undefined,
+  rampRoutingDecision: null,
+};
+
+// Version-gated flags require { enabled, minimumVersion } so validatedVersionGatedFeatureFlag returns a boolean instead of undefined (env fallback).
+const versionGatedFlag = (enabled: boolean) => ({
+  enabled,
+  minimumVersion: '0.0.0',
+});
 
 // Wrapper component to render the CTA in a screen context
 const MusdConversionAssetListCtaScreen = () => (
@@ -16,14 +29,14 @@ const MusdConversionAssetListCtaScreen = () => (
 
 describeForPlatforms('MusdConversionAssetListCta', () => {
   it('hides CTA when feature flag disabled', () => {
-    // Arrange
     const state = initialStateWallet()
       .withMinimalMultichainAssets()
       .withRemoteFeatureFlags({
-        earnMusdCtaEnabled: { enabled: false },
-        earnMusdConversionFlowEnabled: { enabled: true },
+        earnMusdCtaEnabled: versionGatedFlag(false),
+        earnMusdConversionFlowEnabled: versionGatedFlag(true),
       })
       .withOverrides({
+        fiatOrders: fiatOrdersNoFetch,
         engine: {
           backgroundState: {
             AssetsController: {
@@ -34,28 +47,26 @@ describeForPlatforms('MusdConversionAssetListCta', () => {
       } as unknown as Record<string, unknown>)
       .build();
 
-    // Act
     const { queryByTestId } = renderComponentViewScreen(
       MusdConversionAssetListCtaScreen,
       { name: 'TestScreen' },
       { state },
     );
 
-    // Assert
     expect(
       queryByTestId(EARN_TEST_IDS.MUSD.ASSET_LIST_CONVERSION_CTA),
     ).toBeNull();
   });
 
   it('hides CTA when conversion flow feature flag disabled', () => {
-    // Arrange
     const state = initialStateWallet()
       .withMinimalMultichainAssets()
       .withRemoteFeatureFlags({
-        earnMusdCtaEnabled: { enabled: true },
-        earnMusdConversionFlowEnabled: { enabled: false },
+        earnMusdCtaEnabled: versionGatedFlag(true),
+        earnMusdConversionFlowEnabled: versionGatedFlag(false),
       })
       .withOverrides({
+        fiatOrders: fiatOrdersNoFetch,
         engine: {
           backgroundState: {
             AssetsController: {
@@ -66,30 +77,26 @@ describeForPlatforms('MusdConversionAssetListCta', () => {
       } as unknown as Record<string, unknown>)
       .build();
 
-    // Act
     const { queryByTestId } = renderComponentViewScreen(
       MusdConversionAssetListCtaScreen,
       { name: 'TestScreen' },
       { state },
     );
 
-    // Assert
     expect(
       queryByTestId(EARN_TEST_IDS.MUSD.ASSET_LIST_CONVERSION_CTA),
     ).toBeNull();
   });
 
   it('does not render CTA when visibility conditions are not met', () => {
-    // Arrange
-    // Component visibility depends on complex hook logic that requires
-    // specific state configuration. When conditions aren't met, component returns null.
     const state = initialStateWallet()
       .withMinimalMultichainAssets()
       .withRemoteFeatureFlags({
-        earnMusdCtaEnabled: { enabled: true },
-        earnMusdConversionFlowEnabled: { enabled: true },
+        earnMusdCtaEnabled: versionGatedFlag(true),
+        earnMusdConversionFlowEnabled: versionGatedFlag(true),
       })
       .withOverrides({
+        fiatOrders: fiatOrdersNoFetch,
         engine: {
           backgroundState: {
             AssetsController: {
@@ -100,18 +107,13 @@ describeForPlatforms('MusdConversionAssetListCta', () => {
       } as unknown as Record<string, unknown>)
       .build();
 
-    // Act
     const { queryByTestId } = renderComponentViewScreen(
       MusdConversionAssetListCtaScreen,
       { name: 'TestScreen' },
       { state },
     );
 
-    // Assert
-    // Component returns null when visibility conditions are not met
-    // This test verifies the component handles the case gracefully without crashing
     const cta = queryByTestId(EARN_TEST_IDS.MUSD.ASSET_LIST_CONVERSION_CTA);
-    // When conditions aren't met, component should return null
     expect(cta).toBeNull();
   });
 });
