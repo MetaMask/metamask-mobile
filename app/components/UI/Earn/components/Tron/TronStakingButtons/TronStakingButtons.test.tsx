@@ -42,11 +42,8 @@ const mockTrackEvent = jest.fn();
 const mockBuilderAddProps = jest.fn().mockReturnThis();
 const mockBuilderBuild = jest.fn().mockReturnValue({});
 
-jest.mock('../../../../../hooks/useMetrics', () => ({
-  MetaMetricsEvents: {
-    STAKE_BUTTON_CLICKED: 'STAKE_BUTTON_CLICKED',
-  },
-  useMetrics: () => ({
+jest.mock('../../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
     trackEvent: mockTrackEvent,
     createEventBuilder: () => ({
       addProperties: mockBuilderAddProps,

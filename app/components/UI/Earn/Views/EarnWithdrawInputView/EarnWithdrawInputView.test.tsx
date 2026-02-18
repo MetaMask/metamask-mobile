@@ -2,8 +2,8 @@ import { fireEvent, screen, waitFor, act } from '@testing-library/react-native';
 import BN4 from 'bnjs4';
 import React from 'react';
 import Routes from '../../../../../constants/navigation/Routes';
-import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder';
-import useMetrics from '../../../../hooks/useMetrics/useMetrics';
+import { AnalyticsEventBuilder } from '../../../../../util/analytics/AnalyticsEventBuilder';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
@@ -184,7 +184,10 @@ jest.mock('../../selectors/featureFlags', () => ({
   selectPooledStakingEnabledFlag: jest.fn().mockReturnValue(true),
 }));
 
-jest.mock('../../../../hooks/useMetrics/useMetrics');
+const mockUseAnalyticsFn = jest.fn();
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: (...args: unknown[]) => mockUseAnalyticsFn(...args),
+}));
 
 jest.mock('../../hooks/useEarnTokens', () => ({
   __esModule: true,
@@ -425,7 +428,6 @@ jest.mock('react-native-fade-in-image', () => {
 describe('EarnWithdrawInputView', () => {
   const mockGetStakingNavbar = jest.mocked(getStakingNavbar);
   const mockTrackEvent = jest.fn();
-  const useMetricsMock = jest.mocked(useMetrics);
   const mockTrace = jest.mocked(trace);
 
   beforeEach(() => {
@@ -435,11 +437,11 @@ describe('EarnWithdrawInputView', () => {
     // Reset route.param.token
     mockRouteToken = undefined;
 
-    // Setup global useMetrics mock for all tests
-    useMetricsMock.mockReturnValue({
+    // Setup global useAnalytics mock for all tests
+    mockUseAnalyticsFn.mockReturnValue({
       trackEvent: mockTrackEvent,
-      createEventBuilder: MetricsEventBuilder.createEventBuilder,
-    } as unknown as ReturnType<typeof useMetrics>);
+      createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
+    } as unknown as ReturnType<typeof useAnalytics>);
   });
 
   it('render matches snapshot', async () => {

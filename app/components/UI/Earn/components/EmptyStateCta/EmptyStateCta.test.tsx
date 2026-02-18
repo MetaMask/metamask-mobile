@@ -7,8 +7,8 @@ import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../util/test/account
 import initialRootState from '../../../../../util/test/initial-root-state';
 import { strings } from '../../../../../../locales/i18n';
 import { act, fireEvent } from '@testing-library/react-native';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
-import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { AnalyticsEventBuilder } from '../../../../../util/analytics/AnalyticsEventBuilder';
 import {
   EVENT_LOCATIONS,
   EVENT_PROVIDERS,
@@ -24,7 +24,10 @@ import { earnSelectors } from '../../../../../selectors/earnController';
 import Engine from '../../../../../core/Engine';
 import useStakingEligibility from '../../../Stake/hooks/useStakingEligibility';
 
-jest.mock('../../../../hooks/useMetrics');
+const mockUseAnalyticsFn = jest.fn();
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: (...args: unknown[]) => mockUseAnalyticsFn(...args),
+}));
 jest.mock('../../hooks/useEarnTokens', () => ({
   __esModule: true,
   default: jest.fn(),
@@ -218,9 +221,9 @@ describe('EmptyStateCta', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    (useMetrics as jest.MockedFn<typeof useMetrics>).mockReturnValue({
+    mockUseAnalyticsFn.mockReturnValue({
       trackEvent: mockTrackEvent,
-      createEventBuilder: MetricsEventBuilder.createEventBuilder,
+      createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
       enable: jest.fn(),
       addTraitsToUser: jest.fn(),
       createDataDeletionTask: jest.fn(),
@@ -349,22 +352,23 @@ describe('EmptyStateCta', () => {
       fireEvent.press(startEarningButton);
     });
 
-    expect(mockTrackEvent).toHaveBeenCalledWith({
-      name: MetaMetricsEvents.EARN_EMPTY_STATE_CTA_CLICKED.category,
-      properties: {
-        estimatedAnnualRewards: '5',
-        location: EVENT_LOCATIONS.TOKEN_DETAILS_SCREEN,
-        provider: EVENT_PROVIDERS.CONSENSYS,
-        apr: '4.5%',
-        experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
-        text: 'Earn',
-        token: 'USDC',
-        token_chain_id: '1',
-        token_name: 'USDC',
-      },
-      saveDataRecording: true,
-      sensitiveProperties: {},
-    });
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: MetaMetricsEvents.EARN_EMPTY_STATE_CTA_CLICKED.category,
+        properties: expect.objectContaining({
+          estimatedAnnualRewards: '5',
+          location: EVENT_LOCATIONS.TOKEN_DETAILS_SCREEN,
+          provider: EVENT_PROVIDERS.CONSENSYS,
+          apr: '4.5%',
+          experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
+          text: 'Earn',
+          token: 'USDC',
+          token_chain_id: '1',
+          token_name: 'USDC',
+        }),
+        sensitiveProperties: {},
+      }),
+    );
   });
 
   it('calls NetworkController methods when "earn" button is clicked', async () => {
