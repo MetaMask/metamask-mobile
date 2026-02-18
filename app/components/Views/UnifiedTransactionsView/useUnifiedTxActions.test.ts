@@ -80,6 +80,10 @@ jest.mock('../../../core/Engine', () => ({
       accept: jest.fn(),
       reject: jest.fn(),
     },
+    GasFeeController: {
+      startPolling: jest.fn(),
+      stopPollingByPollingToken: jest.fn(),
+    },
   },
 }));
 
@@ -181,15 +185,14 @@ describe('useUnifiedTxActions', () => {
       expect(result.current.speedUp1559IsOpen).toBe(false);
     });
 
-    it('opens 1559 modal when isEIP1559Transaction=true', () => {
+    it('opens speed up modal when isEIP1559Transaction=true', () => {
       const { result } = renderHook(() => useUnifiedTxActions());
       const tx = { id: '1' } as unknown as TransactionMeta;
       const gas = { isEIP1559Transaction: true };
 
       act(() => result.current.onSpeedUpAction(true, gas, tx));
 
-      expect(result.current.speedUp1559IsOpen).toBe(true);
-      expect(result.current.speedUpIsOpen).toBe(false);
+      expect(result.current.speedUpIsOpen).toBe(true);
       expect(result.current.speedUpTxId).toBe('1');
       expect(result.current.existingGas).toBe(gas);
       expect(result.current.existingTx).toBe(tx);
@@ -225,15 +228,14 @@ describe('useUnifiedTxActions', () => {
       expect(result.current.cancel1559IsOpen).toBe(false);
     });
 
-    it('opens 1559 modal when isEIP1559Transaction=true', () => {
+    it('opens cancel modal when isEIP1559Transaction=true', () => {
       const { result } = renderHook(() => useUnifiedTxActions());
       const tx = { id: '3' } as unknown as TransactionMeta;
       const gas = { isEIP1559Transaction: true };
 
       act(() => result.current.onCancelAction(true, gas, tx));
 
-      expect(result.current.cancel1559IsOpen).toBe(true);
-      expect(result.current.cancelIsOpen).toBe(false);
+      expect(result.current.cancelIsOpen).toBe(true);
       expect(result.current.cancelTxId).toBe('3');
       expect(result.current.existingGas).toBe(gas);
       expect(result.current.existingTx).toBe(tx);
