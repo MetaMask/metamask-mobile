@@ -1,5 +1,6 @@
 import { NavigationContainerRef } from '@react-navigation/native';
 import Logger from '../../util/Logger';
+import ReduxService from '../redux';
 
 /**
  * Navigation methods that should be deferred to the next frame.
@@ -109,6 +110,7 @@ class NavigationService {
         canGoBack: () => navRef.canGoBack(),
         goBack: () => navRef.goBack(),
       };
+      (globalThis as Record<string, unknown>).store = ReduxService.store;
     }
   }
 

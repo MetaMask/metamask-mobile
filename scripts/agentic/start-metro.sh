@@ -36,7 +36,7 @@ fi
 > "$LOGFILE"
 
 echo "Starting Metro on port $PORT..."
-yarn expo start --port "$PORT" 2>&1 | tee -a "$LOGFILE" &
+yarn expo start --port "$PORT" > >(tee -a "$LOGFILE") 2>&1 &
 METRO_PID=$!
 echo "$METRO_PID" > "$PIDFILE"
 echo "Metro PID: $METRO_PID, logging to $LOGFILE"
