@@ -202,47 +202,9 @@ function getTokenTransfer(args) {
     nonce,
   };
 
-  // For post-quote predict withdrawals, show the received token + amount
-  // using destination chain data from metamaskPay.
-  const { metamaskPay } = tx;
-  if (
-    hasTransactionType(tx, [TransactionType.predictWithdraw]) &&
-    metamaskPay?.isPostQuote &&
-    metamaskPay?.targetFiat
-  ) {
-    const destChainId = metamaskPay.chainId;
-    const fiatUsd = parseFloat(metamaskPay.targetFiat);
-    const state = store.getState();
-    const destToken =
-      destChainId && metamaskPay.tokenAddress
-        ? selectSingleTokenByAddressAndChainId(
-            state,
-            metamaskPay.tokenAddress,
-            destChainId,
-          )
-        : undefined;
-    const destSymbol =
-      destToken?.symbol ??
-      (destChainId ? selectTickerByChainId(state, destChainId) : undefined);
-
-    if (destSymbol && destChainId && Number.isFinite(fiatUsd)) {
-      const destUsdRate = selectUSDConversionRateByChainId(state, destChainId);
-      const destRate = selectConversionRateByChainId(state, destChainId);
-
-      if (destUsdRate) {
-        const receivedAmount = fiatUsd / destUsdRate;
-        const userFiat =
-          destRate && destUsdRate
-            ? fiatUsd * (destRate / destUsdRate)
-            : fiatUsd;
-
-        transactionElement = {
-          ...transactionElement,
-          value: `${receivedAmount.toPrecision(4)} ${destSymbol}`,
-          fiatValue: addCurrencySymbol(userFiat.toFixed(2), currentCurrency),
-        };
-      }
-    }
+  const postQuoteDisplay = getPostQuoteDisplay(tx, currentCurrency);
+  if (postQuoteDisplay) {
+    transactionElement = { ...transactionElement, ...postQuoteDisplay };
   }
 
   return [transactionElement, transactionDetails];
@@ -261,6 +223,57 @@ function getMetamaskPayTargetFiat(tx, decimals) {
     .toFixed();
 
   return new BN(targetFiatNoDecimals);
+}
+
+// For post-quote predict withdrawals, derive the received token amount and
+// user-currency fiat from the USD targetFiat stored in metamaskPay.
+function getPostQuoteDisplay(tx, currentCurrency) {
+  const { metamaskPay } = tx ?? {};
+  if (
+    !hasTransactionType(tx, [TransactionType.predictWithdraw]) ||
+    !metamaskPay?.isPostQuote ||
+    !metamaskPay?.targetFiat
+  ) {
+    return undefined;
+  }
+
+  const destChainId = metamaskPay.chainId;
+  const fiatUsd = parseFloat(metamaskPay.targetFiat);
+
+  if (!destChainId || !Number.isFinite(fiatUsd)) {
+    return undefined;
+  }
+
+  const state = store.getState();
+
+  const destToken = metamaskPay.tokenAddress
+    ? selectSingleTokenByAddressAndChainId(
+        state,
+        metamaskPay.tokenAddress,
+        destChainId,
+      )
+    : undefined;
+  const destSymbol =
+    destToken?.symbol ?? selectTickerByChainId(state, destChainId);
+
+  if (!destSymbol) {
+    return undefined;
+  }
+
+  const destUsdRate = selectUSDConversionRateByChainId(state, destChainId);
+  if (!destUsdRate) {
+    return undefined;
+  }
+
+  const destRate = selectConversionRateByChainId(state, destChainId);
+  const receivedAmount = fiatUsd / destUsdRate;
+  const userFiat =
+    destRate && destUsdRate ? fiatUsd * (destRate / destUsdRate) : fiatUsd;
+
+  return {
+    value: `${receivedAmount.toPrecision(4)} ${destSymbol}`,
+    fiatValue: addCurrencySymbol(userFiat.toFixed(2), currentCurrency),
+  };
 }
 
 function getCollectibleTransfer(args) {
