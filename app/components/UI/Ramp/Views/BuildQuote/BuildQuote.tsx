@@ -241,41 +241,30 @@ function BuildQuote() {
       return;
     }
 
-    // V2 aggregator: quote includes buyWidget with URL and orderId
-    const buyWidget = selectedQuote.quote?.buyWidget;
-    if (buyWidget?.url && walletAddress) {
-      const providerCode = selectedQuote.provider.startsWith('/providers/')
-        ? selectedQuote.provider.split('/')[2] || selectedQuote.provider
-        : selectedQuote.provider;
-      const chainId = selectedToken?.chainId as CaipChainId | undefined;
-      const network = chainId?.includes(':')
-        ? chainId.split(':')[1] || ''
-        : chainId || '';
-
-      navigation.navigate(
-        ...createCheckoutNavDetails({
-          url: buyWidget.url,
-          providerCode,
-          providerName: selectedProvider?.name || providerCode,
-          customOrderId: buyWidget.orderId,
-          walletAddress,
-          network,
-          currency,
-          cryptocurrency: selectedToken?.symbol || '',
-        }),
-      );
-      return;
-    }
-
-    // Fallback: fetch widget URL via controller (e.g. pre-V2 or no buyWidget in quote)
+    // V2 aggregator: get widget URL via controller and navigate to checkout
     try {
       const widgetUrl = await getWidgetUrl(selectedQuote);
+
       if (widgetUrl) {
+        const providerCode = selectedQuote.provider.startsWith('/providers/')
+          ? selectedQuote.provider.split('/')[2] || selectedQuote.provider
+          : selectedQuote.provider;
+        const chainId = selectedToken?.chainId as CaipChainId | undefined;
+        const network = chainId?.includes(':')
+          ? chainId.split(':')[1] || ''
+          : chainId || '';
+
         navigation.navigate(
           ...createCheckoutNavDetails({
             url: widgetUrl,
-            providerName: getQuoteProviderName(selectedQuote),
+            providerName:
+              selectedProvider?.name || getQuoteProviderName(selectedQuote),
             userAgent: getQuoteBuyUserAgent(selectedQuote),
+            providerCode,
+            walletAddress: walletAddress ?? undefined,
+            network,
+            currency,
+            cryptocurrency: selectedToken?.symbol || '',
           }),
         );
       } else {

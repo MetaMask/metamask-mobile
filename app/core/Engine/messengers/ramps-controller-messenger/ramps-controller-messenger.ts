@@ -39,6 +39,8 @@ export function getRampsControllerMessenger(
       'RampsService:getPaymentMethods',
       'RampsService:getQuotes',
       'RampsService:getBuyWidgetUrl',
+      'RampsService:getOrder',
+      'RampsService:getOrderFromCallback',
     ],
     events: [],
   });

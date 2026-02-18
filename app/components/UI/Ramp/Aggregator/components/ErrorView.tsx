@@ -106,19 +106,23 @@ function ErrorView({
     asScreen,
   });
   const trackEvent = useAnalytics();
-  const {
-    selectedPaymentMethodId,
-    selectedRegion,
-    selectedAsset,
-    selectedFiatCurrencyId,
-    isBuy,
-  } = useRampSDK();
+  const sdk = useRampSDK();
 
   const ctaOnPressCallback = useCallback(() => {
     ctaOnPress?.();
   }, [ctaOnPress]);
 
   useEffect(() => {
+    if (!sdk) {
+      return;
+    }
+    const {
+      selectedPaymentMethodId,
+      selectedRegion,
+      selectedAsset,
+      selectedFiatCurrencyId,
+      isBuy,
+    } = sdk;
     trackEvent(isBuy ? 'ONRAMP_ERROR' : 'OFFRAMP_ERROR', {
       location,
       message: description,
