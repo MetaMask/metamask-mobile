@@ -159,6 +159,8 @@ describe('useSwapBridgeNavigation', () => {
       }),
       isDisabled: false,
       hasEnabledNetworks: true,
+      isNetworkEnabledForDefi: true,
+      hasMultipleNamespacesEnabled: false,
     });
 
     (isSolanaChainId as jest.Mock).mockReturnValue(false);
@@ -391,6 +393,8 @@ describe('useSwapBridgeNavigation', () => {
       }),
       isDisabled: false,
       hasEnabledNetworks: true,
+      isNetworkEnabledForDefi: true,
+      hasMultipleNamespacesEnabled: false,
     });
 
     (getNativeAssetForChainId as jest.Mock).mockReturnValue({
@@ -441,6 +445,8 @@ describe('useSwapBridgeNavigation', () => {
       }),
       isDisabled: false,
       hasEnabledNetworks: true,
+      isNetworkEnabledForDefi: true,
+      hasMultipleNamespacesEnabled: false,
     });
 
     const { result } = renderHookWithProvider(
@@ -729,6 +735,8 @@ describe('useSwapBridgeNavigation', () => {
         }),
         isDisabled: false,
         hasEnabledNetworks: true,
+        isNetworkEnabledForDefi: true,
+        hasMultipleNamespacesEnabled: false,
       });
 
       (isSolanaChainId as jest.Mock).mockReturnValue(true);
@@ -778,6 +786,8 @@ describe('useSwapBridgeNavigation', () => {
         }),
         isDisabled: false,
         hasEnabledNetworks: true,
+        isNetworkEnabledForDefi: true,
+        hasMultipleNamespacesEnabled: false,
       });
 
       (isSolanaChainId as jest.Mock).mockReturnValue(true);
@@ -829,6 +839,8 @@ describe('useSwapBridgeNavigation', () => {
         }),
         isDisabled: false,
         hasEnabledNetworks: true,
+        isNetworkEnabledForDefi: true,
+        hasMultipleNamespacesEnabled: false,
       });
 
       (isSolanaChainId as jest.Mock).mockReturnValue(false);
@@ -882,6 +894,8 @@ describe('useSwapBridgeNavigation', () => {
         }),
         isDisabled: false,
         hasEnabledNetworks: true,
+        isNetworkEnabledForDefi: true,
+        hasMultipleNamespacesEnabled: false,
       });
 
       (isSolanaChainId as jest.Mock).mockReturnValue(true);
@@ -933,6 +947,8 @@ describe('useSwapBridgeNavigation', () => {
         }),
         isDisabled: false,
         hasEnabledNetworks: true,
+        isNetworkEnabledForDefi: true,
+        hasMultipleNamespacesEnabled: false,
       });
 
       (isSolanaChainId as jest.Mock).mockReturnValue(false);
@@ -986,6 +1002,8 @@ describe('useSwapBridgeNavigation', () => {
         }),
         isDisabled: false,
         hasEnabledNetworks: true,
+        isNetworkEnabledForDefi: true,
+        hasMultipleNamespacesEnabled: false,
       });
 
       (isSolanaChainId as jest.Mock).mockReturnValue(true);
