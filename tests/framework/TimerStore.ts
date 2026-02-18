@@ -65,8 +65,11 @@ class TimerStore {
    */
   stopTimer(id: string): void {
     const timer = this.getTimerOrThrow(id);
+    if (timer.start === null) {
+      throw new Error(`Timer with id "${id}" was never started.`);
+    }
     timer.end = Date.now();
-    timer.duration = timer.end - (timer.start ?? 0);
+    timer.duration = timer.end - timer.start;
   }
 
   /**
