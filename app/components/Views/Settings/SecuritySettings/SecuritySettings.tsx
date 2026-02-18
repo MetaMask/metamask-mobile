@@ -12,7 +12,8 @@ import { strings } from '../../../../../locales/i18n';
 import Engine from '../../../../core/Engine';
 import { SEED_PHRASE_HINTS } from '../../../../constants/storage';
 import HintModal from '../../../UI/HintModal';
-import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { useTheme } from '../../../../util/theme';
 import {
   ClearCookiesSection,
@@ -75,7 +76,7 @@ const Heading: React.FC<HeadingProps> = ({ children, first }) => {
 };
 
 const Settings: React.FC = () => {
-  const { trackEvent, isEnabled, createEventBuilder } = useMetrics();
+  const { trackEvent, isEnabled, createEventBuilder } = useAnalytics();
   const theme = useTheme();
   const { colors } = theme;
   const styles = createStyles(colors);
