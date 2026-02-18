@@ -17,6 +17,7 @@ import {
   setupAdbReverse,
   cleanupAdbReverse,
   waitForDappServerReady,
+  unlockIfLockScreenVisible,
 } from './utils.js';
 
 const DAPP_NAME = 'MetaMask MultiChain API Test Dapp';
@@ -96,6 +97,7 @@ test('@metamask/connect-multichain - Connect via Multichain API to Local Browser
   // Handle connection approval in MetaMask
   await AppwrightHelpers.withNativeAction(device, async () => {
     await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
+    await unlockIfLockScreenVisible(device);
     await DappConnectionModal.tapConnectButton();
   });
 
