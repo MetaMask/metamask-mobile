@@ -31,6 +31,8 @@ export interface SharedTabProps {
  */
 export interface TabInfo {
   url?: string;
+  /** @deprecated Use lastActiveAt-based mounting instead. */
   isArchived?: boolean;
   image?: string;
+  lastActiveAt?: number;
 }
