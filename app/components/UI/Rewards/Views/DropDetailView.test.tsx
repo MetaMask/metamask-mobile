@@ -445,8 +445,7 @@ describe('DropDetailView', () => {
         .mockImplementation((cb) => {
           if (typeof cb === 'function') cb();
           return {
-            then: (onfulfilled?: () => any, onrejected?: () => any) =>
-              Promise.resolve().then(onfulfilled, onrejected),
+            then: jest.fn(),
             done: jest.fn(),
             cancel: jest.fn(),
           };
