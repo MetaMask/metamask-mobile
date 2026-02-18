@@ -46,7 +46,10 @@ import { BridgeToken } from '../../../Bridge/types';
 import Routes from '../../../../../constants/navigation/Routes';
 import { TokenDetailsSource } from '../../../TokenDetails/Views/TokenDetails';
 import StockBadge from '../../../shared/StockBadge';
-import { useMusdConversion } from '../../../Earn/hooks/useMusdConversion';
+import {
+  MUSD_CONVERSION_NAVIGATION_OVERRIDE,
+  useMusdConversion,
+} from '../../../Earn/hooks/useMusdConversion';
 import { toHex } from '@metamask/controller-utils';
 import Logger from '../../../../../util/Logger';
 import { useNetworkName } from '../../../../Views/confirmations/hooks/useNetworkName';
@@ -353,6 +356,7 @@ export const TokenListItemV2 = React.memo(
             chainId: assetChainId,
           },
           navigationStack: Routes.EARN.ROOT,
+          navigationOverride: MUSD_CONVERSION_NAVIGATION_OVERRIDE.QUICK_CONVERT,
         });
       } catch (error) {
         Logger.error(

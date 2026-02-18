@@ -21,7 +21,10 @@ import { strings } from '../../../../../../../locales/i18n';
 import { EARN_TEST_IDS } from '../../../constants/testIds';
 import Logger from '../../../../../../util/Logger';
 import { useStyles } from '../../../../../hooks/useStyles';
-import { useMusdConversion } from '../../../hooks/useMusdConversion';
+import {
+  MUSD_CONVERSION_NAVIGATION_OVERRIDE,
+  useMusdConversion,
+} from '../../../hooks/useMusdConversion';
 import {
   BUY_GET_MUSD_CTA_VARIANT,
   useMusdCtaVisibility,
@@ -130,6 +133,7 @@ const MusdConversionAssetListCta = () => {
     try {
       await initiateCustomConversion({
         preferredPaymentToken: paymentToken,
+        navigationOverride: MUSD_CONVERSION_NAVIGATION_OVERRIDE.QUICK_CONVERT,
       });
     } catch (error) {
       Logger.error(

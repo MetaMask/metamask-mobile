@@ -9,7 +9,6 @@ import {
   WildcardTokenList,
 } from '../../utils/wildcardTokenList';
 import { DEFAULT_MUSD_BLOCKED_COUNTRIES } from '../../constants/musd';
-import { MusdConvertNavigationMode } from '../../types/musd.types';
 
 export const selectPooledStakingEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
@@ -191,49 +190,6 @@ export const selectMusdQuickConvertEnabledFlag = createSelector(
 
     // Fallback to local flag if remote flag is not available
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
-  },
-);
-
-const DEFAULT_MUSD_CONVERT_NAVIGATION_MODE: MusdConvertNavigationMode =
-  'custom';
-
-const parseMusdConvertNavigationMode = (
-  value: unknown,
-): MusdConvertNavigationMode | undefined => {
-  if (typeof value !== 'string') {
-    return undefined;
-  }
-
-  const normalizedValue = value.toLowerCase();
-
-  if (normalizedValue === 'quick_convert' || normalizedValue === 'custom') {
-    return normalizedValue;
-  }
-
-  return undefined;
-};
-
-/**
- * Selector for mUSD conversion entry navigation mode.
- *
- * Supported values:
- * - "quick_convert": navigates to the mUSD quick convert token list screen.
- * - "custom": navigates directly to the custom amount confirmation screen.
- *
- * Remote flag takes precedence over local env fallback.
- */
-export const selectMusdConvertNavigationMode = createSelector(
-  selectRemoteFeatureFlags,
-  (remoteFeatureFlags): MusdConvertNavigationMode => {
-    const localMode = parseMusdConvertNavigationMode(
-      process.env.MM_MUSD_CONVERT_NAVIGATION,
-    );
-
-    const remoteMode = parseMusdConvertNavigationMode(
-      remoteFeatureFlags?.earnMusdConvertNavigation,
-    );
-
-    return remoteMode ?? localMode ?? DEFAULT_MUSD_CONVERT_NAVIGATION_MODE;
   },
 );
 

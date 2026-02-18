@@ -12,7 +12,10 @@ import Icon, {
   IconColor,
 } from '../../../../../../component-library/components/Icons/Icon';
 import musdIcon from '../../../../../../images/musd-icon-no-background-2x.png';
-import { useMusdConversion } from '../../../hooks/useMusdConversion';
+import {
+  MUSD_CONVERSION_NAVIGATION_OVERRIDE,
+  useMusdConversion,
+} from '../../../hooks/useMusdConversion';
 import { toHex } from '@metamask/controller-utils';
 import { TokenI } from '../../../../Tokens/types';
 import Routes from '../../../../../../constants/navigation/Routes';
@@ -83,6 +86,7 @@ const MusdConversionAssetOverviewCta = ({
           chainId: toHex(asset.chainId),
         },
         navigationStack: Routes.EARN.ROOT,
+        navigationOverride: MUSD_CONVERSION_NAVIGATION_OVERRIDE.QUICK_CONVERT,
       });
     } catch (error) {
       Logger.error(

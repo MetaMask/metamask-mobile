@@ -22,11 +22,13 @@ import { selectTransactionsByIds } from '../../../../selectors/transactionContro
 import { AssetType } from '../../../Views/confirmations/types/token';
 import { toHex } from '@metamask/controller-utils';
 import EngineService from '../../../../core/EngineService';
-import {
-  MusdConversionVariant,
-  MusdConvertNavigationMode,
-} from '../types/musd.types';
-import { selectMusdConvertNavigationMode } from '../selectors/featureFlags';
+import { MusdConversionVariant } from '../types/musd.types';
+import { selectMusdQuickConvertEnabledFlag } from '../selectors/featureFlags';
+
+export enum MUSD_CONVERSION_NAVIGATION_OVERRIDE {
+  QUICK_CONVERT = 'quickConvert',
+  CUSTOM = 'custom',
+}
 
 /**
  * Why do we have BOTH `existingPendingMusdConversion` AND `inFlightInitiationPromises`?
@@ -101,7 +103,7 @@ export interface MusdConversionConfig {
   /**
    * Optional navigation mode override for this initiation.
    */
-  navigationMode?: MusdConvertNavigationMode;
+  navigationOverride?: MUSD_CONVERSION_NAVIGATION_OVERRIDE;
 }
 
 /**
@@ -157,8 +159,9 @@ export const useMusdConversion = () => {
   const hasSeenConversionEducationScreen = useSelector(
     selectMusdConversionEducationSeen,
   );
-  const musdConvertNavigationMode = useSelector(
-    selectMusdConvertNavigationMode,
+
+  const isMusdQuickConvertEnabledFlag = useSelector(
+    selectMusdQuickConvertEnabledFlag,
   );
 
   /**
@@ -269,14 +272,23 @@ export const useMusdConversion = () => {
     [navigation, selectedAddress],
   );
 
+  const navigateToQuickConvertScreen = useCallback(
+    (config: MusdConversionConfig) => {
+      const { navigationStack = Routes.EARN.ROOT } = config;
+      navigation.navigate(navigationStack, {
+        screen: Routes.EARN.MUSD.QUICK_CONVERT,
+      });
+    },
+    [navigation],
+  );
+
   /**
    * Navigates to the custom amount conversion screen.
    */
-  const navigateToConversionScreen = useCallback(
+  const navigateToCustomConversionScreen = useCallback(
     ({
       preferredPaymentToken,
       navigationStack = Routes.EARN.ROOT,
-      navigationMode,
     }: MusdConversionConfig) => {
       // Start trace for navigation to conversion screen
       trace({
@@ -287,16 +299,6 @@ export const useMusdConversion = () => {
         },
       });
 
-      const effectiveNavigationMode =
-        navigationMode ?? musdConvertNavigationMode;
-
-      if (effectiveNavigationMode === 'quick_convert') {
-        navigation.navigate(navigationStack, {
-          screen: Routes.EARN.MUSD.QUICK_CONVERT,
-        });
-        return;
-      }
-
       navigation.navigate(navigationStack, {
         screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
         params: {
@@ -305,7 +307,7 @@ export const useMusdConversion = () => {
         },
       });
     },
-    [musdConvertNavigationMode, navigation],
+    [navigation],
   );
 
   /**
@@ -347,9 +349,10 @@ export const useMusdConversion = () => {
         return;
       }
 
-      const { preferredPaymentToken } = config;
-      const effectiveNavigationMode =
-        config.navigationMode ?? musdConvertNavigationMode;
+      const {
+        preferredPaymentToken,
+        navigationOverride = MUSD_CONVERSION_NAVIGATION_OVERRIDE.CUSTOM,
+      } = config;
 
       try {
         setError(null);
@@ -362,8 +365,12 @@ export const useMusdConversion = () => {
           throw new Error('No account selected');
         }
 
-        if (effectiveNavigationMode === 'quick_convert') {
-          navigateToConversionScreen(config);
+        if (
+          navigationOverride ===
+            MUSD_CONVERSION_NAVIGATION_OVERRIDE.QUICK_CONVERT &&
+          isMusdQuickConvertEnabledFlag
+        ) {
+          navigateToQuickConvertScreen(config);
           return;
         }
 
@@ -380,7 +387,7 @@ export const useMusdConversion = () => {
          * Typically caused by the user quickly clicking the CTA multiple times in quick succession.
          */
         if (existingPendingMusdConversion?.id) {
-          navigateToConversionScreen(config);
+          navigateToCustomConversionScreen(config);
           return existingPendingMusdConversion.id;
         }
 
@@ -414,7 +421,7 @@ export const useMusdConversion = () => {
            * since there can be a delay between the user's button press and
            * transaction creation in the background.
            */
-          navigateToConversionScreen(config);
+          navigateToCustomConversionScreen(config);
 
           try {
             const ZERO_HEX_VALUE = '0x0';
@@ -459,8 +466,9 @@ export const useMusdConversion = () => {
     },
     [
       handleEducationRedirectIfNeeded,
-      musdConvertNavigationMode,
-      navigateToConversionScreen,
+      isMusdQuickConvertEnabledFlag,
+      navigateToCustomConversionScreen,
+      navigateToQuickConvertScreen,
       navigation,
       pendingTransactionMetas,
       selectedAddress,
