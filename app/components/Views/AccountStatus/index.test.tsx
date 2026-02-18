@@ -287,7 +287,7 @@ describe('AccountStatus', () => {
       // Default type is 'not_exist' which shows "Create a new wallet" button
       expect(
         getByText(strings('account_status.create_new_wallet')),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
     });
 
     it('renders with undefined route params', () => {
@@ -307,7 +307,7 @@ describe('AccountStatus', () => {
       // Should render with default type 'not_exist'
       expect(
         getByText(strings('account_status.create_new_wallet')),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
     });
 
     it('renders with all route params provided', () => {
@@ -321,7 +321,7 @@ describe('AccountStatus', () => {
           })}
         />,
       );
-      expect(getByText(strings('account_status.log_in'))).toBeTruthy();
+      expect(getByText(strings('account_status.log_in'))).toBeOnTheScreen();
     });
   });
 });

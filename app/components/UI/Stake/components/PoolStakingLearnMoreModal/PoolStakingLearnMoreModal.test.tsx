@@ -93,7 +93,7 @@ describe('PoolStakingLearnMoreModal', () => {
     const chartContainer = getByTestId(
       INTERACTIVE_TIMESPAN_CHART_DEFAULT_TEST_ID,
     );
-    expect(chartContainer).toBeTruthy();
+    expect(chartContainer).toBeOnTheScreen();
   });
 
   it('uses default chainId when route params are undefined', async () => {
@@ -117,6 +117,6 @@ describe('PoolStakingLearnMoreModal', () => {
     const chartContainer = getByTestId(
       INTERACTIVE_TIMESPAN_CHART_DEFAULT_TEST_ID,
     );
-    expect(chartContainer).toBeTruthy();
+    expect(chartContainer).toBeOnTheScreen();
   });
 });

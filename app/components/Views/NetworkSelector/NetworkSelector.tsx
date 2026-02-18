@@ -104,14 +104,11 @@ import { removeItemFromChainIdList } from '../../../util/metrics/MultichainAPI/n
 import { analytics } from '../../../util/analytics/analytics';
 import { NETWORK_SELECTOR_SOURCES } from '../../../constants/networkSelector';
 import { getGasFeesSponsoredNetworkEnabled } from '../../../selectors/featureFlagController/gasFeesSponsored';
-import type {
-  ShowConfirmDeleteModalState,
-  infuraNetwork,
-  NetworkSelectorRouteParams,
-} from './types';
+import type { ShowConfirmDeleteModalState, infuraNetwork } from './types';
+import type { NetworkSelectorParams } from './NetworkSelector.types';
 
 interface NetworkSelectorParamList {
-  NetworkSelector: NetworkSelectorRouteParams;
+  NetworkSelector: NetworkSelectorParams;
   [key: string]: object | undefined;
 }
 
