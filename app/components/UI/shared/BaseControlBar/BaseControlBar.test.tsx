@@ -407,6 +407,15 @@ describe('BaseControlBar', () => {
       expect(filterButton.props.style).toBeDefined();
       expect(filterButton.props.style.opacity).toBeUndefined();
     });
+
+    it('should respect custom isDisabled when provided', () => {
+      const { getByTestId } = renderComponent({
+        isDisabled: true,
+      });
+      const filterButton = getByTestId('test-network-filter');
+
+      expect(filterButton.props.disabled).toBe(true);
+    });
   });
 
   describe('Custom wrapper layouts', () => {
@@ -434,15 +443,6 @@ describe('BaseControlBar', () => {
       const filterButton = getByTestId('test-network-filter');
 
       expect(filterButton).toBeTruthy();
-    });
-
-    it('should respect custom isDisabled when provided', () => {
-      const { getByTestId } = renderComponent({
-        isDisabled: true,
-      });
-      const filterButton = getByTestId('test-network-filter');
-
-      expect(filterButton.props.disabled).toBe(true);
     });
   });
 
