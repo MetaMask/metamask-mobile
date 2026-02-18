@@ -156,17 +156,21 @@ describe(SmokeConfirmations('DApp Initiated Transfer'), () => {
         await Assertions.expectElementToBeVisible(RowComponents.TokenHero);
         await Assertions.expectTextDisplayed('0 ETH');
         await Assertions.expectElementToBeVisible(RowComponents.FromTo);
-
-        // Scroll to reveal sections below the expanded From/To row
-        await Gestures.swipe(RowComponents.FromTo, 'up');
-
         await Assertions.expectElementToBeVisible(
           RowComponents.SimulationDetails,
         );
+
+        // Scroll to reveal GasFeesDetails on Android due to taller From/To row
+        if (device.getPlatform() === 'android') {
+          await Gestures.swipe(RowComponents.SimulationDetails, 'up');
+        }
+
         await Assertions.expectElementToBeVisible(RowComponents.GasFeesDetails);
 
-        // Scroll to Advanced Details section
-        await Gestures.swipe(RowComponents.GasFeesDetails, 'up');
+        // Scroll to Advanced Details section on Android
+        if (device.getPlatform() === 'android') {
+          await Gestures.swipe(RowComponents.GasFeesDetails, 'up');
+        }
 
         await Assertions.expectElementToBeVisible(
           RowComponents.AdvancedDetails,
