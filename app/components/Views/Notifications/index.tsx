@@ -155,7 +155,11 @@ NotificationsView.navigationOptions = ({
     <ButtonIcon
       size={ButtonIconSizes.Md}
       iconName={IconName.Close}
-      onPress={() => navigation.goBack()}
+      onPress={() =>
+        navigation.canGoBack()
+          ? navigation.goBack()
+          : navigation.navigate(Routes.WALLET.HOME)
+      }
       style={styles.icon}
     />
   ),
