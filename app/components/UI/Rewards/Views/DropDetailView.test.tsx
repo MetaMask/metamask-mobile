@@ -444,7 +444,12 @@ describe('DropDetailView', () => {
         .spyOn(InteractionManager, 'runAfterInteractions')
         .mockImplementation((cb) => {
           if (typeof cb === 'function') cb();
-          return { done: Promise.resolve(), cancel: jest.fn() };
+          const donePromise = Promise.resolve();
+          return {
+            then: donePromise.then.bind(donePromise),
+            done: donePromise,
+            cancel: jest.fn(),
+          };
         });
 
       (useSeasonDrops as jest.Mock).mockReturnValue({
