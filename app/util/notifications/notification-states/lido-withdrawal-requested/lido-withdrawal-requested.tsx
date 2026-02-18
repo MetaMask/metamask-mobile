@@ -5,7 +5,7 @@ import { ExtractedNotification, isOfTypeNodeGuard } from '../node-guard';
 import { NotificationState } from '../types/NotificationState';
 import {
   getAmount,
-  getNativeTokenDetailsByChainId,
+  getNetworkImageByChainId,
   getNotificationBadge,
 } from '../../methods/common';
 import { getTokenAmount } from '../token-amounts';
@@ -46,9 +46,8 @@ const state: NotificationState<LidoWithdrawalRequestedNotification> = {
     };
   },
   createModalDetails: (notification) => {
-    const nativeTokenDetails = getNativeTokenDetailsByChainId(
-      notification.payload.chain_id,
-    );
+    const networkLogo = getNetworkImageByChainId(notification.payload.chain_id);
+
     return {
       title: strings('notifications.modal.title_unstake_requested'),
       createdAt: notification.createdAt.toString(),
@@ -65,7 +64,7 @@ const state: NotificationState<LidoWithdrawalRequestedNotification> = {
           amount: getTokenAmount(notification.payload.data.stake_in),
           usdAmount: getTokenAmount(notification.payload.data.stake_in),
           tokenIconUrl: notification.payload.data.stake_in.image,
-          tokenNetworkUrl: nativeTokenDetails?.image,
+          tokenNetworkUrl: networkLogo,
         },
         {
           type: ModalFieldType.TRANSACTION,

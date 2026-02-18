@@ -5,7 +5,8 @@ import { ExtractedNotification, isOfTypeNodeGuard } from '../node-guard';
 import { NotificationState } from '../types/NotificationState';
 import {
   getAmount,
-  getNativeTokenDetailsByChainId,
+  getNetworkDetailsFromNotifPayload,
+  getNetworkImageByChainId,
   getNotificationBadge,
 } from '../../methods/common';
 import { getTokenAmount, getTokenUSDAmount } from '../token-amounts';
@@ -45,9 +46,11 @@ const state: NotificationState<SwapCompletedNotification> = {
     createdAt: notification.createdAt.toString(),
   }),
   createModalDetails: (notification) => {
-    const nativeTokenDetails = getNativeTokenDetailsByChainId(
-      notification.payload.chain_id,
+    const networkLogo = getNetworkImageByChainId(notification.payload.chain_id);
+    const { networkName } = getNetworkDetailsFromNotifPayload(
+      notification.payload.network,
     );
+
     return {
       title: strings('notifications.modal.title_swapped', {
         symbolIn: notification.payload.data.token_in.symbol,
@@ -67,7 +70,7 @@ const state: NotificationState<SwapCompletedNotification> = {
           amount: getTokenAmount(notification.payload.data.token_in),
           usdAmount: getTokenUSDAmount(notification.payload.data.token_in),
           tokenIconUrl: notification.payload.data.token_in.image,
-          tokenNetworkUrl: nativeTokenDetails?.image,
+          tokenNetworkUrl: networkLogo,
         },
         {
           type: ModalFieldType.ASSET,
@@ -76,7 +79,7 @@ const state: NotificationState<SwapCompletedNotification> = {
           amount: getTokenAmount(notification.payload.data.token_out),
           usdAmount: getTokenUSDAmount(notification.payload.data.token_out),
           tokenIconUrl: notification.payload.data.token_out.image,
-          tokenNetworkUrl: nativeTokenDetails?.image,
+          tokenNetworkUrl: networkLogo,
         },
         {
           type: ModalFieldType.TRANSACTION,
@@ -84,8 +87,8 @@ const state: NotificationState<SwapCompletedNotification> = {
         },
         {
           type: ModalFieldType.NETWORK,
-          iconUrl: nativeTokenDetails?.image,
-          name: nativeTokenDetails?.name,
+          iconUrl: networkLogo,
+          name: networkName,
         },
         {
           type: ModalFieldType.SWAP_RATE,

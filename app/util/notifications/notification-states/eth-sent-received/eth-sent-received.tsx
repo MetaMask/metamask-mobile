@@ -8,9 +8,10 @@ import {
   NotificationState,
 } from '../types/NotificationState';
 import {
-  getNativeTokenDetailsByChainId,
   getNotificationBadge,
   formatAmount,
+  getNetworkDetailsFromNotifPayload,
+  getNetworkImageByChainId,
 } from '../../methods/common';
 import { formatAddress } from '../../../address';
 
@@ -36,30 +37,26 @@ const title = (n: NativeSentReceiveNotification) => {
 };
 
 const state: NotificationState<NativeSentReceiveNotification> = {
-  guardFn: [
-    isNativeTokenNotification,
-    (notification) =>
-      !!getNativeTokenDetailsByChainId(notification.payload.chain_id),
-  ],
+  guardFn: [isNativeTokenNotification],
   createMenuItem: (notification) => {
-    const tokenDetails = getNativeTokenDetailsByChainId(
-      notification.payload.chain_id,
-    );
+    const networkLogo = getNetworkImageByChainId(notification.payload.chain_id);
+    const { networkName, nativeCurrencySymbol } =
+      getNetworkDetailsFromNotifPayload(notification.payload.network);
 
     return {
       title: title(notification),
 
       description: {
-        start: tokenDetails?.name ?? '',
-        end: tokenDetails
+        start: networkName,
+        end: nativeCurrencySymbol
           ? `${formatAmount(parseFloat(notification.payload.data.amount.eth), {
               shouldEllipse: true,
-            })} ${tokenDetails.symbol}`
+            })} ${nativeCurrencySymbol}`
           : '',
       },
 
       image: {
-        url: tokenDetails?.image,
+        url: networkLogo,
       },
 
       badgeIcon: getNotificationBadge(notification.type),
@@ -68,16 +65,16 @@ const state: NotificationState<NativeSentReceiveNotification> = {
     };
   },
   createModalDetails: (notification) => {
-    const nativeTokenDetails = getNativeTokenDetailsByChainId(
-      notification.payload.chain_id,
-    );
+    const networkLogo = getNetworkImageByChainId(notification.payload.chain_id);
+    const { networkName, nativeCurrencySymbol } =
+      getNetworkDetailsFromNotifPayload(notification.payload.network);
     return {
       title: isSent(notification)
         ? strings('notifications.modal.title_sent', {
-            symbol: nativeTokenDetails?.symbol ?? '',
+            symbol: nativeCurrencySymbol,
           })
         : strings('notifications.modal.title_received', {
-            symbol: nativeTokenDetails?.symbol ?? '',
+            symbol: nativeCurrencySymbol,
           }),
       createdAt: notification.createdAt.toString(),
       fields: [
@@ -98,26 +95,26 @@ const state: NotificationState<NativeSentReceiveNotification> = {
         {
           type: ModalFieldType.ASSET,
           label: strings('notifications.modal.label_asset'),
-          description: nativeTokenDetails?.name ?? '',
+          description: networkName,
           amount: `${formatAmount(
             parseFloat(notification.payload.data.amount.eth),
             {
               shouldEllipse: true,
             },
-          )} ${nativeTokenDetails?.symbol}`,
+          )} ${nativeCurrencySymbol}`,
           usdAmount: `$${formatAmount(
             parseFloat(notification.payload.data.amount.usd),
             {
               shouldEllipse: true,
             },
           )}`,
-          tokenIconUrl: nativeTokenDetails?.image,
-          tokenNetworkUrl: nativeTokenDetails?.image,
+          tokenIconUrl: networkLogo,
+          tokenNetworkUrl: networkLogo,
         },
         {
           type: ModalFieldType.NETWORK,
-          iconUrl: nativeTokenDetails?.image,
-          name: nativeTokenDetails?.name,
+          iconUrl: networkLogo,
+          name: networkName,
         },
       ],
       footer: {

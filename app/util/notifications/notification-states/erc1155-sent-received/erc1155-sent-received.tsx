@@ -12,7 +12,8 @@ import {
   NotificationState,
 } from '../types/NotificationState';
 import {
-  getNativeTokenDetailsByChainId,
+  getNetworkDetailsFromNotifPayload,
+  getNetworkImageByChainId,
   getNotificationBadge,
 } from '../../methods/common';
 import { ModalField } from '../types/NotificationModalDetails';
@@ -68,8 +69,9 @@ const state: NotificationState<ERC1155Notification> = {
     createdAt: notification.createdAt.toString(),
   }),
   createModalDetails: (notification) => {
-    const nativeTokenDetails = getNativeTokenDetailsByChainId(
-      notification.payload.chain_id,
+    const networkLogo = getNetworkImageByChainId(notification.payload.chain_id);
+    const { networkName } = getNetworkDetailsFromNotifPayload(
+      notification.payload.network,
     );
 
     const collectionField: ModalField[] = notification.payload.data.nft
@@ -79,7 +81,7 @@ const state: NotificationState<ERC1155Notification> = {
             type: ModalFieldType.NFT_COLLECTION_IMAGE,
             collectionName: notification.payload.data.nft.collection.name,
             collectionImageUrl: notification.payload.data.nft.collection.image,
-            networkBadgeUrl: nativeTokenDetails?.image,
+            networkBadgeUrl: networkLogo,
           },
         ]
       : [];
@@ -89,7 +91,7 @@ const state: NotificationState<ERC1155Notification> = {
       header: {
         type: ModalHeaderType.NFT_IMAGE,
         nftImageUrl: notification.payload.data.nft?.image ?? '',
-        networkBadgeUrl: nativeTokenDetails?.image,
+        networkBadgeUrl: networkLogo,
       },
       fields: [
         {
@@ -109,8 +111,8 @@ const state: NotificationState<ERC1155Notification> = {
         ...collectionField,
         {
           type: ModalFieldType.NETWORK,
-          iconUrl: nativeTokenDetails?.image,
-          name: nativeTokenDetails?.name,
+          iconUrl: networkLogo,
+          name: networkName,
         },
       ],
       footer: {
