@@ -102,7 +102,6 @@ export interface CardDisplayInfo {
   lastFourDigits: string;
   cardNetwork: CardNetwork;
   cardDescription?: string;
-  isFreezable: boolean;
 }
 
 // ============================================================================
@@ -265,7 +264,6 @@ export interface CardDetails {
   holderName: string;
   panLast4: string;
   status: string;
-  isFreezable: boolean;
 }
 
 /**

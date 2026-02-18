@@ -144,6 +144,13 @@ const mockSelectedInternalAccount = {
 // Mock hooks
 const mockFetchAllData = jest.fn().mockResolvedValue(undefined);
 const mockRefetchAllData = jest.fn().mockResolvedValue(undefined);
+const mockFetchCardDetails = jest.fn().mockResolvedValue(undefined);
+const mockToggleFreeze = jest.fn().mockResolvedValue(undefined);
+const mockUseCardFreeze = jest.fn(() => ({
+  isFrozen: false,
+  status: { type: 'idle' as const },
+  toggleFreeze: mockToggleFreeze,
+}));
 const mockNavigateToCardPage = jest.fn();
 const mockGoToSwaps = jest.fn();
 const mockDispatch = jest.fn();
@@ -204,6 +211,11 @@ const mockUseSwapBridgeNavigation = jest.fn(() => ({
 jest.mock('../../hooks/useLoadCardData', () => ({
   __esModule: true,
   default: jest.fn(),
+}));
+
+jest.mock('../../hooks/useCardFreeze', () => ({
+  __esModule: true,
+  default: jest.fn(() => mockUseCardFreeze()),
 }));
 
 jest.mock('../../hooks/useAssetBalances', () => ({
@@ -466,6 +478,18 @@ jest.mock('../../../../../../locales/i18n', () => ({
         'Hide card details',
       'card.card_home.manage_card_options.view_card_details_description':
         'See your full card number, expiry date, and CVV',
+      'card.card_home.manage_card_options.freeze_card': 'Freeze card',
+      'card.card_home.manage_card_options.unfreeze_card': 'Unfreeze card',
+      'card.card_home.manage_card_options.freeze_card_description':
+        'Temporarily disable your card',
+      'card.card_home.manage_card_options.unfreeze_card_description':
+        'Reactivate your card to resume transactions',
+      'card.card_home.manage_card_options.freeze_error':
+        'Failed to update card status. Please try again.',
+      'card.card_home.biometric_verification_required':
+        'Biometric verification required',
+      'card.password_bottomsheet.description_unfreeze':
+        'Enter your wallet password to unfreeze your card.',
     };
     return strings[key] || key;
   },
@@ -611,6 +635,7 @@ function setupLoadCardDataMock(
     ...config,
     fetchAllData: mockFetchAllData,
     refetchAllData: mockRefetchAllData,
+    fetchCardDetails: mockFetchCardDetails,
   });
 }
 
@@ -679,6 +704,14 @@ describe('CardHome Component', () => {
     mockSetSelectedAccount.mockClear();
     mockIsSolanaChainId.mockReturnValue(false);
 
+    // Reset freeze hook mock
+    mockToggleFreeze.mockResolvedValue(undefined);
+    mockUseCardFreeze.mockReturnValue({
+      isFrozen: false,
+      status: { type: 'idle' as const },
+      toggleFreeze: mockToggleFreeze,
+    });
+
     // Setup hook mocks with default values
     (useLoadCardData as jest.Mock).mockReturnValue({
       priorityToken: mockPriorityToken,
@@ -692,6 +725,7 @@ describe('CardHome Component', () => {
       isCardholder: true,
       fetchAllData: mockFetchAllData,
       refetchAllData: mockRefetchAllData,
+      fetchCardDetails: mockFetchCardDetails,
     });
 
     mockUseAssetBalances.mockReturnValue(
@@ -3534,6 +3568,7 @@ describe('CardHome Component', () => {
           kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
           fetchAllData: mockFetchAllData,
           refetchAllData: mockRefetchAllData,
+          fetchCardDetails: mockFetchCardDetails,
         });
 
         // When: component renders and user presses enable card button
@@ -4368,7 +4403,6 @@ describe('CardHome Component', () => {
       holderName: 'John Doe',
       panLast4: '1234',
       status: 'ACTIVE',
-      isFreezable: true,
     };
 
     const mockUserDetailsForProvisioning = {
@@ -4430,7 +4464,6 @@ describe('CardHome Component', () => {
         holderName: 'John Doe',
         panLast4: '1234',
         status: 'ACTIVE',
-        isFreezable: true,
       });
     });
 

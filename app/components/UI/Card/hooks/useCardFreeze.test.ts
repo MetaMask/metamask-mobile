@@ -71,7 +71,7 @@ describe('useCardFreeze', () => {
   });
 
   describe('Freeze Card', () => {
-    it('calls freezeCard and refreshes card details when card is ACTIVE', async () => {
+    it('calls freezeCard and triggers card details refresh when card is ACTIVE', async () => {
       const { result } = renderHook(() =>
         useCardFreeze({
           cardStatus: CardStatus.ACTIVE,
@@ -123,7 +123,7 @@ describe('useCardFreeze', () => {
   });
 
   describe('Unfreeze Card', () => {
-    it('calls unfreezeCard and refreshes card details when card is FROZEN', async () => {
+    it('calls unfreezeCard and triggers card details refresh when card is FROZEN', async () => {
       const { result } = renderHook(() =>
         useCardFreeze({
           cardStatus: CardStatus.FROZEN,
@@ -247,6 +247,48 @@ describe('useCardFreeze', () => {
         type: 'error',
         error: expect.objectContaining({ message: 'Unfreeze failed' }),
       });
+    });
+
+    it('keeps optimistic state when fetchCardDetails silently fails', async () => {
+      mockFetchCardDetails.mockResolvedValue(null);
+
+      const { result } = renderHook(() =>
+        useCardFreeze({
+          cardStatus: CardStatus.ACTIVE,
+          fetchCardDetails: mockFetchCardDetails,
+        }),
+      );
+
+      await act(async () => {
+        await result.current.toggleFreeze();
+      });
+
+      // cardStatus prop is still ACTIVE (fetchCardDetails didn't update it),
+      // but optimistic state keeps showing FROZEN (matching the backend).
+      expect(result.current.isFrozen).toBe(true);
+      expect(result.current.status).toEqual({ type: 'idle' });
+    });
+
+    it('clears optimistic state when cardStatus prop catches up', async () => {
+      const { result, rerender } = renderHook(
+        ({ cardStatus }) =>
+          useCardFreeze({
+            cardStatus,
+            fetchCardDetails: mockFetchCardDetails,
+          }),
+        { initialProps: { cardStatus: CardStatus.ACTIVE as CardStatus } },
+      );
+
+      await act(async () => {
+        await result.current.toggleFreeze();
+      });
+
+      expect(result.current.isFrozen).toBe(true);
+
+      // Simulate cardStatus prop updating to FROZEN (e.g., from successful cache refresh)
+      rerender({ cardStatus: CardStatus.FROZEN });
+
+      expect(result.current.isFrozen).toBe(true);
     });
   });
 

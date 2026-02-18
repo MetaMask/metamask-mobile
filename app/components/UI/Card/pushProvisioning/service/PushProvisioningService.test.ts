@@ -45,7 +45,6 @@ describe('PushProvisioningService', () => {
     holderName: 'John Doe',
     panLast4: '1234',
     status: 'ACTIVE',
-    isFreezable: true,
   };
 
   const mockUserAddress: UserAddress = {

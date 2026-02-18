@@ -6729,6 +6729,7 @@
     "password_bottomsheet": {
       "title": "Enter password",
       "description": "Enter your wallet password to view card details.",
+      "description_unfreeze": "Enter your wallet password to resume spending on your card.",
       "placeholder": "Password",
       "confirm": "Confirm",
       "cancel": "Cancel",

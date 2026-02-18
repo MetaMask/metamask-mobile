@@ -262,7 +262,6 @@ const CardHome = () => {
             holderName: cardDetails.holderName,
             panLast4: cardDetails.panLast4,
             status: cardDetails.status,
-            isFreezable: cardDetails.isFreezable,
           }
         : null,
     [cardDetails],
@@ -444,6 +443,51 @@ const CardHome = () => {
       });
     }
   }, [freezeStatus, toastRef]);
+
+  const handleToggleFreeze = useCallback(async () => {
+    if (!isFrozen) {
+      await toggleFreeze();
+      return;
+    }
+
+    try {
+      await reauthenticate();
+      await toggleFreeze();
+    } catch (error) {
+      const errorMessage = (error as Error).message;
+
+      if (
+        errorMessage.includes(
+          ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS,
+        )
+      ) {
+        navigation.navigate(
+          ...createPasswordBottomSheetNavigationDetails({
+            onSuccess: toggleFreeze,
+            description: strings(
+              'card.password_bottomsheet.description_unfreeze',
+            ),
+          }),
+        );
+        return;
+      }
+
+      if (errorMessage.includes(ReauthenticateErrorType.BIOMETRIC_ERROR)) {
+        return;
+      }
+
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Icon,
+        labelOptions: [
+          {
+            label: strings('card.card_home.biometric_verification_required'),
+          },
+        ],
+        hasNoTimeout: false,
+        iconName: IconName.Warning,
+      });
+    }
+  }, [isFrozen, toggleFreeze, reauthenticate, navigation, toastRef]);
 
   const addFundsAction = useCallback(() => {
     trackEvent(
@@ -1259,7 +1303,9 @@ const CardHome = () => {
                 <Switch
                   value={isFrozen}
                   onValueChange={
-                    freezeStatus.type === 'toggling' ? undefined : toggleFreeze
+                    freezeStatus.type === 'toggling'
+                      ? undefined
+                      : handleToggleFreeze
                   }
                   style={tw.style(Platform.OS === 'ios' ? 'mr-2' : '')}
                   testID={CardHomeSelectors.FREEZE_CARD_TOGGLE}
