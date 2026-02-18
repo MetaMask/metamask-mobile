@@ -47,10 +47,7 @@ import { BridgeToken } from '../../../Bridge/types';
 import Routes from '../../../../../constants/navigation/Routes';
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import StockBadge from '../../../shared/StockBadge';
-import {
-  MUSD_CONVERSION_NAVIGATION_OVERRIDE,
-  useMusdConversion,
-} from '../../../Earn/hooks/useMusdConversion';
+import { useMusdConversion } from '../../../Earn/hooks/useMusdConversion';
 import { toHex } from '@metamask/controller-utils';
 import Logger from '../../../../../util/Logger';
 import { useNetworkName } from '../../../../Views/confirmations/hooks/useNetworkName';
@@ -95,6 +92,7 @@ import {
   BoxFlexDirection,
   BoxJustifyContent,
 } from '@metamask/design-system-react-native';
+import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../../Earn/types/musd.types';
 
 export const ACCOUNT_TYPE_LABEL_TEST_ID = 'account-type-label';
 
