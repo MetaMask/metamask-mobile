@@ -62,8 +62,7 @@ export class PerformanceTracker {
           return null;
         }
 
-        const sessionData = response.automation_session;
-        const buildId = sessionData.build_hashed_id;
+        const buildId = response.build_hashed_id;
 
         if (buildId) {
           // Construct the route to the session video without using the auth token
@@ -79,7 +78,7 @@ export class PerformanceTracker {
           `Build ID not found in session data for attempt ${attempt}`,
         );
       } catch (error) {
-        const status = error.response?.status;
+        const status = error.status;
         const elapsedTime = (Date.now() - startTime) / 1000;
 
         console.log(
@@ -87,7 +86,7 @@ export class PerformanceTracker {
           {
             status,
             message: error.message,
-            data: error.response?.data,
+            data: error.message,
           },
         );
 
@@ -109,7 +108,7 @@ export class PerformanceTracker {
         // For non-404 errors or last attempt, log and exit
         console.error(
           `🚫 FINAL ERROR after ${attempt} attempts (${elapsedTime}s):`,
-          error.response?.data || error.message,
+          error.message,
         );
         return null;
       }
