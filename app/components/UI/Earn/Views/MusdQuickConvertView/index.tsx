@@ -13,7 +13,10 @@ import { strings } from '../../../../../../locales/i18n';
 import { getStakingNavbar } from '../../../Navbar';
 import { AssetType } from '../../../../Views/confirmations/types/token';
 import { useMusdConversionTokens } from '../../hooks/useMusdConversionTokens';
-import { useMusdConversion } from '../../hooks/useMusdConversion';
+import {
+  MUSD_CONVERSION_NAVIGATION_OVERRIDE,
+  useMusdConversion,
+} from '../../hooks/useMusdConversion';
 import { selectMusdQuickConvertEnabledFlag } from '../../selectors/featureFlags';
 import {
   createTokenChainKey,
@@ -137,7 +140,7 @@ const MusdQuickConvertView = () => {
           address: token.address as Hex,
           chainId: token.chainId as Hex,
         },
-        navigationMode: 'custom',
+        navigationOverride: MUSD_CONVERSION_NAVIGATION_OVERRIDE.CUSTOM,
       });
       if (transactionId) {
         subscribeToFailedTx(transactionId);

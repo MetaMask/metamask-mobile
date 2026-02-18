@@ -17,7 +17,10 @@ import { styleSheet } from './EarnMusdConversionEducationView.styles';
 import musdEducationBackgroundV2Dark from '../../../../../images/musd-conversion-education-screen-v2-dark-3x.png';
 import musdEducationBackgroundV2Light from '../../../../../images/musd-conversion-education-screen-v2-light-3x.png';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useMusdConversion } from '../../hooks/useMusdConversion';
+import {
+  MUSD_CONVERSION_NAVIGATION_OVERRIDE,
+  useMusdConversion,
+} from '../../hooks/useMusdConversion';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { useNavigation } from '@react-navigation/native';
 import {
@@ -247,6 +250,8 @@ const EarnMusdConversionEducationView = () => {
           await initiateCustomConversion({
             preferredPaymentToken: deeplinkState.paymentToken,
             skipEducationCheck: true,
+            navigationOverride:
+              MUSD_CONVERSION_NAVIGATION_OVERRIDE.QUICK_CONVERT,
           });
           return;
         }
@@ -257,6 +262,7 @@ const EarnMusdConversionEducationView = () => {
         await initiateCustomConversion({
           preferredPaymentToken,
           skipEducationCheck: true,
+          navigationOverride: MUSD_CONVERSION_NAVIGATION_OVERRIDE.QUICK_CONVERT,
         });
         return;
       }
