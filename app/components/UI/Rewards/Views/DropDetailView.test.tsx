@@ -1,5 +1,6 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { InteractionManager } from 'react-native';
+import { render, fireEvent, waitFor, act } from '@testing-library/react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import DropDetailView from './DropDetailView';
 import { useSeasonDrops } from '../hooks/useSeasonDrops';
@@ -7,6 +8,12 @@ import { useDropEligibility } from '../hooks/useDropEligibility';
 import { useDropLeaderboard } from '../hooks/useDropLeaderboard';
 import { useUpdateDropReceivingAddress } from '../hooks/useUpdateDropReceivingAddress';
 import { DropStatus } from '../../../../core/Engine/controllers/rewards-controller/types';
+import Engine from '../../../../core/Engine';
+import { setIsValidatingDropAddress } from '../../../../reducers/rewards';
+import {
+  mapReceivingBlockchainIdToEnum,
+  findMatchingBlockchainAccount,
+} from '../utils/blockchainUtils';
 
 jest.mock('@metamask/design-system-react-native', () => ({
   Box: 'Box',
@@ -85,15 +92,29 @@ jest.mock(
   '../components/DropCTAButtons/DropCTAButtons',
   () => 'DropCTAButtons',
 );
-jest.mock('../components/DropLeaderboard', () => 'DropLeaderboard');
+let capturedOnChangeAccount: (() => void) | undefined;
+jest.mock('../components/DropLeaderboard', () => {
+  const ActualReact = jest.requireActual('react');
+  return (props: { onChangeAccount?: () => void }) => {
+    capturedOnChangeAccount = props.onChangeAccount;
+    return ActualReact.createElement('DropLeaderboard', props);
+  };
+});
 
 jest.mock(
   '../../../../component-library/components/BottomSheets/BottomSheet',
   () => {
     const ActualReact = jest.requireActual('react');
     const BottomSheet = ActualReact.forwardRef(
-      ({ children }: { children: React.ReactNode }, _ref: React.Ref<unknown>) =>
-        ActualReact.createElement('BottomSheet', null, children),
+      (
+        { children }: { children: React.ReactNode },
+        ref: React.Ref<{ onCloseBottomSheet: (cb: () => void) => void }>,
+      ) => {
+        ActualReact.useImperativeHandle(ref, () => ({
+          onCloseBottomSheet: (cb: () => void) => cb(),
+        }));
+        return ActualReact.createElement('BottomSheet', null, children);
+      },
     );
     BottomSheet.displayName = 'BottomSheet';
     return { __esModule: true, default: BottomSheet };
@@ -103,9 +124,17 @@ jest.mock(
   '../../../../component-library/components/BottomSheets/BottomSheetHeader',
   () => 'BottomSheetHeader',
 );
+
+let capturedOnSelectAccount: ((ag: unknown) => void) | undefined;
 jest.mock(
   '../../../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList',
-  () => 'MultichainAccountSelectorList',
+  () => {
+    const ActualReact = jest.requireActual('react');
+    return (props: { onSelectAccount?: (ag: unknown) => void }) => {
+      capturedOnSelectAccount = props.onSelectAccount;
+      return ActualReact.createElement('MultichainAccountSelectorList', props);
+    };
+  },
 );
 jest.mock(
   '../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount',
@@ -136,14 +165,16 @@ jest.mock('../../../hooks/useTooltipModal', () => ({
   default: () => ({ openTooltipModal: jest.fn() }),
 }));
 
+const mockShowToast = jest.fn();
+const mockRewardsToastOptions = {
+  success: jest.fn((...args: unknown[]) => ({ type: 'success', args })),
+  error: jest.fn((...args: unknown[]) => ({ type: 'error', args })),
+};
 jest.mock('../hooks/useRewardsToast', () => ({
   __esModule: true,
   default: () => ({
-    showToast: jest.fn(),
-    RewardsToastOptions: {
-      success: jest.fn(),
-      error: jest.fn(),
-    },
+    showToast: mockShowToast,
+    RewardsToastOptions: mockRewardsToastOptions,
   }),
 }));
 
@@ -399,5 +430,189 @@ describe('DropDetailView', () => {
     const { getByTestId } = render(<DropDetailView />);
 
     expect(getByTestId('drop-detail-view')).toBeOnTheScreen();
+  });
+
+  describe('handleSelectAccountGroup', () => {
+    const mockUpdateDropReceivingAddress = jest.fn();
+    const mockAccountGroup = {
+      id: 'group-1',
+      metadata: { name: 'My Wallet' },
+    };
+
+    const setupWithCommitmentSection = () => {
+      jest
+        .spyOn(InteractionManager, 'runAfterInteractions')
+        .mockImplementation((cb) => {
+          if (typeof cb === 'function') cb();
+          return { done: Promise.resolve(), cancel: jest.fn() };
+        });
+
+      (useSeasonDrops as jest.Mock).mockReturnValue({
+        drops: [mockDrop],
+        isLoading: false,
+        hasError: false,
+        fetchDrops: jest.fn(),
+      });
+      (useDropEligibility as jest.Mock).mockReturnValue({
+        eligibility: {
+          eligible: true,
+          canCommit: true,
+          prerequisiteStatuses: [],
+        },
+        isLoading: false,
+        error: null,
+        refetch: jest.fn(),
+      });
+      (useUpdateDropReceivingAddress as jest.Mock).mockReturnValue({
+        updateDropReceivingAddress: mockUpdateDropReceivingAddress,
+      });
+    };
+
+    const setupCommitFlow = () => {
+      setupWithCommitmentSection();
+      (useDropLeaderboard as jest.Mock).mockReturnValue({
+        leaderboard: null,
+        isLoading: false,
+        error: null,
+      });
+    };
+
+    const setupChangeFlow = () => {
+      setupWithCommitmentSection();
+      (useDropLeaderboard as jest.Mock).mockReturnValue({
+        leaderboard: {
+          dropId: 'drop-1',
+          userPosition: { rank: 5, points: 1000, identifier: '0x1234' },
+          top20: [],
+          totalParticipants: 100,
+          totalPointsCommitted: 50000,
+        },
+        isLoading: false,
+        error: null,
+      });
+    };
+
+    beforeEach(() => {
+      capturedOnSelectAccount = undefined;
+      capturedOnChangeAccount = undefined;
+    });
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    it('shows error toast when validateAccountGroupForDrop throws', async () => {
+      setupCommitFlow();
+
+      (mapReceivingBlockchainIdToEnum as jest.Mock).mockReturnValue('evm');
+      (findMatchingBlockchainAccount as jest.Mock).mockReturnValue({
+        address: '0xabc',
+      });
+      (Engine.controllerMessenger.call as jest.Mock).mockRejectedValue(
+        new Error('Network error'),
+      );
+
+      const { getByTestId } = render(<DropDetailView />);
+
+      // Open account picker via the commit-flow selector
+      fireEvent.press(getByTestId('drop-account-selector'));
+
+      // Select an account — triggers handleSelectAccountGroup in 'commit' mode
+      expect(capturedOnSelectAccount).toBeDefined();
+      if (capturedOnSelectAccount) {
+        capturedOnSelectAccount(mockAccountGroup);
+      }
+
+      await waitFor(() => {
+        expect(mockShowToast).toHaveBeenCalledWith(
+          mockRewardsToastOptions.error(
+            'rewards.drops.cant_select_account_title',
+            'rewards.drops.cant_select_account_description',
+          ),
+        );
+      });
+
+      // Skeleton must still be cleared even after error
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setIsValidatingDropAddress(false),
+      );
+    });
+
+    it('clears loading skeleton only after doChangeAccountUpdate resolves', async () => {
+      setupChangeFlow();
+
+      let resolveUpdate: (val: boolean) => void = () => undefined;
+      mockUpdateDropReceivingAddress.mockReturnValue(
+        new Promise<boolean>((res) => {
+          resolveUpdate = res;
+        }),
+      );
+
+      (mapReceivingBlockchainIdToEnum as jest.Mock).mockReturnValue('evm');
+      (findMatchingBlockchainAccount as jest.Mock).mockReturnValue({
+        address: '0xabc',
+      });
+      (Engine.controllerMessenger.call as jest.Mock).mockResolvedValue(null);
+
+      render(<DropDetailView />);
+
+      // Open the picker in 'change' mode via the leaderboard callback.
+      // This triggers setShowAccountPicker(true) which requires a re-render
+      // to mount the BottomSheet and capture onSelectAccount.
+      expect(capturedOnChangeAccount).toBeDefined();
+      await act(async () => {
+        if (capturedOnChangeAccount) {
+          capturedOnChangeAccount();
+        }
+      });
+
+      // Select an account — triggers handleSelectAccountGroup in 'change' mode
+      expect(capturedOnSelectAccount).toBeDefined();
+      if (capturedOnSelectAccount) {
+        capturedOnSelectAccount(mockAccountGroup);
+      }
+
+      // The update is still pending — skeleton should NOT be cleared yet
+      await waitFor(() => {
+        expect(mockDispatch).toHaveBeenCalledWith(
+          setIsValidatingDropAddress(true),
+        );
+      });
+
+      // Resolve the update
+      resolveUpdate(true);
+
+      // Now finally should run and clear the skeleton
+      await waitFor(() => {
+        expect(mockDispatch).toHaveBeenCalledWith(
+          setIsValidatingDropAddress(false),
+        );
+      });
+    });
+
+    it('dispatches skeleton lifecycle correctly in commit flow', async () => {
+      setupCommitFlow();
+
+      (mapReceivingBlockchainIdToEnum as jest.Mock).mockReturnValue('evm');
+      (findMatchingBlockchainAccount as jest.Mock).mockReturnValue({
+        address: '0xabc',
+      });
+      (Engine.controllerMessenger.call as jest.Mock).mockResolvedValue(null);
+
+      const { getByTestId } = render(<DropDetailView />);
+
+      fireEvent.press(getByTestId('drop-account-selector'));
+
+      expect(capturedOnSelectAccount).toBeDefined();
+      if (capturedOnSelectAccount) {
+        capturedOnSelectAccount(mockAccountGroup);
+      }
+
+      await waitFor(() => {
+        const calls = mockDispatch.mock.calls.map((c: [unknown]) => c[0]);
+        expect(calls).toContainEqual(setIsValidatingDropAddress(true));
+        expect(calls).toContainEqual(setIsValidatingDropAddress(false));
+      });
+    });
   });
 });

@@ -290,8 +290,15 @@ const DropDetailView: React.FC = () => {
               setLocalAccountGroup(accountGroup);
               setLocalAddress(address);
             } else {
-              doChangeAccountUpdate(address);
+              await doChangeAccountUpdate(address);
             }
+          } catch {
+            showToast(
+              RewardsToastOptions.error(
+                strings('rewards.drops.cant_select_account_title'),
+                strings('rewards.drops.cant_select_account_description'),
+              ),
+            );
           } finally {
             dispatch(setIsValidatingDropAddress(false));
           }
@@ -303,6 +310,8 @@ const DropDetailView: React.FC = () => {
       validateAccountGroupForDrop,
       doChangeAccountUpdate,
       dispatch,
+      showToast,
+      RewardsToastOptions,
     ],
   );
 
