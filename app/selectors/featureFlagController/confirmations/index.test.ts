@@ -255,3 +255,40 @@ describe('Gas Fee Token Flags', () => {
     expect(result).toEqual({ gasFeeTokens: {} });
   });
 });
+
+describe('Withdraw Any Token Flags (in selectMetaMaskPayFlags)', () => {
+  it('returns withdraw defaults when confirmation_pay is missing', () => {
+    const result = selectMetaMaskPayFlags(mockedEmptyFlagsState);
+
+    expect(result.predictWithdrawAnyToken).toBe(false);
+    expect(result.perpsWithdrawAnyToken).toBe(false);
+  });
+
+  it('returns predictWithdrawAnyToken from feature flag', () => {
+    const state = cloneDeep(mockedEmptyFlagsState);
+    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+      {
+        confirmation_pay: {
+          predictWithdrawAnyToken: true,
+        },
+      };
+
+    const result = selectMetaMaskPayFlags(state);
+    expect(result.predictWithdrawAnyToken).toBe(true);
+    expect(result.perpsWithdrawAnyToken).toBe(false);
+  });
+
+  it('returns perpsWithdrawAnyToken from feature flag', () => {
+    const state = cloneDeep(mockedEmptyFlagsState);
+    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+      {
+        confirmation_pay: {
+          perpsWithdrawAnyToken: true,
+        },
+      };
+
+    const result = selectMetaMaskPayFlags(state);
+    expect(result.perpsWithdrawAnyToken).toBe(true);
+    expect(result.predictWithdrawAnyToken).toBe(false);
+  });
+});

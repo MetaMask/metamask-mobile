@@ -14,13 +14,28 @@ const STATE_MOCK = merge(
   otherControllersMock,
 ) as unknown as RootState;
 
-function runHook({ type }: { type?: TransactionType } = {}) {
+function runHook({
+  type,
+  predictWithdrawAnyToken = false,
+}: {
+  type?: TransactionType;
+  predictWithdrawAnyToken?: boolean;
+} = {}) {
   const mockState = cloneDeep(STATE_MOCK);
 
   if (type) {
     mockState.engine.backgroundState.TransactionController.transactions[0].type =
       type;
   }
+
+  mockState.engine.backgroundState.RemoteFeatureFlagController = {
+    ...mockState.engine.backgroundState.RemoteFeatureFlagController,
+    remoteFeatureFlags: {
+      confirmation_pay: {
+        predictWithdrawAnyToken,
+      },
+    },
+  };
 
   return renderHookWithProvider(useTransactionPayWithdraw, {
     state: mockState,
@@ -42,8 +57,27 @@ describe('useTransactionPayWithdraw', () => {
 
   describe('canSelectWithdrawToken', () => {
     it('returns false for non-withdraw transactions regardless of feature flag', () => {
-      const { result } = runHook({ type: TransactionType.simpleSend });
+      const { result } = runHook({
+        type: TransactionType.simpleSend,
+        predictWithdrawAnyToken: true,
+      });
       expect(result.current.canSelectWithdrawToken).toBe(false);
+    });
+
+    it('returns false for withdraw transactions when feature flag is disabled', () => {
+      const { result } = runHook({
+        type: TransactionType.predictWithdraw,
+        predictWithdrawAnyToken: false,
+      });
+      expect(result.current.canSelectWithdrawToken).toBe(false);
+    });
+
+    it('returns true for withdraw transactions when feature flag is enabled', () => {
+      const { result } = runHook({
+        type: TransactionType.predictWithdraw,
+        predictWithdrawAnyToken: true,
+      });
+      expect(result.current.canSelectWithdrawToken).toBe(true);
     });
   });
 });
