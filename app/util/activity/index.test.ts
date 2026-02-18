@@ -1069,15 +1069,12 @@ describe('Activity utils :: isTransactionOnChains', () => {
 });
 
 describe('Activity utils :: isTrustedAddress', () => {
-  const CHAIN_ID = '0x1' as Hex;
-
   it('should return true for user own account', () => {
     const addressBook = {};
     const internalAccountAddresses = [TEST_ADDRESS_ONE, TEST_ADDRESS_TWO];
 
     const result = isTrustedAddress(
       TEST_ADDRESS_ONE,
-      CHAIN_ID,
       addressBook,
       internalAccountAddresses,
     );
@@ -1100,7 +1097,6 @@ describe('Activity utils :: isTrustedAddress', () => {
 
     const result = isTrustedAddress(
       TEST_ADDRESS_ONE,
-      CHAIN_ID,
       addressBook,
       internalAccountAddresses,
     );
@@ -1113,7 +1109,6 @@ describe('Activity utils :: isTrustedAddress', () => {
 
     const result = isTrustedAddress(
       TEST_ADDRESS_THREE,
-      CHAIN_ID,
       addressBook,
       internalAccountAddresses,
     );
@@ -1124,12 +1119,7 @@ describe('Activity utils :: isTrustedAddress', () => {
     const addressBook = {};
     const internalAccountAddresses = [TEST_ADDRESS_ONE];
 
-    const result = isTrustedAddress(
-      '',
-      CHAIN_ID,
-      addressBook,
-      internalAccountAddresses,
-    );
+    const result = isTrustedAddress('', addressBook, internalAccountAddresses);
     expect(result).toBe(false);
   });
 
@@ -1142,17 +1132,17 @@ describe('Activity utils :: isTrustedAddress', () => {
 
     const result = isTrustedAddress(
       TEST_ADDRESS_ONE.toLowerCase(),
-      CHAIN_ID,
       addressBook,
       internalAccountAddresses,
     );
     expect(result).toBe(true);
   });
 
-  it('should return false for address in wrong chain address book', () => {
+  it('should return true for address saved on a different chain (EVM addresses are cross-chain)', () => {
+    // Contact saved on Polygon (0x89), transaction happening on Mainnet (0x1).
+    // EVM addresses are identical across all networks, so the contact should be trusted.
     const addressBook: AddressBookControllerState['addressBook'] = {
       '0x89': {
-        // Polygon, not Mainnet
         '0x5A3CA5cd63807Ce5e4d7841AB32Ce6b6d9bBBa2D': {
           address: '0x5A3CA5cd63807Ce5e4d7841AB32Ce6b6d9bBBa2D',
           name: 'Friend',
@@ -1166,11 +1156,10 @@ describe('Activity utils :: isTrustedAddress', () => {
 
     const result = isTrustedAddress(
       TEST_ADDRESS_ONE,
-      CHAIN_ID, // Looking in mainnet (0x1)
       addressBook,
       internalAccountAddresses,
     );
-    expect(result).toBe(false);
+    expect(result).toBe(true);
   });
 });
 

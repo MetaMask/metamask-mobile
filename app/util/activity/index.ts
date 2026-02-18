@@ -53,7 +53,6 @@ export const isFromOrToSelectedAddress = (
  */
 export const isTrustedAddress = (
   address: string,
-  chainId: Hex,
   addressBook: AddressBookControllerState['addressBook'],
   internalAccountAddresses: string[],
 ): boolean => {
@@ -70,11 +69,13 @@ export const isTrustedAddress = (
     return true;
   }
 
-  // Check if address is in address book for this chain
-  const networkAddressBook = addressBook[chainId] || {};
-
-  return Object.values(networkAddressBook).some((entry) =>
-    areAddressesEqual(entry.address, address),
+  // Check if address is in address book across all chains.
+  // EVM addresses are the same on every EVM network, so a contact saved on
+  // Ethereum should be trusted when they send from Polygon, Arbitrum, etc.
+  return Object.values(addressBook).some((chainBook) =>
+    Object.values(chainBook).some((entry) =>
+      areAddressesEqual(entry.address, address),
+    ),
   );
 };
 
@@ -175,7 +176,6 @@ export const filterByAddressAndNetwork = (
           if (hasToken) {
             return isTrustedAddress(
               from,
-              tx.chainId,
               addressBook,
               internalAccountAddresses,
             );
@@ -233,7 +233,6 @@ export const filterByAddress = (
           if (hasToken) {
             return isTrustedAddress(
               from,
-              tx.chainId,
               addressBook,
               internalAccountAddresses,
             );
