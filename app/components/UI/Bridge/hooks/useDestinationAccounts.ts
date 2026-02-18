@@ -20,11 +20,10 @@ export const useDestinationAccounts = () => {
       .filter((account) => validDestIds.has(account.id))
       .map((account) => {
         // Use account group name if available, otherwise use account name
-        let accountName = account.name;
         const accountGroup = accountGroups.find((group) =>
           group.accounts.includes(account.id),
         );
-        accountName = accountGroup?.metadata.name || account.name;
+        const accountName = accountGroup?.metadata.name || account.name;
         return {
           ...account,
           name: accountName,

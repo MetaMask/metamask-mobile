@@ -47,11 +47,11 @@ export const useRecipientDisplayData = () => {
       };
     }
 
-    let displayName = internalAccount.metadata.name;
     let walletName: string | undefined;
 
     const accountGroup = accountToGroupMap[internalAccount.id];
-    displayName = accountGroup?.metadata.name || internalAccount.metadata.name;
+    const displayName =
+      accountGroup?.metadata.name || internalAccount.metadata.name;
 
     if (walletsMap) {
       const walletId = accountToWalletMap[internalAccount.id];
