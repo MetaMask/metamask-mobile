@@ -13,6 +13,7 @@ import {
   MUSD_TOKEN,
   MUSD_TOKEN_ADDRESS,
 } from '../constants/musd';
+import { getClaimedAmountFromContract } from '../components/MerklRewards/merkl-client';
 import { DISTRIBUTOR_CLAIM_ABI } from '../components/MerklRewards/constants';
 
 /**
@@ -124,6 +125,69 @@ export function convertMusdClaimAmount({
     fiatValue: claimAmountDecimal,
     isConverted: false,
   };
+}
+
+/**
+ * Result of resolving the unclaimed amount for a Merkl claim transaction.
+ * Used by analytics (useMerklClaimStatus) and confirmation UI (useMerklClaimAmount).
+ */
+export interface GetUnclaimedAmountForMerklClaimTxResult {
+  /** Total cumulative reward (raw base units) from tx calldata */
+  totalAmountRaw: string;
+  /** Unclaimed amount (total - claimed from contract) in raw base units */
+  unclaimedRaw: string;
+  /** True if the contract call succeeded; false if it failed (caller may omit claimed decimal from analytics) */
+  contractCallSucceeded: boolean;
+  /** Set when contractCallSucceeded is false, for caller to log */
+  error?: Error;
+}
+
+/**
+ * Resolve the unclaimed amount for a Merkl mUSD claim transaction.
+ * Decodes tx calldata, reads already-claimed from the Merkl distributor contract,
+ * and returns total and unclaimed raw amounts. Use this to avoid duplicating
+ * decode + contract call + subtraction logic in useMerklClaimStatus and useMerklClaimAmount.
+ *
+ * @param txData - Transaction data hex string (txParams.data)
+ * @param chainId - Chain ID for the contract call
+ * @returns Result with totalAmountRaw, unclaimedRaw, and contractCallSucceeded, or null if decoding fails
+ */
+export async function getUnclaimedAmountForMerklClaimTx(
+  txData: string | undefined,
+  chainId: Hex,
+): Promise<GetUnclaimedAmountForMerklClaimTxResult | null> {
+  const claimParams = decodeMerklClaimParams(txData);
+  if (!claimParams) {
+    return null;
+  }
+
+  const totalAmountRaw = claimParams.totalAmount;
+  const totalBigInt = BigInt(totalAmountRaw);
+
+  try {
+    const claimedAmount = await getClaimedAmountFromContract(
+      claimParams.userAddress,
+      claimParams.tokenAddress as Hex,
+      chainId,
+    );
+    const claimedBigInt = BigInt(claimedAmount ?? '0');
+    const unclaimedRaw =
+      totalBigInt > claimedBigInt
+        ? (totalBigInt - claimedBigInt).toString()
+        : '0';
+    return {
+      totalAmountRaw,
+      unclaimedRaw,
+      contractCallSucceeded: true,
+    };
+  } catch (error) {
+    return {
+      totalAmountRaw,
+      unclaimedRaw: totalAmountRaw,
+      contractCallSucceeded: false,
+      error: error instanceof Error ? error : new Error(String(error)),
+    };
+  }
 }
 
 /**
