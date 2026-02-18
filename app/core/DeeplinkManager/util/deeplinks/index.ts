@@ -7,13 +7,15 @@ const {
 } = AppConstants;
 
 const METAMASK_HOSTS = [
-  ...new Set([
-    MM_UNIVERSAL_LINK_HOST || 'link.metamask.io',
-    MM_IO_UNIVERSAL_LINK_HOST || 'link.metamask.io',
-    MM_IO_UNIVERSAL_LINK_TEST_HOST || 'link-test.metamask.io',
-    'metamask.app.link',
-    'metamask.test-app.link',
-  ].filter(Boolean)),
+  ...new Set(
+    [
+      MM_UNIVERSAL_LINK_HOST || 'link.metamask.io',
+      MM_IO_UNIVERSAL_LINK_HOST || 'link.metamask.io',
+      MM_IO_UNIVERSAL_LINK_TEST_HOST || 'link-test.metamask.io',
+      'metamask.app.link',
+      'metamask.test-app.link',
+    ].filter(Boolean),
+  ),
 ];
 
 /**
