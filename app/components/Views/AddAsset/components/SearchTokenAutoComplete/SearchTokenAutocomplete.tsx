@@ -54,6 +54,10 @@ import { getTrendingTokenImageUrl } from '../../../../UI/Trending/utils/getTrend
 import { convertAPITokensToBridgeTokens } from '../../../../UI/Bridge/hooks/useTokensWithBalances';
 import { PopularToken } from '../../../../UI/Bridge/hooks/usePopularTokens';
 import { useTrendingSearch } from '../../../../UI/Trending/hooks/useTrendingSearch/useTrendingSearch';
+import {
+  PriceChangeOption,
+  SortDirection,
+} from '../../../../UI/Trending/components/TrendingTokensBottomSheet';
 
 interface Props {
   /**
@@ -87,6 +91,10 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
     sortBy: 'h24_trending',
     includeMarketData: false,
     enableDebounce: true,
+    sortTrendingTokensOptions: {
+      option: PriceChangeOption.MarketCap,
+      direction: SortDirection.Descending,
+    },
   });
 
   // Convert API search results to BridgeToken format

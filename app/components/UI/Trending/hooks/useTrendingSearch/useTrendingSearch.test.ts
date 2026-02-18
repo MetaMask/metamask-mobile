@@ -6,6 +6,10 @@ import type { CaipChainId } from '@metamask/utils';
 import { useSearchRequest } from '../useSearchRequest/useSearchRequest';
 import { useTrendingRequest } from '../useTrendingRequest/useTrendingRequest';
 import { sortTrendingTokens } from '../../utils/sortTrendingTokens';
+import {
+  PriceChangeOption,
+  SortDirection,
+} from '../../components/TrendingTokensBottomSheet';
 
 // Mock dependencies
 jest.mock('../useSearchRequest/useSearchRequest');
@@ -98,9 +102,34 @@ describe('useTrendingSearch', () => {
 
     expect(mockSortTrendingTokens).toHaveBeenCalledWith(
       mockTrendingResults,
-      expect.any(String),
+      PriceChangeOption.PriceChange,
+      SortDirection.Descending,
     );
     expect(result.current.isLoading).toBe(false);
+  });
+
+  it('passes custom sortTrendingTokensOptions to sortTrendingTokens', async () => {
+    const sortedResults = [mockTrendingResults[1], mockTrendingResults[0]];
+    mockSortTrendingTokens.mockReturnValue(sortedResults);
+
+    const { result } = renderHookWithProvider(() =>
+      useTrendingSearch({
+        sortTrendingTokensOptions: {
+          option: PriceChangeOption.MarketCap,
+          direction: SortDirection.Ascending,
+        },
+      }),
+    );
+
+    await waitFor(() => {
+      expect(result.current.data).toEqual(sortedResults);
+    });
+
+    expect(mockSortTrendingTokens).toHaveBeenCalledWith(
+      mockTrendingResults,
+      PriceChangeOption.MarketCap,
+      SortDirection.Ascending,
+    );
   });
 
   it('returns combined search and trending results when search query provided', async () => {

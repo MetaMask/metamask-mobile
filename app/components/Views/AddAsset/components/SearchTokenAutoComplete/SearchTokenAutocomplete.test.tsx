@@ -8,6 +8,10 @@ import Engine from '../../../../../core/Engine';
 import { isNonEvmChainId } from '../../../../../core/Multichain/utils';
 import { useTrendingSearch } from '../../../../UI/Trending/hooks/useTrendingSearch/useTrendingSearch';
 import { convertAPITokensToBridgeTokens } from '../../../../UI/Bridge/hooks/useTokensWithBalances';
+import {
+  PriceChangeOption,
+  SortDirection,
+} from '../../../../UI/Trending/components/TrendingTokensBottomSheet';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import { Hex } from '@metamask/utils';
 
@@ -220,6 +224,19 @@ describe('SearchTokenAutocomplete', () => {
     expect(
       getByTestId(ImportTokenViewSelectorsIDs.SEARCH_BAR),
     ).toBeOnTheScreen();
+  });
+
+  it('calls useTrendingSearch with MarketCap sort options', () => {
+    renderComponent();
+
+    expect(mockUseTrendingSearch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sortTrendingTokensOptions: {
+          option: PriceChangeOption.MarketCap,
+          direction: SortDirection.Descending,
+        },
+      }),
+    );
   });
 
   it('renders with null selectedChainId', () => {
