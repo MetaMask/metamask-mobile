@@ -5,6 +5,7 @@ import {
   launchMobileBrowser,
   navigateToDapp,
   refreshMobileBrowser,
+  switchToMobileBrowser,
 } from '../../framework/utils/MobileBrowser.js';
 import WalletMainScreen from '../../../wdio/screen-objects/WalletMainScreen.js';
 import BrowserPlaygroundDapp from '../../../wdio/screen-objects/BrowserPlaygroundDapp.js';
@@ -102,7 +103,7 @@ test('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Browser
   });
 
   await new Promise((resolve) => setTimeout(resolve, 1000));
-  await launchMobileBrowser(device);
+  await switchToMobileBrowser(device);
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
   await AppwrightHelpers.withWebAction(
@@ -122,7 +123,7 @@ test('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Browser
   });
 
   await new Promise((resolve) => setTimeout(resolve, 1000));
-  await launchMobileBrowser(device);
+  await switchToMobileBrowser(device);
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
   await AppwrightHelpers.withWebAction(
@@ -144,7 +145,7 @@ test('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Browser
   });
 
   await new Promise((resolve) => setTimeout(resolve, 1000));
-  await launchMobileBrowser(device);
+  await switchToMobileBrowser(device);
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
   await AppwrightHelpers.withWebAction(
@@ -164,7 +165,7 @@ test('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Browser
   });
 
   await new Promise((resolve) => setTimeout(resolve, 1000));
-  await launchMobileBrowser(device);
+  await switchToMobileBrowser(device);
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
   await AppwrightHelpers.withWebAction(
@@ -183,7 +184,7 @@ test('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Browser
   });
 
   await new Promise((resolve) => setTimeout(resolve, 1000));
-  await launchMobileBrowser(device);
+  await switchToMobileBrowser(device);
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
   await AppwrightHelpers.withWebAction(
@@ -211,7 +212,7 @@ test('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Browser
   });
 
   await new Promise((resolve) => setTimeout(resolve, 1000));
-  await launchMobileBrowser(device);
+  await switchToMobileBrowser(device);
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
   await AppwrightHelpers.withWebAction(
@@ -245,7 +246,7 @@ test('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Browser
   });
 
   await new Promise((resolve) => setTimeout(resolve, 1000));
-  await launchMobileBrowser(device);
+  await switchToMobileBrowser(device);
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
   await AppwrightHelpers.withWebAction(
@@ -272,7 +273,7 @@ test('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Browser
   });
 
   await new Promise((resolve) => setTimeout(resolve, 1000));
-  await launchMobileBrowser(device);
+  await switchToMobileBrowser(device);
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
   await AppwrightHelpers.withWebAction(
@@ -292,7 +293,7 @@ test('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Browser
   });
 
   await new Promise((resolve) => setTimeout(resolve, 1000));
-  await launchMobileBrowser(device);
+  await switchToMobileBrowser(device);
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
   await AppwrightHelpers.withWebAction(
@@ -318,7 +319,7 @@ test('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Browser
   });
 
   await new Promise((resolve) => setTimeout(resolve, 1000));
-  await launchMobileBrowser(device);
+  await switchToMobileBrowser(device);
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
   await AppwrightHelpers.withNativeAction(device, async () => {
@@ -351,7 +352,7 @@ test('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Browser
   });
 
   await new Promise((resolve) => setTimeout(resolve, 1000));
-  await launchMobileBrowser(device);
+  await switchToMobileBrowser(device);
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
   await AppwrightHelpers.withWebAction(
