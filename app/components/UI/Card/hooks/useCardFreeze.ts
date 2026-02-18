@@ -15,7 +15,7 @@ interface UseCardFreezeParams {
 interface UseCardFreezeResult {
   isFrozen: boolean;
   status: CardFreezeStatus;
-  toggleFreeze: () => Promise<void>;
+  toggleFreeze: () => Promise<boolean>;
 }
 
 const useCardFreeze = ({
@@ -43,15 +43,15 @@ const useCardFreeze = ({
   const effectiveStatus = optimisticStatus ?? cardStatus;
   const isFrozen = effectiveStatus === CardStatus.FROZEN;
 
-  const toggleFreeze = useCallback(async () => {
+  const toggleFreeze = useCallback(async (): Promise<boolean> => {
     if (!sdk || status.type === 'toggling') {
-      return;
+      return false;
     }
 
     const current = optimisticStatusRef.current ?? cardStatus;
 
     if (current !== CardStatus.ACTIVE && current !== CardStatus.FROZEN) {
-      return;
+      return false;
     }
 
     const nextStatus =
@@ -72,11 +72,12 @@ const useCardFreeze = ({
         type: 'error',
         error: err instanceof Error ? err : new Error('Unknown error'),
       });
-      return;
+      return false;
     }
 
     setStatus({ type: 'idle' });
     fetchCardDetails();
+    return true;
   }, [sdk, cardStatus, status.type, fetchCardDetails]);
 
   return {

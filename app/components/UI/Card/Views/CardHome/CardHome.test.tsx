@@ -150,7 +150,7 @@ const mockSelectedInternalAccount = {
 const mockFetchAllData = jest.fn().mockResolvedValue(undefined);
 const mockRefetchAllData = jest.fn().mockResolvedValue(undefined);
 const mockFetchCardDetails = jest.fn().mockResolvedValue(undefined);
-const mockToggleFreeze = jest.fn().mockResolvedValue(undefined);
+const mockToggleFreeze = jest.fn().mockResolvedValue(true);
 const mockUseCardFreeze = jest.fn(
   (): {
     isFrozen: boolean;
@@ -497,6 +497,10 @@ jest.mock('../../../../../../locales/i18n', () => ({
         'Reactivate your card to resume transactions',
       'card.card_home.manage_card_options.freeze_error':
         'Failed to update card status. Please try again.',
+      'card.card_home.manage_card_options.freeze_success':
+        'Card successfully frozen',
+      'card.card_home.manage_card_options.unfreeze_success':
+        'Card successfully unfrozen',
       'card.card_home.biometric_verification_required':
         'Authentication required to view card details.',
       'card.card_home.unfreeze_auth_required':
@@ -718,7 +722,7 @@ describe('CardHome Component', () => {
     mockIsSolanaChainId.mockReturnValue(false);
 
     // Reset freeze hook mock
-    mockToggleFreeze.mockResolvedValue(undefined);
+    mockToggleFreeze.mockResolvedValue(true);
     mockUseCardFreeze.mockReturnValue({
       isFrozen: false,
       status: { type: 'idle' },

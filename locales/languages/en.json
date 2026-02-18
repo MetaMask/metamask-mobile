@@ -7065,7 +7065,9 @@
         "unfreeze_card": "Unfreeze card",
         "freeze_card_description": "Pause all spending on your card",
         "unfreeze_card_description": "Resume all spending on your card",
-        "freeze_error": "Failed to update card status. Please try again."
+        "freeze_error": "Failed to update card status. Please try again.",
+        "freeze_success": "Card successfully frozen",
+        "unfreeze_success": "Card successfully unfrozen"
       }
     },
     "card_spending_limit": {

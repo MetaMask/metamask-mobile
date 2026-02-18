@@ -79,10 +79,12 @@ describe('useCardFreeze', () => {
         }),
       );
 
+      let success: boolean | undefined;
       await act(async () => {
-        await result.current.toggleFreeze();
+        success = await result.current.toggleFreeze();
       });
 
+      expect(success).toBe(true);
       expect(mockFreezeCard).toHaveBeenCalledTimes(1);
       expect(mockUnfreezeCard).not.toHaveBeenCalled();
       expect(mockFetchCardDetails).toHaveBeenCalledTimes(1);
@@ -106,18 +108,20 @@ describe('useCardFreeze', () => {
 
       expect(result.current.status.type).toBe('idle');
 
-      let togglePromise: Promise<void>;
+      let togglePromise: Promise<boolean>;
       act(() => {
         togglePromise = result.current.toggleFreeze();
       });
 
       expect(result.current.status).toEqual({ type: 'toggling' });
 
+      let success: boolean | undefined;
       await act(async () => {
         resolveFreeze();
-        await togglePromise;
+        success = await togglePromise;
       });
 
+      expect(success).toBe(true);
       expect(result.current.status).toEqual({ type: 'idle' });
     });
   });
@@ -131,10 +135,12 @@ describe('useCardFreeze', () => {
         }),
       );
 
+      let success: boolean | undefined;
       await act(async () => {
-        await result.current.toggleFreeze();
+        success = await result.current.toggleFreeze();
       });
 
+      expect(success).toBe(true);
       expect(mockUnfreezeCard).toHaveBeenCalledTimes(1);
       expect(mockFreezeCard).not.toHaveBeenCalled();
       expect(mockFetchCardDetails).toHaveBeenCalledTimes(1);
@@ -160,7 +166,7 @@ describe('useCardFreeze', () => {
 
       expect(result.current.isFrozen).toBe(false);
 
-      let togglePromise: Promise<void>;
+      let togglePromise: Promise<boolean>;
       act(() => {
         togglePromise = result.current.toggleFreeze();
       });
@@ -190,7 +196,7 @@ describe('useCardFreeze', () => {
 
       expect(result.current.isFrozen).toBe(true);
 
-      let togglePromise: Promise<void>;
+      let togglePromise: Promise<boolean>;
       act(() => {
         togglePromise = result.current.toggleFreeze();
       });
@@ -215,10 +221,12 @@ describe('useCardFreeze', () => {
 
       expect(result.current.isFrozen).toBe(false);
 
+      let success: boolean | undefined;
       await act(async () => {
-        await result.current.toggleFreeze();
+        success = await result.current.toggleFreeze();
       });
 
+      expect(success).toBe(false);
       expect(result.current.isFrozen).toBe(false);
       expect(result.current.status).toEqual({
         type: 'error',
@@ -238,10 +246,12 @@ describe('useCardFreeze', () => {
 
       expect(result.current.isFrozen).toBe(true);
 
+      let success: boolean | undefined;
       await act(async () => {
-        await result.current.toggleFreeze();
+        success = await result.current.toggleFreeze();
       });
 
+      expect(success).toBe(false);
       expect(result.current.isFrozen).toBe(true);
       expect(result.current.status).toEqual({
         type: 'error',
@@ -411,7 +421,7 @@ describe('useCardFreeze', () => {
   });
 
   describe('Guard Conditions', () => {
-    it('does nothing when SDK is not available', async () => {
+    it('returns false when SDK is not available', async () => {
       mockUseCardSDK.mockReturnValue({
         ...jest.requireMock('../sdk'),
         sdk: null,
@@ -424,16 +434,18 @@ describe('useCardFreeze', () => {
         }),
       );
 
+      let success: boolean | undefined;
       await act(async () => {
-        await result.current.toggleFreeze();
+        success = await result.current.toggleFreeze();
       });
 
+      expect(success).toBe(false);
       expect(mockFreezeCard).not.toHaveBeenCalled();
       expect(mockUnfreezeCard).not.toHaveBeenCalled();
       expect(mockFetchCardDetails).not.toHaveBeenCalled();
     });
 
-    it('does nothing when card status is BLOCKED', async () => {
+    it('returns false when card status is BLOCKED', async () => {
       const { result } = renderHook(() =>
         useCardFreeze({
           cardStatus: CardStatus.BLOCKED,
@@ -441,16 +453,18 @@ describe('useCardFreeze', () => {
         }),
       );
 
+      let success: boolean | undefined;
       await act(async () => {
-        await result.current.toggleFreeze();
+        success = await result.current.toggleFreeze();
       });
 
+      expect(success).toBe(false);
       expect(mockFreezeCard).not.toHaveBeenCalled();
       expect(mockUnfreezeCard).not.toHaveBeenCalled();
       expect(mockFetchCardDetails).not.toHaveBeenCalled();
     });
 
-    it('does nothing when card status is undefined', async () => {
+    it('returns false when card status is undefined', async () => {
       const { result } = renderHook(() =>
         useCardFreeze({
           cardStatus: undefined,
@@ -458,10 +472,12 @@ describe('useCardFreeze', () => {
         }),
       );
 
+      let success: boolean | undefined;
       await act(async () => {
-        await result.current.toggleFreeze();
+        success = await result.current.toggleFreeze();
       });
 
+      expect(success).toBe(false);
       expect(mockFreezeCard).not.toHaveBeenCalled();
       expect(mockUnfreezeCard).not.toHaveBeenCalled();
       expect(mockFetchCardDetails).not.toHaveBeenCalled();

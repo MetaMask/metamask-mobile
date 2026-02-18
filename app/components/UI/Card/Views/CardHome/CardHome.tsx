@@ -444,15 +444,44 @@ const CardHome = () => {
     }
   }, [freezeStatus, toastRef]);
 
+  const showFreezeSuccessToast = useCallback(
+    (wasFrozen: boolean) => {
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Icon,
+        labelOptions: [
+          {
+            label: strings(
+              wasFrozen
+                ? 'card.card_home.manage_card_options.unfreeze_success'
+                : 'card.card_home.manage_card_options.freeze_success',
+            ),
+          },
+        ],
+        iconName: IconName.Confirmation,
+        iconColor: theme.colors.success.default,
+        hasNoTimeout: false,
+      });
+    },
+    [toastRef, theme],
+  );
+
   const handleToggleFreeze = useCallback(async () => {
+    const wasFrozen = isFrozen;
+
     if (!isFrozen) {
-      await toggleFreeze();
+      const success = await toggleFreeze();
+      if (success) {
+        showFreezeSuccessToast(wasFrozen);
+      }
       return;
     }
 
     try {
       await reauthenticate();
-      await toggleFreeze();
+      const success = await toggleFreeze();
+      if (success) {
+        showFreezeSuccessToast(wasFrozen);
+      }
     } catch (error) {
       const errorMessage = (error as Error).message;
 
@@ -463,8 +492,11 @@ const CardHome = () => {
       ) {
         navigation.navigate(
           ...createPasswordBottomSheetNavigationDetails({
-            onSuccess: () => {
-              toggleFreeze();
+            onSuccess: async () => {
+              const success = await toggleFreeze();
+              if (success) {
+                showFreezeSuccessToast(wasFrozen);
+              }
             },
             description: strings(
               'card.password_bottomsheet.description_unfreeze',
@@ -489,7 +521,14 @@ const CardHome = () => {
         iconName: IconName.Warning,
       });
     }
-  }, [isFrozen, toggleFreeze, reauthenticate, navigation, toastRef]);
+  }, [
+    isFrozen,
+    toggleFreeze,
+    reauthenticate,
+    navigation,
+    toastRef,
+    showFreezeSuccessToast,
+  ]);
 
   const addFundsAction = useCallback(() => {
     trackEvent(
