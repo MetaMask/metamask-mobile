@@ -16,6 +16,7 @@ import InlineAlert from '../../../UI/inline-alert';
 import { useAlerts } from '../../../../context/alert-system-context';
 import { Skeleton } from '../../../../../../../component-library/components/Skeleton';
 import { strings } from '../../../../../../../../locales/i18n';
+import { AvatarSize } from '../../../../../../../component-library/components/Avatars/Avatar';
 import Identicon from '../../../../../../UI/Identicon';
 import useDisplayName, {
   DisplayNameVariant,
@@ -51,7 +52,12 @@ const AddressDisplay = ({ address, chainId }: AddressDisplayProps) => {
       >
         {displayText}
       </Text>
-      <Identicon address={address} imageUri={image} diameter={24} />
+      <Identicon
+        address={address}
+        imageUri={image}
+        avatarSize={AvatarSize.Sm}
+        diameter={24}
+      />
     </View>
   );
 };
