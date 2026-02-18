@@ -6,12 +6,12 @@ import SearchTokenResults from './SearchTokenResults';
 import { ImportTokenViewSelectorsIDs } from '../../ImportAssetView.testIds';
 import { BridgeToken } from '../../../../UI/Bridge/types';
 
-jest.mock('../../../util/networks', () => ({
-  ...jest.requireActual('../../../util/networks'),
+jest.mock('../../../../../util/networks', () => ({
+  ...jest.requireActual('../../../../../util/networks'),
   getNetworkImageSource: jest.fn().mockReturnValue('mockedImageSource'),
 }));
 
-jest.mock('../AssetOverview/Balance/Balance', () => ({
+jest.mock('../../../../UI/AssetOverview/Balance/Balance', () => ({
   NetworkBadgeSource: jest.fn().mockReturnValue('mockedImageSource'),
 }));
 

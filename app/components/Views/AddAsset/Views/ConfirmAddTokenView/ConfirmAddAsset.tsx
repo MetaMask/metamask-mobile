@@ -95,45 +95,45 @@ const ConfirmAddAsset = () => {
         data={selectedAsset}
         style={tw.style('bg-default p-4')}
         renderItem={({ item: asset, index }) => (
-            <Box
-              key={index}
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              twClassName="mr-2.5 gap-5 py-2.5"
-            >
-              <Box>
-                <BadgeWrapper
-                  badgePosition={BadgePosition.BottomRight}
-                  badgeElement={
-                    <Badge
-                      variant={BadgeVariant.Network}
-                      imageSource={NetworkBadgeSource(asset.chainId as Hex)}
-                      name={networkName}
-                    />
-                  }
-                >
-                  {asset.image && (
-                    <AvatarToken
-                      name={asset.symbol}
-                      imageSource={{ uri: asset.image }}
-                      size={AvatarSize.Lg}
-                    />
-                  )}
-                </BadgeWrapper>
-              </Box>
-
-              <Box>
-                <Text variant={TextVariant.BodyLg}>{asset.name}</Text>
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextAlternative}
-                  style={tw.style('uppercase')}
-                >
-                  {asset.symbol}
-                </Text>
-              </Box>
+          <Box
+            key={index}
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="mr-2.5 gap-5 py-2.5"
+          >
+            <Box>
+              <BadgeWrapper
+                badgePosition={BadgePosition.BottomRight}
+                badgeElement={
+                  <Badge
+                    variant={BadgeVariant.Network}
+                    imageSource={NetworkBadgeSource(asset.chainId as Hex)}
+                    name={networkName}
+                  />
+                }
+              >
+                {asset.image && (
+                  <AvatarToken
+                    name={asset.symbol}
+                    imageSource={{ uri: asset.image }}
+                    size={AvatarSize.Lg}
+                  />
+                )}
+              </BadgeWrapper>
             </Box>
-          )}
+
+            <Box>
+              <Text variant={TextVariant.BodyLg}>{asset.name}</Text>
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+                style={tw.style('uppercase')}
+              >
+                {asset.symbol}
+              </Text>
+            </Box>
+          </Box>
+        )}
         keyExtractor={(_, index) => `token-search-row-${index}`}
       />
 
@@ -141,7 +141,7 @@ const ConfirmAddAsset = () => {
         buttonPropsArray={[
           {
             onPress: () => navigation.goBack(),
-            label: strings('confirmation_modal.back_cta'),
+            label: strings('confirmation_modal.cancel_cta'),
             variant: ButtonVariants.Secondary,
             size: ButtonSize.Lg,
           },

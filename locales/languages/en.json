@@ -5540,7 +5540,7 @@
     "warning": "In order to use this feature, please update the app to the newest version"
   },
   "confirmation_modal": {
-    "back_cta": "Back",
+    "cancel_cta": "Cancel",
     "confirm_cta": "Confirm"
   },
   "automatic_security_checks": {
