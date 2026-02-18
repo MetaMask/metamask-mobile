@@ -152,7 +152,7 @@ index 638c5df686413ffe050ef7e7329b9e9446e98002..6599e6dd453de2cc38a4c299d3509e85
              capabilities: {
                  "bstack:options": {
                      debug: true,
-+                    local: typeof process.env.BROWSERSTACK_LOCAL === 'string' && process.env.BROWSERSTACK_LOCAL.toLowerCase() === 'true',
++                    local: true,
 +                    ...(process.env.BROWSERSTACK_LOCAL_IDENTIFIER ? { localIdentifier: process.env.BROWSERSTACK_LOCAL_IDENTIFIER } : {}),
 +                    networkProfile : '4g-lte-advanced-good',
                      interactiveDebugging: true,
