@@ -47,6 +47,7 @@ How AI agents use the agentic toolkit to verify their own code changes against a
 - App running on **iOS Simulator** or **Android Emulator/device**
 - Metro bundler active (`scripts/agentic/start-metro.sh`)
 - The `__AGENTIC__` bridge is auto-installed on `globalThis` by `app/core/NavigationService/NavigationService.ts` in `__DEV__` mode
+- The Redux store is exposed on `globalThis.store` for state queries (set up alongside `__AGENTIC__` in dev mode)
 - **iOS**: Xcode command-line tools (`xcrun simctl`)
 - **Android**: Android SDK with `adb` on PATH
 
@@ -76,16 +77,16 @@ Android devices need extra steps to reach Metro:
 
 ```bash
 # 1. Port-forward so the device can reach Metro on localhost
-adb -s <serial> reverse tcp:8081 tcp:8081
+adb -s <serial> reverse tcp:${WATCHER_PORT:-8081} tcp:${WATCHER_PORT:-8081}
 
 # 2. Launch the app
 adb -s <serial> shell am start -n io.metamask/.MainActivity
 
-# 3. If the Expo dev launcher appears, tap the localhost:8081 entry
+# 3. If the Expo dev launcher appears, tap the localhost:${WATCHER_PORT:-8081} entry
 adb -s <serial> shell input tap 540 600
 
 # 4. Wait ~15s for JS bundle, then verify CDP targets
-curl -s http://localhost:8081/json/list | python3 -c \
+curl -s http://localhost:${WATCHER_PORT:-8081}/json/list | python3 -c \
   "import json,sys; [print(t['deviceName'],t['title']) for t in json.load(sys.stdin)]"
 ```
 
@@ -108,6 +109,7 @@ scripts/agentic/app-state.sh go-back                      # navigate back
 scripts/agentic/screenshot.sh [label]                     # take screenshot, returns path
 scripts/agentic/start-metro.sh                            # ensure Metro is running
 scripts/agentic/stop-metro.sh                             # stop Metro background process
+scripts/agentic/reload-metro.sh                            # trigger hot-reload on all connected apps
 ```
 
 **Metro log**: `.agent/metro.log` — grep for errors after changes.
@@ -121,32 +123,23 @@ scripts/agentic/
 ├── app-state.sh        # State/route/eval wrapper (calls cdp-bridge)
 ├── screenshot.sh       # Cross-platform screenshot (iOS simctl / Android adb)
 ├── start-metro.sh      # Start Metro (or attach to existing)
-└── stop-metro.sh       # Stop Metro background process
+├── stop-metro.sh       # Stop Metro background process
+└── reload-metro.sh     # Trigger hot-reload on all connected apps
 ```
 
 The `__AGENTIC__` bridge on `globalThis` exposes: `navigate()`, `getRoute()`, `getState()`, `canGoBack()`, `goBack()`. These work identically on both platforms via Metro's Hermes CDP.
 
+> **Platform targeting**: CDP-based commands (navigate, state, eval, go-back) are platform-agnostic — they go through Metro's WebSocket and reach whichever app is connected. Screenshots require direct device access (`xcrun simctl` or `adb`), so `screenshot.sh` auto-detects the platform. When both iOS and Android devices are connected, set `PLATFORM=android` or `PLATFORM=ios` to disambiguate. Since `app-navigate.sh` takes a verification screenshot, pass `PLATFORM` when needed:
+>
+> ```bash
+> PLATFORM=android scripts/agentic/app-navigate.sh PerpsMarketListView
+> ```
+
 ---
 
-## 3. Baseline + Feedback Loop
+## 3. Feedback Loop
 
-### Capture a baseline before changes
-
-```bash
-# Navigate to the target screen and screenshot
-scripts/agentic/app-navigate.sh PerpsMarketDetails '{"symbol":"BTC"}'
-scripts/agentic/screenshot.sh before-fix
-
-# Capture relevant state
-scripts/agentic/app-state.sh state engine.backgroundState.PerpsController
-
-# Note pre-existing Metro errors
-grep -iE 'ERROR|error' .agent/metro.log | tail -20
-```
-
-### After code changes, verify
-
-Metro hot-reloads automatically. Then:
+After code changes, Metro hot-reloads automatically. Then:
 
 1. **Recover navigation** — hot-reload may reset to home:
    ```bash
@@ -189,7 +182,7 @@ Then: `scripts/agentic/app-state.sh eval "globalThis.__AGENTIC_CUSTOM__?.trigger
 **Chaining nav + verify**:
 
 ```bash
-scripts/agentic/app-navigate.sh PerpsMarketDetails '{"symbol":"BTC"}'
+scripts/agentic/app-navigate.sh PerpsMarketDetails '{"market":{"symbol":"BTC","name":"BTC","price":"0","change24h":"0","change24hPercent":"0","volume":"0","maxLeverage":"100"}}'
 scripts/agentic/app-state.sh route
 ```
 
@@ -210,21 +203,20 @@ scripts/agentic/app-state.sh route
 
 All routes are in `app/constants/navigation/Routes.ts`. Nested routes are handled automatically by `cdp-bridge.js`.
 
-| Route                   | Description                             | Params             |
-| ----------------------- | --------------------------------------- | ------------------ |
-| `PerpsMarketListView`   | Perps home (positions, orders, markets) |                    |
-| `PerpsMarketDetails`    | Market detail view                      | `{"symbol":"BTC"}` |
-| `PerpsTradingView`      | Trading view                            |                    |
-| `PerpsPositions`        | Open positions                          |                    |
-| `PerpsTrendingView`     | Trending markets                        |                    |
-| `PerpsWithdraw`         | Withdraw funds                          |                    |
-| `PerpsTutorial`         | Tutorial                                |                    |
-| `PerpsClosePosition`    | Close a position                        |                    |
-| `PerpsTPSL`             | Take profit / stop loss                 |                    |
-| `PerpsAdjustMargin`     | Adjust margin                           |                    |
-| `PerpsOrderDetailsView` | Order details                           |                    |
-| `PerpsActivity`         | Activity history                        |                    |
-| `PerpsOrderBook`        | Order book depth                        |                    |
+> Perps routes are nested under the `Perps` parent navigator. The mapping is defined in `cdp-bridge.js` (`NESTED_ROUTE_PARENTS`). When adding new Perps routes, add them to this map.
+
+> **Note**: Route strings don't always match component names. `PerpsMarketListView` is the **home** screen route (renders PerpsHomeView). The actual market list component is at route `PerpsTrendingView`.
+
+| Route                 | Description                                              | Params                                                                                                                         |
+| --------------------- | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `PerpsMarketListView` | Perps home (positions, orders, watchlist)                |                                                                                                                                |
+| `PerpsTrendingView`   | Market list (all markets, full view)                     |                                                                                                                                |
+| `PerpsMarketDetails`  | Market detail view                                       | `{"market":{"symbol":"BTC","name":"BTC","price":"0","change24h":"0","change24hPercent":"0","volume":"0","maxLeverage":"100"}}` |
+| `PerpsTradingView`    | Redirect: navigates to wallet home and selects perps tab |                                                                                                                                |
+| `PerpsPositions`      | Open positions                                           |                                                                                                                                |
+| `PerpsActivity`       | Activity history                                         |                                                                                                                                |
+
+All perps route constants are in `app/constants/navigation/Routes.ts` under `Routes.PERPS`. For the full list of navigable routes, check `NESTED_ROUTE_PARENTS` in `cdp-bridge.js`.
 
 Other useful routes: `WalletTabHome`, `SettingsView`, `DeveloperOptions`, `BrowserTabHome`.
 
@@ -256,14 +248,16 @@ PLATFORM=ios scripts/agentic/screenshot.sh my-label
 
 Without `PLATFORM`, auto-detection priority: booted iOS simulator → connected Android device → default iOS.
 
+> `PLATFORM` only affects `screenshot.sh` (and `app-navigate.sh`'s verification screenshot). CDP-based commands (`app-state.sh`, `cdp-bridge.js`, `reload-metro.sh`) are platform-agnostic and ignore `PLATFORM`.
+
 ### Targeting specific devices
 
-| Env var          | Purpose                                | Example                  |
-| ---------------- | -------------------------------------- | ------------------------ |
-| `PLATFORM`       | Force platform for all tools           | `android`, `ios`         |
-| `IOS_SIMULATOR`  | CDP target filtering by simulator name | `iPhone16Pro-Alpha`      |
-| `ANDROID_DEVICE` | CDP target filtering by device name    | `Pixel 6a - 16 - API 36` |
-| `ADB_SERIAL`     | adb serial for Android screenshots     | `emulator-5554`          |
-| `WATCHER_PORT`   | Metro port (default `8081`)            | `8082`                   |
+| Env var          | Purpose                                                    | Example                  |
+| ---------------- | ---------------------------------------------------------- | ------------------------ |
+| `PLATFORM`       | Force platform for screenshot + navigate (screenshot step) | `android`, `ios`         |
+| `IOS_SIMULATOR`  | CDP target filtering by simulator name                     | `iPhone16Pro-Alpha`      |
+| `ANDROID_DEVICE` | CDP target filtering by device name                        | `Pixel 6a - 16 - API 36` |
+| `ADB_SERIAL`     | adb serial for Android screenshots                         | `emulator-5554`          |
+| `WATCHER_PORT`   | Metro port (default `8081`)                                | `8082`                   |
 
 Set these in `.js.env` or pass as env vars. The CDP bridge filters Metro's `/json/list` targets by `deviceName` when `IOS_SIMULATOR` or `ANDROID_DEVICE` is set, ensuring commands reach the correct app instance.

@@ -1,4 +1,5 @@
 import { NavigationContainerRef } from '@react-navigation/native';
+import { Platform } from 'react-native';
 import Logger from '../../util/Logger';
 import ReduxService from '../redux';
 
@@ -103,6 +104,7 @@ class NavigationService {
     if (__DEV__) {
       Logger.log('[NavigationService] __AGENTIC__ bridge installed');
       (globalThis as Record<string, unknown>).__AGENTIC__ = {
+        platform: Platform.OS,
         navigate: (name: string, params?: object) =>
           navRef.navigate(name as never, params as never),
         getRoute: () => navRef.getCurrentRoute(),

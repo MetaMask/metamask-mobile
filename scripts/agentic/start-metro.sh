@@ -24,11 +24,10 @@ mkdir -p .agent
 # --- Detect a running Metro via HTTP probe ---
 if curl -sf "http://localhost:${PORT}/status" >/dev/null 2>&1; then
   echo "Metro already running on port $PORT."
-  # If we have a log file, show recent output so the caller has context
-  if [ -s "$LOGFILE" ]; then
-    echo "Recent logs from $LOGFILE:"
-    tail -20 "$LOGFILE"
-  fi
+  echo ""
+  echo "To follow live logs:  tail -f $LOGFILE"
+  echo "To reload apps:       ./scripts/agentic/reload-metro.sh"
+  echo "To stop Metro:        ./scripts/agentic/stop-metro.sh"
   exit 0
 fi
 
@@ -36,7 +35,7 @@ fi
 > "$LOGFILE"
 
 echo "Starting Metro on port $PORT..."
-yarn expo start --port "$PORT" > >(tee -a "$LOGFILE") 2>&1 &
+EXPO_NO_TYPESCRIPT_SETUP=1 yarn expo start --port "$PORT" >> "$LOGFILE" 2>&1 &
 METRO_PID=$!
 echo "$METRO_PID" > "$PIDFILE"
 echo "Metro PID: $METRO_PID, logging to $LOGFILE"
@@ -44,12 +43,17 @@ echo "Metro PID: $METRO_PID, logging to $LOGFILE"
 # Wait for ready signal
 ELAPSED=0
 while [ $ELAPSED -lt $TIMEOUT ]; do
-  if grep -q "React Native DevTools" "$LOGFILE" 2>/dev/null; then
+  if grep -q "Waiting on http://localhost:${PORT}" "$LOGFILE" 2>/dev/null; then
     echo "Metro ready after ${ELAPSED}s."
+    echo ""
+    echo "To follow live logs:  tail -f $LOGFILE"
+    echo "To reload apps:       ./scripts/agentic/reload-metro.sh"
+    echo "To stop Metro:        ./scripts/agentic/stop-metro.sh"
     exit 0
   fi
   if ! kill -0 "$METRO_PID" 2>/dev/null; then
-    echo "ERROR: Metro exited unexpectedly. Check $LOGFILE"
+    echo "ERROR: Metro exited unexpectedly. Last 10 lines:"
+    tail -10 "$LOGFILE"
     rm -f "$PIDFILE"
     exit 1
   fi
@@ -58,5 +62,6 @@ while [ $ELAPSED -lt $TIMEOUT ]; do
 done
 
 echo "WARNING: Metro did not signal ready within ${TIMEOUT}s (PID $METRO_PID still running)."
-echo "Check $LOGFILE for details."
+echo "Last 10 lines of $LOGFILE:"
+tail -10 "$LOGFILE"
 exit 1

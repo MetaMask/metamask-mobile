@@ -4,7 +4,7 @@
  * CDP Bridge — Connect to the running MetaMask app via Hermes Chrome DevTools Protocol.
  *
  * Usage:
- *   node scripts/agentic/cdp-bridge.js navigate PerpsHome '{"symbol":"BTC"}'
+ *   node scripts/agentic/cdp-bridge.js navigate PerpsMarketListView
  *   node scripts/agentic/cdp-bridge.js get-route
  *   node scripts/agentic/cdp-bridge.js get-state "engine.backgroundState.NetworkController"
  *   node scripts/agentic/cdp-bridge.js eval "1+1"
@@ -172,12 +172,12 @@ async function discoverTarget(port) {
   for (const candidate of candidates) {
     const hasAgentic = await probeTarget(candidate.webSocketDebuggerUrl);
     if (hasAgentic) {
-      return candidate.webSocketDebuggerUrl;
+      return { wsUrl: candidate.webSocketDebuggerUrl, deviceName: candidate.deviceName || '' };
     }
   }
 
   // Fallback: return highest page number (most likely the JS runtime)
-  return candidates[0].webSocketDebuggerUrl;
+  return { wsUrl: candidates[0].webSocketDebuggerUrl, deviceName: candidates[0].deviceName || '' };
 }
 
 /**
@@ -328,7 +328,7 @@ const NESTED_ROUTE_PARENTS = {
 };
 
 const COMMANDS = {
-  async navigate(client, args) {
+  async navigate(client, args, { deviceName, platform } = {}) {
     const routeName = args[0];
     if (!routeName) {
       throw new Error('Usage: navigate <RouteName> [params-json]');
@@ -341,6 +341,9 @@ const COMMANDS = {
         throw new Error(`Invalid params JSON: ${e.message}`);
       }
     }
+
+    // Capture route before navigation
+    const previousRoute = await cdpEval(client, 'globalThis.__AGENTIC__?.getRoute()');
 
     let expr;
     const parent = NESTED_ROUTE_PARENTS[routeName];
@@ -359,11 +362,11 @@ const COMMANDS = {
     await cdpEval(client, expr);
     // Small delay for navigation to settle, then return current route
     await new Promise((r) => setTimeout(r, 500));
-    const route = await cdpEval(
+    const currentRoute = await cdpEval(
       client,
       'globalThis.__AGENTIC__?.getRoute()',
     );
-    return { navigated: routeName, params, currentRoute: route };
+    return { navigated: routeName, params, previousRoute, currentRoute, deviceName, platform };
   },
 
   async 'get-route'(client) {
@@ -412,14 +415,14 @@ const COMMANDS = {
     return await cdpEval(client, 'globalThis.__AGENTIC__?.canGoBack()');
   },
 
-  async 'go-back'(client) {
+  async 'go-back'(client, _args, { deviceName, platform } = {}) {
     await cdpEval(client, 'globalThis.__AGENTIC__?.goBack()');
     await new Promise((r) => setTimeout(r, 300));
     const route = await cdpEval(
       client,
       'globalThis.__AGENTIC__?.getRoute()',
     );
-    return { currentRoute: route };
+    return { currentRoute: route, deviceName, platform };
   },
 };
 
@@ -463,11 +466,13 @@ Environment:
   const port = loadPort();
   const timeout = Number.parseInt(process.env.CDP_TIMEOUT || '5000', 10);
 
-  const wsUrl = await discoverTarget(port);
+  const { wsUrl, deviceName } = await discoverTarget(port);
   const client = await createWSClient(wsUrl, timeout);
 
   try {
-    const result = await handler(client, args.slice(1));
+    // Detect platform from the running app (exposed by __AGENTIC__ bridge as Platform.OS)
+    const platform = await cdpEval(client, 'globalThis.__AGENTIC__?.platform') || '';
+    const result = await handler(client, args.slice(1), { deviceName, platform });
     console.log(JSON.stringify(result, null, 2));
   } finally {
     client.close();
