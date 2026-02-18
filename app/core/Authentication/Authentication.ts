@@ -366,73 +366,23 @@ class AuthenticationService {
             password,
             SecureKeychain.TYPES.BIOMETRICS,
           );
-
-          // TODO: Remove this once we have a proper way to handle biometrics
-          await StorageWrapper.removeItem(BIOMETRY_CHOICE_DISABLED);
-          await StorageWrapper.setItem(PASSCODE_DISABLED, TRUE);
-
           break;
         case AUTHENTICATION_TYPE.PASSCODE:
           await SecureKeychain.setGenericPassword(
             password,
             SecureKeychain.TYPES.PASSCODE,
           );
-
-          // TODO: Remove this once we have a proper way to handle biometrics
-          await StorageWrapper.removeItem(PASSCODE_DISABLED);
-          await StorageWrapper.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
-
           break;
-        case AUTHENTICATION_TYPE.REMEMBER_ME: {
-          // Store the current auth type before switching to remember me
-          const currentAuthData = await this.checkAuthenticationMethod();
-          // Only store if we're not already on remember me
-          if (
-            currentAuthData.currentAuthType !== AUTHENTICATION_TYPE.REMEMBER_ME
-          ) {
-            await StorageWrapper.setItem(
-              PREVIOUS_AUTH_TYPE_BEFORE_REMEMBER_ME,
-              currentAuthData.currentAuthType,
-            );
-          }
-
-          await SecureKeychain.setGenericPassword(
-            password,
-            SecureKeychain.TYPES.REMEMBER_ME,
-          );
-
-          // TODO: Remove this once we have a proper way to handle biometrics
-          await StorageWrapper.setItem(PASSCODE_DISABLED, TRUE);
-          await StorageWrapper.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
-
-          break;
-        }
-        case AUTHENTICATION_TYPE.PASSWORD: {
-          await SecureKeychain.setGenericPassword(password, undefined);
-
-          // Password only: disable both biometrics and passcode
-          await StorageWrapper.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
-          await StorageWrapper.setItem(PASSCODE_DISABLED, TRUE);
-
-          // If remember me is enabled, clear the stored previous auth type
-          // because the user is disabling biometrics/passcode, so we shouldn't restore to them
-          const allowLoginWithRememberMe =
-            ReduxService.store.getState().security?.allowLoginWithRememberMe;
-          if (allowLoginWithRememberMe) {
-            await StorageWrapper.removeItem(
-              PREVIOUS_AUTH_TYPE_BEFORE_REMEMBER_ME,
-            );
-          }
-          break;
-        }
+        case AUTHENTICATION_TYPE.PASSWORD:
         default:
           await SecureKeychain.setGenericPassword(password, undefined);
-
-          // Default to password behavior: disable both
-          await StorageWrapper.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
-          await StorageWrapper.setItem(PASSCODE_DISABLED, TRUE);
           break;
       }
+
+      // Remove legacy flags associated with authentication types
+      await StorageWrapper.removeItem(BIOMETRY_CHOICE_DISABLED);
+      await StorageWrapper.removeItem(PASSCODE_DISABLED);
+      await StorageWrapper.removeItem(PREVIOUS_AUTH_TYPE_BEFORE_REMEMBER_ME);
 
       // Keep Redux in sync with keychain so getAuthCapabilities reflects actual access control
       this.updateOsAuthEnabled(
