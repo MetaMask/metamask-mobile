@@ -304,18 +304,23 @@ class TransactionElement extends PureComponent {
       }, 100);
     } else {
       const { transactionElement, transactionDetails } = this.state;
-      this.props.navigation.navigate(Routes.SHEET.TRANSACTION_DETAILS, {
-        tx,
-        transactionElement,
-        transactionDetails,
-        showSpeedUpModal: this.showSpeedUpModal,
-        showCancelModal: this.showCancelModal,
+      this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.SHEET.TRANSACTION_DETAILS,
+        params: {
+          tx,
+          transactionElement,
+          transactionDetails,
+          showSpeedUpModal: this.showSpeedUpModal,
+          showCancelModal: this.showCancelModal,
+        },
       });
     }
   };
 
   onPressImportWalletTip = () => {
-    this.props.navigation.navigate(Routes.SHEET.IMPORT_WALLET_TIP);
+    this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.IMPORT_WALLET_TIP,
+    });
   };
 
   renderTxTime = () => {

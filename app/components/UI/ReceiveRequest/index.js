@@ -169,8 +169,9 @@ class ReceiveRequest extends PureComponent {
   };
 
   onReceive = () => {
-    this.props.navigation.navigate('PaymentRequest', {
-      receiveAsset: this.props.receiveAsset,
+    this.props.navigation.navigate('PaymentRequestView', {
+      screen: 'PaymentRequest',
+      params: { receiveAsset: this.props.receiveAsset },
     });
 
     this.props.metrics.trackEvent(
