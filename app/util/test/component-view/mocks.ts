@@ -12,6 +12,9 @@ jest.mock('../../../core/Engine', () => {
           keyrings: [],
         },
       },
+      AccountsController: {
+        listAccounts: jest.fn().mockReturnValue([]),
+      },
       AccountTrackerController: {
         refresh() {
           return undefined;
@@ -26,6 +29,9 @@ jest.mock('../../../core/Engine', () => {
         },
       },
       PreferencesController: {
+        state: {
+          securityAlertsEnabled: true,
+        },
         setTokenNetworkFilter() {
           return undefined;
         },
@@ -97,6 +103,12 @@ jest.mock('../../../core/Engine', () => {
         stopPollingByPollingToken() {
           return undefined;
         },
+      },
+      TransactionController: {
+        state: {
+          transactions: [],
+        },
+        addTransaction: jest.fn().mockResolvedValue({}),
       },
       NetworkController: {
         state: { networksMetadata: {} },

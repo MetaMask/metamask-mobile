@@ -29,8 +29,11 @@ export function Nft({ asset, onPress }: NftProps) {
     onPress(asset);
   }, [asset, onPress]);
 
+  const testID = `nft-${asset.name || asset.collectionName || asset.tokenId}`;
+
   return (
     <Pressable
+      testID={testID}
       style={({ pressed }) =>
         tw.style(
           'w-full flex-row items-center justify-between py-2',
