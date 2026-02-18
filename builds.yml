@@ -130,6 +130,16 @@ _code_fencing_beta: &code_fencing_beta
   - bitcoin
   - tron
 
+# Experimental code fencing features (main + experimental)
+_code_fencing_experimental: &code_fencing_experimental
+  - preinstalled-snaps
+  - keyring-snaps
+  - multi-srp
+  - solana
+  - bitcoin
+  - tron
+  - experimental
+
 # Flask code fencing features (includes experimental)
 _code_fencing_flask: &code_fencing_flask
   - flask
@@ -270,7 +280,7 @@ builds:
       IS_TEST: 'false'
       MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: 'true'
     secrets: *secrets
-    code_fencing: *code_fencing_main
+    code_fencing: *code_fencing_experimental
     remote_feature_flags:
       <<: *remote_feature_flags
       # Override for experimental testing
