@@ -47,6 +47,7 @@ describe('useMarketInsights', () => {
 
   it('fetches and returns report data with relative time', async () => {
     const report = {
+      version: '1.0',
       asset: 'eth',
       generatedAt: '2026-02-17T11:55:00.000Z',
       headline: 'ETH advances',
@@ -71,23 +72,8 @@ describe('useMarketInsights', () => {
     expect(result.current.timeAgo).toBe('5m ago');
   });
 
-  it('unwraps report when controller returns digest envelope', async () => {
-    const report = {
-      asset: 'btc',
-      generatedAt: '2026-02-17T11:55:00.000Z',
-      headline: 'BTC update',
-      summary: 'Risk sentiment drives volatility',
-      trends: [],
-      sources: [],
-    };
-
-    mockFetchMarketInsights.mockResolvedValue({
-      id: 'digest-id',
-      assetId: 'bitcoin',
-      assetSymbol: 'BTC',
-      digest: report,
-      success: true,
-    });
+  it('returns null when controller has no insights', async () => {
+    mockFetchMarketInsights.mockResolvedValue(null);
 
     const { result } = renderHook(() =>
       useMarketInsights('eip155:1/erc20:0x2260', true),
@@ -95,9 +81,9 @@ describe('useMarketInsights', () => {
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
-    expect(result.current.report).toEqual(report);
+    expect(result.current.report).toBeNull();
     expect(result.current.error).toBeNull();
-    expect(result.current.timeAgo).toBe('5m ago');
+    expect(result.current.timeAgo).toBe('');
   });
 
   it('returns an error when fetch fails', async () => {
