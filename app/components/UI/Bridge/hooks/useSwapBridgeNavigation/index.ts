@@ -77,7 +77,7 @@ export const useSwapBridgeNavigation = ({
   destToken?: BridgeToken;
   /** Analytics context for A/B test attribution on page-viewed events */
   abTestContext?: {
-    ab_test_token_details_layout?: string;
+    assetsASSETS2493AbtestTokenDetailsLayout?: string;
   };
 }) => {
   const navigation = useNavigation();

@@ -166,7 +166,7 @@ describe('usePerpsActions', () => {
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
-  it('includes ab_test_token_details_layout in nav params when provided', () => {
+  it('includes assetsASSETS2493AbtestTokenDetailsLayout in nav params when provided', () => {
     // Arrange
     mockUsePerpsMarketForAsset.mockReturnValue({
       hasPerpsMarket: true,
@@ -199,12 +199,12 @@ describe('usePerpsActions', () => {
       params: expect.objectContaining({
         direction: 'long',
         asset: 'ETH',
-        ab_test_token_details_layout: 'treatment',
+        assetsASSETS2493AbtestTokenDetailsLayout: 'treatment',
       }),
     });
   });
 
-  it('omits ab_test_token_details_layout from nav params when not provided', () => {
+  it('omits assetsASSETS2493AbtestTokenDetailsLayout from nav params when not provided', () => {
     // Arrange
     mockUsePerpsMarketForAsset.mockReturnValue({
       hasPerpsMarket: true,
@@ -230,7 +230,9 @@ describe('usePerpsActions', () => {
     const navParams = mockNavigate.mock.calls[0][1] as {
       params: Record<string, unknown>;
     };
-    expect(navParams.params).not.toHaveProperty('ab_test_token_details_layout');
+    expect(navParams.params).not.toHaveProperty(
+      'assetsASSETS2493AbtestTokenDetailsLayout',
+    );
   });
 
   it('forwards isLoading and error from usePerpsMarketForAsset', () => {

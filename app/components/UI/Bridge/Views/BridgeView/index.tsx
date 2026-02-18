@@ -298,9 +298,10 @@ const BridgeView = () => {
         token_symbol_destination: destToken?.symbol,
         token_address_source: sourceToken.address,
         token_address_destination: destToken?.address,
-        ...(abTestContext?.ab_test_token_details_layout && {
+        ...(abTestContext?.assetsASSETS2493AbtestTokenDetailsLayout && {
           ab_tests: {
-            token_details_layout: abTestContext.ab_test_token_details_layout,
+            assetsASSETS2493AbtestTokenDetailsLayout:
+              abTestContext.assetsASSETS2493AbtestTokenDetailsLayout,
           },
         }),
       };

@@ -165,7 +165,7 @@ interface OrderRouteParams {
   // Hide TP/SL when modifying existing position
   hideTPSL?: boolean;
   /** A/B test variant for token details layout - e.g. 'control' or 'treatment' */
-  ab_test_token_details_layout?: string;
+  assetsASSETS2493AbtestTokenDetailsLayout?: string;
 }
 
 interface PerpsOrderViewContentProps {
@@ -374,7 +374,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         : PERPS_EVENT_VALUE.DIRECTION.SHORT,
     ...(source && { [PERPS_EVENT_PROPERTY.SOURCE]: source }),
     ...(routeAbTestTokenDetailsLayout && {
-      ab_tests: { token_details_layout: routeAbTestTokenDetailsLayout },
+      ab_tests: {
+        assetsASSETS2493AbtestTokenDetailsLayout: routeAbTestTokenDetailsLayout,
+      },
     }),
     ...(isButtonColorTestEnabled && {
       [PERPS_EVENT_PROPERTY.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
@@ -1805,7 +1807,7 @@ const PerpsOrderView: React.FC = () => {
     leverage: paramLeverage,
     existingPosition,
     hideTPSL = false,
-    ab_test_token_details_layout: routeAbTestTokenDetailsLayout,
+    assetsASSETS2493AbtestTokenDetailsLayout: routeAbTestTokenDetailsLayout,
   } = route.params || {};
 
   const effectiveAvailableBalance = useMemo(() => {

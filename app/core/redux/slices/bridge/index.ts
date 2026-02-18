@@ -68,7 +68,7 @@ export interface BridgeState {
    */
   tokenSelectorNetworkFilter: CaipChainId | undefined;
   abTestContext?: {
-    ab_test_token_details_layout?: string;
+    assetsASSETS2493AbtestTokenDetailsLayout?: string;
   };
   /**
    * Ordered list of chain IDs shown as pills in the token selector.

@@ -150,7 +150,9 @@ export const useTokenActions = ({
     sourceToken,
     destToken,
     abTestContext: {
-      ...(isTestActive && { ab_test_token_details_layout: variantName }),
+      ...(isTestActive && {
+        assetsASSETS2493AbtestTokenDetailsLayout: variantName,
+      }),
     },
   });
 
@@ -218,7 +220,7 @@ export const useTokenActions = ({
       button_label: strings('asset_overview.send_button'),
       location: ActionLocation.ASSET_DETAILS,
       ...(isTestActive && {
-        ab_tests: { token_details_layout: variantName },
+        ab_tests: { assetsASSETS2493AbtestTokenDetailsLayout: variantName },
       }),
     };
     trackEvent(

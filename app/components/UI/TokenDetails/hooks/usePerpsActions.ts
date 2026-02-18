@@ -60,7 +60,7 @@ export const usePerpsActions = ({
           direction,
           asset: marketData.symbol,
           ...(abTestTokenDetailsLayout && {
-            ab_test_token_details_layout: abTestTokenDetailsLayout,
+            assetsASSETS2493AbtestTokenDetailsLayout: abTestTokenDetailsLayout,
           }),
         },
       });

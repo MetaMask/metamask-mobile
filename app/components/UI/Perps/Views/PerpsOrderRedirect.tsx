@@ -39,7 +39,8 @@ type RouteParams = RouteProp<PerpsNavigationParamList, 'PerpsOrderRedirect'>;
 const PerpsOrderRedirect: React.FC = () => {
   const navigation = useNavigation();
   const route = useRoute<RouteParams>();
-  const { direction, asset, ab_test_token_details_layout } = route.params;
+  const { direction, asset, assetsASSETS2493AbtestTokenDetailsLayout } =
+    route.params;
 
   const { isConnected, isInitialized } = usePerpsConnection();
   const { depositWithOrder } = usePerpsTrading();
@@ -70,7 +71,7 @@ const PerpsOrderRedirect: React.FC = () => {
             {
               direction,
               asset,
-              ab_test_token_details_layout,
+              assetsASSETS2493AbtestTokenDetailsLayout,
               showPerpsHeader:
                 CONFIRMATION_HEADER_CONFIG.ShowPerpsHeaderForDepositAndTrade,
             },
@@ -94,7 +95,7 @@ const PerpsOrderRedirect: React.FC = () => {
     isInitialized,
     direction,
     asset,
-    ab_test_token_details_layout,
+    assetsASSETS2493AbtestTokenDetailsLayout,
     depositWithOrder,
     navigation,
     showToast,

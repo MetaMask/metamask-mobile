@@ -221,7 +221,7 @@ export interface PerpsNavigationParamList extends ParamListBase {
     direction: 'long' | 'short';
     asset: string;
     /** A/B test variant for token details layout - e.g. 'control' or 'treatment' */
-    ab_test_token_details_layout?: string;
+    assetsASSETS2493AbtestTokenDetailsLayout?: string;
   };
 }
 
