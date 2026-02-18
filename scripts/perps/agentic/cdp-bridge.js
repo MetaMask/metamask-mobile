@@ -29,8 +29,10 @@ function loadEnvValue(key) {
     const path = require('node:path');
     const envPath = path.resolve(__dirname, '../../../.js.env');
     const content = fs.readFileSync(envPath, 'utf8');
-    const match = content.match(new RegExp(`^${key}=(.+)$`, 'm'));
-    if (match) return match[1].trim();
+    // .js.env uses `export KEY="value"` (shell-sourceable format),
+    // so we handle the optional `export` prefix and strip surrounding quotes.
+    const match = content.match(new RegExp(`^(?:export\\s+)?${key}=(.+)$`, 'm'));
+    if (match) return match[1].trim().replace(/^["']|["']$/g, '');
   } catch {
     // .js.env may not exist — fall through to undefined
   }
