@@ -51,7 +51,11 @@ const PaidByMetaMask = () => (
     paddingLeft={2}
     paddingRight={2}
   >
-    <Text variant={TextVariant.BodyMD} testID="paid-by-metamask">
+    <Text
+      variant={TextVariant.BodyMD}
+      testID="paid-by-metamask"
+      color={TextColor.Success}
+    >
       {strings('transactions.paid_by_metamask')}
     </Text>
   </Box>

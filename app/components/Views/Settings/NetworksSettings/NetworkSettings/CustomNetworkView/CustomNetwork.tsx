@@ -188,7 +188,6 @@ const CustomNetwork = ({
                     <Text
                       variant={TextVariant.BodySM}
                       color={TextColor.Success}
-                      style={customNetworkStyles.tagLabelBelowName}
                     >
                       {strings('networks.no_network_fee')}
                     </Text>
