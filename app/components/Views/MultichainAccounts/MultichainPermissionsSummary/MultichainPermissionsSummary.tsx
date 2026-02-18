@@ -35,7 +35,7 @@ import styleSheet from './MultichainPermissionsSummary.styles';
 import { useStyles } from '../../../../component-library/hooks';
 import {
   MaliciousDappUrlIcon,
-  DangerConnectButtonContent,
+  getConnectButtonContent,
 } from '../../../UI/PermissionsSummary/MaliciousDappIndicators';
 import Routes from '../../../../constants/navigation/Routes';
 import ButtonIcon, {
@@ -662,13 +662,7 @@ const MultichainPermissionsSummary = ({
                 ]}
                 testID={CommonSelectorsIDs.CONNECT_BUTTON}
               >
-                {isMaliciousDapp && !isNetworkSwitch ? (
-                  <DangerConnectButtonContent />
-                ) : isNetworkSwitch ? (
-                  strings('confirmation_modal.confirm_cta')
-                ) : (
-                  strings('accounts.connect')
-                )}
+                {getConnectButtonContent(isMaliciousDapp, isNetworkSwitch)}
               </StyledButton>
             </View>
           )}

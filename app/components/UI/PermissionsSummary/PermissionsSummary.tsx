@@ -37,7 +37,7 @@ import { useStyles } from '../../../component-library/hooks';
 import { PermissionsSummaryProps } from './PermissionsSummary.types';
 import {
   MaliciousDappUrlIcon,
-  DangerConnectButtonContent,
+  getConnectButtonContent,
 } from './MaliciousDappIndicators';
 import { USER_INTENT } from '../../../constants/permissions';
 import Routes from '../../../constants/navigation/Routes';
@@ -714,13 +714,7 @@ const PermissionsSummary = ({
                 ]}
                 testID={CommonSelectorsIDs.CONNECT_BUTTON}
               >
-                {isMaliciousDapp && !isNetworkSwitch ? (
-                  <DangerConnectButtonContent />
-                ) : isNetworkSwitch ? (
-                  strings('confirmation_modal.confirm_cta')
-                ) : (
-                  strings('accounts.connect')
-                )}
+                {getConnectButtonContent(isMaliciousDapp, isNetworkSwitch)}
               </StyledButton>
             </View>
           )}

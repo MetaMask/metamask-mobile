@@ -59,3 +59,20 @@ export const DangerConnectButtonContent = () => {
     </View>
   );
 };
+
+/**
+ * Returns the appropriate label for the confirm/connect button based on
+ * whether the dApp is malicious and whether this is a network switch.
+ */
+export const getConnectButtonContent = (
+  isMaliciousDapp: boolean,
+  isNetworkSwitch: boolean,
+): React.ReactNode => {
+  if (isMaliciousDapp && !isNetworkSwitch) {
+    return <DangerConnectButtonContent />;
+  }
+  if (isNetworkSwitch) {
+    return strings('confirmation_modal.confirm_cta');
+  }
+  return strings('accounts.connect');
+};
