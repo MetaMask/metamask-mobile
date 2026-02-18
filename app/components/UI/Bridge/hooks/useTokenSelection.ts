@@ -8,11 +8,13 @@ import {
   selectDestToken,
   selectDestAmount,
   setIsDestTokenManuallySet,
+  setSourceAmount,
 } from '../../../../core/redux/slices/bridge';
 import { BridgeToken, TokenSelectorType } from '../types';
 import { useSwitchTokens } from './useSwitchTokens';
 import { useIsNetworkEnabled } from './useIsNetworkEnabled';
 import { useAutoUpdateDestToken } from './useAutoUpdateDestToken';
+import Engine from '../../../../core/Engine';
 
 /**
  * Hook to manage token selection logic for Bridge token selector
@@ -62,6 +64,11 @@ export const useTokenSelection = (type: TokenSelectorType) => {
         if (!isSourcePicker) {
           dispatch(setIsDestTokenManuallySet(true));
         } else {
+          // Zero the source amount and reset quotes when switching source token
+          dispatch(setSourceAmount(undefined));
+          if (Engine.context.BridgeController?.resetState) {
+            Engine.context.BridgeController.resetState();
+          }
           // Auto-update dest token when source token changes
           autoUpdateDestToken(token);
         }

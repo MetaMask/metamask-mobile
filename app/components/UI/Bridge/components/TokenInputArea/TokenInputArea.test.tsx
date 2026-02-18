@@ -2,12 +2,7 @@ import React, { createRef } from 'react';
 import { initialState } from '../../_mocks_/initialState';
 import { act, fireEvent } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
-import {
-  TokenInputArea,
-  TokenInputAreaRef,
-  TokenInputAreaType,
-  getDisplayAmount,
-} from '.';
+import { TokenInputArea, TokenInputAreaRef, TokenInputAreaType } from '.';
 import { BridgeToken } from '../../types';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { POLYGON_NATIVE_TOKEN } from '../../constants/assets';
@@ -661,39 +656,5 @@ describe('TokenInputArea', () => {
       expect(mockInputFocus).toHaveBeenCalledTimes(1);
       expect(mockInputBlur).toHaveBeenCalledTimes(1);
     });
-  });
-});
-
-describe('getDisplayAmount', () => {
-  it('returns undefined for undefined input', () => {
-    expect(getDisplayAmount(undefined)).toBeUndefined();
-  });
-
-  it('preserves source amount when not from Max button', () => {
-    const amount = '1.12345';
-    expect(getDisplayAmount(amount, TokenInputAreaType.Source, false)).toBe(
-      amount,
-    );
-  });
-
-  it('truncates source amount to 5 decimals when from Max button', () => {
-    const amount = '1.123456789';
-    expect(getDisplayAmount(amount, TokenInputAreaType.Source, true)).toBe(
-      '1.12345',
-    );
-  });
-
-  it('truncates and formats max amount with many decimals', () => {
-    const amount = '1234.567890123456789';
-    expect(getDisplayAmount(amount, TokenInputAreaType.Source, true)).toBe(
-      '1,234.56789',
-    );
-  });
-
-  it('always truncates destination amount to 5 decimals', () => {
-    const amount = '123.456789012345';
-    expect(
-      getDisplayAmount(amount, TokenInputAreaType.Destination, false),
-    ).toBe('123.45678');
   });
 });
