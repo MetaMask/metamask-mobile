@@ -169,10 +169,10 @@ exports[`AppInformation renders correctly with snapshot 1`] = `
                         "alignItems": "center",
                         "backgroundColor": "transparent",
                         "borderRadius": 8,
-                        "height": 40,
+                        "height": 32,
                         "justifyContent": "center",
                         "opacity": 1,
-                        "width": 40,
+                        "width": 32,
                       },
                       {
                         "marginHorizontal": 16,
@@ -188,8 +188,8 @@ exports[`AppInformation renders correctly with snapshot 1`] = `
                       [
                         {
                           "color": "#121314",
-                          "height": 32,
-                          "width": 32,
+                          "height": 24,
+                          "width": 24,
                         },
                         undefined,
                       ]

@@ -260,7 +260,7 @@ class Tabs extends PureComponent {
       <View style={styles.topBar}>
         <ButtonIcon
           iconName={IconName.ArrowLeft}
-          size={ButtonIconSizes.Lg}
+          size={ButtonIconSizes.Md}
           onPress={closeTabsView}
           testID={BrowserViewSelectorsIDs.TABS_BACK_BUTTON}
           accessibilityLabel={strings('browser.go_back')}

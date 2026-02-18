@@ -1452,7 +1452,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
               {!isUrlBarFocused && (
                 <ButtonIcon
                   iconName={IconName.ArrowLeft}
-                  size={ButtonIconSize.Lg}
+                  size={ButtonIconSize.Md}
                   onPress={handleClosePress}
                   testID="browser-tab-close-button"
                 />

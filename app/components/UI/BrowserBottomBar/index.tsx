@@ -292,7 +292,7 @@ const BrowserBottomBar: React.FC<BrowserBottomBarProps> = ({
         {/* Back Button */}
         <MemoizedButtonIcon
           iconName={IconName.ArrowLeft}
-          size={ButtonIconSize.Lg}
+          size={ButtonIconSize.Md}
           onPress={onBackPress}
           isDisabled={!canGoBack}
           testID={BrowserViewSelectorsIDs.BACK_BUTTON}

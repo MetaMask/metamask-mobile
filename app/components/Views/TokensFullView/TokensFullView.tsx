@@ -32,7 +32,7 @@ const TokensFullView = () => {
       <HeaderBase
         startAccessory={
           <ButtonIcon
-            size={ButtonIconSizes.Lg}
+            size={ButtonIconSizes.Md}
             onPress={handleBackPress}
             iconName={IconName.ArrowLeft}
             testID="back-button"

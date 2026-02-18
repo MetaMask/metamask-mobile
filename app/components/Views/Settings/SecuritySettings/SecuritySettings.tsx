@@ -1,6 +1,13 @@
 /* eslint-disable react/prop-types */
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Switch, ScrollView, View, Keyboard, Linking } from 'react-native';
+import {
+  Switch,
+  ScrollView,
+  View,
+  Keyboard,
+  Linking,
+  StyleSheet,
+} from 'react-native';
 import StorageWrapper from '../../../../store/storage-wrapper';
 import { useDispatch, useSelector } from 'react-redux';
 import { MAINNET } from '../../../../constants/network';
@@ -62,6 +69,18 @@ import BatchAccountBalanceSettings from '../../Settings/BatchAccountBalanceSetti
 import useCheckNftAutoDetectionModal from '../../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../../hooks/useCheckMultiRpcModal';
 import { useAccountMenuEnabled } from '../../../../selectors/featureFlagController/accountMenu/useAccountMenuEnabled';
+import {
+  ButtonIcon,
+  ButtonIconSize,
+  IconName,
+} from '@metamask/design-system-react-native';
+import { CommonSelectorsIDs } from '../../../../util/Common.testIds';
+
+const navbarStyles = StyleSheet.create({
+  accessories: {
+    marginHorizontal: 16,
+  },
+});
 
 const Heading: React.FC<HeadingProps> = ({ children, first }) => {
   const { colors } = useTheme();
@@ -136,15 +155,26 @@ const Settings: React.FC = () => {
   const isMainnet = type === MAINNET;
 
   const updateNavBar = useCallback(() => {
-    navigation.setOptions(
-      getNavigationOptionsTitle(
-        strings('app_settings.security_title'),
-        navigation,
-        false,
-        colors,
-        null,
-      ),
+    const navigationOptions = getNavigationOptionsTitle(
+      strings('app_settings.security_title'),
+      navigation,
+      false,
+      colors,
+      null,
     );
+
+    navigation.setOptions({
+      ...navigationOptions,
+      headerLeft: () => (
+        <ButtonIcon
+          size={ButtonIconSize.Md}
+          iconName={IconName.ArrowLeft}
+          onPress={() => navigation.goBack()}
+          style={navbarStyles.accessories}
+          testID={CommonSelectorsIDs.BACK_ARROW_BUTTON}
+        />
+      ),
+    });
   }, [colors, navigation]);
 
   const handleHintText = useCallback(async () => {

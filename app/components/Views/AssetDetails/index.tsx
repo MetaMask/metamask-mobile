@@ -415,7 +415,7 @@ const AssetDetails = (props: InnerProps) => {
         <ButtonIcon
           style={inlineHeaderStyles.leftButton}
           onPress={() => navigation.goBack()}
-          size={ButtonIconSize.Lg}
+          size={ButtonIconSize.Md}
           iconName={IconName.ArrowLeft}
         />
         <View style={inlineHeaderStyles.titleWrapper}>

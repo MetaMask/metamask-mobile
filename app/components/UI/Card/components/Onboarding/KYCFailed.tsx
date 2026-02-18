@@ -106,7 +106,7 @@ const KYCFailed = () => {
         <Box twClassName="px-4 py-2 items-start">
           <ButtonIcon
             iconName={IconName.ArrowLeft}
-            size={ButtonIconSizes.Lg}
+            size={ButtonIconSizes.Md}
             iconColor={importedColors.white}
             onPress={navigateToHome}
             testID="kyc-failed-back-button"
