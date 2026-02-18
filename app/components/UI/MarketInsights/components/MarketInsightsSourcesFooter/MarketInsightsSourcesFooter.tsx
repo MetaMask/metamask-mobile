@@ -99,6 +99,7 @@ const MarketInsightsSourcesBottomSheet: React.FC<
       ref={bottomSheetRef}
       shouldNavigateBack={false}
       onClose={onClose}
+      style={tw.style('max-h-[600px]')}
     >
       <BottomSheetHeader onClose={onClose}>
         <Text variant={TextVariant.HeadingSm} fontWeight={FontWeight.Bold}>
