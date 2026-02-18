@@ -17,6 +17,10 @@ jest.mock('../../../../core/SDKConnect/utils/DevLogger');
 jest.mock('./usePredictTrading');
 jest.mock('./usePredictBalance');
 jest.mock('./usePredictDeposit');
+const mockQueryClient = { invalidateQueries: jest.fn() };
+jest.mock('@tanstack/react-query', () => ({
+  useQueryClient: () => mockQueryClient,
+}));
 jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string, options?: Record<string, unknown>) => {
     const translations: Record<string, string> = {
@@ -51,9 +55,7 @@ const mockUseContext = useContext as jest.MockedFunction<typeof useContext>;
 const mockUsePredictTrading = usePredictTrading as jest.MockedFunction<
   typeof usePredictTrading
 >;
-const mockUsePredictBalance = usePredictBalance as jest.MockedFunction<
-  typeof usePredictBalance
->;
+const mockUsePredictBalance = usePredictBalance as jest.Mock;
 const mockUsePredictDeposit = usePredictDeposit as jest.MockedFunction<
   typeof usePredictDeposit
 >;
@@ -121,14 +123,7 @@ describe('usePredictPlaceOrder', () => {
       prepareWithdraw: jest.fn(),
       deposit: jest.fn(),
     });
-    mockUsePredictBalance.mockReturnValue({
-      balance: 1000,
-      hasNoBalance: false,
-      isLoading: false,
-      isRefreshing: false,
-      error: null,
-      loadBalance: jest.fn(),
-    });
+    mockUsePredictBalance.mockReturnValue({ data: 1000 } as never);
     mockUsePredictDeposit.mockReturnValue({
       deposit: mockDeposit,
       isDepositPending: false,
@@ -500,13 +495,8 @@ describe('usePredictPlaceOrder', () => {
 
     it('triggers deposit with analytics properties when balance is insufficient for BUY order', async () => {
       mockUsePredictBalance.mockReturnValue({
-        balance: INSUFFICIENT_BALANCE,
-        hasNoBalance: false,
-        isLoading: false,
-        isRefreshing: false,
-        error: null,
-        loadBalance: jest.fn(),
-      });
+        data: INSUFFICIENT_BALANCE,
+      } as never);
 
       const { result } = renderHook(() => usePredictPlaceOrder());
 
@@ -527,14 +517,7 @@ describe('usePredictPlaceOrder', () => {
     });
 
     it('triggers deposit with merged analytics properties when orderParams has analyticsProperties', async () => {
-      mockUsePredictBalance.mockReturnValue({
-        balance: INSUFFICIENT_BALANCE,
-        hasNoBalance: false,
-        isLoading: false,
-        isRefreshing: false,
-        error: null,
-        loadBalance: jest.fn(),
-      });
+      mockUsePredictBalance.mockReturnValue({ data: INSUFFICIENT_BALANCE });
 
       const orderParamsWithAnalytics = {
         ...mockOrderParams,
@@ -565,13 +548,8 @@ describe('usePredictPlaceOrder', () => {
     it('does not trigger deposit when balance is sufficient for BUY order', async () => {
       mockPlaceOrder.mockResolvedValue(mockSuccessResult);
       mockUsePredictBalance.mockReturnValue({
-        balance: SUFFICIENT_BALANCE,
-        hasNoBalance: false,
-        isLoading: false,
-        isRefreshing: false,
-        error: null,
-        loadBalance: jest.fn(),
-      });
+        data: SUFFICIENT_BALANCE,
+      } as never);
 
       const { result } = renderHook(() => usePredictPlaceOrder());
 
@@ -585,14 +563,7 @@ describe('usePredictPlaceOrder', () => {
 
     it('does not check balance for SELL orders', async () => {
       mockPlaceOrder.mockResolvedValue(mockSuccessResult);
-      mockUsePredictBalance.mockReturnValue({
-        balance: ZERO_BALANCE,
-        hasNoBalance: true,
-        isLoading: false,
-        isRefreshing: false,
-        error: null,
-        loadBalance: jest.fn(),
-      });
+      mockUsePredictBalance.mockReturnValue({ data: ZERO_BALANCE } as never);
 
       const sellOrderParams = {
         ...mockOrderParams,
@@ -615,13 +586,8 @@ describe('usePredictPlaceOrder', () => {
     it('proceeds with order when balance exactly equals maxAmountSpent', async () => {
       mockPlaceOrder.mockResolvedValue(mockSuccessResult);
       mockUsePredictBalance.mockReturnValue({
-        balance: EXACT_BALANCE_MATCH,
-        hasNoBalance: false,
-        isLoading: false,
-        isRefreshing: false,
-        error: null,
-        loadBalance: jest.fn(),
-      });
+        data: EXACT_BALANCE_MATCH,
+      } as never);
 
       const { result } = renderHook(() => usePredictPlaceOrder());
 
