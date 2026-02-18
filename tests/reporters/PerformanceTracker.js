@@ -1,10 +1,10 @@
-import axios from 'axios';
-import { BrowserStackCredentials } from '../framework/utils/BrowserStackCredentials.js';
+import { BrowserStackAPI } from '../framework/services/providers/browserstack/BrowserStackAPI.ts';
 
 export class PerformanceTracker {
   constructor() {
     this.timers = [];
     this.teamInfo = null;
+    this.api = new BrowserStackAPI();
   }
 
   /**
@@ -52,19 +52,17 @@ export class PerformanceTracker {
         console.log(
           `🎯 === ATTEMPT ${attempt}/${maxRetries} === Time: ${new Date().toISOString()}`,
         );
-        const credentials = BrowserStackCredentials.getCredentials();
-        const response = await axios.get(
-          `https://api-cloud.browserstack.com/app-automate/sessions/${sessionId}.json`,
-          {
-            auth: {
-              username: credentials.username,
-              password: credentials.accessKey,
-            },
-            timeout: 8000, // 8 second timeout per request
-          },
-        );
 
-        const sessionData = response.data.automation_session;
+        const response = await this.api.getSession(sessionId);
+
+        if (!response) {
+          console.error(
+            '🚫 No response from BrowserStack API (missing credentials?)',
+          );
+          return null;
+        }
+
+        const sessionData = response.automation_session;
         const buildId = sessionData.build_hashed_id;
 
         if (buildId) {

@@ -1,10 +1,13 @@
-import axios from 'axios';
-import { BrowserStackCredentials } from '../framework/utils/BrowserStackCredentials.js';
+import { BrowserStackAPI } from '../framework/services/providers/browserstack/BrowserStackAPI.ts';
 
 /**
  * Handler for BrowserStack app profiling data operations
  */
 export class AppProfilingDataHandler {
+  constructor() {
+    this.api = new BrowserStackAPI();
+  }
+
   /**
    * Get session details from BrowserStack API
    * @param {string} sessionId - The session ID
@@ -12,19 +15,13 @@ export class AppProfilingDataHandler {
    */
   async getSessionDetails(sessionId) {
     try {
-      const url = `https://api-cloud.browserstack.com/app-automate/sessions/${sessionId}.json`;
+      const response = await this.api.getSession(sessionId);
 
-      const credentials = BrowserStackCredentials.getCredentials();
+      if (!response) {
+        return null;
+      }
 
-      const response = await axios.get(url, {
-        auth: {
-          username: credentials.username,
-          password: credentials.accessKey,
-        },
-        timeout: 8000,
-      });
-
-      const sessionData = response.data.automation_session;
+      const sessionData = response.automation_session;
 
       const result = {
         buildId: sessionData.build_hashed_id,
@@ -45,31 +42,8 @@ export class AppProfilingDataHandler {
    * @returns {Promise<Object>} App profiling data
    */
   async getAppProfilingData(buildId, sessionId) {
-    const credentials = BrowserStackCredentials.getCredentials();
-    // eslint-disable-next-line no-undef
-    const authHeader = global.Buffer.from(
-      `${credentials.username}:${credentials.accessKey}`,
-    ).toString('base64');
-
-    const url = `https://api-cloud.browserstack.com/app-automate/builds/${buildId}/sessions/${sessionId}/appprofiling/v2`;
-
     try {
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          Authorization: `Basic ${authHeader}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        const errorBody = await response.text();
-        throw new Error(
-          `HTTP error! status: ${response.status}, body: ${errorBody}`,
-        );
-      }
-
-      const data = await response.json();
+      const data = await this.api.getAppProfilingData(buildId, sessionId);
       return data;
     } catch (error) {
       console.error('Error getting app profiling data v2:', error);
@@ -194,42 +168,21 @@ export class AppProfilingDataHandler {
   /**
    * Fetch network logs (HAR) for a session from BrowserStack API.
    * Requires networkLogs: true in session capabilities.
+   * @param {string} buildId - The build hashed ID
    * @param {string} sessionId - The session ID
    * @returns {Promise<{ entries: Array<{ method: string, url: string, status?: number, time?: number }>, error?: string }>}
    */
-  async getNetworkLogs(sessionId) {
+  async getNetworkLogs(buildId, sessionId) {
     try {
-      const sessionDetails = await this.getSessionDetails(sessionId);
-      if (!sessionDetails?.buildId) {
+      const har = await this.api.getNetworkLogs(buildId, sessionId);
+
+      if (!har) {
         return {
           entries: [],
-          error: 'No build ID found in session details',
+          error: 'No network logs available (missing credentials)',
         };
       }
 
-      const credentials = BrowserStackCredentials.getCredentials();
-      const authHeader = global.Buffer.from(
-        `${credentials.username}:${credentials.accessKey}`,
-      ).toString('base64');
-
-      const url = `https://api-cloud.browserstack.com/app-automate/builds/${sessionDetails.buildId}/sessions/${sessionId}/networklogs`;
-
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          Authorization: `Basic ${authHeader}`,
-        },
-      });
-
-      if (!response.ok) {
-        const text = await response.text();
-        return {
-          entries: [],
-          error: `Network logs API error: ${response.status} ${text}`,
-        };
-      }
-
-      const har = await response.json();
       const entries = this.parseHarToEntries(har);
       return { entries };
     } catch (error) {
@@ -261,13 +214,5 @@ export class AppProfilingDataHandler {
       // ignore
     }
     return entries;
-  }
-
-  /**
-   * Check if BrowserStack credentials are available
-   * @returns {boolean} True if credentials are available
-   */
-  hasCredentials() {
-    return BrowserStackCredentials.hasCredentials();
   }
 }

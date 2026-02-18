@@ -28,6 +28,7 @@ export interface BrowserStackSessionDetails {
   status: string;
   reason: string;
   build_name: string;
+  build_hashed_id: string;
   project_name: string;
   logs: string;
   public_url: string;
@@ -47,21 +48,26 @@ export interface BrowserStackSessionDetails {
  * BrowserStack API client for session management
  */
 export class BrowserStackAPI {
-  private username: string;
-  private accessKey: string;
+  private username: string | null;
+  private accessKey: string | null;
 
   constructor() {
-    const username = process.env.BROWSERSTACK_USERNAME;
-    const accessKey = process.env.BROWSERSTACK_ACCESS_KEY;
+    this.username = process.env.BROWSERSTACK_USERNAME || null;
+    this.accessKey = process.env.BROWSERSTACK_ACCESS_KEY || null;
 
-    if (!username || !accessKey) {
-      throw new Error(
-        'BROWSERSTACK_USERNAME and BROWSERSTACK_ACCESS_KEY environment variables are required',
+    if (!this.username || !this.accessKey) {
+      logger.warn(
+        'BROWSERSTACK_USERNAME and/or BROWSERSTACK_ACCESS_KEY environment variables are missing. API calls will return null.',
       );
     }
+  }
 
-    this.username = username;
-    this.accessKey = accessKey;
+  /**
+   * Check if credentials are available. API methods use this internally
+   * and return null when credentials are missing.
+   */
+  private hasCredentials(): boolean {
+    return !!(this.username && this.accessKey);
   }
 
   /**
@@ -82,6 +88,11 @@ export class BrowserStackAPI {
       name?: string;
     },
   ): Promise<unknown> {
+    if (!this.hasCredentials()) {
+      logger.warn('Skipping updateSession: missing BrowserStack credentials');
+      return null;
+    }
+
     logger.debug(`Updating BrowserStack session: ${sessionId}`);
 
     // Build request body with all provided fields
@@ -125,7 +136,14 @@ export class BrowserStackAPI {
   /**
    * Get session details
    */
-  async getSession(sessionId: string): Promise<BrowserStackSessionDetails> {
+  async getSession(
+    sessionId: string,
+  ): Promise<BrowserStackSessionDetails | null> {
+    if (!this.hasCredentials()) {
+      logger.warn('Skipping getSession: missing BrowserStack credentials');
+      return null;
+    }
+
     logger.debug(`Fetching BrowserStack session details: ${sessionId}`);
 
     const response = await fetch(`${API_BASE_URL}/sessions/${sessionId}.json`, {
@@ -142,5 +160,75 @@ export class BrowserStackAPI {
     }
 
     return (await response.json()) as BrowserStackSessionDetails;
+  }
+
+  /**
+   * Get app profiling data v2 for a specific session
+   */
+  async getAppProfilingData(
+    buildId: string,
+    sessionId: string,
+  ): Promise<unknown> {
+    if (!this.hasCredentials()) {
+      logger.warn(
+        'Skipping getAppProfilingData: missing BrowserStack credentials',
+      );
+      return null;
+    }
+
+    logger.debug(
+      `Fetching app profiling data: build=${buildId}, session=${sessionId}`,
+    );
+
+    const response = await fetch(
+      `${API_BASE_URL}/builds/${buildId}/sessions/${sessionId}/appprofiling/v2`,
+      {
+        method: 'GET',
+        headers: {
+          Authorization: this.getAuthHeader(),
+          'Content-Type': 'application/json',
+        },
+      },
+    );
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      throw new Error(
+        `Error fetching app profiling data: ${response.status}, body: ${errorBody}`,
+      );
+    }
+
+    return await response.json();
+  }
+
+  /**
+   * Fetch network logs (HAR) for a session
+   */
+  async getNetworkLogs(buildId: string, sessionId: string): Promise<unknown> {
+    if (!this.hasCredentials()) {
+      logger.warn('Skipping getNetworkLogs: missing BrowserStack credentials');
+      return null;
+    }
+
+    logger.debug(
+      `Fetching network logs: build=${buildId}, session=${sessionId}`,
+    );
+
+    const response = await fetch(
+      `${API_BASE_URL}/builds/${buildId}/sessions/${sessionId}/networklogs`,
+      {
+        method: 'GET',
+        headers: {
+          Authorization: this.getAuthHeader(),
+        },
+      },
+    );
+
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(`Network logs API error: ${response.status} ${text}`);
+    }
+
+    return await response.json();
   }
 }
