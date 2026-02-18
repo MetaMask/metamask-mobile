@@ -178,7 +178,7 @@ describe('CardSDK Context', () => {
     getSupportedTokensAllowances: jest.fn(),
     getPriorityToken: jest.fn(),
     getRegistrationStatus: jest.fn(),
-    logout: jest.fn().mockResolvedValue(undefined),
+    revokeAllOAuth2Tokens: jest.fn().mockResolvedValue(undefined),
     ...overrides,
   });
 
@@ -368,10 +368,20 @@ describe('CardSDK Context', () => {
 
   describe('Logout Functionality', () => {
     it('logs out user successfully', async () => {
-      // Given: SDK available
-      const mockLogout = jest.fn().mockResolvedValue(undefined);
-      setupMockSDK({ logout: mockLogout });
+      // Given: SDK available with token data
+      const mockRevokeAll = jest.fn().mockResolvedValue(undefined);
+      setupMockSDK({ revokeAllOAuth2Tokens: mockRevokeAll });
       setupMockUseSelector(mockCardFeatureFlag);
+      mockGetCardBaanxToken.mockResolvedValue({
+        success: true,
+        tokenData: {
+          accessToken: 'access-token',
+          refreshToken: 'refresh-token',
+          accessTokenExpiresAt: Date.now() + 60000,
+          refreshTokenExpiresAt: Date.now() + 60000,
+          location: 'us' as const,
+        },
+      });
 
       const { result } = renderHook(() => useCardSDK(), {
         wrapper: createWrapper,
@@ -386,8 +396,12 @@ describe('CardSDK Context', () => {
         await result.current.logoutFromProvider();
       });
 
-      // Then: SDK logout should be called and Redux actions dispatched
-      expect(mockLogout).toHaveBeenCalled();
+      expect(mockRevokeAll).toHaveBeenCalledWith(
+        'access-token',
+        'refresh-token',
+        'us',
+      );
+      expect(mockRemoveCardBaanxToken).toHaveBeenCalled();
       expect(mockDispatch).toHaveBeenCalled();
     });
 
@@ -463,7 +477,7 @@ describe('CardSDK Context', () => {
       );
     });
 
-    it('throws error when SDK is unavailable for logout', async () => {
+    it('clears Redux state even when SDK is unavailable', async () => {
       // Given: no SDK available
       setupMockUseSelector(null);
 
@@ -475,20 +489,41 @@ describe('CardSDK Context', () => {
         expect(result.current.sdk).toBeNull();
       });
 
-      // When: attempting logout
-      // Then: should throw error
-      await expect(result.current.logoutFromProvider()).rejects.toThrow(
-        'SDK not available for logout',
+      // When: attempting logout without SDK
+      await act(async () => {
+        await result.current.logoutFromProvider();
+      });
+
+      // Then: Redux state should still be cleared (revocation skipped gracefully)
+      expect(mockRemoveCardBaanxToken).toHaveBeenCalled();
+      expect(mockDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'card/resetAuthenticatedData' }),
+      );
+      expect(mockDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'card/clearAllCache' }),
+      );
+      expect(mockDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'card/resetOnboardingState' }),
       );
     });
 
-    it('clears Redux state even when sdk.logout() fails', async () => {
-      // Given: SDK logout fails
-      const mockLogout = jest
+    it('clears Redux state even when token revocation fails', async () => {
+      // Given: SDK revocation fails
+      const mockRevokeAll = jest
         .fn()
-        .mockRejectedValue(new Error('Server logout failed'));
-      setupMockSDK({ logout: mockLogout });
+        .mockRejectedValue(new Error('Server revocation failed'));
+      setupMockSDK({ revokeAllOAuth2Tokens: mockRevokeAll });
       setupMockUseSelector(mockCardFeatureFlag);
+      mockGetCardBaanxToken.mockResolvedValue({
+        success: true,
+        tokenData: {
+          accessToken: 'access-token',
+          refreshToken: 'refresh-token',
+          accessTokenExpiresAt: Date.now() + 60000,
+          refreshTokenExpiresAt: Date.now() + 60000,
+          location: 'us' as const,
+        },
+      });
 
       const { result } = renderHook(() => useCardSDK(), {
         wrapper: createWrapper,
@@ -504,7 +539,8 @@ describe('CardSDK Context', () => {
       });
 
       // Then: Redux state should still be cleared
-      expect(mockLogout).toHaveBeenCalled();
+      expect(mockRevokeAll).toHaveBeenCalled();
+      expect(mockRemoveCardBaanxToken).toHaveBeenCalled();
       expect(mockDispatch).toHaveBeenCalledWith(
         expect.objectContaining({ type: 'card/resetAuthenticatedData' }),
       );
@@ -516,13 +552,23 @@ describe('CardSDK Context', () => {
       );
     });
 
-    it('clears user state even when sdk.logout() fails', async () => {
-      // Given: SDK logout fails and user is set
-      const mockLogout = jest
+    it('clears user state even when token revocation fails', async () => {
+      // Given: SDK revocation fails and user is set
+      const mockRevokeAll = jest
         .fn()
         .mockRejectedValue(new Error('Network error'));
-      setupMockSDK({ logout: mockLogout });
+      setupMockSDK({ revokeAllOAuth2Tokens: mockRevokeAll });
       setupMockUseSelector(mockCardFeatureFlag);
+      mockGetCardBaanxToken.mockResolvedValue({
+        success: true,
+        tokenData: {
+          accessToken: 'access-token',
+          refreshToken: 'refresh-token',
+          accessTokenExpiresAt: Date.now() + 60000,
+          refreshTokenExpiresAt: Date.now() + 60000,
+          location: 'us' as const,
+        },
+      });
 
       const mockUser: UserResponse = {
         id: 'test-user-id',

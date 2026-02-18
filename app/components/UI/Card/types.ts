@@ -530,3 +530,36 @@ export interface GetOrderStatusResponse {
   status: OrderStatus;
   metadata?: OrderStatusMetadata;
 }
+
+/**
+ * Error types specific to OAuth2 flow
+ */
+export enum BaanxOAuth2ErrorType {
+  NETWORK_ERROR = 'NETWORK_ERROR',
+  INVALID_STATE = 'INVALID_STATE',
+  TOKEN_EXCHANGE_FAILED = 'TOKEN_EXCHANGE_FAILED',
+  UNKNOWN_ERROR = 'UNKNOWN_ERROR',
+  ACCESS_DENIED = 'ACCESS_DENIED',
+  TEMPORARILY_UNAVAILABLE = 'TEMPORARILY_UNAVAILABLE',
+  LOGIN_REQUIRED = 'LOGIN_REQUIRED',
+  SESSION_EXPIRED = 'SESSION_EXPIRED',
+}
+
+/**
+ * Custom error class for OAuth2 errors
+ */
+export class BaanxOAuth2Error extends Error {
+  public type: BaanxOAuth2ErrorType;
+  public originalError?: Error;
+
+  constructor(
+    type: BaanxOAuth2ErrorType,
+    message: string,
+    originalError?: Error,
+  ) {
+    super(message);
+    this.name = 'BaanxOAuth2Error';
+    this.type = type;
+    this.originalError = originalError;
+  }
+}

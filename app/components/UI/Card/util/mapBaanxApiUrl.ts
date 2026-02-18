@@ -1,5 +1,7 @@
 import AppConstants from '../../../../core/AppConstants';
 
+export const DEFAULT_REFRESH_TOKEN_EXPIRES_IN_SECONDS = 14 * 24 * 60 * 60;
+
 export const getDefaultBaanxApiBaseUrlForMetaMaskEnv = (
   metaMaskEnv: string | undefined,
 ) => {
@@ -19,3 +21,7 @@ export const getDefaultBaanxApiBaseUrlForMetaMaskEnv = (
       return AppConstants.BAANX_API_URL.PRD;
   }
 };
+
+export const getBaanxApiBaseUrl = (): string =>
+  process.env.BAANX_API_URL ||
+  getDefaultBaanxApiBaseUrlForMetaMaskEnv(process.env.METAMASK_ENVIRONMENT);

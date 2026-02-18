@@ -84,6 +84,7 @@ const SUPPORTED_ACTIONS = {
   CARD_ONBOARDING: ACTIONS.CARD_ONBOARDING,
   CARD_HOME: ACTIONS.CARD_HOME,
   CARD_KYC_NOTIFICATION: ACTIONS.CARD_KYC_NOTIFICATION,
+  CARD_OAUTH: ACTIONS.CARD_OAUTH,
   TRENDING: ACTIONS.TRENDING,
   SHIELD: ACTIONS.SHIELD,
   EARN_MUSD: ACTIONS.EARN_MUSD,
@@ -107,6 +108,7 @@ const WHITELISTED_ACTIONS: SUPPORTED_ACTIONS[] = [
   SUPPORTED_ACTIONS.CARD_ONBOARDING,
   SUPPORTED_ACTIONS.CARD_HOME,
   SUPPORTED_ACTIONS.CARD_KYC_NOTIFICATION,
+  SUPPORTED_ACTIONS.CARD_OAUTH,
   SUPPORTED_ACTIONS.PERPS,
   SUPPORTED_ACTIONS.PERPS_MARKETS,
   SUPPORTED_ACTIONS.PERPS_ASSET,
@@ -609,6 +611,12 @@ async function handleUniversalLink({
     }
     case SUPPORTED_ACTIONS.CARD_KYC_NOTIFICATION: {
       handleCardKycNotification();
+      break;
+    }
+    case SUPPORTED_ACTIONS.CARD_OAUTH: {
+      // No-op: This redirect is handled by expo-auth-session's Linking listener
+      // during the OAuth2 authorization flow. We register it here to prevent
+      // the DeeplinkManager from showing the interstitial or treating it as unknown.
       break;
     }
     case SUPPORTED_ACTIONS.TRENDING: {

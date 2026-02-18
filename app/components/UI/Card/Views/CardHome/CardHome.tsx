@@ -28,7 +28,7 @@ import {
   RouteProp,
   useFocusEffect,
 } from '@react-navigation/native';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import SensitiveText, {
   SensitiveTextLength,
 } from '../../../../../component-library/components/Texts/SensitiveText';
@@ -68,16 +68,13 @@ import {
 } from '../../constants';
 import { useCardSDK } from '../../sdk';
 import Routes from '../../../../../constants/navigation/Routes';
-import {
-  clearAllCache,
-  resetAuthenticatedData,
-  selectUserCardLocation,
-} from '../../../../../core/redux/slices/card';
+import { selectUserCardLocation } from '../../../../../core/redux/slices/card';
 import { selectMetalCardCheckoutFeatureFlag } from '../../../../../selectors/featureFlagController/card';
 import CardMessageBox from '../../components/CardMessageBox/CardMessageBox';
 import { useIsSwapEnabledForPriorityToken } from '../../hooks/useIsSwapEnabledForPriorityToken';
+import Logger from '../../../../../util/Logger';
 import { isAuthenticationError } from '../../util/isAuthenticationError';
-import { removeCardBaanxToken } from '../../util/cardTokenVault';
+import { tokenManager } from '../../util/tokenManager';
 import useLoadCardData from '../../hooks/useLoadCardData';
 import useCardDetailsToken from '../../hooks/useCardDetailsToken';
 import useAuthentication from '../../../../../core/Authentication/hooks/useAuthentication';
@@ -161,7 +158,6 @@ const CardHome = () => {
     useRoute<RouteProp<{ params: CardHomeRouteParams }, 'params'>>();
   const { trackEvent, createEventBuilder } = useMetrics();
   const navigation = useNavigation();
-  const dispatch = useDispatch();
   const theme = useTheme();
   const tw = useTailwind();
 
@@ -821,56 +817,46 @@ const CardHome = () => {
   );
 
   useEffect(() => {
-    const handleAuthenticationError = async () => {
-      const isAuthError =
-        Boolean(cardError) &&
-        isAuthenticated &&
-        isAuthenticationError(cardError);
+    const isAuthError =
+      Boolean(cardError) && isAuthenticated && isAuthenticationError(cardError);
 
-      if (!isAuthError) {
-        hasHandledAuthErrorRef.current = false;
-        return;
-      }
+    if (!isAuthError) {
+      hasHandledAuthErrorRef.current = false;
+      return;
+    }
 
-      if (hasHandledAuthErrorRef.current) {
-        return;
-      }
+    if (hasHandledAuthErrorRef.current) {
+      return;
+    }
 
-      hasHandledAuthErrorRef.current = true;
-      setIsHandlingAuthError(true);
+    hasHandledAuthErrorRef.current = true;
+    setIsHandlingAuthError(true);
 
+    const handleAuthError = async () => {
       try {
-        await removeCardBaanxToken();
-
-        if (isComponentUnmountedRef.current) {
-          return;
-        }
-
-        dispatch(resetAuthenticatedData());
-        dispatch(clearAllCache());
-
-        toastRef?.current?.showToast({
-          variant: ToastVariants.Icon,
-          labelOptions: [
-            { label: strings('card.card_home.authentication_error') },
-          ],
-          hasNoTimeout: false,
-          iconName: IconName.Warning,
-        });
-        navigation.dispatch(StackActions.replace(Routes.CARD.AUTHENTICATION));
+        await logoutFromProvider();
       } catch (error) {
-        if (!isComponentUnmountedRef.current) {
-          navigation.dispatch(StackActions.replace(Routes.CARD.AUTHENTICATION));
-        }
+        Logger.error(error as Error, {
+          message: '[CardHome] Failed to logout after auth error',
+        });
       } finally {
         if (!isComponentUnmountedRef.current) {
           setIsHandlingAuthError(false);
+          toastRef?.current?.showToast({
+            variant: ToastVariants.Icon,
+            labelOptions: [
+              { label: strings('card.card_home.authentication_error') },
+            ],
+            hasNoTimeout: false,
+            iconName: IconName.Warning,
+          });
+          navigation.dispatch(StackActions.replace(Routes.CARD.AUTHENTICATION));
         }
       }
     };
 
-    handleAuthenticationError();
-  }, [cardError, dispatch, isAuthenticated, navigation, toastRef]);
+    handleAuthError();
+  }, [cardError, isAuthenticated, logoutFromProvider, navigation, toastRef]);
 
   useEffect(() => {
     if (isSDKLoading) {
@@ -893,6 +879,8 @@ const CardHome = () => {
       if (isSDKLoading || !isAuthenticated) {
         return;
       }
+
+      tokenManager.getValidAccessToken().catch(() => undefined);
 
       if (!externalWalletDetailsData && !isLoading) {
         fetchAllData();

@@ -29,17 +29,12 @@ import {
   LinkUserToConsentResponse,
   UserResponse,
   StartUserVerificationRequest,
-  CardAuthorizeResponse,
   CardDetailsResponse,
   CardError,
   CardErrorType,
-  CardExchangeTokenRawResponse,
-  CardExchangeTokenResponse,
   CardExternalWalletDetail,
   CardExternalWalletDetailsResponse,
   CardLocation,
-  CardLoginInitiateResponse,
-  CardLoginResponse,
   CardToken,
   CardWalletExternalPriorityResponse,
   CardWalletExternalResponse,
@@ -53,11 +48,11 @@ import {
   CreateOrderResponse,
   GetOrderStatusResponse,
 } from '../types';
-import { getDefaultBaanxApiBaseUrlForMetaMaskEnv } from '../util/mapBaanxApiUrl';
 import {
-  getCardBaanxToken,
-  removeCardBaanxToken,
-} from '../util/cardTokenVault';
+  DEFAULT_REFRESH_TOKEN_EXPIRES_IN_SECONDS,
+  getBaanxApiBaseUrl,
+} from '../util/mapBaanxApiUrl';
+import { tokenManager } from '../util/tokenManager';
 import { CaipChainId } from '@metamask/utils';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { isZeroValue } from '../../../../util/number';
@@ -87,7 +82,7 @@ export class CardSDK {
   }) {
     this.cardFeatureFlag = cardFeatureFlag;
     this.enableLogs = enableLogs;
-    this.cardBaanxApiBaseUrl = this.getBaanxApiBaseUrl();
+    this.cardBaanxApiBaseUrl = getBaanxApiBaseUrl();
     this.cardBaanxApiKey = process.env.MM_CARD_BAANX_API_CLIENT_KEY;
     this.userCardLocation = userCardLocation ?? 'international';
   }
@@ -582,15 +577,6 @@ export class CardSDK {
     );
   };
 
-  private getBaanxApiBaseUrl() {
-    // always using url from env var if set
-    if (process.env.BAANX_API_URL) return process.env.BAANX_API_URL;
-    // otherwise using default per-env url
-    return getDefaultBaanxApiBaseUrlForMetaMaskEnv(
-      process.env.METAMASK_ENVIRONMENT,
-    );
-  }
-
   private async makeRequest(
     endpoint: string,
     {
@@ -615,389 +601,119 @@ export class CardSDK {
     }
 
     const isUSEnv = location === 'us';
-    const headers: HeadersInit = {
-      'Content-Type': 'application/json',
-      'x-us-env': String(isUSEnv),
-      'x-client-key': apiKey,
-    };
 
-    // Add bearer token for authenticated requests
-    try {
+    const buildHeaders = async (): Promise<HeadersInit> => {
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+        'x-us-env': String(isUSEnv),
+        'x-client-key': apiKey,
+      };
+
       if (authenticated) {
-        const tokenResult = await getCardBaanxToken();
-        if (tokenResult.success && tokenResult.tokenData?.accessToken) {
-          headers.Authorization = `Bearer ${tokenResult.tokenData.accessToken}`;
+        try {
+          const accessToken = await tokenManager.getValidAccessToken();
+          if (accessToken) {
+            headers.Authorization = `Bearer ${accessToken}`;
+          }
+        } catch (error) {
+          Logger.error(error as Error, {
+            tags: { feature: 'card', operation: 'makeRequest' },
+            context: {
+              name: 'card_auth',
+              data: { action: 'retrieveBearerToken' },
+            },
+          });
         }
       }
-    } catch (error) {
-      // Continue without bearer token if retrieval fails
-      Logger.error(error as Error, {
-        tags: { feature: 'card', operation: 'makeRequest' },
-        context: {
-          name: 'card_auth',
-          data: { action: 'retrieveBearerToken' },
-        },
-      });
-    }
+
+      return headers;
+    };
 
     const url = `${this.cardBaanxApiBaseUrl}${endpoint}${
       fetchOptions.query ? `?${fetchOptions.query}` : ''
     }`;
 
-    // Create AbortController for timeout handling
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => {
-      controller.abort();
-    }, timeoutMs);
+    const performFetch = async (headers: HeadersInit): Promise<Response> => {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => {
+        controller.abort();
+      }, timeoutMs);
 
-    try {
-      const response = await fetch(url, {
-        credentials: 'omit',
-        ...fetchOptions,
-        headers: {
-          ...headers,
-          ...fetchOptions.headers,
-        },
-        signal: controller.signal,
-      });
-
-      clearTimeout(timeoutId);
-      return response;
-    } catch (error) {
-      clearTimeout(timeoutId);
-
-      // Check if the error is due to timeout
-      if (error instanceof Error && error.name === 'AbortError') {
-        throw new CardError(
-          CardErrorType.TIMEOUT_ERROR,
-          'Request timed out. Please check your connection.',
-          error,
-        );
-      }
-
-      // Network or other fetch errors
-      if (error instanceof Error) {
-        throw new CardError(
-          CardErrorType.NETWORK_ERROR,
-          'Network error. Please check your connection.',
-          error,
-        );
-      }
-
-      throw new CardError(
-        CardErrorType.UNKNOWN_ERROR,
-        'An unexpected error occurred.',
-        error instanceof Error ? error : undefined,
-      );
-    }
-  }
-
-  initiateCardProviderAuthentication = async (queryParams: {
-    state: string;
-    codeChallenge: string;
-    location: CardLocation;
-  }): Promise<CardLoginInitiateResponse> => {
-    if (!this.cardBaanxApiKey) {
-      throw new CardError(
-        CardErrorType.API_KEY_MISSING,
-        'Card API key is not configured',
-      );
-    }
-
-    const { state, codeChallenge } = queryParams;
-    const queryParamsString = new URLSearchParams();
-    queryParamsString.set('client_id', this.cardBaanxApiKey);
-    // Redirect URI is required but not used by this flow
-    queryParamsString.set('redirect_uri', 'https://example.com');
-    queryParamsString.set('state', state);
-    queryParamsString.set('code_challenge', codeChallenge);
-    queryParamsString.set('code_challenge_method', 'S256');
-    queryParamsString.set('mode', 'api');
-    queryParamsString.set('client_secret', this.cardBaanxApiKey);
-    queryParamsString.set('response_type', 'code');
-
-    const response = await this.makeRequest(
-      '/v1/auth/oauth/authorize/initiate',
-      {
-        fetchOptions: {
-          method: 'GET',
-          query: queryParamsString.toString(),
-        },
-        authenticated: false,
-        location: queryParams.location,
-      },
-    );
-
-    return this.handleApiResponse<CardLoginInitiateResponse>(
-      response,
-      'initiateAuth',
-      'oauth/authorize/initiate',
-      'Failed to initiate authentication',
-    );
-  };
-
-  login = async (body: {
-    email: string;
-    password: string;
-    location: CardLocation;
-    otpCode?: string;
-  }): Promise<CardLoginResponse> => {
-    const { email, password, otpCode, location } = body;
-
-    const response = await this.makeRequest('/v1/auth/login', {
-      fetchOptions: {
-        method: 'POST',
-        body: JSON.stringify({
-          email,
-          password,
-          ...(otpCode ? { otpCode } : {}),
-        }),
-      },
-      authenticated: false,
-      location,
-    });
-
-    if (!response.ok) {
-      let responseBody = null;
       try {
-        responseBody = await response.json();
-      } catch {
-        // If we can't parse response, continue without it
-      }
+        const response = await fetch(url, {
+          credentials: 'omit',
+          ...fetchOptions,
+          headers: {
+            ...headers,
+            ...fetchOptions.headers,
+          },
+          signal: controller.signal,
+        });
 
-      if (responseBody?.message?.includes('Your account has been disabled')) {
+        clearTimeout(timeoutId);
+        return response;
+      } catch (error) {
+        clearTimeout(timeoutId);
+
+        if (error instanceof Error && error.name === 'AbortError') {
+          throw new CardError(
+            CardErrorType.TIMEOUT_ERROR,
+            'Request timed out. Please check your connection.',
+            error,
+          );
+        }
+
+        if (error instanceof Error) {
+          throw new CardError(
+            CardErrorType.NETWORK_ERROR,
+            'Network error. Please check your connection.',
+            error,
+          );
+        }
+
         throw new CardError(
-          CardErrorType.ACCOUNT_DISABLED,
-          responseBody?.message,
+          CardErrorType.UNKNOWN_ERROR,
+          'An unexpected error occurred.',
+          error instanceof Error ? error : undefined,
         );
       }
+    };
 
-      if (response.status === 400 && !!otpCode) {
-        throw new CardError(CardErrorType.INVALID_OTP_CODE, 'Invalid OTP code');
-      }
+    const headers = await buildHeaders();
+    const response = await performFetch(headers);
 
-      // Handle specific HTTP status codes
-      if (
-        response.status === 401 ||
-        response.status === 403 ||
-        response.status === 404
-      ) {
-        const error = new CardError(
-          CardErrorType.INVALID_CREDENTIALS,
-          'Invalid login details',
-        );
-        Logger.error(error, {
-          tags: {
-            feature: 'card',
-            operation: 'login',
-            errorType: 'invalid_credentials',
-          },
+    // On 401, attempt a single retry with a force-refreshed token
+    if (authenticated && response.status === 401) {
+      try {
+        const newToken = await tokenManager.getValidAccessToken(true);
+        if (newToken) {
+          const retryHeaders = {
+            ...headers,
+            Authorization: `Bearer ${newToken}`,
+          };
+          return performFetch(retryHeaders);
+        }
+      } catch (error) {
+        Logger.error(error as Error, {
+          tags: { feature: 'card', operation: 'makeRequest' },
           context: {
             name: 'card_auth',
-            data: { endpoint: 'auth/login', httpStatus: response.status },
+            data: { action: 'retryAfter401' },
           },
         });
-        throw error;
       }
-
-      if (response.status >= 500) {
-        const error = new CardError(
-          CardErrorType.SERVER_ERROR,
-          'Server error. Please try again later.',
-        );
-        Logger.error(error, {
-          tags: {
-            feature: 'card',
-            operation: 'login',
-            errorType: 'server_error',
-          },
-          context: {
-            name: 'card_auth',
-            data: { endpoint: 'auth/login', httpStatus: response.status },
-          },
-        });
-        throw error;
-      }
-
-      const error = new CardError(
-        CardErrorType.UNKNOWN_ERROR,
-        'Login failed. Please try again.',
-      );
-      Logger.error(error, {
-        tags: {
-          feature: 'card',
-          operation: 'login',
-          errorType: 'unknown_error',
-        },
-        context: {
-          name: 'card_auth',
-          data: { endpoint: 'auth/login', httpStatus: response.status },
-        },
-      });
-      throw error;
-    }
-
-    const data = await response.json();
-    return data as CardLoginResponse;
-  };
-
-  /**
-   * Logs out the user from the Card provider.
-   *
-   * This method always clears the local token, regardless of whether the server
-   * logout succeeds. This ensures users can always log out even if the server
-   * is unreachable or the token is already invalidated server-side.
-   *
-   * @throws {CardError} If the server logout fails (after local cleanup is done)
-   */
-  logout = async (): Promise<void> => {
-    let serverError: Error | null = null;
-
-    try {
-      const response = await this.makeRequest('/v1/auth/logout', {
-        fetchOptions: { method: 'POST' },
-        authenticated: true,
-      });
-
-      if (!response.ok) {
-        serverError = this.logAndCreateError(
-          CardErrorType.SERVER_ERROR,
-          'Failed to logout from server.',
-          'logout',
-          'auth/logout',
-          response.status,
-        );
-      }
-    } catch (error) {
-      Logger.error(error as Error, {
-        message:
-          '[CardSDK] Server logout failed, proceeding with local cleanup',
-      });
-      serverError = error as Error;
-    }
-
-    await removeCardBaanxToken();
-
-    if (serverError) {
-      throw serverError;
-    }
-  };
-
-  sendOtpLogin = async (body: {
-    userId: string;
-    location: CardLocation;
-  }): Promise<void> => {
-    const { userId } = body;
-    const response = await this.makeRequest('/v1/auth/login/otp', {
-      fetchOptions: {
-        method: 'POST',
-        body: JSON.stringify({ userId }),
-      },
-      authenticated: false,
-      location: body.location,
-    });
-
-    if (!response.ok) {
-      throw this.logAndCreateError(
-        CardErrorType.SERVER_ERROR,
-        'Failed to send OTP login. Please try again.',
-        'sendOtpLogin',
-        'auth/login/otp',
-        response.status,
-      );
-    }
-  };
-
-  authorize = async (body: {
-    initiateAccessToken: string;
-    loginAccessToken: string;
-    location: CardLocation;
-  }): Promise<CardAuthorizeResponse> => {
-    const { initiateAccessToken, loginAccessToken, location } = body;
-    const response = await this.makeRequest('/v1/auth/oauth/authorize', {
-      fetchOptions: {
-        method: 'POST',
-        body: JSON.stringify({
-          token: initiateAccessToken,
-        }),
-        headers: {
-          Authorization: `Bearer ${loginAccessToken}`,
-        },
-      },
-      authenticated: false,
-      location,
-    });
-
-    return this.handleApiResponse<CardAuthorizeResponse>(
-      response,
-      'authorize',
-      'oauth/authorize',
-      'Authorization failed',
-    );
-  };
-
-  exchangeToken = async (body: {
-    code?: string;
-    codeVerifier?: string;
-    grantType: 'authorization_code' | 'refresh_token';
-    location: CardLocation;
-  }): Promise<CardExchangeTokenResponse> => {
-    let requestBody = null;
-
-    if (body.grantType === 'authorization_code') {
-      requestBody = {
-        code: body.code,
-        code_verifier: body.codeVerifier,
-        grant_type: body.grantType,
-        // This is a required field for the authorization code grant type
-        // but it is not used by the Card API
-        redirect_uri: 'https://example.com',
-      };
-    } else {
-      requestBody = {
-        grant_type: body.grantType,
-        refresh_token: body.code,
-      };
-    }
-
-    const response = await this.makeRequest('/v1/auth/oauth/token', {
-      fetchOptions: {
-        method: 'POST',
-        body: JSON.stringify(requestBody),
-        headers: {
-          'x-secret-key': this.cardBaanxApiKey || '',
-        },
-      },
-      authenticated: false,
-      location: body.location,
-    });
-
-    if (!response.ok) {
-      const errorType =
-        response.status === 401 || response.status === 403
-          ? CardErrorType.INVALID_CREDENTIALS
-          : CardErrorType.SERVER_ERROR;
 
       throw this.logAndCreateError(
-        errorType,
-        'Token exchange failed. Please try again.',
-        'exchangeToken',
-        'oauth/token',
-        response.status,
-        { grantType: body.grantType },
+        CardErrorType.INVALID_CREDENTIALS,
+        'Authentication failed. Please log in again.',
+        'makeRequest',
+        endpoint,
+        401,
       );
     }
 
-    const data = (await response.json()) as CardExchangeTokenRawResponse;
-
-    return {
-      accessToken: data.access_token,
-      tokenType: data.token_type,
-      expiresIn: data.expires_in,
-      refreshToken: data.refresh_token,
-      refreshTokenExpiresIn: data.refresh_token_expires_in,
-    } as CardExchangeTokenResponse;
-  };
+    return response;
+  }
 
   getUserDetails = async (): Promise<UserResponse> => {
     const response = await this.makeRequest('/v1/user', {
@@ -2443,5 +2159,193 @@ export class CardSDK {
       activationData: data.activationData,
       ephemeralPublicKey: data.ephemeralPublicKey,
     };
+  };
+
+  private static readonly OAUTH2_TIMEOUT_MS = 30_000;
+
+  exchangeOAuth2Code = async (params: {
+    code: string;
+    codeVerifier: string;
+    redirectUri: string;
+    location?: CardLocation;
+  }): Promise<{
+    accessToken: string;
+    refreshToken?: string;
+    expiresIn?: number;
+  }> => {
+    const { code, codeVerifier, redirectUri, location } = params;
+
+    const formBody = new URLSearchParams({
+      grant_type: 'authorization_code',
+      code,
+      code_verifier: codeVerifier,
+      redirect_uri: redirectUri,
+      client_id: this.cardBaanxApiKey ?? '',
+    });
+
+    const response = await this.makeRequest('/v1/auth/oauth2/token', {
+      fetchOptions: {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: formBody.toString(),
+      },
+      authenticated: false,
+      ...(location && { location }),
+      timeoutMs: CardSDK.OAUTH2_TIMEOUT_MS,
+    });
+
+    if (!response.ok) {
+      const body = await response.text().catch(() => '');
+      throw this.logAndCreateError(
+        CardErrorType.SERVER_ERROR,
+        `Token exchange failed (${response.status}): ${body}`,
+        'exchangeOAuth2Code',
+        'auth/oauth2/token',
+        response.status,
+      );
+    }
+
+    const data = await response.json();
+    return {
+      accessToken: data.access_token,
+      refreshToken: data.refresh_token,
+      expiresIn: data.expires_in,
+    };
+  };
+
+  refreshOAuth2Token = async (
+    refreshToken: string,
+    location?: CardLocation,
+  ): Promise<{
+    accessToken: string;
+    expiresIn: number;
+    refreshToken: string;
+    refreshTokenExpiresIn: number;
+    location: CardLocation;
+  }> => {
+    const resolvedLocation = location ?? this.userCardLocation;
+
+    const response = await this.makeRequest('/v1/auth/oauth2/token', {
+      fetchOptions: {
+        method: 'POST',
+        body: JSON.stringify({
+          grant_type: 'refresh_token',
+          refresh_token: refreshToken,
+        }),
+      },
+      authenticated: false,
+      location: resolvedLocation,
+      timeoutMs: CardSDK.OAUTH2_TIMEOUT_MS,
+    });
+
+    if (!response.ok) {
+      let responseBody: string | null = null;
+      try {
+        responseBody = await response.text();
+      } catch {
+        // noop
+      }
+
+      if (response.status === 401 || response.status === 403) {
+        throw this.logAndCreateError(
+          CardErrorType.INVALID_CREDENTIALS,
+          'Token refresh failed. Please try logging in again.',
+          'refreshOAuth2Token',
+          'auth/oauth2/token',
+          response.status,
+          { responseBody },
+        );
+      }
+
+      throw this.logAndCreateError(
+        CardErrorType.SERVER_ERROR,
+        `Token refresh failed with status ${response.status}`,
+        'refreshOAuth2Token',
+        'auth/oauth2/token',
+        response.status,
+        { responseBody },
+      );
+    }
+
+    const data = await response.json();
+
+    const refreshTokenExpiresIn =
+      data.refresh_token_expires_in ?? DEFAULT_REFRESH_TOKEN_EXPIRES_IN_SECONDS;
+
+    return {
+      accessToken: data.access_token,
+      expiresIn: data.expires_in,
+      refreshToken: data.refresh_token,
+      refreshTokenExpiresIn,
+      location: resolvedLocation,
+    };
+  };
+
+  revokeOAuth2Token = async (options: {
+    token: string;
+    tokenHint: 'access_token' | 'refresh_token';
+    location?: CardLocation;
+  }): Promise<boolean> => {
+    const { token, tokenHint, location } = options;
+
+    try {
+      const response = await this.makeRequest('/v1/auth/oauth2/revoke', {
+        fetchOptions: {
+          method: 'POST',
+          body: JSON.stringify({ token, token_hint: tokenHint }),
+        },
+        authenticated: false,
+        ...(location && { location }),
+        timeoutMs: CardSDK.OAUTH2_TIMEOUT_MS,
+      });
+
+      if (!response.ok) {
+        Logger.log(
+          `[CardSDK.revokeOAuth2Token] Revocation failed for ${tokenHint} with status ${response.status}`,
+        );
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      Logger.error(error as Error, {
+        tags: { feature: 'card', operation: 'revokeOAuth2Token' },
+        context: {
+          name: 'card_oauth2_revoke',
+          data: { tokenHint },
+        },
+      });
+      return false;
+    }
+  };
+
+  revokeAllOAuth2Tokens = async (
+    accessToken: string,
+    refreshToken: string | undefined,
+    location?: CardLocation,
+  ): Promise<void> => {
+    const revocations: Promise<boolean>[] = [];
+
+    revocations.push(
+      this.revokeOAuth2Token({
+        token: accessToken,
+        tokenHint: 'access_token',
+        location,
+      }),
+    );
+
+    if (refreshToken) {
+      revocations.push(
+        this.revokeOAuth2Token({
+          token: refreshToken,
+          tokenHint: 'refresh_token',
+          location,
+        }),
+      );
+    }
+
+    await Promise.allSettled(revocations);
   };
 }

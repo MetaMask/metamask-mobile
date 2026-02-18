@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import {
   createStackNavigator,
   StackNavigationOptions,
@@ -8,7 +8,7 @@ import CardHome from '../Views/CardHome/CardHome';
 import CardWelcome from '../Views/CardWelcome/CardWelcome';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { StyleSheet, View } from 'react-native';
-import CardAuthentication from '../Views/CardAuthentication/CardAuthentication';
+import CardOAuth2Authentication from '../Views/CardAuthentication/CardOAuth2Authentication';
 import SpendingLimit from '../Views/SpendingLimit/SpendingLimit';
 import ChooseYourCard from '../Views/ChooseYourCard/ChooseYourCard';
 import ReviewOrder from '../Views/ReviewOrder/ReviewOrder';
@@ -33,6 +33,7 @@ import {
   ButtonIconSize,
   IconName,
 } from '@metamask/design-system-react-native';
+import LockManagerService from '../../../../core/LockManagerService';
 
 const Stack = createStackNavigator();
 const ModalsStack = createStackNavigator();
@@ -140,6 +141,13 @@ const MainRoutes = () => {
   const isAuthenticated = useSelector(selectIsAuthenticatedCard);
   const isCardholder = useSelector(selectIsCardholder);
 
+  useEffect(() => {
+    LockManagerService.stopListening();
+    return () => {
+      LockManagerService.startListening();
+    };
+  }, []);
+
   const initialRouteName = useMemo(
     () =>
       isAuthenticated || isCardholder ? Routes.CARD.HOME : Routes.CARD.WELCOME,
@@ -175,7 +183,7 @@ const MainRoutes = () => {
       />
       <Stack.Screen
         name={Routes.CARD.AUTHENTICATION}
-        component={CardAuthentication}
+        component={CardOAuth2Authentication}
         options={cardDefaultNavigationOptions}
       />
       <Stack.Screen

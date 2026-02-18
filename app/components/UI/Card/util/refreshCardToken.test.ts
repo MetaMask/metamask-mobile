@@ -1,15 +1,16 @@
 import Logger from '../../../../util/Logger';
 import { CardError, CardErrorType } from '../types';
 import { refreshCardToken } from './refreshCardToken';
-import { getDefaultBaanxApiBaseUrlForMetaMaskEnv } from './mapBaanxApiUrl';
+import { getBaanxApiBaseUrl } from './mapBaanxApiUrl';
 
 jest.mock('../../../../util/Logger');
-jest.mock('./mapBaanxApiUrl');
+jest.mock('./mapBaanxApiUrl', () => ({
+  ...jest.requireActual('./mapBaanxApiUrl'),
+  getBaanxApiBaseUrl: jest.fn(),
+}));
 
 const mockLogger = jest.mocked(Logger);
-const mockGetDefaultBaanxApiBaseUrlForMetaMaskEnv = jest.mocked(
-  getDefaultBaanxApiBaseUrlForMetaMaskEnv,
-);
+const mockGetBaanxApiBaseUrl = jest.mocked(getBaanxApiBaseUrl);
 
 // Mock global fetch
 global.fetch = jest.fn();
@@ -23,7 +24,7 @@ describe('refreshCardToken', () => {
     jest.clearAllMocks();
     jest.useFakeTimers();
     process.env.MM_CARD_BAANX_API_CLIENT_KEY = mockApiKey;
-    mockGetDefaultBaanxApiBaseUrlForMetaMaskEnv.mockReturnValue(mockBaseUrl);
+    mockGetBaanxApiBaseUrl.mockReturnValue(mockBaseUrl);
   });
 
   afterEach(() => {
@@ -50,7 +51,7 @@ describe('refreshCardToken', () => {
       const result = await promise;
 
       expect(global.fetch).toHaveBeenCalledWith(
-        `${mockBaseUrl}/v1/auth/oauth/token`,
+        `${mockBaseUrl}/v1/auth/oauth2/token`,
         {
           method: 'POST',
           credentials: 'omit',
@@ -58,7 +59,6 @@ describe('refreshCardToken', () => {
             'Content-Type': 'application/json',
             'x-us-env': 'true',
             'x-client-key': mockApiKey,
-            'x-secret-key': mockApiKey,
           },
           body: JSON.stringify({
             grant_type: 'refresh_token',
@@ -95,7 +95,7 @@ describe('refreshCardToken', () => {
       const result = await promise;
 
       expect(global.fetch).toHaveBeenCalledWith(
-        `${mockBaseUrl}/v1/auth/oauth/token`,
+        `${mockBaseUrl}/v1/auth/oauth2/token`,
         expect.objectContaining({
           headers: expect.objectContaining({
             'x-us-env': 'false',
@@ -114,9 +114,7 @@ describe('refreshCardToken', () => {
 
     it('uses correct environment-specific base URL', async () => {
       const customBaseUrl = 'https://foxdev2-ag.foxcard.io';
-      mockGetDefaultBaanxApiBaseUrlForMetaMaskEnv.mockReturnValue(
-        customBaseUrl,
-      );
+      mockGetBaanxApiBaseUrl.mockReturnValue(customBaseUrl);
 
       const mockResponseData = {
         access_token: 'token',
@@ -135,7 +133,7 @@ describe('refreshCardToken', () => {
       await promise;
 
       expect(global.fetch).toHaveBeenCalledWith(
-        `${customBaseUrl}/v1/auth/oauth/token`,
+        `${customBaseUrl}/v1/auth/oauth2/token`,
         expect.any(Object),
       );
     });
@@ -441,7 +439,7 @@ describe('refreshCardToken', () => {
       );
     });
 
-    it('includes both client and secret keys in headers', async () => {
+    it('includes client key in headers', async () => {
       const mockResponseData = {
         access_token: 'token',
         expires_in: 3600,
@@ -463,7 +461,6 @@ describe('refreshCardToken', () => {
         expect.objectContaining({
           headers: expect.objectContaining({
             'x-client-key': mockApiKey,
-            'x-secret-key': mockApiKey,
           }),
         }),
       );
