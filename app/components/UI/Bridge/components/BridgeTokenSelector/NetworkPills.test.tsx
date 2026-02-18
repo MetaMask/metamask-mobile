@@ -201,7 +201,7 @@ describe('NetworkPills', () => {
         />,
       );
 
-      expect(getByText('Ethereum')).toBeTruthy();
+      expect(getByText('Ethereum')).toBeOnTheScreen();
       expect(queryByTestId('network-pills-more-button')).toBeNull();
     });
 

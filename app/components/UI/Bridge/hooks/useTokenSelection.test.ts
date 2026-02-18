@@ -11,7 +11,6 @@ import {
 import { createMockToken } from '../testUtils/fixtures';
 import { BridgeToken, TokenSelectorType } from '../types';
 import { selectNetworkConfigurations } from '../../../../selectors/networkController';
-import { PopularList } from '../../../../util/networks/customNetworks';
 
 const mockDispatch = jest.fn();
 const mockHandleSwitchTokensInner = jest.fn().mockResolvedValue(undefined);
@@ -244,33 +243,14 @@ describe('useTokenSelection', () => {
       const { result } = renderTokenSelectionHook(TokenSelectorType.Dest, {
         networkConfigurations: {},
       });
-      const popularListFindSpy = jest
-        .spyOn(PopularList, 'find')
-        .mockReturnValue({
-          chainId: '0xffff',
-          nickname: 'Mock Network',
-          rpcUrl: 'https://mock-network-rpc.example',
-          failoverRpcUrls: [],
-          ticker: 'ETH',
-          rpcPrefs: {
-            blockExplorerUrl: 'https://mock-network-explorer.example',
-            imageUrl: 'MOCK',
-            imageSource: 'mock-image',
-          },
-        });
       const tokenOnMissingNetwork = createMockToken({
         address: '0xdest-new',
-        chainId: '0xffff',
+        chainId: '0xa',
       });
 
-      try {
-        await act(async () => {
-          await result.current.handleTokenPress(tokenOnMissingNetwork);
-        });
-      } finally {
-        expect(popularListFindSpy).toHaveBeenCalled();
-        popularListFindSpy.mockRestore();
-      }
+      await act(async () => {
+        await result.current.handleTokenPress(tokenOnMissingNetwork);
+      });
 
       expect(mockDispatch).toHaveBeenCalledWith(
         setDestToken(tokenOnMissingNetwork),
