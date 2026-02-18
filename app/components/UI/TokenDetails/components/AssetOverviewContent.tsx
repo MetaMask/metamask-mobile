@@ -409,6 +409,17 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             />
           )}
 
+          {isMarketInsightsEnabled && marketInsightsReport ? (
+            <View style={styles.marketInsightsWrapper}>
+              <MarketInsightsEntryCard
+                report={marketInsightsReport}
+                timeAgo={marketInsightsTimeAgo}
+                onPress={handleMarketInsightsPress}
+                testID="market-insights-entry-card"
+              />
+            </View>
+          ) : null}
+
           {
             ///: BEGIN:ONLY_INCLUDE_IF(tron)
             isTronNative && <TronEnergyBandwidthDetail />
@@ -434,16 +445,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             )
             ///: END:ONLY_INCLUDE_IF
           }
-          {isMarketInsightsEnabled && marketInsightsReport ? (
-            <View style={styles.marketInsightsWrapper}>
-              <MarketInsightsEntryCard
-                report={marketInsightsReport}
-                timeAgo={marketInsightsTimeAgo}
-                onPress={handleMarketInsightsPress}
-                testID="market-insights-entry-card"
-              />
-            </View>
-          ) : null}
           {isPerpsEnabled &&
             hasPerpsMarket &&
             marketData &&

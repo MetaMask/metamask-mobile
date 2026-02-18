@@ -182,7 +182,7 @@
     "@keystonehq/ur-decoder": "^0.12.2",
     "@lavamoat/react-native-lockdown": "^0.0.2",
     "@ledgerhq/react-native-hw-transport-ble": "^6.37.0",
-    "@metamask-previews/ai-controllers": "0.0.0-preview-f1938a560",
+    "@metamask-previews/ai-controllers": "0.0.0-preview-a196307b6",
     "@metamask/abi-utils": "^3.0.0",
     "@metamask/account-api": "^0.12.0",
     "@metamask/account-tree-controller": "^3.0.0",

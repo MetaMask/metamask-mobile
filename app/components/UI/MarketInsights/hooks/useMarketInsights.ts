@@ -17,6 +17,24 @@ export interface UseMarketInsightsResult {
   timeAgo: string;
 }
 
+interface MarketInsightsResponseWithDigest {
+  digest: MarketInsightsReport;
+}
+
+const normalizeMarketInsightsReport = (
+  value: MarketInsightsReport | MarketInsightsResponseWithDigest | null,
+): MarketInsightsReport | null => {
+  if (!value) {
+    return null;
+  }
+
+  if ('digest' in value) {
+    return value.digest;
+  }
+
+  return value;
+};
+
 /**
  * Hook to fetch market insights for a given asset.
  *
@@ -49,7 +67,14 @@ export const useMarketInsights = (
     try {
       const data =
         await Engine.context.AiDigestController.fetchMarketInsights(caip19Id);
-      setReport(data ?? null);
+      setReport(
+        normalizeMarketInsightsReport(
+          data as
+            | MarketInsightsReport
+            | MarketInsightsResponseWithDigest
+            | null,
+        ),
+      );
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch insights');
       setReport(null);

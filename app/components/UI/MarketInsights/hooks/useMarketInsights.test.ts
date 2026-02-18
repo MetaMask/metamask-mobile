@@ -71,6 +71,35 @@ describe('useMarketInsights', () => {
     expect(result.current.timeAgo).toBe('5m ago');
   });
 
+  it('unwraps report when controller returns digest envelope', async () => {
+    const report = {
+      asset: 'btc',
+      generatedAt: '2026-02-17T11:55:00.000Z',
+      headline: 'BTC update',
+      summary: 'Risk sentiment drives volatility',
+      trends: [],
+      sources: [],
+    };
+
+    mockFetchMarketInsights.mockResolvedValue({
+      id: 'digest-id',
+      assetId: 'bitcoin',
+      assetSymbol: 'BTC',
+      digest: report,
+      success: true,
+    });
+
+    const { result } = renderHook(() =>
+      useMarketInsights('eip155:1/erc20:0x2260', true),
+    );
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    expect(result.current.report).toEqual(report);
+    expect(result.current.error).toBeNull();
+    expect(result.current.timeAgo).toBe('5m ago');
+  });
+
   it('returns an error when fetch fails', async () => {
     mockFetchMarketInsights.mockRejectedValue(new Error('fetch failed'));
 
