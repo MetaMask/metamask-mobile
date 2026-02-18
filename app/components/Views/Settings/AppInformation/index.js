@@ -220,7 +220,7 @@ class AppInformation extends PureComponent {
               />
             </TouchableOpacity>
             <Text style={styles.versionInfo}>
-              {getFullVersion(this.state.appInfo)}
+              {getFullVersion(this.state.appInfo)} OTA
             </Text>
             {isQa ? (
               <Text style={styles.branchInfo}>
