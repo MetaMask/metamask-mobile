@@ -586,7 +586,7 @@ class AuthenticationService {
    *
    * @param osAuthEnabled - Whether the OS-level authentication is enabled from user settings (from user preference state in Redux)
    * @param allowLoginWithRememberMe - Whether Remember Me is enabled from user settings (from user preference state in Redux)
-   * @returns {AuthCapabilities} - The authentication capabilities of the device.
+   * @returns {AuthCapabilities} - The authentication capabilities of the app.
    */
   getAuthCapabilities = async ({
     osAuthEnabled,
