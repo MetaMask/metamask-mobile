@@ -74,7 +74,7 @@ function getApiClient(
     apiClient = createApiPlatformClient({
       clientProduct: 'metamask-mobile',
       getBearerToken: () => safeGetBearerToken(initMessenger),
-    }) as unknown as QueryApiClient;
+    });
   }
   return apiClient;
 }
@@ -149,21 +149,6 @@ export const assetsControllerInit: ControllerInitFunction<
     }
   };
 
-  // Subscribe to Redux store changes for basic functionality and notify
-  // the controller only when the value actually changes.
-  const subscribeToBasicFunctionalityChange = (
-    onChange: (isBasic: boolean) => void,
-  ): (() => void) => {
-    let previous = selectBasicFunctionalityEnabled(store.getState());
-    return store.subscribe(() => {
-      const current = selectBasicFunctionalityEnabled(store.getState());
-      if (current !== previous) {
-        previous = current;
-        onChange(current);
-      }
-    });
-  };
-
   // Create the controller - it now creates all data sources internally
   const controller = new AssetsController({
     messenger: controllerMessenger,
@@ -174,7 +159,6 @@ export const assetsControllerInit: ControllerInitFunction<
     },
     isBasicFunctionality: () =>
       selectBasicFunctionalityEnabled(store.getState()),
-    subscribeToBasicFunctionalityChange,
     isEnabled,
     queryApiClient: getApiClient(initMessenger),
     rpcDataSourceConfig: {
