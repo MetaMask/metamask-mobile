@@ -35860,7 +35860,7 @@ __metadata:
     react-native-jazzicon: "npm:^0.1.2"
     react-native-keyboard-aware-scroll-view: "npm:^0.9.5"
     react-native-keyboard-controller: "npm:^1.20.3"
-    react-native-keychain: "npm:^9.0.0"
+    react-native-keychain: "npm:^10.0.0"
     react-native-launch-arguments: "npm:^4.0.1"
     react-native-level-fs: "npm:3.0.1"
     react-native-linear-gradient: "npm:^2.8.3"
@@ -40453,10 +40453,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-keychain@npm:^9.0.0":
-  version: 9.2.3
-  resolution: "react-native-keychain@npm:9.2.3"
-  checksum: 10/138f9812b7290440831343476f001c82b5e581bb5b327bf2c713cc8de7e5de7638443dfc19746560098289104132516b02509b2cbe763393adceea400a6874a9
+"react-native-keychain@npm:^10.0.0":
+  version: 10.0.0
+  resolution: "react-native-keychain@npm:10.0.0"
+  checksum: 10/f06f2214ec7f8ac6fe63a30bee8a434e2d14c316be4b67821d7c25f1f540869ca852a567949783a560b0f7ca97f18be50c409cb35cb2cde3d49fb0700338604a
   languageName: node
   linkType: hard
 
