@@ -28,8 +28,6 @@ import {
 } from '../../../component-library/components/Buttons/Button/Button.types';
 import { useSelector } from 'react-redux';
 import { selectInternalAccounts } from '../../../selectors/accountsController';
-import { KeyringTypes } from '@metamask/keyring-controller';
-import Engine from '../../../core/Engine';
 import { getUniqueAccountName } from '../../../core/SnapKeyring/utils/getUniqueAccountName';
 
 const SnapAccountCustomNameApproval = () => {
@@ -54,9 +52,7 @@ const SnapAccountCustomNameApproval = () => {
       approvalRequest?.requestData?.snapSuggestedAccountName;
     const initialName = suggestedName
       ? getUniqueAccountName(internalAccounts, suggestedName)
-      : Engine.context.AccountsController.getNextAvailableAccountName(
-          KeyringTypes.snap,
-        );
+      : '';
     setAccountName(initialName);
   }, [approvalRequest, internalAccounts]);
 

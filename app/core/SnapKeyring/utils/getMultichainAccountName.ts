@@ -1,18 +1,13 @@
 import { BtcScope, SolScope, TrxScope } from '@metamask/keyring-api';
-import { KeyringTypes } from '@metamask/keyring-controller';
 import { CaipChainId } from '@metamask/utils';
 import { strings } from '../../../../locales/i18n';
-import Engine from '../../Engine';
 import { WalletClientType } from '../MultichainWalletSnapClient';
 
 export function getMultichainAccountName(
   scope?: CaipChainId,
   clientType?: WalletClientType,
 ) {
-  const nextAvailableAccountName =
-    Engine.context.AccountsController.getNextAvailableAccountName(
-      clientType ? KeyringTypes.snap : KeyringTypes.hd,
-    );
+  const nextAvailableAccountName = '';
   const accountNumber = nextAvailableAccountName.split(' ').pop();
 
   let accountNameToUse = nextAvailableAccountName;
