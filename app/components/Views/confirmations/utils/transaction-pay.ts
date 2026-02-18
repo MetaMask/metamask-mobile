@@ -159,6 +159,20 @@ export function getAvailableTokens({
     });
 }
 
+export function filterTokensByAllowlist(
+  tokens: AssetType[],
+  allowlist: Record<Hex, Hex[]>,
+): AssetType[] {
+  const allowedSets = new Map<Hex, Set<string>>();
+  for (const [chainId, addrs] of Object.entries(allowlist)) {
+    allowedSets.set(chainId as Hex, new Set(addrs.map((a) => a.toLowerCase())));
+  }
+  return tokens.filter((token) => {
+    const allowed = allowedSets.get(token.chainId as Hex);
+    return allowed?.has(token.address.toLowerCase()) ?? false;
+  });
+}
+
 function getSupportedGasFeeTokens(): Record<Hex, Hex[]> {
   const state = store.getState();
   const { gasFeeTokens } = selectGasFeeTokenFlags(state);

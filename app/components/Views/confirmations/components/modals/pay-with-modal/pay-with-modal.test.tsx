@@ -316,10 +316,10 @@ describe('PayWithModal', () => {
       expect(getByText('Select receive token')).toBeDefined();
     });
 
-    it('bypasses token filtering for withdrawal transactions', () => {
+    it('bypasses getAvailableTokens for withdrawal transactions', () => {
       render();
       // For withdrawals, getAvailableTokens should NOT be called since
-      // the filter early-returns all tokens for withdraw types
+      // the filter uses the allowedWithdrawTokens allowlist instead
       expect(getAvailableTokensMock).not.toHaveBeenCalled();
     });
   });

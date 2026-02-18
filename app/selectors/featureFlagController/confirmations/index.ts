@@ -16,6 +16,7 @@ export interface MetaMaskPayFlags {
   slippage: number;
   predictWithdrawAnyToken: boolean;
   perpsWithdrawAnyToken: boolean;
+  allowedWithdrawTokens: Record<Hex, Hex[]> | undefined;
 }
 
 export interface GasFeeTokenFlags {
@@ -52,6 +53,10 @@ export const selectMetaMaskPayFlags = createSelector(
 
     const slippage = (metaMaskPayFlags?.slippage as number) ?? SLIPPAGE_DEFAULT;
 
+    const allowedWithdrawTokens = metaMaskPayFlags?.allowedWithdrawTokens as
+      | Record<Hex, Hex[]>
+      | undefined;
+
     return {
       attemptsMax,
       bufferInitial,
@@ -62,6 +67,7 @@ export const selectMetaMaskPayFlags = createSelector(
         (metaMaskPayFlags?.predictWithdrawAnyToken as boolean) ?? false,
       perpsWithdrawAnyToken:
         (metaMaskPayFlags?.perpsWithdrawAnyToken as boolean) ?? false,
+      allowedWithdrawTokens,
     };
   },
 );

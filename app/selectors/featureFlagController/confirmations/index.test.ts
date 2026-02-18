@@ -292,3 +292,32 @@ describe('Withdraw Any Token Flags (in selectMetaMaskPayFlags)', () => {
     expect(result.predictWithdrawAnyToken).toBe(false);
   });
 });
+
+describe('Allowed Withdraw Tokens (in selectMetaMaskPayFlags)', () => {
+  it('returns undefined when confirmations_pay has no allowedWithdrawTokens', () => {
+    const result = selectMetaMaskPayFlags(mockedEmptyFlagsState);
+
+    expect(result.allowedWithdrawTokens).toBeUndefined();
+  });
+
+  it('returns allowedWithdrawTokens from feature flag', () => {
+    const allowedTokens = {
+      '0x1': [
+        '0x0000000000000000000000000000000000000000',
+        '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+      ],
+      '0x38': ['0x0000000000000000000000000000000000000000'],
+    };
+
+    const state = cloneDeep(mockedEmptyFlagsState);
+    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+      {
+        confirmations_pay: {
+          allowedWithdrawTokens: allowedTokens,
+        },
+      };
+
+    const result = selectMetaMaskPayFlags(state);
+    expect(result.allowedWithdrawTokens).toEqual(allowedTokens);
+  });
+});
