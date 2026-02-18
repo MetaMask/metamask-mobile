@@ -227,6 +227,9 @@ jest.mock('../../app/core/Engine/Engine.ts', () => {
         unsubscribe() {
           return undefined;
         },
+        call(_action: string, ..._args: unknown[]) {
+          return Promise.resolve(undefined);
+        },
       };
     },
   };
