@@ -16,6 +16,8 @@ export const CommonSelectorsIDs = {
   TRANSACTION_STATUS: 'transaction-status',
   ANDROID_PROGRESS_BAR: 'android.widget.ProgressBar',
   BANNER_CLOSE_BUTTON_ICON: 'banner-close-button-icon',
+  // Test password fake to verify SonarQube ignores security hotspots in .testIds.ts files
+  TEST_PASSWORD_FAKE: 'test-sonar-password-rule-ignore', // NOSONAR - test identifier
 };
 
 export const CommonSelectorsText = {
