@@ -19,7 +19,7 @@ import {
   selectEvmNetworkConfigurationsByChainId,
   selectIsAllNetworks,
 } from '../../../selectors/networkController';
-import { useMetrics } from '../../hooks/useMetrics';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
   TraceContext,
@@ -67,7 +67,7 @@ export function useSwitchNetworks({
   const networkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
   );
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   /**
    * Sets the token network filter based on the chain ID
