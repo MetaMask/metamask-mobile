@@ -217,6 +217,8 @@ describe('TokenListControlBar', () => {
     }),
     isDisabled: false,
     hasEnabledNetworks: true,
+    isNetworkEnabledForDefi: true,
+    hasMultipleNamespacesEnabled: false,
   };
 
   beforeEach(() => {
@@ -278,6 +280,8 @@ describe('TokenListControlBar', () => {
           })),
           isDisabled: false,
           hasEnabledNetworks: true,
+          isNetworkEnabledForDefi: true,
+          hasMultipleNamespacesEnabled: false,
         };
         mockUseCurrentNetworkInfo.mockReturnValue(singleNetworkInfo);
 
@@ -301,6 +305,8 @@ describe('TokenListControlBar', () => {
           getNetworkInfoByChainId: jest.fn(() => null),
           isDisabled: false,
           hasEnabledNetworks: false,
+          isNetworkEnabledForDefi: false,
+          hasMultipleNamespacesEnabled: false,
         };
         mockUseCurrentNetworkInfo.mockReturnValue(noNetworkInfo);
 

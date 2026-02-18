@@ -165,6 +165,8 @@ describe('BaseControlBar', () => {
     }),
     isDisabled: false,
     hasEnabledNetworks: true,
+    isNetworkEnabledForDefi: true,
+    hasMultipleNamespacesEnabled: false,
   };
 
   const defaultNetworksByNamespace = {

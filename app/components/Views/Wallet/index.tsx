@@ -750,6 +750,7 @@ const Wallet = ({
   );
 
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
+  const { isNetworkEnabledForDefi } = useCurrentNetworkInfo();
 
   const collectiblesEnabled = useMemo(() => {
     if (allEnabledNetworks.length === 1) {
@@ -1224,7 +1225,7 @@ const Wallet = ({
   }, [navigation]);
 
   const defiEnabled =
-    isEvmSelected &&
+    isNetworkEnabledForDefi &&
     !enabledNetworksHasTestNet &&
     basicFunctionalityEnabled &&
     assetsDefiPositionsEnabled;
