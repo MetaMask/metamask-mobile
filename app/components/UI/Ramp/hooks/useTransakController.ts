@@ -194,7 +194,6 @@ export function useTransakController(): UseTransakControllerResult {
         verificationCode,
         stateToken,
       );
-      await storeProviderToken(token);
       return token;
     },
     [],

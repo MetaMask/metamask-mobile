@@ -442,8 +442,7 @@ const V2BankDetails = () => {
           <View style={styles.bottomContainer}>
             {confirmPaymentError ? (
               <Text variant={TextVariant.BodySM} color={TextColor.Error}>
-                {confirmPaymentError ||
-                  strings('deposit.bank_details.error_message')}
+                {confirmPaymentError}
               </Text>
             ) : null}
             {cancelOrderError ? (

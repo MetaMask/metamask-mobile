@@ -311,12 +311,11 @@ describe('useTransakController', () => {
   });
 
   describe('verifyUserOtp', () => {
-    it('verifies OTP and stores the returned token', async () => {
+    it('verifies OTP and returns the token without storing it', async () => {
       const mockToken = { accessToken: 'otp-token', ttl: 3600 };
       (
         getRampsController().transakVerifyUserOtp as jest.Mock
       ).mockResolvedValue(mockToken);
-      mockStoreProviderToken.mockResolvedValue({ success: true });
 
       const store = createMockStore();
       const { result } = renderHook(() => useTransakController(), {
@@ -333,7 +332,7 @@ describe('useTransakController', () => {
       });
 
       expect(token).toEqual(mockToken);
-      expect(mockStoreProviderToken).toHaveBeenCalledWith(mockToken);
+      expect(mockStoreProviderToken).not.toHaveBeenCalled();
     });
   });
 

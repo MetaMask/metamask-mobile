@@ -262,10 +262,6 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
                   transakEnvironment,
                 );
 
-              navigateToOrderProcessingCallback({
-                orderId: transformedOrderId,
-              });
-
               const order = await getOrder(orderId, walletAddress || '');
 
               if (!order) {
@@ -280,6 +276,10 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
               };
 
               await handleNewOrder(processedOrder);
+
+              navigateToOrderProcessingCallback({
+                orderId: transformedOrderId,
+              });
 
               trackEvent('RAMPS_TRANSACTION_CONFIRMED', {
                 ramp_type: 'DEPOSIT',

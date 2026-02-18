@@ -44,6 +44,7 @@ import { BannerAlertSeverity } from '../../../../../component-library/components
 import { useTransakController } from '../../hooks/useTransakController';
 import { useTransakRouting } from '../../hooks/useTransakRouting';
 import { createV2EnterEmailNavDetails } from '../NativeFlow/EnterEmail';
+import { parseUserFacingError } from '../../utils/parseUserFacingError';
 
 export interface BuildQuoteParams {
   assetId?: string;
@@ -238,6 +239,7 @@ function BuildQuote() {
   }, [
     walletAddress,
     selectedPaymentMethod,
+    selectedProvider,
     debouncedPollingAmount,
     startQuotePolling,
     stopQuotePolling,
@@ -283,6 +285,9 @@ function BuildQuote() {
             selectedPaymentMethod?.id || '',
             String(amountAsNumber),
           );
+          if (!quote) {
+            throw new Error(strings('deposit.buildQuote.unexpectedError'));
+          }
           await transakRouteAfterAuth(quote);
         } else {
           navigation.navigate(
@@ -297,6 +302,12 @@ function BuildQuote() {
         Logger.error(error as Error, {
           message: 'Failed to route native provider flow',
         });
+        setNativeFlowError(
+          parseUserFacingError(
+            error,
+            strings('deposit.buildQuote.unexpectedError'),
+          ),
+        );
       } finally {
         setIsContinueLoading(false);
       }
