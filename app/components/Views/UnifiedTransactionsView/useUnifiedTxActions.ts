@@ -94,44 +94,47 @@ export function useUnifiedTxActions() {
     setRetryErrorMsg(msg);
   };
 
-  const onSpeedUpCompleted = () => {
+  const onSpeedUpCompleted = useCallback(() => {
     setSpeedUp1559IsOpen(false);
     setSpeedUpIsOpen(false);
     setExistingGas(null);
     setSpeedUpTxId(null);
     setExistingTx(null);
-  };
+  }, []);
 
-  const onCancelCompleted = () => {
+  const onCancelCompleted = useCallback(() => {
     setCancel1559IsOpen(false);
     setCancelIsOpen(false);
     setExistingGas(null);
     setCancelTxId(null);
     setExistingTx(null);
-  };
+  }, []);
 
-  const signLedgerTransaction = async (transaction: LedgerSignRequest) => {
-    const deviceId = await getDeviceId();
-    const onConfirmation = (_isComplete: boolean) => {
-      // Clean up modal state regardless of whether the user confirmed or rejected.
-      // Without this, rejecting on the Ledger modal leaves stale state that can
-      // cause the speed up/cancel modal to reappear unexpectedly.
-      const isSpeedUp = transaction.speedUpParams?.type === 'SpeedUp';
-      if (isSpeedUp) {
-        onSpeedUpCompleted();
-      } else {
-        onCancelCompleted();
-      }
-    };
-    navigation.navigate(
-      ...createLedgerTransactionModalNavDetails({
-        transactionId: transaction.id,
-        deviceId,
-        onConfirmationComplete: onConfirmation,
-        replacementParams: transaction?.replacementParams,
-      }),
-    );
-  };
+  const signLedgerTransaction = useCallback(
+    async (transaction: LedgerSignRequest) => {
+      const deviceId = await getDeviceId();
+      const onConfirmation = (_isComplete: boolean) => {
+        // Clean up modal state regardless of whether the user confirmed or rejected.
+        // Without this, rejecting on the Ledger modal leaves stale state that can
+        // cause the speed up/cancel modal to reappear unexpectedly.
+        const isSpeedUp = transaction.speedUpParams?.type === 'SpeedUp';
+        if (isSpeedUp) {
+          onSpeedUpCompleted();
+        } else {
+          onCancelCompleted();
+        }
+      };
+      navigation.navigate(
+        ...createLedgerTransactionModalNavDetails({
+          transactionId: transaction.id,
+          deviceId,
+          onConfirmationComplete: onConfirmation,
+          replacementParams: transaction?.replacementParams,
+        }),
+      );
+    },
+    [navigation, onSpeedUpCompleted, onCancelCompleted],
+  );
 
   const getGasPriceEstimate = () => {
     if (!gasFeeEstimates) {
