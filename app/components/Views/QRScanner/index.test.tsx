@@ -781,7 +781,17 @@ describe('QrScanner', () => {
           false,
         );
 
-        (SharedDeeplinkManager.parse as jest.Mock).mockResolvedValue(true);
+        // Invoke the onHandled callback so navigation clean-up lines are
+        // covered — mockResolvedValue alone would leave them dead.
+        (SharedDeeplinkManager.parse as jest.Mock).mockImplementation(
+          async (
+            _url: string,
+            opts?: { onHandled?: () => void },
+          ): Promise<boolean> => {
+            opts?.onHandled?.();
+            return true;
+          },
+        );
 
         const mockOnScanSuccess = jest.fn();
         renderWithProvider(<QrScanner onScanSuccess={mockOnScanSuccess} />, {
@@ -816,6 +826,51 @@ describe('QrScanner', () => {
             [QRScannerEventProperties.SCAN_SUCCESS]: true,
             [QRScannerEventProperties.QR_TYPE]: QRType.DEEPLINK,
             [QRScannerEventProperties.SCAN_RESULT]: ScanResult.DEEPLINK_HANDLED,
+          });
+        });
+      });
+
+      it('tracks unrecognized_qr_code when DeeplinkManager cannot handle a universal link', async () => {
+        const deeplinksUtilModule = jest.requireMock(
+          '../../../core/DeeplinkManager/util/deeplinks',
+        );
+        (
+          deeplinksUtilModule.isMetaMaskUniversalLink as jest.Mock
+        ).mockReturnValue(true);
+
+        const SDKConnectV2Module = jest.requireMock(
+          '../../../core/SDKConnectV2',
+        );
+        (SDKConnectV2Module.default.isMwpDeeplink as jest.Mock).mockReturnValue(
+          false,
+        );
+
+        // DeeplinkManager.parse returns false → link was not handled
+        (SharedDeeplinkManager.parse as jest.Mock).mockResolvedValue(false);
+
+        const mockOnScanSuccess = jest.fn();
+        renderWithProvider(<QrScanner onScanSuccess={mockOnScanSuccess} />, {
+          state: initialState,
+        });
+
+        await waitFor(() => {
+          expect(onCodeScannedCallback).toBeDefined();
+        });
+
+        await act(async () => {
+          onCodeScannedCallback?.([
+            { value: 'https://metamask.app.link/unknown-action' },
+          ]);
+        });
+
+        await waitFor(() => {
+          expect(mockLinkingOpenURL).not.toHaveBeenCalled();
+
+          expect(mockAddProperties).toHaveBeenCalledWith({
+            [QRScannerEventProperties.SCAN_SUCCESS]: false,
+            [QRScannerEventProperties.QR_TYPE]: QRType.DEEPLINK,
+            [QRScannerEventProperties.SCAN_RESULT]:
+              ScanResult.UNRECOGNIZED_QR_CODE,
           });
         });
       });

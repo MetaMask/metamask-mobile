@@ -438,6 +438,7 @@ describe('handleUniversalLink', () => {
       },
     ] as const;
 
+    // Verify the /dapp/ action routes correctly for each domain variant.
     it.each(domains)(
       'opens bare domain in browser for $description',
       async ({ domain }) => {
@@ -465,15 +466,41 @@ describe('handleUniversalLink', () => {
       },
     );
 
-    it.each(domains)(
-      'handles embedded https:// protocol without doubling it for $description',
-      async ({ domain }) => {
-        const fullUrl = `${PROTOCOLS.HTTPS}://${domain}/${ACTIONS.DAPP}/https://payments.coinbase.com/sandbox/payments/123`;
+    // URL-transformation cases are domain-agnostic; use one representative
+    // domain so each case appears once instead of once-per-domain.
+    const representativeDomain = AppConstants.MM_UNIVERSAL_LINK_HOST;
+    const urlTransformCases = [
+      {
+        description: 'embedded https:// protocol (no doubling)',
+        dappPath: 'https://payments.coinbase.com/sandbox/payments/123',
+        expectedUrl: 'https://payments.coinbase.com/sandbox/payments/123',
+      },
+      {
+        // url-parse normalizes .../dapp/https://x.com → .../dapp/https:/x.com
+        description: 'embedded https:/ (single slash, url-parse normalized)',
+        dappPath: 'https:/payments.coinbase.com/sandbox',
+        expectedUrl: 'https://payments.coinbase.com/sandbox',
+      },
+      {
+        description: 'embedded http:// protocol',
+        dappPath: 'http://example.com/page',
+        expectedUrl: 'http://example.com/page',
+      },
+      {
+        description: 'query params preserved from embedded URL',
+        dappPath: 'https://app.example.com/page?foo=bar&baz=qux',
+        expectedUrl: 'https://app.example.com/page?foo=bar&baz=qux',
+      },
+    ] as const;
+
+    it.each(urlTransformCases)(
+      'URL transform: $description',
+      async ({ dappPath, expectedUrl }) => {
+        const fullUrl = `${PROTOCOLS.HTTPS}://${representativeDomain}/${ACTIONS.DAPP}/${dappPath}`;
         const dappUrlObj = {
           ...urlObj,
-          hostname: domain,
+          hostname: representativeDomain,
           href: fullUrl,
-          pathname: `/${ACTIONS.DAPP}/https://payments.coinbase.com/sandbox/payments/123`,
         };
 
         await handleUniversalLink({
@@ -486,119 +513,32 @@ describe('handleUniversalLink', () => {
         });
 
         expect(mockHandleBrowserUrl).toHaveBeenCalledWith({
-          url: 'https://payments.coinbase.com/sandbox/payments/123',
+          url: expectedUrl,
           callback: mockBrowserCallBack,
         });
       },
     );
 
-    it.each(domains)(
-      'handles embedded https:/ (single slash, url-parse normalized) for $description',
-      async ({ domain }) => {
-        // url-parse normalizes https://...app.link/dapp/https://x.com to
-        // ...app.link/dapp/https:/x.com (single slash) in the href
-        const fullUrl = `${PROTOCOLS.HTTPS}://${domain}/${ACTIONS.DAPP}/https:/payments.coinbase.com/sandbox`;
-        const dappUrlObj = {
-          ...urlObj,
-          hostname: domain,
-          href: fullUrl,
-          pathname: `/${ACTIONS.DAPP}/https:/payments.coinbase.com/sandbox`,
-        };
+    it('does NOT call handleBrowserUrl when no domain follows /dapp/', async () => {
+      const fullUrl = `${PROTOCOLS.HTTPS}://${representativeDomain}/${ACTIONS.DAPP}/`;
+      const dappUrlObj = {
+        ...urlObj,
+        hostname: representativeDomain,
+        href: fullUrl,
+        pathname: `/${ACTIONS.DAPP}/`,
+      };
 
-        await handleUniversalLink({
-          instance,
-          handled,
-          urlObj: dappUrlObj,
-          browserCallBack: mockBrowserCallBack,
-          url: fullUrl,
-          source: 'test-source',
-        });
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: dappUrlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: fullUrl,
+        source: 'test-source',
+      });
 
-        expect(mockHandleBrowserUrl).toHaveBeenCalledWith({
-          url: 'https://payments.coinbase.com/sandbox',
-          callback: mockBrowserCallBack,
-        });
-      },
-    );
-
-    it.each(domains)(
-      'handles embedded http:// protocol for $description',
-      async ({ domain }) => {
-        const fullUrl = `${PROTOCOLS.HTTPS}://${domain}/${ACTIONS.DAPP}/http://example.com/page`;
-        const dappUrlObj = {
-          ...urlObj,
-          hostname: domain,
-          href: fullUrl,
-          pathname: `/${ACTIONS.DAPP}/http://example.com/page`,
-        };
-
-        await handleUniversalLink({
-          instance,
-          handled,
-          urlObj: dappUrlObj,
-          browserCallBack: mockBrowserCallBack,
-          url: fullUrl,
-          source: 'test-source',
-        });
-
-        expect(mockHandleBrowserUrl).toHaveBeenCalledWith({
-          url: 'http://example.com/page',
-          callback: mockBrowserCallBack,
-        });
-      },
-    );
-
-    it.each(domains)(
-      'preserves query parameters from embedded URL for $description',
-      async ({ domain }) => {
-        const fullUrl = `${PROTOCOLS.HTTPS}://${domain}/${ACTIONS.DAPP}/https://app.example.com/page?foo=bar&baz=qux`;
-        const dappUrlObj = {
-          ...urlObj,
-          hostname: domain,
-          href: fullUrl,
-          pathname: `/${ACTIONS.DAPP}/https://app.example.com/page`,
-        };
-
-        await handleUniversalLink({
-          instance,
-          handled,
-          urlObj: dappUrlObj,
-          browserCallBack: mockBrowserCallBack,
-          url: fullUrl,
-          source: 'test-source',
-        });
-
-        expect(mockHandleBrowserUrl).toHaveBeenCalledWith({
-          url: 'https://app.example.com/page?foo=bar&baz=qux',
-          callback: mockBrowserCallBack,
-        });
-      },
-    );
-
-    it.each(domains)(
-      'does NOT call handleBrowserUrl when no domain follows /dapp/ for $description',
-      async ({ domain }) => {
-        // URL ends with /dapp/ and nothing after — pathAfterAction is empty.
-        const fullUrl = `${PROTOCOLS.HTTPS}://${domain}/${ACTIONS.DAPP}/`;
-        const dappUrlObj = {
-          ...urlObj,
-          hostname: domain,
-          href: fullUrl,
-          pathname: `/${ACTIONS.DAPP}/`,
-        };
-
-        await handleUniversalLink({
-          instance,
-          handled,
-          urlObj: dappUrlObj,
-          browserCallBack: mockBrowserCallBack,
-          url: fullUrl,
-          source: 'test-source',
-        });
-
-        expect(mockHandleBrowserUrl).not.toHaveBeenCalled();
-      },
-    );
+      expect(mockHandleBrowserUrl).not.toHaveBeenCalled();
+    });
   });
 
   describe('ACTIONS.CREATE_ACCOUNT', () => {
