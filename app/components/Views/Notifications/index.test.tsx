@@ -32,6 +32,7 @@ import { NotificationsViewSelectorsIDs } from './NotificationsView.testIds';
 const navigationMock = {
   navigate: jest.fn(),
   goBack: jest.fn(),
+  canGoBack: jest.fn().mockReturnValue(true),
 } as unknown as NavigationProp<ParamListBase>;
 
 jest.mock('@react-navigation/native', () => ({
