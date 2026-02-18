@@ -36,4 +36,5 @@ export const mockBridgeReducerState: BridgeState = {
   isSelectingToken: false,
   isDestTokenManuallySet: false,
   tokenSelectorNetworkFilter: undefined,
+  visiblePillChainIds: undefined,
 };
