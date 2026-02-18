@@ -26,18 +26,27 @@ jest.mock('../../../../hooks/useSeasonDrops', () => ({
   useSeasonDrops: jest.fn(),
 }));
 
-jest.mock('../../../../components/DropTile', () => {
+jest.mock('../../../../components/DropTile/DropTile', () => {
   const ReactNative = jest.requireActual('react-native');
   const ReactActual = jest.requireActual('react');
   return {
-    DropTile: jest.fn(({ drop }) =>
+    __esModule: true,
+    default: jest.fn(({ drop }: { drop: { id: string; name: string } }) =>
       ReactActual.createElement(
         ReactNative.View,
         { testID: `drop-tile-${drop.id}` },
         ReactActual.createElement(ReactNative.Text, null, drop.name),
       ),
     ),
-    UpcomingDropTileCondensed: jest.fn(({ drop }) =>
+  };
+});
+
+jest.mock('../../../DropTile/UpcomingDropTileCondensed', () => {
+  const ReactNative = jest.requireActual('react-native');
+  const ReactActual = jest.requireActual('react');
+  return {
+    __esModule: true,
+    default: jest.fn(({ drop }: { drop: { id: string; name: string } }) =>
       ReactActual.createElement(
         ReactNative.View,
         { testID: `upcoming-tile-${drop.id}` },
