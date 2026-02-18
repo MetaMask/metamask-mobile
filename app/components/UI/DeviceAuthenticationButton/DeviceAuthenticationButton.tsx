@@ -1,8 +1,5 @@
 import React from 'react';
-import {
-  TouchableOpacity,
-  TouchableOpacityProps,
-} from 'react-native';
+import { TouchableOpacity, TouchableOpacityProps } from 'react-native';
 import { createStyles } from './styles';
 import Icon, {
   IconName,
@@ -20,7 +17,6 @@ const DeviceAuthenticationButton = ({
   hidden,
   ...props
 }: DeviceAuthenticationButtonProps) => {
-
   const { styles } = useStyles(createStyles, {});
   if (hidden) return null;
 
@@ -39,6 +35,6 @@ const DeviceAuthenticationButton = ({
       />
     </TouchableOpacity>
   );
-}
+};
 
 export default DeviceAuthenticationButton;

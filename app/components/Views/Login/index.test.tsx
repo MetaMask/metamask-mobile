@@ -251,11 +251,11 @@ jest.mock('../../hooks/useMetrics', () => {
     }),
     withMetricsAwareness:
       <P extends Record<string, unknown>>(Component: React.ComponentType<P>) =>
-        (props: P) =>
-          ReactModule.createElement(Component, {
-            ...props,
-            metrics: mockMetrics,
-          }),
+      (props: P) =>
+        ReactModule.createElement(Component, {
+          ...props,
+          metrics: mockMetrics,
+        }),
     MetaMetricsEvents: jest.requireActual(
       '../../../core/Analytics/MetaMetrics.events',
     ).MetaMetricsEvents,

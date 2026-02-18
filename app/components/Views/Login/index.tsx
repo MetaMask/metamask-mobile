@@ -350,8 +350,12 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     downloadStateLogs(fullState, false);
   };
 
-  const isDeviceAuthenticationAvailable = capabilities?.authType === AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION || capabilities?.authType === AUTHENTICATION_TYPE.BIOMETRIC || capabilities?.authType === AUTHENTICATION_TYPE.PASSCODE;
-  const shouldHideDeviceAuthenticationButton = route?.params?.locked || !isDeviceAuthenticationAvailable;
+  const isDeviceAuthenticationAvailable =
+    capabilities?.authType === AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION ||
+    capabilities?.authType === AUTHENTICATION_TYPE.BIOMETRIC ||
+    capabilities?.authType === AUTHENTICATION_TYPE.PASSCODE;
+  const shouldHideDeviceAuthenticationButton =
+    route?.params?.locked || !isDeviceAuthenticationAvailable;
 
   const handlePasswordChange = (newPassword: string) => {
     setPassword(newPassword);

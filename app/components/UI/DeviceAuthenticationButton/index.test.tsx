@@ -24,7 +24,9 @@ describe('DeviceAuthenticationButton', () => {
     );
 
     expect(getByTestId(LoginViewSelectors.BIOMETRY_BUTTON)).toBeDefined();
-    expect(getByTestId(LoginViewSelectors.DEVICE_AUTHENTICATION_ICON)).toBeDefined();
+    expect(
+      getByTestId(LoginViewSelectors.DEVICE_AUTHENTICATION_ICON),
+    ).toBeDefined();
   });
 
   it('calls onPress when pressed', () => {
