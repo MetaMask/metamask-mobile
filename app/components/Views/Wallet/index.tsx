@@ -1262,10 +1262,7 @@ const Wallet = ({
     try {
       if (isHomepageSectionsV1Enabled) {
         // Homepage sections mode - refresh homepage and balance
-        await Promise.allSettled([
-          refreshBalance(),
-          homepageRef.current?.refresh(),
-        ]);
+        await Promise.all([refreshBalance(), homepageRef.current?.refresh()]);
       } else {
         // Legacy tab mode
         await walletTokensTabViewRef.current?.refresh(refreshBalance);
