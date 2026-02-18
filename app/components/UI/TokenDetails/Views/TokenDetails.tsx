@@ -6,6 +6,7 @@ import {
   selectTokenDetailsV2Enabled,
   selectTokenDetailsV2ButtonsEnabled,
 } from '../../../../selectors/featureFlagController/tokenDetailsV2';
+import { selectTokenListLayoutV2Enabled } from '../../../../selectors/featureFlagController/tokenListLayout';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
@@ -29,7 +30,6 @@ import { useTokenBalance } from '../hooks/useTokenBalance';
 import { useTokenActions } from '../hooks/useTokenActions';
 import { useTokenTransactions } from '../hooks/useTokenTransactions';
 import { selectPerpsEnabledFlag } from '../../Perps';
-import { selectMerklCampaignClaimingEnabledFlag } from '../../Earn/selectors/featureFlags';
 import { TraceName, endTrace } from '../../../../util/trace';
 import {
   isNetworkRampNativeTokenSupported,
@@ -129,9 +129,6 @@ const TokenDetails: React.FC<{ token: TokenDetailsRouteParams }> = ({
   };
 
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
-  const isMerklCampaignClaimingEnabled = useSelector(
-    selectMerklCampaignClaimingEnabledFlag,
-  );
 
   const {
     currentPrice,
@@ -213,7 +210,6 @@ const TokenDetails: React.FC<{ token: TokenDetailsRouteParams }> = ({
         setTimePeriod={setTimePeriod}
         chartNavigationButtons={chartNavigationButtons}
         isPerpsEnabled={isPerpsEnabled}
-        isMerklCampaignClaimingEnabled={isMerklCampaignClaimingEnabled}
         displayBuyButton={isRampAvailable}
         displaySwapsButton={displaySwapsButton}
         currentCurrency={currentCurrency}
@@ -317,9 +313,13 @@ const TokenDetails: React.FC<{ token: TokenDetailsRouteParams }> = ({
 
 /**
  * Fires TOKEN_DETAILS_OPENED for both V2 and legacy Asset view.
+ * Includes ab_tests property when navigating from the token list and the
+ * token list layout A/B test is active.
  */
 const useTokenDetailsOpenedTracking = (params: TokenDetailsRouteParams) => {
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const isTokenListV2 = useSelector(selectTokenListLayoutV2Enabled);
+
   useEffect(() => {
     const source = params.source ?? TokenDetailsSource.Unknown;
     const hasBalance =
@@ -328,12 +328,19 @@ const useTokenDetailsOpenedTracking = (params: TokenDetailsRouteParams) => {
       params.balance !== '0' &&
       params.balance !== '';
 
+    const isFromTokenList =
+      source === TokenDetailsSource.MobileTokenList ||
+      source === TokenDetailsSource.MobileTokenListPage;
+
     const event = createEventBuilder(MetaMetricsEvents.TOKEN_DETAILS_OPENED)
       .addProperties({
         source,
         chain_id: params.chainId,
         token_symbol: params.symbol,
         has_balance: hasBalance,
+        ...(isFromTokenList && {
+          ab_tests: { token_list_layout: isTokenListV2 ? 'v2' : 'v1' },
+        }),
       })
       .build();
     trackEvent(event);

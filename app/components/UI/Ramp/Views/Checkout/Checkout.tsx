@@ -18,13 +18,14 @@ import {
   FIAT_ORDER_STATES,
 } from '../../../../../constants/on-ramp';
 import { CustomIdData } from '../../../../../reducers/fiatOrders/types';
+import { strings } from '../../../../../../locales/i18n';
+import Routes from '../../../../../constants/navigation/Routes';
 import {
   createNavigationDetails,
   useParams,
 } from '../../../../../util/navigation/navUtils';
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
 import ErrorView from '../../Aggregator/components/ErrorView';
-import Routes from '../../../../../constants/navigation/Routes';
 import Logger from '../../../../../util/Logger';
 import Engine from '../../../../../core/Engine';
 import NotificationManager from '../../../../../core/NotificationManager';
@@ -49,26 +50,22 @@ import Device from '../../../../../util/device';
 import { shouldStartLoadWithRequest } from '../../../../../util/browser';
 
 interface CheckoutParams {
-  /** The provider widget URL to display in the WebView. */
   url: string;
-  /** Provider code extracted from the quote (e.g., "moonpay", "transak"). */
-  providerCode: string;
-  /** Provider display name for navbar and analytics. */
   providerName: string;
-  /**
-   * Pre-order/custom order ID from BuyWidget (optional).
-   * Like the aggregator's customOrderId: a tracking ID created at widget
-   * generation time. NOT the final order ID -- that comes from the callback.
-   */
+  /** Optional provider-specific userAgent for the WebView (e.g. features.buy.userAgent). */
+  userAgent?: string;
+  /** V2 callback flow: provider code (e.g., "moonpay", "transak"). */
+  providerCode?: string;
+  /** V2: pre-order/custom order ID from BuyWidget. */
   customOrderId?: string | null;
-  /** The wallet address for this order. */
-  walletAddress: string;
-  /** Network chain ID for the order. */
-  network: string;
-  /** Fiat currency code (e.g., "USD"). */
-  currency: string;
-  /** Crypto currency symbol (e.g., "ETH"). */
-  cryptocurrency: string;
+  /** V2 callback flow: wallet address for this order. */
+  walletAddress?: string;
+  /** V2: network chain ID for the order. */
+  network?: string;
+  /** V2: fiat currency code (e.g., "USD"). */
+  currency?: string;
+  /** V2: crypto currency symbol (e.g., "ETH"). */
+  cryptocurrency?: string;
 }
 
 export const createCheckoutNavDetails = createNavigationDetails<CheckoutParams>(
@@ -129,7 +126,7 @@ function createInitialFiatOrder(params: {
   };
 }
 
-const UnifiedCheckout = () => {
+const Checkout = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const dispatch = useDispatch();
   const dispatchThunk = useThunkDispatch();
@@ -151,26 +148,26 @@ const UnifiedCheckout = () => {
     network,
     currency,
     cryptocurrency,
-  } = params;
+    userAgent,
+  } = params ?? {};
+
+  const headerTitle = providerName ?? '';
+  const initialUriRef = useRef(uri);
+  const hasCallbackFlow = Boolean(providerCode && walletAddress);
 
   useEffect(() => {
     navigation.setOptions(
       getDepositNavbarOptions(
         navigation,
-        { title: providerName },
+        { title: providerName ?? headerTitle },
         theme,
-        () => {
-          // Cancel analytics could go here
-        },
+        () => {},
       ),
     );
-  }, [navigation, theme, providerName]);
+  }, [navigation, theme, providerName, headerTitle]);
 
-  // Custom order ID tracking (matches aggregator pattern).
-  // If BuyWidget returned an orderId, store it as CustomIdData so the
-  // background polling loop can track it as a backup.
   useEffect(() => {
-    if (!customOrderId || !walletAddress || !network) {
+    if (!hasCallbackFlow || !customOrderId || !walletAddress || !network) {
       return;
     }
     const data: CustomIdData = {
@@ -184,7 +181,7 @@ const UnifiedCheckout = () => {
     };
     setCustomIdData(data);
     dispatch(addFiatCustomIdData(data));
-  }, [customOrderId, walletAddress, network, dispatch]);
+  }, [customOrderId, walletAddress, network, dispatch, hasCallbackFlow]);
 
   const handleOrderCreated = useCallback(
     (order: FiatOrder) => {
@@ -210,6 +207,7 @@ const UnifiedCheckout = () => {
   const handleNavigationStateChange = useCallback(
     async (navState: WebViewNavigation) => {
       if (
+        !hasCallbackFlow ||
         isRedirectionHandled ||
         !navState.url.startsWith(callbackBaseUrl) ||
         navState.loading !== false
@@ -221,21 +219,15 @@ const UnifiedCheckout = () => {
       try {
         const parsedUrl = parseUrl(navState.url);
         if (Object.keys(parsedUrl.query).length === 0) {
-          // No query params -- user likely cancelled in the widget.
           // @ts-expect-error navigation prop mismatch
           navigation.dangerouslyGetParent()?.pop();
           return;
         }
 
-        if (!walletAddress) {
-          throw new Error('No wallet address available');
+        if (!walletAddress || !providerCode) {
+          throw new Error('No wallet address or provider code available');
         }
 
-        // Get the order from the callback URL via the V2 backend.
-        // This mirrors the aggregator's SDK.orders().getOrderFromCallback():
-        // 1. Sends the callback URL to the backend for provider-specific parsing
-        // 2. Backend extracts the order ID using provider logic
-        // 3. Fetches and returns the full order
         const rampsOrder =
           await Engine.context.RampsController.getOrderFromCallback(
             providerCode,
@@ -249,12 +241,10 @@ const UnifiedCheckout = () => {
           );
         }
 
-        // Remove custom order ID tracking if it existed (like aggregator does).
         if (customIdData) {
           dispatch(removeFiatCustomIdData(customIdData));
         }
 
-        // Use the providerOrderId from the V2 response as the canonical order ID.
         const orderId =
           rampsOrder.providerOrderId || rampsOrder.id || customOrderId;
         if (!orderId) {
@@ -265,9 +255,9 @@ const UnifiedCheckout = () => {
           providerCode,
           orderId,
           walletAddress,
-          network,
-          currency,
-          cryptocurrency,
+          network: network ?? '',
+          currency: currency ?? '',
+          cryptocurrency: cryptocurrency ?? '',
           rampsOrder,
         });
 
@@ -280,6 +270,7 @@ const UnifiedCheckout = () => {
       }
     },
     [
+      hasCallbackFlow,
       isRedirectionHandled,
       customOrderId,
       customIdData,
@@ -294,14 +285,16 @@ const UnifiedCheckout = () => {
     ],
   );
 
+  const handleCancelPress = useCallback(() => {}, []);
+  const handleClosePress = useCallback(() => {
+    handleCancelPress();
+    sheetRef.current?.onCloseBottomSheet();
+  }, [handleCancelPress]);
+
   const handleShouldStartLoadWithRequest = useCallback(
     ({ url }: { url: string }) => shouldStartLoadWithRequest(url, Logger),
     [],
   );
-
-  const handleClosePress = useCallback(() => {
-    sheetRef.current?.onCloseBottomSheet();
-  }, []);
 
   if (error) {
     return (
@@ -322,7 +315,9 @@ const UnifiedCheckout = () => {
             />
           }
           style={styles.headerWithoutPadding}
-        />
+        >
+          {headerTitle}
+        </BottomSheetHeader>
         <ScreenLayout>
           <ScreenLayout.Body>
             <ErrorView
@@ -360,19 +355,26 @@ const UnifiedCheckout = () => {
             />
           }
           style={styles.headerWithoutPadding}
-        />
+        >
+          {headerTitle}
+        </BottomSheetHeader>
         <WebView
           key={key}
           style={styles.webview}
           source={{ uri }}
+          userAgent={userAgent ?? undefined}
           onHttpError={(syntheticEvent) => {
             const { nativeEvent } = syntheticEvent;
-            if (
-              nativeEvent.url === uri ||
-              nativeEvent.url.startsWith(callbackBaseUrl)
-            ) {
-              setError(
-                `Provider returned an error (HTTP ${nativeEvent.statusCode})`,
+            const errorUrl = nativeEvent.url;
+            if (errorUrl === initialUriRef.current || errorUrl.startsWith(callbackBaseUrl)) {
+              const webviewHttpError = strings(
+                'fiat_on_ramp_aggregator.webview_received_error',
+                { code: nativeEvent.statusCode },
+              );
+              setError(webviewHttpError);
+            } else {
+              Logger.log(
+                `Checkout: HTTP error ${nativeEvent.statusCode} for auxiliary resource: ${errorUrl}`,
               );
             }
           }}
@@ -380,9 +382,9 @@ const UnifiedCheckout = () => {
           enableApplePay
           paymentRequestEnabled
           mediaPlaybackRequiresUserAction={false}
-          onNavigationStateChange={handleNavigationStateChange}
+          onNavigationStateChange={hasCallbackFlow ? handleNavigationStateChange : undefined}
           onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
-          testID="unified-checkout-webview"
+          testID="checkout-webview"
         />
       </BottomSheet>
     );
@@ -406,11 +408,13 @@ const UnifiedCheckout = () => {
           />
         }
         style={styles.headerWithoutPadding}
-      />
+      >
+        {headerTitle}
+      </BottomSheetHeader>
       <ScreenLayout>
         <ScreenLayout.Body>
           <ErrorView
-            description="No widget URL was provided."
+            description={strings('fiat_on_ramp_aggregator.webview_no_url_provided')}
             location="Provider Webview"
           />
         </ScreenLayout.Body>
@@ -419,4 +423,4 @@ const UnifiedCheckout = () => {
   );
 };
 
-export default UnifiedCheckout;
+export default Checkout;
