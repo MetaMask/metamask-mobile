@@ -53,27 +53,32 @@ interface RemoteFeatureFlagState {
   >;
 }
 
-function buildMockMessenger(overrides?: {
-  remoteFeatureFlagState?: RemoteFeatureFlagState;
-  remoteFeatureFlagGetStateThrows?: boolean;
-}) {
-  const baseMessenger = new ExtendedMessenger<MockAnyNamespace, never, never>({
-    namespace: MOCK_ANY_NAMESPACE,
-  });
+/** Minimal interface for registering init delegate actions by name (avoids MockAnyNamespace action typing). */
+interface MessengerWithRegisterActionHandler {
+  registerActionHandler: (
+    action: string,
+    handler: (...args: unknown[]) => unknown,
+  ) => void;
+}
 
-  (baseMessenger.registerActionHandler as jest.Mock)(
+/** Registers the init delegate actions on a base messenger (same actions/events the init messenger expects). */
+function registerInitActionHandlers(
+  messenger: MessengerWithRegisterActionHandler,
+  overrides?: {
+    remoteFeatureFlagState?: RemoteFeatureFlagState;
+    remoteFeatureFlagGetStateThrows?: boolean;
+    preferencesGetState?: () => unknown;
+  },
+): void {
+  messenger.registerActionHandler(
     'PreferencesController:getState',
-    () => ({
-      useTokenDetection: true,
-    }),
+    overrides?.preferencesGetState ?? (() => ({ useTokenDetection: true })),
   );
-
-  (baseMessenger.registerActionHandler as jest.Mock)(
+  messenger.registerActionHandler(
     'AuthenticationController:getBearerToken',
     () => Promise.resolve('mock-bearer-token'),
   );
-
-  (baseMessenger.registerActionHandler as jest.Mock)(
+  messenger.registerActionHandler(
     'RemoteFeatureFlagController:getState',
     () => {
       if (overrides?.remoteFeatureFlagGetStateThrows) {
@@ -85,12 +90,23 @@ function buildMockMessenger(overrides?: {
       return mockRemoteFeatureFlagController.state;
     },
   );
-
-  (baseMessenger.registerActionHandler as jest.Mock)(
+  messenger.registerActionHandler(
     'AnalyticsController:trackEvent',
     () => undefined,
   );
+}
 
+function buildMockMessenger(overrides?: {
+  remoteFeatureFlagState?: RemoteFeatureFlagState;
+  remoteFeatureFlagGetStateThrows?: boolean;
+}) {
+  const baseMessenger = new ExtendedMessenger<MockAnyNamespace, never, never>({
+    namespace: MOCK_ANY_NAMESPACE,
+  });
+  registerInitActionHandlers(
+    baseMessenger as unknown as MessengerWithRegisterActionHandler,
+    overrides,
+  );
   return baseMessenger;
 }
 
@@ -315,27 +331,13 @@ describe('assetsControllerInit', () => {
       >({
         namespace: MOCK_ANY_NAMESPACE,
       });
-
-      (baseMessenger.registerActionHandler as jest.Mock)(
-        'PreferencesController:getState',
-        () => {
-          throw new Error('Preferences not available');
+      registerInitActionHandlers(
+        baseMessenger as unknown as MessengerWithRegisterActionHandler,
+        {
+          preferencesGetState: () => {
+            throw new Error('Preferences not available');
+          },
         },
-      );
-
-      (baseMessenger.registerActionHandler as jest.Mock)(
-        'AuthenticationController:getBearerToken',
-        () => Promise.resolve('mock-bearer-token'),
-      );
-
-      (baseMessenger.registerActionHandler as jest.Mock)(
-        'RemoteFeatureFlagController:getState',
-        () => mockRemoteFeatureFlagController.state,
-      );
-
-      (baseMessenger.registerActionHandler as jest.Mock)(
-        'AnalyticsController:trackEvent',
-        () => undefined,
       );
 
       const controllerMessenger = getAssetsControllerMessenger(baseMessenger);

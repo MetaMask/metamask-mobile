@@ -17,11 +17,14 @@ jest.mock('../../../../multichain-accounts/remote-feature-flag', () => ({
   isMultichainAccountsState2Enabled: jest.fn(() => false),
 }));
 
-// Mock Engine for MultichainAccountService calls
+// Mock Engine for MultichainAccountService and AssetsController calls
 jest.mock('../../../../core/Engine', () => ({
   default: {
     context: {
       MultichainAccountService: {
+        setBasicFunctionality: jest.fn().mockResolvedValue(undefined),
+      },
+      AssetsController: {
         setBasicFunctionality: jest.fn().mockResolvedValue(undefined),
       },
     },

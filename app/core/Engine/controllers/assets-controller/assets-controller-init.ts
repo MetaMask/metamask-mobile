@@ -149,6 +149,13 @@ export const assetsControllerInit: ControllerInitFunction<
     }
   };
 
+  const subscribeToBasicFunctionalityChange = (
+    onChange: (isBasic: boolean) => void,
+  ): (() => void) =>
+    store.subscribe(() => {
+      onChange(selectBasicFunctionalityEnabled(store.getState()));
+    });
+
   // Create the controller - it now creates all data sources internally
   const controller = new AssetsController({
     messenger: controllerMessenger,
@@ -159,6 +166,7 @@ export const assetsControllerInit: ControllerInitFunction<
     },
     isBasicFunctionality: () =>
       selectBasicFunctionalityEnabled(store.getState()),
+    subscribeToBasicFunctionalityChange,
     isEnabled,
     queryApiClient: getApiClient(initMessenger),
     rpcDataSourceConfig: {
