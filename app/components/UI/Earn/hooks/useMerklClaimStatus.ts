@@ -107,7 +107,12 @@ export const useMerklClaimStatus = () => {
             transactionMeta.chainId as Hex,
           );
 
-          if (claimAmountResult?.contractCallSucceeded) {
+          if (!claimAmountResult) {
+            Logger.error(
+              new Error('Failed to decode Merkl claim transaction data'),
+              'useMerklClaimStatus: Failed to decode Merkl claim tx data. Submitting event with partial data.',
+            );
+          } else if (claimAmountResult.contractCallSucceeded) {
             baseProperties.amount_claimed_decimal = calcTokenAmount(
               claimAmountResult.unclaimedRaw,
               MUSD_DECIMALS,
@@ -121,7 +126,10 @@ export const useMerklClaimStatus = () => {
             }
           } else {
             Logger.error(
-              claimAmountResult?.error as Error,
+              claimAmountResult.error ??
+                new Error(
+                  'Merkl claim contract call failed without explicit error',
+                ),
               'useMerklClaimStatus: Failed to get Merkl claim contract data. Submitting event with partial data.',
             );
           }
