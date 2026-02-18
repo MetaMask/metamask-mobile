@@ -10,12 +10,26 @@ import { ToastVariants } from '../../../../component-library/components/Toast/To
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { NotificationFeedbackType } from 'expo-haptics';
 import { MERKL_CLAIM_ORIGIN } from '../components/MerklRewards/constants';
+import Logger from '../../../../util/Logger';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { getUnclaimedAmountForMerklClaimTx } from '../utils/musd';
+import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
+import { useSelector } from 'react-redux';
 
 // Mock all external dependencies
 jest.mock('../../../../core/Engine');
 jest.mock('./useEarnToasts');
 jest.mock('../../../../util/Logger', () => ({
   error: jest.fn(),
+}));
+jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: jest.fn(),
+}));
+jest.mock('../utils/musd', () => ({
+  getUnclaimedAmountForMerklClaimTx: jest.fn(),
+}));
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(),
 }));
 
 type TransactionStatusUpdatedHandler = (event: {
@@ -31,6 +45,14 @@ const mockUnsubscribe = jest.fn<
   [string, TransactionStatusUpdatedHandler]
 >();
 const mockUseEarnToasts = jest.mocked(useEarnToasts);
+const mockUseAnalytics = jest.mocked(useAnalytics);
+const mockGetUnclaimedAmountForMerklClaimTx = jest.mocked(
+  getUnclaimedAmountForMerklClaimTx,
+);
+const mockLoggerError = jest.mocked(Logger.error);
+const mockTrackEvent = jest.fn();
+const mockCreateEventBuilder = jest.fn();
+const mockUseSelector = jest.mocked(useSelector);
 
 // Mock controller methods
 const mockUpdateBalances = jest.fn().mockResolvedValue(undefined);
@@ -114,6 +136,36 @@ describe('useMerklClaimStatus', () => {
     },
   };
 
+  const createMockEventBuilder = () => {
+    const builder = {
+      addProperties: jest.fn(),
+      build: jest.fn(),
+    };
+
+    builder.addProperties.mockImplementation((properties) => {
+      builder.build.mockReturnValue({
+        event: MetaMetricsEvents.MUSD_CLAIM_BONUS_STATUS_UPDATED,
+        properties,
+      });
+      return builder;
+    });
+
+    return builder;
+  };
+
+  const flushAsyncWork = async () => {
+    await act(async () => {
+      await Promise.resolve();
+    });
+  };
+
+  const getTrackedProperties = (callIndex: number): Record<string, unknown> => {
+    const trackedEvent = mockTrackEvent.mock.calls[callIndex]?.[0] as {
+      properties?: Record<string, unknown>;
+    };
+    return trackedEvent?.properties ?? {};
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseEarnToasts.mockReturnValue({
@@ -123,6 +175,15 @@ describe('useMerklClaimStatus', () => {
     mockUpdateBalances.mockResolvedValue(undefined);
     mockDetectTokens.mockResolvedValue(undefined);
     mockRefresh.mockResolvedValue(undefined);
+    mockUseSelector.mockReturnValue({
+      '0x1': { name: 'Ethereum Mainnet' },
+      '0xe708': { name: 'Linea Mainnet' },
+    } as unknown as ReturnType<typeof useSelector>);
+    mockCreateEventBuilder.mockImplementation(createMockEventBuilder);
+    mockUseAnalytics.mockReturnValue({
+      trackEvent: mockTrackEvent,
+      createEventBuilder: mockCreateEventBuilder,
+    } as unknown as ReturnType<typeof useAnalytics>);
   });
 
   afterEach(() => {
@@ -332,5 +393,91 @@ describe('useMerklClaimStatus', () => {
     handler({ transactionMeta });
 
     expect(mockShowToast).toHaveBeenCalledWith(mockFailedToast);
+  });
+
+  it('tracks approved bonus claim event with amount_claimed_decimal', async () => {
+    const transactionMeta = createMockTransactionMeta({
+      id: 'tx-analytics-approved',
+      status: TransactionStatus.approved,
+    });
+    mockGetUnclaimedAmountForMerklClaimTx.mockResolvedValue({
+      totalAmountRaw: '100000',
+      unclaimedRaw: '100000',
+      contractCallSucceeded: true,
+    });
+    renderHook(() => useMerklClaimStatus());
+    const handler = mockSubscribe.mock.calls[0][1];
+
+    handler({ transactionMeta });
+    await flushAsyncWork();
+
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.MUSD_CLAIM_BONUS_STATUS_UPDATED,
+    );
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    expect(getTrackedProperties(0)).toMatchObject({
+      transaction_id: 'tx-analytics-approved',
+      transaction_status: TransactionStatus.approved,
+      amount_claimed_decimal: '0.1',
+    });
+  });
+
+  it('tracks confirmed bonus claim event with cached amount_claimed_decimal', async () => {
+    const transactionId = 'tx-analytics-cached';
+    const approvedTransactionMeta = createMockTransactionMeta({
+      id: transactionId,
+      status: TransactionStatus.approved,
+    });
+    const confirmedTransactionMeta = createMockTransactionMeta({
+      id: transactionId,
+      status: TransactionStatus.confirmed,
+    });
+    mockGetUnclaimedAmountForMerklClaimTx.mockResolvedValue({
+      totalAmountRaw: '100000',
+      unclaimedRaw: '100000',
+      contractCallSucceeded: true,
+    });
+    renderHook(() => useMerklClaimStatus());
+    const handler = mockSubscribe.mock.calls[0][1];
+
+    handler({ transactionMeta: approvedTransactionMeta });
+    await flushAsyncWork();
+    handler({ transactionMeta: confirmedTransactionMeta });
+    await flushAsyncWork();
+
+    expect(mockGetUnclaimedAmountForMerklClaimTx).toHaveBeenCalledTimes(1);
+    expect(mockTrackEvent).toHaveBeenCalledTimes(2);
+    expect(getTrackedProperties(1)).toMatchObject({
+      transaction_id: transactionId,
+      transaction_status: TransactionStatus.confirmed,
+      amount_claimed_decimal: '0.1',
+    });
+  });
+
+  it('tracks bonus claim event without amount_claimed_decimal when contract call fails', async () => {
+    const transactionMeta = createMockTransactionMeta({
+      id: 'tx-analytics-partial',
+      status: TransactionStatus.approved,
+    });
+    mockGetUnclaimedAmountForMerklClaimTx.mockResolvedValue({
+      totalAmountRaw: '100000',
+      unclaimedRaw: '100000',
+      contractCallSucceeded: false,
+      error: new Error('contract call failed'),
+    });
+    renderHook(() => useMerklClaimStatus());
+    const handler = mockSubscribe.mock.calls[0][1];
+
+    handler({ transactionMeta });
+    await flushAsyncWork();
+
+    expect(mockLoggerError).toHaveBeenCalled();
+    expect(getTrackedProperties(0)).toMatchObject({
+      transaction_id: 'tx-analytics-partial',
+      transaction_status: TransactionStatus.approved,
+    });
+    expect(getTrackedProperties(0)).not.toHaveProperty(
+      'amount_claimed_decimal',
+    );
   });
 });
