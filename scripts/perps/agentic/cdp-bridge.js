@@ -4,10 +4,10 @@
  * CDP Bridge — Connect to the running MetaMask app via Hermes Chrome DevTools Protocol.
  *
  * Usage:
- *   node scripts/agentic/cdp-bridge.js navigate PerpsMarketListView
- *   node scripts/agentic/cdp-bridge.js get-route
- *   node scripts/agentic/cdp-bridge.js get-state "engine.backgroundState.NetworkController"
- *   node scripts/agentic/cdp-bridge.js eval "1+1"
+ *   node scripts/perps/agentic/cdp-bridge.js navigate PerpsMarketListView
+ *   node scripts/perps/agentic/cdp-bridge.js get-route
+ *   node scripts/perps/agentic/cdp-bridge.js get-state "engine.backgroundState.NetworkController"
+ *   node scripts/perps/agentic/cdp-bridge.js eval "1+1"
  *
  * Environment:
  *   WATCHER_PORT  Metro port (default: 8081, read from .js.env if present)
@@ -27,7 +27,7 @@ function loadEnvValue(key) {
   try {
     const fs = require('node:fs');
     const path = require('node:path');
-    const envPath = path.resolve(__dirname, '../../.js.env');
+    const envPath = path.resolve(__dirname, '../../../.js.env');
     const content = fs.readFileSync(envPath, 'utf8');
     const match = content.match(new RegExp(`^${key}=(.+)$`, 'm'));
     if (match) return match[1].trim();
@@ -438,7 +438,7 @@ async function main() {
     console.log(`CDP Bridge — interact with the running MetaMask app via Hermes CDP
 
 Usage:
-  node scripts/agentic/cdp-bridge.js <command> [args...]
+  node scripts/perps/agentic/cdp-bridge.js <command> [args...]
 
 Commands:
   navigate <RouteName> [params-json]   Navigate to a screen

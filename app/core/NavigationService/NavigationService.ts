@@ -97,7 +97,7 @@ class NavigationService {
     // Agentic bridge — exposes navigation primitives on globalThis so that
     // AI coding agents (Claude Code, Cursor, etc.) can inspect and drive the
     // app remotely via Metro's Hermes CDP WebSocket. The bridge is consumed
-    // by the scripts in `scripts/agentic/` (cdp-bridge.js).
+    // by the scripts in `scripts/perps/agentic/` (cdp-bridge.js).
     //
     // __DEV__ only — completely stripped from production builds.
     // See docs/perps/perps-agentic-feedback-loop.md for the full workflow.

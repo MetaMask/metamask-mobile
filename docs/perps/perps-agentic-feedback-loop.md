@@ -1,6 +1,8 @@
 # Perps Agentic Feedback Loop
 
 > **Status: WIP** — This document is under active development. The toolkit scripts and workflow are functional but the guide may evolve as we validate across more feature areas and gather feedback from the team.
+>
+> **Location note:** The agentic toolkit currently lives under `scripts/perps/agentic/` while being validated as part of the perps workflow. Once the pattern is proven and adopted by other feature teams, the intent is to promote it to `scripts/agentic/` as general-purpose infrastructure.
 
 <!--
   ## What is this document?
@@ -26,15 +28,15 @@
     in your prompt (e.g., "follow the workflow in docs/perps/perps-agentic-feedback-loop.md").
   - **Custom agents**: Include the file contents in your system prompt or tool context.
 
-  The toolkit scripts in `scripts/agentic/` are platform-agnostic and work on both
+  The toolkit scripts in `scripts/perps/agentic/` are platform-agnostic and work on both
   iOS Simulator and Android Emulator/device. They communicate with the running app
   through Metro's Hermes CDP WebSocket — no native bridge or test framework required.
 
   ## Sharing with the org
 
-  This document and the `scripts/agentic/` toolkit are designed to be portable.
+  This document and the `scripts/perps/agentic/` toolkit are designed to be portable.
   To adopt this pattern in another feature area:
-  1. Copy `scripts/agentic/` into the target repo (the CDP bridge is generic).
+  1. Copy `scripts/perps/agentic/` into the target repo (the CDP bridge is generic).
   2. Ensure `NavigationService.ts` installs the `__AGENTIC__` bridge in `__DEV__` mode.
   3. Adapt the route table and state paths in this doc to the new feature's screens.
   4. Share this doc as the onboarding reference for agents working on that feature.
@@ -45,7 +47,7 @@ How AI agents use the agentic toolkit to verify their own code changes against a
 ## Prerequisites
 
 - App running on **iOS Simulator** or **Android Emulator/device**
-- Metro bundler active (`scripts/agentic/start-metro.sh`)
+- Metro bundler active (`scripts/perps/agentic/start-metro.sh`)
 - The `__AGENTIC__` bridge is auto-installed on `globalThis` by `app/core/NavigationService/NavigationService.ts` in `__DEV__` mode
 - The Redux store is exposed on `globalThis.store` for state queries (set up alongside `__AGENTIC__` in dev mode)
 - **iOS**: Xcode command-line tools (`xcrun simctl`)
@@ -58,7 +60,7 @@ How AI agents use the agentic toolkit to verify their own code changes against a
 ### Start Metro
 
 ```bash
-scripts/agentic/start-metro.sh
+scripts/perps/agentic/start-metro.sh
 ```
 
 Reuses an existing Metro process or starts a new one. Logs go to `.agent/metro.log`. Port is controlled by `WATCHER_PORT` in `.js.env` (default `8081`).
@@ -66,7 +68,7 @@ Reuses an existing Metro process or starts a new one. Logs go to `.agent/metro.l
 ### Verify the app is reachable
 
 ```bash
-scripts/agentic/app-state.sh route
+scripts/perps/agentic/app-state.sh route
 ```
 
 Should return the current route name. If it fails, check: device booted (`xcrun simctl list devices booted` / `adb devices`), Metro running (`lsof -i :${WATCHER_PORT:-8081}`), app installed (take a screenshot).
@@ -99,17 +101,17 @@ The installed APK must be a debug build connected to Metro for CDP to work.
 All tools work on **both iOS and Android**. Platform is auto-detected (see Section 7 for overrides).
 
 ```
-scripts/agentic/app-navigate.sh <Route> [params-json]   # navigate + auto-screenshot
-scripts/agentic/app-state.sh route                        # current route + params
-scripts/agentic/app-state.sh state <dot.path>            # Redux state at path
-scripts/agentic/app-state.sh eval "<js-expression>"       # run JS in app context
-scripts/agentic/app-state.sh nav                          # full navigation tree
-scripts/agentic/app-state.sh can-go-back                  # check if can go back
-scripts/agentic/app-state.sh go-back                      # navigate back
-scripts/agentic/screenshot.sh [label]                     # take screenshot, returns path
-scripts/agentic/start-metro.sh                            # ensure Metro is running
-scripts/agentic/stop-metro.sh                             # stop Metro background process
-scripts/agentic/reload-metro.sh                            # trigger hot-reload on all connected apps
+scripts/perps/agentic/app-navigate.sh <Route> [params-json]   # navigate + auto-screenshot
+scripts/perps/agentic/app-state.sh route                        # current route + params
+scripts/perps/agentic/app-state.sh state <dot.path>            # Redux state at path
+scripts/perps/agentic/app-state.sh eval "<js-expression>"       # run JS in app context
+scripts/perps/agentic/app-state.sh nav                          # full navigation tree
+scripts/perps/agentic/app-state.sh can-go-back                  # check if can go back
+scripts/perps/agentic/app-state.sh go-back                      # navigate back
+scripts/perps/agentic/screenshot.sh [label]                     # take screenshot, returns path
+scripts/perps/agentic/start-metro.sh                            # ensure Metro is running
+scripts/perps/agentic/stop-metro.sh                             # stop Metro background process
+scripts/perps/agentic/reload-metro.sh                            # trigger hot-reload on all connected apps
 ```
 
 **Metro log**: `.agent/metro.log` — grep for errors after changes.
@@ -117,7 +119,7 @@ scripts/agentic/reload-metro.sh                            # trigger hot-reload 
 **Architecture**:
 
 ```
-scripts/agentic/
+scripts/perps/agentic/
 ├── cdp-bridge.js       # CDP engine: WebSocket client, target discovery, eval, navigate
 ├── app-navigate.sh     # Navigate wrapper (calls cdp-bridge + auto-screenshot)
 ├── app-state.sh        # State/route/eval wrapper (calls cdp-bridge)
@@ -132,7 +134,7 @@ The `__AGENTIC__` bridge on `globalThis` exposes: `navigate()`, `getRoute()`, `g
 > **Platform targeting**: CDP-based commands (navigate, state, eval, go-back) are platform-agnostic — they go through Metro's WebSocket and reach whichever app is connected. Screenshots require direct device access (`xcrun simctl` or `adb`), so `screenshot.sh` auto-detects the platform. When both iOS and Android devices are connected, set `PLATFORM=android` or `PLATFORM=ios` to disambiguate. Since `app-navigate.sh` takes a verification screenshot, pass `PLATFORM` when needed:
 >
 > ```bash
-> PLATFORM=android scripts/agentic/app-navigate.sh PerpsMarketListView
+> PLATFORM=android scripts/perps/agentic/app-navigate.sh PerpsMarketListView
 > ```
 
 ---
@@ -143,12 +145,12 @@ After code changes, Metro hot-reloads automatically. Then:
 
 1. **Recover navigation** — hot-reload may reset to home:
    ```bash
-   scripts/agentic/app-navigate.sh WalletTabHome
-   scripts/agentic/app-navigate.sh <TargetScreen> '<params>'
+   scripts/perps/agentic/app-navigate.sh WalletTabHome
+   scripts/perps/agentic/app-navigate.sh <TargetScreen> '<params>'
    ```
-2. **Verify route**: `scripts/agentic/app-state.sh route`
-3. **Inspect state**: `scripts/agentic/app-state.sh state engine.backgroundState.PerpsController`
-4. **Screenshot**: `scripts/agentic/screenshot.sh after-fix`
+2. **Verify route**: `scripts/perps/agentic/app-state.sh route`
+3. **Inspect state**: `scripts/perps/agentic/app-state.sh state engine.backgroundState.PerpsController`
+4. **Screenshot**: `scripts/perps/agentic/screenshot.sh after-fix`
 5. **Check Metro logs**: `grep -iE 'ERROR|error' .agent/metro.log | tail -20`
 6. **Iterate** — if something is wrong, fix code, wait for hot-reload, repeat 1-5.
 
@@ -159,7 +161,7 @@ After code changes, Metro hot-reloads automatically. Then:
 **Console.log to Metro** — logs appear in `.agent/metro.log`:
 
 ```bash
-scripts/agentic/app-state.sh eval "console.log('AGENTIC: checkpoint reached'); 'logged'"
+scripts/perps/agentic/app-state.sh eval "console.log('AGENTIC: checkpoint reached'); 'logged'"
 ```
 
 **Custom `__DEV__` helpers** — for interactions beyond navigation/Redux:
@@ -177,13 +179,13 @@ if (__DEV__) {
 }
 ```
 
-Then: `scripts/agentic/app-state.sh eval "globalThis.__AGENTIC_CUSTOM__?.triggerTrade()"`
+Then: `scripts/perps/agentic/app-state.sh eval "globalThis.__AGENTIC_CUSTOM__?.triggerTrade()"`
 
 **Chaining nav + verify**:
 
 ```bash
-scripts/agentic/app-navigate.sh PerpsMarketDetails '{"market":{"symbol":"BTC","name":"BTC","price":"0","change24h":"0","change24hPercent":"0","volume":"0","maxLeverage":"100"}}'
-scripts/agentic/app-state.sh route
+scripts/perps/agentic/app-navigate.sh PerpsMarketDetails '{"market":{"symbol":"BTC","name":"BTC","price":"0","change24h":"0","change24hPercent":"0","volume":"0","maxLeverage":"100"}}'
+scripts/perps/agentic/app-state.sh route
 ```
 
 ---
@@ -226,7 +228,7 @@ Other useful routes: `WalletTabHome`, `SettingsView`, `DeveloperOptions`, `Brows
 
 | Problem                      | Solution                                                                                              |
 | ---------------------------- | ----------------------------------------------------------------------------------------------------- |
-| Metro crash / stale PID      | `scripts/agentic/stop-metro.sh` then `scripts/agentic/start-metro.sh`                                 |
+| Metro crash / stale PID      | `scripts/perps/agentic/stop-metro.sh` then `scripts/perps/agentic/start-metro.sh`                     |
 | CDP connection failure       | Check Metro running + device booted (iOS: `xcrun simctl list devices booted`, Android: `adb devices`) |
 | Hot-reload resets app        | `app-navigate.sh WalletTabHome` then target screen                                                    |
 | App crash                    | Rebuild: `yarn start:ios` or `yarn start:android`, then navigate                                      |
@@ -242,8 +244,8 @@ Other useful routes: `WalletTabHome`, `SettingsView`, `DeveloperOptions`, `Brows
 ### Platform override
 
 ```bash
-PLATFORM=android scripts/agentic/screenshot.sh my-label
-PLATFORM=ios scripts/agentic/screenshot.sh my-label
+PLATFORM=android scripts/perps/agentic/screenshot.sh my-label
+PLATFORM=ios scripts/perps/agentic/screenshot.sh my-label
 ```
 
 Without `PLATFORM`, auto-detection priority: booted iOS simulator → connected Android device → default iOS.

@@ -3,17 +3,17 @@
 # After navigating, takes a verification screenshot.
 #
 # Usage:
-#   scripts/agentic/app-navigate.sh <RouteName> [params-json]
-#   scripts/agentic/app-navigate.sh --no-screenshot <RouteName>
-#   scripts/agentic/app-navigate.sh PerpsMarketListView          # perps home
-#   scripts/agentic/app-navigate.sh PerpsTrendingView             # market list (all markets)
-#   scripts/agentic/app-navigate.sh PerpsMarketDetails '{"market":{"symbol":"BTC","name":"BTC","price":"0","change24h":"0","change24hPercent":"0","volume":"0","maxLeverage":"100"}}'
-#   scripts/agentic/app-navigate.sh WalletTabHome
-#   scripts/agentic/app-navigate.sh SettingsView
+#   scripts/perps/agentic/app-navigate.sh <RouteName> [params-json]
+#   scripts/perps/agentic/app-navigate.sh --no-screenshot <RouteName>
+#   scripts/perps/agentic/app-navigate.sh PerpsMarketListView          # perps home
+#   scripts/perps/agentic/app-navigate.sh PerpsTrendingView             # market list (all markets)
+#   scripts/perps/agentic/app-navigate.sh PerpsMarketDetails '{"market":{"symbol":"BTC","name":"BTC","price":"0","change24h":"0","change24hPercent":"0","volume":"0","maxLeverage":"100"}}'
+#   scripts/perps/agentic/app-navigate.sh WalletTabHome
+#   scripts/perps/agentic/app-navigate.sh SettingsView
 
 set -euo pipefail
 
-cd "$(dirname "$0")/../.."
+cd "$(dirname "$0")/../../.."
 
 # ── Parse flags ────────────────────────────────────────────────────────
 NO_SCREENSHOT=false
@@ -49,9 +49,9 @@ PARAMS="${POSITIONAL[1]:-}"
 # ── Navigate via CDP ────────────────────────────────────────────────────
 echo "Navigating to $ROUTE..."
 if [ -n "$PARAMS" ]; then
-  RESULT=$(node scripts/agentic/cdp-bridge.js navigate "$ROUTE" "$PARAMS" 2>&1)
+  RESULT=$(node scripts/perps/agentic/cdp-bridge.js navigate "$ROUTE" "$PARAMS" 2>&1)
 else
-  RESULT=$(node scripts/agentic/cdp-bridge.js navigate "$ROUTE" 2>&1)
+  RESULT=$(node scripts/perps/agentic/cdp-bridge.js navigate "$ROUTE" 2>&1)
 fi
 
 # ── Display route change summary ──────────────────────────────────────
@@ -87,9 +87,9 @@ else
   PLATFORM_FLAG=$(echo "$RESULT" | python3 -c "import sys,json; print(json.load(sys.stdin).get('platform',''))" 2>/dev/null || echo "")
 
   if [ -n "$PLATFORM_FLAG" ]; then
-    SCREENSHOT=$(PLATFORM="$PLATFORM_FLAG" scripts/agentic/screenshot.sh "nav-${ROUTE}" 2>&1) || true
+    SCREENSHOT=$(PLATFORM="$PLATFORM_FLAG" scripts/perps/agentic/screenshot.sh "nav-${ROUTE}" 2>&1) || true
   else
-    SCREENSHOT=$(scripts/agentic/screenshot.sh "nav-${ROUTE}" 2>&1) || true
+    SCREENSHOT=$(scripts/perps/agentic/screenshot.sh "nav-${ROUTE}" 2>&1) || true
   fi
 
   if [ -n "$SCREENSHOT" ]; then

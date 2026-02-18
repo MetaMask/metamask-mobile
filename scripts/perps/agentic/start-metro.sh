@@ -11,7 +11,7 @@
 
 set -euo pipefail
 
-cd "$(dirname "$0")/../.."
+cd "$(dirname "$0")/../../.."
 [ -f .js.env ] && source .js.env
 
 PORT="${WATCHER_PORT:-8081}"
@@ -26,8 +26,8 @@ if curl -sf "http://localhost:${PORT}/status" >/dev/null 2>&1; then
   echo "Metro already running on port $PORT."
   echo ""
   echo "To follow live logs:  tail -f $LOGFILE"
-  echo "To reload apps:       ./scripts/agentic/reload-metro.sh"
-  echo "To stop Metro:        ./scripts/agentic/stop-metro.sh"
+  echo "To reload apps:       ./scripts/perps/agentic/reload-metro.sh"
+  echo "To stop Metro:        ./scripts/perps/agentic/stop-metro.sh"
   exit 0
 fi
 
@@ -47,8 +47,8 @@ while [ $ELAPSED -lt $TIMEOUT ]; do
     echo "Metro ready after ${ELAPSED}s."
     echo ""
     echo "To follow live logs:  tail -f $LOGFILE"
-    echo "To reload apps:       ./scripts/agentic/reload-metro.sh"
-    echo "To stop Metro:        ./scripts/agentic/stop-metro.sh"
+    echo "To reload apps:       ./scripts/perps/agentic/reload-metro.sh"
+    echo "To stop Metro:        ./scripts/perps/agentic/stop-metro.sh"
     exit 0
   fi
   if ! kill -0 "$METRO_PID" 2>/dev/null; then

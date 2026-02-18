@@ -10,7 +10,7 @@
 
 set -euo pipefail
 
-cd "$(dirname "$0")/../.."
+cd "$(dirname "$0")/../../.."
 [ -f .js.env ] && source .js.env
 
 PORT="${WATCHER_PORT:-8081}"

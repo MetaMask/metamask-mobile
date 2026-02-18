@@ -1,6 +1,6 @@
 #!/bin/bash
 # Take a screenshot of the iOS Simulator or Android Emulator and save it to .agent/screenshots/.
-# Usage: scripts/agentic/screenshot.sh [label]
+# Usage: scripts/perps/agentic/screenshot.sh [label]
 # Output: prints the absolute path to the saved screenshot.
 #
 # Platform detection order:
@@ -19,7 +19,7 @@
 
 set -euo pipefail
 
-cd "$(dirname "$0")/../.."
+cd "$(dirname "$0")/../../.."
 [ -f .js.env ] && source .js.env
 
 LABEL="${1:-screenshot}"
