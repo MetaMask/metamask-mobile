@@ -254,6 +254,8 @@ describe('useTokenSelection', () => {
           ticker: 'ETH',
           rpcPrefs: {
             blockExplorerUrl: 'https://mock-network-explorer.example',
+            imageUrl: 'MOCK',
+            imageSource: 'mock-image',
           },
         });
       const tokenOnMissingNetwork = createMockToken({

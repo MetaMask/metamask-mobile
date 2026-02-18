@@ -171,7 +171,7 @@ let mockPopularTokensState = {
   popularTokens: [createMockPopularToken({ symbol: 'USDC', name: 'USD Coin' })],
   isLoading: false,
 };
-const mockUsePopularTokens = jest.fn(() => mockPopularTokensState);
+const mockUsePopularTokens = jest.fn((_: unknown) => mockPopularTokensState);
 jest.mock('../../hooks/usePopularTokens', () => ({
   usePopularTokens: (params: unknown) => mockUsePopularTokens(params),
 }));
@@ -189,7 +189,7 @@ let mockSearchTokensState = {
   debouncedSearch: mockDebouncedSearch,
   resetSearch: mockResetSearch,
 };
-const mockUseSearchTokens = jest.fn(() => mockSearchTokensState);
+const mockUseSearchTokens = jest.fn((_: unknown) => mockSearchTokensState);
 jest.mock('../../hooks/useSearchTokens', () => ({
   useSearchTokens: (params: unknown) => mockUseSearchTokens(params),
 }));
@@ -198,7 +198,9 @@ let mockBalancesByAssetIdState = {
   tokensWithBalance: [] as ReturnType<typeof createMockToken>[],
   balancesByAssetId: {},
 };
-const mockUseBalancesByAssetId = jest.fn(() => mockBalancesByAssetIdState);
+const mockUseBalancesByAssetId = jest.fn(
+  (_: unknown) => mockBalancesByAssetIdState,
+);
 jest.mock('../../hooks/useBalancesByAssetId', () => ({
   useBalancesByAssetId: (params: unknown) => mockUseBalancesByAssetId(params),
 }));
