@@ -1,9 +1,8 @@
 /* eslint-disable import/prefer-default-export */
 import { StyleSheet } from 'react-native';
+import type { Theme } from '@metamask/design-tokens';
 
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const createStyles = (colors: any) =>
+export const createStyles = ({ theme: { colors } }: { theme: Theme }) =>
   StyleSheet.create({
     fixCenterIcon: {
       marginBottom: -3,
