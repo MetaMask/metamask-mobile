@@ -4,6 +4,11 @@ import Routes from '../../../../constants/navigation/Routes';
 
 import { usePredictToastRegistrations } from './usePredictToastRegistrations';
 
+const mockInvalidateQueries = jest.fn();
+jest.mock('@tanstack/react-query', () => ({
+  useQueryClient: () => ({ invalidateQueries: mockInvalidateQueries }),
+}));
+
 const mockDeposit = jest.fn();
 const mockClaim = jest.fn();
 const mockWithdraw = jest.fn();
@@ -146,6 +151,11 @@ describe('usePredictToastRegistrations', () => {
           iconName: 'Confirmation',
         }),
       );
+      expect(mockInvalidateQueries).toHaveBeenCalledWith(
+        expect.objectContaining({
+          queryKey: ['predict', 'balance'],
+        }),
+      );
     });
 
     it('uses account ready fallback when deposit confirmed amount is missing', () => {
@@ -233,6 +243,7 @@ describe('usePredictToastRegistrations', () => {
       );
 
       expect(showToast).not.toHaveBeenCalled();
+      expect(mockInvalidateQueries).not.toHaveBeenCalled();
     });
   });
 
@@ -284,6 +295,11 @@ describe('usePredictToastRegistrations', () => {
             }),
           ]),
           iconName: 'Confirmation',
+        }),
+      );
+      expect(mockInvalidateQueries).toHaveBeenCalledWith(
+        expect.objectContaining({
+          queryKey: ['predict', 'balance'],
         }),
       );
     });
@@ -373,6 +389,11 @@ describe('usePredictToastRegistrations', () => {
       expect(showToast).toHaveBeenCalledWith(
         expect.objectContaining({
           iconName: 'Confirmation',
+        }),
+      );
+      expect(mockInvalidateQueries).toHaveBeenCalledWith(
+        expect.objectContaining({
+          queryKey: ['predict', 'balance'],
         }),
       );
     });

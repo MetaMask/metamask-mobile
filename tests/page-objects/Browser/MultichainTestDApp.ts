@@ -13,10 +13,10 @@ import { waitFor } from 'detox';
 import ConnectBottomSheet from './ConnectBottomSheet';
 import MultichainUtilities from '../../helpers/multichain/MultichainUtilities';
 import { loginToApp } from '../../flows/wallet.flow';
-import TabBarComponent from '../wallet/TabBarComponent';
 import Assertions from '../../framework/Assertions';
 import { isCaipChainId } from '@metamask/utils';
 import { createLogger } from '../../framework/logger';
+import { navigateToBrowserView } from '../../flows/browser.flow';
 
 const logger = createLogger({
   name: 'MultichainTestDApp',
@@ -146,8 +146,7 @@ class MultichainTestDApp {
       await TestHelpers.reverseServerPort();
       await loginToApp();
     }
-    await TabBarComponent.tapBrowser();
-    await Assertions.checkIfVisible(Browser.browserScreenID);
+    await navigateToBrowserView();
     await this.navigateToMultichainTestDApp(urlParams);
 
     // Verify WebView is visible
