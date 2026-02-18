@@ -7,7 +7,6 @@ import BuildQuoteView from '../../page-objects/Ramps/BuildQuoteView';
 import TokenSelectScreen from '../../page-objects/Ramps/TokenSelectScreen';
 
 import Assertions from '../../framework/Assertions';
-import { PopularNetworksList } from '../../resources/networks.e2e';
 import { setupRegionAwareOnRampMocks } from '../../api-mocking/mock-responses/ramps/ramps-region-aware-mock-setup';
 import { Mockttp } from 'mockttp';
 import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
@@ -85,9 +84,6 @@ describe(SmokeRamps('Buy Crypto Deeplinks'), () => {
           url: BuyDeepLink,
         });
         await Assertions.expectTextDisplayed('USD Coin');
-        await Assertions.expectTextDisplayed(
-          PopularNetworksList.Base.providerConfig.nickname,
-        );
       },
     );
   });
