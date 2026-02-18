@@ -54,7 +54,7 @@ describe('MetaMask Pay Feature Flags', () => {
 
     state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
       {
-        confirmation_pay: {
+        confirmations_pay: {
           bufferStep: 1.234,
         },
       };
@@ -67,7 +67,7 @@ describe('MetaMask Pay Feature Flags', () => {
 
     state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
       {
-        confirmation_pay: {
+        confirmations_pay: {
           bufferInitial: 2.345,
         },
       };
@@ -80,7 +80,7 @@ describe('MetaMask Pay Feature Flags', () => {
 
     state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
       {
-        confirmation_pay: {
+        confirmations_pay: {
           bufferSubsequent: 5.678,
         },
       };
@@ -93,7 +93,7 @@ describe('MetaMask Pay Feature Flags', () => {
 
     state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
       {
-        confirmation_pay: {
+        confirmations_pay: {
           attemptsMax: 3,
         },
       };
@@ -106,7 +106,7 @@ describe('MetaMask Pay Feature Flags', () => {
 
     state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
       {
-        confirmation_pay: {
+        confirmations_pay: {
           slippage: 0.123,
         },
       };
@@ -257,7 +257,7 @@ describe('Gas Fee Token Flags', () => {
 });
 
 describe('Withdraw Any Token Flags (in selectMetaMaskPayFlags)', () => {
-  it('returns withdraw defaults when confirmation_pay is missing', () => {
+  it('returns withdraw defaults when confirmations_pay is missing', () => {
     const result = selectMetaMaskPayFlags(mockedEmptyFlagsState);
 
     expect(result.predictWithdrawAnyToken).toBe(false);
@@ -268,7 +268,7 @@ describe('Withdraw Any Token Flags (in selectMetaMaskPayFlags)', () => {
     const state = cloneDeep(mockedEmptyFlagsState);
     state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
       {
-        confirmation_pay: {
+        confirmations_pay: {
           predictWithdrawAnyToken: true,
         },
       };
@@ -282,7 +282,7 @@ describe('Withdraw Any Token Flags (in selectMetaMaskPayFlags)', () => {
     const state = cloneDeep(mockedEmptyFlagsState);
     state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
       {
-        confirmation_pay: {
+        confirmations_pay: {
           perpsWithdrawAnyToken: true,
         },
       };

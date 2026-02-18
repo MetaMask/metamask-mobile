@@ -33,7 +33,7 @@ export interface GasFeeTokenFlags {
 export const selectMetaMaskPayFlags = createSelector(
   selectRemoteFeatureFlags,
   (featureFlags): MetaMaskPayFlags => {
-    const metaMaskPayFlags = featureFlags?.confirmation_pay as
+    const metaMaskPayFlags = featureFlags?.confirmations_pay as
       | Record<string, Json>
       | undefined;
 

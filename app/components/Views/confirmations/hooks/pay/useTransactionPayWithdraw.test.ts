@@ -31,7 +31,7 @@ function runHook({
   mockState.engine.backgroundState.RemoteFeatureFlagController = {
     ...mockState.engine.backgroundState.RemoteFeatureFlagController,
     remoteFeatureFlags: {
-      confirmation_pay: {
+      confirmations_pay: {
         predictWithdrawAnyToken,
       },
     },
