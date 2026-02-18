@@ -441,8 +441,20 @@ class CustomReporter {
             }
           }
 
-          // Fetch profiling data from BrowserStack API
+          // Fetch buildId independently so network logs work even if profiling fails
           let buildId = null;
+          try {
+            const sessionDetails = await appProfilingHandler.getSessionDetails(
+              session.sessionId,
+            );
+            buildId = sessionDetails?.buildId || null;
+          } catch (error) {
+            console.log(
+              `⚠️ Failed to get session details for ${session.testTitle}: ${error.message}`,
+            );
+          }
+
+          // Fetch profiling data from BrowserStack API
           try {
             console.log(
               `🔍 Fetching profiling data for ${session.testTitle}...`,
@@ -451,8 +463,6 @@ class CustomReporter {
               await appProfilingHandler.fetchCompleteProfilingData(
                 session.sessionId,
               );
-
-            buildId = profilingResult.sessionDetails?.buildId || null;
 
             if (profilingResult.error) {
               console.log(`⚠️ ${profilingResult.error}`);

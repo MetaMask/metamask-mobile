@@ -86,7 +86,7 @@ export class PerformanceTracker {
           {
             status,
             message: error.message,
-            data: error.message,
+            data: error.body || null,
           },
         );
 

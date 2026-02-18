@@ -2,6 +2,7 @@ import { createLogger } from '../../../logger.ts';
 
 const logger = createLogger({ name: 'BrowserStackAPI' });
 const API_BASE_URL = 'https://api-cloud.browserstack.com/app-automate';
+const DEFAULT_TIMEOUT_MS = 8000;
 
 /**
  * Custom error that preserves the HTTP status code from API responses.
@@ -9,11 +10,13 @@ const API_BASE_URL = 'https://api-cloud.browserstack.com/app-automate';
  */
 export class BrowserStackAPIError extends Error {
   status: number;
+  body: string | null;
 
-  constructor(message: string, status: number) {
+  constructor(message: string, status: number, body: string | null = null) {
     super(message);
     this.name = 'BrowserStackAPIError';
     this.status = status;
+    this.body = body;
   }
 }
 
@@ -134,6 +137,7 @@ export class BrowserStackAPI {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(body),
+      signal: AbortSignal.timeout(DEFAULT_TIMEOUT_MS),
     });
 
     if (!response.ok) {
@@ -165,12 +169,15 @@ export class BrowserStackAPI {
       headers: {
         Authorization: this.getAuthHeader(),
       },
+      signal: AbortSignal.timeout(DEFAULT_TIMEOUT_MS),
     });
 
     if (!response.ok) {
+      const errorBody = await response.text();
       throw new BrowserStackAPIError(
         `Error fetching BrowserStack session: ${response.statusText}`,
         response.status,
+        errorBody,
       );
     }
 
@@ -206,6 +213,7 @@ export class BrowserStackAPI {
           Authorization: this.getAuthHeader(),
           'Content-Type': 'application/json',
         },
+        signal: AbortSignal.timeout(DEFAULT_TIMEOUT_MS),
       },
     );
 
@@ -239,6 +247,7 @@ export class BrowserStackAPI {
         headers: {
           Authorization: this.getAuthHeader(),
         },
+        signal: AbortSignal.timeout(DEFAULT_TIMEOUT_MS),
       },
     );
 
