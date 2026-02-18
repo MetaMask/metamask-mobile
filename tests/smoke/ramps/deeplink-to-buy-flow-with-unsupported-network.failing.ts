@@ -16,7 +16,8 @@ import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
 import { remoteFeatureFlagRampsUnifiedEnabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 
-// This test was migrated to the new framework but should be reworked to use withFixtures properly
+// This test is failing because we do not have any UI related to navigating to an unsupported network
+// We shall update once there is a decision on what that UI looks like.
 describe(SmokeRamps('Buy Crypto Deeplinks - Unsupported Network'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
