@@ -27,8 +27,8 @@ describe('Contacts', () => {
       { name: 'ContactsSettings' },
       { state: initialState },
     );
-    expect(getByTestId(ContactsViewSelectorIDs.HEADER)).toBeTruthy();
-    expect(getByText('Contacts')).toBeTruthy();
+    expect(getByTestId(ContactsViewSelectorIDs.HEADER)).toBeOnTheScreen();
+    expect(getByText('Contacts')).toBeOnTheScreen();
   });
 
   it('calls navigation.goBack when header back button is pressed', () => {
