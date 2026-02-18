@@ -27,6 +27,7 @@ import {
 import { isEligibleForMerklRewards } from '../../../Earn/components/MerklRewards/hooks/useMerklRewards';
 import { MUSD_CONVERSION_APY } from '../../../Earn/constants/musd';
 import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
+import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../../Earn/types/musd.types';
 
 jest.mock('../../../Stake/components/StakeButton', () => ({
   __esModule: true,
@@ -740,7 +741,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       expect(queryByText('Convert to mUSD')).toBeNull();
     });
 
-    it('calls initiateConversion with correct parameters when secondary balance is pressed', async () => {
+    it('calls initiateCustomConversion with correct parameters when secondary balance is pressed', async () => {
       prepareMocks({
         asset: usdcAsset,
         isMusdConversionEnabled: true,
@@ -767,6 +768,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
             chainId: toHex('0x1'),
           },
           navigationStack: Routes.EARN.ROOT,
+          navigationOverride: MUSD_CONVERSION_NAVIGATION_OVERRIDE.QUICK_CONVERT,
         });
       });
     });

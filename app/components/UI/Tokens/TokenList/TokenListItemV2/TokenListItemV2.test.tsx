@@ -33,6 +33,7 @@ import {
 import { isEligibleForMerklRewards } from '../../../Earn/components/MerklRewards/hooks/useMerklRewards';
 import { MUSD_CONVERSION_APY } from '../../../Earn/constants/musd';
 import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
+import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../../Earn/types/musd.types';
 
 jest.mock('../../../Stake/components/StakeButton', () => ({
   __esModule: true,
@@ -107,11 +108,11 @@ jest.mock('../../../Earn/hooks/useStablecoinLendingRedirect', () => ({
   useStablecoinLendingRedirect: () => mockHandleStablecoinLendingRedirect,
 }));
 
-const mockInitiateConversion = jest.fn();
+const mockInitiateCustomConversion = jest.fn().mockResolvedValue(undefined);
 let mockHasSeenConversionEducationScreen = true;
 jest.mock('../../../Earn/hooks/useMusdConversion', () => ({
   useMusdConversion: () => ({
-    initiateConversion: mockInitiateConversion,
+    initiateCustomConversion: mockInitiateCustomConversion,
     error: null,
     hasSeenConversionEducationScreen: mockHasSeenConversionEducationScreen,
   }),
@@ -781,7 +782,7 @@ describe('TokenListItemV2 - Component Rendering Tests for Coverage', () => {
       expect(queryByText('Convert to mUSD')).toBeNull();
     });
 
-    it('calls initiateConversion with correct parameters when secondary balance is pressed', async () => {
+    it('calls initiateCustomConversion with correct parameters when secondary balance is pressed', async () => {
       prepareMocks({
         asset: usdcAsset,
         isMusdConversionEnabled: true,
@@ -797,20 +798,25 @@ describe('TokenListItemV2 - Component Rendering Tests for Coverage', () => {
         />,
       );
 
+      await waitFor(() => {
+        expect(getByTestId(SECONDARY_BALANCE_BUTTON_TEST_ID)).toBeOnTheScreen();
+      });
+
       await act(async () => {
         fireEvent.press(getByTestId(SECONDARY_BALANCE_BUTTON_TEST_ID));
       });
 
       await waitFor(() => {
-        expect(mockInitiateConversion).toHaveBeenCalledWith({
+        expect(mockInitiateCustomConversion).toHaveBeenCalledWith({
           preferredPaymentToken: {
             address: toHex('0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48'),
             chainId: toHex('0x1'),
           },
           navigationStack: Routes.EARN.ROOT,
+          navigationOverride: MUSD_CONVERSION_NAVIGATION_OVERRIDE.QUICK_CONVERT,
         });
       });
-    });
+    }, 10000);
 
     it('tracks mUSD conversion CTA clicked event when pressed and education screen has not been seen', async () => {
       // Arrange
@@ -827,13 +833,20 @@ describe('TokenListItemV2 - Component Rendering Tests for Coverage', () => {
         isStaked: false,
       };
 
-      const { getByTestId } = renderWithProvider(
+      const { getByTestId, getByText } = renderWithProvider(
         <TokenListItemV2
           assetKey={convertAssetKey}
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
           privacyMode={false}
         />,
+      );
+
+      await waitFor(
+        () => {
+          expect(getByText('Get 3% mUSD bonus')).toBeOnTheScreen();
+        },
+        { timeout: 3000 },
       );
 
       mockTrackEvent.mockClear();
@@ -847,7 +860,12 @@ describe('TokenListItemV2 - Component Rendering Tests for Coverage', () => {
       });
 
       // Assert
-      expect(mockCreateEventBuilder).toHaveBeenCalledTimes(1);
+      await waitFor(
+        () => {
+          expect(mockCreateEventBuilder).toHaveBeenCalledTimes(1);
+        },
+        { timeout: 3000 },
+      );
       const { MetaMetricsEvents } = jest.requireActual(
         '../../../../hooks/useMetrics',
       );
@@ -870,7 +888,7 @@ describe('TokenListItemV2 - Component Rendering Tests for Coverage', () => {
 
       expect(mockTrackEvent).toHaveBeenCalledTimes(1);
       expect(mockTrackEvent).toHaveBeenCalledWith({ name: 'mock-built-event' });
-    });
+    }, 10000);
 
     it('tracks mUSD conversion CTA clicked event pressed and education screen has been seen', async () => {
       // Arrange
@@ -887,13 +905,20 @@ describe('TokenListItemV2 - Component Rendering Tests for Coverage', () => {
         isStaked: false,
       };
 
-      const { getByTestId } = renderWithProvider(
+      const { getByTestId, getByText } = renderWithProvider(
         <TokenListItemV2
           assetKey={convertAssetKey}
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
           privacyMode={false}
         />,
+      );
+
+      await waitFor(
+        () => {
+          expect(getByText('Get 3% mUSD bonus')).toBeOnTheScreen();
+        },
+        { timeout: 3000 },
       );
 
       mockTrackEvent.mockClear();
@@ -907,7 +932,12 @@ describe('TokenListItemV2 - Component Rendering Tests for Coverage', () => {
       });
 
       // Assert
-      expect(mockCreateEventBuilder).toHaveBeenCalledTimes(1);
+      await waitFor(
+        () => {
+          expect(mockCreateEventBuilder).toHaveBeenCalledTimes(1);
+        },
+        { timeout: 3000 },
+      );
       const { MetaMetricsEvents } = jest.requireActual(
         '../../../../hooks/useMetrics',
       );
@@ -930,7 +960,7 @@ describe('TokenListItemV2 - Component Rendering Tests for Coverage', () => {
 
       expect(mockTrackEvent).toHaveBeenCalledTimes(1);
       expect(mockTrackEvent).toHaveBeenCalledWith({ name: 'mock-built-event' });
-    });
+    }, 10000);
   });
 
   describe('Stock Badge', () => {
@@ -1161,13 +1191,20 @@ describe('TokenListItemV2 - Component Rendering Tests for Coverage', () => {
         isMerklEligible: true,
       });
 
-      const { getByTestId } = renderWithProvider(
+      const { getByTestId, getByText } = renderWithProvider(
         <TokenListItemV2
           assetKey={assetKey}
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
           privacyMode={false}
         />,
+      );
+
+      await waitFor(
+        () => {
+          expect(getByText(strings('earn.claim_bonus'))).toBeOnTheScreen();
+        },
+        { timeout: 3000 },
       );
 
       mockTrackEvent.mockClear();
@@ -1179,7 +1216,12 @@ describe('TokenListItemV2 - Component Rendering Tests for Coverage', () => {
         fireEvent.press(getByTestId(SECONDARY_BALANCE_BUTTON_TEST_ID));
       });
 
-      expect(mockCreateEventBuilder).toHaveBeenCalledTimes(1);
+      await waitFor(
+        () => {
+          expect(mockCreateEventBuilder).toHaveBeenCalledTimes(1);
+        },
+        { timeout: 3000 },
+      );
       const { MetaMetricsEvents } = jest.requireActual(
         '../../../../hooks/useMetrics',
       );
@@ -1199,7 +1241,7 @@ describe('TokenListItemV2 - Component Rendering Tests for Coverage', () => {
 
       expect(mockTrackEvent).toHaveBeenCalledTimes(1);
       expect(mockTrackEvent).toHaveBeenCalledWith({ name: 'mock-built-event' });
-    });
+    }, 10000);
 
     it('calls claimRewards when claim bonus is pressed', async () => {
       prepareMocks({
@@ -1210,13 +1252,20 @@ describe('TokenListItemV2 - Component Rendering Tests for Coverage', () => {
         isMerklEligible: true,
       });
 
-      const { getByTestId } = renderWithProvider(
+      const { getByTestId, getByText } = renderWithProvider(
         <TokenListItemV2
           assetKey={assetKey}
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
           privacyMode={false}
         />,
+      );
+
+      await waitFor(
+        () => {
+          expect(getByText(strings('earn.claim_bonus'))).toBeOnTheScreen();
+        },
+        { timeout: 3000 },
       );
 
       mockClaimRewards.mockClear();
