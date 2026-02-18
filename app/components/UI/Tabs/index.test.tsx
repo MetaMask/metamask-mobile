@@ -254,7 +254,7 @@ describe('Tabs', () => {
       expect(mockCloseTabsView).toHaveBeenCalledTimes(1);
     });
 
-    it('calls newTab and closeTabsView when add button is pressed', () => {
+    it('calls newTab but does not eagerly close tabs view when add button is pressed', () => {
       const { getByTestId } = renderWithProvider(
         <Tabs
           tabs={mockTabs}
@@ -270,28 +270,8 @@ describe('Tabs', () => {
       fireEvent.press(getByTestId(BrowserViewSelectorsIDs.ADD_NEW_TAB));
 
       expect(mockNewTab).toHaveBeenCalledTimes(1);
-      expect(mockCloseTabsView).toHaveBeenCalledTimes(1);
-    });
-
-    it('does not close tabs view when newTab returns false (max tabs modal shown)', () => {
-      const mockNewTabReturnsFalse = jest.fn().mockReturnValue(false);
-
-      const { getByTestId } = renderWithProvider(
-        <Tabs
-          tabs={mockTabs}
-          activeTab={1}
-          newTab={mockNewTabReturnsFalse}
-          closeTab={mockCloseTab}
-          closeTabsView={mockCloseTabsView}
-          switchToTab={mockSwitchToTab}
-        />,
-        { state: mockInitialState },
-      );
-
-      fireEvent.press(getByTestId(BrowserViewSelectorsIDs.ADD_NEW_TAB));
-
-      expect(mockNewTabReturnsFalse).toHaveBeenCalledTimes(1);
-      // closeTabsView should NOT be called when max tabs modal is shown
+      // closeTabsView is NOT called here; Browser's switchToTab closes
+      // the tabs view via hideTabsAndUpdateUrl after the new tab is detected
       expect(mockCloseTabsView).not.toHaveBeenCalled();
     });
 

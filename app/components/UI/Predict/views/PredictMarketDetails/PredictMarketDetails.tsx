@@ -68,10 +68,8 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
 
   const { marketId, entryPoint, title, image } = route.params || {};
   const resolvedMarketId = marketId;
-  const providerId = 'polymarket';
 
   const { executeGuardedAction } = usePredictActionGuard({
-    providerId,
     navigation,
   });
 
@@ -81,7 +79,6 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     refetch: refetchMarket,
   } = usePredictMarket({
     id: resolvedMarketId,
-    providerId,
     enabled: Boolean(resolvedMarketId),
   });
 
@@ -177,11 +174,10 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     isPriceHistoryFetching,
     refetchPriceHistory,
     timeframes,
-  } = useChartData({ market, hasAnyOutcomeToken, providerId });
+  } = useChartData({ market, hasAnyOutcomeToken });
 
   const { closedOutcomes, openOutcomes, yesPercentage } = useOpenOutcomes({
     market,
-    providerId,
     isMarketFetching,
   });
 

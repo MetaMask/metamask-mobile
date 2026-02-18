@@ -109,8 +109,6 @@ import DSText, {
 } from '../../../component-library/components/Texts/Text';
 import { getTokenExchangeRate } from '../Bridge/utils/exchange-rates';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
-import MerklRewards from '../Earn/components/MerklRewards';
-import { selectMerklCampaignClaimingEnabledFlag } from '../Earn/selectors/featureFlags';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import {
   selectTronResourcesBySelectedAccountGroup,
@@ -213,9 +211,6 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const allTokenMarketData = useSelector(selectTokenMarketData);
   const selectedChainId = useSelector(selectEvmChainId);
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
-  const isMerklCampaignClaimingEnabled = useSelector(
-    selectMerklCampaignClaimingEnabledFlag,
-  );
   const { navigateToSendPage } = useSendNavigation();
 
   const nativeCurrency = useSelector((state: RootState) =>
@@ -239,13 +234,8 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   ///: END:ONLY_INCLUDE_IF
 
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
-  const tronResources = useSelector(selectTronResourcesBySelectedAccountGroup);
-
-  const strxEnergy = tronResources.find(
-    (a) => a.symbol.toLowerCase() === 'strx-energy',
-  );
-  const strxBandwidth = tronResources.find(
-    (a) => a.symbol.toLowerCase() === 'strx-bandwidth',
+  const { stakedTrxForEnergy, stakedTrxForBandwidth } = useSelector(
+    selectTronResourcesBySelectedAccountGroup,
   );
 
   // Use selector to get live Tron asset balance (not static navigation params)
@@ -595,7 +585,11 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
 
   // create Staked TRX derived asset (same as native TRX but with a new name and balance)
   const stakedTrxAsset = isTronNative
-    ? createStakedTrxAsset(asset, strxEnergy?.balance, strxBandwidth?.balance)
+    ? createStakedTrxAsset(
+        asset,
+        stakedTrxForEnergy?.balance,
+        stakedTrxForBandwidth?.balance,
+      )
     : undefined;
   ///: END:ONLY_INCLUDE_IF
 
@@ -788,11 +782,6 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
             )
             ///: END:ONLY_INCLUDE_IF
           }
-          {isMerklCampaignClaimingEnabled && (
-            <View testID="merkl-rewards-section">
-              <MerklRewards asset={asset} />
-            </View>
-          )}
           {isPerpsEnabled &&
             hasPerpsMarket &&
             marketData &&

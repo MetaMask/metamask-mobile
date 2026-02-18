@@ -8,6 +8,7 @@
  * - Cache latest updates per provider per symbol for aggregation
  */
 
+import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 import type {
   PerpsProviderType,
   PerpsProvider,
@@ -24,15 +25,14 @@ import type {
   SubscribeAccountParams,
 } from '../types';
 import { ensureError } from '../utils/errorUtils';
-import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 
 /**
  * Options for constructing SubscriptionMultiplexer
  */
-export interface SubscriptionMultiplexerOptions {
+export type SubscriptionMultiplexerOptions = {
   /** Optional logger for error reporting (e.g., Sentry) */
   logger?: PerpsLogger;
-}
+};
 
 /**
  * Aggregation mode for price subscriptions
@@ -42,7 +42,7 @@ export type PriceAggregationMode = 'merge' | 'best_price';
 /**
  * Parameters for multiplexed price subscriptions
  */
-export interface MultiplexedPricesParams {
+export type MultiplexedPricesParams = {
   /** Symbols to subscribe to */
   symbols: string[];
   /** Provider instances to subscribe through */
@@ -57,47 +57,47 @@ export interface MultiplexedPricesParams {
   includeOrderBook?: boolean;
   /** Include market data (funding, OI, volume) */
   includeMarketData?: boolean;
-}
+};
 
 /**
  * Parameters for multiplexed position subscriptions
  */
-export interface MultiplexedPositionsParams {
+export type MultiplexedPositionsParams = {
   /** Provider instances to subscribe through */
   providers: [PerpsProviderType, PerpsProvider][];
   /** Callback to receive aggregated position updates */
   callback: (positions: Position[]) => void;
-}
+};
 
 /**
  * Parameters for multiplexed order fill subscriptions
  */
-export interface MultiplexedOrderFillsParams {
+export type MultiplexedOrderFillsParams = {
   /** Provider instances to subscribe through */
   providers: [PerpsProviderType, PerpsProvider][];
   /** Callback to receive aggregated order fill updates */
   callback: (fills: OrderFill[], isSnapshot?: boolean) => void;
-}
+};
 
 /**
  * Parameters for multiplexed order subscriptions
  */
-export interface MultiplexedOrdersParams {
+export type MultiplexedOrdersParams = {
   /** Provider instances to subscribe through */
   providers: [PerpsProviderType, PerpsProvider][];
   /** Callback to receive aggregated order updates */
   callback: (orders: Order[]) => void;
-}
+};
 
 /**
  * Parameters for multiplexed account subscriptions
  */
-export interface MultiplexedAccountParams {
+export type MultiplexedAccountParams = {
   /** Provider instances to subscribe through */
   providers: [PerpsProviderType, PerpsProvider][];
   /** Callback to receive account updates (one per provider) */
   callback: (accounts: AccountState[]) => void;
-}
+};
 
 /**
  * SubscriptionMultiplexer manages real-time data subscriptions across
@@ -134,36 +134,32 @@ export class SubscriptionMultiplexer {
   /**
    * Optional logger for error reporting
    */
-  private readonly logger?: PerpsLogger;
+  readonly #logger?: PerpsLogger;
 
   /**
    * Cache of latest prices per symbol per provider
    * Map<symbol, Map<providerId, PriceUpdate>>
    */
-  private readonly priceCache: Map<
-    string,
-    Map<PerpsProviderType, PriceUpdate>
-  > = new Map();
+  readonly #priceCache: Map<string, Map<PerpsProviderType, PriceUpdate>> =
+    new Map();
 
   /**
    * Cache of latest positions per provider
    * Map<providerId, Position[]>
    */
-  private readonly positionCache: Map<PerpsProviderType, Position[]> =
-    new Map();
+  readonly #positionCache: Map<PerpsProviderType, Position[]> = new Map();
 
   /**
    * Cache of latest orders per provider
    * Map<providerId, Order[]>
    */
-  private readonly orderCache: Map<PerpsProviderType, Order[]> = new Map();
+  readonly #orderCache: Map<PerpsProviderType, Order[]> = new Map();
 
   /**
    * Cache of latest account state per provider
    * Map<providerId, AccountState>
    */
-  private readonly accountCache: Map<PerpsProviderType, AccountState> =
-    new Map();
+  readonly #accountCache: Map<PerpsProviderType, AccountState> = new Map();
 
   /**
    * Create a new SubscriptionMultiplexer.
@@ -171,7 +167,7 @@ export class SubscriptionMultiplexer {
    * @param options - Optional configuration including logger for error reporting
    */
   constructor(options?: SubscriptionMultiplexerOptions) {
-    this.logger = options?.logger;
+    this.#logger = options?.logger;
   }
 
   /**
@@ -204,17 +200,17 @@ export class SubscriptionMultiplexer {
               const taggedUpdate: PriceUpdate = { ...update, providerId };
 
               // Initialize symbol cache if needed
-              if (!this.priceCache.has(update.symbol)) {
-                this.priceCache.set(update.symbol, new Map());
+              if (!this.#priceCache.has(update.symbol)) {
+                this.#priceCache.set(update.symbol, new Map());
               }
-              const symbolCache = this.priceCache.get(update.symbol);
+              const symbolCache = this.#priceCache.get(update.symbol);
               if (symbolCache) {
                 symbolCache.set(providerId, taggedUpdate);
               }
             });
 
             // Aggregate and emit based on mode
-            const aggregated = this.aggregatePrices(symbols, aggregationMode);
+            const aggregated = this.#aggregatePrices(symbols, aggregationMode);
             callback(aggregated);
           },
           throttleMs,
@@ -226,7 +222,7 @@ export class SubscriptionMultiplexer {
         unsubscribers.push(unsub);
       } catch (error) {
         // Log to Sentry before cleanup
-        this.logger?.error(
+        this.#logger?.error(
           ensureError(error, 'SubscriptionMultiplexer.subscribeToPrices'),
           {
             tags: {
@@ -252,7 +248,7 @@ export class SubscriptionMultiplexer {
       unsubscribers.forEach((unsub) => unsub());
       // Optionally clear cache for these symbols
       symbols.forEach((symbol) => {
-        this.priceCache.delete(symbol);
+        this.#priceCache.delete(symbol);
       });
     };
   }
@@ -276,10 +272,10 @@ export class SubscriptionMultiplexer {
               ...pos,
               providerId,
             }));
-            this.positionCache.set(providerId, taggedPositions);
+            this.#positionCache.set(providerId, taggedPositions);
 
             // Emit aggregated positions from all providers
-            const allPositions = this.aggregatePositions();
+            const allPositions = this.#aggregatePositions();
             callback(allPositions);
           },
         };
@@ -287,7 +283,7 @@ export class SubscriptionMultiplexer {
         const unsub = provider.subscribeToPositions(subscribeParams);
         unsubscribers.push(unsub);
       } catch (error) {
-        this.logger?.error(
+        this.#logger?.error(
           ensureError(error, 'SubscriptionMultiplexer.subscribeToPositions'),
           {
             tags: {
@@ -310,7 +306,7 @@ export class SubscriptionMultiplexer {
       unsubscribers.forEach((unsub) => unsub());
       // Clear position cache for these providers
       providers.forEach(([providerId]) => {
-        this.positionCache.delete(providerId);
+        this.#positionCache.delete(providerId);
       });
     };
   }
@@ -343,7 +339,7 @@ export class SubscriptionMultiplexer {
         const unsub = provider.subscribeToOrderFills(subscribeParams);
         unsubscribers.push(unsub);
       } catch (error) {
-        this.logger?.error(
+        this.#logger?.error(
           ensureError(error, 'SubscriptionMultiplexer.subscribeToOrderFills'),
           {
             tags: {
@@ -386,10 +382,10 @@ export class SubscriptionMultiplexer {
               ...order,
               providerId,
             }));
-            this.orderCache.set(providerId, taggedOrders);
+            this.#orderCache.set(providerId, taggedOrders);
 
             // Emit aggregated orders from all providers
-            const allOrders = this.aggregateOrders();
+            const allOrders = this.#aggregateOrders();
             callback(allOrders);
           },
         };
@@ -397,7 +393,7 @@ export class SubscriptionMultiplexer {
         const unsub = provider.subscribeToOrders(subscribeParams);
         unsubscribers.push(unsub);
       } catch (error) {
-        this.logger?.error(
+        this.#logger?.error(
           ensureError(error, 'SubscriptionMultiplexer.subscribeToOrders'),
           {
             tags: {
@@ -419,7 +415,7 @@ export class SubscriptionMultiplexer {
     return () => {
       unsubscribers.forEach((unsub) => unsub());
       providers.forEach(([providerId]) => {
-        this.orderCache.delete(providerId);
+        this.#orderCache.delete(providerId);
       });
     };
   }
@@ -439,18 +435,18 @@ export class SubscriptionMultiplexer {
         const subscribeParams: SubscribeAccountParams = {
           callback: (account) => {
             if (account === null) {
-              this.accountCache.delete(providerId);
+              this.#accountCache.delete(providerId);
             } else {
               // Tag account with providerId and cache
               const taggedAccount: AccountState = {
                 ...account,
                 providerId,
               };
-              this.accountCache.set(providerId, taggedAccount);
+              this.#accountCache.set(providerId, taggedAccount);
             }
 
             // Emit all cached account states
-            const allAccounts = Array.from(this.accountCache.values());
+            const allAccounts = Array.from(this.#accountCache.values());
             callback(allAccounts);
           },
         };
@@ -458,7 +454,7 @@ export class SubscriptionMultiplexer {
         const unsub = provider.subscribeToAccount(subscribeParams);
         unsubscribers.push(unsub);
       } catch (error) {
-        this.logger?.error(
+        this.#logger?.error(
           ensureError(error, 'SubscriptionMultiplexer.subscribeToAccount'),
           {
             tags: {
@@ -480,7 +476,7 @@ export class SubscriptionMultiplexer {
     return () => {
       unsubscribers.forEach((unsub) => unsub());
       providers.forEach(([providerId]) => {
-        this.accountCache.delete(providerId);
+        this.#accountCache.delete(providerId);
       });
     };
   }
@@ -492,14 +488,14 @@ export class SubscriptionMultiplexer {
    * @param mode - Aggregation mode
    * @returns Aggregated price updates
    */
-  private aggregatePrices(
+  #aggregatePrices(
     symbols: string[],
     mode: PriceAggregationMode,
   ): PriceUpdate[] {
     const result: PriceUpdate[] = [];
 
     symbols.forEach((symbol) => {
-      const providerPrices = this.priceCache.get(symbol);
+      const providerPrices = this.#priceCache.get(symbol);
       if (!providerPrices || providerPrices.size === 0) {
         return;
       }
@@ -511,7 +507,7 @@ export class SubscriptionMultiplexer {
         });
       } else {
         // 'best_price': Return the best price across providers
-        const best = this.findBestPrice(providerPrices);
+        const best = this.#findBestPrice(providerPrices);
         if (best) {
           result.push(best);
         }
@@ -528,23 +524,23 @@ export class SubscriptionMultiplexer {
    * @param providerPrices - Map of provider prices for a symbol
    * @returns Best price update or undefined
    */
-  private findBestPrice(
+  #findBestPrice(
     providerPrices: Map<PerpsProviderType, PriceUpdate>,
   ): PriceUpdate | undefined {
     let bestPrice: PriceUpdate | undefined;
     let smallestSpread = Infinity;
 
     providerPrices.forEach((price) => {
-      // If spread is available, use it to determine best
-      if (price.spread !== undefined) {
+      if (price.spread === undefined) {
+        // No spread info - just use the first one
+        bestPrice ??= price;
+      } else {
+        // If spread is available, use it to determine best
         const spreadValue = parseFloat(price.spread);
         if (!isNaN(spreadValue) && spreadValue < smallestSpread) {
           smallestSpread = spreadValue;
           bestPrice = price;
         }
-      } else if (!bestPrice) {
-        // No spread info - just use the first one
-        bestPrice = price;
       }
     });
 
@@ -556,9 +552,9 @@ export class SubscriptionMultiplexer {
    *
    * @returns All cached positions
    */
-  private aggregatePositions(): Position[] {
+  #aggregatePositions(): Position[] {
     const allPositions: Position[] = [];
-    this.positionCache.forEach((positions) => {
+    this.#positionCache.forEach((positions) => {
       allPositions.push(...positions);
     });
     return allPositions;
@@ -569,9 +565,9 @@ export class SubscriptionMultiplexer {
    *
    * @returns All cached orders
    */
-  private aggregateOrders(): Order[] {
+  #aggregateOrders(): Order[] {
     const allOrders: Order[] = [];
-    this.orderCache.forEach((orders) => {
+    this.#orderCache.forEach((orders) => {
       allOrders.push(...orders);
     });
     return allOrders;
@@ -581,10 +577,10 @@ export class SubscriptionMultiplexer {
    * Clear all cached data.
    */
   clearCache(): void {
-    this.priceCache.clear();
-    this.positionCache.clear();
-    this.orderCache.clear();
-    this.accountCache.clear();
+    this.#priceCache.clear();
+    this.#positionCache.clear();
+    this.#orderCache.clear();
+    this.#accountCache.clear();
   }
 
   /**
@@ -598,7 +594,7 @@ export class SubscriptionMultiplexer {
     symbol: string,
     providerId: PerpsProviderType,
   ): PriceUpdate | undefined {
-    return this.priceCache.get(symbol)?.get(providerId);
+    return this.#priceCache.get(symbol)?.get(providerId);
   }
 
   /**
@@ -610,6 +606,6 @@ export class SubscriptionMultiplexer {
   getAllCachedPricesForSymbol(
     symbol: string,
   ): Map<PerpsProviderType, PriceUpdate> | undefined {
-    return this.priceCache.get(symbol);
+    return this.#priceCache.get(symbol);
   }
 }

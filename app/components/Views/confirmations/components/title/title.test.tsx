@@ -320,9 +320,7 @@ describe('Confirm Title', () => {
       state: musdClaimState,
     });
     expect(getByText('Claim bonus')).toBeTruthy();
-    expect(
-      getByText('Bonus payout will be on Linea Mainnet Network.'),
-    ).toBeTruthy();
+    expect(getByText('Bonus will be paid out on Linea Mainnet.')).toBeTruthy();
   });
 
   it.each([TransactionType.lendingDeposit, TransactionType.lendingWithdraw])(
