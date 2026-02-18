@@ -22,6 +22,7 @@ import AppConstants from '../../../../../core/AppConstants';
 import { Linking } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { strings } from '../../../../../../locales/i18n';
+import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../types/musd.types';
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
@@ -428,6 +429,7 @@ describe('MusdQuickConvertView', () => {
           address: token.address,
           chainId: token.chainId,
         },
+        navigationOverride: MUSD_CONVERSION_NAVIGATION_OVERRIDE.CUSTOM,
       });
     });
 

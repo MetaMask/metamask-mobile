@@ -21,6 +21,7 @@ import { useMusdConversionFlowData } from '../../hooks/useMusdConversionFlowData
 import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
 import Routes from '../../../../../constants/navigation/Routes';
 import AppConstants from '../../../../../core/AppConstants';
+import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../types/musd.types';
 
 const FIXED_NOW_MS = 1730000000000;
 const mockTrackEvent = jest.fn();
@@ -290,6 +291,7 @@ describe('EarnMusdConversionEducationView', () => {
             chainId: '0x1',
           },
           skipEducationCheck: true,
+          navigationOverride: MUSD_CONVERSION_NAVIGATION_OVERRIDE.QUICK_CONVERT,
         });
         expect(mockNavigation.navigate).not.toHaveBeenCalledWith(
           Routes.WALLET.HOME,
@@ -630,6 +632,7 @@ describe('EarnMusdConversionEducationView', () => {
         expect(mockInitiateConversion).toHaveBeenCalledWith({
           preferredPaymentToken: mockRouteParams.preferredPaymentToken,
           skipEducationCheck: true,
+          navigationOverride: MUSD_CONVERSION_NAVIGATION_OVERRIDE.QUICK_CONVERT,
         });
       });
     });

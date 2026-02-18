@@ -13,10 +13,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { getStakingNavbar } from '../../../Navbar';
 import { AssetType } from '../../../../Views/confirmations/types/token';
 import { useMusdConversionTokens } from '../../hooks/useMusdConversionTokens';
-import {
-  MUSD_CONVERSION_NAVIGATION_OVERRIDE,
-  useMusdConversion,
-} from '../../hooks/useMusdConversion';
+import { useMusdConversion } from '../../hooks/useMusdConversion';
 import { selectMusdQuickConvertEnabledFlag } from '../../selectors/featureFlags';
 import {
   createTokenChainKey,
@@ -32,6 +29,7 @@ import { MUSD_CONVERSION_APY } from '../../constants/musd';
 import AppConstants from '../../../../../core/AppConstants';
 import MusdBalanceCard from './components/MusdBalanceCard';
 import Engine from '../../../../../core/Engine';
+import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../types/musd.types';
 
 interface SectionHeaderProps {
   title: string;
