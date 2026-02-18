@@ -11,7 +11,7 @@ const CHROME_PACKAGE = 'com.android.chrome';
 const CHROME_DISMISS_TIMEOUT_MS = 5000;
 
 /** Delay after dismissals so Chrome UI can settle before we interact with the URL bar. Kept short to avoid app auto-lock. */
-const CHROME_UI_SETTLE_MS = 400;
+const CHROME_UI_SETTLE_MS = 800;
 
 /**
  * Run an async step with a timeout. Rejects after ms so callers can catch and continue.
