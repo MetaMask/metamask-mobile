@@ -25,6 +25,8 @@ const DEVICE_LOCKED_STATUS_CODE = 0x6b0c;
 const LEDGER_OPERATION_TIMEOUT_MS = 10000;
 const DEFAULT_SCAN_TIMEOUT_MS = 30000;
 const CONNECTION_RESTART_LIMIT = 5;
+const MAX_DISCONNECT_RETRIES = 3;
+const RETRY_DELAY_MS = 1000;
 
 /**
  * Adapter for Ledger hardware wallets using Bluetooth Low Energy (BLE).
@@ -44,14 +46,7 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
   private restartCount = 0;
   private isDestroyed = false;
   private connectInFlight: Promise<void> | null = null;
-
-  /**
-   * Flag to indicate the connection flow has completed successfully.
-   * When true, disconnect events should NOT emit DeviceEvent.Disconnected or errors
-   * because the user has already moved on to account selection.
-   */
   private flowComplete = false;
-
   private isBluetoothOn = false;
   private hasReceivedInitialBleState = false;
   private initialBleStatePromise: Promise<void>;
@@ -339,9 +334,6 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
     );
 
     // Retry on transient disconnects (e.g., device switching apps)
-    const MAX_DISCONNECT_RETRIES = 3;
-    const RETRY_DELAY_MS = 1000;
-
     for (let attempt = 1; attempt <= MAX_DISCONNECT_RETRIES; attempt++) {
       try {
         return await this.doEnsureDeviceReady(deviceId);
@@ -377,18 +369,18 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
 
     try {
       DevLogger.log('[LedgerBluetoothAdapter] Checking app...');
-      const appName = await this.withTimeout(
+      const currentAppName = await this.withTimeout(
         connectLedgerHardware(this.transport, deviceId),
         LEDGER_OPERATION_TIMEOUT_MS,
         'Device unresponsive',
       );
-      DevLogger.log('[LedgerBluetoothAdapter] Got app name:', appName);
+      DevLogger.log('[LedgerBluetoothAdapter] Got app name:', currentAppName);
 
-      if (appName === 'Ethereum') {
+      if (currentAppName === 'Ethereum') {
         return await this.verifyEthereumAppUnlocked();
       }
 
-      await this.handleWrongApp(appName);
+      await this.handleWrongApp(currentAppName);
       return false;
     } catch (error) {
       DevLogger.log(
@@ -514,13 +506,13 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
    * during app switch scenarios (BOLOS → Ethereum). The deviceId is only cleared
    * when explicitly disconnecting via disconnect() method.
    *
-   * When polling for app readiness, we DO NOT emit disconnect events or call
+   * When checking for app readiness, we do not emit disconnect events or call
    * onDisconnect callback since disconnects during app switch are expected.
    */
   private handleDisconnect(): void {
     this.transport = null;
-    // If flow is complete (success was shown), ignore disconnect events entirely
-    // This prevents errors from showing after user has moved to account selection
+    // If flow is complete, ignore disconnect events entirely
+    // This prevents errors from showing after a successful connection
     if (this.flowComplete) {
       DevLogger.log(
         '[LedgerBluetoothAdapter] handleDisconnect - flow complete, ignoring disconnect',
@@ -529,26 +521,21 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
     }
 
     // Check if we should try to reconnect (without emitting error)
-    // This allows the polling loop to handle reconnection without flickering the UI
     if (this.restartCount < CONNECTION_RESTART_LIMIT) {
       this.restartCount++;
       DevLogger.log(
         '[LedgerBluetoothAdapter] handleDisconnect - transport cleared, will attempt reconnect. restartCount:',
         this.restartCount,
       );
-      // Don't emit error - the polling/operation will handle reconnection
-      // This prevents state flickering to "disconnected" then "error"
       return;
     }
 
-    // Restart limit reached - this is a fatal disconnect
+    // Restart limit reached
     DevLogger.log(
       '[LedgerBluetoothAdapter] handleDisconnect - restart limit reached, emitting error',
     );
     this.clearTransportState();
 
-    // Call the onDisconnect callback with an error
-    // This will trigger handleError which shows the error state
     this.options.onDisconnect(new Error('Device disconnected'));
   }
 
@@ -561,7 +548,7 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
       try {
         await this.transport.close();
       } catch {
-        // best-effort
+        // Ignore close errors
       }
       this.transport = null;
     }
@@ -574,14 +561,7 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
   }
 
   /**
-   * Normalize unknown value to Error for event/callback payloads.
-   */
-  private toError(value: unknown): Error {
-    return value instanceof Error ? value : new Error(String(value));
-  }
-
-  /**
-   * Resolve the initial BLE state promise if still pending (called from BLE state observer).
+   * Resolve the initial BLE state promise if still pending.
    */
   private resolveInitialBleStateIfPending(): void {
     this.hasReceivedInitialBleState = true;
@@ -589,65 +569,6 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
       this.resolveInitialBleState();
       this.resolveInitialBleState = null;
     }
-  }
-
-  /**
-   * Add timeout to an async operation. Clears the timer when the main promise settles first.
-   */
-  private withTimeout<T>(
-    promise: Promise<T>,
-    timeoutMs: number,
-    errorMessage: string,
-  ): Promise<T> {
-    const timeoutError = new Error(errorMessage);
-    timeoutError.name = 'LedgerTimeoutError';
-
-    let timeoutId: ReturnType<typeof setTimeout>;
-    const timeoutPromise = new Promise<never>((_, reject) => {
-      timeoutId = setTimeout(() => reject(timeoutError), timeoutMs);
-    });
-
-    return Promise.race([promise, timeoutPromise]).finally(() =>
-      clearTimeout(timeoutId),
-    );
-  }
-
-  /**
-   * Check if error indicates a Ledger transport disconnect (so caller can retry).
-   */
-  private isDisconnectError(error: unknown): boolean {
-    return (
-      error instanceof Error &&
-      (error.name === 'DisconnectedDevice' ||
-        error.name === 'DisconnectedDeviceDuringOperation')
-    );
-  }
-
-  /**
-   * Check if error indicates device is locked
-   */
-  private isDeviceLocked(error: unknown): boolean {
-    if (error === null || error === undefined) {
-      return false;
-    }
-
-    // Type guard for error-like objects
-    const errorObj = error as {
-      name?: string;
-      statusCode?: number;
-      message?: string;
-    };
-
-    if (errorObj.name === 'TransportStatusError') {
-      return errorObj.statusCode === DEVICE_LOCKED_STATUS_CODE;
-    }
-    if (
-      typeof errorObj.message === 'string' &&
-      errorObj.message.includes('Locked device')
-    ) {
-      return true;
-    }
-    return false;
   }
 
   private startBluetoothMonitoring(): void {
@@ -714,5 +635,71 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
         );
       }
     }
+  }
+
+  /**
+   * Check if error indicates a Ledger transport disconnect (so caller can retry).
+   */
+  private isDisconnectError(error: unknown): boolean {
+    return (
+      error instanceof Error &&
+      (error.name === 'DisconnectedDevice' ||
+        error.name === 'DisconnectedDeviceDuringOperation')
+    );
+  }
+
+  /**
+   * Check if error indicates device is locked
+   */
+  private isDeviceLocked(error: unknown): boolean {
+    if (error === null || error === undefined) {
+      return false;
+    }
+
+    // Type guard for error-like objects
+    const errorObj = error as {
+      name?: string;
+      statusCode?: number;
+      message?: string;
+    };
+
+    if (errorObj.name === 'TransportStatusError') {
+      return errorObj.statusCode === DEVICE_LOCKED_STATUS_CODE;
+    }
+    if (
+      typeof errorObj.message === 'string' &&
+      errorObj.message.includes('Locked device')
+    ) {
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Add timeout to an async operation. Clears the timer when the main promise settles first.
+   */
+  private withTimeout<T>(
+    promise: Promise<T>,
+    timeoutMs: number,
+    errorMessage: string,
+  ): Promise<T> {
+    const timeoutError = new Error(errorMessage);
+    timeoutError.name = 'LedgerTimeoutError';
+
+    let timeoutId: ReturnType<typeof setTimeout>;
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      timeoutId = setTimeout(() => reject(timeoutError), timeoutMs);
+    });
+
+    return Promise.race([promise, timeoutPromise]).finally(() =>
+      clearTimeout(timeoutId),
+    );
+  }
+
+  /**
+   * Normalize unknown value to Error for event/callback payloads.
+   */
+  private toError(value: unknown): Error {
+    return value instanceof Error ? value : new Error(String(value));
   }
 }
