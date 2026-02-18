@@ -24,18 +24,22 @@ export interface UseMarketInsightsResult {
  * insights per CAIP-19 ID and fetches them from the digest service as needed.
  *
  * @param caip19Id - The CAIP-19 asset identifier.
+ * @param isEnabled - Whether market insights requests are enabled.
  * @returns Market insights report data with loading/error states
  */
 export const useMarketInsights = (
   caip19Id: string | undefined | null,
+  isEnabled = false,
 ): UseMarketInsightsResult => {
   const [report, setReport] = useState<MarketInsightsReport | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const fetchInsights = useCallback(async () => {
-    if (!caip19Id) {
+    if (!isEnabled || !caip19Id) {
       setReport(null);
+      setError(null);
+      setIsLoading(false);
       return;
     }
 
@@ -52,7 +56,7 @@ export const useMarketInsights = (
     } finally {
       setIsLoading(false);
     }
-  }, [caip19Id]);
+  }, [caip19Id, isEnabled]);
 
   useEffect(() => {
     fetchInsights();

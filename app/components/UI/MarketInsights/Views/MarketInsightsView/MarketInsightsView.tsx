@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo } from 'react';
 import { ScrollView, Linking, Pressable } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Hex, CaipChainId } from '@metamask/utils';
@@ -34,6 +35,7 @@ import {
 } from '../../../Bridge/hooks/useSwapBridgeNavigation';
 import { NATIVE_SWAPS_TOKEN_ADDRESS } from '../../../../../constants/bridge';
 import type { MarketInsightsTweet } from '@metamask-previews/ai-controllers';
+import { selectMarketInsightsEnabled } from '../../../../../selectors/featureFlagController/marketInsights';
 
 interface MarketInsightsRouteParams {
   assetSymbol: string;
@@ -64,6 +66,7 @@ const MarketInsightsView: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
+  const isMarketInsightsEnabled = useSelector(selectMarketInsightsEnabled);
   const route =
     useRoute<RouteProp<{ params: MarketInsightsRouteParams }, 'params'>>();
   const {
@@ -77,7 +80,7 @@ const MarketInsightsView: React.FC = () => {
     tokenChainId,
   } = route.params;
 
-  const { report } = useMarketInsights(caip19Id);
+  const { report } = useMarketInsights(caip19Id, isMarketInsightsEnabled);
 
   // Build BridgeToken from route params for swap navigation
   const sourceToken = useMemo(() => {

@@ -34,6 +34,17 @@ describe('useMarketInsights', () => {
     expect(result.current.isLoading).toBe(false);
   });
 
+  it('does not fetch when market insights feature is disabled', () => {
+    const { result } = renderHook(() =>
+      useMarketInsights('eip155:1/erc20:0x123', false),
+    );
+
+    expect(mockFetchMarketInsights).not.toHaveBeenCalled();
+    expect(result.current.report).toBeNull();
+    expect(result.current.error).toBeNull();
+    expect(result.current.isLoading).toBe(false);
+  });
+
   it('fetches and returns report data with relative time', async () => {
     const report = {
       asset: 'eth',
@@ -47,7 +58,7 @@ describe('useMarketInsights', () => {
     mockFetchMarketInsights.mockResolvedValue(report);
 
     const { result } = renderHook(() =>
-      useMarketInsights('eip155:1/erc20:0x123'),
+      useMarketInsights('eip155:1/erc20:0x123', true),
     );
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
@@ -64,7 +75,7 @@ describe('useMarketInsights', () => {
     mockFetchMarketInsights.mockRejectedValue(new Error('fetch failed'));
 
     const { result } = renderHook(() =>
-      useMarketInsights('eip155:1/erc20:0x456'),
+      useMarketInsights('eip155:1/erc20:0x456', true),
     );
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));

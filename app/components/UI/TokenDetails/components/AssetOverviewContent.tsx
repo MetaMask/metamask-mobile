@@ -266,7 +266,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     }
   }, [isMarketInsightsEnabled, token.address, token.chainId]);
   const { report: marketInsightsReport, timeAgo: marketInsightsTimeAgo } =
-    useMarketInsights(marketInsightsCaip19Id);
+    useMarketInsights(marketInsightsCaip19Id, isMarketInsightsEnabled);
 
   const goToBrowserUrl = (url: string) => {
     const [screen, params] = createWebviewNavDetails({
