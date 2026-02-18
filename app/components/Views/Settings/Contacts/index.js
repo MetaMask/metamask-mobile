@@ -129,6 +129,9 @@ class Contacts extends PureComponent {
           onBack={() => this.props.navigation.goBack()}
           includesTopInset
           testID={ContactsViewSelectorIDs.HEADER}
+          backButtonProps={{
+            testID: ContactsViewSelectorIDs.HEADER_BACK_BUTTON,
+          }}
         />
         <AddressList
           chainId={chainId}
