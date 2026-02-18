@@ -265,7 +265,11 @@ class Tabs extends PureComponent {
           testID={BrowserViewSelectorsIDs.TABS_BACK_BUTTON}
           accessibilityLabel={strings('browser.go_back')}
         />
-        <Text variant={TextVariant.HeadingMD} style={styles.topBarTitle}>
+        <Text
+          variant={TextVariant.HeadingMD}
+          style={styles.topBarTitle}
+          testID={BrowserViewSelectorsIDs.TABS_OPENED_TITLE}
+        >
           {strings('browser.opened_tabs')}
         </Text>
         <ButtonIcon
