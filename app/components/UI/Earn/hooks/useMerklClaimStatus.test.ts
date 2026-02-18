@@ -14,7 +14,6 @@ import Logger from '../../../../util/Logger';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { getUnclaimedAmountForMerklClaimTx } from '../utils/musd';
 import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
-import { useSelector } from 'react-redux';
 
 // Mock all external dependencies
 jest.mock('../../../../core/Engine');
@@ -27,9 +26,6 @@ jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
 }));
 jest.mock('../utils/musd', () => ({
   getUnclaimedAmountForMerklClaimTx: jest.fn(),
-}));
-jest.mock('react-redux', () => ({
-  useSelector: jest.fn(),
 }));
 
 type TransactionStatusUpdatedHandler = (event: {
@@ -52,7 +48,6 @@ const mockGetUnclaimedAmountForMerklClaimTx = jest.mocked(
 const mockLoggerError = jest.mocked(Logger.error);
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn();
-const mockUseSelector = jest.mocked(useSelector);
 
 // Mock controller methods
 const mockUpdateBalances = jest.fn().mockResolvedValue(undefined);
@@ -175,10 +170,6 @@ describe('useMerklClaimStatus', () => {
     mockUpdateBalances.mockResolvedValue(undefined);
     mockDetectTokens.mockResolvedValue(undefined);
     mockRefresh.mockResolvedValue(undefined);
-    mockUseSelector.mockReturnValue({
-      '0x1': { name: 'Ethereum Mainnet' },
-      '0xe708': { name: 'Linea Mainnet' },
-    } as unknown as ReturnType<typeof useSelector>);
     mockCreateEventBuilder.mockImplementation(createMockEventBuilder);
     mockUseAnalytics.mockReturnValue({
       trackEvent: mockTrackEvent,
