@@ -28,8 +28,8 @@ import { getFullVersion } from '../../../../constants/ota';
 import { fontStyles } from '../../../../styles/common';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../../locales/i18n';
-import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import AppConstants from '../../../../core/AppConstants';
+import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import { AboutMetaMaskSelectorsIDs } from './AboutMetaMask.testIds';
 import { isQa } from '../../../../util/test/utils';
@@ -118,21 +118,7 @@ class AppInformation extends PureComponent {
     showEnvironmentInfo: false,
   };
 
-  updateNavBar = () => {
-    const { navigation } = this.props;
-    const colors = this.context.colors || mockTheme.colors;
-    navigation.setOptions(
-      getNavigationOptionsTitle(
-        strings('app_settings.info_title'),
-        navigation,
-        false,
-        colors,
-      ),
-    );
-  };
-
   componentDidMount = async () => {
-    this.updateNavBar();
     const appName = await getApplicationName();
     const appVersion = await getVersion();
     const buildNumber = await getBuildNumber();
@@ -140,10 +126,6 @@ class AppInformation extends PureComponent {
       appInfo: `${appName} v${appVersion} (${buildNumber})`,
       appVersion,
     });
-  };
-
-  componentDidUpdate = () => {
-    this.updateNavBar();
   };
 
   goTo = (url, title) => {
@@ -201,11 +183,18 @@ class AppInformation extends PureComponent {
         ? 'This app is running from built-in code or in development mode'
         : 'This app is running an update';
 
+    const aboutTitle = strings('app_settings.info_title');
+
     return (
       <SafeAreaView
         style={styles.wrapper}
         testID={AboutMetaMaskSelectorsIDs.CONTAINER}
       >
+        <HeaderCompactStandard
+          title={aboutTitle}
+          onBack={() => this.props.navigation.goBack()}
+          backButtonProps={{ testID: AboutMetaMaskSelectorsIDs.BACK_BUTTON }}
+        />
         <ScrollView contentContainerStyle={styles.wrapperContent}>
           <View style={styles.logoWrapper}>
             <TouchableOpacity
