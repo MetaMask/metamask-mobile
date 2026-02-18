@@ -167,9 +167,3 @@ export const selectDismissSmartAccountSuggestionEnabled = createSelector(
   (preferencesControllerState: PreferencesState) =>
     preferencesControllerState.dismissSmartAccountSuggestionEnabled ?? false,
 );
-
-export const selectSmartAccountOptIn = createSelector(
-  selectPreferencesControllerState,
-  (preferencesControllerState: PreferencesState) =>
-    preferencesControllerState.smartAccountOptIn ?? false,
-);
