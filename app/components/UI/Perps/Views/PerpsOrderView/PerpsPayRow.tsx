@@ -43,6 +43,7 @@ import {
   PERPS_BALANCE_PLACEHOLDER_ADDRESS,
 } from '../../constants/perpsConfig';
 import { PERPS_BALANCE_ICON_URI } from '../../hooks/usePerpsBalanceTokenFilter';
+import { useDefaultPayWithTokenWhenNoPerpsBalance } from '../../hooks/useDefaultPayWithTokenWhenNoPerpsBalance';
 import {
   useIsPerpsBalanceSelected,
   usePerpsPayWithToken,
@@ -116,6 +117,8 @@ export const PerpsPayRow = ({
     selectPendingTradeConfiguration(state, initialAsset),
   );
   const selectedPaymentToken = usePerpsPayWithToken();
+  const defaultPayWhenNoPerpsBalance =
+    useDefaultPayWithTokenWhenNoPerpsBalance();
 
   const pendingConfigSelectedPaymentToken = pendingConfig?.selectedPaymentToken;
 
@@ -133,10 +136,32 @@ export const PerpsPayRow = ({
 
   useEffect(() => {
     if (pendingConfigSelectedPaymentToken != null) return;
-    if (appliedPendingTokenRef.current === null) return;
-    appliedPendingTokenRef.current = null;
-    Engine.context.PerpsController?.setSelectedPaymentToken?.(null);
-  }, [pendingConfigSelectedPaymentToken]);
+
+    const tokenToSet = defaultPayWhenNoPerpsBalance ?? null;
+    const alreadyApplied =
+      appliedPendingTokenRef.current !== undefined &&
+      ((appliedPendingTokenRef.current === null && tokenToSet === null) ||
+        (appliedPendingTokenRef.current !== null &&
+          tokenToSet !== null &&
+          appliedPendingTokenRef.current.address === tokenToSet.address &&
+          appliedPendingTokenRef.current.chainId === tokenToSet.chainId));
+    if (alreadyApplied) return;
+
+    appliedPendingTokenRef.current =
+      tokenToSet === null
+        ? null
+        : {
+            address: tokenToSet.address,
+            chainId: tokenToSet.chainId,
+          };
+    Engine.context.PerpsController?.setSelectedPaymentToken?.(tokenToSet);
+    if (tokenToSet) {
+      setPayToken({
+        address: tokenToSet.address,
+        chainId: tokenToSet.chainId,
+      });
+    }
+  }, [pendingConfigSelectedPaymentToken, defaultPayWhenNoPerpsBalance, setPayToken]);
 
   useEffect(() => {
     if (!pendingConfigSelectedPaymentToken || !selectedPaymentToken) return;
