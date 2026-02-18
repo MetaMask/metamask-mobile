@@ -378,13 +378,13 @@ describe('LedgerBluetoothAdapter', () => {
       );
     });
 
-    it('returns false and emits AppClosed when wrong app is open', async () => {
+    it('returns false and emits AppNotOpen when wrong app is open', async () => {
       (connectLedgerHardware as jest.Mock).mockResolvedValue('Bitcoin');
 
       const result = await adapter.ensureDeviceReady('device-123');
 
       expect(result).toBe(false);
-      // AppClosed event always uses 'Ethereum' as the required app (what we want opened)
+      // AppNotOpen event always uses 'Ethereum' as the required app (what we want opened)
       expect(onDeviceEvent).toHaveBeenCalledWith(
         expect.objectContaining({
           event: DeviceEvent.AppNotOpen,
@@ -393,13 +393,13 @@ describe('LedgerBluetoothAdapter', () => {
       );
     });
 
-    it('returns false and emits AppClosed when on BOLOS screen', async () => {
+    it('returns false and emits AppNotOpen when on BOLOS screen', async () => {
       (connectLedgerHardware as jest.Mock).mockResolvedValue('BOLOS');
 
       const result = await adapter.ensureDeviceReady('device-123');
 
       expect(result).toBe(false);
-      // AppClosed event always uses 'Ethereum' as the required app
+      // AppNotOpen event always uses 'Ethereum' as the required app
       expect(onDeviceEvent).toHaveBeenCalledWith(
         expect.objectContaining({
           event: DeviceEvent.AppNotOpen,
