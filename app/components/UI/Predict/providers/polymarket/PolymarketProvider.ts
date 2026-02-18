@@ -36,6 +36,7 @@ import {
   ConnectionStatus,
   GameUpdateCallback,
   GeoBlockResponse,
+  GetAccountStateParams,
   GetBalanceParams,
   GetMarketsParams,
   GetPositionsParams,
@@ -1412,7 +1413,7 @@ export class PolymarketProvider implements PredictProvider {
   }
 
   public async prepareDeposit(
-    params: PrepareDepositParams & { signer: Signer },
+    params: PrepareDepositParams,
   ): Promise<PrepareDepositResponse> {
     const transactions = [];
     const { signer } = params;
@@ -1502,9 +1503,9 @@ export class PolymarketProvider implements PredictProvider {
     };
   }
 
-  public async getAccountState(params: {
-    ownerAddress: string;
-  }): Promise<AccountState> {
+  public async getAccountState(
+    params: GetAccountStateParams,
+  ): Promise<AccountState> {
     try {
       const { ownerAddress } = params;
 
@@ -1579,7 +1580,7 @@ export class PolymarketProvider implements PredictProvider {
   }
 
   public async prepareWithdraw(
-    params: PrepareWithdrawParams & { signer: Signer },
+    params: PrepareWithdrawParams,
   ): Promise<PrepareWithdrawResponse> {
     const { signer } = params;
 

@@ -1,12 +1,12 @@
 import { test as base } from 'appwright';
 import { PerformanceTracker } from '../../reporters/PerformanceTracker.js';
-import QualityGatesValidator from '../../framework/utils/QualityGatesValidator.js';
-import { getTeamInfoFromTags } from '../../../tests/teams-config.js';
 import {
+  QualityGatesValidator,
   markQualityGateFailure,
   hasQualityGateFailure,
   getTestId,
-} from '../../framework/utils/QualityGateError.js';
+} from '../quality-gates';
+import { getTeamInfoFromTags } from '../../../tests/teams-config.js';
 
 // Create a custom test fixture that handles performance tracking and cleanup
 export const test = base.extend({

@@ -65,6 +65,9 @@ app/core/Engine/controllers/ramps-controller           @MetaMask/ramp
 app/core/Engine/messengers/ramps-controller-messenger  @MetaMask/ramp
 app/core/Engine/messengers/ramps-service-messenger     @MetaMask/ramp
 app/selectors/rampsController                          @MetaMask/ramp
+**/Ramp/**                                              @MetaMask/ramp
+**/ramp/**                                              @MetaMask/ramp
+**/ramps/**                                             @MetaMask/ramp
 
 # Card Team
 app/components/UI/Card/              @MetaMask/card
