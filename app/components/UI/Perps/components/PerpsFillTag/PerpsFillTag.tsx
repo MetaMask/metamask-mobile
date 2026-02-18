@@ -14,7 +14,7 @@ import { selectSelectedInternalAccountByScope } from '../../../../../selectors/m
 import { EVM_SCOPE } from '../../../Earn/constants/networks';
 import { PERPS_SUPPORT_ARTICLES_URLS } from '../../constants/perpsConfig';
 import { usePerpsEventTracking } from '../../hooks';
-import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,

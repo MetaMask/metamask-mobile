@@ -58,27 +58,21 @@ import {
 } from '../constants/eventNames';
 import { validateDepositTransactions } from '../utils/validateTransactions';
 import { PolymarketProvider } from '../providers/polymarket/PolymarketProvider';
+import { Signer } from '../providers/types';
 import {
   AccountState,
+  ClaimParams,
   ConnectionStatus,
   GameUpdateCallback,
   GetAccountStateParams,
   GetBalanceParams,
   GetMarketsParams,
   GetPositionsParams,
-  OrderPreview,
-  PlaceOrderParams,
-  PrepareDepositParams,
-  PrepareWithdrawParams,
-  PreviewOrderParams,
-  PriceUpdateCallback,
-  Signer,
-} from '../providers/types';
-import {
-  ClaimParams,
   GetPriceHistoryParams,
   GetPriceParams,
   GetPriceResponse,
+  OrderPreview,
+  PlaceOrderParams,
   PredictAccountMeta,
   PredictActivity,
   PredictBalance,
@@ -90,6 +84,10 @@ import {
   PredictPriceHistoryPoint,
   PredictWithdraw,
   PredictWithdrawStatus,
+  PrepareDepositParams,
+  PrepareWithdrawParams,
+  PreviewOrderParams,
+  PriceUpdateCallback,
   Result,
   Side,
   UnrealizedPnL,
