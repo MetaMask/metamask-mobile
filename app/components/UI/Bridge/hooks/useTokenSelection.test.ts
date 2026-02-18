@@ -4,14 +4,29 @@ import {
   setSourceToken,
   setDestToken,
   setIsDestTokenManuallySet,
+  selectSourceToken,
+  selectDestToken,
+  selectDestAmount,
 } from '../../../../core/redux/slices/bridge';
 import { createMockToken } from '../testUtils/fixtures';
 import { BridgeToken, TokenSelectorType } from '../types';
+import { selectNetworkConfigurations } from '../../../../selectors/networkController';
+import { PopularList } from '../../../../util/networks/customNetworks';
 
 const mockDispatch = jest.fn();
 const mockHandleSwitchTokensInner = jest.fn().mockResolvedValue(undefined);
 const mockHandleSwitchTokens = jest.fn(() => mockHandleSwitchTokensInner);
 const mockAddNetwork = jest.fn();
+const mockEngineModule = {
+  __esModule: true,
+  default: {
+    context: {
+      NetworkController: {
+        addNetwork: mockAddNetwork,
+      },
+    },
+  },
+};
 
 jest.mock('react-redux', () => ({
   useDispatch: () => mockDispatch,
@@ -38,16 +53,8 @@ jest.mock('./useAutoUpdateDestToken', () => ({
   }),
 }));
 
-jest.mock('../../../../core/Engine', () => ({
-  __esModule: true,
-  default: {
-    context: {
-      NetworkController: {
-        addNetwork: mockAddNetwork,
-      },
-    },
-  },
-}));
+jest.mock('../../../../core/Engine', () => mockEngineModule);
+jest.mock('../../../../core/Engine/index', () => mockEngineModule);
 
 jest.mock('../../../../util/networks/customNetworks', () => {
   const actual = jest.requireActual('../../../../util/networks/customNetworks');
@@ -117,11 +124,20 @@ const renderTokenSelectionHook = (
     selectorState.destAmount,
     selectorState.networkConfigurations,
   ];
-  let selectorCallIndex = 0;
-  mockUseSelector.mockImplementation(() => {
-    const value = selectorValues[selectorCallIndex % selectorValues.length];
-    selectorCallIndex += 1;
-    return value;
+  mockUseSelector.mockImplementation((selector: unknown) => {
+    if (selector === selectSourceToken) {
+      return selectorValues[0];
+    }
+    if (selector === selectDestToken) {
+      return selectorValues[1];
+    }
+    if (selector === selectDestAmount) {
+      return selectorValues[2];
+    }
+    if (selector === selectNetworkConfigurations) {
+      return selectorValues[3];
+    }
+    return undefined;
   });
 
   return renderHook(() => useTokenSelection(type));
@@ -224,6 +240,45 @@ describe('useTokenSelection', () => {
   });
 
   describe('network auto-add', () => {
+    it('attempts network auto-add and continues destination selection', async () => {
+      const { result } = renderTokenSelectionHook(TokenSelectorType.Dest, {
+        networkConfigurations: {},
+      });
+      const popularListFindSpy = jest
+        .spyOn(PopularList, 'find')
+        .mockReturnValue({
+          chainId: '0xffff',
+          nickname: 'Mock Network',
+          rpcUrl: 'https://mock-network-rpc.example',
+          failoverRpcUrls: [],
+          ticker: 'ETH',
+          rpcPrefs: {
+            blockExplorerUrl: 'https://mock-network-explorer.example',
+          },
+        });
+      const tokenOnMissingNetwork = createMockToken({
+        address: '0xdest-new',
+        chainId: '0xffff',
+      });
+
+      try {
+        await act(async () => {
+          await result.current.handleTokenPress(tokenOnMissingNetwork);
+        });
+      } finally {
+        expect(popularListFindSpy).toHaveBeenCalled();
+        popularListFindSpy.mockRestore();
+      }
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setDestToken(tokenOnMissingNetwork),
+      );
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setIsDestTokenManuallySet(true),
+      );
+      expect(mockGoBack).toHaveBeenCalled();
+    });
+
     it('aborts source selection when addNetwork rejects', async () => {
       mockAddNetwork.mockRejectedValueOnce(new Error('addNetwork failed'));
       const { result } = renderTokenSelectionHook(TokenSelectorType.Source, {

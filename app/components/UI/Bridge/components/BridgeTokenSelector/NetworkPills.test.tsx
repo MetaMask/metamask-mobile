@@ -184,6 +184,27 @@ describe('NetworkPills', () => {
       expect(queryByTestId('network-pills-more-button')).toBeNull();
     });
 
+    it('does not render "+X more" when one network is supported', () => {
+      const singleChainRanking = [
+        { chainId: 'eip155:1' as CaipChainId, name: 'Ethereum' },
+      ];
+      mockUseSelector.mockImplementation((selector: unknown) => {
+        if (selector === selectVisiblePillChainIds) return undefined;
+        return singleChainRanking;
+      });
+
+      const { getByText, queryByTestId } = render(
+        <NetworkPills
+          selectedChainId={undefined}
+          onChainSelect={mockOnChainSelect}
+          onMorePress={mockOnMorePress}
+        />,
+      );
+
+      expect(getByText('Ethereum')).toBeTruthy();
+      expect(queryByTestId('network-pills-more-button')).toBeNull();
+    });
+
     it('shows first MAX_VISIBLE_PILLS from any chainRanking order', () => {
       const customRanking = [
         { chainId: 'eip155:137' as CaipChainId, name: 'Polygon' },
@@ -342,6 +363,68 @@ describe('NetworkPills', () => {
           type: 'bridge/setVisiblePillChainIds',
         }),
       );
+    });
+
+    it('dispatches rolling order for consecutive non-visible selections', () => {
+      mockUseSelector.mockImplementation((selector: unknown) => {
+        if (selector === selectAllowedChainRanking) {
+          return mockChainRanking;
+        }
+        if (selector === selectVisiblePillChainIds) {
+          return undefined;
+        }
+        return undefined;
+      });
+
+      const { rerender } = render(
+        <NetworkPills
+          selectedChainId={undefined}
+          onChainSelect={mockOnChainSelect}
+          onMorePress={mockOnMorePress}
+        />,
+      );
+
+      rerender(
+        <NetworkPills
+          selectedChainId={'eip155:137' as CaipChainId}
+          onChainSelect={mockOnChainSelect}
+          onMorePress={mockOnMorePress}
+        />,
+      );
+
+      const firstSelectionPayload = mockDispatch.mock.calls.find(
+        ([action]) => action.type === 'bridge/setVisiblePillChainIds',
+      )?.[0]?.payload as CaipChainId[] | undefined;
+      expect(firstSelectionPayload).toEqual([
+        'eip155:137',
+        'eip155:1',
+        'eip155:56',
+        'bip122:000000000019d6689c085ae165831e93',
+      ]);
+
+      mockUseSelector.mockImplementation((selector: unknown) => {
+        if (selector === selectAllowedChainRanking) {
+          return mockChainRanking;
+        }
+        if (selector === selectVisiblePillChainIds) {
+          return firstSelectionPayload;
+        }
+        return undefined;
+      });
+      mockDispatch.mockClear();
+
+      rerender(
+        <NetworkPills
+          selectedChainId={'eip155:10' as CaipChainId}
+          onChainSelect={mockOnChainSelect}
+          onMorePress={mockOnMorePress}
+        />,
+      );
+
+      expect(mockDispatch).toHaveBeenCalledWith({
+        type: 'bridge/setVisiblePillChainIds',
+        payload: ['eip155:10', 'eip155:137', 'eip155:1', 'eip155:56'],
+      });
     });
   });
 });
