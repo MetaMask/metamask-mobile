@@ -58,28 +58,21 @@ import {
 } from '../constants/eventNames';
 import { validateDepositTransactions } from '../utils/validateTransactions';
 import { PolymarketProvider } from '../providers/polymarket/PolymarketProvider';
+import { Signer } from '../providers/types';
 import {
   AccountState,
+  ClaimParams,
   ConnectionStatus,
   GameUpdateCallback,
   GetAccountStateParams,
   GetBalanceParams,
   GetMarketsParams,
   GetPositionsParams,
-  OrderPreview,
-  PlaceOrderParams,
-  PredictProvider,
-  PrepareDepositParams,
-  PrepareWithdrawParams,
-  PreviewOrderParams,
-  PriceUpdateCallback,
-  Signer,
-} from '../providers/types';
-import {
-  ClaimParams,
   GetPriceHistoryParams,
   GetPriceParams,
   GetPriceResponse,
+  OrderPreview,
+  PlaceOrderParams,
   PredictAccountMeta,
   PredictActivity,
   PredictBalance,
@@ -91,6 +84,10 @@ import {
   PredictPriceHistoryPoint,
   PredictWithdraw,
   PredictWithdrawStatus,
+  PrepareDepositParams,
+  PrepareWithdrawParams,
+  PreviewOrderParams,
+  PriceUpdateCallback,
   Result,
   Side,
   UnrealizedPnL,
@@ -98,7 +95,10 @@ import {
 import { ensureError } from '../utils/predictErrorHandler';
 import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../constants/errors';
 import { GEO_BLOCKED_COUNTRIES } from '../constants/geoblock';
-import { MATIC_CONTRACTS } from '../providers/polymarket/constants';
+import {
+  MATIC_CONTRACTS,
+  POLYMARKET_PROVIDER_ID,
+} from '../providers/polymarket/constants';
 import {
   DEFAULT_FEE_COLLECTION_FLAG,
   DEFAULT_LIVE_SPORTS_FLAG,
@@ -120,12 +120,9 @@ import {
  */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type PredictControllerState = {
-  // Eligibility (Geo-Blocking) per Provider
   eligibility: {
-    [key: string]: {
-      eligible: boolean;
-      country?: string;
-    };
+    eligible: boolean;
+    country?: string;
   };
 
   // Error handling
@@ -133,13 +130,13 @@ export type PredictControllerState = {
   lastUpdateTimestamp: number;
 
   // Account balances
-  balances: { [providerId: string]: { [address: string]: PredictBalance } };
+  balances: { [address: string]: PredictBalance };
 
   // Claim management (this should always be ALL claimable positions)
   claimablePositions: { [address: string]: PredictPosition[] };
 
   // Deposit management
-  pendingDeposits: { [providerId: string]: { [address: string]: string } };
+  pendingDeposits: { [address: string]: string };
 
   // Withdraw management
   // TODO: change to be per-account basis
@@ -155,7 +152,7 @@ export type PredictControllerState = {
  * Get default PredictController state
  */
 export const getDefaultPredictControllerState = (): PredictControllerState => ({
-  eligibility: {},
+  eligibility: { eligible: false },
   lastError: null,
   lastUpdateTimestamp: 0,
   balances: {},
@@ -319,9 +316,7 @@ export class PredictController extends BaseController<
   PredictControllerState,
   PredictControllerMessenger
 > {
-  private providers: Map<string, PredictProvider>;
-  private isInitialized = false;
-  private initializationPromise: Promise<void> | null = null;
+  private provider: PolymarketProvider;
 
   constructor({ messenger, state = {} }: PredictControllerOptions) {
     super({
@@ -331,30 +326,12 @@ export class PredictController extends BaseController<
       state: { ...getDefaultPredictControllerState(), ...state },
     });
 
-    this.providers = new Map();
+    this.provider = new PolymarketProvider();
 
     this.messenger.subscribe(
       'TransactionController:transactionStatusUpdated',
       this.handleTransactionStatusUpdate.bind(this),
     );
-
-    this.initializeProviders().catch((error) => {
-      DevLogger.log('PredictController: Error initializing providers', {
-        error:
-          error instanceof Error
-            ? error.message
-            : PREDICT_ERROR_CODES.UNKNOWN_ERROR,
-        timestamp: new Date().toISOString(),
-      });
-
-      Logger.error(
-        ensureError(error),
-        this.getErrorContext('initializeProviders', {
-          existingProvidersCount: this.providers.size,
-          isInitialized: this.isInitialized,
-        }),
-      );
-    });
 
     this.refreshEligibility().catch((error) => {
       DevLogger.log('PredictController: Error refreshing eligibility', {
@@ -368,55 +345,9 @@ export class PredictController extends BaseController<
       Logger.error(
         ensureError(error),
         this.getErrorContext('refreshEligibility', {
-          providersCount: this.providers.size,
+          provider: POLYMARKET_PROVIDER_ID,
         }),
       );
-    });
-  }
-
-  /**
-   * Initialize the PredictController providers
-   * Must be called before using any other methods
-   * Prevents double initialization with promise caching
-   */
-  private async initializeProviders(): Promise<void> {
-    if (this.isInitialized) {
-      return;
-    }
-
-    if (this.initializationPromise) {
-      return this.initializationPromise;
-    }
-
-    this.initializationPromise = this.performInitialization();
-    return this.initializationPromise;
-  }
-
-  /**
-   * Actual initialization implementation
-   */
-  private async performInitialization(): Promise<void> {
-    DevLogger.log('PredictController: Initializing providers', {
-      existingProviders: Array.from(this.providers.keys()),
-      timestamp: new Date().toISOString(),
-    });
-
-    // Disconnect existing providers to close WebSocket connections
-    const existingProviders = Array.from(this.providers.values());
-    if (existingProviders.length > 0) {
-      DevLogger.log('PredictController: Disconnecting existing providers', {
-        count: existingProviders.length,
-        timestamp: new Date().toISOString(),
-      });
-    }
-
-    this.providers.clear();
-    this.providers.set('polymarket', new PolymarketProvider());
-
-    this.isInitialized = true;
-    DevLogger.log('PredictController: Providers initialized successfully', {
-      providerCount: this.providers.size,
-      timestamp: new Date().toISOString(),
     });
   }
 
@@ -529,20 +460,12 @@ export class PredictController extends BaseController<
       id: traceId,
       tags: {
         feature: PREDICT_CONSTANTS.FEATURE_NAME,
-        providerId: params.providerId ?? 'unknown',
+        providerId: POLYMARKET_PROVIDER_ID,
         ...(params.category && { category: params.category }),
       },
     });
 
     try {
-      const providerIds = params.providerId
-        ? [params.providerId]
-        : Array.from(this.providers.keys());
-
-      if (providerIds.some((id) => !this.providers.has(id))) {
-        throw new Error('Provider not available');
-      }
-
       const remoteFeatureFlagState = this.messenger.call(
         'RemoteFeatureFlagController:getState',
       );
@@ -570,15 +493,11 @@ export class PredictController extends BaseController<
 
       const paramsWithLiveSports = { ...params, liveSportsLeagues };
 
-      const allMarkets = await Promise.all(
-        providerIds.map((id: string) =>
-          this.providers.get(id)?.getMarkets(paramsWithLiveSports),
-        ),
-      );
+      const allMarkets = await this.provider.getMarkets(paramsWithLiveSports);
 
-      let markets = allMarkets
-        .flat()
-        .filter((market): market is PredictMarket => market !== undefined);
+      let markets = allMarkets.filter(
+        (market): market is PredictMarket => market !== undefined,
+      );
 
       const isFirstPage = !params.offset || params.offset === 0;
       const shouldFetchHighlights =
@@ -591,12 +510,10 @@ export class PredictController extends BaseController<
           )?.markets ?? [];
 
         if (highlightedMarketIds.length > 0) {
-          const provider = this.providers.get(
-            params.providerId ?? 'polymarket',
-          );
+          const provider = this.provider;
 
           const fetchedHighlightedMarkets =
-            (await provider?.getMarketsByIds?.(
+            (await provider.getMarketsByIds?.(
               highlightedMarketIds,
               liveSportsLeagues,
             )) ?? [];
@@ -639,7 +556,7 @@ export class PredictController extends BaseController<
       Logger.error(
         ensureError(error),
         this.getErrorContext('getMarkets', {
-          providerId: params.providerId,
+          providerId: POLYMARKET_PROVIDER_ID,
           category: params.category,
           sortBy: params.sortBy,
           sortDirection: params.sortDirection,
@@ -664,10 +581,8 @@ export class PredictController extends BaseController<
    */
   async getMarket({
     marketId,
-    providerId,
   }: {
     marketId: string | number;
-    providerId?: string;
   }): Promise<PredictMarket> {
     const resolvedMarketId = String(marketId);
 
@@ -685,19 +600,12 @@ export class PredictController extends BaseController<
       id: traceId,
       tags: {
         feature: PREDICT_CONSTANTS.FEATURE_NAME,
-        providerId: providerId ?? 'unknown',
+        providerId: POLYMARKET_PROVIDER_ID,
       },
     });
 
     try {
-      await this.initializeProviders();
-
-      const targetProviderId = providerId ?? 'polymarket';
-      const provider = this.providers.get(targetProviderId);
-
-      if (!provider) {
-        throw new Error('Provider not available');
-      }
+      const provider = this.provider;
 
       const remoteFeatureFlagState = this.messenger.call(
         'RemoteFeatureFlagController:getState',
@@ -740,7 +648,7 @@ export class PredictController extends BaseController<
         ensureError(error),
         this.getErrorContext('getMarket', {
           marketId: resolvedMarketId,
-          providerId: providerId ?? 'polymarket',
+          providerId: POLYMARKET_PROVIDER_ID,
         }),
       );
 
@@ -776,30 +684,15 @@ export class PredictController extends BaseController<
       id: traceId,
       tags: {
         feature: PREDICT_CONSTANTS.FEATURE_NAME,
-        providerId: params.providerId ?? 'unknown',
+        providerId: POLYMARKET_PROVIDER_ID,
         ...(params.interval && { interval: params.interval }),
       },
     });
 
     try {
-      const providerIds = params.providerId
-        ? [params.providerId]
-        : Array.from(this.providers.keys());
+      const history = await this.provider.getPriceHistory(params);
 
-      if (providerIds.some((id) => !this.providers.has(id))) {
-        throw new Error('Provider not available');
-      }
-
-      const histories = await Promise.all(
-        providerIds.map((id: string) =>
-          this.providers.get(id)?.getPriceHistory({
-            ...params,
-            providerId: id,
-          }),
-        ),
-      );
-
-      const priceHistory = histories.flatMap((history) => history ?? []);
+      const priceHistory = history ?? [];
 
       this.update((state) => {
         state.lastError = null;
@@ -825,7 +718,7 @@ export class PredictController extends BaseController<
       Logger.error(
         ensureError(error),
         this.getErrorContext('getPriceHistory', {
-          providerId: params.providerId,
+          providerId: POLYMARKET_PROVIDER_ID,
           marketId: params.marketId,
           fidelity: params.fidelity,
           interval: params.interval,
@@ -862,7 +755,7 @@ export class PredictController extends BaseController<
       id: traceId,
       tags: {
         feature: PREDICT_CONSTANTS.FEATURE_NAME,
-        providerId: params.providerId ?? 'unknown',
+        providerId: POLYMARKET_PROVIDER_ID,
       },
       data: {
         queryCount: params.queries?.length,
@@ -870,12 +763,7 @@ export class PredictController extends BaseController<
     });
 
     try {
-      const providerId = params.providerId ?? 'polymarket';
-      const provider = this.providers.get(providerId);
-
-      if (!provider) {
-        throw new Error('Provider not available');
-      }
+      const provider = this.provider;
 
       const response = await provider.getPrices({ queries: params.queries });
 
@@ -903,7 +791,7 @@ export class PredictController extends BaseController<
       Logger.error(
         ensureError(error),
         this.getErrorContext('getPrices', {
-          providerId: params.providerId,
+          providerId: POLYMARKET_PROVIDER_ID,
           queriesCount: params.queries?.length,
         }),
       );
@@ -934,21 +822,17 @@ export class PredictController extends BaseController<
       id: traceId,
       tags: {
         feature: PREDICT_CONSTANTS.FEATURE_NAME,
-        providerId: params.providerId ?? 'unknown',
+        providerId: POLYMARKET_PROVIDER_ID,
         claimable: params.claimable ?? false,
       },
     });
 
     try {
-      const { address, providerId = 'polymarket' } = params;
+      const { address } = params;
 
       const selectedAddress = address ?? this.getSigner().address;
 
-      const provider = this.providers.get(providerId);
-
-      if (!provider) {
-        throw new Error('Provider not available');
-      }
+      const provider = this.provider;
 
       const positions = await provider.getPositions({
         ...params,
@@ -984,7 +868,7 @@ export class PredictController extends BaseController<
       Logger.error(
         ensureError(error),
         this.getErrorContext('getPositions', {
-          providerId: params.providerId,
+          providerId: POLYMARKET_PROVIDER_ID,
           claimable: params.claimable,
           marketId: params.marketId,
         }),
@@ -1004,10 +888,7 @@ export class PredictController extends BaseController<
   /**
    * Get user activity
    */
-  async getActivity(params: {
-    address?: string;
-    providerId?: string;
-  }): Promise<PredictActivity[]> {
+  async getActivity(params: { address?: string }): Promise<PredictActivity[]> {
     // Start Sentry trace for get activity operation
     const traceId = `get-activity-${Date.now()}`;
     let traceData:
@@ -1020,31 +901,17 @@ export class PredictController extends BaseController<
       id: traceId,
       tags: {
         feature: PREDICT_CONSTANTS.FEATURE_NAME,
-        providerId: params.providerId ?? 'unknown',
+        providerId: POLYMARKET_PROVIDER_ID,
       },
     });
 
     try {
-      const { address, providerId } = params;
+      const { address } = params;
       const selectedAddress = address ?? this.getSigner().address;
 
-      const providerIds = providerId
-        ? [providerId]
-        : Array.from(this.providers.keys());
-
-      if (providerIds.some((id) => !this.providers.has(id))) {
-        throw new Error('Provider not available');
-      }
-
-      const allActivity = await Promise.all(
-        providerIds.map((id: string) =>
-          this.providers.get(id)?.getActivity({ address: selectedAddress }),
-        ),
-      );
-
-      const activity = allActivity
-        .flat()
-        .filter((entry): entry is PredictActivity => entry !== undefined);
+      const activity = await this.provider.getActivity({
+        address: selectedAddress,
+      });
 
       this.update((state) => {
         state.lastUpdateTimestamp = Date.now();
@@ -1071,7 +938,7 @@ export class PredictController extends BaseController<
       Logger.error(
         ensureError(error),
         this.getErrorContext('getActivity', {
-          providerId: params.providerId,
+          providerId: POLYMARKET_PROVIDER_ID,
         }),
       );
 
@@ -1090,10 +957,8 @@ export class PredictController extends BaseController<
    */
   async getUnrealizedPnL({
     address,
-    providerId = 'polymarket',
   }: {
     address?: string;
-    providerId?: string;
   }): Promise<UnrealizedPnL> {
     // Start Sentry trace for get unrealized PnL operation
     const traceId = `get-unrealized-pnl-${Date.now()}`;
@@ -1105,17 +970,14 @@ export class PredictController extends BaseController<
       id: traceId,
       tags: {
         feature: PREDICT_CONSTANTS.FEATURE_NAME,
-        providerId: providerId ?? 'unknown',
+        providerId: POLYMARKET_PROVIDER_ID,
       },
     });
 
     try {
       const selectedAddress = address ?? this.getSigner().address;
 
-      const provider = this.providers.get(providerId);
-      if (!provider) {
-        throw new Error('Provider not available');
-      }
+      const provider = this.provider;
 
       const unrealizedPnL = await provider.getUnrealizedPnL({
         address: selectedAddress,
@@ -1147,7 +1009,7 @@ export class PredictController extends BaseController<
       Logger.error(
         ensureError(error),
         this.getErrorContext('getUnrealizedPnL', {
-          providerId,
+          providerId: POLYMARKET_PROVIDER_ID,
         }),
       );
 
@@ -1170,7 +1032,6 @@ export class PredictController extends BaseController<
     status,
     amountUsd,
     analyticsProperties,
-    providerId,
     completionDuration,
     failureReason,
     sharePrice,
@@ -1179,7 +1040,6 @@ export class PredictController extends BaseController<
     status: PredictTradeStatusValue;
     amountUsd?: number;
     analyticsProperties?: PlaceOrderParams['analyticsProperties'];
-    providerId: string;
     completionDuration?: number;
     failureReason?: string;
     sharePrice?: number;
@@ -1251,7 +1111,7 @@ export class PredictController extends BaseController<
     };
 
     DevLogger.log(`📊 [Analytics] PREDICT_TRADE_TRANSACTION [${status}]`, {
-      providerId,
+      providerId: POLYMARKET_PROVIDER_ID,
       regularProperties,
       sensitiveProperties,
     });
@@ -1394,13 +1254,11 @@ export class PredictController extends BaseController<
    * Track geo-blocking event when user attempts an action but is blocked
    */
   public trackGeoBlockTriggered({
-    providerId,
     attemptedAction,
   }: {
-    providerId: string;
     attemptedAction: string;
   }): void {
-    const eligibilityData = this.state.eligibility[providerId];
+    const eligibilityData = this.state.eligibility;
     const analyticsProperties = {
       [PredictEventProperties.COUNTRY]: eligibilityData?.country,
       [PredictEventProperties.ATTEMPTED_ACTION]: attemptedAction,
@@ -1504,10 +1362,7 @@ export class PredictController extends BaseController<
 
   async previewOrder(params: PreviewOrderParams): Promise<OrderPreview> {
     try {
-      const provider = this.providers.get(params.providerId);
-      if (!provider) {
-        throw new Error('Provider not available');
-      }
+      const provider = this.provider;
 
       const remoteFeatureFlagState = this.messenger.call(
         'RemoteFeatureFlagController:getState',
@@ -1528,7 +1383,7 @@ export class PredictController extends BaseController<
       Logger.error(
         ensureError(error),
         this.getErrorContext('previewOrder', {
-          providerId: params.providerId,
+          providerId: POLYMARKET_PROVIDER_ID,
           side: params.side,
           marketId: params.marketId,
           outcomeId: params.outcomeId,
@@ -1541,7 +1396,7 @@ export class PredictController extends BaseController<
 
   async placeOrder(params: PlaceOrderParams): Promise<Result> {
     const startTime = performance.now();
-    const { analyticsProperties, preview, providerId } = params;
+    const { analyticsProperties, preview } = params;
 
     const sharePrice = preview?.sharePrice;
     const amountUsd =
@@ -1561,7 +1416,7 @@ export class PredictController extends BaseController<
       id: traceId,
       tags: {
         feature: PREDICT_CONSTANTS.FEATURE_NAME,
-        providerId: providerId ?? 'unknown',
+        providerId: POLYMARKET_PROVIDER_ID,
         side: preview.side,
       },
       data: {
@@ -1572,10 +1427,7 @@ export class PredictController extends BaseController<
     });
 
     try {
-      const provider = this.providers.get(providerId);
-      if (!provider) {
-        throw new Error('Provider not available');
-      }
+      const provider = this.provider;
 
       const signer = this.getSigner();
 
@@ -1584,14 +1436,16 @@ export class PredictController extends BaseController<
         status: PredictTradeStatus.SUBMITTED,
         amountUsd,
         analyticsProperties,
-        providerId,
         sharePrice,
       });
 
       // Invalidate query cache (to avoid nonce issues)
       await this.invalidateQueryCache(provider.chainId);
 
-      const result = await provider.placeOrder({ ...params, signer });
+      const result = await provider.placeOrder({
+        ...params,
+        signer,
+      });
 
       // Track Predict Action Completed or Failed
       const completionDuration = performance.now() - startTime;
@@ -1602,8 +1456,7 @@ export class PredictController extends BaseController<
 
       const { spentAmount, receivedAmount } = result.response;
 
-      const cachedBalance =
-        this.state.balances[providerId]?.[signer.address]?.balance ?? 0;
+      const cachedBalance = this.state.balances[signer.address]?.balance ?? 0;
       let realAmountUsd = amountUsd;
       let realSharePrice = sharePrice;
       try {
@@ -1614,8 +1467,7 @@ export class PredictController extends BaseController<
 
           // Optimistically update balance
           this.update((state) => {
-            state.balances[providerId] = state.balances[providerId] || {};
-            state.balances[providerId][signer.address] = {
+            state.balances[signer.address] = {
               balance: cachedBalance - (realAmountUsd + totalFee),
               // valid for 5 seconds (since it takes some time to reflect balance on-chain)
               validUntil: Date.now() + 5000,
@@ -1627,8 +1479,7 @@ export class PredictController extends BaseController<
 
           // Optimistically update balance
           this.update((state) => {
-            state.balances[providerId] = state.balances[providerId] || {};
-            state.balances[providerId][signer.address] = {
+            state.balances[signer.address] = {
               balance: cachedBalance + realAmountUsd,
               // valid for 5 seconds (since it takes some time to reflect balance on-chain)
               validUntil: Date.now() + 5000,
@@ -1644,7 +1495,6 @@ export class PredictController extends BaseController<
         status: PredictTradeStatus.SUCCEEDED,
         amountUsd: realAmountUsd,
         analyticsProperties,
-        providerId,
         completionDuration,
         sharePrice: realSharePrice,
       });
@@ -1663,7 +1513,6 @@ export class PredictController extends BaseController<
         status: PredictTradeStatus.FAILED,
         amountUsd,
         analyticsProperties,
-        providerId,
         sharePrice,
         completionDuration,
         failureReason: errorMessage,
@@ -1681,7 +1530,7 @@ export class PredictController extends BaseController<
       Logger.error(
         ensureError(error),
         this.getErrorContext('placeOrder', {
-          providerId,
+          providerId: POLYMARKET_PROVIDER_ID,
           marketId: analyticsProperties?.marketId,
           marketTitle: analyticsProperties?.marketTitle,
           transactionType: analyticsProperties?.transactionType,
@@ -1695,7 +1544,7 @@ export class PredictController extends BaseController<
         error: errorMessage,
         errorDetails: error instanceof Error ? error.stack : undefined,
         timestamp: new Date().toISOString(),
-        providerId,
+        providerId: POLYMARKET_PROVIDER_ID,
         params,
       });
 
@@ -1709,9 +1558,9 @@ export class PredictController extends BaseController<
     }
   }
 
-  async claimWithConfirmation({
-    providerId,
-  }: ClaimParams): Promise<PredictClaim> {
+  async claimWithConfirmation(
+    _params: ClaimParams = {},
+  ): Promise<PredictClaim> {
     // Start Sentry trace for claim operation
     const traceId = `claim-${Date.now()}`;
     let traceData:
@@ -1729,15 +1578,12 @@ export class PredictController extends BaseController<
       id: traceId,
       tags: {
         feature: PREDICT_CONSTANTS.FEATURE_NAME,
-        providerId: providerId ?? 'unknown',
+        providerId: POLYMARKET_PROVIDER_ID,
       },
     });
 
     try {
-      const provider = this.providers.get(providerId);
-      if (!provider) {
-        throw new Error('Provider not available');
-      }
+      const provider = this.provider;
 
       const signer = this.getSigner();
 
@@ -1837,7 +1683,7 @@ export class PredictController extends BaseController<
       Logger.error(
         e,
         this.getErrorContext('claimWithConfirmation', {
-          providerId,
+          providerId: POLYMARKET_PROVIDER_ID,
         }),
       );
 
@@ -1846,7 +1692,7 @@ export class PredictController extends BaseController<
         error: errorMessage,
         errorDetails: error instanceof Error ? error.stack : undefined,
         timestamp: new Date().toISOString(),
-        providerId,
+        providerId: POLYMARKET_PROVIDER_ID,
       });
 
       // Update error state for Sentry integration
@@ -1866,17 +1712,8 @@ export class PredictController extends BaseController<
     }
   }
 
-  public confirmClaim({
-    providerId = 'polymarket',
-    address,
-  }: {
-    providerId: string;
-    address?: string;
-  }): void {
-    const provider = this.providers.get(providerId);
-    if (!provider) {
-      throw new Error('Provider not available');
-    }
+  public confirmClaim({ address }: { address?: string }): void {
+    const provider = this.provider;
 
     const normalizedAddress = (
       address ?? this.getSigner().address
@@ -1895,7 +1732,7 @@ export class PredictController extends BaseController<
       return;
     }
 
-    this.providers.get(providerId)?.confirmClaim?.({
+    provider.confirmClaim?.({
       positions: claimedPositions,
       signer,
     });
@@ -1916,53 +1753,45 @@ export class PredictController extends BaseController<
    */
   public async refreshEligibility(): Promise<void> {
     DevLogger.log('PredictController: Refreshing eligibility');
-    for (const [providerId, provider] of this.providers) {
-      if (!provider) {
-        continue;
+    try {
+      const geoBlockResponse = await this.provider.isEligible();
+      if (geoBlockResponse.isEligible && geoBlockResponse.country) {
+        const isLocallyGeoblocked = this.isLocallyGeoblocked({
+          country: geoBlockResponse.country,
+        });
+        geoBlockResponse.isEligible = !isLocallyGeoblocked;
       }
-      try {
-        const geoBlockResponse = await provider.isEligible();
-        if (geoBlockResponse.isEligible && geoBlockResponse.country) {
-          // Check if country is blocked by local geo-blocking
-          const isLocallyGeoblocked = this.isLocallyGeoblocked({
-            country: geoBlockResponse.country,
-          });
-          geoBlockResponse.isEligible = !isLocallyGeoblocked;
-        }
-        if (process.env.MM_PREDICT_SKIP_GEOBLOCK === 'true') {
-          geoBlockResponse.isEligible = true;
-          geoBlockResponse.country = 'N/A';
-        }
-        this.update((state) => {
-          state.eligibility[providerId] = {
-            eligible: geoBlockResponse.isEligible,
-            country: geoBlockResponse.country,
-          };
-        });
-      } catch (error) {
-        // Default to false in case of error
-        this.update((state) => {
-          state.eligibility[providerId] = {
-            eligible: false,
-            country: undefined,
-          };
-        });
-        DevLogger.log('PredictController: Eligibility refresh failed', {
-          error:
-            error instanceof Error
-              ? error.message
-              : PREDICT_ERROR_CODES.UNKNOWN_ERROR,
-          timestamp: new Date().toISOString(),
-        });
+      if (process.env.MM_PREDICT_SKIP_GEOBLOCK === 'true') {
+        geoBlockResponse.isEligible = true;
+        geoBlockResponse.country = 'N/A';
+      }
+      this.update((state) => {
+        state.eligibility = {
+          eligible: geoBlockResponse.isEligible,
+          country: geoBlockResponse.country,
+        };
+      });
+    } catch (error) {
+      this.update((state) => {
+        state.eligibility = {
+          eligible: false,
+          country: undefined,
+        };
+      });
+      DevLogger.log('PredictController: Eligibility refresh failed', {
+        error:
+          error instanceof Error
+            ? error.message
+            : PREDICT_ERROR_CODES.UNKNOWN_ERROR,
+        timestamp: new Date().toISOString(),
+      });
 
-        // Log to Sentry with provider context
-        Logger.error(
-          ensureError(error),
-          this.getErrorContext('refreshEligibility.provider', {
-            providerId,
-          }),
-        );
-      }
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('refreshEligibility.provider', {
+          providerId: POLYMARKET_PROVIDER_ID,
+        }),
+      );
     }
   }
 
@@ -1971,15 +1800,13 @@ export class PredictController extends BaseController<
    *
    * @param gameId - Unique identifier of the game to subscribe to
    * @param callback - Function invoked when game state changes (score, period, status)
-   * @param providerId - Provider to use for subscription (default: 'polymarket')
    * @returns Unsubscribe function to clean up the subscription
    */
   public subscribeToGameUpdates(
     gameId: string,
     callback: GameUpdateCallback,
-    providerId = 'polymarket',
   ): () => void {
-    const provider = this.providers.get(providerId);
+    const provider = this.provider;
     if (!provider?.subscribeToGameUpdates) {
       return () => undefined;
     }
@@ -1991,15 +1818,13 @@ export class PredictController extends BaseController<
    *
    * @param tokenIds - Array of token IDs to subscribe to price updates for
    * @param callback - Function invoked when prices change (includes bestBid/bestAsk)
-   * @param providerId - Provider to use for subscription (default: 'polymarket')
    * @returns Unsubscribe function to clean up the subscription
    */
   public subscribeToMarketPrices(
     tokenIds: string[],
     callback: PriceUpdateCallback,
-    providerId = 'polymarket',
   ): () => void {
-    const provider = this.providers.get(providerId);
+    const provider = this.provider;
     if (!provider?.subscribeToMarketPrices) {
       return () => undefined;
     }
@@ -2009,11 +1834,10 @@ export class PredictController extends BaseController<
   /**
    * Gets the current WebSocket connection status for live data feeds.
    *
-   * @param providerId - Provider to check connection status for (default: 'polymarket')
    * @returns Connection status for sports and market data WebSocket channels
    */
-  public getConnectionStatus(providerId = 'polymarket'): ConnectionStatus {
-    const provider = this.providers.get(providerId);
+  public getConnectionStatus(): ConnectionStatus {
+    const provider = this.provider;
     if (!provider?.getConnectionStatus) {
       return { sportsConnected: false, marketConnected: false };
     }
@@ -2027,25 +1851,21 @@ export class PredictController extends BaseController<
   }
 
   public async depositWithConfirmation(
-    params: PrepareDepositParams,
+    _params: PrepareDepositParams = {},
   ): Promise<Result<{ batchId: string }>> {
-    const provider = this.providers.get(params.providerId);
-    if (!provider) {
-      throw new Error('Provider not available');
-    }
+    const provider = this.provider;
 
     try {
       const signer = this.getSigner();
 
       // Clear any previous deposit transaction
       this.update((state) => {
-        if (state.pendingDeposits[params.providerId]?.[signer.address]) {
-          delete state.pendingDeposits[params.providerId][signer.address];
+        if (state.pendingDeposits[signer.address]) {
+          delete state.pendingDeposits[signer.address];
         }
       });
 
       const depositPreparation = await provider.prepareDeposit({
-        ...params,
         signer,
       });
 
@@ -2074,7 +1894,7 @@ export class PredictController extends BaseController<
       });
 
       validateDepositTransactions(transactions, {
-        providerId: params.providerId,
+        providerId: POLYMARKET_PROVIDER_ID,
       });
 
       const networkClientId = this.messenger.call(
@@ -2087,9 +1907,7 @@ export class PredictController extends BaseController<
       }
 
       this.update((state) => {
-        state.pendingDeposits[params.providerId] =
-          state.pendingDeposits[params.providerId] || {};
-        state.pendingDeposits[params.providerId][signer.address] = 'pending';
+        state.pendingDeposits[signer.address] = 'pending';
       });
 
       const batchResult = await addTransactionBatch({
@@ -2115,9 +1933,7 @@ export class PredictController extends BaseController<
       }
 
       this.update((state) => {
-        state.pendingDeposits[params.providerId] =
-          state.pendingDeposits[params.providerId] || {};
-        state.pendingDeposits[params.providerId][signer.address] = batchId;
+        state.pendingDeposits[signer.address] = batchId;
       });
 
       return {
@@ -2130,7 +1946,7 @@ export class PredictController extends BaseController<
       const e = ensureError(error);
       if (e.message.includes('User denied transaction signature')) {
         // Clear pending state before returning
-        this.clearPendingDeposit({ providerId: params.providerId });
+        this.clearPendingDeposit();
         // ignore error, as the user cancelled the tx
         return {
           success: true,
@@ -2141,11 +1957,11 @@ export class PredictController extends BaseController<
       Logger.error(
         e,
         this.getErrorContext('depositWithConfirmation', {
-          providerId: params.providerId,
+          providerId: POLYMARKET_PROVIDER_ID,
         }),
       );
 
-      this.clearPendingDeposit({ providerId: params.providerId });
+      this.clearPendingDeposit();
 
       throw new Error(
         error instanceof Error
@@ -2155,34 +1971,24 @@ export class PredictController extends BaseController<
     }
   }
 
-  public clearPendingDeposit({ providerId }: { providerId: string }): void {
+  public clearPendingDeposit(): void {
     const selectedAddress = this.getSigner().address;
-    this.clearPendingDepositForAddress({
-      providerId,
-      address: selectedAddress,
-    });
+    this.clearPendingDepositForAddress({ address: selectedAddress });
   }
 
   private clearPendingDepositForAddress({
-    providerId,
     address,
   }: {
-    providerId: string;
     address: string;
   }): void {
     const normalizedAddress = address.toLowerCase();
     this.update((state) => {
-      const providerDeposits = state.pendingDeposits[providerId];
-      if (!providerDeposits) {
-        return;
-      }
-
-      const matchedAddress = Object.keys(providerDeposits).find(
+      const matchedAddress = Object.keys(state.pendingDeposits).find(
         (addressKey) => addressKey.toLowerCase() === normalizedAddress,
       );
 
       if (matchedAddress) {
-        delete providerDeposits[matchedAddress];
+        delete state.pendingDeposits[matchedAddress];
       }
     });
   }
@@ -2261,19 +2067,16 @@ export class PredictController extends BaseController<
     status: PredictTransactionEventStatus,
     address: string,
   ): void {
-    const providerId = 'polymarket';
     const isTerminal =
       status === 'confirmed' || status === 'failed' || status === 'rejected';
 
     if (type === 'deposit' && isTerminal) {
-      this.clearPendingDepositForAddress({ providerId, address });
+      this.clearPendingDepositForAddress({ address });
     }
 
     if (type === 'claim' && status === 'confirmed') {
-      this.confirmClaim({ providerId, address });
-      this.getPositions({ address, providerId, claimable: true }).catch(
-        () => undefined,
-      );
+      this.confirmClaim({ address });
+      this.getPositions({ address, claimable: true }).catch(() => undefined);
     }
 
     if (type === 'withdraw' && isTerminal) {
@@ -2281,7 +2084,7 @@ export class PredictController extends BaseController<
     }
 
     if (status === 'confirmed') {
-      this.getBalance({ address, providerId }).catch(() => undefined);
+      this.getBalance({ address }).catch(() => undefined);
     }
   }
 
@@ -2291,8 +2094,8 @@ export class PredictController extends BaseController<
     const { batchId, txParams } = transactionMeta;
     const normalizedFrom = txParams.from?.toLowerCase();
 
-    return Object.values(this.state.pendingDeposits).some((providerDeposits) =>
-      Object.entries(providerDeposits).some(([address, pendingValue]) => {
+    return Object.entries(this.state.pendingDeposits).some(
+      ([address, pendingValue]) => {
         const addressMatch =
           !normalizedFrom || address.toLowerCase() === normalizedFrom;
         if (!addressMatch) {
@@ -2308,7 +2111,7 @@ export class PredictController extends BaseController<
 
         // Once the real batchId is stored, require an exact match.
         return Boolean(batchId) && pendingValue === batchId;
-      }),
+      },
     );
   }
 
@@ -2408,7 +2211,7 @@ export class PredictController extends BaseController<
   }
 
   public async getAccountState(
-    params: GetAccountStateParams,
+    params: GetAccountStateParams = {},
   ): Promise<AccountState> {
     // Start Sentry trace for get account state operation
     const traceId = `get-account-state-${Date.now()}`;
@@ -2420,15 +2223,12 @@ export class PredictController extends BaseController<
       id: traceId,
       tags: {
         feature: PREDICT_CONSTANTS.FEATURE_NAME,
-        providerId: params.providerId ?? 'unknown',
+        providerId: POLYMARKET_PROVIDER_ID,
       },
     });
 
     try {
-      const provider = this.providers.get(params.providerId);
-      if (!provider) {
-        throw new Error('Provider not available');
-      }
+      const provider = this.provider;
       const selectedAddress = this.getSigner().address;
 
       const accountState = await provider.getAccountState({
@@ -2448,7 +2248,7 @@ export class PredictController extends BaseController<
       Logger.error(
         ensureError(error),
         this.getErrorContext('getAccountState', {
-          providerId: params.providerId,
+          providerId: POLYMARKET_PROVIDER_ID,
         }),
       );
 
@@ -2475,19 +2275,16 @@ export class PredictController extends BaseController<
       id: traceId,
       tags: {
         feature: PREDICT_CONSTANTS.FEATURE_NAME,
-        providerId: params.providerId ?? 'unknown',
+        providerId: POLYMARKET_PROVIDER_ID,
       },
     });
 
     try {
-      const provider = this.providers.get(params.providerId);
-      if (!provider) {
-        throw new Error('Provider not available');
-      }
+      const provider = this.provider;
       const selectedAddress = this.getSigner().address;
       const address = params.address ?? selectedAddress;
 
-      const cachedBalance = this.state.balances[params.providerId]?.[address];
+      const cachedBalance = this.state.balances[address];
       if (cachedBalance && cachedBalance.validUntil > Date.now()) {
         traceData = { success: true, cached: true };
         return cachedBalance.balance;
@@ -2502,9 +2299,7 @@ export class PredictController extends BaseController<
       });
 
       this.update((state) => {
-        state.balances[params.providerId] =
-          state.balances[params.providerId] || {};
-        state.balances[params.providerId][address] = {
+        state.balances[address] = {
           balance,
           // valid for 1 second
           validUntil: Date.now() + 1000,
@@ -2523,7 +2318,7 @@ export class PredictController extends BaseController<
       Logger.error(
         ensureError(error),
         this.getErrorContext('getBalance', {
-          providerId: params.providerId,
+          providerId: POLYMARKET_PROVIDER_ID,
         }),
       );
 
@@ -2538,19 +2333,15 @@ export class PredictController extends BaseController<
   }
 
   public async prepareWithdraw(
-    params: PrepareWithdrawParams,
+    _params: PrepareWithdrawParams = {},
   ): Promise<Result<string>> {
     try {
-      const provider = this.providers.get(params.providerId);
-      if (!provider) {
-        throw new Error('Provider not available');
-      }
+      const provider = this.provider;
 
       const signer = this.getSigner();
 
       const { chainId, transaction, predictAddress } =
         await provider.prepareWithdraw({
-          ...params,
           signer,
         });
 
@@ -2558,7 +2349,7 @@ export class PredictController extends BaseController<
         state.withdrawTransaction = {
           chainId: hexToNumber(chainId),
           status: PredictWithdrawStatus.IDLE,
-          providerId: params.providerId,
+          providerId: POLYMARKET_PROVIDER_ID,
           predictAddress: predictAddress as Hex,
           transactionId: '',
           amount: 0,
@@ -2617,13 +2408,13 @@ export class PredictController extends BaseController<
         error: errorMessage,
         errorDetails: error instanceof Error ? error.stack : undefined,
         timestamp: new Date().toISOString(),
-        providerId: params.providerId,
+        providerId: POLYMARKET_PROVIDER_ID,
       });
 
       Logger.error(
         ensureError(error),
         this.getErrorContext('prepareWithdraw', {
-          providerId: params.providerId,
+          providerId: POLYMARKET_PROVIDER_ID,
         }),
       );
 
@@ -2652,12 +2443,7 @@ export class PredictController extends BaseController<
       return;
     }
 
-    const provider = this.providers.get(
-      this.state.withdrawTransaction.providerId,
-    );
-    if (!provider) {
-      throw new Error('Provider not available');
-    }
+    const provider = this.provider;
 
     if (!provider.signWithdraw) {
       return;

@@ -1,6 +1,6 @@
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { useNavigation } from '@react-navigation/native';
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { StyleSheet, TouchableOpacity } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Badge, {
@@ -34,6 +34,11 @@ import { useTransactionPayToken } from '../../../../Views/confirmations/hooks/pa
 import { useTokenWithBalance } from '../../../../Views/confirmations/hooks/tokens/useTokenWithBalance';
 import { useTransactionMetadataRequest } from '../../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
 import {
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+  selectPendingTradeConfiguration,
+} from '@metamask/perps-controller';
+import {
   PERPS_BALANCE_CHAIN_ID,
   PERPS_BALANCE_PLACEHOLDER_ADDRESS,
 } from '../../constants/perpsConfig';
@@ -42,9 +47,10 @@ import {
   useIsPerpsBalanceSelected,
   usePerpsPayWithToken,
 } from '../../hooks/useIsPerpsBalanceSelected';
+import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { Hex } from '@metamask/utils';
+import { MetaMetricsEvents } from '../../../../../core/Analytics/MetaMetrics.events';
 import { usePerpsSelector } from '../../hooks/usePerpsSelector';
-import { selectPendingTradeConfiguration } from '@metamask/perps-controller';
 import Engine from '../../../../../core/Engine';
 
 const tokenIconStyles = StyleSheet.create({
@@ -102,6 +108,7 @@ export const PerpsPayRow = ({
   const { colors } = useTheme();
   const styles = createPayRowStyles(colors);
   const { setConfirmationMetric } = useConfirmationMetricEvents();
+  const { track } = usePerpsEventTracking();
   const { payToken, setPayToken } = useTransactionPayToken();
   const transactionMeta = useTransactionMetadataRequest();
   const matchesPerpsBalance = useIsPerpsBalanceSelected();
@@ -112,38 +119,60 @@ export const PerpsPayRow = ({
 
   const pendingConfigSelectedPaymentToken = pendingConfig?.selectedPaymentToken;
 
+  // Track which pending config we've already applied so we don't overwrite the user's
+  // in-session token selection. Apply pending config only on initial load or when
+  // switching asset; otherwise switching tokens in the Pay With modal would flip back.
+  const appliedPendingTokenRef = useRef<
+    { address: string; chainId: string } | null | undefined
+  >(undefined);
+  const prevInitialAssetRef = useRef(initialAsset);
+  if (prevInitialAssetRef.current !== initialAsset) {
+    prevInitialAssetRef.current = initialAsset;
+    appliedPendingTokenRef.current = undefined;
+  }
+
   useEffect(() => {
-    if (!pendingConfigSelectedPaymentToken) {
-      Engine.context.PerpsController?.setSelectedPaymentToken?.(null);
-    }
+    if (pendingConfigSelectedPaymentToken != null) return;
+    if (appliedPendingTokenRef.current === null) return;
+    appliedPendingTokenRef.current = null;
+    Engine.context.PerpsController?.setSelectedPaymentToken?.(null);
   }, [pendingConfigSelectedPaymentToken]);
 
   useEffect(() => {
-    if (!pendingConfigSelectedPaymentToken || !selectedPaymentToken) {
-      return;
-    }
+    if (!pendingConfigSelectedPaymentToken || !selectedPaymentToken) return;
+
+    const pendingAddr = pendingConfigSelectedPaymentToken.address;
+    const pendingChainId = pendingConfigSelectedPaymentToken.chainId;
+    const alreadyApplied =
+      appliedPendingTokenRef.current !== undefined &&
+      (appliedPendingTokenRef.current === null
+        ? false
+        : appliedPendingTokenRef.current.address === pendingAddr &&
+          appliedPendingTokenRef.current.chainId === pendingChainId);
+    if (alreadyApplied) return;
 
     if (
-      payToken?.address !== pendingConfigSelectedPaymentToken?.address ||
-      payToken?.chainId !== pendingConfigSelectedPaymentToken?.chainId
+      payToken?.address !== pendingAddr ||
+      payToken?.chainId !== pendingChainId
     ) {
       setPayToken({
-        address: pendingConfigSelectedPaymentToken.address as Hex,
-        chainId: pendingConfigSelectedPaymentToken.chainId as Hex,
+        address: pendingAddr as Hex,
+        chainId: pendingChainId as Hex,
       });
-
       Engine.context.PerpsController?.setSelectedPaymentToken?.({
         description: pendingConfigSelectedPaymentToken.description,
-        address: pendingConfigSelectedPaymentToken.address as Hex,
-        chainId: pendingConfigSelectedPaymentToken.chainId as Hex,
+        address: pendingAddr as Hex,
+        chainId: pendingChainId as Hex,
       });
     }
+    appliedPendingTokenRef.current = {
+      address: pendingAddr,
+      chainId: pendingChainId,
+    };
   }, [
     payToken,
     pendingConfigSelectedPaymentToken,
     setPayToken,
-    pendingConfig,
-    initialAsset,
     selectedPaymentToken,
   ]);
 
@@ -160,8 +189,12 @@ export const PerpsPayRow = ({
         mm_pay_token_list_opened: true,
       },
     });
+    track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+      [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+        PERPS_EVENT_VALUE.INTERACTION_TYPE.PAYMENT_TOKEN_SELECTOR,
+    });
     navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL);
-  }, [canEdit, navigation, setConfirmationMetric]);
+  }, [canEdit, navigation, setConfirmationMetric, track]);
 
   // Display data: use local state (defaults to Perps balance) so UI always shows "Perps balance" by default
   const displayToken = matchesPerpsBalance

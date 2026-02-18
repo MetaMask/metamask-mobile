@@ -392,7 +392,7 @@ describe('useTokenActions', () => {
       // Default mock behavior for assetId generation
       mockIsCaipAssetType.mockReturnValue(false);
       mockFormatAddressToAssetId.mockImplementation(
-        (address: string, chainId: string | number) => {
+        (address: string, chainId?: string | number) => {
           // Simulate the real behavior for EVM tokens
           const numericChainId =
             typeof chainId === 'string' ? parseInt(chainId, 16) : chainId;

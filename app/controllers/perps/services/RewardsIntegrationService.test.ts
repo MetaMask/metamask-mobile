@@ -1,4 +1,3 @@
-import { RewardsIntegrationService } from './RewardsIntegrationService';
 import {
   createMockEvmAccount,
   createMockInfrastructure,
@@ -6,6 +5,8 @@ import {
 } from '../../../components/UI/Perps/__mocks__/serviceMocks';
 import type { PerpsControllerMessenger } from '../PerpsController';
 import type { PerpsPlatformDependencies } from '../types';
+
+import { RewardsIntegrationService } from './RewardsIntegrationService';
 
 describe('RewardsIntegrationService', () => {
   let mockMessenger: jest.Mocked<PerpsControllerMessenger>;

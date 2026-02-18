@@ -45,6 +45,7 @@ const styleSheet = (params: { theme: Theme; vars: InputStyleSheetVars }) => {
         fontWeight: theme.typography[textVariant].fontWeight,
         fontSize: theme.typography[textVariant].fontSize,
         letterSpacing: theme.typography[textVariant].letterSpacing,
+        lineHeight: 0,
         // iOS-specific fix for custom font baseline alignment
         ...(Platform.OS === 'ios' && {
           textAlignVertical: 'center',

@@ -30,7 +30,6 @@ describe('usePredictActionGuard', () => {
     it('executes action without navigation', async () => {
       const { result } = renderHook(() =>
         usePredictActionGuard({
-          providerId: 'polymarket',
           navigation: mockNavigation,
         }),
       );
@@ -48,7 +47,6 @@ describe('usePredictActionGuard', () => {
     it('returns correct eligibility state', () => {
       const { result } = renderHook(() =>
         usePredictActionGuard({
-          providerId: 'polymarket',
           navigation: mockNavigation,
         }),
       );
@@ -59,7 +57,6 @@ describe('usePredictActionGuard', () => {
     it('executes async action and returns promise', async () => {
       const { result } = renderHook(() =>
         usePredictActionGuard({
-          providerId: 'polymarket',
           navigation: mockNavigation,
         }),
       );
@@ -88,7 +85,6 @@ describe('usePredictActionGuard', () => {
     it('navigates to unavailable modal and does not execute action', async () => {
       const { result } = renderHook(() =>
         usePredictActionGuard({
-          providerId: 'polymarket',
           navigation: mockNavigation,
         }),
       );
@@ -108,7 +104,6 @@ describe('usePredictActionGuard', () => {
     it('returns correct eligibility state', () => {
       const { result } = renderHook(() =>
         usePredictActionGuard({
-          providerId: 'polymarket',
           navigation: mockNavigation,
         }),
       );
@@ -117,11 +112,10 @@ describe('usePredictActionGuard', () => {
     });
   });
 
-  describe('providerId usage', () => {
-    it('works with different provider IDs', () => {
+  describe('hook options', () => {
+    it('works with navigation option', () => {
       const { result } = renderHook(() =>
         usePredictActionGuard({
-          providerId: 'custom-provider',
           navigation: mockNavigation,
         }),
       );

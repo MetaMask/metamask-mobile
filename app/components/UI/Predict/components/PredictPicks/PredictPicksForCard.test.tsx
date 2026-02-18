@@ -5,6 +5,7 @@ import { usePredictPositions } from '../../hooks/usePredictPositions';
 import { PredictPositionStatus, type PredictPosition } from '../../types';
 import { formatPrice } from '../../utils/format';
 
+import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
 jest.mock('../../hooks/usePredictPositions');
 jest.mock('../../hooks/useLivePositions', () => ({
   useLivePositions: jest.fn((positions: unknown[]) => ({
@@ -29,7 +30,7 @@ const createMockPosition = (
   overrides: Partial<PredictPosition> = {},
 ): PredictPosition => ({
   id: 'position-1',
-  providerId: 'polymarket',
+  providerId: POLYMARKET_PROVIDER_ID,
   marketId: 'market-1',
   outcomeId: 'outcome-1',
   outcomeTokenId: '0',

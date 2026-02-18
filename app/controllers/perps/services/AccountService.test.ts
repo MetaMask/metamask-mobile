@@ -1,22 +1,23 @@
-import { AccountService } from './AccountService';
+import { createMockHyperLiquidProvider } from '../../../components/UI/Perps/__mocks__/providerMocks';
 import {
   createMockServiceContext,
   createMockInfrastructure,
   createMockMessenger,
 } from '../../../components/UI/Perps/__mocks__/serviceMocks';
-import { createMockHyperLiquidProvider } from '../../../components/UI/Perps/__mocks__/providerMocks';
-import type { ServiceContext } from './ServiceContext';
-import {
-  PerpsAnalyticsEvent,
-  type PerpsProvider,
-  type WithdrawParams,
-  type WithdrawResult,
-  type PerpsPlatformDependencies,
-} from '../types';
 import type {
   PerpsControllerState,
   PerpsControllerMessenger,
 } from '../PerpsController';
+import { PerpsAnalyticsEvent } from '../types';
+import type {
+  PerpsProvider,
+  WithdrawParams,
+  WithdrawResult,
+  PerpsPlatformDependencies,
+} from '../types';
+
+import { AccountService } from './AccountService';
+import type { ServiceContext } from './ServiceContext';
 
 jest.mock('uuid', () => ({ v4: () => 'mock-withdrawal-trace-id' }));
 jest.mock('../constants/eventNames', () => ({

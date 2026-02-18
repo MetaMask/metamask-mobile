@@ -147,22 +147,7 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
   }
 
   if (transactions.length === 0) {
-    return (
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
-            {strings('perps.home.recent_activity')}
-          </Text>
-        </View>
-        <Text
-          variant={TextVariant.BodySM}
-          color={TextColor.Alternative}
-          style={styles.emptyText}
-        >
-          {strings('perps.home.no_activity')}
-        </Text>
-      </View>
-    );
+    return null;
   }
 
   return (

@@ -14,6 +14,7 @@ import {
 import { PredictPositionSelectorsIDs } from '../../Predict.testIds';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
 
+import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string, vars?: Record<string, string | number>) => {
     if (key === 'predict.position_info' && vars) {
@@ -36,7 +37,7 @@ jest.mock('../../hooks/usePredictPositions', () => ({
 
 const basePosition: PredictPositionType = {
   id: 'pos-1',
-  providerId: 'polymarket',
+  providerId: POLYMARKET_PROVIDER_ID,
   marketId: 'market-1',
   outcomeId: 'outcome-1',
   outcomeTokenId: '0',

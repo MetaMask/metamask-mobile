@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { act, fireEvent } from '@testing-library/react-native';
 import { PerpsPayRow } from './PerpsPayRow';
 import { useNavigation } from '@react-navigation/native';
 import { useTransactionPayToken } from '../../../../Views/confirmations/hooks/pay/useTransactionPayToken';
@@ -10,9 +10,15 @@ import {
 } from '../../hooks/useIsPerpsBalanceSelected';
 import { useTokenWithBalance } from '../../../../Views/confirmations/hooks/tokens/useTokenWithBalance';
 import { useConfirmationMetricEvents } from '../../../../Views/confirmations/hooks/metrics/useConfirmationMetricEvents';
+import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { isHardwareAccount } from '../../../../../util/address';
 import Engine from '../../../../../core/Engine';
 import Routes from '../../../../../constants/navigation/Routes';
+import { MetaMetricsEvents } from '../../../../../core/Analytics/MetaMetrics.events';
+import {
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+} from '@metamask/perps-controller';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { usePerpsSelector } from '../../hooks/usePerpsSelector';
 import {
@@ -49,6 +55,7 @@ jest.mock('../../../../Views/confirmations/hooks/tokens/useTokenWithBalance');
 jest.mock(
   '../../../../Views/confirmations/hooks/metrics/useConfirmationMetricEvents',
 );
+jest.mock('../../hooks/usePerpsEventTracking');
 jest.mock('../../../../../util/address');
 jest.mock('../../../../Base/TokenIcon', () => jest.fn(() => null));
 jest.mock('../../../../../util/networks', () => ({
@@ -81,6 +88,9 @@ const mockUseConfirmationMetricEvents =
   useConfirmationMetricEvents as jest.MockedFunction<
     typeof useConfirmationMetricEvents
   >;
+const mockUsePerpsEventTracking = usePerpsEventTracking as jest.MockedFunction<
+  typeof usePerpsEventTracking
+>;
 const mockIsHardwareAccount = isHardwareAccount as jest.MockedFunction<
   typeof isHardwareAccount
 >;
@@ -88,6 +98,7 @@ const mockIsHardwareAccount = isHardwareAccount as jest.MockedFunction<
 describe('PerpsPayRow', () => {
   const navigateMock = jest.fn();
   const setConfirmationMetricMock = jest.fn();
+  const trackMock = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -114,6 +125,9 @@ describe('PerpsPayRow', () => {
     mockUseConfirmationMetricEvents.mockReturnValue({
       setConfirmationMetric: setConfirmationMetricMock,
     } as unknown as ReturnType<typeof useConfirmationMetricEvents>);
+    mockUsePerpsEventTracking.mockReturnValue({
+      track: trackMock,
+    } as unknown as ReturnType<typeof usePerpsEventTracking>);
     mockIsHardwareAccount.mockReturnValue(false);
     mockUsePerpsSelector.mockReturnValue({});
     mockUsePerpsPayWithToken.mockReturnValue(null);
@@ -168,6 +182,13 @@ describe('PerpsPayRow', () => {
     expect(setConfirmationMetricMock).toHaveBeenCalledWith({
       properties: { mm_pay_token_list_opened: true },
     });
+    expect(trackMock).toHaveBeenCalledWith(
+      MetaMetricsEvents.PERPS_UI_INTERACTION,
+      {
+        [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+          PERPS_EVENT_VALUE.INTERACTION_TYPE.PAYMENT_TOKEN_SELECTOR,
+      },
+    );
   });
 
   it('does not navigate when hardware account', () => {
@@ -278,5 +299,152 @@ describe('PerpsPayRow', () => {
     expect(
       Engine.context.PerpsController?.setSelectedPaymentToken,
     ).toHaveBeenCalledWith(null);
+  });
+
+  describe('pending config sync (apply once per load)', () => {
+    it('does not overwrite pay token when user switches token after pending config was applied', () => {
+      const setPayTokenMock = jest.fn();
+      const pendingTokenA = {
+        address: '0xTokenA',
+        chainId: '0x1',
+        description: 'Token A',
+      };
+      mockUsePerpsSelector.mockReturnValue({
+        selectedPaymentToken: pendingTokenA,
+      });
+      mockUsePerpsPayWithToken.mockReturnValue({
+        address: pendingTokenA.address,
+        chainId: pendingTokenA.chainId,
+        description: pendingTokenA.description,
+      });
+      mockUseTransactionPayToken.mockReturnValue({
+        payToken: { address: '0xOther', chainId: '0xa4b1', symbol: 'Other' },
+        setPayToken: setPayTokenMock,
+      } as unknown as ReturnType<typeof useTransactionPayToken>);
+
+      const { rerender } = renderWithProvider(
+        <PerpsPayRow initialAsset="BTC" />,
+      );
+
+      expect(setPayTokenMock).toHaveBeenCalledTimes(1);
+      expect(setPayTokenMock).toHaveBeenCalledWith({
+        address: '0xTokenA',
+        chainId: '0x1',
+      });
+
+      setPayTokenMock.mockClear();
+      (
+        Engine.context.PerpsController?.setSelectedPaymentToken as jest.Mock
+      ).mockClear();
+
+      const tokenB = {
+        address: '0xTokenB',
+        chainId: '0x1',
+        description: 'Token B',
+      };
+      mockUsePerpsPayWithToken.mockReturnValue({
+        address: tokenB.address,
+        chainId: tokenB.chainId,
+        description: tokenB.description,
+      });
+      mockUseTransactionPayToken.mockReturnValue({
+        payToken: {
+          address: tokenB.address,
+          chainId: tokenB.chainId,
+          symbol: 'B',
+        },
+        setPayToken: setPayTokenMock,
+      } as unknown as ReturnType<typeof useTransactionPayToken>);
+
+      act(() => {
+        rerender(<PerpsPayRow initialAsset="BTC" />);
+      });
+
+      expect(setPayTokenMock).not.toHaveBeenCalled();
+      expect(
+        Engine.context.PerpsController?.setSelectedPaymentToken,
+      ).not.toHaveBeenCalled();
+    });
+
+    it('re-applies pending config when initialAsset changes', () => {
+      const setPayTokenMock = jest.fn();
+      const tokenA = {
+        address: '0xTokenA',
+        chainId: '0x1',
+        description: 'Token A',
+      };
+      const tokenB = {
+        address: '0xTokenB',
+        chainId: '0x1',
+        description: 'Token B',
+      };
+      mockUsePerpsSelector.mockReturnValue({
+        selectedPaymentToken: tokenA,
+      });
+      mockUsePerpsPayWithToken.mockReturnValue({
+        address: tokenA.address,
+        chainId: tokenA.chainId,
+        description: tokenA.description,
+      });
+      mockUseTransactionPayToken.mockReturnValue({
+        payToken: { address: '0xOther', chainId: '0xa4b1', symbol: 'Other' },
+        setPayToken: setPayTokenMock,
+      } as unknown as ReturnType<typeof useTransactionPayToken>);
+
+      const { rerender } = renderWithProvider(
+        <PerpsPayRow initialAsset="BTC" />,
+      );
+
+      expect(setPayTokenMock).toHaveBeenCalledWith({
+        address: '0xTokenA',
+        chainId: '0x1',
+      });
+
+      setPayTokenMock.mockClear();
+
+      mockUsePerpsSelector.mockReturnValue({
+        selectedPaymentToken: tokenB,
+      });
+      mockUsePerpsPayWithToken.mockReturnValue({
+        address: tokenB.address,
+        chainId: tokenB.chainId,
+        description: tokenB.description,
+      });
+      mockUseTransactionPayToken.mockReturnValue({
+        payToken: { address: '0xOther', chainId: '0xa4b1', symbol: 'Other' },
+        setPayToken: setPayTokenMock,
+      } as unknown as ReturnType<typeof useTransactionPayToken>);
+
+      act(() => {
+        rerender(<PerpsPayRow initialAsset="ETH" />);
+      });
+
+      expect(setPayTokenMock).toHaveBeenCalledWith({
+        address: '0xTokenB',
+        chainId: '0x1',
+      });
+    });
+
+    it('does not call setSelectedPaymentToken(null) again when pending has no token and already applied', () => {
+      mockUsePerpsSelector.mockReturnValue({});
+      mockUsePerpsPayWithToken.mockReturnValue(null);
+
+      const setSelectedPaymentTokenMock = Engine.context.PerpsController
+        ?.setSelectedPaymentToken as jest.Mock;
+
+      const { rerender } = renderWithProvider(
+        <PerpsPayRow initialAsset="BTC" />,
+      );
+
+      expect(setSelectedPaymentTokenMock).toHaveBeenCalledTimes(1);
+      expect(setSelectedPaymentTokenMock).toHaveBeenCalledWith(null);
+
+      setSelectedPaymentTokenMock.mockClear();
+      act(() => {
+        rerender(<PerpsPayRow initialAsset="BTC" />);
+      });
+
+      expect(setSelectedPaymentTokenMock).not.toHaveBeenCalled();
+    });
   });
 });

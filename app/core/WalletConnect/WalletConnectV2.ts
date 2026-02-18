@@ -13,6 +13,10 @@ import { getSdkError } from '@walletconnect/utils';
 import { rpcErrors } from '@metamask/rpc-errors';
 
 import { updateWC2Metadata } from '../../../app/actions/sdk';
+import {
+  WC2VerifyContext,
+  WC2VerifyValidation,
+} from '../../../app/actions/sdk/state';
 import { selectEvmChainId } from '../../selectors/networkController';
 import { store } from '../../store';
 import StorageWrapper from '../../store/storage-wrapper';
@@ -444,6 +448,43 @@ export class WC2Manager {
     const icons = metadata.icons;
     const icon = icons?.[0] ?? '';
 
+    // Extract WalletConnect Verify API context for domain risk detection.
+    // If unavailable (error, timeout), default to undefined so the UI
+    // treats it as a clean connection (no malicious warnings).
+    let verifyContext: WC2VerifyContext | undefined;
+    try {
+      const rawVerify = (
+        proposal as WalletKitTypes.SessionProposal & {
+          verifyContext?: {
+            verified?: {
+              isScam?: boolean;
+              validation?: string;
+              origin?: string;
+            };
+          };
+        }
+      ).verifyContext;
+      if (rawVerify?.verified) {
+        verifyContext = {
+          isScam: rawVerify.verified.isScam === true,
+          validation:
+            (rawVerify.verified.validation as WC2VerifyValidation) ??
+            WC2VerifyValidation.UNKNOWN,
+          verifiedOrigin: rawVerify.verified.origin,
+        };
+        DevLogger.log(
+          `WC2::session_proposal verifyContext`,
+          JSON.stringify(verifyContext),
+        );
+      }
+    } catch (verifyErr) {
+      DevLogger.log(
+        `WC2::session_proposal failed to extract verifyContext`,
+        verifyErr,
+      );
+      // Verify failures must not block the connection
+    }
+
     // Validate new session proposal URL without normalizing - reject if invalid.
     if (!isValidUrl(url)) {
       console.warn(`WC2::session_proposal rejected - invalid dApp URL: ${url}`);
@@ -473,7 +514,9 @@ export class WC2Manager {
     );
 
     // Save Connection info to redux store to be retrieved in ui.
-    store.dispatch(updateWC2Metadata({ url, name, icon, id: `${id}` }));
+    store.dispatch(
+      updateWC2Metadata({ url, name, icon, id: `${id}`, verifyContext }),
+    );
 
     // Get the current chain ID to include in permissions
     const walletChainIdHex = selectEvmChainId(store.getState());

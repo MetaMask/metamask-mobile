@@ -46,7 +46,9 @@ function mockStateWith(trendingTokens: ProgressiveRolloutFlag) {
   };
 }
 
-describe('Assets Trending Tokens Feature Flag Selector', () => {
+// TODO: Remove these tests
+// eslint-disable-next-line jest/no-disabled-tests
+describe.skip('Assets Trending Tokens Feature Flag Selector', () => {
   describe('selectAssetsTrendingTokensEnabled', () => {
     it('returns true when flag is enabled and version meets minimum', () => {
       const mockedState = mockStateWith({

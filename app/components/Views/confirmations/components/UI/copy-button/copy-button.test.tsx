@@ -1,10 +1,12 @@
 import React from 'react';
-import { fireEvent, render } from '@testing-library/react-native';
+import { fireEvent, render, waitFor } from '@testing-library/react-native';
 
 import ClipboardManager from '../../../../../../core/ClipboardManager';
 import CopyButton from './copy-button';
 
-jest.mock('../../../../../../core/ClipboardManager');
+jest.mock('../../../../../../core/ClipboardManager', () => ({
+  setString: jest.fn().mockResolvedValue(undefined),
+}));
 
 describe('CopyButton', () => {
   it('should match snapshot', async () => {
@@ -15,6 +17,8 @@ describe('CopyButton', () => {
   it('should copy text to clipboard when pressed', async () => {
     const { getByTestId } = render(<CopyButton copyText={'DUMMY'} />);
     fireEvent.press(getByTestId('copyButtonTestId'));
-    expect(ClipboardManager.setString).toHaveBeenCalledTimes(1);
+    await waitFor(() => {
+      expect(ClipboardManager.setString).toHaveBeenCalledTimes(1);
+    });
   });
 });

@@ -103,8 +103,13 @@ describe('useTronUnstake', () => {
     mockSelectSelectedInternalAccountByScope.mockReturnValue(mockAccount);
     mockSelectTrxStakingEnabled.mockReturnValue(true);
     mockSelectTronResourcesBySelectedAccountGroup.mockReturnValue({
-      energy: { staked: 50 },
-      bandwidth: { staked: 50 },
+      energy: undefined,
+      bandwidth: undefined,
+      maxEnergy: undefined,
+      maxBandwidth: undefined,
+      stakedTrxForEnergy: { symbol: 'strx-energy', balance: '50' },
+      stakedTrxForBandwidth: { symbol: 'strx-bandwidth', balance: '50' },
+      totalStakedTrx: 100,
     });
   });
 

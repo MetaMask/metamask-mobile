@@ -5,6 +5,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { Spinner } from '@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs';
 import { useNavigation } from '@react-navigation/native';
+import { useQueryClient } from '@tanstack/react-query';
 import React, { useCallback, useMemo } from 'react';
 import { strings } from '../../../../../locales/i18n';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
@@ -17,6 +18,7 @@ import { useAppThemeFromContext } from '../../../../util/theme';
 import type { PredictTransactionStatusChangedPayload } from '../controllers/PredictController';
 import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
 import { formatPrice } from '../utils/format';
+import { predictQueries } from '../queries';
 import { usePredictClaim } from './usePredictClaim';
 import { usePredictDeposit } from './usePredictDeposit';
 import { usePredictWithdraw } from './usePredictWithdraw';
@@ -124,6 +126,7 @@ const showErrorToast = ({
   });
 
 export const usePredictToastRegistrations = (): ToastRegistration[] => {
+  const queryClient = useQueryClient();
   const { deposit } = usePredictDeposit();
   const { claim } = usePredictClaim();
   const { withdraw, withdrawTransaction } = usePredictWithdraw();
@@ -139,6 +142,12 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
         payload as PredictTransactionStatusChangedPayload;
       const canRetry =
         Boolean(senderAddress) && senderAddress === normalizedSelectedAddress;
+
+      if (status === 'confirmed') {
+        queryClient.invalidateQueries({
+          queryKey: predictQueries.balance.keys.all(),
+        });
+      }
 
       if (type === 'deposit') {
         if (status === 'approved') {
@@ -309,6 +318,7 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
       deposit,
       navigation,
       normalizedSelectedAddress,
+      queryClient,
       theme.colors.accent04.normal,
       theme.colors.error.default,
       theme.colors.success.default,

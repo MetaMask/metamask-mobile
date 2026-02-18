@@ -308,7 +308,7 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
     Skeleton: SiteSkeleton,
     Section: SectionCard,
     useSectionData: (searchQuery) => {
-      const { sites, isLoading, refetch } = useSitesData(searchQuery, 100);
+      const { sites, isLoading, refetch } = useSitesData(searchQuery);
       return { data: sites, isLoading, refetch };
     },
   },

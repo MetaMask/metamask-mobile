@@ -13,10 +13,6 @@ import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
 
 interface UsePredictPositionsOptions {
   /**
-   * The provider ID to load positions for
-   */
-  providerId?: string;
-  /**
    * Whether to load positions on mount
    * @default true
    */
@@ -60,7 +56,6 @@ export function usePredictPositions(
   options: UsePredictPositionsOptions = {},
 ): UsePredictPositionsReturn {
   const {
-    providerId,
     loadOnMount = true,
     refreshOnFocus = true,
     claimable = false,
@@ -125,7 +120,6 @@ export function usePredictPositions(
         // Get positions from Predict controller
         const positionsData = await getPositions({
           address: selectedInternalAccountAddress,
-          providerId,
           claimable,
           // Always load ALL positions when claimable is true
           marketId: claimable ? undefined : marketId,
@@ -165,7 +159,6 @@ export function usePredictPositions(
               method: 'loadPositions',
               action: 'positions_load',
               operation: 'data_fetching',
-              providerId,
               claimable,
               marketId,
             },
@@ -179,13 +172,7 @@ export function usePredictPositions(
     },
     // eslint-disable-next-line react-compiler/react-compiler
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [
-      getPositions,
-      selectedInternalAccountAddress,
-      providerId,
-      claimable,
-      marketId,
-    ],
+    [getPositions, selectedInternalAccountAddress, claimable, marketId],
   );
 
   // Load positions on mount if enabled

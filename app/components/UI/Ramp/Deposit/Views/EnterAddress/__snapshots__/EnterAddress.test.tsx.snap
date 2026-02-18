@@ -688,6 +688,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                             "fontWeight": "400",
                                             "height": 46,
                                             "letterSpacing": 0,
+                                            "lineHeight": 0,
                                             "opacity": 1,
                                             "textAlignVertical": "center",
                                           }
@@ -819,6 +820,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                             "fontWeight": "400",
                                             "height": 46,
                                             "letterSpacing": 0,
+                                            "lineHeight": 0,
                                             "opacity": 1,
                                             "textAlignVertical": "center",
                                           }
@@ -945,6 +947,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                               "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
+                                              "lineHeight": 0,
                                               "opacity": 1,
                                               "textAlignVertical": "center",
                                             }
@@ -1199,6 +1202,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                               "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
+                                              "lineHeight": 0,
                                               "opacity": 1,
                                               "textAlignVertical": "center",
                                             }
@@ -1351,6 +1355,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                               "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
+                                              "lineHeight": 0,
                                               "opacity": 1,
                                               "textAlignVertical": "center",
                                             }
@@ -2225,6 +2230,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                             "fontWeight": "400",
                                             "height": 46,
                                             "letterSpacing": 0,
+                                            "lineHeight": 0,
                                             "opacity": 1,
                                             "textAlignVertical": "center",
                                           }
@@ -2341,6 +2347,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                             "fontWeight": "400",
                                             "height": 46,
                                             "letterSpacing": 0,
+                                            "lineHeight": 0,
                                             "opacity": 1,
                                             "textAlignVertical": "center",
                                           }
@@ -2467,6 +2474,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                               "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
+                                              "lineHeight": 0,
                                               "opacity": 1,
                                               "textAlignVertical": "center",
                                             }
@@ -2683,6 +2691,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                               "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
+                                              "lineHeight": 0,
                                               "opacity": 1,
                                               "textAlignVertical": "center",
                                             }
@@ -2820,6 +2829,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                               "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
+                                              "lineHeight": 0,
                                               "opacity": 1,
                                               "textAlignVertical": "center",
                                             }
@@ -3694,6 +3704,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                             "fontWeight": "400",
                                             "height": 46,
                                             "letterSpacing": 0,
+                                            "lineHeight": 0,
                                             "opacity": 1,
                                             "textAlignVertical": "center",
                                           }
@@ -3810,6 +3821,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                             "fontWeight": "400",
                                             "height": 46,
                                             "letterSpacing": 0,
+                                            "lineHeight": 0,
                                             "opacity": 1,
                                             "textAlignVertical": "center",
                                           }
@@ -3936,6 +3948,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                               "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
+                                              "lineHeight": 0,
                                               "opacity": 1,
                                               "textAlignVertical": "center",
                                             }
@@ -4160,6 +4173,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                               "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
+                                              "lineHeight": 0,
                                               "opacity": 1,
                                               "textAlignVertical": "center",
                                             }
@@ -4297,6 +4311,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                               "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
+                                              "lineHeight": 0,
                                               "opacity": 1,
                                               "textAlignVertical": "center",
                                             }
@@ -5171,6 +5186,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                             "fontWeight": "400",
                                             "height": 46,
                                             "letterSpacing": 0,
+                                            "lineHeight": 0,
                                             "opacity": 1,
                                             "textAlignVertical": "center",
                                           }
@@ -5287,6 +5303,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                             "fontWeight": "400",
                                             "height": 46,
                                             "letterSpacing": 0,
+                                            "lineHeight": 0,
                                             "opacity": 1,
                                             "textAlignVertical": "center",
                                           }
@@ -5413,6 +5430,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                               "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
+                                              "lineHeight": 0,
                                               "opacity": 1,
                                               "textAlignVertical": "center",
                                             }
@@ -5530,6 +5548,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                               "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
+                                              "lineHeight": 0,
                                               "opacity": 1,
                                               "textAlignVertical": "center",
                                             }
@@ -5658,6 +5677,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                               "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
+                                              "lineHeight": 0,
                                               "opacity": 1,
                                               "textAlignVertical": "center",
                                             }
@@ -5795,6 +5815,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                               "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
+                                              "lineHeight": 0,
                                               "opacity": 1,
                                               "textAlignVertical": "center",
                                             }

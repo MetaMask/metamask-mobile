@@ -1,10 +1,8 @@
-import { MYXProvider } from './MYXProvider';
-import { MYXClientService } from '../services/MYXClientService';
 import { createMockInfrastructure } from '../../../components/UI/Perps/__mocks__/serviceMocks';
-import {
-  WebSocketConnectionState,
-  type PerpsPlatformDependencies,
-} from '../types';
+import { CandlePeriod } from '../constants/chartConfig';
+import { MYXClientService } from '../services/MYXClientService';
+import { WebSocketConnectionState } from '../types';
+import type { PerpsPlatformDependencies } from '../types';
 import type { MYXPoolSymbol, MYXTicker } from '../types/myx-types';
 import {
   adaptMarketFromMYX,
@@ -13,7 +11,8 @@ import {
   filterMYXExclusiveMarkets,
   buildPoolSymbolMap,
 } from '../utils/myxAdapter';
-import { CandlePeriod } from '../constants/chartConfig';
+
+import { MYXProvider } from './MYXProvider';
 
 // ============================================================================
 // Mocks

@@ -137,6 +137,7 @@ export interface StateFixtureBuilder {
   withPreferences(overrides: Record<string, unknown>): StateFixtureBuilder;
   withMinimalAccounts(selectedAddress?: string): StateFixtureBuilder;
   withMinimalMainnetNetwork(): StateFixtureBuilder;
+  withMinimalTokensController(chainIds?: string[]): StateFixtureBuilder;
   withMinimalSmartTransactions(): StateFixtureBuilder;
   withMinimalGasFee(): StateFixtureBuilder;
   withMinimalTransactionController(): StateFixtureBuilder;
@@ -616,6 +617,38 @@ export function createStateFixture(): StateFixtureBuilder {
                     nativeCurrency: 'ETH',
                   },
                 },
+              },
+            },
+          },
+        } as unknown as DeepPartial<RootState> as PlainObject,
+      );
+      return api;
+    },
+    /**
+     * Sets TokensController.allTokens so selectAccountTokensAcrossChainsForAddress
+     * does not read undefined (e.g. BridgeTokenSelector, useTokensWithBalance).
+     * Uses the same default address as withMinimalAccounts so chainId/address
+     * keys match. Optional chainIds default to ['0x1']; add '0xe708' for Linea.
+     */
+    withMinimalTokensController(chainIds: string[] = ['0x1']) {
+      const defaultAddress = '0x0000000000000000000000000000000000000001';
+      const allTokens: Record<string, Record<string, unknown[]>> = {};
+      for (const chainId of chainIds) {
+        allTokens[chainId] = { [defaultAddress]: [] };
+      }
+      const bg = (current.engine?.backgroundState ?? {}) as unknown as Record<
+        string,
+        unknown
+      >;
+      current = deepMerge(
+        current as PlainObject,
+        {
+          engine: {
+            backgroundState: {
+              ...bg,
+              TokensController: {
+                allTokens,
+                allIgnoredTokens: {},
               },
             },
           },

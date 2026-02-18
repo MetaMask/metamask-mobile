@@ -427,11 +427,12 @@ describe('Browser - Function Coverage Tests', () => {
 
   describe('newTab function with replaceActiveIfMax', () => {
     it('replaces active tab when max tabs reached and fromTrending is true', () => {
-      const maxTabs = Array.from({ length: 5 }, (_, i) => ({
+      const maxTabs = Array.from({ length: 20 }, (_, i) => ({
         id: i + 1,
         url: `https://tab${i + 1}.com`,
         image: '',
         isArchived: false,
+        lastActiveAt: Date.now() - i * 1000,
       }));
       const mockUpdateTab = jest.fn();
       const mockCreateNewTab = jest.fn();
@@ -478,7 +479,6 @@ describe('Browser - Function Coverage Tests', () => {
       expect(mockCreateNewTab).not.toHaveBeenCalled();
       expect(mockUpdateTab).toHaveBeenCalledWith(1, {
         url: 'https://newurl.com',
-        isArchived: false,
       });
     });
   });
@@ -680,7 +680,10 @@ describe('Browser - Function Coverage Tests', () => {
   });
 
   describe('hideTabsAndUpdateUrl function', () => {
-    it('hides tabs view and updates URL when switching tabs', () => {
+    it('hides tabs view and updates URL when switching tabs', async () => {
+      const mockCaptureScreen = captureScreen as jest.Mock;
+      mockCaptureScreen.mockResolvedValue('screenshot-uri.jpg');
+
       const tabs = [
         { id: 1, url: 'https://tab1.com', image: '', isArchived: false },
         { id: 2, url: 'https://tab2.com', image: '', isArchived: false },
@@ -735,19 +738,21 @@ describe('Browser - Function Coverage Tests', () => {
       // Clear mocks after initial render
       mockSetActiveTab.mockClear();
       mockUpdateTab.mockClear();
+      mockCaptureScreen.mockClear();
 
-      // Switch to tab 2
-      if (switchToTabCallback) {
-        switchToTabCallback({ id: 2, url: 'https://tab2.com' });
-      }
+      // Switch to tab 2 while tabs view is showing
+      await act(async () => {
+        if (switchToTabCallback) {
+          switchToTabCallback({ id: 2, url: 'https://tab2.com' });
+        }
+      });
 
       // setActiveTab should be called
       expect(mockSetActiveTab).toHaveBeenCalledWith(2);
-      // updateTab should be called to unarchive
-      expect(mockUpdateTab).toHaveBeenCalledWith(2, {
-        url: 'https://tab2.com',
-        isArchived: false,
-      });
+
+      // captureScreen should NOT be called because the Tabs grid is visible,
+      // and capturing the screen would save the grid overlay, not the tab content
+      expect(mockCaptureScreen).not.toHaveBeenCalled();
     });
   });
 
@@ -1178,7 +1183,10 @@ describe('Browser - Function Coverage Tests', () => {
   });
 
   describe('componentDidMount with existingTabId param', () => {
-    it('switches to existing tab when existingTabId is provided', () => {
+    it('switches to existing tab when existingTabId is provided', async () => {
+      const mockCaptureScreen = captureScreen as jest.Mock;
+      mockCaptureScreen.mockResolvedValue('screenshot-uri.jpg');
+
       const tabs = [
         { id: 1, url: 'https://tab1.com', image: '', isArchived: false },
         { id: 2, url: 'https://tab2.com', image: '', isArchived: false },
@@ -1217,6 +1225,10 @@ describe('Browser - Function Coverage Tests', () => {
         },
       );
 
+      // Flush async effects (switchToTab is async due to captureScreen)
+      // eslint-disable-next-line no-empty-function
+      await act(async () => {});
+
       // Should switch to the existing tab
       expect(mockSetActiveTab).toHaveBeenCalledWith(2);
     });
@@ -1224,11 +1236,12 @@ describe('Browser - Function Coverage Tests', () => {
 
   describe('newTab navigates to max tabs modal', () => {
     it('navigates to max browser tabs modal when at max capacity without replaceActiveIfMax', () => {
-      const maxTabs = Array.from({ length: 5 }, (_, i) => ({
+      const maxTabs = Array.from({ length: 20 }, (_, i) => ({
         id: i + 1,
         url: `https://tab${i + 1}.com`,
         image: '',
         isArchived: false,
+        lastActiveAt: Date.now() - i * 1000,
       }));
       const mockCreateNewTab = jest.fn();
 
@@ -1511,7 +1524,10 @@ describe('Browser - Function Coverage Tests', () => {
   });
 
   describe('new tab added triggers switch', () => {
-    it('switches to newly added tab when tabs array grows', () => {
+    it('switches to newly added tab when tabs array grows', async () => {
+      const mockCaptureScreen = captureScreen as jest.Mock;
+      mockCaptureScreen.mockResolvedValue('screenshot-uri.jpg');
+
       const initialTabs = [
         { id: 1, url: 'https://first.com', image: '', isArchived: false },
       ];
@@ -1580,6 +1596,10 @@ describe('Browser - Function Coverage Tests', () => {
           </NavigationContainer>
         </Provider>,
       );
+
+      // Flush async effects (switchToTab is async due to captureScreen)
+      // eslint-disable-next-line no-empty-function
+      await act(async () => {});
 
       // Should switch to newly added tab
       expect(mockSetActiveTab).toHaveBeenCalledWith(2);

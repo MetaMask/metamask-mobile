@@ -16,6 +16,7 @@ import { usePredictOrderPreview } from '../../hooks/usePredictOrderPreview';
 import { PredictMarketDetailsSelectorsIDs } from '../../Predict.testIds';
 import Routes from '../../../../../constants/navigation/Routes';
 
+import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
 declare global {
   // eslint-disable-next-line no-var
   var __mockNavigate: jest.Mock;
@@ -75,7 +76,7 @@ jest.mock('../../hooks/usePredictOrderPreview', () => ({
 
 const basePosition: PredictPositionType = {
   id: 'pos-1',
-  providerId: 'polymarket',
+  providerId: POLYMARKET_PROVIDER_ID,
   marketId: 'market-1',
   outcomeId: 'outcome-1',
   outcomeTokenId: '0',
@@ -98,7 +99,7 @@ const basePosition: PredictPositionType = {
 
 const baseMarket: PredictMarket = {
   id: 'market-1',
-  providerId: 'polymarket',
+  providerId: POLYMARKET_PROVIDER_ID,
   slug: 'will-etf-be-approved',
   title: 'Will ETF be approved?',
   description: 'Test market',
@@ -111,7 +112,7 @@ const baseMarket: PredictMarket = {
   outcomes: [
     {
       id: 'outcome-1',
-      providerId: 'polymarket',
+      providerId: POLYMARKET_PROVIDER_ID,
       marketId: 'market-1',
       title: 'Yes',
       description: 'Yes outcome',
@@ -123,7 +124,7 @@ const baseMarket: PredictMarket = {
     },
     {
       id: 'outcome-2',
-      providerId: 'polymarket',
+      providerId: POLYMARKET_PROVIDER_ID,
       marketId: 'market-1',
       title: 'No',
       description: 'No outcome',

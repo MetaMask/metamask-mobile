@@ -45,9 +45,13 @@ These rules are written to align with Cursor Context Rules so the guidance is ea
 - Presets:
   - `initialStateBridge` → `app/util/test/component-view/presets/bridge.ts`
   - `initialStateWallet` → `app/util/test/component-view/presets/wallet.ts`
+  - `initialStatePerps` → `app/util/test/component-view/presets/perpsStatePreset.ts`
 - Renderers:
   - `renderBridgeView` → `app/util/test/component-view/renderers/bridge.ts`
   - `renderWalletView` → `app/util/test/component-view/renderers/wallet.ts`
+  - `renderPerpsView` / `renderPerpsSelectModifyActionView` → `app/util/test/component-view/renderers/perpsViewRenderer.tsx`
+- Helpers (labels for view tests; use i18n for consistency):
+  - `getModifyActionLabels` → `app/util/test/component-view/helpers/perpsViewTestHelpers.ts`
 - Global Engine + native mocks:
   - `app/util/test/component-view/mocks.ts`
 - State fixture and helpers:
@@ -133,6 +137,10 @@ If you only need the main screen (no pushed route to assert on), pass `[]` for t
 - Prefer robust assertions (presence/absence, enabled/disabled) over brittle string formatting checks, unless `deterministicFiat` is used.
 - Use Testing Library queries: `getByTestId`, `findByText`, `queryByTestId`, `within(...)`.
 
+### Avoid Fake Timers
+
+- Do **not** use `jest.useFakeTimers()`, `jest.advanceTimersByTime()`, or `jest.useRealTimers()` in component view tests.
+
 ### Test Execution
 
 - For faster iteration:
@@ -156,6 +164,7 @@ yarn jest -c jest.config.view.js <path/to/test> -t "<name>" --runInBand --silent
   - Mock hooks or selectors
   - Rebuild entire background state manually (use presets)
   - Use arbitrary `jest.mock` in component view test files (blocked)
+  - Use fake timers (`jest.useFakeTimers`, `jest.advanceTimersByTime`, `jest.useRealTimers`); use `waitFor` or real delays instead
 
 ## Where to Find Things
 

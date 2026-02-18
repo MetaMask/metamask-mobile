@@ -116,13 +116,10 @@ describe('useTransactionPayMetrics', () => {
     useAccountTokensMock.mockReturnValue([]);
     mockSelectConfirmationMetricsById.mockReturnValue(undefined);
 
-    useTransactionPayAvailableTokensMock.mockReturnValue([
-      {},
-      {},
-      {},
-      {},
-      {},
-    ] as AssetType[]);
+    useTransactionPayAvailableTokensMock.mockReturnValue({
+      availableTokens: [{}, {}, {}, {}, {}] as AssetType[],
+      hasTokens: true,
+    });
   });
 
   it('does not update metrics if no pay token selected', async () => {

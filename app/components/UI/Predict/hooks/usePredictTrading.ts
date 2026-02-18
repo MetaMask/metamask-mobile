@@ -1,15 +1,15 @@
 import { useCallback } from 'react';
 import Engine from '../../../../core/Engine';
 import {
+  ClaimParams,
   GetBalanceParams,
   GetPositionsParams,
   OrderPreview,
   PlaceOrderParams,
-  PrepareWithdrawParams,
   PrepareDepositParams,
+  PrepareWithdrawParams,
   PreviewOrderParams,
-} from '../providers/types';
-import { ClaimParams } from '../types';
+} from '../types';
 
 export function usePredictTrading() {
   const getPositions = useCallback(async (params: GetPositionsParams) => {

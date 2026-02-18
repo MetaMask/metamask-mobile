@@ -1,4 +1,5 @@
 import { BigNumber } from 'bignumber.js';
+import { TransactionType } from '@metamask/transaction-controller';
 import {
   transformFillsToTransactions,
   transformOrdersToTransactions,
@@ -6,14 +7,32 @@ import {
   transformUserHistoryToTransactions,
   transformWithdrawalRequestsToTransactions,
   transformDepositRequestsToTransactions,
+  transformWalletPerpsDepositsToTransactions,
   aggregateFillsByTimestamp,
 } from './transactionTransforms';
+import { getTokenTransferData } from '../../../Views/confirmations/utils/transaction-pay';
+import { parseStandardTokenTransactionData } from '../../../Views/confirmations/utils/transaction';
 import { OrderFill } from '@metamask/perps-controller';
 import { FillType } from '../components/PerpsTransactionItem/PerpsTransactionItem';
 import {
   PerpsOrderTransactionStatus,
   PerpsOrderTransactionStatusType,
 } from '../types/transactionHistory';
+
+jest.mock('../../../Views/confirmations/utils/transaction-pay');
+jest.mock('../../../Views/confirmations/utils/transaction');
+jest.mock('../../../../util/transactions', () => ({
+  ...jest.requireActual('../../../../util/transactions'),
+  calcTokenAmount: jest.fn((value: string) => (Number(value) / 1e6).toString()),
+}));
+
+const mockGetTokenTransferData = getTokenTransferData as jest.MockedFunction<
+  typeof getTokenTransferData
+>;
+const mockParseStandardTokenTransactionData =
+  parseStandardTokenTransactionData as jest.MockedFunction<
+    typeof parseStandardTokenTransactionData
+  >;
 
 describe('transactionTransforms', () => {
   describe('aggregateFillsByTimestamp', () => {
@@ -1782,6 +1801,117 @@ describe('transactionTransforms', () => {
       }
 
       expect(result[0].fill.amountNumber).toBeCloseTo(0, 6);
+    });
+  });
+
+  describe('transformWalletPerpsDepositsToTransactions', () => {
+    const createMockTx = (overrides: Record<string, unknown> = {}) => ({
+      id: 'tx-1',
+      type: TransactionType.perpsDeposit,
+      status: 'confirmed',
+      time: 1640995200000,
+      hash: '0xabc',
+      txParams: { from: '0x123' },
+      ...overrides,
+    });
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      mockGetTokenTransferData.mockReturnValue({
+        data: '0xa9059cbb0000000000000000000000000000000000000000000000000000000000000001' as `0x${string}`,
+        to: '0x0' as `0x${string}`,
+      });
+      mockParseStandardTokenTransactionData.mockReturnValue({
+        name: 'transfer',
+        args: { _value: { toString: () => '1000000' } },
+      } as unknown as ReturnType<typeof parseStandardTokenTransactionData>);
+    });
+
+    it('filters to only perpsDeposit and perpsDepositAndOrder types', () => {
+      const txs = [
+        createMockTx({ type: TransactionType.perpsDeposit }),
+        createMockTx({
+          id: 'tx-2',
+          type: TransactionType.perpsDepositAndOrder,
+        }),
+        createMockTx({ id: 'tx-3', type: 'swap' }),
+      ];
+
+      const result = transformWalletPerpsDepositsToTransactions(txs as never);
+
+      expect(result).toHaveLength(2);
+      expect(result[0].id).toBe('wallet-deposit-tx-1');
+      expect(result[1].id).toBe('wallet-deposit-tx-2');
+    });
+
+    it('returns deposit PerpsTransaction with amount and Completed status', () => {
+      const txs = [createMockTx()];
+
+      const result = transformWalletPerpsDepositsToTransactions(txs as never);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].type).toBe('deposit');
+      expect(result[0].category).toBe('deposit');
+      expect(result[0].title).toBe('Deposited 1.00 USDC');
+      expect(result[0].subtitle).toBe('Completed');
+      expect(result[0].timestamp).toBe(1640995200000);
+      expect(result[0].asset).toBe('USDC');
+      expect(result[0].depositWithdrawal).toMatchObject({
+        amount: '+$1.00',
+        amountNumber: 1,
+        isPositive: true,
+        asset: 'USDC',
+        txHash: '0xabc',
+        status: 'completed',
+        type: 'deposit',
+      });
+    });
+
+    it('uses Deposit title when amount is zero or token data missing', () => {
+      mockParseStandardTokenTransactionData.mockReturnValue({
+        args: { _value: { toString: () => '0' } },
+      } as never);
+      const result = transformWalletPerpsDepositsToTransactions([
+        createMockTx(),
+      ] as never);
+
+      expect(result[0].title).toBe('Deposit');
+    });
+
+    it('maps failed status to Failed subtitle', () => {
+      const result = transformWalletPerpsDepositsToTransactions([
+        createMockTx({ status: 'failed' }),
+      ] as never);
+
+      expect(result[0].subtitle).toBe('Failed');
+    });
+
+    it('maps pending status to Pending subtitle', () => {
+      const result = transformWalletPerpsDepositsToTransactions([
+        createMockTx({ status: 'submitted' }),
+      ] as never);
+
+      expect(result[0].subtitle).toBe('Pending');
+    });
+
+    it('uses tx.time and tx.hash when present', () => {
+      const result = transformWalletPerpsDepositsToTransactions([
+        createMockTx({ time: 1700000000000, hash: '0xdef' }),
+      ] as never);
+
+      expect(result[0].timestamp).toBe(1700000000000);
+      expect(result[0].depositWithdrawal?.txHash).toBe('0xdef');
+    });
+
+    it('uses Deposit title and zero amount when getTokenTransferData returns undefined', () => {
+      mockGetTokenTransferData.mockReturnValue(undefined);
+
+      const result = transformWalletPerpsDepositsToTransactions([
+        createMockTx(),
+      ] as never);
+
+      expect(result[0].title).toBe('Deposit');
+      expect(result[0].depositWithdrawal?.amountNumber).toBe(0);
     });
   });
 });

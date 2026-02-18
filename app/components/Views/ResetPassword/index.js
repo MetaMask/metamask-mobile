@@ -37,10 +37,7 @@ import {
   MIN_PASSWORD_LENGTH,
 } from '../../../util/password';
 import NotificationManager from '../../../core/NotificationManager';
-import {
-  passcodeType,
-  updateAuthTypeStorageFlags,
-} from '../../../util/authentication';
+import { passcodeType } from '../../../util/authentication';
 import { Authentication } from '../../../core';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { ThemeContext, mockTheme } from '../../../util/theme';
@@ -530,15 +527,11 @@ class ResetPassword extends PureComponent {
           this.state.biometryChoice,
           this.state.rememberMe,
         );
-        await Authentication.storePasswordWithFallback(password, authData);
-        if (
-          Authentication.authData.currentAuthType ===
-          AUTHENTICATION_TYPE.BIOMETRIC
-        ) {
-          await updateAuthTypeStorageFlags(this.state.biometryChoice);
-        } else {
-          await updateAuthTypeStorageFlags(false);
-        }
+        await Authentication.storePassword(
+          password,
+          authData.currentAuthType,
+          true,
+        );
       } catch (error) {
         Logger.error(error);
       }
