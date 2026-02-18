@@ -69,7 +69,7 @@ const NetworkFee = ({
             ticker={symbol}
             big={false}
             biggest={false}
-            style={tw.style('rounded-full')}
+            style={tw.style('rounded-full w-5 h-5')}
             testID="cancel-speedup-network-fee-logo"
           />
           <Text variant={TextVariant.BodyMD}>{symbol}</Text>

@@ -25,6 +25,18 @@ jest.mock('../../UI/AssetOverview/PriceChart/PriceChart.context', () => {
   };
 });
 
+jest.mock('../confirmations/hooks/gas/useGasFeeEstimates', () => ({
+  useGasFeeEstimates: jest.fn(() => ({
+    gasFeeEstimates: {
+      medium: {
+        suggestedMaxFeePerGas: '25',
+        suggestedMaxPriorityFeePerGas: '2',
+        minWaitTimeEstimate: 15000,
+      },
+    },
+  })),
+}));
+
 jest.mock('../../UI/MultichainTransactionListItem', () => {
   const ReactActual = jest.requireActual('react');
   const { Text } = jest.requireActual('react-native');
@@ -268,6 +280,20 @@ jest.mock('../confirmations/legacy/components/UpdateEIP1559Tx', () => {
     __esModule: true,
     default: () =>
       ReactActual.createElement(Text, { testID: 'eip1559-modal' }, 'eip1559'),
+  };
+});
+jest.mock('../confirmations/components/modals/cancel-speedup-modal', () => {
+  const ReactActual = jest.requireActual('react');
+  const { Text } = jest.requireActual('react-native');
+  return {
+    CancelSpeedupModal: ({ isCancel }: { isCancel: boolean }) =>
+      ReactActual.createElement(
+        Text,
+        {
+          testID: isCancel ? 'cancel-modal' : 'speedup-modal',
+        },
+        isCancel ? 'Cancel Transaction' : 'Speed Up Transaction',
+      ),
   };
 });
 jest.mock('../../UI/Transactions/RetryModal', () => {
@@ -1170,7 +1196,7 @@ describe('UnifiedTransactionsView', () => {
     (global as { __bridgeMap?: Record<string, unknown> }).__bridgeMap = {};
   });
 
-  it('shows legacy speedup and cancel modals when open', () => {
+  it('shows speedup and cancel modals when open', () => {
     (
       global as {
         __actionsState?: { speedUpIsOpen?: boolean; cancelIsOpen?: boolean };
@@ -1179,24 +1205,11 @@ describe('UnifiedTransactionsView', () => {
       speedUpIsOpen: true,
       cancelIsOpen: true,
     };
-    const { getByTestId } = render(<UnifiedTransactionsView />);
+    const { getByTestId, getByText } = render(<UnifiedTransactionsView />);
+    expect(getByText('Cancel Transaction')).toBeOnTheScreen();
+    expect(getByText('Speed Up Transaction')).toBeOnTheScreen();
     expect(getByTestId('speedup-modal')).toBeTruthy();
     expect(getByTestId('cancel-modal')).toBeTruthy();
-    (global as { __actionsState?: unknown }).__actionsState = undefined;
-  });
-
-  it('shows EIP-1559 modal when speedUp1559IsOpen or cancel1559IsOpen is true', () => {
-    (
-      global as { __actionsState?: { speedUp1559IsOpen?: boolean } }
-    ).__actionsState = { speedUp1559IsOpen: true };
-    const { getByTestId, rerender } = render(<UnifiedTransactionsView />);
-    expect(getByTestId('eip1559-modal')).toBeTruthy();
-
-    (
-      global as { __actionsState?: { cancel1559IsOpen?: boolean } }
-    ).__actionsState = { cancel1559IsOpen: true };
-    rerender(<UnifiedTransactionsView />);
-    expect(getByTestId('eip1559-modal')).toBeTruthy();
     (global as { __actionsState?: unknown }).__actionsState = undefined;
   });
 });
