@@ -485,9 +485,6 @@ enum EVENT_NAME {
   // Smart transactions
   SMART_TRANSACTION_OPT_IN = 'Smart Transaction Opt In',
 
-  // Smart account opt in
-  SMART_ACCOUNT_OPT_IN = 'Smart Account Opt In',
-
   // Dismiss smart account upgrade suggestion
   DISMISS_SMART_ACCOUNT_SUGGESTION_ENABLED = 'Dismiss smart account suggestion enabled',
 
@@ -1167,9 +1164,6 @@ const events = {
 
   // Smart transactions
   SMART_TRANSACTION_OPT_IN: generateOpt(EVENT_NAME.SMART_TRANSACTION_OPT_IN),
-
-  // User opt in for smart account upgrade
-  SMART_ACCOUNT_OPT_IN: generateOpt(EVENT_NAME.SMART_ACCOUNT_OPT_IN),
 
   // Dismiss smart account upgrade suggestion
   DISMISS_SMART_ACCOUNT_SUGGESTION_ENABLED: generateOpt(

@@ -6298,19 +6298,7 @@
       "standardAccountLabel": "Standard account",
       "switch": "切り替える",
       "switchBack": "元に戻す",
-      "splashpage": {
-        "accept": "はい",
-        "betterTransaction": "より高速なトランザクションで低い手数料",
-        "betterTransactionDescription": "トランザクションをまとめて処理することで、時間とお金を節約できます。",
-        "featuresDescription": "アカウントアドレスは変わらず、いつでも元に戻せます。",
-        "payToken": "いつでもあらゆるトークンで支払いが行えます",
-        "payTokenDescription": "すでに持っているトークンを使ってネットワーク手数料を支払います。",
-        "reject": "いいえ",
-        "sameAccount": "同じアカウントでよりスマートな機能。",
-        "splashTitle": "スマートアカウントを使用する?"
-      },
       "includes_transaction": "{{transactionCount}}件のトランザクションを含む",
-      "useSmartAccount": "スマートアカウントを使用する",
       "successful": "成功",
       "success_message": "次回のトランザクションで、アカウントはスマートアカウントに更新されます。"
     },
