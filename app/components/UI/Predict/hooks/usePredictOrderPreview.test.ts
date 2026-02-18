@@ -1,8 +1,7 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import { usePredictOrderPreview } from './usePredictOrderPreview';
 import { usePredictTrading } from './usePredictTrading';
-import { OrderPreview, PreviewOrderParams } from '../providers/types';
-import { Side } from '../types';
+import { OrderPreview, PreviewOrderParams, Side } from '../types';
 import { DEFAULT_FEE_COLLECTION_FLAG } from '../constants/flags';
 
 jest.mock('./usePredictTrading');
