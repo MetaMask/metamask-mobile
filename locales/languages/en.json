@@ -2849,7 +2849,10 @@
     "permissions": "Permissions",
     "card_title": "MetaMask Card",
     "settings": "Settings",
-    "log_out": "Log out"
+    "log_out": "Log out",
+    "notifications": "Notifications",
+    "buy": "Buy",
+    "scan": "Scan"
   },
   "app_settings": {
     "enabling_notifications": "Enabling notifications...",
