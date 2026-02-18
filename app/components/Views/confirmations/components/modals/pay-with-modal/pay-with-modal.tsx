@@ -8,7 +8,12 @@ import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../component-library/components/BottomSheets/BottomSheet';
 import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
-import { AssetType } from '../../../types/token';
+import {
+  AssetType,
+  isHighlightedActionListItem,
+  isHighlightedAssetListItem,
+  TokenListItem,
+} from '../../../types/token';
 import { useTransactionPayRequiredTokens } from '../../../hooks/pay/useTransactionPayData';
 import { getAvailableTokens } from '../../../utils/transaction-pay';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
@@ -44,6 +49,31 @@ export function PayWithModal() {
     // Called after the bottom sheet's closing animation completes.
     bottomSheetRef.current?.onCloseBottomSheet(onClosed);
   }, []);
+
+  const wrapHighlightedItemCallbacks = useCallback(
+    (items: TokenListItem[]): TokenListItem[] =>
+      items.map((item) => {
+        if (isHighlightedAssetListItem(item)) {
+          return {
+            ...item,
+            action: () => close(item.action),
+          };
+        }
+
+        if (isHighlightedActionListItem(item)) {
+          return {
+            ...item,
+            actions: item.actions.map((actionItem) => ({
+              ...actionItem,
+              onPress: () => close(actionItem.onPress),
+            })),
+          };
+        }
+
+        return item;
+      }),
+    [close],
+  );
 
   const handleTokenSelect = useCallback(
     (token: AssetType) => {
@@ -82,7 +112,7 @@ export function PayWithModal() {
   );
 
   const tokenFilter = useCallback(
-    (tokens: AssetType[]) => {
+    (tokens: AssetType[]): TokenListItem[] => {
       // For withdrawal transactions, show all available tokens (any chain, popular tokens)
       // The bridging service will handle the actual token conversion
       if (isTransactionPayWithdraw(transactionMeta)) {
@@ -96,21 +126,21 @@ export function PayWithModal() {
         tokens,
       });
 
+      let filteredTokens: TokenListItem[] = availableTokens;
+
       if (
         hasTransactionType(transactionMeta, [TransactionType.musdConversion])
       ) {
-        return musdTokenFilter(availableTokens);
-      }
-
-      if (
+        filteredTokens = musdTokenFilter(availableTokens);
+      } else if (
         hasTransactionType(transactionMeta, [
           TransactionType.perpsDepositAndOrder,
         ])
       ) {
-        return perpsBalanceTokenFilter(availableTokens);
+        filteredTokens = perpsBalanceTokenFilter(availableTokens);
       }
 
-      return availableTokens;
+      return wrapHighlightedItemCallbacks(filteredTokens);
     },
     [
       musdTokenFilter,
@@ -118,6 +148,7 @@ export function PayWithModal() {
       requiredTokens,
       transactionMeta,
       perpsBalanceTokenFilter,
+      wrapHighlightedItemCallbacks,
     ],
   );
 

@@ -16,29 +16,16 @@ import { AvatarSize } from '../../../../../component-library/components/Avatars/
 import { CaipChainId } from '@metamask/utils';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import {
-  selectSourceChainRanking,
-  selectDestChainRanking,
+  selectAllowedChainRanking,
   selectTokenSelectorNetworkFilter,
   setTokenSelectorNetworkFilter,
 } from '../../../../../core/redux/slices/bridge';
-import { useRoute, RouteProp } from '@react-navigation/native';
-import { TokenSelectorType } from '../../types';
-
-interface NetworkListModalParams {
-  type: TokenSelectorType;
-}
 
 const NetworkListModal: React.FC = () => {
   const dispatch = useDispatch();
-  const route =
-    useRoute<RouteProp<{ params: NetworkListModalParams }, 'params'>>();
   const sheetRef = useRef<BottomSheetRef>(null);
 
-  const type = route.params?.type;
-  const sourceChainRanking = useSelector(selectSourceChainRanking);
-  const destChainRanking = useSelector(selectDestChainRanking);
-  const chainRanking =
-    type === TokenSelectorType.Source ? sourceChainRanking : destChainRanking;
+  const chainRanking = useSelector(selectAllowedChainRanking);
   const selectedChainId = useSelector(selectTokenSelectorNetworkFilter);
 
   const handleClose = useCallback(() => {
