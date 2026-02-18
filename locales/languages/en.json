@@ -4177,7 +4177,7 @@
     "enable_device_passcode_android": "Unlock with device PIN?"
   },
   "authentication": {
-    "auth_prompt_desc": "Please authenticate in order to use MetaMask",
+    "auth_prompt_desc": "Please authenticate in order to use MetaMask"
   },
   "accountApproval": {
     "title": "CONNECT REQUEST",
