@@ -33,6 +33,10 @@ import { getHost } from '../../../../util/browser';
 import WebsiteIcon from '../../../UI/WebsiteIcon';
 import styleSheet from './MultichainPermissionsSummary.styles';
 import { useStyles } from '../../../../component-library/hooks';
+import {
+  MaliciousDappUrlIcon,
+  getConnectButtonContent,
+} from '../../../UI/PermissionsSummary/MaliciousDappIndicators';
 import Routes from '../../../../constants/navigation/Routes';
 import ButtonIcon, {
   ButtonIconSizes,
@@ -95,6 +99,7 @@ export interface MultichainPermissionsSummaryProps {
   tabIndex?: number;
   showPermissionsOnly?: boolean;
   showAccountsOnly?: boolean;
+  isMaliciousDapp?: boolean;
 }
 
 const MultichainPermissionsSummary = ({
@@ -119,6 +124,7 @@ const MultichainPermissionsSummary = ({
   tabIndex = 0,
   showAccountsOnly = false,
   showPermissionsOnly = false,
+  isMaliciousDapp = false,
 }: MultichainPermissionsSummaryProps) => {
   const nonTabView = showAccountsOnly || showPermissionsOnly;
   const { colors } = useTheme();
@@ -577,6 +583,11 @@ const MultichainPermissionsSummary = ({
             <TextComponent
               style={styles.connectionTitle}
               variant={TextVariant.HeadingMD}
+              color={
+                isMaliciousDapp && !isAlreadyConnected
+                  ? TextColor.Error
+                  : undefined
+              }
             >
               {isNonDappNetworkSwitch
                 ? strings('permissions.title_add_network_permission')
@@ -586,6 +597,7 @@ const MultichainPermissionsSummary = ({
                       dappUrl: hostname,
                     })}
             </TextComponent>
+            {isMaliciousDapp && !isAlreadyConnected && <MaliciousDappUrlIcon />}
             <TextComponent variant={TextVariant.BodyMD}>
               {strings('account_dapp_connections.account_summary_header')}
             </TextComponent>
@@ -637,7 +649,7 @@ const MultichainPermissionsSummary = ({
                 {strings('permissions.cancel')}
               </StyledButton>
               <StyledButton
-                type={'confirm'}
+                type={isMaliciousDapp ? 'danger' : 'confirm'}
                 onPress={confirm}
                 disabled={
                   !isNetworkSwitch &&
@@ -650,9 +662,7 @@ const MultichainPermissionsSummary = ({
                 ]}
                 testID={CommonSelectorsIDs.CONNECT_BUTTON}
               >
-                {isNetworkSwitch
-                  ? strings('confirmation_modal.confirm_cta')
-                  : strings('accounts.connect')}
+                {getConnectButtonContent(isMaliciousDapp, isNetworkSwitch)}
               </StyledButton>
             </View>
           )}

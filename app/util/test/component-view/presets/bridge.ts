@@ -18,6 +18,7 @@ export const initialStateBridge = (options?: InitialStateBridgeOptions) => {
     .withMinimalBridgeController()
     .withMinimalAccounts()
     .withMinimalMainnetNetwork()
+    .withMinimalTokensController()
     .withMinimalMultichainNetwork(true)
     .withMinimalMultichainAssets()
     .withMinimalMultichainTransactions()

@@ -70,7 +70,7 @@ test.describe(PerformancePreps, () => {
         await PerpsDepositScreen.isAmountInputVisible();
       });
 
-      await PerpsDepositScreen.fillUsdAmount(5);
+      await PerpsDepositScreen.fillUsdAmount(2);
       // Get quote
       await getQuoteTimer.measure(async () => {
         await PerpsDepositScreen.isAddFundsVisible();
