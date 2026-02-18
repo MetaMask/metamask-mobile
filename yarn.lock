@@ -7536,39 +7536,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/account-api@npm:^0.12.0":
-  version: 0.12.0
-  resolution: "@metamask/account-api@npm:0.12.0"
+"@metamask/account-api@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "@metamask/account-api@npm:1.0.0"
   dependencies:
-    "@metamask/keyring-api": "npm:^21.0.0"
-    "@metamask/keyring-utils": "npm:^3.1.0"
+    "@metamask/keyring-api": "npm:^21.4.0"
+    "@metamask/keyring-utils": "npm:^3.2.0"
     uuid: "npm:^9.0.1"
-  checksum: 10/d5e2bf9792926755429fd4696097376d74e4a6eb2c15b7913c092b3b9c34b6feeddd1f5dc9bcf79be87275d5450ff8fa6114834982fc0415e6ba8479b925e978
-  languageName: node
-  linkType: hard
-
-"@metamask/account-tree-controller@npm:^3.0.0":
-  version: 3.0.0
-  resolution: "@metamask/account-tree-controller@npm:3.0.0"
-  dependencies:
-    "@metamask/base-controller": "npm:^9.0.0"
-    "@metamask/messenger": "npm:^0.3.0"
-    "@metamask/snaps-sdk": "npm:^9.0.0"
-    "@metamask/snaps-utils": "npm:^11.0.0"
-    "@metamask/superstruct": "npm:^3.1.0"
-    "@metamask/utils": "npm:^11.8.1"
-    fast-deep-equal: "npm:^3.1.3"
-    lodash: "npm:^4.17.21"
-  peerDependencies:
-    "@metamask/account-api": ^0.12.0
-    "@metamask/accounts-controller": ^34.0.0
-    "@metamask/keyring-controller": ^24.0.0
-    "@metamask/multichain-account-service": ^3.0.0
-    "@metamask/profile-sync-controller": ^26.0.0
-    "@metamask/providers": ^22.0.0
-    "@metamask/snaps-controllers": ^14.0.0
-    webextension-polyfill: ^0.10.0 || ^0.11.0 || ^0.12.0
-  checksum: 10/dfa740197f7e30f9892d34cb98c80c7fc3cd9d3da392f3518aac66bbc1959bea426577ed1f1366760432211b8665b8a8b4f28961a70c2e5673f5b2ef5d96fc1f
+  checksum: 10/221fe044b9fb2e1cf79edea22834cfcd4e2658e26a649375b77ac7436ed6bb2f90b76168d449aef52cdd608a8908ca84570387b200f39fcd8f1127134671e7ce
   languageName: node
   linkType: hard
 
@@ -8118,17 +8093,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/delegation-controller@npm:^1.0.0":
-  version: 1.0.0
-  resolution: "@metamask/delegation-controller@npm:1.0.0"
+"@metamask/delegation-controller@npm:^2.0.1":
+  version: 2.0.1
+  resolution: "@metamask/delegation-controller@npm:2.0.1"
   dependencies:
+    "@metamask/accounts-controller": "npm:^36.0.0"
     "@metamask/base-controller": "npm:^9.0.0"
+    "@metamask/keyring-controller": "npm:^25.1.0"
     "@metamask/messenger": "npm:^0.3.0"
-    "@metamask/utils": "npm:^11.8.1"
-  peerDependencies:
-    "@metamask/accounts-controller": ^34.0.0
-    "@metamask/keyring-controller": ^24.0.0
-  checksum: 10/873cc0a465c89689109c3c254f7aca1e1c24e43ca0dd75906f0b0ec0d01f42aac48d4723be6c010594cba63b95ccb4802b5088c6e8d0da2d099f1858fc08bd60
+    "@metamask/utils": "npm:^11.9.0"
+  checksum: 10/0d9edc3177234844cba8e48684647398df676044e6bd9ca244c0c2d891fcaf088a8a8210913116d10b333403488257a7387901d8e4ead86de9d823b9b99d65cd
   languageName: node
   linkType: hard
 
@@ -9070,26 +9044,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/multichain-network-controller@npm:^2.0.0":
-  version: 2.0.0
-  resolution: "@metamask/multichain-network-controller@npm:2.0.0"
-  dependencies:
-    "@metamask/base-controller": "npm:^9.0.0"
-    "@metamask/controller-utils": "npm:^11.14.1"
-    "@metamask/keyring-api": "npm:^21.0.0"
-    "@metamask/keyring-internal-api": "npm:^9.0.0"
-    "@metamask/messenger": "npm:^0.3.0"
-    "@metamask/superstruct": "npm:^3.1.0"
-    "@metamask/utils": "npm:^11.8.1"
-    "@solana/addresses": "npm:^2.0.0"
-    lodash: "npm:^4.17.21"
-  peerDependencies:
-    "@metamask/accounts-controller": ^34.0.0
-    "@metamask/network-controller": ^25.0.0
-  checksum: 10/4cb84091e1b1cfcfadbd0a83a0aaee5a12ed03b482da7ff01f63ebe3148ec62060c4a168f0d4fe88a6ccef524f3c45c441c7ece2f562cd99644408da5ccfb913
-  languageName: node
-  linkType: hard
-
 "@metamask/multichain-network-controller@npm:^3.0.2, @metamask/multichain-network-controller@npm:^3.0.3":
   version: 3.0.3
   resolution: "@metamask/multichain-network-controller@npm:3.0.3"
@@ -9109,26 +9063,25 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/multichain-transactions-controller@npm:^6.0.0":
-  version: 6.0.0
-  resolution: "@metamask/multichain-transactions-controller@npm:6.0.0"
+"@metamask/multichain-transactions-controller@npm:^7.0.1":
+  version: 7.0.1
+  resolution: "@metamask/multichain-transactions-controller@npm:7.0.1"
   dependencies:
+    "@metamask/accounts-controller": "npm:^36.0.0"
     "@metamask/base-controller": "npm:^9.0.0"
-    "@metamask/keyring-api": "npm:^21.0.0"
-    "@metamask/keyring-internal-api": "npm:^9.0.0"
-    "@metamask/keyring-snap-client": "npm:^8.0.0"
+    "@metamask/keyring-api": "npm:^21.5.0"
+    "@metamask/keyring-internal-api": "npm:^10.0.0"
+    "@metamask/keyring-snap-client": "npm:^8.2.0"
     "@metamask/messenger": "npm:^0.3.0"
-    "@metamask/polling-controller": "npm:^15.0.0"
-    "@metamask/snaps-sdk": "npm:^9.0.0"
-    "@metamask/snaps-utils": "npm:^11.0.0"
-    "@metamask/utils": "npm:^11.8.1"
+    "@metamask/polling-controller": "npm:^16.0.2"
+    "@metamask/snaps-controllers": "npm:^17.2.0"
+    "@metamask/snaps-sdk": "npm:^10.3.0"
+    "@metamask/snaps-utils": "npm:^11.7.0"
+    "@metamask/utils": "npm:^11.9.0"
     "@types/uuid": "npm:^8.3.0"
     immer: "npm:^9.0.6"
     uuid: "npm:^8.3.2"
-  peerDependencies:
-    "@metamask/accounts-controller": ^34.0.0
-    "@metamask/snaps-controllers": ^14.0.0
-  checksum: 10/53c19a38ddd322a539719d62af3ea2cfaecdbf6676120a21e81b17950ded7afa610790f6446b0ffa4f9f16186cdfd6e2d2ee3807fac404c3c94ce9967b640a44
+  checksum: 10/c46227c9ecc59a114338348be0b209670bd0cded5f51afc17ad406817bb56d19480634ec57727bfbe74f7e24fec27237c1580ed33102dda050f60ee811c96401
   languageName: node
   linkType: hard
 
@@ -35397,8 +35350,8 @@ __metadata:
     "@lavamoat/react-native-lockdown": "npm:^0.0.2"
     "@ledgerhq/react-native-hw-transport-ble": "npm:^6.37.0"
     "@metamask/abi-utils": "npm:^3.0.0"
-    "@metamask/account-api": "npm:^0.12.0"
-    "@metamask/account-tree-controller": "npm:^3.0.0"
+    "@metamask/account-api": "npm:^1.0.0"
+    "@metamask/account-tree-controller": "npm:^4.1.1"
     "@metamask/accounts-controller": "npm:^36.0.0"
     "@metamask/address-book-controller": "npm:^7.0.1"
     "@metamask/analytics-controller": "npm:^1.0.0"
@@ -35418,7 +35371,7 @@ __metadata:
     "@metamask/connectivity-controller": "npm:^0.1.0"
     "@metamask/controller-utils": "npm:^11.18.0"
     "@metamask/core-backend": "npm:^5.0.0"
-    "@metamask/delegation-controller": "npm:^1.0.0"
+    "@metamask/delegation-controller": "npm:^2.0.1"
     "@metamask/delegation-deployments": "npm:^0.15.0"
     "@metamask/design-system-react-native": "npm:^0.5.1"
     "@metamask/design-system-twrnc-preset": "npm:^0.3.0"
@@ -35463,8 +35416,8 @@ __metadata:
     "@metamask/multichain-account-service": "npm:^5.0.0"
     "@metamask/multichain-api-client": "npm:^0.10.1"
     "@metamask/multichain-api-middleware": "npm:1.2.5"
-    "@metamask/multichain-network-controller": "npm:^2.0.0"
-    "@metamask/multichain-transactions-controller": "npm:^6.0.0"
+    "@metamask/multichain-network-controller": "npm:^3.0.3"
+    "@metamask/multichain-transactions-controller": "npm:^7.0.1"
     "@metamask/native-utils": "npm:^0.8.0"
     "@metamask/network-controller": "npm:^29.0.0"
     "@metamask/network-enablement-controller": "npm:^4.1.0"
