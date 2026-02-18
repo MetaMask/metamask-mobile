@@ -225,17 +225,17 @@ describe('BaseControlBar', () => {
   };
 
   describe('Basic rendering', () => {
-    it('should render with network filter button', () => {
+    it('renders with network filter button', () => {
       const { getByTestId } = renderComponent();
       expect(getByTestId('test-network-filter')).toBeTruthy();
     });
 
-    it('should render with sort button', () => {
+    it('renders with sort button', () => {
       const sortButtons = renderComponent().UNSAFE_getAllByType(ButtonIcon);
       expect(sortButtons.length).toBeGreaterThan(0);
     });
 
-    it('should render additional buttons when provided', () => {
+    it('renders additional buttons when provided', () => {
       const additionalButton = (
         <Text testID="additional-button">Add Token</Text>
       );
@@ -252,7 +252,7 @@ describe('BaseControlBar', () => {
       expect(getByText('wallet.popular_networks')).toBeTruthy();
     });
 
-    it('should show current network name when only one network is enabled', () => {
+    it('shows current network name when only one network is enabled', () => {
       const singleNetworkInfo = {
         ...defaultNetworkInfo,
         enabledNetworks: [{ chainId: '1', enabled: true }],
@@ -269,7 +269,7 @@ describe('BaseControlBar', () => {
       expect(getByText('Ethereum Mainnet')).toBeTruthy();
     });
 
-    it('should show fallback text when no network info is available', () => {
+    it('shows fallback text when no network info is available', () => {
       const noNetworkInfo = {
         ...defaultNetworkInfo,
         enabledNetworks: [{ chainId: '1', enabled: true }], // Single network
@@ -287,7 +287,7 @@ describe('BaseControlBar', () => {
       expect(getByText('wallet.current_network')).toBeTruthy();
     });
 
-    it('should show network avatar when not all networks selected', () => {
+    it('shows network avatar when not all networks selected', () => {
       useNetworksByNamespaceModule.useNetworksByCustomNamespace.mockReturnValue(
         {
           areAllNetworksSelected: false,
@@ -302,7 +302,7 @@ describe('BaseControlBar', () => {
       ).toHaveBeenCalled();
     });
 
-    it('should not show network avatar when all networks selected', () => {
+    it('does not show network avatar when all networks selected', () => {
       useNetworksByNamespaceModule.useNetworksByCustomNamespace.mockReturnValue(
         {
           areAllNetworksSelected: true,
@@ -318,7 +318,7 @@ describe('BaseControlBar', () => {
   });
 
   describe('Button interactions', () => {
-    it('should call custom filter handler when provided', () => {
+    it('calls custom filter handler when provided', () => {
       const customFilterHandler = jest.fn();
       const { getByTestId } = renderComponent({
         onFilterPress: customFilterHandler,
@@ -331,7 +331,7 @@ describe('BaseControlBar', () => {
       expect(mockNavigation.navigate).not.toHaveBeenCalled();
     });
 
-    it('should call default sort handler when no custom handler provided', () => {
+    it('calls default sort handler when no custom handler provided', () => {
       const { UNSAFE_getAllByType } = renderComponent();
       const buttonIcons = UNSAFE_getAllByType(ButtonIcon);
       const sortButton = buttonIcons[0]; // First ButtonIcon should be sort button
@@ -344,7 +344,7 @@ describe('BaseControlBar', () => {
       );
     });
 
-    it('should call custom sort handler when provided', () => {
+    it('calls custom sort handler when provided', () => {
       const customSortHandler = jest.fn();
       const { UNSAFE_getAllByType } = renderComponent({
         onSortPress: customSortHandler,
@@ -381,14 +381,14 @@ describe('BaseControlBar', () => {
   });
 
   describe('Disabled states', () => {
-    it('should not be disabled when custom isDisabled not provided', () => {
+    it('does not be disabled when custom isDisabled param is not provided', () => {
       const { getByTestId } = renderComponent();
       const filterButton = getByTestId('test-network-filter');
 
       expect(filterButton.props.disabled).toBe(false);
     });
 
-    it('should apply disabled styles when disabled', () => {
+    it('applies disabled styles when disabled', () => {
       const { getByTestId } = renderComponent({
         isDisabled: true,
       });
@@ -398,7 +398,7 @@ describe('BaseControlBar', () => {
       expect(filterButton.props.style.opacity).toBe(0.5);
     });
 
-    it('should apply normal styles when not disabled', () => {
+    it('applies normal styles when not disabled', () => {
       const { getByTestId } = renderComponent({
         isDisabled: false,
       });
@@ -408,7 +408,7 @@ describe('BaseControlBar', () => {
       expect(filterButton.props.style.opacity).toBeUndefined();
     });
 
-    it('should respect custom isDisabled when provided', () => {
+    it('respects custom isDisabled param when provided', () => {
       const { getByTestId } = renderComponent({
         isDisabled: true,
       });
@@ -419,7 +419,7 @@ describe('BaseControlBar', () => {
   });
 
   describe('Custom wrapper layouts', () => {
-    it('should render with outer wrapper by default', () => {
+    it('renders with outer wrapper by default', () => {
       const { getByTestId } = renderComponent();
       const filterButton = getByTestId('test-network-filter');
 
@@ -427,7 +427,7 @@ describe('BaseControlBar', () => {
       expect(filterButton).toBeTruthy();
     });
 
-    it('should render without outer wrapper when customWrapper is "none"', () => {
+    it('renders without outer wrapper when customWrapper is "none"', () => {
       const { getByTestId } = renderComponent({
         customWrapper: 'none',
       });
@@ -436,7 +436,7 @@ describe('BaseControlBar', () => {
       expect(filterButton).toBeTruthy();
     });
 
-    it('should render with outer wrapper when customWrapper is "outer"', () => {
+    it('renders with outer wrapper when customWrapper is "outer"', () => {
       const { getByTestId } = renderComponent({
         customWrapper: 'outer',
       });
@@ -447,13 +447,13 @@ describe('BaseControlBar', () => {
   });
 
   describe('Edge cases and error handling', () => {
-    it('should handle missing selector values gracefully', () => {
+    it('handles missing selector values gracefully', () => {
       mockSelectNetworkName.mockReturnValue(undefined);
 
       expect(() => renderComponent()).not.toThrow();
     });
 
-    it('should handle network image source generation', () => {
+    it('handles network image source generation', () => {
       const networkInfo = {
         ...defaultNetworkInfo,
         enabledNetworks: [{ chainId: '0x1', enabled: true }],
@@ -465,7 +465,7 @@ describe('BaseControlBar', () => {
   });
 
   describe('Integration with strings', () => {
-    it('should call strings function for localized text', () => {
+    it('calls strings function for localized text', () => {
       const multiNetworkInfo = {
         ...defaultNetworkInfo,
         enabledNetworks: [
