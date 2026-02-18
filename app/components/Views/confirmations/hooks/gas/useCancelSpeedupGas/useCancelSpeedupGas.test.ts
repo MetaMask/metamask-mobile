@@ -1,13 +1,11 @@
 import React from 'react';
-import { Provider } from 'react-redux';
-import { createStore } from 'redux';
-import { renderHook } from '@testing-library/react-native';
 import { useCancelSpeedupGas } from './useCancelSpeedupGas';
 import type { Eip1559ExistingGas, LegacyExistingGas } from './types';
 import { TransactionMeta } from '@metamask/transaction-controller';
+import { renderHookWithProvider } from '../../../../../../util/test/renderWithProvider';
+import { backgroundState } from '../../../../../../util/test/initial-root-state';
 
 const mockGasFeeEstimates = {
-  type: 'fee-market',
   medium: {
     suggestedMaxFeePerGas: '25',
     suggestedMaxPriorityFeePerGas: '2',
@@ -18,118 +16,320 @@ const mockGasFeeEstimates = {
 const mockNetworkConfig = { nativeCurrency: 'ETH' };
 
 jest.mock('../../../../../../selectors/gasFeeController', () => ({
+  ...jest.requireActual('../../../../../../selectors/gasFeeController'),
   selectGasFeeEstimatesByChainId: jest.fn(() => mockGasFeeEstimates),
 }));
 
 jest.mock('../../../../../../selectors/networkController', () => ({
+  ...jest.requireActual('../../../../../../selectors/networkController'),
   selectNetworkConfigurationByChainId: jest.fn(() => mockNetworkConfig),
 }));
 
 jest.mock('../../../../../../selectors/currencyRateController', () => ({
+  ...jest.requireActual('../../../../../../selectors/currencyRateController'),
   selectConversionRateByChainId: jest.fn(() => 2000),
 }));
 
 jest.mock('../../../../../../selectors/settings', () => ({
+  ...jest.requireActual('../../../../../../selectors/settings'),
   selectShowFiatInTestnets: jest.fn(() => false),
 }));
 
 jest.mock('../../../../../../components/UI/SimulationDetails/FiatDisplay/useFiatFormatter', () => ({
   __esModule: true,
-  default: () => (amount: { toFixed: () => string }) => `$${amount.toFixed()}`,
+  default: () => (amount: string | number) => `$${Number(amount).toFixed(2)}`,
 }));
 
 jest.mock('../../../utils/gas', () => ({
   getFeesFromHex: jest.fn(() => ({
-    currentCurrencyFee: null,
-    nativeCurrencyFee: null,
-    preciseCurrentCurrencyFee: null,
-    preciseNativeCurrencyFee: null,
-    preciseNativeFeeInHex: null,
+    currentCurrencyFee: '$50.00',
+    nativeCurrencyFee: '0.025',
+    preciseCurrentCurrencyFee: '$50.00',
+    preciseNativeCurrencyFee: '0.025',
+    preciseNativeFeeInHex: '0x56bc75e2d630eb20000',
   })),
 }));
 
-const rootReducer = (state = {}) => state;
-const store = createStore(rootReducer);
-const wrapper = ({ children }: { children: React.ReactNode }) =>
-  React.createElement(Provider, { store }, children);
+jest.mock('../../../utils/time', () => ({
+  toHumanSeconds: jest.fn((ms: number) => {
+    const seconds = Math.round(ms / 1000);
+    return `${seconds} sec`;
+  }),
+}));
+
+jest.mock('../useGasFeeEstimates', () => ({
+  useGasFeeEstimates: jest.fn(() => ({
+    gasFeeEstimates: {
+      medium: {
+        suggestedMaxFeePerGas: '25',
+        suggestedMaxPriorityFeePerGas: '2',
+        minWaitTimeEstimate: 15000,
+      },
+    },
+  })),
+}));
 
 describe('useCancelSpeedupGas', () => {
-  const tx = {
+  const mockTx = {
     id: 'tx-1',
     chainId: '0x1',
+    networkClientId: 'mainnet',
     txParams: { gas: '0x5208' },
-    gas: '0x5208',
   } as unknown as TransactionMeta;
 
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('returns empty result when tx is null', () => {
-    const { result } = renderHook(
+    const { result } = renderHookWithProvider(
       () =>
         useCancelSpeedupGas({
-          existingGas: { isEIP1559Transaction: true, maxFeePerGas: 20, maxPriorityFeePerGas: 2 },
+          existingGas: {
+            isEIP1559Transaction: true,
+            maxFeePerGas: '0x174876e800',
+            maxPriorityFeePerGas: '0x59682f00',
+          },
           tx: null,
           isCancel: false,
         }),
-      { wrapper },
+      { state: backgroundState },
     );
+
     expect(result.current.paramsForController).toBeUndefined();
     expect(result.current.networkFeeDisplay).toBe('0');
     expect(result.current.networkFeeNative).toBe('0');
     expect(result.current.networkFeeFiat).toBeNull();
     expect(result.current.speedDisplay).toBeDefined();
+    expect(result.current.nativeTokenSymbol).toBe('ETH');
   });
 
   it('returns empty result when existingGas is null', () => {
-    const { result } = renderHook(
+    const { result } = renderHookWithProvider(
       () =>
         useCancelSpeedupGas({
           existingGas: null,
-          tx,
+          tx: mockTx,
           isCancel: false,
         }),
-      { wrapper },
+      { state: backgroundState },
     );
+
     expect(result.current.paramsForController).toBeUndefined();
     expect(result.current.networkFeeDisplay).toBe('0');
     expect(result.current.networkFeeNative).toBe('0');
     expect(result.current.networkFeeFiat).toBeNull();
   });
 
-  it('returns EIP-1559 params and display when existingGas is EIP-1559', () => {
+  it('returns EIP-1559 params when existingGas is EIP-1559 (speed up)', () => {
     const existingGas: Eip1559ExistingGas = {
       isEIP1559Transaction: true,
-      maxFeePerGas: 20,
-      maxPriorityFeePerGas: 2,
+      maxFeePerGas: '0x174876e800', // 100 GWEI
+      maxPriorityFeePerGas: '0x59682f00', // 1.5 GWEI
     };
-    const { result } = renderHook(
-      () => useCancelSpeedupGas({ existingGas, tx, isCancel: false }),
-      { wrapper },
+
+    const { result } = renderHookWithProvider(
+      () =>
+        useCancelSpeedupGas({
+          existingGas,
+          tx: mockTx,
+          isCancel: false,
+        }),
+      { state: backgroundState },
     );
+
     expect(result.current.paramsForController).toBeDefined();
     expect(result.current.paramsForController?.maxFeePerGas).toBeDefined();
     expect(result.current.paramsForController?.maxPriorityFeePerGas).toBeDefined();
     expect(result.current.networkFeeDisplay).toMatch(/\d+\.?\d* ETH/);
     expect(result.current.networkFeeNative).toMatch(/\d+\.?\d*/);
-    expect(result.current.speedDisplay).toBeDefined();
+    expect(result.current.speedDisplay).toContain('sec');
+    expect(result.current.nativeTokenSymbol).toBe('ETH');
   });
 
-  it('returns legacy params when existingGas has zero gasPrice', () => {
-    const existingGas: LegacyExistingGas = { gasPrice: 0 };
-    const { result } = renderHook(
-      () => useCancelSpeedupGas({ existingGas, tx, isCancel: false }),
-      { wrapper },
+  it('returns EIP-1559 params with higher values for cancel', () => {
+    const existingGas: Eip1559ExistingGas = {
+      isEIP1559Transaction: true,
+      maxFeePerGas: '0x174876e800',
+      maxPriorityFeePerGas: '0x59682f00',
+    };
+
+    const { result: speedUpResult } = renderHookWithProvider(
+      () =>
+        useCancelSpeedupGas({
+          existingGas,
+          tx: mockTx,
+          isCancel: false,
+        }),
+      { state: backgroundState },
     );
+
+    const { result: cancelResult } = renderHookWithProvider(
+      () =>
+        useCancelSpeedupGas({
+          existingGas,
+          tx: mockTx,
+          isCancel: true,
+        }),
+      { state: backgroundState },
+    );
+
+    expect(cancelResult.current.paramsForController).toBeDefined();
+    expect(speedUpResult.current.paramsForController).toBeDefined();
+  });
+
+  it('returns legacy params when existingGas has gasPrice (zero gasPrice)', () => {
+    const existingGas: LegacyExistingGas = {
+      gasPrice: '0x0',
+    };
+
+    const { result } = renderHookWithProvider(
+      () =>
+        useCancelSpeedupGas({
+          existingGas,
+          tx: mockTx,
+          isCancel: false,
+        }),
+      { state: backgroundState },
+    );
+
+    expect(result.current.paramsForController).toBeDefined();
+    expect(result.current.paramsForController?.gasPrice).toBeDefined();
+    expect(result.current.networkFeeDisplay).toMatch(/\d+\.?\d* ETH/);
+    expect(result.current.networkFeeFiat).toBeDefined();
+  });
+
+  it('returns legacy params when existingGas has gasPrice (non-zero gasPrice)', () => {
+    const existingGas: LegacyExistingGas = {
+      gasPrice: '0x3b9aca00', // 10 GWEI in hex
+    };
+
+    const { result } = renderHookWithProvider(
+      () =>
+        useCancelSpeedupGas({
+          existingGas,
+          tx: mockTx,
+          isCancel: false,
+        }),
+      { state: backgroundState },
+    );
+
     expect(result.current.paramsForController).toBeDefined();
     expect(result.current.paramsForController?.gasPrice).toBeDefined();
     expect(result.current.networkFeeDisplay).toMatch(/\d+\.?\d* ETH/);
   });
 
-  it('returns undefined params for legacy with non-zero gasPrice (controller applies rate)', () => {
-    const existingGas: LegacyExistingGas = { gasPrice: 10 };
-    const { result } = renderHook(
-      () => useCancelSpeedupGas({ existingGas, tx, isCancel: true }),
-      { wrapper },
+  it('calculates network fee correctly for EIP-1559', () => {
+    const existingGas: Eip1559ExistingGas = {
+      isEIP1559Transaction: true,
+      maxFeePerGas: '0x174876e800',
+      maxPriorityFeePerGas: '0x59682f00',
+    };
+
+    const { result } = renderHookWithProvider(
+      () =>
+        useCancelSpeedupGas({
+          existingGas,
+          tx: mockTx,
+          isCancel: false,
+        }),
+      { state: backgroundState },
     );
-    expect(result.current.paramsForController).toBeUndefined();
-    expect(result.current.networkFeeDisplay).toMatch(/\d+\.?\d* ETH/);
+
+    expect(parseFloat(result.current.networkFeeNative)).toBeGreaterThan(0);
+    expect(result.current.networkFeeDisplay).toContain('ETH');
+    expect(result.current.networkFeeFiat).toMatch('$');
+  });
+
+  it('includes wait time in speed display', () => {
+    const existingGas: Eip1559ExistingGas = {
+      isEIP1559Transaction: true,
+      maxFeePerGas: '0x174876e800',
+      maxPriorityFeePerGas: '0x59682f00',
+    };
+
+    const { result } = renderHookWithProvider(
+      () =>
+        useCancelSpeedupGas({
+          existingGas,
+          tx: mockTx,
+          isCancel: false,
+        }),
+      { state: backgroundState },
+    );
+
+    expect(result.current.speedDisplay).toContain('sec');
+    // speedDisplay uses locale string (e.g. "Market ~ 15 sec" or "Medium ~ 15 sec") and mocked toHumanSeconds
+    expect(result.current.speedDisplay).toMatch(/~\s*\d+\s*sec|sec/);
+  });
+
+  it('handles missing networkClientId gracefully', () => {
+    const txWithoutNetworkClientId = {
+      ...mockTx,
+      networkClientId: undefined,
+    } as unknown as TransactionMeta;
+
+    const existingGas: Eip1559ExistingGas = {
+      isEIP1559Transaction: true,
+      maxFeePerGas: '0x174876e800',
+      maxPriorityFeePerGas: '0x59682f00',
+    };
+
+    const { result } = renderHookWithProvider(
+      () =>
+        useCancelSpeedupGas({
+          existingGas,
+          tx: txWithoutNetworkClientId,
+          isCancel: false,
+        }),
+      { state: backgroundState },
+    );
+
+    expect(result.current.nativeTokenSymbol).toBe('ETH');
+    expect(result.current.paramsForController).toBeDefined();
+  });
+
+  it('returns correct native token symbol', () => {
+    const existingGas: Eip1559ExistingGas = {
+      isEIP1559Transaction: true,
+      maxFeePerGas: '0x174876e800',
+      maxPriorityFeePerGas: '0x59682f00',
+    };
+
+    const { result } = renderHookWithProvider(
+      () =>
+        useCancelSpeedupGas({
+          existingGas,
+          tx: mockTx,
+          isCancel: false,
+        }),
+      { state: backgroundState },
+    );
+
+    expect(result.current.nativeTokenSymbol).toBe('ETH');
+  });
+
+  it('uses market fees when market fees are higher than existing fees', () => {
+    const existingGas: Eip1559ExistingGas = {
+      isEIP1559Transaction: true,
+      maxFeePerGas: '0x3b9aca00', // 10 GWEI - lower than market
+      maxPriorityFeePerGas: '0x59682f00',
+    };
+
+    const { result } = renderHookWithProvider(
+      () =>
+        useCancelSpeedupGas({
+          existingGas,
+          tx: mockTx,
+          isCancel: false,
+        }),
+      { state: backgroundState },
+    );
+
+    const paramsForController = result.current.paramsForController;
+
+    // Should use market fees since they're higher
+    expect(paramsForController?.maxFeePerGas).toBe('0xf43fc2c04ee0000');
+    expect(paramsForController?.maxPriorityFeePerGas).toBe('0x16e5fa4207650000');
   });
 });
