@@ -90,13 +90,13 @@ export class PushProvisioningService {
         );
       }
 
-      const { id: cardId, holderName, panLast4, expiryDate } = cardDetails;
+      const { id: cardId, holderName, panLast4, isFreezable } = cardDetails;
 
       // 3. Build CardDisplayInfo from card details
       const cardDisplayInfo: CardDisplayInfo = {
         cardId,
         cardholderName: holderName,
-        expiryDate,
+        isFreezable,
         lastFourDigits: panLast4,
         cardNetwork: 'MASTERCARD',
         cardDescription: `MetaMask Card ending in ${panLast4}`,

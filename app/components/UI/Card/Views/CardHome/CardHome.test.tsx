@@ -4368,7 +4368,7 @@ describe('CardHome Component', () => {
       holderName: 'John Doe',
       panLast4: '1234',
       status: 'ACTIVE',
-      expiryDate: '12/25',
+      isFreezable: true,
     };
 
     const mockUserDetailsForProvisioning = {
@@ -4430,7 +4430,7 @@ describe('CardHome Component', () => {
         holderName: 'John Doe',
         panLast4: '1234',
         status: 'ACTIVE',
-        expiryDate: '12/25',
+        isFreezable: true,
       });
     });
 

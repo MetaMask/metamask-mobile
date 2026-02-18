@@ -7008,7 +7008,7 @@
         },
         "frozen": {
           "title": "Your card is frozen",
-          "description": "Please contact support to unfreeze your card"
+          "description": "Your card is temporarily frozen. You can unfreeze it anytime."
         },
         "blocked": {
           "title": "Your card is blocked",
@@ -7058,7 +7058,12 @@
         "travel_description": "Book hotels with up to 70% discounts",
         "card_tos_title": "Terms and conditions",
         "order_metal_card": "Metal Card",
-        "order_metal_card_description": "Order your physical Metal Card now"
+        "order_metal_card_description": "Order your physical Metal Card now",
+        "freeze_card": "Freeze card",
+        "unfreeze_card": "Unfreeze card",
+        "freeze_card_description": "Pause all spending on your card",
+        "unfreeze_card_description": "Resume all spending on your card",
+        "freeze_error": "Failed to update card status. Please try again."
       }
     },
     "card_spending_limit": {

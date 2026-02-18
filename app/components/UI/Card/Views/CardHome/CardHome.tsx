@@ -10,8 +10,10 @@ import {
   ActivityIndicator,
   Alert,
   Image,
+  Platform,
   RefreshControl,
   ScrollView,
+  Switch,
   TouchableOpacity,
 } from 'react-native';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
@@ -79,6 +81,7 @@ import { useIsSwapEnabledForPriorityToken } from '../../hooks/useIsSwapEnabledFo
 import { isAuthenticationError } from '../../util/isAuthenticationError';
 import { removeCardBaanxToken } from '../../util/cardTokenVault';
 import useLoadCardData from '../../hooks/useLoadCardData';
+import useCardFreeze from '../../hooks/useCardFreeze';
 import useCardDetailsToken from '../../hooks/useCardDetailsToken';
 import useAuthentication from '../../../../../core/Authentication/hooks/useAuthentication';
 import { ReauthenticateErrorType } from '../../../../../core/Authentication/types';
@@ -176,6 +179,7 @@ const CardHome = () => {
     isAuthenticated,
     isBaanxLoginEnabled,
     fetchAllData,
+    fetchCardDetails,
     allTokens,
     delegationSettings,
     externalWalletDetailsData,
@@ -205,6 +209,15 @@ const CardHome = () => {
   const isSwapEnabledForPriorityToken = useIsSwapEnabledForPriorityToken(
     priorityToken?.walletAddress,
   );
+
+  const {
+    isFrozen,
+    status: freezeStatus,
+    toggleFreeze,
+  } = useCardFreeze({
+    cardStatus: cardDetails?.status,
+    fetchCardDetails,
+  });
 
   const toggleIsBalanceAndAssetsHidden = useCallback(
     (value: boolean) => {
@@ -249,7 +262,7 @@ const CardHome = () => {
             holderName: cardDetails.holderName,
             panLast4: cardDetails.panLast4,
             status: cardDetails.status,
-            expiryDate: cardDetails.expiryDate,
+            isFreezable: cardDetails.isFreezable,
           }
         : null,
     [cardDetails],
@@ -416,6 +429,21 @@ const CardHome = () => {
       });
     }
   }, [route.params?.showDeeplinkToast, toastRef]);
+
+  useEffect(() => {
+    if (freezeStatus.type === 'error' && toastRef?.current) {
+      toastRef.current.showToast({
+        variant: ToastVariants.Icon,
+        labelOptions: [
+          {
+            label: strings('card.card_home.manage_card_options.freeze_error'),
+          },
+        ],
+        hasNoTimeout: false,
+        iconName: IconName.Warning,
+      });
+    }
+  }, [freezeStatus, toastRef]);
 
   const addFundsAction = useCallback(() => {
     trackEvent(
@@ -1211,6 +1239,35 @@ const CardHome = () => {
             testID={CardHomeSelectors.VIEW_CARD_DETAILS_BUTTON}
           />
         )}
+        {isAuthenticated &&
+          !isLoading &&
+          cardDetails &&
+          cardDetails.isFreezable &&
+          cardDetails.status !== CardStatus.BLOCKED && (
+            <ManageCardListItem
+              title={
+                isFrozen
+                  ? strings('card.card_home.manage_card_options.unfreeze_card')
+                  : strings('card.card_home.manage_card_options.freeze_card')
+              }
+              description={strings(
+                isFrozen
+                  ? 'card.card_home.manage_card_options.unfreeze_card_description'
+                  : 'card.card_home.manage_card_options.freeze_card_description',
+              )}
+              rightElement={
+                <Switch
+                  value={isFrozen}
+                  onValueChange={
+                    freezeStatus.type === 'toggling' ? undefined : toggleFreeze
+                  }
+                  style={tw.style(Platform.OS === 'ios' ? 'mr-2' : '')}
+                  testID={CardHomeSelectors.FREEZE_CARD_TOGGLE}
+                />
+              }
+              testID="freeze-card-list-item"
+            />
+          )}
         {isBaanxLoginEnabled &&
           !isLoading &&
           !isSolanaChainId(priorityToken?.caipChainId ?? '') && (

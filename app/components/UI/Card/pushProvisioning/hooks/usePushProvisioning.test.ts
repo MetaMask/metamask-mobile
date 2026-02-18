@@ -92,7 +92,7 @@ describe('usePushProvisioning', () => {
     holderName: 'John Doe',
     panLast4: '1234',
     status: 'ACTIVE',
-    expiryDate: '12/25',
+    isFreezable: true,
   };
 
   const mockUserAddress = {
