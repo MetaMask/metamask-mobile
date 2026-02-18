@@ -5,9 +5,7 @@ import {
   selectMinimumBalanceForRentExemptionInSOL,
 } from '@metamask/bridge-controller';
 import { selectRemoteFeatureFlags } from '../featureFlagController';
-import { selectGasFeeControllerEstimates } from '../gasFeeController';
 import { MetaMetrics } from '../../core/Analytics';
-import { GasFeeEstimates } from '@metamask/gas-fee-controller';
 
 export const selectBridgeControllerState = (state: RootState) =>
   state.engine.backgroundState.BridgeController;
@@ -21,7 +19,6 @@ export const selectQuoteRequest = createSelector(
 // Create the BridgeAppState selector following the same pattern as in bridge slice
 export const selectBridgeAppState = (state: RootState) => ({
   ...state.engine.backgroundState.BridgeController,
-  gasFeeEstimates: selectGasFeeControllerEstimates(state) as GasFeeEstimates,
   gasFeeEstimatesByChainId:
     state.engine.backgroundState.GasFeeController.gasFeeEstimatesByChainId ??
     {},

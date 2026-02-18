@@ -236,6 +236,29 @@ export const TokenListItemV2 = React.memo(
         !merklData.hasPendingClaim,
     );
 
+    const handleClaimBonus = useCallback(() => {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.MUSD_CLAIM_BONUS_BUTTON_CLICKED)
+          .addProperties({
+            location: MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.TOKEN_LIST_ITEM,
+            action_type: 'claim_bonus',
+            button_text: strings('earn.claim_bonus'),
+            network_chain_id: asset?.chainId,
+            network_name: networkName,
+            asset_symbol: asset?.symbol,
+          })
+          .build(),
+      );
+      merklData.claimRewards();
+    }, [
+      trackEvent,
+      createEventBuilder,
+      asset?.chainId,
+      asset?.symbol,
+      networkName,
+      merklData,
+    ]);
+
     const pricePercentChange1d = useTokenPricePercentageChange(asset);
 
     // Calculate token price in fiat currency
@@ -381,7 +404,7 @@ export const TokenListItemV2 = React.memo(
         return {
           text: strings('earn.claim_bonus'),
           color: TextColor.Primary,
-          onPress: merklData.claimRewards,
+          onPress: handleClaimBonus,
         };
       }
 
@@ -433,7 +456,7 @@ export const TokenListItemV2 = React.memo(
       earnToken?.experience?.type,
       hasPercentageChange,
       pricePercentChange1d,
-      merklData.claimRewards,
+      handleClaimBonus,
       handleConvertToMUSD,
       handleLendingRedirect,
     ]);
