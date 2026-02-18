@@ -1,4 +1,5 @@
 import Assertions from '../framework/Assertions';
+import Gestures from '../framework/Gestures';
 import Matchers from '../framework/Matchers';
 import Utilities from '../framework/Utilities';
 import BrowserView from '../page-objects/Browser/BrowserView';
@@ -76,12 +77,10 @@ export const waitForTestSnapsToLoad = async (): Promise<void> => {
 };
 
 /**
- * Navigates to the browser view using the appropriate flow based on what's available.
- * This helper automatically adapts to different app configurations:
- * - If the Explore tab button exists on the tab bar, it will tap Explore and then tap the browser button in the trending view
- * - If the Explore tab doesn't exist, it will tap the browser button directly on the tab bar
- *
- * This allows tests to work seamlessly regardless of whether the trending feature is enabled or disabled.
+ * Navigates to the browser view using the new browser flow: Explore → Trending → Browser.
+ * Waits for the URL bar and the browser WebView container to be visible so that
+ * subsequent WebView-based interactions (e.g. navigateToTestDApp, verifyCurrentNetworkText)
+ * work reliably on all platforms (including Android CI).
  *
  * @async
  * @function navigateToBrowserView
@@ -91,24 +90,38 @@ export const waitForTestSnapsToLoad = async (): Promise<void> => {
  * @example
  * await navigateToBrowserView();
  * await Browser.navigateToTestDApp();
+ * await waitForTestDappToLoad(); // optional: wait for dapp content before WebView assertions
  */
-export const navigateToBrowserView = async (): Promise<void> => {
-  // Check if Explore button is visible on tab bar (short timeout for quick check)
-  const hasExploreButton = await Utilities.isElementVisible(
-    TabBarComponent.tabBarExploreButton,
-    500,
+/**
+ * If the "Opened tabs" grid view is shown (e.g. after tapping the browser tab icon),
+ * selects the first/most recent tab so we land on the single-tab browser view.
+ */
+const ensureSingleBrowserTabView = async (): Promise<void> => {
+  const openedTabsHeader = Matchers.getElementByID(
+    BrowserViewSelectorsIDs.TABS_OPENED_TITLE,
   );
-
-  if (hasExploreButton) {
-    // Explore tab exists - navigate to it first
-    await TabBarComponent.tapExploreButton();
-    await TrendingView.tapBrowserButton();
-  } else {
-    // No Explore tab - use browser tab button directly
-    await TabBarComponent.tapBrowser();
+  const isInTabListView = await Utilities.isElementVisible(
+    openedTabsHeader,
+    2000,
+  );
+  if (isInTabListView) {
+    const firstTab = Matchers.getElementByID(
+      BrowserViewSelectorsIDs.TABS_ITEM_REGEX,
+      0,
+    );
+    await Gestures.waitAndTap(firstTab, {
+      elemDescription: 'First browser tab (select to open single-tab view)',
+    });
   }
+};
 
-  // Verify we're in browser view regardless of which path we took
+export const navigateToBrowserView = async (): Promise<void> => {
+  await TabBarComponent.tapExploreButton();
+  await TrendingView.tapBrowserButton();
+
+  // If we landed on the "Opened tabs" grid (tab list), select the first tab to get to single-tab view
+  await ensureSingleBrowserTabView();
+
   await Assertions.expectElementToBeVisible(BrowserView.urlInputBoxID, {
     description: 'Browser URL bar should be visible after navigation',
   });
