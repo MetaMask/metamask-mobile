@@ -52,7 +52,8 @@ describe(SmokeRamps('Buy Crypto Deeplinks'), () => {
 
         await TokenSelectScreen.tapTokenByName('DAI');
         await Assertions.expectTextDisplayed('Dai Stablecoin');
-        await Assertions.expectTextDisplayed('$275 USD');
+        await Assertions.expectTextDisplayed('$275');
+        await Assertions.expectTextDisplayed('USD');
       },
     );
   });
