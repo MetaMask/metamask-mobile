@@ -35,6 +35,13 @@ import rewardsReducer, {
   bulkLinkReset,
   bulkLinkResumed,
   BULK_LINK_CANCEL,
+  setRecentDropPointCommit,
+  clearRecentDropPointCommit,
+  clearAllRecentDropPointCommits,
+  setRecentDropAddressCommit,
+  clearRecentDropAddressCommit,
+  setIsUpdatingDropAddress,
+  setIsValidatingDropAddress,
   RewardsState,
 } from '.';
 import { OnboardingStep } from './types';
@@ -44,6 +51,7 @@ import {
   PointsEventDto,
   SeasonDropDto,
   DropStatus,
+  CommitDropPointsResponseDto,
 } from '../../core/Engine/controllers/rewards-controller/types';
 import { AccountGroupId } from '@metamask/account-api';
 
@@ -4784,5 +4792,398 @@ describe('setSeasonDropsError', () => {
     action = setSeasonDropsError(true);
     currentState = rewardsReducer(currentState, action);
     expect(currentState.seasonDropsError).toBe(true);
+  });
+});
+
+describe('setRecentDropPointCommit', () => {
+  const mockCommitResponse: CommitDropPointsResponseDto = {
+    commitmentId: '01974010-377f-7553-a365-0c33c8130981',
+    pointsCommitted: 500,
+    totalPointsCommitted: 1500,
+    newRank: 5,
+    totalParticipants: 1000,
+    availablePointsRemaining: 2500,
+  };
+
+  it('stores a recent drop point commit for a given dropId', () => {
+    // Arrange
+    jest.spyOn(Date, 'now').mockReturnValue(1234567890);
+    const action = setRecentDropPointCommit({
+      dropId: 'drop-1',
+      response: mockCommitResponse,
+    });
+
+    // Act
+    const state = rewardsReducer(initialState, action);
+
+    // Assert
+    expect(state.recentDropPointCommits['drop-1']).toEqual({
+      response: mockCommitResponse,
+      committedAt: 1234567890,
+    });
+
+    jest.restoreAllMocks();
+  });
+
+  it('overwrites an existing commit for the same dropId', () => {
+    // Arrange
+    jest.spyOn(Date, 'now').mockReturnValue(1234567890);
+    const stateWithExisting: RewardsState = {
+      ...initialState,
+      recentDropPointCommits: {
+        'drop-1': {
+          response: { ...mockCommitResponse, pointsCommitted: 100 },
+          committedAt: 1000000000,
+        },
+      },
+    };
+    const action = setRecentDropPointCommit({
+      dropId: 'drop-1',
+      response: mockCommitResponse,
+    });
+
+    // Act
+    const state = rewardsReducer(stateWithExisting, action);
+
+    // Assert
+    expect(state.recentDropPointCommits['drop-1']).toEqual({
+      response: mockCommitResponse,
+      committedAt: 1234567890,
+    });
+
+    jest.restoreAllMocks();
+  });
+
+  it('does not affect commits for other dropIds', () => {
+    // Arrange
+    jest.spyOn(Date, 'now').mockReturnValue(1234567890);
+    const existingCommit = {
+      response: { ...mockCommitResponse, pointsCommitted: 200 },
+      committedAt: 1000000000,
+    };
+    const stateWithExisting: RewardsState = {
+      ...initialState,
+      recentDropPointCommits: {
+        'drop-other': existingCommit,
+      },
+    };
+    const action = setRecentDropPointCommit({
+      dropId: 'drop-1',
+      response: mockCommitResponse,
+    });
+
+    // Act
+    const state = rewardsReducer(stateWithExisting, action);
+
+    // Assert
+    expect(state.recentDropPointCommits['drop-other']).toEqual(existingCommit);
+    expect(state.recentDropPointCommits['drop-1']).toBeDefined();
+
+    jest.restoreAllMocks();
+  });
+});
+
+describe('clearRecentDropPointCommit', () => {
+  it('removes the commit for the specified dropId', () => {
+    // Arrange
+    const stateWithCommit: RewardsState = {
+      ...initialState,
+      recentDropPointCommits: {
+        'drop-1': {
+          response: {
+            commitmentId: 'c1',
+            pointsCommitted: 500,
+            totalPointsCommitted: 1500,
+            newRank: 5,
+            totalParticipants: 1000,
+            availablePointsRemaining: 2500,
+          },
+          committedAt: 1234567890,
+        },
+      },
+    };
+    const action = clearRecentDropPointCommit('drop-1');
+
+    // Act
+    const state = rewardsReducer(stateWithCommit, action);
+
+    // Assert
+    expect(state.recentDropPointCommits['drop-1']).toBeUndefined();
+  });
+
+  it('does not affect commits for other dropIds', () => {
+    // Arrange
+    const otherCommit = {
+      response: {
+        commitmentId: 'c2',
+        pointsCommitted: 300,
+        totalPointsCommitted: 900,
+        newRank: 10,
+        totalParticipants: 500,
+        availablePointsRemaining: 1200,
+      },
+      committedAt: 1234567890,
+    };
+    const stateWithCommits: RewardsState = {
+      ...initialState,
+      recentDropPointCommits: {
+        'drop-1': {
+          response: {
+            commitmentId: 'c1',
+            pointsCommitted: 500,
+            totalPointsCommitted: 1500,
+            newRank: 5,
+            totalParticipants: 1000,
+            availablePointsRemaining: 2500,
+          },
+          committedAt: 1234567890,
+        },
+        'drop-2': otherCommit,
+      },
+    };
+    const action = clearRecentDropPointCommit('drop-1');
+
+    // Act
+    const state = rewardsReducer(stateWithCommits, action);
+
+    // Assert
+    expect(state.recentDropPointCommits['drop-1']).toBeUndefined();
+    expect(state.recentDropPointCommits['drop-2']).toEqual(otherCommit);
+  });
+});
+
+describe('clearAllRecentDropPointCommits', () => {
+  it('clears all recent drop point commits', () => {
+    // Arrange
+    const stateWithCommits: RewardsState = {
+      ...initialState,
+      recentDropPointCommits: {
+        'drop-1': {
+          response: {
+            commitmentId: 'c1',
+            pointsCommitted: 500,
+            totalPointsCommitted: 1500,
+            newRank: 5,
+            totalParticipants: 1000,
+            availablePointsRemaining: 2500,
+          },
+          committedAt: 1234567890,
+        },
+        'drop-2': {
+          response: {
+            commitmentId: 'c2',
+            pointsCommitted: 300,
+            totalPointsCommitted: 900,
+            newRank: 10,
+            totalParticipants: 500,
+            availablePointsRemaining: 1200,
+          },
+          committedAt: 1234567891,
+        },
+      },
+    };
+    const action = clearAllRecentDropPointCommits();
+
+    // Act
+    const state = rewardsReducer(stateWithCommits, action);
+
+    // Assert
+    expect(state.recentDropPointCommits).toEqual({});
+  });
+
+  it('is a no-op when there are no commits', () => {
+    // Arrange
+    const action = clearAllRecentDropPointCommits();
+
+    // Act
+    const state = rewardsReducer(initialState, action);
+
+    // Assert
+    expect(state.recentDropPointCommits).toEqual({});
+  });
+});
+
+describe('setRecentDropAddressCommit', () => {
+  it('stores a recent drop address commit for a given dropId', () => {
+    // Arrange
+    jest.spyOn(Date, 'now').mockReturnValue(1234567890);
+    const action = setRecentDropAddressCommit({
+      dropId: 'drop-1',
+      address: '0x1234567890abcdef1234567890abcdef12345678',
+    });
+
+    // Act
+    const state = rewardsReducer(initialState, action);
+
+    // Assert
+    expect(state.recentDropAddressCommits['drop-1']).toEqual({
+      address: '0x1234567890abcdef1234567890abcdef12345678',
+      committedAt: 1234567890,
+    });
+
+    jest.restoreAllMocks();
+  });
+
+  it('overwrites an existing address commit for the same dropId', () => {
+    // Arrange
+    jest.spyOn(Date, 'now').mockReturnValue(1234567890);
+    const stateWithExisting: RewardsState = {
+      ...initialState,
+      recentDropAddressCommits: {
+        'drop-1': {
+          address: '0xoldaddress',
+          committedAt: 1000000000,
+        },
+      },
+    };
+    const action = setRecentDropAddressCommit({
+      dropId: 'drop-1',
+      address: '0xnewaddress',
+    });
+
+    // Act
+    const state = rewardsReducer(stateWithExisting, action);
+
+    // Assert
+    expect(state.recentDropAddressCommits['drop-1']).toEqual({
+      address: '0xnewaddress',
+      committedAt: 1234567890,
+    });
+
+    jest.restoreAllMocks();
+  });
+
+  it('does not affect address commits for other dropIds', () => {
+    // Arrange
+    jest.spyOn(Date, 'now').mockReturnValue(1234567890);
+    const existingCommit = {
+      address: '0xotheraddress',
+      committedAt: 1000000000,
+    };
+    const stateWithExisting: RewardsState = {
+      ...initialState,
+      recentDropAddressCommits: {
+        'drop-other': existingCommit,
+      },
+    };
+    const action = setRecentDropAddressCommit({
+      dropId: 'drop-1',
+      address: '0xnewaddress',
+    });
+
+    // Act
+    const state = rewardsReducer(stateWithExisting, action);
+
+    // Assert
+    expect(state.recentDropAddressCommits['drop-other']).toEqual(
+      existingCommit,
+    );
+    expect(state.recentDropAddressCommits['drop-1']).toBeDefined();
+
+    jest.restoreAllMocks();
+  });
+});
+
+describe('clearRecentDropAddressCommit', () => {
+  it('removes the address commit for the specified dropId', () => {
+    // Arrange
+    const stateWithCommit: RewardsState = {
+      ...initialState,
+      recentDropAddressCommits: {
+        'drop-1': {
+          address: '0x1234567890abcdef1234567890abcdef12345678',
+          committedAt: 1234567890,
+        },
+      },
+    };
+    const action = clearRecentDropAddressCommit('drop-1');
+
+    // Act
+    const state = rewardsReducer(stateWithCommit, action);
+
+    // Assert
+    expect(state.recentDropAddressCommits['drop-1']).toBeUndefined();
+  });
+
+  it('does not affect address commits for other dropIds', () => {
+    // Arrange
+    const otherCommit = {
+      address: '0xotheraddress',
+      committedAt: 1234567890,
+    };
+    const stateWithCommits: RewardsState = {
+      ...initialState,
+      recentDropAddressCommits: {
+        'drop-1': {
+          address: '0x1234567890abcdef1234567890abcdef12345678',
+          committedAt: 1234567890,
+        },
+        'drop-2': otherCommit,
+      },
+    };
+    const action = clearRecentDropAddressCommit('drop-1');
+
+    // Act
+    const state = rewardsReducer(stateWithCommits, action);
+
+    // Assert
+    expect(state.recentDropAddressCommits['drop-1']).toBeUndefined();
+    expect(state.recentDropAddressCommits['drop-2']).toEqual(otherCommit);
+  });
+});
+
+describe('setIsUpdatingDropAddress', () => {
+  it('sets isUpdatingDropAddress to true', () => {
+    // Arrange
+    const action = setIsUpdatingDropAddress(true);
+
+    // Act
+    const state = rewardsReducer(initialState, action);
+
+    // Assert
+    expect(state.isUpdatingDropAddress).toBe(true);
+  });
+
+  it('sets isUpdatingDropAddress to false', () => {
+    // Arrange
+    const stateWithUpdating: RewardsState = {
+      ...initialState,
+      isUpdatingDropAddress: true,
+    };
+    const action = setIsUpdatingDropAddress(false);
+
+    // Act
+    const state = rewardsReducer(stateWithUpdating, action);
+
+    // Assert
+    expect(state.isUpdatingDropAddress).toBe(false);
+  });
+});
+
+describe('setIsValidatingDropAddress', () => {
+  it('sets isValidatingDropAddress to true', () => {
+    // Arrange
+    const action = setIsValidatingDropAddress(true);
+
+    // Act
+    const state = rewardsReducer(initialState, action);
+
+    // Assert
+    expect(state.isValidatingDropAddress).toBe(true);
+  });
+
+  it('sets isValidatingDropAddress to false', () => {
+    // Arrange
+    const stateWithValidating: RewardsState = {
+      ...initialState,
+      isValidatingDropAddress: true,
+    };
+    const action = setIsValidatingDropAddress(false);
+
+    // Act
+    const state = rewardsReducer(stateWithValidating, action);
+
+    // Assert
+    expect(state.isValidatingDropAddress).toBe(false);
   });
 });

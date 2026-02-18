@@ -17,6 +17,11 @@ import {
   type SeasonStateDto,
   SeasonRewardType,
   type LineaTokenRewardDto,
+  type SeasonDropDto,
+  DropStatus,
+  type DropEligibilityDto,
+  type DropLeaderboardDto,
+  type CommitDropPointsResponseDto,
 } from './types';
 import type { CaipAccountId } from '@metamask/utils';
 import { base58 } from 'ethers/lib/utils';
@@ -17766,6 +17771,601 @@ describe('RewardsController', () => {
       expect(result.cachedOptInResults).toEqual([true, true, false]);
       expect(result.cachedSubscriptionIds).toEqual(['sub-3', 'sub-1', null]);
       expect(result.addressesNeedingFresh).toEqual([]);
+    });
+  });
+
+  describe('getSeasonDrops', () => {
+    const mockSeasonId = 'season-abc';
+    const mockSubscriptionId = 'sub-123';
+    const mockDrops: SeasonDropDto[] = [
+      {
+        id: 'drop-1',
+        seasonId: mockSeasonId,
+        name: 'Test Drop',
+        tokenSymbol: 'TKN',
+        tokenAmount: '1000',
+        tokenChainId: '1',
+        receivingBlockchain: 1,
+        opensAt: '2025-03-01T00:00:00.000Z',
+        closesAt: '2025-03-15T00:00:00.000Z',
+        image: { lightModeUrl: 'light.png', darkModeUrl: 'dark.png' },
+        status: DropStatus.OPEN,
+      },
+    ];
+
+    beforeEach(() => {
+      mockMessenger.call.mockClear();
+    });
+
+    it('should return empty array when rewards are disabled', async () => {
+      const disabledController = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => true,
+        isDropsEnabled: () => true,
+      });
+
+      const result = await disabledController.getSeasonDrops(
+        mockSeasonId,
+        mockSubscriptionId,
+      );
+      expect(result).toEqual([]);
+    });
+
+    it('should throw when drops feature is not enabled', async () => {
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => false,
+        isDropsEnabled: () => false,
+      });
+
+      await expect(
+        controller.getSeasonDrops(mockSeasonId, mockSubscriptionId),
+      ).rejects.toThrow('Drops feature is not enabled');
+    });
+
+    it('should fetch drops from data service and cache them', async () => {
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => false,
+        isDropsEnabled: () => true,
+      });
+
+      mockMessenger.call.mockResolvedValue(mockDrops);
+
+      const result = await controller.getSeasonDrops(
+        mockSeasonId,
+        mockSubscriptionId,
+      );
+
+      expect(result).toEqual(mockDrops);
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getDrops',
+        mockSeasonId,
+        mockSubscriptionId,
+      );
+      // Verify state was updated with cached drops
+      expect(controller.state.drops[mockSeasonId]).toBeDefined();
+      expect(controller.state.drops[mockSeasonId].drops).toEqual(mockDrops);
+    });
+
+    it('should propagate errors from data service', async () => {
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => false,
+        isDropsEnabled: () => true,
+      });
+
+      mockMessenger.call.mockRejectedValue(new Error('Network error'));
+
+      await expect(
+        controller.getSeasonDrops(mockSeasonId, mockSubscriptionId),
+      ).rejects.toThrow('Network error');
+    });
+  });
+
+  describe('getDropEligibility', () => {
+    const mockDropId = 'drop-abc';
+    const mockSubscriptionId = 'sub-123';
+    const mockEligibility: DropEligibilityDto = {
+      dropId: mockDropId,
+      eligible: true,
+      canCommit: true,
+      prerequisiteLogic: 'AND',
+      prerequisiteStatuses: [
+        {
+          satisfied: true,
+          current: 3,
+          required: 1,
+          prerequisite: {
+            type: 'ACTIVITY_COUNT',
+            activityTypes: ['SWAP'],
+            minCount: 1,
+            title: 'Complete a swap',
+            description: 'Swap any token',
+            iconName: 'swap-icon',
+          },
+        },
+      ],
+    };
+
+    beforeEach(() => {
+      mockMessenger.call.mockClear();
+    });
+
+    it('should throw when rewards are disabled', async () => {
+      const disabledController = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => true,
+        isDropsEnabled: () => true,
+      });
+
+      await expect(
+        disabledController.getDropEligibility(mockDropId, mockSubscriptionId),
+      ).rejects.toThrow('Rewards are not enabled');
+    });
+
+    it('should throw when drops feature is not enabled', async () => {
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => false,
+        isDropsEnabled: () => false,
+      });
+
+      await expect(
+        controller.getDropEligibility(mockDropId, mockSubscriptionId),
+      ).rejects.toThrow('Drops feature is not enabled');
+    });
+
+    it('should fetch eligibility and cache it in state', async () => {
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => false,
+        isDropsEnabled: () => true,
+      });
+
+      mockMessenger.call.mockResolvedValue(mockEligibility);
+
+      const result = await controller.getDropEligibility(
+        mockDropId,
+        mockSubscriptionId,
+      );
+
+      expect(result).toEqual(mockEligibility);
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getDropEligibility',
+        mockDropId,
+        mockSubscriptionId,
+      );
+      const cacheKey = `${mockDropId}:${mockSubscriptionId}`;
+      expect(controller.state.dropEligibilities[cacheKey]).toBeDefined();
+      expect(
+        controller.state.dropEligibilities[cacheKey].eligibility.dropId,
+      ).toBe(mockDropId);
+    });
+
+    it('should propagate errors from data service', async () => {
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => false,
+        isDropsEnabled: () => true,
+      });
+
+      mockMessenger.call.mockRejectedValue(new Error('API failure'));
+
+      await expect(
+        controller.getDropEligibility(mockDropId, mockSubscriptionId),
+      ).rejects.toThrow('API failure');
+    });
+  });
+
+  describe('getDropLeaderboard', () => {
+    const mockDropId = 'drop-abc';
+    const mockSubscriptionId = 'sub-123';
+    const mockLeaderboard: DropLeaderboardDto = {
+      dropId: mockDropId,
+      totalParticipants: 100,
+      totalPointsCommitted: 500000,
+      top20: [
+        { rank: 1, points: 50000, identifier: '0x1234...5678' },
+        { rank: 2, points: 40000, identifier: '0xabcd...ef01' },
+      ],
+      userPosition: { rank: 15, points: 1000 },
+    };
+
+    beforeEach(() => {
+      mockMessenger.call.mockClear();
+    });
+
+    it('should throw when rewards are disabled', async () => {
+      const disabledController = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => true,
+        isDropsEnabled: () => true,
+      });
+
+      await expect(
+        disabledController.getDropLeaderboard(mockDropId, mockSubscriptionId),
+      ).rejects.toThrow('Rewards are not enabled');
+    });
+
+    it('should throw when drops feature is not enabled', async () => {
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => false,
+        isDropsEnabled: () => false,
+      });
+
+      await expect(
+        controller.getDropLeaderboard(mockDropId, mockSubscriptionId),
+      ).rejects.toThrow('Drops feature is not enabled');
+    });
+
+    it('should fetch leaderboard from data service', async () => {
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => false,
+        isDropsEnabled: () => true,
+      });
+
+      mockMessenger.call.mockResolvedValue(mockLeaderboard);
+
+      const result = await controller.getDropLeaderboard(
+        mockDropId,
+        mockSubscriptionId,
+      );
+
+      expect(result).toEqual(mockLeaderboard);
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getDropLeaderboard',
+        mockDropId,
+        mockSubscriptionId,
+      );
+    });
+
+    it('should propagate errors from data service', async () => {
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => false,
+        isDropsEnabled: () => true,
+      });
+
+      mockMessenger.call.mockRejectedValue(new Error('Server error'));
+
+      await expect(
+        controller.getDropLeaderboard(mockDropId, mockSubscriptionId),
+      ).rejects.toThrow('Server error');
+    });
+  });
+
+  describe('commitDropPoints', () => {
+    const mockDropId = 'drop-abc';
+    const mockSubscriptionId = 'sub-123';
+    const mockPoints = 500;
+    const mockAddress = '0xabc123';
+    const mockCommitResponse: CommitDropPointsResponseDto = {
+      commitmentId: 'commit-1',
+      pointsCommitted: 500,
+      totalPointsCommitted: 1500,
+      newRank: 5,
+      totalParticipants: 100,
+      availablePointsRemaining: 2500,
+    };
+
+    beforeEach(() => {
+      mockMessenger.call.mockClear();
+      mockMessenger.publish.mockClear();
+    });
+
+    it('should throw when rewards are disabled', async () => {
+      const disabledController = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => true,
+        isDropsEnabled: () => true,
+      });
+
+      await expect(
+        disabledController.commitDropPoints(
+          mockDropId,
+          mockPoints,
+          mockSubscriptionId,
+        ),
+      ).rejects.toThrow('Rewards are not enabled');
+    });
+
+    it('should throw when drops feature is not enabled', async () => {
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => false,
+        isDropsEnabled: () => false,
+      });
+
+      await expect(
+        controller.commitDropPoints(mockDropId, mockPoints, mockSubscriptionId),
+      ).rejects.toThrow('Drops feature is not enabled');
+    });
+
+    it('should commit points and publish dropCommit event', async () => {
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => false,
+        isDropsEnabled: () => true,
+      });
+
+      mockMessenger.call.mockResolvedValue(mockCommitResponse);
+
+      const result = await controller.commitDropPoints(
+        mockDropId,
+        mockPoints,
+        mockSubscriptionId,
+      );
+
+      expect(result).toEqual(mockCommitResponse);
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:commitDropPoints',
+        { dropId: mockDropId, points: mockPoints, address: undefined },
+        mockSubscriptionId,
+      );
+      expect(mockMessenger.publish).toHaveBeenCalledWith(
+        'RewardsController:dropCommit',
+        {
+          dropId: mockDropId,
+          pointsCommitted: mockCommitResponse.pointsCommitted,
+          subscriptionId: mockSubscriptionId,
+        },
+      );
+    });
+
+    it('should cache address and publish dropAddressCommitted when address is provided', async () => {
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => false,
+        isDropsEnabled: () => true,
+      });
+
+      mockMessenger.call.mockResolvedValue(mockCommitResponse);
+
+      await controller.commitDropPoints(
+        mockDropId,
+        mockPoints,
+        mockSubscriptionId,
+        mockAddress,
+      );
+
+      const cacheKey = `${mockDropId}:${mockSubscriptionId}`;
+      expect(controller.state.dropCommittedAddresses[cacheKey]).toBeDefined();
+      expect(controller.state.dropCommittedAddresses[cacheKey].address).toBe(
+        mockAddress,
+      );
+      expect(mockMessenger.publish).toHaveBeenCalledWith(
+        'RewardsController:dropAddressCommitted',
+        { dropId: mockDropId, address: mockAddress },
+      );
+    });
+
+    it('should propagate errors from data service', async () => {
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => false,
+        isDropsEnabled: () => true,
+      });
+
+      mockMessenger.call.mockRejectedValue(new Error('Commit failed'));
+
+      await expect(
+        controller.commitDropPoints(mockDropId, mockPoints, mockSubscriptionId),
+      ).rejects.toThrow('Commit failed');
+    });
+  });
+
+  describe('updateDropReceivingAddress', () => {
+    const mockDropId = 'drop-abc';
+    const mockAddress = '0xnewaddress';
+    const mockSubscriptionId = 'sub-123';
+
+    beforeEach(() => {
+      mockMessenger.call.mockClear();
+      mockMessenger.publish.mockClear();
+    });
+
+    it('should throw when rewards are disabled', async () => {
+      const disabledController = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => true,
+        isDropsEnabled: () => true,
+      });
+
+      await expect(
+        disabledController.updateDropReceivingAddress(
+          mockDropId,
+          mockAddress,
+          mockSubscriptionId,
+        ),
+      ).rejects.toThrow('Rewards are not enabled');
+    });
+
+    it('should throw when drops feature is not enabled', async () => {
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => false,
+        isDropsEnabled: () => false,
+      });
+
+      await expect(
+        controller.updateDropReceivingAddress(
+          mockDropId,
+          mockAddress,
+          mockSubscriptionId,
+        ),
+      ).rejects.toThrow('Drops feature is not enabled');
+    });
+
+    it('should update address, cache it, and publish event', async () => {
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => false,
+        isDropsEnabled: () => true,
+      });
+
+      mockMessenger.call.mockResolvedValue(undefined);
+
+      await controller.updateDropReceivingAddress(
+        mockDropId,
+        mockAddress,
+        mockSubscriptionId,
+      );
+
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:updateDropReceivingAddress',
+        { dropId: mockDropId, address: mockAddress },
+        mockSubscriptionId,
+      );
+      const cacheKey = `${mockDropId}:${mockSubscriptionId}`;
+      expect(controller.state.dropCommittedAddresses[cacheKey]).toBeDefined();
+      expect(controller.state.dropCommittedAddresses[cacheKey].address).toBe(
+        mockAddress,
+      );
+      expect(mockMessenger.publish).toHaveBeenCalledWith(
+        'RewardsController:dropAddressCommitted',
+        { dropId: mockDropId, address: mockAddress },
+      );
+    });
+
+    it('should propagate errors from data service', async () => {
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => false,
+        isDropsEnabled: () => true,
+      });
+
+      mockMessenger.call.mockRejectedValue(new Error('Update failed'));
+
+      await expect(
+        controller.updateDropReceivingAddress(
+          mockDropId,
+          mockAddress,
+          mockSubscriptionId,
+        ),
+      ).rejects.toThrow('Update failed');
+    });
+  });
+
+  describe('getDropCommittedAddress', () => {
+    const mockDropId = 'drop-abc';
+    const mockSubscriptionId = 'sub-123';
+
+    beforeEach(() => {
+      mockMessenger.call.mockClear();
+    });
+
+    it('should throw when rewards are disabled', async () => {
+      const disabledController = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => true,
+        isDropsEnabled: () => true,
+      });
+
+      await expect(
+        disabledController.getDropCommittedAddress(
+          mockDropId,
+          mockSubscriptionId,
+        ),
+      ).rejects.toThrow('Rewards are not enabled');
+    });
+
+    it('should throw when drops feature is not enabled', async () => {
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => false,
+        isDropsEnabled: () => false,
+      });
+
+      await expect(
+        controller.getDropCommittedAddress(mockDropId, mockSubscriptionId),
+      ).rejects.toThrow('Drops feature is not enabled');
+    });
+
+    it('should fetch address from data service and cache it', async () => {
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => false,
+        isDropsEnabled: () => true,
+      });
+
+      mockMessenger.call.mockResolvedValue('0xcommittedaddress');
+
+      const result = await controller.getDropCommittedAddress(
+        mockDropId,
+        mockSubscriptionId,
+      );
+
+      expect(result).toBe('0xcommittedaddress');
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getDropCommittedAddress',
+        mockDropId,
+        mockSubscriptionId,
+      );
+      const cacheKey = `${mockDropId}:${mockSubscriptionId}`;
+      expect(controller.state.dropCommittedAddresses[cacheKey]).toBeDefined();
+      expect(controller.state.dropCommittedAddresses[cacheKey].address).toBe(
+        '0xcommittedaddress',
+      );
+    });
+
+    it('should return null when no address is committed', async () => {
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => false,
+        isDropsEnabled: () => true,
+      });
+
+      mockMessenger.call.mockResolvedValue(null);
+
+      const result = await controller.getDropCommittedAddress(
+        mockDropId,
+        mockSubscriptionId,
+      );
+
+      expect(result).toBeNull();
+    });
+
+    it('should propagate errors from data service', async () => {
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => false,
+        isDropsEnabled: () => true,
+      });
+
+      mockMessenger.call.mockRejectedValue(new Error('Fetch failed'));
+
+      await expect(
+        controller.getDropCommittedAddress(mockDropId, mockSubscriptionId),
+      ).rejects.toThrow('Fetch failed');
     });
   });
 });
