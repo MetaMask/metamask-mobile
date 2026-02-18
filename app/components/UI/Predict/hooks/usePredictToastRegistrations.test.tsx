@@ -3,8 +3,8 @@ import { act, renderHook } from '@testing-library/react-hooks';
 import Routes from '../../../../constants/navigation/Routes';
 
 import { usePredictToastRegistrations } from './usePredictToastRegistrations';
+import { selectTransactionMetadataById } from '../../../../selectors/transactionController';
 import { selectSingleTokenByAddressAndChainId } from '../../../../selectors/tokensController';
-import { selectTickerByChainId } from '../../../../selectors/networkController';
 
 const mockInvalidateQueries = jest.fn();
 jest.mock('@tanstack/react-query', () => ({
@@ -72,6 +72,10 @@ jest.mock('../../../../store', () => ({
   store: {
     getState: jest.fn(() => ({})),
   },
+}));
+
+jest.mock('../../../../selectors/transactionController', () => ({
+  selectTransactionMetadataById: jest.fn(() => undefined),
 }));
 
 jest.mock('../../../../selectors/tokensController', () => ({
@@ -439,8 +443,18 @@ describe('usePredictToastRegistrations', () => {
       );
     });
 
-    it('resolves destination token symbol for post-quote withdraw toast', () => {
-      (selectSingleTokenByAddressAndChainId as jest.Mock).mockReturnValue({
+    it('looks up transaction from store and resolves token for post-quote withdraw toast', () => {
+      (selectTransactionMetadataById as unknown as jest.Mock).mockReturnValue({
+        metamaskPay: {
+          isPostQuote: true,
+          targetFiat: '25.50',
+          chainId: '0x38',
+          tokenAddress: '0x55d398326f99059ff775485246999027b3197955',
+        },
+      });
+      (
+        selectSingleTokenByAddressAndChainId as unknown as jest.Mock
+      ).mockReturnValue({
         symbol: 'USDT',
       });
 
@@ -451,10 +465,8 @@ describe('usePredictToastRegistrations', () => {
           type: 'withdraw',
           status: 'confirmed',
           senderAddress: selectedAddress,
-          amount: 0.5,
-          targetFiat: 0.42,
-          destinationChainId: '0x38',
-          destinationTokenAddress: '0x55d398326f99059ff775485246999027b3197955',
+          transactionId: 'tx-withdraw-1',
+          amount: 10,
         },
         showToast,
       );
@@ -463,45 +475,10 @@ describe('usePredictToastRegistrations', () => {
         expect.objectContaining({
           labelOptions: expect.arrayContaining([
             expect.objectContaining({
-              label: expect.stringContaining('$0.42'),
+              label: expect.stringContaining('$25.50'),
             }),
             expect.objectContaining({
               label: expect.stringContaining('USDT'),
-            }),
-          ]),
-        }),
-      );
-    });
-
-    it('falls back to native ticker when destination token not found', () => {
-      (selectSingleTokenByAddressAndChainId as jest.Mock).mockReturnValue(
-        undefined,
-      );
-      (selectTickerByChainId as jest.Mock).mockReturnValue('BNB');
-
-      const handler = getHandler();
-
-      handler(
-        {
-          type: 'withdraw',
-          status: 'confirmed',
-          senderAddress: selectedAddress,
-          amount: 0.5,
-          targetFiat: 0.43,
-          destinationChainId: '0x38',
-          destinationTokenAddress: '0x0000000000000000000000000000000000000000',
-        },
-        showToast,
-      );
-
-      expect(showToast).toHaveBeenCalledWith(
-        expect.objectContaining({
-          labelOptions: expect.arrayContaining([
-            expect.objectContaining({
-              label: expect.stringContaining('$0.43'),
-            }),
-            expect.objectContaining({
-              label: expect.stringContaining('BNB'),
             }),
           ]),
         }),

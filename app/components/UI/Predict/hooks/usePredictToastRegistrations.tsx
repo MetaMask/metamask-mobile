@@ -15,38 +15,18 @@ import type { ToastRef } from '../../../../component-library/components/Toast/To
 import Routes from '../../../../constants/navigation/Routes';
 import type { ToastRegistration } from '../../../Nav/App/ControllerEventToastBridge';
 import { useAppThemeFromContext } from '../../../../util/theme';
-import type { Hex } from '@metamask/utils';
 import type { PredictTransactionStatusChangedPayload } from '../controllers/PredictController';
 import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
 import { formatPrice } from '../utils/format';
 import { predictQueries } from '../queries';
+import type { Hex } from '@metamask/utils';
 import { usePredictClaim } from './usePredictClaim';
 import { usePredictDeposit } from './usePredictDeposit';
 import { usePredictWithdraw } from './usePredictWithdraw';
 import { store } from '../../../../store';
+import { selectTransactionMetadataById } from '../../../../selectors/transactionController';
 import { selectSingleTokenByAddressAndChainId } from '../../../../selectors/tokensController';
 import { selectTickerByChainId } from '../../../../selectors/networkController';
-
-/**
- * Resolves the token symbol for a given chain + token address from Redux state.
- * Falls back to the chain's native currency when the token is not found
- * (i.e. the address *is* the native token).
- */
-function resolveTokenSymbol(
-  chainId?: string,
-  tokenAddress?: string,
-): string | undefined {
-  if (!chainId || !tokenAddress) {
-    return undefined;
-  }
-  const state = store.getState();
-  const token = selectSingleTokenByAddressAndChainId(
-    state,
-    tokenAddress as Hex,
-    chainId as Hex,
-  );
-  return token?.symbol ?? selectTickerByChainId(state, chainId as Hex);
-}
 
 const showPendingToast = ({
   showToast,
@@ -163,16 +143,8 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
   const normalizedSelectedAddress = selectedAddress.toLowerCase();
   const handleTransactionStatusChanged = useCallback(
     (payload: unknown, showToast: ToastRef['showToast']): void => {
-      const {
-        type,
-        status,
-        senderAddress,
-        transactionId,
-        amount,
-        targetFiat,
-        destinationChainId,
-        destinationTokenAddress,
-      } = payload as PredictTransactionStatusChangedPayload;
+      const { type, status, senderAddress, transactionId, amount } =
+        payload as PredictTransactionStatusChangedPayload;
       const canRetry =
         Boolean(senderAddress) && senderAddress === normalizedSelectedAddress;
 
@@ -308,22 +280,35 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
         }
 
         if (status === 'confirmed') {
-          const formattedWithdrawAmount = formatPrice(
-            targetFiat ?? amount ?? withdrawTransaction?.amount ?? 0,
-          );
-          const token =
-            resolveTokenSymbol(destinationChainId, destinationTokenAddress) ??
-            'USDC';
+          const state = store.getState();
+          const txMeta = transactionId
+            ? selectTransactionMetadataById(state, transactionId)
+            : undefined;
+          const { metamaskPay } = txMeta ?? {};
+
+          // Post-quote withdrawals use targetFiat which reflects the actual
+          // received USD value after fees. Non-post-quote withdrawals fall
+          // back to the event amount or controller state.
+          let withdrawAmount = amount ?? withdrawTransaction?.amount ?? 0;
+
+          if (metamaskPay?.isPostQuote) {
+            withdrawAmount = Number(metamaskPay.targetFiat);
+          }
+
+          const formattedWithdrawAmount = formatPrice(withdrawAmount);
+
+          const chainId = metamaskPay?.chainId as Hex;
+          const tokenAddress = metamaskPay?.tokenAddress as Hex;
+          const tokenSymbol =
+            selectSingleTokenByAddressAndChainId(state, tokenAddress, chainId)
+              ?.symbol ?? selectTickerByChainId(state, chainId);
 
           showSuccessToast({
             showToast,
             title: strings('predict.withdraw.withdraw_completed'),
             description: strings(
               'predict.withdraw.withdraw_any_token_completed_subtitle',
-              {
-                amount: formattedWithdrawAmount,
-                token,
-              },
+              { amount: formattedWithdrawAmount, token: tokenSymbol },
             ),
             iconColor: theme.colors.success.default,
           });

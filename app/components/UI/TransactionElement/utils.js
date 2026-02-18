@@ -39,6 +39,13 @@ import {
   convertMusdClaimAmount,
   decodeMerklClaimAmount,
 } from '../Earn/utils/musd';
+import { store } from '../../../store';
+import {
+  selectConversionRateByChainId,
+  selectUSDConversionRateByChainId,
+} from '../../../selectors/currencyRateController';
+import { selectSingleTokenByAddressAndChainId } from '../../../selectors/tokensController';
+import { selectTickerByChainId } from '../../../selectors/networkController';
 
 const POSITIVE_TRANSFER_TRANSACTION_TYPES = [
   TransactionType.musdConversion,
@@ -195,32 +202,47 @@ function getTokenTransfer(args) {
     nonce,
   };
 
-  // For predict withdrawals with destination chain info, show the received
-  // token (e.g. BNB) instead of the source token (USDC.E).
-  const { predictWithdrawDest } = args;
+  // For post-quote predict withdrawals, show the received token + amount
+  // using destination chain data from metamaskPay.
+  const { metamaskPay } = tx;
   if (
     hasTransactionType(tx, [TransactionType.predictWithdraw]) &&
-    predictWithdrawDest?.targetFiatUsd &&
-    predictWithdrawDest?.usdConversionRate
+    metamaskPay?.isPostQuote &&
+    metamaskPay?.targetFiat
   ) {
-    const {
-      ticker: destTicker,
-      usdConversionRate: destUsdRate,
-      conversionRate: destRate,
-      targetFiatUsd,
-    } = predictWithdrawDest;
-    const fiatUsd = parseFloat(targetFiatUsd);
-    const receivedAmount = fiatUsd / destUsdRate;
+    const destChainId = metamaskPay.chainId;
+    const fiatUsd = parseFloat(metamaskPay.targetFiat);
+    const state = store.getState();
+    const destToken =
+      destChainId && metamaskPay.tokenAddress
+        ? selectSingleTokenByAddressAndChainId(
+            state,
+            metamaskPay.tokenAddress,
+            destChainId,
+          )
+        : undefined;
+    const destSymbol =
+      destToken?.symbol ??
+      (destChainId ? selectTickerByChainId(state, destChainId) : undefined);
 
-    // Convert USD fiat to user's selected currency
-    const userFiat =
-      destRate && destUsdRate ? fiatUsd * (destRate / destUsdRate) : fiatUsd;
+    if (destSymbol && destChainId && Number.isFinite(fiatUsd)) {
+      const destUsdRate = selectUSDConversionRateByChainId(state, destChainId);
+      const destRate = selectConversionRateByChainId(state, destChainId);
 
-    transactionElement = {
-      ...transactionElement,
-      value: `${receivedAmount.toPrecision(4)} ${destTicker}`,
-      fiatValue: addCurrencySymbol(userFiat.toFixed(2), currentCurrency),
-    };
+      if (destUsdRate) {
+        const receivedAmount = fiatUsd / destUsdRate;
+        const userFiat =
+          destRate && destUsdRate
+            ? fiatUsd * (destRate / destUsdRate)
+            : fiatUsd;
+
+        transactionElement = {
+          ...transactionElement,
+          value: `${receivedAmount.toPrecision(4)} ${destSymbol}`,
+          fiatValue: addCurrencySymbol(userFiat.toFixed(2), currentCurrency),
+        };
+      }
+    }
   }
 
   return [transactionElement, transactionDetails];

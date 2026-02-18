@@ -236,12 +236,6 @@ export interface PredictControllerTransactionStatusChangedEvent {
       senderAddress: string;
       transactionId?: string;
       amount?: number;
-      /** Received fiat amount in USD for post-quote withdrawals */
-      targetFiat?: number;
-      /** Destination chain ID for post-quote withdrawals */
-      destinationChainId?: string;
-      /** Destination token address for post-quote withdrawals */
-      destinationTokenAddress?: string;
     },
   ];
 }
@@ -2063,7 +2057,6 @@ export class PredictController extends BaseController<
       senderAddress: address,
       ...(transactionId ? { transactionId } : {}),
       ...(amount !== undefined ? { amount } : {}),
-      ...this.getWithdrawDestinationFields(type, status, transactionMeta),
     });
   }
 
@@ -2184,41 +2177,6 @@ export class PredictController extends BaseController<
     }
 
     return undefined;
-  }
-
-  /**
-   * Extracts raw destination fields for post-quote withdrawals from metamaskPay.
-   * Token symbol resolution is deferred to the UI layer (selectors / hooks).
-   */
-  private getWithdrawDestinationFields(
-    type: PredictTransactionEventType,
-    status: PredictTransactionEventStatus,
-    transactionMeta: TransactionMeta,
-  ): {
-    targetFiat?: number;
-    destinationChainId?: string;
-    destinationTokenAddress?: string;
-  } {
-    if (type !== 'withdraw' || status !== 'confirmed') {
-      return {};
-    }
-
-    const { metamaskPay } = transactionMeta;
-    if (!metamaskPay?.isPostQuote) {
-      return {};
-    }
-
-    const targetFiat = Number(metamaskPay.targetFiat);
-
-    return {
-      ...(Number.isFinite(targetFiat) ? { targetFiat } : {}),
-      ...(metamaskPay.chainId
-        ? { destinationChainId: metamaskPay.chainId }
-        : {}),
-      ...(metamaskPay.tokenAddress
-        ? { destinationTokenAddress: metamaskPay.tokenAddress }
-        : {}),
-    };
   }
 
   private static readonly transactionTypeMap: Partial<
