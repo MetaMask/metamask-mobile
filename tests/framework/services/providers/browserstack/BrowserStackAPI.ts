@@ -4,6 +4,20 @@ const logger = createLogger({ name: 'BrowserStackAPI' });
 const API_BASE_URL = 'https://api-cloud.browserstack.com/app-automate';
 
 /**
+ * Custom error that preserves the HTTP status code from API responses.
+ * Consumers can check `error.status` to handle specific HTTP errors (e.g. 404 retries).
+ */
+export class BrowserStackAPIError extends Error {
+  status: number;
+
+  constructor(message: string, status: number) {
+    super(message);
+    this.name = 'BrowserStackAPIError';
+    this.status = status;
+  }
+}
+
+/**
  * BrowserStack only accepts 'passed' or 'failed' as valid status values.
  * Playwright's testInfo.status can be: 'passed', 'failed', 'timedOut', 'skipped', 'interrupted'
  * This map converts Playwright status values to BrowserStack-compatible values.
@@ -154,12 +168,16 @@ export class BrowserStackAPI {
     });
 
     if (!response.ok) {
-      throw new Error(
+      throw new BrowserStackAPIError(
         `Error fetching BrowserStack session: ${response.statusText}`,
+        response.status,
       );
     }
 
-    return (await response.json()) as BrowserStackSessionDetails;
+    const data = (await response.json()) as {
+      automation_session: BrowserStackSessionDetails;
+    };
+    return data.automation_session;
   }
 
   /**

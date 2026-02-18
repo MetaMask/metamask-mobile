@@ -21,12 +21,10 @@ export class AppProfilingDataHandler {
         return null;
       }
 
-      const sessionData = response.automation_session;
-
       const result = {
-        buildId: sessionData.build_hashed_id,
-        sessionData,
-        profilingData: sessionData.app_profiling || null,
+        buildId: response.build_hashed_id,
+        sessionData: response,
+        profilingData: response.app_profiling || null,
       };
       return result;
     } catch (error) {
