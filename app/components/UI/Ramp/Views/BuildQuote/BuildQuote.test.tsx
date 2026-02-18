@@ -75,8 +75,10 @@ jest.mock('../../../Navbar', () => ({
     mockGetRampsBuildQuoteNavbarOptions(navigation, options),
 }));
 
-jest.mock('../../utils/formatCurrency', () => ({
-  formatCurrency: (amount: number) => `$${amount}`,
+jest.mock('../../../../hooks/useFormatters', () => ({
+  useFormatters: () => ({
+    formatCurrency: (amount: number) => `$${amount}`,
+  }),
 }));
 
 jest.mock('../../hooks/useTokenNetworkInfo', () => ({
@@ -168,6 +170,35 @@ jest.mock('../../hooks/useRampsController', () => ({
   }),
 }));
 
+const mockTransakCheckExistingToken = jest.fn();
+const mockTransakGetBuyQuote = jest.fn();
+
+jest.mock('../../hooks/useTransakController', () => ({
+  useTransakController: () => ({
+    checkExistingToken: mockTransakCheckExistingToken,
+    getBuyQuote: mockTransakGetBuyQuote,
+  }),
+}));
+
+const mockTransakRouteAfterAuth = jest.fn();
+
+jest.mock('../../hooks/useTransakRouting', () => ({
+  useTransakRouting: () => ({
+    routeAfterAuthentication: mockTransakRouteAfterAuth,
+  }),
+}));
+
+jest.mock('../NativeFlow/EnterEmail', () => ({
+  createV2EnterEmailNavDetails: (params: unknown) => ['RampEnterEmail', params],
+}));
+
+jest.mock('../Modals/ProviderPickerModal', () => ({
+  createProviderPickerModalNavigationDetails: (params: unknown) => [
+    'RampModals',
+    { screen: 'RampProviderPickerModal', params },
+  ],
+}));
+
 const renderWithTheme = (component: React.ReactElement) =>
   render(
     <ThemeContext.Provider value={mockTheme}>
@@ -200,6 +231,9 @@ describe('BuildQuote', () => {
       topTokens: [createMockToken()],
     };
     mockGetTokenNetworkInfo.mockReturnValue(mockTokenNetworkInfo);
+    mockTransakCheckExistingToken.mockResolvedValue(false);
+    mockTransakGetBuyQuote.mockResolvedValue(null);
+    mockTransakRouteAfterAuth.mockResolvedValue(undefined);
   });
 
   afterEach(() => {
@@ -421,6 +455,28 @@ describe('BuildQuote', () => {
     expect(queryByText('fiat_on_ramp.powered_by_provider')).toBeNull();
   });
 
+  it('navigates to provider picker modal when powered by text is pressed', () => {
+    mockSelectedProvider = {
+      id: '/providers/transak',
+      name: 'Transak',
+      environmentType: 'PRODUCTION',
+      description: 'Test Provider',
+      hqAddress: '123 Test St',
+      links: [],
+      logos: { light: '', dark: '', height: 24, width: 79 },
+    };
+
+    const { getByTestId } = renderWithTheme(<BuildQuote />);
+
+    fireEvent.press(getByTestId('provider-picker-trigger'));
+
+    expect(mockStopQuotePolling).toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith('RampModals', {
+      screen: 'RampProviderPickerModal',
+      params: { assetId: MOCK_ASSET_ID },
+    });
+  });
+
   it('matches snapshot', () => {
     const { toJSON } = renderWithTheme(<BuildQuote />);
 
@@ -581,7 +637,9 @@ describe('BuildQuote', () => {
       );
     });
 
-    it('navigates to deposit flow for native provider', () => {
+    it('navigates to enter email for native provider when no existing token', async () => {
+      mockTransakCheckExistingToken.mockResolvedValue(false);
+
       mockSelectedQuote = {
         provider: '/providers/transak-native',
         url: null,
@@ -608,22 +666,33 @@ describe('BuildQuote', () => {
       const { getByTestId } = renderWithTheme(<BuildQuote />);
 
       const continueButton = getByTestId('build-quote-continue-button');
-      fireEvent.press(continueButton);
 
-      expect(mockNavigate).toHaveBeenCalledWith('Deposit', {
-        screen: 'DepositRoot',
-        params: {
-          assetId: MOCK_ASSET_ID,
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(mockTransakCheckExistingToken).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'RampEnterEmail',
+        expect.objectContaining({
           amount: '100',
           currency: 'USD',
-          shouldRouteImmediately: true,
-        },
-      });
+        }),
+      );
     });
 
-    it('navigates to deposit flow for native provider when ID does not end with -native (uses metadata)', () => {
+    it('routes after authentication for native provider when existing token found', async () => {
+      const mockBuyQuote = { quoteId: 'q1', fiatAmount: 100 };
+      mockTransakCheckExistingToken.mockResolvedValue(true);
+      mockTransakGetBuyQuote.mockResolvedValue(mockBuyQuote);
+      mockTransakRouteAfterAuth.mockResolvedValue(undefined);
+
       mockSelectedQuote = {
-        provider: '/providers/whitelabel-in-app',
+        provider: '/providers/transak-native',
         url: null,
         quote: {
           amountIn: 100,
@@ -631,14 +700,14 @@ describe('BuildQuote', () => {
           paymentMethod: '/payments/debit-credit-card',
         },
         providerInfo: {
-          id: '/providers/whitelabel-in-app',
-          name: 'Whitelabel',
+          id: '/providers/transak-native',
+          name: 'Transak Native',
           type: 'native',
         },
       };
       mockSelectedProvider = {
-        id: '/providers/whitelabel-in-app',
-        name: 'Whitelabel',
+        id: '/providers/transak-native',
+        name: 'Transak Native',
       };
       mockSelectedPaymentMethod = {
         id: '/payments/debit-credit-card',
@@ -648,17 +717,73 @@ describe('BuildQuote', () => {
       const { getByTestId } = renderWithTheme(<BuildQuote />);
 
       const continueButton = getByTestId('build-quote-continue-button');
-      fireEvent.press(continueButton);
 
-      expect(mockNavigate).toHaveBeenCalledWith('Deposit', {
-        screen: 'DepositRoot',
-        params: {
-          assetId: MOCK_ASSET_ID,
-          amount: '100',
-          currency: 'USD',
-          shouldRouteImmediately: true,
-        },
+      await act(async () => {
+        fireEvent.press(continueButton);
       });
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(mockTransakCheckExistingToken).toHaveBeenCalled();
+      expect(mockTransakGetBuyQuote).toHaveBeenCalledWith(
+        'USD',
+        MOCK_ASSET_ID,
+        MOCK_CHAIN_ID,
+        '/payments/debit-credit-card',
+        '100',
+      );
+      expect(mockTransakRouteAfterAuth).toHaveBeenCalledWith(mockBuyQuote);
+    });
+
+    it('logs error when native provider flow fails', async () => {
+      const mockLogger = jest.spyOn(Logger, 'error');
+      mockTransakCheckExistingToken.mockRejectedValue(
+        new Error('Token check failed'),
+      );
+
+      mockSelectedQuote = {
+        provider: '/providers/transak-native',
+        url: null,
+        quote: {
+          amountIn: 100,
+          amountOut: 0.05,
+          paymentMethod: '/payments/debit-credit-card',
+        },
+        providerInfo: {
+          id: '/providers/transak-native',
+          name: 'Transak Native',
+          type: 'native',
+        },
+      };
+      mockSelectedProvider = {
+        id: '/providers/transak-native',
+        name: 'Transak Native',
+      };
+      mockSelectedPaymentMethod = {
+        id: '/payments/debit-credit-card',
+        name: 'Card',
+      };
+
+      const { getByTestId } = renderWithTheme(<BuildQuote />);
+
+      const continueButton = getByTestId('build-quote-continue-button');
+
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(mockLogger).toHaveBeenCalledWith(
+        expect.any(Error),
+        expect.objectContaining({
+          message: 'Failed to route native provider flow',
+        }),
+      );
     });
 
     it('logs error when aggregator provider has no URL', async () => {
@@ -800,6 +925,71 @@ describe('BuildQuote', () => {
 
       expect(mockNavigate).not.toHaveBeenCalled();
       expect(mockGetWidgetUrl).not.toHaveBeenCalled();
+    });
+
+    it('logs error when getWidgetUrl throws', async () => {
+      const mockLogger = jest.spyOn(Logger, 'error');
+      mockGetWidgetUrl.mockRejectedValue(new Error('Widget URL fetch failed'));
+
+      mockSelectedQuote = {
+        provider: '/providers/mercuryo',
+        quote: {
+          amountIn: 100,
+          amountOut: 0.05,
+          paymentMethod: '/payments/debit-credit-card',
+          buyURL:
+            'https://on-ramp.uat-api.cx.metamask.io/providers/mercuryo/buy-widget',
+        },
+        providerInfo: {
+          id: '/providers/mercuryo',
+          name: 'Mercuryo',
+          type: 'aggregator',
+        },
+      };
+      mockSelectedPaymentMethod = {
+        id: '/payments/debit-credit-card',
+        name: 'Card',
+      };
+
+      const { getByTestId } = renderWithTheme(<BuildQuote />);
+
+      const continueButton = getByTestId('build-quote-continue-button');
+
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(mockLogger).toHaveBeenCalledWith(
+        expect.any(Error),
+        expect.objectContaining({
+          provider: '/providers/mercuryo',
+          message: 'Failed to fetch widget URL',
+        }),
+      );
+    });
+
+    it('does nothing when selectedQuote is null on continue press', async () => {
+      mockSelectedQuote = null;
+      mockSelectedPaymentMethod = {
+        id: '/payments/debit-credit-card',
+        name: 'Card',
+      };
+
+      const { getByTestId } = renderWithTheme(<BuildQuote />);
+
+      const continueButton = getByTestId('build-quote-continue-button');
+
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
+
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockGetWidgetUrl).not.toHaveBeenCalled();
+      expect(mockTransakCheckExistingToken).not.toHaveBeenCalled();
     });
   });
 

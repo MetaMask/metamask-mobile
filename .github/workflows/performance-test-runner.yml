@@ -10,7 +10,7 @@ on:
       build_type:
         required: true
         type: string
-        description: 'Build type (imported-wallet/onboarding)'
+        description: 'Build type (imported-wallet/onboarding/mm-connect)'
       device_matrix:
         required: true
         type: string
@@ -104,12 +104,15 @@ jobs:
         with:
           local-testing: start
           local-identifier: ${{ github.run_id }}
-          local-args: --force-local --verbose
+          # Use same args for all build types. Do not use --include-hosts for mm-connect:
+          # bs-local.com requests must be forwarded to localhost; --include-hosts can block them.
+          local-args: '--force-local --verbose'
       
       - name: Wait for BrowserStack Local
         run: |
           echo "Waiting for BrowserStack Local to be ready..."
-          sleep 10
+          # mm-connect needs the tunnel ready so the device can reach bs-local.com:8090; allow extra time
+          sleep ${{ inputs.build_type == 'mm-connect' && 15 || 10 }}
           echo "BrowserStack Local should be ready now"
       
       - name: Set Test Environment
@@ -143,7 +146,7 @@ jobs:
       
       - name: Run Tests
         env:
-          BROWSERSTACK_LOCAL: true
+          BROWSERSTACK_LOCAL: 'true'
           BROWSERSTACK_LOCAL_IDENTIFIER: ${{ github.run_id }}
           BROWSERSTACK_BUILD_NAME: ${{ inputs.browserstack_build_name }}
         working-directory: '.'
@@ -158,6 +161,8 @@ jobs:
           # Run the appropriate test command based on build_type flag
           if [ "${{ inputs.build_type }}" = "onboarding" ]; then
             yarn run-appwright:${{ inputs.platform }}-onboarding-bs
+          elif [ "${{ inputs.build_type }}" = "mm-connect" ]; then
+            yarn run-appwright:mm-connect-${{ inputs.platform }}-bs
           else
             yarn run-appwright:${{ inputs.platform }}-bs
           fi
@@ -168,7 +173,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: ${{ inputs.platform }}-${{ inputs.build_type == 'onboarding' && 'onboarding-flow' || 'imported-wallet' }}-test-results-${{ matrix.device.name }}-${{ matrix.device.os_version }}
+          name: ${{ inputs.platform }}-${{ inputs.build_type == 'onboarding' && 'onboarding-flow' || inputs.build_type }}-test-results-${{ matrix.device.name }}-${{ matrix.device.os_version }}
           path: |
             tests/test-reports/appwright-report/
             tests/reporters/reports

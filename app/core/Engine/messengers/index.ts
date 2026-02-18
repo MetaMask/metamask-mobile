@@ -79,6 +79,10 @@ import {
 import { getTokenSearchDiscoveryDataControllerMessenger } from './token-search-discovery-data-controller-messenger';
 import { getAssetsContractControllerMessenger } from './assets-contract-controller-messenger';
 import {
+  getAssetsControllerMessenger,
+  getAssetsControllerInitMessenger,
+} from './assets-controller';
+import {
   getTokensControllerInitMessenger,
   getTokensControllerMessenger,
 } from './tokens-controller-messenger';
@@ -123,6 +127,7 @@ import { getStorageServiceMessenger } from './storage-service-messenger';
 import { getLoggingControllerMessenger } from './logging-controller-messenger';
 import { getRampsControllerMessenger } from './ramps-controller-messenger';
 import { getRampsServiceMessenger } from './ramps-service-messenger';
+import { getTransakServiceMessenger } from './transak-service-messenger/transak-service-messenger';
 import { getPhishingControllerMessenger } from './phishing-controller-messenger';
 import { getAddressBookControllerMessenger } from './address-book-controller-messenger';
 import { getConnectivityControllerMessenger } from './connectivity-controller-messenger';
@@ -172,6 +177,10 @@ export const CONTROLLER_MESSENGERS = {
   AssetsContractController: {
     getMessenger: getAssetsContractControllerMessenger,
     getInitMessenger: noop,
+  },
+  AssetsController: {
+    getMessenger: getAssetsControllerMessenger,
+    getInitMessenger: getAssetsControllerInitMessenger,
   },
   EarnController: {
     getMessenger: getEarnControllerMessenger,
@@ -393,6 +402,10 @@ export const CONTROLLER_MESSENGERS = {
   },
   RampsService: {
     getMessenger: getRampsServiceMessenger,
+    getInitMessenger: noop,
+  },
+  TransakService: {
+    getMessenger: getTransakServiceMessenger,
     getInitMessenger: noop,
   },
   TokenBalancesController: {

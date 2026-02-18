@@ -110,6 +110,10 @@ const WHITELISTED_ACTIONS: SUPPORTED_ACTIONS[] = [
   SUPPORTED_ACTIONS.PERPS,
   SUPPORTED_ACTIONS.PERPS_MARKETS,
   SUPPORTED_ACTIONS.PERPS_ASSET,
+  SUPPORTED_ACTIONS.BUY,
+  SUPPORTED_ACTIONS.BUY_CRYPTO,
+  SUPPORTED_ACTIONS.SELL,
+  SUPPORTED_ACTIONS.SELL_CRYPTO,
 ];
 
 /**
@@ -519,10 +523,23 @@ async function handleUniversalLink({
       });
       return;
     case SUPPORTED_ACTIONS.DAPP: {
-      const deeplinkUrl = urlObj.href.replace(
-        `${BASE_URL_ACTION}/`,
-        PREFIXES[ACTIONS.DAPP],
-      );
+      // Extract everything after /dapp/ from the URL.
+      // The path can contain either a bare domain (example.com/path)
+      // or a full URL with protocol (https://example.com/path).
+      // When a full URL is embedded, url-parse may normalize the double
+      // slash (https://...app.link/dapp/https://x.com → .../dapp/https:/x.com),
+      // so we check for both http:// and http:/ patterns.
+      const pathAfterAction = urlObj.href.replace(`${BASE_URL_ACTION}/`, '');
+
+      // Guard: no domain was supplied after /dapp/ — nothing to open.
+      if (!pathAfterAction) {
+        return;
+      }
+
+      const hasProtocol = /^https?:\/\/?/.test(pathAfterAction);
+      const deeplinkUrl = hasProtocol
+        ? pathAfterAction.replace(/^(https?:\/)([^/])/, '$1/$2')
+        : `${PREFIXES[ACTIONS.DAPP]}${pathAfterAction}`;
       handleBrowserUrl({
         url: deeplinkUrl,
         callback: browserCallBack,
