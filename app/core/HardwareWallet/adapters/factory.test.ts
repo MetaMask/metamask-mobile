@@ -40,19 +40,19 @@ describe('createAdapter', () => {
     onDeviceEvent: jest.fn(),
   };
 
-  it('should create LedgerBluetoothAdapter for Ledger wallet type', () => {
+  it('creates LedgerBluetoothAdapter for Ledger wallet type', () => {
     const adapter = createAdapter(HardwareWalletType.Ledger, mockOptions);
     expect(adapter).toBeInstanceOf(LedgerBluetoothAdapter);
     expect(adapter.walletType).toBe(HardwareWalletType.Ledger);
   });
 
-  it('should create NonHardwareAdapter for null wallet type', () => {
+  it('creates NonHardwareAdapter for null wallet type', () => {
     const adapter = createAdapter(null, mockOptions);
     expect(adapter).toBeInstanceOf(NonHardwareAdapter);
     expect(adapter.walletType).toBeNull();
   });
 
-  it('should create NonHardwareAdapter for unsupported wallet type', () => {
+  it('creates NonHardwareAdapter for unsupported wallet type', () => {
     // @ts-expect-error - Testing unsupported type
     const adapter = createAdapter('unknown', mockOptions);
     expect(adapter).toBeInstanceOf(NonHardwareAdapter);
@@ -67,11 +67,11 @@ describe('createAdapter', () => {
 });
 
 describe('requiresBluetooth', () => {
-  it('should return true for Ledger', () => {
+  it('returns true for Ledger', () => {
     expect(requiresBluetooth(HardwareWalletType.Ledger)).toBe(true);
   });
 
-  it('should return false for null', () => {
+  it('returns false for null', () => {
     expect(requiresBluetooth(null)).toBe(false);
   });
 });

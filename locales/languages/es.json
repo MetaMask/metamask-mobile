@@ -6298,19 +6298,7 @@
       "standardAccountLabel": "Standard account",
       "switch": "Cambiar",
       "switchBack": "Volver a cambiar",
-      "splashpage": {
-        "accept": "Sí",
-        "betterTransaction": "Transacciones más rápidas, tarifas más bajas",
-        "betterTransactionDescription": "Ahorra tiempo y dinero procesando las transacciones conjuntamente.",
-        "featuresDescription": "Mantén la misma dirección de cuenta y podrás volver a cambiarla cuando quieras.",
-        "payToken": "Paga con cualquier token, en cualquier momento",
-        "payTokenDescription": "Usa los tokens que ya tienes para cubrir las tarifas de red.",
-        "reject": "No",
-        "sameAccount": "La misma cuenta, funciones más inteligentes.",
-        "splashTitle": "Usar cuenta inteligente?"
-      },
       "includes_transaction": "Incluye {{transactionCount}} transacciones",
-      "useSmartAccount": "Usar cuenta inteligente",
       "successful": "Éxito",
       "success_message": "Tu cuenta se actualizará a cuenta inteligente con tu próxima transacción."
     },

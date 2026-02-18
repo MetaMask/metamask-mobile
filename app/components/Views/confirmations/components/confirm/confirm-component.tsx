@@ -25,7 +25,6 @@ import AlertBanner from '../alert-banner';
 import Info from '../info-root';
 import Title from '../title';
 import { Footer, FooterSkeleton } from '../footer';
-import { Splash } from '../splash';
 import styleSheet from './confirm-component.styles';
 import { TransactionType } from '@metamask/transaction-controller';
 import { useParams } from '../../../../../util/navigation/navUtils';
@@ -89,7 +88,6 @@ const ConfirmWrapped = ({
               </TouchableWithoutFeedback>
             </ScrollView>
             <Footer />
-            <Splash />
           </QRHardwareContextProvider>
         </ConfirmationAlerts>
       </ConfirmationAssetPollingProvider>

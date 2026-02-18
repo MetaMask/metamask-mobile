@@ -7,7 +7,7 @@ import { NonHardwareAdapter } from './NonHardwareAdapter';
  * Factory function to create the appropriate hardware wallet adapter
  * based on the wallet type.
  *
- * This function always returns an adapter - it never throws. For null or
+ * This function always returns an adapter. For null or
  * unknown wallet types, it returns a NonHardwareAdapter (passthrough).
  *
  *
@@ -24,7 +24,6 @@ export function createAdapter(
       return new LedgerBluetoothAdapter(options);
 
     default:
-      // For null, undefined, or unsupported types, return passthrough adapter
       return new NonHardwareAdapter(options);
   }
 }
