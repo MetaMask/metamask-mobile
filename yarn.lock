@@ -7769,7 +7769,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/assets-controllers@npm:^99.2.0, @metamask/assets-controllers@npm:^99.3.1, @metamask/assets-controllers@npm:^99.3.2":
+"@metamask/assets-controllers@npm:^99.3.1, @metamask/assets-controllers@npm:^99.3.2":
   version: 99.3.2
   resolution: "@metamask/assets-controllers@npm:99.3.2"
   dependencies:
