@@ -1570,7 +1570,10 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     expect(instance.existingGas).toBe(existingGas);
     expect(instance.cancelTxId).toBe('tx-456');
     expect(instance.existingTx).toBe(tx);
-    expect(instance.setState).toHaveBeenCalledWith({ cancel1559IsOpen: true });
+    expect(instance.setState).toHaveBeenCalledWith({
+      cancelConfirmDisabled: false,
+      cancelIsOpen: true,
+    });
   });
 
   it('should test onSpeedUpCompleted method directly', () => {
