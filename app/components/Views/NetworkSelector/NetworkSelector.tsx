@@ -80,6 +80,7 @@ import hideProtocolFromUrl from '../../../util/hideProtocolFromUrl';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
 import { NetworkConfiguration } from '@metamask/network-controller';
+import { Box , BoxBackgroundColor } from '@metamask/design-system-react-native';
 import RpcSelectionModal from './RpcSelectionModal/RpcSelectionModal';
 import {
   TraceName,
@@ -576,15 +577,24 @@ const NetworkSelector = () => {
                 name
               ) : (
                 <View>
-                  <Text variant={TextVariant.BodyMD}>{name}</Text>
-                  {isGasFeesSponsoredNetworkEnabled(chainId) ? (
-                    <Text
-                      variant={TextVariant.BodySM}
-                      color={TextColor.Alternative}
-                    >
-                      {strings('networks.no_network_fee')}
-                    </Text>
-                  ) : undefined}
+                  <Box twClassName="flex-row gap-1.5">
+                    <Text variant={TextVariant.BodyMD}>{name}</Text>
+                    {isGasFeesSponsoredNetworkEnabled(chainId) ? (
+                      <Box
+                        twClassName="rounded"
+                        backgroundColor={BoxBackgroundColor.SuccessMuted}
+                        paddingLeft={2}
+                        paddingRight={2}
+                      >
+                        <Text
+                          variant={TextVariant.BodySM}
+                          color={TextColor.Success}
+                        >
+                          {strings('networks.no_network_fee')}
+                        </Text>
+                      </Box>
+                    ) : undefined}
+                  </Box>
                 </View>
               )
             }

@@ -9,7 +9,7 @@ import React, {
 } from 'react';
 import { useSelector } from 'react-redux';
 import { ImageSourcePropType, View } from 'react-native';
-import { Box } from '@metamask/design-system-react-native';
+import { Box, BoxBackgroundColor } from '@metamask/design-system-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FlashList, ListRenderItem } from '@shopify/flash-list';
 import {
@@ -276,14 +276,21 @@ const NetworkMultiSelectList = ({
             isSelected={isSelected}
             title={
               isGasSponsored ? (
-                <Box twClassName="flex-col">
+                <Box twClassName="flex-row gap-1.5">
                   <Text variant={TextVariant.BodyMD}>{name}</Text>
-                  <Text
-                    variant={TextVariant.BodySM}
-                    color={TextColor.Alternative}
+                  <Box
+                    twClassName="rounded"
+                    backgroundColor={BoxBackgroundColor.SuccessMuted}
+                    paddingLeft={2}
+                    paddingRight={2}
                   >
-                    {strings('networks.no_network_fee')}
-                  </Text>
+                    <Text
+                      variant={TextVariant.BodySM}
+                      color={TextColor.Success}
+                    >
+                      {strings('networks.no_network_fee')}
+                    </Text>
+                  </Box>
                 </Box>
               ) : (
                 name

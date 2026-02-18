@@ -35,6 +35,7 @@ import Icon, {
 } from '../../../../../../component-library/components/Icons/Icon';
 import { selectAdditionalNetworksBlacklistFeatureFlag } from '../../../../../../selectors/featureFlagController/networkBlacklist';
 import { getGasFeesSponsoredNetworkEnabled } from '../../../../../../selectors/featureFlagController/gasFeesSponsored';
+import { Box, BoxBackgroundColor } from '@metamask/design-system-react-native';
 
 const CustomNetwork = ({
   showPopularNetworkModal,
@@ -171,20 +172,29 @@ const CustomNetwork = ({
               />
             </View>
             <View style={customNetworkStyles.nameAndTagContainer}>
-              <CustomText bold={!isNetworkUiRedesignEnabled()}>
-                {networkConfiguration.nickname}
-              </CustomText>
-              {isGasFeesSponsoredNetworkEnabled(
-                networkConfiguration.chainId,
-              ) ? (
-                <Text
-                  variant={TextVariant.BodySM}
-                  color={TextColor.Alternative}
-                  style={customNetworkStyles.tagLabelBelowName}
-                >
-                  {strings('networks.no_network_fee')}
-                </Text>
-              ) : null}
+              <Box twClassName="flex-row gap-1.5">
+                <CustomText bold={!isNetworkUiRedesignEnabled()}>
+                  {networkConfiguration.nickname}
+                </CustomText>
+                {isGasFeesSponsoredNetworkEnabled(
+                  networkConfiguration.chainId,
+                ) ? (
+                  <Box
+                    twClassName="rounded"
+                    backgroundColor={BoxBackgroundColor.SuccessMuted}
+                    paddingLeft={2}
+                    paddingRight={2}
+                  >
+                    <Text
+                      variant={TextVariant.BodySM}
+                      color={TextColor.Success}
+                      style={customNetworkStyles.tagLabelBelowName}
+                    >
+                      {strings('networks.no_network_fee')}
+                    </Text>
+                  </Box>
+                ) : null}
+              </Box>
             </View>
           </View>
 

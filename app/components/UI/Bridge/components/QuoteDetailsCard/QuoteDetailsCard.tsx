@@ -20,6 +20,7 @@ import {
   BoxFlexDirection,
   BoxAlignItems,
   BoxJustifyContent,
+  BoxBackgroundColor,
 } from '@metamask/design-system-react-native';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
@@ -208,10 +209,18 @@ const QuoteDetailsCard: React.FC = () => {
               },
             }}
             value={{
-              label: {
-                text: strings('bridge.gas_fees_sponsored'),
-                variant: TextVariant.BodyMD,
-              },
+              label: (
+                <Box
+                  twClassName="rounded"
+                  backgroundColor={BoxBackgroundColor.SuccessMuted}
+                  paddingLeft={2}
+                  paddingRight={2}
+                >
+                  <Text variant={TextVariant.BodySM} color={TextColor.Success}>
+                    {strings('bridge.gas_fees_sponsored')}
+                  </Text>
+                </Box>
+              ),
             }}
           />
         ) : isGasless ? (
