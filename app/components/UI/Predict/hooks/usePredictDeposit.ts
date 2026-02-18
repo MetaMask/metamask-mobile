@@ -20,7 +20,7 @@ import {
   PredictEventValues,
   PredictTradeStatus,
 } from '../constants/eventNames';
-import { PlaceOrderParams } from '../providers/types';
+import { PlaceOrderParams } from '../types';
 
 interface PredictDepositAnalyticsParams {
   amountUsd?: number;
