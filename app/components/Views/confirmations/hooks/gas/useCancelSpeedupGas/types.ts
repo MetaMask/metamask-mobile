@@ -1,4 +1,8 @@
-import type { TransactionMeta } from '@metamask/transaction-controller';
+import type {
+  FeeMarketEIP1559Values,
+  GasPriceValue,
+  TransactionMeta,
+} from '@metamask/transaction-controller';
 
 /**
  * Existing gas from the transaction being sped up or canceled.
@@ -19,22 +23,11 @@ export interface Eip1559ExistingGas {
 export type ExistingGas = LegacyExistingGas | Eip1559ExistingGas;
 
 /**
- * Params to pass to speedUpTransaction or stopTransaction.
- * EIP-1559: hex maxFeePerGas, maxPriorityFeePerGas.
- * Legacy: gasPrice hex, or undefined (controller applies rate).
- */
-export interface CancelSpeedupParams {
-  maxFeePerGas?: string;
-  maxPriorityFeePerGas?: string;
-  gasPrice?: string;
-}
-
-/**
  * Result of useCancelSpeedupGas: params for controller and display strings.
  */
 export interface UseCancelSpeedupGasResult {
   /** Params to pass to speedUpTransaction(txId, params) or stopTransaction(txId, params) */
-  paramsForController: CancelSpeedupParams | undefined;
+  paramsForController: GasPriceValue | FeeMarketEIP1559Values | undefined;
   /** Display string for "Network fee" row (e.g. "0.001 ETH") */
   networkFeeDisplay: string;
   /** Native fee amount only (e.g. "0.001") for layout with icon */

@@ -4,9 +4,11 @@ import {
   GasFeeEstimateLevel,
   GasFeeEstimateType,
   SPEED_UP_RATE,
+  type FeeMarketEIP1559Values,
   type FeeMarketGasFeeEstimates,
   type GasFeeEstimates,
   type GasPriceGasFeeEstimates,
+  type GasPriceValue,
   type LegacyGasFeeEstimates,
   type TransactionMeta,
 } from '@metamask/transaction-controller';
@@ -48,13 +50,10 @@ interface ReplacementGasParams {
   suggestedMaxPriorityFeePerGasHex?: string;
 }
 
-/** Params from CancelSpeedupModal for controller */
-export interface CancelSpeedupParams {
+/** Params from CancelSpeedupModal (controller union + optional error for legacy flow) */
+type CancelSpeedupModalParams = (GasPriceValue | FeeMarketEIP1559Values) & {
   error?: string;
-  maxFeePerGas?: string;
-  maxPriorityFeePerGas?: string;
-  gasPrice?: string;
-}
+};
 
 interface LedgerSignRequest {
   id: string;
@@ -259,22 +258,19 @@ export function useUnifiedTxActions() {
   };
 
   const getParamsToSend = (
-    params?: ReplacementGasParams | CancelSpeedupParams,
-  ) => {
+    params?: ReplacementGasParams | CancelSpeedupModalParams,
+  ): GasPriceValue | FeeMarketEIP1559Values | undefined => {
     if (params?.error) {
       return undefined;
     }
-    if (
-      params &&
-      ('maxFeePerGas' in params || 'gasPrice' in params)
-    ) {
-      return params;
+    if (params && ('maxFeePerGas' in params || 'gasPrice' in params)) {
+      return params as GasPriceValue | FeeMarketEIP1559Values;
     }
     return getCancelOrSpeedupValues(params as ReplacementGasParams);
   };
 
   const speedUpTransaction = async (
-    params?: ReplacementGasParams | CancelSpeedupParams,
+    params?: ReplacementGasParams | CancelSpeedupModalParams,
   ) => {
     try {
       if (params && 'error' in params && params.error) {
@@ -293,7 +289,7 @@ export function useUnifiedTxActions() {
   };
 
   const cancelTransaction = async (
-    params?: ReplacementGasParams | CancelSpeedupParams,
+    params?: ReplacementGasParams | CancelSpeedupModalParams,
   ) => {
     try {
       if (params && 'error' in params && params.error) {

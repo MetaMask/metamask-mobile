@@ -2,8 +2,10 @@ import {
   CANCEL_RATE,
   GasFeeEstimateLevel,
   SPEED_UP_RATE,
+  type FeeMarketEIP1559Values,
   type GasFeeEstimates,
   type GasPriceGasFeeEstimates,
+  type GasPriceValue,
 } from '@metamask/transaction-controller';
 import BigNumber from 'bignumber.js';
 import { useMemo } from 'react';
@@ -13,7 +15,10 @@ import { selectConversionRateByChainId } from '../../../../../../selectors/curre
 import { selectNetworkConfigurationByChainId } from '../../../../../../selectors/networkController';
 import { selectShowFiatInTestnets } from '../../../../../../selectors/settings';
 import type { Hex } from '@metamask/utils';
-import { decGWEIToHexWEI, multiplyHexes } from '../../../../../../util/conversions';
+import {
+  decGWEIToHexWEI,
+  multiplyHexes,
+} from '../../../../../../util/conversions';
 import { addHexPrefix, renderFromWei } from '../../../../../../util/number';
 import { isTestNet } from '../../../../../../util/networks';
 import { strings } from '../../../../../../../locales/i18n';
@@ -21,7 +26,6 @@ import useFiatFormatter from '../../../../../../components/UI/SimulationDetails/
 import { getFeesFromHex } from '../../../utils/gas';
 import { toHumanSeconds } from '../../../utils/time';
 import type {
-  CancelSpeedupParams,
   Eip1559ExistingGas,
   UseCancelSpeedupGasInput,
   UseCancelSpeedupGasResult,
@@ -34,7 +38,11 @@ const HEX_ZERO = '0x0';
  * Extracts Medium fees and wait times by detecting the shape of the estimates object.
  */
 function getMediumMarketFees(estimates: GasFeeEstimates | undefined) {
-  const fallback = { maxFee: HEX_ZERO, priorityFee: HEX_ZERO, waitTime: undefined };
+  const fallback = {
+    maxFee: HEX_ZERO,
+    priorityFee: HEX_ZERO,
+    waitTime: undefined,
+  };
 
   if (!estimates) return fallback;
 
@@ -50,7 +58,11 @@ function getMediumMarketFees(estimates: GasFeeEstimates | undefined) {
 
     // Check if it's FeeMarket (object) or Legacy (direct Hex string)
     if (typeof medium === 'object' && medium !== null) {
-      const feeMarketMedium = medium as {suggestedMaxPriorityFeePerGas?: Hex; suggestedMaxFeePerGas?: Hex; minWaitTimeEstimate?: number};
+      const feeMarketMedium = medium as {
+        suggestedMaxPriorityFeePerGas?: Hex;
+        suggestedMaxFeePerGas?: Hex;
+        minWaitTimeEstimate?: number;
+      };
       return {
         maxFee: feeMarketMedium.suggestedMaxFeePerGas,
         priorityFee: feeMarketMedium.suggestedMaxPriorityFeePerGas,
@@ -80,7 +92,9 @@ export function useCancelSpeedupGas({
     chainId ? selectNetworkConfigurationByChainId(state, chainId) : undefined,
   );
   const nativeConversionRate = useSelector((state: RootState) =>
-    chainId ? selectConversionRateByChainId(state, chainId as Hex, true) : undefined,
+    chainId
+      ? selectConversionRateByChainId(state, chainId as Hex, true)
+      : undefined,
   );
   const showFiatOnTestnets = useSelector(selectShowFiatInTestnets);
   const fiatFormatter = useFiatFormatter();
@@ -111,26 +125,42 @@ export function useCancelSpeedupGas({
     const rate = isCancel ? CANCEL_RATE : SPEED_UP_RATE;
     const market = getMediumMarketFees(gasFeeEstimates as GasFeeEstimates);
 
-    let paramsForController: CancelSpeedupParams | undefined;
+    let paramsForController: GasPriceValue | FeeMarketEIP1559Values | undefined;
     let finalFeeHex: string;
 
     if (existingGas.isEIP1559Transaction) {
       const eip1559 = existingGas as Eip1559ExistingGas;
 
       // Parse existing Hex WEI values
-      const existingMaxFee = new BigNumber(eip1559.maxFeePerGas ?? HEX_ZERO, 16);
-      const existingPriority = new BigNumber(eip1559.maxPriorityFeePerGas ?? HEX_ZERO, 16);
+      const existingMaxFee = new BigNumber(
+        eip1559.maxFeePerGas ?? HEX_ZERO,
+        16,
+      );
+      const existingPriority = new BigNumber(
+        eip1559.maxPriorityFeePerGas ?? HEX_ZERO,
+        16,
+      );
 
       // Parse market Hex WEI values
       const marketMaxFee = new BigNumber(market.maxFee ?? HEX_ZERO, 16);
       const marketPriority = new BigNumber(market.priorityFee ?? HEX_ZERO, 16);
 
       // Calculate suggested (1.1x existing VS market medium)
-      const suggestedMaxFee = BigNumber.max(existingMaxFee.times(rate), marketMaxFee);
-      const suggestedPriority = BigNumber.max(existingPriority.times(rate), marketPriority);
+      const suggestedMaxFee = BigNumber.max(
+        existingMaxFee.times(rate),
+        marketMaxFee,
+      );
+      const suggestedPriority = BigNumber.max(
+        existingPriority.times(rate),
+        marketPriority,
+      );
 
-      const maxFeePerGasHex = addHexPrefix(decGWEIToHexWEI(suggestedMaxFee).toString());
-      const maxPriorityFeePerGasHex = addHexPrefix(decGWEIToHexWEI(suggestedPriority).toString());
+      const maxFeePerGasHex = addHexPrefix(
+        decGWEIToHexWEI(suggestedMaxFee).toString(),
+      );
+      const maxPriorityFeePerGasHex = addHexPrefix(
+        decGWEIToHexWEI(suggestedPriority).toString(),
+      );
 
       paramsForController = {
         maxFeePerGas: maxFeePerGasHex,
@@ -138,14 +168,19 @@ export function useCancelSpeedupGas({
       };
 
       finalFeeHex = multiplyHexes(gasLimit, maxFeePerGasHex);
-
     } else {
       // Legacy / GasPrice logic
       const legacyGas = existingGas as { gasPrice?: string | number };
-      const existingGasPrice = new BigNumber(String(legacyGas.gasPrice ?? HEX_ZERO), 16);
+      const existingGasPrice = new BigNumber(
+        String(legacyGas.gasPrice ?? HEX_ZERO),
+        16,
+      );
       const marketGasPrice = new BigNumber(market.maxFee ?? HEX_ZERO, 16);
 
-      const suggestedGasPrice = BigNumber.max(existingGasPrice.times(rate), marketGasPrice).integerValue();
+      const suggestedGasPrice = BigNumber.max(
+        existingGasPrice.times(rate),
+        marketGasPrice,
+      ).integerValue();
       const gasPriceHex = addHexPrefix(suggestedGasPrice.toString(16));
 
       paramsForController = { gasPrice: gasPriceHex };
@@ -168,8 +203,8 @@ export function useCancelSpeedupGas({
       waitMs != null && waitMs < 1000
         ? `${strings('transactions.gas_modal.medium')} < 1 sec`
         : waitMs != null
-        ? `${strings('transactions.gas_modal.medium')} ~ ${toHumanSeconds(waitMs)}`
-        : strings('transactions.gas_modal.medium');
+          ? `${strings('transactions.gas_modal.medium')} ~ ${toHumanSeconds(waitMs)}`
+          : strings('transactions.gas_modal.medium');
 
     return {
       paramsForController,

@@ -1,9 +1,14 @@
-import React from 'react';
+import type {
+  FeeMarketEIP1559Values,
+  GasPriceValue,
+  TransactionMeta,
+} from '@metamask/transaction-controller';
 import { useCancelSpeedupGas } from './useCancelSpeedupGas';
 import type { Eip1559ExistingGas, LegacyExistingGas } from './types';
-import { TransactionMeta } from '@metamask/transaction-controller';
 import { renderHookWithProvider } from '../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
+
+const providerState = { state: { engine: { backgroundState } } } as const;
 
 const mockGasFeeEstimates = {
   medium: {
@@ -35,10 +40,13 @@ jest.mock('../../../../../../selectors/settings', () => ({
   selectShowFiatInTestnets: jest.fn(() => false),
 }));
 
-jest.mock('../../../../../../components/UI/SimulationDetails/FiatDisplay/useFiatFormatter', () => ({
-  __esModule: true,
-  default: () => (amount: string | number) => `$${Number(amount).toFixed(2)}`,
-}));
+jest.mock(
+  '../../../../../../components/UI/SimulationDetails/FiatDisplay/useFiatFormatter',
+  () => ({
+    __esModule: true,
+    default: () => (amount: string | number) => `$${Number(amount).toFixed(2)}`,
+  }),
+);
 
 jest.mock('../../../utils/gas', () => ({
   getFeesFromHex: jest.fn(() => ({
@@ -93,7 +101,7 @@ describe('useCancelSpeedupGas', () => {
           tx: null,
           isCancel: false,
         }),
-      { state: backgroundState },
+      providerState,
     );
 
     expect(result.current.paramsForController).toBeUndefined();
@@ -112,7 +120,7 @@ describe('useCancelSpeedupGas', () => {
           tx: mockTx,
           isCancel: false,
         }),
-      { state: backgroundState },
+      providerState,
     );
 
     expect(result.current.paramsForController).toBeUndefined();
@@ -135,12 +143,15 @@ describe('useCancelSpeedupGas', () => {
           tx: mockTx,
           isCancel: false,
         }),
-      { state: backgroundState },
+      providerState,
     );
 
     expect(result.current.paramsForController).toBeDefined();
-    expect(result.current.paramsForController?.maxFeePerGas).toBeDefined();
-    expect(result.current.paramsForController?.maxPriorityFeePerGas).toBeDefined();
+    const eip1559Params = result.current.paramsForController as
+      | FeeMarketEIP1559Values
+      | undefined;
+    expect(eip1559Params?.maxFeePerGas).toBeDefined();
+    expect(eip1559Params?.maxPriorityFeePerGas).toBeDefined();
     expect(result.current.networkFeeDisplay).toMatch(/\d+\.?\d* ETH/);
     expect(result.current.networkFeeNative).toMatch(/\d+\.?\d*/);
     expect(result.current.speedDisplay).toContain('sec');
@@ -161,7 +172,7 @@ describe('useCancelSpeedupGas', () => {
           tx: mockTx,
           isCancel: false,
         }),
-      { state: backgroundState },
+      providerState,
     );
 
     const { result: cancelResult } = renderHookWithProvider(
@@ -171,7 +182,7 @@ describe('useCancelSpeedupGas', () => {
           tx: mockTx,
           isCancel: true,
         }),
-      { state: backgroundState },
+      providerState,
     );
 
     expect(cancelResult.current.paramsForController).toBeDefined();
@@ -190,11 +201,14 @@ describe('useCancelSpeedupGas', () => {
           tx: mockTx,
           isCancel: false,
         }),
-      { state: backgroundState },
+      providerState,
     );
 
     expect(result.current.paramsForController).toBeDefined();
-    expect(result.current.paramsForController?.gasPrice).toBeDefined();
+    const legacyParams = result.current.paramsForController as
+      | GasPriceValue
+      | undefined;
+    expect(legacyParams?.gasPrice).toBeDefined();
     expect(result.current.networkFeeDisplay).toMatch(/\d+\.?\d* ETH/);
     expect(result.current.networkFeeFiat).toBeDefined();
   });
@@ -211,11 +225,14 @@ describe('useCancelSpeedupGas', () => {
           tx: mockTx,
           isCancel: false,
         }),
-      { state: backgroundState },
+      providerState,
     );
 
     expect(result.current.paramsForController).toBeDefined();
-    expect(result.current.paramsForController?.gasPrice).toBeDefined();
+    const legacyParams = result.current.paramsForController as
+      | GasPriceValue
+      | undefined;
+    expect(legacyParams?.gasPrice).toBeDefined();
     expect(result.current.networkFeeDisplay).toMatch(/\d+\.?\d* ETH/);
   });
 
@@ -233,7 +250,7 @@ describe('useCancelSpeedupGas', () => {
           tx: mockTx,
           isCancel: false,
         }),
-      { state: backgroundState },
+      providerState,
     );
 
     expect(parseFloat(result.current.networkFeeNative)).toBeGreaterThan(0);
@@ -255,7 +272,7 @@ describe('useCancelSpeedupGas', () => {
           tx: mockTx,
           isCancel: false,
         }),
-      { state: backgroundState },
+      providerState,
     );
 
     expect(result.current.speedDisplay).toContain('sec');
@@ -282,7 +299,7 @@ describe('useCancelSpeedupGas', () => {
           tx: txWithoutNetworkClientId,
           isCancel: false,
         }),
-      { state: backgroundState },
+      providerState,
     );
 
     expect(result.current.nativeTokenSymbol).toBe('ETH');
@@ -303,7 +320,7 @@ describe('useCancelSpeedupGas', () => {
           tx: mockTx,
           isCancel: false,
         }),
-      { state: backgroundState },
+      providerState,
     );
 
     expect(result.current.nativeTokenSymbol).toBe('ETH');
@@ -323,13 +340,17 @@ describe('useCancelSpeedupGas', () => {
           tx: mockTx,
           isCancel: false,
         }),
-      { state: backgroundState },
+      providerState,
     );
 
-    const paramsForController = result.current.paramsForController;
+    const paramsForController = result.current.paramsForController as
+      | FeeMarketEIP1559Values
+      | undefined;
 
     // Should use market fees since they're higher
     expect(paramsForController?.maxFeePerGas).toBe('0xf43fc2c04ee0000');
-    expect(paramsForController?.maxPriorityFeePerGas).toBe('0x16e5fa4207650000');
+    expect(paramsForController?.maxPriorityFeePerGas).toBe(
+      '0x16e5fa4207650000',
+    );
   });
 });

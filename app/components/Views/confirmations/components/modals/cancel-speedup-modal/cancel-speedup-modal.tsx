@@ -1,6 +1,10 @@
 import React, { useCallback, useRef } from 'react';
 import { ScrollView } from 'react-native';
-import type { TransactionMeta } from '@metamask/transaction-controller';
+import type {
+  FeeMarketEIP1559Values,
+  GasPriceValue,
+  TransactionMeta,
+} from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../../locales/i18n';
@@ -24,7 +28,6 @@ import {
   FlexDirection,
 } from '../../../../../../components/UI/Box/box.types';
 import {
-  CancelSpeedupParams,
   ExistingGas,
   useCancelSpeedupGas,
 } from '../../../hooks/gas/useCancelSpeedupGas';
@@ -97,7 +100,9 @@ export interface CancelSpeedupModalProps {
   isCancel: boolean;
   tx: TransactionMeta | null;
   existingGas: ExistingGas | null;
-  onConfirm: (params: CancelSpeedupParams | undefined) => void;
+  onConfirm: (
+    params: GasPriceValue | FeeMarketEIP1559Values | undefined,
+  ) => void;
   onClose: () => void;
   confirmDisabled?: boolean;
 }
