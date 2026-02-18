@@ -57,7 +57,7 @@ export function useMusdConversionNavbar() {
       <View style={styles.headerLeft}>
         <ButtonIcon
           iconName={IconName.ArrowLeft}
-          size={ButtonIconSize.Lg}
+          size={ButtonIconSize.Md}
           iconProps={{ color: IconColor.IconDefault }}
           onPress={onBackPress}
         />
@@ -95,7 +95,7 @@ export function useMusdConversionNavbar() {
       <View style={styles.headerRight}>
         <ButtonIcon
           iconName={IconName.Info}
-          size={ButtonIconSize.Lg}
+          size={ButtonIconSize.Md}
           iconProps={{ color: IconColor.IconDefault }}
           onPress={onInfoPress}
         />
