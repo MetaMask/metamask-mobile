@@ -147,12 +147,12 @@ export enum CardType {
 
 export interface CardDetailsResponse {
   id: string;
-  holderName: string;
-  expiryDate: string;
+  isFreezable: boolean;
+  orderedAt: string;
   panLast4: string;
   status: CardStatus;
   type: CardType;
-  orderedAt: string;
+  holderName: string;
 }
 
 export interface CardWalletExternalResponse {
