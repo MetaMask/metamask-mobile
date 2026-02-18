@@ -290,6 +290,32 @@ describe('useCardFreeze', () => {
 
       expect(result.current.isFrozen).toBe(true);
     });
+
+    it('calls the correct API on rapid double-toggle before cardStatus refreshes', async () => {
+      const { result } = renderHook(() =>
+        useCardFreeze({
+          cardStatus: CardStatus.ACTIVE,
+          fetchCardDetails: mockFetchCardDetails,
+        }),
+      );
+
+      // First toggle: freeze (ACTIVE → FROZEN)
+      await act(async () => {
+        await result.current.toggleFreeze();
+      });
+
+      expect(mockFreezeCard).toHaveBeenCalledTimes(1);
+      expect(result.current.isFrozen).toBe(true);
+
+      // cardStatus prop is still stale (ACTIVE), but optimistic is FROZEN.
+      // Second toggle should call unfreezeCard, not freezeCard again.
+      await act(async () => {
+        await result.current.toggleFreeze();
+      });
+
+      expect(mockUnfreezeCard).toHaveBeenCalledTimes(1);
+      expect(mockFreezeCard).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('Error Handling', () => {

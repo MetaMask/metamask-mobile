@@ -487,7 +487,9 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'card.card_home.manage_card_options.freeze_error':
         'Failed to update card status. Please try again.',
       'card.card_home.biometric_verification_required':
-        'Biometric verification required',
+        'Authentication required to view card details.',
+      'card.card_home.unfreeze_auth_required':
+        'Authentication required to resume spending on your card.',
       'card.password_bottomsheet.description_unfreeze':
         'Enter your wallet password to unfreeze your card.',
     };

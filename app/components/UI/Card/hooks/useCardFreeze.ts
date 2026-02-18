@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useCardSDK } from '../sdk';
 import { CardStatus } from '../types';
 
@@ -28,6 +28,9 @@ const useCardFreeze = ({
     null,
   );
 
+  const optimisticStatusRef = useRef(optimisticStatus);
+  optimisticStatusRef.current = optimisticStatus;
+
   // Clear optimistic override once the real cardStatus prop catches up.
   // This avoids reverting the switch when fetchCardDetails silently fails
   // (useWrapWithCache swallows errors and returns null).
@@ -45,18 +48,20 @@ const useCardFreeze = ({
       return;
     }
 
-    if (cardStatus !== CardStatus.ACTIVE && cardStatus !== CardStatus.FROZEN) {
+    const current = optimisticStatusRef.current ?? cardStatus;
+
+    if (current !== CardStatus.ACTIVE && current !== CardStatus.FROZEN) {
       return;
     }
 
     const nextStatus =
-      cardStatus === CardStatus.ACTIVE ? CardStatus.FROZEN : CardStatus.ACTIVE;
+      current === CardStatus.ACTIVE ? CardStatus.FROZEN : CardStatus.ACTIVE;
 
     setOptimisticStatus(nextStatus);
     setStatus({ type: 'toggling' });
 
     try {
-      if (cardStatus === CardStatus.ACTIVE) {
+      if (current === CardStatus.ACTIVE) {
         await sdk.freezeCard();
       } else {
         await sdk.unfreezeCard();

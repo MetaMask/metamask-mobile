@@ -480,7 +480,7 @@ const CardHome = () => {
         variant: ToastVariants.Icon,
         labelOptions: [
           {
-            label: strings('card.card_home.biometric_verification_required'),
+            label: strings('card.card_home.unfreeze_auth_required'),
           },
         ],
         hasNoTimeout: false,
