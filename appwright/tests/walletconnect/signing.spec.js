@@ -92,13 +92,6 @@ test('WalletConnect v2 - signing flows (approve, reject, transaction)', async ({
     assertResult: () => WalletConnectDapp.assertPersonalSignApproved(),
   });
 
-  // ── personal_sign reject ──────────────────────────────────────────
-  // await signingFlow(device, {
-  //   tapMethod: () => WalletConnectDapp.tapPersonalSignButton(),
-  //   confirm: false,
-  //   assertResult: () => WalletConnectDapp.assertPersonalSignRejected(),
-  // });
-
   // ── eth_signTypedData_v4 approve ──────────────────────────────────
   await signingFlow(device, {
     tapMethod: () => WalletConnectDapp.tapSignTypedDataV4Button(),
@@ -106,14 +99,7 @@ test('WalletConnect v2 - signing flows (approve, reject, transaction)', async ({
     assertResult: () => WalletConnectDapp.assertSignTypedDataV4Approved(),
   });
 
-  // ── eth_signTypedData_v4 reject ───────────────────────────────────
-  // await signingFlow(device, {
-  //   tapMethod: () => WalletConnectDapp.tapSignTypedDataV4Button(),
-  //   confirm: false,
-  //   assertResult: () => WalletConnectDapp.assertSignTypedDataV4Rejected(),
-  // });
-
-  // ── eth_sendTransaction reject (NEVER confirm) ────────────────────
+  // ── eth_sendTransaction (reject) ────────────────────
   await signingFlow(device, {
     tapMethod: () => WalletConnectDapp.tapSendTransactionButton(),
     confirm: false,

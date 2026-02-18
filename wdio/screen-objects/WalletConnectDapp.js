@@ -242,6 +242,27 @@ class WalletConnectDapp {
         await this._findAndClickById('sendButton');
     }
 
+    async tapOpenNetworkPicker() {
+        if (!this._device) return;
+        await this._findAndClickById('openNetworkPicker');
+    }
+
+    async tapNetworkItem(chainId) {
+        if (!this._device) return;
+        const elementRef = await this._findWebElement('css selector', `[data-chain-id="${chainId}"]`);
+        await this._scrollAndClickWebElement(elementRef);
+    }
+
+    async getChainId(timeout = 15000) {
+        if (!this._device) return null;
+        await this._device.webDriverClient.executeScript(
+            'window.scrollTo(0, 0); return true;',
+            [],
+        );
+        await AppwrightGestures.wait(500);
+        return await this._getTextById('chainId', timeout);
+    }
+
     async tapDisconnectButton() {
         if (!this._device) return;
         await this._findAndClickById('walletConnect');
