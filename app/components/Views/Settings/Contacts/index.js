@@ -3,8 +3,8 @@ import { StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../../locales/i18n';
-import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { connect } from 'react-redux';
+import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import AddressList from '../../confirmations/legacy/components/AddressList';
 import StyledButton from '../../../UI/StyledButton';
 import Engine from '../../../../core/Engine';
@@ -21,7 +21,6 @@ const createStyles = (colors) =>
     wrapper: {
       backgroundColor: colors.background.default,
       flex: 1,
-      marginTop: 16,
     },
     addContact: {
       marginHorizontal: 24,
@@ -58,25 +57,7 @@ class Contacts extends PureComponent {
   actionSheet;
   contactAddressToRemove;
 
-  updateNavBar = () => {
-    const { navigation } = this.props;
-    const colors = this.context.colors || mockTheme.colors;
-    navigation.setOptions(
-      getNavigationOptionsTitle(
-        strings('app_settings.contacts_title'),
-        navigation,
-        false,
-        colors,
-      ),
-    );
-  };
-
-  componentDidMount = () => {
-    this.updateNavBar();
-  };
-
   componentDidUpdate = (prevProps) => {
-    this.updateNavBar();
     const { chainId } = this.props;
     if (
       prevProps.addressBook &&
@@ -143,6 +124,12 @@ class Contacts extends PureComponent {
         testID={ContactsViewSelectorIDs.CONTAINER}
         edges={{ bottom: 'additive' }}
       >
+        <HeaderCompactStandard
+          title={strings('app_settings.contacts_title')}
+          onBack={() => this.props.navigation.goBack()}
+          includesTopInset
+          testID={ContactsViewSelectorIDs.HEADER}
+        />
         <AddressList
           chainId={chainId}
           onlyRenderAddressBook

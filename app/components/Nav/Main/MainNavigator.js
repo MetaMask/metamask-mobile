@@ -427,7 +427,7 @@ const SettingsFlow = () => {
       <Stack.Screen
         name="ContactsSettings"
         component={Contacts}
-        options={Contacts.navigationOptions}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name="ContactForm"

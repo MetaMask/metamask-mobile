@@ -1,25 +1,43 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { fireEvent } from '@testing-library/react-native';
+import { renderScreen } from '../../../../util/test/renderWithProvider';
 import Contacts from './';
-import configureMockStore from 'redux-mock-store';
-import { Provider } from 'react-redux';
 import { backgroundState } from '../../../../util/test/initial-root-state';
+import { ContactsViewSelectorIDs } from './ContactsView.testIds';
 
-const mockStore = configureMockStore();
 const initialState = {
   engine: {
     backgroundState,
   },
 };
-const store = mockStore(initialState);
 
 describe('Contacts', () => {
-  it('should render correctly', () => {
-    const wrapper = shallow(
-      <Provider store={store}>
-        <Contacts />
-      </Provider>,
+  it('renders correctly', () => {
+    const { toJSON } = renderScreen(
+      Contacts,
+      { name: 'ContactsSettings' },
+      { state: initialState },
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('renders inline header with Contacts title', () => {
+    const { getByTestId, getByText } = renderScreen(
+      Contacts,
+      { name: 'ContactsSettings' },
+      { state: initialState },
+    );
+    expect(getByTestId(ContactsViewSelectorIDs.HEADER)).toBeTruthy();
+    expect(getByText('Contacts')).toBeTruthy();
+  });
+
+  it('calls navigation.goBack when header back button is pressed', () => {
+    const { getByTestId } = renderScreen(
+      Contacts,
+      { name: 'ContactsSettings' },
+      { state: initialState },
+    );
+    const backButton = getByTestId('button-icon');
+    fireEvent.press(backButton);
   });
 });
