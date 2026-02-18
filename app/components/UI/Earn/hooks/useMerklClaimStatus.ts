@@ -11,12 +11,10 @@ import { clearMerklRewardsCache } from '../components/MerklRewards/merkl-client'
 import Logger from '../../../../util/Logger';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
-import { selectEvmNetworkConfigurationsByChainId } from '../../../../selectors/networkController';
-import { useSelector } from 'react-redux';
-import NetworkList from '../../../../util/networks';
 import { calcTokenAmount } from '../../../../util/transactions';
 import { MUSD_DECIMALS } from '../constants/musd';
 import { getUnclaimedAmountForMerklClaimTx } from '../utils/musd';
+import { getNetworkName } from '../utils/network';
 
 /**
  * Hook to monitor Merkl bonus claim transaction status and show appropriate toasts
@@ -32,10 +30,6 @@ import { getUnclaimedAmountForMerklClaimTx } from '../utils/musd';
  * toasts are shown even when navigating away from the asset screen.
  */
 export const useMerklClaimStatus = () => {
-  const networkConfigurations = useSelector(
-    selectEvmNetworkConfigurationsByChainId,
-  );
-
   const { showToast, EarnToastOptions } = useEarnToasts();
   const shownToastsRef = useRef<Set<string>>(new Set());
   const claimAmountByTransactionIdRef = useRef<Map<string, string>>(new Map());
@@ -81,22 +75,6 @@ export const useMerklClaimStatus = () => {
       );
     }
   }, []);
-
-  const getNetworkName = useCallback(
-    (chainId?: Hex) => {
-      if (!chainId) return 'Unknown Network';
-
-      const nickname = networkConfigurations[chainId]?.name;
-
-      const name = Object.values(NetworkList).find(
-        (network: { chainId?: Hex; shortName: string }) =>
-          network.chainId === chainId,
-      )?.shortName;
-
-      return name ?? nickname ?? chainId;
-    },
-    [networkConfigurations],
-  );
 
   const submitClaimBonusStatusUpdatedEvent = useCallback(
     async (transactionMeta: TransactionMeta) => {
@@ -161,7 +139,7 @@ export const useMerklClaimStatus = () => {
         );
       }
     },
-    [trackEvent, createEventBuilder, getNetworkName],
+    [trackEvent, createEventBuilder],
   );
 
   useEffect(() => {
