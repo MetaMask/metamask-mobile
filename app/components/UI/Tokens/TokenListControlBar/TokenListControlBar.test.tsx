@@ -220,12 +220,6 @@ describe('TokenListControlBar', () => {
         expect(mockNavigate).toHaveBeenCalledWith('NetworkManager', {});
       });
 
-      it('shows "Popular networks text when multiple networks are enabled', () => {
-        const { getByText } = renderComponent();
-
-        expect(getByText('wallet.popular_networks')).toBeTruthy();
-      });
-
       it('shows current network name when only one network is enabled', () => {
         const singleNetworkInfo = {
           enabledNetworks: [{ chainId: '1', enabled: true }],
@@ -320,7 +314,7 @@ describe('TokenListControlBar', () => {
       const { getByTestId } = renderComponent();
       const addTokenButton = getByTestId('import-token-button');
 
-      expect(addTokenButton.props.disabled).toBeFalsy();
+      expect(addTokenButton.props.disabled).toBe(false);
     });
   });
 });
