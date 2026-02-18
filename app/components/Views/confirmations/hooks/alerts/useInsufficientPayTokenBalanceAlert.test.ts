@@ -1,7 +1,9 @@
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { useInsufficientPayTokenBalanceAlert } from './useInsufficientPayTokenBalanceAlert';
 import {
+  useIsTransactionPayLoading,
   useTransactionPayIsMaxAmount,
+  useTransactionPayIsPostQuote,
   useTransactionPayRequiredTokens,
   useTransactionPayTotals,
 } from '../pay/useTransactionPayData';
@@ -18,7 +20,9 @@ import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { strings } from '../../../../../../locales/i18n';
 import { Severity } from '../../types/alerts';
 import { useTokenWithBalance } from '../tokens/useTokenWithBalance';
+import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { Hex } from '@metamask/utils';
+import { TransactionMeta } from '@metamask/transaction-controller';
 
 jest.mock('../pay/useTransactionPayToken');
 jest.mock('../transactions/useTransactionMetadataRequest');
@@ -55,11 +59,12 @@ const NATIVE_TOKEN_MOCK = {
 
 function runHook(
   props: Parameters<typeof useInsufficientPayTokenBalanceAlert>[0] = {},
+  stateOverrides?: Record<string, unknown>,
 ) {
   return renderHookWithProvider(
     () => useInsufficientPayTokenBalanceAlert(props),
     {
-      state: merge({}, otherControllersMock),
+      state: merge({}, otherControllersMock, stateOverrides),
     },
   );
 }
@@ -71,9 +76,17 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
   const useTransactionPayIsMaxAmountMock = jest.mocked(
     useTransactionPayIsMaxAmount,
   );
-
   const useTransactionPayRequiredTokensMock = jest.mocked(
     useTransactionPayRequiredTokens,
+  );
+  const useTransactionPayIsPostQuoteMock = jest.mocked(
+    useTransactionPayIsPostQuote,
+  );
+  const useIsTransactionPayLoadingMock = jest.mocked(
+    useIsTransactionPayLoading,
+  );
+  const useTransactionMetadataRequestMock = jest.mocked(
+    useTransactionMetadataRequest,
   );
 
   beforeEach(() => {
@@ -83,6 +96,11 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
     useTransactionPayTotalsMock.mockReturnValue(TOTALS_MOCK);
     useTokenWithBalanceMock.mockReturnValue(NATIVE_TOKEN_MOCK);
     useTransactionPayIsMaxAmountMock.mockReturnValue(false);
+    useTransactionPayIsPostQuoteMock.mockReturnValue(false);
+    useIsTransactionPayLoadingMock.mockReturnValue(false);
+    useTransactionMetadataRequestMock.mockReturnValue(
+      undefined as unknown as TransactionMeta,
+    );
 
     useTransactionPayTokenMock.mockReturnValue({
       payToken: PAY_TOKEN_MOCK,
@@ -339,6 +357,183 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
       const { result } = runHook({ pendingAmountUsd: '1.23' });
 
       expect(result.current).toStrictEqual([]);
+    });
+  });
+
+  describe('for post-quote (withdrawal) flows', () => {
+    const SOURCE_CHAIN_ID = '0x89' as Hex; // Polygon (source chain)
+
+    // State override to include the source chain's network config so ticker resolves
+    const polygonNetworkState = {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            networkConfigurationsByChainId: {
+              [SOURCE_CHAIN_ID]: {
+                nativeCurrency: 'POL',
+                rpcEndpoints: [
+                  {
+                    networkClientId: 'polygon',
+                    url: 'https://polygon-rpc.com',
+                  },
+                ],
+                defaultRpcEndpointIndex: 0,
+              },
+            },
+          },
+        },
+      },
+    };
+
+    beforeEach(() => {
+      useTransactionPayIsPostQuoteMock.mockReturnValue(true);
+
+      // payToken is the *destination* token (e.g. ETH on mainnet 0x1)
+      // transactionMeta.chainId is the *source* chain (e.g. Polygon 0x89)
+      useTransactionMetadataRequestMock.mockReturnValue({
+        chainId: SOURCE_CHAIN_ID,
+      } as TransactionMeta);
+    });
+
+    it('skips input insufficient balance check for post-quote flows', () => {
+      // Balance is less than required amount - would normally trigger alert
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: {
+          ...PAY_TOKEN_MOCK,
+          balanceUsd: '0.50', // Less than required $1.23
+        },
+        setPayToken: jest.fn(),
+      });
+
+      const { result } = runHook({}, polygonNetworkState);
+
+      // No alert because post-quote funds come from withdrawal, not user balance
+      expect(result.current).toStrictEqual([]);
+    });
+
+    it('skips fees insufficient balance check for post-quote flows', () => {
+      // Balance is less than source amount - would normally trigger fee alert
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: {
+          ...PAY_TOKEN_MOCK,
+          balanceRaw: '500', // Less than source amount (1000)
+        },
+        setPayToken: jest.fn(),
+      });
+
+      const { result } = runHook({}, polygonNetworkState);
+
+      // No alert because post-quote funds come from withdrawal, not user balance
+      expect(result.current).toStrictEqual([]);
+    });
+
+    it('uses transactionMeta.chainId (source chain) not payToken.chainId for native balance check', () => {
+      // Native balance too low for gas fees on the *source* chain
+      useTokenWithBalanceMock.mockReturnValue({
+        ...NATIVE_TOKEN_MOCK,
+        balanceRaw: '50', // Less than max gas fee (100)
+      } as ReturnType<typeof useTokenWithBalance>);
+
+      runHook({}, polygonNetworkState);
+
+      // Verify useTokenWithBalance was called with the SOURCE chain ID (0x89),
+      // not the payToken's destination chain ID (0x1)
+      expect(useTokenWithBalanceMock).toHaveBeenCalledWith(
+        expect.any(String),
+        SOURCE_CHAIN_ID,
+      );
+    });
+
+    it('still checks native token for source network fees in post-quote flows', () => {
+      // Native balance too low for gas fees
+      useTokenWithBalanceMock.mockReturnValue({
+        ...NATIVE_TOKEN_MOCK,
+        balanceRaw: '50', // Less than max gas fee (100)
+      } as ReturnType<typeof useTokenWithBalance>);
+
+      const { result } = runHook({}, polygonNetworkState);
+
+      // Alert still shows because user needs source chain native token to pay gas
+      expect(result.current).toStrictEqual([
+        {
+          key: AlertKeys.InsufficientPayTokenNative,
+          field: RowAlertKey.Amount,
+          isBlocking: true,
+          title: strings('alert_system.insufficient_pay_token_balance.message'),
+          message: strings(
+            'alert_system.insufficient_pay_token_native.message',
+            { ticker: 'POL' },
+          ),
+          severity: Severity.Danger,
+        },
+      ]);
+    });
+
+    it('fires source gas alert when payToken is unset (default withdraw token)', () => {
+      // In withdrawal flows auto-selection is skipped, so payToken can remain undefined.
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: undefined,
+        setPayToken: jest.fn(),
+      });
+
+      // Source-chain native balance too low to cover gas
+      useTokenWithBalanceMock.mockReturnValue({
+        ...NATIVE_TOKEN_MOCK,
+        balanceRaw: '50', // Less than max gas fee (100)
+      } as ReturnType<typeof useTokenWithBalance>);
+
+      const { result } = runHook({}, polygonNetworkState);
+
+      expect(result.current).toStrictEqual([
+        {
+          key: AlertKeys.InsufficientPayTokenNative,
+          field: RowAlertKey.Amount,
+          isBlocking: true,
+          title: strings('alert_system.insufficient_pay_token_balance.message'),
+          message: strings(
+            'alert_system.insufficient_pay_token_native.message',
+            { ticker: 'POL' },
+          ),
+          severity: Severity.Danger,
+        },
+      ]);
+    });
+
+    it('does not suppress source gas check when destination native token matches source native address', () => {
+      // payToken is native on the *destination* chain (0x1) — same canonical
+      // address as the source chain's native token, but different chainId.
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: {
+          ...PAY_TOKEN_MOCK,
+          address: NATIVE_TOKEN_MOCK.address as Hex, // same native address
+          chainId: '0x1' as Hex, // destination chain, NOT source chain 0x89
+          balanceRaw: '999999',
+        },
+        setPayToken: jest.fn(),
+      });
+
+      // Source-chain native balance is too low to cover gas
+      useTokenWithBalanceMock.mockReturnValue({
+        ...NATIVE_TOKEN_MOCK,
+        balanceRaw: '50', // Less than max gas fee (100)
+      } as ReturnType<typeof useTokenWithBalance>);
+
+      const { result } = runHook({}, polygonNetworkState);
+
+      // Even though addresses match, the chainIds differ, so the gas check fires
+      expect(result.current).toStrictEqual([
+        {
+          key: AlertKeys.InsufficientPayTokenNative,
+          field: RowAlertKey.Amount,
+          isBlocking: true,
+          title: strings('alert_system.insufficient_pay_token_balance.message'),
+          message: strings(
+            'alert_system.insufficient_pay_token_native.message',
+            { ticker: 'POL' },
+          ),
+          severity: Severity.Danger,
+        },
+      ]);
     });
   });
 });

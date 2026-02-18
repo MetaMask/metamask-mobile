@@ -62,12 +62,14 @@ const renderWithReduxProvider = (component: React.ReactElement) =>
 
 const mockSetOptions = jest.fn();
 const mockNavigate = jest.fn();
+const mockNavigationDispatch = jest.fn();
 let mockRouteParams: { type: 'source' | 'dest' } = { type: 'source' };
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     navigate: mockNavigate,
+    dispatch: mockNavigationDispatch,
     goBack: jest.fn(),
     setOptions: mockSetOptions,
   }),
@@ -93,10 +95,7 @@ jest.mock('../../../../../core/redux/slices/bridge', () => {
     });
   return {
     selectBridgeFeatureFlags: jest.fn(() => getMockBridgeFeatureFlags()),
-    selectSourceChainRanking: jest.fn(
-      () => getMockBridgeFeatureFlags().chainRanking,
-    ),
-    selectDestChainRanking: jest.fn(
+    selectAllowedChainRanking: jest.fn(
       () => getMockBridgeFeatureFlags().chainRanking,
     ),
     setIsSelectingToken: jest.fn(() => ({
@@ -399,6 +398,7 @@ const resetMocks = () => {
   mockSelectedToken = null;
   mockFormatAddressToAssetId.mockReturnValue('eip155:1/erc20:0x1234');
   mockIsNonEvmChainId.mockReturnValue(false);
+  mockNavigationDispatch.mockReset();
 };
 
 describe('tokenToIncludeAsset', () => {
@@ -690,15 +690,21 @@ describe('BridgeTokenSelector', () => {
       await act(async () => {
         fireEvent.press(getByTestId('button-icon-info'));
       });
-      expect(mockNavigate).toHaveBeenCalledWith(
-        'Asset',
+      expect(mockNavigationDispatch).toHaveBeenCalledWith(
         expect.objectContaining({
-          symbol: 'USDC',
-          name: 'USD Coin',
-          assetId: 'eip155:1/erc20:0x1234567890123456789012345678901234567890',
-          chainId: '0x1',
-          decimals: 18,
-          image: 'https://example.com/token.png',
+          type: 'PUSH',
+          payload: expect.objectContaining({
+            name: 'Asset',
+            params: expect.objectContaining({
+              symbol: 'USDC',
+              name: 'USD Coin',
+              assetId:
+                'eip155:1/erc20:0x1234567890123456789012345678901234567890',
+              chainId: '0x1',
+              decimals: 18,
+              image: 'https://example.com/token.png',
+            }),
+          }),
         }),
       );
       expect(mockTrackEvent).toHaveBeenCalled();
