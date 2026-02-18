@@ -298,9 +298,15 @@ const Main = (props) => {
       previousNetworkConfigurations.current ?? {},
     );
 
+    /*
+     * Emit network addition/deletion toast if network list changes
+     *
+     * Bridge routes are skipped as they interfere with bridge UI
+     */
     if (
       previousNetworkValues.length &&
-      currentNetworkValues.length !== previousNetworkValues.length
+      currentNetworkValues.length !== previousNetworkValues.length &&
+      !isOnBridgeRoute
     ) {
       // Find the newly added network by comparing chainIds
       const newNetwork = currentNetworkValues.find(
@@ -336,7 +342,7 @@ const Main = (props) => {
       });
     }
     previousNetworkConfigurations.current = networkConfigurations;
-  }, [networkConfigurations, networkName, networkImage, toastRef]);
+  }, [isOnBridgeRoute, networkConfigurations, networkImage, toastRef]);
 
   useEffect(() => {
     if (locale.current !== I18n.locale) {
