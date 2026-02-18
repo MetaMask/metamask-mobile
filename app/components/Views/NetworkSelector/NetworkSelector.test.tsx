@@ -21,23 +21,25 @@ jest.mock('../../../util/metrics/MultichainAPI/networkMetricUtils', () => ({
   }),
 }));
 
-jest.mock('../../../components/hooks/useMetrics', () => ({
-  useMetrics: () => ({
+jest.mock('../../../components/hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
     trackEvent: jest.fn(),
     createEventBuilder: jest.fn(() => ({
       addProperties: jest.fn(() => ({
         build: jest.fn(),
       })),
+      build: jest.fn(),
     })),
   }),
 }));
 
-jest.mock('../../../core/Analytics', () => ({
-  MetaMetrics: {
-    getInstance: jest.fn().mockReturnValue({
-      addTraitsToUser: jest.fn(),
-    }),
+jest.mock('../../../util/analytics/analytics', () => ({
+  analytics: {
+    identify: jest.fn(),
   },
+}));
+
+jest.mock('../../../core/Analytics', () => ({
   MetaMetricsEvents: {
     NETWORK_SWITCHED: 'Network Switched',
   },
