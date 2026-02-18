@@ -1307,6 +1307,7 @@ const CardHome = () => {
                       ? undefined
                       : handleToggleFreeze
                   }
+                  disabled={freezeStatus.type === 'toggling'}
                   style={tw.style(Platform.OS === 'ios' ? 'mr-2' : '')}
                   testID={CardHomeSelectors.FREEZE_CARD_TOGGLE}
                 />
