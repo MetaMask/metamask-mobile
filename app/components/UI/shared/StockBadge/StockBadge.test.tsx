@@ -98,7 +98,7 @@ describe('StockBadge', () => {
 
       await waitFor(() => {
         const clockIcon = UNSAFE_queryByProps({
-          name: IconName.ClockHalfDotted,
+          name: IconName.AfterHours,
         });
         expect(clockIcon).toBeTruthy();
       });
@@ -113,7 +113,7 @@ describe('StockBadge', () => {
 
       await waitFor(() => {
         const clockIcon = UNSAFE_queryByProps({
-          name: IconName.ClockHalfDotted,
+          name: IconName.AfterHours,
         });
         expect(clockIcon).toBeNull();
       });
@@ -124,7 +124,7 @@ describe('StockBadge', () => {
 
       await waitFor(() => {
         const clockIcon = UNSAFE_queryByProps({
-          name: IconName.ClockHalfDotted,
+          name: IconName.AfterHours,
         });
         expect(clockIcon).toBeNull();
       });
@@ -163,7 +163,7 @@ describe('StockBadge', () => {
 
       await waitFor(() => {
         const clockIcon = UNSAFE_queryByProps({
-          name: IconName.ClockHalfDotted,
+          name: IconName.AfterHours,
         });
         expect(clockIcon).toBeTruthy();
       });
@@ -179,7 +179,7 @@ describe('StockBadge', () => {
       await waitFor(() => {
         expect(getByText('Stock')).toBeOnTheScreen();
         const clockIcon = UNSAFE_queryByProps({
-          name: IconName.ClockHalfDotted,
+          name: IconName.AfterHours,
         });
         expect(clockIcon).toBeNull();
       });

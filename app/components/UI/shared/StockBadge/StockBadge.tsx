@@ -39,7 +39,7 @@ const StockBadge: React.FC<StockBadgeProps> = ({ token, style }) => {
       <View style={styles.stockBadge}>
         {!isTokenTradingOpen(token) && (
           <Icon
-            name={IconName.ClockHalfDotted}
+            name={IconName.AfterHours}
             size={IconSize.Xs}
             color={IconColor.Alternative}
           />

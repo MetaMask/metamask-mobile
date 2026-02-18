@@ -10,6 +10,7 @@ import addcardSVG from './assets/add-card.svg';
 import addcircleSVG from './assets/add-circle.svg';
 import addsquareSVG from './assets/add-square.svg';
 import addSVG from './assets/add.svg';
+import afterhoursSVG from './assets/after-hours.svg';
 import aiSVG from './assets/ai.svg';
 import alternateemailSVG from './assets/alternate-email.svg';
 import appleSVG from './assets/apple.svg';
@@ -56,7 +57,6 @@ import checkSVG from './assets/check.svg';
 import circlexSVG from './assets/circle-x.svg';
 import clockfilledSVG from './assets/clock-filled.svg';
 import clockSVG from './assets/clock.svg';
-import ClockHalfDottedSVG from './assets/clock-half-dotted.svg';
 import closeSVG from './assets/close.svg';
 import clouddownloadSVG from './assets/cloud-download.svg';
 import clouduploadSVG from './assets/cloud-upload.svg';
@@ -289,6 +289,7 @@ export const assetByIconName: AssetByIconName = {
   [IconName.AddCircle]: addcircleSVG,
   [IconName.AddSquare]: addsquareSVG,
   [IconName.Add]: addSVG,
+  [IconName.AfterHours]: afterhoursSVG,
   [IconName.Ai]: aiSVG,
   [IconName.AlternateEmail]: alternateemailSVG,
   [IconName.Apple]: appleSVG,
@@ -335,7 +336,6 @@ export const assetByIconName: AssetByIconName = {
   [IconName.CircleX]: circlexSVG,
   [IconName.ClockFilled]: clockfilledSVG,
   [IconName.Clock]: clockSVG,
-  [IconName.ClockHalfDotted]: ClockHalfDottedSVG,
   [IconName.Close]: closeSVG,
   [IconName.CloudDownload]: clouddownloadSVG,
   [IconName.CloudUpload]: clouduploadSVG,
