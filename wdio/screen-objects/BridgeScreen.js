@@ -117,13 +117,8 @@ class BridgeScreen {
       tokenSelector,
       true,
     );
-    // Scroll down the list to bring token into view (e.g. LINK is below ETH, USDT, etc.)
-    const tokenElement = await AppwrightGestures.scrollIntoView(
-      this._device,
-      tokenButton,
-      { scrollParams: { direction: 'down' } },
-    );
-    await AppwrightGestures.tap(tokenElement);
+    await appwrightExpect(tokenButton).toBeVisible({ timeout: 10000 });
+    await AppwrightGestures.tap(tokenButton);
   }
 
   async enterDestinationTokenAmount(amount) {
