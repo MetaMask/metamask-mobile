@@ -61,7 +61,7 @@ jest.mock('../../../core/Engine', () => ({
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn(() => ({
   addProperties: jest.fn().mockReturnThis(),
-  build: jest.fn(),
+  build: jest.fn(() => ({})),
 }));
 
 jest.mock('../../../components/hooks/useAnalytics/useAnalytics', () => ({
