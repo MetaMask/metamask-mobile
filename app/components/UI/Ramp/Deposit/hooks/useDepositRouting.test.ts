@@ -951,7 +951,7 @@ describe('useDepositRouting', () => {
       );
     });
 
-    it('does not track analytics when order processing fails', async () => {
+    it('does not navigate or track analytics when order processing fails', async () => {
       const mockHandleNewOrder = jest
         .fn()
         .mockRejectedValue(new Error('Processing failed'));
@@ -977,9 +977,7 @@ describe('useDepositRouting', () => {
       });
 
       expect(mockTrackEvent).not.toHaveBeenCalled();
-      expect(mockNavigate).toHaveBeenCalledWith('OrderProcessing', {
-        orderId: '/providers/transak-native-staging/orders/test-order-id',
-      });
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
 
     it('does nothing when URL does not start with REDIRECTION_URL', async () => {
@@ -1028,7 +1026,7 @@ describe('useDepositRouting', () => {
       expect(mockTrackEvent).not.toHaveBeenCalled();
     });
 
-    it('handles error when getOrder fails', async () => {
+    it('does not navigate to OrderProcessing when getOrder fails', async () => {
       const mockHandleNewOrder = jest.fn().mockResolvedValue(undefined);
       mockUseHandleNewOrder.mockReturnValue(mockHandleNewOrder);
 
@@ -1053,13 +1051,11 @@ describe('useDepositRouting', () => {
       });
 
       expect(mockGetOrder).toHaveBeenCalledWith('test-order-id', '0x123');
-      expect(mockNavigate).toHaveBeenCalledWith('OrderProcessing', {
-        orderId: '/providers/transak-native-staging/orders/test-order-id',
-      });
+      expect(mockNavigate).not.toHaveBeenCalled();
       expect(mockTrackEvent).not.toHaveBeenCalled();
     });
 
-    it('handles error when getOrder returns null', async () => {
+    it('does not navigate to OrderProcessing when getOrder returns null', async () => {
       const mockHandleNewOrder = jest.fn().mockResolvedValue(undefined);
       mockUseHandleNewOrder.mockReturnValue(mockHandleNewOrder);
 
@@ -1084,9 +1080,7 @@ describe('useDepositRouting', () => {
       });
 
       expect(mockGetOrder).toHaveBeenCalledWith('test-order-id', '0x123');
-      expect(mockNavigate).toHaveBeenCalledWith('OrderProcessing', {
-        orderId: '/providers/transak-native-staging/orders/test-order-id',
-      });
+      expect(mockNavigate).not.toHaveBeenCalled();
       expect(mockTrackEvent).not.toHaveBeenCalled();
     });
   });
