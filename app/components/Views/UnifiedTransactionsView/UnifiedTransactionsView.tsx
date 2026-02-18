@@ -11,7 +11,11 @@ import Modal from 'react-native-modal';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
-import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
+import {
+  selectSelectedInternalAccount,
+  selectInternalAccounts,
+} from '../../../selectors/accountsController';
+import { selectAddressBook } from '../../../selectors/addressBookController';
 import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
 import { selectNonEvmTransactionsForSelectedAccountGroup } from '../../../selectors/multichain/multichain';
 import { selectSelectedAccountGroupInternalAccounts } from '../../../selectors/multichainAccounts/accountTreeController';
@@ -150,6 +154,13 @@ const UnifiedTransactionsView = ({
   );
 
   const bridgeHistory = useSelector(selectBridgeHistoryForAccount);
+  const addressBook = useSelector(selectAddressBook);
+  const internalAccounts = useSelector(selectInternalAccounts);
+
+  const internalAccountAddresses = useMemo(
+    () => internalAccounts.map((account) => account.address),
+    [internalAccounts],
+  );
 
   const { data, nonEvmTransactionsForSelectedChain } = useMemo<{
     data: UnifiedItem[];
@@ -192,7 +203,15 @@ const UnifiedTransactionsView = ({
 
       const isReceivedOrSentTransaction =
         selectedAccountGroupInternalAccountsAddresses.some((addr) =>
-          filterByAddress(tx, tokens, addr, transactionMetaPool, bridgeHistory),
+          filterByAddress(
+            tx,
+            tokens,
+            addr,
+            transactionMetaPool,
+            bridgeHistory,
+            addressBook,
+            internalAccountAddresses,
+          ),
         );
       if (!isReceivedOrSentTransaction) return false;
 
@@ -334,6 +353,8 @@ const UnifiedTransactionsView = ({
     selectedInternalAccount,
     tokens,
     bridgeHistory,
+    addressBook,
+    internalAccountAddresses,
   ]);
 
   const hasEvmChainsEnabled = enabledEVMChainIds.length > 0;

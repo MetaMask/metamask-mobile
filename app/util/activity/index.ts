@@ -1,4 +1,4 @@
-import { areAddressesEqual } from '../../util/address';
+import { areAddressesEqual, toFormattedAddress } from '../../util/address';
 import { TX_UNAPPROVED } from '../../constants/transaction';
 import {
   TransactionMeta,
@@ -8,6 +8,7 @@ import { uniq } from 'lodash';
 import { Hex } from '@metamask/utils';
 import { hasTransactionType } from '../../components/Views/confirmations/utils/transaction';
 import { BridgeHistoryItem } from '@metamask/bridge-status-controller';
+import { AddressBookControllerState } from '@metamask/address-book-controller';
 
 export const PAY_TYPES = [
   TransactionType.perpsDeposit,
@@ -38,6 +39,42 @@ export const isFromOrToSelectedAddress = (
   }
 
   return false;
+};
+
+/**
+ * Checks if an address is trusted (either user's own account or in address book)
+ * Used to filter incoming token transfers to prevent poisoning attacks
+ *
+ * @param address - Address to check
+ * @param chainId - Chain ID for address book lookup
+ * @param addressBook - Address book state from AddressBookController
+ * @param internalAccountAddresses - Array of user's account addresses
+ * @returns Boolean indicating if address is trusted
+ */
+export const isTrustedAddress = (
+  address: string,
+  chainId: Hex,
+  addressBook: AddressBookControllerState['addressBook'],
+  internalAccountAddresses: string[],
+): boolean => {
+  if (!address) {
+    return false;
+  }
+
+  // Check if address matches any of user's own accounts
+  const isOwnAccount = internalAccountAddresses.some((accountAddress) =>
+    areAddressesEqual(address, accountAddress),
+  );
+
+  if (isOwnAccount) {
+    return true;
+  }
+
+  // Check if address is in address book for this chain
+  const networkAddressBook = addressBook[chainId] || {};
+  const formattedAddress = toFormattedAddress(address);
+
+  return !!networkAddressBook[formattedAddress];
 };
 
 /**
@@ -92,6 +129,8 @@ export const filterByAddressAndNetwork = (
   tokenNetworkFilter: { [key: string]: boolean },
   allTransactions: TransactionMeta[],
   bridgeHistory: Record<string, BridgeHistoryItem>,
+  addressBook: AddressBookControllerState['addressBook'],
+  internalAccountAddresses: string[],
 ): boolean => {
   const {
     isTransfer,
@@ -117,12 +156,32 @@ export const filterByAddressAndNetwork = (
     tx.status !== TX_UNAPPROVED
   ) {
     const result = isTransfer
-      ? !!tokens.find(({ address }) =>
-          areAddressesEqual(
-            address,
-            transferInformation?.contractAddress ?? '',
-          ),
-        ) || areAddressesEqual(from, selectedAddress) // Allow if sender is current address
+      ? (() => {
+          // Check if token exists in wallet
+          const hasToken = !!tokens.find(({ address }) =>
+            areAddressesEqual(
+              address,
+              transferInformation?.contractAddress ?? '',
+            ),
+          );
+
+          // Always show outgoing transfers
+          if (areAddressesEqual(from, selectedAddress)) {
+            return true;
+          }
+
+          // For incoming transfers: show only if token exists AND sender is trusted
+          if (hasToken) {
+            return isTrustedAddress(
+              from,
+              tx.chainId,
+              addressBook,
+              internalAccountAddresses,
+            );
+          }
+
+          return false;
+        })()
       : true;
 
     return result;
@@ -137,6 +196,8 @@ export const filterByAddress = (
   selectedAddress: string,
   allTransactions: TransactionMeta[],
   bridgeHistory: Record<string, BridgeHistoryItem>,
+  addressBook: AddressBookControllerState['addressBook'],
+  internalAccountAddresses: string[],
 ): boolean => {
   const {
     isTransfer,
@@ -153,12 +214,32 @@ export const filterByAddress = (
     tx.status !== TX_UNAPPROVED
   ) {
     const result = isTransfer
-      ? !!tokens.find(({ address }) =>
-          areAddressesEqual(
-            address,
-            transferInformation?.contractAddress ?? '',
-          ),
-        ) || areAddressesEqual(from, selectedAddress) // Allow if sender is current address
+      ? (() => {
+          // Check if token exists in wallet
+          const hasToken = !!tokens.find(({ address }) =>
+            areAddressesEqual(
+              address,
+              transferInformation?.contractAddress ?? '',
+            ),
+          );
+
+          // Always show outgoing transfers
+          if (areAddressesEqual(from, selectedAddress)) {
+            return true;
+          }
+
+          // For incoming transfers: show only if token exists AND sender is trusted
+          if (hasToken) {
+            return isTrustedAddress(
+              from,
+              tx.chainId,
+              addressBook,
+              internalAccountAddresses,
+            );
+          }
+
+          return false;
+        })()
       : true;
 
     return result;

@@ -26,7 +26,11 @@ import {
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
 import { selectTokens } from '../../../selectors/tokensController';
-import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
+import {
+  selectSelectedInternalAccount,
+  selectInternalAccounts,
+} from '../../../selectors/accountsController';
+import { selectAddressBook } from '../../../selectors/addressBookController';
 import { selectSortedTransactions } from '../../../selectors/transactionController';
 import {
   selectEnabledNetworksByNamespace,
@@ -56,6 +60,8 @@ const TransactionsView = ({
   transactions,
   tokens,
   tokenNetworkFilter,
+  addressBook,
+  internalAccounts,
 }) => {
   const [allTransactions, setAllTransactions] = useState([]);
   const [submittedTxs, setSubmittedTxs] = useState([]);
@@ -72,6 +78,11 @@ const TransactionsView = ({
 
   const selectedAddress = toChecksumHexAddress(
     selectedInternalAccount?.address,
+  );
+
+  // Compute array of internal account addresses
+  const internalAccountAddresses = internalAccounts.map(
+    (account) => account.address,
   );
 
   const filterTransactions = useCallback(() => {
@@ -94,6 +105,8 @@ const TransactionsView = ({
         tokenNetworkFilter,
         allTransactionsSorted,
         bridgeHistory,
+        addressBook,
+        internalAccountAddresses,
       );
 
       if (!filter) return false;
@@ -189,6 +202,8 @@ const TransactionsView = ({
     tokenNetworkFilter,
     enabledNetworksByNamespace,
     bridgeHistory,
+    addressBook,
+    internalAccountAddresses,
   ]);
 
   useEffect(() => {
@@ -246,6 +261,14 @@ TransactionsView.propTypes = {
    * Array of network tokens filter
    */
   tokenNetworkFilter: PropTypes.object,
+  /**
+   * Address book from AddressBookController
+   */
+  addressBook: PropTypes.object,
+  /**
+   * Internal accounts from AccountsController
+   */
+  internalAccounts: PropTypes.array,
 };
 
 const mapStateToProps = (state) => {
@@ -278,6 +301,8 @@ const mapStateToProps = (state) => {
       (acc, network) => ({ ...acc, [network]: true }),
       {},
     ),
+    addressBook: selectAddressBook(state),
+    internalAccounts: selectInternalAccounts(state),
   };
 };
 
