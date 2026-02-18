@@ -371,10 +371,10 @@ const AccountsMenu = () => {
           {rampUnifiedV1Enabled && (
             <Box style={tw.style('mb-2 flex-1')}>
               <MainActionButton
-                iconName={LocalIconName.Download}
-                label={strings('accounts_menu.deposit')}
+                iconName={LocalIconName.AttachMoney}
+                label={strings('accounts_menu.buy')}
                 onPress={onPressDeposit}
-                testID={AccountsMenuSelectorsIDs.DEPOSIT_BUTTON}
+                testID={AccountsMenuSelectorsIDs.BUY_BUTTON}
               />
             </Box>
           )}

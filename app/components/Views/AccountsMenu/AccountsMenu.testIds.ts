@@ -8,7 +8,7 @@ export const AccountsMenuSelectorsIDs = {
   BACK_BUTTON: 'accounts-menu-back-button',
 
   // Quick Actions
-  DEPOSIT_BUTTON: 'deposit-button',
+  BUY_BUTTON: 'buy-button',
   EARN_BUTTON: 'earn-button',
   NOTIFICATIONS_BUTTON: 'notifications-button',
 

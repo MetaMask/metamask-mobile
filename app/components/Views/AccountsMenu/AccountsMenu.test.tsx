@@ -250,28 +250,28 @@ describe('AccountsMenu', () => {
     });
   });
 
-  describe('Deposit Button', () => {
-    it('render Deposit button when rampUnifiedV1Enabled is true', () => {
+  describe('Buy Button', () => {
+    it('render Buy button when rampUnifiedV1Enabled is true', () => {
       jest.mocked(useRampsUnifiedV1Enabled).mockReturnValue(true);
 
       const { getByText, getByTestId } = render(<AccountsMenu />);
 
-      expect(getByText('accounts_menu.deposit')).toBeOnTheScreen();
+      expect(getByText('accounts_menu.buy')).toBeOnTheScreen();
       expect(
-        getByTestId(AccountsMenuSelectorsIDs.DEPOSIT_BUTTON),
+        getByTestId(AccountsMenuSelectorsIDs.BUY_BUTTON),
       ).toBeOnTheScreen();
     });
 
-    it('does NOT render Deposit button when rampUnifiedV1Enabled is false', () => {
+    it('does NOT render Buy button when rampUnifiedV1Enabled is false', () => {
       jest.mocked(useRampsUnifiedV1Enabled).mockReturnValue(false);
 
       const { queryByText, queryByTestId } = render(<AccountsMenu />);
 
-      expect(queryByText('accounts_menu.deposit')).toBeNull();
-      expect(queryByTestId(AccountsMenuSelectorsIDs.DEPOSIT_BUTTON)).toBeNull();
+      expect(queryByText('accounts_menu.buy')).toBeNull();
+      expect(queryByTestId(AccountsMenuSelectorsIDs.BUY_BUTTON)).toBeNull();
     });
 
-    it('navigate to buy flow and track analytics when Deposit is pressed', () => {
+    it('navigate to buy flow and track analytics when Buy is pressed', () => {
       jest.mocked(useRampsUnifiedV1Enabled).mockReturnValue(true);
 
       // Clear previous calls
@@ -279,11 +279,9 @@ describe('AccountsMenu', () => {
       mockTrackEvent.mockClear();
 
       const { getByTestId } = render(<AccountsMenu />);
-      const depositButton = getByTestId(
-        AccountsMenuSelectorsIDs.DEPOSIT_BUTTON,
-      );
+      const buyButton = getByTestId(AccountsMenuSelectorsIDs.BUY_BUTTON);
 
-      fireEvent.press(depositButton);
+      fireEvent.press(buyButton);
 
       // Verify goToBuy was called
       expect(mockGoToBuy).toHaveBeenCalled();
@@ -294,7 +292,7 @@ describe('AccountsMenu', () => {
       expect(trackEventCall).toBeDefined();
     });
 
-    it('track RAMPS_BUTTON_CLICKED event with correct properties when Deposit is pressed', () => {
+    it('track RAMPS_BUTTON_CLICKED event with correct properties when Buy is pressed', () => {
       jest.mocked(useRampsUnifiedV1Enabled).mockReturnValue(true);
 
       mockCreateEventBuilder.mockClear();
@@ -311,11 +309,9 @@ describe('AccountsMenu', () => {
       });
 
       const { getByTestId } = render(<AccountsMenu />);
-      const depositButton = getByTestId(
-        AccountsMenuSelectorsIDs.DEPOSIT_BUTTON,
-      );
+      const buyButton = getByTestId(AccountsMenuSelectorsIDs.BUY_BUTTON);
 
-      fireEvent.press(depositButton);
+      fireEvent.press(buyButton);
 
       // Verify event builder was called with correct event
       expect(mockCreateEventBuilder).toHaveBeenCalled();
