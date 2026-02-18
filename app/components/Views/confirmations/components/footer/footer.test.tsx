@@ -67,6 +67,12 @@ jest.mock('../../hooks/metrics/useConfirmationAlertMetrics', () => ({
 
 jest.mock('../../hooks/pay/useTransactionPayData');
 
+jest.mock('../../hooks/ui/useFullScreenConfirmation', () => ({
+  useFullScreenConfirmation: jest.fn(() => ({
+    isFullScreenConfirmation: true,
+  })),
+}));
+
 const mockTrackAlertMetrics = jest.fn();
 
 (useConfirmationAlertMetrics as jest.Mock).mockReturnValue({
