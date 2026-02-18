@@ -41,7 +41,6 @@ export interface MusdMaxConversionParams {
 /**
  * Test IDs for the MusdMaxConversionInfo component.
  */
-// TODO: Consider centralizing these test IDs in a separate file later.
 export const MusdMaxConversionInfoTestIds = {
   CONTAINER: 'musd-max-conversion-info-container',
   ASSET_HEADER_SKELETON: 'musd-max-conversion-info-asset-header-skeleton',

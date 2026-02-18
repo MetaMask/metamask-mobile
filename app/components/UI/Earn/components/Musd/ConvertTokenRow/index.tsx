@@ -28,12 +28,21 @@ import { useStyles } from '../../../../../hooks/useStyles';
 import { getNetworkImageSource } from '../../../../../../util/networks';
 import { EarnNetworkAvatar } from '../../EarnNetworkAvatar';
 import styleSheet from './ConvertTokenRow.styles';
-import {
-  ConvertTokenRowProps,
-  ConvertTokenRowTestIds,
-} from './ConvertTokenRow.types';
+import { ConvertTokenRowProps } from './ConvertTokenRow.types';
 import useFiatFormatter from '../../../../SimulationDetails/FiatDisplay/useFiatFormatter';
 import BigNumber from 'bignumber.js';
+
+/**
+ * Test IDs for the ConvertTokenRow component.
+ */
+export const ConvertTokenRowTestIds = {
+  CONTAINER: 'convert-token-row-container',
+  TOKEN_ICON: 'convert-token-row-token-icon',
+  TOKEN_NAME: 'convert-token-row-token-name',
+  TOKEN_BALANCE: 'convert-token-row-token-balance',
+  MAX_BUTTON: 'convert-token-row-max-button',
+  EDIT_BUTTON: 'convert-token-row-edit-button',
+} as const;
 
 /**
  * A row component for displaying a token in the Quick Convert list.
@@ -102,7 +111,6 @@ const ConvertTokenRow: React.FC<ConvertTokenRowProps> = ({
               ellipsizeMode="tail"
               testID={ConvertTokenRowTestIds.TOKEN_BALANCE}
             >
-              {/* TODO: Determine if we want to fallback to the token balance if fiat isn't available. This may not be desired. */}
               {formatFiat(new BigNumber(token?.fiat?.balance ?? '0')) ??
                 `${token.balance} ${token.symbol}`}
             </Text>

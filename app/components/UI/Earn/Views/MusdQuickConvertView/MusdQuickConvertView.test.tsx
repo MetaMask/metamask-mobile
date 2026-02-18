@@ -6,7 +6,6 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import initialRootState from '../../../../../util/test/initial-root-state';
 import MusdQuickConvertView from './index';
 import { MusdQuickConvertViewTestIds } from './MusdQuickConvertView.types';
-import { ConvertTokenRowTestIds } from '../../components/Musd/ConvertTokenRow/ConvertTokenRow.types';
 import { AssetType } from '../../../../Views/confirmations/types/token';
 import { useMusdConversionTokens } from '../../hooks/useMusdConversionTokens';
 import { useMusdConversion } from '../../hooks/useMusdConversion';
@@ -23,6 +22,7 @@ import { Linking } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { strings } from '../../../../../../locales/i18n';
 import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../types/musd.types';
+import { ConvertTokenRowTestIds } from '../../components/Musd/ConvertTokenRow';
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
