@@ -411,7 +411,9 @@ exports[`AppInformation renders correctly with snapshot 1`] = `
                                   "textAlign": "left",
                                 }
                               }
-                            />
+                            >
+                              MetaMask v7.0.0 (1000)
+                            </Text>
                             <Text
                               style={
                                 {
