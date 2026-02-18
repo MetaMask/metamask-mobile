@@ -10,7 +10,6 @@ import { strings } from '../../../../locales/i18n';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { passwordRequirementsMet } from '../../../util/password';
 import StorageWrapper from '../../../store/storage-wrapper';
-import { setAllowLoginWithRememberMe } from '../../../actions/security';
 import { passcodeType } from '../../../util/authentication';
 import {
   TraceName,
@@ -251,11 +250,11 @@ jest.mock('../../hooks/useMetrics', () => {
     }),
     withMetricsAwareness:
       <P extends Record<string, unknown>>(Component: React.ComponentType<P>) =>
-      (props: P) =>
-        ReactModule.createElement(Component, {
-          ...props,
-          metrics: mockMetrics,
-        }),
+        (props: P) =>
+          ReactModule.createElement(Component, {
+            ...props,
+            metrics: mockMetrics,
+          }),
     MetaMetricsEvents: jest.requireActual(
       '../../../core/Analytics/MetaMetrics.events',
     ).MetaMetricsEvents,
