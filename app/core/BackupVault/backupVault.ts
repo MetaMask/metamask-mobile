@@ -30,7 +30,7 @@ interface KeyringBackupResponse {
  */
 const _resetVaultBackup = async (): Promise<void> => {
   // Clear existing backup
-  await resetInternetCredentials(VAULT_BACKUP_KEY);
+  await resetInternetCredentials({ service: VAULT_BACKUP_KEY });
 };
 
 /**
@@ -38,7 +38,7 @@ const _resetVaultBackup = async (): Promise<void> => {
  */
 const _resetTemporaryVaultBackup = async (): Promise<void> => {
   // Clear temporary backup
-  await resetInternetCredentials(VAULT_BACKUP_TEMP_KEY);
+  await resetInternetCredentials({ service: VAULT_BACKUP_TEMP_KEY });
 };
 
 /**

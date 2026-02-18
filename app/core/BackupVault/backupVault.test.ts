@@ -50,9 +50,12 @@ jest.mock('react-native-keychain', () => ({
   getInternetCredentials: jest.fn(
     async (server: string) => mockKeychainState[server],
   ),
-  resetInternetCredentials: jest.fn(async (server: string) => {
-    delete mockKeychainState[server];
-  }),
+  resetInternetCredentials: jest.fn(
+    async (options: { service?: string; server?: string }) => {
+      const key = options.service ?? options.server;
+      if (key) delete mockKeychainState[key];
+    },
+  ),
 }));
 
 //TODO Mock the react-native-keychain module test the other functions inside backupVault
