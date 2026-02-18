@@ -114,13 +114,6 @@ function getBuildTypeFeatures() {
     }
     return featureSet;
   }
-
-  // Fallback: Bitrise / local (hardcoded sets by build type + environment)
-  const featureSet = getBuildTypeFeaturesFromEnv();
-  if (process.env.INCLUDE_SAMPLE_FEATURE === 'true') {
-    featureSet.add('sample-feature');
-  }
-  return featureSet;
 }
 
 /**
