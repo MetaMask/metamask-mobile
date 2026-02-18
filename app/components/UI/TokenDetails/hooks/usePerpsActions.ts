@@ -5,10 +5,7 @@ import {
   type UsePerpsMarketForAssetResult,
 } from '../../Perps/hooks/usePerpsMarketForAsset';
 import Routes from '../../../../constants/navigation/Routes';
-import {
-  PERPS_EVENT_VALUE,
-  type OrderDirection,
-} from '@metamask/perps-controller';
+import type { OrderDirection } from '@metamask/perps-controller';
 
 export interface UsePerpsActionsParams {
   /** Token symbol, or null to skip the perps market check */
@@ -62,7 +59,6 @@ export const usePerpsActions = ({
         params: {
           direction,
           asset: marketData.symbol,
-          source: PERPS_EVENT_VALUE.SOURCE.ASSET_DETAIL_SCREEN,
           ...(abTestTokenDetailsLayout && {
             ab_test_token_details_layout: abTestTokenDetailsLayout,
           }),

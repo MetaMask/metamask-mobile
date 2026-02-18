@@ -164,16 +164,12 @@ interface OrderRouteParams {
   limitPriceUpdate?: string;
   // Hide TP/SL when modifying existing position
   hideTPSL?: boolean;
-  /** Analytics source - e.g. 'asset_detail_screen' when coming from Token Details */
-  source?: string;
   /** A/B test variant for token details layout - e.g. 'control' or 'treatment' */
   ab_test_token_details_layout?: string;
 }
 
 interface PerpsOrderViewContentProps {
   hideTPSL?: boolean;
-  /** Analytics source passed from navigation (e.g. 'asset_detail_screen') */
-  routeSource?: string;
   /** A/B test variant for token details layout */
   routeAbTestTokenDetailsLayout?: string;
 }
@@ -191,15 +187,12 @@ interface PerpsOrderViewContentProps {
  */
 const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   hideTPSL = false,
-  routeSource,
   routeAbTestTokenDetailsLayout,
 }) => {
-  // Use route source if provided (e.g. from Token Details), otherwise auto-detect from trending session
-  const source =
-    routeSource ??
-    (TrendingFeedSessionManager.getInstance().isFromTrending
-      ? 'trending'
-      : undefined);
+  // Auto-detect source based on trending session state
+  const source = TrendingFeedSessionManager.getInstance().isFromTrending
+    ? 'trending'
+    : undefined;
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
@@ -1812,7 +1805,6 @@ const PerpsOrderView: React.FC = () => {
     leverage: paramLeverage,
     existingPosition,
     hideTPSL = false,
-    source: routeSource,
     ab_test_token_details_layout: routeAbTestTokenDetailsLayout,
   } = route.params || {};
 
@@ -1833,7 +1825,6 @@ const PerpsOrderView: React.FC = () => {
     >
       <PerpsOrderViewContent
         hideTPSL={hideTPSL}
-        routeSource={routeSource}
         routeAbTestTokenDetailsLayout={routeAbTestTokenDetailsLayout}
       />
     </PerpsOrderProvider>

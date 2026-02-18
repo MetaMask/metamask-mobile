@@ -220,8 +220,6 @@ export interface PerpsNavigationParamList extends ParamListBase {
   PerpsOrderRedirect: {
     direction: 'long' | 'short';
     asset: string;
-    /** Analytics source - e.g. 'asset_detail_screen' when coming from Token Details */
-    source?: string;
     /** A/B test variant for token details layout - e.g. 'control' or 'treatment' */
     ab_test_token_details_layout?: string;
   };
