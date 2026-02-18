@@ -25,9 +25,16 @@ const SUPPORTED_MUSD_CHAIN_IDS = [
 ] as const;
 
 /**
- * Hook to check if the user has any MUSD token balance across supported chains.
- * @returns Object containing hasAnyMusdBalance boolean and balancesByChain for detailed balance info.
- * Also includes per-chain and aggregated token + fiat balance values.
+ * Hook to get MUSD token balance across supported chains (Mainnet, Linea).
+ * @returns Object containing:
+ * - hasMusdBalanceOnAnyChain: true if the user has MUSD on any supported chain
+ * - hasMusdBalanceOnChain: (chainId) => true if the user has MUSD on that chain
+ * - tokenBalanceByChain: per-chain token balance decimal strings
+ * - fiatBalanceByChain: per-chain fiat balance decimal strings
+ * - fiatBalanceFormattedByChain: per-chain fiat balance locale-formatted currency strings
+ * - tokenBalanceAggregated: sum of token balance across chains (string)
+ * - fiatBalanceAggregated: sum of fiat value across chains (string, or undefined if no rates)
+ * - fiatBalanceAggregatedFormatted: aggregated fiat value as locale-formatted currency string
  */
 export const useMusdBalance = () => {
   const selectedEvmAddress = useSelector(
