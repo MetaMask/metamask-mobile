@@ -51,8 +51,8 @@ import { selectMultichainAssetsRates } from '../../../../selectors/multichain';
 import Tag from '../../../../component-library/components/Tags/Tag';
 import { ACCOUNT_TYPE_LABELS } from '../../../../constants/account-type-labels';
 import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
-import StockBadge from '../../shared/StockBadge';
 import { BridgeToken } from '../../Bridge/types';
+import StockBadge from '../../shared/StockBadge';
 
 export const ACCOUNT_TYPE_LABEL_TEST_ID = 'account-type-label';
 
