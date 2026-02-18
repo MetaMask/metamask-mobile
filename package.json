@@ -757,8 +757,8 @@
   },
   "previewBuilds": {
     "@metamask/network-controller": {
-      "type": "non-breaking",
-      "previewVersion": "29.0.0-preview-33dbba4f3"
+      "type": "breaking",
+      "previewVersion": "29.0.0-preview-d9075b666"
     }
   }
 }
