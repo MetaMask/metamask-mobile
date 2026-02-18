@@ -122,6 +122,7 @@ import {
   selectHomepageSectionsV1Enabled,
 } from '../../../selectors/featureFlagController/homepage';
 import Homepage from '../Homepage';
+import { SectionRefreshHandle } from '../Homepage/types';
 import AccountGroupBalance from '../../UI/Assets/components/Balance/AccountGroupBalance';
 import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../hooks/useCheckMultiRpcModal';
@@ -1070,7 +1071,7 @@ const Wallet = ({
     selectHomepageSectionsV1Enabled,
   );
 
-  const homepageRef = useRef<{ refresh: () => Promise<void> }>(null);
+  const homepageRef = useRef<SectionRefreshHandle>(null);
 
   // Enable parent scroll when homepage redesign or sections feature flags are enabled
   const shouldEnableParentScroll =
