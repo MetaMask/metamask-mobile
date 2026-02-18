@@ -72,10 +72,7 @@ describe('DropPrerequisiteItem', () => {
 
   it('renders skeleton when loading', () => {
     const { getByTestId } = render(
-      <DropPrerequisiteItem
-        prerequisite={createMockPrerequisite()}
-        loading
-      />,
+      <DropPrerequisiteItem prerequisite={createMockPrerequisite()} loading />,
     );
 
     expect(getByTestId('drop-prerequisite-item-skeleton')).toBeOnTheScreen();
@@ -102,7 +99,9 @@ describe('DropPrerequisiteItem', () => {
       />,
     );
 
-    expect(getByTestId('drop-prerequisite-item-progress-badge')).toBeOnTheScreen();
+    expect(
+      getByTestId('drop-prerequisite-item-progress-badge'),
+    ).toBeOnTheScreen();
   });
 
   it('hides progress badge when hideStatus is true', () => {

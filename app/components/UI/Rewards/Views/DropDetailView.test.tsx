@@ -16,7 +16,11 @@ jest.mock('@metamask/design-system-react-native', () => ({
   ButtonIcon: 'ButtonIcon',
   TextVariant: { BodyMd: 'BodyMd', BodySm: 'BodySm', HeadingMd: 'HeadingMd' },
   FontWeight: { Medium: 'Medium' },
-  IconName: { Question: 'Question', MountainFlag: 'MountainFlag', ArrowDown: 'ArrowDown' },
+  IconName: {
+    Question: 'Question',
+    MountainFlag: 'MountainFlag',
+    ArrowDown: 'ArrowDown',
+  },
   IconSize: { Lg: 'Lg', Sm: 'Sm' },
   BoxFlexDirection: { Row: 'Row', Column: 'Column' },
   ButtonIconSize: { Lg: 'Lg' },
@@ -72,23 +76,41 @@ jest.mock('../../../../component-library/components/Skeleton', () => ({
 }));
 
 jest.mock('../components/DropTile/DropTile', () => 'DropTile');
-jest.mock('../components/DropPrerequisite/DropPrerequisiteList', () => 'DropPrerequisiteList');
+jest.mock(
+  '../components/DropPrerequisite/DropPrerequisiteList',
+  () => 'DropPrerequisiteList',
+);
 jest.mock('../components/RewardsErrorBanner', () => 'RewardsErrorBanner');
-jest.mock('../components/DropCTAButtons/DropCTAButtons', () => 'DropCTAButtons');
+jest.mock(
+  '../components/DropCTAButtons/DropCTAButtons',
+  () => 'DropCTAButtons',
+);
 jest.mock('../components/DropLeaderboard', () => 'DropLeaderboard');
 
-jest.mock('../../../../component-library/components/BottomSheets/BottomSheet', () => {
-  const React = require('react');
-  const BottomSheet = React.forwardRef(
-    ({ children }: { children: React.ReactNode }, _ref: React.Ref<unknown>) =>
-      React.createElement('BottomSheet', null, children),
-  );
-  BottomSheet.displayName = 'BottomSheet';
-  return { __esModule: true, default: BottomSheet };
-});
-jest.mock('../../../../component-library/components/BottomSheets/BottomSheetHeader', () => 'BottomSheetHeader');
-jest.mock('../../../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList', () => 'MultichainAccountSelectorList');
-jest.mock('../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount', () => 'AvatarAccount');
+jest.mock(
+  '../../../../component-library/components/BottomSheets/BottomSheet',
+  () => {
+    const React = require('react');
+    const BottomSheet = React.forwardRef(
+      ({ children }: { children: React.ReactNode }, _ref: React.Ref<unknown>) =>
+        React.createElement('BottomSheet', null, children),
+    );
+    BottomSheet.displayName = 'BottomSheet';
+    return { __esModule: true, default: BottomSheet };
+  },
+);
+jest.mock(
+  '../../../../component-library/components/BottomSheets/BottomSheetHeader',
+  () => 'BottomSheetHeader',
+);
+jest.mock(
+  '../../../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList',
+  () => 'MultichainAccountSelectorList',
+);
+jest.mock(
+  '../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount',
+  () => 'AvatarAccount',
+);
 jest.mock('../../../../component-library/components/Avatars/Avatar', () => ({
   AvatarSize: { Md: 'Md' },
 }));
@@ -268,7 +290,11 @@ describe('DropDetailView', () => {
       fetchDrops: jest.fn(),
     });
     (useDropEligibility as jest.Mock).mockReturnValue({
-      eligibility: { eligible: false, canCommit: true, prerequisiteStatuses: [] },
+      eligibility: {
+        eligible: false,
+        canCommit: true,
+        prerequisiteStatuses: [],
+      },
       isLoading: false,
       error: null,
       refetch: jest.fn(),
@@ -292,7 +318,11 @@ describe('DropDetailView', () => {
       fetchDrops: jest.fn(),
     });
     (useDropEligibility as jest.Mock).mockReturnValue({
-      eligibility: { eligible: true, canCommit: true, prerequisiteStatuses: [] },
+      eligibility: {
+        eligible: true,
+        canCommit: true,
+        prerequisiteStatuses: [],
+      },
       isLoading: false,
       error: null,
       refetch: jest.fn(),
@@ -317,7 +347,11 @@ describe('DropDetailView', () => {
       fetchDrops: jest.fn(),
     });
     (useDropEligibility as jest.Mock).mockReturnValue({
-      eligibility: { eligible: false, canCommit: false, prerequisiteStatuses: [] },
+      eligibility: {
+        eligible: false,
+        canCommit: false,
+        prerequisiteStatuses: [],
+      },
       isLoading: false,
       error: 'Failed to load eligibility',
       refetch: jest.fn(),
@@ -341,7 +375,11 @@ describe('DropDetailView', () => {
       fetchDrops: jest.fn(),
     });
     (useDropEligibility as jest.Mock).mockReturnValue({
-      eligibility: { eligible: true, canCommit: true, prerequisiteStatuses: [] },
+      eligibility: {
+        eligible: true,
+        canCommit: true,
+        prerequisiteStatuses: [],
+      },
       isLoading: false,
       error: null,
       refetch: jest.fn(),

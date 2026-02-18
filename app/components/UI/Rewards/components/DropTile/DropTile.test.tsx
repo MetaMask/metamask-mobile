@@ -62,7 +62,9 @@ jest.mock('../../../../../reducers/rewards', () => ({
   DROP_LEADERBOARD_RANK_TBD: -1,
 }));
 
-const createMockDrop = (overrides: Partial<SeasonDropDto> = {}): SeasonDropDto =>
+const createMockDrop = (
+  overrides: Partial<SeasonDropDto> = {},
+): SeasonDropDto =>
   ({
     id: 'drop-1',
     name: 'Test Drop',

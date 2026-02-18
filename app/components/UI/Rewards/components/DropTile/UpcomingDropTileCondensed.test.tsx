@@ -33,7 +33,9 @@ jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
 }));
 
-const createMockDrop = (overrides: Partial<SeasonDropDto> = {}): SeasonDropDto =>
+const createMockDrop = (
+  overrides: Partial<SeasonDropDto> = {},
+): SeasonDropDto =>
   ({
     id: 'drop-1',
     name: 'Upcoming Drop',
