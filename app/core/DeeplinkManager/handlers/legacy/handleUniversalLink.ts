@@ -530,6 +530,12 @@ async function handleUniversalLink({
       // slash (https://...app.link/dapp/https://x.com → .../dapp/https:/x.com),
       // so we check for both http:// and http:/ patterns.
       const pathAfterAction = urlObj.href.replace(`${BASE_URL_ACTION}/`, '');
+
+      // Guard: no domain was supplied after /dapp/ — nothing to open.
+      if (!pathAfterAction) {
+        return;
+      }
+
       const hasProtocol = /^https?:\/\/?/.test(pathAfterAction);
       const deeplinkUrl = hasProtocol
         ? pathAfterAction.replace(/^(https?:\/)([^/])/, '$1/$2')

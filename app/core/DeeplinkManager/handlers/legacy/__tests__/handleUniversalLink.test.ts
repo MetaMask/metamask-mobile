@@ -574,6 +574,31 @@ describe('handleUniversalLink', () => {
         });
       },
     );
+
+    it.each(domains)(
+      'does NOT call handleBrowserUrl when no domain follows /dapp/ for $description',
+      async ({ domain }) => {
+        // URL ends with /dapp/ and nothing after — pathAfterAction is empty.
+        const fullUrl = `${PROTOCOLS.HTTPS}://${domain}/${ACTIONS.DAPP}/`;
+        const dappUrlObj = {
+          ...urlObj,
+          hostname: domain,
+          href: fullUrl,
+          pathname: `/${ACTIONS.DAPP}/`,
+        };
+
+        await handleUniversalLink({
+          instance,
+          handled,
+          urlObj: dappUrlObj,
+          browserCallBack: mockBrowserCallBack,
+          url: fullUrl,
+          source: 'test-source',
+        });
+
+        expect(mockHandleBrowserUrl).not.toHaveBeenCalled();
+      },
+    );
   });
 
   describe('ACTIONS.CREATE_ACCOUNT', () => {
