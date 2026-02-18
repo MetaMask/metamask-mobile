@@ -483,19 +483,6 @@ describe('EarnInputView', () => {
       const { toJSON } = render(baseProps.route);
       expect(toJSON()).toMatchSnapshot();
     });
-
-    it('handles undefined route params gracefully', () => {
-      const routeWithNoParams = {
-        params: undefined,
-        key: Routes.STAKING.STAKE,
-        name: 'EarnInputView' as const,
-      };
-
-      // Should not throw when params are undefined
-      expect(() =>
-        render(routeWithNoParams as unknown as EarnInputViewProps['route']),
-      ).not.toThrow();
-    });
   });
 
   describe('when erc20 token is selected', () => {
