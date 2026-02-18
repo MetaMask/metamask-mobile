@@ -173,6 +173,9 @@ const DeviceSecurityToggle = ({
       ) : (
         <SecurityOptionToggle
           title={capabilities.authLabel}
+          description={strings(
+            'app_settings.enable_device_authentication_desc',
+          )}
           value={displayValue}
           onOptionUpdated={onDeviceSecurityToggle}
           testId={SecurityPrivacyViewSelectorsIDs.DEVICE_SECURITY_TOGGLE}
