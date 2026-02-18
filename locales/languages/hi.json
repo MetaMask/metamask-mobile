@@ -6298,19 +6298,7 @@
       "standardAccountLabel": "Standard account",
       "switch": "बदलें",
       "switchBack": "वापस स्विच करें",
-      "splashpage": {
-        "accept": "हां",
-        "betterTransaction": "तेज़ ट्रांसेक्शन, कम शुल्क",
-        "betterTransactionDescription": "एक साथ ट्रांसेक्शन प्रोसेस करके समय और धन की बचत करें।",
-        "featuresDescription": "अपना अकाउंट एड्रेस वही रखें और आप किसी भी समय वापस स्विच कर सकते हैं।",
-        "payToken": "किसी भी टोकन से, किसी भी समय भुगतान करें",
-        "payTokenDescription": "नेटवर्क शुल्क को कवर करने के लिए आपके पास पहले से मौजूद टोकन का उपयोग करें।",
-        "reject": "नहीं",
-        "sameAccount": "वही अकाउंट, अधिक स्मार्ट फीचर्स।",
-        "splashTitle": "स्मार्ट अकाउंट का उपयोग करें?"
-      },
       "includes_transaction": "{{transactionCount}} ट्रांसेक्शन शामिल हैं",
-      "useSmartAccount": "स्मार्ट अकाउंट का उपयोग करें",
       "successful": "सफल",
       "success_message": "आपके अगले ट्रांसेक्शन के साथ आपका अकाउंट स्मार्ट अकाउंट में अपडेट हो जाएगा।"
     },
