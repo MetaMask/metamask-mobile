@@ -108,7 +108,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
 
   // active positions
   const {
-    positions: activePositions,
+    data: activePositions = [],
     isLoading: isActivePositionsLoading,
     refetch: refetchActivePositions,
   } = usePredictPositions({
@@ -119,7 +119,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
 
   // "claimable" positions
   const {
-    positions: claimablePositions,
+    data: claimablePositions = [],
     isLoading: isClaimablePositionsLoading,
     refetch: refetchClaimablePositions,
   } = usePredictPositions({

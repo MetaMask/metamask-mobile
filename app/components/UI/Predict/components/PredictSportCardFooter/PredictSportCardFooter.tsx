@@ -50,13 +50,13 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
     ? PredictEventValues.ENTRY_POINT.TRENDING
     : baseEntryPoint;
 
-  const { positions, isLoading } = usePredictPositions({
+  const { data: positions = [], isLoading } = usePredictPositions({
     marketId: market.id,
     claimable: false,
-    autoRefreshTimeout: 10000,
+    refetchInterval: 10000,
   });
 
-  const { positions: claimablePositions } = usePredictPositions({
+  const { data: claimablePositions = [] } = usePredictPositions({
     marketId: market.id,
     claimable: true,
   });

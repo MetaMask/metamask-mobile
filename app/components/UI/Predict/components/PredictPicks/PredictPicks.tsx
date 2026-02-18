@@ -23,12 +23,12 @@ const PredictPicks: React.FC<PredictPicksProps> = ({
   market,
   testID = 'predict-picks',
 }) => {
-  const { positions } = usePredictPositions({
+  const { data: positions = [] } = usePredictPositions({
     marketId: market.id,
     claimable: false,
-    autoRefreshTimeout: 10000,
+    refetchInterval: 10000,
   });
-  const { positions: claimablePositions } = usePredictPositions({
+  const { data: claimablePositions = [] } = usePredictPositions({
     marketId: market.id,
     claimable: true,
   });

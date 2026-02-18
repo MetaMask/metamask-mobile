@@ -37,15 +37,15 @@ const PredictHomePositions = forwardRef<
   const featuredVariant = useSelector(selectPredictHomeFeaturedVariant);
 
   const {
-    positions: activePositions,
-    isRefreshing,
+    data: activePositions = [],
+    isRefetching: isRefreshing,
     refetch,
     isLoading: isActiveLoading,
     error: activeError,
   } = usePredictPositions({ claimable: false });
 
   const {
-    positions: claimablePositions,
+    data: claimablePositions = [],
     isLoading: isClaimableLoading,
     error: claimableError,
   } = usePredictPositions({ claimable: true });
@@ -55,8 +55,9 @@ const PredictHomePositions = forwardRef<
     activePositions.length > 0 || claimablePositions.length > 0;
 
   useEffect(() => {
-    const combinedError = activeError || claimableError || accountStateError;
-    onError?.(combinedError);
+    const combinedError =
+      activeError?.message || claimableError?.message || accountStateError;
+    onError?.(combinedError ?? null);
   }, [activeError, claimableError, accountStateError, onError]);
 
   useImperativeHandle(ref, () => ({
