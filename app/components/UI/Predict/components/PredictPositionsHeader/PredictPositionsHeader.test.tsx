@@ -56,24 +56,24 @@ jest.mock('../../hooks/usePredictDeposit', () => ({
   },
 }));
 
-const mockLoadBalance = jest.fn();
 const mockBalanceResult: {
-  balance: number | undefined;
-  loadBalance: jest.Mock;
+  data: number | undefined;
   isLoading: boolean;
-  hasNoBalance: boolean;
-  isRefreshing: boolean;
-  error: string | null;
+  error: { message: string } | null;
 } = {
-  balance: 100.5,
-  loadBalance: mockLoadBalance,
+  data: 100.5,
   isLoading: false,
-  hasNoBalance: false,
-  isRefreshing: false,
   error: null,
 };
 jest.mock('../../hooks/usePredictBalance', () => ({
   usePredictBalance: () => mockBalanceResult,
+}));
+
+const mockInvalidateQueries = jest.fn();
+jest.mock('@tanstack/react-query', () => ({
+  useQueryClient: () => ({
+    invalidateQueries: mockInvalidateQueries,
+  }),
 }));
 
 const mockExecuteGuardedAction = jest.fn(async (action) => await action());
@@ -187,7 +187,7 @@ describe('MarketsWonCard', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockBalanceResult.balance = 100.5;
+    mockBalanceResult.data = 100.5;
     mockBalanceResult.isLoading = false;
 
     mockUseUnrealizedPnL.mockReturnValue({
@@ -221,7 +221,7 @@ describe('MarketsWonCard', () => {
     });
 
     it('displays formatted balance value', () => {
-      mockBalanceResult.balance = 1234.56;
+      mockBalanceResult.data = 1234.56;
       const state = createTestState(1234.56);
 
       renderWithProvider(<MarketsWonCard />, { state });
@@ -285,7 +285,6 @@ describe('MarketsWonCard', () => {
 
       await ref.current?.refresh();
 
-      expect(mockLoadBalance).toHaveBeenCalledWith({ isRefresh: true });
       expect(mockLoadUnrealizedPnL).toHaveBeenCalledWith({ isRefresh: true });
     });
   });
@@ -293,7 +292,7 @@ describe('MarketsWonCard', () => {
   describe('loading states', () => {
     it('displays skeleton loader when balance is loading', () => {
       mockBalanceResult.isLoading = true;
-      mockBalanceResult.balance = 100.5;
+      mockBalanceResult.data = 100.5;
       const state = createTestState(100.5);
 
       renderWithProvider(<MarketsWonCard />, { state });
@@ -324,7 +323,7 @@ describe('MarketsWonCard', () => {
 
   describe('empty state', () => {
     it('returns null when no data is available', () => {
-      mockBalanceResult.balance = undefined;
+      mockBalanceResult.data = undefined;
       mockBalanceResult.isLoading = false;
       mockUseUnrealizedPnL.mockReturnValue({
         unrealizedPnL: null,
@@ -344,8 +343,8 @@ describe('MarketsWonCard', () => {
   describe('error handling', () => {
     it('calls onError callback when balance error occurs', () => {
       const mockOnError = jest.fn();
-      mockBalanceResult.error = 'Balance fetch failed';
-      mockBalanceResult.balance = 100.5;
+      mockBalanceResult.error = { message: 'Balance fetch failed' };
+      mockBalanceResult.data = 100.5;
       const state = createTestState(100.5);
 
       renderWithProvider(<MarketsWonCard onError={mockOnError} />, { state });
@@ -356,7 +355,7 @@ describe('MarketsWonCard', () => {
     it('calls onError callback when P&L error occurs', () => {
       const mockOnError = jest.fn();
       mockBalanceResult.error = null;
-      mockBalanceResult.balance = 100.5;
+      mockBalanceResult.data = 100.5;
       mockUseUnrealizedPnL.mockReturnValue({
         unrealizedPnL: {
           user: '0x1234567890123456789012345678901234567890',
@@ -377,8 +376,8 @@ describe('MarketsWonCard', () => {
 
     it('prioritizes balance error over P&L error', () => {
       const mockOnError = jest.fn();
-      mockBalanceResult.error = 'Balance error';
-      mockBalanceResult.balance = 100.5;
+      mockBalanceResult.error = { message: 'Balance error' };
+      mockBalanceResult.data = 100.5;
       mockUseUnrealizedPnL.mockReturnValue({
         unrealizedPnL: {
           user: '0x1234567890123456789012345678901234567890',

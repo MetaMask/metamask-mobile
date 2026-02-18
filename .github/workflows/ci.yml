@@ -187,9 +187,9 @@ jobs:
           else
             echo "No changes detected"
           fi
-  merge-unit-tests:
+  merge-unit-and-component-view-tests:
     runs-on: ubuntu-latest
-    needs: [unit-tests, component-view-test]
+    needs: [unit-tests, cv-test]
     if: ${{ !cancelled() && github.event_name != 'merge_group' }}
     steps:
       - uses: actions/checkout@v3
@@ -231,8 +231,11 @@ jobs:
           fi
   needs_e2e_build:
     uses: ./.github/workflows/needs-e2e-build.yml
-  component-view-test:
+  cv-test:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        shard: [1, 2]
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -248,23 +251,54 @@ jobs:
           command: yarn install --immutable
       - name: Clean state and following up dependencies installation
         run: yarn setup:github-ci --node
-      - run: yarn test:view --forceExit --silent --coverageReporters=json
+      - run: yarn test:view:ci --shard=${{ matrix.shard }}/2
         env:
-          NODE_OPTIONS: --max_old_space_size=20480
-      - name: Rename coverage report and generate HTML
+          NODE_OPTIONS: --max-old-space-size=20480
+      - name: Rename coverage report for this shard
         shell: bash
         run: |
-          mv ./tests/coverage/coverage-final.json ./tests/coverage/coverage-component-view.json
-          yarn nyc report --temp-dir ./tests/coverage --report-dir ./tests/coverage-component-view-lcov --reporter html
+          mv ./tests/coverage/coverage-final.json ./tests/coverage/coverage-cv-test-${{ matrix.shard }}.json
       - uses: actions/upload-artifact@v4
         with:
-          name: coverage-view
-          path: ./tests/coverage/coverage-component-view.json
+          name: coverage-cv-test-${{ matrix.shard }}
+          path: ./tests/coverage/
           if-no-files-found: error
+  merge-cv-test-coverage:
+    runs-on: ubuntu-latest
+    needs: [cv-test]
+    if: ${{ !cancelled() && github.event_name != 'merge_group' }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version-file: '.nvmrc'
+          cache: yarn
+      - name: Install Yarn dependencies with retry
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn install --immutable
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: coverage-cv-test-*
+          path: tests/coverage-cv-test/
+      - name: Gather CV test shard coverage into one directory
+        shell: bash
+        run: |
+          mkdir -p tests/coverage-cv-test-merged
+          for d in tests/coverage-cv-test/coverage-cv-test-*; do
+            if [ -d "$d" ]; then
+              cp "$d"/*.json tests/coverage-cv-test-merged/ 2>/dev/null || true
+            fi
+          done
+      - name: Generate merged CV test HTML coverage report
+        run: yarn nyc report --temp-dir ./tests/coverage-cv-test-merged --report-dir ./tests/coverage-cv-test-lcov --reporter html
       - uses: actions/upload-artifact@v4
         with:
-          name: html-coverage-component-view
-          path: ./tests/coverage-component-view-lcov/
+          name: html-coverage-cv-test
+          path: ./tests/coverage-cv-test-lcov/
           if-no-files-found: error
   smart-e2e-selection:
     name: 'Smart E2E Selection'
@@ -467,7 +501,7 @@ jobs:
 
   sonar-cloud:
     runs-on: ubuntu-latest
-    needs: merge-unit-tests
+    needs: merge-unit-and-component-view-tests
     if: ${{ !cancelled() && github.event_name != 'merge_group' }}
     steps:
       - uses: actions/checkout@v3
@@ -585,7 +619,7 @@ jobs:
         dedupe,
         scripts,
         unit-tests,
-        component-view-test,
+        cv-test,
         check-workflows,
         js-bundle-size-check,
         sonar-cloud-quality-gate-status,
