@@ -81,6 +81,10 @@ jest.mock('../../../selectors/multichain/multichain', () => ({
 }));
 jest.mock('../../../selectors/accountsController', () => ({
   selectSelectedInternalAccount: jest.fn(),
+  selectInternalAccounts: jest.fn(),
+}));
+jest.mock('../../../selectors/addressBookController', () => ({
+  selectAddressBook: jest.fn(),
 }));
 jest.mock('../../../selectors/tokensController', () => ({
   selectTokens: jest.fn(),
@@ -289,8 +293,10 @@ const { selectSortedEVMTransactionsForSelectedAccountGroup } = jest.requireMock(
 const { selectNonEvmTransactionsForSelectedAccountGroup } = jest.requireMock(
   '../../../selectors/multichain/multichain',
 );
-const { selectSelectedInternalAccount } = jest.requireMock(
-  '../../../selectors/accountsController',
+const { selectSelectedInternalAccount, selectInternalAccounts } =
+  jest.requireMock('../../../selectors/accountsController');
+const { selectAddressBook } = jest.requireMock(
+  '../../../selectors/addressBookController',
 );
 const { selectSelectedAccountGroupInternalAccounts } = jest.requireMock(
   '../../../selectors/multichainAccounts/accountTreeController',
@@ -314,6 +320,7 @@ const { updateIncomingTransactions } = jest.requireMock(
   '../../../util/transaction-controller',
 );
 const networksMock = jest.requireMock('../../../util/networks');
+const { filterByAddress } = jest.requireMock('../../../util/activity');
 
 // Helper function to create selector mock implementation with defaults
 // Accepts an array of [selector, value] tuples for overrides
@@ -333,6 +340,8 @@ const createSelectorMock = (overrides: [unknown, unknown][] = []) => {
       return [{ address: '0xabc', type: 'eip155:eoa' }];
     if (selector === selectSelectedInternalAccount)
       return { address: '0xabc', metadata: { importTime: 0 } };
+    if (selector === selectInternalAccounts) return [{ address: '0xabc' }];
+    if (selector === selectAddressBook) return {};
     if (selector === selectTokens) return [];
     if (selector === selectEVMEnabledNetworks) return ['0x1'];
     if (selector === selectNonEVMEnabledNetworks) return ['solana:mainnet'];
@@ -394,6 +403,8 @@ describe('UnifiedTransactionsView', () => {
       if (selector === selectEVMEnabledNetworks) return ['0x1'];
       if (selector === selectNonEVMEnabledNetworks) return ['solana:mainnet'];
       if (selector === selectCurrentCurrency) return 'USD';
+      if (selector === selectInternalAccounts) return [{ address: '0xabc' }];
+      if (selector === selectAddressBook) return {};
       return undefined;
     });
   });
@@ -439,6 +450,8 @@ describe('UnifiedTransactionsView', () => {
       if (selector === selectEVMEnabledNetworks) return ['0x1'];
       if (selector === selectNonEVMEnabledNetworks) return ['solana:mainnet'];
       if (selector === selectCurrentCurrency) return 'USD';
+      if (selector === selectInternalAccounts) return [{ address: '0xabc' }];
+      if (selector === selectAddressBook) return {};
       return undefined;
     });
 
@@ -477,6 +490,8 @@ describe('UnifiedTransactionsView', () => {
         if (selector === selectEVMEnabledNetworks) return ['0x1'];
         if (selector === selectNonEVMEnabledNetworks) return ['solana:mainnet'];
         if (selector === selectCurrentCurrency) return 'USD';
+        if (selector === selectInternalAccounts) return [{ address: '0xabc' }];
+        if (selector === selectAddressBook) return {};
         return undefined;
       });
 
@@ -515,6 +530,8 @@ describe('UnifiedTransactionsView', () => {
         if (selector === selectEVMEnabledNetworks) return ['0x1'];
         if (selector === selectNonEVMEnabledNetworks) return ['solana:mainnet'];
         if (selector === selectCurrentCurrency) return 'USD';
+        if (selector === selectInternalAccounts) return [{ address: '0xabc' }];
+        if (selector === selectAddressBook) return {};
         return undefined;
       });
 
@@ -553,6 +570,8 @@ describe('UnifiedTransactionsView', () => {
         if (selector === selectEVMEnabledNetworks) return ['0x1'];
         if (selector === selectNonEVMEnabledNetworks) return ['solana:mainnet'];
         if (selector === selectCurrentCurrency) return 'USD';
+        if (selector === selectInternalAccounts) return [{ address: '0xabc' }];
+        if (selector === selectAddressBook) return {};
         return undefined;
       });
 
@@ -590,6 +609,8 @@ describe('UnifiedTransactionsView', () => {
         if (selector === selectEVMEnabledNetworks) return ['0x1'];
         if (selector === selectNonEVMEnabledNetworks) return ['solana:mainnet'];
         if (selector === selectCurrentCurrency) return 'USD';
+        if (selector === selectInternalAccounts) return [{ address: '0xabc' }];
+        if (selector === selectAddressBook) return {};
         return undefined;
       });
 
@@ -751,6 +772,8 @@ describe('UnifiedTransactionsView', () => {
       if (selector === selectEVMEnabledNetworks) return ['0x1'];
       if (selector === selectNonEVMEnabledNetworks) return ['solana:mainnet'];
       if (selector === selectCurrentCurrency) return 'USD';
+      if (selector === selectInternalAccounts) return [{ address: '0xabc' }];
+      if (selector === selectAddressBook) return {};
       return undefined;
     });
 
@@ -788,6 +811,8 @@ describe('UnifiedTransactionsView', () => {
       if (selector === selectEVMEnabledNetworks) return ['0x1'];
       if (selector === selectNonEVMEnabledNetworks) return [];
       if (selector === selectCurrentCurrency) return 'USD';
+      if (selector === selectInternalAccounts) return [{ address: '0xabc' }];
+      if (selector === selectAddressBook) return {};
       return undefined;
     });
 
@@ -833,6 +858,8 @@ describe('UnifiedTransactionsView', () => {
         if (selector === selectEVMEnabledNetworks) return ['0x5'];
         if (selector === selectNonEVMEnabledNetworks) return [];
         if (selector === selectCurrentCurrency) return 'USD';
+        if (selector === selectInternalAccounts) return [{ address: '0xabc' }];
+        if (selector === selectAddressBook) return {};
         return undefined;
       });
 
@@ -884,6 +911,8 @@ describe('UnifiedTransactionsView', () => {
         if (selector === selectEVMEnabledNetworks) return ['0x1', '0x5'];
         if (selector === selectNonEVMEnabledNetworks) return [];
         if (selector === selectCurrentCurrency) return 'USD';
+        if (selector === selectInternalAccounts) return [{ address: '0xabc' }];
+        if (selector === selectAddressBook) return {};
         return undefined;
       });
 
@@ -932,6 +961,8 @@ describe('UnifiedTransactionsView', () => {
       if (selector === selectEVMEnabledNetworks) return [];
       if (selector === selectNonEVMEnabledNetworks) return ['solana:mainnet'];
       if (selector === selectCurrentCurrency) return 'USD';
+      if (selector === selectInternalAccounts) return [{ address: '0xabc' }];
+      if (selector === selectAddressBook) return {};
       return undefined;
     });
 
@@ -979,6 +1010,8 @@ describe('UnifiedTransactionsView', () => {
       if (selector === selectNonEVMEnabledNetworks)
         return ['bip122:000000000019d6689c085ae165831e93'];
       if (selector === selectCurrentCurrency) return 'USD';
+      if (selector === selectInternalAccounts) return [{ address: '0xabc' }];
+      if (selector === selectAddressBook) return {};
       return undefined;
     });
 
@@ -1016,6 +1049,8 @@ describe('UnifiedTransactionsView', () => {
         if (selector === selectEVMEnabledNetworks) return [];
         if (selector === selectNonEVMEnabledNetworks) return [];
         if (selector === selectCurrentCurrency) return 'USD';
+        if (selector === selectInternalAccounts) return [{ address: '0xabc' }];
+        if (selector === selectAddressBook) return {};
         return undefined;
       });
 
@@ -1050,6 +1085,8 @@ describe('UnifiedTransactionsView', () => {
         if (selector === selectEVMEnabledNetworks) return [];
         if (selector === selectNonEVMEnabledNetworks) return [];
         if (selector === selectCurrentCurrency) return 'USD';
+        if (selector === selectInternalAccounts) return [{ address: '0xabc' }];
+        if (selector === selectAddressBook) return {};
         return undefined;
       });
 
@@ -1094,6 +1131,9 @@ describe('UnifiedTransactionsView', () => {
           if (selector === selectNonEVMEnabledNetworks)
             return ['solana:mainnet'];
           if (selector === selectCurrentCurrency) return 'USD';
+          if (selector === selectInternalAccounts)
+            return [{ address: '0xabc' }];
+          if (selector === selectAddressBook) return {};
           return undefined;
         });
 
@@ -1128,6 +1168,8 @@ describe('UnifiedTransactionsView', () => {
         if (selector === selectEVMEnabledNetworks) return ['0x1'];
         if (selector === selectNonEVMEnabledNetworks) return ['solana:mainnet'];
         if (selector === selectCurrentCurrency) return 'USD';
+        if (selector === selectInternalAccounts) return [{ address: '0xabc' }];
+        if (selector === selectAddressBook) return {};
         return undefined;
       });
 
@@ -1161,6 +1203,8 @@ describe('UnifiedTransactionsView', () => {
       if (selector === selectEVMEnabledNetworks) return ['0x1'];
       if (selector === selectNonEVMEnabledNetworks) return ['solana:mainnet'];
       if (selector === selectCurrentCurrency) return 'USD';
+      if (selector === selectInternalAccounts) return [{ address: '0xabc' }];
+      if (selector === selectAddressBook) return {};
       return undefined;
     });
 
@@ -1198,5 +1242,84 @@ describe('UnifiedTransactionsView', () => {
     rerender(<UnifiedTransactionsView />);
     expect(getByTestId('eip1559-modal')).toBeTruthy();
     (global as { __actionsState?: unknown }).__actionsState = undefined;
+  });
+
+  describe('token poisoning protection integration', () => {
+    it('passes addressBook and internalAccountAddresses from selectors to filterByAddress', () => {
+      const mockAddressBook = {
+        '0x1': {
+          '0x1234000000000000000000000000000000000001': {
+            address: '0x1234000000000000000000000000000000000001',
+            name: 'Friend',
+            chainId: '0x1',
+            memo: '',
+            isEns: false,
+          },
+        },
+      };
+      const mockInternalAccounts = [{ address: '0xabc' }, { address: '0xdef' }];
+
+      mockUseSelector.mockImplementation(
+        createSelectorMock([
+          [
+            selectSortedEVMTransactionsForSelectedAccountGroup,
+            [
+              {
+                id: 'tx1',
+                chainId: '0x1',
+                status: 'confirmed',
+                txParams: { from: '0xabc', nonce: '0x1' },
+                time: 1,
+              },
+            ],
+          ],
+          [selectAddressBook, mockAddressBook],
+          [selectInternalAccounts, mockInternalAccounts],
+        ]),
+      );
+
+      render(<UnifiedTransactionsView />);
+
+      expect(filterByAddress).toHaveBeenCalled();
+      const calls = (filterByAddress as jest.Mock).mock.calls;
+      // Every call should include the new addressBook and internalAccountAddresses args
+      // at positions 5 and 6 (0-indexed)
+      calls.forEach((args: unknown[]) => {
+        expect(args[5]).toEqual(mockAddressBook);
+        expect(args[6]).toEqual(['0xabc', '0xdef']);
+      });
+    });
+
+    it('hides EVM transaction when filterByAddress returns false for all account addresses', () => {
+      mockUseSelector.mockImplementation(
+        createSelectorMock([
+          [
+            selectSortedEVMTransactionsForSelectedAccountGroup,
+            [
+              {
+                id: 'tx-poisoned',
+                chainId: '0x1',
+                status: 'confirmed',
+                txParams: {
+                  from: '0x9999999999999999999999999999999999999999',
+                  to: '0xabc',
+                  nonce: '0x1',
+                },
+                time: 1,
+                isTransfer: true,
+                transferInformation: {
+                  contractAddress: '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
+                },
+              },
+            ],
+          ],
+        ]),
+      );
+
+      (filterByAddress as jest.Mock).mockReturnValueOnce(false);
+
+      const { queryAllByTestId } = render(<UnifiedTransactionsView />);
+      expect(queryAllByTestId(/evm-transaction-item-/).length).toBe(0);
+    });
   });
 });

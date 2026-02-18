@@ -1,4 +1,4 @@
-import { areAddressesEqual, toFormattedAddress } from '../../util/address';
+import { areAddressesEqual } from '../../util/address';
 import { TX_UNAPPROVED } from '../../constants/transaction';
 import {
   TransactionMeta,
@@ -72,9 +72,10 @@ export const isTrustedAddress = (
 
   // Check if address is in address book for this chain
   const networkAddressBook = addressBook[chainId] || {};
-  const formattedAddress = toFormattedAddress(address);
 
-  return !!networkAddressBook[formattedAddress];
+  return Object.values(networkAddressBook).some((entry) =>
+    areAddressesEqual(entry.address, address),
+  );
 };
 
 /**
