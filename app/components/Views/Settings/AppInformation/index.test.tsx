@@ -1,3 +1,4 @@
+import React from 'react';
 import { waitFor, fireEvent } from '@testing-library/react-native';
 import { Image, TouchableOpacity } from 'react-native';
 import renderWithProvider, {
