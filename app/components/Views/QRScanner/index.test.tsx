@@ -10,7 +10,7 @@ import { Linking } from 'react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import QrScanner from './';
 import { backgroundState } from '../../../util/test/initial-root-state';
-import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import { QRType, QRScannerEventProperties, ScanResult } from './constants';
 import Routes from '../../../constants/navigation/Routes';
 
@@ -46,9 +46,8 @@ jest.mock('react-native-vision-camera', () => ({
   useCodeScanner: jest.fn(),
 }));
 
-jest.mock('../../../components/hooks/useMetrics/useMetrics', () => ({
-  __esModule: true,
-  default: jest.fn(),
+jest.mock('../../../components/hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: jest.fn(),
 }));
 
 jest.mock('../../../core/Engine', () => ({
@@ -173,11 +172,12 @@ const initialState = {
   },
 };
 
-// Import useMetrics after mocking
-import useMetrics from '../../../components/hooks/useMetrics/useMetrics';
+import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import SharedDeeplinkManager from '../../../core/DeeplinkManager/DeeplinkManager';
 
-const mockUseMetrics = useMetrics as jest.MockedFunction<typeof useMetrics>;
+const mockUseAnalytics = useAnalytics as jest.MockedFunction<
+  typeof useAnalytics
+>;
 
 describe('QrScanner', () => {
   let onCodeScannedCallback: ((codes: { value: string }[]) => void) | null =
@@ -219,7 +219,7 @@ describe('QrScanner', () => {
       addProperties: mockAddProperties,
       build: mockBuild,
     });
-    mockUseMetrics.mockReturnValue({
+    mockUseAnalytics.mockReturnValue({
       trackEvent: mockTrackEvent,
       createEventBuilder: mockCreateEventBuilder,
       isEnabled: jest.fn().mockReturnValue(true),
@@ -227,11 +227,11 @@ describe('QrScanner', () => {
       addTraitsToUser: jest.fn(),
       createDataDeletionTask: jest.fn(),
       checkDataDeleteStatus: jest.fn(),
-      getMetaMetricsId: jest.fn(),
+      getAnalyticsId: jest.fn(),
       isDataRecorded: jest.fn().mockReturnValue(true),
       getDeleteRegulationId: jest.fn(),
       getDeleteRegulationCreationDate: jest.fn(),
-    } as ReturnType<typeof useMetrics>);
+    } as ReturnType<typeof useAnalytics>);
 
     // Setup camera mocks
     mockUseCameraDevice.mockReturnValue({
@@ -815,7 +815,7 @@ describe('QrScanner', () => {
         addProperties: mockAddProperties,
         build: mockBuild,
       });
-      mockUseMetrics.mockReturnValue({
+      mockUseAnalytics.mockReturnValue({
         trackEvent: mockTrackEvent,
         createEventBuilder: mockCreateEventBuilder,
         isEnabled: jest.fn().mockReturnValue(true),
@@ -823,11 +823,11 @@ describe('QrScanner', () => {
         addTraitsToUser: jest.fn(),
         createDataDeletionTask: jest.fn(),
         checkDataDeleteStatus: jest.fn(),
-        getMetaMetricsId: jest.fn(),
+        getAnalyticsId: jest.fn(),
         isDataRecorded: jest.fn().mockReturnValue(true),
         getDeleteRegulationId: jest.fn(),
         getDeleteRegulationCreationDate: jest.fn(),
-      } as ReturnType<typeof useMetrics>);
+      } as ReturnType<typeof useAnalytics>);
 
       mockUseCameraDevice.mockReturnValue({
         id: 'back',
