@@ -23,7 +23,11 @@ import {
   AlignItems,
   FlexDirection,
 } from '../../../../../../components/UI/Box/box.types';
-import { CancelSpeedupParams, ExistingGas, useCancelSpeedupGas }  from '../../../hooks/gas/useCancelSpeedupGas';
+import {
+  CancelSpeedupParams,
+  ExistingGas,
+  useCancelSpeedupGas,
+} from '../../../hooks/gas/useCancelSpeedupGas';
 import NetworkAssetLogo from '../../../../../UI/NetworkAssetLogo';
 import InfoSection from '../../UI/info-row/info-section';
 import InfoRow from '../../UI/info-row/info-row';
@@ -41,7 +45,7 @@ export interface CancelSpeedupModalProps {
 
 /**
  * Modal for Speed up or Cancel transaction.
- * Displays Network fee and Speed rows (no gas editing). On confirm, calls controller with computed params.
+ * Displays Network fee and Speed rows. On confirm, calls controller with computed params.
  */
 export function CancelSpeedupModal({
   isCancel,
@@ -54,7 +58,7 @@ export function CancelSpeedupModal({
   const bottomSheetRef = useRef<BottomSheetRef>(null);
 
   const tw = useTailwind();
-    const { styles } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet, {});
   const {
     paramsForController,
     networkFeeNative,
@@ -70,8 +74,9 @@ export function CancelSpeedupModal({
   }, [onClose]);
 
   const handleConfirm = useCallback(() => {
+    if (confirmDisabled) return;
     onConfirm(paramsForController);
-  }, [onConfirm, paramsForController]);
+  }, [onConfirm, paramsForController, confirmDisabled]);
 
   const title = isCancel
     ? strings('transaction.cancel_speedup_cancel_title')
@@ -90,18 +95,14 @@ export function CancelSpeedupModal({
       style={tw.style('flex-wrap')}
     >
       {networkFeeFiat ? (
-        <Text variant={TextVariant.BodyMD}>
-          {networkFeeFiat}
-        </Text>
+        <Text variant={TextVariant.BodyMD}>{networkFeeFiat}</Text>
       ) : null}
       <Box
         flexDirection={FlexDirection.Row}
         alignItems={AlignItems.center}
         gap={3}
       >
-        <Text variant={TextVariant.BodyMD}>
-          {networkFeeNative}
-        </Text>
+        <Text variant={TextVariant.BodyMD}>{networkFeeNative}</Text>
         <NetworkAssetLogo
           chainId={chainId}
           ticker={nativeTokenSymbol}
@@ -110,9 +111,7 @@ export function CancelSpeedupModal({
           style={tw.style('rounded-full')}
           testID="cancel-speedup-network-fee-logo"
         />
-        <Text variant={TextVariant.BodyMD}>
-          {nativeTokenSymbol}
-        </Text>
+        <Text variant={TextVariant.BodyMD}>{nativeTokenSymbol}</Text>
       </Box>
     </Box>
   );
@@ -128,28 +127,22 @@ export function CancelSpeedupModal({
   ];
 
   return (
-
     <BottomSheet
       ref={bottomSheetRef}
       shouldNavigateBack={false}
       style={styles.bottomSheetDialogSheet}
     >
-        <HeaderCompactStandard title={title} onClose={close} />
-      <Box
-            style={tw.style('px-3')}
-
-      >
+      <HeaderCompactStandard title={title} onClose={close} />
+      <Box style={tw.style('px-3')}>
         <ScrollView>
           <Box gap={4}>
             <InfoSection>
-              <InfoRow
-                label={strings('transactions.network_fee')}
-              >
+              <InfoRow label={strings('transactions.network_fee')}>
                 {networkFeeValue}
               </InfoRow>
-              <InfoRow
-                label={strings('transactions.gas_modal.speed')}
-              >{speedDisplay}</InfoRow>
+              <InfoRow label={strings('transactions.gas_modal.speed')}>
+                {speedDisplay}
+              </InfoRow>
             </InfoSection>
             <Text
               variant={TextVariant.BodySM}

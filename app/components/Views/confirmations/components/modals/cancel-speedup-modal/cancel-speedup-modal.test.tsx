@@ -1,8 +1,10 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
+import { TransactionMeta } from '@metamask/transaction-controller';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { CancelSpeedupModal } from './cancel-speedup-modal';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
+import { useCancelSpeedupGas } from '../../../hooks/gas/useCancelSpeedupGas';
 
 jest.mock('../../../../../UI/NetworkAssetLogo', () => ({
   __esModule: true,
@@ -27,7 +29,9 @@ jest.mock(
         ) => {
           RN.useImperativeHandle(ref, () => ({
             onCloseBottomSheet: (callback?: () => void | Promise<void>) => {
-              void Promise.resolve(callback?.()).then(() => {});
+              Promise.resolve(callback?.()).catch(() => {
+                // Ignore errors from callback
+              });
             },
             onOpenBottomSheet: () => undefined,
           }));
@@ -37,6 +41,24 @@ jest.mock(
     };
   },
 );
+
+const defaultGasValues = {
+  paramsForController: {
+    maxFeePerGas: '0x1',
+    maxPriorityFeePerGas: '0x1',
+  },
+  networkFeeDisplay: '0.001 ETH',
+  networkFeeNative: '0.001',
+  networkFeeFiat: '$1.80',
+  speedDisplay: 'Market ~ 15 sec',
+  nativeTokenSymbol: 'ETH',
+};
+
+jest.mock('../../../hooks/gas/useCancelSpeedupGas', () => ({
+  useCancelSpeedupGas: jest.fn(),
+}));
+
+const mockedUseCancelSpeedupGas = jest.mocked(useCancelSpeedupGas);
 
 const baseState = {
   engine: {
@@ -50,24 +72,22 @@ const baseState = {
   },
 };
 
-jest.mock('../../../hooks/gas/useCancelSpeedupGas', () => ({
-  useCancelSpeedupGas: () => ({
-    paramsForController: { maxFeePerGas: '0x1', maxPriorityFeePerGas: '0x1' },
-    networkFeeDisplay: '0.001 ETH',
-    networkFeeNative: '0.001',
-    networkFeeFiat: null,
-    speedDisplay: 'Market ~ 15 sec',
-    nativeTokenSymbol: 'ETH',
-  }),
-}));
-
 describe('CancelSpeedupModal', () => {
   const mockOnConfirm = jest.fn();
   const mockOnClose = jest.fn();
+
   const defaultProps = {
     isCancel: false,
-    tx: { id: 'tx-1', chainId: '0x1', txParams: { gas: '0x5208' } } as any,
-    existingGas: { isEIP1559Transaction: true, maxFeePerGas: 20, maxPriorityFeePerGas: 2 } as any,
+    tx: {
+      id: 'tx-1',
+      chainId: '0x1',
+      txParams: { gas: '0x5208' },
+    } as unknown as TransactionMeta,
+    existingGas: {
+      isEIP1559Transaction: true,
+      maxFeePerGas: 20,
+      maxPriorityFeePerGas: 2,
+    },
     onConfirm: mockOnConfirm,
     onClose: mockOnClose,
     confirmDisabled: false,
@@ -75,47 +95,102 @@ describe('CancelSpeedupModal', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockedUseCancelSpeedupGas.mockReturnValue(defaultGasValues);
   });
 
-  it('renders speed up title when isCancel is false', () => {
+  it('renders speed up modal with correct content', () => {
     const { getByText } = renderWithProvider(
       <CancelSpeedupModal {...defaultProps} />,
       { state: baseState },
     );
-    expect(getByText('Speed up Transaction')).toBeDefined();
+
+    expect(getByText('Speed up Transaction')).toBeTruthy();
+    expect(
+      getByText('This network fee will replace the original.'),
+    ).toBeTruthy();
+    expect(getByText('Network fee')).toBeTruthy();
+    expect(getByText('Speed')).toBeTruthy();
+    expect(getByText('0.001')).toBeTruthy();
+    expect(getByText('ETH')).toBeTruthy();
+    expect(getByText('$1.80')).toBeTruthy();
+    expect(getByText('Market ~ 15 sec')).toBeTruthy();
+    expect(getByText('Confirm')).toBeTruthy();
   });
 
-  it('renders cancel title when isCancel is true', () => {
+  it('renders cancel modal with correct content', () => {
     const { getByText } = renderWithProvider(
       <CancelSpeedupModal {...defaultProps} isCancel />,
       { state: baseState },
     );
-    expect(getByText('Cancel Transaction')).toBeDefined();
+
+    expect(getByText('Cancel Transaction')).toBeTruthy();
+    expect(
+      getByText(
+        'This transaction will be canceled and this network fee will replace the original.',
+      ),
+    ).toBeTruthy();
   });
 
-  it('renders Network fee and Speed rows', () => {
+  it('does not render fiat value when null', () => {
+    mockedUseCancelSpeedupGas.mockReturnValue({
+      ...defaultGasValues,
+      networkFeeFiat: null,
+    });
+
+    const { queryByText } = renderWithProvider(
+      <CancelSpeedupModal {...defaultProps} />,
+      { state: baseState },
+    );
+
+    expect(queryByText('$1.80')).toBeNull();
+  });
+
+  it('calls onConfirm with correct params when Confirm is pressed', async () => {
     const { getByText } = renderWithProvider(
       <CancelSpeedupModal {...defaultProps} />,
       { state: baseState },
     );
-    expect(getByText('Network fee')).toBeDefined();
-    expect(getByText('Speed')).toBeDefined();
-    expect(getByText('0.001')).toBeDefined();
-    expect(getByText('ETH')).toBeDefined();
-    expect(getByText('Market ~ 15 sec')).toBeDefined();
-  });
 
-  it('calls onConfirm with params when Confirm is pressed', () => {
-    const { getByText } = renderWithProvider(
-      <CancelSpeedupModal {...defaultProps} />,
-      { state: baseState },
-    );
     fireEvent.press(getByText('Confirm'));
-    expect(mockOnConfirm).toHaveBeenCalledWith(
-      expect.objectContaining({
+
+    await waitFor(() => {
+      expect(mockOnConfirm).toHaveBeenCalledWith({
         maxFeePerGas: '0x1',
         maxPriorityFeePerGas: '0x1',
-      }),
+      });
+    });
+  });
+
+  it('does not call onConfirm when button is disabled', () => {
+    const { getByText } = renderWithProvider(
+      <CancelSpeedupModal {...defaultProps} confirmDisabled />,
+      { state: baseState },
     );
+
+    fireEvent.press(getByText('Confirm'));
+
+    expect(mockOnConfirm).not.toHaveBeenCalled();
+  });
+
+  it('passes correct props to useCancelSpeedupGas hook', () => {
+    renderWithProvider(<CancelSpeedupModal {...defaultProps} />, {
+      state: baseState,
+    });
+
+    expect(mockedUseCancelSpeedupGas).toHaveBeenCalledWith({
+      existingGas: defaultProps.existingGas,
+      tx: defaultProps.tx,
+      isCancel: false,
+    });
+  });
+
+  it('handles null tx and existingGas gracefully', () => {
+    const { getByText } = renderWithProvider(
+      <CancelSpeedupModal {...defaultProps} tx={null} existingGas={null} />,
+      { state: baseState },
+    );
+
+    expect(getByText('Speed up Transaction')).toBeTruthy();
+    expect(getByText('Network fee')).toBeTruthy();
   });
 });
