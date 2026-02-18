@@ -21,10 +21,12 @@ export class AppProfilingDataHandler {
         return null;
       }
 
+      const sessionData = response.automation_session;
+
       const result = {
-        buildId: response.build_hashed_id,
-        sessionData: response,
-        profilingData: response.app_profiling || null,
+        buildId: sessionData.build_hashed_id,
+        sessionData,
+        profilingData: sessionData.app_profiling || null,
       };
       return result;
     } catch (error) {
@@ -115,22 +117,22 @@ export class AppProfilingDataHandler {
    * @returns {Promise<Object>} Complete profiling data including summary
    */
   async fetchCompleteProfilingData(sessionId) {
-    console.log('Fetching profiling data from BrowserStack...');
-
-    // Get session details first to extract buildId
-    const sessionDetails = await this.getSessionDetails(sessionId);
-
-    if (!sessionDetails?.buildId) {
-      return {
-        error: 'No build ID found in session details',
-        sessionDetails,
-        profilingData: null,
-        profilingSummary: null,
-      };
-    }
-
-    // Fetch profiling data using the buildId
     try {
+      console.log('Fetching profiling data from BrowserStack...');
+
+      // Get session details first to extract buildId
+      const sessionDetails = await this.getSessionDetails(sessionId);
+
+      if (!sessionDetails?.buildId) {
+        return {
+          error: 'No build ID found in session details',
+          sessionDetails: null,
+          profilingData: null,
+          profilingSummary: null,
+        };
+      }
+
+      // Fetch profiling data using the buildId
       const profilingData = await this.getAppProfilingData(
         sessionDetails.buildId,
         sessionId,
@@ -156,7 +158,7 @@ export class AppProfilingDataHandler {
       console.log(`Failed to fetch profiling data: ${error.message}`);
       return {
         error: `Failed to fetch profiling data: ${error.message}`,
-        sessionDetails,
+        sessionDetails: null,
         profilingData: null,
         profilingSummary: null,
       };

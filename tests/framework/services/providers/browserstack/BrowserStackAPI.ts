@@ -267,4 +267,74 @@ export class BrowserStackAPI {
 
     return await response.json();
   }
+
+  /**
+   * Get app profiling data v2 for a specific session
+   */
+  async getAppProfilingData(
+    buildId: string,
+    sessionId: string,
+  ): Promise<unknown> {
+    if (!this.hasCredentials()) {
+      logger.warn(
+        'Skipping getAppProfilingData: missing BrowserStack credentials',
+      );
+      return null;
+    }
+
+    logger.debug(
+      `Fetching app profiling data: build=${buildId}, session=${sessionId}`,
+    );
+
+    const response = await fetch(
+      `${API_BASE_URL}/builds/${buildId}/sessions/${sessionId}/appprofiling/v2`,
+      {
+        method: 'GET',
+        headers: {
+          Authorization: this.getAuthHeader(),
+          'Content-Type': 'application/json',
+        },
+      },
+    );
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      throw new Error(
+        `Error fetching app profiling data: ${response.status}, body: ${errorBody}`,
+      );
+    }
+
+    return await response.json();
+  }
+
+  /**
+   * Fetch network logs (HAR) for a session
+   */
+  async getNetworkLogs(buildId: string, sessionId: string): Promise<unknown> {
+    if (!this.hasCredentials()) {
+      logger.warn('Skipping getNetworkLogs: missing BrowserStack credentials');
+      return null;
+    }
+
+    logger.debug(
+      `Fetching network logs: build=${buildId}, session=${sessionId}`,
+    );
+
+    const response = await fetch(
+      `${API_BASE_URL}/builds/${buildId}/sessions/${sessionId}/networklogs`,
+      {
+        method: 'GET',
+        headers: {
+          Authorization: this.getAuthHeader(),
+        },
+      },
+    );
+
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(`Network logs API error: ${response.status} ${text}`);
+    }
+
+    return await response.json();
+  }
 }
