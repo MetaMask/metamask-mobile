@@ -107,7 +107,7 @@ describe('AppInformation', () => {
         { state: MOCK_STATE },
       );
 
-      expect(getByText(strings('app_settings.info_title'))).toBeTruthy();
+      expect(getByText(strings('app_settings.info_title'))).toBeOnTheScreen();
     });
 
     it('calls navigation.goBack when back button is pressed', () => {
