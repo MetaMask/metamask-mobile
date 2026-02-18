@@ -298,11 +298,8 @@ const Main = (props) => {
       previousNetworkConfigurations.current ?? {},
     );
 
-    /*
-     * Emit network addition/deletion toast if network list changes
-     *
-     * Bridge routes are skipped as they interfere with bridge UI
-     */
+    // Emit network addition/deletion toast if network list changes
+    // Bridge routes are skipped as they interfere with bridge UI
     if (
       previousNetworkValues.length &&
       currentNetworkValues.length !== previousNetworkValues.length &&
