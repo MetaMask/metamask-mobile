@@ -60,10 +60,10 @@ jest.mock('../../hooks/usePredictActionGuard', () => ({
 
 jest.mock('../../hooks/usePredictPositions', () => ({
   usePredictPositions: jest.fn(() => ({
-    positions: [],
+    data: [],
     refetch: jest.fn(),
     isLoading: false,
-    isRefreshing: false,
+    isRefetching: false,
     error: null,
   })),
 }));

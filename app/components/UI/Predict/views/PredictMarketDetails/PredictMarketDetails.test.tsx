@@ -185,9 +185,9 @@ jest.mock('../../hooks/usePredictPriceHistory', () => ({
 
 jest.mock('../../hooks/usePredictPositions', () => ({
   usePredictPositions: jest.fn(() => ({
-    positions: [],
+    data: [],
     isLoading: false,
-    isRefreshing: false,
+    isRefetching: false,
     error: null,
     refetch: jest.fn(),
   })),
@@ -412,9 +412,9 @@ function createMockMarket(overrides = {}) {
 type HookOverrideShape = Record<string, unknown>;
 
 interface PredictPositionsHookResultMock {
-  positions: Record<string, unknown>[];
+  data: Record<string, unknown>[];
   isLoading: boolean;
-  isRefreshing: boolean;
+  isRefetching: boolean;
   error: unknown;
   refetch: jest.Mock;
 }
@@ -533,18 +533,18 @@ function setupPredictMarketDetailsTest(
   }
 
   const activePositionsHook: PredictPositionsHookResultMock = {
-    positions: [],
+    data: [],
     isLoading: false,
-    isRefreshing: false,
+    isRefetching: false,
     error: null,
     refetch: jest.fn(),
     ...activeOverride,
   };
 
   const claimablePositionsHook: PredictPositionsHookResultMock = {
-    positions: [],
+    data: [],
     isLoading: false,
-    isRefreshing: false,
+    isRefetching: false,
     error: null,
     refetch: jest.fn(),
     ...claimableOverride,
@@ -559,7 +559,7 @@ function setupPredictMarketDetailsTest(
   mockUsePredictOrderPreview.mockImplementation(
     (params: { outcomeId: string }) => {
       // Find the position matching this outcomeId from active positions
-      const position = activePositionsHook.positions.find(
+      const position = activePositionsHook.data.find(
         (p: Record<string, unknown>) => p.outcomeId === params.outcomeId,
       ) as { currentValue?: number } | undefined;
 
@@ -1324,7 +1324,7 @@ describe('PredictMarketDetails', () => {
       const { mockNavigate } = setupPredictMarketDetailsTest(
         { status: 'open' },
         {},
-        { positions: { positions: [mockPosition] } },
+        { positions: { data: [mockPosition] } },
       );
 
       // Switch to Positions tab (index 0 when positions exist)
@@ -1482,7 +1482,7 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest(
         { status: 'open' },
         {},
-        { positions: { positions: [mockPosition] } },
+        { positions: { data: [mockPosition] } },
       );
 
       // Switch to Positions tab (index 0 when positions exist)
@@ -1517,7 +1517,7 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest(
         { status: 'open' },
         {},
-        { positions: { positions: [mockPosition] } },
+        { positions: { data: [mockPosition] } },
       );
 
       // Switch to Positions tab (index 0 when positions exist)
@@ -1662,7 +1662,7 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest(
         mockMarket,
         {},
-        { positions: { positions: [mockPosition] } },
+        { positions: { data: [mockPosition] } },
       );
 
       // Switch to Positions tab (index 0 when positions exist)
@@ -1695,7 +1695,7 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest(
         {},
         {},
-        { positions: { positions: [mockPosition] } },
+        { positions: { data: [mockPosition] } },
       );
 
       // Switch to Positions tab (index 0 when positions exist)
@@ -1728,7 +1728,7 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest(
         { status: 'open' },
         {},
-        { positions: { positions: [mockPosition] } },
+        { positions: { data: [mockPosition] } },
       );
 
       // Switch to Positions tab (index 0 when positions exist)
@@ -1859,7 +1859,7 @@ describe('PredictMarketDetails', () => {
         {
           positions: {
             claimable: {
-              positions: [
+              data: [
                 {
                   id: 'position-1',
                   outcomeId: 'outcome-1',
@@ -1908,7 +1908,7 @@ describe('PredictMarketDetails', () => {
         {
           positions: {
             claimable: {
-              positions: [
+              data: [
                 {
                   id: 'position-1',
                   outcomeId: 'outcome-1',
@@ -2095,7 +2095,7 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest(
         { status: 'open' },
         {},
-        { positions: { positions: [mockPosition] } },
+        { positions: { data: [mockPosition] } },
       );
 
       // Switch to Positions tab (index 0 when positions exist)
@@ -2547,7 +2547,7 @@ describe('PredictMarketDetails', () => {
         {},
         {
           positions: {
-            positions: [
+            data: [
               {
                 id: 'position-1',
                 outcomeId: 'outcome-1',
@@ -2572,9 +2572,9 @@ describe('PredictMarketDetails', () => {
         '../../hooks/usePredictPositions',
       );
       usePredictPositions.mockReturnValue({
-        positions: [],
+        data: [],
         isLoading: false,
-        isRefreshing: false,
+        isRefetching: false,
         error: null,
         refetch: jest.fn(),
       });

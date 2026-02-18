@@ -16,9 +16,7 @@ jest.mock('../../hooks/usePredictLivePositions', () => ({
 }));
 jest.mock('../../utils/format');
 
-const mockUsePredictPositions = usePredictPositions as jest.MockedFunction<
-  typeof usePredictPositions
->;
+const mockUsePredictPositions = usePredictPositions as jest.Mock;
 const mockFormatPrice = formatPrice as jest.MockedFunction<typeof formatPrice>;
 
 const createMockPosition = (
@@ -53,9 +51,9 @@ describe('PredictPicksForCard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUsePredictPositions.mockReturnValue({
-      positions: [],
+      data: [],
       isLoading: false,
-      isRefreshing: false,
+      isRefetching: false,
       error: null,
       refetch: mockRefetch,
     });
@@ -75,9 +73,9 @@ describe('PredictPicksForCard', () => {
   describe('rendering', () => {
     it('renders container with default testID when positions exist', () => {
       mockUsePredictPositions.mockReturnValue({
-        positions: [createMockPosition()],
+        data: [createMockPosition()],
         isLoading: false,
-        isRefreshing: false,
+        isRefetching: false,
         error: null,
         refetch: mockRefetch,
       });
@@ -91,9 +89,9 @@ describe('PredictPicksForCard', () => {
 
     it('renders container with custom testID when positions exist', () => {
       mockUsePredictPositions.mockReturnValue({
-        positions: [createMockPosition()],
+        data: [createMockPosition()],
         isLoading: false,
-        isRefreshing: false,
+        isRefetching: false,
         error: null,
         refetch: mockRefetch,
       });
@@ -109,9 +107,9 @@ describe('PredictPicksForCard', () => {
 
     it('returns null when no positions', () => {
       mockUsePredictPositions.mockReturnValue({
-        positions: [],
+        data: [],
         isLoading: false,
-        isRefreshing: false,
+        isRefetching: false,
         error: null,
         refetch: mockRefetch,
       });
@@ -125,9 +123,9 @@ describe('PredictPicksForCard', () => {
   describe('position display', () => {
     it('displays position outcome text', () => {
       mockUsePredictPositions.mockReturnValue({
-        positions: [createMockPosition({ size: 50, outcome: 'Yes' })],
+        data: [createMockPosition({ size: 50, outcome: 'Yes' })],
         isLoading: false,
-        isRefreshing: false,
+        isRefetching: false,
         error: null,
         refetch: mockRefetch,
       });
@@ -139,9 +137,9 @@ describe('PredictPicksForCard', () => {
 
     it('displays formatted initialValue', () => {
       mockUsePredictPositions.mockReturnValue({
-        positions: [createMockPosition({ initialValue: 50, outcome: 'Yes' })],
+        data: [createMockPosition({ initialValue: 50, outcome: 'Yes' })],
         isLoading: false,
-        isRefreshing: false,
+        isRefetching: false,
         error: null,
         refetch: mockRefetch,
       });
@@ -153,9 +151,9 @@ describe('PredictPicksForCard', () => {
 
     it('displays cashPnl value', () => {
       mockUsePredictPositions.mockReturnValue({
-        positions: [createMockPosition({ cashPnl: 25.75 })],
+        data: [createMockPosition({ cashPnl: 25.75 })],
         isLoading: false,
-        isRefreshing: false,
+        isRefetching: false,
         error: null,
         refetch: mockRefetch,
       });
@@ -167,9 +165,9 @@ describe('PredictPicksForCard', () => {
 
     it('displays negative cashPnl value', () => {
       mockUsePredictPositions.mockReturnValue({
-        positions: [createMockPosition({ cashPnl: -10.5 })],
+        data: [createMockPosition({ cashPnl: -10.5 })],
         isLoading: false,
-        isRefreshing: false,
+        isRefetching: false,
         error: null,
         refetch: mockRefetch,
       });
@@ -181,9 +179,9 @@ describe('PredictPicksForCard', () => {
 
     it('displays zero cashPnl value', () => {
       mockUsePredictPositions.mockReturnValue({
-        positions: [createMockPosition({ cashPnl: 0 })],
+        data: [createMockPosition({ cashPnl: 0 })],
         isLoading: false,
-        isRefreshing: false,
+        isRefetching: false,
         error: null,
         refetch: mockRefetch,
       });
@@ -195,9 +193,9 @@ describe('PredictPicksForCard', () => {
 
     it('applies SuccessDefault color when cashPnl is positive', () => {
       mockUsePredictPositions.mockReturnValue({
-        positions: [createMockPosition({ id: 'pos-positive', cashPnl: 25.75 })],
+        data: [createMockPosition({ id: 'pos-positive', cashPnl: 25.75 })],
         isLoading: false,
-        isRefreshing: false,
+        isRefetching: false,
         error: null,
         refetch: mockRefetch,
       });
@@ -218,9 +216,9 @@ describe('PredictPicksForCard', () => {
 
     it('applies ErrorDefault color when cashPnl is negative', () => {
       mockUsePredictPositions.mockReturnValue({
-        positions: [createMockPosition({ id: 'pos-negative', cashPnl: -10.5 })],
+        data: [createMockPosition({ id: 'pos-negative', cashPnl: -10.5 })],
         isLoading: false,
-        isRefreshing: false,
+        isRefetching: false,
         error: null,
         refetch: mockRefetch,
       });
@@ -241,9 +239,9 @@ describe('PredictPicksForCard', () => {
 
     it('applies SuccessDefault color when cashPnl is zero (break-even)', () => {
       mockUsePredictPositions.mockReturnValue({
-        positions: [createMockPosition({ id: 'pos-zero', cashPnl: 0 })],
+        data: [createMockPosition({ id: 'pos-zero', cashPnl: 0 })],
         isLoading: false,
-        isRefreshing: false,
+        isRefetching: false,
         error: null,
         refetch: mockRefetch,
       });
@@ -262,9 +260,9 @@ describe('PredictPicksForCard', () => {
 
     it('displays position currentValue', () => {
       mockUsePredictPositions.mockReturnValue({
-        positions: [createMockPosition({ currentValue: 75.25 })],
+        data: [createMockPosition({ currentValue: 75.25 })],
         isLoading: false,
-        isRefreshing: false,
+        isRefetching: false,
         error: null,
         refetch: mockRefetch,
       });
@@ -282,9 +280,9 @@ describe('PredictPicksForCard', () => {
         createMockPosition({ id: 'pos-2', outcome: 'No', size: 200 }),
       ];
       mockUsePredictPositions.mockReturnValue({
-        positions,
+        data: positions,
         isLoading: false,
-        isRefreshing: false,
+        isRefetching: false,
         error: null,
         refetch: mockRefetch,
       });
@@ -301,9 +299,9 @@ describe('PredictPicksForCard', () => {
         createMockPosition({ id: 'pos-2', cashPnl: 20 }),
       ];
       mockUsePredictPositions.mockReturnValue({
-        positions,
+        data: positions,
         isLoading: false,
-        isRefreshing: false,
+        isRefetching: false,
         error: null,
         refetch: mockRefetch,
       });
@@ -318,9 +316,9 @@ describe('PredictPicksForCard', () => {
   describe('hook configuration', () => {
     it('calls usePredictPositions with correct marketId when no positions prop', () => {
       mockUsePredictPositions.mockReturnValue({
-        positions: [],
+        data: [],
         isLoading: false,
-        isRefreshing: false,
+        isRefetching: false,
         error: null,
         refetch: mockRefetch,
       });
@@ -329,17 +327,16 @@ describe('PredictPicksForCard', () => {
 
       expect(mockUsePredictPositions).toHaveBeenCalledWith({
         marketId: 'specific-market-456',
-        autoRefreshTimeout: 10000,
+        refetchInterval: 10000,
         enabled: true,
-        refreshOnFocus: true,
       });
     });
 
-    it('passes autoRefreshTimeout of 10000ms to hook when no positions prop', () => {
+    it('passes refetchInterval of 10000ms to hook when no positions prop', () => {
       mockUsePredictPositions.mockReturnValue({
-        positions: [],
+        data: [],
         isLoading: false,
-        isRefreshing: false,
+        isRefetching: false,
         error: null,
         refetch: mockRefetch,
       });
@@ -348,7 +345,7 @@ describe('PredictPicksForCard', () => {
 
       expect(mockUsePredictPositions).toHaveBeenCalledWith(
         expect.objectContaining({
-          autoRefreshTimeout: 10000,
+          refetchInterval: 10000,
         }),
       );
     });
@@ -365,9 +362,8 @@ describe('PredictPicksForCard', () => {
 
       expect(mockUsePredictPositions).toHaveBeenCalledWith({
         marketId: 'market-1',
-        autoRefreshTimeout: undefined,
+        refetchInterval: undefined,
         enabled: false,
-        refreshOnFocus: false,
       });
     });
   });
@@ -379,11 +375,9 @@ describe('PredictPicksForCard', () => {
       ];
 
       mockUsePredictPositions.mockReturnValue({
-        positions: [
-          createMockPosition({ id: 'fetched-1', outcome: 'Fetched' }),
-        ],
+        data: [createMockPosition({ id: 'fetched-1', outcome: 'Fetched' })],
         isLoading: false,
-        isRefreshing: false,
+        isRefetching: false,
         error: null,
         refetch: mockRefetch,
       });
@@ -442,9 +436,9 @@ describe('PredictPicksForCard', () => {
   describe('edge cases', () => {
     it('displays position with different outcome text', () => {
       mockUsePredictPositions.mockReturnValue({
-        positions: [createMockPosition({ outcome: 'Maybe' })],
+        data: [createMockPosition({ outcome: 'Maybe' })],
         isLoading: false,
-        isRefreshing: false,
+        isRefetching: false,
         error: null,
         refetch: mockRefetch,
       });
@@ -458,9 +452,9 @@ describe('PredictPicksForCard', () => {
   describe('separator', () => {
     it('renders separator when showSeparator is true and positions exist', () => {
       mockUsePredictPositions.mockReturnValue({
-        positions: [createMockPosition()],
+        data: [createMockPosition()],
         isLoading: false,
-        isRefreshing: false,
+        isRefetching: false,
         error: null,
         refetch: mockRefetch,
       });
@@ -474,9 +468,9 @@ describe('PredictPicksForCard', () => {
 
     it('does not render separator when showSeparator is false', () => {
       mockUsePredictPositions.mockReturnValue({
-        positions: [createMockPosition()],
+        data: [createMockPosition()],
         isLoading: false,
-        isRefreshing: false,
+        isRefetching: false,
         error: null,
         refetch: mockRefetch,
       });
@@ -490,9 +484,9 @@ describe('PredictPicksForCard', () => {
 
     it('does not render separator when showSeparator is true but no positions', () => {
       mockUsePredictPositions.mockReturnValue({
-        positions: [],
+        data: [],
         isLoading: false,
-        isRefreshing: false,
+        isRefetching: false,
         error: null,
         refetch: mockRefetch,
       });
@@ -506,9 +500,9 @@ describe('PredictPicksForCard', () => {
 
     it('renders separator with custom testID', () => {
       mockUsePredictPositions.mockReturnValue({
-        positions: [createMockPosition()],
+        data: [createMockPosition()],
         isLoading: false,
-        isRefreshing: false,
+        isRefetching: false,
         error: null,
         refetch: mockRefetch,
       });

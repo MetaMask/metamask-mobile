@@ -31,9 +31,7 @@ jest.mock('../../hooks/usePredictLivePositions', () => ({
 }));
 jest.mock('../../utils/format');
 
-const mockUsePredictPositions = usePredictPositions as jest.MockedFunction<
-  typeof usePredictPositions
->;
+const mockUsePredictPositions = usePredictPositions as jest.Mock;
 const mockUsePredictActionGuard = usePredictActionGuard as jest.MockedFunction<
   typeof usePredictActionGuard
 >;
@@ -57,9 +55,9 @@ const setupPositionsMock = (config: MockPositionsConfig = {}) => {
   } = config;
 
   mockUsePredictPositions.mockImplementation((options) => ({
-    positions: options?.claimable ? claimablePositions : livePositions,
+    data: options?.claimable ? claimablePositions : livePositions,
     isLoading,
-    isRefreshing,
+    isRefetching: isRefreshing,
     error,
     refetch: jest.fn(),
   }));
@@ -400,7 +398,7 @@ describe('PredictPicks', () => {
       expect(mockUsePredictPositions).toHaveBeenCalledWith({
         marketId: 'specific-market-123',
         claimable: false,
-        autoRefreshTimeout: 10000,
+        refetchInterval: 10000,
       });
     });
 
@@ -419,14 +417,14 @@ describe('PredictPicks', () => {
       });
     });
 
-    it('passes autoRefreshTimeout of 10000ms to hook', () => {
+    it('passes refetchInterval of 10000ms to hook', () => {
       setupPositionsMock();
 
       render(<PredictPicks market={createMockMarket()} />);
 
       expect(mockUsePredictPositions).toHaveBeenCalledWith(
         expect.objectContaining({
-          autoRefreshTimeout: 10000,
+          refetchInterval: 10000,
         }),
       );
     });

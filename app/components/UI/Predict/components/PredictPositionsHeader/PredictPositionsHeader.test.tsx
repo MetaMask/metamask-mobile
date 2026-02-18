@@ -87,7 +87,7 @@ jest.mock('../../hooks/usePredictActionGuard', () => ({
 const mockRefetchClaimablePositions = jest.fn();
 jest.mock('../../hooks/usePredictPositions', () => ({
   usePredictPositions: () => ({
-    positions: [],
+    data: [],
     isLoading: false,
     error: null,
     refetch: mockRefetchClaimablePositions,
