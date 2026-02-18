@@ -106,7 +106,8 @@ export const getAuthType = ({
   // Legacy condition
   if (allowLoginWithRememberMe) {
     return AUTHENTICATION_TYPE.REMEMBER_ME;
-  } else if (!osAuthEnabled) {
+  }
+  if (!osAuthEnabled) {
     return AUTHENTICATION_TYPE.PASSWORD;
   }
   // Legacy condition
@@ -134,7 +135,7 @@ export const getAuthType = ({
  * Gets a human-readable label based on the authentication and supported biometric types.
  *
  * iOS: "Remember Me" | "Face ID" | "Touch ID" | "Device Passcode" | "Password"
- * Android: "Remember Me" | "Biometrics" | "Device PIN/Pattern" | "Password"
+ * Android: "Remember Me" | "Device Authentication" | "Password"
  *
  * @param params.supportedBiometricTypes - The supported biometric types
  * @param params.allowLoginWithRememberMe - Legacy - Whether the user has enabled remember me
@@ -159,7 +160,11 @@ export const getAuthLabel = ({
   isBiometricsAvailable: boolean;
   passcodeAvailable: boolean;
 }): string => {
-  const getBiometricsLabel = () => {
+  if (allowLoginWithRememberMe) {
+    return 'Remember Me';
+  }
+  if (legacyUserChoseBiometrics) {
+    // Show explicit authentication type for legacy biometrics
     if (Platform.OS === 'ios') {
       if (
         supportedBiometricTypes.includes(AuthenticationType.FACIAL_RECOGNITION)
@@ -170,25 +175,17 @@ export const getAuthLabel = ({
         return 'Touch ID';
       }
     }
-    // Android uses generic "Device Authentication" label
     return 'Device Authentication';
-  };
-
-  const getPasscodeLabel = () =>
-    Platform.OS === 'ios' ? 'Device Passcode' : 'Device Authentication'; // Android uses generic "Device Authentication" label
-
-  if (allowLoginWithRememberMe) {
-    return 'Remember Me';
-  } else if (legacyUserChoseBiometrics) {
-    return getBiometricsLabel();
-  } else if (legacyUserChosePasscode) {
-    return getPasscodeLabel();
-  } else if (isBiometricsAvailable) {
-    return getBiometricsLabel();
-  } else if (passcodeAvailable) {
-    return getPasscodeLabel();
   }
-
+  if (legacyUserChosePasscode) {
+    // Show explicit authentication type for legacy passcode
+    return Platform.OS === 'ios' ? 'Device Passcode' : 'Device Authentication';
+  }
+  if (isBiometricsAvailable || passcodeAvailable) {
+    // Modernized authentication access allows for both biometrics and passcode
+    // Here we return the generic "Device Authentication" label since the system will handle access control to use
+    return 'Device Authentication';
+  }
   return 'Password';
 };
 

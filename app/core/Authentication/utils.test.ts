@@ -266,21 +266,21 @@ describe('getAuthLabel', () => {
       expect(result).toBe('Device Passcode');
     });
 
-    it('returns "Face ID" when isBiometricsAvailable and Face ID supported', () => {
+    it('returns "Device Authentication" when isBiometricsAvailable (modern path)', () => {
       const result = getAuthLabel({
         ...baseParams,
         isBiometricsAvailable: true,
         supportedBiometricTypes: [AuthenticationType.FACIAL_RECOGNITION],
       });
-      expect(result).toBe('Face ID');
+      expect(result).toBe('Device Authentication');
     });
 
-    it('returns "Device Passcode" when passcodeAvailable is true', () => {
+    it('returns "Device Authentication" when passcodeAvailable (modern path)', () => {
       const result = getAuthLabel({
         ...baseParams,
         passcodeAvailable: true,
       });
-      expect(result).toBe('Device Passcode');
+      expect(result).toBe('Device Authentication');
     });
 
     it('returns "Password" when nothing is available', () => {
