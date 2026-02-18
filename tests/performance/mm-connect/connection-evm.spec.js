@@ -22,6 +22,7 @@ import {
   setupAdbReverse,
   cleanupAdbReverse,
   waitForDappServerReady,
+  unlockIfLockScreenVisible,
 } from './utils.js';
 
 const DAPP_NAME = 'MetaMask MultiChain API Test Dapp';
@@ -96,6 +97,7 @@ test('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Browser
 
   await AppwrightHelpers.withNativeAction(device, async () => {
     await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
+    await unlockIfLockScreenVisible(device);
     await DappConnectionModal.tapEditAccountsButton();
     await DappConnectionModal.tapAccountButton('Account 3');
     await DappConnectionModal.tapUpdateAccountsButton();
