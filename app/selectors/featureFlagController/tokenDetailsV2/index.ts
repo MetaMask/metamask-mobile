@@ -28,7 +28,6 @@ const isValidVariant = (value: unknown): value is LayoutVariant =>
 export const selectTokenDetailsLayoutTestVariant = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags): string | null => {
-    return 'treatment';
     const remoteFlag = remoteFeatureFlags?.tokenDetailsV2AbTest;
 
     if (!remoteFlag) {
