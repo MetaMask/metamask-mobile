@@ -414,23 +414,11 @@ describe('useTokenSelection', () => {
       },
     });
 
-    beforeEach(() => {
-      mockUseSelector
-        .mockReturnValueOnce(mockSourceToken)
-        .mockReturnValueOnce(mockDestToken)
-        .mockReturnValueOnce(mockDestAmount);
-    });
-    afterEach(() => {
-      mockUseSelector.mockReset();
-    });
-
     it('proceeds with selection when stock token trading is open', async () => {
       mockIsStockToken.mockReturnValue(true);
       mockIsTokenTradingOpen.mockResolvedValue(true);
 
-      const { result } = renderHook(() =>
-        useTokenSelection(TokenSelectorType.Source),
-      );
+      const { result } = renderTokenSelectionHook(TokenSelectorType.Source);
 
       await act(async () => {
         await result.current.handleTokenPress(mockStockToken);
@@ -447,9 +435,7 @@ describe('useTokenSelection', () => {
       mockIsStockToken.mockReturnValue(true);
       mockIsTokenTradingOpen.mockReturnValue(false);
 
-      const { result } = renderHook(() =>
-        useTokenSelection(TokenSelectorType.Source),
-      );
+      const { result } = renderTokenSelectionHook(TokenSelectorType.Source);
 
       await act(async () => {
         await result.current.handleTokenPress(mockStockToken);
@@ -471,9 +457,7 @@ describe('useTokenSelection', () => {
         symbol: 'ETH',
       });
 
-      const { result } = renderHook(() =>
-        useTokenSelection(TokenSelectorType.Source),
-      );
+      const { result } = renderTokenSelectionHook(TokenSelectorType.Source);
 
       await act(async () => {
         await result.current.handleTokenPress(regularToken);
@@ -489,9 +473,7 @@ describe('useTokenSelection', () => {
       mockIsStockToken.mockReturnValue(true);
       mockIsTokenTradingOpen.mockReturnValue(false);
 
-      const { result } = renderHook(() =>
-        useTokenSelection(TokenSelectorType.Dest),
-      );
+      const { result } = renderTokenSelectionHook(TokenSelectorType.Dest);
 
       await act(async () => {
         await result.current.handleTokenPress(mockStockToken);
@@ -517,16 +499,12 @@ describe('useTokenSelection', () => {
           },
         },
       });
-      mockUseSelector
-        .mockReturnValueOnce(mockSourceToken)
-        .mockReturnValueOnce(stockDestToken)
-        .mockReturnValueOnce(mockDestAmount);
       mockIsStockToken.mockReturnValue(true);
       mockIsTokenTradingOpen.mockResolvedValue(true);
 
-      const { result } = renderHook(() =>
-        useTokenSelection(TokenSelectorType.Source),
-      );
+      const { result } = renderTokenSelectionHook(TokenSelectorType.Source, {
+        destToken: stockDestToken,
+      });
 
       await act(async () => {
         await result.current.handleTokenPress(stockDestToken);
