@@ -3,6 +3,8 @@ import { act, renderHook } from '@testing-library/react-hooks';
 import Routes from '../../../../constants/navigation/Routes';
 
 import { usePredictToastRegistrations } from './usePredictToastRegistrations';
+import { selectSingleTokenByAddressAndChainId } from '../../../../selectors/tokensController';
+import { selectTickerByChainId } from '../../../../selectors/networkController';
 
 const mockInvalidateQueries = jest.fn();
 jest.mock('@tanstack/react-query', () => ({
@@ -64,6 +66,20 @@ jest.mock('../utils/accounts', () => ({
   getEvmAccountFromSelectedAccountGroup: jest.fn(() => ({
     address: selectedAddress,
   })),
+}));
+
+jest.mock('../../../../store', () => ({
+  store: {
+    getState: jest.fn(() => ({})),
+  },
+}));
+
+jest.mock('../../../../selectors/tokensController', () => ({
+  selectSingleTokenByAddressAndChainId: jest.fn(() => undefined),
+}));
+
+jest.mock('../../../../selectors/networkController', () => ({
+  selectTickerByChainId: jest.fn(() => undefined),
 }));
 
 describe('usePredictToastRegistrations', () => {
@@ -423,7 +439,11 @@ describe('usePredictToastRegistrations', () => {
       );
     });
 
-    it('uses targetFiat and destinationTicker for post-quote withdraw toast', () => {
+    it('resolves destination token symbol for post-quote withdraw toast', () => {
+      (selectSingleTokenByAddressAndChainId as jest.Mock).mockReturnValue({
+        symbol: 'USDT',
+      });
+
       const handler = getHandler();
 
       handler(
@@ -433,7 +453,8 @@ describe('usePredictToastRegistrations', () => {
           senderAddress: selectedAddress,
           amount: 0.5,
           targetFiat: 0.42,
-          destinationTicker: 'BNB',
+          destinationChainId: '0x38',
+          destinationTokenAddress: '0x55d398326f99059ff775485246999027b3197955',
         },
         showToast,
       );
@@ -443,6 +464,41 @@ describe('usePredictToastRegistrations', () => {
           labelOptions: expect.arrayContaining([
             expect.objectContaining({
               label: expect.stringContaining('$0.42'),
+            }),
+            expect.objectContaining({
+              label: expect.stringContaining('USDT'),
+            }),
+          ]),
+        }),
+      );
+    });
+
+    it('falls back to native ticker when destination token not found', () => {
+      (selectSingleTokenByAddressAndChainId as jest.Mock).mockReturnValue(
+        undefined,
+      );
+      (selectTickerByChainId as jest.Mock).mockReturnValue('BNB');
+
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'withdraw',
+          status: 'confirmed',
+          senderAddress: selectedAddress,
+          amount: 0.5,
+          targetFiat: 0.43,
+          destinationChainId: '0x38',
+          destinationTokenAddress: '0x0000000000000000000000000000000000000000',
+        },
+        showToast,
+      );
+
+      expect(showToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          labelOptions: expect.arrayContaining([
+            expect.objectContaining({
+              label: expect.stringContaining('$0.43'),
             }),
             expect.objectContaining({
               label: expect.stringContaining('BNB'),

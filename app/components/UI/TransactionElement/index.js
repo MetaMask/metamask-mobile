@@ -59,7 +59,10 @@ import {
   selectUSDConversionRateByChainId,
 } from '../../../selectors/currencyRateController';
 import { selectContractExchangeRatesByChainId } from '../../../selectors/tokenRatesController';
-import { selectTokensByChainIdAndAddress } from '../../../selectors/tokensController';
+import {
+  selectTokensByChainIdAndAddress,
+  selectSingleTokenByAddressAndChainId,
+} from '../../../selectors/tokensController';
 import Routes from '../../../constants/navigation/Routes';
 import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
 import { hasTransactionType } from '../../Views/confirmations/utils/transaction';
@@ -742,16 +745,29 @@ const TransactionElementWithBridge = (props) => {
   const transactions = useSelector(selectTransactions);
 
   // For predict withdrawals, resolve destination chain data so the activity
-  // row shows the received token (e.g. BNB) instead of the source token.
+  // row shows the received token (e.g. BNB, USDT) instead of the source token.
   const isPredictWithdraw = hasTransactionType(props.tx, [
     TransactionType.predictWithdraw,
   ]);
   const destChainId = isPredictWithdraw
     ? props.tx.metamaskPay?.chainId
     : undefined;
-  const destTicker = useSelector((state) =>
+  const destTokenAddress = isPredictWithdraw
+    ? props.tx.metamaskPay?.tokenAddress
+    : undefined;
+  const destToken = useSelector((state) =>
+    destChainId && destTokenAddress
+      ? selectSingleTokenByAddressAndChainId(
+          state,
+          destTokenAddress,
+          destChainId,
+        )
+      : undefined,
+  );
+  const destNativeTicker = useSelector((state) =>
     destChainId ? selectTickerByChainId(state, destChainId) : undefined,
   );
+  const destTicker = destToken?.symbol ?? destNativeTicker;
   const destConversionRate = useSelector((state) =>
     destChainId ? selectConversionRateByChainId(state, destChainId) : undefined,
   );

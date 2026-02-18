@@ -238,8 +238,10 @@ export interface PredictControllerTransactionStatusChangedEvent {
       amount?: number;
       /** Received fiat amount in USD for post-quote withdrawals */
       targetFiat?: number;
-      /** Destination token ticker for post-quote withdrawals (e.g. "BNB") */
-      destinationTicker?: string;
+      /** Destination chain ID for post-quote withdrawals */
+      destinationChainId?: string;
+      /** Destination token address for post-quote withdrawals */
+      destinationTokenAddress?: string;
     },
   ];
 }
@@ -2061,7 +2063,7 @@ export class PredictController extends BaseController<
       senderAddress: address,
       ...(transactionId ? { transactionId } : {}),
       ...(amount !== undefined ? { amount } : {}),
-      ...this.getWithdrawDestination(type, status, transactionMeta),
+      ...this.getWithdrawDestinationFields(type, status, transactionMeta),
     });
   }
 
@@ -2185,13 +2187,18 @@ export class PredictController extends BaseController<
   }
 
   /**
-   * Extracts destination token info for post-quote withdrawals from metamaskPay.
+   * Extracts raw destination fields for post-quote withdrawals from metamaskPay.
+   * Token symbol resolution is deferred to the UI layer (selectors / hooks).
    */
-  private getWithdrawDestination(
+  private getWithdrawDestinationFields(
     type: PredictTransactionEventType,
     status: PredictTransactionEventStatus,
     transactionMeta: TransactionMeta,
-  ): { targetFiat?: number; destinationTicker?: string } {
+  ): {
+    targetFiat?: number;
+    destinationChainId?: string;
+    destinationTokenAddress?: string;
+  } {
     if (type !== 'withdraw' || status !== 'confirmed') {
       return {};
     }
@@ -2202,18 +2209,15 @@ export class PredictController extends BaseController<
     }
 
     const targetFiat = Number(metamaskPay.targetFiat);
-    const chainId = metamaskPay.chainId as Hex | undefined;
-
-    let destinationTicker: string | undefined;
-    if (chainId) {
-      const networkState = this.messenger.call('NetworkController:getState');
-      destinationTicker =
-        networkState.networkConfigurationsByChainId?.[chainId]?.nativeCurrency;
-    }
 
     return {
       ...(Number.isFinite(targetFiat) ? { targetFiat } : {}),
-      ...(destinationTicker ? { destinationTicker } : {}),
+      ...(metamaskPay.chainId
+        ? { destinationChainId: metamaskPay.chainId }
+        : {}),
+      ...(metamaskPay.tokenAddress
+        ? { destinationTokenAddress: metamaskPay.tokenAddress }
+        : {}),
     };
   }
 

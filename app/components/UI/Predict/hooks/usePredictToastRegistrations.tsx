@@ -15,6 +15,7 @@ import type { ToastRef } from '../../../../component-library/components/Toast/To
 import Routes from '../../../../constants/navigation/Routes';
 import type { ToastRegistration } from '../../../Nav/App/ControllerEventToastBridge';
 import { useAppThemeFromContext } from '../../../../util/theme';
+import type { Hex } from '@metamask/utils';
 import type { PredictTransactionStatusChangedPayload } from '../controllers/PredictController';
 import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
 import { formatPrice } from '../utils/format';
@@ -22,6 +23,30 @@ import { predictQueries } from '../queries';
 import { usePredictClaim } from './usePredictClaim';
 import { usePredictDeposit } from './usePredictDeposit';
 import { usePredictWithdraw } from './usePredictWithdraw';
+import { store } from '../../../../store';
+import { selectSingleTokenByAddressAndChainId } from '../../../../selectors/tokensController';
+import { selectTickerByChainId } from '../../../../selectors/networkController';
+
+/**
+ * Resolves the token symbol for a given chain + token address from Redux state.
+ * Falls back to the chain's native currency when the token is not found
+ * (i.e. the address *is* the native token).
+ */
+function resolveTokenSymbol(
+  chainId?: string,
+  tokenAddress?: string,
+): string | undefined {
+  if (!chainId || !tokenAddress) {
+    return undefined;
+  }
+  const state = store.getState();
+  const token = selectSingleTokenByAddressAndChainId(
+    state,
+    tokenAddress as Hex,
+    chainId as Hex,
+  );
+  return token?.symbol ?? selectTickerByChainId(state, chainId as Hex);
+}
 
 const showPendingToast = ({
   showToast,
@@ -145,7 +170,8 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
         transactionId,
         amount,
         targetFiat,
-        destinationTicker,
+        destinationChainId,
+        destinationTokenAddress,
       } = payload as PredictTransactionStatusChangedPayload;
       const canRetry =
         Boolean(senderAddress) && senderAddress === normalizedSelectedAddress;
@@ -285,7 +311,9 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
           const formattedWithdrawAmount = formatPrice(
             targetFiat ?? amount ?? withdrawTransaction?.amount ?? 0,
           );
-          const token = destinationTicker ?? 'USDC';
+          const token =
+            resolveTokenSymbol(destinationChainId, destinationTokenAddress) ??
+            'USDC';
 
           showSuccessToast({
             showToast,
