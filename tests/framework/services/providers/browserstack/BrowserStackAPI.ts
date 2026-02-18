@@ -141,8 +141,11 @@ export class BrowserStackAPI {
     });
 
     if (!response.ok) {
-      throw new Error(
+      const errorBody = await response.text();
+      throw new BrowserStackAPIError(
         `Error updating BrowserStack session: ${response.statusText}`,
+        response.status,
+        errorBody,
       );
     }
 
@@ -219,8 +222,10 @@ export class BrowserStackAPI {
 
     if (!response.ok) {
       const errorBody = await response.text();
-      throw new Error(
-        `Error fetching app profiling data: ${response.status}, body: ${errorBody}`,
+      throw new BrowserStackAPIError(
+        `Error fetching app profiling data: ${response.statusText}`,
+        response.status,
+        errorBody,
       );
     }
 
@@ -252,8 +257,12 @@ export class BrowserStackAPI {
     );
 
     if (!response.ok) {
-      const text = await response.text();
-      throw new Error(`Network logs API error: ${response.status} ${text}`);
+      const errorBody = await response.text();
+      throw new BrowserStackAPIError(
+        `Network logs API error: ${response.statusText}`,
+        response.status,
+        errorBody,
+      );
     }
 
     return await response.json();
