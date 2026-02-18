@@ -27,11 +27,8 @@ jest.mock('../../EarnNetworkAvatar', () => ({
 import { useStyles } from '../../../../../hooks/useStyles';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import initialRootState from '../../../../../../util/test/initial-root-state';
-import ConvertTokenRow from './index';
-import {
-  ConvertTokenRowTestIds,
-  ConvertTokenRowProps,
-} from './ConvertTokenRow.types';
+import ConvertTokenRow, { ConvertTokenRowTestIds } from './index';
+import { ConvertTokenRowProps } from './ConvertTokenRow.types';
 
 const mockUseStyles = useStyles as jest.MockedFunction<typeof useStyles>;
 
