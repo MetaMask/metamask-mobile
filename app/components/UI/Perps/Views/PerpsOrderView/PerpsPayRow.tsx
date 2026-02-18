@@ -43,6 +43,7 @@ import {
   PERPS_BALANCE_PLACEHOLDER_ADDRESS,
 } from '../../constants/perpsConfig';
 import { PERPS_BALANCE_ICON_URI } from '../../hooks/usePerpsBalanceTokenFilter';
+import { useDefaultPayWithTokenWhenNoPerpsBalance } from '../../hooks/useDefaultPayWithTokenWhenNoPerpsBalance';
 import {
   useIsPerpsBalanceSelected,
   usePerpsPayWithToken,
@@ -116,14 +117,27 @@ export const PerpsPayRow = ({
     selectPendingTradeConfiguration(state, initialAsset),
   );
   const selectedPaymentToken = usePerpsPayWithToken();
+  const defaultPayWhenNoPerpsBalance =
+    useDefaultPayWithTokenWhenNoPerpsBalance();
 
   const pendingConfigSelectedPaymentToken = pendingConfig?.selectedPaymentToken;
 
   useEffect(() => {
     if (!pendingConfigSelectedPaymentToken) {
-      Engine.context.PerpsController?.setSelectedPaymentToken?.(null);
+      const tokenToSet = defaultPayWhenNoPerpsBalance ?? null;
+      Engine.context.PerpsController?.setSelectedPaymentToken?.(tokenToSet);
+      if (tokenToSet) {
+        setPayToken({
+          address: tokenToSet.address as Hex,
+          chainId: tokenToSet.chainId as Hex,
+        });
+      }
     }
-  }, [pendingConfigSelectedPaymentToken]);
+  }, [
+    pendingConfigSelectedPaymentToken,
+    defaultPayWhenNoPerpsBalance,
+    setPayToken,
+  ]);
 
   useEffect(() => {
     if (!pendingConfigSelectedPaymentToken || !selectedPaymentToken) {

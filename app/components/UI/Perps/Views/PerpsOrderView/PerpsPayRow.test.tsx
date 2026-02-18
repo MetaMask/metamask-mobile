@@ -4,6 +4,7 @@ import { PerpsPayRow } from './PerpsPayRow';
 import { useNavigation } from '@react-navigation/native';
 import { useTransactionPayToken } from '../../../../Views/confirmations/hooks/pay/useTransactionPayToken';
 import { useTransactionMetadataRequest } from '../../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
+import { useDefaultPayWithTokenWhenNoPerpsBalance } from '../../hooks/useDefaultPayWithTokenWhenNoPerpsBalance';
 import {
   useIsPerpsBalanceSelected,
   usePerpsPayWithToken,
@@ -39,6 +40,9 @@ jest.mock('../../../../Views/confirmations/hooks/pay/useTransactionPayToken');
 jest.mock(
   '../../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest',
 );
+jest.mock('../../hooks/useDefaultPayWithTokenWhenNoPerpsBalance', () => ({
+  useDefaultPayWithTokenWhenNoPerpsBalance: jest.fn(),
+}));
 jest.mock('../../hooks/useIsPerpsBalanceSelected', () => ({
   useIsPerpsBalanceSelected: jest.fn(),
   usePerpsPayWithToken: jest.fn(),
@@ -78,6 +82,10 @@ const mockUseIsPerpsBalanceSelected =
 const mockUsePerpsPayWithToken = usePerpsPayWithToken as jest.MockedFunction<
   typeof usePerpsPayWithToken
 >;
+const mockUseDefaultPayWithTokenWhenNoPerpsBalance =
+  useDefaultPayWithTokenWhenNoPerpsBalance as jest.MockedFunction<
+    typeof useDefaultPayWithTokenWhenNoPerpsBalance
+  >;
 const mockUsePerpsSelector = usePerpsSelector as jest.MockedFunction<
   typeof usePerpsSelector
 >;
@@ -131,6 +139,7 @@ describe('PerpsPayRow', () => {
     mockIsHardwareAccount.mockReturnValue(false);
     mockUsePerpsSelector.mockReturnValue({});
     mockUsePerpsPayWithToken.mockReturnValue(null);
+    mockUseDefaultPayWithTokenWhenNoPerpsBalance.mockReturnValue(null);
   });
 
   it('renders pay with label', () => {
@@ -293,11 +302,41 @@ describe('PerpsPayRow', () => {
   it('calls setSelectedPaymentToken(null) when pending config has no selected token', () => {
     mockUsePerpsSelector.mockReturnValue({});
     mockUsePerpsPayWithToken.mockReturnValue(null);
+    mockUseDefaultPayWithTokenWhenNoPerpsBalance.mockReturnValue(null);
 
     renderWithProvider(<PerpsPayRow initialAsset="BTC" />);
 
     expect(
       Engine.context.PerpsController?.setSelectedPaymentToken,
     ).toHaveBeenCalledWith(null);
+  });
+
+  it('defaults payment to allowlist token with highest balance when user has no perps balance', () => {
+    const setPayTokenMock = jest.fn();
+    mockUseTransactionPayToken.mockReturnValue({
+      payToken: null,
+      setPayToken: setPayTokenMock,
+    } as unknown as ReturnType<typeof useTransactionPayToken>);
+    mockUsePerpsSelector.mockReturnValue({});
+    mockUsePerpsPayWithToken.mockReturnValue(null);
+    mockUseDefaultPayWithTokenWhenNoPerpsBalance.mockReturnValue({
+      address: '0xabc' as `0x${string}`,
+      chainId: '0x1' as `0x${string}`,
+      description: 'USDC',
+    });
+
+    renderWithProvider(<PerpsPayRow initialAsset="BTC" />);
+
+    expect(
+      Engine.context.PerpsController?.setSelectedPaymentToken,
+    ).toHaveBeenCalledWith({
+      address: '0xabc',
+      chainId: '0x1',
+      description: 'USDC',
+    });
+    expect(setPayTokenMock).toHaveBeenCalledWith({
+      address: '0xabc',
+      chainId: '0x1',
+    });
   });
 });
