@@ -206,7 +206,7 @@ exports[`MaxBrowserTabsModal should render correctly 1`] = `
             }
           }
         >
-          We currently only support 5 open tabs at once. Please close existing tabs before adding new ones.
+          We currently only support 20 open tabs at once. Please close existing tabs before adding new ones.
         </Text>
         <TouchableOpacity
           accessibilityRole="button"
