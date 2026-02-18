@@ -1,4 +1,5 @@
 import { useCallback, useContext, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import {
   ToastContext,
@@ -20,6 +21,7 @@ import { formatPrice } from '../utils/format';
 import { ensureError, parseErrorMessage } from '../utils/predictErrorHandler';
 import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../constants/errors';
 import { usePredictBalance } from './usePredictBalance';
+import { predictQueries } from '../queries';
 import { usePredictDeposit } from './usePredictDeposit';
 import { PredictEventValues } from '../constants/eventNames';
 
@@ -75,7 +77,8 @@ export function usePredictPlaceOrder(
   const [result, setResult] = useState<Result | null>(null);
   const [isOrderNotFilled, setIsOrderNotFilled] = useState(false);
   const { toastRef } = useContext(ToastContext);
-  const { balance } = usePredictBalance({ loadOnMount: false });
+  const queryClient = useQueryClient();
+  const { data: balance = 0 } = usePredictBalance();
   const { deposit } = usePredictDeposit();
 
   const showCashedOutToast = useCallback(
@@ -179,6 +182,10 @@ export function usePredictPlaceOrder(
 
         setResult(orderResult);
 
+        queryClient.invalidateQueries({
+          queryKey: predictQueries.balance.keys.all(),
+        });
+
         if (side === Side.BUY) {
           showOrderPlacedToast();
         } else {
@@ -239,6 +246,7 @@ export function usePredictPlaceOrder(
       balance,
       deposit,
       controllerPlaceOrder,
+      queryClient,
       onComplete,
       showOrderPlacedToast,
       showCashedOutToast,
