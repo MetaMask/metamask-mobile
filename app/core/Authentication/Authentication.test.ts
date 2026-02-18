@@ -794,7 +794,7 @@ describe('Authentication', () => {
 
       jest
         .spyOn(SecureKeychain, 'setGenericPassword')
-        .mockResolvedValue(undefined);
+        .mockResolvedValue(undefined as never);
 
       SecureKeychain.getSupportedBiometryType = jest
         .fn()
@@ -817,7 +817,7 @@ describe('Authentication', () => {
 
       expect(SecureKeychain.setGenericPassword).toHaveBeenCalledWith(
         mockPassword,
-        SecureKeychain.TYPES.BIOMETRICS,
+        AUTHENTICATION_TYPE.BIOMETRIC,
       );
       expect(removeItemSpy).toHaveBeenCalledWith(BIOMETRY_CHOICE_DISABLED);
       expect(removeItemSpy).toHaveBeenCalledWith(PASSCODE_DISABLED);
@@ -837,7 +837,7 @@ describe('Authentication', () => {
 
       expect(SecureKeychain.setGenericPassword).toHaveBeenCalledWith(
         mockPassword,
-        SecureKeychain.TYPES.PASSCODE,
+        AUTHENTICATION_TYPE.PASSCODE,
       );
       expect(removeItemSpy).toHaveBeenCalledWith(PASSCODE_DISABLED);
       expect(removeItemSpy).toHaveBeenCalledWith(BIOMETRY_CHOICE_DISABLED);
@@ -857,7 +857,7 @@ describe('Authentication', () => {
 
       expect(SecureKeychain.setGenericPassword).toHaveBeenCalledWith(
         mockPassword,
-        undefined,
+        AUTHENTICATION_TYPE.PASSWORD,
       );
       expect(removeItemSpy).toHaveBeenCalledWith(BIOMETRY_CHOICE_DISABLED);
       expect(removeItemSpy).toHaveBeenCalledWith(PASSCODE_DISABLED);
@@ -884,7 +884,7 @@ describe('Authentication', () => {
 
       expect(SecureKeychain.setGenericPassword).toHaveBeenCalledWith(
         mockPassword,
-        undefined,
+        AUTHENTICATION_TYPE.PASSWORD,
       );
       expect(removeItemSpy).toHaveBeenCalledWith(BIOMETRY_CHOICE_DISABLED);
       expect(removeItemSpy).toHaveBeenCalledWith(PASSCODE_DISABLED);
@@ -901,7 +901,7 @@ describe('Authentication', () => {
 
       expect(SecureKeychain.setGenericPassword).toHaveBeenCalledWith(
         mockPassword,
-        undefined,
+        'UnknownType',
       );
       expect(removeItemSpy).toHaveBeenCalledWith(BIOMETRY_CHOICE_DISABLED);
       expect(removeItemSpy).toHaveBeenCalledWith(PASSCODE_DISABLED);
@@ -930,9 +930,6 @@ describe('Authentication', () => {
       });
 
       expect(mockDispatch).toHaveBeenCalledWith(setOsAuthEnabled(false));
-      expect(mockDispatch).toHaveBeenCalledWith(
-        setAllowLoginWithRememberMe(true),
-      );
     });
 
     it('throws AuthenticationError with AUTHENTICATION_STORE_PASSWORD_FAILED when SecureKeychain fails', async () => {
@@ -994,7 +991,7 @@ describe('Authentication', () => {
       const setGenericPasswordSpy = jest
         .spyOn(SecureKeychain, 'setGenericPassword')
         .mockRejectedValueOnce(new Error('Biometric storage failed'))
-        .mockResolvedValueOnce(undefined);
+        .mockResolvedValueOnce(undefined as never);
 
       await Authentication.storePassword(
         mockPassword,
@@ -1006,12 +1003,12 @@ describe('Authentication', () => {
       expect(setGenericPasswordSpy).toHaveBeenNthCalledWith(
         1,
         mockPassword,
-        SecureKeychain.TYPES.BIOMETRICS,
+        AUTHENTICATION_TYPE.BIOMETRIC,
       );
       expect(setGenericPasswordSpy).toHaveBeenNthCalledWith(
         2,
         mockPassword,
-        undefined,
+        AUTHENTICATION_TYPE.PASSWORD,
       );
       expect(mockDispatch).toHaveBeenCalledWith(passwordSet());
     });
@@ -1171,7 +1168,7 @@ describe('Authentication', () => {
         const setGenericPasswordSpy = jest
           .spyOn(SecureKeychain, 'setGenericPassword')
           .mockRejectedValueOnce(new Error('Biometric storage failed'))
-          .mockResolvedValueOnce(undefined);
+          .mockResolvedValueOnce(undefined as never);
 
         await Authentication.newWalletAndKeychain('password', {
           currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
@@ -1181,12 +1178,12 @@ describe('Authentication', () => {
         expect(setGenericPasswordSpy).toHaveBeenNthCalledWith(
           1,
           'password',
-          SecureKeychain.TYPES.BIOMETRICS,
+          AUTHENTICATION_TYPE.BIOMETRIC,
         );
         expect(setGenericPasswordSpy).toHaveBeenNthCalledWith(
           2,
           'password',
-          undefined,
+          AUTHENTICATION_TYPE.PASSWORD,
         );
         expect(fallbackMockDispatch).toHaveBeenCalledWith(
           setExistingUser(true),
@@ -1211,7 +1208,7 @@ describe('Authentication', () => {
         const setGenericPasswordSpy = jest
           .spyOn(SecureKeychain, 'setGenericPassword')
           .mockRejectedValueOnce(new Error('Biometric storage failed'))
-          .mockResolvedValueOnce(undefined);
+          .mockResolvedValueOnce(undefined as never);
 
         await Authentication.newWalletAndRestore(
           'password',
@@ -1224,12 +1221,12 @@ describe('Authentication', () => {
         expect(setGenericPasswordSpy).toHaveBeenNthCalledWith(
           1,
           'password',
-          SecureKeychain.TYPES.BIOMETRICS,
+          AUTHENTICATION_TYPE.BIOMETRIC,
         );
         expect(setGenericPasswordSpy).toHaveBeenNthCalledWith(
           2,
           'password',
-          undefined,
+          AUTHENTICATION_TYPE.PASSWORD,
         );
         expect(restoreMockDispatch).toHaveBeenCalledWith(setExistingUser(true));
         expect(restoreMockDispatch).toHaveBeenCalledWith(logIn());
@@ -1736,6 +1733,7 @@ describe('Authentication', () => {
       ]);
       const mockStateLocal: RecursivePartial<RootState> = {
         user: { existingUser: true },
+        security: { allowLoginWithRememberMe: true },
         engine: {
           backgroundState: {
             SeedlessOnboardingController: {
@@ -1964,6 +1962,7 @@ describe('Authentication', () => {
 
       const mockState = {
         user: { existingUser: true },
+        security: { allowLoginWithRememberMe: true },
         engine: {
           backgroundState: {
             SeedlessOnboardingController: {
@@ -3903,7 +3902,7 @@ describe('Authentication', () => {
       jest.spyOn(Authentication, 'resetPassword').mockResolvedValue(undefined);
       jest
         .spyOn(SecureKeychain, 'setGenericPassword')
-        .mockResolvedValue(undefined);
+        .mockResolvedValue(undefined as never);
     });
 
     afterEach(() => {
@@ -3923,7 +3922,7 @@ describe('Authentication', () => {
       ).toHaveBeenCalledWith(mockPassword);
       expect(SecureKeychain.setGenericPassword).toHaveBeenCalledWith(
         mockPassword,
-        SecureKeychain.TYPES.BIOMETRICS,
+        AUTHENTICATION_TYPE.BIOMETRIC,
       );
       expect(removeItemSpy).toHaveBeenCalledWith(BIOMETRY_CHOICE_DISABLED);
       expect(removeItemSpy).toHaveBeenCalledWith(PASSCODE_DISABLED);
@@ -3947,7 +3946,7 @@ describe('Authentication', () => {
       ).toHaveBeenCalledWith(mockPassword);
       expect(SecureKeychain.setGenericPassword).toHaveBeenCalledWith(
         mockPassword,
-        SecureKeychain.TYPES.BIOMETRICS,
+        AUTHENTICATION_TYPE.BIOMETRIC,
       );
       expect(removeItemSpy).toHaveBeenCalledWith(BIOMETRY_CHOICE_DISABLED);
       expect(removeItemSpy).toHaveBeenCalledWith(PASSCODE_DISABLED);
@@ -3969,7 +3968,7 @@ describe('Authentication', () => {
       ).toHaveBeenCalledWith(mockPassword);
       expect(SecureKeychain.setGenericPassword).toHaveBeenCalledWith(
         mockPassword,
-        SecureKeychain.TYPES.PASSCODE,
+        AUTHENTICATION_TYPE.PASSCODE,
       );
       expect(removeItemSpy).toHaveBeenCalledWith(PASSCODE_DISABLED);
       expect(removeItemSpy).toHaveBeenCalledWith(BIOMETRY_CHOICE_DISABLED);
@@ -3991,7 +3990,7 @@ describe('Authentication', () => {
       ).toHaveBeenCalledWith(mockPassword);
       expect(SecureKeychain.setGenericPassword).toHaveBeenCalledWith(
         mockPassword,
-        undefined,
+        AUTHENTICATION_TYPE.PASSWORD,
       );
       expect(removeItemSpy).toHaveBeenCalledWith(BIOMETRY_CHOICE_DISABLED);
       expect(removeItemSpy).toHaveBeenCalledWith(PASSCODE_DISABLED);
@@ -4111,7 +4110,7 @@ describe('Authentication', () => {
       expect(verifyPasswordSpy).toHaveBeenCalledWith(mockPassword);
       expect(SecureKeychain.setGenericPassword).toHaveBeenCalledWith(
         mockPassword,
-        SecureKeychain.TYPES.BIOMETRICS,
+        AUTHENTICATION_TYPE.BIOMETRIC,
       );
       expect(removeItemSpy).toHaveBeenCalledWith(BIOMETRY_CHOICE_DISABLED);
       expect(removeItemSpy).toHaveBeenCalledWith(PASSCODE_DISABLED);
@@ -4402,10 +4401,11 @@ describe('Authentication', () => {
         },
       };
 
-      // Mock existing user state.
+      // Mock existing user state (include security for storePassword/updateAuthPreference).
       jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
         getState: () => ({
           user: { existingUser: true },
+          security: { allowLoginWithRememberMe: false },
         }),
         dispatch: mockDispatch,
       } as unknown as ReduxStore);

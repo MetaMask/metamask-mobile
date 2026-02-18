@@ -360,41 +360,21 @@ class AuthenticationService {
   ): Promise<void> => {
     try {
       // Store password in keychain with appropriate type
-      switch (authType) {
-        case AUTHENTICATION_TYPE.BIOMETRIC:
-          await SecureKeychain.setGenericPassword(
-            password,
-            SecureKeychain.TYPES.BIOMETRICS,
-          );
-          break;
-        case AUTHENTICATION_TYPE.PASSCODE:
-          await SecureKeychain.setGenericPassword(
-            password,
-            SecureKeychain.TYPES.PASSCODE,
-          );
-          break;
-        case AUTHENTICATION_TYPE.PASSWORD:
-        default:
-          await SecureKeychain.setGenericPassword(password, undefined);
-          break;
-      }
+      await SecureKeychain.setGenericPassword(password, authType);
 
-      // Remove legacy flags associated with authentication types
+      // Remove legacy authentication flags
       await StorageWrapper.removeItem(BIOMETRY_CHOICE_DISABLED);
       await StorageWrapper.removeItem(PASSCODE_DISABLED);
       await StorageWrapper.removeItem(PREVIOUS_AUTH_TYPE_BEFORE_REMEMBER_ME);
+      if (ReduxService.store.getState().security?.allowLoginWithRememberMe) {
+        ReduxService.store.dispatch(setAllowLoginWithRememberMe(false));
+      }
 
       // Keep Redux in sync with keychain so getAuthCapabilities reflects actual access control
       this.updateOsAuthEnabled(
         authType === AUTHENTICATION_TYPE.BIOMETRIC ||
-          authType === AUTHENTICATION_TYPE.PASSCODE,
-      );
-
-      // Legacy - keep Redux in sync with keychain so getAuthCapabilities reflects actual access control
-      ReduxService.store.dispatch(
-        setAllowLoginWithRememberMe(
-          authType === AUTHENTICATION_TYPE.REMEMBER_ME,
-        ),
+          authType === AUTHENTICATION_TYPE.PASSCODE ||
+          authType === AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION,
       );
 
       this.dispatchPasswordSet();
