@@ -381,7 +381,7 @@ describe('BaseControlBar', () => {
   });
 
   describe('Disabled states', () => {
-    it('does not be disabled when custom isDisabled param is not provided', () => {
+    it('renders filter button as enabled when no custom isDisabled param is provided', () => {
       const { getByTestId } = renderComponent();
       const filterButton = getByTestId('test-network-filter');
 
