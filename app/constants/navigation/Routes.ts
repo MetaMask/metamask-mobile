@@ -320,7 +320,6 @@ const Routes = {
   CONFIRMATION_SWITCH_ACCOUNT_TYPE: 'ConfirmationSwitchAccountType',
   CONFIRMATION_PAY_WITH_MODAL: 'ConfirmationPayWithModal',
   CONFIRMATION_PAY_WITH_NETWORK_MODAL: 'ConfirmationPayWithNetworkModal',
-  SMART_ACCOUNT_OPT_IN: 'SmartAccountOptIn',
   NOTIFICATIONS: {
     VIEW: 'NotificationsView',
     OPT_IN: 'OptIn',
