@@ -296,6 +296,28 @@ jobs:
       browserstack_build_name: ${{ needs.set-build-names.outputs.ios_build_name }}
     secrets: inherit
 
+  run-android-mm-connect-tests:
+    name: Run Android MM-Connect Tests
+    uses: ./.github/workflows/performance-test-runner.yml
+    needs:
+      [
+        read-device-matrix,
+        trigger-android-dual-versions,
+        wait-for-onboarding-completion,
+        set-build-names,
+        determine-branch-name,
+      ]
+    if: always() && (needs.trigger-android-dual-versions.result == 'skipped' || needs.trigger-android-dual-versions.result == 'success') && (inputs.browserstack_app_url_android_imported_wallet || needs.trigger-android-dual-versions.result == 'success')
+    with:
+      platform: android
+      build_type: mm-connect
+      device_matrix: ${{ needs.read-device-matrix.outputs.android_matrix }}
+      browserstack_app_url: ${{ needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url || inputs.browserstack_app_url_android_imported_wallet }}
+      app_version: ${{ needs.trigger-android-dual-versions.outputs.with-srp-version || 'Manual-Input' }}
+      branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
+      browserstack_build_name: ${{ needs.set-build-names.outputs.android_build_name }}
+    secrets: inherit
+
   aggregate-results:
     name: Aggregate All Test Results
     runs-on: ubuntu-latest
@@ -303,6 +325,7 @@ jobs:
       [
         run-android-imported-wallet-tests,
         run-android-onboarding-tests,
+        run-android-mm-connect-tests,
         run-ios-imported-wallet-tests,
         run-ios-onboarding-tests,
         wait-for-onboarding-completion,
@@ -346,6 +369,7 @@ jobs:
       [
         run-android-imported-wallet-tests,
         run-android-onboarding-tests,
+        run-android-mm-connect-tests,
         run-ios-imported-wallet-tests,
         run-ios-onboarding-tests,
         aggregate-results,
