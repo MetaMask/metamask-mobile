@@ -34,6 +34,65 @@ import InfoRow from '../../UI/info-row/info-row';
 import styleSheet from './cancel-speedup-modal.styles';
 import { useStyles } from '../../../../../hooks/useStyles';
 
+const NetworkFee = ({
+  fiat,
+  native,
+  symbol,
+  chainId,
+}: {
+  fiat: string | null;
+  native: string;
+  symbol: string;
+  chainId: Hex;
+}) => {
+  const tw = useTailwind();
+  return (
+    <InfoRow label={strings('transactions.network_fee')}>
+      <Box
+        flexDirection={FlexDirection.Row}
+        alignItems={AlignItems.center}
+        gap={3}
+        style={tw.style('flex-wrap')}
+      >
+        {fiat ? <Text variant={TextVariant.BodyMD}>{fiat}</Text> : null}
+        <Box
+          flexDirection={FlexDirection.Row}
+          alignItems={AlignItems.center}
+          gap={3}
+        >
+          <Text variant={TextVariant.BodyMD}>{native}</Text>
+          <NetworkAssetLogo
+            chainId={chainId}
+            ticker={symbol}
+            big={false}
+            biggest={false}
+            style={tw.style('rounded-full')}
+            testID="cancel-speedup-network-fee-logo"
+          />
+          <Text variant={TextVariant.BodyMD}>{symbol}</Text>
+        </Box>
+      </Box>
+    </InfoRow>
+  );
+};
+
+const Speed = ({ display }: { display: string }) => (
+  <InfoRow label={strings('transactions.gas_modal.speed')}>{display}</InfoRow>
+);
+
+const Description = ({ text }: { text: string }) => {
+  const tw = useTailwind();
+  return (
+    <Text
+      variant={TextVariant.BodySM}
+      color={TextColor.Alternative}
+      style={tw.style('mt-2 pb-3')}
+    >
+      {text}
+    </Text>
+  );
+};
+
 export interface CancelSpeedupModalProps {
   isCancel: boolean;
   tx: TransactionMeta | null;
@@ -43,10 +102,6 @@ export interface CancelSpeedupModalProps {
   confirmDisabled?: boolean;
 }
 
-/**
- * Modal for Speed up or Cancel transaction.
- * Displays Network fee and Speed rows. On confirm, calls controller with computed params.
- */
 export function CancelSpeedupModal({
   isCancel,
   tx,
@@ -56,9 +111,9 @@ export function CancelSpeedupModal({
   confirmDisabled = false,
 }: CancelSpeedupModalProps) {
   const bottomSheetRef = useRef<BottomSheetRef>(null);
-
   const tw = useTailwind();
   const { styles } = useStyles(styleSheet, {});
+
   const {
     paramsForController,
     networkFeeNative,
@@ -87,35 +142,6 @@ export function CancelSpeedupModal({
 
   const chainId = (tx?.chainId ?? '') as Hex;
 
-  const networkFeeValue = (
-    <Box
-      flexDirection={FlexDirection.Row}
-      alignItems={AlignItems.center}
-      gap={3}
-      style={tw.style('flex-wrap')}
-    >
-      {networkFeeFiat ? (
-        <Text variant={TextVariant.BodyMD}>{networkFeeFiat}</Text>
-      ) : null}
-      <Box
-        flexDirection={FlexDirection.Row}
-        alignItems={AlignItems.center}
-        gap={3}
-      >
-        <Text variant={TextVariant.BodyMD}>{networkFeeNative}</Text>
-        <NetworkAssetLogo
-          chainId={chainId}
-          ticker={nativeTokenSymbol}
-          big={false}
-          biggest={false}
-          style={tw.style('rounded-full')}
-          testID="cancel-speedup-network-fee-logo"
-        />
-        <Text variant={TextVariant.BodyMD}>{nativeTokenSymbol}</Text>
-      </Box>
-    </Box>
-  );
-
   const buttons = [
     {
       variant: ButtonVariants.Primary,
@@ -137,20 +163,15 @@ export function CancelSpeedupModal({
         <ScrollView>
           <Box gap={4}>
             <InfoSection>
-              <InfoRow label={strings('transactions.network_fee')}>
-                {networkFeeValue}
-              </InfoRow>
-              <InfoRow label={strings('transactions.gas_modal.speed')}>
-                {speedDisplay}
-              </InfoRow>
+              <NetworkFee
+                fiat={networkFeeFiat}
+                native={networkFeeNative}
+                symbol={nativeTokenSymbol}
+                chainId={chainId}
+              />
+              <Speed display={speedDisplay} />
             </InfoSection>
-            <Text
-              variant={TextVariant.BodySM}
-              color={TextColor.Alternative}
-              style={tw.style('mt-2 pb-3')}
-            >
-              {description}
-            </Text>
+            <Description text={description} />
           </Box>
         </ScrollView>
         <BottomSheetFooter

@@ -71,7 +71,6 @@ const TransactionDetailsSheet: React.FC = () => {
 
   const noOpClose = useCallback(() => {
     // No-op close function since TransactionDetails calls close() before invoking the speed up and cancel handlers
-    console.log('TransactionDetailsSheet: no-op close function called');
   }, []);
 
   return (
