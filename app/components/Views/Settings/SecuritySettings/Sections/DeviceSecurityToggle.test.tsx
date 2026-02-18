@@ -135,7 +135,7 @@ describe('DeviceSecurityToggle', () => {
       const { getByText } = renderComponent();
       await waitFor(() => {
         // strings('app_settings.enable_biometrics_in_settings') from en.json
-        expect(getByText('Enable Device Authentication')).toBeTruthy();
+        expect(getByText('Enable Device Authentication')).toBeOnTheScreen();
       });
     });
 
@@ -160,7 +160,7 @@ describe('DeviceSecurityToggle', () => {
       await waitFor(() => {
         expect(
           getByTestId(SecurityPrivacyViewSelectorsIDs.DEVICE_SECURITY_TOGGLE),
-        ).toBeTruthy();
+        ).toBeOnTheScreen();
       });
     });
   });
