@@ -1,6 +1,6 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
-import { Provider, useSelector } from 'react-redux';
+import { Provider } from 'react-redux';
 import { createStore } from 'redux';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -17,12 +17,7 @@ import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkS
 import { useNetworksToUse } from '../../hooks/useNetworksToUse/useNetworksToUse';
 import CustomNetworkSelector from './CustomNetworkSelector';
 import { CustomNetworkItem } from './CustomNetworkSelector.types';
-import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
-import {
-  selectIsEvmNetworkSelected,
-  selectSelectedNonEvmNetworkChainId,
-} from '../../../selectors/multichainNetworkController';
-import { selectEvmChainId } from '../../../selectors/networkController';
+import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 
 jest.mock('../../../core/Multichain/utils', () => ({
@@ -209,7 +204,6 @@ describe('CustomNetworkSelector', () => {
   const mockUseNetworksToUse = useNetworksToUse as jest.MockedFunction<
     typeof useNetworksToUse
   >;
-  const mockUseSelector = jest.mocked(useSelector);
   const mockSelectIsEvmNetworkSelected =
     selectIsEvmNetworkSelected as jest.MockedFunction<
       typeof selectIsEvmNetworkSelected
@@ -304,22 +298,6 @@ describe('CustomNetworkSelector', () => {
     });
 
     mockSelectIsEvmNetworkSelected.mockReturnValue(true);
-
-    mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectMultichainAccountsState2Enabled) {
-        return true;
-      }
-      if (selector === mockSelectIsEvmNetworkSelected) {
-        return true;
-      }
-      if (selector === selectEvmChainId) {
-        return '0x1'; // Ethereum mainnet
-      }
-      if (selector === selectSelectedNonEvmNetworkChainId) {
-        return 'solana:mainnet';
-      }
-      return undefined;
-    });
   });
 
   // Helper function to render with Redux provider
