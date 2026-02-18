@@ -36,6 +36,11 @@ jest.mock('../../Perps/components/PerpsBottomSheetTooltip', () => ({
   default: () => null,
 }));
 
+jest.mock('../../../../selectors/featureFlagController/tokenDetailsV2', () => ({
+  selectTokenDetailsV2Enabled: jest.fn(() => true),
+  selectTokenDetailsV2ButtonsEnabled: jest.fn(() => true),
+}));
+
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
   return {
@@ -60,9 +65,7 @@ function createState(isEligible: boolean) {
         RemoteFeatureFlagController: {
           ...(backgroundState as { RemoteFeatureFlagController?: object })
             .RemoteFeatureFlagController,
-          remoteFeatureFlags: {
-            tokenDetailsV2Buttons: true,
-          },
+          remoteFeatureFlags: {},
         },
         AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
       },
@@ -99,7 +102,6 @@ const defaultProps: AssetOverviewContentProps = {
   setTimePeriod: jest.fn(),
   chartNavigationButtons: ['1d', '1w', '1m'],
   isPerpsEnabled: true,
-  isMerklCampaignClaimingEnabled: false,
   displayBuyButton: false,
   displaySwapsButton: false,
   currentCurrency: 'USD',

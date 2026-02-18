@@ -11,7 +11,8 @@ import {
 } from '@metamask/bridge-controller';
 import { BridgeRouteParams } from '../../Views/BridgeView';
 import { EthScope } from '@metamask/keyring-api';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { getDecimalChainId } from '../../../../../util/networks';
 import {
   trackActionButtonClick,
@@ -75,7 +76,7 @@ export const useSwapBridgeNavigation = ({
 }) => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const getIsBridgeEnabledSource = useSelector(
     selectIsBridgeEnabledSourceFactory,
   );

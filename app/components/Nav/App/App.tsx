@@ -34,6 +34,8 @@ import Toast, {
 import PerpsWebSocketHealthToast, {
   WebSocketHealthToastProvider,
 } from '../../UI/Perps/components/PerpsWebSocketHealthToast';
+import { ControllerEventToastBridge } from './ControllerEventToastBridge';
+import { usePredictToastRegistrations } from '../../UI/Predict/hooks/usePredictToastRegistrations';
 import AccountSelector from '../../../components/Views/AccountSelector';
 import AddressSelector from '../../../components/Views/AddressSelector';
 import { TokenSortBottomSheet } from '../../UI/Tokens/TokenSortBottomSheet/TokenSortBottomSheet';
@@ -68,7 +70,6 @@ import AccountActions from '../../../components/Views/AccountActions';
 import FiatOnTestnetsFriction from '../../../components/Views/Settings/AdvancedSettings/FiatOnTestnetsFriction';
 import WalletActions from '../../Views/WalletActions';
 import FundActionMenu from '../../UI/FundActionMenu';
-import ClaimOnLineaBottomSheet from '../../UI/Earn/components/MerklRewards/ClaimOnLineaBottomSheet';
 import MoreTokenActionsMenu from '../../UI/TokenDetails/components/MoreTokenActionsMenu';
 import NetworkSelector from '../../../components/Views/NetworkSelector';
 import ReturnToAppNotification from '../../Views/ReturnToAppNotification';
@@ -376,10 +377,6 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <Stack.Screen
       name={Routes.MODAL.FUND_ACTION_MENU}
       component={FundActionMenu}
-    />
-    <Stack.Screen
-      name={Routes.MODAL.CLAIM_ON_LINEA}
-      component={ClaimOnLineaBottomSheet}
     />
     <Stack.Screen
       name={Routes.MODAL.MORE_TOKEN_ACTIONS_MENU}
@@ -1105,6 +1102,7 @@ const App: React.FC = () => {
   );
 
   useOTAUpdates();
+  const predictRegistrations = usePredictToastRegistrations();
 
   if (isFirstRender.current) {
     trace({
@@ -1179,6 +1177,7 @@ const App: React.FC = () => {
       <AppFlow />
       <Toast ref={toastRef} />
       <PerpsWebSocketHealthToast />
+      <ControllerEventToastBridge registrations={predictRegistrations} />
       <ProfilerManager />
     </WebSocketHealthToastProvider>
   );
