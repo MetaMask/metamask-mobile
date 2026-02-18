@@ -143,7 +143,6 @@
     ]
   },
   "resolutions": {
-    "@metamask/ramps-controller": "npm:@metamask-previews/ramps-controller@8.0.0-preview-eb9a46682",
     "@appium/schema/json-schema": "^0.4.0",
     "@metamask/react-native-payments/validator": "^13.7.0",
     "d3-color": "3.1.0",
@@ -260,7 +259,7 @@
     "@metamask/preinstalled-example-snap": "^0.7.2",
     "@metamask/profile-metrics-controller": "^2.0.0",
     "@metamask/profile-sync-controller": "^27.1.0",
-    "@metamask/ramps-controller": "^8.0.0",
+    "@metamask/ramps-controller": "^8.1.0",
     "@metamask/react-native-acm": "^1.0.1",
     "@metamask/react-native-actionsheet": "2.4.2",
     "@metamask/react-native-button": "^3.0.0",

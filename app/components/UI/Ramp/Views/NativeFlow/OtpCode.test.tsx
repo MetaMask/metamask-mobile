@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, fireEvent, act, waitFor } from '@testing-library/react-native';
-import V2OtpCode from './OtpCode';
+import V2OtpCode, { type V2OtpCodeParams } from './OtpCode';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
 
 const mockNavigate = jest.fn();
@@ -57,13 +57,15 @@ jest.mock('../../hooks/useRampsController', () => ({
   }),
 }));
 
-const mockUseParams = jest.fn(() => ({
-  email: 'test@example.com',
-  stateToken: 'test-state-token',
-  amount: '100',
-  currency: 'USD',
-  assetId: 'eip155:1/erc20:0x123',
-}));
+const mockUseParams = jest.fn(
+  (): V2OtpCodeParams => ({
+    email: 'test@example.com',
+    stateToken: 'test-state-token',
+    amount: '100',
+    currency: 'USD',
+    assetId: 'eip155:1/erc20:0x123',
+  }),
+);
 
 jest.mock('../../../../../util/navigation/navUtils', () => ({
   createNavigationDetails:
@@ -406,10 +408,10 @@ describe('V2OtpCode', () => {
   it('handles paste from clipboard', async () => {
     jest.useRealTimers();
 
-    const Clipboard = jest.requireMock<
-      typeof import('@react-native-clipboard/clipboard')
-    >('@react-native-clipboard/clipboard');
-    (Clipboard.getString as jest.Mock).mockResolvedValue('654321');
+    const Clipboard = jest.requireMock('@react-native-clipboard/clipboard') as {
+      getString: jest.Mock;
+    };
+    Clipboard.getString.mockResolvedValue('654321');
 
     const { getByTestId } = renderWithTheme(<V2OtpCode />);
 
