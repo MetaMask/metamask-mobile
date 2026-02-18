@@ -101,7 +101,8 @@ function BuildQuote() {
     quotesLoading,
     startQuotePolling,
     stopQuotePolling,
-    getWidgetUrl,
+    widgetUrl,
+    widgetUrlLoading,
     paymentMethodsLoading,
     selectedPaymentMethod,
   } = useRampsController();
@@ -203,7 +204,7 @@ function BuildQuote() {
     isOnBuildQuoteScreen,
   ]);
 
-  const handleContinuePress = useCallback(async () => {
+  const handleContinuePress = useCallback(() => {
     if (!selectedQuote) return;
 
     const quoteAmount =
@@ -213,14 +214,11 @@ function BuildQuote() {
       selectedQuote.quote?.paymentMethod ??
       (selectedQuote as { paymentMethod?: string }).paymentMethod;
 
-    // Validate amount matches
     if (quoteAmount !== amountAsNumber) {
       return;
     }
 
-    // Validate payment method context matches
     if (quotePaymentMethod != null) {
-      // Quote requires a payment method - must have one selected and it must match
       if (
         !selectedPaymentMethod ||
         selectedPaymentMethod.id !== quotePaymentMethod
@@ -229,7 +227,6 @@ function BuildQuote() {
       }
     }
 
-    // Native/whitelabel provider (e.g. Transak Native) -> deposit flow
     if (isNativeProvider(selectedQuote)) {
       navigation.navigate(
         ...createDepositNavigationDetails({
@@ -242,39 +239,24 @@ function BuildQuote() {
       return;
     }
 
-    // Aggregator provider -> needs a widget URL
-    // Note: CustomActions (e.g., PayPal) are handled through the same flow.
-    // If the API returns a quote with a URL, it will be opened in the checkout webview.
-    // If customActions appear without a URL, they will error here (needs backend fix).
-    try {
-      const widgetUrl = await getWidgetUrl(selectedQuote);
-
-      if (widgetUrl) {
-        navigation.navigate(
-          ...createCheckoutNavDetails({
-            url: widgetUrl,
-            providerName: getQuoteProviderName(selectedQuote),
-            userAgent: getQuoteBuyUserAgent(selectedQuote),
-          }),
-        );
-      } else {
-        Logger.error(
-          new Error('No widget URL available for aggregator provider'),
-          { provider: selectedQuote.provider },
-        );
-        // TODO: Show user-facing error (alert or inline)
-      }
-    } catch (error) {
-      Logger.error(error as Error, {
-        provider: selectedQuote.provider,
-        message: 'Failed to fetch widget URL',
-      });
-      // TODO: Show user-facing error (alert or inline)
+    if (widgetUrl?.url) {
+      navigation.navigate(
+        ...createCheckoutNavDetails({
+          url: widgetUrl.url,
+          providerName: getQuoteProviderName(selectedQuote),
+          userAgent: getQuoteBuyUserAgent(selectedQuote),
+        }),
+      );
+    } else {
+      Logger.error(
+        new Error('No widget URL available for aggregator provider'),
+        { provider: selectedQuote.provider },
+      );
     }
   }, [
     selectedQuote,
     navigation,
-    getWidgetUrl,
+    widgetUrl,
     amountAsNumber,
     selectedToken,
     currency,
@@ -313,12 +295,19 @@ function BuildQuote() {
     return true;
   }, [selectedQuote, amountAsNumber, selectedPaymentMethod]);
 
+  const requiresWidgetUrl =
+    selectedQuote !== null && !isNativeProvider(selectedQuote);
+
+  const widgetUrlReady = !requiresWidgetUrl || Boolean(widgetUrl?.url);
+
   const canContinue =
     hasAmount &&
     !quotesLoading &&
+    !widgetUrlLoading &&
     selectedQuote !== null &&
     quoteMatchesAmount &&
-    quoteMatchesCurrentContext;
+    quoteMatchesCurrentContext &&
+    widgetUrlReady;
 
   return (
     <ScreenLayout>
@@ -363,7 +352,9 @@ function BuildQuote() {
                 onPress={handleContinuePress}
                 isFullWidth
                 isDisabled={!canContinue}
-                isLoading={quotesLoading}
+                isLoading={
+                  quotesLoading || (requiresWidgetUrl && widgetUrlLoading)
+                }
                 testID={BuildQuoteSelectors.CONTINUE_BUTTON}
               >
                 {strings('fiat_on_ramp.continue')}

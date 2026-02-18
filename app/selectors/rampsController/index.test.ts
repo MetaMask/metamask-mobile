@@ -14,6 +14,7 @@ import {
   selectPaymentMethods,
   selectRampsControllerState,
   selectQuotes,
+  selectWidgetUrl,
 } from './index';
 
 const createDefaultResourceState = <TData, TSelected = null>(
@@ -47,6 +48,7 @@ const createMockState = (
             PaymentMethod | null
           >([], null),
           quotes: createDefaultResourceState(null),
+          widgetUrl: createDefaultResourceState(null),
           requests: {},
           ...rampsController,
         },
@@ -324,6 +326,78 @@ describe('RampsController Selectors', () => {
       const result = selectQuotes(state);
 
       expect(result.error).toBe('Failed to fetch quotes');
+    });
+  });
+
+  describe('selectWidgetUrl', () => {
+    it('returns widget URL resource state when data exists', () => {
+      const mockBuyWidget = {
+        url: 'https://global.transak.com/?apiKey=test',
+        browser: 'in-app',
+        orderId: 'order-123',
+      };
+      const state = createMockState({
+        widgetUrl: {
+          data: mockBuyWidget,
+          selected: null,
+          isLoading: false,
+          error: null,
+        },
+      });
+
+      const result = selectWidgetUrl(state);
+
+      expect(result).toEqual({
+        data: mockBuyWidget,
+        selected: null,
+        isLoading: false,
+        error: null,
+      });
+    });
+
+    it('returns default resource state when widgetUrl is undefined', () => {
+      const state = createMockState({
+        widgetUrl: undefined,
+      });
+
+      const result = selectWidgetUrl(state);
+
+      expect(result).toEqual({
+        data: null,
+        selected: null,
+        isLoading: false,
+        error: null,
+      });
+    });
+
+    it('returns isLoading true when widget URL is being fetched', () => {
+      const state = createMockState({
+        widgetUrl: {
+          data: null,
+          selected: null,
+          isLoading: true,
+          error: null,
+        },
+      });
+
+      const result = selectWidgetUrl(state);
+
+      expect(result.isLoading).toBe(true);
+    });
+
+    it('returns error when widget URL request failed', () => {
+      const state = createMockState({
+        widgetUrl: {
+          data: null,
+          selected: null,
+          isLoading: false,
+          error: 'Failed to fetch widget URL',
+        },
+      });
+
+      const result = selectWidgetUrl(state);
+
+      expect(result.error).toBe('Failed to fetch widget URL');
     });
   });
 
