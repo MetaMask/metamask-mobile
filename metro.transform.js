@@ -105,15 +105,22 @@ function getBuildTypeFeaturesFromEnv() {
  * @returns {Set<string>} The set of features to be included in the build.
  */
 function getBuildTypeFeatures() {
+  let featureSet;
+
   // Prefer GH Actions path: single source of truth from builds.yml
   if (process.env.CODE_FENCING_FEATURES) {
     const features = JSON.parse(process.env.CODE_FENCING_FEATURES);
-    const featureSet = new Set(features);
-    if (process.env.INCLUDE_SAMPLE_FEATURE === 'true') {
-      featureSet.add('sample-feature');
-    }
-    return featureSet;
+    featureSet = new Set(features);
+  } else {
+    // Fallback for Bitrise / local dev builds
+    featureSet = getBuildTypeFeaturesFromEnv();
   }
+
+  if (process.env.INCLUDE_SAMPLE_FEATURE === 'true') {
+    featureSet.add('sample-feature');
+  }
+
+  return featureSet;
 }
 
 /**
