@@ -4,7 +4,7 @@ import {
   SortDirection,
   TimeOption,
 } from '../components/TrendingTokensBottomSheet';
-import { getPriceChangeFieldKey } from '../components/TrendingTokenRowItem/TrendingTokenRowItem';
+import { getPriceChangeFieldKey } from '../components/TrendingTokenRowItem/utils';
 
 /**
  * Sorts trending tokens based on the selected option and direction
