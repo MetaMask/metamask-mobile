@@ -702,6 +702,7 @@ exports[`Checkout renders correctly with valid URL 1`] = `
     enableApplePay={true}
     mediaPlaybackRequiresUserAction={false}
     onHttpError={[Function]}
+    onNavigationStateChange={[Function]}
     onShouldStartLoadWithRequest={[Function]}
     paymentRequestEnabled={true}
     source={

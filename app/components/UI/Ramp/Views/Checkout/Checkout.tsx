@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { WebView } from '@metamask/react-native-webview';
 import {
   createNavigationDetails,
@@ -24,14 +24,21 @@ import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './Checkout.styles';
 import Device from '../../../../../util/device';
 import { shouldStartLoadWithRequest } from '../../../../../util/browser';
+import {
+  getCheckoutCallback,
+  removeCheckoutCallback,
+} from '../../utils/checkoutCallbackRegistry';
 
 interface CheckoutParams {
   url: string;
   providerName: string;
   /** Optional provider-specific userAgent for the WebView (e.g. features.buy.userAgent). */
   userAgent?: string;
-  /** Optional callback invoked on every navigation state change (e.g. to intercept redirect URLs). */
-  onNavigationStateChange?: (navState: { url: string }) => void;
+  /**
+   * Key into the checkout callback registry. The actual callback lives outside
+   * navigation state so that route params stay serializable.
+   */
+  callbackKey?: string;
 }
 
 export const createCheckoutNavDetails = createNavigationDetails<CheckoutParams>(
@@ -40,19 +47,22 @@ export const createCheckoutNavDetails = createNavigationDetails<CheckoutParams>(
 
 const Checkout = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
+  const previousUrlRef = useRef<string | null>(null);
   const [error, setError] = useState('');
   const [key, setKey] = useState(0);
   const params = useParams<CheckoutParams>();
   const { styles } = useStyles(styleSheet, {});
 
-  const {
-    url: uri,
-    providerName,
-    userAgent,
-    onNavigationStateChange,
-  } = params ?? {};
+  const { url: uri, providerName, userAgent, callbackKey } = params ?? {};
   const headerTitle = providerName ?? '';
   const initialUriRef = useRef(uri);
+  const callbackKeyRef = useRef(callbackKey);
+
+  useEffect(() => () => {
+      if (callbackKeyRef.current) {
+        removeCheckoutCallback(callbackKeyRef.current);
+      }
+    }, []);
 
   const handleCancelPress = useCallback(() => {
     // TODO: Add analytics tracking when analytics events are defined for unified flow
@@ -62,6 +72,18 @@ const Checkout = () => {
     handleCancelPress();
     sheetRef.current?.onCloseBottomSheet();
   }, [handleCancelPress]);
+
+  const handleNavigationStateChangeWithDedup = useCallback(
+    (navState: { url: string }) => {
+      if (navState.url !== previousUrlRef.current) {
+        previousUrlRef.current = navState.url;
+        if (callbackKeyRef.current) {
+          getCheckoutCallback(callbackKeyRef.current)?.(navState);
+        }
+      }
+    },
+    [],
+  );
 
   const handleShouldStartLoadWithRequest = useCallback(
     ({ url }: { url: string }) => shouldStartLoadWithRequest(url, Logger),
@@ -160,7 +182,7 @@ const Checkout = () => {
           paymentRequestEnabled
           mediaPlaybackRequiresUserAction={false}
           onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
-          onNavigationStateChange={onNavigationStateChange}
+          onNavigationStateChange={handleNavigationStateChangeWithDedup}
           testID="checkout-webview"
         />
       </BottomSheet>

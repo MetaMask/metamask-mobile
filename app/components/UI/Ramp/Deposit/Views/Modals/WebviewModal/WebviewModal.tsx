@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useWindowDimensions } from 'react-native';
 import BottomSheet, {
   BottomSheetRef,
@@ -18,10 +18,14 @@ import ErrorView from '../../../components/ErrorView';
 import Device from '../../../../../../../util/device';
 import Logger from '../../../../../../../util/Logger';
 import { shouldStartLoadWithRequest } from '../../../../../../../util/browser';
+import {
+  getCheckoutCallback,
+  removeCheckoutCallback,
+} from '../../../../utils/checkoutCallbackRegistry';
 
 export interface WebviewModalParams {
   sourceUrl: string;
-  handleNavigationStateChange?: (navState: { url: string }) => void;
+  callbackKey?: string;
 }
 
 export const createWebviewModalNavigationDetails =
@@ -33,8 +37,8 @@ export const createWebviewModalNavigationDetails =
 function WebviewModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
   const previousUrlRef = useRef<string | null>(null);
-  const { sourceUrl, handleNavigationStateChange } =
-    useParams<WebviewModalParams>();
+  const { sourceUrl, callbackKey } = useParams<WebviewModalParams>();
+  const callbackKeyRef = useRef(callbackKey);
 
   const { height: screenHeight } = useWindowDimensions();
 
@@ -44,12 +48,23 @@ function WebviewModal() {
 
   const [webviewError, setWebviewError] = useState<string | null>(null);
 
-  const handleNavigationStateChangeWithDedup = (navState: { url: string }) => {
-    if (navState.url !== previousUrlRef.current) {
-      previousUrlRef.current = navState.url;
-      handleNavigationStateChange?.(navState);
-    }
-  };
+  useEffect(() => () => {
+      if (callbackKeyRef.current) {
+        removeCheckoutCallback(callbackKeyRef.current);
+      }
+    }, []);
+
+  const handleNavigationStateChangeWithDedup = useCallback(
+    (navState: { url: string }) => {
+      if (navState.url !== previousUrlRef.current) {
+        previousUrlRef.current = navState.url;
+        if (callbackKeyRef.current) {
+          getCheckoutCallback(callbackKeyRef.current)?.(navState);
+        }
+      }
+    },
+    [],
+  );
 
   const handleShouldStartLoadWithRequest = useCallback(
     ({ url }: { url: string }) => shouldStartLoadWithRequest(url, Logger),
