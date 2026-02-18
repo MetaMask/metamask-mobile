@@ -14,7 +14,6 @@ import { SEED_PHRASE_HINTS } from '../../../../constants/storage';
 import HintModal from '../../../UI/HintModal';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
-import { useTheme } from '../../../../util/theme';
 import {
   ClearCookiesSection,
   DeleteMetaMetricsData,
