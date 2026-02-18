@@ -93,7 +93,6 @@ describe('usePerpsActions', () => {
       params: expect.objectContaining({
         direction: 'long',
         asset: 'ETH',
-        source: 'asset_detail_screen',
       }),
     });
   });
@@ -126,7 +125,6 @@ describe('usePerpsActions', () => {
       params: expect.objectContaining({
         direction: 'short',
         asset: 'BTC',
-        source: 'asset_detail_screen',
       }),
     });
   });
@@ -201,7 +199,6 @@ describe('usePerpsActions', () => {
       params: expect.objectContaining({
         direction: 'long',
         asset: 'ETH',
-        source: 'asset_detail_screen',
         ab_test_token_details_layout: 'treatment',
       }),
     });
