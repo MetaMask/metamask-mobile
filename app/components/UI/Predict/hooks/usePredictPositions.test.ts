@@ -1,20 +1,10 @@
 import React from 'react';
-import { act, renderHook, waitFor } from '@testing-library/react-native';
+import { renderHook, waitFor } from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import {
-  type GetAllPositionsResult,
-  type PredictPosition,
-  PredictPositionStatus,
-} from '../types';
-import { predictQueries } from '../queries';
+import { type PredictPosition, PredictPositionStatus } from '../types';
 import { usePredictPositions } from './usePredictPositions';
 
 const MOCK_ADDRESS = '0x1234567890123456789012345678901234567890';
-
-const mockUseFocusEffect = jest.fn();
-jest.mock('@react-navigation/native', () => ({
-  useFocusEffect: (callback: () => void) => mockUseFocusEffect(callback),
-}));
 
 const mockEnsurePolygonNetworkExists = jest.fn<Promise<void>, []>();
 jest.mock('./usePredictNetworkManagement', () => ({
@@ -32,8 +22,8 @@ jest.mock('../utils/accounts', () => ({
     mockGetEvmAccountFromSelectedAccountGroup(),
 }));
 
-const mockGetAllPositions = jest.fn<
-  Promise<GetAllPositionsResult>,
+const mockGetPositions = jest.fn<
+  Promise<PredictPosition[]>,
   [{ address: string }]
 >();
 jest.mock('../queries', () => ({
@@ -46,7 +36,7 @@ jest.mock('../queries', () => ({
       },
       options: ({ address }: { address: string }) => ({
         queryKey: ['predict', 'positions', address] as const,
-        queryFn: () => mockGetAllPositions({ address }),
+        queryFn: () => mockGetPositions({ address }),
       }),
     },
   },
@@ -79,14 +69,6 @@ const createPosition = (
   ...overrides,
 });
 
-const createPositionsResult = (
-  overrides: Partial<GetAllPositionsResult> = {},
-): GetAllPositionsResult => ({
-  activePositions: [],
-  claimablePositions: [],
-  ...overrides,
-});
-
 const createWrapper = () => {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false, gcTime: Infinity } },
@@ -101,7 +83,7 @@ describe('usePredictPositions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockEnsurePolygonNetworkExists.mockResolvedValue(undefined);
-    mockGetAllPositions.mockResolvedValue(createPositionsResult());
+    mockGetPositions.mockResolvedValue([]);
   });
 
   it('returns empty positions when query returns no positions', async () => {
@@ -115,7 +97,7 @@ describe('usePredictPositions', () => {
       expect(result.current.isLoading).toBe(false);
     });
 
-    expect(result.current.positions).toEqual([]);
+    expect(result.current.data).toEqual([]);
     expect(result.current.error).toBeNull();
   });
 
@@ -126,25 +108,17 @@ describe('usePredictPositions', () => {
       claimable: true,
       marketId: 'market-2',
     });
-    mockGetAllPositions.mockResolvedValue(
-      createPositionsResult({
-        activePositions: [activePosition],
-        claimablePositions: [claimablePosition],
-      }),
-    );
+    mockGetPositions.mockResolvedValue([activePosition, claimablePosition]);
 
     const { result } = renderHook(() => usePredictPositions(), {
       wrapper: Wrapper,
     });
 
     await waitFor(() => {
-      expect(result.current.positions).toHaveLength(2);
+      expect(result.current.data).toHaveLength(2);
     });
 
-    expect(result.current.positions).toEqual([
-      activePosition,
-      claimablePosition,
-    ]);
+    expect(result.current.data).toEqual([activePosition, claimablePosition]);
   });
 
   it('returns only active positions when claimable is false', async () => {
@@ -154,12 +128,7 @@ describe('usePredictPositions', () => {
       claimable: true,
       marketId: 'market-3',
     });
-    mockGetAllPositions.mockResolvedValue(
-      createPositionsResult({
-        activePositions: [activePosition],
-        claimablePositions: [claimablePosition],
-      }),
-    );
+    mockGetPositions.mockResolvedValue([activePosition, claimablePosition]);
 
     const { result } = renderHook(
       () => usePredictPositions({ claimable: false }),
@@ -172,7 +141,7 @@ describe('usePredictPositions', () => {
       expect(result.current.isLoading).toBe(false);
     });
 
-    expect(result.current.positions).toEqual([activePosition]);
+    expect(result.current.data).toEqual([activePosition]);
   });
 
   it('returns only claimable positions when claimable is true', async () => {
@@ -181,12 +150,7 @@ describe('usePredictPositions', () => {
     const claimablePosition = createPosition('claimable-3', {
       claimable: true,
     });
-    mockGetAllPositions.mockResolvedValue(
-      createPositionsResult({
-        activePositions: [activePosition],
-        claimablePositions: [claimablePosition],
-      }),
-    );
+    mockGetPositions.mockResolvedValue([activePosition, claimablePosition]);
 
     const { result } = renderHook(
       () => usePredictPositions({ claimable: true }),
@@ -199,7 +163,7 @@ describe('usePredictPositions', () => {
       expect(result.current.isLoading).toBe(false);
     });
 
-    expect(result.current.positions).toEqual([claimablePosition]);
+    expect(result.current.data).toEqual([claimablePosition]);
   });
 
   it('filters positions by marketId', async () => {
@@ -212,12 +176,10 @@ describe('usePredictPositions', () => {
       marketId: 'market-other',
       claimable: true,
     });
-    mockGetAllPositions.mockResolvedValue(
-      createPositionsResult({
-        activePositions: [targetMarketActive],
-        claimablePositions: [otherMarketClaimable],
-      }),
-    );
+    mockGetPositions.mockResolvedValue([
+      targetMarketActive,
+      otherMarketClaimable,
+    ]);
 
     const { result } = renderHook(
       () => usePredictPositions({ marketId: 'market-target' }),
@@ -230,7 +192,7 @@ describe('usePredictPositions', () => {
       expect(result.current.isLoading).toBe(false);
     });
 
-    expect(result.current.positions).toEqual([targetMarketActive]);
+    expect(result.current.data).toEqual([targetMarketActive]);
   });
 
   it('does not fetch positions when enabled is false', () => {
@@ -243,58 +205,25 @@ describe('usePredictPositions', () => {
       },
     );
 
-    expect(mockGetAllPositions).not.toHaveBeenCalled();
-    expect(result.current.positions).toEqual([]);
+    expect(mockGetPositions).not.toHaveBeenCalled();
+    expect(result.current.data).toBeUndefined();
     expect(result.current.isLoading).toBe(false);
-  });
-
-  it('registers useFocusEffect for focus-based refresh', () => {
-    const { Wrapper } = createWrapper();
-
-    renderHook(() => usePredictPositions({ enabled: false }), {
-      wrapper: Wrapper,
-    });
-
-    expect(mockUseFocusEffect).toHaveBeenCalledTimes(1);
-    expect(mockUseFocusEffect.mock.calls[0][0]).toEqual(expect.any(Function));
   });
 
   it('returns query error message when query fails', async () => {
     const { Wrapper } = createWrapper();
-    mockGetAllPositions.mockRejectedValue(
-      new Error('Positions request failed'),
-    );
+    mockGetPositions.mockRejectedValue(new Error('Positions request failed'));
 
     const { result } = renderHook(() => usePredictPositions(), {
       wrapper: Wrapper,
     });
 
     await waitFor(() => {
-      expect(result.current.error).toBe('Positions request failed');
+      expect(result.current.error).toBeInstanceOf(Error);
     });
 
-    expect(result.current.positions).toEqual([]);
-  });
-
-  it('invalidates positions query when refetch is called', async () => {
-    const { Wrapper, queryClient } = createWrapper();
-    const invalidateQueriesSpy = jest.spyOn(queryClient, 'invalidateQueries');
-
-    const { result } = renderHook(() => usePredictPositions(), {
-      wrapper: Wrapper,
-    });
-
-    await waitFor(() => {
-      expect(result.current.isLoading).toBe(false);
-    });
-
-    await act(async () => {
-      await result.current.refetch();
-    });
-
-    expect(invalidateQueriesSpy).toHaveBeenCalledWith({
-      queryKey: predictQueries.positions.keys.all(),
-    });
+    expect(result.current.error?.message).toBe('Positions request failed');
+    expect(result.current.data).toBeUndefined();
   });
 
   it('applies claimable and marketId filters together', async () => {
@@ -311,12 +240,11 @@ describe('usePredictPositions', () => {
       marketId: 'market-other',
       claimable: true,
     });
-    mockGetAllPositions.mockResolvedValue(
-      createPositionsResult({
-        activePositions: [activeTargetMarket],
-        claimablePositions: [claimableTargetMarket, claimableOtherMarket],
-      }),
-    );
+    mockGetPositions.mockResolvedValue([
+      activeTargetMarket,
+      claimableTargetMarket,
+      claimableOtherMarket,
+    ]);
 
     const { result } = renderHook(
       () => usePredictPositions({ claimable: true, marketId: 'market-filter' }),
@@ -329,6 +257,6 @@ describe('usePredictPositions', () => {
       expect(result.current.isLoading).toBe(false);
     });
 
-    expect(result.current.positions).toEqual([claimableTargetMarket]);
+    expect(result.current.data).toEqual([claimableTargetMarket]);
   });
 });
