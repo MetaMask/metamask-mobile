@@ -13,7 +13,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { RootProps } from './types';
 import NavigationProvider from '../../Nav/NavigationProvider';
 import ControllersGate from '../../Nav/ControllersGate';
-import { isTest } from '../../../util/test/utils';
+import { isE2E, isTest } from '../../../util/test/utils';
 import { FeatureFlagOverrideProvider } from '../../../contexts/FeatureFlagOverrideContext';
 import { ScreenOrientationService } from '../../../core/ScreenOrientation';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
@@ -82,7 +82,9 @@ const Root = ({ foxCode }: RootProps) => {
                 <ControllersGate>
                   <ToastContextWrapper>
                     <ErrorBoundary view="Root">
-                      <ReducedMotionConfig mode={ReduceMotion.Never} />
+                      <ReducedMotionConfig
+                        mode={isE2E ? ReduceMotion.Always : ReduceMotion.Never}
+                      />
                       <App />
                     </ErrorBoundary>
                   </ToastContextWrapper>
