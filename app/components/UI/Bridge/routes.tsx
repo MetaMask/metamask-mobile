@@ -7,6 +7,7 @@ import BlockExplorersModal from './components/TransactionDetails/BlockExplorersM
 import QuoteExpiredModal from './components/QuoteExpiredModal';
 import BlockaidModal from './components/BlockaidModal';
 import RecipientSelectorModal from './components/RecipientSelectorModal';
+import MarketClosedBottomSheet from './components/MarketClosedBottomSheets/MarketClosedBottomSheet';
 import { DefaultSlippageModal } from './components/SlippageModal/DefaultSlippageModal';
 import { CustomSlippageModal } from './components/SlippageModal/CustomSlippageModal';
 import NetworkListModal from './components/BridgeTokenSelector/NetworkListModal';
@@ -69,6 +70,10 @@ export const BridgeModalStack = () => (
     <ModalStack.Screen
       name={Routes.BRIDGE.MODALS.RECIPIENT_SELECTOR_MODAL}
       component={RecipientSelectorModal}
+    />
+    <ModalStack.Screen
+      name={Routes.BRIDGE.MODALS.MARKET_CLOSED_MODAL}
+      component={MarketClosedBottomSheet}
     />
     <ModalStack.Screen
       name={Routes.BRIDGE.MODALS.NETWORK_LIST_MODAL}

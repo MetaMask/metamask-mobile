@@ -32,9 +32,7 @@ jest.mock('../../hooks/usePredictPositions');
 jest.mock('../../hooks/usePredictActionGuard');
 jest.mock('../../hooks/usePredictClaim');
 
-const mockUsePredictPositions = usePredictPositions as jest.MockedFunction<
-  typeof usePredictPositions
->;
+const mockUsePredictPositions = usePredictPositions as jest.Mock;
 const mockUsePredictActionGuard = usePredictActionGuard as jest.MockedFunction<
   typeof usePredictActionGuard
 >;
@@ -215,11 +213,11 @@ const setupPositionsMock = (config: MockPositionsConfig = {}) => {
   } = config;
 
   mockUsePredictPositions.mockImplementation((options) => ({
-    positions: options?.claimable ? claimablePositions : activePositions,
+    data: options?.claimable ? claimablePositions : activePositions,
     isLoading,
-    isRefreshing: false,
+    isRefetching: false,
     error: null,
-    loadPositions: jest.fn(),
+    refetch: jest.fn(),
   }));
 };
 
@@ -295,7 +293,8 @@ describe('PredictSportCardFooter', () => {
 
       expect(mockUsePredictPositions).toHaveBeenCalledWith({
         marketId: 'specific-market-123',
-        autoRefreshTimeout: 10000,
+        claimable: false,
+        refetchInterval: 10000,
       });
     });
 

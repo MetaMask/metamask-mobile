@@ -134,6 +134,9 @@ import {
   RampsService,
   RampsServiceActions,
   RampsServiceEvents,
+  TransakService,
+  TransakServiceActions,
+  TransakServiceEvents,
 } from '@metamask/ramps-controller';
 import {
   TransactionController,
@@ -405,6 +408,12 @@ import {
   TransactionPayControllerActions,
   TransactionPayControllerEvents,
 } from '@metamask/transaction-pay-controller/dist/types.cjs';
+import {
+  AiDigestController,
+  AiDigestControllerActions,
+  AiDigestControllerEvents,
+  AiDigestControllerState,
+} from '@metamask/ai-controllers';
 
 /**
  * Controllers that area always instantiated
@@ -522,7 +531,9 @@ type GlobalActions =
   | ProfileMetricsControllerActions
   | ProfileMetricsServiceActions
   | RampsControllerActions
-  | RampsServiceActions;
+  | RampsServiceActions
+  | AiDigestControllerActions
+  | TransakServiceActions;
 
 type GlobalEvents =
   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
@@ -597,7 +608,9 @@ type GlobalEvents =
   | ProfileMetricsControllerEvents
   | ProfileMetricsServiceEvents
   | RampsControllerEvents
-  | RampsServiceEvents;
+  | RampsServiceEvents
+  | AiDigestControllerEvents
+  | TransakServiceEvents;
 
 /**
  * Type definition for the messenger used in the Engine.
@@ -714,6 +727,8 @@ export type Controllers = {
   ProfileMetricsController: ProfileMetricsController;
   ProfileMetricsService: ProfileMetricsService;
   RampsService: RampsService;
+  AiDigestController: AiDigestController;
+  TransakService: TransakService;
 };
 
 /**
@@ -792,6 +807,7 @@ export type EngineState = {
   GatorPermissionsController: GatorPermissionsControllerState;
   DelegationController: DelegationControllerState;
   ProfileMetricsController: ProfileMetricsControllerState;
+  AiDigestController: AiDigestControllerState;
 };
 
 /** Controller names */
@@ -893,12 +909,14 @@ export type ControllersToInitialize =
   | 'RewardsDataService'
   | 'RampsController'
   | 'RampsService'
+  | 'TransakService'
   | 'GatorPermissionsController'
   | 'DelegationController'
   | 'SelectedNetworkController'
   | 'ProfileMetricsController'
   | 'ProfileMetricsService'
-  | 'AnalyticsController';
+  | 'AnalyticsController'
+  | 'AiDigestController';
 
 /**
  * Callback that returns a controller messenger for a specific controller.
