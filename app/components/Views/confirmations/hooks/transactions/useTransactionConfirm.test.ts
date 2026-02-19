@@ -199,16 +199,14 @@ describe('useTransactionConfirm', () => {
     expect(tryEnableEvmNetworkMock).toHaveBeenCalledWith(CHAIN_ID_MOCK);
   });
 
-  it('navigates to Transactions view after approval error', async () => {
+  it('re-throws error after approval failure so callers can handle it', async () => {
     onApprovalConfirm.mockRejectedValueOnce(new Error('Test error'));
 
     const { result } = renderHook();
 
     await act(async () => {
-      await result.current.onConfirm();
+      await expect(result.current.onConfirm()).rejects.toThrow('Test error');
     });
-
-    expect(mockNavigate).toHaveBeenCalled();
   });
 
   it('does nothing when transactionMetadata is missing', async () => {
