@@ -11,7 +11,12 @@ import {
   ListRenderItemInfo,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import {
+  useNavigation,
+  useRoute,
+  RouteProp,
+  StackActions,
+} from '@react-navigation/native';
 import { useSelector, useDispatch } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import { getHeaderCompactStandardNavbarOptions } from '../../../../../component-library/components-temp/HeaderCompactStandard';
@@ -22,8 +27,7 @@ import { CaipChainId } from '@metamask/utils';
 import { useStyles } from '../../../../../component-library/hooks';
 import TextFieldSearch from '../../../../../component-library/components/Form/TextFieldSearch';
 import {
-  selectSourceChainRanking,
-  selectDestChainRanking,
+  selectAllowedChainRanking,
   selectTokenSelectorNetworkFilter,
   setIsSelectingToken,
   setTokenSelectorNetworkFilter,
@@ -99,13 +103,7 @@ export const BridgeTokenSelector: React.FC = () => {
     [searchString],
   );
 
-  // Use appropriate chain ranking based on selector type
-  const sourceChainRanking = useSelector(selectSourceChainRanking);
-  const destChainRanking = useSelector(selectDestChainRanking);
-  const enabledChainRanking =
-    route.params?.type === TokenSelectorType.Source
-      ? sourceChainRanking
-      : destChainRanking;
+  const enabledChainRanking = useSelector(selectAllowedChainRanking);
 
   // Set navigation options for header
   useEffect(() => {
@@ -371,10 +369,14 @@ export const BridgeTokenSelector: React.FC = () => {
       );
       const networkName = chainData?.name ?? '';
 
-      navigation.navigate('Asset', {
-        ...item,
-        source: TokenDetailsSource.Swap,
-      });
+      // Use push so we always open details for the tapped token.
+      // navigate('Asset') can reuse an existing Asset route with stale params.
+      navigation.dispatch(
+        StackActions.push('Asset', {
+          ...item,
+          source: TokenDetailsSource.Swap,
+        }),
+      );
 
       Engine.context.BridgeController.trackUnifiedSwapBridgeEvent(
         UnifiedSwapBridgeEventName.AssetDetailTooltipClicked,
@@ -530,10 +532,8 @@ export const BridgeTokenSelector: React.FC = () => {
           onMorePress={() =>
             navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
               screen: Routes.BRIDGE.MODALS.NETWORK_LIST_MODAL,
-              params: { type: route.params?.type },
             })
           }
-          type={route.params?.type}
         />
 
         <TextFieldSearch

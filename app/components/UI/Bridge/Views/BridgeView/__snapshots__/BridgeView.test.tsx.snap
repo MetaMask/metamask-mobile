@@ -426,7 +426,6 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                             "lineHeight": 50,
                                             "opacity": 1,
                                             "paddingVertical": 2,
-                                            "textAlignVertical": "center",
                                           }
                                         }
                                         testID="source-token-area-input"
@@ -798,7 +797,6 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                             "lineHeight": 50,
                                             "opacity": 1,
                                             "paddingVertical": 2,
-                                            "textAlignVertical": "center",
                                           }
                                         }
                                         testID="dest-token-area-input"
@@ -965,7 +963,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                       "borderWidth": 1,
                                       "flex": 1,
                                       "flexDirection": "row",
-                                      "height": 40,
+                                      "height": 48,
                                       "justifyContent": "center",
                                       "overflow": "hidden",
                                       "paddingHorizontal": 16,
@@ -1004,7 +1002,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                       "borderWidth": 1,
                                       "flex": 1,
                                       "flexDirection": "row",
-                                      "height": 40,
+                                      "height": 48,
                                       "justifyContent": "center",
                                       "overflow": "hidden",
                                       "paddingHorizontal": 16,
@@ -1043,7 +1041,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                       "borderWidth": 1,
                                       "flex": 1,
                                       "flexDirection": "row",
-                                      "height": 40,
+                                      "height": 48,
                                       "justifyContent": "center",
                                       "overflow": "hidden",
                                       "paddingHorizontal": 16,
@@ -1082,7 +1080,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                       "borderWidth": 1,
                                       "flex": 1,
                                       "flexDirection": "row",
-                                      "height": 40,
+                                      "height": 48,
                                       "justifyContent": "center",
                                       "overflow": "hidden",
                                       "paddingHorizontal": 16,
@@ -2239,7 +2237,6 @@ exports[`BridgeView renders 1`] = `
                                             "lineHeight": 50,
                                             "opacity": 1,
                                             "paddingVertical": 2,
-                                            "textAlignVertical": "center",
                                           }
                                         }
                                         testID="source-token-area-input"
@@ -2611,7 +2608,6 @@ exports[`BridgeView renders 1`] = `
                                             "lineHeight": 50,
                                             "opacity": 1,
                                             "paddingVertical": 2,
-                                            "textAlignVertical": "center",
                                           }
                                         }
                                         testID="dest-token-area-input"
@@ -2790,7 +2786,7 @@ exports[`BridgeView renders 1`] = `
                                       "borderWidth": 1,
                                       "flex": 1,
                                       "flexDirection": "row",
-                                      "height": 40,
+                                      "height": 48,
                                       "justifyContent": "center",
                                       "overflow": "hidden",
                                       "paddingHorizontal": 16,
@@ -2829,7 +2825,7 @@ exports[`BridgeView renders 1`] = `
                                       "borderWidth": 1,
                                       "flex": 1,
                                       "flexDirection": "row",
-                                      "height": 40,
+                                      "height": 48,
                                       "justifyContent": "center",
                                       "overflow": "hidden",
                                       "paddingHorizontal": 16,
@@ -2868,7 +2864,7 @@ exports[`BridgeView renders 1`] = `
                                       "borderWidth": 1,
                                       "flex": 1,
                                       "flexDirection": "row",
-                                      "height": 40,
+                                      "height": 48,
                                       "justifyContent": "center",
                                       "overflow": "hidden",
                                       "paddingHorizontal": 16,
@@ -2907,7 +2903,7 @@ exports[`BridgeView renders 1`] = `
                                       "borderWidth": 1,
                                       "flex": 1,
                                       "flexDirection": "row",
-                                      "height": 40,
+                                      "height": 48,
                                       "justifyContent": "center",
                                       "overflow": "hidden",
                                       "paddingHorizontal": 16,

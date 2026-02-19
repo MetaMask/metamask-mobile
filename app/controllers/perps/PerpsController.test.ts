@@ -6,24 +6,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import {
-  PerpsController,
-  getDefaultPerpsControllerState,
-  InitializationState,
-  type PerpsControllerState,
-} from './PerpsController';
-import { PERPS_ERROR_CODES } from './perpsErrorCodes';
-import {
   GasFeeEstimateLevel,
   GasFeeEstimateType,
 } from '@metamask/transaction-controller';
-import type {
-  AccountState,
-  PerpsProvider,
-  PerpsPlatformDependencies,
-  PerpsProviderType,
-  SubscribeAccountParams,
-} from './types';
-import { HyperLiquidProvider } from './providers/HyperLiquidProvider';
+
 import {
   createMockHyperLiquidProvider,
   createMockPosition,
@@ -33,6 +19,23 @@ import {
   createMockMessenger,
 } from '../../components/UI/Perps/__mocks__/serviceMocks';
 import Engine from '../../core/Engine';
+
+import {
+  PerpsController,
+  getDefaultPerpsControllerState,
+  InitializationState,
+} from './PerpsController';
+import type { PerpsControllerState } from './PerpsController';
+import { PERPS_ERROR_CODES } from './perpsErrorCodes';
+import { HyperLiquidProvider } from './providers/HyperLiquidProvider';
+import type {
+  AccountState,
+  GetAvailableDexsParams,
+  PerpsProvider,
+  PerpsPlatformDependencies,
+  PerpsProviderType,
+  SubscribeAccountParams,
+} from './types';
 
 jest.mock('./providers/HyperLiquidProvider');
 jest.mock('./providers/MYXProvider');
@@ -275,6 +278,7 @@ class TestablePerpsController extends PerpsController {
    * Test-only method to update state directly.
    * Exposed for scenarios where state needs to be manipulated
    * outside the normal public API (e.g., testing error conditions).
+   * @param callback
    */
   public testUpdate(callback: (state: PerpsControllerState) => void) {
     this.update(callback);
@@ -295,6 +299,7 @@ class TestablePerpsController extends PerpsController {
    * Test-only method to set the providers map with complete providers.
    * Used in most tests to inject mock providers.
    * Also sets activeProviderInstance to the first provider (default provider).
+   * @param providers
    */
   public testSetProviders(providers: Map<PerpsProviderType, PerpsProvider>) {
     this.providers = providers;
@@ -309,6 +314,7 @@ class TestablePerpsController extends PerpsController {
    * Test-only method to set the providers map with partial providers.
    * Used explicitly in tests that verify error handling with incomplete providers.
    * Type cast is intentional and necessary for testing graceful degradation.
+   * @param providers
    */
   public testSetPartialProviders(
     providers: Map<PerpsProviderType, Partial<PerpsProvider>>,
@@ -327,6 +333,7 @@ class TestablePerpsController extends PerpsController {
   /**
    * Test-only method to set initialization state.
    * Allows tests to simulate both initialized and uninitialized states.
+   * @param value
    */
   public testSetInitialized(value: boolean) {
     this.isInitialized = value;
@@ -351,6 +358,8 @@ class TestablePerpsController extends PerpsController {
   /**
    * Test-only method to set blocked region list.
    * Used to test priority logic (remote vs fallback).
+   * @param list
+   * @param source
    */
   public testSetBlockedRegionList(
     list: string[],
@@ -362,6 +371,7 @@ class TestablePerpsController extends PerpsController {
   /**
    * Test accessor for protected method refreshEligibilityOnFeatureFlagChange.
    * Wrapper is necessary because protected methods can't be called from test code.
+   * @param remoteFlags
    */
   public testRefreshEligibilityOnFeatureFlagChange(remoteFlags: any) {
     this.refreshEligibilityOnFeatureFlagChange(remoteFlags);
@@ -370,6 +380,7 @@ class TestablePerpsController extends PerpsController {
   /**
    * Test accessor for protected method reportOrderToDataLake.
    * Wrapper is necessary because protected methods can't be called from test code.
+   * @param data
    */
   public testReportOrderToDataLake(data: any): Promise<any> {
     return this.reportOrderToDataLake(data);
@@ -725,9 +736,7 @@ describe('PerpsController', () => {
     it('returns null during reinitialization', () => {
       markControllerAsInitialized();
       controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
-      (
-        controller as unknown as { isReinitializing: boolean }
-      ).isReinitializing = true;
+      jest.spyOn(controller, 'isCurrentlyReinitializing').mockReturnValue(true);
 
       const result = controller.getActiveProviderOrNull();
 
@@ -2254,8 +2263,8 @@ describe('PerpsController', () => {
       const orderParams = {
         action: 'open' as const,
         symbol: 'BTC',
-        sl_price: 45000,
-        tp_price: 55000,
+        slPrice: 45000,
+        tpPrice: 55000,
       };
 
       const result = await controller.testReportOrderToDataLake(orderParams);
@@ -2264,8 +2273,8 @@ describe('PerpsController', () => {
       expect(mockDataLakeServiceInstance.reportOrder).toHaveBeenCalledWith({
         action: orderParams.action,
         symbol: orderParams.symbol,
-        sl_price: orderParams.sl_price,
-        tp_price: orderParams.tp_price,
+        slPrice: orderParams.slPrice,
+        tpPrice: orderParams.tpPrice,
         isTestnet: controller.state.isTestnet,
         context: expect.objectContaining({
           tracingContext: expect.any(Object),
@@ -2306,7 +2315,7 @@ describe('PerpsController', () => {
 
     it('passes filter parameters to provider', async () => {
       const mockDexs = ['dex1'];
-      const filterParams = { validated: true };
+      const filterParams = {} as GetAvailableDexsParams;
       jest
         .spyOn(mockMarketDataServiceInstance, 'getAvailableDexs')
         .mockResolvedValue(mockDexs);
@@ -3213,7 +3222,7 @@ describe('PerpsController', () => {
   describe('toggleTestnet', () => {
     it('returns error when already reinitializing', async () => {
       await controller.init();
-      (controller as any).isReinitializing = true;
+      jest.spyOn(controller, 'isCurrentlyReinitializing').mockReturnValue(true);
 
       const result = await controller.toggleTestnet();
 
@@ -4047,7 +4056,7 @@ describe('PerpsController', () => {
       providers.set('myx', mockMYXProvider as any);
       controller.testSetProviders(providers);
 
-      (controller as any).isReinitializing = true;
+      jest.spyOn(controller, 'isCurrentlyReinitializing').mockReturnValue(true);
 
       const result = await controller.switchProvider('myx');
 
@@ -4165,7 +4174,7 @@ describe('PerpsController', () => {
 
       await controller.switchProvider('myx');
 
-      expect((controller as any).isReinitializing).toBe(false);
+      expect(controller.isCurrentlyReinitializing()).toBe(false);
     });
 
     it('clears isReinitializing flag after failure', async () => {
@@ -4188,7 +4197,7 @@ describe('PerpsController', () => {
 
       await controller.switchProvider('myx');
 
-      expect((controller as any).isReinitializing).toBe(false);
+      expect(controller.isCurrentlyReinitializing()).toBe(false);
 
       jest.restoreAllMocks();
     });

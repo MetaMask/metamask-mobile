@@ -216,8 +216,17 @@ function Tooltip({
 }): ReactNode {
   let message: string | undefined;
 
-  if (hasTransactionType(transactionMeta, [TransactionType.predictDeposit])) {
-    message = strings('confirm.tooltip.predict_deposit.transaction_fee');
+  if (
+    hasTransactionType(transactionMeta, [
+      TransactionType.predictDeposit,
+      TransactionType.predictWithdraw,
+    ])
+  ) {
+    message = hasTransactionType(transactionMeta, [
+      TransactionType.predictWithdraw,
+    ])
+      ? strings('confirm.tooltip.predict_withdraw.transaction_fee')
+      : strings('confirm.tooltip.predict_deposit.transaction_fee');
   }
 
   if (hasTransactionType(transactionMeta, [TransactionType.musdConversion])) {

@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect, useRef } from 'react';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -24,9 +24,11 @@ import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import { isHardwareAccount } from '../../../../../util/address';
 import { BridgeQuoteResponse } from '../../types';
-import { useNavigation } from '@react-navigation/native';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
+import { BridgeRouteParams } from '../../hooks/useSwapBridgeNavigation';
+import { calcTokenValue } from '../../../../../util/transactions';
 
 interface Props {
   latestSourceBalance: ReturnType<typeof useLatestBalance>;
@@ -37,6 +39,10 @@ interface Props {
 export const SwapsConfirmButton = ({ latestSourceBalance, testID }: Props) => {
   const dispatch = useDispatch();
   const navigation = useNavigation();
+  const route = useRoute<RouteProp<{ params: BridgeRouteParams }, 'params'>>();
+  /** The entry point location for analytics (e.g. Main View, Token View, Trending Explore) */
+  const location = route.params?.location;
+
   const { submitBridgeTx } = useSubmitBridgeTx();
   const updateQuoteParams = useBridgeQuoteRequest();
   const sourceAmount = useSelector(selectSourceAmount);
@@ -57,22 +63,86 @@ export const SwapsConfirmButton = ({ latestSourceBalance, testID }: Props) => {
     latestAtomicBalance: latestSourceBalance?.atomicBalance,
   });
 
-  const { activeQuote, isLoading, isExpired, blockaidError } =
-    useBridgeQuoteData({
-      latestSourceAtomicBalance: latestSourceBalance?.atomicBalance,
-    });
+  const {
+    activeQuote,
+    isLoading,
+    isExpired,
+    blockaidError,
+    quoteFetchError,
+    isNoQuotesAvailable,
+  } = useBridgeQuoteData({
+    latestSourceAtomicBalance: latestSourceBalance?.atomicBalance,
+  });
 
   const hasSufficientGas = useHasSufficientGas({ quote: activeQuote });
 
   // The quote expired and no fetch is in progress — offer to get a new one.
-  const needsNewQuote = isExpired && !isLoading && !isSubmittingTx;
+  // Also treat the edge-case where a fetch IS running but there is no active
+  // quote to fall back on — the user would otherwise be stuck on a spinner
+  // with no way to retry ("escape hatch").
+  const needsNewQuote =
+    isExpired && !isSubmittingTx && (!isLoading || !activeQuote);
+
+  // Check both the display amount and the atomic amount are non-zero.
+  // An amount like 0.000000001 BTC (8 decimals) is non-zero as a number but
+  // resolves to 0 satoshis, meaning no quote will be fetched.
+  const hasNonZeroSourceAmount = useMemo(() => {
+    const nonZeroInputAmount = !!sourceAmount && Number(sourceAmount) !== 0;
+    try {
+      return (
+        nonZeroInputAmount &&
+        (sourceToken?.decimals === undefined ||
+          calcTokenValue(
+            // If user pressed dot as first input character
+            // default the value to zero.
+            sourceAmount === '.' ? '0' : sourceAmount,
+            sourceToken.decimals,
+          ).toFixed(0) !== '0')
+      );
+    } catch {
+      // We reach this state when calcTokenValue is unable to calculate the value.
+      // This should not happen under normal circumstances, but we implement this
+      // guard to defend against unkown conditions.
+      return nonZeroInputAmount;
+    }
+  }, [sourceAmount, sourceToken?.decimals]);
+
+  // Track the sourceAmount that the current quote was settled for.
+  // The ref only updates when loading finishes (quote arrived / error)
+  // so it stays stale during the debounce window after the user edits.
+  const settledAmountRef = useRef(sourceAmount);
+  const wasLoadingRef = useRef(isLoading);
+
+  const hasError = !!blockaidError || !!quoteFetchError || isNoQuotesAvailable;
+
+  useEffect(() => {
+    const loadingJustFinished = wasLoadingRef.current && !isLoading;
+    if (loadingJustFinished || hasError || needsNewQuote) {
+      settledAmountRef.current = sourceAmount;
+    }
+    wasLoadingRef.current = isLoading;
+  }, [isLoading, sourceAmount, hasError, needsNewQuote]);
+
+  const isSourceAmountChanged = sourceAmount !== settledAmountRef.current;
+
+  // True when user has entered a valid amount but the quote fetch hasn't
+  // started yet (e.g. during the debounce window after typing).
+  const isAwaitingQuote =
+    hasNonZeroSourceAmount && !activeQuote && !isLoading && !needsNewQuote;
+
+  // True when the sourceAmount changed from what the current quote was
+  // fetched for (stale quote during debounce window).
+  const isPendingQuoteRefresh = isSourceAmountChanged && hasNonZeroSourceAmount;
 
   const isSubmitDisabled =
+    !hasNonZeroSourceAmount ||
+    isAwaitingQuote ||
+    isPendingQuoteRefresh ||
     (isLoading && !activeQuote) ||
     hasInsufficientBalance ||
     isSubmittingTx ||
     (isHardwareAddress && isSolanaSourced) ||
-    !!blockaidError ||
+    hasError ||
     !hasSufficientGas ||
     !walletAddress;
 
@@ -89,6 +159,7 @@ export const SwapsConfirmButton = ({ latestSourceBalance, testID }: Props) => {
 
         await submitBridgeTx({
           quoteResponse,
+          location,
         });
       }
     } catch (error) {
@@ -107,7 +178,10 @@ export const SwapsConfirmButton = ({ latestSourceBalance, testID }: Props) => {
   };
 
   const buttonIsInLoadingState =
-    (isLoading || isSubmittingTx) && isSubmitDisabled;
+    !needsNewQuote &&
+    !hasError &&
+    (isLoading || isSubmittingTx || isAwaitingQuote || isPendingQuoteRefresh) &&
+    isSubmitDisabled;
 
   const label = useMemo(() => {
     if (needsNewQuote) {

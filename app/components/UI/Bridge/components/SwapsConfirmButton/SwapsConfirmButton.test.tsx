@@ -20,6 +20,7 @@ import { RootState } from '../../../../../reducers';
 import { MOCK_ENTROPY_SOURCE as mockEntropySource } from '../../../../../util/test/keyringControllerTestUtils';
 import { BigNumber } from 'ethers';
 import Engine from '../../../../../core/Engine';
+import { setSourceAmount } from '../../../../../core/redux/slices/bridge';
 
 // Mock the account-tree-controller file that imports the problematic module
 jest.mock(
@@ -80,6 +81,11 @@ jest.mock('@react-navigation/native', () => {
       navigate: mockNavigate,
       setOptions: jest.fn(),
     }),
+    useRoute: () => ({
+      params: {
+        location: 'Main View',
+      },
+    }),
   };
 });
 
@@ -101,6 +107,16 @@ jest.mock('../../hooks/useLatestBalance', () => ({
 const mockLatestSourceBalance = {
   displayBalance: '2.0',
   atomicBalance: BigNumber.from('2000000000000000000'), // 2 ETH
+};
+
+// Override srcTokenAmount so it matches sourceAmount='1.0' with 18 decimals,
+// preventing the quote from being detected as stale in default test scenarios.
+const mockActiveQuote = {
+  ...mockQuoteWithMetadata,
+  quote: {
+    ...mockQuoteWithMetadata.quote,
+    srcTokenAmount: '1000000000000000000', // calcTokenValue('1.0', 18)
+  },
 };
 
 // Mock useBridgeQuoteData
@@ -222,7 +238,10 @@ describe('SwapsConfirmButton', () => {
     jest.mocked(isHardwareAccount).mockReturnValue(false);
     jest
       .mocked(useBridgeQuoteData as unknown as jest.Mock)
-      .mockImplementation(() => mockUseBridgeQuoteData);
+      .mockImplementation(() => ({
+        ...mockUseBridgeQuoteData,
+        activeQuote: mockActiveQuote,
+      }));
     jest.mocked(useIsInsufficientBalance).mockReturnValue(false);
     jest.mocked(useHasSufficientGas).mockReturnValue(true);
     mockSubmitBridgeTx.mockResolvedValue({ success: true });
@@ -466,13 +485,94 @@ describe('SwapsConfirmButton', () => {
       expect(queryByText(strings('bridge.submitting_transaction'))).toBeNull();
     });
 
+    it('shows loading when awaiting quote (valid amount, no quote, not loading)', () => {
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementation(() => ({
+          ...mockUseBridgeQuoteData,
+          isLoading: false,
+          activeQuote: null,
+        }));
+
+      const { queryByText, getByTestId } = renderWithProvider(
+        <SwapsConfirmButton latestSourceBalance={mockLatestSourceBalance} />,
+        {
+          state: mockState, // sourceAmount: '1.0'
+        },
+      );
+
+      const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
+      expect(button.props.disabled).toBe(true);
+      // Label hidden by loading indicator during debounce gap
+      expect(queryByText(strings('bridge.confirm_swap'))).toBeNull();
+    });
+
+    it('does not show loading when source amount is empty', () => {
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementation(() => ({
+          ...mockUseBridgeQuoteData,
+          isLoading: false,
+          activeQuote: null,
+        }));
+
+      const emptyAmountState = {
+        ...mockState,
+        bridge: {
+          ...mockState.bridge,
+          sourceAmount: undefined,
+        },
+      };
+
+      const { getByText } = renderWithProvider(
+        <SwapsConfirmButton latestSourceBalance={mockLatestSourceBalance} />,
+        {
+          state: emptyAmountState,
+        },
+      );
+
+      // Label is visible (not in loading state) when no amount entered
+      expect(getByText(strings('bridge.confirm_swap'))).toBeTruthy();
+    });
+
+    it.each(['0', '0.0', '0.00'])(
+      'does not show loading when source amount is "%s"',
+      (zeroAmount) => {
+        jest
+          .mocked(useBridgeQuoteData as unknown as jest.Mock)
+          .mockImplementation(() => ({
+            ...mockUseBridgeQuoteData,
+            isLoading: false,
+            activeQuote: null,
+          }));
+
+        const zeroAmountState = {
+          ...mockState,
+          bridge: {
+            ...mockState.bridge,
+            sourceAmount: zeroAmount,
+          },
+        };
+
+        const { getByText } = renderWithProvider(
+          <SwapsConfirmButton latestSourceBalance={mockLatestSourceBalance} />,
+          {
+            state: zeroAmountState,
+          },
+        );
+
+        // Label is visible (not in loading state) for zero amounts
+        expect(getByText(strings('bridge.confirm_swap'))).toBeTruthy();
+      },
+    );
+
     it('does not show loading when loading with active quote present', () => {
       jest
         .mocked(useBridgeQuoteData as unknown as jest.Mock)
         .mockImplementation(() => ({
           ...mockUseBridgeQuoteData,
           isLoading: true,
-          activeQuote: mockQuoteWithMetadata,
+          activeQuote: mockActiveQuote,
         }));
 
       const { getByText, getByTestId } = renderWithProvider(
@@ -521,6 +621,65 @@ describe('SwapsConfirmButton', () => {
       expect(button.props.disabled).toBe(true);
       // Label visible because not loading/submitting
       expect(getByText(strings('bridge.insufficient_gas'))).toBeTruthy();
+    });
+  });
+
+  describe('Stale Quote (isQuoteStale)', () => {
+    it('shows loading when amount changes to non-zero and quote is stale', () => {
+      // First render with sourceAmount='1.0' — settledAmountRef latches to '1.0'
+      const { queryByText, getByTestId, store } = renderWithProvider(
+        <SwapsConfirmButton latestSourceBalance={mockLatestSourceBalance} />,
+        {
+          state: mockState,
+        },
+      );
+
+      // Change sourceAmount via Redux so the component re-renders with a
+      // different amount while the settled ref still points to '1.0'
+      act(() => {
+        store.dispatch(setSourceAmount('2.0'));
+      });
+
+      const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
+      expect(button.props.disabled).toBe(true);
+      // Label hidden by loading indicator
+      expect(queryByText(strings('bridge.confirm_swap'))).toBeNull();
+    });
+
+    it('disables button without loading when amount changes to zero and quote is stale', () => {
+      // First render with sourceAmount='1.0' — settledAmountRef latches to '1.0'
+      const { getByText, getByTestId, store } = renderWithProvider(
+        <SwapsConfirmButton latestSourceBalance={mockLatestSourceBalance} />,
+        {
+          state: mockState,
+        },
+      );
+
+      // Change to a zero-ish amount — stale (different from settled '1.0') but
+      // hasNonZeroSourceAmount is false, so isPendingQuoteRefresh is false.
+      // The button disables without entering the loading state.
+      act(() => {
+        store.dispatch(setSourceAmount('0.000'));
+      });
+
+      const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
+      expect(button.props.disabled).toBe(true);
+      // Label visible (not loading) — shows default "Confirm swap"
+      expect(getByText(strings('bridge.confirm_swap'))).toBeTruthy();
+    });
+
+    it('is not stale when amount matches the quote', () => {
+      // sourceAmount='1.0' matches the mock quote's srcTokenAmount
+      const { getByText, getByTestId } = renderWithProvider(
+        <SwapsConfirmButton latestSourceBalance={mockLatestSourceBalance} />,
+        {
+          state: mockState,
+        },
+      );
+
+      const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
+      expect(button.props.disabled).toBe(false);
+      expect(getByText(strings('bridge.confirm_swap'))).toBeTruthy();
     });
   });
 
@@ -593,7 +752,7 @@ describe('SwapsConfirmButton', () => {
       expect(mockSubmitBridgeTx).not.toHaveBeenCalled();
     });
 
-    it('does not show "Get new quote" when expired but still loading', () => {
+    it('shows "Get new quote" when expired and loading with no active quote (escape hatch)', () => {
       jest
         .mocked(useBridgeQuoteData as unknown as jest.Mock)
         .mockImplementation(() => ({
@@ -603,6 +762,32 @@ describe('SwapsConfirmButton', () => {
           activeQuote: null,
         }));
 
+      const { getByText, getByTestId } = renderWithProvider(
+        <SwapsConfirmButton latestSourceBalance={mockLatestSourceBalance} />,
+        {
+          state: mockState,
+        },
+      );
+
+      // needsNewQuote is true because there is no active quote
+      expect(
+        getByText(strings('quote_expired_modal.get_new_quote')),
+      ).toBeTruthy();
+      // Button is not disabled — user can press "Get new quote"
+      const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
+      expect(button.props.disabled).toBe(false);
+    });
+
+    it('does not show "Get new quote" when expired and loading with active quote', () => {
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementation(() => ({
+          ...mockUseBridgeQuoteData,
+          isExpired: true,
+          isLoading: true,
+          activeQuote: mockActiveQuote,
+        }));
+
       const { queryByText } = renderWithProvider(
         <SwapsConfirmButton latestSourceBalance={mockLatestSourceBalance} />,
         {
@@ -610,7 +795,7 @@ describe('SwapsConfirmButton', () => {
         },
       );
 
-      // needsNewQuote is false because isLoading is true
+      // needsNewQuote is false because activeQuote exists and isLoading is true
       expect(
         queryByText(strings('quote_expired_modal.get_new_quote')),
       ).toBeNull();
@@ -665,10 +850,11 @@ describe('SwapsConfirmButton', () => {
         await waitFor(() => {
           expect(mockSubmitBridgeTx).toHaveBeenCalledWith({
             quoteResponse: {
-              ...mockQuoteWithMetadata,
-              aggregator: mockQuoteWithMetadata.quote.bridgeId,
+              ...mockActiveQuote,
+              aggregator: mockActiveQuote.quote.bridgeId,
               walletAddress: '0x1234567890123456789012345678901234567890',
             },
+            location: 'Main View',
           });
           expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
         });
@@ -676,6 +862,22 @@ describe('SwapsConfirmButton', () => {
     });
 
     it('submits transaction for Solana swap', async () => {
+      // For Solana (9 decimals), sourceAmount='1.0' → atomic '1000000000'
+      const solanaActiveQuote = {
+        ...mockQuoteWithMetadata,
+        quote: {
+          ...mockQuoteWithMetadata.quote,
+          srcTokenAmount: '1000000000',
+        },
+      };
+
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementation(() => ({
+          ...mockUseBridgeQuoteData,
+          activeQuote: solanaActiveQuote,
+        }));
+
       const solanaState = {
         ...mockState,
         bridge: {
@@ -708,10 +910,11 @@ describe('SwapsConfirmButton', () => {
         await waitFor(() => {
           expect(mockSubmitBridgeTx).toHaveBeenCalledWith({
             quoteResponse: {
-              ...mockQuoteWithMetadata,
-              aggregator: mockQuoteWithMetadata.quote.bridgeId,
+              ...solanaActiveQuote,
+              aggregator: solanaActiveQuote.quote.bridgeId,
               walletAddress: '0x1234567890123456789012345678901234567890',
             },
+            location: 'Main View',
           });
           expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
         });

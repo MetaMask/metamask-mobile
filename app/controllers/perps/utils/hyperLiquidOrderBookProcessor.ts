@@ -1,4 +1,5 @@
 import type { BboWsEvent, L2BookResponse } from '@nktkas/hyperliquid';
+
 import type { PriceUpdate } from '../types';
 
 /**
@@ -102,6 +103,8 @@ export function processL2BookData(params: ProcessL2BookDataParams): void {
  *
  * BBO is lightweight and independent from L2Book aggregation parameters,
  * making it ideal for spread / top-of-book display.
+ *
+ * @param params - The BBO processing parameters including symbol, data, and caches.
  */
 export function processBboData(params: ProcessBboDataParams): void {
   const {
