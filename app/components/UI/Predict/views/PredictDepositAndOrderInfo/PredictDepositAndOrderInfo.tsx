@@ -243,10 +243,39 @@ export function PredictDepositAndOrderInfo() {
   previewRef.current = preview;
 
   const handleConfirm = useCallback(async () => {
-    if (!activeTransactionMeta || isConfirming) return;
+    if (isConfirming) return;
 
     setIsConfirming(true);
     setConfirmError(undefined);
+
+    const analyticsProps = {
+      marketId: market?.id,
+      outcome: outcome?.id,
+    };
+
+    if (isPredictBalanceSelected) {
+      try {
+        const latestPreview = previewRef.current;
+        if (!latestPreview) return;
+
+        await placeOrder({
+          preview: latestPreview,
+          analyticsProperties: analyticsProps,
+        });
+      } catch (err) {
+        setConfirmError(
+          err instanceof Error
+            ? err.message
+            : strings('predict.deposit.error_description'),
+        );
+      } finally {
+        setIsConfirming(false);
+        navigation.goBack();
+      }
+      return;
+    }
+
+    if (!activeTransactionMeta) return;
 
     try {
       trackDeposit({
@@ -258,10 +287,7 @@ export function PredictDepositAndOrderInfo() {
           try {
             await placeOrder({
               preview: latestPreview,
-              analyticsProperties: {
-                marketId: market?.id,
-                outcome: outcome?.id,
-              },
+              analyticsProperties: analyticsProps,
             });
           } catch (err) {
             setConfirmError(
@@ -290,8 +316,9 @@ export function PredictDepositAndOrderInfo() {
       setIsConfirming(false);
     }
   }, [
-    activeTransactionMeta,
     isConfirming,
+    isPredictBalanceSelected,
+    activeTransactionMeta,
     trackDeposit,
     onDepositConfirm,
     placeOrder,
