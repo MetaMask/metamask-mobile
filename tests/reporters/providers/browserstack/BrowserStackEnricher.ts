@@ -37,18 +37,25 @@ export class BrowserStackEnricher extends BaseSessionDataEnricher {
     const { sessionId, testTitle } = session;
 
     // 1. Fetch video URL (API handles retry logic)
-    const videoURL = await this.api.getVideoURL(sessionId, 60, 3000);
-    if (videoURL) {
-      session.videoURL = videoURL;
-    } else {
-      // Fallback: build URL from session details
-      const details = await this.api.getSessionDetails(sessionId);
-      if (details?.buildId) {
-        session.videoURL = `https://app-automate.browserstack.com/builds/${details.buildId}/sessions/${sessionId}`;
-        this.logger.info(
-          `Fallback: built recording URL from session details for ${testTitle}`,
-        );
+    try {
+      const videoURL = await this.api.getVideoURL(sessionId, 60, 3000);
+      if (videoURL) {
+        session.videoURL = videoURL;
+      } else {
+        // Fallback: build URL from session details
+        const details = await this.api.getSessionDetails(sessionId);
+        if (details?.buildId) {
+          session.videoURL = `https://app-automate.browserstack.com/builds/${details.buildId}/sessions/${sessionId}`;
+          this.logger.info(
+            `Fallback: built recording URL from session details for ${testTitle}`,
+          );
+        }
       }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      this.logger.warn(
+        `Failed to fetch video URL for ${testTitle}: ${message}`,
+      );
     }
 
     // 2. Fetch profiling data

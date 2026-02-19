@@ -115,8 +115,36 @@ export class CsvReportGenerator {
     profilingSummary: ProfilingSummary | null | undefined,
   ): void {
     if (test.steps && Array.isArray(test.steps)) {
-      // New array structure with steps
       test.steps.forEach((stepObject) => {
+        // Handle new format with named properties
+        if (stepObject.name !== undefined) {
+          const { name, duration } = stepObject;
+          const cpuAvg = this.getNestedProperty(
+            profilingSummary,
+            'cpu.avg',
+            'N/A',
+          );
+          const memoryAvg = this.getNestedProperty(
+            profilingSummary,
+            'memory.avg',
+            'N/A',
+          );
+          const battery = this.getNestedProperty(
+            profilingSummary,
+            'battery.total',
+            'N/A',
+          );
+          const issues = this.getNestedProperty(
+            profilingSummary,
+            'issues',
+            'N/A',
+          );
+          csvRows.push(
+            `"${name}","${duration}","${cpuAvg}","${memoryAvg}","${battery}","${issues}"`,
+          );
+          return;
+        }
+        // Handle old format {stepName: duration}
         const [stepName, duration] = Object.entries(stepObject)[0];
         const cpuAvg = this.getNestedProperty(
           profilingSummary,
