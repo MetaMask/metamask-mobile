@@ -4,7 +4,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import renderWithProvider, {
   renderScreen,
   type ProviderValues,
-} from '../renderWithProvider';
+} from '../../app/util/test/renderWithProvider';
 
 export function renderComponentViewScreen(
   Component: React.ComponentType,

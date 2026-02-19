@@ -4,7 +4,7 @@
  */
 
 // Engine mock (singleton default export)
-jest.mock('../../../core/Engine', () => {
+jest.mock('../../app/core/Engine', () => {
   const engine = {
     context: {
       KeyringController: {
@@ -197,7 +197,7 @@ jest.mock('../../../core/Engine', () => {
 });
 
 // Minimal Engine/Engine singleton where needed
-jest.mock('../../../core/Engine/Engine', () => {
+jest.mock('../../app/core/Engine/Engine.ts', () => {
   const singleton = {
     get context() {
       return {

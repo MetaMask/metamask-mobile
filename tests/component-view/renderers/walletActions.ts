@@ -1,10 +1,10 @@
 import '../mocks';
 import React from 'react';
-import type { DeepPartial } from '../../renderWithProvider';
-import type { RootState } from '../../../../reducers';
+import type { DeepPartial } from '../../../app/util/test/renderWithProvider';
+import type { RootState } from '../../../app/reducers';
 import { renderComponentViewScreen } from '../render';
-import Routes from '../../../../constants/navigation/Routes';
-import WalletActions from '../../../../components/Views/WalletActions';
+import Routes from '../../../app/constants/navigation/Routes';
+import WalletActions from '../../../app/components/Views/WalletActions';
 import { initialStateWalletActions } from '../presets/walletActions';
 
 interface RenderWalletActionsViewOptions {
