@@ -18,6 +18,11 @@ export enum PredictPriceHistoryInterval {
 
 export interface GetPositionsParams {
   address?: string;
+  claimable?: boolean;
+  marketId?: string;
+  outcomeId?: string;
+  limit?: number;
+  offset?: number;
 }
 
 export enum PredictMarketStatus {
@@ -405,3 +410,132 @@ export type PredictAccountMeta = {
 export interface PredictCarouselMetadata {
   marketId: string;
 }
+
+export interface GetMarketsParams {
+  q?: string;
+  status?: 'open' | 'closed' | 'resolved';
+  category?: PredictCategory;
+
+  sortBy?: 'volume24h' | 'date';
+  sortDirection?: 'asc' | 'desc';
+  offset?: number;
+  limit?: number;
+  liveSportsLeagues?: string[];
+  customQueryParams?: string;
+}
+
+export interface GetBalanceParams {
+  address?: string;
+}
+
+export interface PredictFees {
+  metamaskFee: number;
+  providerFee: number;
+  totalFee: number;
+  totalFeePercentage: number;
+  collector: Hex;
+}
+
+/**
+ * @example
+ * side = BUY;
+ * maxAmountSpent = 12.34; // $12.34
+ * minAmountReceived = 54.32; // 54.32 shares
+ * sharePrice = 0.1234; // $0.1234
+ * slippage = 0.01; // 1%
+ *
+ * side = SELL;
+ * maxAmountSpent = 42.23; // 42.23 shares
+ * minAmountReceived = 48.56; // $48.56
+ * sharePrice = 0.3456; // $0.3456
+ * slippage = 0.005; // 0.5%
+ */
+export interface OrderPreview {
+  marketId: string;
+  outcomeId: string;
+  outcomeTokenId: string;
+  timestamp: number;
+  side: Side;
+  sharePrice: number;
+  maxAmountSpent: number;
+  minAmountReceived: number;
+  slippage: number;
+  tickSize: number;
+  minOrderSize: number;
+  negRisk: boolean;
+  fees?: PredictFees;
+  rateLimited?: boolean;
+  // For sell orders, we can store the position ID
+  // so we can perform optimistic updates
+  positionId?: string;
+}
+
+export type OrderResult = Result<{
+  id: string;
+  spentAmount: string;
+  receivedAmount: string;
+  txHashes?: string[];
+}>;
+
+export interface PlaceOrderParams {
+  preview: OrderPreview;
+  analyticsProperties?: {
+    marketId?: string;
+    marketTitle?: string;
+    marketCategory?: string;
+    marketTags?: string[];
+    entryPoint?: string;
+    transactionType?: string;
+    sharePrice?: number;
+    liquidity?: number;
+    volume?: number;
+    marketType?: string;
+    outcome?: string;
+    marketSlug?: string;
+    gameId?: string;
+    gameStartTime?: string;
+    gameLeague?: string;
+    gameStatus?: string;
+    gamePeriod?: string | null;
+    gameClock?: string | null;
+  };
+}
+
+export interface PreviewOrderParams {
+  marketId: string;
+  outcomeId: string;
+  outcomeTokenId: string;
+  side: Side;
+  size: number;
+  // For sell orders, we can store the position ID
+  // so we can perform optimistic updates
+  positionId?: string;
+}
+
+export interface AccountState {
+  address: Hex;
+  isDeployed: boolean;
+  hasAllowances: boolean;
+}
+
+export interface GeoBlockResponse {
+  isEligible: boolean;
+  country?: string;
+}
+
+export interface ConnectionStatus {
+  sportsConnected: boolean;
+  marketConnected: boolean;
+}
+
+export type GameUpdateCallback = (update: GameUpdate) => void;
+export type PriceUpdateCallback = (updates: PriceUpdate[]) => void;
+
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface PrepareDepositParams {}
+
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface GetAccountStateParams {}
+
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface PrepareWithdrawParams {}

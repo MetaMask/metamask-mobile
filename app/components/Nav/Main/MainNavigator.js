@@ -124,13 +124,6 @@ import RewardsClaimBottomSheetModal from '../../UI/Rewards/components/Tabs/Level
 import RewardOptInAccountGroupModal from '../../UI/Rewards/components/Settings/RewardOptInAccountGroupModal';
 import EndOfSeasonClaimBottomSheet from '../../UI/Rewards/components/EndOfSeasonClaimBottomSheet/EndOfSeasonClaimBottomSheet';
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
-import getHeaderCompactStandardNavbarOptions from '../../../component-library/components-temp/HeaderCompactStandard/getHeaderCompactStandardNavbarOptions';
-import {
-  TOKEN_TITLE,
-  NFT_TITLE,
-  TOKEN,
-} from '../../Views/AddAsset/AddAsset.constants';
-import { strings } from '../../../../locales/i18n';
 import SitesFullView from '../../Views/SitesFullView/SitesFullView';
 import { TokenDetails } from '../../UI/TokenDetails/Views/TokenDetails';
 
@@ -414,7 +407,7 @@ const SettingsFlow = () => {
       <Stack.Screen
         name="CompanySettings"
         component={AppInformation}
-        options={AppInformation.navigationOptions}
+        options={{ headerShown: false }}
       />
       {process.env.MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS === 'true' && (
         <Stack.Screen

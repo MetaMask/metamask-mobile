@@ -199,6 +199,9 @@ jest.mock('../../../core/Engine', () => ({
     SwapsController: {
       fetchTokenWithCache: jest.fn().mockResolvedValue(undefined),
     },
+    BridgeController: {
+      setLocation: jest.fn(),
+    },
   },
 }));
 
