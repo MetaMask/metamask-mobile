@@ -26,8 +26,10 @@ export const useTokenInputAreaFormattedBalance = (
       // except in cases where parseAmount has a bug.
       // Return the whole token balance amount without formatting
       // rather than empty balance.
-      return tokenBalance;
+      return tokenBalance + ' ' + token.symbol;
     }
 
-    return formatAmountWithLocaleSeparators(parsedTotalBalance);
+    return (
+      formatAmountWithLocaleSeparators(parsedTotalBalance) + ' ' + token.symbol
+    );
   }, [token?.symbol, tokenBalance]);

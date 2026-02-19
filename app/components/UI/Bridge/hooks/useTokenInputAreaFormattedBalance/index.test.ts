@@ -96,7 +96,7 @@ describe('useTokenInputAreaFormattedBalance', () => {
       );
 
       expect(result.current).not.toBe('< 0.00001');
-      expect(result.current).toBe('0.00001');
+      expect(result.current).toBe('0.00001 USDC');
     });
 
     it('does not trigger for value above threshold', () => {
@@ -105,7 +105,7 @@ describe('useTokenInputAreaFormattedBalance', () => {
       );
 
       expect(result.current).not.toBe('< 0.00001');
-      expect(result.current).toBe('0.0001');
+      expect(result.current).toBe('0.0001 USDC');
     });
 
     it('does not trigger for zero', () => {
@@ -113,7 +113,7 @@ describe('useTokenInputAreaFormattedBalance', () => {
         useTokenInputAreaFormattedBalance('0', token),
       );
 
-      expect(result.current).toBe('0');
+      expect(result.current).toBe('0 USDC');
     });
 
     it('does not trigger for negative values', () => {
@@ -122,8 +122,8 @@ describe('useTokenInputAreaFormattedBalance', () => {
       );
 
       // parseAmount can't parse negative numbers (regex doesn't match "-")
-      // so it falls back to raw tokenBalance
-      expect(result.current).toBe('-0.000001');
+      // so it falls back to raw tokenBalance + symbol
+      expect(result.current).toBe('-0.000001 USDC');
     });
   });
 
@@ -135,7 +135,7 @@ describe('useTokenInputAreaFormattedBalance', () => {
         useTokenInputAreaFormattedBalance('5', token),
       );
 
-      expect(result.current).toBe('5');
+      expect(result.current).toBe('5 USDC');
     });
 
     it('formats a three-digit number without grouping', () => {
@@ -143,7 +143,7 @@ describe('useTokenInputAreaFormattedBalance', () => {
         useTokenInputAreaFormattedBalance('999', token),
       );
 
-      expect(result.current).toBe('999');
+      expect(result.current).toBe('999 USDC');
     });
 
     it('formats thousands with grouping separator', () => {
@@ -151,7 +151,7 @@ describe('useTokenInputAreaFormattedBalance', () => {
         useTokenInputAreaFormattedBalance('1000', token),
       );
 
-      expect(result.current).toBe('1,000');
+      expect(result.current).toBe('1,000 USDC');
     });
 
     it('formats millions with grouping separators', () => {
@@ -159,7 +159,7 @@ describe('useTokenInputAreaFormattedBalance', () => {
         useTokenInputAreaFormattedBalance('1234567', token),
       );
 
-      expect(result.current).toBe('1,234,567');
+      expect(result.current).toBe('1,234,567 USDC');
     });
 
     it('formats billions', () => {
@@ -167,7 +167,7 @@ describe('useTokenInputAreaFormattedBalance', () => {
         useTokenInputAreaFormattedBalance('1000000000', token),
       );
 
-      expect(result.current).toBe('1,000,000,000');
+      expect(result.current).toBe('1,000,000,000 USDC');
     });
 
     it('strips leading zeros from integers', () => {
@@ -175,7 +175,7 @@ describe('useTokenInputAreaFormattedBalance', () => {
         useTokenInputAreaFormattedBalance('007', token),
       );
 
-      expect(result.current).toBe('7');
+      expect(result.current).toBe('7 USDC');
     });
   });
 
@@ -187,7 +187,7 @@ describe('useTokenInputAreaFormattedBalance', () => {
         useTokenInputAreaFormattedBalance('1.12345', token),
       );
 
-      expect(result.current).toBe('1.12345');
+      expect(result.current).toBe('1.12345 USDC');
     });
 
     it('truncates beyond 5 decimal places', () => {
@@ -195,7 +195,7 @@ describe('useTokenInputAreaFormattedBalance', () => {
         useTokenInputAreaFormattedBalance('1.123456789', token),
       );
 
-      expect(result.current).toBe('1.12345');
+      expect(result.current).toBe('1.12345 USDC');
     });
 
     it('trims trailing zeros after truncation', () => {
@@ -203,7 +203,7 @@ describe('useTokenInputAreaFormattedBalance', () => {
         useTokenInputAreaFormattedBalance('1.10000', token),
       );
 
-      expect(result.current).toBe('1.1');
+      expect(result.current).toBe('1.1 USDC');
     });
 
     it('formats decimal with thousands in integer part', () => {
@@ -211,7 +211,7 @@ describe('useTokenInputAreaFormattedBalance', () => {
         useTokenInputAreaFormattedBalance('12345.6789', token),
       );
 
-      expect(result.current).toBe('12,345.6789');
+      expect(result.current).toBe('12,345.6789 USDC');
     });
 
     it('handles value with only a fractional part', () => {
@@ -219,7 +219,7 @@ describe('useTokenInputAreaFormattedBalance', () => {
         useTokenInputAreaFormattedBalance('.5', token),
       );
 
-      expect(result.current).toBe('0.5');
+      expect(result.current).toBe('0.5 USDC');
     });
   });
 
@@ -231,7 +231,7 @@ describe('useTokenInputAreaFormattedBalance', () => {
         useTokenInputAreaFormattedBalance('999999999999', token),
       );
 
-      expect(result.current).toBe('999,999,999,999');
+      expect(result.current).toBe('999,999,999,999 USDC');
     });
 
     it('formats a large number with decimals', () => {
@@ -239,7 +239,7 @@ describe('useTokenInputAreaFormattedBalance', () => {
         useTokenInputAreaFormattedBalance('123456789.12345', token),
       );
 
-      expect(result.current).toBe('123,456,789.12345');
+      expect(result.current).toBe('123,456,789.12345 USDC');
     });
 
     it('handles numbers beyond safe integer range', () => {
@@ -247,36 +247,78 @@ describe('useTokenInputAreaFormattedBalance', () => {
         useTokenInputAreaFormattedBalance('99999999999999999999', token),
       );
 
-      expect(result.current).toMatch(/^[\d,]+$/);
+      expect(result.current).toMatch(/^[\d,]+ USDC$/);
     });
   });
 
   describe('parseAmount fallback', () => {
     const token = makeToken();
 
-    it('returns raw tokenBalance for strings with commas', () => {
+    it('returns raw tokenBalance with symbol for strings with commas', () => {
       const { result } = renderHook(() =>
         useTokenInputAreaFormattedBalance('1,234.56', token),
       );
 
-      // parseAmount regex doesn't match commas, returns undefined → fallback
-      expect(result.current).toBe('1,234.56');
+      expect(result.current).toBe('1,234.56 USDC');
     });
 
-    it('returns raw tokenBalance for scientific notation', () => {
+    it('returns raw tokenBalance with symbol for scientific notation', () => {
       const { result } = renderHook(() =>
         useTokenInputAreaFormattedBalance('1e3', token),
       );
 
-      expect(result.current).toBe('1e3');
+      expect(result.current).toBe('1e3 USDC');
     });
 
-    it('returns raw tokenBalance for non-numeric strings', () => {
+    it('returns raw tokenBalance with symbol for non-numeric strings', () => {
       const { result } = renderHook(() =>
         useTokenInputAreaFormattedBalance('abc', token),
       );
 
-      expect(result.current).toBe('abc');
+      expect(result.current).toBe('abc USDC');
+    });
+  });
+
+  describe('symbol in output', () => {
+    it('appends token symbol to formatted balance', () => {
+      const token = makeToken({ symbol: 'ETH' });
+
+      const { result } = renderHook(() =>
+        useTokenInputAreaFormattedBalance('1.5', token),
+      );
+
+      expect(result.current).toBe('1.5 ETH');
+    });
+
+    it('appends different token symbols correctly', () => {
+      const wbtc = makeToken({ symbol: 'WBTC' });
+
+      const { result } = renderHook(() =>
+        useTokenInputAreaFormattedBalance('0.00123', wbtc),
+      );
+
+      expect(result.current).toBe('0.00123 WBTC');
+    });
+
+    it('does not append symbol to threshold message', () => {
+      const token = makeToken({ symbol: 'ETH' });
+
+      const { result } = renderHook(() =>
+        useTokenInputAreaFormattedBalance('0.000001', token),
+      );
+
+      expect(result.current).toBe('< 0.00001');
+      expect(result.current).not.toContain('ETH');
+    });
+
+    it('appends symbol in fallback path', () => {
+      const token = makeToken({ symbol: 'DAI' });
+
+      const { result } = renderHook(() =>
+        useTokenInputAreaFormattedBalance('1e3', token),
+      );
+
+      expect(result.current).toBe('1e3 DAI');
     });
   });
 
@@ -291,7 +333,7 @@ describe('useTokenInputAreaFormattedBalance', () => {
       );
 
       expect(result.current).toMatch(/1\.234\.567/);
-      expect(result.current).toMatch(/,89$/);
+      expect(result.current).toMatch(/,89 USDC$/);
     });
 
     it('formats with French locale (space grouping, comma decimal)', () => {
@@ -303,7 +345,7 @@ describe('useTokenInputAreaFormattedBalance', () => {
 
       // French uses narrow no-break space (U+202F) or non-breaking space for grouping
       expect(result.current).toMatch(/1\s234\s567/);
-      expect(result.current).toMatch(/,89$/);
+      expect(result.current).toMatch(/,89 USDC$/);
     });
 
     it('formats integers with German locale', () => {
@@ -313,7 +355,7 @@ describe('useTokenInputAreaFormattedBalance', () => {
         useTokenInputAreaFormattedBalance('50000', token),
       );
 
-      expect(result.current).toBe('50.000');
+      expect(result.current).toBe('50.000 USDC');
     });
 
     it('formats integers with Japanese locale', () => {
@@ -323,7 +365,7 @@ describe('useTokenInputAreaFormattedBalance', () => {
         useTokenInputAreaFormattedBalance('1000000', token),
       );
 
-      expect(result.current).toBe('1,000,000');
+      expect(result.current).toBe('1,000,000 USDC');
     });
 
     it('formats small number without grouping regardless of locale', () => {
@@ -333,7 +375,7 @@ describe('useTokenInputAreaFormattedBalance', () => {
         useTokenInputAreaFormattedBalance('999', token),
       );
 
-      expect(result.current).toBe('999');
+      expect(result.current).toBe('999 USDC');
     });
 
     it('preserves threshold message regardless of locale', () => {
@@ -354,7 +396,7 @@ describe('useTokenInputAreaFormattedBalance', () => {
       );
 
       expect(result.current).toMatch(/1\.234/);
-      expect(result.current).toMatch(/,56$/);
+      expect(result.current).toMatch(/,56 USDC$/);
     });
   });
 
