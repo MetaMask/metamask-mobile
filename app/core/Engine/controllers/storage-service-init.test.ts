@@ -583,5 +583,95 @@ describe('mobileStorageAdapter', () => {
         expect(result).toStrictEqual(['simple-key', 'nested/path', 'safe_key']);
       });
     });
+
+    describe('namespace encoding', () => {
+      beforeEach(() => {
+        mockFilesystemStorage.setItem.mockResolvedValue(undefined);
+        mockDevice.isIos.mockReturnValue(true);
+      });
+
+      it('encodes hyphens in namespace as %2D', async () => {
+        const adapter = getStorageAdapter();
+
+        await adapter.setItem('Test-Controller', 'key', 'value');
+
+        expect(mockFilesystemStorage.setItem).toHaveBeenCalledWith(
+          `${STORAGE_KEY_PREFIX}Test%2DController:key`,
+          JSON.stringify('value'),
+          true,
+        );
+      });
+
+      it('encodes slashes in namespace as %2F', async () => {
+        const adapter = getStorageAdapter();
+
+        await adapter.setItem('Test/Controller', 'key', 'value');
+
+        expect(mockFilesystemStorage.setItem).toHaveBeenCalledWith(
+          `${STORAGE_KEY_PREFIX}Test%2FController:key`,
+          JSON.stringify('value'),
+          true,
+        );
+      });
+
+      it('encodes both namespace and key with special characters', async () => {
+        const adapter = getStorageAdapter();
+
+        await adapter.setItem('My-Controller', 'nested/path-key', 'value');
+
+        expect(mockFilesystemStorage.setItem).toHaveBeenCalledWith(
+          `${STORAGE_KEY_PREFIX}My%2DController:nested%2Fpath%2Dkey`,
+          JSON.stringify('value'),
+          true,
+        );
+      });
+
+      it('does not change namespaces without special characters', async () => {
+        const adapter = getStorageAdapter();
+
+        await adapter.setItem(
+          'TokenListController',
+          'tokensChainsCache:0x1',
+          'value',
+        );
+
+        expect(mockFilesystemStorage.setItem).toHaveBeenCalledWith(
+          `${STORAGE_KEY_PREFIX}TokenListController:tokensChainsCache:0x1`,
+          JSON.stringify('value'),
+          true,
+        );
+      });
+
+      it('getAllKeys uses encoded namespace for prefix matching', async () => {
+        mockFilesystemStorage.getAllKeys.mockResolvedValue([
+          `${STORAGE_KEY_PREFIX}My%2DController:key1`,
+          `${STORAGE_KEY_PREFIX}My%2DController:key2`,
+        ]);
+        const adapter = getStorageAdapter();
+
+        const result = await adapter.getAllKeys('My-Controller');
+
+        expect(result).toStrictEqual(['key1', 'key2']);
+      });
+
+      it('clear uses encoded namespace for prefix matching', async () => {
+        mockFilesystemStorage.getAllKeys.mockResolvedValue([
+          `${STORAGE_KEY_PREFIX}My%2DController:key1`,
+          `${STORAGE_KEY_PREFIX}My%2DController:key2`,
+        ]);
+        mockFilesystemStorage.removeItem.mockResolvedValue(undefined);
+        const adapter = getStorageAdapter();
+
+        await adapter.clear('My-Controller');
+
+        expect(mockFilesystemStorage.removeItem).toHaveBeenCalledTimes(2);
+        expect(mockFilesystemStorage.removeItem).toHaveBeenCalledWith(
+          `${STORAGE_KEY_PREFIX}My%2DController:key1`,
+        );
+        expect(mockFilesystemStorage.removeItem).toHaveBeenCalledWith(
+          `${STORAGE_KEY_PREFIX}My%2DController:key2`,
+        );
+      });
+    });
   });
 });

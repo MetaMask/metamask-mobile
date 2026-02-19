@@ -34,9 +34,10 @@ const mobileStorageAdapter: StorageAdapter = {
    */
   async getItem(namespace: string, key: string): Promise<StorageGetResult> {
     try {
-      // Build full key: storageService:namespace:encodedKey
-      const encodedKeyPart = encodeStorageKey(key);
-      const fullKey = `${STORAGE_KEY_PREFIX}${namespace}:${encodedKeyPart}`;
+      // Build full key: storageService:encodedNamespace:encodedKey
+      const encodedNamespace = encodeStorageKey(namespace);
+      const encodedKey = encodeStorageKey(key);
+      const fullKey = `${STORAGE_KEY_PREFIX}${encodedNamespace}:${encodedKey}`;
 
       const serialized = await FilesystemStorage.getItem(fullKey);
 
@@ -65,9 +66,10 @@ const mobileStorageAdapter: StorageAdapter = {
    */
   async setItem(namespace: string, key: string, value: Json): Promise<void> {
     try {
-      // Build full key: storageService:namespace:encodedKey
-      const encodedKeyPart = encodeStorageKey(key);
-      const fullKey = `${STORAGE_KEY_PREFIX}${namespace}:${encodedKeyPart}`;
+      // Build full key: storageService:encodedNamespace:encodedKey
+      const encodedNamespace = encodeStorageKey(namespace);
+      const encodedKey = encodeStorageKey(key);
+      const fullKey = `${STORAGE_KEY_PREFIX}${encodedNamespace}:${encodedKey}`;
 
       await FilesystemStorage.setItem(
         fullKey,
@@ -90,9 +92,10 @@ const mobileStorageAdapter: StorageAdapter = {
    */
   async removeItem(namespace: string, key: string): Promise<void> {
     try {
-      // Build full key: storageService:namespace:encodedKey
-      const encodedKeyPart = encodeStorageKey(key);
-      const fullKey = `${STORAGE_KEY_PREFIX}${namespace}:${encodedKeyPart}`;
+      // Build full key: storageService:encodedNamespace:encodedKey
+      const encodedNamespace = encodeStorageKey(namespace);
+      const encodedKey = encodeStorageKey(key);
+      const fullKey = `${STORAGE_KEY_PREFIX}${encodedNamespace}:${encodedKey}`;
 
       await FilesystemStorage.removeItem(fullKey);
     } catch (error) {
@@ -118,10 +121,9 @@ const mobileStorageAdapter: StorageAdapter = {
         return [];
       }
 
-      // Note: The prefix uses the namespace as-is (not encoded) for backward compatibility.
-      // The library's fromFileName converts `-` to `:` in the returned keys,
-      // so we need to match against the transformed prefix.
-      const prefix = `${STORAGE_KEY_PREFIX}${namespace}:`;
+      // Encode namespace to match how keys were stored
+      const encodedNamespace = encodeStorageKey(namespace);
+      const prefix = `${STORAGE_KEY_PREFIX}${encodedNamespace}:`;
 
       const filteredKeys = allKeys
         .filter((rawKey) => rawKey.startsWith(prefix))
@@ -153,10 +155,9 @@ const mobileStorageAdapter: StorageAdapter = {
         return;
       }
 
-      // Note: The prefix uses the namespace as-is (not encoded) for backward compatibility.
-      // The library's fromFileName converts `-` to `:` in the returned keys,
-      // so we need to match against the transformed prefix.
-      const prefix = `${STORAGE_KEY_PREFIX}${namespace}:`;
+      // Encode namespace to match how keys were stored
+      const encodedNamespace = encodeStorageKey(namespace);
+      const prefix = `${STORAGE_KEY_PREFIX}${encodedNamespace}:`;
 
       const keysToDelete = allKeys.filter((rawKey) =>
         rawKey.startsWith(prefix),
