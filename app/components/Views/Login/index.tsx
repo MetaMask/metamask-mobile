@@ -115,8 +115,12 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     theme: { themeAppearance },
   } = useStyles(stylesheet, EmptyRecordConstant);
 
-  const { unlockWallet, lockApp, getAuthType,
-    checkIsSeedlessPasswordOutdated } = useAuthentication();
+  const {
+    unlockWallet,
+    lockApp,
+    getAuthType,
+    checkIsSeedlessPasswordOutdated,
+  } = useAuthentication();
   const { capabilities } = useAuthCapabilities();
 
   const handleBackPress = () => {
