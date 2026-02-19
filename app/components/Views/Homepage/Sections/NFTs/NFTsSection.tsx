@@ -26,6 +26,7 @@ import SectionRow from '../../components/SectionRow';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useOwnedNfts } from './hooks';
 import NftGridItem from '../../../../UI/NftGrid/NftGridItem';
+import { useNftRefresh } from '../../../../UI/NftGrid/useNftRefresh';
 import { SectionRefreshHandle } from '../../types';
 import { strings } from '../../../../../../locales/i18n';
 import { isNftFetchingProgressSelector } from '../../../../../reducers/collectibles';
@@ -73,14 +74,11 @@ const NFTsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
   const ownedNfts = useOwnedNfts();
   const hasNfts = ownedNfts.length > 0;
   const isNftFetchingProgress = useSelector(isNftFetchingProgressSelector);
+  const { onRefresh } = useNftRefresh();
 
   const title = strings('homepage.sections.nfts');
 
-  const refresh = useCallback(async () => {
-    // TODO: Implement NFT refresh logic
-  }, []);
-
-  useImperativeHandle(ref, () => ({ refresh }), [refresh]);
+  useImperativeHandle(ref, () => ({ refresh: onRefresh }), [onRefresh]);
 
   const displayNfts = useMemo(
     () => ownedNfts.slice(0, MAX_NFTS_DISPLAYED),

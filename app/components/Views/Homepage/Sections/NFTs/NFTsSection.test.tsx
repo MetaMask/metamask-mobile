@@ -1,11 +1,13 @@
-import React from 'react';
-import { screen, fireEvent } from '@testing-library/react-native';
+import React, { createRef } from 'react';
+import { screen, fireEvent, act } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import NFTsSection from './NFTsSection';
 import Routes from '../../../../../constants/navigation/Routes';
+import { SectionRefreshHandle } from '../../types';
 
 const mockNavigate = jest.fn();
+const mockOnRefresh = jest.fn().mockResolvedValue(undefined);
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -19,6 +21,13 @@ jest.mock('@react-navigation/native', () => {
 
 jest.mock('../../../../../reducers/collectibles', () => ({
   isNftFetchingProgressSelector: jest.fn(() => false),
+}));
+
+jest.mock('../../../../UI/NftGrid/useNftRefresh', () => ({
+  useNftRefresh: () => ({
+    refreshing: false,
+    onRefresh: mockOnRefresh,
+  }),
 }));
 
 const mockNft = (address: string, tokenId: string) => ({
@@ -56,6 +65,7 @@ describe('NFTsSection', () => {
     jest
       .requireMock('../../../../../reducers/collectibles')
       .isNftFetchingProgressSelector.mockReturnValue(false);
+    mockOnRefresh.mockClear();
   });
 
   it('renders skeleton loading state when NFTs are being fetched', () => {
@@ -120,5 +130,20 @@ describe('NFTsSection', () => {
 
     // Should only display 6 NFTs max (2 rows of 3)
     expect(screen.getByText('NFTs')).toBeOnTheScreen();
+  });
+
+  it('exposes refresh function via ref that calls useNftRefresh.onRefresh', async () => {
+    const ref = createRef<SectionRefreshHandle>();
+
+    renderWithProvider(<NFTsSection ref={ref} />);
+
+    expect(ref.current).not.toBeNull();
+    expect(typeof ref.current?.refresh).toBe('function');
+
+    await act(async () => {
+      await ref.current?.refresh();
+    });
+
+    expect(mockOnRefresh).toHaveBeenCalledTimes(1);
   });
 });
