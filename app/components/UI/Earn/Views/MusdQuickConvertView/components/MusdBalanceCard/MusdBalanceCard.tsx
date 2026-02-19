@@ -39,6 +39,14 @@ import Routes from '../../../../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
 
 /**
+ * Test IDs for the MusdBalanceCard component.
+ */
+export const MusdBalanceCardTestIds = {
+  CONTAINER: 'musd-balance-card',
+  TOKEN_ICON: 'musd-token-icon',
+} as const;
+
+/**
  * Card displaying the user's aggregated mUSD balance across chains.
  * On press, navigates to the balances-by-network modal (when multiple chains).
  */
@@ -116,7 +124,7 @@ const MusdBalanceCard = () => {
       ]}
       onPress={handleOpenBalanceCard}
       accessibilityRole="button"
-      testID="musd-balance-card"
+      testID={MusdBalanceCardTestIds.CONTAINER}
       disabled={orderedChainIdsWithMusdBalance.length <= 1}
     >
       {/* Left side: Token icon and info (aggregated, no network icons) */}
@@ -141,14 +149,14 @@ const MusdBalanceCard = () => {
               <Image
                 source={MUSD_TOKEN.imageSource}
                 style={styles.tokenIcon}
-                testID="musd-token-icon"
+                testID={MusdBalanceCardTestIds.TOKEN_ICON}
               />
             </BadgeWrapper>
           ) : (
             <Image
               source={MUSD_TOKEN.imageSource}
               style={styles.tokenIcon}
-              testID="musd-token-icon"
+              testID={MusdBalanceCardTestIds.TOKEN_ICON}
             />
           )}
         </View>
