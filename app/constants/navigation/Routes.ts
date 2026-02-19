@@ -311,6 +311,10 @@ const Routes = {
     ORDER_TRANSACTION: 'PerpsOrderTransaction',
     FUNDING_TRANSACTION: 'PerpsFundingTransaction',
   },
+  MARKET_INSIGHTS: {
+    ROOT: 'MarketInsights',
+    VIEW: 'MarketInsightsView',
+  },
   PREDICT: {
     ROOT: 'Predict',
     MARKET_LIST: 'PredictMarketList',
