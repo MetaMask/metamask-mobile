@@ -15,36 +15,31 @@ import {
   HardwareWalletRefs,
   HardwareWalletStateSetters,
 } from './HardwareWalletStateManager';
+import { createHardwareWalletError } from './errors';
 
 // Mock the errors module - use jest.requireActual inside to avoid hoisting issues
 jest.mock('./errors', () => {
   const {
     HardwareWalletError: MockHardwareWalletError,
-    ErrorCode: MockErrorCode,
     Severity: MockSeverity,
     Category: MockCategory,
   } = jest.requireActual('@metamask/hw-wallet-sdk');
   return {
-    createHardwareWalletError: jest.fn((error: unknown) => {
-      if (error instanceof MockHardwareWalletError) {
-        return error;
-      }
-      return new MockHardwareWalletError(
-        error instanceof Error ? error.message : String(error),
-        {
-          code: MockErrorCode.Unknown,
+    createHardwareWalletError: jest.fn(
+      (code: string, walletType?: string) =>
+        new MockHardwareWalletError(`Error for code: ${code}`, {
+          code,
           severity: MockSeverity.Err,
           category: MockCategory.Unknown,
-          userMessage: String(error),
-        },
-      );
-    }),
+          userMessage: `Error for ${walletType ?? 'unknown'} (${code})`,
+        }),
+    ),
     parseErrorByType: jest.fn(
       (error: unknown) =>
         new MockHardwareWalletError(
           error instanceof Error ? error.message : String(error),
           {
-            code: MockErrorCode.Unknown,
+            code: 'unknown',
             severity: MockSeverity.Err,
             category: MockCategory.Unknown,
             userMessage: String(error),
@@ -131,52 +126,24 @@ describe('useDeviceEventHandlers', () => {
       expect(lastConnectionState.status).toBe(ConnectionStatus.Connecting);
     });
 
-    it('skips update if status is the same (non-error)', () => {
-      lastConnectionState = { status: ConnectionStatus.Connecting };
-      const { result } = createHook();
-
-      act(() => {
-        result.current.updateConnectionState({
-          status: ConnectionStatus.Connecting,
-        });
-      });
-
-      // The setter was called but should return same state
-      expect(mockSetters.setConnectionState).toHaveBeenCalled();
-      // Since we return prev in that case, lastConnectionState is unchanged
-    });
-
-    it('always updates error states', () => {
-      const error1 = new HardwareWalletError('Error 1', {
-        code: ErrorCode.Unknown,
-        severity: Severity.Err,
-        category: Category.Unknown,
-        userMessage: 'Error 1',
-      });
-      const error2 = new HardwareWalletError('Error 2', {
-        code: ErrorCode.Unknown,
-        severity: Severity.Err,
-        category: Category.Unknown,
-        userMessage: 'Error 2',
-      });
-
+    it('updates state even when status is the same but data differs', () => {
       lastConnectionState = {
-        status: ConnectionStatus.ErrorState,
-        error: error1,
+        status: ConnectionStatus.Connected,
+        deviceId: 'device-old',
       };
       const { result } = createHook();
 
       act(() => {
         result.current.updateConnectionState({
-          status: ConnectionStatus.ErrorState,
-          error: error2,
+          status: ConnectionStatus.Connected,
+          deviceId: 'device-new',
         });
       });
 
-      expect(lastConnectionState.status).toBe(ConnectionStatus.ErrorState);
-      if (lastConnectionState.status === ConnectionStatus.ErrorState) {
-        expect(lastConnectionState.error.message).toBe('Error 2');
-      }
+      expect(lastConnectionState).toEqual({
+        status: ConnectionStatus.Connected,
+        deviceId: 'device-new',
+      });
     });
   });
 
@@ -374,7 +341,7 @@ describe('useDeviceEventHandlers', () => {
         expect(lastConnectionState.status).toBe(ConnectionStatus.ErrorState);
       });
 
-      it('creates error if not provided', () => {
+      it('creates error with AuthenticationDeviceLocked code if not provided', () => {
         const { result } = createHook();
 
         act(() => {
@@ -384,6 +351,10 @@ describe('useDeviceEventHandlers', () => {
         });
 
         expect(lastConnectionState.status).toBe(ConnectionStatus.ErrorState);
+        expect(createHardwareWalletError).toHaveBeenCalledWith(
+          ErrorCode.AuthenticationDeviceLocked,
+          HardwareWalletType.Ledger,
+        );
       });
 
       it('resets isConnecting flag regardless of error presence', () => {

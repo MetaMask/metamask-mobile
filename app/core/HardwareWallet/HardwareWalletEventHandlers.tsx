@@ -35,17 +35,7 @@ export const useDeviceEventHandlers = ({
 }: UseDeviceEventHandlersOptions): DeviceEventHandlersResult => {
   const updateConnectionState = useCallback(
     (newState: HardwareWalletConnectionState) => {
-      setters.setConnectionState((prev) => {
-        // Avoid unnecessary updates if status hasn't changed
-        // For error states, always update since the error might be different
-        if (
-          prev.status === newState.status &&
-          newState.status !== ConnectionStatus.ErrorState
-        ) {
-          return prev;
-        }
-        return newState;
-      });
+      setters.setConnectionState(newState);
     },
     [setters],
   );
