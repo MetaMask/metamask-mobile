@@ -9,6 +9,8 @@ import { fireEvent, act } from '@testing-library/react-native';
 import Routes from '../../../../../constants/navigation/Routes';
 import { Hex } from '@metamask/utils';
 import { MUSD_CONVERSION_APY } from '../../constants/musd';
+import { analytics } from '../../../../../util/analytics/analytics';
+import { MUSD_EVENTS_CONSTANTS } from '../../constants/events';
 
 describeForPlatforms('EarnMusdConversionEducationView', () => {
   const mockRouteParams = {
@@ -191,6 +193,76 @@ describeForPlatforms('EarnMusdConversionEducationView', () => {
 
     // Assert
     expect(continueButton).toBeOnTheScreen();
+  });
+
+  it('tracks quick convert redirect when quick convert is enabled', async () => {
+    // Arrange
+    const originalQuickConvertFlag = process.env.MM_MUSD_QUICK_CONVERT_ENABLED;
+    const originalConversionFlowFlag =
+      process.env.MM_MUSD_CONVERSION_FLOW_ENABLED;
+    process.env.MM_MUSD_QUICK_CONVERT_ENABLED = 'true';
+    process.env.MM_MUSD_CONVERSION_FLOW_ENABLED = 'true';
+
+    const trackEventSpy = jest.spyOn(analytics, 'trackEvent');
+    const state = initialStateWallet()
+      .withMinimalMultichainAssets()
+      .withRemoteFeatureFlags({
+        earnMusdConversionFlowEnabled: {
+          enabled: true,
+          featureVersion: '0.0.0',
+          minimumVersion: '0.0.0',
+        },
+        earnMusdQuickConvertEnabled: {
+          enabled: true,
+          featureVersion: '0.0.0',
+          minimumVersion: '0.0.0',
+        },
+      })
+      .withOverrides({
+        engine: {
+          backgroundState: {
+            AssetsController: {
+              assets: {},
+            },
+          },
+        },
+      } as unknown as Record<string, unknown>)
+      .build();
+
+    const { getByText } = renderScreenWithRoutes(
+      EarnMusdConversionEducationView as unknown as React.ComponentType,
+      { name: Routes.EARN.MUSD.CONVERSION_EDUCATION },
+      [],
+      {
+        state,
+      },
+      mockRouteParams,
+    );
+    const continueButton = getByText(
+      strings('earn.musd_conversion.education.primary_button'),
+    );
+    trackEventSpy.mockClear();
+
+    // Act
+    try {
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
+
+      // Assert
+      expect(trackEventSpy).toHaveBeenCalledTimes(1);
+      expect(trackEventSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          properties: expect.objectContaining({
+            redirects_to:
+              MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.QUICK_CONVERT_HOME_SCREEN,
+          }),
+        }),
+      );
+    } finally {
+      process.env.MM_MUSD_QUICK_CONVERT_ENABLED = originalQuickConvertFlag;
+      process.env.MM_MUSD_CONVERSION_FLOW_ENABLED = originalConversionFlowFlag;
+    }
   });
 
   it('renders screen when route params are missing', () => {
