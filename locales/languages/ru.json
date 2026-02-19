@@ -6298,19 +6298,7 @@
       "standardAccountLabel": "Standard account",
       "switch": "Сменить",
       "switchBack": "Переключиться обратно",
-      "splashpage": {
-        "accept": "Да",
-        "betterTransaction": "Транзакции быстрее, комиссии ниже",
-        "betterTransactionDescription": "Экономьте время и деньги, обрабатывая транзакции вместе.",
-        "featuresDescription": "Сохраните этот же адрес счета, и вы сможете вернуться к нему в любое время.",
-        "payToken": "Платите любым токеном в любое время",
-        "payTokenDescription": "Используйте имеющиеся у вас токены для оплаты комиссий сети.",
-        "reject": "Нет",
-        "sameAccount": "Тот же счет, более умные функции.",
-        "splashTitle": "Использовать смарт-счет?"
-      },
       "includes_transaction": "Включает {{transactionCount}} транзакции(-ий)",
-      "useSmartAccount": "Использовать смарт-счет",
       "successful": "Успех",
       "success_message": "Ваш счет будет обновлен до смарт-счета при следующей транзакции."
     },

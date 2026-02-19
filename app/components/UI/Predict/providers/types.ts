@@ -1,50 +1,47 @@
 import { KeyringController } from '@metamask/keyring-controller';
 import {
-  GameUpdate,
+  AccountState,
+  ConnectionStatus,
+  GameUpdateCallback,
+  GeoBlockResponse,
+  GetBalanceParams,
+  GetMarketsParams,
+  GetPositionsParams,
   GetPriceHistoryParams,
   GetPriceParams,
   GetPriceResponse,
+  OrderPreview,
+  OrderResult,
+  PlaceOrderParams,
   PredictActivity,
-  PredictCategory,
+  PredictFees,
   PredictMarket,
   PredictPosition,
   PredictPriceHistoryPoint,
-  PriceUpdate,
-  Result,
-  Side,
+  PreviewOrderParams,
+  PriceUpdateCallback,
+  UnrealizedPnL,
 } from '../types';
 import { Hex } from '@metamask/utils';
 import { TransactionType } from '@metamask/transaction-controller';
 import { PredictFeeCollection } from '../types/flags';
 
-export type GameUpdateCallback = (update: GameUpdate) => void;
-export type PriceUpdateCallback = (updates: PriceUpdate[]) => void;
-
-export interface ConnectionStatus {
-  sportsConnected: boolean;
-  marketConnected: boolean;
-}
-
-export interface GetMarketsParams {
-  // Filters
-  q?: string;
-  status?: 'open' | 'closed' | 'resolved';
-  category?: PredictCategory;
-
-  // Sorting
-  sortBy?: 'volume24h' | 'date';
-  sortDirection?: 'asc' | 'desc';
-
-  // Pagination
-  offset?: number;
-  limit?: number;
-
-  // Live sports configuration
-  liveSportsLeagues?: string[];
-
-  // Custom query params for Hot tab
-  customQueryParams?: string;
-}
+// Re-export shared types so existing provider-layer imports continue to work
+export type {
+  AccountState,
+  ConnectionStatus,
+  GameUpdateCallback,
+  GeoBlockResponse,
+  GetBalanceParams,
+  GetMarketsParams,
+  GetPositionsParams,
+  OrderPreview,
+  OrderResult,
+  PlaceOrderParams,
+  PredictFees,
+  PreviewOrderParams,
+  PriceUpdateCallback,
+};
 
 export interface Signer {
   address: string;
@@ -52,95 +49,44 @@ export interface Signer {
   signPersonalMessage: KeyringController['signPersonalMessage'];
 }
 
-export interface PlaceOrderParams {
-  preview: OrderPreview;
-  analyticsProperties?: {
-    marketId?: string;
-    marketTitle?: string;
-    marketCategory?: string;
-    marketTags?: string[];
-    entryPoint?: string;
-    transactionType?: string;
-    sharePrice?: number;
-    liquidity?: number;
-    volume?: number;
-    marketType?: string;
-    outcome?: string;
-    marketSlug?: string;
-    gameId?: string;
-    gameStartTime?: string;
-    gameLeague?: string;
-    gameStatus?: string;
-    gamePeriod?: string | null;
-    gameClock?: string | null;
+export interface PrepareDepositParams {
+  signer: Signer;
+}
+
+export interface GetAccountStateParams {
+  ownerAddress: string;
+}
+
+export interface PrepareWithdrawParams {
+  signer: Signer;
+}
+
+export interface PrepareDepositResponse {
+  chainId: Hex;
+  transactions: {
+    params: {
+      to: Hex;
+      data: Hex;
+    };
+    type?: TransactionType;
+  }[];
+}
+
+export interface PrepareWithdrawResponse {
+  chainId: Hex;
+  transaction: {
+    params: {
+      to: Hex;
+      data: Hex;
+      gas?: Hex;
+    };
+    type?: TransactionType;
   };
+  predictAddress: Hex;
 }
 
-export interface PreviewOrderParams {
-  marketId: string;
-  outcomeId: string;
-  outcomeTokenId: string;
-  side: Side;
-  size: number;
-  // For sell orders, we can store the position ID
-  // so we can perform optimistic updates
-  positionId?: string;
-}
-
-// Fees in US dollars
-export interface PredictFees {
-  metamaskFee: number;
-  providerFee: number;
-  totalFee: number;
-  totalFeePercentage: number;
-  collector: Hex;
-}
-
-export interface GeoBlockResponse {
-  isEligible: boolean;
-  country?: string;
-}
-
-/**
- * @example
- * side = BUY;
- * maxAmountSpent = 12.34; // $12.34
- * minAmountReceived = 54.32; // 54.32 shares
- * sharePrice = 0.1234; // $0.1234
- * slippage = 0.01; // 1%
- *
- * side = SELL;
- * maxAmountSpent = 42.23; // 42.23 shares
- * minAmountReceived = 48.56; // $48.56
- * sharePrice = 0.3456; // $0.3456
- * slippage = 0.005; // 0.5%
- */
-export interface OrderPreview {
-  marketId: string;
-  outcomeId: string;
-  outcomeTokenId: string;
-  timestamp: number;
-  side: Side;
-  sharePrice: number;
-  maxAmountSpent: number;
-  minAmountReceived: number;
-  slippage: number;
-  tickSize: number;
-  minOrderSize: number;
-  negRisk: boolean;
-  fees?: PredictFees;
-  rateLimited?: boolean;
-  // For sell orders, we can store the position ID
-  // so we can perform optimistic updates
-  positionId?: string;
-}
-
-export type OrderResult = Result<{
-  id: string;
-  spentAmount: string;
-  receivedAmount: string;
-  txHashes?: string[];
-}>;
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface GetPredictWalletParams {}
 
 export interface ClaimOrderParams {
   positions: PredictPosition[];
@@ -159,61 +105,6 @@ export interface ClaimOrderResponse {
   }[];
 }
 
-export interface GetPositionsParams {
-  address?: string;
-  claimable?: boolean;
-  marketId?: string;
-  outcomeId?: string;
-  limit?: number;
-  offset?: number;
-}
-
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface PrepareDepositParams {}
-
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface GetAccountStateParams {}
-
-export interface PrepareDepositResponse {
-  chainId: Hex;
-  transactions: {
-    params: {
-      to: Hex;
-      data: Hex;
-    };
-    type?: TransactionType;
-  }[];
-}
-
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface GetPredictWalletParams {}
-
-export interface AccountState {
-  address: Hex;
-  isDeployed: boolean;
-  hasAllowances: boolean;
-}
-
-export interface GetBalanceParams {
-  address?: string;
-}
-
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface PrepareWithdrawParams {}
-
-export interface PrepareWithdrawResponse {
-  chainId: Hex;
-  transaction: {
-    params: {
-      to: Hex;
-      data: Hex;
-      gas?: Hex;
-    };
-    type?: TransactionType;
-  };
-  predictAddress: Hex;
-}
-
 export interface SignWithdrawParams {
   callData: Hex;
   signer: Signer;
@@ -229,7 +120,6 @@ export interface PredictProvider {
   readonly name: string;
   readonly chainId: number;
 
-  // Market data
   getMarkets(params: GetMarketsParams): Promise<PredictMarket[]>;
   getMarketsByIds?(
     marketIds: string[],
@@ -244,16 +134,12 @@ export interface PredictProvider {
   ): Promise<PredictPriceHistoryPoint[]>;
   getPrices(params: GetPriceParams): Promise<GetPriceResponse>;
 
-  // User information
   getPositions(
     params: GetPositionsParams & { address: string },
   ): Promise<PredictPosition[]>;
   getActivity(params: { address: string }): Promise<PredictActivity[]>;
-  getUnrealizedPnL(params: {
-    address: string;
-  }): Promise<import('../types').UnrealizedPnL>;
+  getUnrealizedPnL(params: { address: string }): Promise<UnrealizedPnL>;
 
-  // Order management
   previewOrder(
     params: PreviewOrderParams & {
       signer: Signer;
@@ -264,22 +150,15 @@ export interface PredictProvider {
     params: PlaceOrderParams & { signer: Signer },
   ): Promise<OrderResult>;
 
-  // Claim management
   prepareClaim(params: ClaimOrderParams): Promise<ClaimOrderResponse>;
   confirmClaim?(params: { positions: PredictPosition[]; signer: Signer }): void;
 
-  // Eligibility (Geo-Blocking)
   isEligible(): Promise<GeoBlockResponse>;
 
-  // Predict wallet management
-  prepareDeposit(
-    params: PrepareDepositParams & { signer: Signer },
-  ): Promise<PrepareDepositResponse>;
-  getAccountState(
-    params: GetAccountStateParams & { ownerAddress: string },
-  ): Promise<AccountState>;
+  prepareDeposit(params: PrepareDepositParams): Promise<PrepareDepositResponse>;
+  getAccountState(params: GetAccountStateParams): Promise<AccountState>;
   prepareWithdraw(
-    params: PrepareWithdrawParams & { signer: Signer },
+    params: PrepareWithdrawParams,
   ): Promise<PrepareWithdrawResponse>;
   signWithdraw?(params: SignWithdrawParams): Promise<SignWithdrawResponse>;
 

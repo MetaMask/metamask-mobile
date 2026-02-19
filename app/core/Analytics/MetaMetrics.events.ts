@@ -366,7 +366,6 @@ enum EVENT_NAME {
   EARN_LENDING_DEPOSIT_MORE_BUTTON_CLICKED = 'Earn Lending Deposit More Button Clicked',
   EARN_LENDING_WITHDRAW_BUTTON_CLICKED = 'Earn Lending Withdraw Button Clicked',
   EARN_LENDING_WITHDRAW_CONFIRMATION_BACK_CLICKED = 'Earn Lending Withdraw Confirmation Back Clicked',
-  MUSD_CLAIM_BONUS_BUTTON_CLICKED = 'mUSD Claim Bonus Button Clicked',
 
   // Stake
   STAKE_BUTTON_CLICKED = 'Stake Button Clicked',
@@ -484,9 +483,6 @@ enum EVENT_NAME {
 
   // Smart transactions
   SMART_TRANSACTION_OPT_IN = 'Smart Transaction Opt In',
-
-  // Smart account opt in
-  SMART_ACCOUNT_OPT_IN = 'Smart Account Opt In',
 
   // Dismiss smart account upgrade suggestion
   DISMISS_SMART_ACCOUNT_SUGGESTION_ENABLED = 'Dismiss smart account suggestion enabled',
@@ -609,6 +605,8 @@ enum EVENT_NAME {
   MUSD_FULLSCREEN_ANNOUNCEMENT_DISPLAYED = 'mUSD Fullscreen Announcement Displayed',
   MUSD_FULLSCREEN_ANNOUNCEMENT_BUTTON_CLICKED = 'mUSD Fullscreen Announcement Button Clicked',
   MUSD_CONVERSION_STATUS_UPDATED = 'mUSD Conversion Status Updated',
+  MUSD_CLAIM_BONUS_BUTTON_CLICKED = 'mUSD Claim Bonus Button Clicked',
+  MUSD_CLAIM_BONUS_STATUS_UPDATED = 'mUSD Claim Bonus Status Updated',
 }
 
 export enum HARDWARE_WALLET_BUTTON_TYPE {
@@ -1168,9 +1166,6 @@ const events = {
   // Smart transactions
   SMART_TRANSACTION_OPT_IN: generateOpt(EVENT_NAME.SMART_TRANSACTION_OPT_IN),
 
-  // User opt in for smart account upgrade
-  SMART_ACCOUNT_OPT_IN: generateOpt(EVENT_NAME.SMART_ACCOUNT_OPT_IN),
-
   // Dismiss smart account upgrade suggestion
   DISMISS_SMART_ACCOUNT_SUGGESTION_ENABLED: generateOpt(
     EVENT_NAME.DISMISS_SMART_ACCOUNT_SUGGESTION_ENABLED,
@@ -1285,9 +1280,6 @@ const events = {
   ),
   EARN_LENDING_WITHDRAW_CONFIRMATION_BACK_CLICKED: generateOpt(
     EVENT_NAME.EARN_LENDING_WITHDRAW_CONFIRMATION_BACK_CLICKED,
-  ),
-  MUSD_CLAIM_BONUS_BUTTON_CLICKED: generateOpt(
-    EVENT_NAME.MUSD_CLAIM_BONUS_BUTTON_CLICKED,
   ),
   // Stake
   REVIEW_STAKE_BUTTON_CLICKED: generateOpt(
@@ -1560,6 +1552,12 @@ const events = {
   ),
   MUSD_CONVERSION_STATUS_UPDATED: generateOpt(
     EVENT_NAME.MUSD_CONVERSION_STATUS_UPDATED,
+  ),
+  MUSD_CLAIM_BONUS_BUTTON_CLICKED: generateOpt(
+    EVENT_NAME.MUSD_CLAIM_BONUS_BUTTON_CLICKED,
+  ),
+  MUSD_CLAIM_BONUS_STATUS_UPDATED: generateOpt(
+    EVENT_NAME.MUSD_CLAIM_BONUS_STATUS_UPDATED,
   ),
 };
 

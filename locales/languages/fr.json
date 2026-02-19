@@ -6298,19 +6298,7 @@
       "standardAccountLabel": "Standard account",
       "switch": "Changer",
       "switchBack": "Rétablir",
-      "splashpage": {
-        "accept": "Oui",
-        "betterTransaction": "Des transactions plus rapides et des frais moins élevés",
-        "betterTransactionDescription": "Économisez du temps et de l’argent en traitant les transactions ensemble.",
-        "featuresDescription": "Vous conserverez la même adresse de compte et vous pourrez revenir à un compte standard à tout moment.",
-        "payToken": "Payez à tout moment en utilisant le jeton de votre choix",
-        "payTokenDescription": "Utilisez les jetons que vous possédez déjà pour couvrir les frais de réseau.",
-        "reject": "Non",
-        "sameAccount": "Le même compte, mais avec des fonctionnalités plus intelligentes.",
-        "splashTitle": "Utiliser un compte intelligent?"
-      },
       "includes_transaction": "Inclut {{transactionCount}} transactions",
-      "useSmartAccount": "Utiliser un compte intelligent",
       "successful": "Réussite",
       "success_message": "Votre compte sera mis à niveau vers un compte intelligent lors de votre prochaine transaction."
     },

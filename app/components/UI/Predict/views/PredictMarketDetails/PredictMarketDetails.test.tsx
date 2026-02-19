@@ -195,12 +195,9 @@ jest.mock('../../hooks/usePredictPositions', () => ({
 
 jest.mock('../../hooks/usePredictBalance', () => ({
   usePredictBalance: jest.fn(() => ({
-    balance: 100,
-    hasNoBalance: false,
+    data: 100,
     isLoading: false,
-    isRefreshing: false,
     error: null,
-    loadBalance: jest.fn(),
   })),
 }));
 
@@ -2400,7 +2397,8 @@ describe('PredictMarketDetails', () => {
         '../../hooks/usePredictBalance',
       );
       usePredictBalance.mockReturnValue({
-        hasNoBalance: true,
+        data: undefined,
+        isLoading: false,
       });
 
       const singleOutcomeMarket = createMockMarket({
@@ -2444,7 +2442,8 @@ describe('PredictMarketDetails', () => {
         '../../hooks/usePredictBalance',
       );
       usePredictBalance.mockReturnValue({
-        hasNoBalance: true,
+        data: undefined,
+        isLoading: false,
       });
 
       const singleOutcomeMarket = createMockMarket({

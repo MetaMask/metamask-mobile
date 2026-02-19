@@ -407,7 +407,7 @@ const SettingsFlow = () => {
       <Stack.Screen
         name="CompanySettings"
         component={AppInformation}
-        options={AppInformation.navigationOptions}
+        options={{ headerShown: false }}
       />
       {process.env.MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS === 'true' && (
         <Stack.Screen
