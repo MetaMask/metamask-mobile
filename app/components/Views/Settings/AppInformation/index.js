@@ -101,6 +101,26 @@ const createStyles = (colors) =>
 
 const foxImage = require('../../../../images/branding/fox.png'); // eslint-disable-line import/no-commonjs
 
+// Keys from builds.yml _remote_feature_flags (lines 139-157) - only these are shown (build-time defaults)
+const BUILD_REMOTE_FEATURE_FLAGS = [
+  'perpsPerpTradingEnabled',
+  'perpsPerpTradingServiceInterruptionBannerEnabled',
+  'perpsPerpGtmOnboardingModalEnabled',
+  'perpsOrderBookEnabled',
+  'perpsFeedbackEnabled',
+  'earnPooledStakingEnabled',
+  'earnPooledStakingServiceInterruptionBannerEnabled',
+  'earnStablecoinLendingEnabled',
+  'earnStablecoinLendingServiceInterruptionBannerEnabled',
+  'earnMusdConversionFlowEnabled',
+  'earnMusdCtaEnabled',
+  'earnMusdConversionAssetOverviewCtaEnabled',
+  'earnMusdConversionTokenListItemCtaEnabled',
+  'earnMusdConversionRewardsUiEnabled',
+  'earnMerklCampaignClaiming',
+  'predictGtmOnboardingModalEnabled',
+];
+
 /**
  * View that contains app information
  */
@@ -233,20 +253,17 @@ class AppInformation extends PureComponent {
                   {`Remote Feature Flag Distribution: ${getFeatureFlagAppDistribution()}`}
                 </Text>
                 <Text style={styles.branchInfo}>
-                  Remote Feature Flags (effective):
+                  Remote Feature Flags (builds.yml set):
                 </Text>
-                {Object.keys(this.props.remoteFeatureFlags || {})
-                  .sort()
-                  .map((key) => (
-                    <Text
-                      key={key}
-                      style={styles.branchInfo}
-                    >{`  ${key}: ${JSON.stringify(this.props.remoteFeatureFlags[key])}`}</Text>
-                  ))}
-                {(!this.props.remoteFeatureFlags ||
-                  Object.keys(this.props.remoteFeatureFlags).length === 0) && (
-                  <Text style={styles.branchInfo}> (none)</Text>
-                )}
+                {BUILD_REMOTE_FEATURE_FLAGS.map((key) => {
+                  const flags = this.props.remoteFeatureFlags || {};
+                  const value = key in flags ? flags[key] : undefined;
+                  return (
+                    <Text key={key} style={styles.branchInfo}>
+                      {`  ${key}: ${JSON.stringify(value)}`}
+                    </Text>
+                  );
+                })}
                 <Text style={styles.branchInfo}>
                   {`OTA Updates enabled: ${String(isOTAUpdatesEnabled)}`}
                 </Text>
