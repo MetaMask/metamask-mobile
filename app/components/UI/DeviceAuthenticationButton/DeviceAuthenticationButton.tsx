@@ -1,13 +1,12 @@
 import React from 'react';
 import { TouchableOpacity, TouchableOpacityProps } from 'react-native';
-import { createStyles } from './styles';
+import styles from './styles';
 import Icon, {
   IconName,
   IconSize,
   IconColor,
 } from '../../../component-library/components/Icons/Icon';
 import { LoginViewSelectors } from '../../Views/Login/LoginView.testIds';
-import { useStyles } from '../../hooks/useStyles';
 
 type DeviceAuthenticationButtonProps = {
   hidden: boolean;
@@ -17,7 +16,6 @@ const DeviceAuthenticationButton = ({
   hidden,
   ...props
 }: DeviceAuthenticationButtonProps) => {
-  const { styles } = useStyles(createStyles, {});
   if (hidden) return null;
 
   return (
