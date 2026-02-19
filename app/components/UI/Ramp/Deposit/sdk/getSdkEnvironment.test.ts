@@ -3,9 +3,19 @@ import { getSdkEnvironment } from './getSdkEnvironment';
 
 describe('getSdkEnvironment', () => {
   const originalEnv = process.env.METAMASK_ENVIRONMENT;
+  const originalGithubActions = process.env.GITHUB_ACTIONS;
+
+  beforeEach(() => {
+    process.env.GITHUB_ACTIONS = 'false';
+  });
 
   afterEach(() => {
     process.env.METAMASK_ENVIRONMENT = originalEnv;
+    if (originalGithubActions !== undefined) {
+      process.env.GITHUB_ACTIONS = originalGithubActions;
+    } else {
+      delete process.env.GITHUB_ACTIONS;
+    }
   });
 
   describe('Production Environment', () => {
