@@ -115,10 +115,17 @@ const RevealPrivateCredential = ({
 
   useEffect(() => {
     updateNavBar();
-    trackEvent(createEventBuilder(MetaMetricsEvents.REVEAL_SRP_SCREEN).build());
-    revealCredential();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [updateNavBar]);
+
+  // Only when user reaches the action view (after quiz): track, then attempt
+  useEffect(() => {
+    if (revealSrpStage === RevealSrpStage.ActionViewScreen) {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.REVEAL_SRP_SCREEN).build(),
+      );
+      revealCredential();
+    }
+  }, [revealSrpStage, revealCredential, trackEvent, createEventBuilder]);
 
   useEffect(() => {
     if (Device.isAndroid()) {

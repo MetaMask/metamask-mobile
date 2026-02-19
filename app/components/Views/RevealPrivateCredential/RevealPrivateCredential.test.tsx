@@ -762,11 +762,12 @@ describe('RevealPrivateCredential', () => {
         />,
       );
 
+      await completeSecurityQuizAndWaitForPasswordEntry(getByTestId);
+
+      // revealCredential runs when reaching action view, so reauthenticate is called then
       await waitFor(() => {
         expect(mockReauthenticate).toHaveBeenCalled();
       });
-
-      await completeSecurityQuizAndWaitForPasswordEntry(getByTestId);
 
       // Should not show error for this specific case
       const warningText = queryByTestId(
@@ -791,7 +792,7 @@ describe('RevealPrivateCredential', () => {
 
       await completeSecurityQuizAndWaitForPasswordEntry(getByTestId);
 
-      // Wait for the auto-reveal attempt on mount to complete and show error
+      // Wait for the reveal attempt (on action view) to complete and show error
       await waitFor(() => {
         const warningText = getByTestId(
           RevealSeedViewSelectorsIDs.PASSWORD_WARNING_ID,
@@ -813,7 +814,10 @@ describe('RevealPrivateCredential', () => {
 
       renderWithProviders(
         <RevealPrivateCredential
-          route={createDefaultRoute({ keyringId: testKeyringId })}
+          route={createDefaultRoute({
+            keyringId: testKeyringId,
+            skipQuiz: true,
+          })}
           navigation={null}
           cancel={() => null}
         />,
@@ -1061,11 +1065,11 @@ describe('RevealPrivateCredential', () => {
         />,
       );
 
+      await completeSecurityQuiz(getByTestId);
+
       await waitFor(() => {
         expect(mockRevealSRP).toHaveBeenCalled();
       });
-
-      await completeSecurityQuiz(getByTestId);
 
       const blurButton = getByTestId(
         RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_BUTTON_ID,
@@ -1094,11 +1098,11 @@ describe('RevealPrivateCredential', () => {
         />,
       );
 
+      await completeSecurityQuiz(getByTestId);
+
       await waitFor(() => {
         expect(mockRevealSRP).toHaveBeenCalled();
       });
-
-      await completeSecurityQuiz(getByTestId);
 
       const blurButton = getByTestId(
         RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_BUTTON_ID,
@@ -1140,11 +1144,11 @@ describe('RevealPrivateCredential', () => {
         />,
       );
 
+      await completeSecurityQuiz(getByTestId);
+
       await waitFor(() => {
         expect(mockRevealSRP).toHaveBeenCalled();
       });
-
-      await completeSecurityQuiz(getByTestId);
 
       // Reveal the seed phrase
       const blurButton = queryByTestId(
@@ -1176,7 +1180,9 @@ describe('RevealPrivateCredential', () => {
         />,
       );
 
-      // Wait for auto-reveal via biometrics to unlock component
+      await completeSecurityQuiz(getByTestId);
+
+      // Wait for auto-reveal via biometrics to unlock component (runs when action view is reached)
       await waitFor(() => {
         expect(mockRevealSRP).toHaveBeenCalled();
       });
@@ -1184,8 +1190,6 @@ describe('RevealPrivateCredential', () => {
       await waitFor(() => {
         expect(Device.getDeviceAPILevel).toHaveBeenCalled();
       });
-
-      await completeSecurityQuiz(getByTestId);
 
       // Need to reveal the seed phrase after unlocking
       const blurButton = queryByTestId(
@@ -1286,10 +1290,10 @@ describe('RevealPrivateCredential', () => {
   });
 
   describe('analytics', () => {
-    it('tracks REVEAL_SRP_SCREEN event on mount', () => {
+    it('tracks REVEAL_SRP_SCREEN event when reaching action view', () => {
       renderWithProviders(
         <RevealPrivateCredential
-          route={createDefaultRoute()}
+          route={createDefaultRoute({ skipQuiz: true })}
           navigation={null}
           cancel={() => null}
         />,
@@ -1613,12 +1617,12 @@ describe('RevealPrivateCredential', () => {
         />,
       );
 
-      // Wait for biometric unlock
+      await completeSecurityQuiz(getByTestId);
+
+      // Wait for biometric unlock (runs when action view is reached)
       await waitFor(() => {
         expect(mockRevealSRP).toHaveBeenCalled();
       });
-
-      await completeSecurityQuiz(getByTestId);
 
       // After unlock via biometrics, the cancel button shows "Done"
       await waitFor(() => {
@@ -1691,11 +1695,11 @@ describe('RevealPrivateCredential', () => {
         />,
       );
 
+      await completeSecurityQuiz(getByTestId);
+
       await waitFor(() => {
         expect(mockRevealSRP).toHaveBeenCalled();
       });
-
-      await completeSecurityQuiz(getByTestId);
 
       const blurButton = queryByTestId(
         RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_BUTTON_ID,
