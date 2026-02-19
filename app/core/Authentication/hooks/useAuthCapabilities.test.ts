@@ -32,6 +32,7 @@ describe('useAuthCapabilities', () => {
     isBiometricsAvailable: true,
     passcodeAvailable: true,
     authLabel: 'Face ID',
+    authDescription: '',
     osAuthEnabled: true,
     allowLoginWithRememberMe: false,
     authType: AUTHENTICATION_TYPE.BIOMETRIC,
