@@ -37,17 +37,15 @@ jest.mock('@react-navigation/native', () => {
 
 jest.mock('../../../../hooks/useAnalytics/useAnalytics');
 
-// Transitive mock: useStablecoinLendingRedirect still imports useMetrics
-jest.mock('../../../../hooks/useMetrics', () => ({
-  ...jest.requireActual('../../../../hooks/useMetrics'),
-  useMetrics: jest.fn(() => ({
-    trackEvent: jest.fn(),
-    createEventBuilder: jest.fn(() => ({
-      addProperties: jest.fn().mockReturnThis(),
-      addSensitiveProperties: jest.fn().mockReturnThis(),
-      build: jest.fn().mockReturnValue({}),
-    })),
-  })),
+jest.mock('../../../Earn/hooks/useStablecoinLendingRedirect', () => ({
+  useStablecoinLendingRedirect: jest.fn(({ asset }: Record<string, unknown>) =>
+    jest.fn(() => {
+      mockNavigate('StakeScreens', {
+        screen: 'Stake',
+        params: { token: asset },
+      });
+    }),
+  ),
 }));
 
 jest.mock('../../../../hooks/useBuildPortfolioUrl', () => ({
