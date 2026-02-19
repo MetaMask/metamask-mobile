@@ -68,6 +68,7 @@ import PredictOrderRetrySheet from '../../components/PredictOrderRetrySheet';
 import PredictKeypad, {
   PredictKeypadHandles,
 } from '../../components/PredictKeypad';
+import PredictBuyPreviewHeader from '../../components/PredictBuyPreviewHeader/PredictBuyPreviewHeader';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { usePredictBalance } from '../../hooks/usePredictBalance';
 import { usePredictDeposit } from '../../hooks/usePredictDeposit';
@@ -252,11 +253,6 @@ const PredictBuyPreview = () => {
     ? outcome.groupItemTitle
     : '';
 
-  const separator = '·';
-  const outcomeTokenLabel = `${outcomeToken?.title} at ${formatCents(
-    preview?.sharePrice ?? outcomeToken?.price ?? 0,
-  )}`;
-
   useEffect(() => {
     if (result?.success) {
       dispatch(StackActions.pop());
@@ -285,74 +281,6 @@ const PredictBuyPreview = () => {
       feeBreakdownSheetRef.current?.onOpenBottomSheet();
     }
   }, [isFeeBreakdownVisible]);
-
-  const renderHeader = () => (
-    <Box
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-      twClassName="w-full gap-4 p-4"
-    >
-      <TouchableOpacity testID="back-button" onPress={() => goBack()}>
-        <Icon name={IconName.ArrowLeft} size={IconSize.Md} />
-      </TouchableOpacity>
-      <Image
-        source={{ uri: outcome?.image }}
-        style={tw.style('w-10 h-10 rounded')}
-      />
-      <Box flexDirection={BoxFlexDirection.Column} twClassName="flex-1 min-w-0">
-        <Box flexDirection={BoxFlexDirection.Row} twClassName="min-w-0 gap-4">
-          <Box twClassName="flex-1 min-w-0">
-            <Text
-              variant={TextVariant.HeadingSm}
-              numberOfLines={1}
-              ellipsizeMode="tail"
-            >
-              {title}
-            </Text>
-          </Box>
-        </Box>
-        <Box flexDirection={BoxFlexDirection.Row} twClassName="min-w-0 gap-4">
-          <Box twClassName="flex-1 min-w-0">
-            <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-1">
-              {!!outcomeGroupTitle && (
-                <>
-                  <Text
-                    variant={TextVariant.BodySm}
-                    twClassName="font-medium"
-                    color={TextColor.TextAlternative}
-                    numberOfLines={1}
-                    ellipsizeMode="tail"
-                  >
-                    {outcomeGroupTitle}
-                  </Text>
-                  <Text
-                    variant={TextVariant.BodySm}
-                    twClassName="font-medium"
-                    color={TextColor.TextAlternative}
-                  >
-                    {separator}
-                  </Text>
-                </>
-              )}
-              <Text
-                variant={TextVariant.BodySm}
-                twClassName="font-medium"
-                color={
-                  outcomeToken?.title === 'Yes'
-                    ? TextColor.SuccessDefault
-                    : TextColor.ErrorDefault
-                }
-                numberOfLines={1}
-                ellipsizeMode="tail"
-              >
-                {outcomeTokenLabel}
-              </Text>
-            </Box>
-          </Box>
-        </Box>
-      </Box>
-    </Box>
-  );
 
   const renderAmount = () => (
     <ScrollView
@@ -631,7 +559,14 @@ const PredictBuyPreview = () => {
 
   return (
     <SafeAreaView style={tw.style('flex-1 bg-background-default')}>
-      {renderHeader()}
+      <PredictBuyPreviewHeader
+        title={title}
+        outcomeImage={outcome?.image}
+        outcomeGroupTitle={outcomeGroupTitle}
+        outcomeToken={outcomeToken}
+        sharePrice={preview?.sharePrice}
+        onBack={goBack}
+      />
       {renderAmount()}
       {renderMinimumBetWarning()}
       <PredictKeypad

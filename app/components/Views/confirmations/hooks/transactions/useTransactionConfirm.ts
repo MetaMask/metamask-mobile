@@ -17,6 +17,7 @@ import { useGaslessSupportedSmartTransactions } from '../gas/useGaslessSupported
 import { cloneDeep } from 'lodash';
 import { useTransactionPayQuotes } from '../pay/useTransactionPayData';
 import { useMusdConfirmNavigation } from '../../../../UI/Earn/hooks/useMusdConfirmNavigation';
+import { PREDICT_DEPOSIT_AND_ORDER_TYPE } from '../../constants/predict';
 
 const log = createProjectLogger('transaction-confirm');
 
@@ -24,6 +25,7 @@ export const GO_BACK_TYPES = [
   TransactionType.predictClaim,
   TransactionType.predictDeposit,
   TransactionType.predictWithdraw,
+  PREDICT_DEPOSIT_AND_ORDER_TYPE,
 ];
 
 export function useTransactionConfirm() {

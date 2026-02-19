@@ -1,0 +1,1 @@
+export { PredictDepositAndOrderInfo } from './PredictDepositAndOrderInfo';
