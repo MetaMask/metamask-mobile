@@ -33,13 +33,13 @@ import usePerpsToasts, {
 import PerpsCloseSummary from '../../components/PerpsCloseSummary';
 import { createStyles } from './PerpsCloseAllPositionsView.styles';
 import { useTheme } from '../../../../../util/theme';
-import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
-} from '../../constants/eventNames';
-import type { ClosePositionsResult } from '../../controllers/types';
+  type ClosePositionsResult,
+} from '@metamask/perps-controller';
 
 interface PerpsCloseAllPositionsViewProps {
   sheetRef?: React.RefObject<BottomSheetRef>;

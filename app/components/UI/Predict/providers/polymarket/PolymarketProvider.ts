@@ -36,6 +36,7 @@ import {
   ConnectionStatus,
   GameUpdateCallback,
   GeoBlockResponse,
+  GetAccountStateParams,
   GetBalanceParams,
   GetMarketsParams,
   GetPositionsParams,
@@ -60,6 +61,7 @@ import {
   POLYGON_MAINNET_CHAIN_ID,
   POLYMARKET_PROVIDER_ID,
   ROUNDING_CONFIG,
+  SAFE_EXEC_GAS_LIMIT,
 } from './constants';
 import {
   computeProxyAddress,
@@ -424,7 +426,7 @@ export class PolymarketProvider implements PredictProvider {
    */
   public async getPrices({
     queries,
-  }: Omit<GetPriceParams, 'providerId'>): Promise<GetPriceResponse> {
+  }: GetPriceParams): Promise<GetPriceResponse> {
     if (!queries || queries.length === 0) {
       throw new Error('queries parameter is required and must not be empty');
     }
@@ -961,7 +963,7 @@ export class PolymarketProvider implements PredictProvider {
   }
 
   public async previewOrder(
-    params: Omit<PreviewOrderParams, 'providerId'> & {
+    params: PreviewOrderParams & {
       signer: Signer;
       feeCollection?: PredictFeeCollection;
     },
@@ -981,7 +983,7 @@ export class PolymarketProvider implements PredictProvider {
   }
 
   public async placeOrder(
-    params: Omit<PlaceOrderParams, 'providerId'> & { signer: Signer },
+    params: PlaceOrderParams & { signer: Signer },
   ): Promise<OrderResult> {
     const { signer, preview } = params;
     const {
@@ -1411,7 +1413,7 @@ export class PolymarketProvider implements PredictProvider {
   }
 
   public async prepareDeposit(
-    params: PrepareDepositParams & { signer: Signer },
+    params: PrepareDepositParams,
   ): Promise<PrepareDepositResponse> {
     const transactions = [];
     const { signer } = params;
@@ -1501,9 +1503,9 @@ export class PolymarketProvider implements PredictProvider {
     };
   }
 
-  public async getAccountState(params: {
-    ownerAddress: string;
-  }): Promise<AccountState> {
+  public async getAccountState(
+    params: GetAccountStateParams,
+  ): Promise<AccountState> {
     try {
       const { ownerAddress } = params;
 
@@ -1578,7 +1580,7 @@ export class PolymarketProvider implements PredictProvider {
   }
 
   public async prepareWithdraw(
-    params: PrepareWithdrawParams & { signer: Signer },
+    params: PrepareWithdrawParams,
   ): Promise<PrepareWithdrawResponse> {
     const { signer } = params;
 
@@ -1601,6 +1603,7 @@ export class PolymarketProvider implements PredictProvider {
         params: {
           to: MATIC_CONTRACTS.collateral as Hex,
           data: callData,
+          gas: numberToHex(SAFE_EXEC_GAS_LIMIT) as Hex,
         },
         type: TransactionType.predictWithdraw,
       },

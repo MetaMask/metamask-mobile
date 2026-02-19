@@ -458,15 +458,9 @@ export class CardSDK {
 
   getGeoLocation = async (): Promise<string> => {
     try {
-      const env = process.env.NODE_ENV ?? 'production';
-      const environment = env === 'production' ? 'PROD' : 'DEV';
-
-      const GEOLOCATION_URLS = {
-        DEV: 'https://on-ramp.dev-api.cx.metamask.io/geolocation',
-        PROD: 'https://on-ramp.api.cx.metamask.io/geolocation',
-      };
-      const url = GEOLOCATION_URLS[environment];
-      const response = await fetch(url);
+      const response = await fetch(
+        'https://on-ramp.api.cx.metamask.io/geolocation',
+      );
 
       if (!response.ok) {
         throw new Error(`Failed to get geolocation: ${response.statusText}`);
@@ -1050,6 +1044,57 @@ export class CardSDK {
 
     return (await response.json()) as CardDetailsResponse;
   };
+
+  /**
+   * Freeze the user's card to temporarily disable all transactions.
+   * The card can be unfrozen at any time.
+   *
+   * @returns Promise resolving to success status
+   */
+  freezeCard = async (): Promise<{ success: boolean }> =>
+    this.withErrorHandling(
+      'freezeCard',
+      'card/freeze',
+      'Failed to freeze card. Please try again.',
+      async () => {
+        const response = await this.makeRequest('/v1/card/freeze', {
+          fetchOptions: { method: 'POST' },
+          authenticated: true,
+        });
+
+        return this.handleApiResponse<{ success: boolean }>(
+          response,
+          'freezeCard',
+          'card/freeze',
+          'Failed to freeze card',
+        );
+      },
+    );
+
+  /**
+   * Unfreeze the user's card to resume normal transaction processing.
+   *
+   * @returns Promise resolving to success status
+   */
+  unfreezeCard = async (): Promise<{ success: boolean }> =>
+    this.withErrorHandling(
+      'unfreezeCard',
+      'card/unfreeze',
+      'Failed to unfreeze card. Please try again.',
+      async () => {
+        const response = await this.makeRequest('/v1/card/unfreeze', {
+          fetchOptions: { method: 'POST' },
+          authenticated: true,
+        });
+
+        return this.handleApiResponse<{ success: boolean }>(
+          response,
+          'unfreezeCard',
+          'card/unfreeze',
+          'Failed to unfreeze card',
+        );
+      },
+    );
 
   /**
    * Generate a secure token for displaying sensitive card details through an image-based display.

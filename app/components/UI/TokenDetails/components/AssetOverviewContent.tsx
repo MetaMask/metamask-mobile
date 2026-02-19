@@ -26,11 +26,11 @@ import {
 } from '../../../hooks/useTokenHistoricalPrices';
 import { TokenI } from '../../Tokens/types';
 import { usePerpsActions } from '../hooks/usePerpsActions';
-import { usePerpsPositionForAsset } from '../../Perps/hooks/usePerpsPositionForAsset';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
-} from '../../Perps/constants/eventNames';
+} from '@metamask/perps-controller';
+import { usePerpsPositionForAsset } from '../../Perps/hooks/usePerpsPositionForAsset';
 import { selectPerpsEligibility } from '../../Perps/selectors/perpsController';
 import PerpsBottomSheetTooltip from '../../Perps/components/PerpsBottomSheetTooltip';
 import { usePerpsEventTracking } from '../../Perps/hooks/usePerpsEventTracking';
@@ -43,12 +43,10 @@ import TokenDetails from '../../AssetOverview/TokenDetails';
 import { PriceChartProvider } from '../../AssetOverview/PriceChart/PriceChart.context';
 import AssetDetailsActions from '../../../Views/AssetDetails/AssetDetailsActions';
 import { TokenDetailsActions } from './TokenDetailsActions';
-import MerklRewards from '../../Earn/components/MerklRewards';
 import PerpsDiscoveryBanner from '../../Perps/components/PerpsDiscoveryBanner';
 import { isTokenTrustworthyForPerps } from '../../Perps/constants/perpsConfig';
-import { useScrollToMerklRewards } from '../../AssetOverview/hooks/useScrollToMerklRewards';
 import { selectTokenDetailsV2ButtonsEnabled } from '../../../../selectors/featureFlagController/tokenDetailsV2';
-import useTokenBuyability from '../hooks/useTokenBuyability';
+import useTokenBuyability from '../../Ramp/hooks/useTokenBuyability';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import TronEnergyBandwidthDetail from '../../AssetOverview/TronEnergyBandwidthDetail/TronEnergyBandwidthDetail';
 ///: END:ONLY_INCLUDE_IF
@@ -116,7 +114,6 @@ export interface AssetOverviewContentProps {
 
   // Feature flags
   isPerpsEnabled: boolean;
-  isMerklCampaignClaimingEnabled: boolean;
 
   // Display flags
   displayBuyButton: boolean;
@@ -161,7 +158,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   setTimePeriod,
   chartNavigationButtons,
   isPerpsEnabled,
-  isMerklCampaignClaimingEnabled,
   displayBuyButton,
   displaySwapsButton,
   currentCurrency,
@@ -174,11 +170,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
-  const merklRewardsRef = useRef<View>(null);
-  const merklRewardsYInHeaderRef = useRef<number | null>(null);
   const resetNavigationLockRef = useRef<(() => void) | null>(null);
-
-  useScrollToMerklRewards(merklRewardsYInHeaderRef);
 
   const {
     hasPerpsMarket,
@@ -379,20 +371,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             )
             ///: END:ONLY_INCLUDE_IF
           }
-          {isMerklCampaignClaimingEnabled && (
-            <View
-              ref={merklRewardsRef}
-              testID="merkl-rewards-section"
-              onLayout={(event) => {
-                // Store Y position relative to header (which is the scroll offset)
-                // This is more reliable than measureInWindow for FlatList scrolling
-                const { y } = event.nativeEvent.layout;
-                merklRewardsYInHeaderRef.current = y;
-              }}
-            >
-              <MerklRewards asset={token} />
-            </View>
-          )}
           {isPerpsEnabled &&
             hasPerpsMarket &&
             marketData &&

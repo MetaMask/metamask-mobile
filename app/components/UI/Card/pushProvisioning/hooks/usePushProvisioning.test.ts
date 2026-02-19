@@ -92,7 +92,6 @@ describe('usePushProvisioning', () => {
     holderName: 'John Doe',
     panLast4: '1234',
     status: 'ACTIVE',
-    expiryDate: '12/25',
   };
 
   const mockUserAddress = {
@@ -759,8 +758,8 @@ describe('usePushProvisioning', () => {
         await result.current.initiateProvisioning();
       });
 
-      // Should track both start and cancel events
-      expect(mockTrackEvent).toHaveBeenCalledTimes(2);
+      // Should track button click, start, and cancel events
+      expect(mockTrackEvent).toHaveBeenCalledTimes(3);
       unmount();
     });
   });

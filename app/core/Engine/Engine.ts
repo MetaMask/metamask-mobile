@@ -59,6 +59,7 @@ import {
   backendWebSocketServiceInit,
   accountActivityServiceInit,
 } from './controllers/core-backend';
+import { assetsControllerInit } from './controllers/assets-controller/assets-controller-init';
 import { AppStateWebSocketManager } from '../AppStateWebSocketManager';
 import { backupVault } from '../BackupVault';
 import {
@@ -175,6 +176,7 @@ import { profileMetricsControllerInit } from './controllers/profile-metrics-cont
 import { profileMetricsServiceInit } from './controllers/profile-metrics-service-init';
 import { rampsServiceInit } from './controllers/ramps-controller/ramps-service-init';
 import { rampsControllerInit } from './controllers/ramps-controller/ramps-controller-init';
+import { transakServiceInit } from './controllers/ramps-controller/transak-service-init';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -328,9 +330,9 @@ export class Engine {
         ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
         ExecutionService: executionServiceInit,
         CronjobController: cronjobControllerInit,
+        SnapsRegistry: snapsRegistryInit,
         SnapController: snapControllerInit,
         SnapInterfaceController: snapInterfaceControllerInit,
-        SnapsRegistry: snapsRegistryInit,
         NotificationServicesController: notificationServicesControllerInit,
         NotificationServicesPushController:
           notificationServicesPushControllerInit,
@@ -353,6 +355,7 @@ export class Engine {
         SamplePetnamesController: samplePetnamesControllerInit,
         ///: END:ONLY_INCLUDE_IF
         PerpsController: perpsControllerInit,
+        AssetsController: assetsControllerInit,
         PhishingController: phishingControllerInit,
         PredictController: predictControllerInit,
         RewardsController: rewardsControllerInit,
@@ -364,6 +367,7 @@ export class Engine {
         ProfileMetricsService: profileMetricsServiceInit,
         AnalyticsController: analyticsControllerInit,
         RampsService: rampsServiceInit,
+        TransakService: transakServiceInit,
         RampsController: rampsControllerInit,
       },
       persistedState: initialState as EngineState,
@@ -402,6 +406,7 @@ export class Engine {
     const profileMetricsController = controllersByName.ProfileMetricsController;
     const profileMetricsService = controllersByName.ProfileMetricsService;
     const rampsService = controllersByName.RampsService;
+    const transakService = controllersByName.TransakService;
     const rampsController = controllersByName.RampsController;
 
     // Backwards compatibility for existing references
@@ -493,6 +498,7 @@ export class Engine {
       AppMetadataController: controllersByName.AppMetadataController,
       ConnectivityController: connectivityController,
       AssetsContractController: assetsContractController,
+      AssetsController: controllersByName.AssetsController,
       NftController: nftController,
       TokensController: tokensController,
       TokenListController: tokenListController,
@@ -557,6 +563,7 @@ export class Engine {
       ProfileMetricsController: profileMetricsController,
       ProfileMetricsService: profileMetricsService,
       RampsService: rampsService,
+      TransakService: transakService,
       RampsController: rampsController,
     };
 
@@ -1344,6 +1351,7 @@ export default {
       AppMetadataController: AppMetadataController.state,
       AnalyticsController: AnalyticsController.state,
       ApprovalController: ApprovalController.state,
+      AssetsController: instance.context.AssetsController.state,
       BridgeController: BridgeController.state,
       BridgeStatusController: BridgeStatusController.state,
       ConnectivityController: ConnectivityController.state,

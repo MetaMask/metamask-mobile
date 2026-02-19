@@ -17,6 +17,7 @@ export const STATELESS_NON_CONTROLLER_NAMES = [
   'MultichainAccountService',
   'ProfileMetricsService',
   'RampsService',
+  'TransakService',
 ] as const;
 
 export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
@@ -26,6 +27,7 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'AddressBookController:stateChange',
   'AnalyticsController:stateChange',
   'AppMetadataController:stateChange',
+  'AssetsController:stateChange',
   'ConnectivityController:stateChange',
   'ApprovalController:stateChange',
   'CurrencyRateController:stateChange',
@@ -98,6 +100,7 @@ export const swapsSupportedChainIds = [
   NETWORK_CHAIN_ID.SEI,
   NETWORK_CHAIN_ID.MONAD,
   NETWORK_CHAIN_ID.HYPE,
+  NETWORK_CHAIN_ID.MEGAETH_MAINNET,
 ];
 
 export const MAINNET_DISPLAY_NAME = 'Ethereum';
@@ -112,6 +115,7 @@ export const BASE_DISPLAY_NAME = 'Base';
 export const SEI_DISPLAY_NAME = 'Sei';
 export const MONAD_DISPLAY_NAME = 'Monad';
 export const HYPEREVM_DISPLAY_NAME = 'HyperEVM';
+export const MEGAETH_DISPLAY_NAME = 'MegaETH';
 
 export const NETWORK_TO_NAME_MAP = {
   [NETWORK_CHAIN_ID.MAINNET]: MAINNET_DISPLAY_NAME,
@@ -127,4 +131,5 @@ export const NETWORK_TO_NAME_MAP = {
   // TODO: Update to use CHAIN_IDS.MONAD when it is added to the transaction controller
   [NETWORK_CHAIN_ID.MONAD]: MONAD_DISPLAY_NAME,
   [NETWORK_CHAIN_ID.HYPE]: HYPEREVM_DISPLAY_NAME,
+  [NETWORK_CHAIN_ID.MEGAETH_MAINNET]: MEGAETH_DISPLAY_NAME,
 } as const;

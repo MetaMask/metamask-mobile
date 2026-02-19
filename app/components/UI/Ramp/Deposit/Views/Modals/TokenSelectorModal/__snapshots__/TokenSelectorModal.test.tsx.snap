@@ -436,7 +436,7 @@ exports[`TokenSelectorModal Component displays empty state when no tokens match 
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "height": 56,
+                                  "minHeight": 56,
                                   "paddingLeft": 8,
                                   "paddingRight": 8,
                                 },
@@ -859,6 +859,7 @@ exports[`TokenSelectorModal Component displays empty state when no tokens match 
                                   onChangeText={[Function]}
                                   onFocus={[Function]}
                                   placeholder="Search token by name or address"
+                                  placeholderTextColor="#686e7d"
                                   style={
                                     {
                                       "backgroundColor": "inherit",
@@ -870,8 +871,8 @@ exports[`TokenSelectorModal Component displays empty state when no tokens match 
                                       "fontWeight": "400",
                                       "height": 46,
                                       "letterSpacing": 0,
+                                      "lineHeight": 0,
                                       "opacity": 1,
-                                      "paddingVertical": 2,
                                       "textAlignVertical": "center",
                                     }
                                   }
@@ -1454,7 +1455,7 @@ exports[`TokenSelectorModal Component displays network filter selector when pres
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "height": 56,
+                                  "minHeight": 56,
                                   "paddingLeft": 8,
                                   "paddingRight": 8,
                                 },
@@ -2671,7 +2672,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "height": 56,
+                                  "minHeight": 56,
                                   "paddingLeft": 8,
                                   "paddingRight": 8,
                                 },
@@ -3094,6 +3095,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                   onChangeText={[Function]}
                                   onFocus={[Function]}
                                   placeholder="Search token by name or address"
+                                  placeholderTextColor="#686e7d"
                                   style={
                                     {
                                       "backgroundColor": "inherit",
@@ -3105,8 +3107,8 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                       "fontWeight": "400",
                                       "height": 46,
                                       "letterSpacing": 0,
+                                      "lineHeight": 0,
                                       "opacity": 1,
-                                      "paddingVertical": 2,
                                       "textAlignVertical": "center",
                                     }
                                   }

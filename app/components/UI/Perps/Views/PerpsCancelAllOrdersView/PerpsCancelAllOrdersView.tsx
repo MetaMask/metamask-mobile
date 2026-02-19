@@ -26,13 +26,13 @@ import usePerpsToasts, {
 } from '../../hooks/usePerpsToasts';
 import { createStyles } from './PerpsCancelAllOrdersView.styles';
 import { useTheme } from '../../../../../util/theme';
-import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
-} from '../../constants/eventNames';
-import type { CancelOrdersResult } from '../../controllers/types';
+  type CancelOrdersResult,
+} from '@metamask/perps-controller';
 
 interface PerpsCancelAllOrdersViewProps {
   sheetRef?: React.RefObject<BottomSheetRef>;

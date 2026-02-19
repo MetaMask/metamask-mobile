@@ -45,6 +45,7 @@ import {
   DeFiPositionsControllerState,
   DeFiPositionsControllerEvents,
   DeFiPositionsControllerActions,
+
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   MultichainBalancesControllerState,
   MultichainBalancesController,
@@ -67,6 +68,12 @@ import {
   TokenDetectionControllerActions,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/assets-controllers';
+import {
+  AssetsController,
+  AssetsControllerActions,
+  AssetsControllerEvents,
+  AssetsControllerState,
+} from '@metamask/assets-controller';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import {
   MultichainTransactionsController,
@@ -127,6 +134,9 @@ import {
   RampsService,
   RampsServiceActions,
   RampsServiceEvents,
+  TransakService,
+  TransakServiceActions,
+  TransakServiceEvents,
 } from '@metamask/ramps-controller';
 import {
   TransactionController,
@@ -297,7 +307,7 @@ import {
   PerpsControllerState,
   PerpsControllerActions,
   PerpsControllerEvents,
-} from '../../components/UI/Perps/controllers/PerpsController';
+} from '@metamask/perps-controller';
 import { RewardsController } from './controllers/rewards-controller/RewardsController';
 import {
   RewardsDataService,
@@ -445,6 +455,7 @@ type GlobalActions =
   | SamplePetnamesControllerActions
   ///: END:ONLY_INCLUDE_IF
   | AccountTrackerControllerActions
+  | AssetsControllerActions
   | NftControllerActions
   | SwapsControllerActions
   | AddressBookControllerActions
@@ -514,13 +525,15 @@ type GlobalActions =
   | ProfileMetricsControllerActions
   | ProfileMetricsServiceActions
   | RampsControllerActions
-  | RampsServiceActions;
+  | RampsServiceActions
+  | TransakServiceActions;
 
 type GlobalEvents =
   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
   | SamplePetnamesControllerEvents
   ///: END:ONLY_INCLUDE_IF
   | AccountTrackerControllerEvents
+  | AssetsControllerEvents
   | NftControllerEvents
   | SwapsControllerEvents
   | AddressBookControllerEvents
@@ -588,7 +601,8 @@ type GlobalEvents =
   | ProfileMetricsControllerEvents
   | ProfileMetricsServiceEvents
   | RampsControllerEvents
-  | RampsServiceEvents;
+  | RampsServiceEvents
+  | TransakServiceEvents;
 
 /**
  * Type definition for the messenger used in the Engine.
@@ -634,6 +648,7 @@ export type Controllers = {
   ConnectivityController: ConnectivityController;
   ApprovalController: ApprovalController;
   AssetsContractController: AssetsContractController;
+  AssetsController: AssetsController;
   CurrencyRateController: CurrencyRateController;
   ErrorReportingService: ErrorReportingService;
   GasFeeController: GasFeeController;
@@ -704,6 +719,7 @@ export type Controllers = {
   ProfileMetricsController: ProfileMetricsController;
   ProfileMetricsService: ProfileMetricsService;
   RampsService: RampsService;
+  TransakService: TransakService;
 };
 
 /**
@@ -720,6 +736,7 @@ export type EngineContext = RequiredControllers & Partial<OptionalControllers>;
 export type EngineState = {
   AccountTrackerController: AccountTrackerControllerState;
   AddressBookController: AddressBookControllerState;
+  AssetsController: AssetsControllerState;
   AppMetadataController: AppMetadataControllerState;
   ConnectivityController: ConnectivityControllerState;
   NftController: NftControllerState;
@@ -815,6 +832,7 @@ export type ControllersToInitialize =
   | 'AccountTrackerController'
   | 'AddressBookController'
   | 'AssetsContractController'
+  | 'AssetsController'
   | 'ConnectivityController'
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   | 'AuthenticationController'
@@ -881,6 +899,7 @@ export type ControllersToInitialize =
   | 'RewardsDataService'
   | 'RampsController'
   | 'RampsService'
+  | 'TransakService'
   | 'GatorPermissionsController'
   | 'DelegationController'
   | 'SelectedNetworkController'
