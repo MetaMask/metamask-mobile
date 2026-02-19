@@ -62,17 +62,19 @@ export const NetworkRow: React.FC<NetworkRowProps> = ({
         gap={8}
       >
         <AvatarNetwork imageSource={imageSource} />
-        <TagColored
-          color={TagColor.Success}
-          style={styles.noNetworkFeeContainer}
-        >
+        <Box>
           <Text variant={TextVariant.BodyLGMedium}>{chainName}</Text>
           {showNoNetworkFeeLabel ? (
-            <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-              {strings('networks.no_network_fee')}
-            </Text>
+            <TagColored
+              color={TagColor.Success}
+              style={styles.noNetworkFeeContainer}
+            >
+              <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+                {strings('networks.no_network_fee')}
+              </Text>
+            </TagColored>
           ) : null}
-        </TagColored>
+        </Box>
       </Box>
 
       {children ? (
