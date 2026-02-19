@@ -168,6 +168,10 @@ const mobileStorageAdapter: StorageAdapter = {
       await Promise.all(
         keysToDelete.map((rawKey) => FilesystemStorage.removeItem(rawKey)),
       );
+
+      Logger.log(
+        `StorageService: Cleared ${keysToDelete.length} keys for ${namespace}`,
+      );
     } catch (error) {
       Logger.error(error as Error, {
         message: `StorageService: Failed to clear namespace ${namespace}`,
