@@ -20,19 +20,56 @@ import { AssetType } from '../../../types/token';
 import styleSheet from './musd-max-conversion-asset-header.styles';
 import { useIsTransactionPayLoading } from '../../../hooks/pay/useTransactionPayData';
 import { MusdMaxConversionInfoTestIds } from './musd-max-conversion-info';
+import {
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
+} from '@metamask/design-system-react-native';
+import { MUSD_TOKEN } from '../../../../../UI/Earn/constants/musd';
 
 export const MusdMaxConversionAssetHeaderSkeleton = () => {
   const { styles } = useStyles(styleSheet, {});
 
   return (
     <View
-      style={styles.container}
+      style={styles.assetHeaderContainer}
       testID={MusdMaxConversionInfoTestIds.ASSET_HEADER_SKELETON}
     >
-      <Skeleton width={40} height={40} style={styles.skeletonAvatar} />
-      <View style={[styles.assetInfo, styles.assetInfoSkeleton]}>
-        <Skeleton width={56} height={14} style={styles.skeletonBorderRadius} />
-        <Skeleton width={140} height={20} style={styles.skeletonBorderRadius} />
+      <View style={styles.assetContainer}>
+        <Skeleton width={40} height={40} style={styles.skeletonAvatar} />
+        <View style={[styles.assetInfo, styles.assetInfoSkeleton]}>
+          <Skeleton
+            width={56}
+            height={14}
+            style={styles.skeletonBorderRadius}
+          />
+          <Skeleton
+            width={140}
+            height={20}
+            style={styles.skeletonBorderRadius}
+          />
+        </View>
+      </View>
+      <Icon
+        name={IconName.Arrow2Down}
+        color={IconColor.IconAlternative}
+        size={IconSize.Lg}
+      />
+      <View style={styles.assetContainer}>
+        <Skeleton width={40} height={40} style={styles.skeletonAvatar} />
+        <View style={[styles.assetInfo, styles.assetInfoSkeleton]}>
+          <Skeleton
+            width={56}
+            height={14}
+            style={styles.skeletonBorderRadius}
+          />
+          <Skeleton
+            width={140}
+            height={20}
+            style={styles.skeletonBorderRadius}
+          />
+        </View>
       </View>
     </View>
   );
@@ -64,37 +101,80 @@ export const MusdMaxConversionAssetHeader = memo(
     }
 
     return (
-      <View
-        style={styles.container}
-        testID={MusdMaxConversionInfoTestIds.ASSET_HEADER}
-      >
-        <BadgeWrapper
-          badgePosition={BadgePosition.BottomRight}
-          badgeElement={
-            <Badge
-              variant={BadgeVariant.Network}
-              name={networkName}
-              imageSource={getNetworkImageSource({
-                chainId: token?.chainId ?? '',
-              })}
-            />
-          }
+      <View style={styles.assetHeaderContainer}>
+        {/* Input Asset (Top) */}
+        <View
+          // TODO: Rename style class
+          style={styles.assetContainer}
+          testID={MusdMaxConversionInfoTestIds.ASSET_HEADER}
         >
-          <AvatarToken
-            name={token.symbol}
-            imageSource={{ uri: token.image }}
-            size={AvatarSize.Lg}
-            testID={`earn-token-avatar-${token.symbol}`}
-          />
-        </BadgeWrapper>
-        <View style={styles.assetInfo}>
-          <Text
-            variant={TextVariant.BodySMMedium}
-            color={TextColor.Alternative}
+          <BadgeWrapper
+            badgePosition={BadgePosition.BottomRight}
+            badgeElement={
+              <Badge
+                variant={BadgeVariant.Network}
+                name={networkName}
+                imageSource={getNetworkImageSource({
+                  chainId: token?.chainId ?? '',
+                })}
+              />
+            }
           >
-            {token?.symbol}
-          </Text>
-          <Text style={styles.assetAmount}>{fiatBalanceText}</Text>
+            <AvatarToken
+              name={token.symbol}
+              imageSource={{ uri: token.image }}
+              size={AvatarSize.Lg}
+              testID={`earn-token-avatar-${token.symbol}`}
+            />
+          </BadgeWrapper>
+          <View style={styles.assetInfo}>
+            <Text
+              variant={TextVariant.BodySMMedium}
+              color={TextColor.Alternative}
+            >
+              {token?.symbol}
+            </Text>
+            <Text style={styles.assetAmount}>{fiatBalanceText}</Text>
+          </View>
+        </View>
+        <Icon
+          name={IconName.Arrow2Down}
+          color={IconColor.IconAlternative}
+          size={IconSize.Lg}
+        />
+        {/* Output Asset (Bottom) */}
+        <View
+          style={styles.assetContainer}
+          testID={MusdMaxConversionInfoTestIds.ASSET_HEADER}
+        >
+          <BadgeWrapper
+            badgePosition={BadgePosition.BottomRight}
+            badgeElement={
+              <Badge
+                variant={BadgeVariant.Network}
+                name={networkName}
+                imageSource={getNetworkImageSource({
+                  chainId: token?.chainId ?? '',
+                })}
+              />
+            }
+          >
+            <AvatarToken
+              name={MUSD_TOKEN.symbol}
+              imageSource={MUSD_TOKEN.imageSource}
+              size={AvatarSize.Lg}
+              testID={`earn-token-avatar-${MUSD_TOKEN.symbol}`}
+            />
+          </BadgeWrapper>
+          <View style={styles.assetInfo}>
+            <Text
+              variant={TextVariant.BodySMMedium}
+              color={TextColor.Alternative}
+            >
+              {MUSD_TOKEN.symbol}
+            </Text>
+            <Text style={styles.assetAmount}>{fiatBalanceText}</Text>
+          </View>
         </View>
       </View>
     );
