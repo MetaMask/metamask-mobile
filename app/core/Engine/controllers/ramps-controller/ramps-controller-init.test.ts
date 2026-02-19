@@ -121,7 +121,36 @@ describe('ramps controller init', () => {
         isLoading: false,
         error: null,
       },
+      widgetUrl: {
+        data: null,
+        selected: null,
+        isLoading: false,
+        error: null,
+      },
       requests: {},
+      nativeProviders: {
+        transak: {
+          isAuthenticated: false,
+          userDetails: {
+            data: null,
+            selected: null,
+            isLoading: false,
+            error: null,
+          },
+          buyQuote: {
+            data: null,
+            selected: null,
+            isLoading: false,
+            error: null,
+          },
+          kycRequirement: {
+            data: null,
+            selected: null,
+            isLoading: false,
+            error: null,
+          },
+        },
+      },
     };
 
     initRequestMock.persistedState = {

@@ -24,12 +24,12 @@ import {
   checkAutomatically,
 } from 'expo-updates';
 import { connect } from 'react-redux';
-import { getFullVersion } from '../../../../constants/ota';
+import { OTA_VERSION } from '../../../../constants/ota';
 import { fontStyles } from '../../../../styles/common';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../../locales/i18n';
-import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import AppConstants from '../../../../core/AppConstants';
+import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import { AboutMetaMaskSelectorsIDs } from './AboutMetaMask.testIds';
 import { isQa } from '../../../../util/test/utils';
@@ -118,32 +118,17 @@ class AppInformation extends PureComponent {
     showEnvironmentInfo: false,
   };
 
-  updateNavBar = () => {
-    const { navigation } = this.props;
-    const colors = this.context.colors || mockTheme.colors;
-    navigation.setOptions(
-      getNavigationOptionsTitle(
-        strings('app_settings.info_title'),
-        navigation,
-        false,
-        colors,
-      ),
-    );
-  };
-
   componentDidMount = async () => {
-    this.updateNavBar();
     const appName = await getApplicationName();
     const appVersion = await getVersion();
     const buildNumber = await getBuildNumber();
+    const appInfo = `${appName} v${appVersion} (${buildNumber})`;
+    const appInfoOta = `${appName} ota ${OTA_VERSION} (${buildNumber})`;
+    const versionDisplay = isEmbeddedLaunch || __DEV__ ? appInfo : appInfoOta;
     this.setState({
-      appInfo: `${appName} v${appVersion} (${buildNumber})`,
+      appInfo: versionDisplay,
       appVersion,
     });
-  };
-
-  componentDidUpdate = () => {
-    this.updateNavBar();
   };
 
   goTo = (url, title) => {
@@ -201,11 +186,18 @@ class AppInformation extends PureComponent {
         ? 'This app is running from built-in code or in development mode'
         : 'This app is running an update';
 
+    const aboutTitle = strings('app_settings.info_title');
+
     return (
       <SafeAreaView
         style={styles.wrapper}
         testID={AboutMetaMaskSelectorsIDs.CONTAINER}
       >
+        <HeaderCompactStandard
+          title={aboutTitle}
+          onBack={() => this.props.navigation.goBack()}
+          backButtonProps={{ testID: AboutMetaMaskSelectorsIDs.BACK_BUTTON }}
+        />
         <ScrollView contentContainerStyle={styles.wrapperContent}>
           <View style={styles.logoWrapper}>
             <TouchableOpacity
@@ -219,9 +211,7 @@ class AppInformation extends PureComponent {
                 resizeMethod={'auto'}
               />
             </TouchableOpacity>
-            <Text style={styles.versionInfo}>
-              {getFullVersion(this.state.appInfo)}
-            </Text>
+            <Text style={styles.versionInfo}>{this.state.appInfo}</Text>
             {isQa ? (
               <Text style={styles.branchInfo}>
                 {`Branch: ${process.env['GIT_BRANCH']}`}

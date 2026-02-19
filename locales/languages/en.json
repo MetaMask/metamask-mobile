@@ -2051,6 +2051,16 @@
       "referral_code_text": "Use my referral code to earn extra rewards."
     }
   },
+  "market_insights": {
+    "title": "Market insights",
+    "updated_ago": "Updated {{time}}",
+    "disclaimer": "AI insights. Not financial advice.",
+    "whats_driving_price": "What's driving the price?",
+    "what_people_saying": "What people are saying",
+    "trade_button": "Trade",
+    "sources_count": "+{{count}} sources",
+    "sources_title": "Sources"
+  },
   "predict": {
     "title": "MetaMask Predictions",
     "prediction_markets": "Prediction markets",
@@ -2849,7 +2859,10 @@
     "permissions": "Permissions",
     "card_title": "MetaMask Card",
     "settings": "Settings",
-    "log_out": "Log out"
+    "log_out": "Log out",
+    "notifications": "Notifications",
+    "buy": "Buy",
+    "scan": "Scan"
   },
   "app_settings": {
     "enabling_notifications": "Enabling notifications...",
@@ -3382,6 +3395,7 @@
     "sell_description": "Sell crypto for cash"
   },
   "asset_overview": {
+    "market_closed": "Market closed",
     "send_button": "Send",
     "buy_button": "Buy",
     "cash_buy_button": "Cash Buy",
@@ -6425,6 +6439,13 @@
     "minimum_received": "Minimum received",
     "minimum_received_tooltip_title": "Minimum received",
     "minimum_received_tooltip_content": "The minimum amount you'll receive if the price changes while your transaction is processing, based on your slippage tolerance. This is an estimate from our liquidity providers. Final amounts may differ.",
+    "market_closed": {
+      "title": "Market is closed",
+      "description": "The market that backs this token is currently closed. Tokens can be transferred on-chain at any time.",
+      "learn_more": "Learn more",
+      "learn_more_url": "https://status.ondo.finance/market",
+      "done": "Done"
+    },
     "submit": "Submit",
     "default_slippage_description": "Your transaction won't go through if the price changes more than the slippage percent.",
     "cancel": "Cancel",
@@ -6729,6 +6750,7 @@
     "password_bottomsheet": {
       "title": "Enter password",
       "description": "Enter your wallet password to view card details.",
+      "description_unfreeze": "Enter your wallet password to resume spending on your card.",
       "placeholder": "Password",
       "confirm": "Confirm",
       "cancel": "Cancel",
@@ -6991,6 +7013,7 @@
       "enable_card_error": "Failed to enable card. Please try again later.",
       "view_card_details_error": "Unable to load card details. Please try again.",
       "biometric_verification_required": "Authentication required to view card details.",
+      "unfreeze_auth_required": "Authentication required to resume spending on your card.",
       "warnings": {
         "close_spending_limit": {
           "title": "You're close to your spending limit",
@@ -7008,7 +7031,7 @@
         },
         "frozen": {
           "title": "Your card is frozen",
-          "description": "Please contact support to unfreeze your card"
+          "description": "Your card is temporarily frozen. You can unfreeze it anytime."
         },
         "blocked": {
           "title": "Your card is blocked",
@@ -7058,7 +7081,14 @@
         "travel_description": "Book hotels with up to 70% discounts",
         "card_tos_title": "Terms and conditions",
         "order_metal_card": "Metal Card",
-        "order_metal_card_description": "Order your physical Metal Card now"
+        "order_metal_card_description": "Order your physical Metal Card now",
+        "freeze_card": "Freeze card",
+        "unfreeze_card": "Unfreeze card",
+        "freeze_card_description": "Pause all spending on your card",
+        "unfreeze_card_description": "Resume all spending on your card",
+        "freeze_error": "Failed to update card status. Please try again.",
+        "freeze_success": "Card successfully frozen",
+        "unfreeze_success": "Card successfully unfrozen"
       }
     },
     "card_spending_limit": {

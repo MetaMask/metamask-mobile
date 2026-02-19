@@ -197,6 +197,7 @@ android {
 
 	  packagingOptions {
 		  exclude 'META-INF/DEPENDENCIES'
+      exclude 'META-INF/versions/9/OSGI-INF/MANIFEST.MF'
       pickFirst 'lib/x86/libc++_shared.so'
       pickFirst 'lib/x86_64/libc++_shared.so'
       pickFirst 'lib/armeabi-v7a/libc++_shared.so'
@@ -367,6 +368,42 @@ android {
     }
 }
 
+// Veriff SDK uses BouncyCastle library which conflicts with the BouncyCastle library used by other libraries.
+// This resolves modules by substituting the Veriff SDK's BouncyCastle library with the correct one.
+configurations.all {
+    resolutionStrategy.dependencySubstitution {
+        substitute module('org.bouncycastle:bcprov-jdk15to18') using module('org.bouncycastle:bcprov-jdk18on:1.78.1')
+        substitute module('org.bouncycastle:bcutil-jdk15to18') using module('org.bouncycastle:bcutil-jdk18on:1.78.1')
+    }
+}
+
+// Veriff SDK sub-libraries declare minSdkVersion 26; we patch their manifests to use our minSdkVersion
+// Fails the build if Veriff is not found.
+def VERIFF_SDK_VERSION = '7.14.1'
+project.afterEvaluate {
+    tasks.matching { it.name ==~ /process.*MainManifest/ }.configureEach { task ->
+        task.doFirst {
+            def transformsDir = new File(gradle.gradleUserHomeDir, "caches/${gradle.gradleVersion}/transforms")
+            def veriffManifests = transformsDir.exists()
+                ? fileTree(dir: transformsDir, includes: ["**/jetified-*-${VERIFF_SDK_VERSION}/AndroidManifest.xml"]).files
+                : []
+            if (veriffManifests.isEmpty()) {
+                throw new GradleException(
+                    "Veriff SDK (${VERIFF_SDK_VERSION}) manifests not found in Gradle transform cache. " +
+                    "Ensure the Veriff dependency is resolved (e.g. run a clean build). " +
+                    "Searched in: ${transformsDir}"
+                )
+            }
+            def targetMinSdk = rootProject.ext.minSdkVersion
+            veriffManifests.each { file ->
+                def content = file.text
+                if (content.contains('android:minSdkVersion="26"')) {
+                    file.text = content.replace('android:minSdkVersion="26"', "android:minSdkVersion=\"${targetMinSdk}\"")
+                }
+            }
+        }
+    }
+}
 
 dependencies {
     // The version of react-native is set by the React Native Gradle Plugin

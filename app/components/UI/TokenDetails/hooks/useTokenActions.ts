@@ -46,6 +46,7 @@ import { getDetectedGeolocation } from '../../../../reducers/fiatOrders';
 import { useRampsButtonClickData } from '../../Ramp/hooks/useRampsButtonClickData';
 import useRampsUnifiedV1Enabled from '../../Ramp/hooks/useRampsUnifiedV1Enabled';
 import { BridgeToken } from '../../Bridge/types';
+import { TokenDetailsSource } from '../constants/constants';
 
 /**
  * Determines the source and destination tokens for swap/bridge navigation.
@@ -140,11 +141,17 @@ export const useTokenActions = ({
 
   // Swap/Bridge navigation
   const { sourceToken, destToken } = getSwapTokens(token);
+  // When Token Details was opened from the bridge asset picker, skip updating
+  // the location on the bridge controller to preserve the original entry-point
+  // location from the session that opened the bridge (e.g. "Main View")
+  const isFromBridgeAssetPicker =
+    'source' in token && token.source === TokenDetailsSource.Swap;
   const { goToSwaps, networkModal } = useSwapBridgeNavigation({
     location: SwapBridgeNavigationLocation.TokenView,
     sourcePage: 'MainView',
     sourceToken,
     destToken,
+    skipLocationUpdate: isFromBridgeAssetPicker,
   });
 
   // Non-EVM send hook

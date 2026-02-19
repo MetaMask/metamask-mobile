@@ -158,6 +158,14 @@ jest.mock('../../Ramp/Aggregator/utils', () => ({
   isNetworkRampSupported: jest.fn(() => true),
 }));
 
+const mockIsTokenTradingOpen = jest.fn().mockReturnValue(true);
+jest.mock('../../Bridge/hooks/useRWAToken', () => ({
+  useRWAToken: () => ({
+    isTokenTradingOpen: mockIsTokenTradingOpen,
+    isStockToken: jest.fn(() => false),
+  }),
+}));
+
 describe('TokenDetails', () => {
   const defaultToken: TokenI = {
     address: '0x6b175474e89094c44da98b954eedeac495271d0f',
@@ -180,6 +188,7 @@ describe('TokenDetails', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockSelectTokenDetailsV2ButtonsEnabled.mockReturnValue(true);
+    mockIsTokenTradingOpen.mockReturnValue(true);
     mockUseTokenTransactions.mockReturnValue(defaultUseTokenTransactionsReturn);
 
     // Setup default useTokenBalance mock
@@ -228,6 +237,14 @@ describe('TokenDetails', () => {
 
     it('does not show sticky buttons when selectTokenDetailsV2ButtonsEnabled is false', () => {
       mockSelectTokenDetailsV2ButtonsEnabled.mockReturnValue(false);
+
+      const { queryByTestId } = render(<TokenDetails {...defaultProps} />);
+
+      expect(queryByTestId('bottomsheetfooter')).toBeNull();
+    });
+
+    it('does not show sticky buttons when RWA token trading is not open', () => {
+      mockIsTokenTradingOpen.mockReturnValue(false);
 
       const { queryByTestId } = render(<TokenDetails {...defaultProps} />);
 
