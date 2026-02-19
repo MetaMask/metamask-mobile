@@ -8,6 +8,7 @@ import type { CaipChainId } from '@metamask/utils';
 import Logger from '../../../../../util/Logger';
 
 const mockUseEffect = jest.requireActual('react').useEffect;
+const capturedFocusEffectCallbacks: (() => void)[] = [];
 
 const mockNavigate = jest.fn();
 const mockSetOptions = jest.fn();
@@ -59,6 +60,7 @@ jest.mock('@react-navigation/native', () => ({
     },
   }),
   useFocusEffect: (callback: () => void) => {
+    capturedFocusEffectCallbacks.push(callback);
     mockUseEffect(() => callback(), [callback]);
   },
 }));
@@ -208,6 +210,7 @@ const renderWithTheme = (component: React.ReactElement) =>
 
 describe('BuildQuote', () => {
   beforeEach(() => {
+    capturedFocusEffectCallbacks.length = 0;
     jest.clearAllMocks();
     jest
       .spyOn(InteractionManager, 'runAfterInteractions')
@@ -1075,6 +1078,42 @@ describe('BuildQuote', () => {
           screen: 'RampTokenUnavailableForProviderModal',
         }),
       );
+    });
+
+    it('does not re-navigate to token unavailable modal on subsequent focus events', () => {
+      mockSelectedProvider = {
+        id: '/providers/transak',
+        name: 'Transak',
+        environmentType: 'PRODUCTION',
+        description: 'Test Provider',
+        hqAddress: '123 Test St',
+        links: [],
+        logos: { light: '', dark: '', height: 24, width: 79 },
+        supportedCryptoCurrencies: {
+          'eip155:1/slip44:60': true,
+        },
+      };
+
+      renderWithTheme(<BuildQuote />);
+
+      expect(mockNavigate).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'RampModals',
+        expect.objectContaining({
+          screen: 'RampTokenUnavailableForProviderModal',
+          params: { assetId: MOCK_ASSET_ID },
+        }),
+      );
+
+      mockNavigate.mockClear();
+
+      const tokenUnavailableCallback =
+        capturedFocusEffectCallbacks[capturedFocusEffectCallbacks.length - 1];
+      act(() => {
+        tokenUnavailableCallback();
+      });
+
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
   });
 });

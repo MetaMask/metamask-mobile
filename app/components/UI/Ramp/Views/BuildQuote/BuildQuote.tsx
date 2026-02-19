@@ -1,5 +1,11 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { InteractionManager, TouchableOpacity, View } from 'react-native';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import { TouchableOpacity, View } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import type { CaipChainId } from '@metamask/utils';
 
@@ -129,26 +135,25 @@ function BuildQuote() {
     () =>
       !!(
         selectedProvider &&
-        selectedToken &&
+        params?.assetId &&
         selectedProvider.supportedCryptoCurrencies &&
-        !selectedProvider.supportedCryptoCurrencies[selectedToken.assetId]
+        !selectedProvider.supportedCryptoCurrencies[params.assetId]
       ),
-    [selectedProvider, selectedToken],
+    [selectedProvider, params?.assetId],
   );
 
-  useFocusEffect(
-    useCallback(() => {
-      if (isTokenUnavailable && selectedToken) {
-        InteractionManager.runAfterInteractions(() => {
-          navigation.navigate(
-            ...createTokenUnavailableForProviderModalNavigationDetails({
-              assetId: selectedToken.assetId,
-            }),
-          );
-        });
-      }
-    }, [isTokenUnavailable, selectedToken, navigation]),
-  );
+  const hasShownTokenUnavailableRef = useRef(false);
+
+  useEffect(() => {
+    if (isTokenUnavailable && !hasShownTokenUnavailableRef.current) {
+      hasShownTokenUnavailableRef.current = true;
+      navigation.navigate(
+        ...createTokenUnavailableForProviderModalNavigationDetails({
+          assetId: params?.assetId ?? '',
+        }),
+      );
+    }
+  }, [isTokenUnavailable, params?.assetId, navigation]);
 
   const {
     checkExistingToken: transakCheckExistingToken,
