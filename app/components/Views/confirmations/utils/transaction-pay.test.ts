@@ -386,6 +386,16 @@ describe('Transaction Pay Utils', () => {
       expect(filterTokensByAllowlist(tokens, allowlist)).toHaveLength(1);
     });
 
+    it('matches chain IDs case-insensitively', () => {
+      const tokens = [makeToken('0xa86a', '0xaaa')];
+
+      const allowlist = {
+        '0xA86A': ['0xaaa'],
+      } as Record<Hex, Hex[]>;
+
+      expect(filterTokensByAllowlist(tokens, allowlist)).toHaveLength(1);
+    });
+
     it('filters out all tokens when allowlist is empty', () => {
       const tokens = [makeToken('0x1', '0xaaa'), makeToken('0x38', '0xbbb')];
 

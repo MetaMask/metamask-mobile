@@ -163,12 +163,15 @@ export function filterTokensByAllowlist(
   tokens: AssetType[],
   allowlist: Record<Hex, Hex[]>,
 ): AssetType[] {
-  const allowedSets = new Map<Hex, Set<string>>();
+  const allowedSets = new Map<string, Set<string>>();
   for (const [chainId, addrs] of Object.entries(allowlist)) {
-    allowedSets.set(chainId as Hex, new Set(addrs.map((a) => a.toLowerCase())));
+    allowedSets.set(
+      chainId.toLowerCase(),
+      new Set(addrs.map((a) => a.toLowerCase())),
+    );
   }
   return tokens.filter((token) => {
-    const allowed = allowedSets.get(token.chainId as Hex);
+    const allowed = allowedSets.get((token.chainId as string)?.toLowerCase());
     return allowed?.has(token.address.toLowerCase()) ?? false;
   });
 }
