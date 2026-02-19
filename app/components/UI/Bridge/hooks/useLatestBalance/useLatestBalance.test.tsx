@@ -664,6 +664,52 @@ describe('useLatestBalance', () => {
   });
 
   describe('balance reset when token address changes', () => {
+    it('fetches new balance when chainId changes for the same native token address', async () => {
+      let chainId = '0x1' as Hex;
+      const mainnetProvider = {
+        getBalance: jest
+          .fn()
+          .mockResolvedValue(BigNumber.from('1000000000000000000')),
+      };
+      const lineaProvider = {
+        getBalance: jest
+          .fn()
+          .mockResolvedValue(BigNumber.from('2000000000000000000')),
+      };
+
+      (getProviderByChainId as jest.Mock).mockImplementation(
+        (requestedChainId: Hex) =>
+          requestedChainId === ('0xe708' as Hex)
+            ? lineaProvider
+            : mainnetProvider,
+      );
+
+      const { result, rerender } = renderHookWithProvider(
+        () =>
+          useLatestBalance({
+            address: constants.AddressZero,
+            decimals: 18,
+            chainId,
+          }),
+        { state: initialState },
+      );
+
+      await waitFor(() => {
+        expect(result.current?.displayBalance).toBe('1.0');
+      });
+
+      chainId = '0xe708' as Hex;
+      rerender({ state: initialState });
+
+      await waitFor(() => {
+        expect(result.current?.displayBalance).toBe('2.0');
+      });
+
+      expect(getProviderByChainId).toHaveBeenCalledWith('0xe708');
+      expect(mainnetProvider.getBalance).toHaveBeenCalledTimes(1);
+      expect(lineaProvider.getBalance).toHaveBeenCalledTimes(1);
+    });
+
     it('resets balance to undefined when token address changes', async () => {
       let tokenAddress = '0x1234567890123456789012345678901234567890';
 
