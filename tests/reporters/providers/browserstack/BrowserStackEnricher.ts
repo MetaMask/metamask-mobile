@@ -45,7 +45,10 @@ export class BrowserStackEnricher extends BaseSessionDataEnricher {
         // Fallback: build URL from session details
         const details = await this.api.getSessionDetails(sessionId);
         if (details?.buildId) {
-          session.videoURL = `https://app-automate.browserstack.com/builds/${details.buildId}/sessions/${sessionId}`;
+          session.videoURL = this.api.buildSessionURL(
+            details.buildId,
+            sessionId,
+          );
           this.logger.info(
             `Fallback: built recording URL from session details for ${testTitle}`,
           );

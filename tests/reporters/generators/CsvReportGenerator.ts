@@ -5,6 +5,7 @@ import type {
   ProfilingData,
 } from '../types';
 import { QualityGatesReportFormatter } from '../../framework/quality-gates';
+import { getNestedProperty } from '../utils/getNestedProperty';
 
 /**
  * Generates a CSV performance report from report data.
@@ -119,26 +120,18 @@ export class CsvReportGenerator {
         // Handle new format with named properties
         if (stepObject.name !== undefined) {
           const { name, duration } = stepObject;
-          const cpuAvg = this.getNestedProperty(
-            profilingSummary,
-            'cpu.avg',
-            'N/A',
-          );
-          const memoryAvg = this.getNestedProperty(
+          const cpuAvg = getNestedProperty(profilingSummary, 'cpu.avg', 'N/A');
+          const memoryAvg = getNestedProperty(
             profilingSummary,
             'memory.avg',
             'N/A',
           );
-          const battery = this.getNestedProperty(
+          const battery = getNestedProperty(
             profilingSummary,
             'battery.total',
             'N/A',
           );
-          const issues = this.getNestedProperty(
-            profilingSummary,
-            'issues',
-            'N/A',
-          );
+          const issues = getNestedProperty(profilingSummary, 'issues', 'N/A');
           csvRows.push(
             `"${name}","${duration}","${cpuAvg}","${memoryAvg}","${battery}","${issues}"`,
           );
@@ -146,26 +139,18 @@ export class CsvReportGenerator {
         }
         // Handle old format {stepName: duration}
         const [stepName, duration] = Object.entries(stepObject)[0];
-        const cpuAvg = this.getNestedProperty(
-          profilingSummary,
-          'cpu.avg',
-          'N/A',
-        );
-        const memoryAvg = this.getNestedProperty(
+        const cpuAvg = getNestedProperty(profilingSummary, 'cpu.avg', 'N/A');
+        const memoryAvg = getNestedProperty(
           profilingSummary,
           'memory.avg',
           'N/A',
         );
-        const battery = this.getNestedProperty(
+        const battery = getNestedProperty(
           profilingSummary,
           'battery.total',
           'N/A',
         );
-        const issues = this.getNestedProperty(
-          profilingSummary,
-          'issues',
-          'N/A',
-        );
+        const issues = getNestedProperty(profilingSummary, 'issues', 'N/A');
         csvRows.push(
           `"${stepName}","${duration}","${cpuAvg}","${memoryAvg}","${battery}","${issues}"`,
         );
@@ -173,26 +158,18 @@ export class CsvReportGenerator {
     } else if (test.steps && typeof test.steps === 'object') {
       // Backward compatibility for old object structure
       Object.entries(test.steps).forEach(([stepName, duration]) => {
-        const cpuAvg = this.getNestedProperty(
-          profilingSummary,
-          'cpu.avg',
-          'N/A',
-        );
-        const memoryAvg = this.getNestedProperty(
+        const cpuAvg = getNestedProperty(profilingSummary, 'cpu.avg', 'N/A');
+        const memoryAvg = getNestedProperty(
           profilingSummary,
           'memory.avg',
           'N/A',
         );
-        const battery = this.getNestedProperty(
+        const battery = getNestedProperty(
           profilingSummary,
           'battery.total',
           'N/A',
         );
-        const issues = this.getNestedProperty(
-          profilingSummary,
-          'issues',
-          'N/A',
-        );
+        const issues = getNestedProperty(profilingSummary, 'issues', 'N/A');
         csvRows.push(
           `"${stepName}","${duration}","${cpuAvg}","${memoryAvg}","${battery}","${issues}"`,
         );
@@ -240,46 +217,46 @@ export class CsvReportGenerator {
     csvRows.push('---,---,---,---,---,---');
     csvRows.push('PROFILING SUMMARY,,,,,');
     csvRows.push(
-      `CPU Avg,${this.getNestedProperty(profilingSummary, 'cpu.avg', 'N/A')}%,,,,`,
+      `CPU Avg,${getNestedProperty(profilingSummary, 'cpu.avg', 'N/A')}%,,,,`,
     );
     csvRows.push(
-      `CPU Max,${this.getNestedProperty(profilingSummary, 'cpu.max', 'N/A')}%,,,,`,
+      `CPU Max,${getNestedProperty(profilingSummary, 'cpu.max', 'N/A')}%,,,,`,
     );
     csvRows.push(
-      `Memory Avg,${this.getNestedProperty(profilingSummary, 'memory.avg', 'N/A')} MB,,,,`,
+      `Memory Avg,${getNestedProperty(profilingSummary, 'memory.avg', 'N/A')} MB,,,,`,
     );
     csvRows.push(
-      `Memory Max,${this.getNestedProperty(profilingSummary, 'memory.max', 'N/A')} MB,,,,`,
+      `Memory Max,${getNestedProperty(profilingSummary, 'memory.max', 'N/A')} MB,,,,`,
     );
     csvRows.push(
-      `Battery Usage,${this.getNestedProperty(profilingSummary, 'battery.total', 'N/A')} mAh,,,,`,
+      `Battery Usage,${getNestedProperty(profilingSummary, 'battery.total', 'N/A')} mAh,,,,`,
     );
     csvRows.push(
-      `Battery %,${(Number(this.getNestedProperty(profilingSummary, 'battery.percentage', 0)) * 100).toFixed(1)}%,,,,`,
+      `Battery %,${(Number(getNestedProperty(profilingSummary, 'battery.percentage', 0)) * 100).toFixed(1)}%,,,,`,
     );
     csvRows.push(
-      `Slow Frames,${this.getNestedProperty(profilingSummary, 'uiRendering.slowFrames', 'N/A')}%,,,,`,
+      `Slow Frames,${getNestedProperty(profilingSummary, 'uiRendering.slowFrames', 'N/A')}%,,,,`,
     );
     csvRows.push(
-      `ANRs,${this.getNestedProperty(profilingSummary, 'uiRendering.anrs', 'N/A')},,,,`,
+      `ANRs,${getNestedProperty(profilingSummary, 'uiRendering.anrs', 'N/A')},,,,`,
     );
     csvRows.push(
-      `Disk Reads,${this.getNestedProperty(profilingSummary, 'diskIO.reads', 'N/A')} KB,,,,`,
+      `Disk Reads,${getNestedProperty(profilingSummary, 'diskIO.reads', 'N/A')} KB,,,,`,
     );
     csvRows.push(
-      `Disk Writes,${this.getNestedProperty(profilingSummary, 'diskIO.writes', 'N/A')} KB,,,,`,
+      `Disk Writes,${getNestedProperty(profilingSummary, 'diskIO.writes', 'N/A')} KB,,,,`,
     );
     csvRows.push(
-      `Network Upload,${this.getNestedProperty(profilingSummary, 'networkIO.upload', 'N/A')} KB,,,,`,
+      `Network Upload,${getNestedProperty(profilingSummary, 'networkIO.upload', 'N/A')} KB,,,,`,
     );
     csvRows.push(
-      `Network Download,${this.getNestedProperty(profilingSummary, 'networkIO.download', 'N/A')} KB,,,,`,
+      `Network Download,${getNestedProperty(profilingSummary, 'networkIO.download', 'N/A')} KB,,,,`,
     );
     csvRows.push(
-      `Performance Issues,${this.getNestedProperty(profilingSummary, 'issues', 'N/A')},,,,`,
+      `Performance Issues,${getNestedProperty(profilingSummary, 'issues', 'N/A')},,,,`,
     );
     csvRows.push(
-      `Critical Issues,${this.getNestedProperty(profilingSummary, 'criticalIssues', 'N/A')},,,,`,
+      `Critical Issues,${getNestedProperty(profilingSummary, 'criticalIssues', 'N/A')},,,,`,
     );
   }
 
@@ -294,31 +271,5 @@ export class CsvReportGenerator {
       !profilingSummary.error &&
       typeof profilingSummary === 'object'
     );
-  }
-
-  private getNestedProperty(
-    obj: unknown,
-    path: string,
-    defaultValue: string | number = 'N/A',
-  ): string | number {
-    if (!obj || typeof obj !== 'object') return defaultValue;
-
-    const keys = path.split('.');
-    let current: unknown = obj;
-
-    for (const key of keys) {
-      if (
-        current === null ||
-        current === undefined ||
-        typeof current !== 'object'
-      ) {
-        return defaultValue;
-      }
-      current = (current as Record<string, unknown>)[key];
-    }
-
-    return current !== undefined && current !== null
-      ? (current as string | number)
-      : defaultValue;
   }
 }

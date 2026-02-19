@@ -6,6 +6,7 @@ import type {
   ProfilingIssue,
 } from '../types';
 import { QualityGatesReportFormatter } from '../../framework/quality-gates';
+import { getNestedProperty } from '../utils/getNestedProperty';
 
 /**
  * Generates an HTML performance report from report data.
@@ -246,27 +247,27 @@ export class HtmlReportGenerator {
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 20px;">
         <div style="background-color: white; padding: 15px; border-radius: 6px; border-left: 4px solid #2196f3;">
           <strong style="color: #2196f3;">CPU Usage</strong><br>
-          <span style="font-size: 14px;">Avg: ${this.getNestedProperty(summary, 'cpu.avg', 'N/A')}% | Max: ${this.getNestedProperty(summary, 'cpu.max', 'N/A')}%</span>
+          <span style="font-size: 14px;">Avg: ${getNestedProperty(summary, 'cpu.avg', 'N/A')}% | Max: ${getNestedProperty(summary, 'cpu.max', 'N/A')}%</span>
         </div>
         <div style="background-color: white; padding: 15px; border-radius: 6px; border-left: 4px solid #4caf50;">
           <strong style="color: #4caf50;">Memory</strong><br>
-          <span style="font-size: 14px;">Avg: ${this.getNestedProperty(summary, 'memory.avg', 'N/A')} MB | Max: ${this.getNestedProperty(summary, 'memory.max', 'N/A')} MB</span>
+          <span style="font-size: 14px;">Avg: ${getNestedProperty(summary, 'memory.avg', 'N/A')} MB | Max: ${getNestedProperty(summary, 'memory.max', 'N/A')} MB</span>
         </div>
         <div style="background-color: white; padding: 15px; border-radius: 6px; border-left: 4px solid #ff9800;">
           <strong style="color: #ff9800;">Battery</strong><br>
-          <span style="font-size: 14px;">${this.getNestedProperty(summary, 'battery.total', 'N/A')} mAh (${(Number(this.getNestedProperty(summary, 'battery.percentage', 0)) * 100).toFixed(1)}%)</span>
+          <span style="font-size: 14px;">${getNestedProperty(summary, 'battery.total', 'N/A')} mAh (${(Number(getNestedProperty(summary, 'battery.percentage', 0)) * 100).toFixed(1)}%)</span>
         </div>
         <div style="background-color: white; padding: 15px; border-radius: 6px; border-left: 4px solid #9c27b0;">
           <strong style="color: #9c27b0;">UI Performance</strong><br>
-          <span style="font-size: 14px;">Slow Frames: ${this.getNestedProperty(summary, 'uiRendering.slowFrames', 'N/A')}% | ANRs: ${this.getNestedProperty(summary, 'uiRendering.anrs', 'N/A')}</span>
+          <span style="font-size: 14px;">Slow Frames: ${getNestedProperty(summary, 'uiRendering.slowFrames', 'N/A')}% | ANRs: ${getNestedProperty(summary, 'uiRendering.anrs', 'N/A')}</span>
         </div>
         <div style="background-color: white; padding: 15px; border-radius: 6px; border-left: 4px solid #607d8b;">
           <strong style="color: #607d8b;">Disk I/O</strong><br>
-          <span style="font-size: 14px;">Reads: ${this.getNestedProperty(summary, 'diskIO.reads', 'N/A')} KB | Writes: ${this.getNestedProperty(summary, 'diskIO.writes', 'N/A')} KB</span>
+          <span style="font-size: 14px;">Reads: ${getNestedProperty(summary, 'diskIO.reads', 'N/A')} KB | Writes: ${getNestedProperty(summary, 'diskIO.writes', 'N/A')} KB</span>
         </div>
         <div style="background-color: white; padding: 15px; border-radius: 6px; border-left: 4px solid #795548;">
           <strong style="color: #795548;">Network I/O</strong><br>
-          <span style="font-size: 14px;">Upload: ${this.getNestedProperty(summary, 'networkIO.upload', 'N/A')} KB | Download: ${this.getNestedProperty(summary, 'networkIO.download', 'N/A')} KB</span>
+          <span style="font-size: 14px;">Upload: ${getNestedProperty(summary, 'networkIO.upload', 'N/A')} KB | Download: ${getNestedProperty(summary, 'networkIO.download', 'N/A')} KB</span>
         </div>
       </div>
       ${this.generateProfilingIssues(session)}
@@ -274,11 +275,7 @@ export class HtmlReportGenerator {
   }
 
   private generateProfilingIssues(session: SessionData): string {
-    const issueCount = this.getNestedProperty(
-      session.profilingSummary,
-      'issues',
-      0,
-    );
+    const issueCount = getNestedProperty(session.profilingSummary, 'issues', 0);
 
     if (Number(issueCount) > 0) {
       const detectedIssues: ProfilingIssue[] =
@@ -289,10 +286,10 @@ export class HtmlReportGenerator {
         ? detectedIssues
             .map(
               (issue) => `<li style="margin-bottom: 10px;">
-              <strong style="color: #856404;">${this.getNestedProperty(issue, 'title', 'Unknown Issue')}</strong><br>
-              <span style="font-size: 14px; color: #6c757d;">${this.getNestedProperty(issue, 'subtitle', 'No description available')}</span><br>
-              <span style="font-size: 13px; color: #dc3545;">Current: ${this.getNestedProperty(issue, 'current', 'N/A')} ${this.getNestedProperty(issue, 'unit', '')} | Recommended: ${this.getNestedProperty(issue, 'recommended', 'N/A')} ${this.getNestedProperty(issue, 'unit', '')}</span>
-              ${this.getNestedProperty(issue, 'link') ? `<br><a href="${this.getNestedProperty(issue, 'link')}" target="_blank" style="font-size: 12px; color: #007bff;">Learn more</a>` : ''}
+              <strong style="color: #856404;">${getNestedProperty(issue, 'title', 'Unknown Issue')}</strong><br>
+              <span style="font-size: 14px; color: #6c757d;">${getNestedProperty(issue, 'subtitle', 'No description available')}</span><br>
+              <span style="font-size: 13px; color: #dc3545;">Current: ${getNestedProperty(issue, 'current', 'N/A')} ${getNestedProperty(issue, 'unit', '')} | Recommended: ${getNestedProperty(issue, 'recommended', 'N/A')} ${getNestedProperty(issue, 'unit', '')}</span>
+              ${getNestedProperty(issue, 'link') ? `<br><a href="${getNestedProperty(issue, 'link')}" target="_blank" style="font-size: 12px; color: #007bff;">Learn more</a>` : ''}
             </li>`,
             )
             .join('')
@@ -310,31 +307,5 @@ export class HtmlReportGenerator {
       <strong style="color: #155724;">✅ No Performance Issues Detected</strong>
       <p style="margin: 5px 0 0 0; font-size: 14px; color: #155724;">All metrics are within recommended thresholds.</p>
     </div>`;
-  }
-
-  private getNestedProperty(
-    obj: unknown,
-    path: string,
-    defaultValue: string | number = 'N/A',
-  ): string | number {
-    if (!obj || typeof obj !== 'object') return defaultValue;
-
-    const keys = path.split('.');
-    let current: unknown = obj;
-
-    for (const key of keys) {
-      if (
-        current === null ||
-        current === undefined ||
-        typeof current !== 'object'
-      ) {
-        return defaultValue;
-      }
-      current = (current as Record<string, unknown>)[key];
-    }
-
-    return current !== undefined && current !== null
-      ? (current as string | number)
-      : defaultValue;
   }
 }

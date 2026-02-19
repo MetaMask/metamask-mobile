@@ -269,84 +269,6 @@ export class BrowserStackAPI {
   }
 
   /**
-   * Get app profiling data v2 for a specific session
-   */
-  async getAppProfilingData(
-    buildId: string,
-    sessionId: string,
-  ): Promise<unknown> {
-    if (!this.hasCredentials()) {
-      logger.warn(
-        'Skipping getAppProfilingData: missing BrowserStack credentials',
-      );
-      return null;
-    }
-
-    logger.debug(
-      `Fetching app profiling data: build=${buildId}, session=${sessionId}`,
-    );
-
-    const response = await fetch(
-      `${API_BASE_URL}/builds/${buildId}/sessions/${sessionId}/appprofiling/v2`,
-      {
-        method: 'GET',
-        headers: {
-          Authorization: this.getAuthHeader(),
-          'Content-Type': 'application/json',
-        },
-        signal: AbortSignal.timeout(DEFAULT_TIMEOUT_MS),
-      },
-    );
-
-    if (!response.ok) {
-      const errorBody = await response.text();
-      throw new BrowserStackAPIError(
-        `Error fetching app profiling data: ${response.statusText}`,
-        response.status,
-        errorBody,
-      );
-    }
-
-    return await response.json();
-  }
-
-  /**
-   * Fetch network logs (HAR) for a session
-   */
-  async getNetworkLogs(buildId: string, sessionId: string): Promise<unknown> {
-    if (!this.hasCredentials()) {
-      logger.warn('Skipping getNetworkLogs: missing BrowserStack credentials');
-      return null;
-    }
-
-    logger.debug(
-      `Fetching network logs: build=${buildId}, session=${sessionId}`,
-    );
-
-    const response = await fetch(
-      `${API_BASE_URL}/builds/${buildId}/sessions/${sessionId}/networklogs`,
-      {
-        method: 'GET',
-        headers: {
-          Authorization: this.getAuthHeader(),
-        },
-        signal: AbortSignal.timeout(DEFAULT_TIMEOUT_MS),
-      },
-    );
-
-    if (!response.ok) {
-      const errorBody = await response.text();
-      throw new BrowserStackAPIError(
-        `Network logs API error: ${response.statusText}`,
-        response.status,
-        errorBody,
-      );
-    }
-
-    return await response.json();
-  }
-
-  /**
    * Get the video/session URL for a session with retry mechanism.
    * BrowserStack sessions may not be immediately available after test completion,
    * so this method retries on 404 errors.
@@ -448,9 +370,7 @@ export class BrowserStackAPI {
    * Convenience wrapper that extracts common fields from getSession().
    * @returns Object with buildId and full sessionData, or null if unavailable.
    */
-  async getSessionDetails(
-    sessionId: string,
-  ): Promise<{
+  async getSessionDetails(sessionId: string): Promise<{
     buildId: string;
     sessionData: BrowserStackSessionDetails;
   } | null> {
