@@ -38,11 +38,6 @@ export const buildE2EProxyPatchScript = ({
   return `
     (() => {
       try {
-        if (window.__MM_E2E_SNAP_PROXY_PATCHED__) {
-          return;
-        }
-        window.__MM_E2E_SNAP_PROXY_PATCHED__ = true;
-
         const mockServerPort = ${JSON.stringify(mockServerPort)};
         const proxyCandidates = ${JSON.stringify(proxyCandidates)}.map(
           (host) => \`\${host}:\${mockServerPort}\`,
@@ -58,68 +53,131 @@ export const buildE2EProxyPatchScript = ({
           !targetUrl.includes('/proxy?') &&
           !proxyCandidates.some((candidate) => targetUrl.startsWith(candidate));
 
-        const toUrlString = (input) => {
-          if (typeof input === 'string') {
-            return input;
+        const patchWindowNetworkApis = (targetWindow) => {
+          if (!targetWindow || targetWindow.__MM_E2E_SNAP_PROXY_PATCHED__) {
+            return;
           }
-          if (typeof URL !== 'undefined' && input instanceof URL) {
-            return input.toString();
+          targetWindow.__MM_E2E_SNAP_PROXY_PATCHED__ = true;
+
+          const toUrlString = (input) => {
+            if (typeof input === 'string') {
+              return input;
+            }
+            if (
+              typeof targetWindow.URL !== 'undefined' &&
+              input instanceof targetWindow.URL
+            ) {
+              return input.toString();
+            }
+            if (input && typeof input === 'object' && typeof input.url === 'string') {
+              return input.url;
+            }
+            return String(input);
+          };
+
+          if (typeof targetWindow.fetch === 'function') {
+            const originalFetch = targetWindow.fetch.bind(targetWindow);
+            targetWindow.fetch = async (input, init) => {
+              const targetUrl = toUrlString(input);
+              if (!shouldProxyUrl(targetUrl)) {
+                return originalFetch(input, init);
+              }
+
+              let lastError;
+              for (const proxyBaseUrl of proxyCandidates) {
+                try {
+                  return await originalFetch(
+                    buildProxyUrl(proxyBaseUrl, targetUrl),
+                    init,
+                  );
+                } catch (error) {
+                  lastError = error;
+                }
+              }
+
+              if (lastError) {
+                return originalFetch(input, init);
+              }
+              return originalFetch(input, init);
+            };
           }
-          if (input && typeof input === 'object' && typeof input.url === 'string') {
-            return input.url;
+
+          const OriginalXHR = targetWindow.XMLHttpRequest;
+          if (typeof OriginalXHR === 'function') {
+            targetWindow.XMLHttpRequest = function (...args) {
+              const xhr = new OriginalXHR(...args);
+              const originalOpen = xhr.open;
+              xhr.open = function (method, url, ...openArgs) {
+                const targetUrl = toUrlString(url);
+                if (shouldProxyUrl(targetUrl)) {
+                  const proxiedUrl = buildProxyUrl(proxyCandidates[0], targetUrl);
+                  return originalOpen.call(this, method, proxiedUrl, ...openArgs);
+                }
+                return originalOpen.call(this, method, url, ...openArgs);
+              };
+              return xhr;
+            };
+            try {
+              Object.setPrototypeOf(targetWindow.XMLHttpRequest, OriginalXHR);
+              Object.assign(targetWindow.XMLHttpRequest, OriginalXHR);
+            } catch (error) {
+              // eslint-disable-next-line no-console
+              console.log('[SNAPS E2E PROXY] Failed to copy XHR properties', error);
+            }
           }
-          return String(input);
         };
 
-        if (typeof window.fetch === 'function') {
-          const originalFetch = window.fetch.bind(window);
-          window.fetch = async (input, init) => {
-            const targetUrl = toUrlString(input);
-            if (!shouldProxyUrl(targetUrl)) {
-              return originalFetch(input, init);
-            }
+        const patchIframeElement = (iframe) => {
+          if (!iframe || typeof iframe.addEventListener !== 'function') {
+            return;
+          }
 
-            let lastError;
-            for (const proxyBaseUrl of proxyCandidates) {
-              try {
-                return await originalFetch(
-                  buildProxyUrl(proxyBaseUrl, targetUrl),
-                  init,
-                );
-              } catch (error) {
-                lastError = error;
-              }
+          const patchIframeWindow = () => {
+            try {
+              patchWindowNetworkApis(iframe.contentWindow);
+            } catch (error) {
+              // eslint-disable-next-line no-console
+              console.log('[SNAPS E2E PROXY] Failed to patch iframe', error);
             }
-
-            if (lastError) {
-              return originalFetch(input, init);
-            }
-            return originalFetch(input, init);
           };
+
+          patchIframeWindow();
+          iframe.addEventListener('load', patchIframeWindow);
+        };
+
+        patchWindowNetworkApis(window);
+
+        try {
+          document.querySelectorAll('iframe').forEach((iframe) => {
+            patchIframeElement(iframe);
+          });
+        } catch {
+          // no-op
         }
 
-        const OriginalXHR = window.XMLHttpRequest;
-        if (typeof OriginalXHR === 'function') {
-          window.XMLHttpRequest = function (...args) {
-            const xhr = new OriginalXHR(...args);
-            const originalOpen = xhr.open;
-            xhr.open = function (method, url, ...openArgs) {
-              const targetUrl = toUrlString(url);
-              if (shouldProxyUrl(targetUrl)) {
-                const proxiedUrl = buildProxyUrl(proxyCandidates[0], targetUrl);
-                return originalOpen.call(this, method, proxiedUrl, ...openArgs);
-              }
-              return originalOpen.call(this, method, url, ...openArgs);
-            };
-            return xhr;
-          };
-          try {
-            Object.setPrototypeOf(window.XMLHttpRequest, OriginalXHR);
-            Object.assign(window.XMLHttpRequest, OriginalXHR);
-          } catch (error) {
-            // eslint-disable-next-line no-console
-            console.log('[SNAPS E2E PROXY] Failed to copy XHR properties', error);
-          }
+        try {
+          const observer = new MutationObserver((mutations) => {
+            for (const mutation of mutations) {
+              mutation.addedNodes.forEach((node) => {
+                if (node instanceof HTMLIFrameElement) {
+                  patchIframeElement(node);
+                } else if (
+                  node instanceof HTMLElement &&
+                  typeof node.querySelectorAll === 'function'
+                ) {
+                  node.querySelectorAll('iframe').forEach((iframe) => {
+                    patchIframeElement(iframe);
+                  });
+                }
+              });
+            }
+          });
+          observer.observe(document.documentElement || document.body, {
+            childList: true,
+            subtree: true,
+          });
+        } catch {
+          // no-op
         }
       } catch (error) {
         // eslint-disable-next-line no-console
