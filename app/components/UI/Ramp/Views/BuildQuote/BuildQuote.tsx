@@ -39,8 +39,7 @@ import {
 } from '../../types';
 import Logger from '../../../../../util/Logger';
 import { useParams } from '../../../../../util/navigation/navUtils';
-import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
-import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
+import TruncatedError from '../../components/TruncatedError';
 import { useTransakController } from '../../hooks/useTransakController';
 import { useTransakRouting } from '../../hooks/useTransakRouting';
 import { createV2EnterEmailNavDetails } from '../NativeFlow/EnterEmail';
@@ -423,12 +422,7 @@ function BuildQuote() {
             </View>
           </View>
 
-          {nativeFlowError && (
-            <BannerAlert
-              severity={BannerAlertSeverity.Error}
-              description={nativeFlowError}
-            />
-          )}
+          {nativeFlowError && <TruncatedError error={nativeFlowError} />}
 
           <View style={styles.actionSection}>
             {selectedProvider && (
