@@ -16,7 +16,7 @@ import V2AdditionalVerification from './Views/NativeFlow/AdditionalVerification'
 import UnsupportedTokenModal from './Views/Modals/UnsupportedTokenModal';
 import SettingsModal from './Views/Modals/SettingsModal';
 import PaymentSelectionModal from './Views/Modals/PaymentSelectionModal';
-import TokenUnavailableForProviderModal from './Views/Modals/TokenUnavailableForProviderModal';
+import TokenNotAvailableModal from './Views/Modals/TokenNotAvailableModal';
 import ProviderPickerModal from './Views/Modals/ProviderPickerModal';
 
 const RootStack = createStackNavigator();
@@ -94,8 +94,8 @@ const TokenListModalsRoutes = () => (
       component={PaymentSelectionModal}
     />
     <ModalsStack.Screen
-      name={Routes.RAMP.MODALS.TOKEN_UNAVAILABLE_FOR_PROVIDER}
-      component={TokenUnavailableForProviderModal}
+      name={Routes.RAMP.MODALS.TOKEN_NOT_AVAILABLE}
+      component={TokenNotAvailableModal}
     />
     <ModalsStack.Screen
       name={Routes.RAMP.MODALS.PROVIDER_PICKER}

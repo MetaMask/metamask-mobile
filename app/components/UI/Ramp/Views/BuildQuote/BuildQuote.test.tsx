@@ -1016,7 +1016,7 @@ describe('BuildQuote', () => {
       expect(mockNavigate).toHaveBeenCalledWith(
         'RampModals',
         expect.objectContaining({
-          screen: 'RampTokenUnavailableForProviderModal',
+          screen: 'RampTokenNotAvailableModal',
           params: { assetId: MOCK_ASSET_ID },
         }),
       );
@@ -1041,7 +1041,7 @@ describe('BuildQuote', () => {
       expect(mockNavigate).not.toHaveBeenCalledWith(
         'RampModals',
         expect.objectContaining({
-          screen: 'RampTokenUnavailableForProviderModal',
+          screen: 'RampTokenNotAvailableModal',
         }),
       );
     });
@@ -1062,7 +1062,7 @@ describe('BuildQuote', () => {
       expect(mockNavigate).not.toHaveBeenCalledWith(
         'RampModals',
         expect.objectContaining({
-          screen: 'RampTokenUnavailableForProviderModal',
+          screen: 'RampTokenNotAvailableModal',
         }),
       );
     });
@@ -1075,7 +1075,7 @@ describe('BuildQuote', () => {
       expect(mockNavigate).not.toHaveBeenCalledWith(
         'RampModals',
         expect.objectContaining({
-          screen: 'RampTokenUnavailableForProviderModal',
+          screen: 'RampTokenNotAvailableModal',
         }),
       );
     });
@@ -1100,7 +1100,7 @@ describe('BuildQuote', () => {
       expect(mockNavigate).toHaveBeenCalledWith(
         'RampModals',
         expect.objectContaining({
-          screen: 'RampTokenUnavailableForProviderModal',
+          screen: 'RampTokenNotAvailableModal',
           params: { assetId: MOCK_ASSET_ID },
         }),
       );

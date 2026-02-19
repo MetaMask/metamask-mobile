@@ -41,7 +41,7 @@ const Routes = {
       PAYMENT_SELECTION: 'RampPaymentSelectionModal',
       SETTINGS: 'RampSettingsModal',
       BUILD_QUOTE_SETTINGS: 'RampBuildQuoteSettingsModal',
-      TOKEN_UNAVAILABLE_FOR_PROVIDER: 'RampTokenUnavailableForProviderModal',
+      TOKEN_NOT_AVAILABLE: 'RampTokenNotAvailableModal',
       PROVIDER_PICKER: 'RampProviderPickerModal',
     },
   },

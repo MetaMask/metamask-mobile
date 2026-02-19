@@ -1,6 +1,6 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
-import TokenUnavailableForProviderModal from './TokenUnavailableForProviderModal';
+import TokenNotAvailableModal from './TokenNotAvailableModal';
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import Routes from '../../../../../../constants/navigation/Routes';
@@ -79,7 +79,7 @@ function render(component: React.ComponentType) {
   return renderScreen(
     component,
     {
-      name: Routes.RAMP.MODALS.TOKEN_UNAVAILABLE_FOR_PROVIDER,
+      name: Routes.RAMP.MODALS.TOKEN_NOT_AVAILABLE,
     },
     {
       state: {
@@ -92,7 +92,7 @@ function render(component: React.ComponentType) {
   );
 }
 
-describe('TokenUnavailableForProviderModal', () => {
+describe('TokenNotAvailableModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockSelectedProvider = {
@@ -107,13 +107,13 @@ describe('TokenUnavailableForProviderModal', () => {
   });
 
   it('matches snapshot', () => {
-    const { toJSON } = render(TokenUnavailableForProviderModal);
+    const { toJSON } = render(TokenNotAvailableModal);
 
     expect(toJSON()).toMatchSnapshot();
   });
 
   it('navigates to token selection when Change token is pressed', () => {
-    const { getByText } = render(TokenUnavailableForProviderModal);
+    const { getByText } = render(TokenNotAvailableModal);
 
     fireEvent.press(getByText('Change token'));
 
@@ -127,7 +127,7 @@ describe('TokenUnavailableForProviderModal', () => {
   });
 
   it('navigates to provider picker when Change provider is pressed', () => {
-    const { getByText } = render(TokenUnavailableForProviderModal);
+    const { getByText } = render(TokenNotAvailableModal);
 
     fireEvent.press(getByText('Change provider'));
 
@@ -142,7 +142,7 @@ describe('TokenUnavailableForProviderModal', () => {
   });
 
   it('closes the modal when the close button is pressed', () => {
-    const { getByTestId } = render(TokenUnavailableForProviderModal);
+    const { getByTestId } = render(TokenNotAvailableModal);
     const closeButton = getByTestId('bottomsheetheader-close-button');
 
     fireEvent.press(closeButton);
@@ -154,7 +154,7 @@ describe('TokenUnavailableForProviderModal', () => {
     mockSelectedProvider = null;
     mockSelectedToken = null;
 
-    const { toJSON } = render(TokenUnavailableForProviderModal);
+    const { toJSON } = render(TokenNotAvailableModal);
 
     expect(toJSON()).toMatchSnapshot();
   });

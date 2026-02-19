@@ -44,7 +44,7 @@ import {
   getQuoteBuyUserAgent,
 } from '../../types';
 import Logger from '../../../../../util/Logger';
-import { createTokenUnavailableForProviderModalNavigationDetails } from '../Modals/TokenUnavailableForProviderModal';
+import { createTokenNotAvailableModalNavigationDetails } from '../Modals/TokenNotAvailableModal';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
 import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
@@ -148,7 +148,7 @@ function BuildQuote() {
     if (isTokenUnavailable && !hasShownTokenUnavailableRef.current) {
       hasShownTokenUnavailableRef.current = true;
       navigation.navigate(
-        ...createTokenUnavailableForProviderModalNavigationDetails({
+        ...createTokenNotAvailableModalNavigationDetails({
           assetId: params?.assetId ?? '',
         }),
       );

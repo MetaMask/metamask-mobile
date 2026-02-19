@@ -20,23 +20,23 @@ import {
   useParams,
 } from '../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../constants/navigation/Routes';
-import styleSheet from './TokenUnavailableForProviderModal.styles';
+import styleSheet from './TokenNotAvailableModal.styles';
 import { useStyles } from '../../../../../hooks/useStyles';
 import { useRampsController } from '../../../hooks/useRampsController';
 import { createProviderPickerModalNavigationDetails } from '../ProviderPickerModal';
 
-export interface TokenUnavailableForProviderModalParams {
+export interface TokenNotAvailableModalParams {
   assetId: string;
 }
 
-export const createTokenUnavailableForProviderModalNavigationDetails =
-  createNavigationDetails<TokenUnavailableForProviderModalParams>(
+export const createTokenNotAvailableModalNavigationDetails =
+  createNavigationDetails<TokenNotAvailableModalParams>(
     Routes.RAMP.MODALS.ID,
-    Routes.RAMP.MODALS.TOKEN_UNAVAILABLE_FOR_PROVIDER,
+    Routes.RAMP.MODALS.TOKEN_NOT_AVAILABLE,
   );
 
-function TokenUnavailableForProviderModal() {
-  const { assetId } = useParams<TokenUnavailableForProviderModalParams>();
+function TokenNotAvailableModal() {
+  const { assetId } = useParams<TokenNotAvailableModalParams>();
   const navigation = useNavigation();
   const sheetRef = useRef<BottomSheetRef>(null);
   const { styles } = useStyles(styleSheet, {});
@@ -119,4 +119,4 @@ function TokenUnavailableForProviderModal() {
   );
 }
 
-export default TokenUnavailableForProviderModal;
+export default TokenNotAvailableModal;
