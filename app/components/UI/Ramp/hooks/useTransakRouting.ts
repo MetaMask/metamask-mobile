@@ -26,6 +26,7 @@ import { getTransakEnvironment } from '../../../../core/Engine/controllers/ramps
 import { selectTokens } from '../../../../selectors/rampsController';
 import useRampAccountAddress from './useRampAccountAddress';
 import { parseUserFacingError } from '../utils/parseUserFacingError';
+import { isHttpUnauthorized } from '../utils/isHttpUnauthorized';
 
 interface RampStackParamList {
   RampVerifyIdentity: { quote: TransakBuyQuote };
@@ -526,8 +527,7 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
             throw new Error(strings('deposit.buildQuote.unexpectedError'));
         }
       } catch (error) {
-        const httpError = error as { status?: number };
-        if (httpError.status === 401) {
+        if (isHttpUnauthorized(error)) {
           await logoutFromProvider(false);
           navigation.navigate(Routes.RAMP.ENTER_EMAIL);
           return;
