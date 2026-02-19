@@ -6,6 +6,7 @@ import {
 import type { Hex } from '@metamask/utils';
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
+import { PERPS_MIN_BALANCE_THRESHOLD } from '../constants/perpsConfig';
 import { selectPerpsPayWithAnyTokenAllowlistAssets } from '../selectors/featureFlags';
 import { selectPerpsAccountState } from '../selectors/perpsController';
 import { usePerpsNetwork } from './index';
@@ -24,14 +25,12 @@ export function useDefaultPayWithTokenWhenNoPerpsBalance(): PerpsSelectedPayment
   const currentNetwork = usePerpsNetwork();
   const paymentTokens = usePerpsPaymentTokens();
 
-  const minBalanceThreshold = 0.01;
-
   return useMemo(() => {
     const availableBalance = Number.parseFloat(
       perpsAccount?.availableBalance?.toString() ?? '0',
     );
 
-    if (availableBalance > minBalanceThreshold) {
+    if (availableBalance > PERPS_MIN_BALANCE_THRESHOLD) {
       return null;
     }
     if (!allowlistAssets?.length) {
@@ -52,17 +51,15 @@ export function useDefaultPayWithTokenWhenNoPerpsBalance(): PerpsSelectedPayment
 
     if (allowlistTokens.length === 0) return null;
 
-    const byBalance = [...allowlistTokens].sort((a, b) => {
-      const aFiat = Number.parseFloat(
-        a.balanceFiat?.replace('US$', '').trim() || '0',
-      );
-      const bFiat = Number.parseFloat(
-        b.balanceFiat?.replace('US$', '').trim() || '0',
-      );
-      return bFiat - aFiat;
-    });
+    const tokensWithBalance = allowlistTokens.map((token) => ({
+      ...token,
+      balanceFiat: Number.parseFloat(token.balanceFiat?.replace('US$', '').trim() || '0'),
+    })).sort((a, b) => b.balanceFiat - a.balanceFiat);
 
-    const top = byBalance[0];
+    const top = tokensWithBalance[0];
+
+    if (top.balanceFiat < PERPS_MIN_BALANCE_THRESHOLD) return null;
+
     return {
       address: top.address as Hex,
       chainId: top.chainId as Hex,

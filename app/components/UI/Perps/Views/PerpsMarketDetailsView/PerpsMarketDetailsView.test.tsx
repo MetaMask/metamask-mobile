@@ -101,6 +101,11 @@ jest.mock('../../hooks/stream/usePerpsLiveAccount', () => ({
   usePerpsLiveAccount: mockUsePerpsLiveAccount,
 }));
 
+// Mock useDefaultPayWithTokenWhenNoPerpsBalance to avoid Redux/stream deps in view tests
+jest.mock('../../hooks/useDefaultPayWithTokenWhenNoPerpsBalance', () => ({
+  useDefaultPayWithTokenWhenNoPerpsBalance: jest.fn(() => null),
+}));
+
 // Mock usePerpsMarketFills to avoid Redux selector issues
 jest.mock('../../hooks/usePerpsMarketFills', () => ({
   usePerpsMarketFills: jest.fn(() => ({
