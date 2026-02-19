@@ -16,6 +16,7 @@ import {
   addFiatCustomIdData,
   removeFiatCustomIdData,
   FiatOrder,
+  V2FiatOrderData,
 } from '../../../../../reducers/fiatOrders';
 import {
   FIAT_ORDER_PROVIDERS,
@@ -70,6 +71,8 @@ interface CheckoutParams {
   currency?: string;
   /** V2: crypto currency symbol (e.g., "ETH"). Fallback when the callback order has no cryptoCurrency yet. */
   cryptocurrency?: string;
+  /** V2: the Redux provider type for this order. Defaults to AGGREGATOR. */
+  providerType?: FIAT_ORDER_PROVIDERS;
 }
 
 export const createCheckoutNavDetails = createNavigationDetails<CheckoutParams>(
@@ -101,6 +104,8 @@ function createInitialFiatOrder(params: {
   /** Fallback crypto symbol when rampsOrder.cryptoCurrency is not yet populated. */
   cryptocurrency: string;
   rampsOrder?: RampsOrder;
+  /** The Redux provider type for this order. Defaults to AGGREGATOR. */
+  providerType?: FIAT_ORDER_PROVIDERS;
 }): FiatOrder {
   const {
     providerCode,
@@ -111,6 +116,7 @@ function createInitialFiatOrder(params: {
     currency,
     cryptocurrency,
     rampsOrder,
+    providerType = FIAT_ORDER_PROVIDERS.AGGREGATOR,
   } = params;
 
   const id = `/providers/${providerCode}/orders/${orderId}`;
@@ -160,7 +166,7 @@ function createInitialFiatOrder(params: {
 
   const fiatOrder: FiatOrder = {
     id,
-    provider: FIAT_ORDER_PROVIDERS.AGGREGATOR,
+    provider: providerType,
     createdAt: rampsOrder?.createdAt ?? Date.now(),
     amount: rampsOrder?.fiatAmount ?? 0,
     fee: rampsOrder?.totalFeesFiat ?? 0,
@@ -208,8 +214,8 @@ function createInitialFiatOrder(params: {
       providerOrderId: rampsOrder?.providerOrderId,
       paymentMethod: paymentMethodData,
       // Full V2 response for V2-aware order detail screens.
-      _v2Order: rampsOrder ?? null,
-    } as unknown as FiatOrder['data'],
+      _v2Order: (rampsOrder as unknown as Record<string, unknown>) ?? null,
+    } as V2FiatOrderData,
   };
 
   return fiatOrder;
@@ -238,6 +244,7 @@ const Checkout = () => {
     currency,
     cryptocurrency,
     userAgent,
+    providerType,
   } = params ?? {};
 
   const headerTitle = providerName ?? '';
@@ -327,9 +334,7 @@ const Checkout = () => {
           );
 
         if (!rampsOrder) {
-          throw new Error(
-            `Order could not be retrieved. Callback was ${navState.url}`,
-          );
+          throw new Error('Order could not be retrieved from callback');
         }
 
         if (customIdData) {
@@ -351,6 +356,7 @@ const Checkout = () => {
           currency: currency ?? '',
           cryptocurrency: cryptocurrency ?? '',
           rampsOrder,
+          providerType,
         });
 
         handleOrderCreated(fiatOrder);
@@ -368,6 +374,7 @@ const Checkout = () => {
       customIdData,
       providerCode,
       providerName,
+      providerType,
       walletAddress,
       network,
       currency,
@@ -391,6 +398,23 @@ const Checkout = () => {
     [],
   );
 
+  const sharedHeader = (
+    <BottomSheetHeader
+      endAccessory={
+        <ButtonIcon
+          iconName={IconName.Close}
+          size={ButtonIconSizes.Lg}
+          iconColor={IconColor.Default}
+          testID="checkout-close-button"
+          onPress={handleClosePress}
+        />
+      }
+      style={styles.headerWithoutPadding}
+    >
+      {headerTitle}
+    </BottomSheetHeader>
+  );
+
   if (error) {
     return (
       <BottomSheet
@@ -399,20 +423,7 @@ const Checkout = () => {
         isFullscreen
         keyboardAvoidingViewEnabled={false}
       >
-        <BottomSheetHeader
-          endAccessory={
-            <ButtonIcon
-              iconName={IconName.Close}
-              size={ButtonIconSizes.Lg}
-              iconColor={IconColor.Default}
-              testID="checkout-close-button"
-              onPress={handleClosePress}
-            />
-          }
-          style={styles.headerWithoutPadding}
-        >
-          {headerTitle}
-        </BottomSheetHeader>
+        {sharedHeader}
         <ScreenLayout>
           <ScreenLayout.Body>
             <ErrorView
@@ -439,20 +450,7 @@ const Checkout = () => {
         isInteractable={!Device.isAndroid()}
         keyboardAvoidingViewEnabled={false}
       >
-        <BottomSheetHeader
-          endAccessory={
-            <ButtonIcon
-              iconName={IconName.Close}
-              size={ButtonIconSizes.Lg}
-              iconColor={IconColor.Default}
-              testID="checkout-close-button"
-              onPress={handleClosePress}
-            />
-          }
-          style={styles.headerWithoutPadding}
-        >
-          {headerTitle}
-        </BottomSheetHeader>
+        {sharedHeader}
         <WebView
           key={key}
           style={styles.webview}
@@ -497,20 +495,7 @@ const Checkout = () => {
       isFullscreen
       keyboardAvoidingViewEnabled={false}
     >
-      <BottomSheetHeader
-        endAccessory={
-          <ButtonIcon
-            iconName={IconName.Close}
-            size={ButtonIconSizes.Lg}
-            iconColor={IconColor.Default}
-            testID="checkout-close-button"
-            onPress={handleClosePress}
-          />
-        }
-        style={styles.headerWithoutPadding}
-      >
-        {headerTitle}
-      </BottomSheetHeader>
+      {sharedHeader}
       <ScreenLayout>
         <ScreenLayout.Body>
           <ErrorView

@@ -37,6 +37,7 @@ import {
   getQuoteBuyUserAgent,
 } from '../../types';
 import { createDepositNavigationDetails } from '../../Deposit/routes/utils';
+import { FIAT_ORDER_PROVIDERS } from '../../../../../constants/on-ramp';
 import Logger from '../../../../../util/Logger';
 
 export interface BuildQuoteParams {
@@ -261,6 +262,7 @@ function BuildQuote() {
               selectedProvider?.name || getQuoteProviderName(selectedQuote),
             userAgent: getQuoteBuyUserAgent(selectedQuote),
             providerCode,
+            providerType: FIAT_ORDER_PROVIDERS.AGGREGATOR,
             walletAddress: walletAddress ?? undefined,
             network,
             currency,

@@ -5,13 +5,14 @@ import type {
 } from '@metamask/ramps-controller';
 import { FIAT_ORDER_STATES } from '../../../../constants/on-ramp';
 import Logger from '../../../../util/Logger';
-import { FiatOrder } from '../../../../reducers/fiatOrders';
+import { FiatOrder, V2FiatOrderData } from '../../../../reducers/fiatOrders';
 import AppConstants from '../../../../core/AppConstants';
 import Engine from '../../../../core/Engine';
 import type { ProcessorOptions } from '../index';
 
 export const POLLING_FREQUENCY = AppConstants.FIAT_ORDERS.POLLING_FREQUENCY;
 export const POLLING_FREQUENCY_IN_SECONDS = POLLING_FREQUENCY / 1000;
+export const MAX_ERROR_COUNT = 5;
 
 /**
  * Maps a V2 unified order status string to a FiatOrder state.
@@ -219,8 +220,8 @@ function rampsOrderToFiatOrder(
       providerOrderId: rampsOrder.providerOrderId,
       paymentMethod: paymentMethodData,
       // Full V2 response for V2-aware order detail screens.
-      _v2Order: rampsOrder,
-    } as unknown as FiatOrder['data'],
+      _v2Order: rampsOrder as unknown as Record<string, unknown>,
+    } as V2FiatOrderData,
   };
 }
 
@@ -281,12 +282,14 @@ export async function processUnifiedOrder(
       throw new Error('Order not found');
     }
 
-    // Handle unknown status: increment error count and wait for retry
+    // Handle unknown status: increment error count and wait for retry.
+    // Cap at MAX_ERROR_COUNT to prevent the exponential backoff from growing
+    // indefinitely and making the order unresponsive.
     if (options?.forced !== true && updatedOrder.status === 'UNKNOWN') {
       return {
         ...order,
         lastTimeFetched: Date.now(),
-        errorCount: (order.errorCount || 0) + 1,
+        errorCount: Math.min((order.errorCount || 0) + 1, MAX_ERROR_COUNT),
       };
     }
 
@@ -296,7 +299,7 @@ export async function processUnifiedOrder(
       ...order,
       ...transformedOrder,
       id: order.id,
-      network: transformedOrder.network || order.network,
+      network: order.network || transformedOrder.network,
       account: order.account || transformedOrder.account,
       lastTimeFetched: now,
       errorCount: 0,

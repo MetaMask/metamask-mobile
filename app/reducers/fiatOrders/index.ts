@@ -23,7 +23,7 @@ import {
 import type { RootState } from '../';
 import { getDecimalChainId } from '../../util/networks';
 
-export type { FiatOrder } from './types';
+export type { FiatOrder, V2FiatOrderData } from './types';
 export { UnifiedRampRoutingType } from './types';
 
 /** Action Creators */
