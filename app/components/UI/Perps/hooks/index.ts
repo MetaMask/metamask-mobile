@@ -43,7 +43,6 @@ export { useWithdrawTokens } from './useWithdrawTokens';
 export { useWithdrawValidation } from './useWithdrawValidation';
 
 // Payment tokens hook
-export { useDefaultPayWithTokenWhenNoPerpsBalance } from './useDefaultPayWithTokenWhenNoPerpsBalance';
 export { usePerpsPaymentTokens } from './usePerpsPaymentTokens';
 export { usePerpsPaymentToken } from './usePerpsPaymentToken';
 export {

@@ -1,6 +1,6 @@
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { useNavigation } from '@react-navigation/native';
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import { StyleSheet, TouchableOpacity } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Badge, {
@@ -43,7 +43,6 @@ import {
   PERPS_BALANCE_PLACEHOLDER_ADDRESS,
 } from '../../constants/perpsConfig';
 import { PERPS_BALANCE_ICON_URI } from '../../hooks/usePerpsBalanceTokenFilter';
-import { useDefaultPayWithTokenWhenNoPerpsBalance } from '../../hooks/useDefaultPayWithTokenWhenNoPerpsBalance';
 import {
   useIsPerpsBalanceSelected,
   usePerpsPayWithToken,
@@ -117,87 +116,41 @@ export const PerpsPayRow = ({
     selectPendingTradeConfiguration(state, initialAsset),
   );
   const selectedPaymentToken = usePerpsPayWithToken();
-  const defaultPayWhenNoPerpsBalance =
-    useDefaultPayWithTokenWhenNoPerpsBalance();
 
   const pendingConfigSelectedPaymentToken = pendingConfig?.selectedPaymentToken;
 
-  // Track which pending config we've already applied so we don't overwrite the user's
-  // in-session token selection. Apply pending config only on initial load or when
-  // switching asset; otherwise switching tokens in the Pay With modal would flip back.
-  const appliedPendingTokenRef = useRef<
-    { address: string; chainId: string } | null | undefined
-  >(undefined);
-  const prevInitialAssetRef = useRef(initialAsset);
-  if (prevInitialAssetRef.current !== initialAsset) {
-    prevInitialAssetRef.current = initialAsset;
-    appliedPendingTokenRef.current = undefined;
-  }
-
   useEffect(() => {
-    if (pendingConfigSelectedPaymentToken != null) return;
-
-    const tokenToSet = defaultPayWhenNoPerpsBalance ?? null;
-    const alreadyApplied =
-      appliedPendingTokenRef.current !== undefined &&
-      ((appliedPendingTokenRef.current === null && tokenToSet === null) ||
-        (appliedPendingTokenRef.current !== null &&
-          tokenToSet !== null &&
-          appliedPendingTokenRef.current.address === tokenToSet.address &&
-          appliedPendingTokenRef.current.chainId === tokenToSet.chainId));
-    if (alreadyApplied) return;
-
-    appliedPendingTokenRef.current =
-      tokenToSet === null
-        ? null
-        : {
-            address: tokenToSet.address,
-            chainId: tokenToSet.chainId,
-          };
-    Engine.context.PerpsController?.setSelectedPaymentToken?.(tokenToSet);
-    if (tokenToSet) {
-      setPayToken({
-        address: tokenToSet.address,
-        chainId: tokenToSet.chainId,
-      });
+    if (!pendingConfigSelectedPaymentToken) {
+      Engine.context.PerpsController?.setSelectedPaymentToken?.(null);
     }
-  }, [pendingConfigSelectedPaymentToken, defaultPayWhenNoPerpsBalance, setPayToken]);
+  }, [pendingConfigSelectedPaymentToken]);
 
   useEffect(() => {
-    if (!pendingConfigSelectedPaymentToken || !selectedPaymentToken) return;
-
-    const pendingAddr = pendingConfigSelectedPaymentToken.address;
-    const pendingChainId = pendingConfigSelectedPaymentToken.chainId;
-    const alreadyApplied =
-      appliedPendingTokenRef.current !== undefined &&
-      (appliedPendingTokenRef.current === null
-        ? false
-        : appliedPendingTokenRef.current.address === pendingAddr &&
-          appliedPendingTokenRef.current.chainId === pendingChainId);
-    if (alreadyApplied) return;
+    if (!pendingConfigSelectedPaymentToken || !selectedPaymentToken) {
+      return;
+    }
 
     if (
-      payToken?.address !== pendingAddr ||
-      payToken?.chainId !== pendingChainId
+      payToken?.address !== pendingConfigSelectedPaymentToken?.address ||
+      payToken?.chainId !== pendingConfigSelectedPaymentToken?.chainId
     ) {
       setPayToken({
-        address: pendingAddr as Hex,
-        chainId: pendingChainId as Hex,
+        address: pendingConfigSelectedPaymentToken.address as Hex,
+        chainId: pendingConfigSelectedPaymentToken.chainId as Hex,
       });
+
       Engine.context.PerpsController?.setSelectedPaymentToken?.({
         description: pendingConfigSelectedPaymentToken.description,
-        address: pendingAddr as Hex,
-        chainId: pendingChainId as Hex,
+        address: pendingConfigSelectedPaymentToken.address as Hex,
+        chainId: pendingConfigSelectedPaymentToken.chainId as Hex,
       });
     }
-    appliedPendingTokenRef.current = {
-      address: pendingAddr,
-      chainId: pendingChainId,
-    };
   }, [
     payToken,
     pendingConfigSelectedPaymentToken,
     setPayToken,
+    pendingConfig,
+    initialAsset,
     selectedPaymentToken,
   ]);
 
