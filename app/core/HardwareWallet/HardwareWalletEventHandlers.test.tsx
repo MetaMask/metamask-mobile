@@ -567,18 +567,18 @@ describe('useDeviceEventHandlers', () => {
   });
 
   describe('ConnectionFailed without error', () => {
-    it('still resets isConnecting flag', () => {
+    it('transitions to disconnected and resets isConnecting flag', () => {
       mockRefs.isConnectingRef.current = true;
+      lastConnectionState = { status: ConnectionStatus.Connecting };
       const { result } = createHook();
 
       act(() => {
         result.current.handleDeviceEvent({
           event: DeviceEvent.ConnectionFailed,
-          // No error provided
         });
       });
 
-      // isConnecting should be reset
+      expect(lastConnectionState.status).toBe(ConnectionStatus.Disconnected);
       expect(mockRefs.isConnectingRef.current).toBe(false);
     });
   });

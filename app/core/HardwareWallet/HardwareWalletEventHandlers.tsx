@@ -158,6 +158,8 @@ export const useDeviceEventHandlers = ({
         case DeviceEvent.ConnectionFailed:
           if (payload.error) {
             handleError(payload.error);
+          } else {
+            updateConnectionState({ status: ConnectionStatus.Disconnected });
           }
           refs.isConnectingRef.current = false;
           break;
