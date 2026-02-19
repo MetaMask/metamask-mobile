@@ -22,23 +22,16 @@ jest.mock('@react-navigation/native', () => ({
 }));
 jest.mock('../../hooks/usePredictPositions');
 jest.mock('../../hooks/usePredictActionGuard');
-jest.mock('../../hooks/useLivePositions', () => ({
-  useLivePositions: jest.fn((positions: unknown[]) => ({
+jest.mock('../../hooks/usePredictLivePositions', () => ({
+  usePredictLivePositions: jest.fn((positions: unknown[]) => ({
     livePositions: positions ?? [],
     isConnected: false,
     lastUpdateTime: null,
   })),
 }));
-jest.mock('../../hooks/usePredictOptimisticPositionRefresh', () => ({
-  usePredictOptimisticPositionRefresh: jest.fn(
-    ({ position }: { position: unknown }) => position,
-  ),
-}));
 jest.mock('../../utils/format');
 
-const mockUsePredictPositions = usePredictPositions as jest.MockedFunction<
-  typeof usePredictPositions
->;
+const mockUsePredictPositions = usePredictPositions as jest.Mock;
 const mockUsePredictActionGuard = usePredictActionGuard as jest.MockedFunction<
   typeof usePredictActionGuard
 >;
@@ -62,11 +55,11 @@ const setupPositionsMock = (config: MockPositionsConfig = {}) => {
   } = config;
 
   mockUsePredictPositions.mockImplementation((options) => ({
-    positions: options?.claimable ? claimablePositions : livePositions,
+    data: options?.claimable ? claimablePositions : livePositions,
     isLoading,
-    isRefreshing,
+    isRefetching: isRefreshing,
     error,
-    loadPositions: jest.fn(),
+    refetch: jest.fn(),
   }));
 };
 
@@ -404,7 +397,8 @@ describe('PredictPicks', () => {
 
       expect(mockUsePredictPositions).toHaveBeenCalledWith({
         marketId: 'specific-market-123',
-        autoRefreshTimeout: 10000,
+        claimable: false,
+        refetchInterval: 10000,
       });
     });
 
@@ -423,14 +417,14 @@ describe('PredictPicks', () => {
       });
     });
 
-    it('passes autoRefreshTimeout of 10000ms to hook', () => {
+    it('passes refetchInterval of 10000ms to hook', () => {
       setupPositionsMock();
 
       render(<PredictPicks market={createMockMarket()} />);
 
       expect(mockUsePredictPositions).toHaveBeenCalledWith(
         expect.objectContaining({
-          autoRefreshTimeout: 10000,
+          refetchInterval: 10000,
         }),
       );
     });

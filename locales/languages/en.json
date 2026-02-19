@@ -3395,6 +3395,7 @@
     "sell_description": "Sell crypto for cash"
   },
   "asset_overview": {
+    "market_closed": "Market closed",
     "send_button": "Send",
     "buy_button": "Buy",
     "cash_buy_button": "Cash Buy",
@@ -6471,6 +6472,13 @@
     "minimum_received": "Minimum received",
     "minimum_received_tooltip_title": "Minimum received",
     "minimum_received_tooltip_content": "The minimum amount you'll receive if the price changes while your transaction is processing, based on your slippage tolerance. This is an estimate from our liquidity providers. Final amounts may differ.",
+    "market_closed": {
+      "title": "Market is closed",
+      "description": "The market that backs this token is currently closed. Tokens can be transferred on-chain at any time.",
+      "learn_more": "Learn more",
+      "learn_more_url": "https://status.ondo.finance/market",
+      "done": "Done"
+    },
     "submit": "Submit",
     "default_slippage_description": "Your transaction won't go through if the price changes more than the slippage percent.",
     "cancel": "Cancel",
@@ -7722,5 +7730,14 @@
     "description_android": "We've made some important fixes. Close and reopen MetaMask to apply the update.",
     "primary_action_reload": "Reload",
     "primary_action_acknowledge": "Got it"
+  },
+  "homepage": {
+    "sections": {
+      "tokens": "Tokens",
+      "perpetuals": "Perpetuals",
+      "predictions": "Predictions",
+      "defi": "DeFi",
+      "nfts": "NFTs"
+    }
   }
 }

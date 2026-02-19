@@ -40,7 +40,7 @@ import { toChecksumHexAddress } from '@metamask/controller-utils';
 // Internal dependencies
 import styleSheet from './EditAccountName.styles';
 import { getDecimalChainId } from '../../../util/networks';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 
 interface RootNavigationParamList extends ParamListBase {
   EditAccountName: {
@@ -57,7 +57,7 @@ const EditAccountName = () => {
   const route = useRoute<EditAccountNameRouteProp>();
   const { selectedAccount } = route.params;
   const { colors } = useTheme();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const { styles } = useStyles(styleSheet, {});
   const { setOptions, goBack, navigate } = useNavigation();
   const [accountName, setAccountName] = useState<string>();
