@@ -1,6 +1,6 @@
-import '../../../../../../util/test/component-view/mocks';
-import { renderComponentViewScreen } from '../../../../../../util/test/component-view/render';
-import { initialStateWallet } from '../../../../../../util/test/component-view/presets/wallet';
+import '../../../../../../../tests/component-view/mocks';
+import { renderComponentViewScreen } from '../../../../../../../tests/component-view/render';
+import { initialStateWallet } from '../../../../../../../tests/component-view/presets/wallet';
 import { describeForPlatforms } from '../../../../../../util/test/platform';
 import React from 'react';
 import { View } from 'react-native';

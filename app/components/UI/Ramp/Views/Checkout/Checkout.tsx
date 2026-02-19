@@ -30,6 +30,8 @@ interface CheckoutParams {
   providerName: string;
   /** Optional provider-specific userAgent for the WebView (e.g. features.buy.userAgent). */
   userAgent?: string;
+  /** Optional callback invoked on every navigation state change (e.g. to intercept redirect URLs). */
+  onNavigationStateChange?: (navState: { url: string }) => void;
 }
 
 export const createCheckoutNavDetails = createNavigationDetails<CheckoutParams>(
@@ -43,7 +45,12 @@ const Checkout = () => {
   const params = useParams<CheckoutParams>();
   const { styles } = useStyles(styleSheet, {});
 
-  const { url: uri, providerName, userAgent } = params ?? {};
+  const {
+    url: uri,
+    providerName,
+    userAgent,
+    onNavigationStateChange,
+  } = params ?? {};
   const headerTitle = providerName ?? '';
   const initialUriRef = useRef(uri);
 
@@ -153,6 +160,7 @@ const Checkout = () => {
           paymentRequestEnabled
           mediaPlaybackRequiresUserAction={false}
           onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
+          onNavigationStateChange={onNavigationStateChange}
           testID="checkout-webview"
         />
       </BottomSheet>
