@@ -1,7 +1,7 @@
 source 'https://rubygems.org'
 
 # Recommended to use http://rbenv.org/ to install and use this version
-ruby '>= 3.2.5'
+ruby '>= 3.2.9'
 
 # Allow minor version updates up to but excluding 2.0.0
 gem 'cocoapods', '1.16.2'
