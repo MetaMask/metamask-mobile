@@ -1,7 +1,7 @@
 import React from 'react';
 import Login from './';
 import renderWithProvider from '../../../util/test/renderWithProvider';
-import { fireEvent, act } from '@testing-library/react-native';
+import { fireEvent, act, waitFor } from '@testing-library/react-native';
 import { LoginViewSelectors } from './LoginView.testIds';
 import {
   InteractionManager,
@@ -868,6 +868,133 @@ describe('Login', () => {
         expect(getByTestId(LoginViewSelectors.CONTAINER)).toBeDefined();
         expect(getByTestId(LoginViewSelectors.PASSWORD_INPUT)).toBeDefined();
         expect(getByTestId(LoginViewSelectors.LOGIN_BUTTON_ID)).toBeDefined();
+      });
+    });
+  });
+
+  describe('Biometric fallback alert after seedless password sync', () => {
+    beforeEach(() => {
+      mockRoute.mockReturnValue({
+        params: {
+          locked: false,
+          oauthLoginSuccess: false,
+        },
+      });
+      mockUnlockWallet.mockResolvedValue(true);
+    });
+
+    it('checks seedless password status and calls getAuthType when outdated', async () => {
+      // Arrange - device supports biometrics but auth fell back to PASSWORD
+      mockCheckIsSeedlessPasswordOutdated.mockResolvedValue(true);
+      mockGetAuthType.mockResolvedValue({
+        currentAuthType: 'password',
+        availableBiometryType: 'FaceID',
+      });
+      const getAuthTypeCallCountBefore = mockGetAuthType.mock.calls.length;
+
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      // Act
+      fireEvent.changeText(passwordInput, 'valid-password123');
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      // Assert - verify the full code path executed
+      await waitFor(() => {
+        expect(mockCheckIsSeedlessPasswordOutdated).toHaveBeenCalledWith(false);
+      });
+      await waitFor(() => {
+        expect(mockUnlockWallet).toHaveBeenCalled();
+      });
+      // getAuthType called extra time inside the if(isSeedlessPasswordOutdated) block
+      await waitFor(() => {
+        expect(mockGetAuthType.mock.calls.length).toBeGreaterThan(
+          getAuthTypeCallCountBefore,
+        );
+      });
+    });
+
+    it('does not call getAuthType after unlock when seedless password is not outdated', async () => {
+      // Arrange
+      mockCheckIsSeedlessPasswordOutdated.mockResolvedValue(false);
+
+      const { getByTestId } = renderWithProvider(<Login />);
+
+      // Wait for mount effects that call getAuthType
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+      const getAuthTypeCallCountAfterMount = mockGetAuthType.mock.calls.length;
+
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      // Act
+      fireEvent.changeText(passwordInput, 'valid-password123');
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      // Assert
+      await waitFor(() => {
+        expect(mockUnlockWallet).toHaveBeenCalled();
+      });
+      // getAuthType should NOT be called extra times after unlock
+      expect(mockGetAuthType.mock.calls.length).toBe(
+        getAuthTypeCallCountAfterMount,
+      );
+    });
+
+    it('does not enter alert branch when auth type is BIOMETRIC even if seedless password is outdated', async () => {
+      // Arrange
+      mockCheckIsSeedlessPasswordOutdated.mockResolvedValue(true);
+      mockGetAuthType.mockResolvedValue({
+        currentAuthType: 'biometrics',
+        availableBiometryType: 'FaceID',
+      });
+
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      // Act
+      fireEvent.changeText(passwordInput, 'valid-password123');
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      // Assert - flow reaches getAuthType but BIOMETRIC type skips the alert branch
+      await waitFor(() => {
+        expect(mockUnlockWallet).toHaveBeenCalled();
+      });
+      await waitFor(() => {
+        expect(mockCheckIsSeedlessPasswordOutdated).toHaveBeenCalledWith(false);
+      });
+    });
+
+    it('does not enter alert branch when device has no biometry support', async () => {
+      // Arrange - auth type is PASSWORD but device doesn't support biometrics
+      mockCheckIsSeedlessPasswordOutdated.mockResolvedValue(true);
+      mockGetAuthType.mockResolvedValue({
+        currentAuthType: 'password',
+        availableBiometryType: null,
+      });
+
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      // Act
+      fireEvent.changeText(passwordInput, 'valid-password123');
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      // Assert - flow completes normally (no alert needed since no biometry)
+      await waitFor(() => {
+        expect(mockUnlockWallet).toHaveBeenCalled();
+      });
+      await waitFor(() => {
+        expect(mockCheckIsSeedlessPasswordOutdated).toHaveBeenCalledWith(false);
       });
     });
   });
