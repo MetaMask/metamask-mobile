@@ -205,6 +205,14 @@ class BrowserPlaygroundDapp {
     return this._getByTestId('solana-address-container');
   }
 
+  get solanaSignMessageButton() {
+    return this._getByTestId('solana-btn-sign-message');
+  }
+
+  get solanaSignedMessageResult() {
+    return this._getByTestId('solana-signed-message-result');
+  }
+
   // ============================================================
   // MULTICHAIN / SCOPE CARD SELECTORS
   // ============================================================
@@ -338,6 +346,12 @@ class BrowserPlaygroundDapp {
   async tapSolanaDisconnect() {
     if (!this._device) return;
     const element = await this.solanaDisconnectButton;
+    await AppwrightGestures.tap(element);
+  }
+
+  async tapSolanaSignMessage() {
+    if (!this._device) return;
+    const element = await this.solanaSignMessageButton;
     await AppwrightGestures.tap(element);
   }
 
@@ -530,6 +544,18 @@ class BrowserPlaygroundDapp {
       const text = await addressElement.getText();
       expect(text.toLowerCase()).toContain(expectedAddress);
     }
+
+  /**
+   * Assert Solana signed message result contains expected value
+   * @param {string} expectedValue - Expected signature or part of the signed message result
+   */
+  async assertSolanaSignedMessageResult(expectedValue) {
+    if (!this._device) return;
+    const resultElement = await this.solanaSignedMessageResult;
+    await expect(resultElement).toBeVisible({ timeout: 10000 });
+    const text = await resultElement.getText();
+    expect(text).toContain(expectedValue);
+  }
 
   // ============================================================
   // MULTICHAIN ASSERTIONS
