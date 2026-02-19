@@ -79,6 +79,7 @@ const defaultCapabilities = {
   isBiometricsAvailable: true,
   passcodeAvailable: true,
   authLabel: 'Face ID',
+  authDescription: '',
   osAuthEnabled: false,
   allowLoginWithRememberMe: false,
   authType: AUTHENTICATION_TYPE.PASSWORD,

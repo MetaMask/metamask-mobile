@@ -644,6 +644,11 @@ class AuthenticationService {
         supportedBiometricTypes,
       });
 
+      const authDescription =
+        authLabel === 'Device Authentication'
+          ? strings('app_settings.enable_device_authentication_desc')
+          : undefined;
+
       // Device auth cannot be used until user changes device settings
       const deviceAuthRequiresSettings =
         (legacyUserChoseBiometrics && !isBiometricsAvailable) ||
@@ -654,6 +659,7 @@ class AuthenticationService {
         isBiometricsAvailable,
         passcodeAvailable,
         authLabel,
+        authDescription,
         osAuthEnabled,
         allowLoginWithRememberMe,
         authType,
@@ -665,6 +671,7 @@ class AuthenticationService {
         isBiometricsAvailable: false,
         passcodeAvailable: false,
         authLabel: '',
+        authDescription: '',
         osAuthEnabled,
         allowLoginWithRememberMe,
         authType: AUTHENTICATION_TYPE.PASSWORD,

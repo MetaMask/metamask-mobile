@@ -7,11 +7,6 @@ export const createStyles = ({ theme: { colors } }: { theme: Theme }) =>
     fixCenterIcon: {
       marginBottom: -3,
     },
-    image: {
-      height: 24,
-      width: 24,
-      tintColor: colors.text.default,
-    },
     hitSlop: {
       top: 10,
       left: 10,

@@ -30,6 +30,8 @@ export interface AuthCapabilities {
   passcodeAvailable: boolean;
   /** Human-readable label for the available device auth tier (e.g. "Face ID", "Device Passcode"). Reflects what the device supports, not the current authType, so the toggle can show the right label when osAuthEnabled is false. */
   authLabel: string;
+  /** Description for the available authentication type */
+  authDescription: string;
   /** Whether the OS-level authentication is enabled (from user preference in Redux) */
   osAuthEnabled: boolean;
   /** Whether Remember Me is enabled (from user preference in Redux) */

@@ -4726,6 +4726,7 @@ describe('Authentication', () => {
           passcodeAvailable: true,
           deviceAuthRequiresSettings: false,
           authLabel: expect.any(String),
+          authDescription: undefined,
           osAuthEnabled,
           allowLoginWithRememberMe,
           authType: AUTHENTICATION_TYPE.REMEMBER_ME,
@@ -4768,6 +4769,7 @@ describe('Authentication', () => {
           passcodeAvailable: true,
           deviceAuthRequiresSettings: false,
           authLabel: expect.any(String),
+          authDescription: 'app_settings.enable_device_authentication_desc',
           osAuthEnabled,
           allowLoginWithRememberMe,
           authType: AUTHENTICATION_TYPE.BIOMETRIC,
@@ -4787,6 +4789,7 @@ describe('Authentication', () => {
           passcodeAvailable: true,
           deviceAuthRequiresSettings: false,
           authLabel: expect.any(String),
+          authDescription: 'app_settings.enable_device_authentication_desc',
           osAuthEnabled,
           allowLoginWithRememberMe,
           authType: AUTHENTICATION_TYPE.PASSWORD,
@@ -4816,6 +4819,7 @@ describe('Authentication', () => {
           passcodeAvailable: true,
           deviceAuthRequiresSettings: false,
           authLabel: expect.any(String),
+          authDescription: 'app_settings.enable_device_authentication_desc',
           osAuthEnabled,
           allowLoginWithRememberMe,
           authType: AUTHENTICATION_TYPE.PASSCODE,
@@ -4835,6 +4839,7 @@ describe('Authentication', () => {
           passcodeAvailable: true,
           deviceAuthRequiresSettings: false,
           authLabel: expect.any(String),
+          authDescription: 'app_settings.enable_device_authentication_desc',
           osAuthEnabled,
           allowLoginWithRememberMe,
           authType: AUTHENTICATION_TYPE.PASSWORD,
@@ -4856,6 +4861,7 @@ describe('Authentication', () => {
         });
 
         expect(resultEnabled.authType).toBe(AUTHENTICATION_TYPE.PASSWORD);
+        expect(resultEnabled.authDescription).toBeUndefined();
       });
 
       it('sets deviceAuthRequiresSettings to true when no device auth available', async () => {
@@ -4865,6 +4871,7 @@ describe('Authentication', () => {
         });
 
         expect(result.deviceAuthRequiresSettings).toBe(true);
+        expect(result.authDescription).toBeUndefined();
       });
     });
 
@@ -4884,6 +4891,7 @@ describe('Authentication', () => {
           passcodeAvailable: false,
           deviceAuthRequiresSettings: true,
           authLabel: '',
+          authDescription: '',
           osAuthEnabled,
           allowLoginWithRememberMe,
           authType: AUTHENTICATION_TYPE.PASSWORD,
