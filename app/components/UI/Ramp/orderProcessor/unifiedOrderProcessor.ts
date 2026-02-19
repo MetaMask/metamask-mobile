@@ -1,7 +1,7 @@
 import type {
+  Provider,
   RampsOrder,
   RampsOrderFiatCurrency,
-  RampsOrderProvider,
 } from '@metamask/ramps-controller';
 import { FIAT_ORDER_STATES } from '../../../../constants/on-ramp';
 import Logger from '../../../../util/Logger';
@@ -79,10 +79,10 @@ function getFiatCurrencyDenomSymbol(
 
 function getProviderData(
   provider: RampsOrder['provider'],
-): RampsOrderProvider | undefined {
+): Partial<Provider> | undefined {
   if (!provider) return undefined;
   if (typeof provider === 'string') return { id: provider };
-  return provider as RampsOrderProvider;
+  return provider;
 }
 
 function getPaymentMethodData(
@@ -126,7 +126,7 @@ function extractProviderAndOrderCode(order: FiatOrder): {
   let providerCode = '';
 
   if (data?.provider) {
-    const provider = data.provider as string | RampsOrderProvider;
+    const provider = data.provider as string | Partial<Provider>;
     if (typeof provider === 'string') {
       providerCode = provider;
     } else if (provider.id) {
