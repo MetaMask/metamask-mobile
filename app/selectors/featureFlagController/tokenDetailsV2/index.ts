@@ -34,9 +34,8 @@ export const selectTokenDetailsLayoutTestVariant = createSelector(
       return null;
     }
 
-    // Version-gated JSON { variant, minimumVersion }
-    if (typeof remoteFlag === 'object' && 'variant' in remoteFlag) {
-      const { variant, minimumVersion } = remoteFlag as {
+    if (typeof remoteFlag === 'object' && 'value' in remoteFlag) {
+      const { variant, minimumVersion } = remoteFlag.value as {
         variant: unknown;
         minimumVersion: unknown;
       };

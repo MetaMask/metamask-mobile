@@ -19,8 +19,7 @@ describe('selectTokenDetailsLayoutTestVariant', () => {
   it('returns "treatment" for a valid treatment flag', () => {
     const result = selectTokenDetailsLayoutTestVariant.resultFunc({
       tokenDetailsV2AbTest: {
-        variant: 'treatment',
-        minimumVersion: '7.66.0',
+        value: { variant: 'treatment', minimumVersion: '7.66.0' },
       },
     });
     expect(result).toBe('treatment');
@@ -29,8 +28,7 @@ describe('selectTokenDetailsLayoutTestVariant', () => {
   it('returns "control" for a valid control flag', () => {
     const result = selectTokenDetailsLayoutTestVariant.resultFunc({
       tokenDetailsV2AbTest: {
-        variant: 'control',
-        minimumVersion: '7.66.0',
+        value: { variant: 'control', minimumVersion: '7.66.0' },
       },
     });
     expect(result).toBe('control');
@@ -40,8 +38,7 @@ describe('selectTokenDetailsLayoutTestVariant', () => {
     jest.mocked(hasMinimumRequiredVersion).mockReturnValue(false);
     const result = selectTokenDetailsLayoutTestVariant.resultFunc({
       tokenDetailsV2AbTest: {
-        variant: 'treatment',
-        minimumVersion: '99.0.0',
+        value: { variant: 'treatment', minimumVersion: '99.0.0' },
       },
     });
     expect(result).toBeNull();
@@ -62,8 +59,7 @@ describe('selectTokenDetailsLayoutTestVariant', () => {
   it('returns null for an invalid variant string', () => {
     const result = selectTokenDetailsLayoutTestVariant.resultFunc({
       tokenDetailsV2AbTest: {
-        variant: 'unknown_variant',
-        minimumVersion: '7.66.0',
+        value: { variant: 'unknown_variant', minimumVersion: '7.66.0' },
       },
     });
     expect(result).toBeNull();
@@ -72,8 +68,7 @@ describe('selectTokenDetailsLayoutTestVariant', () => {
   it('returns null when variant is not a string', () => {
     const result = selectTokenDetailsLayoutTestVariant.resultFunc({
       tokenDetailsV2AbTest: {
-        variant: 123,
-        minimumVersion: '7.66.0',
+        value: { variant: 123, minimumVersion: '7.66.0' },
       },
     });
     expect(result).toBeNull();
@@ -96,8 +91,7 @@ describe('selectTokenDetailsLayoutTestVariant', () => {
   it('skips version check when minimumVersion is not a string', () => {
     const result = selectTokenDetailsLayoutTestVariant.resultFunc({
       tokenDetailsV2AbTest: {
-        variant: 'treatment',
-        minimumVersion: 123,
+        value: { variant: 'treatment', minimumVersion: 123 },
       },
     });
     expect(hasMinimumRequiredVersion).not.toHaveBeenCalled();
@@ -107,10 +101,17 @@ describe('selectTokenDetailsLayoutTestVariant', () => {
   it('returns variant when minimumVersion is absent', () => {
     const result = selectTokenDetailsLayoutTestVariant.resultFunc({
       tokenDetailsV2AbTest: {
-        variant: 'control',
+        value: { variant: 'control' },
       },
     });
     expect(hasMinimumRequiredVersion).not.toHaveBeenCalled();
     expect(result).toBe('control');
+  });
+
+  it('returns null when value property is missing from flag object', () => {
+    const result = selectTokenDetailsLayoutTestVariant.resultFunc({
+      tokenDetailsV2AbTest: { name: 'Control is ON' },
+    });
+    expect(result).toBeNull();
   });
 });
