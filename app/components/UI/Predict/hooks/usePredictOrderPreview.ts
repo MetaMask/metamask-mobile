@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Logger from '../../../../util/Logger';
-import { OrderPreview, PreviewOrderParams } from '../providers/types';
+import { OrderPreview, PreviewOrderParams } from '../types';
 import { usePredictTrading } from './usePredictTrading';
 import { ensureError, parseErrorMessage } from '../utils/predictErrorHandler';
 import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../constants/errors';

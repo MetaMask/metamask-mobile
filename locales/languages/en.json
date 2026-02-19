@@ -2752,6 +2752,9 @@
     "disconnect_all_accounts": "Disconnect all accounts",
     "deceptive_site_ahead": "Deceptive site ahead",
     "deceptive_site_desc": "The site you’re trying to visit isn’t safe. Attackers may trick you into doing something dangerous.",
+    "malicious_site_detected": "Malicious site detected",
+    "malicious_site_warning": "If you connect to this site, you could lose all your assets.",
+    "connect_anyway": "Connect Anyway",
     "learn_more": "Learn more",
     "advisory_by": "Advisory provided by Ethereum Phishing Detector and PhishFort",
     "potential_threat": "Potential threats include",
@@ -2846,7 +2849,10 @@
     "permissions": "Permissions",
     "card_title": "MetaMask Card",
     "settings": "Settings",
-    "log_out": "Log out"
+    "log_out": "Log out",
+    "notifications": "Notifications",
+    "buy": "Buy",
+    "scan": "Scan"
   },
   "app_settings": {
     "enabling_notifications": "Enabling notifications...",
@@ -6283,19 +6289,7 @@
       "standardAccountLabel": "Standard account",
       "switch": "Switch",
       "switchBack": "Switch back",
-      "splashpage": {
-        "accept": "Yes",
-        "betterTransaction": "Faster transactions, lower fees",
-        "betterTransactionDescription": "Save time and money by processing transactions together.",
-        "featuresDescription": "Keep the same account address, and you can switch back anytime.",
-        "payToken": "Pay with any token, any time",
-        "payTokenDescription": "Use the tokens you already have to cover network fees.",
-        "reject": "No",
-        "sameAccount": "Same account, smarter features.",
-        "splashTitle": "Use smart account?"
-      },
       "includes_transaction": "Includes {{transactionCount}} transactions",
-      "useSmartAccount": "Use smart account",
       "successful": "Success",
       "success_message": "Your account will be updated to smart account with your next transaction."
     },
@@ -6736,6 +6730,7 @@
     "password_bottomsheet": {
       "title": "Enter password",
       "description": "Enter your wallet password to view card details.",
+      "description_unfreeze": "Enter your wallet password to resume spending on your card.",
       "placeholder": "Password",
       "confirm": "Confirm",
       "cancel": "Cancel",
@@ -6998,6 +6993,7 @@
       "enable_card_error": "Failed to enable card. Please try again later.",
       "view_card_details_error": "Unable to load card details. Please try again.",
       "biometric_verification_required": "Authentication required to view card details.",
+      "unfreeze_auth_required": "Authentication required to resume spending on your card.",
       "warnings": {
         "close_spending_limit": {
           "title": "You're close to your spending limit",
@@ -7015,7 +7011,7 @@
         },
         "frozen": {
           "title": "Your card is frozen",
-          "description": "Please contact support to unfreeze your card"
+          "description": "Your card is temporarily frozen. You can unfreeze it anytime."
         },
         "blocked": {
           "title": "Your card is blocked",
@@ -7065,7 +7061,14 @@
         "travel_description": "Book hotels with up to 70% discounts",
         "card_tos_title": "Terms and conditions",
         "order_metal_card": "Metal Card",
-        "order_metal_card_description": "Order your physical Metal Card now"
+        "order_metal_card_description": "Order your physical Metal Card now",
+        "freeze_card": "Freeze card",
+        "unfreeze_card": "Unfreeze card",
+        "freeze_card_description": "Pause all spending on your card",
+        "unfreeze_card_description": "Resume all spending on your card",
+        "freeze_error": "Failed to update card status. Please try again.",
+        "freeze_success": "Card successfully frozen",
+        "unfreeze_success": "Card successfully unfrozen"
       }
     },
     "card_spending_limit": {

@@ -1,0 +1,2235 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`V2EnterAddress matches snapshot 1`] = `
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "additive",
+      "right": "additive",
+      "top": "off",
+    }
+  }
+  style={
+    {
+      "flex": 1,
+    }
+  }
+>
+  <View
+    style={
+      [
+        {
+          "backgroundColor": "#ffffff",
+          "flex": 1,
+        },
+        undefined,
+      ]
+    }
+  >
+    <View
+      style={
+        [
+          {
+            "flex": 1,
+          },
+          undefined,
+        ]
+      }
+    >
+      <RCTScrollView
+        automaticallyAdjustContentInsets={false}
+        contentInset={
+          {
+            "bottom": 0,
+          }
+        }
+        enableAutomaticScroll={true}
+        enableOnAndroid={false}
+        enableResetScrollToCoords={true}
+        extraHeight={75}
+        extraScrollHeight={0}
+        getScrollResponder={[Function]}
+        handleOnScroll={[Function]}
+        keyboardDismissMode="interactive"
+        keyboardOpeningTime={250}
+        keyboardShouldPersistTaps="handled"
+        keyboardSpace={0}
+        onScroll={[Function]}
+        resetKeyboardSpace={[Function]}
+        scrollEventThrottle={1}
+        scrollForExtraHeightOnAndroid={[Function]}
+        scrollIntoView={[Function]}
+        scrollToEnd={[Function]}
+        scrollToFocusedInput={[Function]}
+        scrollToPosition={[Function]}
+        showsVerticalScrollIndicator={false}
+        update={[Function]}
+        viewIsInsideTabBar={false}
+      >
+        <View>
+          <View
+            style={
+              [
+                {
+                  "padding": 15,
+                  "paddingHorizontal": 16,
+                },
+                {
+                  "flex": 1,
+                },
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "justifyContent": "center",
+                  "paddingBottom": 12,
+                  "width": "100%",
+                }
+              }
+              testID="deposit-progress-container"
+            >
+              <View
+                style={
+                  [
+                    [
+                      {
+                        "borderRadius": 2,
+                        "flex": 1,
+                        "height": 4,
+                      },
+                      {
+                        "backgroundColor": "#4459ff",
+                      },
+                    ],
+                    {
+                      "marginRight": 10,
+                    },
+                  ]
+                }
+                testID="deposit-progress-step-0"
+              />
+              <View
+                style={
+                  [
+                    [
+                      {
+                        "borderRadius": 2,
+                        "flex": 1,
+                        "height": 4,
+                      },
+                      {
+                        "backgroundColor": "#4459ff",
+                      },
+                    ],
+                    {
+                      "marginRight": 10,
+                    },
+                  ]
+                }
+                testID="deposit-progress-step-1"
+              />
+              <View
+                style={
+                  [
+                    [
+                      {
+                        "borderRadius": 2,
+                        "flex": 1,
+                        "height": 4,
+                      },
+                      {
+                        "backgroundColor": "#4459ff",
+                      },
+                    ],
+                    {
+                      "marginRight": 10,
+                    },
+                  ]
+                }
+                testID="deposit-progress-step-2"
+              />
+              <View
+                style={
+                  [
+                    [
+                      {
+                        "borderRadius": 2,
+                        "flex": 1,
+                        "height": 4,
+                      },
+                      {
+                        "backgroundColor": "#2c3dc5",
+                      },
+                    ],
+                    undefined,
+                  ]
+                }
+                testID="deposit-progress-step-3"
+              />
+            </View>
+            <View
+              style={
+                {
+                  "gap": 8,
+                  "marginBottom": 16,
+                  "marginTop": 24,
+                }
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "Geist-Bold",
+                    "fontSize": 24,
+                    "letterSpacing": 0,
+                    "lineHeight": 32,
+                  }
+                }
+              >
+                deposit.enter_address.title
+              </Text>
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#686e7d",
+                    "fontFamily": "Geist-Regular",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+              >
+                deposit.enter_address.subtitle
+              </Text>
+            </View>
+            <View
+              style={
+                [
+                  {
+                    "flexDirection": "column",
+                    "marginBottom": 16,
+                  },
+                  undefined,
+                ]
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "Geist-Regular",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                    "marginBottom": 6,
+                  }
+                }
+                testID="label"
+              >
+                deposit.enter_address.address_line_1
+              </Text>
+              <View
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": undefined,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onBlur={[Function]}
+                onClick={[Function]}
+                onFocus={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
+                style={
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "#3c4d9d0f",
+                    "borderColor": "#b7bbc866",
+                    "borderRadius": 12,
+                    "borderWidth": 1,
+                    "flexDirection": "row",
+                    "height": 48,
+                    "opacity": 1,
+                    "paddingHorizontal": 16,
+                  }
+                }
+                testID="textfield"
+              >
+                <View
+                  style={
+                    {
+                      "flex": 1,
+                    }
+                  }
+                >
+                  <TextInput
+                    autoCapitalize="words"
+                    autoComplete="address-line1"
+                    autoFocus={false}
+                    editable={true}
+                    keyboardAppearance="light"
+                    multiline={false}
+                    numberOfLines={1}
+                    onBlur={[Function]}
+                    onChangeText={[Function]}
+                    onFocus={[Function]}
+                    onSubmitEditing={[Function]}
+                    placeholder="deposit.enter_address.address_line_1"
+                    placeholderTextColor="#686e7d"
+                    returnKeyType="next"
+                    style={
+                      {
+                        "backgroundColor": "inherit",
+                        "borderColor": "transparent",
+                        "borderWidth": 1,
+                        "color": "#121314",
+                        "fontFamily": "Geist-Regular",
+                        "fontSize": 16,
+                        "fontWeight": "400",
+                        "height": 46,
+                        "letterSpacing": 0,
+                        "lineHeight": 0,
+                        "opacity": 1,
+                        "textAlignVertical": "center",
+                      }
+                    }
+                    testID="address-line-1-input"
+                    textContentType="fullStreetAddress"
+                    value="123 Main St"
+                  />
+                </View>
+              </View>
+            </View>
+            <View
+              style={
+                [
+                  {
+                    "flexDirection": "column",
+                    "marginBottom": 16,
+                  },
+                  undefined,
+                ]
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "Geist-Regular",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                    "marginBottom": 6,
+                  }
+                }
+                testID="label"
+              >
+                deposit.enter_address.address_line_2
+              </Text>
+              <View
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": undefined,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onBlur={[Function]}
+                onClick={[Function]}
+                onFocus={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
+                style={
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "#3c4d9d0f",
+                    "borderColor": "#b7bbc866",
+                    "borderRadius": 12,
+                    "borderWidth": 1,
+                    "flexDirection": "row",
+                    "height": 48,
+                    "opacity": 1,
+                    "paddingHorizontal": 16,
+                  }
+                }
+                testID="textfield"
+              >
+                <View
+                  style={
+                    {
+                      "flex": 1,
+                    }
+                  }
+                >
+                  <TextInput
+                    autoCapitalize="words"
+                    autoComplete="address-line2"
+                    autoFocus={false}
+                    editable={true}
+                    keyboardAppearance="light"
+                    multiline={false}
+                    numberOfLines={1}
+                    onBlur={[Function]}
+                    onChangeText={[Function]}
+                    onFocus={[Function]}
+                    onSubmitEditing={[Function]}
+                    placeholder="deposit.enter_address.address_line_2"
+                    placeholderTextColor="#686e7d"
+                    returnKeyType="next"
+                    style={
+                      {
+                        "backgroundColor": "inherit",
+                        "borderColor": "transparent",
+                        "borderWidth": 1,
+                        "color": "#121314",
+                        "fontFamily": "Geist-Regular",
+                        "fontSize": 16,
+                        "fontWeight": "400",
+                        "height": 46,
+                        "letterSpacing": 0,
+                        "lineHeight": 0,
+                        "opacity": 1,
+                        "textAlignVertical": "center",
+                      }
+                    }
+                    testID="address-line-2-input"
+                    textContentType="fullStreetAddress"
+                    value=""
+                  />
+                </View>
+              </View>
+            </View>
+            <View
+              style={
+                {
+                  "flexDirection": "row",
+                  "gap": 16,
+                  "justifyContent": "space-between",
+                }
+              }
+            >
+              <View
+                style={
+                  [
+                    {
+                      "flexDirection": "column",
+                      "marginBottom": 16,
+                    },
+                    {
+                      "flex": 1,
+                    },
+                  ]
+                }
+              >
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#121314",
+                      "fontFamily": "Geist-Regular",
+                      "fontSize": 16,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                      "marginBottom": 6,
+                    }
+                  }
+                  testID="label"
+                >
+                  deposit.enter_address.city
+                </Text>
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": undefined,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    {
+                      "alignItems": "center",
+                      "backgroundColor": "#3c4d9d0f",
+                      "borderColor": "#b7bbc866",
+                      "borderRadius": 12,
+                      "borderWidth": 1,
+                      "flexDirection": "row",
+                      "height": 48,
+                      "opacity": 1,
+                      "paddingHorizontal": 16,
+                    }
+                  }
+                  testID="textfield"
+                >
+                  <View
+                    style={
+                      {
+                        "flex": 1,
+                      }
+                    }
+                  >
+                    <TextInput
+                      autoCapitalize="words"
+                      autoFocus={false}
+                      editable={true}
+                      keyboardAppearance="light"
+                      multiline={false}
+                      numberOfLines={1}
+                      onBlur={[Function]}
+                      onChangeText={[Function]}
+                      onFocus={[Function]}
+                      onSubmitEditing={[Function]}
+                      placeholder="deposit.enter_address.city"
+                      placeholderTextColor="#686e7d"
+                      returnKeyType="next"
+                      style={
+                        {
+                          "backgroundColor": "inherit",
+                          "borderColor": "transparent",
+                          "borderWidth": 1,
+                          "color": "#121314",
+                          "fontFamily": "Geist-Regular",
+                          "fontSize": 16,
+                          "fontWeight": "400",
+                          "height": 46,
+                          "letterSpacing": 0,
+                          "lineHeight": 0,
+                          "opacity": 1,
+                          "textAlignVertical": "center",
+                        }
+                      }
+                      testID="city-input"
+                      textContentType="addressCity"
+                      value="San Francisco"
+                    />
+                  </View>
+                </View>
+              </View>
+              <View
+                style={
+                  [
+                    {
+                      "flexDirection": "column",
+                      "marginBottom": 16,
+                    },
+                    {
+                      "flex": 1,
+                    },
+                  ]
+                }
+              >
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#121314",
+                      "fontFamily": "Geist-Regular",
+                      "fontSize": 16,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                      "marginBottom": 6,
+                    }
+                  }
+                  testID="label"
+                >
+                  deposit.enter_address.state
+                </Text>
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": undefined,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    {
+                      "alignItems": "center",
+                      "backgroundColor": "#3c4d9d0f",
+                      "borderColor": "#b7bbc866",
+                      "borderRadius": 12,
+                      "borderWidth": 1,
+                      "flexDirection": "row",
+                      "height": 48,
+                      "opacity": 0.5,
+                      "paddingHorizontal": 16,
+                    }
+                  }
+                  testID="textfield"
+                >
+                  <View
+                    style={
+                      {
+                        "flex": 1,
+                      }
+                    }
+                  >
+                    <TextInput
+                      autoFocus={false}
+                      editable={false}
+                      keyboardAppearance="light"
+                      multiline={false}
+                      numberOfLines={1}
+                      onBlur={[Function]}
+                      onFocus={[Function]}
+                      placeholder="deposit.enter_address.state"
+                      placeholderTextColor="#686e7d"
+                      style={
+                        {
+                          "backgroundColor": "inherit",
+                          "borderColor": "transparent",
+                          "borderWidth": 1,
+                          "color": "#121314",
+                          "fontFamily": "Geist-Regular",
+                          "fontSize": 16,
+                          "fontWeight": "400",
+                          "height": 46,
+                          "letterSpacing": 0,
+                          "lineHeight": 0,
+                          "opacity": 1,
+                          "textAlignVertical": "center",
+                        }
+                      }
+                      testID="state-input"
+                      value="California"
+                    />
+                  </View>
+                </View>
+              </View>
+            </View>
+            <View
+              style={
+                {
+                  "flexDirection": "row",
+                  "gap": 16,
+                  "justifyContent": "space-between",
+                }
+              }
+            >
+              <View
+                style={
+                  [
+                    {
+                      "flexDirection": "column",
+                      "marginBottom": 16,
+                    },
+                    {
+                      "flex": 1,
+                    },
+                  ]
+                }
+              >
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#121314",
+                      "fontFamily": "Geist-Regular",
+                      "fontSize": 16,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                      "marginBottom": 6,
+                    }
+                  }
+                  testID="label"
+                >
+                  deposit.enter_address.postal_code
+                </Text>
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": undefined,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    {
+                      "alignItems": "center",
+                      "backgroundColor": "#3c4d9d0f",
+                      "borderColor": "#b7bbc866",
+                      "borderRadius": 12,
+                      "borderWidth": 1,
+                      "flexDirection": "row",
+                      "height": 48,
+                      "opacity": 1,
+                      "paddingHorizontal": 16,
+                    }
+                  }
+                  testID="textfield"
+                >
+                  <View
+                    style={
+                      {
+                        "flex": 1,
+                      }
+                    }
+                  >
+                    <TextInput
+                      autoComplete="postal-code"
+                      autoFocus={false}
+                      editable={true}
+                      keyboardAppearance="light"
+                      keyboardType="numbers-and-punctuation"
+                      multiline={false}
+                      numberOfLines={1}
+                      onBlur={[Function]}
+                      onChangeText={[Function]}
+                      onFocus={[Function]}
+                      onSubmitEditing={[Function]}
+                      placeholder="deposit.enter_address.postal_code"
+                      placeholderTextColor="#686e7d"
+                      returnKeyType="done"
+                      style={
+                        {
+                          "backgroundColor": "inherit",
+                          "borderColor": "transparent",
+                          "borderWidth": 1,
+                          "color": "#121314",
+                          "fontFamily": "Geist-Regular",
+                          "fontSize": 16,
+                          "fontWeight": "400",
+                          "height": 46,
+                          "letterSpacing": 0,
+                          "lineHeight": 0,
+                          "opacity": 1,
+                          "textAlignVertical": "center",
+                        }
+                      }
+                      testID="postal-code-input"
+                      textContentType="postalCode"
+                      value="94105"
+                    />
+                  </View>
+                </View>
+              </View>
+              <View
+                style={
+                  [
+                    {
+                      "flexDirection": "column",
+                      "marginBottom": 16,
+                    },
+                    {
+                      "flex": 1,
+                    },
+                  ]
+                }
+              >
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#121314",
+                      "fontFamily": "Geist-Regular",
+                      "fontSize": 16,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                      "marginBottom": 6,
+                    }
+                  }
+                  testID="label"
+                >
+                  deposit.enter_address.country
+                </Text>
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": undefined,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    {
+                      "alignItems": "center",
+                      "backgroundColor": "#3c4d9d0f",
+                      "borderColor": "#b7bbc866",
+                      "borderRadius": 12,
+                      "borderWidth": 1,
+                      "flexDirection": "row",
+                      "height": 48,
+                      "opacity": 0.5,
+                      "paddingHorizontal": 16,
+                    }
+                  }
+                  testID="textfield"
+                >
+                  <View
+                    style={
+                      {
+                        "marginRight": 12,
+                      }
+                    }
+                    testID="textfield-startacccessory"
+                  >
+                    <Text
+                      accessibilityRole="text"
+                      style={
+                        {
+                          "color": "#121314",
+                          "fontFamily": "Geist-Regular",
+                          "fontSize": 16,
+                          "letterSpacing": 0,
+                          "lineHeight": 24,
+                        }
+                      }
+                    >
+                      🇺🇸
+                    </Text>
+                  </View>
+                  <View
+                    style={
+                      {
+                        "flex": 1,
+                      }
+                    }
+                  >
+                    <TextInput
+                      autoFocus={false}
+                      editable={false}
+                      keyboardAppearance="light"
+                      multiline={false}
+                      numberOfLines={1}
+                      onBlur={[Function]}
+                      onFocus={[Function]}
+                      placeholder="deposit.enter_address.country"
+                      placeholderTextColor="#686e7d"
+                      returnKeyType="done"
+                      style={
+                        {
+                          "backgroundColor": "inherit",
+                          "borderColor": "transparent",
+                          "borderWidth": 1,
+                          "color": "#121314",
+                          "fontFamily": "Geist-Regular",
+                          "fontSize": 16,
+                          "fontWeight": "400",
+                          "height": 46,
+                          "letterSpacing": 0,
+                          "lineHeight": 0,
+                          "opacity": 1,
+                          "textAlignVertical": "center",
+                        }
+                      }
+                      testID="country-input"
+                      value="United States"
+                    />
+                  </View>
+                </View>
+              </View>
+            </View>
+          </View>
+        </View>
+      </RCTScrollView>
+      <View>
+        <View
+          style={
+            [
+              {
+                "padding": 15,
+                "paddingHorizontal": 16,
+              },
+              undefined,
+              {
+                "gap": 8,
+              },
+            ]
+          }
+        >
+          <View
+            accessibilityRole="none"
+            accessible={true}
+            style={
+              {
+                "backgroundColor": "#3c4d9d0f",
+                "borderRadius": 8,
+                "marginVertical": 8,
+                "padding": 16,
+                "paddingVertical": 8,
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "alignItems": "flex-start",
+                  "flexDirection": "row",
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "flex": -1,
+                  }
+                }
+                testID="listitemcolumn"
+              >
+                <SvgMock
+                  color="#686e7d"
+                  fill="currentColor"
+                  height={24}
+                  name="SecurityKey"
+                  style={
+                    {
+                      "height": 24,
+                      "width": 24,
+                    }
+                  }
+                  width={24}
+                />
+              </View>
+              <View
+                accessible={false}
+                style={
+                  {
+                    "width": 8,
+                  }
+                }
+                testID="listitem-gap"
+              />
+              <View
+                style={
+                  {
+                    "flex": 1,
+                  }
+                }
+                testID="listitemcolumn"
+              >
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#686e7d",
+                      "fontFamily": "Geist-Regular",
+                      "fontSize": 12,
+                      "letterSpacing": 0.25,
+                      "lineHeight": 20,
+                    }
+                  }
+                >
+                  deposit.privacy_section.transak
+                </Text>
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#686e7d",
+                      "fontFamily": "Geist-Regular",
+                      "fontSize": 12,
+                      "letterSpacing": 0.25,
+                      "lineHeight": 20,
+                    }
+                  }
+                >
+                  deposit.privacy_section.metamask
+                </Text>
+              </View>
+            </View>
+          </View>
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessible={true}
+            activeOpacity={1}
+            disabled={false}
+            loading={false}
+            onPress={[Function]}
+            onPressIn={[Function]}
+            onPressOut={[Function]}
+            style={
+              {
+                "alignItems": "center",
+                "alignSelf": "stretch",
+                "backgroundColor": "#121314",
+                "borderRadius": 12,
+                "flexDirection": "row",
+                "height": 48,
+                "justifyContent": "center",
+                "overflow": "hidden",
+                "paddingHorizontal": 16,
+              }
+            }
+            testID="address-continue-button"
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#ffffff",
+                  "fontFamily": "Geist-Medium",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            >
+              deposit.enter_address.continue
+            </Text>
+          </TouchableOpacity>
+          <SvgMock
+            fill="currentColor"
+            name="powered-by-transak-logo"
+            style={
+              {
+                "color": "#686e7d",
+                "height": 24,
+              }
+            }
+          />
+        </View>
+      </View>
+    </View>
+  </View>
+</RNCSafeAreaView>
+`;
+
+exports[`V2EnterAddress matches snapshot for non-US region 1`] = `
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "additive",
+      "right": "additive",
+      "top": "off",
+    }
+  }
+  style={
+    {
+      "flex": 1,
+    }
+  }
+>
+  <View
+    style={
+      [
+        {
+          "backgroundColor": "#ffffff",
+          "flex": 1,
+        },
+        undefined,
+      ]
+    }
+  >
+    <View
+      style={
+        [
+          {
+            "flex": 1,
+          },
+          undefined,
+        ]
+      }
+    >
+      <RCTScrollView
+        automaticallyAdjustContentInsets={false}
+        contentInset={
+          {
+            "bottom": 0,
+          }
+        }
+        enableAutomaticScroll={true}
+        enableOnAndroid={false}
+        enableResetScrollToCoords={true}
+        extraHeight={75}
+        extraScrollHeight={0}
+        getScrollResponder={[Function]}
+        handleOnScroll={[Function]}
+        keyboardDismissMode="interactive"
+        keyboardOpeningTime={250}
+        keyboardShouldPersistTaps="handled"
+        keyboardSpace={0}
+        onScroll={[Function]}
+        resetKeyboardSpace={[Function]}
+        scrollEventThrottle={1}
+        scrollForExtraHeightOnAndroid={[Function]}
+        scrollIntoView={[Function]}
+        scrollToEnd={[Function]}
+        scrollToFocusedInput={[Function]}
+        scrollToPosition={[Function]}
+        showsVerticalScrollIndicator={false}
+        update={[Function]}
+        viewIsInsideTabBar={false}
+      >
+        <View>
+          <View
+            style={
+              [
+                {
+                  "padding": 15,
+                  "paddingHorizontal": 16,
+                },
+                {
+                  "flex": 1,
+                },
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "justifyContent": "center",
+                  "paddingBottom": 12,
+                  "width": "100%",
+                }
+              }
+              testID="deposit-progress-container"
+            >
+              <View
+                style={
+                  [
+                    [
+                      {
+                        "borderRadius": 2,
+                        "flex": 1,
+                        "height": 4,
+                      },
+                      {
+                        "backgroundColor": "#4459ff",
+                      },
+                    ],
+                    {
+                      "marginRight": 10,
+                    },
+                  ]
+                }
+                testID="deposit-progress-step-0"
+              />
+              <View
+                style={
+                  [
+                    [
+                      {
+                        "borderRadius": 2,
+                        "flex": 1,
+                        "height": 4,
+                      },
+                      {
+                        "backgroundColor": "#4459ff",
+                      },
+                    ],
+                    {
+                      "marginRight": 10,
+                    },
+                  ]
+                }
+                testID="deposit-progress-step-1"
+              />
+              <View
+                style={
+                  [
+                    [
+                      {
+                        "borderRadius": 2,
+                        "flex": 1,
+                        "height": 4,
+                      },
+                      {
+                        "backgroundColor": "#4459ff",
+                      },
+                    ],
+                    {
+                      "marginRight": 10,
+                    },
+                  ]
+                }
+                testID="deposit-progress-step-2"
+              />
+              <View
+                style={
+                  [
+                    [
+                      {
+                        "borderRadius": 2,
+                        "flex": 1,
+                        "height": 4,
+                      },
+                      {
+                        "backgroundColor": "#2c3dc5",
+                      },
+                    ],
+                    undefined,
+                  ]
+                }
+                testID="deposit-progress-step-3"
+              />
+            </View>
+            <View
+              style={
+                {
+                  "gap": 8,
+                  "marginBottom": 16,
+                  "marginTop": 24,
+                }
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "Geist-Bold",
+                    "fontSize": 24,
+                    "letterSpacing": 0,
+                    "lineHeight": 32,
+                  }
+                }
+              >
+                deposit.enter_address.title
+              </Text>
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#686e7d",
+                    "fontFamily": "Geist-Regular",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+              >
+                deposit.enter_address.subtitle
+              </Text>
+            </View>
+            <View
+              style={
+                [
+                  {
+                    "flexDirection": "column",
+                    "marginBottom": 16,
+                  },
+                  undefined,
+                ]
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "Geist-Regular",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                    "marginBottom": 6,
+                  }
+                }
+                testID="label"
+              >
+                deposit.enter_address.address_line_1
+              </Text>
+              <View
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": undefined,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onBlur={[Function]}
+                onClick={[Function]}
+                onFocus={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
+                style={
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "#3c4d9d0f",
+                    "borderColor": "#b7bbc866",
+                    "borderRadius": 12,
+                    "borderWidth": 1,
+                    "flexDirection": "row",
+                    "height": 48,
+                    "opacity": 1,
+                    "paddingHorizontal": 16,
+                  }
+                }
+                testID="textfield"
+              >
+                <View
+                  style={
+                    {
+                      "flex": 1,
+                    }
+                  }
+                >
+                  <TextInput
+                    autoCapitalize="words"
+                    autoComplete="address-line1"
+                    autoFocus={false}
+                    editable={true}
+                    keyboardAppearance="light"
+                    multiline={false}
+                    numberOfLines={1}
+                    onBlur={[Function]}
+                    onChangeText={[Function]}
+                    onFocus={[Function]}
+                    onSubmitEditing={[Function]}
+                    placeholder="deposit.enter_address.address_line_1"
+                    placeholderTextColor="#686e7d"
+                    returnKeyType="next"
+                    style={
+                      {
+                        "backgroundColor": "inherit",
+                        "borderColor": "transparent",
+                        "borderWidth": 1,
+                        "color": "#121314",
+                        "fontFamily": "Geist-Regular",
+                        "fontSize": 16,
+                        "fontWeight": "400",
+                        "height": 46,
+                        "letterSpacing": 0,
+                        "lineHeight": 0,
+                        "opacity": 1,
+                        "textAlignVertical": "center",
+                      }
+                    }
+                    testID="address-line-1-input"
+                    textContentType="fullStreetAddress"
+                    value="123 Main St"
+                  />
+                </View>
+              </View>
+            </View>
+            <View
+              style={
+                [
+                  {
+                    "flexDirection": "column",
+                    "marginBottom": 16,
+                  },
+                  undefined,
+                ]
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "Geist-Regular",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                    "marginBottom": 6,
+                  }
+                }
+                testID="label"
+              >
+                deposit.enter_address.address_line_2
+              </Text>
+              <View
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": undefined,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onBlur={[Function]}
+                onClick={[Function]}
+                onFocus={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
+                style={
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "#3c4d9d0f",
+                    "borderColor": "#b7bbc866",
+                    "borderRadius": 12,
+                    "borderWidth": 1,
+                    "flexDirection": "row",
+                    "height": 48,
+                    "opacity": 1,
+                    "paddingHorizontal": 16,
+                  }
+                }
+                testID="textfield"
+              >
+                <View
+                  style={
+                    {
+                      "flex": 1,
+                    }
+                  }
+                >
+                  <TextInput
+                    autoCapitalize="words"
+                    autoComplete="address-line2"
+                    autoFocus={false}
+                    editable={true}
+                    keyboardAppearance="light"
+                    multiline={false}
+                    numberOfLines={1}
+                    onBlur={[Function]}
+                    onChangeText={[Function]}
+                    onFocus={[Function]}
+                    onSubmitEditing={[Function]}
+                    placeholder="deposit.enter_address.address_line_2"
+                    placeholderTextColor="#686e7d"
+                    returnKeyType="next"
+                    style={
+                      {
+                        "backgroundColor": "inherit",
+                        "borderColor": "transparent",
+                        "borderWidth": 1,
+                        "color": "#121314",
+                        "fontFamily": "Geist-Regular",
+                        "fontSize": 16,
+                        "fontWeight": "400",
+                        "height": 46,
+                        "letterSpacing": 0,
+                        "lineHeight": 0,
+                        "opacity": 1,
+                        "textAlignVertical": "center",
+                      }
+                    }
+                    testID="address-line-2-input"
+                    textContentType="fullStreetAddress"
+                    value=""
+                  />
+                </View>
+              </View>
+            </View>
+            <View
+              style={
+                {
+                  "flexDirection": "row",
+                  "gap": 16,
+                  "justifyContent": "space-between",
+                }
+              }
+            >
+              <View
+                style={
+                  [
+                    {
+                      "flexDirection": "column",
+                      "marginBottom": 16,
+                    },
+                    {
+                      "flex": 1,
+                    },
+                  ]
+                }
+              >
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#121314",
+                      "fontFamily": "Geist-Regular",
+                      "fontSize": 16,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                      "marginBottom": 6,
+                    }
+                  }
+                  testID="label"
+                >
+                  deposit.enter_address.city
+                </Text>
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": undefined,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    {
+                      "alignItems": "center",
+                      "backgroundColor": "#3c4d9d0f",
+                      "borderColor": "#b7bbc866",
+                      "borderRadius": 12,
+                      "borderWidth": 1,
+                      "flexDirection": "row",
+                      "height": 48,
+                      "opacity": 1,
+                      "paddingHorizontal": 16,
+                    }
+                  }
+                  testID="textfield"
+                >
+                  <View
+                    style={
+                      {
+                        "flex": 1,
+                      }
+                    }
+                  >
+                    <TextInput
+                      autoCapitalize="words"
+                      autoFocus={false}
+                      editable={true}
+                      keyboardAppearance="light"
+                      multiline={false}
+                      numberOfLines={1}
+                      onBlur={[Function]}
+                      onChangeText={[Function]}
+                      onFocus={[Function]}
+                      onSubmitEditing={[Function]}
+                      placeholder="deposit.enter_address.city"
+                      placeholderTextColor="#686e7d"
+                      returnKeyType="next"
+                      style={
+                        {
+                          "backgroundColor": "inherit",
+                          "borderColor": "transparent",
+                          "borderWidth": 1,
+                          "color": "#121314",
+                          "fontFamily": "Geist-Regular",
+                          "fontSize": 16,
+                          "fontWeight": "400",
+                          "height": 46,
+                          "letterSpacing": 0,
+                          "lineHeight": 0,
+                          "opacity": 1,
+                          "textAlignVertical": "center",
+                        }
+                      }
+                      testID="city-input"
+                      textContentType="addressCity"
+                      value="San Francisco"
+                    />
+                  </View>
+                </View>
+              </View>
+              <View
+                style={
+                  [
+                    {
+                      "flexDirection": "column",
+                      "marginBottom": 16,
+                    },
+                    {
+                      "flex": 1,
+                    },
+                  ]
+                }
+              >
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#121314",
+                      "fontFamily": "Geist-Regular",
+                      "fontSize": 16,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                      "marginBottom": 6,
+                    }
+                  }
+                  testID="label"
+                >
+                  deposit.enter_address.state
+                </Text>
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": undefined,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    {
+                      "alignItems": "center",
+                      "backgroundColor": "#3c4d9d0f",
+                      "borderColor": "#b7bbc866",
+                      "borderRadius": 12,
+                      "borderWidth": 1,
+                      "flexDirection": "row",
+                      "height": 48,
+                      "opacity": 0.5,
+                      "paddingHorizontal": 16,
+                    }
+                  }
+                  testID="textfield"
+                >
+                  <View
+                    style={
+                      {
+                        "flex": 1,
+                      }
+                    }
+                  >
+                    <TextInput
+                      autoFocus={false}
+                      editable={false}
+                      keyboardAppearance="light"
+                      multiline={false}
+                      numberOfLines={1}
+                      onBlur={[Function]}
+                      onFocus={[Function]}
+                      placeholder="deposit.enter_address.state"
+                      placeholderTextColor="#686e7d"
+                      style={
+                        {
+                          "backgroundColor": "inherit",
+                          "borderColor": "transparent",
+                          "borderWidth": 1,
+                          "color": "#121314",
+                          "fontFamily": "Geist-Regular",
+                          "fontSize": 16,
+                          "fontWeight": "400",
+                          "height": 46,
+                          "letterSpacing": 0,
+                          "lineHeight": 0,
+                          "opacity": 1,
+                          "textAlignVertical": "center",
+                        }
+                      }
+                      testID="state-input"
+                      value="California"
+                    />
+                  </View>
+                </View>
+              </View>
+            </View>
+            <View
+              style={
+                {
+                  "flexDirection": "row",
+                  "gap": 16,
+                  "justifyContent": "space-between",
+                }
+              }
+            >
+              <View
+                style={
+                  [
+                    {
+                      "flexDirection": "column",
+                      "marginBottom": 16,
+                    },
+                    {
+                      "flex": 1,
+                    },
+                  ]
+                }
+              >
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#121314",
+                      "fontFamily": "Geist-Regular",
+                      "fontSize": 16,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                      "marginBottom": 6,
+                    }
+                  }
+                  testID="label"
+                >
+                  deposit.enter_address.postal_code
+                </Text>
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": undefined,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    {
+                      "alignItems": "center",
+                      "backgroundColor": "#3c4d9d0f",
+                      "borderColor": "#b7bbc866",
+                      "borderRadius": 12,
+                      "borderWidth": 1,
+                      "flexDirection": "row",
+                      "height": 48,
+                      "opacity": 1,
+                      "paddingHorizontal": 16,
+                    }
+                  }
+                  testID="textfield"
+                >
+                  <View
+                    style={
+                      {
+                        "flex": 1,
+                      }
+                    }
+                  >
+                    <TextInput
+                      autoComplete="postal-code"
+                      autoFocus={false}
+                      editable={true}
+                      keyboardAppearance="light"
+                      keyboardType="numbers-and-punctuation"
+                      multiline={false}
+                      numberOfLines={1}
+                      onBlur={[Function]}
+                      onChangeText={[Function]}
+                      onFocus={[Function]}
+                      onSubmitEditing={[Function]}
+                      placeholder="deposit.enter_address.postal_code"
+                      placeholderTextColor="#686e7d"
+                      returnKeyType="done"
+                      style={
+                        {
+                          "backgroundColor": "inherit",
+                          "borderColor": "transparent",
+                          "borderWidth": 1,
+                          "color": "#121314",
+                          "fontFamily": "Geist-Regular",
+                          "fontSize": 16,
+                          "fontWeight": "400",
+                          "height": 46,
+                          "letterSpacing": 0,
+                          "lineHeight": 0,
+                          "opacity": 1,
+                          "textAlignVertical": "center",
+                        }
+                      }
+                      testID="postal-code-input"
+                      textContentType="postalCode"
+                      value="94105"
+                    />
+                  </View>
+                </View>
+              </View>
+              <View
+                style={
+                  [
+                    {
+                      "flexDirection": "column",
+                      "marginBottom": 16,
+                    },
+                    {
+                      "flex": 1,
+                    },
+                  ]
+                }
+              >
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#121314",
+                      "fontFamily": "Geist-Regular",
+                      "fontSize": 16,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                      "marginBottom": 6,
+                    }
+                  }
+                  testID="label"
+                >
+                  deposit.enter_address.country
+                </Text>
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": undefined,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    {
+                      "alignItems": "center",
+                      "backgroundColor": "#3c4d9d0f",
+                      "borderColor": "#b7bbc866",
+                      "borderRadius": 12,
+                      "borderWidth": 1,
+                      "flexDirection": "row",
+                      "height": 48,
+                      "opacity": 0.5,
+                      "paddingHorizontal": 16,
+                    }
+                  }
+                  testID="textfield"
+                >
+                  <View
+                    style={
+                      {
+                        "marginRight": 12,
+                      }
+                    }
+                    testID="textfield-startacccessory"
+                  >
+                    <Text
+                      accessibilityRole="text"
+                      style={
+                        {
+                          "color": "#121314",
+                          "fontFamily": "Geist-Regular",
+                          "fontSize": 16,
+                          "letterSpacing": 0,
+                          "lineHeight": 24,
+                        }
+                      }
+                    >
+                      🇬🇧
+                    </Text>
+                  </View>
+                  <View
+                    style={
+                      {
+                        "flex": 1,
+                      }
+                    }
+                  >
+                    <TextInput
+                      autoFocus={false}
+                      editable={false}
+                      keyboardAppearance="light"
+                      multiline={false}
+                      numberOfLines={1}
+                      onBlur={[Function]}
+                      onFocus={[Function]}
+                      placeholder="deposit.enter_address.country"
+                      placeholderTextColor="#686e7d"
+                      returnKeyType="done"
+                      style={
+                        {
+                          "backgroundColor": "inherit",
+                          "borderColor": "transparent",
+                          "borderWidth": 1,
+                          "color": "#121314",
+                          "fontFamily": "Geist-Regular",
+                          "fontSize": 16,
+                          "fontWeight": "400",
+                          "height": 46,
+                          "letterSpacing": 0,
+                          "lineHeight": 0,
+                          "opacity": 1,
+                          "textAlignVertical": "center",
+                        }
+                      }
+                      testID="country-input"
+                      value="United Kingdom"
+                    />
+                  </View>
+                </View>
+              </View>
+            </View>
+          </View>
+        </View>
+      </RCTScrollView>
+      <View>
+        <View
+          style={
+            [
+              {
+                "padding": 15,
+                "paddingHorizontal": 16,
+              },
+              undefined,
+              {
+                "gap": 8,
+              },
+            ]
+          }
+        >
+          <View
+            accessibilityRole="none"
+            accessible={true}
+            style={
+              {
+                "backgroundColor": "#3c4d9d0f",
+                "borderRadius": 8,
+                "marginVertical": 8,
+                "padding": 16,
+                "paddingVertical": 8,
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "alignItems": "flex-start",
+                  "flexDirection": "row",
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "flex": -1,
+                  }
+                }
+                testID="listitemcolumn"
+              >
+                <SvgMock
+                  color="#686e7d"
+                  fill="currentColor"
+                  height={24}
+                  name="SecurityKey"
+                  style={
+                    {
+                      "height": 24,
+                      "width": 24,
+                    }
+                  }
+                  width={24}
+                />
+              </View>
+              <View
+                accessible={false}
+                style={
+                  {
+                    "width": 8,
+                  }
+                }
+                testID="listitem-gap"
+              />
+              <View
+                style={
+                  {
+                    "flex": 1,
+                  }
+                }
+                testID="listitemcolumn"
+              >
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#686e7d",
+                      "fontFamily": "Geist-Regular",
+                      "fontSize": 12,
+                      "letterSpacing": 0.25,
+                      "lineHeight": 20,
+                    }
+                  }
+                >
+                  deposit.privacy_section.transak
+                </Text>
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#686e7d",
+                      "fontFamily": "Geist-Regular",
+                      "fontSize": 12,
+                      "letterSpacing": 0.25,
+                      "lineHeight": 20,
+                    }
+                  }
+                >
+                  deposit.privacy_section.metamask
+                </Text>
+              </View>
+            </View>
+          </View>
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessible={true}
+            activeOpacity={1}
+            disabled={false}
+            loading={false}
+            onPress={[Function]}
+            onPressIn={[Function]}
+            onPressOut={[Function]}
+            style={
+              {
+                "alignItems": "center",
+                "alignSelf": "stretch",
+                "backgroundColor": "#121314",
+                "borderRadius": 12,
+                "flexDirection": "row",
+                "height": 48,
+                "justifyContent": "center",
+                "overflow": "hidden",
+                "paddingHorizontal": 16,
+              }
+            }
+            testID="address-continue-button"
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#ffffff",
+                  "fontFamily": "Geist-Medium",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            >
+              deposit.enter_address.continue
+            </Text>
+          </TouchableOpacity>
+          <SvgMock
+            fill="currentColor"
+            name="powered-by-transak-logo"
+            style={
+              {
+                "color": "#686e7d",
+                "height": 24,
+              }
+            }
+          />
+        </View>
+      </View>
+    </View>
+  </View>
+</RNCSafeAreaView>
+`;

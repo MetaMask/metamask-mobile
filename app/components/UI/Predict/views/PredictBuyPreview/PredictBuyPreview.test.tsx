@@ -96,15 +96,11 @@ jest.mock('../../hooks/usePredictOrderPreview', () => ({
 // Mock usePredictBalance hook
 let mockBalance = 1000;
 let mockBalanceLoading = false;
-const mockLoadBalance = jest.fn();
 jest.mock('../../hooks/usePredictBalance', () => ({
   usePredictBalance: () => ({
-    balance: mockBalance,
+    data: mockBalance,
     isLoading: mockBalanceLoading,
-    hasNoBalance: mockBalance === 0,
-    isRefreshing: false,
     error: null,
-    loadBalance: mockLoadBalance,
   }),
 }));
 

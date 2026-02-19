@@ -22,7 +22,7 @@ import { Box } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import styleSheet from './PerpsCandlePeriodBottomSheet.styles';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
-import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 
 interface PerpsCandlePeriodBottomSheetProps {
   isVisible: boolean;
