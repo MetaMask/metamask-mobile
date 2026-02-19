@@ -5942,7 +5942,8 @@
         },
         "failed_to_get_quotes": "Failed to get quotes. Please close this modal and try again."
       },
-      "percentage_boost": "{{percentage}}% boost"
+      "percentage_boost": "{{percentage}}% boost",
+      "rate": "Rate"
     },
     "bonus_claim": {
       "toasts": {
