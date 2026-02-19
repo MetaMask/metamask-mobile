@@ -3,6 +3,13 @@ import { render, screen, fireEvent } from '@testing-library/react-native';
 import PerpsRecentActivityList from './PerpsRecentActivityList';
 import Routes from '../../../../../constants/navigation/Routes';
 import { FillType } from '../../types/transactionHistory';
+import { TRANSACTION_DETAIL_EVENTS } from '../../../../../core/Analytics/events/transactions';
+import { MonetizedPrimitive } from '../../../../../core/Analytics/MetaMetrics.types';
+
+const mockTrackEvent = jest.fn();
+const mockAddProperties = jest.fn();
+const mockBuild = jest.fn(() => ({ name: 'test-event' }));
+const mockCreateEventBuilder = jest.fn();
 
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({
@@ -162,6 +169,20 @@ describe('PerpsRecentActivityList', () => {
     const { useNavigation } = jest.requireMock('@react-navigation/native');
     useNavigation.mockReturnValue({
       navigate: mockNavigate,
+    });
+
+    // Re-set up analytics mock (resetAllMocks in afterEach clears implementations)
+    const { useAnalytics } = jest.requireMock(
+      '../../../../hooks/useAnalytics/useAnalytics',
+    );
+    mockAddProperties.mockReturnValue({ build: mockBuild });
+    mockCreateEventBuilder.mockReturnValue({
+      addProperties: mockAddProperties,
+      build: mockBuild,
+    });
+    useAnalytics.mockReturnValue({
+      trackEvent: mockTrackEvent,
+      createEventBuilder: mockCreateEventBuilder,
     });
   });
 
@@ -725,6 +746,26 @@ describe('PerpsRecentActivityList', () => {
 
       // FlatList is rendered with scrollEnabled={false}
       expect(root).toBeTruthy();
+    });
+  });
+
+  describe('Analytics Tracking', () => {
+    it('tracks Transaction Detail List Item Clicked when a trade is pressed', () => {
+      render(<PerpsRecentActivityList transactions={mockTransactions} />);
+
+      const transactionItem = screen.getByText('Opened long');
+      fireEvent.press(transactionItem.parent?.parent || transactionItem);
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        TRANSACTION_DETAIL_EVENTS.LIST_ITEM_CLICKED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          transaction_type: 'perps_trade',
+          monetized_primitive: MonetizedPrimitive.Perps,
+        }),
+      );
+      expect(mockTrackEvent).toHaveBeenCalled();
     });
   });
 });
