@@ -1,9 +1,8 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import { usePredictOrderRetry } from './usePredictOrderRetry';
 import Engine from '../../../../core/Engine';
-import type { OrderPreview, PlaceOrderParams } from '../providers/types';
 import type { PlaceOrderOutcome } from './usePredictPlaceOrder';
-import { Side } from '../types';
+import { type OrderPreview, type PlaceOrderParams, Side } from '../types';
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
