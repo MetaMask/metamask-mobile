@@ -9,11 +9,28 @@ import {
   setupTrendingApiFetchMock,
   clearTrendingApiMocks,
   mockTrendingTokensData,
-  mockSearchResultsEth,
   mockBnbChainToken,
   getTrendingTokensMock,
 } from '../../../util/test/component-view/mocks/trendingApiMocks';
-import { fireEvent, waitFor, act, within } from '@testing-library/react-native';
+import {
+  fireEvent,
+  waitFor,
+  within,
+  userEvent,
+} from '@testing-library/react-native';
+
+// TODO: Anti-pattern — only Engine and native modules should be mocked here.
+// getTrendingTokens is a standalone service function called directly from
+// components, not through a controller on Engine.
+// https://github.com/MetaMask/metamask-mobile/issues/26270
+// eslint-disable-next-line no-restricted-syntax
+jest.mock('@metamask/assets-controllers', () => {
+  const actual = jest.requireActual('@metamask/assets-controllers');
+  return {
+    ...actual,
+    getTrendingTokens: jest.fn().mockResolvedValue([]),
+  };
+});
 
 describeForPlatforms('ExploreFeed - Component Tests', () => {
   beforeEach(() => {
@@ -30,29 +47,29 @@ describeForPlatforms('ExploreFeed - Component Tests', () => {
       const { findByText, findByTestId } = renderTrendingViewWithRoutes();
 
       await waitFor(async () => {
-        expect(await findByText('Ethereum')).toBeTruthy();
+        expect(await findByText('Ethereum')).toBeOnTheScreen();
       });
 
       const ethereumRow = await findByTestId(
         'trending-token-row-item-eip155:1/erc20:0x0000000000000000000000000000000000000000',
       );
       const ethereumRowScope = within(ethereumRow);
-      expect(ethereumRowScope.getByText('Ethereum')).toBeTruthy();
-      expect(ethereumRowScope.getByText(/\+5\.2/)).toBeTruthy();
+      expect(ethereumRowScope.getByText('Ethereum')).toBeOnTheScreen();
+      expect(ethereumRowScope.getByText(/\+5\.2/)).toBeOnTheScreen();
 
       const bitcoinRow = await findByTestId(
         'trending-token-row-item-eip155:1/erc20:0x1234567890123456789012345678901234567890',
       );
       const bitcoinRowScope = within(bitcoinRow);
-      expect(bitcoinRowScope.getByText('Bitcoin')).toBeTruthy();
-      expect(bitcoinRowScope.getByText(/-2\.5/)).toBeTruthy();
+      expect(bitcoinRowScope.getByText('Bitcoin')).toBeOnTheScreen();
+      expect(bitcoinRowScope.getByText(/-2\.5/)).toBeOnTheScreen();
 
       const uniswapRow = await findByTestId(
         'trending-token-row-item-eip155:1/erc20:0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
       );
       const uniswapRowScope = within(uniswapRow);
-      expect(uniswapRowScope.getByText('Uniswap')).toBeTruthy();
-      expect(uniswapRowScope.getByText(/\+12\.8/)).toBeTruthy();
+      expect(uniswapRowScope.getByText('Uniswap')).toBeOnTheScreen();
+      expect(uniswapRowScope.getByText(/\+12\.8/)).toBeOnTheScreen();
     },
   );
 
@@ -62,44 +79,41 @@ describeForPlatforms('ExploreFeed - Component Tests', () => {
     await waitFor(() => {
       expect(
         getByTestId(TrendingViewSelectorsIDs.TRENDING_FEED_SCROLL_VIEW),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
     });
 
     const viewAllButton = getByTestId('section-header-view-all-tokens');
-
-    await act(async () => {
-      fireEvent.press(viewAllButton);
-    });
+    await userEvent.press(viewAllButton);
 
     await waitFor(() => {
       const header = getByTestId('trending-tokens-header');
-      expect(header).toBeTruthy();
-      expect(within(header).getByText('Trending tokens')).toBeTruthy();
+      expect(header).toBeOnTheScreen();
+      expect(within(header).getByText('Trending tokens')).toBeOnTheScreen();
     });
 
     const ethereumRow = await findByTestId(
       'trending-token-row-item-eip155:1/erc20:0x0000000000000000000000000000000000000000',
     );
     const ethereumRowScope = within(ethereumRow);
-    expect(ethereumRowScope.getByText('Ethereum')).toBeTruthy();
-    expect(ethereumRowScope.getByText(/\$2,000/)).toBeTruthy();
-    expect(ethereumRowScope.getByText(/\+5\.2/)).toBeTruthy();
+    expect(ethereumRowScope.getByText('Ethereum')).toBeOnTheScreen();
+    expect(ethereumRowScope.getByText(/\$2,000/)).toBeOnTheScreen();
+    expect(ethereumRowScope.getByText(/\+5\.2/)).toBeOnTheScreen();
 
     const bitcoinRow = await findByTestId(
       'trending-token-row-item-eip155:1/erc20:0x1234567890123456789012345678901234567890',
     );
     const bitcoinRowScope = within(bitcoinRow);
-    expect(bitcoinRowScope.getByText('Bitcoin')).toBeTruthy();
-    expect(bitcoinRowScope.getByText(/\$45,000/)).toBeTruthy();
-    expect(bitcoinRowScope.getByText(/-2\.5/)).toBeTruthy();
+    expect(bitcoinRowScope.getByText('Bitcoin')).toBeOnTheScreen();
+    expect(bitcoinRowScope.getByText(/\$45,000/)).toBeOnTheScreen();
+    expect(bitcoinRowScope.getByText(/-2\.5/)).toBeOnTheScreen();
 
     const uniswapRow = await findByTestId(
       'trending-token-row-item-eip155:1/erc20:0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
     );
     const uniswapRowScope = within(uniswapRow);
-    expect(uniswapRowScope.getByText('Uniswap')).toBeTruthy();
-    expect(uniswapRowScope.getByText(/\$8\.50/)).toBeTruthy();
-    expect(uniswapRowScope.getByText(/\+12\.8/)).toBeTruthy();
+    expect(uniswapRowScope.getByText('Uniswap')).toBeOnTheScreen();
+    expect(uniswapRowScope.getByText(/\$8\.50/)).toBeOnTheScreen();
+    expect(uniswapRowScope.getByText(/\+12\.8/)).toBeOnTheScreen();
   });
 
   // TODO: Skipped — ExploreSearchScreen unconditionally wraps content in
@@ -114,21 +128,16 @@ describeForPlatforms('ExploreFeed - Component Tests', () => {
     await waitFor(() => {
       expect(
         getByTestId(TrendingViewSelectorsIDs.TRENDING_FEED_SCROLL_VIEW),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
     });
 
     const searchButton = getByTestId('explore-view-search-button');
-
-    await act(async () => {
-      fireEvent.press(searchButton);
-    });
+    await userEvent.press(searchButton);
 
     const searchInput = await findByTestId('explore-view-search-input');
-    expect(searchInput).toBeTruthy();
+    expect(searchInput).toBeOnTheScreen();
 
-    await act(async () => {
-      fireEvent.changeText(searchInput, 'ethereum');
-    });
+    await userEvent.type(searchInput, 'ethereum');
 
     await waitFor(
       async () => {
@@ -142,9 +151,9 @@ describeForPlatforms('ExploreFeed - Component Tests', () => {
         );
         const ethereumRowScope = within(ethereumRow);
 
-        expect(ethereumRowScope.getByText('Ethereum')).toBeTruthy();
-        expect(ethereumRowScope.getByText(/\$2,000/)).toBeTruthy();
-        expect(ethereumRowScope.getByText(/\+5\.2/)).toBeTruthy();
+        expect(ethereumRowScope.getByText('Ethereum')).toBeOnTheScreen();
+        expect(ethereumRowScope.getByText(/\$2,000/)).toBeOnTheScreen();
+        expect(ethereumRowScope.getByText(/\+5\.2/)).toBeOnTheScreen();
       },
       { timeout: 3000 },
     );
@@ -183,119 +192,101 @@ describeForPlatforms('TrendingTokensFullView - Component Tests', () => {
       await waitFor(() => {
         expect(
           getByTestId(TrendingViewSelectorsIDs.TRENDING_FEED_SCROLL_VIEW),
-        ).toBeTruthy();
+        ).toBeOnTheScreen();
       });
 
       const viewAllButton = getByTestId('section-header-view-all-tokens');
-
-      await act(async () => {
-        fireEvent.press(viewAllButton);
-      });
+      await userEvent.press(viewAllButton);
 
       await waitFor(() => {
-        expect(getByTestId('trending-tokens-header')).toBeTruthy();
+        expect(getByTestId('trending-tokens-header')).toBeOnTheScreen();
       });
 
       const ethereumRow = await findByTestId(
         'trending-token-row-item-eip155:1/erc20:0x0000000000000000000000000000000000000000',
       );
-      expect(ethereumRow).toBeTruthy();
+      expect(ethereumRow).toBeOnTheScreen();
 
       const networkButton = getByTestId('all-networks-button');
-
-      await act(async () => {
-        fireEvent.press(networkButton);
-      });
+      await userEvent.press(networkButton);
 
       await waitFor(() => {
-        expect(getByTestId('close-button')).toBeTruthy();
+        expect(getByTestId('close-button')).toBeOnTheScreen();
       });
 
       const bnbNetworkOption = await findByText('BNB Chain');
-      expect(bnbNetworkOption).toBeTruthy();
+      expect(bnbNetworkOption).toBeOnTheScreen();
 
-      await act(async () => {
-        fireEvent.press(bnbNetworkOption);
-      });
+      await userEvent.press(bnbNetworkOption);
 
       const bnbTokenRow = await findByTestId(
         'trending-token-row-item-eip155:56/erc20:0xBTC0000000000000000000000000000000000000',
       );
-      expect(bnbTokenRow).toBeTruthy();
+      expect(bnbTokenRow).toBeOnTheScreen();
       const bnbTokenRowScope = within(bnbTokenRow);
-      expect(bnbTokenRowScope.getByText('Bitcoin BNB')).toBeTruthy();
-      expect(bnbTokenRowScope.getByText(/\$44,500/)).toBeTruthy();
-      expect(bnbTokenRowScope.getByText(/-1\.8/)).toBeTruthy();
+      expect(bnbTokenRowScope.getByText('Bitcoin BNB')).toBeOnTheScreen();
+      expect(bnbTokenRowScope.getByText(/\$44,500/)).toBeOnTheScreen();
+      expect(bnbTokenRowScope.getByText(/-1\.8/)).toBeOnTheScreen();
 
       expect(
         queryByTestId(
           'trending-token-row-item-eip155:1/erc20:0x0000000000000000000000000000000000000000',
         ),
-      ).toBeNull();
+      ).not.toBeOnTheScreen();
       expect(
         queryByTestId(
           'trending-token-row-item-eip155:1/erc20:0x1234567890123456789012345678901234567890',
         ),
-      ).toBeNull();
+      ).not.toBeOnTheScreen();
       expect(
         queryByTestId(
           'trending-token-row-item-eip155:1/erc20:0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
         ),
-      ).toBeNull();
+      ).not.toBeOnTheScreen();
     },
   );
 
   itForPlatforms('user can search on trending tokens full view', async () => {
-    setupTrendingApiFetchMock(mockSearchResultsEth);
-
     const { findByTestId, getByTestId, queryByTestId } =
       renderTrendingViewWithRoutes();
 
     await waitFor(() => {
       expect(
         getByTestId(TrendingViewSelectorsIDs.TRENDING_FEED_SCROLL_VIEW),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
     });
 
     const viewAllButton = getByTestId('section-header-view-all-tokens');
-
-    await act(async () => {
-      fireEvent.press(viewAllButton);
-    });
+    await userEvent.press(viewAllButton);
 
     await waitFor(() => {
-      expect(getByTestId('trending-tokens-header')).toBeTruthy();
+      expect(getByTestId('trending-tokens-header')).toBeOnTheScreen();
     });
 
     const searchToggle = getByTestId('trending-tokens-header-search-toggle');
-
-    await act(async () => {
-      fireEvent.press(searchToggle);
-    });
+    fireEvent.press(searchToggle);
 
     const searchInput = await findByTestId('trending-tokens-header-search-bar');
-    expect(searchInput).toBeTruthy();
+    expect(searchInput).toBeOnTheScreen();
 
-    await act(async () => {
-      fireEvent.changeText(searchInput, 'ethereum');
-    });
+    await userEvent.type(searchInput, 'ethereum');
 
     await waitFor(
       async () => {
         const tokenRow = await findByTestId(
           'trending-token-row-item-eip155:1/erc20:0x0000000000000000000000000000000000000000',
         );
-        expect(tokenRow).toBeTruthy();
+        expect(tokenRow).toBeOnTheScreen();
         expect(
           queryByTestId(
             'trending-token-row-item-eip155:1/erc20:0x1234567890123456789012345678901234567890',
           ),
-        ).toBeNull();
+        ).not.toBeOnTheScreen();
         expect(
           queryByTestId(
             'trending-token-row-item-eip155:1/erc20:0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
           ),
-        ).toBeNull();
+        ).not.toBeOnTheScreen();
       },
       { timeout: 2000 },
     );

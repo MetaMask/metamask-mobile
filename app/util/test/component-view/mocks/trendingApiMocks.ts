@@ -2,10 +2,6 @@
  * Mock API responses for trending tokens integration tests
  */
 
-// TODO: Anti-pattern — only Engine and native modules should be mocked here.
-// getTrendingTokens is a standalone service function called directly from
-// components, not through a controller on Engine.
-// https://github.com/MetaMask/metamask-mobile/issues/26270
 import { getTrendingTokens } from '@metamask/assets-controllers';
 
 export const getTrendingTokensMock = getTrendingTokens as jest.Mock;
@@ -91,23 +87,6 @@ export const mockTrendingTokensData: MockTrendingToken[] = [
   },
 ];
 
-export const mockEmptyTrendingData: MockTrendingToken[] = [];
-
-export const mockSearchResultsEth: MockTrendingToken[] = [
-  {
-    assetId: 'eip155:1/erc20:0x0000000000000000000000000000000000000000',
-    name: 'Ethereum',
-    symbol: 'ETH',
-    address: '0x0000000000000000000000000000000000000000',
-    chainId: 'eip155:1',
-    price: '2000.00',
-    priceChange24h: 5.2,
-    volume24h: 15000000000,
-    liquidity: 5000000000,
-    imageUrl: 'https://example.com/eth.png',
-  },
-];
-
 export const mockBnbChainToken: MockTrendingToken[] = [
   {
     assetId: 'eip155:56/erc20:0xBTC0000000000000000000000000000000000000',
@@ -137,15 +116,6 @@ export const setupTrendingApiFetchMock = (
   responseData: MockTrendingToken[] = mockTrendingTokensData,
 ) => {
   (getTrendingTokens as jest.Mock).mockImplementation(async () => responseData);
-};
-
-/**
- * Setup mock for getTrendingTokens error
- */
-export const setupTrendingApiErrorMock = (
-  message = 'Internal Server Error',
-) => {
-  (getTrendingTokens as jest.Mock).mockRejectedValue(new Error(message));
 };
 
 /**

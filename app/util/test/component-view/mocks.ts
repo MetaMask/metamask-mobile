@@ -3,18 +3,6 @@
  * - ONLY Engine (business) and minimal native mocks.
  */
 
-// TODO: Anti-pattern — only Engine and native modules should be mocked here.
-// getTrendingTokens is a standalone service function called directly from
-// components, not through a controller on Engine. Ticket to move this behind
-// a controller so it can be driven via Redux state instead of a manual mock.
-jest.mock('@metamask/assets-controllers', () => {
-  const actual = jest.requireActual('@metamask/assets-controllers');
-  return {
-    ...actual,
-    getTrendingTokens: jest.fn().mockResolvedValue([]),
-  };
-});
-
 // Engine mock (singleton default export)
 jest.mock('../../../core/Engine', () => {
   const engine = {
