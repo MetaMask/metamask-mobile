@@ -294,6 +294,13 @@ export class SnapsExecutionWebView extends Component {
   }
 
   render() {
+    const e2eProxyPatchScript = shouldPatchSnapsWebViewProxy()
+      ? buildE2EProxyPatchScript({
+          mockServerPort: String(getMockServerPortInApp()),
+          platform: Platform.OS,
+        })
+      : undefined;
+
     return (
       <View style={styles.container}>
         {Object.entries(this.webViews).map(([key, { props }]) => (
@@ -302,6 +309,7 @@ export class SnapsExecutionWebView extends Component {
             key={key}
             ref={props.ref}
             source={{ html: WebViewHTML, baseUrl: 'https://localhost' }}
+            injectedJavaScriptBeforeContentLoaded={e2eProxyPatchScript}
             onMessage={props.onWebViewMessage}
             onError={props.onWebViewError}
             onLoadEnd={props.onWebViewLoad}
