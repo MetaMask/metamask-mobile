@@ -7708,7 +7708,9 @@
       "perpetuals": "Perpetuals",
       "predictions": "Predictions",
       "defi": "DeFi",
-      "nfts": "NFTs"
+      "nfts": "NFTs",
+      "import_nfts": "Import NFTs",
+      "import_nfts_description": "Easily add your collectibles"
     }
   }
 }
