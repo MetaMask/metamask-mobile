@@ -48,7 +48,7 @@ describe('ErrorView Component', () => {
 
   it('renders with description only', () => {
     const { toJSON, getByText } = renderWithProvider(() => (
-      <ErrorView description="Test error message" location="Test Screen" />
+      <ErrorView description="Test error message" location="Provider Webview" />
     ));
     expect(getByText('Test error message')).toBeOnTheScreen();
     expect(toJSON()).toMatchSnapshot();
@@ -59,7 +59,7 @@ describe('ErrorView Component', () => {
       <ErrorView
         title="Custom Error"
         description="Test description"
-        location="Test Screen"
+        location="Provider Webview"
       />
     ));
     expect(getByText('Custom Error')).toBeOnTheScreen();
@@ -71,7 +71,7 @@ describe('ErrorView Component', () => {
         description="Test error"
         ctaLabel="Retry Now"
         ctaOnPress={mockCtaOnPress}
-        location="Test Screen"
+        location="Provider Webview"
       />
     ));
     expect(getByText('Retry Now')).toBeOnTheScreen();
@@ -82,7 +82,7 @@ describe('ErrorView Component', () => {
       <ErrorView
         description="Test error"
         ctaOnPress={mockCtaOnPress}
-        location="Test Screen"
+        location="Provider Webview"
       />
     ));
 
@@ -94,7 +94,7 @@ describe('ErrorView Component', () => {
 
   it('renders without CTA button when ctaOnPress is not provided', () => {
     const { queryByText } = renderWithProvider(() => (
-      <ErrorView description="Test error" location="Test Screen" />
+      <ErrorView description="Test error" location="Provider Webview" />
     ));
 
     expect(queryByText('fiat_on_ramp_aggregator.try_again')).toBeNull();
@@ -102,7 +102,7 @@ describe('ErrorView Component', () => {
 
   it('renders with error icon by default', () => {
     const { toJSON } = renderWithProvider(() => (
-      <ErrorView description="Test error" location="Test Screen" />
+      <ErrorView description="Test error" location="Provider Webview" />
     ));
     expect(toJSON()).toMatchSnapshot();
   });
@@ -112,7 +112,7 @@ describe('ErrorView Component', () => {
       <ErrorView
         description="Info message"
         icon="info"
-        location="Test Screen"
+        location="Provider Webview"
       />
     ));
     expect(toJSON()).toMatchSnapshot();
@@ -123,7 +123,7 @@ describe('ErrorView Component', () => {
       <ErrorView
         description="Session expired"
         icon="expired"
-        location="Test Screen"
+        location="Provider Webview"
       />
     ));
     expect(toJSON()).toMatchSnapshot();
@@ -134,7 +134,7 @@ describe('ErrorView Component', () => {
       <ErrorView
         description="Inline error"
         asScreen={false}
-        location="Test Screen"
+        location="Provider Webview"
       />
     ));
     expect(toJSON()).toMatchSnapshot();

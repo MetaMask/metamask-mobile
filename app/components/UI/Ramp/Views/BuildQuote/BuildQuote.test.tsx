@@ -978,7 +978,10 @@ describe('BuildQuote', () => {
       };
 
       mockGetWidgetUrl.mockImplementation(
-        () => new Promise((resolve) => setTimeout(() => resolve('url'), 100)),
+        () =>
+          new Promise<string>((resolve) =>
+            setTimeout(() => resolve('url'), 100),
+          ),
       );
 
       const { getByTestId } = renderWithTheme(<BuildQuote />);
@@ -1164,7 +1167,7 @@ describe('BuildQuote', () => {
     });
 
     it('does not start quote polling when wallet address is missing', () => {
-      mockUseRampAccountAddress.mockReturnValue(null);
+      mockUseRampAccountAddress.mockReturnValue(undefined);
 
       renderWithTheme(<BuildQuote />);
 
