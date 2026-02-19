@@ -491,6 +491,7 @@ describe('BuildQuote', () => {
         expect.objectContaining({
           url: 'https://global.transak.com/?apiKey=test',
           providerName: 'Mercuryo',
+          providerType: 'AGGREGATOR',
         }),
       );
     });
@@ -541,6 +542,7 @@ describe('BuildQuote', () => {
           url: 'https://global.transak.com/?apiKey=test',
           providerName: 'Mercuryo',
           userAgent: 'CustomProvider/1.0 (MetaMask)',
+          providerType: 'AGGREGATOR',
         }),
       );
     });

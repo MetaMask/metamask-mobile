@@ -92,7 +92,7 @@ export const createCheckoutNavDetails = createNavigationDetails<CheckoutParams>(
  * response, so we derive everything we can from rampsOrder and use the nav
  * params only as fallbacks for when the order is still UNKNOWN.
  */
-function createInitialFiatOrder(params: {
+export function createInitialFiatOrder(params: {
   providerCode: string;
   /** Shown in the WebView header. Used as fallback if rampsOrder.provider has no name yet. */
   providerName: string;
