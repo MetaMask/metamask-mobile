@@ -3,7 +3,11 @@ import { useDispatch } from 'react-redux';
 import { parseUrl } from 'query-string';
 import { WebView, WebViewNavigation } from '@metamask/react-native-webview';
 import { useNavigation } from '@react-navigation/native';
-import type { RampsOrder } from '@metamask/ramps-controller';
+import type {
+  RampsOrder,
+  RampsOrderFiatCurrency,
+} from '@metamask/ramps-controller';
+import { orderStatusToFiatOrderState } from '../../orderProcessor/unifiedOrderProcessor';
 import { useTheme } from '../../../../../util/theme';
 import { getDepositNavbarOptions } from '../../../Navbar';
 import { callbackBaseUrl } from '../../Aggregator/sdk';
@@ -62,9 +66,9 @@ interface CheckoutParams {
   walletAddress?: string;
   /** V2: network chain ID for the order. */
   network?: string;
-  /** V2: fiat currency code (e.g., "USD"). */
+  /** V2: fiat currency code (e.g., "USD"). Fallback when the callback order has no fiatCurrency yet. */
   currency?: string;
-  /** V2: crypto currency symbol (e.g., "ETH"). */
+  /** V2: crypto currency symbol (e.g., "ETH"). Fallback when the callback order has no cryptoCurrency yet. */
   cryptocurrency?: string;
 }
 
@@ -73,22 +77,34 @@ export const createCheckoutNavDetails = createNavigationDetails<CheckoutParams>(
 );
 
 /**
- * Creates the initial FiatOrder for a V2 order.
+ * Creates the initial FiatOrder for a V2 order immediately after the provider
+ * callback is received.
+ *
  * Uses deposit-style ID format (/providers/{code}/orders/{id}) so that
  * extractProviderAndOrderCode in the unified processor can parse it on
  * subsequent polls without relying on data.provider.
+ *
+ * The V2 API now returns a full provider object (with name and links) and a
+ * full fiatCurrency object (with decimals and denomSymbol) in the order
+ * response, so we derive everything we can from rampsOrder and use the nav
+ * params only as fallbacks for when the order is still UNKNOWN.
  */
 function createInitialFiatOrder(params: {
   providerCode: string;
+  /** Shown in the WebView header. Used as fallback if rampsOrder.provider has no name yet. */
+  providerName: string;
   orderId: string;
   walletAddress: string;
   network: string;
+  /** Fallback fiat currency code when rampsOrder.fiatCurrency is not yet populated. */
   currency: string;
+  /** Fallback crypto symbol when rampsOrder.cryptoCurrency is not yet populated. */
   cryptocurrency: string;
   rampsOrder?: RampsOrder;
 }): FiatOrder {
   const {
     providerCode,
+    providerName,
     orderId,
     walletAddress,
     network,
@@ -99,31 +115,104 @@ function createInitialFiatOrder(params: {
 
   const id = `/providers/${providerCode}/orders/${orderId}`;
 
-  return {
+  // The V2 API returns full objects for these fields (or null for UNKNOWN orders).
+  // We use the nav params as fallbacks only for when the order isn't populated yet.
+  const fiatCurrency =
+    typeof rampsOrder?.fiatCurrency === 'object'
+      ? (rampsOrder.fiatCurrency as RampsOrderFiatCurrency)
+      : null;
+  const cryptoCurrency =
+    typeof rampsOrder?.cryptoCurrency === 'object'
+      ? rampsOrder.cryptoCurrency
+      : null;
+  const providerFromOrder =
+    typeof rampsOrder?.provider === 'object' ? rampsOrder.provider : null;
+
+  const providerData = providerFromOrder ?? {
+    id: providerCode,
+    name: providerName,
+  };
+  const fiatCurrencyCode = fiatCurrency?.symbol || currency;
+  const fiatDecimals = fiatCurrency?.decimals ?? 2;
+  const denomSymbol = fiatCurrency?.denomSymbol ?? '';
+  const cryptoSymbol = cryptoCurrency?.symbol || cryptocurrency;
+  const cryptoDecimals = cryptoCurrency?.decimals ?? 18;
+  const paymentMethodData = rampsOrder?.paymentMethod
+    ? {
+        id:
+          typeof rampsOrder.paymentMethod === 'string'
+            ? rampsOrder.paymentMethod
+            : rampsOrder.paymentMethod.id,
+        name:
+          typeof rampsOrder.paymentMethod === 'string'
+            ? rampsOrder.paymentMethod
+            : (rampsOrder.paymentMethod.name ?? rampsOrder.paymentMethod.id),
+      }
+    : undefined;
+
+  const orderState = orderStatusToFiatOrderState(
+    rampsOrder?.status ?? 'PENDING',
+  );
+  const isTerminalState =
+    orderState === FIAT_ORDER_STATES.FAILED ||
+    orderState === FIAT_ORDER_STATES.COMPLETED ||
+    orderState === FIAT_ORDER_STATES.CANCELLED;
+
+  const fiatOrder: FiatOrder = {
     id,
     provider: FIAT_ORDER_PROVIDERS.AGGREGATOR,
     createdAt: rampsOrder?.createdAt ?? Date.now(),
     amount: rampsOrder?.fiatAmount ?? 0,
     fee: rampsOrder?.totalFeesFiat ?? 0,
     cryptoAmount: rampsOrder?.cryptoAmount ?? 0,
-    cryptoFee: 0,
-    currency: rampsOrder?.fiatCurrency ?? currency,
-    currencySymbol: '',
-    cryptocurrency,
+    cryptoFee: rampsOrder?.totalFeesFiat ?? 0,
+    currency: fiatCurrencyCode,
+    currencySymbol: denomSymbol,
+    cryptocurrency: cryptoSymbol,
     network,
-    state: FIAT_ORDER_STATES.PENDING,
+    state: orderState,
+    // Only force a poll for non-terminal states — terminal orders already have
+    // complete data from the callback response.
+    forceUpdate: !isTerminalState,
     account: walletAddress,
     txHash: rampsOrder?.txHash,
     excludeFromPurchases: rampsOrder?.excludeFromPurchases ?? false,
     orderType: (rampsOrder?.orderType ?? 'buy') as FiatOrder['orderType'],
     errorCount: 0,
-    lastTimeFetched: Date.now(),
+    lastTimeFetched: isTerminalState ? Date.now() : 0,
     data: {
-      _v2Order: rampsOrder ?? null,
-      provider: providerCode,
+      provider: providerData,
+      txHash: rampsOrder?.txHash,
       pollingSecondsMinimum: rampsOrder?.pollingSecondsMinimum,
+      statusDescription: rampsOrder?.statusDescription,
+      timeDescriptionPending: rampsOrder?.timeDescriptionPending,
+      exchangeRate: rampsOrder?.exchangeRate,
+      fiatAmountInUsd: rampsOrder?.fiatAmountInUsd,
+      cryptoAmount: rampsOrder?.cryptoAmount,
+      fiatAmount: rampsOrder?.fiatAmount,
+      totalFeesFiat: rampsOrder?.totalFeesFiat,
+      providerOrderLink: rampsOrder?.providerOrderLink,
+      // SDK-compatible shape so the legacy OrderDetails component can render
+      // amounts and fees without waiting for the poller to run.
+      fiatCurrency: {
+        id: fiatCurrencyCode,
+        symbol: fiatCurrencyCode,
+        denomSymbol,
+        decimals: fiatDecimals,
+      },
+      cryptoCurrency: {
+        id: cryptoSymbol,
+        symbol: cryptoSymbol,
+        decimals: cryptoDecimals,
+      },
+      providerOrderId: rampsOrder?.providerOrderId,
+      paymentMethod: paymentMethodData,
+      // Full V2 response for V2-aware order detail screens.
+      _v2Order: rampsOrder ?? null,
     } as unknown as FiatOrder['data'],
   };
+
+  return fiatOrder;
 }
 
 const Checkout = () => {
@@ -255,6 +344,7 @@ const Checkout = () => {
 
         const fiatOrder = createInitialFiatOrder({
           providerCode,
+          providerName: providerName ?? providerCode,
           orderId,
           walletAddress,
           network: network ?? '',
@@ -277,6 +367,7 @@ const Checkout = () => {
       customOrderId,
       customIdData,
       providerCode,
+      providerName,
       walletAddress,
       network,
       currency,
