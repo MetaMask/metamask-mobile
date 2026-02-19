@@ -35,13 +35,6 @@ import gemIcon from './assets/gem.png';
 const MAX_NFTS_DISPLAYED = 6;
 const NFTS_PER_ROW = 3;
 
-/**
- * Controls behavior when user has no NFTs:
- * - true: Show discovery/empty state content
- * - false: Hide the entire section (return null)
- */
-const SHOW_EMPTY_STATE = true;
-
 // No-op for long press since we don't need action sheet in homepage section
 const noop = () => undefined;
 
@@ -101,11 +94,6 @@ const NFTsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
   const handleImportNfts = useCallback(() => {
     navigation.navigate('AddAsset', { assetType: 'collectible' });
   }, [navigation]);
-
-  // Hide section entirely if no NFTs and empty state is disabled
-  if (!hasNfts && !SHOW_EMPTY_STATE) {
-    return null;
-  }
 
   return (
     <Box gap={3}>
