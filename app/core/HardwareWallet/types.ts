@@ -140,3 +140,17 @@ export interface DiscoveredDevice {
   /** Device-specific metadata (rssi for BLE, etc.) */
   metadata?: Record<string, unknown>;
 }
+
+/**
+ * Device selection state for device discovery (BLE, camera, etc.)
+ */
+export interface DeviceSelectionState {
+  /** List of discovered devices */
+  devices: DiscoveredDevice[];
+  /** Currently selected device (before connection) */
+  selectedDevice: DiscoveredDevice | null;
+  /** Whether device scanning is in progress */
+  isScanning: boolean;
+  /** Error during device scanning */
+  scanError: Error | null;
+}
