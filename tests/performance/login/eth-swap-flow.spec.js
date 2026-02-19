@@ -47,6 +47,11 @@ test.describe(`${PerformanceLogin} ${PerformanceSwaps}`, () => {
       await BridgeScreen.selectNetworkAndTokenTo('Ethereum', 'LINK');
       await BridgeScreen.enterSourceTokenAmount('1');
 
+      if (await BridgeScreen.isRouteUnavailableVisible()) {
+        testInfo.skip(true, 'Trade route not available');
+        return;
+      }
+
       await swapTimer.measure(() => BridgeScreen.isQuoteDisplayed());
 
       performanceTracker.addTimers(swapLoadTimer, swapTimer);
