@@ -322,6 +322,34 @@ describe('EmptyStateCta', () => {
     });
   });
 
+  it('tracks EARN_LEARN_MORE_CLICKED event when "learn more" is clicked', async () => {
+    const { findByText } = renderComponent(mockEarnToken);
+
+    const learnMoreButton = await findByText(
+      strings('earn.empty_state_cta.learn_more'),
+    );
+
+    await act(async () => {
+      fireEvent.press(learnMoreButton);
+    });
+
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: MetaMetricsEvents.EARN_LEARN_MORE_CLICKED.category,
+        properties: expect.objectContaining({
+          provider: EVENT_PROVIDERS.CONSENSYS,
+          location: EVENT_LOCATIONS.TOKEN_DETAILS_SCREEN,
+          component_name: 'EarnEmptyStateCta',
+          token_name: 'USDC',
+          token_symbol: 'USDC',
+          text: 'Learn more',
+          apr: '4.5%',
+          experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
+        }),
+      }),
+    );
+  });
+
   it('navigates to deposit screen when "earn" button is clicked', async () => {
     const { findByText } = renderComponent(mockEarnToken);
 

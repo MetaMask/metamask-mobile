@@ -299,6 +299,34 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
+  it('tracks EARN_WITHDRAWAL_REVIEW_CANCEL_CLICKED when cancel button is pressed', async () => {
+    const { getByTestId } = renderWithProvider(
+      <EarnLendingWithdrawalConfirmationView />,
+      {
+        state: mockInitialState,
+      },
+    );
+
+    mockTrackEvent.mockClear();
+
+    const footerCancelButton = getByTestId(
+      CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CANCEL_BUTTON,
+    );
+
+    await act(async () => {
+      fireEvent.press(footerCancelButton);
+    });
+
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Earn Withdrawal Review Cancel Clicked',
+        properties: expect.objectContaining({
+          action_type: 'withdrawal',
+        }),
+      }),
+    );
+  });
+
   it('executes lending withdrawal transaction when confirm button is pressed', async () => {
     const { getByTestId } = renderWithProvider(
       <EarnLendingWithdrawalConfirmationView />,

@@ -18,6 +18,10 @@ import {
   MOCK_USDC_MAINNET_ASSET,
 } from '../../../Stake/__mocks__/stakeMockData';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
+import {
+  EVENT_LOCATIONS,
+  EVENT_PROVIDERS,
+} from '../../constants/events/earnEvents';
 import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
 import { EarnTokenDetails, LendingProtocol } from '../../types/lending.types';
 import { getAaveV3MaxRiskAwareWithdrawalAmount } from '../../utils/tempLending';
@@ -1125,7 +1129,7 @@ describe('EarnWithdrawInputView', () => {
       );
     });
 
-    it.skip('should track EARN_INPUT_VALUE_CHANGED for quick amount button press', async () => {
+    it('tracks EARN_INPUT_VALUE_CHANGED for quick amount button press (stablecoin lending)', async () => {
       (
         selectStablecoinLendingEnabledFlag as jest.MockedFunction<
           typeof selectStablecoinLendingEnabledFlag
@@ -1151,32 +1155,31 @@ describe('EarnWithdrawInputView', () => {
         experiences: [mockExperience3],
       };
 
-      const { getByText } = render(EarnWithdrawInputView, mockLendingToken);
+      render(EarnWithdrawInputView, mockLendingToken);
 
       mockTrackEvent.mockClear();
 
       await act(async () => {
-        fireEvent.press(getByText('25%'));
+        fireEvent.press(screen.getByText('25%'));
       });
 
       expect(mockTrackEvent).toHaveBeenCalledWith(
         expect.objectContaining({
-          name: 'Unstake Input Quick Amount Clicked',
-          properties: {
-            amount: 0.25,
-            experience: 'STABLECOIN_LENDING',
+          name: 'Input value changed',
+          properties: expect.objectContaining({
+            action_type: 'withdrawal',
+            input_value: '25%',
             is_max: false,
-            location: 'UnstakeInputView',
-            mode: 'native',
+            experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
+            token: 'USDC',
             network: MAINNET_DISPLAY_NAME,
-            token: 'Ethereum',
             user_token_balance: '1000',
-          },
+          }),
         }),
       );
     });
 
-    it.skip('should track EARN_INPUT_VALUE_CHANGED for max button press', async () => {
+    it('tracks EARN_INPUT_VALUE_CHANGED for max button press (stablecoin lending)', async () => {
       (
         selectStablecoinLendingEnabledFlag as jest.MockedFunction<
           typeof selectStablecoinLendingEnabledFlag
@@ -1202,32 +1205,31 @@ describe('EarnWithdrawInputView', () => {
         experiences: [mockExperience4],
       };
 
-      const { getByText } = render(EarnWithdrawInputView, mockLendingToken);
+      render(EarnWithdrawInputView, mockLendingToken);
 
       mockTrackEvent.mockClear();
 
       await act(async () => {
-        fireEvent.press(getByText('Max'));
+        fireEvent.press(screen.getByText('Max'));
       });
 
       expect(mockTrackEvent).toHaveBeenCalledWith(
         expect.objectContaining({
-          name: 'Unstake Input Quick Amount Clicked',
-          properties: {
-            amount: 1,
-            experience: 'STABLECOIN_LENDING',
+          name: 'Input value changed',
+          properties: expect.objectContaining({
+            action_type: 'withdrawal',
+            input_value: 'MAX',
             is_max: true,
-            location: 'UnstakeInputView',
-            mode: 'native',
+            experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
+            token: 'USDC',
             network: MAINNET_DISPLAY_NAME,
-            token: 'Ethereum',
             user_token_balance: '1000',
-          },
+          }),
         }),
       );
     });
 
-    it.skip('should track EARN_INPUT_CURRENCY_SWITCH_CLICKED for stablecoin lending', async () => {
+    it('tracks EARN_INPUT_CURRENCY_SWITCH_CLICKED for stablecoin lending', async () => {
       (
         selectStablecoinLendingEnabledFlag as jest.MockedFunction<
           typeof selectStablecoinLendingEnabledFlag
@@ -1253,29 +1255,29 @@ describe('EarnWithdrawInputView', () => {
         experiences: [mockExperience5],
       };
 
-      const { getByText } = render(EarnWithdrawInputView, mockLendingToken);
+      render(EarnWithdrawInputView, mockLendingToken);
 
       mockTrackEvent.mockClear();
 
       await act(async () => {
-        fireEvent.press(getByText('$0'));
+        fireEvent.press(screen.getByText('0 USD'));
       });
 
       expect(mockTrackEvent).toHaveBeenCalledWith(
         expect.objectContaining({
-          name: 'Unstake Input Currency Switch Clicked',
-          properties: {
+          name: 'Earn Input Currency Switch Clicked',
+          properties: expect.objectContaining({
+            selected_provider: EVENT_PROVIDERS.CONSENSYS,
+            text: 'Currency Switch Clicked',
+            location: EVENT_LOCATIONS.EARN_WITHDRAWAL_INPUT_VIEW,
             currency_type: 'fiat',
-            experience: 'POOLED_STAKING',
-            location: 'UnstakeInputView',
-            selected_provider: 'consensys',
-            text: 'Currency Switch Trigger',
-          },
+            experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
+          }),
         }),
       );
     });
 
-    it.skip('should track EARN_INPUT_INSUFFICIENT_BALANCE when balance is exceeded', async () => {
+    it.skip('tracks EARN_INPUT_INSUFFICIENT_BALANCE when withdrawal exceeds balance', async () => {
       (
         selectStablecoinLendingEnabledFlag as jest.MockedFunction<
           typeof selectStablecoinLendingEnabledFlag
@@ -1305,14 +1307,17 @@ describe('EarnWithdrawInputView', () => {
 
       mockTrackEvent.mockClear();
 
-      // Allow time for effects to run
+      await act(async () => {
+        fireEvent.press(screen.getByText('2'));
+      });
+
       await waitFor(() => {
         expect(mockTrackEvent).toHaveBeenCalledWith(
           expect.objectContaining({
             name: 'Earn input insufficient balance',
             properties: expect.objectContaining({
-              provider: 'consensys',
-              location: 'EarnWithdrawalInputView',
+              provider: EVENT_PROVIDERS.CONSENSYS,
+              location: EVENT_LOCATIONS.EARN_WITHDRAWAL_INPUT_VIEW,
               token_name: 'USDC',
               token: 'USDC',
               network: MAINNET_DISPLAY_NAME,
