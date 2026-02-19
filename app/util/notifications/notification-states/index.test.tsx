@@ -24,7 +24,7 @@ describe('isValidNotificationComponent()', () => {
     },
   );
 
-  it('filters out unsupported eth_sent and eth_received notifications', () => {
+  it('filters out eth_sent and eth_received notifications with missing payload', () => {
     const invalidNotifications = [
       processNotification(createMockNotificationEthSent()),
       processNotification(createMockNotificationEthReceived()),
@@ -33,9 +33,8 @@ describe('isValidNotificationComponent()', () => {
         n.type === TRIGGER_TYPES.ETH_SENT ||
         n.type === TRIGGER_TYPES.ETH_RECEIVED
       ) {
-        n.payload.chain_id = 123; // unsupported chainId
+        delete (n as Partial<typeof n>).payload;
       }
-
       return n;
     });
 
@@ -44,7 +43,7 @@ describe('isValidNotificationComponent()', () => {
     });
   });
 
-  it('filters out unsupported erc20_sent and erc20_received notifications', () => {
+  it('filters out erc20_sent and erc20_received notifications with missing payload', () => {
     const invalidNotifications = [
       processNotification(createMockNotificationERC20Sent()),
       processNotification(createMockNotificationERC20Received()),
@@ -53,9 +52,8 @@ describe('isValidNotificationComponent()', () => {
         n.type === TRIGGER_TYPES.ERC20_SENT ||
         n.type === TRIGGER_TYPES.ERC20_RECEIVED
       ) {
-        n.payload.chain_id = 123; // unsupported chainId
+        delete (n as Partial<typeof n>).payload;
       }
-
       return n;
     });
 

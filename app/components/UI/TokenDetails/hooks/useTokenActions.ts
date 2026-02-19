@@ -46,6 +46,7 @@ import { getDetectedGeolocation } from '../../../../reducers/fiatOrders';
 import { useRampsButtonClickData } from '../../Ramp/hooks/useRampsButtonClickData';
 import useRampsUnifiedV1Enabled from '../../Ramp/hooks/useRampsUnifiedV1Enabled';
 import { BridgeToken } from '../../Bridge/types';
+import { useTokenDetailsABTest } from './useTokenDetailsABTest';
 import { TokenDetailsSource } from '../constants/constants';
 
 /**
@@ -139,6 +140,9 @@ export const useTokenActions = ({
   const rampsButtonClickData = useRampsButtonClickData();
   const rampUnifiedV1Enabled = useRampsUnifiedV1Enabled();
 
+  // A/B test context
+  const { isTestActive, variantName } = useTokenDetailsABTest();
+
   // Swap/Bridge navigation
   const { sourceToken, destToken } = getSwapTokens(token);
   // When Token Details was opened from the bridge asset picker, skip updating
@@ -151,6 +155,11 @@ export const useTokenActions = ({
     sourcePage: 'MainView',
     sourceToken,
     destToken,
+    abTestContext: {
+      ...(isTestActive && {
+        assetsASSETS2493AbtestTokenDetailsLayout: variantName,
+      }),
+    },
     skipLocationUpdate: isFromBridgeAssetPicker,
   });
 
@@ -212,12 +221,20 @@ export const useTokenActions = ({
   ]);
 
   const onSend = useCallback(async () => {
-    trackActionButtonClick(trackEvent, createEventBuilder, {
+    const sendEventProps = {
       action_name: ActionButtonType.SEND,
       action_position: ActionPosition.THIRD_POSITION,
       button_label: strings('asset_overview.send_button'),
       location: ActionLocation.ASSET_DETAILS,
-    });
+      ...(isTestActive && {
+        ab_tests: { assetsASSETS2493AbtestTokenDetailsLayout: variantName },
+      }),
+    };
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.ACTION_BUTTON_CLICKED)
+        .addProperties(sendEventProps)
+        .build(),
+    );
 
     const wasHandledAsNonEvm = await sendNonEvmAsset(
       InitSendLocation.AssetOverview,
@@ -262,6 +279,8 @@ export const useTokenActions = ({
     token,
     selectedChainId,
     navigateToSendPage,
+    isTestActive,
+    variantName,
   ]);
 
   const onBuy = useCallback(() => {

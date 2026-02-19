@@ -6,12 +6,15 @@ import { selectMetaMaskPayFlags } from '../../../../../selectors/featureFlagCont
 export interface UseTransactionPayWithdrawResult {
   /** Whether this transaction is a withdraw type */
   isWithdraw: boolean;
-  /** Whether the user can select a different withdraw token (feature flag) */
+  /** Whether the user can select a different withdraw token (env var AND feature flag) */
   canSelectWithdrawToken: boolean;
 }
 
 /**
  * Hook for checking withdraw transaction status and feature flag.
+ *
+ * Both the MM_PREDICT_WITHDRAW_ANY_TOKEN env var AND the
+ * predictWithdrawAnyToken remote feature flag must be enabled.
  *
  * Note: To update the withdraw destination token, use setPayToken from
  * useTransactionPayToken - it handles both deposit and withdraw token updates.
@@ -21,7 +24,10 @@ export function useTransactionPayWithdraw(): UseTransactionPayWithdrawResult {
   const isWithdraw = isTransactionPayWithdraw(transactionMeta);
   const { predictWithdrawAnyToken } = useSelector(selectMetaMaskPayFlags);
 
-  const canSelectWithdrawToken = isWithdraw && predictWithdrawAnyToken;
+  const isEnabledByEnv = process.env.MM_PREDICT_WITHDRAW_ANY_TOKEN === 'true';
+
+  const canSelectWithdrawToken =
+    isWithdraw && isEnabledByEnv && predictWithdrawAnyToken;
 
   return {
     isWithdraw,
