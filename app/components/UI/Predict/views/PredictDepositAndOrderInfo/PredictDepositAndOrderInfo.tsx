@@ -17,7 +17,7 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { useNavigation } from '@react-navigation/native';
-import { ScrollView } from 'react-native';
+import { ActivityIndicator, Linking, ScrollView } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import Button, {
@@ -43,7 +43,7 @@ import { usePredictOrderPreview } from '../../hooks/usePredictOrderPreview';
 import { usePredictRewards } from '../../hooks/usePredictRewards';
 import { usePredictTrading } from '../../hooks/usePredictTrading';
 import { Side } from '../../types';
-import { formatPrice } from '../../utils/format';
+import { formatCents, formatPrice } from '../../utils/format';
 import { BigNumber } from 'bignumber.js';
 import { useConfirmationContext } from '../../../../Views/confirmations/context/confirmation-context';
 import {
@@ -52,7 +52,10 @@ import {
 } from '../../../../Views/confirmations/constants/predict';
 import { useTransactionPayToken } from '../../../../Views/confirmations/hooks/pay/useTransactionPayToken';
 import { useAddToken } from '../../../../Views/confirmations/hooks/tokens/useAddToken';
-import { useTransactionPayTotals } from '../../../../Views/confirmations/hooks/pay/useTransactionPayData';
+import {
+  useIsTransactionPayQuoteLoading,
+  useTransactionPayTotals,
+} from '../../../../Views/confirmations/hooks/pay/useTransactionPayData';
 import { useTransactionCustomAmount } from '../../../../Views/confirmations/hooks/transactions/useTransactionCustomAmount';
 import { useTransactionMetadataRequest } from '../../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
 import { useUpdateTokenAmount } from '../../../../Views/confirmations/hooks/transactions/useUpdateTokenAmount';
@@ -125,6 +128,8 @@ export function PredictDepositAndOrderInfo() {
   const [isInputFocused, setIsInputFocused] = useState(true);
   const [isUserInputChange, setIsUserInputChange] = useState(false);
   const [isFeeBreakdownVisible, setIsFeeBreakdownVisible] = useState(false);
+  const [isConfirming, setIsConfirming] = useState(false);
+  const [confirmError, setConfirmError] = useState<string>();
 
   const {
     preview,
@@ -164,6 +169,7 @@ export function PredictDepositAndOrderInfo() {
   }, [setIsFooterVisible]);
 
   const isBelowMinimum = currentValue > 0 && currentValue < MINIMUM_BET;
+  const isRateLimited = preview?.rateLimited ?? false;
 
   const toWin = preview?.minAmountReceived ?? 0;
   const metamaskFee = preview?.fees?.metamaskFee ?? 0;
@@ -213,7 +219,7 @@ export function PredictDepositAndOrderInfo() {
 
   const payTotals = useTransactionPayTotals();
   const { onConfirm: onDepositConfirm } = useTransactionConfirm();
-  //const isPayTotalsLoading = useIsTransactionPayQuoteLoading();
+  const isPayTotalsLoading = useIsTransactionPayQuoteLoading();
   const depositFeeUsd = useMemo(() => {
     if (isPredictBalanceSelected || !payTotals?.fees) return 0;
     const { provider, sourceNetwork, targetNetwork } = payTotals.fees;
@@ -225,34 +231,67 @@ export function PredictDepositAndOrderInfo() {
 
   const totalWithDepositFee = total + depositFeeUsd;
 
+  const canPlaceBet =
+    currentValue >= MINIMUM_BET &&
+    preview &&
+    !isConfirming &&
+    !isBalanceLoading &&
+    !isRateLimited &&
+    !isPayTotalsLoading;
+
   const previewRef = useRef(preview);
   previewRef.current = preview;
 
   const handleConfirm = useCallback(async () => {
-    if (!activeTransactionMeta) return;
+    if (!activeTransactionMeta || isConfirming) return;
 
-    trackDeposit({
-      transactionMeta: activeTransactionMeta,
-      onConfirmed: async () => {
-        const latestPreview = previewRef.current;
-        if (!latestPreview) return;
-        await placeOrder({
-          preview: latestPreview,
-          analyticsProperties: {
-            marketId: market?.id,
-            outcome: outcome?.id,
-          },
-        });
-        navigation.goBack();
-      },
-      onFailed: () => {
-        navigation.goBack();
-      },
-    });
+    setIsConfirming(true);
+    setConfirmError(undefined);
 
-    await onDepositConfirm();
+    try {
+      trackDeposit({
+        transactionMeta: activeTransactionMeta,
+        onConfirmed: async () => {
+          const latestPreview = previewRef.current;
+          if (!latestPreview) return;
+
+          try {
+            await placeOrder({
+              preview: latestPreview,
+              analyticsProperties: {
+                marketId: market?.id,
+                outcome: outcome?.id,
+              },
+            });
+          } catch (err) {
+            setConfirmError(
+              err instanceof Error
+                ? err.message
+                : strings('predict.deposit.error_description'),
+            );
+          } finally {
+            setIsConfirming(false);
+            navigation.goBack();
+          }
+        },
+        onFailed: () => {
+          setConfirmError(strings('predict.deposit.error_description'));
+          setIsConfirming(false);
+        },
+      });
+
+      await onDepositConfirm();
+    } catch (err) {
+      setConfirmError(
+        err instanceof Error
+          ? err.message
+          : strings('predict.deposit.error_description'),
+      );
+      setIsConfirming(false);
+    }
   }, [
     activeTransactionMeta,
+    isConfirming,
     trackDeposit,
     onDepositConfirm,
     placeOrder,
@@ -399,6 +438,98 @@ export function PredictDepositAndOrderInfo() {
     return null;
   };
 
+  const errorMessage = previewError ?? confirmError;
+
+  const renderActionButton = () => {
+    if (isConfirming) {
+      return (
+        <Button
+          label={
+            <Box twClassName="flex-row items-center gap-1">
+              <ActivityIndicator size="small" />
+              <Text
+                variant={TextVariant.BodyLg}
+                twClassName="font-medium"
+                color={TextColor.PrimaryInverse}
+              >
+                {`${strings('predict.order.placing_prediction')}...`}
+              </Text>
+            </Box>
+          }
+          variant={ButtonVariants.Primary}
+          onPress={handleConfirm}
+          size={ButtonSize.Lg}
+          width={ButtonWidthTypes.Full}
+          style={tw.style('opacity-50')}
+          disabled
+        />
+      );
+    }
+
+    return (
+      <Button
+        size={ButtonSize.Lg}
+        variant={ButtonVariants.Primary}
+        width={ButtonWidthTypes.Full}
+        disabled={!canPlaceBet}
+        onPress={handleConfirm}
+        label={
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.PrimaryInverse}
+            twClassName="font-medium"
+          >
+            {outcomeToken?.title} ·{' '}
+            {formatCents(preview?.sharePrice ?? outcomeToken?.price ?? 0)}
+          </Text>
+        }
+      />
+    );
+  };
+
+  const renderBottomContent = () => {
+    if (isInputFocused) {
+      return null;
+    }
+
+    return (
+      <Box
+        flexDirection={BoxFlexDirection.Column}
+        twClassName="border-t border-muted p-4 pb-0 gap-4"
+      >
+        <Box justifyContent={BoxJustifyContent.Center} twClassName="gap-2">
+          {errorMessage && (
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.ErrorDefault}
+              style={tw.style('text-center pb-2')}
+            >
+              {errorMessage}
+            </Text>
+          )}
+          <Box twClassName="w-full h-12">{renderActionButton()}</Box>
+          <Box twClassName="text-center items-center flex-row gap-1 justify-center">
+            <Text
+              variant={TextVariant.BodyXs}
+              color={TextColor.TextAlternative}
+            >
+              {strings('predict.consent_sheet.disclaimer')}
+            </Text>
+            <Text
+              variant={TextVariant.BodyXs}
+              style={tw.style('text-info-default')}
+              onPress={() => {
+                Linking.openURL('https://polymarket.com/tos');
+              }}
+            >
+              {strings('predict.consent_sheet.learn_more')}
+            </Text>
+          </Box>
+        </Box>
+      </Box>
+    );
+  };
+
   return (
     <Box twClassName="flex-1">
       {renderAmount()}
@@ -429,17 +560,7 @@ export function PredictDepositAndOrderInfo() {
         setIsInputFocused={setIsInputFocused}
         onAddFunds={deposit}
       />
-      {!isInputFocused && currentValue >= MINIMUM_BET && (
-        <Box twClassName="px-4 pb-4">
-          <Button
-            size={ButtonSize.Lg}
-            label={strings('confirm.deposit_edit_amount_done')}
-            variant={ButtonVariants.Primary}
-            width={ButtonWidthTypes.Full}
-            onPress={handleConfirm}
-          />
-        </Box>
-      )}
+      {renderBottomContent()}
       {isFeeBreakdownVisible && (
         <PredictFeeBreakdownSheet
           ref={feeBreakdownSheetRef}
