@@ -12,9 +12,9 @@ Single agent index for **tests/**, and **wdio/**. Pointers only; details live in
 
 ### Component-View Tests (Mandatory)
 
-- [.cursor/rules/component-view-testing.mdc](../.cursor/rules/component-view-testing.mdc) — Mock policy, presets/renderers, navigation, test structure.
+- [.cursor/rules/component-view-testing.mdc](../.cursor/rules/component-view-testing.mdc) — Mock policy, presets/renderers, navigation, test structure, **no fake timers**.
 - [app/util/test/component-view/README.md](../app/util/test/component-view/README.md) — Framework layout, usage, presets, renderers, platform matrix.
-- [app/util/test/component-view/COMPONENT_VIEW_TEST_RULES.md](../app/util/test/component-view/COMPONENT_VIEW_TEST_RULES.md) — Detailed rules, allowed mocks, how to write component-view tests.
+- [app/util/test/component-view/COMPONENT_VIEW_TEST_RULES.md](../app/util/test/component-view/COMPONENT_VIEW_TEST_RULES.md) — Detailed rules, allowed mocks, avoid fake timers, how to write component-view tests.
 
 ### Implementation Reference (Component-View)
 
@@ -42,4 +42,5 @@ Unit tests under `tests/` (e.g. framework tests): [.cursor/rules/unit-testing-gu
 
 - **tests/** — Use `withFixtures` + `FixtureBuilder`; Page Object methods only; no `TestHelpers.delay()`; selectors in `tests/selectors/` or page folder; import from `tests/framework/index.ts`. Commands: [docs/readme/e2e-testing.md](../docs/readme/e2e-testing.md).
 - **tests/** — Framework/mocking: read tests/docs/README and MOCKING; keep exports in `tests/framework/index.ts`. Regression/smoke: same as e2e (withFixtures, Page Objects, no delay). Yarn only.
-- **wdio/** — Do not extend. New work: Detox + tests/smoke|regression or Appwright (`appwright/tests/`). If maintaining: legacy section in [docs/readme/e2e-testing.md](../docs/readme/e2e-testing.md).
+- **component view tests** — No fake timers (`jest.useFakeTimers` / `advanceTimersByTime`); use `waitFor` or real delays. See COMPONENT_VIEW_TEST_RULES.md.
+- **wdio/** — Do not extend. New work: Detox + tests/smoke|regression or Appwright (`tests/`). If maintaining: legacy section in [docs/readme/e2e-testing.md](../docs/readme/e2e-testing.md).

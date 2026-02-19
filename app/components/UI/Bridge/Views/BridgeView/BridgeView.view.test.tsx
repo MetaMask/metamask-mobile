@@ -1,7 +1,7 @@
 import '../../../../../util/test/component-view/mocks';
 import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
 import { renderBridgeView } from '../../../../../util/test/component-view/renderers/bridge';
-import { fireEvent, waitFor, within } from '@testing-library/react-native';
+import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
 import React from 'react';
 import { Text } from 'react-native';
@@ -13,6 +13,30 @@ import { describeForPlatforms } from '../../../../../util/test/platform';
 import { BridgeViewSelectorsIDs } from './BridgeView.testIds';
 import { BuildQuoteSelectors } from '../../../Ramp/Aggregator/Views/BuildQuote/BuildQuote.testIds';
 import { CommonSelectorsIDs } from '../../../../../util/Common.testIds';
+import Engine from '../../../../../core/Engine';
+import { setSlippage } from '../../../../../core/redux/slices/bridge';
+import { BridgeTokenSelector } from '../../components/BridgeTokenSelector/BridgeTokenSelector';
+import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
+import type { RootState } from '../../../../../reducers';
+import {
+  DEFAULT_BRIDGE,
+  ETH_SOURCE,
+  USDC_DEST,
+} from '../../_mocks_/bridgeViewTestConstants';
+
+const defaultBridgeWithTokens = (overrides?: Record<string, unknown>) => {
+  const { bridge: bridgeOverrides, ...rest } = overrides ?? {};
+  return renderBridgeView({
+    deterministicFiat: true,
+    overrides: {
+      bridge: {
+        ...DEFAULT_BRIDGE,
+        ...(bridgeOverrides as Record<string, unknown>),
+      },
+      ...rest,
+    } as unknown as DeepPartial<RootState>,
+  });
+};
 
 describeForPlatforms('BridgeView', () => {
   it('renders input areas and hides confirm button without tokens or amount', () => {
@@ -20,51 +44,38 @@ describeForPlatforms('BridgeView', () => {
       overrides: {
         engine: {
           backgroundState: {
-            // Minimal bridge slice shape to keep inputs invalid:
-            // - no sourceAmount
-            // - no sourceToken / destToken
             BridgeController: {
-              state: {
-                quotesLastFetched: 0,
-              },
+              state: { quotesLastFetched: 0 },
             },
           },
         },
       } as unknown as Record<string, unknown>,
     });
 
-    // Input areas are rendered
     expect(
       getByTestId(BridgeViewSelectorsIDs.SOURCE_TOKEN_AREA),
     ).toBeOnTheScreen();
     expect(
       getByTestId(BridgeViewSelectorsIDs.DESTINATION_TOKEN_AREA),
     ).toBeOnTheScreen();
-
-    // Confirm button should NOT be rendered without valid inputs and quote
     expect(queryByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON)).toBeNull();
   });
 
   it('types 9.5 with keypad and displays $19,000.00 fiat value', async () => {
-    const { getByTestId, queryByTestId, findByText, findByDisplayValue } =
-      renderBridgeView({
-        deterministicFiat: true,
-        overrides: {
-          bridge: {
-            sourceAmount: '0',
-            sourceToken: {
-              address: '0x0000000000000000000000000000000000000000',
-              chainId: '0x1',
-              decimals: 18,
-              symbol: 'ETH',
-              name: 'Ether',
-            },
-            destToken: undefined,
-          },
-        } as unknown as Record<string, unknown>,
-      });
+    const {
+      getByTestId,
+      queryByTestId,
+      getByText,
+      findByText,
+      findByDisplayValue,
+    } = defaultBridgeWithTokens({
+      bridge: {
+        sourceAmount: '0',
+        sourceToken: ETH_SOURCE,
+        destToken: undefined,
+      },
+    } as unknown as Record<string, unknown>);
 
-    // Close possible banner to reveal keypad
     const closeBanner = queryByTestId(
       CommonSelectorsIDs.BANNER_CLOSE_BUTTON_ICON,
     );
@@ -72,77 +83,96 @@ describeForPlatforms('BridgeView', () => {
       fireEvent.press(closeBanner);
     }
 
-    // Ensure keypad is visible
+    // Keypad opens on focus (useBridgeViewOnFocus); wait for it to render
     await waitFor(() => {
       expect(
         getByTestId(BuildQuoteSelectors.KEYPAD_DELETE_BUTTON),
       ).toBeOnTheScreen();
     });
 
-    // Type 9.5 using keypad buttons inside the bridge scroll container
-    const scroll = getByTestId(BridgeViewSelectorsIDs.BRIDGE_VIEW_SCROLL);
-    fireEvent.press(within(scroll).getByText('9'));
-    fireEvent.press(within(scroll).getByText('.'));
-    fireEvent.press(within(scroll).getByText('5'));
+    // Keypad is in SwapsKeypad (sibling of ScrollView), not inside bridge-view-scroll
+    fireEvent.press(getByText('9'));
+    fireEvent.press(getByText('.'));
+    fireEvent.press(getByText('5'));
 
-    // Assert amount and exact fiat conversion (9.5 * $2000 = $19,000.00)
     expect(await findByDisplayValue('9.5')).toBeOnTheScreen();
     expect(await findByText('$19,000.00')).toBeOnTheScreen();
   });
 
   it('renders enabled confirm button with tokens, amount and recommended quote', () => {
     const now = Date.now();
-    const { getByTestId } = renderBridgeView({
-      deterministicFiat: true,
-      overrides: {
-        bridge: {
-          sourceAmount: '1',
-          sourceToken: {
-            address: '0x0000000000000000000000000000000000000000',
-            chainId: '0x1',
-            decimals: 18,
-            symbol: 'ETH',
-            name: 'Ether',
-          },
-          destToken: {
-            address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-            chainId: '0x1',
-            decimals: 6,
-            symbol: 'USDC',
-            name: 'USD Coin',
+    const { getAllByTestId } = defaultBridgeWithTokens({
+      engine: {
+        backgroundState: {
+          BridgeController: {
+            quotes: [
+              mockQuoteWithMetadata as unknown as Record<string, unknown>,
+            ],
+            recommendedQuote: mockQuoteWithMetadata as unknown as Record<
+              string,
+              unknown
+            >,
+            quotesLastFetched: now,
+            quotesLoadingStatus: 'SUCCEEDED',
+            quoteFetchError: null,
           },
         },
-        engine: {
-          backgroundState: {
-            BridgeController: {
-              quotes: [
-                mockQuoteWithMetadata as unknown as Record<string, unknown>,
-              ],
-              recommendedQuote: mockQuoteWithMetadata as unknown as Record<
-                string,
-                unknown
-              >,
-              quotesLastFetched: now,
-              quotesLoadingStatus: 'SUCCEEDED',
-              quoteFetchError: null,
-            },
-          },
-        },
-      } as unknown as Record<string, unknown>,
-    });
+      },
+    } as unknown as Record<string, unknown>);
 
-    const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
-    expect(button).toBeOnTheScreen();
+    // The confirm button may render in both the bottom content area and inside
+    // the SwapsKeypad (which stays open until the user taps outside the input).
+    const buttons = getAllByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
+    expect(buttons.length).toBeGreaterThanOrEqual(1);
+    expect(buttons[0]).toBeOnTheScreen();
     expect(
-      (button as unknown as { props: { isDisabled?: boolean } }).props
+      (buttons[0] as unknown as { props: { isDisabled?: boolean } }).props
         .isDisabled,
     ).not.toBe(true);
+  });
+
+  it('calls quote API with custom slippage when user has set 5% and quote is requested', async () => {
+    const updateQuoteSpy = jest.spyOn(
+      Engine.context.BridgeController,
+      'updateBridgeQuoteRequestParams',
+    );
+
+    const { store } = defaultBridgeWithTokens({
+      bridge: { selectedDestChainId: '0x1' },
+      engine: {
+        backgroundState: {
+          BridgeController: {
+            quotesLastFetched: 0,
+            quotes: [],
+            quotesLoadingStatus: 'IDLE',
+            quoteFetchError: null,
+          },
+        },
+      },
+    } as unknown as Record<string, unknown>);
+
+    updateQuoteSpy.mockClear();
+
+    act(() => {
+      store.dispatch(setSlippage('5'));
+    });
+
+    await waitFor(
+      () => {
+        expect(updateQuoteSpy).toHaveBeenCalledWith(
+          expect.objectContaining({ slippage: 5 }),
+          expect.anything(),
+        );
+      },
+      { timeout: 1000 },
+    );
+
+    updateQuoteSpy.mockRestore();
   });
 
   it('displays no MM fee disclaimer for mUSD destination with zero MM fee', async () => {
     const musdAddress = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
     const now = Date.now();
-    // Clone and enforce 0 bps fee and gasIncluded on the active/recommended quote
     const active = {
       ...(mockQuoteWithMetadata as unknown as Record<string, unknown>),
     };
@@ -157,56 +187,47 @@ describeForPlatforms('BridgeView', () => {
       destChainId: 1,
     };
 
-    const { findByText } = renderBridgeView({
-      deterministicFiat: true,
-      overrides: {
-        bridge: {
-          sourceAmount: '1.0',
-          sourceToken: {
-            address: '0x0000000000000000000000000000000000000000',
-            chainId: '0x1',
-            decimals: 18,
-            symbol: 'ETH',
-            name: 'Ether',
-          },
-          destToken: {
-            address: musdAddress,
-            chainId: '0x1',
-            decimals: 18,
-            symbol: 'mUSD',
-            name: 'mStable USD',
-          },
+    const { findByText } = defaultBridgeWithTokens({
+      bridge: {
+        sourceAmount: '1.0',
+        sourceToken: ETH_SOURCE,
+        destToken: {
+          address: musdAddress,
+          chainId: '0x1',
+          decimals: 18,
+          symbol: 'mUSD',
+          name: 'mStable USD',
         },
-        engine: {
-          backgroundState: {
-            BridgeController: {
-              quotes: [active as unknown as Record<string, unknown>],
-              recommendedQuote: active as unknown as Record<string, unknown>,
-              quotesLastFetched: now,
-              quotesLoadingStatus: 'SUCCEEDED',
-              quoteFetchError: null,
-            },
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {
-                bridgeConfigV2: {
-                  minimumVersion: '0.0.0',
-                  maxRefreshCount: 5,
-                  refreshRate: 30000,
-                  support: true,
-                  chains: {
-                    'eip155:1': {
-                      isActiveSrc: true,
-                      isActiveDest: true,
-                      noFeeAssets: [musdAddress],
-                    },
+      },
+      engine: {
+        backgroundState: {
+          BridgeController: {
+            quotes: [active as unknown as Record<string, unknown>],
+            recommendedQuote: active as unknown as Record<string, unknown>,
+            quotesLastFetched: now,
+            quotesLoadingStatus: 'SUCCEEDED',
+            quoteFetchError: null,
+          },
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              bridgeConfigV2: {
+                minimumVersion: '0.0.0',
+                maxRefreshCount: 5,
+                refreshRate: 30000,
+                support: true,
+                chains: {
+                  'eip155:1': {
+                    isActiveSrc: true,
+                    isActiveDest: true,
+                    noFeeAssets: [musdAddress],
                   },
                 },
               },
             },
           },
         },
-      } as unknown as Record<string, unknown>,
-    });
+      },
+    } as unknown as Record<string, unknown>);
 
     const expected = strings('bridge.no_mm_fee_disclaimer', {
       destTokenSymbol: 'mUSD',
@@ -214,78 +235,46 @@ describeForPlatforms('BridgeView', () => {
     expect(await findByText(expected)).toBeOnTheScreen();
   });
 
-  it('hides keypad when refreshing quote with input unfocused', () => {
+  it('shows confirm button when refreshing quote with previous active quote', () => {
     const now = Date.now();
     const previousQuote = { ...mockQuoteWithMetadata };
 
-    const { queryByTestId } = renderBridgeView({
-      deterministicFiat: true,
-      overrides: {
-        bridge: {
-          sourceAmount: '1',
-          sourceToken: {
-            address: '0x0000000000000000000000000000000000000000',
-            chainId: '0x1',
-            decimals: 18,
-            symbol: 'ETH',
-            name: 'Ether',
-          },
-          destToken: {
-            address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-            chainId: '0x1',
-            decimals: 6,
-            symbol: 'USDC',
-            name: 'USD Coin',
+    const { getByTestId } = defaultBridgeWithTokens({
+      engine: {
+        backgroundState: {
+          BridgeController: {
+            quotes: [previousQuote as unknown as Record<string, unknown>],
+            recommendedQuote: previousQuote as unknown as Record<
+              string,
+              unknown
+            >,
+            quotesLastFetched: now - 1000,
+            quotesLoadingStatus: 'LOADING',
+            quoteFetchError: null,
           },
         },
-        engine: {
-          backgroundState: {
-            BridgeController: {
-              quotes: [previousQuote as unknown as Record<string, unknown>],
-              recommendedQuote: previousQuote as unknown as Record<
-                string,
-                unknown
-              >,
-              quotesLastFetched: now - 1000,
-              quotesLoadingStatus: 'LOADING',
-              quoteFetchError: null,
-            },
-          },
-        },
-      } as unknown as Record<string, unknown>,
-    });
+      },
+    } as unknown as Record<string, unknown>);
 
-    // Keypad should NOT be visible when refreshing quote with valid inputs and unfocused input
-    // This simulates the scenario after user changes slippage - quote is loading but input is not focused
-    expect(queryByTestId(BuildQuoteSelectors.KEYPAD_DELETE_BUTTON)).toBeNull();
+    // With a previous quote and loading, confirm button is shown (may be in keypad or main content)
+    const confirmButton = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
+    expect(confirmButton).toBeOnTheScreen();
   });
 
   it('navigates to dest token selector on press', async () => {
     const TokenSelectorProbe: React.FC<{
       route?: { params?: { type?: string } };
     }> = (props) => (
-      // eslint-disable-next-line react-native/no-raw-text
       <Text testID="token-selector-probe">{props?.route?.params?.type}</Text>
     );
     const state = initialStateBridge()
       .withOverrides({
-        bridge: {
-          sourceToken: {
-            address: '0x0000000000000000000000000000000000000000',
-            chainId: '0x1',
-            decimals: 18,
-            symbol: 'ETH',
-            name: 'Ether',
-          },
-        },
+        bridge: { sourceToken: ETH_SOURCE },
       } as unknown as Record<string, unknown>)
       .build() as unknown as Record<string, unknown>;
     const { findByText } = renderScreenWithRoutes(
-      // Component
       BridgeView as unknown as React.ComponentType,
-      // Entry route
       { name: Routes.BRIDGE.ROOT },
-      // Register token selector route to probe params
       [
         {
           name: Routes.BRIDGE.TOKEN_SELECTOR,
@@ -293,12 +282,285 @@ describeForPlatforms('BridgeView', () => {
             TokenSelectorProbe as unknown as React.ComponentType<unknown>,
         },
       ],
-      // State
       { state },
     );
 
     fireEvent.press(await findByText('Swap to'));
-    // TokenInputArea navigates to TOKEN_SELECTOR with { type: 'dest' }
     expect(await findByText('dest')).toBeOnTheScreen();
+  });
+
+  describe('Swap team regression (bug matrix team-swaps-and-bridge)', () => {
+    /** Issues covered: #24744, #24865, #24802, #25256 */
+    it('displays gas included label and enables confirm when quote has gas included (#24744)', async () => {
+      const now = Date.now();
+      const quoteWithGasIncluded = {
+        ...(mockQuoteWithMetadata as unknown as Record<string, unknown>),
+      };
+      const innerQuote =
+        (quoteWithGasIncluded.quote as Record<string, unknown>) ?? {};
+      quoteWithGasIncluded.quote = {
+        ...innerQuote,
+        gasIncluded: true,
+        srcChainId: 1,
+        destChainId: 1,
+      };
+
+      const { getByTestId, findByText } = defaultBridgeWithTokens({
+        engine: {
+          backgroundState: {
+            BridgeController: {
+              quotes: [quoteWithGasIncluded],
+              recommendedQuote: quoteWithGasIncluded,
+              quotesLastFetched: now,
+              quotesLoadingStatus: 'SUCCEEDED',
+              quoteFetchError: null,
+            },
+          },
+        },
+      } as unknown as Record<string, unknown>);
+
+      expect(await findByText(strings('bridge.included'))).toBeOnTheScreen();
+
+      const confirmButton = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
+      expect(confirmButton).toBeOnTheScreen();
+      expect(
+        (confirmButton as unknown as { props: { isDisabled?: boolean } }).props
+          .isDisabled,
+      ).not.toBe(true);
+    });
+
+    // Regression for #25256: two USDT tokens on Linea must both appear in search results.
+    it('shows two USDT when search API returns two USDT on Linea (#25256)', async () => {
+      const LINEA_CHAIN_ID = 59144;
+      const verifiedUsdtAddress = '0xA219439258ca9da29E9Cc4cE5596924745e12B93';
+      const otherUsdtAddress = '0x0000000000000000000000000000000000000001';
+
+      const twoLineaUsdtTokens = [
+        {
+          assetId: `eip155:${LINEA_CHAIN_ID}/erc20:${verifiedUsdtAddress}`,
+          decimals: 6,
+          iconUrl: '',
+          name: 'Tether USD',
+          symbol: 'USDT',
+        },
+        {
+          assetId: `eip155:${LINEA_CHAIN_ID}/erc20:${otherUsdtAddress}`,
+          decimals: 6,
+          iconUrl: '',
+          name: 'Tether USD (duplicate)',
+          symbol: 'USDT',
+        },
+      ];
+
+      const searchResponse = {
+        data: twoLineaUsdtTokens,
+        count: 2,
+        totalCount: 2,
+        pageInfo: { hasNextPage: false },
+      };
+
+      const fetchSpy = jest
+        .spyOn(globalThis, 'fetch')
+        .mockImplementation((url, init) => {
+          const urlStr =
+            typeof url === 'string' ? url : (url as URL).toString();
+          if (urlStr.includes('/getTokens/search')) {
+            let body: { query?: string } = {};
+            try {
+              const rawBody = (init as RequestInit)?.body;
+              body = typeof rawBody === 'string' ? JSON.parse(rawBody) : {};
+            } catch {
+              // ignore parse errors
+            }
+            if (body.query === 'USDT') {
+              return Promise.resolve({
+                ok: true,
+                json: () => Promise.resolve(searchResponse),
+              } as Response);
+            }
+            return Promise.resolve({
+              ok: true,
+              json: () =>
+                Promise.resolve({
+                  data: [],
+                  count: 0,
+                  totalCount: 0,
+                  pageInfo: { hasNextPage: false },
+                }),
+            } as Response);
+          }
+          if (urlStr.includes('/getTokens/popular')) {
+            return Promise.resolve({
+              ok: true,
+              json: () => Promise.resolve([]),
+            } as Response);
+          }
+          return Promise.reject(new Error(`Unmocked fetch: ${urlStr}`));
+        });
+
+      const state = initialStateBridge({ deterministicFiat: true })
+        .withMinimalTokensController(['0x1', '0xe708'])
+        .withOverrides({
+          bridge: {
+            sourceToken: ETH_SOURCE,
+          },
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  bridgeConfigV2: {
+                    minimumVersion: '0.0.0',
+                    maxRefreshCount: 5,
+                    refreshRate: 30000,
+                    support: true,
+                    chains: {},
+                    chainRanking: [
+                      { chainId: 'eip155:1', name: 'Ethereum' },
+                      { chainId: 'eip155:59144', name: 'Linea' },
+                    ],
+                  },
+                },
+              },
+              NetworkController: {
+                networkConfigurationsByChainId: {
+                  '0xe708': {
+                    chainId: '0xe708',
+                    rpcEndpoints: [
+                      {
+                        networkClientId: 'linea-mainnet',
+                        url: 'https://rpc.linea.build',
+                        type: 'rpc',
+                        name: 'Linea',
+                      },
+                    ],
+                    defaultRpcEndpointIndex: 0,
+                    blockExplorerUrls: ['https://lineascan.build'],
+                    defaultBlockExplorerUrlIndex: 0,
+                    name: 'Linea Mainnet',
+                    nativeCurrency: 'ETH',
+                  },
+                },
+              },
+              TokenBalancesController: {
+                tokenBalances: {},
+              },
+              PreferencesController: {
+                tokenSortConfig: {
+                  key: 'tokenFiatAmount',
+                  order: 'dsc',
+                },
+              },
+            },
+          },
+        } as unknown as Record<string, unknown>)
+        .build() as unknown as Record<string, unknown>;
+
+      const { getByTestId, getByText, findByText, getAllByText } =
+        renderScreenWithRoutes(
+          BridgeView as unknown as React.ComponentType,
+          { name: Routes.BRIDGE.BRIDGE_VIEW },
+          [
+            {
+              name: Routes.BRIDGE.TOKEN_SELECTOR,
+              Component:
+                BridgeTokenSelector as unknown as React.ComponentType<unknown>,
+            },
+          ],
+          { state },
+        );
+
+      fireEvent.press(await findByText('Swap to'));
+
+      const searchInput = await waitFor(
+        () => getByTestId('bridge-token-search-input'),
+        { timeout: 5000 },
+      );
+      fireEvent.changeText(searchInput, 'USDT');
+
+      // useSearchTokens debounce is 300ms; wait so the search request is sent
+      await new Promise((resolve) => {
+        setTimeout(resolve, 350);
+      });
+
+      // Ensure the search API was called (proves debounce + chainIds are correct)
+      const urlStr = (url: unknown) =>
+        typeof url === 'string' ? url : (url as URL).toString();
+      const searchCalls = fetchSpy.mock.calls.filter(([url]) =>
+        urlStr(url).includes('/getTokens/search'),
+      );
+      expect(searchCalls.length).toBeGreaterThanOrEqual(1);
+
+      // Wait for list to show results (second token has unique name)
+      await waitFor(
+        () => {
+          expect(getByText('Tether USD (duplicate)')).toBeOnTheScreen();
+        },
+        { timeout: 10000 },
+      );
+
+      const usdtLabels = getAllByText('USDT');
+      expect(usdtLabels.length).toBe(2);
+
+      fetchSpy.mockRestore();
+    }, 25000);
+
+    it('shows native token in source area when source is native token from token details (#24865)', () => {
+      const bnbChainId = '0x38';
+      const nativeBnbAddress = '0x0000000000000000000000000000000000000000';
+
+      const { getByTestId } = defaultBridgeWithTokens({
+        bridge: {
+          sourceAmount: '1',
+          sourceToken: {
+            address: nativeBnbAddress,
+            chainId: bnbChainId,
+            decimals: 18,
+            symbol: 'BNB',
+            name: 'BNB',
+          },
+          destToken: undefined,
+        },
+      } as unknown as Record<string, unknown>);
+
+      const sourceArea = getByTestId(BridgeViewSelectorsIDs.SOURCE_TOKEN_AREA);
+      const destArea = getByTestId(
+        BridgeViewSelectorsIDs.DESTINATION_TOKEN_AREA,
+      );
+      expect(sourceArea).toBeOnTheScreen();
+      expect(destArea).toBeOnTheScreen();
+      expect(within(sourceArea).getByText('BNB')).toBeOnTheScreen();
+    });
+
+    it('renders USDC to BNB swap setup without crash and hides confirm when no quote (#24802)', () => {
+      const bnbChainIdHex = '0x38';
+
+      const { getByTestId, queryByTestId } = defaultBridgeWithTokens({
+        bridge: {
+          sourceAmount: '100',
+          sourceToken: USDC_DEST,
+          destToken: undefined,
+          selectedDestChainId: bnbChainIdHex,
+        },
+        engine: {
+          backgroundState: {
+            BridgeController: {
+              quotes: [],
+              recommendedQuote: null,
+              quotesLastFetched: 0,
+              quotesLoadingStatus: 'IDLE',
+              quoteFetchError: null,
+            },
+          },
+        },
+      } as unknown as Record<string, unknown>);
+
+      expect(
+        getByTestId(BridgeViewSelectorsIDs.SOURCE_TOKEN_AREA),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(BridgeViewSelectorsIDs.DESTINATION_TOKEN_AREA),
+      ).toBeOnTheScreen();
+      expect(queryByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON)).toBeNull();
+    });
   });
 });

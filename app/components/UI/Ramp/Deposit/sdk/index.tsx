@@ -78,10 +78,6 @@ export const DepositSDKNoAuth = new NativeRampsSdk(
   environment,
 );
 
-I18nEvents.addListener('localeChanged', (locale) => {
-  DepositSDKNoAuth.setLocale(locale);
-});
-
 export const DepositSDKContext = createContext<DepositSDK | undefined>(
   undefined,
 );
@@ -145,6 +141,17 @@ export const DepositSDKProvider = ({
     },
     [dispatch],
   );
+
+  useEffect(() => {
+    DepositSDKNoAuth.setLocale(I18n.locale);
+    const handleLocaleChanged = (locale: string) => {
+      DepositSDKNoAuth.setLocale(locale);
+    };
+    I18nEvents.addListener('localeChanged', handleLocaleChanged);
+    return () => {
+      I18nEvents.removeListener('localeChanged', handleLocaleChanged);
+    };
+  }, []);
 
   useEffect(() => {
     try {

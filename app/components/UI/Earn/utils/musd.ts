@@ -13,6 +13,7 @@ import {
   MUSD_TOKEN,
   MUSD_TOKEN_ADDRESS,
 } from '../constants/musd';
+import { getClaimedAmountFromContract } from '../components/MerklRewards/merkl-client';
 import { DISTRIBUTOR_CLAIM_ABI } from '../components/MerklRewards/constants';
 
 /**
@@ -127,15 +128,88 @@ export function convertMusdClaimAmount({
 }
 
 /**
- * Decode the claim amount from a Merkl claim transaction data.
+ * Result of resolving the unclaimed amount for a Merkl claim transaction.
+ */
+export interface GetUnclaimedAmountForMerklClaimTxResult {
+  /** Total cumulative reward (raw base units) from tx calldata */
+  totalAmountRaw: string;
+  /** Unclaimed amount (total - claimed from contract) in raw base units */
+  unclaimedRaw: string;
+  /** True if the contract call succeeded; false if it failed (caller may omit claimed decimal from analytics) */
+  contractCallSucceeded: boolean;
+  /** Set when contractCallSucceeded is false, for caller to log */
+  error?: Error;
+}
+
+/**
+ * Resolve the unclaimed amount for a Merkl mUSD claim transaction.
+ * Decodes tx calldata, reads already-claimed from the Merkl distributor contract,
+ * and returns total and unclaimed raw amounts.
+ *
+ * @param txData - Transaction data hex string (txParams.data)
+ * @param chainId - Chain ID for the contract call
+ * @returns Result with totalAmountRaw, unclaimedRaw, and contractCallSucceeded, or null if decoding fails
+ */
+export async function getUnclaimedAmountForMerklClaimTx(
+  txData: string | undefined,
+  chainId: Hex,
+): Promise<GetUnclaimedAmountForMerklClaimTxResult | null> {
+  const claimParams = decodeMerklClaimParams(txData);
+  if (!claimParams) {
+    return null;
+  }
+
+  const totalAmountRaw = claimParams.totalAmount;
+  const totalBigInt = BigInt(totalAmountRaw);
+
+  try {
+    const claimedAmount = await getClaimedAmountFromContract(
+      claimParams.userAddress,
+      claimParams.tokenAddress as Hex,
+      chainId,
+    );
+    const claimedBigInt = BigInt(claimedAmount ?? '0');
+    const unclaimedRaw =
+      totalBigInt > claimedBigInt
+        ? (totalBigInt - claimedBigInt).toString()
+        : '0';
+    return {
+      totalAmountRaw,
+      unclaimedRaw,
+      contractCallSucceeded: true,
+    };
+  } catch (error) {
+    return {
+      totalAmountRaw,
+      unclaimedRaw: totalAmountRaw,
+      contractCallSucceeded: false,
+      error: error instanceof Error ? error : new Error(String(error)),
+    };
+  }
+}
+
+/**
+ * Decoded Merkl claim transaction parameters
+ */
+export interface MerklClaimParams {
+  /** Total cumulative reward amount (raw, in base units) */
+  totalAmount: string;
+  /** User address */
+  userAddress: string;
+  /** Reward token address */
+  tokenAddress: string;
+}
+
+/**
+ * Decode all parameters from a Merkl claim transaction data.
  * The claim function signature is: claim(address[] users, address[] tokens, uint256[] amounts, bytes32[][] proofs)
  *
  * @param data - The transaction data hex string
- * @returns The first claim amount as a string (raw value, not adjusted for decimals), or null if decoding fails
+ * @returns Decoded claim parameters, or null if decoding fails
  */
-export function decodeMerklClaimAmount(
+export function decodeMerklClaimParams(
   data: string | undefined,
-): string | null {
+): MerklClaimParams | null {
   if (!data || typeof data !== 'string') {
     return null;
   }
@@ -143,13 +217,31 @@ export function decodeMerklClaimAmount(
   try {
     const contractInterface = new Interface(DISTRIBUTOR_CLAIM_ABI);
     const decoded = contractInterface.decodeFunctionData('claim', data);
-    // amounts is the 3rd parameter (index 2)
-    const amounts = decoded[2];
-    if (!amounts || amounts.length === 0) {
+    const [users, tokens, amounts] = decoded;
+
+    if (!users?.length || !tokens?.length || !amounts?.length) {
       return null;
     }
-    return amounts[0].toString();
+
+    return {
+      totalAmount: amounts[0].toString(),
+      userAddress: users[0],
+      tokenAddress: tokens[0],
+    };
   } catch {
     return null;
   }
+}
+
+/**
+ * Decode the claim amount from a Merkl claim transaction data.
+ * Convenience wrapper around decodeMerklClaimParams that returns only the amount.
+ *
+ * @param data - The transaction data hex string
+ * @returns The first claim amount as a string (raw value, not adjusted for decimals), or null if decoding fails
+ */
+export function decodeMerklClaimAmount(
+  data: string | undefined,
+): string | null {
+  return decodeMerklClaimParams(data)?.totalAmount ?? null;
 }

@@ -3,9 +3,9 @@ import {
   PerpsController,
   PerpsControllerMessenger,
   getDefaultPerpsControllerState,
-} from '../../../../components/UI/Perps/controllers';
+  parseCommaSeparatedString,
+} from '@metamask/perps-controller';
 import { applyE2EControllerMocks } from '../../../../components/UI/Perps/utils/e2eBridgePerps';
-import { parseCommaSeparatedString } from '../../../../components/UI/Perps/utils/stringParseUtils';
 import { createMobileInfrastructure } from '../../../../components/UI/Perps/adapters/mobileInfrastructure';
 
 /**

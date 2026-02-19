@@ -1,31 +1,27 @@
 import { renderHook, act } from '@testing-library/react-native';
 import { usePerpsEventTracking } from './usePerpsEventTracking';
-import { PERPS_EVENT_PROPERTY } from '../constants/eventNames';
+import { PERPS_EVENT_PROPERTY } from '@metamask/perps-controller';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 
-// Mock useMetrics hook
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn();
 
-jest.mock('../../../hooks/useMetrics', () => ({
-  useMetrics: () => ({
-    trackEvent: mockTrackEvent,
-    createEventBuilder: mockCreateEventBuilder,
-  }),
-  MetaMetricsEvents: {},
-}));
+jest.mock('../../../hooks/useAnalytics/useAnalytics');
 
 describe('usePerpsEventTracking', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    // Mock Date.now to return a consistent value
     jest.spyOn(Date, 'now').mockReturnValue(1234567890);
 
-    // Setup createEventBuilder mock
     const eventBuilder = {
       addProperties: jest.fn().mockReturnThis(),
       build: jest.fn().mockReturnValue({ type: 'mock-event' }),
     };
     mockCreateEventBuilder.mockReturnValue(eventBuilder);
+    jest.mocked(useAnalytics).mockReturnValue({
+      trackEvent: mockTrackEvent,
+      createEventBuilder: mockCreateEventBuilder,
+    } as unknown as ReturnType<typeof useAnalytics>);
   });
 
   afterEach(() => {
