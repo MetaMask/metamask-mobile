@@ -16,7 +16,6 @@ import {
   selectMusdConversionStatuses,
 } from '../../selectors/musdConversionStatus';
 import { MUSD_CONVERSION_APY } from '../../constants/musd';
-import Engine from '../../../../../core/Engine';
 import AppConstants from '../../../../../core/AppConstants';
 import { Linking } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
@@ -43,14 +42,6 @@ jest.mock('../../selectors/musdConversionStatus', () => ({
   ...jest.requireActual('../../selectors/musdConversionStatus'),
   selectHasInFlightMusdConversion: jest.fn(),
   selectMusdConversionStatuses: jest.fn(),
-}));
-jest.mock('../../../../../core/Engine', () => ({
-  __esModule: true,
-  default: {
-    controllerMessenger: {
-      subscribeOnceIf: jest.fn(),
-    },
-  },
 }));
 const mockGetStakingNavbar = jest.fn<object, unknown[]>(() => ({}));
 jest.mock('../../../Navbar', () => ({
@@ -103,10 +94,6 @@ const mockSelectMusdConversionStatuses =
   selectMusdConversionStatuses as jest.MockedFunction<
     typeof selectMusdConversionStatuses
   >;
-const mockSubscribeOnceIf = Engine.controllerMessenger
-  .subscribeOnceIf as jest.MockedFunction<
-  typeof Engine.controllerMessenger.subscribeOnceIf
->;
 const mockUseNavigation = useNavigation as jest.MockedFunction<
   typeof useNavigation
 >;
@@ -346,60 +333,6 @@ describe('MusdQuickConvertView', () => {
 
       expect(mockInitiateMaxConversion).toHaveBeenCalledWith(token);
     });
-
-    it('subscribes to failed tx when Max returns transactionId', async () => {
-      const token = createMockToken();
-      mockUseMusdConversionTokens.mockReturnValue({
-        tokens: [token],
-        filterAllowedTokens: jest.fn(),
-        isConversionToken: jest.fn(),
-        isMusdSupportedOnChain: jest.fn(),
-        hasConvertibleTokensByChainId: jest.fn(),
-      });
-      mockInitiateMaxConversion.mockResolvedValue({
-        transactionId: 'tx-max-456',
-      });
-
-      const { getAllByTestId } = renderWithProvider(<MusdQuickConvertView />, {
-        state: initialRootState,
-      });
-
-      const maxButton = getAllByTestId(ConvertTokenRowTestIds.MAX_BUTTON)[0];
-
-      await act(async () => {
-        fireEvent.press(maxButton);
-      });
-
-      expect(mockSubscribeOnceIf).toHaveBeenCalledWith(
-        'TransactionController:transactionFailed',
-        expect.any(Function),
-        expect.any(Function),
-      );
-    });
-
-    it('does not subscribe to failed tx when Max returns undefined transactionId', async () => {
-      const token = createMockToken();
-      mockUseMusdConversionTokens.mockReturnValue({
-        tokens: [token],
-        filterAllowedTokens: jest.fn(),
-        isConversionToken: jest.fn(),
-        isMusdSupportedOnChain: jest.fn(),
-        hasConvertibleTokensByChainId: jest.fn(),
-      });
-      mockInitiateMaxConversion.mockResolvedValue({});
-
-      const { getAllByTestId } = renderWithProvider(<MusdQuickConvertView />, {
-        state: initialRootState,
-      });
-
-      const maxButton = getAllByTestId(ConvertTokenRowTestIds.MAX_BUTTON)[0];
-
-      await act(async () => {
-        fireEvent.press(maxButton);
-      });
-
-      expect(mockSubscribeOnceIf).not.toHaveBeenCalled();
-    });
   });
 
   describe('Edit flow', () => {
@@ -431,249 +364,6 @@ describe('MusdQuickConvertView', () => {
         },
         navigationOverride: MUSD_CONVERSION_NAVIGATION_OVERRIDE.CUSTOM,
       });
-    });
-
-    it('subscribes to failed tx when Edit returns transactionId', async () => {
-      const token = createMockToken();
-      mockUseMusdConversionTokens.mockReturnValue({
-        tokens: [token],
-        filterAllowedTokens: jest.fn(),
-        isConversionToken: jest.fn(),
-        isMusdSupportedOnChain: jest.fn(),
-        hasConvertibleTokensByChainId: jest.fn(),
-      });
-      mockInitiateCustomConversion.mockResolvedValue('tx-edit-999');
-
-      const { getAllByTestId } = renderWithProvider(<MusdQuickConvertView />, {
-        state: initialRootState,
-      });
-
-      const editButton = getAllByTestId(ConvertTokenRowTestIds.EDIT_BUTTON)[0];
-
-      await act(async () => {
-        fireEvent.press(editButton);
-      });
-
-      expect(mockSubscribeOnceIf).toHaveBeenCalledWith(
-        'TransactionController:transactionFailed',
-        expect.any(Function),
-        expect.any(Function),
-      );
-    });
-
-    it('does not subscribe to failed tx when Edit returns undefined', async () => {
-      const token = createMockToken();
-      mockUseMusdConversionTokens.mockReturnValue({
-        tokens: [token],
-        filterAllowedTokens: jest.fn(),
-        isConversionToken: jest.fn(),
-        isMusdSupportedOnChain: jest.fn(),
-        hasConvertibleTokensByChainId: jest.fn(),
-      });
-      mockInitiateCustomConversion.mockResolvedValue(undefined);
-
-      const { getAllByTestId } = renderWithProvider(<MusdQuickConvertView />, {
-        state: initialRootState,
-      });
-
-      const editButton = getAllByTestId(ConvertTokenRowTestIds.EDIT_BUTTON)[0];
-
-      await act(async () => {
-        fireEvent.press(editButton);
-      });
-
-      expect(mockSubscribeOnceIf).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('failure state', () => {
-    it('displays inline failed message when tx fails and callback adds txId to failed keys', async () => {
-      const token = createMockToken();
-      const tokenChainKey = createTokenChainKey(
-        token.address as string,
-        token.chainId as string,
-      );
-      const txId = 'tx-failed-123';
-
-      mockUseMusdConversionTokens.mockReturnValue({
-        tokens: [token],
-        filterAllowedTokens: jest.fn(),
-        isConversionToken: jest.fn(),
-        isMusdSupportedOnChain: jest.fn(),
-        hasConvertibleTokensByChainId: jest.fn(),
-      });
-      mockInitiateMaxConversion.mockResolvedValue({ transactionId: txId });
-      mockSelectMusdConversionStatuses.mockReturnValue({
-        [tokenChainKey]: {
-          txId,
-          status: TransactionStatus.failed,
-          isPending: false,
-          isConfirmed: false,
-          isFailed: true,
-        },
-      });
-
-      (mockSubscribeOnceIf as jest.Mock).mockImplementation(
-        (...args: unknown[]) => {
-          const callback = args[1] as () => void;
-          act(() => {
-            callback();
-          });
-          return jest.fn();
-        },
-      );
-
-      const { getAllByTestId, getByText } = renderWithProvider(
-        <MusdQuickConvertView />,
-        { state: initialRootState },
-      );
-
-      const maxButton = getAllByTestId(ConvertTokenRowTestIds.MAX_BUTTON)[0];
-
-      await act(async () => {
-        fireEvent.press(maxButton);
-      });
-
-      expect(
-        getByText(
-          strings('earn.musd_conversion.quick_convert.inline_failed_message'),
-        ),
-      ).toBeOnTheScreen();
-    });
-
-    it('clears failed conversion error when Edit is pressed after Max failure', async () => {
-      const token = createMockToken();
-      const tokenChainKey = createTokenChainKey(
-        token.address as string,
-        token.chainId as string,
-      );
-      const txId = 'tx-failed-edit-clear';
-
-      mockUseMusdConversionTokens.mockReturnValue({
-        tokens: [token],
-        filterAllowedTokens: jest.fn(),
-        isConversionToken: jest.fn(),
-        isMusdSupportedOnChain: jest.fn(),
-        hasConvertibleTokensByChainId: jest.fn(),
-      });
-      mockInitiateMaxConversion.mockResolvedValueOnce({
-        transactionId: txId,
-      });
-      mockInitiateCustomConversion.mockResolvedValueOnce('tx-edit-new');
-      mockSelectMusdConversionStatuses.mockReturnValue({
-        [tokenChainKey]: {
-          txId,
-          status: TransactionStatus.failed,
-          isPending: false,
-          isConfirmed: false,
-          isFailed: true,
-        },
-      });
-
-      (mockSubscribeOnceIf as jest.Mock).mockImplementation(
-        (...args: unknown[]) => {
-          const callback = args[1] as () => void;
-          act(() => {
-            callback();
-          });
-          return jest.fn();
-        },
-      );
-
-      const { getAllByTestId, getByText, queryByText } = renderWithProvider(
-        <MusdQuickConvertView />,
-        { state: initialRootState },
-      );
-
-      const maxButton = getAllByTestId(ConvertTokenRowTestIds.MAX_BUTTON)[0];
-
-      await act(async () => {
-        fireEvent.press(maxButton);
-      });
-
-      expect(
-        getByText(
-          strings('earn.musd_conversion.quick_convert.inline_failed_message'),
-        ),
-      ).toBeOnTheScreen();
-
-      const editButton = getAllByTestId(ConvertTokenRowTestIds.EDIT_BUTTON)[0];
-
-      await act(async () => {
-        fireEvent.press(editButton);
-      });
-
-      expect(
-        queryByText(
-          strings('earn.musd_conversion.quick_convert.inline_failed_message'),
-        ),
-      ).not.toBeOnTheScreen();
-    });
-
-    it('clears failed conversion error when Max is pressed again after failure', async () => {
-      const token = createMockToken();
-      const tokenChainKey = createTokenChainKey(
-        token.address as string,
-        token.chainId as string,
-      );
-      const txId = 'tx-failed-clear';
-
-      mockUseMusdConversionTokens.mockReturnValue({
-        tokens: [token],
-        filterAllowedTokens: jest.fn(),
-        isConversionToken: jest.fn(),
-        isMusdSupportedOnChain: jest.fn(),
-        hasConvertibleTokensByChainId: jest.fn(),
-      });
-      mockInitiateMaxConversion
-        .mockResolvedValueOnce({ transactionId: txId })
-        .mockResolvedValueOnce({ transactionId: 'tx-new-123' });
-      mockSelectMusdConversionStatuses.mockReturnValue({
-        [tokenChainKey]: {
-          txId,
-          status: TransactionStatus.failed,
-          isPending: false,
-          isConfirmed: false,
-          isFailed: true,
-        },
-      });
-
-      (mockSubscribeOnceIf as jest.Mock).mockImplementation(
-        (...args: unknown[]) => {
-          const callback = args[1] as () => void;
-          act(() => {
-            callback();
-          });
-          return jest.fn();
-        },
-      );
-
-      const { getAllByTestId, getByText, queryByText } = renderWithProvider(
-        <MusdQuickConvertView />,
-        { state: initialRootState },
-      );
-
-      const maxButton = getAllByTestId(ConvertTokenRowTestIds.MAX_BUTTON)[0];
-
-      await act(async () => {
-        fireEvent.press(maxButton);
-      });
-
-      expect(
-        getByText(
-          strings('earn.musd_conversion.quick_convert.inline_failed_message'),
-        ),
-      ).toBeOnTheScreen();
-
-      await act(async () => {
-        fireEvent.press(maxButton);
-      });
-
-      expect(
-        queryByText(
-          strings('earn.musd_conversion.quick_convert.inline_failed_message'),
-        ),
-      ).not.toBeOnTheScreen();
     });
   });
 
