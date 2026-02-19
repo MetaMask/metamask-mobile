@@ -301,7 +301,7 @@ export const POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS = async (
   mockServer: Mockttp,
   includeWinnings: boolean = false,
 ) => {
-  // Mock for current positions (redeemable=false) - never include winning positions here
+  // Mock for positions (no redeemable or redeemable=false) - overrides POLYMARKET_CURRENT_POSITIONS_MOCKS
   await mockServer
     .forGet('/proxy')
     .matching((request) => {
@@ -313,7 +313,7 @@ export const POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS = async (
           !url.includes('redeemable=true'),
       );
     })
-    .asPriority(PRIORITY.BASE)
+    .asPriority(PRIORITY.API_OVERRIDE)
     .thenCallback((request) => {
       const url = new URL(request.url).searchParams.get('url');
       const redeemable = parseRedeemableParam(request.url);
@@ -352,7 +352,7 @@ export const POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS = async (
       };
     });
 
-  // Mock for resolved markets (redeemable=true) - add winning positions here if includeWinnings is true
+  // Mock for resolved markets (redeemable=true) - overrides POLYMARKET_RESOLVED_MARKETS_POSITIONS_MOCKS
   await mockServer
     .forGet('/proxy')
     .matching((request) => {
@@ -364,7 +364,7 @@ export const POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS = async (
           url.includes('redeemable=true'),
       );
     })
-    .asPriority(PRIORITY.BASE)
+    .asPriority(PRIORITY.API_OVERRIDE)
     .thenCallback((request) => {
       const url = new URL(request.url).searchParams.get('url');
       const userMatch = url?.match(/user=(0x[a-fA-F0-9]{40})/);
