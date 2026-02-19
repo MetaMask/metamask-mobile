@@ -6,9 +6,7 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
-import TextField, {
-  TextFieldSize,
-} from '../../../../../component-library/components/Form/TextField';
+import TextField from '../../../../../component-library/components/Form/TextField';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import OnboardingStep from './OnboardingStep';
@@ -232,7 +230,6 @@ const ConfirmEmail = () => {
           autoCapitalize={'none'}
           onChangeText={handleConfirmCodeChange}
           numberOfLines={1}
-          size={TextFieldSize.Lg}
           value={confirmCode}
           keyboardType="number-pad"
           autoComplete="one-time-code"
@@ -303,16 +300,25 @@ const ConfirmEmail = () => {
   );
 
   const renderActions = () => (
-    <Button
-      variant={ButtonVariants.Primary}
-      label={strings('card.card_onboarding.continue_button')}
-      size={ButtonSize.Lg}
-      onPress={handleContinue}
-      width={ButtonWidthTypes.Full}
-      isDisabled={isDisabled}
-      loading={verifyLoading}
-      testID="confirm-email-continue-button"
-    />
+    <Box twClassName="flex flex-col items-center justify-center gap-2">
+      <Button
+        variant={ButtonVariants.Primary}
+        label={strings('card.card_onboarding.continue_button')}
+        size={ButtonSize.Lg}
+        onPress={handleContinue}
+        width={ButtonWidthTypes.Full}
+        isDisabled={isDisabled}
+        loading={verifyLoading}
+        testID="confirm-email-continue-button"
+      />
+      <Text
+        variant={TextVariant.BodySm}
+        testID="confirm-email-legal-terms"
+        twClassName="text-text-alternative text-center"
+      >
+        {strings('card.card_onboarding.confirm_email.legal_terms')}
+      </Text>
+    </Box>
   );
 
   return (

@@ -6,6 +6,7 @@ import {
   PREVIOUS_SCREEN,
   PROTECT,
 } from '../../../constants/navigation';
+import Routes from '../../../constants/navigation/Routes';
 import { Provider } from 'react-redux';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
@@ -17,7 +18,7 @@ import StorageWrapper from '../../../store/storage-wrapper';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { BIOMETRY_TYPE } from 'react-native-keychain';
 import { Authentication } from '../../../core';
-import { InteractionManager, Alert, Platform } from 'react-native';
+import { InteractionManager, Platform } from 'react-native';
 import { EVENT_NAME } from '../../../core/Analytics';
 
 jest.mock('../../../util/metrics/TrackOnboarding/trackOnboarding');
@@ -52,9 +53,14 @@ import {
 } from '../../../util/trace';
 import type { Span } from '@sentry/core';
 import OAuthLoginService from '../../../core/OAuthService/OAuthService';
+import { captureException } from '@sentry/react-native';
 
 const mockTrackOnboarding = trackOnboarding as jest.MockedFunction<
   typeof trackOnboarding
+>;
+
+const mockCaptureException = captureException as jest.MockedFunction<
+  typeof captureException
 >;
 
 OAuthLoginService.updateMarketingOptInStatus = jest
@@ -105,6 +111,9 @@ jest.mock('../../../core/Authentication', () => ({
     currentAuthType: 'passcode',
     availableBiometryType: 'faceID',
   }),
+  requestBiometricsAccessControlForIOS: jest.fn((authType) =>
+    Promise.resolve(authType),
+  ),
   newWalletAndKeychain: jest
     .fn()
     .mockImplementation(
@@ -124,6 +133,11 @@ jest.mock('../../../util/device', () => ({
   isIos: jest.fn(),
   isAndroid: jest.fn(),
   isMediumDevice: jest.fn(),
+}));
+
+const mockAuthenticateAsync = jest.fn().mockResolvedValue({ success: true });
+jest.mock('expo-local-authentication', () => ({
+  authenticateAsync: (...args: unknown[]) => mockAuthenticateAsync(...args),
 }));
 
 jest.mock('react-native/Libraries/Alert/Alert', () => ({
@@ -801,6 +815,148 @@ describe('ChoosePassword', () => {
     mockNewWalletAndKeychain.mockRestore();
   });
 
+  it('on iOS onboarding, when biometrics are declined uses PASSWORD auth type for new wallet', async () => {
+    const originalOS = Platform.OS;
+    (Platform as { OS: string }).OS = 'ios';
+    // ChoosePassword calls requestBiometricsAccessControlForIOS (Authentication); that method calls authenticateAsync.
+    // We mock the whole Authentication module, so simulate "user declined" by making requestBiometricsAccessControlForIOS return PASSWORD.
+    (
+      Authentication.requestBiometricsAccessControlForIOS as jest.Mock
+    ).mockResolvedValueOnce(AUTHENTICATION_TYPE.PASSWORD);
+
+    mockRoute.params = {
+      ...mockRoute.params,
+      [PREVIOUS_SCREEN]: ONBOARDING,
+    };
+
+    const mockNewWalletAndKeychain = jest.spyOn(
+      Authentication,
+      'newWalletAndKeychain',
+    );
+    mockNewWalletAndKeychain.mockImplementation(
+      (_: string, authType: { currentAuthType: string }) => {
+        expect(authType.currentAuthType).toBe(AUTHENTICATION_TYPE.PASSWORD);
+        return Promise.resolve();
+      },
+    );
+
+    const component = renderWithProviders(<ChoosePassword />);
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    });
+
+    const passwordInput = component.getByTestId(
+      ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+    );
+    const confirmInput = component.getByTestId(
+      ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+    );
+    const checkbox = component.getByTestId(
+      ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
+    );
+    const submitButton = component.getByTestId(
+      ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+    );
+
+    await act(async () => {
+      fireEvent.changeText(passwordInput, 'StrongPassword123!@#');
+      fireEvent.changeText(confirmInput, 'StrongPassword123!@#');
+    });
+    await act(async () => {
+      fireEvent.press(checkbox);
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    });
+    await act(async () => {
+      fireEvent.press(submitButton);
+    });
+
+    await waitFor(() => {
+      expect(mockNewWalletAndKeychain).toHaveBeenCalled();
+    });
+
+    (Platform as { OS: string }).OS = originalOS;
+    mockNewWalletAndKeychain.mockRestore();
+  });
+
+  it('on iOS onboarding, when biometrics succeed uses chosen auth type (biometric) for new wallet', async () => {
+    const originalOS = Platform.OS;
+    (Platform as { OS: string }).OS = 'ios';
+    // Simulate "user approved" by having requestBiometricsAccessControlForIOS return BIOMETRIC (pass-through).
+    (
+      Authentication.requestBiometricsAccessControlForIOS as jest.Mock
+    ).mockResolvedValueOnce(AUTHENTICATION_TYPE.BIOMETRIC);
+
+    mockRoute.params = {
+      ...mockRoute.params,
+      [PREVIOUS_SCREEN]: ONBOARDING,
+    };
+
+    const mockComponentAuthenticationType = jest.spyOn(
+      Authentication,
+      'componentAuthenticationType',
+    );
+    mockComponentAuthenticationType.mockResolvedValueOnce({
+      currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
+      availableBiometryType: BIOMETRY_TYPE.FACE_ID,
+    });
+
+    const mockNewWalletAndKeychain = jest.spyOn(
+      Authentication,
+      'newWalletAndKeychain',
+    );
+    mockNewWalletAndKeychain.mockImplementation(
+      (_: string, authType: { currentAuthType: string }) => {
+        expect(authType.currentAuthType).toBe(AUTHENTICATION_TYPE.BIOMETRIC);
+        return Promise.resolve();
+      },
+    );
+
+    const component = renderWithProviders(<ChoosePassword />);
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    });
+
+    const passwordInput = component.getByTestId(
+      ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+    );
+    const confirmInput = component.getByTestId(
+      ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+    );
+    const checkbox = component.getByTestId(
+      ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
+    );
+    const submitButton = component.getByTestId(
+      ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+    );
+
+    await act(async () => {
+      fireEvent.changeText(passwordInput, 'StrongPassword123!@#');
+      fireEvent.changeText(confirmInput, 'StrongPassword123!@#');
+    });
+    await act(async () => {
+      fireEvent.press(checkbox);
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    });
+    await act(async () => {
+      fireEvent.press(submitButton);
+    });
+
+    await waitFor(() => {
+      expect(mockNewWalletAndKeychain).toHaveBeenCalled();
+    });
+
+    (Platform as { OS: string }).OS = originalOS;
+    mockNewWalletAndKeychain.mockRestore();
+    mockComponentAuthenticationType.mockRestore();
+    // Re-establish default so later tests (e.g. OAuth) get a valid authType object
+    (Authentication.componentAuthenticationType as jest.Mock).mockResolvedValue(
+      {
+        currentAuthType: 'passcode',
+        availableBiometryType: 'faceID',
+      },
+    );
+  });
+
   it('confirm password input is cleared when password input is cleared', async () => {
     mockRoute.params = { [ONBOARDING]: true };
 
@@ -939,70 +1095,14 @@ describe('ChoosePassword', () => {
     });
   });
 
-  it('should handle rejected OS biometric prompt', async () => {
-    jest.spyOn(Device, 'isIos').mockReturnValue(true);
-
-    // Mock newWalletAndKeychain to throw error first, then succeed
-    const mockNewWalletAndKeychain = jest.spyOn(
-      Authentication,
-      'newWalletAndKeychain',
-    );
-    mockNewWalletAndKeychain
-      .mockRejectedValueOnce(new Error('User rejected biometric prompt'))
-      .mockResolvedValueOnce(undefined);
-
-    mockRoute.params = {
-      ...mockRoute.params,
-      [PREVIOUS_SCREEN]: ONBOARDING,
-    };
-    const component = renderWithProviders(<ChoosePassword />);
-
-    await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 100));
-    });
-
-    const passwordInput = component.getByTestId(
-      ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
-    );
-    const confirmPasswordInput = component.getByTestId(
-      ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
-    );
-    const checkbox = component.getByTestId(
-      ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
-    );
-
-    const submitButton = component.getByTestId(
-      ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
-    );
-    await act(async () => {
-      fireEvent.press(checkbox);
-      fireEvent.changeText(passwordInput, 'StrongPassword123!');
-    });
-
-    await act(async () => {
-      fireEvent.changeText(confirmPasswordInput, 'StrongPassword123!');
-    });
-
-    await act(async () => {
-      fireEvent(submitButton, 'press');
-    });
-
-    // Should handle the rejection and create wallet with fallback method
-    expect(mockNewWalletAndKeychain).toHaveBeenCalledTimes(2);
-
-    jest.spyOn(Device, 'isIos').mockRestore();
-    mockNewWalletAndKeychain.mockRestore();
-  });
-
-  it('should show alert when passcode not set error occurs', async () => {
+  it('navigates to error screen when passcode not set error occurs', async () => {
     jest.spyOn(Device, 'isIos').mockReturnValue(false);
+    const passcodeError = new Error('Passcode not set.');
     const mockComponentAuthenticationType = jest.spyOn(
       Authentication,
       'componentAuthenticationType',
     );
-    mockComponentAuthenticationType.mockRejectedValueOnce(
-      new Error('Passcode not set.'),
-    );
+    mockComponentAuthenticationType.mockRejectedValueOnce(passcodeError);
 
     const component = renderWithProviders(<ChoosePassword />);
 
@@ -1041,16 +1141,29 @@ describe('ChoosePassword', () => {
       await new Promise((resolve) => setTimeout(resolve, 200));
     });
 
-    expect(Alert.alert).toHaveBeenCalledWith(
-      strings('choose_password.security_alert_title'),
-      strings('choose_password.security_alert_message'),
-    );
+    expect(mockNavigation.reset).toHaveBeenCalledWith({
+      routes: [
+        {
+          name: Routes.ONBOARDING.WALLET_CREATION_ERROR,
+          params: expect.objectContaining({
+            metricsEnabled: true,
+            error: passcodeError,
+          }),
+        },
+      ],
+    });
 
     jest.spyOn(Device, 'isIos').mockRestore();
-    mockComponentAuthenticationType.mockClear();
+    mockComponentAuthenticationType.mockRestore();
   });
 
   it('should navigate to success screen when oauth2Login is true and metrics enabled', async () => {
+    (Authentication.componentAuthenticationType as jest.Mock).mockResolvedValue(
+      {
+        currentAuthType: 'biometrics',
+        availableBiometryType: 'faceID',
+      },
+    );
     const mockNewWalletAndKeychain = jest.spyOn(
       Authentication,
       'newWalletAndKeychain',
@@ -1117,6 +1230,12 @@ describe('ChoosePassword', () => {
   });
 
   it('should navigate to success screen when oauth2Login is true', async () => {
+    (Authentication.componentAuthenticationType as jest.Mock).mockResolvedValue(
+      {
+        currentAuthType: 'biometrics',
+        availableBiometryType: 'faceID',
+      },
+    );
     const mockNewWalletAndKeychain = jest.spyOn(
       Authentication,
       'newWalletAndKeychain',
@@ -1211,7 +1330,15 @@ describe('ChoosePassword', () => {
 
   describe('ErrorBoundary Tests', () => {
     it('should not trigger ErrorBoundary for OAuth password creation failures when analytics enabled', async () => {
-      mockMetricsIsEnabled.mockReturnValueOnce(true);
+      (
+        Authentication.componentAuthenticationType as jest.Mock
+      ).mockResolvedValue({
+        currentAuthType: 'biometrics',
+        availableBiometryType: 'faceID',
+      });
+      mockMetricsIsEnabled.mockReturnValue(true);
+      mockCaptureException.mockClear();
+
       const mockNewWalletAndKeychain = jest.spyOn(
         Authentication,
         'newWalletAndKeychain',
@@ -1262,6 +1389,7 @@ describe('ChoosePassword', () => {
       });
 
       expect(mockNewWalletAndKeychain).toHaveBeenCalledTimes(1);
+      expect(mockCaptureException).toHaveBeenCalled();
       expect(mockTrackEvent).not.toHaveBeenLastCalledWith(
         expect.objectContaining({
           name: 'Error Screen Viewed',
@@ -1270,6 +1398,160 @@ describe('ChoosePassword', () => {
 
       mockNewWalletAndKeychain.mockRestore();
     });
+
+    it('should auto-report error to Sentry and navigate to error screen for social login failure', async () => {
+      mockMetricsIsEnabled.mockReturnValue(true);
+      mockCaptureException.mockClear();
+
+      const mockComponentAuthenticationType = jest.spyOn(
+        Authentication,
+        'componentAuthenticationType',
+      );
+      const walletError = new Error('Social login wallet creation failed');
+      mockComponentAuthenticationType.mockRejectedValueOnce(walletError);
+
+      mockRoute.params = {
+        ...mockRoute.params,
+        [PREVIOUS_SCREEN]: ONBOARDING,
+        oauthLoginSuccess: true,
+      };
+      const component = renderWithProviders(<ChoosePassword />);
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      const passwordInput = component.getByTestId(
+        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+      );
+      const confirmPasswordInput = component.getByTestId(
+        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+      );
+      const checkbox = component.getByTestId(
+        ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
+      );
+      const submitButton = component.getByTestId(
+        ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+      );
+
+      await act(async () => {
+        fireEvent.press(checkbox);
+        fireEvent.changeText(passwordInput, 'StrongPassword123!');
+      });
+      await act(async () => {
+        fireEvent.changeText(confirmPasswordInput, 'StrongPassword123!');
+      });
+      await act(async () => {
+        fireEvent(submitButton, 'press');
+      });
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 200));
+      });
+
+      expect(mockCaptureException).toHaveBeenCalledWith(walletError, {
+        tags: {
+          view: 'ChoosePassword',
+          context: 'Wallet creation failed - auto reported',
+        },
+      });
+
+      // metricsEnabled param reflects user's consent status
+      expect(mockNavigation.reset).toHaveBeenCalledWith({
+        routes: [
+          {
+            name: Routes.ONBOARDING.WALLET_CREATION_ERROR,
+            params: expect.objectContaining({
+              metricsEnabled: true,
+              error: walletError,
+            }),
+          },
+        ],
+      });
+
+      mockComponentAuthenticationType.mockReset();
+      mockComponentAuthenticationType.mockResolvedValue({
+        currentAuthType: AUTHENTICATION_TYPE.PASSCODE,
+        availableBiometryType: BIOMETRY_TYPE.FACE_ID,
+      });
+    });
+
+    it('should auto-report error to Sentry for SRP users with metrics enabled', async () => {
+      mockMetricsIsEnabled.mockReturnValue(true);
+      mockCaptureException.mockClear();
+
+      const mockComponentAuthenticationType = jest.spyOn(
+        Authentication,
+        'componentAuthenticationType',
+      );
+      const walletError = new Error('SRP wallet creation failed');
+      mockComponentAuthenticationType.mockRejectedValueOnce(walletError);
+
+      mockRoute.params = {
+        ...mockRoute.params,
+        [PREVIOUS_SCREEN]: ONBOARDING,
+        oauthLoginSuccess: false, // SRP flow, not social login
+      };
+      const component = renderWithProviders(<ChoosePassword />);
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      const passwordInput = component.getByTestId(
+        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+      );
+      const confirmPasswordInput = component.getByTestId(
+        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+      );
+      const checkbox = component.getByTestId(
+        ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
+      );
+      const submitButton = component.getByTestId(
+        ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+      );
+
+      await act(async () => {
+        fireEvent.press(checkbox);
+        fireEvent.changeText(passwordInput, 'StrongPassword123!');
+      });
+      await act(async () => {
+        fireEvent.changeText(confirmPasswordInput, 'StrongPassword123!');
+      });
+      await act(async () => {
+        fireEvent(submitButton, 'press');
+      });
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 200));
+      });
+
+      // Should auto-report to Sentry for SRP users with metrics enabled
+      expect(mockCaptureException).toHaveBeenCalledWith(walletError, {
+        tags: {
+          view: 'ChoosePassword',
+          context: 'Wallet creation failed - auto reported',
+        },
+      });
+
+      expect(mockNavigation.reset).toHaveBeenCalledWith({
+        routes: [
+          {
+            name: Routes.ONBOARDING.WALLET_CREATION_ERROR,
+            params: expect.objectContaining({
+              metricsEnabled: true,
+              error: walletError,
+            }),
+          },
+        ],
+      });
+
+      mockComponentAuthenticationType.mockReset();
+      mockComponentAuthenticationType.mockResolvedValue({
+        currentAuthType: AUTHENTICATION_TYPE.PASSCODE,
+        availableBiometryType: BIOMETRY_TYPE.FACE_ID,
+      });
+    });
   });
   describe('Marketing API Integration', () => {
     beforeEach(() => {
@@ -1277,6 +1559,12 @@ describe('ChoosePassword', () => {
     });
 
     it('should call updateMarketingOptInStatus API when OAuth user creates password with marketing opt-in enabled', async () => {
+      (
+        Authentication.componentAuthenticationType as jest.Mock
+      ).mockResolvedValue({
+        currentAuthType: 'biometrics',
+        availableBiometryType: 'faceID',
+      });
       const mockNewWalletAndKeychain = jest.spyOn(
         Authentication,
         'newWalletAndKeychain',

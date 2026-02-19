@@ -19,6 +19,13 @@ jest.mock('../../../../../../component-library/hooks', () => ({
       buttonsContainer: {},
       button: {},
     },
+    theme: {
+      colors: {
+        text: {
+          alternative: '#6a737d',
+        },
+      },
+    },
   })),
 }));
 

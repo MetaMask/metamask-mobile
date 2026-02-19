@@ -37,6 +37,8 @@ export function getRampsControllerMessenger(
       'RampsService:getTokens',
       'RampsService:getProviders',
       'RampsService:getPaymentMethods',
+      'RampsService:getQuotes',
+      'RampsService:getBuyWidgetUrl',
     ],
     events: [],
   });

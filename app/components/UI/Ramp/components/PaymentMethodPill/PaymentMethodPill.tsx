@@ -1,5 +1,5 @@
 import React from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { TouchableOpacity, View, ActivityIndicator } from 'react-native';
 
 import Icon, {
   IconName,
@@ -10,6 +10,7 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
+import { useTheme } from '../../../../../util/theme';
 
 import styleSheet from './PaymentMethodPill.styles';
 
@@ -18,6 +19,8 @@ export interface PaymentMethodPillProps {
   label: string;
   /** Optional press handler */
   onPress?: () => void;
+  /** When true, shows loading indicator instead of carat and disables press */
+  isLoading?: boolean;
   /** Test ID for testing */
   testID?: string;
 }
@@ -25,14 +28,17 @@ export interface PaymentMethodPillProps {
 const PaymentMethodPill: React.FC<PaymentMethodPillProps> = ({
   label,
   onPress,
+  isLoading = false,
   testID = 'payment-method-pill',
 }) => {
   const { styles } = useStyles(styleSheet, {});
+  const { colors } = useTheme();
 
   return (
     <TouchableOpacity
       style={styles.container}
-      onPress={onPress}
+      onPress={isLoading ? undefined : onPress}
+      disabled={isLoading}
       testID={testID}
       activeOpacity={0.7}
     >
@@ -47,11 +53,15 @@ const PaymentMethodPill: React.FC<PaymentMethodPillProps> = ({
         {label}
       </Text>
       <View style={styles.arrowWrapper}>
-        <Icon
-          name={IconName.ArrowDown}
-          size={IconSize.Sm}
-          color={IconColor.Default}
-        />
+        {isLoading ? (
+          <ActivityIndicator size="small" color={colors.icon.default} />
+        ) : (
+          <Icon
+            name={IconName.ArrowDown}
+            size={IconSize.Sm}
+            color={IconColor.Default}
+          />
+        )}
       </View>
     </TouchableOpacity>
   );

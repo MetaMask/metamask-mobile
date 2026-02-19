@@ -22,11 +22,14 @@ import { useStyles } from '../../../../../component-library/hooks';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import Routes from '../../../../../constants/navigation/Routes';
 import ScreenView from '../../../../Base/ScreenView';
-import HeaderCenter from '../../../../../component-library/components-temp/HeaderCenter';
+import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import PerpsTransactionDetailAssetHero from '../../components/PerpsTransactionDetailAssetHero';
 import { usePerpsBlockExplorerUrl } from '../../hooks';
 import { PerpsNavigationParamList } from '../../types/navigation';
-import type { PerpsMarketData } from '../../controllers/types';
+import {
+  PERPS_EVENT_VALUE,
+  type PerpsMarketData,
+} from '@metamask/perps-controller';
 import {
   PerpsPositionTransactionRouteProp,
   PerpsTransaction,
@@ -38,7 +41,6 @@ import {
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
 import { styleSheet } from './PerpsPositionTransactionView.styles';
-import { PERPS_EVENT_VALUE } from '../../constants/eventNames';
 
 const PerpsPositionTransactionView: React.FC = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -72,7 +74,10 @@ const PerpsPositionTransactionView: React.FC = () => {
     // Handle missing transaction data
     return (
       <ScreenView>
-        <HeaderCenter includesTopInset onBack={() => navigation.goBack()} />
+        <HeaderCompactStandard
+          includesTopInset
+          onBack={() => navigation.goBack()}
+        />
         <View style={styles.content}>
           <Text>{strings('perps.transactions.not_found')}</Text>
         </View>
@@ -174,7 +179,7 @@ const PerpsPositionTransactionView: React.FC = () => {
 
   return (
     <ScreenView>
-      <HeaderCenter
+      <HeaderCompactStandard
         title={transaction?.fill?.shortTitle || ''}
         onBack={() => navigation.goBack()}
         includesTopInset

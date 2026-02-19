@@ -3,9 +3,9 @@ import FixtureBuilder, {
   DEFAULT_FIXTURE_ACCOUNT_CHECKSUM,
 } from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import AccountListBottomSheet from '../../../e2e/pages/wallet/AccountListBottomSheet';
-import WalletView from '../../../e2e/pages/wallet/WalletView';
-import { loginToApp } from '../../../e2e/viewHelper';
+import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomSheet';
+import WalletView from '../../page-objects/wallet/WalletView';
+import { loginToApp } from '../../flows/wallet.flow';
 import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../api-mocking/mock-responses/feature-flags-mocks';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 
@@ -27,8 +27,25 @@ export const SIMPLE_KEYPAIR_ACCOUNT: Account = {
   address: DEFAULT_FIXTURE_ACCOUNT_CHECKSUM,
 };
 
+/**
+ * Go to account details.
+ * This method is used for multichain accounts V1.
+ *
+ * @deprecated Use goToAccountDetailsV2 instead.
+ * @param account - The account to go to details
+ */
 export const goToAccountDetails = async (account: Account) => {
   await AccountListBottomSheet.tapEditAccountActionsAtIndex(account.index);
+};
+
+/**
+ * Go to account details.
+ * This method is used for multichain accounts V2.
+ *
+ * @param account - The account to go to details
+ */
+export const goToAccountDetailsV2 = async (account: Account) => {
+  await AccountListBottomSheet.tapAccountEllipsisButtonV2(account.index);
 };
 
 export const withMultichainAccountDetailsEnabledFixtures = async (

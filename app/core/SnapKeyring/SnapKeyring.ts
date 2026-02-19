@@ -23,7 +23,6 @@ import { endPerformanceTrace } from '../../core/redux/slices/performance';
 import { PerformanceEventNames } from '../redux/slices/performance/constants';
 import { areAddressesEqual } from '../../util/address';
 import { isE2E } from '../../util/test/utils';
-import { isMultichainAccountsState2Enabled } from '../../multichain-accounts/remote-feature-flag';
 
 /**
  * Builder type for the Snap keyring.
@@ -164,14 +163,12 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
     skipSetSelectedAccountStep,
     skipApprovalFlow,
     onceSaved,
-    accountName,
   }: {
     address: string;
     snapId: SnapId;
     skipSetSelectedAccountStep: boolean;
     skipApprovalFlow: boolean;
     onceSaved: Promise<string>;
-    accountName?: string;
   }) {
     const finalizeFn = async () => {
       try {
@@ -189,22 +186,6 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
             'AccountsController:setSelectedAccount',
             accountId,
           );
-        }
-
-        // HACK: In state 2, account creations can run in parallel, thus, `accountName`
-        // sometimes conflict with other concurrent renaming. Since we don't rely on those
-        // account names anymore, we just omit this part and make this race-free.
-        // FIXME: We still rely on the old behavior in some e2e, so we cannot remove this
-        // entirely.
-        if (!isMultichainAccountsState2Enabled()) {
-          if (accountName) {
-            // Set the account name if one is provided
-            this.#messenger.call(
-              'AccountsController:setAccountName',
-              accountId,
-              accountName,
-            );
-          }
         }
 
         // Track successful account addition
@@ -255,10 +236,7 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
     const isPreinstalled = isSnapPreinstalled(snapId);
 
     // Since the introduction of BIP-44, multichain wallet Snaps will skip them automatically too!
-    let skipAll =
-      isMultichainAccountsState2Enabled() &&
-      isPreinstalled &&
-      isMultichainWalletSnap(snapId);
+    let skipAll = isPreinstalled && isMultichainWalletSnap(snapId);
     // FIXME: We still rely on the old behavior in some e2e, so we do not skip them in this case.
     if (isE2E) {
       skipAll = false;
@@ -279,9 +257,7 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
     const skipApprovalFlow =
       skipConfirmationDialog && skipAccountNameSuggestionDialog;
 
-    // First part of the flow, which includes confirmation dialogs (if not skipped).
-    // Once confirmed, we resume the Snap execution.
-    const { accountName } = await this.addAccountConfirmations({
+    await this.addAccountConfirmations({
       snapId,
       // We do not set the account name suggestion if it's a multichain wallet Snap since the
       // current naming could have race conditions with other account creations, and since
@@ -302,7 +278,6 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
       skipSetSelectedAccountStep,
       skipApprovalFlow,
       onceSaved,
-      accountName,
     });
   }
 
