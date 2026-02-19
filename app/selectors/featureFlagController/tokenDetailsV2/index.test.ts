@@ -19,7 +19,7 @@ describe('selectTokenDetailsLayoutTestVariant', () => {
   it('returns "treatment" for a valid treatment flag', () => {
     const result = selectTokenDetailsLayoutTestVariant.resultFunc({
       tokenDetailsV2AbTest: {
-        value: { variant: 'treatment', minimumVersion: '7.66.0' },
+        value: { variant: 'treatment', minimumVersion: '7.67.0' },
       },
     });
     expect(result).toBe('treatment');
@@ -28,7 +28,7 @@ describe('selectTokenDetailsLayoutTestVariant', () => {
   it('returns "control" for a valid control flag', () => {
     const result = selectTokenDetailsLayoutTestVariant.resultFunc({
       tokenDetailsV2AbTest: {
-        value: { variant: 'control', minimumVersion: '7.66.0' },
+        value: { variant: 'control', minimumVersion: '7.67.0' },
       },
     });
     expect(result).toBe('control');
@@ -59,7 +59,7 @@ describe('selectTokenDetailsLayoutTestVariant', () => {
   it('returns null for an invalid variant string', () => {
     const result = selectTokenDetailsLayoutTestVariant.resultFunc({
       tokenDetailsV2AbTest: {
-        value: { variant: 'unknown_variant', minimumVersion: '7.66.0' },
+        value: { variant: 'unknown_variant', minimumVersion: '7.67.0' },
       },
     });
     expect(result).toBeNull();
@@ -68,7 +68,7 @@ describe('selectTokenDetailsLayoutTestVariant', () => {
   it('returns null when variant is not a string', () => {
     const result = selectTokenDetailsLayoutTestVariant.resultFunc({
       tokenDetailsV2AbTest: {
-        value: { variant: 123, minimumVersion: '7.66.0' },
+        value: { variant: 123, minimumVersion: '7.67.0' },
       },
     });
     expect(result).toBeNull();
