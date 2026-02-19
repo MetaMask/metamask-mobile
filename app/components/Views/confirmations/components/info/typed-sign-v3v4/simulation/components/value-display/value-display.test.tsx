@@ -8,8 +8,7 @@ import { TokenStandard } from '../../../../../../../../UI/SimulationDetails/type
 import { getTokenDetails } from '../../../../../../../../../util/address';
 import { backgroundState } from '../../../../../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../../../../../util/test/renderWithProvider';
-import { useMetrics } from '../../../../../../../../hooks/useMetrics';
-import { MetricsEventBuilder } from '../../../../../../../../../core/Analytics/MetricsEventBuilder';
+import { useAnalytics } from '../../../../../../../../hooks/useAnalytics/useAnalytics';
 
 const mockInitialState = {
   engine: {
@@ -30,7 +29,7 @@ const mockErc20TokenDetails = {
 
 const mockTrackEvent = jest.fn();
 
-jest.mock('../../../../../../../../hooks/useMetrics');
+jest.mock('../../../../../../../../hooks/useAnalytics/useAnalytics');
 jest.mock('../../../../../../hooks/useGetTokenStandardAndDetails');
 
 jest.mock('../../../../../../../../../util/address', () => ({
@@ -42,9 +41,16 @@ jest.mock('../../../../../../../../../util/address', () => ({
 
 describe('SimulationValueDisplay', () => {
   beforeEach(() => {
-    (useMetrics as jest.MockedFn<typeof useMetrics>).mockReturnValue({
+    (useAnalytics as jest.MockedFn<typeof useAnalytics>).mockReturnValue({
       trackEvent: mockTrackEvent,
-      createEventBuilder: MetricsEventBuilder.createEventBuilder,
+      createEventBuilder: jest.fn(() => ({
+        addProperties: jest.fn().mockReturnThis(),
+        addSensitiveProperties: jest.fn().mockReturnThis(),
+        removeProperties: jest.fn().mockReturnThis(),
+        removeSensitiveProperties: jest.fn().mockReturnThis(),
+        setSaveDataRecording: jest.fn().mockReturnThis(),
+        build: jest.fn(),
+      })),
       enable: jest.fn(),
       addTraitsToUser: jest.fn(),
       createDataDeletionTask: jest.fn(),
@@ -53,7 +59,7 @@ describe('SimulationValueDisplay', () => {
       getDeleteRegulationId: jest.fn(),
       isDataRecorded: jest.fn(),
       isEnabled: jest.fn(),
-      getMetaMetricsId: jest.fn(),
+      getAnalyticsId: jest.fn(),
     });
   });
 
