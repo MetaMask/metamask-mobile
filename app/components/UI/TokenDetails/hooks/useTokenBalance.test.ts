@@ -4,13 +4,33 @@ import { TokenI } from '../../Tokens/types';
 import {
   selectAsset,
   selectTronResourcesBySelectedAccountGroup,
+  TronResourcesMap,
 } from '../../../../selectors/assets/assets-list';
 import { createStakedTrxAsset } from '../../AssetOverview/utils/createStakedTrxAsset';
-import { Asset } from '@metamask/assets-controllers';
+
+const createEmptyResourcesMap = (): TronResourcesMap => ({
+  energy: undefined,
+  bandwidth: undefined,
+  maxEnergy: undefined,
+  maxBandwidth: undefined,
+  stakedTrxForEnergy: undefined,
+  stakedTrxForBandwidth: undefined,
+  totalStakedTrx: 0,
+});
 
 jest.mock('../../../../selectors/assets/assets-list', () => ({
   selectAsset: jest.fn(),
-  selectTronResourcesBySelectedAccountGroup: jest.fn(() => []),
+  selectTronResourcesBySelectedAccountGroup: jest.fn(
+    (): TronResourcesMap => ({
+      energy: undefined,
+      bandwidth: undefined,
+      maxEnergy: undefined,
+      maxBandwidth: undefined,
+      stakedTrxForEnergy: undefined,
+      stakedTrxForBandwidth: undefined,
+      totalStakedTrx: 0,
+    }),
+  ),
 }));
 
 jest.mock('../../AssetOverview/utils/createStakedTrxAsset', () => ({
@@ -26,7 +46,7 @@ const mockCreateStakedTrxAsset = jest.mocked(createStakedTrxAsset);
 describe('useTokenBalance', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockSelectTronResources.mockReturnValue([]);
+    mockSelectTronResources.mockReturnValue(createEmptyResourcesMap());
   });
 
   afterEach(() => {
@@ -48,9 +68,38 @@ describe('useTokenBalance', () => {
 
     const { result } = renderHookWithProvider(() => useTokenBalance(token));
 
+    // Address is normalized to checksum format for consistent lookup
+    expect(mockSelectAsset).toHaveBeenCalledWith(expect.any(Object), {
+      address: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
+      chainId: token.chainId,
+      isStaked: false,
+    });
     expect(result.current.balance).toBe('100');
     expect(result.current.fiatBalance).toBe('$100.00');
     expect(result.current.tokenFormattedBalance).toBe('100 DAI');
+  });
+
+  it('passes through isStaked when token is staked', () => {
+    const token = {
+      address: '0x0000000000000000000000000000000000000000',
+      chainId: '0x1',
+      isStaked: true,
+    } as TokenI;
+
+    mockSelectAsset.mockReturnValue({
+      balance: '2',
+      balanceFiat: '$4,800.00',
+      symbol: 'ETH',
+      isStaked: true,
+    } as TokenI);
+
+    renderHookWithProvider(() => useTokenBalance(token));
+
+    expect(mockSelectAsset).toHaveBeenCalledWith(expect.any(Object), {
+      address: token.address,
+      chainId: token.chainId,
+      isStaked: true,
+    });
   });
 
   it('returns staked TRX asset for Tron native token', () => {
@@ -69,15 +118,21 @@ describe('useTokenBalance', () => {
       symbol: 'TRX',
     } as TokenI);
 
-    mockSelectTronResources.mockReturnValue([
-      { symbol: 'strx-energy', balance: '100' },
-      { symbol: 'strx-bandwidth', balance: '200' },
-    ] as Asset[]);
+    mockSelectTronResources.mockReturnValue({
+      ...createEmptyResourcesMap(),
+      stakedTrxForEnergy: { symbol: 'strx-energy', balance: '100' },
+      stakedTrxForBandwidth: { symbol: 'strx-bandwidth', balance: '200' },
+    } as TronResourcesMap);
 
     mockCreateStakedTrxAsset.mockReturnValue(mockStakedAsset);
 
     const { result } = renderHookWithProvider(() => useTokenBalance(tronToken));
 
+    expect(mockSelectAsset).toHaveBeenCalledWith(expect.any(Object), {
+      address: tronToken.address,
+      chainId: tronToken.chainId,
+      isStaked: false,
+    });
     expect(result.current.balance).toBe('1000');
     expect(result.current.fiatBalance).toBe('$100.00');
     expect(result.current.tokenFormattedBalance).toBe('1000 TRX');

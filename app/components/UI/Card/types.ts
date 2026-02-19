@@ -147,12 +147,12 @@ export enum CardType {
 
 export interface CardDetailsResponse {
   id: string;
-  holderName: string;
-  expiryDate: string;
+  isFreezable: boolean;
+  orderedAt: string;
   panLast4: string;
   status: CardStatus;
   type: CardType;
-  orderedAt: string;
+  holderName: string;
 }
 
 export interface CardWalletExternalResponse {
@@ -496,6 +496,7 @@ export interface OrderPaymentConfig {
  */
 export interface CreateOrderResponse {
   orderId: string;
+  requestId: string;
   paymentConfig: OrderPaymentConfig;
 }
 
@@ -503,6 +504,7 @@ export interface CreateOrderResponse {
  * Status of an order
  */
 export type OrderStatus =
+  | 'STARTED'
   | 'PENDING'
   | 'COMPLETED'
   | 'FAILED'

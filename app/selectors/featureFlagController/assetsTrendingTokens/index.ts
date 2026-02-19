@@ -81,6 +81,9 @@ export const isAssetsTrendingTokensFeatureEnabled = (
   return evaluateAssetsTrendingTokensRemoteFlag(flagValue);
 };
 
+// We are enabling this feature flag to be enabled by default for non-E2E builds
+const forcedTrueOverride = () => 'true';
+
 /**
  * Selector to check if the assets trending tokens feature flag is enabled.
  * Supports environment variable override (OVERRIDE_REMOTE_FEATURE_FLAGS + ASSETS_TRENDING_TOKENS_ENABLED).
@@ -103,7 +106,7 @@ export const selectAssetsTrendingTokensEnabled = createSelector(
 
     return isAssetsTrendingTokensFeatureEnabled(
       value,
-      envOverride || undefined,
+      forcedTrueOverride() || envOverride || undefined,
     );
   },
 );

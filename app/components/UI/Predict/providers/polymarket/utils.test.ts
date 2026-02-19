@@ -18,6 +18,7 @@ import {
   MATIC_CONTRACTS,
   MSG_TO_SIGN,
   POLYGON_MAINNET_CHAIN_ID,
+  POLYMARKET_PROVIDER_ID,
 } from './constants';
 import { DEFAULT_FEE_COLLECTION_FLAG } from '../../constants/flags';
 import {
@@ -982,7 +983,7 @@ describe('polymarket utils', () => {
       expect(result[0]).toEqual({
         id: 'event-1',
         slug: 'test-event',
-        providerId: 'polymarket',
+        providerId: POLYMARKET_PROVIDER_ID,
         title: 'Test Event',
         description: 'A test event',
         image: 'https://example.com/icon.png',
@@ -994,7 +995,7 @@ describe('polymarket utils', () => {
         outcomes: [
           {
             id: 'market-1',
-            providerId: 'polymarket',
+            providerId: POLYMARKET_PROVIDER_ID,
             marketId: 'event-1',
             title: 'Will it rain?',
             description: 'Weather prediction',
@@ -1916,7 +1917,7 @@ describe('polymarket utils', () => {
 
       expect(result).toEqual({
         id: 'market-1',
-        providerId: 'polymarket',
+        providerId: POLYMARKET_PROVIDER_ID,
         marketId: 'event-1',
         title: 'Will it rain?',
         description: 'Weather prediction',
@@ -2118,7 +2119,7 @@ describe('polymarket utils', () => {
 
       expect(result[0]).toEqual({
         id: 'position-1',
-        providerId: 'polymarket',
+        providerId: POLYMARKET_PROVIDER_ID,
         marketId: 'event-1',
         outcomeId: 'condition-1',
         outcome: 'Yes',
@@ -2143,7 +2144,7 @@ describe('polymarket utils', () => {
 
       expect(result[1]).toEqual({
         id: 'position-2',
-        providerId: 'polymarket',
+        providerId: POLYMARKET_PROVIDER_ID,
         marketId: 'event-1',
         outcomeId: 'condition-1',
         outcome: 'No',
@@ -2168,7 +2169,7 @@ describe('polymarket utils', () => {
 
       expect(result[2]).toEqual({
         id: 'position-3',
-        providerId: 'polymarket',
+        providerId: POLYMARKET_PROVIDER_ID,
         marketId: 'event-1',
         outcomeId: 'condition-1',
         outcome: 'Maybe',
@@ -2281,7 +2282,6 @@ describe('polymarket utils', () => {
       });
 
       const params: GetMarketsParams = {
-        providerId: 'polymarket',
         q: 'weather',
         limit: 10,
         offset: 5,
@@ -2312,7 +2312,6 @@ describe('polymarket utils', () => {
       });
 
       const params: GetMarketsParams = {
-        providerId: 'polymarket',
         q: 'nhl',
         limit: 10,
         offset: 0,
@@ -2339,7 +2338,6 @@ describe('polymarket utils', () => {
       });
 
       const params: GetMarketsParams = {
-        providerId: 'polymarket',
         q: 'nhl',
         limit: 10,
         offset: 0,
@@ -2362,7 +2360,6 @@ describe('polymarket utils', () => {
       });
 
       const params: GetMarketsParams = {
-        providerId: 'polymarket',
         category: 'crypto',
         limit: 5,
       };
@@ -2392,6 +2389,110 @@ describe('polymarket utils', () => {
       await expect(getParsedMarketsFromPolymarketApi()).rejects.toThrow(
         'Network error',
       );
+    });
+
+    describe('hot tab with customQueryParams', () => {
+      it('uses only limit, offset, and customQueryParams when category is hot', async () => {
+        const mockResponse = {
+          data: [mockEvent],
+        };
+
+        mockFetch.mockResolvedValue({
+          ok: true,
+          json: jest.fn().mockResolvedValue(mockResponse),
+        });
+
+        const params: GetMarketsParams = {
+          category: 'hot',
+          customQueryParams: 'tag_id=149&tag_id=100995&order=volume24hr',
+          limit: 20,
+          offset: 0,
+        };
+
+        await getParsedMarketsFromPolymarketApi(params);
+
+        expect(mockFetch).toHaveBeenCalledWith(
+          'https://gamma-api.polymarket.com/events/pagination?limit=20&offset=0&tag_id=149&tag_id=100995&order=volume24hr',
+        );
+      });
+
+      it('falls back to default params when hot tab has no customQueryParams', async () => {
+        const mockResponse = {
+          data: [mockEvent],
+        };
+
+        mockFetch.mockResolvedValue({
+          ok: true,
+          json: jest.fn().mockResolvedValue(mockResponse),
+        });
+
+        const params: GetMarketsParams = {
+          category: 'hot',
+          limit: 20,
+          offset: 0,
+        };
+
+        await getParsedMarketsFromPolymarketApi(params);
+
+        expect(mockFetch).toHaveBeenCalledWith(
+          'https://gamma-api.polymarket.com/events/pagination?limit=20&active=true&archived=false&closed=false&ascending=false&offset=0&liquidity_min=10000&volume_min=10000&order=volume24hr',
+        );
+      });
+
+      it('does not apply default filters for hot tab with customQueryParams', async () => {
+        const mockResponse = {
+          data: [mockEvent],
+        };
+
+        mockFetch.mockResolvedValue({
+          ok: true,
+          json: jest.fn().mockResolvedValue(mockResponse),
+        });
+
+        const params: GetMarketsParams = {
+          category: 'hot',
+          customQueryParams: 'tag_id=198',
+          limit: 10,
+          offset: 20,
+        };
+
+        await getParsedMarketsFromPolymarketApi(params);
+
+        const callUrl = mockFetch.mock.calls[0][0] as string;
+
+        expect(callUrl).not.toContain('active=true');
+        expect(callUrl).not.toContain('archived=false');
+        expect(callUrl).not.toContain('closed=false');
+        expect(callUrl).not.toContain('liquidity_min');
+        expect(callUrl).not.toContain('volume_min');
+        expect(callUrl).toContain('limit=10');
+        expect(callUrl).toContain('offset=20');
+        expect(callUrl).toContain('tag_id=198');
+      });
+
+      it('ignores customQueryParams for non-hot categories', async () => {
+        const mockResponse = {
+          data: [mockEvent],
+        };
+
+        mockFetch.mockResolvedValue({
+          ok: true,
+          json: jest.fn().mockResolvedValue(mockResponse),
+        });
+
+        const params: GetMarketsParams = {
+          category: 'trending',
+          customQueryParams: 'tag_id=149',
+          limit: 20,
+          offset: 0,
+        };
+
+        await getParsedMarketsFromPolymarketApi(params);
+
+        expect(mockFetch).toHaveBeenCalledWith(
+          'https://gamma-api.polymarket.com/events/pagination?limit=20&active=true&archived=false&closed=false&ascending=false&offset=0&liquidity_min=10000&volume_min=10000&order=volume24hr',
+        );
+      });
     });
   });
 

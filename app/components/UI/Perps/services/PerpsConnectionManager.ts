@@ -14,19 +14,22 @@ import {
   TraceOperation,
 } from '../../../../util/trace';
 import Logger from '../../../../util/Logger';
-import { PERPS_CONSTANTS, PERFORMANCE_CONFIG } from '../constants/perpsConfig';
+import {
+  PERPS_CONSTANTS,
+  PERFORMANCE_CONFIG,
+  PerpsMeasurementName,
+  PERPS_ERROR_CODES,
+  wait,
+  TradingReadinessCache,
+  type ReconnectOptions,
+} from '@metamask/perps-controller';
 import { getStreamManagerInstance } from '../providers/PerpsStreamManager';
 import {
   selectPerpsNetwork,
   selectPerpsProvider,
 } from '../selectors/perpsController';
 import { selectHip3ConfigVersion } from '../selectors/featureFlags';
-import { PerpsMeasurementName } from '../constants/performanceMetrics';
-import type { ReconnectOptions } from '../types/perps-types';
-import { PERPS_ERROR_CODES } from '../controllers/perpsErrorCodes';
 import { ensureError } from '../../../../util/errorUtils';
-import { wait } from '../utils/wait';
-import { TradingReadinessCache } from './TradingReadinessCache';
 
 /**
  * Singleton manager for Perps connection state
@@ -145,14 +148,26 @@ class PerpsConnectionManagerClass {
         streamManager.prices.clearCache();
         streamManager.marketData.clearCache();
         streamManager.oiCaps.clearCache();
+        streamManager.fills.clearCache();
+        streamManager.topOfBook.clearCache();
+        streamManager.candles.clearCache();
 
         // Force the controller to reconnect with new account
         // This ensures proper WebSocket reconnection at the controller level
         this.reconnectWithNewContext().catch((error) => {
-          Logger.error(ensureError(error), {
-            feature: PERPS_CONSTANTS.FeatureName,
-            message: 'Error reconnecting with new account/network context',
-          });
+          Logger.error(
+            ensureError(error, 'PerpsConnectionManager.setupStateMonitoring'),
+            {
+              tags: { feature: PERPS_CONSTANTS.FeatureName },
+              context: {
+                name: 'PerpsConnectionManager.setupStateMonitoring',
+                data: {
+                  message:
+                    'Error reconnecting with new account/network context',
+                },
+              },
+            },
+          );
         });
       }
 
@@ -251,10 +266,19 @@ class PerpsConnectionManagerClass {
       BackgroundTimer.start();
       this.gracePeriodTimer = setTimeout(() => {
         this.performActualDisconnection().catch((error) => {
-          Logger.error(ensureError(error), {
-            feature: PERPS_CONSTANTS.FeatureName,
-            message: 'Error performing actual disconnection',
-          });
+          Logger.error(
+            ensureError(
+              error,
+              'PerpsConnectionManager.scheduleGracePeriodDisconnection',
+            ),
+            {
+              tags: { feature: PERPS_CONSTANTS.FeatureName },
+              context: {
+                name: 'PerpsConnectionManager.scheduleGracePeriodDisconnection',
+                data: { message: 'Error performing actual disconnection' },
+              },
+            },
+          );
         });
       }, PERPS_CONSTANTS.ConnectionGracePeriodMs) as unknown as number;
       // Stop immediately after scheduling (not in the callback)
@@ -263,10 +287,19 @@ class PerpsConnectionManagerClass {
       // Android uses BackgroundTimer.setTimeout directly
       this.gracePeriodTimer = BackgroundTimer.setTimeout(() => {
         this.performActualDisconnection().catch((error) => {
-          Logger.error(ensureError(error), {
-            feature: PERPS_CONSTANTS.FeatureName,
-            message: 'Error performing actual disconnection',
-          });
+          Logger.error(
+            ensureError(
+              error,
+              'PerpsConnectionManager.scheduleGracePeriodDisconnection',
+            ),
+            {
+              tags: { feature: PERPS_CONSTANTS.FeatureName },
+              context: {
+                name: 'PerpsConnectionManager.scheduleGracePeriodDisconnection',
+                data: { message: 'Error performing actual disconnection' },
+              },
+            },
+          );
         });
       }, PERPS_CONSTANTS.ConnectionGracePeriodMs);
     }
@@ -312,9 +345,15 @@ class PerpsConnectionManagerClass {
               'PerpsConnectionManager: Actual disconnection complete',
             );
           } catch (error) {
-            Logger.error(ensureError(error), {
-              feature: PERPS_CONSTANTS.FeatureName,
-            });
+            Logger.error(
+              ensureError(
+                error,
+                'PerpsConnectionManager.performActualDisconnection',
+              ),
+              {
+                tags: { feature: PERPS_CONSTANTS.FeatureName },
+              },
+            );
           } finally {
             this.isDisconnecting = false;
             this.disconnectPromise = null;
@@ -559,36 +598,31 @@ class PerpsConnectionManagerClass {
         this.clearConnectionTimeout();
 
         // Capture exception with connection context
-        captureException(
-          error instanceof Error ? error : new Error(String(error)),
-          {
-            tags: {
-              component: 'PerpsConnectionManager',
-              action: 'connection_connection',
-              operation: 'connection_management',
+        captureException(ensureError(error, 'PerpsConnectionManager.connect'), {
+          tags: {
+            component: 'PerpsConnectionManager',
+            action: 'connection_connection',
+            operation: 'connection_management',
+            provider: 'hyperliquid',
+          },
+          extra: {
+            connectionContext: {
               provider: 'hyperliquid',
-            },
-            extra: {
-              connectionContext: {
-                provider: 'hyperliquid',
-                timestamp: new Date().toISOString(),
-                isTestnet:
-                  Engine.context.PerpsController?.getCurrentNetwork?.() ===
-                  'testnet',
-              },
+              timestamp: new Date().toISOString(),
+              isTestnet:
+                Engine.context.PerpsController?.getCurrentNetwork?.() ===
+                'testnet',
             },
           },
-        );
+        });
 
         traceData = {
           success: false,
-          error: error instanceof Error ? error.message : 'Unknown error',
+          error: ensureError(error, 'PerpsConnectionManager.connect').message,
         };
 
         // Set error state for UI
-        this.setError(
-          error instanceof Error ? error : new Error(String(error)),
-        );
+        this.setError(ensureError(error, 'PerpsConnectionManager.connect'));
         DevLogger.log('PerpsConnectionManager: Connection failed', error);
         throw error;
       } finally {
@@ -695,6 +729,9 @@ class PerpsConnectionManagerClass {
       streamManager.account.clearCache();
       streamManager.marketData.clearCache();
       streamManager.oiCaps.clearCache();
+      streamManager.fills.clearCache();
+      streamManager.topOfBook.clearCache();
+      streamManager.candles.clearCache();
       setMeasurement(
         PerpsMeasurementName.PerpsReconnectionCleanup,
         performance.now() - cleanupStart,
@@ -805,11 +842,11 @@ class PerpsConnectionManagerClass {
 
       traceData = {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: ensureError(error, 'PerpsConnectionManager.reconnect').message,
       };
 
       // Set error state for UI - this is critical for reliability
-      this.setError(error instanceof Error ? error : new Error(String(error)));
+      this.setError(ensureError(error, 'PerpsConnectionManager.reconnect'));
       DevLogger.log(
         'PerpsConnectionManager: Reconnection with new context failed',
         error,
@@ -911,10 +948,16 @@ class PerpsConnectionManagerClass {
         'PerpsConnectionManager: Pre-loading complete with persistent subscriptions',
       );
     } catch (error) {
-      Logger.error(ensureError(error), {
-        feature: PERPS_CONSTANTS.FeatureName,
-        message: 'Error pre-loading subscriptions',
-      });
+      Logger.error(
+        ensureError(error, 'PerpsConnectionManager.preloadSubscriptions'),
+        {
+          tags: { feature: PERPS_CONSTANTS.FeatureName },
+          context: {
+            name: 'PerpsConnectionManager.preloadSubscriptions',
+            data: { message: 'Error pre-loading subscriptions' },
+          },
+        },
+      );
       // Non-critical error - components will still work with on-demand subscriptions
     }
   }

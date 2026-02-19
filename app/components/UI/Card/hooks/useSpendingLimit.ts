@@ -121,6 +121,7 @@ const useSpendingLimit = ({
   const [limitType, setLimitType] = useState<LimitType>('full');
   const [customLimit, setCustomLimitState] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [hasInitialized, setHasInitialized] = useState(false);
 
   const isOnboardingFlow = flow === 'onboarding';
 
@@ -175,26 +176,38 @@ const useSpendingLimit = ({
   }, [selectedToken]);
 
   // Initialize selected token from initial or priority token, fallback to mUSD
+  // Only runs once on mount to avoid overwriting user selections from AssetSelectionBottomSheet
   useEffect(() => {
+    if (hasInitialized) return;
+
     if (initialToken) {
       setSelectedToken(initialToken);
+      setHasInitialized(true);
       return;
     }
 
     if (!selectedToken && priorityToken) {
       setSelectedToken(priorityToken);
+      setHasInitialized(true);
       return;
     }
 
-    if (!selectedToken && quickSelectTokens.length > 0) {
+    if (quickSelectTokens.length > 0) {
       const musdToken = quickSelectTokens.find(
         (qt) => qt.symbol.toUpperCase() === 'MUSD',
       )?.token;
       if (musdToken) {
         setSelectedToken(musdToken);
+        setHasInitialized(true);
       }
     }
-  }, [initialToken, priorityToken, selectedToken, quickSelectTokens]);
+  }, [
+    hasInitialized,
+    initialToken,
+    priorityToken,
+    quickSelectTokens,
+    selectedToken,
+  ]);
 
   // Handle returned token from AssetSelectionBottomSheet
   useFocusEffect(
@@ -204,6 +217,7 @@ const useSpendingLimit = ({
         | undefined;
       if (params?.returnedSelectedToken) {
         setSelectedToken(params.returnedSelectedToken);
+        setHasInitialized(true);
         navigation.setParams({
           returnedSelectedToken: undefined,
           selectedToken: undefined,

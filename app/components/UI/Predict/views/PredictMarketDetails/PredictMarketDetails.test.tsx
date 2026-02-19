@@ -16,6 +16,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { PredictEventValues } from '../../constants/eventNames';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 
+import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
 const runAfterInteractionsCallbacks: (() => void)[] = [];
 const mockRunAfterInteractions = jest.spyOn(
   InteractionManager,
@@ -194,12 +195,9 @@ jest.mock('../../hooks/usePredictPositions', () => ({
 
 jest.mock('../../hooks/usePredictBalance', () => ({
   usePredictBalance: jest.fn(() => ({
-    balance: 100,
-    hasNoBalance: false,
+    data: 100,
     isLoading: false,
-    isRefreshing: false,
     error: null,
-    loadBalance: jest.fn(),
   })),
 }));
 
@@ -322,7 +320,7 @@ function createMockMarket(overrides = {}) {
     title: 'Will Bitcoin reach $100k by end of 2024?',
     image: 'https://example.com/bitcoin.png',
     endDate: '2024-12-31T23:59:59Z',
-    providerId: 'polymarket',
+    providerId: POLYMARKET_PROVIDER_ID,
     status: 'open',
     tags: [],
     outcomes: [
@@ -587,7 +585,17 @@ function setupPredictMarketDetailsTest(
     },
   );
 
-  const result = renderWithProvider(<PredictMarketDetails />);
+  const result = renderWithProvider(<PredictMarketDetails />, {
+    state: {
+      engine: {
+        backgroundState: {
+          PreferencesController: {
+            privacyMode: false,
+          },
+        },
+      },
+    },
+  });
 
   return {
     ...result,
@@ -2322,76 +2330,6 @@ describe('PredictMarketDetails', () => {
       });
     });
 
-    it('handles no balance scenario for Yes button', () => {
-      const { usePredictBalance } = jest.requireMock(
-        '../../hooks/usePredictBalance',
-      );
-      usePredictBalance.mockReturnValue({
-        hasNoBalance: true,
-      });
-
-      const singleOutcomeMarket = createMockMarket({
-        status: 'open',
-        outcomes: [
-          {
-            id: 'outcome-1',
-            title: 'Yes',
-            tokens: [
-              { id: 'token-1', title: 'Yes', price: 0.65 },
-              { id: 'token-2', title: 'No', price: 0.35 },
-            ],
-            volume: 1000000,
-          },
-        ],
-      });
-
-      const { mockNavigate } =
-        setupPredictMarketDetailsTest(singleOutcomeMarket);
-
-      const yesButton = findActionButtonByPrice(65);
-      expect(yesButton).toBeDefined();
-      fireEvent.press(yesButton as ReactTestInstance);
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
-        screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
-      });
-    });
-
-    it('handles no balance scenario for No button', () => {
-      const { usePredictBalance } = jest.requireMock(
-        '../../hooks/usePredictBalance',
-      );
-      usePredictBalance.mockReturnValue({
-        hasNoBalance: true,
-      });
-
-      const singleOutcomeMarket = createMockMarket({
-        status: 'open',
-        outcomes: [
-          {
-            id: 'outcome-1',
-            title: 'Yes',
-            tokens: [
-              { id: 'token-1', title: 'Yes', price: 0.65 },
-              { id: 'token-2', title: 'No', price: 0.35 },
-            ],
-            volume: 1000000,
-          },
-        ],
-      });
-
-      const { mockNavigate } =
-        setupPredictMarketDetailsTest(singleOutcomeMarket);
-
-      const noButton = findActionButtonByPrice(35);
-      expect(noButton).toBeDefined();
-      fireEvent.press(noButton as ReactTestInstance);
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
-        screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
-      });
-    });
-
     it('navigates to unavailable modal when user is not eligible - Yes button', () => {
       const singleOutcomeMarket = createMockMarket({
         status: 'open',
@@ -2459,7 +2397,8 @@ describe('PredictMarketDetails', () => {
         '../../hooks/usePredictBalance',
       );
       usePredictBalance.mockReturnValue({
-        hasNoBalance: true,
+        data: undefined,
+        isLoading: false,
       });
 
       const singleOutcomeMarket = createMockMarket({
@@ -2503,7 +2442,8 @@ describe('PredictMarketDetails', () => {
         '../../hooks/usePredictBalance',
       );
       usePredictBalance.mockReturnValue({
-        hasNoBalance: true,
+        data: undefined,
+        isLoading: false,
       });
 
       const singleOutcomeMarket = createMockMarket({
@@ -3225,7 +3165,7 @@ describe('PredictMarketDetails', () => {
       expect(usePredictPrices).toHaveBeenCalled();
     });
 
-    it('uses usePredictPrices hook with providerId', () => {
+    it('uses usePredictPrices hook for live pricing', () => {
       const { usePredictPrices } = jest.requireMock(
         '../../hooks/usePredictPrices',
       );
@@ -3234,7 +3174,7 @@ describe('PredictMarketDetails', () => {
 
       expect(usePredictPrices).toHaveBeenCalledWith(
         expect.objectContaining({
-          providerId: 'polymarket',
+          queries: expect.any(Array),
         }),
       );
     });

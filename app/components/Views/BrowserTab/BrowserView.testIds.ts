@@ -16,8 +16,13 @@ export const BrowserViewSelectorsIDs = {
   TABS_BUTTON: 'browser-tabs-button',
   BROWSER_CLOSE_BUTTON: 'browser-tab-close-button',
   ADD_NEW_TAB: 'tabs_add',
-  CLOSE_ALL_TABS: 'tabs_close_all',
+  TABS_BACK_BUTTON: 'tabs_back_button',
+  TABS_OPENED_TITLE: 'tabs_opened_title',
+  TABS_ITEM_REGEX: /browser-tab-\d+/,
   NO_TABS_MESSAGE: 'no-tabs-message',
+  /** @deprecated No longer used - Close All button removed from tabs view */
+  CLOSE_ALL_TABS: 'tabs_close_all',
+  /** @deprecated No longer used - Done button replaced with back button */
   DONE_BUTTON: 'tabs_done',
 } as const;
 

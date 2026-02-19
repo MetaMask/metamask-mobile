@@ -6,13 +6,24 @@
  * This script aggregates performance test results from multiple test runs
  * and creates a combined report structure.
  * 
- * Handles both:
+ * Handles:
  * - Imported Wallet Tests: *-imported-wallet-test-results-*
  * - Onboarding Tests: *-onboarding-flow-test-results-*
+ * - MM-Connect Tests: *-mm-connect-test-results-*
  */
 
 import fs from 'fs';
 import path from 'path';
+
+/**
+ * Get build variant and display type from environment (rc = normal, exp = experimental).
+ * @returns {{ buildVariant: string, buildType: string }}
+ */
+function getBuildTypeInfo() {
+  const variant = (process.env.BUILD_VARIANT || 'rc').toLowerCase();
+  const buildType = variant === 'exp' ? 'Experimental' : 'Normal';
+  return { buildVariant: variant, buildType };
+}
 
 /**
  * Recursively find JSON files containing performance metrics
@@ -92,29 +103,39 @@ function extractPlatformScenarioAndDevice(filePath) {
     scenario = 'onboarding';
     scenarioKey = 'Onboarding';
     console.log(`✅ Detected iOS Onboarding test`);
+  } else if (fullPath.includes('android-mm-connect-test-results')) {
+    platform = 'android';
+    platformKey = 'Android';
+    scenario = 'mm-connect';
+    scenarioKey = 'MMConnect';
+    console.log(`✅ Detected Android MM-Connect test`);
+  } else if (fullPath.includes('ios-mm-connect-test-results')) {
+    platform = 'ios';
+    platformKey = 'iOS';
+    scenario = 'mm-connect';
+    scenarioKey = 'MMConnect';
+    console.log(`✅ Detected iOS MM-Connect test`);
   } else {
     console.log(`⚠️ Could not determine platform/scenario from path`);
     console.log(`🔍 Full path: ${filePath}`);
   }
   
   // Extract device info from path
-  const deviceMatch = pathParts.find(part => 
-    part.includes('-imported-wallet-test-results-') || 
-    part.includes('-onboarding-flow-test-results-')
+  const deviceMatch = pathParts.find(part =>
+    part.includes('-imported-wallet-test-results-') ||
+    part.includes('-onboarding-flow-test-results-') ||
+    part.includes('-mm-connect-test-results-')
   );
-  
+
   if (deviceMatch) {
     console.log(`✅ Found device match: ${deviceMatch}`);
     const parts = deviceMatch.split('-');
     console.log(`📝 Device parts:`, parts);
-    
-    // Handle both imported-wallet and onboarding patterns
-    // Pattern: android-imported-wallet-test-results-DeviceName-OSVersion
-    // Pattern: android-onboarding-flow-test-results-DeviceName-OSVersion
-    let deviceInfoStart = 5; // Skip: android-imported-wallet-test-results (5 parts)
-    if (deviceMatch.includes('-onboarding-flow-test-results-')) {
-      deviceInfoStart = 5; // Skip: android-onboarding-flow-test-results (5 parts)
-    }
+
+    // Pattern: android-imported-wallet-test-results-DeviceName-OSVersion (5 parts)
+    // Pattern: android-onboarding-flow-test-results-DeviceName-OSVersion (5 parts)
+    // Pattern: android-mm-connect-test-results-DeviceName-OSVersion (5 parts)
+    const deviceInfoStart = 5;
     
     if (parts.length >= deviceInfoStart + 1) {
       const deviceInfo = parts.slice(deviceInfoStart).join('-');
@@ -134,7 +155,9 @@ function extractPlatformScenarioAndDevice(filePath) {
     }
   } else {
     console.log(`⚠️ No device match found in path parts`);
-    console.log(`🔍 Looking for patterns: -imported-wallet-test-results- or -onboarding-flow-test-results-`);
+    console.log(
+      `🔍 Looking for patterns: -imported-wallet-test-results-, -onboarding-flow-test-results-, or -mm-connect-test-results-`
+    );
     console.log(`🔍 Available parts:`, pathParts);
   }
   
@@ -151,19 +174,32 @@ function extractPlatformScenarioAndDevice(filePath) {
 function processTestReport(testReport) {
   const cleanedReport = {
     testName: testReport.testName,
+    testFilePath: testReport.testFilePath || null,
+    tags: testReport.tags || [],
     steps: testReport.steps || [],
     totalTime: testReport.total,
     videoURL: testReport.videoURL || null,
     sessionId: testReport.sessionId || null,
     device: testReport.device || null,
+    // Include team information
+    team: testReport.team || null,
     // Include profiling data if available
     profilingData: testReport.profilingData || null,
-    profilingSummary: testReport.profilingSummary || null
+    profilingSummary: testReport.profilingSummary || null,
+    // BrowserStack network logs (HAR) per test
+    apiCalls: testReport.apiCalls ?? null,
+    apiCallsError: testReport.apiCallsError ?? null,
+    // Include quality gates if available
+    qualityGates: testReport.qualityGates || null,
   };
   
   if (testReport.testFailed) {
     cleanedReport.testFailed = true;
     cleanedReport.failureReason = testReport.failureReason;
+    // Include quality gates violations for failed tests
+    if (testReport.qualityGates && !testReport.qualityGates.passed) {
+      cleanedReport.qualityGatesViolations = testReport.qualityGates.violations || null;
+    }
   }
   
   return cleanedReport;
@@ -182,8 +218,9 @@ function createEmptyReport(outputPath) {
   };
   
   fs.writeFileSync(outputPath, JSON.stringify(emptyReport, null, 2));
-  fs.writeFileSync('appwright/aggregated-reports/aggregated-performance-report.json', JSON.stringify(emptyReport, null, 2));
+  fs.writeFileSync('tests/aggregated-reports/aggregated-performance-report.json', JSON.stringify(emptyReport, null, 2));
   
+  const { buildVariant, buildType } = getBuildTypeInfo();
   const emptySummary = {
     totalTests: 0,
     platforms: { android: 0, ios: 0 },
@@ -207,15 +244,19 @@ function createEmptyReport(outputPath) {
       jobResults: { android: "unknown", ios: "unknown" },
       branch: process.env.BRANCH_NAME || process.env.GITHUB_REF_NAME || 'unknown',
       commit: process.env.GITHUB_SHA || 'unknown',
-      workflowRun: process.env.GITHUB_RUN_ID || 'unknown'
+      workflowRun: process.env.GITHUB_RUN_ID || 'unknown',
+      buildVariant,
+      buildType
     },
     generatedAt: new Date().toISOString(),
     branch: process.env.BRANCH_NAME || process.env.GITHUB_REF_NAME || 'unknown',
     commit: process.env.GITHUB_SHA || 'unknown',
+    buildVariant,
+    buildType,
     warning: 'No test results found'
   };
   
-  fs.writeFileSync('appwright/aggregated-reports/summary.json', JSON.stringify(emptySummary, null, 2));
+  fs.writeFileSync('tests/aggregated-reports/summary.json', JSON.stringify(emptySummary, null, 2));
   console.log('✅ Empty report structure created successfully');
 }
 
@@ -234,8 +275,9 @@ function createFallbackReport(outputPath, error) {
   
   try {
     fs.writeFileSync(outputPath, JSON.stringify(fallbackReport, null, 2));
-    fs.writeFileSync('appwright/aggregated-reports/aggregated-performance-report.json', JSON.stringify(fallbackReport, null, 2));
-    fs.writeFileSync('appwright/aggregated-reports/summary.json', JSON.stringify({
+    fs.writeFileSync('tests/aggregated-reports/aggregated-performance-report.json', JSON.stringify(fallbackReport, null, 2));
+    const { buildVariant, buildType } = getBuildTypeInfo();
+    fs.writeFileSync('tests/aggregated-reports/summary.json', JSON.stringify({
       totalTests: 0,
       platforms: { android: 0, ios: 0 },
       testsByPlatform: { android: 0, ios: 0 },
@@ -258,11 +300,15 @@ function createFallbackReport(outputPath, error) {
         jobResults: { android: "error", ios: "error" },
         branch: process.env.BRANCH_NAME || process.env.GITHUB_REF_NAME || 'unknown',
         commit: process.env.GITHUB_SHA || 'unknown',
-        workflowRun: process.env.GITHUB_RUN_ID || 'unknown'
+        workflowRun: process.env.GITHUB_RUN_ID || 'unknown',
+        buildVariant,
+        buildType
       },
       generatedAt: new Date().toISOString(),
       branch: process.env.BRANCH_NAME || process.env.GITHUB_REF_NAME || 'unknown',
       commit: process.env.GITHUB_SHA || 'unknown',
+      buildVariant,
+      buildType,
       error: error.message
     }, null, 2));
     console.log('✅ Fallback reports created successfully');
@@ -287,6 +333,10 @@ function createSummary(groupedResults) {
   let totalMemoryUsage = 0;
   let profilingTestCount = 0;
   
+  // First pass: collect all test executions grouped by unique test key
+  // This allows us to determine if a test ultimately passed (at least one retry succeeded)
+  const testExecutions = {}; // Key: testName|platform|device -> { passed: bool, failed: bool, testInfo: {} }
+  
   Object.keys(groupedResults).forEach(platform => {
     Object.keys(groupedResults[platform]).forEach(device => {
       devices.push(`${platform}-${device}`);
@@ -308,8 +358,105 @@ function createSummary(groupedResults) {
           totalMemoryUsage += test.profilingSummary.memory?.avg || 0;
           profilingTestCount++;
         }
+        
+        // Track test executions by unique key (testName + platform + device)
+        const uniqueKey = `${test.testName}|${platform}|${device}`;
+        
+        if (!testExecutions[uniqueKey]) {
+          testExecutions[uniqueKey] = {
+            hasPassed: false,
+            hasFailed: false,
+            testInfo: {
+              testName: test.testName,
+              testFilePath: test.testFilePath,
+              tags: test.tags || [],
+              platform,
+              device,
+              team: test.team,
+              sessionId: test.sessionId || null,
+              videoURL: test.videoURL || null,
+              failureReason: test.failureReason,
+              qualityGates: test.qualityGates || null,
+              qualityGatesViolations: test.qualityGatesViolations || null,
+            }
+          };
+        }
+        
+        // Track if this test has ever passed or failed
+        if (test.testFailed) {
+          testExecutions[uniqueKey].hasFailed = true;
+          // Update failure reason and recording info with the latest execution
+          testExecutions[uniqueKey].testInfo.failureReason = test.failureReason;
+          if (test.sessionId) testExecutions[uniqueKey].testInfo.sessionId = test.sessionId;
+          if (test.videoURL) testExecutions[uniqueKey].testInfo.videoURL = test.videoURL;
+          // Update quality gates info if available
+          if (test.qualityGates) {
+            testExecutions[uniqueKey].testInfo.qualityGates = test.qualityGates;
+            testExecutions[uniqueKey].testInfo.qualityGatesViolations = test.qualityGatesViolations;
+          }
+        } else {
+          testExecutions[uniqueKey].hasPassed = true;
+        }
       });
     });
+  });
+  
+  // Second pass: determine final test status
+  // A test is only considered failed if ALL executions failed (no successful retry)
+  const failedTestsByTeam = {};
+  let totalFailedTests = 0;
+  const failedTestsByPlatform = { android: 0, ios: 0 };
+  
+  Object.values(testExecutions).forEach(execution => {
+    // If test passed at least once, it's considered passed (successful retry)
+    if (execution.hasPassed) {
+      return; // Skip - test ultimately passed
+    }
+    
+    // Test failed all executions - count as 1 failure
+    if (execution.hasFailed) {
+      totalFailedTests++;
+      
+      const { testInfo } = execution;
+      const platformKey = testInfo.platform.toLowerCase();
+      
+      // Track per-platform failures
+      if (platformKey === 'android' || platformKey === 'ios') {
+        failedTestsByPlatform[platformKey]++;
+      }
+      
+      // Track by team if team info available
+      if (testInfo.team) {
+        const teamId = testInfo.team.teamId || 'unknown';
+        if (!failedTestsByTeam[teamId]) {
+          failedTestsByTeam[teamId] = {
+            team: testInfo.team,
+            tests: []
+          };
+        }
+        
+        // Use quality_gates_exceeded when quality gates failed (for Slack "Quality gates FAILED")
+        const failureReason =
+          testInfo.qualityGates &&
+          testInfo.qualityGates.hasThresholds &&
+          !testInfo.qualityGates.passed
+            ? 'quality_gates_exceeded'
+            : (testInfo.failureReason ?? null);
+
+        failedTestsByTeam[teamId].tests.push({
+          testName: testInfo.testName,
+          testFilePath: testInfo.testFilePath,
+          tags: testInfo.tags,
+          platform: testInfo.platform,
+          device: testInfo.device,
+          sessionId: testInfo.sessionId ?? null,
+          recordingLink: testInfo.videoURL ?? null,
+          failureReason,
+          qualityGates: testInfo.qualityGates,
+          qualityGatesViolations: testInfo.qualityGatesViolations,
+        });
+      }
+    }
   });
   
   // Count tests by platform
@@ -352,21 +499,31 @@ function createSummary(groupedResults) {
       avgMemoryUsage: `${avgMemoryUsage} MB`,
       profilingTestCount
     },
+    // Failed tests grouped by team for Slack notifications
+    // Only includes tests that failed ALL retries (if a retry passed, test is not counted as failed)
+    failedTestsStats: {
+      totalFailedTests,
+      teamsAffected: Object.keys(failedTestsByTeam).length,
+      failedTestsByTeam
+    },
     metadata: {
       generatedAt: new Date().toISOString(),
       totalReports: summaryDevices.length,
       platforms,
       jobResults: {
-        android: "success", // This would need to be determined from actual test results
-        ios: "success"
+        android: failedTestsByPlatform.android > 0 ? "failure" : "success",
+        ios: failedTestsByPlatform.ios > 0 ? "failure" : "success"
       },
+      failedTestsByPlatform,
       branch: process.env.BRANCH_NAME || process.env.GITHUB_REF_NAME || 'unknown',
       commit: process.env.GITHUB_SHA || 'unknown',
-      workflowRun: process.env.GITHUB_RUN_ID || 'unknown'
+      workflowRun: process.env.GITHUB_RUN_ID || 'unknown',
+      ...getBuildTypeInfo()
     },
     generatedAt: new Date().toISOString(),
     branch: process.env.BRANCH_NAME || process.env.GITHUB_REF_NAME || 'unknown',
-    commit: process.env.GITHUB_SHA || 'unknown'
+    commit: process.env.GITHUB_SHA || 'unknown',
+    ...getBuildTypeInfo()
   };
   
   return summary;
@@ -1135,6 +1292,10 @@ function generateHtmlReport(groupedResults, summary) {
           <span>${timestamp}</span>
         </div>
         <div class="meta-item">
+          <span>📦</span>
+          <span>Build: ${summary.buildType || 'Normal'}</span>
+        </div>
+        <div class="meta-item">
           <span>🌿</span>
           <span>Branch: ${summary.branch || 'unknown'}</span>
         </div>
@@ -1306,7 +1467,7 @@ function aggregateReports() {
     console.log('🔍 Looking for performance JSON reports...');
     
     // Ensure output directory exists
-    const outputDir = 'appwright/aggregated-reports';
+    const outputDir = 'tests/aggregated-reports';
     if (!fs.existsSync(outputDir)) {
       fs.mkdirSync(outputDir, { recursive: true });
       console.log(`📁 Created output directory: ${outputDir}`);
@@ -1318,7 +1479,7 @@ function aggregateReports() {
       './performance-results', 
       './onboarding-results',
       './',  // Current directory where artifacts are typically extracted
-      './appwright',  // Where artifacts are uploaded from
+      './tests',  // Where artifacts are uploaded from
     ];
     
     const jsonFiles = [];
@@ -1338,7 +1499,7 @@ function aggregateReports() {
       console.log(`  ${index + 1}. ${file}`);
     });
     
-    const outputPath = 'appwright/aggregated-reports/performance-results.json';
+    const outputPath = 'tests/aggregated-reports/performance-results.json';
     
     if (jsonFiles.length === 0) {
       createEmptyReport(outputPath);
@@ -1437,29 +1598,29 @@ function aggregateReports() {
     fs.writeFileSync(outputPath, JSON.stringify(groupedResults, null, 2));
     
     // Create aggregated-performance-report.json (same structure as performance-results.json)
-    const aggregatedReportPath = 'appwright/aggregated-reports/aggregated-performance-report.json';
+    const aggregatedReportPath = 'tests/aggregated-reports/aggregated-performance-report.json';
     fs.writeFileSync(aggregatedReportPath, JSON.stringify(groupedResults, null, 2));
     
     // Create summary
     const summary = createSummary(groupedResults);
-    fs.writeFileSync('appwright/aggregated-reports/summary.json', JSON.stringify(summary, null, 2));
+    fs.writeFileSync('tests/aggregated-reports/summary.json', JSON.stringify(summary, null, 2));
     
     
     console.log(`✅ Combined report saved: ${summary.totalTests} tests across ${summary.devices.length} device configurations`);
     console.log(`📊 Profiling data: ${summary.profilingStats.testsWithProfiling} tests with profiling data (${summary.profilingStats.profilingCoverage} coverage)`);
     console.log(`⚠️ Performance issues: ${summary.profilingStats.totalPerformanceIssues} total, ${summary.profilingStats.totalCriticalIssues} critical`);
     console.log(`📈 Average CPU: ${summary.profilingStats.avgCpuUsage}, Memory: ${summary.profilingStats.avgMemoryUsage}`);
-    console.log('📋 Summary report saved to: appwright/aggregated-reports/summary.json');
-    console.log('📋 Aggregated report saved to: appwright/aggregated-reports/aggregated-performance-report.json');
+    console.log('📋 Summary report saved to: tests/aggregated-reports/summary.json');
+    console.log('📋 Aggregated report saved to: tests/aggregated-reports/aggregated-performance-report.json');
     
     // Generate HTML report
     const htmlReport = generateHtmlReport(groupedResults, summary);
-    const htmlReportPath = 'appwright/aggregated-reports/performance-report.html';
+    const htmlReportPath = 'tests/aggregated-reports/performance-report.html';
     fs.writeFileSync(htmlReportPath, htmlReport);
     console.log(`🌐 HTML report saved to: ${htmlReportPath}`);
     
   } catch (error) {
-    createFallbackReport('appwright/aggregated-reports/performance-results.json', error);
+    createFallbackReport('tests/aggregated-reports/performance-results.json', error);
   }
 }
 

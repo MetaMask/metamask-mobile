@@ -12,6 +12,13 @@ import {
 import { BridgeToken, TokenSelectorType } from '../types';
 import { useSwitchTokens } from './useSwitchTokens';
 import { useIsNetworkEnabled } from './useIsNetworkEnabled';
+import { useAutoUpdateDestToken } from './useAutoUpdateDestToken';
+import { RpcEndpointType } from '@metamask/network-controller';
+import { toHex } from '@metamask/controller-utils';
+import { Hex } from '@metamask/utils';
+import Engine from '../../../../core/Engine';
+import { selectNetworkConfigurations } from '../../../../selectors/networkController';
+import { PopularList } from '../../../../util/networks/customNetworks';
 
 /**
  * Hook to manage token selection logic for Bridge token selector
@@ -26,6 +33,8 @@ export const useTokenSelection = (type: TokenSelectorType) => {
   const destAmount = useSelector(selectDestAmount);
   const { handleSwitchTokens } = useSwitchTokens();
   const isDestNetworkEnabled = useIsNetworkEnabled(destToken?.chainId);
+  const { autoUpdateDestToken } = useAutoUpdateDestToken();
+  const networkConfigurations = useSelector(selectNetworkConfigurations);
 
   const handleTokenPress = useCallback(
     async (token: BridgeToken) => {
@@ -37,6 +46,44 @@ export const useTokenSelection = (type: TokenSelectorType) => {
         otherToken &&
         token.address === otherToken.address &&
         token.chainId === otherToken.chainId;
+
+      // Add the network if the user hasn't configured it yet
+      const isNetworkAdded = Boolean(networkConfigurations?.[token.chainId]);
+      if (!isNetworkAdded) {
+        const popularNetwork = PopularList.find(
+          (network) => network.chainId === token.chainId,
+        );
+        if (popularNetwork) {
+          try {
+            const hexChainId = toHex(popularNetwork.chainId) as Hex;
+            const { blockExplorerUrl } = popularNetwork.rpcPrefs;
+            await Engine.context.NetworkController.addNetwork({
+              chainId: hexChainId,
+              blockExplorerUrls: blockExplorerUrl ? [blockExplorerUrl] : [],
+              defaultRpcEndpointIndex: 0,
+              defaultBlockExplorerUrlIndex: blockExplorerUrl ? 0 : undefined,
+              name: popularNetwork.nickname,
+              nativeCurrency: popularNetwork.ticker,
+              rpcEndpoints: [
+                {
+                  url: popularNetwork.rpcUrl,
+                  failoverUrls: popularNetwork.failoverRpcUrls,
+                  name: popularNetwork.nickname,
+                  type: RpcEndpointType.Custom,
+                },
+              ],
+            });
+          } catch {
+            if (isSourcePicker) {
+              // Source requires a configured network to sign transactions.
+              // Abort selection if the network couldn't be added.
+              navigation.goBack();
+              return;
+            }
+            // Dest can fail silently
+          }
+        }
+      }
 
       if (isSelectingOtherToken && sourceToken && destToken) {
         // Only allow swap if the destination network (which would become source) is enabled
@@ -59,6 +106,9 @@ export const useTokenSelection = (type: TokenSelectorType) => {
         dispatch(isSourcePicker ? setSourceToken(token) : setDestToken(token));
         if (!isSourcePicker) {
           dispatch(setIsDestTokenManuallySet(true));
+        } else {
+          // Auto-update dest token when source token changes
+          autoUpdateDestToken(token);
         }
       }
 
@@ -73,6 +123,8 @@ export const useTokenSelection = (type: TokenSelectorType) => {
       navigation,
       handleSwitchTokens,
       isDestNetworkEnabled,
+      autoUpdateDestToken,
+      networkConfigurations,
     ],
   );
 

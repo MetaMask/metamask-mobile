@@ -35,12 +35,13 @@ import PerpsTokenLogo from '../PerpsTokenLogo';
 import PerpsBottomSheetTooltip from '../PerpsBottomSheetTooltip/PerpsBottomSheetTooltip';
 import { useSelector } from 'react-redux';
 import { selectPerpsEligibility } from '../../selectors/perpsController';
-import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
-import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import {
-  PerpsEventProperties,
-  PerpsEventValues,
-} from '../../constants/eventNames';
+  getPerpsDisplaySymbol,
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+} from '@metamask/perps-controller';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 
 /**
  * PerpsOpenOrderCard Component
@@ -80,7 +81,7 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
   isCancelling = false,
 }) => {
   const { styles } = useStyles(styleSheet, {});
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   // Used to prevent rapid clicks on the cancel button before it has time to re-render.
   const isLocallyCancellingRef = useRef(false);
@@ -146,9 +147,10 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
       trackEvent(
         createEventBuilder(MetaMetricsEvents.PERPS_SCREEN_VIEWED)
           .addProperties({
-            [PerpsEventProperties.SCREEN_TYPE]:
-              PerpsEventValues.SCREEN_TYPE.GEO_BLOCK_NOTIF,
-            [PerpsEventProperties.SOURCE]: PerpsEventValues.SOURCE.CANCEL_ORDER,
+            [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+              PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+            [PERPS_EVENT_PROPERTY.SOURCE]:
+              PERPS_EVENT_VALUE.SOURCE.CANCEL_ORDER,
           })
           .build(),
       );

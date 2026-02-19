@@ -13,9 +13,7 @@ import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import Label from '../../../component-library/components/Form/Label';
-import TextField, {
-  TextFieldSize,
-} from '../../../component-library/components/Form/TextField';
+import TextField from '../../../component-library/components/Form/TextField';
 import HelpText, {
   HelpTextSeverity,
 } from '../../../component-library/components/Form/HelpText';
@@ -233,7 +231,6 @@ export const SnapUIAddressInput = ({
       {label && <Label variant={TextVariant.BodyMDMedium}>{label}</Label>}
       <TextField
         {...props}
-        size={TextFieldSize.Lg}
         ref={inputRef}
         onFocus={handleFocus}
         onBlur={handleBlur}

@@ -7,7 +7,7 @@
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../helpers/remoteFeatureFlagsHelper.ts';
 import { setupMockRequest } from '../../helpers/mockHelpers.ts';
-import { getDecodedProxiedURL } from '../../../../e2e/specs/notifications/utils/helpers.ts';
+import { getDecodedProxiedURL } from '../../../smoke/notifications/utils/helpers.ts';
 import {
   mockRelayQuoteMainnetMusd,
   mockRelayStatus,

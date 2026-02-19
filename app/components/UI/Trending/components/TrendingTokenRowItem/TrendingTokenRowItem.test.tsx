@@ -171,11 +171,16 @@ jest.mock('../../../../../util/networks/customNetworks', () => {
     },
   ];
 
+  const { NETWORK_CHAIN_ID } = jest.requireActual(
+    '../../../../../util/networks/customNetworks',
+  );
+
   return {
     CustomNetworkImgMapping: mockCustomNetworkImgMapping,
     PopularList: mockPopularList,
     UnpopularNetworkList: mockUnpopularNetworkList,
     getNonEvmNetworkImageSourceByChainId: jest.fn(),
+    NETWORK_CHAIN_ID,
   };
 });
 
@@ -805,6 +810,8 @@ describe('TrendingTokenRowItem', () => {
         isNative: false,
         isETH: false,
         isFromTrending: true,
+        rwaData: undefined,
+        source: 'trending',
       });
     });
 
@@ -863,6 +870,8 @@ describe('TrendingTokenRowItem', () => {
         isNative: true,
         isETH: true,
         isFromTrending: true,
+        rwaData: undefined,
+        source: 'trending',
       });
     });
 
@@ -921,6 +930,8 @@ describe('TrendingTokenRowItem', () => {
         isNative: true,
         isETH: false,
         isFromTrending: true,
+        rwaData: undefined,
+        source: 'trending',
       });
     });
 
@@ -1129,6 +1140,8 @@ describe('TrendingTokenRowItem', () => {
         isNative: true,
         isETH: false,
         isFromTrending: true,
+        rwaData: undefined,
+        source: 'trending',
       });
     });
 
@@ -1193,6 +1206,8 @@ describe('TrendingTokenRowItem', () => {
         isNative: false,
         isETH: false,
         isFromTrending: true,
+        rwaData: undefined,
+        source: 'trending',
       });
     });
   });

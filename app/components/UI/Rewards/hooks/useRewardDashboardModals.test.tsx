@@ -10,6 +10,7 @@ import { useLinkAccountGroup } from './useLinkAccountGroup';
 import { isHardwareAccount } from '../../../../util/address';
 import { selectInternalAccountsByGroupId } from '../../../../selectors/multichainAccounts/accounts';
 import { selectSelectedAccountGroup } from '../../../../selectors/multichainAccounts/accountTreeController';
+import { selectBulkLinkIsRunning } from '../../../../reducers/rewards/selectors';
 
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({
@@ -33,6 +34,10 @@ jest.mock('../../../../reducers/rewards', () => ({
     type: 'SET_HIDE_CURRENT_ACCOUNT_NOT_OPTED_IN_BANNER',
     payload,
   })),
+}));
+
+jest.mock('../../../../reducers/rewards/selectors', () => ({
+  selectBulkLinkIsRunning: jest.fn(),
 }));
 
 jest.mock('./useLinkAccountGroup', () => ({
@@ -116,6 +121,9 @@ describe('useRewardDashboardModals', () => {
       if (selector === selectSelectedAccountGroup) {
         return mockSelectedAccountGroup;
       }
+      if (selector === selectBulkLinkIsRunning) {
+        return false; // Default to not running
+      }
       return mockSelectedAccountGroup; // fallback
     });
     (useLinkAccountGroup as jest.Mock).mockReturnValue({
@@ -187,6 +195,9 @@ describe('useRewardDashboardModals', () => {
         }
         if (selector === selectSelectedAccountGroup) {
           return null;
+        }
+        if (selector === selectBulkLinkIsRunning) {
+          return false;
         }
         return null;
       });
@@ -260,6 +271,75 @@ describe('useRewardDashboardModals', () => {
         payload: true,
       });
       expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_DASHBOARD);
+    });
+
+    it('does not show modal when bulk link is running', () => {
+      // Arrange
+      (useSelector as jest.Mock).mockImplementation((selector) => {
+        if (selector === selectInternalAccountsByGroupId) {
+          return (_groupId: string) => mockAccounts;
+        }
+        if (selector === selectSelectedAccountGroup) {
+          return mockSelectedAccountGroup;
+        }
+        if (selector === selectBulkLinkIsRunning) {
+          return true; // Bulk link is running
+        }
+        return mockSelectedAccountGroup;
+      });
+
+      // Reset session tracker to ensure modal can be shown
+      const { result: resetResult } = renderHook(() =>
+        useRewardDashboardModals(),
+      );
+      resetResult.current.resetSessionTracking();
+
+      const { result } = renderHook(() => useRewardDashboardModals());
+
+      // Act
+      act(() => {
+        result.current.showUnlinkedAccountsModal();
+      });
+
+      // Assert
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('shows modal when bulk link is not running', () => {
+      // Arrange
+      (useSelector as jest.Mock).mockImplementation((selector) => {
+        if (selector === selectInternalAccountsByGroupId) {
+          return (_groupId: string) => mockAccounts;
+        }
+        if (selector === selectSelectedAccountGroup) {
+          return mockSelectedAccountGroup;
+        }
+        if (selector === selectBulkLinkIsRunning) {
+          return false; // Bulk link is not running
+        }
+        return mockSelectedAccountGroup;
+      });
+
+      // Reset session tracker to ensure modal can be shown
+      const { result: resetResult } = renderHook(() =>
+        useRewardDashboardModals(),
+      );
+      resetResult.current.resetSessionTracking();
+
+      const { result } = renderHook(() => useRewardDashboardModals());
+
+      // Act
+      act(() => {
+        result.current.showUnlinkedAccountsModal();
+      });
+
+      // Assert
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
+        expect.objectContaining({
+          title: "Don't miss out",
+        }),
+      );
     });
   });
 

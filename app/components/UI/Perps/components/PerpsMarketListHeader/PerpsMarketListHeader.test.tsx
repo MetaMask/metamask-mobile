@@ -94,7 +94,7 @@ jest.mock('../../../../../component-library/hooks', () => ({
 }));
 
 jest.mock(
-  '../../../../../component-library/components-temp/HeaderCenter',
+  '../../../../../component-library/components-temp/HeaderCompactStandard',
   () => {
     const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
     return {

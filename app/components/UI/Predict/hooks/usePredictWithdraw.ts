@@ -4,8 +4,6 @@ import { ConfirmationLoader } from '../../../Views/confirmations/components/conf
 import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
 import { PredictNavigationParamList } from '../types/navigation';
 import { usePredictTrading } from './usePredictTrading';
-import { createSelector } from 'reselect';
-import { RootState } from '../../../../reducers';
 import { useSelector } from 'react-redux';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import {
@@ -13,26 +11,16 @@ import {
   ToastVariants,
 } from '../../../../component-library/components/Toast';
 import { strings } from '../../../../../locales/i18n';
+import { selectPredictWithdrawTransaction } from '../selectors/predictController';
 
-interface UsePredictWithdrawParams {
-  providerId?: string;
-}
-
-export const usePredictWithdraw = ({
-  providerId = 'polymarket',
-}: UsePredictWithdrawParams = {}) => {
+export const usePredictWithdraw = () => {
   const { prepareWithdraw } = usePredictTrading();
   const { navigateToConfirmation } = useConfirmNavigation();
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const { toastRef } = useContext(ToastContext);
 
-  const selectWithdrawTransaction = createSelector(
-    (state: RootState) => state.engine.backgroundState.PredictController,
-    (predictState) => predictState.withdrawTransaction,
-  );
-
-  const withdrawTransaction = useSelector(selectWithdrawTransaction);
+  const withdrawTransaction = useSelector(selectPredictWithdrawTransaction);
 
   const withdraw = useCallback(async () => {
     try {
@@ -40,7 +28,7 @@ export const usePredictWithdraw = ({
         loader: ConfirmationLoader.CustomAmount,
       });
 
-      const response = await prepareWithdraw({ providerId });
+      const response = await prepareWithdraw({});
 
       return response;
     } catch (err) {
@@ -65,13 +53,7 @@ export const usePredictWithdraw = ({
 
       console.error('Failed to proceed with withdraw:', err);
     }
-  }, [
-    navigateToConfirmation,
-    navigation,
-    prepareWithdraw,
-    providerId,
-    toastRef,
-  ]);
+  }, [navigateToConfirmation, navigation, prepareWithdraw, toastRef]);
 
   return { withdraw, withdrawTransaction };
 };
