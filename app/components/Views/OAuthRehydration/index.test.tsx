@@ -152,6 +152,10 @@ describe('OAuthRehydration', () => {
       undefined,
     );
     mockUnlockWallet.mockResolvedValue(undefined);
+    mockGetAuthType.mockResolvedValue({
+      currentAuthType: 'password',
+      availableBiometryType: null,
+    });
     mockComponentAuthenticationType.mockResolvedValue({
       currentAuthType: 'password',
     });
