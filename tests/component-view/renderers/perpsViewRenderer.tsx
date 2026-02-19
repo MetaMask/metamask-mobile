@@ -2,23 +2,25 @@ import '../mocks';
 import React from 'react';
 import { Text } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
-import renderWithProvider, { type DeepPartial } from '../../renderWithProvider';
-import type { RootState } from '../../../../reducers';
-import Routes from '../../../../constants/navigation/Routes';
+import renderWithProvider, {
+  type DeepPartial,
+} from '../../../app/util/test/renderWithProvider';
+import type { RootState } from '../../../app/reducers';
+import Routes from '../../../app/constants/navigation/Routes';
 import { renderComponentViewScreen, renderScreenWithRoutes } from '../render';
 import { initialStatePerps } from '../presets/perpsStatePreset';
 import {
   PerpsConnectionContext,
   type PerpsConnectionContextValue,
-} from '../../../../components/UI/Perps/providers/PerpsConnectionProvider';
+} from '../../../app/components/UI/Perps/providers/PerpsConnectionProvider';
 import {
   PerpsStreamProvider,
   type PerpsStreamManager,
-} from '../../../../components/UI/Perps/providers/PerpsStreamManager';
-import PerpsMarketDetailsView from '../../../../components/UI/Perps/Views/PerpsMarketDetailsView/PerpsMarketDetailsView';
-import PerpsMarketListView from '../../../../components/UI/Perps/Views/PerpsMarketListView/PerpsMarketListView';
-import PerpsSelectModifyActionView from '../../../../components/UI/Perps/Views/PerpsSelectModifyActionView/PerpsSelectModifyActionView';
-import PerpsTabView from '../../../../components/UI/Perps/Views/PerpsTabView/PerpsTabView';
+} from '../../../app/components/UI/Perps/providers/PerpsStreamManager';
+import PerpsMarketDetailsView from '../../../app/components/UI/Perps/Views/PerpsMarketDetailsView/PerpsMarketDetailsView';
+import PerpsMarketListView from '../../../app/components/UI/Perps/Views/PerpsMarketListView/PerpsMarketListView';
+import PerpsSelectModifyActionView from '../../../app/components/UI/Perps/Views/PerpsSelectModifyActionView/PerpsSelectModifyActionView';
+import PerpsTabView from '../../../app/components/UI/Perps/Views/PerpsTabView/PerpsTabView';
 import { Position } from '@metamask/perps-controller';
 
 /** No-op unsubscribe for test stream channels; subscribe() must return () => void */

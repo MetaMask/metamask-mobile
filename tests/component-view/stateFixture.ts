@@ -1,5 +1,5 @@
-import type { DeepPartial } from '../renderWithProvider';
-import type { RootState } from '../../../reducers';
+import type { DeepPartial } from '../../app/util/test/renderWithProvider';
+import type { RootState } from '../../app/reducers';
 // Removed dependency on large JSON snapshot; tests compose state via builder helpers
 
 type PlainObject = Record<string, unknown>;

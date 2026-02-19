@@ -1,7 +1,7 @@
 ---
 description: Integration tests local rules for the Mobile integration framework (Bridge/Wallet). Prefer presets/renderers and minimal overrides.
 globs:
-  - "app/util/test/component-view/**"
+  - "tests/component-view/**"
   - "app/components/UI/Bridge/**/BridgeView.view.test.{ts,tsx}"
   - "app/components/Views/Wallet/Wallet.view.test.{ts,tsx}"
 alwaysApply: false
@@ -9,10 +9,10 @@ alwaysApply: false
 
 ## Component-view Tests (Local Rules)
 
-These rules apply to files under `app/util/test/component-view` and related test suites.
+These rules apply to files under `tests/component-view` and related test suites.
 
 - **Always import the global mocks**
-  - Add `import '../../util/test/component-view/mocks';` at the top of component view tests.
+  - Add `import '../../../tests/component-view/mocks';` at the top of component view tests.
 
 - **Prefer presets + renderers**
   - Bridge: `initialStateBridge` + `renderBridgeView`
@@ -32,5 +32,5 @@ These rules apply to files under `app/util/test/component-view` and related test
 
 See: `../README.md` and `../COMPONENT_VIEW_TEST_RULES.md` for full guidance.
 
-@app/util/test/component-view/README.md
-@app/util/test/component-view/COMPONENT_VIEW_TEST_RULES.md
+@tests/component-view/README.md
+@tests/component-view/COMPONENT_VIEW_TEST_RULES.md

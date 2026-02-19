@@ -1,13 +1,13 @@
 import '../mocks';
 import React from 'react';
-import type { DeepPartial } from '../../renderWithProvider';
-import type { RootState } from '../../../../reducers';
+import type { DeepPartial } from '../../../app/util/test/renderWithProvider';
+import type { RootState } from '../../../app/reducers';
 import { renderScreenWithRoutes } from '../render';
-import Routes from '../../../../constants/navigation/Routes';
-import { ExploreFeed } from '../../../../components/Views/TrendingView/TrendingView';
-import ExploreSearchScreen from '../../../../components/Views/TrendingView/Views/ExploreSearchScreen/ExploreSearchScreen';
-import AssetDetails from '../../../../components/Views/AssetDetails';
-import TrendingTokensFullView from '../../../../components/Views/TrendingTokens/TrendingTokensFullView/TrendingTokensFullView';
+import Routes from '../../../app/constants/navigation/Routes';
+import { ExploreFeed } from '../../../app/components/Views/TrendingView/TrendingView';
+import ExploreSearchScreen from '../../../app/components/Views/TrendingView/Views/ExploreSearchScreen/ExploreSearchScreen';
+import AssetDetails from '../../../app/components/Views/AssetDetails';
+import TrendingTokensFullView from '../../../app/components/Views/TrendingTokens/TrendingTokensFullView/TrendingTokensFullView';
 import { initialStateTrending } from '../presets/trending';
 
 interface RenderTrendingViewOptions {

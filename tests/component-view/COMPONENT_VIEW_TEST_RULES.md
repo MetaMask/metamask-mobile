@@ -43,19 +43,19 @@ These rules are written to align with Cursor Context Rules so the guidance is ea
 3. Reuse the component view test framework pieces
 
 - Presets:
-  - `initialStateBridge` → `app/util/test/component-view/presets/bridge.ts`
-  - `initialStateWallet` → `app/util/test/component-view/presets/wallet.ts`
-  - `initialStatePerps` → `app/util/test/component-view/presets/perpsStatePreset.ts`
+  - `initialStateBridge` → `tests/component-view/presets/bridge.ts`
+  - `initialStateWallet` → `tests/component-view/presets/wallet.ts`
+  - `initialStatePerps` → `tests/component-view/presets/perpsStatePreset.ts`
 - Renderers:
-  - `renderBridgeView` → `app/util/test/component-view/renderers/bridge.ts`
-  - `renderWalletView` → `app/util/test/component-view/renderers/wallet.ts`
-  - `renderPerpsView` / `renderPerpsSelectModifyActionView` → `app/util/test/component-view/renderers/perpsViewRenderer.tsx`
+  - `renderBridgeView` → `tests/component-view/renderers/bridge.ts`
+  - `renderWalletView` → `tests/component-view/renderers/wallet.ts`
+  - `renderPerpsView` / `renderPerpsSelectModifyActionView` → `tests/component-view/renderers/perpsViewRenderer.tsx`
 - Helpers (labels for view tests; use i18n for consistency):
-  - `getModifyActionLabels` → `app/util/test/component-view/helpers/perpsViewTestHelpers.ts`
+  - `getModifyActionLabels` → `tests/component-view/helpers/perpsViewTestHelpers.ts`
 - Global Engine + native mocks:
-  - `app/util/test/component-view/mocks.ts`
+  - `tests/component-view/mocks.ts`
 - State fixture and helpers:
-  - `app/util/test/component-view/stateFixture.ts`
+  - `tests/component-view/stateFixture.ts`
 
 4. Keep overrides minimal and local to the test
 
@@ -77,8 +77,8 @@ These rules are written to align with Cursor Context Rules so the guidance is ea
 - Preferred: use a view-specific renderer:
 
 ```ts
-import '../../util/test/component-view/mocks';
-import { renderBridgeView } from '../../util/test/component-view/renderers/bridge';
+import '../../../tests/component-view/mocks';
+import { renderBridgeView } from '../../../tests/component-view/renderers/bridge';
 
 const { getByTestId } = renderBridgeView({
   deterministicFiat: true, // optional: exact fiat outputs
@@ -168,16 +168,16 @@ yarn jest -c jest.config.view.js <path/to/test> -t "<name>" --runInBand --silent
 
 ## Where to Find Things
 
-- Engine and native mocks: `app/util/test/component-view/mocks.ts`
+- Engine and native mocks: `tests/component-view/mocks.ts`
 - Render helpers:
-  - `app/util/test/component-view/render.tsx`
-  - `app/util/test/component-view/renderers/bridge.ts`
-  - `app/util/test/component-view/renderers/wallet.ts`
+  - `tests/component-view/render.tsx`
+  - `tests/component-view/renderers/bridge.ts`
+  - `tests/component-view/renderers/wallet.ts`
 - Presets:
-  - `app/util/test/component-view/presets/bridge.ts`
-  - `app/util/test/component-view/presets/wallet.ts`
-- State fixture + helpers: `app/util/test/component-view/stateFixture.ts`
-- Framework overview: `app/util/test/component-view/README.md`
+  - `tests/component-view/presets/bridge.ts`
+  - `tests/component-view/presets/wallet.ts`
+- State fixture + helpers: `tests/component-view/stateFixture.ts`
+- Framework overview: `tests/component-view/README.md`
 - Enforcement:
   - `.eslintrc.js` (override for `**/*.view.test.*`)
   - `app/util/test/testSetupView.js` (runtime guard)

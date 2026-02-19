@@ -1,9 +1,9 @@
-import '../../../util/test/component-view/mocks';
+import '../../../../tests/component-view/mocks';
 import {
   describeForPlatforms,
   itForPlatforms,
 } from '../../../util/test/platform';
-import { renderTrendingViewWithRoutes } from '../../../util/test/component-view/renderers/trending';
+import { renderTrendingViewWithRoutes } from '../../../../tests/component-view/renderers/trending';
 import { TrendingViewSelectorsIDs } from './TrendingView.testIds';
 import {
   setupTrendingApiFetchMock,
@@ -11,7 +11,7 @@ import {
   mockTrendingTokensData,
   mockBnbChainToken,
   getTrendingTokensMock,
-} from '../../../util/test/component-view/mocks/trendingApiMocks';
+} from '../../../../tests/component-view/mocks/trendingApiMocks';
 import {
   fireEvent,
   waitFor,

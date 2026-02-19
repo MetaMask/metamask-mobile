@@ -1,9 +1,9 @@
 import '../mocks';
 import React from 'react';
-import type { DeepPartial } from '../../renderWithProvider';
-import type { RootState } from '../../../../reducers';
+import type { DeepPartial } from '../../../app/util/test/renderWithProvider';
+import type { RootState } from '../../../app/reducers';
 import { renderComponentViewScreen } from '../render';
-import AssetDetailsContainer from '../../../../components/Views/AssetDetails';
+import AssetDetailsContainer from '../../../app/components/Views/AssetDetails';
 import { initialStateAssetDetails } from '../presets/assetDetails';
 
 interface RenderAssetDetailsViewOptions {
