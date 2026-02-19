@@ -9,7 +9,7 @@ import Engine from '../../../core/Engine';
 import { fireEvent } from '@testing-library/react-native';
 import { RootState } from 'app/reducers';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
-import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 
 const setUseNftDetectionSpy = jest.spyOn(
   Engine.context.PreferencesController,
@@ -46,7 +46,7 @@ const mockAddTraitsToUser = jest.fn();
 
 (useAnalytics as jest.MockedFn<typeof useAnalytics>).mockReturnValue({
   trackEvent: mockTrackEvent,
-  createEventBuilder: MetricsEventBuilder.createEventBuilder,
+  createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
   enable: jest.fn(),
   addTraitsToUser: mockAddTraitsToUser,
   createDataDeletionTask: jest.fn(),

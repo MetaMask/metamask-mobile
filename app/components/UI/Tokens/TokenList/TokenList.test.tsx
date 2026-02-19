@@ -7,7 +7,7 @@ import { TokenList } from './TokenList';
 import { useNavigation } from '@react-navigation/native';
 import { WalletViewSelectorsIDs } from '../../../Views/Wallet/WalletView.testIds';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
-import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
+import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
 import { SCROLL_TO_TOKEN_EVENT } from '../constants';
 
 // Mock external dependencies
@@ -204,7 +204,7 @@ describe('TokenList', () => {
 
     mockUseAnalytics.mockReturnValue({
       trackEvent: mockTrackEvent,
-      createEventBuilder: MetricsEventBuilder.createEventBuilder,
+      createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
       enable: jest.fn(),
       addTraitsToUser: jest.fn(),
       createDataDeletionTask: jest.fn(),
