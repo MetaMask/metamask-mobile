@@ -19,118 +19,6 @@ exports[`Contacts renders correctly 1`] = `
       ]
     }
   >
-    <View
-      collapsable={false}
-      pointerEvents="box-none"
-      style={
-        {
-          "zIndex": 1,
-        }
-      }
-    >
-      <View
-        accessibilityElementsHidden={false}
-        importantForAccessibility="auto"
-        onLayout={[Function]}
-        pointerEvents="box-none"
-        style={null}
-      >
-        <View
-          collapsable={false}
-          pointerEvents="box-none"
-          style={
-            {
-              "bottom": 0,
-              "left": 0,
-              "opacity": 1,
-              "position": "absolute",
-              "right": 0,
-              "top": 0,
-              "zIndex": 0,
-            }
-          }
-        >
-          <View
-            collapsable={false}
-            style={
-              {
-                "backgroundColor": "rgb(255, 255, 255)",
-                "borderBottomColor": "rgb(216, 216, 216)",
-                "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
-                "shadowOffset": {
-                  "height": 0.5,
-                  "width": 0,
-                },
-                "shadowOpacity": 0.85,
-                "shadowRadius": 0,
-              }
-            }
-          />
-        </View>
-        <View
-          collapsable={false}
-          pointerEvents="box-none"
-          style={
-            {
-              "height": 64,
-              "maxHeight": undefined,
-              "minHeight": undefined,
-              "opacity": undefined,
-              "transform": undefined,
-            }
-          }
-        >
-          <View
-            pointerEvents="none"
-            style={
-              {
-                "height": 20,
-              }
-            }
-          />
-          <View
-            pointerEvents="box-none"
-            style={
-              {
-                "alignItems": "center",
-                "flex": 1,
-                "flexDirection": "row",
-                "justifyContent": "center",
-              }
-            }
-          >
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "marginHorizontal": 16,
-                  "opacity": 1,
-                }
-              }
-            >
-              <Text
-                accessibilityRole="header"
-                aria-level="1"
-                collapsable={false}
-                numberOfLines={1}
-                onLayout={[Function]}
-                style={
-                  {
-                    "color": "rgb(28, 28, 30)",
-                    "fontSize": 17,
-                    "fontWeight": "600",
-                  }
-                }
-              >
-                ContactsSettings
-              </Text>
-            </View>
-          </View>
-        </View>
-      </View>
-    </View>
     <RNSScreenContainer
       onLayout={[Function]}
       style={
@@ -236,6 +124,7 @@ exports[`Contacts renders correctly 1`] = `
             style={
               {
                 "flex": 1,
+                "marginTop": 0,
               }
             }
           >
@@ -594,6 +483,20 @@ exports[`Contacts renders correctly 1`] = `
         </View>
       </RNSScreen>
     </RNSScreenContainer>
+    <View
+      collapsable={false}
+      pointerEvents="box-none"
+      style={
+        {
+          "height": 64,
+          "left": 0,
+          "position": "absolute",
+          "right": 0,
+          "top": 0,
+          "zIndex": 1,
+        }
+      }
+    />
   </RNCSafeAreaProvider>
 </View>
 `;

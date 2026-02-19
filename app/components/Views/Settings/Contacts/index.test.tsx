@@ -42,7 +42,7 @@ describe('Contacts', () => {
   it('renders correctly', () => {
     const { toJSON } = renderScreen(
       Contacts,
-      { name: 'ContactsSettings' },
+      { name: 'ContactsSettings', options: { headerShown: false } },
       { state: initialState },
     );
     expect(toJSON()).toMatchSnapshot();
@@ -51,7 +51,7 @@ describe('Contacts', () => {
   it('renders inline header with Contacts title', () => {
     const { getByTestId, getByText } = renderScreen(
       Contacts,
-      { name: 'ContactsSettings' },
+      { name: 'ContactsSettings', options: { headerShown: false } },
       { state: initialState },
     );
     expect(getByTestId(ContactsViewSelectorIDs.HEADER)).toBeOnTheScreen();
