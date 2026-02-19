@@ -19,6 +19,11 @@ const secretsMapping = JSON.parse(process.env.CONFIG_SECRETS || '{}');
 const allSecrets = JSON.parse(process.env.ALL_SECRETS || '{}');
 const githubEnvPath = process.env.GITHUB_ENV;
 
+// TODO(temp-debug): remove before merging
+console.log(`[debug] CONFIG_SECRETS keys: ${Object.keys(secretsMapping).length} entries`);
+console.log(`[debug] ALL_SECRETS keys received: ${Object.keys(allSecrets).length}`);
+console.log(`[debug] ALL_SECRETS key names: ${Object.keys(allSecrets).sort().join(', ')}`);
+
 function appendToGithubEnv(name, value) {
   if (!githubEnvPath) {
     process.env[name] = value;
@@ -36,12 +41,19 @@ function appendToGithubEnv(name, value) {
   }
 }
 
-Object.entries(secretsMapping).forEach(([envVar, secretName]) => {
+const mappingEntries = Object.entries(secretsMapping);
+let resolved = 0;
+
+mappingEntries.forEach(([envVar, secretName]) => {
   const value = allSecrets[secretName];
   if (value) {
     appendToGithubEnv(envVar, value);
     console.log(`✓ ${envVar}`);
+    resolved++;
   } else {
     console.warn(`⚠ ${secretName} not found (for ${envVar})`);
   }
 });
+
+// TODO(temp-debug): remove before merging
+console.log(`[debug] Result: ${resolved}/${mappingEntries.length} secrets resolved`);
