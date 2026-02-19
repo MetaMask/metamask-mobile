@@ -98,11 +98,6 @@ jest.mock('../../app/core/Engine', () => {
           return undefined;
         },
       },
-      BridgeController: {
-        updateBridgeQuoteRequestParams: jest.fn().mockResolvedValue(undefined),
-        resetState: jest.fn(),
-        stopAllPolling: jest.fn(),
-      },
       NetworkController: {
         state: { networksMetadata: {} },
         findNetworkClientIdByChainId() {
@@ -168,6 +163,8 @@ jest.mock('../../app/core/Engine', () => {
         getOpenOrders: jest.fn().mockResolvedValue([]),
         getAccountState: jest.fn().mockResolvedValue(null),
         calculateFees: jest.fn().mockResolvedValue({}),
+        calculateLiquidationPrice: jest.fn().mockResolvedValue('0.00'),
+        flipPosition: jest.fn().mockResolvedValue({ success: false }),
         getTradeConfiguration: jest.fn().mockResolvedValue(null),
         getMarketFilterPreferences: jest.fn().mockResolvedValue({}),
         getOrderBookGrouping: jest.fn().mockResolvedValue(null),
@@ -177,8 +174,6 @@ jest.mock('../../app/core/Engine', () => {
             constraints: { minAmount: 10 },
           },
         ]),
-        startMarketDataPreload: jest.fn(),
-        stopMarketDataPreload: jest.fn(),
       },
     },
     controllerMessenger: {

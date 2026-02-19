@@ -70,10 +70,10 @@ describe('PerpsCloseAllPositionsView', () => {
         await screen.findByText(strings('perps.close_all_modal.description')),
       ).toBeOnTheScreen();
       expect(
-        screen.getByText(strings('perps.close_all_modal.margin')),
+        screen.getByText(strings('perps.close_position.margin')),
       ).toBeOnTheScreen();
       expect(
-        screen.getByText(strings('perps.close_all_modal.receive')),
+        screen.getByText(strings('perps.close_position.you_receive')),
       ).toBeOnTheScreen();
     });
 
