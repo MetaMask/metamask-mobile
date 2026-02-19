@@ -37,8 +37,6 @@ interface SnapProxyRequest extends LiveRequest {
   mode: 'mocked' | 'passthrough';
 }
 
-const SNAP_INFURA_PROXY_URL_REGEX =
-  /^https:\/\/(?:bitcoin|tron|solana)-mainnet\.infura\.io(?:\/|$)/u;
 const SNAP_WEBVIEW_PROXY_SOURCE = 'snap-webview';
 
 const logSnapProxyToConsole = (message: string) => {
@@ -48,13 +46,27 @@ const logSnapProxyToConsole = (message: string) => {
   console.log(`[SNAP_PROXY] ${message}`);
 };
 
+const isSnapDependencyUrl = (url: string): boolean => {
+  try {
+    const hostname = new URL(url).hostname.toLowerCase();
+    return (
+      hostname.endsWith('.infura.io') &&
+      (hostname.startsWith('solana-') ||
+        hostname.startsWith('bitcoin-') ||
+        hostname.startsWith('tron-'))
+    );
+  } catch {
+    return false;
+  }
+};
+
 const maybeLogSnapInfuraProxyRequest = (
   method: string,
   url: string,
   source: 'mocked' | 'passthrough',
-  fromSnapRuntime: boolean,
+  shouldLog: boolean,
 ) => {
-  if (fromSnapRuntime && SNAP_INFURA_PROXY_URL_REGEX.test(url)) {
+  if (shouldLog) {
     logSnapProxyToConsole(`[${source}] ${method} ${url}`);
   }
 };
@@ -283,6 +295,9 @@ export default class MockServerE2E implements Resource {
           }
           const isSnapWebViewProxyRequest =
             requestUrl.searchParams.get('source') === SNAP_WEBVIEW_PROXY_SOURCE;
+          const isSnapDependencyRequest = isSnapDependencyUrl(urlEndpoint);
+          const shouldTrackSnapRequest =
+            isSnapWebViewProxyRequest || isSnapDependencyRequest;
 
           const method = request.method;
 
@@ -332,14 +347,14 @@ export default class MockServerE2E implements Resource {
           }
 
           if (matchingEvent) {
-            if (isSnapWebViewProxyRequest) {
+            if (shouldTrackSnapRequest) {
               this._recordSnapProxyRequest(method, urlEndpoint, 'mocked');
             }
             maybeLogSnapInfuraProxyRequest(
               method,
               urlEndpoint,
               'mocked',
-              isSnapWebViewProxyRequest,
+              shouldTrackSnapRequest,
             );
             logger.debug(`Mocking ${method} request to: ${urlEndpoint}`);
             logger.debug(`Response status: ${matchingEvent.responseCode}`);
@@ -377,14 +392,17 @@ export default class MockServerE2E implements Resource {
 
           // Translate fallback ports to actual allocated ports (host-side forwarding)
           updatedUrl = translateFallbackPortToActual(updatedUrl);
-          if (isSnapWebViewProxyRequest) {
+          const isSnapDependencyForwardedRequest = isSnapDependencyUrl(updatedUrl);
+          const shouldTrackForwardedSnapRequest =
+            isSnapWebViewProxyRequest || isSnapDependencyForwardedRequest;
+          if (shouldTrackForwardedSnapRequest) {
             this._recordSnapProxyRequest(method, updatedUrl, 'passthrough');
           }
           maybeLogSnapInfuraProxyRequest(
             method,
             updatedUrl,
             'passthrough',
-            isSnapWebViewProxyRequest,
+            shouldTrackForwardedSnapRequest,
           );
 
           if (!isUrlAllowed(updatedUrl)) {
@@ -448,6 +466,20 @@ export default class MockServerE2E implements Resource {
 
         // Translate fallback ports to actual allocated ports (host-side forwarding)
         const translatedUrl = translateFallbackPortToActual(request.url);
+        const shouldTrackSnapRequest = isSnapDependencyUrl(translatedUrl);
+        if (shouldTrackSnapRequest) {
+          this._recordSnapProxyRequest(
+            request.method,
+            translatedUrl,
+            'passthrough',
+          );
+        }
+        maybeLogSnapInfuraProxyRequest(
+          request.method,
+          translatedUrl,
+          'passthrough',
+          shouldTrackSnapRequest,
+        );
         if (!isUrlAllowed(translatedUrl)) {
           const errorMessage = `Request going to live server: ${translatedUrl}`;
           logger.warn(errorMessage);
