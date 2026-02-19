@@ -23,6 +23,10 @@ jest.mock('../../../../UI/Perps', () => ({
 describe('PerpsSection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // Reset mock return value to default (true) to ensure test isolation
+    jest
+      .requireMock('../../../../UI/Perps')
+      .selectPerpsEnabledFlag.mockReturnValue(true);
   });
 
   it('renders section title when enabled', () => {

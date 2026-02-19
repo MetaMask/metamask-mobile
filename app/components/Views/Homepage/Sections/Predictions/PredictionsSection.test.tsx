@@ -23,6 +23,10 @@ jest.mock('../../../../UI/Predict/selectors/featureFlags', () => ({
 describe('PredictionsSection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // Reset mock return value to default (true) to ensure test isolation
+    jest
+      .requireMock('../../../../UI/Predict/selectors/featureFlags')
+      .selectPredictEnabledFlag.mockReturnValue(true);
   });
 
   it('renders section title when enabled', () => {
