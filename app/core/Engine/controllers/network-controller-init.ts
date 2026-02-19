@@ -222,22 +222,21 @@ export const networkControllerInit: ControllerInitFunction<
       endpointUrl,
       error,
       rpcMethodName,
-    }: {
-      chainId: Hex;
-      endpointUrl: string;
-      error: unknown;
-      rpcMethodName: string;
+      type,
+      retryReason,
     }) => {
       onRpcEndpointDegraded({
         chainId,
         endpointUrl,
         error,
         infuraProjectId,
+        retryReason,
         rpcMethodName,
         trackEvent: ({ event, properties }) => {
           buildAndTrackEvent(initMessenger, event, properties);
         },
         metaMetricsId: analyticsId ?? '',
+        type,
       });
     },
   );

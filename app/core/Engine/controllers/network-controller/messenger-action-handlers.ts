@@ -1,3 +1,7 @@
+import type {
+  DegradedEventType,
+  RetryReason,
+} from '@metamask/network-controller';
 import { type Hex, hexToNumber, isObject, isValidJson } from '@metamask/utils';
 import { isPublicEndpointUrl, shouldCreateRpcServiceEvents } from './utils';
 import Logger from '../../../../util/Logger';
@@ -72,8 +76,12 @@ export function onRpcEndpointUnavailable({
  * a request to the RPC endpoint.
  * @param args.infuraProjectId - Our Infura project ID.
  * @param args.metaMetricsId - The MetaMetrics ID of the user.
+ * @param args.retryReason - The category of error that was retried (only
+ * present when `type` is `'retries_exhausted'`).
  * @param args.rpcMethodName - The JSON-RPC method that was being executed.
  * @param args.trackEvent - The function that will create the Segment event.
+ * @param args.type - Why the endpoint became degraded (`'slow_success'` or
+ * `'retries_exhausted'`).
  */
 export function onRpcEndpointDegraded({
   chainId,
@@ -81,19 +89,23 @@ export function onRpcEndpointDegraded({
   error,
   infuraProjectId,
   metaMetricsId,
+  retryReason,
   rpcMethodName,
   trackEvent,
+  type,
 }: {
   chainId: Hex;
   endpointUrl: string;
   error: unknown;
   infuraProjectId: string;
   metaMetricsId: string | null | undefined;
+  retryReason?: RetryReason;
   rpcMethodName: string;
   trackEvent: (options: {
     event: IMetaMetricsEvent | ITrackingEvent;
     properties: JsonMap;
   }) => void;
+  type: DegradedEventType;
 }): void {
   trackRpcEndpointEvent(MetaMetricsEvents.RPC_SERVICE_DEGRADED, {
     chainId,
@@ -101,8 +113,10 @@ export function onRpcEndpointDegraded({
     error,
     infuraProjectId,
     metaMetricsId,
+    retryReason,
     rpcMethodName,
     trackEvent,
+    type,
   });
 }
 
@@ -118,9 +132,13 @@ export function onRpcEndpointDegraded({
  * a request to the RPC endpoint.
  * @param args.infuraProjectId - Our Infura project ID.
  * @param args.metaMetricsId - The MetaMetrics ID of the user.
+ * @param args.retryReason - The category of error that was retried (only
+ * present for degraded events when `type` is `'retries_exhausted'`).
  * @param args.rpcMethodName - The JSON-RPC method that was being executed
  * (only present for degraded events).
  * @param args.trackEvent - The function that will create the Segment event.
+ * @param args.type - Why the endpoint became degraded (only present for
+ * degraded events).
  */
 export function trackRpcEndpointEvent(
   event: (typeof MetaMetricsEvents)[keyof typeof MetaMetricsEvents],
@@ -129,19 +147,23 @@ export function trackRpcEndpointEvent(
     endpointUrl,
     error,
     infuraProjectId,
+    retryReason,
     rpcMethodName,
     trackEvent,
+    type,
     metaMetricsId,
   }: {
     chainId: Hex;
     endpointUrl: string;
     error: unknown;
     infuraProjectId: string;
+    retryReason?: RetryReason;
     rpcMethodName?: string;
     trackEvent: (options: {
       event: IMetaMetricsEvent | ITrackingEvent;
       properties: JsonMap;
     }) => void;
+    type?: DegradedEventType;
     metaMetricsId: string | null | undefined;
   },
 ): void {
@@ -164,6 +186,8 @@ export function trackRpcEndpointEvent(
     rpc_endpoint_url: rpcDomain,
     rpc_domain: rpcDomain,
     ...(rpcMethodName ? { rpc_method_name: rpcMethodName } : {}),
+    ...(type ? { degraded_event_type: type } : {}),
+    ...(retryReason ? { retry_reason: retryReason } : {}),
     ...(isObject(error) &&
     'httpStatus' in error &&
     isValidJson(error.httpStatus)
