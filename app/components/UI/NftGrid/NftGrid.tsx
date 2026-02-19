@@ -247,7 +247,6 @@ const NftGrid = forwardRef<TabRefreshHandle, NftGridProps>(
       <>
         <BaseControlBar
           networkFilterTestId={WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER}
-          useEvmSelectionLogic={false}
           customWrapper={'outer'}
           additionalButtons={
             <ButtonIcon

@@ -1,108 +1,90 @@
-import { cloneDeep } from 'lodash';
-import { ensureValidState, ValidState } from './util';
+import { hasProperty, isObject } from '@metamask/utils';
 import { captureException } from '@sentry/react-native';
-import { getErrorMessage, hasProperty, isObject } from '@metamask/utils';
-import FilesystemStorage from 'redux-persist-filesystem-storage';
-import { STORAGE_KEY_PREFIX } from '@metamask/storage-service';
-import Device from '../../util/device';
-import { encodeStorageKey } from '../../core/Engine/utils/storage-service-utils';
+import { ensureValidState } from './util';
+import { NETWORK_CHAIN_ID } from '../../util/networks/customNetworks';
 
 export const migrationVersion = 118;
 
 /**
- * This migration does:
- * - Remove the sourceCode property from each snap in the SnapController state.
- * - Store the sourceCode in the file system storage in order to allow the StorageService to fetch the snap source code.
+ * Migration 118: Update MegaETH Mainnet name from 'MegaEth' to 'MegaETH'
  *
- * @param versionedState - The versioned state to migrate.
- * @returns The migrated state.
+ * This migration updates:
+ * - the MegaETH Mainnet network name from `MegaEth` to `MegaETH`.
+ * - the MegaETH Mainnet RPC endpoint names from `MegaEth` to `MegaETH`.
  */
-export default async function migrate(versionedState: unknown) {
-  const state = cloneDeep(versionedState);
-
+export default function migrate(state: unknown): unknown {
   if (!ensureValidState(state, migrationVersion)) {
     return state;
   }
 
   try {
-    return await transformState(state);
+    // Validate if the NetworkController state exists and has the expected structure.
+    if (
+      !(
+        hasProperty(state, 'engine') &&
+        hasProperty(state.engine, 'backgroundState') &&
+        hasProperty(state.engine.backgroundState, 'NetworkController') &&
+        isObject(state.engine.backgroundState.NetworkController) &&
+        hasProperty(
+          state.engine.backgroundState.NetworkController,
+          'networkConfigurationsByChainId',
+        ) &&
+        isObject(
+          state.engine.backgroundState.NetworkController
+            .networkConfigurationsByChainId,
+        )
+      )
+    ) {
+      return state;
+    }
+
+    const megaEthChainId = NETWORK_CHAIN_ID.MEGAETH_MAINNET;
+    const networkConfigsByChainId =
+      state.engine.backgroundState.NetworkController
+        .networkConfigurationsByChainId;
+
+    // If the chain ID is not found, skip it.
+    if (!hasProperty(networkConfigsByChainId, megaEthChainId)) {
+      return state;
+    }
+
+    const networkConfig = networkConfigsByChainId[megaEthChainId];
+
+    if (!isObject(networkConfig)) {
+      return state;
+    }
+
+    // Update the network name if it matches the old name
+    if (
+      isObject(networkConfig) &&
+      hasProperty(networkConfig, 'name') &&
+      networkConfig.name === 'MegaEth'
+    ) {
+      networkConfig.name = 'MegaETH';
+    }
+
+    // Update RPC endpoint names if they match the old name
+    if (
+      hasProperty(networkConfig, 'rpcEndpoints') &&
+      Array.isArray(networkConfig.rpcEndpoints)
+    ) {
+      networkConfig.rpcEndpoints.forEach((endpoint) => {
+        if (isObject(endpoint) && endpoint.name === 'MegaEth') {
+          endpoint.name = 'MegaETH';
+        }
+      });
+    }
+
+    return state;
   } catch (error) {
-    console.error(error);
-    const newError = new Error(
-      `Migration #${migrationVersion}: ${getErrorMessage(error)}`,
+    captureException(
+      new Error(
+        `Migration ${migrationVersion}: Failed to update MegaETH network name: ${String(
+          error,
+        )}`,
+      ),
     );
-    captureException(newError);
-
     // Return the original state if migration fails to avoid breaking the app
-    return versionedState;
-  }
-}
-
-/**
- * Transforms the state to remove the sourceCode property from each snap in the SnapController state and store the sourceCode in the file system storage.
- * @param state - The state to transform.
- * @returns The transformed state.
- */
-async function transformState(state: ValidState) {
-  if (!hasProperty(state.engine.backgroundState, 'SnapController')) {
-    captureException(
-      new Error(`Migration ${migrationVersion}: SnapController not found.`),
-    );
-
     return state;
   }
-
-  const snapControllerState = state.engine.backgroundState.SnapController;
-
-  if (!isObject(snapControllerState)) {
-    captureException(
-      new Error(
-        `Migration ${migrationVersion}: SnapController is not an object: ${typeof snapControllerState}`,
-      ),
-    );
-
-    return state;
-  }
-
-  if (!hasProperty(snapControllerState, 'snaps')) {
-    captureException(
-      new Error(
-        `Migration ${migrationVersion}: SnapController missing property snaps.`,
-      ),
-    );
-
-    return state;
-  }
-
-  if (!isObject(snapControllerState.snaps)) {
-    captureException(
-      new Error(
-        `Migration ${migrationVersion}: SnapController.snaps is not an object: ${typeof snapControllerState.snaps}`,
-      ),
-    );
-
-    return state;
-  }
-
-  await Promise.all(
-    Object.values(
-      snapControllerState.snaps as Record<string, Record<string, unknown>>,
-    ).map(async (snap) => {
-      const sourceCode = snap.sourceCode as string;
-
-      // Encode the snap ID to handle special characters (e.g., hyphens in npm:@metamask/bip32-keyring-snap)
-      const encodedSnapId = encodeStorageKey(snap.id as string);
-      const fullKey = `${STORAGE_KEY_PREFIX}SnapController:${encodedSnapId}`;
-
-      await FilesystemStorage.setItem(
-        fullKey,
-        JSON.stringify({ sourceCode }),
-        Device.isIos(),
-      );
-
-      delete snap.sourceCode;
-    }),
-  );
-
-  return state;
 }

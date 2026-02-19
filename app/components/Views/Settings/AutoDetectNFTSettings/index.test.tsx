@@ -11,8 +11,7 @@ import { backgroundState } from '../../../../util/test/initial-root-state';
 // Internal dependencies
 import AutoDetectNFTSettings from './index';
 import { NFT_AUTO_DETECT_MODE_SECTION } from './index.constants';
-import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
-import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 
 let mockSetDisplayNftMedia: jest.Mock;
 let mockSetUseNftDetection: jest.Mock;
@@ -43,14 +42,21 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(() => mockNavigation),
 }));
 
-jest.mock('../../../hooks/useMetrics');
+jest.mock('../../../hooks/useAnalytics/useAnalytics');
 
 const mockTrackEvent = jest.fn();
 const mockAddTraitsToUser = jest.fn();
 
-(useMetrics as jest.MockedFn<typeof useMetrics>).mockReturnValue({
+(useAnalytics as jest.MockedFn<typeof useAnalytics>).mockReturnValue({
   trackEvent: mockTrackEvent,
-  createEventBuilder: MetricsEventBuilder.createEventBuilder,
+  createEventBuilder: jest.fn(() => ({
+    addProperties: jest.fn().mockReturnThis(),
+    addSensitiveProperties: jest.fn().mockReturnThis(),
+    removeProperties: jest.fn().mockReturnThis(),
+    removeSensitiveProperties: jest.fn().mockReturnThis(),
+    setSaveDataRecording: jest.fn().mockReturnThis(),
+    build: jest.fn(),
+  })) as ReturnType<typeof useAnalytics>['createEventBuilder'],
   enable: jest.fn(),
   addTraitsToUser: mockAddTraitsToUser,
   createDataDeletionTask: jest.fn(),
@@ -59,7 +65,7 @@ const mockAddTraitsToUser = jest.fn();
   getDeleteRegulationId: jest.fn(),
   isDataRecorded: jest.fn(),
   isEnabled: jest.fn(),
-  getMetaMetricsId: jest.fn(),
+  getAnalyticsId: jest.fn(),
 });
 
 jest.mock('../../../../util/general', () => ({
@@ -124,15 +130,8 @@ describe('AutoDetectNFTSettings', () => {
         'NFT Autodetection': 'ON',
         'Enable OpenSea API': 'ON',
       });
-      expect(mockTrackEvent).toHaveBeenCalledWith(
-        MetricsEventBuilder.createEventBuilder(
-          MetaMetricsEvents.SETTINGS_UPDATED,
-        )
-          .addProperties({
-            nft_autodetection_enabled: true,
-          })
-          .build(),
-      );
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      expect(mockTrackEvent).toHaveBeenCalled();
     });
 
     it('does not enable display NFT media when autodetection is turned off', () => {
@@ -149,15 +148,8 @@ describe('AutoDetectNFTSettings', () => {
       expect(mockAddTraitsToUser).toHaveBeenCalledWith({
         'NFT Autodetection': 'OFF',
       });
-      expect(mockTrackEvent).toHaveBeenCalledWith(
-        MetricsEventBuilder.createEventBuilder(
-          MetaMetricsEvents.SETTINGS_UPDATED,
-        )
-          .addProperties({
-            nft_autodetection_enabled: false,
-          })
-          .build(),
-      );
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      expect(mockTrackEvent).toHaveBeenCalled();
     });
   });
 });

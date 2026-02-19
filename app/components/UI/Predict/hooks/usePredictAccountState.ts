@@ -5,7 +5,7 @@ import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../util/Logger';
 import { PREDICT_CONSTANTS } from '../constants/errors';
 import { ensureError } from '../utils/predictErrorHandler';
-import { AccountState } from '../providers/types';
+import { AccountState } from '../types';
 import { usePredictNetworkManagement } from './usePredictNetworkManagement';
 
 interface UsePredictWalletParams {

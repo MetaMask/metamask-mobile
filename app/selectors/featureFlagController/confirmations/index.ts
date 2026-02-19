@@ -14,6 +14,8 @@ export interface MetaMaskPayFlags {
   bufferStep: number;
   bufferSubsequent: number;
   slippage: number;
+  predictWithdrawAnyToken: boolean;
+  perpsWithdrawAnyToken: boolean;
 }
 
 export interface GasFeeTokenFlags {
@@ -31,7 +33,7 @@ export interface GasFeeTokenFlags {
 export const selectMetaMaskPayFlags = createSelector(
   selectRemoteFeatureFlags,
   (featureFlags): MetaMaskPayFlags => {
-    const metaMaskPayFlags = featureFlags?.confirmation_pay as
+    const metaMaskPayFlags = featureFlags?.confirmations_pay as
       | Record<string, Json>
       | undefined;
 
@@ -56,6 +58,10 @@ export const selectMetaMaskPayFlags = createSelector(
       bufferStep,
       bufferSubsequent,
       slippage,
+      predictWithdrawAnyToken:
+        (metaMaskPayFlags?.predictWithdrawAnyToken as boolean) ?? false,
+      perpsWithdrawAnyToken:
+        (metaMaskPayFlags?.perpsWithdrawAnyToken as boolean) ?? false,
     };
   },
 );
