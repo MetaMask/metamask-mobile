@@ -152,6 +152,8 @@ function BuildQuote() {
           assetId: params?.assetId ?? '',
         }),
       );
+    } else if (!isTokenUnavailable) {
+      hasShownTokenUnavailableRef.current = false;
     }
   }, [isTokenUnavailable, params?.assetId, navigation]);
 
