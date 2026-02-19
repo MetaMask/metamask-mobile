@@ -80,7 +80,7 @@ describe('MainNavigator', () => {
   });
 
   it('shows Trending tab', () => {
-    const { getByTestId, queryByTestId } = render(<MainNavigator />);
+    const { getByTestId } = render(<MainNavigator />);
 
     expect(getByTestId('tab-bar-item-Trending')).toBeDefined();
     expect(getByTestId('tab-bar-item-Wallet')).toBeDefined();
@@ -88,11 +88,10 @@ describe('MainNavigator', () => {
     expect(getByTestId('tab-bar-item-Rewards')).toBeDefined();
   });
 
-  it('should show Rewards tab', () => {
+  it('shows Rewards tab with core tabs', () => {
     const { getByTestId } = render(<MainNavigator />);
 
     expect(getByTestId('tab-bar-item-Rewards')).toBeDefined();
-    // Verify other core tabs are present
     expect(getByTestId('tab-bar-item-Wallet')).toBeDefined();
     expect(getByTestId('tab-bar-item-Trending')).toBeDefined();
     expect(getByTestId('tab-bar-item-Trade')).toBeDefined();
