@@ -120,6 +120,26 @@ _code_fencing_main: &code_fencing_main
   - bitcoin
   - tron
 
+# Beta code fencing features (main + beta feature)
+_code_fencing_beta: &code_fencing_beta
+  - beta
+  - preinstalled-snaps
+  - keyring-snaps
+  - multi-srp
+  - solana
+  - bitcoin
+  - tron
+
+# Experimental code fencing features (main + experimental)
+_code_fencing_experimental: &code_fencing_experimental
+  - preinstalled-snaps
+  - keyring-snaps
+  - multi-srp
+  - solana
+  - bitcoin
+  - tron
+  - experimental
+
 # Flask code fencing features (includes experimental)
 _code_fencing_flask: &code_fencing_flask
   - flask
@@ -186,7 +206,7 @@ builds:
       METAMASK_ENVIRONMENT: 'beta'
       METAMASK_BUILD_TYPE: 'main'
     secrets: *secrets
-    code_fencing: *code_fencing_main
+    code_fencing: *code_fencing_beta
     remote_feature_flags: *remote_feature_flags
 
   # Release candidate
@@ -260,7 +280,7 @@ builds:
       IS_TEST: 'false'
       MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: 'true'
     secrets: *secrets
-    code_fencing: *code_fencing_main
+    code_fencing: *code_fencing_experimental
     remote_feature_flags:
       <<: *remote_feature_flags
       # Override for experimental testing
