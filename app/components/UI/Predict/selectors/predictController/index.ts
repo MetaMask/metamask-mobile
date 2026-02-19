@@ -75,6 +75,11 @@ const selectPredictPendingDepositByAddress = ({
     (pendingDeposits) => pendingDeposits[address] || undefined,
   );
 
+const selectPredictSelectedPaymentToken = createSelector(
+  selectPredictControllerState,
+  (predictState) => predictState?.selectedPaymentToken ?? null,
+);
+
 const selectPredictAccountMeta = createSelector(
   selectPredictControllerState,
   (predictControllerState) => predictControllerState?.accountMeta || {},
@@ -107,4 +112,5 @@ export {
   selectPredictPendingDepositByAddress,
   selectPredictAccountMeta,
   selectPredictAccountMetaByAddress,
+  selectPredictSelectedPaymentToken,
 };

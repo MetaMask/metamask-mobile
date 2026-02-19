@@ -27,6 +27,8 @@ import PredictFeeSummary from '../../components/PredictFeeSummary';
 import PredictKeypad, {
   PredictKeypadHandles,
 } from '../../components/PredictKeypad';
+import { PayWithRowSkeleton } from '../../../../Views/confirmations/components/rows/pay-with-row/pay-with-row';
+import { PredictPayWithRow } from '../../components/PredictPayWithRow';
 import { usePredictActiveOrder } from '../../hooks/usePredictActiveOrder';
 import { usePredictBalance } from '../../hooks/usePredictBalance';
 import { usePredictDeposit } from '../../hooks/usePredictDeposit';
@@ -36,10 +38,12 @@ import { Side } from '../../types';
 import { formatPrice } from '../../utils/format';
 import { useConfirmationContext } from '../../../../Views/confirmations/context/confirmation-context';
 import { POLYGON_USDCE } from '../../../../Views/confirmations/constants/predict';
+import { useTransactionPayToken } from '../../../../Views/confirmations/hooks/pay/useTransactionPayToken';
 import { useAddToken } from '../../../../Views/confirmations/hooks/tokens/useAddToken';
 import useClearConfirmationOnBackSwipe from '../../../../Views/confirmations/hooks/ui/useClearConfirmationOnBackSwipe';
 import useNavbar from '../../../../Views/confirmations/hooks/ui/useNavbar';
 import { NavbarOverrides } from '../../../../Views/confirmations/components/UI/navbar/navbar';
+import { usePredictPaymentToken } from '../../hooks/usePredictPaymentToken';
 
 const MINIMUM_BET = 1;
 
@@ -81,6 +85,9 @@ export function PredictDepositAndOrderInfo() {
     symbol: POLYGON_USDCE.symbol,
     tokenAddress: POLYGON_USDCE.address,
   });
+
+  const { payToken } = useTransactionPayToken();
+  const { isPredictBalanceSelected } = usePredictPaymentToken();
 
   const tw = useTailwind();
   const keypadRef = useRef<PredictKeypadHandles>(null);
@@ -141,6 +148,17 @@ export function PredictDepositAndOrderInfo() {
   const metamaskFee = preview?.fees?.metamaskFee ?? 0;
   const providerFee = preview?.fees?.providerFee ?? 0;
   const total = currentValue + providerFee + metamaskFee;
+
+  const availableBalanceDisplay = useMemo(
+    () =>
+      isPredictBalanceSelected
+        ? formatPrice(balance, {
+            minimumDecimals: 2,
+            maximumDecimals: 2,
+          })
+        : `$${Number(payToken?.balanceUsd ?? 0).toFixed(2)}`,
+    [isPredictBalanceSelected, balance, payToken?.balanceUsd],
+  );
 
   const {
     enabled: isRewardsEnabled,
@@ -203,7 +221,7 @@ export function PredictDepositAndOrderInfo() {
               color={TextColor.TextAlternative}
             >
               {`${strings('predict.order.available')}: `}
-              {formatPrice(balance, { minimumDecimals: 2, maximumDecimals: 2 })}
+              {availableBalanceDisplay}
             </Text>
           )}
         </Box>
@@ -234,6 +252,9 @@ export function PredictDepositAndOrderInfo() {
               })}
             </Text>
           )}
+        </Box>
+        <Box twClassName="mt-4 w-full">
+          {isBalanceLoading ? <PayWithRowSkeleton /> : <PredictPayWithRow />}
         </Box>
       </Box>
     </ScrollView>
