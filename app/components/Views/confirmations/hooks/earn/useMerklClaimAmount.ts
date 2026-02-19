@@ -9,10 +9,9 @@ import { useMemo } from 'react';
 import { useAsyncResult } from '../../../../hooks/useAsyncResult';
 import {
   convertMusdClaimAmount,
-  decodeMerklClaimParams,
   ConvertMusdClaimResult,
+  getUnclaimedAmountForMerklClaimTx,
 } from '../../../../UI/Earn/utils/musd';
-import { getClaimedAmountFromContract } from '../../../../UI/Earn/components/MerklRewards/merkl-client';
 
 interface MerklClaimAmountResult {
   /** Whether the async contract call is still pending */
@@ -35,37 +34,23 @@ const useMerklClaimAmount = (
 ): MerklClaimAmountResult => {
   const { chainId, txParams, type: transactionType } = transaction;
 
-  // Decode Merkl claim params from the transaction calldata
-  const claimParams = useMemo(() => {
+  const { value: claimAmountResult, pending } = useAsyncResult(async () => {
     if (transactionType !== TransactionType.musdClaim) return null;
-    return decodeMerklClaimParams(txParams?.data as string);
-  }, [transactionType, txParams?.data]);
-
-  // Fetch the already-claimed amount from the Merkl distributor contract
-  // so we can compute unclaimed = total - claimed
-  const { value: claimedAmount, pending } = useAsyncResult(async () => {
-    if (!claimParams) return null;
-    return getClaimedAmountFromContract(
-      claimParams.userAddress,
-      claimParams.tokenAddress as Hex,
+    return getUnclaimedAmountForMerklClaimTx(
+      txParams?.data as string | undefined,
       chainId as Hex,
     );
-  }, [claimParams, chainId]);
+  }, [transactionType, txParams?.data, chainId]);
 
   const claimAmount = useMemo(() => {
-    if (pending || !claimParams) return null;
-
-    const totalRaw = BigInt(claimParams.totalAmount);
-    const claimedRaw = BigInt(claimedAmount ?? '0');
-    const unclaimedRaw =
-      totalRaw > claimedRaw ? (totalRaw - claimedRaw).toString() : '0';
+    if (pending || !claimAmountResult) return null;
 
     return convertMusdClaimAmount({
-      claimAmountRaw: unclaimedRaw,
+      claimAmountRaw: claimAmountResult.unclaimedRaw,
       conversionRate,
       usdConversionRate,
     });
-  }, [pending, claimParams, claimedAmount, conversionRate, usdConversionRate]);
+  }, [pending, claimAmountResult, conversionRate, usdConversionRate]);
 
   return { pending, claimAmount };
 };

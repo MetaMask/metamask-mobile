@@ -1,0 +1,178 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`V2AdditionalVerification matches snapshot 1`] = `
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "additive",
+      "right": "additive",
+      "top": "off",
+    }
+  }
+  style={
+    {
+      "flex": 1,
+    }
+  }
+>
+  <View
+    style={
+      [
+        {
+          "backgroundColor": "#ffffff",
+          "flex": 1,
+        },
+        undefined,
+      ]
+    }
+  >
+    <View
+      style={
+        [
+          {
+            "flex": 1,
+          },
+          undefined,
+        ]
+      }
+    >
+      <View
+        style={
+          [
+            {
+              "padding": 15,
+              "paddingHorizontal": 16,
+            },
+            {
+              "flex": 1,
+            },
+            undefined,
+          ]
+        }
+      >
+        <Image
+          resizeMode="contain"
+          source="mock-image"
+          style={
+            {
+              "alignSelf": "center",
+              "height": 562.5,
+              "width": 750,
+            }
+          }
+        />
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "Geist-Bold",
+              "fontSize": 24,
+              "fontWeight": "bold",
+              "letterSpacing": 0,
+              "lineHeight": 32,
+              "marginTop": 24,
+            }
+          }
+        >
+          deposit.additional_verification.title
+        </Text>
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "Geist-Regular",
+              "fontSize": 16,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+              "marginTop": 16,
+            }
+          }
+        >
+          deposit.additional_verification.paragraph_1
+        </Text>
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "Geist-Regular",
+              "fontSize": 16,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+              "marginTop": 16,
+            }
+          }
+        >
+          deposit.additional_verification.paragraph_2
+        </Text>
+      </View>
+    </View>
+    <View>
+      <View
+        style={
+          [
+            {
+              "padding": 15,
+              "paddingHorizontal": 16,
+            },
+            undefined,
+            {
+              "gap": 8,
+            },
+          ]
+        }
+      >
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessible={true}
+          activeOpacity={1}
+          onPress={[Function]}
+          onPressIn={[Function]}
+          onPressOut={[Function]}
+          style={
+            {
+              "alignItems": "center",
+              "alignSelf": "stretch",
+              "backgroundColor": "#121314",
+              "borderRadius": 12,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "overflow": "hidden",
+              "paddingHorizontal": 16,
+            }
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#ffffff",
+                "fontFamily": "Geist-Medium",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+          >
+            deposit.additional_verification.button
+          </Text>
+        </TouchableOpacity>
+        <SvgMock
+          fill="currentColor"
+          name="powered-by-transak-logo"
+          style={
+            {
+              "color": "#686e7d",
+              "height": 24,
+            }
+          }
+        />
+      </View>
+    </View>
+  </View>
+</RNCSafeAreaView>
+`;

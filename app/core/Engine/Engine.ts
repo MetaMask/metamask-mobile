@@ -177,6 +177,7 @@ import { profileMetricsServiceInit } from './controllers/profile-metrics-service
 import { rampsServiceInit } from './controllers/ramps-controller/ramps-service-init';
 import { rampsControllerInit } from './controllers/ramps-controller/ramps-controller-init';
 import { aiDigestControllerInit } from './controllers/ai-digest-controller-init';
+import { transakServiceInit } from './controllers/ramps-controller/transak-service-init';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -367,6 +368,7 @@ export class Engine {
         ProfileMetricsService: profileMetricsServiceInit,
         AnalyticsController: analyticsControllerInit,
         RampsService: rampsServiceInit,
+        TransakService: transakServiceInit,
         RampsController: rampsControllerInit,
         AiDigestController: aiDigestControllerInit,
       },
@@ -406,6 +408,7 @@ export class Engine {
     const profileMetricsController = controllersByName.ProfileMetricsController;
     const profileMetricsService = controllersByName.ProfileMetricsService;
     const rampsService = controllersByName.RampsService;
+    const transakService = controllersByName.TransakService;
     const rampsController = controllersByName.RampsController;
     const aiDigestController = controllersByName.AiDigestController;
 
@@ -563,6 +566,7 @@ export class Engine {
       ProfileMetricsController: profileMetricsController,
       ProfileMetricsService: profileMetricsService,
       RampsService: rampsService,
+      TransakService: transakService,
       RampsController: rampsController,
       AiDigestController: aiDigestController,
     };
