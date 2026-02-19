@@ -25,6 +25,7 @@ import { ScamWarningIcon } from '../TokenListItem/ScamWarningIcon/ScamWarningIco
 import { FlashListAssetKey } from '../TokenList';
 import {
   selectMerklCampaignClaimingEnabledFlag,
+  selectMusdQuickConvertEnabledFlag,
   selectStablecoinLendingEnabledFlag,
 } from '../../../Earn/selectors/featureFlags';
 import { useTokenPricePercentageChange } from '../../hooks/useTokenPricePercentageChange';
@@ -195,11 +196,16 @@ export const TokenListItemV2 = React.memo(
       selectStablecoinLendingEnabledFlag,
     );
 
+    const isQuickConvertEnabled = useSelector(
+      selectMusdQuickConvertEnabledFlag,
+    );
+
     const { getEarnToken } = useEarnTokens();
 
     const earnToken = getEarnToken(asset as TokenI);
 
     const { shouldShowTokenListItemCta } = useMusdCtaVisibility();
+
     const { initiateCustomConversion, hasSeenConversionEducationScreen } =
       useMusdConversion();
 
@@ -314,10 +320,15 @@ export const TokenListItemV2 = React.memo(
       const submitCtaPressedEvent = () => {
         const { MUSD_CTA_TYPES, EVENT_LOCATIONS } = MUSD_EVENTS_CONSTANTS;
 
-        const getRedirectLocation = () =>
-          hasSeenConversionEducationScreen
-            ? EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN
-            : EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN;
+        const getRedirectLocation = () => {
+          if (!hasSeenConversionEducationScreen) {
+            return EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN;
+          }
+
+          return isQuickConvertEnabled
+            ? EVENT_LOCATIONS.QUICK_CONVERT_HOME_SCREEN
+            : EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN;
+        };
 
         trackEvent(
           createEventBuilder(MetaMetricsEvents.MUSD_CONVERSION_CTA_CLICKED)
@@ -370,6 +381,7 @@ export const TokenListItemV2 = React.memo(
       createEventBuilder,
       hasSeenConversionEducationScreen,
       initiateCustomConversion,
+      isQuickConvertEnabled,
       networkName,
       trackEvent,
     ]);

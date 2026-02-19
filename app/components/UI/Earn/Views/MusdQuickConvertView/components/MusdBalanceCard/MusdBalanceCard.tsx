@@ -1,6 +1,5 @@
 import React, { useCallback, useMemo } from 'react';
 import { View, Pressable, Image } from 'react-native';
-import BigNumber from 'bignumber.js';
 import { Hex } from '@metamask/utils';
 import Text, {
   TextColor,
@@ -37,6 +36,7 @@ import { useSelector } from 'react-redux';
 import { selectNetworkConfigurations } from '../../../../../../../selectors/networkController';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
+import { sortChainIdsByMusdBalanceDesc } from '../../../../utils/musd';
 
 /**
  * Test IDs for the MusdBalanceCard component.
@@ -73,22 +73,15 @@ const MusdBalanceCard = () => {
   const percentChangeColor =
     percentChange >= 0 ? TextColor.Success : TextColor.Error;
 
-  const orderedChainIdsWithMusdBalance = useMemo(() => {
-    const chainIds = Object.keys(tokenBalanceByChain) as Hex[];
-
-    return chainIds.sort((chainIdA, chainIdB) => {
-      const fiatA = new BigNumber(fiatBalanceByChain[chainIdA] ?? 0);
-      const fiatB = new BigNumber(fiatBalanceByChain[chainIdB] ?? 0);
-      const fiatComparison = fiatB.comparedTo(fiatA);
-      if (fiatComparison) {
-        return fiatComparison;
-      }
-
-      const tokenA = new BigNumber(tokenBalanceByChain[chainIdA] ?? 0);
-      const tokenB = new BigNumber(tokenBalanceByChain[chainIdB] ?? 0);
-      return tokenB.comparedTo(tokenA) || 0;
-    });
-  }, [fiatBalanceByChain, tokenBalanceByChain]);
+  const orderedChainIdsWithMusdBalance = useMemo(
+    () =>
+      sortChainIdsByMusdBalanceDesc({
+        chainIds: Object.keys(tokenBalanceByChain) as Hex[],
+        fiatBalanceByChain,
+        tokenBalanceByChain,
+      }),
+    [fiatBalanceByChain, tokenBalanceByChain],
+  );
 
   const networkAvatarPropsList = useMemo(
     (): AvatarProps[] =>

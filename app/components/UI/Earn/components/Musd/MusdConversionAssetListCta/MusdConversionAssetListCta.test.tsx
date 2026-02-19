@@ -5,6 +5,7 @@ jest.mock('../../../hooks/useMusdConversionFlowData');
 jest.mock('../../../hooks/useMusdConversion');
 jest.mock('../../../hooks/useMusdCtaVisibility');
 jest.mock('../../../../Ramp/hooks/useRampNavigation');
+jest.mock('../../../selectors/featureFlags');
 jest.mock('../../../../../../util/Logger');
 jest.mock('../../../../../hooks/useMetrics');
 jest.mock('../../../../../Views/confirmations/hooks/useNetworkName');
@@ -34,6 +35,7 @@ import { useNetworkName } from '../../../../../Views/confirmations/hooks/useNetw
 import { MUSD_EVENTS_CONSTANTS } from '../../../constants/events';
 import { Hex } from '@metamask/utils';
 import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../../types/musd.types';
+import { selectMusdQuickConvertEnabledFlag } from '../../../selectors/featureFlags';
 
 const mockConversionToken = {
   address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
@@ -64,9 +66,14 @@ describe('MusdConversionAssetListCta', () => {
   const mockGetPreferredPaymentToken = jest.fn();
   const mockGetChainIdForBuyFlow = jest.fn();
   const mockGetMusdOutputChainId = jest.fn();
+  const mockSelectMusdQuickConvertEnabledFlag =
+    selectMusdQuickConvertEnabledFlag as jest.MockedFunction<
+      typeof selectMusdQuickConvertEnabledFlag
+    >;
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockSelectMusdQuickConvertEnabledFlag.mockReturnValue(false);
 
     jest.spyOn(Date, 'now').mockReturnValue(FIXED_NOW_MS);
 
@@ -1040,6 +1047,30 @@ describe('MusdConversionAssetListCta', () => {
         expectTrackedEventProps({
           location: EVENT_LOCATIONS.HOME_SCREEN,
           redirects_to: EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN,
+          cta_type: MUSD_CTA_TYPES.PRIMARY,
+          cta_text: strings('earn.musd_conversion.get_musd'),
+          cta_click_target: 'cta_button',
+          network_chain_id: null,
+          network_name: strings('wallet.popular_networks'),
+        });
+      });
+
+      it('tracks QUICK_CONVERT_HOME_SCREEN when wallet has tokens, education has been seen, and quick convert is enabled', async () => {
+        mockSelectMusdQuickConvertEnabledFlag.mockReturnValue(true);
+
+        const { getByText } = arrange({
+          isEmptyWallet: false,
+          selectedChainId: null,
+          hasSeenConversionEducationScreen: true,
+        });
+
+        await act(async () => {
+          pressCtaButton(getByText, false);
+        });
+
+        expectTrackedEventProps({
+          location: EVENT_LOCATIONS.HOME_SCREEN,
+          redirects_to: EVENT_LOCATIONS.QUICK_CONVERT_HOME_SCREEN,
           cta_type: MUSD_CTA_TYPES.PRIMARY,
           cta_text: strings('earn.musd_conversion.get_musd'),
           cta_click_target: 'cta_button',

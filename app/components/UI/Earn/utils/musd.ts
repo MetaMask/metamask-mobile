@@ -183,3 +183,30 @@ export function decodeMerklClaimAmount(
 ): string | null {
   return decodeMerklClaimParams(data)?.totalAmount ?? null;
 }
+
+type BalanceByChain = Record<Hex, string | undefined>;
+
+/**
+ * Sorts chain IDs by descending fiat balance with token balance as tie-breaker.
+ */
+export const sortChainIdsByMusdBalanceDesc = ({
+  chainIds,
+  fiatBalanceByChain,
+  tokenBalanceByChain,
+}: {
+  chainIds: Hex[];
+  fiatBalanceByChain: BalanceByChain;
+  tokenBalanceByChain: BalanceByChain;
+}) =>
+  [...chainIds].sort((chainIdA, chainIdB) => {
+    const fiatA = new BigNumber(fiatBalanceByChain[chainIdA] ?? 0);
+    const fiatB = new BigNumber(fiatBalanceByChain[chainIdB] ?? 0);
+    const fiatComparison = fiatB.comparedTo(fiatA);
+    if (fiatComparison) {
+      return fiatComparison;
+    }
+
+    const tokenA = new BigNumber(tokenBalanceByChain[chainIdA] ?? 0);
+    const tokenB = new BigNumber(tokenBalanceByChain[chainIdB] ?? 0);
+    return tokenB.comparedTo(tokenA) || 0;
+  });
