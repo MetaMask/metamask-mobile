@@ -7,8 +7,6 @@ import { SectionRefreshHandle } from '../../types';
 import { selectAssetsDefiPositionsEnabled } from '../../../../../selectors/featureFlagController/assetsDefiPositions';
 import { strings } from '../../../../../../locales/i18n';
 
-const TITLE = strings('homepage.sections.defi');
-
 /**
  * DeFiSection - Displays DeFi positions on the homepage
  *
@@ -16,6 +14,7 @@ const TITLE = strings('homepage.sections.defi');
  */
 const DeFiSection = forwardRef<SectionRefreshHandle>((_, ref) => {
   const isDeFiEnabled = useSelector(selectAssetsDefiPositionsEnabled);
+  const title = strings('homepage.sections.defi');
 
   const refresh = useCallback(async () => {
     // TODO: Implement DeFi refresh logic
@@ -30,7 +29,7 @@ const DeFiSection = forwardRef<SectionRefreshHandle>((_, ref) => {
 
   return (
     <Box gap={3}>
-      <SectionTitle title={TITLE} />
+      <SectionTitle title={title} />
       <SectionRow>
         <>{/* DeFi content will be added here */}</>
       </SectionRow>

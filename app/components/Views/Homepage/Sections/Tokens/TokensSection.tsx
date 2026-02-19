@@ -7,13 +7,12 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { SectionRefreshHandle } from '../../types';
 import { strings } from '../../../../../../locales/i18n';
 
-const TITLE = strings('homepage.sections.tokens');
-
 /**
  * TokensSection - Displays user's token balances on the homepage
  */
 const TokensSection = forwardRef<SectionRefreshHandle>((_, ref) => {
   const navigation = useNavigation();
+  const title = strings('homepage.sections.tokens');
 
   const refresh = useCallback(async () => {
     // TODO: Implement tokens refresh logic
@@ -27,7 +26,7 @@ const TokensSection = forwardRef<SectionRefreshHandle>((_, ref) => {
 
   return (
     <Box gap={3}>
-      <SectionTitle title={TITLE} onPress={handleViewAllTokens} />
+      <SectionTitle title={title} onPress={handleViewAllTokens} />
       <SectionRow>
         <>{/* Token content will be added here */}</>
       </SectionRow>

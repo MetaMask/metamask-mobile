@@ -7,13 +7,12 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { SectionRefreshHandle } from '../../types';
 import { strings } from '../../../../../../locales/i18n';
 
-const TITLE = strings('homepage.sections.nfts');
-
 /**
  * NFTsSection - Displays user's NFTs on the homepage
  */
 const NFTsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
   const navigation = useNavigation();
+  const title = strings('homepage.sections.nfts');
 
   const refresh = useCallback(async () => {
     // TODO: Implement NFTs refresh logic
@@ -27,7 +26,7 @@ const NFTsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
 
   return (
     <Box gap={3}>
-      <SectionTitle title={TITLE} onPress={handleViewAllNfts} />
+      <SectionTitle title={title} onPress={handleViewAllNfts} />
       <SectionRow>
         <>{/* NFTs content will be added here */}</>
       </SectionRow>

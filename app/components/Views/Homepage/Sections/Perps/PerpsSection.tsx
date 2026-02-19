@@ -9,8 +9,6 @@ import { SectionRefreshHandle } from '../../types';
 import { selectPerpsEnabledFlag } from '../../../../UI/Perps';
 import { strings } from '../../../../../../locales/i18n';
 
-const TITLE = strings('homepage.sections.perpetuals');
-
 /**
  * PerpsSection - Displays perpetual trading markets on the homepage
  *
@@ -19,6 +17,7 @@ const TITLE = strings('homepage.sections.perpetuals');
 const PerpsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
   const navigation = useNavigation();
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
+  const title = strings('homepage.sections.perpetuals');
 
   const refresh = useCallback(async () => {
     // TODO: Implement perps refresh logic
@@ -39,7 +38,7 @@ const PerpsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
 
   return (
     <Box gap={3}>
-      <SectionTitle title={TITLE} onPress={handleViewAllPerps} />
+      <SectionTitle title={title} onPress={handleViewAllPerps} />
       <SectionRow>
         <>{/* Perps content will be added here */}</>
       </SectionRow>

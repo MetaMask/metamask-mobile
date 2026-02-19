@@ -9,8 +9,6 @@ import { SectionRefreshHandle } from '../../types';
 import { selectPredictEnabledFlag } from '../../../../UI/Predict/selectors/featureFlags';
 import { strings } from '../../../../../../locales/i18n';
 
-const TITLE = strings('homepage.sections.predictions');
-
 /**
  * PredictionsSection - Displays prediction markets on the homepage
  *
@@ -19,6 +17,7 @@ const TITLE = strings('homepage.sections.predictions');
 const PredictionsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
   const navigation = useNavigation();
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
+  const title = strings('homepage.sections.predictions');
 
   const refresh = useCallback(async () => {
     // TODO: Implement predictions refresh logic
@@ -39,7 +38,7 @@ const PredictionsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
 
   return (
     <Box gap={3}>
-      <SectionTitle title={TITLE} onPress={handleViewAllPredictions} />
+      <SectionTitle title={title} onPress={handleViewAllPredictions} />
       <SectionRow>
         <>{/* Predictions content will be added here */}</>
       </SectionRow>
