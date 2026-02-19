@@ -13,20 +13,6 @@ import Device from '../../../util/device';
 import Logger from '../../../util/Logger';
 
 /**
- * Ensures the storage is configured properly and returns it.
- */
-function getStorage() {
-  FilesystemStorage.config({
-    // Converting : to - is the default behavior of redux-persist-filesystem-storage
-    // This is flawed, but we need to keep that for backwards compatiblity even though it does not work properly for keys including -
-    // We use URI encoding to replace /
-    toFileName: (name) => name.split(':').join('-').split('/').join('%2F'),
-    fromFileName: (name) => name.split('-').join(':').split('%2F').join('/'),
-  });
-  return FilesystemStorage;
-}
-
-/**
  * Mobile-specific storage adapter using FilesystemStorage.
  * This provides persistent storage for large controller data.
  *
@@ -46,7 +32,7 @@ const mobileStorageAdapter: StorageAdapter = {
     try {
       // Build full key: storageService:namespace:key
       const fullKey = `${STORAGE_KEY_PREFIX}${namespace}:${key}`;
-      const serialized = await getStorage().getItem(fullKey);
+      const serialized = await FilesystemStorage.getItem(fullKey);
 
       // Key not found - return empty object
       if (serialized === undefined || serialized === null) {
@@ -76,7 +62,7 @@ const mobileStorageAdapter: StorageAdapter = {
       // Build full key: storageService:namespace:key
       const fullKey = `${STORAGE_KEY_PREFIX}${namespace}:${key}`;
 
-      await getStorage().setItem(
+      await FilesystemStorage.setItem(
         fullKey,
         JSON.stringify(value),
         Device.isIos(),
@@ -99,7 +85,7 @@ const mobileStorageAdapter: StorageAdapter = {
     try {
       // Build full key: storageService:namespace:key
       const fullKey = `${STORAGE_KEY_PREFIX}${namespace}:${key}`;
-      await getStorage().removeItem(fullKey);
+      await FilesystemStorage.removeItem(fullKey);
     } catch (error) {
       Logger.error(error as Error, {
         message: `StorageService: Failed to remove item: ${namespace}:${key}`,
@@ -117,7 +103,7 @@ const mobileStorageAdapter: StorageAdapter = {
    */
   async getAllKeys(namespace: string): Promise<string[]> {
     try {
-      const allKeys = await getStorage().getAllKeys();
+      const allKeys = await FilesystemStorage.getAllKeys();
 
       if (!allKeys) {
         return [];
@@ -143,7 +129,7 @@ const mobileStorageAdapter: StorageAdapter = {
    */
   async clear(namespace: string): Promise<void> {
     try {
-      const allKeys = await getStorage().getAllKeys();
+      const allKeys = await FilesystemStorage.getAllKeys();
 
       if (!allKeys) {
         return;
