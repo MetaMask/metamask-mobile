@@ -64,6 +64,12 @@ const ConvertTokenRow: React.FC<ConvertTokenRowProps> = ({
   const networkName = useNetworkName(token.chainId as Hex | undefined);
 
   const formatFiat = useFiatFormatter();
+  const fiatBalance = token?.fiat?.balance;
+  const hasDisplayableFiatBalance =
+    typeof fiatBalance === 'number' && fiatBalance > 0;
+  const formattedBalance = hasDisplayableFiatBalance
+    ? formatFiat(new BigNumber(fiatBalance))
+    : `${token.balance} ${token.symbol}`;
 
   const handleMaxPress = useCallback(() => {
     if (isActionsDisabled || isConversionPending) {
@@ -111,8 +117,7 @@ const ConvertTokenRow: React.FC<ConvertTokenRowProps> = ({
               ellipsizeMode="tail"
               testID={ConvertTokenRowTestIds.TOKEN_BALANCE}
             >
-              {formatFiat(new BigNumber(token?.fiat?.balance ?? '0')) ??
-                `${token.balance} ${token.symbol}`}
+              {formattedBalance}
             </Text>
             <Text
               variant={TextVariant.BodySMMedium}
