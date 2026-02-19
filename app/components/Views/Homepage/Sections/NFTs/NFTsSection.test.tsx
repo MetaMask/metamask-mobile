@@ -40,7 +40,6 @@ const mockNft = (address: string, tokenId: string) => ({
 
 jest.mock('./hooks', () => ({
   useOwnedNfts: jest.fn(() => []),
-  useHasNfts: jest.fn(() => false),
 }));
 
 // State with preferences needed for NftGridItem/CollectibleMedia
@@ -62,7 +61,6 @@ describe('NFTsSection', () => {
     jest.clearAllMocks();
     // Reset mock return values to defaults to ensure test isolation
     jest.requireMock('./hooks').useOwnedNfts.mockReturnValue([]);
-    jest.requireMock('./hooks').useHasNfts.mockReturnValue(false);
     jest
       .requireMock('../../../../../reducers/collectibles')
       .isNftFetchingProgressSelector.mockReturnValue(false);
@@ -103,7 +101,6 @@ describe('NFTsSection', () => {
     jest
       .requireMock('./hooks')
       .useOwnedNfts.mockReturnValue([mockNft('0x123', '1')]);
-    jest.requireMock('./hooks').useHasNfts.mockReturnValue(true);
 
     renderWithProvider(<NFTsSection />, { state: stateWithNftPreferences });
 
@@ -114,7 +111,6 @@ describe('NFTsSection', () => {
     jest
       .requireMock('./hooks')
       .useOwnedNfts.mockReturnValue([mockNft('0x123', '1')]);
-    jest.requireMock('./hooks').useHasNfts.mockReturnValue(true);
 
     renderWithProvider(<NFTsSection />, { state: stateWithNftPreferences });
 
@@ -128,7 +124,6 @@ describe('NFTsSection', () => {
       mockNft(`0x${i}`, `${i}`),
     );
     jest.requireMock('./hooks').useOwnedNfts.mockReturnValue(nfts);
-    jest.requireMock('./hooks').useHasNfts.mockReturnValue(true);
 
     renderWithProvider(<NFTsSection />, { state: stateWithNftPreferences });
 

@@ -24,7 +24,7 @@ import SectionTitle from '../../components/SectionTitle';
 import SectionRow from '../../components/SectionRow';
 import SectionCard from '../../components/SectionCard';
 import Routes from '../../../../../constants/navigation/Routes';
-import { useOwnedNfts, useHasNfts } from './hooks';
+import { useOwnedNfts } from './hooks';
 import NftGridItem from '../../../../UI/NftGrid/NftGridItem';
 import { useNftRefresh } from '../../../../UI/NftGrid/useNftRefresh';
 import { SectionRefreshHandle } from '../../types';
@@ -65,7 +65,7 @@ const NftSkeletonRow = () => {
 const NFTsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
   const navigation = useNavigation();
   const ownedNfts = useOwnedNfts();
-  const hasNfts = useHasNfts();
+  const hasNfts = ownedNfts.length > 0;
   const isNftFetchingProgress = useSelector(isNftFetchingProgressSelector);
   const { onRefresh } = useNftRefresh();
 
