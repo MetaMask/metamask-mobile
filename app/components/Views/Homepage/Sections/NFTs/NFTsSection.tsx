@@ -98,11 +98,7 @@ const NFTsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
   return (
     <Box gap={3}>
       <SectionTitle title={title} onPress={handleViewAllNfts} />
-      {isNftFetchingProgress ? (
-        <SectionRow>
-          <NftSkeletonRow />
-        </SectionRow>
-      ) : hasNfts ? (
+      {hasNfts ? (
         <SectionRow>
           <Box gap={3}>
             {nftRows.map((row, rowIndex) => (
@@ -136,6 +132,10 @@ const NFTsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
               </Box>
             ))}
           </Box>
+        </SectionRow>
+      ) : isNftFetchingProgress ? (
+        <SectionRow>
+          <NftSkeletonRow />
         </SectionRow>
       ) : (
         <SectionRow>
