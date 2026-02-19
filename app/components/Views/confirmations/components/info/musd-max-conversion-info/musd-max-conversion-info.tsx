@@ -29,6 +29,36 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
+import InfoRow from '../../UI/info-row';
+import { MUSD_TOKEN } from '../../../../../UI/Earn/constants/musd';
+import { InfoRowSkeleton } from '../../UI/info-row/info-row';
+
+interface RateRowProps {
+  tokenSymbol: string;
+  isLoading: boolean;
+}
+
+const RateRowTestIds = {
+  CONTAINER: 'rate-row-container',
+  SKELETON: 'rate-row-skeleton',
+} as const;
+
+const RateRow = ({ tokenSymbol, isLoading }: RateRowProps) => {
+  if (isLoading) {
+    return <InfoRowSkeleton testId={RateRowTestIds.SKELETON} />;
+  }
+
+  return (
+    <InfoRow
+      label={strings('earn.musd_conversion.rate')}
+      testID={RateRowTestIds.CONTAINER}
+    >
+      <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+        {`1 ${tokenSymbol} = 1 ${MUSD_TOKEN.symbol}`}
+      </Text>
+    </InfoRow>
+  );
+};
 
 /**
  * Navigation params for MusdMaxConversionInfo
@@ -95,6 +125,7 @@ export const MusdMaxConversionInfo = () => {
             formatFiat={formatFiat}
           />
           <View style={styles.detailsSection}>
+            <RateRow tokenSymbol={token.symbol} isLoading={isLoading} />
             <BridgeFeeRow />
             <TotalRow />
             <PercentageRow />
