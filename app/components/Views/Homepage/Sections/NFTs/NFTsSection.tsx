@@ -18,13 +18,13 @@ import {
   BoxJustifyContent,
   TextVariant,
   TextColor,
-  BoxBackgroundColor,
   FontWeight,
 } from '@metamask/design-system-react-native';
 import SectionTitle from '../../components/SectionTitle';
 import SectionRow from '../../components/SectionRow';
+import SectionCard from '../../components/SectionCard';
 import Routes from '../../../../../constants/navigation/Routes';
-import { useOwnedNfts } from './hooks';
+import { useOwnedNfts, useHasNfts } from './hooks';
 import NftGridItem from '../../../../UI/NftGrid/NftGridItem';
 import { useNftRefresh } from '../../../../UI/NftGrid/useNftRefresh';
 import { SectionRefreshHandle } from '../../types';
@@ -72,7 +72,7 @@ const NftSkeletonRow = () => {
 const NFTsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
   const navigation = useNavigation();
   const ownedNfts = useOwnedNfts();
-  const hasNfts = ownedNfts.length > 0;
+  const hasNfts = useHasNfts();
   const isNftFetchingProgress = useSelector(isNftFetchingProgressSelector);
   const { onRefresh } = useNftRefresh();
 
@@ -152,42 +152,41 @@ const NFTsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
       ) : (
         <SectionRow>
           <TouchableOpacity onPress={handleImportNfts} activeOpacity={0.7}>
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              backgroundColor={BoxBackgroundColor.BackgroundMuted}
-              padding={4}
-              gap={4}
-              twClassName="rounded-xl"
-            >
+            <SectionCard>
               <Box
+                flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
-                justifyContent={BoxJustifyContent.Center}
-                twClassName="w-10 h-10"
+                gap={4}
               >
-                <Image
-                  source={gemIcon}
-                  // eslint-disable-next-line react-native/no-inline-styles
-                  style={{ width: 40, height: 40 }}
-                  resizeMode="contain"
-                />
-              </Box>
-              <Box twClassName="flex-1">
-                <Text
-                  variant={TextVariant.BodyMd}
-                  fontWeight={FontWeight.Medium}
-                  color={TextColor.TextDefault}
+                <Box
+                  alignItems={BoxAlignItems.Center}
+                  justifyContent={BoxJustifyContent.Center}
+                  twClassName="w-10 h-10"
                 >
-                  {strings('homepage.sections.import_nfts')}
-                </Text>
-                <Text
-                  variant={TextVariant.BodySm}
-                  color={TextColor.TextAlternative}
-                >
-                  {strings('homepage.sections.import_nfts_description')}
-                </Text>
+                  <Image
+                    source={gemIcon}
+                    // eslint-disable-next-line react-native/no-inline-styles
+                    style={{ width: 40, height: 40 }}
+                    resizeMode="contain"
+                  />
+                </Box>
+                <Box twClassName="flex-1">
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    fontWeight={FontWeight.Medium}
+                    color={TextColor.TextDefault}
+                  >
+                    {strings('homepage.sections.import_nfts')}
+                  </Text>
+                  <Text
+                    variant={TextVariant.BodySm}
+                    color={TextColor.TextAlternative}
+                  >
+                    {strings('homepage.sections.import_nfts_description')}
+                  </Text>
+                </Box>
               </Box>
-            </Box>
+            </SectionCard>
           </TouchableOpacity>
         </SectionRow>
       )}

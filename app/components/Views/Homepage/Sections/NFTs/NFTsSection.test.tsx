@@ -62,6 +62,7 @@ describe('NFTsSection', () => {
     jest.clearAllMocks();
     // Reset mock return values to defaults to ensure test isolation
     jest.requireMock('./hooks').useOwnedNfts.mockReturnValue([]);
+    jest.requireMock('./hooks').useHasNfts.mockReturnValue(false);
     jest
       .requireMock('../../../../../reducers/collectibles')
       .isNftFetchingProgressSelector.mockReturnValue(false);
@@ -102,6 +103,7 @@ describe('NFTsSection', () => {
     jest
       .requireMock('./hooks')
       .useOwnedNfts.mockReturnValue([mockNft('0x123', '1')]);
+    jest.requireMock('./hooks').useHasNfts.mockReturnValue(true);
 
     renderWithProvider(<NFTsSection />, { state: stateWithNftPreferences });
 
@@ -112,6 +114,7 @@ describe('NFTsSection', () => {
     jest
       .requireMock('./hooks')
       .useOwnedNfts.mockReturnValue([mockNft('0x123', '1')]);
+    jest.requireMock('./hooks').useHasNfts.mockReturnValue(true);
 
     renderWithProvider(<NFTsSection />, { state: stateWithNftPreferences });
 
@@ -120,16 +123,26 @@ describe('NFTsSection', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.NFTS_FULL_VIEW);
   });
 
-  it('displays up to 6 NFTs in 2 rows of 3', () => {
+  it('displays up to 6 NFTs and excludes extras beyond the limit', () => {
     const nfts = Array.from({ length: 8 }, (__, i) =>
       mockNft(`0x${i}`, `${i}`),
     );
     jest.requireMock('./hooks').useOwnedNfts.mockReturnValue(nfts);
+    jest.requireMock('./hooks').useHasNfts.mockReturnValue(true);
 
     renderWithProvider(<NFTsSection />, { state: stateWithNftPreferences });
 
-    // Should only display 6 NFTs max (2 rows of 3)
-    expect(screen.getByText('NFTs')).toBeOnTheScreen();
+    // First 6 NFTs (indices 0-5) should be displayed
+    expect(screen.getByText('NFT 0')).toBeOnTheScreen();
+    expect(screen.getByText('NFT 1')).toBeOnTheScreen();
+    expect(screen.getByText('NFT 2')).toBeOnTheScreen();
+    expect(screen.getByText('NFT 3')).toBeOnTheScreen();
+    expect(screen.getByText('NFT 4')).toBeOnTheScreen();
+    expect(screen.getByText('NFT 5')).toBeOnTheScreen();
+
+    // NFTs beyond the limit (indices 6-7) should NOT be displayed
+    expect(screen.queryByText('NFT 6')).not.toBeOnTheScreen();
+    expect(screen.queryByText('NFT 7')).not.toBeOnTheScreen();
   });
 
   it('exposes refresh function via ref that calls useNftRefresh.onRefresh', async () => {
