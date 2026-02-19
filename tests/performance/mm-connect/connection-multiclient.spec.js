@@ -408,9 +408,59 @@ test('@metamask/connect-multichain (multiple clients) - Connect multiple clients
     device,
     async () => {
       await BrowserPlaygroundDapp.assertWagmiSignatureResult('0x');
+
+      // Setup for concurrent connect test
+
+      await BrowserPlaygroundDapp.tapSolanaDisconnect();
+      await BrowserPlaygroundDapp.tapWagmiDisconnect();
+      await BrowserPlaygroundDapp.tapSolanaConnect();
     },
     DAPP_URL,
   );
+
+  await AppwrightHelpers.withNativeAction(device, async () => {
+    await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
+
+    // Purposely terminate the app without accepting the approval
+    await AppwrightGestures.terminateApp(device);
+    await AppwrightGestures.activateApp(device);
+    await login(device);
+    await WalletMainScreen.isMainWalletViewVisible();
+  });
+
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+  await switchToMobileBrowser(device);
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+
+  await AppwrightHelpers.withWebAction(
+    device,
+    async () => {
+      await BrowserPlaygroundDapp.tapConnectWagmi();
+    },
+    DAPP_URL,
+  );
+
+  await AppwrightHelpers.withNativeAction(device, async () => {
+    await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
+    await DappConnectionModal.tapConnectButton();
+  });
+
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+  await switchToMobileBrowser(device);
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+
+  await AppwrightHelpers.withWebAction(
+    device,
+    async () => {
+      await BrowserPlaygroundDapp.assertScopeCardVisible('eip155:1');
+      await BrowserPlaygroundDapp.assertConnected(true);
+      await BrowserPlaygroundDapp.assertWagmiConnected(true);
+      // Currently this is only possible if the solana connection attempt (the first one that initiated) was successful.
+      await BrowserPlaygroundDapp.assertSolanaConnected(true);
+    },
+    DAPP_URL,
+  );
+
 
   //
   // Cleanup - disconnect
