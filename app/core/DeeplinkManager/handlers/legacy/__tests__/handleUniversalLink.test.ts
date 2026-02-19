@@ -108,6 +108,9 @@ describe('handleUniversalLink', () => {
   let urlObj = {} as ReturnType<typeof extractURLParams>['urlObj'];
 
   const mockBrowserCallBack = jest.fn();
+  const mockHandleBrowserUrl = handleBrowserUrl as jest.MockedFunction<
+    typeof handleBrowserUrl
+  >;
   let url = '';
 
   const mockHandleDeepLinkModalDisplay =
@@ -420,7 +423,7 @@ describe('handleUniversalLink', () => {
   });
 
   describe('ACTIONS.DAPP', () => {
-    const testCases = [
+    const domains = [
       {
         domain: AppConstants.MM_UNIVERSAL_LINK_HOST,
         description: 'old deeplink domain',
@@ -435,17 +438,16 @@ describe('handleUniversalLink', () => {
       },
     ] as const;
 
-    it.each(testCases)(
-      'calls _handleBrowserUrl with transformed URL for $description',
+    // Verify the /dapp/ action routes correctly for each domain variant.
+    it.each(domains)(
+      'opens bare domain in browser for $description',
       async ({ domain }) => {
-        const dappUrl = `${PROTOCOLS.HTTPS}://${domain}/${ACTIONS.DAPP}/example.com/path?param=value`;
-        const origin = `${PROTOCOLS.HTTPS}://${domain}`;
+        const fullUrl = `${PROTOCOLS.HTTPS}://${domain}/${ACTIONS.DAPP}/example.com/path?param=value`;
         const dappUrlObj = {
           ...urlObj,
           hostname: domain,
-          href: dappUrl,
+          href: fullUrl,
           pathname: `/${ACTIONS.DAPP}/example.com/path`,
-          origin,
         };
 
         await handleUniversalLink({
@@ -453,13 +455,90 @@ describe('handleUniversalLink', () => {
           handled,
           urlObj: dappUrlObj,
           browserCallBack: mockBrowserCallBack,
-          url: dappUrl,
+          url: fullUrl,
           source: 'test-source',
         });
 
-        expect(handled).toHaveBeenCalled();
+        expect(mockHandleBrowserUrl).toHaveBeenCalledWith({
+          url: 'https://example.com/path?param=value',
+          callback: mockBrowserCallBack,
+        });
       },
     );
+
+    // URL-transformation cases are domain-agnostic; use one representative
+    // domain so each case appears once instead of once-per-domain.
+    const representativeDomain = AppConstants.MM_UNIVERSAL_LINK_HOST;
+    const urlTransformCases = [
+      {
+        description: 'embedded https:// protocol (no doubling)',
+        dappPath: 'https://payments.coinbase.com/sandbox/payments/123',
+        expectedUrl: 'https://payments.coinbase.com/sandbox/payments/123',
+      },
+      {
+        // url-parse normalizes .../dapp/https://x.com → .../dapp/https:/x.com
+        description: 'embedded https:/ (single slash, url-parse normalized)',
+        dappPath: 'https:/payments.coinbase.com/sandbox',
+        expectedUrl: 'https://payments.coinbase.com/sandbox',
+      },
+      {
+        description: 'embedded http:// protocol',
+        dappPath: 'http://example.com/page',
+        expectedUrl: 'http://example.com/page',
+      },
+      {
+        description: 'query params preserved from embedded URL',
+        dappPath: 'https://app.example.com/page?foo=bar&baz=qux',
+        expectedUrl: 'https://app.example.com/page?foo=bar&baz=qux',
+      },
+    ] as const;
+
+    it.each(urlTransformCases)(
+      'URL transform: $description',
+      async ({ dappPath, expectedUrl }) => {
+        const fullUrl = `${PROTOCOLS.HTTPS}://${representativeDomain}/${ACTIONS.DAPP}/${dappPath}`;
+        const dappUrlObj = {
+          ...urlObj,
+          hostname: representativeDomain,
+          href: fullUrl,
+        };
+
+        await handleUniversalLink({
+          instance,
+          handled,
+          urlObj: dappUrlObj,
+          browserCallBack: mockBrowserCallBack,
+          url: fullUrl,
+          source: 'test-source',
+        });
+
+        expect(mockHandleBrowserUrl).toHaveBeenCalledWith({
+          url: expectedUrl,
+          callback: mockBrowserCallBack,
+        });
+      },
+    );
+
+    it('does NOT call handleBrowserUrl when no domain follows /dapp/', async () => {
+      const fullUrl = `${PROTOCOLS.HTTPS}://${representativeDomain}/${ACTIONS.DAPP}/`;
+      const dappUrlObj = {
+        ...urlObj,
+        hostname: representativeDomain,
+        href: fullUrl,
+        pathname: `/${ACTIONS.DAPP}/`,
+      };
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: dappUrlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: fullUrl,
+        source: 'test-source',
+      });
+
+      expect(mockHandleBrowserUrl).not.toHaveBeenCalled();
+    });
   });
 
   describe('ACTIONS.CREATE_ACCOUNT', () => {

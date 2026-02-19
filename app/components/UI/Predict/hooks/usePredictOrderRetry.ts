@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { SLIPPAGE_BEST_AVAILABLE } from '../providers/polymarket/constants';
 import { PredictTradeStatus } from '../constants/eventNames';
 import Engine from '../../../../core/Engine';
-import type { OrderPreview, PlaceOrderParams } from '../providers/types';
+import type { OrderPreview, PlaceOrderParams } from '../types';
 import type { PlaceOrderOutcome } from './usePredictPlaceOrder';
 import type {
   PredictOrderRetrySheetRef,

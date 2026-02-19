@@ -3,14 +3,15 @@ import { loginToApp } from '../../flows/wallet.flow';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { SmokeRamps } from '../../tags';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import SellGetStartedView from '../../page-objects/Ramps/SellGetStartedView';
-import BuyGetStartedView from '../../page-objects/Ramps/BuyGetStartedView';
 import BuildQuoteView from '../../page-objects/Ramps/BuildQuoteView';
 import TokenSelectScreen from '../../page-objects/Ramps/TokenSelectScreen';
 
 import Assertions from '../../framework/Assertions';
-import { PopularNetworksList } from '../../resources/networks.e2e';
-import NetworkEducationModal from '../../page-objects/Network/NetworkEducationModal';
+import { setupRegionAwareOnRampMocks } from '../../api-mocking/mock-responses/ramps/ramps-region-aware-mock-setup';
+import { Mockttp } from 'mockttp';
+import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
+import { remoteFeatureFlagRampsUnifiedEnabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 
 // This test was migrated to the new framework but should be reworked to use withFixtures properly
 describe(SmokeRamps('Buy Crypto Deeplinks'), () => {
@@ -21,15 +22,23 @@ describe(SmokeRamps('Buy Crypto Deeplinks'), () => {
   beforeEach(async () => {
     jest.setTimeout(150000);
   });
-  it('should deep link to onramp ETH', async () => {
+  it('Deep links to onramp ETH', async () => {
     const buyLink = 'metamask://buy?chainId=1&amount=275';
+    const selectedRegion = RampsRegions[RampsRegionsEnum.UNITED_STATES];
 
     await withFixtures(
       {
         fixture: new FixtureBuilder()
           .withRampsSelectedPaymentMethod()
-          .withRampsSelectedRegion()
+          .withRampsSelectedRegion(selectedRegion)
           .build(),
+        testSpecificMock: async (mockServer: Mockttp) => {
+          await setupRemoteFeatureFlagsMock(
+            mockServer,
+            remoteFeatureFlagRampsUnifiedEnabled(true),
+          );
+          await setupRegionAwareOnRampMocks(mockServer, selectedRegion);
+        },
         restartDevice: true,
       },
       async () => {
@@ -38,32 +47,34 @@ describe(SmokeRamps('Buy Crypto Deeplinks'), () => {
         await device.launchApp({
           url: buyLink,
         });
-        await Assertions.expectElementToBeVisible(
-          SellGetStartedView.getStartedButton,
-        );
-
-        await BuyGetStartedView.tapGetStartedButton();
-        await Assertions.expectElementToBeVisible(
-          BuildQuoteView.getQuotesButton,
-        );
         await BuildQuoteView.tapTokenDropdown('Ethereum');
 
         await TokenSelectScreen.tapTokenByName('DAI');
         await Assertions.expectTextDisplayed('Dai Stablecoin');
         await Assertions.expectTextDisplayed('$275');
+        await Assertions.expectTextDisplayed('USD');
       },
     );
   });
-  it('should deep link to onramp on Base network', async () => {
+  it('Deep links to onramp on Base network', async () => {
     const BuyDeepLink =
-      'metamask://buy?chainId=8453&address=0x833589fcd6edb6e08f4c7c32d4f71b54bda02913&amount=12';
+      'metamask://buy?chainId=8453&address=0x833589fcd6edb6e08f4c7c32d4f71b54bda02913&amount=25';
+    const selectedRegion = RampsRegions[RampsRegionsEnum.UNITED_STATES];
 
     await withFixtures(
       {
         fixture: new FixtureBuilder()
           .withPopularNetworks()
-          .withRampsSelectedRegion()
+          .withRampsSelectedRegion(selectedRegion)
+          .withRampsSelectedPaymentMethod()
           .build(),
+        testSpecificMock: async (mockServer: Mockttp) => {
+          await setupRemoteFeatureFlagsMock(
+            mockServer,
+            remoteFeatureFlagRampsUnifiedEnabled(true),
+          );
+          await setupRegionAwareOnRampMocks(mockServer, selectedRegion);
+        },
         restartDevice: true,
       },
       async () => {
@@ -72,21 +83,7 @@ describe(SmokeRamps('Buy Crypto Deeplinks'), () => {
         await device.launchApp({
           url: BuyDeepLink,
         });
-
-        await Assertions.expectElementToBeVisible(
-          SellGetStartedView.getStartedButton,
-        );
-
-        await BuyGetStartedView.tapGetStartedButton();
-
-        await Assertions.expectElementToBeVisible(
-          NetworkEducationModal.container,
-        );
-        await NetworkEducationModal.tapGotItButton();
         await Assertions.expectTextDisplayed('USD Coin');
-        await Assertions.expectTextDisplayed(
-          PopularNetworksList.Base.providerConfig.nickname,
-        );
       },
     );
   });
