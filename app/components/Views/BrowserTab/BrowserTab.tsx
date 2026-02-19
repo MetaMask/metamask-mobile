@@ -197,12 +197,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     const iconRef = useRef<ImageSourcePropType | undefined>();
     const sessionENSNamesRef = useRef<SessionENSNames>({});
     const ensIgnoreListRef = useRef<string[]>([]);
-    // Timeout ref for detecting silently blocked page loads (e.g., native Safe Browsing)
-    const pageLoadTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
-      null,
-    );
-    // Track the URL that triggered the timeout to show in modal
-    const timeoutUrlRef = useRef<string>('');
+    // Track if we're waiting for a cross-origin page load (for detecting native Safe Browsing blocks)
+    const isWaitingForCrossOriginLoadRef = useRef(false);
+    // Track the URL we're trying to load for comparison with progress events
+    const pendingUrlRef = useRef<string>('');
     const backgroundBridgeRef = useRef<{
       url: string;
       sendNotificationEip1193: (payload: unknown) => void;
@@ -523,15 +521,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       handleFirstUrl();
     }, [isTabActive, handleFirstUrl]);
 
-    // Cleanup bridges and timeouts when tab is closed
+    // Cleanup bridges when tab is closed
     useEffect(
       () => () => {
         backgroundBridgeRef.current?.onDisconnect();
-        // Clear any pending page load timeout
-        if (pageLoadTimeoutRef.current) {
-          clearTimeout(pageLoadTimeoutRef.current);
-          pageLoadTimeoutRef.current = null;
-        }
       },
       [],
     );
@@ -788,8 +781,21 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
      */
     const onLoadProgress = useCallback(
       ({
-        nativeEvent: { progress: onLoadProgressProgress },
+        nativeEvent: { progress: onLoadProgressProgress, url: progressUrl },
       }: WebViewProgressEvent) => {
+        // Detect native Safe Browsing blocks: if we're waiting for a cross-origin load
+        // but progress is firing for a different URL (the old page), the new URL was blocked
+        if (
+          isWaitingForCrossOriginLoadRef.current &&
+          pendingUrlRef.current &&
+          progressUrl !== pendingUrlRef.current
+        ) {
+          const { origin: blockedOrigin } = new URLParse(pendingUrlRef.current);
+          setRestrictedSiteUrl(blockedOrigin);
+          setShowRestrictedSiteModal(true);
+          isWaitingForCrossOriginLoadRef.current = false;
+          loadingUrlRef.current = '';
+        }
         setProgress(onLoadProgressProgress);
       },
       [setProgress],
@@ -806,11 +812,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         event: WebViewNavigationEvent | WebViewErrorEvent;
         forceResolve?: boolean;
       }) => {
-        // Clear the page load timeout since the page finished loading
-        if (pageLoadTimeoutRef.current) {
-          clearTimeout(pageLoadTimeoutRef.current);
-          pageLoadTimeoutRef.current = null;
-        }
+        // Clear the cross-origin load waiting state since the page finished loading
+        isWaitingForCrossOriginLoadRef.current = false;
 
         if ('code' in nativeEvent) {
           // Handle error - code is a property of WebViewErrorEvent
@@ -1003,28 +1006,15 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         // Use URL to produce real url. This should be the actual website that the user is viewing.
         const { origin: urlOrigin } = new URLParse(nativeEvent.url);
 
-        // Clear any existing page load timeout
-        if (pageLoadTimeoutRef.current) {
-          clearTimeout(pageLoadTimeoutRef.current);
-          pageLoadTimeoutRef.current = null;
-        }
+        // Track the URL being loaded for progress comparison
+        pendingUrlRef.current = nativeEvent.url;
 
-        // Only start timeout for cross-origin navigations (not same-site navigations)
+        // Only watch for native Safe Browsing blocks on cross-origin navigations
         const currentOrigin = new URLParse(resolvedUrlRef.current).origin;
         if (urlOrigin !== currentOrigin && urlOrigin !== 'null') {
-          // Store the URL that triggered the timeout
-          timeoutUrlRef.current = nativeEvent.url;
-
-          // Start timeout to detect silently blocked pages (e.g., native Safe Browsing)
-          // If onLoadEnd doesn't fire within 15 seconds, assume the page was blocked
-          pageLoadTimeoutRef.current = setTimeout(() => {
-            // Only show modal if we're still trying to load this URL
-            if (loadingUrlRef.current === timeoutUrlRef.current) {
-              setRestrictedSiteUrl(urlOrigin);
-              setShowRestrictedSiteModal(true);
-              loadingUrlRef.current = '';
-            }
-          }, 15000);
+          isWaitingForCrossOriginLoadRef.current = true;
+        } else {
+          isWaitingForCrossOriginLoadRef.current = false;
         }
 
         webStates.current[nativeEvent.url] = {
@@ -1051,11 +1041,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         // Cancel loading the page if we detect its a phishing page
         const isAllowed = await isAllowedOrigin(urlOrigin);
         if (!isAllowed) {
-          // Clear the timeout since we're handling this URL via phishing modal
-          if (pageLoadTimeoutRef.current) {
-            clearTimeout(pageLoadTimeoutRef.current);
-            pageLoadTimeoutRef.current = null;
-          }
+          // Clear the waiting state since we're handling this URL via phishing modal
+          isWaitingForCrossOriginLoadRef.current = false;
           handleNotAllowedUrl(urlOrigin);
           return false;
         }
