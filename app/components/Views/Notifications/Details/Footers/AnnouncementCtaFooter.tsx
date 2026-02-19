@@ -9,7 +9,8 @@ import useStyles from '../useStyles';
 import SharedDeeplinkManager from '../../../../../core/DeeplinkManager/DeeplinkManager';
 import AppConstants from '../../../../../core/AppConstants';
 import Logger from '../../../../../util/Logger';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 
 type AnnouncementCtaFooterProps = ModalFooterAnnouncementCta;
 
@@ -17,7 +18,7 @@ export default function AnnouncementCtaFooter(
   props: AnnouncementCtaFooterProps,
 ) {
   const { styles } = useStyles();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const callEvent = () => {
     trackEvent(
