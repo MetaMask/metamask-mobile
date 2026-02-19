@@ -8,8 +8,8 @@ import {
   MOCK_ETH_MAINNET_ASSET,
   MOCK_USDC_MAINNET_ASSET,
 } from '../../__mocks__/stakeMockData';
-import { useMetrics } from '../../../../hooks/useMetrics';
-import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { AnalyticsEventBuilder } from '../../../../../util/analytics/AnalyticsEventBuilder';
 import { mockNetworkState } from '../../../../../util/test/network';
 import useStakingEligibility from '../../hooks/useStakingEligibility';
 import { RootState } from '../../../../../reducers';
@@ -35,7 +35,20 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../../../../hooks/useMetrics');
+jest.mock('../../../../hooks/useAnalytics/useAnalytics');
+
+// Transitive mock: useStablecoinLendingRedirect still imports useMetrics
+jest.mock('../../../../hooks/useMetrics', () => ({
+  ...jest.requireActual('../../../../hooks/useMetrics'),
+  useMetrics: jest.fn(() => ({
+    trackEvent: jest.fn(),
+    createEventBuilder: jest.fn(() => ({
+      addProperties: jest.fn().mockReturnThis(),
+      addSensitiveProperties: jest.fn().mockReturnThis(),
+      build: jest.fn().mockReturnValue({}),
+    })),
+  })),
+}));
 
 jest.mock('../../../../hooks/useBuildPortfolioUrl', () => ({
   useBuildPortfolioUrl: jest.fn(() => (baseUrl: string) => {
@@ -79,9 +92,9 @@ jest.mock('../../../../../selectors/earnController/earn', () => ({
   },
 }));
 
-(useMetrics as jest.MockedFn<typeof useMetrics>).mockReturnValue({
+(useAnalytics as jest.MockedFn<typeof useAnalytics>).mockReturnValue({
   trackEvent: jest.fn(),
-  createEventBuilder: MetricsEventBuilder.createEventBuilder,
+  createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
   enable: jest.fn(),
   addTraitsToUser: jest.fn(),
   createDataDeletionTask: jest.fn(),
@@ -90,7 +103,7 @@ jest.mock('../../../../../selectors/earnController/earn', () => ({
   getDeleteRegulationId: jest.fn(),
   isDataRecorded: jest.fn(),
   isEnabled: jest.fn(),
-  getMetaMetricsId: jest.fn(),
+  getAnalyticsId: jest.fn(),
 });
 
 jest.mock('../../../../../core/Engine', () => ({
