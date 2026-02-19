@@ -15,7 +15,9 @@ import { NotificationFeedbackType } from 'expo-haptics';
 // Mock all external dependencies
 jest.mock('../../../../core/Engine');
 jest.mock('./useEarnToasts');
-jest.mock('../../../hooks/useMetrics');
+jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: jest.fn(),
+}));
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
@@ -54,7 +56,8 @@ jest.mock('../../../../selectors/transactionPayController', () => ({
 
 import { useSelector } from 'react-redux';
 import { selectERC20TokensByChain } from '../../../../selectors/tokenListController';
-import { useMetrics, MetaMetricsEvents } from '../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { decodeTransferData } from '../../../../util/transactions';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../selectors/networkController';
 import {
@@ -77,7 +80,7 @@ const mockSelectTransactionPayQuotesByTransactionId = jest.mocked(
 
 const mockUseSelector = jest.mocked(useSelector);
 const mockSelectERC20TokensByChain = jest.mocked(selectERC20TokensByChain);
-const mockUseMetrics = jest.mocked(useMetrics);
+const mockUseAnalytics = jest.mocked(useAnalytics);
 const mockDecodeTransferData = jest.mocked(decodeTransferData);
 const mockSelectEvmNetworkConfigurationsByChainId = jest.mocked(
   selectEvmNetworkConfigurationsByChainId,
@@ -194,10 +197,10 @@ describe('useMusdConversionStatus', () => {
     mockCreateEventBuilder.mockImplementation(() => ({
       addProperties: mockAddProperties,
     }));
-    mockUseMetrics.mockReturnValue({
+    mockUseAnalytics.mockReturnValue({
       trackEvent: mockTrackEvent,
       createEventBuilder: mockCreateEventBuilder,
-    } as unknown as ReturnType<typeof useMetrics>);
+    } as unknown as ReturnType<typeof useAnalytics>);
 
     mockDecodeTransferData.mockReturnValue([
       '',

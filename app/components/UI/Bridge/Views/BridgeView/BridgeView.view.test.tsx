@@ -1,13 +1,13 @@
-import '../../../../../util/test/component-view/mocks';
+import '../../../../../../tests/component-view/mocks';
 import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
-import { renderBridgeView } from '../../../../../util/test/component-view/renderers/bridge';
+import { renderBridgeView } from '../../../../../../tests/component-view/renderers/bridge';
 import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
 import React from 'react';
 import { Text } from 'react-native';
-import { renderScreenWithRoutes } from '../../../../../util/test/component-view/render';
+import { renderScreenWithRoutes } from '../../../../../../tests/component-view/render';
 import Routes from '../../../../../constants/navigation/Routes';
-import { initialStateBridge } from '../../../../../util/test/component-view/presets/bridge';
+import { initialStateBridge } from '../../../../../../tests/component-view/presets/bridge';
 import BridgeView from './index';
 import { describeForPlatforms } from '../../../../../util/test/platform';
 import { BridgeViewSelectorsIDs } from './BridgeView.testIds';

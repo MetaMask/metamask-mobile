@@ -176,6 +176,7 @@ import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvi
 import { selectDisplayCardButton } from '../../../core/redux/slices/card';
 import { usePna25BottomSheet } from '../../hooks/usePna25BottomSheet';
 import { useSafeChains } from '../../hooks/useSafeChains';
+import { useAccountMenuEnabled } from '../../../selectors/featureFlagController/accountMenu/useAccountMenuEnabled';
 
 const createStyles = ({ colors }: Theme) =>
   RNStyleSheet.create({
@@ -970,6 +971,7 @@ const Wallet = ({
     isAllNetworks && isPopularNetworks ? allDetectedTokens : detectedTokens;
   const selectedNetworkClientId = useSelector(selectNetworkClientId);
 
+  const isAccountMenuEnabled = useAccountMenuEnabled();
   const { detectNfts } = useNftDetection();
 
   /**
@@ -1095,6 +1097,7 @@ const Wallet = ({
         unreadNotificationCount,
         readNotificationCount,
         shouldDisplayCardButton,
+        isAccountMenuEnabled,
       ),
     );
   }, [
@@ -1110,6 +1113,7 @@ const Wallet = ({
     unreadNotificationCount,
     readNotificationCount,
     shouldDisplayCardButton,
+    isAccountMenuEnabled,
   ]);
 
   const getTokenAddedAnalyticsParams = useCallback(

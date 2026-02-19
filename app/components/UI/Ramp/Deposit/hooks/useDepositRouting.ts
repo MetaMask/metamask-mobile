@@ -297,10 +297,6 @@ export const useDepositRouting = (config?: UseDepositRoutingConfig) => {
                   DEPOSIT_ENVIRONMENT,
                 );
 
-              navigateToOrderProcessingCallback({
-                orderId: transformedOrderId,
-              });
-
               const order = await getOrder(orderId, selectedWalletAddress);
 
               if (!order) {
@@ -313,6 +309,10 @@ export const useDepositRouting = (config?: UseDepositRoutingConfig) => {
               };
 
               await handleNewOrder(processedOrder);
+
+              navigateToOrderProcessingCallback({
+                orderId: transformedOrderId,
+              });
 
               trackEvent('RAMPS_TRANSACTION_CONFIRMED', {
                 ramp_type: 'DEPOSIT',
