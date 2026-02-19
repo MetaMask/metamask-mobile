@@ -5,10 +5,13 @@ const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
 
   return StyleSheet.create({
-    container: {
+    assetHeaderContainer: {
+      gap: 16,
+      paddingBottom: 36,
+    },
+    assetContainer: {
       flexDirection: 'row',
       alignItems: 'center',
-      paddingVertical: 16,
       gap: 12,
     },
     assetInfo: {
