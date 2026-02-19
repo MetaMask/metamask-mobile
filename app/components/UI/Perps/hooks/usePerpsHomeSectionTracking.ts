@@ -1,6 +1,7 @@
 import { useRef, useCallback } from 'react';
 import { LayoutChangeEvent, NativeScrollEvent } from 'react-native';
-import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
@@ -23,7 +24,7 @@ interface SectionPosition {
  * Fires PERPS_UI_INTERACTION events when sections become visible through scrolling
  */
 export function usePerpsHomeSectionTracking() {
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   // Track which sections have been viewed (to avoid duplicate events)
   const sectionPositions = useRef<Map<HomeSectionId, SectionPosition>>(

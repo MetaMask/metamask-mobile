@@ -1,12 +1,7 @@
+import { useSelector } from 'react-redux';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { isTransactionPayWithdraw } from '../../utils/transaction';
-
-/**
- * Whether the withdraw token picker feature is enabled.
- * When false, withdrawals always use the default Polygon USDC.E.
- */
-const isWithdrawTokenPickerEnabled =
-  process.env.MM_PREDICT_WITHDRAW_ANY_TOKEN === 'true';
+import { selectMetaMaskPayFlags } from '../../../../../selectors/featureFlagController/confirmations';
 
 export interface UseTransactionPayWithdrawResult {
   /** Whether this transaction is a withdraw type */
@@ -24,10 +19,9 @@ export interface UseTransactionPayWithdrawResult {
 export function useTransactionPayWithdraw(): UseTransactionPayWithdrawResult {
   const transactionMeta = useTransactionMetadataRequest();
   const isWithdraw = isTransactionPayWithdraw(transactionMeta);
+  const { predictWithdrawAnyToken } = useSelector(selectMetaMaskPayFlags);
 
-  // Feature flag check is tied to withdraw transaction type.
-  // Future transaction types (e.g., Perps) may have their own feature flags.
-  const canSelectWithdrawToken = isWithdraw && isWithdrawTokenPickerEnabled;
+  const canSelectWithdrawToken = isWithdraw && predictWithdrawAnyToken;
 
   return {
     isWithdraw,

@@ -41,7 +41,7 @@ describe('useInsufficientPredictBalanceAlert', () => {
     } as unknown as TransactionMeta);
 
     useTokenAmountMock.mockReturnValue({} as ReturnType<typeof useTokenAmount>);
-    usePredictBalanceMock.mockReturnValue({ balance: 1233.99 } as never);
+    usePredictBalanceMock.mockReturnValue({ data: 1233.99 } as never);
   });
 
   it('returns alert if predict balance less than pending amount', () => {

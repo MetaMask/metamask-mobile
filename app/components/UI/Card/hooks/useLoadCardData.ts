@@ -227,6 +227,7 @@ const useLoadCardData = () => {
     isBaanxLoginEnabled,
     // Fetch functions
     fetchAllData,
+    fetchCardDetails,
   };
 };
 
