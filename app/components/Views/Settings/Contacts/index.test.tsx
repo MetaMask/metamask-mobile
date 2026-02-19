@@ -6,6 +6,7 @@ import renderWithProvider, {
 } from '../../../../util/test/renderWithProvider';
 import { createStackNavigator } from '@react-navigation/stack';
 import Contacts from './';
+import { strings } from '../../../../../locales/i18n';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import { ContactsViewSelectorIDs } from './ContactsView.testIds';
 
@@ -55,7 +56,7 @@ describe('Contacts', () => {
       { state: initialState },
     );
     expect(getByTestId(ContactsViewSelectorIDs.HEADER)).toBeOnTheScreen();
-    expect(getByText('Contacts')).toBeOnTheScreen();
+    expect(getByText(strings('app_settings.contacts_title'))).toBeOnTheScreen();
   });
 
   it('navigates back when header back button is pressed', () => {
