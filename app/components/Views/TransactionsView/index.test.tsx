@@ -312,6 +312,9 @@ describe('TransactionsView', () => {
               },
             },
           },
+          AddressBookController: {
+            addressBook: {},
+          },
           TokensController: {
             ...initialRootState.engine.backgroundState.TokensController,
             allTokens: {

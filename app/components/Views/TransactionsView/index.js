@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect, useSelector } from 'react-redux';
@@ -80,9 +80,9 @@ const TransactionsView = ({
     selectedInternalAccount?.address,
   );
 
-  // Compute array of internal account addresses
-  const internalAccountAddresses = internalAccounts.map(
-    (account) => account.address,
+  const internalAccountAddresses = useMemo(
+    () => internalAccounts.map((account) => account.address),
+    [internalAccounts],
   );
 
   const filterTransactions = useCallback(() => {

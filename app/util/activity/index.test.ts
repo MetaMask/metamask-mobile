@@ -1069,7 +1069,7 @@ describe('Activity utils :: isTransactionOnChains', () => {
 });
 
 describe('Activity utils :: isTrustedAddress', () => {
-  it('should return true for user own account', () => {
+  it('returns true for user own account', () => {
     const addressBook = {};
     const internalAccountAddresses = [TEST_ADDRESS_ONE, TEST_ADDRESS_TWO];
 
@@ -1081,7 +1081,7 @@ describe('Activity utils :: isTrustedAddress', () => {
     expect(result).toBe(true);
   });
 
-  it('should return true for address in address book', () => {
+  it('returns true for address in address book', () => {
     const addressBook: AddressBookControllerState['addressBook'] = {
       '0x1': {
         '0x5A3CA5cd63807Ce5e4d7841AB32Ce6b6d9bBBa2D': {
@@ -1103,7 +1103,7 @@ describe('Activity utils :: isTrustedAddress', () => {
     expect(result).toBe(true);
   });
 
-  it('should return false for unknown address', () => {
+  it('returns false for unknown address', () => {
     const addressBook = {};
     const internalAccountAddresses = [TEST_ADDRESS_ONE];
 
@@ -1115,7 +1115,7 @@ describe('Activity utils :: isTrustedAddress', () => {
     expect(result).toBe(false);
   });
 
-  it('should return false for empty address', () => {
+  it('returns false for empty address', () => {
     const addressBook = {};
     const internalAccountAddresses = [TEST_ADDRESS_ONE];
 
@@ -1123,7 +1123,7 @@ describe('Activity utils :: isTrustedAddress', () => {
     expect(result).toBe(false);
   });
 
-  it('should handle case-insensitive comparison for EVM addresses', () => {
+  it('handles case-insensitive comparison for EVM addresses', () => {
     const addressBook = {};
     // Use uppercase hex digits only — preserving '0x' prefix so it remains a valid EVM address
     const internalAccountAddresses = [
@@ -1138,7 +1138,7 @@ describe('Activity utils :: isTrustedAddress', () => {
     expect(result).toBe(true);
   });
 
-  it('should return true for address saved on a different chain (EVM addresses are cross-chain)', () => {
+  it('returns true for address saved on a different chain (EVM addresses are cross-chain)', () => {
     // Contact saved on Polygon (0x89), transaction happening on Mainnet (0x1).
     // EVM addresses are identical across all networks, so the contact should be trusted.
     const addressBook: AddressBookControllerState['addressBook'] = {
@@ -1167,7 +1167,7 @@ describe('Activity utils :: filterByAddressAndNetwork - token poisoning protecti
   const chainId = '0x1' as Hex;
   const UNKNOWN_SENDER = '0x9999999999999999999999999999999999999999';
 
-  it('should hide incoming transfer from unknown address even when token exists', () => {
+  it('hides incoming transfer from unknown address even when token exists', () => {
     const transaction = {
       chainId,
       status: TX_SUBMITTED,
@@ -1197,7 +1197,7 @@ describe('Activity utils :: filterByAddressAndNetwork - token poisoning protecti
     expect(result).toEqual(false);
   });
 
-  it('should show incoming transfer from address in address book', () => {
+  it('shows incoming transfer from address in address book', () => {
     const friendAddress = TEST_ADDRESS_TWO;
     const transaction = {
       chainId,
@@ -1238,7 +1238,7 @@ describe('Activity utils :: filterByAddressAndNetwork - token poisoning protecti
     expect(result).toEqual(true);
   });
 
-  it('should show incoming transfer from user own account (Account 2 -> Account 1)', () => {
+  it('shows incoming transfer from user own account (Account 2 -> Account 1)', () => {
     const transaction = {
       chainId,
       status: TX_SUBMITTED,
@@ -1268,7 +1268,7 @@ describe('Activity utils :: filterByAddressAndNetwork - token poisoning protecti
     expect(result).toEqual(true);
   });
 
-  it('should always show outgoing transfers to unknown addresses', () => {
+  it('always shows outgoing transfers to unknown addresses', () => {
     const transaction = {
       chainId,
       status: TX_SUBMITTED,
@@ -1298,7 +1298,7 @@ describe('Activity utils :: filterByAddressAndNetwork - token poisoning protecti
     expect(result).toEqual(true);
   });
 
-  it('should hide incoming transfer if token not in wallet (existing behavior)', () => {
+  it('hides incoming transfer if token not in wallet (existing behavior)', () => {
     const friendAddress = TEST_ADDRESS_TWO;
     const transaction = {
       chainId,
@@ -1344,7 +1344,7 @@ describe('Activity utils :: filterByAddress - token poisoning protection', () =>
   const chainId = '0x1' as Hex;
   const UNKNOWN_SENDER = '0x9999999999999999999999999999999999999999';
 
-  it('should hide incoming transfer from unknown address', () => {
+  it('hides incoming transfer from unknown address', () => {
     const transaction = {
       chainId,
       status: TX_SUBMITTED,
@@ -1373,7 +1373,7 @@ describe('Activity utils :: filterByAddress - token poisoning protection', () =>
     expect(result).toEqual(false);
   });
 
-  it('should show incoming transfer from trusted address', () => {
+  it('shows incoming transfer from trusted address', () => {
     const friendAddress = TEST_ADDRESS_TWO;
     const transaction = {
       chainId,
