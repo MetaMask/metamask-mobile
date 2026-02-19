@@ -14,8 +14,21 @@ jest.mock('../../../hooks/useTokenAmount');
 const PAY_TOTAL = '123.45';
 const TOKEN_TOTAL = '234.56';
 
+const MOCK_STATE = {
+  engine: {
+    backgroundState: {
+      CurrencyRateController: {
+        currentCurrency: 'usd',
+        currencyRates: {},
+      },
+    },
+  },
+};
+
 function render() {
-  return renderWithProvider(<TransactionDetailsTotalRow />, {});
+  return renderWithProvider(<TransactionDetailsTotalRow />, {
+    state: MOCK_STATE,
+  });
 }
 
 describe('TransactionDetailsTotalRow', () => {
@@ -34,7 +47,7 @@ describe('TransactionDetailsTotalRow', () => {
     });
 
     useTokenAmountMock.mockReturnValue({
-      amount: TOKEN_TOTAL,
+      amountUnformatted: TOKEN_TOTAL,
     } as ReturnType<typeof useTokenAmount>);
   });
 
@@ -66,5 +79,24 @@ describe('TransactionDetailsTotalRow', () => {
     const { toJSON } = render();
 
     expect(toJSON()).toBeNull();
+  });
+
+  it('renders total from fiat amount for musdClaim with user currency', () => {
+    useTransactionDetailsMock.mockReturnValue({
+      transactionMeta: {
+        metamaskPay: {},
+        type: TransactionType.musdClaim,
+      } as unknown as TransactionMeta,
+    });
+
+    useTokenAmountMock.mockReturnValue({
+      amountUnformatted: '100', // Token amount (mUSD)
+      fiatUnformatted: '123.45', // Converted to user's currency
+    } as ReturnType<typeof useTokenAmount>);
+
+    const { getByText } = render();
+
+    // Uses fiatUnformatted and user's currency formatter
+    expect(getByText('$123.45')).toBeDefined();
   });
 });

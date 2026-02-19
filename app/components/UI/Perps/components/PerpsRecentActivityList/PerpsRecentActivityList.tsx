@@ -12,7 +12,11 @@ import Icon, {
 } from '../../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
-import type { PerpsNavigationParamList } from '../../controllers/types';
+import {
+  getPerpsDisplaySymbol,
+  PERPS_EVENT_VALUE,
+} from '@metamask/perps-controller';
+import type { PerpsNavigationParamList } from '../../types/navigation';
 import type { PerpsTransaction } from '../../types/transactionHistory';
 import PerpsTokenLogo from '../PerpsTokenLogo';
 import PerpsFillTag from '../PerpsFillTag';
@@ -20,8 +24,6 @@ import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './PerpsRecentActivityList.styles';
 import { HOME_SCREEN_CONFIG } from '../../constants/perpsConfig';
 import PerpsRowSkeleton from '../PerpsRowSkeleton';
-import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
-import { PerpsEventValues } from '../../constants/eventNames';
 
 interface PerpsRecentActivityListProps {
   transactions: PerpsTransaction[];
@@ -105,7 +107,7 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
                 </Text>
                 <PerpsFillTag
                   transaction={item}
-                  screenName={PerpsEventValues.SCREEN_NAME.PERPS_HOME}
+                  screenName={PERPS_EVENT_VALUE.SCREEN_NAME.PERPS_HOME}
                 />
               </View>
               {!!item.subtitle && (

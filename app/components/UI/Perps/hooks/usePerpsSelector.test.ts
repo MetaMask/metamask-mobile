@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
-import type { PerpsControllerState } from '../controllers/PerpsController';
+import { type PerpsControllerState } from '@metamask/perps-controller';
 import { usePerpsSelector } from './usePerpsSelector';
 
 // Mock react-redux

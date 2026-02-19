@@ -3,6 +3,8 @@ import { waitFor } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import { usePerpsNavigation } from './usePerpsNavigation';
 import { usePerpsTrading } from './usePerpsTrading';
+import usePerpsToasts from './usePerpsToasts';
+import { usePerpsEventTracking } from './usePerpsEventTracking';
 import Routes from '../../../../constants/navigation/Routes';
 import { CONFIRMATION_HEADER_CONFIG } from '../constants/perpsConfig';
 
@@ -11,8 +13,20 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 const mockDepositWithOrder = jest.fn();
+const mockShowToast = jest.fn();
+const mockTrack = jest.fn();
+
 jest.mock('./usePerpsTrading', () => ({
   usePerpsTrading: jest.fn(),
+}));
+
+jest.mock('./usePerpsToasts', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+
+jest.mock('./usePerpsEventTracking', () => ({
+  usePerpsEventTracking: jest.fn(),
 }));
 
 describe('usePerpsNavigation', () => {
@@ -25,6 +39,11 @@ describe('usePerpsNavigation', () => {
   const mockUsePerpsTrading = usePerpsTrading as jest.MockedFunction<
     typeof usePerpsTrading
   >;
+  const mockUsePerpsToasts = usePerpsToasts as jest.MockedFunction<
+    typeof usePerpsToasts
+  >;
+  const mockUsePerpsEventTracking =
+    usePerpsEventTracking as jest.MockedFunction<typeof usePerpsEventTracking>;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -35,6 +54,18 @@ describe('usePerpsNavigation', () => {
     } as Partial<ReturnType<typeof usePerpsTrading>> as ReturnType<
       typeof usePerpsTrading
     >);
+    mockUsePerpsToasts.mockReturnValue({
+      showToast: mockShowToast,
+      PerpsToastOptions: {
+        accountManagement: {
+          deposit: { error: {} },
+          oneClickTrade: { txCreationFailed: {} },
+        },
+      },
+    } as unknown as ReturnType<typeof usePerpsToasts>);
+    mockUsePerpsEventTracking.mockReturnValue({
+      track: mockTrack,
+    });
     mockUseNavigation.mockReturnValue({
       navigate: mockNavigate,
       canGoBack: mockCanGoBack,
@@ -212,6 +243,8 @@ describe('usePerpsNavigation', () => {
       });
 
       expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockShowToast).toHaveBeenCalledWith({});
+      expect(mockTrack).toHaveBeenCalled();
     });
 
     it('navigates to tutorial without params', () => {

@@ -55,7 +55,6 @@ jest.mock('../../hooks/usePredictActionGuard', () => ({
   usePredictActionGuard: () => ({
     executeGuardedAction: mockExecuteGuardedAction,
     isEligible: true,
-    hasNoBalance: false,
   }),
 }));
 
@@ -139,17 +138,24 @@ const baseMarket: PredictMarket = {
   volume: 200000,
 };
 
-const initialState = {
+const createState = (privacyMode = false) => ({
   engine: {
-    backgroundState,
+    backgroundState: {
+      ...backgroundState,
+      PreferencesController: {
+        ...backgroundState.PreferencesController,
+        privacyMode,
+      },
+    },
   },
-};
+});
 
 const renderComponent = (
   overrides?: Partial<PredictPositionType>,
   marketOverrides?: Partial<PredictMarket>,
   marketStatus: PredictMarketStatus = PredictMarketStatus.OPEN,
   previewOverrides?: { minAmountReceived?: number; error?: string | null },
+  privacyMode = false,
 ) => {
   const position: PredictPositionType = {
     ...basePosition,
@@ -198,7 +204,7 @@ const renderComponent = (
       market={market}
       marketStatus={marketStatus}
     />,
-    { state: initialState },
+    { state: createState(privacyMode) },
   );
 };
 
@@ -266,6 +272,16 @@ describe('PredictPositionDetail', () => {
     expect(screen.getByText('Cash out')).toBeOnTheScreen();
   });
 
+  it('hides open position monetary values when privacy mode is enabled', () => {
+    renderComponent(undefined, undefined, undefined, undefined, true);
+
+    expect(screen.queryByText('$123.45 on Yes to win $10')).toBeNull();
+    expect(screen.queryByText('$129.93')).toBeNull();
+    expect(screen.queryByText('5.25%')).toBeNull();
+    expect(screen.getByText('••••••••••••')).toBeOnTheScreen();
+    expect(screen.getAllByText('••••••').length).toBeGreaterThanOrEqual(2);
+  });
+
   it.each([
     { value: -3.5, expected: '-3.5%' },
     { value: 0, expected: '0%' },
@@ -307,6 +323,19 @@ describe('PredictPositionDetail', () => {
     expect(screen.getByText('Won $500')).toBeOnTheScreen();
     expect(screen.queryByText('+12.34%')).toBeNull();
     expect(screen.queryByText('Cash out')).toBeNull();
+  });
+
+  it('hides won or lost text amount when privacy mode is enabled', () => {
+    renderComponent(
+      { percentPnl: 12.34, currentValue: 500 },
+      { status: 'closed' },
+      PredictMarketStatus.CLOSED,
+      { minAmountReceived: 500 },
+      true,
+    );
+
+    expect(screen.queryByText('Won $500')).toBeNull();
+    expect(screen.getByText('•••••••••')).toBeOnTheScreen();
   });
 
   it('renders lost result with initial value when market is closed and percent not positive', () => {

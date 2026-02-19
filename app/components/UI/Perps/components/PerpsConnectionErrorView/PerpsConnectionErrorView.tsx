@@ -21,9 +21,9 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import {
-  PerpsEventProperties,
-  PerpsEventValues,
-} from '../../constants/eventNames';
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+} from '@metamask/perps-controller';
 import styleSheet from './PerpsConnectionErrorView.styles';
 
 interface PerpsConnectionErrorViewProps {
@@ -49,7 +49,7 @@ const PerpsConnectionErrorView: React.FC<PerpsConnectionErrorViewProps> = ({
   usePerpsEventTracking({
     eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
     properties: {
-      [PerpsEventProperties.SCREEN_TYPE]: PerpsEventValues.SCREEN_TYPE.ERROR,
+      [PERPS_EVENT_PROPERTY.SCREEN_TYPE]: PERPS_EVENT_VALUE.SCREEN_TYPE.ERROR,
     },
   });
 
@@ -117,11 +117,11 @@ const PerpsConnectionErrorView: React.FC<PerpsConnectionErrorViewProps> = ({
           }
           onPress={() => {
             track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-              [PerpsEventProperties.INTERACTION_TYPE]:
-                PerpsEventValues.INTERACTION_TYPE.TAP,
-              [PerpsEventProperties.ACTION]:
-                PerpsEventValues.ACTION.CONNECTION_RETRY,
-              [PerpsEventProperties.ATTEMPT_NUMBER]: retryAttempts + 1,
+              [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+                PERPS_EVENT_VALUE.INTERACTION_TYPE.TAP,
+              [PERPS_EVENT_PROPERTY.ACTION]:
+                PERPS_EVENT_VALUE.ACTION.CONNECTION_RETRY,
+              [PERPS_EVENT_PROPERTY.ATTEMPT_NUMBER]: retryAttempts + 1,
             });
             onRetry();
           }}

@@ -27,7 +27,29 @@ export const setupRegionAwareOnRampMocks = async (
     // 1. Geolocation endpoints (both UAT and prod) - region-specific
     ...geolocationResponse,
 
-    // 2. Networks endpoints (both UAT and prod)
+    // 2. Region eligibility endpoints (both UAT and prod) - CRITICAL for unified routing
+    {
+      urlEndpoint:
+        /^https:\/\/on-ramp-content\.api\.cx\.metamask\.io\/regions\/countries\/[^/]+$/,
+      responseCode: 200,
+      response: {
+        global: true,
+        deposit: true,
+        aggregator: true,
+      },
+    },
+    {
+      urlEndpoint:
+        /^https:\/\/on-ramp-content\.uat-api\.cx\.metamask\.io\/regions\/countries\/[^/]+$/,
+      responseCode: 200,
+      response: {
+        global: true,
+        deposit: true,
+        aggregator: true,
+      },
+    },
+
+    // 3. Networks endpoints (both UAT and prod)
     {
       urlEndpoint:
         /^https:\/\/on-ramp-cache\.api\.cx\.metamask\.io\/regions\/networks\?.*$/,
@@ -41,21 +63,21 @@ export const setupRegionAwareOnRampMocks = async (
       response: RAMPS_NETWORKS_RESPONSE,
     },
 
-    // 3. Countries endpoints (both UAT and prod) - Add more countries as needed - RAMPS_COUNTRIES_RESPONSE in on-ramp-mocks.ts
+    // 4. Countries endpoints (both UAT and prod) - Add more countries as needed - RAMPS_COUNTRIES_RESPONSE in on-ramp-mocks.ts
     {
       urlEndpoint:
-        /^https:\/\/on-ramp-cache\.api\.cx\.metamask\.io\/regions\/countries\?.*$/,
+        /^https:\/\/on-ramp-cache\.api\.cx\.metamask\.io(\/v2)?\/regions\/countries\?.*$/,
       responseCode: 200,
       response: RAMPS_COUNTRIES_RESPONSE,
     },
     {
       urlEndpoint:
-        /^https:\/\/on-ramp-cache\.uat-api\.cx\.metamask\.io\/regions\/countries\?.*$/,
+        /^https:\/\/on-ramp-cache\.uat-api\.cx\.metamask\.io(\/v2)?\/regions\/countries\?.*$/,
       responseCode: 200,
       response: RAMPS_COUNTRIES_RESPONSE,
     },
 
-    // 4. Light endpoints - all parameter variations (both UAT and prod)
+    // 5. Light endpoints - all parameter variations (both UAT and prod)
     // This controls things like: payment methods, available cryptocurrencies, fiat currencies and limits
     {
       urlEndpoint:
@@ -70,7 +92,7 @@ export const setupRegionAwareOnRampMocks = async (
       response: RAMPS_LIGHT_RESPONSE,
     },
 
-    // 5. Amount conversion endpoints (both UAT and prod)
+    // 6. Amount conversion endpoints (both UAT and prod)
     {
       urlEndpoint:
         /^https:\/\/on-ramp-cache\.api\.cx\.metamask\.io\/currencies\/crypto\/.*\/amount\?.*$/,
@@ -84,7 +106,7 @@ export const setupRegionAwareOnRampMocks = async (
       response: RAMPS_AMOUNT_RESPONSE,
     },
 
-    // 6. Quote endpoints (both UAT and prod)
+    // 7. Quote endpoints V1 (both UAT and prod)
     {
       urlEndpoint:
         /^https:\/\/on-ramp\.api\.cx\.metamask\.io\/providers\/all\/quote\?.*$/,
@@ -94,6 +116,19 @@ export const setupRegionAwareOnRampMocks = async (
     {
       urlEndpoint:
         /^https:\/\/on-ramp\.uat-api\.cx\.metamask\.io\/providers\/all\/quote\?.*$/,
+      responseCode: 200,
+      response: RAMPS_QUOTE_RESPONSE,
+    },
+
+    // 8. Quote endpoints V2 - Unified Ramps (both UAT and prod)
+    {
+      urlEndpoint: /^https:\/\/on-ramp\.api\.cx\.metamask\.io\/v2\/quotes\?.*$/,
+      responseCode: 200,
+      response: RAMPS_QUOTE_RESPONSE,
+    },
+    {
+      urlEndpoint:
+        /^https:\/\/on-ramp\.uat-api\.cx\.metamask\.io\/v2\/quotes\?.*$/,
       responseCode: 200,
       response: RAMPS_QUOTE_RESPONSE,
     },

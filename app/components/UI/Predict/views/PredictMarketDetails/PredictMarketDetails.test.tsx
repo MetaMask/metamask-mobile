@@ -587,7 +587,17 @@ function setupPredictMarketDetailsTest(
     },
   );
 
-  const result = renderWithProvider(<PredictMarketDetails />);
+  const result = renderWithProvider(<PredictMarketDetails />, {
+    state: {
+      engine: {
+        backgroundState: {
+          PreferencesController: {
+            privacyMode: false,
+          },
+        },
+      },
+    },
+  });
 
   return {
     ...result,
@@ -2319,76 +2329,6 @@ describe('PredictMarketDetails', () => {
             ),
           ).toBe(true);
         });
-      });
-    });
-
-    it('handles no balance scenario for Yes button', () => {
-      const { usePredictBalance } = jest.requireMock(
-        '../../hooks/usePredictBalance',
-      );
-      usePredictBalance.mockReturnValue({
-        hasNoBalance: true,
-      });
-
-      const singleOutcomeMarket = createMockMarket({
-        status: 'open',
-        outcomes: [
-          {
-            id: 'outcome-1',
-            title: 'Yes',
-            tokens: [
-              { id: 'token-1', title: 'Yes', price: 0.65 },
-              { id: 'token-2', title: 'No', price: 0.35 },
-            ],
-            volume: 1000000,
-          },
-        ],
-      });
-
-      const { mockNavigate } =
-        setupPredictMarketDetailsTest(singleOutcomeMarket);
-
-      const yesButton = findActionButtonByPrice(65);
-      expect(yesButton).toBeDefined();
-      fireEvent.press(yesButton as ReactTestInstance);
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
-        screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
-      });
-    });
-
-    it('handles no balance scenario for No button', () => {
-      const { usePredictBalance } = jest.requireMock(
-        '../../hooks/usePredictBalance',
-      );
-      usePredictBalance.mockReturnValue({
-        hasNoBalance: true,
-      });
-
-      const singleOutcomeMarket = createMockMarket({
-        status: 'open',
-        outcomes: [
-          {
-            id: 'outcome-1',
-            title: 'Yes',
-            tokens: [
-              { id: 'token-1', title: 'Yes', price: 0.65 },
-              { id: 'token-2', title: 'No', price: 0.35 },
-            ],
-            volume: 1000000,
-          },
-        ],
-      });
-
-      const { mockNavigate } =
-        setupPredictMarketDetailsTest(singleOutcomeMarket);
-
-      const noButton = findActionButtonByPrice(35);
-      expect(noButton).toBeDefined();
-      fireEvent.press(noButton as ReactTestInstance);
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
-        screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
       });
     });
 

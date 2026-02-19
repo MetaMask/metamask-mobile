@@ -4,6 +4,7 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
+import type { TransactionPayQuote } from '@metamask/transaction-pay-controller';
 import { useCallback, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
@@ -12,8 +13,6 @@ import { safeToChecksumAddress } from '../../../../util/address';
 import useEarnToasts from './useEarnToasts';
 import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
 import { decodeTransferData } from '../../../../util/transactions';
-import { selectEvmNetworkConfigurationsByChainId } from '../../../../selectors/networkController';
-import NetworkList from '../../../../util/networks';
 import { TOAST_TRACKING_CLEANUP_DELAY_MS } from '../constants/musd';
 import {
   trace,
@@ -23,6 +22,101 @@ import {
 } from '../../../../util/trace';
 import { store } from '../../../../store';
 import { selectTransactionPayQuotesByTransactionId } from '../../../../selectors/transactionPayController';
+import { getNetworkName } from '../utils/network';
+
+type PayQuote = TransactionPayQuote<unknown>;
+
+function chainIdsMatch(a?: Hex, b?: Hex): boolean | undefined {
+  if (!a || !b) return undefined;
+  return a.toLowerCase() === b.toLowerCase();
+}
+
+function getTransactionPayQuotes(transactionId: string): PayQuote[] {
+  const state = store.getState();
+  return (
+    (selectTransactionPayQuotesByTransactionId(state, transactionId) as
+      | PayQuote[]
+      | undefined) ?? []
+  );
+}
+
+function getMusdConversionQuoteTrackingData(transactionMeta: TransactionMeta): {
+  quotePaymentChainId?: Hex;
+  quoteOutputChainId?: Hex;
+  quotePaymentTokenAddress?: Hex;
+  quoteOutputTokenAddress?: Hex;
+  quoteIsSameChain?: boolean;
+  strategy: string;
+  paymentAmountUsd?: string;
+  outputAmountUsd?: string;
+  selectedPaymentChainId?: Hex;
+  selectedPaymentChainMatchesQuotePaymentChain?: boolean;
+  txExecutionChainMatchesQuoteOutputChain?: boolean;
+  paymentTokenAddress?: Hex;
+  paymentTokenChainId?: Hex;
+  outputTokenAddress?: Hex;
+  outputTokenChainId?: Hex;
+} {
+  const quote = getTransactionPayQuotes(transactionMeta.id)[0];
+  const quoteRequest: PayQuote['request'] | undefined = quote?.request;
+
+  const quotePaymentChainId = quoteRequest?.sourceChainId;
+  const quoteOutputChainId = quoteRequest?.targetChainId;
+  const quotePaymentTokenAddress = quoteRequest?.sourceTokenAddress;
+  const quoteOutputTokenAddress = quoteRequest?.targetTokenAddress;
+
+  const quoteIsSameChain = chainIdsMatch(
+    quotePaymentChainId,
+    quoteOutputChainId,
+  );
+
+  const strategy = quote?.strategy
+    ? String(quote.strategy).toLowerCase()
+    : 'unknown';
+
+  const paymentAmountUsd = quote?.sourceAmount?.usd;
+  const outputAmountUsd = quote?.targetAmount?.usd;
+
+  const selectedPaymentChainId = transactionMeta.metamaskPay?.chainId;
+  const selectedPaymentTokenAddress = transactionMeta.metamaskPay?.tokenAddress;
+
+  const selectedPaymentChainMatchesQuotePaymentChain = chainIdsMatch(
+    selectedPaymentChainId,
+    quotePaymentChainId,
+  );
+
+  const txExecutionChainMatchesQuoteOutputChain = chainIdsMatch(
+    transactionMeta?.chainId,
+    quoteOutputChainId,
+  );
+
+  const paymentTokenAddress =
+    selectedPaymentTokenAddress ?? quotePaymentTokenAddress;
+  const paymentTokenChainId = selectedPaymentChainId ?? quotePaymentChainId;
+
+  const outputTokenAddress =
+    quoteOutputTokenAddress ??
+    (transactionMeta?.txParams?.to as Hex | undefined);
+  const outputTokenChainId = quoteOutputChainId ?? transactionMeta?.chainId;
+
+  return {
+    quotePaymentChainId,
+    quoteOutputChainId,
+    quotePaymentTokenAddress,
+    quoteOutputTokenAddress,
+    quoteIsSameChain,
+    strategy,
+    paymentAmountUsd,
+    outputAmountUsd,
+    selectedPaymentChainId,
+    selectedPaymentChainMatchesQuotePaymentChain,
+    txExecutionChainMatchesQuoteOutputChain,
+    paymentTokenAddress,
+    paymentTokenChainId,
+    outputTokenAddress,
+    outputTokenChainId,
+  };
+}
 
 /**
  * Hook to monitor mUSD conversion transaction status and show appropriate toasts
@@ -40,10 +134,6 @@ import { selectTransactionPayQuotesByTransactionId } from '../../../../selectors
  * navigating away from the conversion screen.
  */
 export const useMusdConversionStatus = () => {
-  const networkConfigurations = useSelector(
-    selectEvmNetworkConfigurationsByChainId,
-  );
-
   const { showToast, EarnToastOptions } = useEarnToasts();
   const tokensChainsCache = useSelector(selectERC20TokensByChain);
 
@@ -53,31 +143,42 @@ export const useMusdConversionStatus = () => {
   const tokensCacheRef = useRef(tokensChainsCache);
   tokensCacheRef.current = tokensChainsCache;
 
-  const getNetworkName = useCallback(
-    (chainId?: Hex) => {
-      if (!chainId) return 'Unknown Network';
-
-      const nickname = networkConfigurations[chainId]?.name;
-
-      const name = Object.values(NetworkList).find(
-        (network: { chainId?: Hex; shortName: string }) =>
-          network.chainId === chainId,
-      )?.shortName;
-
-      return name ?? nickname ?? chainId;
-    },
-    [networkConfigurations],
-  );
-
   const submitConversionEvent = useCallback(
     (
       transactionMeta: TransactionMeta,
       token: { name: string; symbol: string },
     ) => {
-      const [, amountDecimalString, amountHexString] = decodeTransferData(
-        'transfer',
-        transactionMeta?.txParams?.data || '',
-      );
+      let amountDecimalString = '';
+      let amountHexString = '';
+
+      try {
+        const decoded = decodeTransferData(
+          'transfer',
+          transactionMeta?.txParams?.data || '',
+        );
+        amountDecimalString = decoded?.[1] ?? '';
+        amountHexString = decoded?.[2] ?? '';
+      } catch {
+        // If txParams.data is malformed or missing, keep amounts empty.
+      }
+
+      const {
+        quotePaymentChainId,
+        quoteOutputChainId,
+        quotePaymentTokenAddress,
+        quoteOutputTokenAddress,
+        quoteIsSameChain,
+        strategy,
+        paymentAmountUsd,
+        outputAmountUsd,
+        selectedPaymentChainId,
+        selectedPaymentChainMatchesQuotePaymentChain,
+        txExecutionChainMatchesQuoteOutputChain,
+        paymentTokenAddress,
+        paymentTokenChainId,
+        outputTokenAddress,
+        outputTokenChainId,
+      } = getMusdConversionQuoteTrackingData(transactionMeta);
 
       trackEvent(
         createEventBuilder(MetaMetricsEvents.MUSD_CONVERSION_STATUS_UPDATED)
@@ -90,11 +191,35 @@ export const useMusdConversionStatus = () => {
             network_name: getNetworkName(transactionMeta?.chainId),
             amount_decimal: amountDecimalString,
             amount_hex: amountHexString,
+
+            // Quote-derived (primary)
+            quote_payment_chain_id: quotePaymentChainId,
+            quote_output_chain_id: quoteOutputChainId,
+            quote_is_same_chain: quoteIsSameChain,
+            quote_payment_token_address: quotePaymentTokenAddress,
+            quote_output_token_address: quoteOutputTokenAddress,
+            payment_amount_usd: paymentAmountUsd,
+            output_amount_usd: outputAmountUsd,
+            pay_quote_strategy: strategy,
+
+            // Secondary consistency checks.
+            selected_payment_chain_id: selectedPaymentChainId,
+            selected_payment_chain_matches_quote_payment_chain:
+              selectedPaymentChainMatchesQuotePaymentChain,
+            tx_execution_chain_matches_quote_output_chain:
+              txExecutionChainMatchesQuoteOutputChain,
+
+            // Explicit token identity (in/out).
+            payment_token_address: paymentTokenAddress,
+            payment_token_chain_id: paymentTokenChainId,
+
+            output_token_address: outputTokenAddress,
+            output_token_chain_id: outputTokenChainId,
           })
           .build(),
       );
     },
-    [createEventBuilder, getNetworkName, trackEvent],
+    [createEventBuilder, trackEvent],
   );
 
   useEffect(() => {

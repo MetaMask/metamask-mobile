@@ -25,43 +25,51 @@ import Routes from '../../../constants/navigation/Routes';
 import ExploreSearchBar from './components/ExploreSearchBar/ExploreSearchBar';
 import QuickActions from './components/QuickActions/QuickActions';
 import SectionHeader from './components/SectionHeader/SectionHeader';
-import { HOME_SECTIONS_ARRAY, SectionId } from './sections.config';
+import { useHomeSections, SectionId } from './sections.config';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import BasicFunctionalityEmptyState from '../../UI/BasicFunctionality/BasicFunctionalityEmptyState/BasicFunctionalityEmptyState';
 import TrendingFeedSessionManager from '../../UI/Trending/services/TrendingFeedSessionManager';
 import Section, { RefreshConfig } from './components/Sections/Section';
 import { TrendingViewSelectorsIDs } from './TrendingView.testIds';
 
+const curriedSetSectionState =
+  (setState: (updater: (prev: Set<SectionId>) => Set<SectionId>) => void) =>
+  (sectionId: SectionId) =>
+  (isActive: boolean): void => {
+    setState((prev) => {
+      const newSet = new Set(prev);
+
+      if (isActive) {
+        newSet.add(sectionId);
+      } else {
+        newSet.delete(sectionId);
+      }
+
+      return newSet;
+    });
+  };
+
 /**
  * Custom hook to track boolean state for each section
  * Returns the Set of sections with that state and callbacks to update them
  */
-const useSectionStateTracker = () => {
+const useSectionStateTracker = (
+  sections: { id: SectionId }[],
+): {
+  sectionsWithState: Set<SectionId>;
+  callbacks: Record<SectionId, (isActive: boolean) => void>;
+} => {
   const [activeSections, setActiveSections] = useState<Set<SectionId>>(
     new Set(),
   );
 
   const callbacks = useMemo(() => {
     const result = {} as Record<SectionId, (isActive: boolean) => void>;
-
-    HOME_SECTIONS_ARRAY.forEach((section) => {
-      result[section.id] = (isActive: boolean) => {
-        setActiveSections((currentSections) => {
-          const updatedSections = new Set(currentSections);
-
-          if (isActive) {
-            updatedSections.add(section.id);
-          } else {
-            updatedSections.delete(section.id);
-          }
-
-          return updatedSections;
-        });
-      };
+    sections.forEach((s) => {
+      result[s.id] = curriedSetSectionState(setActiveSections)(s.id);
     });
-
     return result;
-  }, []);
+  }, [sections]);
 
   return { sectionsWithState: activeSections, callbacks };
 };
@@ -78,14 +86,16 @@ export const ExploreFeed: React.FC = () => {
     silentRefresh: true,
   });
 
+  const homeSections = useHomeSections();
+
   // Track which sections have empty data and which are loading
   const { sectionsWithState: emptySections, callbacks: emptyStateCallbacks } =
-    useSectionStateTracker();
+    useSectionStateTracker(homeSections);
 
   const {
     sectionsWithState: loadingSections,
     callbacks: loadingStateCallbacks,
-  } = useSectionStateTracker();
+  } = useSectionStateTracker(homeSections);
 
   const sessionManager = TrendingFeedSessionManager.getInstance();
 
@@ -233,7 +243,7 @@ export const ExploreFeed: React.FC = () => {
         >
           <QuickActions emptySections={emptySections} />
 
-          {HOME_SECTIONS_ARRAY.map((section) => {
+          {homeSections.map((section) => {
             // Hide section visually but keep mounted so it can report when data arrives
             const isHidden = emptySections.has(section.id);
 

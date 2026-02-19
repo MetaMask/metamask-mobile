@@ -30,9 +30,10 @@ import { useTheme } from '../../../../../util/theme';
 
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import {
-  PerpsEventProperties,
-  PerpsEventValues,
-} from '../../constants/eventNames';
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+  PERPS_CONSTANTS,
+} from '@metamask/perps-controller';
 import { usePerpsLivePrices } from '../../hooks/stream';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import type { PerpsNavigationParamList } from '../../types/navigation';
@@ -48,10 +49,7 @@ import {
   PRICE_RANGES_UNIVERSAL,
   PRICE_RANGES_MINIMAL_VIEW,
 } from '../../utils/formatUtils';
-import {
-  TP_SL_VIEW_CONFIG,
-  PERPS_CONSTANTS,
-} from '../../constants/perpsConfig';
+import { TP_SL_VIEW_CONFIG } from '../../constants/perpsConfig';
 
 const PerpsTPSLView: React.FC = () => {
   const navigation = useNavigation();
@@ -212,21 +210,21 @@ const PerpsTPSLView: React.FC = () => {
   // Determine if this is create (new order) or edit (existing position) TP/SL
   const isEditingExistingPosition = !!position;
   const tpslScreenType = isEditingExistingPosition
-    ? PerpsEventValues.SCREEN_TYPE.EDIT_TPSL
-    : PerpsEventValues.SCREEN_TYPE.CREATE_TPSL;
+    ? PERPS_EVENT_VALUE.SCREEN_TYPE.EDIT_TPSL
+    : PERPS_EVENT_VALUE.SCREEN_TYPE.CREATE_TPSL;
 
   usePerpsEventTracking({
     eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
     properties: {
-      [PerpsEventProperties.SCREEN_TYPE]: tpslScreenType,
-      [PerpsEventProperties.ASSET]: asset,
-      [PerpsEventProperties.DIRECTION]:
+      [PERPS_EVENT_PROPERTY.SCREEN_TYPE]: tpslScreenType,
+      [PERPS_EVENT_PROPERTY.ASSET]: asset,
+      [PERPS_EVENT_PROPERTY.DIRECTION]:
         actualDirection === 'long'
-          ? PerpsEventValues.DIRECTION.LONG
-          : PerpsEventValues.DIRECTION.SHORT,
+          ? PERPS_EVENT_VALUE.DIRECTION.LONG
+          : PERPS_EVENT_VALUE.DIRECTION.SHORT,
       // Add initial TP/SL state to understand what user already has set
-      [PerpsEventProperties.HAS_TAKE_PROFIT]: !!initialTakeProfitPrice,
-      [PerpsEventProperties.HAS_STOP_LOSS]: !!initialStopLossPrice,
+      [PERPS_EVENT_PROPERTY.HAS_TAKE_PROFIT]: !!initialTakeProfitPrice,
+      [PERPS_EVENT_PROPERTY.HAS_STOP_LOSS]: !!initialStopLossPrice,
     },
   });
 
@@ -370,8 +368,8 @@ const PerpsTPSLView: React.FC = () => {
       const trackingData = {
         direction: actualDirection,
         source: isEditingExistingPosition
-          ? PerpsEventValues.RISK_MANAGEMENT_SOURCE.POSITION_SCREEN
-          : PerpsEventValues.RISK_MANAGEMENT_SOURCE.TRADE_SCREEN,
+          ? PERPS_EVENT_VALUE.RISK_MANAGEMENT_SOURCE.POSITION_SCREEN
+          : PERPS_EVENT_VALUE.RISK_MANAGEMENT_SOURCE.TRADE_SCREEN,
         positionSize: position?.size ? Math.abs(parseFloat(position.size)) : 0,
         takeProfitPercentage: formattedTakeProfitPercentage
           ? parseFloat(formattedTakeProfitPercentage.replace('%', ''))
