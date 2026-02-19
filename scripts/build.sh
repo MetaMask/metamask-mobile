@@ -707,6 +707,7 @@ createEnvFile() {
 		"QUICKNODE_MONAD_URL"
 		"QUICKNODE_OPTIMISM_URL"
 		"QUICKNODE_POLYGON_URL"
+		"QUICKNODE_HYPEREVM_URL"
 	)
 
 	# Create .env file and export to GITHUB_ENV
