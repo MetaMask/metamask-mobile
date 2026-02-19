@@ -49,6 +49,8 @@ import {
   ButtonVariants,
 } from '../../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../../locales/i18n';
+import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
+import { BridgeToken } from '../../Bridge/types';
 
 export {
   TokenDetailsSource,
@@ -97,6 +99,7 @@ const TokenDetails: React.FC<{ token: TokenDetailsRouteParams }> = ({
   const isTokenDetailsV2ButtonsEnabled = useSelector(
     selectTokenDetailsV2ButtonsEnabled,
   );
+  const { isTokenTradingOpen } = useRWAToken();
 
   useEffect(() => {
     endTrace({ name: TraceName.AssetDetails });
@@ -279,34 +282,37 @@ const TokenDetails: React.FC<{ token: TokenDetailsRouteParams }> = ({
         />
       )}
       {networkModal}
-      {isTokenDetailsV2ButtonsEnabled && !txLoading && displaySwapsButton && (
-        <BottomSheetFooter
-          style={{
-            ...styles.bottomSheetFooter,
-            paddingBottom: insets.bottom + 6,
-          }}
-          buttonPropsArray={[
-            {
-              variant: ButtonVariants.Primary,
-              label: strings('asset_overview.buy_button'),
-              size: ButtonSize.Lg,
-              onPress: handleBuyPress,
-            },
-            // Only show Sell button if user has balance of this token
-            ...(balance && parseFloat(String(balance)) > 0
-              ? [
-                  {
-                    variant: ButtonVariants.Primary,
-                    label: strings('asset_overview.sell_button'),
-                    size: ButtonSize.Lg,
-                    onPress: handleSellPress,
-                  },
-                ]
-              : []),
-          ]}
-          buttonsAlignment={ButtonsAlignment.Horizontal}
-        />
-      )}
+      {isTokenDetailsV2ButtonsEnabled &&
+        !txLoading &&
+        displaySwapsButton &&
+        isTokenTradingOpen(token as BridgeToken) && (
+          <BottomSheetFooter
+            style={{
+              ...styles.bottomSheetFooter,
+              paddingBottom: insets.bottom + 6,
+            }}
+            buttonPropsArray={[
+              {
+                variant: ButtonVariants.Primary,
+                label: strings('asset_overview.buy_button'),
+                size: ButtonSize.Lg,
+                onPress: handleBuyPress,
+              },
+              // Only show Sell button if user has balance of this token
+              ...(balance && parseFloat(String(balance)) > 0
+                ? [
+                    {
+                      variant: ButtonVariants.Primary,
+                      label: strings('asset_overview.sell_button'),
+                      size: ButtonSize.Lg,
+                      onPress: handleSellPress,
+                    },
+                  ]
+                : []),
+            ]}
+            buttonsAlignment={ButtonsAlignment.Horizontal}
+          />
+        )}
     </View>
   );
 };
