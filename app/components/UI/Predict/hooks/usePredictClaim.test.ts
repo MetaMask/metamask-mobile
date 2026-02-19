@@ -86,9 +86,7 @@ describe('usePredictClaim', () => {
 
     mockUsePredictTrading.mockReturnValue({
       claim: mockClaimWinnings,
-      getPositions: jest.fn(),
       placeOrder: jest.fn(),
-      calculateBetAmounts: jest.fn(),
       getBalance: jest.fn(),
       previewOrder: jest.fn(),
       deposit: jest.fn(),
