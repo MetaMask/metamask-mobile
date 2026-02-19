@@ -37,6 +37,7 @@ import {
   getFeatureFlagAppDistribution,
   getFeatureFlagAppEnvironment,
 } from '../../../../core/Engine/controllers/remote-feature-flag-controller/utils';
+import { selectRemoteFeatureFlags } from '../../../../selectors/featureFlagController';
 import { getPreinstalledSnapsMetadata } from '../../../../selectors/snaps';
 
 const createStyles = (colors) =>
@@ -110,6 +111,8 @@ class AppInformation extends PureComponent {
     */
     navigation: PropTypes.object,
     preinstalledSnaps: PropTypes.array,
+    /** Remote feature flags (merged with local overrides) for debug display */
+    remoteFeatureFlags: PropTypes.object,
   };
 
   state = {
@@ -230,6 +233,21 @@ class AppInformation extends PureComponent {
                   {`Remote Feature Flag Distribution: ${getFeatureFlagAppDistribution()}`}
                 </Text>
                 <Text style={styles.branchInfo}>
+                  Remote Feature Flags (effective):
+                </Text>
+                {Object.keys(this.props.remoteFeatureFlags || {})
+                  .sort()
+                  .map((key) => (
+                    <Text
+                      key={key}
+                      style={styles.branchInfo}
+                    >{`  ${key}: ${JSON.stringify(this.props.remoteFeatureFlags[key])}`}</Text>
+                  ))}
+                {(!this.props.remoteFeatureFlags ||
+                  Object.keys(this.props.remoteFeatureFlags).length === 0) && (
+                  <Text style={styles.branchInfo}> (none)</Text>
+                )}
+                <Text style={styles.branchInfo}>
                   {`OTA Updates enabled: ${String(isOTAUpdatesEnabled)}`}
                 </Text>
                 {isOTAUpdatesEnabled && (
@@ -306,6 +324,7 @@ AppInformation.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
   preinstalledSnaps: getPreinstalledSnapsMetadata(state),
+  remoteFeatureFlags: selectRemoteFeatureFlags(state),
 });
 
 export default connect(mapStateToProps)(AppInformation);
