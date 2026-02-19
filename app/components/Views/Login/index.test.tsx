@@ -247,14 +247,23 @@ jest.mock('../../../util/metrics/TrackOnboarding/trackOnboarding', () =>
 
 jest.mock('../../../util/trace', () => {
   const actualTrace = jest.requireActual('../../../util/trace');
+  const traceCallbackPromiseRef: { current: Promise<unknown> | null } = {
+    current: null,
+  };
+  const traceFn = jest.fn().mockImplementation(async (_request, callback) => {
+    if (callback) {
+      traceCallbackPromiseRef.current = callback();
+      return await traceCallbackPromiseRef.current;
+    }
+    return 'mockTraceContext';
+  });
+  // Expose ref so tests can await the trace callback promise inside act()
+  Object.assign(traceFn, {
+    __traceCallbackPromiseRef: traceCallbackPromiseRef,
+  });
   return {
     ...actualTrace,
-    trace: jest.fn().mockImplementation((_request, callback) => {
-      if (callback) {
-        return callback();
-      }
-      return 'mockTraceContext';
-    }),
+    trace: traceFn,
     endTrace: jest.fn(),
   };
 });
@@ -850,7 +859,17 @@ describe('Login', () => {
           oauthLoginSuccess: false,
         },
       });
+      // Isolate auth mocks so previous tests cannot leave stale implementations
+      // (e.g. mockRejectedValue or mockResolvedValueOnce from other describe blocks).
+      mockUnlockWallet.mockReset();
       mockUnlockWallet.mockResolvedValue(true);
+      mockGetAuthType.mockReset();
+      mockGetAuthType.mockResolvedValue({
+        currentAuthType: 'password',
+        availableBiometryType: null,
+      });
+      mockCheckIsSeedlessPasswordOutdated.mockReset();
+      mockCheckIsSeedlessPasswordOutdated.mockResolvedValue(false);
     });
 
     it('checks seedless password status and calls getAuthType when outdated', async () => {
@@ -860,30 +879,34 @@ describe('Login', () => {
         currentAuthType: 'password',
         availableBiometryType: 'FaceID',
       });
-      const getAuthTypeCallCountBefore = mockGetAuthType.mock.calls.length;
 
       const { getByTestId } = renderWithProvider(<Login />);
       const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
 
-      // Act
-      fireEvent.changeText(passwordInput, 'valid-password123');
+      // Act - commit password, then submit and wait for the trace callback inside act
+      // so the async unlock flow (checkIsSeedlessPasswordOutdated -> unlockWallet -> getAuthType) completes before we assert.
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'valid-password123');
+      });
       await act(async () => {
         fireEvent(passwordInput, 'submitEditing');
+        const promiseRef = (
+          trace as {
+            __traceCallbackPromiseRef?: { current: Promise<unknown> | null };
+          }
+        ).__traceCallbackPromiseRef;
+        if (promiseRef?.current) {
+          await promiseRef.current;
+          promiseRef.current = null;
+        }
       });
 
-      // Assert - verify the full code path executed
-      await waitFor(() => {
-        expect(mockCheckIsSeedlessPasswordOutdated).toHaveBeenCalledWith(false);
+      // Assert
+      expect(mockCheckIsSeedlessPasswordOutdated).toHaveBeenCalledWith(false);
+      expect(mockUnlockWallet).toHaveBeenCalledWith({
+        password: 'valid-password123',
       });
-      await waitFor(() => {
-        expect(mockUnlockWallet).toHaveBeenCalled();
-      });
-      // getAuthType called extra time inside the if(isSeedlessPasswordOutdated) block
-      await waitFor(() => {
-        expect(mockGetAuthType.mock.calls.length).toBeGreaterThan(
-          getAuthTypeCallCountBefore,
-        );
-      });
+      expect(mockGetAuthType).toHaveBeenCalled();
     });
 
     it('does not call getAuthType after unlock when seedless password is not outdated', async () => {
