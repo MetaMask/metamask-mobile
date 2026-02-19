@@ -40,9 +40,9 @@ tests/
 │   │   ├── QualityGatesValidator.ts # Threshold validation engine
 │   │   ├── QualityGatesReportFormatter.ts # Console, HTML, and CSV report formatting
 │   │   └── helpers.ts               # File-based failure tracking across workers
+│   ├── TimerStore.ts               # Low-level timer management
+│   ├── TimerHelper.ts              # Timer helper with thresholds support
 │   └── utils/
-│       ├── Timers.js                # Low-level timer management
-│       ├── TimersHelper.js          # Timer helper with thresholds support
 │       ├── Flows.js                 # Shared user flows
 │       ├── TestConstants.js         # Test constants and credentials
 │       ├── BrowserStackCredentials.js # BrowserStack auth helper
@@ -281,7 +281,7 @@ Integration tests for MetaMask Connect:
 
 The performance tracking system consists of three main components:
 
-1. **TimerHelper** (`tests/framework/utils/TimersHelper.js`) - Creates and manages individual timers with platform-specific thresholds
+1. **TimerHelper** (`tests/framework/TimerHelper.ts`) - Creates and manages individual timers with platform-specific thresholds
 2. **PerformanceTracker** (`tests/reporters/PerformanceTracker.js`) - Collects all timers and generates metrics
 3. **Quality Gates** (`tests/framework/quality-gates/`) - TypeScript module for threshold validation and reporting:
    - `QualityGatesValidator` - Validates metrics against defined thresholds
@@ -298,7 +298,7 @@ The performance tracking system consists of three main components:
 - Multiple measurement patterns
 
 ```javascript
-import TimerHelper from '../../framework/utils/TimersHelper.js';
+import TimerHelper from '../../framework/TimerHelper';
 
 // Timer without threshold (informational only)
 const timer = new TimerHelper('Description of measurement');
@@ -669,7 +669,7 @@ The aggregated HTML report (`performance-report.html`) includes:
 
 ```javascript
 import { test } from '../../framework/fixtures/performance-test.js';
-import TimerHelper from '../../framework/utils/TimersHelper.js';
+import TimerHelper from '../../framework/TimerHelper';
 import WalletMainScreen from '../../../wdio/screen-objects/WalletMainScreen.js';
 import { login, dissmissAllModals } from '../../framework/utils/Flows.js';
 
