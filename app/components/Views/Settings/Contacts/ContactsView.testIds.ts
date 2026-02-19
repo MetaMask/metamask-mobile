@@ -2,7 +2,7 @@ export const ContactsViewSelectorIDs = {
   ADD_BUTTON: 'contact-add-contact-button',
   CONTAINER: 'contacts-screen',
   HEADER: 'contacts-header',
-  HEADER_BACK_BUTTON: 'contacts-header-back-button',
+  HEADER_BACK_BUTTON: 'back-arrow-button',
 };
 
 export const ContactsViewSelectorsText = {

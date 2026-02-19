@@ -302,7 +302,7 @@ exports[`Contacts renders correctly 1`] = `
                                     undefined,
                                   ]
                                 }
-                                testID="contacts-header-back-button"
+                                testID="back-arrow-button"
                               >
                                 <SvgMock
                                   fill="currentColor"
