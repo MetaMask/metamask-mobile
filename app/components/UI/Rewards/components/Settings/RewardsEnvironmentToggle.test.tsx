@@ -46,7 +46,7 @@ jest.mock('@metamask/design-system-react-native', () => {
       const ReactActual = jest.requireActual('react');
       return ReactActual.createElement(Text, { ...props }, children);
     },
-    TextVariant: { BodyMd: 'BodyMd', BodySm: 'BodySm' },
+    TextVariant: { HeadingSm: 'HeadingSm', BodyMd: 'BodyMd', BodySm: 'BodySm' },
     BoxFlexDirection: { Row: 'row' },
     BoxAlignItems: { Center: 'center' },
     BoxJustifyContent: { Between: 'space-between' },

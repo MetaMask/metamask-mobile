@@ -673,6 +673,7 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "subscriptionReferralDetails": {},
         "subscriptions": {},
         "unlockedRewards": {},
+        "useUatBackend": false,
       },
       "SamplePetnamesController": {
         "namesByChainIdAndAddress": {},
@@ -1526,6 +1527,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "subscriptionReferralDetails": {},
         "subscriptions": {},
         "unlockedRewards": {},
+        "useUatBackend": false,
       },
       "SamplePetnamesController": {
         "namesByChainIdAndAddress": {},
