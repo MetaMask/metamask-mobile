@@ -17,7 +17,6 @@ import {
 } from '../../../hooks/pay/useTransactionPayData';
 import { useTransactionConfirm } from '../../../hooks/transactions/useTransactionConfirm';
 import { useAlerts } from '../../../context/alert-system-context';
-import { RelayYouReceiveRow } from '../../rows/relay-you-receive-row';
 import { TotalRow } from '../../rows/total-row';
 import { BridgeFeeRow } from '../../rows/bridge-fee-row';
 import { AssetType } from '../../../types/token';
@@ -47,7 +46,6 @@ export const MusdMaxConversionInfoTestIds = {
   LOADING: 'musd-max-conversion-info-loading',
   CONFIRM_BUTTON: 'musd-max-conversion-info-confirm-button',
   ASSET_HEADER: 'musd-max-conversion-info-asset-header',
-  AMOUNT_ROW: 'musd-max-conversion-info-amount-row',
   FEE_ROW: 'musd-max-conversion-info-fee-row',
   TOTAL_ROW: 'musd-max-conversion-info-total-row',
   EARNING_ROW: 'musd-max-conversion-info-earning-row',
@@ -97,10 +95,6 @@ export const MusdMaxConversionInfo = () => {
             formatFiat={formatFiat}
           />
           <View style={styles.detailsSection}>
-            <RelayYouReceiveRow
-              label={strings('earn.musd_conversion.you_receive')}
-              testID={MusdMaxConversionInfoTestIds.AMOUNT_ROW}
-            />
             <BridgeFeeRow />
             <TotalRow />
             <PercentageRow />
