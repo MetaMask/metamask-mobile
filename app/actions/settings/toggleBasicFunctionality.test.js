@@ -2,17 +2,11 @@ import { toggleBasicFunctionality, setBasicFunctionality } from './index';
 
 // Mock Engine
 const mockSetBasicFunctionality = jest.fn().mockResolvedValue(undefined);
-const mockAssetsControllerSetBasicFunctionality = jest
-  .fn()
-  .mockResolvedValue(undefined);
 jest.mock('../../core/Engine', () => ({
   default: {
     context: {
       MultichainAccountService: {
         setBasicFunctionality: mockSetBasicFunctionality,
-      },
-      AssetsController: {
-        setBasicFunctionality: mockAssetsControllerSetBasicFunctionality,
       },
     },
   },

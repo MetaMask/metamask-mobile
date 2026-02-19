@@ -70,14 +70,6 @@ export function toggleBasicFunctionality(basicFunctionalityEnabled) {
         error,
       );
     });
-    Engine.context.AssetsController.setBasicFunctionality(
-      basicFunctionalityEnabled,
-    ).catch((error) => {
-      console.error(
-        'Failed to set basic functionality on AssetsController:',
-        error,
-      );
-    });
   };
 }
 
