@@ -18,6 +18,7 @@ import BottomSheet, {
 } from '../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import { strings } from '../../../../../locales/i18n';
+import { getFaviconUrl } from '../utils/marketInsightsFormatting';
 
 interface MarketInsightsTrendSourcesBottomSheetProps {
   isVisible: boolean;
@@ -25,15 +26,6 @@ interface MarketInsightsTrendSourcesBottomSheetProps {
   trendTitle: string;
   articles: MarketInsightsArticle[];
 }
-
-const getFaviconUrl = (source: string): string => {
-  try {
-    const domain = source.includes('://') ? new URL(source).hostname : source;
-    return `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
-  } catch {
-    return `https://www.google.com/s2/favicons?domain=${source}&sz=32`;
-  }
-};
 
 const MarketInsightsTrendSourcesBottomSheet: React.FC<
   MarketInsightsTrendSourcesBottomSheetProps

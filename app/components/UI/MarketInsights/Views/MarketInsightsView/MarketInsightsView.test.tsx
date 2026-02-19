@@ -184,14 +184,18 @@ describe('MarketInsightsView', () => {
 
     const { getByTestId } = renderWithProvider(<MarketInsightsView />);
 
-    expect(getByTestId(MarketInsightsSelectorsIDs.VIEW_CONTAINER)).toBeTruthy();
+    expect(
+      getByTestId(MarketInsightsSelectorsIDs.VIEW_CONTAINER),
+    ).toBeOnTheScreen();
     expect(
       getByTestId(`${MarketInsightsSelectorsIDs.TREND_ITEM}-0`),
-    ).toBeTruthy();
+    ).toBeOnTheScreen();
     expect(
       getByTestId(`${MarketInsightsSelectorsIDs.TWEET_CARD}-0`),
-    ).toBeTruthy();
-    expect(getByTestId(MarketInsightsSelectorsIDs.SOURCES_FOOTER)).toBeTruthy();
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(MarketInsightsSelectorsIDs.SOURCES_FOOTER),
+    ).toBeOnTheScreen();
 
     fireEvent.press(getByTestId(`${MarketInsightsSelectorsIDs.TWEET_CARD}-0`));
     expect(Linking.openURL).toHaveBeenCalledWith(
@@ -216,6 +220,6 @@ describe('MarketInsightsView', () => {
     fireEvent.press(getByTestId(`${MarketInsightsSelectorsIDs.TREND_ITEM}-0`));
     expect(
       getByTestId('market-insights-trend-sources-bottom-sheet'),
-    ).toBeTruthy();
+    ).toBeOnTheScreen();
   });
 });

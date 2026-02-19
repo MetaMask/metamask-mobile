@@ -25,23 +25,10 @@ import type {
   MarketInsightsSourcesBottomSheetProps,
 } from './MarketInsightsSourcesFooter.types';
 import type { MarketInsightsSource } from '@metamask/ai-controllers';
+import { getFaviconUrl } from '../../utils/marketInsightsFormatting';
 
 // Maximum number of source icons to show in the pill before "+N"
 const MAX_VISIBLE_SOURCES = 4;
-
-/**
- * Generates a Google favicon URL for a given domain.
- * @param url - Full URL or domain name
- * @returns Favicon image URL
- */
-const getFaviconUrl = (url: string): string => {
-  try {
-    const domain = new URL(url).hostname;
-    return `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
-  } catch {
-    return `https://www.google.com/s2/favicons?domain=${url}&sz=32`;
-  }
-};
 
 // SourceIcon renders a small circular favicon for a source.
 const SourceIcon: React.FC<{

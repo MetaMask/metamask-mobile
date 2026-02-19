@@ -20,8 +20,8 @@ describe('MarketInsightsTrendItem', () => {
       <MarketInsightsTrendItem trend={trend as never} testID="trend-item" />,
     );
 
-    expect(getByText(trend.title)).toBeTruthy();
-    expect(getByText(trend.description)).toBeTruthy();
+    expect(getByText(trend.title)).toBeOnTheScreen();
+    expect(getByText(trend.description)).toBeOnTheScreen();
 
     const sourceIcons = UNSAFE_getAllByType(Image);
     expect(sourceIcons).toHaveLength(2);

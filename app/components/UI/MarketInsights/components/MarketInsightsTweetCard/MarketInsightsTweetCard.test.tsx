@@ -31,8 +31,8 @@ describe('MarketInsightsTweetCard', () => {
       />,
     );
 
-    expect(getByText('analyst_alpha')).toBeTruthy();
-    expect(getByText('1h ago')).toBeTruthy();
+    expect(getByText('analyst_alpha')).toBeOnTheScreen();
+    expect(getByText('1h ago')).toBeOnTheScreen();
 
     fireEvent.press(getByTestId('market-insights-tweet-card'));
     expect(onPress).toHaveBeenCalledTimes(1);

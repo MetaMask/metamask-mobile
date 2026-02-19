@@ -63,7 +63,7 @@ describe('MarketInsightsSourcesFooter', () => {
     const pressables = UNSAFE_getAllByType(Pressable);
     fireEvent.press(pressables[0]);
 
-    expect(getByText('CoinDesk')).toBeTruthy();
+    expect(getByText('CoinDesk')).toBeOnTheScreen();
 
     fireEvent.press(getByText('CoinDesk'));
     expect(Linking.openURL).toHaveBeenCalledWith(

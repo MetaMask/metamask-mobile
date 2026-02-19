@@ -7,6 +7,25 @@ export interface HighlightedSegment {
   highlighted: boolean;
 }
 
+export const getFaviconUrl = (source: string): string => {
+  const trimmedSource = source.trim();
+
+  try {
+    const normalizedSource = trimmedSource.includes('://')
+      ? trimmedSource
+      : `https://${trimmedSource}`;
+    const domain = new URL(normalizedSource).hostname;
+    return `https://www.google.com/s2/favicons?domain=${encodeURIComponent(
+      domain,
+    )}&sz=32`;
+  } catch {
+    const fallbackDomain = trimmedSource.split('/')[0];
+    return `https://www.google.com/s2/favicons?domain=${encodeURIComponent(
+      fallbackDomain,
+    )}&sz=32`;
+  }
+};
+
 export const formatRelativeTime = (
   dateString: string,
   options: RelativeTimeOptions = {},
@@ -29,11 +48,15 @@ export const buildHighlightedSegments = (
   text: string,
   highlightTerms: string[],
 ): HighlightedSegment[] => {
-  if (highlightTerms.length === 0) {
+  const validHighlightTerms = highlightTerms.filter(
+    (term) => term.trim().length > 0,
+  );
+
+  if (validHighlightTerms.length === 0) {
     return [{ text, highlighted: false }];
   }
 
-  const escapedTerms = highlightTerms.map((term) =>
+  const escapedTerms = validHighlightTerms.map((term) =>
     term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
   );
   const pattern = new RegExp(`(${escapedTerms.join('|')})`, 'gi');

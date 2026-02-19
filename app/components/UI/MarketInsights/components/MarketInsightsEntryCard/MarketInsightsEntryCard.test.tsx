@@ -36,7 +36,7 @@ describe('MarketInsightsEntryCard', () => {
       />,
     );
 
-    expect(getByText('ETH rallies on ETF optimism')).toBeTruthy();
+    expect(getByText('ETH rallies on ETF optimism')).toBeOnTheScreen();
 
     fireEvent.press(getByTestId('market-insights-entry-card'));
     expect(mockPress).toHaveBeenCalledTimes(1);

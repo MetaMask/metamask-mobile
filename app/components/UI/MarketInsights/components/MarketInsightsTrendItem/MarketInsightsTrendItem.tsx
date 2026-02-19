@@ -11,16 +11,7 @@ import {
   BoxAlignItems,
 } from '@metamask/design-system-react-native';
 import type { MarketInsightsTrendItemProps } from './MarketInsightsTrendItem.types';
-
-// Generates a Google favicon URL for a given domain/URL.
-const getFaviconUrl = (source: string): string => {
-  try {
-    const domain = source.includes('://') ? new URL(source).hostname : source;
-    return `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
-  } catch {
-    return `https://www.google.com/s2/favicons?domain=${source}&sz=32`;
-  }
-};
+import { getFaviconUrl } from '../../utils/marketInsightsFormatting';
 
 const SOURCE_ICON_IMAGE_STYLE = { width: 16, height: 16, borderRadius: 8 };
 
