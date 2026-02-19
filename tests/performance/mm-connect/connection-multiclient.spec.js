@@ -95,7 +95,7 @@ test('@metamask/connect-multichain (multiple clients) - Connect multiple clients
     await navigateToDapp(device, DAPP_URL, DAPP_NAME);
   });
 
-  await new Promise((resolve) => setTimeout(resolve, 5000));
+  await new Promise((resolve) => setTimeout(resolve, 1000));
 
   //
   // Connect via Multichain API

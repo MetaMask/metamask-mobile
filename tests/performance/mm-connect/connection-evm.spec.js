@@ -77,7 +77,7 @@ test.skip('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Br
     await launchMobileBrowser(device);
     await navigateToDapp(device, DAPP_URL, DAPP_NAME);
   });
-  await new Promise((resolve) => setTimeout(resolve, 5000));
+  await new Promise((resolve) => setTimeout(resolve, 1000));
 
   await AppwrightHelpers.withWebAction(
     device,
