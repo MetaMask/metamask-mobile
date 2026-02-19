@@ -433,7 +433,6 @@ const Routes = {
       COMPLETE: 'CardOnboardingComplete',
       KYC_FAILED: 'CardOnboardingKYCFailed',
       KYC_PENDING: 'CardOnboardingKYCPending',
-      WEBVIEW: 'CardOnboardingWebview',
     },
     MODALS: {
       ID: 'CardModals',
