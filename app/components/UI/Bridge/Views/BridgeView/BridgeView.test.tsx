@@ -571,7 +571,7 @@ describe('BridgeView', () => {
 
     const input = getByTestId('source-token-area-input');
     await waitFor(() => {
-      expect(input.props.value).toBe('2.0');
+      expect(input.props.value).toBe('2');
     });
   });
 

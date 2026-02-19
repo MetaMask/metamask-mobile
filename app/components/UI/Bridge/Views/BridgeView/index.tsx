@@ -318,7 +318,11 @@ const BridgeView = () => {
 
   const handleSourceMaxPress = () => {
     if (latestSourceBalance?.displayBalance) {
-      dispatch(setSourceAmountAsMax(latestSourceBalance.displayBalance));
+      const balance = latestSourceBalance.displayBalance;
+      const cleaned = balance.includes('.')
+        ? balance.replace(/0+$/, '').replace(/\.$/, '')
+        : balance;
+      dispatch(setSourceAmountAsMax(cleaned));
     }
   };
 
