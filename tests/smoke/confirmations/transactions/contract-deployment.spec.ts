@@ -87,12 +87,13 @@ describe(SmokeConfirmations('Contract Deployment'), () => {
           ConfirmationUITypes.ModalConfirmationContainer,
         );
 
+        await Assertions.expectElementToBeVisible(RowComponents.AccountNetwork);
+
         // Scroll to reveal GasFeesDetails on Android due to taller From/To row
         if (device.getPlatform() === 'android') {
           await Gestures.swipe(RowComponents.SimulationDetails, 'up');
         }
 
-        await Assertions.expectElementToBeVisible(RowComponents.AccountNetwork);
         await Assertions.expectElementToBeVisible(
           RowComponents.SimulationDetails,
         );
