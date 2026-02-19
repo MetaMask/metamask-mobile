@@ -61,7 +61,9 @@ const TransactionDetailsSheet: React.FC = () => {
   const liveTransaction = useSelector((state: RootState) =>
     selectTransactionMetadataById(state, tx.id),
   );
-  const currentTx = liveTransaction ?? tx;
+  const currentTx = liveTransaction
+    ? { ...liveTransaction, txParams: { ...liveTransaction.txParams } }
+    : tx;
 
   const handleClose = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
