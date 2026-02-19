@@ -84,7 +84,7 @@ describe('useOwnedNfts', () => {
     expect(result.current).toEqual([]);
   });
 
-  it('flattens NFTs from multiple chains correctly', () => {
+  it('returns only owned NFTs when flattened across multiple chains', () => {
     const chain1Nfts = [
       createMockNft('0x111', '1', true),
       createMockNft('0x222', '2', true),
