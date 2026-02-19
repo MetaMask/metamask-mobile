@@ -80,7 +80,7 @@ import hideProtocolFromUrl from '../../../util/hideProtocolFromUrl';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
 import { NetworkConfiguration } from '@metamask/network-controller';
-import { Box, BoxBackgroundColor } from '@metamask/design-system-react-native';
+import { Box } from '@metamask/design-system-react-native';
 import RpcSelectionModal from './RpcSelectionModal/RpcSelectionModal';
 import {
   TraceName,
@@ -109,6 +109,9 @@ import {
   NetworkSelectorSource,
 } from '../../../constants/networkSelector';
 import { getGasFeesSponsoredNetworkEnabled } from '../../../selectors/featureFlagController/gasFeesSponsored';
+import TagColored, {
+  TagColor,
+} from '../../../component-library/components-temp/TagColored';
 
 interface infuraNetwork {
   name: string;
@@ -577,14 +580,12 @@ const NetworkSelector = () => {
                 name
               ) : (
                 <View>
-                  <Box twClassName="flex-row gap-1.5">
+                  <Box twClassName="flex-row gap-2">
                     <Text variant={TextVariant.BodyMD}>{name}</Text>
                     {isGasFeesSponsoredNetworkEnabled(chainId) ? (
-                      <Box
-                        twClassName="rounded"
-                        backgroundColor={BoxBackgroundColor.SuccessMuted}
-                        paddingLeft={2}
-                        paddingRight={2}
+                      <TagColored
+                        color={TagColor.Success}
+                        style={styles.noNetworkFeeContainer}
                       >
                         <Text
                           variant={TextVariant.BodySM}
@@ -592,7 +593,7 @@ const NetworkSelector = () => {
                         >
                           {strings('networks.no_network_fee')}
                         </Text>
-                      </Box>
+                      </TagColored>
                     ) : undefined}
                   </Box>
                 </View>

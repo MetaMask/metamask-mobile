@@ -42,24 +42,28 @@ import { IconColor } from '../../../../../../../component-library/components/Ico
 import { selectNetworkConfigurationByChainId } from '../../../../../../../selectors/networkController';
 import type { RootState } from '../../../../../../../reducers';
 import useNetworkInfo from '../../../../hooks/useNetworkInfo';
-import { Box, BoxBackgroundColor } from '@metamask/design-system-react-native';
+import TagColored, {
+  TagColor,
+} from '../../../../../../../component-library/components-temp/TagColored';
 
-const PaidByMetaMask = () => (
-  <Box
-    twClassName="rounded"
-    backgroundColor={BoxBackgroundColor.SuccessMuted}
-    paddingLeft={2}
-    paddingRight={2}
-  >
-    <Text
-      variant={TextVariant.BodyMD}
-      testID="paid-by-metamask"
-      color={TextColor.Success}
+const PaidByMetaMask = () => {
+  const { styles } = useStyles(styleSheet, {});
+
+  return (
+    <TagColored
+      color={TagColor.Success}
+      style={styles.gasFeesSponsoredContainer}
     >
-      {strings('transactions.paid_by_metamask')}
-    </Text>
-  </Box>
-);
+      <Text
+        variant={TextVariant.BodyMD}
+        testID="paid-by-metamask"
+        color={TextColor.Success}
+      >
+        {strings('transactions.paid_by_metamask')}
+      </Text>
+    </TagColored>
+  );
+};
 
 const SkeletonEstimationInfo = () => {
   const { styles } = useStyles(styleSheet, {});

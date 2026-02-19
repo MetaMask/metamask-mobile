@@ -11,6 +11,9 @@ import AvatarNetwork from '../../../../component-library/components/Avatars/Avat
 import { getNetworkImageSource } from '../../../../util/networks';
 import { CaipChainId, Hex } from '@metamask/utils';
 import { strings } from '../../../../../locales/i18n';
+import TagColored, {
+  TagColor,
+} from '../../../../component-library/components-temp/TagColored';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -22,6 +25,10 @@ const createStyles = () =>
     },
     childrenWrapper: {
       flex: 1,
+    },
+    noNetworkFeeContainer: {
+      alignSelf: 'center',
+      height: 22,
     },
   });
 
@@ -55,14 +62,17 @@ export const NetworkRow: React.FC<NetworkRowProps> = ({
         gap={8}
       >
         <AvatarNetwork imageSource={imageSource} />
-        <Box>
+        <TagColored
+          color={TagColor.Success}
+          style={styles.noNetworkFeeContainer}
+        >
           <Text variant={TextVariant.BodyLGMedium}>{chainName}</Text>
           {showNoNetworkFeeLabel ? (
             <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
               {strings('networks.no_network_fee')}
             </Text>
           ) : null}
-        </Box>
+        </TagColored>
       </Box>
 
       {children ? (

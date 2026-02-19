@@ -20,7 +20,6 @@ import {
   BoxFlexDirection,
   BoxAlignItems,
   BoxJustifyContent,
-  BoxBackgroundColor,
 } from '@metamask/design-system-react-native';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
@@ -43,6 +42,9 @@ import { toSentenceCase } from '../../../../../util/string';
 import { getGasFeesSponsoredNetworkEnabled } from '../../../../../selectors/featureFlagController/gasFeesSponsored';
 import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
 import { useLatestBalance } from '../../hooks/useLatestBalance';
+import TagColored, {
+  TagColor,
+} from '../../../../../component-library/components-temp/TagColored';
 
 if (
   Platform.OS === 'android' &&
@@ -210,16 +212,14 @@ const QuoteDetailsCard: React.FC = () => {
             }}
             value={{
               label: (
-                <Box
-                  twClassName="rounded"
-                  backgroundColor={BoxBackgroundColor.SuccessMuted}
-                  paddingLeft={2}
-                  paddingRight={2}
+                <TagColored
+                  color={TagColor.Success}
+                  style={styles.gasFeesSponsoredContainer}
                 >
                   <Text variant={TextVariant.BodySM} color={TextColor.Success}>
                     {strings('bridge.gas_fees_sponsored')}
                   </Text>
-                </Box>
+                </TagColored>
               ),
             }}
           />

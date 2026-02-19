@@ -35,7 +35,12 @@ import Icon, {
 } from '../../../../../../component-library/components/Icons/Icon';
 import { selectAdditionalNetworksBlacklistFeatureFlag } from '../../../../../../selectors/featureFlagController/networkBlacklist';
 import { getGasFeesSponsoredNetworkEnabled } from '../../../../../../selectors/featureFlagController/gasFeesSponsored';
-import { Box, BoxBackgroundColor } from '@metamask/design-system-react-native';
+import TagColored, {
+  TagColor,
+} from '../../../../../../component-library/components-temp/TagColored';
+import { Box } from '@metamask/design-system-react-native';
+import styleSheet from './CustomNetworkView.styles.ts';
+import { useStyles } from '../../../../../../component-library/hooks';
 
 const CustomNetwork = ({
   showPopularNetworkModal,
@@ -100,6 +105,7 @@ const CustomNetwork = ({
   );
 
   const { colors } = useTheme();
+  const { styles } = useStyles(styleSheet, {});
   const networkSettingsStyles = createStyles();
   const customNetworkStyles = createCustomNetworkStyles({ colors });
   const filteredPopularList = showAddedNetworks
@@ -172,18 +178,16 @@ const CustomNetwork = ({
               />
             </View>
             <View style={customNetworkStyles.nameAndTagContainer}>
-              <Box twClassName="flex-row gap-1.5">
+              <Box twClassName="flex-row gap-2">
                 <CustomText bold={!isNetworkUiRedesignEnabled()}>
                   {networkConfiguration.nickname}
                 </CustomText>
                 {isGasFeesSponsoredNetworkEnabled(
                   networkConfiguration.chainId,
                 ) ? (
-                  <Box
-                    twClassName="rounded"
-                    backgroundColor={BoxBackgroundColor.SuccessMuted}
-                    paddingLeft={2}
-                    paddingRight={2}
+                  <TagColored
+                    color={TagColor.Success}
+                    style={styles.noNetworkFeeContainer}
                   >
                     <Text
                       variant={TextVariant.BodySM}
@@ -191,7 +195,7 @@ const CustomNetwork = ({
                     >
                       {strings('networks.no_network_fee')}
                     </Text>
-                  </Box>
+                  </TagColored>
                 ) : null}
               </Box>
             </View>

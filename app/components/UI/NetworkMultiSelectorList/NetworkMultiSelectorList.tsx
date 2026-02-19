@@ -9,7 +9,7 @@ import React, {
 } from 'react';
 import { useSelector } from 'react-redux';
 import { ImageSourcePropType, View } from 'react-native';
-import { Box, BoxBackgroundColor } from '@metamask/design-system-react-native';
+import { Box } from '@metamask/design-system-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FlashList, ListRenderItem } from '@shopify/flash-list';
 import {
@@ -61,6 +61,9 @@ import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { NETWORK_MULTI_SELECTOR_TEST_IDS } from '../NetworkMultiSelector/NetworkMultiSelector.constants';
 import { getGasFeesSponsoredNetworkEnabled } from '../../../selectors/featureFlagController/gasFeesSponsored/index.ts';
 import { strings } from '../../../../locales/i18n';
+import TagColored, {
+  TagColor,
+} from '../../../component-library/components-temp/TagColored';
 
 const SELECTION_DEBOUNCE_DELAY = 150;
 
@@ -276,13 +279,11 @@ const NetworkMultiSelectList = ({
             isSelected={isSelected}
             title={
               isGasSponsored ? (
-                <Box twClassName="flex-row gap-1.5">
+                <Box twClassName="flex-row gap-2">
                   <Text variant={TextVariant.BodyMD}>{name}</Text>
-                  <Box
-                    twClassName="rounded"
-                    backgroundColor={BoxBackgroundColor.SuccessMuted}
-                    paddingLeft={2}
-                    paddingRight={2}
+                  <TagColored
+                    color={TagColor.Success}
+                    style={styles.noNetworkFeeContainer}
                   >
                     <Text
                       variant={TextVariant.BodySM}
@@ -290,7 +291,7 @@ const NetworkMultiSelectList = ({
                     >
                       {strings('networks.no_network_fee')}
                     </Text>
-                  </Box>
+                  </TagColored>
                 </Box>
               ) : (
                 name
@@ -333,6 +334,7 @@ const NetworkMultiSelectList = ({
       openRpcModal,
       isGasFeesSponsoredNetworkEnabled,
       styles.centeredNetworkCell,
+      styles.noNetworkFeeContainer,
     ],
   );
 
