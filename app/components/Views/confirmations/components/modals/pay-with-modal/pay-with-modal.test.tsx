@@ -319,7 +319,7 @@ describe('PayWithModal', () => {
     it('bypasses getAvailableTokens for withdrawal transactions', () => {
       render();
       // For withdrawals, getAvailableTokens should NOT be called since
-      // the filter uses the allowedWithdrawTokens allowlist instead
+      // withdrawals use a separate token filter path
       expect(getAvailableTokensMock).not.toHaveBeenCalled();
     });
   });

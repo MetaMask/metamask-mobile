@@ -293,14 +293,14 @@ describe('Withdraw Any Token Flags (in selectMetaMaskPayFlags)', () => {
   });
 });
 
-describe('Allowed Withdraw Tokens (in selectMetaMaskPayFlags)', () => {
-  it('returns undefined when confirmations_pay has no allowedWithdrawTokens', () => {
+describe('Allowed Predict Withdraw Tokens (in selectMetaMaskPayFlags)', () => {
+  it('returns undefined when confirmations_pay has no allowedPredictWithdrawTokens', () => {
     const result = selectMetaMaskPayFlags(mockedEmptyFlagsState);
 
-    expect(result.allowedWithdrawTokens).toBeUndefined();
+    expect(result.allowedPredictWithdrawTokens).toBeUndefined();
   });
 
-  it('returns allowedWithdrawTokens from feature flag', () => {
+  it('returns allowedPredictWithdrawTokens from feature flag', () => {
     const allowedTokens = {
       '0x1': [
         '0x0000000000000000000000000000000000000000',
@@ -313,11 +313,11 @@ describe('Allowed Withdraw Tokens (in selectMetaMaskPayFlags)', () => {
     state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
       {
         confirmations_pay: {
-          allowedWithdrawTokens: allowedTokens,
+          allowedPredictWithdrawTokens: allowedTokens,
         },
       };
 
     const result = selectMetaMaskPayFlags(state);
-    expect(result.allowedWithdrawTokens).toEqual(allowedTokens);
+    expect(result.allowedPredictWithdrawTokens).toEqual(allowedTokens);
   });
 });

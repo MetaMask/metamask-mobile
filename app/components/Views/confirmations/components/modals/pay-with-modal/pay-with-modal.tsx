@@ -16,7 +16,10 @@ import {
   TokenListItem,
 } from '../../../types/token';
 import { useTransactionPayRequiredTokens } from '../../../hooks/pay/useTransactionPayData';
-import { getAvailableTokens , filterTokensByAllowlist } from '../../../utils/transaction-pay';
+import {
+  getAvailableTokens,
+  filterTokensByAllowlist,
+} from '../../../utils/transaction-pay';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { TransactionType } from '@metamask/transaction-controller';
 import {
@@ -46,7 +49,7 @@ export function PayWithModal() {
   const { onPaymentTokenChange: onPerpsPaymentTokenChange } =
     usePerpsPaymentToken();
   const perpsBalanceTokenFilter = usePerpsBalanceTokenFilter();
-  const { allowedWithdrawTokens } = useSelector(selectMetaMaskPayFlags);
+  const { allowedPredictWithdrawTokens } = useSelector(selectMetaMaskPayFlags);
 
   const close = useCallback((onClosed?: () => void) => {
     // Called after the bottom sheet's closing animation completes.
@@ -116,13 +119,18 @@ export function PayWithModal() {
 
   const tokenFilter = useCallback(
     (tokens: AssetType[]): TokenListItem[] => {
-      // For withdrawal transactions, show all tokens when no allowlist is set,
-      // otherwise filter by the allowed withdraw tokens allowlist from LD.
+      // For predict withdrawal transactions, filter by the LD allowlist if set,
+      // otherwise show all tokens. Perps will use its own allowlist.
       if (isTransactionPayWithdraw(transactionMeta)) {
-        if (!allowedWithdrawTokens) {
-          return tokens;
+        if (
+          hasTransactionType(transactionMeta, [
+            TransactionType.predictWithdraw,
+          ]) &&
+          allowedPredictWithdrawTokens
+        ) {
+          return filterTokensByAllowlist(tokens, allowedPredictWithdrawTokens);
         }
-        return filterTokensByAllowlist(tokens, allowedWithdrawTokens);
+        return tokens;
       }
 
       // Standard deposit/payment token filtering
@@ -149,7 +157,7 @@ export function PayWithModal() {
       return wrapHighlightedItemCallbacks(filteredTokens);
     },
     [
-      allowedWithdrawTokens,
+      allowedPredictWithdrawTokens,
       musdTokenFilter,
       payToken,
       requiredTokens,
