@@ -148,7 +148,7 @@ export const useMusdBalance = () => {
           })
         : formatWithThreshold(0, 0.01, I18n.locale, {
             style: 'currency',
-            currency: currentCurrency,
+            currency: (currentCurrency ?? 'USD').toUpperCase(),
           });
 
     const hasBalanceOnChain = (chainId: Hex) =>

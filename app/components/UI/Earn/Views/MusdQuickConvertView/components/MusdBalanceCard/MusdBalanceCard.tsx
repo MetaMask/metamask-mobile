@@ -68,7 +68,7 @@ const MusdBalanceCard = () => {
   const percentChangeFormatted =
     percentChange >= 0
       ? `+${percentChange.toFixed(2)}%`
-      : `-${percentChange.toFixed(2)}%`;
+      : `${percentChange.toFixed(2)}%`;
 
   const percentChangeColor =
     percentChange >= 0 ? TextColor.Success : TextColor.Error;

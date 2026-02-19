@@ -1,6 +1,5 @@
 import React, { useCallback } from 'react';
 import { View } from 'react-native';
-import { useSelector } from 'react-redux';
 import Badge, {
   BadgeVariant,
 } from '../../../../../../component-library/components/Badges/Badge';
@@ -23,7 +22,8 @@ import {
 import { Spinner } from '@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs';
 import { strings } from '../../../../../../../locales/i18n';
 import { AvatarSize } from '../../../../../../component-library/components/Avatars/Avatar';
-import { selectNetworkName } from '../../../../../../selectors/networkInfos';
+import { useNetworkName } from '../../../../../Views/confirmations/hooks/useNetworkName';
+import { Hex } from '@metamask/utils';
 import { useStyles } from '../../../../../hooks/useStyles';
 import { getNetworkImageSource } from '../../../../../../util/networks';
 import { EarnNetworkAvatar } from '../../EarnNetworkAvatar';
@@ -61,7 +61,7 @@ const ConvertTokenRow: React.FC<ConvertTokenRowProps> = ({
   errorMessage,
 }) => {
   const { styles } = useStyles(styleSheet, {});
-  const networkName = useSelector(selectNetworkName);
+  const networkName = useNetworkName(token.chainId as Hex | undefined);
 
   const formatFiat = useFiatFormatter();
 

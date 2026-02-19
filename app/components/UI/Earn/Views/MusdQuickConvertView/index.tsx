@@ -30,6 +30,7 @@ import AppConstants from '../../../../../core/AppConstants';
 import MusdBalanceCard from './components/MusdBalanceCard';
 import Engine from '../../../../../core/Engine';
 import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../types/musd.types';
+import Logger from '../../../../../util/Logger';
 
 interface SectionHeaderProps {
   title: string;
@@ -120,9 +121,21 @@ const MusdQuickConvertView = () => {
         return;
       }
 
-      const { transactionId } = await initiateMaxConversion(token);
-      if (transactionId) {
-        subscribeToFailedTx(transactionId);
+      try {
+        const { transactionId } = await initiateMaxConversion(token);
+        if (transactionId) {
+          subscribeToFailedTx(transactionId);
+        }
+      } catch {
+        Logger.error(new Error('Failed to initiate max conversion'), {
+          tags: {
+            feature: 'musd_conversion',
+            action: 'initiate_max_conversion',
+          },
+          context: {
+            token,
+          },
+        });
       }
     },
     [initiateMaxConversion],
@@ -133,15 +146,27 @@ const MusdQuickConvertView = () => {
     async (token: AssetType) => {
       clearFailedTransactionKeys();
 
-      const transactionId = await initiateCustomConversion({
-        preferredPaymentToken: {
-          address: token.address as Hex,
-          chainId: token.chainId as Hex,
-        },
-        navigationOverride: MUSD_CONVERSION_NAVIGATION_OVERRIDE.CUSTOM,
-      });
-      if (transactionId) {
-        subscribeToFailedTx(transactionId);
+      try {
+        const transactionId = await initiateCustomConversion({
+          preferredPaymentToken: {
+            address: token.address as Hex,
+            chainId: token.chainId as Hex,
+          },
+          navigationOverride: MUSD_CONVERSION_NAVIGATION_OVERRIDE.CUSTOM,
+        });
+        if (transactionId) {
+          subscribeToFailedTx(transactionId);
+        }
+      } catch {
+        Logger.error(new Error('Failed to initiate custom conversion'), {
+          tags: {
+            feature: 'musd_conversion',
+            action: 'initiate_custom_conversion',
+          },
+          context: {
+            token,
+          },
+        });
       }
     },
     [initiateCustomConversion],
