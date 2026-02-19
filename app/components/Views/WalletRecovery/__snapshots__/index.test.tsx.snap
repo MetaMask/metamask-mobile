@@ -181,7 +181,7 @@ exports[`WalletRecovery render matches snapshot 1`] = `
               }
             }
           >
-            SECRET RECOVERY PHRASES
+            Secret Recovery Phrases
           </Text>
           <View
             testID="select-srp"
