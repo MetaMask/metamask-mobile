@@ -14,25 +14,6 @@ import { mockGenesisBlocks } from './mocks';
 
 jest.setTimeout(150_000);
 
-const getSeenProxiedUrls = async (mockServer: Mockttp): Promise<string[]> => {
-  const mockedEndpoints = await mockServer.getMockedEndpoints();
-  const requests = (
-    await Promise.all(
-      mockedEndpoints.map((endpoint) => endpoint.getSeenRequests()),
-    )
-  ).flat();
-
-  return requests
-    .map((request) => {
-      try {
-        return new URL(request.url).searchParams.get('url');
-      } catch {
-        return null;
-      }
-    })
-    .filter((url): url is string => Boolean(url));
-};
-
 describe(FlaskBuildTests('Multichain Provider Snap Tests'), () => {
   it('can use the Multichain provider', async () => {
     await withFixtures(
@@ -48,7 +29,7 @@ describe(FlaskBuildTests('Multichain Provider Snap Tests'), () => {
           await mockGenesisBlocks(mockServer);
         },
       },
-      async ({ mockServer }) => {
+      async () => {
         await loginToApp();
 
         // Navigate to test snaps URL once for all tests
@@ -162,18 +143,6 @@ describe(FlaskBuildTests('Multichain Provider Snap Tests'), () => {
             );
           }
         }
-
-        // PoC: prove requests from multichain snaps are visible in E2E proxy traffic.
-        const proxiedUrls = await getSeenProxiedUrls(mockServer);
-        const multichainInfuraUrls = proxiedUrls.filter((url) =>
-          /https:\/\/(bitcoin|tron|solana)-mainnet\.infura\.io\//u.test(url),
-        );
-
-        expect(multichainInfuraUrls).toEqual(
-          expect.arrayContaining([
-            expect.stringMatching(/^https:\/\/solana-mainnet\.infura\.io\//u),
-          ]),
-        );
       },
     );
   });

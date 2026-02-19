@@ -42,7 +42,9 @@ describe('SnapsExecutionWebView', () => {
       platform: 'ios',
     });
 
-    expect(script).toContain('/proxy?url=');
+    expect(script).toContain('/proxy?source=');
+    expect(script).toContain("snapProxySource = 'snap-webview'");
+    expect(script).toContain('?source=${snapProxySource}&url=');
     expect(script).toContain('http://localhost');
     expect(script).not.toContain('10.0.2.2');
   });
@@ -53,7 +55,9 @@ describe('SnapsExecutionWebView', () => {
       platform: 'android',
     });
 
-    expect(script).toContain('/proxy?url=');
+    expect(script).toContain('/proxy?source=');
+    expect(script).toContain("snapProxySource = 'snap-webview'");
+    expect(script).toContain('?source=${snapProxySource}&url=');
     expect(script).toContain('http://localhost');
     expect(script).toContain('10.0.2.2');
   });

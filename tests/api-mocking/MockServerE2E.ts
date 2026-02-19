@@ -33,15 +33,21 @@ interface LiveRequest {
   timestamp: string;
 }
 
+interface SnapProxyRequest extends LiveRequest {
+  mode: 'mocked' | 'passthrough';
+}
+
 const SNAP_INFURA_PROXY_URL_REGEX =
   /^https:\/\/(?:bitcoin|tron|solana)-mainnet\.infura\.io(?:\/|$)/u;
+const SNAP_WEBVIEW_PROXY_SOURCE = 'snap-webview';
 
 const maybeLogSnapInfuraProxyRequest = (
   method: string,
   url: string,
   source: 'mocked' | 'passthrough',
+  fromSnapRuntime: boolean,
 ) => {
-  if (SNAP_INFURA_PROXY_URL_REGEX.test(url)) {
+  if (fromSnapRuntime && SNAP_INFURA_PROXY_URL_REGEX.test(url)) {
     logger.info(`[Snap Infura Proxy][${source}] ${method} ${url}`);
   }
 };
@@ -175,6 +181,7 @@ export default class MockServerE2E implements Resource {
   private _testSpecificMock?: TestSpecificMock;
   private _activeRequests = 0;
   private _shuttingDown = false;
+  private _snapProxyRequests: SnapProxyRequest[] = [];
 
   constructor(params: {
     events: MockEventsObject;
@@ -220,6 +227,7 @@ export default class MockServerE2E implements Resource {
 
     this._server = getLocal() as InternalMockServer;
     this._server._liveRequests = [];
+    this._snapProxyRequests = [];
     await this._server.start(this._serverPort);
 
     logger.info(
@@ -258,13 +266,16 @@ export default class MockServerE2E implements Resource {
         }
         this._activeRequests++;
         try {
-          const urlEndpoint = new URL(request.url).searchParams.get('url');
+          const requestUrl = new URL(request.url);
+          const urlEndpoint = requestUrl.searchParams.get('url');
           if (!urlEndpoint) {
             return {
               statusCode: 400,
               body: JSON.stringify({ error: 'Missing url parameter' }),
             };
           }
+          const isSnapWebViewProxyRequest =
+            requestUrl.searchParams.get('source') === SNAP_WEBVIEW_PROXY_SOURCE;
 
           const method = request.method;
 
@@ -314,7 +325,15 @@ export default class MockServerE2E implements Resource {
           }
 
           if (matchingEvent) {
-            maybeLogSnapInfuraProxyRequest(method, urlEndpoint, 'mocked');
+            if (isSnapWebViewProxyRequest) {
+              this._recordSnapProxyRequest(method, urlEndpoint, 'mocked');
+            }
+            maybeLogSnapInfuraProxyRequest(
+              method,
+              urlEndpoint,
+              'mocked',
+              isSnapWebViewProxyRequest,
+            );
             logger.debug(`Mocking ${method} request to: ${urlEndpoint}`);
             logger.debug(`Response status: ${matchingEvent.responseCode}`);
             logger.debug('Response:', matchingEvent.response);
@@ -351,7 +370,15 @@ export default class MockServerE2E implements Resource {
 
           // Translate fallback ports to actual allocated ports (host-side forwarding)
           updatedUrl = translateFallbackPortToActual(updatedUrl);
-          maybeLogSnapInfuraProxyRequest(method, updatedUrl, 'passthrough');
+          if (isSnapWebViewProxyRequest) {
+            this._recordSnapProxyRequest(method, updatedUrl, 'passthrough');
+          }
+          maybeLogSnapInfuraProxyRequest(
+            method,
+            updatedUrl,
+            'passthrough',
+            isSnapWebViewProxyRequest,
+          );
 
           if (!isUrlAllowed(updatedUrl)) {
             const errorMessage = `Request going to live server: ${updatedUrl}`;
@@ -414,12 +441,6 @@ export default class MockServerE2E implements Resource {
 
         // Translate fallback ports to actual allocated ports (host-side forwarding)
         const translatedUrl = translateFallbackPortToActual(request.url);
-        maybeLogSnapInfuraProxyRequest(
-          request.method,
-          translatedUrl,
-          'passthrough',
-        );
-
         if (!isUrlAllowed(translatedUrl)) {
           const errorMessage = `Request going to live server: ${translatedUrl}`;
           logger.warn(errorMessage);
@@ -641,6 +662,64 @@ export default class MockServerE2E implements Resource {
       "Check your test-specific mocks or add them to the default mocks.\n You can also add the URL to the allowlist if it's a known live request.";
     logger.error(message);
     throw new Error(message);
+  }
+
+  logSnapProxyRequests(): void {
+    if (this._snapProxyRequests.length === 0) {
+      return;
+    }
+
+    const groupedRequests = new Map<
+      string,
+      {
+        method: string;
+        url: string;
+        mode: 'mocked' | 'passthrough';
+        count: number;
+        lastTimestamp: string;
+      }
+    >();
+
+    for (const request of this._snapProxyRequests) {
+      const key = `${request.mode}|${request.method}|${request.url}`;
+      const existing = groupedRequests.get(key);
+      if (existing) {
+        existing.count++;
+        existing.lastTimestamp = request.timestamp;
+      } else {
+        groupedRequests.set(key, {
+          method: request.method,
+          url: request.url,
+          mode: request.mode,
+          count: 1,
+          lastTimestamp: request.timestamp,
+        });
+      }
+    }
+
+    const summary = Array.from(groupedRequests.values())
+      .map(
+        (request, index) =>
+          `${index + 1}. [${request.mode}] [${request.method}] ${request.url} (count: ${request.count}, last: ${request.lastTimestamp})`,
+      )
+      .join('\n');
+
+    logger.info(
+      `Snap WebView proxied requests: ${this._snapProxyRequests.length} total (${groupedRequests.size} unique)\n${summary}`,
+    );
+  }
+
+  private _recordSnapProxyRequest(
+    method: string,
+    url: string,
+    mode: 'mocked' | 'passthrough',
+  ): void {
+    this._snapProxyRequests.push({
+      method,
+      url,
+      mode,
+      timestamp: new Date().toISOString(),
+    });
   }
 
   private _sanitizeJson(value: unknown, ignoreFields: string[]): unknown {

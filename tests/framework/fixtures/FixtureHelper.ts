@@ -698,6 +698,16 @@ export async function withFixtures(
 
     if (mockServerInstance) {
       try {
+        // Print Snap WebView requests that were proxied through the mock server.
+        mockServerInstance.logSnapProxyRequests();
+      } catch (cleanupError) {
+        logger.error('Error while logging Snap proxy requests:', cleanupError);
+        cleanupErrors.push(cleanupError as Error);
+      }
+    }
+
+    if (mockServerInstance) {
+      try {
         // Validate live requests
         mockServerInstance.validateLiveRequests();
       } catch (cleanupError) {

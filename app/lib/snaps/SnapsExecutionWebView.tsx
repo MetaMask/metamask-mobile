@@ -47,11 +47,15 @@ export const buildE2EProxyPatchScript = ({
         const proxyCandidates = ${JSON.stringify(proxyCandidates)}.map(
           (host) => \`\${host}:\${mockServerPort}\`,
         );
+        const snapProxySource = 'snap-webview';
+
+        const buildProxyUrl = (proxyBaseUrl, targetUrl) =>
+          \`\${proxyBaseUrl}/proxy?source=\${snapProxySource}&url=\${encodeURIComponent(targetUrl)}\`;
 
         const shouldProxyUrl = (targetUrl) =>
           typeof targetUrl === 'string' &&
           /^https?:\\/\\//.test(targetUrl) &&
-          !targetUrl.includes('/proxy?url=') &&
+          !targetUrl.includes('/proxy?') &&
           !proxyCandidates.some((candidate) => targetUrl.startsWith(candidate));
 
         const toUrlString = (input) => {
@@ -79,7 +83,7 @@ export const buildE2EProxyPatchScript = ({
             for (const proxyBaseUrl of proxyCandidates) {
               try {
                 return await originalFetch(
-                  \`\${proxyBaseUrl}/proxy?url=\${encodeURIComponent(targetUrl)}\`,
+                  buildProxyUrl(proxyBaseUrl, targetUrl),
                   init,
                 );
               } catch (error) {
@@ -102,8 +106,7 @@ export const buildE2EProxyPatchScript = ({
             xhr.open = function (method, url, ...openArgs) {
               const targetUrl = toUrlString(url);
               if (shouldProxyUrl(targetUrl)) {
-                const proxiedUrl =
-                  \`\${proxyCandidates[0]}/proxy?url=\${encodeURIComponent(targetUrl)}\`;
+                const proxiedUrl = buildProxyUrl(proxyCandidates[0], targetUrl);
                 return originalOpen.call(this, method, proxiedUrl, ...openArgs);
               }
               return originalOpen.call(this, method, url, ...openArgs);
