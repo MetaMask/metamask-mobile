@@ -412,9 +412,7 @@ export const BrowserPure = (props) => {
     // 1. No tabs exist, OR
     // 2. Active tab was closed (activeTabId not in tabs)
     if (tabs.length === 0 || !activeTabExists) {
-      navigation.navigate(Routes.TRENDING_VIEW, {
-        screen: Routes.TRENDING_FEED,
-      });
+      navigation.navigate(Routes.TRENDING_FEED);
     }
   }, [tabs, activeTabId, setShouldShowTabs, navigation]);
 
