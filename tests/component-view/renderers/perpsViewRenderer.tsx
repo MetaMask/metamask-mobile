@@ -33,7 +33,10 @@ import PerpsTPSLView from '../../../app/components/UI/Perps/Views/PerpsTPSLView/
 import PerpsOrderDetailsView from '../../../app/components/UI/Perps/Views/PerpsOrderDetailsView/PerpsOrderDetailsView';
 import PerpsCancelAllOrdersView from '../../../app/components/UI/Perps/Views/PerpsCancelAllOrdersView/PerpsCancelAllOrdersView';
 import PerpsCloseAllPositionsView from '../../../app/components/UI/Perps/Views/PerpsCloseAllPositionsView/PerpsCloseAllPositionsView';
-import { Position } from '@metamask/perps-controller';
+import PerpsSelectAdjustMarginActionView from '../../../app/components/UI/Perps/Views/PerpsSelectAdjustMarginActionView/PerpsSelectAdjustMarginActionView';
+import PerpsTooltipView from '../../../app/components/UI/Perps/Views/PerpsTooltipView/PerpsTooltipView';
+import PerpsCrossMarginWarningBottomSheet from '../../../app/components/UI/Perps/components/PerpsCrossMarginWarningBottomSheet/PerpsCrossMarginWarningBottomSheet';
+import { Position, type Order } from '@metamask/perps-controller';
 
 /** No-op unsubscribe for test stream channels; subscribe() must return () => void */
 const noopUnsubscribe = (): void => undefined;
@@ -607,3 +610,139 @@ export function renderPerpsCloseAllPositionsView(
     options,
   );
 }
+
+/**
+ * Renders PerpsSelectAdjustMarginActionView. Use in PerpsSelectAdjustMarginActionView.view.test.tsx.
+ */
+export function renderPerpsSelectAdjustMarginActionView(
+  options: RenderPerpsViewOptions = {},
+) {
+  const initialParams = {
+    position: defaultPositionForViews,
+    ...options.initialParams,
+  };
+  return renderPerpsView(
+    PerpsSelectAdjustMarginActionView as unknown as React.ComponentType,
+    Routes.PERPS.SELECT_ADJUST_MARGIN_ACTION,
+    { ...options, initialParams },
+  );
+}
+
+/**
+ * Renders PerpsTooltipView with a given contentKey. Use in PerpsTooltipView.view.test.tsx.
+ */
+export function renderPerpsTooltipView(
+  options: RenderPerpsViewOptions & {
+    contentKey?: string;
+    tooltipData?: Record<string, unknown>;
+  } = {},
+) {
+  const initialParams = {
+    contentKey: options.contentKey ?? 'leverage',
+    data: options.tooltipData,
+    ...options.initialParams,
+  };
+  return renderPerpsView(
+    PerpsTooltipView as unknown as React.ComponentType,
+    Routes.PERPS.MODALS.TOOLTIP,
+    { ...options, initialParams },
+  );
+}
+
+/**
+ * Renders PerpsCrossMarginWarningBottomSheet. Use in view tests for cross-margin warning.
+ */
+export function renderPerpsCrossMarginWarningView(
+  options: RenderPerpsViewOptions = {},
+) {
+  return renderPerpsView(
+    PerpsCrossMarginWarningBottomSheet as unknown as React.ComponentType,
+    Routes.PERPS.MODALS.CROSS_MARGIN_WARNING,
+    options,
+  );
+}
+
+/**
+ * Renders a standalone Perps component (not a View) wrapped with Redux, connection, and stream providers.
+ * Use for components like PerpsMarketTabs, PerpsErrorState, PerpsBadge, etc. that are not routed views.
+ */
+export function renderPerpsComponent(
+  Component: React.ComponentType<Record<string, unknown>>,
+  props: Record<string, unknown> = {},
+  options: RenderPerpsViewOptions = {},
+) {
+  const { overrides, streamOverrides } = options;
+  const builder = initialStatePerps();
+  if (overrides) {
+    builder.withOverrides(overrides);
+  }
+  const state = builder.build();
+  const testStreamManager = createTestStreamManager(streamOverrides);
+
+  const WrappedComponent = () => (
+    <PerpsConnectionContext.Provider value={testConnectionValue}>
+      <PerpsStreamProvider testStreamManager={testStreamManager}>
+        <Component {...props} />
+      </PerpsStreamProvider>
+    </PerpsConnectionContext.Provider>
+  );
+
+  return renderWithProvider(<WrappedComponent />, { state });
+}
+
+/**
+ * Same as renderPerpsComponent but with a disconnected connection context for error state tests.
+ */
+export function renderPerpsComponentDisconnected(
+  Component: React.ComponentType<Record<string, unknown>>,
+  props: Record<string, unknown> = {},
+  options: RenderPerpsViewOptions = {},
+) {
+  const { overrides, streamOverrides } = options;
+  const builder = initialStatePerps();
+  if (overrides) {
+    builder.withOverrides(overrides);
+  }
+  const state = builder.build();
+  const testStreamManager = createTestStreamManager(streamOverrides);
+
+  const disconnectedValue: PerpsConnectionContextValue = {
+    ...testConnectionValue,
+    isConnected: false,
+    isConnecting: false,
+    isInitialized: false,
+    error: 'Simulated connection error',
+  };
+
+  const WrappedComponent = () => (
+    <PerpsConnectionContext.Provider value={disconnectedValue}>
+      <PerpsStreamProvider testStreamManager={testStreamManager}>
+        <Component {...props} />
+      </PerpsStreamProvider>
+    </PerpsConnectionContext.Provider>
+  );
+
+  return renderWithProvider(<WrappedComponent />, { state });
+}
+
+/** Default order for tests that need stream orders. */
+export const defaultOrderForViews: Order = {
+  orderId: 'order_view_1',
+  symbol: 'ETH',
+  side: 'buy' as const,
+  orderType: 'limit' as const,
+  size: '1.5',
+  originalSize: '1.5',
+  price: '2500',
+  reduceOnly: false,
+  triggerPrice: undefined,
+  triggerDirection: undefined,
+  timeInForce: 'Gtc' as const,
+  status: 'open' as const,
+  timestamp: Date.now(),
+  createdAt: Date.now(),
+  updatedAt: Date.now(),
+  fee: '0',
+  averageFillPrice: undefined,
+  filledSize: '0',
+} as Order;
