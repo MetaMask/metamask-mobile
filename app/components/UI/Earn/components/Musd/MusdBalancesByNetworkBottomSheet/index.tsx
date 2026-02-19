@@ -29,6 +29,13 @@ import { MUSD_TOKEN } from '../../../constants/musd';
 import { selectNetworkConfigurations } from '../../../../../../selectors/networkController';
 import { useMusdBalance } from '../../../hooks/useMusdBalance';
 
+/**
+ * Test IDs for the MusdBalancesByNetworkBottomSheet component.
+ */
+export const MusdBalancesByNetworkBottomSheetTestIds = {
+  CONTAINER: 'musd-balances-by-network-bottom-sheet',
+} as const;
+
 export interface MusdBalancesByNetworkRow {
   chainId: Hex;
   caipChainId: CaipChainId;
@@ -89,7 +96,7 @@ const MusdBalancesByNetworkBottomSheet = () => {
   return (
     <BottomSheet
       ref={bottomSheetRef}
-      testID="musd-balances-by-network-bottom-sheet"
+      testID={MusdBalancesByNetworkBottomSheetTestIds.CONTAINER}
     >
       <BottomSheetHeader onClose={handleClose} />
       <Box twClassName="px-4 pb-6">

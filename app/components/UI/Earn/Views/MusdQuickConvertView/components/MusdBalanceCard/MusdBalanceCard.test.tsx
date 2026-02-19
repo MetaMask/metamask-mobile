@@ -22,7 +22,7 @@ jest.mock('../../../../../../../util/networks', () => ({
 }));
 
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
-import MusdBalanceCard from './MusdBalanceCard';
+import MusdBalanceCard, { MusdBalanceCardTestIds } from './MusdBalanceCard';
 import { useMusdBalance } from '../../../../hooks/useMusdBalance';
 import { useNavigation } from '@react-navigation/native';
 import { useStyles } from '../../../../../../hooks/useStyles';
@@ -131,7 +131,7 @@ describe('MusdBalanceCard', () => {
   });
 
   describe('rendering', () => {
-    it('renders card with musd-balance-card testID', () => {
+    it('renders card container', () => {
       mockUseMusdBalance.mockReturnValue(
         createSingleChainBalanceMock() as ReturnType<typeof useMusdBalance>,
       );
@@ -140,7 +140,8 @@ describe('MusdBalanceCard', () => {
         state: initialRootState,
       });
 
-      expect(getByTestId('musd-balance-card')).toBeOnTheScreen();
+      expect(getByTestId(MusdBalanceCardTestIds.CONTAINER)).toBeOnTheScreen();
+      expect(getByTestId(MusdBalanceCardTestIds.TOKEN_ICON)).toBeOnTheScreen();
     });
 
     it('displays aggregated fiat balance from useMusdBalance', () => {
@@ -238,7 +239,8 @@ describe('MusdBalanceCard', () => {
       expect(getByTestId(AVATARGROUP_CONTAINER_TESTID)).toBeOnTheScreen();
       expect(getByText(aggregatedFormatted)).toBeOnTheScreen();
       expect(
-        getByTestId('musd-balance-card').props.accessibilityState?.disabled,
+        getByTestId(MusdBalanceCardTestIds.CONTAINER).props.accessibilityState
+          ?.disabled,
       ).toBe(false);
     });
   });
@@ -253,7 +255,7 @@ describe('MusdBalanceCard', () => {
         state: initialRootState,
       });
 
-      const card = getByTestId('musd-balance-card');
+      const card = getByTestId(MusdBalanceCardTestIds.CONTAINER);
 
       expect(card.props.accessibilityState?.disabled).toBe(true);
     });
@@ -267,7 +269,7 @@ describe('MusdBalanceCard', () => {
         state: initialRootState,
       });
 
-      const card = getByTestId('musd-balance-card');
+      const card = getByTestId(MusdBalanceCardTestIds.CONTAINER);
 
       expect(card.props.accessibilityState?.disabled).toBe(false);
     });
@@ -281,7 +283,7 @@ describe('MusdBalanceCard', () => {
         state: initialRootState,
       });
 
-      const card = getByTestId('musd-balance-card');
+      const card = getByTestId(MusdBalanceCardTestIds.CONTAINER);
 
       await act(async () => {
         fireEvent.press(card);
@@ -301,7 +303,7 @@ describe('MusdBalanceCard', () => {
         state: initialRootState,
       });
 
-      const card = getByTestId('musd-balance-card');
+      const card = getByTestId(MusdBalanceCardTestIds.CONTAINER);
 
       await act(async () => {
         fireEvent.press(card);
@@ -321,7 +323,7 @@ describe('MusdBalanceCard', () => {
         state: initialRootState,
       });
 
-      expect(getByTestId('musd-balance-card')).toBeOnTheScreen();
+      expect(getByTestId(MusdBalanceCardTestIds.CONTAINER)).toBeOnTheScreen();
     });
 
     it('card is disabled when no chains have balance', () => {
@@ -333,7 +335,7 @@ describe('MusdBalanceCard', () => {
         state: initialRootState,
       });
 
-      const card = getByTestId('musd-balance-card');
+      const card = getByTestId(MusdBalanceCardTestIds.CONTAINER);
 
       expect(card.props.accessibilityState?.disabled).toBe(true);
     });

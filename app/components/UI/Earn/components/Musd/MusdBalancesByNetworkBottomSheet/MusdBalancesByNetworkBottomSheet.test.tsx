@@ -4,7 +4,9 @@ import { Hex } from '@metamask/utils';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
-import MusdBalancesByNetworkBottomSheet from './index';
+import MusdBalancesByNetworkBottomSheet, {
+  MusdBalancesByNetworkBottomSheetTestIds,
+} from './index';
 import { useMusdBalance } from '../../../hooks/useMusdBalance';
 import { MUSD_TOKEN } from '../../../constants/musd';
 import { selectNetworkConfigurations } from '../../../../../../selectors/networkController';
@@ -151,7 +153,7 @@ describe('MusdBalancesByNetworkBottomSheet', () => {
   });
 
   describe('rendering', () => {
-    it('renders bottom sheet with musd-balances-by-network-bottom-sheet testID', () => {
+    it('renders bottom sheet container', () => {
       mockUseMusdBalance.mockReturnValue(
         createSingleChainBalanceMock() as ReturnType<typeof useMusdBalance>,
       );
@@ -162,7 +164,7 @@ describe('MusdBalancesByNetworkBottomSheet', () => {
       );
 
       expect(
-        getByTestId('musd-balances-by-network-bottom-sheet'),
+        getByTestId(MusdBalancesByNetworkBottomSheetTestIds.CONTAINER),
       ).toBeOnTheScreen();
     });
 
@@ -190,7 +192,7 @@ describe('MusdBalancesByNetworkBottomSheet', () => {
       );
 
       expect(
-        getByTestId('musd-balances-by-network-bottom-sheet'),
+        getByTestId(MusdBalancesByNetworkBottomSheetTestIds.CONTAINER),
       ).toBeOnTheScreen();
       expect(queryByText('Ethereum')).toBeNull();
       expect(queryByText('Linea')).toBeNull();
