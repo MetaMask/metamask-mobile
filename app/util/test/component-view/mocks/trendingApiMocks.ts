@@ -2,7 +2,13 @@
  * Mock API responses for trending tokens integration tests
  */
 
+// TODO: Anti-pattern — only Engine and native modules should be mocked here.
+// getTrendingTokens is a standalone service function called directly from
+// components, not through a controller on Engine.
+// https://github.com/MetaMask/metamask-mobile/issues/26270
 import { getTrendingTokens } from '@metamask/assets-controllers';
+
+export const getTrendingTokensMock = getTrendingTokens as jest.Mock;
 
 export interface MockTrendingToken {
   assetId: string;
