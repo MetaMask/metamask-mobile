@@ -2,7 +2,8 @@ import { useCallback, useMemo } from 'react';
 import { useRoute } from '@react-navigation/native';
 
 import Routes from '../../../../../../constants/navigation/Routes';
-import { MetaMetricsEvents, useMetrics } from '../../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../../core/Analytics';
+import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { useSendMetricsContext } from '../../../context/send-context/send-metrics-context';
 import { useAmountValidation } from '../useAmountValidation';
 import { useToAddressValidation } from '../useToAddressValidation';
@@ -10,7 +11,7 @@ import { useToAddressValidation } from '../useToAddressValidation';
 export const useSendExitMetrics = () => {
   const route = useRoute();
   const { accountType, chainId, chainIdCaip } = useSendMetricsContext();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const { amountError } = useAmountValidation();
   const { toAddressError } = useToAddressValidation();
 

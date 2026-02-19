@@ -21,6 +21,13 @@ import styleSheet from './PerpsMarketTradesList.styles';
 import PerpsRowSkeleton from '../PerpsRowSkeleton';
 import { usePerpsMarketFills } from '../../hooks/usePerpsMarketFills';
 import { transformFillsToTransactions } from '../../utils/transactionTransforms';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MonetizedPrimitive } from '../../../../../core/Analytics/MetaMetrics.types';
+import {
+  TRANSACTION_DETAIL_EVENTS,
+  TransactionDetailLocation,
+} from '../../../../../core/Analytics/events/transactions';
+import { PERPS_BALANCE_CHAIN_ID } from '../../constants/perpsConfig';
 
 interface PerpsMarketTradesListProps {
   symbol: string; // Market symbol to filter trades
@@ -33,6 +40,7 @@ const PerpsMarketTradesList: React.FC<PerpsMarketTradesListProps> = ({
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   // Fetch order fills via WebSocket + REST API for complete history
   // WebSocket provides instant updates, REST provides complete historical data
@@ -59,12 +67,25 @@ const PerpsMarketTradesList: React.FC<PerpsMarketTradesListProps> = ({
 
   const handleTradePress = useCallback(
     (transaction: PerpsTransaction) => {
+      trackEvent(
+        createEventBuilder(TRANSACTION_DETAIL_EVENTS.LIST_ITEM_CLICKED)
+          .addProperties({
+            transaction_type: `perps_${transaction.type}`,
+            transaction_status: 'confirmed',
+            location: TransactionDetailLocation.Home,
+            chain_id_source: PERPS_BALANCE_CHAIN_ID,
+            chain_id_destination: PERPS_BALANCE_CHAIN_ID,
+            monetized_primitive: MonetizedPrimitive.Perps,
+          })
+          .build(),
+      );
+
       // Navigate to the position transaction detail screen
       navigation.navigate(Routes.PERPS.POSITION_TRANSACTION, {
         transaction,
       });
     },
-    [navigation],
+    [navigation, trackEvent, createEventBuilder],
   );
 
   // Render right content for trades
