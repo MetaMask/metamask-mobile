@@ -4449,6 +4449,12 @@
     "share_on_twitter": "If you found this helpful, share on X!",
     "share_text": "MetaMask protected me from visiting a potentially harmful site: {{url}}. Stay safe!"
   },
+  "restricted_site": {
+    "title": "Site Cannot Be Reached",
+    "description": "This site may be restricted by your device's security settings.",
+    "explanation": "Your device's built-in security features may have blocked access to this site. This can happen when a site is flagged as potentially unsafe.",
+    "go_back": "Go Back"
+  },
   "notifications": {
     "timeout": "Timeout",
     "no_date": "Unknown",

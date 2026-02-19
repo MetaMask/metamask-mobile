@@ -96,6 +96,7 @@ import {
   WebViewNavigation,
 } from '@metamask/react-native-webview/src/WebViewTypes';
 import PhishingModal from './components/PhishingModal';
+import RestrictedSiteModal from './components/RestrictedSiteModal';
 import BrowserUrlBar, {
   ConnectionType,
   BrowserUrlBarRef,
@@ -154,6 +155,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     const [entryScriptWeb3, setEntryScriptWeb3] = useState<string>();
     const [showPhishingModal, setShowPhishingModal] = useState(false);
     const [blockedUrl, setBlockedUrl] = useState<string>();
+    const [showRestrictedSiteModal, setShowRestrictedSiteModal] =
+      useState(false);
+    const [restrictedSiteUrl, setRestrictedSiteUrl] = useState<string>();
     const [ipfsBannerVisible, setIpfsBannerVisible] = useState(false);
     const [isResolvedIpfsUrl, setIsResolvedIpfsUrl] = useState(false);
     const [isUrlBarFocused, setIsUrlBarFocused] = useState(false);
@@ -193,6 +197,12 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     const iconRef = useRef<ImageSourcePropType | undefined>();
     const sessionENSNamesRef = useRef<SessionENSNames>({});
     const ensIgnoreListRef = useRef<string[]>([]);
+    // Timeout ref for detecting silently blocked page loads (e.g., native Safe Browsing)
+    const pageLoadTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+      null,
+    );
+    // Track the URL that triggered the timeout to show in modal
+    const timeoutUrlRef = useRef<string>('');
     const backgroundBridgeRef = useRef<{
       url: string;
       sendNotificationEip1193: (payload: unknown) => void;
@@ -513,10 +523,15 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       handleFirstUrl();
     }, [isTabActive, handleFirstUrl]);
 
-    // Cleanup bridges when tab is closed
+    // Cleanup bridges and timeouts when tab is closed
     useEffect(
       () => () => {
         backgroundBridgeRef.current?.onDisconnect();
+        // Clear any pending page load timeout
+        if (pageLoadTimeoutRef.current) {
+          clearTimeout(pageLoadTimeoutRef.current);
+          pageLoadTimeoutRef.current = null;
+        }
       },
       [],
     );
@@ -791,6 +806,12 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         event: WebViewNavigationEvent | WebViewErrorEvent;
         forceResolve?: boolean;
       }) => {
+        // Clear the page load timeout since the page finished loading
+        if (pageLoadTimeoutRef.current) {
+          clearTimeout(pageLoadTimeoutRef.current);
+          pageLoadTimeoutRef.current = null;
+        }
+
         if ('code' in nativeEvent) {
           // Handle error - code is a property of WebViewErrorEvent
           // Reset pull-to-refresh state even on error to prevent it being stuck
@@ -982,6 +1003,30 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         // Use URL to produce real url. This should be the actual website that the user is viewing.
         const { origin: urlOrigin } = new URLParse(nativeEvent.url);
 
+        // Clear any existing page load timeout
+        if (pageLoadTimeoutRef.current) {
+          clearTimeout(pageLoadTimeoutRef.current);
+          pageLoadTimeoutRef.current = null;
+        }
+
+        // Only start timeout for cross-origin navigations (not same-site navigations)
+        const currentOrigin = new URLParse(resolvedUrlRef.current).origin;
+        if (urlOrigin !== currentOrigin && urlOrigin !== 'null') {
+          // Store the URL that triggered the timeout
+          timeoutUrlRef.current = nativeEvent.url;
+
+          // Start timeout to detect silently blocked pages (e.g., native Safe Browsing)
+          // If onLoadEnd doesn't fire within 15 seconds, assume the page was blocked
+          pageLoadTimeoutRef.current = setTimeout(() => {
+            // Only show modal if we're still trying to load this URL
+            if (loadingUrlRef.current === timeoutUrlRef.current) {
+              setRestrictedSiteUrl(urlOrigin);
+              setShowRestrictedSiteModal(true);
+              loadingUrlRef.current = '';
+            }
+          }, 15000);
+        }
+
         webStates.current[nativeEvent.url] = {
           ...webStates.current[nativeEvent.url],
           started: true,
@@ -1006,6 +1051,11 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         // Cancel loading the page if we detect its a phishing page
         const isAllowed = await isAllowedOrigin(urlOrigin);
         if (!isAllowed) {
+          // Clear the timeout since we're handling this URL via phishing modal
+          if (pageLoadTimeoutRef.current) {
+            clearTimeout(pageLoadTimeoutRef.current);
+            pageLoadTimeoutRef.current = null;
+          }
           handleNotAllowedUrl(urlOrigin);
           return false;
         }
@@ -1536,16 +1586,26 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
               />
             </View>
             {isTabActive && (
-              <PhishingModal
-                blockedUrl={blockedUrl}
-                showPhishingModal={showPhishingModal}
-                setShowPhishingModal={setShowPhishingModal}
-                setBlockedUrl={setBlockedUrl}
-                urlBarRef={urlBarRef}
-                addToWhitelist={triggerAddToWhitelist}
-                activeUrl={resolvedUrlRef.current}
-                goToUrl={onSubmitEditing}
-              />
+              <>
+                <PhishingModal
+                  blockedUrl={blockedUrl}
+                  showPhishingModal={showPhishingModal}
+                  setShowPhishingModal={setShowPhishingModal}
+                  setBlockedUrl={setBlockedUrl}
+                  urlBarRef={urlBarRef}
+                  addToWhitelist={triggerAddToWhitelist}
+                  activeUrl={resolvedUrlRef.current}
+                  goToUrl={onSubmitEditing}
+                />
+                <RestrictedSiteModal
+                  restrictedUrl={restrictedSiteUrl}
+                  showModal={showRestrictedSiteModal}
+                  onClose={() => {
+                    setShowRestrictedSiteModal(false);
+                    setRestrictedSiteUrl(undefined);
+                  }}
+                />
+              </>
             )}
 
             {renderBottomBar()}
