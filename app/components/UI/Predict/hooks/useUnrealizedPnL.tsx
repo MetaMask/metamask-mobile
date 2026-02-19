@@ -1,5 +1,5 @@
 import { useFocusEffect } from '@react-navigation/native';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../util/Logger';
 import Engine from '../../../../core/Engine';
@@ -7,6 +7,7 @@ import { UnrealizedPnL } from '../types';
 import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
 import { PREDICT_CONSTANTS } from '../constants/errors';
 import { ensureError } from '../utils/predictErrorHandler';
+import { usePredictPositions } from './usePredictPositions';
 
 export interface UseUnrealizedPnLOptions {
   /**
@@ -43,9 +44,7 @@ export const useUnrealizedPnL = (
 ): UseUnrealizedPnLResult => {
   const { address, loadOnMount = true, refreshOnFocus = true } = options;
 
-  const [unrealizedPnL, setUnrealizedPnL] = useState<UnrealizedPnL | null>(
-    null,
-  );
+  const [pnlData, setPnlData] = useState<UnrealizedPnL | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -53,6 +52,9 @@ export const useUnrealizedPnL = (
 
   const evmAccount = getEvmAccountFromSelectedAccountGroup();
   const selectedInternalAccountAddress = evmAccount?.address ?? '0x0';
+
+  const { data: activePositions } = usePredictPositions({ claimable: false });
+  const hasPositions = (activePositions?.length ?? 0) > 0;
 
   const loadUnrealizedPnL = useCallback(
     async (loadOptions?: { isRefresh?: boolean }) => {
@@ -66,31 +68,23 @@ export const useUnrealizedPnL = (
         }
         setError(null);
 
-        const [unrealizedPnLData, positions] = await Promise.all([
-          Engine.context.PredictController.getUnrealizedPnL({
+        const unrealizedPnLResult =
+          await Engine.context.PredictController.getUnrealizedPnL({
             address: address ?? selectedInternalAccountAddress,
-          }),
-          Engine.context.PredictController.getPositions({
-            limit: 1,
-            offset: 0,
-            claimable: false,
-          }),
-        ]);
+          });
 
-        const _unrealizedPnL = unrealizedPnLData ?? null;
-        setUnrealizedPnL(positions.length > 0 ? _unrealizedPnL : null);
+        setPnlData(unrealizedPnLResult ?? null);
 
         DevLogger.log('useUnrealizedPnL: Loaded unrealized P&L', {
-          unrealizedPnL: unrealizedPnLData,
+          unrealizedPnL: unrealizedPnLResult,
         });
       } catch (err) {
         const errorMessage =
           err instanceof Error ? err.message : 'Failed to fetch unrealized P&L';
         setError(errorMessage);
-        setUnrealizedPnL(null);
+        setPnlData(null);
         DevLogger.log('useUnrealizedPnL: Error loading unrealized P&L', err);
 
-        // Log error with unrealized PnL loading context (no user address)
         Logger.error(ensureError(err), {
           tags: {
             feature: PREDICT_CONSTANTS.FEATURE_NAME,
@@ -126,8 +120,6 @@ export const useUnrealizedPnL = (
   useFocusEffect(
     useCallback(() => {
       if (refreshOnFocus) {
-        // Refresh unrealized P&L data when returning to this screen
-        // Use refresh mode to avoid showing loading spinner
         loadUnrealizedPnL({ isRefresh: true });
       }
     }, [refreshOnFocus, loadUnrealizedPnL]),
@@ -140,10 +132,15 @@ export const useUnrealizedPnL = (
       return;
     }
 
-    setUnrealizedPnL(null);
+    setPnlData(null);
     setError(null);
     loadUnrealizedPnL();
   }, [address, loadUnrealizedPnL]);
+
+  const unrealizedPnL = useMemo(
+    () => (hasPositions ? pnlData : null),
+    [hasPositions, pnlData],
+  );
 
   return {
     unrealizedPnL,

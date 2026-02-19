@@ -1,12 +1,14 @@
+import React from 'react';
 import { waitFor, fireEvent } from '@testing-library/react-native';
 import { Image, TouchableOpacity } from 'react-native';
-import {
+import renderWithProvider, {
   DeepPartial,
   renderScreen,
 } from '../../../../util/test/renderWithProvider';
 import AppInformation from './';
 import { AboutMetaMaskSelectorsIDs } from './AboutMetaMask.testIds';
 import { RootState } from '../../../../reducers';
+import { strings } from '../../../../../locales/i18n';
 
 // Mock device info
 const mockGetApplicationName = jest.fn();
@@ -36,15 +38,9 @@ jest.mock(
   }),
 );
 
-jest.mock('../../../../constants/ota', () => {
-  const actual = jest.requireActual('../../../../constants/ota');
-
-  return {
-    ...actual,
-    // Make getFullVersion a pass-through so tests don't depend on OTA_VERSION
-    getFullVersion: (appVersion: string) => appVersion,
-  };
-});
+jest.mock('../../../../constants/ota', () => ({
+  OTA_VERSION: 'v0',
+}));
 
 const MOCK_STATE = {
   engine: {
@@ -79,12 +75,15 @@ describe('AppInformation', () => {
     mockGetFeatureFlagAppDistribution.mockReturnValue('main');
   });
 
-  it('renders correctly with snapshot', () => {
-    const { toJSON } = renderScreen(
+  it('renders correctly with snapshot', async () => {
+    const { toJSON, getByText } = renderScreen(
       AppInformation,
-      { name: 'AppInformation' },
+      { name: 'AppInformation', options: { headerShown: false } },
       { state: MOCK_STATE },
     );
+    await waitFor(() => {
+      expect(getByText('MetaMask v7.0.0 (1000)')).toBeTruthy();
+    });
     expect(toJSON()).toMatchSnapshot();
   });
 
@@ -96,6 +95,36 @@ describe('AppInformation', () => {
     );
 
     expect(getByTestId(AboutMetaMaskSelectorsIDs.CONTAINER)).toBeTruthy();
+  });
+
+  describe('Header', () => {
+    it('renders header with correct title', () => {
+      const { getByText } = renderScreen(
+        AppInformation,
+        { name: 'AppInformation' },
+        { state: MOCK_STATE },
+      );
+
+      expect(getByText(strings('app_settings.info_title'))).toBeOnTheScreen();
+    });
+
+    it('calls navigation.goBack when back button is pressed', () => {
+      const mockGoBack = jest.fn();
+      const mockNavigation = {
+        goBack: mockGoBack,
+        navigate: jest.fn(),
+      };
+
+      const { getByTestId } = renderWithProvider(
+        <AppInformation navigation={mockNavigation} />,
+        { state: MOCK_STATE },
+        false,
+      );
+
+      fireEvent.press(getByTestId(AboutMetaMaskSelectorsIDs.BACK_BUTTON));
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
   });
 
   it('displays app information after mount', async () => {

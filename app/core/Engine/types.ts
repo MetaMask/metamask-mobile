@@ -408,6 +408,12 @@ import {
   TransactionPayControllerActions,
   TransactionPayControllerEvents,
 } from '@metamask/transaction-pay-controller/dist/types.cjs';
+import {
+  AiDigestController,
+  AiDigestControllerActions,
+  AiDigestControllerEvents,
+  AiDigestControllerState,
+} from '@metamask/ai-controllers';
 
 /**
  * Controllers that area always instantiated
@@ -526,6 +532,7 @@ type GlobalActions =
   | ProfileMetricsServiceActions
   | RampsControllerActions
   | RampsServiceActions
+  | AiDigestControllerActions
   | TransakServiceActions;
 
 type GlobalEvents =
@@ -602,6 +609,7 @@ type GlobalEvents =
   | ProfileMetricsServiceEvents
   | RampsControllerEvents
   | RampsServiceEvents
+  | AiDigestControllerEvents
   | TransakServiceEvents;
 
 /**
@@ -719,6 +727,7 @@ export type Controllers = {
   ProfileMetricsController: ProfileMetricsController;
   ProfileMetricsService: ProfileMetricsService;
   RampsService: RampsService;
+  AiDigestController: AiDigestController;
   TransakService: TransakService;
 };
 
@@ -798,6 +807,7 @@ export type EngineState = {
   GatorPermissionsController: GatorPermissionsControllerState;
   DelegationController: DelegationControllerState;
   ProfileMetricsController: ProfileMetricsControllerState;
+  AiDigestController: AiDigestControllerState;
 };
 
 /** Controller names */
@@ -905,7 +915,8 @@ export type ControllersToInitialize =
   | 'SelectedNetworkController'
   | 'ProfileMetricsController'
   | 'ProfileMetricsService'
-  | 'AnalyticsController';
+  | 'AnalyticsController'
+  | 'AiDigestController';
 
 /**
  * Callback that returns a controller messenger for a specific controller.
