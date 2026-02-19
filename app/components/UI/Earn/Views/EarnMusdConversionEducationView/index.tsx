@@ -25,7 +25,8 @@ import {
   ButtonVariant as DesignSystemButtonVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { MUSD_EVENTS_CONSTANTS } from '../../constants/events';
 import {
   MUSD_CONVERSION_APY,
@@ -84,7 +85,7 @@ const EarnMusdConversionEducationView = () => {
 
   const colorScheme = useColorScheme();
 
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const backgroundImage = useMemo(
     () =>

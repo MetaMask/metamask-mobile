@@ -74,11 +74,7 @@ import stylesheet from './styles';
 import ReduxService from '../../../core/redux';
 import { StackNavigationProp } from '@react-navigation/stack';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
-import {
-  IMetaMetricsEvent,
-  ITrackingEvent,
-} from '../../../core/Analytics/MetaMetrics.types';
-import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import type { AnalyticsTrackingEvent } from '../../../util/analytics/AnalyticsEventBuilder';
 import FoxAnimation from '../../UI/FoxAnimation/FoxAnimation';
 import { isE2E } from '../../../util/test/utils';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
@@ -96,7 +92,7 @@ interface LoginRouteParams {
 }
 
 interface LoginProps {
-  saveOnboardingEvent: (...eventArgs: [ITrackingEvent]) => void;
+  saveOnboardingEvent: (event: AnalyticsTrackingEvent) => void;
 }
 
 /**
@@ -119,20 +115,9 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     theme: { themeAppearance },
   } = useStyles(stylesheet, EmptyRecordConstant);
 
-  const { unlockWallet, lockApp } = useAuthentication();
+  const { unlockWallet, lockApp, getAuthType,
+    checkIsSeedlessPasswordOutdated } = useAuthentication();
   const { capabilities } = useAuthCapabilities();
-
-  const track = (
-    event: IMetaMetricsEvent,
-    properties: Record<string, string | boolean | number>,
-  ) => {
-    trackOnboarding(
-      MetricsEventBuilder.createEventBuilder(event)
-        .addProperties(properties)
-        .build(),
-      saveOnboardingEvent,
-    );
-  };
 
   const handleBackPress = () => {
     lockApp({ reset: false });
@@ -144,7 +129,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       name: TraceName.LoginUserInteraction,
       op: TraceOperation.Login,
     });
-    track(MetaMetricsEvents.LOGIN_SCREEN_VIEWED, {});
+    trackOnboarding(MetaMetricsEvents.LOGIN_SCREEN_VIEWED, saveOnboardingEvent);
     BackHandler.addEventListener('hardwareBackPress', handleBackPress);
 
     setStartFoxAnimation('Start');
@@ -299,7 +284,28 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
           op: TraceOperation.Login,
         },
         async () => {
+          const isSeedlessPasswordOutdated =
+            await checkIsSeedlessPasswordOutdated(false);
           await unlockWallet({ password });
+          if (isSeedlessPasswordOutdated) {
+            const authData = await getAuthType();
+            if (
+              authData.currentAuthType === AUTHENTICATION_TYPE.PASSWORD &&
+              authData.availableBiometryType
+            ) {
+              Alert.alert(
+                strings('login.biometric_authentication_cancelled_title'),
+                strings('login.biometric_authentication_cancelled_description'),
+                [
+                  {
+                    text: strings(
+                      'login.biometric_authentication_cancelled_button',
+                    ),
+                  },
+                ],
+              );
+            }
+          }
         },
       );
     } catch (loginErr) {
@@ -307,7 +313,14 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     } finally {
       setLoading(false);
     }
-  }, [password, loading, handleLoginError, unlockWallet]);
+  }, [
+    password,
+    loading,
+    handleLoginError,
+    unlockWallet,
+    getAuthType,
+    checkIsSeedlessPasswordOutdated,
+  ]);
 
   const unlockWithDeviceAuthentication = useCallback(async () => {
     if (loading) return;
@@ -336,7 +349,10 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   }, [unlockWallet, loading, handleLoginError]);
 
   const toggleWarningModal = () => {
-    track(MetaMetricsEvents.FORGOT_PASSWORD_CLICKED, {});
+    trackOnboarding(
+      MetaMetricsEvents.FORGOT_PASSWORD_CLICKED,
+      saveOnboardingEvent,
+    );
 
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.MODAL.DELETE_WALLET,
@@ -346,7 +362,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   const handleDownloadStateLogs = () => {
     const fullState = ReduxService.store.getState();
 
-    track(MetaMetricsEvents.LOGIN_DOWNLOAD_LOGS, {});
+    trackOnboarding(MetaMetricsEvents.LOGIN_DOWNLOAD_LOGS, saveOnboardingEvent);
     downloadStateLogs(fullState, false);
   };
 
@@ -459,8 +475,8 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
 };
 
 const mapDispatchToProps = (dispatch: Dispatch<OnboardingActionTypes>) => ({
-  saveOnboardingEvent: (...eventArgs: [ITrackingEvent]) =>
-    dispatch(saveEvent(eventArgs)),
+  saveOnboardingEvent: (event: AnalyticsTrackingEvent) =>
+    dispatch(saveEvent([event])),
 });
 
 export default connect(null, mapDispatchToProps)(Login);

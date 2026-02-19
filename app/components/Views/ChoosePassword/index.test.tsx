@@ -20,6 +20,7 @@ import { BIOMETRY_TYPE } from 'react-native-keychain';
 import { Authentication } from '../../../core';
 import { InteractionManager, Platform } from 'react-native';
 import { EVENT_NAME } from '../../../core/Analytics';
+import type { AnalyticsTrackingEvent } from '../../../util/analytics/AnalyticsEventBuilder';
 
 jest.mock('../../../util/metrics/TrackOnboarding/trackOnboarding');
 
@@ -1039,7 +1040,8 @@ describe('ChoosePassword', () => {
     expect(Authentication.newWalletAndKeychain).not.toHaveBeenCalled();
     // Should track the failure
     expect(mockTrackOnboarding).toHaveBeenCalled();
-    const trackingEvent = mockTrackOnboarding.mock.calls[0][0];
+    const trackingEvent = mockTrackOnboarding.mock
+      .calls[0][0] as AnalyticsTrackingEvent;
     expect(trackingEvent.name).toBe(EVENT_NAME.WALLET_SETUP_FAILURE);
     expect(trackingEvent.properties).toEqual({
       wallet_setup_type: 'import',
@@ -1087,7 +1089,8 @@ describe('ChoosePassword', () => {
     expect(Authentication.newWalletAndKeychain).not.toHaveBeenCalled();
     // Should track the failure
     expect(mockTrackOnboarding).toHaveBeenCalled();
-    const trackingEvent = mockTrackOnboarding.mock.calls[0][0];
+    const trackingEvent = mockTrackOnboarding.mock
+      .calls[0][0] as AnalyticsTrackingEvent;
     expect(trackingEvent.name).toBe(EVENT_NAME.WALLET_SETUP_FAILURE);
     expect(trackingEvent.properties).toEqual({
       wallet_setup_type: 'import',

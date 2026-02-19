@@ -164,10 +164,14 @@ interface OrderRouteParams {
   limitPriceUpdate?: string;
   // Hide TP/SL when modifying existing position
   hideTPSL?: boolean;
+  /** A/B test variant for token details layout - e.g. 'control' or 'treatment' */
+  assetsASSETS2493AbtestTokenDetailsLayout?: string;
 }
 
 interface PerpsOrderViewContentProps {
   hideTPSL?: boolean;
+  /** A/B test variant for token details layout */
+  routeAbTestTokenDetailsLayout?: string;
 }
 
 /**
@@ -183,6 +187,7 @@ interface PerpsOrderViewContentProps {
  */
 const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   hideTPSL = false,
+  routeAbTestTokenDetailsLayout,
 }) => {
   // Auto-detect source based on trending session state
   const source = TrendingFeedSessionManager.getInstance().isFromTrending
@@ -360,19 +365,27 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   }, [isOrderTypeVisible, shouldOpenLimitPrice]);
 
   // Track trading screen viewed event using unified declarative API (main's event name)
+  const perpsScreenViewedProps = {
+    [PERPS_EVENT_PROPERTY.SCREEN_TYPE]: PERPS_EVENT_VALUE.SCREEN_TYPE.TRADING,
+    [PERPS_EVENT_PROPERTY.ASSET]: orderForm.asset,
+    [PERPS_EVENT_PROPERTY.DIRECTION]:
+      orderForm.direction === 'long'
+        ? PERPS_EVENT_VALUE.DIRECTION.LONG
+        : PERPS_EVENT_VALUE.DIRECTION.SHORT,
+    ...(source && { [PERPS_EVENT_PROPERTY.SOURCE]: source }),
+    ...(routeAbTestTokenDetailsLayout && {
+      ab_tests: {
+        assetsASSETS2493AbtestTokenDetailsLayout: routeAbTestTokenDetailsLayout,
+      },
+    }),
+    ...(isButtonColorTestEnabled && {
+      [PERPS_EVENT_PROPERTY.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
+    }),
+  };
+
   usePerpsEventTracking({
     eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
-    properties: {
-      [PERPS_EVENT_PROPERTY.SCREEN_TYPE]: PERPS_EVENT_VALUE.SCREEN_TYPE.TRADING,
-      [PERPS_EVENT_PROPERTY.ASSET]: orderForm.asset,
-      [PERPS_EVENT_PROPERTY.DIRECTION]:
-        orderForm.direction === 'long'
-          ? PERPS_EVENT_VALUE.DIRECTION.LONG
-          : PERPS_EVENT_VALUE.DIRECTION.SHORT,
-      ...(isButtonColorTestEnabled && {
-        [PERPS_EVENT_PROPERTY.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
-      }),
-    },
+    properties: perpsScreenViewedProps,
   });
 
   // Ensure oracle price (markPrice) is available for margin calculation.
@@ -1794,6 +1807,7 @@ const PerpsOrderView: React.FC = () => {
     leverage: paramLeverage,
     existingPosition,
     hideTPSL = false,
+    assetsASSETS2493AbtestTokenDetailsLayout: routeAbTestTokenDetailsLayout,
   } = route.params || {};
 
   const effectiveAvailableBalance = useMemo(() => {
@@ -1811,7 +1825,10 @@ const PerpsOrderView: React.FC = () => {
       existingPosition={existingPosition}
       effectiveAvailableBalance={effectiveAvailableBalance}
     >
-      <PerpsOrderViewContent hideTPSL={hideTPSL} />
+      <PerpsOrderViewContent
+        hideTPSL={hideTPSL}
+        routeAbTestTokenDetailsLayout={routeAbTestTokenDetailsLayout}
+      />
     </PerpsOrderProvider>
   );
 };

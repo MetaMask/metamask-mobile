@@ -14,4 +14,6 @@ export default () => ({
   updateAuthPreference: Authentication.updateAuthPreference,
   getAuthCapabilities: Authentication.getAuthCapabilities,
   updateOsAuthEnabled: Authentication.updateOsAuthEnabled,
+  checkIsSeedlessPasswordOutdated:
+    Authentication.checkIsSeedlessPasswordOutdated,
 });
