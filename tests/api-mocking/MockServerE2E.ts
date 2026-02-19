@@ -41,6 +41,13 @@ const SNAP_INFURA_PROXY_URL_REGEX =
   /^https:\/\/(?:bitcoin|tron|solana)-mainnet\.infura\.io(?:\/|$)/u;
 const SNAP_WEBVIEW_PROXY_SOURCE = 'snap-webview';
 
+const logSnapProxyToConsole = (message: string) => {
+  // We intentionally use console.log here so these lines are always visible
+  // in Detox/E2E terminal output regardless of logger configuration.
+  // eslint-disable-next-line no-console
+  console.log(`[SNAP_PROXY] ${message}`);
+};
+
 const maybeLogSnapInfuraProxyRequest = (
   method: string,
   url: string,
@@ -48,7 +55,7 @@ const maybeLogSnapInfuraProxyRequest = (
   fromSnapRuntime: boolean,
 ) => {
   if (fromSnapRuntime && SNAP_INFURA_PROXY_URL_REGEX.test(url)) {
-    logger.info(`[Snap Infura Proxy][${source}] ${method} ${url}`);
+    logSnapProxyToConsole(`[${source}] ${method} ${url}`);
   }
 };
 
@@ -704,7 +711,7 @@ export default class MockServerE2E implements Resource {
       )
       .join('\n');
 
-    logger.info(
+    logSnapProxyToConsole(
       `Snap WebView proxied requests: ${this._snapProxyRequests.length} total (${groupedRequests.size} unique)\n${summary}`,
     );
   }
