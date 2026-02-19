@@ -186,7 +186,7 @@ export function trackRpcEndpointEvent(
     rpc_endpoint_url: rpcDomain,
     rpc_domain: rpcDomain,
     ...(rpcMethodName ? { rpc_method_name: rpcMethodName } : {}),
-    ...(type ? { degraded_event_type: type } : {}),
+    ...(type ? { type } : {}),
     ...(retryReason ? { retry_reason: retryReason } : {}),
     ...(isObject(error) &&
     'httpStatus' in error &&

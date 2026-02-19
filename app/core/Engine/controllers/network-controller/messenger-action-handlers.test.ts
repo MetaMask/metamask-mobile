@@ -243,7 +243,7 @@ describe('onRpcEndpointDegraded', () => {
         }),
         properties: {
           chain_id_caip: 'eip155:11155111',
-          degraded_event_type: 'slow_success',
+          type: 'slow_success',
           rpc_endpoint_url: 'example.com',
           rpc_domain: 'example.com',
           rpc_method_name: 'eth_blockNumber',
@@ -278,7 +278,7 @@ describe('onRpcEndpointDegraded', () => {
         }),
         properties: {
           chain_id_caip: 'eip155:11155111',
-          degraded_event_type: 'retries_exhausted',
+          type: 'retries_exhausted',
           http_status: 420,
           retry_reason: 'non_successful_http_status',
           rpc_endpoint_url: 'example.com',
@@ -314,7 +314,7 @@ describe('onRpcEndpointDegraded', () => {
         }),
         properties: {
           chain_id_caip: 'eip155:11155111',
-          degraded_event_type: 'slow_success',
+          type: 'slow_success',
           rpc_endpoint_url: 'custom',
           rpc_domain: 'custom',
           rpc_method_name: 'eth_blockNumber',
