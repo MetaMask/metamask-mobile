@@ -287,7 +287,7 @@
     "@metamask/swappable-obj-proxy": "^2.1.0",
     "@metamask/swaps-controller": "^15.0.0",
     "@metamask/transaction-controller": "^62.16.0",
-    "@metamask/transaction-pay-controller": "^15.0.1",
+    "@metamask/transaction-pay-controller": "^15.1.0",
     "@metamask/tron-wallet-snap": "^1.21.1",
     "@metamask/utils": "^11.8.1",
     "@myx-trade/sdk": "^0.1.265",
