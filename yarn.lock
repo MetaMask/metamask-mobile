@@ -7509,17 +7509,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask-previews/ai-controllers@npm:0.0.0-preview-bbc71c9d5":
-  version: 0.0.0-preview-bbc71c9d5
-  resolution: "@metamask-previews/ai-controllers@npm:0.0.0-preview-bbc71c9d5"
-  dependencies:
-    "@metamask/base-controller": "npm:^9.0.0"
-    "@metamask/messenger": "npm:^0.3.0"
-    "@metamask/utils": "npm:^11.9.0"
-  checksum: 10/f44a67268fdba30904320c6a941ccde457865e0bbea59fb3e4b043c1466ec019ed4ccb63cb28d4fd6106c12f23191221154b470b97c6f1f48fcad1a2b31ea2a4
-  languageName: node
-  linkType: hard
-
 "@metamask/7715-permission-types@npm:^0.3.0":
   version: 0.3.0
   resolution: "@metamask/7715-permission-types@npm:0.3.0"
@@ -35378,7 +35367,6 @@ __metadata:
     "@lavamoat/react-native-lockdown": "npm:^0.0.2"
     "@ledgerhq/hw-app-eth": "npm:^6.42.0"
     "@ledgerhq/react-native-hw-transport-ble": "npm:^6.37.0"
-    "@metamask-previews/ai-controllers": "npm:0.0.0-preview-bbc71c9d5"
     "@metamask/abi-utils": "npm:^3.0.0"
     "@metamask/account-api": "npm:^0.12.0"
     "@metamask/account-tree-controller": "npm:^3.0.0"

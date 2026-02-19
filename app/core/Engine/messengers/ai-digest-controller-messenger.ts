@@ -3,7 +3,7 @@ import {
   type MessengerActions,
   type MessengerEvents,
 } from '@metamask/messenger';
-import type { AiDigestControllerMessenger } from '@metamask-previews/ai-controllers';
+import type { AiDigestControllerMessenger } from '@metamask/ai-controllers';
 import type { RootMessenger } from '../types';
 
 /**

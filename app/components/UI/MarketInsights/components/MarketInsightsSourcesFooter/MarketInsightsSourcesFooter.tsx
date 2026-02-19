@@ -24,7 +24,7 @@ import type {
   MarketInsightsSourcesFooterProps,
   MarketInsightsSourcesBottomSheetProps,
 } from './MarketInsightsSourcesFooter.types';
-import type { MarketInsightsSource } from '@metamask-previews/ai-controllers';
+import type { MarketInsightsSource } from '@metamask/ai-controllers';
 
 // Maximum number of source icons to show in the pill before "+N"
 const MAX_VISIBLE_SOURCES = 4;

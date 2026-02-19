@@ -34,7 +34,7 @@ import {
   SwapBridgeNavigationLocation,
 } from '../../../Bridge/hooks/useSwapBridgeNavigation';
 import { NATIVE_SWAPS_TOKEN_ADDRESS } from '../../../../../constants/bridge';
-import type { MarketInsightsTweet } from '@metamask-previews/ai-controllers';
+import type { MarketInsightsTweet } from '@metamask/ai-controllers';
 import { selectMarketInsightsEnabled } from '../../../../../selectors/featureFlagController/marketInsights';
 
 interface MarketInsightsRouteParams {

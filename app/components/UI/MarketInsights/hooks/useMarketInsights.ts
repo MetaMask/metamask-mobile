@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import type { MarketInsightsReport } from '@metamask-previews/ai-controllers';
+import type { MarketInsightsReport } from '@metamask/ai-controllers';
 import Engine from '../../../../core/Engine';
 import { formatRelativeTime } from '../utils/marketInsightsFormatting';
 

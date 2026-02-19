@@ -1,4 +1,4 @@
-import type { MarketInsightsTrend } from '@metamask-previews/ai-controllers';
+import type { MarketInsightsTrend } from '@metamask/ai-controllers';
 
 export interface MarketInsightsTrendItemProps {
   /** The trend data to render */

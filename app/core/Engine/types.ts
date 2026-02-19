@@ -413,7 +413,7 @@ import {
   AiDigestControllerActions,
   AiDigestControllerEvents,
   AiDigestControllerState,
-} from '@metamask-previews/ai-controllers';
+} from '@metamask/ai-controllers';
 
 /**
  * Controllers that area always instantiated
@@ -532,7 +532,7 @@ type GlobalActions =
   | ProfileMetricsServiceActions
   | RampsControllerActions
   | RampsServiceActions
-  | AiDigestControllerActions;
+  | AiDigestControllerActions
   | TransakServiceActions;
 
 type GlobalEvents =
@@ -609,7 +609,7 @@ type GlobalEvents =
   | ProfileMetricsServiceEvents
   | RampsControllerEvents
   | RampsServiceEvents
-  | AiDigestControllerEvents;
+  | AiDigestControllerEvents
   | TransakServiceEvents;
 
 /**

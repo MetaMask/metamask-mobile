@@ -3,7 +3,7 @@ import {
   AiDigestController,
   AiDigestService,
   type AiDigestControllerMessenger,
-} from '@metamask-previews/ai-controllers';
+} from '@metamask/ai-controllers';
 import AppConstants from '../../AppConstants';
 
 /**
