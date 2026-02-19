@@ -147,6 +147,11 @@ export const useDeviceEventHandlers = ({
         case DeviceEvent.ConfirmationRejected:
           if (payload.error) {
             handleError(payload.error);
+          } else {
+            updateConnectionState({
+              status: ConnectionStatus.Connected,
+              deviceId: refs.adapterRef.current?.getConnectedDeviceId() ?? '',
+            });
           }
           break;
 

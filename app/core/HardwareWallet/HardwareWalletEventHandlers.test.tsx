@@ -424,7 +424,7 @@ describe('useDeviceEventHandlers', () => {
         expect(lastConnectionState.status).toBe(ConnectionStatus.ErrorState);
       });
 
-      it('does not change state if no error', () => {
+      it('returns to connected state if no error', () => {
         lastConnectionState = {
           status: ConnectionStatus.AwaitingConfirmation,
           deviceId: 'device-123',
@@ -437,10 +437,7 @@ describe('useDeviceEventHandlers', () => {
           });
         });
 
-        // State should remain unchanged since no error
-        expect(lastConnectionState.status).toBe(
-          ConnectionStatus.AwaitingConfirmation,
-        );
+        expect(lastConnectionState.status).toBe(ConnectionStatus.Connected);
       });
     });
 
