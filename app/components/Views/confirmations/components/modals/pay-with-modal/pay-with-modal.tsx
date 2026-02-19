@@ -35,6 +35,9 @@ import { HIDE_NETWORK_FILTER_TYPES } from '../../../constants/confirmations';
 import { useMusdPaymentToken } from '../../../../../UI/Earn/hooks/useMusdPaymentToken';
 import { usePerpsBalanceTokenFilter } from '../../../../../UI/Perps/hooks/usePerpsBalanceTokenFilter';
 import { usePerpsPaymentToken } from '../../../../../UI/Perps/hooks/usePerpsPaymentToken';
+import { usePredictBalanceTokenFilter } from '../../../../../UI/Predict/hooks/usePredictBalanceTokenFilter';
+import { usePredictPaymentToken } from '../../../../../UI/Predict/hooks/usePredictPaymentToken';
+import { PREDICT_DEPOSIT_AND_ORDER_TYPE } from '../../../constants/predict';
 
 export function PayWithModal() {
   const transactionMeta = useTransactionMetadataRequest();
@@ -56,6 +59,9 @@ export function PayWithModal() {
   const perpsBalanceTokenFilter = usePerpsBalanceTokenFilter();
   const withdrawTokenFilter = useWithdrawTokenFilter();
   const blockedTokens = useTransactionPayBlockedTokens();
+  const { onPaymentTokenChange: onPredictPaymentTokenChange } =
+    usePredictPaymentToken();
+  const predictBalanceTokenFilter = usePredictBalanceTokenFilter();
 
   const close = useCallback((onClosed?: () => void) => {
     // Called after the bottom sheet's closing animation completes.
@@ -132,6 +138,13 @@ export function PayWithModal() {
           }
         }
 
+        if (
+          hasTransactionType(transactionMeta, [PREDICT_DEPOSIT_AND_ORDER_TYPE])
+        ) {
+          onPredictPaymentTokenChange(token);
+          return;
+        }
+
         setPayToken({
           address: token.address as Hex,
           chainId: token.chainId as Hex,
@@ -145,6 +158,7 @@ export function PayWithModal() {
       isWithdraw,
       onMusdPaymentTokenChange,
       onPerpsPaymentTokenChange,
+      onPredictPaymentTokenChange,
       setPayToken,
       transactionMeta,
     ],
@@ -177,6 +191,10 @@ export function PayWithModal() {
         ])
       ) {
         filteredTokens = perpsBalanceTokenFilter(availableTokens);
+      } else if (
+        hasTransactionType(transactionMeta, [PREDICT_DEPOSIT_AND_ORDER_TYPE])
+      ) {
+        filteredTokens = predictBalanceTokenFilter(availableTokens);
       }
 
       const wrappedTokens = wrapHighlightedItemCallbacks(filteredTokens);
@@ -196,6 +214,7 @@ export function PayWithModal() {
       requiredTokens,
       transactionMeta,
       perpsBalanceTokenFilter,
+      predictBalanceTokenFilter,
       wrapHighlightedItemCallbacks,
     ],
   );

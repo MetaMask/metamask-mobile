@@ -156,6 +156,11 @@ export type PredictControllerState = {
     outcomeToken: PredictOutcomeToken;
   } | null;
 
+  selectedPaymentToken: {
+    address: string;
+    chainId: string;
+  } | null;
+
   // Persisted data
   accountMeta: {
     [providerId: string]: { [address: string]: PredictAccountMeta };
@@ -175,6 +180,7 @@ export const getDefaultPredictControllerState = (): PredictControllerState => ({
   pendingClaims: {},
   withdrawTransaction: null,
   activeOrder: null,
+  selectedPaymentToken: null,
   accountMeta: {},
 });
 
@@ -237,6 +243,12 @@ const metadata: StateMetadata<PredictControllerState> = {
     usedInUi: true,
   },
   activeOrder: {
+    persist: false,
+    includeInDebugSnapshot: false,
+    includeInStateLogs: false,
+    usedInUi: true,
+  },
+  selectedPaymentToken: {
     persist: false,
     includeInDebugSnapshot: false,
     includeInStateLogs: false,
@@ -1918,6 +1930,14 @@ export class PredictController extends BaseController<
   public clearActiveOrder(): void {
     this.update((state) => {
       state.activeOrder = null;
+    });
+  }
+
+  public setSelectedPaymentToken(
+    token: PredictControllerState['selectedPaymentToken'],
+  ): void {
+    this.update((state) => {
+      state.selectedPaymentToken = token;
     });
   }
 

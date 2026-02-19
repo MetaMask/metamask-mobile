@@ -86,6 +86,11 @@ const selectPredictPendingClaimByAddress = ({ address }: { address: string }) =>
     (pendingClaims) => pendingClaims[address] || undefined,
   );
 
+const selectPredictSelectedPaymentToken = createSelector(
+  selectPredictControllerState,
+  (predictState) => predictState?.selectedPaymentToken ?? null,
+);
+
 const selectPredictAccountMeta = createSelector(
   selectPredictControllerState,
   (predictControllerState) => predictControllerState?.accountMeta || {},
@@ -120,4 +125,5 @@ export {
   selectPredictPendingClaimByAddress,
   selectPredictAccountMeta,
   selectPredictAccountMetaByAddress,
+  selectPredictSelectedPaymentToken,
 };
