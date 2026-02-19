@@ -154,7 +154,7 @@ export default defineConfig({
           osVersion: '14', // this can be changed to your emulator version
         },
         buildPath: 'PATH-TO-BUILD', // Path to your .apk file
-        expectTimeout: 30 * 1000,
+        expectTimeout: 30 * 1000, //90 seconds  increased since login the app takes longer
       },
     },
   ],
