@@ -12,7 +12,7 @@ import type { LedgerTransactionModalParams } from '../../components/UI/LedgerMod
 import type { BrowserParams } from '../../components/Views/Browser/Browser.types';
 
 // Bridge params
-import type { BridgeRouteParams } from '../../components/UI/Bridge/Views/BridgeView';
+import type { BridgeRouteParams } from '../../components/UI/Bridge/hooks/useSwapBridgeNavigation';
 import type { BridgeTokenSelectorRouteParams } from '../../components/UI/Bridge/components/BridgeTokenSelector/BridgeTokenSelector';
 import type { DefaultSlippageModalParams } from '../../components/UI/Bridge/components/SlippageModal/types';
 import type {

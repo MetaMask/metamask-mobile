@@ -1,3 +1,4 @@
+import type { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import { BridgeQuoteResponse } from '../../../components/UI/Bridge/types';
 import Engine from '../../../core/Engine';
 import { useSelector } from 'react-redux';
@@ -11,8 +12,11 @@ export default function useSubmitBridgeTx() {
 
   const submitBridgeTx = async ({
     quoteResponse,
+    location,
   }: {
     quoteResponse: BridgeQuoteResponse;
+    /** The entry point from which the user initiated the swap or bridge */
+    location?: MetaMetricsSwapsEventSource;
   }) => {
     // check whether quoteResponse is an intent transaction
     if (quoteResponse.quote.intent) {
@@ -28,6 +32,8 @@ export default function useSubmitBridgeTx() {
         approval: quoteResponse.approval ?? undefined,
       },
       stxEnabled,
+      undefined, // quotesReceivedContext
+      location,
     );
   };
 
