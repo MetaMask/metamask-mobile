@@ -40,11 +40,15 @@ describe('SnapsExecutionWebView', () => {
     const script = buildE2EProxyPatchScript({
       mockServerPort: '8000',
       platform: 'ios',
+      snapId: 'npm:@metamask/solana-wallet-snap',
     });
 
     expect(script).toContain('/proxy?source=');
     expect(script).toContain("snapProxySource = 'snap-webview'");
-    expect(script).toContain('?source=${snapProxySource}&url=');
+    expect(script).toContain('snapId = "npm:@metamask/solana-wallet-snap"');
+    expect(script).toContain(
+      '?source=${snapProxySource}&snapId=${encodeURIComponent(snapId)}&url=',
+    );
     expect(script).toContain('http://localhost');
     expect(script).not.toContain('10.0.2.2');
   });
@@ -53,11 +57,15 @@ describe('SnapsExecutionWebView', () => {
     const script = buildE2EProxyPatchScript({
       mockServerPort: '8000',
       platform: 'android',
+      snapId: 'npm:@metamask/bitcoin-wallet-snap',
     });
 
     expect(script).toContain('/proxy?source=');
     expect(script).toContain("snapProxySource = 'snap-webview'");
-    expect(script).toContain('?source=${snapProxySource}&url=');
+    expect(script).toContain('snapId = "npm:@metamask/bitcoin-wallet-snap"');
+    expect(script).toContain(
+      '?source=${snapProxySource}&snapId=${encodeURIComponent(snapId)}&url=',
+    );
     expect(script).toContain('http://localhost');
     expect(script).toContain('10.0.2.2');
   });

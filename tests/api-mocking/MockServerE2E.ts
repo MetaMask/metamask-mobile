@@ -35,6 +35,7 @@ interface LiveRequest {
 
 interface SnapProxyRequest extends LiveRequest {
   mode: 'mocked' | 'passthrough';
+  snapId?: string;
 }
 
 const SNAP_WEBVIEW_PROXY_SOURCE = 'snap-webview';
@@ -60,9 +61,12 @@ const maybeLogSnapProxyApiRequest = (
   url: string,
   source: 'mocked' | 'passthrough',
   shouldLog: boolean,
+  snapId?: string,
 ) => {
   if (shouldLog) {
-    logSnapProxyToConsole(`[${source}] ${method} ${url}`);
+    logSnapProxyToConsole(
+      `[${source}]${snapId ? ` [${snapId}]` : ''} ${method} ${url}`,
+    );
   }
 };
 
@@ -290,6 +294,7 @@ export default class MockServerE2E implements Resource {
           }
           const isSnapWebViewProxyRequest =
             requestUrl.searchParams.get('source') === SNAP_WEBVIEW_PROXY_SOURCE;
+          const snapId = requestUrl.searchParams.get('snapId') || undefined;
           const shouldTrackSnapRequest =
             isSnapWebViewProxyRequest && isTrackableSnapApiUrl(urlEndpoint);
 
@@ -342,13 +347,19 @@ export default class MockServerE2E implements Resource {
 
           if (matchingEvent) {
             if (shouldTrackSnapRequest) {
-              this._recordSnapProxyRequest(method, urlEndpoint, 'mocked');
+              this._recordSnapProxyRequest(
+                method,
+                urlEndpoint,
+                'mocked',
+                snapId,
+              );
             }
             maybeLogSnapProxyApiRequest(
               method,
               urlEndpoint,
               'mocked',
               shouldTrackSnapRequest,
+              snapId,
             );
             logger.debug(`Mocking ${method} request to: ${urlEndpoint}`);
             logger.debug(`Response status: ${matchingEvent.responseCode}`);
@@ -389,13 +400,19 @@ export default class MockServerE2E implements Resource {
           const shouldTrackForwardedSnapRequest =
             isSnapWebViewProxyRequest && isTrackableSnapApiUrl(updatedUrl);
           if (shouldTrackForwardedSnapRequest) {
-            this._recordSnapProxyRequest(method, updatedUrl, 'passthrough');
+            this._recordSnapProxyRequest(
+              method,
+              updatedUrl,
+              'passthrough',
+              snapId,
+            );
           }
           maybeLogSnapProxyApiRequest(
             method,
             updatedUrl,
             'passthrough',
             shouldTrackForwardedSnapRequest,
+            snapId,
           );
 
           if (!isUrlAllowed(updatedUrl)) {
@@ -464,6 +481,8 @@ export default class MockServerE2E implements Resource {
         const isSnapWebViewProxyRequest =
           translatedRequestUrl.searchParams.get('source') ===
           SNAP_WEBVIEW_PROXY_SOURCE;
+        const snapId =
+          translatedRequestUrl.searchParams.get('snapId') || undefined;
         const trackableProxiedUrl =
           isSnapWebViewProxyRequest &&
           proxiedUrl &&
@@ -476,6 +495,7 @@ export default class MockServerE2E implements Resource {
             request.method,
             trackableProxiedUrl,
             'passthrough',
+            snapId,
           );
         }
         maybeLogSnapProxyApiRequest(
@@ -483,6 +503,7 @@ export default class MockServerE2E implements Resource {
           trackableProxiedUrl || translatedUrl,
           'passthrough',
           Boolean(trackableProxiedUrl),
+          snapId,
         );
         if (!isUrlAllowed(translatedUrl)) {
           const errorMessage = `Request going to live server: ${translatedUrl}`;
@@ -718,13 +739,16 @@ export default class MockServerE2E implements Resource {
         method: string;
         url: string;
         mode: 'mocked' | 'passthrough';
+        snapId: string;
         count: number;
         lastTimestamp: string;
       }
     >();
 
     for (const request of this._snapProxyRequests) {
-      const key = `${request.mode}|${request.method}|${request.url}`;
+      const key = `${request.mode}|${request.method}|${request.url}|${
+        request.snapId || 'unknown-snap'
+      }`;
       const existing = groupedRequests.get(key);
       if (existing) {
         existing.count++;
@@ -734,6 +758,7 @@ export default class MockServerE2E implements Resource {
           method: request.method,
           url: request.url,
           mode: request.mode,
+          snapId: request.snapId || 'unknown-snap',
           count: 1,
           lastTimestamp: request.timestamp,
         });
@@ -743,7 +768,7 @@ export default class MockServerE2E implements Resource {
     const summary = Array.from(groupedRequests.values())
       .map(
         (request, index) =>
-          `${index + 1}. [${request.mode}] [${request.method}] ${request.url} (count: ${request.count}, last: ${request.lastTimestamp})`,
+          `${index + 1}. [${request.mode}] [${request.snapId}] [${request.method}] ${request.url} (count: ${request.count}, last: ${request.lastTimestamp})`,
       )
       .join('\n');
 
@@ -756,11 +781,13 @@ export default class MockServerE2E implements Resource {
     method: string,
     url: string,
     mode: 'mocked' | 'passthrough',
+    snapId?: string,
   ): void {
     this._snapProxyRequests.push({
       method,
       url,
       mode,
+      snapId,
       timestamp: new Date().toISOString(),
     });
   }

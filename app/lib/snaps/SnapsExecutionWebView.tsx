@@ -20,6 +20,7 @@ const styles = createStyles();
 interface E2EProxyPatchScriptParams {
   mockServerPort: string;
   platform: string;
+  snapId: string;
 }
 
 /**
@@ -29,6 +30,7 @@ interface E2EProxyPatchScriptParams {
 export const buildE2EProxyPatchScript = ({
   mockServerPort,
   platform,
+  snapId,
 }: E2EProxyPatchScriptParams): string => {
   const proxyCandidates =
     platform === 'android'
@@ -43,9 +45,10 @@ export const buildE2EProxyPatchScript = ({
           (host) => \`\${host}:\${mockServerPort}\`,
         );
         const snapProxySource = 'snap-webview';
+        const snapId = ${JSON.stringify(snapId)};
 
         const buildProxyUrl = (proxyBaseUrl, targetUrl) =>
-          \`\${proxyBaseUrl}/proxy?source=\${snapProxySource}&url=\${encodeURIComponent(targetUrl)}\`;
+          \`\${proxyBaseUrl}/proxy?source=\${snapProxySource}&snapId=\${encodeURIComponent(snapId)}&url=\${encodeURIComponent(targetUrl)}\`;
 
         const shouldProxyUrl = (targetUrl) =>
           typeof targetUrl === 'string' &&
@@ -226,6 +229,7 @@ export class SnapsExecutionWebView extends Component {
             buildE2EProxyPatchScript({
               mockServerPort: String(getMockServerPortInApp()),
               platform: Platform.OS,
+              snapId: jobId,
             }),
           );
         }
@@ -294,30 +298,33 @@ export class SnapsExecutionWebView extends Component {
   }
 
   render() {
-    const e2eProxyPatchScript = shouldPatchSnapsWebViewProxy()
-      ? buildE2EProxyPatchScript({
-          mockServerPort: String(getMockServerPortInApp()),
-          platform: Platform.OS,
-        })
-      : undefined;
-
     return (
       <View style={styles.container}>
-        {Object.entries(this.webViews).map(([key, { props }]) => (
-          <WebView
-            testID={key}
-            key={key}
-            ref={props.ref}
-            source={{ html: WebViewHTML, baseUrl: 'https://localhost' }}
-            injectedJavaScriptBeforeContentLoaded={e2eProxyPatchScript}
-            onMessage={props.onWebViewMessage}
-            onError={props.onWebViewError}
-            onLoadEnd={props.onWebViewLoad}
-            originWhitelist={['*']}
-            javaScriptEnabled
-            webviewDebuggingEnabled={__DEV__}
-          />
-        ))}
+        {Object.entries(this.webViews).map(([key, { props }]) => {
+          const e2eProxyPatchScript = shouldPatchSnapsWebViewProxy()
+            ? buildE2EProxyPatchScript({
+                mockServerPort: String(getMockServerPortInApp()),
+                platform: Platform.OS,
+                snapId: key,
+              })
+            : undefined;
+
+          return (
+            <WebView
+              testID={key}
+              key={key}
+              ref={props.ref}
+              source={{ html: WebViewHTML, baseUrl: 'https://localhost' }}
+              injectedJavaScriptBeforeContentLoaded={e2eProxyPatchScript}
+              onMessage={props.onWebViewMessage}
+              onError={props.onWebViewError}
+              onLoadEnd={props.onWebViewLoad}
+              originWhitelist={['*']}
+              javaScriptEnabled
+              webviewDebuggingEnabled={__DEV__}
+            />
+          );
+        })}
       </View>
     );
   }
