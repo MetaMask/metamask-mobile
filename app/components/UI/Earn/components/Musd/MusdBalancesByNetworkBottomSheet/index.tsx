@@ -28,6 +28,7 @@ import { strings } from '../../../../../../../locales/i18n';
 import { MUSD_TOKEN } from '../../../constants/musd';
 import { selectNetworkConfigurations } from '../../../../../../selectors/networkController';
 import { useMusdBalance } from '../../../hooks/useMusdBalance';
+import { sortChainIdsByMusdBalanceDesc } from '../../../utils/musd';
 
 /**
  * Test IDs for the MusdBalancesByNetworkBottomSheet component.
@@ -60,19 +61,10 @@ const MusdBalancesByNetworkBottomSheet = () => {
      * Sort networks by largest fiat balance first;
      * if fiat is tied/unavailable (e.g. both 0), fall back to token balance as a deterministic tie-breaker.
      */
-    const chainIdsByBalanceDesc = (
-      Object.keys(tokenBalanceByChain) as Hex[]
-    ).sort((chainIdA, chainIdB) => {
-      const fiatA = new BigNumber(fiatBalanceByChain[chainIdA] ?? 0);
-      const fiatB = new BigNumber(fiatBalanceByChain[chainIdB] ?? 0);
-      const fiatComparison = fiatB.comparedTo(fiatA);
-      if (fiatComparison) {
-        return fiatComparison;
-      }
-
-      const tokenA = new BigNumber(tokenBalanceByChain[chainIdA] ?? 0);
-      const tokenB = new BigNumber(tokenBalanceByChain[chainIdB] ?? 0);
-      return tokenB.comparedTo(tokenA) || 0;
+    const chainIdsByBalanceDesc = sortChainIdsByMusdBalanceDesc({
+      chainIds: Object.keys(tokenBalanceByChain) as Hex[],
+      fiatBalanceByChain,
+      tokenBalanceByChain,
     });
 
     return chainIdsByBalanceDesc.map((chainId) => ({
