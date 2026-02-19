@@ -80,6 +80,7 @@ import TradingViewChart, {
   type TradingViewChartRef,
 } from '../../components/TradingViewChart';
 import { PERPS_CHART_CONFIG } from '../../constants/chartConfig';
+import { PERPS_MIN_BALANCE_THRESHOLD } from '../../constants/perpsConfig';
 import {
   usePerpsConnection,
   usePerpsNavigation,
@@ -416,7 +417,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     !existingPosition &&
     !isAtOICap &&
     !isLoadingAccount &&
-    availableBalance < 0.01 &&
+    availableBalance < PERPS_MIN_BALANCE_THRESHOLD &&
     defaultPayTokenWhenNoPerpsBalance === null;
 
   const handleAddFunds = useCallback(() => {
