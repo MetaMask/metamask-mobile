@@ -49,7 +49,10 @@ import {
   TraceName,
   TraceOperation,
 } from '../../../../util/trace';
-import { addTransactionBatch } from '../../../../util/transaction-controller';
+import {
+  addTransaction,
+  addTransactionBatch,
+} from '../../../../util/transaction-controller';
 import {
   PredictEventProperties,
   PredictShareStatusValue,
@@ -2038,13 +2041,6 @@ export class PredictController extends BaseController<
     try {
       const signer = this.getSigner();
 
-      // Clear any previous deposit transaction
-      this.update((state) => {
-        if (state.pendingDeposits[signer.address]) {
-          delete state.pendingDeposits[signer.address];
-        }
-      });
-
       const depositPreparation = await provider.prepareDeposit({
         signer,
       });
@@ -2100,46 +2096,32 @@ export class PredictController extends BaseController<
         throw new Error(`Network client not found for chain ID: ${chainId}`);
       }
 
-      this.update((state) => {
-        state.pendingDeposits[signer.address] = 'pending';
-      });
+      const tx = depositAndOrderTransactions[0];
 
-      const batchResult = await addTransactionBatch({
-        from: signer.address as Hex,
-        origin: ORIGIN_METAMASK,
-        networkClientId,
-        disableHook: true,
-        disableSequential: true,
-        skipInitialGasEstimate: true,
-        transactions: depositAndOrderTransactions,
-      });
+      const result = await addTransaction(
+        {
+          to: tx.params.to,
+          from: signer.address as Hex,
+          data: tx.params.data,
+        },
+        {
+          networkClientId,
+          origin: ORIGIN_METAMASK,
+          type: tx.type,
+        },
+      );
 
-      if (!batchResult?.batchId) {
-        throw new Error('Failed to get batch ID from transaction submission');
-      }
-
-      const { batchId } = batchResult;
-
-      // Validate chainId format before parsing
-      const parsedChainId = hexToNumber(chainId);
-      if (isNaN(parsedChainId)) {
-        throw new Error(`Invalid chain ID format: ${chainId}`);
-      }
-
-      this.update((state) => {
-        state.pendingDeposits[signer.address] = batchId;
-      });
+      const transactionId = result.transactionMeta?.id ?? '';
 
       return {
         success: true,
         response: {
-          batchId,
+          batchId: transactionId,
         },
       };
     } catch (error) {
       const e = ensureError(error);
       if (e.message.includes('User denied transaction signature')) {
-        this.clearPendingDeposit();
         return {
           success: true,
           response: { batchId: 'NA' },
@@ -2151,8 +2133,6 @@ export class PredictController extends BaseController<
           providerId: POLYMARKET_PROVIDER_ID,
         }),
       );
-
-      this.clearPendingDeposit();
 
       throw new Error(
         error instanceof Error
