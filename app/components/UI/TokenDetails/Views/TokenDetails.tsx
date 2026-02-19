@@ -41,6 +41,7 @@ import { getIsSwapsAssetAllowed } from '../../../Views/Asset/utils';
 import ActivityHeader from '../../../Views/Asset/ActivityHeader';
 import Transactions from '../../Transactions';
 import MultichainTransactionsView from '../../../Views/MultichainTransactionsView/MultichainTransactionsView';
+import { TransactionDetailLocation } from '../../../../core/Analytics/events/transactions';
 import BottomSheetFooter, {
   ButtonsAlignment,
 } from '../../../../component-library/components/BottomSheets/BottomSheetFooter';
@@ -262,6 +263,7 @@ const TokenDetails: React.FC<{ token: TokenDetailsRouteParams }> = ({
           chainId={token.chainId as SupportedCaipChainId}
           enableRefresh
           showDisclaimer
+          location={TransactionDetailLocation.AssetDetails}
         />
       ) : (
         <Transactions
@@ -279,6 +281,7 @@ const TokenDetails: React.FC<{ token: TokenDetailsRouteParams }> = ({
           headerHeight={280}
           tokenChainId={token.chainId}
           skipScrollOnClick
+          location={TransactionDetailLocation.AssetDetails}
         />
       )}
       {networkModal}
