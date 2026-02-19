@@ -164,7 +164,7 @@ describe('RewardsDataService', () => {
   });
 
   describe('setUseUatBackend', () => {
-    it('should switch to UAT URL when enabled and back when disabled', async () => {
+    it('switches to UAT URL when enabled and back when disabled', async () => {
       // Arrange
       const mockResponse = {
         ok: true,

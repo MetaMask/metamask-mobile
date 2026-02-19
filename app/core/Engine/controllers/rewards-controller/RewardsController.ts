@@ -612,7 +612,11 @@ export class RewardsController extends BaseController<
    * Reset controller state to default
    */
   resetState(): void {
-    this.update(() => getRewardsControllerDefaultState());
+    const { useUatBackend } = this.state;
+    this.update(() => ({
+      ...getRewardsControllerDefaultState(),
+      useUatBackend,
+    }));
   }
 
   /**
@@ -620,14 +624,13 @@ export class RewardsController extends BaseController<
    * Updates controller state, syncs the flag to the data service, and resets all cached data.
    */
   async setUseUatBackend(enabled: boolean): Promise<void> {
-    this.messenger.call('RewardsDataService:setUseUatBackend', enabled);
-
-    await this.resetAll();
-
-    // Set after resetAll since resetState() clears everything to defaults
     this.update((state: RewardsControllerState) => {
       state.useUatBackend = enabled;
     });
+
+    this.messenger.call('RewardsDataService:setUseUatBackend', enabled);
+
+    await this.resetAll();
   }
 
   /**
