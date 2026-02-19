@@ -2,6 +2,7 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 
 import {
+  buildE2EProxyPatchScript,
   createWebView,
   removeWebView,
   SnapsExecutionWebView,
@@ -33,5 +34,27 @@ describe('SnapsExecutionWebView', () => {
     wrapper.rerender(<SnapsExecutionWebView />);
     expect(await wrapper.queryByTestId('foo')).toBeNull();
     expect(await wrapper.queryByTestId('bar')).toBeTruthy();
+  });
+
+  it('builds an iOS proxy patch script without emulator host fallback', () => {
+    const script = buildE2EProxyPatchScript({
+      mockServerPort: '8000',
+      platform: 'ios',
+    });
+
+    expect(script).toContain('/proxy?url=');
+    expect(script).toContain('http://localhost');
+    expect(script).not.toContain('10.0.2.2');
+  });
+
+  it('builds an Android proxy patch script with emulator host fallback', () => {
+    const script = buildE2EProxyPatchScript({
+      mockServerPort: '8000',
+      platform: 'android',
+    });
+
+    expect(script).toContain('/proxy?url=');
+    expect(script).toContain('http://localhost');
+    expect(script).toContain('10.0.2.2');
   });
 });

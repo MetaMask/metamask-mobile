@@ -33,6 +33,19 @@ interface LiveRequest {
   timestamp: string;
 }
 
+const SNAP_INFURA_PROXY_URL_REGEX =
+  /^https:\/\/(?:bitcoin|tron|solana)-mainnet\.infura\.io(?:\/|$)/u;
+
+const maybeLogSnapInfuraProxyRequest = (
+  method: string,
+  url: string,
+  source: 'mocked' | 'passthrough',
+) => {
+  if (SNAP_INFURA_PROXY_URL_REGEX.test(url)) {
+    logger.info(`[Snap Infura Proxy][${source}] ${method} ${url}`);
+  }
+};
+
 export interface InternalMockServer extends Mockttp {
   _liveRequests?: LiveRequest[];
 }
@@ -301,6 +314,7 @@ export default class MockServerE2E implements Resource {
           }
 
           if (matchingEvent) {
+            maybeLogSnapInfuraProxyRequest(method, urlEndpoint, 'mocked');
             logger.debug(`Mocking ${method} request to: ${urlEndpoint}`);
             logger.debug(`Response status: ${matchingEvent.responseCode}`);
             logger.debug('Response:', matchingEvent.response);
@@ -337,6 +351,7 @@ export default class MockServerE2E implements Resource {
 
           // Translate fallback ports to actual allocated ports (host-side forwarding)
           updatedUrl = translateFallbackPortToActual(updatedUrl);
+          maybeLogSnapInfuraProxyRequest(method, updatedUrl, 'passthrough');
 
           if (!isUrlAllowed(updatedUrl)) {
             const errorMessage = `Request going to live server: ${updatedUrl}`;
@@ -399,6 +414,11 @@ export default class MockServerE2E implements Resource {
 
         // Translate fallback ports to actual allocated ports (host-side forwarding)
         const translatedUrl = translateFallbackPortToActual(request.url);
+        maybeLogSnapInfuraProxyRequest(
+          request.method,
+          translatedUrl,
+          'passthrough',
+        );
 
         if (!isUrlAllowed(translatedUrl)) {
           const errorMessage = `Request going to live server: ${translatedUrl}`;
