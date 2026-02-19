@@ -37,7 +37,7 @@ export interface UseLivePositionsResult {
  * @param options - Configuration options (enabled: boolean)
  * @returns Live-updated positions, connection status, and last update timestamp
  */
-export const useLivePositions = (
+export const usePredictLivePositions = (
   positions: PredictPosition[],
   options: UseLivePositionsOptions = {},
 ): UseLivePositionsResult => {

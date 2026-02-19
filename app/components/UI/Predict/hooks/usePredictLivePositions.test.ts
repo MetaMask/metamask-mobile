@@ -1,5 +1,5 @@
 import { renderHook } from '@testing-library/react-native';
-import { useLivePositions } from './useLivePositions';
+import { usePredictLivePositions } from './usePredictLivePositions';
 import { useLiveMarketPrices } from './useLiveMarketPrices';
 import { PredictPosition, PredictPositionStatus, PriceUpdate } from '../types';
 
@@ -42,7 +42,7 @@ const createMockPriceUpdate = (
   ...overrides,
 });
 
-describe('useLivePositions', () => {
+describe('usePredictLivePositions', () => {
   const mockUseLiveMarketPrices = useLiveMarketPrices as jest.Mock;
 
   beforeEach(() => {
@@ -61,7 +61,7 @@ describe('useLivePositions', () => {
         createMockPosition({ id: 'position-2', outcomeTokenId: 'token-2' }),
       ];
 
-      renderHook(() => useLivePositions(positions));
+      renderHook(() => usePredictLivePositions(positions));
 
       expect(mockUseLiveMarketPrices).toHaveBeenCalledWith(
         ['token-1', 'token-2'],
@@ -70,7 +70,7 @@ describe('useLivePositions', () => {
     });
 
     it('disables subscription when positions array is empty', () => {
-      renderHook(() => useLivePositions([]));
+      renderHook(() => usePredictLivePositions([]));
 
       expect(mockUseLiveMarketPrices).toHaveBeenCalledWith([], {
         enabled: false,
@@ -80,7 +80,7 @@ describe('useLivePositions', () => {
     it('disables subscription when enabled option is false', () => {
       const positions = [createMockPosition()];
 
-      renderHook(() => useLivePositions(positions, { enabled: false }));
+      renderHook(() => usePredictLivePositions(positions, { enabled: false }));
 
       expect(mockUseLiveMarketPrices).toHaveBeenCalledWith(['token-1'], {
         enabled: false,
@@ -90,7 +90,7 @@ describe('useLivePositions', () => {
     it('passes enabled true when positions exist and enabled is not specified', () => {
       const positions = [createMockPosition()];
 
-      renderHook(() => useLivePositions(positions));
+      renderHook(() => usePredictLivePositions(positions));
 
       expect(mockUseLiveMarketPrices).toHaveBeenCalledWith(['token-1'], {
         enabled: true,
@@ -107,7 +107,7 @@ describe('useLivePositions', () => {
         lastUpdateTime: null,
       });
 
-      const { result } = renderHook(() => useLivePositions(positions));
+      const { result } = renderHook(() => usePredictLivePositions(positions));
 
       expect(result.current.livePositions[0].currentValue).toBe(100);
       expect(result.current.livePositions[0].cashPnl).toBe(0);
@@ -129,7 +129,7 @@ describe('useLivePositions', () => {
         lastUpdateTime: Date.now(),
       });
 
-      const { result } = renderHook(() => useLivePositions([position]));
+      const { result } = renderHook(() => usePredictLivePositions([position]));
 
       expect(result.current.livePositions[0].currentValue).toBe(120);
     });
@@ -150,7 +150,7 @@ describe('useLivePositions', () => {
         lastUpdateTime: Date.now(),
       });
 
-      const { result } = renderHook(() => useLivePositions([position]));
+      const { result } = renderHook(() => usePredictLivePositions([position]));
 
       expect(result.current.livePositions[0].cashPnl).toBe(20);
     });
@@ -171,7 +171,7 @@ describe('useLivePositions', () => {
         lastUpdateTime: Date.now(),
       });
 
-      const { result } = renderHook(() => useLivePositions([position]));
+      const { result } = renderHook(() => usePredictLivePositions([position]));
 
       expect(result.current.livePositions[0].percentPnl).toBe(20);
     });
@@ -192,7 +192,7 @@ describe('useLivePositions', () => {
         lastUpdateTime: Date.now(),
       });
 
-      const { result } = renderHook(() => useLivePositions([position]));
+      const { result } = renderHook(() => usePredictLivePositions([position]));
 
       expect(result.current.livePositions[0].currentValue).toBe(80);
       expect(result.current.livePositions[0].cashPnl).toBe(-20);
@@ -215,7 +215,7 @@ describe('useLivePositions', () => {
         lastUpdateTime: Date.now(),
       });
 
-      const { result } = renderHook(() => useLivePositions([position]));
+      const { result } = renderHook(() => usePredictLivePositions([position]));
 
       expect(result.current.livePositions[0].percentPnl).toBe(0);
     });
@@ -235,7 +235,7 @@ describe('useLivePositions', () => {
         lastUpdateTime: Date.now(),
       });
 
-      const { result } = renderHook(() => useLivePositions([position]));
+      const { result } = renderHook(() => usePredictLivePositions([position]));
 
       expect(result.current.livePositions[0].price).toBe(0.65);
     });
@@ -269,7 +269,7 @@ describe('useLivePositions', () => {
         lastUpdateTime: Date.now(),
       });
 
-      const { result } = renderHook(() => useLivePositions(positions));
+      const { result } = renderHook(() => usePredictLivePositions(positions));
 
       expect(result.current.livePositions[0].currentValue).toBe(70);
       expect(result.current.livePositions[0].cashPnl).toBe(20);
@@ -308,7 +308,7 @@ describe('useLivePositions', () => {
         lastUpdateTime: Date.now(),
       });
 
-      const { result } = renderHook(() => useLivePositions(positions));
+      const { result } = renderHook(() => usePredictLivePositions(positions));
 
       expect(result.current.livePositions[0].currentValue).toBe(60);
       expect(result.current.livePositions[1].currentValue).toBe(160);
@@ -323,7 +323,7 @@ describe('useLivePositions', () => {
         lastUpdateTime: null,
       });
 
-      const { result } = renderHook(() => useLivePositions([]));
+      const { result } = renderHook(() => usePredictLivePositions([]));
 
       expect(result.current.isConnected).toBe(true);
     });
@@ -335,7 +335,7 @@ describe('useLivePositions', () => {
         lastUpdateTime: null,
       });
 
-      const { result } = renderHook(() => useLivePositions([]));
+      const { result } = renderHook(() => usePredictLivePositions([]));
 
       expect(result.current.isConnected).toBe(false);
     });
@@ -348,7 +348,7 @@ describe('useLivePositions', () => {
         lastUpdateTime: timestamp,
       });
 
-      const { result } = renderHook(() => useLivePositions([]));
+      const { result } = renderHook(() => usePredictLivePositions([]));
 
       expect(result.current.lastUpdateTime).toBe(timestamp);
     });
@@ -360,7 +360,7 @@ describe('useLivePositions', () => {
         lastUpdateTime: null,
       });
 
-      const { result } = renderHook(() => useLivePositions([]));
+      const { result } = renderHook(() => usePredictLivePositions([]));
 
       expect(result.current.lastUpdateTime).toBeNull();
     });
@@ -368,7 +368,7 @@ describe('useLivePositions', () => {
 
   describe('empty state', () => {
     it('returns empty array for empty positions input', () => {
-      const { result } = renderHook(() => useLivePositions([]));
+      const { result } = renderHook(() => usePredictLivePositions([]));
 
       expect(result.current.livePositions).toEqual([]);
     });
@@ -380,7 +380,7 @@ describe('useLivePositions', () => {
         createMockPosition({ id: 'third', outcomeTokenId: 'token-3' }),
       ];
 
-      const { result } = renderHook(() => useLivePositions(positions));
+      const { result } = renderHook(() => usePredictLivePositions(positions));
 
       expect(result.current.livePositions[0].id).toBe('first');
       expect(result.current.livePositions[1].id).toBe('second');
@@ -410,7 +410,7 @@ describe('useLivePositions', () => {
         lastUpdateTime: Date.now(),
       });
 
-      const { result } = renderHook(() => useLivePositions([position]));
+      const { result } = renderHook(() => usePredictLivePositions([position]));
 
       const livePosition = result.current.livePositions[0];
       expect(livePosition.id).toBe('test-id');
