@@ -46,6 +46,7 @@ import {
 } from '../../../selectors/currencyRateController';
 import { selectSingleTokenByAddressAndChainId } from '../../../selectors/tokensController';
 import { selectTickerByChainId } from '../../../selectors/networkController';
+import { selectContractExchangeRatesByChainId } from '../../../selectors/tokenRatesController';
 
 const POSITIVE_TRANSFER_TRANSACTION_TYPES = [
   TransactionType.musdConversion,
@@ -260,15 +261,29 @@ function getPostQuoteDisplay(tx, currentCurrency) {
     return undefined;
   }
 
-  const destUsdRate = selectUSDConversionRateByChainId(state, destChainId);
-  if (!destUsdRate) {
+  const nativeUsdRate = selectUSDConversionRateByChainId(state, destChainId);
+  if (!nativeUsdRate) {
     return undefined;
   }
 
+  // For ERC-20 tokens, derive the token's USD price from its exchange rate
+  // relative to the native token. For native tokens, use the native USD rate directly.
+  let tokenUsdRate = nativeUsdRate;
+  if (metamaskPay.tokenAddress) {
+    const contractRates = selectContractExchangeRatesByChainId(
+      state,
+      destChainId,
+    );
+    const tokenExchangeRate = contractRates?.[metamaskPay.tokenAddress]?.price;
+    if (tokenExchangeRate) {
+      tokenUsdRate = tokenExchangeRate * nativeUsdRate;
+    }
+  }
+
   const destRate = selectConversionRateByChainId(state, destChainId);
-  const receivedAmount = fiatUsd / destUsdRate;
+  const receivedAmount = fiatUsd / tokenUsdRate;
   const userFiat =
-    destRate && destUsdRate ? fiatUsd * (destRate / destUsdRate) : fiatUsd;
+    destRate && nativeUsdRate ? fiatUsd * (destRate / nativeUsdRate) : fiatUsd;
 
   return {
     value: `${receivedAmount.toPrecision(4)} ${destSymbol}`,
