@@ -45,8 +45,8 @@ import AssetDetailsActions from '../../../Views/AssetDetails/AssetDetailsActions
 import { TokenDetailsActions } from './TokenDetailsActions';
 import PerpsDiscoveryBanner from '../../Perps/components/PerpsDiscoveryBanner';
 import { isTokenTrustworthyForPerps } from '../../Perps/constants/perpsConfig';
-import { selectTokenDetailsV2ButtonsEnabled } from '../../../../selectors/featureFlagController/tokenDetailsV2';
-import { useTokenBuyability } from '../../Ramp/hooks/useTokenBuyability';
+import { useTokenDetailsABTest } from '../hooks/useTokenDetailsABTest';
+import useTokenBuyability from '../../Ramp/hooks/useTokenBuyability';
 import {
   MarketInsightsEntryCard,
   useMarketInsights,
@@ -190,6 +190,9 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   const resetNavigationLockRef = useRef<(() => void) | null>(null);
   const { isTokenTradingOpen } = useRWAToken();
 
+  // A/B test hook for layout selection (must be called before usePerpsActions to pass ab_tests)
+  const { useNewLayout, isTestActive, variantName } = useTokenDetailsABTest();
+
   const {
     hasPerpsMarket,
     marketData,
@@ -197,6 +200,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     handlePerpsAction,
   } = usePerpsActions({
     symbol: isPerpsEnabled ? token.symbol : null,
+    abTestTokenDetailsLayout: isTestActive ? variantName : undefined,
   });
 
   const isEligible = useSelector(selectPerpsEligibility);
@@ -248,10 +252,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     );
 
   const isTokenTrustworthy = isTokenTrustworthyForPerps(token);
-
-  const isTokenDetailsV2ButtonsEnabled = useSelector(
-    selectTokenDetailsV2ButtonsEnabled,
-  );
 
   const isMarketInsightsEnabled = useSelector(selectMarketInsightsEnabled);
   const marketInsightsCaip19Id = useMemo(() => {
@@ -402,7 +402,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
               />
             </View>
           )}
-          {isTokenDetailsV2ButtonsEnabled ? (
+          {useNewLayout ? (
             <TokenDetailsActions
               hasPerpsMarket={hasPerpsMarket}
               hasBalance={balance != null && Number(balance) > 0}
