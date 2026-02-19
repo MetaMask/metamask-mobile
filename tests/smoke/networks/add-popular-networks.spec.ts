@@ -19,7 +19,6 @@ describe(SmokeNetworkAbstractions('Add all popular networks'), () => {
       },
       async () => {
         await loginToApp();
-
         await WalletView.tapTokenNetworkFilter();
         await Assertions.expectElementToBeVisible(
           NetworkListModal.popularNetworksContainer,
@@ -27,6 +26,10 @@ describe(SmokeNetworkAbstractions('Add all popular networks'), () => {
 
         // Tap on a popular network - it should be added directly without confirmation
         await NetworkListModal.scrollToBottomOfNetworkMultiSelector();
+        await Assertions.expectElementToBeVisible(
+          NetworkListModal.getNetworkCell('Arbitrum'),
+          { description: 'Arbitrum network visible in list' },
+        );
         await NetworkListModal.tapNetworkMenuButton('Arbitrum');
 
         // Network is added immediately, no approval modal needed

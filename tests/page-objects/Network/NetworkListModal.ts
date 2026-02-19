@@ -134,17 +134,35 @@ class NetworkListModal {
     });
   }
 
+  /**
+   * Returns the network cell element by name. Use with Assertions to wait for it
+   * after scrolling (e.g. expectElementToBeVisible) before tapping.
+   */
+  getNetworkCell(networkName: string): DetoxElement {
+    return Matchers.getElementByText(networkName);
+  }
+
   async tapNetworkMenuButton(networkName: string): Promise<void> {
     const networkCell = Matchers.getElementByText(networkName);
     await Gestures.waitAndTap(networkCell, {
       elemDescription: `Network ${networkName}`,
-      checkVisibility: false,
-      checkEnabled: false,
+      checkStability: true,
     });
   }
 
+  /**
+   * Taps on the custom tab
+   */
   async tapOnCustomTab(): Promise<void> {
     const networkCell = Matchers.getElementByLabel('Custom');
+    await Gestures.waitAndTap(networkCell);
+  }
+
+  /**
+   * Taps on the popular tab
+   */
+  async tapOnPopularTab(): Promise<void> {
+    const networkCell = Matchers.getElementByLabel('Popular');
     await Gestures.waitAndTap(networkCell);
   }
 
