@@ -4158,7 +4158,7 @@ describe('Authentication', () => {
       jest
         .spyOn(SecureKeychain, 'setGenericPassword')
         .mockRejectedValueOnce(new Error('Biometric keychain failed'))
-        .mockResolvedValueOnce(undefined);
+        .mockResolvedValueOnce(undefined as never);
 
       await Authentication.updateAuthPreference({
         authType: AUTHENTICATION_TYPE.BIOMETRIC,
@@ -4176,7 +4176,7 @@ describe('Authentication', () => {
       expect(SecureKeychain.setGenericPassword).toHaveBeenNthCalledWith(
         2,
         mockPassword,
-        undefined,
+        AUTHENTICATION_TYPE.PASSWORD,
       );
       expect(updateAuthMockDispatch).toHaveBeenCalledWith(passwordSet());
     });
