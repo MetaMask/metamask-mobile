@@ -1,4 +1,5 @@
 import React from 'react';
+import { ScrollView } from 'react-native';
 import { render, fireEvent } from '@testing-library/react-native';
 import PerpsHomeView from './PerpsHomeView';
 import { PERPS_EVENT_VALUE } from '@metamask/perps-controller';
@@ -55,6 +56,7 @@ const mockHandleAddFunds = jest.fn();
 const mockHandleWithdraw = jest.fn();
 const mockCloseEligibilityModal = jest.fn();
 const mockTrack = jest.fn();
+const mockHandleScroll = jest.fn();
 jest.mock('../../hooks', () => ({
   usePerpsHomeData: jest.fn(),
   usePerpsMeasurement: jest.fn(),
@@ -77,7 +79,7 @@ jest.mock('../../hooks', () => ({
   })),
   usePerpsHomeSectionTracking: jest.fn(() => ({
     handleSectionLayout: jest.fn(() => jest.fn()),
-    handleScroll: jest.fn(),
+    handleScroll: mockHandleScroll,
     resetTracking: jest.fn(),
   })),
 }));
@@ -500,6 +502,7 @@ describe('PerpsHomeView', () => {
     mockNavigateToWallet.mockClear();
     mockNavigateToMarketList.mockClear();
     mockTrack.mockClear();
+    mockHandleScroll.mockClear();
     mockUsePerpsHomeData.mockReturnValue(mockDefaultData);
     mockUsePerpsHomeActions.mockReturnValue(defaultHomeActionsReturn);
   });
@@ -808,6 +811,23 @@ describe('PerpsHomeView', () => {
     expect(
       UNSAFE_getByType('PerpsRecentActivityList' as never),
     ).toBeOnTheScreen();
+  });
+
+  it('calls onScroll and handleScroll when ScrollView is scrolled', () => {
+    const { UNSAFE_getByType } = render(<PerpsHomeView />);
+
+    const scrollView = UNSAFE_getByType(ScrollView);
+    const scrollEvent = {
+      nativeEvent: {
+        contentOffset: { x: 0, y: 100 },
+        contentSize: { height: 1000, width: 400 },
+        layoutMeasurement: { height: 500, width: 400 },
+      },
+    };
+
+    scrollView.props.onScroll?.(scrollEvent);
+
+    expect(mockHandleScroll).toHaveBeenCalledWith(scrollEvent);
   });
 
   it('shows watchlist section when watchlist markets exist', () => {
