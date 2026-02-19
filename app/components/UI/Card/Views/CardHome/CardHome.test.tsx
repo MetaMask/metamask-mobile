@@ -4787,6 +4787,8 @@ describe('CardHome Component', () => {
 
     const mockUserDetailsForProvisioning = {
       id: 'user-123',
+      firstName: 'John',
+      lastName: 'Doe',
       addressLine1: '123 Main St',
       addressLine2: 'Apt 4B',
       city: 'New York',
@@ -4874,7 +4876,7 @@ describe('CardHome Component', () => {
 
       // Verify userAddress uses physical address fields in provisioning format
       expect(options.userAddress).toEqual({
-        name: 'Card Holder', // Uses default since userDetails doesn't have firstName/lastName
+        name: 'John Doe', // Derived from KYC userDetails firstName/lastName
         addressOne: '123 Main St',
         addressTwo: 'Apt 4B',
         locality: 'New York',
@@ -4969,11 +4971,17 @@ describe('CardHome Component', () => {
       expect(typeof options.onError).toBe('function');
     });
 
-    it('uses holderName from cardDetails for provisioning', async () => {
-      // Given: card with holder name from card status API
+    it('uses holderName from KYC userDetails for provisioning', async () => {
+      // Given: card with different holder name, but KYC has specific names
       const cardWithHolderName = {
         ...mockCardDetailsWithHolder,
-        holderName: 'Jane Smith',
+        holderName: 'Card API Name',
+      };
+
+      const userDetailsWithName = {
+        ...mockUserDetailsForProvisioning,
+        firstName: 'Jane',
+        lastName: 'Smith',
       };
 
       setupMockSelectors({ isAuthenticated: true, userLocation: 'us' });
@@ -4985,7 +4993,7 @@ describe('CardHome Component', () => {
         kycStatus: {
           verificationState: 'VERIFIED',
           userId: 'user-123',
-          userDetails: mockUserDetailsForProvisioning,
+          userDetails: userDetailsWithName,
         },
       });
 
@@ -4996,7 +5004,7 @@ describe('CardHome Component', () => {
         expect(mockUsePushProvisioning).toHaveBeenCalled();
       });
 
-      // Then: holderName should come from cardDetails
+      // Then: holderName should come from KYC userDetails, not cardDetails
       const options = getLastCallOptions();
       const cardDetails = options.cardDetails as { holderName: string };
 

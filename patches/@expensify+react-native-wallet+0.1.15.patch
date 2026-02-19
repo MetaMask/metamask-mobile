@@ -1,0 +1,181 @@
+diff --git a/node_modules/@expensify/react-native-wallet/ios/WalletManager.swift b/node_modules/@expensify/react-native-wallet/ios/WalletManager.swift
+index c0afa083a9..22898d66b1 100644
+--- a/node_modules/@expensify/react-native-wallet/ios/WalletManager.swift
++++ b/node_modules/@expensify/react-native-wallet/ios/WalletManager.swift
+@@ -2,6 +2,7 @@ import Foundation
+ import PassKit
+ import UIKit
+ import React
++import os.log
+ 
+ public typealias CompletionHandler = (OperationResult, NSDictionary?) -> Void
+ 
+@@ -50,28 +51,43 @@ open class WalletManager: UIViewController {
+   }
+   
+   @objc func passLibraryDidChange(_ notification: Notification) {
++    self.logInfo(message: "🔔 passLibraryDidChange fired")
+     guard let userInfo = notification.userInfo else {
++      self.logInfo(message: "🔔 passLibraryDidChange: No userInfo in notification")
+       return
+     }
+     
++    self.logInfo(message: "🔔 passLibraryDidChange: userInfo keys = \(userInfo.keys)")
++    
+     // Check if passes were added or status changed
+     if let addedPasses = userInfo[PKPassLibraryNotificationKey.addedPassesUserInfoKey] as? [PKPass] {
++      self.logInfo(message: "🔔 passLibraryDidChange: \(addedPasses.count) added pass(es)")
+       checkPassActivationStatus(addedPasses)
+     }
+     
+     // Check for updated passes
+     if let replacedPasses = userInfo[PKPassLibraryNotificationKey.replacementPassesUserInfoKey] as? [PKPass] {
++      self.logInfo(message: "🔔 passLibraryDidChange: \(replacedPasses.count) replaced pass(es)")
+       checkPassActivationStatus(replacedPasses)
+     }
+   }
+   
+   func checkPassActivationStatus(_ passes: [PKPass]) {
+-    for pass in passes {
+-      if pass.secureElementPass?.passActivationState == .activated {
++    self.logInfo(message: "🔍 checkPassActivationStatus: checking \(passes.count) pass(es)")
++    for (index, pass) in passes.enumerated() {
++      let activationState = pass.secureElementPass?.passActivationState
++      let suffix = pass.secureElementPass?.primaryAccountNumberSuffix ?? "N/A"
++      let identifier = pass.secureElementPass?.primaryAccountIdentifier ?? "N/A"
++      self.logInfo(message: "🔍 checkPassActivationStatus[\(index)]: serialNumber=\(pass.serialNumber), suffix=\(suffix), identifier=\(String(identifier.prefix(12)))..., activationState=\(String(describing: activationState?.rawValue))")
++      
++      if activationState == .activated {
++        self.logInfo(message: "✅ checkPassActivationStatus[\(index)]: ACTIVATED → sending onCardActivated event")
+         delegate?.sendEvent(name: Event.onCardActivated.rawValue, result:  [
+           "state": "activated",
+           "serialNumber": pass.serialNumber
+         ]);
++      } else {
++        self.logInfo(message: "⏳ checkPassActivationStatus[\(index)]: NOT activated (state=\(String(describing: activationState?.rawValue)))")
+       }
+     }
+   }
+@@ -163,30 +179,56 @@ open class WalletManager: UIViewController {
+   
+   private func getPassActivationState(matching condition: (PKSecureElementPass) -> Bool) -> NSNumber {
+     let paymentPasses = passLibrary.passes(of: .payment)
++    
++    self.logInfo(message: "🔎 getPassActivationState: Found \(paymentPasses.count) payment pass(es) in wallet")
++    
+     if paymentPasses.isEmpty {
+-      self.logInfo(message: "No passes found in Wallet.")
++      self.logInfo(message: "🔎 getPassActivationState: No passes found in Wallet → returning -1")
+       return -1
+     }
+     
+-    for pass in paymentPasses {
+-      guard let securePassElement = pass.secureElementPass else { continue }
+-      if condition(securePassElement) {
+-        return NSNumber(value: securePassElement.passActivationState.rawValue)
++    for (index, pass) in paymentPasses.enumerated() {
++      guard let securePassElement = pass.secureElementPass else {
++        self.logInfo(message: "🔎 getPassActivationState[\(index)]: No secureElementPass (serialNumber=\(pass.serialNumber)) → skipping")
++        continue
++      }
++      
++      let suffix = securePassElement.primaryAccountNumberSuffix
++      let identifier = securePassElement.primaryAccountIdentifier
++      let activationState = securePassElement.passActivationState.rawValue
++      let matches = condition(securePassElement)
++      
++      self.logInfo(message: "🔎 getPassActivationState[\(index)]: suffix=\(suffix), identifier=\(String(identifier.prefix(12)))..., activationState=\(activationState), matches=\(matches)")
++      
++      if matches {
++        self.logInfo(message: "✅ getPassActivationState[\(index)]: MATCH FOUND → returning activationState=\(activationState)")
++        return NSNumber(value: activationState)
+       }
+     }
++    
++    self.logInfo(message: "❌ getPassActivationState: No matching pass found → returning -1")
+     return -1
+   }
+   
+   @objc public func getCardStatusBySuffix(last4Digits: NSString) -> NSNumber {
+-    return getPassActivationState { pass in
+-      return pass.primaryAccountNumberSuffix.hasSuffix(last4Digits as String)
++    self.logInfo(message: "📋 getCardStatusBySuffix: called with last4Digits=\"\(last4Digits)\"")
++    let result = getPassActivationState { pass in
++      let matches = pass.primaryAccountNumberSuffix.hasSuffix(last4Digits as String)
++      self.logInfo(message: "📋 getCardStatusBySuffix: comparing pass.suffix=\"\(pass.primaryAccountNumberSuffix)\" with input=\"\(last4Digits)\" → matches=\(matches)")
++      return matches
+     }
++    self.logInfo(message: "📋 getCardStatusBySuffix: final result=\(result)")
++    return result
+   }
+ 
+   @objc public func getCardStatusByIdentifier(identifier: NSString) -> NSNumber {
+-    return getPassActivationState { pass in
+-      return pass.primaryAccountIdentifier == identifier as String
++    self.logInfo(message: "📋 getCardStatusByIdentifier: called with identifier=\"\(String((identifier as String).prefix(12)))...\"")
++    let result = getPassActivationState { pass in
++      let matches = pass.primaryAccountIdentifier == identifier as String
++      return matches
+     }
++    self.logInfo(message: "📋 getCardStatusByIdentifier: final result=\(result)")
++    return result
+   }
+   
+   private func isPassKitAvailable() -> Bool {
+@@ -205,8 +247,10 @@ open class WalletManager: UIViewController {
+     }
+   }
+   
++  private static let logger = Logger(subsystem: "com.expensify.react-native-wallet", category: "WalletManager")
++
+   private func logInfo(message: String) {
+-    print("[\(packageName)] \(message)")
++    Self.logger.info("[\(self.packageName, privacy: .public)] \(message, privacy: .public)")
+   }
+ }
+ 
+@@ -244,14 +288,24 @@ extension WalletManager: PKAddPaymentPassViewControllerDelegate {
+     _ controller: PKAddPaymentPassViewController,
+     didFinishAdding pass: PKPaymentPass?,
+     error: Error?) {
++      self.logInfo(message: "🏁 didFinishAdding: called, pass=\(pass != nil ? "present" : "nil"), error=\(error?.localizedDescription ?? "nil")")
++      
++      if let pass = pass {
++        self.logInfo(message: "🏁 didFinishAdding: pass.primaryAccountNumberSuffix=\(pass.primaryAccountNumberSuffix)")
++        self.logInfo(message: "🏁 didFinishAdding: pass.primaryAccountIdentifier=\(String(pass.primaryAccountIdentifier.prefix(12)))...")
++        self.logInfo(message: "🏁 didFinishAdding: pass.passActivationState=\(pass.passActivationState.rawValue)")
++        self.logInfo(message: "🏁 didFinishAdding: pass.serialNumber=\(pass.serialNumber)")
++      }
++      
+       if addPassViewController == nil {
++        self.logInfo(message: "🏁 didFinishAdding: addPassViewController is nil, returning early")
+         return
+       }
+       
+       let errorMessage = error?.localizedDescription ?? ""
+ 
+       if error != nil {
+-        self.logInfo(message: "Error: \(errorMessage)")
++        self.logInfo(message: "🏁 didFinishAdding: Error → \(errorMessage)")
+         delegate?.sendEvent(name: Event.onCardActivated.rawValue, result:  [
+           "state": "canceled"
+         ]);
+@@ -259,6 +313,7 @@ extension WalletManager: PKAddPaymentPassViewControllerDelegate {
+       
+       // Cancel the IOSPresentAddPaymentPassView function when the user cancelled the modal
+       if let handler = presentAddPaymentPassCompletionHandler {
++        self.logInfo(message: "🏁 didFinishAdding: calling presentAddPaymentPassCompletionHandler with .canceled")
+         let response = AddPassResponse(status: .canceled, nonce: nil, nonceSignature: nil, certificates: nil)
+         handler(.canceled, response.toNSDictionary())
+       }
+@@ -266,8 +321,10 @@ extension WalletManager: PKAddPaymentPassViewControllerDelegate {
+       // If the pass is returned complete the IOSHandleAddPaymentPassResponse function
+       if let addPaymentPassHandler = addPaymentPassCompletionHandler {
+         if pass != nil {
++          self.logInfo(message: "🏁 didFinishAdding: pass present → calling addPaymentPassCompletionHandler with .completed")
+           addPaymentPassHandler(.completed, nil)
+         } else {
++          self.logInfo(message: "🏁 didFinishAdding: pass nil → calling addPaymentPassCompletionHandler with .error")
+           addPaymentPassHandler(.error, [
+             "errorMessage": "Could not add card. \(errorMessage))."
+           ])

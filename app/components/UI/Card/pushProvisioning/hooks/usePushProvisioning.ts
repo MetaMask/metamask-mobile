@@ -94,22 +94,15 @@ export function usePushProvisioning(
         : false;
 
   // Create the adapters based on user location and platform
-  const cardAdapter = useMemo(() => {
-    if (isSDKLoading) {
-      return null;
-    }
-    if (!cardSDK) {
-      return null;
-    }
+  const cardAdapter = useMemo(
+    () =>
+      isSDKLoading || !cardSDK
+        ? null
+        : getCardProvider(userCardLocation, cardSDK),
+    [cardSDK, userCardLocation, isSDKLoading],
+  );
 
-    const adapter = getCardProvider(userCardLocation, cardSDK);
-    return adapter;
-  }, [cardSDK, userCardLocation, isSDKLoading]);
-
-  const walletAdapter = useMemo(() => {
-    const adapter = getWalletProvider();
-    return adapter;
-  }, []);
+  const walletAdapter = useMemo(() => getWalletProvider(), []);
 
   // Check wallet eligibility (async) - includes availability and canAddCard checks
   const [eligibility, setEligibility] = useState<WalletEligibility | null>(
@@ -380,8 +373,22 @@ export function usePushProvisioning(
         setStatus('provisioning');
         const result = await service.initiateProvisioning(provisioningOptions);
 
-        // Handle cancel and error - success is handled by the activation listener
-        if (result.status === 'canceled') {
+        // Handle all result statuses from the service
+        // Note: On iOS, addCardToAppleWallet resolves with 'success' directly,
+        // but the onCardActivated event may not fire. We handle success here
+        // as the primary path, with the activation listener as a fallback.
+        if (result.status === 'success') {
+          setStatus('success');
+
+          trackAnalyticsEvent(
+            MetaMetricsEvents.CARD_PUSH_PROVISIONING_COMPLETED,
+            { token_id: result.tokenId },
+          );
+          onSuccessRef.current?.({
+            status: 'success',
+            tokenId: result.tokenId,
+          });
+        } else if (result.status === 'canceled') {
           setStatus('idle');
           trackAnalyticsEvent(
             MetaMetricsEvents.CARD_PUSH_PROVISIONING_CANCELED,
@@ -435,10 +442,6 @@ export function usePushProvisioning(
     setError(null);
   }, []);
 
-  // Simplified availability checks
-  const isCardProviderAvailable = cardAdapter !== null;
-  const isWalletProviderAvailable = walletAdapter !== null;
-
   const isLoading = isSDKLoading || isEligibilityCheckLoading;
 
   // Check if card is eligible (status must be 'ACTIVE')
@@ -450,10 +453,11 @@ export function usePushProvisioning(
     !isLoading &&
     !!cardDetails &&
     isCardEligible &&
-    isCardProviderAvailable &&
-    isWalletProviderAvailable &&
+    !!cardAdapter &&
+    !!walletAdapter &&
     eligibility?.isAvailable === true &&
-    eligibility?.canAddCard === true;
+    eligibility?.canAddCard === true &&
+    status !== 'success';
 
   return {
     status,
