@@ -180,23 +180,9 @@ function PaymentSelectionModal() {
   const handleProviderSelect = useCallback(
     (provider: Provider) => {
       setSelectedProvider(provider);
-      getQuotes({
-        amount,
-        walletAddress,
-        assetId,
-        providers: [provider.id],
-        paymentMethods: paymentMethodIds,
-      });
       setActiveView(ViewType.PAYMENT);
     },
-    [
-      amount,
-      assetId,
-      getQuotes,
-      paymentMethodIds,
-      setSelectedProvider,
-      walletAddress,
-    ],
+    [setSelectedProvider],
   );
 
   const handlePaymentMethodPress = useCallback(
@@ -209,7 +195,7 @@ function PaymentSelectionModal() {
     [setSelectedPaymentMethod, onPaymentMethodSelect],
   );
 
-  const currency = userRegion?.country?.currency || 'USD';
+  const currency = userRegion?.country?.currency ?? 'USD';
   const tokenSymbol = selectedToken?.symbol ?? '';
 
   const renderPaymentMethod = useCallback(
@@ -343,12 +329,10 @@ function PaymentSelectionModal() {
             ) : null}
           </View>
           <View style={styles.panel}>
-            {activeView === ViewType.PROVIDER && (
-              <ProviderSelection
-                onProviderSelect={handleProviderSelect}
-                onBack={handleProviderBack}
-              />
-            )}
+            <ProviderSelection
+              onProviderSelect={handleProviderSelect}
+              onBack={handleProviderBack}
+            />
           </View>
         </Animated.View>
       </View>

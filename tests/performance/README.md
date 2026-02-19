@@ -143,8 +143,12 @@ The `connection-multichain` test starts a **local dapp server** (Browser Playgro
 
 1. **Start the BrowserStack Local binary** (in a separate terminal):
    - Download from [BrowserStack Local](https://www.browserstack.com/docs/local-testing/binary-params) if needed.
-   - Run: `./BrowserStackLocal --key $BROWSERSTACK_ACCESS_KEY` (optionally add `--verbose --force-local`).
-   - Keep it running until you see: `[SUCCESS] You can now access your local server(s) in our remote browser`.
+   - Run **without** `--local-identifier` (so the test uses your single tunnel):
+     ```bash
+     ./BrowserStackLocal --key $BROWSERSTACK_ACCESS_KEY
+     ```
+     (Optionally add `--verbose --force-local`. If you run multiple tunnels, start with `--local-identifier <id>` and set `BROWSERSTACK_LOCAL_IDENTIFIER=<id>` when running the test.)
+   - Keep it running until you see: `[SUCCESS] You can now access your local server(s) in our remote browser`. Wait 5–10 seconds, then run the test.
 
 2. **Run the test** with Local enabled:
 
@@ -152,7 +156,7 @@ The `connection-multichain` test starts a **local dapp server** (Browser Playgro
    yarn run-appwright:mm-connect-android-bs-local
    ```
 
-   That command sets `BROWSERSTACK_LOCAL=true` for the run, so the patch sets `local: true` in BrowserStack capabilities and the test uses **`http://bs-local.com:8090`** for the dapp.
+   Set `BROWSERSTACK_LOCAL=true` in `.e2e.env` so the appwright patch sends `local: true` in capabilities (and `localIdentifier` only if you set `BROWSERSTACK_LOCAL_IDENTIFIER`). The test uses **`http://bs-local.com:8090`** for the dapp.
 
 3. Ensure `.e2e.env` has `BROWSERSTACK_USERNAME` and `BROWSERSTACK_ACCESS_KEY`. The mm-connect BrowserStack project uses `BROWSERSTACK_ANDROID_APP_URL` (or the default `bs://...` in config) for the app; override via env for a custom build.
 
@@ -161,9 +165,12 @@ The `connection-multichain` test starts a **local dapp server** (Browser Playgro
 **If you see `BROWSERSTACK_LOCAL_CONNECTION_FAILED`:**
 
 - **Start the binary before the test** and wait until it prints: `[SUCCESS] You can now access your local server(s) in our remote browser`. Then wait 5–10 seconds before running the test.
+- **Single tunnel:** start the binary without `--local-identifier` and run the test as-is; the test does not send `localIdentifier` unless you set `BROWSERSTACK_LOCAL_IDENTIFIER`. If you use multiple tunnels, start the binary with `--local-identifier <id>` and set `BROWSERSTACK_LOCAL_IDENTIFIER=<id>` when running the test so they match.
 - **Use the same credentials:** the key passed to `./BrowserStackLocal --key <key>` must be the same as `BROWSERSTACK_ACCESS_KEY` in `.e2e.env` (and the binary must be using the same BrowserStack account as `BROWSERSTACK_USERNAME`).
 - **One tunnel per account:** don’t run multiple Local binaries for the same account unless you use different `localIdentifier` values and pass them in capabilities.
 - **Tunnel timeouts** (`TIMEOUT_CONNECTING` to port 45691 in the Local terminal): the cloud device cannot reach your Local binary. Allow incoming connections for ports **45690** and **45691** in your firewall, or try a different network (e.g. avoid strict NAT). See [BrowserStack Local troubleshooting](https://www.browserstack.com/docs/app-automate/appium/troubleshooting/local-issues) for more.
+
+**CI:** BrowserStack Local is enabled for all performance build types (not only mm-connect); the tunnel is started and `local: true` plus `localIdentifier` are sent in capabilities so every run can use the tunnel (e.g. for future test dapps). The workflow starts the tunnel with `--force-local --verbose` only (no `--include-hosts`). Using `--include-hosts localhost 127.0.0.1` can prevent requests to `bs-local.com:8090` from being forwarded to the runner’s localhost; the device then cannot load the dapp. The workflow waits 15s for mm-connect (10s for other build types) after starting the tunnel before running tests.
 
 ### Using Appwright CLI Directly
 
@@ -717,7 +724,7 @@ test('My Performance Test', async ({
 
 **BrowserStack Local testing shows "Off" for mm-connect**
 
-- Use `yarn run-appwright:mm-connect-android-bs-local` (it sets `BROWSERSTACK_LOCAL` for the run). Ensure the patch is applied (`yarn install`).
+- Use `yarn run-appwright:mm-connect-android-bs-local` with `BROWSERSTACK_LOCAL=true` in `.e2e.env`. Ensure the patch is applied (`yarn install`).
 - Start the BrowserStack Local binary before the test and wait for the success message.
 
 **Quality gates failing unexpectedly**

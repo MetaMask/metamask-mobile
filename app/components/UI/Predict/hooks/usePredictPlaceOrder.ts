@@ -13,8 +13,7 @@ import {
   TraceName,
   TraceOperation,
 } from '../../../../util/trace';
-import { PlaceOrderParams } from '../providers/types';
-import { Side, type Result } from '../types';
+import { PlaceOrderParams, Side, type Result } from '../types';
 import { usePredictTrading } from './usePredictTrading';
 import { strings } from '../../../../../locales/i18n';
 import { formatPrice } from '../utils/format';
