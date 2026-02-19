@@ -59,8 +59,6 @@ export const useHardwareWalletStateManager =
 
     const selectedAccount = useSelector(selectSelectedInternalAccount);
 
-    // Why are we exposing targetWalletType if we can derive it below depending on wether
-    // we have an address or not?
     const walletType = useMemo((): HardwareWalletType | null => {
       if (!selectedAccount?.address) {
         return null;
