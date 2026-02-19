@@ -29,12 +29,6 @@ describe(SmokeNetworkExpansion('Chain Permission Management'), () => {
         ],
         fixture: new FixtureBuilder().withPermissionController().build(),
         restartDevice: true,
-        testSpecificMock: async (mockServer) => {
-          await setupRemoteFeatureFlagsMock(
-            mockServer,
-            remoteFeatureMultichainAccountsAccountDetailsV2(false),
-          );
-        },
       },
       async () => {
         await loginToApp();
