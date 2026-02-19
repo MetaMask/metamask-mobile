@@ -1767,7 +1767,7 @@ class FixtureBuilder {
   /**
    * Stores data in the StorageService (FilesystemStorage) as part of the fixture.
    * This is needed for snaps that read large data (e.g. source code) via StorageService
-   * rather than from SnapController state (since migration 118 moved snap source code there).
+   * rather than from SnapController state (since migration 119 moved snap source code there).
    *
    * @param namespace - The controller namespace (e.g. 'SnapController').
    * @param key - The storage key (e.g. the snap ID).

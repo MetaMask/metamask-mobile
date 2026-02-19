@@ -110,7 +110,7 @@ class ReadOnlyNetworkStore {
             this._state = response.data?.state;
             this._asyncState = response.data?.asyncState;
             // Write any filesystemStorage entries so StorageService can read them
-            // (e.g. snap source code migrated out of SnapController state by migration 118)
+            // (e.g. snap source code migrated out of SnapController state by migration 119)
             const filesystemStorage = response.data?.filesystemStorage;
             if (filesystemStorage) {
               await Promise.all(
