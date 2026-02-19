@@ -25,6 +25,11 @@ import {
 } from 'expo-updates';
 import { connect } from 'react-redux';
 import { OTA_VERSION } from '../../../../constants/ota';
+import {
+  BUILD_ENV_SNAPSHOT,
+  PUBLIC_ENV_KEYS,
+  BUILD_SECRET_KEYS,
+} from '../../../../constants/buildEnvSnapshot';
 import { fontStyles } from '../../../../styles/common';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../../locales/i18n';
@@ -99,66 +104,6 @@ const createStyles = (colors) =>
   });
 
 const foxImage = require('../../../../images/branding/fox.png'); // eslint-disable-line import/no-commonjs
-
-// Keys from builds.yml _public_envs (lines 25-43) - show first 3 chars of value
-const PUBLIC_ENVS = [
-  'PORTFOLIO_API_URL',
-  'SECURITY_ALERTS_API_URL',
-  'DECODING_API_URL',
-  'AUTH_SERVICE_URL',
-  'REWARDS_API_URL',
-  'BAANX_API_URL',
-  'RAMPS_ENVIRONMENT',
-  'BRIDGE_USE_DEV_APIS',
-  'RAMP_INTERNAL_BUILD',
-  'IS_TEST',
-  'SEEDLESS_ONBOARDING_ENABLED',
-  'MM_NOTIFICATIONS_UI_ENABLED',
-  'MM_PERMISSIONS_SETTINGS_V1_ENABLED',
-  'MM_PERPS_BLOCKED_REGIONS',
-  'MM_PERPS_HIP3_ALLOWLIST_MARKETS',
-  'MM_PERPS_HIP3_BLOCKLIST_MARKETS',
-  'MM_PERPS_HIP3_ENABLED',
-];
-
-// Keys from builds.yml _secrets (lines 46-88) - check presence only
-const BUILD_SECRETS = [
-  'MM_SENTRY_AUTH_TOKEN',
-  'MM_SENTRY_DSN',
-  'GOOGLE_SERVICES_B64_IOS',
-  'GOOGLE_SERVICES_B64_ANDROID',
-  'MM_INFURA_PROJECT_ID',
-  'WALLET_CONNECT_PROJECT_ID',
-  'MM_FOX_CODE',
-  'MM_BRANCH_KEY_LIVE',
-  'SEGMENT_WRITE_KEY',
-  'SEGMENT_PROXY_URL',
-  'SEGMENT_DELETE_API_SOURCE_ID',
-  'SEGMENT_REGULATIONS_ENDPOINT',
-  'FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN',
-  'FEATURES_ANNOUNCEMENTS_SPACE_ID',
-  'FCM_CONFIG_API_KEY',
-  'FCM_CONFIG_AUTH_DOMAIN',
-  'FCM_CONFIG_STORAGE_BUCKET',
-  'FCM_CONFIG_PROJECT_ID',
-  'FCM_CONFIG_MESSAGING_SENDER_ID',
-  'FCM_CONFIG_APP_ID',
-  'FCM_CONFIG_MEASUREMENT_ID',
-  'QUICKNODE_MAINNET_URL',
-  'QUICKNODE_ARBITRUM_URL',
-  'QUICKNODE_AVALANCHE_URL',
-  'QUICKNODE_BASE_URL',
-  'QUICKNODE_LINEA_MAINNET_URL',
-  'QUICKNODE_MONAD_URL',
-  'QUICKNODE_OPTIMISM_URL',
-  'QUICKNODE_POLYGON_URL',
-  'IOS_GOOGLE_CLIENT_ID',
-  'IOS_GOOGLE_REDIRECT_URI',
-  'ANDROID_APPLE_CLIENT_ID',
-  'ANDROID_GOOGLE_CLIENT_ID',
-  'ANDROID_GOOGLE_SERVER_CLIENT_ID',
-  'MM_CARD_BAANX_API_CLIENT_KEY',
-];
 
 /**
  * View that contains app information
@@ -283,15 +228,15 @@ class AppInformation extends PureComponent {
                 <Text style={styles.branchInfo}>
                   public_envs (first 3 chars):
                 </Text>
-                {PUBLIC_ENVS.map((key) => (
+                {PUBLIC_ENV_KEYS.map((key) => (
                   <Text key={key} style={styles.branchInfo}>
-                    {`  ${key}: ${String(process.env[key] ?? '').slice(0, 3)}`}
+                    {`  ${key}: ${BUILD_ENV_SNAPSHOT.publicEnv[key] ?? ''}`}
                   </Text>
                 ))}
                 <Text style={styles.branchInfo}>secrets (present):</Text>
-                {BUILD_SECRETS.map((key) => (
+                {BUILD_SECRET_KEYS.map((key) => (
                   <Text key={key} style={styles.branchInfo}>
-                    {`  ${key}: ${process.env[key] ? 'yes' : 'no'}`}
+                    {`  ${key}: ${BUILD_ENV_SNAPSHOT.secrets[key] ? 'yes' : 'no'}`}
                   </Text>
                 ))}
                 <Text style={styles.branchInfo}>

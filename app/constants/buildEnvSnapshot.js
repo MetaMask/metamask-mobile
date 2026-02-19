@@ -1,0 +1,87 @@
+/**
+ * Build-time snapshot for About > long-press debug view.
+ * Uses static process.env.KEY refs so Babel inlines them (dynamic process.env[key] returns nothing in RN bundle).
+ * Keys match builds.yml _public_envs and _secrets — update here when builds.yml changes.
+ */
+/* eslint-disable dot-notation */
+
+const publicEnv = {
+  PORTFOLIO_API_URL: (process.env.PORTFOLIO_API_URL ?? '').slice(0, 3),
+  SECURITY_ALERTS_API_URL: (process.env.SECURITY_ALERTS_API_URL ?? '').slice(
+    0,
+    3,
+  ),
+  DECODING_API_URL: (process.env.DECODING_API_URL ?? '').slice(0, 3),
+  AUTH_SERVICE_URL: (process.env.AUTH_SERVICE_URL ?? '').slice(0, 3),
+  REWARDS_API_URL: (process.env.REWARDS_API_URL ?? '').slice(0, 3),
+  BAANX_API_URL: (process.env.BAANX_API_URL ?? '').slice(0, 3),
+  RAMPS_ENVIRONMENT: (process.env.RAMPS_ENVIRONMENT ?? '').slice(0, 3),
+  BRIDGE_USE_DEV_APIS: (process.env.BRIDGE_USE_DEV_APIS ?? '').slice(0, 3),
+  RAMP_INTERNAL_BUILD: (process.env.RAMP_INTERNAL_BUILD ?? '').slice(0, 3),
+  IS_TEST: (process.env.IS_TEST ?? '').slice(0, 3),
+  SEEDLESS_ONBOARDING_ENABLED: (
+    process.env.SEEDLESS_ONBOARDING_ENABLED ?? ''
+  ).slice(0, 3),
+  MM_NOTIFICATIONS_UI_ENABLED: (
+    process.env.MM_NOTIFICATIONS_UI_ENABLED ?? ''
+  ).slice(0, 3),
+  MM_PERMISSIONS_SETTINGS_V1_ENABLED: (
+    process.env.MM_PERMISSIONS_SETTINGS_V1_ENABLED ?? ''
+  ).slice(0, 3),
+  MM_PERPS_BLOCKED_REGIONS: (process.env.MM_PERPS_BLOCKED_REGIONS ?? '').slice(
+    0,
+    3,
+  ),
+  MM_PERPS_HIP3_ALLOWLIST_MARKETS: (
+    process.env.MM_PERPS_HIP3_ALLOWLIST_MARKETS ?? ''
+  ).slice(0, 3),
+  MM_PERPS_HIP3_BLOCKLIST_MARKETS: (
+    process.env.MM_PERPS_HIP3_BLOCKLIST_MARKETS ?? ''
+  ).slice(0, 3),
+  MM_PERPS_HIP3_ENABLED: (process.env.MM_PERPS_HIP3_ENABLED ?? '').slice(0, 3),
+};
+
+const secrets = {
+  MM_SENTRY_AUTH_TOKEN: !!process.env.MM_SENTRY_AUTH_TOKEN,
+  MM_SENTRY_DSN: !!process.env.MM_SENTRY_DSN,
+  GOOGLE_SERVICES_B64_IOS: !!process.env.GOOGLE_SERVICES_B64_IOS,
+  GOOGLE_SERVICES_B64_ANDROID: !!process.env.GOOGLE_SERVICES_B64_ANDROID,
+  MM_INFURA_PROJECT_ID: !!process.env.MM_INFURA_PROJECT_ID,
+  WALLET_CONNECT_PROJECT_ID: !!process.env.WALLET_CONNECT_PROJECT_ID,
+  MM_FOX_CODE: !!process.env.MM_FOX_CODE,
+  MM_BRANCH_KEY_LIVE: !!process.env.MM_BRANCH_KEY_LIVE,
+  SEGMENT_WRITE_KEY: !!process.env.SEGMENT_WRITE_KEY,
+  SEGMENT_PROXY_URL: !!process.env.SEGMENT_PROXY_URL,
+  SEGMENT_DELETE_API_SOURCE_ID: !!process.env.SEGMENT_DELETE_API_SOURCE_ID,
+  SEGMENT_REGULATIONS_ENDPOINT: !!process.env.SEGMENT_REGULATIONS_ENDPOINT,
+  FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN:
+    !!process.env.FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN,
+  FEATURES_ANNOUNCEMENTS_SPACE_ID:
+    !!process.env.FEATURES_ANNOUNCEMENTS_SPACE_ID,
+  FCM_CONFIG_API_KEY: !!process.env.FCM_CONFIG_API_KEY,
+  FCM_CONFIG_AUTH_DOMAIN: !!process.env.FCM_CONFIG_AUTH_DOMAIN,
+  FCM_CONFIG_STORAGE_BUCKET: !!process.env.FCM_CONFIG_STORAGE_BUCKET,
+  FCM_CONFIG_PROJECT_ID: !!process.env.FCM_CONFIG_PROJECT_ID,
+  FCM_CONFIG_MESSAGING_SENDER_ID: !!process.env.FCM_CONFIG_MESSAGING_SENDER_ID,
+  FCM_CONFIG_APP_ID: !!process.env.FCM_CONFIG_APP_ID,
+  FCM_CONFIG_MEASUREMENT_ID: !!process.env.FCM_CONFIG_MEASUREMENT_ID,
+  QUICKNODE_MAINNET_URL: !!process.env.QUICKNODE_MAINNET_URL,
+  QUICKNODE_ARBITRUM_URL: !!process.env.QUICKNODE_ARBITRUM_URL,
+  QUICKNODE_AVALANCHE_URL: !!process.env.QUICKNODE_AVALANCHE_URL,
+  QUICKNODE_BASE_URL: !!process.env.QUICKNODE_BASE_URL,
+  QUICKNODE_LINEA_MAINNET_URL: !!process.env.QUICKNODE_LINEA_MAINNET_URL,
+  QUICKNODE_MONAD_URL: !!process.env.QUICKNODE_MONAD_URL,
+  QUICKNODE_OPTIMISM_URL: !!process.env.QUICKNODE_OPTIMISM_URL,
+  QUICKNODE_POLYGON_URL: !!process.env.QUICKNODE_POLYGON_URL,
+  IOS_GOOGLE_CLIENT_ID: !!process.env.IOS_GOOGLE_CLIENT_ID,
+  IOS_GOOGLE_REDIRECT_URI: !!process.env.IOS_GOOGLE_REDIRECT_URI,
+  ANDROID_APPLE_CLIENT_ID: !!process.env.ANDROID_APPLE_CLIENT_ID,
+  ANDROID_GOOGLE_CLIENT_ID: !!process.env.ANDROID_GOOGLE_CLIENT_ID,
+  ANDROID_GOOGLE_SERVER_CLIENT_ID:
+    !!process.env.ANDROID_GOOGLE_SERVER_CLIENT_ID,
+  MM_CARD_BAANX_API_CLIENT_KEY: !!process.env.MM_CARD_BAANX_API_CLIENT_KEY,
+};
+
+export const BUILD_ENV_SNAPSHOT = { publicEnv, secrets };
+export const PUBLIC_ENV_KEYS = Object.keys(publicEnv);
+export const BUILD_SECRET_KEYS = Object.keys(secrets);
