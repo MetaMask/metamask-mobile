@@ -134,6 +134,9 @@ import {
   RampsService,
   RampsServiceActions,
   RampsServiceEvents,
+  TransakService,
+  TransakServiceActions,
+  TransakServiceEvents,
 } from '@metamask/ramps-controller';
 import {
   TransactionController,
@@ -522,7 +525,8 @@ type GlobalActions =
   | ProfileMetricsControllerActions
   | ProfileMetricsServiceActions
   | RampsControllerActions
-  | RampsServiceActions;
+  | RampsServiceActions
+  | TransakServiceActions;
 
 type GlobalEvents =
   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
@@ -597,7 +601,8 @@ type GlobalEvents =
   | ProfileMetricsControllerEvents
   | ProfileMetricsServiceEvents
   | RampsControllerEvents
-  | RampsServiceEvents;
+  | RampsServiceEvents
+  | TransakServiceEvents;
 
 /**
  * Type definition for the messenger used in the Engine.
@@ -714,6 +719,7 @@ export type Controllers = {
   ProfileMetricsController: ProfileMetricsController;
   ProfileMetricsService: ProfileMetricsService;
   RampsService: RampsService;
+  TransakService: TransakService;
 };
 
 /**
@@ -893,6 +899,7 @@ export type ControllersToInitialize =
   | 'RewardsDataService'
   | 'RampsController'
   | 'RampsService'
+  | 'TransakService'
   | 'GatorPermissionsController'
   | 'DelegationController'
   | 'SelectedNetworkController'
