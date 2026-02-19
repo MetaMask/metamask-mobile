@@ -20,9 +20,6 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingTop: 16,
       paddingBottom: 8,
     },
-    headerContainer: {
-      paddingBottom: 16,
-    },
     emptyContainer: {
       flex: 1,
       alignItems: 'center',
@@ -45,6 +42,9 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     termsApply: {
       textDecorationLine: 'underline',
+    },
+    balanceCardContainer: {
+      paddingVertical: 12,
     },
   });
 };

@@ -7,7 +7,6 @@ import {
   convertMusdClaimAmount,
   decodeMerklClaimParams,
   decodeMerklClaimAmount,
-  sortChainIdsByMusdBalanceDesc,
 } from './musd';
 import { DISTRIBUTOR_CLAIM_ABI } from '../components/MerklRewards/constants';
 import { MUSD_TOKEN_ADDRESS } from '../constants/musd';
@@ -281,100 +280,6 @@ describe('musd utils', () => {
 
     it('returns null for invalid data', () => {
       expect(decodeMerklClaimAmount('0xbaddata')).toBeNull();
-    });
-  });
-
-  describe('sortChainIdsByMusdBalanceDesc', () => {
-    const CHAIN_A = '0x1' as Hex;
-    const CHAIN_B = '0x2' as Hex;
-    const CHAIN_C = '0x3' as Hex;
-
-    it('sorts by fiat balance in descending order', () => {
-      // Arrange
-      const chainIds = [CHAIN_A, CHAIN_B, CHAIN_C];
-
-      // Act
-      const result = sortChainIdsByMusdBalanceDesc({
-        chainIds,
-        fiatBalanceByChain: {
-          [CHAIN_A]: '10',
-          [CHAIN_B]: '50',
-          [CHAIN_C]: '20',
-        },
-        tokenBalanceByChain: {
-          [CHAIN_A]: '100',
-          [CHAIN_B]: '100',
-          [CHAIN_C]: '100',
-        },
-      });
-
-      // Assert
-      expect(result).toEqual([CHAIN_B, CHAIN_C, CHAIN_A]);
-    });
-
-    it('uses token balance as tie-breaker when fiat balances are equal', () => {
-      // Arrange
-      const chainIds = [CHAIN_A, CHAIN_B, CHAIN_C];
-
-      // Act
-      const result = sortChainIdsByMusdBalanceDesc({
-        chainIds,
-        fiatBalanceByChain: {
-          [CHAIN_A]: '10',
-          [CHAIN_B]: '10',
-          [CHAIN_C]: '5',
-        },
-        tokenBalanceByChain: {
-          [CHAIN_A]: '3',
-          [CHAIN_B]: '7',
-          [CHAIN_C]: '100',
-        },
-      });
-
-      // Assert
-      expect(result).toEqual([CHAIN_B, CHAIN_A, CHAIN_C]);
-    });
-
-    it('falls back to 0 for missing fiat and token balances', () => {
-      // Arrange
-      const chainIds = [CHAIN_A, CHAIN_B];
-
-      // Act
-      const result = sortChainIdsByMusdBalanceDesc({
-        chainIds,
-        fiatBalanceByChain: {
-          [CHAIN_A]: undefined,
-          [CHAIN_B]: '1',
-        },
-        tokenBalanceByChain: {
-          [CHAIN_A]: undefined,
-          [CHAIN_B]: undefined,
-        },
-      });
-
-      // Assert
-      expect(result).toEqual([CHAIN_B, CHAIN_A]);
-    });
-
-    it('does not mutate the input chainIds array', () => {
-      // Arrange
-      const chainIds = [CHAIN_A, CHAIN_B];
-
-      // Act
-      sortChainIdsByMusdBalanceDesc({
-        chainIds,
-        fiatBalanceByChain: {
-          [CHAIN_A]: '1',
-          [CHAIN_B]: '2',
-        },
-        tokenBalanceByChain: {
-          [CHAIN_A]: '1',
-          [CHAIN_B]: '2',
-        },
-      });
-
-      // Assert
-      expect(chainIds).toEqual([CHAIN_A, CHAIN_B]);
     });
   });
 });
