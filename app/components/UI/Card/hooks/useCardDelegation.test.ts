@@ -73,7 +73,32 @@ jest.mock('../../../../core/Engine', () => ({
   },
   controllerMessenger: {
     subscribeOnceIf: jest.fn(),
+    subscribe: jest.fn(),
+    unsubscribe: jest.fn(),
   },
+}));
+
+// Mock crypto.randomUUID for Node.js test environment
+Object.defineProperty(globalThis, 'crypto', {
+  value: {
+    ...globalThis.crypto,
+    randomUUID: jest.fn().mockReturnValue('mock-uuid-1234'),
+  },
+});
+
+// Mock Solana Snap dependencies
+const mockHandleSnapRequest = jest.fn();
+
+jest.mock('../../../../core/Snaps/utils', () => ({
+  handleSnapRequest: (...args: unknown[]) => mockHandleSnapRequest(...args),
+}));
+
+jest.mock('../../../../core/SnapKeyring/SolanaWalletSnap', () => ({
+  SOLANA_WALLET_SNAP_ID: 'npm:@metamask/solana-wallet-snap',
+}));
+
+jest.mock('@metamask/keyring-api', () => ({
+  ...jest.requireActual('@metamask/keyring-api'),
 }));
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
@@ -124,6 +149,7 @@ describe('useCardDelegation', () => {
     generateDelegationToken: jest.Mock;
     encodeApproveTransaction: jest.Mock;
     completeEVMDelegation: jest.Mock;
+    completeSolanaDelegation: jest.Mock;
   };
   let mockTrackEvent: jest.Mock;
   let mockCreateEventBuilder: jest.Mock;
@@ -148,6 +174,7 @@ describe('useCardDelegation', () => {
       generateDelegationToken: jest.fn(),
       encodeApproveTransaction: jest.fn(),
       completeEVMDelegation: jest.fn(),
+      completeSolanaDelegation: jest.fn(),
     };
 
     mockUseCardSDK.mockReturnValue({
@@ -227,6 +254,10 @@ describe('useCardDelegation', () => {
     });
     mockSDK.encodeApproveTransaction.mockReturnValue('0xencodedData');
     mockSDK.completeEVMDelegation.mockResolvedValue({});
+    mockSDK.completeSolanaDelegation.mockResolvedValue({});
+
+    // Reset Solana snap mock
+    mockHandleSnapRequest.mockReset();
   });
 
   afterEach(() => {
@@ -880,7 +911,7 @@ describe('useCardDelegation', () => {
   });
 
   describe('generateSignatureMessage', () => {
-    it('generates SIWE message with correct format', async () => {
+    it('generates multi-line SIWE message for EVM networks', async () => {
       const mockToken = createMockToken();
       const params = createMockDelegationParams();
 
@@ -901,10 +932,99 @@ describe('useCardDelegation', () => {
         'hex',
       ).toString('utf8');
 
+      // Verify content
       expect(signedMessage).toContain(`${mockAddress}`);
       expect(signedMessage).toContain('Chain ID: 59144');
       expect(signedMessage).toContain(`Nonce: ${mockNonce}`);
-      expect(signedMessage).toContain('metamask.app.link wants you to sign in');
+      expect(signedMessage).toContain(
+        'metamask.app.link wants you to sign in with your Ethereum account:',
+      );
+
+      // Verify multi-line format for EVM (contains newlines)
+      expect(signedMessage).toContain('\n');
+      expect(signedMessage).toContain('\nURI:');
+      expect(signedMessage).toContain('\nVersion:');
+      expect(signedMessage).toContain('\nChain ID:');
+      expect(signedMessage).toContain('\nNonce:');
+      expect(signedMessage).toContain('\nIssued At:');
+      expect(signedMessage).toContain('\nExpiration Time:');
+    });
+
+    it('generates single-line message for Solana network', async () => {
+      const mockToken = createMockToken();
+      const mockSolanaAddress = 'SolanaAddress123ABC';
+      const mockAccountId = 'solana-account-uuid-123';
+      const mockTxSignature = 'mock-tx-signature';
+      const params = {
+        ...createMockDelegationParams(),
+        network: 'solana' as const,
+      };
+
+      mockUseSelector.mockReturnValue(
+        jest.fn().mockReturnValue({
+          address: mockSolanaAddress,
+          id: mockAccountId,
+        }),
+      );
+
+      // Mock handleSnapRequest for both signCardMessage and approveCardAmount
+      mockHandleSnapRequest
+        .mockResolvedValueOnce({ signature: 'mock-solana-signature' }) // signCardMessage
+        .mockResolvedValueOnce({ signature: mockTxSignature }); // approveCardAmount
+
+      // Mock controllerMessenger.subscribe for Solana stateChange
+      (Engine.controllerMessenger.subscribe as jest.Mock).mockImplementation(
+        (eventName: string, callback: (state: unknown) => void) => {
+          if (eventName === 'MultichainTransactionsController:stateChange') {
+            setImmediate(() => {
+              callback({
+                nonEvmTransactions: {
+                  [mockAccountId]: {
+                    'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
+                      transactions: [
+                        { id: mockTxSignature, status: 'confirmed' },
+                      ],
+                    },
+                  },
+                },
+              });
+            });
+          }
+        },
+      );
+
+      // Mock completeSolanaDelegation
+      mockSDK.completeSolanaDelegation = jest.fn().mockResolvedValue({});
+
+      const { result } = renderHook(() => useCardDelegation(mockToken));
+
+      await act(async () => {
+        await result.current.submitDelegation(params);
+      });
+
+      // Get the message that was passed to signCardMessage
+      // handleSnapRequest is called with (controllerMessenger, requestObject)
+      const signCardMessageCall = mockHandleSnapRequest.mock.calls[0];
+      const requestObject = signCardMessageCall[1];
+      const base64Message = requestObject.request.params.message;
+
+      // Decode from base64
+      const message = Buffer.from(base64Message, 'base64').toString('utf8');
+
+      // Verify content
+      expect(message).toContain(mockSolanaAddress);
+      expect(message).toContain(
+        'metamask.app.link wants you to sign in with your Solana account:',
+      );
+      expect(message).toContain(`Nonce: ${mockNonce}`);
+
+      // Verify single-line format for Solana (no newlines in message structure)
+      expect(message).not.toContain('\nURI:');
+      expect(message).not.toContain('\nVersion:');
+      expect(message).not.toContain('\nChain ID:');
+      expect(message).toContain(' URI: ');
+      expect(message).toContain(' Version: ');
+      expect(message).toContain(' Chain ID: ');
     });
 
     it('extracts chain ID from token caipChainId', async () => {
@@ -1145,6 +1265,8 @@ describe('useCardDelegation', () => {
     it('uses raw address for solana network without checksum', async () => {
       const mockToken = createMockToken();
       const mockSolanaAddress = 'SolanaAddress123ABC';
+      const mockAccountId = 'solana-account-uuid-123';
+      const mockTxSignature = 'mock-tx-signature';
       const params = {
         ...createMockDelegationParams(),
         network: 'solana' as const,
@@ -1153,8 +1275,38 @@ describe('useCardDelegation', () => {
       mockUseSelector.mockReturnValue(
         jest.fn().mockReturnValue({
           address: mockSolanaAddress,
+          id: mockAccountId,
         }),
       );
+
+      // Mock handleSnapRequest for both signCardMessage and approveCardAmount
+      mockHandleSnapRequest
+        .mockResolvedValueOnce({ signature: 'mock-solana-signature' }) // signCardMessage
+        .mockResolvedValueOnce({ signature: mockTxSignature }); // approveCardAmount
+
+      // Mock controllerMessenger.subscribe for Solana stateChange to simulate confirmation
+      (Engine.controllerMessenger.subscribe as jest.Mock).mockImplementation(
+        (eventName: string, callback: (state: unknown) => void) => {
+          if (eventName === 'MultichainTransactionsController:stateChange') {
+            setImmediate(() => {
+              callback({
+                nonEvmTransactions: {
+                  [mockAccountId]: {
+                    'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
+                      transactions: [
+                        { id: mockTxSignature, status: 'confirmed' },
+                      ],
+                    },
+                  },
+                },
+              });
+            });
+          }
+        },
+      );
+
+      // Mock completeSolanaDelegation
+      mockSDK.completeSolanaDelegation = jest.fn().mockResolvedValue({});
 
       const { result } = renderHook(() => useCardDelegation(mockToken));
 
@@ -1168,6 +1320,7 @@ describe('useCardDelegation', () => {
         mockSolanaAddress,
         false, // needsFaucet
       );
+      expect(mockHandleSnapRequest).toHaveBeenCalledTimes(2);
     });
 
     it('uses checksummed address for linea network', async () => {
@@ -1392,6 +1545,335 @@ describe('useCardDelegation', () => {
       renderHook(() => useCardDelegation(undefined));
 
       expect(mockUseNeedsGasFaucet).toHaveBeenCalledWith(undefined);
+    });
+  });
+
+  describe('Solana transaction confirmation', () => {
+    const mockSolanaAddress = 'SolanaAddress123ABC';
+    const mockAccountId = 'solana-account-uuid-123';
+    const mockTxSignature = 'mock-tx-signature-solana';
+
+    const setupSolanaTest = () => {
+      const mockToken = createMockToken();
+      const params = {
+        ...createMockDelegationParams(),
+        network: 'solana' as const,
+      };
+
+      mockUseSelector.mockReturnValue(
+        jest.fn().mockReturnValue({
+          address: mockSolanaAddress,
+          id: mockAccountId,
+        }),
+      );
+
+      // Mock handleSnapRequest for both signCardMessage and approveCardAmount
+      mockHandleSnapRequest
+        .mockResolvedValueOnce({ signature: 'mock-solana-signature' }) // signCardMessage
+        .mockResolvedValueOnce({ signature: mockTxSignature }); // approveCardAmount
+
+      // Mock completeSolanaDelegation
+      mockSDK.completeSolanaDelegation = jest.fn().mockResolvedValue({});
+
+      return { mockToken, params };
+    };
+
+    it('waits for transaction confirmation before calling completeSolanaDelegation', async () => {
+      const { mockToken, params } = setupSolanaTest();
+
+      // Mock subscribe to simulate confirmed transaction
+      (Engine.controllerMessenger.subscribe as jest.Mock).mockImplementation(
+        (eventName: string, callback: (state: unknown) => void) => {
+          if (eventName === 'MultichainTransactionsController:stateChange') {
+            setImmediate(() => {
+              callback({
+                nonEvmTransactions: {
+                  [mockAccountId]: {
+                    'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
+                      transactions: [
+                        {
+                          id: mockTxSignature,
+                          status: 'confirmed',
+                        },
+                      ],
+                    },
+                  },
+                },
+              });
+            });
+          }
+        },
+      );
+
+      const { result } = renderHook(() => useCardDelegation(mockToken));
+
+      await act(async () => {
+        await result.current.submitDelegation(params);
+      });
+
+      expect(Engine.controllerMessenger.subscribe).toHaveBeenCalledWith(
+        'MultichainTransactionsController:stateChange',
+        expect.any(Function),
+      );
+      expect(mockSDK.completeSolanaDelegation).toHaveBeenCalledWith({
+        address: mockSolanaAddress,
+        network: 'solana',
+        currency: 'usdc',
+        amount: params.amount,
+        txHash: mockTxSignature,
+        sigHash: 'mock-solana-signature',
+        sigMessage: expect.any(String),
+        token: mockDelegationJWTToken,
+      });
+    });
+
+    it('rejects with error when Solana transaction fails on-chain', async () => {
+      const { mockToken, params } = setupSolanaTest();
+
+      // Mock subscribe to simulate FAILED transaction
+      (Engine.controllerMessenger.subscribe as jest.Mock).mockImplementation(
+        (eventName: string, callback: (state: unknown) => void) => {
+          if (eventName === 'MultichainTransactionsController:stateChange') {
+            setImmediate(() => {
+              callback({
+                nonEvmTransactions: {
+                  [mockAccountId]: {
+                    'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
+                      transactions: [
+                        {
+                          id: mockTxSignature,
+                          status: 'failed',
+                        },
+                      ],
+                    },
+                  },
+                },
+              });
+            });
+          }
+        },
+      );
+
+      const { result } = renderHook(() => useCardDelegation(mockToken));
+
+      await act(async () => {
+        await expect(result.current.submitDelegation(params)).rejects.toThrow(
+          'Solana transaction failed on-chain',
+        );
+      });
+
+      // completeSolanaDelegation should NOT be called when transaction fails
+      expect(mockSDK.completeSolanaDelegation).not.toHaveBeenCalled();
+    });
+
+    it('subscribes to MultichainTransactionsController stateChange event', async () => {
+      const { mockToken, params } = setupSolanaTest();
+
+      // Mock subscribe to simulate confirmed transaction
+      (Engine.controllerMessenger.subscribe as jest.Mock).mockImplementation(
+        (eventName: string, callback: (state: unknown) => void) => {
+          if (eventName === 'MultichainTransactionsController:stateChange') {
+            setImmediate(() => {
+              callback({
+                nonEvmTransactions: {
+                  [mockAccountId]: {
+                    'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
+                      transactions: [
+                        { id: mockTxSignature, status: 'confirmed' },
+                      ],
+                    },
+                  },
+                },
+              });
+            });
+          }
+        },
+      );
+
+      const { result } = renderHook(() => useCardDelegation(mockToken));
+
+      await act(async () => {
+        await result.current.submitDelegation(params);
+      });
+
+      // Verify subscribe was called with correct event name
+      expect(Engine.controllerMessenger.subscribe).toHaveBeenCalledWith(
+        'MultichainTransactionsController:stateChange',
+        expect.any(Function),
+      );
+    });
+
+    it('ignores state changes for unrelated transactions and waits for correct one', async () => {
+      const { mockToken, params } = setupSolanaTest();
+
+      // Mock subscribe to first emit unrelated transaction, then our transaction
+      (Engine.controllerMessenger.subscribe as jest.Mock).mockImplementation(
+        (eventName: string, callback: (state: unknown) => void) => {
+          if (eventName === 'MultichainTransactionsController:stateChange') {
+            // First, emit a different transaction
+            setImmediate(() => {
+              callback({
+                nonEvmTransactions: {
+                  [mockAccountId]: {
+                    'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
+                      transactions: [
+                        { id: 'different-tx-signature', status: 'confirmed' },
+                      ],
+                    },
+                  },
+                },
+              });
+              // Then emit our transaction as confirmed
+              setImmediate(() => {
+                callback({
+                  nonEvmTransactions: {
+                    [mockAccountId]: {
+                      'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
+                        transactions: [
+                          { id: 'different-tx-signature', status: 'confirmed' },
+                          { id: mockTxSignature, status: 'confirmed' },
+                        ],
+                      },
+                    },
+                  },
+                });
+              });
+            });
+          }
+        },
+      );
+
+      const { result } = renderHook(() => useCardDelegation(mockToken));
+
+      await act(async () => {
+        await result.current.submitDelegation(params);
+      });
+
+      // Should have completed successfully after our transaction was confirmed
+      expect(mockSDK.completeSolanaDelegation).toHaveBeenCalled();
+    });
+
+    it('handles transaction in submitted status by continuing to wait for confirmation', async () => {
+      const { mockToken, params } = setupSolanaTest();
+
+      // Mock subscribe to first emit 'submitted', then 'confirmed'
+      (Engine.controllerMessenger.subscribe as jest.Mock).mockImplementation(
+        (eventName: string, callback: (state: unknown) => void) => {
+          if (eventName === 'MultichainTransactionsController:stateChange') {
+            setImmediate(() => {
+              // First emit: submitted status
+              callback({
+                nonEvmTransactions: {
+                  [mockAccountId]: {
+                    'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
+                      transactions: [
+                        { id: mockTxSignature, status: 'submitted' },
+                      ],
+                    },
+                  },
+                },
+              });
+              // Second emit: confirmed status
+              setImmediate(() => {
+                callback({
+                  nonEvmTransactions: {
+                    [mockAccountId]: {
+                      'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
+                        transactions: [
+                          { id: mockTxSignature, status: 'confirmed' },
+                        ],
+                      },
+                    },
+                  },
+                });
+              });
+            });
+          }
+        },
+      );
+
+      const { result } = renderHook(() => useCardDelegation(mockToken));
+
+      await act(async () => {
+        await result.current.submitDelegation(params);
+      });
+
+      // completeSolanaDelegation should be called after confirmation
+      expect(mockSDK.completeSolanaDelegation).toHaveBeenCalled();
+    });
+
+    it('unsubscribes from state changes after transaction confirmation to prevent memory leaks', async () => {
+      const { mockToken, params } = setupSolanaTest();
+
+      // Mock subscribe to simulate confirmed transaction
+      (Engine.controllerMessenger.subscribe as jest.Mock).mockImplementation(
+        (eventName: string, callback: (state: unknown) => void) => {
+          if (eventName === 'MultichainTransactionsController:stateChange') {
+            setImmediate(() => {
+              callback({
+                nonEvmTransactions: {
+                  [mockAccountId]: {
+                    'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
+                      transactions: [
+                        { id: mockTxSignature, status: 'confirmed' },
+                      ],
+                    },
+                  },
+                },
+              });
+            });
+          }
+        },
+      );
+
+      const { result } = renderHook(() => useCardDelegation(mockToken));
+
+      await act(async () => {
+        await result.current.submitDelegation(params);
+      });
+
+      // Verify unsubscribe was called to clean up the subscription
+      expect(Engine.controllerMessenger.unsubscribe).toHaveBeenCalledWith(
+        'MultichainTransactionsController:stateChange',
+        expect.any(Function),
+      );
+    });
+
+    it('unsubscribes from state changes after transaction failure', async () => {
+      const { mockToken, params } = setupSolanaTest();
+
+      // Mock subscribe to simulate FAILED transaction
+      (Engine.controllerMessenger.subscribe as jest.Mock).mockImplementation(
+        (eventName: string, callback: (state: unknown) => void) => {
+          if (eventName === 'MultichainTransactionsController:stateChange') {
+            setImmediate(() => {
+              callback({
+                nonEvmTransactions: {
+                  [mockAccountId]: {
+                    'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
+                      transactions: [{ id: mockTxSignature, status: 'failed' }],
+                    },
+                  },
+                },
+              });
+            });
+          }
+        },
+      );
+
+      const { result } = renderHook(() => useCardDelegation(mockToken));
+
+      await act(async () => {
+        await expect(result.current.submitDelegation(params)).rejects.toThrow(
+          'Solana transaction failed on-chain',
+        );
+      });
+
+      // Verify unsubscribe was called even on failure
+      expect(Engine.controllerMessenger.unsubscribe).toHaveBeenCalledWith(
+        'MultichainTransactionsController:stateChange',
+        expect.any(Function),
+      );
     });
   });
 });

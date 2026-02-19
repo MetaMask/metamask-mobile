@@ -1,7 +1,7 @@
 import { useSelector } from 'react-redux';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
-import { SOLANA_MAINNET } from '../../Ramp/Deposit/constants/networks';
 import { selectIsAuthenticatedCard } from '../../../../core/redux/slices/card';
+import { cardNetworkInfos } from '../constants';
 
 /**
  * Checks if the priority token address is the same as the selected internal account address.
@@ -17,7 +17,9 @@ export const useIsSwapEnabledForPriorityToken = (
     selectSelectedInternalAccountByScope,
   );
   const evmAccount = selectSelectedInternalAccount('eip155:0');
-  const solanaAccount = selectSelectedInternalAccount(SOLANA_MAINNET.chainId);
+  const solanaAccount = selectSelectedInternalAccount(
+    cardNetworkInfos.solana.caipChainId,
+  );
   const isAuthenticated = useSelector(selectIsAuthenticatedCard);
 
   if (!isAuthenticated) {

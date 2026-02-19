@@ -21,10 +21,7 @@ import {
   BoxAlignItems,
   BoxJustifyContent,
 } from '@metamask/design-system-react-native';
-import Icon, {
-  IconName,
-  IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
+import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import Routes from '../../../../../constants/navigation/Routes';
 import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
@@ -43,7 +40,6 @@ import BottomSheet, {
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import { FlatList } from 'react-native-gesture-handler';
 import ListItemSelect from '../../../../../component-library/components/List/ListItemSelect';
-import { SolScope } from '@metamask/keyring-api';
 import { safeFormatChainIdToHex } from '../../util/safeFormatChainIdToHex';
 import {
   ToastContext,
@@ -53,7 +49,6 @@ import { SUPPORTED_ASSET_NETWORKS } from '../../constants';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { CardActions } from '../../util/metrics';
 import { truncateAddress } from '../../util/truncateAddress';
-import { useNavigateToCardPage } from '../../hooks/useNavigateToCardPage';
 import { useAssetBalances } from '../../hooks/useAssetBalances';
 import { mapCaipChainIdToChainName } from '../../util/mapCaipChainIdToChainName';
 import { useUpdateTokenPriority } from '../../hooks/useUpdateTokenPriority';
@@ -85,7 +80,6 @@ interface AssetSelectionModalNavigationDetails {
   navigateToCardHomeOnPriorityToken?: boolean;
   selectionOnly?: boolean;
   onTokenSelect?: (token: CardTokenAllowance) => void;
-  hideSolanaAssets?: boolean;
   // For navigation-based selection mode: where to return with the selected token
   callerRoute?: string;
   callerParams?: Record<string, unknown>;
@@ -107,7 +101,6 @@ const AssetSelectionBottomSheet: React.FC = () => {
     navigateToCardHomeOnPriorityToken = false,
     selectionOnly = false,
     onTokenSelect,
-    hideSolanaAssets = false,
     callerRoute,
     callerParams,
   } = useParams<AssetSelectionModalNavigationDetails>();
@@ -117,14 +110,10 @@ const AssetSelectionBottomSheet: React.FC = () => {
   const { toastRef } = useContext(ToastContext);
   const { sdk } = useCardSDK();
   const { trackEvent, createEventBuilder } = useMetrics();
-  const { navigateToCardPage } = useNavigateToCardPage(navigation);
 
   // Helper: Check if token should be filtered out
   const shouldFilterOutToken = useCallback(
-    (
-      token: CardTokenAllowance & { chainName: string },
-      hideSolana: boolean,
-    ): boolean => {
+    (token: CardTokenAllowance & { chainName: string }): boolean => {
       const networkLower = token.chainName.toLowerCase();
 
       // Allow tokens even if chain is unknown to avoid hiding available assets
@@ -133,15 +122,6 @@ const AssetSelectionBottomSheet: React.FC = () => {
         if (networkLower !== 'unknown') {
           return true;
         }
-      }
-
-      const isSolana =
-        token.caipChainId === SolScope.Mainnet ||
-        token.caipChainId?.startsWith('solana:');
-
-      // Filter Solana if requested
-      if (hideSolana && isSolana) {
-        return true;
       }
 
       return false;
@@ -226,10 +206,8 @@ const AssetSelectionBottomSheet: React.FC = () => {
 
   // Helper: Check if network should be processed (uses shared utility)
   const shouldProcessNetworkForLocation = useCallback(
-    (
-      network: DelegationSettingsResponse['networks'][0],
-      hideSolana: boolean,
-    ): boolean => shouldProcessNetwork(network, hideSolana),
+    (network: DelegationSettingsResponse['networks'][0]): boolean =>
+      shouldProcessNetwork(network),
     [],
   );
 
@@ -301,19 +279,18 @@ const AssetSelectionBottomSheet: React.FC = () => {
     // Process user tokens
     const userTokens: CardTokenAllowance[] = (tokensWithAllowances || [])
       .map(mapUserToken)
-      .filter((token) => !shouldFilterOutToken(token, hideSolanaAssets));
+      .filter((token) => !shouldFilterOutToken(token));
 
     // Add supported tokens from delegation settings that user doesn't have in wallet
     const supportedFromSettings: CardTokenAllowance[] = [];
 
     if (delegationSettings?.networks) {
       for (const network of delegationSettings.networks) {
-        if (!shouldProcessNetworkForLocation(network, hideSolanaAssets)) {
+        if (!shouldProcessNetworkForLocation(network)) {
           continue;
         }
 
         const caipChainId = getCaipChainId(network);
-        const isSolana = network.network === 'solana';
 
         for (const [, tokenConfig] of Object.entries(network.tokens)) {
           if (!tokenConfig.address) continue;
@@ -334,7 +311,7 @@ const AssetSelectionBottomSheet: React.FC = () => {
           );
 
           // Skip if any of these conditions are met
-          if (exactMatch || existsInSettings || symbolMatch || isSolana) {
+          if (exactMatch || existsInSettings || symbolMatch) {
             continue;
           }
 
@@ -383,7 +360,6 @@ const AssetSelectionBottomSheet: React.FC = () => {
   }, [
     tokensWithAllowances,
     sdk,
-    hideSolanaAssets,
     delegationSettings,
     mapUserToken,
     shouldFilterOutToken,
@@ -622,56 +598,6 @@ const AssetSelectionBottomSheet: React.FC = () => {
         scrollEnabled
         showsVerticalScrollIndicator={false}
         data={supportedTokensWithBalances}
-        ListFooterComponent={
-          hideSolanaAssets ? (
-            <ListItemSelect onPress={navigateToCardPage}>
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-                justifyContent={BoxJustifyContent.Between}
-                twClassName="flex-1"
-              >
-                <Box
-                  flexDirection={BoxFlexDirection.Row}
-                  alignItems={BoxAlignItems.Center}
-                  twClassName="flex-1"
-                >
-                  <AvatarToken
-                    size={AvatarSize.Md}
-                    // eslint-disable-next-line @typescript-eslint/no-require-imports
-                    imageSource={require('../../../../../images/solana-logo.png')}
-                  />
-                  <Box
-                    twClassName="flex-1 ml-3"
-                    justifyContent={BoxJustifyContent.Center}
-                  >
-                    <Text
-                      variant={TextVariant.BodyMD}
-                      style={tw.style('font-semibold')}
-                    >
-                      {strings(
-                        'card.asset_selection.solana_not_supported_button_title',
-                      )}
-                    </Text>
-                    <Text
-                      variant={TextVariant.BodySM}
-                      style={tw.style('font-medium text-text-alternative')}
-                    >
-                      {strings(
-                        'card.asset_selection.solana_not_supported_button_description',
-                      )}
-                    </Text>
-                  </Box>
-                </Box>
-
-                {/* Balance */}
-                <Box twClassName="items-end">
-                  <Icon name={IconName.Export} size={IconSize.Md} />
-                </Box>
-              </Box>
-            </ListItemSelect>
-          ) : undefined
-        }
         renderItem={({ item }) => {
           const isCurrentPriority = isPriorityToken(item);
           return (
@@ -720,7 +646,7 @@ const AssetSelectionBottomSheet: React.FC = () => {
                           uri: buildTokenIconUrl(
                             item.caipChainId,
                             // For EVM non-Linea chains (e.g., Base), use stagingTokenAddress as it contains the correct
-                            // production address for that chain. For Linea and Solana, use address directly.
+                            // production address for that chain. For Linea, use address directly.
                             item.caipChainId !== 'eip155:59144' &&
                               !item.caipChainId?.startsWith('solana:') &&
                               item.stagingTokenAddress
@@ -791,10 +717,8 @@ const AssetSelectionBottomSheet: React.FC = () => {
   }, [
     delegationSettings,
     supportedTokensWithBalances,
-    hideSolanaAssets,
     tw,
     theme,
-    navigateToCardPage,
     isPriorityToken,
     handleTokenPress,
     getAllowanceStateText,

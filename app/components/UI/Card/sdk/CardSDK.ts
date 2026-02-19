@@ -1210,6 +1210,10 @@ export class CardSDK {
             delegationSettings,
           );
 
+        if (!tokenDetails) {
+          return null;
+        }
+
         const caipChainId = (() => {
           if (networkLower === 'solana') {
             return cardNetworkInfos.solana.caipChainId;
@@ -1573,6 +1577,75 @@ export class CardSDK {
 
     const result = await response.json();
     this.logDebugInfo('completeEVMDelegation', result);
+
+    return result;
+  };
+
+  /**
+   * Complete Solana wallet delegation for spending limit increase
+   * This is Step 3 of the delegation process (after user completes SPL Token approve transaction)
+   * Uses the Solana-specific endpoint: /v1/delegation/solana/post-approval
+   */
+  completeSolanaDelegation = async (params: {
+    address: string;
+    network: CardNetwork;
+    currency: string;
+    amount: string;
+    txHash: string;
+    sigHash: string;
+    sigMessage: string;
+    token: string;
+  }): Promise<{ success: boolean }> => {
+    // Validate address format (must be valid Solana address - Base58, 32-44 characters)
+    const solanaAddressRegex = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
+    if (!solanaAddressRegex.test(params.address)) {
+      throw new CardError(
+        CardErrorType.VALIDATION_ERROR,
+        'Invalid Solana address format',
+      );
+    }
+
+    // Validate transaction signature format (Base58, 87-88 characters)
+    const solanaTxHashRegex = /^[1-9A-HJ-NP-Za-km-z]{87,88}$/;
+    if (!solanaTxHashRegex.test(params.txHash)) {
+      throw new CardError(
+        CardErrorType.VALIDATION_ERROR,
+        'Invalid Solana transaction signature format',
+      );
+    }
+
+    // Validate network is solana
+    if (params.network !== 'solana') {
+      throw new CardError(
+        CardErrorType.VALIDATION_ERROR,
+        'Invalid network for Solana delegation',
+      );
+    }
+
+    const response = await this.makeRequest(
+      '/v1/delegation/solana/post-approval',
+      {
+        fetchOptions: {
+          method: 'POST',
+          body: JSON.stringify(params),
+        },
+        authenticated: true,
+      },
+    );
+
+    if (!response.ok) {
+      throw this.logAndCreateError(
+        CardErrorType.SERVER_ERROR,
+        'Failed to complete Solana delegation. Please try again.',
+        'completeSolanaDelegation',
+        'delegation/solana/post-approval',
+        response.status,
+        { network: params.network, currency: params.currency },
+      );
+    }
+
+    const result = await response.json();
+    this.logDebugInfo('completeSolanaDelegation', result);
 
     return result;
   };

@@ -5,7 +5,6 @@ import {
   StackActions,
 } from '@react-navigation/native';
 import { useDispatch } from 'react-redux';
-import { SolScope } from '@metamask/keyring-api';
 import { useTheme } from '../../../../util/theme';
 import { useCardDelegation, UserCancelledError } from './useCardDelegation';
 import { useCardSDK } from '../sdk';
@@ -84,7 +83,6 @@ export interface UseSpendingLimitReturn {
 
   // Validation
   isValid: boolean;
-  isSolanaSelected: boolean;
 
   // Faucet state
   needsFaucet: boolean;
@@ -177,15 +175,6 @@ const useSpendingLimit = ({
     );
   }, [selectedToken]);
 
-  // Check if selected token is Solana
-  const isSolanaSelected = useMemo(
-    () =>
-      selectedToken?.caipChainId === SolScope.Mainnet ||
-      selectedToken?.caipChainId?.startsWith('solana:') ||
-      false,
-    [selectedToken],
-  );
-
   // Initialize selected token from initial or priority token, fallback to mUSD
   // Only runs once on mount to avoid overwriting user selections from AssetSelectionBottomSheet
   useEffect(() => {
@@ -197,16 +186,10 @@ const useSpendingLimit = ({
       return;
     }
 
-    if (priorityToken) {
-      const isPriorityTokenSolana =
-        priorityToken?.caipChainId === SolScope.Mainnet ||
-        priorityToken?.caipChainId?.startsWith('solana:');
-
-      if (!isPriorityTokenSolana) {
-        setSelectedToken(priorityToken);
-        setHasInitialized(true);
-        return;
-      }
+    if (!selectedToken && priorityToken) {
+      setSelectedToken(priorityToken);
+      setHasInitialized(true);
+      return;
     }
 
     if (quickSelectTokens.length > 0) {
@@ -218,7 +201,13 @@ const useSpendingLimit = ({
         setHasInitialized(true);
       }
     }
-  }, [hasInitialized, initialToken, priorityToken, quickSelectTokens]);
+  }, [
+    hasInitialized,
+    initialToken,
+    priorityToken,
+    quickSelectTokens,
+    selectedToken,
+  ]);
 
   // Handle returned token from AssetSelectionBottomSheet
   useFocusEffect(
@@ -246,19 +235,12 @@ const useSpendingLimit = ({
   // Validation
   const isValid = useMemo(() => {
     if (isOnboardingFlow && !selectedToken) return false;
-    if (isSolanaSelected) return false;
     if (limitType === 'restricted') {
       const num = parseFloat(customLimit);
       return customLimit !== '' && !isNaN(num) && num >= 0;
     }
     return true;
-  }, [
-    isOnboardingFlow,
-    selectedToken,
-    isSolanaSelected,
-    limitType,
-    customLimit,
-  ]);
+  }, [isOnboardingFlow, selectedToken, limitType, customLimit]);
 
   // Handlers
   const handleQuickSelectToken = useCallback(
@@ -301,7 +283,6 @@ const useSpendingLimit = ({
         delegationSettings,
         cardExternalWalletDetails: externalWalletDetailsData,
         selectionOnly: true,
-        hideSolanaAssets: true,
         callerRoute: Routes.CARD.SPENDING_LIMIT,
         callerParams: restParams as Record<string, unknown>,
       }),
@@ -497,7 +478,6 @@ const useSpendingLimit = ({
 
     // Validation
     isValid,
-    isSolanaSelected,
 
     // Faucet state
     needsFaucet,
