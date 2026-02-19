@@ -80,6 +80,42 @@ export const isTrustedAddress = (
 };
 
 /**
+ * Shared logic for address-poisoning protection on token transfers.
+ * Used by both filterByAddressAndNetwork and filterByAddress so security
+ * policy stays in one place.
+ *
+ * @param from - Sender address
+ * @param selectedAddress - Current wallet address
+ * @param tokens - User's tokens (to check if transfer token is in wallet)
+ * @param transferContractAddress - Contract address of the transferred token
+ * @param addressBook - Address book state
+ * @param internalAccountAddresses - User's account addresses
+ * @returns true if the transfer should be shown (outgoing, or incoming from trusted sender with token)
+ */
+function shouldShowTransferByAddress(
+  from: string,
+  selectedAddress: string,
+  tokens: { address: string }[],
+  transferContractAddress: string | undefined,
+  addressBook: AddressBookControllerState['addressBook'],
+  internalAccountAddresses: string[],
+): boolean {
+  const hasToken = !!tokens.find(({ address }) =>
+    areAddressesEqual(address, transferContractAddress ?? ''),
+  );
+
+  if (areAddressesEqual(from, selectedAddress)) {
+    return true;
+  }
+
+  if (hasToken) {
+    return isTrustedAddress(from, addressBook, internalAccountAddresses);
+  }
+
+  return false;
+}
+
+/**
  * Determines if a transaction was executed in the current chain/network
  * @param tx - Transaction to evaluate
  * @param networkId - Current network id
@@ -158,31 +194,14 @@ export const filterByAddressAndNetwork = (
     tx.status !== TX_UNAPPROVED
   ) {
     const result = isTransfer
-      ? (() => {
-          // Check if token exists in wallet
-          const hasToken = !!tokens.find(({ address }) =>
-            areAddressesEqual(
-              address,
-              transferInformation?.contractAddress ?? '',
-            ),
-          );
-
-          // Always show outgoing transfers
-          if (areAddressesEqual(from, selectedAddress)) {
-            return true;
-          }
-
-          // For incoming transfers: show only if token exists AND sender is trusted
-          if (hasToken) {
-            return isTrustedAddress(
-              from,
-              addressBook,
-              internalAccountAddresses,
-            );
-          }
-
-          return false;
-        })()
+      ? shouldShowTransferByAddress(
+          from,
+          selectedAddress,
+          tokens,
+          transferInformation?.contractAddress,
+          addressBook,
+          internalAccountAddresses,
+        )
       : true;
 
     return result;
@@ -215,31 +234,14 @@ export const filterByAddress = (
     tx.status !== TX_UNAPPROVED
   ) {
     const result = isTransfer
-      ? (() => {
-          // Check if token exists in wallet
-          const hasToken = !!tokens.find(({ address }) =>
-            areAddressesEqual(
-              address,
-              transferInformation?.contractAddress ?? '',
-            ),
-          );
-
-          // Always show outgoing transfers
-          if (areAddressesEqual(from, selectedAddress)) {
-            return true;
-          }
-
-          // For incoming transfers: show only if token exists AND sender is trusted
-          if (hasToken) {
-            return isTrustedAddress(
-              from,
-              addressBook,
-              internalAccountAddresses,
-            );
-          }
-
-          return false;
-        })()
+      ? shouldShowTransferByAddress(
+          from,
+          selectedAddress,
+          tokens,
+          transferInformation?.contractAddress,
+          addressBook,
+          internalAccountAddresses,
+        )
       : true;
 
     return result;
