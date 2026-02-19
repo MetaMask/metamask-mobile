@@ -63,7 +63,7 @@ import useClearConfirmationOnBackSwipe from '../../../../Views/confirmations/hoo
 import useNavbar from '../../../../Views/confirmations/hooks/ui/useNavbar';
 import { NavbarOverrides } from '../../../../Views/confirmations/components/UI/navbar/navbar';
 import { usePredictPaymentToken } from '../../hooks/usePredictPaymentToken';
-import { useTransactionConfirm } from '../../../../Views/confirmations/hooks/transactions/useTransactionConfirm';
+import useApprovalRequest from '../../../../Views/confirmations/hooks/useApprovalRequest';
 
 const MINIMUM_BET = 1;
 
@@ -218,7 +218,7 @@ export function PredictDepositAndOrderInfo() {
   ]);
 
   const payTotals = useTransactionPayTotals();
-  const { onConfirm: onDepositConfirm } = useTransactionConfirm();
+  const { onConfirm: onApprovalConfirm } = useApprovalRequest();
   const isPayTotalsLoading = useIsTransactionPayQuoteLoading();
   const depositFeeUsd = useMemo(() => {
     if (isPredictBalanceSelected || !payTotals?.fees) return 0;
@@ -306,7 +306,11 @@ export function PredictDepositAndOrderInfo() {
         },
       });
 
-      await onDepositConfirm();
+      onApprovalConfirm({
+        deleteAfterResult: true,
+        waitForResult: true,
+        handleErrors: false,
+      });
     } catch (err) {
       setConfirmError(
         err instanceof Error
@@ -320,7 +324,7 @@ export function PredictDepositAndOrderInfo() {
     isPredictBalanceSelected,
     activeTransactionMeta,
     trackDeposit,
-    onDepositConfirm,
+    onApprovalConfirm,
     placeOrder,
     market?.id,
     outcome?.id,

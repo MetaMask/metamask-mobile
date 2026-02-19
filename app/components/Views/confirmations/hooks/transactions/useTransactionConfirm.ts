@@ -16,7 +16,6 @@ import { useIsGaslessSupported } from '../gas/useIsGaslessSupported';
 import { useGaslessSupportedSmartTransactions } from '../gas/useGaslessSupportedSmartTransactions';
 import { cloneDeep } from 'lodash';
 import { useTransactionPayQuotes } from '../pay/useTransactionPayData';
-import { PREDICT_DEPOSIT_AND_ORDER_TYPE } from '../../constants/predict';
 
 const log = createProjectLogger('transaction-confirm');
 
@@ -127,10 +126,6 @@ export function useTransactionConfirm() {
     }
 
     if (type === TransactionType.perpsDepositAndOrder) {
-      return;
-    } else if (
-      hasTransactionType(transactionMetadata, [PREDICT_DEPOSIT_AND_ORDER_TYPE])
-    ) {
       return;
     } else if (type === TransactionType.perpsDeposit) {
       navigation.navigate(Routes.PERPS.ROOT, {
