@@ -16,9 +16,15 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { useNavigation } from '@react-navigation/native';
 import { ScrollView } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../../../component-library/components/Buttons/Button';
 import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
 import PredictAmountDisplay from '../../components/PredictAmountDisplay';
 import { PredictBuyPreviewHeaderTitle } from '../../components/PredictBuyPreviewHeader';
@@ -32,18 +38,29 @@ import { PredictPayWithRow } from '../../components/PredictPayWithRow';
 import { usePredictActiveOrder } from '../../hooks/usePredictActiveOrder';
 import { usePredictBalance } from '../../hooks/usePredictBalance';
 import { usePredictDeposit } from '../../hooks/usePredictDeposit';
+import { usePredictOrderDepositTracking } from '../../hooks/usePredictOrderDepositTracking';
 import { usePredictOrderPreview } from '../../hooks/usePredictOrderPreview';
 import { usePredictRewards } from '../../hooks/usePredictRewards';
+import { usePredictTrading } from '../../hooks/usePredictTrading';
 import { Side } from '../../types';
 import { formatPrice } from '../../utils/format';
+import { BigNumber } from 'bignumber.js';
 import { useConfirmationContext } from '../../../../Views/confirmations/context/confirmation-context';
-import { POLYGON_USDCE } from '../../../../Views/confirmations/constants/predict';
+import {
+  POLYGON_USDCE,
+  PREDICT_CURRENCY,
+} from '../../../../Views/confirmations/constants/predict';
 import { useTransactionPayToken } from '../../../../Views/confirmations/hooks/pay/useTransactionPayToken';
 import { useAddToken } from '../../../../Views/confirmations/hooks/tokens/useAddToken';
+import { useTransactionPayTotals } from '../../../../Views/confirmations/hooks/pay/useTransactionPayData';
+import { useTransactionCustomAmount } from '../../../../Views/confirmations/hooks/transactions/useTransactionCustomAmount';
+import { useTransactionMetadataRequest } from '../../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
+import { useUpdateTokenAmount } from '../../../../Views/confirmations/hooks/transactions/useUpdateTokenAmount';
 import useClearConfirmationOnBackSwipe from '../../../../Views/confirmations/hooks/ui/useClearConfirmationOnBackSwipe';
 import useNavbar from '../../../../Views/confirmations/hooks/ui/useNavbar';
 import { NavbarOverrides } from '../../../../Views/confirmations/components/UI/navbar/navbar';
 import { usePredictPaymentToken } from '../../hooks/usePredictPaymentToken';
+import { useTransactionConfirm } from '../../../../Views/confirmations/hooks/transactions/useTransactionConfirm';
 
 const MINIMUM_BET = 1;
 
@@ -95,6 +112,10 @@ export function PredictDepositAndOrderInfo() {
   const previousValueRef = useRef(0);
   const { setIsFooterVisible } = useConfirmationContext();
 
+  const navigation = useNavigation();
+  const { trackDeposit } = usePredictOrderDepositTracking();
+  const { placeOrder } = usePredictTrading();
+
   const { data: balance = 0, isLoading: isBalanceLoading } =
     usePredictBalance();
   const { deposit } = usePredictDeposit();
@@ -139,8 +160,8 @@ export function PredictDepositAndOrderInfo() {
   }, [currentValue, isCalculating]);
 
   useEffect(() => {
-    setIsFooterVisible(!isInputFocused && currentValue >= MINIMUM_BET);
-  }, [isInputFocused, currentValue, setIsFooterVisible]);
+    setIsFooterVisible(false);
+  }, [setIsFooterVisible]);
 
   const isBelowMinimum = currentValue > 0 && currentValue < MINIMUM_BET;
 
@@ -148,6 +169,97 @@ export function PredictDepositAndOrderInfo() {
   const metamaskFee = preview?.fees?.metamaskFee ?? 0;
   const providerFee = preview?.fees?.providerFee ?? 0;
   const total = currentValue + providerFee + metamaskFee;
+
+  const activeTransactionMeta = useTransactionMetadataRequest();
+
+  const depositAmount = useMemo(() => {
+    if (isPredictBalanceSelected || total <= 0) {
+      return '';
+    }
+    return new BigNumber(total)
+      .decimalPlaces(2, BigNumber.ROUND_HALF_UP)
+      .toString(10);
+  }, [isPredictBalanceSelected, total]);
+
+  const { updatePendingAmount, amountHuman } = useTransactionCustomAmount({
+    currency: PREDICT_CURRENCY,
+  });
+
+  const { updateTokenAmount: updateTokenAmountCallback } =
+    useUpdateTokenAmount();
+
+  useEffect(() => {
+    if (depositAmount && depositAmount.trim() !== '' && activeTransactionMeta) {
+      updatePendingAmount(depositAmount);
+    }
+  }, [depositAmount, activeTransactionMeta, updatePendingAmount]);
+
+  useEffect(() => {
+    if (
+      amountHuman &&
+      amountHuman !== '0' &&
+      depositAmount &&
+      depositAmount.trim() !== '' &&
+      activeTransactionMeta
+    ) {
+      updateTokenAmountCallback(amountHuman);
+    }
+  }, [
+    amountHuman,
+    depositAmount,
+    activeTransactionMeta,
+    updateTokenAmountCallback,
+  ]);
+
+  const payTotals = useTransactionPayTotals();
+  const { onConfirm: onDepositConfirm } = useTransactionConfirm();
+  //const isPayTotalsLoading = useIsTransactionPayQuoteLoading();
+  const depositFeeUsd = useMemo(() => {
+    if (isPredictBalanceSelected || !payTotals?.fees) return 0;
+    const { provider, sourceNetwork, targetNetwork } = payTotals.fees;
+    return new BigNumber(provider?.usd ?? 0)
+      .plus(sourceNetwork?.estimate?.usd ?? 0)
+      .plus(targetNetwork?.usd ?? 0)
+      .toNumber();
+  }, [isPredictBalanceSelected, payTotals]);
+
+  const totalWithDepositFee = total + depositFeeUsd;
+
+  const previewRef = useRef(preview);
+  previewRef.current = preview;
+
+  const handleConfirm = useCallback(async () => {
+    if (!activeTransactionMeta) return;
+
+    trackDeposit({
+      transactionMeta: activeTransactionMeta,
+      onConfirmed: async () => {
+        const latestPreview = previewRef.current;
+        if (!latestPreview) return;
+        await placeOrder({
+          preview: latestPreview,
+          analyticsProperties: {
+            marketId: market?.id,
+            outcome: outcome?.id,
+          },
+        });
+        navigation.goBack();
+      },
+      onFailed: () => {
+        navigation.goBack();
+      },
+    });
+
+    await onDepositConfirm();
+  }, [
+    activeTransactionMeta,
+    trackDeposit,
+    onDepositConfirm,
+    placeOrder,
+    market?.id,
+    outcome?.id,
+    navigation,
+  ]);
 
   const availableBalanceDisplay = useMemo(
     () =>
@@ -292,9 +404,10 @@ export function PredictDepositAndOrderInfo() {
       {renderAmount()}
       <PredictFeeSummary
         disabled={isInputFocused}
-        total={total}
+        total={totalWithDepositFee}
         metamaskFee={metamaskFee}
         providerFee={providerFee}
+        depositFee={depositFeeUsd}
         shouldShowRewardsRow={shouldShowRewardsRow}
         rewardsAccountScope={rewardsAccountScope}
         accountOptedIn={isAccountOptedIntoRewards}
@@ -316,11 +429,23 @@ export function PredictDepositAndOrderInfo() {
         setIsInputFocused={setIsInputFocused}
         onAddFunds={deposit}
       />
+      {!isInputFocused && currentValue >= MINIMUM_BET && (
+        <Box twClassName="px-4 pb-4">
+          <Button
+            size={ButtonSize.Lg}
+            label={strings('confirm.deposit_edit_amount_done')}
+            variant={ButtonVariants.Primary}
+            width={ButtonWidthTypes.Full}
+            onPress={handleConfirm}
+          />
+        </Box>
+      )}
       {isFeeBreakdownVisible && (
         <PredictFeeBreakdownSheet
           ref={feeBreakdownSheetRef}
           providerFee={providerFee}
           metamaskFee={metamaskFee}
+          depositFee={depositFeeUsd}
           onClose={handleFeeBreakdownClose}
         />
       )}
