@@ -247,7 +247,7 @@
     "@metamask/multichain-network-controller": "^2.0.0",
     "@metamask/multichain-transactions-controller": "^6.0.0",
     "@metamask/native-utils": "^0.8.0",
-    "@metamask/network-controller": "^29.0.0",
+    "@metamask/network-controller": "^30.0.0",
     "@metamask/network-enablement-controller": "^4.1.0",
     "@metamask/notification-services-controller": "^22.0.0",
     "@metamask/permission-controller": "^12.1.0",
