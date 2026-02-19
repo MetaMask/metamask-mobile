@@ -1,15 +1,13 @@
 import React from 'react';
 import { LoginViewSelectors } from './LoginView.testIds';
 import Login from './index';
-import { fireEvent, act, screen, waitFor } from '@testing-library/react-native';
+import { fireEvent, act, waitFor } from '@testing-library/react-native';
 import { VAULT_ERROR } from './constants';
 
 import { getVaultFromBackup } from '../../../core/BackupVault';
 import { parseVaultValue } from '../../../util/validators';
 
-import renderWithProvider, {
-  DeepPartial,
-} from '../../../util/test/renderWithProvider';
+import renderWithProvider from '../../../util/test/renderWithProvider';
 import Routes from '../../../constants/navigation/Routes';
 import Logger from '../../../util/Logger';
 import { UNLOCK_WALLET_ERROR_MESSAGES } from '../../../core/Authentication/constants';
