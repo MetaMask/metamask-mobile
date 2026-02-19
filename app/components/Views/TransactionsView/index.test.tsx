@@ -101,6 +101,7 @@ jest.mock('../../../selectors/tokensController', () => ({
 
 jest.mock('../../../selectors/accountsController', () => ({
   selectSelectedInternalAccount: jest.fn(() => null),
+  selectInternalAccounts: jest.fn(() => []),
 }));
 
 jest.mock('../../../selectors/preferencesController', () => ({
