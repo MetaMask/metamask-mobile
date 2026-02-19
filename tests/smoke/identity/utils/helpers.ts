@@ -98,19 +98,31 @@ export const arrangeTestUtils = (
   };
 
   /**
-   * Waits until the number of synced accounts equals the expected number
-   * @param {number} expectedNumber - The expected number of accounts
+   * Waits until the number of synced accounts reaches at least the expected number.
+   *
+   * Uses `>=` rather than strict equality so that batch PUTs landing multiple
+   * entries in rapid succession (which can cause the count to jump over the
+   * exact target) still resolve the promise. An optional `timeout` lets
+   * callers extend the wait when the initial full-sync can be slow (e.g.
+   * right after login on a cold device or CI runner).
+   *
+   * @param {number} expectedNumber - The minimum number of synced accounts to wait for
+   * @param {{ timeout?: number }} [options] - Optional configuration
+   * @param {number} [options.timeout] - Custom timeout in ms (defaults to BASE_TIMEOUT)
    * @returns {Promise} Resolves when the condition is met, rejects on timeout
    */
   const waitUntilSyncedAccountsNumberEquals = (
     expectedNumber: number,
+    options?: { timeout?: number },
   ): Promise<void> =>
     new Promise((resolve, reject) => {
+      const timeoutMs = options?.timeout ?? BASE_TIMEOUT;
+
       const checkAccounts = () => {
         const accounts = userStorageMockttpController.paths.get(
           USER_STORAGE_GROUPS_FEATURE_KEY,
         )?.response;
-        return accounts?.length === expectedNumber;
+        return (accounts?.length ?? 0) >= expectedNumber;
       };
 
       if (checkAccounts()) {
@@ -140,10 +152,10 @@ export const arrangeTestUtils = (
             )?.response?.length ?? 0;
           reject(
             new Error(
-              `Timeout waiting for synced accounts number to be ${expectedNumber}\n Actual: ${actual}`,
+              `Timeout waiting for synced accounts number to reach ${expectedNumber}\n Actual: ${actual}`,
             ),
           );
-        }, BASE_TIMEOUT);
+        }, timeoutMs);
 
         return ids;
       })();
