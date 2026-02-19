@@ -221,6 +221,7 @@ app/components/Views/Settings                    @MetaMask/mobile-core-ux
 app/components/Views/TermsAndConditions          @MetaMask/mobile-core-ux
 app/components/Views/MultichainTransactionsView  @MetaMask/mobile-core-ux
 app/components/Views/UnifiedTransactionsView     @MetaMask/mobile-core-ux
+app/components/Views/AccountsMenu                @MetaMask/mobile-core-ux
 app/components/UI/MultichainTransactionListItem  @MetaMask/mobile-core-ux
 app/components/UI/TransactionActionModal         @MetaMask/mobile-core-ux
 app/components/UI/TransactionElement             @MetaMask/mobile-core-ux
