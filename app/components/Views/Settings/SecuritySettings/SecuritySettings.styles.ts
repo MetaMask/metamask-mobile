@@ -5,6 +5,10 @@ const createStyles = (colors: Colors) =>
   StyleSheet.create({
     wrapper: {
       backgroundColor: colors.background.default,
+      flex: 1,
+    },
+    content: {
+      flex: 1,
       paddingHorizontal: 16,
       paddingTop: 8,
       paddingBottom: 48,

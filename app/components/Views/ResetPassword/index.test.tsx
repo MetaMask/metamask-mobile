@@ -1,6 +1,12 @@
 import React from 'react';
 import ResetPassword from './';
-import { render, act, fireEvent, waitFor } from '@testing-library/react-native';
+import {
+  render,
+  act,
+  fireEvent,
+  waitFor,
+  within,
+} from '@testing-library/react-native';
 import configureMockStore from 'redux-mock-store';
 import { PREVIOUS_SCREEN } from '../../../constants/navigation';
 import { Provider } from 'react-redux';
@@ -276,6 +282,30 @@ describe('ResetPassword', () => {
     });
 
     expect(component.toJSON()).toMatchSnapshot();
+  });
+
+  it('renders inline header with Change password title', async () => {
+    const component = renderWithProviders(<ResetPassword {...defaultProps} />);
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    expect(
+      component.getByText(strings('password_reset.change_password')),
+    ).toBeOnTheScreen();
+  });
+
+  it('calls navigation.goBack when header back button is pressed', async () => {
+    const component = renderWithProviders(<ResetPassword {...defaultProps} />);
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    const header = component.getByTestId('header');
+    const backButton = within(header).getByTestId('button-icon');
+    fireEvent.press(backButton);
+
+    expect(mockNavigation.goBack).toHaveBeenCalledTimes(1);
   });
 
   it('renders the current password view initially', async () => {
