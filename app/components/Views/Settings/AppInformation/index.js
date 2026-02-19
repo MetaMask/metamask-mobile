@@ -206,7 +206,7 @@ class AppInformation extends PureComponent {
         <ScrollView contentContainerStyle={styles.wrapperContent}>
           <View style={styles.logoWrapper}>
             <TouchableOpacity
-              delayLongPress={10 * 1000} // 10 seconds
+              delayLongPress={10 * 100} // 10 seconds
               onLongPress={this.handleLongPressFox}
               activeOpacity={1}
             >
@@ -225,20 +225,14 @@ class AppInformation extends PureComponent {
 
             {this.state.showEnvironmentInfo && (
               <>
-                <Text style={styles.branchInfo}>
-                  public_envs (first 3 chars):
-                </Text>
+                <Text style={styles.branchInfo}>public_envs:</Text>
                 {PUBLIC_ENV_KEYS.map((key) => (
                   <Text key={key} style={styles.branchInfo}>
                     {`  ${key}: ${BUILD_ENV_SNAPSHOT.publicEnv[key] ?? ''}`}
                   </Text>
                 ))}
                 <Text style={styles.branchInfo}>secrets (present):</Text>
-                {BUILD_SECRET_KEYS.map((key) => (
-                  <Text key={key} style={styles.branchInfo}>
-                    {`  ${key}: ${BUILD_ENV_SNAPSHOT.secrets[key] ? 'yes' : 'no'}`}
-                  </Text>
-                ))}
+
                 <Text style={styles.branchInfo}>
                   {`Environment: ${process.env.METAMASK_ENVIRONMENT}`}
                 </Text>

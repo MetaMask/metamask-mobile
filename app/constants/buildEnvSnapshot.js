@@ -6,39 +6,26 @@
 /* eslint-disable dot-notation */
 
 const publicEnv = {
-  PORTFOLIO_API_URL: (process.env.PORTFOLIO_API_URL ?? '').slice(0, 3),
-  SECURITY_ALERTS_API_URL: (process.env.SECURITY_ALERTS_API_URL ?? '').slice(
-    0,
-    3,
-  ),
-  DECODING_API_URL: (process.env.DECODING_API_URL ?? '').slice(0, 3),
-  AUTH_SERVICE_URL: (process.env.AUTH_SERVICE_URL ?? '').slice(0, 3),
-  REWARDS_API_URL: (process.env.REWARDS_API_URL ?? '').slice(0, 3),
-  BAANX_API_URL: (process.env.BAANX_API_URL ?? '').slice(0, 3),
-  RAMPS_ENVIRONMENT: (process.env.RAMPS_ENVIRONMENT ?? '').slice(0, 3),
-  BRIDGE_USE_DEV_APIS: (process.env.BRIDGE_USE_DEV_APIS ?? '').slice(0, 3),
-  RAMP_INTERNAL_BUILD: (process.env.RAMP_INTERNAL_BUILD ?? '').slice(0, 3),
-  IS_TEST: (process.env.IS_TEST ?? '').slice(0, 3),
-  SEEDLESS_ONBOARDING_ENABLED: (
-    process.env.SEEDLESS_ONBOARDING_ENABLED ?? ''
-  ).slice(0, 3),
-  MM_NOTIFICATIONS_UI_ENABLED: (
-    process.env.MM_NOTIFICATIONS_UI_ENABLED ?? ''
-  ).slice(0, 3),
-  MM_PERMISSIONS_SETTINGS_V1_ENABLED: (
-    process.env.MM_PERMISSIONS_SETTINGS_V1_ENABLED ?? ''
-  ).slice(0, 3),
-  MM_PERPS_BLOCKED_REGIONS: (process.env.MM_PERPS_BLOCKED_REGIONS ?? '').slice(
-    0,
-    3,
-  ),
-  MM_PERPS_HIP3_ALLOWLIST_MARKETS: (
-    process.env.MM_PERPS_HIP3_ALLOWLIST_MARKETS ?? ''
-  ).slice(0, 3),
-  MM_PERPS_HIP3_BLOCKLIST_MARKETS: (
-    process.env.MM_PERPS_HIP3_BLOCKLIST_MARKETS ?? ''
-  ).slice(0, 3),
-  MM_PERPS_HIP3_ENABLED: (process.env.MM_PERPS_HIP3_ENABLED ?? '').slice(0, 3),
+  PORTFOLIO_API_URL: process.env.PORTFOLIO_API_URL ?? '',
+  SECURITY_ALERTS_API_URL: process.env.SECURITY_ALERTS_API_URL ?? '',
+  DECODING_API_URL: process.env.DECODING_API_URL ?? '',
+  AUTH_SERVICE_URL: process.env.AUTH_SERVICE_URL ?? '',
+  REWARDS_API_URL: process.env.REWARDS_API_URL ?? '',
+  BAANX_API_URL: process.env.BAANX_API_URL ?? '',
+  RAMPS_ENVIRONMENT: process.env.RAMPS_ENVIRONMENT ?? '',
+  BRIDGE_USE_DEV_APIS: process.env.BRIDGE_USE_DEV_APIS ?? '',
+  RAMP_INTERNAL_BUILD: process.env.RAMP_INTERNAL_BUILD ?? '',
+  IS_TEST: process.env.IS_TEST ?? '',
+  SEEDLESS_ONBOARDING_ENABLED: process.env.SEEDLESS_ONBOARDING_ENABLED ?? '',
+  MM_NOTIFICATIONS_UI_ENABLED: process.env.MM_NOTIFICATIONS_UI_ENABLED ?? '',
+  MM_PERMISSIONS_SETTINGS_V1_ENABLED:
+    process.env.MM_PERMISSIONS_SETTINGS_V1_ENABLED ?? '',
+  MM_PERPS_BLOCKED_REGIONS: process.env.MM_PERPS_BLOCKED_REGIONS ?? '',
+  MM_PERPS_HIP3_ALLOWLIST_MARKETS:
+    process.env.MM_PERPS_HIP3_ALLOWLIST_MARKETS ?? '',
+  MM_PERPS_HIP3_BLOCKLIST_MARKETS:
+    process.env.MM_PERPS_HIP3_BLOCKLIST_MARKETS ?? '',
+  MM_PERPS_HIP3_ENABLED: process.env.MM_PERPS_HIP3_ENABLED ?? '',
 };
 
 const secrets = {
