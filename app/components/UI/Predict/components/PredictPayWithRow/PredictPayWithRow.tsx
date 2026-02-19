@@ -48,25 +48,31 @@ export function PredictPayWithRow() {
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Center}
-        gap={3}
-        twClassName="rounded-lg bg-background-alternative px-4 py-3"
       >
-        {!isPredictBalanceSelected && payToken && (
-          <TokenIcon
-            address={payToken.address as Hex}
-            chainId={payToken.chainId as Hex}
-          />
-        )}
-        <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
-          {`${label} ${displaySymbol}`}
-        </Text>
-        {canEdit && (
-          <Icon
-            name={IconName.ArrowDown}
-            size={IconSize.Sm}
-            color={IconColor.Alternative}
-          />
-        )}
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Center}
+          twClassName="rounded-full bg-default p-4"
+          gap={3}
+        >
+          {!isPredictBalanceSelected && payToken && (
+            <TokenIcon
+              address={payToken.address as Hex}
+              chainId={payToken.chainId as Hex}
+            />
+          )}
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
+            {`${label} ${displaySymbol}`}
+          </Text>
+          {canEdit && (
+            <Icon
+              name={IconName.ArrowDown}
+              size={IconSize.Sm}
+              color={IconColor.Alternative}
+            />
+          )}
+        </Box>
       </Box>
     </TouchableOpacity>
   );
