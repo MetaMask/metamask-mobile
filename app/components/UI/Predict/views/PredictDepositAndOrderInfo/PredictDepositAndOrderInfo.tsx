@@ -1,5 +1,10 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { useNavigation } from '@react-navigation/native';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   Box,
   BoxAlignItems,
@@ -16,7 +21,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
 import PredictAmountDisplay from '../../components/PredictAmountDisplay';
-import PredictBuyPreviewHeader from '../../components/PredictBuyPreviewHeader/PredictBuyPreviewHeader';
+import { PredictBuyPreviewHeaderTitle } from '../../components/PredictBuyPreviewHeader';
 import PredictFeeBreakdownSheet from '../../components/PredictFeeBreakdownSheet';
 import PredictFeeSummary from '../../components/PredictFeeSummary';
 import PredictKeypad, {
@@ -34,11 +39,39 @@ import { POLYGON_USDCE } from '../../../../Views/confirmations/constants/predict
 import { useAddToken } from '../../../../Views/confirmations/hooks/tokens/useAddToken';
 import useClearConfirmationOnBackSwipe from '../../../../Views/confirmations/hooks/ui/useClearConfirmationOnBackSwipe';
 import useNavbar from '../../../../Views/confirmations/hooks/ui/useNavbar';
+import { NavbarOverrides } from '../../../../Views/confirmations/components/UI/navbar/navbar';
 
 const MINIMUM_BET = 1;
 
 export function PredictDepositAndOrderInfo() {
-  useNavbar(strings('confirm.title.predict_deposit'));
+  const activeOrder = usePredictActiveOrder();
+
+  const market = activeOrder?.market;
+  const outcome = activeOrder?.outcome;
+  const outcomeToken = activeOrder?.outcomeToken;
+
+  const renderHeaderTitle = useCallback(
+    () =>
+      outcomeToken ? (
+        <PredictBuyPreviewHeaderTitle
+          title={market?.title ?? ''}
+          outcomeImage={outcome?.image}
+          outcomeGroupTitle={outcome?.groupItemTitle ?? ''}
+          outcomeToken={outcomeToken}
+        />
+      ) : null,
+    [market?.title, outcome?.image, outcome?.groupItemTitle, outcomeToken],
+  );
+
+  const navbarOverrides = useMemo<NavbarOverrides>(
+    () => ({
+      headerTitleAlign: 'left' as const,
+      headerTitle: renderHeaderTitle,
+    }),
+    [renderHeaderTitle],
+  );
+
+  useNavbar(strings('confirm.title.predict_deposit'), true, navbarOverrides);
   useClearConfirmationOnBackSwipe();
 
   useAddToken({
@@ -53,8 +86,6 @@ export function PredictDepositAndOrderInfo() {
   const keypadRef = useRef<PredictKeypadHandles>(null);
   const feeBreakdownSheetRef = useRef<BottomSheetRef>(null);
   const previousValueRef = useRef(0);
-  const navigation = useNavigation();
-  const activeOrder = usePredictActiveOrder();
   const { setIsFooterVisible } = useConfirmationContext();
 
   const { data: balance = 0, isLoading: isBalanceLoading } =
@@ -66,10 +97,6 @@ export function PredictDepositAndOrderInfo() {
   const [isInputFocused, setIsInputFocused] = useState(true);
   const [isUserInputChange, setIsUserInputChange] = useState(false);
   const [isFeeBreakdownVisible, setIsFeeBreakdownVisible] = useState(false);
-
-  const market = activeOrder?.market;
-  const outcome = activeOrder?.outcome;
-  const outcomeToken = activeOrder?.outcomeToken;
 
   const {
     preview,
@@ -241,14 +268,6 @@ export function PredictDepositAndOrderInfo() {
 
   return (
     <Box twClassName="flex-1">
-      <PredictBuyPreviewHeader
-        title={market.title}
-        outcomeImage={outcome?.image}
-        outcomeGroupTitle={outcome.groupItemTitle ?? ''}
-        outcomeToken={outcomeToken}
-        sharePrice={preview?.sharePrice}
-        onBack={() => navigation.goBack()}
-      />
       {renderAmount()}
       <PredictFeeSummary
         disabled={isInputFocused}

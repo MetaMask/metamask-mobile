@@ -15,23 +15,21 @@ import { Image, TouchableOpacity } from 'react-native';
 import { PredictOutcomeToken } from '../../types';
 import { formatCents } from '../../utils/format';
 
-interface PredictBuyPreviewHeaderProps {
+export interface PredictBuyPreviewHeaderTitleProps {
   title: string;
   outcomeImage?: string;
   outcomeGroupTitle?: string;
   outcomeToken: PredictOutcomeToken;
   sharePrice?: number;
-  onBack: () => void;
 }
 
-const PredictBuyPreviewHeader = ({
+export function PredictBuyPreviewHeaderTitle({
   title,
   outcomeImage,
   outcomeGroupTitle,
   outcomeToken,
   sharePrice,
-  onBack,
-}: PredictBuyPreviewHeaderProps) => {
+}: PredictBuyPreviewHeaderTitleProps) {
   const tw = useTailwind();
   const separator = '·';
   const outcomeTokenLabel = `${outcomeToken?.title} at ${formatCents(
@@ -42,69 +40,89 @@ const PredictBuyPreviewHeader = ({
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      twClassName="w-full gap-4 p-4"
+      twClassName="gap-3"
     >
-      <TouchableOpacity testID="back-button" onPress={onBack}>
-        <Icon name={IconName.ArrowLeft} size={IconSize.Md} />
-      </TouchableOpacity>
       <Image
         source={{ uri: outcomeImage }}
         style={tw.style('w-10 h-10 rounded')}
       />
       <Box flexDirection={BoxFlexDirection.Column} twClassName="flex-1 min-w-0">
-        <Box flexDirection={BoxFlexDirection.Row} twClassName="min-w-0 gap-4">
-          <Box twClassName="flex-1 min-w-0">
-            <Text
-              variant={TextVariant.HeadingSm}
-              numberOfLines={1}
-              ellipsizeMode="tail"
-            >
-              {title}
-            </Text>
-          </Box>
-        </Box>
-        <Box flexDirection={BoxFlexDirection.Row} twClassName="min-w-0 gap-4">
-          <Box twClassName="flex-1 min-w-0">
-            <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-1">
-              {!!outcomeGroupTitle && (
-                <>
-                  <Text
-                    variant={TextVariant.BodySm}
-                    twClassName="font-medium"
-                    color={TextColor.TextAlternative}
-                    numberOfLines={1}
-                    ellipsizeMode="tail"
-                  >
-                    {outcomeGroupTitle}
-                  </Text>
-                  <Text
-                    variant={TextVariant.BodySm}
-                    twClassName="font-medium"
-                    color={TextColor.TextAlternative}
-                  >
-                    {separator}
-                  </Text>
-                </>
-              )}
+        <Text
+          variant={TextVariant.HeadingSm}
+          numberOfLines={1}
+          ellipsizeMode="tail"
+        >
+          {title}
+        </Text>
+        <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-1">
+          {!!outcomeGroupTitle && (
+            <>
               <Text
                 variant={TextVariant.BodySm}
                 twClassName="font-medium"
-                color={
-                  outcomeToken?.title === 'Yes'
-                    ? TextColor.SuccessDefault
-                    : TextColor.ErrorDefault
-                }
+                color={TextColor.TextAlternative}
                 numberOfLines={1}
                 ellipsizeMode="tail"
               >
-                {outcomeTokenLabel}
+                {outcomeGroupTitle}
               </Text>
-            </Box>
-          </Box>
+              <Text
+                variant={TextVariant.BodySm}
+                twClassName="font-medium"
+                color={TextColor.TextAlternative}
+              >
+                {separator}
+              </Text>
+            </>
+          )}
+          <Text
+            variant={TextVariant.BodySm}
+            twClassName="font-medium"
+            color={
+              outcomeToken?.title === 'Yes'
+                ? TextColor.SuccessDefault
+                : TextColor.ErrorDefault
+            }
+            numberOfLines={1}
+            ellipsizeMode="tail"
+          >
+            {outcomeTokenLabel}
+          </Text>
         </Box>
       </Box>
     </Box>
   );
-};
+}
+
+export function PredictBuyPreviewHeaderBack({
+  onBack,
+}: {
+  onBack: () => void;
+}) {
+  return (
+    <TouchableOpacity testID="back-button" onPress={onBack}>
+      <Icon name={IconName.ArrowLeft} size={IconSize.Md} />
+    </TouchableOpacity>
+  );
+}
+
+interface PredictBuyPreviewHeaderProps
+  extends PredictBuyPreviewHeaderTitleProps {
+  onBack: () => void;
+}
+
+const PredictBuyPreviewHeader = ({
+  onBack,
+  ...titleProps
+}: PredictBuyPreviewHeaderProps) => (
+  <Box
+    flexDirection={BoxFlexDirection.Row}
+    alignItems={BoxAlignItems.Center}
+    twClassName="w-full gap-4 p-4"
+  >
+    <PredictBuyPreviewHeaderBack onBack={onBack} />
+    <PredictBuyPreviewHeaderTitle {...titleProps} />
+  </Box>
+);
 
 export default PredictBuyPreviewHeader;
