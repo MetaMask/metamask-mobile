@@ -75,7 +75,10 @@ const modalTitle = (n: StakeNotification) => {
 };
 
 const state: NotificationState<StakeNotification> = {
-  guardFn: isStakeNotification,
+  guardFn: [
+    isStakeNotification,
+    (notification) => !!notification.payload.chain_id,
+  ],
   createMenuItem: (notification) => ({
     title: strings(`notifications.menu_item_title.${notification.type}`),
 

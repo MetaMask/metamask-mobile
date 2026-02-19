@@ -18,7 +18,10 @@ const isLidoWithdrawalRequestedNotification = isOfTypeNodeGuard([
 ]);
 
 const state: NotificationState<LidoWithdrawalRequestedNotification> = {
-  guardFn: isLidoWithdrawalRequestedNotification,
+  guardFn: [
+    isLidoWithdrawalRequestedNotification,
+    (notification) => !!notification.payload.chain_id,
+  ],
   createMenuItem: (notification) => {
     const amount = getAmount(
       notification.payload.data.stake_in.amount,

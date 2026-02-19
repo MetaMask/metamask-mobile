@@ -19,7 +19,11 @@ const isSwapCompletedNotification = isOfTypeNodeGuard([
 ]);
 
 const state: NotificationState<SwapCompletedNotification> = {
-  guardFn: isSwapCompletedNotification,
+  guardFn: [
+    isSwapCompletedNotification,
+    (notification) =>
+      !!getNetworkDetailsFromNotifPayload(notification.payload.network),
+  ],
   createMenuItem: (notification) => ({
     title: strings(`notifications.menu_item_title.${notification.type}`, {
       symbolIn: notification.payload.data.token_in.symbol,

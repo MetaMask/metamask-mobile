@@ -47,7 +47,11 @@ const modalTitle = (n: ERC20Notification) =>
       });
 
 const state: NotificationState<ERC20Notification> = {
-  guardFn: [isERC20Notification],
+  guardFn: [
+    isERC20Notification,
+    (notification) =>
+      !!getNetworkDetailsFromNotifPayload(notification.payload.network),
+  ],
   createMenuItem: (notification) => ({
     title: menuTitle(notification),
 
@@ -72,9 +76,11 @@ const state: NotificationState<ERC20Notification> = {
   }),
   createModalDetails: (notification) => {
     const { networkName } = getNetworkDetailsFromNotifPayload(
-      notification.payload.network,
+      notification?.payload?.network,
     );
-    const networkLogo = getNetworkImageByChainId(notification.payload.chain_id);
+    const networkLogo = getNetworkImageByChainId(
+      notification?.payload?.chain_id,
+    );
 
     return {
       title: modalTitle(notification),

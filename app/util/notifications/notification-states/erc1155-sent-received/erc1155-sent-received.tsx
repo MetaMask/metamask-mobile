@@ -48,7 +48,11 @@ const modalTitle = (n: ERC1155Notification) =>
       });
 
 const state: NotificationState<ERC1155Notification> = {
-  guardFn: isERC1155Notification,
+  guardFn: [
+    isERC1155Notification,
+    (notification) =>
+      !!getNetworkDetailsFromNotifPayload(notification.payload.network),
+  ],
   createMenuItem: (notification) => ({
     title: title(notification),
 

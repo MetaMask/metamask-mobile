@@ -37,7 +37,11 @@ const title = (n: NativeSentReceiveNotification) => {
 };
 
 const state: NotificationState<NativeSentReceiveNotification> = {
-  guardFn: [isNativeTokenNotification],
+  guardFn: [
+    isNativeTokenNotification,
+    (notification) =>
+      !!getNetworkDetailsFromNotifPayload(notification.payload.network),
+  ],
   createMenuItem: (notification) => {
     const networkLogo = getNetworkImageByChainId(notification.payload.chain_id);
     const { networkName, nativeCurrencySymbol } =

@@ -17,7 +17,10 @@ const isLidoReadyWithDrawnNotification = isOfTypeNodeGuard([
 ]);
 
 const state: NotificationState<LidoReadyWithDrawnNotification> = {
-  guardFn: isLidoReadyWithDrawnNotification,
+  guardFn: [
+    isLidoReadyWithDrawnNotification,
+    (notification) => !!notification.payload.chain_id,
+  ],
   createMenuItem: (notification) => ({
     title: strings(`notifications.menu_item_title.${notification.type}`),
 
