@@ -1260,7 +1260,7 @@ describe('EarnWithdrawInputView', () => {
       mockTrackEvent.mockClear();
 
       await act(async () => {
-        fireEvent.press(screen.getByText('0 USD'));
+        fireEvent.press(screen.getByText('$0'));
       });
 
       expect(mockTrackEvent).toHaveBeenCalledWith(
