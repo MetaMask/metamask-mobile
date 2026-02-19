@@ -16,7 +16,7 @@ const styleSheet = (_params: { theme: Theme }) =>
       gap: 16,
     },
     right: {
-      alignItems: 'flex-end',
+      alignSelf: 'center',
     },
     networkRow: {
       flexDirection: 'row',

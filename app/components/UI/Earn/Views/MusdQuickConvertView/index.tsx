@@ -30,6 +30,7 @@ import AppConstants from '../../../../../core/AppConstants';
 import MusdBalanceCard from './components/MusdBalanceCard';
 import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../types/musd.types';
 import Logger from '../../../../../util/Logger';
+import { useMusdBalance } from '../../hooks/useMusdBalance';
 
 interface SectionHeaderProps {
   title: string;
@@ -199,6 +200,8 @@ const MusdQuickConvertView = () => {
     ],
   );
 
+  const { fiatBalanceFormattedByChain } = useMusdBalance();
+
   const renderSectionHeader = useCallback(
     ({ section }: { section: TokenSection }) => (
       <SectionHeader title={section.title} tag={section.tag} />
@@ -234,10 +237,7 @@ const MusdQuickConvertView = () => {
       testID={MusdQuickConvertViewTestIds.CONTAINER}
     >
       {/* Header section */}
-      <View
-        style={styles.headerContainer}
-        testID={MusdQuickConvertViewTestIds.HEADER}
-      >
+      <View testID={MusdQuickConvertViewTestIds.HEADER}>
         <View style={styles.headerTextContainer}>
           <Text variant={TextVariant.HeadingLG}>
             {strings('earn.musd_conversion.quick_convert.title', {
@@ -265,7 +265,17 @@ const MusdQuickConvertView = () => {
           >
             {strings('earn.musd_conversion.your_musd')}
           </Text>
-          <MusdBalanceCard />
+          {Object.keys(fiatBalanceFormattedByChain).map((chainId) => (
+            <View
+              key={`${chainId}-${fiatBalanceFormattedByChain[chainId as Hex]}`}
+              style={styles.balanceCardContainer}
+            >
+              <MusdBalanceCard
+                chainId={chainId as Hex}
+                balance={fiatBalanceFormattedByChain[chainId as Hex]}
+              />
+            </View>
+          ))}
         </View>
       </View>
 
