@@ -62,9 +62,18 @@ jest.mock(
 );
 
 jest.mock('../../components/MarketInsightsTrendItem', () => {
-  const { View: MockView } = jest.requireActual('react-native');
-  const TrendItem = ({ testID }: { testID?: string }) => (
-    <MockView testID={testID ?? 'trend-item'} />
+  const { Pressable: MockPressable, Text: MockText } =
+    jest.requireActual('react-native');
+  const TrendItem = ({
+    testID,
+    onPress,
+  }: {
+    testID?: string;
+    onPress?: () => void;
+  }) => (
+    <MockPressable testID={testID ?? 'trend-item'} onPress={onPress}>
+      <MockText>trend-item</MockText>
+    </MockPressable>
   );
   return TrendItem;
 });
@@ -92,6 +101,14 @@ jest.mock('../../components/MarketInsightsSourcesFooter', () => {
     <MockView testID={testID ?? 'sources-footer'} />
   );
   return SourcesFooter;
+});
+
+jest.mock('../../components/MarketInsightsTrendSourcesBottomSheet', () => {
+  const { View: MockView } = jest.requireActual('react-native');
+  const TrendSourcesBottomSheet = () => (
+    <MockView testID="market-insights-trend-sources-bottom-sheet" />
+  );
+  return TrendSourcesBottomSheet;
 });
 
 describe('MarketInsightsView', () => {
@@ -127,7 +144,14 @@ describe('MarketInsightsView', () => {
           {
             title: 'ETF inflows',
             description: 'Spot ETF inflows remain elevated',
-            articles: [],
+            articles: [
+              {
+                title: 'ETF demand remains high',
+                source: 'coindesk.com',
+                date: '2026-02-17T08:00:00.000Z',
+                url: 'https://www.coindesk.com/article',
+              },
+            ],
             tweets: [
               {
                 author: 'alpha',
@@ -188,5 +212,10 @@ describe('MarketInsightsView', () => {
         }),
       }),
     );
+
+    fireEvent.press(getByTestId(`${MarketInsightsSelectorsIDs.TREND_ITEM}-0`));
+    expect(
+      getByTestId('market-insights-trend-sources-bottom-sheet'),
+    ).toBeTruthy();
   });
 });

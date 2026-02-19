@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { ScrollView, Linking, Pressable } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -28,13 +28,17 @@ import { useMarketInsights } from '../../hooks/useMarketInsights';
 import MarketInsightsTrendItem from '../../components/MarketInsightsTrendItem';
 import MarketInsightsTweetCard from '../../components/MarketInsightsTweetCard';
 import MarketInsightsSourcesFooter from '../../components/MarketInsightsSourcesFooter';
+import MarketInsightsTrendSourcesBottomSheet from '../../components/MarketInsightsTrendSourcesBottomSheet';
 import { MarketInsightsSelectorsIDs } from '../../MarketInsights.testIds';
 import {
   useSwapBridgeNavigation,
   SwapBridgeNavigationLocation,
 } from '../../../Bridge/hooks/useSwapBridgeNavigation';
 import { NATIVE_SWAPS_TOKEN_ADDRESS } from '../../../../../constants/bridge';
-import type { MarketInsightsTweet } from '@metamask/ai-controllers';
+import type {
+  MarketInsightsTweet,
+  MarketInsightsTrend,
+} from '@metamask/ai-controllers';
 import { selectMarketInsightsEnabled } from '../../../../../selectors/featureFlagController/marketInsights';
 
 interface MarketInsightsRouteParams {
@@ -81,6 +85,8 @@ const MarketInsightsView: React.FC = () => {
   } = route.params;
 
   const { report } = useMarketInsights(caip19Id, isMarketInsightsEnabled);
+  const [selectedTrend, setSelectedTrend] =
+    useState<MarketInsightsTrend | null>(null);
 
   // Build BridgeToken from route params for swap navigation
   const sourceToken = useMemo(() => {
@@ -132,6 +138,18 @@ const MarketInsightsView: React.FC = () => {
   const handleTradePress = useCallback(() => {
     goToSwaps();
   }, [goToSwaps]);
+
+  const handleTrendPress = useCallback((trend: MarketInsightsTrend) => {
+    if (trend.articles.length === 0) {
+      return;
+    }
+
+    setSelectedTrend(trend);
+  }, []);
+
+  const handleCloseTrendSources = useCallback(() => {
+    setSelectedTrend(null);
+  }, []);
 
   if (!report) {
     return null;
@@ -248,6 +266,7 @@ const MarketInsightsView: React.FC = () => {
             <MarketInsightsTrendItem
               key={`trend-${index}`}
               trend={trend}
+              onPress={() => handleTrendPress(trend)}
               testID={`${MarketInsightsSelectorsIDs.TREND_ITEM}-${index}`}
             />
           ))}
@@ -308,6 +327,15 @@ const MarketInsightsView: React.FC = () => {
           {strings('market_insights.trade_button')}
         </Button>
       </Box>
+
+      {selectedTrend ? (
+        <MarketInsightsTrendSourcesBottomSheet
+          isVisible
+          onClose={handleCloseTrendSources}
+          trendTitle={selectedTrend.title}
+          articles={selectedTrend.articles}
+        />
+      ) : null}
     </Box>
   );
 };

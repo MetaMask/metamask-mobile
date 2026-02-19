@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
-import { Image } from 'react-native';
+import { Image, Pressable } from 'react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
   Text,
@@ -48,8 +49,10 @@ const StackedSourceIcons: React.FC<{ sources: string[] }> = ({ sources }) => (
 
 const MarketInsightsTrendItem: React.FC<MarketInsightsTrendItemProps> = ({
   trend,
+  onPress,
   testID,
 }) => {
+  const tw = useTailwind();
   const uniqueSources = useMemo(() => {
     const seen = new Set<string>();
     return trend.articles
@@ -62,7 +65,14 @@ const MarketInsightsTrendItem: React.FC<MarketInsightsTrendItemProps> = ({
   }, [trend.articles]);
 
   return (
-    <Box twClassName="px-4 py-3" testID={testID}>
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) =>
+        tw.style('px-4 py-3', onPress && pressed && 'opacity-70')
+      }
+      testID={testID}
+      accessibilityRole={onPress ? 'button' : undefined}
+    >
       <Text
         variant={TextVariant.BodyMd}
         fontWeight={FontWeight.Medium}
@@ -76,7 +86,7 @@ const MarketInsightsTrendItem: React.FC<MarketInsightsTrendItemProps> = ({
       {uniqueSources.length > 0 ? (
         <StackedSourceIcons sources={uniqueSources} />
       ) : null}
-    </Box>
+    </Pressable>
   );
 };
 
