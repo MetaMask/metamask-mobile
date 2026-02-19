@@ -13,8 +13,11 @@ const mockSetOptions = jest.fn();
 const mockGoBack = jest.fn();
 const mockStartQuotePolling = jest.fn();
 const mockStopQuotePolling = jest.fn();
-const mockGetWidgetUrl = jest.fn(async (quote) => {
-  const buyUrl = quote?.quote?.buyURL;
+const mockGetWidgetUrl = jest.fn<
+  Promise<string | null>,
+  [quote: Record<string, unknown>]
+>(async (quote) => {
+  const buyUrl = (quote as { quote?: { buyURL: string } })?.quote?.buyURL;
   if (!buyUrl) return null;
   // Simulate the fetch behavior
   return 'https://global.transak.com/?apiKey=test';
@@ -84,7 +87,7 @@ jest.mock('../../hooks/useTokenNetworkInfo', () => ({
   useTokenNetworkInfo: () => mockGetTokenNetworkInfo,
 }));
 
-const mockUseRampAccountAddress = jest.fn(
+const mockUseRampAccountAddress = jest.fn<string | undefined, [unknown?]>(
   (_chainId?: unknown) => '0x1234567890abcdef',
 );
 
@@ -980,7 +983,7 @@ describe('BuildQuote', () => {
       mockGetWidgetUrl.mockImplementation(
         () =>
           new Promise<string>((resolve) =>
-            setTimeout(() => resolve('url'), 100),
+            setTimeout(() => resolve('https://example.com/widget'), 100),
           ),
       );
 
