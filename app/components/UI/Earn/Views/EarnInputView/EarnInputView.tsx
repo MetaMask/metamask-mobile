@@ -2,11 +2,7 @@ import { ORIGIN_METAMASK, toHex } from '@metamask/controller-utils';
 import { CHAIN_ID_TO_AAVE_POOL_CONTRACT } from '@metamask/stake-sdk';
 import { TransactionType } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
-import {
-  useFocusEffect,
-  useNavigation,
-  useRoute,
-} from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import BigNumber from 'bignumber.js';
 import { formatEther } from 'ethers/lib/utils';
 import { debounce } from 'lodash';
@@ -89,11 +85,10 @@ import { ComputeFeeResult } from '../../utils/tron-staking-snap';
 import { handleTronStakingNavigationResult } from '../../utils/tron';
 ///: END:ONLY_INCLUDE_IF
 
-const EarnInputView = () => {
+const EarnInputView = ({ route }: EarnInputViewProps) => {
   // navigation hooks
   const navigation = useNavigation();
-  const route = useRoute<EarnInputViewProps['route']>();
-  const { token } = route.params;
+  const { token } = route?.params ?? {};
 
   // We want to keep track of the last quick amount pressed before navigating to review.
   const lastQuickAmountButtonPressed = useRef<string | null>(null);

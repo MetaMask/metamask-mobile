@@ -1,6 +1,5 @@
 // Third party dependencies.
 import {
-  ImageSourcePropType,
   KeyboardAvoidingView,
   Linking,
   Switch,
@@ -10,7 +9,7 @@ import {
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ScrollView } from 'react-native-gesture-handler';
 import images from 'images/image-icons';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { useNavigation, RouteProp } from '@react-navigation/native';
 
 // External dependencies.
 import Cell, {
@@ -103,35 +102,21 @@ import { MultichainNetworkConfiguration } from '@metamask/multichain-network-con
 import { useSwitchNetworks } from './useSwitchNetworks';
 import { removeItemFromChainIdList } from '../../../util/metrics/MultichainAPI/networkMetricUtils';
 import { analytics } from '../../../util/analytics/analytics';
-import {
-  NETWORK_SELECTOR_SOURCES,
-  NetworkSelectorSource,
-} from '../../../constants/networkSelector';
+import { NETWORK_SELECTOR_SOURCES } from '../../../constants/networkSelector';
 import { getGasFeesSponsoredNetworkEnabled } from '../../../selectors/featureFlagController/gasFeesSponsored';
+import type { ShowConfirmDeleteModalState, infuraNetwork } from './types';
+import type { NetworkSelectorParams } from './NetworkSelector.types';
 
-interface infuraNetwork {
-  name: string;
-  imageSource: ImageSourcePropType;
-  chainId: Hex;
+interface NetworkSelectorParamList {
+  NetworkSelector: NetworkSelectorParams;
+  [key: string]: object | undefined;
 }
 
-interface ShowConfirmDeleteModalState {
-  isVisible: boolean;
-  networkName: string;
-  chainId?: `0x${string}`;
+interface NetworkSelectorProps {
+  route: RouteProp<NetworkSelectorParamList, 'NetworkSelector'>;
 }
 
-interface NetworkSelectorRouteParams {
-  chainId?: Hex;
-  hostInfo?: {
-    metadata?: {
-      origin?: string;
-    };
-  };
-  source?: NetworkSelectorSource;
-}
-
-const NetworkSelector = () => {
+const NetworkSelector = ({ route }: NetworkSelectorProps) => {
   trace({
     name: TraceName.NetworkSwitch,
     op: TraceOperation.NetworkSwitch,
@@ -167,12 +152,9 @@ const NetworkSelector = () => {
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const selectedNonEvmChainId = useSelector(selectSelectedNonEvmNetworkChainId);
 
-  const route =
-    useRoute<RouteProp<Record<string, NetworkSelectorRouteParams>, string>>();
-
   // origin is defined if network selector is opened from a dapp
-  const origin = route.params?.hostInfo?.metadata?.origin || '';
-  const browserChainId = route.params?.chainId || null;
+  const origin = route?.params?.hostInfo?.metadata?.origin || '';
+  const browserChainId = route?.params?.chainId || null;
   const parentSpan = trace({
     name: TraceName.NetworkSwitch,
     tags: getTraceTags(store.getState()),
@@ -188,7 +170,7 @@ const NetworkSelector = () => {
   const { addPopularNetwork } = useAddPopularNetwork();
 
   const isSendFlow =
-    route.params?.source === NETWORK_SELECTOR_SOURCES.SEND_FLOW;
+    route?.params?.source === NETWORK_SELECTOR_SOURCES.SEND_FLOW;
 
   const avatarSize = isNetworkUiRedesignEnabled() ? AvatarSize.Sm : undefined;
   const modalTitle = isNetworkUiRedesignEnabled()
