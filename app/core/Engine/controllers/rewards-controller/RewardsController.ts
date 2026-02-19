@@ -172,6 +172,12 @@ const metadata: StateMetadata<RewardsControllerState> = {
     includeInDebugSnapshot: false,
     usedInUi: false,
   },
+  useUatBackend: {
+    includeInStateLogs: false,
+    persist: true,
+    includeInDebugSnapshot: false,
+    usedInUi: true,
+  },
 };
 
 /**
@@ -189,6 +195,7 @@ export const getRewardsControllerDefaultState = (): RewardsControllerState => ({
   pointsEvents: {},
   snapshots: {},
   pointsEstimateHistory: [],
+  useUatBackend: false,
 });
 
 export const defaultRewardsControllerState = getRewardsControllerDefaultState();
@@ -579,6 +586,10 @@ export class RewardsController extends BaseController<
       'RewardsController:applyReferralCode',
       this.applyReferralCode.bind(this),
     );
+    this.messenger.registerActionHandler(
+      'RewardsController:setUseUatBackend',
+      this.setUseUatBackend.bind(this),
+    );
   }
 
   /**
@@ -602,6 +613,21 @@ export class RewardsController extends BaseController<
    */
   resetState(): void {
     this.update(() => getRewardsControllerDefaultState());
+  }
+
+  /**
+   * Toggle targeting the UAT backend (RC builds only).
+   * Updates controller state, syncs the flag to the data service, and resets all cached data.
+   */
+  async setUseUatBackend(enabled: boolean): Promise<void> {
+    this.messenger.call('RewardsDataService:setUseUatBackend', enabled);
+
+    await this.resetAll();
+
+    // Set after resetAll since resetState() clears everything to defaults
+    this.update((state: RewardsControllerState) => {
+      state.useUatBackend = enabled;
+    });
   }
 
   /**
