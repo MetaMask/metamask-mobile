@@ -180,7 +180,8 @@ class AppInformation extends PureComponent {
     const { appName, appVersion, buildNumber } = this.state;
     const appInfo = `${appName} v${appVersion} (${buildNumber})`;
     const appInfoOta = `${appName} ota ${OTA_VERSION} (${buildNumber})`;
-    return __DEV__ || isEmbeddedLaunch ? appInfo : appInfoOta;
+    const isRunningEmbedded = isEmbeddedLaunch || !isOTAUpdatesEnabled;
+    return __DEV__ || isRunningEmbedded ? appInfo : appInfoOta;
   };
 
   /**
