@@ -4,9 +4,9 @@ import type {
   TransactionMeta,
 } from '@metamask/transaction-controller';
 import { useCancelSpeedupGas } from './useCancelSpeedupGas';
-import type { Eip1559ExistingGas, LegacyExistingGas } from './types';
 import { renderHookWithProvider } from '../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
+import { Eip1559ExistingGas } from '../../../../UnifiedTransactionsView/useUnifiedTxActions';
 
 const providerState = { state: { engine: { backgroundState } } } as const;
 
@@ -190,7 +190,7 @@ describe('useCancelSpeedupGas', () => {
   });
 
   it('returns legacy params when existingGas has gasPrice (zero gasPrice)', () => {
-    const existingGas: LegacyExistingGas = {
+    const existingGas = {
       gasPrice: '0x0',
     };
 
@@ -214,7 +214,7 @@ describe('useCancelSpeedupGas', () => {
   });
 
   it('returns legacy params when existingGas has gasPrice (non-zero gasPrice)', () => {
-    const existingGas: LegacyExistingGas = {
+    const existingGas = {
       gasPrice: '0x3b9aca00', // 10 GWEI in hex
     };
 
@@ -276,7 +276,6 @@ describe('useCancelSpeedupGas', () => {
     );
 
     expect(result.current.speedDisplay).toContain('sec');
-    // speedDisplay uses locale string (e.g. "Market ~ 15 sec" or "Medium ~ 15 sec") and mocked toHumanSeconds
     expect(result.current.speedDisplay).toMatch(/~\s*\d+\s*sec|sec/);
   });
 

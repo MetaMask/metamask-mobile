@@ -27,17 +27,15 @@ import {
   AlignItems,
   FlexDirection,
 } from '../../../../../../components/UI/Box/box.types';
-import {
-  ExistingGas,
-  useCancelSpeedupGas,
-} from '../../../hooks/gas/useCancelSpeedupGas';
+import { useCancelSpeedupGas } from '../../../hooks/gas/useCancelSpeedupGas';
 import NetworkAssetLogo from '../../../../../UI/NetworkAssetLogo';
 import InfoSection from '../../UI/info-row/info-section';
 import InfoRow from '../../UI/info-row/info-row';
 import styleSheet from './cancel-speedup-modal.styles';
 import { useStyles } from '../../../../../hooks/useStyles';
+import { ExistingGas } from '../../../../UnifiedTransactionsView/useUnifiedTxActions';
 
-const NetworkFee = ({
+const NetworkFeeRow = ({
   fiat,
   native,
   symbol,
@@ -79,7 +77,7 @@ const NetworkFee = ({
   );
 };
 
-const Speed = ({ display }: { display: string }) => (
+const SpeedRow = ({ display }: { display: string }) => (
   <InfoRow label={strings('transactions.gas_modal.speed')}>{display}</InfoRow>
 );
 
@@ -168,13 +166,13 @@ export function CancelSpeedupModal({
         <ScrollView>
           <Box gap={4}>
             <InfoSection>
-              <NetworkFee
+              <NetworkFeeRow
                 fiat={networkFeeFiat}
                 native={networkFeeNative}
                 symbol={nativeTokenSymbol}
                 chainId={chainId}
               />
-              <Speed display={speedDisplay} />
+              <SpeedRow display={speedDisplay} />
             </InfoSection>
             <Description text={description} />
           </Box>

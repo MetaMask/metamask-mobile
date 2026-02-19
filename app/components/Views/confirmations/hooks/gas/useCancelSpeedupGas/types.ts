@@ -3,24 +3,7 @@ import type {
   GasPriceValue,
   TransactionMeta,
 } from '@metamask/transaction-controller';
-
-/**
- * Existing gas from the transaction being sped up or canceled.
- * EIP-1559: gwei decimals (from weiHexToGweiDec).
- * Legacy: gas price as number.
- */
-export interface LegacyExistingGas {
-  isEIP1559Transaction?: false;
-  gasPrice?: number | string;
-}
-
-export interface Eip1559ExistingGas {
-  isEIP1559Transaction: true;
-  maxFeePerGas?: number | string;
-  maxPriorityFeePerGas?: number | string;
-}
-
-export type ExistingGas = LegacyExistingGas | Eip1559ExistingGas;
+import { ExistingGas } from '../../../../UnifiedTransactionsView/useUnifiedTxActions';
 
 /**
  * Result of useCancelSpeedupGas: params for controller and display strings.

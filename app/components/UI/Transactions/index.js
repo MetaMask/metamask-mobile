@@ -11,7 +11,6 @@ import {
   Text,
   View,
 } from 'react-native';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Modal from 'react-native-modal';
 import { connect } from 'react-redux';
 import { ActivitiesViewSelectorsIDs } from '../../Views/ActivityView/ActivitiesView.testIds';
@@ -49,7 +48,7 @@ import {
   getBlockExplorerAddressUrl,
   getBlockExplorerName,
 } from '../../../util/networks';
-import { addHexPrefix, hexToBN, renderFromWei } from '../../../util/number';
+import { addHexPrefix } from '../../../util/number';
 import { mockTheme, ThemeContext } from '../../../util/theme';
 import {
   speedUpTransaction,

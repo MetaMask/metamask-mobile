@@ -26,11 +26,11 @@ import useFiatFormatter from '../../../../../../components/UI/SimulationDetails/
 import { getFeesFromHex } from '../../../utils/gas';
 import { toHumanSeconds } from '../../../utils/time';
 import type {
-  Eip1559ExistingGas,
   UseCancelSpeedupGasInput,
   UseCancelSpeedupGasResult,
 } from './types';
 import { useGasFeeEstimates } from '../useGasFeeEstimates';
+import { LegacyExistingGas } from '../../../../UnifiedTransactionsView/useUnifiedTxActions';
 
 const HEX_ZERO = '0x0';
 
@@ -77,6 +77,20 @@ function getMediumMarketFees(estimates: GasFeeEstimates | undefined) {
 
   return fallback;
 }
+
+const getEstimatedTime = (waitMs?: number): string => {
+  const mediumLabel = strings('transactions.gas_modal.medium');
+
+  if (waitMs === undefined || waitMs === null) {
+    return mediumLabel;
+  }
+
+  if (waitMs < 1000) {
+    return `${mediumLabel} < 1 sec`;
+  }
+
+  return `${mediumLabel} ~ ${toHumanSeconds(waitMs)}`;
+};
 
 export function useCancelSpeedupGas({
   existingGas,
@@ -129,7 +143,7 @@ export function useCancelSpeedupGas({
     let finalFeeHex: string;
 
     if (existingGas.isEIP1559Transaction) {
-      const eip1559 = existingGas as Eip1559ExistingGas;
+      const eip1559 = existingGas;
 
       // Parse existing Hex WEI values
       const existingMaxFee = new BigNumber(
@@ -170,7 +184,7 @@ export function useCancelSpeedupGas({
       finalFeeHex = multiplyHexes(gasLimit, maxFeePerGasHex);
     } else {
       // Legacy / GasPrice logic
-      const legacyGas = existingGas as { gasPrice?: string | number };
+      const legacyGas = existingGas as LegacyExistingGas;
       const existingGasPrice = new BigNumber(
         String(legacyGas.gasPrice ?? HEX_ZERO),
         16,
@@ -187,7 +201,6 @@ export function useCancelSpeedupGas({
       finalFeeHex = multiplyHexes(gasLimit, gasPriceHex);
     }
 
-    // Common Display Logic
     const networkFeeNative = renderFromWei(finalFeeHex);
     const networkFeeDisplay = `${networkFeeNative} ${nativeTokenSymbol}`;
     const { currentCurrencyFee: networkFeeFiat } = getFeesFromHex({
@@ -197,14 +210,7 @@ export function useCancelSpeedupGas({
       fiatFormatter,
       shouldHideFiat,
     });
-
-    const waitMs = market.waitTime;
-    const speedDisplay =
-      waitMs != null && waitMs < 1000
-        ? `${strings('transactions.gas_modal.medium')} < 1 sec`
-        : waitMs != null
-          ? `${strings('transactions.gas_modal.medium')} ~ ${toHumanSeconds(waitMs)}`
-          : strings('transactions.gas_modal.medium');
+    const speedDisplay = getEstimatedTime(market.waitTime);
 
     return {
       paramsForController,

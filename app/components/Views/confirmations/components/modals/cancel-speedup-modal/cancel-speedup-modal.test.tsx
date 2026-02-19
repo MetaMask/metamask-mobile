@@ -85,8 +85,8 @@ describe('CancelSpeedupModal', () => {
     } as unknown as TransactionMeta,
     existingGas: {
       isEIP1559Transaction: true,
-      maxFeePerGas: 20,
-      maxPriorityFeePerGas: 2,
+      maxFeePerGas: '0x1',
+      maxPriorityFeePerGas: '0x1',
     },
     onConfirm: mockOnConfirm,
     onClose: mockOnClose,

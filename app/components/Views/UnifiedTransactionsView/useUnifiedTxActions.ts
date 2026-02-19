@@ -31,18 +31,18 @@ import { createQRSigningTransactionModalNavDetails } from '../../UI/QRHardware/Q
 
 type Maybe<T> = T | null | undefined;
 
-interface LegacyExistingGas {
+export interface LegacyExistingGas {
   isEIP1559Transaction?: false;
   gasPrice?: string | number;
 }
 
-interface Eip1559ExistingGas {
+export interface Eip1559ExistingGas {
   isEIP1559Transaction: true;
   maxFeePerGas?: string;
   maxPriorityFeePerGas?: string;
 }
 
-type ExistingGas = LegacyExistingGas | Eip1559ExistingGas;
+export type ExistingGas = LegacyExistingGas | Eip1559ExistingGas;
 
 interface ReplacementGasParams {
   error?: string;
@@ -264,7 +264,7 @@ export function useUnifiedTxActions() {
       return undefined;
     }
     if (params && ('maxFeePerGas' in params || 'gasPrice' in params)) {
-      return params as GasPriceValue | FeeMarketEIP1559Values;
+      return params;
     }
     return getCancelOrSpeedupValues(params as ReplacementGasParams);
   };

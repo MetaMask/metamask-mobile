@@ -1,6 +1,6 @@
 import React from 'react';
 import { query } from '@metamask/controller-utils';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { fireEvent } from '@testing-library/react-native';
 import TransactionDetails from './';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../util/test/accountsControllerTestUtils';
@@ -348,7 +348,7 @@ describe('TransactionDetails', () => {
     });
   });
 
-  it('should render speed up and cancel buttons', async () => {
+  it('renders speed up and cancel buttons', async () => {
     const { getByText } = renderComponent({
       state: {
         ...initialState,
@@ -369,14 +369,8 @@ describe('TransactionDetails', () => {
       status: 'submitted',
     });
 
-    await waitFor(() => {
-      const speedUpButton = getByText('Speed up');
-      expect(speedUpButton).toBeDefined();
-      const cancelButton = getByText('Cancel');
-      expect(cancelButton).toBeDefined();
-      fireEvent.press(speedUpButton);
-      fireEvent.press(cancelButton);
-    });
+    expect(getByText('Speed up')).toBeOnTheScreen();
+    expect(getByText('Cancel')).toBeOnTheScreen();
   });
 
   it('should render `Batched transactions` tag if there are nested transactions', async () => {
