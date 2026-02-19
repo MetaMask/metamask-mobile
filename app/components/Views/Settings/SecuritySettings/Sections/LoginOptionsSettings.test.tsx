@@ -95,6 +95,7 @@ jest.mock('../../../../UI/SecurityOptionToggle', () => {
 });
 
 import React from 'react';
+import { Alert } from 'react-native';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import LoginOptionsSettings from './LoginOptionsSettings';
@@ -149,9 +150,11 @@ describe('LoginOptionsSettings', () => {
   let mockGetType: jest.Mock;
   let mockUpdateAuthPreference: jest.Mock;
   let mockGetItem: jest.Mock;
+  let alertSpy: jest.SpyInstance;
 
   beforeEach(() => {
     jest.clearAllMocks();
+    alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(jest.fn());
 
     // Get the mocked functions from the modules
     const coreModule = jest.requireMock('../../../../../core');
@@ -208,7 +211,7 @@ describe('LoginOptionsSettings', () => {
     });
   });
 
-  it('disables biometrics when toggle is turned off', async () => {
+  it('disables biometrics when toggle is turned off - navigates to password entry', async () => {
     mockGetType.mockResolvedValue({
       currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
       availableBiometryType: 'FaceID',
@@ -233,11 +236,72 @@ describe('LoginOptionsSettings', () => {
     );
     fireEvent(toggle, 'onValueChange', false);
 
+    // When disabling biometrics, we navigate directly to password entry
     await waitFor(() => {
-      expect(mockUpdateAuthPreference).toHaveBeenCalledWith({
-        authType: AUTHENTICATION_TYPE.PASSWORD,
+      expect(mockNavigateFn).toHaveBeenCalledWith('EnterPasswordSimple', {
+        onPasswordSet: expect.any(Function),
       });
     });
+  });
+
+  it('disables biometrics after password is entered via callback', async () => {
+    let passwordCallback: ((password: string) => Promise<void>) | undefined;
+
+    mockGetType
+      .mockResolvedValueOnce({
+        currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
+        availableBiometryType: 'FaceID',
+      })
+      .mockResolvedValueOnce({
+        currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
+        availableBiometryType: 'FaceID',
+      });
+
+    mockGetItem.mockImplementation((key: string) => {
+      if (key === BIOMETRY_CHOICE_DISABLED) {
+        return Promise.resolve(null);
+      }
+      if (key === PASSCODE_DISABLED) {
+        return Promise.resolve(TRUE);
+      }
+      return Promise.resolve(null);
+    });
+
+    mockNavigateFn.mockImplementation(
+      (
+        screen: string,
+        params?: { onPasswordSet?: (password: string) => Promise<void> },
+      ) => {
+        if (screen === 'EnterPasswordSimple' && params?.onPasswordSet) {
+          passwordCallback = params.onPasswordSet;
+        }
+      },
+    );
+
+    const { getByTestId } = renderWithProvider(<LoginOptionsSettings />, {
+      state: initialState,
+    });
+
+    const toggle = await waitFor(() =>
+      getByTestId(SecurityPrivacyViewSelectorsIDs.BIOMETRICS_TOGGLE),
+    );
+    fireEvent(toggle, 'onValueChange', false);
+
+    await waitFor(() => {
+      expect(mockNavigateFn).toHaveBeenCalled();
+    });
+
+    // Simulate password entry
+    if (passwordCallback) {
+      await passwordCallback('test-password');
+
+      await waitFor(() => {
+        expect(mockUpdateAuthPreference).toHaveBeenCalledWith({
+          authType: AUTHENTICATION_TYPE.PASSWORD,
+          password: 'test-password',
+        });
+      });
+    }
   });
 
   it('navigates to password entry when password is required for biometrics', async () => {
@@ -257,6 +321,29 @@ describe('LoginOptionsSettings', () => {
     );
     fireEvent(toggle, 'onValueChange', true);
 
+    await waitFor(() => {
+      expect(mockNavigateFn).toHaveBeenCalledWith('EnterPasswordSimple', {
+        onPasswordSet: expect.any(Function),
+      });
+    });
+  });
+
+  it('navigates to password entry when biometrics is cancelled while enabling', async () => {
+    const biometricError = new Error(
+      'BIOMETRIC_ERROR: User canceled the operation',
+    );
+    mockUpdateAuthPreference.mockRejectedValueOnce(biometricError);
+
+    const { getByTestId } = renderWithProvider(<LoginOptionsSettings />, {
+      state: initialState,
+    });
+
+    const toggle = await waitFor(() =>
+      getByTestId(SecurityPrivacyViewSelectorsIDs.BIOMETRICS_TOGGLE),
+    );
+    fireEvent(toggle, 'onValueChange', true);
+
+    // Should navigate to password entry as fallback when biometrics is cancelled
     await waitFor(() => {
       expect(mockNavigateFn).toHaveBeenCalledWith('EnterPasswordSimple', {
         onPasswordSet: expect.any(Function),
@@ -470,7 +557,7 @@ describe('LoginOptionsSettings', () => {
     });
   });
 
-  it('reverts toggle state when password entry callback fails', async () => {
+  it('reverts toggle state and shows alert when password entry callback fails', async () => {
     let passwordCallback: ((password: string) => Promise<void>) | undefined;
     mockUpdateAuthPreference
       .mockRejectedValueOnce(
@@ -514,6 +601,11 @@ describe('LoginOptionsSettings', () => {
           authType: AUTHENTICATION_TYPE.BIOMETRIC,
           password: 'test-password',
         });
+      });
+
+      // Verify alert is shown for invalid password
+      await waitFor(() => {
+        expect(alertSpy).toHaveBeenCalled();
       });
     }
   });
