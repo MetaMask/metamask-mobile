@@ -249,7 +249,7 @@
     "@metamask/native-utils": "^0.8.0",
     "@metamask/network-controller": "^29.0.0",
     "@metamask/network-enablement-controller": "^4.1.0",
-    "@metamask/notification-services-controller": "^21.0.0",
+    "@metamask/notification-services-controller": "^22.0.0",
     "@metamask/permission-controller": "^12.1.0",
     "@metamask/phishing-controller": "^16.1.0",
     "@metamask/post-message-stream": "^10.0.0",
