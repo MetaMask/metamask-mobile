@@ -10,8 +10,7 @@ import Engine from '../../../../core/Engine';
 jest.mock('../../../../core/Engine', () => ({
   context: {
     RampsController: {
-      startQuotePolling: jest.fn(),
-      stopQuotePolling: jest.fn(),
+      fetchQuotesForSelection: jest.fn(),
       getQuotes: jest.fn(),
       setSelectedQuote: jest.fn(),
       getWidgetUrl: jest.fn(),
@@ -65,7 +64,7 @@ describe('useRampsQuotes', () => {
   });
 
   describe('return value structure', () => {
-    it('returns quotes, selectedQuote, startQuotePolling, stopQuotePolling, getWidgetUrl, isLoading, and error', () => {
+    it('returns quotes, selectedQuote, fetchQuotesForSelection, getWidgetUrl, isLoading, and error', () => {
       const store = createMockStore();
       const { result } = renderHook(() => useRampsQuotes(), {
         wrapper: wrapper(store),
@@ -77,8 +76,7 @@ describe('useRampsQuotes', () => {
         isLoading: false,
         error: null,
       });
-      expect(typeof result.current.startQuotePolling).toBe('function');
-      expect(typeof result.current.stopQuotePolling).toBe('function');
+      expect(typeof result.current.fetchQuotesForSelection).toBe('function');
       expect(typeof result.current.getQuotes).toBe('function');
       expect(typeof result.current.setSelectedQuote).toBe('function');
       expect(typeof result.current.getWidgetUrl).toBe('function');
@@ -193,8 +191,8 @@ describe('useRampsQuotes', () => {
     });
   });
 
-  describe('startQuotePolling', () => {
-    it('calls Engine.context.RampsController.startQuotePolling with options', () => {
+  describe('fetchQuotesForSelection', () => {
+    it('calls Engine.context.RampsController.fetchQuotesForSelection with options', () => {
       const store = createMockStore();
       const { result } = renderHook(() => useRampsQuotes(), {
         wrapper: wrapper(store),
@@ -207,15 +205,15 @@ describe('useRampsQuotes', () => {
       };
 
       act(() => {
-        result.current.startQuotePolling(options);
+        result.current.fetchQuotesForSelection(options);
       });
 
       expect(
-        Engine.context.RampsController.startQuotePolling,
+        Engine.context.RampsController.fetchQuotesForSelection,
       ).toHaveBeenCalledWith(options);
     });
 
-    it('calls startQuotePolling without redirectUrl when not provided', () => {
+    it('calls fetchQuotesForSelection without redirectUrl when not provided', () => {
       const store = createMockStore();
       const { result } = renderHook(() => useRampsQuotes(), {
         wrapper: wrapper(store),
@@ -227,29 +225,12 @@ describe('useRampsQuotes', () => {
       };
 
       act(() => {
-        result.current.startQuotePolling(options);
+        result.current.fetchQuotesForSelection(options);
       });
 
       expect(
-        Engine.context.RampsController.startQuotePolling,
+        Engine.context.RampsController.fetchQuotesForSelection,
       ).toHaveBeenCalledWith(options);
-    });
-  });
-
-  describe('stopQuotePolling', () => {
-    it('calls Engine.context.RampsController.stopQuotePolling', () => {
-      const store = createMockStore();
-      const { result } = renderHook(() => useRampsQuotes(), {
-        wrapper: wrapper(store),
-      });
-
-      act(() => {
-        result.current.stopQuotePolling();
-      });
-
-      expect(
-        Engine.context.RampsController.stopQuotePolling,
-      ).toHaveBeenCalled();
     });
   });
 

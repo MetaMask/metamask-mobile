@@ -117,8 +117,7 @@ function BuildQuote() {
     selectedToken,
     selectedQuote,
     quotesLoading,
-    startQuotePolling,
-    stopQuotePolling,
+    fetchQuotesForSelection,
     getWidgetUrl,
     paymentMethodsLoading,
     selectedPaymentMethod,
@@ -194,23 +193,21 @@ function BuildQuote() {
       return;
     }
 
-    stopQuotePolling();
     navigation.navigate(
       ...createPaymentSelectionModalNavigationDetails({
         amount: debouncedPollingAmount,
       }),
     );
-  }, [debouncedPollingAmount, navigation, stopQuotePolling]);
+  }, [debouncedPollingAmount, navigation]);
 
   const handleProviderPress = useCallback(() => {
     if (!selectedToken?.assetId) return;
-    stopQuotePolling();
     navigation.navigate(
       ...createProviderPickerModalNavigationDetails({
         assetId: selectedToken.assetId,
       }),
     );
-  }, [selectedToken?.assetId, navigation, stopQuotePolling]);
+  }, [selectedToken?.assetId, navigation]);
 
   useEffect(() => {
     if (
@@ -219,30 +216,24 @@ function BuildQuote() {
       !selectedPaymentMethod ||
       debouncedPollingAmount <= 0
     ) {
-      stopQuotePolling();
       return;
     }
 
     try {
-      startQuotePolling({
+      fetchQuotesForSelection({
         walletAddress,
         amount: debouncedPollingAmount,
         redirectUrl: getRampCallbackBaseUrl(),
       });
     } catch (error) {
-      Logger.log('BuildQuote: Failed to start quote polling', error);
+      Logger.log('BuildQuote: Failed to fetch quotes', error);
     }
-
-    return () => {
-      stopQuotePolling();
-    };
   }, [
     walletAddress,
     selectedPaymentMethod,
     selectedProvider,
     debouncedPollingAmount,
-    startQuotePolling,
-    stopQuotePolling,
+    fetchQuotesForSelection,
     isOnBuildQuoteScreen,
   ]);
 
