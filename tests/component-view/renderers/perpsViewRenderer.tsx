@@ -117,6 +117,8 @@ export interface PerpsStreamOverrides {
   positions?: unknown[];
   /** When set, usePerpsMarkets() receives this array (e.g. to test category badges in Market List: crypto + commodity). */
   marketData?: unknown[];
+  /** When set, usePerpsLiveOrders() receives this array (e.g. to test CancelAllOrders with/without orders). */
+  orders?: unknown[];
 }
 
 /** Creates a minimal stream manager double so views using usePerpsStream() render without WebSocket. */
@@ -124,10 +126,11 @@ function createTestStreamManager(
   streamOverrides?: PerpsStreamOverrides,
 ): PerpsStreamManager {
   const positions = streamOverrides?.positions ?? [];
+  const orders = streamOverrides?.orders ?? [];
   const marketData = streamOverrides?.marketData ?? initialMarketData;
   return {
     prices: pricesChannel(),
-    orders: channelWithInitialValue([]),
+    orders: channelWithInitialValue(orders),
     positions: channelWithInitialValue(positions),
     fills: noopChannel(),
     account: channelWithInitialValue(initialAccount),
