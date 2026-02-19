@@ -7697,5 +7697,14 @@
     "description_android": "We've made some important fixes. Close and reopen MetaMask to apply the update.",
     "primary_action_reload": "Reload",
     "primary_action_acknowledge": "Got it"
+  },
+  "homepage": {
+    "sections": {
+      "tokens": "Tokens",
+      "perpetuals": "Perpetuals",
+      "predictions": "Predictions",
+      "defi": "DeFi",
+      "nfts": "NFTs"
+    }
   }
 }
