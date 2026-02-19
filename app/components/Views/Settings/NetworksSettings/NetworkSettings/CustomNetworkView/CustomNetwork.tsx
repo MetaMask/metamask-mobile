@@ -35,6 +35,12 @@ import Icon, {
 } from '../../../../../../component-library/components/Icons/Icon';
 import { selectAdditionalNetworksBlacklistFeatureFlag } from '../../../../../../selectors/featureFlagController/networkBlacklist';
 import { getGasFeesSponsoredNetworkEnabled } from '../../../../../../selectors/featureFlagController/gasFeesSponsored';
+import TagColored, {
+  TagColor,
+} from '../../../../../../component-library/components-temp/TagColored';
+import { Box } from '@metamask/design-system-react-native';
+import styleSheet from './CustomNetworkView.styles.ts';
+import { useStyles } from '../../../../../../component-library/hooks';
 
 const CustomNetwork = ({
   showPopularNetworkModal,
@@ -99,6 +105,7 @@ const CustomNetwork = ({
   );
 
   const { colors } = useTheme();
+  const { styles } = useStyles(styleSheet, {});
   const networkSettingsStyles = createStyles();
   const customNetworkStyles = createCustomNetworkStyles({ colors });
   const filteredPopularList = showAddedNetworks
@@ -171,20 +178,26 @@ const CustomNetwork = ({
               />
             </View>
             <View style={customNetworkStyles.nameAndTagContainer}>
-              <CustomText bold={!isNetworkUiRedesignEnabled()}>
-                {networkConfiguration.nickname}
-              </CustomText>
-              {isGasFeesSponsoredNetworkEnabled(
-                networkConfiguration.chainId,
-              ) ? (
-                <Text
-                  variant={TextVariant.BodySM}
-                  color={TextColor.Alternative}
-                  style={customNetworkStyles.tagLabelBelowName}
-                >
-                  {strings('networks.no_network_fee')}
-                </Text>
-              ) : null}
+              <Box twClassName="flex-row gap-2">
+                <CustomText bold={!isNetworkUiRedesignEnabled()}>
+                  {networkConfiguration.nickname}
+                </CustomText>
+                {isGasFeesSponsoredNetworkEnabled(
+                  networkConfiguration.chainId,
+                ) ? (
+                  <TagColored
+                    color={TagColor.Success}
+                    style={styles.noNetworkFeeContainer}
+                  >
+                    <Text
+                      variant={TextVariant.BodySM}
+                      color={TextColor.Success}
+                    >
+                      {strings('networks.no_network_fee')}
+                    </Text>
+                  </TagColored>
+                ) : null}
+              </Box>
             </View>
           </View>
 
