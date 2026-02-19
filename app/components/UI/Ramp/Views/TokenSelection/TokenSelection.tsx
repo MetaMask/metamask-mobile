@@ -41,6 +41,7 @@ import {
 } from '../../../../../reducers/fiatOrders';
 import { selectNetworkConfigurationsByCaipChainId } from '../../../../../selectors/networkController';
 import { selectTokenSelectors } from '../../Aggregator/components/TokenSelectModal/SelectToken.testIds';
+import { parseUserFacingError } from '../../utils/parseUserFacingError';
 
 export const createTokenSelectionNavDetails = createNavigationDetails(
   Routes.RAMP.TOKEN_SELECTION,
@@ -268,7 +269,12 @@ function TokenSelection() {
               <Text variant={TextVariant.BodyMD}>
                 {strings('deposit.token_modal.error_loading_tokens')}
               </Text>
-              <Text variant={TextVariant.BodyMD}>{error.toString()}</Text>
+              <Text variant={TextVariant.BodyMD}>
+                {parseUserFacingError(
+                  error,
+                  strings('deposit.token_modal.error_loading_tokens'),
+                )}
+              </Text>
             </Box>
           </Box>
         </ScreenLayout.Body>
