@@ -716,7 +716,10 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
   }, [clearError]);
 
   /**
-   * Retry the last failed operation
+   * Retry the last failed operation.
+   *
+   * This is an INTERNAL action passed as a prop to HardwareWalletBottomSheet.
+   * It is NOT exposed via useHardwareWallet() to prevent misuse by external consumers.
    *
    * Important: We must set the UI state to Connecting BEFORE starting the operation,
    * otherwise the user sees nothing happening (the error gets cleared but no new
@@ -727,7 +730,7 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
    * - When retry succeeds, we resolve the pending promise with `true`
    * - This ensures the original caller gets unblocked with success
    */
-  const retry = useCallback(async (): Promise<void> => {
+  const retryLastOperation = useCallback(async (): Promise<void> => {
     // Reset adapter flow state so errors can be shown again
     const adapter = refs.adapterRef.current;
     if (adapter?.resetFlowState) {
@@ -881,14 +884,9 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
       deviceId,
       connectionState,
       deviceSelection: deviceSelectionState,
-      closeDeviceSelection,
-      connect,
       ensureDeviceReady,
       setTargetWalletType: setters.setTargetWalletType,
       showHardwareWalletError,
-      retry,
-      selectDevice,
-      rescan,
       showAwaitingConfirmation,
       hideAwaitingConfirmation,
     }),
@@ -897,14 +895,9 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
       deviceId,
       connectionState,
       deviceSelectionState,
-      closeDeviceSelection,
-      connect,
       ensureDeviceReady,
       setters.setTargetWalletType,
       showHardwareWalletError,
-      retry,
-      selectDevice,
-      rescan,
       showAwaitingConfirmation,
       hideAwaitingConfirmation,
     ],
@@ -914,7 +907,16 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
     <HardwareWalletContext.Provider value={contextValue}>
       {children}
       {/* Unified Hardware Wallet Bottom Sheet - handles ALL states */}
+      {/* Internal state & actions passed as props to enforce encapsulation */}
       <HardwareWalletBottomSheet
+        connectionState={connectionState}
+        deviceSelection={deviceSelectionState}
+        walletType={effectiveWalletType}
+        retryLastOperation={retryLastOperation}
+        closeDeviceSelection={closeDeviceSelection}
+        selectDevice={selectDevice}
+        rescan={rescan}
+        connect={connect}
         onCancel={closeBottomSheet}
         onClose={closeBottomSheet}
         onAwaitingConfirmationCancel={handleAwaitingConfirmationCancel}

@@ -27,14 +27,10 @@ export interface HardwareWalletContextValue {
   walletType: HardwareWalletType | null;
   /** Device ID of the associated hardware wallet */
   deviceId: string | null;
-  /** Current connection state */
+  /** Current connection state (read-only for observing status) */
   connectionState: HardwareWalletConnectionState;
-  /** Device selection state for BLE scanning */
+  /** Device selection state for BLE scanning (read-only) */
   deviceSelection: DeviceSelectionState;
-  /** Close the hardware wallet bottom sheet without connecting. Stops BLE scanning and returns to disconnected. */
-  closeDeviceSelection: () => void;
-  /** Connect to a hardware wallet device. @param deviceId - The device identifier */
-  connect: (deviceId: string) => Promise<void>;
   /**
    * Ensure the device is ready for signing operations. BLOCKING: shows bottom sheet if needed.
    * Wallet type from current account; for "Add Hardware Wallet" use setTargetWalletType() first.
@@ -46,12 +42,6 @@ export interface HardwareWalletContextValue {
   setTargetWalletType: (walletType: HardwareWalletType) => void;
   /** Show a hardware wallet error in the bottom sheet. Use after ensureDeviceReady succeeds. */
   showHardwareWalletError: (error: unknown) => void;
-  /** Retry the last failed operation */
-  retry: () => Promise<void>;
-  /** Select a device from the discovered devices list. */
-  selectDevice: (device: DiscoveredDevice) => void;
-  /** Rescan for BLE devices. Clears list and starts a new scan. */
-  rescan: () => void;
   /** Show "awaiting confirmation" bottom sheet. Call after ensureDeviceReady returns true. */
   showAwaitingConfirmation: (
     operationType: 'transaction' | 'message',

@@ -16,8 +16,6 @@ const defaultDeviceSelection = {
 
 // eslint-disable-next-line no-empty-function
 const noop = () => {};
-// eslint-disable-next-line no-empty-function
-const asyncNoop = async () => {};
 const asyncFalse = async () => false;
 
 const createMockValue = (
@@ -27,14 +25,9 @@ const createMockValue = (
   deviceId: null,
   connectionState: { status: ConnectionStatus.Disconnected },
   deviceSelection: defaultDeviceSelection,
-  closeDeviceSelection: noop,
-  connect: asyncNoop,
   ensureDeviceReady: asyncFalse,
   setTargetWalletType: noop,
   showHardwareWalletError: noop,
-  retry: asyncNoop,
-  selectDevice: noop,
-  rescan: noop,
   showAwaitingConfirmation: noop,
   hideAwaitingConfirmation: noop,
   ...overrides,
@@ -77,15 +70,17 @@ describe('HardwareWalletContext', () => {
     });
 
     it('provides actions via useHardwareWallet', () => {
-      const connectMock = jest.fn();
-      const value = createMockValue({ connect: connectMock });
+      const ensureDeviceReadyMock = jest.fn();
+      const value = createMockValue({
+        ensureDeviceReady: ensureDeviceReadyMock,
+      });
 
       const TestConsumer: React.FC = () => {
-        const { connect } = useHardwareWallet();
+        const { ensureDeviceReady } = useHardwareWallet();
         return (
           <TouchableOpacity
-            testID="connect"
-            onPress={() => connect('device-123')}
+            testID="ensureReady"
+            onPress={() => ensureDeviceReady('device-123')}
           />
         );
       };
@@ -96,8 +91,8 @@ describe('HardwareWalletContext', () => {
         </HardwareWalletContext.Provider>,
       );
 
-      fireEvent.press(screen.getByTestId('connect'));
-      expect(connectMock).toHaveBeenCalledWith('device-123');
+      fireEvent.press(screen.getByTestId('ensureReady'));
+      expect(ensureDeviceReadyMock).toHaveBeenCalledWith('device-123');
     });
   });
 

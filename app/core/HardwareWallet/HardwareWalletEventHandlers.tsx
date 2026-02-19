@@ -89,7 +89,7 @@ export const useDeviceEventHandlers = ({
    * showing error UI after the user has already seen success.
    */
   const handleError = useCallback(
-    (error: unknown, skipStateUpdate = false) => {
+    (error: unknown) => {
       let hwError: HardwareWalletError;
 
       if (error instanceof HardwareWalletError) {
@@ -102,18 +102,10 @@ export const useDeviceEventHandlers = ({
         );
       }
 
-      // Skip state update if requested (e.g., when flow is already complete)
-      if (!skipStateUpdate) {
-        updateConnectionState({
-          status: ConnectionStatus.ErrorState,
-          error: hwError,
-        });
-      } else {
-        console.log(
-          '[HardwareWallet] Error occurred but skipping state update (flow complete):',
-          hwError.message,
-        );
-      }
+      updateConnectionState({
+        status: ConnectionStatus.ErrorState,
+        error: hwError,
+      });
 
       // Reset connecting flag
       refs.isConnectingRef.current = false;

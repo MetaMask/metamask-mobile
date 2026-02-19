@@ -8,8 +8,11 @@ import BottomSheet, {
 
 import { useTheme } from '../../../../util/theme';
 
-import { useHardwareWallet } from '../../contexts';
-import { HardwareWalletType, ConnectionStatus } from '@metamask/hw-wallet-sdk';
+import {
+  HardwareWalletType,
+  HardwareWalletConnectionState,
+  ConnectionStatus,
+} from '@metamask/hw-wallet-sdk';
 
 import {
   ConnectingContent,
@@ -20,6 +23,7 @@ import {
   SuccessContent,
 } from './contents';
 import { DiscoveredDevice } from '../../types';
+import { DeviceSelectionState } from '../../contexts/HardwareWalletContext';
 
 // Test IDs
 export const HARDWARE_WALLET_BOTTOM_SHEET_TEST_ID =
@@ -32,7 +36,27 @@ const createStyles = (colors: { background: { default: string } }) =>
     },
   });
 
+/**
+ * Internal props for HardwareWalletBottomSheet.
+ *
+ * These are passed directly by HardwareWalletProvider, NOT consumed via context.
+ * This ensures internal actions (retryLastOperation, connect, rescan, etc.) are
+ * physically inaccessible to external consumers of useHardwareWallet().
+ */
 export interface HardwareWalletBottomSheetProps {
+  // --- Internal state (from provider) ---
+  connectionState: HardwareWalletConnectionState;
+  deviceSelection: DeviceSelectionState;
+  walletType: HardwareWalletType | null;
+
+  // --- Internal actions (from provider) ---
+  retryLastOperation: () => Promise<void>;
+  closeDeviceSelection: () => void;
+  selectDevice: (device: DiscoveredDevice) => void;
+  rescan: () => void;
+  connect: (deviceId: string) => Promise<void>;
+
+  // --- External callbacks (from parent components) ---
   /** Optional callback when sheet closes */
   onClose?: () => void;
   /** Optional callback when user cancels an operation */
@@ -59,6 +83,14 @@ export interface HardwareWalletBottomSheetProps {
 export const HardwareWalletBottomSheet: React.FC<
   HardwareWalletBottomSheetProps
 > = ({
+  connectionState,
+  deviceSelection,
+  walletType,
+  retryLastOperation,
+  closeDeviceSelection,
+  selectDevice,
+  rescan,
+  connect,
   onClose,
   onCancel,
   successAutoDismissMs = 1000,
@@ -69,17 +101,6 @@ export const HardwareWalletBottomSheet: React.FC<
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   const bottomSheetRef = useRef<BottomSheetRef>(null);
-
-  const {
-    connectionState,
-    deviceSelection,
-    walletType,
-    retry,
-    closeDeviceSelection,
-    selectDevice,
-    rescan,
-    connect,
-  } = useHardwareWallet();
 
   // Extract device selection state from context
   const { devices, selectedDevice, isScanning } = deviceSelection;
@@ -134,8 +155,8 @@ export const HardwareWalletBottomSheet: React.FC<
   // Handle error continue - user wants to retry the operation
   // Only manual dismiss (swipe down) should resolve with false
   const handleErrorContinue = useCallback(async () => {
-    await retry();
-  }, [retry]);
+    await retryLastOperation();
+  }, [retryLastOperation]);
 
   // Handle error dismiss - for ACKNOWLEDGE errors, just close the sheet
   // This is used when the error cannot be recovered by retrying

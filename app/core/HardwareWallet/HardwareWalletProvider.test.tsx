@@ -111,9 +111,13 @@ jest.mock('react-native', () => ({
   },
 }));
 
-// Mock bottom sheet components
+// Capture bottom sheet props so we can invoke internal actions in tests
+let capturedBottomSheetProps: Record<string, unknown> = {};
 jest.mock('./components', () => ({
-  HardwareWalletBottomSheet: () => null,
+  HardwareWalletBottomSheet: (props: Record<string, unknown>) => {
+    capturedBottomSheetProps = props;
+    return null;
+  },
 }));
 
 describe('HardwareWalletProvider', () => {
@@ -130,18 +134,22 @@ describe('HardwareWalletProvider', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    capturedBottomSheetProps = {};
     // Default: non-hardware wallet account
     mockUseSelector.mockReturnValue(null);
     mockGetHardwareWalletType.mockReturnValue(undefined);
   });
 
   const TestConsumer: React.FC = () => {
-    const { walletType, connectionState, connect } = useHardwareWallet();
+    const { walletType, connectionState, ensureDeviceReady } =
+      useHardwareWallet();
     return (
       <>
         <Text testID="walletType">{walletType ?? 'null'}</Text>
         <Text testID="connectionStatus">{connectionState.status}</Text>
-        <Text testID="hasConnect">{String(typeof connect === 'function')}</Text>
+        <Text testID="hasEnsureDeviceReady">
+          {String(typeof ensureDeviceReady === 'function')}
+        </Text>
       </>
     );
   };
@@ -173,7 +181,7 @@ describe('HardwareWalletProvider', () => {
     it('should provide actions context', () => {
       const { getByTestId } = renderProvider();
 
-      expect(getByTestId('hasConnect').children[0]).toBe('true');
+      expect(getByTestId('hasEnsureDeviceReady').children[0]).toBe('true');
     });
   });
 
@@ -262,34 +270,19 @@ describe('HardwareWalletProvider', () => {
       });
     };
 
-    describe('connect', () => {
+    describe('connect (internal, via bottom sheet props)', () => {
       it('should connect to device', async () => {
-        const { result } = renderWithActions();
+        renderWithActions();
+
+        const internalConnect = capturedBottomSheetProps.connect as (
+          deviceId: string,
+        ) => Promise<void>;
+        expect(internalConnect).toBeDefined();
 
         await act(async () => {
-          await result.current.actions.connect('device-123');
+          await internalConnect('device-123');
         });
 
-        const adapter = mockCreateAdapter.mock.results[0]?.value;
-        expect(adapter?.connect).toHaveBeenCalledWith('device-123');
-      });
-
-      it('should connect successfully when transport is available', async () => {
-        const { result } = renderHook(() => useTestActions(), {
-          wrapper: ({ children }: { children: React.ReactNode }) => (
-            <HardwareWalletProvider>{children}</HardwareWalletProvider>
-          ),
-        });
-
-        // Setup wallet type
-        mockUseSelector.mockReturnValue({ address: '0x1234' });
-        mockGetHardwareWalletType.mockReturnValue(HardwareWalletType.Ledger);
-
-        await act(async () => {
-          await result.current.actions.connect('device-123');
-        });
-
-        // Adapter's connect should have been called
         const adapter = mockCreateAdapter.mock.results[0]?.value;
         expect(adapter?.connect).toHaveBeenCalledWith('device-123');
       });
@@ -336,7 +329,7 @@ describe('HardwareWalletProvider', () => {
     });
   });
 
-  describe('device selection flow', () => {
+  describe('device selection flow (internal actions via bottom sheet props)', () => {
     const useTestActions = () => {
       const hw = useHardwareWallet();
       return {
@@ -363,7 +356,6 @@ describe('HardwareWalletProvider', () => {
       it('should return to disconnected state', async () => {
         const { result } = renderWithActions();
 
-        // Start device selection flow (ensureDeviceReady with no deviceId sets Scanning)
         act(() => {
           result.current.actions.ensureDeviceReady();
         });
@@ -375,8 +367,10 @@ describe('HardwareWalletProvider', () => {
           ConnectionStatus.Scanning,
         );
 
+        const internalClose =
+          capturedBottomSheetProps.closeDeviceSelection as () => void;
         await act(async () => {
-          result.current.actions.closeDeviceSelection();
+          internalClose();
         });
 
         expect(result.current.state.connectionState.status).toBe(
@@ -391,11 +385,16 @@ describe('HardwareWalletProvider', () => {
 
         const mockDevice = { id: 'device-1', name: 'Nano X' };
 
+        const internalSelectDevice =
+          capturedBottomSheetProps.selectDevice as (device: {
+            id: string;
+            name: string;
+          }) => void;
+
         await act(async () => {
-          result.current.actions.selectDevice(mockDevice);
+          internalSelectDevice(mockDevice);
         });
 
-        // Device selection is stored in device selection state
         expect(result.current.state.deviceSelection.selectedDevice).toEqual(
           mockDevice,
         );
@@ -413,13 +412,20 @@ describe('HardwareWalletProvider', () => {
           await new Promise((resolve) => setTimeout(resolve, 50));
         });
 
+        const internalSelectDevice =
+          capturedBottomSheetProps.selectDevice as (device: {
+            id: string;
+            name: string;
+          }) => void;
+        const internalRescan = capturedBottomSheetProps.rescan as () => void;
+
         const mockDevice = { id: 'device-1', name: 'Nano X' };
         await act(async () => {
-          result.current.actions.selectDevice(mockDevice);
+          internalSelectDevice(mockDevice);
         });
 
         await act(async () => {
-          result.current.actions.rescan();
+          internalRescan();
         });
 
         expect(result.current.state.deviceSelection.isScanning).toBe(true);
@@ -546,11 +552,10 @@ describe('HardwareWalletProvider', () => {
       });
     });
 
-    describe('retry', () => {
+    describe('retryLastOperation (internal, via bottom sheet props)', () => {
       it('should transition to connecting state when retrying', async () => {
         const { result } = renderWithActions();
 
-        // First trigger an operation that will be stored for retry
         act(() => {
           result.current.actions.ensureDeviceReady('device-123');
         });
@@ -559,7 +564,6 @@ describe('HardwareWalletProvider', () => {
           await new Promise((resolve) => setTimeout(resolve, 50));
         });
 
-        // Simulate error state by showing an error
         await act(async () => {
           result.current.actions.showHardwareWalletError(
             new Error('Connection failed'),
@@ -570,12 +574,12 @@ describe('HardwareWalletProvider', () => {
           ConnectionStatus.ErrorState,
         );
 
-        // Retry
+        const internalRetry =
+          capturedBottomSheetProps.retryLastOperation as () => Promise<void>;
         await act(async () => {
-          await result.current.actions.retry();
+          await internalRetry();
         });
 
-        // After retry, adapter's ensureDeviceReady should be called again
         expect(mockAdapterInstance.ensureDeviceReady).toHaveBeenCalled();
       });
     });
@@ -614,18 +618,7 @@ describe('HardwareWalletProvider', () => {
     });
   });
 
-  describe('connect error handling', () => {
-    const useTestActions = () => {
-      const hw = useHardwareWallet();
-      return {
-        actions: hw,
-        state: {
-          connectionState: hw.connectionState,
-          deviceSelection: hw.deviceSelection,
-        },
-      };
-    };
-
+  describe('connect error handling (internal, via bottom sheet props)', () => {
     it('should handle adapter connect errors', async () => {
       mockUseSelector.mockReturnValue({ address: '0x1234' });
       mockGetHardwareWalletType.mockReturnValue(HardwareWalletType.Ledger);
@@ -634,14 +627,27 @@ describe('HardwareWalletProvider', () => {
         new Error('Connection failed'),
       );
 
+      const useTestActions = () => {
+        const hw = useHardwareWallet();
+        return {
+          state: {
+            connectionState: hw.connectionState,
+          },
+        };
+      };
+
       const { result } = renderHook(() => useTestActions(), {
         wrapper: ({ children }: { children: React.ReactNode }) => (
           <HardwareWalletProvider>{children}</HardwareWalletProvider>
         ),
       });
 
+      const internalConnect = capturedBottomSheetProps.connect as (
+        deviceId: string,
+      ) => Promise<void>;
+
       await act(async () => {
-        await result.current.actions.connect('device-123');
+        await internalConnect('device-123');
       });
 
       expect(result.current.state.connectionState.status).toBe(
