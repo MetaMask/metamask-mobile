@@ -113,8 +113,9 @@ class AppInformation extends PureComponent {
   };
 
   state = {
-    appInfo: '',
+    appName: '',
     appVersion: '',
+    buildNumber: '',
     showEnvironmentInfo: false,
   };
 
@@ -122,13 +123,7 @@ class AppInformation extends PureComponent {
     const appName = await getApplicationName();
     const appVersion = await getVersion();
     const buildNumber = await getBuildNumber();
-    const appInfo = `${appName} v${appVersion} (${buildNumber})`;
-    const appInfoOta = `${appName} ota ${OTA_VERSION} (${buildNumber})`;
-    const versionDisplay = isEmbeddedLaunch || __DEV__ ? appInfo : appInfoOta;
-    this.setState({
-      appInfo: versionDisplay,
-      appVersion,
-    });
+    this.setState({ appName, appVersion, buildNumber });
   };
 
   goTo = (url, title) => {
@@ -177,14 +172,31 @@ class AppInformation extends PureComponent {
     this.setState({ showEnvironmentInfo: true });
   };
 
+  /**
+   * Returns the version string to display (native app version or OTA version).
+   * When OTA is disabled we're always on embedded code; native isEmbeddedLaunch can be false in that case.
+   */
+  getVersionDisplay = () => {
+    const { appName, appVersion, buildNumber } = this.state;
+    const appInfo = `${appName} v${appVersion} (${buildNumber})`;
+    const appInfoOta = `${appName} ota ${OTA_VERSION} (${buildNumber})`;
+    return __DEV__ || isEmbeddedLaunch ? appInfo : appInfoOta;
+  };
+
+  /**
+   * Returns the OTA update status message for the environment info section.
+   */
+  getOtaUpdateMessage = () => {
+    const isRunningEmbedded = isEmbeddedLaunch || !isOTAUpdatesEnabled;
+    return __DEV__ || isRunningEmbedded
+      ? 'This app is running from built-in code or in development mode'
+      : 'This app is running an update';
+  };
+
   render = () => {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
-
-    const otaUpdateMessage =
-      __DEV__ || isEmbeddedLaunch
-        ? 'This app is running from built-in code or in development mode'
-        : 'This app is running an update';
+    const otaUpdateMessage = this.getOtaUpdateMessage();
 
     const aboutTitle = strings('app_settings.info_title');
 
@@ -211,7 +223,7 @@ class AppInformation extends PureComponent {
                 resizeMethod={'auto'}
               />
             </TouchableOpacity>
-            <Text style={styles.versionInfo}>{this.state.appInfo}</Text>
+            <Text style={styles.versionInfo}>{this.getVersionDisplay()}</Text>
             {isQa ? (
               <Text style={styles.branchInfo}>
                 {`Branch: ${process.env['GIT_BRANCH']}`}
@@ -248,6 +260,9 @@ class AppInformation extends PureComponent {
                     </Text>
                     <Text style={styles.branchInfo}>
                       {`OTA Update status: ${otaUpdateMessage}`}
+                    </Text>
+                    <Text style={styles.branchInfo}>
+                      {`OTA Version: ${OTA_VERSION}`}
                     </Text>
                   </>
                 )}
