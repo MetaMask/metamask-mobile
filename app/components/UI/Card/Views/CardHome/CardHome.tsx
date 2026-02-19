@@ -471,6 +471,13 @@ const CardHome = () => {
     if (!isFrozen) {
       const success = await toggleFreeze();
       if (success) {
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+            .addProperties({
+              action: CardActions.FREEZE_CARD_BUTTON,
+            })
+            .build(),
+        );
         showFreezeSuccessToast(wasFrozen);
       }
       return;
@@ -480,6 +487,13 @@ const CardHome = () => {
       await reauthenticate();
       const success = await toggleFreeze();
       if (success) {
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+            .addProperties({
+              action: CardActions.UNFREEZE_CARD_BUTTON,
+            })
+            .build(),
+        );
         showFreezeSuccessToast(wasFrozen);
       }
     } catch (error) {
@@ -495,6 +509,13 @@ const CardHome = () => {
             onSuccess: async () => {
               const success = await toggleFreeze();
               if (success) {
+                trackEvent(
+                  createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+                    .addProperties({
+                      action: CardActions.UNFREEZE_CARD_BUTTON,
+                    })
+                    .build(),
+                );
                 showFreezeSuccessToast(wasFrozen);
               }
             },
@@ -526,6 +547,8 @@ const CardHome = () => {
     toggleFreeze,
     reauthenticate,
     navigation,
+    trackEvent,
+    createEventBuilder,
     toastRef,
     showFreezeSuccessToast,
   ]);
