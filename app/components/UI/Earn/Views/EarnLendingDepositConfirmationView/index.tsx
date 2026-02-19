@@ -21,7 +21,11 @@ import {
 } from '../../../../../util/number';
 import { useStyles } from '../../../../hooks/useStyles';
 import { getStakingNavbar } from '../../../Navbar';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import {
+  MetaMetricsEvents,
+  IMetaMetricsEvent,
+} from '../../../../../core/Analytics';
 import { TokenI } from '../../../Tokens/types';
 import useEarnToken from '../../hooks/useEarnToken';
 import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
@@ -35,7 +39,6 @@ import styleSheet from './EarnLendingDepositConfirmationView.styles';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
 import { RootState } from '../../../../../reducers';
 import { selectNetworkConfigurationByChainId } from '../../../../../selectors/networkController';
-import { IMetaMetricsEvent } from '../../../../../core/Analytics';
 import {
   EVENT_LOCATIONS,
   EVENT_PROVIDERS,
@@ -86,7 +89,7 @@ const EarnLendingDepositConfirmationView = () => {
   } = params;
 
   const navigation = useNavigation();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   getStakingNavbar(strings('earn.supply'), navigation, theme.colors);
 
