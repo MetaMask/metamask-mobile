@@ -4,7 +4,7 @@ import {
   ITrackingEvent,
 } from '../../../../core/Analytics/MetaMetrics.types';
 import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
-import { MetaMetricsEvents } from '../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 
 interface TokenListNavigationParamList {
   AddAsset: { assetType: string };

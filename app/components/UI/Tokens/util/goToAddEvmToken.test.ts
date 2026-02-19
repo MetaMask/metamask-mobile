@@ -1,10 +1,12 @@
 import { goToAddEvmToken } from './goToAddEvmToken';
-import { MetaMetricsEvents } from '../../../hooks/useMetrics';
+import {
+  MetaMetricsEvents,
+  IMetaMetricsEvent,
+} from '../../../../core/Analytics';
 import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { IMetaMetricsEvent } from '../../../../core/Analytics';
 
-jest.mock('../../../hooks/useMetrics', () => ({
+jest.mock('../../../../core/Analytics', () => ({
   MetaMetricsEvents: {
     TOKEN_IMPORT_CLICKED: 'TOKEN_IMPORT_CLICKED',
   },

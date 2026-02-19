@@ -7,7 +7,7 @@ import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuil
 import Engine from '../../../../core/Engine';
 import { TokenI } from '../types';
 import NotificationManager from '../../../../core/NotificationManager';
-import { MetaMetricsEvents } from '../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import Logger from '../../../../util/Logger';
 
 interface RemoveEvmTokenProps {
