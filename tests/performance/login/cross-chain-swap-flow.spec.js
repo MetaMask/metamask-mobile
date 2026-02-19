@@ -45,12 +45,12 @@ test.describe(`${PerformanceLogin} ${PerformanceSwaps}`, () => {
 
       await BridgeScreen.selectNetworkAndTokenTo('Solana', 'SOL');
       await BridgeScreen.enterSourceTokenAmount('1');
-
+      /*
       if (await BridgeScreen.isRouteUnavailableVisible()) {
         testInfo.skip(true, 'Trade route not available');
         return;
       }
-
+*/
       const timer2 = new TimerHelper(
         'Time since the user enters the amount until the quote is displayed',
         { ios: 9000, android: 7000 },
