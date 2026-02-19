@@ -32,8 +32,12 @@ describe('PerpsSelectProviderView', () => {
   it('renders provider selector sheet with title and HyperLiquid option', async () => {
     renderPerpsSelectProviderView();
 
-    expect(await screen.findByTestId('perps-select-provider-sheet')).toBeOnTheScreen();
-    expect(screen.getByText(strings('perps.provider_selector.title'))).toBeOnTheScreen();
+    expect(
+      await screen.findByTestId('perps-select-provider-sheet'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByText(strings('perps.provider_selector.title')),
+    ).toBeOnTheScreen();
     expect(
       screen.getByTestId('perps-select-provider-sheet-option-hyperliquid'),
     ).toBeOnTheScreen();
@@ -42,7 +46,9 @@ describe('PerpsSelectProviderView', () => {
   it('hides MYX option when MYX provider feature flag is disabled', async () => {
     renderPerpsSelectProviderView();
 
-    expect(await screen.findByTestId('perps-select-provider-sheet')).toBeOnTheScreen();
+    expect(
+      await screen.findByTestId('perps-select-provider-sheet'),
+    ).toBeOnTheScreen();
     expect(
       screen.queryByTestId('perps-select-provider-sheet-option-myx'),
     ).not.toBeOnTheScreen();
@@ -64,7 +70,9 @@ describe('PerpsSelectProviderView', () => {
     });
 
     expect(
-      await screen.findByTestId('perps-select-provider-sheet-check-hyperliquid'),
+      await screen.findByTestId(
+        'perps-select-provider-sheet-check-hyperliquid',
+      ),
     ).toBeOnTheScreen();
     expect(
       screen.queryByTestId('perps-select-provider-sheet-check-myx'),
