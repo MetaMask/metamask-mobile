@@ -5,12 +5,12 @@
  * connection state (disconnected/loading still render).
  * Run with: yarn jest -c jest.config.view.js PerpsTabView.view.test
  */
-import '../../../../../util/test/component-view/mocks';
+import '../../../../../../tests/component-view/mocks';
 import { fireEvent, screen } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { PerpsTabViewSelectorsIDs } from '../../Perps.testIds';
-import { renderPerpsTabView } from '../../../../../util/test/component-view/renderers/perpsViewRenderer';
+import { renderPerpsTabView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
 
 const MARKET_LIST_ROUTE = Routes.PERPS.MARKET_LIST;
 

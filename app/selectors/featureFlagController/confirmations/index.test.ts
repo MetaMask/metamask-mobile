@@ -54,7 +54,7 @@ describe('MetaMask Pay Feature Flags', () => {
 
     state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
       {
-        confirmation_pay: {
+        confirmations_pay: {
           bufferStep: 1.234,
         },
       };
@@ -67,7 +67,7 @@ describe('MetaMask Pay Feature Flags', () => {
 
     state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
       {
-        confirmation_pay: {
+        confirmations_pay: {
           bufferInitial: 2.345,
         },
       };
@@ -80,7 +80,7 @@ describe('MetaMask Pay Feature Flags', () => {
 
     state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
       {
-        confirmation_pay: {
+        confirmations_pay: {
           bufferSubsequent: 5.678,
         },
       };
@@ -93,7 +93,7 @@ describe('MetaMask Pay Feature Flags', () => {
 
     state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
       {
-        confirmation_pay: {
+        confirmations_pay: {
           attemptsMax: 3,
         },
       };
@@ -106,7 +106,7 @@ describe('MetaMask Pay Feature Flags', () => {
 
     state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
       {
-        confirmation_pay: {
+        confirmations_pay: {
           slippage: 0.123,
         },
       };
@@ -253,5 +253,42 @@ describe('Gas Fee Token Flags', () => {
     const result = selectGasFeeTokenFlags(stateWithUndefinedGasFeeTokens);
 
     expect(result).toEqual({ gasFeeTokens: {} });
+  });
+});
+
+describe('Withdraw Any Token Flags (in selectMetaMaskPayFlags)', () => {
+  it('returns withdraw defaults when confirmations_pay is missing', () => {
+    const result = selectMetaMaskPayFlags(mockedEmptyFlagsState);
+
+    expect(result.predictWithdrawAnyToken).toBe(false);
+    expect(result.perpsWithdrawAnyToken).toBe(false);
+  });
+
+  it('returns predictWithdrawAnyToken from feature flag', () => {
+    const state = cloneDeep(mockedEmptyFlagsState);
+    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+      {
+        confirmations_pay: {
+          predictWithdrawAnyToken: true,
+        },
+      };
+
+    const result = selectMetaMaskPayFlags(state);
+    expect(result.predictWithdrawAnyToken).toBe(true);
+    expect(result.perpsWithdrawAnyToken).toBe(false);
+  });
+
+  it('returns perpsWithdrawAnyToken from feature flag', () => {
+    const state = cloneDeep(mockedEmptyFlagsState);
+    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+      {
+        confirmations_pay: {
+          perpsWithdrawAnyToken: true,
+        },
+      };
+
+    const result = selectMetaMaskPayFlags(state);
+    expect(result.perpsWithdrawAnyToken).toBe(true);
+    expect(result.predictWithdrawAnyToken).toBe(false);
   });
 });

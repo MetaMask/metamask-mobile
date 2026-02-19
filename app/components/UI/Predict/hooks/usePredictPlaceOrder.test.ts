@@ -3,8 +3,7 @@ import { useContext } from 'react';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { ToastVariants } from '../../../../component-library/components/Toast';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
-import type { OrderPreview } from '../providers/types';
-import { Result, Side } from '../types';
+import { type OrderPreview, Result, Side } from '../types';
 import { usePredictPlaceOrder } from './usePredictPlaceOrder';
 import { usePredictTrading } from './usePredictTrading';
 import { usePredictBalance } from './usePredictBalance';
@@ -72,7 +71,6 @@ const mockToastRef = {
 
 describe('usePredictPlaceOrder', () => {
   const mockPlaceOrder = jest.fn();
-  const mockGetPositions = jest.fn();
   const mockClaim = jest.fn();
   const mockGetBalance = jest.fn();
   const mockDeposit = jest.fn();
@@ -116,7 +114,6 @@ describe('usePredictPlaceOrder', () => {
     jest.clearAllMocks();
     mockUsePredictTrading.mockReturnValue({
       placeOrder: mockPlaceOrder,
-      getPositions: mockGetPositions,
       claim: mockClaim,
       getBalance: mockGetBalance,
       previewOrder: jest.fn(),
