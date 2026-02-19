@@ -131,10 +131,6 @@ export function useTransactionConfirm() {
 
     if (type === TransactionType.perpsDepositAndOrder) {
       return;
-    } else if (
-      hasTransactionType(transactionMetadata, [PREDICT_DEPOSIT_AND_ORDER_TYPE])
-    ) {
-      return;
     } else if (type === TransactionType.perpsDeposit) {
       navigation.navigate(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.PERPS_HOME,
