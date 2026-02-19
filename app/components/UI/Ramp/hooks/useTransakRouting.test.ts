@@ -128,11 +128,20 @@ jest.mock('../Deposit/utils', () => ({
 
 jest.mock('../Views/Checkout', () => ({
   createCheckoutNavDetails: jest.fn(
-    ({ url, providerName }: { url: string; providerName: string }) => [
-      'Checkout',
-      { url, providerName },
-    ],
+    ({
+      url,
+      providerName,
+      callbackKey,
+    }: {
+      url: string;
+      providerName: string;
+      callbackKey?: string;
+    }) => ['Checkout', { url, providerName, callbackKey }],
   ),
+}));
+
+jest.mock('../utils/checkoutCallbackRegistry', () => ({
+  registerCheckoutCallback: jest.fn(() => 'mock-callback-key'),
 }));
 
 jest.mock('../../../../util/Logger', () => ({

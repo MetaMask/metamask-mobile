@@ -6,6 +6,7 @@ import { useParams } from '../../../../../../../util/navigation/navUtils';
 import { renderScreen } from '../../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../../util/test/initial-root-state';
 import Logger from '../../../../../../../util/Logger';
+import { registerCheckoutCallback } from '../../../../utils/checkoutCallbackRegistry';
 
 function renderWithProvider(component: React.ComponentType) {
   return renderScreen(
@@ -64,9 +65,10 @@ describe('WebviewModal Component', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    const key = registerCheckoutCallback(mockHandleNavigationStateChange);
     (useParams as jest.Mock).mockReturnValue({
       sourceUrl: mockSourceUrl,
-      handleNavigationStateChange: mockHandleNavigationStateChange,
+      callbackKey: key,
     });
   });
 
