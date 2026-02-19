@@ -399,7 +399,7 @@
     "sync_help_step_three": "3. Click on \"Sync with Mobile\"",
     "sync_help_step_four": "4. Scan the QR Code to start syncing",
     "sync_from_browser_extension_button": "Sync with MetaMask extension",
-    "or": "OR",
+    "or": "Or",
     "import_from_seed_button": "Import using Secret Recovery Phrase"
   },
   "login": {
@@ -548,7 +548,7 @@
     "seed_phrase_placeholder": "Enter your Secret Recovery Phrase",
     "create_new_password": "Create password",
     "confirm_password": "Confirm password",
-    "import_button": "IMPORT",
+    "import_button": "Import",
     "cancel_button": "Cancel",
     "password_length_error": "The password needs to be at least 8 characters long",
     "password_dont_match": "Passwords don't match",
@@ -616,8 +616,8 @@
     "help": "Support",
     "lock": "Lock",
     "lock_title": "Do you really want to lock your wallet?",
-    "lock_ok": "YES",
-    "lock_cancel": "NO",
+    "lock_ok": "Yes",
+    "lock_cancel": "No",
     "feedback": "Feedback",
     "metamask_support": "MetaMask Support",
     "public_address": "Public address"
@@ -1272,7 +1272,7 @@
       "select_payment_token": "Select payment token",
       "select_token": "Select token",
       "no_payment_tokens": "No payment tokens available",
-      "swap": "SWAP",
+      "swap": "Swap",
       "swap_submitted": "Swap Submitted",
       "transaction_id": "Transaction ID: {{txId}}",
       "swap_failed": "Swap Failed",
@@ -1628,11 +1628,11 @@
       "after_hours_trading_banner": "After-hours trading",
       "pay_attention_to_volatility": "Pay attention to volatility and slippage",
       "badge": {
-        "experimental": "EXPERIMENTAL",
-        "equity": "STOCK",
-        "commodity": "COMMODITY",
-        "crypto": "CRYPTO",
-        "forex": "FOREX"
+        "experimental": "Experimental",
+        "equity": "Stock",
+        "commodity": "Commodity",
+        "crypto": "Crypto",
+        "forex": "Forex"
       }
     },
     "buttons": {
@@ -2341,7 +2341,7 @@
     "defi": "DeFi",
     "perps": "Perps",
     "predict": "Predictions",
-    "transactions": "TRANSACTIONS",
+    "transactions": "Transactions",
     "no_collectibles": "Don’t see your NFT?",
     "no_available_tokens": "Don't see your token?",
     "add_tokens": "Import tokens",
@@ -2501,8 +2501,8 @@
     "search_token": "Search",
     "custom_token": "Custom token",
     "tokens": {
-      "cancel_add_token": "CANCEL",
-      "add_token": "IMPORT"
+      "cancel_add_token": "Cancel",
+      "add_token": "Import"
     },
     "collectibles": {
       "cancel_add_collectible": "Cancel",
@@ -2660,8 +2660,8 @@
   },
   "transfer": {
     "title": "Transfer",
-    "send": "SEND",
-    "receive": "RECEIVE"
+    "send": "Send",
+    "receive": "Receive"
   },
   "accounts": {
     "srp_index": "SRP #{{index}}",
@@ -2794,8 +2794,8 @@
     "content": "You turned off data collection for our marketing purposes. This only applies to this device. If you use MetaMask on other devices, make sure to opt out there as well."
   },
   "account_selector": {
-    "prev": "PREV",
-    "next": "NEXT",
+    "prev": "Prev",
+    "next": "Next",
     "unlock": "Unlock",
     "forget": "Forget this device"
   },
@@ -2833,7 +2833,7 @@
     "reveal_seed_words": "Reveal Seed Words",
     "reset_account": "Reset account",
     "state_logs_button": "Download state logs",
-    "reveal_seed_words_button": "REVEAL SEED WORDS",
+    "reveal_seed_words_button": "Reveal seed words",
     "reset_account_button": "Reset account",
     "reset_account_confirm_button": "Yes, reset",
     "reset_account_cancel_button": "Cancel",
@@ -2845,17 +2845,17 @@
     "clear_cookies_modal_title": "Clear browser cookies",
     "clear_cookies_modal_message": "We are about to remove your browser's cookies. Are you sure?",
     "reset_account_modal_message": "Resetting your account will clear your transaction activity.",
-    "save_rpc_url": "SAVE",
+    "save_rpc_url": "Save",
     "invalid_rpc_prefix": "URIs require the appropriate HTTPS prefix",
     "invalid_rpc_url": "Invalid RPC URL",
     "invalid_block_explorer_url": "Invalid Block Explorer URL",
-    "sync": "SYNC",
-    "clear_approved_dapps": "CLEAR APPROVED DAPPS",
-    "clear_browser_history": "CLEAR BROWSER HISTORY",
+    "sync": "Sync",
+    "clear_approved_dapps": "Clear approved dapps",
+    "clear_browser_history": "Clear browser history",
     "clear_approve_dapps_desc": "Clear approved dapps",
     "clear_browser_history_desc": "Clear browser history",
     "clear_browser_cookies_desc": "Clear browser cookies",
-    "clear": "CLEAR",
+    "clear": "Clear",
     "protect_cta": "Protect",
     "protect_title": "Wallet recovery",
     "banner_social_login_enabled": "Log in with {{authConnection}}",
@@ -3525,7 +3525,7 @@
   },
   "transaction": {
     "transaction_id": "Transaction ID",
-    "alert": "ALERT",
+    "alert": "Alert",
     "amount": "Amount",
     "details": "Details",
     "next": "Next",
@@ -3540,9 +3540,9 @@
     "sign_with_ledger": "Sign with Ledger",
     "from": "From",
     "gas_fee": "Gas fee",
-    "gas_fee_fast": "FAST",
-    "gas_fee_average": "AVERAGE",
-    "gas_fee_slow": "SLOW",
+    "gas_fee_fast": "Fast",
+    "gas_fee_average": "Average",
+    "gas_fee_slow": "Slow",
     "hex_data": "Hex data",
     "custom_nonce": "Nonce",
     "custom_nonce_tooltip": "This is the transaction number of an account. Nonce for the first transaction is 0 and it increases in sequential order.",
@@ -3551,11 +3551,11 @@
     "edit_transaction_nonce": "Edit transaction nonce",
     "think_of_the_nonce": "Think of the nonce as the transaction number of an account. Every account's nonce begins with 0 for the first transaction and continues in sequential order.",
     "nonce_warning": "Warning: You may encounter issues with future transactions if you continue. Use with caution.",
-    "review_details": "DETAILS",
-    "review_data": "DATA",
+    "review_details": "Details",
+    "review_data": "Data",
     "data": "Data",
     "data_description": "Data associated with this transaction",
-    "review_function_type": "FUNCTION TYPE",
+    "review_function_type": "Function type",
     "review_function": "Function",
     "review_hex_data": "Hex data",
     "insufficient": "Insufficient funds",
@@ -3736,10 +3736,10 @@
     "open_in_browser": "Open in browser",
     "change_url": "Change URL",
     "switch_network": "Switch network",
-    "dapp_browser": "DAPP BROWSER",
+    "dapp_browser": "Dapp browser",
     "dapp_browser_message": "MetaMask is your wallet and browser for the decentralized web. Have a look around!",
-    "featured_dapps": "FEATURED DAPPS",
-    "my_favorites": "MY FAVORITES",
+    "featured_dapps": "Featured dapps",
+    "my_favorites": "My favorites",
     "search": "Search or type a URL",
     "welcome": "Welcome!",
     "remove": "Remove",
@@ -4105,8 +4105,8 @@
   },
   "watch_asset_request": {
     "title": "Add suggested token",
-    "cancel": "CANCEL",
-    "add": "ADD TOKEN",
+    "cancel": "Cancel",
+    "add": "Add token",
     "message": "Would you like to add this token?",
     "token": "Token",
     "balance": "Balance"
@@ -4143,8 +4143,8 @@
     "fingerprint_prompt_cancel": "Cancel"
   },
   "accountApproval": {
-    "title": "CONNECT REQUEST",
-    "walletconnect_title": "WALLETCONNECT REQUEST",
+    "title": "Connect request",
+    "walletconnect_title": "WalletConnect request",
     "action": "Connect to this site?",
     "action_reconnect": "To resume connection, choose the number you see on the site",
     "action_reconnect_deeplink": "Do you want to reconnect to this site?",
@@ -4306,10 +4306,10 @@
     "title": "Your Secret Recovery Phrase",
     "info_text_1": "Carefully write down these words on paper. Their order matters.",
     "info_text_2": "You'll be asked to re-enter it on the next screen",
-    "cta_text": "I'VE COPIED THE PHRASE",
+    "cta_text": "I've copied the phrase",
     "confirm_password": "Confirm your password",
     "before_continiuing": "Before continuing we need you to confirm your password",
-    "confirm": "CONFIRM"
+    "confirm": "Confirm"
   },
   "account_backup_step_5": {
     "error_title": "Oops!",
@@ -4317,10 +4317,10 @@
     "back": "Back",
     "title": "Confirm Secret Recovery Phrase",
     "info_text": "Insert each word in the order it was presented to you on the previous screen.",
-    "cta_text": "CONFIRM PHRASE",
+    "cta_text": "Confirm phrase",
     "modal_title": "Secret Recovery Phrase confirmed!",
     "modal_text": "This was to ensure you follow this security measure",
-    "modal_button": "NEXT"
+    "modal_button": "Next"
   },
   "account_backup_step_6": {
     "title": "Security tips",
@@ -4330,11 +4330,11 @@
     "tip_3": "Never share this phrase with anyone",
     "disclaimer": "* You can find your Secret Recovery Phrase if you go to ",
     "disclaimer_bold": "Settings > Security and privacy",
-    "cta_text": "GOT IT",
+    "cta_text": "Got it",
     "modal_title": "Congratulations!",
     "modal_text": "You are all backed up and ready to go.",
-    "modal_button": "DONE",
-    "copy_seed_phrase": "COPY Secret Recovery Phrase TO CLIPBOARD"
+    "modal_button": "Done",
+    "copy_seed_phrase": "Copy Secret Recovery Phrase to clipboard"
   },
   "manual_backup": {
     "progressOne": "Create password",
@@ -4924,7 +4924,7 @@
     "enter_larger_amount": "Enter a larger amount to continue",
     "enter_smaller_amount": "Enter a smaller amount to continue",
     "enter_lower_gas_fees": "Enter a lower amount to pay for gas fees",
-    "max": "MAX",
+    "max": "Max",
     "try_again": "Try again",
     "error": "Error",
     "something_went_wrong": "Oops, something went wrong",
@@ -6470,7 +6470,7 @@
     "social_recovery_title": "{{authConnection}} RECOVERY",
     "social_recovery_enable": "Enabled",
     "social_login_description": "Use your {{authConnection}} login and MetaMask password to recover your account and Secret Recovery Phrases.",
-    "srps_title": "SECRET RECOVERY PHRASES",
+    "srps_title": "Secret Recovery Phrases",
     "srps_description": "Your wallet is most protected when both recovery methods are set up. If one fail, the other helps you recover your wallet."
   },
   "backupAndSync": {
