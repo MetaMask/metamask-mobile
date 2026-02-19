@@ -344,7 +344,7 @@ const useTokenDetailsOpenedTracking = (params: TokenDetailsRouteParams) => {
             assetsASSETS2493AbtestTokenDetailsLayout: variantName,
           }),
           ...(isFromTokenList && {
-            token_list_layout: isTokenListV2 ? 'v2' : 'v1',
+            assetsASSETS2621AbtestTokenListLayout: isTokenListV2 ? 'v2' : 'v1',
           }),
         },
       }),
