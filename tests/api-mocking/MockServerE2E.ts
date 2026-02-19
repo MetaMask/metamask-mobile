@@ -13,6 +13,7 @@ import {
 import {
   findMatchingPostEvent,
   processPostRequestBody,
+  setupAccountsV2SupportedNetworksMock,
 } from './helpers/mockHelpers.ts';
 import { getLocalHost } from '../framework/fixtures/FixtureUtils.ts';
 import PortManager, { ResourceType } from '../framework/PortManager.ts';
@@ -225,6 +226,8 @@ export default class MockServerE2E implements Resource {
       logger.info('Applying testSpecificMock function (takes precedence)');
       await this._testSpecificMock(this._server);
     }
+
+    await setupAccountsV2SupportedNetworksMock(this._server);
 
     await this._server
       .forAnyRequest()
@@ -446,11 +449,11 @@ export default class MockServerE2E implements Resource {
     // destroy() which immediately kills all TCP connections. If a handler is
     // still running (e.g. awaiting handleDirectFetch to a real backend), the
     // IncomingMessage is aborted and streamToBuffer rejects its promise.
-    // By waiting for handlexrs to finish, destroy() only kills idle connections.
+    // By waiting for handlers to finish, destroy() only kills idle connections.
     await this._waitForActiveRequests();
 
     try {
-      await this._server.stop();
+      await this._stopServerSuppressingAbortErrors();
     } catch (error) {
       logger.error('Error stopping mock server:', error);
     } finally {
@@ -460,6 +463,103 @@ export default class MockServerE2E implements Resource {
       // Release the port after server is stopped
       if (this._serverPort > 0) {
         PortManager.getInstance().releasePort(ResourceType.MOCK_SERVER);
+      }
+    }
+  }
+
+  /**
+   * Stops the mockttp server while suppressing "Aborted" unhandled promise rejections.
+   *
+   * When mockttp's `server.stop()` is called, its underlying `destroyable-server` immediately
+   * destroys all TCP connections via `socket.destroy()`. Any `IncomingMessage` whose body was
+   * being streamed through mockttp's `streamToBuffer` (buffer-utils.ts) will emit 'aborted',
+   * causing the buffer promise to reject with `Error('Aborted')`.
+   *
+   * There is a race window where requests have entered mockttp's internal pipeline
+   * (CallbackHandler.handle → waitForCompletedRequest → streamToBuffer) but have not yet
+   * reached our callback (so `_activeRequests` hasn't been incremented). For these requests,
+   * `_waitForActiveRequests()` sees zero active requests and proceeds with `stop()`, but the
+   * body buffering is still in progress. When the socket is destroyed, the buffer promise
+   * rejects and Jest catches it as an unhandled rejection, failing the test suite.
+   *
+   * This method temporarily replaces the process `unhandledRejection` handlers with a filter
+   * that suppresses "Aborted" errors originating from mockttp's buffer-utils (verified via
+   * stack trace), forwarding all other rejections to the original handlers.
+   * After the server is stopped and a brief drain period elapses, the original handlers are
+   * restored along with any handlers that were added by other code during the shutdown window.
+   */
+  private async _stopServerSuppressingAbortErrors(): Promise<void> {
+    // Snapshot current handlers so we can restore them after shutdown.
+    const originalHandlers = process.rawListeners('unhandledRejection').slice();
+    process.removeAllListeners('unhandledRejection');
+
+    let suppressCount = 0;
+    const filterHandler = (reason: unknown, promise: Promise<unknown>) => {
+      if (
+        reason instanceof Error &&
+        reason.message === 'Aborted' &&
+        reason.stack?.includes('mockttp')
+      ) {
+        // Mark the promise as handled so Node.js does not consider it unhandled.
+        // eslint-disable-next-line no-empty-function
+        promise.catch(() => {});
+        suppressCount++;
+        return;
+      }
+      // Forward any other unhandled rejection to the original handlers (e.g. Jest).
+      if (originalHandlers.length === 0) {
+        // No original handlers were registered. Since our filterHandler is a
+        // registered listener, Node considers the rejection "handled" and skips
+        // its default behaviour (warning + exit). Re-throw so the rejection
+        // surfaces as an uncaught exception instead of being silently dropped.
+        throw reason;
+      }
+      let firstError: unknown;
+      for (const handler of originalHandlers) {
+        try {
+          (handler as (...args: unknown[]) => void)(reason, promise);
+        } catch (err) {
+          if (firstError === undefined) {
+            firstError = err;
+          }
+        }
+      }
+      if (firstError !== undefined) {
+        throw firstError;
+      }
+    };
+    process.on('unhandledRejection', filterHandler);
+
+    try {
+      if (this._server) {
+        await this._server.stop();
+      }
+      // Brief drain period: 'aborted' events from destroyed sockets may fire
+      // asynchronously on the next event-loop tick after `stop()` resolves.
+      await new Promise((resolve) => setTimeout(resolve, 150));
+    } finally {
+      // Preserve any handlers that were added by other code during the
+      // shutdown window so they are not permanently lost.
+      const currentHandlers = process
+        .rawListeners('unhandledRejection')
+        .slice();
+      const addedDuringShutdown = currentHandlers.filter(
+        (h) => h !== filterHandler && !originalHandlers.includes(h),
+      );
+
+      // Remove all and restore: originals first, then any newly added handlers.
+      process.removeAllListeners('unhandledRejection');
+      for (const handler of [...originalHandlers, ...addedDuringShutdown]) {
+        process.on(
+          'unhandledRejection',
+          handler as (...args: unknown[]) => void,
+        );
+      }
+
+      if (suppressCount > 0) {
+        logger.info(
+          `Suppressed ${suppressCount} "Aborted" rejection(s) during mock server shutdown`,
+        );
       }
     }
   }

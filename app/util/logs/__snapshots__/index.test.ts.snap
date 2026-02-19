@@ -495,6 +495,13 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
       "PerpsController": {
         "accountState": null,
         "activeProvider": "hyperliquid",
+        "cachedAccountState": null,
+        "cachedMarketData": null,
+        "cachedMarketDataTimestamp": 0,
+        "cachedOrders": null,
+        "cachedPositions": null,
+        "cachedUserDataAddress": null,
+        "cachedUserDataTimestamp": 0,
         "depositInProgress": false,
         "depositRequests": [],
         "hasPlacedFirstOrder": {
@@ -601,6 +608,29 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
           "isLoading": false,
           "selected": null,
         },
+        "nativeProviders": {
+          "transak": {
+            "buyQuote": {
+              "data": null,
+              "error": null,
+              "isLoading": false,
+              "selected": null,
+            },
+            "isAuthenticated": false,
+            "kycRequirement": {
+              "data": null,
+              "error": null,
+              "isLoading": false,
+              "selected": null,
+            },
+            "userDetails": {
+              "data": null,
+              "error": null,
+              "isLoading": false,
+              "selected": null,
+            },
+          },
+        },
         "paymentMethods": {
           "data": [],
           "error": null,
@@ -627,6 +657,12 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
           "selected": null,
         },
         "userRegion": null,
+        "widgetUrl": {
+          "data": null,
+          "error": null,
+          "isLoading": false,
+          "selected": null,
+        },
       },
       "RemoteFeatureFlagController": {
         "cacheTimestamp": 0,
@@ -1321,6 +1357,13 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       "PerpsController": {
         "accountState": null,
         "activeProvider": "hyperliquid",
+        "cachedAccountState": null,
+        "cachedMarketData": null,
+        "cachedMarketDataTimestamp": 0,
+        "cachedOrders": null,
+        "cachedPositions": null,
+        "cachedUserDataAddress": null,
+        "cachedUserDataTimestamp": 0,
         "depositInProgress": false,
         "depositRequests": [],
         "hasPlacedFirstOrder": {
@@ -1427,6 +1470,29 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
           "isLoading": false,
           "selected": null,
         },
+        "nativeProviders": {
+          "transak": {
+            "buyQuote": {
+              "data": null,
+              "error": null,
+              "isLoading": false,
+              "selected": null,
+            },
+            "isAuthenticated": false,
+            "kycRequirement": {
+              "data": null,
+              "error": null,
+              "isLoading": false,
+              "selected": null,
+            },
+            "userDetails": {
+              "data": null,
+              "error": null,
+              "isLoading": false,
+              "selected": null,
+            },
+          },
+        },
         "paymentMethods": {
           "data": [],
           "error": null,
@@ -1453,6 +1519,12 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
           "selected": null,
         },
         "userRegion": null,
+        "widgetUrl": {
+          "data": null,
+          "error": null,
+          "isLoading": false,
+          "selected": null,
+        },
       },
       "RemoteFeatureFlagController": {
         "cacheTimestamp": 0,

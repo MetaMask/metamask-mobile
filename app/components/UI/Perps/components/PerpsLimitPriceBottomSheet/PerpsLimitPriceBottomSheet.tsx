@@ -32,7 +32,7 @@ import { usePerpsLivePrices, usePerpsTopOfBook } from '../../hooks/stream';
 import { LIMIT_PRICE_CONFIG } from '../../constants/perpsConfig';
 import { BigNumber } from 'bignumber.js';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
-import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 
 interface PerpsLimitPriceBottomSheetProps {
   isVisible: boolean;

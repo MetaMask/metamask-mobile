@@ -251,6 +251,8 @@ describe('ActivityView', () => {
       return networks[chainId] || null;
     }),
     hasEnabledNetworks: true,
+    isNetworkEnabledForDefi: true,
+    hasMultipleNamespacesEnabled: false,
     isDisabled: false,
   };
 
@@ -300,6 +302,8 @@ describe('ActivityView', () => {
           return networks[chainId] || null;
         }),
         hasEnabledNetworks: true,
+        isNetworkEnabledForDefi: true,
+        hasMultipleNamespacesEnabled: false,
         isDisabled: false,
       };
       mockUseCurrentNetworkInfo.mockReturnValue(singleNetworkInfo);

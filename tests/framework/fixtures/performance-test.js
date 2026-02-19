@@ -1,13 +1,13 @@
 import { test as base } from 'appwright';
 import { stopAppiumServer } from 'appwright/dist/providers/appium.js';
 import { PerformanceTracker } from '../../reporters/PerformanceTracker.js';
-import QualityGatesValidator from '../../framework/utils/QualityGatesValidator.js';
-import { getTeamInfoFromTags } from '../../../tests/teams-config.js';
 import {
+  QualityGatesValidator,
   markQualityGateFailure,
   hasQualityGateFailure,
   getTestId,
-} from '../../framework/utils/QualityGateError.js';
+} from '../quality-gates';
+import { getTeamInfoFromTags } from '../../../tests/teams-config.js';
 import CommandQueueServer from './CommandQueueServer.ts';
 import { FALLBACK_COMMAND_QUEUE_SERVER_PORT } from '../Constants.ts';
 import { startResourceWithRetry } from './FixtureUtils.ts';

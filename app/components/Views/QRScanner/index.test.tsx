@@ -101,6 +101,10 @@ jest.mock('../../../util/general', () => ({
   getURLProtocol: jest.fn().mockReturnValue(''),
 }));
 
+jest.mock('../../../core/DeeplinkManager/util/deeplinks', () => ({
+  isMetaMaskUniversalLink: jest.fn().mockReturnValue(false),
+}));
+
 jest.mock('eth-url-parser', () => ({
   parse: jest.fn().mockReturnValue({
     target_address: '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb',
@@ -188,6 +192,20 @@ describe('QrScanner', () => {
     mockNavigate.mockClear();
     mockGoBack.mockClear();
     mockLinkingOpenURL.mockClear();
+
+    // Reset isMetaMaskUniversalLink to default (false) — individual tests
+    // that need it to return true will override this.
+    const deeplinksUtilModule = jest.requireMock(
+      '../../../core/DeeplinkManager/util/deeplinks',
+    );
+    (deeplinksUtilModule.isMetaMaskUniversalLink as jest.Mock).mockReturnValue(
+      false,
+    );
+
+    // Reset SharedDeeplinkManager.parse to default (not handled) so each
+    // test starts with a clean slate. jest.clearAllMocks() only clears call
+    // counts, not implementations set via mockResolvedValue.
+    (SharedDeeplinkManager.parse as jest.Mock).mockResolvedValue(false);
 
     // Setup useSelector mock
     mockUseSelector.mockImplementation(
@@ -742,6 +760,117 @@ describe('QrScanner', () => {
             [QRScannerEventProperties.QR_TYPE]: QRType.URL,
             [QRScannerEventProperties.SCAN_RESULT]:
               ScanResult.URL_NAVIGATION_CANCELLED,
+          });
+        });
+      });
+
+      it('routes MetaMask universal links through DeeplinkManager instead of Linking.openURL', async () => {
+        // isMetaMaskUniversalLink identifies the link, isMwpDeeplink must be
+        // false so we don't get caught by the MWP handler above.
+        const deeplinksUtilModule = jest.requireMock(
+          '../../../core/DeeplinkManager/util/deeplinks',
+        );
+        (
+          deeplinksUtilModule.isMetaMaskUniversalLink as jest.Mock
+        ).mockReturnValue(true);
+
+        const SDKConnectV2Module = jest.requireMock(
+          '../../../core/SDKConnectV2',
+        );
+        (SDKConnectV2Module.default.isMwpDeeplink as jest.Mock).mockReturnValue(
+          false,
+        );
+
+        // Invoke the onHandled callback so navigation clean-up lines are
+        // covered — mockResolvedValue alone would leave them dead.
+        (SharedDeeplinkManager.parse as jest.Mock).mockImplementation(
+          async (
+            _url: string,
+            opts?: { onHandled?: () => void },
+          ): Promise<boolean> => {
+            opts?.onHandled?.();
+            return true;
+          },
+        );
+
+        const mockOnScanSuccess = jest.fn();
+        renderWithProvider(<QrScanner onScanSuccess={mockOnScanSuccess} />, {
+          state: initialState,
+        });
+
+        await waitFor(() => {
+          expect(onCodeScannedCallback).toBeDefined();
+        });
+
+        await act(async () => {
+          onCodeScannedCallback?.([
+            { value: 'https://metamask.app.link/dapp/example.com' },
+          ]);
+        });
+
+        await waitFor(() => {
+          // Must NOT open externally — on iOS this would bounce to Safari → App Store
+          expect(mockLinkingOpenURL).not.toHaveBeenCalled();
+
+          // Must route through DeeplinkManager for in-app handling
+          expect(SharedDeeplinkManager.parse).toHaveBeenCalledWith(
+            'https://metamask.app.link/dapp/example.com',
+            expect.objectContaining({
+              origin: 'qr-code',
+            }),
+          );
+
+          // Must track as a successfully handled deeplink
+          expect(mockTrackEvent).toHaveBeenCalled();
+          expect(mockAddProperties).toHaveBeenCalledWith({
+            [QRScannerEventProperties.SCAN_SUCCESS]: true,
+            [QRScannerEventProperties.QR_TYPE]: QRType.DEEPLINK,
+            [QRScannerEventProperties.SCAN_RESULT]: ScanResult.DEEPLINK_HANDLED,
+          });
+        });
+      });
+
+      it('tracks unrecognized_qr_code when DeeplinkManager cannot handle a universal link', async () => {
+        const deeplinksUtilModule = jest.requireMock(
+          '../../../core/DeeplinkManager/util/deeplinks',
+        );
+        (
+          deeplinksUtilModule.isMetaMaskUniversalLink as jest.Mock
+        ).mockReturnValue(true);
+
+        const SDKConnectV2Module = jest.requireMock(
+          '../../../core/SDKConnectV2',
+        );
+        (SDKConnectV2Module.default.isMwpDeeplink as jest.Mock).mockReturnValue(
+          false,
+        );
+
+        // DeeplinkManager.parse returns false → link was not handled
+        (SharedDeeplinkManager.parse as jest.Mock).mockResolvedValue(false);
+
+        const mockOnScanSuccess = jest.fn();
+        renderWithProvider(<QrScanner onScanSuccess={mockOnScanSuccess} />, {
+          state: initialState,
+        });
+
+        await waitFor(() => {
+          expect(onCodeScannedCallback).toBeDefined();
+        });
+
+        await act(async () => {
+          onCodeScannedCallback?.([
+            { value: 'https://metamask.app.link/unknown-action' },
+          ]);
+        });
+
+        await waitFor(() => {
+          expect(mockLinkingOpenURL).not.toHaveBeenCalled();
+
+          expect(mockAddProperties).toHaveBeenCalledWith({
+            [QRScannerEventProperties.SCAN_SUCCESS]: false,
+            [QRScannerEventProperties.QR_TYPE]: QRType.DEEPLINK,
+            [QRScannerEventProperties.SCAN_RESULT]:
+              ScanResult.UNRECOGNIZED_QR_CODE,
           });
         });
       });

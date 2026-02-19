@@ -26,7 +26,7 @@ import usePerpsToasts, {
 } from '../../hooks/usePerpsToasts';
 import { createStyles } from './PerpsCancelAllOrdersView.styles';
 import { useTheme } from '../../../../../util/theme';
-import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import {
   PERPS_EVENT_PROPERTY,

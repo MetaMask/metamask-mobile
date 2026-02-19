@@ -60,6 +60,7 @@ import Routes from '../../constants/navigation/Routes';
 import { IconName } from '../../component-library/components/Icons/Icon';
 import { ReauthenticateErrorType } from './types';
 import { AuthenticationType, SecurityLevel } from 'expo-local-authentication';
+import { createDataDeletionTask as createDataDeletionTaskMock } from '../../util/analytics/analyticsDataDeletion';
 
 export type RecursivePartial<T> = {
   [P in keyof T]?: RecursivePartial<T[P]>;
@@ -230,10 +231,7 @@ jest.mock('../BackupVault/backupVault', () => ({
 }));
 
 jest.mock('../Analytics/MetaMetrics', () => {
-  const mockInstance = {
-    createDataDeletionTask: jest.fn(),
-    updateDataRecordingFlag: jest.fn(),
-  };
+  const mockInstance = {};
   return {
     __esModule: true,
     default: {
@@ -241,6 +239,10 @@ jest.mock('../Analytics/MetaMetrics', () => {
     },
   };
 });
+
+jest.mock('../../util/analytics/analyticsDataDeletion', () => ({
+  createDataDeletionTask: jest.fn().mockResolvedValue(undefined),
+}));
 
 jest.mock('../../components/UI/Ramp/Deposit/utils/ProviderTokenVault', () => ({
   resetProviderToken: jest.fn(),
@@ -1131,9 +1133,9 @@ describe('Authentication', () => {
       });
 
       it('throws AuthenticationError when newWalletAndRestore fails', async () => {
-        const mockDispatch = jest.fn();
+        const newWalletRestoreDispatch = jest.fn();
         jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
-          dispatch: mockDispatch,
+          dispatch: newWalletRestoreDispatch,
           getState: () => ({ security: { allowLoginWithRememberMe: true } }),
         } as unknown as ReduxStore);
 
@@ -1155,7 +1157,7 @@ describe('Authentication', () => {
           );
           throw new Error('Expected an error to be thrown');
         } catch (error) {
-          expect(mockDispatch).toHaveBeenCalledWith(logOut());
+          expect(newWalletRestoreDispatch).toHaveBeenCalledWith(logOut());
           expect(error).toBeInstanceOf(AuthenticationError);
           expect((error as AuthenticationError).customErrorMessage).toBe(
             AUTHENTICATION_FAILED_WALLET_CREATION,
@@ -1165,14 +1167,14 @@ describe('Authentication', () => {
           );
           await Promise.resolve();
           jest.runAllTimers();
-          expect(mockDispatch).toHaveBeenCalledWith(logOut());
+          expect(newWalletRestoreDispatch).toHaveBeenCalledWith(logOut());
         }
       });
 
       it('throws AuthenticationError when newWalletAndKeychain fails', async () => {
-        const mockDispatch = jest.fn();
+        const newWalletKeychainDispatch = jest.fn();
         jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
-          dispatch: mockDispatch,
+          dispatch: newWalletKeychainDispatch,
           getState: () => ({ security: { allowLoginWithRememberMe: true } }),
         } as unknown as ReduxStore);
 
@@ -1192,7 +1194,7 @@ describe('Authentication', () => {
           });
           throw new Error('Expected an error to be thrown');
         } catch (error) {
-          expect(mockDispatch).toHaveBeenCalledWith(logOut());
+          expect(newWalletKeychainDispatch).toHaveBeenCalledWith(logOut());
           expect(error).toBeInstanceOf(AuthenticationError);
           expect((error as AuthenticationError).customErrorMessage).toBe(
             AUTHENTICATION_FAILED_WALLET_CREATION,
@@ -1203,7 +1205,7 @@ describe('Authentication', () => {
           // Wait for async lockApp operations to complete
           await Promise.resolve();
           jest.runAllTimers();
-          expect(mockDispatch).toHaveBeenCalledWith(logOut());
+          expect(newWalletKeychainDispatch).toHaveBeenCalledWith(logOut());
         }
       });
 
@@ -3588,18 +3590,13 @@ describe('Authentication', () => {
   describe('deleteWallet', () => {
     let Engine: typeof import('../Engine').default;
     let deleteWalletMockDispatch: jest.Mock;
-    let mockMetaMetricsInstance: {
-      createDataDeletionTask: jest.MockedFunction<() => Promise<unknown>>;
-    };
 
     beforeEach(() => {
       Engine = jest.requireMock('../Engine');
       jest.clearAllMocks();
       EngineClass.disableAutomaticVaultBackup = false;
       deleteWalletMockDispatch = jest.fn();
-      mockMetaMetricsInstance = {
-        createDataDeletionTask: jest.fn().mockResolvedValue(undefined),
-      };
+      (createDataDeletionTaskMock as jest.Mock).mockResolvedValue(undefined);
 
       jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
         dispatch: deleteWalletMockDispatch,
@@ -3623,10 +3620,6 @@ describe('Authentication', () => {
         .spyOn(Authentication, 'newWalletAndKeychain')
         .mockResolvedValue(undefined);
       jest.spyOn(Authentication, 'lockApp').mockResolvedValue(undefined);
-
-      jest
-        .spyOn(MetaMetrics, 'getInstance')
-        .mockReturnValue(mockMetaMetricsInstance as unknown as MetaMetrics);
     });
 
     afterEach(() => {
@@ -3673,9 +3666,7 @@ describe('Authentication', () => {
       expect(deleteWalletMockDispatch).toHaveBeenCalledWith(
         setExistingUser(false),
       );
-      expect(
-        mockMetaMetricsInstance.createDataDeletionTask,
-      ).toHaveBeenCalledTimes(1);
+      expect(createDataDeletionTaskMock).toHaveBeenCalledTimes(1);
       expect(removeItemSpy).toHaveBeenCalledWith(OPTIN_META_METRICS_UI_SEEN);
       expect(deleteWalletMockDispatch).toHaveBeenCalledWith(
         setCompletedOnboarding(false),
@@ -3841,25 +3832,16 @@ describe('Authentication', () => {
 
   describe('deleteUser', () => {
     let deleteUserMockDispatch: jest.Mock;
-    let mockMetaMetricsInstance: {
-      createDataDeletionTask: jest.MockedFunction<() => Promise<unknown>>;
-    };
 
     beforeEach(() => {
       jest.clearAllMocks();
       deleteUserMockDispatch = jest.fn();
-      mockMetaMetricsInstance = {
-        createDataDeletionTask: jest.fn().mockResolvedValue(undefined),
-      };
+      (createDataDeletionTaskMock as jest.Mock).mockResolvedValue(undefined);
 
       jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
         dispatch: deleteUserMockDispatch,
         getState: () => ({ security: { allowLoginWithRememberMe: true } }),
       } as unknown as ReduxStore);
-
-      jest
-        .spyOn(MetaMetrics, 'getInstance')
-        .mockReturnValue(mockMetaMetricsInstance as unknown as MetaMetrics);
     });
 
     it('dispatches Redux action to set existing user to false', async () => {
@@ -3872,9 +3854,7 @@ describe('Authentication', () => {
       expect(deleteUserMockDispatch).toHaveBeenCalledWith(
         setExistingUser(false),
       );
-      expect(
-        mockMetaMetricsInstance.createDataDeletionTask,
-      ).toHaveBeenCalledTimes(1);
+      expect(createDataDeletionTaskMock).toHaveBeenCalledTimes(1);
     });
 
     it('creates data deletion task', async () => {
@@ -3884,9 +3864,7 @@ describe('Authentication', () => {
       ).deleteUser();
 
       // Assert
-      expect(
-        mockMetaMetricsInstance.createDataDeletionTask,
-      ).toHaveBeenCalledTimes(1);
+      expect(createDataDeletionTaskMock).toHaveBeenCalledTimes(1);
     });
 
     it('completes without throwing when deleteUser succeeds', async () => {
@@ -3905,9 +3883,7 @@ describe('Authentication', () => {
     it('logs error when deleteUser fails', async () => {
       // Arrange
       const error = new Error('Data deletion failed');
-      mockMetaMetricsInstance.createDataDeletionTask.mockRejectedValueOnce(
-        error,
-      );
+      (createDataDeletionTaskMock as jest.Mock).mockRejectedValueOnce(error);
       const loggerSpy = jest.spyOn(Logger, 'log');
 
       // Act

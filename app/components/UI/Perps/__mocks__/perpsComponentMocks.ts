@@ -134,7 +134,7 @@ export const setupPerpsHookMocks = () => {
 
 // Mock MetaMask hooks
 export const setupMetaMaskHookMocks = () => {
-  jest.mock('../../../../hooks/useMetrics');
+  jest.mock('../../../../hooks/useAnalytics/useAnalytics');
   jest.mock('../../../../hooks/useTheme');
   jest.mock('../../../../hooks/useAccounts');
   jest.mock('../../../../hooks/useNetworkInfo');

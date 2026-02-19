@@ -1,6 +1,6 @@
 import { test } from '../../../framework/fixtures/performance-test.js';
 
-import TimerHelper from '../../../framework/utils/TimersHelper.js';
+import TimerHelper from '../../../framework/TimerHelper';
 import LoginScreen from '../../../../wdio/screen-objects/LoginScreen.js';
 import WalletMainScreen from '../../../../wdio/screen-objects/WalletMainScreen.js';
 import TabBarModal from '../../../../wdio/screen-objects/Modals/TabBarModal.js';
