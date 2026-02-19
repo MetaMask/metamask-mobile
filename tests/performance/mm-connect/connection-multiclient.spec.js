@@ -1,14 +1,17 @@
 import { test } from 'appwright';
 
-import { login } from '../../utils/Flows.js';
+import { login } from '../../framework/utils/Flows.js';
 import {
   launchMobileBrowser,
+  switchToMobileBrowser,
   navigateToDapp,
-} from '../../utils/MobileBrowser.js';
+} from '../../framework/utils/MobileBrowser.js';
 import WalletMainScreen from '../../../wdio/screen-objects/WalletMainScreen.js';
 import BrowserPlaygroundDapp from '../../../wdio/screen-objects/BrowserPlaygroundDapp.js';
 import AndroidScreenHelpers from '../../../wdio/screen-objects/Native/Android.js';
 import DappConnectionModal from '../../../wdio/screen-objects/Modals/DappConnectionModal.js';
+import SignModal from '../../../wdio/screen-objects/Modals/SignModal.js';
+import SolanaSignModal from '../../../wdio/screen-objects/Modals/SolanaSignModal.js';
 import AppwrightHelpers from '../../../tests/framework/AppwrightHelpers.js';
 import {
   DappServer,
@@ -29,6 +32,9 @@ const DAPP_PORT = 8090;
 // NOTE: This test requires the testing SRP to be used
 const ACCOUNT_1_EVM_ADDRESS = '0x19a7Ad8256ab119655f1D758348501d598fC1C94';
 const ACCOUNT_1_SOLANA_ADDRESS = '6fr9gpqbsszm6snzsjubu91jwxeduhwnvnkwxqksfwcz';
+
+const ACCOUNT_1_SOLANA_SIGNED_MESSAGE_RESULT = 'TnB0MoNjYOTozLwKcZskdyzYszWHetTLcDskffjqLgQ9nYUbM47JySKpEyTZtA48CdMsPK+erAeId6ayzBoJBQ==';
+
 
 // Create the playground server using the shared framework
 const playgroundServer = new DappServer({
@@ -65,6 +71,8 @@ test('@metamask/connect-multichain (multiple clients) - Connect multiple clients
   BrowserPlaygroundDapp.device = device;
   AndroidScreenHelpers.device = device;
   DappConnectionModal.device = device;
+  SignModal.device = device;
+  SolanaSignModal.device = device;
   AccountListComponent.device = device;
 
   await device.webDriverClient.updateSettings({
@@ -89,7 +97,6 @@ test('@metamask/connect-multichain (multiple clients) - Connect multiple clients
     await WalletMainScreen.tapIdenticon();
     await AccountListComponent.isComponentDisplayed();
     await AccountListComponent.waitForSyncingToComplete();
-    await AccountListComponent.tapOnAccountByName('Account 1');
 
     await launchMobileBrowser(device);
     await navigateToDapp(device, DAPP_URL, DAPP_NAME);
@@ -120,7 +127,7 @@ test('@metamask/connect-multichain (multiple clients) - Connect multiple clients
   });
 
   await new Promise((resolve) => setTimeout(resolve, 1000));
-  await launchMobileBrowser(device);
+  await switchToMobileBrowser(device);
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
   await AppwrightHelpers.withWebAction(
@@ -141,10 +148,71 @@ test('@metamask/connect-multichain (multiple clients) - Connect multiple clients
       await BrowserPlaygroundDapp.assertWagmiActiveAccount(
         ACCOUNT_1_EVM_ADDRESS,
       );
+      // Verify wagmi personal sign works when wagmi is connected
+      await BrowserPlaygroundDapp.typeWagmiSignMessage('Hello MetaMask');
+      await BrowserPlaygroundDapp.tapWagmiSignMessage();
+    },
+    DAPP_URL,
+  );
+
+  await AppwrightHelpers.withNativeAction(device, async () => {
+    await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
+    await SignModal.tapConfirmButton();
+  });
+
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+  await switchToMobileBrowser(device);
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+
+  await AppwrightHelpers.withWebAction(
+    device,
+    async () => {
+      await BrowserPlaygroundDapp.assertWagmiSignatureResult('0x');
 
       await BrowserPlaygroundDapp.assertSolanaConnected(true);
       await BrowserPlaygroundDapp.assertSolanaActiveAccount(
         ACCOUNT_1_SOLANA_ADDRESS,
+      );
+      // Verify solana sign works when solana is connected
+      await BrowserPlaygroundDapp.tapSolanaSignMessage();
+    },
+    DAPP_URL,
+  );
+
+  await AppwrightHelpers.withNativeAction(device, async () => {
+    await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
+    await SolanaSignModal.tapConfirmButton();
+  });
+
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+  await switchToMobileBrowser(device);
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+
+  await AppwrightHelpers.withWebAction(
+    device,
+    async () => {
+      await BrowserPlaygroundDapp.assertSolanaSignedMessageResult(ACCOUNT_1_SOLANA_SIGNED_MESSAGE_RESULT);
+
+      // Test EVM sign (legacy personal sign) when EVM is connected
+      await BrowserPlaygroundDapp.tapPersonalSign();
+    },
+    DAPP_URL,
+  );
+
+  await AppwrightHelpers.withNativeAction(device, async () => {
+    await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
+    await SignModal.tapConfirmButton();
+  });
+
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+  await switchToMobileBrowser(device);
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+
+  await AppwrightHelpers.withWebAction(
+    device,
+    async () => {
+      await BrowserPlaygroundDapp.assertResponseValue(
+        '0x361c13288b4ab02d50974efddf9e4e7ca651b81c298b614be908c4754abb1dd8328224645a1a8d0fab561c4b855c7bdcebea15db5ae8d1778a1ea791dbd05c2a1b',
       );
 
       // Disconnect EVM
@@ -172,7 +240,7 @@ test('@metamask/connect-multichain (multiple clients) - Connect multiple clients
   });
 
   await new Promise((resolve) => setTimeout(resolve, 1000));
-  await launchMobileBrowser(device);
+  await switchToMobileBrowser(device);
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
   await AppwrightHelpers.withWebAction(
@@ -189,6 +257,26 @@ test('@metamask/connect-multichain (multiple clients) - Connect multiple clients
       await BrowserPlaygroundDapp.assertWagmiActiveAccount(
         ACCOUNT_1_EVM_ADDRESS,
       );
+      // Verify wagmi personal sign works when wagmi is connected
+      await BrowserPlaygroundDapp.typeWagmiSignMessage('Hello MetaMask');
+      await BrowserPlaygroundDapp.tapWagmiSignMessage();
+    },
+    DAPP_URL,
+  );
+
+  await AppwrightHelpers.withNativeAction(device, async () => {
+    await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
+    await SignModal.tapConfirmButton();
+  });
+
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+  await switchToMobileBrowser(device);
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+
+  await AppwrightHelpers.withWebAction(
+    device,
+    async () => {
+      await BrowserPlaygroundDapp.assertWagmiSignatureResult('0x');
 
       // Make sure solana is still connected
       await BrowserPlaygroundDapp.assertScopeCardVisible(
@@ -198,6 +286,25 @@ test('@metamask/connect-multichain (multiple clients) - Connect multiple clients
       await BrowserPlaygroundDapp.assertSolanaActiveAccount(
         ACCOUNT_1_SOLANA_ADDRESS,
       );
+      // Verify solana sign works when solana is connected
+      await BrowserPlaygroundDapp.tapSolanaSignMessage();
+    },
+    DAPP_URL,
+  );
+
+  await AppwrightHelpers.withNativeAction(device, async () => {
+    await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
+    await SolanaSignModal.tapConfirmButton();
+  });
+
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+  await switchToMobileBrowser(device);
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+
+  await AppwrightHelpers.withWebAction(
+    device,
+    async () => {
+      await BrowserPlaygroundDapp.assertSolanaSignedMessageResult(ACCOUNT_1_SOLANA_SIGNED_MESSAGE_RESULT);
 
       // Disconnect Solana
       await BrowserPlaygroundDapp.tapSolanaDisconnect();
@@ -211,6 +318,26 @@ test('@metamask/connect-multichain (multiple clients) - Connect multiple clients
       await BrowserPlaygroundDapp.assertScopeCardVisible('eip155:1');
       await BrowserPlaygroundDapp.assertConnected(true);
       await BrowserPlaygroundDapp.assertWagmiConnected(true);
+      // Verify wagmi personal sign works when wagmi is connected
+      await BrowserPlaygroundDapp.typeWagmiSignMessage('Hello MetaMask');
+      await BrowserPlaygroundDapp.tapWagmiSignMessage();
+    },
+    DAPP_URL,
+  );
+
+  await AppwrightHelpers.withNativeAction(device, async () => {
+    await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
+    await SignModal.tapConfirmButton();
+  });
+
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+  await switchToMobileBrowser(device);
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+
+  await AppwrightHelpers.withWebAction(
+    device,
+    async () => {
+      await BrowserPlaygroundDapp.assertWagmiSignatureResult('0x');
 
       // Reconnect Solana
       await BrowserPlaygroundDapp.tapSolanaConnect();
@@ -224,7 +351,7 @@ test('@metamask/connect-multichain (multiple clients) - Connect multiple clients
   });
 
   await new Promise((resolve) => setTimeout(resolve, 1000));
-  await launchMobileBrowser(device);
+  await switchToMobileBrowser(device);
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
   await AppwrightHelpers.withWebAction(
@@ -237,11 +364,50 @@ test('@metamask/connect-multichain (multiple clients) - Connect multiple clients
       await BrowserPlaygroundDapp.assertSolanaActiveAccount(
         ACCOUNT_1_SOLANA_ADDRESS,
       );
+      // Verify solana sign works when solana is connected
+      await BrowserPlaygroundDapp.tapSolanaSignMessage();
+    },
+    DAPP_URL,
+  );
+
+  await AppwrightHelpers.withNativeAction(device, async () => {
+    await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
+    await SolanaSignModal.tapConfirmButton();
+  });
+
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+  await switchToMobileBrowser(device);
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+
+  await AppwrightHelpers.withWebAction(
+    device,
+    async () => {
+      await BrowserPlaygroundDapp.assertSolanaSignedMessageResult(ACCOUNT_1_SOLANA_SIGNED_MESSAGE_RESULT);
 
       // Make sure EVM is still connected
       await BrowserPlaygroundDapp.assertScopeCardVisible('eip155:1');
       await BrowserPlaygroundDapp.assertConnected(true);
       await BrowserPlaygroundDapp.assertWagmiConnected(true);
+      // Verify wagmi personal sign works when wagmi is connected
+      await BrowserPlaygroundDapp.typeWagmiSignMessage('Hello MetaMask');
+      await BrowserPlaygroundDapp.tapWagmiSignMessage();
+    },
+    DAPP_URL,
+  );
+
+  await AppwrightHelpers.withNativeAction(device, async () => {
+    await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
+    await SignModal.tapConfirmButton();
+  });
+
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+  await switchToMobileBrowser(device);
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+
+  await AppwrightHelpers.withWebAction(
+    device,
+    async () => {
+      await BrowserPlaygroundDapp.assertWagmiSignatureResult('0x');
     },
     DAPP_URL,
   );
