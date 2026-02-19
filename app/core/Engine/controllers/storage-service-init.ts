@@ -11,6 +11,10 @@ import {
 } from '@metamask/storage-service';
 import Device from '../../../util/device';
 import Logger from '../../../util/Logger';
+import {
+  encodeStorageKey,
+  decodeStorageKey,
+} from '../utils/storage-service-utils';
 
 /**
  * Mobile-specific storage adapter using FilesystemStorage.
@@ -30,8 +34,10 @@ const mobileStorageAdapter: StorageAdapter = {
    */
   async getItem(namespace: string, key: string): Promise<StorageGetResult> {
     try {
-      // Build full key: storageService:namespace:key
-      const fullKey = `${STORAGE_KEY_PREFIX}${namespace}:${key}`;
+      // Build full key: storageService:namespace:encodedKey
+      const encodedKeyPart = encodeStorageKey(key);
+      const fullKey = `${STORAGE_KEY_PREFIX}${namespace}:${encodedKeyPart}`;
+
       const serialized = await FilesystemStorage.getItem(fullKey);
 
       // Key not found - return empty object
@@ -59,8 +65,9 @@ const mobileStorageAdapter: StorageAdapter = {
    */
   async setItem(namespace: string, key: string, value: Json): Promise<void> {
     try {
-      // Build full key: storageService:namespace:key
-      const fullKey = `${STORAGE_KEY_PREFIX}${namespace}:${key}`;
+      // Build full key: storageService:namespace:encodedKey
+      const encodedKeyPart = encodeStorageKey(key);
+      const fullKey = `${STORAGE_KEY_PREFIX}${namespace}:${encodedKeyPart}`;
 
       await FilesystemStorage.setItem(
         fullKey,
@@ -83,8 +90,10 @@ const mobileStorageAdapter: StorageAdapter = {
    */
   async removeItem(namespace: string, key: string): Promise<void> {
     try {
-      // Build full key: storageService:namespace:key
-      const fullKey = `${STORAGE_KEY_PREFIX}${namespace}:${key}`;
+      // Build full key: storageService:namespace:encodedKey
+      const encodedKeyPart = encodeStorageKey(key);
+      const fullKey = `${STORAGE_KEY_PREFIX}${namespace}:${encodedKeyPart}`;
+
       await FilesystemStorage.removeItem(fullKey);
     } catch (error) {
       Logger.error(error as Error, {
@@ -109,11 +118,20 @@ const mobileStorageAdapter: StorageAdapter = {
         return [];
       }
 
+      // Note: The prefix uses the namespace as-is (not encoded) for backward compatibility.
+      // The library's fromFileName converts `-` to `:` in the returned keys,
+      // so we need to match against the transformed prefix.
       const prefix = `${STORAGE_KEY_PREFIX}${namespace}:`;
 
-      return allKeys
-        .filter((key) => key.startsWith(prefix))
-        .map((key) => key.slice(prefix.length));
+      const filteredKeys = allKeys
+        .filter((rawKey) => rawKey.startsWith(prefix))
+        .map((rawKey) => {
+          // Extract the encoded key part and decode it
+          const encodedKeyPart = rawKey.slice(prefix.length);
+          return decodeStorageKey(encodedKeyPart);
+        });
+
+      return filteredKeys;
     } catch (error) {
       Logger.error(error as Error, {
         message: `StorageService: Failed to get keys for ${namespace}`,
@@ -135,15 +153,19 @@ const mobileStorageAdapter: StorageAdapter = {
         return;
       }
 
+      // Note: The prefix uses the namespace as-is (not encoded) for backward compatibility.
+      // The library's fromFileName converts `-` to `:` in the returned keys,
+      // so we need to match against the transformed prefix.
       const prefix = `${STORAGE_KEY_PREFIX}${namespace}:`;
-      const keysToDelete = allKeys.filter((key) => key.startsWith(prefix));
 
-      await Promise.all(
-        keysToDelete.map((key) => FilesystemStorage.removeItem(key)),
+      const keysToDelete = allKeys.filter((rawKey) =>
+        rawKey.startsWith(prefix),
       );
 
-      Logger.log(
-        `StorageService: Cleared ${keysToDelete.length} keys for ${namespace}`,
+      // For deletion, we pass the raw key as returned by getAllKeys.
+      // FilesystemStorage.removeItem will apply toFileName to find the file.
+      await Promise.all(
+        keysToDelete.map((rawKey) => FilesystemStorage.removeItem(rawKey)),
       );
     } catch (error) {
       Logger.error(error as Error, {

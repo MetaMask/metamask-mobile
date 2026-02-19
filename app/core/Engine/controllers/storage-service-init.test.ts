@@ -329,9 +329,6 @@ describe('mobileStorageAdapter', () => {
       expect(mockFilesystemStorage.removeItem).toHaveBeenCalledWith(
         `${STORAGE_KEY_PREFIX}TestController:key2`,
       );
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        'StorageService: Cleared 2 keys for TestController',
-      );
     });
 
     it('returns early when getAllKeys returns null', async () => {
@@ -345,7 +342,7 @@ describe('mobileStorageAdapter', () => {
       expect(mockFilesystemStorage.removeItem).not.toHaveBeenCalled();
     });
 
-    it('removes zero keys and logs count when namespace has no matching entries', async () => {
+    it('removes zero keys when namespace has no matching entries', async () => {
       mockFilesystemStorage.getAllKeys.mockResolvedValue([
         `${STORAGE_KEY_PREFIX}OtherController:key1`,
       ]);
@@ -355,9 +352,6 @@ describe('mobileStorageAdapter', () => {
       await adapter.clear('TestController');
 
       expect(mockFilesystemStorage.removeItem).not.toHaveBeenCalled();
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        'StorageService: Cleared 0 keys for TestController',
-      );
     });
 
     it('throws and logs error when FilesystemStorage fails', async () => {
@@ -377,6 +371,217 @@ describe('mobileStorageAdapter', () => {
           message: 'StorageService: Failed to clear namespace TestController',
         }),
       );
+    });
+  });
+
+  describe('key encoding', () => {
+    describe('setItem', () => {
+      beforeEach(() => {
+        mockFilesystemStorage.setItem.mockResolvedValue(undefined);
+        mockDevice.isIos.mockReturnValue(true);
+      });
+
+      it('encodes hyphens in keys as %2D', async () => {
+        const adapter = getStorageAdapter();
+
+        await adapter.setItem('TestController', 'simple-key', 'value');
+
+        expect(mockFilesystemStorage.setItem).toHaveBeenCalledWith(
+          `${STORAGE_KEY_PREFIX}TestController:simple%2Dkey`,
+          JSON.stringify('value'),
+          true,
+        );
+      });
+
+      it('encodes slashes in keys as %2F', async () => {
+        const adapter = getStorageAdapter();
+
+        await adapter.setItem('TestController', 'nested/path/key', 'value');
+
+        expect(mockFilesystemStorage.setItem).toHaveBeenCalledWith(
+          `${STORAGE_KEY_PREFIX}TestController:nested%2Fpath%2Fkey`,
+          JSON.stringify('value'),
+          true,
+        );
+      });
+
+      it('encodes percent signs in keys as %25', async () => {
+        const adapter = getStorageAdapter();
+
+        await adapter.setItem('TestController', 'percent%key', 'value');
+
+        expect(mockFilesystemStorage.setItem).toHaveBeenCalledWith(
+          `${STORAGE_KEY_PREFIX}TestController:percent%25key`,
+          JSON.stringify('value'),
+          true,
+        );
+      });
+
+      it('encodes mixed special characters in keys', async () => {
+        const adapter = getStorageAdapter();
+
+        await adapter.setItem(
+          'TestController',
+          'mixed-key/with%special',
+          'value',
+        );
+
+        expect(mockFilesystemStorage.setItem).toHaveBeenCalledWith(
+          `${STORAGE_KEY_PREFIX}TestController:mixed%2Dkey%2Fwith%25special`,
+          JSON.stringify('value'),
+          true,
+        );
+      });
+
+      it('does not encode colons in keys', async () => {
+        const adapter = getStorageAdapter();
+
+        await adapter.setItem(
+          'TestController',
+          'tokensChainsCache:0x1',
+          'value',
+        );
+
+        expect(mockFilesystemStorage.setItem).toHaveBeenCalledWith(
+          `${STORAGE_KEY_PREFIX}TestController:tokensChainsCache:0x1`,
+          JSON.stringify('value'),
+          true,
+        );
+      });
+    });
+
+    describe('getItem', () => {
+      it('encodes hyphens in keys when retrieving', async () => {
+        mockFilesystemStorage.getItem.mockResolvedValue(JSON.stringify('data'));
+        const adapter = getStorageAdapter();
+
+        await adapter.getItem('TestController', 'simple-key');
+
+        expect(mockFilesystemStorage.getItem).toHaveBeenCalledWith(
+          `${STORAGE_KEY_PREFIX}TestController:simple%2Dkey`,
+        );
+      });
+
+      it('encodes slashes in keys when retrieving', async () => {
+        mockFilesystemStorage.getItem.mockResolvedValue(JSON.stringify('data'));
+        const adapter = getStorageAdapter();
+
+        await adapter.getItem('TestController', 'nested/path/key');
+
+        expect(mockFilesystemStorage.getItem).toHaveBeenCalledWith(
+          `${STORAGE_KEY_PREFIX}TestController:nested%2Fpath%2Fkey`,
+        );
+      });
+
+      it('encodes snap IDs with special characters', async () => {
+        mockFilesystemStorage.getItem.mockResolvedValue(
+          JSON.stringify({ sourceCode: '...' }),
+        );
+        const adapter = getStorageAdapter();
+
+        await adapter.getItem(
+          'SnapController',
+          'npm:@metamask/bip32-keyring-snap',
+        );
+
+        expect(mockFilesystemStorage.getItem).toHaveBeenCalledWith(
+          `${STORAGE_KEY_PREFIX}SnapController:npm:@metamask%2Fbip32%2Dkeyring%2Dsnap`,
+        );
+      });
+    });
+
+    describe('removeItem', () => {
+      it('encodes hyphens in keys when removing', async () => {
+        mockFilesystemStorage.removeItem.mockResolvedValue(undefined);
+        const adapter = getStorageAdapter();
+
+        await adapter.removeItem('TestController', 'simple-key');
+
+        expect(mockFilesystemStorage.removeItem).toHaveBeenCalledWith(
+          `${STORAGE_KEY_PREFIX}TestController:simple%2Dkey`,
+        );
+      });
+
+      it('encodes slashes in keys when removing', async () => {
+        mockFilesystemStorage.removeItem.mockResolvedValue(undefined);
+        const adapter = getStorageAdapter();
+
+        await adapter.removeItem('TestController', 'nested/path/key');
+
+        expect(mockFilesystemStorage.removeItem).toHaveBeenCalledWith(
+          `${STORAGE_KEY_PREFIX}TestController:nested%2Fpath%2Fkey`,
+        );
+      });
+    });
+
+    describe('getAllKeys', () => {
+      it('decodes %2D back to hyphens in returned keys', async () => {
+        mockFilesystemStorage.getAllKeys.mockResolvedValue([
+          `${STORAGE_KEY_PREFIX}TestController:simple%2Dkey`,
+        ]);
+        const adapter = getStorageAdapter();
+
+        const result = await adapter.getAllKeys('TestController');
+
+        expect(result).toStrictEqual(['simple-key']);
+      });
+
+      it('decodes %2F back to slashes in returned keys', async () => {
+        mockFilesystemStorage.getAllKeys.mockResolvedValue([
+          `${STORAGE_KEY_PREFIX}TestController:nested%2Fpath%2Fkey`,
+        ]);
+        const adapter = getStorageAdapter();
+
+        const result = await adapter.getAllKeys('TestController');
+
+        expect(result).toStrictEqual(['nested/path/key']);
+      });
+
+      it('decodes %25 back to percent signs in returned keys', async () => {
+        mockFilesystemStorage.getAllKeys.mockResolvedValue([
+          `${STORAGE_KEY_PREFIX}TestController:percent%25key`,
+        ]);
+        const adapter = getStorageAdapter();
+
+        const result = await adapter.getAllKeys('TestController');
+
+        expect(result).toStrictEqual(['percent%key']);
+      });
+
+      it('decodes mixed encoded characters in returned keys', async () => {
+        mockFilesystemStorage.getAllKeys.mockResolvedValue([
+          `${STORAGE_KEY_PREFIX}TestController:mixed%2Dkey%2Fwith%25special`,
+        ]);
+        const adapter = getStorageAdapter();
+
+        const result = await adapter.getAllKeys('TestController');
+
+        expect(result).toStrictEqual(['mixed-key/with%special']);
+      });
+
+      it('decodes snap IDs with special characters', async () => {
+        mockFilesystemStorage.getAllKeys.mockResolvedValue([
+          `${STORAGE_KEY_PREFIX}SnapController:npm:@metamask%2Fbip32%2Dkeyring%2Dsnap`,
+        ]);
+        const adapter = getStorageAdapter();
+
+        const result = await adapter.getAllKeys('SnapController');
+
+        expect(result).toStrictEqual(['npm:@metamask/bip32-keyring-snap']);
+      });
+
+      it('returns multiple decoded keys correctly', async () => {
+        mockFilesystemStorage.getAllKeys.mockResolvedValue([
+          `${STORAGE_KEY_PREFIX}TestController:simple%2Dkey`,
+          `${STORAGE_KEY_PREFIX}TestController:nested%2Fpath`,
+          `${STORAGE_KEY_PREFIX}TestController:safe_key`,
+        ]);
+        const adapter = getStorageAdapter();
+
+        const result = await adapter.getAllKeys('TestController');
+
+        expect(result).toStrictEqual(['simple-key', 'nested/path', 'safe_key']);
+      });
     });
   });
 });
