@@ -4093,6 +4093,71 @@ describe('CardHome Component', () => {
         });
         expect(mockReauthenticate).not.toHaveBeenCalled();
       });
+
+      it('tracks CARD_BUTTON_CLICKED with FREEZE_CARD_BUTTON action when freezing succeeds', async () => {
+        setupMockSelectors({ isAuthenticated: true });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          isBaanxLoginEnabled: true,
+          cardDetails: freezableCardDetails,
+          isLoading: false,
+          kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+        });
+
+        mockUseCardFreeze.mockReturnValue({
+          isFrozen: false,
+          status: { type: 'idle' },
+          toggleFreeze: mockToggleFreeze,
+        });
+
+        render();
+        mockTrackEvent.mockClear();
+        mockCreateEventBuilder.mockClear();
+        mockEventBuilder.addProperties.mockClear();
+        mockCreateEventBuilder.mockReturnValue(mockEventBuilder);
+
+        const toggle = screen.getByTestId(CardHomeSelectors.FREEZE_CARD_TOGGLE);
+        fireEvent(toggle, 'valueChange', true);
+
+        await waitFor(() => {
+          expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+        });
+        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+          'card_button_clicked',
+        );
+        expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+          action: 'FREEZE_CARD_BUTTON',
+        });
+      });
+
+      it('does not track metric when freeze toggleFreeze fails', async () => {
+        setupMockSelectors({ isAuthenticated: true });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          isBaanxLoginEnabled: true,
+          cardDetails: freezableCardDetails,
+          isLoading: false,
+          kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+        });
+
+        mockToggleFreeze.mockResolvedValueOnce(false);
+        mockUseCardFreeze.mockReturnValue({
+          isFrozen: false,
+          status: { type: 'idle' },
+          toggleFreeze: mockToggleFreeze,
+        });
+
+        render();
+        mockTrackEvent.mockClear();
+
+        const toggle = screen.getByTestId(CardHomeSelectors.FREEZE_CARD_TOGGLE);
+        fireEvent(toggle, 'valueChange', true);
+
+        await waitFor(() => {
+          expect(mockToggleFreeze).toHaveBeenCalledTimes(1);
+        });
+        expect(mockTrackEvent).not.toHaveBeenCalled();
+      });
     });
 
     describe('Unfreeze action (card is frozen)', () => {
@@ -4230,6 +4295,177 @@ describe('CardHome Component', () => {
           expect(mockReauthenticate).toHaveBeenCalledTimes(1);
         });
         expect(mockToggleFreeze).not.toHaveBeenCalled();
+      });
+
+      it('tracks CARD_BUTTON_CLICKED with UNFREEZE_CARD_BUTTON action after successful biometric unfreeze', async () => {
+        setupMockSelectors({ isAuthenticated: true });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          isBaanxLoginEnabled: true,
+          cardDetails: {
+            ...freezableCardDetails,
+            status: CardStatus.FROZEN,
+          },
+          isLoading: false,
+          kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+        });
+
+        mockReauthenticate.mockResolvedValueOnce(undefined);
+
+        render();
+        mockTrackEvent.mockClear();
+        mockCreateEventBuilder.mockClear();
+        mockEventBuilder.addProperties.mockClear();
+        mockCreateEventBuilder.mockReturnValue(mockEventBuilder);
+
+        const toggle = screen.getByTestId(CardHomeSelectors.FREEZE_CARD_TOGGLE);
+        fireEvent(toggle, 'valueChange', false);
+
+        await waitFor(() => {
+          expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+        });
+        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+          'card_button_clicked',
+        );
+        expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+          action: 'UNFREEZE_CARD_BUTTON',
+        });
+      });
+
+      it('does not track metric when biometric unfreeze fails', async () => {
+        setupMockSelectors({ isAuthenticated: true });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          isBaanxLoginEnabled: true,
+          cardDetails: {
+            ...freezableCardDetails,
+            status: CardStatus.FROZEN,
+          },
+          isLoading: false,
+          kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+        });
+
+        mockToggleFreeze.mockResolvedValueOnce(false);
+        mockReauthenticate.mockResolvedValueOnce(undefined);
+
+        render();
+        mockTrackEvent.mockClear();
+
+        const toggle = screen.getByTestId(CardHomeSelectors.FREEZE_CARD_TOGGLE);
+        fireEvent(toggle, 'valueChange', false);
+
+        await waitFor(() => {
+          expect(mockToggleFreeze).toHaveBeenCalledTimes(1);
+        });
+        expect(mockTrackEvent).not.toHaveBeenCalled();
+      });
+
+      it('tracks CARD_BUTTON_CLICKED with UNFREEZE_CARD_BUTTON action after successful password-based unfreeze', async () => {
+        setupMockSelectors({ isAuthenticated: true });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          isBaanxLoginEnabled: true,
+          cardDetails: {
+            ...freezableCardDetails,
+            status: CardStatus.FROZEN,
+          },
+          isLoading: false,
+          kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+        });
+
+        mockReauthenticate.mockRejectedValueOnce(
+          new Error(
+            'PASSWORD_NOT_SET_WITH_BIOMETRICS: Biometrics not configured',
+          ),
+        );
+
+        render();
+        mockTrackEvent.mockClear();
+        mockCreateEventBuilder.mockClear();
+        mockEventBuilder.addProperties.mockClear();
+        mockCreateEventBuilder.mockReturnValue(mockEventBuilder);
+
+        const toggle = screen.getByTestId(CardHomeSelectors.FREEZE_CARD_TOGGLE);
+        fireEvent(toggle, 'valueChange', false);
+
+        await waitFor(() => {
+          expect(mockNavigate).toHaveBeenCalledWith(
+            Routes.CARD.MODALS.ID,
+            expect.objectContaining({
+              screen: Routes.CARD.MODALS.PASSWORD,
+              params: expect.objectContaining({
+                onSuccess: expect.any(Function),
+              }),
+            }),
+          );
+        });
+
+        const navigateCall = mockNavigate.mock.calls.find(
+          (call: unknown[]) => call[0] === Routes.CARD.MODALS.ID,
+        );
+        const onSuccess = navigateCall?.[1]?.params?.onSuccess;
+        await onSuccess();
+
+        await waitFor(() => {
+          expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+        });
+        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+          'card_button_clicked',
+        );
+        expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+          action: 'UNFREEZE_CARD_BUTTON',
+        });
+      });
+
+      it('does not track metric when password-based unfreeze toggleFreeze fails', async () => {
+        setupMockSelectors({ isAuthenticated: true });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          isBaanxLoginEnabled: true,
+          cardDetails: {
+            ...freezableCardDetails,
+            status: CardStatus.FROZEN,
+          },
+          isLoading: false,
+          kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+        });
+
+        mockReauthenticate.mockRejectedValueOnce(
+          new Error(
+            'PASSWORD_NOT_SET_WITH_BIOMETRICS: Biometrics not configured',
+          ),
+        );
+
+        render();
+        mockTrackEvent.mockClear();
+
+        const toggle = screen.getByTestId(CardHomeSelectors.FREEZE_CARD_TOGGLE);
+        fireEvent(toggle, 'valueChange', false);
+
+        await waitFor(() => {
+          expect(mockNavigate).toHaveBeenCalledWith(
+            Routes.CARD.MODALS.ID,
+            expect.objectContaining({
+              screen: Routes.CARD.MODALS.PASSWORD,
+              params: expect.objectContaining({
+                onSuccess: expect.any(Function),
+              }),
+            }),
+          );
+        });
+
+        mockToggleFreeze.mockResolvedValueOnce(false);
+
+        const navigateCall = mockNavigate.mock.calls.find(
+          (call: unknown[]) => call[0] === Routes.CARD.MODALS.ID,
+        );
+        const onSuccess = navigateCall?.[1]?.params?.onSuccess;
+        await onSuccess();
+
+        await waitFor(() => {
+          expect(mockToggleFreeze).toHaveBeenCalled();
+        });
+        expect(mockTrackEvent).not.toHaveBeenCalled();
       });
     });
 
