@@ -73,6 +73,8 @@ interface CheckoutParams {
   cryptocurrency?: string;
   /** V2: the Redux provider type for this order. Defaults to AGGREGATOR. */
   providerType?: FIAT_ORDER_PROVIDERS;
+  /** Optional callback invoked on every navigation state change (e.g. to intercept redirect URLs). */
+  onNavigationStateChange?: (navState: { url: string }) => void;
 }
 
 export const createCheckoutNavDetails = createNavigationDetails<CheckoutParams>(
@@ -245,6 +247,7 @@ const Checkout = () => {
     cryptocurrency,
     userAgent,
     providerType,
+    onNavigationStateChange,
   } = params ?? {};
 
   const headerTitle = providerName ?? '';
@@ -479,7 +482,9 @@ const Checkout = () => {
           paymentRequestEnabled
           mediaPlaybackRequiresUserAction={false}
           onNavigationStateChange={
-            hasCallbackFlow ? handleNavigationStateChange : undefined
+            hasCallbackFlow
+              ? handleNavigationStateChange
+              : onNavigationStateChange
           }
           onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
           testID="checkout-webview"

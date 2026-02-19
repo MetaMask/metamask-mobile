@@ -5,6 +5,7 @@ import {
   launchMobileBrowser,
   navigateToDapp,
   refreshMobileBrowser,
+  switchToMobileBrowser,
 } from '../../framework/utils/MobileBrowser.js';
 import WalletMainScreen from '../../../wdio/screen-objects/WalletMainScreen.js';
 import BrowserPlaygroundDapp from '../../../wdio/screen-objects/BrowserPlaygroundDapp.js';
@@ -20,6 +21,8 @@ import {
   getDappUrlForBrowser,
   setupAdbReverse,
   cleanupAdbReverse,
+  waitForDappServerReady,
+  unlockIfLockScreenVisible,
 } from './utils.js';
 
 const DAPP_NAME = 'MetaMask MultiChain API Test Dapp';
@@ -41,6 +44,7 @@ test.beforeAll(async () => {
   // Set port and start the server directly (bypassing Detox-specific utilities)
   playgroundServer.setServerPort(DAPP_PORT);
   await playgroundServer.start();
+  await waitForDappServerReady(DAPP_PORT);
 
   // Set up adb reverse for Android emulator access
   setupAdbReverse(DAPP_PORT);
@@ -55,9 +59,12 @@ test.afterAll(async () => {
 test('@metamask/connect-wagmi - Connect via Wagmi to Local Browser Playground', async ({
   device,
 }) => {
-  // Get platform-specific URL
   const platform = device.getPlatform?.() || 'android';
-  const DAPP_URL = getDappUrlForBrowser(platform);
+  const useBrowserStackLocal =
+    process.env.BROWSERSTACK_LOCAL?.toLowerCase() === 'true';
+  const DAPP_URL = useBrowserStackLocal
+    ? `http://bs-local.com:${DAPP_PORT}`
+    : getDappUrlForBrowser(platform);
 
   // Initialize page objects with device
   WalletMainScreen.device = device;
@@ -102,6 +109,7 @@ test('@metamask/connect-wagmi - Connect via Wagmi to Local Browser Playground', 
   // Handle connection approval in MetaMask
   await AppwrightHelpers.withNativeAction(device, async () => {
     await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
+    await unlockIfLockScreenVisible(device);
     await DappConnectionModal.tapEditAccountsButton();
     // Select account 3 in addition to Account 1
     await DappConnectionModal.tapAccountButton('Account 3');
@@ -115,7 +123,7 @@ test('@metamask/connect-wagmi - Connect via Wagmi to Local Browser Playground', 
   });
 
   await new Promise((resolve) => setTimeout(resolve, 1000));
-  await launchMobileBrowser(device);
+  await switchToMobileBrowser(device);
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
   // ============================================================
@@ -143,7 +151,7 @@ test('@metamask/connect-wagmi - Connect via Wagmi to Local Browser Playground', 
   });
 
   await new Promise((resolve) => setTimeout(resolve, 1000));
-  await launchMobileBrowser(device);
+  await switchToMobileBrowser(device);
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
   // Verify signature result and switch to Sepolia
@@ -170,7 +178,7 @@ test('@metamask/connect-wagmi - Connect via Wagmi to Local Browser Playground', 
   });
 
   await new Promise((resolve) => setTimeout(resolve, 1000));
-  await launchMobileBrowser(device);
+  await switchToMobileBrowser(device);
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
   //
@@ -192,7 +200,7 @@ test('@metamask/connect-wagmi - Connect via Wagmi to Local Browser Playground', 
   });
 
   await new Promise((resolve) => setTimeout(resolve, 1000));
-  await launchMobileBrowser(device);
+  await switchToMobileBrowser(device);
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
   await AppwrightHelpers.withWebAction(
@@ -220,7 +228,7 @@ test('@metamask/connect-wagmi - Connect via Wagmi to Local Browser Playground', 
   });
 
   await new Promise((resolve) => setTimeout(resolve, 1000));
-  await launchMobileBrowser(device);
+  await switchToMobileBrowser(device);
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
   //
@@ -245,7 +253,7 @@ test('@metamask/connect-wagmi - Connect via Wagmi to Local Browser Playground', 
   });
 
   await new Promise((resolve) => setTimeout(resolve, 1000));
-  await launchMobileBrowser(device);
+  await switchToMobileBrowser(device);
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
   await AppwrightHelpers.withWebAction(
@@ -265,7 +273,7 @@ test('@metamask/connect-wagmi - Connect via Wagmi to Local Browser Playground', 
   });
 
   await new Promise((resolve) => setTimeout(resolve, 1000));
-  await launchMobileBrowser(device);
+  await switchToMobileBrowser(device);
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
   //
@@ -296,7 +304,7 @@ test('@metamask/connect-wagmi - Connect via Wagmi to Local Browser Playground', 
   });
 
   await new Promise((resolve) => setTimeout(resolve, 1000));
-  await launchMobileBrowser(device);
+  await switchToMobileBrowser(device);
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
   //
@@ -319,7 +327,7 @@ test('@metamask/connect-wagmi - Connect via Wagmi to Local Browser Playground', 
   });
 
   await new Promise((resolve) => setTimeout(resolve, 1000));
-  await launchMobileBrowser(device);
+  await switchToMobileBrowser(device);
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
   await AppwrightHelpers.withWebAction(
@@ -351,7 +359,7 @@ test('@metamask/connect-wagmi - Connect via Wagmi to Local Browser Playground', 
   });
 
   await new Promise((resolve) => setTimeout(resolve, 1000));
-  await launchMobileBrowser(device);
+  await switchToMobileBrowser(device);
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
   await AppwrightHelpers.withNativeAction(device, async () => {
@@ -377,7 +385,7 @@ test('@metamask/connect-wagmi - Connect via Wagmi to Local Browser Playground', 
   });
 
   await new Promise((resolve) => setTimeout(resolve, 1000));
-  await launchMobileBrowser(device);
+  await switchToMobileBrowser(device);
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
   await AppwrightHelpers.withWebAction(

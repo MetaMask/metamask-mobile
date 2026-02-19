@@ -24,6 +24,7 @@ import {
   MM_WALLETCONNECT_DEEPLINK,
 } from '../../../constants/urls';
 import AppConstants from '../../../core/AppConstants';
+import { isMetaMaskUniversalLink } from '../../../core/DeeplinkManager/util/deeplinks';
 import SharedDeeplinkManager from '../../../core/DeeplinkManager/DeeplinkManager';
 import Engine from '../../../core/Engine';
 import type { EngineContext } from '../../../core/Engine/types';
@@ -41,8 +42,8 @@ import { useTheme } from '../../../util/theme';
 import { ScanSuccess, StartScan } from '../QRTabSwitcher';
 import SDKConnectV2 from '../../../core/SDKConnectV2';
 import { ChainType } from '../confirmations/utils/send';
-import useMetrics from '../../../components/hooks/useMetrics/useMetrics';
-import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
+import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import { QRType, QRScannerEventProperties, ScanResult } from './constants';
 import { getQRType } from './utils';
 
@@ -77,7 +78,7 @@ const QRScanner = ({
 
   const theme = useTheme();
   const styles = createStyles(theme);
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const hasTrackedScannerOpened = useRef(false);
 
@@ -234,6 +235,58 @@ const QRScanner = ({
         );
 
         SDKConnectV2.handleMwpDeeplink(response.data);
+        end();
+        return;
+      }
+
+      // MetaMask universal links (metamask.app.link, link.metamask.io, etc.)
+      // must be handled in-app via DeeplinkManager, not opened externally.
+      // On iOS, calling Linking.openURL() with a universal link that belongs to
+      // the already-foregrounded app causes Safari to open instead, which then
+      // redirects to the App Store — leaving the user stuck.
+      //
+      // We intentionally use isMetaMaskUniversalLink (host-only check) rather
+      // than isInternalDeepLink here, because custom-scheme URLs (ethereum:,
+      // dapp:, metamask:) have their own dedicated handling paths below that
+      // include wallet-lock verification and URL redirect confirmation.
+      if (isMetaMaskUniversalLink(content)) {
+        shouldReadBarCodeRef.current = false;
+
+        const handledByDeeplink = await SharedDeeplinkManager.parse(content, {
+          origin: AppConstants.DEEPLINKS.ORIGIN_QR_CODE,
+          onHandled: () => {
+            const stackNavigation = navigation as {
+              pop?: (count: number) => void;
+            };
+            stackNavigation.pop?.(2);
+          },
+        });
+
+        if (handledByDeeplink) {
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.QR_SCANNED)
+              .addProperties({
+                [QRScannerEventProperties.SCAN_SUCCESS]: true,
+                [QRScannerEventProperties.QR_TYPE]: QRType.DEEPLINK,
+                [QRScannerEventProperties.SCAN_RESULT]:
+                  ScanResult.DEEPLINK_HANDLED,
+              })
+              .build(),
+          );
+          mountedRef.current = false;
+          return;
+        }
+
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.QR_SCANNED)
+            .addProperties({
+              [QRScannerEventProperties.SCAN_SUCCESS]: false,
+              [QRScannerEventProperties.QR_TYPE]: QRType.DEEPLINK,
+              [QRScannerEventProperties.SCAN_RESULT]:
+                ScanResult.UNRECOGNIZED_QR_CODE,
+            })
+            .build(),
+        );
         end();
         return;
       }

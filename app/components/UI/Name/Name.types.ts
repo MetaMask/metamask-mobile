@@ -1,3 +1,4 @@
+import { ReactNode } from 'react';
 import { ViewProps, ViewStyle } from 'react-native';
 
 /**
@@ -17,4 +18,6 @@ export interface NameProperties extends ViewProps {
   variation: string;
   style?: ViewStyle;
   maxCharLength?: number;
+  /** When provided, renders this element in place of the default icon (identicon/trust icon). */
+  iconOverride?: ReactNode;
 }
