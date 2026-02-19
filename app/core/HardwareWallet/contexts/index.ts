@@ -3,9 +3,8 @@
  */
 
 export {
-  HardwareWalletContextProvider,
+  default as HardwareWalletContext,
   useHardwareWallet,
   type HardwareWalletContextValue,
-  type HardwareWalletContextProviderProps,
   type DeviceSelectionState,
 } from './HardwareWalletContext';

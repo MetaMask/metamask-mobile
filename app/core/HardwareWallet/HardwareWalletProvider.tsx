@@ -10,8 +10,7 @@ import React, {
 } from 'react';
 
 import { DiscoveredDevice } from './types';
-import {
-  HardwareWalletContextProvider,
+import HardwareWalletContext, {
   DeviceSelectionState,
 } from './contexts/HardwareWalletContext';
 import { HardwareWalletBottomSheet } from './components';
@@ -912,7 +911,7 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
   );
 
   return (
-    <HardwareWalletContextProvider value={contextValue}>
+    <HardwareWalletContext.Provider value={contextValue}>
       {children}
       {/* Unified Hardware Wallet Bottom Sheet - handles ALL states */}
       <HardwareWalletBottomSheet
@@ -937,7 +936,7 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
           updateConnectionState({ status: ConnectionStatus.Disconnected });
         }}
       />
-    </HardwareWalletContextProvider>
+    </HardwareWalletContext.Provider>
   );
 };
 

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, ReactNode } from 'react';
+import { createContext, useContext } from 'react';
 import {
   HardwareWalletType,
   HardwareWalletConnectionState,
@@ -67,23 +67,6 @@ const HardwareWalletContext = createContext<
 
 HardwareWalletContext.displayName = 'HardwareWalletContext';
 
-export interface HardwareWalletContextProviderProps {
-  children: ReactNode;
-  value: HardwareWalletContextValue;
-}
-
-/**
- * Single provider for hardware wallet context.
- * Receives the combined value from HardwareWalletProvider.
- */
-export const HardwareWalletContextProvider: React.FC<
-  HardwareWalletContextProviderProps
-> = ({ children, value }) => (
-  <HardwareWalletContext.Provider value={value}>
-    {children}
-  </HardwareWalletContext.Provider>
-);
-
 /**
  * Hook to access the full hardware wallet context.
  *
@@ -94,7 +77,7 @@ export const useHardwareWallet = (): HardwareWalletContextValue => {
   const context = useContext(HardwareWalletContext);
   if (context === undefined) {
     throw new Error(
-      'useHardwareWallet must be used within a HardwareWalletContextProvider',
+      'useHardwareWallet must be used within a HardwareWalletProvider',
     );
   }
   return context;

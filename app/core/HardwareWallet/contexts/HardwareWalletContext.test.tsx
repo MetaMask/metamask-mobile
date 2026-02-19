@@ -1,8 +1,7 @@
 import React from 'react';
 import { Text, View, TouchableOpacity } from 'react-native';
 import { render, screen, fireEvent } from '@testing-library/react-native';
-import {
-  HardwareWalletContextProvider,
+import HardwareWalletContext, {
   useHardwareWallet,
   type HardwareWalletContextValue,
 } from './HardwareWalletContext';
@@ -42,8 +41,8 @@ const createMockValue = (
 });
 
 describe('HardwareWalletContext', () => {
-  describe('HardwareWalletContextProvider', () => {
-    it('should provide value to useHardwareWallet', () => {
+  describe('HardwareWalletContext.Provider', () => {
+    it('provides value to useHardwareWallet', () => {
       const value = createMockValue({
         walletType: HardwareWalletType.Ledger,
         deviceId: 'device-123',
@@ -65,9 +64,9 @@ describe('HardwareWalletContext', () => {
       };
 
       render(
-        <HardwareWalletContextProvider value={value}>
+        <HardwareWalletContext.Provider value={value}>
           <TestConsumer />
-        </HardwareWalletContextProvider>,
+        </HardwareWalletContext.Provider>,
       );
 
       expect(screen.getByTestId('walletType')).toHaveTextContent(
@@ -77,7 +76,7 @@ describe('HardwareWalletContext', () => {
       expect(screen.getByTestId('status')).toHaveTextContent('connected');
     });
 
-    it('should provide actions via useHardwareWallet', () => {
+    it('provides actions via useHardwareWallet', () => {
       const connectMock = jest.fn();
       const value = createMockValue({ connect: connectMock });
 
@@ -92,9 +91,9 @@ describe('HardwareWalletContext', () => {
       };
 
       render(
-        <HardwareWalletContextProvider value={value}>
+        <HardwareWalletContext.Provider value={value}>
           <TestConsumer />
-        </HardwareWalletContextProvider>,
+        </HardwareWalletContext.Provider>,
       );
 
       fireEvent.press(screen.getByTestId('connect'));
@@ -103,14 +102,14 @@ describe('HardwareWalletContext', () => {
   });
 
   describe('useHardwareWallet', () => {
-    it('should throw when used outside provider', () => {
+    it('throws when used outside provider', () => {
       const TestConsumer: React.FC = () => {
         useHardwareWallet();
         return null;
       };
 
       expect(() => render(<TestConsumer />)).toThrow(
-        'useHardwareWallet must be used within a HardwareWalletContextProvider',
+        'useHardwareWallet must be used within a HardwareWalletProvider',
       );
     });
   });
