@@ -28,6 +28,9 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
       "AddressBookController": {
         "addressBook": {},
       },
+      "AiDigestController": {
+        "marketInsights": {},
+      },
       "AnalyticsController": {
         "analyticsId": "59710bcf-06cc-4247-9386-12425e7fc905",
         "optedIn": false,
@@ -889,6 +892,9 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       },
       "AddressBookController": {
         "addressBook": {},
+      },
+      "AiDigestController": {
+        "marketInsights": {},
       },
       "AnalyticsController": {
         "analyticsId": "59710bcf-06cc-4247-9386-12425e7fc905",

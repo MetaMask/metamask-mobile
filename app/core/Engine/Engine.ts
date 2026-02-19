@@ -176,6 +176,7 @@ import { profileMetricsControllerInit } from './controllers/profile-metrics-cont
 import { profileMetricsServiceInit } from './controllers/profile-metrics-service-init';
 import { rampsServiceInit } from './controllers/ramps-controller/ramps-service-init';
 import { rampsControllerInit } from './controllers/ramps-controller/ramps-controller-init';
+import { aiDigestControllerInit } from './controllers/ai-digest-controller-init';
 import { transakServiceInit } from './controllers/ramps-controller/transak-service-init';
 
 // TODO: Replace "any" with type
@@ -369,6 +370,7 @@ export class Engine {
         RampsService: rampsServiceInit,
         TransakService: transakServiceInit,
         RampsController: rampsControllerInit,
+        AiDigestController: aiDigestControllerInit,
       },
       persistedState: initialState as EngineState,
       baseControllerMessenger: this.controllerMessenger,
@@ -408,6 +410,7 @@ export class Engine {
     const rampsService = controllersByName.RampsService;
     const transakService = controllersByName.TransakService;
     const rampsController = controllersByName.RampsController;
+    const aiDigestController = controllersByName.AiDigestController;
 
     // Backwards compatibility for existing references
     this.accountsController = accountsController;
@@ -565,6 +568,7 @@ export class Engine {
       RampsService: rampsService,
       TransakService: transakService,
       RampsController: rampsController,
+      AiDigestController: aiDigestController,
     };
 
     const childControllers = Object.assign({}, this.context);
@@ -1320,6 +1324,7 @@ export default {
       TransactionController,
       TransactionPayController,
       RampsController,
+      AiDigestController,
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       AuthenticationController,
       CronjobController,
@@ -1388,6 +1393,7 @@ export default {
       TransactionController: TransactionController.state,
       TransactionPayController: TransactionPayController.state,
       RampsController: RampsController.state,
+      AiDigestController: AiDigestController.state,
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       AuthenticationController: AuthenticationController.state,
       CronjobController: CronjobController.state,
