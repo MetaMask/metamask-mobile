@@ -22,9 +22,7 @@ export function useInsufficientPredictBalanceAlert({
   const { amountPrecise } = useTokenAmount();
   const amountHuman = pendingAmount ?? amountPrecise ?? '0';
 
-  const { balance: predictBalanceHuman } = usePredictBalance({
-    loadOnMount: true,
-  });
+  const { data: predictBalanceHuman = 0 } = usePredictBalance();
 
   const isPredictWithdraw = hasTransactionType(transactionMeta, [
     TransactionType.predictWithdraw,
