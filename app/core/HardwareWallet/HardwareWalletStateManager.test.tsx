@@ -32,7 +32,7 @@ describe('useHardwareWalletStateManager', () => {
   });
 
   describe('initial state', () => {
-    it('should return disconnected connection state', () => {
+    it('returns disconnected connection state', () => {
       const { result } = renderHook(() => useHardwareWalletStateManager());
 
       expect(result.current.state.connectionState.status).toBe(
@@ -40,13 +40,13 @@ describe('useHardwareWalletStateManager', () => {
       );
     });
 
-    it('should return null deviceId', () => {
+    it('returns null deviceId', () => {
       const { result } = renderHook(() => useHardwareWalletStateManager());
 
       expect(result.current.state.deviceId).toBeNull();
     });
 
-    it('should return null walletType for non-hardware accounts', () => {
+    it('returns null walletType for non-hardware accounts', () => {
       const { result } = renderHook(() => useHardwareWalletStateManager());
 
       expect(result.current.state.walletType).toBeNull();
@@ -54,7 +54,7 @@ describe('useHardwareWalletStateManager', () => {
   });
 
   describe('wallet type detection', () => {
-    it('should detect Ledger wallet type from selected account', () => {
+    it('detects Ledger wallet type from selected account', () => {
       const mockAccount = {
         address: '0x1234567890abcdef',
       };
@@ -69,7 +69,7 @@ describe('useHardwareWalletStateManager', () => {
       );
     });
 
-    it('should detect QR wallet type from selected account', () => {
+    it('detects QR wallet type from selected account', () => {
       const mockAccount = {
         address: '0xqrwalletaddress',
       };
@@ -81,7 +81,7 @@ describe('useHardwareWalletStateManager', () => {
       expect(result.current.state.walletType).toBe(HardwareWalletType.Qr);
     });
 
-    it('should return null for non-hardware accounts', () => {
+    it('returns null for non-hardware accounts', () => {
       const mockAccount = {
         address: '0xsoftwarewalletaddress',
       };
@@ -93,7 +93,7 @@ describe('useHardwareWalletStateManager', () => {
       expect(result.current.state.walletType).toBeNull();
     });
 
-    it('should handle no selected account', () => {
+    it('handles no selected account', () => {
       mockUseSelector.mockReturnValue(null);
 
       const { result } = renderHook(() => useHardwareWalletStateManager());
@@ -105,7 +105,7 @@ describe('useHardwareWalletStateManager', () => {
 
   describe('setters', () => {
     describe('setConnectionState', () => {
-      it('should update connection state', () => {
+      it('updates connection state', () => {
         const { result } = renderHook(() => useHardwareWalletStateManager());
 
         act(() => {
@@ -119,7 +119,7 @@ describe('useHardwareWalletStateManager', () => {
         );
       });
 
-      it('should accept function updater', () => {
+      it('accepts function updater', () => {
         const { result } = renderHook(() => useHardwareWalletStateManager());
 
         act(() => {
@@ -138,7 +138,7 @@ describe('useHardwareWalletStateManager', () => {
     });
 
     describe('setDeviceId', () => {
-      it('should update device ID', () => {
+      it('updates device ID', () => {
         const { result } = renderHook(() => useHardwareWalletStateManager());
 
         act(() => {
@@ -148,7 +148,7 @@ describe('useHardwareWalletStateManager', () => {
         expect(result.current.state.deviceId).toBe('my-device-id');
       });
 
-      it('should allow clearing device ID', () => {
+      it('allows clearing device ID', () => {
         const { result } = renderHook(() => useHardwareWalletStateManager());
 
         act(() => {
@@ -164,28 +164,28 @@ describe('useHardwareWalletStateManager', () => {
   });
 
   describe('refs', () => {
-    it('should provide adapter ref', () => {
+    it('provides adapter ref', () => {
       const { result } = renderHook(() => useHardwareWalletStateManager());
 
       expect(result.current.refs.adapterRef).toBeDefined();
       expect(result.current.refs.adapterRef.current).toBeNull();
     });
 
-    it('should provide isConnecting ref', () => {
+    it('provides isConnecting ref', () => {
       const { result } = renderHook(() => useHardwareWalletStateManager());
 
       expect(result.current.refs.isConnectingRef).toBeDefined();
       expect(result.current.refs.isConnectingRef.current).toBe(false);
     });
 
-    it('should provide abortController ref', () => {
+    it('provides abortController ref', () => {
       const { result } = renderHook(() => useHardwareWalletStateManager());
 
       expect(result.current.refs.abortControllerRef).toBeDefined();
       expect(result.current.refs.abortControllerRef.current).toBeNull();
     });
 
-    it('should allow mutating refs', () => {
+    it('allows mutating refs', () => {
       const { result } = renderHook(() => useHardwareWalletStateManager());
 
       act(() => {
@@ -197,7 +197,7 @@ describe('useHardwareWalletStateManager', () => {
   });
 
   describe('resetState', () => {
-    it('should reset connection state to disconnected', () => {
+    it('resets connection state to disconnected', () => {
       const { result } = renderHook(() => useHardwareWalletStateManager());
 
       // Set some state first
@@ -219,7 +219,7 @@ describe('useHardwareWalletStateManager', () => {
       );
     });
 
-    it('should reset device ID', () => {
+    it('resets device ID', () => {
       const { result } = renderHook(() => useHardwareWalletStateManager());
 
       act(() => {
@@ -232,7 +232,7 @@ describe('useHardwareWalletStateManager', () => {
       expect(result.current.state.deviceId).toBeNull();
     });
 
-    it('should reset refs', () => {
+    it('resets refs', () => {
       const { result } = renderHook(() => useHardwareWalletStateManager());
 
       act(() => {
@@ -249,7 +249,7 @@ describe('useHardwareWalletStateManager', () => {
   });
 
   describe('memoization', () => {
-    it('should memoize state object', () => {
+    it('memoizes state object', () => {
       const { result, rerender } = renderHook(() =>
         useHardwareWalletStateManager(),
       );
@@ -262,7 +262,7 @@ describe('useHardwareWalletStateManager', () => {
       expect(state1).toBe(state2);
     });
 
-    it('should memoize refs object', () => {
+    it('memoizes refs object', () => {
       const { result, rerender } = renderHook(() =>
         useHardwareWalletStateManager(),
       );
@@ -274,7 +274,7 @@ describe('useHardwareWalletStateManager', () => {
       expect(refs1).toBe(refs2);
     });
 
-    it('should memoize setters object', () => {
+    it('memoizes setters object', () => {
       const { result, rerender } = renderHook(() =>
         useHardwareWalletStateManager(),
       );
@@ -286,7 +286,7 @@ describe('useHardwareWalletStateManager', () => {
       expect(setters1).toBe(setters2);
     });
 
-    it('should return new state object when state changes', () => {
+    it('returns new state object when state changes', () => {
       const { result } = renderHook(() => useHardwareWalletStateManager());
 
       const state1 = result.current.state;

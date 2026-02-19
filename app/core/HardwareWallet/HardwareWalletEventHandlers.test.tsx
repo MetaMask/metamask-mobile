@@ -118,7 +118,7 @@ describe('useDeviceEventHandlers', () => {
     );
 
   describe('updateConnectionState', () => {
-    it('should update connection state', () => {
+    it('updates connection state', () => {
       const { result } = createHook();
 
       act(() => {
@@ -131,7 +131,7 @@ describe('useDeviceEventHandlers', () => {
       expect(lastConnectionState.status).toBe(ConnectionStatus.Connecting);
     });
 
-    it('should not update if status is the same (non-error)', () => {
+    it('skips update if status is the same (non-error)', () => {
       lastConnectionState = { status: ConnectionStatus.Connecting };
       const { result } = createHook();
 
@@ -146,7 +146,7 @@ describe('useDeviceEventHandlers', () => {
       // Since we return prev in that case, lastConnectionState is unchanged
     });
 
-    it('should always update error states', () => {
+    it('always updates error states', () => {
       const error1 = new HardwareWalletError('Error 1', {
         code: ErrorCode.Unknown,
         severity: Severity.Err,
@@ -181,7 +181,7 @@ describe('useDeviceEventHandlers', () => {
   });
 
   describe('handleError', () => {
-    it('should handle HardwareWalletError', () => {
+    it('handles HardwareWalletError', () => {
       const { result } = createHook();
       const hwError = new HardwareWalletError('Test error', {
         code: ErrorCode.Unknown,
@@ -198,7 +198,7 @@ describe('useDeviceEventHandlers', () => {
       expect(mockRefs.isConnectingRef.current).toBe(false);
     });
 
-    it('should handle generic Error', () => {
+    it('handles generic Error', () => {
       const { result } = createHook();
       const error = new Error('Generic error');
 
@@ -209,7 +209,7 @@ describe('useDeviceEventHandlers', () => {
       expect(lastConnectionState.status).toBe(ConnectionStatus.ErrorState);
     });
 
-    it('should handle string error', () => {
+    it('handles string error', () => {
       const { result } = createHook();
 
       act(() => {
@@ -219,7 +219,7 @@ describe('useDeviceEventHandlers', () => {
       expect(lastConnectionState.status).toBe(ConnectionStatus.ErrorState);
     });
 
-    it('should reset isConnecting flag', () => {
+    it('resets isConnecting flag', () => {
       mockRefs.isConnectingRef.current = true;
       const { result } = createHook();
 
@@ -232,7 +232,7 @@ describe('useDeviceEventHandlers', () => {
   });
 
   describe('clearError', () => {
-    it('should clear error state and return to disconnected', () => {
+    it('clears error state and returns to disconnected', () => {
       const error = new HardwareWalletError('Test', {
         code: ErrorCode.Unknown,
         severity: Severity.Err,
@@ -250,7 +250,7 @@ describe('useDeviceEventHandlers', () => {
       expect(lastConnectionState.status).toBe(ConnectionStatus.Disconnected);
     });
 
-    it('should not change non-error states', () => {
+    it('does not change non-error states', () => {
       lastConnectionState = {
         status: ConnectionStatus.Connected,
         deviceId: 'device-123',
@@ -268,7 +268,7 @@ describe('useDeviceEventHandlers', () => {
 
   describe('handleDeviceEvent', () => {
     describe('Connected event', () => {
-      it('should update to connected state', () => {
+      it('updates to connected state', () => {
         const { result } = createHook();
 
         act(() => {
@@ -283,7 +283,7 @@ describe('useDeviceEventHandlers', () => {
         expect(mockRefs.isConnectingRef.current).toBe(false);
       });
 
-      it('should handle missing deviceId', () => {
+      it('falls back to adapter deviceId when payload has none', () => {
         const { result } = createHook();
 
         act(() => {
@@ -292,13 +292,14 @@ describe('useDeviceEventHandlers', () => {
           });
         });
 
-        // Should not set deviceId if not provided
-        expect(mockSetters.setDeviceId).not.toHaveBeenCalled();
+        expect(mockSetters.setDeviceId).toHaveBeenCalledWith('device-123');
+        expect(lastConnectionState.status).toBe(ConnectionStatus.Connected);
+        expect(mockRefs.isConnectingRef.current).toBe(false);
       });
     });
 
     describe('Disconnected event', () => {
-      it('should update to disconnected state', () => {
+      it('updates to disconnected state', () => {
         lastConnectionState = {
           status: ConnectionStatus.Connected,
           deviceId: 'device-123',
@@ -317,7 +318,7 @@ describe('useDeviceEventHandlers', () => {
     });
 
     describe('AppOpened event', () => {
-      it('should update to connected state', () => {
+      it('updates to connected state', () => {
         lastConnectionState = {
           status: ConnectionStatus.AwaitingApp,
           deviceId: 'device-123',
@@ -336,7 +337,7 @@ describe('useDeviceEventHandlers', () => {
     });
 
     describe('AppClosed event', () => {
-      it('should update to awaiting app state', () => {
+      it('updates to awaiting app state', () => {
         lastConnectionState = {
           status: ConnectionStatus.Connected,
           deviceId: 'device-123',
@@ -359,7 +360,7 @@ describe('useDeviceEventHandlers', () => {
     });
 
     describe('DeviceLocked event', () => {
-      it('should handle with provided error', () => {
+      it('handles with provided error', () => {
         const { result } = createHook();
         const error = new Error('Device locked');
 
@@ -373,7 +374,7 @@ describe('useDeviceEventHandlers', () => {
         expect(lastConnectionState.status).toBe(ConnectionStatus.ErrorState);
       });
 
-      it('should create error if not provided', () => {
+      it('creates error if not provided', () => {
         const { result } = createHook();
 
         act(() => {
@@ -384,10 +385,23 @@ describe('useDeviceEventHandlers', () => {
 
         expect(lastConnectionState.status).toBe(ConnectionStatus.ErrorState);
       });
+
+      it('resets isConnecting flag regardless of error presence', () => {
+        mockRefs.isConnectingRef.current = true;
+        const { result } = createHook();
+
+        act(() => {
+          result.current.handleDeviceEvent({
+            event: DeviceEvent.DeviceLocked,
+          });
+        });
+
+        expect(mockRefs.isConnectingRef.current).toBe(false);
+      });
     });
 
     describe('ConfirmationRequired event', () => {
-      it('should update to awaiting confirmation state', () => {
+      it('updates to awaiting confirmation state', () => {
         lastConnectionState = {
           status: ConnectionStatus.Connected,
           deviceId: 'device-123',
@@ -407,7 +421,7 @@ describe('useDeviceEventHandlers', () => {
     });
 
     describe('ConfirmationReceived event', () => {
-      it('should return to connected state', () => {
+      it('returns to connected state', () => {
         lastConnectionState = {
           status: ConnectionStatus.AwaitingConfirmation,
           deviceId: 'device-123',
@@ -425,7 +439,7 @@ describe('useDeviceEventHandlers', () => {
     });
 
     describe('ConfirmationRejected event', () => {
-      it('should handle error if provided', () => {
+      it('handles error if provided', () => {
         const { result } = createHook();
         const error = new Error('User rejected');
 
@@ -439,7 +453,7 @@ describe('useDeviceEventHandlers', () => {
         expect(lastConnectionState.status).toBe(ConnectionStatus.ErrorState);
       });
 
-      it('should not change state if no error', () => {
+      it('does not change state if no error', () => {
         lastConnectionState = {
           status: ConnectionStatus.AwaitingConfirmation,
           deviceId: 'device-123',
@@ -460,7 +474,7 @@ describe('useDeviceEventHandlers', () => {
     });
 
     describe('ConnectionFailed event', () => {
-      it('should handle error', () => {
+      it('handles error', () => {
         const { result } = createHook();
         const error = new Error('Connection failed');
 
@@ -477,7 +491,7 @@ describe('useDeviceEventHandlers', () => {
     });
 
     describe('OperationTimeout event', () => {
-      it('should handle error', () => {
+      it('handles error', () => {
         const { result } = createHook();
         const error = new Error('Operation timed out');
 
@@ -494,7 +508,7 @@ describe('useDeviceEventHandlers', () => {
   });
 
   describe('with null walletType', () => {
-    it('should default to Ledger for error handling', () => {
+    it('defaults to Ledger for error handling', () => {
       const { result } = createHook(null);
 
       act(() => {
@@ -507,7 +521,7 @@ describe('useDeviceEventHandlers', () => {
   });
 
   describe('with null adapter', () => {
-    it('should handle events gracefully', () => {
+    it('handles events gracefully', () => {
       mockRefs.adapterRef.current = null;
       const { result } = createHook();
 
@@ -524,7 +538,7 @@ describe('useDeviceEventHandlers', () => {
   });
 
   describe('unknown device events', () => {
-    it('should handle unknown event types gracefully', () => {
+    it('handles unknown event types gracefully', () => {
       lastConnectionState = {
         status: ConnectionStatus.Connected,
         deviceId: 'device-123',
@@ -549,7 +563,7 @@ describe('useDeviceEventHandlers', () => {
       consoleWarnSpy.mockRestore();
     });
 
-    it('should not crash on malformed event payload', () => {
+    it('does not crash on malformed event payload', () => {
       lastConnectionState = { status: ConnectionStatus.Disconnected };
       const { result } = createHook();
 
@@ -565,7 +579,7 @@ describe('useDeviceEventHandlers', () => {
   });
 
   describe('OperationTimeout without error', () => {
-    it('should not change state when no error provided', () => {
+    it('does not change state when no error provided', () => {
       lastConnectionState = {
         status: ConnectionStatus.Connected,
         deviceId: 'device-123',
@@ -585,7 +599,7 @@ describe('useDeviceEventHandlers', () => {
   });
 
   describe('ConnectionFailed without error', () => {
-    it('should still reset isConnecting flag', () => {
+    it('still resets isConnecting flag', () => {
       mockRefs.isConnectingRef.current = true;
       const { result } = createHook();
 

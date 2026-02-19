@@ -85,16 +85,21 @@ export const useDeviceEventHandlers = ({
   const handleDeviceEvent = useCallback(
     (payload: DeviceEventPayload) => {
       switch (payload.event) {
-        case DeviceEvent.Connected:
-          if (payload.deviceId) {
-            setters.setDeviceId(payload.deviceId);
-            updateConnectionState({
-              status: ConnectionStatus.Connected,
-              deviceId: payload.deviceId,
-            });
+        case DeviceEvent.Connected: {
+          const connectedDeviceId =
+            payload.deviceId ??
+            refs.adapterRef.current?.getConnectedDeviceId() ??
+            '';
+          if (connectedDeviceId) {
+            setters.setDeviceId(connectedDeviceId);
           }
+          updateConnectionState({
+            status: ConnectionStatus.Connected,
+            deviceId: connectedDeviceId,
+          });
           refs.isConnectingRef.current = false;
           break;
+        }
 
         case DeviceEvent.Disconnected:
           updateConnectionState({ status: ConnectionStatus.Disconnected });
@@ -132,6 +137,7 @@ export const useDeviceEventHandlers = ({
               error: lockedError,
             });
           }
+          refs.isConnectingRef.current = false;
           break;
 
         case DeviceEvent.ConfirmationRequired:
