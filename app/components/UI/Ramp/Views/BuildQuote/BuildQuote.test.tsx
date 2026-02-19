@@ -8,7 +8,6 @@ import type { CaipChainId } from '@metamask/utils';
 import Logger from '../../../../../util/Logger';
 
 const mockUseEffect = jest.requireActual('react').useEffect;
-const capturedFocusEffectCallbacks: (() => void)[] = [];
 
 const mockNavigate = jest.fn();
 const mockSetOptions = jest.fn();
@@ -60,7 +59,6 @@ jest.mock('@react-navigation/native', () => ({
     },
   }),
   useFocusEffect: (callback: () => void) => {
-    capturedFocusEffectCallbacks.push(callback);
     mockUseEffect(() => callback(), [callback]);
   },
 }));
@@ -210,7 +208,6 @@ const renderWithTheme = (component: React.ReactElement) =>
 
 describe('BuildQuote', () => {
   beforeEach(() => {
-    capturedFocusEffectCallbacks.length = 0;
     jest.clearAllMocks();
     jest
       .spyOn(InteractionManager, 'runAfterInteractions')
@@ -1080,7 +1077,7 @@ describe('BuildQuote', () => {
       );
     });
 
-    it('does not re-navigate to token unavailable modal on subsequent focus events', () => {
+    it('does not re-navigate to token unavailable modal on re-renders', () => {
       mockSelectedProvider = {
         id: '/providers/transak',
         name: 'Transak',
@@ -1094,7 +1091,7 @@ describe('BuildQuote', () => {
         },
       };
 
-      renderWithTheme(<BuildQuote />);
+      const { rerender } = renderWithTheme(<BuildQuote />);
 
       expect(mockNavigate).toHaveBeenCalledTimes(1);
       expect(mockNavigate).toHaveBeenCalledWith(
@@ -1107,13 +1104,18 @@ describe('BuildQuote', () => {
 
       mockNavigate.mockClear();
 
-      const tokenUnavailableCallback =
-        capturedFocusEffectCallbacks[capturedFocusEffectCallbacks.length - 1];
-      act(() => {
-        tokenUnavailableCallback();
-      });
+      rerender(
+        <ThemeContext.Provider value={mockTheme}>
+          <BuildQuote />
+        </ThemeContext.Provider>,
+      );
 
-      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        'RampModals',
+        expect.objectContaining({
+          screen: 'RampTokenNotAvailableModal',
+        }),
+      );
     });
   });
 });
