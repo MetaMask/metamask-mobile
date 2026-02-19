@@ -46,21 +46,16 @@ const logSnapProxyToConsole = (message: string) => {
   console.log(`[SNAP_PROXY] ${message}`);
 };
 
-const isSnapDependencyUrl = (url: string): boolean => {
+const isTrackableSnapApiUrl = (url: string): boolean => {
   try {
-    const hostname = new URL(url).hostname.toLowerCase();
-    return (
-      hostname.endsWith('.infura.io') &&
-      (hostname.startsWith('solana-') ||
-        hostname.startsWith('bitcoin-') ||
-        hostname.startsWith('tron-'))
-    );
+    const protocol = new URL(url).protocol.toLowerCase();
+    return protocol === 'http:' || protocol === 'https:';
   } catch {
     return false;
   }
 };
 
-const maybeLogSnapInfuraProxyRequest = (
+const maybeLogSnapProxyApiRequest = (
   method: string,
   url: string,
   source: 'mocked' | 'passthrough',
@@ -295,9 +290,8 @@ export default class MockServerE2E implements Resource {
           }
           const isSnapWebViewProxyRequest =
             requestUrl.searchParams.get('source') === SNAP_WEBVIEW_PROXY_SOURCE;
-          const isSnapDependencyRequest = isSnapDependencyUrl(urlEndpoint);
           const shouldTrackSnapRequest =
-            isSnapWebViewProxyRequest || isSnapDependencyRequest;
+            isSnapWebViewProxyRequest && isTrackableSnapApiUrl(urlEndpoint);
 
           const method = request.method;
 
@@ -350,7 +344,7 @@ export default class MockServerE2E implements Resource {
             if (shouldTrackSnapRequest) {
               this._recordSnapProxyRequest(method, urlEndpoint, 'mocked');
             }
-            maybeLogSnapInfuraProxyRequest(
+            maybeLogSnapProxyApiRequest(
               method,
               urlEndpoint,
               'mocked',
@@ -392,13 +386,12 @@ export default class MockServerE2E implements Resource {
 
           // Translate fallback ports to actual allocated ports (host-side forwarding)
           updatedUrl = translateFallbackPortToActual(updatedUrl);
-          const isSnapDependencyForwardedRequest = isSnapDependencyUrl(updatedUrl);
           const shouldTrackForwardedSnapRequest =
-            isSnapWebViewProxyRequest || isSnapDependencyForwardedRequest;
+            isSnapWebViewProxyRequest && isTrackableSnapApiUrl(updatedUrl);
           if (shouldTrackForwardedSnapRequest) {
             this._recordSnapProxyRequest(method, updatedUrl, 'passthrough');
           }
-          maybeLogSnapInfuraProxyRequest(
+          maybeLogSnapProxyApiRequest(
             method,
             updatedUrl,
             'passthrough',
@@ -466,19 +459,30 @@ export default class MockServerE2E implements Resource {
 
         // Translate fallback ports to actual allocated ports (host-side forwarding)
         const translatedUrl = translateFallbackPortToActual(request.url);
-        const shouldTrackSnapRequest = isSnapDependencyUrl(translatedUrl);
-        if (shouldTrackSnapRequest) {
+        const translatedRequestUrl = new URL(request.url);
+        const proxiedUrl = translatedRequestUrl.searchParams.get('url');
+        const isSnapWebViewProxyRequest =
+          translatedRequestUrl.searchParams.get('source') ===
+          SNAP_WEBVIEW_PROXY_SOURCE;
+        const trackableProxiedUrl =
+          isSnapWebViewProxyRequest &&
+          proxiedUrl &&
+          isTrackableSnapApiUrl(proxiedUrl)
+            ? proxiedUrl
+            : null;
+
+        if (trackableProxiedUrl) {
           this._recordSnapProxyRequest(
             request.method,
-            translatedUrl,
+            trackableProxiedUrl,
             'passthrough',
           );
         }
-        maybeLogSnapInfuraProxyRequest(
+        maybeLogSnapProxyApiRequest(
           request.method,
-          translatedUrl,
+          trackableProxiedUrl || translatedUrl,
           'passthrough',
-          shouldTrackSnapRequest,
+          Boolean(trackableProxiedUrl),
         );
         if (!isUrlAllowed(translatedUrl)) {
           const errorMessage = `Request going to live server: ${translatedUrl}`;
@@ -744,7 +748,7 @@ export default class MockServerE2E implements Resource {
       .join('\n');
 
     logSnapProxyToConsole(
-      `Snap WebView proxied requests: ${this._snapProxyRequests.length} total (${groupedRequests.size} unique)\n${summary}`,
+      `Snap WebView proxied API calls: ${this._snapProxyRequests.length} total (${groupedRequests.size} unique)\n${summary}`,
     );
   }
 
