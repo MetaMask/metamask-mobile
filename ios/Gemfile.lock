@@ -301,7 +301,7 @@ DEPENDENCIES
   fastlane (>= 2.220.0)
 
 RUBY VERSION
-   ruby 3.2.9
+   ruby 3.2
 
 BUNDLED WITH
    2.5.8
