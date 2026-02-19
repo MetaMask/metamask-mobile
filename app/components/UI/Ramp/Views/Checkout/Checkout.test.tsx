@@ -286,6 +286,197 @@ describe('Checkout', () => {
       expect(mockGetOrderFromCallback).not.toHaveBeenCalled();
     });
 
+    it('handles callback with empty query params by closing the screen', async () => {
+      const callbackUrlNoParams = MOCK_CALLBACK_BASE_URL;
+
+      const { getByTestId } = renderV2Checkout();
+      const webview = getByTestId('checkout-webview');
+
+      await act(async () => {
+        fireEvent(webview, 'onNavigationStateChange', {
+          url: callbackUrlNoParams,
+          loading: false,
+        });
+      });
+
+      expect(mockDangerouslyGetParent).toHaveBeenCalled();
+    });
+
+    it('handles callback error when getOrderFromCallback returns null', async () => {
+      mockGetOrderFromCallback.mockResolvedValue(null);
+
+      const { getByTestId, getByText } = renderV2Checkout();
+      const webview = getByTestId('checkout-webview');
+
+      await act(async () => {
+        fireEvent(webview, 'onNavigationStateChange', {
+          url: CALLBACK_URL,
+          loading: false,
+        });
+      });
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(
+        getByText('Order could not be retrieved from callback'),
+      ).toBeOnTheScreen();
+    });
+
+    it('handles callback error when order has no ID', async () => {
+      mockGetOrderFromCallback.mockResolvedValue({
+        status: 'PENDING',
+        id: null,
+        providerOrderId: null,
+      });
+
+      const { getByTestId, getByText } = renderV2Checkout();
+      const webview = getByTestId('checkout-webview');
+
+      await act(async () => {
+        fireEvent(webview, 'onNavigationStateChange', {
+          url: CALLBACK_URL,
+          loading: false,
+        });
+      });
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(
+        getByText('Order response did not contain an order ID'),
+      ).toBeOnTheScreen();
+    });
+
+    it('successfully creates order from callback with customOrderId', async () => {
+      const mockOrder = {
+        id: 'order-123',
+        providerOrderId: 'provider-123',
+        status: 'PENDING',
+        fiatAmount: 100,
+        cryptoAmount: 0.05,
+        totalFeesFiat: 5,
+        provider: { id: 'transak', name: 'Transak', links: [] },
+        fiatCurrency: { symbol: 'USD', decimals: 2, denomSymbol: '$' },
+        cryptoCurrency: { symbol: 'ETH', decimals: 18 },
+        createdAt: Date.now(),
+        walletAddress: '0xabc',
+        network: '1',
+        excludeFromPurchases: false,
+        orderType: 'BUY',
+      };
+
+      mockGetOrderFromCallback.mockResolvedValue(mockOrder);
+
+      getUseParamsMock().mockReturnValue({
+        ...V2_PARAMS,
+        customOrderId: 'custom-123',
+      });
+
+      const { getByTestId } = renderCheckout();
+      const webview = getByTestId('checkout-webview');
+
+      await act(async () => {
+        fireEvent(webview, 'onNavigationStateChange', {
+          url: CALLBACK_URL,
+          loading: false,
+        });
+      });
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'FIAT_REMOVE_CUSTOM_ID_DATA' }),
+      );
+      expect(mockDangerouslyGetParent).toHaveBeenCalled();
+    });
+
+    it('uses customOrderId as fallback when order IDs are missing', async () => {
+      const mockOrder = {
+        id: null,
+        providerOrderId: null,
+        status: 'PENDING',
+        fiatAmount: 100,
+        cryptoAmount: 0.05,
+        totalFeesFiat: 5,
+        createdAt: Date.now(),
+        walletAddress: '0xabc',
+        network: '1',
+        excludeFromPurchases: false,
+        orderType: 'BUY',
+      };
+
+      mockGetOrderFromCallback.mockResolvedValue(mockOrder);
+
+      getUseParamsMock().mockReturnValue({
+        ...V2_PARAMS,
+        customOrderId: 'custom-fallback-123',
+      });
+
+      const { getByTestId } = renderCheckout();
+      const webview = getByTestId('checkout-webview');
+
+      await act(async () => {
+        fireEvent(webview, 'onNavigationStateChange', {
+          url: CALLBACK_URL,
+          loading: false,
+        });
+      });
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(mockDangerouslyGetParent).toHaveBeenCalled();
+    });
+
+    it('does not process callback twice when already handled', async () => {
+      const mockOrder = {
+        id: 'order-123',
+        providerOrderId: 'provider-123',
+        status: 'PENDING',
+        fiatAmount: 100,
+        cryptoAmount: 0.05,
+        totalFeesFiat: 5,
+        createdAt: Date.now(),
+        walletAddress: '0xabc',
+        network: '1',
+        excludeFromPurchases: false,
+        orderType: 'BUY',
+      };
+
+      mockGetOrderFromCallback.mockResolvedValue(mockOrder);
+
+      const { getByTestId } = renderV2Checkout();
+      const webview = getByTestId('checkout-webview');
+
+      await act(async () => {
+        fireEvent(webview, 'onNavigationStateChange', {
+          url: CALLBACK_URL,
+          loading: false,
+        });
+      });
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      mockGetOrderFromCallback.mockClear();
+
+      await act(async () => {
+        fireEvent(webview, 'onNavigationStateChange', {
+          url: CALLBACK_URL,
+          loading: false,
+        });
+      });
+
+      expect(mockGetOrderFromCallback).not.toHaveBeenCalled();
+    });
+
     it('ignores navigation state changes to non-callback URLs', async () => {
       const { getByTestId } = renderV2Checkout();
       const webview = getByTestId('checkout-webview');
