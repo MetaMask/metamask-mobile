@@ -35,7 +35,7 @@ import {
   getNonEvmNetworkImageSourceByChainId,
 } from '../../../../../util/networks/customNetworks';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
-import { formatMarketStats } from './utils';
+import { formatMarketStats, getPriceChangeFieldKey } from './utils';
 import { formatPriceWithSubscriptNotation } from '../../../Predict/utils/format';
 import { TimeOption, PriceChangeOption } from '../TrendingTokensBottomSheet';
 import { selectNetworkConfigurationsByCaipChainId } from '../../../../../selectors/networkController';
@@ -124,26 +124,6 @@ const getPriceChangePrefix = (
 ): string => {
   if (priceChange === 0) return '';
   return isPositive ? '+' : '-';
-};
-
-/**
- * Maps TimeOption to the corresponding priceChangePct field key
- */
-export const getPriceChangeFieldKey = (
-  timeOption: TimeOption,
-): 'h24' | 'h6' | 'h1' | 'm5' => {
-  switch (timeOption) {
-    case TimeOption.TwentyFourHours:
-      return 'h24';
-    case TimeOption.SixHours:
-      return 'h6';
-    case TimeOption.OneHour:
-      return 'h1';
-    case TimeOption.FiveMinutes:
-      return 'm5';
-    default:
-      return 'h24';
-  }
 };
 
 interface TrendingTokenRowItemProps {

@@ -57,7 +57,8 @@ import HeaderCollapsibleStandard, {
   useHeaderCollapsible,
 } from '../../../../../component-library/components-temp/HeaderCollapsibleStandard';
 import type { PerpsNavigationParamList } from '../../types/navigation';
-import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import styleSheet from './PerpsHomeView.styles';
 import { TraceName } from '../../../../../util/trace';
 import {
@@ -79,7 +80,7 @@ const PerpsHomeView = () => {
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const route =
     useRoute<RouteProp<PerpsNavigationParamList, 'PerpsMarketListView'>>();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   // Feature flag for feedback button
   const isFeedbackEnabled = useSelector(selectPerpsFeedbackEnabledFlag);

@@ -12,7 +12,7 @@ import {
 } from '../../../../../core/redux/slices/bridge';
 import { Hex } from '@metamask/utils';
 import BridgeView from '.';
-import type { BridgeRouteParams } from './index';
+import type { BridgeRouteParams } from '../../hooks/useSwapBridgeNavigation';
 import { createBridgeTestState } from '../../testUtils';
 import { RequestStatus, type QuoteResponse } from '@metamask/bridge-controller';
 import { SolScope } from '@metamask/keyring-api';

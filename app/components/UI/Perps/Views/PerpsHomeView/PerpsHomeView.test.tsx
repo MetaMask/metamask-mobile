@@ -118,8 +118,8 @@ jest.mock('../../hooks/stream', () => ({
 
 // Use real BigNumber library - mocking it causes issues with module initialization
 
-jest.mock('../../../../hooks/useMetrics', () => ({
-  useMetrics: () => ({
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
     trackEvent: jest.fn(),
     createEventBuilder: jest.fn(() => ({
       addProperties: jest.fn((props: Record<string, unknown>) => ({
@@ -128,11 +128,6 @@ jest.mock('../../../../hooks/useMetrics', () => ({
       build: jest.fn(() => ({})),
     })),
   }),
-  MetaMetricsEvents: {
-    NAVIGATION_TAPS_GET_HELP: 'NAVIGATION_TAPS_GET_HELP',
-    PERPS_SCREEN_VIEWED: 'PERPS_SCREEN_VIEWED',
-    PERPS_UI_INTERACTION: 'PERPS_UI_INTERACTION',
-  },
 }));
 
 // Mock design system
