@@ -342,15 +342,13 @@ describe('ConvertTokenRow', () => {
       ).toBeOnTheScreen();
     });
 
-    it('falls back to balance and symbol when fiat formatter returns null', () => {
+    it('falls back to balance and symbol when fiat balance is zero', () => {
       const token = createMockToken({
         balance: '50',
         symbol: 'USDC',
         fiat: { balance: 0, currency: 'usd', conversionRate: 1 },
       });
-      const mockFormatFiat = jest.fn(
-        () => null as unknown as string,
-      ) as ReturnType<typeof useFiatFormatter>;
+      const mockFormatFiat = jest.fn(() => '$0.00');
       jest.mocked(useFiatFormatter).mockReturnValue(mockFormatFiat);
 
       const { getByText } = renderWithProvider(
@@ -358,6 +356,7 @@ describe('ConvertTokenRow', () => {
         { state: initialRootState },
       );
 
+      expect(mockFormatFiat).not.toHaveBeenCalled();
       expect(getByText('50 USDC')).toBeOnTheScreen();
     });
 
@@ -367,9 +366,7 @@ describe('ConvertTokenRow', () => {
         symbol: 'DAI',
         fiat: undefined,
       });
-      const mockFormatFiat = jest.fn(
-        () => undefined as unknown as string,
-      ) as ReturnType<typeof useFiatFormatter>;
+      const mockFormatFiat = jest.fn(() => '$999.00');
       jest.mocked(useFiatFormatter).mockReturnValue(mockFormatFiat);
 
       const { getByText } = renderWithProvider(
@@ -377,6 +374,7 @@ describe('ConvertTokenRow', () => {
         { state: initialRootState },
       );
 
+      expect(mockFormatFiat).not.toHaveBeenCalled();
       expect(getByText('25 DAI')).toBeOnTheScreen();
     });
   });
