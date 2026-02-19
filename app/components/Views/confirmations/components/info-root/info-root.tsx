@@ -21,6 +21,7 @@ import QRInfo from '../qr-info';
 import ContractDeployment from '../info/contract-deployment';
 import { PerpsDepositInfo } from '../info/perps-deposit-info';
 import { PredictDepositInfo } from '../info/predict-deposit-info';
+import { PredictDepositAndOrderInfo } from '../../../../UI/Predict/views/PredictDepositAndOrderInfo';
 import { hasTransactionType } from '../../utils/transaction';
 import { PredictClaimInfo } from '../info/predict-claim-info';
 import { PredictWithdrawInfo } from '../info/predict-withdraw-info';
@@ -28,6 +29,7 @@ import { MusdClaimInfo } from '../info/musd-claim-info';
 import { MusdConversionInfo } from '../info/musd-conversion-info';
 import { useRefreshSmartTransactionsLiveness } from '../../../../hooks/useRefreshSmartTransactionsLiveness';
 import PerpsOrderView from '../../../../UI/Perps/Views/PerpsOrderView';
+import { PREDICT_DEPOSIT_AND_ORDER_TYPE } from '../../constants/predict';
 
 interface ConfirmationInfoComponentRequest {
   signatureRequestVersion?: string;
@@ -120,6 +122,13 @@ const Info = ({ route }: InfoProps) => {
     hasTransactionType(transactionMetadata, [TransactionType.predictDeposit])
   ) {
     return <PredictDepositInfo />;
+  }
+
+  if (
+    transactionMetadata &&
+    hasTransactionType(transactionMetadata, [PREDICT_DEPOSIT_AND_ORDER_TYPE])
+  ) {
+    return <PredictDepositAndOrderInfo />;
   }
 
   if (

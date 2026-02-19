@@ -122,6 +122,7 @@ describe('usePredictPlaceOrder', () => {
       previewOrder: jest.fn(),
       prepareWithdraw: jest.fn(),
       deposit: jest.fn(),
+      depositAndOrder: jest.fn(),
     });
     mockUsePredictBalance.mockReturnValue({ data: 1000 } as never);
     mockUsePredictDeposit.mockReturnValue({

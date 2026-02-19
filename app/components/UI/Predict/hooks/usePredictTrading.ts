@@ -50,6 +50,11 @@ export function usePredictTrading() {
     return controller.depositWithConfirmation(params);
   }, []);
 
+  const depositAndOrder = useCallback(async (params: PrepareDepositParams) => {
+    const controller = Engine.context.PredictController;
+    return controller.depositAndOrderWithConfirmation(params);
+  }, []);
+
   return {
     getPositions,
     placeOrder,
@@ -58,5 +63,6 @@ export function usePredictTrading() {
     previewOrder,
     prepareWithdraw,
     deposit,
+    depositAndOrder,
   };
 }

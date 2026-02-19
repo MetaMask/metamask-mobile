@@ -120,21 +120,21 @@ export type PredictSportsLeague = 'nfl' | 'nba';
 export type PredictGameStatus = 'scheduled' | 'ongoing' | 'ended';
 
 // Team data
-export interface PredictSportTeam {
+export type PredictSportTeam = {
   id: string;
   name: string;
   logo: string;
   abbreviation: string; // e.g., "SEA", "DEN"
   color: string; // Team primary color (hex)
   alias: string; // Team alias (e.g., "Seahawks")
-}
+};
 
 // Parsed score data
-export interface PredictGameScore {
+export type PredictGameScore = {
   away: number;
   home: number;
   raw: string; // Original "away-home" format (e.g., "21-14")
-}
+};
 
 export type PredictGamePeriod =
   | 'NS' // Not Started
@@ -151,7 +151,7 @@ export type PredictGamePeriod =
   | 'VFT'; // Verified fulltime (when closed=true)
 
 // Game data attached to market
-export interface PredictMarketGame {
+export type PredictMarketGame = {
   id: string;
   startTime: string;
   endTime?: string; // ISO date when game ended, available for ended games
@@ -163,7 +163,7 @@ export interface PredictMarketGame {
   homeTeam: PredictSportTeam;
   awayTeam: PredictSportTeam;
   turn?: string; // Team abbreviation with possession
-}
+};
 
 // Live update types for WebSocket data
 export interface GameUpdate {

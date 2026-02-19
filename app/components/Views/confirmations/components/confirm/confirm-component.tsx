@@ -36,6 +36,7 @@ import { useTransactionMetadataRequest } from '../../hooks/transactions/useTrans
 import { hasTransactionType } from '../../utils/transaction';
 import { PredictClaimInfoSkeleton } from '../info/predict-claim-info';
 import { TransferInfoSkeleton } from '../info/transfer/transfer';
+import { PREDICT_DEPOSIT_AND_ORDER_TYPE } from '../../constants/predict';
 
 const TRANSACTION_TYPES_DISABLE_SCROLL = [TransactionType.predictClaim];
 
@@ -43,6 +44,7 @@ const TRANSACTION_TYPES_DISABLE_ALERT_BANNER = [
   TransactionType.perpsDeposit,
   TransactionType.perpsDepositAndOrder,
   TransactionType.predictDeposit,
+  PREDICT_DEPOSIT_AND_ORDER_TYPE,
   TransactionType.predictWithdraw,
 ];
 
