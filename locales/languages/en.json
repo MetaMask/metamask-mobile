@@ -7455,7 +7455,8 @@
       "show_less": "Show less",
       "linking_progress": "Adding accounts... ({{current}}/{{total}})",
       "accounts_linked_count": "{{linked}}/{{total}} enrolled",
-      "add_all_accounts": "Add all accounts"
+      "add_all_accounts": "Add all accounts",
+      "uat_backend_toggle": "Use UAT backend"
     },
     "referred_by_code": {
       "title": "Referral Code",

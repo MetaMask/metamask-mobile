@@ -1175,6 +1175,8 @@ export type RewardsControllerState = {
    * Uses PointsEstimateHistoryEntryState (plain strings) to satisfy StateConstraint.
    */
   pointsEstimateHistory: PointsEstimateHistoryEntryState[];
+  /** RC-only: when true, target the UAT backend instead of production */
+  useUatBackend: boolean;
 };
 
 /**
@@ -1525,6 +1527,11 @@ export interface RewardsControllerResetAllAction {
   handler: () => Promise<void>;
 }
 
+export interface RewardsControllerSetUseUatBackendAction {
+  type: 'RewardsController:setUseUatBackend';
+  handler: (enabled: boolean) => Promise<void>;
+}
+
 /**
  * Action for applying a referral code to an existing subscription
  */
@@ -1565,7 +1572,8 @@ export type RewardsControllerActions =
   | RewardsControllerClaimRewardAction
   | RewardsControllerGetSeasonOneLineaRewardTokensAction
   | RewardsControllerResetAllAction
-  | RewardsControllerApplyReferralCodeAction;
+  | RewardsControllerApplyReferralCodeAction
+  | RewardsControllerSetUseUatBackendAction;
 
 /**
  * Input DTO for getting opt-in status of multiple addresses

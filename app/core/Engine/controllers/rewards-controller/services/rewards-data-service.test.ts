@@ -156,6 +156,51 @@ describe('RewardsDataService', () => {
         'RewardsDataService:getSeasonOneLineaRewardTokens',
         expect.any(Function),
       );
+      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
+        'RewardsDataService:setUseUatBackend',
+        expect.any(Function),
+      );
+    });
+  });
+
+  describe('setUseUatBackend', () => {
+    it('should switch to UAT URL when enabled and back when disabled', async () => {
+      // Arrange
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue({
+          previous: null,
+          current: null,
+          next: null,
+        }),
+      } as unknown as Response;
+
+      // Call without UAT toggle — captures the default URL
+      mockFetch.mockResolvedValue(mockResponse);
+      await service.getDiscoverSeasons();
+      const defaultUrl = mockFetch.mock.calls[0][0] as string;
+
+      // Enable UAT and call again
+      mockFetch.mockClear();
+      mockFetch.mockResolvedValue(mockResponse);
+      service.setUseUatBackend(true);
+      await service.getDiscoverSeasons();
+      const uatUrl = mockFetch.mock.calls[0][0] as string;
+
+      // Assert — UAT URL should use the AppConstants.REWARDS_API_URL.UAT value
+      expect(uatUrl).toEqual(
+        `${AppConstants.REWARDS_API_URL.UAT}/public/seasons/status`,
+      );
+
+      // Disable UAT and call again
+      mockFetch.mockClear();
+      mockFetch.mockResolvedValue(mockResponse);
+      service.setUseUatBackend(false);
+      await service.getDiscoverSeasons();
+      const revertedUrl = mockFetch.mock.calls[0][0] as string;
+
+      // Assert — should be back to the default URL
+      expect(revertedUrl).toEqual(defaultUrl);
     });
   });
 

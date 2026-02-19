@@ -15395,6 +15395,7 @@ describe('RewardsController', () => {
           "subscriptionReferralDetails": {},
           "subscriptions": {},
           "unlockedRewards": {},
+          "useUatBackend": false,
         }
       `);
   });
@@ -15418,6 +15419,7 @@ describe('RewardsController', () => {
           "subscriptionReferralDetails": {},
           "subscriptions": {},
           "unlockedRewards": {},
+          "useUatBackend": false,
         }
       `);
   });
