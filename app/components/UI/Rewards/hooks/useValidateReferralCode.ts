@@ -57,7 +57,7 @@ export const useValidateReferralCode = (
         code,
       );
       if (!valid) {
-        return String('rewards.error_messages.invalid_referral_code');
+        return strings('rewards.error_messages.invalid_referral_code');
       }
       return '';
     } catch {

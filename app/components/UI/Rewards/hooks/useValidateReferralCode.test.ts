@@ -62,7 +62,7 @@ describe('useValidateReferralCode', () => {
 
     await act(async () => {
       const error = await result.current.validateCode('BADONE');
-      expect(error).toBe('rewards.error_messages.invalid_referral_code');
+      expect(error).toBe('Invalid referral code. Please check and try again.');
     });
   });
 
