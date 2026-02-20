@@ -16,7 +16,8 @@ import Button, {
 import Routes from '../../../../../constants/navigation/Routes';
 import { resetOnboardingState } from '../../../../../core/redux/slices/card';
 import { useDispatch } from 'react-redux';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { CardActions, CardScreens } from '../../util/metrics';
 import { getCardBaanxToken } from '../../util/cardTokenVault';
 import Logger from '../../../../../util/Logger';
@@ -50,7 +51,7 @@ const Complete = () => {
   const dispatch = useDispatch();
   const tw = useTailwind();
   const [isLoading, setIsLoading] = useState(false);
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const route =
     useRoute<RouteProp<{ params: CompleteRouteParams }, 'params'>>();
   const nextDestination = route.params?.nextDestination;

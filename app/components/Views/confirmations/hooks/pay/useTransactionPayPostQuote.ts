@@ -15,8 +15,9 @@ const log = createProjectLogger('transaction-pay-post-quote');
  * quote retrieval. The UI renders the default token when no payment
  * token is selected.
  *
- * When the post-quote feature flag (confirmations_pay_post_quote) is
- * disabled via canSelectWithdrawToken, this hook does nothing -
+ * When the withdrawal token picker (MM_PREDICT_WITHDRAW_ANY_TOKEN env var
+ * AND confirmations_pay_post_quote feature flag) is disabled via
+ * canSelectWithdrawToken, this hook does nothing -
  * withdrawals will use same-token-same-chain flow without bridging.
  */
 export function useTransactionPayPostQuote(): void {

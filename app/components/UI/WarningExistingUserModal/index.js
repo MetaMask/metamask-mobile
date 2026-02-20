@@ -69,6 +69,7 @@ export default function WarningExistingUserModal({
   confirmText,
   confirmTestID,
   cancelTestID,
+  cancelButtonMode = 'warning',
 }) {
   return (
     <ActionModal
@@ -81,7 +82,7 @@ export default function WarningExistingUserModal({
       cancelButtonDisabled={cancelButtonDisabled}
       onRequestClose={onRequestClose}
       onConfirmPress={onConfirmPress}
-      cancelButtonMode={'warning'}
+      cancelButtonMode={cancelButtonMode}
       confirmButtonMode={'neutral'}
       verticalButtons
     >
@@ -114,4 +115,8 @@ WarningExistingUserModal.propTypes = {
    * Confirm callback
    */
   onConfirmPress: PropTypes.func.isRequired,
+  /**
+   * Type of button to show as the cancel button
+   */
+  cancelButtonMode: PropTypes.string,
 };

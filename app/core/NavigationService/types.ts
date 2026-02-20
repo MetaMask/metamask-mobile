@@ -133,10 +133,7 @@ import type {
 } from '../../components/Views/RevealPrivateCredential/RevealPrivateCredential.types';
 
 // Card params
-import type {
-  CardOnboardingWebviewParams,
-  CardConfirmModalParams,
-} from '../../components/UI/Card/Card.types';
+import type { CardConfirmModalParams } from '../../components/UI/Card/Card.types';
 
 // Account actions params
 import type {
@@ -614,7 +611,6 @@ export interface RootStackParamList extends ParamListBase {
   CardOnboardingComplete: undefined;
   CardOnboardingKYCFailed: undefined;
   CardOnboardingKYCPending: undefined;
-  CardOnboardingWebview: CardOnboardingWebviewParams | undefined;
   CardModals: undefined;
   CardAddFundsModal: undefined;
   CardAssetSelectionModal: undefined;

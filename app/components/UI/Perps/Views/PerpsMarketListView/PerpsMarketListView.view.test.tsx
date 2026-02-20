@@ -4,9 +4,9 @@
  * Covers bug regression 7.64: market list renders with default state and shows all categories when data includes them.
  * Run with: yarn jest -c jest.config.view.js PerpsMarketListView.view.test
  */
-import '../../../../../util/test/component-view/mocks';
+import '../../../../../../tests/component-view/mocks';
 import { screen, fireEvent, waitFor } from '@testing-library/react-native';
-import { renderPerpsMarketListView } from '../../../../../util/test/component-view/renderers/perpsViewRenderer';
+import { renderPerpsMarketListView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
 import { PerpsMarketListViewSelectorsIDs } from '../../Perps.testIds';
 import { PerpsMarketData } from '@metamask/perps-controller';
 

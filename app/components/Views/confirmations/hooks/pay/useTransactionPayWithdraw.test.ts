@@ -1,11 +1,11 @@
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
-import { useTransactionPayWithdraw } from './useTransactionPayWithdraw';
 import { cloneDeep, merge } from 'lodash';
 import { simpleSendTransactionControllerMock } from '../../__mocks__/controllers/transaction-controller-mock';
 import { transactionApprovalControllerMock } from '../../__mocks__/controllers/approval-controller-mock';
 import { RootState } from '../../../../../reducers';
 import { otherControllersMock } from '../../__mocks__/controllers/other-controllers-mock';
 import { TransactionType } from '@metamask/transaction-controller';
+import { useTransactionPayWithdraw } from './useTransactionPayWithdraw';
 
 const STATE_MOCK = merge(
   {},
@@ -43,6 +43,17 @@ function runHook({
 }
 
 describe('useTransactionPayWithdraw', () => {
+  const originalEnv = process.env;
+
+  beforeEach(() => {
+    process.env = { ...originalEnv };
+    delete process.env.MM_PREDICT_WITHDRAW_ANY_TOKEN;
+  });
+
+  afterAll(() => {
+    process.env = originalEnv;
+  });
+
   describe('isWithdraw', () => {
     it('returns false for non-withdraw transaction types', () => {
       const { result } = runHook({ type: TransactionType.simpleSend });
@@ -56,7 +67,8 @@ describe('useTransactionPayWithdraw', () => {
   });
 
   describe('canSelectWithdrawToken', () => {
-    it('returns false for non-withdraw transactions regardless of feature flag', () => {
+    it('returns false for non-withdraw transactions regardless of flags', () => {
+      process.env.MM_PREDICT_WITHDRAW_ANY_TOKEN = 'true';
       const { result } = runHook({
         type: TransactionType.simpleSend,
         postQuoteFlags: {
@@ -66,7 +78,7 @@ describe('useTransactionPayWithdraw', () => {
       expect(result.current.canSelectWithdrawToken).toBe(false);
     });
 
-    it('returns false for withdraw transactions when default is disabled', () => {
+    it('returns false when both env var and feature flag are disabled', () => {
       const { result } = runHook({
         type: TransactionType.predictWithdraw,
         postQuoteFlags: {
@@ -76,7 +88,29 @@ describe('useTransactionPayWithdraw', () => {
       expect(result.current.canSelectWithdrawToken).toBe(false);
     });
 
-    it('returns true for withdraw transactions when default is enabled', () => {
+    it('returns false when only feature flag is enabled', () => {
+      const { result } = runHook({
+        type: TransactionType.predictWithdraw,
+        postQuoteFlags: {
+          default: { enabled: true },
+        },
+      });
+      expect(result.current.canSelectWithdrawToken).toBe(false);
+    });
+
+    it('returns false when only env var is enabled', () => {
+      process.env.MM_PREDICT_WITHDRAW_ANY_TOKEN = 'true';
+      const { result } = runHook({
+        type: TransactionType.predictWithdraw,
+        postQuoteFlags: {
+          default: { enabled: false },
+        },
+      });
+      expect(result.current.canSelectWithdrawToken).toBe(false);
+    });
+
+    it('returns true when both env var and feature flag are enabled', () => {
+      process.env.MM_PREDICT_WITHDRAW_ANY_TOKEN = 'true';
       const { result } = runHook({
         type: TransactionType.predictWithdraw,
         postQuoteFlags: {
@@ -87,6 +121,7 @@ describe('useTransactionPayWithdraw', () => {
     });
 
     it('uses override config when override key matches transaction type', () => {
+      process.env.MM_PREDICT_WITHDRAW_ANY_TOKEN = 'true';
       const { result } = runHook({
         type: TransactionType.predictWithdraw,
         postQuoteFlags: {

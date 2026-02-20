@@ -27,6 +27,8 @@ import MultichainBridgeTransactionListItem from '../../../components/UI/Multicha
 import { KnownCaipNamespace, parseCaipChainId } from '@metamask/utils';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import { TabEmptyState } from '../../../component-library/components-temp/TabEmptyState';
+import { TransactionDetailLocation } from '../../../core/Analytics/events/transactions';
+
 interface MultichainTransactionsViewProps {
   /**
    * Override transactions instead of using selector
@@ -64,6 +66,10 @@ interface MultichainTransactionsViewProps {
    * Scroll event handler
    */
   onScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
+  /**
+   * Location context for analytics tracking (home or asset_details)
+   */
+  location?: TransactionDetailLocation;
 }
 
 const MultichainTransactionsView = ({
@@ -76,6 +82,7 @@ const MultichainTransactionsView = ({
   emptyMessage,
   showDisclaimer = false,
   onScroll,
+  location,
 }: MultichainTransactionsViewProps) => {
   const { colors } = useTheme();
   const style = styles();
@@ -154,6 +161,7 @@ const MultichainTransactionsView = ({
         bridgeHistoryItem={bridgeHistoryItem}
         navigation={nav}
         index={index}
+        location={location}
       />
     ) : (
       <MultichainTransactionListItem
@@ -161,6 +169,7 @@ const MultichainTransactionsView = ({
         navigation={nav}
         index={index}
         chainId={chainId}
+        location={location}
       />
     );
   };
