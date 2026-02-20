@@ -36,6 +36,7 @@ jobs:
         with:
           platform: ios
           setup-simulator: false
+          ruby-version: '3.2.9'
 
       - name: Install dependencies
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
