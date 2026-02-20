@@ -88,7 +88,7 @@ export const useSearchRequest = (options: {
       // Only update state if this is still the current request
       if (currentRequestId === requestIdRef.current) {
         setResults((searchResults?.data as SearchResult[]) || []);
-        if (searchResults.error) {
+        if (searchResults?.error) {
           setError({ message: searchResults.error, name: 'SearchError' });
         }
       }
