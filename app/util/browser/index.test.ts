@@ -90,6 +90,14 @@ describe('Browser utils :: onUrlSubmit', () => {
     expect(url).toBe(expectedUrl);
   });
 
+  it('should use Brave Search when Brave is selected', () => {
+    const keyword = 'test';
+    const url = processUrlForBrowser(keyword, 'Brave');
+    const expectedUrl =
+      'https://search.brave.com/search?q=' + encodeURIComponent(keyword);
+    expect(url).toBe(expectedUrl);
+  });
+
   it('should detect keywords with several words', () => {
     const keyword = 'what is a test';
     const url = processUrlForBrowser(keyword, 'DuckDuckGo');
@@ -147,9 +155,9 @@ describe('Browser utils :: onUrlSubmit', () => {
     // When processing without protocol
     const url = processUrlForBrowser(rtlDomain);
 
-    // Then it should prefix with https (treat as URL, not search)
+    // Then it should be treated as a search query using the default search engine (Brave)
     expect(url).toBe(
-      `https://www.google.com/search?q=${encodeURIComponent(rtlDomain)}`,
+      `https://search.brave.com/search?q=${encodeURIComponent(rtlDomain)}`,
     );
   });
 });
