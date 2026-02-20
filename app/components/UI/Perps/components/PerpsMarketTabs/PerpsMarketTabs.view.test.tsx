@@ -60,9 +60,9 @@ describe('PerpsMarketTabs', () => {
       expect(
         await screen.findByTestId(PerpsMarketTabsSelectorsIDs.CONTAINER),
       ).toBeOnTheScreen();
-      expect(screen.queryAllByText(strings('perps.market.orders'))).toHaveLength(
-        0,
-      );
+      expect(
+        screen.queryAllByText(strings('perps.market.orders')),
+      ).toHaveLength(0);
       expect(
         screen.getByTestId(PerpsMarketTabsSelectorsIDs.STATISTICS_CONTENT),
       ).toBeOnTheScreen();
