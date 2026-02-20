@@ -61,11 +61,13 @@ function findExistingPendingMusdConversion(params: {
   pendingTransactionMetas: TransactionMeta[];
   selectedAddress: string;
   preferredPaymentTokenChainId: Hex;
+  preferredPaymentTokenAddress?: Hex;
 }) {
   const {
     pendingTransactionMetas,
     selectedAddress,
     preferredPaymentTokenChainId,
+    preferredPaymentTokenAddress,
   } = params;
 
   return pendingTransactionMetas.find((transactionMeta) => {
@@ -78,6 +80,17 @@ function findExistingPendingMusdConversion(params: {
       preferredPaymentTokenChainId.toLowerCase()
     ) {
       return false;
+    }
+
+    if (preferredPaymentTokenAddress) {
+      const existingTokenAddress = transactionMeta?.metamaskPay?.tokenAddress;
+      if (
+        !existingTokenAddress ||
+        existingTokenAddress.toLowerCase() !==
+          preferredPaymentTokenAddress.toLowerCase()
+      ) {
+        return false;
+      }
     }
 
     return (
@@ -202,11 +215,12 @@ export const useMusdConversion = () => {
             pendingTransactionMetas,
             selectedAddress,
             preferredPaymentTokenChainId: tokenChainId,
+            preferredPaymentTokenAddress: tokenAddress,
           },
         );
 
         /**
-         * If a conversion is already pending for this account+chain,
+         * If a conversion is already pending for this account+chain+token,
          * re-enter the existing confirmations flow instead of creating a new tx.
          */
         if (existingPendingMusdConversion?.id) {
