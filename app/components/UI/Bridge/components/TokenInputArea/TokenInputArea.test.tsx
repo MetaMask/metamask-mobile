@@ -43,10 +43,20 @@ jest.mock('../../hooks/useShouldRenderMaxOption', () => ({
   useShouldRenderMaxOption: jest.fn(() => true),
 }));
 
+jest.mock('../../hooks/useTokenInputAreaFormattedBalance', () => ({
+  useTokenInputAreaFormattedBalance: jest.fn(() => '100'),
+}));
+
 import { useShouldRenderMaxOption } from '../../hooks/useShouldRenderMaxOption';
 const mockUseShouldRenderMaxOption =
   useShouldRenderMaxOption as jest.MockedFunction<
     typeof useShouldRenderMaxOption
+  >;
+
+import { useTokenInputAreaFormattedBalance } from '../../hooks/useTokenInputAreaFormattedBalance';
+const mockUseTokenInputAreaFormattedBalance =
+  useTokenInputAreaFormattedBalance as jest.MockedFunction<
+    typeof useTokenInputAreaFormattedBalance
   >;
 
 const mockOnTokenPress = jest.fn();
@@ -59,6 +69,7 @@ describe('TokenInputArea', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseShouldRenderMaxOption.mockReturnValue(true);
+    mockUseTokenInputAreaFormattedBalance.mockReturnValue('100');
   });
 
   it('renders with initial state', () => {

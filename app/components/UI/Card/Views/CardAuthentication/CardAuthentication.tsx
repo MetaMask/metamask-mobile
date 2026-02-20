@@ -24,7 +24,8 @@ import { CardAuthenticationSelectors } from './CardAuthentication.testIds';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import Logger from '../../../../../util/Logger';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   selectUserCardLocation,
@@ -44,7 +45,7 @@ const autoComplete = Platform.select<TextInputProps['autoComplete']>({
 
 const CardAuthentication = () => {
   const tw = useTailwind();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const navigation = useNavigation();
   const [step, setStep] = useState<'login' | 'otp'>('login');
   const [email, setEmail] = useState('');

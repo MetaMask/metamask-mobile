@@ -90,10 +90,10 @@ describe('usePerpsActions', () => {
     // Assert
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
       screen: Routes.PERPS.ORDER_REDIRECT,
-      params: {
+      params: expect.objectContaining({
         direction: 'long',
         asset: 'ETH',
-      },
+      }),
     });
   });
 
@@ -122,10 +122,10 @@ describe('usePerpsActions', () => {
     // Assert
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
       screen: Routes.PERPS.ORDER_REDIRECT,
-      params: {
+      params: expect.objectContaining({
         direction: 'short',
         asset: 'BTC',
-      },
+      }),
     });
   });
 
@@ -164,6 +164,75 @@ describe('usePerpsActions', () => {
 
     // Assert
     expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('includes assetsASSETS2493AbtestTokenDetailsLayout in nav params when provided', () => {
+    // Arrange
+    mockUsePerpsMarketForAsset.mockReturnValue({
+      hasPerpsMarket: true,
+      marketData: {
+        symbol: 'ETH',
+        name: 'ETH',
+        maxLeverage: '50x',
+        price: '',
+        change24h: '',
+        change24hPercent: '',
+        volume: '',
+      },
+      isLoading: false,
+      error: null,
+    });
+
+    const { result } = renderHook(() =>
+      usePerpsActions({
+        symbol: 'ETH',
+        abTestTokenDetailsLayout: 'treatment',
+      }),
+    );
+
+    // Act
+    result.current.handlePerpsAction?.('long');
+
+    // Assert
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+      screen: Routes.PERPS.ORDER_REDIRECT,
+      params: expect.objectContaining({
+        direction: 'long',
+        asset: 'ETH',
+        assetsASSETS2493AbtestTokenDetailsLayout: 'treatment',
+      }),
+    });
+  });
+
+  it('omits assetsASSETS2493AbtestTokenDetailsLayout from nav params when not provided', () => {
+    // Arrange
+    mockUsePerpsMarketForAsset.mockReturnValue({
+      hasPerpsMarket: true,
+      marketData: {
+        symbol: 'ETH',
+        name: 'ETH',
+        maxLeverage: '50x',
+        price: '',
+        change24h: '',
+        change24hPercent: '',
+        volume: '',
+      },
+      isLoading: false,
+      error: null,
+    });
+
+    const { result } = renderHook(() => usePerpsActions({ symbol: 'ETH' }));
+
+    // Act
+    result.current.handlePerpsAction?.('long');
+
+    // Assert
+    const navParams = mockNavigate.mock.calls[0][1] as {
+      params: Record<string, unknown>;
+    };
+    expect(navParams.params).not.toHaveProperty(
+      'assetsASSETS2493AbtestTokenDetailsLayout',
+    );
   });
 
   it('forwards isLoading and error from usePerpsMarketForAsset', () => {
