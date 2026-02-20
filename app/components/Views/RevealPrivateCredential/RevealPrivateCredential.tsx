@@ -35,7 +35,7 @@ import { WRONG_PASSWORD_ERROR } from '../../../constants/error';
 import { KEEP_SRP_SAFE_URL, SRP_GUIDE_URL } from '../../../constants/urls';
 import ClipboardManager from '../../../core/ClipboardManager';
 import { useTheme } from '../../../util/theme';
-import { MetaMetricsEvents } from '../../../core/Analytics';
+import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
 import { passwordRequirementsMet } from '../../../util/password';
 import useAuthentication from '../../../core/Authentication/hooks/useAuthentication';
 import { ReauthenticateErrorType } from '../../../core/Authentication/types';
@@ -50,7 +50,7 @@ import { getNavigationOptionsTitle } from '../../../components/UI/Navbar';
 import { RevealSeedViewSelectorsIDs } from './RevealSeedView.testIds';
 
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import {
   endTrace,
   trace,
@@ -114,7 +114,7 @@ const RevealPrivateCredential = ({
   const dispatch = useDispatch();
 
   const theme = useTheme();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const { colors, themeAppearance } = theme;
   const styles = createStyles(theme);
 

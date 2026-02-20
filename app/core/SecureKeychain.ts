@@ -1,7 +1,9 @@
 import * as Keychain from 'react-native-keychain'; // eslint-disable-line import/no-namespace
 import { Encryptor, LEGACY_DERIVATION_OPTIONS } from './Encryptor';
 import { strings } from '../../locales/i18n';
-import { MetaMetricsEvents, MetaMetrics } from './Analytics';
+import { MetaMetricsEvents } from './Analytics/MetaMetrics.events';
+import { analytics } from '../util/analytics/analytics';
+import { AnalyticsEventBuilder } from '../util/analytics/AnalyticsEventBuilder';
 import Device from '../util/device';
 
 const privates = new WeakMap();
@@ -19,7 +21,6 @@ const defaultOptions = {
 };
 import AUTHENTICATION_TYPE from '../constants/userProperties';
 import { UserProfileProperty } from '../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
-import { MetricsEventBuilder } from './Analytics/MetricsEventBuilder';
 
 enum SecureKeychainTypes {
   BIOMETRICS = 'BIOMETRICS',
@@ -66,8 +67,8 @@ const SecureKeychain = {
     instance = SecureKeychainEncryptor.getInstance(salt);
 
     if (Device.isAndroid() && Keychain.SECURITY_LEVEL?.SECURE_HARDWARE)
-      MetaMetrics.getInstance().trackEvent(
-        MetricsEventBuilder.createEventBuilder(
+      analytics.trackEvent(
+        AnalyticsEventBuilder.createEventBuilder(
           MetaMetricsEvents.ANDROID_HARDWARE_KEYSTORE,
         ).build(),
       );
@@ -141,7 +142,7 @@ const SecureKeychain = {
   async resetGenericPassword() {
     const options = { service: defaultOptions.service };
     // This is called to remove other auth types and set the user back to the default password login
-    await MetaMetrics.getInstance().addTraitsToUser({
+    analytics.identify({
       [UserProfileProperty.AUTHENTICATION_TYPE]: AUTHENTICATION_TYPE.PASSWORD,
     });
     return Keychain.resetGenericPassword(options);
@@ -174,13 +175,12 @@ const SecureKeychain = {
       accessible: Keychain.ACCESSIBLE.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
     };
 
-    const metrics = MetaMetrics.getInstance();
     if (type === this.TYPES.BIOMETRICS) {
       authOptions.accessControl = Keychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET;
       // Android requires this storage type so that the access control is enforced.
       authOptions.storage = Keychain.STORAGE_TYPE.AES_GCM;
 
-      await metrics.addTraitsToUser({
+      analytics.identify({
         [UserProfileProperty.AUTHENTICATION_TYPE]:
           AUTHENTICATION_TYPE.BIOMETRIC,
       });
@@ -189,11 +189,11 @@ const SecureKeychain = {
       // Android requires this storage type so that the access control is enforced.
       authOptions.storage = Keychain.STORAGE_TYPE.AES_GCM;
 
-      await metrics.addTraitsToUser({
+      analytics.identify({
         [UserProfileProperty.AUTHENTICATION_TYPE]: AUTHENTICATION_TYPE.PASSCODE,
       });
     } else if (type === this.TYPES.REMEMBER_ME) {
-      await metrics.addTraitsToUser({
+      analytics.identify({
         [UserProfileProperty.AUTHENTICATION_TYPE]:
           AUTHENTICATION_TYPE.REMEMBER_ME,
       });

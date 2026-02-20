@@ -3,6 +3,7 @@ import * as Keychain from 'react-native-keychain'; // eslint-disable-line import
 import { UserProfileProperty } from '../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import AUTHENTICATION_TYPE from '../constants/userProperties';
 import QuickCrypto from 'react-native-quick-crypto';
+import { analytics } from '../util/analytics/analytics';
 
 jest.mock('../../locales/i18n', () => ({
   strings: jest.fn((key) => key),
@@ -41,13 +42,18 @@ jest.mock('../store/storage-wrapper', () => ({
   },
 }));
 
-const mockAddTraitsToUser = jest.fn();
-jest.mock('../core/Analytics', () => ({
-  MetaMetrics: {
-    getInstance: jest.fn(() => ({
-      addTraitsToUser: mockAddTraitsToUser,
-      trackEvent: jest.fn(),
-      updateDataRecordingFlag: jest.fn(),
+jest.mock('../util/analytics/analytics', () => ({
+  analytics: {
+    identify: jest.fn(),
+    trackEvent: jest.fn(),
+  },
+}));
+
+jest.mock('../util/analytics/AnalyticsEventBuilder', () => ({
+  AnalyticsEventBuilder: {
+    createEventBuilder: jest.fn(() => ({
+      addProperties: jest.fn().mockReturnThis(),
+      build: jest.fn(),
     })),
   },
 }));
@@ -75,7 +81,7 @@ describe('SecureKeychain - setGenericPassword', () => {
       }),
     );
 
-    expect(mockAddTraitsToUser).toHaveBeenCalledWith(
+    expect(analytics.identify).toHaveBeenCalledWith(
       expect.objectContaining({
         [UserProfileProperty.AUTHENTICATION_TYPE]:
           AUTHENTICATION_TYPE.BIOMETRIC,
