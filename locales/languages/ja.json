@@ -2261,7 +2261,6 @@
       "withdrawing": "出金が進行中です",
       "withdrawing_subtitle": "約1分後にご利用可能となります",
       "withdraw_completed": "出金完了",
-      "withdraw_completed_subtitle": "{{amount}} USDCがウォレットに移動されました",
       "error_title": "問題が発生しました",
       "error_description": "出金に失敗しました",
       "try_again": "再試行してください"

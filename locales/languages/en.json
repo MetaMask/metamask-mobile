@@ -2275,7 +2275,7 @@
       "withdrawing": "Withdrawal in progress",
       "withdrawing_subtitle": "Available in about 1 minute",
       "withdraw_completed": "Withdrawal complete",
-      "withdraw_completed_subtitle": "{{amount}} USDC moved to your wallet",
+      "withdraw_any_token_completed_subtitle": "{{amount}} {{token}} moved to your wallet",
       "error_title": "Something went wrong",
       "error_description": "Failed to proceed with withdraw",
       "try_again": "Try again"
@@ -7599,8 +7599,10 @@
     },
     "label": {
       "bridge_fee": "Bridge fee",
+      "provider_fee": "Provider fee",
       "network_fee": "Network fee",
       "paid_with": "Paid with",
+      "receive_token": "Receive token",
       "retry_button": "Try again",
       "total": "Total",
       "account": "Account",

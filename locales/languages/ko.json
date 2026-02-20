@@ -2261,7 +2261,6 @@
       "withdrawing": "인출이 진행 중입니다",
       "withdrawing_subtitle": "약 1분 후 사용 가능",
       "withdraw_completed": "출금 완료",
-      "withdraw_completed_subtitle": "{{amount}} USDC가 지갑으로 전송되었습니다",
       "error_title": "문제가 발생했습니다",
       "error_description": "출금에 실패했습니다",
       "try_again": "다시 시도"

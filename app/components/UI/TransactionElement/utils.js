@@ -39,6 +39,14 @@ import {
   convertMusdClaimAmount,
   getClaimPayoutFromReceipt,
 } from '../Earn/utils/musd';
+import { store } from '../../../store';
+import {
+  selectConversionRateByChainId,
+  selectUSDConversionRateByChainId,
+} from '../../../selectors/currencyRateController';
+import { selectSingleTokenByAddressAndChainId } from '../../../selectors/tokensController';
+import { selectTickerByChainId } from '../../../selectors/networkController';
+import { selectContractExchangeRatesByChainId } from '../../../selectors/tokenRatesController';
 
 const POSITIVE_TRANSFER_TRANSACTION_TYPES = [
   TransactionType.musdConversion,
@@ -184,7 +192,7 @@ function getTokenTransfer(args) {
 
   const signPrefix = isPositive ? '' : '- ';
 
-  const transactionElement = {
+  let transactionElement = {
     actionKey: renderActionKey,
     value: !renderTokenAmount
       ? strings('transaction.value_not_available')
@@ -194,6 +202,11 @@ function getTokenTransfer(args) {
     transactionType,
     nonce,
   };
+
+  const postQuoteDisplay = getPostQuoteDisplay(tx, currentCurrency);
+  if (postQuoteDisplay) {
+    transactionElement = { ...transactionElement, ...postQuoteDisplay };
+  }
 
   return [transactionElement, transactionDetails];
 }
@@ -211,6 +224,71 @@ function getMetamaskPayTargetFiat(tx, decimals) {
     .toFixed();
 
   return new BN(targetFiatNoDecimals);
+}
+
+// For post-quote predict withdrawals, derive the received token amount and
+// user-currency fiat from the USD targetFiat stored in metamaskPay.
+function getPostQuoteDisplay(tx, currentCurrency) {
+  const { metamaskPay } = tx ?? {};
+  if (
+    !hasTransactionType(tx, [TransactionType.predictWithdraw]) ||
+    !metamaskPay?.isPostQuote ||
+    !metamaskPay?.targetFiat
+  ) {
+    return undefined;
+  }
+
+  const destChainId = metamaskPay.chainId;
+  const fiatUsd = parseFloat(metamaskPay.targetFiat);
+
+  if (!destChainId || !Number.isFinite(fiatUsd)) {
+    return undefined;
+  }
+
+  const state = store.getState();
+
+  const destToken = metamaskPay.tokenAddress
+    ? selectSingleTokenByAddressAndChainId(
+        state,
+        metamaskPay.tokenAddress,
+        destChainId,
+      )
+    : undefined;
+  const destSymbol =
+    destToken?.symbol ?? selectTickerByChainId(state, destChainId);
+
+  if (!destSymbol) {
+    return undefined;
+  }
+
+  const nativeUsdRate = selectUSDConversionRateByChainId(state, destChainId);
+  if (!nativeUsdRate) {
+    return undefined;
+  }
+
+  // For ERC-20 tokens, derive the token's USD price from its exchange rate
+  // relative to the native token. For native tokens, use the native USD rate directly.
+  let tokenUsdRate = nativeUsdRate;
+  if (metamaskPay.tokenAddress) {
+    const contractRates = selectContractExchangeRatesByChainId(
+      state,
+      destChainId,
+    );
+    const tokenExchangeRate = contractRates?.[metamaskPay.tokenAddress]?.price;
+    if (tokenExchangeRate) {
+      tokenUsdRate = tokenExchangeRate * nativeUsdRate;
+    }
+  }
+
+  const destRate = selectConversionRateByChainId(state, destChainId);
+  const receivedAmount = fiatUsd / tokenUsdRate;
+  const userFiat =
+    destRate && nativeUsdRate ? fiatUsd * (destRate / nativeUsdRate) : fiatUsd;
+
+  return {
+    value: `${receivedAmount.toPrecision(4)} ${destSymbol}`,
+    fiatValue: addCurrencySymbol(userFiat.toFixed(2), currentCurrency),
+  };
 }
 
 function getCollectibleTransfer(args) {

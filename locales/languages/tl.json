@@ -2261,7 +2261,6 @@
       "withdrawing": "Kasalukuyang nagwi-withdraw",
       "withdrawing_subtitle": "Available sa loob ng humigit-kumulang 1 minuto",
       "withdraw_completed": "Tapos ng mag-withdraw",
-      "withdraw_completed_subtitle": "Nailipat ang {{amount}} USDC sa iyong wallet",
       "error_title": "Mayroong nang mali",
       "error_description": "Nabigong magpatuloy sa pag-withdraw",
       "try_again": "Subukang muli"

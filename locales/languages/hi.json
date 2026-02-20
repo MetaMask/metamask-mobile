@@ -2261,7 +2261,6 @@
       "withdrawing": "विदड्रॉवल प्रोग्रेस में है",
       "withdrawing_subtitle": "लगभग 1 मिनट में उपलब्ध होगा",
       "withdraw_completed": "विदड्रॉवल पूरा हुआ",
-      "withdraw_completed_subtitle": "{{amount}} USDC आपके वॉलेट में भेज दिया गया",
       "error_title": "कुछ गलत हो गया",
       "error_description": "निकालना जारी नहीं हो पाया",
       "try_again": "फिर से प्रयास करें"
