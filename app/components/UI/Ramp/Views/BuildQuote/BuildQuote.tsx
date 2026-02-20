@@ -226,12 +226,11 @@ function BuildQuote() {
         redirectUrl: getRampCallbackBaseUrl(),
       });
     } catch (error) {
-      Logger.log('BuildQuote: Failed to fetch quotes', error);
+      Logger.log('BuildQuote: Missing required selection for quotes', error);
     }
   }, [
     walletAddress,
     selectedPaymentMethod,
-    selectedProvider,
     debouncedPollingAmount,
     fetchQuotesForSelection,
     isOnBuildQuoteScreen,
