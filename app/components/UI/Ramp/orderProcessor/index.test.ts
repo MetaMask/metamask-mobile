@@ -3,6 +3,8 @@ import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 import processOrder from '.';
 import Logger from '../../../../util/Logger';
 import { processAggregatorOrder } from '../Aggregator/orderProcessor/aggregator';
+import { processDepositOrder } from '../Deposit/orderProcessor';
+import { processUnifiedOrder } from './unifiedOrderProcessor';
 import { FiatOrder } from '../../../../reducers/fiatOrders/types';
 import { FIAT_ORDER_PROVIDERS } from '../../../../constants/on-ramp';
 
@@ -55,6 +57,14 @@ jest.mock('../Aggregator/orderProcessor/aggregator', () => ({
   processAggregatorOrder: jest.fn((order) => order),
 }));
 
+jest.mock('../Deposit/orderProcessor', () => ({
+  processDepositOrder: jest.fn((order) => order),
+}));
+
+jest.mock('./unifiedOrderProcessor', () => ({
+  processUnifiedOrder: jest.fn((order) => order),
+}));
+
 jest.mock('../../../../util/Logger', () => ({
   error: jest.fn(),
 }));
@@ -65,6 +75,12 @@ describe('processOrder', () => {
       processAggregatorOrder as jest.MockedFunction<
         typeof processAggregatorOrder
       >
+    ).mockClear();
+    (
+      processDepositOrder as jest.MockedFunction<typeof processDepositOrder>
+    ).mockClear();
+    (
+      processUnifiedOrder as jest.MockedFunction<typeof processUnifiedOrder>
     ).mockClear();
   });
 
@@ -97,5 +113,37 @@ describe('processOrder', () => {
       new Error('FiatOrders::ProcessOrder unrecognized provider'),
       unsupportedProviderOrder,
     );
+  });
+
+  describe('RAMPS_V2 routing', () => {
+    it('routes RAMPS_V2 order to processUnifiedOrder', async () => {
+      const rampsV2Order: FiatOrder = {
+        ...mockOrder1,
+        provider: FIAT_ORDER_PROVIDERS.RAMPS_V2,
+      };
+      await processOrder(rampsV2Order);
+      expect(processUnifiedOrder).toHaveBeenCalledWith(rampsV2Order, undefined);
+      expect(processAggregatorOrder).not.toHaveBeenCalled();
+      expect(processDepositOrder).not.toHaveBeenCalled();
+    });
+
+    it('routes AGGREGATOR order to processAggregatorOrder', async () => {
+      await processOrder(mockOrder1);
+      expect(processAggregatorOrder).toHaveBeenCalledWith(
+        mockOrder1,
+        undefined,
+      );
+      expect(processUnifiedOrder).not.toHaveBeenCalled();
+    });
+
+    it('routes DEPOSIT order to processDepositOrder', async () => {
+      const depositOrder: FiatOrder = {
+        ...mockOrder1,
+        provider: FIAT_ORDER_PROVIDERS.DEPOSIT,
+      };
+      await processOrder(depositOrder);
+      expect(processDepositOrder).toHaveBeenCalledWith(depositOrder, undefined);
+      expect(processUnifiedOrder).not.toHaveBeenCalled();
+    });
   });
 });

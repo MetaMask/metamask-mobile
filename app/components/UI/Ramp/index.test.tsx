@@ -96,6 +96,45 @@ describe('FiatOrders', () => {
 
     expect(screen.toJSON()).toMatchSnapshot();
   });
+
+  it('removes authentication URL on HTTP error', () => {
+    const mockUrl = 'https://test.metamask.io/auth';
+    const stateWithUrl = {
+      ...defaultState,
+      fiatOrders: {
+        ...defaultState.fiatOrders,
+        authenticationUrls: [mockUrl],
+      },
+    };
+
+    renderWithProvider(<FiatOrders />, {
+      state: stateWithUrl,
+    });
+
+    const webView = screen.UNSAFE_getByType(WebView);
+    webView.props.onHttpError();
+
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  it('renders multiple authentication URLs', () => {
+    const stateWithMultipleUrls = {
+      ...defaultState,
+      fiatOrders: {
+        ...defaultState.fiatOrders,
+        authenticationUrls: [
+          'https://test.metamask.io/auth1',
+          'https://test.metamask.io/auth2',
+          'https://test.metamask.io/auth3',
+        ],
+      },
+    };
+
+    renderWithProvider(<FiatOrders />, {
+      state: stateWithMultipleUrls,
+    });
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
 });
 
 describe('getAggregatorAnalyticsPayload', () => {

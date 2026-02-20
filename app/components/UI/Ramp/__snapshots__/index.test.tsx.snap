@@ -11,6 +11,17 @@ exports[`FiatOrders removes authentication URL after successful navigation 1`] =
 />
 `;
 
+exports[`FiatOrders removes authentication URL on HTTP error 1`] = `
+<View
+  style={
+    {
+      "height": 0,
+      "width": 0,
+    }
+  }
+/>
+`;
+
 exports[`FiatOrders renders correctly with authentication URLs 1`] = `
 <View
   style={
@@ -23,3 +34,14 @@ exports[`FiatOrders renders correctly with authentication URLs 1`] = `
 `;
 
 exports[`FiatOrders renders correctly with no orders 1`] = `null`;
+
+exports[`FiatOrders renders multiple authentication URLs 1`] = `
+<View
+  style={
+    {
+      "height": 0,
+      "width": 0,
+    }
+  }
+/>
+`;
