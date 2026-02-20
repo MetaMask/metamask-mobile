@@ -13,8 +13,6 @@ import { useTransferRecipient } from '../../../../hooks/transactions/useTransfer
 import { RowAlertKey } from '../../../UI/info-row/alert-row/constants';
 import InfoSection from '../../../UI/info-row/info-section';
 import AlertRow from '../../../UI/info-row/alert-row';
-import { useAlerts } from '../../../../context/alert-system-context';
-import InlineAlert from '../../../UI/inline-alert';
 import { Skeleton } from '../../../../../../../component-library/components/Skeleton';
 import { strings } from '../../../../../../../../locales/i18n';
 import { AvatarSize } from '../../../../../../../component-library/components/Avatars/Avatar';
@@ -70,10 +68,6 @@ const FromToRow = () => {
   const { styles } = useStyles(styleSheet, {});
   const transactionMetadata = useTransactionMetadataRequest();
   const transferRecipient = useTransferRecipient();
-  const { fieldAlerts } = useAlerts();
-  const fromToAlert = fieldAlerts.find(
-    (a) => a.field === RowAlertKey.FromToAddress,
-  );
 
   if (!transactionMetadata) {
     return null;
@@ -84,10 +78,6 @@ const FromToRow = () => {
 
   const fromAddress = from as string;
   const toAddress = transferRecipient;
-
-  const toAlert = fieldAlerts.find(
-    (a) => a.field === RowAlertKey.FromToAddress,
-  );
 
   return (
     <InfoSection testID={ConfirmationRowComponentIDs.FROM_TO}>
@@ -109,26 +99,18 @@ const FromToRow = () => {
         </View>
 
         <View style={[styles.row, styles.rowSeparator]}>
-          <AlertRow
-            alertField={RowAlertKey.FromToAddress}
-            hideInlineAlert={!!fromToAlert}
-          >
-            <AddressDisplay
-              address={toAddress as string}
-              chainId={chainId}
-              label={
-                <View style={styles.labelRow}>
-                  <Text
-                    variant={TextVariant.BodyMD}
-                    color={TextColor.Alternative}
-                  >
-                    {strings('send.to')}
-                  </Text>
-                  {toAlert && <InlineAlert alertObj={toAlert} />}
-                </View>
-              }
-            />
-          </AlertRow>
+          <AddressDisplay
+            address={toAddress as string}
+            chainId={chainId}
+            label={
+              <View style={styles.labelRow}>
+                <AlertRow
+                  alertField={RowAlertKey.FromToAddress}
+                  label={strings('send.to')}
+                />
+              </View>
+            }
+          />
         </View>
       </View>
     </InfoSection>

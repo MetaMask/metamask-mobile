@@ -25,6 +25,7 @@ const styleSheet = (params: { theme: Theme }) => {
       alignItems: 'center',
       gap: 4,
       marginBottom: 2,
+      marginLeft: -8,
     },
     addressRow: {
       flexDirection: 'row',
