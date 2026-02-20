@@ -22,6 +22,7 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { strings } from '../../../../../../locales/i18n';
 import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../types/musd.types';
 import { ConvertTokenRowTestIds } from '../../components/Musd/ConvertTokenRow';
+import { useMusdBalance } from '../../hooks/useMusdBalance';
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
@@ -34,6 +35,7 @@ jest.mock('@react-navigation/native', () => {
 
 jest.mock('../../hooks/useMusdConversionTokens');
 jest.mock('../../hooks/useMusdConversion');
+jest.mock('../../hooks/useMusdBalance');
 jest.mock('../../selectors/featureFlags', () => ({
   ...jest.requireActual('../../selectors/featureFlags'),
   selectMusdQuickConvertEnabledFlag: jest.fn(),
@@ -85,6 +87,9 @@ const mockUseMusdConversionTokens =
   >;
 const mockUseMusdConversion = useMusdConversion as jest.MockedFunction<
   typeof useMusdConversion
+>;
+const mockUseMusdBalance = useMusdBalance as jest.MockedFunction<
+  typeof useMusdBalance
 >;
 const mockSelectHasInFlightMusdConversion =
   selectHasInFlightMusdConversion as jest.MockedFunction<
@@ -155,6 +160,16 @@ describe('MusdQuickConvertView', () => {
       clearError: jest.fn(),
       error: null,
       hasSeenConversionEducationScreen: true,
+    });
+    mockUseMusdBalance.mockReturnValue({
+      hasMusdBalanceOnAnyChain: false,
+      hasMusdBalanceOnChain: jest.fn(),
+      tokenBalanceByChain: {},
+      fiatBalanceByChain: {},
+      fiatBalanceFormattedByChain: {},
+      tokenBalanceAggregated: '0',
+      fiatBalanceAggregated: undefined,
+      fiatBalanceAggregatedFormatted: '$0.00',
     });
     mockSelectHasInFlightMusdConversion.mockReturnValue(false);
     mockSelectMusdConversionStatuses.mockReturnValue({});
@@ -304,6 +319,25 @@ describe('MusdQuickConvertView', () => {
       expect(
         getByText(strings('earn.musd_conversion.your_musd')),
       ).toBeOnTheScreen();
+    });
+
+    it('falls back to token balance when fiat balance is unavailable', () => {
+      mockUseMusdBalance.mockReturnValue({
+        hasMusdBalanceOnAnyChain: true,
+        hasMusdBalanceOnChain: jest.fn(),
+        tokenBalanceByChain: { '0x1': '123.45' },
+        fiatBalanceByChain: {},
+        fiatBalanceFormattedByChain: {},
+        tokenBalanceAggregated: '123.45',
+        fiatBalanceAggregated: undefined,
+        fiatBalanceAggregatedFormatted: '$0.00',
+      });
+
+      const { getByText } = renderWithProvider(<MusdQuickConvertView />, {
+        state: initialRootState,
+      });
+
+      expect(getByText('123.45')).toBeOnTheScreen();
     });
   });
 
