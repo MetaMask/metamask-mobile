@@ -14,7 +14,7 @@ import {
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import Device from '../../../util/device';
 import { BrowserViewSelectorsIDs } from '../../Views/BrowserTab/BrowserView.testIds';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { addBookmark, removeBookmark } from '../../../actions/bookmarks';
@@ -98,7 +98,7 @@ const BrowserBottomBar: React.FC<BrowserBottomBarProps> = ({
 }) => {
   const { bottom: bottomInset } = useSafeAreaInsets();
   const tw = useTailwind();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const dispatch = useDispatch();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const navigation = useNavigation<StackNavigationProp<any>>();
