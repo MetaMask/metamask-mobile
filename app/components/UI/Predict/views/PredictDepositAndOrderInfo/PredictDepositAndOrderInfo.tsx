@@ -1,5 +1,6 @@
 import React, {
   useCallback,
+  useContext,
   useEffect,
   useMemo,
   useRef,
@@ -25,6 +26,11 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../../../component-library/components/Toast';
+import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
 import PredictAmountDisplay from '../../components/PredictAmountDisplay';
 import { PredictBuyPreviewHeaderTitle } from '../../components/PredictBuyPreviewHeader';
@@ -114,6 +120,7 @@ export function PredictDepositAndOrderInfo() {
   const feeBreakdownSheetRef = useRef<BottomSheetRef>(null);
   const previousValueRef = useRef(0);
   const { setIsFooterVisible } = useConfirmationContext();
+  const { toastRef } = useContext(ToastContext);
 
   const navigation = useNavigation();
   const { trackDeposit } = usePredictOrderDepositTracking();
@@ -244,6 +251,17 @@ export function PredictDepositAndOrderInfo() {
   const previewRef = useRef(preview);
   previewRef.current = preview;
 
+  const showOrderPlacedToast = useCallback(() => {
+    toastRef?.current?.showToast({
+      variant: ToastVariants.Icon,
+      iconName: IconName.Check,
+      labelOptions: [
+        { label: strings('predict.order.prediction_placed'), isBold: true },
+      ],
+      hasNoTimeout: false,
+    });
+  }, [toastRef]);
+
   const handleConfirm = useCallback(async () => {
     if (isConfirming) return;
 
@@ -264,6 +282,7 @@ export function PredictDepositAndOrderInfo() {
           preview: latestPreview,
           analyticsProperties: analyticsProps,
         });
+        showOrderPlacedToast();
       } catch (err) {
         setConfirmError(
           err instanceof Error
@@ -291,6 +310,7 @@ export function PredictDepositAndOrderInfo() {
               preview: latestPreview,
               analyticsProperties: analyticsProps,
             });
+            showOrderPlacedToast();
           } catch (err) {
             setConfirmError(
               err instanceof Error
@@ -328,6 +348,7 @@ export function PredictDepositAndOrderInfo() {
     trackDeposit,
     onApprovalConfirm,
     placeOrder,
+    showOrderPlacedToast,
     market?.id,
     outcome?.id,
     navigation,
