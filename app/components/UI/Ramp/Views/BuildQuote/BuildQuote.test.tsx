@@ -1,4 +1,5 @@
 import React from 'react';
+import { InteractionManager } from 'react-native';
 import { fireEvent, render, act } from '@testing-library/react-native';
 import BuildQuote from './BuildQuote';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
@@ -97,6 +98,31 @@ jest.mock('../../../../hooks/useDebouncedValue', () => ({
   useDebouncedValue: (value: number) => value,
 }));
 
+jest.mock(
+  '../../../../../component-library/components/BottomSheets/BottomSheet',
+  () => {
+    const ReactActual = jest.requireActual('react');
+    const { View } = jest.requireActual('react-native');
+    return ReactActual.forwardRef(
+      (
+        {
+          children,
+          testID,
+        }: {
+          children: React.ReactNode;
+          testID?: string;
+        },
+        ref: React.Ref<{ onCloseBottomSheet: () => void }>,
+      ) => {
+        ReactActual.useImperativeHandle(ref, () => ({
+          onCloseBottomSheet: jest.fn(),
+        }));
+        return <View testID={testID}>{children}</View>;
+      },
+    );
+  },
+);
+
 interface MockUserRegion {
   country: {
     currency: string;
@@ -183,6 +209,18 @@ const renderWithTheme = (component: React.ReactElement) =>
 describe('BuildQuote', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest
+      .spyOn(InteractionManager, 'runAfterInteractions')
+      .mockImplementation((task) => {
+        if (typeof task === 'function') {
+          task();
+        } else if (task?.gen) {
+          task.gen();
+        }
+        return { done: true, cancel: jest.fn() } as unknown as ReturnType<
+          typeof InteractionManager.runAfterInteractions
+        >;
+      });
     mockUserRegion = defaultUserRegion;
     mockSelectedProvider = null;
     mockSelectedQuote = null;
@@ -952,6 +990,132 @@ describe('BuildQuote', () => {
       expect(mockNavigate).not.toHaveBeenCalled();
       expect(mockGetWidgetUrl).not.toHaveBeenCalled();
       expect(mockTransakCheckExistingToken).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Token unavailable for provider', () => {
+    it('navigates to token unavailable modal when token is not supported by provider', () => {
+      mockSelectedProvider = {
+        id: '/providers/transak',
+        name: 'Transak',
+        environmentType: 'PRODUCTION',
+        description: 'Test Provider',
+        hqAddress: '123 Test St',
+        links: [],
+        logos: { light: '', dark: '', height: 24, width: 79 },
+        supportedCryptoCurrencies: {
+          'eip155:1/slip44:60': true,
+        },
+      };
+
+      renderWithTheme(<BuildQuote />);
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'RampModals',
+        expect.objectContaining({
+          screen: 'RampTokenNotAvailableModal',
+          params: { assetId: MOCK_ASSET_ID },
+        }),
+      );
+    });
+
+    it('does not navigate to token unavailable modal when token is supported by provider', () => {
+      mockSelectedProvider = {
+        id: '/providers/transak',
+        name: 'Transak',
+        environmentType: 'PRODUCTION',
+        description: 'Test Provider',
+        hqAddress: '123 Test St',
+        links: [],
+        logos: { light: '', dark: '', height: 24, width: 79 },
+        supportedCryptoCurrencies: {
+          [MOCK_ASSET_ID]: true,
+        },
+      };
+
+      renderWithTheme(<BuildQuote />);
+
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        'RampModals',
+        expect.objectContaining({
+          screen: 'RampTokenNotAvailableModal',
+        }),
+      );
+    });
+
+    it('does not navigate to token unavailable modal when provider has no supportedCryptoCurrencies', () => {
+      mockSelectedProvider = {
+        id: '/providers/transak',
+        name: 'Transak',
+        environmentType: 'PRODUCTION',
+        description: 'Test Provider',
+        hqAddress: '123 Test St',
+        links: [],
+        logos: { light: '', dark: '', height: 24, width: 79 },
+      };
+
+      renderWithTheme(<BuildQuote />);
+
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        'RampModals',
+        expect.objectContaining({
+          screen: 'RampTokenNotAvailableModal',
+        }),
+      );
+    });
+
+    it('does not navigate to token unavailable modal when no provider is selected', () => {
+      mockSelectedProvider = null;
+
+      renderWithTheme(<BuildQuote />);
+
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        'RampModals',
+        expect.objectContaining({
+          screen: 'RampTokenNotAvailableModal',
+        }),
+      );
+    });
+
+    it('does not re-navigate to token unavailable modal on re-renders', () => {
+      mockSelectedProvider = {
+        id: '/providers/transak',
+        name: 'Transak',
+        environmentType: 'PRODUCTION',
+        description: 'Test Provider',
+        hqAddress: '123 Test St',
+        links: [],
+        logos: { light: '', dark: '', height: 24, width: 79 },
+        supportedCryptoCurrencies: {
+          'eip155:1/slip44:60': true,
+        },
+      };
+
+      const { rerender } = renderWithTheme(<BuildQuote />);
+
+      expect(mockNavigate).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'RampModals',
+        expect.objectContaining({
+          screen: 'RampTokenNotAvailableModal',
+          params: { assetId: MOCK_ASSET_ID },
+        }),
+      );
+
+      mockNavigate.mockClear();
+
+      rerender(
+        <ThemeContext.Provider value={mockTheme}>
+          <BuildQuote />
+        </ThemeContext.Provider>,
+      );
+
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        'RampModals',
+        expect.objectContaining({
+          screen: 'RampTokenNotAvailableModal',
+        }),
+      );
     });
   });
 });
