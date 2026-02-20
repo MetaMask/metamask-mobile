@@ -48,6 +48,9 @@ const createEmptyResourcesMap = (): TronResourcesMap => ({
   stakedTrxForEnergy: undefined,
   stakedTrxForBandwidth: undefined,
   totalStakedTrx: 0,
+  readyForWithdrawal: undefined,
+  stakingRewards: undefined,
+  inLockPeriod: undefined,
 });
 
 interface Resource {

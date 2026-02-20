@@ -54,6 +54,9 @@ const createMockResourcesMap = (totalStakedTrx: number): TronResourcesMap => ({
   stakedTrxForEnergy: undefined,
   stakedTrxForBandwidth: undefined,
   totalStakedTrx,
+  readyForWithdrawal: undefined,
+  stakingRewards: undefined,
+  inLockPeriod: undefined,
 });
 
 describe('TronStakePreview', () => {

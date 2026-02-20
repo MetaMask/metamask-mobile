@@ -74,6 +74,9 @@ describe('tron utils', () => {
         stakedTrxForEnergy: undefined,
         stakedTrxForBandwidth: undefined,
         totalStakedTrx: 15,
+        readyForWithdrawal: undefined,
+        stakingRewards: undefined,
+        inLockPeriod: undefined,
       };
 
       const total = getStakedTrxTotalFromResources(resources);
@@ -109,6 +112,9 @@ describe('tron utils', () => {
         stakedTrxForEnergy: undefined,
         stakedTrxForBandwidth: undefined,
         totalStakedTrx: 0,
+        readyForWithdrawal: undefined,
+        stakingRewards: undefined,
+        inLockPeriod: undefined,
       };
 
       const result = hasStakedTrxPositions(resources);
@@ -125,6 +131,9 @@ describe('tron utils', () => {
         stakedTrxForEnergy: undefined,
         stakedTrxForBandwidth: undefined,
         totalStakedTrx: 1,
+        readyForWithdrawal: undefined,
+        stakingRewards: undefined,
+        inLockPeriod: undefined,
       };
 
       const result = hasStakedTrxPositions(resources);

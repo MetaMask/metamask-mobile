@@ -37,6 +37,9 @@ const createEmptyResourcesMap = (): TronResourcesMap => ({
   stakedTrxForEnergy: undefined,
   stakedTrxForBandwidth: undefined,
   totalStakedTrx: 0,
+  readyForWithdrawal: undefined,
+  stakingRewards: undefined,
+  inLockPeriod: undefined,
 });
 
 const createTronAsset = (
@@ -66,6 +69,9 @@ describe('useTronResources', () => {
       stakedTrxForEnergy: createTronAsset('strx-energy', '500') as any,
       stakedTrxForBandwidth: createTronAsset('strx-bandwidth', 0) as any,
       totalStakedTrx: 500,
+      readyForWithdrawal: undefined,
+      stakingRewards: undefined,
+      inLockPeriod: undefined,
     };
 
     mockSelectTronResourcesBySelectedAccountGroup.mockReturnValue(
