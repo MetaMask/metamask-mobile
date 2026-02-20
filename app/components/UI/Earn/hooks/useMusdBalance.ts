@@ -175,26 +175,14 @@ export const useMusdBalance = () => {
     tokenMarketDataByAddressByChainId,
   ]);
 
-  return useMemo(
-    () => ({
-      hasMusdBalanceOnAnyChain,
-      hasMusdBalanceOnChain,
-      tokenBalanceByChain,
-      fiatBalanceByChain,
-      fiatBalanceFormattedByChain,
-      tokenBalanceAggregated,
-      fiatBalanceAggregated,
-      fiatBalanceAggregatedFormatted,
-    }),
-    [
-      fiatBalanceAggregated,
-      fiatBalanceAggregatedFormatted,
-      fiatBalanceByChain,
-      fiatBalanceFormattedByChain,
-      hasMusdBalanceOnAnyChain,
-      hasMusdBalanceOnChain,
-      tokenBalanceAggregated,
-      tokenBalanceByChain,
-    ],
-  );
+  return {
+    hasMusdBalanceOnAnyChain,
+    hasMusdBalanceOnChain,
+    tokenBalanceByChain,
+    fiatBalanceByChain,
+    fiatBalanceFormattedByChain,
+    tokenBalanceAggregated,
+    fiatBalanceAggregated,
+    fiatBalanceAggregatedFormatted,
+  };
 };
