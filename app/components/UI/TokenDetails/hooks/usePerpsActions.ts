@@ -5,11 +5,13 @@ import {
   type UsePerpsMarketForAssetResult,
 } from '../../Perps/hooks/usePerpsMarketForAsset';
 import Routes from '../../../../constants/navigation/Routes';
-import type { OrderDirection } from '../../Perps/types/perps-types';
+import type { OrderDirection } from '@metamask/perps-controller';
 
 export interface UsePerpsActionsParams {
   /** Token symbol, or null to skip the perps market check */
   symbol: string | null;
+  /** A/B test variant for token details layout - e.g. 'control' or 'treatment' */
+  abTestTokenDetailsLayout?: string;
 }
 
 export interface UsePerpsActionsResult extends UsePerpsMarketForAssetResult {
@@ -39,6 +41,7 @@ export interface UsePerpsActionsResult extends UsePerpsMarketForAssetResult {
  */
 export const usePerpsActions = ({
   symbol,
+  abTestTokenDetailsLayout,
 }: UsePerpsActionsParams): UsePerpsActionsResult => {
   const navigation = useNavigation();
 
@@ -56,10 +59,13 @@ export const usePerpsActions = ({
         params: {
           direction,
           asset: marketData.symbol,
+          ...(abTestTokenDetailsLayout && {
+            assetsASSETS2493AbtestTokenDetailsLayout: abTestTokenDetailsLayout,
+          }),
         },
       });
     },
-    [navigation, marketData],
+    [navigation, marketData, abTestTokenDetailsLayout],
   );
 
   return useMemo(

@@ -23,7 +23,8 @@ import {
 import { useDispatch, useSelector } from 'react-redux';
 import useEmailVerificationSend from '../../hooks/useEmailVerificationSend';
 import { CardActions, CardScreens } from '../../util/metrics';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 
 const CODE_LENGTH = 6;
@@ -35,7 +36,7 @@ const ConfirmEmail = () => {
   const [resendCooldown, setResendCooldown] = useState(60);
   const selectedCountry = useSelector(selectSelectedCountry);
   const contactVerificationId = useSelector(selectContactVerificationId);
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const [latestValueSubmitted, setLatestValueSubmitted] = useState<
     string | null
   >(null);
@@ -300,16 +301,25 @@ const ConfirmEmail = () => {
   );
 
   const renderActions = () => (
-    <Button
-      variant={ButtonVariants.Primary}
-      label={strings('card.card_onboarding.continue_button')}
-      size={ButtonSize.Lg}
-      onPress={handleContinue}
-      width={ButtonWidthTypes.Full}
-      isDisabled={isDisabled}
-      loading={verifyLoading}
-      testID="confirm-email-continue-button"
-    />
+    <Box twClassName="flex flex-col items-center justify-center gap-2">
+      <Button
+        variant={ButtonVariants.Primary}
+        label={strings('card.card_onboarding.continue_button')}
+        size={ButtonSize.Lg}
+        onPress={handleContinue}
+        width={ButtonWidthTypes.Full}
+        isDisabled={isDisabled}
+        loading={verifyLoading}
+        testID="confirm-email-continue-button"
+      />
+      <Text
+        variant={TextVariant.BodySm}
+        testID="confirm-email-legal-terms"
+        twClassName="text-text-alternative text-center"
+      >
+        {strings('card.card_onboarding.confirm_email.legal_terms')}
+      </Text>
+    </Box>
   );
 
   return (

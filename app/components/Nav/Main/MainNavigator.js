@@ -7,6 +7,7 @@ import Browser from '../../Views/Browser';
 import { ChainId } from '@metamask/controller-utils';
 import AddBookmark from '../../Views/AddBookmark';
 import SimpleWebview from '../../Views/SimpleWebview';
+import AccountsMenu from '../../Views/AccountsMenu';
 import Settings from '../../Views/Settings';
 import GeneralSettings from '../../Views/Settings/GeneralSettings';
 import AdvancedSettings from '../../Views/Settings/AdvancedSettings';
@@ -14,7 +15,7 @@ import BackupAndSyncSettings from '../../Views/Settings/Identity/BackupAndSyncSe
 import SecuritySettings from '../../Views/Settings/SecuritySettings';
 import ExperimentalSettings from '../../Views/Settings/ExperimentalSettings';
 import NotificationsSettings from '../../Views/Settings/NotificationsSettings';
-import RegionSelector from '../../Views/Settings/RegionSelector/RegionSelector';
+import RegionSelector from '../../UI/Ramp/Views/Settings/RegionSelector/RegionSelector';
 import NotificationsView from '../../Views/Notifications';
 import NotificationsDetails from '../../Views/Notifications/Details';
 import OptIn from '../../Views/Notifications/OptIn';
@@ -26,7 +27,6 @@ import Wallet from '../../Views/Wallet';
 import Asset from '../../Views/Asset';
 import AssetDetails from '../../Views/AssetDetails';
 import AddAsset from '../../Views/AddAsset';
-import Collectible from '../../Views/Collectible';
 import NftFullView from '../../Views/NftFullView';
 import TokensFullView from '../../Views/TokensFullView';
 import TrendingTokensFullView from '../../Views/TrendingTokens/TrendingTokensFullView/TrendingTokensFullView';
@@ -104,7 +104,11 @@ import {
   PredictModalStack,
   selectPredictEnabledFlag,
 } from '../../UI/Predict';
-import { selectAssetsTrendingTokensEnabled } from '../../../selectors/featureFlagController/assetsTrendingTokens';
+import {
+  MarketInsightsView,
+  selectMarketInsightsEnabled,
+} from '../../UI/MarketInsights';
+import { useAccountMenuEnabled } from '../../../selectors/featureFlagController/accountMenu/useAccountMenuEnabled';
 import PerpsPositionTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsPositionTransactionView';
 import PerpsOrderTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsOrderTransactionView';
 import PerpsFundingTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsFundingTransactionView';
@@ -121,16 +125,8 @@ import { TransactionDetails } from '../../Views/confirmations/components/activit
 import RewardsBottomSheetModal from '../../UI/Rewards/components/RewardsBottomSheetModal';
 import RewardsClaimBottomSheetModal from '../../UI/Rewards/components/Tabs/LevelsTab/RewardsClaimBottomSheetModal';
 import RewardOptInAccountGroupModal from '../../UI/Rewards/components/Settings/RewardOptInAccountGroupModal';
-import ReferralBottomSheetModal from '../../UI/Rewards/components/ReferralBottomSheetModal';
 import EndOfSeasonClaimBottomSheet from '../../UI/Rewards/components/EndOfSeasonClaimBottomSheet/EndOfSeasonClaimBottomSheet';
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
-import getHeaderCompactStandardNavbarOptions from '../../../component-library/components-temp/HeaderCompactStandard/getHeaderCompactStandardNavbarOptions';
-import {
-  TOKEN_TITLE,
-  NFT_TITLE,
-  TOKEN,
-} from '../../Views/AddAsset/AddAsset.constants';
-import { strings } from '../../../../locales/i18n';
 import SitesFullView from '../../Views/SitesFullView/SitesFullView';
 import { TokenDetails } from '../../UI/TokenDetails/Views/TokenDetails';
 
@@ -214,11 +210,6 @@ const WalletTabStackFlow = () => (
       options={{ headerShown: false }}
     />
     <Stack.Screen
-      name="Collectible"
-      component={Collectible}
-      options={Collectible.navigationOptions}
-    />
-    <Stack.Screen
       name={Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL}
       component={RevealPrivateCredential}
     />
@@ -276,10 +267,6 @@ const RewardsHome = () => (
       name={Routes.MODAL.REWARDS_OPTIN_ACCOUNT_GROUP_MODAL}
       component={RewardOptInAccountGroupModal}
       options={{ headerShown: false }}
-    />
-    <Stack.Screen
-      name={Routes.MODAL.REWARDS_REFERRAL_BOTTOM_SHEET_MODAL}
-      component={ReferralBottomSheetModal}
     />
     <Stack.Screen
       name={Routes.MODAL.REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET}
@@ -358,159 +345,172 @@ const NotificationsOptInStack = () => (
   </Stack.Navigator>
 );
 
-const SettingsFlow = () => (
-  <Stack.Navigator initialRouteName={'Settings'}>
-    <Stack.Screen
-      name="Settings"
-      component={Settings}
-      options={{ headerShown: false }}
-    />
-    <Stack.Screen
-      name="GeneralSettings"
-      component={GeneralSettings}
-      options={{ headerShown: false }}
-    />
-    <Stack.Screen
-      name="AdvancedSettings"
-      component={AdvancedSettings}
-      options={AdvancedSettings.navigationOptions}
-    />
-    <Stack.Screen name="SDKSessionsManager" component={SDKSessionsManager} />
-    <Stack.Screen name="PermissionsManager" component={PermissionsManager} />
-    <Stack.Screen
-      name="SecuritySettings"
-      component={SecuritySettings}
-      options={SecuritySettings.navigationOptions}
-    />
+const SettingsFlow = () => {
+  const isAccountMenuEnabled = useAccountMenuEnabled();
 
-    <Stack.Screen name={Routes.RAMP.SETTINGS} component={RampSettings} />
-    <Stack.Screen
-      name={Routes.RAMP.ACTIVATION_KEY_FORM}
-      component={RampActivationKeyForm}
-    />
-    {
-      /**
-       * This screen should only accessed in test mode.
-       * It is used to test the AES crypto functions.
-       *
-       * If this is in production, it is a bug.
-       */
-      isTest && (
-        <Stack.Screen
-          name="AesCryptoTestForm"
-          component={AesCryptoTestForm}
-          options={AesCryptoTestForm.navigationOptions}
-        />
-      )
-    }
-    <Stack.Screen
-      name="ExperimentalSettings"
-      component={ExperimentalSettings}
-      options={ExperimentalSettings.navigationOptions}
-    />
-    <Stack.Screen
-      name="CompanySettings"
-      component={AppInformation}
-      options={AppInformation.navigationOptions}
-    />
-    {process.env.MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS === 'true' && (
+  return (
+    <Stack.Navigator
+      initialRouteName={
+        isAccountMenuEnabled ? Routes.ACCOUNTS_MENU_VIEW : 'Settings'
+      }
+    >
       <Stack.Screen
-        name={Routes.SETTINGS.DEVELOPER_OPTIONS}
-        component={DeveloperOptions}
-        options={DeveloperOptions.navigationOptions}
+        name={Routes.ACCOUNTS_MENU_VIEW}
+        component={AccountsMenu}
+        options={{ headerShown: false }}
       />
-    )}
+      <Stack.Screen
+        name="Settings"
+        component={Settings}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="GeneralSettings"
+        component={GeneralSettings}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="AdvancedSettings"
+        component={AdvancedSettings}
+        options={AdvancedSettings.navigationOptions}
+      />
+      <Stack.Screen name="SDKSessionsManager" component={SDKSessionsManager} />
+      <Stack.Screen name="PermissionsManager" component={PermissionsManager} />
+      <Stack.Screen
+        name="SecuritySettings"
+        component={SecuritySettings}
+        options={SecuritySettings.navigationOptions}
+      />
 
-    <Stack.Screen
-      name="ContactsSettings"
-      component={Contacts}
-      options={Contacts.navigationOptions}
-    />
-    <Stack.Screen
-      name="ContactForm"
-      component={ContactForm}
-      options={ContactForm.navigationOptions}
-    />
-    <Stack.Screen
-      name="AccountPermissionsAsFullScreen"
-      component={AccountPermissions}
-      options={{ headerShown: false }}
-      initialParams={{
-        initialScreen: AccountPermissionsScreens.PermissionsSummary,
-      }}
-    />
-    <Stack.Screen
-      name={Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL}
-      component={RevealPrivateCredential}
-    />
-    <Stack.Screen
-      name={Routes.WALLET.WALLET_CONNECT_SESSIONS_VIEW}
-      component={WalletConnectSessions}
-      options={WalletConnectSessions.navigationOptions}
-    />
-    <Stack.Screen
-      name="ResetPassword"
-      component={ResetPassword}
-      options={ResetPassword.navigationOptions}
-    />
-    <Stack.Screen
-      name="WalletRecovery"
-      component={WalletRecovery}
-      options={WalletRecovery.navigationOptions}
-    />
-    <Stack.Screen
-      name="AccountBackupStep1B"
-      component={AccountBackupStep1B}
-      options={AccountBackupStep1B.navigationOptions}
-    />
-    <Stack.Screen
-      name="ManualBackupStep1"
-      component={ManualBackupStep1}
-      options={ManualBackupStep1.navigationOptions}
-    />
-    <Stack.Screen
-      name="ManualBackupStep2"
-      component={ManualBackupStep2}
-      options={ManualBackupStep2.navigationOptions}
-    />
-    <Stack.Screen
-      name="ManualBackupStep3"
-      component={ManualBackupStep3}
-      options={ManualBackupStep3.navigationOptions}
-    />
-    <Stack.Screen
-      name="EnterPasswordSimple"
-      component={EnterPasswordSimple}
-      options={EnterPasswordSimple.navigationOptions}
-    />
-    <Stack.Screen
-      name={Routes.SETTINGS.NOTIFICATIONS}
-      component={NotificationsSettings}
-      options={NotificationsSettings.navigationOptions}
-    />
-    <Stack.Screen
-      name={Routes.SETTINGS.BACKUP_AND_SYNC}
-      component={BackupAndSyncSettings}
-      options={BackupAndSyncSettings.navigationOptions}
-    />
-    <Stack.Screen
-      name={Routes.SETTINGS.REGION_SELECTOR}
-      component={RegionSelector}
-      options={RegionSelector.navigationOptions}
-    />
-    {
-      ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
-    }
-    <Stack.Screen
-      name={Routes.SNAPS.SNAPS_SETTINGS_LIST}
-      component={SnapsSettingsStack}
-      options={{ headerShown: false }}
-    />
-    {
-      ///: END:ONLY_INCLUDE_IF
-    }
-  </Stack.Navigator>
-);
+      <Stack.Screen name={Routes.RAMP.SETTINGS} component={RampSettings} />
+      <Stack.Screen
+        name={Routes.RAMP.ACTIVATION_KEY_FORM}
+        component={RampActivationKeyForm}
+      />
+      {
+        /**
+         * This screen should only accessed in test mode.
+         * It is used to test the AES crypto functions.
+         *
+         * If this is in production, it is a bug.
+         */
+        isTest && (
+          <Stack.Screen
+            name="AesCryptoTestForm"
+            component={AesCryptoTestForm}
+            options={AesCryptoTestForm.navigationOptions}
+          />
+        )
+      }
+      <Stack.Screen
+        name="ExperimentalSettings"
+        component={ExperimentalSettings}
+        options={ExperimentalSettings.navigationOptions}
+      />
+      <Stack.Screen
+        name="CompanySettings"
+        component={AppInformation}
+        options={{ headerShown: false }}
+      />
+      {process.env.MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS === 'true' && (
+        <Stack.Screen
+          name={Routes.SETTINGS.DEVELOPER_OPTIONS}
+          component={DeveloperOptions}
+          options={DeveloperOptions.navigationOptions}
+        />
+      )}
+
+      <Stack.Screen
+        name="ContactsSettings"
+        component={Contacts}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="ContactForm"
+        component={ContactForm}
+        options={ContactForm.navigationOptions}
+      />
+      <Stack.Screen
+        name="AccountPermissionsAsFullScreen"
+        component={AccountPermissions}
+        options={{ headerShown: false }}
+        initialParams={{
+          initialScreen: AccountPermissionsScreens.PermissionsSummary,
+        }}
+      />
+      <Stack.Screen
+        name={Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL}
+        component={RevealPrivateCredential}
+      />
+      <Stack.Screen
+        name={Routes.WALLET.WALLET_CONNECT_SESSIONS_VIEW}
+        component={WalletConnectSessions}
+        options={WalletConnectSessions.navigationOptions}
+      />
+      <Stack.Screen
+        name="ResetPassword"
+        component={ResetPassword}
+        options={ResetPassword.navigationOptions}
+      />
+      <Stack.Screen
+        name="WalletRecovery"
+        component={WalletRecovery}
+        options={WalletRecovery.navigationOptions}
+      />
+      <Stack.Screen
+        name="AccountBackupStep1B"
+        component={AccountBackupStep1B}
+        options={AccountBackupStep1B.navigationOptions}
+      />
+      <Stack.Screen
+        name="ManualBackupStep1"
+        component={ManualBackupStep1}
+        options={ManualBackupStep1.navigationOptions}
+      />
+      <Stack.Screen
+        name="ManualBackupStep2"
+        component={ManualBackupStep2}
+        options={ManualBackupStep2.navigationOptions}
+      />
+      <Stack.Screen
+        name="ManualBackupStep3"
+        component={ManualBackupStep3}
+        options={ManualBackupStep3.navigationOptions}
+      />
+      <Stack.Screen
+        name="EnterPasswordSimple"
+        component={EnterPasswordSimple}
+        options={EnterPasswordSimple.navigationOptions}
+      />
+      <Stack.Screen
+        name={Routes.SETTINGS.NOTIFICATIONS}
+        component={NotificationsSettings}
+        options={NotificationsSettings.navigationOptions}
+      />
+      <Stack.Screen
+        name={Routes.SETTINGS.BACKUP_AND_SYNC}
+        component={BackupAndSyncSettings}
+        options={BackupAndSyncSettings.navigationOptions}
+      />
+      <Stack.Screen
+        name={Routes.SETTINGS.REGION_SELECTOR}
+        component={RegionSelector}
+        options={RegionSelector.navigationOptions}
+      />
+      {
+        ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
+      }
+      <Stack.Screen
+        name={Routes.SNAPS.SNAPS_SETTINGS_LIST}
+        component={SnapsSettingsStack}
+        options={{ headerShown: false }}
+      />
+      {
+        ///: END:ONLY_INCLUDE_IF
+      }
+    </Stack.Navigator>
+  );
+};
 
 const UnmountOnBlurComponent = (children) => (
   <UnmountOnBlur>{children}</UnmountOnBlur>
@@ -522,9 +522,6 @@ const HomeTabs = () => {
 
   const accountsLength = useSelector(selectAccountsLength);
   const rewardsSubscription = useSelector(selectRewardsSubscriptionId);
-  const isAssetsTrendingTokensEnabled = useSelector(
-    selectAssetsTrendingTokensEnabled,
-  );
 
   const chainId = useSelector((state) => {
     const providerConfig = selectProviderConfig(state);
@@ -682,53 +679,53 @@ const HomeTabs = () => {
 
   return (
     <Tab.Navigator initialRouteName={Routes.WALLET.HOME} tabBar={renderTabBar}>
+      {/* Home Tab */}
       <Tab.Screen
         name={Routes.WALLET.HOME}
         options={options.home}
         component={WalletTabModalFlow}
       />
-      {isAssetsTrendingTokensEnabled ? (
-        <>
-          <Tab.Screen
-            name={Routes.TRENDING_VIEW}
-            options={{
-              ...options.trending,
-              isSelected: (rootScreenName) =>
-                [Routes.TRENDING_VIEW, Routes.BROWSER.HOME].includes(
-                  rootScreenName,
-                ),
-            }}
-            component={ExploreHome}
-          />
-          <Tab.Screen
-            name={Routes.BROWSER.HOME}
-            options={{
-              ...options.browser,
-              isHidden: true,
-            }}
-            component={BrowserFlow}
-            layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
-          />
-        </>
-      ) : (
+
+      {/* Explore Tab (w/ hidden browser) */}
+      <>
+        <Tab.Screen
+          name={Routes.TRENDING_VIEW}
+          options={{
+            ...options.trending,
+            isSelected: (rootScreenName) =>
+              [Routes.TRENDING_VIEW, Routes.BROWSER.HOME].includes(
+                rootScreenName,
+              ),
+          }}
+          component={ExploreHome}
+        />
         <Tab.Screen
           name={Routes.BROWSER.HOME}
-          options={options.browser}
+          options={{
+            ...options.browser,
+            isHidden: true,
+          }}
           component={BrowserFlow}
           layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
         />
-      )}
+      </>
+
+      {/* Trade Tab */}
       <Tab.Screen
         name={Routes.MODAL.TRADE_WALLET_ACTIONS}
         options={options.trade}
         component={WalletTabModalFlow}
       />
+
+      {/* Activity Tab */}
       <Tab.Screen
         name={Routes.TRANSACTIONS_VIEW}
         options={options.activity}
         component={TransactionsHome}
         layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
       />
+
+      {/* Rewards Tab */}
       <Tab.Screen
         name={Routes.REWARDS_VIEW}
         options={options.rewards}
@@ -900,10 +897,8 @@ const MainNavigator = () => {
     () => predictEnabledFlag,
     [predictEnabledFlag],
   );
-  // Get feature flag state for conditional Trending Tokens screen registration
-  const isAssetsTrendingTokensEnabled = useSelector(
-    selectAssetsTrendingTokensEnabled,
-  );
+  // Get feature flag state for conditional Market Insights screen registration
+  const isMarketInsightsEnabled = useSelector(selectMarketInsightsEnabled);
 
   return (
     <Stack.Navigator
@@ -945,20 +940,7 @@ const MainNavigator = () => {
         component={TokensFullView}
         options={{ headerShown: false }}
       />
-      <Stack.Screen
-        name="AddAsset"
-        component={AddAsset}
-        options={({ route, navigation }) => ({
-          ...getHeaderCompactStandardNavbarOptions({
-            title: strings(
-              `add_asset.${route.params?.assetType === TOKEN ? TOKEN_TITLE : NFT_TITLE}`,
-            ),
-            onBack: () => navigation.goBack(),
-            includesTopInset: true,
-          }),
-          headerShown: true,
-        })}
-      />
+      <Stack.Screen name="AddAsset" component={AddAsset} />
       <Stack.Screen
         name="ConfirmAddAsset"
         component={ConfirmAddAsset}
@@ -1238,70 +1220,90 @@ const MainNavigator = () => {
           />
         </>
       )}
-      {isAssetsTrendingTokensEnabled && (
-        <>
-          <Stack.Screen
-            name={Routes.EXPLORE_SEARCH}
-            component={ExploreSearchScreen}
-            options={{
-              headerShown: false,
-              animationEnabled: true,
-              cardStyleInterpolator: ({ current, layouts }) => ({
-                cardStyle: {
-                  transform: [
-                    {
-                      translateX: current.progress.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: [layouts.screen.width, 0],
-                      }),
-                    },
-                  ],
-                },
-              }),
-            }}
-          />
-          <Stack.Screen
-            name={Routes.SITES_FULL_VIEW}
-            component={SitesFullView}
-            options={{
-              headerShown: false,
-              animationEnabled: true,
-              cardStyleInterpolator: ({ current, layouts }) => ({
-                cardStyle: {
-                  transform: [
-                    {
-                      translateX: current.progress.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: [layouts.screen.width, 0],
-                      }),
-                    },
-                  ],
-                },
-              }),
-            }}
-          />
-          <Stack.Screen
-            name={Routes.BROWSER.HOME}
-            component={BrowserFlow}
-            options={{
-              headerShown: false,
-              animationEnabled: true,
-              cardStyleInterpolator: ({ current, layouts }) => ({
-                cardStyle: {
-                  transform: [
-                    {
-                      translateX: current.progress.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: [layouts.screen.width, 0],
-                      }),
-                    },
-                  ],
-                },
-              }),
-            }}
-          />
-        </>
+      {isMarketInsightsEnabled && (
+        <Stack.Screen
+          name={Routes.MARKET_INSIGHTS.VIEW}
+          component={MarketInsightsView}
+          options={{
+            headerShown: false,
+            animationEnabled: true,
+            cardStyleInterpolator: ({ current, layouts }) => ({
+              cardStyle: {
+                transform: [
+                  {
+                    translateX: current.progress.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [layouts.screen.width, 0],
+                    }),
+                  },
+                ],
+              },
+            }),
+          }}
+        />
       )}
+      <>
+        <Stack.Screen
+          name={Routes.EXPLORE_SEARCH}
+          component={ExploreSearchScreen}
+          options={{
+            headerShown: false,
+            animationEnabled: true,
+            cardStyleInterpolator: ({ current, layouts }) => ({
+              cardStyle: {
+                transform: [
+                  {
+                    translateX: current.progress.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [layouts.screen.width, 0],
+                    }),
+                  },
+                ],
+              },
+            }),
+          }}
+        />
+        <Stack.Screen
+          name={Routes.SITES_FULL_VIEW}
+          component={SitesFullView}
+          options={{
+            headerShown: false,
+            animationEnabled: true,
+            cardStyleInterpolator: ({ current, layouts }) => ({
+              cardStyle: {
+                transform: [
+                  {
+                    translateX: current.progress.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [layouts.screen.width, 0],
+                    }),
+                  },
+                ],
+              },
+            }),
+          }}
+        />
+        <Stack.Screen
+          name={Routes.BROWSER.HOME}
+          component={BrowserFlow}
+          options={{
+            headerShown: false,
+            animationEnabled: true,
+            cardStyleInterpolator: ({ current, layouts }) => ({
+              cardStyle: {
+                transform: [
+                  {
+                    translateX: current.progress.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [layouts.screen.width, 0],
+                    }),
+                  },
+                ],
+              },
+            }),
+          }}
+        />
+      </>
       <Stack.Screen
         name="SetPasswordFlow"
         component={SetPasswordFlow}

@@ -1,4 +1,4 @@
-import React, { PureComponent } from 'react';
+import React, { PureComponent, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import {
   TouchableOpacity,
@@ -19,7 +19,7 @@ import decodeTransaction from './utils';
 import { TRANSACTION_TYPES } from '../../../util/transactions';
 import ListItem from '../../Base/ListItem';
 import StatusText from '../../Base/StatusText';
-import { isTestNet } from '../../../util/networks';
+import { isTestNet, getDecimalChainId } from '../../../util/networks';
 import { weiHexToGweiDec } from '@metamask/controller-utils';
 import {
   TransactionType,
@@ -35,7 +35,6 @@ import {
   selectSwapsTransactions,
   selectTransactions,
 } from '../../../selectors/transactionController';
-import { swapsControllerTokens } from '../../../reducers/swaps';
 import {
   FINAL_NON_CONFIRMED_STATUSES,
   useBridgeTxHistoryData,
@@ -63,6 +62,13 @@ import { selectTokensByChainIdAndAddress } from '../../../selectors/tokensContro
 import Routes from '../../../constants/navigation/Routes';
 import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
 import { hasTransactionType } from '../../Views/confirmations/utils/transaction';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import {
+  TRANSACTION_DETAIL_EVENTS,
+  TransactionDetailLocation,
+  getMonetizedPrimitive,
+} from '../../../core/Analytics/events/transactions';
+import { getTransactionTypeValue } from '../../../core/Engine/controllers/transaction-controller/metrics_properties/base';
 
 const createStyles = (colors, typography) =>
   StyleSheet.create({
@@ -205,7 +211,6 @@ class TransactionElement extends PureComponent {
      */
     onCancelAction: PropTypes.func,
     swapsTransactions: PropTypes.object,
-    swapsTokens: PropTypes.arrayOf(PropTypes.object),
     signQRTransaction: PropTypes.func,
     cancelUnsignedQRTransaction: PropTypes.func,
     isQRHardwareAccount: PropTypes.bool,
@@ -238,6 +243,10 @@ class TransactionElement extends PureComponent {
      * All EVM transactions in controller state
      */
     transactions: PropTypes.arrayOf(PropTypes.object).isRequired,
+    /**
+     * Callback to track transaction detail click analytics
+     */
+    trackTransactionDetailClicked: PropTypes.func,
   };
 
   state = {
@@ -259,7 +268,6 @@ class TransactionElement extends PureComponent {
     const [transactionElement, transactionDetails] = await decodeTransaction({
       ...this.props,
       swapsTransactions: this.props.swapsTransactions,
-      swapsTokens: this.props.swapsTokens,
       assetSymbol: this.props.assetSymbol,
       ticker: this.props.ticker,
     });
@@ -271,8 +279,7 @@ class TransactionElement extends PureComponent {
   componentDidUpdate(prevProps) {
     if (
       prevProps.txChainId !== this.props.txChainId ||
-      prevProps.swapsTransactions !== this.props.swapsTransactions ||
-      prevProps.swapsTokens !== this.props.swapsTokens
+      prevProps.swapsTransactions !== this.props.swapsTransactions
     ) {
       this.componentDidMount();
     }
@@ -283,8 +290,9 @@ class TransactionElement extends PureComponent {
   }
 
   onPressItem = () => {
-    const { tx, i, onPressItem } = this.props;
+    const { tx, i, onPressItem, trackTransactionDetailClicked } = this.props;
     onPressItem && onPressItem(tx.id, i);
+    trackTransactionDetailClicked && trackTransactionDetailClicked();
 
     const isUnifiedSwap =
       tx.type === TransactionType.swap &&
@@ -496,7 +504,7 @@ class TransactionElement extends PureComponent {
       isQRHardwareAccount,
       isLedgerAccount,
       i,
-      tx: { status, isSmartTransaction, chainId, type },
+      tx: { status, chainId, type },
       tx,
       bridgeTxHistoryData: { bridgeTxHistoryItem, isBridgeComplete },
     } = this.props;
@@ -511,14 +519,6 @@ class TransactionElement extends PureComponent {
             bridgeTxHistoryItem.status.status,
           )
         : status;
-
-    const renderNormalActions =
-      (transactionStatus === 'submitted' ||
-        (transactionStatus === 'approved' &&
-          !isQRHardwareAccount &&
-          !isLedgerAccount)) &&
-      !isSmartTransaction &&
-      !isBridgeTransaction;
     const renderUnsignedQRActions =
       transactionStatus === 'approved' && isQRHardwareAccount;
     const renderLedgerActions =
@@ -569,12 +569,6 @@ class TransactionElement extends PureComponent {
             </ListItem.Amounts>
           )}
         </ListItem.Content>
-        {renderNormalActions && (
-          <ListItem.Actions>
-            {this.renderSpeedUpButton()}
-            {this.renderCancelButton()}
-          </ListItem.Actions>
-        )}
         {renderUnsignedQRActions && (
           <ListItem.Actions>
             {this.renderQRSignButton()}
@@ -585,22 +579,6 @@ class TransactionElement extends PureComponent {
           <ListItem.Actions>{this.renderLedgerSignButton()}</ListItem.Actions>
         )}
       </ListItem>
-    );
-  };
-
-  renderCancelButton = () => {
-    const { colors, typography } = this.context || mockTheme;
-    const styles = createStyles(colors, typography);
-
-    return (
-      <StyledButton
-        type={'cancel'}
-        containerStyle={styles.actionContainerStyle}
-        style={styles.actionStyle}
-        onPress={this.showCancelModal}
-      >
-        {strings('transaction.cancel')}
-      </StyledButton>
     );
   };
 
@@ -657,25 +635,6 @@ class TransactionElement extends PureComponent {
 
   cancelUnsignedQRTransaction = () => {
     this.mounted && this.props.cancelUnsignedQRTransaction(this.props.tx);
-  };
-
-  renderSpeedUpButton = () => {
-    const { colors, typography } = this.context || mockTheme;
-    const styles = createStyles(colors, typography);
-
-    return (
-      <StyledButton
-        type={'normal'}
-        containerStyle={[
-          styles.actionContainerStyle,
-          styles.speedupActionContainerStyle,
-        ]}
-        style={styles.actionStyle}
-        onPress={this.showSpeedUpModal}
-      >
-        {strings('transaction.speedup')}
-      </StyledButton>
-    );
   };
 
   renderQRSignButton = () => {
@@ -769,7 +728,6 @@ const mapStateToProps = (state, ownProps) => ({
     selectSelectedAccountGroupInternalAccounts(state),
   primaryCurrency: selectPrimaryCurrency(state),
   swapsTransactions: selectSwapsTransactions(state),
-  swapsTokens: swapsControllerTokens(state),
   ticker: selectTickerByChainId(state, ownProps.txChainId),
   conversionRate: selectConversionRateByChainId(state, ownProps.txChainId),
   currencyRates: selectCurrencyRates(state),
@@ -788,18 +746,51 @@ TransactionElement.contextType = ThemeContext;
 const TransactionElementWithBridge = (props) => {
   const bridgeTxHistoryData = useBridgeTxHistoryData({ evmTxMeta: props.tx });
   const transactions = useSelector(selectTransactions);
+  const { trackEvent, createEventBuilder } = useAnalytics();
+
+  const trackTransactionDetailClicked = useCallback(() => {
+    const tx = props.tx;
+    const chainId = tx.chainId ?? '';
+    const decimalChainId = getDecimalChainId(chainId);
+    const monetizedPrimitive = getMonetizedPrimitive(tx.type);
+    const destChainId =
+      bridgeTxHistoryData?.bridgeTxHistoryItem?.quote?.destChainId;
+
+    trackEvent(
+      createEventBuilder(TRANSACTION_DETAIL_EVENTS.LIST_ITEM_CLICKED)
+        .addProperties({
+          transaction_type: getTransactionTypeValue(tx.type, tx),
+          transaction_status: tx.status,
+          location: props.location ?? TransactionDetailLocation.Home,
+          chain_id_source: String(decimalChainId),
+          chain_id_destination: String(destChainId ?? decimalChainId),
+          ...(monetizedPrimitive && {
+            monetized_primitive: monetizedPrimitive,
+          }),
+        })
+        .build(),
+    );
+  }, [
+    props.tx,
+    props.location,
+    bridgeTxHistoryData,
+    trackEvent,
+    createEventBuilder,
+  ]);
 
   return (
     <TransactionElement
       {...props}
       bridgeTxHistoryData={bridgeTxHistoryData}
       transactions={transactions}
+      trackTransactionDetailClicked={trackTransactionDetailClicked}
     />
   );
 };
 
 TransactionElementWithBridge.propTypes = {
   tx: PropTypes.object.isRequired,
+  location: PropTypes.string,
 };
 
 export default connect(mapStateToProps)(TransactionElementWithBridge);

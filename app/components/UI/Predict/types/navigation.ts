@@ -1,3 +1,7 @@
+/**
+ * Predict navigation parameters
+ */
+
 import { ParamListBase } from '@react-navigation/native';
 import {
   PredictActivityItem,
@@ -24,32 +28,48 @@ export type PredictEntryPoint =
   | typeof PredictEventValues.ENTRY_POINT.TRENDING_SEARCH
   | typeof PredictEventValues.ENTRY_POINT.TRENDING;
 
+/** Predict market list parameters */
+export interface PredictMarketListParams {
+  entryPoint?: PredictEntryPoint;
+  tab?: PredictCategory;
+  query?: string;
+}
+
+/** Predict market details parameters */
+export interface PredictMarketDetailsParams {
+  marketId?: string;
+  entryPoint?: PredictEntryPoint;
+  title?: string;
+  image?: string;
+  isGame?: boolean;
+}
+
+/** Predict activity detail parameters */
+export interface PredictActivityDetailParams {
+  activity: PredictActivityItem;
+}
+
+/** Predict buy preview parameters */
+export interface PredictBuyPreviewParams {
+  market: PredictMarket;
+  outcome: PredictOutcome;
+  outcomeToken: PredictOutcomeToken;
+  entryPoint?: PredictEntryPoint;
+}
+
+/** Predict sell preview parameters */
+export interface PredictSellPreviewParams {
+  market: PredictMarket;
+  position: PredictPosition;
+  outcome: PredictOutcome;
+  entryPoint?: PredictEntryPoint;
+}
+
 export interface PredictNavigationParamList extends ParamListBase {
   Predict: undefined;
-  PredictMarketList: {
-    entryPoint?: PredictEntryPoint;
-    tab?: PredictCategory;
-  };
-  PredictMarketDetails: {
-    marketId?: string;
-    entryPoint?: PredictEntryPoint;
-    title?: string;
-    image?: string;
-    isGame?: boolean;
-  };
-  PredictSellPreview: {
-    market: PredictMarket;
-    position: PredictPosition;
-    outcome: PredictOutcome;
-    entryPoint?: PredictEntryPoint;
-  };
-  PredictBuyPreview: {
-    market: PredictMarket;
-    outcome: PredictOutcome;
-    outcomeToken: PredictOutcomeToken;
-    entryPoint?: PredictEntryPoint;
-  };
-  PredictActivityDetail: {
-    activity: PredictActivityItem;
-  };
+  PredictMarketList: PredictMarketListParams;
+  PredictMarketDetails: PredictMarketDetailsParams;
+  PredictSellPreview: PredictSellPreviewParams;
+  PredictBuyPreview: PredictBuyPreviewParams;
+  PredictActivityDetail: PredictActivityDetailParams;
 }

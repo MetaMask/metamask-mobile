@@ -101,6 +101,7 @@ exports[`EditAccountName should render correctly 1`] = `
             onBlur={[Function]}
             onChangeText={[Function]}
             onFocus={[Function]}
+            placeholderTextColor="#686e7d"
             style={
               {
                 "backgroundColor": "inherit",
@@ -113,8 +114,6 @@ exports[`EditAccountName should render correctly 1`] = `
                 "height": 46,
                 "letterSpacing": 0,
                 "opacity": 1,
-                "paddingVertical": 2,
-                "textAlignVertical": "center",
               }
             }
             testID="account-name-input"
@@ -205,6 +204,7 @@ exports[`EditAccountName should render correctly 1`] = `
             onBlur={[Function]}
             onFocus={[Function]}
             placeholder="0x49a016E6736F9Ad381605c...72A6"
+            placeholderTextColor="#686e7d"
             style={
               {
                 "backgroundColor": "inherit",
@@ -217,8 +217,6 @@ exports[`EditAccountName should render correctly 1`] = `
                 "height": 46,
                 "letterSpacing": 0,
                 "opacity": 1,
-                "paddingVertical": 2,
-                "textAlignVertical": "center",
               }
             }
             testID="input"

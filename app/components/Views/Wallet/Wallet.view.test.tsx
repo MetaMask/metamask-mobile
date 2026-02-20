@@ -1,5 +1,5 @@
-import '../../../util/test/component-view/mocks';
-import { renderWalletView } from '../../../util/test/component-view/renderers/wallet';
+import '../../../../tests/component-view/mocks';
+import { renderWalletView } from '../../../../tests/component-view/renderers/wallet';
 import { WalletViewSelectorsIDs } from './WalletView.testIds';
 import { describeForPlatforms } from '../../../util/test/platform';
 

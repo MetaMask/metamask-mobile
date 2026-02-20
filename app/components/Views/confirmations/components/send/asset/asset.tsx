@@ -9,7 +9,6 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 
-import { useTheme } from '../../../../../../util/theme';
 import { strings } from '../../../../../../../locales/i18n';
 import TextFieldSearch from '../../../../../../component-library/components/Form/TextFieldSearch';
 import { useAssetSelectionMetrics } from '../../../hooks/send/metrics/useAssetSelectionMetrics';
@@ -17,18 +16,26 @@ import { useTokenSearch } from '../../../hooks/send/useTokenSearch';
 import { TokenList } from '../../token-list';
 import { NftList } from '../../nft-list';
 
-import { AssetType } from '../../../types/token';
+import {
+  AssetType,
+  HighlightedActionListItem,
+  HighlightedAssetListItem,
+  isHighlightedActionListItem,
+  isHighlightedAssetListItem,
+  TokenListItem,
+} from '../../../types/token';
 import { NetworkFilter } from '../../network-filter';
 import { useEVMNfts } from '../../../hooks/send/useNfts';
 import { useSendTokens } from '../../../hooks/send/useSendTokens';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ScrollView } from 'react-native-gesture-handler';
+import { HighlightedAction } from '../../UI/highlighted-action';
 
 export interface AssetProps {
   hideNfts?: boolean;
   includeNoBalance?: boolean;
   onTokenSelect?: (token: AssetType) => void;
-  tokenFilter?: (assets: AssetType[]) => AssetType[];
+  tokenFilter?: (assets: AssetType[]) => TokenListItem[];
   hideNetworkFilter?: boolean;
 }
 
@@ -43,17 +50,50 @@ export const Asset: React.FC<AssetProps> = (props = {}) => {
 
   const originalTokens = useSendTokens({ includeNoBalance });
 
-  const tokens = useMemo(
+  const tokenItems = useMemo(
     () => (tokenFilter ? tokenFilter(originalTokens) : originalTokens),
     [originalTokens, tokenFilter],
   );
+
+  const {
+    tokens,
+    highlightedAssets,
+    highlightedActions,
+  }: {
+    tokens: AssetType[];
+    highlightedAssets: HighlightedAssetListItem[];
+    highlightedActions: HighlightedActionListItem[];
+  } = useMemo(() => {
+    const mappedTokens: AssetType[] = [];
+    const mappedHighlightedAssets: HighlightedAssetListItem[] = [];
+    const mappedHighlightedActions: HighlightedActionListItem[] = [];
+
+    tokenItems.forEach((item) => {
+      if (isHighlightedActionListItem(item)) {
+        mappedHighlightedActions.push(item);
+        return;
+      }
+
+      if (isHighlightedAssetListItem(item)) {
+        mappedHighlightedAssets.push(item);
+        return;
+      }
+
+      mappedTokens.push(item);
+    });
+
+    return {
+      tokens: mappedTokens,
+      highlightedAssets: mappedHighlightedAssets,
+      highlightedActions: mappedHighlightedActions,
+    };
+  }, [tokenItems]);
 
   const nfts = useEVMNfts();
   const [filteredTokensByNetwork, setFilteredTokensByNetwork] =
     useState<AssetType[]>(tokens);
   const [selectedNetworkFilter, setSelectedNetworkFilter] =
     useState<string>('all');
-  const theme = useTheme();
   const { bottom: bottomOffset } = useSafeAreaInsets();
 
   const {
@@ -75,6 +115,26 @@ export const Asset: React.FC<AssetProps> = (props = {}) => {
   const [clearNetworkFilters, setClearNetworkFilters] = useState<
     (() => void) | null
   >(null);
+
+  const filteredHighlightedAssets = useMemo(() => {
+    if (!searchQuery.trim()) {
+      return highlightedAssets;
+    }
+
+    const query = searchQuery.toLowerCase().trim();
+
+    return highlightedAssets.filter((item) => {
+      if (item.name.toLowerCase().includes(query)) {
+        return true;
+      }
+
+      if (item.name_description.toLowerCase().includes(query)) {
+        return true;
+      }
+
+      return false;
+    });
+  }, [highlightedAssets, searchQuery]);
 
   const handleFilteredTokensChange = useCallback(
     (newFilteredTokens: AssetType[]) => {
@@ -99,7 +159,9 @@ export const Asset: React.FC<AssetProps> = (props = {}) => {
   }, []);
 
   const hasActiveFilters = searchQuery.length > 0 || hasActiveNetworkFilter;
-  const hasNoResults = filteredTokens.length === 0 && filteredNfts.length === 0;
+  const hasNoTokenResults =
+    filteredTokens.length === 0 && filteredHighlightedAssets.length === 0;
+  const hasNoResults = hasNoTokenResults && filteredNfts.length === 0;
 
   const handleClearAllFilters = useCallback(() => {
     clearSearch();
@@ -107,10 +169,16 @@ export const Asset: React.FC<AssetProps> = (props = {}) => {
   }, [clearSearch, clearNetworkFilters]);
 
   useEffect(() => {
-    setAssetListSize(
-      filteredTokens?.length ? filteredTokens?.length.toString() : '',
-    );
-  }, [filteredTokens, setAssetListSize]);
+    if (hideNetworkFilter) {
+      setFilteredTokensByNetwork(tokens);
+    }
+  }, [hideNetworkFilter, tokens]);
+
+  useEffect(() => {
+    const visibleTokenCount =
+      filteredTokens.length + filteredHighlightedAssets.length;
+    setAssetListSize(visibleTokenCount ? visibleTokenCount.toString() : '');
+  }, [filteredTokens, filteredHighlightedAssets.length, setAssetListSize]);
 
   useEffect(() => {
     if (searchQuery.length) {
@@ -122,6 +190,16 @@ export const Asset: React.FC<AssetProps> = (props = {}) => {
 
   return (
     <Box twClassName="flex-1">
+      {highlightedActions.length > 0 && (
+        <Box>
+          {highlightedActions.map((item, index) => (
+            <HighlightedAction
+              key={`highlighted-action-${item.name}-${index}`}
+              item={item}
+            />
+          ))}
+        </Box>
+      )}
       <Box twClassName="w-full px-4 py-2">
         <TextFieldSearch
           value={searchQuery}
@@ -131,11 +209,7 @@ export const Asset: React.FC<AssetProps> = (props = {}) => {
               ? strings('send.search_tokens')
               : strings('send.search_tokens_and_nfts')
           }
-          showClearButton={searchQuery.length > 0}
           onPressClearButton={clearSearch}
-          style={{
-            borderColor: theme.colors.border.muted,
-          }}
         />
       </Box>
       {!hideNetworkFilter && (
@@ -172,17 +246,23 @@ export const Asset: React.FC<AssetProps> = (props = {}) => {
           </Box>
         ) : (
           <>
-            {!hideNfts && filteredTokens.length > 0 && (
-              <Text
-                twClassName="m-4 mt-2 mb-2"
-                variant={TextVariant.BodyMd}
-                color={TextColor.TextAlternative}
-                fontWeight={FontWeight.Medium}
-              >
-                {strings('send.tokens')}
-              </Text>
-            )}
-            <TokenList tokens={filteredTokens} onSelect={onTokenSelect} />
+            {!hideNfts &&
+              (filteredTokens.length > 0 ||
+                filteredHighlightedAssets.length > 0) && (
+                <Text
+                  twClassName="m-4 mt-2 mb-2"
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextAlternative}
+                  fontWeight={FontWeight.Medium}
+                >
+                  {strings('send.tokens')}
+                </Text>
+              )}
+            <TokenList
+              tokens={filteredTokens}
+              highlightedAssets={filteredHighlightedAssets}
+              onSelect={onTokenSelect}
+            />
             {!hideNfts && (
               <>
                 {filteredNfts.length > 0 && (

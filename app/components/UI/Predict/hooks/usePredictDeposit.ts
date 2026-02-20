@@ -20,20 +20,14 @@ import {
   PredictEventValues,
   PredictTradeStatus,
 } from '../constants/eventNames';
-import { PlaceOrderParams } from '../providers/types';
-
-interface UsePredictDepositParams {
-  providerId?: string;
-}
+import { PlaceOrderParams } from '../types';
 
 interface PredictDepositAnalyticsParams {
   amountUsd?: number;
   analyticsProperties?: PlaceOrderParams['analyticsProperties'];
 }
 
-export const usePredictDeposit = ({
-  providerId = 'polymarket',
-}: UsePredictDepositParams = {}) => {
+export const usePredictDeposit = () => {
   const { navigateToConfirmation } = useConfirmNavigation();
   const theme = useAppThemeFromContext();
   const { toastRef } = useContext(ToastContext);
@@ -47,7 +41,6 @@ export const usePredictDeposit = ({
 
   const depositBatchId = useSelector(
     selectPredictPendingDepositByAddress({
-      providerId,
       address: selectedInternalAccountAddress,
     }),
   );
@@ -64,7 +57,6 @@ export const usePredictDeposit = ({
         if (analyticsProperties) {
           Engine.context.PredictController.trackPredictOrderEvent({
             status: PredictTradeStatus.INITIATED,
-            providerId,
             amountUsd,
             analyticsProperties: {
               ...analyticsProperties,
@@ -74,9 +66,7 @@ export const usePredictDeposit = ({
           });
         }
 
-        depositWithConfirmation({
-          providerId,
-        }).catch((err) => {
+        depositWithConfirmation({}).catch((err) => {
           console.error('Failed to initialize deposit:', err);
 
           // Log error with deposit initialization context
@@ -91,7 +81,6 @@ export const usePredictDeposit = ({
                 method: 'deposit',
                 action: 'deposit_initialization',
                 operation: 'financial_operations',
-                providerId,
               },
             },
           });
@@ -152,7 +141,6 @@ export const usePredictDeposit = ({
               method: 'deposit',
               action: 'deposit_navigation',
               operation: 'financial_operations',
-              providerId,
             },
           },
         });
@@ -162,7 +150,6 @@ export const usePredictDeposit = ({
       depositWithConfirmation,
       navigateToConfirmation,
       navigation,
-      providerId,
       theme.colors.accent04.normal,
       theme.colors.error.default,
       toastRef,

@@ -209,6 +209,7 @@ exports[`SnapUIAddressInput renders with an invalid CAIP Account ID 1`] = `
         onBlur={[Function]}
         onChangeText={[Function]}
         onFocus={[Function]}
+        placeholderTextColor="#686e7d"
         style={
           {
             "backgroundColor": "inherit",
@@ -221,8 +222,6 @@ exports[`SnapUIAddressInput renders with an invalid CAIP Account ID 1`] = `
             "height": 46,
             "letterSpacing": 0,
             "opacity": 1,
-            "paddingVertical": 2,
-            "textAlignVertical": "center",
           }
         }
         testID="input-snap-address-input"

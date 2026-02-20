@@ -1,22 +1,22 @@
 import { act, renderHook, waitFor } from '@testing-library/react-native';
 import { useUnrealizedPnL } from './useUnrealizedPnL';
 import { UnrealizedPnL } from '../types';
+import { usePredictPositions } from './usePredictPositions';
 
-// Mock react-redux
 const mockSelectedAddress = '0x1234567890123456789012345678901234567890';
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(() => mockSelectedAddress),
 }));
 
-// Mock react-navigation
 jest.mock('@react-navigation/native', () => ({
   useFocusEffect: jest.fn(),
 }));
 
-const mockGetUnrealizedPnL = jest.fn();
-const mockGetPositions = jest.fn();
+jest.mock('./usePredictPositions');
+const mockUsePredictPositions = usePredictPositions as jest.Mock;
 
-// Mock DevLogger
+const mockGetUnrealizedPnL = jest.fn();
+
 jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
   DevLogger: {
     log: jest.fn(),
@@ -26,8 +26,7 @@ jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
 jest.mock('../../../../core/Engine', () => ({
   context: {
     PredictController: {
-      getUnrealizedPnL: mockGetUnrealizedPnL,
-      getPositions: mockGetPositions,
+      getUnrealizedPnL: (...args: unknown[]) => mockGetUnrealizedPnL(...args),
     },
     AccountTreeController: {
       getAccountsFromSelectedAccountGroup: jest.fn(() => [
@@ -45,21 +44,6 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
-// eslint-disable-next-line import/first
-import Engine from '../../../../core/Engine';
-
-interface MockEngine {
-  context: {
-    PredictController?: {
-      getUnrealizedPnL: jest.Mock;
-      getPositions: jest.Mock;
-    };
-    AccountTreeController?: {
-      getAccountsFromSelectedAccountGroup: jest.Mock;
-    };
-  } | null;
-}
-
 describe('useUnrealizedPnL', () => {
   const basePnL: UnrealizedPnL = {
     user: '0x1111111111111111111111111111111111111111',
@@ -67,31 +51,11 @@ describe('useUnrealizedPnL', () => {
     percentUpnl: 3.4,
   };
 
-  const engine = Engine as unknown as MockEngine;
-
   beforeEach(() => {
     jest.clearAllMocks();
-    // Default: return positions with at least one item so tests pass by default
-    mockGetPositions.mockResolvedValue([{ id: 'position-1' }]);
-    engine.context = {
-      PredictController: {
-        getUnrealizedPnL: mockGetUnrealizedPnL,
-        getPositions: mockGetPositions,
-      },
-      AccountTreeController: {
-        getAccountsFromSelectedAccountGroup: jest.fn(() => [
-          {
-            id: 'test-account-id',
-            address: '0x1234567890123456789012345678901234567890',
-            type: 'eip155:eoa',
-            name: 'Test Account',
-            metadata: {
-              lastSelected: 0,
-            },
-          },
-        ]),
-      },
-    };
+    mockUsePredictPositions.mockReturnValue({
+      data: [{ id: 'position-1' }],
+    });
   });
 
   afterEach(() => {
@@ -123,7 +87,6 @@ describe('useUnrealizedPnL', () => {
 
     expect(mockGetUnrealizedPnL).toHaveBeenCalledWith({
       address: mockSelectedAddress,
-      providerId: undefined,
     });
   });
 
@@ -133,7 +96,6 @@ describe('useUnrealizedPnL', () => {
     const { result } = renderHook(() =>
       useUnrealizedPnL({
         address: '0x2222222222222222222222222222222222222222',
-        providerId: 'polymarket',
       }),
     );
 
@@ -143,7 +105,6 @@ describe('useUnrealizedPnL', () => {
 
     expect(mockGetUnrealizedPnL).toHaveBeenCalledWith({
       address: '0x2222222222222222222222222222222222222222',
-      providerId: 'polymarket',
     });
   });
 
@@ -234,12 +195,10 @@ describe('useUnrealizedPnL', () => {
     mockGetUnrealizedPnL.mockResolvedValue(basePnL);
 
     const { rerender } = renderHook(
-      ({ address, providerId }: { address?: string; providerId?: string }) =>
-        useUnrealizedPnL({ address, providerId }),
+      ({ address }: { address?: string }) => useUnrealizedPnL({ address }),
       {
         initialProps: {
           address: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-          providerId: 'polymarket',
         },
       },
     );
@@ -250,7 +209,6 @@ describe('useUnrealizedPnL', () => {
 
     rerender({
       address: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
-      providerId: 'other-provider',
     });
 
     await waitFor(() => {
@@ -259,18 +217,16 @@ describe('useUnrealizedPnL', () => {
 
     expect(mockGetUnrealizedPnL).toHaveBeenNthCalledWith(1, {
       address: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-      providerId: 'polymarket',
     });
     expect(mockGetUnrealizedPnL).toHaveBeenNthCalledWith(2, {
       address: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
-      providerId: 'other-provider',
     });
   });
 
   describe('positions-based visibility', () => {
     it('returns null when user has no positions', async () => {
+      mockUsePredictPositions.mockReturnValue({ data: [] });
       mockGetUnrealizedPnL.mockResolvedValue(basePnL);
-      mockGetPositions.mockResolvedValue([]);
 
       const { result } = renderHook(() => useUnrealizedPnL());
 
@@ -280,20 +236,13 @@ describe('useUnrealizedPnL', () => {
 
       expect(result.current.unrealizedPnL).toBeNull();
       expect(result.current.error).toBeNull();
-      expect(mockGetPositions).toHaveBeenCalledWith({
-        providerId: undefined,
-        limit: 1,
-        offset: 0,
-        claimable: false,
-      });
     });
 
     it('returns unrealized P&L when user has positions', async () => {
+      mockUsePredictPositions.mockReturnValue({
+        data: [{ id: 'position-1' }, { id: 'position-2' }],
+      });
       mockGetUnrealizedPnL.mockResolvedValue(basePnL);
-      mockGetPositions.mockResolvedValue([
-        { id: 'position-1' },
-        { id: 'position-2' },
-      ]);
 
       const { result } = renderHook(() => useUnrealizedPnL());
 
@@ -305,31 +254,18 @@ describe('useUnrealizedPnL', () => {
       expect(result.current.error).toBeNull();
     });
 
-    it('calls getPositions with providerId when specified', async () => {
+    it('calls usePredictPositions with claimable: false', () => {
       mockGetUnrealizedPnL.mockResolvedValue(basePnL);
-      mockGetPositions.mockResolvedValue([{ id: 'position-1' }]);
 
-      const { result } = renderHook(() =>
-        useUnrealizedPnL({
-          providerId: 'polymarket',
-        }),
-      );
+      renderHook(() => useUnrealizedPnL());
 
-      await waitFor(() => {
-        expect(result.current.unrealizedPnL).toEqual(basePnL);
-      });
-
-      expect(mockGetPositions).toHaveBeenCalledWith({
-        providerId: 'polymarket',
-        limit: 1,
-        offset: 0,
+      expect(mockUsePredictPositions).toHaveBeenCalledWith({
         claimable: false,
       });
     });
 
     it('returns null when getUnrealizedPnL returns null and user has positions', async () => {
       mockGetUnrealizedPnL.mockResolvedValue(null);
-      mockGetPositions.mockResolvedValue([{ id: 'position-1' }]);
 
       const { result } = renderHook(() => useUnrealizedPnL());
 
@@ -341,9 +277,9 @@ describe('useUnrealizedPnL', () => {
       expect(result.current.error).toBeNull();
     });
 
-    it('returns null when both getUnrealizedPnL and getPositions return empty', async () => {
+    it('returns null when both getUnrealizedPnL returns null and no positions', async () => {
+      mockUsePredictPositions.mockReturnValue({ data: [] });
       mockGetUnrealizedPnL.mockResolvedValue(null);
-      mockGetPositions.mockResolvedValue([]);
 
       const { result } = renderHook(() => useUnrealizedPnL());
 
@@ -355,19 +291,17 @@ describe('useUnrealizedPnL', () => {
       expect(result.current.error).toBeNull();
     });
 
-    it('calls both getUnrealizedPnL and getPositions in parallel', async () => {
+    it('returns null when positions data is undefined', async () => {
+      mockUsePredictPositions.mockReturnValue({ data: undefined });
       mockGetUnrealizedPnL.mockResolvedValue(basePnL);
-      mockGetPositions.mockResolvedValue([{ id: 'position-1' }]);
 
-      renderHook(() => useUnrealizedPnL());
+      const { result } = renderHook(() => useUnrealizedPnL());
 
       await waitFor(() => {
-        expect(mockGetUnrealizedPnL).toHaveBeenCalled();
-        expect(mockGetPositions).toHaveBeenCalled();
+        expect(result.current.isLoading).toBe(false);
       });
 
-      expect(mockGetUnrealizedPnL).toHaveBeenCalledTimes(1);
-      expect(mockGetPositions).toHaveBeenCalledTimes(1);
+      expect(result.current.unrealizedPnL).toBeNull();
     });
   });
 });

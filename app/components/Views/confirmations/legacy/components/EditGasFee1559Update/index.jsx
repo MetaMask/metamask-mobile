@@ -34,7 +34,7 @@ import useModalHandler from '../../../../../Base/hooks/useModalHandler';
 import HorizontalSelector from '../../../../../Base/HorizontalSelector';
 import RangeInput from '../../../../../Base/RangeInput';
 import Text from '../../../../../Base/Text';
-import { useMetrics } from '../../../../../hooks/useMetrics';
+import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import FadeAnimationView from '../../../../../UI/FadeAnimationView';
 import StyledButton from '../../../../../UI/StyledButton';
 import InfoModal from '../../../../../Base/InfoModal';
@@ -88,7 +88,7 @@ const EditGasFee1559Update = ({
     hideTimeEstimateInfoModal,
   ] = useModalHandler(false);
   const { colors } = useAppThemeFromContext() || mockTheme;
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const styles = createStyles(colors);
 
   const gasTransaction = useGasTransaction({
