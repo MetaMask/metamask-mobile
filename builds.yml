@@ -162,6 +162,10 @@ _remote_feature_flags: &remote_feature_flags # Perps
   perpsPerpGtmOnboardingModalEnabled: false
   perpsOrderBookEnabled: false
   perpsFeedbackEnabled: false
+  # Market insights
+  aiSocialMarketAnalysisEnabled:
+    enabled: false
+    minimumVersion: '0.0.0'
   # Earn/Staking
   earnPooledStakingEnabled: true
   earnPooledStakingServiceInterruptionBannerEnabled: false
