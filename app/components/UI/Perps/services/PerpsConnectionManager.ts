@@ -1007,6 +1007,28 @@ class PerpsConnectionManagerClass {
   }
 
   /**
+   * Returns a promise that resolves when the current connection attempt completes.
+   * If no connection is in progress, resolves immediately.
+   * Used by StreamChannel.ensureReady() to await connection instead of blind polling.
+   */
+  async waitForConnection(): Promise<void> {
+    if (this.initPromise) {
+      try {
+        await this.initPromise;
+      } catch {
+        // Connection failed — caller will check getConnectionState()
+      }
+    }
+    if (this.pendingReconnectPromise) {
+      try {
+        await this.pendingReconnectPromise;
+      } catch {
+        // Reconnection failed — caller will check getConnectionState()
+      }
+    }
+  }
+
+  /**
    * Check if the manager is fully disconnected and ready to connect
    */
   isFullyDisconnected(): boolean {

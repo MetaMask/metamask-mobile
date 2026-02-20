@@ -61,6 +61,13 @@ export const ERROR_MESSAGES = {
   INVALID_ID: 'Invalid Id',
 };
 
+// Safety timeout for the proposal serialization lock.
+const PROPOSAL_LOCK_TIMEOUT_MS = 60_000;
+
+// How long a pairing topic stays in seenTopics. Long enough to block the
+// OS duplicate-delivery burst (~1 s), short enough to allow manual retries.
+const SEEN_TOPIC_TTL_MS = 5_000;
+
 export class WC2Manager {
   private static instance: WC2Manager;
   private static _initialized = false;
@@ -70,6 +77,15 @@ export class WC2Manager {
   private deeplinkSessions: {
     [pairingTopic: string]: { redirectUrl?: string; origin: string };
   } = {};
+
+  // Serializes proposal handling so concurrent proposals don't fight
+  // over shared state (wc2Metadata, navigation, approval queue).
+  private proposalLock: Promise<void> = Promise.resolve();
+  // Deduplicates connect() calls for the same pairing topic.
+  // Entries auto-expire after SEEN_TOPIC_TTL_MS to allow manual retries.
+  private seenTopics = new Set<string>();
+  // Deduplicates session_proposal events (the relay can fire duplicates).
+  private handledProposalIds = new Set<number>();
 
   private constructor(
     web3Wallet: IWalletKit,
@@ -421,6 +437,33 @@ export class WC2Manager {
   }
 
   async onSessionProposal(proposal: WalletKitTypes.SessionProposal) {
+    const handle = () =>
+      Promise.race([
+        this._handleSessionProposal(proposal),
+        new Promise<void>((resolve) =>
+          setTimeout(() => {
+            console.warn(
+              `WC2::session_proposal lock timeout for id=${proposal.id}`,
+            );
+            resolve();
+          }, PROPOSAL_LOCK_TIMEOUT_MS),
+        ),
+      ]);
+
+    // Chain onto the lock. The error handler ensures a failed proposal
+    // doesn't prevent subsequent proposals from being processed.
+    this.proposalLock = this.proposalLock.then(handle, handle);
+    await this.proposalLock;
+  }
+
+  private async _handleSessionProposal(
+    proposal: WalletKitTypes.SessionProposal,
+  ) {
+    if (this.handledProposalIds.has(proposal.id)) {
+      return;
+    }
+    this.handledProposalIds.add(proposal.id);
+
     //  Open session proposal modal for confirmation / rejection
     const { id, params } = proposal;
 
@@ -513,7 +556,7 @@ export class WC2Manager {
       `WC2::session_proposal metadata url=${origin} hostname=${hostname}`,
     );
 
-    // Save Connection info to redux store to be retrieved in ui.
+    // Save connection info to redux store for the approval UI.
     store.dispatch(
       updateWC2Metadata({ url, name, icon, id: `${id}`, verifyContext }),
     );
@@ -548,7 +591,6 @@ export class WC2Manager {
         },
       );
 
-      // Request permissions via the permissions controller
       await permissionsController.requestPermissions(
         { origin: channelId },
         {
@@ -593,11 +635,14 @@ export class WC2Manager {
         id: proposal.id,
         reason: getSdkError('USER_REJECTED_METHODS'),
       });
+      // Clear stale metadata so it doesn't bleed into the next proposal.
+      store.dispatch(
+        updateWC2Metadata({ url: '', name: '', icon: '', id: '' }),
+      );
       return;
     }
 
     try {
-      // Use the hostname for consistent permissions
       const approvedAccounts = getPermittedAccounts(channelId);
 
       DevLogger.log(`WC2::session_proposal getScopedPermissions`, {
@@ -777,6 +822,16 @@ export class WC2Manager {
           this.sessions[activeSession.topic]?.setDeeplink(isDeepLink);
           return;
         }
+
+        // Deduplicate: the OS can deliver the same deeplink multiple times.
+        if (this.seenTopics.has(params.topic)) {
+          return;
+        }
+        this.seenTopics.add(params.topic);
+        setTimeout(
+          () => this.seenTopics.delete(params.topic),
+          SEEN_TOPIC_TTL_MS,
+        );
 
         // cleanup uri before pairing.
         const cleanUri = wcUri.startsWith('wc://')

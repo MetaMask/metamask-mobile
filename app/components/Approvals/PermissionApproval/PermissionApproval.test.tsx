@@ -289,7 +289,7 @@ describe('PermissionApproval', () => {
     expect(navigationMock.navigate).toHaveBeenCalledTimes(0);
   });
 
-  it('re-runs effect when pendingApprovals changes', async () => {
+  it('does not re-navigate for the same approval when pendingApprovals changes', async () => {
     const navigationMock = {
       navigate: jest.fn(),
     };
@@ -329,12 +329,13 @@ describe('PermissionApproval', () => {
       anotherRequestId: anotherApprovalRequest,
     };
 
+    // The current approvalRequest is still the same (same metadata.id),
+    // so navigation should not fire again even though the queue changed.
     mockApprovalRequest(approvalRequest, pendingApprovals2);
 
     rerender(<PermissionApproval navigation={navigationMock} />);
 
-    // Effect should re-run when pendingApprovals content changes, causing navigation again
-    expect(navigationMock.navigate).toHaveBeenCalledTimes(2);
+    expect(navigationMock.navigate).toHaveBeenCalledTimes(1);
   });
 
   it('navigates when new approval added after queue cleared', async () => {
@@ -369,7 +370,10 @@ describe('PermissionApproval', () => {
 
     const approvalRequest2 = {
       type: ApprovalTypes.REQUEST_PERMISSIONS,
-      requestData: HOST_INFO_MOCK,
+      requestData: {
+        ...HOST_INFO_MOCK,
+        metadata: { id: 'newRequestId' },
+      },
       id: 'newRequestId',
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
