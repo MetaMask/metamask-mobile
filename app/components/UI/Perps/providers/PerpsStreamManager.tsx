@@ -202,7 +202,7 @@ abstract class StreamChannel<T> {
         this.awaitConnectionThenConnect();
         return false;
       }
-      this.deferConnect(200);
+      this.deferConnect(PERPS_CONSTANTS.ConnectRetryDelayMs);
       return false;
     }
     this.connectRetryCount = 0;
@@ -223,25 +223,30 @@ abstract class StreamChannel<T> {
     const noop = () => {
       /* sentinel timer */
     };
-    this.deferConnectTimer = setTimeout(noop, 0) as ReturnType<
-      typeof setTimeout
-    >;
+    const sentinel = setTimeout(noop, 0) as ReturnType<typeof setTimeout>;
+    this.deferConnectTimer = sentinel;
 
     PerpsConnectionManager.waitForConnection()
       .then(() => {
-        this.deferConnectTimer = null;
+        // Only clear if our sentinel is still the active timer; a disconnect()
+        // followed by a new subscribe() may have replaced it with a real timer.
+        if (this.deferConnectTimer === sentinel) {
+          this.deferConnectTimer = null;
+        }
         if (this.subscribers.size > 0) {
           this.connect();
         }
       })
       .catch(() => {
-        this.deferConnectTimer = null;
+        if (this.deferConnectTimer === sentinel) {
+          this.deferConnectTimer = null;
+        }
         // Connection failed — fall back to normal defer polling
         if (this.subscribers.size > 0) {
           DevLogger.log(
             `${this.constructor.name}: awaitConnectionThenConnect: connection failed, falling back to polling`,
           );
-          this.deferConnect(200);
+          this.deferConnect(PERPS_CONSTANTS.ConnectRetryDelayMs);
         }
       });
   }
@@ -1313,7 +1318,7 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
 
     // Check if connection manager is still connecting - retry later if so
     if (PerpsConnectionManager.isCurrentlyConnecting()) {
-      this.deferConnect(200);
+      this.deferConnect(PERPS_CONSTANTS.ConnectRetryDelayMs);
       return;
     }
 
