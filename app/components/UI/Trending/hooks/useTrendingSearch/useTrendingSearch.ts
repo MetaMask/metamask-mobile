@@ -4,7 +4,10 @@ import { SortTrendingBy, TrendingAsset } from '@metamask/assets-controllers';
 import { useSearchRequest } from '../useSearchRequest/useSearchRequest';
 import { useTrendingRequest } from '../useTrendingRequest/useTrendingRequest';
 import { sortTrendingTokens } from '../../utils/sortTrendingTokens';
-import { PriceChangeOption } from '../../components/TrendingTokensBottomSheet';
+import {
+  PriceChangeOption,
+  SortDirection,
+} from '../../components/TrendingTokensBottomSheet';
 import { isEqual } from 'lodash';
 
 const useStableReference = <T>(value: T) => {
@@ -33,12 +36,22 @@ export const useTrendingSearch = (opts?: {
   sortBy?: SortTrendingBy;
   chainIds?: CaipChainId[] | null;
   enableDebounce?: boolean;
+  includeMarketData?: boolean;
+  sortTrendingTokensOptions?: {
+    option: PriceChangeOption;
+    direction: SortDirection;
+  };
 }) => {
   const {
     searchQuery,
     sortBy,
     chainIds,
     enableDebounce = true,
+    includeMarketData = true,
+    sortTrendingTokensOptions = {
+      option: PriceChangeOption.PriceChange,
+      direction: SortDirection.Descending,
+    },
   } = useStableReference(opts ?? {});
 
   const [debouncedQuery, setDebouncedQuery] = useState(searchQuery);
@@ -59,7 +72,7 @@ export const useTrendingSearch = (opts?: {
       query: debouncedQuery || '',
       limit: 20,
       chainIds: chainIds ?? undefined,
-      includeMarketData: true,
+      includeMarketData,
     });
 
   const {
@@ -73,7 +86,11 @@ export const useTrendingSearch = (opts?: {
 
   const data = useMemo(() => {
     if (!debouncedQuery?.trim()) {
-      return sortTrendingTokens(trendingResults, PriceChangeOption.PriceChange);
+      return sortTrendingTokens(
+        trendingResults,
+        sortTrendingTokensOptions.option,
+        sortTrendingTokensOptions.direction,
+      );
     }
 
     const query = debouncedQuery.toLowerCase().trim();
@@ -108,7 +125,12 @@ export const useTrendingSearch = (opts?: {
     });
 
     return Array.from(resultMap.values());
-  }, [debouncedQuery, trendingResults, searchResults]);
+  }, [
+    debouncedQuery,
+    trendingResults,
+    searchResults,
+    sortTrendingTokensOptions,
+  ]);
 
   // Loading state: show loading while waiting for results
   const prevDebouncedQuery = useRef(debouncedQuery);
