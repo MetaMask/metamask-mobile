@@ -62,7 +62,7 @@ describe('TagColored', () => {
     expect(getByTestId(TAGCOLORED_TESTID).props.style.backgroundColor).toBe(
       mockTheme.colors.background.alternative,
     );
-    expect(getByTestId(TAGCOLORED_TEXT_TESTID).props.style.color).toBe(
+    expect(getByTestId(TAGCOLORED_TEXT_TESTID).props.style[0].color).toBe(
       mockTheme.colors.text.alternative,
     );
   });
@@ -77,7 +77,7 @@ describe('TagColored', () => {
     expect(getByTestId(TAGCOLORED_TESTID).props.style.backgroundColor).toBe(
       mockTheme.colors.background.alternative,
     );
-    expect(getByTestId(TAGCOLORED_TEXT_TESTID).props.style.color).toBe(
+    expect(getByTestId(TAGCOLORED_TEXT_TESTID).props.style[0].color).toBe(
       mockTheme.colors.text.alternative,
     );
   });
@@ -92,7 +92,7 @@ describe('TagColored', () => {
     expect(getByTestId(TAGCOLORED_TESTID).props.style.backgroundColor).toBe(
       mockTheme.colors.success.muted,
     );
-    expect(getByTestId(TAGCOLORED_TEXT_TESTID).props.style.color).toBe(
+    expect(getByTestId(TAGCOLORED_TEXT_TESTID).props.style[0].color).toBe(
       mockTheme.colors.success.default,
     );
   });
@@ -107,7 +107,7 @@ describe('TagColored', () => {
     expect(getByTestId(TAGCOLORED_TESTID).props.style.backgroundColor).toBe(
       mockTheme.colors.primary.muted,
     );
-    expect(getByTestId(TAGCOLORED_TEXT_TESTID).props.style.color).toBe(
+    expect(getByTestId(TAGCOLORED_TEXT_TESTID).props.style[0].color).toBe(
       mockTheme.colors.primary.default,
     );
   });
@@ -122,7 +122,7 @@ describe('TagColored', () => {
     expect(getByTestId(TAGCOLORED_TESTID).props.style.backgroundColor).toBe(
       mockTheme.colors.error.muted,
     );
-    expect(getByTestId(TAGCOLORED_TEXT_TESTID).props.style.color).toBe(
+    expect(getByTestId(TAGCOLORED_TEXT_TESTID).props.style[0].color).toBe(
       mockTheme.colors.error.default,
     );
   });
@@ -137,8 +137,38 @@ describe('TagColored', () => {
     expect(getByTestId(TAGCOLORED_TESTID).props.style.backgroundColor).toBe(
       mockTheme.colors.warning.muted,
     );
-    expect(getByTestId(TAGCOLORED_TEXT_TESTID).props.style.color).toBe(
+    expect(getByTestId(TAGCOLORED_TEXT_TESTID).props.style[0].color).toBe(
       mockTheme.colors.warning.default,
     );
+  });
+
+  it('should apply labelProps style to text when provided', () => {
+    const testText = 'TagColored';
+
+    const { getByTestId } = render(
+      <TagColored labelProps={{ style: { textTransform: 'none' } }}>
+        {testText}
+      </TagColored>,
+    );
+
+    const textStyles = getByTestId(TAGCOLORED_TEXT_TESTID).props.style;
+    expect(textStyles[1].textTransform).toBe('none');
+  });
+
+  it('should merge labelProps style with default text styles', () => {
+    const testText = 'TagColored';
+
+    const { getByTestId } = render(
+      <TagColored
+        color={TagColor.Success}
+        labelProps={{ style: { textTransform: 'capitalize' } }}
+      >
+        {testText}
+      </TagColored>,
+    );
+
+    const textStyles = getByTestId(TAGCOLORED_TEXT_TESTID).props.style;
+    expect(textStyles[0].color).toBe(mockTheme.colors.success.default);
+    expect(textStyles[1].textTransform).toBe('capitalize');
   });
 });

@@ -27,3 +27,13 @@ export const TagColored = {
     children: SAMPLE_TAGCOLORED_PROPS.children,
   },
 };
+
+export const TagColoredWithNormalCase = {
+  args: {
+    color: TagColor.Success,
+    children: 'Paid by MetaMask',
+    labelProps: {
+      style: { textTransform: 'none' },
+    },
+  },
+};
