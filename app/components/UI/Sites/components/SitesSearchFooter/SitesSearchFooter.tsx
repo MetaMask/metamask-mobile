@@ -18,6 +18,8 @@ import {
 import { useSelector } from 'react-redux';
 import Routes from '../../../../../constants/navigation/Routes';
 import { selectSearchEngine } from '../../../../../reducers/browser/selectors';
+import { SEARCH_ENGINE_URLS } from '../../../../../util/browser';
+import AppConstants from '../../../../../core/AppConstants';
 
 export interface SitesSearchFooterProps {
   searchQuery: string;
@@ -76,13 +78,13 @@ const SitesSearchFooter: React.FC<SitesSearchFooterProps> = ({
 
   const isUrl = looksLikeUrl(searchQuery.toLowerCase());
 
-  const searchUrl =
-    searchEngine === 'DuckDuckGo'
-      ? `https://duckduckgo.com/?q=${encodeURIComponent(searchQuery)}`
-      : `https://www.google.com/search?q=${encodeURIComponent(searchQuery)}`;
+  const engineKey = searchEngine ?? AppConstants.DEFAULT_SEARCH_ENGINE;
+  const baseUrl =
+    SEARCH_ENGINE_URLS[engineKey] ??
+    SEARCH_ENGINE_URLS[AppConstants.DEFAULT_SEARCH_ENGINE];
+  const searchUrl = baseUrl + encodeURIComponent(searchQuery);
 
-  const searchEngineLabel =
-    searchEngine === 'DuckDuckGo' ? 'DuckDuckGo' : 'Google';
+  const searchEngineLabel = engineKey;
 
   return (
     <Box style={containerStyle}>
