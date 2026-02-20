@@ -17,17 +17,13 @@ import {
  * - Disconnect handler behaviors
  * - The full ledgerLogicToRun workflow
  *
- * RECOMMENDED REFACTOR FOR HIGHER COVERAGE:
- * Refactor the hook to accept a transport factory function as an optional parameter:
- * `useLedgerBluetooth(deviceId: string, transportFactory?: () => Promise<BluetoothInterface>)`
- * This would allow tests to inject mock transports without changing production behavior.
- *
  * WHAT IS TESTED:
  * - Initial state values
  * - Hook API contract
  * - Error classification logic
  * - cleanupBluetoothConnection behavior
  * - isEthAppNotOpenErrorMessage integration
+ * - isDisconnectError helper
  */
 
 // Mock the Ledger module
@@ -63,8 +59,8 @@ jest.mock('../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
 }));
 
-// Import hook after all mocks
-import useLedgerBluetooth from './useLedgerBluetooth';
+// Import hook and helpers after all mocks
+import useLedgerBluetooth, { isDisconnectError } from './useLedgerBluetooth';
 
 describe('useLedgerBluetooth', () => {
   const mockDeviceId = 'test-device-id';
@@ -487,5 +483,65 @@ describe('useLedgerBluetooth', () => {
       // Since transportRef is undefined, it just returns without doing anything
       expect(() => unmount()).not.toThrow();
     });
+  });
+});
+
+describe('isDisconnectError', () => {
+  it('returns true for DisconnectedDeviceDuringOperation', () => {
+    const error = new Error('disconnected');
+    error.name = 'DisconnectedDeviceDuringOperation';
+
+    expect(isDisconnectError(error)).toBe(true);
+  });
+
+  it('returns true for DisconnectedDevice', () => {
+    const error = new Error('disconnected');
+    error.name = 'DisconnectedDevice';
+
+    expect(isDisconnectError(error)).toBe(true);
+  });
+
+  it('returns false for TransportStatusError', () => {
+    const error = new Error('status error');
+    error.name = 'TransportStatusError';
+
+    expect(isDisconnectError(error)).toBe(false);
+  });
+
+  it('returns false for generic Error', () => {
+    expect(isDisconnectError(new Error('generic'))).toBe(false);
+  });
+
+  it('returns false for TransportRaceCondition', () => {
+    const error = new Error('race');
+    error.name = 'TransportRaceCondition';
+
+    expect(isDisconnectError(error)).toBe(false);
+  });
+
+  it('returns false for null', () => {
+    expect(isDisconnectError(null)).toBe(false);
+  });
+
+  it('returns false for undefined', () => {
+    expect(isDisconnectError(undefined)).toBe(false);
+  });
+
+  it('returns false for string', () => {
+    expect(isDisconnectError('DisconnectedDevice')).toBe(false);
+  });
+
+  it('returns false for number', () => {
+    expect(isDisconnectError(42)).toBe(false);
+  });
+
+  it('returns true for plain object with matching name', () => {
+    expect(
+      isDisconnectError({ name: 'DisconnectedDeviceDuringOperation' }),
+    ).toBe(true);
+  });
+
+  it('returns false for plain object with non-matching name', () => {
+    expect(isDisconnectError({ name: 'SomeOtherError' })).toBe(false);
   });
 });
