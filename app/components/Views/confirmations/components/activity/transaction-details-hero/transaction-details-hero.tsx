@@ -22,7 +22,7 @@ import { useTokenWithBalance } from '../../../hooks/tokens/useTokenWithBalance';
 import { BigNumber } from 'bignumber.js';
 import {
   convertMusdClaimAmount,
-  decodeMerklClaimAmount,
+  getClaimPayoutFromReceipt,
 } from '../../../../../UI/Earn/utils/musd';
 import {
   selectConversionRateByChainId,
@@ -130,8 +130,13 @@ function useClaimAmount(): { amount: BigNumber | null; isConverted: boolean } {
     return { amount: null, isConverted: false };
   }
 
-  const { data } = transactionMeta.txParams ?? {};
-  const claimAmountRaw = decodeMerklClaimAmount(data as string);
+  const { from } = transactionMeta.txParams ?? {};
+  const claimAmountRaw = getClaimPayoutFromReceipt(
+    transactionMeta.txReceipt?.logs as Parameters<
+      typeof getClaimPayoutFromReceipt
+    >[0],
+    from as string,
+  );
 
   if (!claimAmountRaw) {
     return { amount: null, isConverted: false };

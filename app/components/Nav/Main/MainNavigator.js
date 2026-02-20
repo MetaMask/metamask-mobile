@@ -108,7 +108,6 @@ import {
   MarketInsightsView,
   selectMarketInsightsEnabled,
 } from '../../UI/MarketInsights';
-import { selectAssetsTrendingTokensEnabled } from '../../../selectors/featureFlagController/assetsTrendingTokens';
 import { useAccountMenuEnabled } from '../../../selectors/featureFlagController/accountMenu/useAccountMenuEnabled';
 import PerpsPositionTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsPositionTransactionView';
 import PerpsOrderTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsOrderTransactionView';
@@ -424,7 +423,7 @@ const SettingsFlow = () => {
       <Stack.Screen
         name="ContactsSettings"
         component={Contacts}
-        options={Contacts.navigationOptions}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name="ContactForm"
@@ -523,9 +522,6 @@ const HomeTabs = () => {
 
   const accountsLength = useSelector(selectAccountsLength);
   const rewardsSubscription = useSelector(selectRewardsSubscriptionId);
-  const isAssetsTrendingTokensEnabled = useSelector(
-    selectAssetsTrendingTokensEnabled,
-  );
 
   const chainId = useSelector((state) => {
     const providerConfig = selectProviderConfig(state);
@@ -683,53 +679,53 @@ const HomeTabs = () => {
 
   return (
     <Tab.Navigator initialRouteName={Routes.WALLET.HOME} tabBar={renderTabBar}>
+      {/* Home Tab */}
       <Tab.Screen
         name={Routes.WALLET.HOME}
         options={options.home}
         component={WalletTabModalFlow}
       />
-      {isAssetsTrendingTokensEnabled ? (
-        <>
-          <Tab.Screen
-            name={Routes.TRENDING_VIEW}
-            options={{
-              ...options.trending,
-              isSelected: (rootScreenName) =>
-                [Routes.TRENDING_VIEW, Routes.BROWSER.HOME].includes(
-                  rootScreenName,
-                ),
-            }}
-            component={ExploreHome}
-          />
-          <Tab.Screen
-            name={Routes.BROWSER.HOME}
-            options={{
-              ...options.browser,
-              isHidden: true,
-            }}
-            component={BrowserFlow}
-            layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
-          />
-        </>
-      ) : (
+
+      {/* Explore Tab (w/ hidden browser) */}
+      <>
+        <Tab.Screen
+          name={Routes.TRENDING_VIEW}
+          options={{
+            ...options.trending,
+            isSelected: (rootScreenName) =>
+              [Routes.TRENDING_VIEW, Routes.BROWSER.HOME].includes(
+                rootScreenName,
+              ),
+          }}
+          component={ExploreHome}
+        />
         <Tab.Screen
           name={Routes.BROWSER.HOME}
-          options={options.browser}
+          options={{
+            ...options.browser,
+            isHidden: true,
+          }}
           component={BrowserFlow}
           layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
         />
-      )}
+      </>
+
+      {/* Trade Tab */}
       <Tab.Screen
         name={Routes.MODAL.TRADE_WALLET_ACTIONS}
         options={options.trade}
         component={WalletTabModalFlow}
       />
+
+      {/* Activity Tab */}
       <Tab.Screen
         name={Routes.TRANSACTIONS_VIEW}
         options={options.activity}
         component={TransactionsHome}
         layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
       />
+
+      {/* Rewards Tab */}
       <Tab.Screen
         name={Routes.REWARDS_VIEW}
         options={options.rewards}
@@ -902,15 +898,7 @@ const MainNavigator = () => {
     [predictEnabledFlag],
   );
   // Get feature flag state for conditional Market Insights screen registration
-  const marketInsightsEnabledFlag = useSelector(selectMarketInsightsEnabled);
-  const isMarketInsightsEnabled = useMemo(
-    () => marketInsightsEnabledFlag,
-    [marketInsightsEnabledFlag],
-  );
-  // Get feature flag state for conditional Trending Tokens screen registration
-  const isAssetsTrendingTokensEnabled = useSelector(
-    selectAssetsTrendingTokensEnabled,
-  );
+  const isMarketInsightsEnabled = useSelector(selectMarketInsightsEnabled);
 
   return (
     <Stack.Navigator
@@ -1254,70 +1242,68 @@ const MainNavigator = () => {
           }}
         />
       )}
-      {isAssetsTrendingTokensEnabled && (
-        <>
-          <Stack.Screen
-            name={Routes.EXPLORE_SEARCH}
-            component={ExploreSearchScreen}
-            options={{
-              headerShown: false,
-              animationEnabled: true,
-              cardStyleInterpolator: ({ current, layouts }) => ({
-                cardStyle: {
-                  transform: [
-                    {
-                      translateX: current.progress.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: [layouts.screen.width, 0],
-                      }),
-                    },
-                  ],
-                },
-              }),
-            }}
-          />
-          <Stack.Screen
-            name={Routes.SITES_FULL_VIEW}
-            component={SitesFullView}
-            options={{
-              headerShown: false,
-              animationEnabled: true,
-              cardStyleInterpolator: ({ current, layouts }) => ({
-                cardStyle: {
-                  transform: [
-                    {
-                      translateX: current.progress.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: [layouts.screen.width, 0],
-                      }),
-                    },
-                  ],
-                },
-              }),
-            }}
-          />
-          <Stack.Screen
-            name={Routes.BROWSER.HOME}
-            component={BrowserFlow}
-            options={{
-              headerShown: false,
-              animationEnabled: true,
-              cardStyleInterpolator: ({ current, layouts }) => ({
-                cardStyle: {
-                  transform: [
-                    {
-                      translateX: current.progress.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: [layouts.screen.width, 0],
-                      }),
-                    },
-                  ],
-                },
-              }),
-            }}
-          />
-        </>
-      )}
+      <>
+        <Stack.Screen
+          name={Routes.EXPLORE_SEARCH}
+          component={ExploreSearchScreen}
+          options={{
+            headerShown: false,
+            animationEnabled: true,
+            cardStyleInterpolator: ({ current, layouts }) => ({
+              cardStyle: {
+                transform: [
+                  {
+                    translateX: current.progress.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [layouts.screen.width, 0],
+                    }),
+                  },
+                ],
+              },
+            }),
+          }}
+        />
+        <Stack.Screen
+          name={Routes.SITES_FULL_VIEW}
+          component={SitesFullView}
+          options={{
+            headerShown: false,
+            animationEnabled: true,
+            cardStyleInterpolator: ({ current, layouts }) => ({
+              cardStyle: {
+                transform: [
+                  {
+                    translateX: current.progress.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [layouts.screen.width, 0],
+                    }),
+                  },
+                ],
+              },
+            }),
+          }}
+        />
+        <Stack.Screen
+          name={Routes.BROWSER.HOME}
+          component={BrowserFlow}
+          options={{
+            headerShown: false,
+            animationEnabled: true,
+            cardStyleInterpolator: ({ current, layouts }) => ({
+              cardStyle: {
+                transform: [
+                  {
+                    translateX: current.progress.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [layouts.screen.width, 0],
+                    }),
+                  },
+                ],
+              },
+            }),
+          }}
+        />
+      </>
       <Stack.Screen
         name="SetPasswordFlow"
         component={SetPasswordFlow}

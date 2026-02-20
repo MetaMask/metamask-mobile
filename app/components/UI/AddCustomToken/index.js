@@ -27,7 +27,7 @@ import {
   getBlockExplorerAddressUrl,
   getDecimalChainId,
 } from '../../../util/networks';
-import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
+import { withAnalyticsAwareness } from '../../../components/hooks/useAnalytics/withAnalyticsAwareness';
 import { formatIconUrlWithProxy } from '@metamask/assets-controllers';
 import Button, {
   ButtonSize,
@@ -164,9 +164,9 @@ class AddCustomToken extends PureComponent {
      */
     isTokenDetectionSupported: PropTypes.bool,
     /**
-     * Metrics injected by withMetricsAwareness HOC
+     * Analytics injected by withAnalyticsAwareness HOC
      */
-    metrics: PropTypes.object,
+    analytics: PropTypes.object,
 
     /**
      * The selected network
@@ -221,8 +221,8 @@ class AddCustomToken extends PureComponent {
     const analyticsParams = this.getTokenAddedAnalyticsParams();
 
     if (analyticsParams) {
-      this.props.metrics.trackEvent(
-        this.props.metrics
+      this.props.analytics.trackEvent(
+        this.props.analytics
           .createEventBuilder(MetaMetricsEvents.TOKEN_ADDED)
           .addProperties(analyticsParams)
           .build(),
@@ -695,4 +695,4 @@ const AddCustomTokenWithInsets = (props) => {
   return <AddCustomToken {...props} safeAreaInsets={safeAreaInsets} />;
 };
 
-export default withMetricsAwareness(AddCustomTokenWithInsets);
+export default withAnalyticsAwareness(AddCustomTokenWithInsets);
