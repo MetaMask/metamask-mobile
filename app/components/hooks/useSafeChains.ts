@@ -18,7 +18,7 @@ export const resetChainsListCache = () => {
   cachedChainsListPromise = null;
 };
 
-async function fetchChainsList(): Promise<SafeChain[]> {
+export async function fetchChainsList(): Promise<SafeChain[]> {
   if (!cachedChainsListPromise) {
     cachedChainsListPromise = (async () => {
       try {
