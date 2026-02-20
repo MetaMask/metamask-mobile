@@ -11,19 +11,26 @@ import {
   ListRenderItemInfo,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import {
+  useNavigation,
+  useRoute,
+  RouteProp,
+  StackActions,
+} from '@react-navigation/native';
 import { useSelector, useDispatch } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import { getHeaderCompactStandardNavbarOptions } from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import { FlatList } from 'react-native-gesture-handler';
 import { NetworkPills } from './NetworkPills';
+import Routes from '../../../../../constants/navigation/Routes';
 import { CaipChainId } from '@metamask/utils';
 import { useStyles } from '../../../../../component-library/hooks';
 import TextFieldSearch from '../../../../../component-library/components/Form/TextFieldSearch';
 import {
-  selectSourceChainRanking,
-  selectDestChainRanking,
+  selectAllowedChainRanking,
+  selectTokenSelectorNetworkFilter,
   setIsSelectingToken,
+  setTokenSelectorNetworkFilter,
 } from '../../../../../core/redux/slices/bridge';
 import {
   formatChainIdToCaip,
@@ -96,13 +103,7 @@ export const BridgeTokenSelector: React.FC = () => {
     [searchString],
   );
 
-  // Use appropriate chain ranking based on selector type
-  const sourceChainRanking = useSelector(selectSourceChainRanking);
-  const destChainRanking = useSelector(selectDestChainRanking);
-  const enabledChainRanking =
-    route.params?.type === TokenSelectorType.Source
-      ? sourceChainRanking
-      : destChainRanking;
+  const enabledChainRanking = useSelector(selectAllowedChainRanking);
 
   // Set navigation options for header
   useEffect(() => {
@@ -120,12 +121,37 @@ export const BridgeTokenSelector: React.FC = () => {
     route.params?.type,
   );
 
-  // Initialize selectedChainId with the chain id of the selected token
-  const [selectedChainId, setSelectedChainId] = useState(
-    selectedToken?.chainId && route.params?.type === TokenSelectorType.Dest
-      ? formatChainIdToCaip(selectedToken.chainId)
-      : undefined,
+  // Compute the initial network filter synchronously so the first render
+  // has the correct value — avoids a wasted all-chains fetch and FlatList
+  // remount that would occur if we relied solely on the async useEffect.
+  const initialFilter = useMemo(
+    () =>
+      selectedToken?.chainId && route.params?.type === TokenSelectorType.Dest
+        ? formatChainIdToCaip(selectedToken.chainId)
+        : undefined,
+    [], // eslint-disable-line react-hooks/exhaustive-deps
   );
+
+  // Track whether we've synced the initial filter into Redux.
+  // Before sync, we use initialFilter directly; after sync, we trust Redux
+  // (which may be undefined when the user selects "All").
+  const hasSyncedFilter = useRef(false);
+  const reduxFilter = useSelector(selectTokenSelectorNetworkFilter);
+  const selectedChainId = hasSyncedFilter.current
+    ? reduxFilter
+    : (reduxFilter ?? initialFilter);
+
+  // Sync the initial filter into Redux on mount so other consumers
+  // (e.g. NetworkListModal) see the correct value. Clear on unmount.
+  useEffect(() => {
+    if (initialFilter) {
+      dispatch(setTokenSelectorNetworkFilter(initialFilter));
+    }
+    hasSyncedFilter.current = true;
+    return () => {
+      dispatch(setTokenSelectorNetworkFilter(undefined));
+    };
+  }, [dispatch, initialFilter]);
 
   // Ref to track if we need to re-search after chain change
   const shouldResearchAfterChainChange = useRef(false);
@@ -133,14 +159,6 @@ export const BridgeTokenSelector: React.FC = () => {
   // Track the last chain ID to detect changes
   const lastChainIdRef = useRef(selectedChainId);
   const [listKey, setListKey] = useState(0);
-
-  // Update list key when network actually changes
-  useEffect(() => {
-    if (lastChainIdRef.current !== selectedChainId) {
-      lastChainIdRef.current = selectedChainId;
-      setListKey((prev) => prev + 1);
-    }
-  }, [selectedChainId]);
 
   const chainIdsToFetch = useMemo(() => {
     if (!enabledChainRanking || enabledChainRanking.length === 0) {
@@ -207,6 +225,25 @@ export const BridgeTokenSelector: React.FC = () => {
     chainIds: chainIdsToFetch,
     includeAssets,
   });
+
+  // React to network filter changes from any source (pill press or modal).
+  // Cancels pending searches, resets stale results, and flags for re-search.
+  useEffect(() => {
+    if (lastChainIdRef.current !== selectedChainId) {
+      lastChainIdRef.current = selectedChainId;
+      setListKey((prev) => prev + 1);
+
+      // Cancel any pending debounced searches
+      debouncedSearch.cancel();
+      // Clear old network's data to ensure clean state
+      resetSearch();
+
+      // If there's an active search, prepare to re-trigger it on the new network
+      if (isValidSearch) {
+        shouldResearchAfterChainChange.current = true;
+      }
+    }
+  }, [selectedChainId, debouncedSearch, resetSearch, isValidSearch]);
 
   // Use custom hook for merging balances
   const popularTokensWithBalance = useTokensWithBalances(
@@ -290,25 +327,27 @@ export const BridgeTokenSelector: React.FC = () => {
     searchString,
   ]);
 
-  const handleChainSelect = (chainId?: CaipChainId) => {
-    // Do nothing if selecting the same network that's already selected
-    if (chainId === selectedChainId) {
-      return;
-    }
+  const handleChainSelect = useCallback(
+    (chainId?: CaipChainId) => {
+      // Do nothing if selecting the same network that's already selected
+      if (chainId === selectedChainId) {
+        return;
+      }
 
-    setSelectedChainId(chainId);
+      dispatch(setTokenSelectorNetworkFilter(chainId));
 
-    // Cancel any pending debounced searches
-    debouncedSearch.cancel();
-    // Always reset search results to clear old network's data and ensure clean state
-    resetSearch();
+      // Eagerly clean up search state so the UI doesn't flash stale results.
+      // The useEffect watching selectedChainId also performs this cleanup
+      // to handle changes from NetworkListModal (which dispatches directly).
+      debouncedSearch.cancel();
+      resetSearch();
 
-    // If there's an active search, prepare to re-trigger it on the new network
-    if (isValidSearch) {
-      // Set flag to trigger search after chain IDs update
-      shouldResearchAfterChainChange.current = true;
-    }
-  };
+      if (isValidSearch) {
+        shouldResearchAfterChainChange.current = true;
+      }
+    },
+    [selectedChainId, dispatch, debouncedSearch, resetSearch, isValidSearch],
+  );
 
   const handleSearchTextChange = (text: string) => {
     setSearchString(text);
@@ -330,10 +369,14 @@ export const BridgeTokenSelector: React.FC = () => {
       );
       const networkName = chainData?.name ?? '';
 
-      navigation.navigate('Asset', {
-        ...item,
-        source: TokenDetailsSource.Swap,
-      });
+      // Use push so we always open details for the tapped token.
+      // navigate('Asset') can reuse an existing Asset route with stale params.
+      navigation.dispatch(
+        StackActions.push('Asset', {
+          ...item,
+          source: TokenDetailsSource.Swap,
+        }),
+      );
 
       Engine.context.BridgeController.trackUnifiedSwapBridgeEvent(
         UnifiedSwapBridgeEventName.AssetDetailTooltipClicked,
@@ -486,7 +529,11 @@ export const BridgeTokenSelector: React.FC = () => {
         <NetworkPills
           selectedChainId={selectedChainId}
           onChainSelect={handleChainSelect}
-          type={route.params?.type}
+          onMorePress={() =>
+            navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+              screen: Routes.BRIDGE.MODALS.NETWORK_LIST_MODAL,
+            })
+          }
         />
 
         <TextFieldSearch

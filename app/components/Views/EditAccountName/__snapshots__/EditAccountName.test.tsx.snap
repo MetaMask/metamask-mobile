@@ -114,7 +114,6 @@ exports[`EditAccountName should render correctly 1`] = `
                 "height": 46,
                 "letterSpacing": 0,
                 "opacity": 1,
-                "textAlignVertical": "center",
               }
             }
             testID="account-name-input"
@@ -218,7 +217,6 @@ exports[`EditAccountName should render correctly 1`] = `
                 "height": 46,
                 "letterSpacing": 0,
                 "opacity": 1,
-                "textAlignVertical": "center",
               }
             }
             testID="input"

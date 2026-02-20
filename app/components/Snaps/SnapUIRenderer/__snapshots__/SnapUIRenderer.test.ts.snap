@@ -299,7 +299,6 @@ exports[`SnapUIRenderer prefills interactive inputs with existing state 1`] = `
                         "height": 46,
                         "letterSpacing": 0,
                         "opacity": 1,
-                        "textAlignVertical": "center",
                       }
                     }
                     testID="input-snap-ui-input"
@@ -460,7 +459,6 @@ exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
                         "height": 46,
                         "letterSpacing": 0,
                         "opacity": 1,
-                        "textAlignVertical": "center",
                       }
                     }
                     testID="input-snap-ui-input"
@@ -556,7 +554,6 @@ exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
                         "height": 46,
                         "letterSpacing": 0,
                         "opacity": 1,
-                        "textAlignVertical": "center",
                       }
                     }
                     testID="input2-snap-ui-input"
@@ -716,7 +713,6 @@ exports[`SnapUIRenderer re-syncs state when the interface changes 1`] = `
                         "height": 46,
                         "letterSpacing": 0,
                         "opacity": 1,
-                        "textAlignVertical": "center",
                       }
                     }
                     testID="input-snap-ui-input"
@@ -811,7 +807,6 @@ exports[`SnapUIRenderer re-syncs state when the interface changes 1`] = `
                         "height": 46,
                         "letterSpacing": 0,
                         "opacity": 1,
-                        "textAlignVertical": "center",
                       }
                     }
                     testID="input2-snap-ui-input"
@@ -1966,7 +1961,6 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                           "height": 46,
                           "letterSpacing": 0,
                           "opacity": 1,
-                          "textAlignVertical": "center",
                         }
                       }
                       testID="input-snap-ui-input"
@@ -2164,7 +2158,6 @@ exports[`SnapUIRenderer supports interactive inputs 1`] = `
                         "height": 46,
                         "letterSpacing": 0,
                         "opacity": 1,
-                        "textAlignVertical": "center",
                       }
                     }
                     testID="input-snap-ui-input"

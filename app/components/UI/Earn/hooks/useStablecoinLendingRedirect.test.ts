@@ -1,5 +1,6 @@
 import { act, renderHook } from '@testing-library/react-hooks';
 import type { TokenI } from '../../Tokens/types';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { EVENT_LOCATIONS } from '../constants/events/earnEvents';
 import { useStablecoinLendingRedirect } from './useStablecoinLendingRedirect';
 
@@ -26,11 +27,8 @@ jest.mock('../../../../constants/navigation/Routes', () => ({
   },
 }));
 
-jest.mock('../../../hooks/useMetrics', () => ({
-  MetaMetricsEvents: {
-    EARN_BUTTON_CLICKED: 'EARN_BUTTON_CLICKED',
-  },
-  useMetrics: () => ({
+jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
     trackEvent: mockTrackEvent,
     createEventBuilder: mockCreateEventBuilder,
   }),
@@ -185,7 +183,9 @@ describe('useStablecoinLendingRedirect', () => {
     expect(mockFindNetworkClientIdByChainId).toHaveBeenCalledWith('0x1');
     expect(mockTrace).toHaveBeenCalledWith({ name: 'EarnDepositScreen' });
     expect(mockSetActiveNetwork).toHaveBeenCalledWith('mainnet');
-    expect(mockCreateEventBuilder).toHaveBeenCalledWith('EARN_BUTTON_CLICKED');
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.EARN_BUTTON_CLICKED,
+    );
     expect(builder.addProperties).toHaveBeenCalledWith({
       action_type: 'deposit',
       location: EVENT_LOCATIONS.HOME_SCREEN,

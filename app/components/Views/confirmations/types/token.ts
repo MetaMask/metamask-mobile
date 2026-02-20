@@ -29,6 +29,43 @@ export interface AssetType extends TokenI {
   rawBalance?: Hex;
 }
 
+export interface HighlightedActionButton {
+  buttonLabel: string;
+  onPress: () => void;
+}
+
+export interface HighlightedAssetListItem {
+  type: 'highlighted_asset';
+  icon: string;
+  name: string;
+  name_description: string;
+  fiat: string;
+  fiat_description: string;
+  action: () => void;
+  isSelected?: boolean;
+}
+
+export interface HighlightedActionListItem {
+  type: 'highlighted_action';
+  icon: string;
+  name: string;
+  name_description: string;
+  actions: HighlightedActionButton[];
+}
+
+export type TokenListItem =
+  | AssetType
+  | HighlightedAssetListItem
+  | HighlightedActionListItem;
+
+export const isHighlightedAssetListItem = (
+  item: TokenListItem,
+): item is HighlightedAssetListItem => item.type === 'highlighted_asset';
+
+export const isHighlightedActionListItem = (
+  item: TokenListItem,
+): item is HighlightedActionListItem => item.type === 'highlighted_action';
+
 export interface Nft {
   address: string;
   standard: 'ERC721' | 'ERC1155';

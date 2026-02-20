@@ -40,7 +40,6 @@ import {
 } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { formatPercentage, formatPrice } from '../../utils/format';
-import { usePredictOptimisticPositionRefresh } from '../../hooks/usePredictOptimisticPositionRefresh';
 import { usePredictOrderPreview } from '../../hooks/usePredictOrderPreview';
 
 interface PredictPositionProps {
@@ -59,17 +58,11 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
   const tw = useTailwind();
   const privacyMode = useSelector(selectPrivacyMode);
 
-  const currentPosition = usePredictOptimisticPositionRefresh({
-    position,
-  });
-
-  const { icon, initialValue, outcome, title, optimistic, size } =
-    currentPosition;
+  const { icon, initialValue, outcome, title, optimistic, size } = position;
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const { navigate } = navigation;
   const { executeGuardedAction } = usePredictActionGuard({
-    providerId: currentPosition.providerId,
     navigation,
   });
 
@@ -82,19 +75,18 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
       : undefined;
 
   const { preview, isLoading: isPreviewLoading } = usePredictOrderPreview({
-    providerId: currentPosition.providerId,
-    marketId: currentPosition.marketId,
-    outcomeId: currentPosition.outcomeId,
-    outcomeTokenId: currentPosition.outcomeTokenId,
+    marketId: position.marketId,
+    outcomeId: position.outcomeId,
+    outcomeTokenId: position.outcomeTokenId,
     side: Side.SELL,
-    size: currentPosition.size,
+    size: position.size,
     autoRefreshTimeout,
   });
 
   // Use preview data if available, fallback to position data on error or when preview is unavailable
   const currentValue = preview
     ? preview.minAmountReceived
-    : currentPosition.currentValue;
+    : position.currentValue;
 
   // Recalculate PnL based on preview data
   const cashPnl = useMemo(
@@ -108,26 +100,26 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
   );
 
   const groupItemTitle = market?.outcomes.find(
-    (o) => o.id === currentPosition.outcomeId && o.groupItemTitle,
+    (o) => o.id === position.outcomeId && o.groupItemTitle,
   )?.groupItemTitle;
 
   const outcomeToken = market?.outcomes
     .find(
       (o) =>
-        o.id === currentPosition.outcomeId &&
-        o.tokens.find((t) => t.id === currentPosition.outcomeTokenId),
+        o.id === position.outcomeId &&
+        o.tokens.find((t) => t.id === position.outcomeTokenId),
     )
-    ?.tokens.find((t) => t.id === currentPosition.outcomeTokenId);
+    ?.tokens.find((t) => t.id === position.outcomeTokenId);
 
   const onCashOut = () => {
     executeGuardedAction(
       () => {
         const _outcome = market?.outcomes.find(
-          (o) => o.id === currentPosition.outcomeId,
+          (o) => o.id === position.outcomeId,
         );
         navigate(Routes.PREDICT.MODALS.SELL_PREVIEW, {
           market,
-          position: currentPosition,
+          position,
           outcome: _outcome,
           entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
         });

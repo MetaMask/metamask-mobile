@@ -1,6 +1,6 @@
 import React, {
   useCallback,
-  useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -40,6 +40,8 @@ import {
   getDetectedGeolocation,
 } from '../../../../../reducers/fiatOrders';
 import { selectNetworkConfigurationsByCaipChainId } from '../../../../../selectors/networkController';
+import { selectTokenSelectors } from '../../Aggregator/components/TokenSelectModal/SelectToken.testIds';
+import { parseUserFacingError } from '../../utils/parseUserFacingError';
 
 export const createTokenSelectionNavDetails = createNavigationDetails(
   Routes.RAMP.TOKEN_SELECTION,
@@ -230,7 +232,7 @@ function TokenSelection() {
     return Array.from(uniqueNetworksSet);
   }, [supportedTokens]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     navigation.setOptions(
       getDepositNavbarOptions(
         navigation,
@@ -267,6 +269,12 @@ function TokenSelection() {
               <Text variant={TextVariant.BodyMD}>
                 {strings('deposit.token_modal.error_loading_tokens')}
               </Text>
+              <Text variant={TextVariant.BodyMD}>
+                {parseUserFacingError(
+                  error,
+                  strings('deposit.token_modal.error_loading_tokens'),
+                )}
+              </Text>
             </Box>
           </Box>
         </ScreenLayout.Body>
@@ -286,6 +294,7 @@ function TokenSelection() {
         </Box>
         <Box twClassName="px-4 py-3">
           <TextFieldSearch
+            testID={selectTokenSelectors.TOKEN_SELECT_MODAL_SEARCH_INPUT}
             value={searchString}
             onPressClearButton={clearSearchText}
             onFocus={scrollToTop}

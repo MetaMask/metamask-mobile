@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { SLIPPAGE_BEST_AVAILABLE } from '../providers/polymarket/constants';
 import { PredictTradeStatus } from '../constants/eventNames';
 import Engine from '../../../../core/Engine';
-import type { OrderPreview, PlaceOrderParams } from '../providers/types';
+import type { OrderPreview, PlaceOrderParams } from '../types';
 import type { PlaceOrderOutcome } from './usePredictPlaceOrder';
 import type {
   PredictOrderRetrySheetRef,
@@ -12,7 +12,6 @@ import type {
 interface UsePredictOrderRetryParams {
   preview: OrderPreview | null | undefined;
   placeOrder: (params: PlaceOrderParams) => Promise<PlaceOrderOutcome>;
-  providerId: string;
   analyticsProperties: PlaceOrderParams['analyticsProperties'];
   isOrderNotFilled: boolean;
   resetOrderNotFilled: () => void;
@@ -21,7 +20,6 @@ interface UsePredictOrderRetryParams {
 export function usePredictOrderRetry({
   preview,
   placeOrder,
-  providerId,
   analyticsProperties,
   isOrderNotFilled,
   resetOrderNotFilled,
@@ -39,14 +37,12 @@ export function usePredictOrderRetry({
     Engine.context.PredictController.trackPredictOrderEvent({
       status: PredictTradeStatus.RETRY_SUBMITTED,
       analyticsProperties,
-      providerId,
       sharePrice: preview.sharePrice,
     });
 
     try {
       const retryPreview = { ...preview, slippage: SLIPPAGE_BEST_AVAILABLE };
       const outcome = await placeOrder({
-        providerId,
         analyticsProperties,
         preview: retryPreview,
       });
@@ -67,13 +63,7 @@ export function usePredictOrderRetry({
     } finally {
       setIsRetrying(false);
     }
-  }, [
-    preview,
-    placeOrder,
-    providerId,
-    analyticsProperties,
-    resetOrderNotFilled,
-  ]);
+  }, [preview, placeOrder, analyticsProperties, resetOrderNotFilled]);
 
   const isRetryingRef = useRef(false);
   isRetryingRef.current = isRetrying;
@@ -93,13 +83,12 @@ export function usePredictOrderRetry({
       Engine.context.PredictController.trackPredictOrderEvent({
         status: PredictTradeStatus.RETRY_PROMPTED,
         analyticsProperties,
-        providerId,
         sharePrice: preview?.sharePrice,
       });
     }
 
     wasOrderNotFilledRef.current = isOrderNotFilled;
-  }, [isOrderNotFilled, analyticsProperties, providerId, preview?.sharePrice]);
+  }, [isOrderNotFilled, analyticsProperties, preview?.sharePrice]);
 
   return {
     retrySheetRef,

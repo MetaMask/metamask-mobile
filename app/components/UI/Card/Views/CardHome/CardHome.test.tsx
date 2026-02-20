@@ -75,7 +75,12 @@ import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { withCardSDK } from '../../sdk';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import Routes from '../../../../../constants/navigation/Routes';
-import { AllowanceState, CardStateWarning, CardType } from '../../types';
+import {
+  AllowanceState,
+  CardStateWarning,
+  CardStatus,
+  CardType,
+} from '../../types';
 import useLoadCardData from '../../hooks/useLoadCardData';
 import { useOpenSwaps } from '../../hooks/useOpenSwaps';
 import { useMetrics } from '../../../../hooks/useMetrics';
@@ -144,6 +149,19 @@ const mockSelectedInternalAccount = {
 // Mock hooks
 const mockFetchAllData = jest.fn().mockResolvedValue(undefined);
 const mockRefetchAllData = jest.fn().mockResolvedValue(undefined);
+const mockFetchCardDetails = jest.fn().mockResolvedValue(undefined);
+const mockToggleFreeze = jest.fn().mockResolvedValue(true);
+const mockUseCardFreeze = jest.fn(
+  (): {
+    isFrozen: boolean;
+    status: { type: string; error?: Error };
+    toggleFreeze: jest.Mock;
+  } => ({
+    isFrozen: false,
+    status: { type: 'idle' },
+    toggleFreeze: mockToggleFreeze,
+  }),
+);
 const mockNavigateToCardPage = jest.fn();
 const mockGoToSwaps = jest.fn();
 const mockDispatch = jest.fn();
@@ -204,6 +222,11 @@ const mockUseSwapBridgeNavigation = jest.fn(() => ({
 jest.mock('../../hooks/useLoadCardData', () => ({
   __esModule: true,
   default: jest.fn(),
+}));
+
+jest.mock('../../hooks/useCardFreeze', () => ({
+  __esModule: true,
+  default: jest.fn(() => mockUseCardFreeze()),
 }));
 
 jest.mock('../../hooks/useAssetBalances', () => ({
@@ -466,6 +489,24 @@ jest.mock('../../../../../../locales/i18n', () => ({
         'Hide card details',
       'card.card_home.manage_card_options.view_card_details_description':
         'See your full card number, expiry date, and CVV',
+      'card.card_home.manage_card_options.freeze_card': 'Freeze card',
+      'card.card_home.manage_card_options.unfreeze_card': 'Unfreeze card',
+      'card.card_home.manage_card_options.freeze_card_description':
+        'Temporarily disable your card',
+      'card.card_home.manage_card_options.unfreeze_card_description':
+        'Reactivate your card to resume transactions',
+      'card.card_home.manage_card_options.freeze_error':
+        'Failed to update card status. Please try again.',
+      'card.card_home.manage_card_options.freeze_success':
+        'Card successfully frozen',
+      'card.card_home.manage_card_options.unfreeze_success':
+        'Card successfully unfrozen',
+      'card.card_home.biometric_verification_required':
+        'Authentication required to view card details.',
+      'card.card_home.unfreeze_auth_required':
+        'Authentication required to resume spending on your card.',
+      'card.password_bottomsheet.description_unfreeze':
+        'Enter your wallet password to unfreeze your card.',
     };
     return strings[key] || key;
   },
@@ -557,7 +598,7 @@ function setupLoadCardDataMock(
   overrides?: Partial<{
     priorityToken: typeof mockPriorityToken | null;
     allTokens: (typeof mockPriorityToken)[];
-    cardDetails: { type: CardType } | null;
+    cardDetails: Record<string, unknown> | null;
     isLoading: boolean;
     error: string | null;
     warning: CardStateWarning | null;
@@ -586,6 +627,9 @@ function setupLoadCardDataMock(
         mailingUsState?: string | null;
       } | null;
     } | null;
+    externalWalletDetailsData: {
+      mappedWalletDetails?: Record<string, unknown>[];
+    } | null;
   }>,
 ) {
   const defaults = {
@@ -599,6 +643,7 @@ function setupLoadCardDataMock(
     isBaanxLoginEnabled: true,
     isCardholder: true,
     kycStatus: { verificationState: 'VERIFIED' as const, userId: 'user-123' },
+    externalWalletDetailsData: null,
   };
 
   const config = { ...defaults, ...overrides };
@@ -607,6 +652,7 @@ function setupLoadCardDataMock(
     ...config,
     fetchAllData: mockFetchAllData,
     refetchAllData: mockRefetchAllData,
+    fetchCardDetails: mockFetchCardDetails,
   });
 }
 
@@ -675,6 +721,14 @@ describe('CardHome Component', () => {
     mockSetSelectedAccount.mockClear();
     mockIsSolanaChainId.mockReturnValue(false);
 
+    // Reset freeze hook mock
+    mockToggleFreeze.mockResolvedValue(true);
+    mockUseCardFreeze.mockReturnValue({
+      isFrozen: false,
+      status: { type: 'idle' },
+      toggleFreeze: mockToggleFreeze,
+    });
+
     // Setup hook mocks with default values
     (useLoadCardData as jest.Mock).mockReturnValue({
       priorityToken: mockPriorityToken,
@@ -688,6 +742,7 @@ describe('CardHome Component', () => {
       isCardholder: true,
       fetchAllData: mockFetchAllData,
       refetchAllData: mockRefetchAllData,
+      fetchCardDetails: mockFetchCardDetails,
     });
 
     mockUseAssetBalances.mockReturnValue(
@@ -1392,6 +1447,286 @@ describe('CardHome Component', () => {
         token_fiat_balance_priority: undefined,
       }),
     );
+  });
+
+  describe('CARD_HOME_VIEWED state property', () => {
+    it('includes state UNAUTHENTICATED when user is not authenticated', async () => {
+      // Given: user is not authenticated (default beforeEach state)
+      setupLoadCardDataMock({ isAuthenticated: false });
+
+      // When: component renders and fires metrics
+      render();
+      await new Promise((r) => setTimeout(r, 0));
+
+      // Then: state should be UNAUTHENTICATED
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          state: 'UNAUTHENTICATED',
+        }),
+      );
+    });
+
+    it('includes state UNAUTHENTICATED with undefined token fields when no priority token', async () => {
+      // Given: user is not authenticated and has no priority token
+      setupLoadCardDataMock({
+        isAuthenticated: false,
+        priorityToken: null,
+        allTokens: [],
+      });
+
+      // When: component renders and fires metrics
+      render();
+      await new Promise((r) => setTimeout(r, 0));
+
+      // Then: state should be UNAUTHENTICATED with undefined token fields
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          state: 'UNAUTHENTICATED',
+          token_symbol_priority: undefined,
+          token_raw_balance_priority: undefined,
+          token_fiat_balance_priority: undefined,
+          token_chain_id_priority: undefined,
+        }),
+      );
+    });
+
+    it('includes state PENDING when kycStatus is PENDING', async () => {
+      // Given: user is authenticated with PENDING KYC
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        kycStatus: { verificationState: 'PENDING', userId: 'user-123' },
+      });
+      setupMockSelectors({ isAuthenticated: true });
+
+      // When: component renders and fires metrics
+      render();
+      await new Promise((r) => setTimeout(r, 0));
+
+      // Then: state should be PENDING
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          state: 'PENDING',
+        }),
+      );
+    });
+
+    it('includes state PENDING when kycStatus is UNVERIFIED', async () => {
+      // Given: user is authenticated with UNVERIFIED KYC
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        kycStatus: { verificationState: 'UNVERIFIED', userId: 'user-123' },
+      });
+      setupMockSelectors({ isAuthenticated: true });
+
+      // When: component renders and fires metrics
+      render();
+      await new Promise((r) => setTimeout(r, 0));
+
+      // Then: state should be PENDING
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          state: 'PENDING',
+        }),
+      );
+    });
+
+    it('includes state PENDING with undefined token fields when no priority token', async () => {
+      // Given: user is authenticated with PENDING KYC and no priority token
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        kycStatus: { verificationState: 'PENDING', userId: 'user-123' },
+        priorityToken: null,
+        allTokens: [],
+      });
+      setupMockSelectors({ isAuthenticated: true });
+
+      // When: component renders and fires metrics
+      render();
+      await new Promise((r) => setTimeout(r, 0));
+
+      // Then: state should be PENDING with undefined token fields
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          state: 'PENDING',
+          token_symbol_priority: undefined,
+          token_raw_balance_priority: undefined,
+          token_fiat_balance_priority: undefined,
+          token_chain_id_priority: undefined,
+        }),
+      );
+    });
+
+    it('includes state ENABLE_CARD when VERIFIED with NoCard warning and no delegated wallets', async () => {
+      // Given: user is VERIFIED but has NoCard warning and no external wallet details
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+        warning: CardStateWarning.NoCard,
+        externalWalletDetailsData: null,
+      });
+      setupMockSelectors({ isAuthenticated: true });
+
+      // When: component renders and fires metrics
+      render();
+      await new Promise((r) => setTimeout(r, 0));
+
+      // Then: state should be ENABLE_CARD
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          state: 'ENABLE_CARD',
+        }),
+      );
+    });
+
+    it('includes state ENABLE_CARD when VERIFIED with NeedDelegation warning', async () => {
+      // Given: user is VERIFIED but has NeedDelegation warning and no delegated wallets
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+        warning: CardStateWarning.NeedDelegation,
+        externalWalletDetailsData: null,
+      });
+      setupMockSelectors({ isAuthenticated: true });
+
+      // When: component renders and fires metrics
+      render();
+      await new Promise((r) => setTimeout(r, 0));
+
+      // Then: state should be ENABLE_CARD
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          state: 'ENABLE_CARD',
+        }),
+      );
+    });
+
+    it('includes state ENABLE_CARD with undefined token fields when no priority token', async () => {
+      // Given: user is VERIFIED with NoCard warning, no wallet details, and no priority token
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+        warning: CardStateWarning.NoCard,
+        externalWalletDetailsData: null,
+        priorityToken: null,
+        allTokens: [],
+      });
+      setupMockSelectors({ isAuthenticated: true });
+
+      // When: component renders and fires metrics
+      render();
+      await new Promise((r) => setTimeout(r, 0));
+
+      // Then: state should be ENABLE_CARD with undefined token fields
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          state: 'ENABLE_CARD',
+          token_symbol_priority: undefined,
+          token_raw_balance_priority: undefined,
+          token_fiat_balance_priority: undefined,
+          token_chain_id_priority: undefined,
+        }),
+      );
+    });
+
+    it('includes state PROVISIONING_CARD when VERIFIED with NoCard warning and has delegated wallets', async () => {
+      // Given: user is VERIFIED with NoCard warning but has delegated wallet details
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+        warning: CardStateWarning.NoCard,
+        externalWalletDetailsData: {
+          mappedWalletDetails: [{ id: 'wallet-1' }],
+        },
+      });
+      setupMockSelectors({ isAuthenticated: true });
+
+      // When: component renders and fires metrics
+      render();
+      await new Promise((r) => setTimeout(r, 0));
+
+      // Then: state should be PROVISIONING_CARD
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          state: 'PROVISIONING_CARD',
+        }),
+      );
+    });
+
+    it('includes state PROVISIONING_CARD when VERIFIED with NeedDelegation warning and has delegated wallets', async () => {
+      // Given: user is VERIFIED with NeedDelegation warning and has delegated wallet details
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+        warning: CardStateWarning.NeedDelegation,
+        externalWalletDetailsData: {
+          mappedWalletDetails: [{ id: 'wallet-1' }],
+        },
+      });
+      setupMockSelectors({ isAuthenticated: true });
+
+      // When: component renders and fires metrics
+      render();
+      await new Promise((r) => setTimeout(r, 0));
+
+      // Then: state should be PROVISIONING_CARD
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          state: 'PROVISIONING_CARD',
+        }),
+      );
+    });
+
+    it('includes state PROVISIONING_CARD with undefined token fields when no priority token', async () => {
+      // Given: user is VERIFIED with NoCard warning, has wallet details, but no priority token
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+        warning: CardStateWarning.NoCard,
+        externalWalletDetailsData: {
+          mappedWalletDetails: [{ id: 'wallet-1' }],
+        },
+        priorityToken: null,
+        allTokens: [],
+      });
+      setupMockSelectors({ isAuthenticated: true });
+
+      // When: component renders and fires metrics
+      render();
+      await new Promise((r) => setTimeout(r, 0));
+
+      // Then: state should be PROVISIONING_CARD with undefined token fields
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          state: 'PROVISIONING_CARD',
+          token_symbol_priority: undefined,
+          token_raw_balance_priority: undefined,
+          token_fiat_balance_priority: undefined,
+          token_chain_id_priority: undefined,
+        }),
+      );
+    });
+
+    it('includes state VERIFIED when user is fully set up', async () => {
+      // Given: user is authenticated and VERIFIED with no warnings
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+        warning: null,
+        cardDetails: { type: CardType.VIRTUAL },
+      });
+      setupMockSelectors({ isAuthenticated: true });
+
+      // When: component renders and fires metrics
+      render();
+      await new Promise((r) => setTimeout(r, 0));
+
+      // Then: state should be VERIFIED
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          state: 'VERIFIED',
+        }),
+      );
+    });
   });
 
   describe('Swap Enabled for Priority Token', () => {
@@ -3250,6 +3585,7 @@ describe('CardHome Component', () => {
           kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
           fetchAllData: mockFetchAllData,
           refetchAllData: mockRefetchAllData,
+          fetchCardDetails: mockFetchCardDetails,
         });
 
         // When: component renders and user presses enable card button
@@ -3604,6 +3940,605 @@ describe('CardHome Component', () => {
           });
           expect(mockReauthenticate).not.toHaveBeenCalled();
         });
+      });
+    });
+  });
+
+  describe('Freeze Card Toggle', () => {
+    const freezableCardDetails = {
+      type: CardType.VIRTUAL,
+      id: 'card-123',
+      holderName: 'John Doe',
+      panLast4: '1234',
+      status: CardStatus.ACTIVE,
+      isFreezable: true,
+      expiryDate: '12/28',
+    };
+
+    beforeEach(() => {
+      mockReauthenticate.mockClear();
+      mockToggleFreeze.mockClear();
+      mockReauthenticate.mockResolvedValue(undefined);
+    });
+
+    describe('Visibility', () => {
+      it('shows freeze toggle when authenticated with a freezable active card', () => {
+        setupMockSelectors({ isAuthenticated: true });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          isBaanxLoginEnabled: true,
+          cardDetails: freezableCardDetails,
+          isLoading: false,
+          kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+        });
+
+        render();
+
+        expect(
+          screen.getByTestId(CardHomeSelectors.FREEZE_CARD_TOGGLE),
+        ).toBeTruthy();
+      });
+
+      it('does not show freeze toggle when user is not authenticated', () => {
+        setupMockSelectors({ isAuthenticated: false });
+        setupLoadCardDataMock({
+          isAuthenticated: false,
+          isBaanxLoginEnabled: true,
+          cardDetails: freezableCardDetails,
+          isLoading: false,
+        });
+
+        render();
+
+        expect(
+          screen.queryByTestId(CardHomeSelectors.FREEZE_CARD_TOGGLE),
+        ).toBeNull();
+      });
+
+      it('does not show freeze toggle when card is not freezable', () => {
+        setupMockSelectors({ isAuthenticated: true });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          isBaanxLoginEnabled: true,
+          cardDetails: { ...freezableCardDetails, isFreezable: false },
+          isLoading: false,
+          kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+        });
+
+        render();
+
+        expect(
+          screen.queryByTestId(CardHomeSelectors.FREEZE_CARD_TOGGLE),
+        ).toBeNull();
+      });
+
+      it('does not show freeze toggle when card is blocked', () => {
+        setupMockSelectors({ isAuthenticated: true });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          isBaanxLoginEnabled: true,
+          cardDetails: {
+            ...freezableCardDetails,
+            status: CardStatus.BLOCKED,
+          },
+          isLoading: false,
+          kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+        });
+
+        render();
+
+        expect(
+          screen.queryByTestId(CardHomeSelectors.FREEZE_CARD_TOGGLE),
+        ).toBeNull();
+      });
+
+      it('does not show freeze toggle while loading', () => {
+        setupMockSelectors({ isAuthenticated: true });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          isBaanxLoginEnabled: true,
+          cardDetails: freezableCardDetails,
+          isLoading: true,
+        });
+
+        render();
+
+        expect(
+          screen.queryByTestId(CardHomeSelectors.FREEZE_CARD_TOGGLE),
+        ).toBeNull();
+      });
+
+      it('does not show freeze toggle when cardDetails is null', () => {
+        setupMockSelectors({ isAuthenticated: true });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          isBaanxLoginEnabled: true,
+          cardDetails: null,
+          isLoading: false,
+          kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+        });
+
+        render();
+
+        expect(
+          screen.queryByTestId(CardHomeSelectors.FREEZE_CARD_TOGGLE),
+        ).toBeNull();
+      });
+    });
+
+    describe('Freeze action (card is active)', () => {
+      it('calls toggleFreeze directly without reauthentication', async () => {
+        setupMockSelectors({ isAuthenticated: true });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          isBaanxLoginEnabled: true,
+          cardDetails: freezableCardDetails,
+          isLoading: false,
+          kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+        });
+
+        mockUseCardFreeze.mockReturnValue({
+          isFrozen: false,
+          status: { type: 'idle' },
+          toggleFreeze: mockToggleFreeze,
+        });
+
+        render();
+
+        const toggle = screen.getByTestId(CardHomeSelectors.FREEZE_CARD_TOGGLE);
+        fireEvent(toggle, 'valueChange', true);
+
+        await waitFor(() => {
+          expect(mockToggleFreeze).toHaveBeenCalledTimes(1);
+        });
+        expect(mockReauthenticate).not.toHaveBeenCalled();
+      });
+
+      it('tracks CARD_BUTTON_CLICKED with FREEZE_CARD_BUTTON action when freezing succeeds', async () => {
+        setupMockSelectors({ isAuthenticated: true });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          isBaanxLoginEnabled: true,
+          cardDetails: freezableCardDetails,
+          isLoading: false,
+          kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+        });
+
+        mockUseCardFreeze.mockReturnValue({
+          isFrozen: false,
+          status: { type: 'idle' },
+          toggleFreeze: mockToggleFreeze,
+        });
+
+        render();
+        mockTrackEvent.mockClear();
+        mockCreateEventBuilder.mockClear();
+        mockEventBuilder.addProperties.mockClear();
+        mockCreateEventBuilder.mockReturnValue(mockEventBuilder);
+
+        const toggle = screen.getByTestId(CardHomeSelectors.FREEZE_CARD_TOGGLE);
+        fireEvent(toggle, 'valueChange', true);
+
+        await waitFor(() => {
+          expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+        });
+        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+          'card_button_clicked',
+        );
+        expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+          action: 'FREEZE_CARD_BUTTON',
+        });
+      });
+
+      it('does not track metric when freeze toggleFreeze fails', async () => {
+        setupMockSelectors({ isAuthenticated: true });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          isBaanxLoginEnabled: true,
+          cardDetails: freezableCardDetails,
+          isLoading: false,
+          kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+        });
+
+        mockToggleFreeze.mockResolvedValueOnce(false);
+        mockUseCardFreeze.mockReturnValue({
+          isFrozen: false,
+          status: { type: 'idle' },
+          toggleFreeze: mockToggleFreeze,
+        });
+
+        render();
+        mockTrackEvent.mockClear();
+
+        const toggle = screen.getByTestId(CardHomeSelectors.FREEZE_CARD_TOGGLE);
+        fireEvent(toggle, 'valueChange', true);
+
+        await waitFor(() => {
+          expect(mockToggleFreeze).toHaveBeenCalledTimes(1);
+        });
+        expect(mockTrackEvent).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('Unfreeze action (card is frozen)', () => {
+      beforeEach(() => {
+        mockUseCardFreeze.mockReturnValue({
+          isFrozen: true,
+          status: { type: 'idle' },
+          toggleFreeze: mockToggleFreeze,
+        });
+      });
+
+      it('calls toggleFreeze after successful biometric authentication', async () => {
+        setupMockSelectors({ isAuthenticated: true });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          isBaanxLoginEnabled: true,
+          cardDetails: {
+            ...freezableCardDetails,
+            status: CardStatus.FROZEN,
+          },
+          isLoading: false,
+          kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+        });
+
+        mockReauthenticate.mockResolvedValueOnce(undefined);
+
+        render();
+
+        const toggle = screen.getByTestId(CardHomeSelectors.FREEZE_CARD_TOGGLE);
+        fireEvent(toggle, 'valueChange', false);
+
+        await waitFor(() => {
+          expect(mockReauthenticate).toHaveBeenCalledTimes(1);
+        });
+        await waitFor(() => {
+          expect(mockToggleFreeze).toHaveBeenCalledTimes(1);
+        });
+      });
+
+      it('does not call toggleFreeze when user cancels biometric prompt', async () => {
+        setupMockSelectors({ isAuthenticated: true });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          isBaanxLoginEnabled: true,
+          cardDetails: {
+            ...freezableCardDetails,
+            status: CardStatus.FROZEN,
+          },
+          isLoading: false,
+          kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+        });
+
+        mockReauthenticate.mockRejectedValueOnce(
+          new Error('BIOMETRIC_ERROR: User cancelled'),
+        );
+
+        render();
+
+        const toggle = screen.getByTestId(CardHomeSelectors.FREEZE_CARD_TOGGLE);
+        fireEvent(toggle, 'valueChange', false);
+
+        await waitFor(() => {
+          expect(mockReauthenticate).toHaveBeenCalledTimes(1);
+        });
+        expect(mockToggleFreeze).not.toHaveBeenCalled();
+      });
+
+      it('navigates to password bottom sheet with unfreeze description when biometrics not configured', async () => {
+        setupMockSelectors({ isAuthenticated: true });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          isBaanxLoginEnabled: true,
+          cardDetails: {
+            ...freezableCardDetails,
+            status: CardStatus.FROZEN,
+          },
+          isLoading: false,
+          kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+        });
+
+        mockReauthenticate.mockRejectedValueOnce(
+          new Error(
+            'PASSWORD_NOT_SET_WITH_BIOMETRICS: Biometrics not configured',
+          ),
+        );
+
+        render();
+
+        const toggle = screen.getByTestId(CardHomeSelectors.FREEZE_CARD_TOGGLE);
+        fireEvent(toggle, 'valueChange', false);
+
+        await waitFor(() => {
+          expect(mockReauthenticate).toHaveBeenCalledTimes(1);
+        });
+
+        await waitFor(() => {
+          expect(mockNavigate).toHaveBeenCalledWith(
+            Routes.CARD.MODALS.ID,
+            expect.objectContaining({
+              screen: Routes.CARD.MODALS.PASSWORD,
+              params: expect.objectContaining({
+                onSuccess: expect.any(Function),
+                description:
+                  'Enter your wallet password to unfreeze your card.',
+              }),
+            }),
+          );
+        });
+        expect(mockToggleFreeze).not.toHaveBeenCalled();
+      });
+
+      it('shows auth error toast on other authentication failures', async () => {
+        setupMockSelectors({ isAuthenticated: true });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          isBaanxLoginEnabled: true,
+          cardDetails: {
+            ...freezableCardDetails,
+            status: CardStatus.FROZEN,
+          },
+          isLoading: false,
+          kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+        });
+
+        mockReauthenticate.mockRejectedValueOnce(
+          new Error('UNKNOWN_AUTH_ERROR: Something unexpected happened'),
+        );
+
+        render();
+
+        const toggle = screen.getByTestId(CardHomeSelectors.FREEZE_CARD_TOGGLE);
+        fireEvent(toggle, 'valueChange', false);
+
+        await waitFor(() => {
+          expect(mockReauthenticate).toHaveBeenCalledTimes(1);
+        });
+        expect(mockToggleFreeze).not.toHaveBeenCalled();
+      });
+
+      it('tracks CARD_BUTTON_CLICKED with UNFREEZE_CARD_BUTTON action after successful biometric unfreeze', async () => {
+        setupMockSelectors({ isAuthenticated: true });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          isBaanxLoginEnabled: true,
+          cardDetails: {
+            ...freezableCardDetails,
+            status: CardStatus.FROZEN,
+          },
+          isLoading: false,
+          kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+        });
+
+        mockReauthenticate.mockResolvedValueOnce(undefined);
+
+        render();
+        mockTrackEvent.mockClear();
+        mockCreateEventBuilder.mockClear();
+        mockEventBuilder.addProperties.mockClear();
+        mockCreateEventBuilder.mockReturnValue(mockEventBuilder);
+
+        const toggle = screen.getByTestId(CardHomeSelectors.FREEZE_CARD_TOGGLE);
+        fireEvent(toggle, 'valueChange', false);
+
+        await waitFor(() => {
+          expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+        });
+        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+          'card_button_clicked',
+        );
+        expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+          action: 'UNFREEZE_CARD_BUTTON',
+        });
+      });
+
+      it('does not track metric when biometric unfreeze fails', async () => {
+        setupMockSelectors({ isAuthenticated: true });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          isBaanxLoginEnabled: true,
+          cardDetails: {
+            ...freezableCardDetails,
+            status: CardStatus.FROZEN,
+          },
+          isLoading: false,
+          kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+        });
+
+        mockToggleFreeze.mockResolvedValueOnce(false);
+        mockReauthenticate.mockResolvedValueOnce(undefined);
+
+        render();
+        mockTrackEvent.mockClear();
+
+        const toggle = screen.getByTestId(CardHomeSelectors.FREEZE_CARD_TOGGLE);
+        fireEvent(toggle, 'valueChange', false);
+
+        await waitFor(() => {
+          expect(mockToggleFreeze).toHaveBeenCalledTimes(1);
+        });
+        expect(mockTrackEvent).not.toHaveBeenCalled();
+      });
+
+      it('tracks CARD_BUTTON_CLICKED with UNFREEZE_CARD_BUTTON action after successful password-based unfreeze', async () => {
+        setupMockSelectors({ isAuthenticated: true });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          isBaanxLoginEnabled: true,
+          cardDetails: {
+            ...freezableCardDetails,
+            status: CardStatus.FROZEN,
+          },
+          isLoading: false,
+          kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+        });
+
+        mockReauthenticate.mockRejectedValueOnce(
+          new Error(
+            'PASSWORD_NOT_SET_WITH_BIOMETRICS: Biometrics not configured',
+          ),
+        );
+
+        render();
+        mockTrackEvent.mockClear();
+        mockCreateEventBuilder.mockClear();
+        mockEventBuilder.addProperties.mockClear();
+        mockCreateEventBuilder.mockReturnValue(mockEventBuilder);
+
+        const toggle = screen.getByTestId(CardHomeSelectors.FREEZE_CARD_TOGGLE);
+        fireEvent(toggle, 'valueChange', false);
+
+        await waitFor(() => {
+          expect(mockNavigate).toHaveBeenCalledWith(
+            Routes.CARD.MODALS.ID,
+            expect.objectContaining({
+              screen: Routes.CARD.MODALS.PASSWORD,
+              params: expect.objectContaining({
+                onSuccess: expect.any(Function),
+              }),
+            }),
+          );
+        });
+
+        const navigateCall = mockNavigate.mock.calls.find(
+          (call: unknown[]) => call[0] === Routes.CARD.MODALS.ID,
+        );
+        const onSuccess = navigateCall?.[1]?.params?.onSuccess;
+        await onSuccess();
+
+        await waitFor(() => {
+          expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+        });
+        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+          'card_button_clicked',
+        );
+        expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+          action: 'UNFREEZE_CARD_BUTTON',
+        });
+      });
+
+      it('does not track metric when password-based unfreeze toggleFreeze fails', async () => {
+        setupMockSelectors({ isAuthenticated: true });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          isBaanxLoginEnabled: true,
+          cardDetails: {
+            ...freezableCardDetails,
+            status: CardStatus.FROZEN,
+          },
+          isLoading: false,
+          kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+        });
+
+        mockReauthenticate.mockRejectedValueOnce(
+          new Error(
+            'PASSWORD_NOT_SET_WITH_BIOMETRICS: Biometrics not configured',
+          ),
+        );
+
+        render();
+        mockTrackEvent.mockClear();
+
+        const toggle = screen.getByTestId(CardHomeSelectors.FREEZE_CARD_TOGGLE);
+        fireEvent(toggle, 'valueChange', false);
+
+        await waitFor(() => {
+          expect(mockNavigate).toHaveBeenCalledWith(
+            Routes.CARD.MODALS.ID,
+            expect.objectContaining({
+              screen: Routes.CARD.MODALS.PASSWORD,
+              params: expect.objectContaining({
+                onSuccess: expect.any(Function),
+              }),
+            }),
+          );
+        });
+
+        mockToggleFreeze.mockResolvedValueOnce(false);
+
+        const navigateCall = mockNavigate.mock.calls.find(
+          (call: unknown[]) => call[0] === Routes.CARD.MODALS.ID,
+        );
+        const onSuccess = navigateCall?.[1]?.params?.onSuccess;
+        await onSuccess();
+
+        await waitFor(() => {
+          expect(mockToggleFreeze).toHaveBeenCalled();
+        });
+        expect(mockTrackEvent).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('Display state', () => {
+      it('shows "Freeze card" title and description when card is active', () => {
+        setupMockSelectors({ isAuthenticated: true });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          isBaanxLoginEnabled: true,
+          cardDetails: freezableCardDetails,
+          isLoading: false,
+          kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+        });
+
+        mockUseCardFreeze.mockReturnValue({
+          isFrozen: false,
+          status: { type: 'idle' },
+          toggleFreeze: mockToggleFreeze,
+        });
+
+        render();
+
+        expect(screen.getByText('Freeze card')).toBeTruthy();
+        expect(screen.getByText('Temporarily disable your card')).toBeTruthy();
+      });
+
+      it('shows "Unfreeze card" title and description when card is frozen', () => {
+        setupMockSelectors({ isAuthenticated: true });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          isBaanxLoginEnabled: true,
+          cardDetails: {
+            ...freezableCardDetails,
+            status: CardStatus.FROZEN,
+          },
+          isLoading: false,
+          kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+        });
+
+        mockUseCardFreeze.mockReturnValue({
+          isFrozen: true,
+          status: { type: 'idle' },
+          toggleFreeze: mockToggleFreeze,
+        });
+
+        render();
+
+        expect(screen.getByText('Unfreeze card')).toBeTruthy();
+        expect(
+          screen.getByText('Reactivate your card to resume transactions'),
+        ).toBeTruthy();
+      });
+
+      it('shows switch as disabled while toggling', () => {
+        setupMockSelectors({ isAuthenticated: true });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          isBaanxLoginEnabled: true,
+          cardDetails: freezableCardDetails,
+          isLoading: false,
+          kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+        });
+
+        mockUseCardFreeze.mockReturnValue({
+          isFrozen: false,
+          status: { type: 'toggling' },
+          toggleFreeze: mockToggleFreeze,
+        });
+
+        render();
+
+        const toggle = screen.getByTestId(CardHomeSelectors.FREEZE_CARD_TOGGLE);
+        expect(toggle.props.disabled).toBe(true);
       });
     });
   });
@@ -4084,7 +5019,6 @@ describe('CardHome Component', () => {
       holderName: 'John Doe',
       panLast4: '1234',
       status: 'ACTIVE',
-      expiryDate: '12/25',
     };
 
     const mockUserDetailsForProvisioning = {
@@ -4146,7 +5080,6 @@ describe('CardHome Component', () => {
         holderName: 'John Doe',
         panLast4: '1234',
         status: 'ACTIVE',
-        expiryDate: '12/25',
       });
     });
 

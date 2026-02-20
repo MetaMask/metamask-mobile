@@ -12,7 +12,8 @@ import {
   NotificationState,
 } from '../types/NotificationState';
 import {
-  getNativeTokenDetailsByChainId,
+  getNetworkDetailsFromNotifPayload,
+  getNetworkImageByChainId,
   getNotificationBadge,
 } from '../../methods/common';
 import { formatAddress } from '../../../address';
@@ -45,7 +46,11 @@ const modalTitle = (n: ERC721Notification) =>
       });
 
 const state: NotificationState<ERC721Notification> = {
-  guardFn: isERC721Notification,
+  guardFn: [
+    isERC721Notification,
+    (notification) =>
+      !!getNetworkDetailsFromNotifPayload(notification.payload.network),
+  ],
   createMenuItem: (notification) => ({
     title: title(notification),
 
@@ -64,8 +69,9 @@ const state: NotificationState<ERC721Notification> = {
     createdAt: notification.createdAt.toString(),
   }),
   createModalDetails: (notification) => {
-    const nativeTokenDetails = getNativeTokenDetailsByChainId(
-      notification.payload.chain_id,
+    const networkLogo = getNetworkImageByChainId(notification.payload.chain_id);
+    const { networkName } = getNetworkDetailsFromNotifPayload(
+      notification.payload.network,
     );
     return {
       title: modalTitle(notification),
@@ -73,7 +79,7 @@ const state: NotificationState<ERC721Notification> = {
       header: {
         type: ModalHeaderType.NFT_IMAGE,
         nftImageUrl: notification.payload.data.nft.image,
-        networkBadgeUrl: nativeTokenDetails?.image,
+        networkBadgeUrl: networkLogo,
       },
       fields: [
         {
@@ -94,12 +100,12 @@ const state: NotificationState<ERC721Notification> = {
           type: ModalFieldType.NFT_COLLECTION_IMAGE,
           collectionName: notification.payload.data.nft.collection.name,
           collectionImageUrl: notification.payload.data.nft.collection.image,
-          networkBadgeUrl: nativeTokenDetails?.image,
+          networkBadgeUrl: networkLogo,
         },
         {
           type: ModalFieldType.NETWORK,
-          iconUrl: nativeTokenDetails?.image,
-          name: nativeTokenDetails?.name,
+          iconUrl: networkLogo,
+          name: networkName,
         },
       ],
       footer: {

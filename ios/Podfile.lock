@@ -414,8 +414,8 @@ PODS:
   - hermes-engine (0.76.9):
     - hermes-engine/Pre-built (= 0.76.9)
   - hermes-engine/Pre-built (0.76.9)
-  - libavif/core (0.11.1)
-  - libavif/libdav1d (0.11.1):
+  - libavif/core (1.0.0)
+  - libavif/libdav1d (1.0.0):
     - libavif/core
     - libdav1d (>= 0.6.0)
   - libdav1d (1.2.0)
@@ -2097,6 +2097,9 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
+  - react-native-sdk (11.2.0):
+    - React
+    - VeriffSDK (= 8.12.0)
   - react-native-slider (4.5.6):
     - DoubleConversion
     - glog
@@ -2942,7 +2945,7 @@ PODS:
   - SDWebImage (5.19.7):
     - SDWebImage/Core (= 5.19.7)
   - SDWebImage/Core (5.19.7)
-  - SDWebImageAVIFCoder (0.11.0):
+  - SDWebImageAVIFCoder (0.11.1):
     - libavif/core (>= 0.11.0)
     - SDWebImage (~> 5.10)
   - SDWebImageSVGCoder (1.7.0):
@@ -2954,6 +2957,7 @@ PODS:
   - SocketRocket (0.7.1)
   - sovran-react-native (1.0.4):
     - React-Core
+  - VeriffSDK (8.12.0)
   - VisionCamera (4.6.4):
     - VisionCamera/Core (= 4.6.4)
     - VisionCamera/React (= 4.6.4)
@@ -3063,6 +3067,7 @@ DEPENDENCIES:
   - react-native-release-profiler (from `../node_modules/react-native-release-profiler`)
   - react-native-render-html (from `../node_modules/react-native-render-html`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
+  - "react-native-sdk (from `../node_modules/@veriff/react-native-sdk`)"
   - "react-native-slider (from `../node_modules/@react-native-community/slider`)"
   - react-native-tcp-socket (from `../node_modules/react-native-tcp-socket`)
   - react-native-video (from `../node_modules/react-native-video`)
@@ -3157,6 +3162,7 @@ SPEC REPOS:
     - SDWebImageSVGCoder
     - Sentry
     - SocketRocket
+    - VeriffSDK
     - YttriumWrapper
 
 EXTERNAL SOURCES:
@@ -3347,6 +3353,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-render-html"
   react-native-safe-area-context:
     :path: "../node_modules/react-native-safe-area-context"
+  react-native-sdk:
+    :path: "../node_modules/@veriff/react-native-sdk"
   react-native-slider:
     :path: "../node_modules/@react-native-community/slider"
   react-native-tcp-socket:
@@ -3523,7 +3531,7 @@ SPEC CHECKSUMS:
   GZIP: 3c0abf794bfce8c7cb34ea05a1837752416c8868
   GzipSwift: 893f3e48e597a1a4f62fafcb6514220fcf8287fa
   hermes-engine: 9e868dc7be781364296d6ee2f56d0c1a9ef0bb11
-  libavif: 84bbb62fb232c3018d6f1bab79beea87e35de7b7
+  libavif: 5f8e715bea24debec477006f21ef9e95432e254d
   libdav1d: 23581a4d8ec811ff171ed5e2e05cd27bad64c39f
   lottie-ios: e047b1d2e6239b787cc5e9755b988869cf190494
   lottie-react-native: 7f3fc3f396b1d6c7b1454b77596bd2ad3151871e
@@ -3589,6 +3597,7 @@ SPEC CHECKSUMS:
   react-native-release-profiler: fdca7c73a6e6a03fa2a343f5088fce4787e8d4ee
   react-native-render-html: 5afc4751f1a98621b3009432ef84c47019dcb2bd
   react-native-safe-area-context: c68127652d8b9a26a28ac9597167a3ad90bcd713
+  react-native-sdk: 6eb6c9de60e510a9ea93ddc09a3822cddf04f8cb
   react-native-slider: e4b7f9d0616032ec2909ba073731eabcde242256
   react-native-tcp-socket: 120072c8020262032773f80f0daaf3964aaa08a1
   react-native-video: 3bb92b90b2774144fac7d43d52d11b936e8a14ec
@@ -3649,12 +3658,13 @@ SPEC CHECKSUMS:
   RNSVG: 3a1cce2e940268a7d3554e3cf2bbd2195871f4fe
   RNVectorIcons: 3bf5f38dcb1aaf587c4101e9f3fcad5c8f5a88b2
   SDWebImage: 8a6b7b160b4d710e2a22b6900e25301075c34cb3
-  SDWebImageAVIFCoder: 00310d246aab3232ce77f1d8f0076f8c4b021d90
+  SDWebImageAVIFCoder: afe194a084e851f70228e4be35ef651df0fc5c57
   SDWebImageSVGCoder: 15a300a97ec1c8ac958f009c02220ac0402e936c
   segment-analytics-react-native: 6f98edf18246782ee7428c5380c6519a3d2acf5e
   Sentry: 2cbbe3592f30050c60e916c63c7f5a2fa584005e
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   sovran-react-native: e4721a564ee6ef5b5a0d901bc677018cf371ea01
+  VeriffSDK: 4323cc7d0152c107f40795881c92a41cf5a80f29
   VisionCamera: f56eaedde0d3fa095143b78374d29e89e71735f9
   Yoga: feb4910aba9742cfedc059e2b2902e22ffe9954a
   YttriumWrapper: cbddb60c835ebc4232d9f57064084ab30686a18e

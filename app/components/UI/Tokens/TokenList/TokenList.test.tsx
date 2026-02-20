@@ -55,6 +55,7 @@ jest.mock('../../../../selectors/featureFlagController/homepage', () => ({
 jest.mock('../../Earn/hooks/useMusdCtaVisibility', () => ({
   useMusdCtaVisibility: jest.fn(() => ({
     shouldShowGetMusdCta: false,
+    shouldShowTokenListItemCta: jest.fn(() => false),
     shouldShowConversionTokenListItemCta: jest.fn(() => false),
     shouldShowConversionAssetDetailCta: jest.fn(() => false),
   })),

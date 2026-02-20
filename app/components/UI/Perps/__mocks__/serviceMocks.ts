@@ -128,6 +128,13 @@ export const createMockPerpsControllerState = (
   lastUpdateTimestamp: Date.now(),
   hip3ConfigVersion: 0,
   selectedPaymentToken: null,
+  cachedMarketData: null,
+  cachedMarketDataTimestamp: 0,
+  cachedPositions: null,
+  cachedOrders: null,
+  cachedAccountState: null,
+  cachedUserDataTimestamp: 0,
+  cachedUserDataAddress: null,
   ...overrides,
 });
 
@@ -195,6 +202,9 @@ export const createMockMessenger = (
         action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
       ) {
         return [mockEvmAccount];
+      }
+      if (action === 'KeyringController:getState') {
+        return { isUnlocked: true };
       }
       if (action === 'KeyringController:signTypedMessage') {
         return Promise.resolve('0xSignatureResult');

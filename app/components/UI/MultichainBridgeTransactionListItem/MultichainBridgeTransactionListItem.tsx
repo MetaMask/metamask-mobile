@@ -29,21 +29,30 @@ import Badge, {
 } from '../../../component-library/components/Badges/Badge';
 import { getNetworkImageSource } from '../../../util/networks';
 import { parseCaipAssetType } from '@metamask/utils';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import { MonetizedPrimitive } from '../../../core/Analytics/MetaMetrics.types';
+import {
+  TRANSACTION_DETAIL_EVENTS,
+  TransactionDetailLocation,
+} from '../../../core/Analytics/events/transactions';
 
 const MultichainBridgeTransactionListItem = ({
   transaction,
   bridgeHistoryItem,
   navigation,
   index,
+  location,
 }: {
   transaction: Transaction;
   bridgeHistoryItem: BridgeHistoryItem;
   navigation: NavigationProp<ParamListBase>;
   index?: number;
+  location?: TransactionDetailLocation;
 }) => {
   const { colors, typography } = useTheme();
   const osColorScheme = useColorScheme();
   const appTheme = useSelector((state: RootState) => state.user.appTheme);
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const style = styles(colors, typography);
 
   const isSwap =
@@ -51,6 +60,21 @@ const MultichainBridgeTransactionListItem = ({
     bridgeHistoryItem.quote.destAsset.chainId;
 
   const handlePress = () => {
+    trackEvent(
+      createEventBuilder(TRANSACTION_DETAIL_EVENTS.LIST_ITEM_CLICKED)
+        .addProperties({
+          transaction_type: isSwap ? 'swap' : 'bridge',
+          transaction_status: transaction.status ?? 'unknown',
+          location: location ?? TransactionDetailLocation.Home,
+          chain_id_source: String(bridgeHistoryItem.quote.srcAsset.chainId),
+          chain_id_destination: String(
+            bridgeHistoryItem.quote.destAsset.chainId,
+          ),
+          monetized_primitive: MonetizedPrimitive.Swaps,
+        })
+        .build(),
+    );
+
     handleUnifiedSwapsTxHistoryItemClick({
       navigation,
       multiChainTx: transaction,
