@@ -237,7 +237,10 @@ describe('useMusdConversion', () => {
 
       const { result } = renderHook(() => useMusdConversion());
 
-      let transactionIds!: [string | void, string | void];
+      let transactionIds!: [
+        { transactionId: string } | void,
+        { transactionId: string } | void,
+      ];
       await act(async () => {
         const firstCall = result.current.initiateCustomConversion(mockConfig);
         const secondCall = result.current.initiateCustomConversion(mockConfig);
@@ -247,7 +250,10 @@ describe('useMusdConversion', () => {
         transactionIds = await Promise.all([firstCall, secondCall]);
       });
 
-      expect(transactionIds).toEqual(['tx-123', 'tx-123']);
+      expect(transactionIds).toEqual([
+        { transactionId: 'tx-123' },
+        { transactionId: 'tx-123' },
+      ]);
       expect(
         mockNetworkController.findNetworkClientIdByChainId,
       ).toHaveBeenCalledTimes(1);
@@ -272,13 +278,13 @@ describe('useMusdConversion', () => {
 
       const { result } = renderHook(() => useMusdConversion());
 
-      let transactionId!: string | void;
+      let transactionId!: { transactionId: string } | void;
       await act(async () => {
         transactionId =
           await result.current.initiateCustomConversion(mockConfig);
       });
 
-      expect(transactionId).toBe('tx-existing');
+      expect(transactionId).toEqual({ transactionId: 'tx-existing' });
       expect(mockNavigation.navigate).toHaveBeenCalledTimes(1);
       expect(
         mockNetworkController.findNetworkClientIdByChainId,
@@ -305,7 +311,7 @@ describe('useMusdConversion', () => {
 
       const { result } = renderHook(() => useMusdConversion());
 
-      let transactionId!: string | void;
+      let transactionId!: { transactionId: string } | void;
       await act(async () => {
         transactionId = await result.current.initiateCustomConversion({
           preferredPaymentToken: {
@@ -315,7 +321,7 @@ describe('useMusdConversion', () => {
         });
       });
 
-      expect(transactionId).toBe('tx-existing');
+      expect(transactionId).toEqual({ transactionId: 'tx-existing' });
       expect(mockNavigation.navigate).toHaveBeenCalledTimes(1);
       expect(mockTransactionController.addTransaction).not.toHaveBeenCalled();
     });
@@ -409,7 +415,7 @@ describe('useMusdConversion', () => {
 
       const { result } = renderHook(() => useMusdConversion());
 
-      let transactionId!: string | void;
+      let transactionId!: { transactionId: string } | void;
       await act(async () => {
         transactionId =
           await result.current.initiateCustomConversion(mockConfig);
@@ -446,7 +452,7 @@ describe('useMusdConversion', () => {
 
       const { result } = renderHook(() => useMusdConversion());
 
-      let transactionId!: string | void;
+      let transactionId!: { transactionId: string } | void;
       await act(async () => {
         transactionId = await result.current.initiateCustomConversion({
           ...mockConfig,
@@ -454,7 +460,7 @@ describe('useMusdConversion', () => {
         });
       });
 
-      expect(transactionId).toBe('tx-123');
+      expect(transactionId).toEqual({ transactionId: 'tx-123' });
       expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.EARN.ROOT, {
         screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
         params: {
@@ -536,13 +542,13 @@ describe('useMusdConversion', () => {
 
       const { result } = renderHook(() => useMusdConversion());
 
-      let transactionId!: string | void;
+      let transactionId!: { transactionId: string } | void;
       await act(async () => {
         transactionId =
           await result.current.initiateCustomConversion(mockConfig);
       });
 
-      expect(transactionId).toBe('tx-123');
+      expect(transactionId).toEqual({ transactionId: 'tx-123' });
     });
 
     it('starts navigation trace when navigating to conversion screen', async () => {
