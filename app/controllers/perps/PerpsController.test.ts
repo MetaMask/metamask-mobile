@@ -385,6 +385,10 @@ class TestablePerpsController extends PerpsController {
   public testReportOrderToDataLake(data: any): Promise<any> {
     return this.reportOrderToDataLake(data);
   }
+
+  public testHasStandaloneProvider(): boolean {
+    return this.hasStandaloneProvider();
+  }
 }
 
 describe('PerpsController', () => {
@@ -2566,6 +2570,36 @@ describe('PerpsController', () => {
       ).rejects.toThrow('Network client not found');
     });
 
+    it('marks deposit request as failed when networkClientId is not found', async () => {
+      depositController.testMarkInitialized();
+      depositController.testSetProviders(
+        new Map([['hyperliquid', mockProvider]]),
+      );
+      depositMessengerMock.mockImplementation((action: string) => {
+        if (action === 'NetworkController:findNetworkClientIdByChainId') {
+          return undefined;
+        }
+        if (
+          action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return [{ address: mockTransaction.from, type: 'eip155:eoa' }];
+        }
+        return undefined;
+      });
+
+      await expect(
+        depositController.depositWithConfirmation({ amount: '100' }),
+      ).rejects.toThrow('No network client found for chain');
+
+      // Verify the deposit request was marked as failed, not left as pending
+      const depositRequest = depositController.state.depositRequests.find(
+        (req) => req.id === mockDepositId,
+      );
+      expect(depositRequest).toBeDefined();
+      expect(depositRequest?.status).toBe('failed');
+      expect(depositRequest?.success).toBe(false);
+    });
+
     it('propagates TransactionController:addTransaction errors', async () => {
       depositController.testMarkInitialized();
       depositController.testSetProviders(
@@ -2824,6 +2858,23 @@ describe('PerpsController', () => {
       expect(depositController.state.lastDepositTransactionId).toBe(
         'tx-meta-123',
       );
+    });
+
+    it('returns resolved promise with transaction ID when placeOrder is true', async () => {
+      depositController.testMarkInitialized();
+      depositController.testSetProviders(
+        new Map([['hyperliquid', mockProvider]]),
+      );
+
+      const { result } = await depositController.depositWithConfirmation({
+        amount: '100',
+        placeOrder: true,
+      });
+
+      // This would hang indefinitely with the old never-resolving promise
+      const txId = await result;
+      expect(typeof txId).toBe('string');
+      expect(txId).toBe('tx-meta-123');
     });
 
     it('clears depositInProgress after successful transaction', async () => {
@@ -3240,6 +3291,45 @@ describe('PerpsController', () => {
       expect(result.success).toBe(true);
       expect(result.isTestnet).toBe(!initialTestnetState);
       expect(controller.state.isTestnet).toBe(!initialTestnetState);
+    });
+
+    it('returns failure and rolls back isTestnet when init sets InitializationState.Failed', async () => {
+      await controller.init();
+      const initialTestnetState = controller.state.isTestnet;
+
+      // Make init set state to Failed (mimics performInitialization catching an error)
+      jest.spyOn(controller, 'init').mockImplementationOnce(async () => {
+        controller.testUpdate((state) => {
+          state.initializationState = InitializationState.Failed;
+          state.initializationError = 'Network toggle init failed';
+        });
+      });
+
+      const result = await controller.toggleTestnet();
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Network toggle init failed');
+      // isTestnet should be rolled back to its original value
+      expect(result.isTestnet).toBe(initialTestnetState);
+      expect(controller.state.isTestnet).toBe(initialTestnetState);
+
+      jest.restoreAllMocks();
+    });
+
+    it('clears isReinitializing flag after init failure', async () => {
+      await controller.init();
+
+      jest.spyOn(controller, 'init').mockImplementationOnce(async () => {
+        controller.testUpdate((state) => {
+          state.initializationState = InitializationState.Failed;
+        });
+      });
+
+      await controller.toggleTestnet();
+
+      expect(controller.isCurrentlyReinitializing()).toBe(false);
+
+      jest.restoreAllMocks();
     });
   });
 
@@ -3972,6 +4062,109 @@ describe('PerpsController', () => {
         expect(accountState).toEqual(mockAccountState);
       });
     });
+
+    describe('standalone provider caching', () => {
+      it('reuses the same standalone provider across multiple calls', async () => {
+        const tempMockProvider = createMockHyperLiquidProvider();
+        tempMockProvider.getPositions.mockResolvedValue([]);
+        tempMockProvider.getOpenOrders.mockResolvedValue([]);
+        MockedHyperLiquidProvider.mockImplementation(() => tempMockProvider);
+
+        // Two standalone calls — should only create one provider
+        await controller.getPositions({
+          standalone: true,
+          userAddress: mockUserAddress,
+        });
+        await controller.getOpenOrders({
+          standalone: true,
+          userAddress: mockUserAddress,
+        });
+
+        expect(MockedHyperLiquidProvider).toHaveBeenCalledTimes(1);
+        expect(controller.testHasStandaloneProvider()).toBe(true);
+      });
+
+      it('cleans up standalone provider on init()', async () => {
+        const tempMockProvider = createMockHyperLiquidProvider();
+        tempMockProvider.getPositions.mockResolvedValue([]);
+        MockedHyperLiquidProvider.mockImplementation(() => tempMockProvider);
+
+        // Create a cached standalone provider
+        await controller.getPositions({
+          standalone: true,
+          userAddress: mockUserAddress,
+        });
+        expect(controller.testHasStandaloneProvider()).toBe(true);
+
+        // init() should clean it up
+        await controller.init();
+
+        expect(controller.testHasStandaloneProvider()).toBe(false);
+        expect(tempMockProvider.disconnect).toHaveBeenCalled();
+      });
+
+      it('invalidates cached provider when isTestnet changes', async () => {
+        const firstProvider = createMockHyperLiquidProvider();
+        firstProvider.getPositions.mockResolvedValue([]);
+        const secondProvider = createMockHyperLiquidProvider();
+        secondProvider.getPositions.mockResolvedValue([]);
+        MockedHyperLiquidProvider.mockImplementationOnce(
+          () => firstProvider,
+        ).mockImplementationOnce(() => secondProvider);
+
+        // First standalone call on mainnet
+        await controller.getPositions({
+          standalone: true,
+          userAddress: mockUserAddress,
+        });
+        expect(MockedHyperLiquidProvider).toHaveBeenCalledTimes(1);
+
+        // Toggle testnet flag (simulates config change)
+        controller.testUpdate((state) => {
+          state.isTestnet = true;
+        });
+
+        // Second standalone call — should create a new provider
+        await controller.getPositions({
+          standalone: true,
+          userAddress: mockUserAddress,
+        });
+        expect(MockedHyperLiquidProvider).toHaveBeenCalledTimes(2);
+        // Old provider should have been disconnected
+        expect(firstProvider.disconnect).toHaveBeenCalled();
+      });
+
+      it('cleans up standalone provider on disconnect()', async () => {
+        const tempMockProvider = createMockHyperLiquidProvider();
+        tempMockProvider.getMarketDataWithPrices.mockResolvedValue([]);
+        MockedHyperLiquidProvider.mockImplementation(() => tempMockProvider);
+
+        await controller.getMarketDataWithPrices({ standalone: true });
+        expect(controller.testHasStandaloneProvider()).toBe(true);
+
+        await controller.disconnect();
+
+        expect(controller.testHasStandaloneProvider()).toBe(false);
+        expect(tempMockProvider.disconnect).toHaveBeenCalled();
+      });
+
+      it('cleans up standalone provider on stopMarketDataPreload()', async () => {
+        const tempMockProvider = createMockHyperLiquidProvider();
+        tempMockProvider.getMarkets.mockResolvedValue([]);
+        MockedHyperLiquidProvider.mockImplementation(() => tempMockProvider);
+
+        await controller.getMarkets({ standalone: true });
+        expect(controller.testHasStandaloneProvider()).toBe(true);
+
+        controller.stopMarketDataPreload();
+
+        // Fire-and-forget — give microtask a tick to resolve
+        await new Promise((resolve) => setTimeout(resolve, 0));
+
+        expect(controller.testHasStandaloneProvider()).toBe(false);
+        expect(tempMockProvider.disconnect).toHaveBeenCalled();
+      });
+    });
   });
 
   describe('setSelectedPaymentToken', () => {
@@ -4035,6 +4228,15 @@ describe('PerpsController', () => {
   });
 
   describe('switchProvider', () => {
+    it('returns success as no-op before init() when already on requested provider', async () => {
+      // Before init(), providers map is empty.
+      // switchProvider should still succeed as a no-op because activeProvider already matches.
+      const result = await controller.switchProvider('hyperliquid');
+
+      expect(result.success).toBe(true);
+      expect(result.providerId).toBe('hyperliquid');
+    });
+
     it('returns success without re-init when switching to same provider', async () => {
       await controller.init();
 

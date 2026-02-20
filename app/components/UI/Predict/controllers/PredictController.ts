@@ -843,8 +843,12 @@ export class PredictController extends BaseController<
       this.update((state) => {
         state.lastUpdateTimestamp = Date.now();
         state.lastError = null; // Clear any previous errors
-        if (params.claimable) {
+        if (params.claimable === true) {
           state.claimablePositions[selectedAddress] = [...positions];
+        } else if (params.claimable === undefined) {
+          state.claimablePositions[selectedAddress] = positions.filter(
+            (p) => p.claimable,
+          );
         }
       });
 
