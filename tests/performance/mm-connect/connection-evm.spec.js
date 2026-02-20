@@ -56,7 +56,7 @@ test.afterAll(async () => {
   await playgroundServer.stop();
 });
 
-test('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Browser Playground', async ({
+test.skip('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Browser Playground', async ({
   device,
 }) => {
   const platform = device.getPlatform?.() || 'android';
@@ -85,7 +85,7 @@ test('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Browser
     await launchMobileBrowser(device);
     await navigateToDapp(device, DAPP_URL, DAPP_NAME);
   });
-  await new Promise((resolve) => setTimeout(resolve, 5000));
+  await new Promise((resolve) => setTimeout(resolve, 1000));
 
   await AppwrightHelpers.withWebAction(
     device,

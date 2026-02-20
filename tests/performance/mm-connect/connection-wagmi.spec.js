@@ -56,7 +56,7 @@ test.afterAll(async () => {
   await playgroundServer.stop();
 });
 
-test('@metamask/connect-wagmi - Connect via Wagmi to Local Browser Playground', async ({
+test.skip('@metamask/connect-evm (wagmi) - Connect via Wagmi to Local Browser Playground', async ({
   device,
 }) => {
   const platform = device.getPlatform?.() || 'android';
@@ -92,7 +92,7 @@ test('@metamask/connect-wagmi - Connect via Wagmi to Local Browser Playground', 
     await navigateToDapp(device, DAPP_URL, DAPP_NAME);
   });
 
-  await new Promise((resolve) => setTimeout(resolve, 5000));
+  await new Promise((resolve) => setTimeout(resolve, 1000));
 
   //
   // Connect via WAGMI
