@@ -192,12 +192,8 @@ jest.mock('../../../../../component-library/components/Form/TextField', () => {
   };
 });
 
-jest.mock('../../../../hooks/useMetrics', () => ({
-  useMetrics: jest.fn(),
-  MetaMetricsEvents: {
-    CARD_BUTTON_CLICKED: 'card_button_clicked',
-    CARD_VIEWED: 'card_viewed',
-  },
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: jest.fn(),
 }));
 
 // Mock i18n strings
@@ -313,9 +309,11 @@ describe('ConfirmPhoneNumber Component', () => {
       phoneNumber: '1234567890',
     });
 
-    // Set up useMetrics mock
-    const { useMetrics } = jest.requireMock('../../../../hooks/useMetrics');
-    useMetrics.mockReturnValue({
+    // Set up useAnalytics mock
+    const { useAnalytics } = jest.requireMock(
+      '../../../../hooks/useAnalytics/useAnalytics',
+    );
+    useAnalytics.mockReturnValue({
       trackEvent: jest.fn(),
       createEventBuilder: jest.fn(() => ({
         addProperties: jest.fn(() => ({

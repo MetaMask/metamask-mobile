@@ -14,7 +14,8 @@ import ButtonIcon, {
 } from '../../../../../component-library/components/Buttons/ButtonIcon';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import Routes from '../../../../../constants/navigation/Routes';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { CardScreens } from '../../util/metrics';
 import WaitingKYCImage from '../../../../../images/waiting-kyc-card.png';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
@@ -30,7 +31,7 @@ const SMALL_SCREEN_THRESHOLD = 700;
 const KYCPending = () => {
   const navigation = useNavigation();
   const tw = useTailwind();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
 
   // Responsive image dimensions based on current window dimensions
