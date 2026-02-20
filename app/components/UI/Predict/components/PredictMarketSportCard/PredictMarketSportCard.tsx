@@ -17,6 +17,7 @@ import {
   PredictEntryPoint,
 } from '../../types/navigation';
 import { PredictEventValues } from '../../constants/eventNames';
+import { usePredictEntryPoint } from '../../contexts';
 import Routes from '../../../../../constants/navigation/Routes';
 import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedSessionManager';
 import PredictSportScoreboard from '../PredictSportScoreboard/PredictSportScoreboard';
@@ -34,15 +35,21 @@ interface PredictMarketSportCardProps {
 const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
   market,
   testID,
-  entryPoint = PredictEventValues.ENTRY_POINT.PREDICT_FEED,
+  entryPoint: propEntryPoint,
   onDismiss,
   isCarousel,
 }) => {
   const tw = useTailwind();
+  const contextEntryPoint = usePredictEntryPoint();
+  const baseEntryPoint =
+    contextEntryPoint ??
+    propEntryPoint ??
+    PredictEventValues.ENTRY_POINT.PREDICT_FEED;
+
   const resolvedEntryPoint = TrendingFeedSessionManager.getInstance()
     .isFromTrending
     ? PredictEventValues.ENTRY_POINT.TRENDING
-    : entryPoint;
+    : baseEntryPoint;
 
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();

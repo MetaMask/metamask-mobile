@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import useBlockaidAlerts from './useBlockaidAlerts';
 import useDomainMismatchAlerts from './useDomainMismatchAlerts';
 import { useGasEstimateFailedAlert } from './useGasEstimateFailedAlert';
+import { useGasSponsorshipWarningAlert } from './useGasSponsorshipWarningAlert';
 import { useInsufficientBalanceAlert } from './useInsufficientBalanceAlert';
 import { useAccountTypeUpgrade } from './useAccountTypeUpgrade';
 import { useSignedOrSubmittedAlert } from './useSignedOrSubmittedAlert';
@@ -15,6 +16,7 @@ import { useBurnAddressAlert } from './useBurnAddressAlert';
 import { useTokenTrustSignalAlerts } from './useTokenTrustSignalAlerts';
 import { useAddressTrustSignalAlerts } from './useAddressTrustSignalAlerts';
 import { useOriginTrustSignalAlerts } from './useOriginTrustSignalAlerts';
+import { useFirstTimeInteractionAlert } from './useFirstTimeInteractionAlert';
 
 function useSignatureAlerts(): Alert[] {
   const domainMismatchAlerts = useDomainMismatchAlerts();
@@ -24,6 +26,7 @@ function useSignatureAlerts(): Alert[] {
 
 function useTransactionAlerts(): Alert[] {
   const gasEstimateFailedAlert = useGasEstimateFailedAlert();
+  const gasSponsorshipWarningAlert = useGasSponsorshipWarningAlert();
   const insufficientBalanceAlert = useInsufficientBalanceAlert();
   const signedOrSubmittedAlert = useSignedOrSubmittedAlert();
   const pendingTransactionAlert = usePendingTransactionAlert();
@@ -34,10 +37,12 @@ function useTransactionAlerts(): Alert[] {
   const insufficientPredictBalanceAlert = useInsufficientPredictBalanceAlert();
   const burnAddressAlert = useBurnAddressAlert();
   const tokenTrustSignalAlerts = useTokenTrustSignalAlerts();
+  const firstTimeInteractionAlert = useFirstTimeInteractionAlert();
 
   return useMemo(
     () => [
       ...gasEstimateFailedAlert,
+      ...gasSponsorshipWarningAlert,
       ...insufficientBalanceAlert,
       ...batchedUnusedApprovalsAlert,
       ...pendingTransactionAlert,
@@ -47,9 +52,11 @@ function useTransactionAlerts(): Alert[] {
       ...insufficientPredictBalanceAlert,
       ...burnAddressAlert,
       ...tokenTrustSignalAlerts,
+      ...firstTimeInteractionAlert,
     ],
     [
       gasEstimateFailedAlert,
+      gasSponsorshipWarningAlert,
       insufficientBalanceAlert,
       batchedUnusedApprovalsAlert,
       pendingTransactionAlert,
@@ -59,6 +66,7 @@ function useTransactionAlerts(): Alert[] {
       insufficientPredictBalanceAlert,
       burnAddressAlert,
       tokenTrustSignalAlerts,
+      firstTimeInteractionAlert,
     ],
   );
 }

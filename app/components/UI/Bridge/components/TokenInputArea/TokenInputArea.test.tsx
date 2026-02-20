@@ -1,11 +1,11 @@
-import React from 'react';
+import React, { createRef } from 'react';
 import { initialState } from '../../_mocks_/initialState';
-import { fireEvent } from '@testing-library/react-native';
+import { act, fireEvent } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import {
   TokenInputArea,
+  TokenInputAreaRef,
   TokenInputAreaType,
-  calculateFontSize,
   getDisplayAmount,
 } from '.';
 import { BridgeToken } from '../../types';
@@ -16,6 +16,54 @@ jest.mock('../../hooks/useLatestBalance', () => ({
   useLatestBalance: jest.fn(),
 }));
 
+// Mock Input to expose focus/blur/isFocused on its ref for imperative handle tests.
+const mockInputFocus = jest.fn();
+const mockInputBlur = jest.fn();
+const mockInputIsFocused = jest.fn(() => false);
+jest.mock(
+  '../../../../../component-library/components/Form/TextField/foundation/Input',
+  () => {
+    const MockReact = jest.requireActual('react');
+    const { TextInput } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: MockReact.forwardRef(
+        (props: Record<string, unknown>, inputRef: React.Ref<unknown>) => {
+          MockReact.useImperativeHandle(inputRef, () => ({
+            focus: mockInputFocus,
+            blur: mockInputBlur,
+            isFocused: mockInputIsFocused,
+          }));
+          return MockReact.createElement(TextInput, {
+            ...props,
+            testID: props.testID,
+          });
+        },
+      ),
+    };
+  },
+);
+
+jest.mock('../../hooks/useShouldRenderMaxOption', () => ({
+  useShouldRenderMaxOption: jest.fn(() => true),
+}));
+
+jest.mock('../../hooks/useTokenInputAreaFormattedBalance', () => ({
+  useTokenInputAreaFormattedBalance: jest.fn(() => '100'),
+}));
+
+import { useShouldRenderMaxOption } from '../../hooks/useShouldRenderMaxOption';
+const mockUseShouldRenderMaxOption =
+  useShouldRenderMaxOption as jest.MockedFunction<
+    typeof useShouldRenderMaxOption
+  >;
+
+import { useTokenInputAreaFormattedBalance } from '../../hooks/useTokenInputAreaFormattedBalance';
+const mockUseTokenInputAreaFormattedBalance =
+  useTokenInputAreaFormattedBalance as jest.MockedFunction<
+    typeof useTokenInputAreaFormattedBalance
+  >;
+
 const mockOnTokenPress = jest.fn();
 const mockOnFocus = jest.fn();
 const mockOnBlur = jest.fn();
@@ -25,6 +73,8 @@ const mockOnMaxPress = jest.fn();
 describe('TokenInputArea', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseShouldRenderMaxOption.mockReturnValue(true);
+    mockUseTokenInputAreaFormattedBalance.mockReturnValue('100');
   });
 
   it('renders with initial state', () => {
@@ -179,6 +229,9 @@ describe('TokenInputArea', () => {
       },
     };
 
+    // Mock hook to return false since gasless is disabled for native token
+    mockUseShouldRenderMaxOption.mockReturnValue(false);
+
     const { queryByText } = renderScreen(
       () => (
         <TokenInputArea
@@ -285,6 +338,9 @@ describe('TokenInputArea', () => {
       },
     };
 
+    // Mock hook to return false since gasless is disabled for native Polygon token
+    mockUseShouldRenderMaxOption.mockReturnValue(false);
+
     const { queryByText } = renderScreen(
       () => (
         <TokenInputArea
@@ -377,32 +433,245 @@ describe('TokenInputArea', () => {
     // Native tokens show Max button when gasless swaps are enabled
     expect(getByText('Max')).toBeTruthy();
   });
-});
 
-describe('calculateFontSize', () => {
-  it('returns 40 for lengths up to 10', () => {
-    expect(calculateFontSize(5)).toBe(40);
-    expect(calculateFontSize(10)).toBe(40);
+  describe('Max button visibility with useShouldRenderMaxOption hook', () => {
+    const nativeToken: BridgeToken = {
+      address: '0x0000000000000000000000000000000000000000',
+      symbol: 'ETH',
+      decimals: 18,
+      chainId: '0x1' as `0x${string}`,
+    };
+    const tokenBalance = '1.5';
+
+    beforeEach(() => {
+      mockUseShouldRenderMaxOption.mockReturnValue(true);
+    });
+
+    afterEach(() => {
+      mockUseShouldRenderMaxOption.mockReturnValue(true);
+    });
+
+    it('does not display max button when useShouldRenderMaxOption returns false', () => {
+      mockUseShouldRenderMaxOption.mockReturnValue(false);
+
+      const { queryByText } = renderScreen(
+        () => (
+          <TokenInputArea
+            testID="token-input"
+            tokenType={TokenInputAreaType.Source}
+            token={nativeToken}
+            tokenBalance={tokenBalance}
+            onMaxPress={mockOnMaxPress}
+          />
+        ),
+        {
+          name: 'TokenInputArea',
+        },
+        { state: initialState },
+      );
+
+      expect(queryByText('Max')).toBeNull();
+      expect(mockUseShouldRenderMaxOption).toHaveBeenCalledWith(
+        nativeToken,
+        tokenBalance,
+        false,
+      );
+    });
+
+    it('displays max button when useShouldRenderMaxOption returns true', () => {
+      mockUseShouldRenderMaxOption.mockReturnValue(true);
+
+      const { getByText } = renderScreen(
+        () => (
+          <TokenInputArea
+            testID="token-input"
+            tokenType={TokenInputAreaType.Source}
+            token={nativeToken}
+            tokenBalance={tokenBalance}
+            onMaxPress={mockOnMaxPress}
+          />
+        ),
+        {
+          name: 'TokenInputArea',
+        },
+        { state: initialState },
+      );
+
+      expect(getByText('Max')).toBeTruthy();
+      expect(mockUseShouldRenderMaxOption).toHaveBeenCalledWith(
+        nativeToken,
+        tokenBalance,
+        false,
+      );
+    });
+
+    it('passes isQuoteSponsored to useShouldRenderMaxOption', () => {
+      mockUseShouldRenderMaxOption.mockReturnValue(true);
+
+      renderScreen(
+        () => (
+          <TokenInputArea
+            testID="token-input"
+            tokenType={TokenInputAreaType.Source}
+            token={nativeToken}
+            tokenBalance={tokenBalance}
+            onMaxPress={mockOnMaxPress}
+            isQuoteSponsored
+          />
+        ),
+        {
+          name: 'TokenInputArea',
+        },
+        { state: initialState },
+      );
+
+      expect(mockUseShouldRenderMaxOption).toHaveBeenCalledWith(
+        nativeToken,
+        tokenBalance,
+        true,
+      );
+    });
+
+    it('does not display max button for destination token', () => {
+      const { queryByText } = renderScreen(
+        () => (
+          <TokenInputArea
+            testID="token-input"
+            tokenType={TokenInputAreaType.Destination}
+            token={nativeToken}
+            tokenBalance={tokenBalance}
+            onMaxPress={mockOnMaxPress}
+          />
+        ),
+        {
+          name: 'TokenInputArea',
+        },
+        { state: initialState },
+      );
+
+      // Destination tokens never show max button
+      expect(queryByText('Max')).toBeNull();
+    });
   });
 
-  it('returns 35 for lengths between 11 and 15', () => {
-    expect(calculateFontSize(11)).toBe(35);
-    expect(calculateFontSize(15)).toBe(35);
-  });
+  describe('imperative handle (focus, blur, isFocused)', () => {
+    beforeEach(() => {
+      mockInputFocus.mockClear();
+      mockInputBlur.mockClear();
+      mockInputIsFocused.mockClear().mockReturnValue(false);
+    });
 
-  it('returns 30 for lengths between 16 and 20', () => {
-    expect(calculateFontSize(16)).toBe(30);
-    expect(calculateFontSize(20)).toBe(30);
-  });
+    it('focus calls input focus and onFocus callback', () => {
+      const ref = createRef<TokenInputAreaRef>();
 
-  it('returns 25 for lengths between 21 and 25', () => {
-    expect(calculateFontSize(21)).toBe(25);
-    expect(calculateFontSize(25)).toBe(25);
-  });
+      renderScreen(
+        () => (
+          <TokenInputArea
+            ref={ref}
+            testID="token-input"
+            tokenType={TokenInputAreaType.Source}
+            onFocus={mockOnFocus}
+            onBlur={mockOnBlur}
+          />
+        ),
+        {
+          name: 'TokenInputArea',
+        },
+        { state: initialState },
+      );
 
-  it('returns 20 for lengths greater than 25', () => {
-    expect(calculateFontSize(26)).toBe(20);
-    expect(calculateFontSize(100)).toBe(20);
+      act(() => {
+        ref.current?.focus();
+      });
+
+      expect(mockInputFocus).toHaveBeenCalledTimes(1);
+      expect(mockOnFocus).toHaveBeenCalledTimes(1);
+    });
+
+    it('blur calls input blur and onBlur callback', () => {
+      const ref = createRef<TokenInputAreaRef>();
+
+      renderScreen(
+        () => (
+          <TokenInputArea
+            ref={ref}
+            testID="token-input"
+            tokenType={TokenInputAreaType.Source}
+            onFocus={mockOnFocus}
+            onBlur={mockOnBlur}
+          />
+        ),
+        {
+          name: 'TokenInputArea',
+        },
+        { state: initialState },
+      );
+
+      act(() => {
+        ref.current?.blur();
+      });
+
+      expect(mockInputBlur).toHaveBeenCalledTimes(1);
+      expect(mockOnBlur).toHaveBeenCalledTimes(1);
+    });
+
+    it('isFocused returns the input focused state', () => {
+      const ref = createRef<TokenInputAreaRef>();
+
+      renderScreen(
+        () => (
+          <TokenInputArea
+            ref={ref}
+            testID="token-input"
+            tokenType={TokenInputAreaType.Source}
+          />
+        ),
+        {
+          name: 'TokenInputArea',
+        },
+        { state: initialState },
+      );
+
+      mockInputIsFocused.mockReturnValue(false);
+      expect(ref.current?.isFocused()).toBe(false);
+
+      mockInputIsFocused.mockReturnValue(true);
+      expect(ref.current?.isFocused()).toBe(true);
+    });
+
+    it('focus and blur do not throw when onFocus/onBlur are not provided', () => {
+      const ref = createRef<TokenInputAreaRef>();
+
+      renderScreen(
+        () => (
+          <TokenInputArea
+            ref={ref}
+            testID="token-input"
+            tokenType={TokenInputAreaType.Source}
+          />
+        ),
+        {
+          name: 'TokenInputArea',
+        },
+        { state: initialState },
+      );
+
+      expect(() => {
+        act(() => {
+          ref.current?.focus();
+        });
+      }).not.toThrow();
+
+      expect(() => {
+        act(() => {
+          ref.current?.blur();
+        });
+      }).not.toThrow();
+
+      // Input methods were still called even without callbacks
+      expect(mockInputFocus).toHaveBeenCalledTimes(1);
+      expect(mockInputBlur).toHaveBeenCalledTimes(1);
+    });
   });
 });
 

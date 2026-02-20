@@ -33,13 +33,13 @@ import usePerpsToasts, {
 import PerpsCloseSummary from '../../components/PerpsCloseSummary';
 import { createStyles } from './PerpsCloseAllPositionsView.styles';
 import { useTheme } from '../../../../../util/theme';
-import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import {
-  PerpsEventProperties,
-  PerpsEventValues,
-} from '../../constants/eventNames';
-import type { ClosePositionsResult } from '../../controllers/types';
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+  type ClosePositionsResult,
+} from '@metamask/perps-controller';
 
 interface PerpsCloseAllPositionsViewProps {
   sheetRef?: React.RefObject<BottomSheetRef>;
@@ -87,9 +87,9 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
     eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
     conditions: [!isInitialLoading],
     properties: {
-      [PerpsEventProperties.SCREEN_TYPE]:
-        PerpsEventValues.SCREEN_TYPE.CLOSE_ALL_POSITIONS,
-      [PerpsEventProperties.OPEN_POSITION]: positions?.length || 0,
+      [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+        PERPS_EVENT_VALUE.SCREEN_TYPE.CLOSE_ALL_POSITIONS,
+      [PERPS_EVENT_PROPERTY.OPEN_POSITION]: positions?.length || 0,
     },
   });
 

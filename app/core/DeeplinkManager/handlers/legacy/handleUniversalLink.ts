@@ -33,6 +33,8 @@ import { handleCardHome } from './handleCardHome';
 import { handleCardKycNotification } from './handleCardKycNotification';
 import { handleTrendingUrl } from './handleTrendingUrl';
 import { handleEarnMusd } from './handleEarnMusd';
+import { handleAssetUrl } from './handleAssetUrl';
+import { handleNftUrl } from './handleNftUrl';
 import { RampType } from '../../../../reducers/fiatOrders/types';
 import { SHIELD_WEBSITE_URL } from '../../../../constants/shield';
 import {
@@ -67,6 +69,7 @@ const SUPPORTED_ACTIONS = {
   SELL_CRYPTO: ACTIONS.SELL_CRYPTO,
   DEPOSIT: ACTIONS.DEPOSIT,
   HOME: ACTIONS.HOME,
+  ASSET: ACTIONS.ASSET,
   SWAP: ACTIONS.SWAP,
   SEND: ACTIONS.SEND,
   CREATE_ACCOUNT: ACTIONS.CREATE_ACCOUNT,
@@ -84,6 +87,7 @@ const SUPPORTED_ACTIONS = {
   TRENDING: ACTIONS.TRENDING,
   SHIELD: ACTIONS.SHIELD,
   EARN_MUSD: ACTIONS.EARN_MUSD,
+  NFT: ACTIONS.NFT,
   // MetaMask SDK specific actions
   ANDROID_SDK: ACTIONS.ANDROID_SDK,
   CONNECT: ACTIONS.CONNECT,
@@ -97,6 +101,7 @@ type SUPPORTED_ACTIONS =
  * Actions that should not show the deep link INTERSTITIAL modal
  */
 const WHITELISTED_ACTIONS: SUPPORTED_ACTIONS[] = [
+  SUPPORTED_ACTIONS.DAPP,
   SUPPORTED_ACTIONS.WC,
   SUPPORTED_ACTIONS.ENABLE_CARD_BUTTON,
   SUPPORTED_ACTIONS.CARD_ONBOARDING,
@@ -105,6 +110,10 @@ const WHITELISTED_ACTIONS: SUPPORTED_ACTIONS[] = [
   SUPPORTED_ACTIONS.PERPS,
   SUPPORTED_ACTIONS.PERPS_MARKETS,
   SUPPORTED_ACTIONS.PERPS_ASSET,
+  SUPPORTED_ACTIONS.BUY,
+  SUPPORTED_ACTIONS.BUY_CRYPTO,
+  SUPPORTED_ACTIONS.SELL,
+  SUPPORTED_ACTIONS.SELL_CRYPTO,
 ];
 
 /**
@@ -502,16 +511,35 @@ async function handleUniversalLink({
     case SUPPORTED_ACTIONS.HOME:
       navigateToHomeUrl({ homePath: actionBasedRampPath });
       return;
+    case SUPPORTED_ACTIONS.ASSET: {
+      handleAssetUrl({
+        assetPath: actionBasedRampPath,
+      });
+      break;
+    }
     case SUPPORTED_ACTIONS.SWAP:
       handleSwapUrl({
         swapPath: actionBasedRampPath,
       });
       return;
     case SUPPORTED_ACTIONS.DAPP: {
-      const deeplinkUrl = urlObj.href.replace(
-        `${BASE_URL_ACTION}/`,
-        PREFIXES[ACTIONS.DAPP],
-      );
+      // Extract everything after /dapp/ from the URL.
+      // The path can contain either a bare domain (example.com/path)
+      // or a full URL with protocol (https://example.com/path).
+      // When a full URL is embedded, url-parse may normalize the double
+      // slash (https://...app.link/dapp/https://x.com → .../dapp/https:/x.com),
+      // so we check for both http:// and http:/ patterns.
+      const pathAfterAction = urlObj.href.replace(`${BASE_URL_ACTION}/`, '');
+
+      // Guard: no domain was supplied after /dapp/ — nothing to open.
+      if (!pathAfterAction) {
+        return;
+      }
+
+      const hasProtocol = /^https?:\/\/?/.test(pathAfterAction);
+      const deeplinkUrl = hasProtocol
+        ? pathAfterAction.replace(/^(https?:\/)([^/])/, '$1/$2')
+        : `${PREFIXES[ACTIONS.DAPP]}${pathAfterAction}`;
       handleBrowserUrl({
         url: deeplinkUrl,
         callback: browserCallBack,
@@ -602,6 +630,10 @@ async function handleUniversalLink({
     }
     case SUPPORTED_ACTIONS.EARN_MUSD: {
       handleEarnMusd();
+      break;
+    }
+    case SUPPORTED_ACTIONS.NFT: {
+      handleNftUrl();
       break;
     }
   }

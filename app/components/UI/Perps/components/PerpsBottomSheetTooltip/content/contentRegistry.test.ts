@@ -46,6 +46,7 @@ describe('tooltipContentRegistry', () => {
       'tp_sl',
       'close_position_you_receive',
       'points',
+      'pay_with',
     ];
 
     undefinedKeys.forEach((key) => {
@@ -76,6 +77,7 @@ describe('tooltipContentRegistry', () => {
         'close_position_you_receive',
         'tpsl_count_warning',
         'points',
+        'pay_with',
       ];
 
       expectedKeys.forEach((key) => {

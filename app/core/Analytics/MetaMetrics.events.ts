@@ -71,10 +71,12 @@ enum EVENT_NAME {
 
   // Wallet
   WALLET_OPENED = 'Wallet Opened',
+  ADDRESS_COPIED = 'Address Copied',
   TOKEN_ADDED = 'Token Added',
   COLLECTIBLE_ADDED = 'Collectible Added',
   NFT_DETAILS_OPENED = 'NFT Details Opened',
   TOKEN_LIST_ITEM_CLICKED = 'Token List Item Clicked',
+  TOKEN_DETAILS_OPENED = 'Token Details Opened',
   DEFI_TAB_SELECTED = 'DeFi Tab Selected',
   DEFI_PROTOCOL_DETAILS_OPENED = 'DeFi Protocol Details Opened',
   VIEW_ALL_ASSETS_CLICKED = 'View All Assets Clicked',
@@ -177,6 +179,10 @@ enum EVENT_NAME {
   SETTINGS_VIEWED = 'Settings Viewed',
   SETTINGS_UPDATED = 'Settings Updated',
   CURRENCY_CHANGED = 'Selected Currency Changed',
+  SETTINGS_ABOUT = 'About MetaMask',
+  NAVIGATION_TAPS_GET_HELP = 'Get Help',
+  NAVIGATION_TAPS_SEND_FEEDBACK = 'Send Feedback',
+  NAVIGATION_TAPS_LOGOUT = 'Logout',
 
   // Reveal SRP
   REVEAL_SRP_CTA = 'Clicks Reveal Secret Recovery Phrase',
@@ -360,7 +366,6 @@ enum EVENT_NAME {
   EARN_LENDING_DEPOSIT_MORE_BUTTON_CLICKED = 'Earn Lending Deposit More Button Clicked',
   EARN_LENDING_WITHDRAW_BUTTON_CLICKED = 'Earn Lending Withdraw Button Clicked',
   EARN_LENDING_WITHDRAW_CONFIRMATION_BACK_CLICKED = 'Earn Lending Withdraw Confirmation Back Clicked',
-  MUSD_CLAIM_BONUS_BUTTON_CLICKED = 'mUSD Claim Bonus Button Clicked',
 
   // Stake
   STAKE_BUTTON_CLICKED = 'Stake Button Clicked',
@@ -479,9 +484,6 @@ enum EVENT_NAME {
   // Smart transactions
   SMART_TRANSACTION_OPT_IN = 'Smart Transaction Opt In',
 
-  // Smart account opt in
-  SMART_ACCOUNT_OPT_IN = 'Smart Account Opt In',
-
   // Dismiss smart account upgrade suggestion
   DISMISS_SMART_ACCOUNT_SUGGESTION_ENABLED = 'Dismiss smart account suggestion enabled',
 
@@ -545,6 +547,10 @@ enum EVENT_NAME {
   CARD_DELEGATION_PROCESS_COMPLETED = 'Card Delegation Process Completed',
   CARD_DELEGATION_PROCESS_FAILED = 'Card Delegation Process Failed',
   CARD_DELEGATION_PROCESS_USER_CANCELED = 'Card Delegation Process User Canceled',
+  CARD_PUSH_PROVISIONING_STARTED = 'Card Push Provisioning Started',
+  CARD_PUSH_PROVISIONING_COMPLETED = 'Card Push Provisioning Completed',
+  CARD_PUSH_PROVISIONING_FAILED = 'Card Push Provisioning Failed',
+  CARD_PUSH_PROVISIONING_CANCELED = 'Card Push Provisioning Canceled',
   CARD_METAL_CHECKOUT_VIEWED = 'Card Metal Checkout Viewed',
   CARD_METAL_CHECKOUT_STARTED = 'Card Metal Checkout Started',
   CARD_METAL_CHECKOUT_COMPLETED = 'Card Metal Checkout Completed',
@@ -599,6 +605,11 @@ enum EVENT_NAME {
   MUSD_FULLSCREEN_ANNOUNCEMENT_DISPLAYED = 'mUSD Fullscreen Announcement Displayed',
   MUSD_FULLSCREEN_ANNOUNCEMENT_BUTTON_CLICKED = 'mUSD Fullscreen Announcement Button Clicked',
   MUSD_CONVERSION_STATUS_UPDATED = 'mUSD Conversion Status Updated',
+  MUSD_CLAIM_BONUS_BUTTON_CLICKED = 'mUSD Claim Bonus Button Clicked',
+  MUSD_CLAIM_BONUS_STATUS_UPDATED = 'mUSD Claim Bonus Status Updated',
+
+  // Assets
+  ASSETS_FIRST_INIT_FETCH_COMPLETED = 'Assets First Init Fetch Completed',
 }
 
 export enum HARDWARE_WALLET_BUTTON_TYPE {
@@ -650,6 +661,7 @@ enum ACTIONS {
   PERMISSION_NEW_ACCOUNT = 'Connected new account(s)',
   PERMISSION_REVOKE_ACCOUNT = 'Revoked account(s)',
   STAKE = 'Stake',
+  ASSETS = 'Assets',
   // Notifications
   SELECTS_ALL_NOTIFICATIONS = 'Selects All Notifications',
   SELECTS_WALLET_NOTIFICATIONS = 'Selects Wallet Notifications',
@@ -713,6 +725,7 @@ const events = {
   PROCEED_ANYWAY_CLICKED: generateOpt(EVENT_NAME.PROCEED_ANYWAY_CLICKED),
 
   WALLET_OPENED: generateOpt(EVENT_NAME.WALLET_OPENED),
+  ADDRESS_COPIED: generateOpt(EVENT_NAME.ADDRESS_COPIED),
   TOKEN_ADDED: generateOpt(EVENT_NAME.TOKEN_ADDED),
   COLLECTIBLE_ADDED: generateOpt(EVENT_NAME.COLLECTIBLE_ADDED),
   NFT_DETAILS_OPENED: generateOpt(EVENT_NAME.NFT_DETAILS_OPENED),
@@ -1157,9 +1170,6 @@ const events = {
   // Smart transactions
   SMART_TRANSACTION_OPT_IN: generateOpt(EVENT_NAME.SMART_TRANSACTION_OPT_IN),
 
-  // User opt in for smart account upgrade
-  SMART_ACCOUNT_OPT_IN: generateOpt(EVENT_NAME.SMART_ACCOUNT_OPT_IN),
-
   // Dismiss smart account upgrade suggestion
   DISMISS_SMART_ACCOUNT_SUGGESTION_ENABLED: generateOpt(
     EVENT_NAME.DISMISS_SMART_ACCOUNT_SUGGESTION_ENABLED,
@@ -1275,9 +1285,6 @@ const events = {
   EARN_LENDING_WITHDRAW_CONFIRMATION_BACK_CLICKED: generateOpt(
     EVENT_NAME.EARN_LENDING_WITHDRAW_CONFIRMATION_BACK_CLICKED,
   ),
-  MUSD_CLAIM_BONUS_BUTTON_CLICKED: generateOpt(
-    EVENT_NAME.MUSD_CLAIM_BONUS_BUTTON_CLICKED,
-  ),
   // Stake
   REVIEW_STAKE_BUTTON_CLICKED: generateOpt(
     EVENT_NAME.REVIEW_STAKE_BUTTON_CLICKED,
@@ -1358,7 +1365,7 @@ const events = {
   EARN_TOKEN_LIST_ITEM_CLICKED: generateOpt(
     EVENT_NAME.EARN_TOKEN_LIST_ITEM_CLICKED,
   ),
-  TOKEN_DETAILS_OPENED: generateOpt(EVENT_NAME.TOKEN_LIST_ITEM_CLICKED),
+  TOKEN_DETAILS_OPENED: generateOpt(EVENT_NAME.TOKEN_DETAILS_OPENED),
 
   // Bridge
   SWAP_PAGE_VIEWED: generateOpt(EVENT_NAME.SWAP_PAGE_VIEWED), // Temporary event until unified swap/bridge is done
@@ -1440,6 +1447,18 @@ const events = {
   ),
   CARD_DELEGATION_PROCESS_USER_CANCELED: generateOpt(
     EVENT_NAME.CARD_DELEGATION_PROCESS_USER_CANCELED,
+  ),
+  CARD_PUSH_PROVISIONING_STARTED: generateOpt(
+    EVENT_NAME.CARD_PUSH_PROVISIONING_STARTED,
+  ),
+  CARD_PUSH_PROVISIONING_COMPLETED: generateOpt(
+    EVENT_NAME.CARD_PUSH_PROVISIONING_COMPLETED,
+  ),
+  CARD_PUSH_PROVISIONING_FAILED: generateOpt(
+    EVENT_NAME.CARD_PUSH_PROVISIONING_FAILED,
+  ),
+  CARD_PUSH_PROVISIONING_CANCELED: generateOpt(
+    EVENT_NAME.CARD_PUSH_PROVISIONING_CANCELED,
   ),
   CARD_METAL_CHECKOUT_VIEWED: generateOpt(
     EVENT_NAME.CARD_METAL_CHECKOUT_VIEWED,
@@ -1538,6 +1557,12 @@ const events = {
   MUSD_CONVERSION_STATUS_UPDATED: generateOpt(
     EVENT_NAME.MUSD_CONVERSION_STATUS_UPDATED,
   ),
+  MUSD_CLAIM_BONUS_BUTTON_CLICKED: generateOpt(
+    EVENT_NAME.MUSD_CLAIM_BONUS_BUTTON_CLICKED,
+  ),
+  MUSD_CLAIM_BONUS_STATUS_UPDATED: generateOpt(
+    EVENT_NAME.MUSD_CLAIM_BONUS_STATUS_UPDATED,
+  ),
 };
 
 /**
@@ -1613,6 +1638,7 @@ enum DESCRIPTION {
   SWAPS = 'Swaps',
   BRIDGE = 'Bridge',
   STAKE = 'Stake',
+  ASSETS_FIRST_INIT_FETCH_COMPLETED = 'Assets First Init Fetch Completed',
   NOTIFICATIONS = 'Notifications',
 }
 
@@ -1977,6 +2003,11 @@ const legacyMetaMetricsEvents = {
     EVENT_NAME.STAKE_BUTTON_CLICKED,
     ACTIONS.STAKE,
     DESCRIPTION.STAKE,
+  ),
+  ASSETS_FIRST_INIT_FETCH_COMPLETED: generateOpt(
+    EVENT_NAME.ASSETS_FIRST_INIT_FETCH_COMPLETED,
+    ACTIONS.ASSETS,
+    DESCRIPTION.ASSETS_FIRST_INIT_FETCH_COMPLETED,
   ),
 };
 

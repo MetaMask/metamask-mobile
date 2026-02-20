@@ -1,7 +1,5 @@
 import React from 'react';
 import { ViewStyle } from 'react-native';
-import { useSelector } from 'react-redux';
-import { selectIsEvmNetworkSelected } from '../../../../selectors/multichainNetworkController';
 import { WalletViewSelectorsIDs } from '../../../Views/Wallet/WalletView.testIds';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import ButtonIcon, {
@@ -21,7 +19,6 @@ export const TokenListControlBar = ({
   style,
 }: TokenListControlBarProps) => {
   const { styles } = useStyles(createControlBarStyles, undefined);
-  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
 
   const additionalButtons = (
     <ButtonIcon
@@ -37,7 +34,6 @@ export const TokenListControlBar = ({
     <BaseControlBar
       networkFilterTestId={WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER}
       additionalButtons={additionalButtons}
-      useEvmSelectionLogic={isEvmSelected}
       customWrapper="outer"
       style={style}
     />

@@ -3,17 +3,23 @@ import { useContext } from 'react';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { ToastVariants } from '../../../../component-library/components/Toast';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
-import type { OrderPreview } from '../providers/types';
-import { Result, Side } from '../types';
+import { type OrderPreview, Result, Side } from '../types';
 import { usePredictPlaceOrder } from './usePredictPlaceOrder';
 import { usePredictTrading } from './usePredictTrading';
 import { usePredictBalance } from './usePredictBalance';
+import { usePredictDeposit } from './usePredictDeposit';
 
+import { POLYMARKET_PROVIDER_ID } from '../providers/polymarket/constants';
 // Mock dependencies
 jest.mock('../../../../component-library/components/Toast');
 jest.mock('../../../../core/SDKConnect/utils/DevLogger');
 jest.mock('./usePredictTrading');
 jest.mock('./usePredictBalance');
+jest.mock('./usePredictDeposit');
+const mockQueryClient = { invalidateQueries: jest.fn() };
+jest.mock('@tanstack/react-query', () => ({
+  useQueryClient: () => mockQueryClient,
+}));
 jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string, options?: Record<string, unknown>) => {
     const translations: Record<string, string> = {
@@ -48,8 +54,9 @@ const mockUseContext = useContext as jest.MockedFunction<typeof useContext>;
 const mockUsePredictTrading = usePredictTrading as jest.MockedFunction<
   typeof usePredictTrading
 >;
-const mockUsePredictBalance = usePredictBalance as jest.MockedFunction<
-  typeof usePredictBalance
+const mockUsePredictBalance = usePredictBalance as jest.Mock;
+const mockUsePredictDeposit = usePredictDeposit as jest.MockedFunction<
+  typeof usePredictDeposit
 >;
 const mockDevLoggerLog = DevLogger.log as jest.MockedFunction<
   typeof DevLogger.log
@@ -64,9 +71,9 @@ const mockToastRef = {
 
 describe('usePredictPlaceOrder', () => {
   const mockPlaceOrder = jest.fn();
-  const mockGetPositions = jest.fn();
   const mockClaim = jest.fn();
   const mockGetBalance = jest.fn();
+  const mockDeposit = jest.fn();
 
   function createMockOrderPreview(
     overrides?: Partial<OrderPreview>,
@@ -89,7 +96,7 @@ describe('usePredictPlaceOrder', () => {
   }
 
   const mockOrderParams = {
-    providerId: 'polymarket',
+    providerId: POLYMARKET_PROVIDER_ID,
     preview: createMockOrderPreview(),
   };
 
@@ -107,20 +114,16 @@ describe('usePredictPlaceOrder', () => {
     jest.clearAllMocks();
     mockUsePredictTrading.mockReturnValue({
       placeOrder: mockPlaceOrder,
-      getPositions: mockGetPositions,
       claim: mockClaim,
       getBalance: mockGetBalance,
       previewOrder: jest.fn(),
       prepareWithdraw: jest.fn(),
       deposit: jest.fn(),
     });
-    mockUsePredictBalance.mockReturnValue({
-      balance: 1000,
-      isLoading: false,
-      isRefreshing: false,
-      error: null,
-      hasNoBalance: false,
-      loadBalance: jest.fn(),
+    mockUsePredictBalance.mockReturnValue({ data: 1000 } as never);
+    mockUsePredictDeposit.mockReturnValue({
+      deposit: mockDeposit,
+      isDepositPending: false,
     });
     mockUseContext.mockReturnValue({ toastRef: mockToastRef });
   });
@@ -473,12 +476,223 @@ describe('usePredictPlaceOrder', () => {
       await act(async () => {
         const updatedPreview = createMockOrderPreview({ maxAmountSpent: 200 });
         await result.current.placeOrder({
-          providerId: 'polymarket',
           preview: updatedPreview,
         });
       });
 
       expect(result.current.result).toEqual(mockSuccessResult);
+    });
+  });
+
+  describe('balance check and deposit flow', () => {
+    const INSUFFICIENT_BALANCE = 50;
+    const SUFFICIENT_BALANCE = 150;
+    const ZERO_BALANCE = 0;
+    const EXACT_BALANCE_MATCH = 100;
+
+    it('triggers deposit with analytics properties when balance is insufficient for BUY order', async () => {
+      mockUsePredictBalance.mockReturnValue({
+        data: INSUFFICIENT_BALANCE,
+      } as never);
+
+      const { result } = renderHook(() => usePredictPlaceOrder());
+
+      await act(async () => {
+        await result.current.placeOrder(mockOrderParams);
+      });
+
+      expect(mockDeposit).toHaveBeenCalledTimes(1);
+      expect(mockDeposit).toHaveBeenCalledWith({
+        amountUsd: mockOrderParams.preview.maxAmountSpent,
+        analyticsProperties: {
+          marketId: mockOrderParams.preview.marketId,
+          entryPoint: 'buy_preview',
+        },
+      });
+      expect(mockPlaceOrder).not.toHaveBeenCalled();
+      expect(mockToastRef.current?.showToast).not.toHaveBeenCalled();
+    });
+
+    it('triggers deposit with merged analytics properties when orderParams has analyticsProperties', async () => {
+      mockUsePredictBalance.mockReturnValue({ data: INSUFFICIENT_BALANCE });
+
+      const orderParamsWithAnalytics = {
+        ...mockOrderParams,
+        analyticsProperties: {
+          marketTitle: 'Test Market',
+          marketCategory: 'sports',
+        },
+      };
+
+      const { result } = renderHook(() => usePredictPlaceOrder());
+
+      await act(async () => {
+        await result.current.placeOrder(orderParamsWithAnalytics);
+      });
+
+      expect(mockDeposit).toHaveBeenCalledTimes(1);
+      expect(mockDeposit).toHaveBeenCalledWith({
+        amountUsd: mockOrderParams.preview.maxAmountSpent,
+        analyticsProperties: {
+          marketTitle: 'Test Market',
+          marketCategory: 'sports',
+          marketId: mockOrderParams.preview.marketId,
+          entryPoint: 'buy_preview',
+        },
+      });
+    });
+
+    it('does not trigger deposit when balance is sufficient for BUY order', async () => {
+      mockPlaceOrder.mockResolvedValue(mockSuccessResult);
+      mockUsePredictBalance.mockReturnValue({
+        data: SUFFICIENT_BALANCE,
+      } as never);
+
+      const { result } = renderHook(() => usePredictPlaceOrder());
+
+      await act(async () => {
+        await result.current.placeOrder(mockOrderParams);
+      });
+
+      expect(mockDeposit).not.toHaveBeenCalled();
+      expect(mockPlaceOrder).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not check balance for SELL orders', async () => {
+      mockPlaceOrder.mockResolvedValue(mockSuccessResult);
+      mockUsePredictBalance.mockReturnValue({ data: ZERO_BALANCE } as never);
+
+      const sellOrderParams = {
+        ...mockOrderParams,
+        preview: createMockOrderPreview({
+          side: Side.SELL,
+          minAmountReceived: 150,
+        }),
+      };
+
+      const { result } = renderHook(() => usePredictPlaceOrder());
+
+      await act(async () => {
+        await result.current.placeOrder(sellOrderParams);
+      });
+
+      expect(mockDeposit).not.toHaveBeenCalled();
+      expect(mockPlaceOrder).toHaveBeenCalledTimes(1);
+    });
+
+    it('proceeds with order when balance exactly equals maxAmountSpent', async () => {
+      mockPlaceOrder.mockResolvedValue(mockSuccessResult);
+      mockUsePredictBalance.mockReturnValue({
+        data: EXACT_BALANCE_MATCH,
+      } as never);
+
+      const { result } = renderHook(() => usePredictPlaceOrder());
+
+      await act(async () => {
+        await result.current.placeOrder(mockOrderParams);
+      });
+
+      expect(mockDeposit).not.toHaveBeenCalled();
+      expect(mockPlaceOrder).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('order not filled detection', () => {
+    it('sets isOrderNotFilled to true when BUY order throws BUY_ORDER_NOT_FULLY_FILLED', async () => {
+      mockPlaceOrder.mockRejectedValue(
+        new Error('PREDICT_BUY_ORDER_NOT_FULLY_FILLED'),
+      );
+      const { result } = renderHook(() => usePredictPlaceOrder());
+
+      await act(async () => {
+        await result.current.placeOrder(mockOrderParams);
+      });
+
+      expect(result.current.isOrderNotFilled).toBe(true);
+    });
+
+    it('sets isOrderNotFilled to true when SELL order throws SELL_ORDER_NOT_FULLY_FILLED', async () => {
+      mockPlaceOrder.mockRejectedValue(
+        new Error('PREDICT_SELL_ORDER_NOT_FULLY_FILLED'),
+      );
+      const sellParams = {
+        ...mockOrderParams,
+        preview: createMockOrderPreview({ side: Side.SELL }),
+      };
+      const { result } = renderHook(() => usePredictPlaceOrder());
+
+      await act(async () => {
+        await result.current.placeOrder(sellParams);
+      });
+
+      expect(result.current.isOrderNotFilled).toBe(true);
+    });
+
+    it('does not set inline error when order is not filled', async () => {
+      mockPlaceOrder.mockRejectedValue(
+        new Error('PREDICT_BUY_ORDER_NOT_FULLY_FILLED'),
+      );
+      const { result } = renderHook(() => usePredictPlaceOrder());
+
+      await act(async () => {
+        await result.current.placeOrder(mockOrderParams);
+      });
+
+      expect(result.current.error).toBeUndefined();
+    });
+
+    it('does not call onError when order is not filled', async () => {
+      mockPlaceOrder.mockRejectedValue(
+        new Error('PREDICT_BUY_ORDER_NOT_FULLY_FILLED'),
+      );
+      const mockOnError = jest.fn();
+      const { result } = renderHook(() =>
+        usePredictPlaceOrder({ onError: mockOnError }),
+      );
+
+      await act(async () => {
+        await result.current.placeOrder(mockOrderParams);
+      });
+
+      expect(mockOnError).not.toHaveBeenCalled();
+    });
+
+    it('resets isOrderNotFilled and error when resetOrderNotFilled is called', async () => {
+      mockPlaceOrder.mockRejectedValue(
+        new Error('PREDICT_BUY_ORDER_NOT_FULLY_FILLED'),
+      );
+      const { result } = renderHook(() => usePredictPlaceOrder());
+
+      await act(async () => {
+        await result.current.placeOrder(mockOrderParams);
+      });
+
+      expect(result.current.isOrderNotFilled).toBe(true);
+
+      act(() => {
+        result.current.resetOrderNotFilled();
+      });
+
+      expect(result.current.isOrderNotFilled).toBe(false);
+      expect(result.current.error).toBeUndefined();
+    });
+
+    it('returns isOrderNotFilled as false in initial state', () => {
+      const { result } = renderHook(() => usePredictPlaceOrder());
+
+      expect(result.current.isOrderNotFilled).toBe(false);
+    });
+
+    it('sets inline error for non-not-filled errors', async () => {
+      mockPlaceOrder.mockRejectedValue(new Error('Network error'));
+      const { result } = renderHook(() => usePredictPlaceOrder());
+
+      await act(async () => {
+        await result.current.placeOrder(mockOrderParams);
+      });
+
+      expect(result.current.isOrderNotFilled).toBe(false);
+      expect(result.current.error).toBe('Failed to place order');
     });
   });
 

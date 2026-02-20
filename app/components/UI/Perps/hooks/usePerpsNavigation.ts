@@ -2,14 +2,21 @@ import { useCallback } from 'react';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
 import type { PerpsNavigationParamList } from '../types/navigation';
-import type { PerpsMarketData, Position, Order } from '../controllers/types';
-import { usePerpsTrading } from './usePerpsTrading';
-import Logger from '../../../../util/Logger';
-import { ensureError } from '../../../../util/errorUtils';
 import {
   PERPS_CONSTANTS,
-  CONFIRMATION_HEADER_CONFIG,
-} from '../constants/perpsConfig';
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+  type PerpsMarketData,
+  type Position,
+  type Order,
+} from '@metamask/perps-controller';
+import { usePerpsTrading } from './usePerpsTrading';
+import usePerpsToasts from './usePerpsToasts';
+import { usePerpsEventTracking } from './usePerpsEventTracking';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import Logger from '../../../../util/Logger';
+import { ensureError } from '../../../../util/errorUtils';
+import { CONFIRMATION_HEADER_CONFIG } from '../constants/perpsConfig';
 
 /**
  * Navigation handler result interface
@@ -132,6 +139,8 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
   );
 
   const { depositWithOrder } = usePerpsTrading();
+  const { showToast, PerpsToastOptions } = usePerpsToasts();
+  const { track } = usePerpsEventTracking();
 
   const navigateToOrder = useCallback(
     (params: PerpsNavigationParamList['PerpsOrder']) => {
@@ -147,14 +156,32 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
           );
         })
         .catch((error: unknown) => {
-          Logger.error(ensureError(error), {
-            feature: PERPS_CONSTANTS.FeatureName,
-            message:
-              'Failed to start one-click trade (deposit rejected or failed)',
+          const err = ensureError(error, 'usePerpsNavigation.navigateToOrder');
+          Logger.error(err, {
+            tags: { feature: PERPS_CONSTANTS.FeatureName },
+            context: { name: 'usePerpsNavigation.navigateToOrder', data: {} },
           });
+
+          track(MetaMetricsEvents.PERPS_ERROR, {
+            [PERPS_EVENT_PROPERTY.ERROR_TYPE]:
+              PERPS_EVENT_VALUE.ERROR_TYPE.BACKEND,
+            [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: err.message,
+            [PERPS_EVENT_PROPERTY.SOURCE]:
+              PERPS_EVENT_VALUE.SOURCE.TRADE_ACTION,
+          });
+
+          showToast(
+            PerpsToastOptions.accountManagement.oneClickTrade.txCreationFailed,
+          );
         });
     },
-    [navigation, depositWithOrder],
+    [
+      navigation,
+      depositWithOrder,
+      showToast,
+      PerpsToastOptions.accountManagement.oneClickTrade.txCreationFailed,
+      track,
+    ],
   );
 
   const navigateToTutorial = useCallback(

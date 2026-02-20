@@ -59,6 +59,7 @@ import {
   backendWebSocketServiceInit,
   accountActivityServiceInit,
 } from './controllers/core-backend';
+import { assetsControllerInit } from './controllers/assets-controller/assets-controller-init';
 import { AppStateWebSocketManager } from '../AppStateWebSocketManager';
 import { backupVault } from '../BackupVault';
 import {
@@ -150,7 +151,6 @@ import { tokenSearchDiscoveryDataControllerInit } from './controllers/token-sear
 import { assetsContractControllerInit } from './controllers/assets-contract-controller-init';
 import { tokensControllerInit } from './controllers/tokens-controller-init';
 import { tokenListControllerInit } from './controllers/token-list-controller-init';
-import { tokenSearchDiscoveryControllerInit } from './controllers/token-search-discovery-controller-init';
 import { tokenDetectionControllerInit } from './controllers/token-detection-controller-init';
 import { tokenBalancesControllerInit } from './controllers/token-balances-controller-init';
 import { tokenRatesControllerInit } from './controllers/token-rates-controller-init';
@@ -176,6 +176,8 @@ import { profileMetricsControllerInit } from './controllers/profile-metrics-cont
 import { profileMetricsServiceInit } from './controllers/profile-metrics-service-init';
 import { rampsServiceInit } from './controllers/ramps-controller/ramps-service-init';
 import { rampsControllerInit } from './controllers/ramps-controller/ramps-controller-init';
+import { aiDigestControllerInit } from './controllers/ai-digest-controller-init';
+import { transakServiceInit } from './controllers/ramps-controller/transak-service-init';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -318,7 +320,6 @@ export class Engine {
         TokenRatesController: tokenRatesControllerInit,
         TokenListController: tokenListControllerInit,
         TokenDetectionController: tokenDetectionControllerInit,
-        TokenSearchDiscoveryController: tokenSearchDiscoveryControllerInit,
         TokenSearchDiscoveryDataController:
           tokenSearchDiscoveryDataControllerInit,
         DeFiPositionsController: defiPositionsControllerInit,
@@ -330,9 +331,9 @@ export class Engine {
         ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
         ExecutionService: executionServiceInit,
         CronjobController: cronjobControllerInit,
+        SnapsRegistry: snapsRegistryInit,
         SnapController: snapControllerInit,
         SnapInterfaceController: snapInterfaceControllerInit,
-        SnapsRegistry: snapsRegistryInit,
         NotificationServicesController: notificationServicesControllerInit,
         NotificationServicesPushController:
           notificationServicesPushControllerInit,
@@ -355,6 +356,7 @@ export class Engine {
         SamplePetnamesController: samplePetnamesControllerInit,
         ///: END:ONLY_INCLUDE_IF
         PerpsController: perpsControllerInit,
+        AssetsController: assetsControllerInit,
         PhishingController: phishingControllerInit,
         PredictController: predictControllerInit,
         RewardsController: rewardsControllerInit,
@@ -366,7 +368,9 @@ export class Engine {
         ProfileMetricsService: profileMetricsServiceInit,
         AnalyticsController: analyticsControllerInit,
         RampsService: rampsServiceInit,
+        TransakService: transakServiceInit,
         RampsController: rampsControllerInit,
+        AiDigestController: aiDigestControllerInit,
       },
       persistedState: initialState as EngineState,
       baseControllerMessenger: this.controllerMessenger,
@@ -404,7 +408,9 @@ export class Engine {
     const profileMetricsController = controllersByName.ProfileMetricsController;
     const profileMetricsService = controllersByName.ProfileMetricsService;
     const rampsService = controllersByName.RampsService;
+    const transakService = controllersByName.TransakService;
     const rampsController = controllersByName.RampsController;
+    const aiDigestController = controllersByName.AiDigestController;
 
     // Backwards compatibility for existing references
     this.accountsController = accountsController;
@@ -425,8 +431,6 @@ export class Engine {
     const tokenRatesController = controllersByName.TokenRatesController;
     const tokenListController = controllersByName.TokenListController;
     const tokenDetectionController = controllersByName.TokenDetectionController;
-    const tokenSearchDiscoveryController =
-      controllersByName.TokenSearchDiscoveryController;
     const tokenSearchDiscoveryDataController =
       controllersByName.TokenSearchDiscoveryDataController;
     const bridgeController = controllersByName.BridgeController;
@@ -497,6 +501,7 @@ export class Engine {
       AppMetadataController: controllersByName.AppMetadataController,
       ConnectivityController: connectivityController,
       AssetsContractController: assetsContractController,
+      AssetsController: controllersByName.AssetsController,
       NftController: nftController,
       TokensController: tokensController,
       TokenListController: tokenListController,
@@ -519,7 +524,6 @@ export class Engine {
       RemoteFeatureFlagController: remoteFeatureFlagController,
       SelectedNetworkController: selectedNetworkController,
       SignatureController: signatureController,
-      TokenSearchDiscoveryController: tokenSearchDiscoveryController,
       LoggingController: loggingController,
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       CronjobController: cronjobController,
@@ -562,7 +566,9 @@ export class Engine {
       ProfileMetricsController: profileMetricsController,
       ProfileMetricsService: profileMetricsService,
       RampsService: rampsService,
+      TransakService: transakService,
       RampsController: rampsController,
+      AiDigestController: aiDigestController,
     };
 
     const childControllers = Object.assign({}, this.context);
@@ -1314,11 +1320,11 @@ export default {
       TokenListController,
       TokenRatesController,
       TokensController,
-      TokenSearchDiscoveryController,
       TokenSearchDiscoveryDataController,
       TransactionController,
       TransactionPayController,
       RampsController,
+      AiDigestController,
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       AuthenticationController,
       CronjobController,
@@ -1350,6 +1356,7 @@ export default {
       AppMetadataController: AppMetadataController.state,
       AnalyticsController: AnalyticsController.state,
       ApprovalController: ApprovalController.state,
+      AssetsController: instance.context.AssetsController.state,
       BridgeController: BridgeController.state,
       BridgeStatusController: BridgeStatusController.state,
       ConnectivityController: ConnectivityController.state,
@@ -1381,12 +1388,12 @@ export default {
       TokenListController: TokenListController.state,
       TokenRatesController: TokenRatesController.state,
       TokensController: TokensController.state,
-      TokenSearchDiscoveryController: TokenSearchDiscoveryController.state,
       TokenSearchDiscoveryDataController:
         TokenSearchDiscoveryDataController.state,
       TransactionController: TransactionController.state,
       TransactionPayController: TransactionPayController.state,
       RampsController: RampsController.state,
+      AiDigestController: AiDigestController.state,
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       AuthenticationController: AuthenticationController.state,
       CronjobController: CronjobController.state,

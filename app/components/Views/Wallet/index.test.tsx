@@ -43,12 +43,7 @@ jest.mock('../../../util/remoteFeatureFlag', () => ({
   validatedVersionGatedFeatureFlag: jest.fn(() => false),
 }));
 
-jest.mock(
-  '../../../selectors/featureFlagController//multichainAccounts/enabledMultichainAccounts',
-  () => ({
-    selectMultichainAccountsState2Enabled: () => false,
-  }),
-);
+// Note: BIP-44 multichain accounts is now the default behavior
 
 // Mock the Perps feature flag selector - will be controlled per test
 let mockPerpsEnabled = true;
@@ -91,11 +86,11 @@ jest.mock('../../../component-library/components-temp/Tabs', () => {
   };
 });
 
-import Wallet from './';
+import Wallet, { useHomeDeepLinkEffects } from './';
 import renderWithProvider, {
   renderScreen,
 } from '../../../util/test/renderWithProvider';
-import { screen as RNScreen } from '@testing-library/react-native';
+import { screen as RNScreen, renderHook } from '@testing-library/react-native';
 import Routes from '../../../constants/navigation/Routes';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
@@ -104,11 +99,17 @@ import Engine from '../../../core/Engine';
 import { useSelector } from 'react-redux';
 import { mockedPerpsFeatureFlagsEnabledState } from '../../UI/Perps/mocks/remoteFeatureFlagMocks';
 import { initialState as cardInitialState } from '../../../core/redux/slices/card';
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
+import {
+  NavigationProp,
+  ParamListBase,
+  useFocusEffect,
+  useRoute,
+} from '@react-navigation/native';
 import {
   IconColor,
   IconName,
 } from '../../../component-library/components/Icons/Icon';
+import { PERFORMANCE_CONFIG } from '@metamask/perps-controller';
 
 const MOCK_ADDRESS = '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272';
 
@@ -388,12 +389,6 @@ jest.mock('../../../util/address', () => ({
   }),
 }));
 
-jest.mock('../../hooks/useNetworkSelection/useNetworkSelection', () => ({
-  useNetworkSelection: jest.fn(() => ({
-    selectNetwork: jest.fn(),
-  })),
-}));
-
 // Better navigation mock pattern (from WalletActions.test.tsx)
 const mockNavigate = jest.fn();
 const mockSetOptions = jest.fn();
@@ -629,24 +624,19 @@ describe('Wallet', () => {
       const onReceive = mockAssetDetailsActions.mock.calls[0][0].onReceive;
       onReceive();
 
-      // Assert
+      // Assert - onReceive navigates to MultichainAddressList with groupId and title
       expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS,
-        {
-          screen: Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SHARE_ADDRESS_QR,
-          params: expect.objectContaining({
-            address: expect.any(String),
-            networkName: expect.any(String),
-            chainId: expect.any(String),
-            groupId: expect.any(String),
-          }),
-        },
+        Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST,
+        expect.objectContaining({
+          groupId: expect.any(String),
+          title: expect.any(String),
+        }),
       );
     });
 
-    it('should handle onReceive callback correctly when multichain accounts state 2 is enabled', () => {
-      // Arrange - Create mock state with state2 enabled and required data
-      const mockStateWithState2 = {
+    it('should handle onReceive callback correctly with BIP-44 multichain accounts', () => {
+      // Arrange - Create mock state with required data
+      const mockStateWithMultichainAccounts = {
         ...mockInitialState,
         engine: {
           ...mockInitialState.engine,
@@ -663,14 +653,10 @@ describe('Wallet', () => {
 
       jest.mocked(useSelector).mockImplementation((callback) => {
         const selectorString = callback.toString();
-        // Override specific selectors for state2 test
-        if (selectorString.includes('selectMultichainAccountsState2Enabled')) {
-          return true;
-        }
         if (selectorString.includes('selectSelectedAccountGroupId')) {
           return 'group-id-123'; // Ensure this returns the group ID
         }
-        return callback(mockStateWithState2);
+        return callback(mockStateWithMultichainAccounts);
       });
 
       // Act
@@ -682,7 +668,7 @@ describe('Wallet', () => {
       // Assert - createAddressListNavigationDetails spreads an array [route, params]
       expect(mockNavigate).toHaveBeenCalled();
       expect(mockNavigate.mock.calls[0]).toBeDefined();
-      // Verify it was called with address list navigation (state2 behavior)
+      // Verify it was called with address list navigation
       const [route, params] = mockNavigate.mock.calls[0];
       expect(route).toBeDefined();
       expect(params).toBeDefined();
@@ -977,78 +963,6 @@ describe('Wallet', () => {
       });
 
       jest.clearAllMocks();
-    });
-  });
-
-  describe('Network Manager Integration', () => {
-    const { useNetworkSelection } = jest.requireMock(
-      '../../../components/hooks/useNetworkSelection/useNetworkSelection',
-    );
-
-    // Common test configurations
-    const createMockSelectNetwork = () => jest.fn();
-
-    const createStateWithEnabledNetworks = (enabledNetworks: string[]) => ({
-      ...mockInitialState,
-      engine: {
-        backgroundState: {
-          ...mockInitialState.engine.backgroundState,
-          NetworkEnablementController: {
-            ...mockInitialState.engine.backgroundState
-              .NetworkEnablementController,
-            enabledNetworkMap: {
-              eip155: enabledNetworks.reduce(
-                (acc, network) => {
-                  acc[network] = true;
-                  return acc;
-                },
-                {} as Record<string, boolean>,
-              ),
-            },
-          },
-        },
-      },
-    });
-
-    const setupMocks = (mockSelectNetwork: jest.Mock) => {
-      jest.mocked(useNetworkSelection).mockReturnValue({
-        selectNetwork: mockSelectNetwork,
-      });
-    };
-
-    const renderWalletWithState = (state: unknown) => {
-      jest
-        .mocked(useSelector)
-        .mockImplementation((callback) => callback(state));
-      //@ts-expect-error we are ignoring the navigation params on purpose
-      render(Wallet);
-    };
-
-    beforeEach(() => {
-      jest.clearAllMocks();
-    });
-
-    it('should call selectNetwork when no enabled EVM networks', () => {
-      const mockSelectNetwork = createMockSelectNetwork();
-      setupMocks(mockSelectNetwork);
-
-      const stateWithNoEnabledNetworks = createStateWithEnabledNetworks([]);
-      renderWalletWithState(stateWithNoEnabledNetworks);
-
-      expect(mockSelectNetwork).toHaveBeenCalledWith('0x1');
-    });
-
-    it('should not call selectNetwork when there are enabled EVM networks', () => {
-      const mockSelectNetwork = createMockSelectNetwork();
-      setupMocks(mockSelectNetwork);
-
-      const stateWithEnabledNetworks = createStateWithEnabledNetworks([
-        '0x1',
-        '0x5',
-      ]);
-      renderWalletWithState(stateWithEnabledNetworks);
-
-      expect(mockSelectNetwork).not.toHaveBeenCalled();
     });
   });
 
@@ -1677,5 +1591,116 @@ describe('Wallet', () => {
         screen: 'PerpsGTMModal',
       });
     });
+  });
+});
+
+describe('useHomeDeepLinkEffects', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.useFakeTimers();
+  });
+
+  afterEach(() => {
+    jest.runOnlyPendingTimers();
+    jest.useRealTimers();
+  });
+
+  const arrangeMocks = () => {
+    const mockSetParams = jest.fn();
+    const mockOnPerpsTabsSelected = jest.fn();
+    const mockOnNetworkSelectorSelected = jest.fn();
+    const mockUseRoute = jest
+      .mocked(useRoute)
+      .mockReturnValue({ key: 'route', name: 'route', params: {} });
+    return {
+      mockNavigate,
+      mockSetParams,
+      navigation: {
+        setParams: mockSetParams,
+      } as unknown as NavigationProp<ParamListBase>,
+      mockUseRoute,
+      mockOnPerpsTabsSelected,
+      mockOnNetworkSelectorSelected,
+    };
+  };
+
+  interface DeepLinkTestCase {
+    testName: string;
+    params: Record<string, unknown>;
+    isPerpsEnabled: boolean;
+    assertCase: (mocks: ReturnType<typeof arrangeMocks>) => void;
+  }
+
+  const testCases: DeepLinkTestCase[] = [
+    {
+      testName: 'navigates to perps tab when shouldSelectPerpsTab is true',
+      params: { shouldSelectPerpsTab: true },
+      isPerpsEnabled: true,
+      assertCase: (mocks) => {
+        expect(mocks.mockOnPerpsTabsSelected).toHaveBeenCalled();
+        expect(mocks.mockSetParams).toHaveBeenCalledWith({
+          shouldSelectPerpsTab: null,
+        });
+      },
+    },
+    {
+      testName: 'navigates to perps tab when initialTab is perps',
+      params: { initialTab: 'perps' },
+      isPerpsEnabled: true,
+      assertCase: (mocks) => {
+        expect(mocks.mockOnPerpsTabsSelected).toHaveBeenCalled();
+        expect(mocks.mockSetParams).toHaveBeenCalledWith({ initialTab: null });
+      },
+    },
+    {
+      testName:
+        'navigates to network selector when openNetworkSelector is true',
+      params: { openNetworkSelector: true },
+      isPerpsEnabled: false,
+      assertCase: (mocks) => {
+        expect(mocks.mockOnNetworkSelectorSelected).toHaveBeenCalled();
+        expect(mocks.mockSetParams).toHaveBeenCalledWith({
+          openNetworkSelector: null,
+        });
+      },
+    },
+    {
+      testName:
+        'performs no deeplink action when no deeplink params are provided',
+      params: {}, // no deeplink params
+      isPerpsEnabled: true,
+      assertCase: (mocks) => {
+        expect(mocks.mockOnPerpsTabsSelected).not.toHaveBeenCalled();
+        expect(mocks.mockOnNetworkSelectorSelected).not.toHaveBeenCalled();
+        expect(mocks.mockSetParams).not.toHaveBeenCalled();
+      },
+    },
+  ];
+
+  it.each(testCases)('$testName', ({ params, isPerpsEnabled, assertCase }) => {
+    const mocks = arrangeMocks();
+
+    // Setup the mocked useRoute to return the provided params.
+    mocks.mockUseRoute.mockReturnValue({
+      key: 'route',
+      name: 'route',
+      params,
+    });
+    const mockUseFocusEffect = jest.mocked(useFocusEffect);
+
+    renderHook(() =>
+      useHomeDeepLinkEffects({
+        isPerpsEnabled,
+        onPerpsTabSelected: mocks.mockOnPerpsTabsSelected,
+        onNetworkSelectorSelected: mocks.mockOnNetworkSelectorSelected,
+        navigation: mocks.navigation,
+      }),
+    );
+
+    const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+    focusCallback();
+
+    jest.advanceTimersByTime(PERFORMANCE_CONFIG.NavigationParamsDelayMs);
+    assertCase(mocks);
   });
 });

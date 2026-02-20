@@ -7,6 +7,7 @@ import {
   View,
   TouchableOpacity,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { connect } from 'react-redux';
 
 import Engine from '../../../../core/Engine';
@@ -17,7 +18,7 @@ import I18n, {
 } from '../../../../../locales/i18n';
 import SelectComponent from '../../../UI/SelectComponent';
 import infuraCurrencies from '../../../../util/infura-conversion.json';
-import { getNavigationOptionsTitle } from '../../../UI/Navbar';
+import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import {
   setSearchEngine,
   setPrimaryCurrency,
@@ -30,14 +31,13 @@ import AvatarAccount, {
 } from '../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
-import { withMetricsAwareness } from '../../../../components/hooks/useMetrics';
+import { withAnalyticsAwareness } from '../../../../components/hooks/useAnalytics/withAnalyticsAwareness';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import Text, {
   TextVariant,
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
 import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import { colors as staticColors } from '../../../../styles/common';
 
@@ -58,12 +58,13 @@ const infuraCurrencyOptions = sortedCurrencies.map(
   }),
 );
 
-export const updateUserTraitsWithCurrentCurrency = (currency, metrics) => {
+export const updateUserTraitsWithCurrentCurrency = (currency, analytics) => {
   // track event and add selected currency to user profile for analytics
   const traits = { [UserProfileProperty.CURRENT_CURRENCY]: currency };
-  metrics.addTraitsToUser(traits);
-  metrics.trackEvent(
-    MetricsEventBuilder.createEventBuilder(MetaMetricsEvents.CURRENCY_CHANGED)
+  analytics.addTraitsToUser(traits);
+  analytics.trackEvent(
+    analytics
+      .createEventBuilder(MetaMetricsEvents.CURRENCY_CHANGED)
       .addProperties({
         ...traits,
         location: 'app_settings',
@@ -72,10 +73,13 @@ export const updateUserTraitsWithCurrentCurrency = (currency, metrics) => {
   );
 };
 
-export const updateUserTraitsWithCurrencyType = (primaryCurrency, metrics) => {
+export const updateUserTraitsWithCurrencyType = (
+  primaryCurrency,
+  analytics,
+) => {
   // track event and add primary currency preference (fiat/crypto) to user profile for analytics
   const traits = { [UserProfileProperty.PRIMARY_CURRENCY]: primaryCurrency };
-  metrics.addTraitsToUser(traits);
+  analytics.addTraitsToUser(traits);
 };
 
 const createStyles = (colors) =>
@@ -83,8 +87,10 @@ const createStyles = (colors) =>
     wrapper: {
       backgroundColor: colors.background.default,
       flex: 1,
+    },
+    content: {
       padding: 16,
-      zIndex: 99999999999999,
+      flex: 1,
     },
     titleContainer: {
       flexDirection: 'row',
@@ -205,9 +211,9 @@ class Settings extends PureComponent {
      */
     // appTheme: PropTypes.string,
     /**
-     * Metrics injected by withMetricsAwareness HOC
+     * Analytics injected by withAnalyticsAwareness HOC
      */
-    metrics: PropTypes.object,
+    analytics: PropTypes.object,
   };
 
   state = {
@@ -218,7 +224,7 @@ class Settings extends PureComponent {
   selectCurrency = async (currency) => {
     const { CurrencyRateController } = Engine.context;
     CurrencyRateController.setCurrentCurrency(currency);
-    updateUserTraitsWithCurrentCurrency(currency, this.props.metrics);
+    updateUserTraitsWithCurrentCurrency(currency, this.props.analytics);
   };
 
   selectLanguage = (language) => {
@@ -235,28 +241,14 @@ class Settings extends PureComponent {
   selectPrimaryCurrency = (primaryCurrency) => {
     this.props.setPrimaryCurrency(primaryCurrency);
 
-    updateUserTraitsWithCurrencyType(primaryCurrency, this.props.metrics);
+    updateUserTraitsWithCurrencyType(primaryCurrency, this.props.analytics);
   };
 
   toggleHideZeroBalanceTokens = (toggleHideZeroBalanceTokens) => {
     this.props.setHideZeroBalanceTokens(toggleHideZeroBalanceTokens);
   };
 
-  updateNavBar = () => {
-    const { navigation } = this.props;
-    const colors = this.context.colors || mockTheme.colors;
-    navigation.setOptions(
-      getNavigationOptionsTitle(
-        strings('app_settings.general_title'),
-        navigation,
-        false,
-        colors,
-      ),
-    );
-  };
-
   componentDidMount = () => {
-    this.updateNavBar();
     const languages = getLanguages();
     this.setState({ languages });
     this.languageOptions = Object.keys(languages).map((key) => ({
@@ -280,10 +272,6 @@ class Settings extends PureComponent {
         key: 'Fiat',
       },
     ];
-  };
-
-  componentDidUpdate = () => {
-    this.updateNavBar();
   };
 
   // TODO - Reintroduce once we enable manual theme settings
@@ -322,228 +310,236 @@ class Settings extends PureComponent {
       setAvatarAccountType,
       selectedAddress,
       hideZeroBalanceTokens,
+      navigation,
     } = this.props;
     const themeTokens = this.context || mockTheme;
     const { colors } = themeTokens;
     const styles = createStyles(colors);
 
     return (
-      <ScrollView style={styles.wrapper}>
-        <View style={styles.inner}>
-          <View style={[styles.setting, styles.firstSetting]}>
-            <Text variant={TextVariant.BodyLGMedium}>
-              {strings('app_settings.conversion_title')}
-            </Text>
-            <Text
-              variant={TextVariant.BodyMD}
-              color={TextColor.Alternative}
-              style={styles.desc}
-            >
-              {strings('app_settings.conversion_desc')}
-            </Text>
-            <View style={styles.accessory}>
-              <View style={styles.picker}>
-                <SelectComponent
-                  selectedValue={currentCurrency}
-                  onValueChange={this.selectCurrency}
-                  label={strings('app_settings.current_conversion')}
-                  options={infuraCurrencyOptions}
-                />
-              </View>
-            </View>
-          </View>
-          <View style={styles.setting}>
-            <Text variant={TextVariant.BodyLGMedium}>
-              {strings('app_settings.primary_currency_title')}
-            </Text>
-            <Text
-              variant={TextVariant.BodyMD}
-              color={TextColor.Alternative}
-              style={styles.desc}
-            >
-              {strings('app_settings.primary_currency_desc')}
-            </Text>
-            {this.primaryCurrencyOptions && (
-              <View style={styles.accessory}>
-                <PickComponent
-                  pick={this.selectPrimaryCurrency}
-                  textFirst={strings(
-                    'app_settings.primary_currency_text_first',
-                  )}
-                  valueFirst={'ETH'}
-                  textSecond={strings(
-                    'app_settings.primary_currency_text_second',
-                  )}
-                  valueSecond={'Fiat'}
-                  selectedValue={primaryCurrency}
-                />
-              </View>
-            )}
-          </View>
-          <View style={styles.setting}>
-            <Text variant={TextVariant.BodyLGMedium}>
-              {strings('app_settings.current_language')}
-            </Text>
-            <Text
-              variant={TextVariant.BodyMD}
-              color={TextColor.Alternative}
-              style={styles.desc}
-            >
-              {strings('app_settings.language_desc')}
-            </Text>
-            {this.languageOptions && (
-              <View style={styles.accessory}>
-                <View style={styles.picker}>
-                  <SelectComponent
-                    selectedValue={this.state.currentLanguage}
-                    onValueChange={this.selectLanguage}
-                    label={strings('app_settings.current_language')}
-                    options={this.languageOptions}
-                  />
-                </View>
-              </View>
-            )}
-          </View>
-          <View style={styles.setting}>
-            <Text variant={TextVariant.BodyLGMedium}>
-              {strings('app_settings.search_engine')}
-            </Text>
-            <Text
-              variant={TextVariant.BodyMD}
-              color={TextColor.Alternative}
-              style={styles.desc}
-            >
-              {strings('app_settings.engine_desc')}
-            </Text>
-            {this.searchEngineOptions && (
-              <View style={styles.accessory}>
-                <View style={styles.picker}>
-                  <SelectComponent
-                    selectedValue={this.props.searchEngine}
-                    onValueChange={this.selectSearchEngine}
-                    label={strings('app_settings.search_engine')}
-                    options={this.searchEngineOptions}
-                  />
-                </View>
-              </View>
-            )}
-          </View>
-          <View style={styles.setting}>
-            <View style={styles.titleContainer}>
-              <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
-                {strings('app_settings.hide_zero_balance_tokens_title')}
+      <SafeAreaView edges={{ bottom: 'additive' }} style={styles.wrapper}>
+        <HeaderCompactStandard
+          title={strings('app_settings.general_title')}
+          onBack={() => navigation.goBack()}
+          includesTopInset
+        />
+        <ScrollView style={styles.content}>
+          <View style={styles.inner}>
+            <View style={[styles.setting, styles.firstSetting]}>
+              <Text variant={TextVariant.BodyLGMedium}>
+                {strings('app_settings.conversion_title')}
               </Text>
-              <View style={styles.toggle}>
-                <Switch
-                  value={hideZeroBalanceTokens}
-                  onValueChange={this.toggleHideZeroBalanceTokens}
-                  trackColor={{
-                    true: colors.primary.default,
-                    false: colors.border.muted,
-                  }}
-                  thumbColor={themeTokens.brandColors.white}
-                  style={styles.switch}
-                  ios_backgroundColor={colors.border.muted}
-                />
+              <Text
+                variant={TextVariant.BodyMD}
+                color={TextColor.Alternative}
+                style={styles.desc}
+              >
+                {strings('app_settings.conversion_desc')}
+              </Text>
+              <View style={styles.accessory}>
+                <View style={styles.picker}>
+                  <SelectComponent
+                    selectedValue={currentCurrency}
+                    onValueChange={this.selectCurrency}
+                    label={strings('app_settings.current_conversion')}
+                    options={infuraCurrencyOptions}
+                  />
+                </View>
               </View>
             </View>
-            <Text
-              variant={TextVariant.BodyMD}
-              color={TextColor.Alternative}
-              style={styles.desc}
-            >
-              {strings('app_settings.hide_zero_balance_tokens_desc')}
-            </Text>
-          </View>
-          <View style={styles.setting}>
-            <Text variant={TextVariant.BodyLGMedium}>
-              {strings('app_settings.accounts_identicon_title')}
-            </Text>
-            <Text
-              variant={TextVariant.BodyMD}
-              color={TextColor.Alternative}
-              style={styles.desc}
-            >
-              {strings('app_settings.accounts_identicon_desc')}
-            </Text>
-            <View style={styles.accessory}>
-              <View style={styles.identicon_container}>
-                <TouchableOpacity
-                  onPress={() =>
-                    setAvatarAccountType(AvatarAccountType.Maskicon)
-                  }
-                  style={styles.identicon_row}
-                >
-                  <View
-                    style={[
-                      styles.avatarWrapper,
-                      avatarAccountType === AvatarAccountType.Maskicon
-                        ? styles.selectedAvatarWrapper
-                        : styles.unselectedAvatarWrapper,
-                    ]}
-                  >
-                    <AvatarAccount
-                      type={AvatarAccountType.Maskicon}
-                      accountAddress={selectedAddress}
-                      size={diameter}
+            <View style={styles.setting}>
+              <Text variant={TextVariant.BodyLGMedium}>
+                {strings('app_settings.primary_currency_title')}
+              </Text>
+              <Text
+                variant={TextVariant.BodyMD}
+                color={TextColor.Alternative}
+                style={styles.desc}
+              >
+                {strings('app_settings.primary_currency_desc')}
+              </Text>
+              {this.primaryCurrencyOptions && (
+                <View style={styles.accessory}>
+                  <PickComponent
+                    pick={this.selectPrimaryCurrency}
+                    textFirst={strings(
+                      'app_settings.primary_currency_text_first',
+                    )}
+                    valueFirst={'ETH'}
+                    textSecond={strings(
+                      'app_settings.primary_currency_text_second',
+                    )}
+                    valueSecond={'Fiat'}
+                    selectedValue={primaryCurrency}
+                  />
+                </View>
+              )}
+            </View>
+            <View style={styles.setting}>
+              <Text variant={TextVariant.BodyLGMedium}>
+                {strings('app_settings.current_language')}
+              </Text>
+              <Text
+                variant={TextVariant.BodyMD}
+                color={TextColor.Alternative}
+                style={styles.desc}
+              >
+                {strings('app_settings.language_desc')}
+              </Text>
+              {this.languageOptions && (
+                <View style={styles.accessory}>
+                  <View style={styles.picker}>
+                    <SelectComponent
+                      selectedValue={this.state.currentLanguage}
+                      onValueChange={this.selectLanguage}
+                      label={strings('app_settings.current_language')}
+                      options={this.languageOptions}
                     />
                   </View>
-                  <Text style={styles.identiconText}>Polycons</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() =>
-                    setAvatarAccountType(AvatarAccountType.JazzIcon)
-                  }
-                  style={styles.identicon_row}
-                >
-                  <View
-                    style={[
-                      styles.avatarWrapper,
-                      avatarAccountType === AvatarAccountType.JazzIcon
-                        ? styles.selectedAvatarWrapper
-                        : styles.unselectedAvatarWrapper,
-                    ]}
-                  >
-                    <AvatarAccount
-                      type={AvatarAccountType.JazzIcon}
-                      accountAddress={selectedAddress}
-                      size={diameter}
+                </View>
+              )}
+            </View>
+            <View style={styles.setting}>
+              <Text variant={TextVariant.BodyLGMedium}>
+                {strings('app_settings.search_engine')}
+              </Text>
+              <Text
+                variant={TextVariant.BodyMD}
+                color={TextColor.Alternative}
+                style={styles.desc}
+              >
+                {strings('app_settings.engine_desc')}
+              </Text>
+              {this.searchEngineOptions && (
+                <View style={styles.accessory}>
+                  <View style={styles.picker}>
+                    <SelectComponent
+                      selectedValue={this.props.searchEngine}
+                      onValueChange={this.selectSearchEngine}
+                      label={strings('app_settings.search_engine')}
+                      options={this.searchEngineOptions}
                     />
                   </View>
-                  <Text style={styles.identiconText}>
-                    {strings('app_settings.jazzicons')}
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() =>
-                    setAvatarAccountType(AvatarAccountType.Blockies)
-                  }
-                  style={styles.identicon_row}
-                >
-                  <View
-                    style={[
-                      styles.avatarWrapper,
-                      avatarAccountType === AvatarAccountType.Blockies
-                        ? styles.selectedAvatarWrapper
-                        : styles.unselectedAvatarWrapper,
-                    ]}
+                </View>
+              )}
+            </View>
+            <View style={styles.setting}>
+              <View style={styles.titleContainer}>
+                <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
+                  {strings('app_settings.hide_zero_balance_tokens_title')}
+                </Text>
+                <View style={styles.toggle}>
+                  <Switch
+                    value={hideZeroBalanceTokens}
+                    onValueChange={this.toggleHideZeroBalanceTokens}
+                    trackColor={{
+                      true: colors.primary.default,
+                      false: colors.border.muted,
+                    }}
+                    thumbColor={themeTokens.brandColors.white}
+                    style={styles.switch}
+                    ios_backgroundColor={colors.border.muted}
+                  />
+                </View>
+              </View>
+              <Text
+                variant={TextVariant.BodyMD}
+                color={TextColor.Alternative}
+                style={styles.desc}
+              >
+                {strings('app_settings.hide_zero_balance_tokens_desc')}
+              </Text>
+            </View>
+            <View style={styles.setting}>
+              <Text variant={TextVariant.BodyLGMedium}>
+                {strings('app_settings.accounts_identicon_title')}
+              </Text>
+              <Text
+                variant={TextVariant.BodyMD}
+                color={TextColor.Alternative}
+                style={styles.desc}
+              >
+                {strings('app_settings.accounts_identicon_desc')}
+              </Text>
+              <View style={styles.accessory}>
+                <View style={styles.identicon_container}>
+                  <TouchableOpacity
+                    onPress={() =>
+                      setAvatarAccountType(AvatarAccountType.Maskicon)
+                    }
+                    style={styles.identicon_row}
                   >
-                    <AvatarAccount
-                      type={AvatarAccountType.Blockies}
-                      accountAddress={selectedAddress}
-                      size={diameter}
-                    />
-                  </View>
-                  <Text style={styles.identiconText}>
-                    {strings('app_settings.blockies')}
-                  </Text>
-                </TouchableOpacity>
+                    <View
+                      style={[
+                        styles.avatarWrapper,
+                        avatarAccountType === AvatarAccountType.Maskicon
+                          ? styles.selectedAvatarWrapper
+                          : styles.unselectedAvatarWrapper,
+                      ]}
+                    >
+                      <AvatarAccount
+                        type={AvatarAccountType.Maskicon}
+                        accountAddress={selectedAddress}
+                        size={diameter}
+                      />
+                    </View>
+                    <Text style={styles.identiconText}>Polycons</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() =>
+                      setAvatarAccountType(AvatarAccountType.JazzIcon)
+                    }
+                    style={styles.identicon_row}
+                  >
+                    <View
+                      style={[
+                        styles.avatarWrapper,
+                        avatarAccountType === AvatarAccountType.JazzIcon
+                          ? styles.selectedAvatarWrapper
+                          : styles.unselectedAvatarWrapper,
+                      ]}
+                    >
+                      <AvatarAccount
+                        type={AvatarAccountType.JazzIcon}
+                        accountAddress={selectedAddress}
+                        size={diameter}
+                      />
+                    </View>
+                    <Text style={styles.identiconText}>
+                      {strings('app_settings.jazzicons')}
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() =>
+                      setAvatarAccountType(AvatarAccountType.Blockies)
+                    }
+                    style={styles.identicon_row}
+                  >
+                    <View
+                      style={[
+                        styles.avatarWrapper,
+                        avatarAccountType === AvatarAccountType.Blockies
+                          ? styles.selectedAvatarWrapper
+                          : styles.unselectedAvatarWrapper,
+                      ]}
+                    >
+                      <AvatarAccount
+                        type={AvatarAccountType.Blockies}
+                        accountAddress={selectedAddress}
+                        size={diameter}
+                      />
+                    </View>
+                    <Text style={styles.identiconText}>
+                      {strings('app_settings.blockies')}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             </View>
+            {/* {this.renderThemeSettingsSection()} */}
           </View>
-          {/* {this.renderThemeSettingsSection()} */}
-        </View>
-      </ScrollView>
+        </ScrollView>
+      </SafeAreaView>
     );
   }
 }
@@ -573,4 +569,4 @@ const mapDispatchToProps = (dispatch) => ({
 export default connect(
   mapStateToProps,
   mapDispatchToProps,
-)(withMetricsAwareness(Settings));
+)(withAnalyticsAwareness(Settings));

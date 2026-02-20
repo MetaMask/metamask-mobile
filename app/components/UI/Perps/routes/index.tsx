@@ -15,9 +15,9 @@ import PerpsHomeView from '../Views/PerpsHomeView/PerpsHomeView';
 import PerpsMarketDetailsView from '../Views/PerpsMarketDetailsView';
 import PerpsMarketListView from '../Views/PerpsMarketListView';
 import PerpsRedirect from '../Views/PerpsRedirect';
+import PerpsOrderRedirect from '../Views/PerpsOrderRedirect';
 import PerpsPositionsView from '../Views/PerpsPositionsView';
 import PerpsWithdrawView from '../Views/PerpsWithdrawView';
-import PerpsOrderView from '../Views/PerpsOrderView';
 import PerpsClosePositionView from '../Views/PerpsClosePositionView';
 import PerpsCloseAllPositionsView from '../Views/PerpsCloseAllPositionsView/PerpsCloseAllPositionsView';
 import PerpsCancelAllOrdersView from '../Views/PerpsCancelAllOrdersView/PerpsCancelAllOrdersView';
@@ -37,6 +37,7 @@ import ActivityView from '../../../Views/ActivityView';
 import PerpsStreamBridge from '../components/PerpsStreamBridge';
 import { HIP3DebugView } from '../Debug';
 import PerpsCrossMarginWarningBottomSheet from '../components/PerpsCrossMarginWarningBottomSheet';
+import PerpsSelectProviderView from '../Views/PerpsSelectProviderView';
 import { RouteProp, useRoute } from '@react-navigation/native';
 import { CONFIRMATION_HEADER_CONFIG } from '../constants/perpsConfig';
 
@@ -135,6 +136,14 @@ const PerpsModalStack = () => {
             component={PerpsCrossMarginWarningBottomSheet}
             options={{
               title: strings('perps.crossMargin.title'),
+            }}
+          />
+          <ModalStack.Screen
+            name={Routes.PERPS.MODALS.SELECT_PROVIDER}
+            component={PerpsSelectProviderView}
+            options={{
+              title: strings('perps.provider_selector.title'),
+              cardStyle: { backgroundColor: 'transparent' },
             }}
           />
           {/* Action Selection Modals */}
@@ -292,15 +301,6 @@ const PerpsScreenStack = () => {
           />
 
           <Stack.Screen
-            name={Routes.PERPS.ORDER}
-            component={PerpsOrderView}
-            options={{
-              title: strings('perps.order.title'),
-              headerShown: false,
-            }}
-          />
-
-          <Stack.Screen
             name={Routes.PERPS.CLOSE_POSITION}
             component={PerpsClosePositionView}
             options={{
@@ -403,6 +403,17 @@ const PerpsScreenStack = () => {
                 backgroundColor: 'transparent',
               },
               animationEnabled: false,
+              // Keep previous screen rendered for transparent overlay
+              detachPreviousScreen: false,
+            }}
+          />
+
+          {/* Order redirect screen - handles one-click trade from token details */}
+          <Stack.Screen
+            name={Routes.PERPS.ORDER_REDIRECT}
+            component={PerpsOrderRedirect}
+            options={{
+              headerShown: false,
             }}
           />
 

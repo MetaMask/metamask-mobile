@@ -1,6 +1,8 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Image } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, StackActions } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
+import VeriffSdk, { type VeriffBranding } from '@veriff/react-native-sdk';
 import OnboardingStep from './OnboardingStep';
 import { strings } from '../../../../../../locales/i18n';
 import {
@@ -23,11 +25,49 @@ import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { CardActions, CardScreens } from '../../util/metrics';
 import MM_CARD_VERIFY_IDENTITY from '../../../../../images/card-fingerprint-kyc-image.png';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { selectSelectedCountry } from '../../../../../core/redux/slices/card';
+import Logger from '../../../../../util/Logger';
+import { useTheme } from '../../../../../util/theme';
+import { brandColor } from '@metamask/design-tokens';
 
 const VerifyIdentity = () => {
   const navigation = useNavigation();
   const tw = useTailwind();
+  const { colors } = useTheme();
   const { trackEvent, createEventBuilder } = useMetrics();
+  const selectedCountry = useSelector(selectSelectedCountry);
+  const [isLaunchingVeriff, setIsLaunchingVeriff] = useState(false);
+
+  const veriffBranding: VeriffBranding = useMemo(
+    () => ({
+      logo: 'fox',
+      background: colors.background.default,
+      onBackground: colors.text.default,
+      onBackgroundSecondary: colors.text.alternative,
+      onBackgroundTertiary: colors.text.muted,
+      primary: colors.icon.default,
+      onPrimary: colors.icon.inverse,
+      secondary: colors.primary.default,
+      onSecondary: colors.primary.inverse,
+      outline: colors.border.default,
+      cameraOverlay: brandColor.grey900,
+      onCameraOverlay: brandColor.grey000,
+      error: colors.error.default,
+      success: colors.success.default,
+      buttonRadius: 12,
+      iOSFont: {
+        regular: 'Geist-Regular',
+        medium: 'Geist-Medium',
+        bold: 'Geist-Bold',
+      },
+      androidFont: {
+        regular: 'Geist-Regular',
+        medium: 'Geist-Medium',
+        bold: 'Geist-Bold',
+      },
+    }),
+    [colors],
+  );
   const {
     data: verificationResponse,
     isLoading: startVerificationIsLoading,
@@ -38,12 +78,6 @@ const VerifyIdentity = () => {
   const { sessionUrl } = verificationResponse || {};
 
   const handleContinue = useCallback(async () => {
-    if (sessionUrl) {
-      navigation.navigate(Routes.CARD.ONBOARDING.WEBVIEW, {
-        url: sessionUrl,
-      });
-    }
-
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
         .addProperties({
@@ -51,7 +85,37 @@ const VerifyIdentity = () => {
         })
         .build(),
     );
-  }, [navigation, sessionUrl, trackEvent, createEventBuilder]);
+
+    if (sessionUrl) {
+      setIsLaunchingVeriff(true);
+      try {
+        const result = await VeriffSdk.launchVeriff({
+          sessionUrl,
+          branding: veriffBranding,
+        });
+
+        switch (result.status) {
+          case VeriffSdk.statusDone:
+            navigation.dispatch(
+              StackActions.replace(Routes.CARD.ONBOARDING.VERIFYING_VERIFF_KYC),
+            );
+            break;
+          case VeriffSdk.statusCanceled:
+            break;
+          case VeriffSdk.statusError:
+            Logger.error(
+              new Error('Veriff verification failed'),
+              `Veriff verification failed with error=${result.error}`,
+            );
+            break;
+        }
+      } catch (error) {
+        Logger.error(error as Error, 'Veriff SDK launch failed unexpectedly');
+      } finally {
+        setIsLaunchingVeriff(false);
+      }
+    }
+  }, [navigation, sessionUrl, trackEvent, createEventBuilder, veriffBranding]);
 
   useEffect(() => {
     trackEvent(
@@ -95,7 +159,9 @@ const VerifyIdentity = () => {
           variant={TextVariant.BodyMd}
           twClassName="flex-1 flex-shrink text-text-alternative"
         >
-          {strings('card.card_onboarding.verify_identity.terms_2')}
+          {selectedCountry?.key === 'US'
+            ? strings('card.card_onboarding.verify_identity.terms_2_us')
+            : strings('card.card_onboarding.verify_identity.terms_2')}
         </Text>
       </Box>
 
@@ -130,7 +196,8 @@ const VerifyIdentity = () => {
       size={ButtonSize.Lg}
       onPress={handleContinue}
       width={ButtonWidthTypes.Full}
-      isDisabled={!sessionUrl}
+      isDisabled={!sessionUrl || isLaunchingVeriff}
+      loading={isLaunchingVeriff}
       testID="verify-identity-continue-button"
     />
   );

@@ -49,8 +49,7 @@
     "allDetectedTokens": {}
   },
   "TokenListController": {
-    "tokensChainsCache": {},
-    "preventPollingOnNetworkRestart": false
+    "tokensChainsCache": {}
   },
   "CurrencyRateController": {
     "currentCurrency": "usd",
@@ -342,10 +341,6 @@
   "TokenRatesController": {
     "marketData": {}
   },
-  "TokenSearchDiscoveryController": {
-    "lastSearchTimestamp": null,
-    "recentSearches": []
-  },
   "TokenSearchDiscoveryDataController": {
     "tokenDisplayData": []
   },
@@ -466,6 +461,13 @@
     "pendingApprovalCount": 0,
     "approvalFlows": []
   },
+  "AssetsController": {
+    "assetPreferences": {},
+    "assetsBalance": {},
+    "assetsInfo": {},
+    "assetsPrice": {},
+    "customAssets": {}
+  },
   "PermissionController": {
     "subjects": {}
   },
@@ -512,7 +514,15 @@
       "direction": "desc"
     },
     "hip3ConfigVersion": 0,
-    "perpsBalances": {}
+    "perpsBalances": {},
+    "selectedPaymentToken": null,
+    "cachedMarketData": null,
+    "cachedMarketDataTimestamp": 0,
+    "cachedPositions": null,
+    "cachedOrders": null,
+    "cachedAccountState": null,
+    "cachedUserDataTimestamp": 0,
+    "cachedUserDataAddress": null
   },
   "RemoteFeatureFlagController": {
     "cacheTimestamp": 0,
@@ -738,7 +748,9 @@
     "accounts": {},
     "activeAccount": null,
     "activeBoosts": {},
+    "pointsEstimateHistory": [],
     "pointsEvents": {},
+    "snapshots": {},
     "unlockedRewards": {},
     "seasonStatuses": {},
     "seasons": {},
@@ -746,7 +758,7 @@
     "subscriptions": {}
   },
   "PredictController": {
-    "eligibility": {},
+    "eligibility": { "eligible": false },
     "lastError": null,
     "lastUpdateTimestamp": 0,
     "balances": {},
@@ -755,13 +767,70 @@
     "withdrawTransaction": null,
     "accountMeta": {}
   },
+  "AiDigestController": {
+    "marketInsights": {}
+  },
   "RampsController": {
-    "paymentMethods": [],
     "userRegion": null,
-    "preferredProvider": null,
-    "providers": [],
-    "selectedPaymentMethod": null,
-    "tokens": null,
+    "countries": {
+      "data": [],
+      "selected": null,
+      "isLoading": false,
+      "error": null
+    },
+    "providers": {
+      "data": [],
+      "selected": null,
+      "isLoading": false,
+      "error": null
+    },
+    "tokens": {
+      "data": null,
+      "selected": null,
+      "isLoading": false,
+      "error": null
+    },
+    "paymentMethods": {
+      "data": [],
+      "selected": null,
+      "isLoading": false,
+      "error": null
+    },
+    "quotes": {
+      "data": null,
+      "selected": null,
+      "isLoading": false,
+      "error": null
+    },
+    "nativeProviders": {
+      "transak": {
+        "buyQuote": {
+          "data": null,
+          "selected": null,
+          "isLoading": false,
+          "error": null
+        },
+        "isAuthenticated": false,
+        "kycRequirement": {
+          "data": null,
+          "selected": null,
+          "isLoading": false,
+          "error": null
+        },
+        "userDetails": {
+          "data": null,
+          "selected": null,
+          "isLoading": false,
+          "error": null
+        }
+      }
+    },
+    "widgetUrl": {
+      "data": null,
+      "selected": null,
+      "isLoading": false,
+      "error": null
+    },
     "requests": {}
   }
 }

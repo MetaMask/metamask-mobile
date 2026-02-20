@@ -4,8 +4,10 @@
  */
 import {
   findEvmAccount,
+  getEvmAccountFromAccountGroup,
+  getSelectedEvmAccount,
   calculateWeightedReturnOnEquity,
-} from './accountUtils';
+} from '@metamask/perps-controller';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
 
 describe('accountUtils', () => {
@@ -184,6 +186,141 @@ describe('accountUtils', () => {
     });
   });
 
+  describe('getEvmAccountFromAccountGroup', () => {
+    it('returns object with address when EVM account found', () => {
+      const mockAccounts = [
+        {
+          address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef',
+          id: 'account-1',
+          type: 'eip155:eoa',
+          metadata: {
+            name: 'Ethereum Account',
+            importTime: 0,
+            keyring: { type: 'HD Key Tree' },
+          },
+          methods: [],
+          options: {},
+          scopes: [],
+        },
+      ] as unknown as InternalAccount[];
+
+      const result = getEvmAccountFromAccountGroup(mockAccounts);
+
+      expect(result).toEqual({
+        address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef',
+      });
+    });
+
+    it('returns undefined when no EVM account found', () => {
+      const mockAccounts = [
+        {
+          address: '0x1234567890123456789012345678901234567890',
+          id: 'account-1',
+          type: 'btc:p2pkh',
+          metadata: {
+            name: 'Bitcoin Account',
+            importTime: 0,
+            keyring: { type: 'HD Key Tree' },
+          },
+          methods: [],
+          options: {},
+          scopes: [],
+        },
+      ] as unknown as InternalAccount[];
+
+      const result = getEvmAccountFromAccountGroup(mockAccounts);
+
+      expect(result).toBeUndefined();
+    });
+
+    it('returns undefined for empty account list', () => {
+      const result = getEvmAccountFromAccountGroup([]);
+
+      expect(result).toBeUndefined();
+    });
+  });
+
+  describe('getSelectedEvmAccount', () => {
+    it('returns EVM account when messenger returns accounts with EVM', () => {
+      const mockAccounts = [
+        {
+          address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef',
+          id: 'account-1',
+          type: 'eip155:eoa',
+          metadata: {
+            name: 'Ethereum Account',
+            importTime: 0,
+            keyring: { type: 'HD Key Tree' },
+          },
+          methods: [],
+          options: {},
+          scopes: [],
+        },
+      ] as unknown as InternalAccount[];
+
+      const mockMessenger = {
+        call: jest.fn().mockReturnValue(mockAccounts) as jest.MockedFunction<
+          (
+            action: 'AccountTreeController:getAccountsFromSelectedAccountGroup',
+          ) => InternalAccount[]
+        >,
+      };
+
+      const result = getSelectedEvmAccount(mockMessenger);
+
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'AccountTreeController:getAccountsFromSelectedAccountGroup',
+      );
+      expect(result).toEqual({
+        address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef',
+      });
+    });
+
+    it('returns undefined when no EVM account in selected group', () => {
+      const mockAccounts = [
+        {
+          address: '0x1234567890123456789012345678901234567890',
+          id: 'account-1',
+          type: 'btc:p2pkh',
+          metadata: {
+            name: 'Bitcoin Account',
+            importTime: 0,
+            keyring: { type: 'HD Key Tree' },
+          },
+          methods: [],
+          options: {},
+          scopes: [],
+        },
+      ] as unknown as InternalAccount[];
+
+      const mockMessenger = {
+        call: jest.fn().mockReturnValue(mockAccounts) as jest.MockedFunction<
+          (
+            action: 'AccountTreeController:getAccountsFromSelectedAccountGroup',
+          ) => InternalAccount[]
+        >,
+      };
+
+      const result = getSelectedEvmAccount(mockMessenger);
+
+      expect(result).toBeUndefined();
+    });
+
+    it('returns undefined when messenger returns empty accounts', () => {
+      const mockMessenger = {
+        call: jest.fn().mockReturnValue([]) as jest.MockedFunction<
+          (
+            action: 'AccountTreeController:getAccountsFromSelectedAccountGroup',
+          ) => InternalAccount[]
+        >,
+      };
+
+      const result = getSelectedEvmAccount(mockMessenger);
+
+      expect(result).toBeUndefined();
+    });
+  });
+
   describe('calculateWeightedReturnOnEquity', () => {
     it('returns "0" for empty array', () => {
       const result = calculateWeightedReturnOnEquity([]);
@@ -201,7 +338,7 @@ describe('accountUtils', () => {
       // marginUsed = (100 / 10.0) * 100 = 1000
       // weightedROE = (10.0 / 100) * 1000 / 1000 = 10.0
       const result = calculateWeightedReturnOnEquity(accounts);
-      expect(result).toBe('10.0');
+      expect(result).toBe('10');
     });
 
     it('calculates weighted ROE for single account with number inputs', () => {
@@ -215,7 +352,7 @@ describe('accountUtils', () => {
       // marginUsed = (200 / 20.0) * 100 = 1000
       // weightedROE = (20.0 / 100) * 1000 / 1000 = 20.0
       const result = calculateWeightedReturnOnEquity(accounts);
-      expect(result).toBe('20.0');
+      expect(result).toBe('20');
     });
 
     it('calculates weighted ROE for multiple accounts', () => {
@@ -240,7 +377,7 @@ describe('accountUtils', () => {
       // Total weighted = 450, total margin = 3000
       // weightedROE = (450 / 3000) * 100 = 15.0
       const result = calculateWeightedReturnOnEquity(accounts);
-      expect(result).toBe('15.0');
+      expect(result).toBe('15');
     });
 
     it('calculates weighted ROE with different margin amounts', () => {
@@ -258,9 +395,9 @@ describe('accountUtils', () => {
       // Account 1: ROE = 0.10, marginUsed = 500, weighted = 50
       // Account 2: ROE = 0.20, marginUsed = 1000, weighted = 200
       // Total weighted = 250, total margin = 1500
-      // weightedROE = (250 / 1500) * 100 = 16.666... ≈ 16.7
+      // weightedROE = (250 / 1500) * 100 = 16.666...
       const result = calculateWeightedReturnOnEquity(accounts);
-      expect(result).toBe('16.7');
+      expect(result).toBe('16.666666666666664');
     });
 
     it('handles mixed string and number inputs', () => {
@@ -280,7 +417,7 @@ describe('accountUtils', () => {
       // Total weighted = 300, total margin = 2000
       // weightedROE = (300 / 2000) * 100 = 15.0
       const result = calculateWeightedReturnOnEquity(accounts);
-      expect(result).toBe('15.0');
+      expect(result).toBe('15');
     });
 
     it('skips accounts with zero returnOnEquity', () => {
@@ -305,7 +442,7 @@ describe('accountUtils', () => {
       // Total weighted = 300, total margin = 2000
       // weightedROE = (300 / 2000) * 100 = 15.0
       const result = calculateWeightedReturnOnEquity(accounts);
-      expect(result).toBe('15.0');
+      expect(result).toBe('15');
     });
 
     it('skips accounts with NaN unrealizedPnl', () => {
@@ -330,7 +467,7 @@ describe('accountUtils', () => {
       // Total weighted = 300, total margin = 2000
       // weightedROE = (300 / 2000) * 100 = 15.0
       const result = calculateWeightedReturnOnEquity(accounts);
-      expect(result).toBe('15.0');
+      expect(result).toBe('15');
     });
 
     it('skips accounts with NaN returnOnEquity', () => {
@@ -351,7 +488,7 @@ describe('accountUtils', () => {
 
       // Only accounts 1 and 3 are used
       const result = calculateWeightedReturnOnEquity(accounts);
-      expect(result).toBe('20.0');
+      expect(result).toBe('20');
     });
 
     it('returns "0" when all accounts are invalid', () => {
@@ -391,7 +528,7 @@ describe('accountUtils', () => {
       // Total weighted = 100, total margin = 2000
       // weightedROE = (100 / 2000) * 100 = 5.0
       const result = calculateWeightedReturnOnEquity(accounts);
-      expect(result).toBe('5.0');
+      expect(result).toBe('5');
     });
 
     it('handles decimal precision correctly', () => {
@@ -407,8 +544,8 @@ describe('accountUtils', () => {
       ];
 
       const result = calculateWeightedReturnOnEquity(accounts);
-      // Should round to 1 decimal place
-      expect(result).toMatch(/^\d+\.\d$/);
+      // Should return a raw numeric string
+      expect(result).toMatch(/^-?\d+(\.\d+)?$/);
     });
 
     it('skips accounts that result in zero or negative marginUsed', () => {
@@ -429,7 +566,7 @@ describe('accountUtils', () => {
 
       // Only account 1 is used
       const result = calculateWeightedReturnOnEquity(accounts);
-      expect(result).toBe('10.0');
+      expect(result).toBe('10');
     });
 
     it('handles very small values correctly', () => {
@@ -447,9 +584,9 @@ describe('accountUtils', () => {
       // Account 1: ROE = 0.001, marginUsed = 10, weighted = 0.01
       // Account 2: ROE = 0.002, marginUsed = 10, weighted = 0.02
       // Total weighted = 0.03, total margin = 20
-      // weightedROE = (0.03 / 20) * 100 = 0.15, rounded to 0.1
+      // weightedROE = (0.03 / 20) * 100 = 0.15
       const result = calculateWeightedReturnOnEquity(accounts);
-      expect(result).toBe('0.1');
+      expect(result).toBe('0.15');
     });
 
     it('handles very large values correctly', () => {
@@ -465,7 +602,7 @@ describe('accountUtils', () => {
       ];
 
       const result = calculateWeightedReturnOnEquity(accounts);
-      expect(result).toBe('15.0');
+      expect(result).toBe('15');
     });
 
     it('weighted ROE sign depends on total unrealizedPnl, not total returnOnEquity', () => {
@@ -528,7 +665,7 @@ describe('accountUtils', () => {
       // weightedROE = (100 / 2000) * 100 = 5.0% (positive)
       // Even though we have both positive and negative ROE accounts
       const result = calculateWeightedReturnOnEquity(accounts);
-      expect(result).toBe('5.0');
+      expect(result).toBe('5');
     });
   });
 });

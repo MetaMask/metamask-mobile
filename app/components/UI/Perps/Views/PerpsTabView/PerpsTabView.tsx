@@ -20,7 +20,7 @@ import Text, {
 import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
 import { TraceName } from '../../../../../util/trace';
-import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
 import PerpsCard from '../../components/PerpsCard';
 import { PerpsTabControlBar } from '../../components/PerpsTabControlBar';
@@ -28,13 +28,11 @@ import { useSelector } from 'react-redux';
 import { selectHomepageRedesignV1Enabled } from '../../../../../selectors/featureFlagController/homepage';
 import { selectPerpsEligibility } from '../../selectors/perpsController';
 import {
-  PerpsEventProperties,
-  PerpsEventValues,
-} from '../../constants/eventNames';
-import type {
-  PerpsNavigationParamList,
-  PerpsMarketData,
-} from '../../controllers/types';
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+  type PerpsMarketData,
+} from '@metamask/perps-controller';
+import type { PerpsNavigationParamList } from '../../types/navigation';
 import {
   usePerpsEventTracking,
   usePerpsFirstTimeUser,
@@ -125,16 +123,16 @@ const PerpsTabView = () => {
       account?.totalBalance !== undefined,
     ],
     properties: {
-      [PerpsEventProperties.SCREEN_TYPE]:
-        PerpsEventValues.SCREEN_TYPE.WALLET_HOME_PERPS_TAB,
-      [PerpsEventProperties.OPEN_POSITION]: positions?.length || 0,
+      [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+        PERPS_EVENT_VALUE.SCREEN_TYPE.WALLET_HOME_PERPS_TAB,
+      [PERPS_EVENT_PROPERTY.OPEN_POSITION]: positions?.length || 0,
     },
   });
 
   const handleManageBalancePress = useCallback(() => {
     navigation.navigate(Routes.PERPS.ROOT, {
       screen: Routes.PERPS.PERPS_HOME,
-      params: { source: PerpsEventValues.SOURCE.HOMESCREEN_TAB },
+      params: { source: PERPS_EVENT_VALUE.SOURCE.HOMESCREEN_TAB },
     });
   }, [navigation]);
 
@@ -146,7 +144,7 @@ const PerpsTabView = () => {
       // Navigate to trading view for returning users
       navigation.navigate(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.PERPS_HOME,
-        params: { source: PerpsEventValues.SOURCE.POSITION_TAB },
+        params: { source: PERPS_EVENT_VALUE.SOURCE.POSITION_TAB },
       });
     }
   }, [navigation, isFirstTimeUser]);
@@ -156,10 +154,10 @@ const PerpsTabView = () => {
     // Geo-restriction check for close all positions
     if (!isEligible) {
       track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
-        [PerpsEventProperties.SCREEN_TYPE]:
-          PerpsEventValues.SCREEN_TYPE.GEO_BLOCK_NOTIF,
-        [PerpsEventProperties.SOURCE]:
-          PerpsEventValues.SOURCE.CLOSE_ALL_POSITIONS_BUTTON,
+        [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+          PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+        [PERPS_EVENT_PROPERTY.SOURCE]:
+          PERPS_EVENT_VALUE.SOURCE.CLOSE_ALL_POSITIONS_BUTTON,
       });
       setIsEligibilityModalVisible(true);
       return;
@@ -219,7 +217,7 @@ const PerpsTabView = () => {
             <PerpsCard
               key={order.orderId}
               order={order}
-              source={PerpsEventValues.SOURCE.POSITION_TAB}
+              source={PERPS_EVENT_VALUE.SOURCE.POSITION_TAB}
             />
           ))}
           {(!positions || positions.length === 0) && renderStartTradeCTA()}
@@ -267,7 +265,7 @@ const PerpsTabView = () => {
                 <PerpsCard
                   key={`${position.symbol}-${index}`}
                   position={position}
-                  source={PerpsEventValues.SOURCE.POSITION_TAB}
+                  source={PERPS_EVENT_VALUE.SOURCE.POSITION_TAB}
                 />
               </View>
             );
@@ -294,7 +292,7 @@ const PerpsTabView = () => {
       screen: Routes.PERPS.MARKET_LIST,
       params: {
         defaultMarketTypeFilter: 'all',
-        source: PerpsEventValues.SOURCE.HOMESCREEN_TAB,
+        source: PERPS_EVENT_VALUE.SOURCE.HOMESCREEN_TAB,
       },
     });
   }, [navigation]);

@@ -12,6 +12,7 @@ import {
   PredictEntryPoint,
 } from '../../types/navigation';
 import { PredictEventValues } from '../../constants/eventNames';
+import { usePredictEntryPoint } from '../../contexts';
 import Routes from '../../../../../constants/navigation/Routes';
 import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedSessionManager';
 import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
@@ -31,36 +32,40 @@ interface PredictSportCardFooterProps {
 const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
   market,
   testID,
-  entryPoint = PredictEventValues.ENTRY_POINT.PREDICT_FEED,
+  entryPoint: propEntryPoint,
   isCarousel,
 }) => {
   const tw = useTailwind();
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
 
+  const contextEntryPoint = usePredictEntryPoint();
+  const baseEntryPoint =
+    contextEntryPoint ??
+    propEntryPoint ??
+    PredictEventValues.ENTRY_POINT.PREDICT_FEED;
+
   const resolvedEntryPoint = TrendingFeedSessionManager.getInstance()
     .isFromTrending
     ? PredictEventValues.ENTRY_POINT.TRENDING
-    : entryPoint;
+    : baseEntryPoint;
 
-  const { positions, isLoading } = usePredictPositions({
+  const { data: positions = [], isLoading } = usePredictPositions({
     marketId: market.id,
-    autoRefreshTimeout: 10000,
+    claimable: false,
+    refetchInterval: 10000,
   });
 
-  const { positions: claimablePositions } = usePredictPositions({
+  const { data: claimablePositions = [] } = usePredictPositions({
     marketId: market.id,
     claimable: true,
   });
 
   const { executeGuardedAction } = usePredictActionGuard({
-    providerId: market.providerId,
     navigation,
   });
 
-  const { claim } = usePredictClaim({
-    providerId: market.providerId,
-  });
+  const { claim } = usePredictClaim();
 
   const outcome = market.outcomes?.[0];
   const isMarketOpen =
@@ -96,7 +101,6 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
           }
         },
         {
-          checkBalance: true,
           attemptedAction: PredictEventValues.ATTEMPTED_ACTION.PREDICT,
         },
       );

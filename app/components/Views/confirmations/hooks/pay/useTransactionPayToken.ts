@@ -1,5 +1,8 @@
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
-import { TransactionType } from '@metamask/transaction-controller';
+import {
+  TransactionMeta,
+  TransactionType,
+} from '@metamask/transaction-controller';
 import { TransactionPaymentToken } from '@metamask/transaction-pay-controller';
 import { Hex } from '@metamask/utils';
 import { noop } from 'lodash';
@@ -12,6 +15,8 @@ import { selectTransactionPaymentTokenByTransactionId } from '../../../../../sel
 import { updateTransaction } from '../../../../../util/transaction-controller';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useTransactionPayRequiredTokens } from './useTransactionPayData';
+import { hasTransactionType } from '../../utils/transaction';
+import Logger from '../../../../../util/Logger';
 
 export function useTransactionPayToken(): {
   isNative?: boolean;
@@ -52,21 +57,22 @@ export function useTransactionPayToken(): {
           tokenAddress: newPayToken.address,
           chainId: newPayToken.chainId,
         });
-      } catch (e) {
-        console.error('Error updating payment token', e);
+      } catch (error) {
+        Logger.error(error as Error, 'Error updating payment token');
       }
 
       // perps deposits only use relay, so doesn't need gasFeeToken update
-      const isPredictDepositTransaction =
-        transactionMeta?.type === TransactionType.predictDeposit;
+      const isPredictDepositTransaction = hasTransactionType(transactionMeta, [
+        TransactionType.predictDeposit,
+      ]);
 
-      if (isPredictDepositTransaction) {
+      if (isPredictDepositTransaction && transactionMeta) {
         const isNewPayTokenRequiredToken =
           newPayToken.chainId === primaryRequiredToken?.chainId &&
           newPayToken.address.toLowerCase() ===
             primaryRequiredToken?.address.toLowerCase();
 
-        const updatedTx = {
+        const updatedTx: TransactionMeta = {
           ...transactionMeta,
           selectedGasFeeToken: isNewPayTokenRequiredToken
             ? newPayToken.address

@@ -33,6 +33,7 @@ export enum ACTIONS {
   SELL_CRYPTO = 'sell-crypto',
   DEPOSIT = 'deposit',
   HOME = 'home',
+  ASSET = 'asset',
   SWAP = 'swap',
   EMPTY = '',
   OAUTH_REDIRECT = 'oauth-redirect',
@@ -46,6 +47,7 @@ export enum ACTIONS {
   ONBOARDING = 'onboarding',
   TRENDING = 'trending',
   EARN_MUSD = 'earn-musd',
+  NFT = 'nft',
 }
 
 export const PREFIXES = {
@@ -64,6 +66,7 @@ export const PREFIXES = {
   [ACTIONS.SELL_CRYPTO]: '',
   [ACTIONS.OAUTH_REDIRECT]: '',
   [ACTIONS.HOME]: '',
+  [ACTIONS.ASSET]: '',
   [ACTIONS.SWAP]: '',
   [ACTIONS.CREATE_ACCOUNT]: '',
   [ACTIONS.PERPS]: '',
@@ -79,5 +82,6 @@ export const PREFIXES = {
   [ACTIONS.CARD_KYC_NOTIFICATION]: '',
   [ACTIONS.TRENDING]: '',
   [ACTIONS.EARN_MUSD]: '',
+  [ACTIONS.NFT]: '',
   METAMASK: 'metamask://',
 };

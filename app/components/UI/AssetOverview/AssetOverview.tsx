@@ -1,10 +1,4 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -14,7 +8,6 @@ import {
   CaipAssetType,
   CaipChainId,
   isCaipAssetType,
-  isCaipChainId,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/utils';
 import I18n, { strings } from '../../../../locales/i18n';
@@ -59,7 +52,6 @@ import Routes from '../../../constants/navigation/Routes';
 import TokenDetails from './TokenDetails';
 import { RootState } from '../../../reducers';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { useScrollToMerklRewards } from './hooks/useScrollToMerklRewards';
 import { getDecimalChainId } from '../../../util/networks';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import {
@@ -101,7 +93,6 @@ import {
 } from '@metamask/bridge-controller';
 import { InitSendLocation } from '../../Views/confirmations/constants/send';
 import { useSendNavigation } from '../../Views/confirmations/hooks/useSendNavigation';
-import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
 import parseRampIntent from '../Ramp/utils/parseRampIntent';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import TronEnergyBandwidthDetail from './TronEnergyBandwidthDetail/TronEnergyBandwidthDetail';
@@ -111,15 +102,13 @@ import { selectTokenMarketData } from '../../../selectors/tokenRatesController';
 import { selectPerpsEnabledFlag } from '../Perps';
 import { usePerpsMarketForAsset } from '../Perps/hooks/usePerpsMarketForAsset';
 import PerpsDiscoveryBanner from '../Perps/components/PerpsDiscoveryBanner';
-import { PerpsEventValues } from '../Perps/constants/eventNames';
+import { PERPS_EVENT_VALUE } from '@metamask/perps-controller';
 import { isTokenTrustworthyForPerps } from '../Perps/constants/perpsConfig';
 import DSText, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import { getTokenExchangeRate } from '../Bridge/utils/exchange-rates';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
-import MerklRewards from '../Earn/components/MerklRewards';
-import { selectMerklCampaignClaimingEnabledFlag } from '../Earn/selectors/featureFlags';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import {
   selectTronResourcesBySelectedAccountGroup,
@@ -131,11 +120,10 @@ import { getDetectedGeolocation } from '../../../reducers/fiatOrders';
 import { useRampsButtonClickData } from '../Ramp/hooks/useRampsButtonClickData';
 import useRampsUnifiedV1Enabled from '../Ramp/hooks/useRampsUnifiedV1Enabled';
 import { BridgeToken } from '../Bridge/types';
-import { useRampTokens } from '../Ramp/hooks/useRampTokens';
-import { toAssetId } from '../Bridge/hooks/useAssetMetadata/utils';
-import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
-import { parseCAIP19AssetId } from '../Ramp/Aggregator/utils/parseCaip19AssetId';
-import { toLowerCaseEquals } from '../../../util/general';
+import MarketClosedActionButton from './MarketClosedActionButton';
+import { IconName } from '../../../component-library/components/Icons/Icon';
+import { useRWAToken } from '../Bridge/hooks/useRWAToken';
+import { useTokenBuyability } from '../Ramp/hooks/useTokenBuyability';
 
 /**
  * Determines the source and destination tokens for swap/bridge navigation.
@@ -200,6 +188,7 @@ interface AssetOverviewProps {
   networkName?: string;
 }
 
+// TODO: Delete when TokenDetailsV2 flag is fully rolled out
 const AssetOverview: React.FC<AssetOverviewProps> = ({
   asset,
   displayBuyButton,
@@ -225,24 +214,13 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const allTokenMarketData = useSelector(selectTokenMarketData);
   const selectedChainId = useSelector(selectEvmChainId);
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
-  const isMerklCampaignClaimingEnabled = useSelector(
-    selectMerklCampaignClaimingEnabledFlag,
-  );
   const { navigateToSendPage } = useSendNavigation();
-  const merklRewardsRef = useRef<View>(null);
-  const merklRewardsYInHeaderRef = useRef<number | null>(null);
-
-  // Scroll to MerklRewards section when navigating from "Claim bonus" CTA
-  useScrollToMerklRewards(merklRewardsYInHeaderRef);
 
   const nativeCurrency = useSelector((state: RootState) =>
     selectNativeCurrencyByChainId(state, asset.chainId as Hex),
   );
 
   const multiChainTokenBalance = useSelector(selectTokensBalances);
-  const isMultichainAccountsState2Enabled = useSelector(
-    selectMultichainAccountsState2Enabled,
-  );
 
   const chainId = asset.chainId as Hex;
   const selectedNetworkClientId = useSelector(selectSelectedNetworkClientId);
@@ -259,13 +237,8 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   ///: END:ONLY_INCLUDE_IF
 
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
-  const tronResources = useSelector(selectTronResourcesBySelectedAccountGroup);
-
-  const strxEnergy = tronResources.find(
-    (a) => a.symbol.toLowerCase() === 'strx-energy',
-  );
-  const strxBandwidth = tronResources.find(
-    (a) => a.symbol.toLowerCase() === 'strx-bandwidth',
+  const { stakedTrxForEnergy, stakedTrxForBandwidth } = useSelector(
+    selectTronResourcesBySelectedAccountGroup,
   );
 
   // Use selector to get live Tron asset balance (not static navigation params)
@@ -280,6 +253,8 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
       : undefined,
   );
   ///: END:ONLY_INCLUDE_IF
+
+  const { isTokenTradingOpen } = useRWAToken();
 
   const currentAddress = asset.address as Hex;
   const { goToBuy } = useRampNavigation();
@@ -485,7 +460,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
         screen: Routes.PERPS.MARKET_DETAILS,
         params: {
           market: marketData,
-          source: PerpsEventValues.SOURCE.ASSET_DETAIL_SCREEN,
+          source: PERPS_EVENT_VALUE.SOURCE.ASSET_DETAIL_SCREEN,
         },
       });
     }
@@ -604,8 +579,8 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const exchangeRate = marketDataRate ?? fetchedRate;
 
   let balance;
-  const minimumDisplayThreshold = 0.00001;
 
+  const minimumDisplayThreshold = 0.00001;
   const isMultichainAsset = isNonEvmAsset;
   const isEthOrNative = asset.isETH || asset.isNative;
 
@@ -615,7 +590,11 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
 
   // create Staked TRX derived asset (same as native TRX but with a new name and balance)
   const stakedTrxAsset = isTronNative
-    ? createStakedTrxAsset(asset, strxEnergy?.balance, strxBandwidth?.balance)
+    ? createStakedTrxAsset(
+        asset,
+        stakedTrxForEnergy?.balance,
+        stakedTrxForBandwidth?.balance,
+      )
     : undefined;
   ///: END:ONLY_INCLUDE_IF
 
@@ -627,8 +606,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   }
   ///: END:ONLY_INCLUDE_IF
 
-  if (isMultichainAccountsState2Enabled && balanceSource != null) {
-    // When state2 is enabled and asset has balance, use it directly
+  if (balanceSource != null) {
     balance = balanceSource;
   } else if (isMultichainAsset) {
     balance = balanceSource
@@ -750,35 +728,13 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
       ? `${balance} ${asset.isETH ? asset.ticker : asset.symbol}`
       : undefined;
 
-  const { allTokens } = useRampTokens();
+  const { isBuyable: isAssetBuyable } = useTokenBuyability(asset as TokenI);
 
-  const isAssetBuyable = useMemo(() => {
-    if (!allTokens) return false;
-
-    const chainIdInCaip = isCaipChainId(asset.chainId)
-      ? asset.chainId
-      : toEvmCaipChainId(asset.chainId as Hex);
-    const assetId = toAssetId(asset.address, chainIdInCaip);
-
-    const matchingToken = allTokens.find((token) => {
-      if (!token.assetId) return false;
-
-      const parsedTokenAssetId = parseCAIP19AssetId(token.assetId);
-      if (!parsedTokenAssetId) return false;
-
-      // For native assets, match by chainId and slip44 namespace
-      if (asset.isNative) {
-        return (
-          token.chainId === chainIdInCaip &&
-          parsedTokenAssetId.assetNamespace === 'slip44'
-        );
-      }
-
-      // For ERC20 tokens, match by assetId
-      return assetId && toLowerCaseEquals(token.assetId, assetId);
+  const handleMarketClosedButtonPress = () => {
+    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.MARKET_CLOSED_MODAL,
     });
-    return matchingToken?.tokenSupported ?? false;
-  }, [allTokens, asset.isNative, asset.chainId, asset.address]);
+  };
 
   return (
     <View style={styles.wrapper} testID={TokenOverviewSelectorsIDs.CONTAINER}>
@@ -799,9 +755,20 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
           <View style={styles.chartNavigationWrapper}>
             {renderChartNavigationButton()}
           </View>
+          {!isTokenTradingOpen(asset as BridgeToken) && (
+            <View style={styles.marketClosedActionButtonContainer}>
+              <MarketClosedActionButton
+                iconName={IconName.Info}
+                label={strings('asset_overview.market_closed')}
+                onPress={handleMarketClosedButtonPress}
+              />
+            </View>
+          )}
           <AssetDetailsActions
             displayBuyButton={displayBuyButton && isAssetBuyable}
-            displaySwapsButton={displaySwapsButton}
+            displaySwapsButton={
+              displaySwapsButton && isTokenTradingOpen(asset as BridgeToken)
+            }
             goToSwaps={goToSwaps}
             onBuy={onBuy}
             onReceive={onReceive}
@@ -837,20 +804,6 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
             )
             ///: END:ONLY_INCLUDE_IF
           }
-          {isMerklCampaignClaimingEnabled && (
-            <View
-              ref={merklRewardsRef}
-              testID="merkl-rewards-section"
-              onLayout={(event) => {
-                // Store Y position relative to header (which is the scroll offset)
-                // This is more reliable than measureInWindow for FlatList scrolling
-                const { y } = event.nativeEvent.layout;
-                merklRewardsYInHeaderRef.current = y;
-              }}
-            >
-              <MerklRewards asset={asset} />
-            </View>
-          )}
           {isPerpsEnabled &&
             hasPerpsMarket &&
             marketData &&

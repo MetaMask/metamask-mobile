@@ -159,110 +159,66 @@ checkParameters(){
 	#TODO: Add check for valid METAMASK_BUILD_TYPE once commands are fully refactored
 }
 
-remapEnvVariable() {
-    # Get the old and new variable names
-    old_var_name=$1
-    new_var_name=$2
+# ─────────────────────────────────────────────────────────────────────────────
+# Load build configuration from builds.yml
+# Used when GITHUB_ACTIONS is set (workflow already set secrets; this fills CONFIGURATION, IS_SIM_BUILD, etc.)
+# ─────────────────────────────────────────────────────────────────────────────
+loadBuildConfig() {
+	local build_type="$1"
+	local environment="$2"
 
-    # Check if the old variable exists
-    if [ -z "${!old_var_name}" ]; then
-        echo "Error: $old_var_name does not exist in the environment."
-        return 1
-    fi
+	# Normalize environment name (production -> prod for build name)
+	local normalized_env="$environment"
+	case "$environment" in
+		production) normalized_env="prod" ;;
+	esac
 
-    # Remap the variable
-    export $new_var_name="${!old_var_name}"
+	# Construct build name (e.g., main-prod, flask-dev)
+	local build_name="${build_type}-${normalized_env}"
 
-    unset $old_var_name
+	echo ""
+	echo "📦 Loading configuration from builds.yml for '${build_name}'..."
+	echo ""
 
-    echo "Successfully remapped $old_var_name to $new_var_name."
+	# Load config using apply-build-config.js
+	local config_output
+	config_output=$(node "${__DIRNAME__}/apply-build-config.js" "${build_name}" --export 2>&1)
+	local exit_code=$?
+
+	if [ $exit_code -ne 0 ]; then
+		echo "❌ Failed to load build configuration"
+		echo ""
+		echo "Error: ${config_output}"
+		echo ""
+		echo "Available builds can be found in builds.yml"
+		echo "Run 'node scripts/validate-build-config.js' to check config validity."
+		return 1
+	fi
+
+	# Apply the configuration (exports environment variables)
+	eval "$config_output"
+
+	echo "✅ Configuration loaded from builds.yml"
+	echo "   Build: ${build_name}"
+	echo ""
+
+	return 0
 }
 
-# Create .env file from environment variables and optionally export to GITHUB_ENV
-createEnvFile() {
-    echo "📝 Creating .env file from environment variables..."
-
-    # List of environment variable names to export
-    ENV_VARS=(
-        "MM_MUSD_CONVERSION_FLOW_ENABLED"
-        "MM_NETWORK_UI_REDESIGN_ENABLED"
-        "MM_NOTIFICATIONS_UI_ENABLED"
-        "MM_PERMISSIONS_SETTINGS_V1_ENABLED"
-        "MM_PERPS_BLOCKED_REGIONS"
-        "MM_PERPS_ENABLED"
-        "MM_PERPS_HIP3_ALLOWLIST_MARKETS"
-        "MM_PERPS_HIP3_BLOCKLIST_MARKETS"
-        "MM_PERPS_HIP3_ENABLED"
-        "MM_SECURITY_ALERTS_API_ENABLED"
-        "BRIDGE_USE_DEV_APIS"
-        "SEEDLESS_ONBOARDING_ENABLED"
-        "RAMP_INTERNAL_BUILD"
-        "FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN"
-        "FEATURES_ANNOUNCEMENTS_SPACE_ID"
-        "SEGMENT_WRITE_KEY"
-        "SEGMENT_PROXY_URL"
-        "SEGMENT_DELETE_API_SOURCE_ID"
-        "SEGMENT_REGULATIONS_ENDPOINT"
-        "MM_SENTRY_DSN"
-        "MM_SENTRY_AUTH_TOKEN"
-        "IOS_GOOGLE_CLIENT_ID"
-        "IOS_GOOGLE_REDIRECT_URI"
-        "ANDROID_APPLE_CLIENT_ID"
-        "ANDROID_GOOGLE_CLIENT_ID"
-        "ANDROID_GOOGLE_SERVER_CLIENT_ID"
-        "MM_INFURA_PROJECT_ID"
-        "MM_BRANCH_KEY_LIVE"
-        "MM_BRANCH_KEY_TEST"
-        "MM_CARD_BAANX_API_CLIENT_KEY"
-        "WALLET_CONNECT_PROJECT_ID"
-        "MM_FOX_CODE"
-        "FCM_CONFIG_API_KEY"
-        "FCM_CONFIG_AUTH_DOMAIN"
-        "FCM_CONFIG_STORAGE_BUCKET"
-        "FCM_CONFIG_PROJECT_ID"
-        "FCM_CONFIG_MESSAGING_SENDER_ID"
-        "FCM_CONFIG_APP_ID"
-        "FCM_CONFIG_MEASUREMENT_ID"
-        "QUICKNODE_MAINNET_URL"
-        "QUICKNODE_ARBITRUM_URL"
-        "QUICKNODE_AVALANCHE_URL"
-        "QUICKNODE_BASE_URL"
-        "QUICKNODE_LINEA_MAINNET_URL"
-        "QUICKNODE_MONAD_URL"
-        "QUICKNODE_OPTIMISM_URL"
-        "QUICKNODE_POLYGON_URL"
-    )
-
-    # Create .env file
-    > .env
-    
-    # Export to GITHUB_ENV if in CI environment
-    local exported_count=0
-    for var in "${ENV_VARS[@]}"; do
-        # Check if variable is set (defined), not just non-empty
-        # This allows explicitly empty strings (e.g., MM_PERPS_HIP3_ALLOWLIST_MARKETS='')
-        # to be written to .env, which is semantically different from undefined variables
-        if [ -n "${!var+x}" ]; then
-            value="${!var}"
-            # Use double quotes with proper escaping (consistent with .js.env format)
-            # Escape special characters to prevent shell interpretation when sourcing
-            escaped_value="${value//\\/\\\\}"  # Escape backslashes first
-            escaped_value="${escaped_value//\"/\\\"}"  # Escape double quotes
-            escaped_value="${escaped_value//\$/\\\$}"  # Escape dollar signs to prevent variable expansion
-            
-            echo "${var}=\"${escaped_value}\"" >> .env
-            
-            # Export to GITHUB_ENV if in GitHub Actions
-            # Note: GITHUB_ENV expects NAME=value format without quotes
-            if [ -n "$GITHUB_ENV" ]; then
-                echo "${var}=${value}" >> "$GITHUB_ENV"
-            fi
-            
-            ((exported_count++))
-        fi
-    done
-
-    echo "📄 .env file created with ${exported_count} variables"
+# ─────────────────────────────────────────────────────────────────────────────
+# Legacy env remapping (Bitrise). Used only when GITHUB_ACTIONS is not set.
+# GitHub Actions uses loadBuildConfig + builds.yml; secrets are set with canonical names.
+# ─────────────────────────────────────────────────────────────────────────────
+remapEnvVariable() {
+	local old_var_name="$1"
+	local new_var_name="$2"
+	if [ -z "${!old_var_name}" ]; then
+		echo "Error: $old_var_name does not exist in the environment."
+		return 1
+	fi
+	export $new_var_name="${!old_var_name}"
+	unset $old_var_name
+	echo "Successfully remapped $old_var_name to $new_var_name."
 }
 
 # Mapping for Main env variables in the dev environment
@@ -471,23 +427,7 @@ prebuild_ios(){
   fi
 }
 
-installICULibraries(){
-	# Install ICU libraries for Hermes
-	echo "Installing ICU libraries for Hermes..."
-	
-	if [[ "$OSTYPE" == "darwin"* ]]; then
-		# macOS - use Homebrew
-		brew install icu4c
-	else
-		# Linux (GitHub CI uses Ubuntu) - use apt-get
-		sudo apt-get update && sudo apt-get install -y libicu-dev
-	fi
-}
-
 prebuild_android(){
-	# Install ICU libraries if on Linux
-	installICULibraries
-	
 	# Copy JS files for injection
 	yes | cp -rf app/core/InpageBridgeWeb3.js android/app/src/main/assets/.
 	# Copy fonts with iconset
@@ -715,39 +655,112 @@ generateAndroidBinary() {
 	cd ..
 }
 
-buildExpoUpdate() {
-		echo "Build Expo Update $METAMASK_BUILD_TYPE started..."
+createEnvFile() {
+	echo "📝 Creating .env file from environment variables..."
 
-		# Create .env file from environment variables because Expo updates pulls env variables from .env 
-		# see https://docs.expo.dev/eas/environment-variables/usage/#using-environment-variables-with-eas-update 
-		createEnvFile
+	# List of environment variable names to export
+	local ENV_VARS=(
+		"MM_MUSD_CONVERSION_FLOW_ENABLED"
+		"MM_NETWORK_UI_REDESIGN_ENABLED"
+		"MM_NOTIFICATIONS_UI_ENABLED"
+		"MM_PERMISSIONS_SETTINGS_V1_ENABLED"
+		"MM_PERPS_BLOCKED_REGIONS"
+		"MM_PERPS_ENABLED"
+		"MM_PERPS_HIP3_ALLOWLIST_MARKETS"
+		"MM_PERPS_HIP3_BLOCKLIST_MARKETS"
+		"MM_PERPS_HIP3_ENABLED"
+		"MM_SECURITY_ALERTS_API_ENABLED"
+		"BRIDGE_USE_DEV_APIS"
+		"SEEDLESS_ONBOARDING_ENABLED"
+		"RAMP_INTERNAL_BUILD"
+		"FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN"
+		"FEATURES_ANNOUNCEMENTS_SPACE_ID"
+		"SEGMENT_WRITE_KEY"
+		"SEGMENT_PROXY_URL"
+		"SEGMENT_DELETE_API_SOURCE_ID"
+		"SEGMENT_REGULATIONS_ENDPOINT"
+		"MM_SENTRY_DSN"
+		"MM_SENTRY_AUTH_TOKEN"
+		"IOS_GOOGLE_CLIENT_ID"
+		"IOS_GOOGLE_REDIRECT_URI"
+		"ANDROID_APPLE_CLIENT_ID"
+		"ANDROID_GOOGLE_CLIENT_ID"
+		"ANDROID_GOOGLE_SERVER_CLIENT_ID"
+		"MM_INFURA_PROJECT_ID"
+		"MM_BRANCH_KEY_LIVE"
+		"MM_BRANCH_KEY_TEST"
+		"MM_CARD_BAANX_API_CLIENT_KEY"
+		"WALLET_CONNECT_PROJECT_ID"
+		"MM_FOX_CODE"
+		"FCM_CONFIG_API_KEY"
+		"FCM_CONFIG_AUTH_DOMAIN"
+		"FCM_CONFIG_STORAGE_BUCKET"
+		"FCM_CONFIG_PROJECT_ID"
+		"FCM_CONFIG_MESSAGING_SENDER_ID"
+		"FCM_CONFIG_APP_ID"
+		"FCM_CONFIG_MEASUREMENT_ID"
+		"QUICKNODE_MAINNET_URL"
+		"QUICKNODE_ARBITRUM_URL"
+		"QUICKNODE_AVALANCHE_URL"
+		"QUICKNODE_BASE_URL"
+		"QUICKNODE_LINEA_MAINNET_URL"
+		"QUICKNODE_MONAD_URL"
+		"QUICKNODE_OPTIMISM_URL"
+		"QUICKNODE_POLYGON_URL"
+	)
 
-		# Verify .env file was created and source it
-		if [ -f ".env" ]; then
-			echo "✅ .env file exists at $(pwd)/.env"
-			echo "📊 .env file contains $(wc -l < .env | tr -d ' ') lines"
-			# Show first few variables (without values for security)
-			echo "📝 Sample variables in .env:"
-			head -n 5 .env | cut -d= -f1 | sed 's/^/  - /'
+	# Create .env file and export to GITHUB_ENV
+	> .env
+	local exported_count=0
+	for var in "${ENV_VARS[@]}"; do
+		# Check if variable is set (defined), not just non-empty
+		# This allows explicitly empty strings to be written to .env
+		if [ -n "${!var+x}" ]; then
+			value="${!var}"
+			echo "${var}=${value}" >> .env
 			
-			# Source the .env file to ensure variables are loaded
-			echo "🔄 Sourcing .env file to load variables..."
-			set -a  # automatically export all variables
-			source .env
-			set +a  # turn off automatic export
-			echo "✅ .env file sourced successfully"
-		else
-			echo "⚠️ WARNING: .env file was not created!"
+			# Export to GITHUB_ENV if running in GitHub Actions
+			if [ -n "${GITHUB_ENV:-}" ]; then
+				echo "${var}=${value}" >> "$GITHUB_ENV"
+			fi
+			
+			exported_count=$((exported_count + 1))
 		fi
+	done
 
-	# Validate required Expo Update environment variables
+	echo "📄 .env file created with ${exported_count} variables"
+}
+
+buildExpoUpdate() {
+	echo "Build Expo Update $METAMASK_BUILD_TYPE started..."
+	
+	# Create .env file and export environment variables
+	createEnvFile
+	
+	# Verify .env file was created and source it
+	if [ -f ".env" ]; then
+		echo "✅ .env file exists at $(pwd)/.env"
+		echo "📊 .env file contains $(wc -l < .env | tr -d ' ') lines"
+		# Show first few variables (without values for security)
+		echo "📝 Sample variables in .env:"
+		head -n 5 .env | cut -d= -f1 | sed 's/^/  - /'
+		
+		# Source the .env file to ensure variables are loaded
+		echo "🔄 Sourcing .env file to load variables..."
+		set -a  # automatically export all variables
+		source .env
+		set +a  # turn off automatic export
+		echo "✅ .env file sourced successfully"
+	else
+		echo "⚠️ WARNING: .env file was not created!"
+	fi
+	
 	if [ -z "${EXPO_TOKEN}" ]; then
 		echo "::error title=Missing EXPO_TOKEN::EXPO_TOKEN secret is not configured. Cannot authenticate with Expo." >&2
 		exit 1
-	else
-		echo "EXPO_TOKEN is set in build.sh env (value masked by GitHub Actions logs)"
 	fi
 
+	# Validate required Expo Update environment variables
 	if [ -z "${EXPO_CHANNEL}" ]; then
 		echo "::error title=Missing EXPO_CHANNEL::EXPO_CHANNEL environment variable is not set. Cannot publish update." >&2
 		exit 1
@@ -758,33 +771,78 @@ buildExpoUpdate() {
 		exit 1
 	fi
 
-		# Prepare Expo update signing key
-		mkdir -p keys
-		echo "Writing Expo private key to ./keys/private-key.pem"
-		printf '%s' "${EXPO_KEY_PRIV}" > keys/private-key.pem
+	# Prepare Expo update signing key
+	mkdir -p keys
+	echo "Writing Expo private key to ./keys/private-key.pem"
+	printf '%s' "${EXPO_KEY_PRIV}" > keys/private-key.pem
 
-		if [ ! -f keys/private-key.pem ]; then
-			echo "::error title=Missing signing key::keys/private-key.pem not found. Ensure the signing key step ran successfully." >&2
-			exit 1
-		fi
+	if [ ! -f keys/private-key.pem ]; then
+		echo "::error title=Missing signing key::keys/private-key.pem not found. Ensure the signing key step ran successfully." >&2
+		exit 1
+	fi
 
-		echo "🚀 Publishing EAS update..."
+	echo "🚀 Publishing EAS update..."
 
-		echo "ℹ️ Git head: $(git rev-parse HEAD)"
-		echo "ℹ️ Checking for eas script in package.json..."
-		if ! grep -q '"eas": "eas"' package.json; then
-			echo "::error title=Missing eas script::package.json does not include an \"eas\" script. Commit hash: $(git rev-parse HEAD)." >&2
-			exit 1
-		fi
+	echo "ℹ️ Git head: $(git rev-parse HEAD)"
+	echo "ℹ️ Checking for eas script in package.json..."
+	if ! grep -q '"eas": "eas"' package.json; then
+		echo "::error title=Missing eas script::package.json does not include an \"eas\" script. Commit hash: $(git rev-parse HEAD)." >&2
+		exit 1
+	fi
 
-		echo "ℹ️ Available yarn scripts containing eas:"
-		yarn run --json | grep '"name":"eas"' || true
+	echo "ℹ️ Available yarn scripts containing eas:"
+	yarn run --json | grep '"name":"eas"' || true
 
+	# Run platforms based on OTA_PUSH_PLATFORM environment variable (default: all)
+	# Run sequentially to avoid LavaMoat lockdown serializer conflicts
+	# when bundling multiple platforms simultaneously
+	OTA_PUSH_PLATFORM="${OTA_PUSH_PLATFORM:-all}"
+	
+	# Track exit codes to ensure failures propagate
+	local ios_exit_code=0
+	local android_exit_code=0
+	
+	if [ "$OTA_PUSH_PLATFORM" = "all" ] || [ "$OTA_PUSH_PLATFORM" = "ios" ]; then
+		echo "📱 Publishing iOS update..."
 		yarn run eas update \
+			--platform ios \
 			--channel "${EXPO_CHANNEL}" \
 			--private-key-path "./keys/private-key.pem" \
 			--message "${UPDATE_MESSAGE}" \
 			--non-interactive
+		ios_exit_code=$?
+		
+		if [ $ios_exit_code -ne 0 ]; then
+			echo "::error title=iOS update failed::iOS EAS update command failed with exit code ${ios_exit_code}" >&2
+		fi
+	fi
+
+	if [ "$OTA_PUSH_PLATFORM" = "all" ] || [ "$OTA_PUSH_PLATFORM" = "android" ]; then
+		echo "🤖 Publishing Android update..."
+		yarn run eas update \
+			--platform android \
+			--channel "${EXPO_CHANNEL}" \
+			--private-key-path "./keys/private-key.pem" \
+			--message "${UPDATE_MESSAGE}" \
+			--non-interactive
+		android_exit_code=$?
+		
+		if [ $android_exit_code -ne 0 ]; then
+			echo "::error title=Android update failed::Android EAS update command failed with exit code ${android_exit_code}" >&2
+		fi
+	fi
+
+	# Check for failures and exit accordingly
+	if [ $ios_exit_code -ne 0 ] || [ $android_exit_code -ne 0 ]; then
+		echo "::error title=EAS update failed::One or more platform updates failed. iOS exit code: ${ios_exit_code}, Android exit code: ${android_exit_code}" >&2
+		exit 1
+	fi
+	
+	if [ "$OTA_PUSH_PLATFORM" = "all" ]; then
+		echo "✅ EAS updates published for both platforms"
+	else
+		echo "✅ EAS update published for ${OTA_PUSH_PLATFORM}"
+	fi
 }
 
 buildAndroid() {
@@ -888,7 +946,8 @@ checkAuthToken() {
 	local propertiesFileName="$1"
 
 	if [ -n "${MM_SENTRY_AUTH_TOKEN}" ]; then
-		sed -i'' -e "s/auth.token.*/auth.token=${MM_SENTRY_AUTH_TOKEN}/" "./${propertiesFileName}";
+		# Use | as delimiter to avoid conflicts with special characters in auth token (e.g., /)
+		sed -i'' -e "s|auth.token.*|auth.token=${MM_SENTRY_AUTH_TOKEN}|" "./${propertiesFileName}";
 	elif ! grep -qE '^auth.token=[[:alnum:]]+$' "./${propertiesFileName}"; then
 		if [ "$METAMASK_ENVIRONMENT" == "production" ]; then
 			printError "Missing auth token in '${propertiesFileName}'; add the token, or set it as MM_SENTRY_AUTH_TOKEN"
@@ -901,7 +960,8 @@ checkAuthToken() {
 	if [ ! -e "./${propertiesFileName}" ]; then
 		if [ -n "${MM_SENTRY_AUTH_TOKEN}" ]; then
 			cp "./${propertiesFileName}.example" "./${propertiesFileName}"
-			sed -i'' -e "s/auth.token.*/auth.token=${MM_SENTRY_AUTH_TOKEN}/" "./${propertiesFileName}";
+			# Use | as delimiter to avoid conflicts with special characters in auth token (e.g., /)
+			sed -i'' -e "s|auth.token.*|auth.token=${MM_SENTRY_AUTH_TOKEN}|" "./${propertiesFileName}";
 		else
 			if [ "$METAMASK_ENVIRONMENT" == "production" ]; then
 				printError "Missing '${propertiesFileName}' file (see '${propertiesFileName}.example' or set MM_SENTRY_AUTH_TOKEN to generate)"
@@ -918,40 +978,52 @@ checkParameters "$@"
 
 printTitle
 
-# Map environment variables based on mode.
-# TODO: MODE should be renamed to TARGET
-# Skip environment variable remapping for expo-update platform
+# ─────────────────────────────────────────────────────────────────────────────
+# Load build configuration: GitHub Actions uses builds.yml; Bitrise uses legacy remap.
+# Both paths supported until Bitrise is deprecated.
+# ─────────────────────────────────────────────────────────────────────────────
 if [ "$PLATFORM" != "expo-update" ]; then
+	# Set flags for main builds
 	if [ "$METAMASK_BUILD_TYPE" == "main" ]; then
 		export GENERATE_BUNDLE=true # Used only for Android
 		export PRE_RELEASE=true # Used mostly for iOS, for Android only deletes old APK and installs new one
-		if [ "$METAMASK_ENVIRONMENT" == "production" ]; then
-			remapMainProdEnvVariables
-		elif [ "$METAMASK_ENVIRONMENT" == "beta" ]; then
-			remapMainBetaEnvVariables
-		elif [ "$METAMASK_ENVIRONMENT" == "rc" ]; then
-			remapMainReleaseCandidateEnvVariables
-		elif [ "$METAMASK_ENVIRONMENT" == "exp" ]; then
-			remapMainExperimentalEnvVariables
-		elif [ "$METAMASK_ENVIRONMENT" == "test" ]; then
-			remapMainTestEnvVariables
-		elif [ "$METAMASK_ENVIRONMENT" == "e2e" ]; then
-			remapMainE2EEnvVariables
-		elif [ "$METAMASK_ENVIRONMENT" == "dev" ]; then
-			remapMainDevEnvVariables
+	fi
+
+	if [ -n "${GITHUB_ACTIONS:-}" ]; then
+		# GitHub Actions: config from builds.yml (Apply build config step sets env; loadBuildConfig fills any gaps)
+		if ! loadBuildConfig "$METAMASK_BUILD_TYPE" "$METAMASK_ENVIRONMENT"; then
+			echo "❌ Build configuration failed. Exiting."
+			exit 1
 		fi
-	elif [ "$METAMASK_BUILD_TYPE" == "flask" ]; then
-		# TODO: Map environment variables based on environment
-		if [ "$METAMASK_ENVIRONMENT" == "production" ]; then
-			remapFlaskProdEnvVariables
-		elif [ "$METAMASK_ENVIRONMENT" == "test" ]; then
-			remapFlaskTestEnvVariables
-		elif [ "$METAMASK_ENVIRONMENT" == "e2e" ]; then
-			remapFlaskE2EEnvVariables
+	else
+		# Bitrise (or local): legacy env remapping (Bitrise secrets use per-env names, e.g. SEGMENT_WRITE_KEY_PROD)
+		if [ "$METAMASK_BUILD_TYPE" == "main" ]; then
+			if [ "$METAMASK_ENVIRONMENT" == "production" ]; then
+				remapMainProdEnvVariables
+			elif [ "$METAMASK_ENVIRONMENT" == "beta" ]; then
+				remapMainBetaEnvVariables
+			elif [ "$METAMASK_ENVIRONMENT" == "rc" ]; then
+				remapMainReleaseCandidateEnvVariables
+			elif [ "$METAMASK_ENVIRONMENT" == "exp" ]; then
+				remapMainExperimentalEnvVariables
+			elif [ "$METAMASK_ENVIRONMENT" == "test" ]; then
+				remapMainTestEnvVariables
+			elif [ "$METAMASK_ENVIRONMENT" == "e2e" ]; then
+				remapMainE2EEnvVariables
+			elif [ "$METAMASK_ENVIRONMENT" == "dev" ]; then
+				remapMainDevEnvVariables
+			fi
+		elif [ "$METAMASK_BUILD_TYPE" == "flask" ]; then
+			if [ "$METAMASK_ENVIRONMENT" == "production" ]; then
+				remapFlaskProdEnvVariables
+			elif [ "$METAMASK_ENVIRONMENT" == "test" ]; then
+				remapFlaskTestEnvVariables
+			elif [ "$METAMASK_ENVIRONMENT" == "e2e" ]; then
+				remapFlaskE2EEnvVariables
+			fi
+		elif [ "$METAMASK_BUILD_TYPE" == "qa" ] || [ "$METAMASK_BUILD_TYPE" == "QA" ]; then
+			remapEnvVariableQA
 		fi
-	elif [ "$METAMASK_BUILD_TYPE" == "qa" ] || [ "$METAMASK_BUILD_TYPE" == "QA" ]; then
-		# TODO: Map environment variables based on environment
-		remapEnvVariableQA
 	fi
 fi
 
@@ -994,6 +1066,7 @@ elif [ "$PLATFORM" == "android" ]; then
 		envFileMissing $ANDROID_ENV_FILE
 	fi
 elif [ "$PLATFORM" == "expo-update" ]; then
+	# we don't care about env file in CI
 	buildExpoUpdate
 elif [ "$PLATFORM" == "watcher" ]; then
 	startWatcher
