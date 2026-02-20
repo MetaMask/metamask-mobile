@@ -129,35 +129,16 @@ export function usePerpsLivePositions(
 
   // Subscribe to position updates
   useEffect(() => {
-    DevLogger.log(
-      '[PERPS_DEBUG] usePerpsLivePositions: Subscribing to position stream',
-      {
-        hasPreloadedData: hasPreloadedData('cachedPositions'),
-      },
-    );
-
-    let updateCount = 0;
-    const subscribeTime = Date.now();
-
     const unsubscribe = stream.positions.subscribe({
       callback: (newPositions) => {
         if (newPositions === null) {
-          DevLogger.log(
-            '[PERPS_DEBUG] usePerpsLivePositions: Received NULL positions, ignoring',
-          );
           return;
-        }
-
-        updateCount++;
-        if (updateCount <= 3) {
-          DevLogger.log(
-            `[PERPS_DEBUG] usePerpsLivePositions: Update #${updateCount} (${newPositions.length} positions, ${Date.now() - subscribeTime}ms since subscribe)`,
-          );
         }
 
         if (!hasReceivedFirstUpdate.current) {
           DevLogger.log(
-            `[PERPS_DEBUG] usePerpsLivePositions: FIRST update received (${newPositions.length} positions, ${Date.now() - subscribeTime}ms since subscribe)`,
+            'usePerpsLivePositions: Received first WebSocket update',
+            { positionsCount: newPositions?.length ?? 0 },
           );
           hasReceivedFirstUpdate.current = true;
           setIsInitialLoading(false);

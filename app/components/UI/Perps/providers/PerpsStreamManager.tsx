@@ -123,18 +123,9 @@ abstract class StreamChannel<T> {
     // Give immediate cached data if available
     const cached = this.getCachedData();
     if (cached != null) {
-      DevLogger.log(
-        `[PERPS_DEBUG] ${this.constructor.name}.subscribe: Serving CACHED data to new subscriber`,
-        { subscriberId: id, hasWsSubscription: !!this.wsSubscription },
-      );
       params.callback(cached);
       // Mark as having received first update since we provided cached data
       subscription.hasReceivedFirstUpdate = true;
-    } else {
-      DevLogger.log(
-        `[PERPS_DEBUG] ${this.constructor.name}.subscribe: No cached data for new subscriber`,
-        { subscriberId: id, hasWsSubscription: !!this.wsSubscription },
-      );
     }
 
     // Ensure WebSocket connected
@@ -166,16 +157,13 @@ abstract class StreamChannel<T> {
    */
   protected deferConnect(delayMs: number): void {
     if (this.subscribers.size === 0) {
-      DevLogger.log(
-        `[PERPS_DEBUG] ${this.constructor.name}.deferConnect: No subscribers, aborting`,
-      );
       this.connectRetryCount = 0;
       return;
     }
 
     if (this.connectRetryCount >= StreamChannel.MAX_CONNECT_RETRIES) {
       DevLogger.log(
-        `[PERPS_DEBUG] ${this.constructor.name}: MAX RETRIES EXCEEDED (${StreamChannel.MAX_CONNECT_RETRIES}), GIVING UP — this is likely a bug`,
+        `${this.constructor.name}: Max connect retries exceeded (${StreamChannel.MAX_CONNECT_RETRIES}), giving up`,
       );
       this.connectRetryCount = 0;
       return;
@@ -198,9 +186,6 @@ abstract class StreamChannel<T> {
    */
   protected ensureReady(): boolean {
     if (Engine.context.PerpsController.isCurrentlyReinitializing()) {
-      DevLogger.log(
-        `[PERPS_DEBUG] ${this.constructor.name}.ensureReady: DEFERRED — controller is reinitializing (retry #${this.connectRetryCount})`,
-      );
       this.deferConnect(PERPS_CONSTANTS.ReconnectionCleanupDelayMs);
       return false;
     }
@@ -209,21 +194,14 @@ abstract class StreamChannel<T> {
       // If actively connecting, await the connection promise instead of polling
       if (connState.isConnecting) {
         DevLogger.log(
-          `[PERPS_DEBUG] ${this.constructor.name}.ensureReady: AWAITING connection promise (retry #${this.connectRetryCount})`,
+          `${this.constructor.name}: ensureReady: awaiting active connection`,
         );
         this.awaitConnectionThenConnect();
         return false;
       }
-      DevLogger.log(
-        `[PERPS_DEBUG] ${this.constructor.name}.ensureReady: DEFERRED — not initialized, not connecting (retry #${this.connectRetryCount})`,
-        connState,
-      );
       this.deferConnect(200);
       return false;
     }
-    DevLogger.log(
-      `[PERPS_DEBUG] ${this.constructor.name}.ensureReady: READY (after ${this.connectRetryCount} retries)`,
-    );
     this.connectRetryCount = 0;
     return true;
   }
@@ -250,9 +228,6 @@ abstract class StreamChannel<T> {
       .then(() => {
         this.deferConnectTimer = null;
         if (this.subscribers.size > 0) {
-          DevLogger.log(
-            `[PERPS_DEBUG] ${this.constructor.name}.awaitConnectionThenConnect: Connection resolved, retrying connect()`,
-          );
           this.connect();
         }
       })
@@ -261,7 +236,7 @@ abstract class StreamChannel<T> {
         // Connection failed — fall back to normal defer polling
         if (this.subscribers.size > 0) {
           DevLogger.log(
-            `[PERPS_DEBUG] ${this.constructor.name}.awaitConnectionThenConnect: Connection failed, falling back to defer`,
+            `${this.constructor.name}: awaitConnectionThenConnect: connection failed, falling back to polling`,
           );
           this.deferConnect(200);
         }
@@ -375,9 +350,6 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
 
   protected connect() {
     if (this.wsSubscription) {
-      DevLogger.log(
-        `[PERPS_DEBUG] PriceStreamChannel.connect: SKIPPED — already has wsSubscription`,
-      );
       return;
     }
 
@@ -386,9 +358,6 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
     // If we have a prewarm subscription, we're already subscribed to all markets
     // No need to create another subscription
     if (this.prewarmUnsubscribe) {
-      DevLogger.log(
-        `[PERPS_DEBUG] PriceStreamChannel.connect: Using prewarm subscription (actualPriceUnsub=${!!this.actualPriceUnsubscribe}, cacheSize=${this.priceCache.size})`,
-      );
       // Just notify subscribers with cached data
       const cached = this.getCachedData();
       if (cached) {
@@ -401,20 +370,15 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
     const allSymbols = Array.from(this.symbols);
 
     DevLogger.log(
-      `[PERPS_DEBUG] PriceStreamChannel.connect: symbols len=${allSymbols.length}`,
-      allSymbols.slice(0, 5),
+      `PriceStreamChannel: allSymbols len=`,
+      allSymbols.length,
+      allSymbols,
     );
 
     if (allSymbols.length === 0) {
-      DevLogger.log(
-        `[PERPS_DEBUG] PriceStreamChannel.connect: SKIPPED — no symbols`,
-      );
       return;
     }
 
-    DevLogger.log(
-      `[PERPS_DEBUG] PriceStreamChannel.connect: Creating NEW WS subscription for ${allSymbols.length} symbols`,
-    );
     this.wsSubscription = Engine.context.PerpsController.subscribeToPrices({
       symbols: allSymbols,
       callback: (updates: PriceUpdate[]) => {
@@ -506,9 +470,7 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
    */
   public async prewarm(): Promise<() => void> {
     if (this.prewarmUnsubscribe) {
-      DevLogger.log(
-        '[PERPS_DEBUG] PriceStreamChannel.prewarm: Already pre-warmed, returning existing',
-      );
+      DevLogger.log('PriceStreamChannel: Already pre-warmed');
       return this.prewarmUnsubscribe;
     }
 
@@ -520,11 +482,6 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
       this.prewarmCycleId++;
       const currentCycleId = this.prewarmCycleId;
 
-      DevLogger.log(
-        `[PERPS_DEBUG] PriceStreamChannel.prewarm: Starting market fetch (cycleId=${currentCycleId})`,
-      );
-      const prewarmStartTime = Date.now();
-
       // Start market fetch in background (non-blocking)
       // We need the symbols to register subscribers, but we can return immediately
       const marketsPromise = controller.getMarkets();
@@ -532,9 +489,6 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
       // Set up subscription once markets arrive (fire-and-forget)
       marketsPromise
         .then((markets) => {
-          DevLogger.log(
-            `[PERPS_DEBUG] PriceStreamChannel.prewarm: getMarkets resolved in ${Date.now() - prewarmStartTime}ms (${markets.length} markets, cycleId=${currentCycleId})`,
-          );
           // If this promise is from a stale cycle, don't set up subscription
           // This prevents leaks when prewarm is called multiple times rapidly
           if (currentCycleId !== this.prewarmCycleId) {
@@ -560,19 +514,10 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
             },
           );
 
-          DevLogger.log(
-            `[PERPS_DEBUG] PriceStreamChannel.prewarm: Creating WS subscription for ${this.allMarketSymbols.length} symbols`,
-          );
-
           // Subscribe to all market prices
           const unsub = controller.subscribeToPrices({
             symbols: this.allMarketSymbols,
             callback: (updates: PriceUpdate[]) => {
-              if (this.priceCache.size === 0) {
-                DevLogger.log(
-                  `[PERPS_DEBUG] PriceStreamChannel.prewarm: FIRST WS data received (${updates.length} updates, ${Date.now() - prewarmStartTime}ms since prewarm start)`,
-                );
-              }
               const priceMap: Record<string, PriceUpdate> = {};
               updates.forEach((update) => {
                 const priceUpdate: PriceUpdate = {
@@ -602,10 +547,6 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
           this.actualPriceUnsubscribe = unsub;
         })
         .catch((error) => {
-          DevLogger.log(
-            `[PERPS_DEBUG] PriceStreamChannel.prewarm: getMarkets FAILED after ${Date.now() - prewarmStartTime}ms`,
-            error,
-          );
           Logger.error(
             ensureError(error, 'PriceStreamChannel.prewarm.backgroundFetch'),
             {
@@ -617,9 +558,6 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
           this.allMarketSymbols = [];
           // Reconnect waiting subscribers that were skipped because prewarm was pending
           if (this.subscribers.size > 0) {
-            DevLogger.log(
-              `[PERPS_DEBUG] PriceStreamChannel.prewarm: Falling back to connect() for ${this.subscribers.size} waiting subscribers`,
-            );
             this.connect();
           }
         });
@@ -788,18 +726,9 @@ class PositionStreamChannel extends StreamChannel<Position[]> {
   private firstDataTraceId?: string;
 
   protected connect() {
-    if (this.wsSubscription) {
-      DevLogger.log(
-        `[PERPS_DEBUG] PositionStreamChannel.connect: SKIPPED — already has wsSubscription`,
-      );
-      return;
-    }
+    if (this.wsSubscription) return;
 
     if (!this.ensureReady()) return;
-
-    DevLogger.log(
-      `[PERPS_DEBUG] PositionStreamChannel.connect: Creating NEW WS subscription`,
-    );
 
     // Start trace for first data measurement (before subscription)
     this.firstDataTraceId = uuidv4();
@@ -814,10 +743,6 @@ class PositionStreamChannel extends StreamChannel<Position[]> {
 
     this.wsSubscription = Engine.context.PerpsController.subscribeToPositions({
       callback: (positions: Position[]) => {
-        DevLogger.log(
-          `[PERPS_DEBUG] PositionStreamChannel: WS callback fired (${positions.length} positions, isPaused=${this.isPaused}, subscribers=${this.subscribers.size})`,
-        );
-
         // Validate account context
         const currentAccount =
           getEvmAccountFromSelectedAccountGroup()?.address || null;
@@ -869,17 +794,8 @@ class PositionStreamChannel extends StreamChannel<Position[]> {
 
   protected getCachedData() {
     const cached = this.cache.get('positions');
-    if (cached !== undefined) {
-      DevLogger.log(
-        `[PERPS_DEBUG] PositionStreamChannel.getCachedData: FROM CHANNEL CACHE (${cached.length} positions)`,
-      );
-      return cached;
-    }
-    const preloaded = getPreloadedData<Position[]>('cachedPositions');
-    DevLogger.log(
-      `[PERPS_DEBUG] PositionStreamChannel.getCachedData: FROM CONTROLLER PRELOAD (${preloaded?.length ?? 'null'} positions)`,
-    );
-    return preloaded;
+    if (cached !== undefined) return cached;
+    return getPreloadedData<Position[]>('cachedPositions');
   }
 
   protected getClearedData(): Position[] {
@@ -893,14 +809,9 @@ class PositionStreamChannel extends StreamChannel<Position[]> {
    */
   public prewarm(): () => void {
     if (this.prewarmUnsubscribe) {
-      DevLogger.log(
-        '[PERPS_DEBUG] PositionStreamChannel.prewarm: Already pre-warmed',
-      );
+      DevLogger.log('PositionStreamChannel: Already pre-warmed');
       return this.prewarmUnsubscribe;
     }
-    DevLogger.log(
-      '[PERPS_DEBUG] PositionStreamChannel.prewarm: Starting prewarm subscription',
-    );
 
     // Create a real subscription with no-op callback to keep connection alive
     this.prewarmUnsubscribe = this.subscribe({

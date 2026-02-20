@@ -902,19 +902,13 @@ class PerpsConnectionManagerClass {
   private async preloadSubscriptions(): Promise<void> {
     // Only pre-load once per session
     if (this.hasPreloaded) {
-      DevLogger.log(
-        '[PERPS_DEBUG] preloadSubscriptions: SKIPPED — hasPreloaded=true (set during previous successful preload)',
-      );
+      DevLogger.log('PerpsConnectionManager: Already pre-loaded, skipping');
       return;
     }
 
     try {
       DevLogger.log(
-        '[PERPS_DEBUG] preloadSubscriptions: Starting (hasPreloaded=false, isConnected=' +
-          this.isConnected +
-          ', isInitialized=' +
-          this.isInitialized +
-          ')',
+        'PerpsConnectionManager: Pre-loading WebSocket subscriptions via StreamManager',
       );
       this.hasPreloaded = true;
 
@@ -924,36 +918,18 @@ class PerpsConnectionManagerClass {
       // Pre-warm all channels including prices for all markets
       // This creates persistent subscriptions that keep connections alive
       // Store cleanup functions to call when leaving Perps
-      DevLogger.log(
-        '[PERPS_DEBUG] preloadSubscriptions: Prewarming positions...',
-      );
       const positionCleanup = streamManager.positions.prewarm();
-      DevLogger.log('[PERPS_DEBUG] preloadSubscriptions: Prewarming orders...');
       const orderCleanup = streamManager.orders.prewarm();
-      DevLogger.log(
-        '[PERPS_DEBUG] preloadSubscriptions: Prewarming account...',
-      );
       const accountCleanup = streamManager.account.prewarm();
-      DevLogger.log(
-        '[PERPS_DEBUG] preloadSubscriptions: Prewarming marketData...',
-      );
       const marketDataCleanup = streamManager.marketData.prewarm();
-      DevLogger.log('[PERPS_DEBUG] preloadSubscriptions: Prewarming oiCaps...');
       const oiCapCleanup = streamManager.oiCaps.prewarm();
-      DevLogger.log('[PERPS_DEBUG] preloadSubscriptions: Prewarming fills...');
       const fillsCleanup = streamManager.fills.prewarm();
 
       // Portfolio balance updates are now handled by usePerpsPortfolioBalance via usePerpsLiveAccount
 
       // Position updates are no longer needed for balance persistence since we use live streams
       // Price channel prewarm is async and subscribes to all market prices
-      DevLogger.log(
-        '[PERPS_DEBUG] preloadSubscriptions: Prewarming prices (async)...',
-      );
       const priceCleanup = await streamManager.prices.prewarm();
-      DevLogger.log(
-        '[PERPS_DEBUG] preloadSubscriptions: Price prewarm returned',
-      );
 
       this.prewarmCleanups.push(
         positionCleanup,
@@ -966,19 +942,12 @@ class PerpsConnectionManagerClass {
       );
 
       // Give subscriptions a moment to receive initial data
-      DevLogger.log(
-        `[PERPS_DEBUG] preloadSubscriptions: Waiting ${PERPS_CONSTANTS.InitialDataDelayMs}ms for initial data...`,
-      );
       await wait(PERPS_CONSTANTS.InitialDataDelayMs);
 
       DevLogger.log(
-        `[PERPS_DEBUG] preloadSubscriptions: COMPLETE (${this.prewarmCleanups.length} cleanups registered)`,
+        'PerpsConnectionManager: Pre-loading complete with persistent subscriptions',
       );
     } catch (error) {
-      DevLogger.log(
-        '[PERPS_DEBUG] preloadSubscriptions: FAILED — this may cause stale cache issues',
-        error,
-      );
       Logger.error(
         ensureError(error, 'PerpsConnectionManager.preloadSubscriptions'),
         {

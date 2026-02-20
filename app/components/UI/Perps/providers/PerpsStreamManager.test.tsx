@@ -131,6 +131,11 @@ describe('PerpsStreamManager', () => {
       isConnecting: false,
       error: null,
     });
+    mockPerpsConnectionManager.waitForConnection = jest.fn().mockReturnValue(
+      new Promise((_resolve) => {
+        /* never resolves */
+      }),
+    );
   });
 
   afterEach(() => {
@@ -3463,7 +3468,7 @@ describe('PerpsStreamManager', () => {
       jest.advanceTimersByTime(150 * 200 + 100);
 
       expect(mockDevLogger.log).toHaveBeenCalledWith(
-        expect.stringContaining('MAX RETRIES EXCEEDED'),
+        expect.stringContaining('Max connect retries exceeded'),
       );
     });
   });
