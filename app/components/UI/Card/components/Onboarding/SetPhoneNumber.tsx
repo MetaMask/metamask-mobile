@@ -23,7 +23,8 @@ import {
 } from '../../../../../core/redux/slices/card';
 import { useDispatch, useSelector } from 'react-redux';
 import { CardError } from '../../types';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { CardActions, CardScreens } from '../../util/metrics';
 import { countryCodeToFlag } from '../../util/countryCodeToFlag';
 import {
@@ -32,8 +33,8 @@ import {
   Region,
   setOnValueChange,
 } from './RegionSelectorModal';
-import { TouchableOpacity } from 'react-native';
 import { useCardSDK } from '../../sdk';
+import SelectField from './SelectField';
 
 const US_PHONE_REGEX = /^[2-9]\d{2}[2-9]\d{6}$/;
 
@@ -42,7 +43,7 @@ const SetPhoneNumber = () => {
   const dispatch = useDispatch();
   const contactVerificationId = useSelector(selectContactVerificationId);
   const initialSelectedCountry = useSelector(selectSelectedCountry);
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const { data: registrationSettings } = useRegistrationSettings();
   const { user } = useCardSDK();
   const userCardLocation = useSelector(selectUserCardLocation);
@@ -248,19 +249,13 @@ const SetPhoneNumber = () => {
       </Label>
       {/* Area code selector */}
       <Box twClassName="flex flex-row items-center justify-center gap-2">
-        <Box twClassName="flex flex-row items-center border border-solid border-border-default rounded-lg h-full">
-          <Box twClassName="w-26 justify-center items-center flex">
-            <TouchableOpacity
-              onPress={handleCountrySelect}
-              testID="set-phone-number-country-area-code-select"
-            >
-              <Box twClassName="flex flex-row items-center justify-between px-4 py-2">
-                <Text variant={TextVariant.BodyMd}>
-                  {`${selectedCountryEmoji} +${selectedCountryAreaCode}`}
-                </Text>
-              </Box>
-            </TouchableOpacity>
-          </Box>
+        <Box twClassName="w-26">
+          <SelectField
+            value={`${selectedCountryEmoji} +${selectedCountryAreaCode}`}
+            onPress={handleCountrySelect}
+            hideIcon
+            testID="set-phone-number-country-area-code-select"
+          />
         </Box>
 
         {/* Phone number input */}

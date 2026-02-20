@@ -15,7 +15,7 @@ import { backgroundState } from '../../../../util/test/initial-root-state';
 import TabBar from './TabBar';
 import { TabBarIconKey, ExtendedBottomTabDescriptor } from './TabBar.types';
 import Routes from '../../../../constants/navigation/Routes';
-import { selectAssetsTrendingTokensEnabled } from '../../../../selectors/featureFlagController/assetsTrendingTokens';
+import { useAccountMenuEnabled } from '../../../../selectors/featureFlagController/accountMenu/useAccountMenuEnabled';
 
 // Minimal descriptor interface for tests - only includes what TabBar component uses
 interface TestTabDescriptor {
@@ -30,8 +30,13 @@ interface TestDescriptors {
   [key: string]: TestTabDescriptor;
 }
 
-// Mock trending tokens feature flag selector
-jest.mock('../../../../selectors/featureFlagController/assetsTrendingTokens');
+// Mock account menu feature flag hook
+jest.mock(
+  '../../../../selectors/featureFlagController/accountMenu/useAccountMenuEnabled',
+  () => ({
+    useAccountMenuEnabled: jest.fn(() => false),
+  }),
+);
 
 // Mock the navigation object with proper typing
 const navigation: NavigationHelpers<ParamListBase> = {
@@ -124,7 +129,10 @@ describe('TabBar', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('navigates to the correct screen when a tab is pressed', () => {
+  it('navigates to the correct screen when a tab is pressed and account menu is disabled', () => {
+    // Explicitly disable the account menu feature flag for this test
+    jest.mocked(useAccountMenuEnabled).mockReturnValue(false);
+
     const { getByTestId } = renderWithProvider(
       <TabBar
         state={state as TabNavigationState<ParamListBase>}
@@ -160,7 +168,7 @@ describe('TabBar', () => {
 
     fireEvent.press(getByTestId(`tab-bar-item-${TabBarIconKey.Setting}`));
     expect(navigation.navigate).toHaveBeenCalledWith(Routes.SETTINGS_VIEW, {
-      screen: Routes.ACCOUNTS_MENU_VIEW,
+      screen: 'Settings',
     });
   });
 
@@ -195,8 +203,6 @@ describe('TabBar', () => {
   });
 
   it('navigates to trending when trending tab is pressed', () => {
-    jest.mocked(selectAssetsTrendingTokensEnabled).mockReturnValue(true);
-
     const trendingState = {
       index: 0,
       routes: [{ key: '1', name: 'Tab 1' }],
@@ -225,34 +231,22 @@ describe('TabBar', () => {
     expect(navigation.navigate).toHaveBeenCalledWith(Routes.TRENDING_VIEW);
   });
 
-  it('does not navigate to trending when trending feature flag is disabled', () => {
-    jest.mocked(selectAssetsTrendingTokensEnabled).mockReturnValue(false);
-
-    const trendingState = {
-      index: 0,
-      routes: [{ key: '1', name: 'Tab 1' }],
-    };
-    const trendingDescriptors: TestDescriptors = {
-      '1': {
-        options: {
-          tabBarIconKey: TabBarIconKey.Trending,
-          rootScreenName: Routes.TRENDING_VIEW,
-        },
-      },
-    };
+  it('navigates to Accounts Menu when settings tab is pressed and account menu is enabled', () => {
+    // Enable the account menu feature flag for this test
+    jest.mocked(useAccountMenuEnabled).mockReturnValue(true);
 
     const { getByTestId } = renderWithProvider(
       <TabBar
-        state={trendingState as TabNavigationState<ParamListBase>}
-        descriptors={
-          trendingDescriptors as Record<string, ExtendedBottomTabDescriptor>
-        }
+        state={state as TabNavigationState<ParamListBase>}
+        descriptors={descriptors as Record<string, ExtendedBottomTabDescriptor>}
         navigation={navigation}
       />,
       { state: mockInitialState },
     );
 
-    fireEvent.press(getByTestId(`tab-bar-item-${TabBarIconKey.Trending}`));
-    expect(navigation.navigate).not.toHaveBeenCalledWith(Routes.TRENDING_VIEW);
+    fireEvent.press(getByTestId(`tab-bar-item-${TabBarIconKey.Setting}`));
+    expect(navigation.navigate).toHaveBeenCalledWith(Routes.SETTINGS_VIEW, {
+      screen: Routes.ACCOUNTS_MENU_VIEW,
+    });
   });
 });

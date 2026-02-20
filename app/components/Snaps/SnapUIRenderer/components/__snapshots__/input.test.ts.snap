@@ -139,7 +139,6 @@ exports[`SnapUIInput handles disabled input 1`] = `
                         "height": 46,
                         "letterSpacing": 0,
                         "opacity": 1,
-                        "textAlignVertical": "center",
                       }
                     }
                     testID="testInput-snap-ui-input"
@@ -299,7 +298,6 @@ exports[`SnapUIInput renders with initial value 1`] = `
                         "height": 46,
                         "letterSpacing": 0,
                         "opacity": 1,
-                        "textAlignVertical": "center",
                       }
                     }
                     testID="testInput-snap-ui-input"

@@ -53,6 +53,7 @@ _secrets: &secrets # Infrastructure
   WALLET_CONNECT_PROJECT_ID: 'WALLET_CONNECT_PROJECT_ID'
   MM_FOX_CODE: 'MM_FOX_CODE'
   MM_BRANCH_KEY_LIVE: 'MM_BRANCH_KEY_LIVE'
+  MM_BRANCH_KEY_TEST: 'MM_BRANCH_KEY_TEST'
   # Analytics
   SEGMENT_WRITE_KEY: 'SEGMENT_WRITE_KEY'
   SEGMENT_PROXY_URL: 'SEGMENT_PROXY_URL'
@@ -78,6 +79,7 @@ _secrets: &secrets # Infrastructure
   QUICKNODE_MONAD_URL: 'QUICKNODE_MONAD_URL'
   QUICKNODE_OPTIMISM_URL: 'QUICKNODE_OPTIMISM_URL'
   QUICKNODE_POLYGON_URL: 'QUICKNODE_POLYGON_URL'
+  QUICKNODE_HYPEREVM_URL: 'QUICKNODE_HYPEREVM_URL'
   # OAuth
   IOS_GOOGLE_CLIENT_ID: 'IOS_GOOGLE_CLIENT_ID'
   IOS_GOOGLE_REDIRECT_URI: 'IOS_GOOGLE_REDIRECT_URI'
@@ -119,6 +121,26 @@ _code_fencing_main: &code_fencing_main
   - solana
   - bitcoin
   - tron
+
+# Beta code fencing features (main + beta feature)
+_code_fencing_beta: &code_fencing_beta
+  - beta
+  - preinstalled-snaps
+  - keyring-snaps
+  - multi-srp
+  - solana
+  - bitcoin
+  - tron
+
+# Experimental code fencing features (main + experimental)
+_code_fencing_experimental: &code_fencing_experimental
+  - preinstalled-snaps
+  - keyring-snaps
+  - multi-srp
+  - solana
+  - bitcoin
+  - tron
+  - experimental
 
 # Flask code fencing features (includes experimental)
 _code_fencing_flask: &code_fencing_flask
@@ -186,7 +208,7 @@ builds:
       METAMASK_ENVIRONMENT: 'beta'
       METAMASK_BUILD_TYPE: 'main'
     secrets: *secrets
-    code_fencing: *code_fencing_main
+    code_fencing: *code_fencing_beta
     remote_feature_flags: *remote_feature_flags
 
   # Release candidate
@@ -260,7 +282,7 @@ builds:
       IS_TEST: 'false'
       MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: 'true'
     secrets: *secrets
-    code_fencing: *code_fencing_main
+    code_fencing: *code_fencing_experimental
     remote_feature_flags:
       <<: *remote_feature_flags
       # Override for experimental testing

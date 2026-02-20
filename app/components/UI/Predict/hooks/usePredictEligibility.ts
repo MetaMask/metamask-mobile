@@ -193,13 +193,9 @@ export const getRefreshManagerForTesting = (): EligibilityRefreshManager =>
  * poll for updates using a sequential loading pattern (wait for response → wait interval → poll again)
  * until a country is returned or the component unmounts.
  */
-export const usePredictEligibility = ({
-  providerId,
-}: {
-  providerId: string;
-}) => {
+export const usePredictEligibility = () => {
   const eligibility = useSelector(selectPredictEligibility);
-  const country = eligibility[providerId]?.country;
+  const country = eligibility?.country;
 
   // Manual refresh - bypasses debounce (force = true)
   const refreshEligibility = useCallback(async () => {
@@ -212,22 +208,17 @@ export const usePredictEligibility = ({
 
   // Register this hook instance with the singleton manager
   useEffect(() => {
-    DevLogger.log('PredictController: Mounting eligibility hook', {
-      providerId,
-    });
+    DevLogger.log('PredictController: Mounting eligibility hook');
 
     refreshManager.register();
 
     return () => {
-      DevLogger.log('PredictController: Unmounting eligibility hook', {
-        providerId,
-      });
+      DevLogger.log('PredictController: Unmounting eligibility hook');
       refreshManager.unregister();
     };
-  }, [providerId]);
+  }, []);
 
   // Auto-refresh when country is missing - sequential loading pattern
-  // Similar to usePredictOptimisticPositionRefresh
   // Retries up to MISSING_COUNTRY_MAX_RETRIES times, resets on unmount
   useEffect(() => {
     // Skip if we already have a country
@@ -244,7 +235,7 @@ export const usePredictEligibility = ({
 
       DevLogger.log(
         'PredictController: Country missing, auto-refreshing eligibility',
-        { providerId, retryCount, maxRetries: MISSING_COUNTRY_MAX_RETRIES },
+        { retryCount, maxRetries: MISSING_COUNTRY_MAX_RETRIES },
       );
 
       try {
@@ -272,7 +263,7 @@ export const usePredictEligibility = ({
       } else if (shouldContinue && retryCount >= MISSING_COUNTRY_MAX_RETRIES) {
         DevLogger.log(
           'PredictController: Max retries reached for missing country',
-          { providerId, retryCount },
+          { retryCount },
         );
       }
     };
@@ -286,10 +277,10 @@ export const usePredictEligibility = ({
         clearTimeout(timeoutId);
       }
     };
-  }, [country, providerId]);
+  }, [country]);
 
   return {
-    isEligible: eligibility[providerId]?.eligible ?? false,
+    isEligible: eligibility?.eligible ?? false,
     country,
     refreshEligibility,
   };

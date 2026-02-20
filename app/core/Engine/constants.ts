@@ -17,6 +17,7 @@ export const STATELESS_NON_CONTROLLER_NAMES = [
   'MultichainAccountService',
   'ProfileMetricsService',
   'RampsService',
+  'TransakService',
 ] as const;
 
 export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
@@ -26,6 +27,7 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'AddressBookController:stateChange',
   'AnalyticsController:stateChange',
   'AppMetadataController:stateChange',
+  'AssetsController:stateChange',
   'ConnectivityController:stateChange',
   'ApprovalController:stateChange',
   'CurrencyRateController:stateChange',

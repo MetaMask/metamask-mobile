@@ -10,8 +10,9 @@ import messaging, {
 } from '@react-native-firebase/messaging';
 import { NativeModules, Platform } from 'react-native';
 import Logger from '../../../util/Logger';
-import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
-import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import { analytics } from '../../analytics/analytics';
+import { AnalyticsEventBuilder } from '../../analytics/AnalyticsEventBuilder';
 import type { JsonValue } from '../../../core/Analytics/MetaMetrics.types';
 
 async function getInitialNotification() {
@@ -76,8 +77,8 @@ function analyticsTrackPushClickEvent(
     const remoteMessageParsedData = extractData();
 
     // Always send a push notification click event, but properties are optional
-    MetaMetrics.getInstance().trackEvent(
-      MetricsEventBuilder.createEventBuilder(
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(
         MetaMetricsEvents.PUSH_NOTIFICATION_CLICKED,
       )
         .addProperties({

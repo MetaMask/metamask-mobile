@@ -13,6 +13,10 @@ import { getSdkError } from '@walletconnect/utils';
 import { rpcErrors } from '@metamask/rpc-errors';
 
 import { updateWC2Metadata } from '../../../app/actions/sdk';
+import {
+  WC2VerifyContext,
+  WC2VerifyValidation,
+} from '../../../app/actions/sdk/state';
 import { selectEvmChainId } from '../../selectors/networkController';
 import { store } from '../../store';
 import StorageWrapper from '../../store/storage-wrapper';
@@ -29,7 +33,6 @@ import DevLogger from '../SDKConnect/utils/DevLogger';
 import getAllUrlParams from '../SDKConnect/utils/getAllUrlParams.util';
 import { wait, waitForKeychainUnlocked } from '../SDKConnect/utils/wait.util';
 import extractApprovedAccounts from './extractApprovedAccounts';
-import WalletConnect from './WalletConnect';
 import {
   getHostname,
   getScopedPermissions,
@@ -58,6 +61,13 @@ export const ERROR_MESSAGES = {
   INVALID_ID: 'Invalid Id',
 };
 
+// Safety timeout for the proposal serialization lock.
+const PROPOSAL_LOCK_TIMEOUT_MS = 60_000;
+
+// How long a pairing topic stays in seenTopics. Long enough to block the
+// OS duplicate-delivery burst (~1 s), short enough to allow manual retries.
+const SEEN_TOPIC_TTL_MS = 5_000;
+
 export class WC2Manager {
   private static instance: WC2Manager;
   private static _initialized = false;
@@ -67,6 +77,15 @@ export class WC2Manager {
   private deeplinkSessions: {
     [pairingTopic: string]: { redirectUrl?: string; origin: string };
   } = {};
+
+  // Serializes proposal handling so concurrent proposals don't fight
+  // over shared state (wc2Metadata, navigation, approval queue).
+  private proposalLock: Promise<void> = Promise.resolve();
+  // Deduplicates connect() calls for the same pairing topic.
+  // Entries auto-expire after SEEN_TOPIC_TTL_MS to allow manual retries.
+  private seenTopics = new Set<string>();
+  // Deduplicates session_proposal events (the relay can fire duplicates).
+  private handledProposalIds = new Set<number>();
 
   private constructor(
     web3Wallet: IWalletKit,
@@ -418,6 +437,33 @@ export class WC2Manager {
   }
 
   async onSessionProposal(proposal: WalletKitTypes.SessionProposal) {
+    const handle = () =>
+      Promise.race([
+        this._handleSessionProposal(proposal),
+        new Promise<void>((resolve) =>
+          setTimeout(() => {
+            console.warn(
+              `WC2::session_proposal lock timeout for id=${proposal.id}`,
+            );
+            resolve();
+          }, PROPOSAL_LOCK_TIMEOUT_MS),
+        ),
+      ]);
+
+    // Chain onto the lock. The error handler ensures a failed proposal
+    // doesn't prevent subsequent proposals from being processed.
+    this.proposalLock = this.proposalLock.then(handle, handle);
+    await this.proposalLock;
+  }
+
+  private async _handleSessionProposal(
+    proposal: WalletKitTypes.SessionProposal,
+  ) {
+    if (this.handledProposalIds.has(proposal.id)) {
+      return;
+    }
+    this.handledProposalIds.add(proposal.id);
+
     //  Open session proposal modal for confirmation / rejection
     const { id, params } = proposal;
 
@@ -444,6 +490,43 @@ export class WC2Manager {
     const name = metadata.description ?? '';
     const icons = metadata.icons;
     const icon = icons?.[0] ?? '';
+
+    // Extract WalletConnect Verify API context for domain risk detection.
+    // If unavailable (error, timeout), default to undefined so the UI
+    // treats it as a clean connection (no malicious warnings).
+    let verifyContext: WC2VerifyContext | undefined;
+    try {
+      const rawVerify = (
+        proposal as WalletKitTypes.SessionProposal & {
+          verifyContext?: {
+            verified?: {
+              isScam?: boolean;
+              validation?: string;
+              origin?: string;
+            };
+          };
+        }
+      ).verifyContext;
+      if (rawVerify?.verified) {
+        verifyContext = {
+          isScam: rawVerify.verified.isScam === true,
+          validation:
+            (rawVerify.verified.validation as WC2VerifyValidation) ??
+            WC2VerifyValidation.UNKNOWN,
+          verifiedOrigin: rawVerify.verified.origin,
+        };
+        DevLogger.log(
+          `WC2::session_proposal verifyContext`,
+          JSON.stringify(verifyContext),
+        );
+      }
+    } catch (verifyErr) {
+      DevLogger.log(
+        `WC2::session_proposal failed to extract verifyContext`,
+        verifyErr,
+      );
+      // Verify failures must not block the connection
+    }
 
     // Validate new session proposal URL without normalizing - reject if invalid.
     if (!isValidUrl(url)) {
@@ -473,8 +556,10 @@ export class WC2Manager {
       `WC2::session_proposal metadata url=${origin} hostname=${hostname}`,
     );
 
-    // Save Connection info to redux store to be retrieved in ui.
-    store.dispatch(updateWC2Metadata({ url, name, icon, id: `${id}` }));
+    // Save connection info to redux store for the approval UI.
+    store.dispatch(
+      updateWC2Metadata({ url, name, icon, id: `${id}`, verifyContext }),
+    );
 
     // Get the current chain ID to include in permissions
     const walletChainIdHex = selectEvmChainId(store.getState());
@@ -506,7 +591,6 @@ export class WC2Manager {
         },
       );
 
-      // Request permissions via the permissions controller
       await permissionsController.requestPermissions(
         { origin: channelId },
         {
@@ -551,11 +635,14 @@ export class WC2Manager {
         id: proposal.id,
         reason: getSdkError('USER_REJECTED_METHODS'),
       });
+      // Clear stale metadata so it doesn't bleed into the next proposal.
+      store.dispatch(
+        updateWC2Metadata({ url: '', name: '', icon: '', id: '' }),
+      );
       return;
     }
 
     try {
-      // Use the hostname for consistent permissions
       const approvedAccounts = getPermittedAccounts(channelId);
 
       DevLogger.log(`WC2::session_proposal getScopedPermissions`, {
@@ -717,8 +804,14 @@ export class WC2Manager {
       }
 
       if (params.version === 1) {
-        await WalletConnect.newSession(wcUri, redirectUrl, false, origin);
-      } else if (params.version === 2) {
+        // WalletConnect V1 was shut down on June 28, 2023. V1 URIs are no longer supported.
+        console.warn(
+          `WalletConnect V1 is no longer supported. V1 was shut down on June 28, 2023. URI: ${wcUri}`,
+        );
+        return;
+      }
+
+      if (params.version === 2) {
         // check if already connected
         const activeSession = this.getSessions().find(
           (session) =>
@@ -729,6 +822,16 @@ export class WC2Manager {
           this.sessions[activeSession.topic]?.setDeeplink(isDeepLink);
           return;
         }
+
+        // Deduplicate: the OS can deliver the same deeplink multiple times.
+        if (this.seenTopics.has(params.topic)) {
+          return;
+        }
+        this.seenTopics.add(params.topic);
+        setTimeout(
+          () => this.seenTopics.delete(params.topic),
+          SEEN_TOPIC_TTL_MS,
+        );
 
         // cleanup uri before pairing.
         const cleanUri = wcUri.startsWith('wc://')
@@ -753,9 +856,10 @@ export class WC2Manager {
             JSON.stringify(this.deeplinkSessions),
           );
         }
-      } else {
-        console.warn(`Invalid wallet connect uri`, wcUri);
+        return;
       }
+
+      console.warn(`Invalid wallet connect uri`, wcUri);
     } catch (err) {
       console.error(`Failed to connect uri=${wcUri}`, err);
     }

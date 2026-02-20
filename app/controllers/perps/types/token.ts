@@ -5,7 +5,7 @@ import type { Hex, CaipChainId } from '@metamask/utils';
  * Independent from BridgeToken to avoid Mobile-only dependencies.
  * Shape matches BridgeToken for backward compatibility.
  */
-export interface PerpsToken {
+export type PerpsToken = {
   address: string;
   name?: string;
   symbol: string;
@@ -19,4 +19,4 @@ export interface PerpsToken {
   noFee?: { isSource: boolean; isDestination: boolean };
   aggregators?: string[];
   metadata?: Record<string, unknown>;
-}
+};
