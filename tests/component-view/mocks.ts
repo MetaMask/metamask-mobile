@@ -162,6 +162,13 @@ jest.mock('../../app/core/Engine', () => {
         getOrders: jest.fn().mockResolvedValue([]),
         getOpenOrders: jest.fn().mockResolvedValue([]),
         getAccountState: jest.fn().mockResolvedValue(null),
+        depositWithOrder: jest.fn().mockResolvedValue({
+          result: Promise.resolve('0xcomponent-view-deposit'),
+        }),
+        depositWithConfirmation: jest.fn().mockResolvedValue({
+          result: Promise.resolve('0xcomponent-view-deposit'),
+        }),
+        clearDepositResult: jest.fn(),
         calculateFees: jest.fn().mockResolvedValue({}),
         calculateLiquidationPrice: jest.fn().mockResolvedValue('0.00'),
         flipPosition: jest.fn().mockResolvedValue({ success: false }),

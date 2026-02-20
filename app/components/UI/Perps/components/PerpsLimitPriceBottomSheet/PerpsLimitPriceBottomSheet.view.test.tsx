@@ -38,8 +38,8 @@ describe('PerpsLimitPriceBottomSheet', () => {
     ).toBeOnTheScreen();
   });
 
-  it('renders price preset buttons (Mid, Bid, Ask)', async () => {
-    renderLimitPriceSheet();
+  it('renders price preset buttons for long direction', async () => {
+    renderLimitPriceSheet({ direction: 'long' });
 
     await screen.findByText(strings('perps.order.limit_price_modal.title'));
 
@@ -50,8 +50,24 @@ describe('PerpsLimitPriceBottomSheet', () => {
       screen.getByText(strings('perps.order.limit_price_modal.bid_price')),
     ).toBeOnTheScreen();
     expect(
+      screen.queryByText(strings('perps.order.limit_price_modal.ask_price')),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('renders ask preset button for short direction', async () => {
+    renderLimitPriceSheet({ direction: 'short' });
+
+    await screen.findByText(strings('perps.order.limit_price_modal.title'));
+
+    expect(
+      screen.getByText(strings('perps.order.limit_price_modal.mid_price')),
+    ).toBeOnTheScreen();
+    expect(
       screen.getByText(strings('perps.order.limit_price_modal.ask_price')),
     ).toBeOnTheScreen();
+    expect(
+      screen.queryByText(strings('perps.order.limit_price_modal.bid_price')),
+    ).not.toBeOnTheScreen();
   });
 
   it('does not render when isVisible is false', () => {
