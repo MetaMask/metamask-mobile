@@ -39,7 +39,8 @@ This skill collects all required information from the user and creates a properl
    - Prompt: "What device was this seen on? (brand and model, e.g. Samsung Galaxy A42, iPhone 15 Pro)"
 
 7. **Operating system**
-   - Prompt: "Which operating system — iOS, Android, or both?"
+   - Prompt: "Which operating system — iOS, Android, both, or Other? (if Other, please elaborate and note it in Additional Context)"
+   - Supports multi-select; valid values: iOS, Android, Other
 
 ### Optional Fields
 
@@ -117,7 +118,7 @@ Format the body exactly as follows, using the information collected:
 
 ### Operating system
 
-<iOS | Android | iOS and Android>
+<iOS | Android | iOS and Android | Other (please elaborate in the "Additional Context" section)>
 
 ### Additional context
 
