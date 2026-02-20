@@ -104,7 +104,6 @@ jobs:
         with:
           platform: ios
           setup-simulator: false
-          ruby-version: '3.2.9'
 
       - name: Print iOS tool versions
         run: |
