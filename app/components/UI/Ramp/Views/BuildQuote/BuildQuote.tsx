@@ -194,6 +194,7 @@ function BuildQuote() {
       return;
     }
 
+    setNativeFlowError(null);
     stopQuotePolling();
     navigation.navigate(
       ...createPaymentSelectionModalNavigationDetails({
@@ -204,6 +205,7 @@ function BuildQuote() {
 
   const handleProviderPress = useCallback(() => {
     if (!selectedToken?.assetId) return;
+    setNativeFlowError(null);
     stopQuotePolling();
     navigation.navigate(
       ...createProviderPickerModalNavigationDetails({

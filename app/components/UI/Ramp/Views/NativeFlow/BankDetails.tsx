@@ -467,7 +467,7 @@ const V2BankDetails = () => {
                 label={strings('deposit.order_processing.cancel_order_button')}
                 size={ButtonSize.Lg}
                 loading={isLoadingCancelOrder}
-                disabled={isLoadingConfirmPayment}
+                disabled={isLoadingConfirmPayment || isLoadingCancelOrder}
               />
 
               <Button
@@ -477,7 +477,7 @@ const V2BankDetails = () => {
                 testID="main-action-button"
                 label={strings('deposit.bank_details.button')}
                 size={ButtonSize.Lg}
-                disabled={isLoadingCancelOrder}
+                disabled={isLoadingCancelOrder || isLoadingConfirmPayment}
                 loading={isLoadingConfirmPayment}
               />
             </View>

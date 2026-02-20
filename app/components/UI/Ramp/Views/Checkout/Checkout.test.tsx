@@ -2,6 +2,11 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import Checkout from './Checkout';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
+import {
+  registerCheckoutCallback,
+  getCheckoutCallback,
+  removeCheckoutCallback,
+} from '../../utils/checkoutCallbackRegistry';
 
 const mockNavigate = jest.fn();
 const mockSetOptions = jest.fn();
@@ -272,6 +277,138 @@ describe('Checkout', () => {
     );
 
     expect(toJSON()).toMatchSnapshot();
+
+    useParamsMock.mockReturnValue({
+      url: 'https://provider.example.com/widget?test=1',
+      providerName: 'Test Provider',
+    });
+  });
+
+  it('deduplicates onNavigationStateChange calls for the same URL', () => {
+    const mockNavStateChange = jest.fn();
+    const key = registerCheckoutCallback(mockNavStateChange);
+
+    const useParamsMock = jest.requireMock<
+      typeof import('../../../../../util/navigation/navUtils')
+    >('../../../../../util/navigation/navUtils').useParams as jest.Mock;
+
+    useParamsMock.mockReturnValue({
+      url: 'https://provider.example.com/widget',
+      providerName: 'Test Provider',
+      callbackKey: key,
+    });
+
+    const { getByTestId } = render(
+      <ThemeContext.Provider value={mockTheme}>
+        <Checkout />
+      </ThemeContext.Provider>,
+    );
+
+    const webview = getByTestId('checkout-webview');
+
+    fireEvent(webview, 'onNavigationStateChange', {
+      url: 'https://redirect.example.com/complete?orderId=123',
+    });
+    fireEvent(webview, 'onNavigationStateChange', {
+      url: 'https://redirect.example.com/complete?orderId=123',
+    });
+
+    expect(mockNavStateChange).toHaveBeenCalledTimes(1);
+    expect(mockNavStateChange).toHaveBeenCalledWith({
+      url: 'https://redirect.example.com/complete?orderId=123',
+    });
+
+    removeCheckoutCallback(key);
+    useParamsMock.mockReturnValue({
+      url: 'https://provider.example.com/widget?test=1',
+      providerName: 'Test Provider',
+    });
+  });
+
+  it('invokes onNavigationStateChange for distinct URLs', () => {
+    const mockNavStateChange = jest.fn();
+    const key = registerCheckoutCallback(mockNavStateChange);
+
+    const useParamsMock = jest.requireMock<
+      typeof import('../../../../../util/navigation/navUtils')
+    >('../../../../../util/navigation/navUtils').useParams as jest.Mock;
+
+    useParamsMock.mockReturnValue({
+      url: 'https://provider.example.com/widget',
+      providerName: 'Test Provider',
+      callbackKey: key,
+    });
+
+    const { getByTestId } = render(
+      <ThemeContext.Provider value={mockTheme}>
+        <Checkout />
+      </ThemeContext.Provider>,
+    );
+
+    const webview = getByTestId('checkout-webview');
+
+    fireEvent(webview, 'onNavigationStateChange', {
+      url: 'https://provider.example.com/step1',
+    });
+    fireEvent(webview, 'onNavigationStateChange', {
+      url: 'https://provider.example.com/step2',
+    });
+
+    expect(mockNavStateChange).toHaveBeenCalledTimes(2);
+
+    removeCheckoutCallback(key);
+    useParamsMock.mockReturnValue({
+      url: 'https://provider.example.com/widget?test=1',
+      providerName: 'Test Provider',
+    });
+  });
+
+  it('calls shouldStartLoadWithRequest for webview load requests', () => {
+    const { shouldStartLoadWithRequest } = jest.requireMock<
+      typeof import('../../../../../util/browser')
+    >('../../../../../util/browser');
+
+    const { getByTestId } = render(
+      <ThemeContext.Provider value={mockTheme}>
+        <Checkout />
+      </ThemeContext.Provider>,
+    );
+
+    const webview = getByTestId('checkout-webview');
+    const result = webview.props.onShouldStartLoadWithRequest({
+      url: 'https://example.com/page',
+    });
+
+    expect(shouldStartLoadWithRequest).toHaveBeenCalledWith(
+      'https://example.com/page',
+      expect.anything(),
+    );
+    expect(result).toBe(true);
+  });
+
+  it('removes callback from registry on unmount', () => {
+    const mockCallback = jest.fn();
+    const key = registerCheckoutCallback(mockCallback);
+
+    const useParamsMock = jest.requireMock<
+      typeof import('../../../../../util/navigation/navUtils')
+    >('../../../../../util/navigation/navUtils').useParams as jest.Mock;
+
+    useParamsMock.mockReturnValue({
+      url: 'https://provider.example.com/widget',
+      providerName: 'Test Provider',
+      callbackKey: key,
+    });
+
+    const { unmount } = render(
+      <ThemeContext.Provider value={mockTheme}>
+        <Checkout />
+      </ThemeContext.Provider>,
+    );
+
+    unmount();
+
+    expect(getCheckoutCallback(key)).toBeUndefined();
 
     useParamsMock.mockReturnValue({
       url: 'https://provider.example.com/widget?test=1',

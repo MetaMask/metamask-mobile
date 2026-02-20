@@ -591,4 +591,104 @@ describe('V2BankDetails', () => {
       ).toBeOnTheScreen();
     });
   });
+
+  it('matches snapshot with both buttons disabled while confirm payment loads', async () => {
+    let resolveConfirm!: () => void;
+    mockConfirmPayment.mockReturnValue(
+      new Promise<void>((resolve) => {
+        resolveConfirm = resolve;
+      }),
+    );
+    mockGetOrder.mockResolvedValue({
+      id: 'test-order-id',
+      walletAddress: '0xabc',
+      fiatAmount: '100',
+      cryptoAmount: '0.05',
+      exchangeRate: '2000',
+      totalFeesFiat: '5',
+      fiatCurrency: 'USD',
+      paymentMethod: { id: 'pm-1' },
+      network: { chainId: 'eip155:1' },
+      cryptoCurrency: { assetId: 'asset1', symbol: 'ETH' },
+    });
+
+    mockOrder = {
+      id: 'test-order-id',
+      state: FIAT_ORDER_STATES.CREATED,
+      account: '0xabc',
+      cryptoAmount: '0.05',
+      data: {
+        fiatAmount: '100',
+        fiatCurrency: 'USD',
+        exchangeRate: '2000',
+        totalFeesFiat: '5',
+        paymentMethod: { id: 'pm-1', shortName: 'Bank Transfer' },
+        paymentDetails: [
+          {
+            fields: [{ name: 'Amount', value: '$100.00' }],
+          },
+        ],
+      },
+    };
+
+    const { toJSON, getByTestId } = renderWithTheme(<V2BankDetails />);
+
+    await act(async () => {
+      fireEvent.press(getByTestId('main-action-button'));
+      await Promise.resolve();
+    });
+
+    expect(toJSON()).toMatchSnapshot();
+
+    await act(async () => {
+      resolveConfirm();
+    });
+  });
+
+  it('matches snapshot with both buttons disabled while cancel order loads', async () => {
+    let resolveCancel!: () => void;
+    mockCancelOrder.mockReturnValue(
+      new Promise<void>((resolve) => {
+        resolveCancel = resolve;
+      }),
+    );
+    mockGetOrder.mockResolvedValue({
+      id: 'test-order-id',
+      walletAddress: '0xabc',
+    });
+
+    mockOrder = {
+      id: 'test-order-id',
+      state: FIAT_ORDER_STATES.CREATED,
+      account: '0xabc',
+      cryptoAmount: '0.05',
+      data: {
+        fiatAmount: '100',
+        fiatCurrency: 'USD',
+        exchangeRate: '2000',
+        totalFeesFiat: '5',
+        paymentMethod: { id: 'pm-1', shortName: 'Bank Transfer' },
+        paymentDetails: [
+          {
+            fields: [{ name: 'Amount', value: '$100.00' }],
+          },
+        ],
+      },
+    };
+
+    const { toJSON, getByText } = renderWithTheme(<V2BankDetails />);
+
+    await act(async () => {
+      fireEvent.press(
+        getByText('deposit.order_processing.cancel_order_button'),
+      );
+      await Promise.resolve();
+    });
+
+    expect(toJSON()).toMatchSnapshot();
+
+    await act(async () => {
+      resolveCancel();
+    });
+  });
 });

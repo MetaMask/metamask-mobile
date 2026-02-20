@@ -326,6 +326,752 @@ exports[`V2BankDetails matches snapshot when order is null (loading) 1`] = `
 </RNCSafeAreaView>
 `;
 
+exports[`V2BankDetails matches snapshot with both buttons disabled while cancel order loads 1`] = `
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "additive",
+      "right": "additive",
+      "top": "off",
+    }
+  }
+  style={
+    {
+      "flex": 1,
+    }
+  }
+>
+  <View
+    style={
+      [
+        {
+          "backgroundColor": "#ffffff",
+          "flex": 1,
+        },
+        undefined,
+      ]
+    }
+  >
+    <RCTScrollView
+      collapsable={false}
+      handlerTag={17}
+      handlerType="NativeViewGestureHandler"
+      onGestureHandlerEvent={[Function]}
+      onGestureHandlerStateChange={[Function]}
+      refreshControl={
+        <RefreshControlMock
+          colors={
+            [
+              "#4459ff",
+            ]
+          }
+          onRefresh={[Function]}
+          refreshing={false}
+          tintColor="#121314"
+        />
+      }
+      testID="bank-details-refresh-control-scrollview"
+    >
+      <RCTRefreshControl />
+      <View>
+        <View
+          style={
+            [
+              {
+                "flex": 1,
+              },
+              undefined,
+            ]
+          }
+        >
+          <View
+            style={
+              [
+                {
+                  "padding": 15,
+                  "paddingHorizontal": 16,
+                },
+                undefined,
+                {
+                  "flex": 1,
+                  "paddingHorizontal": 16,
+                },
+              ]
+            }
+          >
+            <View
+              style={
+                {
+                  "gap": 8,
+                  "marginBottom": 24,
+                }
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "Geist-Bold",
+                    "fontSize": 18,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+              >
+                deposit.bank_details.main_title
+              </Text>
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#686e7d",
+                    "fontFamily": "Geist-Regular",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+              >
+                deposit.bank_details.main_content_1
+              </Text>
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#686e7d",
+                    "fontFamily": "Geist-Regular",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+              >
+                deposit.bank_details.main_content_2
+              </Text>
+            </View>
+            <View
+              style={
+                {
+                  "backgroundColor": "#3c4d9d0f",
+                  "borderRadius": 8,
+                  "gap": 16,
+                  "padding": 16,
+                }
+              }
+            >
+              <View
+                testID="bank-detail-deposit.bank_details.transfer_amount"
+              >
+                <Text>
+                  deposit.bank_details.transfer_amount
+                </Text>
+                <Text>
+                  $100.00
+                </Text>
+              </View>
+              <TouchableOpacity
+                onPress={[Function]}
+                style={
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                    "gap": 8,
+                    "justifyContent": "center",
+                  }
+                }
+              >
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#4459ff",
+                      "fontFamily": "Geist-Regular",
+                      "fontSize": 16,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    }
+                  }
+                >
+                  deposit.bank_details.show_bank_info
+                </Text>
+                <SvgMock
+                  color="#4459ff"
+                  fill="currentColor"
+                  height={16}
+                  name="ArrowDown"
+                  style={
+                    {
+                      "height": 16,
+                      "width": 16,
+                    }
+                  }
+                  width={16}
+                />
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </View>
+    </RCTScrollView>
+    <View>
+      <View
+        style={
+          [
+            {
+              "padding": 15,
+              "paddingHorizontal": 16,
+            },
+            undefined,
+            undefined,
+          ]
+        }
+      >
+        <View
+          style={
+            {
+              "gap": 16,
+            }
+          }
+        >
+          <View
+            accessibilityRole="none"
+            accessible={true}
+            style={
+              {
+                "backgroundColor": "#3c4d9d0f",
+                "borderRadius": 8,
+                "marginVertical": 8,
+                "padding": 16,
+                "paddingVertical": 8,
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "alignItems": "flex-start",
+                  "flexDirection": "row",
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "flex": -1,
+                  }
+                }
+                testID="listitemcolumn"
+              >
+                <SvgMock
+                  color="#686e7d"
+                  fill="currentColor"
+                  height={24}
+                  name="SecurityKey"
+                  style={
+                    {
+                      "height": 24,
+                      "width": 24,
+                    }
+                  }
+                  width={24}
+                />
+              </View>
+              <View
+                accessible={false}
+                style={
+                  {
+                    "width": 8,
+                  }
+                }
+                testID="listitem-gap"
+              />
+              <View
+                style={
+                  {
+                    "flex": 1,
+                  }
+                }
+                testID="listitemcolumn"
+              >
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#686e7d",
+                      "fontFamily": "Geist-Regular",
+                      "fontSize": 12,
+                      "letterSpacing": 0.25,
+                      "lineHeight": 20,
+                    }
+                  }
+                >
+                  deposit.bank_details.info_banner_text
+                </Text>
+              </View>
+            </View>
+          </View>
+          <View
+            style={
+              {
+                "flexDirection": "row",
+                "gap": 16,
+              }
+            }
+          >
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessible={true}
+              activeOpacity={1}
+              disabled={true}
+              loading={true}
+              onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
+              style={
+                {
+                  "alignItems": "center",
+                  "alignSelf": "flex-start",
+                  "backgroundColor": "#3c4d9d0f",
+                  "borderColor": "transparent",
+                  "borderRadius": 12,
+                  "borderWidth": 1,
+                  "flex": 1,
+                  "flexDirection": "row",
+                  "height": 48,
+                  "justifyContent": "center",
+                  "overflow": "hidden",
+                  "paddingHorizontal": 16,
+                }
+              }
+            >
+              <ActivityIndicator
+                color="#121314"
+                size="small"
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessible={true}
+              activeOpacity={1}
+              disabled={true}
+              loading={false}
+              onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
+              style={
+                {
+                  "alignItems": "center",
+                  "alignSelf": "flex-start",
+                  "backgroundColor": "#121314",
+                  "borderRadius": 12,
+                  "flex": 1,
+                  "flexDirection": "row",
+                  "height": 48,
+                  "justifyContent": "center",
+                  "overflow": "hidden",
+                  "paddingHorizontal": 16,
+                }
+              }
+              testID="main-action-button"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#ffffff",
+                    "fontFamily": "Geist-Medium",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+              >
+                deposit.bank_details.button
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </View>
+  </View>
+</RNCSafeAreaView>
+`;
+
+exports[`V2BankDetails matches snapshot with both buttons disabled while confirm payment loads 1`] = `
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "additive",
+      "right": "additive",
+      "top": "off",
+    }
+  }
+  style={
+    {
+      "flex": 1,
+    }
+  }
+>
+  <View
+    style={
+      [
+        {
+          "backgroundColor": "#ffffff",
+          "flex": 1,
+        },
+        undefined,
+      ]
+    }
+  >
+    <RCTScrollView
+      collapsable={false}
+      handlerTag={16}
+      handlerType="NativeViewGestureHandler"
+      onGestureHandlerEvent={[Function]}
+      onGestureHandlerStateChange={[Function]}
+      refreshControl={
+        <RefreshControlMock
+          colors={
+            [
+              "#4459ff",
+            ]
+          }
+          onRefresh={[Function]}
+          refreshing={false}
+          tintColor="#121314"
+        />
+      }
+      testID="bank-details-refresh-control-scrollview"
+    >
+      <RCTRefreshControl />
+      <View>
+        <View
+          style={
+            [
+              {
+                "flex": 1,
+              },
+              undefined,
+            ]
+          }
+        >
+          <View
+            style={
+              [
+                {
+                  "padding": 15,
+                  "paddingHorizontal": 16,
+                },
+                undefined,
+                {
+                  "flex": 1,
+                  "paddingHorizontal": 16,
+                },
+              ]
+            }
+          >
+            <View
+              style={
+                {
+                  "gap": 8,
+                  "marginBottom": 24,
+                }
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "Geist-Bold",
+                    "fontSize": 18,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+              >
+                deposit.bank_details.main_title
+              </Text>
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#686e7d",
+                    "fontFamily": "Geist-Regular",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+              >
+                deposit.bank_details.main_content_1
+              </Text>
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#686e7d",
+                    "fontFamily": "Geist-Regular",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+              >
+                deposit.bank_details.main_content_2
+              </Text>
+            </View>
+            <View
+              style={
+                {
+                  "backgroundColor": "#3c4d9d0f",
+                  "borderRadius": 8,
+                  "gap": 16,
+                  "padding": 16,
+                }
+              }
+            >
+              <View
+                testID="bank-detail-deposit.bank_details.transfer_amount"
+              >
+                <Text>
+                  deposit.bank_details.transfer_amount
+                </Text>
+                <Text>
+                  $100.00
+                </Text>
+              </View>
+              <TouchableOpacity
+                onPress={[Function]}
+                style={
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                    "gap": 8,
+                    "justifyContent": "center",
+                  }
+                }
+              >
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#4459ff",
+                      "fontFamily": "Geist-Regular",
+                      "fontSize": 16,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    }
+                  }
+                >
+                  deposit.bank_details.show_bank_info
+                </Text>
+                <SvgMock
+                  color="#4459ff"
+                  fill="currentColor"
+                  height={16}
+                  name="ArrowDown"
+                  style={
+                    {
+                      "height": 16,
+                      "width": 16,
+                    }
+                  }
+                  width={16}
+                />
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </View>
+    </RCTScrollView>
+    <View>
+      <View
+        style={
+          [
+            {
+              "padding": 15,
+              "paddingHorizontal": 16,
+            },
+            undefined,
+            undefined,
+          ]
+        }
+      >
+        <View
+          style={
+            {
+              "gap": 16,
+            }
+          }
+        >
+          <View
+            accessibilityRole="none"
+            accessible={true}
+            style={
+              {
+                "backgroundColor": "#3c4d9d0f",
+                "borderRadius": 8,
+                "marginVertical": 8,
+                "padding": 16,
+                "paddingVertical": 8,
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "alignItems": "flex-start",
+                  "flexDirection": "row",
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "flex": -1,
+                  }
+                }
+                testID="listitemcolumn"
+              >
+                <SvgMock
+                  color="#686e7d"
+                  fill="currentColor"
+                  height={24}
+                  name="SecurityKey"
+                  style={
+                    {
+                      "height": 24,
+                      "width": 24,
+                    }
+                  }
+                  width={24}
+                />
+              </View>
+              <View
+                accessible={false}
+                style={
+                  {
+                    "width": 8,
+                  }
+                }
+                testID="listitem-gap"
+              />
+              <View
+                style={
+                  {
+                    "flex": 1,
+                  }
+                }
+                testID="listitemcolumn"
+              >
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#686e7d",
+                      "fontFamily": "Geist-Regular",
+                      "fontSize": 12,
+                      "letterSpacing": 0.25,
+                      "lineHeight": 20,
+                    }
+                  }
+                >
+                  deposit.bank_details.info_banner_text
+                </Text>
+              </View>
+            </View>
+          </View>
+          <View
+            style={
+              {
+                "flexDirection": "row",
+                "gap": 16,
+              }
+            }
+          >
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessible={true}
+              activeOpacity={1}
+              disabled={true}
+              loading={false}
+              onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
+              style={
+                {
+                  "alignItems": "center",
+                  "alignSelf": "flex-start",
+                  "backgroundColor": "#3c4d9d0f",
+                  "borderColor": "transparent",
+                  "borderRadius": 12,
+                  "borderWidth": 1,
+                  "flex": 1,
+                  "flexDirection": "row",
+                  "height": 48,
+                  "justifyContent": "center",
+                  "overflow": "hidden",
+                  "paddingHorizontal": 16,
+                }
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "Geist-Medium",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+              >
+                deposit.order_processing.cancel_order_button
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessible={true}
+              activeOpacity={1}
+              disabled={true}
+              loading={true}
+              onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
+              style={
+                {
+                  "alignItems": "center",
+                  "alignSelf": "flex-start",
+                  "backgroundColor": "#121314",
+                  "borderRadius": 12,
+                  "flex": 1,
+                  "flexDirection": "row",
+                  "height": 48,
+                  "justifyContent": "center",
+                  "overflow": "hidden",
+                  "paddingHorizontal": 16,
+                }
+              }
+              testID="main-action-button"
+            >
+              <ActivityIndicator
+                color="#ffffff"
+                size="small"
+              />
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </View>
+  </View>
+</RNCSafeAreaView>
+`;
+
 exports[`V2BankDetails matches snapshot with order data 1`] = `
 <RNCSafeAreaView
   edges={
