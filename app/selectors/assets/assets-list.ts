@@ -37,10 +37,14 @@ import { selectSelectedInternalAccountAddress } from '../accountsController';
 import { selectSelectedInternalAccountByScope } from '../multichainAccounts/accounts';
 
 /**
- * Structured map of Tron resources for efficient access.
- * Each property corresponds to a specific Tron resource type.
+ * Structured map of Tron special assets for efficient access.
+ *
+ * Includes network resources (Energy, Bandwidth and their max capacities),
+ * staking-related assets (staked TRX for Energy/Bandwidth, total staked TRX),
+ * and additional staking lifecycle assets (Ready for Withdrawal, Staking
+ * Rewards, In Lock Period).
  */
-export interface TronResourcesMap {
+export interface TronSpecialAssetsMap {
   /** Current available energy */
   energy: Asset | undefined;
   /** Current available bandwidth */
@@ -66,7 +70,7 @@ export interface TronResourcesMap {
 /**
  * Empty constant to avoid creating new objects on each call when no Tron networks are enabled.
  */
-const EMPTY_TRON_RESOURCES_MAP: TronResourcesMap = Object.freeze({
+const EMPTY_TRON_SPECIAL_ASSETS_MAP: TronSpecialAssetsMap = Object.freeze({
   energy: undefined,
   bandwidth: undefined,
   maxEnergy: undefined,
@@ -428,22 +432,30 @@ function assetToToken(
 }
 
 /**
- * Selects Tron resources (Energy, Bandwidth, Max values, and staked TRX) for the
- * currently selected account group.
+ * Selects Tron special assets for the currently selected account group.
  *
- * Returns a structured object with all resources pre-mapped for efficient access,
- * eliminating the need for consumers to iterate/search the array.
+ * This includes:
+ * - **Network resources**: Energy, Bandwidth, and their maximum capacities.
+ * - **Staking assets**: TRX staked for Energy, TRX staked for Bandwidth,
+ *   and a pre-computed `totalStakedTrx` sum.
+ * - **Staking lifecycle assets**: TRX Ready for Withdrawal (unstaked TRX
+ *   past the lock period), Staking Rewards, and TRX In Lock Period
+ *   (unstaked but still within the lock window).
+ *
+ * Returns a structured {@link TronSpecialAssetsMap} with all assets
+ * pre-mapped by type for efficient access, eliminating the need for
+ * consumers to iterate or search the array.
  */
-export const selectTronResourcesBySelectedAccountGroup =
+export const selectTronSpecialAssetsBySelectedAccountGroup =
   createDeepEqualSelector(
     [getStateForAssetSelector, selectEnabledNetworks],
-    (assetsState, enabledNetworks): TronResourcesMap => {
+    (assetsState, enabledNetworks): TronSpecialAssetsMap => {
       const enabledTronNetworks = enabledNetworks.filter((networkId) =>
         networkId.startsWith('tron:'),
       );
 
       if (enabledTronNetworks.length === 0) {
-        return EMPTY_TRON_RESOURCES_MAP;
+        return EMPTY_TRON_SPECIAL_ASSETS_MAP;
       }
 
       const allAssets = _selectAssetsBySelectedAccountGroup(assetsState, {
@@ -452,7 +464,7 @@ export const selectTronResourcesBySelectedAccountGroup =
 
       const enabledTronNetworksSet = new Set(enabledTronNetworks);
 
-      const resourceMap: TronResourcesMap = {
+      const resourceMap: TronSpecialAssetsMap = {
         energy: undefined,
         bandwidth: undefined,
         maxEnergy: undefined,

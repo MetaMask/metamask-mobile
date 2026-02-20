@@ -6,7 +6,7 @@ import { useSelector } from 'react-redux';
 import { TronResourceType } from '../../../../core/Multichain/constants';
 import Logger from '../../../../util/Logger';
 import { isTronChainId } from '../../../../core/Multichain/utils';
-import { selectTronResourcesBySelectedAccountGroup } from '../../../../selectors/assets/assets-list';
+import { selectTronSpecialAssetsBySelectedAccountGroup } from '../../../../selectors/assets/assets-list';
 import { selectTrxStakingEnabled } from '../../../../selectors/featureFlagController/trxStakingEnabled';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { TokenI } from '../../Tokens/types';
@@ -70,7 +70,7 @@ const useTronUnstake = ({
     TrxScope.Mainnet,
   );
   const isTrxStakingEnabled = useSelector(selectTrxStakingEnabled);
-  const tronResources = useSelector(selectTronResourcesBySelectedAccountGroup);
+  const tronResources = useSelector(selectTronSpecialAssetsBySelectedAccountGroup);
 
   // Derive whether token is on Tron chain
   const isTronAsset = useMemo(

@@ -111,7 +111,7 @@ import { getTokenExchangeRate } from '../Bridge/utils/exchange-rates';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import {
-  selectTronResourcesBySelectedAccountGroup,
+  selectTronSpecialAssetsBySelectedAccountGroup,
   selectAsset,
 } from '../../../selectors/assets/assets-list';
 import { createStakedTrxAsset } from './utils/createStakedTrxAsset';
@@ -248,7 +248,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     readyForWithdrawal,
     stakingRewards,
     inLockPeriod,
-  } = useSelector(selectTronResourcesBySelectedAccountGroup);
+  } = useSelector(selectTronSpecialAssetsBySelectedAccountGroup);
 
   // Use selector to get live Tron asset balance (not static navigation params)
   const isTronChain = String(asset.chainId).startsWith('tron:');

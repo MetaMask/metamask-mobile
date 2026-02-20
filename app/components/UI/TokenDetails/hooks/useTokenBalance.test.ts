@@ -3,8 +3,8 @@ import { useTokenBalance } from './useTokenBalance';
 import { TokenI } from '../../Tokens/types';
 import {
   selectAsset,
-  selectTronResourcesBySelectedAccountGroup,
-  TronResourcesMap,
+  selectTronSpecialAssetsBySelectedAccountGroup,
+  TronSpecialAssetsMap,
 } from '../../../../selectors/assets/assets-list';
 import { createStakedTrxAsset } from '../../AssetOverview/utils/createStakedTrxAsset';
 import {
@@ -13,7 +13,7 @@ import {
   createInLockPeriodTrxAsset,
 } from '../../AssetOverview/utils/createTronDerivedAsset';
 
-const createEmptyResourcesMap = (): TronResourcesMap => ({
+const createEmptyResourcesMap = (): TronSpecialAssetsMap => ({
   energy: undefined,
   bandwidth: undefined,
   maxEnergy: undefined,
@@ -28,8 +28,8 @@ const createEmptyResourcesMap = (): TronResourcesMap => ({
 
 jest.mock('../../../../selectors/assets/assets-list', () => ({
   selectAsset: jest.fn(),
-  selectTronResourcesBySelectedAccountGroup: jest.fn(
-    (): TronResourcesMap => ({
+  selectTronSpecialAssetsBySelectedAccountGroup: jest.fn(
+    (): TronSpecialAssetsMap => ({
       energy: undefined,
       bandwidth: undefined,
       maxEnergy: undefined,
@@ -56,7 +56,7 @@ jest.mock('../../AssetOverview/utils/createTronDerivedAsset', () => ({
 
 const mockSelectAsset = jest.mocked(selectAsset);
 const mockSelectTronResources = jest.mocked(
-  selectTronResourcesBySelectedAccountGroup,
+  selectTronSpecialAssetsBySelectedAccountGroup,
 );
 const mockCreateStakedTrxAsset = jest.mocked(createStakedTrxAsset);
 const mockCreateReadyForWithdrawalTrxAsset = jest.mocked(
@@ -148,7 +148,7 @@ describe('useTokenBalance', () => {
       ...createEmptyResourcesMap(),
       stakedTrxForEnergy: { symbol: 'strx-energy', balance: '100' },
       stakedTrxForBandwidth: { symbol: 'strx-bandwidth', balance: '200' },
-    } as TronResourcesMap);
+    } as TronSpecialAssetsMap);
 
     mockCreateStakedTrxAsset.mockReturnValue(mockStakedAsset);
 
@@ -194,7 +194,7 @@ describe('useTokenBalance', () => {
       readyForWithdrawal: { symbol: 'rfwtrx', balance: '10' },
       stakingRewards: { symbol: 'srtrx', balance: '5' },
       inLockPeriod: { symbol: 'ilptrx', balance: '20' },
-    } as unknown as TronResourcesMap);
+    } as unknown as TronSpecialAssetsMap);
 
     mockCreateReadyForWithdrawalTrxAsset.mockReturnValue(mockRfwAsset);
     mockCreateStakingRewardsTrxAsset.mockReturnValue(mockSrAsset);

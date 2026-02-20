@@ -14,7 +14,7 @@ import {
   selectAsset,
   selectAssetsBySelectedAccountGroup,
   selectSortedAssetsBySelectedAccountGroup,
-  selectTronResourcesBySelectedAccountGroup,
+  selectTronSpecialAssetsBySelectedAccountGroup,
 } from './assets-list';
 
 const mockState = ({
@@ -976,7 +976,7 @@ describe('selectAsset', () => {
   });
 });
 
-describe('selectTronResourcesBySelectedAccountGroup', () => {
+describe('selectTronSpecialAssetsBySelectedAccountGroup', () => {
   it('returns Tron energy and bandwidth resources when Tron network is enabled', () => {
     const stateWithTronAssets = {
       ...mockState(),
@@ -1054,7 +1054,7 @@ describe('selectTronResourcesBySelectedAccountGroup', () => {
     } as unknown as RootState;
 
     const result =
-      selectTronResourcesBySelectedAccountGroup(stateWithTronAssets);
+      selectTronSpecialAssetsBySelectedAccountGroup(stateWithTronAssets);
 
     // Verify the object structure with named properties
     expect(result.energy?.assetId).toBe('tron:728126428/slip44:energy');
@@ -1266,7 +1266,7 @@ describe('selectTronResourcesBySelectedAccountGroup', () => {
       },
     } as unknown as RootState;
 
-    const result = selectTronResourcesBySelectedAccountGroup(
+    const result = selectTronSpecialAssetsBySelectedAccountGroup(
       stateWithAllResources,
     );
 
@@ -1359,7 +1359,7 @@ describe('selectTronResourcesBySelectedAccountGroup', () => {
       },
     } as unknown as RootState;
 
-    const result = selectTronResourcesBySelectedAccountGroup(
+    const result = selectTronSpecialAssetsBySelectedAccountGroup(
       stateWithTronDisabled,
     );
 

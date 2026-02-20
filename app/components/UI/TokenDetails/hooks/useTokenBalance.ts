@@ -5,7 +5,7 @@ import { TokenI } from '../../Tokens/types';
 import {
   selectAsset,
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
-  selectTronResourcesBySelectedAccountGroup,
+  selectTronSpecialAssetsBySelectedAccountGroup,
   ///: END:ONLY_INCLUDE_IF
 } from '../../../../selectors/assets/assets-list';
 import { toFormattedAddress } from '../../../../util/address';
@@ -47,7 +47,7 @@ export const useTokenBalance = (token: TokenI): UseTokenBalanceResult => {
     readyForWithdrawal,
     stakingRewards,
     inLockPeriod,
-  } = useSelector(selectTronResourcesBySelectedAccountGroup);
+  } = useSelector(selectTronSpecialAssetsBySelectedAccountGroup);
 
   const isTronNative =
     token.ticker === 'TRX' && String(token.chainId).startsWith('tron:');

@@ -31,7 +31,7 @@ jest.mock(
 );
 
 jest.mock('../../../../selectors/assets/assets-list', () => ({
-  selectTronResourcesBySelectedAccountGroup: () =>
+  selectTronSpecialAssetsBySelectedAccountGroup: () =>
     mockSelectTronResourcesBySelectedAccountGroup(),
 }));
 
