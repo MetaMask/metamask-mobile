@@ -145,6 +145,9 @@ export const TRON_RESOURCE = {
   MAX_BANDWIDTH: 'max-bandwidth',
   STRX_ENERGY: 'strx-energy',
   STRX_BANDWIDTH: 'strx-bandwidth',
+  READY_FOR_WITHDRAWAL: 'rfwtrx',
+  STAKING_REWARDS: 'srtrx',
+  IN_LOCK_PERIOD: 'ilptrx',
 } as const;
 
 export enum TronResourceType {

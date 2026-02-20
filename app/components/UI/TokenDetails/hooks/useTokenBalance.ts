@@ -11,6 +11,11 @@ import {
 import { toFormattedAddress } from '../../../../util/address';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import { createStakedTrxAsset } from '../../AssetOverview/utils/createStakedTrxAsset';
+import {
+  createReadyForWithdrawalTrxAsset,
+  createStakingRewardsTrxAsset,
+  createInLockPeriodTrxAsset,
+} from '../../AssetOverview/utils/createTronDerivedAsset';
 ///: END:ONLY_INCLUDE_IF
 
 export interface UseTokenBalanceResult {
@@ -20,6 +25,9 @@ export interface UseTokenBalanceResult {
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
   isTronNative: boolean;
   stakedTrxAsset: TokenI | undefined;
+  readyForWithdrawalTrxAsset: TokenI | undefined;
+  stakingRewardsTrxAsset: TokenI | undefined;
+  inLockPeriodTrxAsset: TokenI | undefined;
   ///: END:ONLY_INCLUDE_IF
 }
 
@@ -33,9 +41,13 @@ export const useTokenBalance = (token: TokenI): UseTokenBalanceResult => {
   );
 
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
-  const { stakedTrxForEnergy, stakedTrxForBandwidth } = useSelector(
-    selectTronResourcesBySelectedAccountGroup,
-  );
+  const {
+    stakedTrxForEnergy,
+    stakedTrxForBandwidth,
+    readyForWithdrawal,
+    stakingRewards,
+    inLockPeriod,
+  } = useSelector(selectTronResourcesBySelectedAccountGroup);
 
   const isTronNative =
     token.ticker === 'TRX' && String(token.chainId).startsWith('tron:');
@@ -47,6 +59,21 @@ export const useTokenBalance = (token: TokenI): UseTokenBalanceResult => {
         stakedTrxForBandwidth?.balance,
       )
     : undefined;
+
+  const readyForWithdrawalTrxAsset =
+    isTronNative && readyForWithdrawal
+      ? createReadyForWithdrawalTrxAsset(token, readyForWithdrawal.balance)
+      : undefined;
+
+  const stakingRewardsTrxAsset =
+    isTronNative && stakingRewards
+      ? createStakingRewardsTrxAsset(token, stakingRewards.balance)
+      : undefined;
+
+  const inLockPeriodTrxAsset =
+    isTronNative && inLockPeriod
+      ? createInLockPeriodTrxAsset(token, inLockPeriod.balance)
+      : undefined;
   ///: END:ONLY_INCLUDE_IF
 
   const balance = processedAsset?.balance;
@@ -60,6 +87,9 @@ export const useTokenBalance = (token: TokenI): UseTokenBalanceResult => {
     ///: BEGIN:ONLY_INCLUDE_IF(tron)
     isTronNative,
     stakedTrxAsset,
+    readyForWithdrawalTrxAsset,
+    stakingRewardsTrxAsset,
+    inLockPeriodTrxAsset,
     ///: END:ONLY_INCLUDE_IF
   };
 };

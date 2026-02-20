@@ -55,6 +55,12 @@ export interface TronResourcesMap {
   stakedTrxForBandwidth: Asset | undefined;
   /** Total staked TRX (sum of energy + bandwidth staking) */
   totalStakedTrx: number;
+  /** TRX ready for withdrawal (unstaked TRX that has completed the lock period) */
+  readyForWithdrawal: Asset | undefined;
+  /** TRX staking rewards */
+  stakingRewards: Asset | undefined;
+  /** TRX in lock period (unstaked but waiting for lock period to end) */
+  inLockPeriod: Asset | undefined;
 }
 
 /**
@@ -68,6 +74,9 @@ const EMPTY_TRON_RESOURCES_MAP: TronResourcesMap = Object.freeze({
   stakedTrxForEnergy: undefined,
   stakedTrxForBandwidth: undefined,
   totalStakedTrx: 0,
+  readyForWithdrawal: undefined,
+  stakingRewards: undefined,
+  inLockPeriod: undefined,
 });
 
 const getStateForAssetSelector = (state: RootState) => {
@@ -451,6 +460,9 @@ export const selectTronResourcesBySelectedAccountGroup =
         stakedTrxForEnergy: undefined,
         stakedTrxForBandwidth: undefined,
         totalStakedTrx: 0,
+        readyForWithdrawal: undefined,
+        stakingRewards: undefined,
+        inLockPeriod: undefined,
       };
 
       for (const [networkId, chainAssets] of Object.entries(allAssets)) {
@@ -478,6 +490,15 @@ export const selectTronResourcesBySelectedAccountGroup =
               break;
             case TRON_RESOURCE.STRX_BANDWIDTH:
               resourceMap.stakedTrxForBandwidth = asset;
+              break;
+            case TRON_RESOURCE.READY_FOR_WITHDRAWAL:
+              resourceMap.readyForWithdrawal = asset;
+              break;
+            case TRON_RESOURCE.STAKING_REWARDS:
+              resourceMap.stakingRewards = asset;
+              break;
+            case TRON_RESOURCE.IN_LOCK_PERIOD:
+              resourceMap.inLockPeriod = asset;
               break;
           }
         }
