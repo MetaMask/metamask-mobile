@@ -828,11 +828,11 @@ export const GET_POPULAR_TOKENS_MAINNET_RESPONSE = [
   },
   {
     assetId: 'eip155:1/erc20:0xba47214edd2bb43099611b208f75e4b42fdcfedc',
-    decimals: 2,
+    decimals: 18,
     iconUrl:
       'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xba47214edd2bb43099611b208f75e4b42fdcfedc.png',
     name: 'Alphabet Class A (Ondo Tokenized)',
-    symbol: 'GOOGLEON',
+    symbol: 'GOOGLON',
   },
 ];
 

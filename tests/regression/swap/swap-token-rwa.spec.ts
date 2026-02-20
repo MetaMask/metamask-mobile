@@ -18,10 +18,10 @@ import { AnvilManager } from '../../seeder/anvil-manager';
 describe(RegressionTrade('Swap RWA'), (): void => {
   jest.setTimeout(120000);
 
-  it('should complete a USDC -> GOOGLEon swap', async (): Promise<void> => {
+  it('completes a USDC -> GOOGLON swap', async (): Promise<void> => {
     const quantity: string = '1000';
     const sourceTokenSymbol: string = 'USDC';
-    const destTokenSymbol: string = 'GOOGLEON';
+    const destTokenSymbol: string = 'GOOGLON';
     const chainId = '0x1';
 
     await withFixtures(
