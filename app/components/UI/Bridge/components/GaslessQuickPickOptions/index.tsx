@@ -31,7 +31,9 @@ export const GaslessQuickPickOptions = ({
       if (!tokenBalance?.displayBalance) return '0';
 
       const balance = new BigNumber(tokenBalance.displayBalance);
-      const amount = balance.multipliedBy(percentage / 100);
+      const amount = balance
+        .multipliedBy(percentage / 100)
+        .decimalPlaces(token?.decimals ?? 18, BigNumber.ROUND_DOWN);
 
       onChange({
         value: amount.toString(),
@@ -39,7 +41,7 @@ export const GaslessQuickPickOptions = ({
         pressedKey: Keys.Initial,
       });
     },
-    [tokenBalance, onChange],
+    [tokenBalance, onChange, token?.decimals],
   );
 
   const standardQuickPickOptions = useMemo(
