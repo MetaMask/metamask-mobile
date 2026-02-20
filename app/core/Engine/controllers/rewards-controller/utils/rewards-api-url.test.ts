@@ -4,6 +4,7 @@ import { getDefaultRewardsApiBaseUrlForMetaMaskEnv } from './rewards-api-url';
 describe('getDefaultRewardsApiBaseUrlForMetaMaskEnv', () => {
   const originalRewardsUrl = process.env.REWARDS_API_URL;
   const originalGitHubActions = process.env.GITHUB_ACTIONS;
+  const originalE2e = process.env.E2E;
 
   afterEach(() => {
     if (originalRewardsUrl !== undefined) {
@@ -16,11 +17,17 @@ describe('getDefaultRewardsApiBaseUrlForMetaMaskEnv', () => {
     } else {
       delete process.env.GITHUB_ACTIONS;
     }
+    if (originalE2e !== undefined) {
+      process.env.E2E = originalE2e;
+    } else {
+      delete process.env.E2E;
+    }
   });
 
   describe('when GITHUB_ACTIONS (builds.yml path)', () => {
     beforeEach(() => {
       process.env.GITHUB_ACTIONS = 'true';
+      delete process.env.E2E;
     });
 
     it('returns REWARDS_API_URL from environment when set', () => {
@@ -44,6 +51,18 @@ describe('getDefaultRewardsApiBaseUrlForMetaMaskEnv', () => {
       );
       expect(getDefaultRewardsApiBaseUrlForMetaMaskEnv('production')).toBe(
         'https://custom.api',
+      );
+    });
+
+    it('uses metaMaskEnv when E2E is true (E2E path)', () => {
+      process.env.GITHUB_ACTIONS = 'true';
+      process.env.E2E = 'true';
+      process.env.REWARDS_API_URL = 'https://build-time.api';
+      expect(getDefaultRewardsApiBaseUrlForMetaMaskEnv('production')).toBe(
+        AppConstants.REWARDS_API_URL.PRD,
+      );
+      expect(getDefaultRewardsApiBaseUrlForMetaMaskEnv('dev')).toBe(
+        AppConstants.REWARDS_API_URL.UAT,
       );
     });
   });

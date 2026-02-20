@@ -4,6 +4,7 @@ import { getDefaultBaanxApiBaseUrlForMetaMaskEnv } from './mapBaanxApiUrl';
 describe('getDefaultBaanxApiBaseUrlForMetaMaskEnv', () => {
   const originalBaanxUrl = process.env.BAANX_API_URL;
   const originalGitHubActions = process.env.GITHUB_ACTIONS;
+  const originalE2e = process.env.E2E;
 
   afterEach(() => {
     if (originalBaanxUrl !== undefined) {
@@ -16,11 +17,17 @@ describe('getDefaultBaanxApiBaseUrlForMetaMaskEnv', () => {
     } else {
       delete process.env.GITHUB_ACTIONS;
     }
+    if (originalE2e !== undefined) {
+      process.env.E2E = originalE2e;
+    } else {
+      delete process.env.E2E;
+    }
   });
 
   describe('when GITHUB_ACTIONS (builds.yml path)', () => {
     beforeEach(() => {
       process.env.GITHUB_ACTIONS = 'true';
+      delete process.env.E2E;
     });
 
     it('returns BAANX_API_URL from environment when set', () => {
@@ -52,6 +59,18 @@ describe('getDefaultBaanxApiBaseUrlForMetaMaskEnv', () => {
       const result1 = getDefaultBaanxApiBaseUrlForMetaMaskEnv('production');
       const result2 = getDefaultBaanxApiBaseUrlForMetaMaskEnv('production');
       expect(result1).toBe(result2);
+    });
+
+    it('uses metaMaskEnv when E2E is true (E2E path)', () => {
+      process.env.GITHUB_ACTIONS = 'true';
+      process.env.E2E = 'true';
+      process.env.BAANX_API_URL = 'https://build-time.api';
+      expect(getDefaultBaanxApiBaseUrlForMetaMaskEnv('production')).toBe(
+        AppConstants.BAANX_API_URL.PRD,
+      );
+      expect(getDefaultBaanxApiBaseUrlForMetaMaskEnv('dev')).toBe(
+        AppConstants.BAANX_API_URL.DEV,
+      );
     });
   });
 
