@@ -85,11 +85,8 @@ const mockEventBuilder = {
   build: jest.fn().mockReturnValue({}),
 };
 
-jest.mock('../../../../hooks/useMetrics', () => ({
-  useMetrics: jest.fn(),
-  MetaMetricsEvents: {
-    CARD_BUTTON_CLICKED: 'CARD_BUTTON_CLICKED',
-  },
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: jest.fn(),
 }));
 
 const mockNavigateToCardPage = jest.fn();
@@ -150,7 +147,7 @@ import {
 } from '../../types';
 import Routes from '../../../../../constants/navigation/Routes';
 import { ToastContext } from '../../../../../component-library/components/Toast';
-import { useMetrics } from '../../../../hooks/useMetrics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { useNavigateToCardPage } from '../../hooks/useNavigateToCardPage';
 import { useAssetBalances } from '../../hooks/useAssetBalances';
 import { useUpdateTokenPriority } from '../../hooks/useUpdateTokenPriority';
@@ -251,7 +248,7 @@ describe('AssetSelectionBottomSheet', () => {
     mockEventBuilder.addProperties = jest.fn().mockReturnThis();
     mockEventBuilder.build = jest.fn().mockReturnValue({});
 
-    (useMetrics as jest.Mock).mockReturnValue({
+    (useAnalytics as jest.Mock).mockReturnValue({
       trackEvent: mockTrackEvent,
       createEventBuilder: mockCreateEventBuilder,
     });
