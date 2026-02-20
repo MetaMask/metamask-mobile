@@ -57,7 +57,7 @@ describe('Migration #121 - Update default search engine to Brave', () => {
   ];
 
   for (const { errorMessage, scenario, state } of invalidStates) {
-    it(`should capture exception if ${scenario}`, async () => {
+    it(`captures exception if ${scenario}`, async () => {
       const newState = await migrate(state);
 
       expect(newState).toStrictEqual(state);
@@ -68,7 +68,7 @@ describe('Migration #121 - Update default search engine to Brave', () => {
     });
   }
 
-  it('should update the search engine from Google to Brave', async () => {
+  it('updates the search engine from Google to Brave', async () => {
     const oldState = {
       engine: {
         backgroundState: {},
@@ -91,7 +91,7 @@ describe('Migration #121 - Update default search engine to Brave', () => {
     expect(migratedState).toStrictEqual(expectedState);
   });
 
-  it('should update the search engine from DuckDuckGo to Brave', async () => {
+  it('updates the search engine from DuckDuckGo to Brave', async () => {
     const oldState = {
       engine: {
         backgroundState: {},
