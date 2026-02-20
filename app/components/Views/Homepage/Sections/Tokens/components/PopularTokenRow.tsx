@@ -16,6 +16,13 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../../component-library/components/Texts/Text';
+import {
+  CaipAssetType,
+  CaipChainId,
+  isCaipAssetType,
+  parseCaipAssetType,
+  parseCaipChainId,
+} from '@metamask/utils';
 import { useRampNavigation } from '../../../../../UI/Ramp/hooks/useRampNavigation';
 import { selectCurrentCurrency } from '../../../../../../selectors/currencyRateController';
 import { strings } from '../../../../../../../locales/i18n';
@@ -25,14 +32,13 @@ import type { PopularToken } from '../hooks/usePopularTokens';
 const NATIVE_TOKEN_ADDRESS = '0x0000000000000000000000000000000000000000';
 
 /**
- * Parses a CAIP-19 asset ID to extract chainId, address, and chain type info
- * Format: namespace:chainReference/assetNamespace:assetReference
- * Examples:
- * - EVM: eip155:1/erc20:0x123... or eip155:1/slip44:60
- * - Solana: solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501
- * - Bitcoin: bip122:000000000019d6689c085ae165831e93/slip44:0
+ * Parses a CAIP-19 asset ID to extract chainId, address, and chain type info.
+ * Uses @metamask/utils functions directly and adds EVM-specific post-processing.
+ *
+ * @param assetId - CAIP-19 asset ID (e.g., "eip155:1/erc20:0x123...")
+ * @returns Parsed asset info with chainId, address, and type flags
  */
-const parseAssetId = (
+const parseAssetIdForNavigation = (
   assetId: string,
 ): {
   chainId: string;
@@ -40,30 +46,51 @@ const parseAssetId = (
   isEvmChain: boolean;
   isNative: boolean;
 } => {
-  // Split into chain and asset parts
-  const [chainPart, assetPart] = assetId.split('/');
-  const [namespace, chainReference] = chainPart.split(':');
-  const [assetNamespace, assetReference] = assetPart.split(':');
-
-  const isEvmChain = namespace === 'eip155';
-  const isNative = assetNamespace === 'slip44';
-
-  let chainId: string;
-  let address: string;
-
-  if (isEvmChain) {
-    // EVM chains use hex chainId format
-    chainId = `0x${parseInt(chainReference, 10).toString(16)}`;
-    // For native tokens (slip44), use zero address; for ERC20, use the contract address
-    address = isNative ? NATIVE_TOKEN_ADDRESS : assetReference;
-  } else {
-    // Non-EVM chains use CAIP-2 format for chainId (e.g., "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp")
-    chainId = chainPart;
-    // For non-EVM chains, address is the full CAIP-19 asset ID
-    address = assetId;
+  // Validate CAIP-19 format
+  if (!isCaipAssetType(assetId as CaipAssetType)) {
+    return {
+      chainId: '',
+      address: '',
+      isEvmChain: false,
+      isNative: false,
+    };
   }
 
-  return { chainId, address, isEvmChain, isNative };
+  try {
+    // Parse using @metamask/utils functions
+    const parsedAsset = parseCaipAssetType(assetId as CaipAssetType);
+    const parsedChain = parseCaipChainId(parsedAsset.chainId as CaipChainId);
+
+    const { namespace, reference: chainReference } = parsedChain;
+    const { assetNamespace, assetReference } = parsedAsset;
+
+    const isEvmChain = namespace === 'eip155';
+    const isNative = assetNamespace === 'slip44';
+
+    let chainId: string;
+    let address: string;
+
+    if (isEvmChain) {
+      // EVM chains use hex chainId format for navigation
+      chainId = `0x${parseInt(chainReference, 10).toString(16)}`;
+      // For native tokens (slip44), use zero address; for ERC20, use the contract address
+      address = isNative ? NATIVE_TOKEN_ADDRESS : assetReference;
+    } else {
+      // Non-EVM chains use CAIP-2 format for chainId
+      chainId = `${namespace}:${chainReference}`;
+      // For non-EVM chains, address is the full CAIP-19 asset ID
+      address = assetId;
+    }
+
+    return { chainId, address, isEvmChain, isNative };
+  } catch {
+    return {
+      chainId: '',
+      address: '',
+      isEvmChain: false,
+      isNative: false,
+    };
+  }
 };
 
 interface PopularTokenRowProps {
@@ -120,7 +147,9 @@ const PopularTokenRow: React.FC<PopularTokenRowProps> = ({ token }) => {
   const currentCurrency = useSelector(selectCurrentCurrency);
 
   const handleRowPress = useCallback(() => {
-    const { chainId, address, isNative } = parseAssetId(token.assetId);
+    const { chainId, address, isNative } = parseAssetIdForNavigation(
+      token.assetId,
+    );
 
     navigation.navigate('Asset', {
       chainId,
