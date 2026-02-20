@@ -172,22 +172,26 @@ const NetworksManagementView = () => {
         )}
 
         {/* Additional Networks section */}
-        <Box twClassName="flex-row items-center justify-between px-4 my-4">
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.TextAlternative}
-          >
-            {strings('app_settings.networks_additional')}
-          </Text>
-        </Box>
-        {availableNetworks.map((item) => (
-          <AdditionalNetworkItem
-            key={item.chainId}
-            item={item}
-            onAdd={handleAddNetwork}
-          />
-        ))}
+        {availableNetworks.length > 0 && (
+          <>
+            <Box twClassName="flex-row items-center justify-between px-4 my-4">
+              <Text
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextAlternative}
+              >
+                {strings('app_settings.networks_additional')}
+              </Text>
+            </Box>
+            {availableNetworks.map((item) => (
+              <AdditionalNetworkItem
+                key={item.chainId}
+                item={item}
+                onAdd={handleAddNetwork}
+              />
+            ))}
+          </>
+        )}
 
         {/* Test Networks section */}
         {testNetworks.length > 0 && (

@@ -47,17 +47,17 @@ beforeEach(() => jest.clearAllMocks());
 describe('EditNetworkMenu', () => {
   it('renders the edit action', () => {
     const { getByText } = renderMenu();
-    expect(getByText(strings('transaction.edit'))).toBeTruthy();
+    expect(getByText(strings('transaction.edit'))).toBeOnTheScreen();
   });
 
   it('renders the delete action when canDelete is true', () => {
     const { getByText } = renderMenu();
-    expect(getByText(strings('app_settings.delete'))).toBeTruthy();
+    expect(getByText(strings('app_settings.delete'))).toBeOnTheScreen();
   });
 
   it('hides the delete action when canDelete is false', () => {
     const { queryByText } = renderMenu({ canDelete: false });
-    expect(queryByText(strings('app_settings.delete'))).toBeNull();
+    expect(queryByText(strings('app_settings.delete'))).not.toBeOnTheScreen();
   });
 
   it('calls onEdit with rpcUrl when edit is pressed', () => {
