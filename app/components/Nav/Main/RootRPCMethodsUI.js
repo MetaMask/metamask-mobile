@@ -93,7 +93,7 @@ const RootRPCMethodsUI = (props) => {
         } else {
           trackEvent(
             createEventBuilder(
-              MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
+              MetaMetricsEvents.DAPP_TRANSACTION_CANCELLED,
             ).build(),
           );
         }

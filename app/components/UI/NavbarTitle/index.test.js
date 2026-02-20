@@ -5,7 +5,10 @@ import configureMockStore from 'redux-mock-store';
 import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
-import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
+import {
+  AnalyticsEventBuilder,
+  chainableBuilder,
+} from '../../../util/analytics/AnalyticsEventBuilder';
 import NavbarTitle from './';
 
 const mockStore = configureMockStore();
@@ -18,15 +21,33 @@ jest.mock('../../../util/analytics/analytics', () => ({
   },
 }));
 
-const mockBuild = jest.fn(() => ({ builtEvent: true }));
-const mockAddProperties = jest.fn(() => ({ build: mockBuild }));
-const mockCreateEventBuilder = jest.fn(() => ({
-  addProperties: mockAddProperties,
-  build: mockBuild,
-}));
-
-jest.mock('../../../util/analytics/AnalyticsEventBuilder');
-AnalyticsEventBuilder.createEventBuilder = mockCreateEventBuilder;
+jest.mock('../../../util/analytics/AnalyticsEventBuilder', () => {
+  const chainableBuilder = {
+    addProperties: jest.fn(function () {
+      return this;
+    }),
+    addSensitiveProperties: jest.fn(function () {
+      return this;
+    }),
+    removeProperties: jest.fn(function () {
+      return this;
+    }),
+    removeSensitiveProperties: jest.fn(function () {
+      return this;
+    }),
+    setSaveDataRecording: jest.fn(function () {
+      return this;
+    }),
+    build: jest.fn(() => ({ builtEvent: true })),
+  };
+  const createEventBuilder = jest.fn(() => chainableBuilder);
+  return {
+    __esModule: true,
+    default: { createEventBuilder },
+    AnalyticsEventBuilder: { createEventBuilder },
+    chainableBuilder,
+  };
+});
 
 jest.mock('../../../core/Analytics', () => ({
   MetaMetricsEvents: {
@@ -70,10 +91,10 @@ describe('NavbarTitle', () => {
 
     fireEvent.press(getByText('Settings'));
 
-    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+    expect(AnalyticsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
       'NETWORK_SELECTOR_PRESSED',
     );
-    expect(mockAddProperties).toHaveBeenCalledWith(
+    expect(chainableBuilder.addProperties).toHaveBeenCalledWith(
       expect.objectContaining({ chain_id: expect.anything() }),
     );
     expect(mockAnalyticsTrackEvent).toHaveBeenCalled();

@@ -12,13 +12,17 @@ import {
   getTransparentOnboardingNavbarOptions,
   getWalletNavbarOptions,
   getStakingNavbar,
+  getSwapsQuotesNavbar,
 } from '.';
 import { mockTheme } from '../../../util/theme';
 import Device from '../../../util/device';
 import { View } from 'react-native';
 import { BridgeViewMode } from '../Bridge/types';
 import { strings } from '../../../../locales/i18n';
-import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
+import {
+  AnalyticsEventBuilder,
+  chainableBuilder,
+} from '../../../util/analytics/AnalyticsEventBuilder';
 
 jest.mock('../../../util/device', () => ({
   isAndroid: jest.fn(),
@@ -73,15 +77,33 @@ jest.mock('../../../util/networks', () => ({
   getNetworkNameFromProviderConfig: jest.fn(() => 'Ethereum Mainnet'),
 }));
 
-const mockBuildEvent = jest.fn(() => ({ builtEvent: true }));
-const mockCreateEventBuilder = jest.fn(() => ({
-  addProperties: jest.fn(() => ({
-    build: mockBuildEvent,
-  })),
-  build: mockBuildEvent,
-}));
-
-jest.mock('../../../util/analytics/AnalyticsEventBuilder');
+jest.mock('../../../util/analytics/AnalyticsEventBuilder', () => {
+  const chainableBuilder = {
+    addProperties: jest.fn(function () {
+      return this;
+    }),
+    addSensitiveProperties: jest.fn(function () {
+      return this;
+    }),
+    removeProperties: jest.fn(function () {
+      return this;
+    }),
+    removeSensitiveProperties: jest.fn(function () {
+      return this;
+    }),
+    setSaveDataRecording: jest.fn(function () {
+      return this;
+    }),
+    build: jest.fn(() => ({ builtEvent: true })),
+  };
+  const createEventBuilder = jest.fn(() => chainableBuilder);
+  return {
+    __esModule: true,
+    default: { createEventBuilder },
+    AnalyticsEventBuilder: { createEventBuilder },
+    chainableBuilder,
+  };
+});
 
 const mockAnalyticsTrackEvent = jest.fn();
 jest.mock('../../../util/analytics/analytics', () => ({
@@ -98,6 +120,7 @@ jest.mock('../../../core/Analytics', () => ({
     NOTIFICATIONS_ACTIVATED: 'NOTIFICATIONS_ACTIVATED',
     NAVIGATION_TAPS_SETTINGS: 'NAVIGATION_TAPS_SETTINGS',
     CARD_HOME_CLICKED: 'CARD_HOME_CLICKED',
+    QUOTES_REQUEST_CANCELLED: 'QUOTES_REQUEST_CANCELLED',
   },
 }));
 
@@ -116,8 +139,6 @@ jest.mock('../AddressCopy', () => {
     default: (props) => <View testID="address-copy-mock" />,
   };
 });
-
-AnalyticsEventBuilder.createEventBuilder = mockCreateEventBuilder;
 
 describe('getNetworkNavbarOptions', () => {
   const Stack = createStackNavigator();
@@ -783,7 +804,9 @@ describe('getWalletNavbarOptions', () => {
 
       fireEvent.press(getByTestId('wallet-scan-button'));
 
-      expect(mockCreateEventBuilder).toHaveBeenCalledWith('WALLET_QR_SCANNER');
+      expect(AnalyticsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
+        'WALLET_QR_SCANNER',
+      );
       expect(mockAnalyticsTrackEvent).toHaveBeenCalled();
     });
 
@@ -795,7 +818,7 @@ describe('getWalletNavbarOptions', () => {
 
       fireEvent.press(getByTestId('navbar-hamburger-menu-button'));
 
-      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      expect(AnalyticsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
         'NAVIGATION_TAPS_SETTINGS',
       );
       expect(mockAnalyticsTrackEvent).toHaveBeenCalled();
@@ -813,7 +836,9 @@ describe('getWalletNavbarOptions', () => {
 
       fireEvent.press(getByTestId('card-button'));
 
-      expect(mockCreateEventBuilder).toHaveBeenCalledWith('CARD_HOME_CLICKED');
+      expect(AnalyticsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
+        'CARD_HOME_CLICKED',
+      );
       expect(mockAnalyticsTrackEvent).toHaveBeenCalled();
     });
 
@@ -833,7 +858,7 @@ describe('getWalletNavbarOptions', () => {
 
       fireEvent.press(getByTestId('wallet-notifications-button'));
 
-      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      expect(AnalyticsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
         'NOTIFICATIONS_MENU_OPENED',
       );
       expect(mockAnalyticsTrackEvent).toHaveBeenCalled();
@@ -853,7 +878,7 @@ describe('getWalletNavbarOptions', () => {
 
       fireEvent.press(getByTestId('wallet-notifications-button'));
 
-      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      expect(AnalyticsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
         'NOTIFICATIONS_ACTIVATED',
       );
       expect(mockAnalyticsTrackEvent).toHaveBeenCalled();
@@ -1028,8 +1053,10 @@ describe('getNavigationOptionsTitle', () => {
     fireEvent.press(getByTestId('close-network-icon'));
 
     expect(mockNavigation.goBack).toHaveBeenCalledTimes(1);
-    expect(mockCreateEventBuilder).toHaveBeenCalledWith(mockEvent);
-    expect(mockBuildEvent).toHaveBeenCalled();
+    expect(AnalyticsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
+      mockEvent,
+    );
+    expect(chainableBuilder.build).toHaveBeenCalled();
     expect(mockAnalyticsTrackEvent).toHaveBeenCalled();
   });
 
@@ -1046,8 +1073,55 @@ describe('getNavigationOptionsTitle', () => {
 
     fireEvent.press(getByTestId('back-arrow-button'));
 
-    expect(mockCreateEventBuilder).not.toHaveBeenCalled();
+    expect(AnalyticsEventBuilder.createEventBuilder).not.toHaveBeenCalled();
     expect(mockAnalyticsTrackEvent).not.toHaveBeenCalled();
     expect(mockNavigation.goBack).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('getSwapsQuotesNavbar', () => {
+  const mockNavigation = {
+    pop: jest.fn(),
+    dangerouslyGetParent: jest.fn(() => ({
+      pop: jest.fn(),
+    })),
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('tracks QUOTES_REQUEST_CANCELLED on left action when no quote is selected', () => {
+    const route = {
+      params: {
+        title: 'Swap',
+        requestedTrade: {
+          token_from: 'ETH',
+          token_to: 'DAI',
+          request_type: 'Order',
+          custom_slippage: false,
+          chain_id: '0x1',
+          token_from_amount: '1',
+        },
+        selectedQuote: null,
+        quoteBegin: Date.now() - 1000,
+      },
+    };
+
+    const options = getSwapsQuotesNavbar(
+      mockNavigation,
+      route,
+      mockTheme.colors,
+    );
+
+    Device.isAndroid.mockReturnValue(false);
+    const headerLeft = options.headerLeft();
+    headerLeft.props.onPress();
+
+    expect(AnalyticsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
+      'QUOTES_REQUEST_CANCELLED',
+    );
+    expect(mockAnalyticsTrackEvent).toHaveBeenCalled();
+    expect(mockNavigation.pop).toHaveBeenCalled();
   });
 });
