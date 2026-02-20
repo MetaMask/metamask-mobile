@@ -33,13 +33,15 @@ import { ShareAddressQRIds } from './ShareAddressQR.testIds';
 import { selectAccountGroupById } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { RootState } from '../../../../../reducers';
 
+export interface ShareAddressQRParams {
+  address: string;
+  networkName: string;
+  chainId: string;
+  groupId: AccountGroupId;
+}
+
 interface RootNavigationParamList extends ParamListBase {
-  ShareAddressQR: {
-    address: string;
-    networkName: string;
-    chainId: string;
-    groupId: AccountGroupId;
-  };
+  ShareAddressQR: ShareAddressQRParams;
 }
 
 type ShareAddressQRRouteProp = RouteProp<

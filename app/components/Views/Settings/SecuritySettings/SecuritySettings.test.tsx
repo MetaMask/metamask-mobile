@@ -8,13 +8,12 @@ import {
   CLEAR_BROWSER_HISTORY_SECTION,
   CLEAR_PRIVACY_SECTION,
   DELETE_METRICS_BUTTON,
-  LOGIN_OPTIONS,
   META_METRICS_DATA_MARKETING_SECTION,
   META_METRICS_SECTION,
   SDK_SECTION,
   SECURITY_SETTINGS_DELETE_WALLET_BUTTON,
-  TURN_ON_REMEMBER_ME,
 } from './SecuritySettings.constants';
+import { useAccountMenuEnabled } from '../../../../selectors/featureFlagController/accountMenu/useAccountMenuEnabled';
 import { SecurityPrivacyViewSelectorsIDs } from './SecurityPrivacyView.testIds';
 import SECURITY_ALERTS_TOGGLE_TEST_ID from './constants';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../util/test/accountsControllerTestUtils';
@@ -81,6 +80,30 @@ jest.mock(
   }),
 );
 
+// DeviceSecurityToggle uses useAuthCapabilities; mock so it renders the toggle instead of null
+jest.mock('../../../../core/Authentication/hooks/useAuthCapabilities', () => ({
+  __esModule: true,
+  default: () => ({
+    isLoading: false,
+    capabilities: {
+      isBiometricsAvailable: true,
+      passcodeAvailable: true,
+      authLabel: 'Face ID',
+      osAuthEnabled: false,
+      allowLoginWithRememberMe: false,
+      authType: 'biometrics',
+      deviceAuthRequiresSettings: false,
+    },
+  }),
+}));
+
+jest.mock(
+  '../../../../selectors/featureFlagController/accountMenu/useAccountMenuEnabled',
+  () => ({
+    useAccountMenuEnabled: jest.fn(() => false),
+  }),
+);
+
 describe('SecuritySettings', () => {
   beforeEach(() => {
     mockUseParamsValues = {
@@ -109,7 +132,7 @@ describe('SecuritySettings', () => {
     });
     expect(wrapper.toJSON()).toMatchSnapshot();
   });
-  it('renders all sections', () => {
+  it('renders all sections when account menu is disabled', () => {
     const { getByText, getByTestId } = renderWithProvider(
       <SecuritySettings />,
       {
@@ -121,9 +144,36 @@ describe('SecuritySettings', () => {
       getByTestId(SecurityPrivacyViewSelectorsIDs.CHANGE_PASSWORD_CONTAINER),
     ).toBeTruthy();
     expect(getByTestId(AUTO_LOCK_SECTION)).toBeTruthy();
-    expect(getByTestId(LOGIN_OPTIONS)).toBeTruthy();
-    expect(getByTestId(TURN_ON_REMEMBER_ME)).toBeTruthy();
+    expect(
+      getByTestId(SecurityPrivacyViewSelectorsIDs.DEVICE_SECURITY_TOGGLE),
+    ).toBeTruthy();
     expect(getByTestId(SDK_SECTION)).toBeTruthy();
+    expect(getByTestId(CLEAR_PRIVACY_SECTION)).toBeTruthy();
+    expect(getByTestId(CLEAR_BROWSER_HISTORY_SECTION)).toBeTruthy();
+    expect(getByTestId(META_METRICS_SECTION)).toBeTruthy();
+    expect(getByTestId(DELETE_METRICS_BUTTON)).toBeTruthy();
+    expect(getByTestId(META_METRICS_DATA_MARKETING_SECTION)).toBeTruthy();
+    expect(getByTestId(SECURITY_SETTINGS_DELETE_WALLET_BUTTON)).toBeTruthy();
+  });
+
+  it('renders all sections without SDK section when account menu is enabled', () => {
+    jest.mocked(useAccountMenuEnabled).mockReturnValue(true);
+
+    const { getByText, getByTestId, queryByTestId } = renderWithProvider(
+      <SecuritySettings />,
+      {
+        state: initialState,
+      },
+    );
+    expect(getByText(strings('app_settings.protect_title'))).toBeTruthy();
+    expect(
+      getByTestId(SecurityPrivacyViewSelectorsIDs.CHANGE_PASSWORD_CONTAINER),
+    ).toBeTruthy();
+    expect(getByTestId(AUTO_LOCK_SECTION)).toBeTruthy();
+    expect(
+      getByTestId(SecurityPrivacyViewSelectorsIDs.DEVICE_SECURITY_TOGGLE),
+    ).toBeTruthy();
+    expect(queryByTestId(SDK_SECTION)).toBeNull();
     expect(getByTestId(CLEAR_PRIVACY_SECTION)).toBeTruthy();
     expect(getByTestId(CLEAR_BROWSER_HISTORY_SECTION)).toBeTruthy();
     expect(getByTestId(META_METRICS_SECTION)).toBeTruthy();

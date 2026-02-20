@@ -10,7 +10,7 @@ import { WalletViewSelectorsIDs } from '../../app/components/Views/Wallet/Wallet
 import AppwrightSelectors from '../../tests/framework/AppwrightSelectors';
 import AppwrightGestures from '../../tests/framework/AppwrightGestures';
 import { expect as appwrightExpect } from 'appwright';
-import TimerHelper from 'appwright/utils/TimersHelper.js';
+import TimerHelper from '../../tests/framework/TimerHelper';
 
 class WalletMainScreen {
 

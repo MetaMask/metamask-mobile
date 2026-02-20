@@ -6,9 +6,7 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
-import TextField, {
-  TextFieldSize,
-} from '../../../../../component-library/components/Form/TextField';
+import TextField from '../../../../../component-library/components/Form/TextField';
 import Label from '../../../../../component-library/components/Form/Label';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
@@ -34,8 +32,8 @@ import {
   Region,
   setOnValueChange,
 } from './RegionSelectorModal';
-import { TouchableOpacity } from 'react-native';
 import { useCardSDK } from '../../sdk';
+import SelectField from './SelectField';
 
 const US_PHONE_REGEX = /^[2-9]\d{2}[2-9]\d{6}$/;
 
@@ -250,19 +248,13 @@ const SetPhoneNumber = () => {
       </Label>
       {/* Area code selector */}
       <Box twClassName="flex flex-row items-center justify-center gap-2">
-        <Box twClassName="flex flex-row items-center border border-solid border-border-default rounded-lg h-full">
-          <Box twClassName="w-26 justify-center items-center flex">
-            <TouchableOpacity
-              onPress={handleCountrySelect}
-              testID="set-phone-number-country-area-code-select"
-            >
-              <Box twClassName="flex flex-row items-center justify-between px-4 py-2">
-                <Text variant={TextVariant.BodyMd}>
-                  {`${selectedCountryEmoji} +${selectedCountryAreaCode}`}
-                </Text>
-              </Box>
-            </TouchableOpacity>
-          </Box>
+        <Box twClassName="w-26">
+          <SelectField
+            value={`${selectedCountryEmoji} +${selectedCountryAreaCode}`}
+            onPress={handleCountrySelect}
+            hideIcon
+            testID="set-phone-number-country-area-code-select"
+          />
         </Box>
 
         {/* Phone number input */}
@@ -271,7 +263,6 @@ const SetPhoneNumber = () => {
             autoCapitalize={'none'}
             onChangeText={handlePhoneNumberChange}
             numberOfLines={1}
-            size={TextFieldSize.Lg}
             autoComplete="one-time-code"
             value={phoneNumber}
             keyboardType="phone-pad"

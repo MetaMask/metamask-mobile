@@ -89,8 +89,8 @@ exports[`InputStepper complete component snapshot renders complete component cor
             [
               {
                 "color": "#121314",
-                "height": 24,
-                "width": 24,
+                "height": 32,
+                "width": 32,
               },
               undefined,
             ]
@@ -115,6 +115,7 @@ exports[`InputStepper complete component snapshot renders complete component cor
           onBlur={[Function]}
           onFocus={[Function]}
           placeholder="Enter value"
+          placeholderTextColor="#686e7d"
           showSoftInputOnFocus={false}
           style={
             {
@@ -129,8 +130,6 @@ exports[`InputStepper complete component snapshot renders complete component cor
               "letterSpacing": 0,
               "lineHeight": 50,
               "opacity": 1,
-              "paddingVertical": 2,
-              "textAlignVertical": "center",
             }
           }
           testID="input-stepper-input"
@@ -237,8 +236,8 @@ exports[`InputStepper complete component snapshot renders complete component cor
             [
               {
                 "color": "#121314",
-                "height": 24,
-                "width": 24,
+                "height": 32,
+                "width": 32,
               },
               undefined,
             ]
@@ -339,8 +338,8 @@ exports[`InputStepper complete component snapshot renders with description 1`] =
             [
               {
                 "color": "#121314",
-                "height": 24,
-                "width": 24,
+                "height": 32,
+                "width": 32,
               },
               undefined,
             ]
@@ -365,6 +364,7 @@ exports[`InputStepper complete component snapshot renders with description 1`] =
           onBlur={[Function]}
           onFocus={[Function]}
           placeholder="0"
+          placeholderTextColor="#686e7d"
           showSoftInputOnFocus={false}
           style={
             {
@@ -379,8 +379,6 @@ exports[`InputStepper complete component snapshot renders with description 1`] =
               "letterSpacing": 0,
               "lineHeight": 50,
               "opacity": 1,
-              "paddingVertical": 2,
-              "textAlignVertical": "center",
             }
           }
           testID="input-stepper-input"
@@ -460,8 +458,8 @@ exports[`InputStepper complete component snapshot renders with description 1`] =
             [
               {
                 "color": "#121314",
-                "height": 24,
-                "width": 24,
+                "height": 32,
+                "width": 32,
               },
               undefined,
             ]
@@ -562,8 +560,8 @@ exports[`InputStepper description row should render InputStepperDescriptionRow 1
             [
               {
                 "color": "#121314",
-                "height": 24,
-                "width": 24,
+                "height": 32,
+                "width": 32,
               },
               undefined,
             ]
@@ -588,6 +586,7 @@ exports[`InputStepper description row should render InputStepperDescriptionRow 1
           onBlur={[Function]}
           onFocus={[Function]}
           placeholder="0"
+          placeholderTextColor="#686e7d"
           showSoftInputOnFocus={false}
           style={
             {
@@ -602,8 +601,6 @@ exports[`InputStepper description row should render InputStepperDescriptionRow 1
               "letterSpacing": 0,
               "lineHeight": 50,
               "opacity": 1,
-              "paddingVertical": 2,
-              "textAlignVertical": "center",
             }
           }
           testID="input-stepper-input"
@@ -683,8 +680,8 @@ exports[`InputStepper description row should render InputStepperDescriptionRow 1
             [
               {
                 "color": "#121314",
-                "height": 24,
-                "width": 24,
+                "height": 32,
+                "width": 32,
               },
               undefined,
             ]
@@ -785,8 +782,8 @@ exports[`InputStepper input renders correct style when value character length is
             [
               {
                 "color": "#121314",
-                "height": 24,
-                "width": 24,
+                "height": 32,
+                "width": 32,
               },
               undefined,
             ]
@@ -811,6 +808,7 @@ exports[`InputStepper input renders correct style when value character length is
           onBlur={[Function]}
           onFocus={[Function]}
           placeholder="0"
+          placeholderTextColor="#686e7d"
           showSoftInputOnFocus={false}
           style={
             {
@@ -825,8 +823,6 @@ exports[`InputStepper input renders correct style when value character length is
               "letterSpacing": 0,
               "lineHeight": 50,
               "opacity": 1,
-              "paddingVertical": 2,
-              "textAlignVertical": "center",
             }
           }
           testID="input-stepper-input"
@@ -906,8 +902,8 @@ exports[`InputStepper input renders correct style when value character length is
             [
               {
                 "color": "#121314",
-                "height": 24,
-                "width": 24,
+                "height": 32,
+                "width": 32,
               },
               undefined,
             ]
@@ -1008,8 +1004,8 @@ exports[`InputStepper input renders correct style when value character length is
             [
               {
                 "color": "#121314",
-                "height": 24,
-                "width": 24,
+                "height": 32,
+                "width": 32,
               },
               undefined,
             ]
@@ -1034,6 +1030,7 @@ exports[`InputStepper input renders correct style when value character length is
           onBlur={[Function]}
           onFocus={[Function]}
           placeholder="0"
+          placeholderTextColor="#686e7d"
           showSoftInputOnFocus={false}
           style={
             {
@@ -1048,8 +1045,6 @@ exports[`InputStepper input renders correct style when value character length is
               "letterSpacing": 0,
               "lineHeight": 43.75,
               "opacity": 1,
-              "paddingVertical": 2,
-              "textAlignVertical": "center",
             }
           }
           testID="input-stepper-input"
@@ -1129,8 +1124,8 @@ exports[`InputStepper input renders correct style when value character length is
             [
               {
                 "color": "#121314",
-                "height": 24,
-                "width": 24,
+                "height": 32,
+                "width": 32,
               },
               undefined,
             ]
@@ -1231,8 +1226,8 @@ exports[`InputStepper input renders correct style when value character length is
             [
               {
                 "color": "#121314",
-                "height": 24,
-                "width": 24,
+                "height": 32,
+                "width": 32,
               },
               undefined,
             ]
@@ -1257,6 +1252,7 @@ exports[`InputStepper input renders correct style when value character length is
           onBlur={[Function]}
           onFocus={[Function]}
           placeholder="0"
+          placeholderTextColor="#686e7d"
           showSoftInputOnFocus={false}
           style={
             {
@@ -1271,8 +1267,6 @@ exports[`InputStepper input renders correct style when value character length is
               "letterSpacing": 0,
               "lineHeight": 37.5,
               "opacity": 1,
-              "paddingVertical": 2,
-              "textAlignVertical": "center",
             }
           }
           testID="input-stepper-input"
@@ -1352,8 +1346,8 @@ exports[`InputStepper input renders correct style when value character length is
             [
               {
                 "color": "#121314",
-                "height": 24,
-                "width": 24,
+                "height": 32,
+                "width": 32,
               },
               undefined,
             ]
@@ -1454,8 +1448,8 @@ exports[`InputStepper input renders correct style when value character length is
             [
               {
                 "color": "#121314",
-                "height": 24,
-                "width": 24,
+                "height": 32,
+                "width": 32,
               },
               undefined,
             ]
@@ -1480,6 +1474,7 @@ exports[`InputStepper input renders correct style when value character length is
           onBlur={[Function]}
           onFocus={[Function]}
           placeholder="0"
+          placeholderTextColor="#686e7d"
           showSoftInputOnFocus={false}
           style={
             {
@@ -1494,8 +1489,6 @@ exports[`InputStepper input renders correct style when value character length is
               "letterSpacing": 0,
               "lineHeight": 31.25,
               "opacity": 1,
-              "paddingVertical": 2,
-              "textAlignVertical": "center",
             }
           }
           testID="input-stepper-input"
@@ -1575,8 +1568,8 @@ exports[`InputStepper input renders correct style when value character length is
             [
               {
                 "color": "#121314",
-                "height": 24,
-                "width": 24,
+                "height": 32,
+                "width": 32,
               },
               undefined,
             ]
@@ -1677,8 +1670,8 @@ exports[`InputStepper input renders correct style when value character length is
             [
               {
                 "color": "#121314",
-                "height": 24,
-                "width": 24,
+                "height": 32,
+                "width": 32,
               },
               undefined,
             ]
@@ -1703,6 +1696,7 @@ exports[`InputStepper input renders correct style when value character length is
           onBlur={[Function]}
           onFocus={[Function]}
           placeholder="0"
+          placeholderTextColor="#686e7d"
           showSoftInputOnFocus={false}
           style={
             {
@@ -1717,8 +1711,6 @@ exports[`InputStepper input renders correct style when value character length is
               "letterSpacing": 0,
               "lineHeight": 25,
               "opacity": 1,
-              "paddingVertical": 2,
-              "textAlignVertical": "center",
             }
           }
           testID="input-stepper-input"
@@ -1798,8 +1790,8 @@ exports[`InputStepper input renders correct style when value character length is
             [
               {
                 "color": "#121314",
-                "height": 24,
-                "width": 24,
+                "height": 32,
+                "width": 32,
               },
               undefined,
             ]
@@ -1900,8 +1892,8 @@ exports[`InputStepper minus button renders correct style of minus button when di
             [
               {
                 "color": "#121314",
-                "height": 24,
-                "width": 24,
+                "height": 32,
+                "width": 32,
               },
               undefined,
             ]
@@ -1926,6 +1918,7 @@ exports[`InputStepper minus button renders correct style of minus button when di
           onBlur={[Function]}
           onFocus={[Function]}
           placeholder="0"
+          placeholderTextColor="#686e7d"
           showSoftInputOnFocus={false}
           style={
             {
@@ -1940,8 +1933,6 @@ exports[`InputStepper minus button renders correct style of minus button when di
               "letterSpacing": 0,
               "lineHeight": 50,
               "opacity": 1,
-              "paddingVertical": 2,
-              "textAlignVertical": "center",
             }
           }
           testID="input-stepper-input"
@@ -2021,8 +2012,8 @@ exports[`InputStepper minus button renders correct style of minus button when di
             [
               {
                 "color": "#121314",
-                "height": 24,
-                "width": 24,
+                "height": 32,
+                "width": 32,
               },
               undefined,
             ]
@@ -2123,8 +2114,8 @@ exports[`InputStepper minus button renders correct style of minus button when en
             [
               {
                 "color": "#121314",
-                "height": 24,
-                "width": 24,
+                "height": 32,
+                "width": 32,
               },
               undefined,
             ]
@@ -2149,6 +2140,7 @@ exports[`InputStepper minus button renders correct style of minus button when en
           onBlur={[Function]}
           onFocus={[Function]}
           placeholder="0"
+          placeholderTextColor="#686e7d"
           showSoftInputOnFocus={false}
           style={
             {
@@ -2163,8 +2155,6 @@ exports[`InputStepper minus button renders correct style of minus button when en
               "letterSpacing": 0,
               "lineHeight": 50,
               "opacity": 1,
-              "paddingVertical": 2,
-              "textAlignVertical": "center",
             }
           }
           testID="input-stepper-input"
@@ -2244,8 +2234,8 @@ exports[`InputStepper minus button renders correct style of minus button when en
             [
               {
                 "color": "#121314",
-                "height": 24,
-                "width": 24,
+                "height": 32,
+                "width": 32,
               },
               undefined,
             ]
@@ -2346,8 +2336,8 @@ exports[`InputStepper plus button renders correct style of plus button when disa
             [
               {
                 "color": "#121314",
-                "height": 24,
-                "width": 24,
+                "height": 32,
+                "width": 32,
               },
               undefined,
             ]
@@ -2372,6 +2362,7 @@ exports[`InputStepper plus button renders correct style of plus button when disa
           onBlur={[Function]}
           onFocus={[Function]}
           placeholder="0"
+          placeholderTextColor="#686e7d"
           showSoftInputOnFocus={false}
           style={
             {
@@ -2386,8 +2377,6 @@ exports[`InputStepper plus button renders correct style of plus button when disa
               "letterSpacing": 0,
               "lineHeight": 50,
               "opacity": 1,
-              "paddingVertical": 2,
-              "textAlignVertical": "center",
             }
           }
           testID="input-stepper-input"
@@ -2467,8 +2456,8 @@ exports[`InputStepper plus button renders correct style of plus button when disa
             [
               {
                 "color": "#121314",
-                "height": 24,
-                "width": 24,
+                "height": 32,
+                "width": 32,
               },
               undefined,
             ]
@@ -2569,8 +2558,8 @@ exports[`InputStepper plus button renders correct style of plus button when enab
             [
               {
                 "color": "#121314",
-                "height": 24,
-                "width": 24,
+                "height": 32,
+                "width": 32,
               },
               undefined,
             ]
@@ -2595,6 +2584,7 @@ exports[`InputStepper plus button renders correct style of plus button when enab
           onBlur={[Function]}
           onFocus={[Function]}
           placeholder="0"
+          placeholderTextColor="#686e7d"
           showSoftInputOnFocus={false}
           style={
             {
@@ -2609,8 +2599,6 @@ exports[`InputStepper plus button renders correct style of plus button when enab
               "letterSpacing": 0,
               "lineHeight": 50,
               "opacity": 1,
-              "paddingVertical": 2,
-              "textAlignVertical": "center",
             }
           }
           testID="input-stepper-input"
@@ -2690,8 +2678,8 @@ exports[`InputStepper plus button renders correct style of plus button when enab
             [
               {
                 "color": "#121314",
-                "height": 24,
-                "width": 24,
+                "height": 32,
+                "width": 32,
               },
               undefined,
             ]

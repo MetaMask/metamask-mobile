@@ -107,9 +107,9 @@ exports[`SnapUIForm will render 1`] = `
                   style={
                     {
                       "alignItems": "center",
-                      "backgroundColor": "#ffffff",
-                      "borderColor": "#b7bbc8",
-                      "borderRadius": 8,
+                      "backgroundColor": "#3c4d9d0f",
+                      "borderColor": "#b7bbc866",
+                      "borderRadius": 12,
                       "borderWidth": 1,
                       "flexDirection": "row",
                       "flexGrow": 1,
@@ -134,9 +134,12 @@ exports[`SnapUIForm will render 1`] = `
                       autoFocus={false}
                       editable={true}
                       id="input"
+                      multiline={false}
+                      numberOfLines={1}
                       onBlur={[Function]}
                       onChangeText={[Function]}
                       onFocus={[Function]}
+                      placeholderTextColor="#686e7d"
                       style={
                         {
                           "backgroundColor": "inherit",
@@ -149,8 +152,6 @@ exports[`SnapUIForm will render 1`] = `
                           "height": 46,
                           "letterSpacing": 0,
                           "opacity": 1,
-                          "paddingVertical": 2,
-                          "textAlignVertical": "center",
                         }
                       }
                       testID="input-snap-ui-input"
@@ -326,9 +327,9 @@ exports[`SnapUIForm will render with fields 1`] = `
                   style={
                     {
                       "alignItems": "center",
-                      "backgroundColor": "#ffffff",
-                      "borderColor": "#b7bbc8",
-                      "borderRadius": 8,
+                      "backgroundColor": "#3c4d9d0f",
+                      "borderColor": "#b7bbc866",
+                      "borderRadius": 12,
                       "borderWidth": 1,
                       "flexDirection": "row",
                       "flexGrow": 1,
@@ -353,9 +354,12 @@ exports[`SnapUIForm will render with fields 1`] = `
                       autoFocus={false}
                       editable={true}
                       id="input"
+                      multiline={false}
+                      numberOfLines={1}
                       onBlur={[Function]}
                       onChangeText={[Function]}
                       onFocus={[Function]}
+                      placeholderTextColor="#686e7d"
                       style={
                         {
                           "backgroundColor": "inherit",
@@ -368,8 +372,6 @@ exports[`SnapUIForm will render with fields 1`] = `
                           "height": 46,
                           "letterSpacing": 0,
                           "opacity": 1,
-                          "paddingVertical": 2,
-                          "textAlignVertical": "center",
                         }
                       }
                       testID="input-snap-ui-input"
@@ -941,7 +943,7 @@ exports[`SnapUIForm will render with fields 1`] = `
                                 "alignItems": "center",
                                 "flexDirection": "row",
                                 "gap": 16,
-                                "height": 56,
+                                "minHeight": 56,
                               },
                               false,
                               {
@@ -1674,7 +1676,7 @@ exports[`SnapUIForm will render with fields 1`] = `
                                 "alignItems": "center",
                                 "flexDirection": "row",
                                 "gap": 16,
-                                "height": 56,
+                                "minHeight": 56,
                               },
                               false,
                               {

@@ -12,7 +12,8 @@ import {
 
 import useNetworkConnectionBanner from './useNetworkConnectionBanner';
 import Engine from '../../../core/Engine';
-import { MetaMetricsEvents, useMetrics } from '../useMetrics';
+import { useAnalytics } from '../useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import { selectNetworkConnectionBannerState } from '../../../selectors/networkConnectionBanner';
 import { selectIsDeviceOffline } from '../../../selectors/connectivityController';
 import { selectEVMEnabledNetworks } from '../../../selectors/networkEnablementController';
@@ -28,7 +29,7 @@ import { IconName } from '../../../component-library/components/Icons/Icon';
 jest.mock('@react-navigation/native');
 jest.mock('../../../core/Engine');
 jest.mock('../../../selectors/networkEnablementController');
-jest.mock('../useMetrics');
+jest.mock('../useAnalytics/useAnalytics');
 jest.mock('../../../selectors/networkConnectionBanner');
 jest.mock('../../../selectors/connectivityController');
 jest.mock('react-redux', () => {
@@ -207,7 +208,7 @@ describe('useNetworkConnectionBanner', () => {
       build: mockBuild,
     }));
 
-    (useMetrics as jest.Mock).mockReturnValue({
+    (useAnalytics as jest.Mock).mockReturnValue({
       trackEvent: stableTrackEvent,
       createEventBuilder: stableCreateEventBuilder,
     });
