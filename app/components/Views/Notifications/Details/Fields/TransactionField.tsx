@@ -19,7 +19,7 @@ import useCopyClipboard, {
   CopyClipboardAlertMessage,
 } from '../hooks/useCopyClipboard';
 import useStyles from '../useStyles';
-import { useMetrics } from '../../../../../components/hooks/useMetrics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import type { INotification } from '../../../../../util/notifications/types';
 import onChainAnalyticProperties from '../../../../../util/notifications/methods/notification-analytics';
@@ -29,7 +29,7 @@ type TransactionFieldProps = ModalFieldTransaction & {
 };
 
 function TransactionField(props: TransactionFieldProps) {
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const { txHash, notification } = props;
   const { styles, theme } = useStyles();
   const copyToClipboard = useCopyClipboard();
