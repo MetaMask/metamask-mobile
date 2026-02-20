@@ -84,7 +84,7 @@ const RestrictedSiteModal = ({
           variant={ButtonVariants.Primary}
           size={ButtonSize.Lg}
           width={ButtonWidthTypes.Full}
-          label={strings('restricted_site.go_back')}
+          label={strings('restricted_site.ok')}
           onPress={onClose}
         />
       </View>

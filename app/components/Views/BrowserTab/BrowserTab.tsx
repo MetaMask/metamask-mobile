@@ -201,6 +201,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     const isWaitingForCrossOriginLoadRef = useRef(false);
     // Track the URL we're trying to load for comparison with progress events
     const pendingUrlRef = useRef<string>('');
+    // Fallback timeout for when onLoadProgress doesn't fire or fires with the correct URL but page doesn't load
+    const crossOriginLoadTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const backgroundBridgeRef = useRef<{
       url: string;
       sendNotificationEip1193: (payload: unknown) => void;
@@ -281,6 +283,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
      * Go back to previous website in history
      */
     const goBack = useCallback(() => {
+      console.log('[goBack] Called - backEnabled:', backEnabled);
+      console.trace('[goBack] Stack trace');
       if (!backEnabled) return;
 
       const { current } = webviewRef;
@@ -432,6 +436,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
             )
           ) {
             setIpfsBannerVisible(true);
+            console.log('[goBack] Triggered from: IPFS_GATEWAY_DISABLED_ERROR');
             goBack();
             throw new Error(handleIpfsContentError?.message);
           } else {
@@ -440,6 +445,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
               handleIpfsContentError.message,
             );
           }
+          console.log('[goBack] Triggered from: handleIpfsContent error fallback');
           goBack();
         }
       },
@@ -521,10 +527,14 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       handleFirstUrl();
     }, [isTabActive, handleFirstUrl]);
 
-    // Cleanup bridges when tab is closed
+    // Cleanup bridges and timeouts when tab is closed
     useEffect(
       () => () => {
         backgroundBridgeRef.current?.onDisconnect();
+        if (crossOriginLoadTimeoutRef.current) {
+          clearTimeout(crossOriginLoadTimeoutRef.current);
+          crossOriginLoadTimeoutRef.current = null;
+        }
       },
       [],
     );
@@ -550,6 +560,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     useEffect(() => {
       const handleAndroidBackPress = () => {
         if (!isTabActive) return false;
+        console.log('[goBack] Triggered from: Android hardware back press');
         goBack();
         return true;
       };
@@ -584,6 +595,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     const handleError = useCallback(
       (webViewError: WebViewError) => {
         resolvedUrlRef.current = submittedUrlRef.current;
+        console.log('[TAB_TITLE] handleError - setting titleRef to:', `Can't Open Page`);
         titleRef.current = `Can't Open Page`;
         iconRef.current = undefined;
         setConnectionType(ConnectionType.UNKNOWN);
@@ -594,8 +606,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         setProgress(0);
 
         // Prevent url from being set when the url bar is focused
-        !isUrlBarFocused &&
+        if (!isUrlBarFocused) {
+          console.log('[URL_BAR] handleError - setting text to:', submittedUrlRef.current);
           urlBarRef.current?.setNativeProps({ text: submittedUrlRef.current });
+        }
 
         isTabActive &&
           navigation.setParams({
@@ -631,13 +645,16 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         canGoForward: boolean;
       }) => {
         resolvedUrlRef.current = siteInfo.url;
+        console.log('[TAB_TITLE] handleSuccessfulPageResolution - setting titleRef to:', siteInfo.title);
         titleRef.current = siteInfo.title;
         if (siteInfo.icon) iconRef.current = siteInfo.icon;
 
         const hostName = new URLParse(siteInfo.url).origin;
         // Prevent url from being set when the url bar is focused
-        !isUrlBarFocused &&
+        if (!isUrlBarFocused) {
+          console.log('[URL_BAR] handleSuccessfulPageResolution - setting text to:', hostName);
           urlBarRef.current?.setNativeProps({ text: hostName });
+        }
 
         const contentProtocol = getURLProtocol(siteInfo.url);
         if (contentProtocol === PROTOCOLS.HTTPS) {
@@ -653,6 +670,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
             url: getMaskedUrl(siteInfo.url, sessionENSNamesRef.current),
           });
 
+        console.log('[TAB_INFO] handleSuccessfulPageResolution - calling updateTabInfo with url:', getMaskedUrl(siteInfo.url, sessionENSNamesRef.current));
         updateTabInfo(tabId, {
           url: getMaskedUrl(siteInfo.url, sessionENSNamesRef.current),
         });
@@ -785,16 +803,38 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       }: WebViewProgressEvent) => {
         // Detect native Safe Browsing blocks: if we're waiting for a cross-origin load
         // but progress is firing for a different URL (the old page), the new URL was blocked
-        if (
-          isWaitingForCrossOriginLoadRef.current &&
-          pendingUrlRef.current &&
-          progressUrl !== pendingUrlRef.current
-        ) {
-          const { origin: blockedOrigin } = new URLParse(pendingUrlRef.current);
-          setRestrictedSiteUrl(blockedOrigin);
-          setShowRestrictedSiteModal(true);
-          isWaitingForCrossOriginLoadRef.current = false;
-          loadingUrlRef.current = '';
+        console.log('[onLoadProgress] progressUrl:', progressUrl);
+        console.log('[onLoadProgress] pendingUrlRef.current:', pendingUrlRef.current);
+        console.log('[onLoadProgress] isWaitingForCrossOriginLoadRef:', isWaitingForCrossOriginLoadRef.current);
+        console.log('[onLoadProgress] onLoadProgressProgress:', onLoadProgressProgress);
+        if (isWaitingForCrossOriginLoadRef.current && pendingUrlRef.current) {
+          if (progressUrl === pendingUrlRef.current) {
+            // Progress is firing for the CORRECT URL - page is loading normally (possibly slow connection)
+            // Clear the timeout to prevent false positives on slow connections
+            // BUT keep isWaitingForCrossOriginLoadRef true so we can still detect if URL changes back
+            console.log('[onLoadProgress] Page loading correctly, clearing timeout (but still watching)');
+            if (crossOriginLoadTimeoutRef.current) {
+              clearTimeout(crossOriginLoadTimeoutRef.current);
+              crossOriginLoadTimeoutRef.current = null;
+            }
+            // Do NOT clear isWaitingForCrossOriginLoadRef here - wait for onLoadEnd
+          } else {
+            // Progress is firing for a DIFFERENT URL (the old page) - new URL was blocked
+            console.log('[onLoadProgress] BLOCKED! Progress URL does not match pending URL');
+            if (crossOriginLoadTimeoutRef.current) {
+              clearTimeout(crossOriginLoadTimeoutRef.current);
+              crossOriginLoadTimeoutRef.current = null;
+            }
+            const { origin: blockedOrigin } = new URLParse(pendingUrlRef.current);
+            const { origin: currentOrigin } = new URLParse(progressUrl);
+            // Update the URL bar to show the current page URL (where the user actually is)
+            console.log('[URL_BAR] onLoadProgress BLOCKED - setting text to:', currentOrigin);
+            urlBarRef.current?.setNativeProps({ text: currentOrigin });
+            setRestrictedSiteUrl(blockedOrigin);
+            setShowRestrictedSiteModal(true);
+            isWaitingForCrossOriginLoadRef.current = false;
+            loadingUrlRef.current = '';
+          }
         }
         setProgress(onLoadProgressProgress);
       },
@@ -813,7 +853,12 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         forceResolve?: boolean;
       }) => {
         // Clear the cross-origin load waiting state since the page finished loading
+        console.log('[onLoadEnd] Page finished loading, clearing waiting state');
         isWaitingForCrossOriginLoadRef.current = false;
+        if (crossOriginLoadTimeoutRef.current) {
+          clearTimeout(crossOriginLoadTimeoutRef.current);
+          crossOriginLoadTimeoutRef.current = null;
+        }
 
         if ('code' in nativeEvent) {
           // Handle error - code is a property of WebViewErrorEvent
@@ -1006,15 +1051,40 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         // Use URL to produce real url. This should be the actual website that the user is viewing.
         const { origin: urlOrigin } = new URLParse(nativeEvent.url);
 
+        // Clear any existing fallback timeout
+        if (crossOriginLoadTimeoutRef.current) {
+          clearTimeout(crossOriginLoadTimeoutRef.current);
+          crossOriginLoadTimeoutRef.current = null;
+        }
+
         // Track the URL being loaded for progress comparison
         pendingUrlRef.current = nativeEvent.url;
+        console.log('[onLoadStart] Setting pendingUrlRef to:', nativeEvent.url);
 
         // Only watch for native Safe Browsing blocks on cross-origin navigations
         const currentOrigin = new URLParse(resolvedUrlRef.current).origin;
+        console.log('[onLoadStart] currentOrigin:', currentOrigin, 'urlOrigin:', urlOrigin);
         if (urlOrigin !== currentOrigin && urlOrigin !== 'null') {
           isWaitingForCrossOriginLoadRef.current = true;
+          console.log('[onLoadStart] Cross-origin navigation detected, waiting for load');
+
+          // Start fallback timeout - if page doesn't load within 10 seconds, show restricted modal
+          crossOriginLoadTimeoutRef.current = setTimeout(() => {
+            if (isWaitingForCrossOriginLoadRef.current && pendingUrlRef.current) {
+              console.log('[onLoadStart] TIMEOUT! Page did not load within 10 seconds');
+              const { origin: blockedOrigin } = new URLParse(pendingUrlRef.current);
+              // Update the URL bar to show the blocked URL
+              console.log('[URL_BAR] onLoadStart TIMEOUT - setting text to:', blockedOrigin);
+              urlBarRef.current?.setNativeProps({ text: blockedOrigin });
+              setRestrictedSiteUrl(blockedOrigin);
+              setShowRestrictedSiteModal(true);
+              isWaitingForCrossOriginLoadRef.current = false;
+              loadingUrlRef.current = '';
+            }
+          }, 10000);
         } else {
           isWaitingForCrossOriginLoadRef.current = false;
+          console.log('[onLoadStart] Same-origin navigation, not waiting');
         }
 
         webStates.current[nativeEvent.url] = {
@@ -1041,8 +1111,12 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         // Cancel loading the page if we detect its a phishing page
         const isAllowed = await isAllowedOrigin(urlOrigin);
         if (!isAllowed) {
-          // Clear the waiting state since we're handling this URL via phishing modal
+          // Clear the waiting state and timeout since we're handling this URL via phishing modal
           isWaitingForCrossOriginLoadRef.current = false;
+          if (crossOriginLoadTimeoutRef.current) {
+            clearTimeout(crossOriginLoadTimeoutRef.current);
+            crossOriginLoadTimeoutRef.current = null;
+          }
           handleNotAllowedUrl(urlOrigin);
           return false;
         }
@@ -1128,6 +1202,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       async (text: string) => {
         if (!text) return;
         setConnectionType(ConnectionType.UNKNOWN);
+        console.log('[URL_BAR] onSubmitEditing - setting text to:', text);
         urlBarRef.current?.setNativeProps({ text });
         submittedUrlRef.current = text;
         webviewRef.current?.stopLoading();
@@ -1290,6 +1365,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       urlBarRef.current?.hide();
       const hostName =
         new URLParse(resolvedUrlRef.current).origin || resolvedUrlRef.current;
+      console.log('[URL_BAR] onDismissAutocomplete - setting text to:', hostName);
       urlBarRef.current?.setNativeProps({ text: hostName });
     }, []);
 
@@ -1333,12 +1409,14 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       // Reset the url bar to the current url
       const hostName =
         new URLParse(resolvedUrlRef.current).origin || resolvedUrlRef.current;
+      console.log('[URL_BAR] onCancelUrlBar - setting text to:', hostName);
       urlBarRef.current?.setNativeProps({ text: hostName });
     }, [hideAutocomplete]);
 
     const onFocusUrlBar = useCallback(() => {
       // Show the autocomplete results
       autocompleteRef.current?.show();
+      console.log('[URL_BAR] onFocusUrlBar - setting text to:', resolvedUrlRef.current);
       urlBarRef.current?.setNativeProps({ text: resolvedUrlRef.current });
     }, []);
 
@@ -1407,6 +1485,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
           navigationType,
           url,
         } = event;
+        console.log('[onNavigationStateChange] navigationType:', navigationType, 'url:', url);
+        if (navigationType === 'backforward') {
+          console.log('[onNavigationStateChange] BACK/FORWARD navigation detected!');
+        }
         Logger.log(
           `WEBVIEW NAVIGATING: OnNavigationStateChange \n Values: ${JSON.stringify(
             event,

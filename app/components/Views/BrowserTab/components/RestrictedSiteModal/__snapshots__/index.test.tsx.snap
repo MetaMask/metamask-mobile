@@ -241,7 +241,7 @@ exports[`RestrictedSiteModal matches snapshot when showModal is true 1`] = `
               }
             }
           >
-            Go Back
+            OK
           </Text>
         </TouchableOpacity>
       </View>

@@ -4453,7 +4453,7 @@
     "title": "Site Cannot Be Reached",
     "description": "This site may be restricted by your device's security settings.",
     "explanation": "Your device's built-in security features may have blocked access to this site. This can happen when a site is flagged as potentially unsafe.",
-    "go_back": "Go Back"
+    "ok": "OK"
   },
   "notifications": {
     "timeout": "Timeout",

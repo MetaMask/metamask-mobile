@@ -108,6 +108,7 @@ const PhishingModal = ({
    * Go back from phishing website alert
    */
   const goBackToSafety = () => {
+    console.log('[URL_BAR] PhishingModal goBackToSafety - setting text to:', HOMEPAGE_URL);
     urlBarRef.current?.setNativeProps({ text: HOMEPAGE_URL });
     setTimeout(() => {
       goToUrl(HOMEPAGE_URL);

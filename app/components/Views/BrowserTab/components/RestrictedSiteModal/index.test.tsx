@@ -42,7 +42,7 @@ describe('RestrictedSiteModal', () => {
       ),
     ).toBeOnTheScreen();
     expect(getByText('https://restricted-site.com')).toBeOnTheScreen();
-    expect(getByText('Go Back')).toBeOnTheScreen();
+    expect(getByText('OK')).toBeOnTheScreen();
   });
 
   it('calls onClose when Go Back button is pressed', () => {
@@ -56,8 +56,8 @@ describe('RestrictedSiteModal', () => {
       </ThemeContext.Provider>,
     );
 
-    const goBackButton = getByText('Go Back');
-    fireEvent.press(goBackButton);
+    const okButton = getByText('OK');
+    fireEvent.press(okButton);
 
     expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
