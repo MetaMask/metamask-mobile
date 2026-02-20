@@ -6,7 +6,7 @@
 import '../../../../../../tests/component-view/mocks';
 import { screen } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
-import { renderPerpsOrderDetailsView } from 'tests/component-view/renderers/perpsViewRenderer';
+import { renderPerpsOrderDetailsView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
 
 describe('PerpsOrderDetailsView', () => {
   it('renders order details with asset symbol when order is provided', async () => {

@@ -6,7 +6,7 @@
 import '../../../../../../tests/component-view/mocks';
 import { screen } from '@testing-library/react-native';
 import { PerpsHeroCardViewSelectorsIDs } from '../../Perps.testIds';
-import { renderPerpsHeroCardView } from 'tests/component-view/renderers/perpsViewRenderer';
+import { renderPerpsHeroCardView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
 
 describe('PerpsHeroCardView', () => {
   it('renders container when position is provided', async () => {

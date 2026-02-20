@@ -6,7 +6,7 @@
 import '../../../../../../tests/component-view/mocks';
 import { fireEvent, screen } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
-import { renderPerpsTransactionsView } from 'tests/component-view/renderers/perpsViewRenderer';
+import { renderPerpsTransactionsView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
 
 describe('PerpsTransactionsView', () => {
   it('renders filter tabs when connected', async () => {

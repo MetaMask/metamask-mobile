@@ -5,7 +5,7 @@
  */
 import '../../../../../../tests/component-view/mocks';
 import { screen } from '@testing-library/react-native';
-import { renderPerpsTPSLView } from 'tests/component-view/renderers/perpsViewRenderer';
+import { renderPerpsTPSLView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
 import { PerpsTPSLViewSelectorsIDs } from '../../Perps.testIds';
 
 describe('PerpsTPSLView', () => {

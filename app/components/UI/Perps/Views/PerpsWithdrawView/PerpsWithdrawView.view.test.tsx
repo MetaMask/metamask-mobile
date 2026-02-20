@@ -6,7 +6,7 @@
 import '../../../../../../tests/component-view/mocks';
 import { screen } from '@testing-library/react-native';
 import { PerpsWithdrawViewSelectorsIDs } from '../../Perps.testIds';
-import { renderPerpsWithdrawView } from 'tests/component-view/renderers/perpsViewRenderer';
+import { renderPerpsWithdrawView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
 
 describe('PerpsWithdrawView', () => {
   it('renders withdrawal screen with header back button', async () => {

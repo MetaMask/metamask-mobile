@@ -10,7 +10,7 @@ import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
 import PerpsConnectionErrorView from './PerpsConnectionErrorView';
-import { renderPerpsView } from 'tests/component-view/renderers/perpsViewRenderer';
+import { renderPerpsView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
 
 const mockOnRetry = jest.fn();
 

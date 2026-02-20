@@ -6,7 +6,7 @@
 import '../../../../../../tests/component-view/mocks';
 import { screen } from '@testing-library/react-native';
 import { PerpsOrderBookViewSelectorsIDs } from '../../Perps.testIds';
-import { renderPerpsOrderBookView } from 'tests/component-view/renderers/perpsViewRenderer';
+import { renderPerpsOrderBookView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
 
 describe('PerpsOrderBookView', () => {
   it('renders order book container when market is provided', async () => {
