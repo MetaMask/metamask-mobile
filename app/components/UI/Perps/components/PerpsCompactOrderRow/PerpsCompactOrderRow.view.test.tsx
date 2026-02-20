@@ -4,9 +4,9 @@
  * State-driven via Redux; no hook mocks.
  * Run with: yarn test:view --testPathPattern="PerpsCompactOrderRow.view.test"
  */
-import '../../../../../util/test/component-view/mocks';
+import '../../../../../../tests/component-view/mocks';
 import { fireEvent, screen } from '@testing-library/react-native';
-import { renderPerpsComponent } from '../../../../../util/test/component-view/renderers/perpsViewRenderer';
+import { renderPerpsComponent } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
 import PerpsCompactOrderRow from './PerpsCompactOrderRow';
 import type { Order } from '@metamask/perps-controller';
 

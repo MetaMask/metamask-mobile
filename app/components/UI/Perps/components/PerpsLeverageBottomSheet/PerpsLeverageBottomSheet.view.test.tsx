@@ -5,11 +5,11 @@
  * State-driven via Redux and stream overrides; no hook mocks.
  * Run with: yarn test:view --testPathPattern="PerpsLeverageBottomSheet.view.test"
  */
-import '../../../../../util/test/component-view/mocks';
+import '../../../../../../tests/component-view/mocks';
 import React from 'react';
 import { screen } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
-import { renderPerpsView } from '../../../../../util/test/component-view/renderers/perpsViewRenderer';
+import { renderPerpsView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
 import PerpsLeverageBottomSheet from './PerpsLeverageBottomSheet';
 
 const LeverageSheetWrapper: React.FC = () => (

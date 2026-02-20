@@ -3,13 +3,13 @@
  * State-driven via Redux and stream overrides; no hook mocks.
  * Run with: yarn test:view --testPathPattern="PerpsHomeView.view.test"
  */
-import '../../../../../util/test/component-view/mocks';
+import '../../../../../../tests/component-view/mocks';
 import { fireEvent, screen } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
 import {
   renderPerpsHomeView,
   defaultPositionForViews,
-} from '../../../../../util/test/component-view/renderers/perpsViewRenderer';
+} from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
 
 describe('PerpsHomeView', () => {
   it('renders header and back button when connected', async () => {

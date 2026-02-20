@@ -5,13 +5,13 @@
  * State-driven via Redux and stream overrides; no hook mocks.
  * Run with: yarn test:view --testPathPattern="PerpsMarketTabs.view.test"
  */
-import '../../../../../util/test/component-view/mocks';
+import '../../../../../../tests/component-view/mocks';
 import { fireEvent, screen } from '@testing-library/react-native';
 import {
   renderPerpsComponent,
   defaultPositionForViews,
   defaultOrderForViews,
-} from '../../../../../util/test/component-view/renderers/perpsViewRenderer';
+} from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
 import PerpsMarketTabs from './PerpsMarketTabs';
 import { PerpsMarketTabsSelectorsIDs } from '../../Perps.testIds';
 

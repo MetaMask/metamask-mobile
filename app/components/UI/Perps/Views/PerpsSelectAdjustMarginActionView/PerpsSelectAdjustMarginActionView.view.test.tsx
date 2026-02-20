@@ -4,10 +4,10 @@
  * State-driven via Redux and stream overrides; no hook mocks.
  * Run with: yarn test:view --testPathPattern="PerpsSelectAdjustMarginActionView.view.test"
  */
-import '../../../../../util/test/component-view/mocks';
+import '../../../../../../tests/component-view/mocks';
 import { fireEvent, screen } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
-import { renderPerpsSelectAdjustMarginActionView } from '../../../../../util/test/component-view/renderers/perpsViewRenderer';
+import { renderPerpsSelectAdjustMarginActionView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
 
 describe('PerpsSelectAdjustMarginActionView', () => {
   it('renders adjust margin title from PerpsAdjustMarginActionSheet', async () => {

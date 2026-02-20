@@ -2,11 +2,11 @@
  * Component view tests for PerpsSelectProviderView.
  * State-driven via Redux (initialStatePerps); no hook/selector mocks.
  */
-import '../../../../../util/test/component-view/mocks';
+import '../../../../../../tests/component-view/mocks';
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import Engine from '../../../../../core/Engine';
 import { strings } from '../../../../../../locales/i18n';
-import { renderPerpsSelectProviderView } from '../../../../../util/test/component-view/renderers/perpsViewRenderer';
+import { renderPerpsSelectProviderView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
 
 const myxEnabledOverrides = {
   engine: {

@@ -4,10 +4,10 @@
  * State-driven via Redux; no hook mocks.
  * Run with: yarn test:view --testPathPattern="PerpsCrossMarginWarningBottomSheet.view.test"
  */
-import '../../../../../util/test/component-view/mocks';
+import '../../../../../../tests/component-view/mocks';
 import { fireEvent, screen } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
-import { renderPerpsCrossMarginWarningView } from '../../../../../util/test/component-view/renderers/perpsViewRenderer';
+import { renderPerpsCrossMarginWarningView } from 'tests/component-view/renderers/perpsViewRenderer';
 
 describe('PerpsCrossMarginWarningBottomSheet', () => {
   it('renders title, message, and dismiss button', async () => {

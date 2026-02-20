@@ -4,13 +4,13 @@
  * State-driven via Redux and stream overrides; no hook mocks.
  * Run with: yarn test:view --testPathPattern="PerpsCancelAllOrdersView.view.test"
  */
-import '../../../../../util/test/component-view/mocks';
+import '../../../../../../tests/component-view/mocks';
 import { screen } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
 import {
   renderPerpsCancelAllOrdersView,
   defaultOrderForViews,
-} from '../../../../../util/test/component-view/renderers/perpsViewRenderer';
+} from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
 
 const multipleOrders = [
   defaultOrderForViews,

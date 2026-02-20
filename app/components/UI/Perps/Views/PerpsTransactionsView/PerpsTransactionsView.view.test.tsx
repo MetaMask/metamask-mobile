@@ -3,10 +3,10 @@
  * State-driven via Redux and stream overrides; no hook mocks.
  * Run with: yarn test:view --testPathPattern="PerpsTransactionsView.view.test"
  */
-import '../../../../../util/test/component-view/mocks';
+import '../../../../../../tests/component-view/mocks';
 import { fireEvent, screen } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
-import { renderPerpsTransactionsView } from '../../../../../util/test/component-view/renderers/perpsViewRenderer';
+import { renderPerpsTransactionsView } from 'tests/component-view/renderers/perpsViewRenderer';
 
 describe('PerpsTransactionsView', () => {
   it('renders filter tabs when connected', async () => {

@@ -4,10 +4,10 @@
  * State-driven via Redux; no hook mocks.
  * Run with: yarn test:view --testPathPattern="PerpsFillTag.view.test"
  */
-import '../../../../../util/test/component-view/mocks';
+import '../../../../../../tests/component-view/mocks';
 import { screen } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
-import { renderPerpsComponent } from '../../../../../util/test/component-view/renderers/perpsViewRenderer';
+import { renderPerpsComponent } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
 import PerpsFillTag from './PerpsFillTag';
 import {
   FillType,

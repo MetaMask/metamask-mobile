@@ -3,9 +3,9 @@
  * State-driven via Redux and stream overrides; no hook mocks.
  * Run with: yarn test:view --testPathPattern="PerpsTPSLView.view.test"
  */
-import '../../../../../util/test/component-view/mocks';
+import '../../../../../../tests/component-view/mocks';
 import { screen } from '@testing-library/react-native';
-import { renderPerpsTPSLView } from '../../../../../util/test/component-view/renderers/perpsViewRenderer';
+import { renderPerpsTPSLView } from 'tests/component-view/renderers/perpsViewRenderer';
 import { PerpsTPSLViewSelectorsIDs } from '../../Perps.testIds';
 
 describe('PerpsTPSLView', () => {

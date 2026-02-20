@@ -4,10 +4,10 @@
  * Run with: yarn test:view --testPathPattern="PerpsEmptyState.view.test"
  */
 import React from 'react';
-import '../../../../../util/test/component-view/mocks';
+import '../../../../../../tests/component-view/mocks';
 import { fireEvent, screen } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
-import { renderPerpsView } from '../../../../../util/test/component-view/renderers/perpsViewRenderer';
+import { renderPerpsView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
 import { PerpsEmptyState } from './PerpsEmptyState';
 
 const PerpsEmptyStateScreen = () => (

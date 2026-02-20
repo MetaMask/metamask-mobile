@@ -745,4 +745,5 @@ export const defaultOrderForViews: Order = {
   fee: '0',
   averageFillPrice: undefined,
   filledSize: '0',
+  remainingSize: '1.5',
 } as Order;

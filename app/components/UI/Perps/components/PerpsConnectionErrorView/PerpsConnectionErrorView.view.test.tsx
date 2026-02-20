@@ -5,7 +5,7 @@
  * State-driven via Redux; no hook mocks.
  * Run with: yarn test:view --testPathPattern="PerpsConnectionErrorView.view.test"
  */
-import '../../../../../util/test/component-view/mocks';
+import '../../../../../../tests/component-view/mocks';
 import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
