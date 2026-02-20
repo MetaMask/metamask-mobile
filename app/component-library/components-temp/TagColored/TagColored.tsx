@@ -2,7 +2,7 @@
 
 // Third party dependencies.
 import React from 'react';
-import { View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 // External dependencies.
 import { useStyles } from '../../hooks';
@@ -31,7 +31,7 @@ const TagColored: React.FC<TagColoredProps> = ({
         <Text
           variant={DEFAULT_TAGCOLORED_TEXTVARIANT}
           {...labelProps}
-          style={[styles.text, labelProps?.style]}
+          style={StyleSheet.flatten([styles.text, labelProps?.style])}
           testID={TAGCOLORED_TEXT_TESTID}
         >
           {children}
