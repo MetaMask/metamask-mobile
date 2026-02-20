@@ -339,6 +339,7 @@ enum EVENT_NAME {
   // Bridge
   BRIDGE_LINK_CLICKED = 'Bridge Linked Clicked',
   SWAP_PAGE_VIEWED = 'Unified SwapBridge Page Viewed',
+  SWAP_INPUT_QUICK_AMOUNT_CLICKED = 'Unified SwapBridge Input Quick Amount Clicked',
 
   // Earn
   EARN_EMPTY_STATE_CTA_CLICKED = 'Earn Empty State CTA Clicked',
@@ -1365,6 +1366,9 @@ const events = {
 
   // Bridge
   SWAP_PAGE_VIEWED: generateOpt(EVENT_NAME.SWAP_PAGE_VIEWED), // Temporary event until unified swap/bridge is done
+  SWAP_INPUT_QUICK_AMOUNT_CLICKED: generateOpt(
+    EVENT_NAME.SWAP_INPUT_QUICK_AMOUNT_CLICKED,
+  ),
 
   // RPC Failover
   RPC_SERVICE_UNAVAILABLE: generateOpt(EVENT_NAME.RPC_SERVICE_UNAVAILABLE),

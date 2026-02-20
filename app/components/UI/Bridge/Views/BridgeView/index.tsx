@@ -89,6 +89,11 @@ import { SwapsConfirmButton } from '../../components/SwapsConfirmButton/index.ts
 import { useBridgeViewOnFocus } from '../../hooks/useBridgeViewOnFocus/index.ts';
 import { useRenderQuoteExpireModal } from '../../hooks/useRenderQuoteExpireModal/index.ts';
 import { type BridgeRouteParams } from '../../hooks/useSwapBridgeNavigation/index.ts';
+import { useABTest } from '../../../../../hooks';
+import {
+  NUMPAD_QUICK_ACTIONS_AB_KEY,
+  NUMPAD_QUICK_ACTIONS_VARIANTS,
+} from '../../components/GaslessQuickPickOptions/abTestConfig';
 
 const BridgeView = () => {
   const [isErrorBannerVisible, setIsErrorBannerVisible] = useState(true);
@@ -100,6 +105,10 @@ const BridgeView = () => {
   const route = useRoute<RouteProp<{ params: BridgeRouteParams }, 'params'>>();
   const { colors } = useTheme();
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const {
+    variantName: numpadQuickActionsVariantName,
+    isActive: isNumpadQuickActionsTestActive,
+  } = useABTest(NUMPAD_QUICK_ACTIONS_AB_KEY, NUMPAD_QUICK_ACTIONS_VARIANTS);
   const keypadRef = useRef<SwapsKeypadRef>(null);
 
   // Needed to get gas fee estimates
@@ -291,11 +300,27 @@ const BridgeView = () => {
             token_symbol_destination: destToken?.symbol,
             token_address_source: sourceToken.address,
             token_address_destination: destToken?.address,
+            ...(isNumpadQuickActionsTestActive && {
+              active_ab_tests: [
+                {
+                  key: NUMPAD_QUICK_ACTIONS_AB_KEY,
+                  value: numpadQuickActionsVariantName,
+                },
+              ],
+            }),
           })
           .build(),
       );
     }
-  }, [sourceToken, destToken, trackEvent, createEventBuilder, bridgeViewMode]);
+  }, [
+    sourceToken,
+    destToken,
+    trackEvent,
+    createEventBuilder,
+    bridgeViewMode,
+    isNumpadQuickActionsTestActive,
+    numpadQuickActionsVariantName,
+  ]);
 
   // Reset isErrorBannerVisible when error state changes
   useEffect(() => {
