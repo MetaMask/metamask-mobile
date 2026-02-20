@@ -23,7 +23,8 @@ import {
   SHARE_OPTION,
 } from '../../../../../../wdio/screen-objects/testIDs/BrowserScreen/OptionMenu.testIds';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import Logger from '../../../../../util/Logger';
 import { useNavigation } from '@react-navigation/native';
 import { SessionENSNames } from '../../types';
@@ -64,7 +65,7 @@ const Options = ({
 }: OptionsProps) => {
   const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const dispatch = useDispatch();
   const bookmarks = useSelector((state: RootState) => state.bookmarks);
 

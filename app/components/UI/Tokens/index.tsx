@@ -9,7 +9,7 @@ import React, {
 import type { TabRefreshHandle } from '../../Views/Wallet/types';
 import { InteractionManager, View } from 'react-native';
 import { useSelector } from 'react-redux';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import {
   selectChainId,
   selectEvmNetworkConfigurationsByChainId,
@@ -53,7 +53,7 @@ interface TokensProps {
 const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
   ({ isFullView = false }, ref) => {
     const navigation = useNavigation();
-    const { trackEvent, createEventBuilder } = useMetrics();
+    const { trackEvent, createEventBuilder } = useAnalytics();
     const tw = useTailwind();
 
     // evm

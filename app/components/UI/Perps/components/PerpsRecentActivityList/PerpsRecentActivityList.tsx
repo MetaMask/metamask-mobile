@@ -21,8 +21,17 @@ import PerpsTokenLogo from '../PerpsTokenLogo';
 import PerpsFillTag from '../PerpsFillTag';
 import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './PerpsRecentActivityList.styles';
-import { HOME_SCREEN_CONFIG } from '../../constants/perpsConfig';
+import {
+  HOME_SCREEN_CONFIG,
+  PERPS_BALANCE_CHAIN_ID,
+} from '../../constants/perpsConfig';
 import PerpsRowSkeleton from '../PerpsRowSkeleton';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MonetizedPrimitive } from '../../../../../core/Analytics/MetaMetrics.types';
+import {
+  TRANSACTION_DETAIL_EVENTS,
+  TransactionDetailLocation,
+} from '../../../../../core/Analytics/events/transactions';
 
 interface PerpsRecentActivityListProps {
   transactions: PerpsTransaction[];
@@ -37,6 +46,7 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const handleSeeAll = useCallback(() => {
     navigation.navigate(Routes.PERPS.ACTIVITY, {
@@ -49,12 +59,25 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
     (transaction: PerpsTransaction) => {
       // Navigate to position transaction detail view for trades
       if (transaction.fill) {
+        trackEvent(
+          createEventBuilder(TRANSACTION_DETAIL_EVENTS.LIST_ITEM_CLICKED)
+            .addProperties({
+              transaction_type: `perps_${transaction.type}`,
+              transaction_status: 'confirmed',
+              location: TransactionDetailLocation.Home,
+              chain_id_source: PERPS_BALANCE_CHAIN_ID,
+              chain_id_destination: PERPS_BALANCE_CHAIN_ID,
+              monetized_primitive: MonetizedPrimitive.Perps,
+            })
+            .build(),
+        );
+
         navigation.navigate(Routes.PERPS.POSITION_TRANSACTION, {
           transaction,
         });
       }
     },
-    [navigation],
+    [navigation, trackEvent, createEventBuilder],
   );
 
   // Render right content for trades (only type shown)

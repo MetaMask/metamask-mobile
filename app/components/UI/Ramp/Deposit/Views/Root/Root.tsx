@@ -14,7 +14,7 @@ import { useParams } from '../../../../../../util/navigation/navUtils';
 import { useTheme } from '../../../../../../util/theme';
 import Logger from '../../../../../../util/Logger';
 
-export const TOKEN_CHECK_TIMEOUT_MS = 5000;
+export const TOKEN_CHECK_TIMEOUT_MS = 2000;
 
 function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
   let timeoutId: ReturnType<typeof setTimeout>;
@@ -65,6 +65,16 @@ const Root = () => {
 
     const initializeFlow = async () => {
       if (hasCheckedToken.current) return;
+      hasCheckedToken.current = true;
+
+      const createdOrder = orders.find(
+        (order) => order.state === FIAT_ORDER_STATES.CREATED,
+      );
+
+      if (!createdOrder) {
+        navigateToDefaultRoute();
+        return;
+      }
 
       let isAuthenticatedFromToken = false;
       try {
@@ -79,31 +89,9 @@ const Root = () => {
         );
       }
 
-      hasCheckedToken.current = true;
-
-      const createdOrder = orders.find(
-        (order) => order.state === FIAT_ORDER_STATES.CREATED,
-      );
-
-      if (createdOrder) {
-        if (!isAuthenticatedFromToken) {
-          const [routeName, navParams] = createEnterEmailNavDetails({
-            redirectToRootAfterAuth: true,
-          });
-          navigation.reset({
-            index: 0,
-            routes: [
-              {
-                name: routeName,
-                params: { ...navParams, animationEnabled: false },
-              },
-            ],
-          });
-          return;
-        }
-
-        const [routeName, navParams] = createBankDetailsNavDetails({
-          orderId: createdOrder.id,
+      if (!isAuthenticatedFromToken) {
+        const [routeName, navParams] = createEnterEmailNavDetails({
+          redirectToRootAfterAuth: true,
         });
         navigation.reset({
           index: 0,
@@ -114,9 +102,21 @@ const Root = () => {
             },
           ],
         });
-      } else {
-        navigateToDefaultRoute();
+        return;
       }
+
+      const [routeName, navParams] = createBankDetailsNavDetails({
+        orderId: createdOrder.id,
+      });
+      navigation.reset({
+        index: 0,
+        routes: [
+          {
+            name: routeName,
+            params: { ...navParams, animationEnabled: false },
+          },
+        ],
+      });
     };
 
     initializeFlow().catch((error) => {

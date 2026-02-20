@@ -57,24 +57,8 @@ describe('usePredictBalance', () => {
     jest.restoreAllMocks();
   });
 
-  describe('initial state', () => {
-    it('returns undefined data and no fetching when disabled', () => {
-      const { Wrapper } = createWrapper();
-
-      const { result } = renderHook(
-        () => usePredictBalance({ enabled: false }),
-        { wrapper: Wrapper },
-      );
-
-      expect(result.current.data).toBeUndefined();
-      expect(result.current.isFetching).toBe(false);
-      expect(result.current.error).toBeNull();
-      expect(mockGetBalance).not.toHaveBeenCalled();
-    });
-  });
-
   describe('fetching behavior', () => {
-    it('fetches balance automatically when enabled (default)', async () => {
+    it('fetches balance automatically on mount', async () => {
       const { Wrapper } = createWrapper();
       mockGetBalance.mockResolvedValue(150.5);
 
@@ -88,33 +72,6 @@ describe('usePredictBalance', () => {
 
       expect(result.current.data).toBe(150.5);
       expect(result.current.error).toBeNull();
-      expect(mockGetBalance).toHaveBeenCalledWith({
-        address: MOCK_ADDRESS,
-      });
-    });
-
-    it('does not fetch when enabled is false', () => {
-      const { Wrapper } = createWrapper();
-
-      renderHook(() => usePredictBalance({ enabled: false }), {
-        wrapper: Wrapper,
-      });
-
-      expect(mockGetBalance).not.toHaveBeenCalled();
-    });
-
-    it('fetches with default options when no options provided', async () => {
-      const { Wrapper } = createWrapper();
-      mockGetBalance.mockResolvedValue(42);
-
-      const { result } = renderHook(() => usePredictBalance(), {
-        wrapper: Wrapper,
-      });
-
-      await waitFor(() => {
-        expect(result.current.data).toBe(42);
-      });
-
       expect(mockGetBalance).toHaveBeenCalledWith({
         address: MOCK_ADDRESS,
       });

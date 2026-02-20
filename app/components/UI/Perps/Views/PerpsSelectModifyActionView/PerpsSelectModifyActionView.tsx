@@ -15,7 +15,8 @@ import PerpsModifyActionSheet, {
 } from '../../components/PerpsModifyActionSheet';
 import { usePerpsNavigation } from '../../hooks/usePerpsNavigation';
 import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 
 interface PerpsSelectModifyActionViewProps {
   sheetRef?: React.RefObject<BottomSheetRef>;
@@ -35,7 +36,7 @@ const PerpsSelectModifyActionView: React.FC<
   const navigation = useNavigation();
   const route =
     useRoute<RouteProp<PerpsNavigationParamList, 'PerpsSelectModifyAction'>>();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   // Support both props and route params
   const position = positionProp || route.params?.position;

@@ -72,7 +72,7 @@ import {
   formatCloseAmountUSD,
 } from '../../utils/positionCalculations';
 import { createStyles } from './PerpsClosePositionView.styles';
-import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { TraceName } from '../../../../../util/trace';
 import PerpsOrderHeader from '../../components/PerpsOrderHeader';
 import PerpsAmountDisplay from '../../components/PerpsAmountDisplay';

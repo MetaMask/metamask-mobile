@@ -1,5 +1,6 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, act } from '@testing-library/react-native';
+import { Pressable as MockPressable } from 'react-native';
 import AssetOverviewContent, {
   type AssetOverviewContentProps,
 } from './AssetOverviewContent';
@@ -9,6 +10,7 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../util/test/accountsControllerTestUtils';
 import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
+import Routes from '../../../../constants/navigation/Routes';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
@@ -16,6 +18,32 @@ import {
 
 const mockHandlePerpsAction = jest.fn();
 const mockTrack = jest.fn();
+const mockNavigate = jest.fn();
+
+jest.mock('../../MarketInsights', () => ({
+  __esModule: true,
+  MarketInsightsEntryCard: ({
+    onPress,
+    testID,
+  }: {
+    onPress?: () => void;
+    testID?: string;
+  }) => <MockPressable onPress={onPress} testID={testID} />,
+  useMarketInsights: () => ({
+    report: {
+      asset: 'eth',
+      generatedAt: '2026-02-17T11:55:00.000Z',
+      headline: 'ETH outlook stays positive',
+      summary: 'Momentum remains constructive.',
+      trends: [],
+      sources: [],
+    },
+    isLoading: false,
+    error: null,
+    timeAgo: '5m ago',
+  }),
+  selectMarketInsightsEnabled: () => true,
+}));
 
 jest.mock('../hooks/usePerpsActions', () => ({
   usePerpsActions: () => ({
@@ -31,22 +59,27 @@ jest.mock('../../Perps/hooks/usePerpsEventTracking', () => ({
   usePerpsEventTracking: () => ({ track: mockTrack }),
 }));
 
+// Use a stable wrapper so jest.restoreAllMocks() (from testSetup.js afterEach)
+// does not wipe the implementation between tests.
+const mockPerpsBottomSheetTooltipInner = jest.fn((..._args: unknown[]) => null);
 jest.mock('../../Perps/components/PerpsBottomSheetTooltip', () => ({
   __esModule: true,
-  default: () => null,
+  default: (...args: unknown[]) => mockPerpsBottomSheetTooltipInner(...args),
 }));
 
 jest.mock('../../../../selectors/featureFlagController/tokenDetailsV2', () => ({
   selectTokenDetailsV2Enabled: jest.fn(() => true),
-  selectTokenDetailsV2ButtonsEnabled: jest.fn(() => true),
+  selectTokenDetailsLayoutTestVariant: jest.fn(() => 'treatment'),
 }));
+
+jest.mock('../../AssetOverview/TokenDetails', () => () => null);
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
   return {
     ...actual,
     useNavigation: () => ({
-      navigate: jest.fn(),
+      navigate: mockNavigate,
       addListener: jest.fn(() => jest.fn()),
     }),
     useFocusEffect: jest.fn((cb: () => void) => cb()),
@@ -179,6 +212,56 @@ describe('AssetOverviewContent', () => {
 
       expect(mockHandlePerpsAction).toHaveBeenCalledWith('short');
       expect(mockTrack).not.toHaveBeenCalled();
+    });
+
+    it('closes geo block modal when closeEligibilityModal is called', () => {
+      const { getByTestId } = renderWithProvider(
+        <AssetOverviewContent {...defaultProps} />,
+        { state: createState(false) },
+      );
+
+      // Open the geo block modal by pressing Long when not eligible
+      fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.LONG_BUTTON));
+
+      // Verify the tooltip was rendered with the expected props
+      expect(mockPerpsBottomSheetTooltipInner).toHaveBeenCalledWith(
+        expect.objectContaining({
+          onClose: expect.any(Function),
+          contentKey: 'geo_block',
+        }),
+        expect.anything(),
+      );
+
+      // Extract onClose from the last render call and invoke it
+      const lastCallProps = mockPerpsBottomSheetTooltipInner.mock.calls[
+        mockPerpsBottomSheetTooltipInner.mock.calls.length - 1
+      ][0] as { onClose: () => void };
+      mockPerpsBottomSheetTooltipInner.mockClear();
+
+      act(() => {
+        lastCallProps.onClose();
+      });
+
+      // Modal dismissed — tooltip no longer rendered
+      expect(mockPerpsBottomSheetTooltipInner).not.toHaveBeenCalled();
+    });
+
+    it('renders market insights entry card and navigates to market insights view on press', () => {
+      const { getByTestId } = renderWithProvider(
+        <AssetOverviewContent {...defaultProps} />,
+        { state: createState(true) },
+      );
+
+      fireEvent.press(getByTestId('market-insights-entry-card'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MARKET_INSIGHTS.VIEW,
+        expect.objectContaining({
+          assetSymbol: 'ETH',
+          tokenAddress: '0x123',
+          tokenChainId: '0x1',
+        }),
+      );
     });
   });
 });
