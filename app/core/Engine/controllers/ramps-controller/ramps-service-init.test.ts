@@ -28,6 +28,8 @@ jest.mock('@metamask/ramps-controller', () => {
 describe('getRampsEnvironment', () => {
   const originalEnv = process.env.METAMASK_ENVIRONMENT;
   const originalGithubActions = process.env.GITHUB_ACTIONS;
+  const originalRampsEnvironment = process.env.RAMPS_ENVIRONMENT;
+  const originalE2e = process.env.E2E;
 
   beforeEach(() => {
     process.env.GITHUB_ACTIONS = 'false';
@@ -40,6 +42,52 @@ describe('getRampsEnvironment', () => {
     } else {
       delete process.env.GITHUB_ACTIONS;
     }
+    if (originalRampsEnvironment !== undefined) {
+      process.env.RAMPS_ENVIRONMENT = originalRampsEnvironment;
+    } else {
+      delete process.env.RAMPS_ENVIRONMENT;
+    }
+    if (originalE2e !== undefined) {
+      process.env.E2E = originalE2e;
+    } else {
+      delete process.env.E2E;
+    }
+  });
+
+  describe('when GITHUB_ACTIONS (builds.yml path)', () => {
+    beforeEach(() => {
+      process.env.GITHUB_ACTIONS = 'true';
+      delete process.env.E2E;
+    });
+
+    it('returns Production when RAMPS_ENVIRONMENT is production', () => {
+      process.env.RAMPS_ENVIRONMENT = 'production';
+      expect(getRampsEnvironment()).toBe(RampsEnvironment.Production);
+    });
+
+    it('returns Staging when RAMPS_ENVIRONMENT is not set', () => {
+      delete process.env.RAMPS_ENVIRONMENT;
+      expect(getRampsEnvironment()).toBe(RampsEnvironment.Staging);
+    });
+
+    it('returns Staging when RAMPS_ENVIRONMENT is not production', () => {
+      process.env.RAMPS_ENVIRONMENT = 'staging';
+      expect(getRampsEnvironment()).toBe(RampsEnvironment.Staging);
+    });
+
+    it('ignores METAMASK_ENVIRONMENT (uses RAMPS_ENVIRONMENT)', () => {
+      process.env.METAMASK_ENVIRONMENT = 'production';
+      process.env.RAMPS_ENVIRONMENT = 'staging';
+      expect(getRampsEnvironment()).toBe(RampsEnvironment.Staging);
+    });
+
+    it('uses METAMASK_ENVIRONMENT when E2E is true (E2E path)', () => {
+      process.env.GITHUB_ACTIONS = 'true';
+      process.env.E2E = 'true';
+      process.env.RAMPS_ENVIRONMENT = 'staging';
+      process.env.METAMASK_ENVIRONMENT = 'production';
+      expect(getRampsEnvironment()).toBe(RampsEnvironment.Production);
+    });
   });
 
   describe('Production Environment', () => {
@@ -120,6 +168,8 @@ describe('rampsServiceInit', () => {
   const originalEnv = process.env.METAMASK_ENVIRONMENT;
   const originalOS = Platform.OS;
   const originalGithubActions = process.env.GITHUB_ACTIONS;
+  const originalRampsEnvironment = process.env.RAMPS_ENVIRONMENT;
+  const originalE2e = process.env.E2E;
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -137,6 +187,16 @@ describe('rampsServiceInit', () => {
       process.env.GITHUB_ACTIONS = originalGithubActions;
     } else {
       delete process.env.GITHUB_ACTIONS;
+    }
+    if (originalRampsEnvironment !== undefined) {
+      process.env.RAMPS_ENVIRONMENT = originalRampsEnvironment;
+    } else {
+      delete process.env.RAMPS_ENVIRONMENT;
+    }
+    if (originalE2e !== undefined) {
+      process.env.E2E = originalE2e;
+    } else {
+      delete process.env.E2E;
     }
   });
 
@@ -235,6 +295,58 @@ describe('rampsServiceInit', () => {
 
     it('passes Staging environment for undefined environment', () => {
       delete process.env.METAMASK_ENVIRONMENT;
+      rampsServiceInit(initRequestMock);
+
+      expect(rampsServiceClassMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          environment: RampsEnvironment.Staging,
+        }),
+      );
+    });
+  });
+
+  describe('when GITHUB_ACTIONS (builds.yml path)', () => {
+    beforeEach(() => {
+      process.env.GITHUB_ACTIONS = 'true';
+      delete process.env.E2E;
+    });
+
+    it('passes Production environment when RAMPS_ENVIRONMENT is production', () => {
+      process.env.RAMPS_ENVIRONMENT = 'production';
+      rampsServiceInit(initRequestMock);
+
+      expect(rampsServiceClassMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          environment: RampsEnvironment.Production,
+        }),
+      );
+    });
+
+    it('passes Staging environment when RAMPS_ENVIRONMENT is not set', () => {
+      delete process.env.RAMPS_ENVIRONMENT;
+      rampsServiceInit(initRequestMock);
+
+      expect(rampsServiceClassMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          environment: RampsEnvironment.Staging,
+        }),
+      );
+    });
+
+    it('passes Staging environment when RAMPS_ENVIRONMENT is not production', () => {
+      process.env.RAMPS_ENVIRONMENT = 'staging';
+      rampsServiceInit(initRequestMock);
+
+      expect(rampsServiceClassMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          environment: RampsEnvironment.Staging,
+        }),
+      );
+    });
+
+    it('ignores METAMASK_ENVIRONMENT (uses RAMPS_ENVIRONMENT)', () => {
+      process.env.METAMASK_ENVIRONMENT = 'production';
+      process.env.RAMPS_ENVIRONMENT = 'staging';
       rampsServiceInit(initRequestMock);
 
       expect(rampsServiceClassMock).toHaveBeenCalledWith(

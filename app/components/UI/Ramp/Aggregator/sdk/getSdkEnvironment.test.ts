@@ -4,6 +4,8 @@ import { getSdkEnvironment } from './getSdkEnvironment';
 describe('getSdkEnvironment', () => {
   const originalProcessEnv = process.env;
   const originalGithubActions = process.env.GITHUB_ACTIONS;
+  const originalRampsEnvironment = process.env.RAMPS_ENVIRONMENT;
+  const originalE2e = process.env.E2E;
 
   beforeEach(() => {
     process.env.GITHUB_ACTIONS = 'false';
@@ -19,6 +21,52 @@ describe('getSdkEnvironment', () => {
     } else {
       delete process.env.GITHUB_ACTIONS;
     }
+    if (originalRampsEnvironment !== undefined) {
+      process.env.RAMPS_ENVIRONMENT = originalRampsEnvironment;
+    } else {
+      delete process.env.RAMPS_ENVIRONMENT;
+    }
+    if (originalE2e !== undefined) {
+      process.env.E2E = originalE2e;
+    } else {
+      delete process.env.E2E;
+    }
+  });
+
+  describe('when GITHUB_ACTIONS (builds.yml path)', () => {
+    beforeEach(() => {
+      process.env.GITHUB_ACTIONS = 'true';
+      delete process.env.E2E;
+    });
+
+    it('returns Production when RAMPS_ENVIRONMENT is production', () => {
+      process.env.RAMPS_ENVIRONMENT = 'production';
+      expect(getSdkEnvironment()).toBe(Environment.Production);
+    });
+
+    it('returns Staging when RAMPS_ENVIRONMENT is not set', () => {
+      delete process.env.RAMPS_ENVIRONMENT;
+      expect(getSdkEnvironment()).toBe(Environment.Staging);
+    });
+
+    it('returns Staging when RAMPS_ENVIRONMENT is not production', () => {
+      process.env.RAMPS_ENVIRONMENT = 'staging';
+      expect(getSdkEnvironment()).toBe(Environment.Staging);
+    });
+
+    it('ignores METAMASK_ENVIRONMENT (uses RAMPS_ENVIRONMENT)', () => {
+      process.env.METAMASK_ENVIRONMENT = 'production';
+      process.env.RAMPS_ENVIRONMENT = 'staging';
+      expect(getSdkEnvironment()).toBe(Environment.Staging);
+    });
+
+    it('uses METAMASK_ENVIRONMENT when E2E is true (E2E path)', () => {
+      process.env.GITHUB_ACTIONS = 'true';
+      process.env.E2E = 'true';
+      process.env.RAMPS_ENVIRONMENT = 'staging';
+      process.env.METAMASK_ENVIRONMENT = 'production';
+      expect(getSdkEnvironment()).toBe(Environment.Production);
+    });
   });
 
   describe('Production environments', () => {
