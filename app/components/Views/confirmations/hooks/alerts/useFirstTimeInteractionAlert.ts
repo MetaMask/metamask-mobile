@@ -1,5 +1,4 @@
 import { TransactionMeta } from '@metamask/transaction-controller';
-import { Hex } from '@metamask/utils';
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
@@ -18,7 +17,7 @@ export function useFirstTimeInteractionAlert(): Alert[] {
   const internalAccounts = useSelector(selectInternalAccounts);
 
   const to = useTransferRecipient();
-  const recipient = (to ?? transactionMetadata?.txParams?.to ?? '0x') as Hex;
+  const recipient = to ?? transactionMetadata?.txParams?.to;
   const chainId = transactionMetadata?.chainId;
 
   const isInternalAccount = useMemo(() => {

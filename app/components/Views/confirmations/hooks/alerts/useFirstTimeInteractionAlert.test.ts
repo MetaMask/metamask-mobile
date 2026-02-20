@@ -149,7 +149,12 @@ describe('useFirstTimeInteractionAlert', () => {
   });
 
   it('does not show alert if useTransferRecipient identifies an internal account', () => {
-    // Even if txParams.to is external, if the parsed recipient is internal, hide alert
+    mockUseTransactionMetadataRequest.mockReturnValue({
+      chainId: '0x1',
+      txParams: { to: '0xExternalContract' },
+      isFirstTimeInteraction: true,
+    });
+    mockUseSelector.mockReturnValue([{ address: '0xInternal' }]);
     (useTransferRecipient as jest.Mock).mockReturnValue('0xInternal');
 
     const { result } = renderHook(() => useFirstTimeInteractionAlert());
