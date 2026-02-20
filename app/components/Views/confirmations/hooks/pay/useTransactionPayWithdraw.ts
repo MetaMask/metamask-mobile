@@ -20,7 +20,7 @@ export function useTransactionPayWithdraw(): UseTransactionPayWithdrawResult {
   const isWithdraw = isTransactionPayWithdraw(transactionMeta);
   const config = usePayPostQuoteConfig();
 
-  const canSelectWithdrawToken = isWithdraw && config.enabled;
+  const canSelectWithdrawToken = isWithdraw && config.enabled === true;
 
   return {
     isWithdraw,
