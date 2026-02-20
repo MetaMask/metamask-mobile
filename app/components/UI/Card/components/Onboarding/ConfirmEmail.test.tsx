@@ -275,12 +275,8 @@ jest.mock('../../../../../component-library/hooks', () => ({
   })),
 }));
 
-jest.mock('../../../../hooks/useMetrics', () => ({
-  useMetrics: jest.fn(),
-  MetaMetricsEvents: {
-    CARD_ONBOARDING_BUTTON_CLICKED: 'card_onboarding_button_clicked',
-    CARD_ONBOARDING_PAGE_VIEWED: 'card_onboarding_page_viewed',
-  },
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: jest.fn(),
 }));
 
 jest.mock('../../../../../component-library/components/Toast', () => {
@@ -419,9 +415,11 @@ describe('ConfirmEmail Component', () => {
       password: 'testPassword123',
     });
 
-    // Set up useMetrics mock
-    const { useMetrics } = jest.requireMock('../../../../hooks/useMetrics');
-    useMetrics.mockReturnValue({
+    // Set up useAnalytics mock
+    const { useAnalytics } = jest.requireMock(
+      '../../../../hooks/useAnalytics/useAnalytics',
+    );
+    useAnalytics.mockReturnValue({
       trackEvent: jest.fn(),
       createEventBuilder: jest.fn(() => ({
         addProperties: jest.fn(() => ({

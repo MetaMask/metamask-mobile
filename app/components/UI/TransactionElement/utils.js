@@ -37,7 +37,7 @@ import { hasTransactionType } from '../../Views/confirmations/utils/transaction'
 import { BigNumber } from 'bignumber.js';
 import {
   convertMusdClaimAmount,
-  decodeMerklClaimAmount,
+  getClaimPayoutFromReceipt,
 } from '../Earn/utils/musd';
 
 const POSITIVE_TRANSFER_TRANSACTION_TYPES = [
@@ -829,7 +829,8 @@ function decodeMusdClaimTx(args) {
   const {
     tx: {
       txParams,
-      txParams: { from, gas, data },
+      txParams: { from, gas },
+      txReceipt,
       hash,
     },
     txChainId,
@@ -843,8 +844,7 @@ function decodeMusdClaimTx(args) {
   const totalGas = calculateTotalGas(txParams);
   const renderFrom = renderFullAddress(from);
 
-  // Decode the claim amount from transaction data
-  const claimAmountRaw = decodeMerklClaimAmount(data);
+  const claimAmountRaw = getClaimPayoutFromReceipt(txReceipt?.logs, from);
 
   // Calculate display values
   let renderClaimAmount = strings('transaction.value_not_available');
