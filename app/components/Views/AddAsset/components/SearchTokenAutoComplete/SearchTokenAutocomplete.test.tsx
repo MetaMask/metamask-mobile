@@ -7,13 +7,13 @@ import { ImportTokenViewSelectorsIDs } from '../../ImportAssetView.testIds';
 import Engine from '../../../../../core/Engine';
 import { isNonEvmChainId } from '../../../../../core/Multichain/utils';
 import { useTrendingSearch } from '../../../../UI/Trending/hooks/useTrendingSearch/useTrendingSearch';
-import { convertAPITokensToBridgeTokens } from '../../../../UI/Bridge/hooks/useTokensWithBalances';
 import {
   PriceChangeOption,
   SortDirection,
 } from '../../../../UI/Trending/components/TrendingTokensBottomSheet';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import { Hex } from '@metamask/utils';
+import { convertTrendingAssetsToImporAssets } from '../../utils/utils';
 
 // --- Mock variables (hoisted by Jest for use inside jest.mock) ---
 
@@ -104,8 +104,8 @@ jest.mock(
   }),
 );
 
-jest.mock('../../../../UI/Bridge/hooks/useTokensWithBalances', () => ({
-  convertAPITokensToBridgeTokens: jest.fn(() => []),
+jest.mock('../../utils/utils', () => ({
+  convertTrendingAssetsToImporAssets: jest.fn(() => []),
 }));
 
 // --- Typed mock references ---
@@ -114,7 +114,7 @@ const mockIsNonEvmChainId = isNonEvmChainId as jest.MockedFunction<
   typeof isNonEvmChainId
 >;
 const mockUseTrendingSearch = jest.mocked(useTrendingSearch);
-const mockConvertTokens = jest.mocked(convertAPITokensToBridgeTokens);
+const mockConvertTokens = jest.mocked(convertTrendingAssetsToImporAssets);
 
 // --- Test data ---
 
@@ -129,7 +129,7 @@ const mockTrendingResult = {
   pricePercentChange1d: '0',
 };
 
-const mockBridgeToken = {
+const mockImportAset = {
   address: '0x1234567890abcdef1234567890abcdef12345678',
   symbol: 'TEST',
   name: 'Test Token',
@@ -166,7 +166,7 @@ const setupWithTokenResults = () => {
     refetch: jest.fn(),
   } as ReturnType<typeof useTrendingSearch>);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  mockConvertTokens.mockReturnValue([mockBridgeToken as any]);
+  mockConvertTokens.mockReturnValue([mockImportAset as any]);
 };
 
 const renderComponent = (
@@ -372,7 +372,7 @@ describe('SearchTokenAutocomplete', () => {
       'ConfirmAddAsset',
       expect.objectContaining({
         selectedAsset: [
-          expect.objectContaining({ address: mockBridgeToken.address }),
+          expect.objectContaining({ address: mockImportAset.address }),
         ],
         chainId: '0x1',
       }),
@@ -392,7 +392,7 @@ describe('SearchTokenAutocomplete', () => {
 
     expect(Engine.context.TokensController.addTokens).toHaveBeenCalledWith(
       expect.arrayContaining([
-        expect.objectContaining({ address: mockBridgeToken.address }),
+        expect.objectContaining({ address: mockImportAset.address }),
       ]),
       'mainnet',
     );

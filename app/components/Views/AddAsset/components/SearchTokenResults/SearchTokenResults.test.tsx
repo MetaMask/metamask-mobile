@@ -4,7 +4,7 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import SearchTokenResults from './SearchTokenResults';
 import { ImportTokenViewSelectorsIDs } from '../../ImportAssetView.testIds';
-import { BridgeToken } from '../../../../UI/Bridge/types';
+import { ImportAsset } from '../../utils/utils';
 
 jest.mock('../../../../../util/networks', () => ({
   ...jest.requireActual('../../../../../util/networks'),
@@ -31,9 +31,9 @@ const mockInitialState = {
 const mockHandleSelectAsset = jest.fn();
 
 const defaultProps = {
-  searchResults: [mockToken] as BridgeToken[],
+  searchResults: [mockToken] as ImportAsset[],
   handleSelectAsset: mockHandleSelectAsset,
-  selectedAsset: [] as BridgeToken[],
+  selectedAsset: [] as ImportAsset[],
   searchQuery: '',
   chainId: '0x1',
   networkName: 'Ethereum',

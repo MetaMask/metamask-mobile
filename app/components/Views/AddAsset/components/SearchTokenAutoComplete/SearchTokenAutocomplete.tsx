@@ -98,7 +98,7 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
     },
   });
 
-  // Convert API search results to BridgeToken format
+  // Convert API search results to ImportAsset format
   const allTokens = useMemo(() => {
     if (!selectedChainId) return [];
 
