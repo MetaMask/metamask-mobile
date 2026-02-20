@@ -4,7 +4,6 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import {
-  filterTokensByAllowlist,
   getAvailableTokens,
   getRequiredBalance,
   getTokenAddress,
@@ -346,104 +345,6 @@ describe('Transaction Pay Utils', () => {
           strings('pay_with_modal.no_gas'),
         );
       });
-    });
-  });
-
-  describe('filterTokensByAllowlist', () => {
-    const makeToken = (chainId: string, address: string): AssetType =>
-      ({
-        ...TOKEN_MOCK,
-        chainId,
-        address,
-      }) as AssetType;
-
-    it('keeps tokens whose chainId + address appear in the allowlist', () => {
-      const tokens = [
-        makeToken('0x1', '0xaaa'),
-        makeToken('0x1', '0xbbb'),
-        makeToken('0x38', '0xccc'),
-      ];
-
-      const allowlist = {
-        '0x1': ['0xAAA'],
-        '0x38': ['0xCCC'],
-      } as Record<Hex, Hex[]>;
-
-      const result = filterTokensByAllowlist(tokens, allowlist);
-
-      expect(result).toHaveLength(2);
-      expect(result[0].address).toBe('0xaaa');
-      expect(result[1].address).toBe('0xccc');
-    });
-
-    it('matches addresses case-insensitively', () => {
-      const tokens = [makeToken('0x1', '0xAbCdEf')];
-
-      const allowlist = {
-        '0x1': ['0xABCDEF'],
-      } as Record<Hex, Hex[]>;
-
-      expect(filterTokensByAllowlist(tokens, allowlist)).toHaveLength(1);
-    });
-
-    it('matches chain IDs case-insensitively', () => {
-      const tokens = [makeToken('0xa86a', '0xaaa')];
-
-      const allowlist = {
-        '0xA86A': ['0xaaa'],
-      } as Record<Hex, Hex[]>;
-
-      expect(filterTokensByAllowlist(tokens, allowlist)).toHaveLength(1);
-    });
-
-    it('filters out all tokens when allowlist is empty', () => {
-      const tokens = [makeToken('0x1', '0xaaa'), makeToken('0x38', '0xbbb')];
-
-      expect(filterTokensByAllowlist(tokens, {})).toStrictEqual([]);
-    });
-
-    it('filters out tokens whose chainId is not in the allowlist', () => {
-      const tokens = [makeToken('0x99', '0xaaa')];
-
-      const allowlist = {
-        '0x1': ['0xaaa'],
-      } as Record<Hex, Hex[]>;
-
-      expect(filterTokensByAllowlist(tokens, allowlist)).toStrictEqual([]);
-    });
-
-    it('filters out tokens whose address is not in the allowlist for their chain', () => {
-      const tokens = [makeToken('0x1', '0xzzz')];
-
-      const allowlist = {
-        '0x1': ['0xaaa'],
-      } as Record<Hex, Hex[]>;
-
-      expect(filterTokensByAllowlist(tokens, allowlist)).toStrictEqual([]);
-    });
-
-    it('handles multiple chains with multiple addresses', () => {
-      const tokens = [
-        makeToken('0x1', '0xaaa'),
-        makeToken('0x1', '0xbbb'),
-        makeToken('0x1', '0xccc'),
-        makeToken('0x38', '0xddd'),
-        makeToken('0x38', '0xeee'),
-      ];
-
-      const allowlist = {
-        '0x1': ['0xaaa', '0xccc'],
-        '0x38': ['0xeee'],
-      } as Record<Hex, Hex[]>;
-
-      const result = filterTokensByAllowlist(tokens, allowlist);
-
-      expect(result).toHaveLength(3);
-      expect(result.map((t) => t.address)).toStrictEqual([
-        '0xaaa',
-        '0xccc',
-        '0xeee',
-      ]);
     });
   });
 });

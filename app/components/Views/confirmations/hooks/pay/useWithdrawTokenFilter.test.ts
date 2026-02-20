@@ -52,12 +52,44 @@ const TOKENS_MOCK = [
   },
 ] as AssetType[];
 
+const TOKEN_CATALOG_MOCK = {
+  '0x1': {
+    timestamp: 0,
+    data: {
+      '0xddd': {
+        name: 'Catalog Token',
+        symbol: 'CTK',
+        decimals: 18,
+        address: '0xDDD',
+        iconUrl: 'https://example.com/ctk.png',
+        occurrences: 1,
+        aggregators: [],
+      },
+    },
+  },
+};
+
+const NETWORK_CONFIGS_MOCK = {
+  '0x1': {
+    chainId: '0x1',
+    name: 'Ethereum Mainnet',
+    nativeCurrency: 'ETH',
+    rpcEndpoints: [],
+    defaultRpcEndpointIndex: 0,
+    blockExplorerUrls: [],
+  },
+};
+
 function runHook({
   type,
   postQuoteFlags,
+  tokensChainsCache,
+  networkConfigs,
 }: {
   type?: TransactionType;
   postQuoteFlags?: Record<string, unknown>;
+  tokensChainsCache?: Record<string, unknown>;
+  networkConfigs?: Record<string, unknown>;
 } = {}) {
   const mockState = cloneDeep(STATE_MOCK);
 
@@ -74,6 +106,20 @@ function runHook({
       },
     },
   };
+
+  if (tokensChainsCache) {
+    mockState.engine.backgroundState.TokenListController = {
+      ...mockState.engine.backgroundState.TokenListController,
+      tokensChainsCache,
+    };
+  }
+
+  if (networkConfigs) {
+    mockState.engine.backgroundState.NetworkController = {
+      ...mockState.engine.backgroundState.NetworkController,
+      networkConfigurationsByChainId: networkConfigs,
+    };
+  }
 
   return renderHookWithProvider(useWithdrawTokenFilter, {
     state: mockState,
@@ -97,7 +143,7 @@ describe('useWithdrawTokenFilter', () => {
     expect(result.current(TOKENS_MOCK)).toBe(TOKENS_MOCK);
   });
 
-  it('filters tokens by default allowlist', () => {
+  it('returns held tokens that match the allowlist', () => {
     const { result } = runHook({
       type: TransactionType.predictWithdraw,
       postQuoteFlags: {
@@ -112,6 +158,29 @@ describe('useWithdrawTokenFilter', () => {
 
     expect(filtered).toHaveLength(1);
     expect(filtered[0].address).toBe('0xaaa');
+    expect(filtered[0].balance).toBe('1.0');
+  });
+
+  it('includes tokens from the catalog that the user does not hold', () => {
+    const { result } = runHook({
+      type: TransactionType.predictWithdraw,
+      postQuoteFlags: {
+        default: {
+          enabled: true,
+          tokens: { '0x1': ['0xaaa', '0xddd'] },
+        },
+      },
+      tokensChainsCache: TOKEN_CATALOG_MOCK,
+    });
+
+    const filtered = result.current(TOKENS_MOCK);
+
+    expect(filtered).toHaveLength(2);
+    expect(filtered[0].address).toBe('0xaaa');
+    expect(filtered[1].address).toBe('0xDDD');
+    expect(filtered[1].name).toBe('Catalog Token');
+    expect(filtered[1].symbol).toBe('CTK');
+    expect(filtered[1].balance).toBe('0');
   });
 
   it('uses override allowlist when override key matches transaction type', () => {
@@ -185,5 +254,45 @@ describe('useWithdrawTokenFilter', () => {
     const { result } = runHook({ type: TransactionType.predictWithdraw });
     const empty: AssetType[] = [];
     expect(result.current(empty)).toBe(empty);
+  });
+
+  it('includes native token from network config when not held by user', () => {
+    const { result } = runHook({
+      type: TransactionType.predictWithdraw,
+      postQuoteFlags: {
+        default: {
+          enabled: true,
+          tokens: {
+            '0x1': ['0x0000000000000000000000000000000000000000', '0xaaa'],
+          },
+        },
+      },
+      networkConfigs: NETWORK_CONFIGS_MOCK,
+    });
+
+    const filtered = result.current(TOKENS_MOCK);
+
+    expect(filtered).toHaveLength(2);
+    expect(filtered[0].symbol).toBe('ETH');
+    expect(filtered[0].isNative).toBe(true);
+    expect(filtered[0].balance).toBe('0');
+    expect(filtered[1].address).toBe('0xaaa');
+  });
+
+  it('skips allowlisted tokens not in catalog and not held by user', () => {
+    const { result } = runHook({
+      type: TransactionType.predictWithdraw,
+      postQuoteFlags: {
+        default: {
+          enabled: true,
+          tokens: { '0x1': ['0xaaa', '0xzzz'] },
+        },
+      },
+    });
+
+    const filtered = result.current(TOKENS_MOCK);
+
+    expect(filtered).toHaveLength(1);
+    expect(filtered[0].address).toBe('0xaaa');
   });
 });
