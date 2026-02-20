@@ -45,6 +45,10 @@ import { useTransakController } from '../../hooks/useTransakController';
 import { useTransakRouting } from '../../hooks/useTransakRouting';
 import { createV2EnterEmailNavDetails } from '../NativeFlow/EnterEmail';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
+import useRampsUnifiedV2Enabled from '../../hooks/useRampsUnifiedV2Enabled';
+import { trackEvent as trackRampsEvent } from '../../hooks/useAnalytics';
+import { useSelector } from 'react-redux';
+import { getRampRoutingDecision } from '../../../../../reducers/fiatOrders';
 
 export interface BuildQuoteParams {
   assetId?: string;
@@ -124,6 +128,9 @@ function BuildQuote() {
     selectedPaymentMethod,
   } = useRampsController();
 
+  const isV2Enabled = useRampsUnifiedV2Enabled();
+  const rampRoutingDecision = useSelector(getRampRoutingDecision);
+
   const {
     checkExistingToken: transakCheckExistingToken,
     getBuyQuote: transakGetBuyQuote,
@@ -134,6 +141,15 @@ function BuildQuote() {
 
   const currency = userRegion?.country?.currency || 'USD';
   const quickAmounts = userRegion?.country?.quickAmounts ?? [50, 100, 200, 400];
+
+  useEffect(() => {
+    trackRampsEvent('RAMPS_SCREEN_VIEWED', {
+      location: 'Amount Input',
+      ramp_type: 'UNIFIED BUY 2',
+      ramp_routing: rampRoutingDecision ?? undefined,
+      feature_flag_unified_buy_v2: isV2Enabled,
+    });
+  }, [rampRoutingDecision, isV2Enabled]);
 
   useEffect(() => {
     if (!userHasEnteredAmount && userRegion?.country?.defaultAmount != null) {
@@ -166,11 +182,16 @@ function BuildQuote() {
         networkName: networkInfo?.networkName ?? undefined,
         networkImageSource: networkInfo?.networkImageSource,
         onSettingsPress: () => {
+          trackRampsEvent('RAMPS_SETTINGS_CLICKED', {
+            location: 'Amount Input',
+            ramp_type: 'UNIFIED BUY 2',
+            feature_flag_unified_buy_v2: isV2Enabled,
+          });
           navigation.navigate(...createSettingsModalNavDetails());
         },
       }),
     );
-  }, [navigation, selectedToken, networkInfo]);
+  }, [navigation, selectedToken, networkInfo, isV2Enabled]);
 
   const handleKeypadChange = useCallback(
     ({ value, valueAsNumber }: KeypadChangeData) => {
@@ -182,35 +203,71 @@ function BuildQuote() {
     [],
   );
 
-  const handleQuickAmountPress = useCallback((quickAmount: number) => {
-    setAmount(String(quickAmount));
-    setAmountAsNumber(quickAmount);
-    setUserHasEnteredAmount(true);
-    setNativeFlowError(null);
-  }, []);
+  const handleQuickAmountPress = useCallback(
+    (quickAmount: number) => {
+      setAmount(String(quickAmount));
+      setAmountAsNumber(quickAmount);
+      setUserHasEnteredAmount(true);
+      setNativeFlowError(null);
+      trackRampsEvent('RAMPS_QUICK_AMOUNT_CLICKED', {
+        amount: quickAmount,
+        currency_source: currency,
+        location: 'Amount Input',
+        ramp_type: 'UNIFIED BUY 2',
+        feature_flag_unified_buy_v2: isV2Enabled,
+      });
+    },
+    [currency, isV2Enabled],
+  );
 
   const handlePaymentPillPress = useCallback(() => {
     if (debouncedPollingAmount <= 0) {
       return;
     }
 
+    trackRampsEvent('RAMPS_PAYMENT_METHOD_SELECTOR_CLICKED', {
+      current_payment_method: selectedPaymentMethod?.id,
+      location: 'Amount Input',
+      ramp_type: 'UNIFIED BUY 2',
+      feature_flag_unified_buy_v2: isV2Enabled,
+    });
     stopQuotePolling();
     navigation.navigate(
       ...createPaymentSelectionModalNavigationDetails({
         amount: debouncedPollingAmount,
       }),
     );
-  }, [debouncedPollingAmount, navigation, stopQuotePolling]);
+  }, [
+    debouncedPollingAmount,
+    navigation,
+    stopQuotePolling,
+    selectedPaymentMethod?.id,
+    isV2Enabled,
+  ]);
 
   const handleProviderPress = useCallback(() => {
     if (!selectedToken?.assetId) return;
+    trackRampsEvent('RAMPS_CHANGE_PROVIDER_BUTTON_CLICKED', {
+      current_provider: selectedProvider?.name,
+      location: 'Amount Input',
+      ramp_type: 'UNIFIED BUY 2',
+      ramp_routing: rampRoutingDecision ?? undefined,
+      feature_flag_unified_buy_v2: isV2Enabled,
+    });
     stopQuotePolling();
     navigation.navigate(
       ...createProviderPickerModalNavigationDetails({
         assetId: selectedToken.assetId,
       }),
     );
-  }, [selectedToken?.assetId, navigation, stopQuotePolling]);
+  }, [
+    selectedToken?.assetId,
+    navigation,
+    stopQuotePolling,
+    selectedProvider?.name,
+    rampRoutingDecision,
+    isV2Enabled,
+  ]);
 
   useEffect(() => {
     if (
@@ -263,7 +320,6 @@ function BuildQuote() {
 
     // Validate payment method context matches
     if (quotePaymentMethod != null) {
-      // Quote requires a payment method - must have one selected and it must match
       if (
         !selectedPaymentMethod ||
         selectedPaymentMethod.id !== quotePaymentMethod
@@ -271,6 +327,20 @@ function BuildQuote() {
         return;
       }
     }
+
+    trackRampsEvent('RAMPS_CONTINUE_BUTTON_CLICKED', {
+      ramp_routing: rampRoutingDecision ?? ('AGGREGATOR' as const),
+      ramp_type: 'UNIFIED BUY 2',
+      amount_source: amountAsNumber,
+      payment_method_id: selectedPaymentMethod?.id ?? '',
+      provider_onramp: selectedProvider?.name,
+      region: userRegion?.country?.code ?? '',
+      chain_id: selectedToken?.chainId ?? '',
+      currency_destination: selectedToken?.assetId ?? '',
+      currency_destination_symbol: selectedToken?.symbol,
+      currency_source: currency,
+      feature_flag_unified_buy_v2: isV2Enabled,
+    });
 
     if (isNativeProvider(selectedQuote)) {
       setIsContinueLoading(true);
@@ -354,6 +424,10 @@ function BuildQuote() {
     transakCheckExistingToken,
     transakGetBuyQuote,
     transakRouteAfterAuth,
+    rampRoutingDecision,
+    selectedProvider?.name,
+    userRegion?.country?.code,
+    isV2Enabled,
   ]);
 
   const hasAmount = amountAsNumber > 0;
