@@ -7,6 +7,137 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [7.67.0]
+
+### Uncategorized
+
+- chore: make OTA Version Display more robust (#26295)
+- Bump new assets controller to v2.0.0 (#26166)
+- Updated assets controllers to 99.4.0 (#26261)
+- Added code fencing for gh actions defined at builds.yml (#26159)
+- Fixed OTA version display (#26204)
+- Remove npx in favor of yarn in sync script (#26233)
+- Remove opt out button from Rewards settings (#26189)
+- Removed notifications for all swap/bridge txs (#25919)
+- Use chain-agnostic gas fee estimates source for bridging (#26047)
+- Stop using portfolio API to fetch contentful sites (#26003)
+- chore(release): sync stable to main for version 7.66.0 (#25916)
+- Updated OTA modal user interface (#25867)
+- Adds FAST_NETWORKS filter for gas-speed component and returns " < 1 Sec" when speed is < 1000ms (#25825)
+  Modifies toHumanEstimatedTimeRange in utils/time.ts to
+  handle "fast network" filter and " < 1 Sec" display
+- Use `StorageService` in Snap Controller (#25672)
+- Fixed the limit price row in Perps order form so it no longer shows rounded bottom borders when the Pay with row is visible (#25834)
+  below it.
+- Replace modal with bottom sheet on 'Account added' click (#25770)
+- chore(deps): bump the npm_and_yarn group across 1 directory with 2 updates (#25696)
+- chore(release): sync stable to main for version 7.66.0 (#25802)
+
+### Added
+
+- Gas sponsorship UI (#26252)
+- Replaced webview-based Veriff KYC flow with native Veriff SDK integration, featuring MetaMask-branded UI with dynamic (#26138)
+  light/dark theme support, custom fonts, and fox logo
+- Add market close bottom sheet to stop user perform trade. (#25157)
+- Added trust signal icons to address displays in confirmations, showing verified, warning, or malicious indicators based (#25154)
+  on address scan results.
+- Moved notifications and QR scanner from home screen header to Account Menu and added Deposit quick action (#26100)
+- Added card freeze/unfreeze toggle to the Card Home screen, allowing users to temporarily disable and re-enable their card. (#26246)
+- `[ADDED]` Native Transak v2 purchase flow with in-app email/OTP authentication, KYC handling, order creation, and payment (#26033)
+  processing.
+- Force enable explore feature (#26128)
+- Add support for wallet connect verify api (#26070)
+- Increased the browser tab limit from 5 to 20 and improved tab switching performance by keeping only the 5 most recently (#26143)
+  used tabs live in memory
+- Prefill country of residence from geolocation on Card onboarding SignUp and extract reusable SelectField component across (#26136)
+  onboarding screens
+- Predict withdrawal to any token (happy path) (#25441)
+- Display amount row when simulation fails (#25716)
+- Improved claim bonus responsiveness by caching Merkl API responses and fixed claim bonus button in token list V2 layout (#26016)
+- Preloaded Perps market and user data at startup for instant rendering (#26061)
+- Added network pill overflow with "+X more" button that opens a full network list in the bridge token selector (#25893)
+- Revamp swaps keypad (#25845)
+- Init the new assets controller under a feature flag (#25957)
+- Adds a page for changing preferred ramp provider (#25860)
+- Add asset overview deeplinks (#25447)
+- Restored the previously selected "Pay with" token when returning to the Perps order view within 5 minutes. (#25938)
+- Fixed predict transaction toast notifications not appearing when navigating away from the Predict tab (#25863)
+- Added new Accounts Menu screen to organize settings navigation with Settings, Manage, and Resources sections (#25611)
+- Adds Bridge and Swap feature to `MegaETH` (#25906)
+- Adds chiliz.png as network logo and enables it in metamask mobile (#25437)
+- Always display learn more about perps link (#25958)
+- Created new token list item v2 (#25824)
+- Added custom claim transaction request screen for mUSD bonus claims with improved UX flow (#25837)
+- Added an "Ending soon" tab to prediction markets feed showing markets sorted by end date (#25868)
+- Removed legacy homepage script injection and related RPC methods (#25620)
+- Add google/web search inside browser search bar (#25897)
+- Homogenize spacing on Explore page for perps items (#25894)
+- Added 1st interaction alert to warn users when interacting with an address for the first time. (#25575)
+- Added icons to the bridge token selector network pills (#25851)
+- Create feature flag for the new unified assets state (#25891)
+- Adds Bridge and Swap feature to HyperEVM (#25769)
+- Added lightweight position display and one-click Long/Short trading on token details page for perps-enabled assets (#25685)
+- Improved browser tab switching performance by keeping tabs mounted (#25702)
+- Validation errors from non-EVM transaction snaps will now be displayed to users during send flow. (#25648)
+- Added detailed transaction display for mUSD reward claims showing claimed amount, network fee, and received total (#25452)
+- Adds functionality for selecting a payment method (#25681)
+- Base setup for in-app provisioning (#25669)
+
+### Fixed
+
+- Adds analytics instrumentation for Token Details V2 layout A/B test (#25844)
+- Fix issues with balance rounding, localization formatting and decimal representation on source swap asset balance. (#26267)
+- Keypad bottom border is visible occasionally on Android (#26229)
+- Adds location property to swap events. (#26067)
+- Fixed a bug where add/remove network confirmation toasts appeared during Bridge flows. (#26239)
+- Fixed an iOS bug where scanning a MetaMask universal link QR code opened Safari and redirected to the App Store instead of (#25739)
+  handling the link in-app.
+- Fixed DeFi tab not appearing when switching from non-EVM networks to "All Popular Networks" (#26193)
+- Set height of quick pick buttons the same as confirm cta (#26170)
+- Fixed Bridge token selectors to show all supported networks, persist selected network pills, and auto-add missing networks (#26174)
+  on token selection.
+- Fixed token prices not displaying for non-EVM tokens in the V2 token list layout. (#26132)
+- Prevent full app reload when editing Trending files (#26135)
+- Fixed excessive ENS API calls when opening the bridge/swaps flow that scaled with the number of accounts (#26126)
+- Fixed a bug where tapping a token’s info icon in Swaps could open the wrong asset details page. (#26123)
+- Fixed perpetual trading margin display showing $0 when placing orders from the Token Details page (#26105)
+- Start rendering confirm button loading state on input change (#26107)
+- Fixed issue that triggered account creation during onboarding using pre BIP-44 flow when switching networks (#26088)
+- Fixed a UI issue where buttons in the signature message details view were overlapping. (#26040)
+- Keep keypad state on flip and close it when dest token input is pressed (#26068)
+- Updated mUSD claim bonus subtitle copy (#26019)
+- Fixed intermittent placeholder text alignment and clipping in text inputs on iOS. (#26049)
+- Fall back to priceImpact or destTokenAmount for swap quote sorting (#25928)
+- Remove deeplink interstitial on dApp deeplinks (#25963)
+- Multiple fixes on import token flow (#25962)
+- Fixed decimal precision calculation for Tron's staked balance (#25430)
+- Fixed intermittent "Failed to fetch market data" errors on Perps by switching market data fetches from WebSocket to HTTP (#26014)
+  transport
+- Fixed `x-us-env` header being incorrectly set to `false` for US Card users when geolocation requests fail (#25971)
+- Fix #24546 with human readable message (#25555)
+- Removed "Add funds to start trading perps" banner from Perps market details and allow opening trades (Long/Short) when perps (#25960)
+  balance is zero.
+- Fixed long token names pushing balance off screen in Send flow and MM Pay token picker (#25338)
+- Fix #25693 styling issue in for ledger devices (#25758)
+- Fixed navigation error and token buyability checks when purchasing crypto with cash using unified buy V2 (#25617)
+- Fixed Predictions tab not hiding monetary values when privacy mode is enabled (#25887)
+- Fixed Perps deposit+order flow so the pending deposit toast auto-dismisses after a few seconds and the "deposit taking longer" (#25939)
+  message appears after 30 seconds.
+- Fixed header height to scale properly with larger accessibility font sizes (#25855)
+- Activity header symbol fallback (#25821)
+- Fixed the Perps order pay row not appearing until margin was loaded. (#25836)
+- When passoword oudated, it navigate to oauthRehydrate screen when reopen app (#25687)
+- Fixed notification and transaction display for EIP-7702 transactions without nonces (#25646)
+- Adds event for when token details page is opened. (#25780)
+- Added error screens when wallet creation fails, allowing users to retry or contact support instead of being redirected (#25564)
+  to login.
+- Remove toggle switch from login screen (#25424)
+- Fixed minor button layout issues (#25771)
+- Fixed long account names overflowing in the Deposit Buy screen by enabling proper text truncation (#25715)
+- Remove subtitle in token details (#25726)
+- Fixed flow for "Cash buy X" button on the new token details layout (#25719)
+- Pass assetID to the on ramp buy screen. (#25709)
+
 ## [7.64.1]
 
 ### Fixed
@@ -10359,7 +10490,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#957](https://github.com/MetaMask/metamask-mobile/pull/957): fix timeouts (#957)
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
-[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.64.1...HEAD
+[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.67.0...HEAD
+[7.67.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.64.1...v7.67.0
 [7.64.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.64.0...v7.64.1
 [7.64.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.63.1...v7.64.0
 [7.63.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.63.0...v7.63.1
