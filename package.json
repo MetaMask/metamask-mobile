@@ -168,7 +168,10 @@
     "qs": "6.14.1",
     "@metamask/transaction-controller@npm:^61.0.0": "patch:@metamask/transaction-controller@npm%3A62.10.0#~/.yarn/patches/@metamask-transaction-controller-npm-62.10.0-e1d24e7db5.patch",
     "@metamask/transaction-controller@npm:^62.9.2": "^62.14.0",
-    "viem": "2.31.3"
+    "viem": "2.31.3",
+    "@metamask/bridge-status-controller@npm:^66.0.2": "patch:@metamask/bridge-status-controller@npm%3A66.1.0#~/.yarn/patches/@metamask-bridge-status-controller-npm-66.1.0-a2a478ef94.patch",
+    "@metamask/bridge-controller@npm:^66.2.0": "patch:@metamask/bridge-controller@npm%3A66.2.0#~/.yarn/patches/@metamask-bridge-controller-npm-66.2.0-8ed148964f.patch",
+    "@metamask/bridge-controller@npm:^66.1.1": "patch:@metamask/bridge-controller@npm%3A66.2.0#~/.yarn/patches/@metamask-bridge-controller-npm-66.2.0-8ed148964f.patch"
   },
   "dependencies": {
     "@config-plugins/detox": "^9.0.0",
@@ -197,8 +200,8 @@
     "@metamask/assets-controllers": "^99.4.0",
     "@metamask/base-controller": "^9.0.0",
     "@metamask/bitcoin-wallet-snap": "^1.10.0",
-    "@metamask/bridge-controller": "^66.2.0",
-    "@metamask/bridge-status-controller": "^66.1.0",
+    "@metamask/bridge-controller": "patch:@metamask/bridge-controller@npm%3A66.2.0#~/.yarn/patches/@metamask-bridge-controller-npm-66.2.0-8ed148964f.patch",
+    "@metamask/bridge-status-controller": "patch:@metamask/bridge-status-controller@npm%3A66.1.0#~/.yarn/patches/@metamask-bridge-status-controller-npm-66.1.0-a2a478ef94.patch",
     "@metamask/chain-agnostic-permission": "^1.3.0",
     "@metamask/connectivity-controller": "^0.1.0",
     "@metamask/controller-utils": "^11.18.0",
