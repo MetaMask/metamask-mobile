@@ -1849,6 +1849,34 @@ describe('PerpsStreamManager', () => {
       expect(mockLogger.error).toBeDefined();
     });
 
+    it('defers connect when isCurrentlyConnecting returns true', () => {
+      // Arrange — connection is initialized but still connecting
+      mockPerpsConnectionManager.isCurrentlyConnecting = jest.fn(() => true);
+      mockPerpsConnectionManager.getConnectionState = jest
+        .fn()
+        .mockReturnValue({ isInitialized: true });
+
+      const mockGetMarketData = jest.fn().mockResolvedValue([]);
+      mockEngine.context.PerpsController.getMarketDataWithPrices =
+        mockGetMarketData;
+
+      const streamManager = new PerpsStreamManager();
+      const callback = jest.fn();
+
+      // Act — subscribe triggers connect() → ensureReady passes but isCurrentlyConnecting guard defers
+      streamManager.marketData.subscribe({ callback, throttleMs: 0 });
+
+      // Assert — should NOT have called getMarketDataWithPrices yet
+      expect(mockGetMarketData).not.toHaveBeenCalled();
+
+      // Now flip the guard and advance timer so deferConnect fires
+      mockPerpsConnectionManager.isCurrentlyConnecting = jest.fn(() => false);
+      jest.advanceTimersByTime(250);
+
+      // Now it should have called getMarketDataWithPrices
+      expect(mockGetMarketData).toHaveBeenCalled();
+    });
+
     it('discards fetched data when provider changes during in-flight fetch', async () => {
       // Arrange
       mockPerpsConnectionManager.isCurrentlyConnecting = jest.fn(() => false);
@@ -3469,6 +3497,136 @@ describe('PerpsStreamManager', () => {
 
       expect(mockDevLogger.log).toHaveBeenCalledWith(
         expect.stringContaining('Max connect retries exceeded'),
+      );
+    });
+  });
+
+  describe('awaitConnectionThenConnect', () => {
+    it('early-exits when sentinel timer is already set (duplicate await prevention)', () => {
+      const streamManager = new PerpsStreamManager();
+      const mockSubscribeToOrderFills = jest.fn().mockReturnValue(jest.fn());
+
+      // Not initialized but actively connecting → triggers awaitConnectionThenConnect
+      mockPerpsConnectionManager.getConnectionState = jest
+        .fn()
+        .mockReturnValue({ isInitialized: false, isConnecting: true });
+
+      // waitForConnection returns a never-resolving promise
+      mockPerpsConnectionManager.waitForConnection = jest.fn().mockReturnValue(
+        new Promise(() => {
+          /* never resolves */
+        }),
+      );
+
+      mockEngine.context.PerpsController = {
+        ...mockEngine.context.PerpsController,
+        subscribeToOrderFills: mockSubscribeToOrderFills,
+        isCurrentlyReinitializing: jest.fn().mockReturnValue(false),
+      } as unknown as typeof mockEngine.context.PerpsController;
+
+      // First subscribe → ensureReady() → awaitConnectionThenConnect() sets sentinel
+      streamManager.fills.subscribe({ callback: jest.fn(), throttleMs: 0 });
+
+      // Second subscribe → ensureReady() → awaitConnectionThenConnect() hits early-exit
+      streamManager.fills.subscribe({ callback: jest.fn(), throttleMs: 0 });
+
+      // waitForConnection should only have been called once (second call was skipped)
+      expect(
+        mockPerpsConnectionManager.waitForConnection,
+      ).toHaveBeenCalledTimes(1);
+    });
+
+    it('calls connect() when waitForConnection resolves', async () => {
+      const streamManager = new PerpsStreamManager();
+      const mockSubscribeToOrderFills = jest.fn().mockReturnValue(jest.fn());
+
+      // Not initialized but actively connecting → triggers awaitConnectionThenConnect
+      mockPerpsConnectionManager.getConnectionState = jest
+        .fn()
+        .mockReturnValue({ isInitialized: false, isConnecting: true });
+
+      // waitForConnection resolves immediately
+      mockPerpsConnectionManager.waitForConnection = jest
+        .fn()
+        .mockResolvedValue(undefined);
+
+      mockEngine.context.PerpsController = {
+        ...mockEngine.context.PerpsController,
+        subscribeToOrderFills: mockSubscribeToOrderFills,
+        isCurrentlyReinitializing: jest.fn().mockReturnValue(false),
+      } as unknown as typeof mockEngine.context.PerpsController;
+
+      // Subscribe triggers ensureReady → awaitConnectionThenConnect
+      streamManager.fills.subscribe({ callback: jest.fn(), throttleMs: 0 });
+
+      // Flush the sentinel setTimeout(noop, 0)
+      jest.advanceTimersByTime(0);
+
+      // Flush microtasks so the .then() handler runs
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+
+      // After the promise resolves, the .then() handler calls connect()
+      // which needs isInitialized: true to actually call subscribeToOrderFills
+      mockPerpsConnectionManager.getConnectionState = jest
+        .fn()
+        .mockReturnValue({ isInitialized: true });
+
+      // The .then() callback already fired and called connect(); but connect()
+      // re-checks ensureReady(). Since we changed state after, let the deferred
+      // connect run if one was set.
+      jest.advanceTimersByTime(0);
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(mockSubscribeToOrderFills).toHaveBeenCalled();
+    });
+
+    it('falls back to deferConnect when waitForConnection rejects', async () => {
+      const streamManager = new PerpsStreamManager();
+      const mockSubscribeToOrderFills = jest.fn().mockReturnValue(jest.fn());
+
+      // Not initialized but actively connecting
+      mockPerpsConnectionManager.getConnectionState = jest
+        .fn()
+        .mockReturnValue({ isInitialized: false, isConnecting: true });
+
+      // waitForConnection rejects
+      mockPerpsConnectionManager.waitForConnection = jest
+        .fn()
+        .mockRejectedValue(new Error('connection failed'));
+
+      mockEngine.context.PerpsController = {
+        ...mockEngine.context.PerpsController,
+        subscribeToOrderFills: mockSubscribeToOrderFills,
+        isCurrentlyReinitializing: jest.fn().mockReturnValue(false),
+      } as unknown as typeof mockEngine.context.PerpsController;
+
+      // Subscribe → awaitConnectionThenConnect
+      streamManager.fills.subscribe({ callback: jest.fn(), throttleMs: 0 });
+
+      // Flush sentinel timer
+      jest.advanceTimersByTime(0);
+
+      // Flush microtasks so .catch() handler runs
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+
+      // The .catch() handler calls deferConnect(200ms)
+      // Now make connection ready so when deferConnect fires, connect() succeeds
+      mockPerpsConnectionManager.getConnectionState = jest
+        .fn()
+        .mockReturnValue({ isInitialized: true });
+
+      // Advance past the ConnectRetryDelayMs (200ms)
+      jest.advanceTimersByTime(250);
+
+      expect(mockSubscribeToOrderFills).toHaveBeenCalled();
+      expect(mockDevLogger.log).toHaveBeenCalledWith(
+        expect.stringContaining('connection failed, falling back to polling'),
       );
     });
   });
