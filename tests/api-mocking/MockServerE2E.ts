@@ -40,6 +40,12 @@ interface SnapProxyRequest extends LiveRequest {
 
 const SNAP_WEBVIEW_PROXY_SOURCE = 'snap-webview';
 
+const SNAP_PROXY_CORS_HEADERS: Record<string, string> = {
+  'access-control-allow-origin': '*',
+  'access-control-allow-methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
+  'access-control-allow-headers': '*',
+};
+
 const logSnapProxyToConsole = (message: string) => {
   // We intentionally use console.log here so these lines are always visible
   // in Detox/E2E terminal output regardless of logger configuration.
@@ -267,6 +273,50 @@ export default class MockServerE2E implements Resource {
     }
 
     await setupAccountsV2SupportedNetworksMock(this._server);
+
+    // Handle CORS preflight for snap proxy requests.
+    // Snap WebViews send OPTIONS before cross-origin POST requests. Without
+    // proper CORS headers the browser blocks the actual request and JSON-RPC
+    // mocks (e.g. Solana RPC) are never reached.
+    await this._server
+      .forOptions()
+      .matching((request) => request.path.startsWith('/proxy'))
+      .asPriority(1002)
+      .thenCallback(async (request) => {
+        const requestUrl = new URL(request.url);
+        const urlEndpoint = requestUrl.searchParams.get('url');
+        const isSnapWebViewProxyRequest =
+          requestUrl.searchParams.get('source') === SNAP_WEBVIEW_PROXY_SOURCE;
+        const snapId = requestUrl.searchParams.get('snapId') || undefined;
+
+        if (
+          isSnapWebViewProxyRequest &&
+          urlEndpoint &&
+          isTrackableSnapApiUrl(urlEndpoint)
+        ) {
+          this._recordSnapProxyRequest(
+            'OPTIONS',
+            urlEndpoint,
+            'mocked',
+            snapId,
+          );
+          maybeLogSnapProxyApiRequest(
+            'OPTIONS',
+            urlEndpoint,
+            'mocked',
+            true,
+            snapId,
+          );
+        }
+
+        return {
+          statusCode: 204,
+          headers: {
+            ...SNAP_PROXY_CORS_HEADERS,
+            'access-control-max-age': '0',
+          },
+        };
+      });
 
     await this._server
       .forAnyRequest()

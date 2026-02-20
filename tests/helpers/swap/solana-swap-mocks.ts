@@ -313,6 +313,14 @@ export const buildSolanaSwapTestSpecificMock =
       responseCode: 200,
     });
 
+    const solanaRpcCorsHeaders = {
+      'access-control-allow-origin': '*',
+      'access-control-allow-methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
+      'access-control-allow-headers': '*',
+    };
+
+    let transactionSubmitted = false;
+
     await mockServer
       .forPost('/proxy')
       .matching((request) =>
@@ -342,159 +350,154 @@ export const buildSolanaSwapTestSpecificMock =
             ? (requestBody as { id?: number | string }).id
             : undefined;
 
+        // eslint-disable-next-line no-console
+        console.log(
+          `[SOLANA_RPC_MOCK] ${requestMethod ?? 'unknown'} (id: ${id})`,
+        );
+
+        let rpcResponse;
         switch (requestMethod) {
           case 'getBalance':
-            return {
-              statusCode: 200,
-              json: buildJsonRpcResponse(
-                {
-                  context: { apiVersion: '2.0.18', slot: 308460925 },
-                  value: 50000000000,
-                },
-                id,
-              ),
-            };
+            rpcResponse = buildJsonRpcResponse(
+              {
+                context: { apiVersion: '2.0.18', slot: 308460925 },
+                value: 50000000000,
+              },
+              id,
+            );
+            break;
           case 'getLatestBlockhash':
-            return {
-              statusCode: 200,
-              json: buildJsonRpcResponse(
-                {
-                  context: { apiVersion: '2.0.18', slot: 308460925 },
-                  value: {
-                    blockhash: '6E9FiVcuvavWyKTfYC7N9ezJWkNgJVQsroDTHvqApncg',
-                    lastValidBlockHeight: 341034515,
-                  },
+            rpcResponse = buildJsonRpcResponse(
+              {
+                context: { apiVersion: '2.0.18', slot: 308460925 },
+                value: {
+                  blockhash: '6E9FiVcuvavWyKTfYC7N9ezJWkNgJVQsroDTHvqApncg',
+                  lastValidBlockHeight: 341034515,
                 },
-                id,
-              ),
-            };
+              },
+              id,
+            );
+            break;
           case 'getFeeForMessage':
-            return {
-              statusCode: 200,
-              json: buildJsonRpcResponse(
-                { context: { slot: 5068 }, value: 5000 },
-                id,
-              ),
-            };
+            rpcResponse = buildJsonRpcResponse(
+              { context: { slot: 5068 }, value: 5000 },
+              id,
+            );
+            break;
           case 'getMinimumBalanceForRentExemption':
-            return {
-              statusCode: 200,
-              json: buildJsonRpcResponse(890880, id),
-            };
+            rpcResponse = buildJsonRpcResponse(890880, id);
+            break;
           case 'simulateTransaction':
-            return {
-              statusCode: 200,
-              json: buildJsonRpcResponse(
-                {
-                  context: { apiVersion: '2.0.21', slot: 318191894 },
-                  value: { err: null, logs: [], unitsConsumed: 4794 },
-                },
-                id,
-              ),
-            };
+            rpcResponse = buildJsonRpcResponse(
+              {
+                context: { apiVersion: '2.0.21', slot: 318191894 },
+                value: { err: null, logs: [], unitsConsumed: 4794 },
+              },
+              id,
+            );
+            break;
           case 'sendTransaction':
-            return {
-              statusCode: 200,
-              json: buildJsonRpcResponse(SOLANA_SWAP_SIGNATURE, id),
-            };
+            transactionSubmitted = true;
+            // eslint-disable-next-line no-console
+            console.log('[SOLANA_RPC_MOCK] ✅ Transaction submitted!');
+            rpcResponse = buildJsonRpcResponse(SOLANA_SWAP_SIGNATURE, id);
+            break;
           case 'getSignaturesForAddress':
-            return {
-              statusCode: 200,
-              json: buildJsonRpcResponse(
-                [
-                  {
-                    blockTime: 1748363309,
-                    confirmationStatus: 'finalized',
-                    err: null,
-                    memo: null,
-                    signature: SOLANA_SWAP_SIGNATURE,
-                    slot: 342840492,
-                  },
-                ],
-                id,
-              ),
-            };
-          case 'getTransaction':
-            return {
-              statusCode: 200,
-              json: buildSuccessfulTransactionResponse(SOLANA_SWAP_SIGNATURE),
-            };
-          case 'getTokenAccountsByOwner':
-            return {
-              statusCode: 200,
-              json: buildJsonRpcResponse(
-                {
-                  context: { slot: 137568828 },
-                  value: [
+            rpcResponse = transactionSubmitted
+              ? buildJsonRpcResponse(
+                  [
                     {
-                      account: {
-                        data: {
-                          parsed: {
-                            info: {
-                              isNative: false,
-                              mint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
-                              owner:
-                                '4tE76eixEgyJDrdykdWJR1XBkzUk4cLMvqjR2xVJUxer',
-                              state: 'initialized',
-                              tokenAmount: {
-                                amount: '12660400',
-                                decimals: 6,
-                                uiAmount: 12.6604,
-                                uiAmountString: '12.6604',
-                              },
-                            },
-                            type: 'account',
-                          },
-                          program: 'spl-token',
-                          space: 165,
-                        },
-                        executable: false,
-                        lamports: 2039280,
-                        owner: 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
-                        rentEpoch: '18446744073709552000',
-                        space: 165,
-                      },
-                      pubkey: 'F77xG4vz2CJeMxxAmFW8pvPx2c5Uk75pksr6Wwx6HFhV',
+                      blockTime: 1748363309,
+                      confirmationStatus: 'finalized',
+                      err: null,
+                      memo: null,
+                      signature: SOLANA_SWAP_SIGNATURE,
+                      slot: 342840492,
                     },
                   ],
-                },
-                id,
-              ),
-            };
-          case 'getAccountInfo':
-            return {
-              statusCode: 200,
-              json: buildJsonRpcResponse(
-                {
-                  context: { apiVersion: '2.0.21', slot: 317161313 },
-                  value: {
-                    data: ['', 'base58'],
-                    executable: false,
-                    lamports: 5312114,
-                    owner: '11111111111111111111111111111111',
-                    rentEpoch: '18446744073709551615',
-                    space: 0,
+                  id,
+                )
+              : buildJsonRpcResponse([], id);
+            break;
+          case 'getTransaction':
+            rpcResponse = buildSuccessfulTransactionResponse(
+              SOLANA_SWAP_SIGNATURE,
+            );
+            break;
+          case 'getTokenAccountsByOwner':
+            rpcResponse = buildJsonRpcResponse(
+              {
+                context: { slot: 137568828 },
+                value: [
+                  {
+                    account: {
+                      data: {
+                        parsed: {
+                          info: {
+                            isNative: false,
+                            mint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+                            owner:
+                              '4tE76eixEgyJDrdykdWJR1XBkzUk4cLMvqjR2xVJUxer',
+                            state: 'initialized',
+                            tokenAmount: {
+                              amount: '12660400',
+                              decimals: 6,
+                              uiAmount: 12.6604,
+                              uiAmountString: '12.6604',
+                            },
+                          },
+                          type: 'account',
+                        },
+                        program: 'spl-token',
+                        space: 165,
+                      },
+                      executable: false,
+                      lamports: 2039280,
+                      owner: 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
+                      rentEpoch: '18446744073709552000',
+                      space: 165,
+                    },
+                    pubkey: 'F77xG4vz2CJeMxxAmFW8pvPx2c5Uk75pksr6Wwx6HFhV',
                   },
+                ],
+              },
+              id,
+            );
+            break;
+          case 'getAccountInfo':
+            rpcResponse = buildJsonRpcResponse(
+              {
+                context: { apiVersion: '2.0.21', slot: 317161313 },
+                value: {
+                  data: ['', 'base58'],
+                  executable: false,
+                  lamports: 5312114,
+                  owner: '11111111111111111111111111111111',
+                  rentEpoch: '18446744073709551615',
+                  space: 0,
                 },
-                id,
-              ),
-            };
+              },
+              id,
+            );
+            break;
           case 'getMultipleAccounts':
-            return {
-              statusCode: 200,
-              json: buildJsonRpcResponse(
-                {
-                  context: { apiVersion: '2.1.21', slot: 341693911 },
-                  value: [],
-                },
-                id,
-              ),
-            };
+            rpcResponse = buildJsonRpcResponse(
+              {
+                context: { apiVersion: '2.1.21', slot: 341693911 },
+                value: [],
+              },
+              id,
+            );
+            break;
           default:
-            return {
-              statusCode: 200,
-              json: buildJsonRpcResponse(null, id),
-            };
+            rpcResponse = buildJsonRpcResponse(null, id);
+            break;
         }
+
+        return {
+          statusCode: 200,
+          headers: solanaRpcCorsHeaders,
+          json: rpcResponse,
+        };
       });
   };
