@@ -413,6 +413,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     account?.availableBalance?.toString() ?? '0',
   );
   const showAddFundsCTA =
+    isEligible &&
     !isLoadingPosition &&
     !existingPosition &&
     !isAtOICap &&
@@ -421,9 +422,19 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     defaultPayTokenWhenNoPerpsBalance === null;
 
   const handleAddFunds = useCallback(() => {
+    if (!isEligible) {
+      track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
+        [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+          PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+        [PERPS_EVENT_PROPERTY.SOURCE]:
+          PERPS_EVENT_VALUE.SOURCE.ADD_FUNDS_ACTION,
+      });
+      setIsEligibilityModalVisible(true);
+      return;
+    }
     navigateToConfirmation({ stack: Routes.PERPS.ROOT });
     depositWithConfirmation();
-  }, [navigateToConfirmation, depositWithConfirmation]);
+  }, [isEligible, track, navigateToConfirmation, depositWithConfirmation]);
 
   // Keep current position ref in sync for callbacks stored in route params
   // This must be after useHasExistingPosition since it depends on existingPosition
