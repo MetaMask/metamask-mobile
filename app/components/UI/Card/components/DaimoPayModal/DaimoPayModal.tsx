@@ -11,7 +11,7 @@ import {
   ButtonVariant,
   ButtonSize,
 } from '@metamask/design-system-react-native';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { isEqual } from 'lodash';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import Logger from '../../../../../util/Logger';
@@ -36,7 +36,10 @@ import AppConstants from '../../../../../core/AppConstants';
 import { getPermittedEvmAddressesByHostname } from '../../../../../core/Permissions';
 import { selectPermissionControllerState } from '../../../../../selectors/snaps/permissionController';
 import type { RootState } from '../../../../../reducers';
-import { selectIsDaimoDemo } from '../../../../../core/redux/slices/card';
+import {
+  selectIsDaimoDemo,
+  clearCacheData,
+} from '../../../../../core/redux/slices/card';
 import { getDaimoEnvironment } from '../../util/getDaimoEnvironment';
 
 const POLLING_INTERVAL_MS = 5000;
@@ -75,6 +78,7 @@ const DaimoPayModal: React.FC = () => {
   const iconRef = useRef<ImageSourcePropType | undefined>(undefined);
 
   const navigation = useNavigation();
+  const dispatch = useDispatch();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { payId, fromUpgrade, orderId } = useParams<DaimoPayModalParams>();
   const tw = useTailwind();
@@ -166,6 +170,8 @@ const DaimoPayModal: React.FC = () => {
         pollingIntervalRef.current = null;
       }
 
+      dispatch(clearCacheData('card-details'));
+
       const parentNavigator = navigation.dangerouslyGetParent();
       if (parentNavigator) {
         parentNavigator.dispatch(
@@ -203,7 +209,7 @@ const DaimoPayModal: React.FC = () => {
         );
       }
     },
-    [trackEvent, createEventBuilder, navigation, fromUpgrade],
+    [trackEvent, createEventBuilder, navigation, fromUpgrade, dispatch],
   );
 
   const handlePaymentBounced = useCallback(
