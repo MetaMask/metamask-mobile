@@ -10,12 +10,14 @@ import {
   filterByAddressAndNetwork as filterByAddressAndNetworkOriginal,
   PAY_TYPES,
   isTransactionOnChains,
+  isTrustedAddress,
 } from '.';
 import { Token } from '@metamask/assets-controllers';
 import { TX_SUBMITTED, TX_UNAPPROVED } from '../../constants/transaction';
 import { DeepPartial } from '../test/renderWithProvider';
 import { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import { Hex } from '@metamask/utils';
+import { AddressBookControllerState } from '@metamask/address-book-controller';
 
 const TEST_ADDRESS_ONE = '0x5a3ca5cd63807ce5e4d7841ab32ce6b6d9bbba2d';
 const TEST_ADDRESS_TWO = '0x202637daaefbd7f131f90338a4a6c69f6cd5ce91';
@@ -29,6 +31,9 @@ function filterByAddressAndNetwork(
   tokenNetworkFilter: { [chainId: string]: boolean },
   allTransactions: TransactionMeta[] = [],
   bridgeHistory: Record<string, BridgeHistoryItem> = {},
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  addressBook: any = {},
+  internalAccountAddresses: string[] = [],
 ): boolean {
   return filterByAddressAndNetworkOriginal(
     transaction,
@@ -37,6 +42,8 @@ function filterByAddressAndNetwork(
     tokenNetworkFilter,
     allTransactions,
     bridgeHistory,
+    addressBook,
+    internalAccountAddresses,
   );
 }
 
@@ -46,6 +53,9 @@ function filterByAddress(
   selectedAddress: string,
   allTransactions: TransactionMeta[] = [],
   bridgeHistory: Record<string, BridgeHistoryItem> = {},
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  addressBook: any = {},
+  internalAccountAddresses: string[] = [],
 ): boolean {
   return filterByAddressOriginal(
     transaction,
@@ -53,6 +63,8 @@ function filterByAddress(
     selectedAddress,
     allTransactions,
     bridgeHistory,
+    addressBook,
+    internalAccountAddresses,
   );
 }
 
@@ -599,6 +611,88 @@ describe('Activity utils :: filterByAddressAndNetwork', () => {
 
     expect(result).toEqual(false);
   });
+
+  it('returns true if transaction is in pay batch but isIntentComplete is true', () => {
+    // Arrange: transaction is part of a pay batch (would normally be filtered)
+    // but isIntentComplete bypasses the filter
+    const transaction = {
+      id: '123',
+      batchId: '0x456',
+      chainId: '0x1',
+      status: TX_SUBMITTED,
+      isIntentComplete: true,
+      txParams: {
+        from: TEST_ADDRESS_ONE,
+        to: TEST_ADDRESS_TWO,
+      },
+      isTransfer: false,
+      transferInformation: undefined,
+    } as Partial<TransactionMeta> as TransactionMeta;
+
+    const allTransactions = [
+      {
+        id: '789',
+        batchId: '0x456',
+        chainId: '0x1',
+        type: PAY_TYPES[0],
+      },
+    ] as Partial<TransactionMeta>[] as TransactionMeta[];
+
+    // Act
+    const result = filterByAddressAndNetwork(
+      transaction,
+      [],
+      TEST_ADDRESS_ONE,
+      { '0x1': true },
+      allTransactions,
+    );
+
+    // Assert: shown because isIntentComplete overrides the pay batch filter
+    expect(result).toEqual(true);
+  });
+
+  it('returns false if transaction hash matches hash of a required transaction', () => {
+    // Arrange: tx has a different id but the same hash as a required transaction
+    const transaction = {
+      id: 'replacement-id',
+      hash: '0xabc',
+      chainId: '0x1',
+      status: TX_SUBMITTED,
+      txParams: {
+        from: TEST_ADDRESS_ONE,
+        to: TEST_ADDRESS_TWO,
+      },
+      isTransfer: false,
+      transferInformation: undefined,
+    } as Partial<TransactionMeta> as TransactionMeta;
+
+    const allTransactions = [
+      // This transaction is required by another, and shares hash with our tx
+      {
+        id: 'required-id',
+        hash: '0xabc',
+        chainId: '0x1',
+      },
+      // This transaction depends on 'required-id'
+      {
+        id: 'dependent-id',
+        chainId: '0x1',
+        requiredTransactionIds: ['required-id'],
+      },
+    ] as Partial<TransactionMeta>[] as TransactionMeta[];
+
+    // Act
+    const result = filterByAddressAndNetwork(
+      transaction,
+      [],
+      TEST_ADDRESS_ONE,
+      { '0x1': true },
+      allTransactions,
+    );
+
+    // Assert: filtered out because hash matches a required dependency
+    expect(result).toEqual(false);
+  });
 });
 
 describe('Activity utils :: filterByAddress', () => {
@@ -971,5 +1065,351 @@ describe('Activity utils :: isTransactionOnChains', () => {
         [],
       ),
     ).toBe(true);
+  });
+});
+
+describe('Activity utils :: isTrustedAddress', () => {
+  it('returns true for user own account', () => {
+    const addressBook = {};
+    const internalAccountAddresses = [TEST_ADDRESS_ONE, TEST_ADDRESS_TWO];
+
+    const result = isTrustedAddress(
+      TEST_ADDRESS_ONE,
+      addressBook,
+      internalAccountAddresses,
+    );
+    expect(result).toBe(true);
+  });
+
+  it('returns true for address in address book', () => {
+    const addressBook: AddressBookControllerState['addressBook'] = {
+      '0x1': {
+        '0x5A3CA5cd63807Ce5e4d7841AB32Ce6b6d9bBBa2D': {
+          address: '0x5A3CA5cd63807Ce5e4d7841AB32Ce6b6d9bBBa2D',
+          name: 'Friend',
+          chainId: '0x1' as Hex,
+          memo: '',
+          isEns: false,
+        },
+      },
+    };
+    const internalAccountAddresses = [TEST_ADDRESS_TWO];
+
+    const result = isTrustedAddress(
+      TEST_ADDRESS_ONE,
+      addressBook,
+      internalAccountAddresses,
+    );
+    expect(result).toBe(true);
+  });
+
+  it('returns false for unknown address', () => {
+    const addressBook = {};
+    const internalAccountAddresses = [TEST_ADDRESS_ONE];
+
+    const result = isTrustedAddress(
+      TEST_ADDRESS_THREE,
+      addressBook,
+      internalAccountAddresses,
+    );
+    expect(result).toBe(false);
+  });
+
+  it('returns false for empty address', () => {
+    const addressBook = {};
+    const internalAccountAddresses = [TEST_ADDRESS_ONE];
+
+    const result = isTrustedAddress('', addressBook, internalAccountAddresses);
+    expect(result).toBe(false);
+  });
+
+  it('handles case-insensitive comparison for EVM addresses', () => {
+    const addressBook = {};
+    // Use uppercase hex digits only — preserving '0x' prefix so it remains a valid EVM address
+    const internalAccountAddresses = [
+      '0x' + TEST_ADDRESS_ONE.slice(2).toUpperCase(),
+    ];
+
+    const result = isTrustedAddress(
+      TEST_ADDRESS_ONE.toLowerCase(),
+      addressBook,
+      internalAccountAddresses,
+    );
+    expect(result).toBe(true);
+  });
+
+  it('returns true for address saved on a different chain (EVM addresses are cross-chain)', () => {
+    // Contact saved on Polygon (0x89), transaction happening on Mainnet (0x1).
+    // EVM addresses are identical across all networks, so the contact should be trusted.
+    const addressBook: AddressBookControllerState['addressBook'] = {
+      '0x89': {
+        '0x5A3CA5cd63807Ce5e4d7841AB32Ce6b6d9bBBa2D': {
+          address: '0x5A3CA5cd63807Ce5e4d7841AB32Ce6b6d9bBBa2D',
+          name: 'Friend',
+          chainId: '0x89' as Hex,
+          memo: '',
+          isEns: false,
+        },
+      },
+    };
+    const internalAccountAddresses = [TEST_ADDRESS_TWO];
+
+    const result = isTrustedAddress(
+      TEST_ADDRESS_ONE,
+      addressBook,
+      internalAccountAddresses,
+    );
+    expect(result).toBe(true);
+  });
+});
+
+describe('Activity utils :: filterByAddressAndNetwork - token poisoning protection', () => {
+  const chainId = '0x1' as Hex;
+  const UNKNOWN_SENDER = '0x9999999999999999999999999999999999999999';
+
+  it('hides incoming transfer from unknown address even when token exists', () => {
+    const transaction = {
+      chainId,
+      status: TX_SUBMITTED,
+      txParams: {
+        from: UNKNOWN_SENDER,
+        to: TEST_ADDRESS_ONE,
+      },
+      isTransfer: true,
+      transferInformation: {
+        contractAddress: TEST_ADDRESS_THREE,
+      },
+    } as DeepPartial<TransactionMeta> as TransactionMeta;
+    const tokens = [{ address: TEST_ADDRESS_THREE }];
+    const addressBook = {};
+    const internalAccountAddresses = [TEST_ADDRESS_ONE];
+
+    const result = filterByAddressAndNetwork(
+      transaction,
+      tokens,
+      TEST_ADDRESS_ONE,
+      { '0x1': true },
+      [],
+      {},
+      addressBook,
+      internalAccountAddresses,
+    );
+    expect(result).toEqual(false);
+  });
+
+  it('shows incoming transfer from address in address book', () => {
+    const friendAddress = TEST_ADDRESS_TWO;
+    const transaction = {
+      chainId,
+      status: TX_SUBMITTED,
+      txParams: {
+        from: friendAddress,
+        to: TEST_ADDRESS_ONE,
+      },
+      isTransfer: true,
+      transferInformation: {
+        contractAddress: TEST_ADDRESS_THREE,
+      },
+    } as DeepPartial<TransactionMeta> as TransactionMeta;
+    const tokens = [{ address: TEST_ADDRESS_THREE }];
+    const addressBook = {
+      '0x1': {
+        [friendAddress]: {
+          address: friendAddress,
+          name: 'Friend',
+          chainId: '0x1',
+          memo: '',
+          isEns: false,
+        },
+      },
+    };
+    const internalAccountAddresses = [TEST_ADDRESS_ONE];
+
+    const result = filterByAddressAndNetwork(
+      transaction,
+      tokens,
+      TEST_ADDRESS_ONE,
+      { '0x1': true },
+      [],
+      {},
+      addressBook,
+      internalAccountAddresses,
+    );
+    expect(result).toEqual(true);
+  });
+
+  it('shows incoming transfer from user own account (Account 2 -> Account 1)', () => {
+    const transaction = {
+      chainId,
+      status: TX_SUBMITTED,
+      txParams: {
+        from: TEST_ADDRESS_TWO,
+        to: TEST_ADDRESS_ONE,
+      },
+      isTransfer: true,
+      transferInformation: {
+        contractAddress: TEST_ADDRESS_THREE,
+      },
+    } as DeepPartial<TransactionMeta> as TransactionMeta;
+    const tokens = [{ address: TEST_ADDRESS_THREE }];
+    const addressBook = {};
+    const internalAccountAddresses = [TEST_ADDRESS_ONE, TEST_ADDRESS_TWO];
+
+    const result = filterByAddressAndNetwork(
+      transaction,
+      tokens,
+      TEST_ADDRESS_ONE,
+      { '0x1': true },
+      [],
+      {},
+      addressBook,
+      internalAccountAddresses,
+    );
+    expect(result).toEqual(true);
+  });
+
+  it('always shows outgoing transfers to unknown addresses', () => {
+    const transaction = {
+      chainId,
+      status: TX_SUBMITTED,
+      txParams: {
+        from: TEST_ADDRESS_ONE,
+        to: UNKNOWN_SENDER,
+      },
+      isTransfer: true,
+      transferInformation: {
+        contractAddress: TEST_ADDRESS_THREE,
+      },
+    } as DeepPartial<TransactionMeta> as TransactionMeta;
+    const tokens = [{ address: TEST_ADDRESS_THREE }];
+    const addressBook = {};
+    const internalAccountAddresses = [TEST_ADDRESS_ONE];
+
+    const result = filterByAddressAndNetwork(
+      transaction,
+      tokens,
+      TEST_ADDRESS_ONE,
+      { '0x1': true },
+      [],
+      {},
+      addressBook,
+      internalAccountAddresses,
+    );
+    expect(result).toEqual(true);
+  });
+
+  it('hides incoming transfer if token not in wallet (existing behavior)', () => {
+    const friendAddress = TEST_ADDRESS_TWO;
+    const transaction = {
+      chainId,
+      status: TX_SUBMITTED,
+      txParams: {
+        from: friendAddress,
+        to: TEST_ADDRESS_ONE,
+      },
+      isTransfer: true,
+      transferInformation: {
+        contractAddress: TEST_ADDRESS_THREE,
+      },
+    } as DeepPartial<TransactionMeta> as TransactionMeta;
+    const tokens: Token[] = [];
+    const addressBook = {
+      '0x1': {
+        [friendAddress]: {
+          address: friendAddress,
+          name: 'Friend',
+          chainId: '0x1',
+          memo: '',
+          isEns: false,
+        },
+      },
+    };
+    const internalAccountAddresses = [TEST_ADDRESS_ONE];
+
+    const result = filterByAddressAndNetwork(
+      transaction,
+      tokens,
+      TEST_ADDRESS_ONE,
+      { '0x1': true },
+      [],
+      {},
+      addressBook,
+      internalAccountAddresses,
+    );
+    expect(result).toEqual(false);
+  });
+});
+
+describe('Activity utils :: filterByAddress - token poisoning protection', () => {
+  const chainId = '0x1' as Hex;
+  const UNKNOWN_SENDER = '0x9999999999999999999999999999999999999999';
+
+  it('hides incoming transfer from unknown address', () => {
+    const transaction = {
+      chainId,
+      status: TX_SUBMITTED,
+      txParams: {
+        from: UNKNOWN_SENDER,
+        to: TEST_ADDRESS_ONE,
+      },
+      isTransfer: true,
+      transferInformation: {
+        contractAddress: TEST_ADDRESS_THREE,
+      },
+    } as DeepPartial<TransactionMeta> as TransactionMeta;
+    const tokens = [{ address: TEST_ADDRESS_THREE }];
+    const addressBook = {};
+    const internalAccountAddresses = [TEST_ADDRESS_ONE];
+
+    const result = filterByAddress(
+      transaction,
+      tokens,
+      TEST_ADDRESS_ONE,
+      [],
+      {},
+      addressBook,
+      internalAccountAddresses,
+    );
+    expect(result).toEqual(false);
+  });
+
+  it('shows incoming transfer from trusted address', () => {
+    const friendAddress = TEST_ADDRESS_TWO;
+    const transaction = {
+      chainId,
+      status: TX_SUBMITTED,
+      txParams: {
+        from: friendAddress,
+        to: TEST_ADDRESS_ONE,
+      },
+      isTransfer: true,
+      transferInformation: {
+        contractAddress: TEST_ADDRESS_THREE,
+      },
+    } as DeepPartial<TransactionMeta> as TransactionMeta;
+    const tokens = [{ address: TEST_ADDRESS_THREE }];
+    const addressBook = {
+      '0x1': {
+        [friendAddress]: {
+          address: friendAddress,
+          name: 'Friend',
+          chainId: '0x1',
+          memo: '',
+          isEns: false,
+        },
+      },
+    };
+    const internalAccountAddresses = [TEST_ADDRESS_ONE];
+
+    const result = filterByAddress(
+      transaction,
+      tokens,
+      TEST_ADDRESS_ONE,
+      [],
+      {},
+      addressBook,
+      internalAccountAddresses,
+    );
+    expect(result).toEqual(true);
   });
 });
