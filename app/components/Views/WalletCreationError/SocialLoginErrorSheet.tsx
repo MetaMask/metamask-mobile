@@ -1,7 +1,6 @@
 import React, { useCallback } from 'react';
 import { View, Image, Linking, SafeAreaView } from 'react-native';
-import { useNavigation, ParamListBase } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
+import { useNavigation } from '@react-navigation/native';
 
 import Text, {
   TextVariant,
@@ -34,7 +33,7 @@ interface SocialLoginErrorSheetProps {
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const SocialLoginErrorSheet = ({ error }: SocialLoginErrorSheetProps) => {
-  const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
+  const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
 
   const handleTryAgain = useCallback(async () => {

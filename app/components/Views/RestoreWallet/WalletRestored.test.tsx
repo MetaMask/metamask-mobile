@@ -53,6 +53,11 @@ describe('WalletRestored', () => {
     replace: jest.fn(),
     navigate: jest.fn(),
     goBack: jest.fn(),
+    dispatch: jest.fn((action) => {
+      if (action.type === 'REPLACE') {
+        mockNavigation.replace(action.payload.name, action.payload.params);
+      }
+    }),
   };
 
   const mockTrackEvent = jest.fn();

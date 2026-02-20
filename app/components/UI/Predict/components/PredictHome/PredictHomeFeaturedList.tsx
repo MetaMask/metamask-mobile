@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react';
 import { TouchableOpacity } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { useNavigation, NavigationProp } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import {
   Box,
   BoxAlignItems,
@@ -18,7 +18,6 @@ import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { PredictEventValues } from '../../constants/eventNames';
 import { PredictEntryPointProvider } from '../../contexts';
-import { PredictNavigationParamList } from '../../types/navigation';
 import { usePredictMarketData } from '../../hooks/usePredictMarketData';
 import PredictMarketRowItem from '../PredictMarketRowItem';
 import PredictHomeSkeleton from './PredictHomeSkeleton';
@@ -31,8 +30,7 @@ const PredictHomeFeaturedList: React.FC<PredictHomeFeaturedListProps> = ({
   testID = 'predict-home-featured-list',
 }) => {
   const tw = useTailwind();
-  const navigation =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const navigation = useNavigation();
 
   const { marketData, isFetching } = usePredictMarketData({
     category: 'trending',

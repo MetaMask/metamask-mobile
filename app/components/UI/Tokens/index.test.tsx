@@ -252,7 +252,7 @@ describe('Tokens', () => {
 
     // Assert - navigation to add token screen
     await waitFor(() =>
-      expect(mockPush).toHaveBeenCalledWith('AddAsset', {
+      expect(mockNavigate).toHaveBeenCalledWith('AddAsset', {
         assetType: 'token',
       }),
     );
