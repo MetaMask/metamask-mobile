@@ -68,7 +68,6 @@ import {
 import { updateIncomingTransactions } from '../../../util/transaction-controller';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
-import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
 import { store } from '../../../store';
 import {
   selectSwapsTransactions,
@@ -84,6 +83,7 @@ import { selectNonEvmTransactionsForSelectedAccountGroup } from '../../../select
 import { getIsSwapsAssetAllowed } from './utils';
 import MultichainTransactionsView from '../MultichainTransactionsView/MultichainTransactionsView';
 import { AVAILABLE_MULTICHAIN_NETWORK_CONFIGURATIONS } from '@metamask/multichain-network-controller';
+import { TransactionDetailLocation } from '../../../core/Analytics/events/transactions';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -702,6 +702,7 @@ class Asset extends PureComponent {
             enableRefresh
             showDisclaimer
             onScroll={this.onScrollThroughContent}
+            location={TransactionDetailLocation.AssetDetails}
           />
         ) : (
           // For EVM assets, use the existing Transactions component
@@ -733,6 +734,7 @@ class Asset extends PureComponent {
             onScrollThroughContent={this.onScrollThroughContent}
             tokenChainId={asset.chainId}
             skipScrollOnClick
+            location={TransactionDetailLocation.AssetDetails}
           />
         )}
       </View>
@@ -898,4 +900,4 @@ const mapStateToProps = (state, { route }) => {
   };
 };
 
-export default connect(mapStateToProps)(withMetricsAwareness(Asset));
+export default connect(mapStateToProps)(Asset);

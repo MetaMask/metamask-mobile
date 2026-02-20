@@ -36,6 +36,7 @@ import {
   selectBridgeViewMode,
   setBridgeViewMode,
   selectIsNonEvmNonEvmBridge,
+  selectAbTestContext,
 } from '../../../../../core/redux/slices/bridge';
 import {
   useNavigation,
@@ -113,6 +114,7 @@ const BridgeView = () => {
   const destChainId = useSelector(selectSelectedDestChainId);
   const destAddress = useSelector(selectDestAddress);
   const bridgeViewMode = useSelector(selectBridgeViewMode);
+  const abTestContext = useSelector(selectAbTestContext);
   const { quotesLastFetched } = useSelector(selectBridgeControllerState);
   const { handleSwitchTokens } = useSwitchTokens();
   const { isStockToken } = useRWAToken();
@@ -282,20 +284,34 @@ const BridgeView = () => {
 
     if (shouldTrackPageView) {
       hasTrackedPageView.current = true;
+      const pageViewedProperties = {
+        chain_id_source: getDecimalChainId(sourceToken.chainId),
+        chain_id_destination: getDecimalChainId(destToken?.chainId),
+        token_symbol_source: sourceToken.symbol,
+        token_symbol_destination: destToken?.symbol,
+        token_address_source: sourceToken.address,
+        token_address_destination: destToken?.address,
+        ...(abTestContext?.assetsASSETS2493AbtestTokenDetailsLayout && {
+          ab_tests: {
+            assetsASSETS2493AbtestTokenDetailsLayout:
+              abTestContext.assetsASSETS2493AbtestTokenDetailsLayout,
+          },
+        }),
+      };
       trackEvent(
         createEventBuilder(MetaMetricsEvents.SWAP_PAGE_VIEWED)
-          .addProperties({
-            chain_id_source: getDecimalChainId(sourceToken.chainId),
-            chain_id_destination: getDecimalChainId(destToken?.chainId),
-            token_symbol_source: sourceToken.symbol,
-            token_symbol_destination: destToken?.symbol,
-            token_address_source: sourceToken.address,
-            token_address_destination: destToken?.address,
-          })
+          .addProperties(pageViewedProperties)
           .build(),
       );
     }
-  }, [sourceToken, destToken, trackEvent, createEventBuilder, bridgeViewMode]);
+  }, [
+    sourceToken,
+    destToken,
+    trackEvent,
+    createEventBuilder,
+    bridgeViewMode,
+    abTestContext,
+  ]);
 
   // Reset isErrorBannerVisible when error state changes
   useEffect(() => {

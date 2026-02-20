@@ -71,7 +71,6 @@ const mockToastRef = {
 
 describe('usePredictPlaceOrder', () => {
   const mockPlaceOrder = jest.fn();
-  const mockGetPositions = jest.fn();
   const mockClaim = jest.fn();
   const mockGetBalance = jest.fn();
   const mockDeposit = jest.fn();
@@ -115,7 +114,6 @@ describe('usePredictPlaceOrder', () => {
     jest.clearAllMocks();
     mockUsePredictTrading.mockReturnValue({
       placeOrder: mockPlaceOrder,
-      getPositions: mockGetPositions,
       claim: mockClaim,
       getBalance: mockGetBalance,
       previewOrder: jest.fn(),

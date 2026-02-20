@@ -145,6 +145,7 @@ import {
 } from './profile-metrics-controller-messenger';
 import { getProfileMetricsServiceMessenger } from './profile-metrics-service-messenger';
 import { getAnalyticsControllerMessenger } from './analytics-controller-messenger';
+import { getAiDigestControllerMessenger } from './ai-digest-controller-messenger';
 
 /**
  * The messengers for the controllers that have been.
@@ -450,6 +451,10 @@ export const CONTROLLER_MESSENGERS = {
   },
   AnalyticsController: {
     getMessenger: getAnalyticsControllerMessenger,
+    getInitMessenger: noop,
+  },
+  AiDigestController: {
+    getMessenger: getAiDigestControllerMessenger,
     getInitMessenger: noop,
   },
 } as const;
