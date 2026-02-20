@@ -5894,8 +5894,21 @@
       "ok": "OK",
       "continue": "Continue",
       "convert_and_get_percentage_bonus": "Convert and get {{percentage}}%",
+      "no_boost": "No boost",
+      "your_musd": "Your mUSD",
+      "balance_breakdown_title": "Your mUSD balances by network",
+      "balance_amount": "{{amount}} mUSD",
+      "balance_amount_with_symbol": "{{amount}} {{symbol}}",
+      "balance_fiat_unavailable": "—",
+      "convert_to_musd": "Convert to mUSD",
       "get_a_percentage_musd_bonus": "Get {{percentage}}% mUSD bonus",
       "convert": "Convert",
+      "fetching_quote": "Fetching quote...",
+      "you_convert": "You convert",
+      "network_fee": "Network fee",
+      "earning": "Earning",
+      "quick_convert_description": "Select a token to convert your full balance or tap the edit icon to enter a custom amount.",
+      "no_tokens_to_convert": "You don't have any tokens that can be converted to mUSD.",
       "toasts": {
         "converting": "Converting {{token}} → mUSD",
         "eta": "~{{time}}",
@@ -5913,7 +5926,26 @@
       "get_musd": "Get mUSD",
       "boost_title": "Get {{percentage}}% on your stablecoins",
       "boost_description": "Convert your stablecoins to mUSD and receive up to a {{percentage}}% bonus.",
-      "powered_by_relay": "Powered by Relay"
+      "powered_by_relay": "Powered by Relay",
+      "earn_rewards_when": "Earn rewards when",
+      "you_convert_to": "you convert to",
+      "max": "Max",
+      "quick_convert_button": "Convert",
+      "cta_body_earn_apy": "Earn {{apy}} yield automatically for holding mUSD.",
+      "learn_more": "Learn more",
+      "tooltip_title": "Earn yield with mUSD",
+      "tooltip_content": "Convert your USDC, USDT, or DAI for mUSD, MetaMask's dollar-backed stablecoin. Earn {{apy}} yield on every dollar you hold.",
+      "quick_convert": {
+        "title": "Convert and get {{apy}}%",
+        "subtitle": "Convert your stablecoins to mUSD and receive up to a {{apy}}% bonus.",
+        "inline_failed_message": "Conversion failed. Try again.",
+        "confirmation": {
+          "title": "Convert Max"
+        },
+        "failed_to_get_quotes": "Failed to get quotes. Please close this modal and try again."
+      },
+      "percentage_boost": "{{percentage}}% boost",
+      "rate": "Rate"
     },
     "bonus_claim": {
       "toasts": {
@@ -5930,7 +5962,8 @@
       "tooltip_opted_in_footer": "Points will be automatically added to your account.",
       "tooltip_not_opted_in_footer": "Opt-in to rewards to receive your points.",
       "tooltip_close": "Close"
-    }
+    },
+    "your_stablecoins": "Your stablecoins"
   },
   "stake": {
     "stake": "Stake",

@@ -133,7 +133,13 @@ export function useTransactionConfirm() {
         screen: Routes.PERPS.PERPS_HOME,
       });
     } else if (type === TransactionType.musdConversion) {
-      navigation.navigate(Routes.WALLET_VIEW);
+      // Full-screen mUSD conversions (e.g., from "Convert to mUSD" CTA) navigate to wallet home
+      // Non-full-screen mUSD conversions (e.g., max mode bottom sheet) go back to the previous screen
+      if (isFullScreenConfirmation) {
+        navigation.navigate(Routes.WALLET_VIEW);
+      } else {
+        navigation.goBack();
+      }
     } else if (
       isFullScreenConfirmation &&
       !hasTransactionType(transactionMetadata, GO_BACK_TYPES)

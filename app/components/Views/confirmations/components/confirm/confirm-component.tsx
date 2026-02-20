@@ -56,6 +56,7 @@ export enum ConfirmationLoader {
 export interface ConfirmationParams {
   loader?: ConfirmationLoader;
   maxValueMode?: boolean;
+  variant?: string;
 }
 
 const ConfirmWrapped = ({
@@ -191,9 +192,15 @@ function ConfirmationAlerts({ children }: { children: ReactNode }) {
 }
 
 function Loader() {
-  const { styles } = useStyles(styleSheet, { isFullScreenConfirmation: true });
+  const { isFullScreenConfirmation } = useFullScreenConfirmation();
+  const { styles } = useStyles(styleSheet, { isFullScreenConfirmation });
   const params = useParams<ConfirmationParams>();
   const loader = params?.loader ?? ConfirmationLoader.Default;
+
+  // Don't show full screen loader for bottom sheet confirmations
+  if (!isFullScreenConfirmation) {
+    return null;
+  }
 
   if (loader === ConfirmationLoader.CustomAmount) {
     return (

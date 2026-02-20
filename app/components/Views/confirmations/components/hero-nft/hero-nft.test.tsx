@@ -27,6 +27,10 @@ jest.mock('../../hooks/transactions/useTransactionMetadataRequest', () => ({
   useTransactionMetadataRequest: jest.fn(),
 }));
 
+jest.mock('../../hooks/ui/useFullScreenConfirmation', () => ({
+  useFullScreenConfirmation: () => ({ isFullScreenConfirmation: false }),
+}));
+
 describe('HeroNft', () => {
   beforeEach(() => {
     jest.clearAllMocks();
