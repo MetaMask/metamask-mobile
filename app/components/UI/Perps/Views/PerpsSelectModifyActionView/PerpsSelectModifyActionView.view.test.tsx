@@ -3,10 +3,10 @@
  * State-driven via Redux (initialStatePerps); no hook/selector mocks.
  * Run with: yarn jest -c jest.config.view.js PerpsSelectModifyActionView.view.test
  */
-import '../../../../../util/test/component-view/mocks';
+import '../../../../../../tests/component-view/mocks';
 import { fireEvent, screen } from '@testing-library/react-native';
-import { getModifyActionLabels } from '../../../../../util/test/component-view/helpers/perpsViewTestHelpers';
-import { renderPerpsSelectModifyActionView } from '../../../../../util/test/component-view/renderers/perpsViewRenderer';
+import { getModifyActionLabels } from '../../../../../../tests/component-view/helpers/perpsViewTestHelpers';
+import { renderPerpsSelectModifyActionView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
 
 describe('PerpsSelectModifyActionView', () => {
   it('renders the modify action sheet with options', () => {

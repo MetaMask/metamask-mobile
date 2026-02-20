@@ -36,6 +36,7 @@ import {
   ConnectionStatus,
   GameUpdateCallback,
   GeoBlockResponse,
+  GetAccountStateParams,
   GetBalanceParams,
   GetMarketsParams,
   GetPositionsParams,
@@ -711,7 +712,7 @@ export class PolymarketProvider implements PredictProvider {
   }: {
     address: string;
     positions: PredictPosition[];
-    claimable: boolean;
+    claimable?: boolean;
     marketId?: string;
     outcomeId?: string;
   }): PredictPosition[] {
@@ -817,7 +818,7 @@ export class PolymarketProvider implements PredictProvider {
     address,
     limit = 100, // todo: reduce this once we've decided on the pagination approach
     offset = 0,
-    claimable = false,
+    claimable,
     marketId,
     outcomeId,
   }: GetPositionsParams): Promise<PredictPosition[]> {
@@ -834,8 +835,11 @@ export class PolymarketProvider implements PredictProvider {
       offset: offset.toString(),
       user: predictAddress,
       sortBy: 'CURRENT',
-      redeemable: claimable.toString(),
     });
+
+    if (claimable !== undefined) {
+      queryParams.set('redeemable', claimable.toString());
+    }
 
     // Use market (conditionId/outcomeId) if provided for targeted fetch
     // This is mutually exclusive with eventId (marketId)
@@ -1412,7 +1416,7 @@ export class PolymarketProvider implements PredictProvider {
   }
 
   public async prepareDeposit(
-    params: PrepareDepositParams & { signer: Signer },
+    params: PrepareDepositParams,
   ): Promise<PrepareDepositResponse> {
     const transactions = [];
     const { signer } = params;
@@ -1502,9 +1506,9 @@ export class PolymarketProvider implements PredictProvider {
     };
   }
 
-  public async getAccountState(params: {
-    ownerAddress: string;
-  }): Promise<AccountState> {
+  public async getAccountState(
+    params: GetAccountStateParams,
+  ): Promise<AccountState> {
     try {
       const { ownerAddress } = params;
 
@@ -1579,7 +1583,7 @@ export class PolymarketProvider implements PredictProvider {
   }
 
   public async prepareWithdraw(
-    params: PrepareWithdrawParams & { signer: Signer },
+    params: PrepareWithdrawParams,
   ): Promise<PrepareWithdrawResponse> {
     const { signer } = params;
 

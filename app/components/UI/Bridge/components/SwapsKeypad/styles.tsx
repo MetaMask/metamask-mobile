@@ -11,6 +11,7 @@ export const createSwapsKeypadStyles = (theme: Theme) =>
     },
     keypadDialog: {
       marginHorizontal: -1,
+      marginBottom: -1,
       borderBottomColor: theme.colors.background.default,
     },
   });

@@ -99,7 +99,8 @@ describe('PredictMarketMultiple', () => {
     });
     // Default mock implementation - user has balance
     mockUsePredictBalance.mockReturnValue({
-      hasNoBalance: false,
+      data: 100,
+      isLoading: false,
     });
   });
 
@@ -275,7 +276,8 @@ describe('PredictMarketMultiple', () => {
     });
     // Mock user has balance
     mockUsePredictBalance.mockReturnValue({
-      hasNoBalance: false,
+      data: 100,
+      isLoading: false,
     });
 
     const { UNSAFE_getAllByType } = renderWithProvider(
@@ -328,7 +330,8 @@ describe('PredictMarketMultiple', () => {
       refreshEligibility: jest.fn(),
     });
     mockUsePredictBalance.mockReturnValue({
-      hasNoBalance: true,
+      data: undefined,
+      isLoading: false,
     });
 
     const { getAllByText } = renderWithProvider(
@@ -355,7 +358,8 @@ describe('PredictMarketMultiple', () => {
       refreshEligibility: jest.fn(),
     });
     mockUsePredictBalance.mockReturnValue({
-      hasNoBalance: true,
+      data: undefined,
+      isLoading: false,
     });
 
     const { getAllByText } = renderWithProvider(
