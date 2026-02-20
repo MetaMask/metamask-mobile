@@ -126,10 +126,10 @@ describe('NetworksManagementView', () => {
 
     expect(
       getByTestId(NetworksManagementViewSelectorsIDs.CONTAINER),
-    ).toBeDefined();
+    ).toBeOnTheScreen();
     expect(
       getByTestId(NetworksManagementViewSelectorsIDs.SEARCH_INPUT),
-    ).toBeDefined();
+    ).toBeOnTheScreen();
   });
 
   it('renders enabled mainnet networks', () => {
@@ -137,8 +137,8 @@ describe('NetworksManagementView', () => {
       state: initialState,
     });
 
-    expect(getByText('Ethereum Mainnet')).toBeDefined();
-    expect(getByText('Polygon')).toBeDefined();
+    expect(getByText('Ethereum Mainnet')).toBeOnTheScreen();
+    expect(getByText('Polygon')).toBeOnTheScreen();
   });
 
   it('renders enabled networks section header', () => {
@@ -146,7 +146,9 @@ describe('NetworksManagementView', () => {
       state: initialState,
     });
 
-    expect(getByText(strings('app_settings.networks_enabled'))).toBeDefined();
+    expect(
+      getByText(strings('app_settings.networks_enabled')),
+    ).toBeOnTheScreen();
   });
 
   it('renders add custom network button', () => {
@@ -156,7 +158,7 @@ describe('NetworksManagementView', () => {
 
     expect(
       getByTestId(NetworksManagementViewSelectorsIDs.ADD_CUSTOM_NETWORK_BUTTON),
-    ).toBeDefined();
+    ).toBeOnTheScreen();
   });
 
   it('navigates to NETWORK_DETAILS in add mode when add custom network button is pressed', () => {
@@ -217,7 +219,7 @@ describe('NetworksManagementView', () => {
 
     expect(
       getByTestId(NetworksManagementViewSelectorsIDs.EMPTY_STATE),
-    ).toBeDefined();
+    ).toBeOnTheScreen();
   });
 
   it('renders test networks section header and content', () => {
@@ -227,8 +229,8 @@ describe('NetworksManagementView', () => {
 
     expect(
       getByText(strings('app_settings.networks_test_networks')),
-    ).toBeDefined();
-    expect(getByText('Sepolia')).toBeDefined();
+    ).toBeOnTheScreen();
+    expect(getByText('Sepolia')).toBeOnTheScreen();
   });
 
   it('renders additional networks section header and content', () => {
@@ -238,7 +240,7 @@ describe('NetworksManagementView', () => {
 
     expect(
       getByText(strings('app_settings.networks_additional')),
-    ).toBeDefined();
-    expect(getByText('Avalanche')).toBeDefined();
+    ).toBeOnTheScreen();
+    expect(getByText('Avalanche')).toBeOnTheScreen();
   });
 });
