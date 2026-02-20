@@ -10,7 +10,6 @@ interface RampsButtonClicked {
   is_authenticated?: boolean;
   preferred_provider?: string;
   order_count?: number;
-  feature_flag_unified_buy_v2?: boolean;
 }
 
 interface RampsDepositCashButtonClicked {
@@ -45,7 +44,6 @@ interface RampsTokenSelected {
   token_caip19?: string;
   token_symbol?: string;
   ramp_routing?: UnifiedRampRoutingType;
-  feature_flag_unified_buy_v2?: boolean;
 }
 
 interface RampsRegionSelected {
@@ -267,21 +265,18 @@ interface RampsScreenViewed {
   location: string;
   ramp_type: 'UNIFIED BUY' | 'UNIFIED BUY 2';
   ramp_routing?: UnifiedRampRoutingType;
-  feature_flag_unified_buy_v2: boolean;
 }
 
 interface RampsBackButtonClicked {
   location: string;
   ramp_type: 'UNIFIED BUY' | 'UNIFIED BUY 2';
   ramp_routing?: UnifiedRampRoutingType;
-  feature_flag_unified_buy_v2: boolean;
 }
 
 interface RampsNetworkFilterClicked {
   network_chain_id?: string;
   location: string;
   ramp_type: 'UNIFIED BUY' | 'UNIFIED BUY 2';
-  feature_flag_unified_buy_v2: boolean;
 }
 
 interface RampsTokenSearched {
@@ -289,27 +284,23 @@ interface RampsTokenSearched {
   results_count?: number;
   location: string;
   ramp_type: 'UNIFIED BUY' | 'UNIFIED BUY 2';
-  feature_flag_unified_buy_v2: boolean;
 }
 
 interface RampsSettingsClicked {
   location: string;
   ramp_type: 'UNIFIED BUY' | 'UNIFIED BUY 2';
-  feature_flag_unified_buy_v2: boolean;
 }
 
 interface RampsSettingOptionClicked {
   option: string;
   location: string;
   ramp_type: 'UNIFIED BUY' | 'UNIFIED BUY 2';
-  feature_flag_unified_buy_v2: boolean;
 }
 
 interface RampsPaymentMethodSelectorClicked {
   current_payment_method?: string;
   location: string;
   ramp_type: 'UNIFIED BUY' | 'UNIFIED BUY 2';
-  feature_flag_unified_buy_v2: boolean;
 }
 
 interface RampsQuickAmountClicked {
@@ -317,7 +308,6 @@ interface RampsQuickAmountClicked {
   currency_source: string;
   location: string;
   ramp_type: 'UNIFIED BUY' | 'UNIFIED BUY 2';
-  feature_flag_unified_buy_v2: boolean;
 }
 
 interface RampsChangeProviderButtonClicked {
@@ -325,7 +315,6 @@ interface RampsChangeProviderButtonClicked {
   location: string;
   ramp_type: 'UNIFIED BUY' | 'UNIFIED BUY 2';
   ramp_routing?: UnifiedRampRoutingType;
-  feature_flag_unified_buy_v2: boolean;
 }
 
 interface RampsProviderSelected {
@@ -334,7 +323,6 @@ interface RampsProviderSelected {
   location: string;
   ramp_type: 'UNIFIED BUY' | 'UNIFIED BUY 2';
   ramp_routing?: UnifiedRampRoutingType;
-  feature_flag_unified_buy_v2: boolean;
 }
 
 interface RampsContinueButtonClicked {
@@ -356,14 +344,12 @@ interface RampsContinueButtonClicked {
   total_fee?: number;
   gas_fee?: number;
   processing_fee?: number;
-  feature_flag_unified_buy_v2: boolean;
 }
 
 interface RampsTermsConsentClicked {
   location: string;
   ramp_type: 'UNIFIED BUY' | 'UNIFIED BUY 2';
   ramp_routing?: UnifiedRampRoutingType;
-  feature_flag_unified_buy_v2: boolean;
 }
 
 interface RampsExternalLinkClicked {
@@ -371,13 +357,11 @@ interface RampsExternalLinkClicked {
   text: string;
   url_domain?: string;
   ramp_type: 'UNIFIED BUY' | 'UNIFIED BUY 2';
-  feature_flag_unified_buy_v2: boolean;
 }
 
 interface RampsCloseButtonClicked {
   location: string;
   ramp_type: 'UNIFIED BUY' | 'UNIFIED BUY 2';
-  feature_flag_unified_buy_v2: boolean;
 }
 
 interface RampsQuoteError {
@@ -389,14 +373,12 @@ interface RampsQuoteError {
   chain_id?: string;
   ramp_type: 'UNIFIED BUY' | 'UNIFIED BUY 2';
   ramp_routing?: UnifiedRampRoutingType;
-  feature_flag_unified_buy_v2: boolean;
 }
 
 interface RampsQuoteErrorTooltipClicked {
   error_message?: string;
   location: string;
   ramp_type: 'UNIFIED BUY' | 'UNIFIED BUY 2';
-  feature_flag_unified_buy_v2: boolean;
 }
 
 interface RampsUnsupportedTokenTooltipClicked {
@@ -405,14 +387,12 @@ interface RampsUnsupportedTokenTooltipClicked {
   chain_id?: string;
   location: string;
   ramp_type: 'UNIFIED BUY' | 'UNIFIED BUY 2';
-  feature_flag_unified_buy_v2: boolean;
 }
 
 interface RampsToastButtonClicked {
   action: string;
   location?: string;
   ramp_type: 'UNIFIED BUY' | 'UNIFIED BUY 2';
-  feature_flag_unified_buy_v2: boolean;
 }
 
 export interface AnalyticsEvents {
