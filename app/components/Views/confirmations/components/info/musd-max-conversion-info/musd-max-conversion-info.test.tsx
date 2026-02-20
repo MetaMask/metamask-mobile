@@ -81,16 +81,6 @@ jest.mock('./musd-max-conversion-asset-header', () => ({
   MusdMaxConversionAssetHeader: () => null,
 }));
 
-jest.mock('../../rows/relay-you-receive-row', () => {
-  const ReactModule = jest.requireActual<typeof import('react')>('react');
-  const { View } =
-    jest.requireActual<typeof import('react-native')>('react-native');
-  return {
-    RelayYouReceiveRow: ({ testID }: { testID?: string }) =>
-      testID ? ReactModule.createElement(View, { testID }) : null,
-  };
-});
-
 jest.mock('../../rows/bridge-fee-row', () => ({
   BridgeFeeRow: () => null,
 }));

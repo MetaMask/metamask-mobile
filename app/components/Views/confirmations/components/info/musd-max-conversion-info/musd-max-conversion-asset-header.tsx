@@ -19,7 +19,6 @@ import { Skeleton } from '../../../../../../component-library/components/Skeleto
 import { AssetType } from '../../../types/token';
 import styleSheet from './musd-max-conversion-asset-header.styles';
 import { useIsTransactionPayLoading } from '../../../hooks/pay/useTransactionPayData';
-import { MusdMaxConversionInfoTestIds } from './musd-max-conversion-info';
 import {
   Icon,
   IconColor,
@@ -28,13 +27,19 @@ import {
 } from '@metamask/design-system-react-native';
 import { MUSD_TOKEN } from '../../../../../UI/Earn/constants/musd';
 
+export const MusdMaxConversionAssetHeaderTestIds = {
+  ASSET_HEADER_SKELETON: 'musd-max-conversion-asset-header-skeleton',
+  ASSET_HEADER_INPUT: 'musd-max-conversion-asset-header-input',
+  ASSET_HEADER_OUTPUT: 'musd-max-conversion-asset-header-output',
+} as const;
+
 export const MusdMaxConversionAssetHeaderSkeleton = () => {
   const { styles } = useStyles(styleSheet, {});
 
   return (
     <View
       style={styles.assetHeaderContainer}
-      testID={MusdMaxConversionInfoTestIds.ASSET_HEADER_SKELETON}
+      testID={MusdMaxConversionAssetHeaderTestIds.ASSET_HEADER_SKELETON}
     >
       <View style={styles.assetContainer}>
         <Skeleton width={40} height={40} style={styles.skeletonAvatar} />
@@ -104,9 +109,8 @@ export const MusdMaxConversionAssetHeader = memo(
       <View style={styles.assetHeaderContainer}>
         {/* Input Asset (Top) */}
         <View
-          // TODO: Rename style class
           style={styles.assetContainer}
-          testID={MusdMaxConversionInfoTestIds.ASSET_HEADER}
+          testID={MusdMaxConversionAssetHeaderTestIds.ASSET_HEADER_INPUT}
         >
           <BadgeWrapper
             badgePosition={BadgePosition.BottomRight}
@@ -145,7 +149,7 @@ export const MusdMaxConversionAssetHeader = memo(
         {/* Output Asset (Bottom) */}
         <View
           style={styles.assetContainer}
-          testID={MusdMaxConversionInfoTestIds.ASSET_HEADER}
+          testID={MusdMaxConversionAssetHeaderTestIds.ASSET_HEADER_OUTPUT}
         >
           <BadgeWrapper
             badgePosition={BadgePosition.BottomRight}

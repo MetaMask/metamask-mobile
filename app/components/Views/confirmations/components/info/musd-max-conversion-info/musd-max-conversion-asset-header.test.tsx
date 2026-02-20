@@ -6,8 +6,8 @@ import initialRootState from '../../../../../../util/test/initial-root-state';
 import {
   MusdMaxConversionAssetHeader,
   MusdMaxConversionAssetHeaderSkeleton,
+  MusdMaxConversionAssetHeaderTestIds,
 } from './musd-max-conversion-asset-header';
-import { MusdMaxConversionInfoTestIds } from './musd-max-conversion-info';
 import { AssetType } from '../../../types/token';
 import { useIsTransactionPayLoading } from '../../../hooks/pay/useTransactionPayData';
 import { getNetworkImageSource } from '../../../../../../util/networks';
@@ -71,7 +71,7 @@ describe('MusdMaxConversionAssetHeaderSkeleton', () => {
     );
 
     const skeleton = getByTestId(
-      MusdMaxConversionInfoTestIds.ASSET_HEADER_SKELETON,
+      MusdMaxConversionAssetHeaderTestIds.ASSET_HEADER_SKELETON,
     );
 
     expect(skeleton).toBeOnTheScreen();
@@ -108,9 +108,14 @@ describe('MusdMaxConversionAssetHeader', () => {
     );
 
     expect(
-      getByTestId(MusdMaxConversionInfoTestIds.ASSET_HEADER_SKELETON),
+      getByTestId(MusdMaxConversionAssetHeaderTestIds.ASSET_HEADER_SKELETON),
     ).toBeOnTheScreen();
-    expect(queryByTestId(MusdMaxConversionInfoTestIds.ASSET_HEADER)).toBeNull();
+    expect(
+      queryByTestId(MusdMaxConversionAssetHeaderTestIds.ASSET_HEADER_INPUT),
+    ).toBeNull();
+    expect(
+      queryByTestId(MusdMaxConversionAssetHeaderTestIds.ASSET_HEADER_OUTPUT),
+    ).toBeNull();
   });
 
   it('renders asset header with token symbol and formatted fiat when not loading', () => {
@@ -118,7 +123,7 @@ describe('MusdMaxConversionAssetHeader', () => {
     const formatFiat = createMockFormatFiat();
     formatFiat.mockReturnValue('$1,234.56');
 
-    const { getByTestId, getByText } = renderWithProvider(
+    const { getByTestId, getByText, getAllByText } = renderWithProvider(
       <MusdMaxConversionAssetHeader
         token={token}
         networkName="Linea Mainnet"
@@ -128,10 +133,13 @@ describe('MusdMaxConversionAssetHeader', () => {
     );
 
     expect(
-      getByTestId(MusdMaxConversionInfoTestIds.ASSET_HEADER),
+      getByTestId(MusdMaxConversionAssetHeaderTestIds.ASSET_HEADER_INPUT),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(MusdMaxConversionAssetHeaderTestIds.ASSET_HEADER_OUTPUT),
     ).toBeOnTheScreen();
     expect(getByText('MUSD')).toBeOnTheScreen();
-    expect(getByText('$1,234.56')).toBeOnTheScreen();
+    expect(getAllByText('$1,234.56')).toHaveLength(2);
     expect(formatFiat).toHaveBeenCalledWith(new BigNumber(1234.56));
   });
 
@@ -149,7 +157,10 @@ describe('MusdMaxConversionAssetHeader', () => {
     );
 
     expect(
-      getByTestId(MusdMaxConversionInfoTestIds.ASSET_HEADER),
+      getByTestId(MusdMaxConversionAssetHeaderTestIds.ASSET_HEADER_INPUT),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(MusdMaxConversionAssetHeaderTestIds.ASSET_HEADER_OUTPUT),
     ).toBeOnTheScreen();
     expect(getByText('MUSD')).toBeOnTheScreen();
     expect(formatFiat).not.toHaveBeenCalled();
@@ -169,7 +180,10 @@ describe('MusdMaxConversionAssetHeader', () => {
     );
 
     expect(
-      getByTestId(MusdMaxConversionInfoTestIds.ASSET_HEADER),
+      getByTestId(MusdMaxConversionAssetHeaderTestIds.ASSET_HEADER_INPUT),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(MusdMaxConversionAssetHeaderTestIds.ASSET_HEADER_OUTPUT),
     ).toBeOnTheScreen();
     expect(formatFiat).not.toHaveBeenCalled();
   });
