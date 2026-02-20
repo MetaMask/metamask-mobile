@@ -18,16 +18,13 @@ const baseLimitOrder: Order = {
   detailedOrderType: 'Limit',
   size: '2.5',
   originalSize: '2.5',
+  filledSize: '0',
+  remainingSize: '2.5',
   price: '2500',
   reduceOnly: false,
-  timeInForce: 'Gtc',
   status: 'open',
   timestamp: Date.now(),
-  createdAt: Date.now(),
-  updatedAt: Date.now(),
-  fee: '0',
-  filledSize: '0',
-} as Order;
+};
 
 const shortMarketOrder: Order = {
   ...baseLimitOrder,
@@ -38,7 +35,8 @@ const shortMarketOrder: Order = {
   price: '45000',
   size: '0.1',
   originalSize: '0.1',
-} as Order;
+  remainingSize: '0.1',
+};
 
 const renderRow = (order: Order, onPress?: () => void) =>
   renderPerpsComponent(
