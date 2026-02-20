@@ -27,6 +27,7 @@ import { isNonEvmChainId } from '../../../../core/Multichain/utils';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { safeToChecksumAddress } from '../../../../util/address';
+import { usePerpsChartData } from './usePerpsChartData';
 
 export interface UseTokenPriceResult {
   currentPrice: number;
@@ -38,6 +39,10 @@ export interface UseTokenPriceResult {
   setTimePeriod: (period: TimePeriod) => void;
   chartNavigationButtons: TimePeriod[];
   currentCurrency: string;
+  /** Whether the chart is showing real-time perps data */
+  isRealtime: boolean;
+  /** Whether a perps market exists for this token */
+  hasPerpsMarket: boolean;
 }
 
 export interface UseTokenPriceParams {
@@ -51,6 +56,10 @@ export interface UseTokenPriceParams {
 /**
  * Hook that handles price fetching and calculations for a token.
  * Manages historical prices, exchange rates, and price comparisons.
+ *
+ * When a token has a corresponding HyperLiquid perpetual market, this hook
+ * will use real-time WebSocket data for the price chart. Otherwise, it falls
+ * back to historical API data.
  */
 export const useTokenPrice = ({
   token,
@@ -78,13 +87,38 @@ export const useTokenPrice = ({
     ? safeToChecksumAddress(token.address)
     : token.address;
 
-  const { data: prices = [], isLoading } = useTokenHistoricalPrices({
-    asset: token,
-    address: token.address as Hex,
-    chainId,
+  // Fetch real-time perps data when available
+  const {
+    hasPerpsMarket,
+    isMarketLoading,
+    prices: perpsPrices,
+    isLoading: isPerpsLoading,
+    currentPrice: perpsCurrentPrice,
+    priceDiff: perpsPriceDiff,
+    comparePrice: perpsComparePrice,
+    isRealtime,
+  } = usePerpsChartData({
+    symbol: token.symbol,
     timePeriod,
-    vsCurrency: currentCurrency,
   });
+
+  // Fetch historical API data as fallback
+  const { data: apiPrices = [], isLoading: isApiLoading } =
+    useTokenHistoricalPrices({
+      asset: token,
+      address: token.address as Hex,
+      chainId,
+      timePeriod,
+      vsCurrency: currentCurrency,
+    });
+
+  // Simple logic: wait for market check, then use appropriate data source
+  const usePerpsData = hasPerpsMarket && perpsPrices.length > 0;
+  const prices = usePerpsData ? perpsPrices : apiPrices;
+
+  // Show loading until we know which data source to use
+  const isLoading =
+    isMarketLoading || (hasPerpsMarket ? isPerpsLoading : isApiLoading);
 
   useEffect(() => {
     const { SwapsController } = Engine.context;
@@ -170,7 +204,12 @@ export const useTokenPrice = ({
   let priceDiff = 0;
   let comparePrice = 0;
 
-  if (isAssetFromSearch(token) && tokenResult?.found) {
+  // When using perps data, use the price values from perps
+  if (usePerpsData) {
+    currentPrice = perpsCurrentPrice;
+    priceDiff = perpsPriceDiff;
+    comparePrice = perpsComparePrice;
+  } else if (isAssetFromSearch(token) && tokenResult?.found) {
     currentPrice = tokenResult.price?.price || 0;
   } else {
     const {
@@ -183,7 +222,7 @@ export const useTokenPrice = ({
       exchangeRate,
       tickerConversionRate:
         conversionRateByTicker?.[nativeCurrency]?.conversionRate ?? undefined,
-      prices,
+      prices: apiPrices,
       multichainAssetRates,
       timePeriod,
     });
@@ -202,6 +241,8 @@ export const useTokenPrice = ({
     setTimePeriod,
     chartNavigationButtons,
     currentCurrency,
+    isRealtime: usePerpsData && isRealtime,
+    hasPerpsMarket,
   };
 };
 

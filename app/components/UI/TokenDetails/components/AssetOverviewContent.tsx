@@ -123,6 +123,8 @@ export interface AssetOverviewContentProps {
   comparePrice: number;
   prices: TokenPrice[];
   isLoading: boolean;
+  /** Whether the chart is showing real-time perps data */
+  isRealtime?: boolean;
 
   // Time period
   timePeriod: TimePeriod;
@@ -171,6 +173,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   comparePrice,
   prices,
   isLoading,
+  isRealtime = false,
   timePeriod,
   setTimePeriod,
   chartNavigationButtons,
@@ -387,6 +390,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
               currentPrice={currentPrice}
               comparePrice={comparePrice}
               isLoading={isLoading}
+              isRealtime={isRealtime}
               timePeriod={timePeriod}
             />
           </PriceChartProvider>
