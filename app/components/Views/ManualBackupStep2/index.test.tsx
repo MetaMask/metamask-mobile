@@ -72,17 +72,13 @@ jest
 const mockMath = Object.create(global.Math);
 mockMath.random = () => 0.5;
 
-// mock useMetrics
+// mock useAnalytics
 const mockMetricsIsEnabled = jest.fn().mockReturnValue(true);
-jest.mock('../../../components/hooks/useMetrics', () => {
-  const actual = jest.requireActual('../../../components/hooks/useMetrics');
-  return {
-    ...actual,
-    useMetrics: () => ({
-      isEnabled: mockMetricsIsEnabled,
-    }),
-  };
-});
+jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    isEnabled: mockMetricsIsEnabled,
+  }),
+}));
 
 describe('ManualBackupStep2', () => {
   const mockWords = [
