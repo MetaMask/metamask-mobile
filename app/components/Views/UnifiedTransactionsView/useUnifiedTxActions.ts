@@ -1,10 +1,14 @@
 import { providerErrors } from '@metamask/rpc-errors';
 import {
+  CANCEL_RATE,
   GasFeeEstimateLevel,
   GasFeeEstimateType,
+  SPEED_UP_RATE,
+  type FeeMarketEIP1559Values,
   type FeeMarketGasFeeEstimates,
   type GasFeeEstimates,
   type GasPriceGasFeeEstimates,
+  type GasPriceValue,
   type LegacyGasFeeEstimates,
   type TransactionMeta,
 } from '@metamask/transaction-controller';
@@ -27,24 +31,29 @@ import { createQRSigningTransactionModalNavDetails } from '../../UI/QRHardware/Q
 
 type Maybe<T> = T | null | undefined;
 
-interface LegacyExistingGas {
+export interface LegacyExistingGas {
   isEIP1559Transaction?: false;
   gasPrice?: string | number;
 }
 
-interface Eip1559ExistingGas {
+export interface Eip1559ExistingGas {
   isEIP1559Transaction: true;
   maxFeePerGas?: string;
   maxPriorityFeePerGas?: string;
 }
 
-type ExistingGas = LegacyExistingGas | Eip1559ExistingGas;
+export type ExistingGas = LegacyExistingGas | Eip1559ExistingGas;
 
 interface ReplacementGasParams {
   error?: string;
   suggestedMaxFeePerGasHex?: string;
   suggestedMaxPriorityFeePerGasHex?: string;
 }
+
+/** Params from CancelSpeedupModal (controller union + optional error for legacy flow) */
+type CancelSpeedupModalParams = (GasPriceValue | FeeMarketEIP1559Values) & {
+  error?: string;
+};
 
 interface LedgerSignRequest {
   id: string;
@@ -196,21 +205,17 @@ export function useUnifiedTxActions() {
       setSpeedUp1559IsOpen(false);
       return;
     }
-    setExistingGas(nextExistingGas ?? null);
-    setExistingTx(tx ?? null);
-    setSpeedUpTxId(tx?.id ?? null);
-    if (nextExistingGas?.isEIP1559Transaction) {
-      setSpeedUp1559IsOpen(true);
-    } else {
-      if (!tx) {
-        return;
-      }
-      const disabled = Boolean(
-        validateTransactionActionBalance(tx, '1.1', accounts),
-      );
-      setSpeedUpConfirmDisabled(disabled);
-      setSpeedUpIsOpen(true);
+    if (!tx) {
+      return;
     }
+    setExistingGas(nextExistingGas ?? null);
+    setExistingTx(tx);
+    setSpeedUpTxId(tx.id ?? null);
+    const disabled = Boolean(
+      validateTransactionActionBalance(tx, SPEED_UP_RATE.toString(), accounts),
+    );
+    setSpeedUpConfirmDisabled(disabled);
+    setSpeedUpIsOpen(true);
   };
 
   const onCancelAction = (
@@ -223,21 +228,17 @@ export function useUnifiedTxActions() {
       setCancel1559IsOpen(false);
       return;
     }
-    setExistingGas(nextExistingGas ?? null);
-    setExistingTx(tx ?? null);
-    setCancelTxId(tx?.id ?? null);
-    if (nextExistingGas?.isEIP1559Transaction) {
-      setCancel1559IsOpen(true);
-    } else {
-      if (!tx) {
-        return;
-      }
-      const disabled = Boolean(
-        validateTransactionActionBalance(tx, '1.1', accounts),
-      );
-      setCancelConfirmDisabled(disabled);
-      setCancelIsOpen(true);
+    if (!tx) {
+      return;
     }
+    setExistingGas(nextExistingGas ?? null);
+    setExistingTx(tx);
+    setCancelTxId(tx.id ?? null);
+    const disabled = Boolean(
+      validateTransactionActionBalance(tx, CANCEL_RATE.toString(), accounts),
+    );
+    setCancelConfirmDisabled(disabled);
+    setCancelIsOpen(true);
   };
 
   const onSpeedUpCompleted = () => {
@@ -256,17 +257,29 @@ export function useUnifiedTxActions() {
     setExistingTx(null);
   };
 
+  const getParamsToSend = (
+    params?: ReplacementGasParams | CancelSpeedupModalParams,
+  ): GasPriceValue | FeeMarketEIP1559Values | undefined => {
+    if (params?.error) {
+      return undefined;
+    }
+    if (params && ('maxFeePerGas' in params || 'gasPrice' in params)) {
+      return params;
+    }
+    return getCancelOrSpeedupValues(params as ReplacementGasParams);
+  };
+
   const speedUpTransaction = async (
-    transactionObject?: ReplacementGasParams,
+    params?: ReplacementGasParams | CancelSpeedupModalParams,
   ) => {
     try {
-      if (transactionObject?.error) {
-        throw new Error(transactionObject.error);
+      if (params && 'error' in params && params.error) {
+        throw new Error(params.error);
       }
       if (!speedUpTxId) {
         throw new Error('Missing transaction id for speed up');
       }
-      await speedUpTx(speedUpTxId, getCancelOrSpeedupValues(transactionObject));
+      await speedUpTx(speedUpTxId, getParamsToSend(params));
       onSpeedUpCompleted();
     } catch (error: unknown) {
       toggleRetry(getErrorMessage(error));
@@ -276,18 +289,18 @@ export function useUnifiedTxActions() {
   };
 
   const cancelTransaction = async (
-    transactionObject?: ReplacementGasParams,
+    params?: ReplacementGasParams | CancelSpeedupModalParams,
   ) => {
     try {
-      if (transactionObject?.error) {
-        throw new Error(transactionObject.error);
+      if (params && 'error' in params && params.error) {
+        throw new Error(params.error);
       }
       if (!cancelTxId) {
         throw new Error('Missing transaction id for cancel');
       }
       await Engine.context.TransactionController.stopTransaction(
         cancelTxId,
-        getCancelOrSpeedupValues(transactionObject),
+        getParamsToSend(params),
       );
       onCancelCompleted();
     } catch (error: unknown) {

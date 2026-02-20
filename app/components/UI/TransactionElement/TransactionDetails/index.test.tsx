@@ -348,6 +348,31 @@ describe('TransactionDetails', () => {
     });
   });
 
+  it('renders speed up and cancel buttons', async () => {
+    const { getByText } = renderComponent({
+      state: {
+        ...initialState,
+        engine: {
+          ...initialState.engine,
+          backgroundState: {
+            ...initialState.engine.backgroundState,
+            PreferencesController: {
+              smartTransactionsOptInStatus: false,
+            },
+          },
+        },
+      },
+      hash: '0x3',
+      txParams: {
+        multiLayerL1FeeTotal: '0x1',
+      },
+      status: 'submitted',
+    });
+
+    expect(getByText('Speed up')).toBeOnTheScreen();
+    expect(getByText('Cancel')).toBeOnTheScreen();
+  });
+
   it('should render `Batched transactions` tag if there are nested transactions', async () => {
     const { getByText } = renderComponent({
       state: initialState,
