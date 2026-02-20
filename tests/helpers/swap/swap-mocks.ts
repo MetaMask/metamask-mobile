@@ -24,7 +24,7 @@ const USDC_MAINNET = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
 const DAI_MAINNET = '0x6b175474e89094c44da98b954eedeac495271d0f';
 const USDT_MAINNET = '0xdac17f958d2ee523a2206206994597c13d831ec7';
 const WETH_MAINNET = '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2';
-const GOOGLEON_MAINNET = '0xba47214edd2bb43099611b208f75e4b42fdcfedc';
+const GOOGLON_MAINNET = '0xba47214edd2bb43099611b208f75e4b42fdcfedc';
 
 /**
  * Mock spot prices so balance display (balance * price) does not show NaN.
