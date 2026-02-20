@@ -77,6 +77,7 @@ import { isNullOrUndefined, Hex } from '@metamask/utils';
 import { useBridgeQuoteEvents } from '../../hooks/useBridgeQuoteEvents/index.ts';
 import { SwapsKeypad } from '../../components/SwapsKeypad/index.tsx';
 import { getGasFeesSponsoredNetworkEnabled } from '../../../../../selectors/featureFlagController/gasFeesSponsored';
+import { trimTrailingZeros } from '../../utils/trimTrailingZeros.ts';
 import { FLipQuoteButton } from '../../components/FlipQuoteButton/index.tsx';
 import { useIsGasIncludedSTXSendBundleSupported } from '../../hooks/useIsGasIncludedSTXSendBundleSupported/index.ts';
 import { useIsGasIncluded7702Supported } from '../../hooks/useIsGasIncluded7702Supported/index.ts';
@@ -335,9 +336,7 @@ const BridgeView = () => {
   const handleSourceMaxPress = () => {
     if (latestSourceBalance?.displayBalance) {
       const balance = latestSourceBalance.displayBalance;
-      const cleaned = balance.includes('.')
-        ? balance.replace(/0+$/, '').replace(/\.$/, '')
-        : balance;
+      const cleaned = trimTrailingZeros(balance);
       dispatch(setSourceAmountAsMax(cleaned));
     }
   };
