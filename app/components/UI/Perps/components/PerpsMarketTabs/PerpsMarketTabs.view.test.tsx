@@ -6,7 +6,8 @@
  * Run with: yarn test:view --testPathPattern="PerpsMarketTabs.view.test"
  */
 import '../../../../../../tests/component-view/mocks';
-import { fireEvent, screen } from '@testing-library/react-native';
+import { screen } from '@testing-library/react-native';
+import { strings } from '../../../../../../locales/i18n';
 import {
   renderPerpsComponent,
   defaultPositionForViews,
@@ -28,38 +29,53 @@ const renderMarketTabs = (
 describe('PerpsMarketTabs', () => {
   describe('tab navigation', () => {
     it('renders tab container with position, orders, and statistics tabs', async () => {
-      renderMarketTabs({}, { positions: [defaultPositionForViews] });
+      renderMarketTabs(
+        {},
+        {
+          positions: [defaultPositionForViews],
+          orders: [defaultOrderForViews],
+        },
+      );
 
       expect(
         await screen.findByTestId(PerpsMarketTabsSelectorsIDs.CONTAINER),
       ).toBeOnTheScreen();
+      expect(
+        screen.queryAllByText(strings('perps.market.position')).length,
+      ).toBeGreaterThan(0);
+      expect(
+        screen.queryAllByText(strings('perps.market.orders')).length,
+      ).toBeGreaterThan(0);
+      expect(
+        screen.queryAllByText(strings('perps.market.statistics')).length,
+      ).toBeGreaterThan(0);
     });
 
-    it('switches to orders tab and shows empty state when no orders', async () => {
+    it('hides orders tab when no orders exist', async () => {
       renderMarketTabs(
         {},
         { positions: [defaultPositionForViews], orders: [] },
       );
 
-      const ordersTab = await screen.findByTestId(
-        PerpsMarketTabsSelectorsIDs.ORDERS_TAB,
-      );
-      fireEvent.press(ordersTab);
-
       expect(
-        await screen.findByTestId(
-          PerpsMarketTabsSelectorsIDs.ORDERS_EMPTY_STATE,
-        ),
+        await screen.findByTestId(PerpsMarketTabsSelectorsIDs.CONTAINER),
+      ).toBeOnTheScreen();
+      expect(screen.queryAllByText(strings('perps.market.orders'))).toHaveLength(
+        0,
+      );
+      expect(
+        screen.getByTestId(PerpsMarketTabsSelectorsIDs.STATISTICS_CONTENT),
       ).toBeOnTheScreen();
     });
 
-    it('switches to statistics tab', async () => {
-      renderMarketTabs({}, { positions: [] });
-
-      const statisticsTab = await screen.findByTestId(
-        PerpsMarketTabsSelectorsIDs.STATISTICS_TAB,
+    it('renders statistics content when statistics is initial tab', async () => {
+      renderMarketTabs(
+        { initialTab: 'statistics' },
+        {
+          positions: [defaultPositionForViews],
+          orders: [defaultOrderForViews],
+        },
       );
-      fireEvent.press(statisticsTab);
 
       expect(
         await screen.findByTestId(
@@ -71,10 +87,13 @@ describe('PerpsMarketTabs', () => {
 
   describe('position tab with position data', () => {
     it('renders position card when a matching position exists in stream', async () => {
-      renderMarketTabs({}, { positions: [defaultPositionForViews] });
+      renderMarketTabs(
+        { initialTab: 'position' },
+        { positions: [defaultPositionForViews] },
+      );
 
       expect(
-        await screen.findByTestId(PerpsMarketTabsSelectorsIDs.POSITION_TAB),
+        await screen.findByTestId(PerpsMarketTabsSelectorsIDs.POSITION_CONTENT),
       ).toBeOnTheScreen();
     });
   });
@@ -82,17 +101,12 @@ describe('PerpsMarketTabs', () => {
   describe('orders tab with order data', () => {
     it('renders order card when orders exist for the symbol', async () => {
       renderMarketTabs(
-        {},
+        { initialTab: 'orders' },
         {
           positions: [],
           orders: [defaultOrderForViews],
         },
       );
-
-      const ordersTab = await screen.findByTestId(
-        PerpsMarketTabsSelectorsIDs.ORDERS_TAB,
-      );
-      fireEvent.press(ordersTab);
 
       expect(
         await screen.findByTestId(PerpsMarketTabsSelectorsIDs.ORDERS_CONTENT),
