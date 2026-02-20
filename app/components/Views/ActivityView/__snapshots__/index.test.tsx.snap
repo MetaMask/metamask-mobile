@@ -543,6 +543,7 @@ exports[`ActivityView matches snapshot 1`] = `
                                   scrollEnabled={true}
                                   scrollEventThrottle={16}
                                   style={{}}
+                                  testID="unified-transactions-view"
                                 >
                                   <RCTRefreshControl />
                                   <View>

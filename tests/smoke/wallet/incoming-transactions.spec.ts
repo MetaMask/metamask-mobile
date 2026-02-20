@@ -15,6 +15,7 @@ import { MockApiEndpoint, TestSpecificMock } from '../../framework/types';
 import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../api-mocking/mock-responses/feature-flags-mocks';
+import UnifiedTransactionsView from '../../page-objects/Transactions/UnifiedTransactionsView';
 
 const TOKEN_SYMBOL_MOCK = 'ABC';
 const TOKEN_ADDRESS_MOCK = '0x123';
@@ -119,7 +120,7 @@ describe(SmokeWalletPlatform('Incoming Transactions'), () => {
       async () => {
         await loginToApp();
         await TabBarComponent.tapActivity();
-        await ActivitiesView.swipeDown();
+        await UnifiedTransactionsView.swipeDown();
         await Assertions.expectTextDisplayed('Received ETH');
       },
     );
@@ -148,8 +149,8 @@ describe(SmokeWalletPlatform('Incoming Transactions'), () => {
       async () => {
         await loginToApp();
         await TabBarComponent.tapActivity();
-        await ActivitiesView.swipeDown();
-        await Assertions.checkIfTextIsDisplayed('Received ABC');
+        await UnifiedTransactionsView.swipeDown();
+        await Assertions.expectTextDisplayed('Received ABC');
       },
     );
   });
@@ -166,7 +167,7 @@ describe(SmokeWalletPlatform('Incoming Transactions'), () => {
       async () => {
         await loginToApp();
         await TabBarComponent.tapActivity();
-        await ActivitiesView.swipeDown();
+        await UnifiedTransactionsView.swipeDown();
         await Assertions.expectTextDisplayed('Sent ETH');
       },
     );
@@ -182,7 +183,7 @@ describe(SmokeWalletPlatform('Incoming Transactions'), () => {
       async () => {
         await loginToApp();
         await TabBarComponent.tapActivity();
-        await ActivitiesView.swipeDown();
+        await UnifiedTransactionsView.swipeDown();
         await Assertions.expectTextNotDisplayed('Received ETH');
       },
     );
@@ -210,7 +211,7 @@ describe(SmokeWalletPlatform('Incoming Transactions'), () => {
       async () => {
         await loginToApp();
         await TabBarComponent.tapActivity();
-        await ActivitiesView.swipeDown();
+        await UnifiedTransactionsView.swipeDown();
         await Assertions.expectTextNotDisplayed('Received ETH');
       },
     );
