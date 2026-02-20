@@ -334,7 +334,7 @@ function BuildQuote() {
               selectedProvider?.name || getQuoteProviderName(selectedQuote),
             userAgent: getQuoteBuyUserAgent(selectedQuote),
             providerCode,
-            providerType: FIAT_ORDER_PROVIDERS.AGGREGATOR,
+            providerType: FIAT_ORDER_PROVIDERS.RAMPS_V2,
             walletAddress: walletAddress ?? undefined,
             network,
             currency,

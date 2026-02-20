@@ -10,6 +10,7 @@ import {
   DepositPaymentMethod,
   DepositRegion,
 } from '@consensys/native-ramps-sdk';
+import type { RampsOrder } from '@metamask/ramps-controller';
 import {
   addAuthenticationUrl,
   addFiatCustomIdData,
@@ -47,47 +48,6 @@ interface WyreOrder {
   transfer: Record<string, unknown>;
 }
 
-/**
- * Data shape for orders processed through the V2 unified order processor.
- * Replaces the SDK-specific Order / DepositOrder types for V2-flow orders
- * while preserving a compatible structure so legacy detail screens can still
- * render amounts, fees, and provider info.
- */
-export interface V2FiatOrderData {
-  provider?: {
-    id?: string;
-    name?: string;
-    links?: { name: string; url: string }[];
-  };
-  txHash?: string;
-  pollingSecondsMinimum?: number;
-  statusDescription?: string;
-  timeDescriptionPending?: string;
-  exchangeRate?: number;
-  fiatAmountInUsd?: number;
-  cryptoAmount?: number | string;
-  fiatAmount?: number | string;
-  totalFeesFiat?: number | string;
-  providerOrderLink?: string;
-  fiatCurrency?: {
-    id: string;
-    symbol: string;
-    denomSymbol: string;
-    decimals: number;
-  };
-  cryptoCurrency?: {
-    id: string;
-    symbol: string;
-    decimals: number;
-  };
-  providerOrderId?: string;
-  paymentMethod?: {
-    id: string;
-    name?: string;
-  };
-  _v2Order?: Record<string, unknown> | null;
-}
-
 export interface FiatOrder {
   id: string; // Original id given by Provider. Orders are identified by (provider, id)
   provider: FIAT_ORDER_PROVIDERS; // Fiat Provider
@@ -110,7 +70,7 @@ export interface FiatOrder {
   errorCount?: number; // Number of errors
   lastTimeFetched?: number; // Last time fetched
   forceUpdate?: boolean; // Force update when processing
-  data: Order | WyreOrder | DepositOrder | V2FiatOrderData; // Original provider data
+  data: Order | WyreOrder | DepositOrder | RampsOrder; // Original provider data
 }
 
 export interface CustomIdData {

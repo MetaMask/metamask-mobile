@@ -16,16 +16,13 @@ function processOrder(
     case FIAT_ORDER_PROVIDERS.MOONPAY: {
       return order;
     }
+    case FIAT_ORDER_PROVIDERS.RAMPS_V2: {
+      return processUnifiedOrder(order, options);
+    }
     case FIAT_ORDER_PROVIDERS.AGGREGATOR: {
-      if (options?.useUnifiedProcessor) {
-        return processUnifiedOrder(order, options);
-      }
       return processAggregatorOrder(order, options);
     }
     case FIAT_ORDER_PROVIDERS.DEPOSIT: {
-      if (options?.useUnifiedProcessor) {
-        return processUnifiedOrder(order, options);
-      }
       return processDepositOrder(order, options);
     }
     default: {

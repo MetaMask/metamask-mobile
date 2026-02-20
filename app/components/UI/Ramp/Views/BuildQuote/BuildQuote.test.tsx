@@ -5,6 +5,7 @@ import { ThemeContext, mockTheme } from '../../../../../util/theme';
 import type { RampsToken } from '../../hooks/useRampTokens';
 import type { CaipChainId } from '@metamask/utils';
 import Logger from '../../../../../util/Logger';
+import { FIAT_ORDER_PROVIDERS } from '../../../../../constants/on-ramp';
 
 const mockUseEffect = jest.requireActual('react').useEffect;
 
@@ -559,7 +560,7 @@ describe('BuildQuote', () => {
         expect.objectContaining({
           url: 'https://global.transak.com/?apiKey=test',
           providerName: 'Mercuryo',
-          providerType: 'AGGREGATOR',
+          providerType: FIAT_ORDER_PROVIDERS.RAMPS_V2,
         }),
       );
     });
@@ -610,7 +611,7 @@ describe('BuildQuote', () => {
           url: 'https://global.transak.com/?apiKey=test',
           providerName: 'Mercuryo',
           userAgent: 'CustomProvider/1.0 (MetaMask)',
-          providerType: 'AGGREGATOR',
+          providerType: FIAT_ORDER_PROVIDERS.RAMPS_V2,
         }),
       );
     });

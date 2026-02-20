@@ -7,7 +7,7 @@ import {
   FIAT_ORDER_PROVIDERS,
   FIAT_ORDER_STATES,
 } from '../../../../../constants/on-ramp';
-import { FiatOrder, V2FiatOrderData } from '../../../../../reducers/fiatOrders';
+import { FiatOrder } from '../../../../../reducers/fiatOrders';
 import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 
 const mockTrackEvent = jest.fn();
@@ -85,7 +85,7 @@ const mockOrder: FiatOrder = {
     totalFeesFiat: 5,
     fiatAmount: 100,
     cryptoAmount: 0.05,
-  } as V2FiatOrderData,
+  } as FiatOrder['data'],
 };
 
 function renderWithProvider(component: React.ReactElement) {
@@ -397,14 +397,14 @@ describe('OrderDetails', () => {
     const orderWithoutDecimals: FiatOrder = {
       ...mockOrder,
       data: {
-        ...(mockOrder.data as V2FiatOrderData),
+        ...(mockOrder.data as Record<string, unknown>),
         fiatCurrency: {
           id: 'USD',
           symbol: 'USD',
           decimals: undefined as unknown as number,
           denomSymbol: '',
         },
-      } as V2FiatOrderData,
+      } as FiatOrder['data'],
     };
 
     const { getAllByText } = renderWithProvider(
@@ -417,13 +417,13 @@ describe('OrderDetails', () => {
     const orderWithoutDecimals: FiatOrder = {
       ...mockOrder,
       data: {
-        ...(mockOrder.data as V2FiatOrderData),
+        ...(mockOrder.data as Record<string, unknown>),
         cryptoCurrency: {
           id: 'ETH',
           symbol: 'ETH',
           decimals: undefined as unknown as number,
         },
-      } as V2FiatOrderData,
+      } as FiatOrder['data'],
     };
 
     const { getAllByText } = renderWithProvider(
@@ -451,9 +451,9 @@ describe('OrderDetails', () => {
     const orderWithoutLink: FiatOrder = {
       ...mockOrder,
       data: {
-        ...(mockOrder.data as V2FiatOrderData),
+        ...(mockOrder.data as Record<string, unknown>),
         providerOrderLink: undefined,
-      } as V2FiatOrderData,
+      } as unknown as FiatOrder['data'],
     };
 
     const { queryByText } = renderWithProvider(
@@ -466,13 +466,13 @@ describe('OrderDetails', () => {
     const orderWithoutSupport: FiatOrder = {
       ...mockOrder,
       data: {
-        ...(mockOrder.data as V2FiatOrderData),
+        ...(mockOrder.data as Record<string, unknown>),
         provider: {
           id: '/providers/transak',
           name: 'Transak',
           links: [],
         },
-      } as V2FiatOrderData,
+      } as unknown as FiatOrder['data'],
     };
 
     const { queryByText } = renderWithProvider(
@@ -497,9 +497,9 @@ describe('OrderDetails', () => {
     const orderWithoutPaymentMethod: FiatOrder = {
       ...mockOrder,
       data: {
-        ...(mockOrder.data as V2FiatOrderData),
+        ...(mockOrder.data as Record<string, unknown>),
         paymentMethod: undefined,
-      } as V2FiatOrderData,
+      } as FiatOrder['data'],
     };
 
     const { queryByText } = renderWithProvider(
@@ -525,7 +525,7 @@ describe('OrderDetails', () => {
       network: '1',
       orderType: OrderOrderTypeEnum.Buy,
       excludeFromPurchases: false,
-      data: {} as V2FiatOrderData,
+      data: {} as FiatOrder['data'],
     };
 
     const { toJSON } = renderWithProvider(
