@@ -70,17 +70,9 @@ export interface MusdMaxConversionParams {
 /**
  * Test IDs for the MusdMaxConversionInfo component.
  */
-// TODO: Remove unused test IDs
 export const MusdMaxConversionInfoTestIds = {
   CONTAINER: 'musd-max-conversion-info-container',
-  ASSET_HEADER_SKELETON: 'musd-max-conversion-info-asset-header-skeleton',
-  LOADING: 'musd-max-conversion-info-loading',
   CONFIRM_BUTTON: 'musd-max-conversion-info-confirm-button',
-  ASSET_HEADER: 'musd-max-conversion-info-asset-header',
-  FEE_ROW: 'musd-max-conversion-info-fee-row',
-  TOTAL_ROW: 'musd-max-conversion-info-total-row',
-  EARNING_ROW: 'musd-max-conversion-info-earning-row',
-  ERROR: 'musd-max-conversion-info-error',
 } as const;
 
 export const MusdMaxConversionInfo = () => {
