@@ -224,6 +224,7 @@ export const createMockMessenger = (
     subscribe: jest.fn(),
     unsubscribe: jest.fn(),
     registerActionHandler: jest.fn(),
+    registerMethodActionHandlers: jest.fn(),
     unregisterActionHandler: jest.fn(),
     // Additional methods used by PerpsController
     registerEventHandler: jest.fn(),

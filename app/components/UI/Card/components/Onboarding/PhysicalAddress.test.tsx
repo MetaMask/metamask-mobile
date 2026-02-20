@@ -27,19 +27,15 @@ jest.mock('../../sdk', () => ({
   useCardSDK: jest.fn(),
 }));
 
-// Mock useMetrics
-jest.mock('../../../../hooks/useMetrics', () => ({
-  useMetrics: jest.fn(() => ({
+// Mock useAnalytics
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: jest.fn(() => ({
     trackEvent: jest.fn(),
     createEventBuilder: jest.fn(() => ({
       addProperties: jest.fn().mockReturnThis(),
       build: jest.fn(),
     })),
   })),
-  MetaMetricsEvents: {
-    CARD_VIEWED: 'card_viewed',
-    CARD_BUTTON_CLICKED: 'card_button_clicked',
-  },
 }));
 
 // Mock utility functions
