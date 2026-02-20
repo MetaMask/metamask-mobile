@@ -150,6 +150,7 @@ const ReviewOrder = () => {
         'ReviewOrder: Failed to create Daimo payment',
       );
       setPaymentError(strings('card.review_order.payment_creation_error'));
+    } finally {
       setIsCreatingPayment(false);
     }
   }, [
