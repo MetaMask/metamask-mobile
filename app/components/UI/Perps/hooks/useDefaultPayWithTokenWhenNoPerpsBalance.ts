@@ -51,10 +51,14 @@ export function useDefaultPayWithTokenWhenNoPerpsBalance(): PerpsSelectedPayment
 
     if (allowlistTokens.length === 0) return null;
 
-    const tokensWithBalance = allowlistTokens.map((token) => ({
-      ...token,
-      balanceFiat: Number.parseFloat(token.balanceFiat?.replace('US$', '').trim() || '0'),
-    })).sort((a, b) => b.balanceFiat - a.balanceFiat);
+    const tokensWithBalance = allowlistTokens
+      .map((token) => ({
+        ...token,
+        balanceFiat: Number.parseFloat(
+          token.balanceFiat?.replace('US$', '').trim() || '0',
+        ),
+      }))
+      .sort((a, b) => b.balanceFiat - a.balanceFiat);
 
     const top = tokensWithBalance[0];
 
