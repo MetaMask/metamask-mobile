@@ -319,20 +319,36 @@ async function cdpEvalAsync(client, expression, timeoutMs = 30000) {
   // Unique key per call to avoid collisions
   const key = `__cdp_async_${Date.now()}_${Math.random().toString(36).slice(2)}__`;
 
-  // Kick off the promise, store result when done
+  // Kick off the promise, store result when done.
+  // The try/catch guards against synchronous throws during argument evaluation
+  // of Promise.resolve(<expression>) — without it, a sync error escapes the
+  // IIFE and globalThis[key] stays 'pending' forever.
   const kickoff = `(function() {
     globalThis['${key}'] = { status: 'pending' };
-    Promise.resolve(${expression})
-      .then(function(v) { globalThis['${key}'] = { status: 'resolved', value: v }; })
-      .catch(function(e) { globalThis['${key}'] = { status: 'rejected', error: String(e) }; });
+    try {
+      Promise.resolve(${expression})
+        .then(function(v) { globalThis['${key}'] = { status: 'resolved', value: v }; })
+        .catch(function(e) { globalThis['${key}'] = { status: 'rejected', error: String(e) }; });
+    } catch(e) {
+      globalThis['${key}'] = { status: 'rejected', error: String(e) };
+    }
     return 'started';
   })()`;
 
-  await client.send('Runtime.evaluate', {
+  const kickoffResult = await client.send('Runtime.evaluate', {
     expression: kickoff,
     returnByValue: true,
     awaitPromise: false,
   });
+
+  // If the IIFE itself failed to evaluate (syntax error, etc.), bail early
+  if (kickoffResult.exceptionDetails) {
+    const desc =
+      kickoffResult.exceptionDetails.exception?.description ||
+      kickoffResult.exceptionDetails.text ||
+      JSON.stringify(kickoffResult.exceptionDetails);
+    throw new Error(`Async evaluation error: ${desc}`);
+  }
 
   // Poll for completion
   const pollInterval = 200;
