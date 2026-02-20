@@ -17,7 +17,7 @@ export interface MetaMaskPayFlags {
 }
 
 export interface PayPostQuoteConfig {
-  enabled: boolean;
+  enabled?: boolean;
   tokens?: Record<Hex, Hex[]>;
 }
 
@@ -96,7 +96,7 @@ export const selectPayPostQuoteFlags = createSelector(
           Object.entries(rawOverride).map(([key, value]) => [
             key,
             {
-              enabled: (value?.enabled as boolean) ?? false,
+              enabled: value?.enabled as boolean | undefined,
               tokens: value?.tokens as Record<Hex, Hex[]> | undefined,
             },
           ]),

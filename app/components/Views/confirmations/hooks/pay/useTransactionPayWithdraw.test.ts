@@ -146,5 +146,21 @@ describe('useTransactionPayWithdraw', () => {
       });
       expect(result.current.canSelectWithdrawToken).toBe(false);
     });
+
+    it('inherits enabled from default when override omits enabled', () => {
+      process.env.MM_PREDICT_WITHDRAW_ANY_TOKEN = 'true';
+      const { result } = runHook({
+        type: TransactionType.predictWithdraw,
+        postQuoteFlags: {
+          default: { enabled: true },
+          override: {
+            predictWithdraw: {
+              tokens: { '0x1': ['0xaaa'] },
+            },
+          },
+        },
+      });
+      expect(result.current.canSelectWithdrawToken).toBe(true);
+    });
   });
 });

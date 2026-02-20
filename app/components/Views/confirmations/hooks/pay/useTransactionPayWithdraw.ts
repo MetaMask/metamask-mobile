@@ -25,7 +25,8 @@ export function useTransactionPayWithdraw(): UseTransactionPayWithdrawResult {
 
   const isEnabledByEnv = process.env.MM_PREDICT_WITHDRAW_ANY_TOKEN === 'true';
 
-  const canSelectWithdrawToken = isWithdraw && isEnabledByEnv && config.enabled;
+  const canSelectWithdrawToken =
+    isWithdraw && isEnabledByEnv && config.enabled === true;
 
   return {
     isWithdraw,

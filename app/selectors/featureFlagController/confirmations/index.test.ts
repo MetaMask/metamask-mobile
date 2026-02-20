@@ -327,6 +327,29 @@ describe('selectPayPostQuoteFlags', () => {
       tokens: undefined,
     });
   });
+
+  it('preserves undefined enabled in override when omitted from remote config', () => {
+    const state = cloneDeep(mockedEmptyFlagsState);
+    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+      {
+        confirmations_pay_post_quote: {
+          default: { enabled: true },
+          override: {
+            predictWithdraw: {
+              tokens: {
+                '0x1': ['0xaaa'],
+              },
+            },
+          },
+        },
+      };
+
+    const result = selectPayPostQuoteFlags(state);
+    expect(result.override?.predictWithdraw.enabled).toBeUndefined();
+    expect(result.override?.predictWithdraw.tokens).toEqual({
+      '0x1': ['0xaaa'],
+    });
+  });
 });
 
 describe('resolvePayPostQuoteConfig', () => {
@@ -370,6 +393,26 @@ describe('resolvePayPostQuoteConfig', () => {
     const result = resolvePayPostQuoteConfig(flags, 'perpsWithdraw');
     expect(result.enabled).toBe(false);
     expect(result.tokens).toEqual({ '0x1': ['0xaaa'] });
+  });
+
+  it('inherits enabled from default when override omits enabled', () => {
+    const flagsWithOmittedEnabled: PayPostQuoteFlags = {
+      default: {
+        enabled: true,
+        tokens: { '0x1': ['0xaaa' as Hex] },
+      },
+      override: {
+        predictWithdraw: {
+          tokens: { '0x89': ['0xbbb' as Hex] },
+        },
+      },
+    };
+    const result = resolvePayPostQuoteConfig(
+      flagsWithOmittedEnabled,
+      'predictWithdraw',
+    );
+    expect(result.enabled).toBe(true);
+    expect(result.tokens).toEqual({ '0x89': ['0xbbb'] });
   });
 
   it('returns disabled default when flags is undefined', () => {
