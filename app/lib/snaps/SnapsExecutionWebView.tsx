@@ -24,7 +24,7 @@ interface E2EProxyPatchScriptParams {
 }
 
 /**
- * Build a script to patch fetch/XMLHttpRequest inside the Snaps WebView runtime.
+ * Build a script to patch fetch/XMLHttpRequest/WebSocket inside the Snaps WebView runtime.
  * This makes Snap network access visible in the E2E proxy the same way as app requests.
  */
 export const buildE2EProxyPatchScript = ({
@@ -44,17 +44,30 @@ export const buildE2EProxyPatchScript = ({
         const proxyCandidates = ${JSON.stringify(proxyCandidates)}.map(
           (host) => \`\${host}:\${mockServerPort}\`,
         );
+        const wsProxyCandidates = proxyCandidates.map((candidate) =>
+          candidate.replace(/^http/i, 'ws'),
+        );
         const snapProxySource = 'snap-webview';
         const snapId = ${JSON.stringify(snapId)};
 
         const buildProxyUrl = (proxyBaseUrl, targetUrl) =>
           \`\${proxyBaseUrl}/proxy?source=\${snapProxySource}&snapId=\${encodeURIComponent(snapId)}&url=\${encodeURIComponent(targetUrl)}\`;
+        const buildProxyWebSocketUrl = (proxyBaseUrl, targetUrl) =>
+          \`\${proxyBaseUrl}/proxy-ws?source=\${snapProxySource}&snapId=\${encodeURIComponent(snapId)}&url=\${encodeURIComponent(targetUrl)}\`;
 
         const shouldProxyUrl = (targetUrl) =>
           typeof targetUrl === 'string' &&
           /^https?:\\/\\//.test(targetUrl) &&
           !targetUrl.includes('/proxy?') &&
           !proxyCandidates.some((candidate) => targetUrl.startsWith(candidate));
+        const shouldProxyWebSocketUrl = (targetUrl) =>
+          typeof targetUrl === 'string' &&
+          /^wss?:\\/\\//i.test(targetUrl) &&
+          !targetUrl.includes('/proxy-ws?') &&
+          !wsProxyCandidates.some((candidate) => targetUrl.startsWith(candidate));
+        const isSolanaInfuraWebSocketUrl = (targetUrl) =>
+          typeof targetUrl === 'string' &&
+          /^wss?:\\/\\/solana-(mainnet|devnet)\\.infura\\.io\\/v3/i.test(targetUrl);
 
         const patchWindowNetworkApis = (targetWindow) => {
           if (!targetWindow || targetWindow.__MM_E2E_SNAP_PROXY_PATCHED__) {
@@ -126,6 +139,229 @@ export const buildE2EProxyPatchScript = ({
             } catch (error) {
               // eslint-disable-next-line no-console
               console.log('[SNAPS E2E PROXY] Failed to copy XHR properties', error);
+            }
+          }
+
+          const OriginalWebSocket = targetWindow.WebSocket;
+          if (typeof OriginalWebSocket === 'function') {
+            const emitSyntheticSocketMessage = (socket, payload) => {
+              try {
+                if (typeof targetWindow.MessageEvent === 'function') {
+                  socket.dispatchEvent(
+                    new targetWindow.MessageEvent('message', {
+                      data: JSON.stringify(payload),
+                    }),
+                  );
+                  return;
+                }
+              } catch {
+                // no-op
+              }
+
+              try {
+                const fallbackEvent = { data: JSON.stringify(payload) };
+                if (typeof socket.onmessage === 'function') {
+                  socket.onmessage(fallbackEvent);
+                }
+              } catch {
+                // no-op
+              }
+            };
+
+            const resolveSolanaWebSocketResponse = (rawPayload, nextSubscriptionIdRef) => {
+              let parsedPayload = rawPayload;
+              if (typeof rawPayload === 'string') {
+                try {
+                  parsedPayload = JSON.parse(rawPayload);
+                } catch {
+                  parsedPayload = null;
+                }
+              }
+
+              const request = Array.isArray(parsedPayload)
+                ? parsedPayload.find(
+                    (item) =>
+                      item &&
+                      typeof item === 'object' &&
+                      typeof item.method === 'string',
+                  ) ?? null
+                : parsedPayload;
+
+              if (!request || typeof request !== 'object') {
+                return null;
+              }
+
+              const method =
+                typeof request.method === 'string' ? request.method : undefined;
+              const id =
+                typeof request.id === 'string' || typeof request.id === 'number'
+                  ? request.id
+                  : '1';
+
+              if (!method) {
+                return null;
+              }
+
+              if (method === 'signatureSubscribe') {
+                const subscriptionId = nextSubscriptionIdRef.value++;
+                return {
+                  initialResponse: {
+                    delayMs: 500,
+                    payload: {
+                      jsonrpc: '2.0',
+                      result: subscriptionId,
+                      id,
+                    },
+                  },
+                  followUpResponse: {
+                    delayMs: 1500,
+                    payload: {
+                      jsonrpc: '2.0',
+                      method: 'signatureNotification',
+                      params: {
+                        result: {
+                          context: { slot: 342840492 },
+                          value: { err: null },
+                        },
+                        subscription: subscriptionId,
+                      },
+                    },
+                  },
+                };
+              }
+
+              if (method === 'accountSubscribe') {
+                return {
+                  initialResponse: {
+                    delayMs: 500,
+                    payload: {
+                      jsonrpc: '2.0',
+                      result:
+                        'b07ebf7caf2238a9b604d4dfcaf1934280fcd347d6eded62bc0def6cbb767d11',
+                      id,
+                    },
+                  },
+                };
+              }
+
+              if (method === 'programSubscribe') {
+                const payloadAsText =
+                  typeof rawPayload === 'string'
+                    ? rawPayload
+                    : JSON.stringify(rawPayload ?? '');
+                const subscriptionResult = payloadAsText.includes(
+                  'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb',
+                )
+                  ? 'f33dd9975158af47bf16c7f6062a73191d4595c59cfec605d5a51e25c65ffb51'
+                  : '568eafd45635c108d0d426361143de125a841628a58679f5a024cbab9a20b41c';
+
+                return {
+                  initialResponse: {
+                    delayMs: 500,
+                    payload: {
+                      jsonrpc: '2.0',
+                      result: subscriptionResult,
+                      id,
+                    },
+                  },
+                };
+              }
+
+              return null;
+            };
+
+            const buildSolanaSocketResponseDispatcher = (socket) => {
+              const nextSubscriptionIdRef = { value: 8648699534240963 };
+              return (rawPayload) => {
+                const mockResponse = resolveSolanaWebSocketResponse(
+                  rawPayload,
+                  nextSubscriptionIdRef,
+                );
+                if (!mockResponse) {
+                  return;
+                }
+
+                const dispatch = (responseDef) => {
+                  if (!responseDef) {
+                    return;
+                  }
+                  setTimeout(() => {
+                    emitSyntheticSocketMessage(socket, responseDef.payload);
+                  }, responseDef.delayMs ?? 0);
+                };
+
+                dispatch(mockResponse.initialResponse);
+                dispatch(mockResponse.followUpResponse);
+              };
+            };
+
+            const createWebSocket = (url, protocols) => {
+              if (typeof protocols === 'undefined') {
+                return new OriginalWebSocket(url);
+              }
+              return new OriginalWebSocket(url, protocols);
+            };
+
+            const createProxiedWebSocket = (targetUrl, protocols) => {
+              let lastError;
+              for (const proxyBaseUrl of wsProxyCandidates) {
+                try {
+                  return createWebSocket(
+                    buildProxyWebSocketUrl(proxyBaseUrl, targetUrl),
+                    protocols,
+                  );
+                } catch (error) {
+                  lastError = error;
+                }
+              }
+              if (lastError) {
+                // eslint-disable-next-line no-console
+                console.log(
+                  '[SNAPS E2E PROXY] Failed to create proxied WebSocket, using original URL',
+                  lastError,
+                );
+              }
+              return createWebSocket(targetUrl, protocols);
+            };
+
+            targetWindow.WebSocket = function (url, protocols) {
+              const targetUrl = toUrlString(url);
+              if (
+                !shouldProxyWebSocketUrl(targetUrl) ||
+                !isSolanaInfuraWebSocketUrl(targetUrl)
+              ) {
+                return createWebSocket(url, protocols);
+              }
+
+              const socket = createProxiedWebSocket(targetUrl, protocols);
+              const dispatchSolanaMockResponse =
+                buildSolanaSocketResponseDispatcher(socket);
+              const originalSend = socket.send?.bind(socket);
+              if (typeof originalSend === 'function') {
+                socket.send = function (payload) {
+                  dispatchSolanaMockResponse(payload);
+                  try {
+                    return originalSend(payload);
+                  } catch (error) {
+                    // eslint-disable-next-line no-console
+                    console.log(
+                      '[SNAPS E2E PROXY] Solana websocket send failed, synthetic response still dispatched',
+                      error,
+                    );
+                    return undefined;
+                  }
+                };
+              }
+
+              return socket;
+            };
+
+            targetWindow.WebSocket.prototype = OriginalWebSocket.prototype;
+            try {
+              Object.setPrototypeOf(targetWindow.WebSocket, OriginalWebSocket);
+              Object.assign(targetWindow.WebSocket, OriginalWebSocket);
+            } catch {
+              // no-op
             }
           }
         };

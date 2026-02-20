@@ -39,6 +39,13 @@ interface SnapProxyRequest extends LiveRequest {
 }
 
 const SNAP_WEBVIEW_PROXY_SOURCE = 'snap-webview';
+const SNAP_PROXY_HTTP_PATH = '/proxy';
+const SNAP_PROXY_WS_PATH = '/proxy-ws';
+
+interface SnapProxyWebSocketStream {
+  snapId?: string;
+  targetUrl: string;
+}
 
 const SNAP_PROXY_CORS_HEADERS: Record<string, string> = {
   'access-control-allow-origin': '*',
@@ -57,6 +64,15 @@ const isTrackableSnapApiUrl = (url: string): boolean => {
   try {
     const protocol = new URL(url).protocol.toLowerCase();
     return protocol === 'http:' || protocol === 'https:';
+  } catch {
+    return false;
+  }
+};
+
+const isTrackableSnapWebSocketUrl = (url: string): boolean => {
+  try {
+    const protocol = new URL(url).protocol.toLowerCase();
+    return protocol === 'ws:' || protocol === 'wss:';
   } catch {
     return false;
   }
@@ -206,6 +222,8 @@ export default class MockServerE2E implements Resource {
   private _activeRequests = 0;
   private _shuttingDown = false;
   private _snapProxyRequests: SnapProxyRequest[] = [];
+  private _snapProxyWebSocketStreams: Map<string, SnapProxyWebSocketStream> =
+    new Map();
 
   constructor(params: {
     events: MockEventsObject;
@@ -252,6 +270,7 @@ export default class MockServerE2E implements Resource {
     this._server = getLocal() as InternalMockServer;
     this._server._liveRequests = [];
     this._snapProxyRequests = [];
+    this._snapProxyWebSocketStreams.clear();
     await this._server.start(this._serverPort);
 
     logger.info(
@@ -274,13 +293,81 @@ export default class MockServerE2E implements Resource {
 
     await setupAccountsV2SupportedNetworksMock(this._server);
 
+    // Handle WebSocket traffic proxied from Snap WebViews.
+    await this._server
+      .forAnyWebSocket()
+      .matching((request) => request.path === SNAP_PROXY_WS_PATH)
+      .asPriority(1003)
+      .thenPassivelyListen();
+
+    await this._server.on('websocket-request', (request) => {
+      try {
+        const requestUrl = new URL(request.url);
+        const source = requestUrl.searchParams.get('source');
+        if (source !== SNAP_WEBVIEW_PROXY_SOURCE) {
+          return;
+        }
+
+        const targetUrl = requestUrl.searchParams.get('url');
+        const snapId = requestUrl.searchParams.get('snapId') || undefined;
+        if (!targetUrl || !isTrackableSnapWebSocketUrl(targetUrl)) {
+          return;
+        }
+
+        this._snapProxyWebSocketStreams.set(request.id, {
+          targetUrl,
+          snapId,
+        });
+
+        this._recordSnapProxyRequest('WS_CONNECT', targetUrl, 'mocked', snapId);
+        maybeLogSnapProxyApiRequest(
+          'WS_CONNECT',
+          targetUrl,
+          'mocked',
+          true,
+          snapId,
+        );
+      } catch (error) {
+        logger.debug('Ignoring malformed proxied websocket request', error);
+      }
+    });
+
+    await this._server.on('websocket-message-received', (message) => {
+      const stream = this._snapProxyWebSocketStreams.get(message.streamId);
+      if (!stream) {
+        return;
+      }
+
+      const messageText = Buffer.from(message.content).toString('utf-8');
+      const rpcMethod = this._extractWebSocketRpcMethod(messageText);
+      const methodLabel = rpcMethod ? `WS_SEND(${rpcMethod})` : 'WS_SEND';
+
+      this._recordSnapProxyRequest(
+        methodLabel,
+        stream.targetUrl,
+        'mocked',
+        stream.snapId,
+      );
+      maybeLogSnapProxyApiRequest(
+        methodLabel,
+        stream.targetUrl,
+        'mocked',
+        true,
+        stream.snapId,
+      );
+    });
+
+    await this._server.on('websocket-close', (closeEvent) => {
+      this._snapProxyWebSocketStreams.delete(closeEvent.streamId);
+    });
+
     // Handle CORS preflight for snap proxy requests.
     // Snap WebViews send OPTIONS before cross-origin POST requests. Without
     // proper CORS headers the browser blocks the actual request and JSON-RPC
     // mocks (e.g. Solana RPC) are never reached.
     await this._server
       .forOptions()
-      .matching((request) => request.path.startsWith('/proxy'))
+      .matching((request) => request.path === SNAP_PROXY_HTTP_PATH)
       .asPriority(1002)
       .thenCallback(async (request) => {
         const requestUrl = new URL(request.url);
@@ -320,7 +407,7 @@ export default class MockServerE2E implements Resource {
 
     await this._server
       .forAnyRequest()
-      .matching((request) => request.path.startsWith('/proxy'))
+      .matching((request) => request.path === SNAP_PROXY_HTTP_PATH)
       .thenCallback(async (request) => {
         // During shutdown, consume the body (to prevent mockttp's streamToBuffer
         // from producing an unhandled rejection) and return 503 immediately.
@@ -613,6 +700,7 @@ export default class MockServerE2E implements Resource {
       logger.error('Error stopping mock server:', error);
     } finally {
       this._shuttingDown = false;
+      this._snapProxyWebSocketStreams.clear();
       this._server = null;
       this._serverStatus = ServerStatus.STOPPED;
       // Release the port after server is stopped
@@ -840,6 +928,27 @@ export default class MockServerE2E implements Resource {
       snapId,
       timestamp: new Date().toISOString(),
     });
+  }
+
+  private _extractWebSocketRpcMethod(messageText: string): string | null {
+    try {
+      const parsed = JSON.parse(messageText) as
+        | { method?: unknown }
+        | { method?: unknown }[];
+
+      if (Array.isArray(parsed)) {
+        const firstWithMethod = parsed.find(
+          (item) => item && typeof item.method === 'string',
+        );
+        return firstWithMethod && typeof firstWithMethod.method === 'string'
+          ? firstWithMethod.method
+          : null;
+      }
+
+      return typeof parsed.method === 'string' ? parsed.method : null;
+    } catch {
+      return null;
+    }
   }
 
   private _sanitizeJson(value: unknown, ignoreFields: string[]): unknown {
