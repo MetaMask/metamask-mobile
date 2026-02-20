@@ -77,6 +77,8 @@ describe('useMusdCtaVisibility', () => {
     getNetworkInfoByChainId: jest.fn(),
     isDisabled: false,
     hasEnabledNetworks: false,
+    isNetworkEnabledForDefi: false,
+    hasMultipleNamespacesEnabled: false,
   };
 
   const defaultNetworksByNamespace = {

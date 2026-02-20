@@ -1,26 +1,27 @@
-import { TradingService } from './TradingService';
-import type { ServiceContext } from './ServiceContext';
-import {
-  PerpsAnalyticsEvent,
-  type PerpsProvider,
-  type OrderParams,
-  type OrderResult,
-  type EditOrderParams,
-  type CancelOrderParams,
-  type CancelOrdersParams,
-  type ClosePositionParams,
-  type ClosePositionsParams,
-  type Position,
-  type Order,
-  type UpdatePositionTPSLParams,
-  type PerpsPlatformDependencies,
-} from '../types';
+import { createMockHyperLiquidProvider } from '../../../components/UI/Perps/__mocks__/providerMocks';
 import {
   createMockServiceContext,
   createMockPerpsControllerState,
   createMockInfrastructure,
 } from '../../../components/UI/Perps/__mocks__/serviceMocks';
-import { createMockHyperLiquidProvider } from '../../../components/UI/Perps/__mocks__/providerMocks';
+import { PerpsAnalyticsEvent } from '../types';
+import type {
+  PerpsProvider,
+  OrderParams,
+  OrderResult,
+  EditOrderParams,
+  CancelOrderParams,
+  CancelOrdersParams,
+  ClosePositionParams,
+  ClosePositionsParams,
+  Position,
+  Order,
+  UpdatePositionTPSLParams,
+  PerpsPlatformDependencies,
+} from '../types';
+
+import type { ServiceContext } from './ServiceContext';
+import { TradingService } from './TradingService';
 
 jest.mock('uuid', () => ({ v4: () => 'mock-trace-id' }));
 
@@ -276,6 +277,51 @@ describe('TradingService', () => {
       );
     });
 
+    it('includes trade_with_token and mm_pay fields when trackingData has tradeWithToken and pay token/network', async () => {
+      const orderParams: OrderParams = {
+        symbol: 'BTC',
+        isBuy: true,
+        size: '0.1',
+        orderType: 'market',
+        leverage: 10,
+        trackingData: {
+          totalFee: 0,
+          marketPrice: 50000,
+          tradeWithToken: true,
+          mmPayTokenSelected: 'USDC',
+          mmPayNetworkSelected: 'ethereum',
+        },
+      };
+      const mockOrderResult: OrderResult = {
+        success: true,
+        orderId: 'order-123',
+        filledSize: '0.1',
+        averagePrice: '50000',
+      };
+
+      mockProvider.placeOrder.mockResolvedValue(mockOrderResult);
+      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+        undefined,
+      );
+
+      await tradingService.placeOrder({
+        provider: mockProvider,
+        params: orderParams,
+        context: mockContext,
+        reportOrderToDataLake: mockReportOrderToDataLake,
+      });
+
+      expect(mockDeps.metrics.trackPerpsEvent).toHaveBeenCalledWith(
+        PerpsAnalyticsEvent.TradeTransaction,
+        expect.objectContaining({
+          status: 'executed',
+          trade_with_token: true,
+          mm_pay_token_selected: 'USDC',
+          mm_pay_network_selected: 'ethereum',
+        }),
+      );
+    });
+
     it('tracks analytics event when order fails', async () => {
       const orderParams: OrderParams = {
         symbol: 'BTC',
@@ -337,8 +383,8 @@ describe('TradingService', () => {
       expect(mockReportOrderToDataLake).toHaveBeenCalledWith({
         action: 'open',
         symbol: 'BTC',
-        sl_price: 45000,
-        tp_price: 55000,
+        slPrice: 45000,
+        tpPrice: 55000,
       });
     });
 
@@ -1229,8 +1275,6 @@ describe('TradingService', () => {
       expect(mockReportOrderToDataLake).toHaveBeenCalledWith({
         action: 'close',
         symbol: 'BTC',
-        sl_price: undefined,
-        tp_price: undefined,
       });
     });
 

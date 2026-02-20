@@ -6,6 +6,8 @@ import {
 } from '@metamask/perps-controller';
 import Engine from '../../../../../core/Engine';
 
+const mockGetIsInitialized = jest.fn().mockReturnValue(true);
+
 jest.mock('../../../../../core/Engine');
 jest.mock('../../../../../core/SDKConnect/utils/DevLogger');
 
@@ -33,7 +35,7 @@ describe('CandleStreamChannel', () => {
   };
 
   beforeEach(() => {
-    channel = new CandleStreamChannel();
+    channel = new CandleStreamChannel(mockGetIsInitialized);
     jest.clearAllMocks();
     jest.useFakeTimers();
 

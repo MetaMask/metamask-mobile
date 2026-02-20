@@ -185,13 +185,13 @@ checkParameters(){
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Load build configuration from builds.yml
-# This replaces the old remapXxxEnvVariables() functions
+# Used when GITHUB_ACTIONS is set (workflow already set secrets; this fills CONFIGURATION, IS_SIM_BUILD, etc.)
 # ─────────────────────────────────────────────────────────────────────────────
 loadBuildConfig() {
 	local build_type="$1"
 	local environment="$2"
 
-	# Normalize environment name (production -> prod)
+	# Normalize environment name (production -> prod for build name)
 	local normalized_env="$environment"
 	case "$environment" in
 		production) normalized_env="prod" ;;
@@ -214,7 +214,7 @@ loadBuildConfig() {
 		echo ""
 		echo "Error: ${config_output}"
 		echo ""
-		echo "Available builds can be found in .github/builds.yml"
+		echo "Available builds can be found in builds.yml"
 		echo "Run 'node scripts/validate-build-config.js' to check config validity."
 		return 1
 	fi
@@ -227,6 +227,22 @@ loadBuildConfig() {
 	echo ""
 
 	return 0
+}
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Legacy env remapping (Bitrise). Used only when GITHUB_ACTIONS is not set.
+# GitHub Actions uses loadBuildConfig + builds.yml; secrets are set with canonical names.
+# ─────────────────────────────────────────────────────────────────────────────
+remapEnvVariable() {
+	local old_var_name="$1"
+	local new_var_name="$2"
+	if [ -z "${!old_var_name}" ]; then
+		echo "Error: $old_var_name does not exist in the environment."
+		return 1
+	fi
+	export $new_var_name="${!old_var_name}"
+	unset $old_var_name
+	echo "Successfully remapped $old_var_name to $new_var_name."
 }
 
 # ─────────────────────────────────────────────────────────────────────────────

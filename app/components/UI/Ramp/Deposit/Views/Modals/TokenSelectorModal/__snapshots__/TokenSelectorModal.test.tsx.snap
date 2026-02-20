@@ -872,7 +872,6 @@ exports[`TokenSelectorModal Component displays empty state when no tokens match 
                                       "height": 46,
                                       "letterSpacing": 0,
                                       "opacity": 1,
-                                      "textAlignVertical": "center",
                                     }
                                   }
                                   testID="textfieldsearch"
@@ -3107,7 +3106,6 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                       "height": 46,
                                       "letterSpacing": 0,
                                       "opacity": 1,
-                                      "textAlignVertical": "center",
                                     }
                                   }
                                   testID="textfieldsearch"

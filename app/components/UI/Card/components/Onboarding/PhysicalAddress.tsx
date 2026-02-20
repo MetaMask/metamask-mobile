@@ -6,14 +6,7 @@ import React, {
   useState,
 } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import {
-  Box,
-  Icon,
-  IconName,
-  IconSize,
-  Text,
-  TextVariant,
-} from '@metamask/design-system-react-native';
+import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -24,6 +17,7 @@ import Label from '../../../../../component-library/components/Form/Label';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import OnboardingStep from './OnboardingStep';
+import SelectField from './SelectField';
 import type { ShippingAddress } from '../../Views/ReviewOrder';
 import useRegisterPhysicalAddress from '../../hooks/useRegisterPhysicalAddress';
 import { useDispatch, useSelector } from 'react-redux';
@@ -45,10 +39,11 @@ import { storeCardBaanxToken } from '../../util/cardTokenVault';
 import { mapCountryToLocation } from '../../util/mapCountryToLocation';
 import { extractTokenExpiration } from '../../util/extractTokenExpiration';
 import { useCardSDK } from '../../sdk';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { CardActions, CardScreens } from '../../util/metrics';
 import Logger from '../../../../../util/Logger';
-import { Linking, TouchableOpacity } from 'react-native';
+import { Linking } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import Checkbox from '../../../../../component-library/components/Checkbox';
 import {
@@ -183,14 +178,11 @@ export const AddressFields = ({
           <Label>
             {strings('card.card_onboarding.physical_address.state_label')}
           </Label>
-          <Box twClassName="w-full border border-solid border-border-default rounded-lg py-1">
-            <TouchableOpacity onPress={handleStateSelect} testID="state-select">
-              <Box twClassName="flex flex-row items-center justify-between px-4 py-2">
-                <Text variant={TextVariant.BodyMd}>{state}</Text>
-                <Icon name={IconName.ArrowDown} size={IconSize.Sm} />
-              </Box>
-            </TouchableOpacity>
-          </Box>
+          <SelectField
+            value={state}
+            onPress={handleStateSelect}
+            testID="state-select"
+          />
         </Box>
       )}
       {/* ZIP Code */}
@@ -217,16 +209,7 @@ export const AddressFields = ({
         <Label>
           {strings('card.card_onboarding.physical_address.country_label')}
         </Label>
-        <Box twClassName="w-full border border-solid border-border-default rounded-lg py-1">
-          <Box twClassName="flex flex-row items-center justify-between px-4 py-2">
-            <Text
-              variant={TextVariant.BodyMd}
-              twClassName="text-text-alternative"
-            >
-              {selectedCountry?.name}
-            </Text>
-          </Box>
-        </Box>
+        <SelectField value={selectedCountry?.name} />
       </Box>
     </>
   );
@@ -243,7 +226,7 @@ const PhysicalAddress = () => {
   const isMetalCardCheckoutEnabled = useSelector(
     selectMetalCardCheckoutFeatureFlag,
   );
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const [addressLine1, setAddressLine1] = useState('');
   const [addressLine2, setAddressLine2] = useState('');
   const [city, setCity] = useState('');

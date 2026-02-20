@@ -1,17 +1,24 @@
-import { FeatureFlagConfigurationService } from './FeatureFlagConfigurationService';
+import type { RemoteFeatureFlagControllerState } from '@metamask/remote-feature-flag-controller';
+
 import {
   createMockServiceContext,
   createMockInfrastructure,
 } from '../../../components/UI/Perps/__mocks__/serviceMocks';
+import type { PerpsPlatformDependencies } from '../types';
+import { validateMarketPattern } from '../utils/marketUtils';
 import {
   parseCommaSeparatedString,
   stripQuotes,
 } from '../utils/stringParseUtils';
+
+import { FeatureFlagConfigurationService } from './FeatureFlagConfigurationService';
 import type { ServiceContext } from './ServiceContext';
-import type { RemoteFeatureFlagControllerState } from '@metamask/remote-feature-flag-controller';
-import type { PerpsPlatformDependencies } from '../types';
 
 jest.mock('../utils/stringParseUtils');
+jest.mock('../utils/marketUtils', () => ({
+  ...jest.requireActual('../utils/marketUtils'),
+  validateMarketPattern: jest.fn(),
+}));
 
 describe('FeatureFlagConfigurationService', () => {
   let mockContext: ServiceContext;
@@ -78,6 +85,9 @@ describe('FeatureFlagConfigurationService', () => {
 
     // stripQuotes is called after parseCommaSeparatedString - mock it to pass through values
     (stripQuotes as jest.Mock).mockImplementation((s: string) => s);
+
+    // validateMarketPattern passes by default
+    (validateMarketPattern as jest.Mock).mockImplementation(() => true);
 
     jest.clearAllMocks();
   });
@@ -391,6 +401,112 @@ describe('FeatureFlagConfigurationService', () => {
       expect(mockDeps.debugLogger.log).toHaveBeenCalledWith(
         expect.stringContaining('blocklistMarkets string was empty'),
         expect.anything(),
+      );
+    });
+
+    it('filters out invalid patterns from string allowlist', () => {
+      (parseCommaSeparatedString as jest.Mock).mockReturnValue([
+        'xyz:TSLA',
+        '"bad"pattern"',
+        'valid:*',
+      ]);
+      (stripQuotes as jest.Mock).mockImplementation((s: string) => s);
+      (validateMarketPattern as jest.Mock).mockImplementation(
+        (pattern: string) => {
+          if (pattern === '"bad"pattern"') {
+            throw new Error('Market pattern contains invalid characters');
+          }
+          return true;
+        },
+      );
+
+      mockRemoteFeatureFlagState.remoteFeatureFlags = {
+        perpsHip3AllowlistMarkets: 'xyz:TSLA,"bad"pattern",valid:*',
+      };
+
+      featureFlagConfigurationService.refreshHip3Config({
+        remoteFeatureFlagControllerState: mockRemoteFeatureFlagState,
+        context: mockContext,
+      });
+
+      expect(mockContext.setHip3Config).toHaveBeenCalledWith(
+        expect.objectContaining({
+          allowlistMarkets: ['xyz:TSLA', 'valid:*'],
+        }),
+      );
+    });
+
+    it('filters out invalid patterns from array blocklist', () => {
+      (stripQuotes as jest.Mock).mockImplementation((s: string) => s);
+      (validateMarketPattern as jest.Mock).mockImplementation(
+        (pattern: string) => {
+          if (pattern === '"invalid"') {
+            throw new Error('Market pattern contains invalid characters');
+          }
+          return true;
+        },
+      );
+
+      mockRemoteFeatureFlagState.remoteFeatureFlags = {
+        perpsHip3BlocklistMarkets: ['valid:BTC', '"invalid"', 'also:valid'],
+      };
+
+      featureFlagConfigurationService.refreshHip3Config({
+        remoteFeatureFlagControllerState: mockRemoteFeatureFlagState,
+        context: mockContext,
+      });
+
+      expect(mockContext.setHip3Config).toHaveBeenCalledWith(
+        expect.objectContaining({
+          blocklistMarkets: ['valid:BTC', 'also:valid'],
+        }),
+      );
+    });
+
+    it('preserves current config when all array patterns are invalid', () => {
+      mockCurrentHip3Config.allowlistMarkets = ['existing:BTC'];
+      (stripQuotes as jest.Mock).mockImplementation((s: string) => s);
+      (validateMarketPattern as jest.Mock).mockImplementation(() => {
+        throw new Error('Market pattern contains invalid characters');
+      });
+
+      mockRemoteFeatureFlagState.remoteFeatureFlags = {
+        perpsHip3AllowlistMarkets: ['"bad1"', '"bad2"'],
+      };
+
+      featureFlagConfigurationService.refreshHip3Config({
+        remoteFeatureFlagControllerState: mockRemoteFeatureFlagState,
+        context: mockContext,
+      });
+
+      // Should NOT overwrite existing config with empty array
+      expect(mockContext.setHip3Config).not.toHaveBeenCalled();
+    });
+    it('logs warning for dropped invalid patterns', () => {
+      (parseCommaSeparatedString as jest.Mock).mockReturnValue([
+        '"bad"pattern"',
+      ]);
+      (stripQuotes as jest.Mock).mockImplementation((s: string) => s);
+      (validateMarketPattern as jest.Mock).mockImplementation(() => {
+        throw new Error('Market pattern contains invalid characters');
+      });
+
+      mockRemoteFeatureFlagState.remoteFeatureFlags = {
+        perpsHip3AllowlistMarkets: '"bad"pattern"',
+      };
+
+      featureFlagConfigurationService.refreshHip3Config({
+        remoteFeatureFlagControllerState: mockRemoteFeatureFlagState,
+        context: mockContext,
+      });
+
+      expect(mockDeps.logger.error).toHaveBeenCalledWith(
+        expect.any(Error),
+        expect.objectContaining({
+          context: expect.objectContaining({
+            data: expect.objectContaining({ pattern: '"bad"pattern"' }),
+          }),
+        }),
       );
     });
   });

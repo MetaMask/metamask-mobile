@@ -18,7 +18,6 @@ exports[`Input should render correctly 1`] = `
       "fontWeight": "400",
       "letterSpacing": 0,
       "opacity": 1,
-      "textAlignVertical": "center",
     }
   }
   testID="input"

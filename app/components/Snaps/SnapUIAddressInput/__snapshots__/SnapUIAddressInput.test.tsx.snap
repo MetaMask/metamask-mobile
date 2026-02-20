@@ -222,7 +222,6 @@ exports[`SnapUIAddressInput renders with an invalid CAIP Account ID 1`] = `
             "height": 46,
             "letterSpacing": 0,
             "opacity": 1,
-            "textAlignVertical": "center",
           }
         }
         testID="input-snap-address-input"

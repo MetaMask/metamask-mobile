@@ -8,6 +8,7 @@ import React, {
 import { View, Alert, BackHandler, ImageSourcePropType } from 'react-native';
 import { isEqual } from 'lodash';
 import { WebView, WebViewMessageEvent } from '@metamask/react-native-webview';
+import type { WebViewOpenWindowEvent } from '@metamask/react-native-webview/lib/WebViewTypes';
 import { useSharedValue } from 'react-native-reanimated';
 import BrowserBottomBar from '../../UI/BrowserBottomBar';
 import { connect, useSelector } from 'react-redux';
@@ -112,7 +113,6 @@ import { selectSearchEngine } from '../../../reducers/browser/selectors';
 import { getPhishingTestResultAsync } from '../../../util/phishingDetection';
 import { parseCaipAccountId } from '@metamask/utils';
 import { selectBrowserFullscreen } from '../../../selectors/browser';
-import { selectAssetsTrendingTokensEnabled } from '../../../selectors/featureFlagController/assetsTrendingTokens';
 import {
   Box,
   BoxFlexDirection,
@@ -199,9 +199,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       onMessage: (message: Record<string, unknown>) => void;
     }>();
     const searchEngine = useSelector(selectSearchEngine);
-    const isAssetsTrendingTokensEnabled = useSelector(
-      selectAssetsTrendingTokensEnabled,
-    );
 
     const permittedEvmAccountsList = useSelector((state: RootState) => {
       const permissionsControllerState = selectPermissionControllerState(state);
@@ -752,6 +749,22 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     );
 
     /**
+     * Handles target="_blank" links and window.open() calls.
+     * On Android, without this handler, such links open in the system browser (Chrome)
+     * because the native WebChromeClient creates a bare WebView with no fallback.
+     * On iOS, the native fallback loads the URL in the same WebView, but providing
+     * this explicit handler ensures consistent behavior across both platforms.
+     */
+    const handleOpenWindow = useCallback((event: WebViewOpenWindowEvent) => {
+      const { targetUrl } = event.nativeEvent;
+      if (targetUrl && webviewRef.current) {
+        webviewRef.current.injectJavaScript(
+          `window.location.href = '${sanitizeUrlInput(targetUrl)}'; true;`,
+        );
+      }
+    }, []);
+
+    /**
      * Sets loading bar progress
      */
     const onLoadProgress = useCallback(
@@ -1263,16 +1276,12 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       } else if (fromTrending) {
         // If within trending follow the normal back button behavior
         navigation.goBack();
-      } else if (isAssetsTrendingTokensEnabled) {
-        // If trending is enabled, go to trending view
+      } else {
         navigation.navigate(Routes.TRENDING_VIEW, {
           screen: Routes.TRENDING_FEED,
         });
-      } else {
-        // If trending is disabled, go back to wallet home
-        navigation.navigate(Routes.WALLET.HOME);
       }
-    }, [navigation, fromTrending, fromPerps, isAssetsTrendingTokensEnabled]);
+    }, [navigation, fromTrending, fromPerps]);
 
     const onCancelUrlBar = useCallback(() => {
       hideAutocomplete();
@@ -1493,6 +1502,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
                           onShouldStartLoadWithRequest
                         }
                         allowsInlineMediaPlayback
+                        onOpenWindow={handleOpenWindow}
                         {...webViewTestProps}
                         testID={BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID}
                         applicationNameForUserAgent={'WebView MetaMaskMobile'}

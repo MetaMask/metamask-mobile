@@ -6,6 +6,7 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import { TokenI } from '../../../../Tokens/types';
 import { selectAsset } from '../../../../../../selectors/assets/assets-list';
 import useStakingEligibility from '../../../../Stake/hooks/useStakingEligibility';
+import { EVENT_LOCATIONS } from '../../../../Stake/constants/events';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -42,11 +43,8 @@ const mockTrackEvent = jest.fn();
 const mockBuilderAddProps = jest.fn().mockReturnThis();
 const mockBuilderBuild = jest.fn().mockReturnValue({});
 
-jest.mock('../../../../../hooks/useMetrics', () => ({
-  MetaMetricsEvents: {
-    STAKE_BUTTON_CLICKED: 'STAKE_BUTTON_CLICKED',
-  },
-  useMetrics: () => ({
+jest.mock('../../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
     trackEvent: mockTrackEvent,
     createEventBuilder: () => ({
       addProperties: mockBuilderAddProps,
@@ -123,7 +121,14 @@ describe('TronStakingButtons', () => {
       screen: Routes.STAKING.STAKE,
       params: { token: baseAsset },
     });
-    expect(mockTrackEvent).toHaveBeenCalled();
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      mockBuilderBuild.mock.results[0]?.value,
+    );
+    expect(mockBuilderAddProps).toHaveBeenCalledWith({
+      location: EVENT_LOCATIONS.HOME_SCREEN,
+      text: 'Stake',
+      token: 'TRX',
+    });
   });
 
   it('navigates to stake with synthesized TRX when asset is staked TRX without nativeAsset', () => {

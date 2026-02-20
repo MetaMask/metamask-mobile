@@ -106,6 +106,12 @@ jobs:
       - name: Install dependencies (NO SECRETS)
         run: yarn install --immutable
 
+      # Apply build config before setup so METAMASK_BUILD_TYPE is set when
+      # build-inpage-bridge runs (InpageBridgeWeb3.js uses flask vs main app ID).
+      - name: Apply build config (for setup)
+        run: |
+          node scripts/apply-build-config.js ${{ inputs.build_name }} --export-github-env >> "$GITHUB_ENV"
+
       - name: Run project setup (NO SECRETS)
         run: |
           echo "🔧 Running setup for ${{ matrix.platform }}..."

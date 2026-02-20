@@ -589,7 +589,6 @@ exports[`AddActivationKey renders correctly 1`] = `
                                         "height": 46,
                                         "letterSpacing": 0,
                                         "opacity": 1,
-                                        "textAlignVertical": "center",
                                       }
                                     }
                                     value=""
@@ -703,7 +702,6 @@ exports[`AddActivationKey renders correctly 1`] = `
                                         "height": 46,
                                         "letterSpacing": 0,
                                         "opacity": 1,
-                                        "textAlignVertical": "center",
                                       }
                                     }
                                     value=""

@@ -10,7 +10,16 @@ import { Spinner } from '@metamask/design-system-react-native/dist/components/te
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import images from 'images/image-icons';
 import React, { useCallback, useEffect } from 'react';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { useQueryClient } from '@tanstack/react-query';
+import { useSelector } from 'react-redux';
+import { predictQueries } from '../../queries';
 import { strings } from '../../../../../../locales/i18n';
+import SensitiveText, {
+  SensitiveTextLength,
+} from '../../../../../component-library/components/Texts/SensitiveText';
+import { TextVariant as ComponentTextVariant } from '../../../../../component-library/components/Texts/Text/Text.types';
+import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import Badge, {
@@ -28,7 +37,6 @@ import { usePredictBalance } from '../../hooks/usePredictBalance';
 import { usePredictDeposit } from '../../hooks/usePredictDeposit';
 import { formatPrice } from '../../utils/format';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { usePredictWithdraw } from '../../hooks/usePredictWithdraw';
 import { PredictEventValues } from '../../constants/eventNames';
@@ -40,18 +48,16 @@ interface PredictBalanceProps {
 
 const PredictBalance: React.FC<PredictBalanceProps> = ({ onLayout }) => {
   const tw = useTailwind();
+  const privacyMode = useSelector(selectPrivacyMode);
 
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
 
-  const { balance, isLoading, loadBalance } = usePredictBalance({
-    loadOnMount: true,
-    refreshOnFocus: true,
-  });
+  const queryClient = useQueryClient();
+  const { data: balance = 0, isLoading } = usePredictBalance();
   const { deposit, isDepositPending } = usePredictDeposit();
   const { withdraw } = usePredictWithdraw();
   const { executeGuardedAction } = usePredictActionGuard({
-    providerId: 'polymarket',
     navigation,
   });
 
@@ -60,9 +66,11 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({ onLayout }) => {
 
   useEffect(() => {
     if (!isDepositPending) {
-      loadBalance({ isRefresh: true });
+      queryClient.invalidateQueries({
+        queryKey: predictQueries.balance.keys.all(),
+      });
     }
-  }, [isDepositPending, loadBalance]);
+  }, [isDepositPending, queryClient]);
 
   const handleAddFunds = useCallback(() => {
     executeGuardedAction(
@@ -145,9 +153,13 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({ onLayout }) => {
           alignItems={BoxAlignItems.Center}
         >
           <Box>
-            <Text style={tw.style('text-body-md font-bold')}>
+            <SensitiveText
+              variant={ComponentTextVariant.BodyMDBold}
+              isHidden={privacyMode}
+              length={SensitiveTextLength.Medium}
+            >
               {formatPrice(balance, { maximumDecimals: 2 })}
-            </Text>
+            </SensitiveText>
             <Text
               style={tw.style('color-alternative text-body-sm')}
               color={TextColor.TextAlternative}

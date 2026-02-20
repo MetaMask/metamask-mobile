@@ -8,10 +8,11 @@ import {
   formatChainIdToHex,
   getNativeAssetForChainId,
   isNonEvmChainId,
+  MetaMetricsSwapsEventSource,
 } from '@metamask/bridge-controller';
-import { BridgeRouteParams } from '../../Views/BridgeView';
 import { EthScope } from '@metamask/keyring-api';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { getDecimalChainId } from '../../../../../util/networks';
 import {
   trackActionButtonClick,
@@ -25,8 +26,10 @@ import {
   setSourceToken,
   setDestToken,
   setIsDestTokenManuallySet,
+  setAbTestContext,
 } from '../../../../../core/redux/slices/bridge';
 import { trace, TraceName } from '../../../../../util/trace';
+import Engine from '../../../../../core/Engine';
 import { useCurrentNetworkInfo } from '../../../../hooks/useCurrentNetworkInfo';
 import { strings } from '../../../../../../locales/i18n';
 import {
@@ -49,11 +52,48 @@ export const isAssetFromTrending = (asset: unknown) =>
   'isFromTrending' in asset &&
   asset.isFromTrending === true;
 
-export enum SwapBridgeNavigationLocation {
-  MainView = 'Main View',
-  TokenView = 'Token View',
-  Rewards = 'Rewards',
+export interface BridgeRouteParams {
+  sourcePage: string;
+  bridgeViewMode: BridgeViewMode;
+  sourceToken?: BridgeToken;
+  destToken?: BridgeToken;
+  sourceAmount?: string;
+  location: MetaMetricsSwapsEventSource;
 }
+
+export enum SwapBridgeNavigationLocation {
+  MainView = MetaMetricsSwapsEventSource.MainView,
+  TokenView = MetaMetricsSwapsEventSource.TokenView,
+  Rewards = 'Rewards',
+  TrendingExplore = MetaMetricsSwapsEventSource.TrendingExplore,
+}
+
+/**
+ * Maps the mobile-specific SwapBridgeNavigationLocation to the core
+ * MetaMetricsSwapsEventSource enum used by the bridge-controller/bridge-status-controller.
+ *
+ * @param location - The mobile navigation location
+ * @param isFromTrending - Whether the user navigated from the trending flow
+ * @returns The corresponding MetaMetricsSwapsEventSource value
+ */
+export const toMetaMetricsSwapsEventSource = (
+  location: SwapBridgeNavigationLocation,
+  isFromTrending = false,
+): MetaMetricsSwapsEventSource => {
+  if (isFromTrending) {
+    return MetaMetricsSwapsEventSource.TrendingExplore;
+  }
+  switch (location) {
+    case SwapBridgeNavigationLocation.MainView:
+      return MetaMetricsSwapsEventSource.MainView;
+    case SwapBridgeNavigationLocation.TokenView:
+      return MetaMetricsSwapsEventSource.TokenView;
+    case SwapBridgeNavigationLocation.TrendingExplore:
+      return MetaMetricsSwapsEventSource.TrendingExplore;
+    default:
+      return MetaMetricsSwapsEventSource.MainView;
+  }
+};
 
 /**
  * Returns functions that are used to navigate to the MetaMask Bridge and MetaMask Swaps routes.
@@ -67,15 +107,28 @@ export const useSwapBridgeNavigation = ({
   sourcePage,
   sourceToken: sourceTokenBase,
   destToken: destTokenBase,
+  abTestContext,
+  skipLocationUpdate = false,
 }: {
   location: SwapBridgeNavigationLocation;
   sourcePage: string;
   sourceToken?: BridgeToken;
   destToken?: BridgeToken;
+  /** Analytics context for A/B test attribution on page-viewed events */
+  abTestContext?: {
+    assetsASSETS2493AbtestTokenDetailsLayout?: string;
+  };
+  /**
+   * When true, skip calling setLocation on the bridge controller.
+   * Use this when re-entering the bridge flow from a page that was opened
+   * within an existing bridge session (e.g. Token Details opened from the
+   * bridge asset picker) to preserve the original entry-point location.
+   */
+  skipLocationUpdate?: boolean;
 }) => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const getIsBridgeEnabledSource = useSelector(
     selectIsBridgeEnabledSourceFactory,
   );
@@ -161,6 +214,9 @@ export const useSwapBridgeNavigation = ({
       // changing source token will still auto-update the dest token
       dispatch(setIsDestTokenManuallySet(false));
 
+      // Store A/B test context in Redux for page-viewed event attribution
+      dispatch(setAbTestContext(abTestContext));
+
       // Pre-populate Redux state before navigation to prevent empty button flash
       dispatch(setSourceToken(sourceToken));
 
@@ -190,10 +246,28 @@ export const useSwapBridgeNavigation = ({
         }
       }
 
+      // Check if user is in an active trending session for analytics
+      const isFromTrending =
+        TrendingFeedSessionManager.getInstance().isFromTrending;
+
+      // Set the location on the bridge controller once so all internally-fired
+      // events (InputChanged, QuotesRequested, QuotesReceived, etc.) carry it.
+      // Skip when re-entering from a page within an existing bridge session
+      // (e.g. Token Details opened from the bridge asset picker) to preserve
+      // the original entry-point location.
+      const mappedLocation = toMetaMetricsSwapsEventSource(
+        location,
+        isFromTrending,
+      );
+      if (!skipLocationUpdate) {
+        Engine.context.BridgeController.setLocation(mappedLocation);
+      }
+
       const params: BridgeRouteParams = {
         sourceToken,
         sourcePage,
         bridgeViewMode,
+        location: mappedLocation,
       };
 
       navigation.navigate(Routes.BRIDGE.ROOT, {
@@ -203,7 +277,7 @@ export const useSwapBridgeNavigation = ({
 
       // Track Swap button click with new consolidated event
       const isFromNavbar = location === SwapBridgeNavigationLocation.MainView;
-      trackActionButtonClick(trackEvent, createEventBuilder, {
+      const actionButtonProps = {
         action_name: ActionButtonType.SWAP,
         // Omit action_position for navbar to avoid confusion with main action buttons
         ...(isFromNavbar
@@ -213,10 +287,9 @@ export const useSwapBridgeNavigation = ({
         location: isFromNavbar
           ? ActionLocation.NAVBAR
           : ActionLocation.ASSET_DETAILS,
-      });
-      // Check if user is in an active trending session for analytics
-      const isFromTrending =
-        TrendingFeedSessionManager.getInstance().isFromTrending;
+      };
+
+      trackActionButtonClick(trackEvent, createEventBuilder, actionButtonProps);
 
       const swapEventProperties = {
         location,
@@ -231,6 +304,7 @@ export const useSwapBridgeNavigation = ({
           .addProperties(swapEventProperties)
           .build(),
       );
+
       trace({
         name: TraceName.SwapViewLoaded,
         startTime: Date.now(),
@@ -242,11 +316,13 @@ export const useSwapBridgeNavigation = ({
       sourceTokenBase,
       destTokenBase,
       sourcePage,
+      abTestContext,
       trackEvent,
       createEventBuilder,
       location,
       currentNetworkInfo,
       getIsBridgeEnabledSource,
+      skipLocationUpdate,
     ],
   );
   const { networkModal } = useAddNetwork();

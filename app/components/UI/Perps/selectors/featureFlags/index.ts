@@ -7,6 +7,8 @@ import {
 } from '../../../../../util/remoteFeatureFlag';
 import type { RootState } from '../../../../../reducers';
 import type { ButtonColorVariantName } from '../../utils/abTesting/types';
+import { hasProperty } from '@metamask/utils';
+import { parseAllowlistAssets } from '../../utils/parseAllowlistAssets';
 
 /**
  * Valid variants for button color A/B test (TAT-1937)
@@ -185,6 +187,38 @@ export const selectPerpsTradeWithAnyTokenEnabledFlag = createSelector(
         ? (remoteFeatureFlags?.perpsTradeWithAnyTokenIsEnabled as boolean)
         : process.env.MM_PERPS_TRADE_WITH_ANY_TOKEN_ENABLED === 'true';
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? fallback;
+  },
+);
+
+/**
+ * Selector for Perps Pay With Any Token allowlist assets.
+ * When non-empty, only tokens matching "chainId.address" entries in this list
+ * are shown in the pay-with modal (in addition to the Perps balance option).
+ * Env MM_PERPS_PAY_WITH_ANY_TOKEN_ALLOWLIST_ASSETS overrides the remote flag.
+ *
+ * If the remote LaunchDarkly value fails to parse (wrong format), returns []
+ * so that the app falls back to allowing all tokens instead of blocking.
+ *
+ * @returns string[] - Normalized "chainId.address" entries (lowercase)
+ */
+export const selectPerpsPayWithAnyTokenAllowlistAssets = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags): string[] => {
+    const envValue =
+      process.env.MM_PERPS_PAY_WITH_ANY_TOKEN_ALLOWLIST_ASSETS ?? '';
+    const localList = parseAllowlistAssets(envValue);
+    if (localList.length > 0) {
+      return localList;
+    }
+    if (
+      remoteFeatureFlags &&
+      hasProperty(remoteFeatureFlags, 'perpsPayWithAnyTokenAllowlistAssets')
+    ) {
+      return parseAllowlistAssets(
+        remoteFeatureFlags.perpsPayWithAnyTokenAllowlistAssets,
+      );
+    }
+    return [];
   },
 );
 

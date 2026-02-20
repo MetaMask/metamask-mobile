@@ -208,7 +208,9 @@ export default {
   DECODING_API_URL:
     process.env.DECODING_API_URL ||
     'https://signature-insights.api.cx.metamask.io/v1',
-  // Used when !GITHUB_ACTIONS (Bitrise / .js.env). When GITHUB_ACTIONS, rewards-api-url/mapBaanxApiUrl use process.env set by builds.yml.
+  TERMINAL_API_URL:
+    process.env.TERMINAL_API_URL ||
+    'https://terminal.dev-api.cx.metamask.io/api/v1',
   REWARDS_API_URL: {
     DEV: 'https://rewards.dev-api.cx.metamask.io',
     UAT: 'https://rewards.uat-api.cx.metamask.io',

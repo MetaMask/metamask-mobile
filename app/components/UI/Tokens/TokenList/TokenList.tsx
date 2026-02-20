@@ -28,8 +28,8 @@ import {
   ButtonVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
-import { useMusdCtaVisibility } from '../../Earn/hooks/useMusdCtaVisibility';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { SCROLL_TO_TOKEN_EVENT } from '../constants';
 import { selectTokenListLayoutV2Enabled } from '../../../../selectors/featureFlagController/tokenListLayout';
 
@@ -70,8 +70,6 @@ const TokenListComponent = ({
     selectHomepageRedesignV1Enabled,
   );
 
-  const { shouldShowTokenListItemCta } = useMusdCtaVisibility();
-
   // A/B test: Token list item layout (V1 vs V2)
   const isTokenListV2 = useSelector(selectTokenListLayoutV2Enabled);
   const ListItemComponent = isTokenListV2 ? TokenListItemV2 : TokenListItem;
@@ -79,7 +77,7 @@ const TokenListComponent = ({
   const listRef = useRef<FlashListRef<FlashListAssetKey>>(null);
 
   const navigation = useNavigation();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   useLayoutEffect(() => {
     listRef.current?.recomputeViewableItems();
@@ -154,7 +152,6 @@ const TokenListComponent = ({
         assetKey={item}
         showRemoveMenu={showRemoveMenu}
         setShowScamWarningModal={setShowScamWarningModal}
-        shouldShowTokenListItemCta={shouldShowTokenListItemCta}
         privacyMode={privacyMode}
         showPercentageChange={showPercentageChange}
         isFullView={isFullView}
@@ -164,7 +161,6 @@ const TokenListComponent = ({
       ListItemComponent,
       showRemoveMenu,
       setShowScamWarningModal,
-      shouldShowTokenListItemCta,
       privacyMode,
       showPercentageChange,
       isFullView,
@@ -183,7 +179,6 @@ const TokenListComponent = ({
             assetKey={item}
             showRemoveMenu={showRemoveMenu}
             setShowScamWarningModal={setShowScamWarningModal}
-            shouldShowTokenListItemCta={shouldShowTokenListItemCta}
             privacyMode={privacyMode}
             showPercentageChange={showPercentageChange}
             isFullView={isFullView}

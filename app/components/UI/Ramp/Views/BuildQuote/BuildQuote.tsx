@@ -1,9 +1,10 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { View } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { TouchableOpacity, View } from 'react-native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import type { CaipChainId } from '@metamask/utils';
 
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
+import { getRampCallbackBaseUrl } from '../../utils/getRampCallbackBaseUrl';
 import Keypad, { type KeypadChangeData } from '../../../../Base/Keypad';
 import PaymentMethodPill from '../../components/PaymentMethodPill';
 import QuickAmounts from '../../components/QuickAmounts';
@@ -17,35 +18,98 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 
-import { createNavigationDetails } from '../../../../../util/navigation/navUtils';
 import { getRampsBuildQuoteNavbarOptions } from '../../../Navbar';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './BuildQuote.styles';
-import { formatCurrency } from '../../utils/formatCurrency';
+import { useFormatters } from '../../../../hooks/useFormatters';
 import { useTokenNetworkInfo } from '../../hooks/useTokenNetworkInfo';
 import { useRampsController } from '../../hooks/useRampsController';
 import { createSettingsModalNavDetails } from '../Modals/SettingsModal';
 import useRampAccountAddress from '../../hooks/useRampAccountAddress';
 import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
+import { BuildQuoteSelectors } from '../../Aggregator/Views/BuildQuote/BuildQuote.testIds';
 import { createPaymentSelectionModalNavigationDetails } from '../Modals/PaymentSelectionModal';
+import { createProviderPickerModalNavigationDetails } from '../Modals/ProviderPickerModal';
+import { createCheckoutNavDetails } from '../Checkout';
+import {
+  isNativeProvider,
+  getQuoteProviderName,
+  getQuoteBuyUserAgent,
+} from '../../types';
+import Logger from '../../../../../util/Logger';
+import { useParams } from '../../../../../util/navigation/navUtils';
+import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
+import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
+import { useTransakController } from '../../hooks/useTransakController';
+import { useTransakRouting } from '../../hooks/useTransakRouting';
+import { createV2EnterEmailNavDetails } from '../NativeFlow/EnterEmail';
+import { parseUserFacingError } from '../../utils/parseUserFacingError';
 
-interface BuildQuoteParams {
+export interface BuildQuoteParams {
   assetId?: string;
+  nativeFlowError?: string;
 }
 
-export const createBuildQuoteNavDetails =
-  createNavigationDetails<BuildQuoteParams>(Routes.RAMP.AMOUNT_INPUT);
+/**
+ * Creates navigation details for the BuildQuote screen (RampAmountInput).
+ * This screen is nested inside TokenListRoutes, so navigation must go through
+ * the parent route Routes.RAMP.TOKEN_SELECTION.
+ */
+export const createBuildQuoteNavDetails = (
+  params?: BuildQuoteParams,
+): readonly [
+  string,
+  {
+    screen: string;
+    params: {
+      screen: string;
+      params?: BuildQuoteParams;
+    };
+  },
+] =>
+  [
+    Routes.RAMP.TOKEN_SELECTION,
+    {
+      screen: Routes.RAMP.TOKEN_SELECTION,
+      params: {
+        screen: Routes.RAMP.AMOUNT_INPUT,
+        params,
+      },
+    },
+  ] as const;
 
 const DEFAULT_AMOUNT = 100;
 
 function BuildQuote() {
   const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
+  const { formatCurrency } = useFormatters();
 
   const [amount, setAmount] = useState<string>(() => String(DEFAULT_AMOUNT));
   const [amountAsNumber, setAmountAsNumber] = useState<number>(DEFAULT_AMOUNT);
   const [userHasEnteredAmount, setUserHasEnteredAmount] = useState(false);
+  const [isOnBuildQuoteScreen, setIsOnBuildQuoteScreen] =
+    useState<boolean>(true);
+  const [isContinueLoading, setIsContinueLoading] = useState(false);
+  const [nativeFlowError, setNativeFlowError] = useState<string | null>(null);
+  const params = useParams<BuildQuoteParams>();
+
+  useEffect(() => {
+    if (params?.nativeFlowError) {
+      setNativeFlowError(params.nativeFlowError);
+      navigation.setParams({ nativeFlowError: undefined });
+    }
+  }, [params?.nativeFlowError, navigation]);
+
+  useFocusEffect(
+    useCallback(() => {
+      setIsOnBuildQuoteScreen(true);
+      return () => {
+        setIsOnBuildQuoteScreen(false);
+      };
+    }, []),
+  );
 
   const {
     userRegion,
@@ -55,9 +119,18 @@ function BuildQuote() {
     quotesLoading,
     startQuotePolling,
     stopQuotePolling,
+    getWidgetUrl,
     paymentMethodsLoading,
     selectedPaymentMethod,
   } = useRampsController();
+
+  const {
+    checkExistingToken: transakCheckExistingToken,
+    getBuyQuote: transakGetBuyQuote,
+  } = useTransakController();
+
+  const { routeAfterAuthentication: transakRouteAfterAuth } =
+    useTransakRouting();
 
   const currency = userRegion?.country?.currency || 'USD';
   const quickAmounts = userRegion?.country?.quickAmounts ?? [50, 100, 200, 400];
@@ -104,6 +177,7 @@ function BuildQuote() {
       setAmount(value || '0');
       setAmountAsNumber(valueAsNumber || 0);
       setUserHasEnteredAmount(true);
+      setNativeFlowError(null);
     },
     [],
   );
@@ -112,10 +186,35 @@ function BuildQuote() {
     setAmount(String(quickAmount));
     setAmountAsNumber(quickAmount);
     setUserHasEnteredAmount(true);
+    setNativeFlowError(null);
   }, []);
+
+  const handlePaymentPillPress = useCallback(() => {
+    if (debouncedPollingAmount <= 0) {
+      return;
+    }
+
+    stopQuotePolling();
+    navigation.navigate(
+      ...createPaymentSelectionModalNavigationDetails({
+        amount: debouncedPollingAmount,
+      }),
+    );
+  }, [debouncedPollingAmount, navigation, stopQuotePolling]);
+
+  const handleProviderPress = useCallback(() => {
+    if (!selectedToken?.assetId) return;
+    stopQuotePolling();
+    navigation.navigate(
+      ...createProviderPickerModalNavigationDetails({
+        assetId: selectedToken.assetId,
+      }),
+    );
+  }, [selectedToken?.assetId, navigation, stopQuotePolling]);
 
   useEffect(() => {
     if (
+      !isOnBuildQuoteScreen ||
       !walletAddress ||
       !selectedPaymentMethod ||
       debouncedPollingAmount <= 0
@@ -124,10 +223,15 @@ function BuildQuote() {
       return;
     }
 
-    startQuotePolling({
-      walletAddress,
-      amount: debouncedPollingAmount,
-    });
+    try {
+      startQuotePolling({
+        walletAddress,
+        amount: debouncedPollingAmount,
+        redirectUrl: getRampCallbackBaseUrl(),
+      });
+    } catch (error) {
+      Logger.log('BuildQuote: Failed to start quote polling', error);
+    }
 
     return () => {
       stopQuotePolling();
@@ -135,22 +239,161 @@ function BuildQuote() {
   }, [
     walletAddress,
     selectedPaymentMethod,
+    selectedProvider,
     debouncedPollingAmount,
     startQuotePolling,
     stopQuotePolling,
+    isOnBuildQuoteScreen,
   ]);
 
-  const handleContinuePress = useCallback(() => {
-    // TODO: Navigate to next screen with amount
-  }, []);
+  const handleContinuePress = useCallback(async () => {
+    if (!selectedQuote) return;
+
+    const quoteAmount =
+      selectedQuote.quote?.amountIn ??
+      (selectedQuote as { amountIn?: number }).amountIn;
+    const quotePaymentMethod =
+      selectedQuote.quote?.paymentMethod ??
+      (selectedQuote as { paymentMethod?: string }).paymentMethod;
+
+    // Validate amount matches
+    if (quoteAmount !== amountAsNumber) {
+      return;
+    }
+
+    // Validate payment method context matches
+    if (quotePaymentMethod != null) {
+      // Quote requires a payment method - must have one selected and it must match
+      if (
+        !selectedPaymentMethod ||
+        selectedPaymentMethod.id !== quotePaymentMethod
+      ) {
+        return;
+      }
+    }
+
+    if (isNativeProvider(selectedQuote)) {
+      setIsContinueLoading(true);
+      try {
+        const hasToken = await transakCheckExistingToken();
+
+        if (hasToken) {
+          const quote = await transakGetBuyQuote(
+            currency,
+            selectedToken?.assetId || '',
+            selectedToken?.chainId || '',
+            selectedPaymentMethod?.id || '',
+            String(amountAsNumber),
+          );
+          if (!quote) {
+            throw new Error(strings('deposit.buildQuote.unexpectedError'));
+          }
+          await transakRouteAfterAuth(quote);
+        } else {
+          navigation.navigate(
+            ...createV2EnterEmailNavDetails({
+              amount: String(amountAsNumber),
+              currency,
+              assetId: selectedToken?.assetId,
+            }),
+          );
+        }
+      } catch (error) {
+        Logger.error(error as Error, {
+          message: 'Failed to route native provider flow',
+        });
+        setNativeFlowError(
+          parseUserFacingError(
+            error,
+            strings('deposit.buildQuote.unexpectedError'),
+          ),
+        );
+      } finally {
+        setIsContinueLoading(false);
+      }
+      return;
+    }
+
+    // Aggregator provider -> needs a widget URL
+    // Note: CustomActions (e.g., PayPal) are handled through the same flow.
+    // If the API returns a quote with a URL, it will be opened in the checkout webview.
+    // If customActions appear without a URL, they will error here (needs backend fix).
+    try {
+      const widgetUrl = await getWidgetUrl(selectedQuote);
+
+      if (widgetUrl) {
+        navigation.navigate(
+          ...createCheckoutNavDetails({
+            url: widgetUrl,
+            providerName: getQuoteProviderName(selectedQuote),
+            userAgent: getQuoteBuyUserAgent(selectedQuote),
+          }),
+        );
+      } else {
+        Logger.error(
+          new Error('No widget URL available for aggregator provider'),
+          { provider: selectedQuote.provider },
+        );
+        // TODO: Show user-facing error (alert or inline)
+      }
+    } catch (error) {
+      Logger.error(error as Error, {
+        provider: selectedQuote.provider,
+        message: 'Failed to fetch widget URL',
+      });
+      // TODO: Show user-facing error (alert or inline)
+    }
+  }, [
+    selectedQuote,
+    navigation,
+    getWidgetUrl,
+    amountAsNumber,
+    selectedToken,
+    currency,
+    selectedPaymentMethod,
+    transakCheckExistingToken,
+    transakGetBuyQuote,
+    transakRouteAfterAuth,
+  ]);
 
   const hasAmount = amountAsNumber > 0;
 
   const quoteMatchesAmount =
     debouncedPollingAmount === amountAsNumber && debouncedPollingAmount > 0;
 
+  const quoteMatchesCurrentContext = useMemo(() => {
+    if (!selectedQuote) return false;
+
+    const quoteAmount =
+      selectedQuote.quote?.amountIn ??
+      (selectedQuote as { amountIn?: number }).amountIn;
+    const quotePaymentMethod =
+      selectedQuote.quote?.paymentMethod ??
+      (selectedQuote as { paymentMethod?: string }).paymentMethod;
+
+    // Amount must match
+    if (quoteAmount !== amountAsNumber) return false;
+
+    // Payment method context must match
+    if (quotePaymentMethod != null) {
+      // Quote requires a payment method - must have one selected and it must match
+      if (
+        !selectedPaymentMethod ||
+        selectedPaymentMethod.id !== quotePaymentMethod
+      ) {
+        return false;
+      }
+    }
+
+    return true;
+  }, [selectedQuote, amountAsNumber, selectedPaymentMethod]);
+
   const canContinue =
-    hasAmount && !quotesLoading && selectedQuote !== null && quoteMatchesAmount;
+    hasAmount &&
+    !quotesLoading &&
+    selectedQuote !== null &&
+    quoteMatchesAmount &&
+    quoteMatchesCurrentContext;
 
   return (
     <ScreenLayout>
@@ -159,6 +402,7 @@ function BuildQuote() {
           <View style={styles.centerGroup}>
             <View style={styles.amountContainer}>
               <Text
+                testID={BuildQuoteSelectors.AMOUNT_INPUT}
                 variant={TextVariant.HeadingLG}
                 style={styles.mainAmount}
                 numberOfLines={1}
@@ -174,22 +418,31 @@ function BuildQuote() {
                   strings('fiat_on_ramp.select_payment_method')
                 }
                 isLoading={paymentMethodsLoading}
-                onPress={() => {
-                  navigation.navigate(
-                    ...createPaymentSelectionModalNavigationDetails(),
-                  );
-                }}
+                onPress={handlePaymentPillPress}
               />
             </View>
           </View>
 
+          {nativeFlowError && (
+            <BannerAlert
+              severity={BannerAlertSeverity.Error}
+              description={nativeFlowError}
+            />
+          )}
+
           <View style={styles.actionSection}>
             {selectedProvider && (
-              <Text variant={TextVariant.BodySM} style={styles.poweredByText}>
-                {strings('fiat_on_ramp.powered_by_provider', {
-                  provider: selectedProvider.name,
-                })}
-              </Text>
+              <TouchableOpacity
+                onPress={handleProviderPress}
+                testID="provider-picker-trigger"
+                accessibilityRole="button"
+              >
+                <Text variant={TextVariant.BodySM} style={styles.poweredByText}>
+                  {strings('fiat_on_ramp.powered_by_provider', {
+                    provider: selectedProvider.name,
+                  })}
+                </Text>
+              </TouchableOpacity>
             )}
             {hasAmount ? (
               <Button
@@ -198,8 +451,8 @@ function BuildQuote() {
                 onPress={handleContinuePress}
                 isFullWidth
                 isDisabled={!canContinue}
-                isLoading={quotesLoading}
-                testID="build-quote-continue-button"
+                isLoading={quotesLoading || isContinueLoading}
+                testID={BuildQuoteSelectors.CONTINUE_BUTTON}
               >
                 {strings('fiat_on_ramp.continue')}
               </Button>
