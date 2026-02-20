@@ -3463,7 +3463,7 @@ describe('PerpsStreamManager', () => {
       jest.advanceTimersByTime(150 * 200 + 100);
 
       expect(mockDevLogger.log).toHaveBeenCalledWith(
-        expect.stringContaining('Max connect retries exceeded'),
+        expect.stringContaining('MAX RETRIES EXCEEDED'),
       );
     });
   });
