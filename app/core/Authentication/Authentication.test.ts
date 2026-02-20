@@ -4247,7 +4247,7 @@ describe('Authentication', () => {
       expect(SecureKeychain.setGenericPassword).toHaveBeenNthCalledWith(
         2,
         mockPassword,
-        AUTHENTICATION_TYPE.PASSWORD,
+        undefined,
       );
       expect(updateAuthMockDispatch).toHaveBeenCalledWith(passwordSet());
     });
