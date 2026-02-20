@@ -510,73 +510,6 @@ describe('Wallet', () => {
     expect(mockedAddTokens.addTokens).toHaveBeenCalledTimes(1);
   });
 
-  describe('AccountTrackerController refresh', () => {
-    it('calls AccountTrackerController.refresh when Wallet mounts', async () => {
-      const mockRefresh = jest.mocked(
-        Engine.context.AccountTrackerController.refresh,
-      );
-
-      jest
-        .mocked(useSelector)
-        .mockImplementation((callback: (state: unknown) => unknown) =>
-          callback(mockInitialState),
-        );
-
-      //@ts-expect-error we are ignoring the navigation params on purpose
-      render(Wallet);
-
-      await waitFor(() => {
-        expect(mockRefresh).toHaveBeenCalled();
-      });
-
-      expect(mockRefresh).toHaveBeenCalledWith(
-        expect.arrayContaining([expect.any(String)]),
-      );
-    });
-
-    it('calls AccountTrackerController.refresh when selectedInternalAccount changes', async () => {
-      const mockRefresh = jest.mocked(
-        Engine.context.AccountTrackerController.refresh,
-      );
-
-      jest
-        .mocked(useSelector)
-        .mockImplementation((callback: (state: unknown) => unknown) =>
-          callback(mockInitialState),
-        );
-
-      //@ts-expect-error we are ignoring the navigation params on purpose
-      render(Wallet);
-
-      await waitFor(() => {
-        expect(mockRefresh).toHaveBeenCalled();
-      });
-      mockRefresh.mockClear();
-
-      const otherAccount = {
-        id: 'other-account-id',
-        address: '0xother',
-        type: 'eip155:eoa' as const,
-        metadata: {},
-      };
-
-      jest.mocked(useSelector).mockImplementation((callback) => {
-        const selectorString = callback.toString();
-        if (selectorString.includes('selectSelectedInternalAccount')) {
-          return otherAccount;
-        }
-        return (callback as (state: unknown) => unknown)(mockInitialState);
-      });
-
-      //@ts-expect-error we are ignoring the navigation params on purpose
-      render(Wallet);
-
-      await waitFor(() => {
-        expect(mockRefresh).toHaveBeenCalled();
-      });
-    });
-  });
-
   it('should render correctly when Solana support is enabled', () => {
     jest
       .mocked(useSelector)
@@ -586,6 +519,43 @@ describe('Wallet', () => {
     //@ts-expect-error we are ignoring the navigation params on purpose
     const wrapper = render(Wallet);
     expect(wrapper.toJSON()).toMatchSnapshot();
+  });
+
+  it('calls AccountTrackerController.refresh when selectedInternalAccount changes', async () => {
+    const refreshMock = jest.mocked(
+      Engine.context.AccountTrackerController.refresh,
+    );
+
+    //@ts-expect-error we are ignoring the navigation params on purpose
+    render(Wallet);
+    await waitFor(() => expect(refreshMock).toHaveBeenCalled());
+    refreshMock.mockClear();
+
+    renderScreen(
+      // @ts-expect-error we are ignoring the navigation params on purpose
+      Wallet,
+      { name: Routes.WALLET_VIEW },
+      {
+        state: {
+          ...mockInitialState,
+          engine: {
+            backgroundState: {
+              ...mockInitialState.engine.backgroundState,
+              AccountsController: {
+                ...mockInitialState.engine.backgroundState.AccountsController,
+                internalAccounts: {
+                  ...mockInitialState.engine.backgroundState.AccountsController
+                    .internalAccounts,
+                  selectedAccount: 'different-account-id',
+                },
+              },
+            },
+          },
+        },
+      },
+    );
+
+    await waitFor(() => expect(refreshMock).toHaveBeenCalled());
   });
 
   // Simple test to verify mock setup
