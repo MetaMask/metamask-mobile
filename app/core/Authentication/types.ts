@@ -1,3 +1,4 @@
+import { IconName } from '@metamask/design-system-react-native';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
 
 /**
@@ -32,6 +33,8 @@ export interface AuthCapabilities {
   authLabel: string;
   /** Description for the available authentication type */
   authDescription: string;
+  /** Icon name for the available device auth tier (e.g. "Face ID", "Device Passcode"). Reflects what the app will use to authentication */
+  authIcon: IconName;
   /** Whether the OS-level authentication is enabled (from user preference in Redux) */
   osAuthEnabled: boolean;
   /** Whether Remember Me is enabled (from user preference in Redux) */
