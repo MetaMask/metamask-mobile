@@ -15,6 +15,7 @@ import { merge } from 'lodash';
 import Engine from '../../core/Engine';
 import { SecretType } from '@metamask/seedless-onboarding-controller';
 import { KeyringObject, KeyringTypes } from '@metamask/keyring-controller';
+import { analytics } from '../analytics/analytics';
 
 jest.mock('react-native-fs', () => ({
   DocumentDirectoryPath: '/mock/path',
@@ -66,21 +67,6 @@ jest.mock('../../util/analytics/analytics', () => ({
     trackView: jest.fn(),
     isOptedIn: jest.fn().mockResolvedValue(false),
   },
-}));
-
-// Mock MetaMetrics for any remaining methods
-const mockIsEnabled = jest.fn(() => true);
-jest.mock('../../core/Analytics/MetaMetrics', () => ({
-  getInstance: () => ({
-    isEnabled: mockIsEnabled,
-    getMetaMetricsId: jest.fn(() => Promise.resolve('test-metametrics-id')),
-    createDataDeletionTask: jest.fn(),
-    checkDataDeleteStatus: jest.fn(),
-    getDeleteRegulationCreationDate: jest.fn(),
-    getDeleteRegulationId: jest.fn(),
-    isDataRecorded: jest.fn(),
-    updateDataRecordingFlag: jest.fn(),
-  }),
 }));
 
 jest.mock(
@@ -913,7 +899,7 @@ describe('logs :: downloadStateLogs', () => {
     (getVersion as jest.Mock).mockResolvedValue('1.0.0');
     (getBuildNumber as jest.Mock).mockResolvedValue('100');
     (Device.isIos as jest.Mock).mockReturnValue(false);
-    mockIsEnabled.mockReturnValue(false);
+    (analytics.isEnabled as jest.Mock).mockReturnValue(false);
 
     const mockStateInput = merge({}, initialRootState, {
       engine: {

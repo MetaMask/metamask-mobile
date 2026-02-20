@@ -1,7 +1,7 @@
-import { IMetaMetricsEvent, MetaMetrics } from '../..';
+import { IMetaMetricsEvent } from '../..';
 import { trackSnapAccountEvent } from './trackSnapAccountEvent';
-import { MetricsEventBuilder } from '../../MetricsEventBuilder';
-import { IMetaMetrics } from '../../MetaMetrics.types';
+import { analytics } from '../../../../util/analytics/analytics';
+import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
 
 const mockTrackEvent = jest.fn();
 const mockAddProperties = jest.fn().mockReturnThis();
@@ -11,27 +11,17 @@ const mockCreateEventBuilder = jest.fn().mockReturnValue({
   build: mockBuild,
 });
 
-jest
-  .spyOn(MetricsEventBuilder, 'createEventBuilder')
-  .mockImplementation(mockCreateEventBuilder);
+jest.mock('../../../../util/analytics/analytics', () => ({
+  analytics: {
+    trackEvent: jest.fn(),
+  },
+}));
 
-jest.spyOn(MetaMetrics, 'getInstance').mockReturnValue({
-  trackEvent: mockTrackEvent,
-  isEnabled: jest.fn(),
-  enable: jest.fn(),
-  addTraitsToUser: jest.fn(),
-  group: jest.fn(),
-  reset: jest.fn(),
-  flush: jest.fn(),
-  createDataDeletionTask: jest.fn(),
-  checkDataDeleteStatus: jest.fn(),
-  getDeleteRegulationCreationDate: jest.fn(),
-  getDeleteRegulationId: jest.fn(),
-  isDataRecorded: jest.fn(),
-  updateDataRecordingFlag: jest.fn(),
-  configure: jest.fn(),
-  getMetaMetricsId: jest.fn(),
-} as IMetaMetrics);
+jest.mock('../../../../util/analytics/AnalyticsEventBuilder', () => ({
+  AnalyticsEventBuilder: {
+    createEventBuilder: jest.fn(),
+  },
+}));
 
 describe('trackSnapAccountEvent', () => {
   const mockMetricEvent: IMetaMetricsEvent = {
@@ -43,9 +33,13 @@ describe('trackSnapAccountEvent', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    (analytics.trackEvent as jest.Mock).mockImplementation(mockTrackEvent);
+    (AnalyticsEventBuilder.createEventBuilder as jest.Mock).mockImplementation(
+      mockCreateEventBuilder,
+    );
   });
 
-  it('should create and track an event with the correct properties', () => {
+  it('creates and tracks an event with snap account properties', () => {
     trackSnapAccountEvent(mockMetricEvent, mockSnapId, mockSnapName);
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(mockMetricEvent);
     expect(mockAddProperties).toHaveBeenCalledWith({
@@ -55,7 +49,6 @@ describe('trackSnapAccountEvent', () => {
     });
 
     expect(mockBuild).toHaveBeenCalled();
-    // Verify MetaMetrics trackEvent was called with the built event
     expect(mockTrackEvent).toHaveBeenCalledWith({ mockBuiltEvent: true });
   });
 });

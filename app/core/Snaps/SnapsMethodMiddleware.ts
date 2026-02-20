@@ -31,8 +31,8 @@ import {
   WebSocketServiceSendMessageAction,
 } from '../Engine/controllers/snaps/constants';
 import { KeyringTypes } from '@metamask/keyring-controller';
-import { MetaMetrics } from '../../../app/core/Analytics';
-import { MetricsEventBuilder } from '../Analytics/MetricsEventBuilder';
+import { analytics } from '../../util/analytics/analytics';
+import { AnalyticsEventBuilder } from '../../util/analytics/AnalyticsEventBuilder';
 import { Json } from '@metamask/utils';
 import { SchedulableBackgroundEvent } from '@metamask/snaps-controllers';
 import { endTrace, trace } from '../../util/trace';
@@ -139,8 +139,8 @@ const snapMethodMiddlewareBuilder = (
       properties: Record<string, Json>;
       sensitiveProperties: Record<string, Json>;
     }) => {
-      MetaMetrics.getInstance().trackEvent(
-        MetricsEventBuilder.createEventBuilder({
+      analytics.trackEvent(
+        AnalyticsEventBuilder.createEventBuilder({
           category: eventPayload.event,
           properties: eventPayload.properties,
           sensitiveProperties: eventPayload.sensitiveProperties,
