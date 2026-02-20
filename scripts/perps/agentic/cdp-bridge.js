@@ -350,6 +350,18 @@ async function cdpEvalAsync(client, expression, timeoutMs = 30000) {
     throw new Error(`Async evaluation error: ${desc}`);
   }
 
+  // Best-effort cleanup — swallow errors so a disconnected WebSocket
+  // doesn't obscure the actual result or diagnostic error.
+  const cleanup = () =>
+    client
+      .send('Runtime.evaluate', {
+        expression: `delete globalThis['${key}']`,
+        returnByValue: true,
+        awaitPromise: false,
+      })
+      // eslint-disable-next-line no-empty-function
+      .catch(() => {});
+
   // Poll for completion
   const pollInterval = 200;
   const deadline = Date.now() + timeoutMs;
@@ -362,29 +374,16 @@ async function cdpEvalAsync(client, expression, timeoutMs = 30000) {
     });
     const val = check.result?.value;
     if (val && val.status === 'resolved') {
-      // Cleanup
-      await client.send('Runtime.evaluate', {
-        expression: `delete globalThis['${key}']`,
-        returnByValue: true,
-        awaitPromise: false,
-      });
+      await cleanup();
       return val.value;
     }
     if (val && val.status === 'rejected') {
-      await client.send('Runtime.evaluate', {
-        expression: `delete globalThis['${key}']`,
-        returnByValue: true,
-        awaitPromise: false,
-      });
+      await cleanup();
       throw new Error(`Async evaluation error: ${val.error}`);
     }
   }
   // Cleanup on timeout
-  await client.send('Runtime.evaluate', {
-    expression: `delete globalThis['${key}']`,
-    returnByValue: true,
-    awaitPromise: false,
-  });
+  await cleanup();
   throw new Error(`Async evaluation timed out after ${timeoutMs}ms`);
 }
 
