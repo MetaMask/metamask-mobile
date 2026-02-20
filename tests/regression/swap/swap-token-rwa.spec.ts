@@ -63,7 +63,7 @@ describe(RegressionTrade('Swap RWA'), (): void => {
         await prepareSwapsTestEnvironment();
         await WalletView.tapWalletSwapButton();
 
-        // Submit the Swap: USDC->GOOGLEon
+        // Submit the Swap: USDC->GOOGLon
         await submitSwapUnifiedUI(
           quantity,
           sourceTokenSymbol,
@@ -71,7 +71,7 @@ describe(RegressionTrade('Swap RWA'), (): void => {
           chainId,
         );
 
-        // After the swap is complete, the GoogleON balance shouldn't be 0
+        // After the swap is complete, the GOOGLon balance shouldn't be 0
         await Assertions.expectTextNotDisplayed('0 ' + destTokenSymbol, {
           timeout: 60000,
         });

@@ -1438,7 +1438,7 @@ export const GET_TOKENS_API_USDT_RESPONSE = [
   },
 ];
 
-export const GET_QUOTE_USDC_GOOGLEON_RESPONSE = [
+export const GET_QUOTE_USDC_GOOGLON_RESPONSE = [
   {
     quote: {
       requestId: '76032e05-1fc5-4a61-ab98-cd30505da07a',

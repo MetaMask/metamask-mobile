@@ -17,7 +17,7 @@ import {
   GET_POPULAR_TOKENS_MAINNET_RESPONSE,
   GET_TOKENS_API_USDC_RESPONSE,
   GET_TOKENS_API_USDT_RESPONSE,
-  GET_QUOTE_USDC_GOOGLEON_RESPONSE,
+  GET_QUOTE_USDC_GOOGLON_RESPONSE,
 } from './constants';
 
 const USDC_MAINNET = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
@@ -37,7 +37,7 @@ export async function setupSpotPricesMock(mockServer: Mockttp): Promise<void> {
     [`eip155:1/erc20:${DAI_MAINNET}`]: { price: 0.9998, usd: 0.9998 },
     [`eip155:1/erc20:${USDT_MAINNET}`]: { price: 1.0001, usd: 1.0001 },
     [`eip155:1/erc20:${WETH_MAINNET}`]: { price: 1926.42, usd: 1926.42 },
-    [`eip155:1/erc20:${GOOGLEON_MAINNET}`]: { price: 312.79, usd: 312.79 },
+    [`eip155:1/erc20:${GOOGLON_MAINNET}`]: { price: 312.79, usd: 312.79 },
     [`eip155:1/erc20:${toChecksumHexAddress(USDC_MAINNET)}`]: {
       price: 0.999806,
       usd: 0.999806,
@@ -54,7 +54,7 @@ export async function setupSpotPricesMock(mockServer: Mockttp): Promise<void> {
       price: 1926.42,
       usd: 1926.42,
     },
-    [`eip155:1/erc20:${toChecksumHexAddress(GOOGLEON_MAINNET)}`]: {
+    [`eip155:1/erc20:${toChecksumHexAddress(GOOGLON_MAINNET)}`]: {
       price: 312.79,
       usd: 312.79,
     },
@@ -169,11 +169,11 @@ export const testSpecificMock: TestSpecificMock = async (
     responseCode: 200,
   });
 
-  // Mock USDC->GOOGLEON
+  // Mock USDC->GOOGLON
   await setupMockRequest(mockServer, {
     requestMethod: 'GET',
     url: /getQuote.*destTokenAddress=0xba47214edd2bb43099611b208f75e4b42fdcfedc/i,
-    response: GET_QUOTE_USDC_GOOGLEON_RESPONSE,
+    response: GET_QUOTE_USDC_GOOGLON_RESPONSE,
     responseCode: 200,
   });
 
