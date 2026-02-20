@@ -208,14 +208,17 @@ class AddCustomToken extends PureComponent {
     const networkClientId = this.props.networkClientId;
 
     trace({ name: TraceName.ImportTokens });
-    await TokensController.addToken({
-      address,
-      symbol,
-      decimals: Number(decimals),
-      name,
-      chainId,
-      networkClientId,
-    });
+    const parsedDecimals = parseInt(decimals, 10);
+    if (!Number.isNaN(parsedDecimals)) {
+      await TokensController.addToken({
+        address,
+        symbol,
+        decimals: parsedDecimals,
+        name,
+        chainId,
+        networkClientId,
+      });
+    }
     endTrace({ name: TraceName.ImportTokens });
 
     const analyticsParams = this.getTokenAddedAnalyticsParams();
