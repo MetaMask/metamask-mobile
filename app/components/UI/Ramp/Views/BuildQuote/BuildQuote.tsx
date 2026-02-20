@@ -237,6 +237,7 @@ function BuildQuote() {
 
   const handleContinuePress = useCallback(async () => {
     if (!selectedQuote) return;
+    setNativeFlowError(null);
 
     const quoteAmount =
       selectedQuote.quote?.amountIn ??
@@ -323,14 +324,19 @@ function BuildQuote() {
           new Error('No widget URL available for aggregator provider'),
           { provider: selectedQuote.provider },
         );
-        // TODO: Show user-facing error (alert or inline)
+        setNativeFlowError(strings('deposit.buildQuote.unexpectedError'));
       }
     } catch (error) {
       Logger.error(error as Error, {
         provider: selectedQuote.provider,
         message: 'Failed to fetch widget URL',
       });
-      // TODO: Show user-facing error (alert or inline)
+      setNativeFlowError(
+        parseUserFacingError(
+          error,
+          strings('deposit.buildQuote.unexpectedError'),
+        ),
+      );
     }
   }, [
     selectedQuote,
