@@ -2,6 +2,7 @@ import { goToAddEvmToken } from './goToAddEvmToken';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
 import { StackNavigationProp } from '@react-navigation/stack';
+import { RootStackParamList } from '../../../../core/NavigationService/types';
 
 jest.mock('../../../../core/Analytics', () => ({
   MetaMetricsEvents: {
