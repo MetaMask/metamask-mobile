@@ -36,15 +36,9 @@ jest.mock(
   }),
 );
 
-jest.mock('../../../../constants/ota', () => {
-  const actual = jest.requireActual('../../../../constants/ota');
-
-  return {
-    ...actual,
-    // Make getFullVersion a pass-through so tests don't depend on OTA_VERSION
-    getFullVersion: (appVersion: string) => appVersion,
-  };
-});
+jest.mock('../../../../constants/ota', () => ({
+  OTA_VERSION: 'v0',
+}));
 
 const MOCK_STATE = {
   engine: {
@@ -79,12 +73,15 @@ describe('AppInformation', () => {
     mockGetFeatureFlagAppDistribution.mockReturnValue('main');
   });
 
-  it('renders correctly with snapshot', () => {
-    const { toJSON } = renderScreen(
+  it('renders correctly with snapshot', async () => {
+    const { toJSON, getByText } = renderScreen(
       AppInformation,
       { name: 'AppInformation' },
       { state: MOCK_STATE },
     );
+    await waitFor(() => {
+      expect(getByText('MetaMask v7.0.0 (1000)')).toBeTruthy();
+    });
     expect(toJSON()).toMatchSnapshot();
   });
 
