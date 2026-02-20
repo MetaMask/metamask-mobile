@@ -75,7 +75,7 @@ gh issue create \
 
 Format the body exactly as follows, using the information collected:
 
-```markdown
+````markdown
 ### Describe the bug
 
 <description>
@@ -93,6 +93,7 @@ Format the body exactly as follows, using the information collected:
 <numbered steps>
 
 ### Error messages or log output
+
 ```
 
 <error output, or leave empty if not provided>
@@ -130,7 +131,7 @@ Format the body exactly as follows, using the information collected:
 ### Severity
 
 _To be added after bug submission by internal support / PM:_
-```
+````
 
 ## After Creation
 
