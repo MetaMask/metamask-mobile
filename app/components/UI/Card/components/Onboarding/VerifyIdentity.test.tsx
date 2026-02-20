@@ -43,22 +43,18 @@ jest.mock('../../../../../util/Logger', () => ({
 // Mock useStartVerification hook
 jest.mock('../../hooks/useStartVerification');
 
-// Mock useMetrics hook
+// Mock useAnalytics hook
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn(() => ({
   addProperties: jest.fn().mockReturnThis(),
   build: jest.fn().mockReturnValue({ event: 'test' }),
 }));
 
-jest.mock('../../../../hooks/useMetrics', () => ({
-  useMetrics: () => ({
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
     trackEvent: mockTrackEvent,
     createEventBuilder: mockCreateEventBuilder,
   }),
-  MetaMetricsEvents: {
-    CARD_BUTTON_CLICKED: 'CARD_BUTTON_CLICKED',
-    CARD_VIEWED: 'CARD_VIEWED',
-  },
 }));
 
 // Mock metrics util

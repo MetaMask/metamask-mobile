@@ -10,7 +10,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { impactAsync, ImpactFeedbackStyle } from 'expo-haptics';
 import { useTheme } from '../../../util/theme';
-import { useMetrics } from '../../hooks/useMetrics';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
   EDGE_THRESHOLD,
@@ -82,7 +82,7 @@ export const GestureWebViewWrapper: React.FC<GestureWebViewWrapperProps> = ({
   children,
 }) => {
   const { colors } = useTheme();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const screenWidth = Dimensions.get('window').width;
 
   // Gesture state - using shared values to avoid re-renders and stale reads in worklets
