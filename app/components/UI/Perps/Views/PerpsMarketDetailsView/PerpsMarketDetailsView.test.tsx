@@ -95,15 +95,30 @@ jest.mock('../../../../../util/Logger', () => ({
 const mockUsePerpsAccount = jest.fn();
 const mockUsePerpsLiveAccount = jest.fn();
 const mockUseHasExistingPosition = jest.fn();
+const mockNavigateToConfirmation = jest.fn();
+const mockDepositWithConfirmation = jest.fn(() => Promise.resolve());
 
 // Mock usePerpsLiveAccount to avoid PerpsStreamProvider requirement
 jest.mock('../../hooks/stream/usePerpsLiveAccount', () => ({
   usePerpsLiveAccount: mockUsePerpsLiveAccount,
 }));
 
-// Mock useDefaultPayWithTokenWhenNoPerpsBalance to avoid Redux/stream deps in view tests
 jest.mock('../../hooks/useDefaultPayWithTokenWhenNoPerpsBalance', () => ({
   useDefaultPayWithTokenWhenNoPerpsBalance: jest.fn(() => null),
+}));
+
+/* eslint-disable import/no-commonjs, @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires -- need module reference for mock overrides */
+const mockUseDefaultPayWithTokenWhenNoPerpsBalance =
+  require('../../hooks/useDefaultPayWithTokenWhenNoPerpsBalance')
+    .useDefaultPayWithTokenWhenNoPerpsBalance as jest.MockedFunction<
+    () => { address: string; chainId: string; description: string } | null
+  >;
+/* eslint-enable import/no-commonjs, @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires */
+
+jest.mock('../../../../Views/confirmations/hooks/useConfirmNavigation', () => ({
+  useConfirmNavigation: () => ({
+    navigateToConfirmation: mockNavigateToConfirmation,
+  }),
 }));
 
 // Mock usePerpsMarketFills to avoid Redux selector issues
@@ -389,7 +404,7 @@ jest.mock('../../hooks', () => ({
     placeOrder: jest.fn(),
     cancelOrder: jest.fn(),
     getAccountState: jest.fn(),
-    depositWithConfirmation: jest.fn(() => Promise.resolve()),
+    depositWithConfirmation: mockDepositWithConfirmation,
     withdrawWithConfirmation: jest.fn(),
   })),
   usePerpsNetworkManagement: jest.fn(() => ({
@@ -645,6 +660,8 @@ describe('PerpsMarketDetailsView', () => {
       isInitialLoading: false,
     });
 
+    mockUseDefaultPayWithTokenWhenNoPerpsBalance.mockReturnValue(null);
+
     mockUseHasExistingPosition.mockReturnValue({
       hasPosition: false,
       isLoading: false,
@@ -831,7 +848,13 @@ describe('PerpsMarketDetailsView', () => {
 
   describe('Button rendering scenarios', () => {
     it('shows long/short buttons when user balance is zero so user can trade', () => {
-      // Override with zero balance
+      // Override with zero balance; return a default pay token so Add funds CTA is not shown
+      // (when user has allowlist token they can pay with, we show Long/Short)
+      mockUseDefaultPayWithTokenWhenNoPerpsBalance.mockReturnValue({
+        address: '0xUSDC' as const,
+        chainId: '0xa4b1' as const,
+        description: 'USDC',
+      });
       mockUsePerpsAccount.mockReturnValue({
         account: {
           availableBalance: '0.00',
@@ -875,6 +898,137 @@ describe('PerpsMarketDetailsView', () => {
       expect(
         queryByTestId(PerpsMarketDetailsViewSelectorsIDs.ADD_FUNDS_BUTTON),
       ).toBeNull();
+    });
+
+    it('shows add funds CTA when user balance is below threshold and no allowlist token', () => {
+      mockUseDefaultPayWithTokenWhenNoPerpsBalance.mockReturnValue(null);
+      mockUsePerpsAccount.mockReturnValue({
+        account: {
+          availableBalance: '0.00',
+          marginUsed: '0.00',
+          unrealizedPnl: '0.00',
+          returnOnEquity: '0.00',
+          totalBalance: '0.00',
+        },
+        isInitialLoading: false,
+      });
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account: {
+          availableBalance: '0',
+          marginUsed: '0',
+          unrealizedPnl: '0',
+          returnOnEquity: '0',
+          totalBalance: '0',
+        },
+        isInitialLoading: false,
+      });
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        { state: initialState },
+      );
+
+      expect(
+        getByTestId(PerpsMarketDetailsViewSelectorsIDs.ADD_FUNDS_BUTTON),
+      ).toBeTruthy();
+      expect(
+        queryByTestId(PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON),
+      ).toBeNull();
+      expect(
+        queryByTestId(PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON),
+      ).toBeNull();
+    });
+
+    it('calls navigateToConfirmation and depositWithConfirmation when add funds is pressed', async () => {
+      mockUseDefaultPayWithTokenWhenNoPerpsBalance.mockReturnValue(null);
+      mockUsePerpsAccount.mockReturnValue({
+        account: {
+          availableBalance: '0.00',
+          marginUsed: '0.00',
+          unrealizedPnl: '0.00',
+          returnOnEquity: '0.00',
+          totalBalance: '0.00',
+        },
+        isInitialLoading: false,
+      });
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account: {
+          availableBalance: '0',
+          marginUsed: '0',
+          unrealizedPnl: '0',
+          returnOnEquity: '0',
+          totalBalance: '0',
+        },
+        isInitialLoading: false,
+      });
+      mockNavigateToConfirmation.mockClear();
+      mockDepositWithConfirmation.mockClear();
+      mockDepositWithConfirmation.mockResolvedValue(undefined);
+
+      const { getByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        { state: initialState },
+      );
+
+      const addFundsButton = getByTestId(
+        PerpsMarketDetailsViewSelectorsIDs.ADD_FUNDS_BUTTON,
+      );
+      await act(async () => {
+        fireEvent.press(addFundsButton);
+      });
+
+      expect(mockNavigateToConfirmation).toHaveBeenCalledWith({
+        stack: 'Perps',
+      });
+      expect(mockDepositWithConfirmation).toHaveBeenCalled();
+    });
+
+    it('handles depositWithConfirmation rejection without throwing', async () => {
+      mockUseDefaultPayWithTokenWhenNoPerpsBalance.mockReturnValue(null);
+      mockUsePerpsAccount.mockReturnValue({
+        account: {
+          availableBalance: '0.00',
+          marginUsed: '0.00',
+          unrealizedPnl: '0.00',
+          returnOnEquity: '0.00',
+          totalBalance: '0.00',
+        },
+        isInitialLoading: false,
+      });
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account: {
+          availableBalance: '0',
+          marginUsed: '0',
+          unrealizedPnl: '0',
+          returnOnEquity: '0',
+          totalBalance: '0',
+        },
+        isInitialLoading: false,
+      });
+      mockDepositWithConfirmation.mockRejectedValueOnce(
+        new Error('Deposit failed'),
+      );
+
+      const { getByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        { state: initialState },
+      );
+
+      const addFundsButton = getByTestId(
+        PerpsMarketDetailsViewSelectorsIDs.ADD_FUNDS_BUTTON,
+      );
+      await act(async () => {
+        fireEvent.press(addFundsButton);
+      });
+      await waitFor(() => {
+        expect(mockDepositWithConfirmation).toHaveBeenCalled();
+      });
     });
 
     it('renders modify/close buttons when user has balance and existing position', () => {
