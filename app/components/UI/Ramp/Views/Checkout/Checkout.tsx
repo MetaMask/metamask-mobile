@@ -200,7 +200,7 @@ const Checkout = () => {
   const dispatchThunk = useThunkDispatch();
   const [error, setError] = useState('');
   const [customIdData, setCustomIdData] = useState<CustomIdData>();
-  const [isRedirectionHandled, setIsRedirectionHandled] = useState(false);
+  const isRedirectionHandledRef = useRef(false);
   const [key, setKey] = useState(0);
   const navigation = useNavigation();
   const params = useParams<CheckoutParams>();
@@ -280,13 +280,13 @@ const Checkout = () => {
     async (navState: WebViewNavigation) => {
       if (
         !hasCallbackFlow ||
-        isRedirectionHandled ||
+        isRedirectionHandledRef.current ||
         !navState.url.startsWith(callbackBaseUrl) ||
         navState.loading !== false
       ) {
         return;
       }
-      setIsRedirectionHandled(true);
+      isRedirectionHandledRef.current = true;
 
       try {
         const parsedUrl = parseUrl(navState.url);
@@ -343,7 +343,6 @@ const Checkout = () => {
     },
     [
       hasCallbackFlow,
-      isRedirectionHandled,
       customOrderId,
       customIdData,
       providerCode,
@@ -405,7 +404,7 @@ const Checkout = () => {
               ctaOnPress={() => {
                 setKey((prevKey) => prevKey + 1);
                 setError('');
-                setIsRedirectionHandled(false);
+                isRedirectionHandledRef.current = false;
               }}
               location="Provider Webview"
             />
