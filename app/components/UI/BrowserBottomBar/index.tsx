@@ -188,7 +188,9 @@ const BrowserBottomBar: React.FC<BrowserBottomBarProps> = ({
         .build(),
     );
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.DAPP_ADD_TO_FAVORITE).build(),
+      createEventBuilder(MetaMetricsEvents.DAPP_ADD_TO_FAVORITE)
+        .addProperties({ action: 'Dapp View', name: 'Add to Favorites' })
+        .build(),
     );
   }, [
     navigation,
