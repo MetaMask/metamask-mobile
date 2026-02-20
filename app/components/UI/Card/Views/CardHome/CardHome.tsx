@@ -62,7 +62,8 @@ import {
   TOKEN_RATE_UNDEFINED,
 } from '../../../Tokens/constants';
 import { useOpenSwaps } from '../../hooks/useOpenSwaps';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import {
   DEPOSIT_SUPPORTED_TOKENS,
@@ -162,7 +163,7 @@ const CardHome = () => {
 
   const route =
     useRoute<RouteProp<{ params: CardHomeRouteParams }, 'params'>>();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const theme = useTheme();
@@ -471,6 +472,13 @@ const CardHome = () => {
     if (!isFrozen) {
       const success = await toggleFreeze();
       if (success) {
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+            .addProperties({
+              action: CardActions.FREEZE_CARD_BUTTON,
+            })
+            .build(),
+        );
         showFreezeSuccessToast(wasFrozen);
       }
       return;
@@ -480,6 +488,13 @@ const CardHome = () => {
       await reauthenticate();
       const success = await toggleFreeze();
       if (success) {
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+            .addProperties({
+              action: CardActions.UNFREEZE_CARD_BUTTON,
+            })
+            .build(),
+        );
         showFreezeSuccessToast(wasFrozen);
       }
     } catch (error) {
@@ -495,6 +510,13 @@ const CardHome = () => {
             onSuccess: async () => {
               const success = await toggleFreeze();
               if (success) {
+                trackEvent(
+                  createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+                    .addProperties({
+                      action: CardActions.UNFREEZE_CARD_BUTTON,
+                    })
+                    .build(),
+                );
                 showFreezeSuccessToast(wasFrozen);
               }
             },
@@ -526,6 +548,8 @@ const CardHome = () => {
     toggleFreeze,
     reauthenticate,
     navigation,
+    trackEvent,
+    createEventBuilder,
     toastRef,
     showFreezeSuccessToast,
   ]);

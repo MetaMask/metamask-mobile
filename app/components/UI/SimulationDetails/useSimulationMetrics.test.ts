@@ -14,6 +14,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
   useDisplayNames,
   DisplayNameVariant,
+  TrustSignalDisplayState,
 } from '../../hooks/DisplayName/useDisplayName';
 import { BalanceChange, AssetType } from './types';
 import {
@@ -71,12 +72,18 @@ const BALANCE_CHANGE_MOCK = {
 
 const DISPLAY_NAME_UNKNOWN_MOCK = {
   variant: DisplayNameVariant.Unknown,
+  displayState: TrustSignalDisplayState.Unknown,
+  icon: null,
+  isAccount: false,
 };
 
 const DISPLAY_NAME_SAVED_MOCK = {
   name: 'testName',
   contractDisplayName: SYMBOL_MOCK,
   variant: DisplayNameVariant.Recognized,
+  displayState: TrustSignalDisplayState.Recognized,
+  icon: null,
+  isAccount: false,
 };
 
 describe('useSimulationMetrics', () => {

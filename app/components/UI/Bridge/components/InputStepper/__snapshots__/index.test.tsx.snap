@@ -130,7 +130,6 @@ exports[`InputStepper complete component snapshot renders complete component cor
               "letterSpacing": 0,
               "lineHeight": 50,
               "opacity": 1,
-              "textAlignVertical": "center",
             }
           }
           testID="input-stepper-input"
@@ -380,7 +379,6 @@ exports[`InputStepper complete component snapshot renders with description 1`] =
               "letterSpacing": 0,
               "lineHeight": 50,
               "opacity": 1,
-              "textAlignVertical": "center",
             }
           }
           testID="input-stepper-input"
@@ -603,7 +601,6 @@ exports[`InputStepper description row should render InputStepperDescriptionRow 1
               "letterSpacing": 0,
               "lineHeight": 50,
               "opacity": 1,
-              "textAlignVertical": "center",
             }
           }
           testID="input-stepper-input"
@@ -826,7 +823,6 @@ exports[`InputStepper input renders correct style when value character length is
               "letterSpacing": 0,
               "lineHeight": 50,
               "opacity": 1,
-              "textAlignVertical": "center",
             }
           }
           testID="input-stepper-input"
@@ -1049,7 +1045,6 @@ exports[`InputStepper input renders correct style when value character length is
               "letterSpacing": 0,
               "lineHeight": 43.75,
               "opacity": 1,
-              "textAlignVertical": "center",
             }
           }
           testID="input-stepper-input"
@@ -1272,7 +1267,6 @@ exports[`InputStepper input renders correct style when value character length is
               "letterSpacing": 0,
               "lineHeight": 37.5,
               "opacity": 1,
-              "textAlignVertical": "center",
             }
           }
           testID="input-stepper-input"
@@ -1495,7 +1489,6 @@ exports[`InputStepper input renders correct style when value character length is
               "letterSpacing": 0,
               "lineHeight": 31.25,
               "opacity": 1,
-              "textAlignVertical": "center",
             }
           }
           testID="input-stepper-input"
@@ -1718,7 +1711,6 @@ exports[`InputStepper input renders correct style when value character length is
               "letterSpacing": 0,
               "lineHeight": 25,
               "opacity": 1,
-              "textAlignVertical": "center",
             }
           }
           testID="input-stepper-input"
@@ -1941,7 +1933,6 @@ exports[`InputStepper minus button renders correct style of minus button when di
               "letterSpacing": 0,
               "lineHeight": 50,
               "opacity": 1,
-              "textAlignVertical": "center",
             }
           }
           testID="input-stepper-input"
@@ -2164,7 +2155,6 @@ exports[`InputStepper minus button renders correct style of minus button when en
               "letterSpacing": 0,
               "lineHeight": 50,
               "opacity": 1,
-              "textAlignVertical": "center",
             }
           }
           testID="input-stepper-input"
@@ -2387,7 +2377,6 @@ exports[`InputStepper plus button renders correct style of plus button when disa
               "letterSpacing": 0,
               "lineHeight": 50,
               "opacity": 1,
-              "textAlignVertical": "center",
             }
           }
           testID="input-stepper-input"
@@ -2610,7 +2599,6 @@ exports[`InputStepper plus button renders correct style of plus button when enab
               "letterSpacing": 0,
               "lineHeight": 50,
               "opacity": 1,
-              "textAlignVertical": "center",
             }
           }
           testID="input-stepper-input"
