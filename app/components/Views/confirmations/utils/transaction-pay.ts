@@ -16,7 +16,11 @@ import { isTestNet } from '../../../../util/networks';
 import { store } from '../../../../store';
 import { selectGasFeeTokenFlags } from '../../../../selectors/featureFlagController/confirmations';
 import { strings } from '../../../../../locales/i18n';
-import { getNativeTokenAddress } from '@metamask/assets-controllers';
+import {
+  getNativeTokenAddress,
+  TokenListState,
+} from '@metamask/assets-controllers';
+import { NetworkConfiguration } from '@metamask/network-controller';
 
 const FOUR_BYTE_TOKEN_TRANSFER = '0xa9059cbb';
 
@@ -161,25 +165,9 @@ export function getAvailableTokens({
 
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
-interface TokenCatalogEntry {
-  name: string;
-  symbol: string;
-  decimals: number;
-  address: string;
-  iconUrl: string;
-}
-
-interface NetworkConfig {
-  nativeCurrency: string;
-  name: string;
-}
-
 export interface BuildAllowlistDeps {
-  tokensChainsCache?: Record<
-    string,
-    { data: Record<string, TokenCatalogEntry> }
-  >;
-  networkConfigs?: Record<string, NetworkConfig>;
+  tokensChainsCache?: TokenListState['tokensChainsCache'];
+  networkConfigs?: Record<string, NetworkConfiguration>;
 }
 
 function isNativeAddress(address: string): boolean {
@@ -232,7 +220,7 @@ export function buildAllowlistTokens(
   const result: AssetType[] = [];
 
   for (const [chainId, addresses] of Object.entries(allowlist)) {
-    const cacheData = deps.tokensChainsCache?.[chainId]?.data;
+    const cacheData = deps.tokensChainsCache?.[chainId as Hex]?.data;
     const nativeAddr = getNativeTokenAddress(chainId as Hex);
 
     for (const address of addresses) {
