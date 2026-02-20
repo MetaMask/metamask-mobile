@@ -11,6 +11,21 @@ export const AUTH_SERVER_RENEW_PATH = '/api/v2/oauth/renew_refresh_token';
 export const AUTH_SERVER_REVOKE_PATH = '/api/v2/oauth/revoke';
 export const AUTH_SERVER_TOKEN_PATH = '/api/v1/oauth/token';
 
+/**
+ * Thrown when the auth server returns a non-2xx response during a token
+ * refresh attempt.  Callers can inspect `statusCode` to distinguish between
+ * permanent failures (e.g. 401 – token revoked) and transient ones (e.g. 503).
+ */
+export class RefreshTokenHttpError extends Error {
+  constructor(
+    public readonly statusCode: number,
+    message: string,
+  ) {
+    super(message);
+    this.name = 'RefreshTokenHttpError';
+  }
+}
+
 interface AuthTokenHandlerInterface {
   refreshJWTToken: RefreshJWTToken;
   renewRefreshToken: RenewRefreshToken;
@@ -57,7 +72,10 @@ class AuthTokenHandler implements AuthTokenHandlerInterface {
     );
 
     if (!response.ok) {
-      throw new Error('Failed to refresh JWT token');
+      throw new RefreshTokenHttpError(
+        response.status,
+        `Failed to refresh JWT token (HTTP ${response.status})`,
+      );
     }
 
     const refreshTokenData: AuthRefreshTokenResponse = await response.json();
