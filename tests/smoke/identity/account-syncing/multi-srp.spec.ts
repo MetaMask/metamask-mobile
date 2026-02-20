@@ -90,7 +90,8 @@ describe(SmokeIdentity('Account syncing - Mutiple SRPs'), () => {
           );
 
         await AccountListBottomSheet.tapAddAccountButtonV2();
-        await waitUntilEventsEmittedNumberEquals(1);
+
+        await waitUntilSyncedAccountsNumberEquals(2);
 
         await Assertions.expectElementToBeVisible(
           AccountListBottomSheet.getAccountElementByAccountNameV2(
