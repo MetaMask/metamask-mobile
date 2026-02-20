@@ -58,6 +58,20 @@ describe('Account Menu Feature Flag Selectors', () => {
       expect(result).toBe(false);
     });
 
+    it('returns true when remote flag is a plain boolean true', () => {
+      const result = selectAccountMenuEnabled.resultFunc({
+        mobileUxAccountMenu: true,
+      });
+      expect(result).toBe(true);
+    });
+
+    it('returns false when remote flag is a plain boolean false', () => {
+      const result = selectAccountMenuEnabled.resultFunc({
+        mobileUxAccountMenu: false,
+      });
+      expect(result).toBe(false);
+    });
+
     it('returns false when remote feature flags are empty', () => {
       const result = selectAccountMenuEnabled.resultFunc({});
       expect(result).toBe(false);

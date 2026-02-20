@@ -45,8 +45,8 @@ import AssetDetailsActions from '../../../Views/AssetDetails/AssetDetailsActions
 import { TokenDetailsActions } from './TokenDetailsActions';
 import PerpsDiscoveryBanner from '../../Perps/components/PerpsDiscoveryBanner';
 import { isTokenTrustworthyForPerps } from '../../Perps/constants/perpsConfig';
-import { selectTokenDetailsV2ButtonsEnabled } from '../../../../selectors/featureFlagController/tokenDetailsV2';
-import { useTokenBuyability } from '../../Ramp/hooks/useTokenBuyability';
+import { useTokenDetailsABTest } from '../hooks/useTokenDetailsABTest';
+import useTokenBuyability from '../../Ramp/hooks/useTokenBuyability';
 import {
   MarketInsightsEntryCard,
   useMarketInsights,
@@ -57,6 +57,10 @@ import { formatAddressToAssetId } from '@metamask/bridge-controller';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import TronEnergyBandwidthDetail from '../../AssetOverview/TronEnergyBandwidthDetail/TronEnergyBandwidthDetail';
 ///: END:ONLY_INCLUDE_IF
+import MarketClosedActionButton from '../../AssetOverview/MarketClosedActionButton';
+import { IconName } from '../../../../component-library/components/Icons/Icon';
+import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
+import { BridgeToken } from '../../Bridge/types';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -95,6 +99,9 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingHorizontal: 16,
       paddingTop: 24,
     } as ViewStyle,
+    marketClosedActionButtonContainer: {
+      marginBottom: 8,
+    },
     perpsPositionTitle: {
       marginBottom: 8,
     } as TextStyle,
@@ -181,6 +188,10 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
   const resetNavigationLockRef = useRef<(() => void) | null>(null);
+  const { isTokenTradingOpen } = useRWAToken();
+
+  // A/B test hook for layout selection (must be called before usePerpsActions to pass ab_tests)
+  const { useNewLayout, isTestActive, variantName } = useTokenDetailsABTest();
 
   const {
     hasPerpsMarket,
@@ -189,6 +200,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     handlePerpsAction,
   } = usePerpsActions({
     symbol: isPerpsEnabled ? token.symbol : null,
+    abTestTokenDetailsLayout: isTestActive ? variantName : undefined,
   });
 
   const isEligible = useSelector(selectPerpsEligibility);
@@ -240,10 +252,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     );
 
   const isTokenTrustworthy = isTokenTrustworthyForPerps(token);
-
-  const isTokenDetailsV2ButtonsEnabled = useSelector(
-    selectTokenDetailsV2ButtonsEnabled,
-  );
 
   const isMarketInsightsEnabled = useSelector(selectMarketInsightsEnabled);
   const marketInsightsCaip19Id = useMemo(() => {
@@ -358,6 +366,12 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     [handleSelectTimePeriod, timePeriod, chartNavigationButtons],
   );
 
+  const handleMarketClosedButtonPress = () => {
+    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.MARKET_CLOSED_MODAL,
+    });
+  };
+
   return (
     <View style={styles.wrapper} testID={TokenOverviewSelectorsIDs.CONTAINER}>
       {token.hasBalanceError ? (
@@ -379,7 +393,16 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           <View style={styles.chartNavigationWrapper}>
             {renderChartNavigationButton()}
           </View>
-          {isTokenDetailsV2ButtonsEnabled ? (
+          {!isTokenTradingOpen(token as BridgeToken) && (
+            <View style={styles.marketClosedActionButtonContainer}>
+              <MarketClosedActionButton
+                iconName={IconName.Info}
+                label={strings('asset_overview.market_closed')}
+                onPress={handleMarketClosedButtonPress}
+              />
+            </View>
+          )}
+          {useNewLayout ? (
             <TokenDetailsActions
               hasPerpsMarket={hasPerpsMarket}
               hasBalance={balance != null && Number(balance) > 0}
@@ -397,7 +420,9 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           ) : (
             <AssetDetailsActions
               displayBuyButton={displayBuyButton && isBuyable}
-              displaySwapsButton={displaySwapsButton}
+              displaySwapsButton={
+                displaySwapsButton && isTokenTradingOpen(token as BridgeToken)
+              }
               goToSwaps={goToSwaps}
               onBuy={onBuy}
               onReceive={onReceive}

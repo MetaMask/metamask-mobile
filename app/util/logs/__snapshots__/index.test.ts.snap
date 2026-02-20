@@ -43,7 +43,7 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
       "AssetsController": {
         "assetPreferences": {},
         "assetsBalance": {},
-        "assetsMetadata": {},
+        "assetsInfo": {},
         "assetsPrice": {},
         "customAssets": {},
       },
@@ -908,7 +908,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       "AssetsController": {
         "assetPreferences": {},
         "assetsBalance": {},
-        "assetsMetadata": {},
+        "assetsInfo": {},
         "assetsPrice": {},
         "customAssets": {},
       },

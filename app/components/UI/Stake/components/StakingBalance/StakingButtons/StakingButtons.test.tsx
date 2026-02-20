@@ -27,14 +27,8 @@ import { getMockUseEarnTokens } from '../../../../Earn/__mocks__/earnMockData';
 
 const mockEarnTokenPair = getMockUseEarnTokens(EARN_EXPERIENCES.POOLED_STAKING);
 
-// Prevent `useMetrics` from triggering async Engine readiness polling (`whenEngineReady`)
-// which can cause Jest timeouts / "import after environment torn down" errors.
-jest.mock('../../../../../hooks/useMetrics', () => ({
-  MetaMetricsEvents: {
-    STAKE_BUTTON_CLICKED: 'STAKE_BUTTON_CLICKED',
-    STAKE_WITHDRAW_BUTTON_CLICKED: 'STAKE_WITHDRAW_BUTTON_CLICKED',
-  },
-  useMetrics: () => ({
+jest.mock('../../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
     trackEvent: jest.fn(),
     createEventBuilder: () => ({
       addProperties: jest.fn().mockReturnThis(),

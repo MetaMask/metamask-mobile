@@ -1,5 +1,4 @@
 import React from 'react';
-import { TouchableHighlight } from 'react-native';
 import { render, fireEvent } from '@testing-library/react-native';
 import { Transaction, TransactionType } from '@metamask/keyring-api';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
@@ -8,6 +7,26 @@ import { configureStore } from '@reduxjs/toolkit';
 import MultichainBridgeTransactionListItem from '.';
 import type { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import { StatusTypes } from '@metamask/bridge-controller';
+import { MonetizedPrimitive } from '../../../core/Analytics/MetaMetrics.types';
+import {
+  TRANSACTION_DETAIL_EVENTS,
+  TransactionDetailLocation,
+} from '../../../core/Analytics/events/transactions';
+
+const mockTrackEvent = jest.fn();
+const mockAddProperties = jest.fn().mockReturnThis();
+const mockBuild = jest.fn(() => ({ name: 'test-event' }));
+const mockCreateEventBuilder = jest.fn(() => ({
+  addProperties: mockAddProperties,
+  build: mockBuild,
+}));
+
+jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
+}));
 
 const mockUseTheme = jest.fn();
 jest.mock('../../../util/theme', () => ({
@@ -166,7 +185,7 @@ describe('MultichainBridgeTransactionListItem', () => {
   });
 
   it('navigates to bridge transaction details when clicked', () => {
-    const { UNSAFE_getByType } = renderWithProvider(
+    const { getByTestId } = renderWithProvider(
       <MultichainBridgeTransactionListItem
         transaction={mockTransaction}
         bridgeHistoryItem={mockBridgeHistoryItem}
@@ -174,8 +193,7 @@ describe('MultichainBridgeTransactionListItem', () => {
       />,
     );
 
-    const touchable = UNSAFE_getByType(TouchableHighlight);
-    fireEvent.press(touchable);
+    fireEvent.press(getByTestId('transaction-item-0'));
 
     expect(mockNavigation.navigate).toHaveBeenCalledWith(
       'BridgeTransactionDetails',
@@ -231,5 +249,88 @@ describe('MultichainBridgeTransactionListItem', () => {
     );
 
     expect(getByText(/0\.00012 ETH/)).toBeTruthy();
+  });
+
+  describe('analytics tracking', () => {
+    it('tracks Transaction Detail List Item Clicked for a bridge transaction', () => {
+      const { getByTestId } = renderWithProvider(
+        <MultichainBridgeTransactionListItem
+          transaction={mockTransaction}
+          bridgeHistoryItem={mockBridgeHistoryItem}
+          navigation={
+            mockNavigation as unknown as NavigationProp<ParamListBase>
+          }
+        />,
+      );
+
+      fireEvent.press(getByTestId('transaction-item-0'));
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        TRANSACTION_DETAIL_EVENTS.LIST_ITEM_CLICKED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        transaction_type: 'bridge',
+        transaction_status: 'confirmed',
+        location: TransactionDetailLocation.Home,
+        chain_id_source: '1',
+        chain_id_destination: '10',
+        monetized_primitive: MonetizedPrimitive.Swaps,
+      });
+      expect(mockTrackEvent).toHaveBeenCalledWith({ name: 'test-event' });
+    });
+
+    it('tracks swap type when source and destination chain are the same', () => {
+      const swapBridgeHistoryItem = {
+        ...mockBridgeHistoryItem,
+        quote: {
+          ...mockBridgeHistoryItem.quote,
+          destAsset: {
+            ...mockBridgeHistoryItem.quote.destAsset,
+            chainId: 1,
+          },
+        },
+      };
+
+      const { getByTestId } = renderWithProvider(
+        <MultichainBridgeTransactionListItem
+          transaction={mockTransaction}
+          bridgeHistoryItem={swapBridgeHistoryItem}
+          navigation={
+            mockNavigation as unknown as NavigationProp<ParamListBase>
+          }
+        />,
+      );
+
+      fireEvent.press(getByTestId('transaction-item-0'));
+
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          transaction_type: 'swap',
+          chain_id_source: '1',
+          chain_id_destination: '1',
+        }),
+      );
+    });
+
+    it('tracks with asset_details location when provided', () => {
+      const { getByTestId } = renderWithProvider(
+        <MultichainBridgeTransactionListItem
+          transaction={mockTransaction}
+          bridgeHistoryItem={mockBridgeHistoryItem}
+          navigation={
+            mockNavigation as unknown as NavigationProp<ParamListBase>
+          }
+          location={TransactionDetailLocation.AssetDetails}
+        />,
+      );
+
+      fireEvent.press(getByTestId('transaction-item-0'));
+
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          location: TransactionDetailLocation.AssetDetails,
+        }),
+      );
+    });
   });
 });
