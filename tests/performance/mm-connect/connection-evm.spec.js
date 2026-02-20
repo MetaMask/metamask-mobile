@@ -2,9 +2,10 @@ import { test } from 'appwright';
 
 import { login } from '../../framework/utils/Flows.js';
 import {
-  launchMobileBrowser,
+  switchToMobileBrowser,
   navigateToDapp,
   refreshMobileBrowser,
+  launchMobileBrowser,
 } from '../../framework/utils/MobileBrowser.js';
 import WalletMainScreen from '../../../wdio/screen-objects/WalletMainScreen.js';
 import BrowserPlaygroundDapp from '../../../wdio/screen-objects/BrowserPlaygroundDapp.js';
@@ -74,6 +75,17 @@ test.skip('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Br
 
   await AppwrightHelpers.withNativeAction(device, async () => {
     await login(device);
+    await WalletMainScreen.isMainWalletViewVisible();
+
+    // Cycle the app to ensure all account groups are created
+    await AppwrightGestures.terminateApp(device);
+    await AppwrightGestures.activateApp(device);
+    await login(device);
+    await WalletMainScreen.isMainWalletViewVisible();
+    await WalletMainScreen.tapIdenticon();
+    await AccountListComponent.isComponentDisplayed();
+    await AccountListComponent.waitForSyncingToComplete();
+
     await launchMobileBrowser(device);
     await navigateToDapp(device, DAPP_URL, DAPP_NAME);
   });
@@ -96,7 +108,7 @@ test.skip('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Br
   });
 
   await new Promise((resolve) => setTimeout(resolve, 1000));
-  await launchMobileBrowser(device);
+  await switchToMobileBrowser(device);
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
   await AppwrightHelpers.withWebAction(
@@ -116,7 +128,7 @@ test.skip('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Br
   });
 
   await new Promise((resolve) => setTimeout(resolve, 1000));
-  await launchMobileBrowser(device);
+  await switchToMobileBrowser(device);
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
   await AppwrightHelpers.withWebAction(
@@ -138,7 +150,7 @@ test.skip('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Br
   });
 
   await new Promise((resolve) => setTimeout(resolve, 1000));
-  await launchMobileBrowser(device);
+  await switchToMobileBrowser(device);
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
   await AppwrightHelpers.withWebAction(
@@ -158,7 +170,7 @@ test.skip('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Br
   });
 
   await new Promise((resolve) => setTimeout(resolve, 1000));
-  await launchMobileBrowser(device);
+  await switchToMobileBrowser(device);
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
   await AppwrightHelpers.withWebAction(
@@ -177,7 +189,7 @@ test.skip('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Br
   });
 
   await new Promise((resolve) => setTimeout(resolve, 1000));
-  await launchMobileBrowser(device);
+  await switchToMobileBrowser(device);
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
   await AppwrightHelpers.withWebAction(
@@ -205,7 +217,7 @@ test.skip('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Br
   });
 
   await new Promise((resolve) => setTimeout(resolve, 1000));
-  await launchMobileBrowser(device);
+  await switchToMobileBrowser(device);
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
   await AppwrightHelpers.withWebAction(
@@ -239,7 +251,7 @@ test.skip('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Br
   });
 
   await new Promise((resolve) => setTimeout(resolve, 1000));
-  await launchMobileBrowser(device);
+  await switchToMobileBrowser(device);
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
   await AppwrightHelpers.withWebAction(
@@ -266,7 +278,7 @@ test.skip('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Br
   });
 
   await new Promise((resolve) => setTimeout(resolve, 1000));
-  await launchMobileBrowser(device);
+  await switchToMobileBrowser(device);
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
   await AppwrightHelpers.withWebAction(
@@ -286,7 +298,7 @@ test.skip('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Br
   });
 
   await new Promise((resolve) => setTimeout(resolve, 1000));
-  await launchMobileBrowser(device);
+  await switchToMobileBrowser(device);
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
   await AppwrightHelpers.withWebAction(
@@ -312,7 +324,7 @@ test.skip('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Br
   });
 
   await new Promise((resolve) => setTimeout(resolve, 1000));
-  await launchMobileBrowser(device);
+  await switchToMobileBrowser(device);
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
   await AppwrightHelpers.withNativeAction(device, async () => {
@@ -345,7 +357,7 @@ test.skip('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Br
   });
 
   await new Promise((resolve) => setTimeout(resolve, 1000));
-  await launchMobileBrowser(device);
+  await switchToMobileBrowser(device);
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
   await AppwrightHelpers.withWebAction(
