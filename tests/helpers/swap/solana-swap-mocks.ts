@@ -1,5 +1,4 @@
 import { Mockttp } from 'mockttp';
-import { base58 } from 'ethers/lib/utils';
 import { TestSpecificMock } from '../../framework';
 import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers';
 
@@ -10,10 +9,8 @@ const SOLANA_RPC_URL_REGEX =
 const SECURITY_ALERTS_SOLANA_SWAP_URL_REGEX =
   /^https:\/\/security-alerts\.api\.cx\.metamask\.io\/solana\/message\/scan/i;
 
-const SOL_TO_USDC_SWAP_SIGNATURE =
+const SOLANA_SWAP_SIGNATURE =
   '2m8z8uPZyoZwQpissDbhSfW5XDTFmpc7cSFithc5e1w8iCwFcvVkxHeaVhgFSdgUPb5cebbKGjuu48JMLPjfEATr';
-const USDC_TO_SOL_SWAP_SIGNATURE =
-  '28rWme56aMyaP8oX18unFeZg65iyDEhjLhvMBpxyFgKcn38P37ZRsssSZoHDCCr5xUfwfpqsVSSBoShLitHQLdrr';
 
 // Real serialized trade payload from extension Solana swap mocks.
 const SOLANA_SWAP_TRADE_B64 =
@@ -210,359 +207,34 @@ const buildJsonRpcResponse = (result: unknown, id?: number | string) => ({
   result,
 });
 
-const SOL_USDC_TRANSACTION_RESPONSE = {
-  id: '1337',
-  jsonrpc: '2.0',
-  result: {
+const buildSuccessfulTransactionResponse = (signature: string) =>
+  buildJsonRpcResponse({
     blockTime: 1748539157,
     meta: {
-      computeUnitsConsumed: 129912,
       err: null,
       fee: 34455,
-      innerInstructions: [
-        { index: 2, instructions: [] },
-        { index: 5, instructions: [] },
-      ],
-      loadedAddresses: {
-        readonly: [
-          '8NsPwRFYqob3FzYvHYTjFK6WVFJADFN8Hn7yNQKcVNW1',
-          'HyaB3W9q6XdA5xwpU4XnSZV94htfmbmqJXZcEbRaJutt',
-          'J4uBbeoWpZE8fH58PM1Fp9n9K6f1aThyeVCyRdJbaXqt',
-          'So11111111111111111111111111111111111111112',
-        ],
-        writable: [
-          '2SgUGxYDczrB6wUzXHPJH65pNhWkEzNMEx3km4xTYUTC',
-          '3f9kSZg8PPJ6NkLwVdXeff16ZT1XbkmT5eaQCqUnpDWx',
-          '4maNZQtYFA1cdB55aLS321dxwdH1Y8NWaH4qiMedKpTZ',
-          'FaF5XKRqTNaQ7zXwYNtpig2Q1HArtzJK4xB8XxHERF2j',
-        ],
-      },
-      logMessages: [],
-      postBalances: [
-        1532581212, 7648893840, 2039280, 0, 1, 731913600, 1, 1017968,
-        391278827123, 1141440, 934087680, 17903222, 24039280, 27021899342,
-        78139920, 1405920, 1141440, 32151736, 1045539216193,
-      ],
-      postTokenBalances: [
-        {
-          accountIndex: 2,
-          mint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
-          owner: '4tE76eixEgyJDrdykdWJR1XBkzUk4cLMvqjR2xVJUxer',
-          programId: 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
-          uiTokenAmount: {
-            amount: '12827324',
-            decimals: 6,
-            uiAmount: 12.827324,
-            uiAmountString: '12.827324',
-          },
-        },
-        {
-          accountIndex: 12,
-          mint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
-          owner: 'J4uBbeoWpZE8fH58PM1Fp9n9K6f1aThyeVCyRdJbaXqt',
-          programId: 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
-          uiTokenAmount: {
-            amount: '3902878273',
-            decimals: 6,
-            uiAmount: 3902.878273,
-            uiAmountString: '3902.878273',
-          },
-        },
-        {
-          accountIndex: 13,
-          mint: 'So11111111111111111111111111111111111111112',
-          owner: 'J4uBbeoWpZE8fH58PM1Fp9n9K6f1aThyeVCyRdJbaXqt',
-          programId: 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
-          uiTokenAmount: {
-            amount: '27019860062',
-            decimals: 9,
-            uiAmount: 27.019860062,
-            uiAmountString: '27.019860062',
-          },
-        },
-      ],
-      preBalances: [
-        1533615667, 7648885090, 2039280, 0, 1, 731913600, 1, 1017968,
-        391278827123, 1141440, 934087680, 17903222, 24039280, 27020908092,
-        78139920, 1405920, 1141440, 32151736, 1045539216193,
-      ],
-      preTokenBalances: [
-        {
-          accountIndex: 2,
-          mint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
-          owner: '4tE76eixEgyJDrdykdWJR1XBkzUk4cLMvqjR2xVJUxer',
-          programId: 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
-          uiTokenAmount: {
-            amount: '12660400',
-            decimals: 6,
-            uiAmount: 12.6604,
-            uiAmountString: '12.6604',
-          },
-        },
-        {
-          accountIndex: 12,
-          mint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
-          owner: 'J4uBbeoWpZE8fH58PM1Fp9n9K6f1aThyeVCyRdJbaXqt',
-          programId: 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
-          uiTokenAmount: {
-            amount: '3903045197',
-            decimals: 6,
-            uiAmount: 3903.045197,
-            uiAmountString: '3903.045197',
-          },
-        },
-        {
-          accountIndex: 13,
-          mint: 'So11111111111111111111111111111111111111112',
-          owner: 'J4uBbeoWpZE8fH58PM1Fp9n9K6f1aThyeVCyRdJbaXqt',
-          programId: 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
-          uiTokenAmount: {
-            amount: '27018868812',
-            decimals: 9,
-            uiAmount: 27.018868812,
-            uiAmountString: '27.018868812',
-          },
-        },
-      ],
-      rewards: [],
       status: { Ok: null },
+      preBalances: [1533615667, 7648885090],
+      postBalances: [1532581212, 7648893840],
+      preTokenBalances: [],
+      postTokenBalances: [],
     },
     slot: 343287088,
     transaction: {
       message: {
-        accountKeys: [
-          '4tE76eixEgyJDrdykdWJR1XBkzUk4cLMvqjR2xVJUxer',
-          '4cLUBQKZgCv2AqGXbh8ncGhrDRcicUe3WSDzjgPY2oTA',
-          'F77xG4vz2CJeMxxAmFW8pvPx2c5Uk75pksr6Wwx6HFhV',
-          'Ffqao4nxSvgaR5kvFz1F718WaxSv6LnNfHuGqFEZ8fzL',
-          '11111111111111111111111111111111',
-          'ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL',
-          'ComputeBudget111111111111111111111111111111',
-          'D8cy77BBepLMngZx6ZukaTff5hCt1HrWyKk3Hnd9oitf',
-          'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
-          'JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4',
-          'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
-        ],
-        addressTableLookups: [
-          {
-            accountKey: 'G6EBADumaU4MaifUPMYY77Ao74ogBSwGDsavzcmYRkUA',
-            readonlyIndexes: [129, 128, 204, 55],
-            writableIndexes: [205, 203, 199, 206],
-          },
-        ],
+        accountKeys: ['4tE76eixEgyJDrdykdWJR1XBkzUk4cLMvqjR2xVJUxer'],
         header: {
           numReadonlySignedAccounts: 0,
-          numReadonlyUnsignedAccounts: 7,
+          numReadonlyUnsignedAccounts: 0,
           numRequiredSignatures: 1,
         },
         instructions: [],
         recentBlockhash: 'CR4RkaZprQixHJC3EQdkcMRte8E3GwLfec6ehefyvtmk',
       },
-      signatures: [SOL_TO_USDC_SWAP_SIGNATURE],
+      signatures: [signature],
     },
     version: 0,
-  },
-} as const;
-
-const USDC_SOL_TRANSACTION_RESPONSE = {
-  id: '1337',
-  jsonrpc: '2.0',
-  result: {
-    blockTime: 1748545222,
-    meta: {
-      computeUnitsConsumed: 101807,
-      err: null,
-      fee: 17129,
-      innerInstructions: [
-        { index: 2, instructions: [] },
-        { index: 3, instructions: [] },
-      ],
-      loadedAddresses: {
-        readonly: [
-          'J4HJYz4p7TRP96WVFky3vh7XryxoFehHjoRySUTeSeXw',
-          'obriQD1zbpyLz95G5n7nJe6a4DPjpFwa5XYPoNm113y',
-          'So11111111111111111111111111111111111111112',
-          'Sysvar1nstructions1111111111111111111111111',
-        ],
-        writable: [
-          '86KSdCfcqnJo9TCLFi3zxsJAJzvx9QU7oEPd6Fn5ZPom',
-          '8ofECjHnVGLU4ywyPdK6mFddEqAuXsnrrov8m2zeFhvj',
-          'Fn68NZzCCgZKtYmnAYbkL6w5NNx3TgjW91dGkLA3hsDK',
-          'FpCMFDFGYotvufJ7HrFHsWEiiQCGbkLCtwHiDnh7o28Q',
-        ],
-      },
-      logMessages: [],
-      postBalances: [
-        1538468067, 2039280, 0, 2039280, 1, 29900160, 731913600, 1, 1017968,
-        8741760, 1141440, 934087680, 224715580269, 2039280, 5526241, 3167032033,
-        2561280, 1141440, 1045539216193, 0,
-      ],
-      postTokenBalances: [
-        {
-          accountIndex: 1,
-          mint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
-          owner: '3xTPAZxmpwd8GrNEKApaTw6VH4jqJ31WFXUvQzgwhR7c',
-          programId: 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
-          uiTokenAmount: {
-            amount: '11827324',
-            decimals: 6,
-            uiAmount: 11.827324,
-            uiAmountString: '11.827324',
-          },
-        },
-        {
-          accountIndex: 3,
-          mint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
-          owner: '4cLUBQKZgCv2AqGXbh8ncGhrDRcicUe3WSDzjgPY2oTA',
-          programId: 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
-          uiTokenAmount: {
-            amount: '244533398',
-            decimals: 6,
-            uiAmount: 244.533398,
-            uiAmountString: '244.533398',
-          },
-        },
-        {
-          accountIndex: 12,
-          mint: 'So11111111111111111111111111111111111111112',
-          owner: 'Fn68NZzCCgZKtYmnAYbkL6w5NNx3TgjW91dGkLA3hsDK',
-          programId: 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
-          uiTokenAmount: {
-            amount: '224713540988',
-            decimals: 9,
-            uiAmount: 224.713540988,
-            uiAmountString: '224.713540988',
-          },
-        },
-        {
-          accountIndex: 13,
-          mint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
-          owner: 'Fn68NZzCCgZKtYmnAYbkL6w5NNx3TgjW91dGkLA3hsDK',
-          programId: 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
-          uiTokenAmount: {
-            amount: '123014937192',
-            decimals: 6,
-            uiAmount: 123014.937192,
-            uiAmountString: '123014.937192',
-          },
-        },
-      ],
-      preBalances: [
-        1532581212, 2039280, 0, 2039280, 1, 29900160, 731913600, 1, 1017968,
-        8741760, 1141440, 934087680, 224721484253, 2039280, 5526241, 3167032033,
-        2561280, 1141440, 1045539216193, 0,
-      ],
-      preTokenBalances: [
-        {
-          accountIndex: 1,
-          mint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
-          owner: '4tE76eixEgyJDrdykdWJR1XBkzUk4cLMvqjR2xVJUxer',
-          programId: 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
-          uiTokenAmount: {
-            amount: '12827324',
-            decimals: 6,
-            uiAmount: 12.827324,
-            uiAmountString: '12.827324',
-          },
-        },
-        {
-          accountIndex: 3,
-          mint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
-          owner: '4cLUBQKZgCv2AqGXbh8ncGhrDRcicUe3WSDzjgPY2oTA',
-          programId: 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
-          uiTokenAmount: {
-            amount: '244524648',
-            decimals: 6,
-            uiAmount: 244.524648,
-            uiAmountString: '244.524648',
-          },
-        },
-        {
-          accountIndex: 12,
-          mint: 'So11111111111111111111111111111111111111112',
-          owner: 'Fn68NZzCCgZKtYmnAYbkL6w5NNx3TgjW91dGkLA3hsDK',
-          programId: 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
-          uiTokenAmount: {
-            amount: '224719444972',
-            decimals: 9,
-            uiAmount: 224.719444972,
-            uiAmountString: '224.719444972',
-          },
-        },
-        {
-          accountIndex: 13,
-          mint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
-          owner: 'Fn68NZzCCgZKtYmnAYbkL6w5NNx3TgjW91dGkLA3hsDK',
-          programId: 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
-          uiTokenAmount: {
-            amount: '123013945942',
-            decimals: 6,
-            uiAmount: 123013.945942,
-            uiAmountString: '123013.945942',
-          },
-        },
-      ],
-      rewards: [],
-      status: { Ok: null },
-    },
-    slot: 343302515,
-    transaction: {
-      message: {
-        accountKeys: [
-          '4tE76eixEgyJDrdykdWJR1XBkzUk4cLMvqjR2xVJUxer',
-          'F77xG4vz2CJeMxxAmFW8pvPx2c5Uk75pksr6Wwx6HFhV',
-          'Ffqao4nxSvgaR5kvFz1F718WaxSv6LnNfHuGqFEZ8fzL',
-          'H4FVf2mGfHN26D1CkZ6sJAb6xUhhnW1w9abpaxHnUbUD',
-          '11111111111111111111111111111111',
-          '6YawcNeZ74tRyCv4UfGydYMr7eho7vbUR6ScVffxKAb3',
-          'ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL',
-          'ComputeBudget111111111111111111111111111111',
-          'D8cy77BBepLMngZx6ZukaTff5hCt1HrWyKk3Hnd9oitf',
-          'GZsNmWKbqhMYtdSkkvMdEyQF9k5mLmP7tTKYWZjcHVPE',
-          'JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4',
-          'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
-        ],
-        addressTableLookups: [
-          {
-            accountKey: 'HPLCVFcCMgt6mp5uZLo9u8WnqAe2Yan7Sf285fRmitYP',
-            readonlyIndexes: [14, 15, 42, 16],
-            writableIndexes: [18, 13, 12, 11],
-          },
-        ],
-        header: {
-          numReadonlySignedAccounts: 0,
-          numReadonlyUnsignedAccounts: 8,
-          numRequiredSignatures: 1,
-        },
-        instructions: [],
-        recentBlockhash: 'FN4BriKgvHGgyzrz1iZ1rv2zfAvogZ9fFbKiwL8b9Eru',
-      },
-      signatures: [USDC_TO_SOL_SWAP_SIGNATURE],
-    },
-    version: 0,
-  },
-} as const;
-
-const extractSignatureFromBase64Tx = (base64Tx: string): string => {
-  const buffer = Buffer.from(base64Tx, 'base64');
-  if (buffer.length < 65) {
-    throw new Error('Invalid serialized Solana transaction');
-  }
-  return base58.encode(buffer.subarray(1, 65));
-};
-
-const buildSuccessfulTransactionResponse = (
-  signature: string,
-  scenario: 'sol-to-usdc' | 'usdc-to-sol',
-) => {
-  const template =
-    scenario === 'sol-to-usdc'
-      ? SOL_USDC_TRANSACTION_RESPONSE
-      : USDC_SOL_TRANSACTION_RESPONSE;
-  const response = JSON.parse(JSON.stringify(template));
-  response.result.transaction.signatures = [signature];
-  return response;
-};
+  });
 
 export type SolanaSwapScenario = 'sol-to-usdc' | 'usdc-to-sol' | 'no-quotes';
 
@@ -647,14 +319,7 @@ export const buildSolanaSwapTestSpecificMock =
       'access-control-allow-headers': '*',
     };
 
-    const activeSwapScenario =
-      scenario === 'usdc-to-sol' ? 'usdc-to-sol' : 'sol-to-usdc';
-    const signatureHolder = {
-      value:
-        activeSwapScenario === 'usdc-to-sol'
-          ? USDC_TO_SOL_SWAP_SIGNATURE
-          : SOL_TO_USDC_SWAP_SIGNATURE,
-    };
+    let transactionSubmitted = false;
 
     await mockServer
       .forPost('/proxy')
@@ -732,53 +397,31 @@ export const buildSolanaSwapTestSpecificMock =
             );
             break;
           case 'sendTransaction':
-            try {
-              const params =
-                typeof requestBody === 'object' &&
-                requestBody !== null &&
-                'params' in requestBody &&
-                Array.isArray((requestBody as { params?: unknown[] }).params)
-                  ? (requestBody as { params: unknown[] }).params
-                  : [];
-              const serializedTx =
-                typeof params[0] === 'string' ? params[0] : '';
-              if (serializedTx) {
-                signatureHolder.value =
-                  extractSignatureFromBase64Tx(serializedTx);
-              }
-            } catch (error) {
-              // eslint-disable-next-line no-console
-              console.log(
-                '[SOLANA_RPC_MOCK] Failed to extract transaction signature',
-                error,
-              );
-            }
-
+            transactionSubmitted = true;
             // eslint-disable-next-line no-console
-            console.log(
-              `[SOLANA_RPC_MOCK] ✅ Transaction submitted with signature ${signatureHolder.value}`,
-            );
-            rpcResponse = buildJsonRpcResponse(signatureHolder.value, id);
+            console.log('[SOLANA_RPC_MOCK] ✅ Transaction submitted!');
+            rpcResponse = buildJsonRpcResponse(SOLANA_SWAP_SIGNATURE, id);
             break;
           case 'getSignaturesForAddress':
-            rpcResponse = buildJsonRpcResponse(
-              [
-                {
-                  blockTime: 1748363309,
-                  confirmationStatus: 'finalized',
-                  err: null,
-                  memo: null,
-                  signature: signatureHolder.value,
-                  slot: 342840492,
-                },
-              ],
-              id,
-            );
+            rpcResponse = transactionSubmitted
+              ? buildJsonRpcResponse(
+                  [
+                    {
+                      blockTime: 1748363309,
+                      confirmationStatus: 'finalized',
+                      err: null,
+                      memo: null,
+                      signature: SOLANA_SWAP_SIGNATURE,
+                      slot: 342840492,
+                    },
+                  ],
+                  id,
+                )
+              : buildJsonRpcResponse([], id);
             break;
           case 'getTransaction':
             rpcResponse = buildSuccessfulTransactionResponse(
-              signatureHolder.value,
-              activeSwapScenario,
+              SOLANA_SWAP_SIGNATURE,
             );
             break;
           case 'getTokenAccountsByOwner':
@@ -822,109 +465,29 @@ export const buildSolanaSwapTestSpecificMock =
             );
             break;
           case 'getAccountInfo':
-            {
-              const params =
-                typeof requestBody === 'object' &&
-                requestBody !== null &&
-                'params' in requestBody &&
-                Array.isArray((requestBody as { params?: unknown[] }).params)
-                  ? (requestBody as { params: unknown[] }).params
-                  : [];
-              const accountAddress =
-                typeof params[0] === 'string' ? params[0] : undefined;
-
-              const mintDataMap: Record<string, string> = {
-                // USDC mint
-                EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v:
-                  'AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAKByThgJAAAGAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==',
-                // WSOL mint
-                So11111111111111111111111111111111111111112:
-                  'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//9jp7O24A0JAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==',
-              };
-              const mintData = accountAddress
-                ? mintDataMap[accountAddress]
-                : undefined;
-
-              rpcResponse = buildJsonRpcResponse(
-                {
-                  context: { apiVersion: '2.0.21', slot: 317161313 },
-                  value: mintData
-                    ? {
-                        data: [mintData, 'base64'],
-                        executable: false,
-                        lamports: 5312114,
-                        owner: 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
-                        rentEpoch: '18446744073709551615',
-                        space: 82,
-                      }
-                    : {
-                        data: ['', 'base58'],
-                        executable: false,
-                        lamports: 5312114,
-                        owner: '11111111111111111111111111111111',
-                        rentEpoch: '18446744073709551615',
-                        space: 0,
-                      },
+            rpcResponse = buildJsonRpcResponse(
+              {
+                context: { apiVersion: '2.0.21', slot: 317161313 },
+                value: {
+                  data: ['', 'base58'],
+                  executable: false,
+                  lamports: 5312114,
+                  owner: '11111111111111111111111111111111',
+                  rentEpoch: '18446744073709551615',
+                  space: 0,
                 },
-                id,
-              );
-            }
+              },
+              id,
+            );
             break;
           case 'getMultipleAccounts':
-            {
-              const numAltAddresses = 247;
-              const dummyAddresses: string[] = [];
-              for (let i = 0; i < numAltAddresses; i++) {
-                const bytes = Buffer.alloc(32);
-                bytes[0] = (i + 1) % 256;
-                bytes[1] = Math.floor((i + 1) / 256) % 256;
-                bytes[31] = 1;
-                dummyAddresses.push(bytes.toString('base64'));
-              }
-
-              const params =
-                typeof requestBody === 'object' &&
-                requestBody !== null &&
-                'params' in requestBody &&
-                Array.isArray((requestBody as { params?: unknown[] }).params)
-                  ? (requestBody as { params: unknown[] }).params
-                  : [];
-              const requestedAccounts =
-                Array.isArray(params[0]) &&
-                params[0].every((v) => typeof v === 'string')
-                  ? (params[0] as string[])
-                  : [];
-
-              const altAccountEntry = {
-                data: {
-                  parsed: {
-                    info: {
-                      addresses: dummyAddresses,
-                      authority: '9RAufBfjGQjDfrwxeyKmZWPADHSb8HcoqCdrmpqvCr1g',
-                      deactivationSlot: '18446744073709551615',
-                      lastExtendedSlot: '330440295',
-                      lastExtendedSlotStartIndex: 0,
-                    },
-                    type: 'lookupTable',
-                  },
-                  program: 'address-lookup-table',
-                  space: 56 + numAltAddresses * 32,
-                },
-                executable: false,
-                lamports: 58296960,
-                owner: 'AddressLookupTab1e1111111111111111111111111',
-                rentEpoch: '18446744073709551615',
-                space: 56 + numAltAddresses * 32,
-              };
-
-              rpcResponse = buildJsonRpcResponse(
-                {
-                  context: { apiVersion: '2.1.21', slot: 341693911 },
-                  value: requestedAccounts.map(() => altAccountEntry),
-                },
-                id,
-              );
-            }
+            rpcResponse = buildJsonRpcResponse(
+              {
+                context: { apiVersion: '2.1.21', slot: 341693911 },
+                value: [],
+              },
+              id,
+            );
             break;
           default:
             rpcResponse = buildJsonRpcResponse(null, id);
