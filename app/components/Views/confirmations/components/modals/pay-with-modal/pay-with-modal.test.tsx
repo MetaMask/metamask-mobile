@@ -25,16 +25,15 @@ import { EthAccountType, SolAccountType } from '@metamask/keyring-api';
 import { Hex } from '@metamask/utils';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { EMPTY_ADDRESS } from '../../../../../../constants/transaction';
-import {
-  getAvailableTokens,
-  filterTokensByAllowlist,
-} from '../../../utils/transaction-pay';
+import { getAvailableTokens } from '../../../utils/transaction-pay';
+import { useWithdrawTokenFilter } from '../../../hooks/pay/useWithdrawTokenFilter';
 import { usePerpsPaymentToken } from '../../../../../UI/Perps/hooks/usePerpsPaymentToken';
 import { usePerpsBalanceTokenFilter } from '../../../../../UI/Perps/hooks/usePerpsBalanceTokenFilter';
 
 jest.mock('../../../hooks/pay/useTransactionPayToken');
 jest.mock('../../../hooks/pay/useTransactionPayData');
 jest.mock('../../../hooks/pay/useTransactionPayWithdraw');
+jest.mock('../../../hooks/pay/useWithdrawTokenFilter');
 jest.mock('../../../hooks/transactions/useTransactionMetadataRequest');
 jest.mock('../../../utils/transaction-pay');
 jest.mock('../../../../../UI/Perps/hooks/usePerpsPaymentToken');
@@ -176,7 +175,7 @@ describe('PayWithModal', () => {
   const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
   const useTransactionPayWithdrawMock = jest.mocked(useTransactionPayWithdraw);
   const getAvailableTokensMock = jest.mocked(getAvailableTokens);
-  const filterTokensByAllowlistMock = jest.mocked(filterTokensByAllowlist);
+  const useWithdrawTokenFilterMock = jest.mocked(useWithdrawTokenFilter);
   const useTransactionPayRequiredTokensMock = jest.mocked(
     useTransactionPayRequiredTokens,
   );
@@ -197,6 +196,9 @@ describe('PayWithModal', () => {
     });
 
     getAvailableTokensMock.mockReturnValue(TOKENS_MOCK);
+    useWithdrawTokenFilterMock.mockReturnValue(
+      jest.fn((tokens: AssetType[]) => tokens),
+    );
     useTransactionPayRequiredTokensMock.mockReturnValue(REQUIRED_TOKENS_MOCK);
 
     useTransactionPayTokenMock.mockReturnValue({
@@ -327,44 +329,13 @@ describe('PayWithModal', () => {
       expect(getAvailableTokensMock).not.toHaveBeenCalled();
     });
 
-    it('calls filterTokensByAllowlist when allowedPredictWithdrawTokens is set', () => {
-      const allowedTokens = {
-        [CHAIN_ID_1_MOCK]: [TOKENS_MOCK[0].address as Hex],
-      };
+    it('uses withdrawTokenFilter for withdrawal transactions', () => {
+      const withdrawFilterFn = jest.fn((tokens: AssetType[]) => tokens);
+      useWithdrawTokenFilterMock.mockReturnValue(withdrawFilterFn);
 
-      filterTokensByAllowlistMock.mockReturnValue([TOKENS_MOCK[0]]);
+      render();
 
-      renderScreen(
-        PayWithModal,
-        { name: Routes.CONFIRMATION_PAY_WITH_MODAL },
-        {
-          state: merge(
-            {},
-            initialState,
-            transactionApprovalControllerMock,
-            simpleSendTransactionControllerMock,
-            otherControllersMock,
-            {
-              engine: {
-                backgroundState: {
-                  RemoteFeatureFlagController: {
-                    remoteFeatureFlags: {
-                      confirmations_pay: {
-                        allowedPredictWithdrawTokens: allowedTokens,
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          ),
-        },
-      );
-
-      expect(filterTokensByAllowlistMock).toHaveBeenCalledWith(
-        expect.any(Array),
-        allowedTokens,
-      );
+      expect(withdrawFilterFn).toHaveBeenCalledWith(expect.any(Array));
       expect(getAvailableTokensMock).not.toHaveBeenCalled();
     });
   });

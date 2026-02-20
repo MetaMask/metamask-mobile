@@ -1,8 +1,8 @@
 import React, { useCallback, useRef } from 'react';
 import { Hex } from '@metamask/utils';
-import { useSelector } from 'react-redux';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
+import { useWithdrawTokenFilter } from '../../../hooks/pay/useWithdrawTokenFilter';
 import { strings } from '../../../../../../../locales/i18n';
 import { Asset } from '../../send/asset';
 import BottomSheet, {
@@ -16,10 +16,7 @@ import {
   TokenListItem,
 } from '../../../types/token';
 import { useTransactionPayRequiredTokens } from '../../../hooks/pay/useTransactionPayData';
-import {
-  getAvailableTokens,
-  filterTokensByAllowlist,
-} from '../../../utils/transaction-pay';
+import { getAvailableTokens } from '../../../utils/transaction-pay';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { TransactionType } from '@metamask/transaction-controller';
 import {
@@ -31,7 +28,6 @@ import { HIDE_NETWORK_FILTER_TYPES } from '../../../constants/confirmations';
 import { useMusdPaymentToken } from '../../../../../UI/Earn/hooks/useMusdPaymentToken';
 import { usePerpsBalanceTokenFilter } from '../../../../../UI/Perps/hooks/usePerpsBalanceTokenFilter';
 import { usePerpsPaymentToken } from '../../../../../UI/Perps/hooks/usePerpsPaymentToken';
-import { selectMetaMaskPayFlags } from '../../../../../../selectors/featureFlagController/confirmations';
 
 export function PayWithModal() {
   const transactionMeta = useTransactionMetadataRequest();
@@ -49,7 +45,7 @@ export function PayWithModal() {
   const { onPaymentTokenChange: onPerpsPaymentTokenChange } =
     usePerpsPaymentToken();
   const perpsBalanceTokenFilter = usePerpsBalanceTokenFilter();
-  const { allowedPredictWithdrawTokens } = useSelector(selectMetaMaskPayFlags);
+  const withdrawTokenFilter = useWithdrawTokenFilter();
 
   const close = useCallback((onClosed?: () => void) => {
     // Called after the bottom sheet's closing animation completes.
@@ -119,18 +115,8 @@ export function PayWithModal() {
 
   const tokenFilter = useCallback(
     (tokens: AssetType[]): TokenListItem[] => {
-      // For predict withdrawal transactions, filter by the LD allowlist if set,
-      // otherwise show all tokens. Perps will use its own allowlist.
       if (isTransactionPayWithdraw(transactionMeta)) {
-        if (
-          hasTransactionType(transactionMeta, [
-            TransactionType.predictWithdraw,
-          ]) &&
-          allowedPredictWithdrawTokens
-        ) {
-          return filterTokensByAllowlist(tokens, allowedPredictWithdrawTokens);
-        }
-        return tokens;
+        return withdrawTokenFilter(tokens);
       }
 
       // Standard deposit/payment token filtering
@@ -157,7 +143,7 @@ export function PayWithModal() {
       return wrapHighlightedItemCallbacks(filteredTokens);
     },
     [
-      allowedPredictWithdrawTokens,
+      withdrawTokenFilter,
       musdTokenFilter,
       payToken,
       requiredTokens,

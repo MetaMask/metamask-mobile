@@ -14,9 +14,16 @@ export interface MetaMaskPayFlags {
   bufferStep: number;
   bufferSubsequent: number;
   slippage: number;
-  predictWithdrawAnyToken: boolean;
-  perpsWithdrawAnyToken: boolean;
-  allowedPredictWithdrawTokens: Record<Hex, Hex[]> | undefined;
+}
+
+export interface PayPostQuoteConfig {
+  enabled: boolean;
+  tokens?: Record<Hex, Hex[]>;
+}
+
+export interface PayPostQuoteFlags {
+  default: PayPostQuoteConfig;
+  override?: Record<string, PayPostQuoteConfig>;
 }
 
 export interface GasFeeTokenFlags {
@@ -53,25 +60,79 @@ export const selectMetaMaskPayFlags = createSelector(
 
     const slippage = (metaMaskPayFlags?.slippage as number) ?? SLIPPAGE_DEFAULT;
 
-    const allowedPredictWithdrawTokens =
-      metaMaskPayFlags?.allowedPredictWithdrawTokens as
-        | Record<Hex, Hex[]>
-        | undefined;
-
     return {
       attemptsMax,
       bufferInitial,
       bufferStep,
       bufferSubsequent,
       slippage,
-      predictWithdrawAnyToken:
-        (metaMaskPayFlags?.predictWithdrawAnyToken as boolean) ?? false,
-      perpsWithdrawAnyToken:
-        (metaMaskPayFlags?.perpsWithdrawAnyToken as boolean) ?? false,
-      allowedPredictWithdrawTokens,
     };
   },
 );
+
+const PAY_POST_QUOTE_DEFAULT: PayPostQuoteConfig = {
+  enabled: false,
+};
+
+export const selectPayPostQuoteFlags = createSelector(
+  selectRemoteFeatureFlags,
+  (featureFlags): PayPostQuoteFlags => {
+    const raw = featureFlags?.confirmations_pay_post_quote as
+      | Record<string, Json>
+      | undefined;
+
+    const rawDefault = raw?.default as Record<string, Json> | undefined;
+    const rawOverride = raw?.override as
+      | Record<string, Record<string, Json>>
+      | undefined;
+
+    const defaultConfig: PayPostQuoteConfig = {
+      enabled: (rawDefault?.enabled as boolean) ?? false,
+      tokens: rawDefault?.tokens as Record<Hex, Hex[]> | undefined,
+    };
+
+    const override = rawOverride
+      ? Object.fromEntries(
+          Object.entries(rawOverride).map(([key, value]) => [
+            key,
+            {
+              enabled: (value?.enabled as boolean) ?? false,
+              tokens: value?.tokens as Record<Hex, Hex[]> | undefined,
+            },
+          ]),
+        )
+      : undefined;
+
+    return {
+      default: defaultConfig,
+      override,
+    };
+  },
+);
+
+/**
+ * Resolves the effective config for a given override key.
+ * If the key exists in override, the entire override entry is used (no merging with default).
+ */
+export function resolvePayPostQuoteConfig(
+  flags: PayPostQuoteFlags | undefined,
+  overrideKey?: string,
+): PayPostQuoteConfig {
+  if (!flags) {
+    return PAY_POST_QUOTE_DEFAULT;
+  }
+
+  const override = overrideKey ? flags.override?.[overrideKey] : undefined;
+
+  if (!override) {
+    return flags.default;
+  }
+
+  return {
+    enabled: override.enabled ?? flags.default.enabled,
+    tokens: override.tokens ?? flags.default.tokens,
+  };
+}
 
 /**
  * Selector to get the allow list for non-zero unused approvals from remote feature flags.

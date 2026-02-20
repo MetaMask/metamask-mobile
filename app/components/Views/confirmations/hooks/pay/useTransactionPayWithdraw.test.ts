@@ -16,10 +16,10 @@ const STATE_MOCK = merge(
 
 function runHook({
   type,
-  predictWithdrawAnyToken = false,
+  postQuoteFlags,
 }: {
   type?: TransactionType;
-  predictWithdrawAnyToken?: boolean;
+  postQuoteFlags?: Record<string, unknown>;
 } = {}) {
   const mockState = cloneDeep(STATE_MOCK);
 
@@ -31,8 +31,8 @@ function runHook({
   mockState.engine.backgroundState.RemoteFeatureFlagController = {
     ...mockState.engine.backgroundState.RemoteFeatureFlagController,
     remoteFeatureFlags: {
-      confirmations_pay: {
-        predictWithdrawAnyToken,
+      confirmations_pay_post_quote: postQuoteFlags ?? {
+        default: { enabled: false },
       },
     },
   };
@@ -59,25 +59,57 @@ describe('useTransactionPayWithdraw', () => {
     it('returns false for non-withdraw transactions regardless of feature flag', () => {
       const { result } = runHook({
         type: TransactionType.simpleSend,
-        predictWithdrawAnyToken: true,
+        postQuoteFlags: {
+          default: { enabled: true },
+        },
       });
       expect(result.current.canSelectWithdrawToken).toBe(false);
     });
 
-    it('returns false for withdraw transactions when feature flag is disabled', () => {
+    it('returns false for withdraw transactions when default is disabled', () => {
       const { result } = runHook({
         type: TransactionType.predictWithdraw,
-        predictWithdrawAnyToken: false,
+        postQuoteFlags: {
+          default: { enabled: false },
+        },
       });
       expect(result.current.canSelectWithdrawToken).toBe(false);
     });
 
-    it('returns true for withdraw transactions when feature flag is enabled', () => {
+    it('returns true for withdraw transactions when default is enabled', () => {
       const { result } = runHook({
         type: TransactionType.predictWithdraw,
-        predictWithdrawAnyToken: true,
+        postQuoteFlags: {
+          default: { enabled: true },
+        },
       });
       expect(result.current.canSelectWithdrawToken).toBe(true);
+    });
+
+    it('uses override config when override key matches transaction type', () => {
+      const { result } = runHook({
+        type: TransactionType.predictWithdraw,
+        postQuoteFlags: {
+          default: { enabled: false },
+          override: {
+            predictWithdraw: { enabled: true },
+          },
+        },
+      });
+      expect(result.current.canSelectWithdrawToken).toBe(true);
+    });
+
+    it('override disabled takes precedence over default enabled', () => {
+      const { result } = runHook({
+        type: TransactionType.predictWithdraw,
+        postQuoteFlags: {
+          default: { enabled: true },
+          override: {
+            predictWithdraw: { enabled: false },
+          },
+        },
+      });
+      expect(result.current.canSelectWithdrawToken).toBe(false);
     });
   });
 });

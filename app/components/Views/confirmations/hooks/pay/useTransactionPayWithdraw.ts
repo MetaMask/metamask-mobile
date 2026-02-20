@@ -1,7 +1,6 @@
-import { useSelector } from 'react-redux';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { isTransactionPayWithdraw } from '../../utils/transaction';
-import { selectMetaMaskPayFlags } from '../../../../../selectors/featureFlagController/confirmations';
+import { usePayPostQuoteConfig } from './usePayPostQuoteConfig';
 
 export interface UseTransactionPayWithdrawResult {
   /** Whether this transaction is a withdraw type */
@@ -19,9 +18,9 @@ export interface UseTransactionPayWithdrawResult {
 export function useTransactionPayWithdraw(): UseTransactionPayWithdrawResult {
   const transactionMeta = useTransactionMetadataRequest();
   const isWithdraw = isTransactionPayWithdraw(transactionMeta);
-  const { predictWithdrawAnyToken } = useSelector(selectMetaMaskPayFlags);
+  const config = usePayPostQuoteConfig();
 
-  const canSelectWithdrawToken = isWithdraw && predictWithdrawAnyToken;
+  const canSelectWithdrawToken = isWithdraw && config.enabled;
 
   return {
     isWithdraw,
