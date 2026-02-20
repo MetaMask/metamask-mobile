@@ -28,6 +28,8 @@ import {
 } from '../types/musd.types';
 import { selectMusdQuickConvertEnabledFlag } from '../selectors/featureFlags';
 
+type MusdInitiationResult = { transactionId: string } | void;
+
 /**
  * Why do we have BOTH `existingPendingMusdConversion` AND `inFlightInitiationPromises`?
  *
@@ -41,8 +43,14 @@ import { selectMusdQuickConvertEnabledFlag } from '../selectors/featureFlags';
  * There is a short window after the CTA press where we have started the async initiation
  * but the pending approval is not yet observable in Redux. Rapid spam during that window
  * can otherwise create multiple transactions before (1) can detect an existing pending tx.
+ *
+ * This map is shared by both custom and max entry points so a rapid cross-entry tap (although unlikely)
+ * (e.g., Custom then Max) dedupes to the same initiation for a given account+chain.
  */
-const inFlightInitiationPromises = new Map<string, Promise<string | void>>();
+const inFlightInitiationPromises = new Map<
+  string,
+  Promise<MusdInitiationResult>
+>();
 
 function getInitiationKey(params: { selectedAddress: string; chainId: Hex }) {
   const { selectedAddress, chainId } = params;
@@ -169,7 +177,7 @@ export const useMusdConversion = () => {
    * to the max conversion confirmation modal.
    */
   const initiateMaxConversion = useCallback(
-    async (token: AssetType) => {
+    async (token: AssetType): Promise<MusdInitiationResult> => {
       const tokenAddress = token.address as Hex;
       const tokenChainId = token.chainId as Hex;
 
@@ -183,75 +191,123 @@ export const useMusdConversion = () => {
         if (!token.rawBalance || token.rawBalance === '0x0') {
           throw new Error('Token balance must be greater than zero');
         }
+        const tokenRawBalance = token.rawBalance;
 
         if (!selectedAddress) {
           throw new Error('No account selected');
         }
 
-        const networkClientId =
-          Engine.context.NetworkController.findNetworkClientIdByChainId(
-            tokenChainId,
-          );
+        const existingPendingMusdConversion = findExistingPendingMusdConversion(
+          {
+            pendingTransactionMetas,
+            selectedAddress,
+            preferredPaymentTokenChainId: tokenChainId,
+          },
+        );
 
-        if (!networkClientId) {
-          throw new Error(
-            `Network client not found for chain ID: ${tokenChainId}`,
-          );
+        /**
+         * If a conversion is already pending for this account+chain,
+         * re-enter the existing confirmations flow instead of creating a new tx.
+         */
+        if (existingPendingMusdConversion?.id) {
+          navigation.navigate(Routes.EARN.MODALS.ROOT, {
+            screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+            params: {
+              variant: MusdConversionVariant.QUICK_CONVERT,
+              token,
+            },
+          });
+
+          return {
+            transactionId: existingPendingMusdConversion.id,
+          };
         }
 
-        const { transactionId } = await createMusdConversionTransaction({
-          chainId: tokenChainId,
-          fromAddress: toHex(selectedAddress),
-          recipientAddress: toHex(selectedAddress),
-          amountHex: token.rawBalance,
-          networkClientId,
-        });
-
-        const { TransactionPayController, GasFeeController } = Engine.context;
-        Logger.log('[mUSD Max Conversion] Setting payment token:', {
-          transactionId,
-          tokenAddress,
+        const initiationKey = getInitiationKey({
+          selectedAddress,
           chainId: tokenChainId,
         });
 
-        // Must be called BEFORE updatePaymentToken.
-        TransactionPayController.setTransactionConfig(
-          transactionId,
-          (config) => {
-            config.isMaxAmount = true;
-          },
-        );
+        const inFlightInitiation =
+          inFlightInitiationPromises.get(initiationKey);
 
-        await GasFeeController.fetchGasFeeEstimates({ networkClientId }).catch(
-          () => undefined,
-        );
+        if (inFlightInitiation) {
+          return await inFlightInitiation;
+        }
 
-        // Set payment token - this triggers automatic Relay quote fetching
-        TransactionPayController.updatePaymentToken({
-          transactionId,
-          tokenAddress,
-          chainId: tokenChainId,
-        });
+        const initiationPromise = (async () => {
+          const networkClientId =
+            Engine.context.NetworkController.findNetworkClientIdByChainId(
+              tokenChainId,
+            );
 
-        EngineService.flushState();
+          if (!networkClientId) {
+            throw new Error(
+              `Network client not found for chain ID: ${tokenChainId}`,
+            );
+          }
 
-        Logger.log(
-          `[mUSD Max Conversion] Created transaction ${transactionId} for ${token.symbol ?? tokenAddress}`,
-        );
+          const { transactionId } = await createMusdConversionTransaction({
+            chainId: tokenChainId,
+            fromAddress: toHex(selectedAddress),
+            recipientAddress: toHex(selectedAddress),
+            amountHex: tokenRawBalance,
+            networkClientId,
+          });
 
-        // Navigate to modal stack AFTER transaction is created
-        // This ensures approvalRequest exists when the confirmation screen renders
-        navigation.navigate(Routes.EARN.MODALS.ROOT, {
-          screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-          params: {
-            variant: MusdConversionVariant.QUICK_CONVERT,
-            token,
-          },
-        });
+          const { TransactionPayController, GasFeeController } = Engine.context;
+          Logger.log('[mUSD Max Conversion] Setting payment token:', {
+            transactionId,
+            tokenAddress,
+            chainId: tokenChainId,
+          });
 
-        return {
-          transactionId,
-        };
+          // Must be called BEFORE updatePaymentToken.
+          TransactionPayController.setTransactionConfig(
+            transactionId,
+            (config) => {
+              config.isMaxAmount = true;
+            },
+          );
+
+          await GasFeeController.fetchGasFeeEstimates({
+            networkClientId,
+          }).catch(() => undefined);
+
+          // Set payment token - this triggers automatic Relay quote fetching
+          TransactionPayController.updatePaymentToken({
+            transactionId,
+            tokenAddress,
+            chainId: tokenChainId,
+          });
+
+          EngineService.flushState();
+
+          Logger.log(
+            `[mUSD Max Conversion] Created transaction ${transactionId} for ${token.symbol ?? tokenAddress}`,
+          );
+
+          // Navigate to modal stack AFTER transaction is created
+          // This ensures approvalRequest exists when the confirmation screen renders
+          navigation.navigate(Routes.EARN.MODALS.ROOT, {
+            screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+            params: {
+              variant: MusdConversionVariant.QUICK_CONVERT,
+              token,
+            },
+          });
+
+          return {
+            transactionId,
+          };
+        })();
+
+        inFlightInitiationPromises.set(initiationKey, initiationPromise);
+        try {
+          return await initiationPromise;
+        } finally {
+          inFlightInitiationPromises.delete(initiationKey);
+        }
       } catch (err) {
         const errorMessage =
           err instanceof Error
@@ -267,7 +323,7 @@ export const useMusdConversion = () => {
         throw err;
       }
     },
-    [navigation, selectedAddress],
+    [navigation, pendingTransactionMetas, selectedAddress],
   );
 
   const navigateToQuickConvertScreen = useCallback(
@@ -342,7 +398,7 @@ export const useMusdConversion = () => {
    * If the user has not seen the education screen, they will be redirected there first.
    */
   const initiateCustomConversion = useCallback(
-    async (config: MusdConversionConfig): Promise<string | void> => {
+    async (config: MusdConversionConfig): Promise<MusdInitiationResult> => {
       if (handleEducationRedirectIfNeeded(config)) {
         return;
       }
@@ -386,7 +442,9 @@ export const useMusdConversion = () => {
          */
         if (existingPendingMusdConversion?.id) {
           navigateToCustomConversionScreen(config);
-          return existingPendingMusdConversion.id;
+          return {
+            transactionId: existingPendingMusdConversion.id,
+          };
         }
 
         const initiationKey = getInitiationKey({
@@ -433,7 +491,9 @@ export const useMusdConversion = () => {
               networkClientId,
             });
 
-            return transactionId;
+            return {
+              transactionId,
+            };
           } catch (err) {
             // Prevent the user from being stuck on the confirmation screen without a transaction.
             navigation.goBack();
