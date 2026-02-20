@@ -37,9 +37,6 @@ describe('DeviceAuthenticationButton', () => {
     expect(
       getByTestId(LoginViewSelectors.DEVICE_AUTHENTICATION_ICON),
     ).toBeOnTheScreen();
-    expect(
-      getByTestId(LoginViewSelectors.DEVICE_AUTHENTICATION_ICON),
-    ).toBeOnTheScreen();
   });
 
   it('calls onPress when pressed', () => {
