@@ -46,7 +46,7 @@ const safeDecodeUrl = (url: string): string => {
 
 export function processUrlForBrowser(
   input: string,
-  searchEngine = AppConstants.DEFAULT_SEARCH_ENGINE,
+  searchEngine: string = AppConstants.DEFAULT_SEARCH_ENGINE,
 ) {
   const defaultProtocol = 'https://';
 
