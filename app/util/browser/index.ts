@@ -4,6 +4,12 @@ import Url from 'url-parse';
 import { regex, hasProtocol } from '../../util/regex';
 import AppConstants from '../../core/AppConstants';
 
+const SEARCH_ENGINE_URLS: Record<string, string> = {
+  Google: 'https://www.google.com/search?q=',
+  DuckDuckGo: 'https://duckduckgo.com/?q=',
+  Brave: 'https://search.brave.com/search?q=',
+};
+
 /**
  * Returns URL prefixed with protocol
  *
@@ -60,12 +66,9 @@ export function processUrlForBrowser(
       !decodedInput.startsWith('http://localhost') &&
       !decodedInput.startsWith('localhost')
     ) {
-      const searchUrls: Record<string, string> = {
-        Google: 'https://www.google.com/search?q=',
-        DuckDuckGo: 'https://duckduckgo.com/?q=',
-        Brave: 'https://search.brave.com/search?q=',
-      };
-      const baseUrl = searchUrls[searchEngine] ?? searchUrls.Google;
+      const baseUrl =
+        SEARCH_ENGINE_URLS[searchEngine] ??
+        SEARCH_ENGINE_URLS[AppConstants.DEFAULT_SEARCH_ENGINE];
       return baseUrl + encodeURIComponent(input);
     }
   }
