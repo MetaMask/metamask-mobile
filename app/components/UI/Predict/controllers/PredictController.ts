@@ -2041,6 +2041,8 @@ export class PredictController extends BaseController<
     try {
       const signer = this.getSigner();
 
+      this.setSelectedPaymentToken(null);
+
       const depositPreparation = await provider.prepareDeposit({
         signer,
       });
