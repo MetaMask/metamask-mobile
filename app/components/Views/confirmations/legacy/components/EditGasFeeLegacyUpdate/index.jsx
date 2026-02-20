@@ -36,7 +36,7 @@ import {
 import { useTheme } from '../../../../../../util/theme';
 import Alert, { AlertType } from '../../../../../Base/Alert';
 import RangeInput from '../../../../../Base/RangeInput';
-import { useMetrics } from '../../../../../hooks/useMetrics';
+import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import FadeAnimationView from '../../../../../UI/FadeAnimationView';
 import StyledButton from '../../../../../UI/StyledButton';
 import InfoModal from '../../../../../Base/InfoModal';
@@ -58,7 +58,7 @@ const EditGasFeeLegacy = ({
   hasDappSuggestedGas,
   chainId,
 }) => {
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const [showRangeInfoModal, setShowRangeInfoModal] = useState(false);
   const [infoText, setInfoText] = useState('');
   const [gasPriceError, setGasPriceError] = useState('');

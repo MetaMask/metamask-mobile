@@ -237,13 +237,6 @@ jest.mock('../../../../../selectors/multichainAccounts/accounts', () => ({
   },
 }));
 
-jest.mock(
-  '../../../../../selectors/featureFlagController/multichainAccounts',
-  () => ({
-    selectMultichainAccountsState2Enabled: () => false,
-  }),
-);
-
 jest.mock('../../../../../selectors/accountsController', () => ({
   ...jest.requireActual('../../../../../selectors/accountsController'),
   selectInternalAccounts: () => [],

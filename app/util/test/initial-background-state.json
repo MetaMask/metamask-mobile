@@ -464,7 +464,7 @@
   "AssetsController": {
     "assetPreferences": {},
     "assetsBalance": {},
-    "assetsMetadata": {},
+    "assetsInfo": {},
     "assetsPrice": {},
     "customAssets": {}
   },
