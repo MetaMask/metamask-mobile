@@ -62,7 +62,7 @@ const mockOrder: FiatOrder = {
     provider: {
       id: '/providers/transak',
       name: 'Transak',
-      links: [{ name: 'support', url: 'https://support.transak.com' }],
+      links: [{ name: 'Support', url: 'https://support.transak.com' }],
     },
     fiatCurrency: {
       id: 'USD',
@@ -128,9 +128,7 @@ describe('OrderDetails', () => {
     const { toJSON, getByText } = renderWithProvider(
       <OrderDetails order={mockOrder} />,
     );
-    expect(
-      getByText('fiat_on_ramp_aggregator.order_details.processing'),
-    ).toBeOnTheScreen();
+    expect(getByText('Processing order')).toBeOnTheScreen();
     expect(toJSON()).toMatchSnapshot();
   });
 
@@ -143,9 +141,7 @@ describe('OrderDetails', () => {
     const { getByText } = renderWithProvider(
       <OrderDetails order={completedOrder} />,
     );
-    expect(
-      getByText('fiat_on_ramp_aggregator.order_details.successful'),
-    ).toBeOnTheScreen();
+    expect(getByText('Order successful!')).toBeOnTheScreen();
   });
 
   it('renders order in failed state', () => {
@@ -157,9 +153,7 @@ describe('OrderDetails', () => {
     const { getByText } = renderWithProvider(
       <OrderDetails order={failedOrder} />,
     );
-    expect(
-      getByText('fiat_on_ramp_aggregator.order_details.failed'),
-    ).toBeOnTheScreen();
+    expect(getByText('Order failed')).toBeOnTheScreen();
   });
 
   it('renders order in cancelled state', () => {
@@ -171,9 +165,7 @@ describe('OrderDetails', () => {
     const { getByText } = renderWithProvider(
       <OrderDetails order={cancelledOrder} />,
     );
-    expect(
-      getByText('fiat_on_ramp_aggregator.order_details.cancelled'),
-    ).toBeOnTheScreen();
+    expect(getByText('Order canceled')).toBeOnTheScreen();
   });
 
   it('renders order in created state', () => {
@@ -185,9 +177,7 @@ describe('OrderDetails', () => {
     const { getByText } = renderWithProvider(
       <OrderDetails order={createdOrder} />,
     );
-    expect(
-      getByText('fiat_on_ramp_aggregator.order_details.pending'),
-    ).toBeOnTheScreen();
+    expect(getByText('Order pending')).toBeOnTheScreen();
   });
 
   it('renders statusDescription when available', () => {
@@ -226,9 +216,7 @@ describe('OrderDetails', () => {
     const { getByText } = renderWithProvider(
       <OrderDetails order={mockOrder} />,
     );
-    expect(
-      getByText('fiat_on_ramp_aggregator.order_details.view_order_status'),
-    ).toBeOnTheScreen();
+    expect(getByText('View order status on Transak')).toBeOnTheScreen();
   });
 
   it('tracks analytics when provider order link is pressed', () => {
@@ -236,9 +224,7 @@ describe('OrderDetails', () => {
       <OrderDetails order={mockOrder} />,
     );
 
-    const link = getByText(
-      'fiat_on_ramp_aggregator.order_details.view_order_status',
-    );
+    const link = getByText('View order status on Transak');
     fireEvent.press(link);
 
     expect(mockTrackEvent).toHaveBeenCalledWith(
@@ -255,9 +241,7 @@ describe('OrderDetails', () => {
     const { getByText } = renderWithProvider(
       <OrderDetails order={mockOrder} />,
     );
-    expect(
-      getByText('fiat_on_ramp_aggregator.order_details.contact_support'),
-    ).toBeOnTheScreen();
+    expect(getByText(/Contact support/)).toBeOnTheScreen();
   });
 
   it('tracks analytics when support link is pressed', () => {
@@ -265,9 +249,7 @@ describe('OrderDetails', () => {
       <OrderDetails order={mockOrder} />,
     );
 
-    const link = getByText(
-      'fiat_on_ramp_aggregator.order_details.contact_support',
-    );
+    const link = getByText(/Contact support/);
     fireEvent.press(link);
 
     expect(mockTrackEvent).toHaveBeenCalledWith(
@@ -290,9 +272,7 @@ describe('OrderDetails', () => {
     const { getByText } = renderWithProvider(
       <OrderDetails order={completedOrder} />,
     );
-    expect(
-      getByText('fiat_on_ramp_aggregator.order_details.etherscan'),
-    ).toBeOnTheScreen();
+    expect(getByText(/View full details on/)).toBeOnTheScreen();
   });
 
   it('tracks analytics when blockchain explorer link is pressed', () => {
@@ -306,7 +286,7 @@ describe('OrderDetails', () => {
       <OrderDetails order={completedOrder} />,
     );
 
-    const link = getByText('fiat_on_ramp_aggregator.order_details.etherscan');
+    const link = getByText(/View full details on/);
     fireEvent.press(link);
 
     expect(mockTrackEvent).toHaveBeenCalledWith(
@@ -323,18 +303,14 @@ describe('OrderDetails', () => {
     const { queryByText } = renderWithProvider(
       <OrderDetails order={mockOrder} />,
     );
-    expect(
-      queryByText('fiat_on_ramp_aggregator.order_details.etherscan'),
-    ).toBeNull();
+    expect(queryByText(/View full details on/)).toBeNull();
   });
 
   it('renders payment method for buy orders', () => {
     const { getByText } = renderWithProvider(
       <OrderDetails order={mockOrder} />,
     );
-    expect(
-      getByText('fiat_on_ramp_aggregator.order_details.payment_method'),
-    ).toBeOnTheScreen();
+    expect(getByText('Payment method')).toBeOnTheScreen();
     expect(getByText('Credit Card')).toBeOnTheScreen();
   });
 
@@ -347,18 +323,14 @@ describe('OrderDetails', () => {
     const { getByText } = renderWithProvider(
       <OrderDetails order={sellOrder} />,
     );
-    expect(
-      getByText('fiat_on_ramp_aggregator.order_details.destination'),
-    ).toBeOnTheScreen();
+    expect(getByText('Destination')).toBeOnTheScreen();
   });
 
   it('renders order ID', () => {
     const { getByText } = renderWithProvider(
       <OrderDetails order={mockOrder} />,
     );
-    expect(
-      getByText('fiat_on_ramp_aggregator.order_details.id'),
-    ).toBeOnTheScreen();
+    expect(getByText('Order ID')).toBeOnTheScreen();
     expect(getByText('provider-order-123')).toBeOnTheScreen();
   });
 
@@ -366,18 +338,14 @@ describe('OrderDetails', () => {
     const { getByText } = renderWithProvider(
       <OrderDetails order={mockOrder} />,
     );
-    expect(
-      getByText('fiat_on_ramp_aggregator.order_details.date_and_time'),
-    ).toBeOnTheScreen();
+    expect(getByText('Date and time')).toBeOnTheScreen();
   });
 
   it('renders token amount for buy orders', () => {
     const { getByText } = renderWithProvider(
       <OrderDetails order={mockOrder} />,
     );
-    expect(
-      getByText('fiat_on_ramp_aggregator.order_details.token_amount'),
-    ).toBeOnTheScreen();
+    expect(getByText('Token amount')).toBeOnTheScreen();
   });
 
   it('renders token quantity sold for sell orders', () => {
@@ -389,36 +357,28 @@ describe('OrderDetails', () => {
     const { getByText } = renderWithProvider(
       <OrderDetails order={sellOrder} />,
     );
-    expect(
-      getByText('fiat_on_ramp_aggregator.order_details.token_quantity_sold'),
-    ).toBeOnTheScreen();
+    expect(getByText('Token quantity sold')).toBeOnTheScreen();
   });
 
   it('renders exchange rate', () => {
     const { getByText } = renderWithProvider(
       <OrderDetails order={mockOrder} />,
     );
-    expect(
-      getByText('fiat_on_ramp_aggregator.order_details.exchange_rate'),
-    ).toBeOnTheScreen();
+    expect(getByText('Exchange rate')).toBeOnTheScreen();
   });
 
   it('renders total fees', () => {
     const { getByText } = renderWithProvider(
       <OrderDetails order={mockOrder} />,
     );
-    expect(
-      getByText('fiat_on_ramp_aggregator.order_details.total_fees'),
-    ).toBeOnTheScreen();
+    expect(getByText('Total fees')).toBeOnTheScreen();
   });
 
   it('renders purchase amount for buy orders', () => {
     const { getByText } = renderWithProvider(
       <OrderDetails order={mockOrder} />,
     );
-    expect(
-      getByText('fiat_on_ramp_aggregator.order_details.purchase_amount'),
-    ).toBeOnTheScreen();
+    expect(getByText('Purchase amount total')).toBeOnTheScreen();
   });
 
   it('renders amount received for sell orders', () => {
@@ -430,9 +390,7 @@ describe('OrderDetails', () => {
     const { getByText } = renderWithProvider(
       <OrderDetails order={sellOrder} />,
     );
-    expect(
-      getByText('fiat_on_ramp_aggregator.order_details.amount_received_total'),
-    ).toBeOnTheScreen();
+    expect(getByText('Amount received total')).toBeOnTheScreen();
   });
 
   it('renders loading state when fiatCurrency decimals are undefined', () => {
@@ -501,9 +459,7 @@ describe('OrderDetails', () => {
     const { queryByText } = renderWithProvider(
       <OrderDetails order={orderWithoutLink} />,
     );
-    expect(
-      queryByText('fiat_on_ramp_aggregator.order_details.view_order_status'),
-    ).toBeNull();
+    expect(queryByText(/View order status on/)).toBeNull();
   });
 
   it('renders without support link when not available', () => {
@@ -522,9 +478,7 @@ describe('OrderDetails', () => {
     const { queryByText } = renderWithProvider(
       <OrderDetails order={orderWithoutSupport} />,
     );
-    expect(
-      queryByText('fiat_on_ramp_aggregator.order_details.contact_support'),
-    ).toBeNull();
+    expect(queryByText(/Contact support/)).toBeNull();
   });
 
   it('renders without date when createdAt is not available', () => {
@@ -536,9 +490,7 @@ describe('OrderDetails', () => {
     const { queryByText } = renderWithProvider(
       <OrderDetails order={orderWithoutDate} />,
     );
-    expect(
-      queryByText('fiat_on_ramp_aggregator.order_details.date_and_time'),
-    ).toBeNull();
+    expect(queryByText('Date and time')).toBeNull();
   });
 
   it('does not render payment method when not available', () => {
@@ -553,9 +505,7 @@ describe('OrderDetails', () => {
     const { queryByText } = renderWithProvider(
       <OrderDetails order={orderWithoutPaymentMethod} />,
     );
-    expect(
-      queryByText('fiat_on_ramp_aggregator.order_details.payment_method'),
-    ).toBeNull();
+    expect(queryByText('Payment method')).toBeNull();
   });
 
   it('matches snapshot with minimal data', () => {
