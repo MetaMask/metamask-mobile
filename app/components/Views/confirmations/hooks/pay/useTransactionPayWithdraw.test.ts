@@ -35,7 +35,7 @@ function runHook({
         default: { enabled: false },
       },
     },
-  };
+  } as never;
 
   return renderHookWithProvider(useTransactionPayWithdraw, {
     state: mockState,

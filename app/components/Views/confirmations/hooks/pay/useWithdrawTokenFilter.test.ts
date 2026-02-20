@@ -105,20 +105,20 @@ function runHook({
         default: { enabled: false },
       },
     },
-  };
+  } as never;
 
   if (tokensChainsCache) {
     mockState.engine.backgroundState.TokenListController = {
       ...mockState.engine.backgroundState.TokenListController,
       tokensChainsCache,
-    };
+    } as never;
   }
 
   if (networkConfigs) {
     mockState.engine.backgroundState.NetworkController = {
       ...mockState.engine.backgroundState.NetworkController,
       networkConfigurationsByChainId: networkConfigs,
-    };
+    } as never;
   }
 
   return renderHookWithProvider(useWithdrawTokenFilter, {
