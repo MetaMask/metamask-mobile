@@ -64,9 +64,10 @@ import { selectContractExchangeRates } from '../../../selectors/tokenRatesContro
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import PickerNetwork from '../../../component-library/components/Pickers/PickerNetwork/PickerNetwork';
 import Routes from '../../../constants/navigation/Routes';
-import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
 import { RequestPaymentViewSelectors } from '../ReceiveRequest/RequestPaymentView.testIds';
 import { MetaMetricsEvents } from '../../../core/Analytics';
+import { analytics } from '../../../util/analytics/analytics';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 
 const KEYBOARD_OFFSET = 120;
 const createStyles = (colors) =>
@@ -308,10 +309,6 @@ class PaymentRequest extends PureComponent {
      * Object that represents the current route info like params passed to it
      */
     route: PropTypes.object,
-    /**
-     * Metrics injected by withMetricsAwareness HOC
-     */
-    metrics: PropTypes.object,
     /**
      * Network configurations
      */
@@ -910,9 +907,10 @@ class PaymentRequest extends PureComponent {
     this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.NETWORK_SELECTOR,
     });
-    this.props.metrics.trackEvent(
-      this.props.metrics
-        .createEventBuilder(MetaMetricsEvents.NETWORK_SELECTOR_PRESSED)
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.NETWORK_SELECTOR_PRESSED,
+      )
         .addProperties({
           chain_id: getDecimalChainId(this.props.chainId),
         })
@@ -967,4 +965,4 @@ const mapStateToProps = (state) => ({
   networkImageSource: selectNetworkImageSource(state),
 });
 
-export default withMetricsAwareness(connect(mapStateToProps)(PaymentRequest));
+export default connect(mapStateToProps)(PaymentRequest);

@@ -6,7 +6,13 @@ import {
   userEvent,
   waitFor,
 } from '@testing-library/react-native';
-import PaymentRequest from './index';
+import PaymentRequestConnected from './index';
+
+// Workaround: source is a .js file so TypeScript can't infer PropTypes;
+// connect() produces a narrow type that rejects valid ownProps like chainId.
+const PaymentRequest = PaymentRequestConnected as React.ComponentType<
+  Record<string, unknown>
+>;
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
 import { SolScope } from '@metamask/keyring-api';
@@ -19,6 +25,13 @@ import ethLogo from '../../../assets/images/eth-logo.png';
 jest.mock('react', () => ({
   ...jest.requireActual('react'),
   useState: jest.fn(),
+}));
+
+const mockTrackEvent = jest.fn();
+jest.mock('../../../util/analytics/analytics', () => ({
+  analytics: {
+    trackEvent: (event: Record<string, unknown>) => mockTrackEvent(event),
+  },
 }));
 
 // Enable fake timers globally for this test file
@@ -115,6 +128,7 @@ let mockSetShowError: jest.Mock;
 let mockShowError = false;
 
 beforeEach(() => {
+  mockTrackEvent.mockClear();
   mockSetShowError = jest.fn((value) => {
     mockShowError = value;
   });
@@ -259,17 +273,7 @@ describe('PaymentRequest', () => {
 
   describe('handleNetworkPickerPress', () => {
     it('should navigate to network selector modal when feature flag is enabled', () => {
-      const mockMetrics = {
-        trackEvent: jest.fn(),
-        createEventBuilder: jest.fn(() => ({
-          addProperties: jest.fn(() => ({
-            build: jest.fn(() => 'builtEvent'),
-          })),
-        })),
-      };
-
       const { getByTestId } = renderComponent({
-        metrics: mockMetrics,
         chainId: '0x1',
         networkImageSource: ethLogo,
       });
