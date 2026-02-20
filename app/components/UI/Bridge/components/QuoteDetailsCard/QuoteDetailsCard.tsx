@@ -173,7 +173,6 @@ const QuoteDetailsCard: React.FC = () => {
               content: strings('bridge.quote_info_content'),
               size: TooltipSizes.Sm,
               iconName: IconName.Info,
-              hideButton: true,
             },
           }}
           value={{
@@ -204,7 +203,6 @@ const QuoteDetailsCard: React.FC = () => {
                 }),
                 size: TooltipSizes.Sm,
                 iconName: IconName.Info,
-                hideButton: true,
               },
             }}
             value={{
@@ -259,7 +257,6 @@ const QuoteDetailsCard: React.FC = () => {
                 content: strings('bridge.network_fee_info_content'),
                 size: TooltipSizes.Sm,
                 iconName: IconName.Info,
-                hideButton: true,
               },
             }}
             value={{
@@ -284,7 +281,6 @@ const QuoteDetailsCard: React.FC = () => {
               content: strings('bridge.slippage_info_description'),
               size: TooltipSizes.Sm,
               iconName: IconName.Info,
-              hideButton: true,
             },
           }}
           value={{
@@ -324,7 +320,6 @@ const QuoteDetailsCard: React.FC = () => {
                 content: strings('bridge.minimum_received_tooltip_content'),
                 size: TooltipSizes.Sm,
                 iconName: IconName.Info,
-                hideButton: true,
               },
             }}
             value={{
@@ -352,7 +347,6 @@ const QuoteDetailsCard: React.FC = () => {
                   : strings('bridge.price_impact_info_description'),
                 size: TooltipSizes.Sm,
                 iconName: IconName.Info,
-                hideButton: true,
               },
             }}
             value={{
@@ -385,7 +379,6 @@ const QuoteDetailsCard: React.FC = () => {
                   )}\n\n${strings('bridge.points_tooltip_content_2')}`,
                   size: TooltipSizes.Sm,
                   iconName: IconName.Info,
-                  hideButton: true,
                 },
               }}
               value={{
@@ -423,7 +416,6 @@ const QuoteDetailsCard: React.FC = () => {
                     content: strings('bridge.points_error_content'),
                     size: TooltipSizes.Sm,
                     iconName: IconName.Info,
-                    hideButton: true,
                   },
                 }),
               }}

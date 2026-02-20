@@ -23,7 +23,7 @@ import styleSheet from './ToolTipModal.styles';
 import { useParams } from '../../../util/navigation/navUtils';
 
 const TooltipModal = () => {
-  const { tooltip, title, footerText, buttonText, bottomPadding, hideButton } =
+  const { tooltip, title, footerText, buttonText, bottomPadding } =
     useParams<TooltipModalRouteParams>();
 
   const { styles } = useStyles(styleSheet, { bottomPadding });
@@ -57,13 +57,11 @@ const TooltipModal = () => {
           </Text>
         )}
       </View>
-      {!hideButton && (
-        <BottomSheetFooter
-          buttonsAlignment={ButtonsAlignment.Horizontal}
-          buttonPropsArray={footerButtons}
-          style={styles.footerContainer}
-        />
-      )}
+      <BottomSheetFooter
+        buttonsAlignment={ButtonsAlignment.Horizontal}
+        buttonPropsArray={footerButtons}
+        style={styles.footerContainer}
+      />
       {footerText && (
         <View style={styles.footerTextContainer}>
           <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>

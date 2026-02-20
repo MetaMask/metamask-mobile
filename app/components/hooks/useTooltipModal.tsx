@@ -4,7 +4,6 @@ import { ReactNode, useCallback, useMemo } from 'react';
 
 interface TooltipOptions {
   bottomPadding?: number;
-  hideButton?: boolean;
 }
 
 const useTooltipModal = () => {
@@ -26,7 +25,6 @@ const useTooltipModal = () => {
           footerText,
           buttonText,
           bottomPadding: options?.bottomPadding,
-          hideButton: options?.hideButton,
         },
       }),
     [navigate],

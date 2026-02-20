@@ -6,5 +6,4 @@ export interface TooltipModalRouteParams {
   footerText?: string;
   buttonText?: string;
   bottomPadding?: number;
-  hideButton?: boolean;
 }

@@ -41,10 +41,6 @@ interface KeyValueRowTooltip {
    * Optional bottom padding for the tooltip modal.
    */
   bottomPadding?: number;
-  /**
-   * If true, hides the action button in the tooltip modal.
-   */
-  hideButton?: boolean;
 }
 
 /**
