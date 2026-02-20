@@ -1,5 +1,11 @@
 import React from 'react';
-import { ActivityIndicator, Image, ImageStyle, StyleProp } from 'react-native';
+import {
+  ActivityIndicator,
+  Image,
+  ImageResizeMode,
+  ImageStyle,
+  StyleProp,
+} from 'react-native';
 import {
   Box,
   Icon,
@@ -12,11 +18,13 @@ import { ThemeImage } from '../../../../../core/Engine/controllers/rewards-contr
 interface RewardsThemeImageComponentProps {
   themeImage: ThemeImage;
   style?: StyleProp<ImageStyle>;
+  resizeMode?: ImageResizeMode;
 }
 
 const RewardsThemeImageComponent: React.FC<RewardsThemeImageComponentProps> = ({
   themeImage,
   style,
+  resizeMode = 'contain',
 }) => {
   const theme = useTheme();
 
@@ -51,7 +59,7 @@ const RewardsThemeImageComponent: React.FC<RewardsThemeImageComponentProps> = ({
       ) : (
         <Image
           source={{ uri: imageSource }}
-          resizeMode="contain"
+          resizeMode={resizeMode}
           style={style}
           onLoad={() => setImgLoading(false)}
           onError={() => setImgLoading('error')}

@@ -5,8 +5,8 @@ import WalletView from '../../../e2e/pages/wallet/WalletView';
 import { loginToApp } from '../../../e2e/viewHelper';
 import Assertions from '../../framework/Assertions';
 import ImportSrpView from '../../../e2e/pages/importSrp/ImportSrpView';
-import { goToImportSrp, inputSrp } from '../../../e2e/specs/multisrp/utils';
-import { IDENTITY_TEAM_SEED_PHRASE } from '../../../e2e/specs/identity/utils/constants';
+import { goToImportSrp, inputSrp } from '../../flows/accounts.flow';
+import { IDENTITY_TEAM_SEED_PHRASE } from '../identity/utils/constants';
 
 // We now have account indexes "per wallets", thus the new account for that new SRP (wallet), will
 // be: "Account 1".

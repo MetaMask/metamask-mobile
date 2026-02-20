@@ -7,17 +7,50 @@ import {
   RewardDto,
   PointsEventDto,
   SeasonActivityTypeDto,
+  SnapshotDto,
 } from '../../core/Engine/controllers/rewards-controller/types';
 import { OnboardingStep } from './types';
 import { AccountGroupId } from '@metamask/account-api';
+
+// Saga action types - defined here to avoid circular dependency with saga file
+export const BULK_LINK_START = 'rewards/bulkLink/START';
+export const BULK_LINK_CANCEL = 'rewards/bulkLink/CANCEL';
+export const BULK_LINK_RESUME = 'rewards/bulkLink/RESUME';
 
 export interface AccountOptInBannerInfoStatus {
   accountGroupId: AccountGroupId;
   hide: boolean;
 }
 
+/**
+ * State for tracking bulk link progress across all accounts
+ */
+export interface BulkLinkState {
+  /** Whether the bulk link process is currently running */
+  isRunning: boolean;
+  /** Total number of accounts to link */
+  totalAccounts: number;
+  /** Number of accounts linked so far */
+  linkedAccounts: number;
+  /** Number of accounts that failed to link */
+  failedAccounts: number;
+  /**
+   * Whether the bulk link process was interrupted (e.g., app closed during processing).
+   * This flag is set on rehydrate if isRunning was true, indicating the user
+   * can resume the process when they re-enter the rewards feature.
+   */
+  wasInterrupted: boolean;
+  /**
+   * The subscription ID captured when bulk link started.
+   * Used to detect subscription changes on resume - if the current subscription
+   * differs from this stored value, the resume should be aborted to prevent
+   * linking accounts to different subscriptions.
+   */
+  initialSubscriptionId: string | null;
+}
+
 export interface RewardsState {
-  activeTab: 'overview' | 'activity' | 'levels';
+  activeTab: 'overview' | 'snapshots' | 'activity';
   seasonStatusLoading: boolean;
   seasonStatusError: string | null;
 
@@ -76,6 +109,14 @@ export interface RewardsState {
   unlockedRewards: RewardDto[] | null;
   unlockedRewardLoading: boolean;
   unlockedRewardError: boolean;
+
+  // Bulk link state (for linking all account groups across all wallets)
+  bulkLink: BulkLinkState;
+
+  // Snapshots state
+  snapshots: SnapshotDto[] | null;
+  snapshotsLoading: boolean;
+  snapshotsError: boolean;
 }
 
 export const initialState: RewardsState = {
@@ -126,6 +167,21 @@ export const initialState: RewardsState = {
   unlockedRewards: null,
   unlockedRewardLoading: false,
   unlockedRewardError: false,
+
+  // Bulk link initial state
+  bulkLink: {
+    isRunning: false,
+    totalAccounts: 0,
+    linkedAccounts: 0,
+    failedAccounts: 0,
+    wasInterrupted: false,
+    initialSubscriptionId: null,
+  },
+
+  // Snapshots initial state
+  snapshots: null,
+  snapshotsLoading: false,
+  snapshotsError: false,
 };
 
 interface RehydrateAction extends Action<'persist/REHYDRATE'> {
@@ -140,7 +196,7 @@ const rewardsSlice = createSlice({
   reducers: {
     setActiveTab: (
       state,
-      action: PayloadAction<'overview' | 'activity' | 'levels'>,
+      action: PayloadAction<'overview' | 'snapshots' | 'activity'>,
     ) => {
       state.activeTab = action.payload;
     },
@@ -287,6 +343,7 @@ const rewardsSlice = createSlice({
         state.activeBoosts = initialState.activeBoosts;
         state.pointsEvents = initialState.pointsEvents;
         state.unlockedRewards = initialState.unlockedRewards;
+        state.snapshots = initialState.snapshots;
       }
 
       state.candidateSubscriptionId = action.payload;
@@ -375,42 +432,146 @@ const rewardsSlice = createSlice({
     ) => {
       state.pointsEvents = action.payload;
     },
+
+    // Snapshots reducers
+    setSnapshots: (state, action: PayloadAction<SnapshotDto[] | null>) => {
+      state.snapshots = action.payload;
+      state.snapshotsError = false;
+    },
+    setSnapshotsLoading: (state, action: PayloadAction<boolean>) => {
+      if (action.payload && state.snapshots?.length) {
+        return;
+      }
+      state.snapshotsLoading = action.payload;
+    },
+    setSnapshotsError: (state, action: PayloadAction<boolean>) => {
+      state.snapshotsError = action.payload;
+    },
+
+    // Bulk link reducers
+    bulkLinkStarted: (
+      state,
+      action: PayloadAction<{
+        totalAccounts: number;
+        subscriptionId: string;
+      }>,
+    ) => {
+      state.bulkLink = {
+        isRunning: true,
+        totalAccounts: action.payload.totalAccounts,
+        linkedAccounts: 0,
+        failedAccounts: 0,
+        wasInterrupted: false,
+        initialSubscriptionId: action.payload.subscriptionId,
+      };
+    },
+    bulkLinkAccountResult: (
+      state,
+      action: PayloadAction<{
+        success: boolean;
+      }>,
+    ) => {
+      if (action.payload.success) {
+        state.bulkLink.linkedAccounts += 1;
+      } else {
+        state.bulkLink.failedAccounts += 1;
+      }
+    },
+    bulkLinkCompleted: (state) => {
+      state.bulkLink.isRunning = false;
+      state.bulkLink.wasInterrupted = false;
+    },
+    bulkLinkCancelled: (state) => {
+      state.bulkLink.isRunning = false;
+      state.bulkLink.wasInterrupted = false;
+    },
+    /**
+     * Called when the bulk link process is cancelled because the candidate
+     * subscription ID changed during processing. This prevents accounts from
+     * being linked to different subscriptions.
+     */
+    bulkLinkSubscriptionChanged: (state) => {
+      state.bulkLink.isRunning = false;
+      state.bulkLink.wasInterrupted = false;
+      state.bulkLink.initialSubscriptionId = null;
+    },
+    bulkLinkReset: (state) => {
+      state.bulkLink = initialState.bulkLink;
+    },
+    /**
+     * Called when resuming a previously interrupted bulk link process.
+     * Clears the interrupted flag and sets running to true.
+     * The saga will re-fetch opt-in status to determine which accounts still need linking.
+     */
+    bulkLinkResumed: (state) => {
+      state.bulkLink.isRunning = true;
+      state.bulkLink.wasInterrupted = false;
+      // Note: We don't reset counts here - the saga will recalculate based on current opt-in status
+    },
   },
   extraReducers: (builder) => {
-    builder.addCase('persist/REHYDRATE', (state, action: RehydrateAction) => {
-      if (action.payload?.rewards) {
-        return {
-          // Reset non-persistent state (state is persisted via controller)
-          ...initialState,
+    builder
+      // Handle BULK_LINK_CANCEL directly so state is reset even if no saga is running
+      .addCase(BULK_LINK_CANCEL, (state) => {
+        state.bulkLink.isRunning = false;
+        state.bulkLink.wasInterrupted = false;
+      })
+      .addCase('persist/REHYDRATE', (state, action: RehydrateAction) => {
+        if (action.payload?.rewards) {
+          // Detect if bulk link was interrupted (app closed while running)
+          const previousBulkLink = action.payload.rewards.bulkLink;
+          const wasInterrupted = previousBulkLink?.isRunning === true;
 
-          // UI state we want to restore from previous visit
-          seasonId: action.payload.rewards.seasonId,
-          seasonName: action.payload.rewards.seasonName,
-          seasonStartDate: action.payload.rewards.seasonStartDate,
-          seasonEndDate: action.payload.rewards.seasonEndDate,
-          seasonTiers: action.payload.rewards.seasonTiers,
-          seasonActivityTypes: action.payload.rewards.seasonActivityTypes,
-          seasonShouldInstallNewVersion:
-            action.payload.rewards.seasonShouldInstallNewVersion,
-          referralCode: action.payload.rewards.referralCode,
-          refereeCount: action.payload.rewards.refereeCount,
-          currentTier: action.payload.rewards.currentTier,
-          nextTier: action.payload.rewards.nextTier,
-          nextTierPointsNeeded: action.payload.rewards.nextTierPointsNeeded,
-          balanceTotal: action.payload.rewards.balanceTotal,
-          balanceRefereePortion: action.payload.rewards.balanceRefereePortion,
-          balanceUpdatedAt: action.payload.rewards.balanceUpdatedAt,
-          activeBoosts: action.payload.rewards.activeBoosts,
-          pointsEvents: action.payload.rewards.pointsEvents,
-          unlockedRewards: action.payload.rewards.unlockedRewards,
-          hideUnlinkedAccountsBanner:
-            action.payload.rewards.hideUnlinkedAccountsBanner,
-          hideCurrentAccountNotOptedInBanner:
-            action.payload.rewards.hideCurrentAccountNotOptedInBanner,
-        };
-      }
-      return state;
-    });
+          return {
+            // Reset non-persistent state (state is persisted via controller)
+            ...initialState,
+
+            // UI state we want to restore from previous visit
+            seasonId: action.payload.rewards.seasonId,
+            seasonName: action.payload.rewards.seasonName,
+            seasonStartDate: action.payload.rewards.seasonStartDate,
+            seasonEndDate: action.payload.rewards.seasonEndDate,
+            seasonTiers: action.payload.rewards.seasonTiers,
+            seasonActivityTypes: action.payload.rewards.seasonActivityTypes,
+            seasonShouldInstallNewVersion:
+              action.payload.rewards.seasonShouldInstallNewVersion,
+            referralCode: action.payload.rewards.referralCode,
+            refereeCount: action.payload.rewards.refereeCount,
+            currentTier: action.payload.rewards.currentTier,
+            nextTier: action.payload.rewards.nextTier,
+            nextTierPointsNeeded: action.payload.rewards.nextTierPointsNeeded,
+            balanceTotal: action.payload.rewards.balanceTotal,
+            balanceRefereePortion: action.payload.rewards.balanceRefereePortion,
+            balanceUpdatedAt: action.payload.rewards.balanceUpdatedAt,
+            activeBoosts: action.payload.rewards.activeBoosts,
+            pointsEvents: action.payload.rewards.pointsEvents,
+            unlockedRewards: action.payload.rewards.unlockedRewards,
+            snapshots: action.payload.rewards.snapshots,
+            hideUnlinkedAccountsBanner:
+              action.payload.rewards.hideUnlinkedAccountsBanner,
+            hideCurrentAccountNotOptedInBanner:
+              action.payload.rewards.hideCurrentAccountNotOptedInBanner,
+
+            // Bulk link state - preserve interrupted status for resume capability
+            bulkLink: {
+              ...initialState.bulkLink,
+              wasInterrupted,
+              // Preserve previous progress for UI display (how many were done before interruption)
+              linkedAccounts: wasInterrupted
+                ? (previousBulkLink?.linkedAccounts ?? 0)
+                : 0,
+              failedAccounts: wasInterrupted
+                ? (previousBulkLink?.failedAccounts ?? 0)
+                : 0,
+              // Preserve subscription ID for resume validation
+              initialSubscriptionId: wasInterrupted
+                ? (previousBulkLink?.initialSubscriptionId ?? null)
+                : null,
+            },
+          };
+        }
+        return state;
+      });
   },
 });
 
@@ -439,6 +600,18 @@ export const {
   setUnlockedRewardLoading,
   setUnlockedRewardError,
   setPointsEvents,
+  // Snapshots actions
+  setSnapshots,
+  setSnapshotsLoading,
+  setSnapshotsError,
+  // Bulk link actions
+  bulkLinkStarted,
+  bulkLinkAccountResult,
+  bulkLinkCompleted,
+  bulkLinkCancelled,
+  bulkLinkSubscriptionChanged,
+  bulkLinkReset,
+  bulkLinkResumed,
 } = rewardsSlice.actions;
 
 export default rewardsSlice.reducer;

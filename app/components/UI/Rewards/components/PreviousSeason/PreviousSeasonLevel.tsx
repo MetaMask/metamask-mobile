@@ -36,7 +36,11 @@ const PreviousSeasonLevel: React.FC = () => {
     >
       {/* Tier Image */}
       <Box>
-        <Icon name={IconName.Rocket} size={IconSize.Lg} />
+        <Icon
+          name={IconName.Rocket}
+          size={IconSize.Lg}
+          twClassName="text-accent02-normal"
+        />
       </Box>
 
       <Box twClassName="flex-col">

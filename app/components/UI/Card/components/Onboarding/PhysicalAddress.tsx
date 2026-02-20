@@ -256,6 +256,8 @@ const PhysicalAddress = () => {
   const [state, setState] = useState('');
   const [zipCode, setZipCode] = useState('');
   const [electronicConsent, setElectronicConsent] = useState(false);
+  const [coinmeConsent, setCoinmeConsent] = useState(false);
+  const [crbConsent, setCrbConsent] = useState(false);
   const [isPollingVerification, setIsPollingVerification] = useState(false);
   const pollingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(
     null,
@@ -322,6 +324,16 @@ const PhysicalAddress = () => {
     [registrationSettings?.links?.us?.eSignConsentDisclosure],
   );
 
+  const coinmeTermsUrl = 'https://coinme.com/legal/';
+
+  const crbTermsUrl =
+    'https://baanx-public.s3-eu-west-1.amazonaws.com/Ledger/public-files/BaanxUS_CLCard_TOS.undefined-fddb292f91ce3.pdf';
+  const crbAccountOpeningUrl =
+    'https://secure.baanx.co.uk/BAANX_US_ACCOUNT_OPENING_AGREEMENTS_AND_DISCLOSURES_08152025.pdf';
+  const crbPrivacyNoticeUrl =
+    'https://secure.baanx.co.uk/Baanx_(CL)_U.S._Privacy_Notice_06.2025.pdf';
+  const crbPrivacyPolicyUrl = 'https://www.crossriver.com/legal/privacy-notice';
+
   const {
     registerAddress,
     isLoading: registerLoading,
@@ -345,6 +357,36 @@ const PhysicalAddress = () => {
       Linking.openURL(eSignConsentDisclosureUSUrl);
     }
   }, [eSignConsentDisclosureUSUrl]);
+
+  const openCoinmeTerms = useCallback(() => {
+    if (coinmeTermsUrl) {
+      Linking.openURL(coinmeTermsUrl);
+    }
+  }, [coinmeTermsUrl]);
+
+  const openCrbTerms = useCallback(() => {
+    if (crbTermsUrl) {
+      Linking.openURL(crbTermsUrl);
+    }
+  }, [crbTermsUrl]);
+
+  const openCrbAccountOpening = useCallback(() => {
+    if (crbAccountOpeningUrl) {
+      Linking.openURL(crbAccountOpeningUrl);
+    }
+  }, [crbAccountOpeningUrl]);
+
+  const openCrbPrivacyNotice = useCallback(() => {
+    if (crbPrivacyNoticeUrl) {
+      Linking.openURL(crbPrivacyNoticeUrl);
+    }
+  }, [crbPrivacyNoticeUrl]);
+
+  const openCrbPrivacyPolicy = useCallback(() => {
+    if (crbPrivacyPolicyUrl) {
+      Linking.openURL(crbPrivacyPolicyUrl);
+    }
+  }, [crbPrivacyPolicyUrl]);
 
   const handleAddressLine1Change = useCallback(
     (text: string) => {
@@ -392,6 +434,18 @@ const PhysicalAddress = () => {
     setElectronicConsent(!electronicConsent);
   }, [electronicConsent, resetRegisterAddress, resetConsent]);
 
+  const handleCoinmeConsentToggle = useCallback(() => {
+    resetConsent();
+    resetRegisterAddress();
+    setCoinmeConsent(!coinmeConsent);
+  }, [coinmeConsent, resetRegisterAddress, resetConsent]);
+
+  const handleCrbConsentToggle = useCallback(() => {
+    resetConsent();
+    resetRegisterAddress();
+    setCrbConsent(!crbConsent);
+  }, [crbConsent, resetRegisterAddress, resetConsent]);
+
   const isDisabled = useMemo(
     () =>
       registerLoading ||
@@ -405,7 +459,9 @@ const PhysicalAddress = () => {
       !city ||
       (!state && selectedCountry?.key === 'US') ||
       !zipCode ||
-      (!electronicConsent && selectedCountry?.key === 'US'),
+      (!electronicConsent && selectedCountry?.key === 'US') ||
+      (!coinmeConsent && selectedCountry?.key === 'US') ||
+      (!crbConsent && selectedCountry?.key === 'US'),
     [
       registerLoading,
       registerIsError,
@@ -420,6 +476,8 @@ const PhysicalAddress = () => {
       selectedCountry,
       zipCode,
       electronicConsent,
+      coinmeConsent,
+      crbConsent,
     ],
   );
 
@@ -431,7 +489,9 @@ const PhysicalAddress = () => {
       !city ||
       (!state && selectedCountry?.key === 'US') ||
       !zipCode ||
-      (!electronicConsent && selectedCountry?.key === 'US')
+      (!electronicConsent && selectedCountry?.key === 'US') ||
+      (!coinmeConsent && selectedCountry?.key === 'US') ||
+      (!crbConsent && selectedCountry?.key === 'US')
     ) {
       return;
     }
@@ -652,10 +712,7 @@ const PhysicalAddress = () => {
           isChecked={electronicConsent}
           onPress={handleElectronicConsentToggle}
           label={
-            <TouchableOpacity
-              onPress={openESignConsentDisclosureUS}
-              style={tw.style('flex-1 flex-shrink mr-2 -mt-1')}
-            >
+            <Box style={tw.style('flex-1 flex-shrink mr-2 -mt-1')}>
               <Text
                 variant={TextVariant.BodySm}
                 twClassName="text-text-alternative"
@@ -666,16 +723,112 @@ const PhysicalAddress = () => {
                 <Text
                   variant={TextVariant.BodySm}
                   twClassName="text-primary-default underline"
+                  onPress={openESignConsentDisclosureUS}
                 >
                   {strings(
                     'card.card_onboarding.physical_address.electronic_consent_2',
                   )}
                 </Text>
+                {strings(
+                  'card.card_onboarding.physical_address.electronic_consent_3',
+                )}
               </Text>
-            </TouchableOpacity>
+            </Box>
           }
           style={tw.style('h-auto flex flex-row items-start')}
           testID="physical-address-electronic-consent-checkbox"
+        />
+      )}
+      {/* Coinme Terms Consent (US only) */}
+      {selectedCountry?.key === 'US' && (
+        <Checkbox
+          isChecked={coinmeConsent}
+          onPress={handleCoinmeConsentToggle}
+          label={
+            <Box style={tw.style('flex-1 flex-shrink mr-2 -mt-1')}>
+              <Text
+                variant={TextVariant.BodySm}
+                twClassName="text-text-alternative"
+              >
+                {strings(
+                  'card.card_onboarding.physical_address.coinme_terms_consent_1',
+                )}
+                <Text
+                  variant={TextVariant.BodySm}
+                  twClassName="text-primary-default underline"
+                  onPress={openCoinmeTerms}
+                >
+                  {strings(
+                    'card.card_onboarding.physical_address.coinme_terms_consent_2',
+                  )}
+                </Text>
+                {strings(
+                  'card.card_onboarding.physical_address.coinme_terms_consent_3',
+                )}
+              </Text>
+            </Box>
+          }
+          style={tw.style('h-auto flex flex-row items-start')}
+          testID="physical-address-coinme-terms-checkbox"
+        />
+      )}
+      {/* CRB Consent (US only) */}
+      {selectedCountry?.key === 'US' && (
+        <Checkbox
+          isChecked={crbConsent}
+          onPress={handleCrbConsentToggle}
+          label={
+            <Box style={tw.style('flex-1 flex-shrink mr-2 -mt-1')}>
+              <Text
+                variant={TextVariant.BodySm}
+                twClassName="text-text-alternative"
+              >
+                {strings('card.card_onboarding.physical_address.crb_consent_1')}
+                <Text
+                  variant={TextVariant.BodySm}
+                  twClassName="text-primary-default underline"
+                  onPress={openCrbTerms}
+                >
+                  {strings(
+                    'card.card_onboarding.physical_address.crb_consent_2',
+                  )}
+                </Text>
+                {strings('card.card_onboarding.physical_address.crb_consent_3')}
+                <Text
+                  variant={TextVariant.BodySm}
+                  twClassName="text-primary-default underline"
+                  onPress={openCrbAccountOpening}
+                >
+                  {strings(
+                    'card.card_onboarding.physical_address.crb_consent_4',
+                  )}
+                </Text>
+                {strings('card.card_onboarding.physical_address.crb_consent_5')}
+                <Text
+                  variant={TextVariant.BodySm}
+                  twClassName="text-primary-default underline"
+                  onPress={openCrbPrivacyNotice}
+                >
+                  {strings(
+                    'card.card_onboarding.physical_address.crb_consent_6',
+                  )}
+                </Text>
+                {strings('card.card_onboarding.physical_address.crb_consent_7')}
+                <Text
+                  variant={TextVariant.BodySm}
+                  twClassName="text-primary-default underline"
+                  onPress={openCrbPrivacyPolicy}
+                >
+                  {strings(
+                    'card.card_onboarding.physical_address.crb_consent_8',
+                  )}
+                </Text>
+                {strings('card.card_onboarding.physical_address.crb_consent_9')}
+              </Text>
+            </Box>
+          }
+          style={tw.style('h-auto flex flex-row items-start')}
+          testID="physical-address-crb-consent-checkbox"
         />
       )}
     </>

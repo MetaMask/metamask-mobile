@@ -41,17 +41,21 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
-// Mock useMetrics
+// Mock useAnalytics
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn(() => ({
   addProperties: jest.fn().mockReturnThis(),
   build: jest.fn().mockReturnValue({}),
 }));
-jest.mock('../../../../hooks/useMetrics', () => ({
-  useMetrics: () => ({
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
     trackEvent: mockTrackEvent,
     createEventBuilder: mockCreateEventBuilder,
   }),
+}));
+
+// Mock MetaMetricsEvents (still imported from useMetrics)
+jest.mock('../../../../hooks/useMetrics', () => ({
   MetaMetricsEvents: {
     REWARDS_REWARD_VIEWED: 'REWARDS_REWARD_VIEWED',
     REWARDS_REWARD_CLAIMED: 'REWARDS_REWARD_CLAIMED',
