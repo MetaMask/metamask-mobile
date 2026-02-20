@@ -50,14 +50,15 @@ import { selectMultichainAssets } from '../../../../../selectors/multichain/mult
 import { RootState } from '../../../../../reducers';
 import { NATIVE_SWAPS_TOKEN_ADDRESS } from '../../../../../constants/bridge';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
-import { getTrendingTokenImageUrl } from '../../../../UI/Trending/utils/getTrendingTokenImageUrl';
-import { convertAPITokensToBridgeTokens } from '../../../../UI/Bridge/hooks/useTokensWithBalances';
-import { PopularToken } from '../../../../UI/Bridge/hooks/usePopularTokens';
 import { useTrendingSearch } from '../../../../UI/Trending/hooks/useTrendingSearch/useTrendingSearch';
 import {
   PriceChangeOption,
   SortDirection,
 } from '../../../../UI/Trending/components/TrendingTokensBottomSheet';
+import {
+  convertTrendingAssetsToImporAssets,
+  ImportAsset,
+} from '../../utils/utils';
 
 interface Props {
   /**
@@ -101,20 +102,12 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
   const allTokens = useMemo(() => {
     if (!selectedChainId) return [];
 
-    const tokensAsPopular: PopularToken[] = apiResults.map((result) => ({
-      assetId: result.assetId as CaipAssetType,
-      decimals: result.decimals,
-      name: result.name,
-      symbol: result.symbol,
-      iconUrl: getTrendingTokenImageUrl(result.assetId),
-    }));
-
-    return convertAPITokensToBridgeTokens(tokensAsPopular);
+    return convertTrendingAssetsToImporAssets(apiResults);
   }, [apiResults, selectedChainId]);
 
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [selectedAssets, setSelectedAssets] = useState<any[]>([]);
+  const [selectedAssets, setSelectedAssets] = useState<ImportAsset[]>([]);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
 
   const { colors, themeAppearance } = useTheme();
@@ -206,10 +199,10 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
   );
 
   const handleSelectAsset = useCallback(
-    (asset: { address: string }) => {
+    (asset: ImportAsset) => {
       const assetAddressLower = asset.address.toLowerCase();
 
-      const newSelectedAsset = selectedAssets.reduce(
+      const newSelectedAsset = selectedAssets.reduce<ImportAsset[]>(
         (filteredAssets, currentAsset) => {
           const currentAssetAddressLower = currentAsset.address.toLowerCase();
           if (currentAssetAddressLower === assetAddressLower) {
@@ -248,7 +241,7 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
 
       const { MultichainAssetsController } = Engine.context;
       await MultichainAssetsController.addAssets(
-        addresses,
+        addresses as CaipAssetType[],
         selectedNonEvmAccount.id,
       );
     } else {

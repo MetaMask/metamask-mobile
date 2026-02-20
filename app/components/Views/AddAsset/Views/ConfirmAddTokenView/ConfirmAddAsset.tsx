@@ -22,7 +22,6 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { ImportTokenViewSelectorsIDs } from '../../ImportAssetView.testIds';
 import { Hex } from '@metamask/utils';
 import { NetworkBadgeSource } from '../../../../UI/AssetOverview/Balance/Balance';
-import { BridgeToken } from '../../../../UI/Bridge/types';
 import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 import { FlashList } from '@shopify/flash-list';
@@ -34,19 +33,11 @@ import {
   TextVariant,
   TextColor,
 } from '@metamask/design-system-react-native';
+import { ImportAsset } from '../../utils/utils';
 
 const ConfirmAddAsset = () => {
   const { selectedAsset, networkName, addTokenList } = useParams<{
-    selectedAsset:
-      | BridgeToken[]
-      | {
-          symbol: string;
-          address: string;
-          iconUrl: string;
-          name: string;
-          decimals: number;
-          chainId: Hex;
-        }[];
+    selectedAsset: ImportAsset[];
     networkName: string;
     addTokenList: () => void;
   }>();
@@ -94,52 +85,46 @@ const ConfirmAddAsset = () => {
       <FlashList
         data={selectedAsset}
         style={tw.style('bg-default p-4')}
-        renderItem={({ item: asset, index }) => {
-          const imageUrl =
-            asset.image ??
-            ('iconUrl' in asset ? (asset.iconUrl as string) : undefined);
-
-          return (
-            <Box
-              key={index}
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              twClassName="mr-2.5 gap-5 py-2.5"
-            >
-              <Box>
-                <BadgeWrapper
-                  badgePosition={BadgePosition.BottomRight}
-                  badgeElement={
-                    <Badge
-                      variant={BadgeVariant.Network}
-                      imageSource={NetworkBadgeSource(asset.chainId as Hex)}
-                      name={networkName}
-                    />
-                  }
-                >
-                  {imageUrl && (
-                    <AvatarToken
-                      name={asset.symbol}
-                      imageSource={{ uri: imageUrl }}
-                      size={AvatarSize.Lg}
-                    />
-                  )}
-                </BadgeWrapper>
-              </Box>
-
-              <Box>
-                <Text variant={TextVariant.BodyLg}>{asset.name}</Text>
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextAlternative}
-                  style={tw.style('uppercase')}
-                >
-                  {asset.symbol}
-                </Text>
-              </Box>
+        renderItem={({ item: asset, index }) => (
+          <Box
+            key={index}
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="mr-2.5 gap-5 py-2.5"
+          >
+            <Box>
+              <BadgeWrapper
+                badgePosition={BadgePosition.BottomRight}
+                badgeElement={
+                  <Badge
+                    variant={BadgeVariant.Network}
+                    imageSource={NetworkBadgeSource(asset.chainId as Hex)}
+                    name={networkName}
+                  />
+                }
+              >
+                {asset.image && (
+                  <AvatarToken
+                    name={asset.symbol}
+                    imageSource={{ uri: asset.image }}
+                    size={AvatarSize.Lg}
+                  />
+                )}
+              </BadgeWrapper>
             </Box>
-          );
-        }}
+
+            <Box>
+              <Text variant={TextVariant.BodyLg}>{asset.name}</Text>
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+                style={tw.style('uppercase')}
+              >
+                {asset.symbol}
+              </Text>
+            </Box>
+          </Box>
+        )}
         keyExtractor={(_, index) => `token-search-row-${index}`}
       />
 

@@ -10,7 +10,6 @@ import BadgeWrapper, {
 import { strings } from '../../../../../../locales/i18n';
 import { ImportTokenViewSelectorsIDs } from '../../ImportAssetView.testIds';
 import { NetworkBadgeSource } from '../../../../UI/AssetOverview/Balance/Balance';
-import { BridgeToken } from '../../../../UI/Bridge/types';
 import { FlashList } from '@shopify/flash-list';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import { useAssetFromTheme } from '../../../../../util/theme';
@@ -25,20 +24,21 @@ import {
 } from '@metamask/design-system-react-native';
 import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
+import { ImportAsset } from '../../utils/utils';
 
 interface Props {
   /**
    * Array of assets objects returned from the search
    */
-  searchResults: BridgeToken[];
+  searchResults: ImportAsset[];
   /**
    * Callback triggered when a token is selected
    */
-  handleSelectAsset: (asset: BridgeToken) => void;
+  handleSelectAsset: (asset: ImportAsset) => void;
   /**
    * Object of the currently-selected token
    */
-  selectedAsset: BridgeToken[];
+  selectedAsset: ImportAsset[];
   /**
    * Search query that generated "searchResults"
    */
