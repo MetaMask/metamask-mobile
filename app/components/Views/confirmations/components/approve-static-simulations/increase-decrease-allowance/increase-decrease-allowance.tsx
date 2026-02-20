@@ -8,12 +8,14 @@ import { ApproveComponentIDs } from '../../../ConfirmationView.testIds';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { useApproveTransactionData } from '../../../hooks/useApproveTransactionData';
 import { useApproveTransactionActions } from '../../../hooks/useApproveTransactionActions';
+import { useAlerts } from '../../../context/alert-system-context';
 import { TokenStandard } from '../../../types/token';
 import { ApproveMethod } from '../../../types/approve';
 import InfoRow from '../../UI/info-row/info-row';
 import AlertRow from '../../UI/info-row/alert-row';
 import { RowAlertKey } from '../../UI/info-row/alert-row/constants';
 import Address from '../../UI/info-row/info-value/address';
+import { AlertBadge } from '../../UI/alert-badge';
 import { Pill } from '../../UI/pill';
 import { EditSpendingCapButton } from '../../edit-spending-cap-button/edit-spending-cap-button';
 import styleSheet from '../shared-styles';
@@ -33,6 +35,8 @@ export const IncreaseDecreaseAllowance = () => {
   const transactionMetadata =
     useTransactionMetadataRequest() as TransactionMeta;
   const { onSpendingCapUpdate } = useApproveTransactionActions();
+  const { fieldAlerts } = useAlerts();
+  const spenderAlert = fieldAlerts.find((a) => a.field === RowAlertKey.Spender);
   const isERC20 = tokenStandard === TokenStandard.ERC20;
 
   if (!isERC20) {
@@ -66,11 +70,16 @@ export const IncreaseDecreaseAllowance = () => {
       <AlertRow
         alertField={RowAlertKey.Spender}
         label={strings('confirm.spender')}
+        hideInlineAlert={!!spenderAlert}
       >
-        <Address
-          address={spender ?? ''}
-          chainId={transactionMetadata.chainId}
-        />
+        {spenderAlert ? (
+          <AlertBadge alert={spenderAlert} />
+        ) : (
+          <Address
+            address={spender ?? ''}
+            chainId={transactionMetadata.chainId}
+          />
+        )}
       </AlertRow>
     </>
   );

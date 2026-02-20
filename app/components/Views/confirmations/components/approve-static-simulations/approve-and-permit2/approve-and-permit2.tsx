@@ -8,11 +8,13 @@ import { ApproveComponentIDs } from '../../../ConfirmationView.testIds';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { useApproveTransactionData } from '../../../hooks/useApproveTransactionData';
 import { useApproveTransactionActions } from '../../../hooks/useApproveTransactionActions';
+import { useAlerts } from '../../../context/alert-system-context';
 import { TokenStandard } from '../../../types/token';
 import InfoRow from '../../UI/info-row/info-row';
 import AlertRow from '../../UI/info-row/alert-row';
 import { RowAlertKey } from '../../UI/info-row/alert-row/constants';
 import Address from '../../UI/info-row/info-value/address';
+import { AlertBadge } from '../../UI/alert-badge';
 import { Pill } from '../../UI/pill';
 import { ApproveMethod } from '../../../types/approve';
 import { EditSpendingCapButton } from '../../edit-spending-cap-button';
@@ -33,6 +35,8 @@ export const ApproveAndPermit2 = () => {
     spender,
   } = useApproveTransactionData();
   const { onSpendingCapUpdate } = useApproveTransactionActions();
+  const { fieldAlerts } = useAlerts();
+  const spenderAlert = fieldAlerts.find((a) => a.field === RowAlertKey.Spender);
 
   const transactionMetadata =
     useTransactionMetadataRequest() as TransactionMeta;
@@ -112,11 +116,16 @@ export const ApproveAndPermit2 = () => {
       <AlertRow
         alertField={RowAlertKey.Spender}
         label={strings('confirm.spender')}
+        hideInlineAlert={!!spenderAlert}
       >
-        <Address
-          address={spender ?? ''}
-          chainId={transactionMetadata.chainId}
-        />
+        {spenderAlert ? (
+          <AlertBadge alert={spenderAlert} />
+        ) : (
+          <Address
+            address={spender ?? ''}
+            chainId={transactionMetadata.chainId}
+          />
+        )}
       </AlertRow>
     </>
   );

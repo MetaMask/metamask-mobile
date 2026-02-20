@@ -7,11 +7,13 @@ import { useStyles } from '../../../../../../component-library/hooks';
 import { ApproveComponentIDs } from '../../../ConfirmationView.testIds';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { useApproveTransactionData } from '../../../hooks/useApproveTransactionData';
+import { useAlerts } from '../../../context/alert-system-context';
 import { TokenStandard } from '../../../types/token';
 import InfoRow from '../../UI/info-row/info-row';
 import AlertRow from '../../UI/info-row/alert-row';
 import { RowAlertKey } from '../../UI/info-row/alert-row/constants';
 import Address from '../../UI/info-row/info-value/address';
+import { AlertBadge } from '../../UI/alert-badge';
 import { Pill } from '../../UI/pill';
 import styleSheet from '../shared-styles';
 
@@ -58,11 +60,27 @@ interface SpenderInfoRowProps {
 const SpenderInfoRow: React.FC<SpenderInfoRowProps> = ({
   spender,
   transactionMetadata,
-}) => (
-  <AlertRow alertField={RowAlertKey.Spender} label={strings('confirm.spender')}>
-    <Address address={spender ?? ''} chainId={transactionMetadata.chainId} />
-  </AlertRow>
-);
+}) => {
+  const { fieldAlerts } = useAlerts();
+  const spenderAlert = fieldAlerts.find((a) => a.field === RowAlertKey.Spender);
+
+  return (
+    <AlertRow
+      alertField={RowAlertKey.Spender}
+      label={strings('confirm.spender')}
+      hideInlineAlert={!!spenderAlert}
+    >
+      {spenderAlert ? (
+        <AlertBadge alert={spenderAlert} />
+      ) : (
+        <Address
+          address={spender ?? ''}
+          chainId={transactionMetadata.chainId}
+        />
+      )}
+    </AlertRow>
+  );
+};
 
 export const SetApprovalForAll = () => {
   const { tokenStandard, isRevoke, spender } = useApproveTransactionData();

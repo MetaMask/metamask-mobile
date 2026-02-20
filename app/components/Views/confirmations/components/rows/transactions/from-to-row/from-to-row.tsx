@@ -16,7 +16,7 @@ import { RowAlertKey } from '../../../UI/info-row/alert-row/constants';
 import InfoSection from '../../../UI/info-row/info-section';
 import AlertRow from '../../../UI/info-row/alert-row';
 import { useAlerts } from '../../../../context/alert-system-context';
-import InlineAlert from '../../../UI/inline-alert';
+import { AlertBadge } from '../../../UI/alert-badge';
 import { Skeleton } from '../../../../../../../component-library/components/Skeleton';
 import styleSheet from './from-to-row.styles';
 
@@ -68,15 +68,16 @@ const FromToRow = () => {
             alertField={RowAlertKey.FromToAddress}
             hideInlineAlert={!!fromToAlert}
           >
-            <Name
-              type={NameType.EthereumAddress}
-              value={toAddress as string}
-              variation={chainId}
-              maxCharLength={MAX_CHAR_LENGTH}
-              iconOverride={
-                fromToAlert ? <InlineAlert alertObj={fromToAlert} /> : undefined
-              }
-            />
+            {fromToAlert ? (
+              <AlertBadge alert={fromToAlert} />
+            ) : (
+              <Name
+                type={NameType.EthereumAddress}
+                value={toAddress as string}
+                variation={chainId}
+                maxCharLength={MAX_CHAR_LENGTH}
+              />
+            )}
           </AlertRow>
         </View>
       </View>
