@@ -1,5 +1,6 @@
 import React, {
   useCallback,
+  useEffect,
   useLayoutEffect,
   useMemo,
   useRef,
@@ -34,7 +35,7 @@ import { getDepositNavbarOptions } from '../../../Navbar';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useTheme } from '../../../../../util/theme';
 import { useRampNavigation } from '../../hooks/useRampNavigation';
-import useAnalytics from '../../hooks/useAnalytics';
+import useAnalytics, { trackEvent as trackRampsEvent } from '../../hooks/useAnalytics';
 import {
   getRampRoutingDecision,
   getDetectedGeolocation,
@@ -42,6 +43,7 @@ import {
 import { selectNetworkConfigurationsByCaipChainId } from '../../../../../selectors/networkController';
 import { selectTokenSelectors } from '../../Aggregator/components/TokenSelectModal/SelectToken.testIds';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
+import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 
 export const createTokenSelectionNavDetails = createNavigationDetails(
   Routes.RAMP.TOKEN_SELECTION,
@@ -125,6 +127,29 @@ function TokenSelection() {
   const { goToBuy } = useRampNavigation();
   const isRampsUnifiedV2Enabled = useRampsUnifiedV2Enabled();
 
+  const debouncedSearchString = useDebouncedValue(searchString, 500);
+
+  useEffect(() => {
+    trackRampsEvent('RAMPS_SCREEN_VIEWED', {
+      location: 'Token Selection',
+      ramp_type: 'UNIFIED BUY 2',
+      ramp_routing: rampRoutingDecision ?? undefined,
+      feature_flag_unified_buy_v2: isV2UnifiedEnabled,
+    });
+  }, [isV2UnifiedEnabled, rampRoutingDecision]);
+
+  useEffect(() => {
+    if (debouncedSearchString.trim().length > 0) {
+      trackRampsEvent('RAMPS_TOKEN_SEARCHED', {
+        search_query: debouncedSearchString,
+        results_count: searchTokenResults?.length ?? 0,
+        location: 'Token Selection',
+        ramp_type: 'UNIFIED BUY 2',
+        feature_flag_unified_buy_v2: isV2UnifiedEnabled,
+      });
+    }
+  }, [debouncedSearchString, searchTokenResults?.length, isV2UnifiedEnabled]);
+
   const handleSelectAssetIdCallback = useCallback(
     (assetId: string) => {
       const selectedToken = supportedTokens.find(
@@ -132,7 +157,7 @@ function TokenSelection() {
       );
       if (selectedToken) {
         trackEvent('RAMPS_TOKEN_SELECTED', {
-          ramp_type: 'UNIFIED BUY',
+          ramp_type: isV2UnifiedEnabled ? 'UNIFIED BUY 2' : 'UNIFIED BUY',
           region: detectedGeolocation || '',
           chain_id: selectedToken.chainId,
           currency_destination: selectedToken.assetId,
@@ -164,6 +189,7 @@ function TokenSelection() {
       detectedGeolocation,
       rampRoutingDecision,
       isRampsUnifiedV2Enabled,
+      isV2UnifiedEnabled,
       navigation,
       goToBuy,
       setSelectedToken,
@@ -191,9 +217,27 @@ function TokenSelection() {
     handleSearchTextChange('');
   }, [handleSearchTextChange]);
 
+  const handleNetworkFilterChange = useCallback(
+    (newFilter: CaipChainId[] | null) => {
+      setNetworkFilter(newFilter);
+      trackRampsEvent('RAMPS_NETWORK_FILTER_CLICKED', {
+        network_chain_id: newFilter?.[0] ?? undefined,
+        location: 'Token Selection',
+        ramp_type: 'UNIFIED BUY 2',
+        feature_flag_unified_buy_v2: isV2UnifiedEnabled,
+      });
+    },
+    [isV2UnifiedEnabled],
+  );
+
   const handleUnsupportedInfoPress = useCallback(() => {
+    trackRampsEvent('RAMPS_UNSUPPORTED_TOKEN_TOOLTIP_CLICKED', {
+      location: 'Token Selection',
+      ramp_type: 'UNIFIED BUY 2',
+      feature_flag_unified_buy_v2: isV2UnifiedEnabled,
+    });
     navigation.navigate(...createUnsupportedTokenModalNavigationDetails());
-  }, [navigation]);
+  }, [navigation, isV2UnifiedEnabled]);
 
   const renderToken = useCallback(
     ({ item: token }: { item: RampsToken }) => (
@@ -289,7 +333,7 @@ function TokenSelection() {
           <TokenNetworkFilterBar
             networks={uniqueNetworks}
             networkFilter={networkFilter}
-            setNetworkFilter={setNetworkFilter}
+            setNetworkFilter={handleNetworkFilterChange}
           />
         </Box>
         <Box twClassName="px-4 py-3">

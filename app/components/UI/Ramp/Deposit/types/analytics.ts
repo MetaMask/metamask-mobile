@@ -2,7 +2,7 @@ import { UnifiedRampRoutingType } from '../../../../../reducers/fiatOrders';
 
 interface RampsButtonClicked {
   quote_session_id?: string;
-  ramp_type: 'DEPOSIT' | 'SELL' | 'BUY' | 'UNIFIED BUY';
+  ramp_type: 'DEPOSIT' | 'SELL' | 'BUY' | 'UNIFIED BUY' | 'UNIFIED BUY 2';
   user_id?: string;
   region: string;
   location: string;
@@ -10,6 +10,7 @@ interface RampsButtonClicked {
   is_authenticated?: boolean;
   preferred_provider?: string;
   order_count?: number;
+  feature_flag_unified_buy_v2?: boolean;
 }
 
 interface RampsDepositCashButtonClicked {
@@ -32,7 +33,7 @@ interface RampsPaymentMethodSelected {
 
 interface RampsTokenSelected {
   quote_session_id?: string;
-  ramp_type: 'DEPOSIT' | 'SELL' | 'BUY' | 'UNIFIED BUY';
+  ramp_type: 'DEPOSIT' | 'SELL' | 'BUY' | 'UNIFIED BUY' | 'UNIFIED BUY 2';
   user_id?: string;
   region: string;
   chain_id: string;
@@ -44,6 +45,7 @@ interface RampsTokenSelected {
   token_caip19?: string;
   token_symbol?: string;
   ramp_routing?: UnifiedRampRoutingType;
+  feature_flag_unified_buy_v2?: boolean;
 }
 
 interface RampsRegionSelected {
@@ -259,6 +261,160 @@ interface RampsUserDetailsFetched {
   location: string;
 }
 
+// Unified Buy v2 event interfaces
+
+interface RampsScreenViewed {
+  location: string;
+  ramp_type: 'UNIFIED BUY' | 'UNIFIED BUY 2';
+  ramp_routing?: UnifiedRampRoutingType;
+  feature_flag_unified_buy_v2: boolean;
+}
+
+interface RampsBackButtonClicked {
+  location: string;
+  ramp_type: 'UNIFIED BUY' | 'UNIFIED BUY 2';
+  ramp_routing?: UnifiedRampRoutingType;
+  feature_flag_unified_buy_v2: boolean;
+}
+
+interface RampsNetworkFilterClicked {
+  network_chain_id?: string;
+  location: string;
+  ramp_type: 'UNIFIED BUY' | 'UNIFIED BUY 2';
+  feature_flag_unified_buy_v2: boolean;
+}
+
+interface RampsTokenSearched {
+  search_query: string;
+  results_count?: number;
+  location: string;
+  ramp_type: 'UNIFIED BUY' | 'UNIFIED BUY 2';
+  feature_flag_unified_buy_v2: boolean;
+}
+
+interface RampsSettingsClicked {
+  location: string;
+  ramp_type: 'UNIFIED BUY' | 'UNIFIED BUY 2';
+  feature_flag_unified_buy_v2: boolean;
+}
+
+interface RampsSettingOptionClicked {
+  option: string;
+  location: string;
+  ramp_type: 'UNIFIED BUY' | 'UNIFIED BUY 2';
+  feature_flag_unified_buy_v2: boolean;
+}
+
+interface RampsPaymentMethodSelectorClicked {
+  current_payment_method?: string;
+  location: string;
+  ramp_type: 'UNIFIED BUY' | 'UNIFIED BUY 2';
+  feature_flag_unified_buy_v2: boolean;
+}
+
+interface RampsQuickAmountClicked {
+  amount: number;
+  currency_source: string;
+  location: string;
+  ramp_type: 'UNIFIED BUY' | 'UNIFIED BUY 2';
+  feature_flag_unified_buy_v2: boolean;
+}
+
+interface RampsChangeProviderButtonClicked {
+  current_provider?: string;
+  location: string;
+  ramp_type: 'UNIFIED BUY' | 'UNIFIED BUY 2';
+  ramp_routing?: UnifiedRampRoutingType;
+  feature_flag_unified_buy_v2: boolean;
+}
+
+interface RampsProviderSelected {
+  provider: string;
+  previous_provider?: string;
+  location: string;
+  ramp_type: 'UNIFIED BUY' | 'UNIFIED BUY 2';
+  ramp_routing?: UnifiedRampRoutingType;
+  feature_flag_unified_buy_v2: boolean;
+}
+
+interface RampsContinueButtonClicked {
+  ramp_routing: UnifiedRampRoutingType;
+  ramp_type: 'UNIFIED BUY' | 'UNIFIED BUY 2';
+  amount_source: number;
+  amount_destination?: number;
+  payment_method_id: string;
+  provider_onramp?: string;
+  region: string;
+  chain_id: string;
+  currency_destination: string;
+  currency_destination_symbol?: string;
+  currency_destination_network?: string;
+  currency_source: string;
+  is_authenticated?: boolean;
+  first_time_order?: boolean;
+  exchange_rate?: number;
+  total_fee?: number;
+  gas_fee?: number;
+  processing_fee?: number;
+  feature_flag_unified_buy_v2: boolean;
+}
+
+interface RampsTermsConsentClicked {
+  location: string;
+  ramp_type: 'UNIFIED BUY' | 'UNIFIED BUY 2';
+  ramp_routing?: UnifiedRampRoutingType;
+  feature_flag_unified_buy_v2: boolean;
+}
+
+interface RampsExternalLinkClicked {
+  location: string;
+  text: string;
+  url_domain?: string;
+  ramp_type: 'UNIFIED BUY' | 'UNIFIED BUY 2';
+  feature_flag_unified_buy_v2: boolean;
+}
+
+interface RampsCloseButtonClicked {
+  location: string;
+  ramp_type: 'UNIFIED BUY' | 'UNIFIED BUY 2';
+  feature_flag_unified_buy_v2: boolean;
+}
+
+interface RampsQuoteError {
+  error_message?: string;
+  amount?: number;
+  currency_source?: string;
+  currency_destination?: string;
+  payment_method_id?: string;
+  chain_id?: string;
+  ramp_type: 'UNIFIED BUY' | 'UNIFIED BUY 2';
+  ramp_routing?: UnifiedRampRoutingType;
+  feature_flag_unified_buy_v2: boolean;
+}
+
+interface RampsQuoteErrorTooltipClicked {
+  error_message?: string;
+  location: string;
+  ramp_type: 'UNIFIED BUY' | 'UNIFIED BUY 2';
+  feature_flag_unified_buy_v2: boolean;
+}
+
+interface RampsUnsupportedTokenTooltipClicked {
+  reason?: string;
+  token_symbol?: string;
+  chain_id?: string;
+  location: string;
+  ramp_type: 'UNIFIED BUY' | 'UNIFIED BUY 2';
+  feature_flag_unified_buy_v2: boolean;
+}
+
+interface RampsToastButtonClicked {
+  action: string;
+  location?: string;
+  ramp_type: 'UNIFIED BUY' | 'UNIFIED BUY 2';
+  feature_flag_unified_buy_v2: boolean;
+}
+
 export interface AnalyticsEvents {
   RAMPS_BUTTON_CLICKED: RampsButtonClicked;
   RAMPS_DEPOSIT_CASH_BUTTON_CLICKED: RampsDepositCashButtonClicked;
@@ -283,4 +439,24 @@ export interface AnalyticsEvents {
   RAMPS_KYC_APPLICATION_FAILED: RampsKycApplicationFailed;
   RAMPS_KYC_APPLICATION_APPROVED: RampsKycApplicationApproved;
   RAMPS_USER_DETAILS_FETCHED: RampsUserDetailsFetched;
+
+  // Unified Buy v2
+  RAMPS_SCREEN_VIEWED: RampsScreenViewed;
+  RAMPS_BACK_BUTTON_CLICKED: RampsBackButtonClicked;
+  RAMPS_NETWORK_FILTER_CLICKED: RampsNetworkFilterClicked;
+  RAMPS_TOKEN_SEARCHED: RampsTokenSearched;
+  RAMPS_SETTINGS_CLICKED: RampsSettingsClicked;
+  RAMPS_SETTING_OPTION_CLICKED: RampsSettingOptionClicked;
+  RAMPS_PAYMENT_METHOD_SELECTOR_CLICKED: RampsPaymentMethodSelectorClicked;
+  RAMPS_QUICK_AMOUNT_CLICKED: RampsQuickAmountClicked;
+  RAMPS_CHANGE_PROVIDER_BUTTON_CLICKED: RampsChangeProviderButtonClicked;
+  RAMPS_PROVIDER_SELECTED: RampsProviderSelected;
+  RAMPS_CONTINUE_BUTTON_CLICKED: RampsContinueButtonClicked;
+  RAMPS_TERMS_CONSENT_CLICKED: RampsTermsConsentClicked;
+  RAMPS_EXTERNAL_LINK_CLICKED: RampsExternalLinkClicked;
+  RAMPS_CLOSE_BUTTON_CLICKED: RampsCloseButtonClicked;
+  RAMPS_QUOTE_ERROR: RampsQuoteError;
+  RAMPS_QUOTE_ERROR_TOOLTIP_CLICKED: RampsQuoteErrorTooltipClicked;
+  RAMPS_UNSUPPORTED_TOKEN_TOOLTIP_CLICKED: RampsUnsupportedTokenTooltipClicked;
+  RAMPS_TOAST_BUTTON_CLICKED: RampsToastButtonClicked;
 }
