@@ -4,9 +4,6 @@ import { useDispatch } from 'react-redux';
 import { View, Image, useColorScheme, Linking } from 'react-native';
 import { setMusdConversionEducationSeen } from '../../../../../actions/user';
 import Logger from '../../../../../util/Logger';
-import Text, {
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -23,6 +20,10 @@ import { useNavigation } from '@react-navigation/native';
 import {
   Button as DesignSystemButton,
   ButtonVariant as DesignSystemButtonVariant,
+  Text as DesignSystemText,
+  TextVariant as DesignSystemTextVariant,
+  FontFamily,
+  FontWeight,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
@@ -301,23 +302,30 @@ const EarnMusdConversionEducationView = () => {
       testID={EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.CONTAINER}
     >
       <View style={styles.content}>
-        <Text style={styles.heading} numberOfLines={2} adjustsFontSizeToFit>
+        <DesignSystemText
+          fontFamily={FontFamily.Hero}
+          numberOfLines={2}
+          adjustsFontSizeToFit
+        >
           {strings('earn.musd_conversion.education.heading', {
             percentage: MUSD_CONVERSION_APY,
           })}
-        </Text>
-        <Text variant={TextVariant.BodyMD} style={styles.bodyText}>
+        </DesignSystemText>
+        <DesignSystemText
+          variant={DesignSystemTextVariant.BodyMd}
+          style={styles.bodyText}
+        >
           {strings('earn.musd_conversion.education.description', {
             percentage: MUSD_CONVERSION_APY,
           })}{' '}
-          <Text
-            variant={TextVariant.BodyMD}
+          <DesignSystemText
+            variant={DesignSystemTextVariant.BodyMd}
             style={styles.termsText}
             onPress={handleTermsOfUsePressed}
           >
             {strings('earn.musd_conversion.education.terms_apply')}
-          </Text>
-        </Text>
+          </DesignSystemText>
+        </DesignSystemText>
       </View>
       <View style={styles.imageContainer}>
         <Image
@@ -342,9 +350,12 @@ const EarnMusdConversionEducationView = () => {
           onPress={handleGoBack}
           testID={EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.SECONDARY_BUTTON}
         >
-          <Text variant={TextVariant.BodyMDMedium}>
+          <DesignSystemText
+            variant={DesignSystemTextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+          >
             {strings('earn.musd_conversion.education.secondary_button')}
-          </Text>
+          </DesignSystemText>
         </DesignSystemButton>
       </View>
     </SafeAreaView>
