@@ -174,25 +174,82 @@ abstract class StreamChannel<T> {
     if (this.deferConnectTimer) {
       clearTimeout(this.deferConnectTimer);
     }
-    this.deferConnectTimer = setTimeout(() => this.connect(), delayMs);
+    this.deferConnectTimer = setTimeout(() => {
+      this.deferConnectTimer = null;
+      this.connect();
+    }, delayMs);
   }
 
   /**
    * Common initialization guard for connect().
    * Returns true if the channel is ready to connect, false if deferred.
    * Resets connectRetryCount on success.
+   *
+   * When the connection manager is actively connecting, awaits the connection
+   * promise and retries connect() once resolved, instead of blind 200ms polling.
    */
   protected ensureReady(): boolean {
     if (Engine.context.PerpsController.isCurrentlyReinitializing()) {
       this.deferConnect(PERPS_CONSTANTS.ReconnectionCleanupDelayMs);
       return false;
     }
-    if (!PerpsConnectionManager.getConnectionState().isInitialized) {
-      this.deferConnect(200);
+    const connState = PerpsConnectionManager.getConnectionState();
+    if (!connState.isInitialized) {
+      // If actively connecting, await the connection promise instead of polling
+      if (connState.isConnecting) {
+        DevLogger.log(
+          `${this.constructor.name}: ensureReady: awaiting active connection`,
+        );
+        this.awaitConnectionThenConnect();
+        return false;
+      }
+      this.deferConnect(PERPS_CONSTANTS.ConnectRetryDelayMs);
       return false;
     }
     this.connectRetryCount = 0;
     return true;
+  }
+
+  /**
+   * Await the PerpsConnectionManager connection promise, then retry connect().
+   * This replaces blind 200ms polling when we know a connection is in progress.
+   */
+  private awaitConnectionThenConnect(): void {
+    // Prevent duplicate awaits — only one outstanding wait at a time
+    if (this.deferConnectTimer) {
+      return;
+    }
+    // Use a sentinel timer value to signal that we're waiting on the promise
+    // This prevents deferConnect from also scheduling a parallel timer
+    const noop = () => {
+      /* sentinel timer */
+    };
+    const sentinel = setTimeout(noop, 0) as ReturnType<typeof setTimeout>;
+    this.deferConnectTimer = sentinel;
+
+    PerpsConnectionManager.waitForConnection()
+      .then(() => {
+        // Only clear if our sentinel is still the active timer; a disconnect()
+        // followed by a new subscribe() may have replaced it with a real timer.
+        if (this.deferConnectTimer === sentinel) {
+          this.deferConnectTimer = null;
+        }
+        if (this.subscribers.size > 0) {
+          this.connect();
+        }
+      })
+      .catch(() => {
+        if (this.deferConnectTimer === sentinel) {
+          this.deferConnectTimer = null;
+        }
+        // Connection failed — fall back to normal defer polling
+        if (this.subscribers.size > 0) {
+          DevLogger.log(
+            `${this.constructor.name}: awaitConnectionThenConnect: connection failed, falling back to polling`,
+          );
+          this.deferConnect(PERPS_CONSTANTS.ConnectRetryDelayMs);
+        }
+      });
   }
 
   /**
@@ -1262,7 +1319,7 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
 
     // Check if connection manager is still connecting - retry later if so
     if (PerpsConnectionManager.isCurrentlyConnecting()) {
-      this.deferConnect(200);
+      this.deferConnect(PERPS_CONSTANTS.ConnectRetryDelayMs);
       return;
     }
 

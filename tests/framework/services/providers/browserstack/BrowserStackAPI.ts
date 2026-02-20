@@ -2,6 +2,23 @@ import { createLogger } from '../../../logger.ts';
 
 const logger = createLogger({ name: 'BrowserStackAPI' });
 const API_BASE_URL = 'https://api-cloud.browserstack.com/app-automate';
+const DEFAULT_TIMEOUT_MS = 8000;
+
+/**
+ * Custom error that preserves the HTTP status code from API responses.
+ * Consumers can check `error.status` to handle specific HTTP errors (e.g. 404 retries).
+ */
+export class BrowserStackAPIError extends Error {
+  status: number;
+  body: string | null;
+
+  constructor(message: string, status: number, body: string | null = null) {
+    super(message);
+    this.name = 'BrowserStackAPIError';
+    this.status = status;
+    this.body = body;
+  }
+}
 
 /**
  * BrowserStack only accepts 'passed' or 'failed' as valid status values.
@@ -28,6 +45,7 @@ export interface BrowserStackSessionDetails {
   status: string;
   reason: string;
   build_name: string;
+  build_hashed_id: string;
   project_name: string;
   logs: string;
   public_url: string;
@@ -47,21 +65,26 @@ export interface BrowserStackSessionDetails {
  * BrowserStack API client for session management
  */
 export class BrowserStackAPI {
-  private username: string;
-  private accessKey: string;
+  private username: string | null;
+  private accessKey: string | null;
 
   constructor() {
-    const username = process.env.BROWSERSTACK_USERNAME;
-    const accessKey = process.env.BROWSERSTACK_ACCESS_KEY;
+    this.username = process.env.BROWSERSTACK_USERNAME || null;
+    this.accessKey = process.env.BROWSERSTACK_ACCESS_KEY || null;
 
-    if (!username || !accessKey) {
-      throw new Error(
-        'BROWSERSTACK_USERNAME and BROWSERSTACK_ACCESS_KEY environment variables are required',
+    if (!this.username || !this.accessKey) {
+      logger.warn(
+        'BROWSERSTACK_USERNAME and/or BROWSERSTACK_ACCESS_KEY environment variables are missing. API calls will return null.',
       );
     }
+  }
 
-    this.username = username;
-    this.accessKey = accessKey;
+  /**
+   * Check if credentials are available. API methods use this internally
+   * and return null when credentials are missing.
+   */
+  private hasCredentials(): boolean {
+    return !!(this.username && this.accessKey);
   }
 
   /**
@@ -82,6 +105,11 @@ export class BrowserStackAPI {
       name?: string;
     },
   ): Promise<unknown> {
+    if (!this.hasCredentials()) {
+      logger.warn('Skipping updateSession: missing BrowserStack credentials');
+      return null;
+    }
+
     logger.debug(`Updating BrowserStack session: ${sessionId}`);
 
     // Build request body with all provided fields
@@ -109,11 +137,15 @@ export class BrowserStackAPI {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(body),
+      signal: AbortSignal.timeout(DEFAULT_TIMEOUT_MS),
     });
 
     if (!response.ok) {
-      throw new Error(
+      const errorBody = await response.text();
+      throw new BrowserStackAPIError(
         `Error updating BrowserStack session: ${response.statusText}`,
+        response.status,
+        errorBody,
       );
     }
 
@@ -125,7 +157,14 @@ export class BrowserStackAPI {
   /**
    * Get session details
    */
-  async getSession(sessionId: string): Promise<BrowserStackSessionDetails> {
+  async getSession(
+    sessionId: string,
+  ): Promise<BrowserStackSessionDetails | null> {
+    if (!this.hasCredentials()) {
+      logger.warn('Skipping getSession: missing BrowserStack credentials');
+      return null;
+    }
+
     logger.debug(`Fetching BrowserStack session details: ${sessionId}`);
 
     const response = await fetch(`${API_BASE_URL}/sessions/${sessionId}.json`, {
@@ -133,14 +172,99 @@ export class BrowserStackAPI {
       headers: {
         Authorization: this.getAuthHeader(),
       },
+      signal: AbortSignal.timeout(DEFAULT_TIMEOUT_MS),
     });
 
     if (!response.ok) {
-      throw new Error(
+      const errorBody = await response.text();
+      throw new BrowserStackAPIError(
         `Error fetching BrowserStack session: ${response.statusText}`,
+        response.status,
+        errorBody,
       );
     }
 
-    return (await response.json()) as BrowserStackSessionDetails;
+    const data = (await response.json()) as {
+      automation_session: BrowserStackSessionDetails;
+    };
+    return data.automation_session;
+  }
+
+  /**
+   * Get app profiling data v2 for a specific session
+   */
+  async getAppProfilingData(
+    buildId: string,
+    sessionId: string,
+  ): Promise<unknown> {
+    if (!this.hasCredentials()) {
+      logger.warn(
+        'Skipping getAppProfilingData: missing BrowserStack credentials',
+      );
+      return null;
+    }
+
+    logger.debug(
+      `Fetching app profiling data: build=${buildId}, session=${sessionId}`,
+    );
+
+    const response = await fetch(
+      `${API_BASE_URL}/builds/${buildId}/sessions/${sessionId}/appprofiling/v2`,
+      {
+        method: 'GET',
+        headers: {
+          Authorization: this.getAuthHeader(),
+          'Content-Type': 'application/json',
+        },
+        signal: AbortSignal.timeout(DEFAULT_TIMEOUT_MS),
+      },
+    );
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      throw new BrowserStackAPIError(
+        `Error fetching app profiling data: ${response.statusText}`,
+        response.status,
+        errorBody,
+      );
+    }
+
+    return await response.json();
+  }
+
+  /**
+   * Fetch network logs (HAR) for a session
+   */
+  async getNetworkLogs(buildId: string, sessionId: string): Promise<unknown> {
+    if (!this.hasCredentials()) {
+      logger.warn('Skipping getNetworkLogs: missing BrowserStack credentials');
+      return null;
+    }
+
+    logger.debug(
+      `Fetching network logs: build=${buildId}, session=${sessionId}`,
+    );
+
+    const response = await fetch(
+      `${API_BASE_URL}/builds/${buildId}/sessions/${sessionId}/networklogs`,
+      {
+        method: 'GET',
+        headers: {
+          Authorization: this.getAuthHeader(),
+        },
+        signal: AbortSignal.timeout(DEFAULT_TIMEOUT_MS),
+      },
+    );
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      throw new BrowserStackAPIError(
+        `Network logs API error: ${response.statusText}`,
+        response.status,
+        errorBody,
+      );
+    }
+
+    return await response.json();
   }
 }

@@ -20,7 +20,8 @@ import { RootState } from '../../../../../reducers';
 import { selectNetworkConfigurationByChainId } from '../../../../../selectors/networkController';
 import { getTimeDifferenceFromNow } from '../../../../../util/date';
 import { getDecimalChainId } from '../../../../../util/networks';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import AssetElement from '../../../AssetElement';
 import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
 import NetworkAssetLogo from '../../../NetworkAssetLogo';
@@ -74,7 +75,7 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
     asset.chainId as Hex,
   );
 
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const decimalChainId = getDecimalChainId(asset.chainId);
   const {
