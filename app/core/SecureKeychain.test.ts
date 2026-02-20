@@ -105,7 +105,7 @@ describe('SecureKeychain - setGenericPassword', () => {
       }),
     );
 
-    expect(mockAddTraitsToUser).toHaveBeenCalledWith(
+    expect(analytics.identify).toHaveBeenCalledWith(
       expect.objectContaining({
         [UserProfileProperty.AUTHENTICATION_TYPE]:
           AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION,
@@ -128,7 +128,7 @@ describe('SecureKeychain - setGenericPassword', () => {
       }),
     );
 
-    expect(mockAddTraitsToUser).toHaveBeenCalledWith(
+    expect(analytics.identify).toHaveBeenCalledWith(
       expect.objectContaining({
         [UserProfileProperty.AUTHENTICATION_TYPE]:
           AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION,
