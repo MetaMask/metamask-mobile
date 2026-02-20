@@ -211,7 +211,7 @@ class AddCustomToken extends PureComponent {
     await TokensController.addToken({
       address,
       symbol,
-      decimals,
+      decimals: Number(decimals),
       name,
       chainId,
       networkClientId,
