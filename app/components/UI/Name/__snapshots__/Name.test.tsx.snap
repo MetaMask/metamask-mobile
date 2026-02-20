@@ -149,7 +149,7 @@ exports[`Name recognized address renders account wallet name 1`] = `
 </View>
 `;
 
-exports[`Name recognized address should render image 1`] = `
+exports[`Name recognized address renders image 1`] = `
 <View
   accessibilityState={
     {
@@ -288,7 +288,7 @@ exports[`Name recognized address should render image 1`] = `
 </View>
 `;
 
-exports[`Name recognized address should return name 1`] = `
+exports[`Name recognized address returns name 1`] = `
 <View
   accessibilityState={
     {

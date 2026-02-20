@@ -152,6 +152,18 @@ export interface IDeleteRegulationStatus {
 }
 
 /**
+ * Monetized primitives associated with a transaction.
+ * Only propagated when the transaction involves a monetized primitive.
+ */
+export enum MonetizedPrimitive {
+  Swaps = 'swaps',
+  Perps = 'perps',
+  Ramps = 'ramps',
+  Predict = 'predict',
+  MmPay = 'mm_pay',
+}
+
+/**
  * The API type used to perform a request to MetaMask Mobile
  * @description Indicates whether the request came through the Ethereum Provider API or the Multichain API
  * @see MetaMetricsRequestedThrough.EthereumProvider - Standard EIP-1193 provider API

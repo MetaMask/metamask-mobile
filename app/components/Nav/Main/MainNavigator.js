@@ -104,6 +104,10 @@ import {
   PredictModalStack,
   selectPredictEnabledFlag,
 } from '../../UI/Predict';
+import {
+  MarketInsightsView,
+  selectMarketInsightsEnabled,
+} from '../../UI/MarketInsights';
 import { selectAssetsTrendingTokensEnabled } from '../../../selectors/featureFlagController/assetsTrendingTokens';
 import { useAccountMenuEnabled } from '../../../selectors/featureFlagController/accountMenu/useAccountMenuEnabled';
 import PerpsPositionTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsPositionTransactionView';
@@ -420,7 +424,7 @@ const SettingsFlow = () => {
       <Stack.Screen
         name="ContactsSettings"
         component={Contacts}
-        options={Contacts.navigationOptions}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name="ContactForm"
@@ -897,6 +901,12 @@ const MainNavigator = () => {
     () => predictEnabledFlag,
     [predictEnabledFlag],
   );
+  // Get feature flag state for conditional Market Insights screen registration
+  const marketInsightsEnabledFlag = useSelector(selectMarketInsightsEnabled);
+  const isMarketInsightsEnabled = useMemo(
+    () => marketInsightsEnabledFlag,
+    [marketInsightsEnabledFlag],
+  );
   // Get feature flag state for conditional Trending Tokens screen registration
   const isAssetsTrendingTokensEnabled = useSelector(
     selectAssetsTrendingTokensEnabled,
@@ -1221,6 +1231,28 @@ const MainNavigator = () => {
             options={clearStackNavigatorOptions}
           />
         </>
+      )}
+      {isMarketInsightsEnabled && (
+        <Stack.Screen
+          name={Routes.MARKET_INSIGHTS.VIEW}
+          component={MarketInsightsView}
+          options={{
+            headerShown: false,
+            animationEnabled: true,
+            cardStyleInterpolator: ({ current, layouts }) => ({
+              cardStyle: {
+                transform: [
+                  {
+                    translateX: current.progress.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [layouts.screen.width, 0],
+                    }),
+                  },
+                ],
+              },
+            }),
+          }}
+        />
       )}
       {isAssetsTrendingTokensEnabled && (
         <>

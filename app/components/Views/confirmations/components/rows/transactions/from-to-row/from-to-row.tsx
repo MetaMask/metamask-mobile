@@ -12,8 +12,9 @@ import { NameType } from '../../../../../../UI/Name/Name.types';
 import { useTransferRecipient } from '../../../../hooks/transactions/useTransferRecipient';
 import { RowAlertKey } from '../../../UI/info-row/alert-row/constants';
 import InfoSection from '../../../UI/info-row/info-section';
-import InlineAlert from '../../../UI/inline-alert';
+import AlertRow from '../../../UI/info-row/alert-row';
 import { useAlerts } from '../../../../context/alert-system-context';
+import InlineAlert from '../../../UI/inline-alert';
 import { Skeleton } from '../../../../../../../component-library/components/Skeleton';
 import { strings } from '../../../../../../../../locales/i18n';
 import { AvatarSize } from '../../../../../../../component-library/components/Avatars/Avatar';
@@ -67,6 +68,9 @@ const FromToRow = () => {
   const transactionMetadata = useTransactionMetadataRequest();
   const transferRecipient = useTransferRecipient();
   const { fieldAlerts } = useAlerts();
+  const fromToAlert = fieldAlerts.find(
+    (a) => a.field === RowAlertKey.FromToAddress,
+  );
 
   if (!transactionMetadata) {
     return null;
@@ -103,7 +107,12 @@ const FromToRow = () => {
             </Text>
             {toAlert && <InlineAlert alertObj={toAlert} />}
           </View>
-          <AddressDisplay address={toAddress as string} chainId={chainId} />
+          <AlertRow
+            alertField={RowAlertKey.FromToAddress}
+            hideInlineAlert={!!fromToAlert}
+          >
+            <AddressDisplay address={toAddress as string} chainId={chainId} />
+          </AlertRow>
         </View>
       </View>
     </InfoSection>

@@ -77,7 +77,7 @@ jobs:
     if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokeWalletPlatform')
     strategy:
       matrix:
-        split: [1, 2]
+        split: [1, 2, 3]
       fail-fast: false
     uses: ./.github/workflows/run-e2e-workflow.yml
     with:
@@ -85,7 +85,7 @@ jobs:
       platform: ios
       test_suite_tag: 'SmokeWalletPlatform'
       split_number: ${{ matrix.split }}
-      total_splits: 2
+      total_splits: 3
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
       metamask_environment: 'qa'
