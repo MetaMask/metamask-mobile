@@ -140,11 +140,10 @@ const snapMethodMiddlewareBuilder = (
       sensitiveProperties: Record<string, Json>;
     }) => {
       analytics.trackEvent(
-        AnalyticsEventBuilder.createEventBuilder({
-          category: eventPayload.event,
-          properties: eventPayload.properties,
-          sensitiveProperties: eventPayload.sensitiveProperties,
-        }).build(),
+        AnalyticsEventBuilder.createEventBuilder(eventPayload.event)
+          .addProperties(eventPayload.properties)
+          .addSensitiveProperties(eventPayload.sensitiveProperties)
+          .build(),
       );
     },
     openWebSocket: controllerMessenger.call.bind(
