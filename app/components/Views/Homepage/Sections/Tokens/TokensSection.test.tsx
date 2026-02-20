@@ -136,7 +136,8 @@ describe('TokensSection', () => {
     mockSortedTokenKeys.mockReturnValue([]);
     mockUsePopularTokens.mockReturnValue({
       tokens: mockPopularTokens,
-      isLoading: false,
+      isInitialLoading: false,
+      isRefreshing: false,
       error: null,
       refetch: jest.fn(),
     });
