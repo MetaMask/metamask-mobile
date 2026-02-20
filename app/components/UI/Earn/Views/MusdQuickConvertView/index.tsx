@@ -110,7 +110,10 @@ const MusdQuickConvertView = () => {
             action: 'initiate_max_conversion',
           },
           context: {
-            token,
+            name: 'MusdQuickConvertView.handleMaxPress',
+            data: {
+              token,
+            },
           },
         });
       }
@@ -136,7 +139,10 @@ const MusdQuickConvertView = () => {
             action: 'initiate_custom_conversion',
           },
           context: {
-            token,
+            name: 'MusdQuickConvertView.handleEditPress',
+            data: {
+              token,
+            },
           },
         });
       }
@@ -266,10 +272,7 @@ const MusdQuickConvertView = () => {
             {strings('earn.musd_conversion.your_musd')}
           </Text>
           {Object.keys(fiatBalanceFormattedByChain).map((chainId) => (
-            <View
-              key={`${chainId}-${fiatBalanceFormattedByChain[chainId as Hex]}`}
-              style={styles.balanceCardContainer}
-            >
+            <View key={chainId} style={styles.balanceCardContainer}>
               <MusdBalanceCard
                 chainId={chainId as Hex}
                 balance={fiatBalanceFormattedByChain[chainId as Hex]}
