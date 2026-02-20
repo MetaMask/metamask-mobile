@@ -57,8 +57,7 @@ const AddressDisplay = ({ address, chainId, label }: AddressDisplayProps) => {
       <Identicon
         address={address}
         imageUri={image}
-        avatarSize={AvatarSize.Md}
-        diameter={32}
+        avatarSize={AvatarSize.Lg}
       />
     </View>
   );
