@@ -20,7 +20,8 @@ import Logger from '../../../../../../util/Logger';
 import { strings } from '../../../../../../../locales/i18n';
 import { EARN_TEST_IDS } from '../../../constants/testIds';
 import { MUSD_CONVERSION_APY } from '../../../constants/musd';
-import { MetaMetricsEvents, useMetrics } from '../../../../../hooks/useMetrics';
+import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { MUSD_EVENTS_CONSTANTS } from '../../../constants/events';
 import { useNetworkName } from '../../../../../Views/confirmations/hooks/useNetworkName';
 import { Hex } from '@metamask/utils';
@@ -40,7 +41,7 @@ const MusdConversionAssetOverviewCta = ({
 }: MusdConversionAssetOverviewCtaProps) => {
   const { styles } = useStyles(stylesheet, {});
 
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const networkName = useNetworkName(asset.chainId as Hex);
 

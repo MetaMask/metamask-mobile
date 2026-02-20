@@ -7,7 +7,7 @@ jest.mock('../../../hooks/useMusdCtaVisibility');
 jest.mock('../../../../Ramp/hooks/useRampNavigation');
 jest.mock('../../../selectors/featureFlags');
 jest.mock('../../../../../../util/Logger');
-jest.mock('../../../../../hooks/useMetrics');
+jest.mock('../../../../../hooks/useAnalytics/useAnalytics');
 jest.mock('../../../../../Views/confirmations/hooks/useNetworkName');
 
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
@@ -30,7 +30,8 @@ import Logger from '../../../../../../util/Logger';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { BADGE_WRAPPER_BADGE_TEST_ID } from '../../../../../../component-library/components/Badges/BadgeWrapper/BadgeWrapper.constants';
 import { strings } from '../../../../../../../locales/i18n';
-import { useMetrics, MetaMetricsEvents } from '../../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../../core/Analytics';
+import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { useNetworkName } from '../../../../../Views/confirmations/hooks/useNetworkName';
 import { MUSD_EVENTS_CONSTANTS } from '../../../constants/events';
 import { Hex } from '@metamask/utils';
@@ -83,10 +84,10 @@ describe('MusdConversionAssetListCta', () => {
       addProperties: mockAddProperties,
     }));
 
-    (useMetrics as jest.MockedFunction<typeof useMetrics>).mockReturnValue({
+    (useAnalytics as jest.MockedFunction<typeof useAnalytics>).mockReturnValue({
       trackEvent: mockTrackEvent,
       createEventBuilder: mockCreateEventBuilder,
-    } as unknown as ReturnType<typeof useMetrics>);
+    } as unknown as ReturnType<typeof useAnalytics>);
 
     (
       useNetworkName as jest.MockedFunction<typeof useNetworkName>

@@ -33,7 +33,8 @@ import BadgeWrapper, {
   BadgePosition,
 } from '../../../../../../component-library/components/Badges/BadgeWrapper';
 import { getNetworkImageSource } from '../../../../../../util/networks';
-import { MetaMetricsEvents, useMetrics } from '../../../../../hooks/useMetrics';
+import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { MUSD_EVENTS_CONSTANTS } from '../../../constants/events';
 import { useNetworkName } from '../../../../../Views/confirmations/hooks/useNetworkName';
 import Badge, {
@@ -63,7 +64,7 @@ const MusdConversionAssetListCta = () => {
 
   const { shouldShowBuyGetMusdCta } = useMusdCtaVisibility();
 
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const { shouldShowCta, showNetworkIcon, selectedChainId, variant } =
     shouldShowBuyGetMusdCta();
