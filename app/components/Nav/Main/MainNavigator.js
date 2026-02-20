@@ -898,11 +898,7 @@ const MainNavigator = () => {
     [predictEnabledFlag],
   );
   // Get feature flag state for conditional Market Insights screen registration
-  const marketInsightsEnabledFlag = useSelector(selectMarketInsightsEnabled);
-  const isMarketInsightsEnabled = useMemo(
-    () => marketInsightsEnabledFlag,
-    [marketInsightsEnabledFlag],
-  );
+  const isMarketInsightsEnabled = useSelector(selectMarketInsightsEnabled);
 
   return (
     <Stack.Navigator
