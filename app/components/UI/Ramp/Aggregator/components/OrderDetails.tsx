@@ -301,7 +301,7 @@ const OrderDetails: React.FC<Props> = ({ order }: Props) => {
           >
             {renderAmount} {cryptocurrency}
           </Text>
-          {orderData?.fiatCurrency?.decimals !== undefined ? (
+          {orderData?.fiatCurrency?.decimals !== undefined && currencySymbol ? (
             <Text
               variant={TextVariant.BodySM}
               color={TextColor.Alternative}
@@ -551,7 +551,8 @@ const OrderDetails: React.FC<Props> = ({ order }: Props) => {
                 </Text>
               </ListItemColumn>
               <ListItemColumn>
-                {amount &&
+                {currencySymbol &&
+                amount &&
                 currency &&
                 orderData?.fiatCurrency?.decimals !== undefined ? (
                   <Text variant={TextVariant.BodySMBold}>
