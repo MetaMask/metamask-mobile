@@ -4190,6 +4190,67 @@ describe('Authentication', () => {
       expect(setItemSpy).toHaveBeenCalledWith(PASSCODE_DISABLED, TRUE);
       expect(updateAuthMockDispatch).toHaveBeenCalledWith(passwordSet());
     });
+
+    it('passes fallbackToPassword through to storePassword', async () => {
+      const storePasswordSpy = jest.spyOn(Authentication, 'storePassword');
+
+      await Authentication.updateAuthPreference({
+        authType: AUTHENTICATION_TYPE.BIOMETRIC,
+        password: mockPassword,
+        fallbackToPassword: true,
+      });
+
+      // Verify storePassword receives the fallbackToPassword flag.
+      expect(storePasswordSpy).toHaveBeenCalledWith(
+        mockPassword,
+        AUTHENTICATION_TYPE.BIOMETRIC,
+        true,
+      );
+    });
+
+    it('passes fallbackToPassword as undefined to storePassword when not provided', async () => {
+      const storePasswordSpy = jest.spyOn(Authentication, 'storePassword');
+
+      await Authentication.updateAuthPreference({
+        authType: AUTHENTICATION_TYPE.BIOMETRIC,
+        password: mockPassword,
+      });
+
+      // Verify storePassword receives undefined fallbackToPassword when not provided.
+      expect(storePasswordSpy).toHaveBeenCalledWith(
+        mockPassword,
+        AUTHENTICATION_TYPE.BIOMETRIC,
+        undefined,
+      );
+    });
+
+    it('falls back to PASSWORD storage when fallbackToPassword is true and biometric storage fails', async () => {
+      // Make biometric storage fail, then password storage succeed.
+      jest
+        .spyOn(SecureKeychain, 'setGenericPassword')
+        .mockRejectedValueOnce(new Error('Biometric keychain failed'))
+        .mockResolvedValueOnce(undefined as never);
+
+      await Authentication.updateAuthPreference({
+        authType: AUTHENTICATION_TYPE.BIOMETRIC,
+        password: mockPassword,
+        fallbackToPassword: true,
+      });
+
+      // Verify it retried with PASSWORD type.
+      expect(SecureKeychain.setGenericPassword).toHaveBeenCalledTimes(2);
+      expect(SecureKeychain.setGenericPassword).toHaveBeenNthCalledWith(
+        1,
+        mockPassword,
+        SecureKeychain.TYPES.BIOMETRICS,
+      );
+      expect(SecureKeychain.setGenericPassword).toHaveBeenNthCalledWith(
+        2,
+        mockPassword,
+        undefined,
+      );
+      expect(updateAuthMockDispatch).toHaveBeenCalledWith(passwordSet());
+    });
   });
   describe('checkAndShowSeedlessPasswordOutdatedModal', () => {
     let Engine: typeof import('../Engine').default;
@@ -4612,10 +4673,11 @@ describe('Authentication', () => {
         authPreference: { currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC },
       });
 
-      // Verify that the authentication preference is updated.
+      // Verify that the authentication preference is updated with fallbackToPassword: false (default).
       expect(updateAuthPreferenceSpy).toHaveBeenCalledWith({
         authType: AUTHENTICATION_TYPE.BIOMETRIC,
         password: passwordToUse,
+        fallbackToPassword: false,
       });
     });
 
@@ -4763,6 +4825,90 @@ describe('Authentication', () => {
             password: passwordToUse,
           }),
         ).rejects.toThrow('Failed to sync password and unlock wallet');
+      });
+
+      it('passes fallbackToPassword: true to updateAuthPreference when oauth2Login is true', async () => {
+        // Spy on rehydrateSeedPhrase and updateAuthPreference.
+        jest
+          .spyOn(Authentication, 'rehydrateSeedPhrase')
+          .mockResolvedValueOnce();
+        const updateAuthPreferenceSpy = jest.spyOn(
+          Authentication,
+          'updateAuthPreference',
+        );
+
+        // Call unlockWallet with oauth2Login set to true.
+        await Authentication.unlockWallet({
+          password: passwordToUse,
+          authPreference: {
+            currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
+            oauth2Login: true,
+          },
+        });
+
+        // Verify fallbackToPassword is true after rehydration.
+        expect(updateAuthPreferenceSpy).toHaveBeenCalledWith({
+          authType: AUTHENTICATION_TYPE.BIOMETRIC,
+          password: passwordToUse,
+          fallbackToPassword: true,
+        });
+      });
+
+      it('passes fallbackToPassword: true to updateAuthPreference when seedless password is outdated', async () => {
+        // Mock seedless password as outdated.
+        jest
+          .spyOn(Authentication, 'checkIsSeedlessPasswordOutdated')
+          .mockResolvedValueOnce(true);
+        jest
+          .spyOn(Authentication, 'syncPasswordAndUnlockWallet')
+          .mockResolvedValueOnce();
+
+        const updateAuthPreferenceSpy = jest.spyOn(
+          Authentication,
+          'updateAuthPreference',
+        );
+
+        // Call unlockWallet with an authPreference (non-oauth) to trigger the outdated path.
+        await Authentication.unlockWallet({
+          password: passwordToUse,
+          authPreference: {
+            currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
+          },
+        });
+
+        // Verify fallbackToPassword is true after password sync.
+        expect(updateAuthPreferenceSpy).toHaveBeenCalledWith(
+          expect.objectContaining({
+            fallbackToPassword: true,
+          }),
+        );
+      });
+
+      it('passes fallbackToPassword: false to updateAuthPreference in normal non-seedless flow', async () => {
+        // Mock checkIsSeedlessPasswordOutdated to return false (normal flow).
+        jest
+          .spyOn(Authentication, 'checkIsSeedlessPasswordOutdated')
+          .mockResolvedValueOnce(false);
+
+        const updateAuthPreferenceSpy = jest.spyOn(
+          Authentication,
+          'updateAuthPreference',
+        );
+
+        // Call unlockWallet with a non-oauth authPreference.
+        await Authentication.unlockWallet({
+          password: passwordToUse,
+          authPreference: {
+            currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
+          },
+        });
+
+        // Verify fallbackToPassword is false in normal flow.
+        expect(updateAuthPreferenceSpy).toHaveBeenCalledWith({
+          authType: AUTHENTICATION_TYPE.BIOMETRIC,
+          password: passwordToUse,
+          fallbackToPassword: false,
+        });
       });
     });
   });
