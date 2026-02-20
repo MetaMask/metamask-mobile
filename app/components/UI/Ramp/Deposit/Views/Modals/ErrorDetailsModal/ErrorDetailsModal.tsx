@@ -43,7 +43,10 @@ function ErrorDetailsModal() {
 
   return (
     <BottomSheet ref={sheetRef} shouldNavigateBack>
-      <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
+      <BottomSheetHeader
+        onClose={() => sheetRef.current?.onCloseBottomSheet()}
+        closeButtonProps={{ testID: 'error-details-close-button' }}
+      >
         <View style={styles.headerContainer}>
           <Icon
             name={IconName.Danger}
