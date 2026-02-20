@@ -839,4 +839,70 @@ describe('PerpsConnectionManager', () => {
       });
     });
   });
+
+  describe('waitForConnection', () => {
+    it('awaits resolving initPromise', async () => {
+      // Arrange — set initPromise to a resolved promise
+      const m = PerpsConnectionManager as unknown as {
+        initPromise: Promise<void> | null;
+      };
+      m.initPromise = Promise.resolve();
+
+      // Act & Assert — should complete without error
+      await expect(
+        PerpsConnectionManager.waitForConnection(),
+      ).resolves.toBeUndefined();
+
+      // Cleanup
+      m.initPromise = null;
+    });
+
+    it('swallows initPromise rejection', async () => {
+      // Arrange — set initPromise to a rejected promise
+      const m = PerpsConnectionManager as unknown as {
+        initPromise: Promise<void> | null;
+      };
+      m.initPromise = Promise.reject(new Error('init failed'));
+
+      // Act & Assert — should resolve (not throw) even though initPromise rejects
+      await expect(
+        PerpsConnectionManager.waitForConnection(),
+      ).resolves.toBeUndefined();
+
+      // Cleanup
+      m.initPromise = null;
+    });
+
+    it('awaits resolving pendingReconnectPromise', async () => {
+      // Arrange — set pendingReconnectPromise to a resolved promise
+      const m = PerpsConnectionManager as unknown as {
+        pendingReconnectPromise: Promise<void> | null;
+      };
+      m.pendingReconnectPromise = Promise.resolve();
+
+      // Act & Assert — should complete without error
+      await expect(
+        PerpsConnectionManager.waitForConnection(),
+      ).resolves.toBeUndefined();
+
+      // Cleanup
+      m.pendingReconnectPromise = null;
+    });
+
+    it('swallows pendingReconnectPromise rejection', async () => {
+      // Arrange — set pendingReconnectPromise to a rejected promise
+      const m = PerpsConnectionManager as unknown as {
+        pendingReconnectPromise: Promise<void> | null;
+      };
+      m.pendingReconnectPromise = Promise.reject(new Error('reconnect failed'));
+
+      // Act & Assert — should resolve (not throw) even though promise rejects
+      await expect(
+        PerpsConnectionManager.waitForConnection(),
+      ).resolves.toBeUndefined();
+
+      // Cleanup
+      m.pendingReconnectPromise = null;
+    });
+  });
 });

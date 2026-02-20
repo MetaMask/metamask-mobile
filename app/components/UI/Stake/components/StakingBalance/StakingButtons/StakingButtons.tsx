@@ -12,7 +12,8 @@ import Engine from '../../../../../../core/Engine';
 import { RootState } from '../../../../../../reducers';
 import { earnSelectors } from '../../../../../../selectors/earnController';
 import { selectEvmChainId } from '../../../../../../selectors/networkController';
-import { MetaMetricsEvents, useMetrics } from '../../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../../core/Analytics';
+import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { selectPooledStakingEnabledFlag } from '../../../../Earn/selectors/featureFlags';
 import { TokenI } from '../../../../Tokens/types';
 import { EVENT_LOCATIONS } from '../../../constants/events';
@@ -37,7 +38,7 @@ const StakingButtons = ({
 
   const { styles } = useStyles(styleSheet, {});
 
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const { isEligible } = useStakingEligibility();
 
