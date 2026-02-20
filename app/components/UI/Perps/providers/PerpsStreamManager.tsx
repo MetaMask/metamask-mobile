@@ -173,7 +173,10 @@ abstract class StreamChannel<T> {
     if (this.deferConnectTimer) {
       clearTimeout(this.deferConnectTimer);
     }
-    this.deferConnectTimer = setTimeout(() => this.connect(), delayMs);
+    this.deferConnectTimer = setTimeout(() => {
+      this.deferConnectTimer = null;
+      this.connect();
+    }, delayMs);
   }
 
   /**
