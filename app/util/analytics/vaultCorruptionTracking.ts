@@ -57,7 +57,7 @@ export const isVaultRelatedError = (errorMessage: string): boolean => {
  *
  * This utility function:
  * 1. Checks if the error is vault-related
- * 2. Delegates to the analytics controller
+ * 2. Provides a consistent interface for vault corruption tracking
  * 3. Handles errors gracefully without throwing
  *
  * @param errorMessage - The error message from the caught exception
