@@ -7,6 +7,7 @@
 import '../../../../../../tests/component-view/mocks';
 import { screen, fireEvent, waitFor } from '@testing-library/react-native';
 import { renderPerpsMarketListView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
+import { strings } from '../../../../../../locales/i18n';
 import { PerpsMarketListViewSelectorsIDs } from '../../Perps.testIds';
 import { PerpsMarketData } from '@metamask/perps-controller';
 
@@ -72,6 +73,44 @@ describe('PerpsMarketListView', () => {
         expect(screen.getByText('XAU')).toBeOnTheScreen();
         expect(screen.queryByText('BTC')).not.toBeOnTheScreen();
       });
+    });
+
+    it('shows empty search state when query does not match any market', async () => {
+      renderPerpsMarketListView({
+        streamOverrides: { marketData: marketDataWithCategories },
+      });
+
+      const searchToggle = await screen.findByTestId(
+        `${PerpsMarketListViewSelectorsIDs.CLOSE_BUTTON}-search-toggle`,
+      );
+
+      fireEvent.press(searchToggle);
+
+      const searchInput = await screen.findByTestId(
+        `${PerpsMarketListViewSelectorsIDs.CLOSE_BUTTON}-search-bar`,
+      );
+      fireEvent.changeText(searchInput, 'ZZZ-NOT-FOUND');
+
+      await waitFor(() => {
+        expect(
+          screen.getByText(strings('perps.no_tokens_found')),
+        ).toBeOnTheScreen();
+        expect(screen.queryByText('BTC')).not.toBeOnTheScreen();
+        expect(screen.queryByText('XAU')).not.toBeOnTheScreen();
+      });
+    });
+
+    it('shows empty favorites state when view starts in watchlist-only mode with no favorites', async () => {
+      renderPerpsMarketListView({
+        initialParams: { showWatchlistOnly: true },
+      });
+
+      expect(
+        await screen.findByText(strings('perps.no_favorites_found')),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText(strings('perps.no_favorites_description')),
+      ).toBeOnTheScreen();
     });
   });
 });
