@@ -72,7 +72,6 @@ import {
 import { useStyles } from '../../../component-library/hooks/useStyles';
 import stylesheet from './styles';
 import ReduxService from '../../../core/redux';
-import { StackNavigationProp } from '@react-navigation/stack';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import type { AnalyticsTrackingEvent } from '../../../util/analytics/AnalyticsEventBuilder';
 import FoxAnimation from '../../UI/FoxAnimation/FoxAnimation';

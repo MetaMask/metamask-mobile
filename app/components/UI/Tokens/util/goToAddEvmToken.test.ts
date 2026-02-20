@@ -12,7 +12,7 @@ jest.mock('../../../../core/Analytics', () => ({
 
 describe('goToAddEvmToken', () => {
   const mockNavigation = {
-    dispatch: jest.fn(),
+    navigate: jest.fn(),
   };
   const mockTrackEvent = jest.fn();
   const mockGetDecimalChainId = jest.fn(() => 1);
@@ -44,7 +44,9 @@ describe('goToAddEvmToken', () => {
     goToAddEvmToken(mockProps);
 
     // Check if navigation was triggered correctly
-    expect(mockNavigation.dispatch).toHaveBeenCalled();
+    expect(mockNavigation.navigate).toHaveBeenCalledWith('AddAsset', {
+      assetType: 'token',
+    });
 
     // Check if tracking event was fired
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
