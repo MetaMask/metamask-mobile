@@ -102,6 +102,11 @@ jest.mock('@react-navigation/native', () => {
       replace: mockReplace,
       reset: mockReset,
       goBack: mockGoBack,
+      dispatch: jest.fn((action) => {
+        if (action.type === 'REPLACE') {
+          mockReplace(action.payload.name, action.payload.params);
+        }
+      }),
     }),
     useRoute: () => mockRoute(),
   };
