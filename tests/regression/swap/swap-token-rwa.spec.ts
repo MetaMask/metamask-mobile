@@ -2,28 +2,24 @@
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { LocalNode, LocalNodeType } from '../../framework/types';
 import { loginToApp } from '../../flows/wallet.flow';
-import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
 import WalletView from '../../page-objects/wallet/WalletView';
-import TokenOverview from '../../page-objects/wallet/TokenOverview';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import TestHelpers from '../../helpers';
 import { RegressionTrade } from '../../tags';
 import Assertions from '../../framework/Assertions';
-import ActivitiesView from '../../page-objects/Transactions/ActivitiesView';
-import { ActivitiesViewSelectorsText } from '../../../app/components/Views/ActivityView/ActivitiesView.testIds';
-import { submitSwapUnifiedUI } from '../../helpers/swap/swap-unified-ui';
+import {
+  submitSwapUnifiedUI,
+  checkSwapActivity,
+} from '../../helpers/swap/swap-unified-ui';
 import { testSpecificMock } from '../../helpers/swap/swap-mocks';
 import { prepareSwapsTestEnvironment } from '../../helpers/swap/prepareSwapsTestEnvironment';
 import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
 import { AnvilManager } from '../../seeder/anvil-manager';
 
-describe(RegressionTrade('Swap RWA from Token view'), (): void => {
+describe(RegressionTrade('Swap RWA'), (): void => {
   jest.setTimeout(120000);
 
-  it('should complete a USDC to GOOGLEon swap from the token chart', async (): Promise<void> => {
-    const FIRST_ROW: number = 0;
-    const SECOND_ROW: number = 1;
-    const quantity: string = '100';
+  it('should complete a USDC -> GOOGLEon swap', async (): Promise<void> => {
+    const quantity: string = '1000';
     const sourceTokenSymbol: string = 'USDC';
     const destTokenSymbol: string = 'GOOGLEON';
     const chainId = '0x1';
@@ -65,44 +61,23 @@ describe(RegressionTrade('Swap RWA from Token view'), (): void => {
       async () => {
         await loginToApp();
         await prepareSwapsTestEnvironment();
-        await TabBarComponent.tapWallet();
-        await Assertions.expectElementToBeVisible(WalletView.container);
-        await WalletView.tapOnToken('Ethereum');
-        await Assertions.expectElementToBeVisible(TokenOverview.container);
-        await TokenOverview.scrollOnScreen();
-        await TestHelpers.delay(1000);
-        await TokenOverview.tapSwapButton();
+        await WalletView.tapWalletSwapButton();
 
-        // Submit the Swap
+        // Submit the Swap: USDC->GOOGLEon
         await submitSwapUnifiedUI(
           quantity,
           sourceTokenSymbol,
           destTokenSymbol,
-          '0x1',
+          chainId,
         );
 
         // After the swap is complete, the GoogleON balance shouldn't be 0
-        await Assertions.expectTextNotDisplayed('0 GOOGLEON', {
+        await Assertions.expectTextNotDisplayed('0 ' + destTokenSymbol, {
           timeout: 60000,
         });
 
         // Check the swap activity completed
-        await Assertions.expectElementToBeVisible(ActivitiesView.title);
-        await Assertions.expectElementToBeVisible(
-          ActivitiesView.swapActivityTitle(sourceTokenSymbol, destTokenSymbol),
-        );
-
-        await TestHelpers.delay(5000);
-
-        await Assertions.expectElementToHaveText(
-          ActivitiesView.transactionStatus(SECOND_ROW),
-          ActivitiesViewSelectorsText.CONFIRM_TEXT,
-        );
-
-        await Assertions.expectElementToHaveText(
-          ActivitiesView.transactionStatus(FIRST_ROW),
-          ActivitiesViewSelectorsText.CONFIRM_TEXT,
-        );
+        await checkSwapActivity(sourceTokenSymbol, destTokenSymbol);
       },
     );
   });
