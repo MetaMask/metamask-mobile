@@ -100,12 +100,12 @@ describe('Checkout', () => {
 
   it('renders WebView when URL is provided', () => {
     const { getByTestId } = render();
-    expect(getByTestId('checkout-webview')).toBeDefined();
+    expect(getByTestId('checkout-webview')).toBeOnTheScreen();
   });
 
   it('renders close button', () => {
     const { getByTestId } = render();
-    expect(getByTestId('checkout-close-button')).toBeDefined();
+    expect(getByTestId('checkout-close-button')).toBeOnTheScreen();
   });
 
   it('renders error view when no URL is provided', () => {
@@ -130,7 +130,7 @@ describe('Checkout', () => {
       });
     });
 
-    expect(getByText('Try again')).toBeDefined();
+    expect(getByText('Try again')).toBeOnTheScreen();
   });
 
   it('sets and displays error on http error for callback URL', async () => {
@@ -183,7 +183,7 @@ describe('Checkout', () => {
       fireEvent.press(tryAgainButton);
     });
 
-    expect(getByTestId('checkout-webview')).toBeDefined();
+    expect(getByTestId('checkout-webview')).toBeOnTheScreen();
   });
 
   describe('V2 callback flow', () => {
@@ -271,7 +271,7 @@ describe('Checkout', () => {
 
       expect(
         getByText('Order could not be retrieved from callback'),
-      ).toBeDefined();
+      ).toBeOnTheScreen();
     });
 
     it('handles callback error when order has no ID', async () => {
@@ -293,7 +293,7 @@ describe('Checkout', () => {
 
       expect(
         getByText('Order response did not contain an order ID'),
-      ).toBeDefined();
+      ).toBeOnTheScreen();
     });
 
     it('successfully creates order from callback with customOrderId', async () => {
