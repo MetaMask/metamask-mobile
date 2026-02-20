@@ -5,6 +5,7 @@ import { SeedlessOnboardingControllerError } from '../Engine/controllers/seedles
 import { AuthenticationType } from 'expo-local-authentication';
 import { Platform } from 'react-native';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
+import { IconName } from '@metamask/design-system-react-native';
 
 /**
  * Handles password submission errors by throwing the appropriate error.
@@ -187,6 +188,63 @@ export const getAuthLabel = ({
     return 'Device Authentication';
   }
   return 'Password';
+};
+
+/**
+ * Gets the icon name for the available device auth tier.
+ *
+ * @param params.supportedBiometricTypes - The supported biometric types
+ * @param params.legacyUserChoseBiometrics - Legacy - Whether the user has chosen biometrics
+ * @param params.legacyUserChosePasscode - Legacy - Whether the user has chosen passcode
+ * @param params.isBiometricsAvailable - Whether the device has biometrics available
+ * @param params.passcodeAvailable - Whether the device has passcode available
+ * @returns The icon name for the available device auth tier
+ */
+export const getAuthIcon = ({
+  supportedBiometricTypes,
+  legacyUserChoseBiometrics,
+  legacyUserChosePasscode,
+  isBiometricsAvailable,
+  passcodeAvailable,
+}: {
+  supportedBiometricTypes: AuthenticationType[];
+  legacyUserChoseBiometrics: boolean;
+  legacyUserChosePasscode: boolean;
+  isBiometricsAvailable: boolean;
+  passcodeAvailable: boolean;
+}): IconName => {
+  const getIosBiometricIcon = (): IconName => {
+    if (
+      supportedBiometricTypes.includes(AuthenticationType.FACIAL_RECOGNITION)
+    ) {
+      return IconName.FaceId;
+    }
+    if (supportedBiometricTypes.includes(AuthenticationType.FINGERPRINT)) {
+      return IconName.Fingerprint;
+    }
+    return IconName.Lock;
+  };
+
+  if (Platform.OS === 'ios') {
+    if (legacyUserChoseBiometrics) {
+      // Show explicit authentication type for legacy biometrics
+      return getIosBiometricIcon();
+    }
+    if (legacyUserChosePasscode) {
+      // Show explicit authentication type for legacy passcode
+      return IconName.Lock;
+    }
+    if (isBiometricsAvailable) {
+      // Modernized authentication access allows for both biometrics and passcode
+      return getIosBiometricIcon();
+    }
+    if (passcodeAvailable) {
+      return IconName.Lock;
+    }
+  }
+
+  // Android and iOS fallback shows "Lock" icon
+  return IconName.Lock;
 };
 
 /**
