@@ -227,8 +227,6 @@ jest.mock('./useUnifiedTxActions', () => {
     retryErrorMsg: undefined,
     speedUpIsOpen: false,
     cancelIsOpen: false,
-    speedUp1559IsOpen: false,
-    cancel1559IsOpen: false,
     speedUpConfirmDisabled: false,
     cancelConfirmDisabled: false,
     existingGas: null,
@@ -273,15 +271,7 @@ jest.mock('../../UI/TransactionActionModal', () => {
         : null,
   };
 });
-jest.mock('../confirmations/legacy/components/UpdateEIP1559Tx', () => {
-  const ReactActual = jest.requireActual('react');
-  const { Text } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: () =>
-      ReactActual.createElement(Text, { testID: 'eip1559-modal' }, 'eip1559'),
-  };
-});
+
 jest.mock('../confirmations/components/modals/cancel-speedup-modal', () => {
   const ReactActual = jest.requireActual('react');
   const { Text } = jest.requireActual('react-native');
@@ -296,6 +286,7 @@ jest.mock('../confirmations/components/modals/cancel-speedup-modal', () => {
       ),
   };
 });
+
 jest.mock('../../UI/Transactions/RetryModal', () => {
   const ReactActual = jest.requireActual('react');
   const { Text } = jest.requireActual('react-native');

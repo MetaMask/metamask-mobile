@@ -78,14 +78,6 @@ jest.mock('../TransactionElement', () => ({
 }));
 
 // Mock other connected components
-jest.mock(
-  '../../Views/confirmations/legacy/components/UpdateEIP1559Tx',
-  () => ({
-    __esModule: true,
-    default: () => null,
-  }),
-);
-
 jest.mock('../TransactionActionModal', () => ({
   __esModule: true,
   default: () => null,
@@ -1585,7 +1577,6 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     instance.onSpeedUpCompleted();
 
     expect(instance.setState).toHaveBeenCalledWith({
-      speedUp1559IsOpen: false,
       speedUpIsOpen: false,
     });
     expect(instance.existingGas).toBeNull();
@@ -1602,7 +1593,6 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     instance.onCancelCompleted();
 
     expect(instance.setState).toHaveBeenCalledWith({
-      cancel1559IsOpen: false,
       cancelIsOpen: false,
     });
     expect(instance.existingGas).toBeNull();
@@ -2095,8 +2085,6 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     };
     instance.state = {
       ready: true,
-      speedUp1559IsOpen: false,
-      cancel1559IsOpen: false,
       retryIsOpen: false,
       errorMsg: null,
     };

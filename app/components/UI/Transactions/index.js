@@ -206,10 +206,8 @@ class Transactions extends PureComponent {
     ready: false,
     refreshing: false,
     cancelIsOpen: false,
-    cancel1559IsOpen: false,
     cancelConfirmDisabled: false,
     speedUpIsOpen: false,
-    speedUp1559IsOpen: false,
     retryIsOpen: false,
     speedUpConfirmDisabled: false,
     rpcBlockExplorer: undefined,
@@ -463,7 +461,7 @@ class Transactions extends PureComponent {
   };
 
   onSpeedUpCompleted = () => {
-    this.setState({ speedUp1559IsOpen: false, speedUpIsOpen: false });
+    this.setState({ speedUpIsOpen: false });
     this.existingGas = null;
     this.speedUpTxId = null;
     this.existingTx = null;
@@ -483,7 +481,7 @@ class Transactions extends PureComponent {
   };
 
   onCancelCompleted = () => {
-    this.setState({ cancel1559IsOpen: false, cancelIsOpen: false });
+    this.setState({ cancelIsOpen: false });
     this.existingGas = null;
     this.cancelTxId = null;
     this.existingTx = null;
@@ -514,7 +512,6 @@ class Transactions extends PureComponent {
     Logger.error(e, { message: `speedUpTransaction failed `, speedUpTxId });
     InteractionManager.runAfterInteractions(this.toggleRetry(message));
     this.setState({
-      speedUp1559IsOpen: false,
       speedUpIsOpen: false,
     });
   };
@@ -525,7 +522,6 @@ class Transactions extends PureComponent {
     Logger.error(e, { message: `cancelTransaction failed `, cancelTxId });
     InteractionManager.runAfterInteractions(this.toggleRetry(message));
     this.setState({
-      cancel1559IsOpen: false,
       cancelIsOpen: false,
     });
   };
