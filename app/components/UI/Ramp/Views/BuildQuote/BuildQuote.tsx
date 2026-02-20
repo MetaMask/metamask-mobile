@@ -91,15 +91,12 @@ function BuildQuote() {
   const [isOnBuildQuoteScreen, setIsOnBuildQuoteScreen] =
     useState<boolean>(true);
   const [isContinueLoading, setIsContinueLoading] = useState(false);
-  const [nativeFlowError, setNativeFlowError] = useState<{
-    message: string;
-    details?: string;
-  } | null>(null);
+  const [nativeFlowError, setNativeFlowError] = useState<string | null>(null);
   const params = useParams<BuildQuoteParams>();
 
   useEffect(() => {
     if (params?.nativeFlowError) {
-      setNativeFlowError({ message: params.nativeFlowError });
+      setNativeFlowError(params.nativeFlowError);
       navigation.setParams({ nativeFlowError: undefined });
     }
   }, [params?.nativeFlowError, navigation]);
@@ -294,16 +291,12 @@ function BuildQuote() {
         Logger.error(error as Error, {
           message: 'Failed to route native provider flow',
         });
-        const userMessage = parseUserFacingError(
-          error,
-          strings('deposit.buildQuote.unexpectedError'),
+        setNativeFlowError(
+          parseUserFacingError(
+            error,
+            strings('deposit.buildQuote.unexpectedError'),
+          ),
         );
-        const rawMessage =
-          error instanceof Error ? error.message : String(error);
-        setNativeFlowError({
-          message: userMessage,
-          details: rawMessage !== userMessage ? rawMessage : undefined,
-        });
       } finally {
         setIsContinueLoading(false);
       }
@@ -421,10 +414,7 @@ function BuildQuote() {
 
           <View style={styles.actionSection}>
             {nativeFlowError ? (
-              <TruncatedError
-                error={nativeFlowError.message}
-                errorDetails={nativeFlowError.details}
-              />
+              <TruncatedError error={nativeFlowError} />
             ) : (
               selectedProvider && (
                 <Text variant={TextVariant.BodySM} style={styles.poweredByText}>

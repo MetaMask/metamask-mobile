@@ -1,5 +1,11 @@
-import React, { useCallback } from 'react';
-import { TouchableOpacity, View, StyleSheet } from 'react-native';
+import React, { useState, useCallback } from 'react';
+import {
+  TouchableOpacity,
+  View,
+  StyleSheet,
+  type NativeSyntheticEvent,
+  type TextLayoutEventData,
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Text, {
   TextVariant,
@@ -14,7 +20,7 @@ import { createErrorDetailsModalNavDetails } from '../../Views/Modals/ErrorDetai
 
 interface TruncatedErrorProps {
   error: string;
-  errorDetails?: string;
+  maxLines?: number;
 }
 
 const styles = StyleSheet.create({
@@ -28,24 +34,37 @@ const styles = StyleSheet.create({
 
 const TruncatedError: React.FC<TruncatedErrorProps> = ({
   error,
-  errorDetails,
+  maxLines = 2,
 }) => {
   const navigation = useNavigation();
+  const [isTruncated, setIsTruncated] = useState(false);
+
+  const handleTextLayout = useCallback(
+    (event: NativeSyntheticEvent<TextLayoutEventData>) => {
+      const { lines } = event.nativeEvent;
+      setIsTruncated(lines.length >= maxLines);
+    },
+    [maxLines],
+  );
 
   const handleInfoPress = useCallback(() => {
-    if (errorDetails) {
-      navigation.navigate(
-        ...createErrorDetailsModalNavDetails({ errorMessage: errorDetails }),
-      );
-    }
-  }, [errorDetails, navigation]);
+    navigation.navigate(
+      ...createErrorDetailsModalNavDetails({ errorMessage: error }),
+    );
+  }, [error, navigation]);
 
   return (
     <View style={styles.container}>
-      <Text variant={TextVariant.BodySM} color={TextColor.Error}>
+      <Text
+        variant={TextVariant.BodySM}
+        color={TextColor.Error}
+        numberOfLines={maxLines}
+        ellipsizeMode="tail"
+        onTextLayout={handleTextLayout}
+      >
         {error}
       </Text>
-      {errorDetails ? (
+      {isTruncated ? (
         <TouchableOpacity
           onPress={handleInfoPress}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
