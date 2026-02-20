@@ -17,7 +17,8 @@ import IonicIcon from 'react-native-vector-icons/Ionicons';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
 import { SharedDeeplinkManager } from '../../../core/DeeplinkManager/DeeplinkManager';
-import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import { analytics } from '../../../util/analytics/analytics';
 import { Authentication } from '../../../core';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 import Device from '../../../util/device';
@@ -57,7 +58,7 @@ import AddressCopy from '../AddressCopy';
 import PickerAccount from '../../../component-library/components/Pickers/PickerAccount';
 import { createAccountSelectorNavDetails } from '../../../components/Views/AccountSelector';
 import { RequestPaymentViewSelectors } from '../ReceiveRequest/RequestPaymentView.testIds';
-import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 
 import {
   BadgeStatus,
@@ -76,7 +77,7 @@ import CardButton from '../Card/components/CardButton';
 import { Skeleton } from '../../../component-library/components/Skeleton';
 
 const trackEvent = (event, params = {}) => {
-  MetaMetrics.getInstance().trackEvent(event);
+  analytics.trackEvent(event);
 };
 
 const styles = StyleSheet.create({
@@ -237,7 +238,7 @@ export function getNavigationOptionsTitle(
   function navigationPop() {
     if (navigationPopEvent)
       trackEvent(
-        MetricsEventBuilder.createEventBuilder(navigationPopEvent).build(),
+        AnalyticsEventBuilder.createEventBuilder(navigationPopEvent).build(),
       );
     navigation.goBack();
   }
@@ -932,7 +933,7 @@ export function getWalletNavbarOptions(
       onScanSuccess,
     });
     trackEvent(
-      MetricsEventBuilder.createEventBuilder(
+      AnalyticsEventBuilder.createEventBuilder(
         MetaMetricsEvents.WALLET_QR_SCANNER,
       ).build(),
     );
@@ -942,7 +943,7 @@ export function getWalletNavbarOptions(
     if (isNotificationEnabled && isNotificationsFeatureEnabled()) {
       navigation.navigate(Routes.NOTIFICATIONS.VIEW);
       trackEvent(
-        MetricsEventBuilder.createEventBuilder(
+        AnalyticsEventBuilder.createEventBuilder(
           MetaMetricsEvents.NOTIFICATIONS_MENU_OPENED,
         )
           .addProperties({
@@ -954,7 +955,7 @@ export function getWalletNavbarOptions(
     } else {
       navigation.navigate(Routes.NOTIFICATIONS.OPT_IN_STACK);
       trackEvent(
-        MetricsEventBuilder.createEventBuilder(
+        AnalyticsEventBuilder.createEventBuilder(
           MetaMetricsEvents.NOTIFICATIONS_ACTIVATED,
         )
           .addProperties({
@@ -968,7 +969,7 @@ export function getWalletNavbarOptions(
 
   const handleHamburgerPress = () => {
     trackEvent(
-      MetricsEventBuilder.createEventBuilder(
+      AnalyticsEventBuilder.createEventBuilder(
         MetaMetricsEvents.NAVIGATION_TAPS_SETTINGS,
       ).build(),
     );
@@ -977,7 +978,7 @@ export function getWalletNavbarOptions(
 
   const handleCardPress = () => {
     trackEvent(
-      MetricsEventBuilder.createEventBuilder(
+      AnalyticsEventBuilder.createEventBuilder(
         MetaMetricsEvents.CARD_HOME_CLICKED,
       ).build(),
     );
@@ -1518,7 +1519,7 @@ export function getSwapsQuotesNavbar(navigation, route, themeColors) {
     const quoteBegin = route.params?.quoteBegin;
     if (!selectedQuote) {
       trackEvent(
-        MetricsEventBuilder.createEventBuilder(
+        AnalyticsEventBuilder.createEventBuilder(
           MetaMetricsEvents.QUOTES_REQUEST_CANCELLED,
         )
           .addProperties({
@@ -1544,7 +1545,7 @@ export function getSwapsQuotesNavbar(navigation, route, themeColors) {
     const quoteBegin = route.params?.quoteBegin;
     if (!selectedQuote) {
       trackEvent(
-        MetricsEventBuilder.createEventBuilder(
+        AnalyticsEventBuilder.createEventBuilder(
           MetaMetricsEvents.QUOTES_REQUEST_CANCELLED,
         )
           .addProperties({

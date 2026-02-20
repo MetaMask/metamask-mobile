@@ -21,7 +21,7 @@ import { createLedgerTransactionModalNavDetails } from '../../UI/LedgerModals/Le
 import { createQRSigningTransactionModalNavDetails } from '../../UI/QRHardware/QRSigningTransactionModal';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import { ConfirmRoot } from '../../../components/Views/confirmations/components/confirm';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import { STX_NO_HASH_ERROR } from '../../../util/smart-transactions/smart-publish-hook';
 
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
@@ -33,7 +33,7 @@ import SnapAccountCustomNameApproval from '../../Approvals/SnapAccountCustomName
 ///: END:ONLY_INCLUDE_IF
 
 const RootRPCMethodsUI = (props) => {
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const autoSign = useCallback(
     async (transactionMeta) => {

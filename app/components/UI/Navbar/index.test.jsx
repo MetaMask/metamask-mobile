@@ -18,7 +18,7 @@ import Device from '../../../util/device';
 import { View } from 'react-native';
 import { BridgeViewMode } from '../Bridge/types';
 import { strings } from '../../../../locales/i18n';
-import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 
 jest.mock('../../../util/device', () => ({
   isAndroid: jest.fn(),
@@ -81,26 +81,20 @@ const mockCreateEventBuilder = jest.fn(() => ({
   build: mockBuildEvent,
 }));
 
-jest.mock('../../../core/Analytics/MetricsEventBuilder');
+jest.mock('../../../util/analytics/AnalyticsEventBuilder');
 
-jest.mock('../../../core/Analytics', () => {
-  const actualMockTrackEvent = jest.fn();
+const mockAnalyticsTrackEvent = jest.fn();
+jest.mock('../../../util/analytics/analytics', () => ({
+  analytics: {
+    trackEvent: (...args) => mockAnalyticsTrackEvent(...args),
+  },
+}));
 
-  return {
-    __mockTrackEvent: actualMockTrackEvent,
-    MetaMetrics: {
-      getInstance: jest.fn(() => ({
-        trackEvent: actualMockTrackEvent,
-        updateDataRecordingFlag: jest.fn(),
-      })),
-      trackEvent: jest.fn(),
-    },
-    MetaMetricsEvents: {
-      SEND_FLOW_CANCEL: 'SEND_FLOW_CANCEL',
-    },
-    trackEvent: jest.fn(),
-  };
-});
+jest.mock('../../../core/Analytics', () => ({
+  MetaMetricsEvents: {
+    SEND_FLOW_CANCEL: 'SEND_FLOW_CANCEL',
+  },
+}));
 
 jest.mock('../../../util/blockaid', () => ({
   getBlockaidTransactionMetricsParams: jest.fn(() => ({})),
@@ -110,8 +104,7 @@ jest.mock('../Stake/utils/metaMetrics/withMetaMetrics', () => ({
   withMetaMetrics: jest.fn((fn) => () => fn()),
 }));
 
-// Set up MetricsEventBuilder mock after jest.mock declaration
-MetricsEventBuilder.createEventBuilder = mockCreateEventBuilder;
+AnalyticsEventBuilder.createEventBuilder = mockCreateEventBuilder;
 
 describe('getNetworkNavbarOptions', () => {
   const Stack = createStackNavigator();
@@ -890,7 +883,6 @@ describe('getStakingNavbar', () => {
 
 describe('getNavigationOptionsTitle', () => {
   const Stack = createStackNavigator();
-  const analyticsMocks = jest.requireMock('../../../core/Analytics');
 
   const mockNavigation = {
     goBack: jest.fn(),
@@ -930,7 +922,7 @@ describe('getNavigationOptionsTitle', () => {
     expect(mockNavigation.goBack).toHaveBeenCalledTimes(1);
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(mockEvent);
     expect(mockBuildEvent).toHaveBeenCalled();
-    expect(analyticsMocks.__mockTrackEvent).toHaveBeenCalled();
+    expect(mockAnalyticsTrackEvent).toHaveBeenCalled();
   });
 
   it('does not call trackEvent when navigationPopEvent is null', () => {
@@ -947,7 +939,7 @@ describe('getNavigationOptionsTitle', () => {
     fireEvent.press(getByTestId('back-arrow-button'));
 
     expect(mockCreateEventBuilder).not.toHaveBeenCalled();
-    expect(analyticsMocks.__mockTrackEvent).not.toHaveBeenCalled();
+    expect(mockAnalyticsTrackEvent).not.toHaveBeenCalled();
     expect(mockNavigation.goBack).toHaveBeenCalledTimes(1);
   });
 });
