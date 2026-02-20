@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import type { CaipChainId } from '@metamask/utils';
 
@@ -30,7 +30,7 @@ import useRampAccountAddress from '../../hooks/useRampAccountAddress';
 import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 import { BuildQuoteSelectors } from '../../Aggregator/Views/BuildQuote/BuildQuote.testIds';
 import { createPaymentSelectionModalNavigationDetails } from '../Modals/PaymentSelectionModal';
-import { createProviderPickerModalNavigationDetails } from '../Modals/ProviderPickerModal';
+
 import { createCheckoutNavDetails } from '../Checkout';
 import {
   isNativeProvider,
@@ -91,12 +91,15 @@ function BuildQuote() {
   const [isOnBuildQuoteScreen, setIsOnBuildQuoteScreen] =
     useState<boolean>(true);
   const [isContinueLoading, setIsContinueLoading] = useState(false);
-  const [nativeFlowError, setNativeFlowError] = useState<string | null>(null);
+  const [nativeFlowError, setNativeFlowError] = useState<{
+    message: string;
+    details?: string;
+  } | null>(null);
   const params = useParams<BuildQuoteParams>();
 
   useEffect(() => {
     if (params?.nativeFlowError) {
-      setNativeFlowError(params.nativeFlowError);
+      setNativeFlowError({ message: params.nativeFlowError });
       navigation.setParams({ nativeFlowError: undefined });
     }
   }, [params?.nativeFlowError, navigation]);
@@ -201,16 +204,6 @@ function BuildQuote() {
     );
   }, [debouncedPollingAmount, navigation, stopQuotePolling]);
 
-  const handleProviderPress = useCallback(() => {
-    if (!selectedToken?.assetId) return;
-    stopQuotePolling();
-    navigation.navigate(
-      ...createProviderPickerModalNavigationDetails({
-        assetId: selectedToken.assetId,
-      }),
-    );
-  }, [selectedToken?.assetId, navigation, stopQuotePolling]);
-
   useEffect(() => {
     if (
       !isOnBuildQuoteScreen ||
@@ -301,12 +294,16 @@ function BuildQuote() {
         Logger.error(error as Error, {
           message: 'Failed to route native provider flow',
         });
-        setNativeFlowError(
-          parseUserFacingError(
-            error,
-            strings('deposit.buildQuote.unexpectedError'),
-          ),
+        const userMessage = parseUserFacingError(
+          error,
+          strings('deposit.buildQuote.unexpectedError'),
         );
+        const rawMessage =
+          error instanceof Error ? error.message : String(error);
+        setNativeFlowError({
+          message: userMessage,
+          details: rawMessage !== userMessage ? rawMessage : undefined,
+        });
       } finally {
         setIsContinueLoading(false);
       }
@@ -422,21 +419,20 @@ function BuildQuote() {
             </View>
           </View>
 
-          {nativeFlowError && <TruncatedError error={nativeFlowError} />}
-
           <View style={styles.actionSection}>
-            {selectedProvider && (
-              <TouchableOpacity
-                onPress={handleProviderPress}
-                testID="provider-picker-trigger"
-                accessibilityRole="button"
-              >
+            {nativeFlowError ? (
+              <TruncatedError
+                error={nativeFlowError.message}
+                errorDetails={nativeFlowError.details}
+              />
+            ) : (
+              selectedProvider && (
                 <Text variant={TextVariant.BodySM} style={styles.poweredByText}>
                   {strings('fiat_on_ramp.powered_by_provider', {
                     provider: selectedProvider.name,
                   })}
                 </Text>
-              </TouchableOpacity>
+              )
             )}
             {hasAmount ? (
               <Button

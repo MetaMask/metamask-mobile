@@ -1,69 +1,64 @@
-import React, { useState, useCallback } from 'react';
-import { NativeSyntheticEvent, View, TextLayoutEventData } from 'react-native';
+import React, { useCallback } from 'react';
+import { TouchableOpacity, View, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
-import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 import Text, {
   TextVariant,
+  TextColor,
 } from '../../../../../component-library/components/Texts/Text';
+import Icon, {
+  IconName,
+  IconSize,
+  IconColor,
+} from '../../../../../component-library/components/Icons/Icon';
 import { createErrorDetailsModalNavDetails } from '../../Views/Modals/ErrorDetailsModal/ErrorDetailsModal';
-import { strings } from '../../../../../../locales/i18n';
-import { ButtonVariants } from '../../../../../component-library/components/Buttons/Button';
 
 interface TruncatedErrorProps {
   error: string;
-  maxLines?: number;
+  errorDetails?: string;
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+  },
+});
 
 const TruncatedError: React.FC<TruncatedErrorProps> = ({
   error,
-  maxLines = 2,
+  errorDetails,
 }) => {
   const navigation = useNavigation();
-  const [isTruncated, setIsTruncated] = useState(false);
 
-  const handleTextLayout = useCallback(
-    (event: NativeSyntheticEvent<TextLayoutEventData>) => {
-      const { lines } = event.nativeEvent;
-      setIsTruncated(
-        lines.length === maxLines &&
-          lines[lines.length - 1].text.length > lines[0].text.length,
+  const handleInfoPress = useCallback(() => {
+    if (errorDetails) {
+      navigation.navigate(
+        ...createErrorDetailsModalNavDetails({ errorMessage: errorDetails }),
       );
-    },
-    [maxLines],
-  );
-
-  const handleSeeMore = useCallback(() => {
-    navigation.navigate(
-      ...createErrorDetailsModalNavDetails({ errorMessage: error }),
-    );
-  }, [error, navigation]);
+    }
+  }, [errorDetails, navigation]);
 
   return (
-    <View>
-      <BannerAlert
-        description={
-          <Text
-            variant={TextVariant.BodySM}
-            numberOfLines={maxLines}
-            ellipsizeMode="tail"
-            onTextLayout={handleTextLayout}
-          >
-            {error}
-          </Text>
-        }
-        actionButtonProps={
-          isTruncated
-            ? {
-                variant: ButtonVariants.Link,
-                label: strings('deposit.errors.see_more'),
-                labelTextVariant: TextVariant.BodySM,
-                onPress: handleSeeMore,
-              }
-            : undefined
-        }
-        severity={BannerAlertSeverity.Error}
-      />
+    <View style={styles.container}>
+      <Text variant={TextVariant.BodySM} color={TextColor.Error}>
+        {error}
+      </Text>
+      {errorDetails ? (
+        <TouchableOpacity
+          onPress={handleInfoPress}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          accessibilityRole="button"
+          accessibilityLabel="View error details"
+        >
+          <Icon
+            name={IconName.Info}
+            size={IconSize.Sm}
+            color={IconColor.Error}
+          />
+        </TouchableOpacity>
+      ) : null}
     </View>
   );
 };
