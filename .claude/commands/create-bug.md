@@ -46,7 +46,7 @@ This skill collects all required information from the user and creates a properl
 8. **Expected behavior** — What should have happened?
 9. **Screenshots/Recordings** — Any visual evidence?
 10. **Error messages or log output** — Any relevant error text or logs?
-11. **Build type** — Beta, Flask, or standard (leave blank if standard)
+11. **Build type** — Beta, Flask, or standard (use "_No response_" if standard — section must always be present)
 12. **Additional context** — Any other relevant details?
 
 ## Create the GitHub Issue
@@ -109,7 +109,7 @@ Format the body exactly as follows, using the information collected:
 
 ### Build type
 
-<Beta | Flask | Other (standard build) — omit section if not applicable>
+<Beta | Flask | Other (standard build) | _No response_ if standard>
 
 ### Device
 
