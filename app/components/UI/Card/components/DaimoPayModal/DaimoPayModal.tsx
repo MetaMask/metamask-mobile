@@ -565,6 +565,24 @@ const DaimoPayModal: React.FC = () => {
         });
       });
       observer.observe(document.body, { childList: true, subtree: true });
+
+      document.addEventListener('click', function(e) {
+        var el = e.target;
+        while (el && el !== document.body) {
+          var isCloseButton = el.getAttribute && el.getAttribute('aria-label') === 'Close';
+          var isBackdrop = el.classList && el.classList.contains('daimo-modal-backdrop');
+          if (isCloseButton || isBackdrop) {
+            window.ReactNativeWebView.postMessage(JSON.stringify({
+              source: 'daimo-pay',
+              version: 1,
+              type: 'modalClosed',
+              payload: {}
+            }));
+            return;
+          }
+          el = el.parentElement;
+        }
+      }, true);
     })();
     true;
   `;
@@ -617,7 +635,7 @@ const DaimoPayModal: React.FC = () => {
 
   return (
     <View
-      style={[baseStyles.absoluteFill, tw.style('bg-transparent')]}
+      style={[baseStyles.absoluteFill, tw.style('bg-black/40')]}
       testID={DaimoPayModalSelectors.CONTAINER}
     >
       <WebView

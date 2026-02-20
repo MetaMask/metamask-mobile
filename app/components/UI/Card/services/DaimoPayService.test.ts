@@ -40,7 +40,7 @@ describe('DaimoPayService', () => {
 
         expect(result.payId).toBe(mockPayId);
         expect(mockFetch).toHaveBeenCalledWith(
-          'https://pay.daimo.com/api/payment',
+          'https://daimo.com/api/payment',
           expect.objectContaining({
             method: 'POST',
             headers: expect.objectContaining({

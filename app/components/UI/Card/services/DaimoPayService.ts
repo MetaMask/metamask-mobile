@@ -11,7 +11,7 @@ export const DAIMO_WEBVIEW_BASE_URL =
 
 export const DAIMO_ALLOWED_ORIGIN = 'https://miniapp.daimo.com';
 
-const DAIMO_DEMO_API_URL = 'https://pay.daimo.com/api/payment';
+const DAIMO_DEMO_API_URL = 'https://daimo.com/api/payment';
 const DAIMO_DEMO_API_KEY = 'pay-demo';
 
 const DEMO_PAYMENT_CONFIG = {
