@@ -113,7 +113,9 @@ export const usePerpsCloseAllPositions = (
           navigation.goBack();
         } else {
           // Fallback: navigate to Markets view if can't go back
-          navigation.navigate(Routes.PERPS.PERPS_HOME);
+          navigation.navigate(Routes.PERPS.ROOT, {
+            screen: Routes.PERPS.PERPS_HOME,
+          });
         }
       }
 
@@ -158,7 +160,9 @@ export const usePerpsCloseAllPositions = (
       navigation.goBack();
     } else {
       // Fallback: navigate to Markets view if can't go back
-      navigation.navigate(Routes.PERPS.PERPS_HOME);
+      navigation.navigate(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.PERPS_HOME,
+      });
     }
   }, [navigation]);
 

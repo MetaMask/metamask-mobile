@@ -239,7 +239,10 @@ describe('PerpsTutorialCarousel', () => {
       // Should mark tutorial as completed and navigate to perps home screen
       expect(mockMarkTutorialCompleted).toHaveBeenCalled();
       expect(mockNavigationServiceMethods.navigate).toHaveBeenCalledWith(
-        Routes.PERPS.PERPS_HOME,
+        Routes.PERPS.ROOT,
+        {
+          screen: Routes.PERPS.PERPS_HOME,
+        },
       );
     });
 
@@ -251,7 +254,10 @@ describe('PerpsTutorialCarousel', () => {
       });
 
       expect(mockNavigationServiceMethods.navigate).toHaveBeenCalledWith(
-        Routes.PERPS.PERPS_HOME,
+        Routes.PERPS.ROOT,
+        {
+          screen: Routes.PERPS.PERPS_HOME,
+        },
       );
       expect(mockMarkTutorialCompleted).toHaveBeenCalled();
     });
@@ -311,7 +317,10 @@ describe('PerpsTutorialCarousel', () => {
 
       // Should navigate to perps home screen
       expect(mockNavigationServiceMethods.navigate).toHaveBeenCalledWith(
-        Routes.PERPS.PERPS_HOME,
+        Routes.PERPS.ROOT,
+        {
+          screen: Routes.PERPS.PERPS_HOME,
+        },
       );
     });
   });
@@ -459,11 +468,15 @@ describe('PerpsTutorialCarousel', () => {
 
         // Verify navigation to browser with support URL
         expect(mockNavigationServiceMethods.navigate).toHaveBeenCalledWith(
-          Routes.BROWSER.VIEW,
-          expect.objectContaining({
-            newTabUrl: 'https://support.metamask.io/manage-crypto/trade/perps',
-            fromPerps: true,
-          }),
+          Routes.BROWSER.HOME,
+          {
+            screen: Routes.BROWSER.VIEW,
+            params: expect.objectContaining({
+              newTabUrl:
+                'https://support.metamask.io/manage-crypto/trade/perps',
+              fromPerps: true,
+            }),
+          },
         );
       });
     });

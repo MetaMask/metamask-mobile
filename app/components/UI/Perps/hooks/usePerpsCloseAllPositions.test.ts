@@ -3,6 +3,7 @@ import { useNavigation } from '@react-navigation/native';
 import { usePerpsCloseAllPositions } from './usePerpsCloseAllPositions';
 import Engine from '../../../../core/Engine';
 import { type Position } from '@metamask/perps-controller';
+import Routes from '../../../../constants/navigation/Routes';
 
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({
@@ -358,7 +359,9 @@ describe('usePerpsCloseAllPositions', () => {
 
     // Assert
     expect(mockNavigation.goBack).not.toHaveBeenCalled();
-    expect(mockNavigation.navigate).toHaveBeenCalledWith('PerpsMarketListView');
+    expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+      screen: Routes.PERPS.PERPS_HOME,
+    });
   });
 
   it('navigates to PERPS_HOME when handleCloseAll succeeds and canGoBack returns false', async () => {
@@ -386,7 +389,9 @@ describe('usePerpsCloseAllPositions', () => {
       expect(result.current.isClosing).toBe(false);
     });
     expect(mockNavigation.goBack).not.toHaveBeenCalled();
-    expect(mockNavigation.navigate).toHaveBeenCalledWith('PerpsMarketListView');
+    expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+      screen: Routes.PERPS.PERPS_HOME,
+    });
   });
 
   it('does nothing when handleCloseAll called with no positions', async () => {

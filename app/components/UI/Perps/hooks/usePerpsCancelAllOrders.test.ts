@@ -3,6 +3,7 @@ import { useNavigation } from '@react-navigation/native';
 import { usePerpsCancelAllOrders } from './usePerpsCancelAllOrders';
 import Engine from '../../../../core/Engine';
 import { type Order } from '@metamask/perps-controller';
+import Routes from '../../../../constants/navigation/Routes';
 
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({
@@ -341,7 +342,9 @@ describe('usePerpsCancelAllOrders', () => {
 
     // Assert
     expect(mockNavigation.goBack).not.toHaveBeenCalled();
-    expect(mockNavigation.navigate).toHaveBeenCalledWith('PerpsMarketListView');
+    expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+      screen: Routes.PERPS.PERPS_HOME,
+    });
   });
 
   it('navigates to PERPS_HOME when handleCancelAll succeeds and canGoBack returns false', async () => {
@@ -369,7 +372,9 @@ describe('usePerpsCancelAllOrders', () => {
       expect(result.current.isCanceling).toBe(false);
     });
     expect(mockNavigation.goBack).not.toHaveBeenCalled();
-    expect(mockNavigation.navigate).toHaveBeenCalledWith('PerpsMarketListView');
+    expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+      screen: Routes.PERPS.PERPS_HOME,
+    });
   });
 
   it('does nothing when handleCancelAll called with no orders', async () => {

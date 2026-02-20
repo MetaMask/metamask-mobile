@@ -95,8 +95,9 @@ const handleAssetNavigation = async (rawSymbol: string) => {
     DevLogger.log(
       '[handlePerpsUrl] No symbol provided, fallback to markets list',
     );
-    NavigationService.navigation.navigate(Routes.PERPS.PERPS_HOME, {
-      source: 'deeplink',
+    NavigationService.navigation.navigate(Routes.PERPS.ROOT, {
+      screen: Routes.PERPS.PERPS_HOME,
+      params: { source: 'deeplink' },
     });
     return;
   }
@@ -131,9 +132,12 @@ const handleAssetNavigation = async (rawSymbol: string) => {
     ...(marketSource && { marketSource }),
   } as PerpsMarketData;
 
-  NavigationService.navigation.navigate(Routes.PERPS.MARKET_DETAILS, {
-    market,
-    source: 'deeplink',
+  NavigationService.navigation.navigate(Routes.PERPS.ROOT, {
+    screen: Routes.PERPS.MARKET_DETAILS,
+    params: {
+      market,
+      source: 'deeplink',
+    },
   });
 };
 
@@ -214,8 +218,11 @@ export const handlePerpsUrl = async ({ perpsPath }: HandlePerpsUrlParams) => {
       DevLogger.log(
         '[handlePerpsUrl] First-time user, navigating to tutorial regardless of URL parameters',
       );
-      NavigationService.navigation.navigate(Routes.PERPS.TUTORIAL, {
-        isFromDeeplink: true,
+      NavigationService.navigation.navigate(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.TUTORIAL,
+        params: {
+          isFromDeeplink: true,
+        },
       });
       return;
     }
@@ -225,8 +232,9 @@ export const handlePerpsUrl = async ({ perpsPath }: HandlePerpsUrlParams) => {
       case 'home':
         // Explicit navigation to PerpsHomeView
         DevLogger.log('[handlePerpsUrl] Navigating to PerpsHomeView');
-        NavigationService.navigation.navigate(Routes.PERPS.PERPS_HOME, {
-          source: 'deeplink',
+        NavigationService.navigation.navigate(Routes.PERPS.ROOT, {
+          screen: Routes.PERPS.PERPS_HOME,
+          params: { source: 'deeplink' },
         });
         break;
 
@@ -235,8 +243,9 @@ export const handlePerpsUrl = async ({ perpsPath }: HandlePerpsUrlParams) => {
         DevLogger.log(
           '[handlePerpsUrl] Navigating to PerpsHomeView (backwards compat)',
         );
-        NavigationService.navigation.navigate(Routes.PERPS.PERPS_HOME, {
-          source: 'deeplink',
+        NavigationService.navigation.navigate(Routes.PERPS.ROOT, {
+          screen: Routes.PERPS.PERPS_HOME,
+          params: { source: 'deeplink' },
         });
         break;
 
@@ -251,11 +260,14 @@ export const handlePerpsUrl = async ({ perpsPath }: HandlePerpsUrlParams) => {
           '[handlePerpsUrl] Navigating to PerpsMarketListView with filter:',
           marketTypeFilter,
         );
-        NavigationService.navigation.navigate(Routes.PERPS.MARKET_LIST, {
-          source: 'deeplink',
-          ...(marketTypeFilter && {
-            defaultMarketTypeFilter: marketTypeFilter,
-          }),
+        NavigationService.navigation.navigate(Routes.PERPS.ROOT, {
+          screen: Routes.PERPS.MARKET_LIST,
+          params: {
+            source: 'deeplink',
+            ...(marketTypeFilter && {
+              defaultMarketTypeFilter: marketTypeFilter,
+            }),
+          },
         });
         break;
       }
@@ -280,8 +292,9 @@ export const handlePerpsUrl = async ({ perpsPath }: HandlePerpsUrlParams) => {
   } catch (error) {
     DevLogger.log('Failed to handle perps deeplink:', error);
     // Fallback to markets list on error
-    NavigationService.navigation.navigate(Routes.PERPS.PERPS_HOME, {
-      source: 'deeplink',
+    NavigationService.navigation.navigate(Routes.PERPS.ROOT, {
+      screen: Routes.PERPS.PERPS_HOME,
+      params: { source: 'deeplink' },
     });
   }
 };
