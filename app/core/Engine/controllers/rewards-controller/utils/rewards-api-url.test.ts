@@ -1,79 +1,102 @@
+import AppConstants from '../../../../AppConstants';
 import { getDefaultRewardsApiBaseUrlForMetaMaskEnv } from './rewards-api-url';
 
-jest.mock('../../../../AppConstants', () => ({
-  REWARDS_API_URL: {
-    DEV: 'https://api.dev',
-    UAT: 'https://api.uat',
-    PRD: 'https://api.prd',
-  },
-}));
-
 describe('getDefaultRewardsApiBaseUrlForMetaMaskEnv', () => {
-  it('returns UAT api url for local or dev env', async () => {
-    // Act
-    let apiUrl = getDefaultRewardsApiBaseUrlForMetaMaskEnv('dev');
+  const originalRewardsUrl = process.env.REWARDS_API_URL;
+  const originalGitHubActions = process.env.GITHUB_ACTIONS;
+  const originalE2e = process.env.E2E;
 
-    // Assert
-    expect(apiUrl).toEqual('https://api.uat');
-
-    // Act
-    apiUrl = getDefaultRewardsApiBaseUrlForMetaMaskEnv('local');
-
-    // Assert
-    expect(apiUrl).toEqual('https://api.uat');
+  afterEach(() => {
+    if (originalRewardsUrl !== undefined) {
+      process.env.REWARDS_API_URL = originalRewardsUrl;
+    } else {
+      delete process.env.REWARDS_API_URL;
+    }
+    if (originalGitHubActions !== undefined) {
+      process.env.GITHUB_ACTIONS = originalGitHubActions;
+    } else {
+      delete process.env.GITHUB_ACTIONS;
+    }
+    if (originalE2e !== undefined) {
+      process.env.E2E = originalE2e;
+    } else {
+      delete process.env.E2E;
+    }
   });
 
-  it('returns UAT api url for undefined or unknown env', async () => {
-    // Act
-    let apiUrl = getDefaultRewardsApiBaseUrlForMetaMaskEnv(undefined);
+  describe('when GITHUB_ACTIONS (builds.yml path)', () => {
+    beforeEach(() => {
+      process.env.GITHUB_ACTIONS = 'true';
+      delete process.env.E2E;
+    });
 
-    // Assert
-    expect(apiUrl).toEqual('https://api.uat');
+    it('returns REWARDS_API_URL from environment when set', () => {
+      process.env.REWARDS_API_URL = 'https://test.api';
+      expect(getDefaultRewardsApiBaseUrlForMetaMaskEnv('any-env')).toBe(
+        'https://test.api',
+      );
+    });
 
-    // Act
-    apiUrl = getDefaultRewardsApiBaseUrlForMetaMaskEnv('unknown');
+    it('returns default fallback URL when REWARDS_API_URL is not set', () => {
+      delete process.env.REWARDS_API_URL;
+      const result = getDefaultRewardsApiBaseUrlForMetaMaskEnv('any-env');
+      expect(typeof result).toBe('string');
+      expect(result.length).toBeGreaterThan(0);
+    });
 
-    // Assert
-    expect(apiUrl).toEqual('https://api.uat');
+    it('ignores metaMaskEnv parameter (URL is set at build time)', () => {
+      process.env.REWARDS_API_URL = 'https://custom.api';
+      expect(getDefaultRewardsApiBaseUrlForMetaMaskEnv('dev')).toBe(
+        'https://custom.api',
+      );
+      expect(getDefaultRewardsApiBaseUrlForMetaMaskEnv('production')).toBe(
+        'https://custom.api',
+      );
+    });
+
+    it('uses metaMaskEnv when E2E is true (E2E path)', () => {
+      process.env.GITHUB_ACTIONS = 'true';
+      process.env.E2E = 'true';
+      process.env.REWARDS_API_URL = 'https://build-time.api';
+      expect(getDefaultRewardsApiBaseUrlForMetaMaskEnv('production')).toBe(
+        AppConstants.REWARDS_API_URL.PRD,
+      );
+      expect(getDefaultRewardsApiBaseUrlForMetaMaskEnv('dev')).toBe(
+        AppConstants.REWARDS_API_URL.UAT,
+      );
+    });
   });
 
-  it('returns UAT api url for e2e or exp env', async () => {
-    // Act
-    let apiUrl = getDefaultRewardsApiBaseUrlForMetaMaskEnv('e2e');
+  describe('when not GITHUB_ACTIONS (Bitrise / .js.env path)', () => {
+    beforeEach(() => {
+      delete process.env.GITHUB_ACTIONS;
+    });
 
-    // Assert
-    expect(apiUrl).toEqual('https://api.uat');
+    it('returns AppConstants.REWARDS_API_URL.PRD for production-like envs', () => {
+      expect(getDefaultRewardsApiBaseUrlForMetaMaskEnv('production')).toBe(
+        AppConstants.REWARDS_API_URL.PRD,
+      );
+      expect(getDefaultRewardsApiBaseUrlForMetaMaskEnv('beta')).toBe(
+        AppConstants.REWARDS_API_URL.PRD,
+      );
+      expect(getDefaultRewardsApiBaseUrlForMetaMaskEnv('rc')).toBe(
+        AppConstants.REWARDS_API_URL.PRD,
+      );
+    });
 
-    // Act
-    apiUrl = getDefaultRewardsApiBaseUrlForMetaMaskEnv('exp');
-
-    // Assert
-    expect(apiUrl).toEqual('https://api.uat');
-  });
-
-  it('returns PRD api url for production, beta, pre-release, or rc env', async () => {
-    // Act
-    let apiUrl = getDefaultRewardsApiBaseUrlForMetaMaskEnv('production');
-
-    // Assert
-    expect(apiUrl).toEqual('https://api.prd');
-
-    // Act
-    apiUrl = getDefaultRewardsApiBaseUrlForMetaMaskEnv('beta');
-
-    // Assert
-    expect(apiUrl).toEqual('https://api.prd');
-
-    // Act
-    apiUrl = getDefaultRewardsApiBaseUrlForMetaMaskEnv('pre-release');
-
-    // Assert
-    expect(apiUrl).toEqual('https://api.prd');
-
-    // Act
-    apiUrl = getDefaultRewardsApiBaseUrlForMetaMaskEnv('rc');
-
-    // Assert
-    expect(apiUrl).toEqual('https://api.prd');
+    it('returns AppConstants.REWARDS_API_URL.UAT for dev/test envs', () => {
+      expect(getDefaultRewardsApiBaseUrlForMetaMaskEnv('dev')).toBe(
+        AppConstants.REWARDS_API_URL.UAT,
+      );
+      expect(getDefaultRewardsApiBaseUrlForMetaMaskEnv('e2e')).toBe(
+        AppConstants.REWARDS_API_URL.UAT,
+      );
+      expect(getDefaultRewardsApiBaseUrlForMetaMaskEnv('exp')).toBe(
+        AppConstants.REWARDS_API_URL.UAT,
+      );
+      expect(getDefaultRewardsApiBaseUrlForMetaMaskEnv(undefined)).toBe(
+        AppConstants.REWARDS_API_URL.UAT,
+      );
+    });
   });
 });
