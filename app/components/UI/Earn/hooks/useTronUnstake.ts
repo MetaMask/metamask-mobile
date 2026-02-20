@@ -70,7 +70,9 @@ const useTronUnstake = ({
     TrxScope.Mainnet,
   );
   const isTrxStakingEnabled = useSelector(selectTrxStakingEnabled);
-  const tronResources = useSelector(selectTronSpecialAssetsBySelectedAccountGroup);
+  const tronResources = useSelector(
+    selectTronSpecialAssetsBySelectedAccountGroup,
+  );
 
   // Derive whether token is on Tron chain
   const isTronAsset = useMemo(

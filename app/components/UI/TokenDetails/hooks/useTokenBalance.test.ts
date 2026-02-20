@@ -65,9 +65,7 @@ const mockCreateReadyForWithdrawalTrxAsset = jest.mocked(
 const mockCreateStakingRewardsTrxAsset = jest.mocked(
   createStakingRewardsTrxAsset,
 );
-const mockCreateInLockPeriodTrxAsset = jest.mocked(
-  createInLockPeriodTrxAsset,
-);
+const mockCreateInLockPeriodTrxAsset = jest.mocked(createInLockPeriodTrxAsset);
 
 describe('useTokenBalance', () => {
   beforeEach(() => {

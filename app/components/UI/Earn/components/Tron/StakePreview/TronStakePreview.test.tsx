@@ -46,7 +46,9 @@ jest.mock('../../../hooks/useTronStakeApy', () => ({
 
 const mockUseSelector = useSelector as jest.Mock;
 
-const createMockResourcesMap = (totalStakedTrx: number): TronSpecialAssetsMap => ({
+const createMockResourcesMap = (
+  totalStakedTrx: number,
+): TronSpecialAssetsMap => ({
   energy: undefined,
   bandwidth: undefined,
   maxEnergy: undefined,

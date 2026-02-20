@@ -47,7 +47,9 @@ const EarnBalance = ({ asset }: EarnBalanceProps) => {
   const isStakedTrxAsset =
     isTron && (asset?.ticker === 'sTRX' || asset?.symbol === 'sTRX');
 
-  const tronResources = useSelector(selectTronSpecialAssetsBySelectedAccountGroup);
+  const tronResources = useSelector(
+    selectTronSpecialAssetsBySelectedAccountGroup,
+  );
   const hasStakedTrxPositions = React.useMemo(
     () => hasStakedTrxPositionsUtil(tronResources),
     [tronResources],
