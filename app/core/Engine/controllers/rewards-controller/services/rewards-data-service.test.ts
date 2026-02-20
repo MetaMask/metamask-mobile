@@ -156,6 +156,14 @@ describe('RewardsDataService', () => {
         'RewardsDataService:getSeasonOneLineaRewardTokens',
         expect.any(Function),
       );
+      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
+        'RewardsDataService:validateBonusCode',
+        expect.any(Function),
+      );
+      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
+        'RewardsDataService:applyBonusCode',
+        expect.any(Function),
+      );
     });
   });
 
@@ -2477,6 +2485,140 @@ describe('RewardsDataService', () => {
     });
   });
 
+  describe('validateBonusCode', () => {
+    const mockSubscriptionId = 'test-subscription-123';
+    const mockToken = 'test-access-token';
+
+    beforeEach(() => {
+      mockGetSubscriptionToken.mockResolvedValue({
+        success: true,
+        token: mockToken,
+      });
+    });
+
+    it('should successfully validate a bonus code', async () => {
+      // Arrange
+      const bonusCode = 'BONUS123';
+      const mockValidationResponse = { valid: true };
+
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockValidationResponse),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act
+      const result = await service.validateBonusCode(
+        bonusCode,
+        mockSubscriptionId,
+      );
+
+      // Assert
+      expect(result).toEqual(mockValidationResponse);
+      expect(mockGetSubscriptionToken).toHaveBeenCalledWith(mockSubscriptionId);
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.rewards.test/subscriptions/bonus-code?code=BONUS123',
+        expect.objectContaining({
+          method: 'GET',
+          credentials: 'omit',
+          headers: expect.objectContaining({
+            'Content-Type': 'application/json',
+            'rewards-client-id': 'mobile-7.50.1',
+            'rewards-access-token': mockToken,
+          }),
+        }),
+      );
+    });
+
+    it('should return invalid response for invalid codes', async () => {
+      // Arrange
+      const bonusCode = 'INVALID';
+      const mockValidationResponse = { valid: false };
+
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockValidationResponse),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act
+      const result = await service.validateBonusCode(
+        bonusCode,
+        mockSubscriptionId,
+      );
+
+      // Assert
+      expect(result).toEqual(mockValidationResponse);
+      expect(result.valid).toBe(false);
+    });
+
+    it('should properly encode special characters in bonus code', async () => {
+      // Arrange
+      const bonusCode = 'A+B/C=';
+      const mockValidationResponse = { valid: true };
+
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockValidationResponse),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act
+      const result = await service.validateBonusCode(
+        bonusCode,
+        mockSubscriptionId,
+      );
+
+      // Assert
+      expect(result).toEqual(mockValidationResponse);
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.rewards.test/subscriptions/bonus-code?code=A%2BB%2FC%3D',
+        expect.any(Object),
+      );
+    });
+
+    it('should handle validation errors', async () => {
+      // Arrange
+      const bonusCode = 'BONUS123';
+      const mockResponse = {
+        ok: false,
+        status: 400,
+      } as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act & Assert
+      await expect(
+        service.validateBonusCode(bonusCode, mockSubscriptionId),
+      ).rejects.toThrow(
+        'Failed to validate bonus code. Please try again shortly.',
+      );
+    });
+
+    it('should handle network errors during validation', async () => {
+      // Arrange
+      const bonusCode = 'BONUS123';
+      mockFetch.mockRejectedValue(new Error('Network error'));
+
+      // Act & Assert
+      await expect(
+        service.validateBonusCode(bonusCode, mockSubscriptionId),
+      ).rejects.toThrow('Network error');
+    });
+
+    it('should handle timeout errors during validation', async () => {
+      // Arrange
+      const bonusCode = 'BONUS123';
+      const abortError = new Error('The operation was aborted');
+      abortError.name = 'AbortError';
+      mockFetch.mockRejectedValue(abortError);
+
+      // Act & Assert
+      await expect(
+        service.validateBonusCode(bonusCode, mockSubscriptionId),
+      ).rejects.toThrow('Request timeout after 10000ms');
+    });
+  });
+
   describe('getOptInStatus', () => {
     const mockOptInStatusRequest = {
       addresses: ['0x123456789', '0x987654321', '0xabcdefabc'],
@@ -3832,6 +3974,149 @@ describe('RewardsDataService', () => {
       // Act
       await service.applyReferralCode(
         { referralCode: mockReferralCode },
+        mockSubscriptionId,
+      );
+
+      // Assert
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          headers: expect.not.objectContaining({
+            'rewards-access-token': expect.any(String),
+          }),
+        }),
+      );
+    });
+  });
+
+  describe('applyBonusCode', () => {
+    const mockSubscriptionId = 'test-subscription-123';
+    const mockToken = 'test-access-token';
+    const mockBonusCode = 'BNS123';
+
+    beforeEach(() => {
+      mockGetSubscriptionToken.mockResolvedValue({
+        success: true,
+        token: mockToken,
+      });
+    });
+
+    it('should successfully apply bonus code', async () => {
+      // Arrange
+      const mockResponse = {
+        ok: true,
+        status: 204,
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act
+      await service.applyBonusCode(
+        { bonusCode: mockBonusCode },
+        mockSubscriptionId,
+      );
+
+      // Assert
+      expect(mockGetSubscriptionToken).toHaveBeenCalledWith(mockSubscriptionId);
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.rewards.test/wr/subscriptions/apply-bonus-code',
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify({ bonusCode: mockBonusCode }),
+          headers: expect.objectContaining({
+            'Accept-Language': 'en-US',
+            'Content-Type': 'application/json',
+            'rewards-client-id': 'mobile-7.50.1',
+            'rewards-access-token': mockToken,
+          }),
+          credentials: 'omit',
+          signal: expect.any(AbortSignal),
+        }),
+      );
+    });
+
+    it('should throw error for invalid bonus code', async () => {
+      // Arrange
+      const mockResponse = {
+        ok: false,
+        status: 400,
+        json: jest.fn().mockResolvedValue({ message: 'Invalid bonus code' }),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act & Assert
+      await expect(
+        service.applyBonusCode(
+          { bonusCode: mockBonusCode },
+          mockSubscriptionId,
+        ),
+      ).rejects.toThrow('Invalid bonus code');
+    });
+
+    it('should throw error with server message for other errors', async () => {
+      // Arrange
+      const mockResponse = {
+        ok: false,
+        status: 500,
+        json: jest.fn().mockResolvedValue({ message: 'Internal server error' }),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act & Assert
+      await expect(
+        service.applyBonusCode(
+          { bonusCode: mockBonusCode },
+          mockSubscriptionId,
+        ),
+      ).rejects.toThrow('Internal server error');
+    });
+
+    it('should throw error with status code when no error message', async () => {
+      // Arrange
+      const mockResponse = {
+        ok: false,
+        status: 500,
+        json: jest.fn().mockResolvedValue({}),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act & Assert
+      await expect(
+        service.applyBonusCode(
+          { bonusCode: mockBonusCode },
+          mockSubscriptionId,
+        ),
+      ).rejects.toThrow('Apply bonus code failed: 500');
+    });
+
+    it('should throw error when fetch fails', async () => {
+      // Arrange
+      const fetchError = new Error('Network error');
+      mockFetch.mockRejectedValue(fetchError);
+
+      // Act & Assert
+      await expect(
+        service.applyBonusCode(
+          { bonusCode: mockBonusCode },
+          mockSubscriptionId,
+        ),
+      ).rejects.toThrow('Network error');
+    });
+
+    it('should handle missing subscription token gracefully', async () => {
+      // Arrange
+      mockGetSubscriptionToken.mockResolvedValue({
+        success: false,
+        token: undefined,
+      });
+      const mockResponse = {
+        ok: true,
+        status: 204,
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act
+      await service.applyBonusCode(
+        { bonusCode: mockBonusCode },
         mockSubscriptionId,
       );
 
