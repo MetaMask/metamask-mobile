@@ -2,7 +2,7 @@ import React, { Fragment } from 'react';
 import { Image, View, Linking, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
-import { useMetrics } from '../../../../components/hooks/useMetrics';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import Button, {
   ButtonVariants,
 } from '../../../../component-library/components/Buttons/Button';
@@ -21,7 +21,7 @@ import { useHandleOptInCancel, useHandleOptInClick } from './OptIn.hooks';
 import { EnableNotificationModalSelectorsIDs } from './EnableNotificationModal.testIds';
 
 const OptIn = () => {
-  const metrics = useMetrics();
+  const metrics = useAnalytics();
   const theme = useTheme();
   const styles = createStyles(theme);
   const navigation = useNavigation();

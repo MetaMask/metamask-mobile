@@ -21,7 +21,7 @@ import renderWithProvider, {
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { RootState } from '../../../reducers';
 import { backgroundState } from '../../../util/test/initial-root-state';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 // eslint-disable-next-line import/no-namespace
 import * as UseNotificationsModule from '../../../util/notifications/hooks/useNotifications';
 import NotificationsService from '../../../util/notifications/services/NotificationService';
@@ -40,15 +40,15 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn().mockReturnValue({}),
 }));
 
-jest.mock('../../../components/hooks/useMetrics', () => ({
-  useMetrics: jest.fn(),
+jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: jest.fn(),
 }));
 
 const mockMetrics = {
   trackEvent: jest.fn(),
   createEventBuilder: jest.fn().mockReturnValue({ build: jest.fn() }),
-} as unknown as ReturnType<typeof useMetrics>;
-jest.mocked(useMetrics).mockReturnValue(mockMetrics);
+} as unknown as ReturnType<typeof useAnalytics>;
+jest.mocked(useAnalytics).mockReturnValue(mockMetrics);
 
 const mockInitialState: DeepPartial<RootState> = {
   engine: {
