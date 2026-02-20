@@ -7,7 +7,8 @@ import {
 
 import React, { useEffect } from 'react';
 import { WalletViewSelectorsIDs } from '../../../../Views/Wallet/WalletView.testIds';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 
 interface CardButtonProps {
   onPress: () => void;
@@ -20,7 +21,7 @@ interface CardButtonProps {
 }
 
 const CardButton: React.FC<CardButtonProps> = ({ onPress, touchAreaSlop }) => {
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   useEffect(() => {
     trackEvent(

@@ -15,7 +15,6 @@ import { backgroundState } from '../../../../util/test/initial-root-state';
 import TabBar from './TabBar';
 import { TabBarIconKey, ExtendedBottomTabDescriptor } from './TabBar.types';
 import Routes from '../../../../constants/navigation/Routes';
-import { selectAssetsTrendingTokensEnabled } from '../../../../selectors/featureFlagController/assetsTrendingTokens';
 import { useAccountMenuEnabled } from '../../../../selectors/featureFlagController/accountMenu/useAccountMenuEnabled';
 
 // Minimal descriptor interface for tests - only includes what TabBar component uses
@@ -30,9 +29,6 @@ interface TestTabDescriptor {
 interface TestDescriptors {
   [key: string]: TestTabDescriptor;
 }
-
-// Mock trending tokens feature flag selector
-jest.mock('../../../../selectors/featureFlagController/assetsTrendingTokens');
 
 // Mock account menu feature flag hook
 jest.mock(
@@ -207,8 +203,6 @@ describe('TabBar', () => {
   });
 
   it('navigates to trending when trending tab is pressed', () => {
-    jest.mocked(selectAssetsTrendingTokensEnabled).mockReturnValue(true);
-
     const trendingState = {
       index: 0,
       routes: [{ key: '1', name: 'Tab 1' }],
@@ -235,37 +229,6 @@ describe('TabBar', () => {
 
     fireEvent.press(getByTestId(`tab-bar-item-${TabBarIconKey.Trending}`));
     expect(navigation.navigate).toHaveBeenCalledWith(Routes.TRENDING_VIEW);
-  });
-
-  it('does not navigate to trending when trending feature flag is disabled', () => {
-    jest.mocked(selectAssetsTrendingTokensEnabled).mockReturnValue(false);
-
-    const trendingState = {
-      index: 0,
-      routes: [{ key: '1', name: 'Tab 1' }],
-    };
-    const trendingDescriptors: TestDescriptors = {
-      '1': {
-        options: {
-          tabBarIconKey: TabBarIconKey.Trending,
-          rootScreenName: Routes.TRENDING_VIEW,
-        },
-      },
-    };
-
-    const { getByTestId } = renderWithProvider(
-      <TabBar
-        state={trendingState as TabNavigationState<ParamListBase>}
-        descriptors={
-          trendingDescriptors as Record<string, ExtendedBottomTabDescriptor>
-        }
-        navigation={navigation}
-      />,
-      { state: mockInitialState },
-    );
-
-    fireEvent.press(getByTestId(`tab-bar-item-${TabBarIconKey.Trending}`));
-    expect(navigation.navigate).not.toHaveBeenCalledWith(Routes.TRENDING_VIEW);
   });
 
   it('navigates to Accounts Menu when settings tab is pressed and account menu is enabled', () => {
