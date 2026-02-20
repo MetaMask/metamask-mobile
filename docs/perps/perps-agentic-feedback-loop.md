@@ -50,6 +50,7 @@ How AI agents use the agentic toolkit to verify their own code changes against a
 - Metro bundler active (`scripts/perps/agentic/start-metro.sh`)
 - The `__AGENTIC__` bridge is auto-installed on `globalThis` by `app/core/NavigationService/NavigationService.ts` in `__DEV__` mode
 - The Redux store is exposed on `globalThis.store` for state queries (set up alongside `__AGENTIC__` in dev mode)
+- The `Engine` singleton is exposed on `globalThis.Engine` for direct controller access (see Section 4: Engine & Controller Access)
 - **iOS**: Xcode command-line tools (`xcrun simctl`)
 - **Android**: Android SDK with `adb` on PATH
 
@@ -104,7 +105,8 @@ All tools work on **both iOS and Android**. Platform is auto-detected (see Secti
 scripts/perps/agentic/app-navigate.sh <Route> [params-json]   # navigate + auto-screenshot
 scripts/perps/agentic/app-state.sh route                        # current route + params
 scripts/perps/agentic/app-state.sh state <dot.path>            # Redux state at path
-scripts/perps/agentic/app-state.sh eval "<js-expression>"       # run JS in app context
+scripts/perps/agentic/app-state.sh eval "<js-expression>"       # run JS in app context (sync)
+scripts/perps/agentic/app-state.sh eval-async "<js-expression>" # run JS returning a Promise (async)
 scripts/perps/agentic/app-state.sh nav                          # full navigation tree
 scripts/perps/agentic/app-state.sh can-go-back                  # check if can go back
 scripts/perps/agentic/app-state.sh go-back                      # navigate back
@@ -112,6 +114,7 @@ scripts/perps/agentic/screenshot.sh [label]                     # take screensho
 scripts/perps/agentic/start-metro.sh                            # ensure Metro is running
 scripts/perps/agentic/stop-metro.sh                             # stop Metro background process
 scripts/perps/agentic/reload-metro.sh                            # trigger hot-reload on all connected apps
+scripts/perps/agentic/test-trade-flow.sh                         # end-to-end trade validation harness
 ```
 
 **Metro log**: `.agent/metro.log` — grep for errors after changes.
@@ -126,7 +129,8 @@ scripts/perps/agentic/
 ├── screenshot.sh       # Cross-platform screenshot (iOS simctl / Android adb)
 ├── start-metro.sh      # Start Metro (or attach to existing)
 ├── stop-metro.sh       # Stop Metro background process
-└── reload-metro.sh     # Trigger hot-reload on all connected apps
+├── reload-metro.sh     # Trigger hot-reload on all connected apps
+└── test-trade-flow.sh  # End-to-end trade validation (place → verify → close)
 ```
 
 The `__AGENTIC__` bridge on `globalThis` exposes: `navigate()`, `getRoute()`, `getState()`, `canGoBack()`, `goBack()`. These work identically on both platforms via Metro's Hermes CDP.
@@ -187,6 +191,129 @@ Then: `scripts/perps/agentic/app-state.sh eval "globalThis.__AGENTIC_CUSTOM__?.t
 scripts/perps/agentic/app-navigate.sh PerpsMarketDetails '{"market":{"symbol":"BTC","name":"BTC","price":"0","change24h":"0","change24hPercent":"0","volume":"0","maxLeverage":"100"}}'
 scripts/perps/agentic/app-state.sh route
 ```
+
+### Engine & Controller Access
+
+In `__DEV__` mode, `NavigationService.ts` exposes the `Engine` singleton on `globalThis.Engine` (alongside `__AGENTIC__` and `store`). This gives CDP-based agents direct access to every controller registered on the Engine.
+
+**Sync vs async evaluation:**
+
+```bash
+# Sync (non-promise) — use eval
+scripts/perps/agentic/app-state.sh eval "Engine.context.PerpsController.state"
+
+# Async (returns promise) — use eval-async
+scripts/perps/agentic/app-state.sh eval-async \
+  "Engine.context.PerpsController.getPositions().then(function(r) { return JSON.stringify(r); })"
+```
+
+> `eval-async` works by storing the promise result on a temporary `globalThis` key and polling until it resolves. The default timeout is 30 seconds. The `.then(function(r) { return JSON.stringify(r); })` pattern is needed for complex return values — CDP's `returnByValue` can only serialize primitives and plain objects.
+
+**Useful PerpsController methods:**
+
+| Method                      | Returns                     | Description                    |
+| --------------------------- | --------------------------- | ------------------------------ |
+| `getPositions()`            | `Promise<Position[]>`       | Open positions                 |
+| `getAccountState()`         | `Promise<AccountState>`     | Balances, margin, withdrawable |
+| `getMarketDataWithPrices()` | `Promise<Market[]>`         | All markets with live prices   |
+| `validateOrder(params)`     | `Promise<ValidationResult>` | Pre-flight order check         |
+| `placeOrder(params)`        | `Promise<OrderResult>`      | Submit an order                |
+| `closePosition({symbol})`   | `Promise<CloseResult>`      | Close a position by symbol     |
+| `getOpenOrders()`           | `Promise<Order[]>`          | Active limit/stop orders       |
+| `getTradeConfiguration()`   | `Promise<TradeConfig>`      | Leverage limits, fee tiers     |
+
+**Order params shape:**
+
+```javascript
+{
+  symbol: 'BTC',           // market symbol
+  isBuy: true,             // true = long, false = short
+  orderType: 'market',     // 'market' | 'limit'
+  size: '0.0001',          // position size in base asset
+  leverage: 2,             // leverage multiplier
+  usdAmount: '10',         // notional USD value
+  priceAtCalculation: 65000, // current price (for slippage calc)
+  maxSlippageBps: 500,     // max slippage in basis points
+}
+```
+
+### Trade Flow Validation
+
+`test-trade-flow.sh` is an end-to-end trade validation harness that places a real order, monitors WebSocket data flow, and verifies position state changes. It was created to validate fixes for TAT-2597 (position not appearing after trade) and TAT-2598 (missing prices / can't trade).
+
+**Usage:**
+
+```bash
+# Default: BTC long, $10, 2x leverage
+scripts/perps/agentic/test-trade-flow.sh
+
+# Custom symbol, side, size
+SYMBOL=ETH SIDE=sell SIZE=0.01 USD_AMOUNT=20 \
+  scripts/perps/agentic/test-trade-flow.sh
+
+# Skip navigation (already on Perps screen)
+SKIP_NAV=1 scripts/perps/agentic/test-trade-flow.sh
+
+# Keep position open after test
+SKIP_CLOSE=1 scripts/perps/agentic/test-trade-flow.sh
+```
+
+**Environment variables:**
+
+| Variable      | Default   | Description                                |
+| ------------- | --------- | ------------------------------------------ |
+| `SYMBOL`      | `BTC`     | Market symbol                              |
+| `SIDE`        | `buy`     | `buy` (long) or `sell` (short)             |
+| `SIZE`        | `0.0001`  | Position size in base asset                |
+| `USD_AMOUNT`  | `10`      | Notional USD value                         |
+| `LEVERAGE`    | `2`       | Leverage multiplier                        |
+| `ORDER_TYPE`  | `market`  | `market` or `limit`                        |
+| `LIMIT_PRICE` | _(empty)_ | Price for limit orders                     |
+| `SLIPPAGE`    | `500`     | Max slippage in basis points               |
+| `SKIP_NAV`    | _(empty)_ | Set to `1` to skip navigation to Perps     |
+| `SKIP_CLOSE`  | _(empty)_ | Set to `1` to keep position open           |
+| `PLATFORM`    | `android` | Platform for screenshots                   |
+| `WAIT_SECS`   | `5`       | Seconds to wait for WS updates after order |
+
+**What it validates:**
+
+1. Engine accessibility via CDP
+2. Pre-trade position count capture
+3. Live price fetch from `getMarketDataWithPrices()`
+4. Order validation via `validateOrder()`
+5. Order placement via `placeOrder()` + latency measurement
+6. Post-trade position count increase (TAT-2597)
+7. WebSocket position callbacks (`PositionStreamChannel`) (TAT-2597)
+8. Price stream first-data receipt (TAT-2598)
+9. Position cleanup via `closePosition()` (unless `SKIP_CLOSE`)
+
+### Metro Log Debugging
+
+Perps code uses a `[PERPS_DEBUG]` prefix convention for structured debug logs in Metro. These logs are written to `.agent/metro.log` and are invaluable for diagnosing WebSocket, state, and connection issues.
+
+**Useful grep patterns:**
+
+```bash
+# All perps debug logs (recent)
+grep PERPS_DEBUG .agent/metro.log | tail -30
+
+# Position WS updates — confirms data flowing from Hyperliquid
+grep 'PositionStreamChannel: WS callback' .agent/metro.log | tail -10
+
+# Price stream initialization — confirms market data arriving
+grep 'FIRST WS data' .agent/metro.log
+
+# Connection state changes — ensureReady() and reconnection logic
+grep 'ensureReady' .agent/metro.log | tail -20
+
+# Order lifecycle — placement, fills, errors
+grep 'PERPS_DEBUG.*order' .agent/metro.log | tail -20
+
+# Cache invalidation — stale data clearing
+grep 'PERPS_DEBUG.*cache' .agent/metro.log | tail -20
+```
+
+> When debugging WS issues, the key signal is whether `PositionStreamChannel: WS callback` appears after placing an order. If it doesn't, the WebSocket subscription may be stale — check `ensureReady` logs for connection state.
 
 ---
 

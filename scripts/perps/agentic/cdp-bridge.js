@@ -293,6 +293,68 @@ async function cdpEval(client, expression) {
   return result.result?.value;
 }
 
+/**
+ * Evaluate a JS expression that returns a Promise.
+ * Hermes CDP doesn't support awaitPromise, so we store the result on
+ * globalThis.__cdp_async__ and poll for it.
+ */
+async function cdpEvalAsync(client, expression, timeoutMs = 30000) {
+  // Unique key per call to avoid collisions
+  const key = `__cdp_async_${Date.now()}_${Math.random().toString(36).slice(2)}__`;
+
+  // Kick off the promise, store result when done
+  const kickoff = `(function() {
+    globalThis['${key}'] = { status: 'pending' };
+    Promise.resolve(${expression})
+      .then(function(v) { globalThis['${key}'] = { status: 'resolved', value: v }; })
+      .catch(function(e) { globalThis['${key}'] = { status: 'rejected', error: String(e) }; });
+    return 'started';
+  })()`;
+
+  await client.send('Runtime.evaluate', {
+    expression: kickoff,
+    returnByValue: true,
+    awaitPromise: false,
+  });
+
+  // Poll for completion
+  const pollInterval = 200;
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    await new Promise((r) => setTimeout(r, pollInterval));
+    const check = await client.send('Runtime.evaluate', {
+      expression: `(function() { return globalThis['${key}']; })()`,
+      returnByValue: true,
+      awaitPromise: false,
+    });
+    const val = check.result?.value;
+    if (val && val.status === 'resolved') {
+      // Cleanup
+      await client.send('Runtime.evaluate', {
+        expression: `delete globalThis['${key}']`,
+        returnByValue: true,
+        awaitPromise: false,
+      });
+      return val.value;
+    }
+    if (val && val.status === 'rejected') {
+      await client.send('Runtime.evaluate', {
+        expression: `delete globalThis['${key}']`,
+        returnByValue: true,
+        awaitPromise: false,
+      });
+      throw new Error(`Async evaluation error: ${val.error}`);
+    }
+  }
+  // Cleanup on timeout
+  await client.send('Runtime.evaluate', {
+    expression: `delete globalThis['${key}']`,
+    returnByValue: true,
+    awaitPromise: false,
+  });
+  throw new Error(`Async evaluation timed out after ${timeoutMs}ms`);
+}
+
 // ---------------------------------------------------------------------------
 // Commands
 // ---------------------------------------------------------------------------
@@ -411,6 +473,14 @@ const COMMANDS = {
       throw new Error('Usage: eval <expression>');
     }
     return await cdpEval(client, expression);
+  },
+
+  async 'eval-async'(client, args) {
+    const expression = args.join(' ');
+    if (!expression) {
+      throw new Error('Usage: eval-async <expression>');
+    }
+    return await cdpEvalAsync(client, expression);
   },
 
   async 'can-go-back'(client) {

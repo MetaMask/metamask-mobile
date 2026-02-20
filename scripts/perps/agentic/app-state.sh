@@ -5,7 +5,8 @@
 #   scripts/perps/agentic/app-state.sh route                    # Current route name
 #   scripts/perps/agentic/app-state.sh state engine              # Redux state at path
 #   scripts/perps/agentic/app-state.sh state engine.backgroundState.NetworkController
-#   scripts/perps/agentic/app-state.sh eval "1+1"               # Arbitrary JS
+#   scripts/perps/agentic/app-state.sh eval "1+1"               # Arbitrary JS (sync)
+#   scripts/perps/agentic/app-state.sh eval-async "fetch(...)"   # Arbitrary JS (async/Promise)
 #   scripts/perps/agentic/app-state.sh nav                      # Full navigation state
 #   scripts/perps/agentic/app-state.sh can-go-back              # Can navigate back?
 #   scripts/perps/agentic/app-state.sh go-back                  # Navigate back
@@ -30,6 +31,9 @@ case "$COMMAND" in
   eval)
     node scripts/perps/agentic/cdp-bridge.js eval "$@"
     ;;
+  eval-async)
+    node scripts/perps/agentic/cdp-bridge.js eval-async "$@"
+    ;;
   can-go-back)
     node scripts/perps/agentic/cdp-bridge.js can-go-back
     ;;
@@ -43,7 +47,8 @@ case "$COMMAND" in
     echo "  route                  Current route name and params"
     echo "  state <dot.path>       Redux state at the given path"
     echo "  nav                    Full navigation state tree"
-    echo "  eval <expression>      Evaluate arbitrary JS in app context"
+    echo "  eval <expression>      Evaluate arbitrary JS in app context (sync)"
+    echo "  eval-async <expr>      Evaluate async/Promise expression"
     echo "  can-go-back            Check if navigation can go back"
     echo "  go-back                Navigate back"
     exit 1
