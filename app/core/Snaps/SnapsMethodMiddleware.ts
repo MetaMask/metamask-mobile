@@ -39,6 +39,19 @@ import { endTrace, trace } from '../../util/trace';
 import { AppState } from 'react-native';
 import { getVersion } from 'react-native-device-info';
 
+export const trackSnapEvent = (eventPayload: {
+  event: string;
+  properties: Record<string, Json>;
+  sensitiveProperties: Record<string, Json>;
+}) => {
+  analytics.trackEvent(
+    AnalyticsEventBuilder.createEventBuilder(eventPayload.event)
+      .addProperties(eventPayload.properties)
+      .addSensitiveProperties(eventPayload.sensitiveProperties)
+      .build(),
+  );
+};
+
 export function getSnapIdFromRequest(
   request: Record<string, unknown>,
 ): SnapId | null {
@@ -134,18 +147,7 @@ const snapMethodMiddlewareBuilder = (
       SnapControllerGetSnapAction,
     ),
     trackError: (error: Error) => captureException(error),
-    trackEvent: (eventPayload: {
-      event: string;
-      properties: Record<string, Json>;
-      sensitiveProperties: Record<string, Json>;
-    }) => {
-      analytics.trackEvent(
-        AnalyticsEventBuilder.createEventBuilder(eventPayload.event)
-          .addProperties(eventPayload.properties)
-          .addSensitiveProperties(eventPayload.sensitiveProperties)
-          .build(),
-      );
-    },
+    trackEvent: trackSnapEvent,
     openWebSocket: controllerMessenger.call.bind(
       controllerMessenger,
       WebSocketServiceOpenAction,
