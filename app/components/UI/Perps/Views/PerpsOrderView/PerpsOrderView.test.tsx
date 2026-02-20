@@ -70,6 +70,7 @@ import {
   PerpsStreamProvider,
 } from '../../providers/PerpsStreamManager';
 import { usePerpsOrderContext } from '../../contexts/PerpsOrderContext';
+import { useAnalytics } from '../../../../../components/hooks/useAnalytics/useAnalytics';
 import PerpsOrderView from './PerpsOrderView';
 
 jest.mock('@react-navigation/native', () => {
@@ -334,6 +335,18 @@ jest.mock('../../hooks', () => ({
 }));
 
 // Mock direct hook imports (when imported from specific file paths)
+jest.mock('../../hooks/usePerpsConnection', () => ({
+  usePerpsConnection: jest.fn(() => ({
+    isConnected: true,
+    isConnecting: false,
+    isInitialized: true,
+    error: null,
+    connect: jest.fn(),
+    disconnect: jest.fn(),
+    resetError: jest.fn(),
+  })),
+}));
+
 jest.mock('../../hooks/usePerpsPaymentTokens', () => ({
   usePerpsPaymentTokens: jest.fn(() => [
     {
@@ -497,35 +510,12 @@ jest.mock('../../../../../util/trace', () => ({
   },
 }));
 
-// Mock useMetrics hook
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn(() => ({
   addProperties: jest.fn().mockReturnThis(),
   build: jest.fn().mockReturnValue({}),
 }));
-jest.mock('../../../../../components/hooks/useMetrics', () => ({
-  useMetrics: () => ({
-    trackEvent: mockTrackEvent,
-    createEventBuilder: mockCreateEventBuilder,
-  }),
-  MetaMetricsEvents: {
-    PERPS_TRADING_SCREEN_VIEWED: 'PERPS_TRADING_SCREEN_VIEWED',
-    PERPS_TRADE_TRANSACTION_EXECUTED: 'PERPS_TRADE_TRANSACTION_EXECUTED',
-    PERPS_LEVERAGE_CHANGED: 'PERPS_LEVERAGE_CHANGED',
-    PERPS_ORDER_SIZE_CHANGED: 'PERPS_ORDER_SIZE_CHANGED',
-    PERPS_ORDER_PREVIEW_SHOWN: 'PERPS_ORDER_PREVIEW_SHOWN',
-    PERPS_ORDER_SUBMIT_CLICKED: 'PERPS_ORDER_SUBMIT_CLICKED',
-    PERPS_TRADE_TRANSACTION_FAILED: 'PERPS_TRADE_TRANSACTION_FAILED',
-    PERPS_PAYMENT_TOKEN_SELECTED: 'PERPS_PAYMENT_TOKEN_SELECTED',
-    PERPS_STOP_LOSS_SET: 'PERPS_STOP_LOSS_SET',
-    PERPS_TAKE_PROFIT_SET: 'PERPS_TAKE_PROFIT_SET',
-    PERPS_ORDER_TYPE_CHANGED: 'PERPS_ORDER_TYPE_CHANGED',
-    PERPS_ORDER_TYPE_VIEWED: 'PERPS_ORDER_TYPE_VIEWED',
-    PERPS_TRADE_TRANSACTION_INITIATED: 'PERPS_TRADE_TRANSACTION_INITIATED',
-    PERPS_TRADE_TRANSACTION_SUBMITTED: 'PERPS_TRADE_TRANSACTION_SUBMITTED',
-    PERPS_ERROR: 'PERPS_ERROR',
-  },
-}));
+jest.mock('../../../../../components/hooks/useAnalytics/useAnalytics');
 
 // Mock Engine context to prevent accessing real PerpsController
 jest.mock('../../../../../core/Engine', () => ({
@@ -679,6 +669,7 @@ const defaultMockHooks = {
     placeOrder: jest.fn(),
     depositWithConfirmation: jest.fn().mockResolvedValue(undefined),
     withdrawWithConfirmation: jest.fn(),
+    subscribeToPrices: jest.fn(() => jest.fn()),
     getMarkets: jest.fn().mockResolvedValue([
       {
         name: 'ETH',
@@ -842,6 +833,11 @@ global.requestAnimationFrame = jest.fn((cb) => {
 describe('PerpsOrderView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+
+    jest.mocked(useAnalytics).mockReturnValue({
+      trackEvent: mockTrackEvent,
+      createEventBuilder: mockCreateEventBuilder,
+    } as unknown as ReturnType<typeof useAnalytics>);
 
     (useNavigation as jest.Mock).mockReturnValue({
       navigate: mockNavigate,
@@ -3216,7 +3212,9 @@ describe('PerpsOrderView', () => {
 
       // Assert - Should NOT show "No funds available" warning while loading
       expect(
-        queryByText('No funds available. Please deposit first.'),
+        queryByText(
+          'Not enough funds available. Deposit funds or select a different payment method',
+        ),
       ).toBeNull();
     });
 

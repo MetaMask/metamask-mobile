@@ -53,7 +53,7 @@ import TokenDetails from './TokenDetails';
 import { RootState } from '../../../reducers';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { getDecimalChainId } from '../../../util/networks';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import {
   trackActionButtonClick,
   ActionButtonType,
@@ -109,8 +109,6 @@ import DSText, {
 } from '../../../component-library/components/Texts/Text';
 import { getTokenExchangeRate } from '../Bridge/utils/exchange-rates';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
-import MerklRewards from '../Earn/components/MerklRewards';
-import { selectMerklCampaignClaimingEnabledFlag } from '../Earn/selectors/featureFlags';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import {
   selectTronResourcesBySelectedAccountGroup,
@@ -122,6 +120,9 @@ import { getDetectedGeolocation } from '../../../reducers/fiatOrders';
 import { useRampsButtonClickData } from '../Ramp/hooks/useRampsButtonClickData';
 import useRampsUnifiedV1Enabled from '../Ramp/hooks/useRampsUnifiedV1Enabled';
 import { BridgeToken } from '../Bridge/types';
+import MarketClosedActionButton from './MarketClosedActionButton';
+import { IconName } from '../../../component-library/components/Icons/Icon';
+import { useRWAToken } from '../Bridge/hooks/useRWAToken';
 import { useTokenBuyability } from '../Ramp/hooks/useTokenBuyability';
 
 /**
@@ -209,13 +210,10 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const allTokenMarketData = useSelector(selectTokenMarketData);
   const selectedChainId = useSelector(selectEvmChainId);
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
-  const isMerklCampaignClaimingEnabled = useSelector(
-    selectMerklCampaignClaimingEnabledFlag,
-  );
   const { navigateToSendPage } = useSendNavigation();
 
   const nativeCurrency = useSelector((state: RootState) =>
@@ -255,6 +253,8 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
       : undefined,
   );
   ///: END:ONLY_INCLUDE_IF
+
+  const { isTokenTradingOpen } = useRWAToken();
 
   const currentAddress = asset.address as Hex;
   const { goToBuy } = useRampNavigation();
@@ -730,6 +730,12 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
 
   const { isBuyable: isAssetBuyable } = useTokenBuyability(asset as TokenI);
 
+  const handleMarketClosedButtonPress = () => {
+    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.MARKET_CLOSED_MODAL,
+    });
+  };
+
   return (
     <View style={styles.wrapper} testID={TokenOverviewSelectorsIDs.CONTAINER}>
       {asset.hasBalanceError ? (
@@ -749,9 +755,20 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
           <View style={styles.chartNavigationWrapper}>
             {renderChartNavigationButton()}
           </View>
+          {!isTokenTradingOpen(asset as BridgeToken) && (
+            <View style={styles.marketClosedActionButtonContainer}>
+              <MarketClosedActionButton
+                iconName={IconName.Info}
+                label={strings('asset_overview.market_closed')}
+                onPress={handleMarketClosedButtonPress}
+              />
+            </View>
+          )}
           <AssetDetailsActions
             displayBuyButton={displayBuyButton && isAssetBuyable}
-            displaySwapsButton={displaySwapsButton}
+            displaySwapsButton={
+              displaySwapsButton && isTokenTradingOpen(asset as BridgeToken)
+            }
             goToSwaps={goToSwaps}
             onBuy={onBuy}
             onReceive={onReceive}
@@ -787,11 +804,6 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
             )
             ///: END:ONLY_INCLUDE_IF
           }
-          {isMerklCampaignClaimingEnabled && (
-            <View testID="merkl-rewards-section">
-              <MerklRewards asset={asset} />
-            </View>
-          )}
           {isPerpsEnabled &&
             hasPerpsMarket &&
             marketData &&

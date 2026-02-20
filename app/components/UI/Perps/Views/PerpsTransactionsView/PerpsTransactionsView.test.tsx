@@ -20,6 +20,13 @@ import {
 import type { CaipAccountId } from '@metamask/utils';
 import { createMockAccountsControllerState } from '../../../../../util/test/accountsControllerTestUtils';
 import { mockNetworkState } from '../../../../../util/test/network';
+import { TRANSACTION_DETAIL_EVENTS } from '../../../../../core/Analytics/events/transactions';
+import { MonetizedPrimitive } from '../../../../../core/Analytics/MetaMetrics.types';
+
+const mockTrackEvent = jest.fn();
+const mockAddProperties = jest.fn();
+const mockBuild = jest.fn(() => ({ name: 'test-event' }));
+const mockCreateEventBuilder = jest.fn();
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -123,6 +130,20 @@ describe('PerpsTransactionsView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockNavigate.mockClear();
+
+    // Set up analytics mock
+    const { useAnalytics } = jest.requireMock(
+      '../../../../hooks/useAnalytics/useAnalytics',
+    );
+    mockAddProperties.mockReturnValue({ build: mockBuild });
+    mockCreateEventBuilder.mockReturnValue({
+      addProperties: mockAddProperties,
+      build: mockBuild,
+    });
+    useAnalytics.mockReturnValue({
+      trackEvent: mockTrackEvent,
+      createEventBuilder: mockCreateEventBuilder,
+    });
 
     mockUsePerpsConnection.mockReturnValue({
       isConnected: true,
@@ -835,6 +856,41 @@ describe('PerpsTransactionsView', () => {
         skipInitialFetch: false,
         accountId: secondAccountId,
       });
+    });
+  });
+
+  describe('Analytics Tracking', () => {
+    it('tracks Transaction Detail List Item Clicked when a transaction item is pressed', async () => {
+      const component = renderWithProvider(<PerpsTransactionsView />, {
+        state: mockInitialState,
+      });
+
+      await waitFor(() => {
+        expect(mockUsePerpsTransactionHistory).toHaveBeenCalled();
+      });
+
+      let transactionItems: ReturnType<typeof component.queryAllByTestId> = [];
+      await waitFor(() => {
+        transactionItems = component.queryAllByTestId(
+          PerpsTransactionSelectorsIDs.TRANSACTION_ITEM,
+        );
+        expect(transactionItems.length).toBeGreaterThan(0);
+      });
+
+      await act(async () => {
+        fireEvent.press(transactionItems[0]);
+      });
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        TRANSACTION_DETAIL_EVENTS.LIST_ITEM_CLICKED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          transaction_type: 'perps_trade',
+          monetized_primitive: MonetizedPrimitive.Perps,
+        }),
+      );
+      expect(mockTrackEvent).toHaveBeenCalled();
     });
   });
 });

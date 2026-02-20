@@ -51,7 +51,7 @@ import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import { useTheme } from '../../../../../util/theme';
 import { TraceName } from '../../../../../util/trace';
 import Keypad from '../../../../Base/Keypad';
-import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
   ARBITRUM_USDC,
   PERPS_CURRENCY,
@@ -119,6 +119,7 @@ import {
   usePerpsLivePrices,
   usePerpsTopOfBook,
 } from '../../hooks/stream';
+import { usePerpsConnection } from '../../hooks/usePerpsConnection';
 import { useIsPerpsBalanceSelected } from '../../hooks/useIsPerpsBalanceSelected';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
@@ -163,10 +164,14 @@ interface OrderRouteParams {
   limitPriceUpdate?: string;
   // Hide TP/SL when modifying existing position
   hideTPSL?: boolean;
+  /** A/B test variant for token details layout - e.g. 'control' or 'treatment' */
+  assetsASSETS2493AbtestTokenDetailsLayout?: string;
 }
 
 interface PerpsOrderViewContentProps {
   hideTPSL?: boolean;
+  /** A/B test variant for token details layout */
+  routeAbTestTokenDetailsLayout?: string;
 }
 
 /**
@@ -182,6 +187,7 @@ interface PerpsOrderViewContentProps {
  */
 const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   hideTPSL = false,
+  routeAbTestTokenDetailsLayout,
 }) => {
   // Auto-detect source based on trending session state
   const source = TrendingFeedSessionManager.getInstance().isFromTrending
@@ -256,6 +262,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const orderStartTimeRef = useRef<number>(0);
   const inputMethodRef = useRef<InputMethod>('default');
 
+  const { isInitialized } = usePerpsConnection();
+  const { subscribeToPrices, updatePositionTPSL } = usePerpsTrading();
   const { account, isInitialLoading: isLoadingAccount } = usePerpsLiveAccount();
 
   // Get order form state from context; balanceForValidation respects custom token amount when set
@@ -357,20 +365,54 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   }, [isOrderTypeVisible, shouldOpenLimitPrice]);
 
   // Track trading screen viewed event using unified declarative API (main's event name)
+  const perpsScreenViewedProps = {
+    [PERPS_EVENT_PROPERTY.SCREEN_TYPE]: PERPS_EVENT_VALUE.SCREEN_TYPE.TRADING,
+    [PERPS_EVENT_PROPERTY.ASSET]: orderForm.asset,
+    [PERPS_EVENT_PROPERTY.DIRECTION]:
+      orderForm.direction === 'long'
+        ? PERPS_EVENT_VALUE.DIRECTION.LONG
+        : PERPS_EVENT_VALUE.DIRECTION.SHORT,
+    ...(source && { [PERPS_EVENT_PROPERTY.SOURCE]: source }),
+    ...(routeAbTestTokenDetailsLayout && {
+      ab_tests: {
+        assetsASSETS2493AbtestTokenDetailsLayout: routeAbTestTokenDetailsLayout,
+      },
+    }),
+    ...(isButtonColorTestEnabled && {
+      [PERPS_EVENT_PROPERTY.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
+    }),
+  };
+
   usePerpsEventTracking({
     eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
-    properties: {
-      [PERPS_EVENT_PROPERTY.SCREEN_TYPE]: PERPS_EVENT_VALUE.SCREEN_TYPE.TRADING,
-      [PERPS_EVENT_PROPERTY.ASSET]: orderForm.asset,
-      [PERPS_EVENT_PROPERTY.DIRECTION]:
-        orderForm.direction === 'long'
-          ? PERPS_EVENT_VALUE.DIRECTION.LONG
-          : PERPS_EVENT_VALUE.DIRECTION.SHORT,
-      ...(isButtonColorTestEnabled && {
-        [PERPS_EVENT_PROPERTY.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
-      }),
-    },
+    properties: perpsScreenViewedProps,
   });
+
+  // Ensure oracle price (markPrice) is available for margin calculation.
+  // The PriceStreamChannel subscribes without includeMarketData, so the
+  // HyperLiquid marketDataCache has no oraclePrice and markPrice is always
+  // undefined when entering from Token Details (no prior market data sub).
+  // This subscription populates the cache for the traded asset so that
+  // subsequent allMids price updates include markPrice.
+  //
+  // We gate on isInitialized (from usePerpsConnection) so the subscription
+  // is deferred until the controller is ready. This mirrors the pattern in
+  // usePerpsPrices and avoids a silent failure that would leave markPrice
+  // undefined with no retry (the old deps would never change).
+  useEffect(() => {
+    if (!isDataReady || !isInitialized || !orderForm.asset) return;
+
+    const unsubscribe = subscribeToPrices({
+      symbols: [orderForm.asset],
+      includeMarketData: true,
+      callback: () => {
+        // No-op callback — the side effect of populating the
+        // marketDataCache with oraclePrice is all we need.
+      },
+    });
+
+    return unsubscribe;
+  }, [isDataReady, isInitialized, orderForm.asset, subscribeToPrices]);
 
   // Get real-time price data using new stream architecture (deferred)
   // Uses single WebSocket subscription with component-level debouncing
@@ -523,8 +565,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     const balanceUsd = Number(payToken.balanceUsd);
     return requiredUsd > balanceUsd;
   }, [hasCustomTokenSelected, marginRequired, payToken]);
-
-  const { updatePositionTPSL } = usePerpsTrading();
 
   // Order execution using new hook
   const { placeOrder: executeOrder, isPlacing: isPlacingOrder } =
@@ -1767,6 +1807,7 @@ const PerpsOrderView: React.FC = () => {
     leverage: paramLeverage,
     existingPosition,
     hideTPSL = false,
+    assetsASSETS2493AbtestTokenDetailsLayout: routeAbTestTokenDetailsLayout,
   } = route.params || {};
 
   const effectiveAvailableBalance = useMemo(() => {
@@ -1784,7 +1825,10 @@ const PerpsOrderView: React.FC = () => {
       existingPosition={existingPosition}
       effectiveAvailableBalance={effectiveAvailableBalance}
     >
-      <PerpsOrderViewContent hideTPSL={hideTPSL} />
+      <PerpsOrderViewContent
+        hideTPSL={hideTPSL}
+        routeAbTestTokenDetailsLayout={routeAbTestTokenDetailsLayout}
+      />
     </PerpsOrderProvider>
   );
 };

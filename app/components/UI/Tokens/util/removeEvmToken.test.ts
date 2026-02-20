@@ -3,7 +3,7 @@ import Engine from '../../../../core/Engine';
 import NotificationManager from '../../../../core/NotificationManager';
 import Logger from '../../../../util/Logger';
 import { Hex } from '@metamask/utils';
-import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
+import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
 import { TokenI } from '../types';
 
 jest.mock('../../../../core/Engine', () => ({
@@ -37,7 +37,9 @@ describe('removeEvmToken', () => {
       ({
         addProperties: jest.fn().mockReturnThis(),
         build: jest.fn().mockReturnValue('mockEvent'),
-      }) as unknown as MetricsEventBuilder,
+      }) as unknown as ReturnType<
+        typeof AnalyticsEventBuilder.createEventBuilder
+      >,
   );
 
   const mockProps = {

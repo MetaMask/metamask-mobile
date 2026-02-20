@@ -18,7 +18,8 @@ import { RootState } from '../../../../../reducers';
 import { isTestNet } from '../../../../../util/networks';
 import { useTheme } from '../../../../../util/theme';
 import { TraceName, trace } from '../../../../../util/trace';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import AssetElement from '../../../AssetElement';
 import { StakeButton } from '../../../Stake/components/StakeButton';
 import { TokenI } from '../../types';
@@ -121,7 +122,7 @@ export const TokenListItem = React.memo(
     showPercentageChange = true,
     isFullView = false,
   }: TokenListItemProps) => {
-    const { trackEvent, createEventBuilder } = useMetrics();
+    const { trackEvent, createEventBuilder } = useAnalytics();
     const navigation = useNavigation();
     const { colors } = useTheme();
     const styles = createStyles(colors);
@@ -187,7 +188,28 @@ export const TokenListItem = React.memo(
     );
 
     const { claimRewards } = merklData;
-    const handleClaimBonus = useCallback(() => claimRewards(), [claimRewards]);
+    const handleClaimBonus = useCallback(() => {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.MUSD_CLAIM_BONUS_BUTTON_CLICKED)
+          .addProperties({
+            location: MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.TOKEN_LIST_ITEM,
+            action_type: 'claim_bonus',
+            button_text: strings('earn.claim_bonus'),
+            network_chain_id: asset?.chainId,
+            network_name: networkName,
+            asset_symbol: asset?.symbol,
+          })
+          .build(),
+      );
+      claimRewards();
+    }, [
+      trackEvent,
+      createEventBuilder,
+      asset?.chainId,
+      asset?.symbol,
+      networkName,
+      claimRewards,
+    ]);
 
     const pricePercentChange1d = useTokenPricePercentageChange(asset);
 
@@ -443,7 +465,10 @@ export const TokenListItem = React.memo(
                 </SensitiveText>
               }
               {isStockToken(asset as BridgeToken) && (
-                <StockBadge style={styles.stockBadgeWrapper} token={asset} />
+                <StockBadge
+                  style={styles.stockBadgeWrapper}
+                  token={asset as BridgeToken}
+                />
               )}
             </View>
           </View>

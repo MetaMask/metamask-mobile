@@ -42,6 +42,9 @@ import { toSentenceCase } from '../../../../../util/string';
 import { getGasFeesSponsoredNetworkEnabled } from '../../../../../selectors/featureFlagController/gasFeesSponsored';
 import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
 import { useLatestBalance } from '../../hooks/useLatestBalance';
+import TagColored, {
+  TagColor,
+} from '../../../../../component-library/components-temp/TagColored';
 
 if (
   Platform.OS === 'android' &&
@@ -205,10 +208,16 @@ const QuoteDetailsCard: React.FC = () => {
               },
             }}
             value={{
-              label: {
-                text: strings('bridge.gas_fees_sponsored'),
-                variant: TextVariant.BodyMD,
-              },
+              label: (
+                <TagColored
+                  color={TagColor.Success}
+                  style={styles.gasFeesSponsoredContainer}
+                >
+                  <Text variant={TextVariant.BodySM} color={TextColor.Success}>
+                    {strings('bridge.gas_fees_sponsored')}
+                  </Text>
+                </TagColored>
+              ),
             }}
           />
         ) : isGasless ? (
