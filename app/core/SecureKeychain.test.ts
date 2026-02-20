@@ -22,6 +22,7 @@ jest.mock('react-native-keychain', () => ({
     WHEN_UNLOCKED_THIS_DEVICE_ONLY: 'WHEN_UNLOCKED_THIS_DEVICE_ONLY',
   },
   ACCESS_CONTROL: {
+    BIOMETRY_ANY_OR_DEVICE_PASSCODE: 'BIOMETRY_ANY_OR_DEVICE_PASSCODE',
     BIOMETRY_CURRENT_SET: 'BIOMETRY_CURRENT_SET',
     DEVICE_PASSCODE: 'DEVICE_PASSCODE',
   },
@@ -60,58 +61,84 @@ describe('SecureKeychain - setGenericPassword', () => {
     SecureKeychain.init('test_salt');
   });
 
-  it('should set biometric authentication correctly', async () => {
+  it('should set device authentication correctly when type is BIOMETRIC', async () => {
     await SecureKeychain.setGenericPassword(
       mockPassword,
-      SecureKeychain.TYPES.BIOMETRICS,
+      AUTHENTICATION_TYPE.BIOMETRIC,
     );
 
     expect(Keychain.setGenericPassword).toHaveBeenCalledWith(
       'metamask-user',
       expect.any(String),
       expect.objectContaining({
-        accessControl: Keychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET,
-        storage: Keychain.STORAGE_TYPE.AES_GCM,
+        accessible: Keychain.ACCESSIBLE.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
+        accessControl: Keychain.ACCESS_CONTROL.BIOMETRY_ANY_OR_DEVICE_PASSCODE,
       }),
     );
 
     expect(mockAddTraitsToUser).toHaveBeenCalledWith(
       expect.objectContaining({
         [UserProfileProperty.AUTHENTICATION_TYPE]:
-          AUTHENTICATION_TYPE.BIOMETRIC,
+          AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION,
       }),
     );
   });
 
-  it('should set passcode authentication correctly', async () => {
+  it('should set device authentication correctly when type is PASSCODE', async () => {
     await SecureKeychain.setGenericPassword(
       mockPassword,
-      SecureKeychain.TYPES.PASSCODE,
+      AUTHENTICATION_TYPE.PASSCODE,
     );
 
     expect(Keychain.setGenericPassword).toHaveBeenCalledWith(
       'metamask-user',
       expect.any(String),
       expect.objectContaining({
-        accessControl: Keychain.ACCESS_CONTROL.DEVICE_PASSCODE,
-        storage: Keychain.STORAGE_TYPE.AES_GCM,
+        accessible: Keychain.ACCESSIBLE.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
+        accessControl: Keychain.ACCESS_CONTROL.BIOMETRY_ANY_OR_DEVICE_PASSCODE,
+      }),
+    );
+
+    expect(mockAddTraitsToUser).toHaveBeenCalledWith(
+      expect.objectContaining({
+        [UserProfileProperty.AUTHENTICATION_TYPE]:
+          AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION,
       }),
     );
   });
 
-  it('should set remember me correctly', async () => {
+  it('should set device authentication correctly when type is DEVICE_AUTHENTICATION', async () => {
     await SecureKeychain.setGenericPassword(
       mockPassword,
-      SecureKeychain.TYPES.REMEMBER_ME,
+      AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION,
     );
 
     expect(Keychain.setGenericPassword).toHaveBeenCalledWith(
       'metamask-user',
       expect.any(String),
-      expect.not.objectContaining({
-        accessControl: expect.anything(),
+      expect.objectContaining({
+        accessible: Keychain.ACCESSIBLE.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
+        accessControl: Keychain.ACCESS_CONTROL.BIOMETRY_ANY_OR_DEVICE_PASSCODE,
       }),
     );
+
+    expect(mockAddTraitsToUser).toHaveBeenCalledWith(
+      expect.objectContaining({
+        [UserProfileProperty.AUTHENTICATION_TYPE]:
+          AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION,
+      }),
+    );
+  });
+
+  it('should reset password when type is PASSWORD', async () => {
+    const resetSpy = jest.spyOn(SecureKeychain, 'resetGenericPassword');
+    await SecureKeychain.setGenericPassword(
+      mockPassword,
+      AUTHENTICATION_TYPE.PASSWORD,
+    );
+
+    expect(resetSpy).toHaveBeenCalled();
+    expect(Keychain.setGenericPassword).not.toHaveBeenCalled();
   });
 
   it('should reset password when no type is provided', async () => {

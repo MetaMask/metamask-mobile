@@ -80,6 +80,7 @@ import hideProtocolFromUrl from '../../../util/hideProtocolFromUrl';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
 import { NetworkConfiguration } from '@metamask/network-controller';
+import { Box } from '@metamask/design-system-react-native';
 import RpcSelectionModal from './RpcSelectionModal/RpcSelectionModal';
 import {
   TraceName,
@@ -102,12 +103,15 @@ import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import { MultichainNetworkConfiguration } from '@metamask/multichain-network-controller';
 import { useSwitchNetworks } from './useSwitchNetworks';
 import { removeItemFromChainIdList } from '../../../util/metrics/MultichainAPI/networkMetricUtils';
-import { MetaMetrics } from '../../../core/Analytics';
+import { analytics } from '../../../util/analytics/analytics';
 import {
   NETWORK_SELECTOR_SOURCES,
   NetworkSelectorSource,
 } from '../../../constants/networkSelector';
 import { getGasFeesSponsoredNetworkEnabled } from '../../../selectors/featureFlagController/gasFeesSponsored';
+import TagColored, {
+  TagColor,
+} from '../../../component-library/components-temp/TagColored';
 
 interface infuraNetwork {
   name: string;
@@ -576,15 +580,22 @@ const NetworkSelector = () => {
                 name
               ) : (
                 <View>
-                  <Text variant={TextVariant.BodyMD}>{name}</Text>
-                  {isGasFeesSponsoredNetworkEnabled(chainId) ? (
-                    <Text
-                      variant={TextVariant.BodySM}
-                      color={TextColor.Alternative}
-                    >
-                      {strings('networks.no_network_fee')}
-                    </Text>
-                  ) : undefined}
+                  <Box twClassName="flex-row gap-2">
+                    <Text variant={TextVariant.BodyMD}>{name}</Text>
+                    {isGasFeesSponsoredNetworkEnabled(chainId) ? (
+                      <TagColored
+                        color={TagColor.Success}
+                        style={styles.noNetworkFeeContainer}
+                      >
+                        <Text
+                          variant={TextVariant.BodySM}
+                          color={TextColor.Success}
+                        >
+                          {strings('networks.no_network_fee')}
+                        </Text>
+                      </TagColored>
+                    ) : undefined}
+                  </Box>
                 </View>
               )
             }
@@ -884,9 +895,7 @@ const NetworkSelector = () => {
       const { NetworkController } = Engine.context;
       NetworkController.removeNetwork(chainId);
 
-      MetaMetrics.getInstance().addTraitsToUser(
-        removeItemFromChainIdList(chainId),
-      );
+      analytics.identify(removeItemFromChainIdList(chainId));
 
       // set tokenNetworkFilter
       const { PreferencesController } = Engine.context;

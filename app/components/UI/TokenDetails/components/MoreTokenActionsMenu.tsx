@@ -7,7 +7,7 @@ import BottomSheet, {
 import { IconName, Box } from '@metamask/design-system-react-native';
 import ActionListItem from '../../../../component-library/components-temp/ActionListItem';
 import { strings } from '../../../../../locales/i18n';
-import { useMetrics } from '../../../hooks/useMetrics';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import useBlockExplorer from '../../../hooks/useBlockExplorer';
 import Routes from '../../../../constants/navigation/Routes';
 import Engine from '../../../../core/Engine';
@@ -65,7 +65,7 @@ const MoreTokenActionsMenu = () => {
     onReceive,
   } = route.params;
 
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const tokenList = useSelector(selectTokenList);
   const explorer = useBlockExplorer(asset.chainId);
 

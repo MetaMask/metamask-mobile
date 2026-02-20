@@ -4,7 +4,7 @@ import ChooseYourCard from './ChooseYourCard';
 import { ChooseYourCardSelectors } from './ChooseYourCard.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
-import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { CardType } from '../../types';
 import { CardActions, CardScreens } from '../../util/metrics';
 
@@ -33,15 +33,11 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
   }),
 }));
 
-jest.mock('../../../../hooks/useMetrics', () => ({
-  useMetrics: () => ({
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
     trackEvent: mockTrackEvent,
     createEventBuilder: mockCreateEventBuilder,
   }),
-  MetaMetricsEvents: {
-    CARD_VIEWED: 'Card Viewed',
-    CARD_BUTTON_CLICKED: 'Card Button Clicked',
-  },
 }));
 
 jest.mock('../../../../../../locales/i18n', () => ({
