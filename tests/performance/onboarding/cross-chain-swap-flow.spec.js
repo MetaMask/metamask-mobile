@@ -11,7 +11,7 @@ import TabBarModal from '../../../wdio/screen-objects/Modals/TabBarModal.js';
 import NetworkEducationModal from '../../../wdio/screen-objects/Modals/NetworkEducationModal.js';
 import NetworksScreen from '../../../wdio/screen-objects/NetworksScreen.js';
 import BridgeScreen from '../../../wdio/screen-objects/BridgeScreen.js';
-import { login } from '../../framework/utils/Flows.js';
+import { onboardingFlowImportSRP } from '../../framework/utils/Flows.js';
 import { PerformanceLogin, PerformanceSwaps } from '../../tags.performance.js';
 
 /* Scenario 7: Cross-chain swap flow - ETH to SOL - 50+ accounts, SRP 1 + SRP 2 + SRP 3 */
@@ -32,8 +32,10 @@ test.describe(`${PerformanceLogin} ${PerformanceSwaps}`, () => {
       NetworkEducationModal.device = device;
       NetworksScreen.device = device;
       BridgeScreen.device = device;
-      await login(device);
-
+      await onboardingFlowImportSRP(
+        device,
+        'buzz pill embody elite name festival crystal pigeon grief memory allow blue',
+      );
       const timer1 = new TimerHelper(
         'Time since the user clicks on the "Swap" button until the swap page is loaded',
         { ios: 1100, android: 2200 },
@@ -44,6 +46,9 @@ test.describe(`${PerformanceLogin} ${PerformanceSwaps}`, () => {
       await timer1.measure(() => BridgeScreen.isVisible());
 
       await BridgeScreen.selectNetworkAndTokenTo('Solana', 'SOL');
+      // Wait for recipient init so destAddress (Solana) is set before we enter amount.
+      // Otherwise the quote fetch uses the source EVM address as dest and the API returns Bad Request.
+      // await sleep(20000);
       await BridgeScreen.enterSourceTokenAmount('1');
 
       if (await BridgeScreen.isRouteUnavailableVisible()) {
