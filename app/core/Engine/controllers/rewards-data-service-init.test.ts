@@ -43,4 +43,44 @@ describe('RewardsDataServiceInit', () => {
       fetch: expect.any(Function),
     });
   });
+
+  it('restores persisted UAT backend preference when useUatBackend is true', () => {
+    // Arrange
+    const requestMock = getInitRequestMock();
+    requestMock.persistedState = {
+      RewardsController: { useUatBackend: true },
+    } as typeof requestMock.persistedState;
+
+    // Act
+    const { controller } = rewardsDataServiceInit(requestMock);
+
+    // Assert
+    expect(controller.setUseUatBackend).toHaveBeenCalledWith(true);
+  });
+
+  it('does not call setUseUatBackend when useUatBackend is false', () => {
+    // Arrange
+    const requestMock = getInitRequestMock();
+    requestMock.persistedState = {
+      RewardsController: { useUatBackend: false },
+    } as typeof requestMock.persistedState;
+
+    // Act
+    const { controller } = rewardsDataServiceInit(requestMock);
+
+    // Assert
+    expect(controller.setUseUatBackend).not.toHaveBeenCalled();
+  });
+
+  it('does not call setUseUatBackend when RewardsController state is missing', () => {
+    // Arrange
+    const requestMock = getInitRequestMock();
+    requestMock.persistedState = {} as typeof requestMock.persistedState;
+
+    // Act
+    const { controller } = rewardsDataServiceInit(requestMock);
+
+    // Assert
+    expect(controller.setUseUatBackend).not.toHaveBeenCalled();
+  });
 });

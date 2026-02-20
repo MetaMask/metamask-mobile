@@ -30,6 +30,7 @@ import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
 import Logger from '../../../../../util/Logger';
 import { successfulFetch } from '@metamask/controller-utils';
 import { getDefaultRewardsApiBaseUrlForMetaMaskEnv } from '../utils/rewards-api-url';
+import AppConstants from '../../../../AppConstants';
 
 /**
  * Custom error for invalid timestamps
@@ -196,6 +197,11 @@ export interface RewardsDataServiceGetSnapshotsAction {
   handler: RewardsDataService['getSnapshots'];
 }
 
+export interface RewardsDataServiceSetUseUatBackendAction {
+  type: `${typeof SERVICE_NAME}:setUseUatBackend`;
+  handler: RewardsDataService['setUseUatBackend'];
+}
+
 export type RewardsDataServiceActions =
   | RewardsDataServiceLoginAction
   | RewardsDataServiceGetPointsEventsAction
@@ -218,7 +224,8 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceGetSeasonMetadataAction
   | RewardsDataServiceGetSeasonOneLineaRewardTokensAction
   | RewardsDataServiceApplyReferralCodeAction
-  | RewardsDataServiceGetSnapshotsAction;
+  | RewardsDataServiceGetSnapshotsAction
+  | RewardsDataServiceSetUseUatBackendAction;
 
 export type RewardsDataServiceMessenger = Messenger<
   typeof SERVICE_NAME,
@@ -242,7 +249,9 @@ export class RewardsDataService {
 
   readonly #locale: string;
 
-  readonly #rewardsApiUrl: string;
+  // This flag defaults to false
+  // Will honor true value only in rc builds
+  #useUatBackend = false;
 
   constructor({
     messenger,
@@ -259,7 +268,6 @@ export class RewardsDataService {
     this.#fetch = fetchFunction;
     this.#appType = appType;
     this.#locale = locale;
-    this.#rewardsApiUrl = this.getRewardsApiBaseUrl();
     // Register all action handlers
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:login`,
@@ -349,14 +357,31 @@ export class RewardsDataService {
       `${SERVICE_NAME}:getSnapshots`,
       this.getSnapshots.bind(this),
     );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:setUseUatBackend`,
+      this.setUseUatBackend.bind(this),
+    );
   }
 
   private getRewardsApiBaseUrl() {
-    // always using url from env var if set
     if (process.env.REWARDS_API_URL) return process.env.REWARDS_API_URL;
-    // otherwise using default per-env url
+
+    if (this.#useUatBackend && process.env.METAMASK_ENVIRONMENT === 'rc') {
+      return AppConstants.REWARDS_API_URL.UAT;
+    }
+
     return getDefaultRewardsApiBaseUrlForMetaMaskEnv(
       process.env.METAMASK_ENVIRONMENT,
+    );
+  }
+
+  /**
+   * Toggle targeting the UAT backend at runtime
+   */
+  setUseUatBackend(enabled: boolean): void {
+    this.#useUatBackend = enabled;
+    Logger.log(
+      `RewardsDataService: UAT backend ${enabled ? 'enabled' : 'disabled'}`,
     );
   }
 
@@ -405,7 +430,7 @@ export class RewardsDataService {
       headers['Accept-Language'] = this.#locale;
     }
 
-    const url = `${this.#rewardsApiUrl}${endpoint}`;
+    const url = `${this.getRewardsApiBaseUrl()}${endpoint}`;
 
     // Create AbortController for timeout handling
     const controller = new AbortController();

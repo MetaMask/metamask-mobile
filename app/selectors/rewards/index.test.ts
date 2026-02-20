@@ -4,6 +4,7 @@ import {
   selectRewardsSubscriptionId,
   selectRewardsActiveAccountAddress,
   selectRewardsActiveAccountSubscriptionId,
+  selectRewardsUseUatBackend,
 } from './index';
 
 // Mock rewards controller state
@@ -389,6 +390,41 @@ describe('Rewards Selectors', () => {
 
       // Assert
       expect(result).toBeNull();
+    });
+  });
+
+  describe('selectRewardsUseUatBackend', () => {
+    it('returns true when useUatBackend is true', () => {
+      // Arrange
+      const state = createMockRootState({ useUatBackend: true });
+
+      // Act
+      const result = selectRewardsUseUatBackend(state);
+
+      // Assert
+      expect(result).toBe(true);
+    });
+
+    it('returns false when useUatBackend is false', () => {
+      // Arrange
+      const state = createMockRootState({ useUatBackend: false });
+
+      // Act
+      const result = selectRewardsUseUatBackend(state);
+
+      // Assert
+      expect(result).toBe(false);
+    });
+
+    it('returns false when useUatBackend is undefined', () => {
+      // Arrange
+      const state = createMockRootState({});
+
+      // Act
+      const result = selectRewardsUseUatBackend(state);
+
+      // Assert
+      expect(result).toBe(false);
     });
   });
 });

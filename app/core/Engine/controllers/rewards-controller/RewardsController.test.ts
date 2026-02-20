@@ -447,7 +447,24 @@ describe('RewardsController', () => {
 
       controller.resetState();
 
-      expect(controller.state).toEqual(getRewardsControllerDefaultState());
+      expect(controller.state).toEqual({
+        ...getRewardsControllerDefaultState(),
+        useUatBackend: false,
+      });
+    });
+
+    it('preserves useUatBackend across resetState', () => {
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: { useUatBackend: true },
+        isDisabled: () => false,
+      });
+
+      controller.resetState();
+
+      expect(controller.state.useUatBackend).toBe(true);
+      expect(controller.state.accounts).toEqual({});
+      expect(controller.state.activeAccount).toBeNull();
     });
 
     it('should manage account state correctly', () => {
@@ -473,6 +490,88 @@ describe('RewardsController', () => {
       // Verify state was set correctly
       expect(controller.state.accounts[CAIP_ACCOUNT_1]).toEqual(accountState);
       expect(controller.state.accounts[CAIP_ACCOUNT_2]).toBeUndefined();
+    });
+  });
+
+  describe('setUseUatBackend', () => {
+    it('updates controller state to true', async () => {
+      // Arrange
+      expect(controller.state.useUatBackend).toBe(false);
+
+      // Act
+      await controller.setUseUatBackend(true);
+
+      // Assert
+      expect(controller.state.useUatBackend).toBe(true);
+    });
+
+    it('updates controller state to false', async () => {
+      // Arrange
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: { useUatBackend: true },
+        isDisabled: () => false,
+      });
+
+      // Act
+      await controller.setUseUatBackend(false);
+
+      // Assert
+      expect(controller.state.useUatBackend).toBe(false);
+    });
+
+    it('syncs the flag to the data service via messenger', async () => {
+      // Act
+      await controller.setUseUatBackend(true);
+
+      // Assert
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:setUseUatBackend',
+        true,
+      );
+    });
+
+    it('calls resetAll to clear cached data', async () => {
+      // Arrange
+      const resetAllSpy = jest.spyOn(controller, 'resetAll');
+
+      // Act
+      await controller.setUseUatBackend(true);
+
+      // Assert
+      expect(resetAllSpy).toHaveBeenCalled();
+    });
+
+    it('preserves useUatBackend after resetAll clears other state', async () => {
+      // Arrange — set up some state that resetAll will clear
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: {
+            account: CAIP_ACCOUNT_1,
+            hasOptedIn: true,
+            subscriptionId: 'sub-123',
+            perpsFeeDiscount: null,
+            lastPerpsDiscountRateFetched: null,
+            lastFreshOptInStatusCheck: null,
+          },
+        },
+        isDisabled: () => false,
+      });
+
+      // Act
+      await controller.setUseUatBackend(true);
+
+      // Assert — useUatBackend persists, but other state is cleared
+      expect(controller.state.useUatBackend).toBe(true);
+      expect(controller.state.subscriptions).toEqual({});
+    });
+
+    it('registers the action handler', () => {
+      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
+        'RewardsController:setUseUatBackend',
+        expect.any(Function),
+      );
     });
   });
 
@@ -15395,6 +15494,7 @@ describe('RewardsController', () => {
           "subscriptionReferralDetails": {},
           "subscriptions": {},
           "unlockedRewards": {},
+          "useUatBackend": false,
         }
       `);
   });
@@ -15418,6 +15518,7 @@ describe('RewardsController', () => {
           "subscriptionReferralDetails": {},
           "subscriptions": {},
           "unlockedRewards": {},
+          "useUatBackend": false,
         }
       `);
   });
