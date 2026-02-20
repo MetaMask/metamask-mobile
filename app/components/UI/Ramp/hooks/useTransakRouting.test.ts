@@ -346,8 +346,10 @@ describe('useTransakRouting', () => {
     });
 
     it('handles 401 error by logging out and navigating to enter email', async () => {
-      const error = new Error('Unauthorized') as Error & { status: number };
-      error.status = 401;
+      const error = new Error('Unauthorized') as Error & {
+        httpStatus: number;
+      };
+      error.httpStatus = 401;
       mockGetUserDetails.mockRejectedValue(error);
       mockLogoutFromProvider.mockResolvedValue(undefined);
 

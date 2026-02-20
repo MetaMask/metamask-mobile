@@ -166,13 +166,6 @@ jest.mock('../NativeFlow/EnterEmail', () => ({
   createV2EnterEmailNavDetails: (params: unknown) => ['RampEnterEmail', params],
 }));
 
-jest.mock('../Modals/ProviderPickerModal', () => ({
-  createProviderPickerModalNavigationDetails: (params: unknown) => [
-    'RampModals',
-    { screen: 'RampProviderPickerModal', params },
-  ],
-}));
-
 const renderWithTheme = (component: React.ReactElement) =>
   render(
     <ThemeContext.Provider value={mockTheme}>
@@ -415,28 +408,6 @@ describe('BuildQuote', () => {
     const { queryByText } = renderWithTheme(<BuildQuote />);
 
     expect(queryByText('fiat_on_ramp.powered_by_provider')).toBeNull();
-  });
-
-  it('navigates to provider picker modal when powered by text is pressed', () => {
-    mockSelectedProvider = {
-      id: '/providers/transak',
-      name: 'Transak',
-      environmentType: 'PRODUCTION',
-      description: 'Test Provider',
-      hqAddress: '123 Test St',
-      links: [],
-      logos: { light: '', dark: '', height: 24, width: 79 },
-    };
-
-    const { getByTestId } = renderWithTheme(<BuildQuote />);
-
-    fireEvent.press(getByTestId('provider-picker-trigger'));
-
-    expect(mockStopQuotePolling).toHaveBeenCalled();
-    expect(mockNavigate).toHaveBeenCalledWith('RampModals', {
-      screen: 'RampProviderPickerModal',
-      params: { assetId: MOCK_ASSET_ID },
-    });
   });
 
   it('matches snapshot', () => {

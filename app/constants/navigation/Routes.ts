@@ -42,6 +42,7 @@ const Routes = {
       SETTINGS: 'RampSettingsModal',
       BUILD_QUOTE_SETTINGS: 'RampBuildQuoteSettingsModal',
       PROVIDER_PICKER: 'RampProviderPickerModal',
+      ERROR_DETAILS: 'RampErrorDetailsModal',
     },
   },
   DEPOSIT: {

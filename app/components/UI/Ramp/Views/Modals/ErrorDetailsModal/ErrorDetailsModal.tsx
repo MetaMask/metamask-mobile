@@ -3,33 +3,33 @@ import { View, ScrollView, useWindowDimensions } from 'react-native';
 import Text, {
   TextVariant,
   TextColor,
-} from '../../../../../../../component-library/components/Texts/Text';
+} from '../../../../../../component-library/components/Texts/Text';
 import BottomSheet, {
   BottomSheetRef,
-} from '../../../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../../../component-library/components/BottomSheets/BottomSheetHeader';
+} from '../../../../../../component-library/components/BottomSheets/BottomSheet';
+import BottomSheetHeader from '../../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import Icon, {
   IconName,
   IconSize,
   IconColor,
-} from '../../../../../../../component-library/components/Icons/Icon';
-import { useStyles } from '../../../../../../../component-library/hooks';
+} from '../../../../../../component-library/components/Icons/Icon';
+import { useStyles } from '../../../../../../component-library/hooks';
 import {
   createNavigationDetails,
   useParams,
-} from '../../../../../../../util/navigation/navUtils';
-import Routes from '../../../../../../../constants/navigation/Routes';
-import { strings } from '../../../../../../../../locales/i18n';
+} from '../../../../../../util/navigation/navUtils';
+import Routes from '../../../../../../constants/navigation/Routes';
+import { strings } from '../../../../../../../locales/i18n';
 import styleSheet from './ErrorDetailsModal.styles';
 
 export interface ErrorDetailsModalParams {
   errorMessage: string;
 }
 
-export const createErrorDetailsModalNavigationDetails =
+export const createErrorDetailsModalNavDetails =
   createNavigationDetails<ErrorDetailsModalParams>(
-    Routes.DEPOSIT.MODALS.ID,
-    Routes.DEPOSIT.MODALS.ERROR_DETAILS,
+    Routes.RAMP.MODALS.ID,
+    Routes.RAMP.MODALS.ERROR_DETAILS,
   );
 
 function ErrorDetailsModal() {
@@ -43,10 +43,7 @@ function ErrorDetailsModal() {
 
   return (
     <BottomSheet ref={sheetRef} shouldNavigateBack>
-      <BottomSheetHeader
-        onClose={() => sheetRef.current?.onCloseBottomSheet()}
-        closeButtonProps={{ testID: 'error-details-close-button' }}
-      >
+      <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
         <View style={styles.headerContainer}>
           <Icon
             name={IconName.Danger}

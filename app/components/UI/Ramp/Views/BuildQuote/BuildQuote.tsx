@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import type { CaipChainId } from '@metamask/utils';
 
@@ -30,7 +30,7 @@ import useRampAccountAddress from '../../hooks/useRampAccountAddress';
 import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 import { BuildQuoteSelectors } from '../../Aggregator/Views/BuildQuote/BuildQuote.testIds';
 import { createPaymentSelectionModalNavigationDetails } from '../Modals/PaymentSelectionModal';
-import { createProviderPickerModalNavigationDetails } from '../Modals/ProviderPickerModal';
+
 import { createCheckoutNavDetails } from '../Checkout';
 import {
   isNativeProvider,
@@ -39,8 +39,7 @@ import {
 } from '../../types';
 import Logger from '../../../../../util/Logger';
 import { useParams } from '../../../../../util/navigation/navUtils';
-import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
-import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
+import TruncatedError from '../../components/TruncatedError';
 import { useTransakController } from '../../hooks/useTransakController';
 import { useTransakRouting } from '../../hooks/useTransakRouting';
 import { createV2EnterEmailNavDetails } from '../NativeFlow/EnterEmail';
@@ -202,16 +201,6 @@ function BuildQuote() {
     );
   }, [debouncedPollingAmount, navigation, stopQuotePolling]);
 
-  const handleProviderPress = useCallback(() => {
-    if (!selectedToken?.assetId) return;
-    stopQuotePolling();
-    navigation.navigate(
-      ...createProviderPickerModalNavigationDetails({
-        assetId: selectedToken.assetId,
-      }),
-    );
-  }, [selectedToken?.assetId, navigation, stopQuotePolling]);
-
   useEffect(() => {
     if (
       !isOnBuildQuoteScreen ||
@@ -248,6 +237,7 @@ function BuildQuote() {
 
   const handleContinuePress = useCallback(async () => {
     if (!selectedQuote) return;
+    setNativeFlowError(null);
 
     const quoteAmount =
       selectedQuote.quote?.amountIn ??
@@ -334,14 +324,19 @@ function BuildQuote() {
           new Error('No widget URL available for aggregator provider'),
           { provider: selectedQuote.provider },
         );
-        // TODO: Show user-facing error (alert or inline)
+        setNativeFlowError(strings('deposit.buildQuote.unexpectedError'));
       }
     } catch (error) {
       Logger.error(error as Error, {
         provider: selectedQuote.provider,
         message: 'Failed to fetch widget URL',
       });
-      // TODO: Show user-facing error (alert or inline)
+      setNativeFlowError(
+        parseUserFacingError(
+          error,
+          strings('deposit.buildQuote.unexpectedError'),
+        ),
+      );
     }
   }, [
     selectedQuote,
@@ -423,26 +418,17 @@ function BuildQuote() {
             </View>
           </View>
 
-          {nativeFlowError && (
-            <BannerAlert
-              severity={BannerAlertSeverity.Error}
-              description={nativeFlowError}
-            />
-          )}
-
           <View style={styles.actionSection}>
-            {selectedProvider && (
-              <TouchableOpacity
-                onPress={handleProviderPress}
-                testID="provider-picker-trigger"
-                accessibilityRole="button"
-              >
+            {nativeFlowError ? (
+              <TruncatedError error={nativeFlowError} />
+            ) : (
+              selectedProvider && (
                 <Text variant={TextVariant.BodySM} style={styles.poweredByText}>
                   {strings('fiat_on_ramp.powered_by_provider', {
                     provider: selectedProvider.name,
                   })}
                 </Text>
-              </TouchableOpacity>
+              )
             )}
             {hasAmount ? (
               <Button
