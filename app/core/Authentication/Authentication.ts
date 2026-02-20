@@ -67,7 +67,7 @@ import { toChecksumHexAddress } from '@metamask/controller-utils';
 import AccountTreeInitService from '../../multichain-accounts/AccountTreeInitService';
 import { renewSeedlessControllerRefreshTokens } from '../OAuthService/SeedlessControllerHelper';
 import { EntropySourceId } from '@metamask/keyring-api';
-import MetaMetrics from '../Analytics/MetaMetrics';
+import { analytics } from '../../util/analytics/analytics';
 import { createDataDeletionTask as createDataDeletionTaskUtil } from '../../util/analytics/analyticsDataDeletion';
 import { resetProviderToken as depositResetProviderToken } from '../../components/UI/Ramp/Deposit/utils/ProviderTokenVault';
 import {
@@ -760,7 +760,7 @@ class AuthenticationService {
 
           // TODO: Refactor this orchestration to sagas.
           // Navigate to optin metrics or home screen based on metrics consent and UI seen.
-          const isMetricsEnabled = MetaMetrics.getInstance().isEnabled();
+          const isMetricsEnabled = analytics.isEnabled();
           const isOptinMetaMetricsUISeen = await StorageWrapper.getItem(
             OPTIN_META_METRICS_UI_SEEN,
           );
