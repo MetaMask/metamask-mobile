@@ -42,15 +42,15 @@ if [ -f "$PIDFILE" ]; then
 fi
 
 # --- Fallback: kill anything on the port ---
-PORT_PID=$(lsof -ti:"$PORT" 2>/dev/null || true)
-if [ -n "$PORT_PID" ]; then
-  echo "Killing process on port $PORT (PID $PORT_PID)..."
-  kill "$PORT_PID" 2>/dev/null || true
+PORT_PIDS=$(lsof -ti:"$PORT" 2>/dev/null || true)
+if [ -n "$PORT_PIDS" ]; then
+  echo "Killing process(es) on port $PORT (PIDs: $(echo $PORT_PIDS | tr '\n' ' '))..."
+  echo "$PORT_PIDS" | xargs kill 2>/dev/null || true
   sleep 1
   # Force kill if still alive
   REMAINING=$(lsof -ti:"$PORT" 2>/dev/null || true)
   if [ -n "$REMAINING" ]; then
-    kill -9 "$REMAINING" 2>/dev/null || true
+    echo "$REMAINING" | xargs kill -9 2>/dev/null || true
   fi
   stopped=true
 fi

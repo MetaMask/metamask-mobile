@@ -219,10 +219,27 @@ function createWSClient(wsUrl, timeout) {
       clearTimeout(timer);
       resolve({
         /** Send a CDP command and wait for the response */
-        send(method, params = {}) {
+        send(method, params = {}, msgTimeout = timeout) {
           return new Promise((res, rej) => {
             const id = ++msgId;
-            pending.set(id, { resolve: res, reject: rej });
+            const timer = setTimeout(() => {
+              pending.delete(id);
+              rej(
+                new Error(
+                  `CDP message timeout after ${msgTimeout}ms for ${method}`,
+                ),
+              );
+            }, msgTimeout);
+            pending.set(id, {
+              resolve: (v) => {
+                clearTimeout(timer);
+                res(v);
+              },
+              reject: (e) => {
+                clearTimeout(timer);
+                rej(e);
+              },
+            });
             const msg = JSON.stringify({ id, method, params });
             ws.send(msg);
           });
