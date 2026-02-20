@@ -923,13 +923,29 @@ describe('Authentication', () => {
 
       mockDispatch.mockClear();
 
-      await Authentication.updateAuthPreference({
-        authType: AUTHENTICATION_TYPE.REMEMBER_ME,
-        password: mockPassword,
-      });
+      jest
+        .spyOn(
+          Authentication as unknown as {
+            checkAuthenticationMethod: () => Promise<{
+              currentAuthType: string;
+              availableBiometryType: string;
+            }>;
+          },
+          'checkAuthenticationMethod',
+        )
+        .mockResolvedValue({
+          currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
+          availableBiometryType: 'Face ID',
+        });
+
+      await Authentication.storePassword(
+        mockPassword,
+        AUTHENTICATION_TYPE.REMEMBER_ME,
+      );
 
       expect(mockDispatch).toHaveBeenCalledWith(setOsAuthEnabled(false));
     });
+
 
     it('throws AuthenticationError with AUTHENTICATION_STORE_PASSWORD_FAILED when SecureKeychain fails', async () => {
       const keychainError = new Error('Keychain error');
