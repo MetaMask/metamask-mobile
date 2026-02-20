@@ -135,6 +135,13 @@ jest.mock('../../app/core/Engine', () => {
           return { id, provider };
         },
       },
+      BridgeController: {
+        updateBridgeQuoteRequestParams: jest.fn().mockResolvedValue(undefined),
+        resetState: jest.fn(),
+        stopAllPolling: jest.fn(),
+        setLocation: jest.fn(),
+        trackUnifiedSwapBridgeEvent: jest.fn(),
+      },
       // Perps: stub so hooks (usePerpsClosePosition, usePerpsMarkets, etc.) do not throw
       // getMarkets returns one market so PerpsTabView explore section renders "See all perps"
       PerpsController: {
