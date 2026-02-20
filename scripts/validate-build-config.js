@@ -48,6 +48,40 @@ function validate() {
     }
   });
 
+  // Detect which flags are VersionGatedFeatureFlag-shaped (objects with both
+  // `enabled` and `minimumVersion`) across all builds. Any build that overrides
+  // one of these flags MUST keep it as an object — plain booleans or other
+  // primitives mean the controller can't validate them as VersionGated flags.
+  const versionGatedFlagNames = new Set();
+  buildNames.forEach((name) => {
+    const flags = config.builds[name].remote_feature_flags;
+    if (!flags) return;
+    Object.entries(flags).forEach(([key, value]) => {
+      if (
+        value !== null &&
+        typeof value === 'object' &&
+        'enabled' in value &&
+        'minimumVersion' in value
+      ) {
+        versionGatedFlagNames.add(key);
+      }
+    });
+  });
+
+  buildNames.forEach((name) => {
+    const flags = config.builds[name].remote_feature_flags;
+    if (!flags) return;
+    Object.entries(flags).forEach(([key, value]) => {
+      if (versionGatedFlagNames.has(key) && typeof value !== 'object') {
+        errors.push(
+          `${name}: remote_feature_flags.${key} must be an object ` +
+            `{ enabled: bool, minimumVersion: string } but got ${JSON.stringify(value)}. ` +
+            `Use "enabled: true/false" + "minimumVersion: '0.0.0'" instead of a plain boolean.`,
+        );
+      }
+    });
+  });
+
   if (errors.length > 0) {
     console.error('❌ Validation errors:');
     errors.forEach((e) => console.error(`  - ${e}`));

@@ -28,18 +28,14 @@ export const selectPredictEnabledFlag = createSelector(
   },
 );
 
-// When GITHUB_ACTIONS (and not E2E) use build-time default from remote flags; E2E/Bitrise/.js.env use process.env. Remove once Bitrise is deprecated.
 export const selectPredictGtmOnboardingModalEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
+    const localFlag = process.env.MM_PREDICT_GTM_MODAL_ENABLED === 'true';
     const remoteFlag =
       remoteFeatureFlags?.predictGtmOnboardingModalEnabled as unknown as VersionGatedFeatureFlag;
-    const fallback =
-      process.env.GITHUB_ACTIONS === 'true' && process.env.E2E !== 'true'
-        ? (remoteFeatureFlags?.predictGtmOnboardingModalEnabled as boolean)
-        : process.env.MM_PREDICT_GTM_MODAL_ENABLED === 'true';
 
-    return validatedVersionGatedFeatureFlag(remoteFlag) ?? fallback;
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
   },
 );
 

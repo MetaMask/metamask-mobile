@@ -14,6 +14,7 @@ import {
   selectMusdConversionBlockedCountries,
   parseBlockedCountriesEnv,
   selectMusdConversionMinAssetBalanceRequired,
+  selectMerklCampaignClaimingEnabledFlag,
 } from '.';
 import mockedEngine from '../../../../../core/__mocks__/MockedEngine';
 import type { Json } from '@metamask/utils';
@@ -1055,6 +1056,40 @@ describe('Earn Feature Flag Selectors', () => {
       );
 
       expect(result).toBe(true);
+    });
+  });
+
+  describe('selectMerklCampaignClaimingEnabledFlag', () => {
+    it('returns true when remote flag is valid and enabled', () => {
+      const state = createStateWithRemoteFlags({
+        earnMerklCampaignClaiming: {
+          enabled: true,
+          minimumVersion: '1.0.0',
+        },
+      });
+      expect(selectMerklCampaignClaimingEnabledFlag(state)).toBe(true);
+    });
+
+    it('returns false when remote flag is valid and disabled', () => {
+      const state = createStateWithRemoteFlags({
+        earnMerklCampaignClaiming: {
+          enabled: false,
+          minimumVersion: '1.0.0',
+        },
+      });
+      expect(selectMerklCampaignClaimingEnabledFlag(state)).toBe(false);
+    });
+
+    it('falls back to local env when remote flag is missing and not GITHUB_ACTIONS', () => {
+      process.env.MM_EARN_MERKL_CAMPAIGN_CLAIMING = 'true';
+      const state = createStateWithRemoteFlags({});
+      expect(selectMerklCampaignClaimingEnabledFlag(state)).toBe(true);
+    });
+
+    it('falls back to false when remote flag is missing and env is false', () => {
+      process.env.MM_EARN_MERKL_CAMPAIGN_CLAIMING = 'false';
+      const state = createStateWithRemoteFlags({});
+      expect(selectMerklCampaignClaimingEnabledFlag(state)).toBe(false);
     });
   });
 

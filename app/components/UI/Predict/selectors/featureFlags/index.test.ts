@@ -191,32 +191,45 @@ describe('Predict Feature Flag Selectors', () => {
   });
 
   describe('selectPredictGtmOnboardingModalEnabledFlag', () => {
-    const originalGithubActions = process.env.GITHUB_ACTIONS;
-    const originalE2E = process.env.E2E;
-    const originalMmPredictGtm = process.env.MM_PREDICT_GTM_MODAL_ENABLED;
-
-    afterEach(() => {
-      if (originalGithubActions !== undefined) {
-        process.env.GITHUB_ACTIONS = originalGithubActions;
-      } else {
-        delete process.env.GITHUB_ACTIONS;
-      }
-      if (originalE2E !== undefined) {
-        process.env.E2E = originalE2E;
-      } else {
-        delete process.env.E2E;
-      }
-      if (originalMmPredictGtm !== undefined) {
-        process.env.MM_PREDICT_GTM_MODAL_ENABLED = originalMmPredictGtm;
-      } else {
-        delete process.env.MM_PREDICT_GTM_MODAL_ENABLED;
-      }
+    it('returns true when remote flag is enabled (VersionGated shape from builds.yml)', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                predictGtmOnboardingModalEnabled: {
+                  enabled: true,
+                  minimumVersion: '0.0.0',
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+      expect(selectPredictGtmOnboardingModalEnabledFlag(state)).toBe(true);
     });
 
-    it('when not GITHUB_ACTIONS falls back to process.env.MM_PREDICT_GTM_MODAL_ENABLED', () => {
-      process.env.GITHUB_ACTIONS = 'false';
-      delete process.env.E2E;
+    it('returns false when remote flag is disabled (VersionGated shape from builds.yml)', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                predictGtmOnboardingModalEnabled: {
+                  enabled: false,
+                  minimumVersion: '0.0.0',
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+      expect(selectPredictGtmOnboardingModalEnabledFlag(state)).toBe(false);
+    });
 
+    it('falls back to process.env.MM_PREDICT_GTM_MODAL_ENABLED when remote flag is absent', () => {
       const emptyRemoteState = {
         engine: {
           backgroundState: {
@@ -246,51 +259,6 @@ describe('Predict Feature Flag Selectors', () => {
       process.env.MM_PREDICT_GTM_MODAL_ENABLED = 'false';
       expect(
         selectPredictGtmOnboardingModalEnabledFlag(emptyRemoteState2),
-      ).toBe(false);
-    });
-
-    it('when GITHUB_ACTIONS and not E2E uses remote build-time default as fallback', () => {
-      process.env.GITHUB_ACTIONS = 'true';
-      delete process.env.E2E;
-      delete process.env.MM_PREDICT_GTM_MODAL_ENABLED;
-
-      // Use version-gated shape so validator returns value; when validator returns undefined we use fallback (remote as boolean)
-      const stateWithRemoteTrue = {
-        engine: {
-          backgroundState: {
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {
-                predictGtmOnboardingModalEnabled: {
-                  enabled: true,
-                  minimumVersion: '1.0.0',
-                },
-              },
-              cacheTimestamp: 0,
-            },
-          },
-        },
-      };
-      const stateWithRemoteFalse = {
-        engine: {
-          backgroundState: {
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {
-                predictGtmOnboardingModalEnabled: {
-                  enabled: false,
-                  minimumVersion: '1.0.0',
-                },
-              },
-              cacheTimestamp: 0,
-            },
-          },
-        },
-      };
-
-      expect(
-        selectPredictGtmOnboardingModalEnabledFlag(stateWithRemoteTrue),
-      ).toBe(true);
-      expect(
-        selectPredictGtmOnboardingModalEnabledFlag(stateWithRemoteFalse),
       ).toBe(false);
     });
   });
