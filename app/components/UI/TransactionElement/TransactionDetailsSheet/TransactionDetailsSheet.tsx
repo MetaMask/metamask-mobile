@@ -1,4 +1,4 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useRef, useMemo } from 'react';
 import { useRoute, RouteProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 
@@ -61,9 +61,13 @@ const TransactionDetailsSheet: React.FC = () => {
   const liveTransaction = useSelector((state: RootState) =>
     selectTransactionMetadataById(state, tx.id),
   );
-  const currentTx = liveTransaction
-    ? { ...liveTransaction, txParams: { ...liveTransaction.txParams } }
-    : tx;
+  const currentTx = useMemo(
+    () =>
+      liveTransaction
+        ? { ...liveTransaction, txParams: { ...liveTransaction.txParams } }
+        : tx,
+    [liveTransaction, tx],
+  );
 
   const handleClose = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
