@@ -77,7 +77,6 @@ import {
 import { Alert, Platform } from 'react-native';
 import { strings } from '../../../locales/i18n';
 import trackErrorAsAnalytics from '../../util/metrics/TrackError/trackErrorAsAnalytics';
-import { IconName } from '../../component-library/components/Icons/Icon';
 import { AuthCapabilities, ReauthenticateErrorType } from './types';
 import {
   isEnrolledAsync,
@@ -86,7 +85,8 @@ import {
   SecurityLevel,
   authenticateAsync,
 } from 'expo-local-authentication';
-import { getAuthLabel, getAuthType } from './utils';
+import { getAuthIcon, getAuthLabel, getAuthType } from './utils';
+import { IconName } from '@metamask/design-system-react-native';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -649,6 +649,14 @@ class AuthenticationService {
           ? strings('app_settings.enable_device_authentication_desc')
           : undefined;
 
+      const authIcon = getAuthIcon({
+        supportedBiometricTypes,
+        legacyUserChoseBiometrics,
+        legacyUserChosePasscode,
+        isBiometricsAvailable,
+        passcodeAvailable,
+      });
+
       // Device auth cannot be used until user changes device settings
       const deviceAuthRequiresSettings =
         (legacyUserChoseBiometrics && !isBiometricsAvailable) ||
@@ -658,6 +666,7 @@ class AuthenticationService {
       return {
         isBiometricsAvailable,
         passcodeAvailable,
+        authIcon,
         authLabel,
         authDescription,
         osAuthEnabled,
@@ -670,6 +679,7 @@ class AuthenticationService {
       return {
         isBiometricsAvailable: false,
         passcodeAvailable: false,
+        authIcon: IconName.Question,
         authLabel: '',
         authDescription: '',
         osAuthEnabled,

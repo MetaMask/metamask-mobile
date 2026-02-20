@@ -38,6 +38,8 @@ import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAs
 import { trackVaultCorruption } from '../../../util/analytics/vaultCorruptionTracking';
 import { downloadStateLogs } from '../../../util/logs';
 import { getVaultFromBackup } from '../../../core/BackupVault';
+import { AuthCapabilities } from '../../../core/Authentication/types';
+import { IconName } from '@metamask/design-system-react-native';
 
 const mockNavigate = jest.fn();
 const mockReplace = jest.fn();
@@ -73,11 +75,14 @@ jest.mock('../../../core/Authentication/hooks/useAuthentication', () => ({
   }),
 }));
 
-const defaultCapabilities = {
+const defaultCapabilities: AuthCapabilities = {
   authType: AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION,
   isBiometricsAvailable: true,
   passcodeAvailable: true,
   authLabel: 'Device Authentication',
+  authDescription:
+    'Use your device’s biometrics or passcode to unlock MetaMask.',
+  authIcon: IconName.Lock,
   osAuthEnabled: true,
   allowLoginWithRememberMe: false,
   deviceAuthRequiresSettings: false,
@@ -473,7 +478,9 @@ describe('Login', () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
       });
 
-      expect(getByTestId(LoginViewSelectors.BIOMETRY_BUTTON)).toBeOnTheScreen();
+      expect(
+        getByTestId(LoginViewSelectors.DEVICE_AUTHENTICATION_ICON),
+      ).toBeOnTheScreen();
     });
 
     it('hides device authentication button when device is locked', async () => {
@@ -490,7 +497,9 @@ describe('Login', () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
       });
 
-      expect(queryByTestId(LoginViewSelectors.BIOMETRY_BUTTON)).toBeNull();
+      expect(
+        queryByTestId(LoginViewSelectors.DEVICE_AUTHENTICATION_ICON),
+      ).toBeNull();
     });
 
     it('hides device authentication button when capabilities do not support device auth', async () => {
@@ -508,7 +517,9 @@ describe('Login', () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
       });
 
-      expect(queryByTestId(LoginViewSelectors.BIOMETRY_BUTTON)).toBeNull();
+      expect(
+        queryByTestId(LoginViewSelectors.DEVICE_AUTHENTICATION_ICON),
+      ).toBeNull();
     });
   });
 
@@ -715,7 +726,9 @@ describe('Login', () => {
         await new Promise((resolve) => setTimeout(resolve, 100));
       });
 
-      const biometryButton = getByTestId(LoginViewSelectors.BIOMETRY_BUTTON);
+      const biometryButton = getByTestId(
+        LoginViewSelectors.DEVICE_AUTHENTICATION_ICON,
+      );
 
       await act(async () => {
         fireEvent.press(biometryButton);
@@ -740,7 +753,9 @@ describe('Login', () => {
         await new Promise((resolve) => setTimeout(resolve, 100));
       });
 
-      const biometryButton = getByTestId(LoginViewSelectors.BIOMETRY_BUTTON);
+      const biometryButton = getByTestId(
+        LoginViewSelectors.DEVICE_AUTHENTICATION_ICON,
+      );
 
       // Act
       await act(async () => {
@@ -1277,13 +1292,17 @@ describe('Login', () => {
         await new Promise((resolve) => setTimeout(resolve, 100));
       });
 
-      const biometryButton = getByTestId(LoginViewSelectors.BIOMETRY_BUTTON);
+      const biometryButton = getByTestId(
+        LoginViewSelectors.DEVICE_AUTHENTICATION_ICON,
+      );
 
       await act(async () => {
         fireEvent.press(biometryButton);
       });
 
-      expect(getByTestId(LoginViewSelectors.BIOMETRY_BUTTON)).toBeOnTheScreen();
+      expect(
+        getByTestId(LoginViewSelectors.DEVICE_AUTHENTICATION_ICON),
+      ).toBeOnTheScreen();
     });
   });
 });

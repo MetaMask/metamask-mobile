@@ -3,6 +3,7 @@ import useAuthCapabilities from './useAuthCapabilities';
 import { Authentication } from '../Authentication';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { AuthCapabilities } from '../types';
+import { IconName } from '@metamask/design-system-react-native';
 
 // Mock react-redux
 let mockOsAuthEnabled = true;
@@ -33,6 +34,7 @@ describe('useAuthCapabilities', () => {
     passcodeAvailable: true,
     authLabel: 'Face ID',
     authDescription: '',
+    authIcon: IconName.FaceId,
     osAuthEnabled: true,
     allowLoginWithRememberMe: false,
     authType: AUTHENTICATION_TYPE.BIOMETRIC,
