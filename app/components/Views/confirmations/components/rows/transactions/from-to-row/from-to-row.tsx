@@ -28,9 +28,10 @@ import styleSheet from './from-to-row.styles';
 interface AddressDisplayProps {
   address: string;
   chainId: string;
+  label: React.ReactNode;
 }
 
-const AddressDisplay = ({ address, chainId }: AddressDisplayProps) => {
+const AddressDisplay = ({ address, chainId, label }: AddressDisplayProps) => {
   const { styles } = useStyles(styleSheet, {});
   const { name, image, variant } = useDisplayName({
     type: NameType.EthereumAddress,
@@ -45,19 +46,21 @@ const AddressDisplay = ({ address, chainId }: AddressDisplayProps) => {
 
   return (
     <View style={styles.addressRow}>
-      <Text
-        variant={TextVariant.BodyMD}
-        numberOfLines={1}
-        ellipsizeMode="middle"
-        style={styles.addressText}
-      >
-        {displayText}
-      </Text>
+      <View style={styles.addressContent}>
+        {label}
+        <Text
+          variant={TextVariant.BodyMD}
+          numberOfLines={1}
+          ellipsizeMode="middle"
+        >
+          {displayText}
+        </Text>
+      </View>
       <Identicon
         address={address}
         imageUri={image}
-        avatarSize={AvatarSize.Sm}
-        diameter={24}
+        avatarSize={AvatarSize.Md}
+        diameter={32}
       />
     </View>
   );
@@ -90,28 +93,41 @@ const FromToRow = () => {
     <InfoSection testID={ConfirmationRowComponentIDs.FROM_TO}>
       <View style={styles.container}>
         <View style={styles.row}>
-          <Text
-            variant={TextVariant.BodyMD}
-            color={TextColor.Alternative}
-            style={styles.label}
-          >
-            {strings('transaction.from')}
-          </Text>
-          <AddressDisplay address={fromAddress} chainId={chainId} />
+          <AddressDisplay
+            address={fromAddress}
+            chainId={chainId}
+            label={
+              <Text
+                variant={TextVariant.BodyMD}
+                color={TextColor.Alternative}
+                style={styles.label}
+              >
+                {strings('transaction.from')}
+              </Text>
+            }
+          />
         </View>
 
         <View style={[styles.row, styles.rowSeparator]}>
-          <View style={styles.labelRow}>
-            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-              {strings('send.to')}
-            </Text>
-            {toAlert && <InlineAlert alertObj={toAlert} />}
-          </View>
           <AlertRow
             alertField={RowAlertKey.FromToAddress}
             hideInlineAlert={!!fromToAlert}
           >
-            <AddressDisplay address={toAddress as string} chainId={chainId} />
+            <AddressDisplay
+              address={toAddress as string}
+              chainId={chainId}
+              label={
+                <View style={styles.labelRow}>
+                  <Text
+                    variant={TextVariant.BodyMD}
+                    color={TextColor.Alternative}
+                  >
+                    {strings('send.to')}
+                  </Text>
+                  {toAlert && <InlineAlert alertObj={toAlert} />}
+                </View>
+              }
+            />
           </AlertRow>
         </View>
       </View>

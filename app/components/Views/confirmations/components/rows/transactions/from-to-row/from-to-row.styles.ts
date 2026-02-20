@@ -31,7 +31,7 @@ const styleSheet = (params: { theme: Theme }) => {
       alignItems: 'center',
       gap: 8,
     },
-    addressText: {
+    addressContent: {
       flex: 1,
     },
     skeletonBorderRadiusLarge: {
