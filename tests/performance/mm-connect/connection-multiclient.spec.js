@@ -97,6 +97,10 @@ test('@metamask/connect-multichain (multiple clients) - Connect multiple clients
     await WalletMainScreen.tapIdenticon();
     await AccountListComponent.isComponentDisplayed();
     await AccountListComponent.waitForSyncingToComplete();
+    await AppwrightGestures.terminateApp(device);
+    await AppwrightGestures.activateApp(device);
+    await login(device);
+    await WalletMainScreen.isMainWalletViewVisible();
 
     await launchMobileBrowser(device);
     await navigateToDapp(device, DAPP_URL, DAPP_NAME);
