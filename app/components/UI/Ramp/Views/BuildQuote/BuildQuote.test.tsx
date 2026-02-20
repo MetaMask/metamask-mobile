@@ -11,8 +11,7 @@ const mockUseEffect = jest.requireActual('react').useEffect;
 const mockNavigate = jest.fn();
 const mockSetOptions = jest.fn();
 const mockGoBack = jest.fn();
-const mockStartQuotePolling = jest.fn();
-const mockStopQuotePolling = jest.fn();
+const mockFetchQuotesForSelection = jest.fn();
 const mockGetWidgetUrl = jest.fn(async (quote) => {
   const buyUrl = quote?.quote?.buyURL;
   if (!buyUrl) return null;
@@ -136,8 +135,7 @@ jest.mock('../../hooks/useRampsController', () => ({
     selectedToken: mockTokens?.allTokens?.[0] ?? null,
     selectedQuote: mockSelectedQuote,
     quotesLoading: mockQuotesLoading,
-    startQuotePolling: mockStartQuotePolling,
-    stopQuotePolling: mockStopQuotePolling,
+    fetchQuotesForSelection: mockFetchQuotesForSelection,
     getWidgetUrl: mockGetWidgetUrl,
     paymentMethodsLoading: false,
     selectedPaymentMethod: mockSelectedPaymentMethod,
@@ -432,7 +430,6 @@ describe('BuildQuote', () => {
 
     fireEvent.press(getByTestId('provider-picker-trigger'));
 
-    expect(mockStopQuotePolling).toHaveBeenCalled();
     expect(mockNavigate).toHaveBeenCalledWith('RampModals', {
       screen: 'RampProviderPickerModal',
       params: { assetId: MOCK_ASSET_ID },

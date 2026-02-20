@@ -59,8 +59,7 @@ export interface UseRampsControllerResult {
   selectedQuote: UseRampsQuotesResult['selectedQuote'];
   getQuotes: UseRampsQuotesResult['getQuotes'];
   setSelectedQuote: UseRampsQuotesResult['setSelectedQuote'];
-  startQuotePolling: UseRampsQuotesResult['startQuotePolling'];
-  stopQuotePolling: UseRampsQuotesResult['stopQuotePolling'];
+  fetchQuotesForSelection: UseRampsQuotesResult['fetchQuotesForSelection'];
   getWidgetUrl: UseRampsQuotesResult['getWidgetUrl'];
   quotesLoading: UseRampsQuotesResult['isLoading'];
   quotesError: UseRampsQuotesResult['error'];
@@ -108,8 +107,7 @@ export interface UseRampsControllerResult {
  *   // Quotes
  *   quotes,
  *   selectedQuote,
- *   startQuotePolling,
- *   stopQuotePolling,
+ *   fetchQuotesForSelection,
  *   quotesLoading,
  *   quotesError,
  *   getQuotes,
@@ -154,8 +152,7 @@ export function useRampsController(): UseRampsControllerResult {
   const {
     quotes,
     selectedQuote,
-    startQuotePolling,
-    stopQuotePolling,
+    fetchQuotesForSelection,
     getWidgetUrl,
     isLoading: quotesLoading,
     error: quotesError,
@@ -200,8 +197,7 @@ export function useRampsController(): UseRampsControllerResult {
     selectedQuote,
     getQuotes,
     setSelectedQuote,
-    startQuotePolling,
-    stopQuotePolling,
+    fetchQuotesForSelection,
     getWidgetUrl,
     quotesLoading,
     quotesError,

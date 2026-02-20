@@ -6,9 +6,9 @@ import type { Quote } from '../types';
 import Engine from '../../../../core/Engine';
 
 /**
- * Options for starting quote polling.
+ * Options for fetching quotes for the current selection.
  */
-export interface StartQuotePollingOptions {
+export interface FetchQuotesForSelectionOptions {
   /**
    * The destination wallet address.
    */
@@ -60,14 +60,10 @@ export interface UseRampsQuotesResult {
    */
   setSelectedQuote: (quote: Quote | null) => void;
   /**
-   * Starts automatic quote polling with a 15-second refresh interval.
+   * Fetches quotes for the currently selected token, provider, and payment method.
    * @param options - Parameters for fetching quotes.
    */
-  startQuotePolling: (options: StartQuotePollingOptions) => void;
-  /**
-   * Stops automatic quote polling.
-   */
-  stopQuotePolling: () => void;
+  fetchQuotesForSelection: (options: FetchQuotesForSelectionOptions) => void;
   /**
    * Fetches the widget URL from a quote for redirect providers.
    * Makes a request to the buyURL endpoint to get the actual provider widget URL.
@@ -99,14 +95,9 @@ export function useRampsQuotes(): UseRampsQuotesResult {
     error,
   } = useSelector(selectQuotes);
 
-  const startQuotePolling = useCallback(
-    (options: StartQuotePollingOptions) =>
-      Engine.context.RampsController.startQuotePolling(options),
-    [],
-  );
-
-  const stopQuotePolling = useCallback(
-    () => Engine.context.RampsController.stopQuotePolling(),
+  const fetchQuotesForSelection = useCallback(
+    (options: FetchQuotesForSelectionOptions) =>
+      Engine.context.RampsController.fetchQuotesForSelection(options),
     [],
   );
 
@@ -132,8 +123,7 @@ export function useRampsQuotes(): UseRampsQuotesResult {
     selectedQuote,
     getQuotes,
     setSelectedQuote,
-    startQuotePolling,
-    stopQuotePolling,
+    fetchQuotesForSelection,
     getWidgetUrl,
     isLoading,
     error,
