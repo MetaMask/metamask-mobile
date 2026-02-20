@@ -1,7 +1,8 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import Engine from '../../../../core/Engine';
+import { strings } from '../../../../../locales/i18n';
 
-const REFERRAL_CODE_LENGTH = 6;
+export const REFERRAL_CODE_LENGTH = 6;
 
 export interface UseValidateReferralCodeResult {
   /**
@@ -93,7 +94,7 @@ export const useValidateReferralCode = (
       if (refinedCode.length !== REFERRAL_CODE_LENGTH) {
         ++requestIdRef.current;
         setIsValidating(false);
-        setError(String('rewards.error_messages.invalid_referral_code'));
+        setError(strings('rewards.error_messages.invalid_referral_code'));
         return;
       }
 
