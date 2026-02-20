@@ -2,10 +2,7 @@ import React, { useEffect } from 'react';
 import { View, StyleSheet, ActivityIndicator } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import {
-  selectTokenDetailsV2Enabled,
-  selectTokenDetailsV2ButtonsEnabled,
-} from '../../../../selectors/featureFlagController/tokenDetailsV2';
+import { selectTokenDetailsV2Enabled } from '../../../../selectors/featureFlagController/tokenDetailsV2';
 import { selectTokenListLayoutV2Enabled } from '../../../../selectors/featureFlagController/tokenListLayout';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -41,6 +38,7 @@ import { getIsSwapsAssetAllowed } from '../../../Views/Asset/utils';
 import ActivityHeader from '../../../Views/Asset/ActivityHeader';
 import Transactions from '../../Transactions';
 import MultichainTransactionsView from '../../../Views/MultichainTransactionsView/MultichainTransactionsView';
+import { TransactionDetailLocation } from '../../../../core/Analytics/events/transactions';
 import BottomSheetFooter, {
   ButtonsAlignment,
 } from '../../../../component-library/components/BottomSheets/BottomSheetFooter';
@@ -49,6 +47,7 @@ import {
   ButtonVariants,
 } from '../../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../../locales/i18n';
+import { useTokenDetailsABTest } from '../hooks/useTokenDetailsABTest';
 import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
 import { BridgeToken } from '../../Bridge/types';
 
@@ -96,9 +95,8 @@ const TokenDetails: React.FC<{ token: TokenDetailsRouteParams }> = ({
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
 
-  const isTokenDetailsV2ButtonsEnabled = useSelector(
-    selectTokenDetailsV2ButtonsEnabled,
-  );
+  // A/B test hook for layout selection
+  const { useNewLayout } = useTokenDetailsABTest();
   const { isTokenTradingOpen } = useRWAToken();
 
   useEffect(() => {
@@ -246,7 +244,7 @@ const TokenDetails: React.FC<{ token: TokenDetailsRouteParams }> = ({
         networkName={networkName ?? ''}
         onBackPress={() => navigation.goBack()}
         onOptionsPress={
-          shouldShowMoreOptionsInNavBar && !isTokenDetailsV2ButtonsEnabled
+          shouldShowMoreOptionsInNavBar && !useNewLayout
             ? openAssetOptions
             : undefined
         }
@@ -262,6 +260,7 @@ const TokenDetails: React.FC<{ token: TokenDetailsRouteParams }> = ({
           chainId={token.chainId as SupportedCaipChainId}
           enableRefresh
           showDisclaimer
+          location={TransactionDetailLocation.AssetDetails}
         />
       ) : (
         <Transactions
@@ -279,10 +278,11 @@ const TokenDetails: React.FC<{ token: TokenDetailsRouteParams }> = ({
           headerHeight={280}
           tokenChainId={token.chainId}
           skipScrollOnClick
+          location={TransactionDetailLocation.AssetDetails}
         />
       )}
       {networkModal}
-      {isTokenDetailsV2ButtonsEnabled &&
+      {useNewLayout &&
         !txLoading &&
         displaySwapsButton &&
         isTokenTradingOpen(token as BridgeToken) && (
@@ -324,6 +324,7 @@ const TokenDetails: React.FC<{ token: TokenDetailsRouteParams }> = ({
  */
 const useTokenDetailsOpenedTracking = (params: TokenDetailsRouteParams) => {
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const { variantName, isTestActive } = useTokenDetailsABTest();
   const isTokenListV2 = useSelector(selectTokenListLayoutV2Enabled);
 
   useEffect(() => {
@@ -338,16 +339,27 @@ const useTokenDetailsOpenedTracking = (params: TokenDetailsRouteParams) => {
       source === TokenDetailsSource.MobileTokenList ||
       source === TokenDetailsSource.MobileTokenListPage;
 
+    const eventProperties = {
+      source,
+      chain_id: params.chainId,
+      token_symbol: params.symbol,
+      token_address: params.address,
+      token_name: params.name,
+      has_balance: hasBalance,
+      // A/B test attribution — each experiment is independent
+      ...((isTestActive || isFromTokenList) && {
+        ab_tests: {
+          ...(isTestActive && {
+            assetsASSETS2493AbtestTokenDetailsLayout: variantName,
+          }),
+          ...(isFromTokenList && {
+            assetsASSETS2621AbtestTokenListLayout: isTokenListV2 ? 'v2' : 'v1',
+          }),
+        },
+      }),
+    };
     const event = createEventBuilder(MetaMetricsEvents.TOKEN_DETAILS_OPENED)
-      .addProperties({
-        source,
-        chain_id: params.chainId,
-        token_symbol: params.symbol,
-        has_balance: hasBalance,
-        ...(isFromTokenList && {
-          ab_tests: { token_list_layout: isTokenListV2 ? 'v2' : 'v1' },
-        }),
-      })
+      .addProperties(eventProperties)
       .build();
     trackEvent(event);
     // eslint-disable-next-line react-hooks/exhaustive-deps

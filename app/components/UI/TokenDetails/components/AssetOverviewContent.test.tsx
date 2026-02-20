@@ -1,6 +1,6 @@
 import React from 'react';
+import { fireEvent, act } from '@testing-library/react-native';
 import { Pressable as MockPressable } from 'react-native';
-import { fireEvent } from '@testing-library/react-native';
 import AssetOverviewContent, {
   type AssetOverviewContentProps,
 } from './AssetOverviewContent';
@@ -59,15 +59,20 @@ jest.mock('../../Perps/hooks/usePerpsEventTracking', () => ({
   usePerpsEventTracking: () => ({ track: mockTrack }),
 }));
 
+// Use a stable wrapper so jest.restoreAllMocks() (from testSetup.js afterEach)
+// does not wipe the implementation between tests.
+const mockPerpsBottomSheetTooltipInner = jest.fn((..._args: unknown[]) => null);
 jest.mock('../../Perps/components/PerpsBottomSheetTooltip', () => ({
   __esModule: true,
-  default: () => null,
+  default: (...args: unknown[]) => mockPerpsBottomSheetTooltipInner(...args),
 }));
 
 jest.mock('../../../../selectors/featureFlagController/tokenDetailsV2', () => ({
   selectTokenDetailsV2Enabled: jest.fn(() => true),
-  selectTokenDetailsV2ButtonsEnabled: jest.fn(() => true),
+  selectTokenDetailsLayoutTestVariant: jest.fn(() => 'treatment'),
 }));
+
+jest.mock('../../AssetOverview/TokenDetails', () => () => null);
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
@@ -207,6 +212,38 @@ describe('AssetOverviewContent', () => {
 
       expect(mockHandlePerpsAction).toHaveBeenCalledWith('short');
       expect(mockTrack).not.toHaveBeenCalled();
+    });
+
+    it('closes geo block modal when closeEligibilityModal is called', () => {
+      const { getByTestId } = renderWithProvider(
+        <AssetOverviewContent {...defaultProps} />,
+        { state: createState(false) },
+      );
+
+      // Open the geo block modal by pressing Long when not eligible
+      fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.LONG_BUTTON));
+
+      // Verify the tooltip was rendered with the expected props
+      expect(mockPerpsBottomSheetTooltipInner).toHaveBeenCalledWith(
+        expect.objectContaining({
+          onClose: expect.any(Function),
+          contentKey: 'geo_block',
+        }),
+        expect.anything(),
+      );
+
+      // Extract onClose from the last render call and invoke it
+      const lastCallProps = mockPerpsBottomSheetTooltipInner.mock.calls[
+        mockPerpsBottomSheetTooltipInner.mock.calls.length - 1
+      ][0] as { onClose: () => void };
+      mockPerpsBottomSheetTooltipInner.mockClear();
+
+      act(() => {
+        lastCallProps.onClose();
+      });
+
+      // Modal dismissed — tooltip no longer rendered
+      expect(mockPerpsBottomSheetTooltipInner).not.toHaveBeenCalled();
     });
 
     it('renders market insights entry card and navigates to market insights view on press', () => {

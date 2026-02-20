@@ -46,6 +46,15 @@ jest.mock('../../../hooks/send/useAccountTokens', () => {
   return { useAccountTokens: () => stableEmptyTokens };
 });
 
+jest.mock('../../../hooks/send/metrics/useAssetSelectionMetrics', () => ({
+  useAssetSelectionMetrics: () => ({
+    captureAssetSelected: jest.fn(),
+    setAssetListSize: jest.fn(),
+    setNoneAssetFilterMethod: jest.fn(),
+    setSearchAssetFilterMethod: jest.fn(),
+  }),
+}));
+
 const CHAIN_ID_1_MOCK = CHAIN_IDS.MAINNET as Hex;
 const CHAIN_ID_2_MOCK = '0x2' as Hex;
 

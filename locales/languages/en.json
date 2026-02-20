@@ -458,7 +458,11 @@
     "reset_wallet_desc_bold": "permanently erased",
     "reset_wallet_desc_2": "from MetaMask on this device. This can’t be undone.",
     "reset_wallet_desc_login": "To restore your wallet, you can use your Secret Recovery Phrase, or your Google or Apple account password. MetaMask doesn’t have this information.",
-    "reset_wallet_desc_srp": "To restore your wallet, make sure you have your Secret Recovery Phrase. MetaMask doesn’t have this information."
+    "reset_wallet_desc_srp": "To restore your wallet, make sure you have your Secret Recovery Phrase. MetaMask doesn’t have this information.",
+    "biometric_authentication_cancelled": "Biometric authentication cancelled",
+    "biometric_authentication_cancelled_title": "Biometric Setup Failed",
+    "biometric_authentication_cancelled_description": "Please re-setup biometric authentication from the settings.",
+    "biometric_authentication_cancelled_button": "Confirm"
   },
   "connect_hardware": {
     "title_select_hardware": "Connect a hardware wallet",
@@ -2899,6 +2903,8 @@
     "state_logs": "State logs",
     "add_network_title": "Add a network",
     "auto_lock": "Auto-lock",
+    "enable_device_authentication": "Enable Device Authentication",
+    "enable_device_authentication_desc": "Use your device’s biometrics or passcode to unlock MetaMask.",
     "auto_lock_desc": "Choose the amount of time before the application automatically locks.",
     "state_logs_desc": "This will help MetaMask debug any issue you might encounter. Please send it to MetaMask support via hamburger icon > Send Feedback, or reply to your existing ticket if you have one.",
     "autolock_immediately": "Immediately",
@@ -4198,11 +4204,7 @@
     "enable_device_passcode_android": "Unlock with device PIN?"
   },
   "authentication": {
-    "auth_prompt_title": "Authentication required",
-    "auth_prompt_desc": "Please authenticate in order to use MetaMask",
-    "fingerprint_prompt_title": "Authentication required",
-    "fingerprint_prompt_desc": "Use your fingerprint to unlock MetaMask",
-    "fingerprint_prompt_cancel": "Cancel"
+    "auth_prompt_desc": "Please authenticate in order to use MetaMask"
   },
   "accountApproval": {
     "title": "CONNECT REQUEST",
@@ -5547,10 +5549,10 @@
     "enable_remember_me_description": "When Remember me is on, anyone with access to your phone can access your MetaMask account."
   },
   "turn_off_remember_me": {
-    "title": "Enter your password to turn off Remember me",
-    "placeholder": "Password",
-    "description": "If you turn this option off, you'll need your password to unlock MetaMask from now on.",
-    "action": "Turn off Remember me"
+    "title": "Turn off Remember Me",
+    "placeholder": "Confirm password",
+    "description": "Once turned off, Remember Me can't be used again. This feature has been discontinued, so you can unlock MetaMask with your password or biometrics instead.",
+    "action": "Turn off Remember Me"
   },
   "dapp_connect": {
     "warning": "In order to use this feature, please update the app to the newest version"
@@ -7710,5 +7712,16 @@
     "description_android": "We've made some important fixes. Close and reopen MetaMask to apply the update.",
     "primary_action_reload": "Reload",
     "primary_action_acknowledge": "Got it"
+  },
+  "homepage": {
+    "sections": {
+      "tokens": "Tokens",
+      "perpetuals": "Perpetuals",
+      "predictions": "Predictions",
+      "defi": "DeFi",
+      "nfts": "NFTs",
+      "import_nfts": "Import NFTs",
+      "import_nfts_description": "Easily add your collectibles"
+    }
   }
 }

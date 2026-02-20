@@ -1,16 +1,16 @@
-import {
+import type {
   IMetaMetricsEvent,
   JsonMap,
 } from '../../../../../core/Analytics/MetaMetrics.types';
-import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder';
-import { MetaMetrics } from '../../../../../core/Analytics';
+import { AnalyticsEventBuilder } from '../../../../../util/analytics/AnalyticsEventBuilder';
+import { analytics } from '../../../../../util/analytics/analytics';
 
 export interface WithMetaMetricsEvent {
   event: IMetaMetricsEvent;
   properties?: JsonMap;
 }
 
-const createEventBuilder = MetricsEventBuilder.createEventBuilder;
+const createEventBuilder = AnalyticsEventBuilder.createEventBuilder;
 
 const shouldAddProperties = (properties?: JsonMap): properties is JsonMap => {
   if (!properties) return false;
@@ -43,14 +43,12 @@ export const withMetaMetrics = <T extends (...args: any[]) => any>(
 
     if (result instanceof Promise) {
       return result.then((res) => {
-        builtEvents.forEach((event) =>
-          MetaMetrics.getInstance().trackEvent(event),
-        );
+        builtEvents.forEach((event) => analytics.trackEvent(event));
         return res;
       }) as Promise<ReturnType<T>>;
     }
 
-    builtEvents.forEach((event) => MetaMetrics.getInstance().trackEvent(event));
+    builtEvents.forEach((event) => analytics.trackEvent(event));
 
     return result as ReturnType<T>;
   };

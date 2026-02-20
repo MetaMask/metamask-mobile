@@ -67,6 +67,9 @@ export interface BridgeState {
    * When undefined, tokens from all chains are shown ("All" filter).
    */
   tokenSelectorNetworkFilter: CaipChainId | undefined;
+  abTestContext?: {
+    assetsASSETS2493AbtestTokenDetailsLayout?: string;
+  };
   /**
    * Ordered list of chain IDs shown as pills in the token selector.
    * Shared across source and dest pickers so pill order persists within a session.
@@ -92,6 +95,7 @@ export const initialState: BridgeState = {
   isGasIncludedSTXSendBundleSupported: false,
   isGasIncluded7702Supported: false,
   isDestTokenManuallySet: false,
+  abTestContext: undefined,
   tokenSelectorNetworkFilter: undefined,
   visiblePillChainIds: undefined,
 };
@@ -142,7 +146,9 @@ const slice = createSlice({
     ) => {
       state.selectedDestChainId = action.payload;
     },
-    resetBridgeState: () => initialState,
+    resetBridgeState: () => ({
+      ...initialState,
+    }),
     setSourceToken: (state, action: PayloadAction<BridgeToken | undefined>) => {
       state.sourceToken = action.payload;
     },
@@ -181,6 +187,12 @@ const slice = createSlice({
     },
     setIsGasIncluded7702Supported: (state, action: PayloadAction<boolean>) => {
       state.isGasIncluded7702Supported = action.payload;
+    },
+    setAbTestContext: (
+      state,
+      action: PayloadAction<BridgeState['abTestContext']>,
+    ) => {
+      state.abTestContext = action.payload;
     },
     setTokenSelectorNetworkFilter: (
       state,
@@ -581,6 +593,11 @@ export const selectIsDestTokenManuallySet = createSelector(
   (bridgeState) => bridgeState.isDestTokenManuallySet,
 );
 
+export const selectAbTestContext = createSelector(
+  selectBridgeState,
+  (bridgeState) => bridgeState.abTestContext,
+);
+
 export const selectIsGaslessSwapEnabled = createSelector(
   selectIsSwap,
   selectBridgeFeatureFlags,
@@ -658,6 +675,7 @@ export const {
   setIsSelectingToken,
   setIsGasIncludedSTXSendBundleSupported,
   setIsGasIncluded7702Supported,
+  setAbTestContext,
   setTokenSelectorNetworkFilter,
   setVisiblePillChainIds,
 } = actions;
