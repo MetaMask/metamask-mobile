@@ -101,7 +101,7 @@ describe('ExploreSearchResults', () => {
         predictions: false,
         sites: false,
       },
-      sectionsOrder: ['tokens', 'perps', 'predictions', 'sites'],
+      sectionsOrder: ['sites', 'tokens', 'perps', 'predictions'],
     });
 
     const { getByText, getByTestId } = render(
@@ -128,7 +128,7 @@ describe('ExploreSearchResults', () => {
         predictions: false,
         sites: false,
       },
-      sectionsOrder: ['tokens', 'perps', 'predictions', 'sites'],
+      sectionsOrder: ['sites', 'tokens', 'perps', 'predictions'],
     });
 
     const { getByText, queryByText } = render(
@@ -154,7 +154,7 @@ describe('ExploreSearchResults', () => {
         predictions: false,
         sites: false,
       },
-      sectionsOrder: ['tokens', 'perps', 'predictions', 'sites'],
+      sectionsOrder: ['sites', 'tokens', 'perps', 'predictions'],
     });
 
     render(<ExploreSearchResults searchQuery="ethereum" />);
@@ -182,7 +182,7 @@ describe('ExploreSearchResults', () => {
           predictions: false,
           sites: false,
         },
-        sectionsOrder: ['tokens', 'perps', 'predictions', 'sites'],
+        sectionsOrder: ['sites', 'tokens', 'perps', 'predictions'],
       });
 
       // Act
@@ -211,7 +211,7 @@ describe('ExploreSearchResults', () => {
           predictions: false,
           sites: false,
         },
-        sectionsOrder: ['tokens', 'perps', 'predictions', 'sites'],
+        sectionsOrder: ['sites', 'tokens', 'perps', 'predictions'],
       });
 
       // Act
@@ -239,7 +239,7 @@ describe('ExploreSearchResults', () => {
           predictions: false,
           sites: false,
         },
-        sectionsOrder: ['tokens', 'perps', 'predictions', 'sites'],
+        sectionsOrder: ['sites', 'tokens', 'perps', 'predictions'],
       });
 
       // Act
@@ -266,7 +266,7 @@ describe('ExploreSearchResults', () => {
           predictions: false,
           sites: false,
         },
-        sectionsOrder: ['tokens', 'perps', 'predictions', 'sites'],
+        sectionsOrder: ['sites', 'tokens', 'perps', 'predictions'],
       });
 
       // Act
@@ -303,7 +303,7 @@ describe('ExploreSearchResults', () => {
           predictions: false,
           sites: false,
         },
-        sectionsOrder: ['tokens', 'perps', 'predictions', 'sites'],
+        sectionsOrder: ['sites', 'tokens', 'perps', 'predictions'],
       });
 
       // Act
@@ -334,11 +334,11 @@ describe('ExploreSearchResults', () => {
           sites: false,
         },
         sectionsOrder: [
+          'sites',
           'tokens',
           'unknown' as 'tokens', // Intentionally invalid ID to test graceful handling
           'perps',
           'predictions',
-          'sites',
         ],
       });
 

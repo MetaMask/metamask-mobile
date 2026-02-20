@@ -316,18 +316,18 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
 
 // Sorted by order on the main screen
 const HOME_SECTIONS_ARRAY: (SectionConfig & { id: SectionId })[] = [
+  SECTIONS_CONFIG.sites,
   SECTIONS_CONFIG.predictions,
   SECTIONS_CONFIG.tokens,
   SECTIONS_CONFIG.perps,
-  SECTIONS_CONFIG.sites,
 ];
 
 // Sorted by order on the QuickAction buttons and SearchResults
 const SECTIONS_ARRAY: (SectionConfig & { id: SectionId })[] = [
+  SECTIONS_CONFIG.sites,
   SECTIONS_CONFIG.tokens,
   SECTIONS_CONFIG.perps,
   SECTIONS_CONFIG.predictions,
-  SECTIONS_CONFIG.sites,
 ];
 
 export const useHomeSections = (): (SectionConfig & { id: SectionId })[] => {

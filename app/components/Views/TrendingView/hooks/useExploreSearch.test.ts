@@ -93,10 +93,10 @@ jest.mock('../../../UI/Sites/hooks/useSiteData/useSitesData', () => ({
 
 // Mock useSectionsArray to return all sections for testing
 const mockSectionsArray: { id: SectionId }[] = [
+  { id: 'sites' },
   { id: 'tokens' },
   { id: 'perps' },
   { id: 'predictions' },
-  { id: 'sites' },
 ];
 
 jest.mock('../sections.config', () => {
