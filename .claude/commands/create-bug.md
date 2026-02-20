@@ -93,8 +93,11 @@ Format the body exactly as follows, using the information collected:
 <numbered steps>
 
 ### Error messages or log output
+```
 
-<error output, or "_No response_" if not provided>
+<error output, or leave empty if not provided>
+
+```
 
 ### Where was this bug found?
 
