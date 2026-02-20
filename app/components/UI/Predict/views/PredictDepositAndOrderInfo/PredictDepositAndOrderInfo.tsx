@@ -220,6 +220,8 @@ export function PredictDepositAndOrderInfo() {
   const payTotals = useTransactionPayTotals();
   const { onConfirm: onApprovalConfirm } = useApprovalRequest();
   const isPayTotalsLoading = useIsTransactionPayLoading();
+  const shouldWaitForPayFees = !isPredictBalanceSelected;
+  const isPayFeesLoading = shouldWaitForPayFees && isPayTotalsLoading;
   const depositFeeUsd = useMemo(() => {
     if (isPredictBalanceSelected || !payTotals?.fees) return 0;
     const { provider, sourceNetwork, targetNetwork } = payTotals.fees;
@@ -237,7 +239,7 @@ export function PredictDepositAndOrderInfo() {
     !isConfirming &&
     !isBalanceLoading &&
     !isRateLimited &&
-    !isPayTotalsLoading;
+    !isPayFeesLoading;
 
   const previewRef = useRef(preview);
   previewRef.current = preview;
@@ -524,7 +526,7 @@ export function PredictDepositAndOrderInfo() {
       return null;
     }
 
-    if (isPayTotalsLoading) {
+    if (isPayFeesLoading) {
       return (
         <Box twClassName="pt-4 px-4 pb-6 flex-col gap-4">
           <Box twClassName="flex-row justify-between items-center">
