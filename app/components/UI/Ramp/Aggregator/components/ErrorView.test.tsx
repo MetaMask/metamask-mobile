@@ -86,7 +86,7 @@ describe('ErrorView Component', () => {
       />
     ));
 
-    const button = getByText('fiat_on_ramp_aggregator.try_again');
+    const button = getByText('Try again');
     fireEvent.press(button);
 
     expect(mockCtaOnPress).toHaveBeenCalledTimes(1);
