@@ -436,15 +436,11 @@ function assetToToken(
  *
  * This includes:
  * - **Network resources**: Energy, Bandwidth, and their maximum capacities.
- * - **Staking assets**: TRX staked for Energy, TRX staked for Bandwidth,
- *   and a pre-computed `totalStakedTrx` sum.
- * - **Staking lifecycle assets**: TRX Ready for Withdrawal (unstaked TRX
- *   past the lock period), Staking Rewards, and TRX In Lock Period
- *   (unstaked but still within the lock window).
+ * - **Staking assets**: TRX staked for Energy/Bandwidth and a pre-computed `totalStakedTrx` sum.
+ * - **Staking lifecycle assets**: TRX Ready for Withdrawal, Staking Rewards, and TRX In Lock Period.
  *
- * Returns a structured {@link TronSpecialAssetsMap} with all assets
- * pre-mapped by type for efficient access, eliminating the need for
- * consumers to iterate or search the array.
+ * Returns a structured {@link TronSpecialAssetsMap} with all assets pre-mapped by type
+ * for efficient access, eliminating the need for consumers to iterate or search the array.
  */
 export const selectTronSpecialAssetsBySelectedAccountGroup =
   createDeepEqualSelector(
