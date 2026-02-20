@@ -48,12 +48,18 @@ export interface UseRampTokensResult {
   error: Error | null;
 }
 
+interface UseRampTokensOptions {
+  fetchOnMount: boolean;
+}
+
 /**
  * Hook to fetch available tokens for ramp flows based on user region and routing decision.
  *
  * @returns An object containing top tokens, all tokens, loading state, and error state
  */
-export function useRampTokens(): UseRampTokensResult {
+export function useRampTokens(
+  { fetchOnMount }: UseRampTokensOptions = { fetchOnMount: true },
+): UseRampTokensResult {
   const [rawTopTokens, setRawTopTokens] = useState<RampsToken[] | null>(null);
   const [rawAllTokens, setRawAllTokens] = useState<RampsToken[] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -126,8 +132,10 @@ export function useRampTokens(): UseRampTokensResult {
   }, [detectedGeolocation, rampRoutingDecision]);
 
   useEffect(() => {
-    fetchTokens();
-  }, [fetchTokens]);
+    if (fetchOnMount) {
+      fetchTokens();
+    }
+  }, [fetchTokens, fetchOnMount]);
 
   // Filter tokens to only include those for networks the user has added
   const topTokens = useMemo(() => {
