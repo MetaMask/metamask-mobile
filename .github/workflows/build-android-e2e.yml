@@ -53,7 +53,7 @@ jobs:
 
       - name: Setup Android Build Environment
         timeout-minutes: 15
-        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@v1
+        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@cece1afef73f8fe627cc5a5c0b643fe9669d3ca0
         with:
           platform: android
           setup-simulator: false
