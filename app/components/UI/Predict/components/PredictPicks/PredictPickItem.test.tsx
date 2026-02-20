@@ -4,16 +4,8 @@ import PredictPickItem from './PredictPickItem';
 import { PredictPositionStatus, type PredictPosition } from '../../types';
 import { formatPrice } from '../../utils/format';
 
-import { usePredictOptimisticPositionRefresh } from '../../hooks/usePredictOptimisticPositionRefresh';
-
 import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
-jest.mock('../../hooks/usePredictOptimisticPositionRefresh');
 jest.mock('../../utils/format');
-
-const mockUsePredictOptimisticPositionRefresh =
-  usePredictOptimisticPositionRefresh as jest.MockedFunction<
-    typeof usePredictOptimisticPositionRefresh
-  >;
 const mockFormatPrice = formatPrice as jest.MockedFunction<typeof formatPrice>;
 
 const createMockPosition = (
@@ -47,9 +39,6 @@ describe('PredictPickItem', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUsePredictOptimisticPositionRefresh.mockImplementation(
-      ({ position }) => position as PredictPosition,
-    );
     mockFormatPrice.mockImplementation(
       (value: number | string, _options?: { maximumDecimals?: number }) => {
         const num = typeof value === 'string' ? parseFloat(value) : value;
@@ -170,9 +159,6 @@ describe('PredictPickItem', () => {
       const position = createMockPosition({
         id: 'pos-1',
         claimable: false,
-      });
-      mockUsePredictOptimisticPositionRefresh.mockReturnValue({
-        ...position,
         optimistic: true,
       });
 
@@ -191,9 +177,6 @@ describe('PredictPickItem', () => {
       const position = createMockPosition({
         id: 'pos-1',
         claimable: false,
-      });
-      mockUsePredictOptimisticPositionRefresh.mockReturnValue({
-        ...position,
         optimistic: true,
       });
 

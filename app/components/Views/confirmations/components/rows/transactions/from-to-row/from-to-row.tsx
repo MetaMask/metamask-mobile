@@ -15,6 +15,8 @@ import { useTransferRecipient } from '../../../../hooks/transactions/useTransfer
 import { RowAlertKey } from '../../../UI/info-row/alert-row/constants';
 import InfoSection from '../../../UI/info-row/info-section';
 import AlertRow from '../../../UI/info-row/alert-row';
+import { useAlerts } from '../../../../context/alert-system-context';
+import InlineAlert from '../../../UI/inline-alert';
 import { Skeleton } from '../../../../../../../component-library/components/Skeleton';
 import styleSheet from './from-to-row.styles';
 
@@ -22,6 +24,10 @@ const FromToRow = () => {
   const { styles } = useStyles(styleSheet, {});
   const transactionMetadata = useTransactionMetadataRequest();
   const transferRecipient = useTransferRecipient();
+  const { fieldAlerts } = useAlerts();
+  const fromToAlert = fieldAlerts.find(
+    (a) => a.field === RowAlertKey.FromToAddress,
+  );
 
   // Do not set than 13 characters, it breaks the UI for small screens
   const MAX_CHAR_LENGTH = 13;
@@ -58,12 +64,18 @@ const FromToRow = () => {
 
         <View style={[styles.nameContainer, styles.rightNameContainer]}>
           {/* Intentional empty label to trigger the alert row without a label */}
-          <AlertRow alertField={RowAlertKey.FromToAddress}>
+          <AlertRow
+            alertField={RowAlertKey.FromToAddress}
+            hideInlineAlert={!!fromToAlert}
+          >
             <Name
               type={NameType.EthereumAddress}
               value={toAddress as string}
               variation={chainId}
               maxCharLength={MAX_CHAR_LENGTH}
+              iconOverride={
+                fromToAlert ? <InlineAlert alertObj={fromToAlert} /> : undefined
+              }
             />
           </AlertRow>
         </View>

@@ -1,5 +1,5 @@
-import '../../../util/test/component-view/mocks';
-import { renderWalletActionsView } from '../../../util/test/component-view/renderers/walletActions';
+import '../../../../tests/component-view/mocks';
+import { renderWalletActionsView } from '../../../../tests/component-view/renderers/walletActions';
 import { WalletActionsBottomSheetSelectorsIDs } from './WalletActionsBottomSheet.testIds';
 import { describeForPlatforms } from '../../../util/test/platform';
 
