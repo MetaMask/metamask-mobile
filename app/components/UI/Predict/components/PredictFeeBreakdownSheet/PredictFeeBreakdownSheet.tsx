@@ -14,13 +14,14 @@ import { formatPrice } from '../../utils/format';
 interface PredictFeeBreakdownSheetProps {
   providerFee: number;
   metamaskFee: number;
+  depositFee?: number;
   onClose?: () => void;
 }
 
 const PredictFeeBreakdownSheet = forwardRef<
   BottomSheetRef,
   PredictFeeBreakdownSheetProps
->(({ providerFee, metamaskFee, onClose }, ref) => (
+>(({ providerFee, metamaskFee, depositFee = 0, onClose }, ref) => (
   <BottomSheet ref={ref} onClose={onClose} shouldNavigateBack={false}>
     <SheetHeader title={strings('predict.fee_summary.fees')} />
     <Box twClassName="px-4 pb-6 flex-col gap-4">
@@ -47,6 +48,19 @@ const PredictFeeBreakdownSheet = forwardRef<
           })}
         </Text>
       </Box>
+
+      {depositFee > 0 && (
+        <Box twClassName="flex-row justify-between items-center">
+          <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
+            {strings('predict.fee_summary.deposit_fee')}
+          </Text>
+          <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
+            {formatPrice(depositFee, {
+              maximumDecimals: 2,
+            })}
+          </Text>
+        </Box>
+      )}
     </Box>
   </BottomSheet>
 ));

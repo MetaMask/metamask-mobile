@@ -29,6 +29,7 @@ interface PredictFeeSummaryProps {
   disabled: boolean;
   providerFee: number;
   metamaskFee: number;
+  depositFee?: number;
   total: number;
   shouldShowRewardsRow?: boolean;
   accountOptedIn?: boolean | null;
@@ -43,6 +44,7 @@ const PredictFeeSummary: React.FC<PredictFeeSummaryProps> = ({
   disabled,
   metamaskFee,
   providerFee,
+  depositFee = 0,
   total,
   shouldShowRewardsRow = false,
   accountOptedIn = null,
@@ -56,7 +58,7 @@ const PredictFeeSummary: React.FC<PredictFeeSummaryProps> = ({
     return null;
   }
 
-  const totalFees = providerFee + metamaskFee;
+  const totalFees = providerFee + metamaskFee + depositFee;
 
   return (
     <Box twClassName="pt-4 px-4 pb-6 flex-col gap-4">

@@ -49,7 +49,10 @@ import {
   TraceName,
   TraceOperation,
 } from '../../../../util/trace';
-import { addTransactionBatch } from '../../../../util/transaction-controller';
+import {
+  addTransaction,
+  addTransactionBatch,
+} from '../../../../util/transaction-controller';
 import {
   PredictEventProperties,
   PredictShareStatusValue,
@@ -79,6 +82,8 @@ import {
   PredictClaim,
   PredictClaimStatus,
   PredictMarket,
+  PredictOutcome,
+  PredictOutcomeToken,
   PredictPosition,
   PredictPositionStatus,
   PredictPriceHistoryPoint,
@@ -142,6 +147,17 @@ export type PredictControllerState = {
   // TODO: change to be per-account basis
   withdrawTransaction: PredictWithdraw | null;
 
+  activeOrder?: {
+    market: PredictMarket;
+    outcome: PredictOutcome;
+    outcomeToken: PredictOutcomeToken;
+  } | null;
+
+  selectedPaymentToken: {
+    address: string;
+    chainId: string;
+  } | null;
+
   // Persisted data
   accountMeta: {
     [providerId: string]: { [address: string]: PredictAccountMeta };
@@ -159,6 +175,8 @@ export const getDefaultPredictControllerState = (): PredictControllerState => ({
   claimablePositions: {},
   pendingDeposits: {},
   withdrawTransaction: null,
+  activeOrder: null,
+  selectedPaymentToken: null,
   accountMeta: {},
 });
 
@@ -210,6 +228,18 @@ const metadata: StateMetadata<PredictControllerState> = {
   },
   accountMeta: {
     persist: true,
+    includeInDebugSnapshot: false,
+    includeInStateLogs: false,
+    usedInUi: true,
+  },
+  activeOrder: {
+    persist: false,
+    includeInDebugSnapshot: false,
+    includeInStateLogs: false,
+    usedInUi: true,
+  },
+  selectedPaymentToken: {
+    persist: false,
     includeInDebugSnapshot: false,
     includeInStateLogs: false,
     usedInUi: true,
@@ -1852,6 +1882,26 @@ export class PredictController extends BaseController<
     this.update(updater);
   }
 
+  public setActiveOrder(order: PredictControllerState['activeOrder']): void {
+    this.update((state) => {
+      state.activeOrder = order;
+    });
+  }
+
+  public clearActiveOrder(): void {
+    this.update((state) => {
+      state.activeOrder = null;
+    });
+  }
+
+  public setSelectedPaymentToken(
+    token: PredictControllerState['selectedPaymentToken'],
+  ): void {
+    this.update((state) => {
+      state.selectedPaymentToken = token;
+    });
+  }
+
   public async depositWithConfirmation(
     _params: PrepareDepositParams = {},
   ): Promise<Result<{ batchId: string }>> {
@@ -1964,6 +2014,129 @@ export class PredictController extends BaseController<
       );
 
       this.clearPendingDeposit();
+
+      throw new Error(
+        error instanceof Error
+          ? error.message
+          : PREDICT_ERROR_CODES.DEPOSIT_FAILED,
+      );
+    }
+  }
+
+  /**
+   * Prepares and submits a deposit transaction batch using the
+   * `predictDepositAndOrder` transaction type. This triggers the new
+   * deposit-and-order confirmation screen instead of the standard deposit screen.
+   *
+   * The flow reuses `provider.prepareDeposit` but overrides the transaction
+   * type so the confirmation routing in `info-root.tsx` renders
+   * `PredictDepositAndOrderInfo`.
+   *
+   * TODO: Remove the cast once `predictDepositAndOrder` is added to
+   * `@metamask/transaction-controller`.
+   */
+  public async depositAndOrderWithConfirmation(
+    _params: PrepareDepositParams = {},
+  ): Promise<Result<{ batchId: string }>> {
+    const provider = this.provider;
+
+    try {
+      const signer = this.getSigner();
+
+      this.setSelectedPaymentToken(null);
+
+      const depositPreparation = await provider.prepareDeposit({
+        signer,
+      });
+
+      if (!depositPreparation) {
+        throw new Error('Deposit preparation returned undefined');
+      }
+
+      const { transactions, chainId } = depositPreparation;
+
+      if (!transactions || transactions.length === 0) {
+        throw new Error('No transactions returned from deposit preparation');
+      }
+
+      if (!chainId) {
+        throw new Error('Chain ID not provided by deposit preparation');
+      }
+
+      // Override transaction types to predictDepositAndOrder so the
+      // confirmation routing renders the deposit-and-order info component.
+      // TODO: Remove cast once predictDepositAndOrder is in @metamask/transaction-controller
+      const depositAndOrderTransactions = transactions.map((tx) => ({
+        ...tx,
+        type:
+          tx.type === TransactionType.predictDeposit
+            ? ('predictDepositAndOrder' as unknown as TransactionType)
+            : tx.type,
+      }));
+
+      DevLogger.log(
+        'PredictController: depositAndOrderWithConfirmation transactions',
+        {
+          count: depositAndOrderTransactions.length,
+          transactions: depositAndOrderTransactions.map((tx, index) => ({
+            index,
+            type: tx?.type,
+            to: tx?.params?.to,
+            dataLength: tx?.params?.data?.length ?? 0,
+          })),
+        },
+      );
+
+      validateDepositTransactions(depositAndOrderTransactions, {
+        providerId: POLYMARKET_PROVIDER_ID,
+      });
+
+      const networkClientId = this.messenger.call(
+        'NetworkController:findNetworkClientIdByChainId',
+        chainId,
+      );
+
+      if (!networkClientId) {
+        throw new Error(`Network client not found for chain ID: ${chainId}`);
+      }
+
+      const tx = depositAndOrderTransactions[0];
+
+      const result = await addTransaction(
+        {
+          to: tx.params.to,
+          from: signer.address as Hex,
+          data: tx.params.data,
+        },
+        {
+          networkClientId,
+          origin: ORIGIN_METAMASK,
+          type: tx.type,
+        },
+      );
+
+      const transactionId = result.transactionMeta?.id ?? '';
+
+      return {
+        success: true,
+        response: {
+          batchId: transactionId,
+        },
+      };
+    } catch (error) {
+      const e = ensureError(error);
+      if (e.message.includes('User denied transaction signature')) {
+        return {
+          success: true,
+          response: { batchId: 'NA' },
+        };
+      }
+      Logger.error(
+        e,
+        this.getErrorContext('depositAndOrderWithConfirmation', {
+          providerId: POLYMARKET_PROVIDER_ID,
+        }),
+      );
 
       throw new Error(
         error instanceof Error

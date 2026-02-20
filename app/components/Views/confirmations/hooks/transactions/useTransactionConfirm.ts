@@ -125,7 +125,6 @@ export function useTransactionConfirm() {
       log('Error confirming transaction', error);
     }
 
-    // Perps deposit-and-order: caller handles navigation (e.g. order flow)
     if (type === TransactionType.perpsDepositAndOrder) {
       return;
     } else if (type === TransactionType.perpsDeposit) {
