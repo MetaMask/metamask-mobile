@@ -78,8 +78,6 @@ export function useUnifiedTxActions() {
   );
   const [speedUpIsOpen, setSpeedUpIsOpen] = useState(false);
   const [cancelIsOpen, setCancelIsOpen] = useState(false);
-  const [speedUp1559IsOpen, setSpeedUp1559IsOpen] = useState(false);
-  const [cancel1559IsOpen, setCancel1559IsOpen] = useState(false);
   const [speedUpConfirmDisabled, setSpeedUpConfirmDisabled] = useState(false);
   const [cancelConfirmDisabled, setCancelConfirmDisabled] = useState(false);
   const [existingGas, setExistingGas] = useState<ExistingGas | null>(null);
@@ -202,7 +200,6 @@ export function useUnifiedTxActions() {
   ) => {
     if (!open) {
       setSpeedUpIsOpen(false);
-      setSpeedUp1559IsOpen(false);
       return;
     }
     if (!tx) {
@@ -225,7 +222,6 @@ export function useUnifiedTxActions() {
   ) => {
     if (!open) {
       setCancelIsOpen(false);
-      setCancel1559IsOpen(false);
       return;
     }
     if (!tx) {
@@ -242,7 +238,6 @@ export function useUnifiedTxActions() {
   };
 
   const onSpeedUpCompleted = () => {
-    setSpeedUp1559IsOpen(false);
     setSpeedUpIsOpen(false);
     setExistingGas(null);
     setSpeedUpTxId(null);
@@ -250,7 +245,6 @@ export function useUnifiedTxActions() {
   };
 
   const onCancelCompleted = () => {
-    setCancel1559IsOpen(false);
     setCancelIsOpen(false);
     setExistingGas(null);
     setCancelTxId(null);
@@ -283,7 +277,6 @@ export function useUnifiedTxActions() {
       onSpeedUpCompleted();
     } catch (error: unknown) {
       toggleRetry(getErrorMessage(error));
-      setSpeedUp1559IsOpen(false);
       setSpeedUpIsOpen(false);
     }
   };
@@ -305,7 +298,6 @@ export function useUnifiedTxActions() {
       onCancelCompleted();
     } catch (error: unknown) {
       toggleRetry(getErrorMessage(error));
-      setCancel1559IsOpen(false);
       setCancelIsOpen(false);
     }
   };
@@ -356,8 +348,6 @@ export function useUnifiedTxActions() {
     retryErrorMsg,
     speedUpIsOpen,
     cancelIsOpen,
-    speedUp1559IsOpen,
-    cancel1559IsOpen,
     speedUpConfirmDisabled,
     cancelConfirmDisabled,
     existingGas,
