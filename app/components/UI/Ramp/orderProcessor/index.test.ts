@@ -115,37 +115,32 @@ describe('processOrder', () => {
     );
   });
 
-  describe('useUnifiedProcessor flag', () => {
-    const depositOrder: FiatOrder = {
-      ...mockOrder1,
-      provider: FIAT_ORDER_PROVIDERS.DEPOSIT,
-    };
-
-    it('routes aggregator order to processUnifiedOrder when useUnifiedProcessor is true', async () => {
-      await processOrder(mockOrder1, { useUnifiedProcessor: true });
-      expect(processUnifiedOrder).toHaveBeenCalledWith(mockOrder1, {
-        useUnifiedProcessor: true,
-      });
+  describe('RAMPS_V2 routing', () => {
+    it('routes RAMPS_V2 order to processUnifiedOrder', async () => {
+      const rampsV2Order: FiatOrder = {
+        ...mockOrder1,
+        provider: FIAT_ORDER_PROVIDERS.RAMPS_V2,
+      };
+      await processOrder(rampsV2Order);
+      expect(processUnifiedOrder).toHaveBeenCalledWith(rampsV2Order, undefined);
       expect(processAggregatorOrder).not.toHaveBeenCalled();
-    });
-
-    it('routes aggregator order to processAggregatorOrder when useUnifiedProcessor is false', async () => {
-      await processOrder(mockOrder1, { useUnifiedProcessor: false });
-      expect(processAggregatorOrder).toHaveBeenCalledWith(mockOrder1, {
-        useUnifiedProcessor: false,
-      });
-      expect(processUnifiedOrder).not.toHaveBeenCalled();
-    });
-
-    it('routes deposit order to processUnifiedOrder when useUnifiedProcessor is true', async () => {
-      await processOrder(depositOrder, { useUnifiedProcessor: true });
-      expect(processUnifiedOrder).toHaveBeenCalledWith(depositOrder, {
-        useUnifiedProcessor: true,
-      });
       expect(processDepositOrder).not.toHaveBeenCalled();
     });
 
-    it('routes deposit order to processDepositOrder when useUnifiedProcessor is not set', async () => {
+    it('routes AGGREGATOR order to processAggregatorOrder', async () => {
+      await processOrder(mockOrder1);
+      expect(processAggregatorOrder).toHaveBeenCalledWith(
+        mockOrder1,
+        undefined,
+      );
+      expect(processUnifiedOrder).not.toHaveBeenCalled();
+    });
+
+    it('routes DEPOSIT order to processDepositOrder', async () => {
+      const depositOrder: FiatOrder = {
+        ...mockOrder1,
+        provider: FIAT_ORDER_PROVIDERS.DEPOSIT,
+      };
       await processOrder(depositOrder);
       expect(processDepositOrder).toHaveBeenCalledWith(depositOrder, undefined);
       expect(processUnifiedOrder).not.toHaveBeenCalled();

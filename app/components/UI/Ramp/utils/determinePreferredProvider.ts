@@ -1,5 +1,5 @@
 import { Order } from '@consensys/on-ramp-sdk';
-import type { Provider } from '@metamask/ramps-controller';
+import type { Provider, RampsOrder } from '@metamask/ramps-controller';
 import type { FiatOrder } from '../../../../reducers/fiatOrders/types';
 import {
   FIAT_ORDER_PROVIDERS,
@@ -38,8 +38,14 @@ export function determinePreferredProvider(
 
     let providerId: string | undefined;
 
-    if (lastCompletedOrder.provider === FIAT_ORDER_PROVIDERS.AGGREGATOR) {
-      const orderData = lastCompletedOrder.data as Order;
+    if (
+      lastCompletedOrder.provider === FIAT_ORDER_PROVIDERS.AGGREGATOR ||
+      lastCompletedOrder.provider === FIAT_ORDER_PROVIDERS.RAMPS_V2
+    ) {
+      const orderData =
+        lastCompletedOrder.provider === FIAT_ORDER_PROVIDERS.RAMPS_V2
+          ? (lastCompletedOrder.data as RampsOrder)
+          : (lastCompletedOrder.data as Order);
       providerId = orderData?.provider?.id;
     } else if (
       lastCompletedOrder.provider === FIAT_ORDER_PROVIDERS.DEPOSIT ||

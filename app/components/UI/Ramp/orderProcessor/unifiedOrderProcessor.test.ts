@@ -1,4 +1,5 @@
 import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
+import { RampsOrderStatus, type RampsOrder } from '@metamask/ramps-controller';
 import {
   orderStatusToFiatOrderState,
   processUnifiedOrder,
@@ -25,9 +26,19 @@ jest.mock('../../../../util/Logger', () => ({
   error: jest.fn(),
 }));
 
-const mockRampsOrder = {
-  status: 'PENDING',
-  provider: { id: '/providers/transak', name: 'Transak', links: [] },
+const mockRampsOrder: RampsOrder = {
+  id: '/providers/transak/orders/abc-123',
+  isOnlyLink: false,
+  status: RampsOrderStatus.Pending,
+  provider: {
+    id: '/providers/transak',
+    name: 'Transak',
+    environmentType: 'PRODUCTION' as const,
+    description: 'Test provider',
+    hqAddress: '123 Test St',
+    links: [],
+    logos: { light: '', dark: '', height: 24, width: 90 },
+  },
   fiatCurrency: { symbol: 'USD', decimals: 2, denomSymbol: '$' },
   cryptoCurrency: { symbol: 'ETH', decimals: 18 },
   fiatAmount: 100,
@@ -43,12 +54,17 @@ const mockRampsOrder = {
   providerOrderLink: 'https://transak.com/order/abc-123',
   paymentMethod: { id: '/payments/card', name: 'Card' },
   exchangeRate: 2000,
+  success: true,
+  canBeUpdated: false,
+  idHasExpired: false,
+  timeDescriptionPending: '',
+  statusDescription: '',
 };
 
 // V2-style order — ID uses /providers/{code}/orders/{id} format
 const mockOrder: FiatOrder = {
   id: '/providers/transak/orders/abc-123',
-  provider: FIAT_ORDER_PROVIDERS.AGGREGATOR,
+  provider: FIAT_ORDER_PROVIDERS.RAMPS_V2,
   createdAt: 1000000,
   amount: 100,
   fee: 5,
@@ -64,11 +80,7 @@ const mockOrder: FiatOrder = {
   orderType: OrderOrderTypeEnum.Buy,
   errorCount: 0,
   lastTimeFetched: 0,
-  data: {
-    provider: { id: '/providers/transak', name: 'Transak' },
-    fiatCurrency: { id: 'USD', symbol: 'USD', denomSymbol: '$', decimals: 2 },
-    cryptoCurrency: { id: 'ETH', symbol: 'ETH', decimals: 18 },
-  } as FiatOrder['data'],
+  data: mockRampsOrder,
 };
 
 describe('orderStatusToFiatOrderState', () => {
@@ -102,45 +114,15 @@ describe('processUnifiedOrder', () => {
   });
 
   describe('successful poll', () => {
-    it('calls Engine.getOrder with provider code, order code, and account from V2-style ID', async () => {
+    it('calls Engine.getOrder with provider code and order code from data', async () => {
       await processUnifiedOrder(mockOrder);
       expect(mockGetOrder).toHaveBeenCalledWith('transak', 'abc-123', '0xabc');
-    });
-
-    it('calls Engine.getOrder with normalised provider code for aggregator-style orders (provider in data)', async () => {
-      const aggregatorOrder: FiatOrder = {
-        ...mockOrder,
-        id: 'order-abc-999',
-        data: {
-          provider: { id: '/providers/moonpay', name: 'MoonPay' },
-        } as FiatOrder['data'],
-      };
-      await processUnifiedOrder(aggregatorOrder);
-      expect(mockGetOrder).toHaveBeenCalledWith(
-        'moonpay',
-        'order-abc-999',
-        '0xabc',
-      );
-    });
-
-    it('calls Engine.getOrder with provider code from plain string provider in data', async () => {
-      const order: FiatOrder = {
-        ...mockOrder,
-        id: 'order-plain-123',
-        data: { provider: { id: 'moonpay' } } as FiatOrder['data'],
-      };
-      await processUnifiedOrder(order);
-      expect(mockGetOrder).toHaveBeenCalledWith(
-        'moonpay',
-        'order-plain-123',
-        '0xabc',
-      );
     });
 
     it('returns order with updated state and reset errorCount on success', async () => {
       mockGetOrder.mockResolvedValue({
         ...mockRampsOrder,
-        status: 'COMPLETED',
+        status: RampsOrderStatus.Completed,
       });
 
       const result = await processUnifiedOrder({ ...mockOrder, errorCount: 2 });
@@ -240,8 +222,10 @@ describe('processUnifiedOrder', () => {
       );
       const badOrder: FiatOrder = {
         ...mockOrder,
-        id: 'non-path-id',
-        data: {} as FiatOrder['data'],
+        data: {
+          providerOrderId: '',
+          provider: { id: '' },
+        } as FiatOrder['data'],
       };
 
       const result = await processUnifiedOrder(badOrder);
@@ -366,7 +350,10 @@ describe('processUnifiedOrder', () => {
 
   describe('UNKNOWN status handling', () => {
     it('increments errorCount and returns same order on UNKNOWN status', async () => {
-      mockGetOrder.mockResolvedValue({ ...mockRampsOrder, status: 'UNKNOWN' });
+      mockGetOrder.mockResolvedValue({
+        ...mockRampsOrder,
+        status: RampsOrderStatus.Unknown,
+      });
 
       const result = await processUnifiedOrder({ ...mockOrder, errorCount: 2 });
 
@@ -375,7 +362,10 @@ describe('processUnifiedOrder', () => {
     });
 
     it('caps errorCount at MAX_ERROR_COUNT on repeated UNKNOWN status', async () => {
-      mockGetOrder.mockResolvedValue({ ...mockRampsOrder, status: 'UNKNOWN' });
+      mockGetOrder.mockResolvedValue({
+        ...mockRampsOrder,
+        status: RampsOrderStatus.Unknown,
+      });
 
       const result = await processUnifiedOrder({
         ...mockOrder,
@@ -386,7 +376,10 @@ describe('processUnifiedOrder', () => {
     });
 
     it('processes UNKNOWN status normally when forced (no early-return)', async () => {
-      mockGetOrder.mockResolvedValue({ ...mockRampsOrder, status: 'UNKNOWN' });
+      mockGetOrder.mockResolvedValue({
+        ...mockRampsOrder,
+        status: RampsOrderStatus.Unknown,
+      });
 
       const result = await processUnifiedOrder(
         { ...mockOrder, errorCount: 0 },

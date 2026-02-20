@@ -451,7 +451,7 @@ describe('Checkout', () => {
     it('builds order with nav params only (no rampsOrder)', () => {
       const order = createInitialFiatOrder(baseParams);
       expect(order.id).toBe('/providers/transak/orders/order-123');
-      expect(order.provider).toBe(FIAT_ORDER_PROVIDERS.AGGREGATOR);
+      expect(order.provider).toBe(FIAT_ORDER_PROVIDERS.RAMPS_V2);
       expect(order.currency).toBe('USD');
       expect(order.cryptocurrency).toBe('ETH');
       expect(order.network).toBe('1');
@@ -505,9 +505,9 @@ describe('Checkout', () => {
       expect(order.forceUpdate).toBe(false);
     });
 
-    it('defaults providerType to AGGREGATOR', () => {
+    it('defaults providerType to RAMPS_V2', () => {
       const order = createInitialFiatOrder(baseParams);
-      expect(order.provider).toBe(FIAT_ORDER_PROVIDERS.AGGREGATOR);
+      expect(order.provider).toBe(FIAT_ORDER_PROVIDERS.RAMPS_V2);
     });
   });
 });
