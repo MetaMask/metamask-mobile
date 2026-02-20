@@ -195,6 +195,10 @@ class Transactions extends PureComponent {
      * Useful in views like Asset Details scrolling inside modals will cause issues (such as closing the stacked tx modal)
      */
     skipScrollOnClick: PropTypes.bool,
+    /**
+     * Location context for analytics tracking (home or asset_details)
+     */
+    location: PropTypes.string,
   };
 
   static defaultProps = {
@@ -664,6 +668,7 @@ class Transactions extends PureComponent {
       currentCurrency={this.props.currentCurrency}
       navigation={this.props.navigation}
       txChainId={item.chainId}
+      location={this.props.location}
     />
   );
 

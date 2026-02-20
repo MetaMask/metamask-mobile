@@ -9,14 +9,10 @@ import {
   AddressTrustSignalRequest,
 } from '../types/trustSignals';
 
-/**
- * Get the trust signal display state from an address scan result type
- *
- * @param resultType - The result type from the address scan
- * @returns The trust signal display state
- */
+// Benign + label = Verified (matches extension behavior)
 function getTrustState(
   resultType: string | undefined,
+  label: string | null | undefined,
 ): TrustSignalDisplayState {
   if (!resultType) {
     return TrustSignalDisplayState.Unknown;
@@ -29,18 +25,17 @@ function getTrustState(
       return TrustSignalDisplayState.Warning;
     case AddressScanResultType.Loading:
       return TrustSignalDisplayState.Loading;
+    case AddressScanResultType.Trusted:
+      return TrustSignalDisplayState.Verified;
     case AddressScanResultType.Benign:
+      return label
+        ? TrustSignalDisplayState.Verified
+        : TrustSignalDisplayState.Unknown;
     default:
       return TrustSignalDisplayState.Unknown;
   }
 }
 
-/**
- * Hook to get trust signals for multiple addresses.
- *
- * @param requests - Array of address trust signal requests
- * @returns Array of trust signal results
- */
 export function useAddressTrustSignals(
   requests: AddressTrustSignalRequest[],
 ): TrustSignalResult[] {
@@ -50,21 +45,17 @@ export function useAddressTrustSignals(
 
   return useMemo(
     () =>
-      addressScanResults.map(({ scanResult }) => ({
-        state: getTrustState(scanResult?.result_type),
-        label: scanResult?.label || null,
-      })),
+      addressScanResults.map(({ scanResult }) => {
+        const label = scanResult?.label || null;
+        return {
+          state: getTrustState(scanResult?.result_type, label),
+          label,
+        };
+      }),
     [addressScanResults],
   );
 }
 
-/**
- * Hook to get trust signal for a single address.
- *
- * @param address - The address to check
- * @param chainId - The chain ID
- * @returns Trust signal result with state and label
- */
 export function useAddressTrustSignal(
   address: string,
   chainId: string,

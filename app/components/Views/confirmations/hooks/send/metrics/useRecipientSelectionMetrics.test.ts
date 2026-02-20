@@ -1,5 +1,5 @@
 import { renderHookWithProvider } from '../../../../../../util/test/renderWithProvider';
-import { MetaMetricsEvents } from '../../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { evmSendStateMock } from '../../../__mocks__/send.mock';
 import { useSendType } from '../useSendType';
 import { useRecipientSelectionMetrics } from './useRecipientSelectionMetrics';
@@ -14,9 +14,8 @@ const mockCreateEventBuilder = jest.fn().mockReturnValue({
   }),
 });
 
-jest.mock('../../../../../hooks/useMetrics', () => ({
-  ...jest.requireActual('../../../../../hooks/useMetrics'),
-  useMetrics: () => ({
+jest.mock('../../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
     trackEvent: mockTrackEvent,
     createEventBuilder: mockCreateEventBuilder,
   }),

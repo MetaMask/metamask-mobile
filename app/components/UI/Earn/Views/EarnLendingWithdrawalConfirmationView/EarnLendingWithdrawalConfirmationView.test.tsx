@@ -21,8 +21,8 @@ import {
   TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
-import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder';
-import { useMetrics } from '../../../../hooks/useMetrics';
+import { AnalyticsEventBuilder } from '../../../../../util/analytics/AnalyticsEventBuilder';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 // eslint-disable-next-line import/no-namespace
 import * as NavbarUtils from '../../../Navbar';
 import { MOCK_USDC_MAINNET_ASSET } from '../../../Stake/__mocks__/stakeMockData';
@@ -60,7 +60,7 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../../../../hooks/useMetrics/useMetrics');
+jest.mock('../../../../hooks/useAnalytics/useAnalytics');
 
 jest.mock('../../../../../core/Engine', () => ({
   controllerMessenger: {
@@ -202,7 +202,7 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
   };
 
   const mockTrackEvent = jest.fn();
-  const useMetricsMock = jest.mocked(useMetrics);
+  const useAnalyticsMock = jest.mocked(useAnalytics);
   const mockTrace = jest.mocked(trace);
   const mockEndTrace = jest.mocked(endTrace);
 
@@ -213,10 +213,10 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
       defaultRouteParams,
     );
 
-    useMetricsMock.mockReturnValue({
+    useAnalyticsMock.mockReturnValue({
       trackEvent: mockTrackEvent,
-      createEventBuilder: MetricsEventBuilder.createEventBuilder,
-    } as unknown as ReturnType<typeof useMetrics>);
+      createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
+    } as unknown as ReturnType<typeof useAnalytics>);
   });
 
   it('matches snapshot', () => {
@@ -297,6 +297,34 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
     });
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('tracks EARN_WITHDRAWAL_REVIEW_CANCEL_CLICKED when cancel button is pressed', async () => {
+    const { getByTestId } = renderWithProvider(
+      <EarnLendingWithdrawalConfirmationView />,
+      {
+        state: mockInitialState,
+      },
+    );
+
+    mockTrackEvent.mockClear();
+
+    const footerCancelButton = getByTestId(
+      CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CANCEL_BUTTON,
+    );
+
+    await act(async () => {
+      fireEvent.press(footerCancelButton);
+    });
+
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Earn Withdrawal Review Cancel Clicked',
+        properties: expect.objectContaining({
+          action_type: 'withdrawal',
+        }),
+      }),
+    );
   });
 
   it('executes lending withdrawal transaction when confirm button is pressed', async () => {

@@ -4,9 +4,9 @@
  * Covers bug #25315: Close and Modify actions must be geo-restricted (show geo block sheet when isEligible false).
  * Run with: yarn test:view --testPathPattern="PerpsMarketDetailsView.view.test"
  */
-import '../../../../../util/test/component-view/mocks';
+import '../../../../../../tests/component-view/mocks';
 import { fireEvent, screen } from '@testing-library/react-native';
-import { renderPerpsMarketDetailsView } from '../../../../../util/test/component-view/renderers/perpsViewRenderer';
+import { renderPerpsMarketDetailsView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
 import { PerpsMarketDetailsViewSelectorsIDs } from '../../Perps.testIds';
 
 describe('PerpsMarketDetailsView', () => {

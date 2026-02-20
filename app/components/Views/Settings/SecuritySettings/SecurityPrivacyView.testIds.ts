@@ -10,8 +10,7 @@ export const SecurityPrivacyViewSelectorsIDs = {
   AUTO_LOCK_SECTION: 'auto-lock-section',
   REMEMBER_ME_TOGGLE: 'turn-on-remember-me',
   SHOW_PRIVATE_KEY: 'show-private-key',
-  BIOMETRICS_TOGGLE: 'biometrics-option',
-  DEVICE_PASSCODE_TOGGLE: 'device-passcode-option',
+  DEVICE_SECURITY_TOGGLE: 'device-security-toggle',
   CLEAR_PRIVACY_DATA_BUTTON: 'clear-privacy-data-button',
   PROTECT_YOUR_WALLET: 'protect-your-wallet',
 };

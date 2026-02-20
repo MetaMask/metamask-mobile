@@ -15,16 +15,20 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { useCallback, useState } from 'react';
 import { useSelector } from 'react-redux';
+import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import Engine from '../../../core/Engine';
 import { getDeviceId } from '../../../core/Ledger/Ledger';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { selectGasFeeEstimates } from '../../../selectors/confirmTransaction';
+import { isHardwareAccount } from '../../../util/address';
 import { decGWEIToHexWEI } from '../../../util/conversions';
 import { addHexPrefix } from '../../../util/number';
 import { speedUpTransaction as speedUpTx } from '../../../util/transaction-controller';
 import { validateTransactionActionBalance } from '../../../util/transactions';
 import {
   createLedgerTransactionModalNavDetails,
+  LedgerReplacementTxTypes,
   type ReplacementTxParams,
 } from '../../UI/LedgerModals/LedgerTransactionModal';
 import { createQRSigningTransactionModalNavDetails } from '../../UI/QRHardware/QRSigningTransactionModal';
@@ -71,6 +75,9 @@ export function useUnifiedTxActions() {
 
   const gasFeeEstimates = useSelector(selectGasFeeEstimates);
   const accounts = useSelector(selectAccounts);
+  const selectedAddress = useSelector(
+    selectSelectedInternalAccountFormattedAddress,
+  );
 
   const [retryIsOpen, setRetryIsOpen] = useState(false);
   const [retryErrorMsg, setRetryErrorMsg] = useState<string | undefined>(
@@ -85,10 +92,56 @@ export function useUnifiedTxActions() {
   const [speedUpTxId, setSpeedUpTxId] = useState<Maybe<string>>(null);
   const [cancelTxId, setCancelTxId] = useState<Maybe<string>>(null);
 
+  const isLedgerAccount = isHardwareAccount(selectedAddress ?? '', [
+    ExtendedKeyringTypes.ledger,
+  ]);
+
   const toggleRetry = (msg?: string) => {
     setRetryIsOpen((prev) => !prev);
     setRetryErrorMsg(msg);
   };
+
+  const onSpeedUpCompleted = useCallback(() => {
+    setSpeedUp1559IsOpen(false);
+    setSpeedUpIsOpen(false);
+    setExistingGas(null);
+    setSpeedUpTxId(null);
+    setExistingTx(null);
+  }, []);
+
+  const onCancelCompleted = useCallback(() => {
+    setCancel1559IsOpen(false);
+    setCancelIsOpen(false);
+    setExistingGas(null);
+    setCancelTxId(null);
+    setExistingTx(null);
+  }, []);
+
+  const signLedgerTransaction = useCallback(
+    async (transaction: LedgerSignRequest) => {
+      const deviceId = await getDeviceId();
+      const onConfirmation = (_isComplete: boolean) => {
+        // Clean up modal state regardless of whether the user confirmed or rejected.
+        // Without this, rejecting on the Ledger modal leaves stale state that can
+        // cause the speed up/cancel modal to reappear unexpectedly.
+        const isSpeedUp = transaction.speedUpParams?.type === 'SpeedUp';
+        if (isSpeedUp) {
+          onSpeedUpCompleted();
+        } else {
+          onCancelCompleted();
+        }
+      };
+      navigation.navigate(
+        ...createLedgerTransactionModalNavDetails({
+          transactionId: transaction.id,
+          deviceId,
+          onConfirmationComplete: onConfirmation,
+          replacementParams: transaction?.replacementParams,
+        }),
+      );
+    },
+    [navigation, onSpeedUpCompleted, onCancelCompleted],
+  );
 
   const getGasPriceEstimate = () => {
     if (!gasFeeEstimates) {
@@ -238,6 +291,7 @@ export function useUnifiedTxActions() {
   };
 
   const onSpeedUpCompleted = () => {
+    setSpeedUp1559IsOpen(false);
     setSpeedUpIsOpen(false);
     setExistingGas(null);
     setSpeedUpTxId(null);
@@ -245,22 +299,11 @@ export function useUnifiedTxActions() {
   };
 
   const onCancelCompleted = () => {
+    setCancel1559IsOpen(false);
     setCancelIsOpen(false);
     setExistingGas(null);
     setCancelTxId(null);
     setExistingTx(null);
-  };
-
-  const getParamsToSend = (
-    params?: ReplacementGasParams | CancelSpeedupModalParams,
-  ): GasPriceValue | FeeMarketEIP1559Values | undefined => {
-    if (params?.error) {
-      return undefined;
-    }
-    if (params && ('maxFeePerGas' in params || 'gasPrice' in params)) {
-      return params;
-    }
-    return getCancelOrSpeedupValues(params as ReplacementGasParams);
   };
 
   const speedUpTransaction = async (
@@ -273,6 +316,24 @@ export function useUnifiedTxActions() {
       if (!speedUpTxId) {
         throw new Error('Missing transaction id for speed up');
       }
+
+      if (isLedgerAccount) {
+        const gasValues = getCancelOrSpeedupValues(params);
+        const isEip1559 = gasValues && 'maxFeePerGas' in gasValues;
+
+        await signLedgerTransaction({
+          id: speedUpTxId,
+          speedUpParams: { type: 'SpeedUp' },
+          replacementParams: {
+            type: LedgerReplacementTxTypes.SPEED_UP,
+            ...(isEip1559
+              ? { eip1559GasFee: gasValues }
+              : { legacyGasFee: gasValues }),
+          },
+        });
+        return;
+      }
+
       await speedUpTx(speedUpTxId, getParamsToSend(params));
       onSpeedUpCompleted();
     } catch (error: unknown) {
@@ -291,6 +352,23 @@ export function useUnifiedTxActions() {
       if (!cancelTxId) {
         throw new Error('Missing transaction id for cancel');
       }
+
+      if (isLedgerAccount) {
+        const gasValues = getCancelOrSpeedupValues(transactionObject);
+        const isEip1559 = gasValues && 'maxFeePerGas' in gasValues;
+
+        await signLedgerTransaction({
+          id: cancelTxId,
+          replacementParams: {
+            type: LedgerReplacementTxTypes.CANCEL,
+            ...(isEip1559
+              ? { eip1559GasFee: gasValues }
+              : { legacyGasFee: gasValues }),
+          },
+        });
+        return;
+      }
+
       await Engine.context.TransactionController.stopTransaction(
         cancelTxId,
         getParamsToSend(params),
@@ -315,26 +393,6 @@ export function useUnifiedTxActions() {
     },
     [navigation],
   );
-
-  const signLedgerTransaction = async (transaction: LedgerSignRequest) => {
-    const deviceId = await getDeviceId();
-    const onConfirmation = (isComplete: boolean) => {
-      if (isComplete) {
-        transaction.speedUpParams &&
-        transaction.speedUpParams?.type === 'SpeedUp'
-          ? onSpeedUpCompleted()
-          : onCancelCompleted();
-      }
-    };
-    navigation.navigate(
-      ...createLedgerTransactionModalNavDetails({
-        transactionId: transaction.id,
-        deviceId,
-        onConfirmationComplete: onConfirmation,
-        replacementParams: transaction?.replacementParams,
-      }),
-    );
-  };
 
   const cancelUnsignedQRTransaction = async (tx: TransactionMeta) => {
     await Engine.context.ApprovalController.reject(
