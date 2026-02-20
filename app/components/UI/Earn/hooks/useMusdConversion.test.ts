@@ -119,6 +119,7 @@ describe('useMusdConversion', () => {
       type?: TransactionType;
       chainId?: Hex;
       txParams?: { from?: string };
+      metamaskPay?: { tokenAddress?: string };
     }[];
   } = {}) => {
     mockUseSelector.mockReset();
@@ -619,6 +620,122 @@ describe('useMusdConversion', () => {
       logo: 'https://example.com/usdc.png',
       isETH: false,
     };
+    const mockDaiToken: AssetType = {
+      ...mockToken,
+      address: '0x6b175474e89094c44da98b954eedeac495271d0f' as Hex,
+      symbol: 'DAI',
+      name: 'Dai Stablecoin',
+    };
+
+    it('reuses existing pending transaction for same account, chain, and token', async () => {
+      setupUseSelectorMock({
+        pendingApprovals: {
+          'tx-existing': { id: 'tx-existing' },
+        },
+        transactions: [
+          {
+            id: 'tx-existing',
+            type: TransactionType.musdConversion,
+            chainId: '0x1',
+            txParams: { from: mockSelectedAccount.address },
+            metamaskPay: { tokenAddress: mockToken.address },
+          },
+        ],
+      });
+
+      const { result } = renderHook(() => useMusdConversion());
+
+      let conversionResult;
+      await act(async () => {
+        conversionResult =
+          await result.current.initiateMaxConversion(mockToken);
+      });
+
+      expect(conversionResult).toEqual({ transactionId: 'tx-existing' });
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(
+        Routes.EARN.MODALS.ROOT,
+        {
+          screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+          params: {
+            variant: MusdConversionVariant.QUICK_CONVERT,
+            token: mockToken,
+          },
+        },
+      );
+      expect(
+        mockNetworkController.findNetworkClientIdByChainId,
+      ).not.toHaveBeenCalled();
+      expect(mockTransactionController.addTransaction).not.toHaveBeenCalled();
+    });
+
+    it('does not reuse existing pending transaction when token differs on same account and chain', async () => {
+      setupUseSelectorMock({
+        pendingApprovals: {
+          'tx-existing': { id: 'tx-existing' },
+        },
+        transactions: [
+          {
+            id: 'tx-existing',
+            type: TransactionType.musdConversion,
+            chainId: '0x1',
+            txParams: { from: mockSelectedAccount.address },
+            metamaskPay: { tokenAddress: mockToken.address },
+          },
+        ],
+      });
+
+      mockNetworkController.findNetworkClientIdByChainId.mockReturnValue(
+        'mainnet',
+      );
+      mockTransactionController.addTransaction.mockResolvedValue({
+        transactionMeta: { id: 'tx-max-new' },
+      });
+
+      const { result } = renderHook(() => useMusdConversion());
+
+      let conversionResult;
+      await act(async () => {
+        conversionResult =
+          await result.current.initiateMaxConversion(mockDaiToken);
+      });
+
+      expect(conversionResult).toEqual({ transactionId: 'tx-max-new' });
+      expect(mockTransactionController.addTransaction).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not reuse existing pending transaction when existing transaction token is missing', async () => {
+      setupUseSelectorMock({
+        pendingApprovals: {
+          'tx-existing': { id: 'tx-existing' },
+        },
+        transactions: [
+          {
+            id: 'tx-existing',
+            type: TransactionType.musdConversion,
+            chainId: '0x1',
+            txParams: { from: mockSelectedAccount.address },
+          },
+        ],
+      });
+
+      mockNetworkController.findNetworkClientIdByChainId.mockReturnValue(
+        'mainnet',
+      );
+      mockTransactionController.addTransaction.mockResolvedValue({
+        transactionMeta: { id: 'tx-max-new' },
+      });
+
+      const { result } = renderHook(() => useMusdConversion());
+
+      let conversionResult;
+      await act(async () => {
+        conversionResult =
+          await result.current.initiateMaxConversion(mockToken);
+      });
+
+      expect(conversionResult).toEqual({ transactionId: 'tx-max-new' });
+      expect(mockTransactionController.addTransaction).toHaveBeenCalledTimes(1);
+    });
 
     it('creates transaction with full token balance', async () => {
       setupUseSelectorMock();
