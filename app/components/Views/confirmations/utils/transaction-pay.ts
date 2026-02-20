@@ -237,7 +237,7 @@ export function buildAllowlistTokens(
           result.push({
             address: nativeAddr,
             chainId: chainId as Hex,
-            name: networkConfig.name,
+            name: networkConfig.nativeCurrency,
             symbol: networkConfig.nativeCurrency,
             decimals: 18,
             image: '',
