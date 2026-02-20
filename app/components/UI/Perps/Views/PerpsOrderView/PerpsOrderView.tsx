@@ -1014,6 +1014,12 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 mmPayTokenSelected: payToken.symbol ?? '',
                 mmPayNetworkSelected: String(payToken.chainId ?? ''),
               }),
+            ...(routeAbTestTokenDetailsLayout && {
+              abTests: {
+                assetsASSETS2493AbtestTokenDetailsLayout:
+                  routeAbTestTokenDetailsLayout,
+              },
+            }),
           },
         };
 
@@ -1093,6 +1099,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       payToken,
       onDepositConfirm,
       handleDepositConfirm,
+      routeAbTestTokenDetailsLayout,
     ],
   );
 

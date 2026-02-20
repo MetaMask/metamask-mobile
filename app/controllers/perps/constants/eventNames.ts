@@ -84,6 +84,7 @@ export const PERPS_EVENT_PROPERTY = {
   WARNING_MESSAGE: 'warning_message',
   ERROR_TYPE: 'error_type',
   ERROR_MESSAGE: 'error_message',
+  AB_TESTS: 'ab_tests',
   COMPLETION_DURATION_TUTORIAL: 'completion_duration_tutorial',
   STEPS_VIEWED: 'steps_viewed',
   VIEW_OCCURRENCES: 'view_occurrences',
