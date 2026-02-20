@@ -39,6 +39,10 @@ import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
 import { RampIntent } from '../../../Ramp/types';
 import { EARN_TEST_IDS } from '../../constants/testIds';
 import AppConstants from '../../../../../core/AppConstants';
+import {
+  Text as DesignSystemText,
+  FontFamily,
+} from '@metamask/design-system-react-native';
 interface EarnMusdConversionEducationViewRouteParams {
   /**
    * Indicates if this navigation originated from a deeplink
@@ -301,11 +305,15 @@ const EarnMusdConversionEducationView = () => {
       testID={EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.CONTAINER}
     >
       <View style={styles.content}>
-        <Text style={styles.heading} numberOfLines={2} adjustsFontSizeToFit>
+        <DesignSystemText
+          fontFamily={FontFamily.Hero}
+          numberOfLines={2}
+          adjustsFontSizeToFit
+        >
           {strings('earn.musd_conversion.education.heading', {
             percentage: MUSD_CONVERSION_APY,
           })}
-        </Text>
+        </DesignSystemText>
         <Text variant={TextVariant.BodyMD} style={styles.bodyText}>
           {strings('earn.musd_conversion.education.description', {
             percentage: MUSD_CONVERSION_APY,
