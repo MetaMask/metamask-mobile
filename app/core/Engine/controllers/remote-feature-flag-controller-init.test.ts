@@ -10,6 +10,13 @@ import { ExtendedMessenger } from '../../ExtendedMessenger';
 import { buildControllerInitRequestMock } from '../utils/test-utils';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 import Logger from '../../../util/Logger';
+import { buildTimeDefaultsConfig } from './remote-feature-flag-build-time-defaults-config';
+
+jest.mock('./remote-feature-flag-build-time-defaults-config', () => ({
+  buildTimeDefaultsConfig: {
+    shouldApply: jest.fn(),
+  },
+}));
 
 jest.mock('../../../util/Logger', () => ({
   log: jest.fn(),
@@ -22,9 +29,12 @@ jest.mock('@metamask/remote-feature-flag-controller', () => ({
   })),
 }));
 
-function getInitRequestMock(): jest.Mocked<
-  ControllerInitRequest<RemoteFeatureFlagControllerMessenger>
-> {
+function getInitRequestMock(
+  overrides?: Partial<{
+    persistedState: ControllerInitRequest<RemoteFeatureFlagControllerMessenger>['persistedState'];
+    __testRemoteFeatureFlagDefaultsJson?: string;
+  }>,
+): jest.Mocked<ControllerInitRequest<RemoteFeatureFlagControllerMessenger>> {
   const baseMessenger = new ExtendedMessenger<MockAnyNamespace, never, never>({
     namespace: MOCK_ANY_NAMESPACE,
   });
@@ -33,6 +43,7 @@ function getInitRequestMock(): jest.Mocked<
     ...buildControllerInitRequestMock(baseMessenger),
     controllerMessenger: getRemoteFeatureFlagControllerMessenger(baseMessenger),
     initMessenger: undefined,
+    ...overrides,
   };
 
   // @ts-expect-error: Partial mock.
@@ -63,6 +74,7 @@ describe('remoteFeatureFlagControllerInit', () => {
     const controllerMock = jest.mocked(RemoteFeatureFlagController);
     expect(controllerMock).toHaveBeenCalledWith({
       messenger: expect.any(Object),
+      state: undefined,
       disabled: false,
       getMetaMetricsId: expect.any(Function),
       clientConfigApiService: expect.any(ClientConfigApiService),
@@ -136,5 +148,128 @@ describe('remoteFeatureFlagControllerInit', () => {
       'Feature flags update failed: ',
       mockError,
     );
+  });
+
+  describe('build-time feature flag defaults (builds.yml)', () => {
+    const originalGithubActions = process.env.GITHUB_ACTIONS;
+    const originalE2E = process.env.E2E;
+    const originalRemoteFeatureFlagDefaults =
+      process.env.REMOTE_FEATURE_FLAG_DEFAULTS;
+
+    beforeEach(() => {
+      jest.mocked(RemoteFeatureFlagController).mockClear();
+    });
+
+    afterEach(() => {
+      jest.mocked(buildTimeDefaultsConfig.shouldApply).mockReset();
+      if (originalGithubActions !== undefined) {
+        process.env.GITHUB_ACTIONS = originalGithubActions;
+      } else {
+        delete process.env.GITHUB_ACTIONS;
+      }
+      if (originalE2E !== undefined) {
+        process.env.E2E = originalE2E;
+      } else {
+        delete process.env.E2E;
+      }
+      if (originalRemoteFeatureFlagDefaults !== undefined) {
+        process.env.REMOTE_FEATURE_FLAG_DEFAULTS =
+          originalRemoteFeatureFlagDefaults;
+      } else {
+        delete process.env.REMOTE_FEATURE_FLAG_DEFAULTS;
+      }
+    });
+
+    it('passes persisted state as-is when not in GitHub Actions', () => {
+      jest.mocked(buildTimeDefaultsConfig.shouldApply).mockReturnValue(false);
+      process.env.GITHUB_ACTIONS = 'false';
+      delete process.env.E2E;
+      delete process.env.REMOTE_FEATURE_FLAG_DEFAULTS;
+
+      const persistedState = {
+        RemoteFeatureFlagController: {
+          remoteFeatureFlags: { customFlag: true },
+        },
+      };
+      remoteFeatureFlagControllerInit(
+        getInitRequestMock({
+          persistedState,
+        } as Parameters<typeof getInitRequestMock>[0]),
+      );
+
+      const controllerMock = jest.mocked(RemoteFeatureFlagController);
+      expect(controllerMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          state: persistedState.RemoteFeatureFlagController,
+        }),
+      );
+    });
+
+    it('merges REMOTE_FEATURE_FLAG_DEFAULTS when GITHUB_ACTIONS is true and E2E is not set', () => {
+      jest.mocked(buildTimeDefaultsConfig.shouldApply).mockReturnValue(true);
+
+      remoteFeatureFlagControllerInit(
+        getInitRequestMock({
+          __testRemoteFeatureFlagDefaultsJson: JSON.stringify({
+            perpsPerpTradingEnabled: true,
+            earnPooledStakingEnabled: false,
+          }),
+        } as Parameters<typeof getInitRequestMock>[0]),
+      );
+
+      const controllerMock = jest.mocked(RemoteFeatureFlagController);
+      const callArg = controllerMock.mock.calls[0][0];
+      expect(callArg.state).toBeDefined();
+      expect(callArg.state?.remoteFeatureFlags).toMatchObject({
+        perpsPerpTradingEnabled: true,
+        earnPooledStakingEnabled: false,
+      });
+    });
+
+    it('passes persisted state as-is when GITHUB_ACTIONS is true and E2E is true', () => {
+      jest.mocked(buildTimeDefaultsConfig.shouldApply).mockReturnValue(false);
+      process.env.GITHUB_ACTIONS = 'true';
+      process.env.E2E = 'true';
+      process.env.REMOTE_FEATURE_FLAG_DEFAULTS = JSON.stringify({
+        perpsPerpTradingEnabled: true,
+      });
+
+      remoteFeatureFlagControllerInit(getInitRequestMock());
+
+      const controllerMock = jest.mocked(RemoteFeatureFlagController);
+      expect(controllerMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          state: undefined,
+        }),
+      );
+    });
+
+    it('persisted state overrides build-time defaults when both present', () => {
+      jest.mocked(buildTimeDefaultsConfig.shouldApply).mockReturnValue(true);
+
+      const persistedState = {
+        RemoteFeatureFlagController: {
+          remoteFeatureFlags: {
+            perpsPerpTradingEnabled: true,
+          },
+        },
+      };
+      remoteFeatureFlagControllerInit(
+        getInitRequestMock({
+          persistedState,
+          __testRemoteFeatureFlagDefaultsJson: JSON.stringify({
+            perpsPerpTradingEnabled: false,
+            earnPooledStakingEnabled: true,
+          }),
+        } as Parameters<typeof getInitRequestMock>[0]),
+      );
+
+      const controllerMock = jest.mocked(RemoteFeatureFlagController);
+      const callArg = controllerMock.mock.calls[0][0];
+      expect(callArg.state?.remoteFeatureFlags).toMatchObject({
+        perpsPerpTradingEnabled: true,
+        earnPooledStakingEnabled: true,
+      });
+    });
   });
 });

@@ -48,12 +48,47 @@ function mockStateWithUndefinedController() {
 }
 
 describe('selectIsPna25FlagEnabled', () => {
+  const originalGithubActions = process.env.GITHUB_ACTIONS;
+  const originalE2E = process.env.E2E;
+
   afterEach(() => {
     jest.clearAllMocks();
+    if (originalGithubActions !== undefined) {
+      process.env.GITHUB_ACTIONS = originalGithubActions;
+    } else {
+      delete process.env.GITHUB_ACTIONS;
+    }
+    if (originalE2E !== undefined) {
+      process.env.E2E = originalE2E;
+    } else {
+      delete process.env.E2E;
+    }
+  });
+
+  describe('when GITHUB_ACTIONS uses only remote (no env)', () => {
+    beforeEach(() => {
+      process.env.GITHUB_ACTIONS = 'true';
+      delete process.env.E2E;
+    });
+
+    it('returns true when remote flag is true', () => {
+      const mockedState = mockStateWith(true);
+      const result = selectIsPna25FlagEnabled(mockedState);
+      expect(result).toBe(true);
+      expect(getFeatureFlagValue).not.toHaveBeenCalled();
+    });
+
+    it('returns false when remote flag is false', () => {
+      const mockedState = mockStateWith(false);
+      const result = selectIsPna25FlagEnabled(mockedState);
+      expect(result).toBe(false);
+      expect(getFeatureFlagValue).not.toHaveBeenCalled();
+    });
   });
 
   describe('without environment variable override', () => {
     beforeEach(() => {
+      process.env.GITHUB_ACTIONS = 'false';
       (getFeatureFlagValue as jest.Mock).mockImplementation(
         (_envValue: string | undefined, remoteValue: boolean) => remoteValue,
       );
@@ -94,7 +129,7 @@ describe('selectIsPna25FlagEnabled', () => {
 
   describe('with environment variable override to true', () => {
     beforeEach(() => {
-      // Mock behavior: always returns true (env override)
+      process.env.GITHUB_ACTIONS = 'false';
       (getFeatureFlagValue as jest.Mock).mockReturnValue(true);
     });
 
@@ -125,7 +160,7 @@ describe('selectIsPna25FlagEnabled', () => {
 
   describe('with environment variable override to false', () => {
     beforeEach(() => {
-      // Mock behavior: always returns false (env override)
+      process.env.GITHUB_ACTIONS = 'false';
       (getFeatureFlagValue as jest.Mock).mockReturnValue(false);
     });
 

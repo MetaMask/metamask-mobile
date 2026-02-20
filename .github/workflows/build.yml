@@ -91,9 +91,9 @@ jobs:
       - name: Apply build config
         run: |
           # Load env vars from builds.yml (this step only)
-          eval "$(node scripts/apply-build-config.js ${{ inputs.build_name }} --export)"
+          eval "$(node scripts/apply-build-config.js "${{ inputs.build_name }}" --export)"
           # Persist to GITHUB_ENV so later steps (e.g. Build) see CONFIGURATION, IS_SIM_BUILD, etc.
-          node scripts/apply-build-config.js ${{ inputs.build_name }} --export-github-env >> "$GITHUB_ENV"
+          node scripts/apply-build-config.js "${{ inputs.build_name }}" --export-github-env >> "$GITHUB_ENV"
 
       - name: Set secrets
         env:
