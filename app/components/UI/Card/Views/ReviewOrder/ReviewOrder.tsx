@@ -16,7 +16,8 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
 import Routes from '../../../../../constants/navigation/Routes';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { CardActions, CardScreens } from '../../util/metrics';
 import { ReviewOrderSelectors } from './ReviewOrder.testIds';
 import DaimoPayService from '../../services/DaimoPayService';
@@ -42,7 +43,7 @@ interface OrderItem {
 
 const ReviewOrder = () => {
   const { navigate } = useNavigation();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const tw = useTailwind();
   const { shippingAddress: routeShippingAddress, fromUpgrade } =
     useParams<ReviewOrderParams>();

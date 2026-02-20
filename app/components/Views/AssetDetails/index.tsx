@@ -52,7 +52,7 @@ import {
 import { selectAllTokens } from '../../../selectors/tokensController';
 import { selectTokenMarketDataByChainId } from '../../../selectors/tokenRatesController';
 import { selectTokensBalances } from '../../../selectors/tokenBalancesController';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import { RootState } from 'app/reducers';
 import { Colors } from '../../../util/theme/models';
 import { Hex } from '@metamask/utils';
@@ -158,7 +158,7 @@ const AssetDetails = (props: InnerProps) => {
   const { address, chainId: networkId, asset } = props.route.params;
   const { token } = props;
   const { colors } = useTheme();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const styles = createStyles(colors);
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const { toastRef } = useContext(ToastContext);
