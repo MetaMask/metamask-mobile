@@ -17,7 +17,6 @@ import Engine from '../../../core/Engine';
 import {
   selectEvmChainId,
   selectNativeCurrencyByChainId,
-  selectSelectedNetworkClientId,
 } from '../../../selectors/networkController';
 import {
   selectCurrentCurrency,
@@ -223,7 +222,6 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const multiChainTokenBalance = useSelector(selectTokensBalances);
 
   const chainId = asset.chainId as Hex;
-  const selectedNetworkClientId = useSelector(selectSelectedNetworkClientId);
   const tokenResult = useSelector((state: RootState) =>
     selectTokenDisplayData(state, asset.chainId as Hex, asset.address as Hex),
   );
@@ -293,25 +291,6 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   useEffect(() => {
     endTrace({ name: TraceName.AssetDetails });
   }, []);
-
-  useEffect(() => {
-    const { SwapsController } = Engine.context;
-    const fetchTokenWithCache = async () => {
-      try {
-        await SwapsController.fetchTokenWithCache({
-          networkClientId: selectedNetworkClientId,
-        });
-        // TODO: Replace "any" with type
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } catch (error: any) {
-        Logger.error(
-          error,
-          'Swaps: error while fetching tokens with cache in AssetOverview',
-        );
-      }
-    };
-    fetchTokenWithCache();
-  }, [selectedNetworkClientId]);
 
   const onReceive = () => {
     trackActionButtonClick(trackEvent, createEventBuilder, {
