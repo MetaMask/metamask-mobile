@@ -14,6 +14,7 @@ import AdvancedSettings from '../../Views/Settings/AdvancedSettings';
 import BackupAndSyncSettings from '../../Views/Settings/Identity/BackupAndSyncSettings';
 import SecuritySettings from '../../Views/Settings/SecuritySettings';
 import NetworksManagementView from '../../Views/NetworksManagement/NetworksManagementView';
+import NetworkDetailsView from '../../Views/NetworksManagement/NetworkDetailsView';
 import ExperimentalSettings from '../../Views/Settings/ExperimentalSettings';
 import NotificationsSettings from '../../Views/Settings/NotificationsSettings';
 import RegionSelector from '../../UI/Ramp/Views/Settings/RegionSelector/RegionSelector';
@@ -378,6 +379,11 @@ const SettingsFlow = () => {
       <Stack.Screen
         name="NetworksManagement"
         component={NetworksManagementView}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name={Routes.SETTINGS.NETWORK_DETAILS}
+        component={NetworkDetailsView}
         options={{ headerShown: false }}
       />
       <Stack.Screen name="SDKSessionsManager" component={SDKSessionsManager} />
