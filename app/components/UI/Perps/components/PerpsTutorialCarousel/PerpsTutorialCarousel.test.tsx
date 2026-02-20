@@ -453,6 +453,38 @@ describe('PerpsTutorialCarousel', () => {
           },
         );
       });
+
+      it('navigates to browser with support URL when Learn More button is pressed', async () => {
+        render(<PerpsTutorialCarousel />);
+
+        // Navigate through all screens to get to last screen
+        await navigateToScreen(5);
+
+        // Verify we're on the last screen with Learn More button
+        expect(
+          screen.getByTestId('perps-tutorial-learn-more-button'),
+        ).toBeOnTheScreen();
+
+        // Press Learn More button
+        await act(async () => {
+          fireEvent.press(
+            screen.getByTestId('perps-tutorial-learn-more-button'),
+          );
+        });
+
+        // Verify navigation to browser with support URL
+        expect(mockNavigationServiceMethods.navigate).toHaveBeenCalledWith(
+          Routes.BROWSER.HOME,
+          {
+            screen: Routes.BROWSER.VIEW,
+            params: expect.objectContaining({
+              newTabUrl:
+                'https://support.metamask.io/manage-crypto/trade/perps',
+              fromPerps: true,
+            }),
+          },
+        );
+      });
     });
 
     describe('Non-eligible Users', () => {

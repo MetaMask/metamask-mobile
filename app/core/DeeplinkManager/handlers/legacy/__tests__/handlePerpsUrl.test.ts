@@ -228,8 +228,11 @@ describe('handlePerpsUrl', () => {
       await handlePerpsUrl({ perpsPath: 'perps?screen=markets' });
 
       // First-time users always go to tutorial, even with screen=markets parameter
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.TUTORIAL, {
-        isFromDeeplink: true,
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.TUTORIAL,
+        params: {
+          isFromDeeplink: true,
+        },
       });
       expect(selectIsFirstTimePerpsUser).toHaveBeenCalled();
       // Should not call setParams or navigate to markets
@@ -342,8 +345,11 @@ describe('handlePerpsUrl', () => {
 
       await handlePerpsUrl({ perpsPath: 'perps?screen=home' });
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.TUTORIAL, {
-        isFromDeeplink: true,
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.TUTORIAL,
+        params: {
+          isFromDeeplink: true,
+        },
       });
     });
   });
@@ -358,7 +364,9 @@ describe('handlePerpsUrl', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.MARKET_LIST,
-        params: { source: 'deeplink' },
+        params: {
+          source: 'deeplink',
+        },
       });
     });
 
@@ -409,7 +417,9 @@ describe('handlePerpsUrl', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.MARKET_LIST,
-        params: { source: 'deeplink' },
+        params: {
+          source: 'deeplink',
+        },
       });
     });
 
@@ -420,8 +430,11 @@ describe('handlePerpsUrl', () => {
         perpsPath: 'perps?screen=market-list&tab=crypto',
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.TUTORIAL, {
-        isFromDeeplink: true,
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.TUTORIAL,
+        params: {
+          isFromDeeplink: true,
+        },
       });
     });
   });

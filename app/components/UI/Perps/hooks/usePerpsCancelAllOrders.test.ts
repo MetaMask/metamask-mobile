@@ -3,6 +3,7 @@ import { useNavigation } from '@react-navigation/native';
 import { usePerpsCancelAllOrders } from './usePerpsCancelAllOrders';
 import Engine from '../../../../core/Engine';
 import { type Order } from '@metamask/perps-controller';
+import Routes from '../../../../constants/navigation/Routes';
 
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({
@@ -326,6 +327,54 @@ describe('usePerpsCancelAllOrders', () => {
 
     // Assert
     expect(mockNavigation.goBack).toHaveBeenCalled();
+  });
+
+  it('navigates to PERPS_HOME when handleKeepOrders called and canGoBack returns false', () => {
+    // Arrange
+    const orders = [createMockOrder()];
+    mockNavigation.canGoBack.mockReturnValue(false);
+    const { result } = renderHook(() => usePerpsCancelAllOrders(orders));
+
+    // Act
+    act(() => {
+      result.current.handleKeepOrders();
+    });
+
+    // Assert
+    expect(mockNavigation.goBack).not.toHaveBeenCalled();
+    expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+      screen: Routes.PERPS.PERPS_HOME,
+    });
+  });
+
+  it('navigates to PERPS_HOME when handleCancelAll succeeds and canGoBack returns false', async () => {
+    // Arrange
+    const orders = [createMockOrder()];
+    const mockResult = {
+      success: true,
+      successCount: 1,
+      failureCount: 0,
+      results: [],
+    };
+    (
+      Engine.context.PerpsController.cancelOrders as jest.Mock
+    ).mockResolvedValue(mockResult);
+    mockNavigation.canGoBack.mockReturnValue(false);
+    const { result } = renderHook(() => usePerpsCancelAllOrders(orders));
+
+    // Act
+    await act(async () => {
+      await result.current.handleCancelAll();
+    });
+
+    // Assert
+    await waitFor(() => {
+      expect(result.current.isCanceling).toBe(false);
+    });
+    expect(mockNavigation.goBack).not.toHaveBeenCalled();
+    expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+      screen: Routes.PERPS.PERPS_HOME,
+    });
   });
 
   it('does nothing when handleCancelAll called with no orders', async () => {
