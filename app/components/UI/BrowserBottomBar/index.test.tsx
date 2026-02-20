@@ -19,8 +19,8 @@ const mockCreateEventBuilder = jest.fn(() => ({
   build: mockBuild,
 }));
 
-jest.mock('../../hooks/useMetrics', () => ({
-  useMetrics: () => ({
+jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
     trackEvent: mockTrackEvent,
     createEventBuilder: mockCreateEventBuilder,
   }),
@@ -778,6 +778,30 @@ describe('BrowserBottomBar', () => {
       const pushCall = mockNavigation.push.mock.calls[0];
       expect(pushCall[1].params.onAddBookmark).toBeDefined();
       expect(typeof pushCall[1].params.onAddBookmark).toBe('function');
+    });
+
+    it('tracks BROWSER_ADD_FAVORITES and DAPP_ADD_TO_FAVORITE analytics events with properties', () => {
+      const { getByTestId } = renderWithProvider(
+        <BrowserBottomBar {...defaultProps} />,
+        { state: initialState },
+      );
+
+      fireEvent.press(getByTestId(BrowserViewSelectorsIDs.BOOKMARK_BUTTON));
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.BROWSER_ADD_FAVORITES,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        dapp_name: 'Example Site',
+      });
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.DAPP_ADD_TO_FAVORITE,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        action: 'Dapp View',
+        name: 'Add to Favorites',
+      });
     });
   });
 

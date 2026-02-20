@@ -2,7 +2,7 @@ import React, { createRef } from 'react';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import BrowserUrlBar from './BrowserUrlBar';
 import { ConnectionType, BrowserUrlBarRef } from './BrowserUrlBar.types';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
 import {
@@ -31,8 +31,8 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../../../components/hooks/useMetrics', () => ({
-  useMetrics: jest.fn(),
+jest.mock('../../../components/hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: jest.fn(),
 }));
 
 const mockTrackEvent = jest.fn();
@@ -82,7 +82,7 @@ describe('BrowserUrlBar', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    (useMetrics as jest.Mock).mockReturnValue({
+    (useAnalytics as jest.Mock).mockReturnValue({
       trackEvent: mockTrackEvent,
       createEventBuilder: mockCreateEventBuilder,
     });
@@ -289,7 +289,7 @@ describe('BrowserUrlBar', () => {
       // Arrange - Create ref for each test
       urlBarRef = createRef<BrowserUrlBarRef>();
       jest.clearAllMocks();
-      (useMetrics as jest.Mock).mockReturnValue({
+      (useAnalytics as jest.Mock).mockReturnValue({
         trackEvent: mockTrackEvent,
         createEventBuilder: mockCreateEventBuilder,
       });
