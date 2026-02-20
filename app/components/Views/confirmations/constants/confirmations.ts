@@ -1,5 +1,6 @@
 import { ApprovalType } from '@metamask/controller-utils';
 import { TransactionType } from '@metamask/transaction-controller';
+import { MusdConversionVariant } from '../../../UI/Earn/types/musd.types';
 
 export const MMM_ORIGIN = 'metamask';
 export const MM_MOBILE_ORIGIN = 'Metamask Mobile';
@@ -86,3 +87,11 @@ export const POST_QUOTE_TRANSACTION_TYPES = [
  * mUSD is a stablecoin pegged to USD, so we convert to user's local currency.
  */
 export const USER_CURRENCY_TYPES = [TransactionType.musdClaim] as const;
+
+export const FORCE_BOTTOM_SHEET_BY_VARIANT: Partial<
+  Record<TransactionType, Partial<Record<string, boolean>>>
+> = {
+  [TransactionType.musdConversion]: {
+    [MusdConversionVariant.QUICK_CONVERT]: true,
+  },
+};
