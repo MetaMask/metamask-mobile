@@ -93,6 +93,11 @@ jest.mock('../../../util/analytics/analytics', () => ({
 jest.mock('../../../core/Analytics', () => ({
   MetaMetricsEvents: {
     SEND_FLOW_CANCEL: 'SEND_FLOW_CANCEL',
+    WALLET_QR_SCANNER: 'WALLET_QR_SCANNER',
+    NOTIFICATIONS_MENU_OPENED: 'NOTIFICATIONS_MENU_OPENED',
+    NOTIFICATIONS_ACTIVATED: 'NOTIFICATIONS_ACTIVATED',
+    NAVIGATION_TAPS_SETTINGS: 'NAVIGATION_TAPS_SETTINGS',
+    CARD_HOME_CLICKED: 'CARD_HOME_CLICKED',
   },
 }));
 
@@ -103,6 +108,14 @@ jest.mock('../../../util/blockaid', () => ({
 jest.mock('../Stake/utils/metaMetrics/withMetaMetrics', () => ({
   withMetaMetrics: jest.fn((fn) => () => fn()),
 }));
+
+jest.mock('../AddressCopy', () => {
+  const { View } = require('react-native');
+  return {
+    __esModule: true,
+    default: (props) => <View testID="address-copy-mock" />,
+  };
+});
 
 AnalyticsEventBuilder.createEventBuilder = mockCreateEventBuilder;
 
@@ -749,6 +762,101 @@ describe('getWalletNavbarOptions', () => {
       expect(options).toBeDefined();
       expect(options.header).toBeInstanceOf(Function);
       expect(() => options.header()).not.toThrow();
+    });
+  });
+
+  describe('Analytics Events', () => {
+    const {
+      isNotificationsFeatureEnabled,
+    } = require('../../../util/notifications');
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      isNotificationsFeatureEnabled.mockReturnValue(false);
+    });
+
+    it('tracks WALLET_QR_SCANNER when QR button is pressed', () => {
+      const options = getWalletNavbarOptions(...Object.values(defaultProps));
+      const { getByTestId } = renderWithProvider(options.header(), {
+        state: { engine: { backgroundState } },
+      });
+
+      fireEvent.press(getByTestId('wallet-scan-button'));
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith('WALLET_QR_SCANNER');
+      expect(mockAnalyticsTrackEvent).toHaveBeenCalled();
+    });
+
+    it('tracks NAVIGATION_TAPS_SETTINGS when hamburger button is pressed', () => {
+      const options = getWalletNavbarOptions(...Object.values(defaultProps));
+      const { getByTestId } = renderWithProvider(options.header(), {
+        state: { engine: { backgroundState } },
+      });
+
+      fireEvent.press(getByTestId('navbar-hamburger-menu-button'));
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        'NAVIGATION_TAPS_SETTINGS',
+      );
+      expect(mockAnalyticsTrackEvent).toHaveBeenCalled();
+    });
+
+    it('tracks CARD_HOME_CLICKED when card button is pressed', () => {
+      const cardProps = {
+        ...defaultProps,
+        shouldDisplayCardButton: true,
+      };
+      const options = getWalletNavbarOptions(...Object.values(cardProps));
+      const { getByTestId } = renderWithProvider(options.header(), {
+        state: { engine: { backgroundState } },
+      });
+
+      fireEvent.press(getByTestId('card-button'));
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith('CARD_HOME_CLICKED');
+      expect(mockAnalyticsTrackEvent).toHaveBeenCalled();
+    });
+
+    it('tracks NOTIFICATIONS_MENU_OPENED when notification button is pressed and enabled', () => {
+      isNotificationsFeatureEnabled.mockReturnValue(true);
+
+      const notifProps = {
+        ...defaultProps,
+        isNotificationEnabled: true,
+        unreadNotificationCount: 3,
+        readNotificationCount: 1,
+      };
+      const options = getWalletNavbarOptions(...Object.values(notifProps));
+      const { getByTestId } = renderWithProvider(options.header(), {
+        state: { engine: { backgroundState } },
+      });
+
+      fireEvent.press(getByTestId('wallet-notifications-button'));
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        'NOTIFICATIONS_MENU_OPENED',
+      );
+      expect(mockAnalyticsTrackEvent).toHaveBeenCalled();
+    });
+
+    it('tracks NOTIFICATIONS_ACTIVATED when notification button is pressed and disabled', () => {
+      isNotificationsFeatureEnabled.mockReturnValue(true);
+
+      const notifProps = {
+        ...defaultProps,
+        isNotificationEnabled: false,
+      };
+      const options = getWalletNavbarOptions(...Object.values(notifProps));
+      const { getByTestId } = renderWithProvider(options.header(), {
+        state: { engine: { backgroundState } },
+      });
+
+      fireEvent.press(getByTestId('wallet-notifications-button'));
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        'NOTIFICATIONS_ACTIVATED',
+      );
+      expect(mockAnalyticsTrackEvent).toHaveBeenCalled();
     });
   });
 });

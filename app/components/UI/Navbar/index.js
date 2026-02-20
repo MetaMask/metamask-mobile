@@ -76,10 +76,6 @@ import { BridgeViewMode } from '../Bridge/types';
 import CardButton from '../Card/components/CardButton';
 import { Skeleton } from '../../../component-library/components/Skeleton';
 
-const trackEvent = (event, params = {}) => {
-  analytics.trackEvent(event);
-};
-
 const styles = StyleSheet.create({
   hitSlop: {
     top: 15,
@@ -237,7 +233,7 @@ export function getNavigationOptionsTitle(
 
   function navigationPop() {
     if (navigationPopEvent)
-      trackEvent(
+      analytics.trackEvent(
         AnalyticsEventBuilder.createEventBuilder(navigationPopEvent).build(),
       );
     navigation.goBack();
@@ -932,7 +928,7 @@ export function getWalletNavbarOptions(
     navigation.navigate(Routes.QR_TAB_SWITCHER, {
       onScanSuccess,
     });
-    trackEvent(
+    analytics.trackEvent(
       AnalyticsEventBuilder.createEventBuilder(
         MetaMetricsEvents.WALLET_QR_SCANNER,
       ).build(),
@@ -942,7 +938,7 @@ export function getWalletNavbarOptions(
   function handleNotificationOnPress() {
     if (isNotificationEnabled && isNotificationsFeatureEnabled()) {
       navigation.navigate(Routes.NOTIFICATIONS.VIEW);
-      trackEvent(
+      analytics.trackEvent(
         AnalyticsEventBuilder.createEventBuilder(
           MetaMetricsEvents.NOTIFICATIONS_MENU_OPENED,
         )
@@ -954,7 +950,7 @@ export function getWalletNavbarOptions(
       );
     } else {
       navigation.navigate(Routes.NOTIFICATIONS.OPT_IN_STACK);
-      trackEvent(
+      analytics.trackEvent(
         AnalyticsEventBuilder.createEventBuilder(
           MetaMetricsEvents.NOTIFICATIONS_ACTIVATED,
         )
@@ -968,7 +964,7 @@ export function getWalletNavbarOptions(
   }
 
   const handleHamburgerPress = () => {
-    trackEvent(
+    analytics.trackEvent(
       AnalyticsEventBuilder.createEventBuilder(
         MetaMetricsEvents.NAVIGATION_TAPS_SETTINGS,
       ).build(),
@@ -977,7 +973,7 @@ export function getWalletNavbarOptions(
   };
 
   const handleCardPress = () => {
-    trackEvent(
+    analytics.trackEvent(
       AnalyticsEventBuilder.createEventBuilder(
         MetaMetricsEvents.CARD_HOME_CLICKED,
       ).build(),
@@ -1513,12 +1509,12 @@ export function getSwapsQuotesNavbar(navigation, route, themeColors) {
   const title = route.params?.title ?? 'Swap';
   const leftActionText = route.params?.leftAction ?? strings('navigation.back');
 
-  const leftAction = () => {
+  const trackQuotesCancelledIfNeeded = () => {
     const trade = route.params?.requestedTrade;
     const selectedQuote = route.params?.selectedQuote;
     const quoteBegin = route.params?.quoteBegin;
     if (!selectedQuote) {
-      trackEvent(
+      analytics.trackEvent(
         AnalyticsEventBuilder.createEventBuilder(
           MetaMetricsEvents.QUOTES_REQUEST_CANCELLED,
         )
@@ -1536,32 +1532,15 @@ export function getSwapsQuotesNavbar(navigation, route, themeColors) {
           .build(),
       );
     }
+  };
+
+  const leftAction = () => {
+    trackQuotesCancelledIfNeeded();
     navigation.pop();
   };
 
   const rightAction = () => {
-    const trade = route.params?.requestedTrade;
-    const selectedQuote = route.params?.selectedQuote;
-    const quoteBegin = route.params?.quoteBegin;
-    if (!selectedQuote) {
-      trackEvent(
-        AnalyticsEventBuilder.createEventBuilder(
-          MetaMetricsEvents.QUOTES_REQUEST_CANCELLED,
-        )
-          .addProperties({
-            token_from: trade.token_from,
-            token_to: trade.token_to,
-            request_type: trade.request_type,
-            custom_slippage: trade.custom_slippage,
-            chain_id: trade.chain_id,
-            responseTime: new Date().getTime() - quoteBegin,
-          })
-          .addSensitiveProperties({
-            token_from_amount: trade.token_from_amount,
-          })
-          .build(),
-      );
-    }
+    trackQuotesCancelledIfNeeded();
     navigation.dangerouslyGetParent()?.pop();
   };
 

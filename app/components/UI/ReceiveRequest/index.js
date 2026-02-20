@@ -30,7 +30,8 @@ import { withRampNavigation } from '../Ramp/hooks/withRampNavigation';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { getRampNetworks } from '../../../reducers/fiatOrders';
 import { RequestPaymentModalSelectorsIDs } from './RequestPaymentModal.testIds';
-import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
+import { analytics } from '../../../util/analytics/analytics';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import QRAccountDisplay from '../../Views/QRAccountDisplay';
 import PNG_MM_LOGO_PATH from '../../../images/branding/fox.png';
 import { isEthAddress } from '../../../util/address';
@@ -99,10 +100,6 @@ class ReceiveRequest extends PureComponent {
      */
     isNetworkBuySupported: PropTypes.bool,
     /**
-     * Metrics injected by withMetricsAwareness HOC
-     */
-    metrics: PropTypes.object,
-    /**
      * Boolean that indicates if the evm network is selected
      */
     isEvmNetworkSelected: PropTypes.bool,
@@ -129,9 +126,11 @@ class ReceiveRequest extends PureComponent {
         Logger.log('Error while trying to share address', err);
       });
 
-    this.props.metrics.trackEvent(
-      this.props.metrics
-        .createEventBuilder(MetaMetricsEvents.RECEIVE_OPTIONS_SHARE_ADDRESS)
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.RECEIVE_OPTIONS_SHARE_ADDRESS,
+      )
+        .addProperties({ action: 'Receive Options', name: 'Share address' })
         .build(),
     );
   };
@@ -174,9 +173,11 @@ class ReceiveRequest extends PureComponent {
       params: { receiveAsset: this.props.receiveAsset },
     });
 
-    this.props.metrics.trackEvent(
-      this.props.metrics
-        .createEventBuilder(MetaMetricsEvents.RECEIVE_OPTIONS_PAYMENT_REQUEST)
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.RECEIVE_OPTIONS_PAYMENT_REQUEST,
+      )
+        .addProperties({ action: 'Receive Options', name: 'Payment Request' })
         .build(),
     );
   };
@@ -255,4 +256,4 @@ const mapDispatchToProps = (dispatch) => ({
 export default connect(
   mapStateToProps,
   mapDispatchToProps,
-)(withRampNavigation(withMetricsAwareness(ReceiveRequest)));
+)(withRampNavigation(ReceiveRequest));
