@@ -24,7 +24,7 @@ import { NotificationDetailStyles } from '../styles';
 import { CURRENCY_SYMBOL_BY_CHAIN_ID } from '../../../../../constants/network';
 import { type INotification } from '../../../../../util/notifications';
 import onChainAnalyticProperties from '../../../../../util/notifications/methods/notification-analytics';
-import { useMetrics } from '../../../../../components/hooks/useMetrics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import NetworkFeeFieldSkeleton from './Skeletons/NetworkFeeField';
 
@@ -86,7 +86,7 @@ function NetworkFeeField(props: NetworkFeeFieldProps) {
   const { styles, theme } = useStyles();
   const sheetRef = useRef<BottomSheetRef>(null);
   const { data: networkFee, isLoading } = useNetworkFee(props);
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   if (isLoading && !networkFee) {
     return (
