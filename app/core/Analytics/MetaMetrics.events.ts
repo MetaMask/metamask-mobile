@@ -366,7 +366,6 @@ enum EVENT_NAME {
   EARN_LENDING_DEPOSIT_MORE_BUTTON_CLICKED = 'Earn Lending Deposit More Button Clicked',
   EARN_LENDING_WITHDRAW_BUTTON_CLICKED = 'Earn Lending Withdraw Button Clicked',
   EARN_LENDING_WITHDRAW_CONFIRMATION_BACK_CLICKED = 'Earn Lending Withdraw Confirmation Back Clicked',
-  MUSD_CLAIM_BONUS_BUTTON_CLICKED = 'mUSD Claim Bonus Button Clicked',
 
   // Stake
   STAKE_BUTTON_CLICKED = 'Stake Button Clicked',
@@ -606,6 +605,11 @@ enum EVENT_NAME {
   MUSD_FULLSCREEN_ANNOUNCEMENT_DISPLAYED = 'mUSD Fullscreen Announcement Displayed',
   MUSD_FULLSCREEN_ANNOUNCEMENT_BUTTON_CLICKED = 'mUSD Fullscreen Announcement Button Clicked',
   MUSD_CONVERSION_STATUS_UPDATED = 'mUSD Conversion Status Updated',
+  MUSD_CLAIM_BONUS_BUTTON_CLICKED = 'mUSD Claim Bonus Button Clicked',
+  MUSD_CLAIM_BONUS_STATUS_UPDATED = 'mUSD Claim Bonus Status Updated',
+
+  // Assets
+  ASSETS_FIRST_INIT_FETCH_COMPLETED = 'Assets First Init Fetch Completed',
 }
 
 export enum HARDWARE_WALLET_BUTTON_TYPE {
@@ -657,6 +661,7 @@ enum ACTIONS {
   PERMISSION_NEW_ACCOUNT = 'Connected new account(s)',
   PERMISSION_REVOKE_ACCOUNT = 'Revoked account(s)',
   STAKE = 'Stake',
+  ASSETS = 'Assets',
   // Notifications
   SELECTS_ALL_NOTIFICATIONS = 'Selects All Notifications',
   SELECTS_WALLET_NOTIFICATIONS = 'Selects Wallet Notifications',
@@ -1280,9 +1285,6 @@ const events = {
   EARN_LENDING_WITHDRAW_CONFIRMATION_BACK_CLICKED: generateOpt(
     EVENT_NAME.EARN_LENDING_WITHDRAW_CONFIRMATION_BACK_CLICKED,
   ),
-  MUSD_CLAIM_BONUS_BUTTON_CLICKED: generateOpt(
-    EVENT_NAME.MUSD_CLAIM_BONUS_BUTTON_CLICKED,
-  ),
   // Stake
   REVIEW_STAKE_BUTTON_CLICKED: generateOpt(
     EVENT_NAME.REVIEW_STAKE_BUTTON_CLICKED,
@@ -1555,6 +1557,12 @@ const events = {
   MUSD_CONVERSION_STATUS_UPDATED: generateOpt(
     EVENT_NAME.MUSD_CONVERSION_STATUS_UPDATED,
   ),
+  MUSD_CLAIM_BONUS_BUTTON_CLICKED: generateOpt(
+    EVENT_NAME.MUSD_CLAIM_BONUS_BUTTON_CLICKED,
+  ),
+  MUSD_CLAIM_BONUS_STATUS_UPDATED: generateOpt(
+    EVENT_NAME.MUSD_CLAIM_BONUS_STATUS_UPDATED,
+  ),
 };
 
 /**
@@ -1630,6 +1638,7 @@ enum DESCRIPTION {
   SWAPS = 'Swaps',
   BRIDGE = 'Bridge',
   STAKE = 'Stake',
+  ASSETS_FIRST_INIT_FETCH_COMPLETED = 'Assets First Init Fetch Completed',
   NOTIFICATIONS = 'Notifications',
 }
 
@@ -1994,6 +2003,11 @@ const legacyMetaMetricsEvents = {
     EVENT_NAME.STAKE_BUTTON_CLICKED,
     ACTIONS.STAKE,
     DESCRIPTION.STAKE,
+  ),
+  ASSETS_FIRST_INIT_FETCH_COMPLETED: generateOpt(
+    EVENT_NAME.ASSETS_FIRST_INIT_FETCH_COMPLETED,
+    ACTIONS.ASSETS,
+    DESCRIPTION.ASSETS_FIRST_INIT_FETCH_COMPLETED,
   ),
 };
 
