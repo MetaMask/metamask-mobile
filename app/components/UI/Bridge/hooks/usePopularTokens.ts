@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { CaipChainId, CaipAssetType } from '@metamask/utils';
 import { BRIDGE_API_BASE_URL } from '../../../../constants/bridge';
 import { TokenRwaData } from '@metamask/assets-controllers';
+import Engine from '../../../../core/Engine';
 
 export interface PopularToken {
   assetId: CaipAssetType;
@@ -141,6 +142,7 @@ export const usePopularTokens = ({
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
+              Authorization: `Bearer ${await Engine.context.AuthenticationController.getBearerToken()}`,
             },
             body: JSON.stringify({
               chainIds,
