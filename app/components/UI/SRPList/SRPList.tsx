@@ -9,7 +9,7 @@ import SRPListItem from '../SRPListItem';
 import { SRPListSelectorsIDs } from './SRPList.testIds';
 import { useHdKeyringsWithSnapAccounts } from '../../hooks/useHdKeyringsWithSnapAccounts';
 import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
-import useMetrics from '../../hooks/useMetrics/useMetrics';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { useSyncSRPs } from '../../hooks/useSyncSRPs';
 
 const SRPList = ({
@@ -24,7 +24,7 @@ const SRPList = ({
   const maxHeight = windowHeight * 0.7;
   const { styles } = useStyles(styleSheet, { maxHeight });
   const hdKeyringsWithSnapAccounts = useHdKeyringsWithSnapAccounts();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   return (
     <View
