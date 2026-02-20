@@ -53,7 +53,7 @@ import {
 import { useTransactionPayToken } from '../../../../Views/confirmations/hooks/pay/useTransactionPayToken';
 import { useAddToken } from '../../../../Views/confirmations/hooks/tokens/useAddToken';
 import {
-  useIsTransactionPayQuoteLoading,
+  useIsTransactionPayLoading,
   useTransactionPayTotals,
 } from '../../../../Views/confirmations/hooks/pay/useTransactionPayData';
 import { useTransactionCustomAmount } from '../../../../Views/confirmations/hooks/transactions/useTransactionCustomAmount';
@@ -219,7 +219,7 @@ export function PredictDepositAndOrderInfo() {
 
   const payTotals = useTransactionPayTotals();
   const { onConfirm: onApprovalConfirm } = useApprovalRequest();
-  const isPayTotalsLoading = useIsTransactionPayQuoteLoading();
+  const isPayTotalsLoading = useIsTransactionPayLoading();
   const depositFeeUsd = useMemo(() => {
     if (isPredictBalanceSelected || !payTotals?.fees) return 0;
     const { provider, sourceNetwork, targetNetwork } = payTotals.fees;
@@ -504,6 +504,7 @@ export function PredictDepositAndOrderInfo() {
         width={ButtonWidthTypes.Full}
         disabled={!canPlaceBet}
         onPress={handleConfirm}
+        style={tw.style(!canPlaceBet ? 'opacity-50' : '')}
         label={
           <Text
             variant={TextVariant.BodyMd}
@@ -514,6 +515,63 @@ export function PredictDepositAndOrderInfo() {
             {formatCents(preview?.sharePrice ?? outcomeToken?.price ?? 0)}
           </Text>
         }
+      />
+    );
+  };
+
+  const renderFeesSummary = () => {
+    if (isInputFocused) {
+      return null;
+    }
+
+    if (isPayTotalsLoading) {
+      return (
+        <Box twClassName="pt-4 px-4 pb-6 flex-col gap-4">
+          <Box twClassName="flex-row justify-between items-center">
+            <Box twClassName="flex-row gap-2 items-center">
+              <Skeleton width={64} height={16} />
+            </Box>
+            <Skeleton width={44} height={16} />
+          </Box>
+          <Box twClassName="flex-row justify-between items-center">
+            <Box twClassName="flex-row items-center">
+              <Skeleton width={36} height={16} />
+              <Box twClassName="ml-1">
+                <Skeleton
+                  width={16}
+                  height={16}
+                  style={tw.style('rounded-full')}
+                />
+              </Box>
+            </Box>
+            <Skeleton width={60} height={16} />
+          </Box>
+          <Box twClassName="flex-row justify-between items-center">
+            <Box twClassName="flex-row gap-2 items-center">
+              <Skeleton width={40} height={16} />
+            </Box>
+            <Skeleton width={64} height={16} />
+          </Box>
+        </Box>
+      );
+    }
+
+    return (
+      <PredictFeeSummary
+        disabled={isInputFocused}
+        total={totalWithDepositFee}
+        metamaskFee={metamaskFee}
+        providerFee={providerFee}
+        depositFee={depositFeeUsd}
+        shouldShowRewardsRow={shouldShowRewardsRow}
+        rewardsAccountScope={rewardsAccountScope}
+        accountOptedIn={isAccountOptedIntoRewards}
+        estimatedPoints={estimatedRewardsPoints}
+        isLoadingRewards={
+          (isCalculating && isUserInputChange) || isRewardsLoading
+        }
+        hasRewardsError={isRewardsError}
+        onFeesInfoPress={handleFeesInfoPress}
       />
     );
   };
@@ -564,22 +622,7 @@ export function PredictDepositAndOrderInfo() {
   return (
     <Box twClassName="flex-1">
       {renderAmount()}
-      <PredictFeeSummary
-        disabled={isInputFocused}
-        total={totalWithDepositFee}
-        metamaskFee={metamaskFee}
-        providerFee={providerFee}
-        depositFee={depositFeeUsd}
-        shouldShowRewardsRow={shouldShowRewardsRow}
-        rewardsAccountScope={rewardsAccountScope}
-        accountOptedIn={isAccountOptedIntoRewards}
-        estimatedPoints={estimatedRewardsPoints}
-        isLoadingRewards={
-          (isCalculating && isUserInputChange) || isRewardsLoading
-        }
-        hasRewardsError={isRewardsError}
-        onFeesInfoPress={handleFeesInfoPress}
-      />
+      {renderFeesSummary()}
       {renderErrorMessage()}
       <PredictKeypad
         ref={keypadRef}
