@@ -8,8 +8,4 @@ export interface UseAuthCapabilitiesResult {
   isLoading: boolean;
   /** Authentication capabilities (null while loading or on error) */
   capabilities: AuthCapabilities | null;
-  /** Refresh the capabilities (useful after user changes system settings) */
-  refresh: () => Promise<void>;
-  /** Update the OS-level authentication enabled state */
-  updateOsAuthEnabled: () => void;
 }

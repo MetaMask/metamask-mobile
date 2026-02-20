@@ -1,7 +1,8 @@
 import { isAddress as isEvmAddress } from 'ethers/lib/utils';
 import { useCallback } from 'react';
 
-import { MetaMetricsEvents, useMetrics } from '../../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../../core/Analytics';
+import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import {
   AssetFilterMethod,
   useSendMetricsContext,
@@ -15,7 +16,7 @@ const ASSET_TYPE = {
 };
 
 export const useAssetSelectionMetrics = () => {
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const {
     accountType,
     assetFilterMethod,
