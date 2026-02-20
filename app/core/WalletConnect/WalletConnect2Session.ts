@@ -29,7 +29,7 @@ import {
   getScopedPermissions,
   hideWCLoadingState,
   isSwitchingChainRequest,
-  getRequestOrigin,
+  getUnverifiedRequestOrigin,
   hasPermissionsToSwitchChainRequest,
   getNetworkClientIdForCaipChainId,
   getChainIdForCaipChainId,
@@ -138,12 +138,15 @@ class WalletConnect2Session {
         getProviderState: any;
       }) =>
         getRpcMethodMiddleware({
-          hostname: this.hostname,
+          hostname: this.selfReportedHostname,
           getProviderState,
           channelId,
           analytics: {},
           isMMSDK: false,
           navigation: this.navigation,
+          // Website info — self-reported by dapp via WC session metadata, shown in
+          // confirmation/approval UI to indicate the claimed source of the request.
+          // Not equivalent to a verified origin/hostname.
           url: { current: url },
           title: { current: name },
           icon: { current: icons?.[0] as ImageSourcePropType },
@@ -164,12 +167,26 @@ class WalletConnect2Session {
     store.subscribe(this.onStoreChange.bind(this));
   }
 
-  private get origin() {
+  /**
+   * The dapp URL from the WalletConnect session metadata.
+   *
+   * WARNING: This value is **self-reported** by the dapp in the WC session
+   * proposal and is NOT independently verified. It MUST NOT be used as a
+   * trusted origin identifier. It is shown in the confirmation/approval UI to
+   * indicate the claimed source of the request, and used as a fallback when
+   * `verifyContext` is unavailable. It should therefore not be treated as
+   * equivalent to the verified origin/hostname of the request.
+   */
+  private get selfReportedUrl() {
     return this.session.peer.metadata.url;
   }
 
-  private get hostname() {
-    return getHostname(this.origin);
+  /**
+   * Hostname derived from the self-reported dapp URL.
+   * See {@link selfReportedUrl} for trust caveats.
+   */
+  private get selfReportedHostname() {
+    return getHostname(this.selfReportedUrl);
   }
 
   private onStoreChange() {
@@ -446,7 +463,7 @@ class WalletConnect2Session {
       }
 
       DevLogger.log(
-        `WC2::updateSession origin=${this.origin} hostname=${this.hostname} - chainId=${chainId} - accounts=${accounts}`,
+        `WC2::updateSession selfReportedUrl=${this.selfReportedUrl} selfReportedHostname=${this.selfReportedHostname} - chainId=${chainId} - accounts=${accounts}`,
       );
 
       if (accounts.length === 0) {
@@ -459,7 +476,7 @@ class WalletConnect2Session {
           accounts = approvedAccounts;
         } else {
           console.warn(
-            `WC2::updateSession no permitted accounts found for topic=${this.session.topic} origin=${this.origin}`,
+            `WC2::updateSession no permitted accounts found for topic=${this.session.topic} selfReportedUrl=${this.selfReportedUrl}`,
           );
           return;
         }
@@ -521,7 +538,10 @@ class WalletConnect2Session {
     }
 
     const channelId = this.channelId;
-    const origin = originFromRequest ?? this.origin;
+    // NOTE: originFromRequest and this.selfReportedUrl are both unverified dapp-provided values.
+    // They are shown in the confirmation/approval UI to indicate the claimed source of the
+    // request. They should NOT be treated as equivalent to a verified origin/hostname.
+    const unverifiedOrigin = originFromRequest ?? this.selfReportedUrl;
 
     const { allowed, existingNetwork, hexChainIdString } =
       await hasPermissionsToSwitchChainRequest(caip2ChainId, channelId);
@@ -545,7 +565,7 @@ class WalletConnect2Session {
 
       const hooks = getRpcMethodMiddlewareHooks({
         origin: this.channelId,
-        url: { current: origin },
+        url: { current: unverifiedOrigin },
         title: { current: this.session.peer.metadata.name },
         icon: {
           current: this.session.peer.metadata.icons?.[0] as ImageSourcePropType,
@@ -586,7 +606,7 @@ class WalletConnect2Session {
         origin: this.channelId,
         hooks: getRpcMethodMiddlewareHooks({
           origin: this.channelId,
-          url: { current: origin },
+          url: { current: unverifiedOrigin },
           title: { current: this.session.peer.metadata.name },
           icon: {
             current: this.session.peer.metadata
@@ -619,7 +639,12 @@ class WalletConnect2Session {
 
     hideWCLoadingState({ navigation: this.navigation });
 
-    const origin = getRequestOrigin(requestEvent, this.origin);
+    // NOTE: unverifiedOrigin may come from WC verifyContext (partially trusted)
+    // or fall back to self-reported session metadata URL (untrusted).
+    const unverifiedOrigin = getUnverifiedRequestOrigin(
+      requestEvent,
+      this.selfReportedUrl,
+    );
     const method = requestEvent.params.request.method;
     const isSwitchingChain = isSwitchingChainRequest(requestEvent);
 
@@ -646,7 +671,7 @@ class WalletConnect2Session {
 
     const currentMetadata = store.getState().sdk.wc2Metadata ?? {
       id: this.channelId,
-      url: origin,
+      url: unverifiedOrigin,
       name: this.session.peer.metadata.name,
       icon: this.session.peer.metadata.icons?.[0] as string,
     };
@@ -654,12 +679,12 @@ class WalletConnect2Session {
     store.dispatch(
       updateWC2Metadata({
         ...currentMetadata,
-        lastVerifiedUrl: origin,
+        lastVerifiedUrl: unverifiedOrigin,
       }),
     );
 
     DevLogger.log(
-      `WalletConnect2Session::handleRequest caip2ChainId=${caip2ChainId} method=${method} origin=${origin}`,
+      `WalletConnect2Session::handleRequest caip2ChainId=${caip2ChainId} method=${method} unverifiedOrigin=${unverifiedOrigin}`,
     );
 
     const permittedChains = await getPermittedChains(this.channelId);
@@ -671,7 +696,7 @@ class WalletConnect2Session {
 
     if (method === 'wallet_switchEthereumChain') {
       try {
-        await this.switchToChain(caip2ChainId, origin, true);
+        await this.switchToChain(caip2ChainId, unverifiedOrigin, true);
         // respond to the request as successful
         DevLogger.log(`WC::handleRequest approving switch chain request`);
         return this.approveRequest({ id: requestEvent.id + '', result: true });
@@ -715,7 +740,7 @@ class WalletConnect2Session {
         caip2ChainId,
         requestEvent,
         methodParams,
-        origin,
+        unverifiedOrigin,
       );
       return;
     }
@@ -729,7 +754,7 @@ class WalletConnect2Session {
           method: 'eth_signTypedData_v3',
           params: methodParams,
         },
-        origin,
+        origin: unverifiedOrigin,
       });
       return;
     }
@@ -742,7 +767,7 @@ class WalletConnect2Session {
         method,
         params: methodParams,
       },
-      origin,
+      origin: unverifiedOrigin,
     });
   };
 
@@ -755,12 +780,14 @@ class WalletConnect2Session {
     requestEvent: WalletKitTypes.SessionRequest,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     methodParams: any,
-    origin: string,
+    /** WARNING: This origin is self-reported by the dapp and unverified. */
+    unverifiedOrigin: string,
   ) {
     try {
-      // Prevent external transactions from using internal origins
-      // This is an external connection (WalletConnect), so block any internal origin
-      if (INTERNAL_ORIGINS.includes(origin)) {
+      // Prevent external transactions from using internal origins.
+      // This is an external connection (WalletConnect), so block any internal origin.
+      // NOTE: unverifiedOrigin is self-reported by the dapp.
+      if (INTERNAL_ORIGINS.includes(unverifiedOrigin)) {
         throw rpcErrors.invalidParams({
           message: 'External transactions cannot use internal origins',
         });
@@ -770,7 +797,7 @@ class WalletConnect2Session {
       const trx = await addTransaction(methodParams[0], {
         deviceConfirmedOn: WalletDevice.MM_MOBILE,
         networkClientId,
-        origin,
+        origin: unverifiedOrigin,
         securityAlertResponse: undefined,
       });
 
@@ -778,7 +805,7 @@ class WalletConnect2Session {
         id: requestEvent.id,
         jsonrpc: '2.0',
         method: 'eth_sendTransaction',
-        origin,
+        origin: unverifiedOrigin,
         params: [
           {
             from: methodParams[0].from,
