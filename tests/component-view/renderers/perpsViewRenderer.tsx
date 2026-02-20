@@ -687,7 +687,11 @@ export function renderPerpsComponent(
     </PerpsConnectionContext.Provider>
   );
 
-  return renderWithProvider(<WrappedComponent />, { state });
+  return renderComponentViewScreen(
+    WrappedComponent as unknown as React.ComponentType,
+    { name: 'PerpsComponentTestRoute' },
+    { state },
+  );
 }
 
 /**
@@ -722,7 +726,11 @@ export function renderPerpsComponentDisconnected(
     </PerpsConnectionContext.Provider>
   );
 
-  return renderWithProvider(<WrappedComponent />, { state });
+  return renderComponentViewScreen(
+    WrappedComponent as unknown as React.ComponentType,
+    { name: 'PerpsComponentDisconnectedTestRoute' },
+    { state },
+  );
 }
 
 /** Default order for tests that need stream orders. */
