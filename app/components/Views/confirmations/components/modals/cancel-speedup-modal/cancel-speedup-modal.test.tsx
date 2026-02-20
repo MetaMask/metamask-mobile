@@ -104,17 +104,17 @@ describe('CancelSpeedupModal', () => {
       { state: baseState },
     );
 
-    expect(getByText('Speed up Transaction')).toBeTruthy();
+    expect(getByText('Speed up Transaction')).toBeOnTheScreen();
     expect(
       getByText('This network fee will replace the original.'),
-    ).toBeTruthy();
-    expect(getByText('Network fee')).toBeTruthy();
-    expect(getByText('Speed')).toBeTruthy();
-    expect(getByText('0.001')).toBeTruthy();
-    expect(getByText('ETH')).toBeTruthy();
-    expect(getByText('$1.80')).toBeTruthy();
-    expect(getByText('Market ~ 15 sec')).toBeTruthy();
-    expect(getByText('Confirm')).toBeTruthy();
+    ).toBeOnTheScreen();
+    expect(getByText('Network fee')).toBeOnTheScreen();
+    expect(getByText('Speed')).toBeOnTheScreen();
+    expect(getByText('0.001')).toBeOnTheScreen();
+    expect(getByText('ETH')).toBeOnTheScreen();
+    expect(getByText('$1.80')).toBeOnTheScreen();
+    expect(getByText('Market ~ 15 sec')).toBeOnTheScreen();
+    expect(getByText('Confirm')).toBeOnTheScreen();
   });
 
   it('renders cancel modal with correct content', () => {
@@ -123,12 +123,12 @@ describe('CancelSpeedupModal', () => {
       { state: baseState },
     );
 
-    expect(getByText('Cancel Transaction')).toBeTruthy();
+    expect(getByText('Cancel Transaction')).toBeOnTheScreen();
     expect(
       getByText(
         'This transaction will be canceled and this network fee will replace the original.',
       ),
-    ).toBeTruthy();
+    ).toBeOnTheScreen();
   });
 
   it('does not render fiat value when null', () => {
@@ -190,7 +190,7 @@ describe('CancelSpeedupModal', () => {
       { state: baseState },
     );
 
-    expect(getByText('Speed up Transaction')).toBeTruthy();
-    expect(getByText('Network fee')).toBeTruthy();
+    expect(getByText('Speed up Transaction')).toBeOnTheScreen();
+    expect(getByText('Network fee')).toBeOnTheScreen();
   });
 });

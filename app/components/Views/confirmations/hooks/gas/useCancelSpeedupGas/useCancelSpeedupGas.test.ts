@@ -95,8 +95,8 @@ describe('useCancelSpeedupGas', () => {
         useCancelSpeedupGas({
           existingGas: {
             isEIP1559Transaction: true,
-            maxFeePerGas: '0x174876e800',
-            maxPriorityFeePerGas: '0x59682f00',
+            maxFeePerGas: '100',
+            maxPriorityFeePerGas: '1.5',
           },
           tx: null,
           isCancel: false,
@@ -132,8 +132,8 @@ describe('useCancelSpeedupGas', () => {
   it('returns EIP-1559 params when existingGas is EIP-1559 (speed up)', () => {
     const existingGas: Eip1559ExistingGas = {
       isEIP1559Transaction: true,
-      maxFeePerGas: '0x174876e800', // 100 GWEI
-      maxPriorityFeePerGas: '0x59682f00', // 1.5 GWEI
+      maxFeePerGas: '100',
+      maxPriorityFeePerGas: '1.5',
     };
 
     const { result } = renderHookWithProvider(
@@ -161,8 +161,8 @@ describe('useCancelSpeedupGas', () => {
   it('returns EIP-1559 params with higher values for cancel', () => {
     const existingGas: Eip1559ExistingGas = {
       isEIP1559Transaction: true,
-      maxFeePerGas: '0x174876e800',
-      maxPriorityFeePerGas: '0x59682f00',
+      maxFeePerGas: '100',
+      maxPriorityFeePerGas: '1.5',
     };
 
     const { result: speedUpResult } = renderHookWithProvider(
@@ -191,7 +191,7 @@ describe('useCancelSpeedupGas', () => {
 
   it('returns legacy params when existingGas has gasPrice (zero gasPrice)', () => {
     const existingGas = {
-      gasPrice: '0x0',
+      gasPrice: 0,
     };
 
     const { result } = renderHookWithProvider(
@@ -215,7 +215,7 @@ describe('useCancelSpeedupGas', () => {
 
   it('returns legacy params when existingGas has gasPrice (non-zero gasPrice)', () => {
     const existingGas = {
-      gasPrice: '0x3b9aca00', // 10 GWEI in hex
+      gasPrice: 10_000_000_000, // 10 GWEI in WEI (decimal, from parseGas)
     };
 
     const { result } = renderHookWithProvider(
@@ -239,8 +239,8 @@ describe('useCancelSpeedupGas', () => {
   it('calculates network fee correctly for EIP-1559', () => {
     const existingGas: Eip1559ExistingGas = {
       isEIP1559Transaction: true,
-      maxFeePerGas: '0x174876e800',
-      maxPriorityFeePerGas: '0x59682f00',
+      maxFeePerGas: '100',
+      maxPriorityFeePerGas: '1.5',
     };
 
     const { result } = renderHookWithProvider(
@@ -261,8 +261,8 @@ describe('useCancelSpeedupGas', () => {
   it('includes wait time in speed display', () => {
     const existingGas: Eip1559ExistingGas = {
       isEIP1559Transaction: true,
-      maxFeePerGas: '0x174876e800',
-      maxPriorityFeePerGas: '0x59682f00',
+      maxFeePerGas: '100',
+      maxPriorityFeePerGas: '1.5',
     };
 
     const { result } = renderHookWithProvider(
@@ -287,8 +287,8 @@ describe('useCancelSpeedupGas', () => {
 
     const existingGas: Eip1559ExistingGas = {
       isEIP1559Transaction: true,
-      maxFeePerGas: '0x174876e800',
-      maxPriorityFeePerGas: '0x59682f00',
+      maxFeePerGas: '100',
+      maxPriorityFeePerGas: '1.5',
     };
 
     const { result } = renderHookWithProvider(
@@ -308,8 +308,8 @@ describe('useCancelSpeedupGas', () => {
   it('returns correct native token symbol', () => {
     const existingGas: Eip1559ExistingGas = {
       isEIP1559Transaction: true,
-      maxFeePerGas: '0x174876e800',
-      maxPriorityFeePerGas: '0x59682f00',
+      maxFeePerGas: '100',
+      maxPriorityFeePerGas: '1.5',
     };
 
     const { result } = renderHookWithProvider(
@@ -328,8 +328,8 @@ describe('useCancelSpeedupGas', () => {
   it('uses market fees when market fees are higher than existing fees', () => {
     const existingGas: Eip1559ExistingGas = {
       isEIP1559Transaction: true,
-      maxFeePerGas: '0x3b9aca00', // 10 GWEI - lower than market
-      maxPriorityFeePerGas: '0x59682f00',
+      maxFeePerGas: '10',
+      maxPriorityFeePerGas: '1.5',
     };
 
     const { result } = renderHookWithProvider(
@@ -346,10 +346,8 @@ describe('useCancelSpeedupGas', () => {
       | FeeMarketEIP1559Values
       | undefined;
 
-    // Should use market fees since they're higher
-    expect(paramsForController?.maxFeePerGas).toBe('0xf43fc2c04ee0000');
-    expect(paramsForController?.maxPriorityFeePerGas).toBe(
-      '0x16e5fa4207650000',
-    );
+    // Market is 25 / 2 GWEI; existing 10 / 1.5 → speed-up 11 / 1.65; use market (higher)
+    expect(paramsForController?.maxFeePerGas).toBe('0x5d21dba00'); // 25 GWEI in hex WEI
+    expect(paramsForController?.maxPriorityFeePerGas).toBe('0x77359400'); // 2 GWEI in hex WEI
   });
 });

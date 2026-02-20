@@ -145,19 +145,19 @@ export function useCancelSpeedupGas({
     if (existingGas.isEIP1559Transaction) {
       const eip1559 = existingGas;
 
-      // Parse existing Hex WEI values
+      // existingGas from parseGas() uses weiHexToGweiDec() → decimal GWEI strings (e.g. '100')
+      // Market estimates from GasFeeController are also decimal GWEI strings (e.g. '25')
       const existingMaxFee = new BigNumber(
-        eip1559.maxFeePerGas ?? HEX_ZERO,
-        16,
+        String(eip1559.maxFeePerGas ?? 0),
+        10,
       );
       const existingPriority = new BigNumber(
-        eip1559.maxPriorityFeePerGas ?? HEX_ZERO,
-        16,
+        String(eip1559.maxPriorityFeePerGas ?? 0),
+        10,
       );
 
-      // Parse market Hex WEI values
-      const marketMaxFee = new BigNumber(market.maxFee ?? HEX_ZERO, 16);
-      const marketPriority = new BigNumber(market.priorityFee ?? HEX_ZERO, 16);
+      const marketMaxFee = new BigNumber(String(market.maxFee ?? 0), 10);
+      const marketPriority = new BigNumber(String(market.priorityFee ?? 0), 10);
 
       // Calculate suggested (1.1x existing VS market medium)
       const suggestedMaxFee = BigNumber.max(
@@ -169,11 +169,12 @@ export function useCancelSpeedupGas({
         marketPriority,
       );
 
+      // suggestedMaxFee/suggestedPriority are in GWEI; controller expects hex WEI
       const maxFeePerGasHex = addHexPrefix(
-        decGWEIToHexWEI(suggestedMaxFee).toString(),
+        decGWEIToHexWEI(suggestedMaxFee.toString())?.toString(),
       );
       const maxPriorityFeePerGasHex = addHexPrefix(
-        decGWEIToHexWEI(suggestedPriority).toString(),
+        decGWEIToHexWEI(suggestedPriority.toString())?.toString(),
       );
 
       paramsForController = {
@@ -181,24 +182,28 @@ export function useCancelSpeedupGas({
         maxPriorityFeePerGas: maxPriorityFeePerGasHex,
       };
 
-      finalFeeHex = multiplyHexes(gasLimit, maxFeePerGasHex);
+      finalFeeHex = addHexPrefix(multiplyHexes(gasLimit, maxFeePerGasHex));
     } else {
-      // Legacy / GasPrice logic
+      // Legacy: existingGas.gasPrice from parseGas() is decimal WEI (parseInt(hex, 16) result)
+      // Market from controller is typically decimal GWEI; convert to WEI for comparison
       const legacyGas = existingGas as LegacyExistingGas;
       const existingGasPrice = new BigNumber(
-        String(legacyGas.gasPrice ?? HEX_ZERO),
+        String(legacyGas.gasPrice ?? 0),
+        10,
+      );
+      const marketGasPriceWei = new BigNumber(
+        decGWEIToHexWEI(String(market.maxFee ?? 0)),
         16,
       );
-      const marketGasPrice = new BigNumber(market.maxFee ?? HEX_ZERO, 16);
 
       const suggestedGasPrice = BigNumber.max(
         existingGasPrice.times(rate),
-        marketGasPrice,
+        marketGasPriceWei,
       ).integerValue();
       const gasPriceHex = addHexPrefix(suggestedGasPrice.toString(16));
 
       paramsForController = { gasPrice: gasPriceHex };
-      finalFeeHex = multiplyHexes(gasLimit, gasPriceHex);
+      finalFeeHex = addHexPrefix(multiplyHexes(gasLimit, gasPriceHex));
     }
 
     const networkFeeNative = renderFromWei(finalFeeHex);

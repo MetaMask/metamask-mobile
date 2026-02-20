@@ -68,7 +68,6 @@ import {
 } from '../../../../constants/urls';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import TagBase from '../../../../component-library/base-components/TagBase';
-import { swapsControllerTokens } from '../../../../reducers/swaps';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -176,7 +175,6 @@ class TransactionDetails extends PureComponent {
 
   state = {
     rpcBlockExplorer: undefined,
-    renderTxActions: true,
     updatedTransactionDetails: undefined,
   };
 
@@ -563,7 +561,6 @@ const mapStateToProps = (state, ownProps) => ({
   currentCurrency: selectCurrentCurrency(state),
   primaryCurrency: selectPrimaryCurrency(state),
   swapsTransactions: selectSwapsTransactions(state),
-  swapsTokens: swapsControllerTokens(state),
   shouldUseSmartTransaction: selectShouldUseSmartTransaction(
     state,
     ownProps.transactionObject.chainId,
