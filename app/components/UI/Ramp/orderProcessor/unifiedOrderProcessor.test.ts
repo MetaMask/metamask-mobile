@@ -34,7 +34,7 @@ const mockRampsOrder = {
   totalFeesFiat: 5,
   cryptoAmount: 0.05,
   walletAddress: '0xabc',
-  network: '1',
+  network: { chainId: '1', name: 'Ethereum Mainnet' },
   createdAt: 1000000,
   txHash: '',
   excludeFromPurchases: false,
@@ -127,7 +127,7 @@ describe('processUnifiedOrder', () => {
       const order: FiatOrder = {
         ...mockOrder,
         id: 'order-plain-123',
-        data: { provider: 'moonpay' } as FiatOrder['data'],
+        data: { provider: { id: 'moonpay' } } as FiatOrder['data'],
       };
       await processUnifiedOrder(order);
       expect(mockGetOrder).toHaveBeenCalledWith(
@@ -167,8 +167,11 @@ describe('processUnifiedOrder', () => {
       }
     });
 
-    it('preserves original network when API returns empty network', async () => {
-      mockGetOrder.mockResolvedValue({ ...mockRampsOrder, network: '' });
+    it('preserves original network when API returns empty network chainId', async () => {
+      mockGetOrder.mockResolvedValue({
+        ...mockRampsOrder,
+        network: { chainId: '', name: '' },
+      });
 
       const result = await processUnifiedOrder({
         ...mockOrder,
@@ -190,7 +193,10 @@ describe('processUnifiedOrder', () => {
     });
 
     it('uses API-provided network when original network is empty', async () => {
-      mockGetOrder.mockResolvedValue({ ...mockRampsOrder, network: '137' });
+      mockGetOrder.mockResolvedValue({
+        ...mockRampsOrder,
+        network: { chainId: '137', name: 'Polygon' },
+      });
 
       const result = await processUnifiedOrder({ ...mockOrder, network: '' });
 

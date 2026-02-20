@@ -1,8 +1,4 @@
-import type {
-  Provider,
-  RampsOrder,
-  RampsOrderFiatCurrency,
-} from '@metamask/ramps-controller';
+import type { Provider, RampsOrder } from '@metamask/ramps-controller';
 import { FIAT_ORDER_STATES } from '../../../../constants/on-ramp';
 import Logger from '../../../../util/Logger';
 import { FiatOrder, V2FiatOrderData } from '../../../../reducers/fiatOrders';
@@ -36,80 +32,11 @@ export const orderStatusToFiatOrderState = (
   }
 };
 
-// These helpers handle both legacy string paths (e.g. "/currencies/fiat/mxn")
-// and the new full objects returned by the V2 API, so old orders cached in
-// Redux continue to poll correctly after the API migration.
-
-function getCryptoSymbol(cryptoCurrency: RampsOrder['cryptoCurrency']): string {
-  if (!cryptoCurrency) return '';
-  if (typeof cryptoCurrency === 'string') return cryptoCurrency;
-  return cryptoCurrency.symbol || '';
-}
-
-function getCryptoDecimals(
-  cryptoCurrency: RampsOrder['cryptoCurrency'],
-): number {
-  if (!cryptoCurrency || typeof cryptoCurrency === 'string') return 18;
-  return cryptoCurrency.decimals ?? 18;
-}
-
-function getFiatCurrencyCode(fiatCurrency: RampsOrder['fiatCurrency']): string {
-  if (!fiatCurrency) return '';
-  if (typeof fiatCurrency === 'string') {
-    const code = fiatCurrency.startsWith('/')
-      ? fiatCurrency.split('/').pop() || ''
-      : fiatCurrency;
-    return code.toUpperCase();
-  }
-  return (fiatCurrency as RampsOrderFiatCurrency).symbol || '';
-}
-
-function getFiatCurrencyDecimals(
-  fiatCurrency: RampsOrder['fiatCurrency'],
-): number {
-  if (!fiatCurrency || typeof fiatCurrency === 'string') return 2;
-  return (fiatCurrency as RampsOrderFiatCurrency).decimals ?? 2;
-}
-
-function getFiatCurrencyDenomSymbol(
-  fiatCurrency: RampsOrder['fiatCurrency'],
-): string {
-  if (!fiatCurrency || typeof fiatCurrency === 'string') return '';
-  return (fiatCurrency as RampsOrderFiatCurrency).denomSymbol || '';
-}
-
-function getProviderData(
-  provider: RampsOrder['provider'],
-): Partial<Provider> | undefined {
-  if (!provider) return undefined;
-  if (typeof provider === 'string') return { id: provider };
-  return provider;
-}
-
-function getPaymentMethodData(
-  paymentMethod: RampsOrder['paymentMethod'],
-): { id: string; name: string } | undefined {
-  if (!paymentMethod) return undefined;
-  if (typeof paymentMethod === 'string')
-    return { id: paymentMethod, name: paymentMethod };
-  return { id: paymentMethod.id, name: paymentMethod.name ?? paymentMethod.id };
-}
-
-/**
- * Extracts the network chainId from a RampsOrder network field.
- * The V2 API may return network as a string or an object with chainId.
- */
-function getNetworkChainId(network: RampsOrder['network']): string {
-  if (!network) return '';
-  if (typeof network === 'string') return network;
-  return network.chainId || '';
-}
-
 /**
  * Extracts the provider code and order code from a FiatOrder.
  *
  * V2 orders have IDs in the format "/providers/{providerCode}/orders/{orderCode}".
- * Aggregator orders store the provider in order.data.provider (as an object or string).
+ * Aggregator orders store the provider in order.data.provider.
  */
 function extractProviderAndOrderCode(order: FiatOrder): {
   providerCode: string;
@@ -127,10 +54,8 @@ function extractProviderAndOrderCode(order: FiatOrder): {
   let providerCode = '';
 
   if (data?.provider) {
-    const provider = data.provider as string | Partial<Provider>;
-    if (typeof provider === 'string') {
-      providerCode = provider;
-    } else if (provider.id) {
+    const provider = data.provider as Partial<Provider>;
+    if (provider.id) {
       providerCode = provider.id;
     }
   }
@@ -154,21 +79,10 @@ function rampsOrderToFiatOrder(
   rampsOrder: RampsOrder,
   originalOrder: FiatOrder,
 ): FiatOrder {
-  const fiatCurrencyCode =
-    getFiatCurrencyCode(rampsOrder.fiatCurrency) || originalOrder.currency;
-  const fiatDecimals = getFiatCurrencyDecimals(rampsOrder.fiatCurrency);
-  const denomSymbol = getFiatCurrencyDenomSymbol(rampsOrder.fiatCurrency);
-
-  const cryptoSymbol =
-    getCryptoSymbol(rampsOrder.cryptoCurrency) || originalOrder.cryptocurrency;
-  const cryptoDecimals = getCryptoDecimals(rampsOrder.cryptoCurrency);
-
-  // Prefer the freshest provider data from the API; fall back to the stored one.
-  const providerData =
-    getProviderData(rampsOrder.provider) ??
-    (originalOrder.data as Record<string, unknown>)?.provider;
-
-  const paymentMethodData = getPaymentMethodData(rampsOrder.paymentMethod);
+  const fiatCurrency = rampsOrder.fiatCurrency;
+  const cryptoCurrency = rampsOrder.cryptoCurrency;
+  const provider = rampsOrder.provider;
+  const paymentMethod = rampsOrder.paymentMethod;
 
   return {
     id: originalOrder.id,
@@ -178,10 +92,11 @@ function rampsOrderToFiatOrder(
     fee: rampsOrder.totalFeesFiat,
     cryptoAmount: rampsOrder.cryptoAmount || 0,
     cryptoFee: rampsOrder.totalFeesFiat || 0,
-    currency: fiatCurrencyCode,
-    currencySymbol: denomSymbol || originalOrder.currencySymbol || '',
-    cryptocurrency: cryptoSymbol,
-    network: getNetworkChainId(rampsOrder.network) || originalOrder.network,
+    currency: fiatCurrency?.symbol || originalOrder.currency,
+    currencySymbol:
+      fiatCurrency?.denomSymbol || originalOrder.currencySymbol || '',
+    cryptocurrency: cryptoCurrency?.symbol || originalOrder.cryptocurrency,
+    network: rampsOrder.network?.chainId || originalOrder.network,
     state: orderStatusToFiatOrderState(rampsOrder.status),
     account: rampsOrder.walletAddress || originalOrder.account,
     txHash: rampsOrder.txHash,
@@ -193,7 +108,13 @@ function rampsOrderToFiatOrder(
       // Spread original SDK data so legacy detail screens / analytics still work.
       ...(originalOrder.data as Record<string, unknown>),
       // Merge fields that the V2 API may update between polls.
-      provider: providerData,
+      provider: provider
+        ? {
+            id: provider.id,
+            name: provider.name,
+            links: provider.links,
+          }
+        : undefined,
       txHash: rampsOrder.txHash,
       pollingSecondsMinimum: rampsOrder.pollingSecondsMinimum,
       statusDescription: rampsOrder.statusDescription,
@@ -206,19 +127,28 @@ function rampsOrderToFiatOrder(
       providerOrderLink: rampsOrder.providerOrderLink,
       // SDK-compatible shape so the legacy OrderDetails component can render
       // amounts and fees. Uses real decimals and denomSymbol from the API.
-      fiatCurrency: {
-        id: fiatCurrencyCode,
-        symbol: fiatCurrencyCode,
-        denomSymbol,
-        decimals: fiatDecimals,
-      },
-      cryptoCurrency: {
-        id: cryptoSymbol,
-        symbol: cryptoSymbol,
-        decimals: cryptoDecimals,
-      },
+      fiatCurrency: fiatCurrency
+        ? {
+            id: fiatCurrency.symbol,
+            symbol: fiatCurrency.symbol,
+            denomSymbol: fiatCurrency.denomSymbol,
+            decimals: fiatCurrency.decimals,
+          }
+        : undefined,
+      cryptoCurrency: cryptoCurrency
+        ? {
+            id: cryptoCurrency.symbol,
+            symbol: cryptoCurrency.symbol,
+            decimals: cryptoCurrency.decimals,
+          }
+        : undefined,
       providerOrderId: rampsOrder.providerOrderId,
-      paymentMethod: paymentMethodData,
+      paymentMethod: paymentMethod
+        ? {
+            id: paymentMethod.id,
+            name: paymentMethod.name,
+          }
+        : undefined,
       // Full V2 response for V2-aware order detail screens.
       _v2Order: rampsOrder as unknown as Record<string, unknown>,
     } as V2FiatOrderData,
