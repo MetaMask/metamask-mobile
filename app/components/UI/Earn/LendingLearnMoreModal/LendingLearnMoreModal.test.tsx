@@ -86,17 +86,14 @@ jest.mock('../hooks/useEarnToken', () => ({
   }),
 }));
 
-jest.mock('../../../hooks/useMetrics', () => ({
-  useMetrics: () => ({
+jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
     trackEvent: jest.fn(),
     createEventBuilder: jest.fn(() => ({
-      addProperties: jest.fn().mockReturnThis(),
-      build: jest.fn().mockReturnValue({}),
+      addProperties: jest.fn(() => ({ build: jest.fn() })),
+      build: jest.fn(),
     })),
   }),
-  MetaMetricsEvents: {
-    EARN_LENDING_FAQ_LINK_OPENED: 'EARN_LENDING_FAQ_LINK_OPENED',
-  },
 }));
 
 const mockInitialState = {

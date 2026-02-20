@@ -42,7 +42,7 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                 "alignItems": "center",
                 "flexDirection": "row",
                 "gap": 16,
-                "height": 56,
+                "minHeight": 56,
                 "paddingLeft": 8,
                 "paddingRight": 8,
               },
@@ -677,7 +677,7 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                           onFocus={[Function]}
                                           onSubmitEditing={[Function]}
                                           placeholder="First name"
-                                          placeholderTextColor="#b7bbc8"
+                                          placeholderTextColor="#686e7d"
                                           returnKeyType="next"
                                           style={
                                             {
@@ -691,8 +691,6 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingVertical": 2,
-                                              "textAlignVertical": "center",
                                             }
                                           }
                                           testID="first-name-input"
@@ -796,7 +794,7 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                           onFocus={[Function]}
                                           onSubmitEditing={[Function]}
                                           placeholder="Last name"
-                                          placeholderTextColor="#b7bbc8"
+                                          placeholderTextColor="#686e7d"
                                           returnKeyType="next"
                                           style={
                                             {
@@ -810,8 +808,6 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingVertical": 2,
-                                              "textAlignVertical": "center",
                                             }
                                           }
                                           testID="last-name-input"
@@ -964,7 +960,7 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                         onFocus={[Function]}
                                         onSubmitEditing={[Function]}
                                         placeholder="(555) 123-4567"
-                                        placeholderTextColor="#b7bbc8"
+                                        placeholderTextColor="#686e7d"
                                         style={
                                           {
                                             "backgroundColor": "inherit",
@@ -977,8 +973,6 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "opacity": 1,
-                                            "paddingVertical": 2,
-                                            "textAlignVertical": "center",
                                           }
                                         }
                                         testID="deposit-phone-field-test-id"
@@ -1247,7 +1241,7 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                         onFocus={[Function]}
                                         onSubmitEditing={[Function]}
                                         placeholder="XXX-XX-XXXX"
-                                        placeholderTextColor="#b7bbc8"
+                                        placeholderTextColor="#686e7d"
                                         returnKeyType="done"
                                         secureTextEntry={true}
                                         style={
@@ -1262,8 +1256,6 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "opacity": 1,
-                                            "paddingVertical": 2,
-                                            "textAlignVertical": "center",
                                           }
                                         }
                                         testID="ssn-input"
@@ -1490,7 +1482,7 @@ exports[`BasicInfo Component passes regions to DepositPhoneField component 1`] =
                 "alignItems": "center",
                 "flexDirection": "row",
                 "gap": 16,
-                "height": 56,
+                "minHeight": 56,
                 "paddingLeft": 8,
                 "paddingRight": 8,
               },
@@ -2125,7 +2117,7 @@ exports[`BasicInfo Component passes regions to DepositPhoneField component 1`] =
                                           onFocus={[Function]}
                                           onSubmitEditing={[Function]}
                                           placeholder="First name"
-                                          placeholderTextColor="#b7bbc8"
+                                          placeholderTextColor="#686e7d"
                                           returnKeyType="next"
                                           style={
                                             {
@@ -2139,8 +2131,6 @@ exports[`BasicInfo Component passes regions to DepositPhoneField component 1`] =
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingVertical": 2,
-                                              "textAlignVertical": "center",
                                             }
                                           }
                                           testID="first-name-input"
@@ -2244,7 +2234,7 @@ exports[`BasicInfo Component passes regions to DepositPhoneField component 1`] =
                                           onFocus={[Function]}
                                           onSubmitEditing={[Function]}
                                           placeholder="Last name"
-                                          placeholderTextColor="#b7bbc8"
+                                          placeholderTextColor="#686e7d"
                                           returnKeyType="next"
                                           style={
                                             {
@@ -2258,8 +2248,6 @@ exports[`BasicInfo Component passes regions to DepositPhoneField component 1`] =
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingVertical": 2,
-                                              "textAlignVertical": "center",
                                             }
                                           }
                                           testID="last-name-input"
@@ -2412,7 +2400,7 @@ exports[`BasicInfo Component passes regions to DepositPhoneField component 1`] =
                                         onFocus={[Function]}
                                         onSubmitEditing={[Function]}
                                         placeholder="(555) 123-4567"
-                                        placeholderTextColor="#b7bbc8"
+                                        placeholderTextColor="#686e7d"
                                         style={
                                           {
                                             "backgroundColor": "inherit",
@@ -2425,8 +2413,6 @@ exports[`BasicInfo Component passes regions to DepositPhoneField component 1`] =
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "opacity": 1,
-                                            "paddingVertical": 2,
-                                            "textAlignVertical": "center",
                                           }
                                         }
                                         testID="deposit-phone-field-test-id"
@@ -2695,7 +2681,7 @@ exports[`BasicInfo Component passes regions to DepositPhoneField component 1`] =
                                         onFocus={[Function]}
                                         onSubmitEditing={[Function]}
                                         placeholder="XXX-XX-XXXX"
-                                        placeholderTextColor="#b7bbc8"
+                                        placeholderTextColor="#686e7d"
                                         returnKeyType="done"
                                         secureTextEntry={true}
                                         style={
@@ -2710,8 +2696,6 @@ exports[`BasicInfo Component passes regions to DepositPhoneField component 1`] =
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "opacity": 1,
-                                            "paddingVertical": 2,
-                                            "textAlignVertical": "center",
                                           }
                                         }
                                         testID="ssn-input"
@@ -2938,7 +2922,7 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
                 "alignItems": "center",
                 "flexDirection": "row",
                 "gap": 16,
-                "height": 56,
+                "minHeight": 56,
                 "paddingLeft": 8,
                 "paddingRight": 8,
               },
@@ -3573,7 +3557,7 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
                                           onFocus={[Function]}
                                           onSubmitEditing={[Function]}
                                           placeholder="First name"
-                                          placeholderTextColor="#b7bbc8"
+                                          placeholderTextColor="#686e7d"
                                           returnKeyType="next"
                                           style={
                                             {
@@ -3587,8 +3571,6 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingVertical": 2,
-                                              "textAlignVertical": "center",
                                             }
                                           }
                                           testID="first-name-input"
@@ -3692,7 +3674,7 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
                                           onFocus={[Function]}
                                           onSubmitEditing={[Function]}
                                           placeholder="Last name"
-                                          placeholderTextColor="#b7bbc8"
+                                          placeholderTextColor="#686e7d"
                                           returnKeyType="next"
                                           style={
                                             {
@@ -3706,8 +3688,6 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingVertical": 2,
-                                              "textAlignVertical": "center",
                                             }
                                           }
                                           testID="last-name-input"
@@ -3860,7 +3840,7 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
                                         onFocus={[Function]}
                                         onSubmitEditing={[Function]}
                                         placeholder="(555) 123-4567"
-                                        placeholderTextColor="#b7bbc8"
+                                        placeholderTextColor="#686e7d"
                                         style={
                                           {
                                             "backgroundColor": "inherit",
@@ -3873,8 +3853,6 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "opacity": 1,
-                                            "paddingVertical": 2,
-                                            "textAlignVertical": "center",
                                           }
                                         }
                                         testID="deposit-phone-field-test-id"
@@ -4143,7 +4121,7 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
                                         onFocus={[Function]}
                                         onSubmitEditing={[Function]}
                                         placeholder="XXX-XX-XXXX"
-                                        placeholderTextColor="#b7bbc8"
+                                        placeholderTextColor="#686e7d"
                                         returnKeyType="done"
                                         secureTextEntry={true}
                                         style={
@@ -4158,8 +4136,6 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "opacity": 1,
-                                            "paddingVertical": 2,
-                                            "textAlignVertical": "center",
                                           }
                                         }
                                         testID="ssn-input"
@@ -4386,7 +4362,7 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                 "alignItems": "center",
                 "flexDirection": "row",
                 "gap": 16,
-                "height": 56,
+                "minHeight": 56,
                 "paddingLeft": 8,
                 "paddingRight": 8,
               },
@@ -5021,7 +4997,7 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                           onFocus={[Function]}
                                           onSubmitEditing={[Function]}
                                           placeholder="First name"
-                                          placeholderTextColor="#b7bbc8"
+                                          placeholderTextColor="#686e7d"
                                           returnKeyType="next"
                                           style={
                                             {
@@ -5035,8 +5011,6 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingVertical": 2,
-                                              "textAlignVertical": "center",
                                             }
                                           }
                                           testID="first-name-input"
@@ -5140,7 +5114,7 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                           onFocus={[Function]}
                                           onSubmitEditing={[Function]}
                                           placeholder="Last name"
-                                          placeholderTextColor="#b7bbc8"
+                                          placeholderTextColor="#686e7d"
                                           returnKeyType="next"
                                           style={
                                             {
@@ -5154,8 +5128,6 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingVertical": 2,
-                                              "textAlignVertical": "center",
                                             }
                                           }
                                           testID="last-name-input"
@@ -5308,7 +5280,7 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                         onFocus={[Function]}
                                         onSubmitEditing={[Function]}
                                         placeholder="(555) 123-4567"
-                                        placeholderTextColor="#b7bbc8"
+                                        placeholderTextColor="#686e7d"
                                         style={
                                           {
                                             "backgroundColor": "inherit",
@@ -5321,8 +5293,6 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "opacity": 1,
-                                            "paddingVertical": 2,
-                                            "textAlignVertical": "center",
                                           }
                                         }
                                         testID="deposit-phone-field-test-id"
@@ -5591,7 +5561,7 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                         onFocus={[Function]}
                                         onSubmitEditing={[Function]}
                                         placeholder="XXX-XX-XXXX"
-                                        placeholderTextColor="#b7bbc8"
+                                        placeholderTextColor="#686e7d"
                                         returnKeyType="done"
                                         secureTextEntry={true}
                                         style={
@@ -5606,8 +5576,6 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "opacity": 1,
-                                            "paddingVertical": 2,
-                                            "textAlignVertical": "center",
                                           }
                                         }
                                         testID="ssn-input"
@@ -5834,7 +5802,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                 "alignItems": "center",
                 "flexDirection": "row",
                 "gap": 16,
-                "height": 56,
+                "minHeight": 56,
                 "paddingLeft": 8,
                 "paddingRight": 8,
               },
@@ -6469,7 +6437,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                           onFocus={[Function]}
                                           onSubmitEditing={[Function]}
                                           placeholder="First name"
-                                          placeholderTextColor="#b7bbc8"
+                                          placeholderTextColor="#686e7d"
                                           returnKeyType="next"
                                           style={
                                             {
@@ -6483,8 +6451,6 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingVertical": 2,
-                                              "textAlignVertical": "center",
                                             }
                                           }
                                           testID="first-name-input"
@@ -6603,7 +6569,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                           onFocus={[Function]}
                                           onSubmitEditing={[Function]}
                                           placeholder="Last name"
-                                          placeholderTextColor="#b7bbc8"
+                                          placeholderTextColor="#686e7d"
                                           returnKeyType="next"
                                           style={
                                             {
@@ -6617,8 +6583,6 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingVertical": 2,
-                                              "textAlignVertical": "center",
                                             }
                                           }
                                           testID="last-name-input"
@@ -6786,7 +6750,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                         onFocus={[Function]}
                                         onSubmitEditing={[Function]}
                                         placeholder="(555) 123-4567"
-                                        placeholderTextColor="#b7bbc8"
+                                        placeholderTextColor="#686e7d"
                                         style={
                                           {
                                             "backgroundColor": "inherit",
@@ -6799,8 +6763,6 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "opacity": 1,
-                                            "paddingVertical": 2,
-                                            "textAlignVertical": "center",
                                           }
                                         }
                                         testID="deposit-phone-field-test-id"
@@ -7084,7 +7046,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                         onFocus={[Function]}
                                         onSubmitEditing={[Function]}
                                         placeholder="XXX-XX-XXXX"
-                                        placeholderTextColor="#b7bbc8"
+                                        placeholderTextColor="#686e7d"
                                         returnKeyType="done"
                                         secureTextEntry={true}
                                         style={
@@ -7099,8 +7061,6 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "opacity": 1,
-                                            "paddingVertical": 2,
-                                            "textAlignVertical": "center",
                                           }
                                         }
                                         testID="ssn-input"
@@ -7342,7 +7302,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                 "alignItems": "center",
                 "flexDirection": "row",
                 "gap": 16,
-                "height": 56,
+                "minHeight": 56,
                 "paddingLeft": 8,
                 "paddingRight": 8,
               },
@@ -7977,7 +7937,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                           onFocus={[Function]}
                                           onSubmitEditing={[Function]}
                                           placeholder="First name"
-                                          placeholderTextColor="#b7bbc8"
+                                          placeholderTextColor="#686e7d"
                                           returnKeyType="next"
                                           style={
                                             {
@@ -7991,8 +7951,6 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingVertical": 2,
-                                              "textAlignVertical": "center",
                                             }
                                           }
                                           testID="first-name-input"
@@ -8111,7 +8069,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                           onFocus={[Function]}
                                           onSubmitEditing={[Function]}
                                           placeholder="Last name"
-                                          placeholderTextColor="#b7bbc8"
+                                          placeholderTextColor="#686e7d"
                                           returnKeyType="next"
                                           style={
                                             {
@@ -8125,8 +8083,6 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingVertical": 2,
-                                              "textAlignVertical": "center",
                                             }
                                           }
                                           testID="last-name-input"
@@ -8294,7 +8250,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                         onFocus={[Function]}
                                         onSubmitEditing={[Function]}
                                         placeholder="(555) 123-4567"
-                                        placeholderTextColor="#b7bbc8"
+                                        placeholderTextColor="#686e7d"
                                         style={
                                           {
                                             "backgroundColor": "inherit",
@@ -8307,8 +8263,6 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "opacity": 1,
-                                            "paddingVertical": 2,
-                                            "textAlignVertical": "center",
                                           }
                                         }
                                         testID="deposit-phone-field-test-id"
@@ -8577,7 +8531,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                         onFocus={[Function]}
                                         onSubmitEditing={[Function]}
                                         placeholder="XXX-XX-XXXX"
-                                        placeholderTextColor="#b7bbc8"
+                                        placeholderTextColor="#686e7d"
                                         returnKeyType="done"
                                         secureTextEntry={true}
                                         style={
@@ -8592,8 +8546,6 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "opacity": 1,
-                                            "paddingVertical": 2,
-                                            "textAlignVertical": "center",
                                           }
                                         }
                                         testID="ssn-input"
@@ -8835,7 +8787,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                 "alignItems": "center",
                 "flexDirection": "row",
                 "gap": 16,
-                "height": 56,
+                "minHeight": 56,
                 "paddingLeft": 8,
                 "paddingRight": 8,
               },
@@ -9470,7 +9422,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                           onFocus={[Function]}
                                           onSubmitEditing={[Function]}
                                           placeholder="First name"
-                                          placeholderTextColor="#b7bbc8"
+                                          placeholderTextColor="#686e7d"
                                           returnKeyType="next"
                                           style={
                                             {
@@ -9484,8 +9436,6 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingVertical": 2,
-                                              "textAlignVertical": "center",
                                             }
                                           }
                                           testID="first-name-input"
@@ -9604,7 +9554,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                           onFocus={[Function]}
                                           onSubmitEditing={[Function]}
                                           placeholder="Last name"
-                                          placeholderTextColor="#b7bbc8"
+                                          placeholderTextColor="#686e7d"
                                           returnKeyType="next"
                                           style={
                                             {
@@ -9618,8 +9568,6 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingVertical": 2,
-                                              "textAlignVertical": "center",
                                             }
                                           }
                                           testID="last-name-input"
@@ -9787,7 +9735,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                         onFocus={[Function]}
                                         onSubmitEditing={[Function]}
                                         placeholder="(555) 123-4567"
-                                        placeholderTextColor="#b7bbc8"
+                                        placeholderTextColor="#686e7d"
                                         style={
                                           {
                                             "backgroundColor": "inherit",
@@ -9800,8 +9748,6 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "opacity": 1,
-                                            "paddingVertical": 2,
-                                            "textAlignVertical": "center",
                                           }
                                         }
                                         testID="deposit-phone-field-test-id"

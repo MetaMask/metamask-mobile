@@ -67,8 +67,8 @@ const createMockEventBuilder = () => ({
 });
 const mockCreateEventBuilder = jest.fn(() => createMockEventBuilder());
 
-jest.mock('../../../hooks/useMetrics', () => ({
-  useMetrics: () => ({
+jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
     trackEvent: mockTrackEvent,
     createEventBuilder: mockCreateEventBuilder,
   }),
@@ -392,7 +392,7 @@ describe('useTokenActions', () => {
       // Default mock behavior for assetId generation
       mockIsCaipAssetType.mockReturnValue(false);
       mockFormatAddressToAssetId.mockImplementation(
-        (address: string, chainId: string | number) => {
+        (address: string, chainId?: string | number) => {
           // Simulate the real behavior for EVM tokens
           const numericChainId =
             typeof chainId === 'string' ? parseInt(chainId, 16) : chainId;

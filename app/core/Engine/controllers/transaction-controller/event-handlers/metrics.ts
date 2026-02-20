@@ -20,6 +20,7 @@ import { getStxMetricsProperties } from '../metrics_properties/stx';
 import { getHashMetricsProperties } from '../metrics_properties/hash';
 import { getBatchMetricsProperties } from '../metrics_properties/batch';
 import { getGasMetricsProperties } from '../metrics_properties/gas';
+import { getSecurityAlertResponseProperties } from '../metrics_properties/security-alert-response';
 
 const log = createProjectLogger('transaction-metrics');
 
@@ -28,6 +29,7 @@ const METRICS_BUILDERS: TransactionMetricsBuilder[] = [
   getBatchMetricsProperties,
   getGasMetricsProperties,
   getMetaMaskPayProperties,
+  getSecurityAlertResponseProperties,
   getSimulationValuesProperties,
   getRPCMetricsProperties,
   getStxMetricsProperties,

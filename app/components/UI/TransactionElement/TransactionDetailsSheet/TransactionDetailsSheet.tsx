@@ -1,5 +1,6 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useRef, useMemo } from 'react';
 import { useRoute, RouteProp } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 
 import BottomSheet, {
   BottomSheetRef,
@@ -12,6 +13,8 @@ import { TextColor } from '../../../../component-library/components/Texts/Text/T
 
 import TransactionDetails from '../TransactionDetails';
 import { toDateFormat } from '../../../../util/date';
+import { selectTransactionMetadataById } from '../../../../selectors/transactionController';
+import { RootState } from '../../../../reducers';
 
 interface TransactionDetailsSheetParams {
   tx: {
@@ -55,19 +58,20 @@ const TransactionDetailsSheet: React.FC = () => {
 
   const { tx, transactionElement, transactionDetails } = route.params;
 
+  const liveTransaction = useSelector((state: RootState) =>
+    selectTransactionMetadataById(state, tx.id),
+  );
+  const currentTx = useMemo(
+    () =>
+      liveTransaction
+        ? { ...liveTransaction, txParams: { ...liveTransaction.txParams } }
+        : tx,
+    [liveTransaction, tx],
+  );
+
   const handleClose = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
   }, []);
-
-  // Note: TransactionDetails internally calls close() before invoking these,
-  // so we don't need to close the sheet here - it's already handled
-  const handleSpeedUp = useCallback(() => {
-    route.params.showSpeedUpModal();
-  }, [route.params]);
-
-  const handleCancel = useCallback(() => {
-    route.params.showCancelModal();
-  }, [route.params]);
 
   return (
     <BottomSheet ref={sheetRef} shouldNavigateBack>
@@ -76,15 +80,13 @@ const TransactionDetailsSheet: React.FC = () => {
           {transactionElement?.actionKey}
         </Text>
         <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-          {tx?.time ? toDateFormat(tx.time) : null}
+          {currentTx?.time ? toDateFormat(currentTx.time) : null}
         </Text>
       </BottomSheetHeader>
 
       <TransactionDetails
-        transactionObject={tx}
+        transactionObject={currentTx}
         transactionDetails={transactionDetails}
-        showSpeedUpModal={handleSpeedUp}
-        showCancelModal={handleCancel}
         close={handleClose}
       />
     </BottomSheet>

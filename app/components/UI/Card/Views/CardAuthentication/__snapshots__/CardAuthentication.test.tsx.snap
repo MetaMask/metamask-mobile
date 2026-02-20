@@ -705,6 +705,7 @@ exports[`CardAuthentication Component Login Step - Component Rendering matches l
                                       onBlur={[Function]}
                                       onChangeText={[Function]}
                                       onFocus={[Function]}
+                                      placeholderTextColor="#686e7d"
                                       returnKeyType="next"
                                       style={
                                         {
@@ -718,8 +719,6 @@ exports[`CardAuthentication Component Login Step - Component Rendering matches l
                                           "height": 46,
                                           "letterSpacing": 0,
                                           "opacity": 1,
-                                          "paddingVertical": 2,
-                                          "textAlignVertical": "center",
                                         }
                                       }
                                       testID="email-field"
@@ -818,6 +817,7 @@ exports[`CardAuthentication Component Login Step - Component Rendering matches l
                                       onChangeText={[Function]}
                                       onFocus={[Function]}
                                       onSubmitEditing={[Function]}
+                                      placeholderTextColor="#686e7d"
                                       returnKeyType="done"
                                       secureTextEntry={true}
                                       style={
@@ -832,8 +832,6 @@ exports[`CardAuthentication Component Login Step - Component Rendering matches l
                                           "height": 46,
                                           "letterSpacing": 0,
                                           "opacity": 1,
-                                          "paddingVertical": 2,
-                                          "textAlignVertical": "center",
                                         }
                                       }
                                       testID="password-field"

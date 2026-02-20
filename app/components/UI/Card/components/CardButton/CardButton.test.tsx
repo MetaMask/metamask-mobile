@@ -5,20 +5,15 @@ import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { WalletViewSelectorsIDs } from '../../../../Views/Wallet/WalletView.testIds';
 
-jest.mock('../../../../hooks/useMetrics', () => {
-  const actual = jest.requireActual('../../../../hooks/useMetrics');
-  return {
-    ...actual,
-    useMetrics: () => ({
-      trackEvent: jest.fn(),
-      createEventBuilder: jest.fn(() => ({
-        build: jest.fn().mockReturnValue({
-          event: actual.MetaMetricsEvents.CARD_BUTTON_VIEWED,
-        }),
-      })),
-    }),
-  };
-});
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: jest.fn(),
+    createEventBuilder: jest.fn(() => ({
+      addProperties: jest.fn(() => ({ build: jest.fn() })),
+      build: jest.fn(),
+    })),
+  }),
+}));
 
 function renderWithProvider(component: React.ComponentType) {
   return renderScreen(

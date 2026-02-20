@@ -1,7 +1,7 @@
 import React from 'react';
 import { LoginViewSelectors } from './LoginView.testIds';
 import Login from './index';
-import { fireEvent, act, screen, waitFor } from '@testing-library/react-native';
+import { fireEvent, act, waitFor } from '@testing-library/react-native';
 import { VAULT_ERROR } from './constants';
 
 import { getVaultFromBackup } from '../../../core/BackupVault';
@@ -15,14 +15,11 @@ import { UNLOCK_WALLET_ERROR_MESSAGES } from '../../../core/Authentication/const
 // Mock dependencies
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 
-import StorageWrapper from '../../../store/storage-wrapper';
-import { BIOMETRY_CHOICE_DISABLED } from '../../../constants/storage';
 import { EndTraceRequest } from '../../../util/trace';
 import ReduxService from '../../../core/redux/ReduxService';
 import { RecursivePartial } from '../../../core/Authentication/Authentication.test';
 import { RootState } from '../../../reducers';
 import { ReduxStore } from '../../../core/redux/types';
-import { BIOMETRY_TYPE } from 'react-native-keychain';
 
 jest.mock('../../../util/Logger');
 const mockLogger = Logger as jest.Mocked<typeof Logger>;
@@ -52,20 +49,25 @@ jest.mock('../../../core/Authentication/hooks/useAuthentication', () => ({
   }),
 }));
 
-// Mock useMetrics with a dynamic isEnabled function
-const mockIsEnabled = jest.fn().mockReturnValue(true);
-const mockEnable = jest.fn().mockResolvedValue(undefined);
-jest.mock('../../hooks/useMetrics', () => {
-  const actualUseMetrics = jest.requireActual('../../hooks/useMetrics');
-  return {
-    ...actualUseMetrics,
-    useMetrics: jest.fn().mockReturnValue({
-      ...actualUseMetrics.useMetrics,
-      isEnabled: () => mockIsEnabled(),
-      enable: mockEnable,
-    }),
-  };
-});
+const defaultCapabilities = {
+  authType: AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION,
+  isBiometricsAvailable: true,
+  passcodeAvailable: true,
+  authLabel: 'Face ID',
+  osAuthEnabled: false,
+  allowLoginWithRememberMe: false,
+  deviceAuthRequiresSettings: false,
+};
+
+const mockUseAuthCapabilities = jest.fn(() => ({
+  capabilities: defaultCapabilities,
+  isLoading: false,
+}));
+
+jest.mock('../../../core/Authentication/hooks/useAuthCapabilities', () => ({
+  __esModule: true,
+  default: () => mockUseAuthCapabilities(),
+}));
 
 const mockNavigate = jest.fn();
 const mockReplace = jest.fn();
@@ -193,10 +195,19 @@ describe('Login test suite 2', () => {
     jest.spyOn(ReduxService, 'store', 'get').mockReturnValue(mockStore);
     // Default mock for checkIsSeedlessPasswordOutdated - returns false (password not outdated)
     mockCheckIsSeedlessPasswordOutdated.mockResolvedValue(false);
+    mockRoute.mockReturnValue({
+      params: { locked: false, oauthLoginSuccess: false },
+    });
+    mockUseAuthCapabilities.mockReturnValue({
+      capabilities: defaultCapabilities,
+      isLoading: false,
+    });
   });
 
   afterEach(() => {
-    jest.runOnlyPendingTimers();
+    act(() => {
+      jest.runOnlyPendingTimers();
+    });
     jest.clearAllTimers();
     jest.clearAllMocks();
     // Restore Redux store mock after clearing mocks
@@ -370,63 +381,28 @@ describe('Login test suite 2', () => {
       jest.clearAllTimers();
     });
 
-    it('show biometric when password is not outdated', async () => {
+    it('shows device authentication button when capabilities allow device auth', async () => {
       mockRoute.mockReturnValue({
         params: {
           locked: false,
           oauthLoginSuccess: false,
         },
       });
-      const mockState: RecursivePartial<RootState> = {
-        engine: {
-          backgroundState: {
-            SeedlessOnboardingController: {
-              vault: 'mock-vault',
-              passwordOutdatedCache: {
-                isExpiredPwd: false,
-                timestamp: 1718332800,
-              },
-            },
-          },
+      mockUseAuthCapabilities.mockReturnValue({
+        capabilities: {
+          ...defaultCapabilities,
+          authType: AUTHENTICATION_TYPE.BIOMETRIC,
         },
-      };
-      // mock redux service
-      jest.spyOn(ReduxService, 'store', 'get').mockImplementation(() => ({
-        dispatch: jest.fn(),
-        subscribe: jest.fn(),
-        replaceReducer: jest.fn(),
-        [Symbol.observable]: jest.fn(),
-        getState: jest.fn().mockReturnValue(mockState),
-      }));
-
-      // mock storage wrapper
-      jest.spyOn(StorageWrapper, 'getItem').mockImplementation(async (key) => {
-        if (key === BIOMETRY_CHOICE_DISABLED) return false;
-        return null;
+        isLoading: false,
       });
 
-      mockGetAuthType.mockImplementation(async () => ({
-        currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
-        availableBiometryType: BIOMETRY_TYPE.FACE_ID,
-      }));
+      const { getByTestId } = renderWithProvider(<Login />);
 
-      renderWithProvider(<Login />, {
-        // @ts-expect-error - mock state
-        state: mockState,
+      await waitFor(() => {
+        expect(
+          getByTestId(LoginViewSelectors.BIOMETRY_BUTTON),
+        ).toBeOnTheScreen();
       });
-
-      expect(
-        screen.queryByTestId(LoginViewSelectors.BIOMETRY_BUTTON),
-      ).not.toBeTruthy();
-
-      await waitFor(
-        () => {
-          expect(
-            screen.queryByTestId(LoginViewSelectors.BIOMETRY_BUTTON),
-          ).toBeTruthy();
-        },
-        { timeout: 4000 },
-      );
     });
   });
 

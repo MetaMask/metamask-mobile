@@ -129,8 +129,6 @@ exports[`Login renders matching snapshot 1`] = `
                 "height": 46,
                 "letterSpacing": 0,
                 "opacity": 1,
-                "paddingVertical": 2,
-                "textAlignVertical": "center",
               }
             }
             testID="login-password-input"
@@ -144,7 +142,37 @@ exports[`Login renders matching snapshot 1`] = `
             }
           }
           testID="textfield-endacccessory"
-        />
+        >
+          <TouchableOpacity
+            disabled={false}
+            hitSlop={
+              {
+                "bottom": 10,
+                "left": 10,
+                "right": 10,
+                "top": 10,
+              }
+            }
+            onPress={[Function]}
+            testID="biometry-button"
+          >
+            <SvgMock
+              color="#121314"
+              fill="currentColor"
+              height={24}
+              name="SecurityKey"
+              style={
+                {
+                  "height": 24,
+                  "marginBottom": -3,
+                  "width": 24,
+                }
+              }
+              testID="device-authentication-icon"
+              width={24}
+            />
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
     <View
@@ -432,8 +460,6 @@ exports[`Login renders matching snapshot when password input is focused 1`] = `
                 "height": 46,
                 "letterSpacing": 0,
                 "opacity": 1,
-                "paddingVertical": 2,
-                "textAlignVertical": "center",
               }
             }
             testID="login-password-input"
@@ -447,7 +473,37 @@ exports[`Login renders matching snapshot when password input is focused 1`] = `
             }
           }
           testID="textfield-endacccessory"
-        />
+        >
+          <TouchableOpacity
+            disabled={false}
+            hitSlop={
+              {
+                "bottom": 10,
+                "left": 10,
+                "right": 10,
+                "top": 10,
+              }
+            }
+            onPress={[Function]}
+            testID="biometry-button"
+          >
+            <SvgMock
+              color="#121314"
+              fill="currentColor"
+              height={24}
+              name="SecurityKey"
+              style={
+                {
+                  "height": 24,
+                  "marginBottom": -3,
+                  "width": 24,
+                }
+              }
+              testID="device-authentication-icon"
+              width={24}
+            />
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
     <View

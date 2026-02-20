@@ -112,6 +112,7 @@ const ALERTS_NAME_METRICS: AlertNameMetrics = {
   [AlertKeys.Blockaid]: 'blockaid',
   [AlertKeys.BurnAddress]: 'burn_address',
   [AlertKeys.DomainMismatch]: 'domain_mismatch',
+  [AlertKeys.FirstTimeInteraction]: 'first_time_interaction',
   [AlertKeys.GasEstimateFailed]: 'gas_estimate_failed',
   [AlertKeys.GasSponsorshipReserveBalance]: 'gas_sponsorship_reserve_balance',
   [AlertKeys.InsufficientBalance]: 'insufficient_balance',
@@ -131,5 +132,14 @@ const ALERTS_NAME_METRICS: AlertNameMetrics = {
 };
 
 function getAlertName(alertKey: string): string {
-  return ALERTS_NAME_METRICS[alertKey as AlertKeys] ?? alertKey;
+  const exactMatch = ALERTS_NAME_METRICS[alertKey as AlertKeys];
+  if (exactMatch) return exactMatch;
+
+  const baseKey = Object.keys(ALERTS_NAME_METRICS)
+    .filter((k) => alertKey.startsWith(k))
+    .sort((a, b) => b.length - a.length)[0];
+
+  if (baseKey) return ALERTS_NAME_METRICS[baseKey as AlertKeys];
+
+  return alertKey;
 }

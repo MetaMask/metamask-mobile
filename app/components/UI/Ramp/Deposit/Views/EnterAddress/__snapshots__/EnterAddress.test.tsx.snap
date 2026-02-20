@@ -42,7 +42,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                 "alignItems": "center",
                 "flexDirection": "row",
                 "gap": 16,
-                "height": 56,
+                "minHeight": 56,
                 "paddingLeft": 8,
                 "paddingRight": 8,
               },
@@ -675,7 +675,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                         onFocus={[Function]}
                                         onSubmitEditing={[Function]}
                                         placeholder="Address line 1"
-                                        placeholderTextColor="#b7bbc8"
+                                        placeholderTextColor="#686e7d"
                                         returnKeyType="next"
                                         style={
                                           {
@@ -689,8 +689,6 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "opacity": 1,
-                                            "paddingVertical": 2,
-                                            "textAlignVertical": "center",
                                           }
                                         }
                                         testID="address-line-1-input"
@@ -807,7 +805,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                         onFocus={[Function]}
                                         onSubmitEditing={[Function]}
                                         placeholder="Address line 2 (optional)"
-                                        placeholderTextColor="#b7bbc8"
+                                        placeholderTextColor="#686e7d"
                                         returnKeyType="next"
                                         style={
                                           {
@@ -821,8 +819,6 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "opacity": 1,
-                                            "paddingVertical": 2,
-                                            "textAlignVertical": "center",
                                           }
                                         }
                                         testID="address-line-2-input"
@@ -934,7 +930,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                           onFocus={[Function]}
                                           onSubmitEditing={[Function]}
                                           placeholder="City"
-                                          placeholderTextColor="#b7bbc8"
+                                          placeholderTextColor="#686e7d"
                                           returnKeyType="next"
                                           style={
                                             {
@@ -948,8 +944,6 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingVertical": 2,
-                                              "textAlignVertical": "center",
                                             }
                                           }
                                           testID="city-input"
@@ -1189,7 +1183,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                           onFocus={[Function]}
                                           onSubmitEditing={[Function]}
                                           placeholder="Postal code"
-                                          placeholderTextColor="#b7bbc8"
+                                          placeholderTextColor="#686e7d"
                                           returnKeyType="done"
                                           style={
                                             {
@@ -1203,8 +1197,6 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingVertical": 2,
-                                              "textAlignVertical": "center",
                                             }
                                           }
                                           testID="postal-code-input"
@@ -1342,7 +1334,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                           onBlur={[Function]}
                                           onFocus={[Function]}
                                           placeholder="Country"
-                                          placeholderTextColor="#b7bbc8"
+                                          placeholderTextColor="#686e7d"
                                           returnKeyType="done"
                                           style={
                                             {
@@ -1356,8 +1348,6 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingVertical": 2,
-                                              "textAlignVertical": "center",
                                             }
                                           }
                                           testID="country-input"
@@ -1584,7 +1574,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                 "alignItems": "center",
                 "flexDirection": "row",
                 "gap": 16,
-                "height": 56,
+                "minHeight": 56,
                 "paddingLeft": 8,
                 "paddingRight": 8,
               },
@@ -2217,7 +2207,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                         onFocus={[Function]}
                                         onSubmitEditing={[Function]}
                                         placeholder="Address line 1"
-                                        placeholderTextColor="#b7bbc8"
+                                        placeholderTextColor="#686e7d"
                                         returnKeyType="next"
                                         style={
                                           {
@@ -2231,8 +2221,6 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "opacity": 1,
-                                            "paddingVertical": 2,
-                                            "textAlignVertical": "center",
                                           }
                                         }
                                         testID="address-line-1-input"
@@ -2334,7 +2322,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                         onFocus={[Function]}
                                         onSubmitEditing={[Function]}
                                         placeholder="Address line 2 (optional)"
-                                        placeholderTextColor="#b7bbc8"
+                                        placeholderTextColor="#686e7d"
                                         returnKeyType="next"
                                         style={
                                           {
@@ -2348,8 +2336,6 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "opacity": 1,
-                                            "paddingVertical": 2,
-                                            "textAlignVertical": "center",
                                           }
                                         }
                                         testID="address-line-2-input"
@@ -2461,7 +2447,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                           onFocus={[Function]}
                                           onSubmitEditing={[Function]}
                                           placeholder="City"
-                                          placeholderTextColor="#b7bbc8"
+                                          placeholderTextColor="#686e7d"
                                           returnKeyType="next"
                                           style={
                                             {
@@ -2475,8 +2461,6 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingVertical": 2,
-                                              "textAlignVertical": "center",
                                             }
                                           }
                                           testID="city-input"
@@ -2678,7 +2662,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                           onFocus={[Function]}
                                           onSubmitEditing={[Function]}
                                           placeholder="Postal code"
-                                          placeholderTextColor="#b7bbc8"
+                                          placeholderTextColor="#686e7d"
                                           returnKeyType="done"
                                           style={
                                             {
@@ -2692,8 +2676,6 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingVertical": 2,
-                                              "textAlignVertical": "center",
                                             }
                                           }
                                           testID="postal-code-input"
@@ -2816,7 +2798,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                           onBlur={[Function]}
                                           onFocus={[Function]}
                                           placeholder="Country"
-                                          placeholderTextColor="#b7bbc8"
+                                          placeholderTextColor="#686e7d"
                                           returnKeyType="done"
                                           style={
                                             {
@@ -2830,8 +2812,6 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingVertical": 2,
-                                              "textAlignVertical": "center",
                                             }
                                           }
                                           testID="country-input"
@@ -3058,7 +3038,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                 "alignItems": "center",
                 "flexDirection": "row",
                 "gap": 16,
-                "height": 56,
+                "minHeight": 56,
                 "paddingLeft": 8,
                 "paddingRight": 8,
               },
@@ -3691,7 +3671,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                         onFocus={[Function]}
                                         onSubmitEditing={[Function]}
                                         placeholder="Address line 1"
-                                        placeholderTextColor="#b7bbc8"
+                                        placeholderTextColor="#686e7d"
                                         returnKeyType="next"
                                         style={
                                           {
@@ -3705,8 +3685,6 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "opacity": 1,
-                                            "paddingVertical": 2,
-                                            "textAlignVertical": "center",
                                           }
                                         }
                                         testID="address-line-1-input"
@@ -3808,7 +3786,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                         onFocus={[Function]}
                                         onSubmitEditing={[Function]}
                                         placeholder="Address line 2 (optional)"
-                                        placeholderTextColor="#b7bbc8"
+                                        placeholderTextColor="#686e7d"
                                         returnKeyType="next"
                                         style={
                                           {
@@ -3822,8 +3800,6 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "opacity": 1,
-                                            "paddingVertical": 2,
-                                            "textAlignVertical": "center",
                                           }
                                         }
                                         testID="address-line-2-input"
@@ -3935,7 +3911,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                           onFocus={[Function]}
                                           onSubmitEditing={[Function]}
                                           placeholder="City"
-                                          placeholderTextColor="#b7bbc8"
+                                          placeholderTextColor="#686e7d"
                                           returnKeyType="next"
                                           style={
                                             {
@@ -3949,8 +3925,6 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingVertical": 2,
-                                              "textAlignVertical": "center",
                                             }
                                           }
                                           testID="city-input"
@@ -4160,7 +4134,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                           onFocus={[Function]}
                                           onSubmitEditing={[Function]}
                                           placeholder="Postal code"
-                                          placeholderTextColor="#b7bbc8"
+                                          placeholderTextColor="#686e7d"
                                           returnKeyType="done"
                                           style={
                                             {
@@ -4174,8 +4148,6 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingVertical": 2,
-                                              "textAlignVertical": "center",
                                             }
                                           }
                                           testID="postal-code-input"
@@ -4298,7 +4270,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                           onBlur={[Function]}
                                           onFocus={[Function]}
                                           placeholder="Country"
-                                          placeholderTextColor="#b7bbc8"
+                                          placeholderTextColor="#686e7d"
                                           returnKeyType="done"
                                           style={
                                             {
@@ -4312,8 +4284,6 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingVertical": 2,
-                                              "textAlignVertical": "center",
                                             }
                                           }
                                           testID="country-input"
@@ -4540,7 +4510,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                 "alignItems": "center",
                 "flexDirection": "row",
                 "gap": 16,
-                "height": 56,
+                "minHeight": 56,
                 "paddingLeft": 8,
                 "paddingRight": 8,
               },
@@ -5173,7 +5143,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                         onFocus={[Function]}
                                         onSubmitEditing={[Function]}
                                         placeholder="Address line 1"
-                                        placeholderTextColor="#b7bbc8"
+                                        placeholderTextColor="#686e7d"
                                         returnKeyType="next"
                                         style={
                                           {
@@ -5187,8 +5157,6 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "opacity": 1,
-                                            "paddingVertical": 2,
-                                            "textAlignVertical": "center",
                                           }
                                         }
                                         testID="address-line-1-input"
@@ -5290,7 +5258,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                         onFocus={[Function]}
                                         onSubmitEditing={[Function]}
                                         placeholder="Address line 2 (optional)"
-                                        placeholderTextColor="#b7bbc8"
+                                        placeholderTextColor="#686e7d"
                                         returnKeyType="next"
                                         style={
                                           {
@@ -5304,8 +5272,6 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "opacity": 1,
-                                            "paddingVertical": 2,
-                                            "textAlignVertical": "center",
                                           }
                                         }
                                         testID="address-line-2-input"
@@ -5417,7 +5383,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                           onFocus={[Function]}
                                           onSubmitEditing={[Function]}
                                           placeholder="City"
-                                          placeholderTextColor="#b7bbc8"
+                                          placeholderTextColor="#686e7d"
                                           returnKeyType="next"
                                           style={
                                             {
@@ -5431,8 +5397,6 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingVertical": 2,
-                                              "textAlignVertical": "center",
                                             }
                                           }
                                           testID="city-input"
@@ -5535,7 +5499,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                           onFocus={[Function]}
                                           onSubmitEditing={[Function]}
                                           placeholder="State/Region"
-                                          placeholderTextColor="#b7bbc8"
+                                          placeholderTextColor="#686e7d"
                                           returnKeyType="next"
                                           style={
                                             {
@@ -5549,8 +5513,6 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingVertical": 2,
-                                              "textAlignVertical": "center",
                                             }
                                           }
                                           testID="state-input"
@@ -5664,7 +5626,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                           onFocus={[Function]}
                                           onSubmitEditing={[Function]}
                                           placeholder="Postal code"
-                                          placeholderTextColor="#b7bbc8"
+                                          placeholderTextColor="#686e7d"
                                           returnKeyType="done"
                                           style={
                                             {
@@ -5678,8 +5640,6 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingVertical": 2,
-                                              "textAlignVertical": "center",
                                             }
                                           }
                                           testID="postal-code-input"
@@ -5802,7 +5762,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                           onBlur={[Function]}
                                           onFocus={[Function]}
                                           placeholder="Country"
-                                          placeholderTextColor="#b7bbc8"
+                                          placeholderTextColor="#686e7d"
                                           returnKeyType="done"
                                           style={
                                             {
@@ -5816,8 +5776,6 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingVertical": 2,
-                                              "textAlignVertical": "center",
                                             }
                                           }
                                           testID="country-input"
