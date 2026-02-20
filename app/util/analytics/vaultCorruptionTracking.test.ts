@@ -9,28 +9,23 @@ import {
   NO_VAULT_IN_BACKUP_ERROR,
 } from '../../constants/error';
 import { VAULT_ERROR } from '../../components/Views/Login/constants';
-import { MetaMetrics, MetaMetricsEvents } from '../../core/Analytics';
-import { MetricsEventBuilder } from '../../core/Analytics/MetricsEventBuilder';
+import { MetaMetricsEvents } from '../../core/Analytics/MetaMetrics.events';
+import { analytics } from './analytics';
+import { AnalyticsEventBuilder } from './AnalyticsEventBuilder';
 import Logger from '../Logger';
 
 // Mock dependencies
-jest.mock('../../core/Analytics');
-jest.mock('../../core/Analytics/MetricsEventBuilder');
+jest.mock('./analytics');
+jest.mock('./AnalyticsEventBuilder');
 jest.mock('../Logger');
 
-const mockedMetaMetrics = MetaMetrics as jest.Mocked<typeof MetaMetrics>;
-const mockedMetricsEventBuilder = MetricsEventBuilder as jest.Mocked<
-  typeof MetricsEventBuilder
+const mockedAnalytics = analytics as jest.Mocked<typeof analytics>;
+const mockedAnalyticsEventBuilder = AnalyticsEventBuilder as jest.Mocked<
+  typeof AnalyticsEventBuilder
 >;
 const mockedLogger = Logger as jest.Mocked<typeof Logger>;
 
 describe('vaultCorruptionTracking', () => {
-  // Mock instance objects
-  const mockMetaMetricsInstance = {
-    isEnabled: jest.fn(),
-    trackEvent: jest.fn(),
-  };
-
   const mockEventBuilder = {
     addProperties: jest.fn(),
     build: jest.fn(),
@@ -39,22 +34,16 @@ describe('vaultCorruptionTracking', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    // Setup MetaMetrics mock
-    mockedMetaMetrics.getInstance.mockReturnValue(
-      mockMetaMetricsInstance as never,
-    );
-    mockMetaMetricsInstance.isEnabled.mockReturnValue(true);
-    mockMetaMetricsInstance.trackEvent.mockImplementation(() => undefined);
+    mockedAnalytics.trackEvent.mockImplementation(() => undefined);
 
-    // Setup MetricsEventBuilder mock
-    mockedMetricsEventBuilder.createEventBuilder.mockReturnValue(
+    mockedAnalyticsEventBuilder.createEventBuilder.mockReturnValue(
       mockEventBuilder as unknown as ReturnType<
-        typeof MetricsEventBuilder.createEventBuilder
+        typeof AnalyticsEventBuilder.createEventBuilder
       >,
     );
     mockEventBuilder.addProperties.mockReturnValue(
       mockEventBuilder as unknown as ReturnType<
-        typeof MetricsEventBuilder.createEventBuilder
+        typeof AnalyticsEventBuilder.createEventBuilder
       >,
     );
     mockEventBuilder.build.mockReturnValue({ event: 'test' });
@@ -291,99 +280,51 @@ describe('vaultCorruptionTracking', () => {
       context: 'test_context',
     };
 
-    it('tracks vault-related errors when MetaMetrics is enabled', () => {
-      // Given: MetaMetrics is enabled and we have a vault error
-      mockMetaMetricsInstance.isEnabled.mockReturnValue(true);
+    it('tracks vault-related errors', () => {
       const errorMessage = VAULT_ERROR;
 
-      // When: tracking vault corruption
       trackVaultCorruption(errorMessage, mockProperties);
 
-      // Then: should create event and track it
-      expect(mockedMetricsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
-        MetaMetricsEvents.VAULT_CORRUPTION_DETECTED,
-      );
+      expect(
+        mockedAnalyticsEventBuilder.createEventBuilder,
+      ).toHaveBeenCalledWith(MetaMetricsEvents.VAULT_CORRUPTION_DETECTED);
       expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
         error_message: errorMessage,
         ...mockProperties,
       });
-      expect(mockMetaMetricsInstance.trackEvent).toHaveBeenCalledWith({
+      expect(mockedAnalytics.trackEvent).toHaveBeenCalledWith({
         event: 'test',
       });
     });
 
-    it('does not track when MetaMetrics is disabled', () => {
-      // Given: MetaMetrics is disabled
-      mockMetaMetricsInstance.isEnabled.mockReturnValue(false);
-      const errorMessage = VAULT_ERROR;
-
-      // When: attempting to track vault corruption
-      trackVaultCorruption(errorMessage, mockProperties);
-
-      // Then: should not track the event
-      expect(mockMetaMetricsInstance.trackEvent).not.toHaveBeenCalled();
-      expect(
-        mockedMetricsEventBuilder.createEventBuilder,
-      ).not.toHaveBeenCalled();
-    });
-
     it('does not track non-vault-related errors', () => {
-      // Given: MetaMetrics is enabled but error is not vault-related
-      mockMetaMetricsInstance.isEnabled.mockReturnValue(true);
       const errorMessage = 'Network request failed';
 
-      // When: attempting to track non-vault error
       trackVaultCorruption(errorMessage, mockProperties);
 
-      // Then: should not track the event
-      expect(mockMetaMetricsInstance.trackEvent).not.toHaveBeenCalled();
+      expect(mockedAnalytics.trackEvent).not.toHaveBeenCalled();
       expect(
-        mockedMetricsEventBuilder.createEventBuilder,
+        mockedAnalyticsEventBuilder.createEventBuilder,
       ).not.toHaveBeenCalled();
     });
 
-    it('handles tracking errors gracefully', () => {
-      // Given: MetaMetrics throws an error
-      mockMetaMetricsInstance.isEnabled.mockReturnValue(true);
-      mockMetaMetricsInstance.trackEvent.mockImplementation(() => {
+    it('logs error and does not throw when trackEvent fails', () => {
+      mockedAnalytics.trackEvent.mockImplementation(() => {
         throw new Error('Tracking failed');
       });
       const errorMessage = VAULT_ERROR;
 
-      // When: tracking vault corruption
       expect(() => {
         trackVaultCorruption(errorMessage, mockProperties);
       }).not.toThrow();
 
-      // Then: should log the error
       expect(mockedLogger.error).toHaveBeenCalledWith(
         expect.any(Error),
         'Error tracking vault corruption event - analytics tracking failed',
       );
     });
 
-    it('handles MetaMetrics getInstance errors gracefully', () => {
-      // Given: MetaMetrics.getInstance throws an error
-      mockedMetaMetrics.getInstance.mockImplementation(() => {
-        throw new Error('getInstance failed');
-      });
-      const errorMessage = VAULT_ERROR;
-
-      // When: tracking vault corruption
-      expect(() => {
-        trackVaultCorruption(errorMessage, mockProperties);
-      }).not.toThrow();
-
-      // Then: should log the error
-      expect(mockedLogger.error).toHaveBeenCalledWith(
-        expect.any(Error),
-        'Error tracking vault corruption event - analytics tracking failed',
-      );
-    });
-
-    it('passes additional properties correctly', () => {
-      // Given: MetaMetrics is enabled and we have additional properties
-      mockMetaMetricsInstance.isEnabled.mockReturnValue(true);
+    it('passes additional properties', () => {
       const errorMessage = VAULT_ERROR;
       const additionalProps = {
         ...mockProperties,
@@ -391,10 +332,8 @@ describe('vaultCorruptionTracking', () => {
         user_id: 'test-user',
       };
 
-      // When: tracking vault corruption with additional properties
       trackVaultCorruption(errorMessage, additionalProps);
 
-      // Then: should include all properties
       expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
         error_message: errorMessage,
         ...additionalProps,
@@ -407,14 +346,9 @@ describe('vaultCorruptionTracking', () => {
       NO_VAULT_IN_BACKUP_ERROR,
       AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
     ] as const)('tracks all vault error types: %s', (errorConstant) => {
-      // Given: MetaMetrics is enabled
-      mockMetaMetricsInstance.isEnabled.mockReturnValue(true);
-
-      // When: tracking this specific vault error
       trackVaultCorruption(errorConstant, mockProperties);
 
-      // Then: should track the event
-      expect(mockMetaMetricsInstance.trackEvent).toHaveBeenCalledWith({
+      expect(mockedAnalytics.trackEvent).toHaveBeenCalledWith({
         event: 'test',
       });
       expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({

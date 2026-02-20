@@ -1,5 +1,6 @@
-import { MetaMetrics, MetaMetricsEvents } from '../../core/Analytics';
-import { MetricsEventBuilder } from '../../core/Analytics/MetricsEventBuilder';
+import { MetaMetricsEvents } from '../../core/Analytics/MetaMetrics.events';
+import { analytics } from './analytics';
+import { AnalyticsEventBuilder } from './AnalyticsEventBuilder';
 import Logger from '../Logger';
 import {
   AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
@@ -56,9 +57,8 @@ export const isVaultRelatedError = (errorMessage: string): boolean => {
  *
  * This utility function:
  * 1. Checks if the error is vault-related
- * 2. Checks if MetaMetrics is enabled before tracking
- * 3. Provides a consistent interface for vault corruption tracking
- * 4. Handles errors gracefully without throwing
+ * 2. Provides a consistent interface for vault corruption tracking
+ * 3. Handles errors gracefully without throwing
  *
  * @param errorMessage - The error message from the caught exception
  * @param properties - Context-specific properties for the tracking event
@@ -73,17 +73,8 @@ export const trackVaultCorruption = (
       return;
     }
 
-    const metaMetrics = MetaMetrics.getInstance();
-
-    // Check if MetaMetrics is enabled before tracking
-    if (!metaMetrics.isEnabled()) {
-      // MetaMetrics is disabled, skip tracking silently
-      return;
-    }
-
-    // Track the vault corruption event
-    metaMetrics.trackEvent(
-      MetricsEventBuilder.createEventBuilder(
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(
         MetaMetricsEvents.VAULT_CORRUPTION_DETECTED,
       )
         .addProperties({

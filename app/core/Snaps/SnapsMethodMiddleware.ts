@@ -31,13 +31,26 @@ import {
   WebSocketServiceSendMessageAction,
 } from '../Engine/controllers/snaps/constants';
 import { KeyringTypes } from '@metamask/keyring-controller';
-import { MetaMetrics } from '../../../app/core/Analytics';
-import { MetricsEventBuilder } from '../Analytics/MetricsEventBuilder';
+import { analytics } from '../../util/analytics/analytics';
+import { AnalyticsEventBuilder } from '../../util/analytics/AnalyticsEventBuilder';
 import { Json } from '@metamask/utils';
 import { SchedulableBackgroundEvent } from '@metamask/snaps-controllers';
 import { endTrace, trace } from '../../util/trace';
 import { AppState } from 'react-native';
 import { getVersion } from 'react-native-device-info';
+
+export const trackSnapEvent = (eventPayload: {
+  event: string;
+  properties: Record<string, Json>;
+  sensitiveProperties: Record<string, Json>;
+}) => {
+  analytics.trackEvent(
+    AnalyticsEventBuilder.createEventBuilder(eventPayload.event)
+      .addProperties(eventPayload.properties)
+      .addSensitiveProperties(eventPayload.sensitiveProperties)
+      .build(),
+  );
+};
 
 export function getSnapIdFromRequest(
   request: Record<string, unknown>,
@@ -134,19 +147,7 @@ const snapMethodMiddlewareBuilder = (
       SnapControllerGetSnapAction,
     ),
     trackError: (error: Error) => captureException(error),
-    trackEvent: (eventPayload: {
-      event: string;
-      properties: Record<string, Json>;
-      sensitiveProperties: Record<string, Json>;
-    }) => {
-      MetaMetrics.getInstance().trackEvent(
-        MetricsEventBuilder.createEventBuilder({
-          category: eventPayload.event,
-          properties: eventPayload.properties,
-          sensitiveProperties: eventPayload.sensitiveProperties,
-        }).build(),
-      );
-    },
+    trackEvent: trackSnapEvent,
     openWebSocket: controllerMessenger.call.bind(
       controllerMessenger,
       WebSocketServiceOpenAction,

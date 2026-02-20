@@ -15,6 +15,7 @@ import { merge } from 'lodash';
 import Engine from '../../core/Engine';
 import { SecretType } from '@metamask/seedless-onboarding-controller';
 import { KeyringObject, KeyringTypes } from '@metamask/keyring-controller';
+import { analytics } from '../analytics/analytics';
 
 jest.mock('react-native-fs', () => ({
   DocumentDirectoryPath: '/mock/path',
@@ -66,21 +67,6 @@ jest.mock('../../util/analytics/analytics', () => ({
     trackView: jest.fn(),
     isOptedIn: jest.fn().mockResolvedValue(false),
   },
-}));
-
-// Mock MetaMetrics for any remaining methods
-const mockIsEnabled = jest.fn(() => true);
-jest.mock('../../core/Analytics/MetaMetrics', () => ({
-  getInstance: () => ({
-    isEnabled: mockIsEnabled,
-    getMetaMetricsId: jest.fn(() => Promise.resolve('test-metametrics-id')),
-    createDataDeletionTask: jest.fn(),
-    checkDataDeleteStatus: jest.fn(),
-    getDeleteRegulationCreationDate: jest.fn(),
-    getDeleteRegulationId: jest.fn(),
-    isDataRecorded: jest.fn(),
-    updateDataRecordingFlag: jest.fn(),
-  }),
 }));
 
 jest.mock(
@@ -908,12 +894,43 @@ describe('logs :: downloadStateLogs', () => {
     });
   });
 
+  it('includes analytics id in logs when analytics is enabled', async () => {
+    (getApplicationName as jest.Mock).mockResolvedValue('TestApp');
+    (getVersion as jest.Mock).mockResolvedValue('1.0.0');
+    (getBuildNumber as jest.Mock).mockResolvedValue('100');
+    (Device.isIos as jest.Mock).mockReturnValue(false);
+    (analytics.isEnabled as jest.Mock).mockReturnValue(true);
+
+    const mockStateInput = merge({}, initialRootState, {
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          KeyringController: {
+            vault: 'vault mock',
+          },
+        },
+      },
+    });
+
+    await downloadStateLogs(mockStateInput);
+
+    expect(analytics.getAnalyticsId).toHaveBeenCalled();
+
+    const shareOpenCalls = (Share.open as jest.Mock).mock.calls;
+    const [shareOpenArgs] = shareOpenCalls[0];
+    const { url } = shareOpenArgs;
+    const base64Data = url.replace('data:text/plain;base64,', '');
+    const decodedData = Buffer.from(base64Data, 'base64').toString('utf-8');
+    const jsonData = JSON.parse(decodedData);
+    expect(jsonData.metaMetricsId).toBe('test-analytics-id');
+  });
+
   it('excludes metametrics id when not opted in', async () => {
     (getApplicationName as jest.Mock).mockResolvedValue('TestApp');
     (getVersion as jest.Mock).mockResolvedValue('1.0.0');
     (getBuildNumber as jest.Mock).mockResolvedValue('100');
     (Device.isIos as jest.Mock).mockReturnValue(false);
-    mockIsEnabled.mockReturnValue(false);
+    (analytics.isEnabled as jest.Mock).mockReturnValue(false);
 
     const mockStateInput = merge({}, initialRootState, {
       engine: {
