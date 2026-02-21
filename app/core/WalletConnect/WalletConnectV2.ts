@@ -487,7 +487,7 @@ export class WC2Manager {
     const { proposer } = params;
     const { metadata } = proposer;
     const url = metadata.url ?? '';
-    const name = metadata.description ?? '';
+    const name = metadata.name ?? '';
     const icons = metadata.icons;
     const icon = icons?.[0] ?? '';
 
