@@ -212,7 +212,6 @@ app/components/Views/AccountSelector             @MetaMask/mobile-core-ux
 app/components/Views/AddressQRCode               @MetaMask/mobile-core-ux
 app/components/Views/EditAccountName             @MetaMask/mobile-core-ux
 app/components/Views/LockScreen                  @MetaMask/mobile-core-ux
-app/components/Views/Login                       @MetaMask/mobile-core-ux
 app/components/Views/NetworkConnect              @MetaMask/mobile-core-ux
 app/components/Views/NetworkSelector             @MetaMask/mobile-core-ux
 app/components/Views/QRAccountDisplay            @MetaMask/mobile-core-ux
@@ -239,6 +238,7 @@ app/components/Views/transactions @MetaMask/transactions
 app/core/Engine/messengers/seedless-onboarding-controller-messenger @MetaMask/web3auth
 app/core/Engine/controllers/seedless-onboarding-controller  @MetaMask/web3auth
 app/core/OAuthService                                       @MetaMask/web3auth
+app/components/Views/Login                                  @MetaMask/web3auth
 app/components/Views/Onboarding                             @MetaMask/web3auth
 app/components/Views/OnboardingCarousel                     @MetaMask/web3auth
 app/components/Views/OnboardingSuccess                      @MetaMask/web3auth
