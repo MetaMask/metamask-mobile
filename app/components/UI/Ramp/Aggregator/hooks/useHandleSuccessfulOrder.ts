@@ -71,13 +71,9 @@ function useHandleSuccessfulOrder() {
             ),
             currency_destination: (order?.data as Order)?.fiatCurrency?.symbol,
           });
-          navigation.navigate(Routes.TRANSACTIONS_VIEW, {
-            screen: Routes.RAMP.ORDER_DETAILS,
-            initial: false,
-            params: {
-              orderId: order.id,
-              redirectToSendTransaction: true,
-            },
+          navigation.navigate(Routes.RAMP.ORDER_DETAILS, {
+            orderId: order.id,
+            redirectToSendTransaction: true,
           });
         } else {
           const chainIdFromProvider = (order?.data as Order)?.cryptoCurrency

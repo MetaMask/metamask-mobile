@@ -21,10 +21,7 @@ describe('handleRedirection', () => {
     expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
       Routes.TRANSACTIONS_VIEW,
       {
-        screen: Routes.TRANSACTIONS_VIEW,
-        params: {
-          redirectToOrders: true,
-        },
+        redirectToOrders: true,
       },
     );
   });

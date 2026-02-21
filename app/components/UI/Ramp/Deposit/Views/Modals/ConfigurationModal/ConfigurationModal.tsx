@@ -45,10 +45,7 @@ function ConfigurationModal() {
   const navigateToOrderHistory = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
     navigation.navigate(Routes.TRANSACTIONS_VIEW, {
-      screen: Routes.TRANSACTIONS_VIEW,
-      params: {
-        redirectToOrders: true,
-      },
+      redirectToOrders: true,
     });
   }, [navigation]);
 

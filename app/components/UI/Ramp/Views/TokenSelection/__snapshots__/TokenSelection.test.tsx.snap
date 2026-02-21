@@ -1941,7 +1941,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                                 {
                                                   "alignItems": "center",
                                                   "backgroundColor": "transparent",
-                                                  "borderRadius": 8,
+                                                  "borderRadius": 2,
                                                   "height": 32,
                                                   "justifyContent": "center",
                                                   "opacity": 1,
@@ -1959,8 +1959,8 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "height": 24,
-                                                    "width": 24,
+                                                    "height": 20,
+                                                    "width": 20,
                                                   },
                                                   undefined,
                                                 ]
@@ -2252,7 +2252,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                                 {
                                                   "alignItems": "center",
                                                   "backgroundColor": "transparent",
-                                                  "borderRadius": 8,
+                                                  "borderRadius": 2,
                                                   "height": 32,
                                                   "justifyContent": "center",
                                                   "opacity": 1,
@@ -2270,8 +2270,8 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "height": 24,
-                                                    "width": 24,
+                                                    "height": 20,
+                                                    "width": 20,
                                                   },
                                                   undefined,
                                                 ]
@@ -2563,7 +2563,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                                 {
                                                   "alignItems": "center",
                                                   "backgroundColor": "transparent",
-                                                  "borderRadius": 8,
+                                                  "borderRadius": 2,
                                                   "height": 32,
                                                   "justifyContent": "center",
                                                   "opacity": 1,
@@ -2581,8 +2581,8 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "height": 24,
-                                                    "width": 24,
+                                                    "height": 20,
+                                                    "width": 20,
                                                   },
                                                   undefined,
                                                 ]
@@ -2874,7 +2874,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                                 {
                                                   "alignItems": "center",
                                                   "backgroundColor": "transparent",
-                                                  "borderRadius": 8,
+                                                  "borderRadius": 2,
                                                   "height": 32,
                                                   "justifyContent": "center",
                                                   "opacity": 1,
@@ -2892,8 +2892,8 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "height": 24,
-                                                    "width": 24,
+                                                    "height": 20,
+                                                    "width": 20,
                                                   },
                                                   undefined,
                                                 ]
@@ -3185,7 +3185,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                                 {
                                                   "alignItems": "center",
                                                   "backgroundColor": "transparent",
-                                                  "borderRadius": 8,
+                                                  "borderRadius": 2,
                                                   "height": 32,
                                                   "justifyContent": "center",
                                                   "opacity": 1,
@@ -3203,8 +3203,8 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "height": 24,
-                                                    "width": 24,
+                                                    "height": 20,
+                                                    "width": 20,
                                                   },
                                                   undefined,
                                                 ]
@@ -4315,7 +4315,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                                 {
                                                   "alignItems": "center",
                                                   "backgroundColor": "transparent",
-                                                  "borderRadius": 8,
+                                                  "borderRadius": 2,
                                                   "height": 32,
                                                   "justifyContent": "center",
                                                   "opacity": 1,
@@ -4333,8 +4333,8 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "height": 24,
-                                                    "width": 24,
+                                                    "height": 20,
+                                                    "width": 20,
                                                   },
                                                   undefined,
                                                 ]
@@ -4626,7 +4626,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                                 {
                                                   "alignItems": "center",
                                                   "backgroundColor": "transparent",
-                                                  "borderRadius": 8,
+                                                  "borderRadius": 2,
                                                   "height": 32,
                                                   "justifyContent": "center",
                                                   "opacity": 1,
@@ -4644,8 +4644,8 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "height": 24,
-                                                    "width": 24,
+                                                    "height": 20,
+                                                    "width": 20,
                                                   },
                                                   undefined,
                                                 ]
@@ -4937,7 +4937,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                                 {
                                                   "alignItems": "center",
                                                   "backgroundColor": "transparent",
-                                                  "borderRadius": 8,
+                                                  "borderRadius": 2,
                                                   "height": 32,
                                                   "justifyContent": "center",
                                                   "opacity": 1,
@@ -4955,8 +4955,8 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "height": 24,
-                                                    "width": 24,
+                                                    "height": 20,
+                                                    "width": 20,
                                                   },
                                                   undefined,
                                                 ]
@@ -5248,7 +5248,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                                 {
                                                   "alignItems": "center",
                                                   "backgroundColor": "transparent",
-                                                  "borderRadius": 8,
+                                                  "borderRadius": 2,
                                                   "height": 32,
                                                   "justifyContent": "center",
                                                   "opacity": 1,
@@ -5266,8 +5266,8 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "height": 24,
-                                                    "width": 24,
+                                                    "height": 20,
+                                                    "width": 20,
                                                   },
                                                   undefined,
                                                 ]
@@ -5559,7 +5559,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                                 {
                                                   "alignItems": "center",
                                                   "backgroundColor": "transparent",
-                                                  "borderRadius": 8,
+                                                  "borderRadius": 2,
                                                   "height": 32,
                                                   "justifyContent": "center",
                                                   "opacity": 1,
@@ -5577,8 +5577,8 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "height": 24,
-                                                    "width": 24,
+                                                    "height": 20,
+                                                    "width": 20,
                                                   },
                                                   undefined,
                                                 ]
