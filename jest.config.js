@@ -21,7 +21,6 @@ process.env.IOS_GOOGLE_REDIRECT_URI = 'iosGoogleRedirectUri';
 
 process.env.MM_CARD_BAANX_API_CLIENT_KEY = 'test-api-key';
 
-// When running Reassure perf tests we want to avoid Jest coverage to reduce memory usage
 const isReassureRun = process.env.REASSURE === 'true';
 
 const config = {
@@ -38,7 +37,6 @@ const config = {
       '<rootDir>/app/util/test/assetFileTransformer.js',
   },
   snapshotSerializers: ['enzyme-to-json/serializer'],
-  // Disable coverage collection for Reassure runs to avoid OOM
   collectCoverage: !isReassureRun && process.env.NODE_ENV !== 'production',
   collectCoverageFrom: !isReassureRun
     ? ['<rootDir>/app/**/*.{js,ts,tsx,jsx}', '!<rootDir>/app/**/*.stories.tsx']
@@ -85,9 +83,7 @@ const config = {
       '<rootDir>/app/__mocks__/spinnerMock.js',
     '^rive-react-native$': '<rootDir>/app/__mocks__/rive-react-native.tsx',
   },
-  // Disable jest cache
   cache: false,
 };
 
-// eslint-disable-next-line import/no-commonjs
 module.exports = config;
