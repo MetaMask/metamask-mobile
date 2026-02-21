@@ -580,7 +580,7 @@ describe('UrlAutocomplete', () => {
         await screen.findByTestId('trending-search-footer-google-link', {
           includeHiddenElements: true,
         }),
-      ).toHaveTextContent('Search for "MetaMask Test Dapp" on Google');
+      ).toHaveTextContent('Search for "MetaMask Test Dapp" on Brave');
     });
 
     it('transforms and displays token search results', async () => {
