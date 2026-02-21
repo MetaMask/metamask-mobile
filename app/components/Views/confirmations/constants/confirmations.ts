@@ -86,3 +86,9 @@ export const POST_QUOTE_TRANSACTION_TYPES = [
  * mUSD is a stablecoin pegged to USD, so we convert to user's local currency.
  */
 export const USER_CURRENCY_TYPES = [TransactionType.musdClaim] as const;
+
+export const RELAY_DEPOSIT_TYPES = [
+  TransactionType.relayDeposit,
+  TransactionType.perpsRelayDeposit,
+  TransactionType.predictRelayDeposit,
+];

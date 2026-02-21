@@ -16,7 +16,10 @@ import {
   SmartTransactionStatuses,
 } from '@metamask/smart-transactions-controller';
 
-import { REDESIGNED_TRANSACTION_TYPES } from '../../../../components/Views/confirmations/constants/confirmations';
+import {
+  REDESIGNED_TRANSACTION_TYPES,
+  RELAY_DEPOSIT_TYPES,
+} from '../../../../components/Views/confirmations/constants/confirmations';
 import {
   getSmartTransactionsFeatureFlagsForChain,
   selectShouldUseSmartTransaction,
@@ -370,7 +373,7 @@ function beforeSign(
 }
 
 function isAutomaticGasFeeUpdateEnabled(transaction: TransactionMeta) {
-  if (hasTransactionType(transaction, [TransactionType.relayDeposit])) {
+  if (hasTransactionType(transaction, RELAY_DEPOSIT_TYPES)) {
     return false;
   }
 
