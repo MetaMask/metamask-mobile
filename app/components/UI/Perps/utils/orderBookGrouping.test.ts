@@ -222,9 +222,9 @@ describe('orderBookGrouping', () => {
     describe('BTC at ~$90,000', () => {
       const btcPrice = 90000;
 
-      it('returns nSigFigs: 5 with mantissa: 2 for grouping 1', () => {
+      it('returns nSigFigs: 5 without mantissa for grouping 1', () => {
         const result = calculateAggregationParams(1, btcPrice);
-        expect(result).toEqual({ nSigFigs: 5, mantissa: 2 });
+        expect(result).toEqual({ nSigFigs: 5 });
       });
 
       it('returns nSigFigs: 5 with mantissa: 2 for grouping 2', () => {
@@ -256,9 +256,9 @@ describe('orderBookGrouping', () => {
     describe('ETH at ~$3,000', () => {
       const ethPrice = 3000;
 
-      it('returns nSigFigs: 5 with mantissa for grouping 0.1', () => {
+      it('returns nSigFigs: 5 without mantissa for grouping 0.1', () => {
         const result = calculateAggregationParams(0.1, ethPrice);
-        expect(result).toEqual({ nSigFigs: 5, mantissa: 2 });
+        expect(result).toEqual({ nSigFigs: 5 });
       });
 
       it('returns nSigFigs: 4 for grouping 1', () => {
@@ -286,7 +286,7 @@ describe('orderBookGrouping', () => {
       it('returns finest granularity for smallest groupings', () => {
         const result = calculateAggregationParams(0.0000001, pumpPrice);
         expect(result.nSigFigs).toBe(5);
-        expect(result.mantissa).toBeDefined();
+        expect(result.mantissa).toBeUndefined();
       });
     });
 
