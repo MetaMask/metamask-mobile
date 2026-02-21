@@ -51,6 +51,7 @@ import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { Hex } from '@metamask/utils';
 import { MetaMetricsEvents } from '../../../../../core/Analytics/MetaMetrics.events';
 import { usePerpsSelector } from '../../hooks/usePerpsSelector';
+import { useDefaultPayWithTokenWhenNoPerpsBalance } from '../../hooks/useDefaultPayWithTokenWhenNoPerpsBalance';
 import Engine from '../../../../../core/Engine';
 
 const tokenIconStyles = StyleSheet.create({
@@ -116,6 +117,8 @@ export const PerpsPayRow = ({
     selectPendingTradeConfiguration(state, initialAsset),
   );
   const selectedPaymentToken = usePerpsPayWithToken();
+  const defaultPayTokenWhenNoPerpsBalance =
+    useDefaultPayWithTokenWhenNoPerpsBalance();
 
   const pendingConfigSelectedPaymentToken = pendingConfig?.selectedPaymentToken;
 
@@ -131,12 +134,41 @@ export const PerpsPayRow = ({
     appliedPendingTokenRef.current = undefined;
   }
 
+  // When pending config has no selected token: either set Perps balance (null)
+  // or preselect the allowlist token with highest USD balance when user has no perps balance.
   useEffect(() => {
-    if (pendingConfigSelectedPaymentToken != null) return;
+    if (
+      pendingConfigSelectedPaymentToken != null ||
+      appliedPendingTokenRef.current != null
+    )
+      return;
+
+    const defaultToken = defaultPayTokenWhenNoPerpsBalance;
+    if (defaultToken != null) {
+      setPayToken({
+        address: defaultToken.address as Hex,
+        chainId: defaultToken.chainId as Hex,
+      });
+      Engine.context.PerpsController?.setSelectedPaymentToken?.({
+        description: defaultToken.description,
+        address: defaultToken.address as Hex,
+        chainId: defaultToken.chainId as Hex,
+      });
+      appliedPendingTokenRef.current = {
+        address: defaultToken.address,
+        chainId: defaultToken.chainId,
+      };
+      return;
+    }
+
     if (appliedPendingTokenRef.current === null) return;
     appliedPendingTokenRef.current = null;
     Engine.context.PerpsController?.setSelectedPaymentToken?.(null);
-  }, [pendingConfigSelectedPaymentToken]);
+  }, [
+    pendingConfigSelectedPaymentToken,
+    defaultPayTokenWhenNoPerpsBalance,
+    setPayToken,
+  ]);
 
   useEffect(() => {
     if (!pendingConfigSelectedPaymentToken || !selectedPaymentToken) return;

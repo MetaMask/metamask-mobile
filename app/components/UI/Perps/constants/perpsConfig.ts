@@ -19,6 +19,14 @@ export const PERPS_BALANCE_PLACEHOLDER_ADDRESS =
 export { ARBITRUM_CHAIN_ID as PERPS_BALANCE_CHAIN_ID } from '@metamask/swaps-controller/dist/constants';
 
 /**
+ * Minimum perps balance (USD) threshold for default pay token logic.
+ * When available perps balance is above this, we do not preselect a pay token.
+ * When below, we may preselect the allowlist token with highest balance.
+ * Also used as the minimum token balance (USD) to consider for preselection.
+ */
+export const PERPS_MIN_BALANCE_THRESHOLD = 0.01;
+
+/**
  * Minimum number of aggregators (exchanges) a token must be listed on
  * to be considered trustworthy for showing the Perps Discovery Banner.
  * Native tokens (ETH, BNB, etc.) bypass this check.
