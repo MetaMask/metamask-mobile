@@ -7593,7 +7593,7 @@
       "musd_claim": "Claimed mUSD",
       "perps_deposit": "Funded perps account",
       "predict_claim": "Claimed winnings",
-      "predict_deposit": "Funded Predict account",
+      "predict_deposit": "Funded predict account",
       "predict_withdraw": "Withdrawal",
       "default": "Transaction details"
     },
