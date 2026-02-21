@@ -10110,6 +10110,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/test-dapp-tron@npm:^0.3.1":
+  version: 0.3.1
+  resolution: "@metamask/test-dapp-tron@npm:0.3.1"
+  checksum: 10/06697fcb5825fb0411888ee479c11b1959a7e31acab1222da9c3a1d0e50a5295cc8d79d875c93067d1e0ad597594717cf134715e9ed08dd266324ec8630fbd25
+  languageName: node
+  linkType: hard
+
 "@metamask/test-dapp@npm:9.5.0":
   version: 9.5.0
   resolution: "@metamask/test-dapp@npm:9.5.0"
@@ -35594,6 +35601,7 @@ __metadata:
     "@metamask/test-dapp": "npm:9.5.0"
     "@metamask/test-dapp-multichain": "npm:^0.17.1"
     "@metamask/test-dapp-solana": "npm:^0.3.0"
+    "@metamask/test-dapp-tron": "npm:^0.3.1"
     "@metamask/transaction-controller": "npm:^62.16.0"
     "@metamask/transaction-pay-controller": "npm:^15.0.1"
     "@metamask/tron-wallet-snap": "npm:^1.21.1"
