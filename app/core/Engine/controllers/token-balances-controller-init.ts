@@ -33,7 +33,7 @@ export const tokenBalancesControllerInit: ControllerInitFunction<
     accountsApiChainIds: () =>
       selectAssetsAccountApiBalancesEnabled(getState()) as `0x${string}`[],
     platform: 'mobile',
-    isOnboarded: () => selectCompletedOnboarding(getState()),
+    isOnboarded: () => selectCompletedOnboarding(getState()) ?? false,
   });
 
   return {
