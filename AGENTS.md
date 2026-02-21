@@ -111,6 +111,38 @@ scripts/                  # Build and automation scripts
 | `deeplink-handler-guidelines.mdc` | Deeplink handler implementation                      |
 | `pr-creation-guidelines.mdc`      | Pull request standards                               |
 
+## MANDATORY: Pre-Action Rule Checks
+
+**AI Agents MUST read and follow the appropriate `.cursor/rules/` files BEFORE taking action:**
+
+| Action                      | MUST Read First                                    |
+| --------------------------- | -------------------------------------------------- |
+| Creating a PR               | `.cursor/rules/pr-creation-guidelines.mdc`         |
+| Writing/modifying tests     | `.cursor/rules/unit-testing-guidelines.mdc`        |
+| Writing E2E tests           | `.cursor/rules/e2e-testing-guidelines.mdc`         |
+| UI component work           | `.cursor/rules/ui-development-guidelines.mdc`      |
+| Component view tests        | `.cursor/rules/component-view-testing.mdc`         |
+| Any code changes            | `.cursor/rules/general-coding-guidelines.mdc`      |
+
+### PR Creation Checklist (MANDATORY)
+
+Before creating ANY pull request, agents MUST:
+
+1. **Read** `.cursor/rules/pr-creation-guidelines.mdc` completely
+2. **Use Conventional Commits** format for PR title: `<type>[scope]: <description>`
+3. **Fill out the complete PR template** from `.github/pull-request-template.md`
+4. **Include all sections**: Description, Changelog, Related issues, Manual testing steps, Screenshots (if UI), Checklists
+5. **Add required labels**: At minimum, a `team-*` label is required
+6. **Assign the PR** to the responsible person (usually the author)
+7. **Create as Draft** initially, mark ready only after CI passes
+
+### Failure to Follow Rules
+
+If an agent creates a PR without following these guidelines:
+- The PR may be converted to Draft
+- The PR may require significant rework
+- Review will be delayed
+
 ### Quick Reference
 
 - **TypeScript**: All new code MUST be TypeScript, NO `any` type
