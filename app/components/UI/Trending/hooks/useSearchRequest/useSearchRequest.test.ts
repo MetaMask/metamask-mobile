@@ -5,6 +5,8 @@ import { CaipChainId } from '@metamask/utils';
 // eslint-disable-next-line import/no-namespace
 import * as assetsControllers from '@metamask/assets-controllers';
 
+const SEARCH_DEBOUNCE_DELAY = 300;
+
 const createMockSearchResult = (overrides = {}) => ({
   assetId: 'eip155:1/erc20:0x123' as CaipChainId,
   decimals: 18,
@@ -21,11 +23,14 @@ describe('useSearchRequest', () => {
   let spySearchTokens: jest.SpyInstance;
 
   beforeEach(() => {
+    jest.useFakeTimers();
     spySearchTokens = jest.spyOn(assetsControllers, 'searchTokens');
     jest.clearAllMocks();
   });
 
   afterEach(() => {
+    jest.runOnlyPendingTimers();
+    jest.useRealTimers();
     jest.clearAllMocks();
     jest.resetAllMocks();
   });
@@ -41,6 +46,11 @@ describe('useSearchRequest', () => {
         limit: 10,
       }),
     );
+
+    // Wait for debounce to complete
+    await act(async () => {
+      jest.advanceTimersByTime(SEARCH_DEBOUNCE_DELAY);
+    });
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
@@ -63,6 +73,11 @@ describe('useSearchRequest', () => {
         limit: 10,
       }),
     );
+
+    // Wait for debounce to complete
+    await act(async () => {
+      jest.advanceTimersByTime(SEARCH_DEBOUNCE_DELAY);
+    });
 
     await waitFor(() => {
       expect(result.current.error).toEqual(mockError);
@@ -94,6 +109,11 @@ describe('useSearchRequest', () => {
         limit: 10,
       }),
     );
+
+    // Wait for debounce to complete
+    await act(async () => {
+      jest.advanceTimersByTime(SEARCH_DEBOUNCE_DELAY);
+    });
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(true);
@@ -151,6 +171,11 @@ describe('useSearchRequest', () => {
       }),
     );
 
+    // Wait for debounce to complete
+    await act(async () => {
+      jest.advanceTimersByTime(SEARCH_DEBOUNCE_DELAY);
+    });
+
     await waitFor(() => {
       expect(result.current.error).toEqual(mockError);
     });
@@ -182,6 +207,11 @@ describe('useSearchRequest', () => {
       }),
     );
 
+    // Wait for debounce to complete
+    await act(async () => {
+      jest.advanceTimersByTime(SEARCH_DEBOUNCE_DELAY);
+    });
+
     await waitFor(() => {
       expect(spySearchTokens).toHaveBeenCalledTimes(1);
     });
@@ -208,6 +238,11 @@ describe('useSearchRequest', () => {
       }),
     );
 
+    // Wait for debounce to complete
+    await act(async () => {
+      jest.advanceTimersByTime(SEARCH_DEBOUNCE_DELAY);
+    });
+
     await waitFor(() => {
       expect(spySearchTokens).toHaveBeenCalledTimes(1);
     });
@@ -217,6 +252,95 @@ describe('useSearchRequest', () => {
 
     await waitFor(() => {
       expect(spySearchTokens).toHaveBeenCalledTimes(1);
+    });
+
+    unmount();
+  });
+
+  it('debounces query changes to prevent excessive API calls', async () => {
+    const mockResults = [createMockSearchResult()];
+    spySearchTokens.mockResolvedValue({ data: mockResults } as never);
+
+    // Start with empty query (no API call)
+    let query = '';
+    const { rerender, unmount } = renderHookWithProvider(() =>
+      useSearchRequest({
+        chainIds: ['eip155:1'],
+        query,
+        limit: 10,
+      }),
+    );
+
+    // Simulate rapid typing - each keystroke resets the debounce timer
+    query = 'E';
+    rerender(undefined);
+    await act(async () => {
+      jest.advanceTimersByTime(100);
+    });
+    expect(spySearchTokens).not.toHaveBeenCalled();
+
+    query = 'ET';
+    rerender(undefined);
+    await act(async () => {
+      jest.advanceTimersByTime(100);
+    });
+    expect(spySearchTokens).not.toHaveBeenCalled();
+
+    query = 'ETH';
+    rerender(undefined);
+    await act(async () => {
+      jest.advanceTimersByTime(100);
+    });
+    expect(spySearchTokens).not.toHaveBeenCalled();
+
+    // After full debounce delay from last keystroke, API should be called once
+    await act(async () => {
+      jest.advanceTimersByTime(SEARCH_DEBOUNCE_DELAY);
+    });
+
+    await waitFor(() => {
+      expect(spySearchTokens).toHaveBeenCalledTimes(1);
+    });
+
+    // Verify it was called with the final query
+    expect(spySearchTokens).toHaveBeenCalledWith(
+      ['eip155:1'],
+      'ETH',
+      expect.any(Object),
+    );
+
+    unmount();
+  });
+
+  it('shows loading state while query is being debounced', async () => {
+    spySearchTokens.mockResolvedValue({ data: [] } as never);
+
+    let query = '';
+    const { result, rerender, unmount } = renderHookWithProvider(() =>
+      useSearchRequest({
+        chainIds: ['eip155:1'],
+        query,
+        limit: 10,
+      }),
+    );
+
+    // Empty query - should not be loading
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    // Start typing - should show loading (debouncing)
+    query = 'ETH';
+    rerender(undefined);
+    expect(result.current.isLoading).toBe(true);
+
+    // After debounce completes and API resolves
+    await act(async () => {
+      jest.advanceTimersByTime(SEARCH_DEBOUNCE_DELAY);
+    });
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
     });
 
     unmount();
