@@ -28,7 +28,7 @@ export class RPCQueueManager {
    * Check if the queue doesn't contains a redirectable RPC
    * if it does, we can't redirect the user to the app
    *
-   * We also pass the current rpc method as a prameters because not all message are saved inside the rpcqueue.
+   * We also pass the current rpc method as a parameters because not all message are saved inside the rpcqueue.
    * For example metamask_getProviderState is sent directly to the backgroundBridge.
    */
   canRedirect({ method }: { method: string }) {
