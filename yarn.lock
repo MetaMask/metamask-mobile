@@ -35844,10 +35844,11 @@ __metadata:
     react-native-material-textfield: "npm:0.16.1"
     react-native-mmkv: "npm:^3.2.0"
     react-native-modal: "npm:^14.0.0-rc.1"
-    react-native-nitro-modules: "npm:^0.29.6"
+    react-native-nitro-modules: "npm:^0.29.8"
     react-native-os: "npm:^1.2.6"
     react-native-pager-view: "npm:^6.7.0"
     react-native-performance: "npm:^5.1.2"
+    react-native-performance-toolkit: "npm:^0.2.1"
     react-native-permissions: "npm:^3.7.2"
     react-native-progress: "npm:3.5.0"
     react-native-qrcode-svg: "npm:5.1.2"
@@ -40524,13 +40525,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-nitro-modules@npm:^0.29.6":
-  version: 0.29.6
-  resolution: "react-native-nitro-modules@npm:0.29.6"
+"react-native-nitro-modules@npm:^0.29.8":
+  version: 0.29.8
+  resolution: "react-native-nitro-modules@npm:0.29.8"
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: 10/7118ea18679b5910d01d0b1dbef75f22117e3b61d91a0b97556badf36fe923d1b8780e0fee114d13c3d9e3188ad7f8d26b6c41d3ad18675461ab8897560ee369
+  checksum: 10/23f5097c6561ac43e96d8899e0153c8f87c34ffa634da83525543d4889c01791f5f3822825529323d339b3e990596d49b78ec56fe56d3261a4897c9a020095cc
   languageName: node
   linkType: hard
 
@@ -40548,6 +40549,27 @@ __metadata:
     react: "*"
     react-native: "*"
   checksum: 10/22cc95dcf5085cab2b88272610b836375044cc9ab22f8e81f586e9ecb5c75880dc2c649321cbd173b48c6c7025c9914ab4b67ed0207f623a84ea26025257a4e0
+  languageName: node
+  linkType: hard
+
+"react-native-performance-toolkit@npm:^0.2.1":
+  version: 0.2.1
+  resolution: "react-native-performance-toolkit@npm:0.2.1"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+    react-native-gesture-handler: "*"
+    react-native-nitro-modules: "*"
+    react-native-reanimated: "*"
+    react-native-worklets: "*"
+  peerDependenciesMeta:
+    react-native-gesture-handler:
+      optional: true
+    react-native-reanimated:
+      optional: true
+    react-native-worklets:
+      optional: true
+  checksum: 10/45152c20e4f4bb0cb26857b6f26d64ffd0bc2ec8d345226295457c067fd3b975e6c88c49f907250eec9df31a95d38390114418d46a9ed8c6dd8ad781cfc88428
   languageName: node
   linkType: hard
 
