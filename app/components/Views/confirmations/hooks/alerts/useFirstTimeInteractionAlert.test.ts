@@ -1,11 +1,12 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
-import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
-import { useAddressTrustSignal } from '../useAddressTrustSignals';
-import { useFirstTimeInteractionAlert } from './useFirstTimeInteractionAlert';
 import { AlertKeys } from '../../constants/alerts';
 import { Severity } from '../../types/alerts';
 import { TrustSignalDisplayState } from '../../types/trustSignals';
+import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
+import { useTransferRecipient } from '../transactions/useTransferRecipient';
+import { useAddressTrustSignal } from '../useAddressTrustSignals';
+import { useFirstTimeInteractionAlert } from './useFirstTimeInteractionAlert';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -19,11 +20,17 @@ jest.mock('../useAddressTrustSignals', () => ({
   useAddressTrustSignal: jest.fn(),
 }));
 
+jest.mock('../transactions/useTransferRecipient', () => ({
+  useTransferRecipient: jest.fn(),
+}));
+
 describe('useFirstTimeInteractionAlert', () => {
   const mockUseSelector = useSelector as jest.Mock;
   const mockUseTransactionMetadataRequest =
     useTransactionMetadataRequest as jest.Mock;
   const mockUseAddressTrustSignal = useAddressTrustSignal as jest.Mock;
+  const contractAddress = '0xContractAddress';
+  const tokenRecipient = '0xTokenRecipient';
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -114,5 +121,44 @@ describe('useFirstTimeInteractionAlert', () => {
       title: `1st interaction`,
       message: `You're interacting with this address for the first time. Make sure that it's correct before you continue.`,
     });
+  });
+
+  it('prioritizes recipient from useTransferRecipient', () => {
+    // Mock the hook to return the actual recipient (e.g. from token data)
+    (useTransferRecipient as jest.Mock).mockReturnValue(tokenRecipient);
+
+    renderHook(() => useFirstTimeInteractionAlert());
+
+    // Verify trust signal check is performed on the token recipient, not the contract
+    expect(useAddressTrustSignal).toHaveBeenCalledWith(tokenRecipient, '0x1');
+  });
+
+  it('fallbacks to txParams.to if useTransferRecipient returns undefined', () => {
+    mockUseTransactionMetadataRequest.mockReturnValue({
+      chainId: '0x1',
+      txParams: { to: contractAddress },
+      isFirstTimeInteraction: true,
+    });
+    // Mock hook returning undefined (e.g. not a token transfer)
+    (useTransferRecipient as jest.Mock).mockReturnValue(undefined);
+
+    renderHook(() => useFirstTimeInteractionAlert());
+
+    // Should fallback to the 'to' field in txParams
+    expect(useAddressTrustSignal).toHaveBeenCalledWith(contractAddress, '0x1');
+  });
+
+  it('does not show alert if useTransferRecipient identifies an internal account', () => {
+    mockUseTransactionMetadataRequest.mockReturnValue({
+      chainId: '0x1',
+      txParams: { to: '0xExternalContract' },
+      isFirstTimeInteraction: true,
+    });
+    mockUseSelector.mockReturnValue([{ address: '0xInternal' }]);
+    (useTransferRecipient as jest.Mock).mockReturnValue('0xInternal');
+
+    const { result } = renderHook(() => useFirstTimeInteractionAlert());
+
+    expect(result.current).toHaveLength(0);
   });
 });
