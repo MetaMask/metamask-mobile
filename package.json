@@ -191,6 +191,7 @@
     "@metamask/ai-controllers": "^0.1.0",
     "@metamask/analytics-controller": "^1.0.0",
     "@metamask/app-metadata-controller": "^2.0.0",
+    "@metamask/client-controller": "file:../core/packages/client-controller",
     "@metamask/approval-controller": "^8.0.0",
     "@metamask/assets-controller": "^2.0.0",
     "@metamask/assets-controllers": "^100.0.2",

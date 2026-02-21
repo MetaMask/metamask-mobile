@@ -125,6 +125,7 @@ import { defiPositionsControllerInit } from './controllers/defi-positions-contro
 import { SignatureControllerInit } from './controllers/signature-controller';
 import { GasFeeControllerInit } from './controllers/gas-fee-controller';
 import { appMetadataControllerInit } from './controllers/app-metadata-controller';
+import { clientControllerInit } from './controllers/client-controller';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { toFormattedAddress } from '../../util/address';
 import { WebSocketServiceInit } from './controllers/snaps/websocket-service-init';
@@ -299,6 +300,7 @@ export class Engine {
         ///: END:ONLY_INCLUDE_IF
         AccountTreeController: accountTreeControllerInit,
         AppMetadataController: appMetadataControllerInit,
+        ClientController: clientControllerInit,
         AssetsContractController: assetsContractControllerInit,
         AccountTrackerController: accountTrackerControllerInit,
         SelectedNetworkController: selectedNetworkControllerInit,
@@ -499,6 +501,7 @@ export class Engine {
       AccountTrackerController: accountTrackerController,
       AddressBookController: addressBookController,
       AppMetadataController: controllersByName.AppMetadataController,
+      ClientController: controllersByName.ClientController,
       ConnectivityController: connectivityController,
       AssetsContractController: assetsContractController,
       AssetsController: controllersByName.AssetsController,
@@ -681,6 +684,13 @@ export class Engine {
           return;
         }
 
+        const isActive = state === 'active';
+
+        // Publish client state to ClientController
+        this.controllerMessenger.call('ClientController:setUiOpen', isActive);
+
+        ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+        // TODO: SnapController should subscribe to ClientController:stateChange
         const { isUnlocked } = this.controllerMessenger.call(
           'KeyringController:getState',
         );
@@ -688,14 +698,14 @@ export class Engine {
         // Notifies Snaps that the app may be in the background.
         // This is best effort as we cannot guarantee the messages are received in time.
         if (isUnlocked) {
-          return this.controllerMessenger.call(
+          this.controllerMessenger.call(
             'SnapController:setClientActive',
-            state === 'active',
+            isActive,
           );
         }
+        ///: END:ONLY_INCLUDE_IF
       },
     );
-    ///: END:ONLY_INCLUDE_IF
 
     this.configureControllersOnNetworkChange();
     this.startPolling();
@@ -1128,9 +1138,7 @@ export class Engine {
   removeAllListeners() {
     this.controllerMessenger.clearSubscriptions();
 
-    ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
     this.appStateListener?.remove();
-    ///: END:ONLY_INCLUDE_IF
 
     // Cleanup AppStateWebSocketManager
     this.appStateWebSocketManager.cleanup();
