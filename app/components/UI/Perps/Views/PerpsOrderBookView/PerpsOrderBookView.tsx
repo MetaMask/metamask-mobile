@@ -1,4 +1,7 @@
-import { ButtonSize as ButtonSizeRNDesignSystem } from '@metamask/design-system-react-native';
+import {
+  Box,
+  ButtonSize as ButtonSizeRNDesignSystem,
+} from '@metamask/design-system-react-native';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import React, {
   useCallback,
@@ -19,7 +22,10 @@ import {
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
-import { PerpsOrderBookViewSelectorsIDs } from '../../Perps.testIds';
+import {
+  PerpsMarketHeaderSelectorsIDs,
+  PerpsOrderBookViewSelectorsIDs,
+} from '../../Perps.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import ButtonSemantic, {
   ButtonSemanticSeverity,
@@ -50,7 +56,10 @@ import { TraceName } from '../../../../../util/trace';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip';
 import type { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
-import PerpsMarketHeader from '../../components/PerpsMarketHeader';
+import HeaderStackedSubpage from '../../../../../component-library/components-temp/HeaderStackedSubpage';
+import PerpsLeverage from '../../components/PerpsLeverage/PerpsLeverage';
+import LivePriceHeader from '../../components/LivePriceDisplay/LivePriceHeader';
+import PerpsTokenLogo from '../../components/PerpsTokenLogo';
 import PerpsOrderBookDepthChart from '../../components/PerpsOrderBookDepthChart';
 import PerpsOrderBookTable, {
   type UnitDisplay,
@@ -317,6 +326,35 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
     [styles.footer, insets.bottom],
   );
 
+  const marketDisplayTitle = market
+    ? `${getPerpsDisplaySymbol(market.symbol)}-USD`
+    : '';
+
+  const titleSubpageProps = useMemo(
+    () =>
+      market
+        ? {
+            startAccessory: <PerpsTokenLogo symbol={market.symbol} size={40} />,
+            title: marketDisplayTitle,
+            titleAccessory: market.maxLeverage ? (
+              <Box twClassName="ml-1">
+                <PerpsLeverage maxLeverage={market.maxLeverage} />
+              </Box>
+            ) : undefined,
+            bottomAccessory: (
+              <LivePriceHeader
+                symbol={market.symbol}
+                currentPrice={currentPrice}
+                testIDPrice={PerpsMarketHeaderSelectorsIDs.PRICE}
+                testIDChange={PerpsMarketHeaderSelectorsIDs.PRICE_CHANGE}
+                throttleMs={1000}
+              />
+            ),
+          }
+        : undefined,
+    [market, marketDisplayTitle, currentPrice],
+  );
+
   // Handle grouping dropdown press
   const handleDepthBandPress = useCallback(() => {
     setIsDepthBandSheetVisible(true);
@@ -489,10 +527,13 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
     return (
       <SafeAreaView style={styles.container} testID={testID}>
         {market ? (
-          <PerpsMarketHeader
-            market={market}
-            onBackPress={handleBack}
-            currentPrice={currentPrice}
+          <HeaderStackedSubpage
+            onBack={handleBack}
+            backButtonProps={{
+              testID: PerpsOrderBookViewSelectorsIDs.BACK_BUTTON,
+            }}
+            titleSubpageProps={titleSubpageProps}
+            testID={PerpsOrderBookViewSelectorsIDs.HEADER}
           />
         ) : (
           <View style={styles.header}>
@@ -521,12 +562,14 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
 
   return (
     <SafeAreaView style={styles.container} testID={testID}>
-      {/* Market Header */}
       {market && (
-        <PerpsMarketHeader
-          market={market}
-          onBackPress={handleBack}
-          currentPrice={currentPrice}
+        <HeaderStackedSubpage
+          onBack={handleBack}
+          backButtonProps={{
+            testID: PerpsOrderBookViewSelectorsIDs.BACK_BUTTON,
+          }}
+          titleSubpageProps={titleSubpageProps}
+          testID={PerpsOrderBookViewSelectorsIDs.HEADER}
         />
       )}
 

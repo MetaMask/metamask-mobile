@@ -16,9 +16,13 @@ import { HeaderBaseProps } from '../../components/HeaderBase';
  */
 export interface HeaderCollapsibleProps extends HeaderBaseProps {
   /**
-   * Title text displayed in the compact header state.
+   * Custom content for the compact header. When provided, title and subtitle are not rendered.
    */
-  title: string;
+  children?: ReactNode;
+  /**
+   * Title text displayed in the compact header state. Ignored when children is provided.
+   */
+  title?: string;
   /**
    * Additional props to pass to the title Text component in the compact header.
    * Props are spread to the Text component and can override default values.

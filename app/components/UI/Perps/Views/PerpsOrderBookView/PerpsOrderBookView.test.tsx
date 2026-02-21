@@ -229,34 +229,42 @@ jest.mock('../../components/PerpsOrderBookDepthChart', () => {
   );
 });
 
-// Mock PerpsMarketHeader to avoid PerpsStreamProvider dependency
-jest.mock('../../components/PerpsMarketHeader', () => {
-  const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
-  const selectors = jest.requireActual<typeof import('../../Perps.testIds')>(
-    '../../Perps.testIds',
-  );
-  return {
-    __esModule: true,
-    default: ({
-      market,
-      onBackPress,
-    }: {
-      market?: { symbol: string };
-      onBackPress?: () => void;
-    }) => (
-      <View testID="perps-market-header">
-        <TouchableOpacity
-          testID={selectors.PerpsOrderBookViewSelectorsIDs.BACK_BUTTON}
-          onPress={onBackPress}
+// Mock HeaderStackedSubpage to avoid PerpsStreamProvider dependency
+jest.mock(
+  '../../../../../component-library/components-temp/HeaderStackedSubpage',
+  () => {
+    const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
+    const selectors = jest.requireActual<typeof import('../../Perps.testIds')>(
+      '../../Perps.testIds',
+    );
+    return {
+      __esModule: true,
+      default: ({
+        onBack,
+        backButtonProps,
+        testID,
+      }: {
+        onBack?: () => void;
+        backButtonProps?: { testID?: string };
+        testID?: string;
+      }) => (
+        <View
+          testID={testID ?? selectors.PerpsOrderBookViewSelectorsIDs.HEADER}
         >
-          <Text>Back</Text>
-        </TouchableOpacity>
-        <Text>Order Book</Text>
-        {market && <Text>{market.symbol}</Text>}
-      </View>
-    ),
-  };
-});
+          <TouchableOpacity
+            testID={
+              backButtonProps?.testID ??
+              selectors.PerpsOrderBookViewSelectorsIDs.BACK_BUTTON
+            }
+            onPress={onBack}
+          >
+            <Text>Back</Text>
+          </TouchableOpacity>
+        </View>
+      ),
+    };
+  },
+);
 
 // Mock BottomSheet components to avoid SafeAreaProvider requirement
 jest.mock(
@@ -369,15 +377,16 @@ describe('PerpsOrderBookView', () => {
 
   describe('rendering', () => {
     it('renders successfully with order book data', () => {
-      const { getByTestId, getByText } = renderWithProvider(
-        <PerpsOrderBookView />,
-        { state: initialState },
-      );
+      const { getByTestId } = renderWithProvider(<PerpsOrderBookView />, {
+        state: initialState,
+      });
 
       expect(
         getByTestId(PerpsOrderBookViewSelectorsIDs.CONTAINER),
       ).toBeOnTheScreen();
-      expect(getByText('Order Book')).toBeOnTheScreen();
+      expect(
+        getByTestId(PerpsOrderBookViewSelectorsIDs.HEADER),
+      ).toBeOnTheScreen();
     });
 
     it('renders with custom testID', () => {

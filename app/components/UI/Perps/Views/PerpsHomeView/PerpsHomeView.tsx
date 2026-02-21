@@ -22,6 +22,7 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  IconName,
 } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import { TextColor } from '../../../../../component-library/components/Texts/Text';
@@ -52,7 +53,9 @@ import PerpsMarketTypeSection from '../../components/PerpsMarketTypeSection';
 import PerpsRecentActivityList from '../../components/PerpsRecentActivityList/PerpsRecentActivityList';
 import PerpsHomeSection from '../../components/PerpsHomeSection';
 import PerpsRowSkeleton from '../../components/PerpsRowSkeleton';
-import PerpsHomeHeader from '../../components/PerpsHomeHeader';
+import HeaderCollapsibleStandard, {
+  useHeaderCollapsible,
+} from '../../../../../component-library/components-temp/HeaderCollapsibleStandard';
 import type { PerpsNavigationParamList } from '../../types/navigation';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
@@ -111,6 +114,9 @@ const PerpsHomeView = () => {
   // Section scroll tracking for analytics
   const { handleSectionLayout, handleScroll, resetTracking } =
     usePerpsHomeSectionTracking();
+
+  const { onScroll, scrollY, expandedHeight, setExpandedHeight } =
+    useHeaderCollapsible();
 
   // Get balance state directly from Redux
   const { account: perpsAccount } = usePerpsLiveAccount({ throttleMs: 1000 });
@@ -409,19 +415,35 @@ const PerpsHomeView = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <PerpsHomeHeader
+      <HeaderCollapsibleStandard
+        title={strings('perps.title')}
+        titleStandardProps={{ title: strings('perps.title') }}
         onBack={handleBackPress}
-        onSearchToggle={handleSearchToggle}
+        backButtonProps={{ testID: 'back-button' }}
+        endButtonIconProps={[
+          {
+            iconName: IconName.Search,
+            onPress: handleSearchToggle,
+            testID: PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE,
+          },
+        ]}
+        scrollY={scrollY}
+        onExpandedHeightChange={setExpandedHeight}
+        isInsideSafeAreaView
         testID="perps-home"
       />
 
-      {/* Main Content - ScrollView with all carousels */}
       <ScrollView
         style={styles.scrollView}
-        contentContainerStyle={styles.scrollViewContent}
+        contentContainerStyle={[
+          styles.scrollViewContent,
+          { paddingTop: expandedHeight },
+        ]}
         showsVerticalScrollIndicator={false}
-        onScroll={handleScroll}
+        onScroll={(e) => {
+          onScroll(e);
+          handleScroll(e);
+        }}
         scrollEventThrottle={16}
       >
         {/* Balance Actions Component */}
