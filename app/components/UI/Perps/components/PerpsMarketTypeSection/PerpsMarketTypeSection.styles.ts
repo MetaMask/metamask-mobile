@@ -21,8 +21,10 @@ const styleSheet = (params: { theme: Theme }) => {
     contentContainer: {
       marginHorizontal: 16,
       borderRadius: 16,
-      paddingTop: 12,
       backgroundColor: theme.colors.background.muted,
+    },
+    marketListContentContainer: {
+      paddingBottom: 0,
     },
   });
 };

@@ -35,9 +35,24 @@ export interface PerpsMarketRowItemProps {
    */
   showBadge?: boolean;
   /**
-   * When true, uses reduced vertical padding (8px instead of 16px).
-   * Useful when embedded in feed cards alongside other row item types.
+   * Legacy compact mode.
+   * When true, uses reduced vertical padding and compact inner spacing.
    * @default false
    */
   compact?: boolean;
+  /**
+   * Optional vertical padding for the row container.
+   * Used for compact displays (e.g., search results).
+   */
+  verticalPadding?: number;
+  /**
+   * Optional fixed height for the row container.
+   * Used for compact displays (e.g., search results).
+   */
+  rowHeight?: number;
+  /**
+   * Compact mode for search results.
+   * Adjusts internal spacing to fit the compact row height.
+   */
+  isCompact?: boolean;
 }
