@@ -2,7 +2,7 @@ import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings'
 import {
   selectBitcoinRewardsEnabledFlag,
   selectTronRewardsEnabledFlag,
-  selectSnapshotsRewardsEnabledFlag,
+  selectDropsRewardsEnabledFlag,
 } from '../../../../selectors/featureFlagController/rewards/rewardsEnabled';
 import type { ControllerInitFunction } from '../../types';
 import {
@@ -34,7 +34,7 @@ export const rewardsControllerInit: ControllerInitFunction<
     },
     isBitcoinOptinEnabled: () => selectBitcoinRewardsEnabledFlag(getState()),
     isTronOptinEnabled: () => selectTronRewardsEnabledFlag(getState()),
-    isSnapshotsEnabled: () => selectSnapshotsRewardsEnabledFlag(getState()),
+    isDropsEnabled: () => selectDropsRewardsEnabledFlag(getState()),
   });
 
   return { controller };

@@ -7299,7 +7299,7 @@
     "main_title": "Mga Reward",
     "referral_title": "Mga Referral",
     "tab_overview_title": "Overview",
-    "tab_snapshots_title": "Snapshots",
+    "tab_drops_title": "Snapshots",
     "tab_activity_title": "Aktibidad",
     "referral_stats_earned_from_referrals": "Nakuha mula sa mga referral",
     "referral_stats_referrals": "Mga Referral",
@@ -7533,7 +7533,7 @@
     "animation": {
       "could_not_load": "Hindi mai-load"
     },
-    "snapshot": {
+    "drop": {
       "starts_date": "Starts {{date}}",
       "ends_date": "Ends {{date}}",
       "results_coming_soon": "Results coming soon",
@@ -7544,19 +7544,19 @@
       "pill_results_ready": "Results Ready",
       "pill_complete": "Complete"
     },
-    "snapshots_section": {
-      "title": "Snapshots",
-      "error_title": "Unable to load snapshots",
-      "error_description": "We couldn't load the snapshots. Please try again.",
+    "drop_section": {
+      "title": "Airdrops",
+      "error_title": "Unable to load airdrops",
+      "error_description": "We couldn't load the airdrops. Please try again.",
       "retry_button": "Subukang muli"
     },
-    "snapshots_tab": {
+    "drop_tab": {
       "active_title": "Active",
       "upcoming_title": "Upcoming",
       "previous_title": "Previous",
       "empty_state": "No snapshots available",
-      "error_title": "Unable to load snapshots",
-      "error_description": "We couldn't load the snapshots. Please try again.",
+      "error_title": "Unable to load airdrops",
+      "error_description": "We couldn't load the airdrops. Please try again.",
       "retry_button": "Subukang muli",
       "refreshing": "Refreshing..."
     }

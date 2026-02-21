@@ -24,9 +24,9 @@ import rewardsReducer, {
   setUnlockedRewardLoading,
   setUnlockedRewardError,
   setPointsEvents,
-  setSnapshots,
-  setSnapshotsLoading,
-  setSnapshotsError,
+  setSeasonDrops,
+  setSeasonDropsLoading,
+  setSeasonDropsError,
   bulkLinkStarted,
   bulkLinkAccountResult,
   bulkLinkCompleted,
@@ -35,6 +35,13 @@ import rewardsReducer, {
   bulkLinkReset,
   bulkLinkResumed,
   BULK_LINK_CANCEL,
+  setRecentDropPointCommit,
+  clearRecentDropPointCommit,
+  clearAllRecentDropPointCommits,
+  setRecentDropAddressCommit,
+  clearRecentDropAddressCommit,
+  setIsUpdatingDropAddress,
+  setIsValidatingDropAddress,
   RewardsState,
 } from '.';
 import { OnboardingStep } from './types';
@@ -42,7 +49,9 @@ import {
   SeasonStatusState,
   RewardClaimStatus,
   PointsEventDto,
-  SnapshotDto,
+  SeasonDropDto,
+  DropStatus,
+  CommitDropPointsResponseDto,
 } from '../../core/Engine/controllers/rewards-controller/types';
 import { AccountGroupId } from '@metamask/account-api';
 
@@ -291,8 +300,8 @@ describe('rewardsReducer', () => {
             levelNumber: '1',
             rewards: [],
           },
-          nextTier: null,
-          nextTierPointsNeeded: null,
+          nextTier: undefined,
+          nextTierPointsNeeded: undefined,
         },
       } as SeasonStatusState;
       const action = setSeasonStatus(mockSeasonStatus);
@@ -302,8 +311,8 @@ describe('rewardsReducer', () => {
 
       // Assert
       expect(state.currentTier?.name).toBe('Bronze');
-      expect(state.nextTier).toBe(null);
-      expect(state.nextTierPointsNeeded).toBe(null);
+      expect(state.nextTier).toBeNull();
+      expect(state.nextTierPointsNeeded).toBeNull();
     });
 
     it('should handle season status with undefined balance updatedAt', () => {
@@ -321,7 +330,7 @@ describe('rewardsReducer', () => {
         },
         tier: {
           currentTier: null,
-          nextTier: null,
+          nextTier: undefined,
           nextTierPointsNeeded: null,
         },
       } as unknown as SeasonStatusState;
@@ -476,7 +485,7 @@ describe('rewardsReducer', () => {
         },
         tier: {
           currentTier: null,
-          nextTier: null,
+          nextTier: undefined,
           nextTierPointsNeeded: null,
         },
       } as unknown as SeasonStatusState;
@@ -504,7 +513,7 @@ describe('rewardsReducer', () => {
         },
         tier: {
           currentTier: null,
-          nextTier: null,
+          nextTier: undefined,
           nextTierPointsNeeded: null,
         },
       } as unknown as SeasonStatusState;
@@ -537,7 +546,7 @@ describe('rewardsReducer', () => {
         },
         tier: {
           currentTier: null,
-          nextTier: null,
+          nextTier: undefined,
           nextTierPointsNeeded: null,
         },
       } as unknown as SeasonStatusState;
@@ -2128,9 +2137,13 @@ describe('rewardsReducer', () => {
           wasInterrupted: false,
           initialSubscriptionId: null,
         },
-        snapshots: null,
-        snapshotsLoading: false,
-        snapshotsError: false,
+        seasonDrops: null,
+        seasonDropsLoading: false,
+        seasonDropsError: false,
+        recentDropPointCommits: {},
+        recentDropAddressCommits: {},
+        isUpdatingDropAddress: false,
+        isValidatingDropAddress: false,
       };
       const action = resetRewardsState();
 
@@ -2231,9 +2244,13 @@ describe('rewardsReducer', () => {
           wasInterrupted: false,
           initialSubscriptionId: null,
         },
-        snapshots: null,
-        snapshotsLoading: false,
-        snapshotsError: false,
+        seasonDrops: null,
+        seasonDropsLoading: false,
+        seasonDropsError: false,
+        recentDropPointCommits: {},
+        recentDropAddressCommits: {},
+        isUpdatingDropAddress: false,
+        isValidatingDropAddress: false,
       };
       const rehydrateAction = {
         type: 'persist/REHYDRATE',
@@ -4447,8 +4464,8 @@ describe('persist/REHYDRATE with bulk link state', () => {
   });
 });
 
-describe('setSnapshots', () => {
-  const mockSnapshot: SnapshotDto = {
+describe('setSeasonDrops', () => {
+  const mockSeasonDrop: SeasonDropDto = {
     id: '01974010-377f-7553-a365-0c33c8130980',
     seasonId: '7444682d-9050-43b8-9038-28a6a62d6264',
     name: 'Monad Airdrop',
@@ -4457,319 +4474,716 @@ describe('setSnapshots', () => {
     tokenAmount: '50000000000000000000000',
     tokenChainId: '1',
     tokenAddress: '0x1234567890abcdef1234567890abcdef12345678',
-    receivingBlockchain: 'Ethereum',
+    receivingBlockchain: 1,
     opensAt: '2025-03-01T00:00:00.000Z',
     closesAt: '2025-03-15T00:00:00.000Z',
     calculatedAt: '2025-03-16T00:00:00.000Z',
     distributedAt: '2025-03-20T00:00:00.000Z',
-    backgroundImage: {
+    image: {
       lightModeUrl: 'https://example.com/light.png',
       darkModeUrl: 'https://example.com/dark.png',
     },
+    status: DropStatus.OPEN,
   };
 
-  it('should set snapshots array', () => {
+  it('sets seasonDrops array', () => {
     // Arrange
-    const mockSnapshots: SnapshotDto[] = [mockSnapshot];
-    const action = setSnapshots(mockSnapshots);
+    const mockSeasonDrops: SeasonDropDto[] = [mockSeasonDrop];
+    const action = setSeasonDrops(mockSeasonDrops);
 
     // Act
     const state = rewardsReducer(initialState, action);
 
     // Assert
-    expect(state.snapshots).toEqual(mockSnapshots);
-    expect(state.snapshotsError).toBe(false);
+    expect(state.seasonDrops).toEqual(mockSeasonDrops);
+    expect(state.seasonDropsError).toBe(false);
   });
 
-  it('should replace existing snapshots with new ones', () => {
+  it('replaces existing seasonDrops with new ones', () => {
     // Arrange
-    const stateWithSnapshots: RewardsState = {
+    const stateWithSeasonDrops: RewardsState = {
       ...initialState,
-      snapshots: [mockSnapshot],
+      seasonDrops: [mockSeasonDrop],
     };
-    const newSnapshot: SnapshotDto = {
-      ...mockSnapshot,
-      id: 'new-snapshot-id',
+    const newSeasonDrop: SeasonDropDto = {
+      ...mockSeasonDrop,
+      id: 'new-season-drop-id',
       name: 'New Airdrop',
     };
-    const action = setSnapshots([newSnapshot]);
+    const action = setSeasonDrops([newSeasonDrop]);
 
     // Act
-    const state = rewardsReducer(stateWithSnapshots, action);
+    const state = rewardsReducer(stateWithSeasonDrops, action);
 
     // Assert
-    expect(state.snapshots).toHaveLength(1);
-    expect(state.snapshots?.[0].id).toBe('new-snapshot-id');
-    expect(state.snapshots?.[0].name).toBe('New Airdrop');
+    expect(state.seasonDrops).toHaveLength(1);
+    expect(state.seasonDrops?.[0].id).toBe('new-season-drop-id');
+    expect(state.seasonDrops?.[0].name).toBe('New Airdrop');
   });
 
-  it('should set snapshots to empty array', () => {
+  it('sets seasonDrops to empty array', () => {
     // Arrange
-    const stateWithSnapshots: RewardsState = {
+    const stateWithSeasonDrops: RewardsState = {
       ...initialState,
-      snapshots: [mockSnapshot],
+      seasonDrops: [mockSeasonDrop],
     };
-    const action = setSnapshots([]);
+    const action = setSeasonDrops([]);
 
     // Act
-    const state = rewardsReducer(stateWithSnapshots, action);
+    const state = rewardsReducer(stateWithSeasonDrops, action);
 
     // Assert
-    expect(state.snapshots).toEqual([]);
-    expect(state.snapshotsError).toBe(false);
+    expect(state.seasonDrops).toEqual([]);
+    expect(state.seasonDropsError).toBe(false);
   });
 
-  it('should set snapshots to null', () => {
+  it('sets seasonDrops to null', () => {
     // Arrange
-    const stateWithSnapshots: RewardsState = {
+    const stateWithSeasonDrops: RewardsState = {
       ...initialState,
-      snapshots: [mockSnapshot],
+      seasonDrops: [mockSeasonDrop],
     };
-    const action = setSnapshots(null);
+    const action = setSeasonDrops(null);
 
     // Act
-    const state = rewardsReducer(stateWithSnapshots, action);
+    const state = rewardsReducer(stateWithSeasonDrops, action);
 
     // Assert
-    expect(state.snapshots).toBeNull();
-    expect(state.snapshotsError).toBe(false);
+    expect(state.seasonDrops).toBeNull();
+    expect(state.seasonDropsError).toBe(false);
   });
 
-  it('should reset snapshotsError when setting snapshots', () => {
+  it('resets seasonDropsError when setting seasonDrops', () => {
     // Arrange
     const stateWithError: RewardsState = {
       ...initialState,
-      snapshotsError: true,
+      seasonDropsError: true,
     };
-    const action = setSnapshots([mockSnapshot]);
+    const action = setSeasonDrops([mockSeasonDrop]);
 
     // Act
     const state = rewardsReducer(stateWithError, action);
 
     // Assert
-    expect(state.snapshots).toEqual([mockSnapshot]);
-    expect(state.snapshotsError).toBe(false);
+    expect(state.seasonDrops).toEqual([mockSeasonDrop]);
+    expect(state.seasonDropsError).toBe(false);
   });
 });
 
-describe('setSnapshotsLoading', () => {
-  it('should set snapshotsLoading to true when no snapshots exist', () => {
+describe('setSeasonDropsLoading', () => {
+  it('sets seasonDropsLoading to true when no seasonDrops exist', () => {
     // Arrange
-    const action = setSnapshotsLoading(true);
+    const action = setSeasonDropsLoading(true);
 
     // Act
     const state = rewardsReducer(initialState, action);
 
     // Assert
-    expect(state.snapshotsLoading).toBe(true);
+    expect(state.seasonDropsLoading).toBe(true);
   });
 
-  it('should not set loading to true when snapshots already exist', () => {
+  it('does not set loading to true when seasonDrops already exist', () => {
     // Arrange
-    const mockSnapshot: SnapshotDto = {
+    const mockSeasonDrop: SeasonDropDto = {
       id: '01974010-377f-7553-a365-0c33c8130980',
       seasonId: '7444682d-9050-43b8-9038-28a6a62d6264',
       name: 'Monad Airdrop',
       tokenSymbol: 'MONAD',
       tokenAmount: '50000000000000000000000',
       tokenChainId: '1',
-      receivingBlockchain: 'Ethereum',
+      receivingBlockchain: 1,
       opensAt: '2025-03-01T00:00:00.000Z',
       closesAt: '2025-03-15T00:00:00.000Z',
-      backgroundImage: {
+      image: {
         lightModeUrl: 'https://example.com/light.png',
         darkModeUrl: 'https://example.com/dark.png',
       },
+      status: DropStatus.OPEN,
     };
-    const stateWithSnapshots: RewardsState = {
+    const stateWithSeasonDrops: RewardsState = {
       ...initialState,
-      snapshots: [mockSnapshot],
-      snapshotsLoading: false,
+      seasonDrops: [mockSeasonDrop],
+      seasonDropsLoading: false,
     };
-    const action = setSnapshotsLoading(true);
+    const action = setSeasonDropsLoading(true);
 
     // Act
-    const state = rewardsReducer(stateWithSnapshots, action);
+    const state = rewardsReducer(stateWithSeasonDrops, action);
 
-    // Assert - loading should remain false when snapshots already loaded
-    expect(state.snapshotsLoading).toBe(false);
+    // Assert - loading remains false when seasonDrops already loaded
+    expect(state.seasonDropsLoading).toBe(false);
   });
 
-  it('should set snapshotsLoading to false when loading is true', () => {
+  it('sets seasonDropsLoading to false when loading is true', () => {
     // Arrange
     const stateWithLoading: RewardsState = {
       ...initialState,
-      snapshotsLoading: true,
+      seasonDropsLoading: true,
     };
-    const action = setSnapshotsLoading(false);
+    const action = setSeasonDropsLoading(false);
 
     // Act
     const state = rewardsReducer(stateWithLoading, action);
 
     // Assert
-    expect(state.snapshotsLoading).toBe(false);
+    expect(state.seasonDropsLoading).toBe(false);
   });
 
-  it('should set snapshotsLoading to false even when snapshots exist', () => {
+  it('sets seasonDropsLoading to false even when seasonDrops exist', () => {
     // Arrange
-    const mockSnapshot: SnapshotDto = {
+    const mockSeasonDrop: SeasonDropDto = {
       id: '01974010-377f-7553-a365-0c33c8130980',
       seasonId: '7444682d-9050-43b8-9038-28a6a62d6264',
       name: 'Monad Airdrop',
       tokenSymbol: 'MONAD',
       tokenAmount: '50000000000000000000000',
       tokenChainId: '1',
-      receivingBlockchain: 'Ethereum',
+      receivingBlockchain: 1,
       opensAt: '2025-03-01T00:00:00.000Z',
       closesAt: '2025-03-15T00:00:00.000Z',
-      backgroundImage: {
+      image: {
         lightModeUrl: 'https://example.com/light.png',
         darkModeUrl: 'https://example.com/dark.png',
       },
+      status: DropStatus.OPEN,
     };
-    const stateWithSnapshotsAndLoading: RewardsState = {
+    const stateWithSeasonDropsAndLoading: RewardsState = {
       ...initialState,
-      snapshots: [mockSnapshot],
-      snapshotsLoading: true,
+      seasonDrops: [mockSeasonDrop],
+      seasonDropsLoading: true,
     };
-    const action = setSnapshotsLoading(false);
+    const action = setSeasonDropsLoading(false);
 
     // Act
-    const state = rewardsReducer(stateWithSnapshotsAndLoading, action);
+    const state = rewardsReducer(stateWithSeasonDropsAndLoading, action);
 
     // Assert
-    expect(state.snapshotsLoading).toBe(false);
-    expect(state.snapshots).toHaveLength(1);
+    expect(state.seasonDropsLoading).toBe(false);
+    expect(state.seasonDrops).toHaveLength(1);
   });
 
-  it('should not affect other state properties', () => {
+  it('does not affect other state properties', () => {
     // Arrange
     const stateWithData: RewardsState = {
       ...initialState,
       activeTab: 'activity' as const,
       referralCode: 'TEST123',
     };
-    const action = setSnapshotsLoading(true);
+    const action = setSeasonDropsLoading(true);
 
     // Act
     const state = rewardsReducer(stateWithData, action);
 
     // Assert
-    expect(state.snapshotsLoading).toBe(true);
+    expect(state.seasonDropsLoading).toBe(true);
     expect(state.activeTab).toBe('activity');
     expect(state.referralCode).toBe('TEST123');
   });
 
-  it('should allow setting loading true when snapshots is empty array', () => {
+  it('allows setting loading true when seasonDrops is empty array', () => {
     // Arrange
-    const stateWithEmptySnapshots: RewardsState = {
+    const stateWithEmptySeasonDrops: RewardsState = {
       ...initialState,
-      snapshots: [],
-      snapshotsLoading: false,
+      seasonDrops: [],
+      seasonDropsLoading: false,
     };
-    const action = setSnapshotsLoading(true);
+    const action = setSeasonDropsLoading(true);
 
     // Act
-    const state = rewardsReducer(stateWithEmptySnapshots, action);
+    const state = rewardsReducer(stateWithEmptySeasonDrops, action);
 
-    // Assert - loading should be set to true when snapshots array is empty
-    expect(state.snapshotsLoading).toBe(true);
+    // Assert - loading is set to true when seasonDrops array is empty
+    expect(state.seasonDropsLoading).toBe(true);
   });
 
-  it('should allow setting loading true when snapshots is null', () => {
+  it('allows setting loading true when seasonDrops is null', () => {
     // Arrange
-    const stateWithNullSnapshots: RewardsState = {
+    const stateWithNullSeasonDrops: RewardsState = {
       ...initialState,
-      snapshots: null,
-      snapshotsLoading: false,
+      seasonDrops: null,
+      seasonDropsLoading: false,
     };
-    const action = setSnapshotsLoading(true);
+    const action = setSeasonDropsLoading(true);
 
     // Act
-    const state = rewardsReducer(stateWithNullSnapshots, action);
+    const state = rewardsReducer(stateWithNullSeasonDrops, action);
 
-    // Assert - loading should be set to true when snapshots is null
-    expect(state.snapshotsLoading).toBe(true);
+    // Assert - loading is set to true when seasonDrops is null
+    expect(state.seasonDropsLoading).toBe(true);
   });
 });
 
-describe('setSnapshotsError', () => {
-  it('should set snapshotsError to true', () => {
+describe('setSeasonDropsError', () => {
+  it('sets seasonDropsError to true', () => {
     // Arrange
-    const action = setSnapshotsError(true);
+    const action = setSeasonDropsError(true);
 
     // Act
     const state = rewardsReducer(initialState, action);
 
     // Assert
-    expect(state.snapshotsError).toBe(true);
+    expect(state.seasonDropsError).toBe(true);
   });
 
-  it('should set snapshotsError to false', () => {
+  it('sets seasonDropsError to false', () => {
     // Arrange
     const stateWithError: RewardsState = {
       ...initialState,
-      snapshotsError: true,
+      seasonDropsError: true,
     };
-    const action = setSnapshotsError(false);
+    const action = setSeasonDropsError(false);
 
     // Act
     const state = rewardsReducer(stateWithError, action);
 
     // Assert
-    expect(state.snapshotsError).toBe(false);
+    expect(state.seasonDropsError).toBe(false);
   });
 
-  it('should not affect other state properties', () => {
+  it('does not affect other state properties', () => {
     // Arrange
-    const mockSnapshot: SnapshotDto = {
+    const mockSeasonDrop: SeasonDropDto = {
       id: '01974010-377f-7553-a365-0c33c8130980',
       seasonId: '7444682d-9050-43b8-9038-28a6a62d6264',
       name: 'Monad Airdrop',
       tokenSymbol: 'MONAD',
       tokenAmount: '50000000000000000000000',
       tokenChainId: '1',
-      receivingBlockchain: 'Ethereum',
+      receivingBlockchain: 1,
       opensAt: '2025-03-01T00:00:00.000Z',
       closesAt: '2025-03-15T00:00:00.000Z',
-      backgroundImage: {
+      image: {
         lightModeUrl: 'https://example.com/light.png',
         darkModeUrl: 'https://example.com/dark.png',
       },
+      status: DropStatus.OPEN,
     };
     const stateWithData: RewardsState = {
       ...initialState,
-      snapshots: [mockSnapshot],
-      snapshotsLoading: true,
+      seasonDrops: [mockSeasonDrop],
+      seasonDropsLoading: true,
     };
-    const action = setSnapshotsError(true);
+    const action = setSeasonDropsError(true);
 
     // Act
     const state = rewardsReducer(stateWithData, action);
 
     // Assert
-    expect(state.snapshotsError).toBe(true);
-    expect(state.snapshots).toHaveLength(1);
-    expect(state.snapshotsLoading).toBe(true);
+    expect(state.seasonDropsError).toBe(true);
+    expect(state.seasonDrops).toHaveLength(1);
+    expect(state.seasonDropsLoading).toBe(true);
   });
 
-  it('should toggle error state correctly', () => {
+  it('toggles error state correctly', () => {
     // Arrange
     let currentState = initialState;
 
     // Act & Assert - Set error to true
-    let action = setSnapshotsError(true);
+    let action = setSeasonDropsError(true);
     currentState = rewardsReducer(currentState, action);
-    expect(currentState.snapshotsError).toBe(true);
+    expect(currentState.seasonDropsError).toBe(true);
 
     // Act & Assert - Set error back to false
-    action = setSnapshotsError(false);
+    action = setSeasonDropsError(false);
     currentState = rewardsReducer(currentState, action);
-    expect(currentState.snapshotsError).toBe(false);
+    expect(currentState.seasonDropsError).toBe(false);
 
     // Act & Assert - Set error to true again
-    action = setSnapshotsError(true);
+    action = setSeasonDropsError(true);
     currentState = rewardsReducer(currentState, action);
-    expect(currentState.snapshotsError).toBe(true);
+    expect(currentState.seasonDropsError).toBe(true);
+  });
+});
+
+describe('setRecentDropPointCommit', () => {
+  const mockCommitResponse: CommitDropPointsResponseDto = {
+    commitmentId: '01974010-377f-7553-a365-0c33c8130981',
+    pointsCommitted: 500,
+    totalPointsCommitted: 1500,
+    newRank: 5,
+    totalParticipants: 1000,
+    availablePointsRemaining: 2500,
+  };
+
+  it('stores a recent drop point commit for a given dropId', () => {
+    // Arrange
+    jest.spyOn(Date, 'now').mockReturnValue(1234567890);
+    const action = setRecentDropPointCommit({
+      dropId: 'drop-1',
+      response: mockCommitResponse,
+    });
+
+    // Act
+    const state = rewardsReducer(initialState, action);
+
+    // Assert
+    expect(state.recentDropPointCommits['drop-1']).toEqual({
+      response: mockCommitResponse,
+      committedAt: 1234567890,
+    });
+
+    jest.restoreAllMocks();
+  });
+
+  it('overwrites an existing commit for the same dropId', () => {
+    // Arrange
+    jest.spyOn(Date, 'now').mockReturnValue(1234567890);
+    const stateWithExisting: RewardsState = {
+      ...initialState,
+      recentDropPointCommits: {
+        'drop-1': {
+          response: { ...mockCommitResponse, pointsCommitted: 100 },
+          committedAt: 1000000000,
+        },
+      },
+    };
+    const action = setRecentDropPointCommit({
+      dropId: 'drop-1',
+      response: mockCommitResponse,
+    });
+
+    // Act
+    const state = rewardsReducer(stateWithExisting, action);
+
+    // Assert
+    expect(state.recentDropPointCommits['drop-1']).toEqual({
+      response: mockCommitResponse,
+      committedAt: 1234567890,
+    });
+
+    jest.restoreAllMocks();
+  });
+
+  it('does not affect commits for other dropIds', () => {
+    // Arrange
+    jest.spyOn(Date, 'now').mockReturnValue(1234567890);
+    const existingCommit = {
+      response: { ...mockCommitResponse, pointsCommitted: 200 },
+      committedAt: 1000000000,
+    };
+    const stateWithExisting: RewardsState = {
+      ...initialState,
+      recentDropPointCommits: {
+        'drop-other': existingCommit,
+      },
+    };
+    const action = setRecentDropPointCommit({
+      dropId: 'drop-1',
+      response: mockCommitResponse,
+    });
+
+    // Act
+    const state = rewardsReducer(stateWithExisting, action);
+
+    // Assert
+    expect(state.recentDropPointCommits['drop-other']).toEqual(existingCommit);
+    expect(state.recentDropPointCommits['drop-1']).toBeDefined();
+
+    jest.restoreAllMocks();
+  });
+});
+
+describe('clearRecentDropPointCommit', () => {
+  it('removes the commit for the specified dropId', () => {
+    // Arrange
+    const stateWithCommit: RewardsState = {
+      ...initialState,
+      recentDropPointCommits: {
+        'drop-1': {
+          response: {
+            commitmentId: 'c1',
+            pointsCommitted: 500,
+            totalPointsCommitted: 1500,
+            newRank: 5,
+            totalParticipants: 1000,
+            availablePointsRemaining: 2500,
+          },
+          committedAt: 1234567890,
+        },
+      },
+    };
+    const action = clearRecentDropPointCommit('drop-1');
+
+    // Act
+    const state = rewardsReducer(stateWithCommit, action);
+
+    // Assert
+    expect(state.recentDropPointCommits['drop-1']).toBeUndefined();
+  });
+
+  it('does not affect commits for other dropIds', () => {
+    // Arrange
+    const otherCommit = {
+      response: {
+        commitmentId: 'c2',
+        pointsCommitted: 300,
+        totalPointsCommitted: 900,
+        newRank: 10,
+        totalParticipants: 500,
+        availablePointsRemaining: 1200,
+      },
+      committedAt: 1234567890,
+    };
+    const stateWithCommits: RewardsState = {
+      ...initialState,
+      recentDropPointCommits: {
+        'drop-1': {
+          response: {
+            commitmentId: 'c1',
+            pointsCommitted: 500,
+            totalPointsCommitted: 1500,
+            newRank: 5,
+            totalParticipants: 1000,
+            availablePointsRemaining: 2500,
+          },
+          committedAt: 1234567890,
+        },
+        'drop-2': otherCommit,
+      },
+    };
+    const action = clearRecentDropPointCommit('drop-1');
+
+    // Act
+    const state = rewardsReducer(stateWithCommits, action);
+
+    // Assert
+    expect(state.recentDropPointCommits['drop-1']).toBeUndefined();
+    expect(state.recentDropPointCommits['drop-2']).toEqual(otherCommit);
+  });
+});
+
+describe('clearAllRecentDropPointCommits', () => {
+  it('clears all recent drop point commits', () => {
+    // Arrange
+    const stateWithCommits: RewardsState = {
+      ...initialState,
+      recentDropPointCommits: {
+        'drop-1': {
+          response: {
+            commitmentId: 'c1',
+            pointsCommitted: 500,
+            totalPointsCommitted: 1500,
+            newRank: 5,
+            totalParticipants: 1000,
+            availablePointsRemaining: 2500,
+          },
+          committedAt: 1234567890,
+        },
+        'drop-2': {
+          response: {
+            commitmentId: 'c2',
+            pointsCommitted: 300,
+            totalPointsCommitted: 900,
+            newRank: 10,
+            totalParticipants: 500,
+            availablePointsRemaining: 1200,
+          },
+          committedAt: 1234567891,
+        },
+      },
+    };
+    const action = clearAllRecentDropPointCommits();
+
+    // Act
+    const state = rewardsReducer(stateWithCommits, action);
+
+    // Assert
+    expect(state.recentDropPointCommits).toEqual({});
+  });
+
+  it('is a no-op when there are no commits', () => {
+    // Arrange
+    const action = clearAllRecentDropPointCommits();
+
+    // Act
+    const state = rewardsReducer(initialState, action);
+
+    // Assert
+    expect(state.recentDropPointCommits).toEqual({});
+  });
+});
+
+describe('setRecentDropAddressCommit', () => {
+  it('stores a recent drop address commit for a given dropId', () => {
+    // Arrange
+    jest.spyOn(Date, 'now').mockReturnValue(1234567890);
+    const action = setRecentDropAddressCommit({
+      dropId: 'drop-1',
+      address: '0x1234567890abcdef1234567890abcdef12345678',
+    });
+
+    // Act
+    const state = rewardsReducer(initialState, action);
+
+    // Assert
+    expect(state.recentDropAddressCommits['drop-1']).toEqual({
+      address: '0x1234567890abcdef1234567890abcdef12345678',
+      committedAt: 1234567890,
+    });
+
+    jest.restoreAllMocks();
+  });
+
+  it('overwrites an existing address commit for the same dropId', () => {
+    // Arrange
+    jest.spyOn(Date, 'now').mockReturnValue(1234567890);
+    const stateWithExisting: RewardsState = {
+      ...initialState,
+      recentDropAddressCommits: {
+        'drop-1': {
+          address: '0xoldaddress',
+          committedAt: 1000000000,
+        },
+      },
+    };
+    const action = setRecentDropAddressCommit({
+      dropId: 'drop-1',
+      address: '0xnewaddress',
+    });
+
+    // Act
+    const state = rewardsReducer(stateWithExisting, action);
+
+    // Assert
+    expect(state.recentDropAddressCommits['drop-1']).toEqual({
+      address: '0xnewaddress',
+      committedAt: 1234567890,
+    });
+
+    jest.restoreAllMocks();
+  });
+
+  it('does not affect address commits for other dropIds', () => {
+    // Arrange
+    jest.spyOn(Date, 'now').mockReturnValue(1234567890);
+    const existingCommit = {
+      address: '0xotheraddress',
+      committedAt: 1000000000,
+    };
+    const stateWithExisting: RewardsState = {
+      ...initialState,
+      recentDropAddressCommits: {
+        'drop-other': existingCommit,
+      },
+    };
+    const action = setRecentDropAddressCommit({
+      dropId: 'drop-1',
+      address: '0xnewaddress',
+    });
+
+    // Act
+    const state = rewardsReducer(stateWithExisting, action);
+
+    // Assert
+    expect(state.recentDropAddressCommits['drop-other']).toEqual(
+      existingCommit,
+    );
+    expect(state.recentDropAddressCommits['drop-1']).toBeDefined();
+
+    jest.restoreAllMocks();
+  });
+});
+
+describe('clearRecentDropAddressCommit', () => {
+  it('removes the address commit for the specified dropId', () => {
+    // Arrange
+    const stateWithCommit: RewardsState = {
+      ...initialState,
+      recentDropAddressCommits: {
+        'drop-1': {
+          address: '0x1234567890abcdef1234567890abcdef12345678',
+          committedAt: 1234567890,
+        },
+      },
+    };
+    const action = clearRecentDropAddressCommit('drop-1');
+
+    // Act
+    const state = rewardsReducer(stateWithCommit, action);
+
+    // Assert
+    expect(state.recentDropAddressCommits['drop-1']).toBeUndefined();
+  });
+
+  it('does not affect address commits for other dropIds', () => {
+    // Arrange
+    const otherCommit = {
+      address: '0xotheraddress',
+      committedAt: 1234567890,
+    };
+    const stateWithCommits: RewardsState = {
+      ...initialState,
+      recentDropAddressCommits: {
+        'drop-1': {
+          address: '0x1234567890abcdef1234567890abcdef12345678',
+          committedAt: 1234567890,
+        },
+        'drop-2': otherCommit,
+      },
+    };
+    const action = clearRecentDropAddressCommit('drop-1');
+
+    // Act
+    const state = rewardsReducer(stateWithCommits, action);
+
+    // Assert
+    expect(state.recentDropAddressCommits['drop-1']).toBeUndefined();
+    expect(state.recentDropAddressCommits['drop-2']).toEqual(otherCommit);
+  });
+});
+
+describe('setIsUpdatingDropAddress', () => {
+  it('sets isUpdatingDropAddress to true', () => {
+    // Arrange
+    const action = setIsUpdatingDropAddress(true);
+
+    // Act
+    const state = rewardsReducer(initialState, action);
+
+    // Assert
+    expect(state.isUpdatingDropAddress).toBe(true);
+  });
+
+  it('sets isUpdatingDropAddress to false', () => {
+    // Arrange
+    const stateWithUpdating: RewardsState = {
+      ...initialState,
+      isUpdatingDropAddress: true,
+    };
+    const action = setIsUpdatingDropAddress(false);
+
+    // Act
+    const state = rewardsReducer(stateWithUpdating, action);
+
+    // Assert
+    expect(state.isUpdatingDropAddress).toBe(false);
+  });
+});
+
+describe('setIsValidatingDropAddress', () => {
+  it('sets isValidatingDropAddress to true', () => {
+    // Arrange
+    const action = setIsValidatingDropAddress(true);
+
+    // Act
+    const state = rewardsReducer(initialState, action);
+
+    // Assert
+    expect(state.isValidatingDropAddress).toBe(true);
+  });
+
+  it('sets isValidatingDropAddress to false', () => {
+    // Arrange
+    const stateWithValidating: RewardsState = {
+      ...initialState,
+      isValidatingDropAddress: true,
+    };
+    const action = setIsValidatingDropAddress(false);
+
+    // Act
+    const state = rewardsReducer(stateWithValidating, action);
+
+    // Assert
+    expect(state.isValidatingDropAddress).toBe(false);
   });
 });

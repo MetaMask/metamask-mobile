@@ -1,9 +1,16 @@
 import { RootState } from '../../reducers';
+import { RECENT_COMMIT_VALIDITY_WINDOW_MS } from '../../reducers/rewards';
 import {
   selectRewardsControllerState,
   selectRewardsSubscriptionId,
   selectRewardsActiveAccountAddress,
   selectRewardsActiveAccountSubscriptionId,
+  selectRecentDropPointCommits,
+  selectRecentDropPointCommitByDropId,
+  selectRecentDropAddressCommits,
+  selectRecentDropAddressCommitByDropId,
+  selectIsUpdatingDropAddress,
+  selectIsValidatingDropAddress,
 } from './index';
 
 // Mock rewards controller state
@@ -16,6 +23,10 @@ const createMockRewardsControllerState = (overrides = {}) => ({
 const createMockRewardsState = (overrides = {}) => ({
   candidateSubscriptionId: null,
   hideUnlinkedAccountsBanner: false,
+  recentDropPointCommits: {},
+  recentDropAddressCommits: {},
+  isUpdatingDropAddress: false,
+  isValidatingDropAddress: false,
   ...overrides,
 });
 
@@ -389,6 +400,238 @@ describe('Rewards Selectors', () => {
 
       // Assert
       expect(result).toBeNull();
+    });
+  });
+
+  describe('selectRecentDropPointCommits', () => {
+    it('returns the recentDropPointCommits map from state', () => {
+      // Arrange
+      const recentDropPointCommits = {
+        'drop-1': {
+          response: {
+            commitmentId: 'commit-1',
+            pointsCommitted: 500,
+          },
+          committedAt: Date.now(),
+        },
+      };
+      const state = createMockRootState({}, { recentDropPointCommits });
+
+      // Act
+      const result = selectRecentDropPointCommits(state);
+
+      // Assert
+      expect(result).toEqual(recentDropPointCommits);
+    });
+
+    it('returns empty object when no commits exist', () => {
+      // Arrange
+      const state = createMockRootState();
+
+      // Act
+      const result = selectRecentDropPointCommits(state);
+
+      // Assert
+      expect(result).toEqual({});
+    });
+  });
+
+  describe('selectRecentDropPointCommitByDropId', () => {
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    it('returns the commit when it exists and is within the validity window', () => {
+      // Arrange
+      const now = 1000000;
+      jest.spyOn(Date, 'now').mockReturnValue(now);
+      const commit = {
+        response: {
+          commitmentId: 'commit-1',
+          pointsCommitted: 500,
+        },
+        committedAt: now - 1000, // 1 second ago
+      };
+      const state = createMockRootState(
+        {},
+        { recentDropPointCommits: { 'drop-1': commit } },
+      );
+
+      // Act
+      const result = selectRecentDropPointCommitByDropId('drop-1')(state);
+
+      // Assert
+      expect(result).toEqual(commit);
+    });
+
+    it('returns null when the commit has expired beyond the validity window', () => {
+      // Arrange
+      const now = 1000000;
+      jest.spyOn(Date, 'now').mockReturnValue(now);
+      const commit = {
+        response: {
+          commitmentId: 'commit-1',
+          pointsCommitted: 500,
+        },
+        committedAt: now - RECENT_COMMIT_VALIDITY_WINDOW_MS, // exactly at boundary
+      };
+      const state = createMockRootState(
+        {},
+        { recentDropPointCommits: { 'drop-1': commit } },
+      );
+
+      // Act
+      const result = selectRecentDropPointCommitByDropId('drop-1')(state);
+
+      // Assert
+      expect(result).toBeNull();
+    });
+
+    it('returns null when no commit exists for the given drop ID', () => {
+      // Arrange
+      const state = createMockRootState({}, { recentDropPointCommits: {} });
+
+      // Act
+      const result = selectRecentDropPointCommitByDropId('non-existent')(state);
+
+      // Assert
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('selectRecentDropAddressCommits', () => {
+    it('returns the recentDropAddressCommits map from state', () => {
+      // Arrange
+      const recentDropAddressCommits = {
+        'drop-1': {
+          address: '0x1234567890abcdef1234567890abcdef12345678',
+          committedAt: Date.now(),
+        },
+      };
+      const state = createMockRootState({}, { recentDropAddressCommits });
+
+      // Act
+      const result = selectRecentDropAddressCommits(state);
+
+      // Assert
+      expect(result).toEqual(recentDropAddressCommits);
+    });
+
+    it('returns empty object when no commits exist', () => {
+      // Arrange
+      const state = createMockRootState();
+
+      // Act
+      const result = selectRecentDropAddressCommits(state);
+
+      // Assert
+      expect(result).toEqual({});
+    });
+  });
+
+  describe('selectRecentDropAddressCommitByDropId', () => {
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    it('returns the commit when it exists and is within the validity window', () => {
+      // Arrange
+      const now = 1000000;
+      jest.spyOn(Date, 'now').mockReturnValue(now);
+      const commit = {
+        address: '0x1234567890abcdef1234567890abcdef12345678',
+        committedAt: now - 1000, // 1 second ago
+      };
+      const state = createMockRootState(
+        {},
+        { recentDropAddressCommits: { 'drop-1': commit } },
+      );
+
+      // Act
+      const result = selectRecentDropAddressCommitByDropId('drop-1')(state);
+
+      // Assert
+      expect(result).toEqual(commit);
+    });
+
+    it('returns null when the commit has expired beyond the validity window', () => {
+      // Arrange
+      const now = 1000000;
+      jest.spyOn(Date, 'now').mockReturnValue(now);
+      const commit = {
+        address: '0x1234567890abcdef1234567890abcdef12345678',
+        committedAt: now - RECENT_COMMIT_VALIDITY_WINDOW_MS, // exactly at boundary
+      };
+      const state = createMockRootState(
+        {},
+        { recentDropAddressCommits: { 'drop-1': commit } },
+      );
+
+      // Act
+      const result = selectRecentDropAddressCommitByDropId('drop-1')(state);
+
+      // Assert
+      expect(result).toBeNull();
+    });
+
+    it('returns null when no commit exists for the given drop ID', () => {
+      // Arrange
+      const state = createMockRootState({}, { recentDropAddressCommits: {} });
+
+      // Act
+      const result =
+        selectRecentDropAddressCommitByDropId('non-existent')(state);
+
+      // Assert
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('selectIsUpdatingDropAddress', () => {
+    it('returns false by default', () => {
+      // Arrange
+      const state = createMockRootState();
+
+      // Act
+      const result = selectIsUpdatingDropAddress(state);
+
+      // Assert
+      expect(result).toBe(false);
+    });
+
+    it('returns true when isUpdatingDropAddress is true', () => {
+      // Arrange
+      const state = createMockRootState({}, { isUpdatingDropAddress: true });
+
+      // Act
+      const result = selectIsUpdatingDropAddress(state);
+
+      // Assert
+      expect(result).toBe(true);
+    });
+  });
+
+  describe('selectIsValidatingDropAddress', () => {
+    it('returns false by default', () => {
+      // Arrange
+      const state = createMockRootState();
+
+      // Act
+      const result = selectIsValidatingDropAddress(state);
+
+      // Assert
+      expect(result).toBe(false);
+    });
+
+    it('returns true when isValidatingDropAddress is true', () => {
+      // Arrange
+      const state = createMockRootState({}, { isValidatingDropAddress: true });
+
+      // Act
+      const result = selectIsValidatingDropAddress(state);
+
+      // Assert
+      expect(result).toBe(true);
     });
   });
 });

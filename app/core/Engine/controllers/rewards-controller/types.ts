@@ -75,29 +75,100 @@ export interface ApplyReferralDto {
 }
 
 /**
- * DTO for snapshot data from the backend
+ * Type of prerequisite condition for drop eligibility
+ * @example 'ACTIVITY_COUNT'
  */
-export interface SnapshotDto {
+export type DropPrerequisiteType = 'ACTIVITY_COUNT';
+
+/**
+ * A single prerequisite condition for drop eligibility
+ */
+export interface DropPrerequisiteDto {
   /**
-   * The unique identifier of the snapshot
+   * The type of prerequisite
+   * @example 'ACTIVITY_COUNT'
+   */
+  type: DropPrerequisiteType;
+
+  /**
+   * Activity types that count toward this prerequisite
+   * @example ['SWAP', 'PERPS']
+   */
+  activityTypes: PointsEventEarnType[];
+
+  /**
+   * Minimum count required to satisfy this prerequisite
+   * @example 5
+   */
+  minCount: number;
+
+  /**
+   * Optional chain ID restriction for the activity
+   * @example 1
+   */
+  chainId?: number;
+
+  /**
+   * Display title for the prerequisite
+   * @example 'Complete 5 swaps'
+   */
+  title: string;
+
+  /**
+   * Display description for the prerequisite
+   * @example 'Swap tokens at least 5 times to qualify'
+   */
+  description: string;
+
+  /**
+   * Icon name to display for this prerequisite
+   * @example 'swap'
+   */
+  iconName: string;
+}
+
+/**
+ * Container for drop prerequisites with logical operator
+ */
+export interface DropPrerequisitesDto {
+  /**
+   * Logical operator for combining conditions
+   * - AND: All conditions must be met
+   * - OR: At least one condition must be met
+   * @example 'AND'
+   */
+  logic: 'AND' | 'OR';
+
+  /**
+   * Array of prerequisite conditions
+   */
+  conditions: DropPrerequisiteDto[];
+}
+
+/**
+ * DTO for drop data from the backend
+ */
+export interface SeasonDropDto {
+  /**
+   * The unique identifier of the drop
    * @example '01974010-377f-7553-a365-0c33c8130980'
    */
   id: string;
 
   /**
-   * The season ID this snapshot belongs to
+   * The season ID this drop belongs to
    * @example '7444682d-9050-43b8-9038-28a6a62d6264'
    */
   seasonId: string;
 
   /**
-   * The name of the snapshot/airdrop
+   * The name of the drop/airdrop
    * @example 'Monad Airdrop'
    */
   name: string;
 
   /**
-   * Optional description of the snapshot
+   * Optional description of the drop
    * @example 'Earn Monad tokens by participating in the airdrop'
    */
   description?: string;
@@ -127,19 +198,20 @@ export interface SnapshotDto {
   tokenAddress?: string;
 
   /**
-   * The blockchain where tokens will be distributed
-   * @example 'Ethereum'
+   * The blockchain ID where tokens will be distributed.
+   * Maps to BlockchainEnum values (e.g. 1 = EVM, 2 = Solana).
+   * @example 1
    */
-  receivingBlockchain: string;
+  receivingBlockchain: number;
 
   /**
-   * When the snapshot opens (ISO date string)
+   * When the drop opens (ISO date string)
    * @example '2025-03-01T00:00:00.000Z'
    */
   opensAt: string;
 
   /**
-   * When the snapshot closes (ISO date string)
+   * When the drop closes (ISO date string)
    * @example '2025-03-15T00:00:00.000Z'
    */
   closesAt: string;
@@ -157,25 +229,246 @@ export interface SnapshotDto {
   distributedAt?: string;
 
   /**
-   * Background image for the snapshot tile
+   * Image for the drop tile
    */
-  backgroundImage: ThemeImage;
+  image: ThemeImage;
+
+  /**
+   * The current status of the drop
+   * @example DropStatus.OPEN
+   */
+  status: DropStatus;
+
+  /**
+   * Optional prerequisites that must be met to participate in the drop
+   */
+  prerequisites?: DropPrerequisitesDto | null;
 }
 
 /**
- * Snapshot status derived from dates
- * - upcoming: now < opensAt
- * - live: opensAt <= now < closesAt
- * - calculating: closesAt <= now && !calculatedAt
- * - distributing: calculatedAt && !distributedAt
- * - complete: distributedAt is set
+ * Drop status aligned with the backend enum.
+ * - UPCOMING: now < opensAt
+ * - OPEN: opensAt <= now < closesAt
+ * - CLOSED: closesAt <= now && !calculatedAt
+ * - CALCULATED: calculatedAt && !distributedAt
+ * - DISTRIBUTED: distributedAt is set
  */
-export type SnapshotStatus =
-  | 'upcoming'
-  | 'live'
-  | 'calculating'
-  | 'distributing'
-  | 'complete';
+export enum DropStatus {
+  UPCOMING = 'UPCOMING',
+  OPEN = 'OPEN',
+  CLOSED = 'CLOSED',
+  CALCULATED = 'CALCULATED',
+  DISTRIBUTED = 'DISTRIBUTED',
+}
+
+/**
+ * Enum representing supported blockchains for drop distributions.
+ */
+export enum BlockchainEnum {
+  EVM = 1,
+  SOLANA = 2,
+  BITCOIN = 3,
+  TRON = 4,
+}
+
+/**
+ * Extended prerequisite with eligibility status information
+ */
+export interface DropPrerequisiteStatusDto {
+  /**
+   * Whether this prerequisite has been satisfied
+   * @example true
+   */
+  satisfied: boolean;
+
+  /**
+   * The user's current progress toward the requirement
+   * @example 3
+   */
+  current: number;
+
+  /**
+   * The required number of the prerequisite
+   * @example 1
+   */
+  required: number;
+
+  /**
+   * The prerequisite definition with localized title and description
+   */
+  prerequisite: DropPrerequisiteDto;
+}
+
+/**
+ * Response DTO for drop eligibility check
+ */
+export interface DropEligibilityDto {
+  /**
+   * The drop ID this eligibility is for
+   * @example '01974010-377f-7553-a365-0c33c8130980'
+   */
+  dropId: string;
+
+  /**
+   * Whether the user is eligible for the drop
+   * @example true
+   */
+  eligible: boolean;
+
+  /**
+   * The logic operator for combining prerequisites
+   * @example 'AND'
+   */
+  prerequisiteLogic: 'AND' | 'OR';
+
+  /**
+   * Whether the user can commit points to this drop
+   * @example true
+   */
+  canCommit: boolean;
+
+  /**
+   * Prerequisite statuses as they appear in order of the drop prerequisites
+   */
+  prerequisiteStatuses: DropPrerequisiteStatusDto[];
+}
+
+/**
+ * A single entry on the drop leaderboard
+ */
+export interface DropLeaderboardEntryDto {
+  /**
+   * The rank of this entry on the leaderboard
+   * @example 1
+   */
+  rank: number;
+
+  /**
+   * The number of points committed by this participant
+   * @example 10000
+   */
+  points: number;
+
+  /**
+   * Masked identifier for the participant (shortened address or referral code)
+   * @example '0x1234...5678'
+   */
+  identifier?: string;
+}
+
+/**
+ * Response DTO for drop leaderboard
+ */
+export interface DropLeaderboardDto {
+  /**
+   * The unique identifier of the drop
+   * @example '123e4567-e89b-12d3-a456-426614174000'
+   */
+  dropId: string;
+
+  /**
+   * Total number of unique participants who committed points
+   * @example 1500
+   */
+  totalParticipants: number;
+
+  /**
+   * Total points committed by all participants in the drop
+   * @example 5000000
+   */
+  totalPointsCommitted: number;
+
+  /**
+   * Top 20 entries on the leaderboard
+   */
+  top20: DropLeaderboardEntryDto[];
+
+  /**
+   * The authenticated user's position on the leaderboard (null if user hasn't committed)
+   */
+  userPosition?: DropLeaderboardEntryDto;
+}
+
+/**
+ * Request DTO for committing points to a drop
+ */
+export interface CommitDropPointsDto {
+  /**
+   * The drop ID to commit points to
+   * @example '01974010-377f-7553-a365-0c33c8130980'
+   */
+  dropId: string;
+
+  /**
+   * The number of points to commit
+   * @example 500
+   */
+  points: number;
+
+  /**
+   * Blockchain address for the receiving chain (required for the first commitment)
+   * @example '0x1234...' or 'So1ana...'
+   */
+  address?: string;
+}
+
+/**
+ * Request DTO for updating the receiving address of a drop
+ */
+export interface UpdateDropReceivingAddressDto {
+  /**
+   * The drop ID to update the receiving address for
+   * @example '01974010-377f-7553-a365-0c33c8130980'
+   */
+  dropId: string;
+
+  /**
+   * The new blockchain address for the receiving chain
+   * @example '0x1234...' or 'So1ana...'
+   */
+  address: string;
+}
+
+/**
+ * Response DTO for committing points to a drop
+ */
+export interface CommitDropPointsResponseDto {
+  /**
+   * The unique identifier of the commitment
+   * @example '01974010-377f-7553-a365-0c33c8130981'
+   */
+  commitmentId: string;
+
+  /**
+   * Points committed in this transaction
+   * @example 500
+   */
+  pointsCommitted: number;
+
+  /**
+   * Total points committed by the user to this drop
+   * @example 1500
+   */
+  totalPointsCommitted: number;
+
+  /**
+   * User's new rank on the leaderboard
+   * @example 5
+   */
+  newRank: number;
+
+  /**
+   * Total number of participants in the drop
+   * @example 1000
+   */
+  totalParticipants: number;
+
+  /**
+   * Remaining available points after commitment
+   * @example 2500
+   */
+  availablePointsRemaining: number;
+}
 
 export interface EstimateAssetDto {
   /**
@@ -764,9 +1057,9 @@ export type SeasonStatusBalanceDtoState = {
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type SeasonTierState = {
-  currentTier: SeasonTierDtoState | null;
-  nextTier: SeasonTierDtoState | null;
-  nextTierPointsNeeded: number | null;
+  currentTier?: SeasonTierDtoState;
+  nextTier?: SeasonTierDtoState;
+  nextTierPointsNeeded?: number;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -811,9 +1104,32 @@ export type UnlockedRewardsState = {
   lastFetched: number;
 };
 
+/**
+ * State shape for a single prerequisite in serializable form
+ */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type SnapshotsState = {
-  snapshots: {
+export type DropPrerequisiteState = {
+  type: DropPrerequisiteType;
+  activityTypes: PointsEventEarnType[];
+  minCount: number;
+  chainId?: number;
+  title: string;
+  description: string;
+  iconName: string;
+};
+
+/**
+ * State shape for prerequisites container in serializable form
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type DropPrerequisitesState = {
+  logic: 'AND' | 'OR';
+  conditions: DropPrerequisiteState[];
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type DropsState = {
+  drops: {
     id: string;
     seasonId: string;
     name: string;
@@ -822,16 +1138,53 @@ export type SnapshotsState = {
     tokenAmount: string;
     tokenChainId: string;
     tokenAddress?: string;
-    receivingBlockchain: string;
+    receivingBlockchain: number;
     opensAt: string;
     closesAt: string;
     calculatedAt?: string;
     distributedAt?: string;
-    backgroundImage: {
+    image: {
       lightModeUrl: string;
       darkModeUrl: string;
     };
+    status: DropStatus;
+    prerequisites?: DropPrerequisitesState | null;
   }[];
+  lastFetched: number;
+};
+
+/**
+ * State shape for prerequisite status in serializable form
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type DropPrerequisiteStatusState = {
+  satisfied: boolean;
+  current: number;
+  required: number;
+  prerequisite: DropPrerequisiteState;
+};
+
+/**
+ * State shape for drop eligibility cache (JSON-serializable)
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type DropEligibilityState = {
+  eligibility: {
+    dropId: string;
+    eligible: boolean;
+    canCommit: boolean;
+    prerequisiteLogic: 'AND' | 'OR';
+    prerequisiteStatuses: DropPrerequisiteStatusState[];
+  };
+  lastFetched: number;
+};
+
+/**
+ * State shape for drop committed address cache (JSON-serializable)
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type DropCommittedAddressState = {
+  address: string | null;
   lastFetched: number;
 };
 
@@ -1167,7 +1520,9 @@ export type RewardsControllerState = {
   activeBoosts: { [compositeId: string]: ActiveBoostsState };
   unlockedRewards: { [compositeId: string]: UnlockedRewardsState };
   pointsEvents: { [compositeId: string]: PointsEventsDtoState };
-  snapshots: { [seasonId: string]: SnapshotsState };
+  drops: { [seasonId: string]: DropsState };
+  dropEligibilities: { [compositeId: string]: DropEligibilityState };
+  dropCommittedAddresses: { [compositeId: string]: DropCommittedAddressState };
   /**
    * History of points estimates for Customer Support diagnostics.
    * Stores the last N successful estimates to verify user-reported discrepancies.
@@ -1230,14 +1585,43 @@ export interface RewardsControllerPointsEventsUpdatedEvent {
 }
 
 /**
+ * Event emitted when points are committed to a drop
+ */
+export interface RewardsControllerDropCommitEvent {
+  type: 'RewardsController:dropCommit';
+  payload: [
+    {
+      dropId: string;
+      pointsCommitted: number;
+      subscriptionId: string;
+    },
+  ];
+}
+
+/**
  * Events that can be emitted by the RewardsController
  */
+/**
+ * Event emitted when the committed address for a drop changes (commit or update)
+ */
+export interface RewardsControllerDropAddressCommittedEvent {
+  type: 'RewardsController:dropAddressCommitted';
+  payload: [
+    {
+      dropId: string;
+      address: string;
+    },
+  ];
+}
+
 export type RewardsControllerEvents =
   | ControllerStateChangeEvent<'RewardsController', RewardsControllerState>
   | RewardsControllerAccountLinkedEvent
   | RewardsControllerRewardClaimedEvent
   | RewardsControllerBalanceUpdatedEvent
-  | RewardsControllerPointsEventsUpdatedEvent;
+  | RewardsControllerPointsEventsUpdatedEvent
+  | RewardsControllerDropCommitEvent
+  | RewardsControllerDropAddressCommittedEvent;
 
 /**
  * Patch type for state changes
@@ -1490,11 +1874,14 @@ export interface RewardsControllerGetUnlockedRewardsAction {
 }
 
 /**
- * Action for getting snapshots for a season
+ * Action for getting drops for a season
  */
-export interface RewardsControllerGetSnapshotsAction {
-  type: 'RewardsController:getSnapshots';
-  handler: (seasonId: string, subscriptionId: string) => Promise<SnapshotDto[]>;
+export interface RewardsControllerGetDropsAction {
+  type: 'RewardsController:getSeasonDrops';
+  handler: (
+    seasonId: string,
+    subscriptionId: string,
+  ) => Promise<SeasonDropDto[]>;
 }
 
 /**
@@ -1534,6 +1921,61 @@ export interface RewardsControllerApplyReferralCodeAction {
 }
 
 /**
+ * Action for getting drop eligibility status
+ */
+export interface RewardsControllerGetDropEligibilityAction {
+  type: 'RewardsController:getDropEligibility';
+  handler: (
+    dropId: string,
+    subscriptionId: string,
+  ) => Promise<DropEligibilityDto>;
+}
+
+/**
+ * Action for getting drop leaderboard data
+ */
+export interface RewardsControllerGetDropLeaderboardAction {
+  type: 'RewardsController:getDropLeaderboard';
+  handler: (
+    dropId: string,
+    subscriptionId: string,
+  ) => Promise<DropLeaderboardDto>;
+}
+
+/**
+ * Action for committing points to a drop
+ */
+export interface RewardsControllerCommitDropPointsAction {
+  type: 'RewardsController:commitDropPoints';
+  handler: (
+    dropId: string,
+    points: number,
+    subscriptionId: string,
+    address?: string,
+  ) => Promise<CommitDropPointsResponseDto>;
+}
+
+/**
+ * Action for updating the receiving address of a drop
+ */
+export interface RewardsControllerUpdateDropReceivingAddressAction {
+  type: 'RewardsController:updateDropReceivingAddress';
+  handler: (
+    dropId: string,
+    address: string,
+    subscriptionId: string,
+  ) => Promise<void>;
+}
+
+/**
+ * Action for getting the committed receiving address for a drop
+ */
+export interface RewardsControllerGetDropCommittedAddressAction {
+  type: 'RewardsController:getDropCommittedAddress';
+  handler: (dropId: string, subscriptionId: string) => Promise<string | null>;
+}
+
+/**
  * Actions that can be performed by the RewardsController
  */
 export type RewardsControllerActions =
@@ -1561,11 +2003,16 @@ export type RewardsControllerActions =
   | RewardsControllerOptOutAction
   | RewardsControllerGetActivePointsBoostsAction
   | RewardsControllerGetUnlockedRewardsAction
-  | RewardsControllerGetSnapshotsAction
+  | RewardsControllerGetDropsAction
   | RewardsControllerClaimRewardAction
   | RewardsControllerGetSeasonOneLineaRewardTokensAction
   | RewardsControllerResetAllAction
-  | RewardsControllerApplyReferralCodeAction;
+  | RewardsControllerApplyReferralCodeAction
+  | RewardsControllerGetDropEligibilityAction
+  | RewardsControllerGetDropLeaderboardAction
+  | RewardsControllerCommitDropPointsAction
+  | RewardsControllerUpdateDropReceivingAddressAction
+  | RewardsControllerGetDropCommittedAddressAction;
 
 /**
  * Input DTO for getting opt-in status of multiple addresses
