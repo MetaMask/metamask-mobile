@@ -1,5 +1,5 @@
 import { test as base } from 'appwright';
-import { PerformanceTracker } from '../../reporters/PerformanceTracker.js';
+import { PerformanceTracker } from '../../reporters/PerformanceTracker';
 import {
   QualityGatesValidator,
   markQualityGateFailure,
@@ -113,7 +113,6 @@ export const test = base.extend({
         contentType: 'application/json',
       });
 
-      await performanceTracker.storeSessionData(sessionId, testInfo.title);
       console.log(`✅ Session data stored: ${sessionId}`);
     } else {
       console.log('⚠️ No session ID found - video URL cannot be retrieved');
