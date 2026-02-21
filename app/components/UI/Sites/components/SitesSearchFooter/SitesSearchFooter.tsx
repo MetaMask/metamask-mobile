@@ -44,13 +44,10 @@ export const useSearchFooterBrowserNavigation = () => {
 
   const onPress = useCallback(
     (url: string) => {
-      navigation.navigate(Routes.BROWSER.HOME, {
-        screen: Routes.BROWSER.VIEW,
-        params: {
-          newTabUrl: url,
-          timestamp: Date.now(),
-          fromTrending: true,
-        },
+      navigation.navigate(Routes.BROWSER.VIEW, {
+        newTabUrl: url,
+        timestamp: Date.now(),
+        fromTrending: true,
       });
     },
     [navigation],
