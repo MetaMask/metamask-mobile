@@ -83,10 +83,7 @@ export const useNavigateToInternalBrowserPage = (
         timestamp: Date.now(),
       };
 
-      navigation.navigate(Routes.BROWSER.HOME, {
-        screen: Routes.BROWSER.VIEW,
-        params,
-      });
+      navigation.navigate(Routes.BROWSER.VIEW, params);
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
           .addProperties({

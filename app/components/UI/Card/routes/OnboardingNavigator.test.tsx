@@ -1165,9 +1165,9 @@ describe('OnboardingNavigator', () => {
       renderWithNavigation(<OnboardingNavigator />);
 
       expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.CARD.MODALS.ID,
+        Routes.CARD.MODALS.CONFIRM_MODAL,
         expect.objectContaining({
-          screen: Routes.CARD.MODALS.CONFIRM_MODAL,
+          title: 'mocked_card.card_onboarding.keep_going.title',
         }),
       );
     });
@@ -1191,7 +1191,7 @@ describe('OnboardingNavigator', () => {
       renderWithNavigation(<OnboardingNavigator />);
 
       expect(mockNavigate).not.toHaveBeenCalledWith(
-        Routes.CARD.MODALS.ID,
+        Routes.CARD.MODALS.CONFIRM_MODAL,
         expect.anything(),
       );
     });
@@ -1211,7 +1211,7 @@ describe('OnboardingNavigator', () => {
       renderWithNavigation(<OnboardingNavigator />);
 
       expect(mockNavigate).not.toHaveBeenCalledWith(
-        Routes.CARD.MODALS.ID,
+        Routes.CARD.MODALS.CONFIRM_MODAL,
         expect.anything(),
       );
     });
@@ -1291,9 +1291,9 @@ describe('OnboardingNavigator', () => {
 
       // SHOULD show keep going modal because user is returning and has incomplete steps
       expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.CARD.MODALS.ID,
+        Routes.CARD.MODALS.CONFIRM_MODAL,
         expect.objectContaining({
-          screen: Routes.CARD.MODALS.CONFIRM_MODAL,
+          title: 'mocked_card.card_onboarding.keep_going.title',
         }),
       );
     });
@@ -1321,7 +1321,7 @@ describe('OnboardingNavigator', () => {
 
       // Should NOT show modal because initialRouteName is COMPLETE
       expect(mockNavigate).not.toHaveBeenCalledWith(
-        Routes.CARD.MODALS.ID,
+        Routes.CARD.MODALS.CONFIRM_MODAL,
         expect.anything(),
       );
     });

@@ -148,25 +148,22 @@ const ConfirmEmail = () => {
           });
         };
 
-        navigation.navigate(Routes.CARD.MODALS.ID, {
-          screen: Routes.CARD.MODALS.CONFIRM_MODAL,
-          params: {
-            title: strings('card.card_onboarding.account_exists.title'),
-            description: strings(
-              'card.card_onboarding.account_exists.description',
-              {
-                email,
-              },
-            ),
-            confirmAction: {
-              label: strings(
-                'card.card_onboarding.account_exists.confirm_button',
-              ),
-              onPress: navigateToAuthentication,
+        navigation.navigate(Routes.CARD.MODALS.CONFIRM_MODAL, {
+          title: strings('card.card_onboarding.account_exists.title'),
+          description: strings(
+            'card.card_onboarding.account_exists.description',
+            {
+              email,
             },
-            onClose: navigateToAuthentication,
-            icon: IconName.UserCheck,
+          ),
+          confirmAction: {
+            label: strings(
+              'card.card_onboarding.account_exists.confirm_button',
+            ),
+            onPress: navigateToAuthentication,
           },
+          onClose: navigateToAuthentication,
+          icon: IconName.UserCheck,
         });
         dispatch(resetOnboardingState());
       }
