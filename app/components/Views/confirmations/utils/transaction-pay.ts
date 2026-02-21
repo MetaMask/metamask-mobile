@@ -173,3 +173,13 @@ function getSupportedGasFeeTokens(): Record<Hex, Hex[]> {
     {},
   );
 }
+
+export type AcrossQuoteMetadata = {
+  metrics?: { latency?: number };
+  quote?: { metrics?: { latency?: number } };
+};
+
+export function getAcrossQuoteLatency(original: unknown): number | undefined {
+  const metadata = original as AcrossQuoteMetadata | undefined;
+  return metadata?.metrics?.latency ?? metadata?.quote?.metrics?.latency;
+}

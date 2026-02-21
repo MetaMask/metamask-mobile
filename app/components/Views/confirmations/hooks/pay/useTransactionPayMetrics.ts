@@ -13,6 +13,7 @@ import { TransactionType } from '@metamask/transaction-controller';
 import { useTransactionPayToken } from './useTransactionPayToken';
 import { BridgeToken } from '../../../../UI/Bridge/types';
 import { hasTransactionType } from '../../utils/transaction';
+import { getAcrossQuoteLatency } from '../../utils/transaction-pay';
 import {
   useTransactionPayQuotes,
   useTransactionPayRequiredTokens,
@@ -109,14 +110,24 @@ export function useTransactionPayMetrics() {
     properties.mm_pay_dust_usd = nonGasQuote.dust.usd;
   }
 
-  const strategy = quotes?.[0]?.strategy;
+  const primaryQuote = quotes?.[0];
+  const strategy = primaryQuote?.strategy;
+  const acrossStrategy = 'across' as TransactionPayStrategy;
+  const acrossQuoteLatency =
+    strategy === acrossStrategy
+      ? getAcrossQuoteLatency(primaryQuote?.original)
+      : undefined;
 
   if (strategy === TransactionPayStrategy.Bridge) {
     properties.mm_pay_strategy = 'mm_swaps_bridge';
+  } else if (strategy === TransactionPayStrategy.Relay) {
+    properties.mm_pay_strategy = 'relay';
+  } else if (strategy === acrossStrategy) {
+    properties.mm_pay_strategy = 'across';
   }
 
-  if (strategy === TransactionPayStrategy.Relay) {
-    properties.mm_pay_strategy = 'relay';
+  if (acrossQuoteLatency !== undefined) {
+    properties.mm_pay_quotes_latency = acrossQuoteLatency;
   }
 
   if (totals) {

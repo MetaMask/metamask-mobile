@@ -38,6 +38,11 @@ export const getMetaMaskPayProperties: TransactionMetricsBuilder = ({
   const properties: JsonMap = {};
   const sensitiveProperties: JsonMap = {};
   const { batchId, id: transactionId, type } = transactionMeta;
+  const executionLatency = getExecutionLatency(transactionMeta);
+
+  if (executionLatency !== undefined) {
+    properties.mm_pay_execution_latency = executionLatency;
+  }
 
   const parentTransaction = allTransactions.find(
     (tx) =>
@@ -106,6 +111,17 @@ export const getMetaMaskPayProperties: TransactionMetricsBuilder = ({
     const quoteIndex = quoteTransactionIds.indexOf(transactionMeta.id);
     const quote = quotes[quoteIndex];
 
+    const quoteImpactUsd = quote?.fees?.impact?.usd;
+    const quoteImpactRatio = quote?.fees?.impactRatio;
+
+    if (quoteImpactUsd !== undefined) {
+      properties.mm_pay_quote_impact_usd = quoteImpactUsd;
+    }
+
+    if (quoteImpactRatio !== undefined) {
+      properties.mm_pay_quote_impact_ratio = quoteImpactRatio;
+    }
+
     if (quote?.strategy === TransactionPayStrategy.Bridge) {
       const bridgeQuote =
         quote as TransactionPayQuote<TransactionPayBridgeQuote>;
@@ -116,6 +132,16 @@ export const getMetaMaskPayProperties: TransactionMetricsBuilder = ({
       properties.mm_pay_quotes_buffer_size = metrics?.buffer;
       properties.mm_pay_quotes_latency = metrics?.latency;
       properties.mm_pay_bridge_provider = bridgeQuote.original.quote.bridgeId;
+    }
+
+    if (quote?.strategy === ('across' as TransactionPayStrategy)) {
+      properties.mm_pay_strategy = 'across';
+
+      const quoteLatency = quote.original?.metrics?.latency;
+
+      if (quoteLatency !== undefined) {
+        properties.mm_pay_quotes_latency = quoteLatency;
+      }
     }
 
     if (quote && quote.request.targetTokenAddress !== NATIVE_TOKEN_ADDRESS) {
@@ -164,4 +190,17 @@ function getTokenSymbol(state: RootState, chainId: Hex, tokenAddress: Hex) {
   );
 
   return token?.symbol;
+}
+
+type MetaMaskPayMetadataWithLatency = TransactionMeta['metamaskPay'] & {
+  executionLatencyMs?: number;
+};
+
+function getExecutionLatency(
+  transactionMeta: TransactionMeta,
+): number | undefined {
+  const metadata = transactionMeta.metamaskPay as
+    | MetaMaskPayMetadataWithLatency
+    | undefined;
+  return metadata?.executionLatencyMs;
 }

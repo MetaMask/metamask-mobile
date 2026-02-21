@@ -62,6 +62,19 @@ const QUOTE_MOCK = {
   strategy: TransactionPayStrategy.Bridge,
 } as TransactionPayQuote<Json>;
 
+const ACROSS_QUOTE_MOCK = {
+  dust: {
+    fiat: '0.6',
+    usd: '0.5',
+  },
+  original: {
+    metrics: {
+      latency: 1234,
+    },
+  },
+  strategy: 'across' as TransactionPayStrategy,
+} as TransactionPayQuote<Json>;
+
 function runHook({ type }: { type?: TransactionType } = {}) {
   const state = merge(
     {},
@@ -311,6 +324,30 @@ describe('useTransactionPayMetrics', () => {
           mm_pay_network_fee_usd: '4',
           mm_pay_provider_fee_usd: '0.5',
           mm_pay_strategy: 'mm_swaps_bridge',
+        }),
+        sensitiveProperties: {},
+      },
+    });
+  });
+
+  it('uses across strategy and latency', async () => {
+    useTransactionPayTokenMock.mockReturnValue({
+      payToken: PAY_TOKEN_MOCK,
+      setPayToken: noop,
+    } as ReturnType<typeof useTransactionPayToken>);
+
+    useTransactionPayQuotesMock.mockReturnValue([ACROSS_QUOTE_MOCK]);
+
+    runHook();
+
+    await act(async () => noop());
+
+    expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
+      id: transactionIdMock,
+      params: {
+        properties: expect.objectContaining({
+          mm_pay_strategy: 'across',
+          mm_pay_quotes_latency: 1234,
         }),
         sensitiveProperties: {},
       },
