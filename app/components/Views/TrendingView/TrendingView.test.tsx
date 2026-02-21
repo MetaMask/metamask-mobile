@@ -95,7 +95,6 @@ jest.mock(
       solanaNetworks: [],
       selectedEvmAccount: null,
       selectedSolanaAccount: null,
-      isMultichainAccountsState2Enabled: false,
       areAllNetworksSelectedCombined: false,
       areAllEvmNetworksSelected: false,
       areAllSolanaNetworksSelected: false,
