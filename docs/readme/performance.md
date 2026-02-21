@@ -146,7 +146,7 @@ useEffect(() => {
 
 > **Note on tool availability**: Since `React Native DevTools` is dependent on `Hermes` engine, it is not yet available for iOS since we're still using `JSC` engine. However, we are working on getting `Hermes` enabled on iOS. In the meantime, you can use `React DevTools` to achieve the same render profiling on iOS.
 
-We recommend using [React Native DevTools](https://reactnative.dev/docs/react-native-devtools) on Android and [React DevTools](https://reactnative.dev/docs/0.76/react-native-devtools#react-profiler) on iOS to identify re-renders in your React Native app.
+We recommend using [React Native DevTools](https://reactnative.dev/docs/react-native-devtools) on Android and [React DevTools](https://reactnative.dev/docs/react-native-devtools#react-profiler) on iOS to identify re-renders in your React Native app.
 
 To open `React DevTools` on either platforms, press `shift+m` in the watcher window and select `React DevTools`.
 
