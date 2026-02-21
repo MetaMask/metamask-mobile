@@ -53,6 +53,33 @@ if (
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
+const PRICE_IMPACT_WARNING_THRESHOLD = 5;
+const PRICE_IMPACT_ERROR_THRESHOLD = 25;
+
+export const getPriceImpactTextColor = (
+  priceImpactValue?: string,
+): TextColor => {
+  if (!priceImpactValue) {
+    return TextColor.Alternative;
+  }
+
+  const priceImpact = Number.parseFloat(priceImpactValue.replace('%', ''));
+
+  if (!Number.isFinite(priceImpact)) {
+    return TextColor.Alternative;
+  }
+
+  if (priceImpact > PRICE_IMPACT_ERROR_THRESHOLD) {
+    return TextColor.Error;
+  }
+
+  if (priceImpact > PRICE_IMPACT_WARNING_THRESHOLD) {
+    return TextColor.Warning;
+  }
+
+  return TextColor.Alternative;
+};
+
 const QuoteDetailsCard: React.FC = () => {
   const theme = useTheme();
   const navigation = useNavigation();
@@ -62,7 +89,6 @@ const QuoteDetailsCard: React.FC = () => {
     formattedQuoteData,
     activeQuote,
     isLoading: isQuoteLoading,
-    shouldShowPriceImpactWarning,
   } = useBridgeQuoteData();
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
@@ -353,9 +379,7 @@ const QuoteDetailsCard: React.FC = () => {
               label: {
                 text: priceImpact,
                 variant: TextVariant.BodyMD,
-                color: shouldShowPriceImpactWarning
-                  ? TextColor.Error
-                  : TextColor.Alternative,
+                color: getPriceImpactTextColor(priceImpact),
               },
             }}
           />
