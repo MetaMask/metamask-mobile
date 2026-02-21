@@ -71,8 +71,8 @@ describe(SmokeIdentity('Account syncing - Mutiple SRPs'), () => {
         );
 
         const {
-          prepareEventsEmittedCounter,
           waitUntilSyncedAccountsNumberEquals,
+          prepareEventsEmittedCounter,
         } = arrangeTestUtils(userStorageMockttpController);
 
         // Wait for the initial full sync to complete before adding accounts.
@@ -82,15 +82,8 @@ describe(SmokeIdentity('Account syncing - Mutiple SRPs'), () => {
         // the first full sync has finished pushing the initial group.
         await waitUntilSyncedAccountsNumberEquals(1);
 
-        // Set up event counter AFTER the initial sync completes so it only
-        // tracks events from subsequent account mutations.
-        const { waitUntilEventsEmittedNumberEquals } =
-          prepareEventsEmittedCounter(
-            UserStorageMockttpControllerEvents.PUT_SINGLE,
-          );
-
         await AccountListBottomSheet.tapAddAccountButtonV2();
-        await waitUntilEventsEmittedNumberEquals(1);
+        await waitUntilSyncedAccountsNumberEquals(2);
 
         await Assertions.expectElementToBeVisible(
           AccountListBottomSheet.getAccountElementByAccountNameV2(
@@ -134,6 +127,15 @@ describe(SmokeIdentity('Account syncing - Mutiple SRPs'), () => {
           },
         );
 
+        // Set up a PUT counter before the rename so we can wait for the
+        // rename sync to reach the mock server. Listen for both PUT_SINGLE
+        // and PUT_BATCH since the controller may batch wallet updates.
+        const { waitUntilEventsEmittedNumberEquals: waitForRenamePut } =
+          prepareEventsEmittedCounter([
+            UserStorageMockttpControllerEvents.PUT_SINGLE,
+            UserStorageMockttpControllerEvents.PUT_BATCH,
+          ]);
+
         // We need to explicitly wait here to avoid having the "Account" added toast appear on top of the EllipsisButton
         await AccountListBottomSheet.tapAccountEllipsisButtonV2(3, {
           shouldWait: true,
@@ -154,7 +156,9 @@ describe(SmokeIdentity('Account syncing - Mutiple SRPs'), () => {
           },
         );
 
-        await waitUntilEventsEmittedNumberEquals(5);
+        // Wait for the rename sync to reach the mock server before
+        // this fixture tears down, so Phase 3 sees the updated name.
+        await waitForRenamePut(1);
       },
     );
 
