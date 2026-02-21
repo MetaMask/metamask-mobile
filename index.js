@@ -12,6 +12,7 @@ import './wdyr';
 import 'expo-asset';
 
 import * as Sentry from '@sentry/react-native'; // eslint-disable-line import/no-namespace
+import FilesystemStorage from 'redux-persist-filesystem-storage';
 import { setupSentry } from './app/util/sentry/utils';
 import { AppRegistry, LogBox } from 'react-native';
 import Root from './app/components/Views/Root';
@@ -119,3 +120,12 @@ function setupGlobalErrorHandler() {
 }
 
 setupGlobalErrorHandler();
+
+// Configure FilesystemStorage for use everywhere in the app.
+FilesystemStorage.config({
+  // Converting : to - is the default behavior of redux-persist-filesystem-storage
+  // This is flawed, but we need to keep that for backwards compatiblity even though it does not work properly for keys including -
+  // We use URI encoding to replace /
+  toFileName: (name) => name.split(':').join('-').split('/').join('%2F'),
+  fromFileName: (name) => name.split('-').join(':').split('%2F').join('/'),
+});
