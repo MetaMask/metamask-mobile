@@ -264,11 +264,17 @@ const BridgeView = () => {
 
   // Reset bridge state when component unmounts
   useEffect(
-    () => () => {
-      dispatch(resetBridgeState());
-      // Clear bridge controller state if available
+    () => {
+      // Clear bridge controller state on load
       if (Engine.context.BridgeController?.resetState) {
         Engine.context.BridgeController.resetState();
+      }
+      return () => {
+        dispatch(resetBridgeState());
+        // Clear bridge controller state if available
+        if (Engine.context.BridgeController?.resetState) {
+          Engine.context.BridgeController.resetState();
+        }
       }
     },
     [dispatch],

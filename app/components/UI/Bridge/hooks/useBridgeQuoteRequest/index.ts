@@ -100,14 +100,15 @@ export const useBridgeQuoteRequest = () => {
       context,
     );
   }, [
-    sourceToken,
-    destToken,
+    sourceToken?.address,
+    sourceToken?.chainId,
+    destToken?.address,
+    destToken?.chainId,
     sourceAmount,
     destChainId,
     slippage,
     walletAddress,
     destAddress,
-    context,
     gasIncluded,
     gasIncluded7702,
     insufficientBal,
