@@ -2,13 +2,14 @@ import React from 'react';
 import '../../_mocks_/initialState';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
-import QuoteDetailsCard from './QuoteDetailsCard';
+import QuoteDetailsCard, { getPriceImpactTextColor } from './QuoteDetailsCard';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import mockQuotes from '../../_mocks_/mock-quotes-sol-sol.json';
 import mockQuotesGasIncluded from '../../_mocks_/mock-quotes-gas-included.json';
 import { createBridgeTestState } from '../../testUtils';
 import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
+import { TextColor } from '../../../../../component-library/components/Texts/Text';
 
 jest.mock(
   '../../../../../animations/rewards_icon_animations.riv',
@@ -266,6 +267,21 @@ describe('QuoteDetailsCard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
+
+  it.each([
+    { priceImpact: undefined, expectedColor: TextColor.Alternative },
+    { priceImpact: '-0.06%', expectedColor: TextColor.Alternative },
+    { priceImpact: '5.00%', expectedColor: TextColor.Alternative },
+    { priceImpact: '5.01%', expectedColor: TextColor.Warning },
+    { priceImpact: '25.00%', expectedColor: TextColor.Warning },
+    { priceImpact: '25.01%', expectedColor: TextColor.Error },
+    { priceImpact: 'invalid', expectedColor: TextColor.Alternative },
+  ])(
+    'returns the right text color for $priceImpact',
+    ({ priceImpact, expectedColor }) => {
+      expect(getPriceImpactTextColor(priceImpact)).toBe(expectedColor);
+    },
+  );
 
   it('renders initial state', () => {
     const { toJSON } = renderScreen(
