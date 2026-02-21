@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`AccountOverview should render correctly 1`] = `
+exports[`AccountOverview matches snapshot when given account with address and label 1`] = `
 <View
   collapsable={false}
 >
