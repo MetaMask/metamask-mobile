@@ -1,0 +1,8 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+- family-names: "MetaMask"
+title: "metamask-mobile"
+version: 1.0.0
+date-released: 2026-01-30
+url: "https://github.com/MetaMask/metamask-mobile"
