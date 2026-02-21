@@ -21,6 +21,7 @@ import {
 
 // There is a bug in this flow specifically on the samsung s23 device.
 test.describe(`${PerformanceLogin} ${PerformanceLaunch}`, () => {
+  test.use({ srpCount: 3 });
   test(
     'Measure Warm Start: Warm Start to Login Screen',
     { tag: '@metamask-mobile-platform' },

@@ -24,6 +24,7 @@ class CommandQueueServer implements Resource {
   private _server: ReturnType<Koa['listen']> | undefined;
   private _queue: CommandQueueItem[];
   private _exportedState: Record<string, unknown> | null;
+  private _srpCount: number;
   _serverPort: number;
   _serverStatus: ServerStatus = ServerStatus.STOPPED;
 
@@ -31,6 +32,7 @@ class CommandQueueServer implements Resource {
     this._app = new Koa();
     this._queue = [];
     this._exportedState = null;
+    this._srpCount = 0;
     this._serverPort = 0; // will be set with setServerPort()
     this._app.use(async (ctx: Context) => {
       // Middleware to handle requests
@@ -40,6 +42,13 @@ class CommandQueueServer implements Resource {
         'Access-Control-Allow-Headers',
         'Origin, X-Requested-With, Content-Type, Accept',
       );
+
+      if (this._isPerformanceRequest(ctx)) {
+        ctx.body = {
+          srps: this._srpCount,
+        };
+        return;
+      }
 
       if (this._isQueueRequest(ctx)) {
         const newQueue = [...this._queue];
@@ -91,6 +100,16 @@ class CommandQueueServer implements Resource {
 
   setServerPort(port: number): void {
     this._serverPort = port;
+  }
+
+  /**
+   * Set the number of SRPs the app should pre-load during initialization.
+   * The app fetches this value from the root endpoint (GET /) at startup.
+   *
+   * @param count - The number of SRPs to import
+   */
+  setSrpCount(count: number): void {
+    this._srpCount = count;
   }
 
   // Start the fixture server
@@ -211,6 +230,10 @@ class CommandQueueServer implements Resource {
       `getExportedState timed out after ${timeout}ms — the app did not POST to /exported-state. ` +
         'Ensure the command queue server is running and the app is polling /queue.json.',
     );
+  }
+
+  private _isPerformanceRequest(ctx: Context) {
+    return ctx.method === 'GET' && ctx.path === '/performance.json';
   }
 
   private _isQueueRequest(ctx: Context) {
