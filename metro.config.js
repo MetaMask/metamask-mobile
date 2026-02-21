@@ -127,6 +127,39 @@ module.exports = function (baseConfig) {
                 ),
               };
             }
+            if (
+              moduleName.endsWith(
+                'controllers/seedless-onboarding-controller',
+              ) ||
+              moduleName.endsWith(
+                'controllers/seedless-onboarding-controller/index',
+              ) ||
+              moduleName === './seedless-onboarding-controller' ||
+              moduleName === '../seedless-onboarding-controller'
+            ) {
+              return {
+                type: 'sourceFile',
+                filePath: path.resolve(
+                  __dirname,
+                  'e2e/module-mocking/seedless/index.ts',
+                ),
+              };
+            }
+            // Mock OAuth Login Handlers for E2E Google/Apple login tests
+            if (
+              moduleName.endsWith('OAuthService/OAuthLoginHandlers') ||
+              moduleName.endsWith('OAuthService/OAuthLoginHandlers/index') ||
+              moduleName === './OAuthLoginHandlers' ||
+              moduleName === '../OAuthLoginHandlers'
+            ) {
+              return {
+                type: 'sourceFile',
+                filePath: path.resolve(
+                  __dirname,
+                  'e2e/module-mocking/oauth/OAuthLoginHandlers/index.ts',
+                ),
+              };
+            }
           }
           return context.resolveRequest(context, moduleName, platform);
         },
