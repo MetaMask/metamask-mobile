@@ -26,12 +26,14 @@ import { Hex } from '@metamask/utils';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { EMPTY_ADDRESS } from '../../../../../../constants/transaction';
 import { getAvailableTokens } from '../../../utils/transaction-pay';
+import { useWithdrawTokenFilter } from '../../../hooks/pay/useWithdrawTokenFilter';
 import { usePerpsPaymentToken } from '../../../../../UI/Perps/hooks/usePerpsPaymentToken';
 import { usePerpsBalanceTokenFilter } from '../../../../../UI/Perps/hooks/usePerpsBalanceTokenFilter';
 
 jest.mock('../../../hooks/pay/useTransactionPayToken');
 jest.mock('../../../hooks/pay/useTransactionPayData');
 jest.mock('../../../hooks/pay/useTransactionPayWithdraw');
+jest.mock('../../../hooks/pay/useWithdrawTokenFilter');
 jest.mock('../../../hooks/transactions/useTransactionMetadataRequest');
 jest.mock('../../../utils/transaction-pay');
 jest.mock('../../../../../UI/Perps/hooks/usePerpsPaymentToken');
@@ -182,6 +184,7 @@ describe('PayWithModal', () => {
   const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
   const useTransactionPayWithdrawMock = jest.mocked(useTransactionPayWithdraw);
   const getAvailableTokensMock = jest.mocked(getAvailableTokens);
+  const useWithdrawTokenFilterMock = jest.mocked(useWithdrawTokenFilter);
   const useTransactionPayRequiredTokensMock = jest.mocked(
     useTransactionPayRequiredTokens,
   );
@@ -202,6 +205,9 @@ describe('PayWithModal', () => {
     });
 
     getAvailableTokensMock.mockReturnValue(TOKENS_MOCK);
+    useWithdrawTokenFilterMock.mockReturnValue(
+      jest.fn((tokens: AssetType[]) => tokens),
+    );
     useTransactionPayRequiredTokensMock.mockReturnValue(REQUIRED_TOKENS_MOCK);
 
     useTransactionPayTokenMock.mockReturnValue({
@@ -325,10 +331,20 @@ describe('PayWithModal', () => {
       expect(getByText('Select receive token')).toBeDefined();
     });
 
-    it('bypasses token filtering for withdrawal transactions', () => {
+    it('bypasses getAvailableTokens for withdrawal transactions', () => {
       render();
       // For withdrawals, getAvailableTokens should NOT be called since
-      // the filter early-returns all tokens for withdraw types
+      // withdrawals use a separate token filter path
+      expect(getAvailableTokensMock).not.toHaveBeenCalled();
+    });
+
+    it('uses withdrawTokenFilter for withdrawal transactions', () => {
+      const withdrawFilterFn = jest.fn((tokens: AssetType[]) => tokens);
+      useWithdrawTokenFilterMock.mockReturnValue(withdrawFilterFn);
+
+      render();
+
+      expect(withdrawFilterFn).toHaveBeenCalledWith(expect.any(Array));
       expect(getAvailableTokensMock).not.toHaveBeenCalled();
     });
   });

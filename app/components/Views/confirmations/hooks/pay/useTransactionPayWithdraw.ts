@@ -1,20 +1,16 @@
-import { useSelector } from 'react-redux';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { isTransactionPayWithdraw } from '../../utils/transaction';
-import { selectMetaMaskPayFlags } from '../../../../../selectors/featureFlagController/confirmations';
+import { usePayPostQuoteConfig } from './usePayPostQuoteConfig';
 
 export interface UseTransactionPayWithdrawResult {
   /** Whether this transaction is a withdraw type */
   isWithdraw: boolean;
-  /** Whether the user can select a different withdraw token (env var AND feature flag) */
+  /** Whether the user can select a different withdraw token (feature flag) */
   canSelectWithdrawToken: boolean;
 }
 
 /**
  * Hook for checking withdraw transaction status and feature flag.
- *
- * Both the MM_PREDICT_WITHDRAW_ANY_TOKEN env var AND the
- * predictWithdrawAnyToken remote feature flag must be enabled.
  *
  * Note: To update the withdraw destination token, use setPayToken from
  * useTransactionPayToken - it handles both deposit and withdraw token updates.
@@ -22,12 +18,9 @@ export interface UseTransactionPayWithdrawResult {
 export function useTransactionPayWithdraw(): UseTransactionPayWithdrawResult {
   const transactionMeta = useTransactionMetadataRequest();
   const isWithdraw = isTransactionPayWithdraw(transactionMeta);
-  const { predictWithdrawAnyToken } = useSelector(selectMetaMaskPayFlags);
+  const config = usePayPostQuoteConfig();
 
-  const isEnabledByEnv = process.env.MM_PREDICT_WITHDRAW_ANY_TOKEN === 'true';
-
-  const canSelectWithdrawToken =
-    isWithdraw && isEnabledByEnv && predictWithdrawAnyToken;
+  const canSelectWithdrawToken = isWithdraw && config.enabled === true;
 
   return {
     isWithdraw,

@@ -9,6 +9,9 @@ import {
   selectNonZeroUnusedApprovalsAllowList,
   selectGasFeeTokenFlags,
   GasFeeTokenFlags,
+  selectPayPostQuoteFlags,
+  resolvePayPostQuoteConfig,
+  PayPostQuoteFlags,
 } from '.';
 import mockedEngine from '../../../core/__mocks__/MockedEngine';
 import { mockedEmptyFlagsState, mockedUndefinedFlagsState } from '../mocks';
@@ -256,39 +259,164 @@ describe('Gas Fee Token Flags', () => {
   });
 });
 
-describe('Withdraw Any Token Flags (in selectMetaMaskPayFlags)', () => {
-  it('returns withdraw defaults when confirmations_pay is missing', () => {
-    const result = selectMetaMaskPayFlags(mockedEmptyFlagsState);
+describe('selectPayPostQuoteFlags', () => {
+  it('returns disabled default when confirmations_pay_post_quote is missing', () => {
+    const result = selectPayPostQuoteFlags(mockedEmptyFlagsState);
 
-    expect(result.predictWithdrawAnyToken).toBe(false);
-    expect(result.perpsWithdrawAnyToken).toBe(false);
+    expect(result.default).toEqual({ enabled: false, tokens: undefined });
+    expect(result.override).toBeUndefined();
   });
 
-  it('returns predictWithdrawAnyToken from feature flag', () => {
+  it('returns default config from feature flag', () => {
     const state = cloneDeep(mockedEmptyFlagsState);
     state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
       {
-        confirmations_pay: {
-          predictWithdrawAnyToken: true,
+        confirmations_pay_post_quote: {
+          default: {
+            enabled: true,
+            tokens: {
+              '0x1': [
+                '0x0000000000000000000000000000000000000000',
+                '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+              ],
+            },
+          },
         },
       };
 
-    const result = selectMetaMaskPayFlags(state);
-    expect(result.predictWithdrawAnyToken).toBe(true);
-    expect(result.perpsWithdrawAnyToken).toBe(false);
+    const result = selectPayPostQuoteFlags(state);
+    expect(result.default.enabled).toBe(true);
+    expect(result.default.tokens).toEqual({
+      '0x1': [
+        '0x0000000000000000000000000000000000000000',
+        '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+      ],
+    });
+    expect(result.override).toBeUndefined();
   });
 
-  it('returns perpsWithdrawAnyToken from feature flag', () => {
+  it('returns override configs from feature flag', () => {
     const state = cloneDeep(mockedEmptyFlagsState);
     state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
       {
-        confirmations_pay: {
-          perpsWithdrawAnyToken: true,
+        confirmations_pay_post_quote: {
+          default: { enabled: true },
+          override: {
+            predictWithdraw: {
+              enabled: true,
+              tokens: {
+                '0x89': ['0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174'],
+              },
+            },
+            perpsWithdraw: {
+              enabled: false,
+            },
+          },
         },
       };
 
-    const result = selectMetaMaskPayFlags(state);
-    expect(result.perpsWithdrawAnyToken).toBe(true);
-    expect(result.predictWithdrawAnyToken).toBe(false);
+    const result = selectPayPostQuoteFlags(state);
+    expect(result.override?.predictWithdraw).toEqual({
+      enabled: true,
+      tokens: {
+        '0x89': ['0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174'],
+      },
+    });
+    expect(result.override?.perpsWithdraw).toEqual({
+      enabled: false,
+      tokens: undefined,
+    });
+  });
+
+  it('preserves undefined enabled in override when omitted from remote config', () => {
+    const state = cloneDeep(mockedEmptyFlagsState);
+    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+      {
+        confirmations_pay_post_quote: {
+          default: { enabled: true },
+          override: {
+            predictWithdraw: {
+              tokens: {
+                '0x1': ['0xaaa'],
+              },
+            },
+          },
+        },
+      };
+
+    const result = selectPayPostQuoteFlags(state);
+    expect(result.override?.predictWithdraw.enabled).toBeUndefined();
+    expect(result.override?.predictWithdraw.tokens).toEqual({
+      '0x1': ['0xaaa'],
+    });
+  });
+});
+
+describe('resolvePayPostQuoteConfig', () => {
+  const flags: PayPostQuoteFlags = {
+    default: {
+      enabled: true,
+      tokens: {
+        '0x1': ['0xaaa' as Hex],
+      },
+    },
+    override: {
+      predictWithdraw: {
+        enabled: true,
+        tokens: {
+          '0x89': ['0xbbb' as Hex],
+        },
+      },
+      perpsWithdraw: {
+        enabled: false,
+      },
+    },
+  };
+
+  it('returns default config when no override key is provided', () => {
+    const result = resolvePayPostQuoteConfig(flags);
+    expect(result).toBe(flags.default);
+  });
+
+  it('returns default config when override key does not exist', () => {
+    const result = resolvePayPostQuoteConfig(flags, 'unknownType');
+    expect(result).toBe(flags.default);
+  });
+
+  it('uses override value when override key has that property', () => {
+    const result = resolvePayPostQuoteConfig(flags, 'predictWithdraw');
+    expect(result.tokens).toEqual({ '0x89': ['0xbbb'] });
+    expect(result.enabled).toBe(true);
+  });
+
+  it('falls back to default for properties not defined in override', () => {
+    const result = resolvePayPostQuoteConfig(flags, 'perpsWithdraw');
+    expect(result.enabled).toBe(false);
+    expect(result.tokens).toEqual({ '0x1': ['0xaaa'] });
+  });
+
+  it('inherits enabled from default when override omits enabled', () => {
+    const flagsWithOmittedEnabled: PayPostQuoteFlags = {
+      default: {
+        enabled: true,
+        tokens: { '0x1': ['0xaaa' as Hex] },
+      },
+      override: {
+        predictWithdraw: {
+          tokens: { '0x89': ['0xbbb' as Hex] },
+        },
+      },
+    };
+    const result = resolvePayPostQuoteConfig(
+      flagsWithOmittedEnabled,
+      'predictWithdraw',
+    );
+    expect(result.enabled).toBe(true);
+    expect(result.tokens).toEqual({ '0x89': ['0xbbb'] });
+  });
+
+  it('returns disabled default when flags is undefined', () => {
+    const result = resolvePayPostQuoteConfig(undefined);
+    expect(result).toEqual({ enabled: false });
   });
 });

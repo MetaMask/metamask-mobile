@@ -2,6 +2,7 @@ import React, { useCallback, useRef } from 'react';
 import { Hex } from '@metamask/utils';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
+import { useWithdrawTokenFilter } from '../../../hooks/pay/useWithdrawTokenFilter';
 import { strings } from '../../../../../../../locales/i18n';
 import { Asset } from '../../send/asset';
 import BottomSheet, {
@@ -44,6 +45,7 @@ export function PayWithModal() {
   const { onPaymentTokenChange: onPerpsPaymentTokenChange } =
     usePerpsPaymentToken();
   const perpsBalanceTokenFilter = usePerpsBalanceTokenFilter();
+  const withdrawTokenFilter = useWithdrawTokenFilter();
 
   const close = useCallback((onClosed?: () => void) => {
     // Called after the bottom sheet's closing animation completes.
@@ -113,10 +115,8 @@ export function PayWithModal() {
 
   const tokenFilter = useCallback(
     (tokens: AssetType[]): TokenListItem[] => {
-      // For withdrawal transactions, show all available tokens (any chain, popular tokens)
-      // The bridging service will handle the actual token conversion
       if (isTransactionPayWithdraw(transactionMeta)) {
-        return tokens;
+        return withdrawTokenFilter(tokens);
       }
 
       // Standard deposit/payment token filtering
@@ -143,6 +143,7 @@ export function PayWithModal() {
       return wrapHighlightedItemCallbacks(filteredTokens);
     },
     [
+      withdrawTokenFilter,
       musdTokenFilter,
       payToken,
       requiredTokens,
