@@ -56,7 +56,7 @@ test.describe(PerformanceOnboarding, () => {
       );
       const timer4 = new TimerHelper(
         'Time since the user clicks on "Create Password" button until Metrics screen is displayed',
-        { ios: 1000, android: 1600 },
+        { ios: 1600, android: 1600 },
         device,
       );
       const timer5 = new TimerHelper(

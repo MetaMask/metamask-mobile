@@ -13,6 +13,21 @@ import { PerpsTabViewSelectorsIDs } from '../../Perps.testIds';
 import { renderPerpsTabView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
 
 const MARKET_LIST_ROUTE = Routes.PERPS.MARKET_LIST;
+const OPEN_POSITION = {
+  symbol: 'ETH',
+  size: '2.5',
+  marginUsed: '500',
+  entryPrice: '2000',
+  liquidationPrice: '1900',
+  unrealizedPnl: '100',
+  returnOnEquity: '0.2',
+  leverage: { value: 10, type: 'isolated' as const },
+  cumulativeFunding: { sinceOpen: '5', allTime: '10', sinceChange: '2' },
+  positionValue: '5000',
+  maxLeverage: 50,
+  takeProfitCount: 0,
+  stopLossCount: 0,
+};
 
 describe('PerpsTabView', () => {
   describe('Bug regression: Perps tab 7.64 (3583) EXP', () => {
@@ -50,6 +65,75 @@ describe('PerpsTabView', () => {
       ).toBeOnTheScreen();
       expect(
         await screen.findByTestId(PerpsTabViewSelectorsIDs.SCROLL_VIEW),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders watchlist section when watchlist markets exist in redux state', async () => {
+      renderPerpsTabView({
+        overrides: {
+          engine: {
+            backgroundState: {
+              PerpsController: {
+                watchlistMarkets: { mainnet: ['ETH'], testnet: [] },
+              },
+            },
+          },
+        },
+        streamOverrides: {
+          marketData: [
+            {
+              symbol: 'ETH',
+              name: 'Ethereum',
+              maxLeverage: '50x',
+              price: '$2,000',
+              change24h: '$0',
+              change24hPercent: '0%',
+              volume: '$1M',
+            },
+            {
+              symbol: 'BTC',
+              name: 'Bitcoin',
+              maxLeverage: '50x',
+              price: '$50,000',
+              change24h: '$0',
+              change24hPercent: '0%',
+              volume: '$1M',
+            },
+          ],
+        },
+      });
+
+      expect(
+        await screen.findByText(strings('perps.home.watchlist')),
+      ).toBeOnTheScreen();
+      expect(screen.getAllByText('ETH').length).toBeGreaterThan(0);
+    });
+
+    it('shows geo block bottom sheet when Close all is pressed by geo-restricted user', async () => {
+      renderPerpsTabView({
+        overrides: {
+          engine: {
+            backgroundState: {
+              PerpsController: {
+                isEligible: false,
+              },
+            },
+          },
+        },
+        streamOverrides: {
+          positions: [OPEN_POSITION],
+        },
+      });
+
+      const closeAllButton = await screen.findByText(
+        strings('perps.home.close_all'),
+      );
+      fireEvent.press(closeAllButton);
+
+      expect(
+        await screen.findByTestId(
+          PerpsTabViewSelectorsIDs.GEO_BLOCK_BOTTOM_SHEET_TOOLTIP,
+        ),
       ).toBeOnTheScreen();
     });
   });
