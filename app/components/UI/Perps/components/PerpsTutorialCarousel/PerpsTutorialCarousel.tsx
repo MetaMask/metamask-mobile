@@ -503,7 +503,7 @@ const PerpsTutorialCarousel: React.FC = () => {
               >
                 <Text
                   variant={TextVariant.BodyMDMedium}
-                  color={TextColor.Alternative}
+                  color={TextColor.Default}
                 >
                   {strings('perps.tutorial.skip')}
                 </Text>
