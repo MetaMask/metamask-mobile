@@ -2,6 +2,8 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 import RootRPCMethodsUI from './RootRPCMethodsUI';
 import { MetaMetricsEvents } from '../../../core/Analytics';
+// Resolves to the mock from jest.mock below, not the real Engine
+import { controllerMessenger } from '../../../core/Engine';
 
 let capturedAutoSign;
 
@@ -72,11 +74,10 @@ describe('RootRPCMethodsUI', () => {
   });
 
   it('calls trackEvent for DAPP_TRANSACTION_CANCELLED on keystone cancel', async () => {
-    const Engine = require('../../../core/Engine');
-
     render(<RootRPCMethodsUI navigation={{ navigate: jest.fn() }} />);
 
-    const subscribeCall = Engine.controllerMessenger.subscribe.mock.calls[0];
+    const subscribeCall =
+      controllerMessenger.subscribe.mock.calls[0];
     const handleUnapprovedTransaction = subscribeCall[1];
 
     handleUnapprovedTransaction({
