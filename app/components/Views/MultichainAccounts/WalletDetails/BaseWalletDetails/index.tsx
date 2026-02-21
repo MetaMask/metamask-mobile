@@ -89,7 +89,9 @@ export const BaseWalletDetails = ({
   const handleBackupPressed = useCallback(() => {
     navigation.navigate(Routes.SET_PASSWORD_FLOW.ROOT, {
       screen: Routes.SET_PASSWORD_FLOW.MANUAL_BACKUP_STEP_1,
-      params: { backupFlow: true },
+      params: {
+        backupFlow: true,
+      },
     });
   }, [navigation]);
 
