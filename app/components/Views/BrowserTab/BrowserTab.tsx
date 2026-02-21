@@ -1028,6 +1028,15 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     }, [sendActiveAccount, permittedEvmAccountsList]);
 
     /**
+     * Re-inject homepage scripts when search engine changes while on homepage
+     */
+    useEffect(() => {
+      if (isHomepage(resolvedUrlRef.current)) {
+        injectHomePageScripts();
+      }
+    }, [searchEngine, isHomepage, injectHomePageScripts]);
+
+    /**
      * Check when the ipfs gateway is enabled to hide the banner
      */
     useEffect(() => {
