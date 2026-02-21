@@ -339,7 +339,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         }
 
         setBlockedUrl(urlOrigin);
-        setTimeout(() => setShowPhishingModal(true), 1000);
+        setShowPhishingModal(true);
       },
       [shouldShowPhishingModal, setBlockedUrl, setShowPhishingModal],
     );
