@@ -1,8 +1,9 @@
-import { AssetsController } from '@metamask/assets-controller';
+import { createApiPlatformClient } from '@metamask/core-backend';
 import {
-  createApiPlatformClient,
-  type ApiPlatformClient,
-} from '@metamask/core-backend';
+  AssetsController,
+  AssetsControllerFirstInitFetchMetaMetricsPayload,
+  type AssetsControllerOptions,
+} from '@metamask/assets-controller';
 import {
   isAssetsUnifyStateFeatureEnabled,
   ASSETS_UNIFY_STATE_FLAG,
@@ -13,11 +14,17 @@ import {
   type AssetsControllerMessenger,
   type AssetsControllerInitMessenger,
 } from '../../messengers/assets-controller';
+import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
+import { store } from '../../../../store';
+import { MetaMetricsEvents } from '../../../Analytics';
+import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
+
+type QueryApiClient = AssetsControllerOptions['queryApiClient'];
 
 /**
  * Cached API client instance.
  */
-let apiClient: ApiPlatformClient | null = null;
+let apiClient: QueryApiClient | null = null;
 
 /**
  * Safely retrieves the bearer token for API authentication.
@@ -62,7 +69,7 @@ function safeGetTokenDetectionEnabled(
  */
 function getApiClient(
   initMessenger: AssetsControllerInitMessenger,
-): ApiPlatformClient {
+): QueryApiClient {
   if (!apiClient) {
     apiClient = createApiPlatformClient({
       clientProduct: 'metamask-mobile',
@@ -120,20 +127,53 @@ export const assetsControllerInit: ControllerInitFunction<
     }
   };
 
-  // Get token detection preference
-  const tokenDetectionEnabled = safeGetTokenDetectionEnabled(initMessenger);
+  // Track first init fetch duration and per-data-source latency when AssetsController
+  // completes initial load after unlock. Uses AnalyticsController:trackEvent (same pattern
+  // as SmartTransactionsController and other controller inits).
+  const trackMetaMetricsEvent = (
+    payload: AssetsControllerFirstInitFetchMetaMetricsPayload,
+  ): void => {
+    try {
+      const event = AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.ASSETS_FIRST_INIT_FETCH_COMPLETED,
+      )
+        .addProperties({
+          duration_ms: payload.durationMs,
+          chain_ids: payload.chainIds,
+          duration_by_data_source: payload.durationByDataSource,
+        })
+        .build();
+      initMessenger.call('AnalyticsController:trackEvent', event);
+    } catch {
+      // AnalyticsController may not be available (e.g. init order); skip tracking.
+    }
+  };
 
   // Create the controller - it now creates all data sources internally
   const controller = new AssetsController({
     messenger: controllerMessenger,
     state: persistedState?.AssetsController ?? {
       assetPreferences: {},
-      assetsMetadata: {},
+      assetsInfo: {},
       assetsBalance: {},
     },
+    isBasicFunctionality: () =>
+      selectBasicFunctionalityEnabled(store.getState()),
     isEnabled,
     queryApiClient: getApiClient(initMessenger),
-    rpcDataSourceConfig: { tokenDetectionEnabled },
+    rpcDataSourceConfig: {
+      tokenDetectionEnabled: () => safeGetTokenDetectionEnabled(initMessenger),
+      balanceInterval: 30_000,
+      detectionInterval: 180_000,
+    },
+    priceDataSourceConfig: {
+      pollInterval: 180_000,
+    },
+    stakedBalanceDataSourceConfig: {
+      pollInterval: 30_000,
+      enabled: true,
+    },
+    trackMetaMetricsEvent,
   });
 
   return { controller };

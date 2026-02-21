@@ -318,9 +318,7 @@ exports[`V2BasicInfo handles region with no phone prefix 1`] = `
                           "fontWeight": "400",
                           "height": 46,
                           "letterSpacing": 0,
-                          "lineHeight": 0,
                           "opacity": 1,
-                          "textAlignVertical": "center",
                         }
                       }
                       testID="first-name-input"
@@ -437,9 +435,7 @@ exports[`V2BasicInfo handles region with no phone prefix 1`] = `
                           "fontWeight": "400",
                           "height": 46,
                           "letterSpacing": 0,
-                          "lineHeight": 0,
                           "opacity": 1,
-                          "textAlignVertical": "center",
                         }
                       }
                       testID="last-name-input"
@@ -587,9 +583,7 @@ exports[`V2BasicInfo handles region with no phone prefix 1`] = `
                         "fontWeight": "400",
                         "height": 46,
                         "letterSpacing": 0,
-                        "lineHeight": 0,
                         "opacity": 1,
-                        "textAlignVertical": "center",
                       }
                     }
                     textContentType="telephoneNumber"
@@ -1213,9 +1207,7 @@ exports[`V2BasicInfo matches snapshot 1`] = `
                           "fontWeight": "400",
                           "height": 46,
                           "letterSpacing": 0,
-                          "lineHeight": 0,
                           "opacity": 1,
-                          "textAlignVertical": "center",
                         }
                       }
                       testID="first-name-input"
@@ -1332,9 +1324,7 @@ exports[`V2BasicInfo matches snapshot 1`] = `
                           "fontWeight": "400",
                           "height": 46,
                           "letterSpacing": 0,
-                          "lineHeight": 0,
                           "opacity": 1,
-                          "textAlignVertical": "center",
                         }
                       }
                       testID="last-name-input"
@@ -1496,9 +1486,7 @@ exports[`V2BasicInfo matches snapshot 1`] = `
                         "fontWeight": "400",
                         "height": 46,
                         "letterSpacing": 0,
-                        "lineHeight": 0,
                         "opacity": 1,
-                        "textAlignVertical": "center",
                       }
                     }
                     textContentType="telephoneNumber"
@@ -1779,9 +1767,7 @@ exports[`V2BasicInfo matches snapshot 1`] = `
                         "fontWeight": "400",
                         "height": 46,
                         "letterSpacing": 0,
-                        "lineHeight": 0,
                         "opacity": 1,
-                        "textAlignVertical": "center",
                       }
                     }
                     testID="ssn-input"
@@ -2274,9 +2260,7 @@ exports[`V2BasicInfo matches snapshot for non-US region 1`] = `
                           "fontWeight": "400",
                           "height": 46,
                           "letterSpacing": 0,
-                          "lineHeight": 0,
                           "opacity": 1,
-                          "textAlignVertical": "center",
                         }
                       }
                       testID="first-name-input"
@@ -2393,9 +2377,7 @@ exports[`V2BasicInfo matches snapshot for non-US region 1`] = `
                           "fontWeight": "400",
                           "height": 46,
                           "letterSpacing": 0,
-                          "lineHeight": 0,
                           "opacity": 1,
-                          "textAlignVertical": "center",
                         }
                       }
                       testID="last-name-input"
@@ -2557,9 +2539,7 @@ exports[`V2BasicInfo matches snapshot for non-US region 1`] = `
                         "fontWeight": "400",
                         "height": 46,
                         "letterSpacing": 0,
-                        "lineHeight": 0,
                         "opacity": 1,
-                        "textAlignVertical": "center",
                       }
                     }
                     textContentType="telephoneNumber"

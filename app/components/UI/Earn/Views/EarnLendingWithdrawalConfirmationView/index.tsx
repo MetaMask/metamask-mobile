@@ -22,12 +22,15 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import Routes from '../../../../../constants/navigation/Routes';
-import { IMetaMetricsEvent } from '../../../../../core/Analytics';
+import {
+  IMetaMetricsEvent,
+  MetaMetricsEvents,
+} from '../../../../../core/Analytics';
 import Engine from '../../../../../core/Engine';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { renderFromTokenMinimalUnit } from '../../../../../util/number';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { useStyles } from '../../../../hooks/useStyles';
 import InfoRowDivider from '../../../../Views/confirmations/components/UI/info-row-divider';
 import InfoSection from '../../../../Views/confirmations/components/UI/info-row/info-section';
@@ -70,7 +73,7 @@ export interface EarnWithdrawalConfirmationViewProps {
 
 const EarnLendingWithdrawalConfirmationView = () => {
   const { styles, theme } = useStyles(styleSheet, {});
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const navigation = useNavigation();
 
