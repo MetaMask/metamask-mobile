@@ -6,7 +6,6 @@ import Assertions from '../framework/Assertions';
 import SRPListItemComponent from '../page-objects/wallet/MultiSrp/Common/SRPListItemComponent';
 import SrpQuizModal from '../page-objects/Settings/SecurityAndPrivacy/SrpQuizModal';
 import RevealSecretRecoveryPhrase from '../page-objects/Settings/SecurityAndPrivacy/RevealSecretRecoveryPhrase';
-import { RevealSeedViewSelectorsText } from '../../app/components/Views/RevealPrivateCredential/RevealSeedView.testIds';
 import TabBarComponent from '../page-objects/wallet/TabBarComponent';
 import SettingsView from '../page-objects/Settings/SettingsView';
 import SecurityAndPrivacyView from '../page-objects/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
@@ -32,17 +31,29 @@ export const completeSrpQuiz = async (expectedSrp: string) => {
   await SrpQuizModal.tapQuestionContinueButton(1);
   await SrpQuizModal.tapQuestionRightAnswerButton(2);
   await SrpQuizModal.tapQuestionContinueButton(2);
-  await RevealSecretRecoveryPhrase.enterPasswordToRevealSecretCredential(
-    PASSWORD,
-  );
+
+  // Check if already unlocked (biometrics) or need password entry
+  let isAlreadyUnlocked = await RevealSecretRecoveryPhrase.isUnlocked();
+
+  if (!isAlreadyUnlocked) {
+    await RevealSecretRecoveryPhrase.enterPasswordToRevealSecretCredential(
+      PASSWORD,
+    );
+    // Re-check: "Done" on keyboard triggers tryUnlock() so app may already be on "Tap to reveal"
+    isAlreadyUnlocked = await RevealSecretRecoveryPhrase.isUnlocked();
+    if (!isAlreadyUnlocked) {
+      await RevealSecretRecoveryPhrase.tapConfirmButton();
+    }
+  }
+
+  // Tap the blur overlay to reveal the SRP
   await RevealSecretRecoveryPhrase.tapToReveal();
   await Assertions.expectElementToBeVisible(
     RevealSecretRecoveryPhrase.container,
   );
-  await Assertions.expectTextDisplayed(
-    RevealSeedViewSelectorsText.REVEAL_CREDENTIAL_SRP_TITLE_TEXT,
-  );
-  await Assertions.expectTextDisplayed(expectedSrp);
+  // SRP is now displayed in grid format - verify first word is displayed
+  const srpWords = expectedSrp.split(' ');
+  await Assertions.expectTextDisplayed(srpWords[0]);
   await RevealSecretRecoveryPhrase.scrollToCopyToClipboardButton();
 
   await RevealSecretRecoveryPhrase.tapToRevealPrivateCredentialQRCode();

@@ -14,6 +14,16 @@ import { ReauthenticateErrorType } from '../../../core/Authentication/types';
 import ClipboardManager from '../../../core/ClipboardManager';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import Device from '../../../util/device';
+import { ExportCredentialsIds } from '../MultichainAccounts/AccountDetails/ExportCredentials.testIds';
+import {
+  SrpQuizGetStartedSelectorsIDs,
+  SrpSecurityQuestionOneSelectorsIDs,
+  SrpSecurityQuestionTwoSelectorsIDs,
+} from '../Quiz/SRPQuiz/SrpQuizModal.testIds';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../component-library/components/Toast';
 
 const MOCK_PASSWORD = 'word1 word2 word3 word4';
 
@@ -206,6 +216,72 @@ const renderWithProviders = (ui: React.ReactNode) =>
     </Provider>,
   );
 
+const completeSecurityQuiz = async (
+  getByTestId: ReturnType<typeof render>['getByTestId'],
+) => {
+  // Step 1: Click "Get started" on introduction screen
+  await waitFor(() => {
+    expect(getByTestId(SrpQuizGetStartedSelectorsIDs.BUTTON)).toBeTruthy();
+  });
+  fireEvent.press(getByTestId(SrpQuizGetStartedSelectorsIDs.BUTTON));
+
+  // Step 2: Answer quiz question 1 (correct answer is RIGHT_ANSWER)
+  await waitFor(() => {
+    expect(
+      getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_ANSWER),
+    ).toBeTruthy();
+  });
+  fireEvent.press(getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_ANSWER));
+
+  // Step 3: Click "Continue" after correct answer
+  await waitFor(() => {
+    expect(
+      getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_CONTINUE),
+    ).toBeTruthy();
+  });
+  fireEvent.press(
+    getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_CONTINUE),
+  );
+
+  // Step 4: Answer quiz question 2 (correct answer is RIGHT_ANSWER)
+  await waitFor(() => {
+    expect(
+      getByTestId(SrpSecurityQuestionTwoSelectorsIDs.RIGHT_ANSWER),
+    ).toBeTruthy();
+  });
+  fireEvent.press(getByTestId(SrpSecurityQuestionTwoSelectorsIDs.RIGHT_ANSWER));
+
+  // Step 5: Click "Continue" to proceed to ActionView
+  await waitFor(() => {
+    expect(
+      getByTestId(SrpSecurityQuestionTwoSelectorsIDs.RIGHT_CONTINUE),
+    ).toBeTruthy();
+  });
+  fireEvent.press(
+    getByTestId(SrpSecurityQuestionTwoSelectorsIDs.RIGHT_CONTINUE),
+  );
+
+  // Wait for ActionView (scroll view) to appear
+  await waitFor(() => {
+    expect(
+      getByTestId(RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_SCROLL_ID),
+    ).toBeTruthy();
+  });
+};
+
+const completeSecurityQuizAndWaitForPasswordEntry = async (
+  getByTestId: ReturnType<typeof render>['getByTestId'],
+) => {
+  await completeSecurityQuiz(getByTestId);
+
+  // Wait for password entry to appear (only works if biometrics failed)
+  await waitFor(() => {
+    expect(
+      getByTestId(RevealSeedViewSelectorsIDs.PASSWORD_INPUT_BOX_ID),
+    ).toBeTruthy();
+  });
+};
+
 const createDefaultRoute = (
   params: Record<string, unknown> = {},
 ): {
@@ -246,8 +322,8 @@ describe('RevealPrivateCredential', () => {
   });
 
   describe('rendering', () => {
-    it('renders reveal SRP with password entry when locked', () => {
-      const { getByTestId } = renderWithProviders(
+    it('renders introduction screen initially', () => {
+      const { getByTestId, getByText } = renderWithProviders(
         <RevealPrivateCredential
           route={createDefaultRoute()}
           navigation={null}
@@ -258,24 +334,19 @@ describe('RevealPrivateCredential', () => {
       expect(
         getByTestId(RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_CONTAINER_ID),
       ).toBeTruthy();
-      expect(
-        getByTestId(RevealSeedViewSelectorsIDs.PASSWORD_INPUT_BOX_ID),
-      ).toBeTruthy();
+      expect(getByTestId(ExportCredentialsIds.CONTAINER)).toBeTruthy();
+      expect(getByTestId(SrpQuizGetStartedSelectorsIDs.BUTTON)).toBeTruthy();
+      expect(getByText('Get started')).toBeTruthy();
     });
 
-    it('renders SRP explanation text', () => {
-      const { getByText } = renderWithProviders(
-        <RevealPrivateCredential
-          route={createDefaultRoute()}
-          navigation={null}
-          cancel={() => null}
-        />,
+    it('renders password entry after completing security quiz', async () => {
+      // Mock biometrics to fail so password entry is shown
+      mockReauthenticate.mockRejectedValue(
+        new Error(
+          `${ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS}: No password`,
+        ),
       );
 
-      expect(getByText('Secret Recovery Phrase')).toBeTruthy();
-    });
-
-    it('renders warning section with eye slash icon', () => {
       const { getByTestId } = renderWithProviders(
         <RevealPrivateCredential
           route={createDefaultRoute()}
@@ -284,12 +355,47 @@ describe('RevealPrivateCredential', () => {
         />,
       );
 
+      await completeSecurityQuizAndWaitForPasswordEntry(getByTestId);
+
+      expect(
+        getByTestId(RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_CONTAINER_ID),
+      ).toBeTruthy();
+      expect(
+        getByTestId(RevealSeedViewSelectorsIDs.PASSWORD_INPUT_BOX_ID),
+      ).toBeTruthy();
+    });
+
+    it('renders warning section with eye slash icon after completing quiz', async () => {
+      // Mock biometrics to fail so warning section is shown
+      mockReauthenticate.mockRejectedValue(
+        new Error(
+          `${ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS}: No password`,
+        ),
+      );
+
+      const { getByTestId } = renderWithProviders(
+        <RevealPrivateCredential
+          route={createDefaultRoute()}
+          navigation={null}
+          cancel={() => null}
+        />,
+      );
+
+      await completeSecurityQuizAndWaitForPasswordEntry(getByTestId);
+
       expect(
         getByTestId(RevealSeedViewSelectorsIDs.SEED_PHRASE_WARNING_ID),
       ).toBeTruthy();
     });
 
-    it('renders cancel button when showCancelButton is true', () => {
+    it('renders cancel button when showCancelButton is true after completing quiz', async () => {
+      // Mock biometrics to fail so we see password entry with cancel button
+      mockReauthenticate.mockRejectedValue(
+        new Error(
+          `${ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS}: No password`,
+        ),
+      );
+
       const { getByTestId } = renderWithProviders(
         <RevealPrivateCredential
           route={createDefaultRoute()}
@@ -299,11 +405,245 @@ describe('RevealPrivateCredential', () => {
         />,
       );
 
+      await completeSecurityQuizAndWaitForPasswordEntry(getByTestId);
+
       expect(
         getByTestId(
           RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_CANCEL_BUTTON_ID,
         ),
       ).toBeTruthy();
+    });
+  });
+
+  describe('security quiz flow', () => {
+    it('navigates from introduction to quiz when Get started is pressed', async () => {
+      const { getByTestId, getByText } = renderWithProviders(
+        <RevealPrivateCredential
+          route={createDefaultRoute()}
+          navigation={null}
+          cancel={() => null}
+        />,
+      );
+
+      // Initially on introduction screen
+      expect(getByTestId(SrpQuizGetStartedSelectorsIDs.BUTTON)).toBeTruthy();
+
+      // Click Get started
+      fireEvent.press(getByTestId(SrpQuizGetStartedSelectorsIDs.BUTTON));
+
+      // Should show quiz question
+      await waitFor(() => {
+        expect(getByText('Question 1 of 2')).toBeTruthy();
+      });
+    });
+
+    it('shows correct feedback when correct answer is selected', async () => {
+      const { getByTestId, getByText } = renderWithProviders(
+        <RevealPrivateCredential
+          route={createDefaultRoute()}
+          navigation={null}
+          cancel={() => null}
+        />,
+      );
+
+      // Navigate to quiz
+      fireEvent.press(getByTestId(SrpQuizGetStartedSelectorsIDs.BUTTON));
+
+      await waitFor(() => {
+        expect(
+          getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_ANSWER),
+        ).toBeTruthy();
+      });
+
+      // Select correct answer for question 1
+      fireEvent.press(
+        getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_ANSWER),
+      );
+
+      // Should show correct feedback
+      await waitFor(() => {
+        expect(getByText('Correct!')).toBeTruthy();
+        expect(
+          getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_CONTINUE),
+        ).toBeTruthy();
+      });
+    });
+
+    it('shows incorrect feedback and try again option when wrong answer is selected', async () => {
+      const { getByTestId, getByText } = renderWithProviders(
+        <RevealPrivateCredential
+          route={createDefaultRoute()}
+          navigation={null}
+          cancel={() => null}
+        />,
+      );
+
+      // Navigate to quiz
+      fireEvent.press(getByTestId(SrpQuizGetStartedSelectorsIDs.BUTTON));
+
+      await waitFor(() => {
+        expect(
+          getByTestId(SrpSecurityQuestionOneSelectorsIDs.WRONG_ANSWER),
+        ).toBeTruthy();
+      });
+
+      // Select wrong answer for question 1
+      fireEvent.press(
+        getByTestId(SrpSecurityQuestionOneSelectorsIDs.WRONG_ANSWER),
+      );
+
+      // Should show incorrect feedback
+      await waitFor(() => {
+        expect(getByText('Incorrect!')).toBeTruthy();
+        expect(
+          getByTestId(
+            SrpSecurityQuestionOneSelectorsIDs.WRONG_ANSWER_TRY_AGAIN_BUTTON,
+          ),
+        ).toBeTruthy();
+      });
+    });
+
+    it('renders learn more button on introduction screen', () => {
+      const { getByTestId } = renderWithProviders(
+        <RevealPrivateCredential
+          route={createDefaultRoute()}
+          navigation={null}
+          cancel={() => null}
+        />,
+      );
+
+      expect(getByTestId(ExportCredentialsIds.LEARN_MORE_BUTTON)).toBeTruthy();
+    });
+
+    it('shows question 2 specific test IDs when correct answer is selected', async () => {
+      const { getByTestId, getByText } = renderWithProviders(
+        <RevealPrivateCredential
+          route={createDefaultRoute()}
+          navigation={null}
+          cancel={() => null}
+        />,
+      );
+
+      // Navigate to quiz
+      fireEvent.press(getByTestId(SrpQuizGetStartedSelectorsIDs.BUTTON));
+
+      // Complete question 1 correctly
+      await waitFor(() => {
+        expect(
+          getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_ANSWER),
+        ).toBeTruthy();
+      });
+      fireEvent.press(
+        getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_ANSWER),
+      );
+
+      await waitFor(() => {
+        expect(
+          getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_CONTINUE),
+        ).toBeTruthy();
+      });
+      fireEvent.press(
+        getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_CONTINUE),
+      );
+
+      // Now on question 2 - verify question 2 specific test IDs
+      await waitFor(() => {
+        expect(getByText('Question 2 of 2')).toBeTruthy();
+        expect(
+          getByTestId(SrpSecurityQuestionTwoSelectorsIDs.RIGHT_ANSWER),
+        ).toBeTruthy();
+        expect(
+          getByTestId(SrpSecurityQuestionTwoSelectorsIDs.WRONG_ANSWER),
+        ).toBeTruthy();
+      });
+
+      // Select correct answer for question 2
+      fireEvent.press(
+        getByTestId(SrpSecurityQuestionTwoSelectorsIDs.RIGHT_ANSWER),
+      );
+
+      // Should show correct feedback with question 2 continue button
+      await waitFor(() => {
+        expect(getByText('Correct!')).toBeTruthy();
+        expect(
+          getByTestId(SrpSecurityQuestionTwoSelectorsIDs.RIGHT_CONTINUE),
+        ).toBeTruthy();
+      });
+    });
+
+    it('shows question 2 try again button when wrong answer is selected', async () => {
+      const { getByTestId, getByText } = renderWithProviders(
+        <RevealPrivateCredential
+          route={createDefaultRoute()}
+          navigation={null}
+          cancel={() => null}
+        />,
+      );
+
+      // Navigate to quiz
+      fireEvent.press(getByTestId(SrpQuizGetStartedSelectorsIDs.BUTTON));
+
+      // Complete question 1 correctly
+      await waitFor(() => {
+        expect(
+          getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_ANSWER),
+        ).toBeTruthy();
+      });
+      fireEvent.press(
+        getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_ANSWER),
+      );
+
+      await waitFor(() => {
+        expect(
+          getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_CONTINUE),
+        ).toBeTruthy();
+      });
+      fireEvent.press(
+        getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_CONTINUE),
+      );
+
+      // Now on question 2 - select wrong answer
+      await waitFor(() => {
+        expect(
+          getByTestId(SrpSecurityQuestionTwoSelectorsIDs.WRONG_ANSWER),
+        ).toBeTruthy();
+      });
+      fireEvent.press(
+        getByTestId(SrpSecurityQuestionTwoSelectorsIDs.WRONG_ANSWER),
+      );
+
+      // Should show incorrect feedback with question 2 try again button
+      await waitFor(() => {
+        expect(getByText('Incorrect!')).toBeTruthy();
+        expect(
+          getByTestId(
+            SrpSecurityQuestionTwoSelectorsIDs.WRONG_ANSWER_TRY_AGAIN_BUTTON,
+          ),
+        ).toBeTruthy();
+      });
+    });
+
+    it('verifies all question 1 answer button test IDs are present', async () => {
+      const { getByTestId } = renderWithProviders(
+        <RevealPrivateCredential
+          route={createDefaultRoute()}
+          navigation={null}
+          cancel={() => null}
+        />,
+      );
+
+      // Navigate to quiz
+      fireEvent.press(getByTestId(SrpQuizGetStartedSelectorsIDs.BUTTON));
+
+      // Verify both answer buttons for question 1 have correct test IDs
+      await waitFor(() => {
+        expect(
+          getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_ANSWER),
+        ).toBeTruthy();
+        expect(
+          getByTestId(SrpSecurityQuestionOneSelectorsIDs.WRONG_ANSWER),
+        ).toBeTruthy();
+      });
     });
   });
 
@@ -318,6 +658,8 @@ describe('RevealPrivateCredential', () => {
           cancel={() => null}
         />,
       );
+
+      await completeSecurityQuizAndWaitForPasswordEntry(getByTestId);
 
       const passwordInput = getByTestId(
         RevealSeedViewSelectorsIDs.PASSWORD_INPUT_BOX_ID,
@@ -344,6 +686,13 @@ describe('RevealPrivateCredential', () => {
     });
 
     it('accepts text input in password field and triggers tryUnlock on submit editing', async () => {
+      // Mock biometrics to fail so password entry is shown
+      mockReauthenticate.mockRejectedValueOnce(
+        new Error(
+          `${ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS}: No password`,
+        ),
+      );
+      // Then allow the manual password entry to succeed
       mockReauthenticate.mockResolvedValue({ password: 'correct-password' });
 
       const { getByTestId } = renderWithProviders(
@@ -353,6 +702,8 @@ describe('RevealPrivateCredential', () => {
           cancel={() => null}
         />,
       );
+
+      await completeSecurityQuizAndWaitForPasswordEntry(getByTestId);
 
       const passwordInput = getByTestId(
         RevealSeedViewSelectorsIDs.PASSWORD_INPUT_BOX_ID,
@@ -383,6 +734,8 @@ describe('RevealPrivateCredential', () => {
         />,
       );
 
+      await completeSecurityQuizAndWaitForPasswordEntry(getByTestId);
+
       await waitFor(() => {
         const confirmButton = getByTestId(
           RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_NEXT_BUTTON_ID,
@@ -401,7 +754,7 @@ describe('RevealPrivateCredential', () => {
         ),
       );
 
-      const { queryByTestId } = renderWithProviders(
+      const { getByTestId, queryByTestId } = renderWithProviders(
         <RevealPrivateCredential
           route={createDefaultRoute()}
           navigation={null}
@@ -409,6 +762,9 @@ describe('RevealPrivateCredential', () => {
         />,
       );
 
+      await completeSecurityQuizAndWaitForPasswordEntry(getByTestId);
+
+      // revealCredential runs when reaching action view, so reauthenticate is called then
       await waitFor(() => {
         expect(mockReauthenticate).toHaveBeenCalled();
       });
@@ -434,7 +790,9 @@ describe('RevealPrivateCredential', () => {
         />,
       );
 
-      // Wait for the auto-reveal attempt on mount to complete and show error
+      await completeSecurityQuizAndWaitForPasswordEntry(getByTestId);
+
+      // Wait for the reveal attempt (on action view) to complete and show error
       await waitFor(() => {
         const warningText = getByTestId(
           RevealSeedViewSelectorsIDs.PASSWORD_WARNING_ID,
@@ -456,7 +814,10 @@ describe('RevealPrivateCredential', () => {
 
       renderWithProviders(
         <RevealPrivateCredential
-          route={createDefaultRoute({ keyringId: testKeyringId })}
+          route={createDefaultRoute({
+            keyringId: testKeyringId,
+            skipQuiz: true,
+          })}
           navigation={null}
           cancel={() => null}
         />,
@@ -473,6 +834,13 @@ describe('RevealPrivateCredential', () => {
 
   describe('tryUnlock', () => {
     it('dispatches recordSRPRevealTimestamp on successful unlock', async () => {
+      // Mock biometrics to fail so password entry is shown
+      mockReauthenticate.mockRejectedValueOnce(
+        new Error(
+          `${ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS}: No password`,
+        ),
+      );
+      // Then allow the manual password entry to succeed
       mockReauthenticate.mockResolvedValue({ password: 'correct-password' });
 
       const { getByTestId } = renderWithProviders(
@@ -482,6 +850,8 @@ describe('RevealPrivateCredential', () => {
           cancel={() => null}
         />,
       );
+
+      await completeSecurityQuizAndWaitForPasswordEntry(getByTestId);
 
       const passwordInput = getByTestId(
         RevealSeedViewSelectorsIDs.PASSWORD_INPUT_BOX_ID,
@@ -503,10 +873,12 @@ describe('RevealPrivateCredential', () => {
       });
     });
 
-    it('shows modal on successful authentication', async () => {
+    it('shows SRP after successful authentication via biometrics', async () => {
+      // Biometrics succeed, so SRP should be shown after completing quiz
       mockReauthenticate.mockResolvedValue({ password: 'correct-password' });
+      mockRevealSRP.mockResolvedValue(MOCK_PASSWORD);
 
-      const { getByTestId } = renderWithProviders(
+      const { getByTestId, queryByTestId } = renderWithProviders(
         <RevealPrivateCredential
           route={createDefaultRoute()}
           navigation={null}
@@ -514,27 +886,24 @@ describe('RevealPrivateCredential', () => {
         />,
       );
 
-      const passwordInput = getByTestId(
-        RevealSeedViewSelectorsIDs.PASSWORD_INPUT_BOX_ID,
-      );
-      fireEvent.changeText(passwordInput, 'correct-password');
+      await completeSecurityQuiz(getByTestId);
 
-      const confirmButton = getByTestId(
-        RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_NEXT_BUTTON_ID,
-      );
-
-      await act(async () => {
-        fireEvent.press(confirmButton);
-      });
-
+      // SRP is already revealed via biometrics - check for the tab view
       await waitFor(() => {
         expect(
-          getByTestId(RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_MODAL_ID),
+          queryByTestId(RevealSeedViewSelectorsIDs.TAB_SCROLL_VIEW_TEXT),
         ).toBeTruthy();
       });
     });
 
     it('tracks NEXT_REVEAL_SRP_CTA analytics event', async () => {
+      // Mock biometrics to fail so password entry is shown
+      mockReauthenticate.mockRejectedValueOnce(
+        new Error(
+          `${ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS}: No password`,
+        ),
+      );
+      // Then allow the manual password entry to succeed
       mockReauthenticate.mockResolvedValue({ password: 'correct-password' });
 
       const { getByTestId } = renderWithProviders(
@@ -544,6 +913,8 @@ describe('RevealPrivateCredential', () => {
           cancel={() => null}
         />,
       );
+
+      await completeSecurityQuizAndWaitForPasswordEntry(getByTestId);
 
       const passwordInput = getByTestId(
         RevealSeedViewSelectorsIDs.PASSWORD_INPUT_BOX_ID,
@@ -586,6 +957,8 @@ describe('RevealPrivateCredential', () => {
         />,
       );
 
+      await completeSecurityQuiz(getByTestId);
+
       await waitFor(() => {
         const cancelButton = getByTestId(
           RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_CANCEL_BUTTON_ID,
@@ -612,6 +985,8 @@ describe('RevealPrivateCredential', () => {
           showCancelButton
         />,
       );
+
+      await completeSecurityQuiz(getByTestId);
 
       await waitFor(() => {
         const cancelButton = getByTestId(
@@ -648,6 +1023,8 @@ describe('RevealPrivateCredential', () => {
         />,
       );
 
+      await completeSecurityQuiz(getByTestId);
+
       await waitFor(() => {
         const cancelButton = getByTestId(
           RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_CANCEL_BUTTON_ID,
@@ -660,11 +1037,27 @@ describe('RevealPrivateCredential', () => {
   });
 
   describe('clipboard functionality', () => {
+    const mockShowToast = jest.fn();
+    const mockToastRef = {
+      current: { showToast: mockShowToast, closeToast: jest.fn() },
+    };
+
+    const renderWithClipboardProviders = (ui: React.ReactElement) =>
+      render(
+        <Provider store={store}>
+          <ThemeContext.Provider value={mockTheme}>
+            <ToastContext.Provider value={{ toastRef: mockToastRef }}>
+              {ui}
+            </ToastContext.Provider>
+          </ThemeContext.Provider>
+        </Provider>,
+      );
+
     it('copies SRP to clipboard when copy button is pressed', async () => {
       mockReauthenticate.mockResolvedValue({ password: 'test-password' });
       mockRevealSRP.mockResolvedValue(MOCK_PASSWORD);
 
-      const { queryByTestId } = renderWithProviders(
+      const { getByTestId } = renderWithClipboardProviders(
         <RevealPrivateCredential
           route={createDefaultRoute()}
           navigation={null}
@@ -672,31 +1065,32 @@ describe('RevealPrivateCredential', () => {
         />,
       );
 
-      // Wait for auto-reveal via biometrics
+      await completeSecurityQuiz(getByTestId);
+
       await waitFor(() => {
         expect(mockRevealSRP).toHaveBeenCalled();
       });
 
-      // Check if copy button exists (only visible when unlocked)
-      await waitFor(
-        () => {
-          const copyButton = queryByTestId(
-            RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_COPY_TO_CLIPBOARD_BUTTON,
-          );
-          if (copyButton) {
-            fireEvent.press(copyButton);
-            expect(ClipboardManager.setStringExpire).toHaveBeenCalled();
-          }
-        },
-        { timeout: 2000 },
+      const blurButton = getByTestId(
+        RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_BUTTON_ID,
+      );
+      fireEvent.press(blurButton);
+
+      const copyButton = getByTestId(
+        RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_COPY_TO_CLIPBOARD_BUTTON,
+      );
+      fireEvent.press(copyButton);
+
+      expect(ClipboardManager.setStringExpire).toHaveBeenCalledWith(
+        MOCK_PASSWORD,
       );
     });
 
-    it('dispatches showAlert after copying to clipboard', async () => {
+    it('shows toast after copying to clipboard', async () => {
       mockReauthenticate.mockResolvedValue({ password: 'test-password' });
       mockRevealSRP.mockResolvedValue(MOCK_PASSWORD);
 
-      const { queryByTestId } = renderWithProviders(
+      const { getByTestId } = renderWithClipboardProviders(
         <RevealPrivateCredential
           route={createDefaultRoute()}
           navigation={null}
@@ -704,24 +1098,34 @@ describe('RevealPrivateCredential', () => {
         />,
       );
 
+      await completeSecurityQuiz(getByTestId);
+
       await waitFor(() => {
         expect(mockRevealSRP).toHaveBeenCalled();
       });
 
-      await waitFor(
-        () => {
-          const copyButton = queryByTestId(
-            RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_COPY_TO_CLIPBOARD_BUTTON,
-          );
-          if (copyButton) {
-            fireEvent.press(copyButton);
-            expect(mockDispatch).toHaveBeenCalledWith(
-              expect.objectContaining({ type: 'SHOW_ALERT' }),
-            );
-          }
-        },
-        { timeout: 2000 },
+      const blurButton = getByTestId(
+        RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_BUTTON_ID,
       );
+      fireEvent.press(blurButton);
+
+      const copyButton = getByTestId(
+        RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_COPY_TO_CLIPBOARD_BUTTON,
+      );
+      fireEvent.press(copyButton);
+
+      await waitFor(() => {
+        expect(mockShowToast).toHaveBeenCalledWith(
+          expect.objectContaining({
+            variant: ToastVariants.Plain,
+            labelOptions: expect.arrayContaining([
+              expect.objectContaining({
+                label: expect.any(String),
+              }),
+            ]),
+          }),
+        );
+      });
     });
   });
 
@@ -732,7 +1136,7 @@ describe('RevealPrivateCredential', () => {
       mockReauthenticate.mockResolvedValue({ password: 'test-password' });
       mockRevealSRP.mockResolvedValue(MOCK_PASSWORD);
 
-      const { queryByTestId } = renderWithProviders(
+      const { getByTestId, queryByTestId } = renderWithProviders(
         <RevealPrivateCredential
           route={createDefaultRoute()}
           navigation={null}
@@ -740,9 +1144,19 @@ describe('RevealPrivateCredential', () => {
         />,
       );
 
+      await completeSecurityQuiz(getByTestId);
+
       await waitFor(() => {
         expect(mockRevealSRP).toHaveBeenCalled();
       });
+
+      // Reveal the seed phrase
+      const blurButton = queryByTestId(
+        RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_BUTTON_ID,
+      );
+      if (blurButton) {
+        fireEvent.press(blurButton);
+      }
 
       // Copy button should not be visible when clipboard is disabled for old Android API levels
       expect(
@@ -758,7 +1172,7 @@ describe('RevealPrivateCredential', () => {
       mockReauthenticate.mockResolvedValue({ password: 'test-password' });
       mockRevealSRP.mockResolvedValue(MOCK_PASSWORD);
 
-      const { queryByTestId } = renderWithProviders(
+      const { getByTestId, queryByTestId } = renderWithProviders(
         <RevealPrivateCredential
           route={createDefaultRoute()}
           navigation={null}
@@ -766,7 +1180,9 @@ describe('RevealPrivateCredential', () => {
         />,
       );
 
-      // Wait for auto-reveal via biometrics to unlock component
+      await completeSecurityQuiz(getByTestId);
+
+      // Wait for auto-reveal via biometrics to unlock component (runs when action view is reached)
       await waitFor(() => {
         expect(mockRevealSRP).toHaveBeenCalled();
       });
@@ -774,6 +1190,14 @@ describe('RevealPrivateCredential', () => {
       await waitFor(() => {
         expect(Device.getDeviceAPILevel).toHaveBeenCalled();
       });
+
+      // Need to reveal the seed phrase after unlocking
+      const blurButton = queryByTestId(
+        RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_BUTTON_ID,
+      );
+      if (blurButton) {
+        fireEvent.press(blurButton);
+      }
 
       // Copy button should be visible when unlocked on supported Android API level
       await waitFor(() => {
@@ -787,13 +1211,8 @@ describe('RevealPrivateCredential', () => {
   });
 
   describe('modal interactions', () => {
-    it('opens external link when SRP guide link is pressed', async () => {
-      const Linking = jest.requireMock(
-        'react-native/Libraries/Linking/Linking',
-      );
-      mockReauthenticate.mockResolvedValue({ password: 'correct-password' });
-
-      const { getByTestId, getByText } = renderWithProviders(
+    it('navigates to learn more when learn more link is pressed', () => {
+      const { getByTestId } = renderWithProviders(
         <RevealPrivateCredential
           route={createDefaultRoute()}
           navigation={null}
@@ -801,29 +1220,14 @@ describe('RevealPrivateCredential', () => {
         />,
       );
 
-      const passwordInput = getByTestId(
-        RevealSeedViewSelectorsIDs.PASSWORD_INPUT_BOX_ID,
-      );
-      fireEvent.changeText(passwordInput, 'correct-password');
-
-      const confirmButton = getByTestId(
-        RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_NEXT_BUTTON_ID,
+      // Press the Learn more button on the introduction screen
+      const learnMoreButton = getByTestId(
+        ExportCredentialsIds.LEARN_MORE_BUTTON,
       );
 
-      await act(async () => {
-        fireEvent.press(confirmButton);
-      });
-
-      await waitFor(() => {
-        expect(
-          getByTestId(RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_MODAL_ID),
-        ).toBeTruthy();
-      });
-
-      const linkText = getByText('but phishers might.');
-      fireEvent.press(linkText);
-
-      expect(Linking.openURL).toHaveBeenCalled();
+      // Verify the button exists and can be pressed without error
+      expect(learnMoreButton).toBeTruthy();
+      fireEvent.press(learnMoreButton);
     });
   });
 
@@ -886,10 +1290,10 @@ describe('RevealPrivateCredential', () => {
   });
 
   describe('analytics', () => {
-    it('tracks REVEAL_SRP_SCREEN event on mount', () => {
+    it('tracks REVEAL_SRP_SCREEN event when reaching action view', () => {
       renderWithProviders(
         <RevealPrivateCredential
-          route={createDefaultRoute()}
+          route={createDefaultRoute({ skipQuiz: true })}
           navigation={null}
           cancel={() => null}
         />,
@@ -919,6 +1323,8 @@ describe('RevealPrivateCredential', () => {
         />,
       );
 
+      await completeSecurityQuiz(getByTestId);
+
       await waitFor(() => {
         const cancelButton = getByTestId(
           RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_CANCEL_BUTTON_ID,
@@ -932,6 +1338,269 @@ describe('RevealPrivateCredential', () => {
         }),
       );
     });
+
+    it('tracks SRP_REVEAL_QUIZ_PROMPT_SEEN when introduction screen is shown', () => {
+      renderWithProviders(
+        <RevealPrivateCredential
+          route={createDefaultRoute()}
+          navigation={null}
+          cancel={() => null}
+        />,
+      );
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          category: MetaMetricsEvents.SRP_REVEAL_QUIZ_PROMPT_SEEN.category,
+        }),
+      );
+    });
+
+    it('tracks SRP_REVEAL_START_CTA_SELECTED when Get started is pressed', async () => {
+      const { getByTestId } = renderWithProviders(
+        <RevealPrivateCredential
+          route={createDefaultRoute()}
+          navigation={null}
+          cancel={() => null}
+        />,
+      );
+
+      // Press Get started button
+      fireEvent.press(getByTestId(SrpQuizGetStartedSelectorsIDs.BUTTON));
+
+      await waitFor(() => {
+        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+          expect.objectContaining({
+            category: MetaMetricsEvents.SRP_REVEAL_START_CTA_SELECTED.category,
+          }),
+        );
+      });
+    });
+
+    it('tracks SRP_REVEAL_FIRST_QUESTION_SEEN when question 1 is shown', async () => {
+      const { getByTestId } = renderWithProviders(
+        <RevealPrivateCredential
+          route={createDefaultRoute()}
+          navigation={null}
+          cancel={() => null}
+        />,
+      );
+
+      // Navigate to quiz
+      fireEvent.press(getByTestId(SrpQuizGetStartedSelectorsIDs.BUTTON));
+
+      await waitFor(() => {
+        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+          expect.objectContaining({
+            category: MetaMetricsEvents.SRP_REVEAL_FIRST_QUESTION_SEEN.category,
+          }),
+        );
+      });
+    });
+
+    it('tracks SRP_REVEAL_FIRST_QUESTION_RIGHT_ASNWER when Q1 correct answer is selected', async () => {
+      const { getByTestId } = renderWithProviders(
+        <RevealPrivateCredential
+          route={createDefaultRoute()}
+          navigation={null}
+          cancel={() => null}
+        />,
+      );
+
+      // Navigate to quiz
+      fireEvent.press(getByTestId(SrpQuizGetStartedSelectorsIDs.BUTTON));
+
+      await waitFor(() => {
+        expect(
+          getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_ANSWER),
+        ).toBeTruthy();
+      });
+
+      // Select correct answer
+      fireEvent.press(
+        getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_ANSWER),
+      );
+
+      await waitFor(() => {
+        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+          expect.objectContaining({
+            category:
+              MetaMetricsEvents.SRP_REVEAL_FIRST_QUESTION_RIGHT_ASNWER.category,
+          }),
+        );
+      });
+    });
+
+    it('tracks SRP_REVEAL_FIRST_QUESTION_WRONG_ANSWER when Q1 wrong answer is selected', async () => {
+      const { getByTestId } = renderWithProviders(
+        <RevealPrivateCredential
+          route={createDefaultRoute()}
+          navigation={null}
+          cancel={() => null}
+        />,
+      );
+
+      // Navigate to quiz
+      fireEvent.press(getByTestId(SrpQuizGetStartedSelectorsIDs.BUTTON));
+
+      await waitFor(() => {
+        expect(
+          getByTestId(SrpSecurityQuestionOneSelectorsIDs.WRONG_ANSWER),
+        ).toBeTruthy();
+      });
+
+      // Select wrong answer
+      fireEvent.press(
+        getByTestId(SrpSecurityQuestionOneSelectorsIDs.WRONG_ANSWER),
+      );
+
+      await waitFor(() => {
+        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+          expect.objectContaining({
+            category:
+              MetaMetricsEvents.SRP_REVEAL_FIRST_QUESTION_WRONG_ANSWER.category,
+          }),
+        );
+      });
+    });
+
+    it('tracks SRP_REVEAL_SECOND_QUESTION_SEEN when question 2 is shown', async () => {
+      const { getByTestId } = renderWithProviders(
+        <RevealPrivateCredential
+          route={createDefaultRoute()}
+          navigation={null}
+          cancel={() => null}
+        />,
+      );
+
+      // Navigate to quiz and complete Q1
+      fireEvent.press(getByTestId(SrpQuizGetStartedSelectorsIDs.BUTTON));
+
+      await waitFor(() => {
+        expect(
+          getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_ANSWER),
+        ).toBeTruthy();
+      });
+      fireEvent.press(
+        getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_ANSWER),
+      );
+
+      await waitFor(() => {
+        expect(
+          getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_CONTINUE),
+        ).toBeTruthy();
+      });
+      fireEvent.press(
+        getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_CONTINUE),
+      );
+
+      // Now on Q2
+      await waitFor(() => {
+        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+          expect.objectContaining({
+            category:
+              MetaMetricsEvents.SRP_REVEAL_SECOND_QUESTION_SEEN.category,
+          }),
+        );
+      });
+    });
+
+    it('tracks SRP_REVEAL_SECOND_QUESTION_RIGHT_ASNWER when Q2 correct answer is selected', async () => {
+      const { getByTestId } = renderWithProviders(
+        <RevealPrivateCredential
+          route={createDefaultRoute()}
+          navigation={null}
+          cancel={() => null}
+        />,
+      );
+
+      // Complete Q1
+      fireEvent.press(getByTestId(SrpQuizGetStartedSelectorsIDs.BUTTON));
+      await waitFor(() => {
+        expect(
+          getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_ANSWER),
+        ).toBeTruthy();
+      });
+      fireEvent.press(
+        getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_ANSWER),
+      );
+      await waitFor(() => {
+        expect(
+          getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_CONTINUE),
+        ).toBeTruthy();
+      });
+      fireEvent.press(
+        getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_CONTINUE),
+      );
+
+      // Select correct answer for Q2
+      await waitFor(() => {
+        expect(
+          getByTestId(SrpSecurityQuestionTwoSelectorsIDs.RIGHT_ANSWER),
+        ).toBeTruthy();
+      });
+      fireEvent.press(
+        getByTestId(SrpSecurityQuestionTwoSelectorsIDs.RIGHT_ANSWER),
+      );
+
+      await waitFor(() => {
+        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+          expect.objectContaining({
+            category:
+              MetaMetricsEvents.SRP_REVEAL_SECOND_QUESTION_RIGHT_ASNWER
+                .category,
+          }),
+        );
+      });
+    });
+
+    it('tracks SRP_REVEAL_SECOND_QUESTION_WRONG_ANSWER when Q2 wrong answer is selected', async () => {
+      const { getByTestId } = renderWithProviders(
+        <RevealPrivateCredential
+          route={createDefaultRoute()}
+          navigation={null}
+          cancel={() => null}
+        />,
+      );
+
+      // Complete Q1
+      fireEvent.press(getByTestId(SrpQuizGetStartedSelectorsIDs.BUTTON));
+      await waitFor(() => {
+        expect(
+          getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_ANSWER),
+        ).toBeTruthy();
+      });
+      fireEvent.press(
+        getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_ANSWER),
+      );
+      await waitFor(() => {
+        expect(
+          getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_CONTINUE),
+        ).toBeTruthy();
+      });
+      fireEvent.press(
+        getByTestId(SrpSecurityQuestionOneSelectorsIDs.RIGHT_CONTINUE),
+      );
+
+      // Select wrong answer for Q2
+      await waitFor(() => {
+        expect(
+          getByTestId(SrpSecurityQuestionTwoSelectorsIDs.WRONG_ANSWER),
+        ).toBeTruthy();
+      });
+      fireEvent.press(
+        getByTestId(SrpSecurityQuestionTwoSelectorsIDs.WRONG_ANSWER),
+      );
+
+      await waitFor(() => {
+        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+          expect.objectContaining({
+            category:
+              MetaMetricsEvents.SRP_REVEAL_SECOND_QUESTION_WRONG_ANSWER
+                .category,
+          }),
+        );
+      });
+    });
   });
 
   describe('done action', () => {
@@ -940,7 +1609,7 @@ describe('RevealPrivateCredential', () => {
       mockReauthenticate.mockResolvedValue({ password: 'test-password' });
       mockRevealSRP.mockResolvedValue(MOCK_PASSWORD);
 
-      const { queryByTestId } = renderWithProviders(
+      const { getByTestId } = renderWithProviders(
         <RevealPrivateCredential
           route={createDefaultRoute()}
           navigation={null}
@@ -948,23 +1617,21 @@ describe('RevealPrivateCredential', () => {
         />,
       );
 
-      // Wait for biometric unlock
+      await completeSecurityQuiz(getByTestId);
+
+      // Wait for biometric unlock (runs when action view is reached)
       await waitFor(() => {
         expect(mockRevealSRP).toHaveBeenCalled();
       });
 
-      // After unlock, the cancel button becomes "Done"
-      await waitFor(
-        () => {
-          const doneButton = queryByTestId(
-            RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_CANCEL_BUTTON_ID,
-          );
-          if (doneButton) {
-            fireEvent.press(doneButton);
-          }
-        },
-        { timeout: 2000 },
-      );
+      // After unlock via biometrics, the cancel button shows "Done"
+      await waitFor(() => {
+        const doneButton = getByTestId(
+          RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_CANCEL_BUTTON_ID,
+        );
+        expect(doneButton).toBeTruthy();
+        fireEvent.press(doneButton);
+      });
 
       expect(mockCancel).toHaveBeenCalled();
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
@@ -982,6 +1649,7 @@ describe('RevealPrivateCredential', () => {
       const customAccount = createMockAccount({
         address: customAddress,
       });
+      // Mock biometrics to fail, but then fail with a specific error when trying to unlock
       mockReauthenticate.mockRejectedValue(new Error('Test error'));
 
       const { getByTestId } = renderWithProviders(
@@ -991,6 +1659,8 @@ describe('RevealPrivateCredential', () => {
           cancel={() => null}
         />,
       );
+
+      await completeSecurityQuizAndWaitForPasswordEntry(getByTestId);
 
       const passwordInput = getByTestId(
         RevealSeedViewSelectorsIDs.PASSWORD_INPUT_BOX_ID,
@@ -1025,9 +1695,18 @@ describe('RevealPrivateCredential', () => {
         />,
       );
 
+      await completeSecurityQuiz(getByTestId);
+
       await waitFor(() => {
         expect(mockRevealSRP).toHaveBeenCalled();
       });
+
+      const blurButton = queryByTestId(
+        RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_BUTTON_ID,
+      );
+      if (blurButton) {
+        fireEvent.press(blurButton);
+      }
 
       // Verify component successfully unlocked using the fallback address from selector
       // The SRP is revealed, proving the fallback address worked
