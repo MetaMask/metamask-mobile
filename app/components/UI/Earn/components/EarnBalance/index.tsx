@@ -8,7 +8,7 @@ import EarnLendingBalance from '../EarnLendingBalance';
 import { selectIsStakeableToken } from '../../../Stake/selectors/stakeableTokens';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import TronStakingButtons from '../Tron/TronStakingButtons';
-import { selectTronResourcesBySelectedAccountGroup } from '../../../../../selectors/assets/assets-list';
+import { selectTronSpecialAssetsBySelectedAccountGroup } from '../../../../../selectors/assets/assets-list';
 import { selectTrxStakingEnabled } from '../../../../../selectors/featureFlagController/trxStakingEnabled';
 import { hasStakedTrxPositions as hasStakedTrxPositionsUtil } from '../../utils/tron';
 import useTronStakeApy from '../../hooks/useTronStakeApy';
@@ -47,7 +47,9 @@ const EarnBalance = ({ asset }: EarnBalanceProps) => {
   const isStakedTrxAsset =
     isTron && (asset?.ticker === 'sTRX' || asset?.symbol === 'sTRX');
 
-  const tronResources = useSelector(selectTronResourcesBySelectedAccountGroup);
+  const tronResources = useSelector(
+    selectTronSpecialAssetsBySelectedAccountGroup,
+  );
   const hasStakedTrxPositions = React.useMemo(
     () => hasStakedTrxPositionsUtil(tronResources),
     [tronResources],

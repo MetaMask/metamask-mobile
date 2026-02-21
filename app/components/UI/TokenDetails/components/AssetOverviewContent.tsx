@@ -148,6 +148,9 @@ export interface AssetOverviewContentProps {
   // Tron-specific
   isTronNative?: boolean;
   stakedTrxAsset?: TokenI;
+  readyForWithdrawalTrxAsset?: TokenI;
+  stakingRewardsTrxAsset?: TokenI;
+  inLockPeriodTrxAsset?: TokenI;
 }
 
 /**
@@ -184,6 +187,9 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   goToSwaps,
   isTronNative,
   stakedTrxAsset,
+  readyForWithdrawalTrxAsset,
+  stakingRewardsTrxAsset,
+  inLockPeriodTrxAsset,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
@@ -464,6 +470,45 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
                 asset={stakedTrxAsset}
                 mainBalance={stakedTrxAsset.balance ?? ''}
                 secondaryBalance={`${stakedTrxAsset.balance} ${stakedTrxAsset.symbol}`}
+                hideTitleHeading
+                hidePercentageChange
+              />
+            )
+            ///: END:ONLY_INCLUDE_IF
+          }
+          {
+            ///: BEGIN:ONLY_INCLUDE_IF(tron)
+            isTronNative && readyForWithdrawalTrxAsset && (
+              <Balance
+                asset={readyForWithdrawalTrxAsset}
+                mainBalance={readyForWithdrawalTrxAsset.balance ?? ''}
+                secondaryBalance={`${readyForWithdrawalTrxAsset.balance} ${readyForWithdrawalTrxAsset.symbol}`}
+                hideTitleHeading
+                hidePercentageChange
+              />
+            )
+            ///: END:ONLY_INCLUDE_IF
+          }
+          {
+            ///: BEGIN:ONLY_INCLUDE_IF(tron)
+            isTronNative && stakingRewardsTrxAsset && (
+              <Balance
+                asset={stakingRewardsTrxAsset}
+                mainBalance={stakingRewardsTrxAsset.balance ?? ''}
+                secondaryBalance={`${stakingRewardsTrxAsset.balance} ${stakingRewardsTrxAsset.symbol}`}
+                hideTitleHeading
+                hidePercentageChange
+              />
+            )
+            ///: END:ONLY_INCLUDE_IF
+          }
+          {
+            ///: BEGIN:ONLY_INCLUDE_IF(tron)
+            isTronNative && inLockPeriodTrxAsset && (
+              <Balance
+                asset={inLockPeriodTrxAsset}
+                mainBalance={inLockPeriodTrxAsset.balance ?? ''}
+                secondaryBalance={`${inLockPeriodTrxAsset.balance} ${inLockPeriodTrxAsset.symbol}`}
                 hideTitleHeading
                 hidePercentageChange
               />

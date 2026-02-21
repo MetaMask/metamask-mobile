@@ -150,6 +150,9 @@ const TokenDetails: React.FC<{ token: TokenDetailsRouteParams }> = ({
     ///: BEGIN:ONLY_INCLUDE_IF(tron)
     isTronNative,
     stakedTrxAsset,
+    readyForWithdrawalTrxAsset,
+    stakingRewardsTrxAsset,
+    inLockPeriodTrxAsset,
     ///: END:ONLY_INCLUDE_IF
   } = useTokenBalance(token);
 
@@ -221,6 +224,9 @@ const TokenDetails: React.FC<{ token: TokenDetailsRouteParams }> = ({
         ///: BEGIN:ONLY_INCLUDE_IF(tron)
         isTronNative={isTronNative}
         stakedTrxAsset={stakedTrxAsset}
+        readyForWithdrawalTrxAsset={readyForWithdrawalTrxAsset}
+        stakingRewardsTrxAsset={stakingRewardsTrxAsset}
+        inLockPeriodTrxAsset={inLockPeriodTrxAsset}
         ///: END:ONLY_INCLUDE_IF
       />
       <ActivityHeader

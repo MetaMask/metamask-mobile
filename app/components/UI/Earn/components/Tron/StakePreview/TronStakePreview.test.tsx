@@ -4,8 +4,8 @@ import { useSelector } from 'react-redux';
 
 import TronStakePreview from './TronStakePreview';
 import {
-  selectTronResourcesBySelectedAccountGroup,
-  TronResourcesMap,
+  selectTronSpecialAssetsBySelectedAccountGroup,
+  TronSpecialAssetsMap,
 } from '../../../../../../selectors/assets/assets-list';
 import type { ComputeFeeResult } from '../../../utils/tron-staking-snap';
 
@@ -46,7 +46,9 @@ jest.mock('../../../hooks/useTronStakeApy', () => ({
 
 const mockUseSelector = useSelector as jest.Mock;
 
-const createMockResourcesMap = (totalStakedTrx: number): TronResourcesMap => ({
+const createMockResourcesMap = (
+  totalStakedTrx: number,
+): TronSpecialAssetsMap => ({
   energy: undefined,
   bandwidth: undefined,
   maxEnergy: undefined,
@@ -54,6 +56,9 @@ const createMockResourcesMap = (totalStakedTrx: number): TronResourcesMap => ({
   stakedTrxForEnergy: undefined,
   stakedTrxForBandwidth: undefined,
   totalStakedTrx,
+  readyForWithdrawal: undefined,
+  stakingRewards: undefined,
+  inLockPeriod: undefined,
 });
 
 describe('TronStakePreview', () => {
@@ -71,7 +76,7 @@ describe('TronStakePreview', () => {
     const mockResourcesMap = createMockResourcesMap(15);
 
     mockUseSelector.mockImplementation((selector: unknown) => {
-      if (selector === selectTronResourcesBySelectedAccountGroup) {
+      if (selector === selectTronSpecialAssetsBySelectedAccountGroup) {
         return mockResourcesMap;
       }
       return undefined;
@@ -94,7 +99,7 @@ describe('TronStakePreview', () => {
     const mockResourcesMap = createMockResourcesMap(130.96926);
 
     mockUseSelector.mockImplementation((selector: unknown) => {
-      if (selector === selectTronResourcesBySelectedAccountGroup) {
+      if (selector === selectTronSpecialAssetsBySelectedAccountGroup) {
         return mockResourcesMap;
       }
       return undefined;
@@ -174,7 +179,7 @@ describe('TronStakePreview', () => {
 
   it('returns empty reward when total staked balance is zero in stake mode', () => {
     mockUseSelector.mockImplementation((selector: unknown) => {
-      if (selector === selectTronResourcesBySelectedAccountGroup) {
+      if (selector === selectTronSpecialAssetsBySelectedAccountGroup) {
         return createMockResourcesMap(0);
       }
       return undefined;

@@ -5,7 +5,7 @@ import StakingBalance from '../../../Stake/components/StakingBalance/StakingBala
 import { TokenI } from '../../../Tokens/types';
 import EarnLendingBalance from '../EarnLendingBalance';
 import { selectTrxStakingEnabled } from '../../../../../selectors/featureFlagController/trxStakingEnabled';
-import { selectTronResourcesBySelectedAccountGroup } from '../../../../../selectors/assets/assets-list';
+import { selectTronSpecialAssetsBySelectedAccountGroup } from '../../../../../selectors/assets/assets-list';
 import TronStakingButtons from '../Tron/TronStakingButtons';
 import { selectIsMusdConversionFlowEnabledFlag } from '../../selectors/featureFlags';
 
@@ -27,7 +27,7 @@ jest.mock(
 
 jest.mock('../../../../../selectors/assets/assets-list', () => ({
   ...jest.requireActual('../../../../../selectors/assets/assets-list'),
-  selectTronResourcesBySelectedAccountGroup: jest.fn(),
+  selectTronSpecialAssetsBySelectedAccountGroup: jest.fn(),
 }));
 
 jest.mock('../Tron/TronStakingButtons', () => ({
@@ -152,7 +152,7 @@ describe('EarnBalance', () => {
     jest.clearAllMocks();
     (jest.mocked(selectTrxStakingEnabled) as jest.Mock).mockReturnValue(false);
     (
-      jest.mocked(selectTronResourcesBySelectedAccountGroup) as jest.Mock
+      jest.mocked(selectTronSpecialAssetsBySelectedAccountGroup) as jest.Mock
     ).mockReturnValue(createEmptyResourcesMap());
   });
 
@@ -251,7 +251,7 @@ describe('EarnBalance', () => {
   describe('TRON', () => {
     const mockFlag = selectTrxStakingEnabled as unknown as jest.Mock;
     const mockTronResources =
-      selectTronResourcesBySelectedAccountGroup as unknown as jest.Mock;
+      selectTronSpecialAssetsBySelectedAccountGroup as unknown as jest.Mock;
 
     it('renders TRON stake button with aprText for TRX without staked positions', () => {
       const trx: Partial<TokenI> = {

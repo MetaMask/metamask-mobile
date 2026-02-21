@@ -13,14 +13,14 @@ import { TokenI } from '../../Tokens/types';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { safeParseBigNumber } from '../../../../util/number/bignumber';
-import type { TronResourcesMap } from '../../../../selectors/assets/assets-list';
+import type { TronSpecialAssetsMap } from '../../../../selectors/assets/assets-list';
 
 /**
  * Returns the total staked TRX (sTRX) amount from TRON resources.
  * This is pre-computed in the selector using BigNumber to avoid floating-point precision errors.
  */
 export function getStakedTrxTotalFromResources(
-  resources?: TronResourcesMap | null,
+  resources?: TronSpecialAssetsMap | null,
 ): number {
   return resources?.totalStakedTrx ?? 0;
 }
@@ -29,7 +29,7 @@ export function getStakedTrxTotalFromResources(
  * True if the user holds any sTRX according to TRON resources.
  */
 export const hasStakedTrxPositions = (
-  resources?: TronResourcesMap | null,
+  resources?: TronSpecialAssetsMap | null,
 ): boolean => getStakedTrxTotalFromResources(resources) > 0;
 
 export const buildTronEarnTokenIfEligible = (

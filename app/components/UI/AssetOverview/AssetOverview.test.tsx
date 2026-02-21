@@ -294,7 +294,7 @@ jest.mock('../../../selectors/multichainAccounts/accounts', () => ({
 
 jest.mock('../../../selectors/assets/assets-list', () => ({
   ...jest.requireActual('../../../selectors/assets/assets-list'),
-  selectTronResourcesBySelectedAccountGroup: jest.fn().mockReturnValue({
+  selectTronSpecialAssetsBySelectedAccountGroup: jest.fn().mockReturnValue({
     energy: undefined,
     bandwidth: undefined,
     maxEnergy: undefined,
@@ -369,10 +369,10 @@ describe('AssetOverview', () => {
     });
 
     // Default mock for tron resources
-    const { selectTronResourcesBySelectedAccountGroup } = jest.requireMock(
+    const { selectTronSpecialAssetsBySelectedAccountGroup } = jest.requireMock(
       '../../../selectors/assets/assets-list',
     );
-    selectTronResourcesBySelectedAccountGroup.mockReturnValue({
+    selectTronSpecialAssetsBySelectedAccountGroup.mockReturnValue({
       energy: undefined,
       bandwidth: undefined,
       maxEnergy: undefined,
@@ -1049,11 +1049,11 @@ describe('AssetOverview', () => {
   });
 
   it('renders staked TRX details when viewing TRX on Tron', () => {
-    const { selectTronResourcesBySelectedAccountGroup } = jest.requireMock(
+    const { selectTronSpecialAssetsBySelectedAccountGroup } = jest.requireMock(
       '../../../selectors/assets/assets-list',
     );
 
-    selectTronResourcesBySelectedAccountGroup.mockReturnValue({
+    selectTronSpecialAssetsBySelectedAccountGroup.mockReturnValue({
       energy: undefined,
       bandwidth: undefined,
       maxEnergy: undefined,

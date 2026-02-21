@@ -111,10 +111,15 @@ import { getTokenExchangeRate } from '../Bridge/utils/exchange-rates';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import {
-  selectTronResourcesBySelectedAccountGroup,
+  selectTronSpecialAssetsBySelectedAccountGroup,
   selectAsset,
 } from '../../../selectors/assets/assets-list';
 import { createStakedTrxAsset } from './utils/createStakedTrxAsset';
+import {
+  createReadyForWithdrawalTrxAsset,
+  createStakingRewardsTrxAsset,
+  createInLockPeriodTrxAsset,
+} from './utils/createTronDerivedAsset';
 ///: END:ONLY_INCLUDE_IF
 import { getDetectedGeolocation } from '../../../reducers/fiatOrders';
 import { useRampsButtonClickData } from '../Ramp/hooks/useRampsButtonClickData';
@@ -237,9 +242,13 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   ///: END:ONLY_INCLUDE_IF
 
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
-  const { stakedTrxForEnergy, stakedTrxForBandwidth } = useSelector(
-    selectTronResourcesBySelectedAccountGroup,
-  );
+  const {
+    stakedTrxForEnergy,
+    stakedTrxForBandwidth,
+    readyForWithdrawal,
+    stakingRewards,
+    inLockPeriod,
+  } = useSelector(selectTronSpecialAssetsBySelectedAccountGroup);
 
   // Use selector to get live Tron asset balance (not static navigation params)
   const isTronChain = String(asset.chainId).startsWith('tron:');
@@ -596,6 +605,21 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
         stakedTrxForBandwidth?.balance,
       )
     : undefined;
+
+  const readyForWithdrawalTrxAsset =
+    isTronNative && readyForWithdrawal
+      ? createReadyForWithdrawalTrxAsset(asset, readyForWithdrawal.balance)
+      : undefined;
+
+  const stakingRewardsTrxAsset =
+    isTronNative && stakingRewards
+      ? createStakingRewardsTrxAsset(asset, stakingRewards.balance)
+      : undefined;
+
+  const inLockPeriodTrxAsset =
+    isTronNative && inLockPeriod
+      ? createInLockPeriodTrxAsset(asset, inLockPeriod.balance)
+      : undefined;
   ///: END:ONLY_INCLUDE_IF
 
   // Determine the balance source - prefer live data for Tron, otherwise use asset prop
@@ -798,6 +822,45 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
                 asset={stakedTrxAsset}
                 mainBalance={stakedTrxAsset.balance}
                 secondaryBalance={`${stakedTrxAsset.balance} ${stakedTrxAsset.symbol}`}
+                hideTitleHeading
+                hidePercentageChange
+              />
+            )
+            ///: END:ONLY_INCLUDE_IF
+          }
+          {
+            ///: BEGIN:ONLY_INCLUDE_IF(tron)
+            isTronNative && readyForWithdrawalTrxAsset && (
+              <Balance
+                asset={readyForWithdrawalTrxAsset}
+                mainBalance={readyForWithdrawalTrxAsset.balance}
+                secondaryBalance={`${readyForWithdrawalTrxAsset.balance} ${readyForWithdrawalTrxAsset.symbol}`}
+                hideTitleHeading
+                hidePercentageChange
+              />
+            )
+            ///: END:ONLY_INCLUDE_IF
+          }
+          {
+            ///: BEGIN:ONLY_INCLUDE_IF(tron)
+            isTronNative && stakingRewardsTrxAsset && (
+              <Balance
+                asset={stakingRewardsTrxAsset}
+                mainBalance={stakingRewardsTrxAsset.balance}
+                secondaryBalance={`${stakingRewardsTrxAsset.balance} ${stakingRewardsTrxAsset.symbol}`}
+                hideTitleHeading
+                hidePercentageChange
+              />
+            )
+            ///: END:ONLY_INCLUDE_IF
+          }
+          {
+            ///: BEGIN:ONLY_INCLUDE_IF(tron)
+            isTronNative && inLockPeriodTrxAsset && (
+              <Balance
+                asset={inLockPeriodTrxAsset}
+                mainBalance={inLockPeriodTrxAsset.balance}
+                secondaryBalance={`${inLockPeriodTrxAsset.balance} ${inLockPeriodTrxAsset.symbol}`}
                 hideTitleHeading
                 hidePercentageChange
               />

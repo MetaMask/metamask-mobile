@@ -14,7 +14,7 @@ import {
   selectAsset,
   selectAssetsBySelectedAccountGroup,
   selectSortedAssetsBySelectedAccountGroup,
-  selectTronResourcesBySelectedAccountGroup,
+  selectTronSpecialAssetsBySelectedAccountGroup,
 } from './assets-list';
 
 const mockState = ({
@@ -581,7 +581,7 @@ describe('selectSortedAssetsBySelectedAccountGroup', () => {
     ]);
   });
 
-  it('filters out Tron Energy and Bandwidth resources from assets', () => {
+  it('filters out Tron special assets from the sorted asset list', () => {
     const stateWithTronAssets = {
       ...mockState(),
       engine: {
@@ -593,6 +593,9 @@ describe('selectSortedAssetsBySelectedAccountGroup', () => {
               '2d89e6a0-b4e6-45a8-a707-f10cef143b42': [
                 'tron:728126428/slip44:energy',
                 'tron:728126428/slip44:bandwidth',
+                'tron:728126428/slip44:195-ready-for-withdrawal',
+                'tron:728126428/slip44:195-staking-rewards',
+                'tron:728126428/slip44:195-in-lock-period',
                 'tron:728126428/slip44:195',
               ],
             },
@@ -611,6 +614,37 @@ describe('selectSortedAssetsBySelectedAccountGroup', () => {
                 iconUrl: 'test-url',
                 units: [
                   { name: 'Bandwidth', symbol: 'BANDWIDTH', decimals: 0 },
+                ],
+              },
+              'tron:728126428/slip44:195-ready-for-withdrawal': {
+                name: 'Ready for Withdrawal',
+                symbol: 'rfwTRX',
+                fungible: true as const,
+                iconUrl: 'test-url',
+                units: [
+                  {
+                    name: 'Ready for Withdrawal',
+                    symbol: 'rfwTRX',
+                    decimals: 6,
+                  },
+                ],
+              },
+              'tron:728126428/slip44:195-staking-rewards': {
+                name: 'Staking Rewards',
+                symbol: 'srTRX',
+                fungible: true as const,
+                iconUrl: 'test-url',
+                units: [
+                  { name: 'Staking Rewards', symbol: 'srTRX', decimals: 6 },
+                ],
+              },
+              'tron:728126428/slip44:195-in-lock-period': {
+                name: 'In Lock Period',
+                symbol: 'ilpTRX',
+                fungible: true as const,
+                iconUrl: 'test-url',
+                units: [
+                  { name: 'In Lock Period', symbol: 'ilpTRX', decimals: 6 },
                 ],
               },
               'tron:728126428/slip44:195': {
@@ -633,6 +667,18 @@ describe('selectSortedAssetsBySelectedAccountGroup', () => {
                 'tron:728126428/slip44:bandwidth': {
                   amount: '604',
                   unit: 'BANDWIDTH',
+                },
+                'tron:728126428/slip44:195-ready-for-withdrawal': {
+                  amount: '10',
+                  unit: 'rfwTRX',
+                },
+                'tron:728126428/slip44:195-staking-rewards': {
+                  amount: '5',
+                  unit: 'srTRX',
+                },
+                'tron:728126428/slip44:195-in-lock-period': {
+                  amount: '20',
+                  unit: 'ilpTRX',
                 },
                 'tron:728126428/slip44:195': { amount: '1000', unit: 'TRX' },
               },
@@ -663,21 +709,28 @@ describe('selectSortedAssetsBySelectedAccountGroup', () => {
     const tronAssets = result.filter((asset) =>
       asset.chainId?.includes('tron:'),
     );
-    const energyAsset = result.find((asset) =>
-      asset.address?.includes('energy'),
-    );
-    const bandwidthAsset = result.find((asset) =>
-      asset.address?.includes('bandwidth'),
-    );
+
+    expect(
+      result.find((asset) => asset.address?.includes('energy')),
+    ).toBeUndefined();
+    expect(
+      result.find((asset) => asset.address?.includes('bandwidth')),
+    ).toBeUndefined();
+    expect(
+      result.find((asset) => asset.address?.includes('ready-for-withdrawal')),
+    ).toBeUndefined();
+    expect(
+      result.find((asset) => asset.address?.includes('staking-rewards')),
+    ).toBeUndefined();
+    expect(
+      result.find((asset) => asset.address?.includes('in-lock-period')),
+    ).toBeUndefined();
+
     const trxAsset = result.find((asset) =>
       asset.address?.includes('slip44:195'),
     );
-
-    expect(energyAsset).toBeUndefined();
-    expect(bandwidthAsset).toBeUndefined();
     expect(trxAsset).toBeDefined();
 
-    // Only TRX is in the list after filtering
     expect(tronAssets).toHaveLength(1);
   });
 });
@@ -976,7 +1029,7 @@ describe('selectAsset', () => {
   });
 });
 
-describe('selectTronResourcesBySelectedAccountGroup', () => {
+describe('selectTronSpecialAssetsBySelectedAccountGroup', () => {
   it('returns Tron energy and bandwidth resources when Tron network is enabled', () => {
     const stateWithTronAssets = {
       ...mockState(),
@@ -1054,7 +1107,7 @@ describe('selectTronResourcesBySelectedAccountGroup', () => {
     } as unknown as RootState;
 
     const result =
-      selectTronResourcesBySelectedAccountGroup(stateWithTronAssets);
+      selectTronSpecialAssetsBySelectedAccountGroup(stateWithTronAssets);
 
     // Verify the object structure with named properties
     expect(result.energy?.assetId).toBe('tron:728126428/slip44:energy');
@@ -1081,6 +1134,9 @@ describe('selectTronResourcesBySelectedAccountGroup', () => {
                 'tron:728126428/slip44:max-bandwidth',
                 'tron:728126428/slip44:strx-energy',
                 'tron:728126428/slip44:strx-bandwidth',
+                'tron:728126428/slip44:195-ready-for-withdrawal',
+                'tron:728126428/slip44:195-staking-rewards',
+                'tron:728126428/slip44:195-in-lock-period',
                 'tron:728126428/slip44:195',
               ],
             },
@@ -1149,6 +1205,45 @@ describe('selectTronResourcesBySelectedAccountGroup', () => {
                   },
                 ],
               },
+              'tron:728126428/slip44:195-ready-for-withdrawal': {
+                name: 'Ready for Withdrawal',
+                symbol: 'rfwTRX',
+                fungible: true as const,
+                iconUrl: 'test-url',
+                units: [
+                  {
+                    name: 'Ready for Withdrawal',
+                    symbol: 'rfwTRX',
+                    decimals: 6,
+                  },
+                ],
+              },
+              'tron:728126428/slip44:195-staking-rewards': {
+                name: 'Staking Rewards',
+                symbol: 'srTRX',
+                fungible: true as const,
+                iconUrl: 'test-url',
+                units: [
+                  {
+                    name: 'Staking Rewards',
+                    symbol: 'srTRX',
+                    decimals: 6,
+                  },
+                ],
+              },
+              'tron:728126428/slip44:195-in-lock-period': {
+                name: 'In Lock Period',
+                symbol: 'ilpTRX',
+                fungible: true as const,
+                iconUrl: 'test-url',
+                units: [
+                  {
+                    name: 'In Lock Period',
+                    symbol: 'ilpTRX',
+                    decimals: 6,
+                  },
+                ],
+              },
               'tron:728126428/slip44:195': {
                 name: 'TRON',
                 symbol: 'TRX',
@@ -1186,6 +1281,18 @@ describe('selectTronResourcesBySelectedAccountGroup', () => {
                   amount: '65.48463',
                   unit: 'STRX-BANDWIDTH',
                 },
+                'tron:728126428/slip44:195-ready-for-withdrawal': {
+                  amount: '25.5',
+                  unit: 'rfwTRX',
+                },
+                'tron:728126428/slip44:195-staking-rewards': {
+                  amount: '12.3',
+                  unit: 'srTRX',
+                },
+                'tron:728126428/slip44:195-in-lock-period': {
+                  amount: '50',
+                  unit: 'ilpTRX',
+                },
                 'tron:728126428/slip44:195': {
                   amount: '1000',
                   unit: 'TRX',
@@ -1212,11 +1319,11 @@ describe('selectTronResourcesBySelectedAccountGroup', () => {
       },
     } as unknown as RootState;
 
-    const result = selectTronResourcesBySelectedAccountGroup(
+    const result = selectTronSpecialAssetsBySelectedAccountGroup(
       stateWithAllResources,
     );
 
-    // All 6 resource types should be mapped
+    // All 6 original resource types should be mapped
     expect(result.energy?.assetId).toBe('tron:728126428/slip44:energy');
     expect(result.bandwidth?.assetId).toBe('tron:728126428/slip44:bandwidth');
     expect(result.maxEnergy?.assetId).toBe('tron:728126428/slip44:max-energy');
@@ -1228,6 +1335,17 @@ describe('selectTronResourcesBySelectedAccountGroup', () => {
     );
     expect(result.stakedTrxForBandwidth?.assetId).toBe(
       'tron:728126428/slip44:strx-bandwidth',
+    );
+
+    // 3 new resource types should be mapped
+    expect(result.readyForWithdrawal?.assetId).toBe(
+      'tron:728126428/slip44:195-ready-for-withdrawal',
+    );
+    expect(result.stakingRewards?.assetId).toBe(
+      'tron:728126428/slip44:195-staking-rewards',
+    );
+    expect(result.inLockPeriod?.assetId).toBe(
+      'tron:728126428/slip44:195-in-lock-period',
     );
 
     // totalStakedTrx computed via BigNumber avoids floating-point errors
@@ -1294,7 +1412,7 @@ describe('selectTronResourcesBySelectedAccountGroup', () => {
       },
     } as unknown as RootState;
 
-    const result = selectTronResourcesBySelectedAccountGroup(
+    const result = selectTronSpecialAssetsBySelectedAccountGroup(
       stateWithTronDisabled,
     );
 
@@ -1307,6 +1425,9 @@ describe('selectTronResourcesBySelectedAccountGroup', () => {
       stakedTrxForEnergy: undefined,
       stakedTrxForBandwidth: undefined,
       totalStakedTrx: 0,
+      readyForWithdrawal: undefined,
+      stakingRewards: undefined,
+      inLockPeriod: undefined,
     });
   });
 });
